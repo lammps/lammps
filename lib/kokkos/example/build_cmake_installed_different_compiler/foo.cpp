@@ -53,7 +53,7 @@ struct CountFunctor {
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
-  Kokkos::DefaultExecutionSpace::print_configuration(std::cout);
+  Kokkos::DefaultExecutionSpace().print_configuration(std::cout);
 
   if (argc < 2) {
     fprintf(stderr, "Usage: %s [<kokkos_options>] <size>\n", argv[0]);

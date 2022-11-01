@@ -6,7 +6,7 @@ compute erotate/rigid command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID erotate/rigid fix-ID
 
@@ -25,18 +25,20 @@ Description
 """""""""""
 
 Define a computation that calculates the rotational kinetic energy of
-a collection of rigid bodies, as defined by one of the :doc:`fix rigid <fix_rigid>` command variants.
+a collection of rigid bodies, as defined by one of the
+:doc:`fix rigid <fix_rigid>` command variants.
 
-The rotational energy of each rigid body is computed as 1/2 I Wbody\^2,
-where I is the inertia tensor for the rigid body, and Wbody is its
-angular velocity vector.  Both I and Wbody are in the frame of
-reference of the rigid body, i.e. I is diagonalized.
+The rotational energy of each rigid body is computed as
+:math:`\frac12 I \omega_\text{body}^2`,
+where :math:`I` is the inertia tensor for the rigid body and
+:math:`\omega_\text{body}` is its angular velocity vector.
+Both :math:`I` and :math:`\omega_\text{body}` are in the frame of
+reference of the rigid body (i.e., :math:`I` is diagonal).
 
 The *fix-ID* should be the ID of one of the :doc:`fix rigid <fix_rigid>`
 commands which defines the rigid bodies.  The group specified in the
 compute command is ignored.  The rotational energy of all the rigid
-bodies defined by the fix rigid command in included in the
-calculation.
+bodies defined by the fix rigid command in included in the calculation.
 
 Output info
 """""""""""
@@ -53,7 +55,8 @@ Restrictions
 """"""""""""
 
 This compute is part of the RIGID package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

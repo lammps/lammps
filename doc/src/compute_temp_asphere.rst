@@ -6,7 +6,7 @@ compute temp/asphere command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID temp/asphere keyword value ...
 
@@ -42,38 +42,38 @@ usual :doc:`compute temp <compute_temp>` command, which assumes point
 particles with only translational kinetic energy.
 
 Only finite-size particles (aspherical or spherical) can be included
-in the group.  For 3d finite-size particles, each has 6 degrees of
-freedom (3 translational, 3 rotational).  For 2d finite-size
-particles, each has 3 degrees of freedom (2 translational, 1
+in the group.  For 3d finite-size particles, each has six degrees of
+freedom (three translational, three rotational).  For 2d finite-size
+particles, each has three degrees of freedom (two translational, one
 rotational).
 
 .. note::
 
-   This choice for degrees of freedom (dof) assumes that all
+   This choice for degrees of freedom (DOF) assumes that all
    finite-size aspherical or spherical particles in your model will
-   freely rotate, sampling all their rotational dof.  It is possible to
+   freely rotate, sampling all their rotational DOF.  It is possible to
    use a combination of interaction potentials and fixes that induce no
    torque or otherwise constrain some of all of your particles so that
-   this is not the case.  Then there are less dof and you should use the
-   :doc:`compute_modify extra <compute_modify>` command to adjust the dof
+   this is not the case.  Then there are fewer DOF and you should use the
+   :doc:`compute_modify extra <compute_modify>` command to adjust the DOF
    accordingly.
 
 For example, an aspherical particle with all three of its shape
 parameters the same is a sphere.  If it does not rotate, then it
-should have 3 dof instead of 6 in 3d (or 2 instead of 3 in 2d).  A
-uniaxial aspherical particle has two of its three shape parameters the
+should have 3 DOF instead of 6 in 3d (or two instead of three in 2d).
+A uniaxial aspherical particle has two of its three shape parameters the
 same.  If it does not rotate around the axis perpendicular to its
-circular cross section, then it should have 5 dof instead of 6 in 3d.
+circular cross section, then it should have 5 DOF instead of 6 in 3d.
 The latter is the case for uniaxial ellipsoids in a :doc:`GayBerne model <pair_gayberne>` since there is no induced torque around the
-optical axis.  It will also be the case for bi-axial ellipsoids when
+optical axis.  It will also be the case for biaxial ellipsoids when
 exactly two of the semiaxes have the same length and the corresponding
 relative well depths are equal.
 
 The translational kinetic energy is computed the same as is described
 by the :doc:`compute temp <compute_temp>` command.  The rotational
-kinetic energy is computed as 1/2 I w\^2, where I is the inertia tensor
-for the aspherical particle and w is its angular velocity, which is
-computed from its angular momentum.
+kinetic energy is computed as :math:`\frac12 I \omega^2`, where :math:`I` is
+the inertia tensor for the aspherical particle and :math:`\omega` is its
+angular velocity, which is computed from its angular momentum.
 
 .. note::
 
@@ -81,12 +81,13 @@ computed from its angular momentum.
    ellipsoids, not ellipses, meaning their moments of inertia will be the
    same as in 3d.
 
-A kinetic energy tensor, stored as a 6-element vector, is also
+A kinetic energy tensor, stored as a six-element vector, is also
 calculated by this compute.  The formula for the components of the
-tensor is the same as the above formula, except that v\^2 and w\^2 are
-replaced by vx\*vy and wx\*wy for the xy component, and the appropriate
-elements of the inertia tensor are used.  The 6 components of the
-vector are ordered xx, yy, zz, xy, xz, yz.
+tensor is the same as the above formula, except that :math:`v^2` and
+:math:`\omega^2` are replaced by :math:`v_x v_y` and :math:`\omega_x \omega_y`
+for the :math:`xy` component, and the appropriate elements of the moment of
+inertia tensor are used.  The six components of the vector are ordered
+:math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
@@ -111,14 +112,14 @@ For the *bias* keyword, *bias-ID* refers to the ID of a temperature
 compute that removes a "bias" velocity from each atom.  This allows
 compute temp/sphere to compute its thermal temperature after the
 translational kinetic energy components have been altered in a
-prescribed way, e.g. to remove a flow velocity profile.  Thermostats
+prescribed way (e.g., to remove a flow velocity profile).  Thermostats
 that use this compute will work with this bias term.  See the doc
 pages for individual computes that calculate a temperature and the doc
 pages for fixes that perform thermostatting for more details.
 
 For the *dof* keyword, a setting of *all* calculates a temperature
-that includes both translational and rotational degrees of freedom.  A
-setting of *rotate* calculates a temperature that includes only
+that includes both translational and rotational degrees of freedom.
+A setting of *rotate* calculates a temperature that includes only
 rotational degrees of freedom.
 
 ----------
@@ -127,10 +128,11 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+vector of length 6 (KE tensor), which can be accessed by indices 1--6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options.
+vector values from a compute as input.
+See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+output options.
 
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".

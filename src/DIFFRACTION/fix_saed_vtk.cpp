@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -67,7 +67,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
 
   // Check that specified compute is for SAED
-  compute_saed = dynamic_cast<ComputeSAED *>( modify->compute[icompute]);
+  compute_saed = dynamic_cast<ComputeSAED *>(modify->compute[icompute]);
   if (strcmp(compute_saed->style,"saed") != 0)
     error->all(FLERR,"Fix saed/vtk has invalid compute assigned");
 

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -80,8 +80,9 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
 
   // error check
 
-  if (xlo > xhi || ylo > yhi || zlo > zhi)
-    error->all(FLERR,"Illegal region block command");
+  if (xlo > xhi) error->all(FLERR,"Illegal region block xlo: {} >= xhi: {}", xlo, xhi);
+  if (ylo > yhi) error->all(FLERR,"Illegal region block ylo: {} >= yhi: {}", ylo, yhi);
+  if (zlo > zhi) error->all(FLERR,"Illegal region block zlo: {} >= zhi: {}", zlo, zhi);
 
   // extent of block
 

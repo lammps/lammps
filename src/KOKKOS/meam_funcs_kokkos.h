@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,7 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #include "math_special_kokkos.h"
+
 #include <cmath>
+
 #include "meam_kokkos.h"
 using namespace MathSpecialKokkos;
 
@@ -210,6 +212,7 @@ void MEAMKokkos<DeviceType>::get_shpfcn(const lattice_t latt, const double sthe,
     case BCC:
     case B1:
     case B2:
+    case SC:
       s[0] = 0.0;
       s[1] = 0.0;
       s[2] = 0.0;
@@ -270,6 +273,7 @@ int MEAMKokkos<DeviceType>::get_Zij(const lattice_t latt) const
     case DIM:
       return 1;
     case B1:
+    case SC:
       return 6;
     case C11:
       return 10;

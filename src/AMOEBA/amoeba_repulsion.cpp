@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -504,7 +504,7 @@ void PairAmoeba::damprep(double r, double r2, double rr1, double rr3,
     dmpk24 = dmpk23 * dmpk2;
     dmpk25 = dmpk24 * dmpk2;
     term = dmpi22 - dmpk22;
-    pre = 8192.0 * dmpi23 * dmpk23 / pow(term,4.0);
+    pre = 8192.0 * dmpi23 * dmpk23 / (term*term*term*term);
     tmp = 4.0 * dmpi2 * dmpk2 / term;
     s = (dampi-tmp)*expk + (dampk+tmp)*expi;
 

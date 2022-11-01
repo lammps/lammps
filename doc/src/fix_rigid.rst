@@ -80,7 +80,7 @@ Syntax
          groupID1, groupID2, ... = list of N group IDs
 
 * zero or more keyword/value pairs may be appended
-* keyword = *langevin* or *reinit* or *temp* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile*
+* keyword = *langevin* or *reinit* or *temp* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile* or *gravity*
 
   .. parsed-literal::
 
@@ -88,7 +88,7 @@ Syntax
          Tstart,Tstop = desired temperature at start/stop of run (temperature units)
          Tdamp = temperature damping parameter (time units)
          seed = random number seed to use for white noise (positive integer)
-       *reinit* = *yes* or *no*
+       *reinit* value = *yes* or *no*
        *temp* values = Tstart Tstop Tdamp
          Tstart,Tstop = desired temperature at start/stop of run (temperature units)
          Tdamp = temperature damping parameter (time units)
@@ -98,7 +98,7 @@ Syntax
        *x* or *y* or *z* values = Pstart Pstop Pdamp
          Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
          Pdamp = stress damping parameter (time units)
-       *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
+       *couple* value = *none* or *xyz* or *xy* or *yz* or *xz*
        *tparam* values = Tchain Titer Torder
          Tchain = length of Nose/Hoover thermostat chain
          Titer = number of thermostat iterations performed
@@ -115,6 +115,11 @@ Syntax
          xflag,yflag,zflag = off/on if component of center-of-mass torque is active
        *infile* filename
          filename = file with per-body values of mass, center-of-mass, moments of inertia
+       *gravity* values = gravity-ID
+         gravity-ID = ID of fix gravity command to add gravitational forces
+
+..
+    FIXME These don't seem to be included in the source code
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
 

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel ator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -416,7 +416,7 @@ void PairAmoeba::read_keyfile(char *filename)
 
     const auto words = Tokenizer(trimmed).as_vector();
     const int nwords = words.size();
-    const auto keyword = words[0];
+    const auto &keyword = words[0];
 
     if (utils::strmatch(keyword, "^[^a-z]+")) {
       ;    // ignore keywords that do not start with text

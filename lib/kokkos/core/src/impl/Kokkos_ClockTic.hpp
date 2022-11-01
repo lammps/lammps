@@ -77,20 +77,30 @@ namespace Impl {
  *  having different index-seed values.
  */
 
-KOKKOS_FORCEINLINE_FUNCTION
-uint64_t clock_tic() noexcept {
-#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+KOKKOS_IMPL_DEVICE_FUNCTION inline uint64_t clock_tic_device() noexcept {
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
 
   // Return value of 64-bit hi-res clock register.
-
   return clock64();
 
 #elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU) && \
     defined(__SYCL_DEVICE_ONLY__)
+
   return intel_get_cycle_counter();
+
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  return uint64_t(omp_get_wtime() * 1.e9);
-#elif defined(__i386__) || defined(__x86_64)
+
+  return omp_get_wtime() * 1.e9;
+
+#else
+
+  return 0;
+
+#endif
+}
+
+KOKKOS_IMPL_HOST_FUNCTION inline uint64_t clock_tic_host() noexcept {
+#if defined(__i386__) || defined(__x86_64)
 
   // Return value of 64-bit hi-res clock register.
 
@@ -111,11 +121,15 @@ uint64_t clock_tic() noexcept {
 
 #else
 
-  return (uint64_t)std::chrono::high_resolution_clock::now()
-      .time_since_epoch()
-      .count();
+  return std::chrono::high_resolution_clock::now().time_since_epoch().count();
 
 #endif
+}
+
+KOKKOS_FORCEINLINE_FUNCTION
+uint64_t clock_tic() noexcept {
+  KOKKOS_IF_ON_DEVICE((return clock_tic_device();))
+  KOKKOS_IF_ON_HOST((return clock_tic_host();))
 }
 
 }  // namespace Impl

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,7 +20,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "group.h"
 #include "input.h"
 #include "memory.h"
@@ -241,7 +241,7 @@ void DumpCustom::init_style()
   delete[] columns;
   std::string combined;
   int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
+  for (const auto &item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
     if (keyword_user[icol].size()) combined += keyword_user[icol];
     else combined += item;
@@ -262,10 +262,11 @@ void DumpCustom::init_style()
 
   auto words = utils::split_words(format);
   if ((int) words.size() < nfield)
-    error->all(FLERR,"Dump_modify format line is too short");
+    error->all(FLERR,"Dump_modify format line is too short: {}", format);
 
   int i=0;
   for (const auto &word : words) {
+    if (i >= nfield) break;
     delete[] vformat[i];
 
     if (format_column_user[i])
@@ -1673,7 +1674,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"format") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 
     if (strcmp(arg[1],"none") == 0) {
       // just clear format_column_user allocated by this dump child class
@@ -1684,7 +1685,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       return 2;
     }
 
-    if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 3) utils::missing_cmd_args(FLERR, "dump_modify format", error);
 
     if (strcmp(arg[1],"int") == 0) {
       delete[] format_int_user;
@@ -1710,7 +1711,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     } else {
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
-        error->all(FLERR,"Illegal dump_modify command");
+        error->all(FLERR,"Unknown dump_modify format ID keyword: {}", arg[1]);
       delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }
@@ -1731,7 +1732,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"refresh") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify refresh", error);
     ArgInfo argi(arg[1],ArgInfo::COMPUTE);
     if ((argi.get_type() != ArgInfo::COMPUTE) || (argi.get_dim() != 0))
       error->all(FLERR,"Illegal dump_modify command");
@@ -1743,7 +1744,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"thresh") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify thresh", error);
     if (strcmp(arg[1],"none") == 0) {
       if (nthresh) {
         memory->destroy(thresh_array);
@@ -1765,7 +1766,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       return 2;
     }
 
-    if (narg < 4) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 4) utils::missing_cmd_args(FLERR, "dump_modify thresh", error);
 
     // grow threshold arrays
 
@@ -2000,16 +2001,16 @@ int DumpCustom::modify_param(int narg, char **arg)
       thresh_value[nthresh] = utils::numeric(FLERR,arg[3],false,lmp);
       thresh_last[nthresh] = -1;
     } else {
-      thresh_fix = (FixStore **)
-        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),"dump:thresh_fix");
+      thresh_fix = (FixStorePeratom **)
+        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStorePeratom *),"dump:thresh_fix");
       thresh_fixID = (char **)
         memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),"dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
-      threshid += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
-      thresh_fix[nthreshlast] = dynamic_cast<FixStore *>( modify->add_fix(threshid));
+      threshid += fmt::format(" {} STORE/PERATOM 1 1", group->names[igroup]);
+      thresh_fix[nthreshlast] = dynamic_cast<FixStorePeratom *>(modify->add_fix(threshid));
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;

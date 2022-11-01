@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -62,7 +62,7 @@ class PairSNAP : public Pair {
   int switchinnerflag;    // inner cutoff switch
   double *sinnerelem;     // element inner cutoff midpoint
   double *dinnerelem;     // element inner cutoff half-width
-  int chunksize,parallel_thresh;
+  int chunksize, parallel_thresh;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag;    // flags for required parameters
   int beta_max;                    // length of beta

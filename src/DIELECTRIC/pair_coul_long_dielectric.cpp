@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,10 +36,11 @@ using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) : PairCoulLong(_lmp)
+PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) : PairCoulLong(_lmp), efield(nullptr)
 {
-  efield = nullptr;
   nmax = 0;
+  single_enable = 0;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,15 +56,11 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itable, itype, jtype;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, ecoul;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double fraction, table;
-  double r, r2inv, forcecoul, factor_coul;
+  double r, rsq, r2inv, forcecoul, factor_coul;
   double grij, expm2, prefactor, t, erfc, prefactorE, efield_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  double rsq;
-
-  ecoul = 0.0;
-  ev_init(eflag, vflag);
 
   if (atom->nmax > nmax) {
     memory->destroy(efield);
@@ -71,17 +68,18 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
     memory->create(efield, nmax, 3, "pair:efield");
   }
 
+  ecoul = 0.0;
+  ev_init(eflag, vflag);
+
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
+  double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;
   double *area = atom->area;
-  double *eps = atom->epsilon;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
   double *special_coul = force->special_coul;
-  int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
   inum = list->inum;
@@ -103,6 +101,7 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
     jnum = numneigh[i];
 
     // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
+
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
       double sf = curvature[i] / (4.0 * MY_PIS * curvature_threshold) * area[i] * q[i];
@@ -169,23 +168,16 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
         efield[i][1] += dely * efield_i;
         efield[i][2] += delz * efield_i;
 
-        if (newton_pair && j >= nlocal) {
-          fpair_j = eps[j] * forcecoul * r2inv;
-          f[j][0] -= delx * fpair_j;
-          f[j][1] -= dely * fpair_j;
-          f[j][2] -= delz * fpair_j;
-        }
-
         if (eflag) {
           if (!ncoultablebits || rsq <= tabinnersq)
-            ecoul = prefactor * (etmp + eps[j]) * erfc;
+            ecoul = prefactor * 0.5 * (etmp + eps[j]) * erfc;
           else {
             table = etable[itable] + fraction * detable[itable];
-            ecoul = scale[itype][jtype] * qtmp * q[j] * (etmp + eps[j]) * table;
+            ecoul = scale[itype][jtype] * qtmp * q[j] * 0.5 * (etmp + eps[j]) * table;
           }
-          ecoul *= 0.5;
           if (factor_coul < 1.0) ecoul -= (1.0 - factor_coul) * prefactor;
-        }
+        } else
+          ecoul = 0.0;
 
         if (evflag) ev_tally_full(i, 0.0, ecoul, fpair_i, delx, dely, delz);
       }

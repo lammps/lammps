@@ -14,7 +14,7 @@ Syntax
 * wall/piston = style name of this fix command
 * face = *zlo*
 * zero or more keyword/value pairs may be appended
-* keyword = *pos* or *vel* or *ramp* or *units*
+* keyword = *pos* or *vel* or *ramp* or *temp* or *units*
 
   .. parsed-literal::
 
@@ -31,6 +31,10 @@ Syntax
        *units* value = *lattice* or *box*
          *lattice* = the wall position is defined in lattice units
          *box* = the wall position is defined in simulation box units
+
+..
+    FIXME: There are several "undocumented" key words for this fix: *rough*,
+    *rampNL1*, *rampNL2*, *rampNL3*, *rampNL4*, and *rampNL5*.
 
 Examples
 """"""""

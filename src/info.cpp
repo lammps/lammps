@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -402,7 +402,7 @@ void Info::command(int narg, char **arg)
   if (flags & SYSTEM) {
     fputs("\nSystem information:\n",out);
     fmt::print(out,"Units         = {}\n", update->unit_style);
-    fmt::print(out,"Atom style    = {}\n", atom->atom_style);
+    fmt::print(out,"Atom style    = {}\n", atom->get_style());
     fmt::print(out,"Atom map      = {}\n", mapstyles[atom->map_style]);
     if (atom->molecular != Atom::ATOMIC) {
       const char *msg;
@@ -887,42 +887,17 @@ bool Info::is_defined(const char *category, const char *name)
   if ((category == nullptr) || (name == nullptr)) return false;
 
   if (strcmp(category,"compute") == 0) {
-    int ncompute = modify->ncompute;
-    Compute **compute = modify->compute;
-    for (int i=0; i < ncompute; ++i) {
-      if (strcmp(compute[i]->id,name) == 0)
-        return true;
-    }
+    if (modify->get_compute_by_id(name)) return true;
   } else if (strcmp(category,"dump") == 0) {
-    int ndump = output->ndump;
-    Dump **dump = output->dump;
-    for (int i=0; i < ndump; ++i) {
-      if (strcmp(dump[i]->id,name) == 0)
-        return true;
-    }
+    if (output->get_dump_by_id(name)) return true;
   } else if (strcmp(category,"fix") == 0) {
-    for (const auto &fix : modify->get_fix_list()) {
-      if (strcmp(fix->id,name) == 0)
-        return true;
-    }
+    if (modify->get_fix_by_id(name)) return true;
   } else if (strcmp(category,"group") == 0) {
-    int ngroup = group->ngroup;
-    char **names = group->names;
-    for (int i=0; i < ngroup; ++i) {
-      if (strcmp(names[i],name) == 0)
-        return true;
-    }
+    if (group->find(name) >= 0) return true;
   } else if (strcmp(category,"region") == 0) {
-    for (auto &reg : domain->get_region_list())
-      if (strcmp(reg->id,name) == 0) return true;
+    if (domain->get_region_by_id(name)) return true;
   } else if (strcmp(category,"variable") == 0) {
-    int nvar = input->variable->nvar;
-    char **names = input->variable->names;
-
-    for (int i=0; i < nvar; ++i) {
-      if (strcmp(names[i],name) == 0)
-        return true;
-    }
+    if (input->variable->find(name) >= 0) return true;
   } else error->all(FLERR,"Unknown category for info is_defined(): {}", category);
 
   return false;

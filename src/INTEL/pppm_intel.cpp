@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -403,7 +403,6 @@ void PPPMIntel::particle_map(IntelBuffers<flt_t,acc_t> *buffers)
       // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
       // current particle coord can be outside global and local box
       // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
-
       int nx = static_cast<int> ((x[i].x-lo0)*xi+fshift) - OFFSET;
       int ny = static_cast<int> ((x[i].y-lo1)*yi+fshift) - OFFSET;
       int nz = static_cast<int> ((x[i].z-lo2)*zi+fshift) - OFFSET;
@@ -941,6 +940,7 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
 #endif
     #endif
     for (int i = ifrom; i < ito; i++) {
+      i = IP_PRE_dword_index(i);
       particle_ekx[i] *= hx_inv;
       particle_eky[i] *= hy_inv;
       particle_ekz[i] *= hz_inv;

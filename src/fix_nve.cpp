@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,7 +29,7 @@ FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (!utils::strmatch(style,"^nve/sphere") && narg < 3)
-    error->all(FLERR,"Illegal fix nve command");
+    utils::missing_cmd_args(FLERR, "fix nve", error);
 
   dynamic_group_allow = 1;
   time_integrate = 1;
@@ -55,7 +55,7 @@ void FixNVE::init()
   dtf = 0.5 * update->dt * force->ftm2v;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
 }
 
 /* ----------------------------------------------------------------------

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -45,11 +45,11 @@ using namespace FixConst;
 static const char cite_fix_lbfluid[] =
     "fix lb/fluid command: doi:10.1016/j.cpc.2022.108318\n\n"
     "@Article{Denniston et al.,\n"
-    " author = {C. Denniston, N. Afrasiabian, M.G. Cole-Andre,"
-    "F.E. Mackay, S.T.T. Ollila, T. Whitehead},\n"
-    " title =   {LAMMPS lb/fluid fix version 2: Improved Hydrodynamic "
-    "Forces Implemented into LAMMPS through a lattice-Boltzmann fluid},"
-    " journal = {Comp.~Phys.~Comm.},\n"
+    "  author = {C. Denniston and N. Afrasiabian and M. G. Cole-Andre,"
+    "    F. E. Mackay and S. T. T. Ollila and T. Whitehead},\n"
+    " title =   {{LAMMPS} lb/fluid fix version 2: Improved Hydrodynamic "
+    "    Forces Implemented into {LAMMPS} Through a Lattice-{B}oltzmann Fluid},"
+    " journal = {Comput.\\ Phys.\\ Commun.},\n"
     " year =    2022,\n"
     " volume =  275,\n"
     " pages =   {108318}\n"
@@ -181,9 +181,9 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   // we require continuous time stepping
   time_depend = 1;
 
-  if (narg < 6) error->all(FLERR, "Illegal fix lb/fluid command");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "fix lb/fluid",error);
 
-  if (comm->style != 0)
+  if (comm->style != Comm::BRICK)
     error->universe_all(FLERR, "Fix lb/fluid can only currently be used with comm_style brick");
 
   MPI_Comm_rank(world, &me);

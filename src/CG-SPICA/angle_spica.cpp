@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,17 +21,17 @@
 
 #include "angle_spica.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
-#include "pair.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "pair.h"
 
+#include <cmath>
 
 #include "lj_spica_common.h"
 
@@ -43,7 +43,12 @@ using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
-AngleSPICA::AngleSPICA(LAMMPS *lmp) : Angle(lmp) { repflag = 0;}
+AngleSPICA::AngleSPICA(LAMMPS *lmp) :
+    Angle(lmp), k(nullptr), theta0(nullptr), lj_type(nullptr), lj1(nullptr), lj2(nullptr),
+    lj3(nullptr), lj4(nullptr), rminsq(nullptr), emin(nullptr)
+{
+  repflag = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 

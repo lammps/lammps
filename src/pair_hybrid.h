@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,6 +25,7 @@ PairStyle(hybrid,PairHybrid);
 namespace LAMMPS_NS {
 
 class PairHybrid : public Pair {
+  friend class AtomVecDielectric;
   friend class ComputeSpin;
   friend class FixGPU;
   friend class FixIntel;
@@ -69,11 +70,11 @@ class PairHybrid : public Pair {
   double radii2cut(double, double) override;
 
  protected:
-  int nstyles;           // # of sub-styles
-  Pair **styles;         // list of Pair style classes
-  double *cutmax_style;  // max cutoff for each style
-  char **keywords;       // style name of each Pair style
-  int *multiple;         // 0 if style used once, else Mth instance
+  int nstyles;             // # of sub-styles
+  Pair **styles;           // list of Pair style classes
+  double *cutmax_style;    // max cutoff for each style
+  char **keywords;         // style name of each Pair style
+  int *multiple;           // 0 if style used once, else Mth instance
 
   int outerflag;    // toggle compute() when invoked by outer()
   int respaflag;    // 1 if different substyles are assigned to

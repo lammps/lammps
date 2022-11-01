@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -70,7 +70,7 @@
 using namespace LAMMPS_NS;
 
 static constexpr const char *const cite_openkim =
-  "OpenKIM: https://doi.org/10.1007/s11837-011-0102-6\n\n"
+  "OpenKIM Project: doi:10.1007/s11837-011-0102-6\n\n"
   "@Article{tadmor:elliott:2011,\n"
   " author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller "
   "and C. A. Becker},\n"
@@ -85,7 +85,7 @@ static constexpr const char *const cite_openkim =
   "}\n\n";
 
 static constexpr const char *const cite_openkim_query =
-  "OpenKIM query: https://doi.org/10.1063/5.0014267\n\n"
+  "OpenKIM query: doi:10.1063/5.0014267\n\n"
   "@Article{karls:bierbaum:2020,\n"
   " author = {D. S. Karls and M. Bierbaum and A. A. Alemi and R. S. Elliott "
   "and J. P. Sethna and E. B. Tadmor},\n"

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,11 +46,11 @@ using MathSpecial::square;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_stress_sphere[] =
-    "compute stress/spherical:\n\n"
+    "compute stress/spherical: doi:10.48550/arXiv.2201.13060\n\n"
     "@article{galteland2022defining,\n"
-    "title={Defining the pressures of a fluid in a nanoporous, heterogeneous medium},\n"
+    "title={Defining the Pressures of a Fluid in a Nanoporous, Heterogeneous Medium},\n"
     "author={Galteland, Olav and Rauter, Michael T and Varughese, Kevin K and Bedeaux, Dick and "
-    "Kjelstrup, Signe},\n"
+    "   Kjelstrup, Signe},\n"
     "journal={arXiv preprint arXiv:2201.13060},\n"
     "year={2022}\n"
     "}\n\n";

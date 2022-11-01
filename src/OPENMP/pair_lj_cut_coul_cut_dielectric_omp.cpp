@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,6 +23,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "suffix.h"
 
 #include <cmath>
 
@@ -37,6 +38,7 @@ static constexpr double EPSILON = 1.0e-6;
 PairLJCutCoulCutDielectricOMP::PairLJCutCoulCutDielectricOMP(LAMMPS *_lmp) :
     PairLJCutCoulCutDielectric(_lmp), ThrOMP(_lmp, THR_PAIR)
 {
+  suffix_flag |= Suffix::OMP;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -70,21 +72,12 @@ void PairLJCutCoulCutDielectricOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (force->newton_pair)
-          eval<1, 1, 1>(ifrom, ito, thr);
-        else
-          eval<1, 1, 0>(ifrom, ito, thr);
+        eval<1, 1>(ifrom, ito, thr);
       } else {
-        if (force->newton_pair)
-          eval<1, 0, 1>(ifrom, ito, thr);
-        else
-          eval<1, 0, 0>(ifrom, ito, thr);
+        eval<1, 0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair)
-        eval<0, 0, 1>(ifrom, ito, thr);
-      else
-        eval<0, 0, 0>(ifrom, ito, thr);
+      eval<0, 0>(ifrom, ito, thr);
     }
 
     thr->timer(Timer::PAIR);
@@ -94,12 +87,12 @@ void PairLJCutCoulCutDielectricOMP::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+template <int EVFLAG, int EFLAG>
 void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const thr)
 {
   int i, j, ii, jj, jnum, itype, jtype;
   double qtmp, etmp, xtmp, ytmp, ztmp, delx, dely, delz, evdwl, ecoul;
-  double fpair_i, fpair_j;
+  double fpair_i;
   double rsq, r2inv, r6inv, forcecoul, forcelj, factor_coul, factor_lj;
   double efield_i, epot_i;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -114,7 +107,6 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
   const double *_noalias const curvature = atom->curvature;
   const double *_noalias const area = atom->area;
   const int *_noalias const type = atom->type;
-  const int nlocal = atom->nlocal;
   const double *_noalias const special_coul = force->special_coul;
   const double *_noalias const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
@@ -130,10 +122,10 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
 
     i = ilist[ii];
     qtmp = q[i];
+    etmp = eps[i];
     xtmp = x[i].x;
     ytmp = x[i].y;
     ztmp = x[i].z;
-    etmp = eps[i];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -141,6 +133,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
     extmp = eytmp = eztmp = 0.0;
 
     // self term Eq. (55) for I_{ii} and Eq. (52) and in Barros et al
+
     double curvature_threshold = sqrt(area[i]);
     if (curvature[i] < curvature_threshold) {
       double sf = curvature[i] / (4.0 * MY_PIS * curvature_threshold) * area[i] * q[i];
@@ -151,7 +144,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
       efield[i][0] = efield[i][1] = efield[i][2] = 0;
     }
 
-    epot[i] = 0;
+    epot[i] = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -167,9 +160,10 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0 / rsq;
+        const double rinv = sqrt(r2inv);
 
         if (rsq < cut_coulsq[itype][jtype] && rsq > EPSILON) {
-          efield_i = qqrd2e * q[j] * sqrt(r2inv);
+          efield_i = qqrd2e * q[j] * rinv;
           forcecoul = qtmp * efield_i;
           epot_i = efield_i;
         } else
@@ -182,7 +176,6 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
           forcelj = 0.0;
 
         fpair_i = (factor_coul * etmp * forcecoul + factor_lj * forcelj) * r2inv;
-
         fxtmp += delx * fpair_i;
         fytmp += dely * fpair_i;
         fztmp += delz * fpair_i;
@@ -193,29 +186,18 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
         eztmp += delz * efield_i;
         epot[i] += epot_i;
 
-        if (NEWTON_PAIR || j >= nlocal) {
-          fpair_j = (factor_coul * eps[j] * forcecoul + factor_lj * forcelj) * r2inv;
-          f[j].x -= delx * fpair_j;
-          f[j].y -= dely * fpair_j;
-          f[j].z -= delz * fpair_j;
-        }
-
         if (EFLAG) {
           if (rsq < cut_coulsq[itype][jtype]) {
-            ecoul = factor_coul * qqrd2e * qtmp * q[j] * (etmp + eps[j]) * sqrt(r2inv);
+            ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) * rinv;
           } else
             ecoul = 0.0;
-          ecoul *= 0.5;
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;
           } else
             evdwl = 0.0;
         }
-
-        if (EVFLAG)
-          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, ecoul, fpair_i, delx, dely, delz,
-                       thr);
+        if (EVFLAG) ev_tally_full_thr(this, i, evdwl, ecoul, fpair_i, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

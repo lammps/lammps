@@ -2,7 +2,13 @@
 set(MLIAP_ENABLE_PYTHON_DEFAULT OFF)
 if(PKG_PYTHON)
   find_package(Cythonize QUIET)
-  if(Cythonize_FOUND)
+  if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
+    find_package(Python COMPONENTS NumPy QUIET)
+  else()
+    # assume we have NumPy
+    set(Python_NumPy_FOUND ON)
+  endif()
+  if(Cythonize_FOUND AND Python_NumPy_FOUND)
     set(MLIAP_ENABLE_PYTHON_DEFAULT ON)
   endif()
 endif()
@@ -11,6 +17,9 @@ option(MLIAP_ENABLE_PYTHON "Build ML-IAP package with Python support" ${MLIAP_EN
 
 if(MLIAP_ENABLE_PYTHON)
   find_package(Cythonize REQUIRED)
+  if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
+    find_package(Python COMPONENTS NumPy REQUIRED)
+  endif()
   if(NOT PKG_PYTHON)
     message(FATAL_ERROR "Must enable PYTHON package for including Python support in ML-IAP")
   endif()
@@ -25,16 +34,18 @@ if(MLIAP_ENABLE_PYTHON)
   endif()
 
   set(MLIAP_BINARY_DIR ${CMAKE_BINARY_DIR}/cython)
-  set(MLIAP_CYTHON_SRC ${LAMMPS_SOURCE_DIR}/ML-IAP/mliap_model_python_couple.pyx)
-  get_filename_component(MLIAP_CYTHON_BASE ${MLIAP_CYTHON_SRC} NAME_WE)
+  file(GLOB MLIAP_CYTHON_SRC ${LAMMPS_SOURCE_DIR}/ML-IAP/*.pyx)
   file(MAKE_DIRECTORY ${MLIAP_BINARY_DIR})
-  add_custom_command(OUTPUT  ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.h
-          COMMAND            ${CMAKE_COMMAND} -E copy_if_different ${MLIAP_CYTHON_SRC} ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
-          COMMAND            ${Cythonize_EXECUTABLE} -3 ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
-          WORKING_DIRECTORY  ${MLIAP_BINARY_DIR}
-          MAIN_DEPENDENCY    ${MLIAP_CYTHON_SRC}
-          COMMENT "Generating C++ sources with cythonize...")
+  foreach(MLIAP_CYTHON_FILE ${MLIAP_CYTHON_SRC})
+    get_filename_component(MLIAP_CYTHON_BASE ${MLIAP_CYTHON_FILE} NAME_WE)
+    add_custom_command(OUTPUT  ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.h
+            COMMAND            ${CMAKE_COMMAND} -E copy_if_different ${MLIAP_CYTHON_FILE} ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
+            COMMAND            ${Cythonize_EXECUTABLE} -3 ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
+            WORKING_DIRECTORY  ${MLIAP_BINARY_DIR}
+            MAIN_DEPENDENCY    ${MLIAP_CYTHON_FILE}
+            COMMENT "Generating C++ sources with cythonize...")
+    target_sources(lammps PRIVATE ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp)
+  endforeach()
   target_compile_definitions(lammps PRIVATE -DMLIAP_PYTHON)
-  target_sources(lammps PRIVATE ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp)
   target_include_directories(lammps PRIVATE ${MLIAP_BINARY_DIR})
 endif()

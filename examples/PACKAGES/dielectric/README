@@ -2,7 +2,7 @@ This folder contains some example data and input scripts for the DIELECTRIC pack
 
 Nguyen TD, Li H, Bagchi D, Solis FJ, Olvera de la Cruz, Incorporating surface polarization effects into large-scale coarse-grained molecular dynamics simulation, Computer Physics Communications 2019, 241, 80--91.
 
-- data.confined  :  two point opposite charges confined between two interfaces (epsilon1=2/epsilon2=10/epsilon2=2)
+- data.confined  :  two point opposite charges confined between two interfaces (epsilon2=2/epsilon1=10/epsilon2=2)
 - data.sphere    :  two point opposite charges outside a spherical interface (epsilon_in=1/epsilon2=10)
 
 - in.confined    :  read in data.confined
@@ -10,7 +10,7 @@ Nguyen TD, Li H, Bagchi D, Solis FJ, Olvera de la Cruz, Incorporating surface po
 
 For "atom_style  dielectric" the Atoms section in the data file contains 15 following columns:
 
-id mol type q x y z normx normy normz area_per_patch ed em epsilon curvature
+id mol type q x y z normx normy normz area/patch ed em epsilon curvature
 
 where 
 
@@ -34,9 +34,13 @@ where
   For interface particles, epsilon is set to be em
     (the mean dielectric value above).
 
-* area_per_patch: the surface area of the patch (element).
+* area/patch: the surface area of the patch (element).
   For real charges, this value is irrelevant, can be 1.0.
 
 * curvature: surface mean curvature at the patch.
   For example, for spherical interfaces, curvature = 1/spherical radius.
   For planar interfaces, curvature = 0.
+
+Note that the properties normx, normy, normz, area/patch, ed, em, and curvature are not 
+used for the non-interface beads. epsilon is used to scale the charge of any non-interface
+ion, see the documentation for pair styles with the dielectric suffix and fix polarize.

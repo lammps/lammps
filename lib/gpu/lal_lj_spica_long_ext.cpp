@@ -81,7 +81,7 @@ int spical_gpu_init(const int ntypes, double **cutsq, int **cg_type,
                           maxspecial, cell_size, gpu_split, screen,
                           host_cut_ljsq, host_cut_coulsq, host_special_coul,
                           qqrd2e, g_ewald);
-    CMMLMF.device->gpu_barrier();
+    CMMLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

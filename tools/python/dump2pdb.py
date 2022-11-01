@@ -9,11 +9,11 @@
 #          pdbfile = new PDB file
 #          template = PDB file to use as template for creating new PDB file
 #            this arg is optional, if not used a generic PDB file is created
-# Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
+# Author:  Steve Plimpton (Sandia), sjplimp at gmail.com
 
 import sys,os
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
-sys.path.append(path)
+sys.path.insert(1,path)
 from dump import dump
 from pdbfile import pdbfile
 

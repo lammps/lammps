@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -37,13 +37,14 @@ using namespace LAMMPS_NS;
 #define EPSILON 1.0e-10
 
 static const char cite_pair_mdpd[] =
-  "pair mdpd command:\n\n"
+  "pair mdpd command: doi:10.1063/1.4812366\n\n"
   "@Article{ZLi2013_POF,\n"
-  " author = {Li, Z. and Hu, G.H. and Wang, Z.L. and Ma Y.B. and Zhou, Z.W.},\n"
-  " title = {Three dimensional flow structures in a moving droplet on substrate: a dissipative particle dynamics study},\n"
+  " author = {Li, Z. and Hu, G. H. and Wang, Z. L. and Ma Y. B. and Zhou, Z. W.},\n"
+  " title = {Three Dimensional Flow Structures in a Moving Droplet on Substrate: a Dissipative Particle Dynamics Study},\n"
   " journal = {Physics of Fluids},\n"
   " year = {2013},\n"
   " volume = {25},\n"
+  " number = {7},\n"
   " pages = {072103}\n"
   "}\n\n";
 

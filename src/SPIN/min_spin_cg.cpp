@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static const char cite_minstyle_spin_cg[] =
-  "min_style spin/cg command:\n\n"
+  "min_style spin/cg command: doi:10.48550/arXiv.1904.02669\n\n"
   "@article{ivanov2019fast,\n"
   "title={Fast and Robust Algorithm for the Minimisation of the Energy of "
   "Spin Systems},\n"

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,15 +36,12 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-using LAMMPS_NS::utils::split_words;
-
 namespace LAMMPS_NS {
 using ::testing::ContainsRegex;
 using ::testing::ExitedWithCode;
 using ::testing::StrEq;
 
-class SimpleCommandsTest : public LAMMPSTest {
-};
+class SimpleCommandsTest : public LAMMPSTest {};
 
 TEST_F(SimpleCommandsTest, UnknownCommand)
 {
@@ -81,7 +78,7 @@ TEST_F(SimpleCommandsTest, Echo)
     ASSERT_EQ(lmp->input->echo_log, 1);
 
     TEST_FAILURE(".*ERROR: Illegal echo command.*", command("echo"););
-    TEST_FAILURE(".*ERROR: Illegal echo command.*", command("echo xxx"););
+    TEST_FAILURE(".*ERROR: Unknown echo keyword: xxx.*", command("echo xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Log)
@@ -552,13 +549,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

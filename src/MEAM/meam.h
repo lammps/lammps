@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,7 +22,7 @@
 namespace LAMMPS_NS {
 class Memory;
 
-typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI } lattice_t;
+typedef enum { FCC, BCC, HCP, DIM, DIA, DIA3, B1, C11, L12, B2, CH4, LIN, ZIG, TRI, SC } lattice_t;
 
 class MEAM {
  public:
@@ -263,6 +263,7 @@ class MEAM {
     else if (str == "lin") lat = LIN;
     else if (str == "zig") lat = ZIG;
     else if (str == "tri") lat = TRI;
+    else if (str == "sc") lat = SC;
     else {
       if (single)
         return false;

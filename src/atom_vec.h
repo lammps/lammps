@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -123,7 +123,7 @@ class AtomVec : protected Pointers {
   virtual void create_atom(int, double *);
   virtual void create_atom_post(int) {}
 
-  virtual void data_atom(double *, imageint, const std::vector<std::string> &);
+  virtual void data_atom(double *, imageint, const std::vector<std::string> &, std::string &);
   virtual void data_atom_post(int) {}
   virtual void data_atom_bonus(int, const std::vector<std::string> &) {}
   virtual void data_body(int, int, int, int *, double *) {}

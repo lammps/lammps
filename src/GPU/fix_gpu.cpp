@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -53,51 +53,59 @@ extern double lmp_gpu_update_bin_size(const double subx, const double suby, cons
                                       const int nlocal, const double cut);
 
 static const char cite_gpu_package[] =
-  "GPU package (short-range, long-range and three-body potentials):\n\n"
+  "GPU package (short-range, long-range and three-body potentials): doi:10.1016/j.cpc.2010.12.021, doi:10.1016/j.cpc.2011.10.012, doi:10.1016/j.cpc.2013.08.002, doi:10.1016/j.commatsci.2014.10.068, doi:10.1016/j.cpc.2016.10.020, doi:10.3233/APC200086\n\n"
   "@Article{Brown11,\n"
-  " author = {W. M. Brown, P. Wang, S. J. Plimpton, A. N. Tharrington},\n"
-  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers - Short Range Forces},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " author = {W. M. Brown and P. Wang and S. J. Plimpton and A. N. Tharrington},\n"
+  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers---Short Range Forces},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2011,\n"
   " volume =  182,\n"
-  " pages =   {898--911}\n"
+  " pages =   {898--911},\n"
+  " doi =     {10.1016/j.cpc.2010.12.021}\n"
   "}\n\n"
   "@Article{Brown12,\n"
-  " author = {W. M. Brown, A. Kohlmeyer, S. J. Plimpton, A. N. Tharrington},\n"
+  " author = {W. M. Brown and A. Kohlmeyer and S. J. Plimpton and A. N. Tharrington},\n"
   " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers - Particle-Particle Particle-Mesh},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2012,\n"
   " volume =  183,\n"
+  " doi =     {10.1016/j.cpc.2011.10.012},\n"
   " pages =   {449--459}\n"
   "}\n\n"
   "@Article{Brown13,\n"
-  " author = {W. M. Brown, Y. Masako},\n"
-  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers – Three-Body Potentials},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " author = {W. M. Brown and Y. Masako},\n"
+  " title = {Implementing Molecular Dynamics on Hybrid High Performance Computers---Three-Body Potentials},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2013,\n"
   " volume =  184,\n"
-  " pages =   {2785--2793}\n"
+  " pages =   {2785--2793},\n"
+  " doi =     {10.1016/j.cpc.2013.08.002},\n"
   "}\n\n"
   "@Article{Trung15,\n"
-  " author = {T. D. Nguyen, S. J. Plimpton},\n"
-  " title = {Accelerating dissipative particle dynamics simulations for soft matter systems},\n"
-  " journal = {Comput.~Mater.~Sci.},\n"
+  " author = {T. D. Nguyen and S. J. Plimpton},\n"
+  " title = {Accelerating Dissipative Particle Dynamics Simulations for Soft Matter Systems},\n"
+  " journal = {Comput.\\ Mater.\\ Sci.},\n"
   " year =    2015,\n"
+  " doi =     {10.1016/j.commatsci.2014.10.068},\n"
   " volume =  100,\n"
   " pages =   {173--180}\n"
   "}\n\n"
   "@Article{Trung17,\n"
   " author = {T. D. Nguyen},\n"
-  " title = {GPU-accelerated Tersoff potentials for massively parallel Molecular Dynamics simulations},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " title = {{GPU}-Accelerated {T}ersoff Potentials for Massively Parallel\n"
+  "    Molecular Dynamics Simulations},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2017,\n"
+  " doi =     {10.1016/j.cpc.2016.10.020},\n"
   " volume =  212,\n"
   " pages =   {113--122}\n"
   "}\n\n"
-  "@Article{Nikolskiy19,\n"
-  " author = {V. Nikolskiy, V. Stegailov},\n"
-  " title = {GPU acceleration of four-site water models in LAMMPS},\n"
-  " journal = {Proceeding of the International Conference on Parallel Computing (ParCo 2019), Prague, Czech Republic},\n"
+  "@inproceedings{Nikolskiy19,\n"
+  " author = {V. Nikolskiy and V. Stegailov},\n"
+  " title = {{GPU} Acceleration of Four-Site Water Models in {LAMMPS}},\n"
+  " booktitle = {Proceedings of the International Conference on Parallel\n"
+  "    Computing (ParCo 2019), Prague, Czech Republic},\n"
+  " doi =     {10.3233/APC200086},\n"
   " year =    2019\n"
   "}\n\n";
 
@@ -128,7 +136,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   double binsize = 0.0;
   char *opencl_args = nullptr;
   int block_pair = -1;
-  int pair_only_flag = 0;
   int ocl_platform = -1;
   char *device_type_flags = nullptr;
 
@@ -186,7 +193,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      lmp->pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ocl_args") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -215,16 +222,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   if (force->newton_pair == 1 && _particle_split < 1)
     error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
-
-  if (pair_only_flag) {
-    lmp->suffixp = lmp->suffix;
-    lmp->suffix = nullptr;
-  } else {
-    if (lmp->suffixp) {
-      lmp->suffix = lmp->suffixp;
-      lmp->suffixp = nullptr;
-    }
-  }
 
   // pass params to GPU library
   // change binsize default (0.0) to -1.0 used by GPU lib
@@ -286,7 +283,7 @@ void FixGPU::init()
   // rRESPA support
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    _nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    _nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -300,9 +297,9 @@ void FixGPU::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet")) post_force(vflag);
   else {
     // In setup only, all forces calculated on GPU are put in the outer level
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(_nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(_nlevels_respa-1);
     post_force(vflag);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(_nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(_nlevels_respa-1);
   }
 }
 

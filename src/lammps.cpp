@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,9 +46,11 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
+#include "suffix.h"
 #include "timer.h"
 #include "universe.h"
 #include "update.h"
+#include "variable.h"
 #include "version.h"
 
 #if defined(LMP_PLUGIN)
@@ -196,9 +198,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int citelogfile = CiteMe::VERBOSE;
   char *citefile = nullptr;
   int helpflag = 0;
+  int nonbufflag = 0;
 
-  suffix = suffix2 = suffixp = nullptr;
+  suffix = suffix2 = nullptr;
   suffix_enable = 0;
+  pair_only_flag = 0;
   if (arg) exename = arg[0];
   else exename = nullptr;
   packargs = nullptr;
@@ -296,6 +300,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     } else if (strcmp(arg[iarg],"-nocite") == 0 ||
                strcmp(arg[iarg],"-nc") == 0) {
       citeflag = 0;
+      iarg++;
+
+    } else if (strcmp(arg[iarg],"-nonbuf") == 0 ||
+               strcmp(arg[iarg],"-nb") == 0) {
+      nonbufflag = 1;
       iarg++;
 
     } else if (strcmp(arg[iarg],"-package") == 0 ||
@@ -409,8 +418,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
-      delete [] suffix;
-      delete [] suffix2;
+      delete[] suffix;
+      delete[] suffix2;
       suffix = suffix2 = nullptr;
       suffix_enable = 1;
       // hybrid option to set fall-back for suffix2
@@ -513,13 +522,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->one(FLERR,"Cannot open input script {}: {}", arg[inflag], utils::getsyserror());
       if (!helpflag)
         utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
-      // warn against using I/O redirection in parallel runs
+
+     // warn against using I/O redirection in parallel runs
       if ((inflag == 0) && (universe->nprocs > 1))
         error->warning(FLERR, "Using I/O redirection is unreliable with parallel runs. "
                        "Better use -in switch to read input file.");
       utils::flush_buffers(this);
     }
-
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
@@ -585,6 +594,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         if (infile == nullptr)
           error->one(FLERR,"Cannot open input script {}: {}",arg[inflag], utils::getsyserror());
       }
+    }
+
+    // make all screen and logfile output unbuffered for debugging crashes
+
+    if (nonbufflag) {
+      if (universe->uscreen) setbuf(universe->uscreen, nullptr);
+      if (universe->ulogfile) setbuf(universe->ulogfile, nullptr);
+      if (screen) setbuf(screen, nullptr);
+      if (logfile) setbuf(logfile, nullptr);
     }
 
     // screen and logfile messages for universe and world
@@ -758,9 +776,8 @@ LAMMPS::~LAMMPS()
 
   delete python;
   delete kokkos;
-  delete [] suffix;
-  delete [] suffix2;
-  delete [] suffixp;
+  delete[] suffix;
+  delete[] suffix2;
 
   // free the MPI comm created by -mpicolor cmdline arg processed in constructor
   // it was passed to universe as if original universe world
@@ -844,13 +861,36 @@ void LAMMPS::post_create()
 {
   if (skiprunflag) input->one("timer timeout 0 every 1");
 
+  // Don't unnecessarily reissue a package command via suffix
+  int package_issued = Suffix::NONE;
+
   // default package command triggered by "-k on"
 
   if (kokkos && kokkos->kokkos_exists) input->one("package kokkos");
 
-  // suffix will always be set if suffix_enable = 1
+  // invoke any command-line package commands
+
+  if (num_package) {
+    std::string str;
+    for (int i = 0; i < num_package; i++) {
+      str = "package";
+      char *pkg_name = *(packargs[i]);
+      if (pkg_name != nullptr) {
+        if (strcmp("gpu", pkg_name) == 0) package_issued |= Suffix::GPU;
+        if (strcmp("omp", pkg_name) == 0) package_issued |= Suffix::OMP;
+        if (strcmp("intel", pkg_name) == 0) package_issued |= Suffix::INTEL;
+      }
+      for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr) {
+        str += " ";
+        str += *ptr;
+      }
+      input->one(str);
+    }
+  }
+
   // check that KOKKOS package classes were instantiated
   // check that GPU, INTEL, OPENMP fixes were compiled with LAMMPS
+  // do not re-issue package command if already issued
 
   if (suffix_enable) {
 
@@ -864,28 +904,20 @@ void LAMMPS::post_create()
     if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
       error->all(FLERR,"Using suffix omp without OPENMP package installed");
 
-    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 0");
-    if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
-    if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
+    if (strcmp(suffix,"gpu") == 0 && !(package_issued & Suffix::GPU))
+      input->one("package gpu 0");
+    if (strcmp(suffix,"intel") == 0 && !(package_issued & Suffix::INTEL))
+      input->one("package intel 1");
+    if (strcmp(suffix,"omp") == 0 && !(package_issued & Suffix::OMP))
+      input->one("package omp 0");
 
     if (suffix2) {
-      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 0");
-      if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
-      if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
-    }
-  }
-
-  // invoke any command-line package commands
-
-  if (num_package) {
-    std::string str;
-    for (int i = 0; i < num_package; i++) {
-      str = "package";
-      for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr) {
-        str += " ";
-        str += *ptr;
-      }
-      input->one(str);
+      if (strcmp(suffix2,"gpu") == 0 && !(package_issued & Suffix::GPU))
+        input->one("package gpu 0");
+      if (strcmp(suffix2,"intel") == 0 && !(package_issued & Suffix::INTEL))
+        input->one("package intel 1");
+      if (strcmp(suffix2,"omp") == 0 && !(package_issued & Suffix::OMP))
+        input->one("package omp 0");
     }
   }
 }
@@ -936,6 +968,9 @@ void LAMMPS::destroy()
 
   delete output;
   output = nullptr;
+
+  // undefine atomfile variables because they use a fix for backing storage
+  input->variable->purge_atomfile();
 
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
@@ -1118,6 +1153,26 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   return nullptr;
 }
 
+/** \brief  Return suffix for non-pair styles depending on pair_only_flag
+ *
+ * \return  suffix or null pointer
+ */
+const char *LAMMPS::non_pair_suffix() const
+{
+  const char *mysuffix;
+  if (pair_only_flag) {
+#ifdef LMP_KOKKOS_GPU
+    if (utils::strmatch(suffix,"^kk")) mysuffix = "kk/host";
+    else mysuffix = nullptr;
+#else
+    mysuffix = nullptr;
+#endif
+  } else {
+    mysuffix = suffix;
+  }
+  return mysuffix;
+}
+
 /* ----------------------------------------------------------------------
    help message for command line options and styles present in executable
 ------------------------------------------------------------------------- */
@@ -1173,6 +1228,7 @@ void _noopt LAMMPS::help()
           "-mpicolor color             : which exe in a multi-exe mpirun cmd (-m)\n"
           "-cite                       : select citation reminder style (-c)\n"
           "-nocite                     : disable citation reminder (-nc)\n"
+          "-nonbuf                     : disable screen/logfile buffering (-nb)\n"
           "-package style ...          : invoke package command (-pk)\n"
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"
           "-plog basename              : basename for partition logs (-pl)\n"
@@ -1186,7 +1242,6 @@ void _noopt LAMMPS::help()
           "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
-
 
   print_config(fp);
   fprintf(fp,"List of individual style options included in this LAMMPS executable\n\n");

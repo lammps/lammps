@@ -78,7 +78,7 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
                          offset, special_lj, inum, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 
-    UFMLMF.device->gpu_barrier();
+    UFMLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -106,7 +106,7 @@ void ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       UFMLMF.reinit(ntypes, cutsq, host_uf1, host_uf2, host_uf3, offset);
-    UFMLMF.device->gpu_barrier();
+    UFMLMF.device->serialize_init();
   }
 }
 

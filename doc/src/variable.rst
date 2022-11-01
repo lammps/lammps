@@ -66,7 +66,7 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), extract_setting(name)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)
          feature functions = is_active(category,feature), is_available(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
@@ -213,6 +213,9 @@ from the list of active variables, and is thus available to be
 re-defined in a subsequent variable command.  The *delete* style does
 the same thing.
 
+Variables are **not** deleted by the :doc:`clear <clear>` command with
+the exception of atomfile-style variables.
+
 ----------
 
 The :doc:`Commands parse <Commands_parse>` page explains how
@@ -265,7 +268,7 @@ the first string is assigned to the variable.  Each time a
 string is assigned.  All processors assign the same string to the
 variable.
 
-*Index* style variables with a single string value can also be set by
+Index-style variables with a single string value can also be set by
 using the :doc:`command-line switch -var <Run_options>`.
 
 The *loop* style is identical to the *index* style except that the
@@ -285,7 +288,7 @@ be one string for each processor partition or "world".  LAMMPS can be
 run with multiple partitions via the :doc:`-partition command-line
 switch <Run_options>`.  This variable command assigns one string to
 each world.  All processors in the world are assigned the same string.
-The next command cannot be used with *equal* style variables, since
+The next command cannot be used with equal-style variables, since
 there is only one value per world.  This style of variable is useful
 when you wish to run different simulations on different partitions, or
 when performing a parallel tempering simulation (see the :doc:`temper
@@ -303,7 +306,7 @@ string.  This continues until all the variable strings are consumed.
 Thus, this command can be used to run 50 simulations on 8 processor
 partitions.  The simulations will be run one after the other on
 whatever partition becomes available, until they are all finished.
-*Universe* style variables are incremented using the files
+Universe-style variables are incremented using the files
 "tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
 see in your directory during such a LAMMPS run.
 
@@ -319,11 +322,12 @@ in the input script, or if the script is read again in a loop. The other
 difference is that *string* performs variable substitution even if the
 string parameter is quoted.
 
-For the *format* style, an equal-style variable is specified along
-with a C-style format string, e.g. "%f" or "%.10g", which must be
-appropriate for formatting a double-precision floating-point value.
-The default format is "%.15g".  This variable style allows an
-equal-style variable to be formatted precisely when it is evaluated.
+For the *format* style, an equal-style or compatible variable is
+specified along with a C-style format string, e.g. "%f" or "%.10g",
+which must be appropriate for formatting a double-precision
+floating-point value and may not have extra characters.  The default
+format is "%.15g".  This variable style allows an equal-style variable
+to be formatted precisely when it is evaluated.
 
 Note that if you simply wish to print a variable value with desired
 precision to the screen or logfile via the :doc:`print <print>` or
@@ -340,7 +344,9 @@ variable can be used to adapt the behavior of LAMMPS input scripts via
 environment variable settings, or to retrieve information that has
 been previously stored with the :doc:`shell putenv <shell>` command.
 Note that because environment variable settings are stored by the
-operating systems, they persist beyond a :doc:`clear <clear>` command.
+operating systems, they persist even if the corresponding *getenv*
+style variable is deleted, and also are set for sub-shells executed
+by the :doc:`shell <shell>` command.
 
 For the *file* style, a filename is provided which contains a list of
 strings to assign to the variable, one per line.  The strings can be
@@ -372,7 +378,9 @@ This means the variable can then be evaluated as many times as desired
 and will return those values.  There are two ways to cause the next
 set of per-atom values from the file to be read: use the
 :doc:`next <next>` command or the next() function in an atom-style
-variable, as discussed below.
+variable, as discussed below.  Unlike most variable styles
+atomfile-style variables are **deleted** during a :doc:`clear <clear>`
+command.
 
 The rules for formatting the file are as follows.  Each time a set of
 per-atom values is read, a non-blank line is searched for in the file.
@@ -505,7 +513,7 @@ references, and references to other variables.
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR),      xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR),      bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR),      angmom(ID,dim,IDR), torque(ID,dim,IDR),      inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                    |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions  | sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x)                                                                                                                                                                                                                                                          |
+| Special functions  | sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x),  label2type(kind,label)                                                                                                                                                                                                                                 |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Atom values        | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                            |
 +--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -939,6 +947,20 @@ The is_file(name) function is a test whether *name* is a (readable) file
 and returns 1 in this case, otherwise it returns 0.  For that *name*
 is taken as a literal string and must not have any blanks in it.
 
+The is_os(name) function is a test whether *name* is part of the OS
+information that LAMMPS collects and provides in the
+:cpp:func:`platform::os_info() <LAMMPS_NS::platform::os_info>` function.
+The argument *name* is interpreted as a regular expression as documented
+for the :cpp:func:`utils::strmatch() <LAMMPS_NS::utils::strmatch>`
+function. This allows to adapt LAMMPS inputs to the OS it runs on:
+
+.. code-block:: LAMMPS
+
+   if $(is_os(^Windows)) then &
+     "shell copy ${input_dir}\some_file.txt ." &
+   else &
+     "shell cp ${input_dir}/some_file.txt ."
+
 The extract_setting(name) function enables access to basic settings for
 the LAMMPS executable and the running simulation via calling the
 :cpp:func:`lammps_extract_setting` library function.  For example, the
@@ -947,6 +969,12 @@ process ID (for this processor) can be queried, or the number of atom
 types, bond types and so on. For the full list of available keywords
 *name* and their meaning, see the documentation for extract_setting()
 via the link in this paragraph.
+
+The label2type() function converts type labels into numeric types, using label
+maps created by the :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
+commands.  The first argument is the label map kind (atom, bond, angle,
+dihedral, or improper) and the second argument is the label.  The function
+returns the corresponding numeric type.
 
 ----------
 
@@ -1002,7 +1030,7 @@ step
 
 .. code-block:: LAMMPS
 
-   timestep $(2.0*(1.0+2.0*is_active(pair,respa))
+   timestep $(2.0*(1.0+2.0*is_active(pair,respa)))
    if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
 
 The *is_available(category,name)* function allows to query whether

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -227,7 +227,7 @@ void ComputeSNAGridLocal::compute_local()
         const double ztmp = xgrid[2];
 
         // currently, all grid points are type 1
-	// not clear what a better choice would be
+        // not clear what a better choice would be
 
         const int itype = 1;
         int ielem = 0;

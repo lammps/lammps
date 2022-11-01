@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -122,13 +122,13 @@ TEST_F(GroupTest, EmptyDelete)
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new2 delete xxx"););
     TEST_FAILURE(".*ERROR: Cannot delete group all.*", command("group all delete"););
     TEST_FAILURE(".*ERROR: Could not find group delete.*", command("group new0 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by a fix.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new2 currently used by fix.*",
                  command("group new2 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by a compute.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new3 currently used by compute.*",
                  command("group new3 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by a dump.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new4 currently used by dump.*",
                  command("group new4 delete"););
-    TEST_FAILURE(".*ERROR: Cannot delete group currently used by atom_modify.*",
+    TEST_FAILURE(".*ERROR: Cannot delete group new5 currently used by atom_modify.*",
                  command("group new5 delete"););
 }
 
@@ -316,13 +316,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

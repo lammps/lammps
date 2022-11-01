@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -101,7 +101,9 @@ RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (a < 0.0 || b < 0.0 || c < 0.0) error->all(FLERR, "Illegal region ellipsoid command");
+  if (a < 0.0) error->all(FLERR, "Illegal region ellipsoid a: {}", a);
+  if (b < 0.0) error->all(FLERR, "Illegal region ellipsoid b: {}", b);
+  if (c < 0.0) error->all(FLERR, "Illegal region ellipsoid c: {}", c);
 
   // extent of ellipsoid
   // for variable axes, uses initial axes and origin for variable center

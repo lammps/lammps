@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -110,21 +110,30 @@ namespace MathSpecial {
    *  \param   x argument
    *  \return  x*x */
 
-  static inline double square(const double &x) { return x * x; }
+  static inline double square(const double &x)
+  {
+    return x * x;
+  }
 
   /*! Fast inline version of pow(x, 3.0)
    *
    *  \param   x argument
    *  \return  x*x */
 
-  static inline double cube(const double &x) { return x * x * x; }
+  static inline double cube(const double &x)
+  {
+    return x * x * x;
+  }
 
   /* Fast inline version of pow(-1.0, n)
    *
    *  \param   n argument (integer)
    *  \return  -1 if n is odd, 1.0 if n is even */
 
-  static inline double powsign(const int n) { return (n & 1) ? -1.0 : 1.0; }
+  static inline double powsign(const int n)
+  {
+    return (n & 1) ? -1.0 : 1.0;
+  }
 
   /* Fast inline version of pow(x,n) for integer n
    *
@@ -138,6 +147,7 @@ namespace MathSpecial {
   {
     double yy, ww;
 
+    if (n == 0) return 1.0;
     if (x == 0.0) return 0.0;
     int nn = (n > 0) ? n : -n;
     ww = x;

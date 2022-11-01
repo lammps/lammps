@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,13 +38,14 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_acks2_reax[] =
-  "fix acks2/reaxff command:\n\n"
+  "fix acks2/reaxff command: doi:10.1137/18M1224684\n\n"
   "@Article{O'Hearn2020,\n"
-  " author = {K. A. O'Hearn, A. Alperen, and H. M. Aktulga},\n"
+  " author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},\n"
   " title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},\n"
-  " journal = {SIAM J. Sci. Comput.},\n"
+  " journal = {SIAM J.\\ Sci.\\ Comput.},\n"
   " year =    2020,\n"
   " volume =  42,\n"
+  " number =  1,\n"
   " pages =   {1--22}\n"
   "}\n\n";
 

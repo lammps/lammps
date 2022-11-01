@@ -2,9 +2,9 @@ AMOEBA and HIPPO force fields
 =============================
 
 The AMOEBA and HIPPO polarizable force fields were developed by Jay
-Ponder's group at the U Washington at St Louis.  Their implementation
-in LAMMPS was done using F90 code provided by the Ponder group from
-their `Tinker MD code <https://dasher.wustl.edu/tinker/>`_.
+Ponder's group at the U Washington at St Louis.  The LAMMPS
+implementation is based on Fortran 90 code provided by the Ponder
+group in their `Tinker MD software <https://dasher.wustl.edu/tinker/>`_.
 
 The current implementation (July 2022) of AMOEBA in LAMMPS matches the
 version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
@@ -281,7 +281,7 @@ Here is more information about the extended XYZ format defined and
 used by Tinker, and links to programs that convert standard PDB files
 to the extended XYZ format:
 
-* `http://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html <http://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html>`_
+* `https://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html <https://openbabel.org/docs/current/FileFormats/Tinker_XYZ_format.html>`_
 * `https://github.com/emleddin/pdbxyz-xyzpdb <https://github.com/emleddin/pdbxyz-xyzpdb>`_
 * `https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f <https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f>`_
 

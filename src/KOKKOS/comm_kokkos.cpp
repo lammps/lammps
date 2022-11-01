@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -125,19 +125,19 @@ void CommKokkos::init()
   if (force->pair && (force->pair->execution_space == Host))
     check_reverse += force->pair->comm_reverse;
 
-  for (int i = 0; i < modify->nfix; i++) {
-    check_forward += modify->fix[i]->comm_forward;
-    check_reverse += modify->fix[i]->comm_reverse;
+  for (const auto &fix : modify->get_fix_list()) {
+    check_forward += fix->comm_forward;
+    check_reverse += fix->comm_reverse;
   }
 
-  for (int i = 0; i < modify->ncompute; i++) {
-    check_forward += modify->compute[i]->comm_forward;
-    check_reverse += modify->compute[i]->comm_reverse;
+  for (const auto &compute : modify->get_compute_list()) {
+    check_forward += compute->comm_forward;
+    check_reverse += compute->comm_reverse;
   }
 
-  for (int i = 0; i < output->ndump; i++) {
-    check_forward += output->dump[i]->comm_forward;
-    check_reverse += output->dump[i]->comm_reverse;
+  for (const auto &dump : output->get_dump_list()) {
+    check_forward += dump->comm_forward;
+    check_reverse += dump->comm_reverse;
   }
 
   if (force->newton == 0) check_reverse = 0;

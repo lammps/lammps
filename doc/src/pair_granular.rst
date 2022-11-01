@@ -226,16 +226,19 @@ for all models except *jkr*, for which it is given implicitly according
 to :math:`\delta = a^2/R - 2\sqrt{\pi \gamma a/E}`.  For *damping viscoelastic*,
 :math:`\eta_{n0}` is in units of 1/(\ *time*\ \*\ *distance*\ ).
 
-The *tsuji* model is based on the work of :ref:`(Tsuji et al) <Tsuji1992>`. Here, the damping coefficient specified as part of
-the normal model is interpreted as a restitution coefficient
-:math:`e`. The damping constant :math:`\eta_n` is given by:
+The *tsuji* model is based on the work of :ref:`(Tsuji et al) <Tsuji1992>`.
+Here, the damping coefficient specified as part of the normal model is interpreted
+as a restitution coefficient :math:`e`. The damping constant :math:`\eta_n` is
+given by:
 
 .. math::
 
    \eta_n = \alpha (m_{eff}k_n)^{1/2}
 
-For normal contact models based on material parameters, :math:`k_n = 4/3Ea`.  The parameter :math:`\alpha` is related to the restitution
-coefficient *e* according to:
+For normal contact models based on material parameters, :math:`k_n = 4/3Ea`. This
+damping model is not compatible with cohesive normal models such as *JKR* or *DMT*.
+The parameter :math:`\alpha` is related to the restitution coefficient *e*
+according to:
 
 .. math::
 

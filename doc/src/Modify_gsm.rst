@@ -67,9 +67,9 @@ classes. All GSM classes share several general methods which may need to be defi
    * - ``GSM->mix_coeff()``
      - Optional method to define how coefficients are mixed for different atom types. By default, coefficients are mixed using a geometric mean.
    * - ``GSM->coeffs_to_local()``
-     - Parses coefficients to define local variables, run once at model construction.
+     - Parses coefficients to define local variables. Run once at model construction.
    * - ``GSM->init()``
-     - Optional method to define local variables after other GSM types were created. For instance, this method may be used by a tangential model that derives parameters from the normal stiffness.
+     - Optional method to define local variables after other GSM types were created. For instance, this method may be used by a tangential model that derives parameters from the normal model.
 
 There are also several type-specific methods
 
@@ -166,7 +166,7 @@ and ``gsm_custom.cpp``
    double GSMNormalHookePiecewise::calculate_forces()
    {
      double Fne;
-     if (gm->delta >= delta_switch {
+     if (gm->delta >= delta_switch) {
        Fne = k1 * delta_switch + k2 * (gm->delta - delta_switch);
      } else {
        Fne = k1 * gm->delta;

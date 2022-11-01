@@ -218,14 +218,14 @@ TEST_F(LAMMPS_configuration, get_gpu_info)
     n = cpp_info.size();
     char* f_string;
     f_string = f_lammps_get_gpu_info(n);
-    EXPECT_STREQ(f_string, cpp_info.c_str());
+    EXPECT_STREQ(utils::trim(f_string).c_str(), utils::trim(cpp_info).c_str());
     std::free(f_string);
 
     if (n > 80)
     {
       f_string = f_lammps_get_gpu_info(80);
       cpp_info.resize(80);
-      EXPECT_STREQ(f_string, cpp_info.c_str());
+      EXPECT_STREQ(utils::trim(f_string).c_str(), utils::trim(cpp_info).c_str());
       std::free(f_string);
     }
 };

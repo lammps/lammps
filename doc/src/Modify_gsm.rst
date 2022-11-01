@@ -82,7 +82,7 @@ There are also several type-specific methods
    * - ``GSMNormal->calculate_area()``
      - Optional method to return the surface area of the contact. By default, this returns the geometric cross section.
    * - ``GSMNormal->set_fncrit()``
-     - Optional method that defines the critical force to break the contact used by some tangential, rolling, and twisting submodels. By default, this is the current total normal force, including damping.
+     - Optional method that defines the critical force to break the contact used by some tangential, rolling, and twisting submodels. By default, this is the current total normal force including damping.
    * - ``GSMNormal->calculate_forces()``
      - Required method that returns the normal contact force
    * - ``GSMDamping->calculate_forces()``
@@ -123,7 +123,6 @@ set of files ``gsm_custom.h``:
     public:
      GSMNormalHookePiecewise(class GranularModel *, class LAMMPS *);
      void coeffs_to_local() override;
-     void set_knfac();
      double calculate_forces();
     protected:
      double k1, k2, delta_switch;
@@ -166,6 +165,7 @@ and ``gsm_custom.cpp``
 
    double GSMNormalHookePiecewise::calculate_forces()
    {
+     double Fne;
      if (gm->delta >= delta_switch {
        Fne = k1 * delta_switch + k2 * (gm->delta - delta_switch);
      } else {
@@ -174,10 +174,3 @@ and ``gsm_custom.cpp``
      return Fne;
    }
 
-   /* ---------------------------------------------------------------------- */
-
-   void GSMNormalHookePiecewise::set_knfac()
-   {
-     if (gm->delta < delta_switch) knfac = k1;
-     else knfac = k2;
-   }

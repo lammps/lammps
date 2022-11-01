@@ -1153,6 +1153,26 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   return nullptr;
 }
 
+/** \brief  Return suffix for non-pair styles depending on pair_only_flag
+ *
+ * \return  suffix or null pointer
+ */
+const char *LAMMPS::non_pair_suffix() const
+{
+  const char *mysuffix;
+  if (pair_only_flag) {
+#ifdef LMP_KOKKOS_GPU
+    if (utils::strmatch(suffix,"^kk")) mysuffix = "kk/host";
+    else mysuffix = nullptr;
+#else
+    mysuffix = nullptr;
+#endif
+  } else {
+    mysuffix = suffix;
+  }
+  return mysuffix;
+}
+
 /* ----------------------------------------------------------------------
    help message for command line options and styles present in executable
 ------------------------------------------------------------------------- */

@@ -831,8 +831,8 @@ int Input::execute_command()
   // try suffixed version first
 
   std::string mycmd = command;
-  if (lmp->suffix_enable && lmp->suffix) {
-    mycmd = command + std::string("/") + lmp->suffix;
+  if (lmp->suffix_enable && lmp->non_pair_suffix()) {
+    mycmd = command + std::string("/") + lmp->non_pair_suffix();
     if (command_map->find(mycmd) == command_map->end()) {
       if (lmp->suffix2) {
         mycmd = command + std::string("/") + lmp->suffix2;

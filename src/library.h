@@ -41,7 +41,7 @@
 /** Data type constants for extracting data from atoms, computes and fixes
  *
  * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, and tools/swig/lammps.i */
+ * fortran/lammps.f90, tools/swig/lammps.i, examples/COUPLE/plugin/liblammpsplugin.h */
 
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
@@ -56,7 +56,7 @@ enum _LMP_DATATYPE_CONST {
 /** Style constants for extracting data from computes and fixes.
  *
  * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, and tools/swig/lammps.i */
+ * fortran/lammps.f90, tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
 
 enum _LMP_STYLE_CONST {
   LMP_STYLE_GLOBAL = 0, /*!< return global data */
@@ -67,7 +67,7 @@ enum _LMP_STYLE_CONST {
 /** Type and size constants for extracting data from computes and fixes.
  *
  * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, and tools/swig/lammps.i */
+ * fortran/lammps.f90, tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
 
 enum _LMP_TYPE_CONST {
   LMP_TYPE_SCALAR = 0, /*!< return scalar */
@@ -81,7 +81,7 @@ enum _LMP_TYPE_CONST {
 /** Error codes to select the suitable function in the Error class
  *
  * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, and tools/swig/lammps.i */
+ * fortran/lammps.f90, tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
 
 enum _LMP_ERROR_CONST {
   LMP_ERROR_WARNING = 0, /*!< call Error::warning() */
@@ -94,7 +94,7 @@ enum _LMP_ERROR_CONST {
 /** Variable style constants for extracting data from variables.
  *
  * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, and tools/swig/lammps.i */
+ * fortran/lammps.f90, tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
 
 enum _LMP_VAR_CONST {
   LMP_VAR_EQUAL = 0,  /*!< compatible with equal-style variables */
@@ -260,15 +260,14 @@ void lammps_decode_image_flags(int64_t image, int *flags);
 
 #if defined(LAMMPS_BIGBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int64_t *, double **, double **);
-void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr,
-                                      void *ptr);
 #elif defined(LAMMPS_SMALLBIG)
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
-void lammps_set_fix_external_callback(void *, const char *, FixExternalFnPtr, void *);
 #else
 typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
-void lammps_set_fix_external_callback(void *, const char *, FixExternalFnPtr, void *);
 #endif
+
+void lammps_set_fix_external_callback(void *handle, const char *id, FixExternalFnPtr funcptr,
+                                      void *ptr);
 double **lammps_fix_external_get_force(void *handle, const char *id);
 void lammps_fix_external_set_energy_global(void *handle, const char *id, double eng);
 void lammps_fix_external_set_energy_peratom(void *handle, const char *id, double *eng);

@@ -112,7 +112,7 @@ requests to compute `gamma`, as shown in example below:
     compute max_pace_gamma all reduce max f_pace_gamma
     variable dump_skip equal "c_max_pace_gamma < 5"
 
-    dump pace_dump all custom 20 extrapolative_structures.dump id x y z f_pace_gamma
+    dump pace_dump all custom 20 extrapolative_structures.dump id type x y z f_pace_gamma
     dump_modify pace_dump skip v_dump_skip
 
     variable max_pace_gamma equal c_max_pace_gamma

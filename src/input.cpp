@@ -831,8 +831,8 @@ int Input::execute_command()
   // try suffixed version first
 
   std::string mycmd = command;
-  if (lmp->suffix_enable && lmp->suffix) {
-    mycmd = command + std::string("/") + lmp->suffix;
+  if (lmp->suffix_enable && lmp->non_pair_suffix()) {
+    mycmd = command + std::string("/") + lmp->non_pair_suffix();
     if (command_map->find(mycmd) == command_map->end()) {
       if (lmp->suffix2) {
         mycmd = command + std::string("/") + lmp->suffix2;
@@ -1775,10 +1775,7 @@ void Input::pair_style()
     int match = 0;
     if (style == force->pair_style) match = 1;
     if (!match && lmp->suffix_enable) {
-      if (lmp->suffixp)
-        if (style + "/" + lmp->suffixp == force->pair_style) match = 1;
-
-      if (lmp->suffix && !lmp->suffixp)
+      if (lmp->suffix)
         if (style + "/" + lmp->suffix == force->pair_style) match = 1;
 
       if (lmp->suffix2)

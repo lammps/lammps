@@ -240,15 +240,19 @@ void FixPair::post_force(int /*vflag*/)
   // extract pair style fields one by one
   // store their values in this fix
 
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
 
   int icol = 0;
   int columns;
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
-    if (pvoid == nullptr)
-      error->all(FLERR,"Fix pair pair style cannot extract {}",fieldname[ifield]);
+
+    // Pair::extract_peratom() may return a null pointer if there are no atoms the sub-domain
+    // so returning null is only an error if there are local atoms.
+
+    if ((pvoid == nullptr) && (nlocal > 0))
+      error->one(FLERR, "Fix pair cannot extract property {} from pair style", fieldname[ifield]);
 
     if (columns == 0) {
       double *pvector = (double *) pvoid;

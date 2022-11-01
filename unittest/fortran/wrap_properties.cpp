@@ -2,7 +2,9 @@
 
 #include "lammps.h"
 #include "library.h"
+#include "info.h"
 
+#include <cstdint>
 #include <string>
 
 #include "gmock/gmock.h"
@@ -12,12 +14,15 @@
 extern "C" {
 void *f_lammps_with_args();
 void f_lammps_close();
-int f_lammps_version();
 void f_lammps_memory_usage(double *);
 int f_lammps_get_mpi_comm();
 int f_lammps_extract_setting(const char *);
 int f_lammps_has_error();
 int f_lammps_get_last_error_message(char *, int);
+int f_lammps_get_image_flags_int(int, int, int);
+int64_t f_lammps_get_image_flags_bigint(int, int, int);
+void f_lammps_decode_image_flags(int, int*);
+void f_lammps_decode_image_flags_bigbig(int64_t, int*);
 }
 
 namespace LAMMPS_NS {
@@ -45,11 +50,6 @@ protected:
         EXPECT_STREQ(output.substr(0, 16).c_str(), "Total wall time:");
         lmp = nullptr;
     }
-};
-
-TEST_F(LAMMPS_properties, version)
-{
-    EXPECT_LT(20200917, f_lammps_version());
 };
 
 TEST_F(LAMMPS_properties, memory_usage)
@@ -85,9 +85,17 @@ TEST_F(LAMMPS_properties, extract_setting)
 #if defined(LAMMPS_BIGBIG)
     EXPECT_EQ(f_lammps_extract_setting("tagint"), 8);
     EXPECT_EQ(f_lammps_extract_setting("imageint"), 8);
+    EXPECT_EQ(f_lammps_extract_setting("IMGMASK"), 2097151);
+    EXPECT_EQ(f_lammps_extract_setting("IMGMAX"), 1048576);
+    EXPECT_EQ(f_lammps_extract_setting("IMGBITS"), 21);
+    EXPECT_EQ(f_lammps_extract_setting("IMG2BITS"), 42);
 #else
     EXPECT_EQ(f_lammps_extract_setting("tagint"), 4);
     EXPECT_EQ(f_lammps_extract_setting("imageint"), 4);
+    EXPECT_EQ(f_lammps_extract_setting("IMGMASK"), 1023);
+    EXPECT_EQ(f_lammps_extract_setting("IMGMAX"), 512);
+    EXPECT_EQ(f_lammps_extract_setting("IMGBITS"), 10);
+    EXPECT_EQ(f_lammps_extract_setting("IMG2BITS"), 20);
 #endif
 
     EXPECT_EQ(f_lammps_extract_setting("box_exist"), 0);
@@ -141,4 +149,39 @@ TEST_F(LAMMPS_properties, has_error)
     EXPECT_EQ(err, 0);
     EXPECT_THAT(errmsg, ContainsRegex("                                                  "));
 };
+
+TEST_F(LAMMPS_properties, get_image_flags)
+{
+#ifdef LAMMPS_BIGBIG
+    int64_t image = f_lammps_get_image_flags_bigint(0,0,0);
+    int64_t Cimage = lammps_encode_image_flags(0,0,0);
+    EXPECT_EQ(image, Cimage);
+    image = f_lammps_get_image_flags_bigint(1,-1,1);
+    Cimage = lammps_encode_image_flags(1,-1,1);
+    EXPECT_EQ(image, Cimage);
+#else
+    int image = f_lammps_get_image_flags_int(0,0,0);
+    int Cimage = lammps_encode_image_flags(0,0,0);
+    EXPECT_EQ(image, Cimage);
+    image = f_lammps_get_image_flags_int(1,-1,1);
+    Cimage = lammps_encode_image_flags(1,-1,1);
+    EXPECT_EQ(image, Cimage);
+#endif
+}
+
+TEST_F(LAMMPS_properties, decode_image_flags)
+{
+    int flag[3];
+#ifdef LAMMPS_BIGBIG
+    int64_t image = f_lammps_get_image_flags_bigint(1,3,-2);
+    f_lammps_decode_image_flags_bigbig(image, flag);
+#else
+    int image = f_lammps_get_image_flags_int(1,3,-2);
+    f_lammps_decode_image_flags(image, flag);
+#endif
+    EXPECT_EQ(flag[0], 1);
+    EXPECT_EQ(flag[1], 3);
+    EXPECT_EQ(flag[2], -2);
+};
+
 } // namespace LAMMPS_NS

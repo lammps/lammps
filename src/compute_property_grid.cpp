@@ -242,8 +242,9 @@ void *ComputePropertyGrid::get_griddata_by_index(int index)
 void ComputePropertyGrid::allocate_grid()
 {
   if (dimension == 2) {
-    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, 0.0, 0, 0.0, nxlo_in, nxhi_in, nylo_in, nyhi_in,
-                        nxlo_out, nxhi_out, nylo_out, nyhi_out);
+    grid2d = new Grid2d(lmp, world, nxgrid, nygrid);
+    grid2d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in, nxlo_out, nxhi_out, nylo_out, nyhi_out);
+
     if (nvalues == 1)
       memory->create2d_offset(vec2d, nylo_out, nyhi_out, nxlo_out, nxhi_out, "property/grid:vec2d");
     else

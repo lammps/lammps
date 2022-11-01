@@ -83,7 +83,6 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm,
   : Pointers(lmp)
 {
   // store commnicator and global grid size
-  // set layout mode
 
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);
@@ -134,7 +133,6 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int flag,
   : Pointers(lmp)
 {
   // store commnicator and global grid size
-  // set layout mode
 
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);

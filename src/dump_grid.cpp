@@ -503,7 +503,7 @@ int DumpGrid::count()
       grid2d = (Grid2d *) compute[field2index[0]]->get_grid_by_index(field2grid[0]);
     else if (field2source[0] == FIX)
       grid2d = (Grid2d *) fix[field2index[0]]->get_grid_by_index(field2grid[0]);
-    grid2d->get_bounds(nxlo_in,nxhi_in,nylo_in,nyhi_in);
+    grid2d->get_bounds_owned(nxlo_in,nxhi_in,nylo_in,nyhi_in);
   } else {
     if (field2source[0] == COMPUTE)
       grid3d = (Grid3d *) compute[field2index[0]]->get_grid_by_index(field2grid[0]);

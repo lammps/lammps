@@ -260,7 +260,7 @@ class Grid3d : protected Pointers {
   void box_drop(int *, int *);
   void box_drop_grid(int *, int, int, int &, int *);
 
-  virtual void grow_swap();
+  void grow_swap();
   void grow_overlap();
   void deallocate_remap();
   

@@ -22,19 +22,27 @@ class Grid2d : protected Pointers {
  public:
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
-  Grid2d(class LAMMPS *, MPI_Comm, int, int, double, int, double,
-         int &, int &, int &, int &,
-         int &, int &, int &, int &);
+  Grid2d(class LAMMPS *, MPI_Comm, int, int);
+  
   Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int);
   Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int,
          int, int, int, int, int);
+  
   ~Grid2d() override;
+
+  void set_distance(double);
+  void set_stencil_grid(int, int);
+  void set_stencil_atom(int, int);
+  void set_shift_grid(double);
+  void set_shift_atom(double);
 
   int identical(Grid2d *);
   void get_size(int &, int &);
-  void get_bounds(int &, int &, int &, int &);
+  void get_bounds_owned(int &, int &, int &, int &);
   void get_bounds_ghost(int &, int &, int &, int &);
-  
+
+  void setup_grid(int &, int &, int &, int &, int &, int &, int &, int &);
+
   void setup_comm(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);
@@ -55,6 +63,16 @@ protected:
   // inputs from caller via constructor
 
   int nx, ny;          // size of global grid in both dims
+  double maxdist;      // distance owned atoms can move outside subdomain
+  int stencil_atom_lo,stencil_atom_hi;    // grid cells accessed beyond atom's cell
+  int stencil_grid_lo,stencil_grid_hi;    // grid cells accessed beyond owned cell
+  double shift_grid;   // location of grid point within grid cell
+                       // only affects which proc owns grid cell
+  double shift_atom;   // shift applied to atomd when mapped to grid cell by caller
+                       // only affects extent of ghost cells
+
+  // extent of my owned and ghost cells
+  
   int inxlo, inxhi;    // inclusive extent of my grid chunk, 0 <= in <= N-1
   int inylo, inyhi; 
   int outxlo, outxhi;      // inclusive extent of my grid chunk plus
@@ -63,9 +81,6 @@ protected:
   int fullxlo, fullxhi;    // extent of grid chunk that caller stores
   int fullylo, fullyhi;    //   can be same as out indices or larger
 
-  double shift;            // location of grid point within grid cell
-                           // only affects which proc owns grid cell
-  
   // -------------------------------------------
   // internal variables for BRICK layout
   // -------------------------------------------
@@ -210,14 +225,14 @@ protected:
   // -------------------------------------------
 
   void partition_grid(int, double, double, double, int &, int &);
-  void ghost_grid(double, int);
+  void ghost_grid();
   void extract_comm_info();
 
   void store(int, int, int, int, int, int, int, int,
              int, int, int, int, int, int, int, int);
   
-  virtual void setup_comm_brick(int &, int &);
-  virtual void setup_comm_tiled(int &, int &);
+  void setup_comm_brick(int &, int &);
+  void setup_comm_tiled(int &, int &);
   int ghost_adjacent_brick();
   int ghost_adjacent_tiled();
   
@@ -236,7 +251,7 @@ protected:
   void box_drop(int *, int *);
   void box_drop_grid(int *, int, int, int &, int *);
 
-  virtual void grow_swap();
+  void grow_swap();
   void grow_overlap();
   void deallocate_remap();
 

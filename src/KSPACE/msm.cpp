@@ -597,12 +597,12 @@ void MSM::allocate()
   // commgrid using all processors for finest grid level
 
   gcall = new Grid3d(lmp,world,1,nx_msm[0],ny_msm[0],nz_msm[0],
-                       nxlo_in[0],nxhi_in[0],nylo_in[0],
-                       nyhi_in[0],nzlo_in[0],nzhi_in[0],
-                       nxlo_out_all,nxhi_out_all,nylo_out_all,
-                       nyhi_out_all,nzlo_out_all,nzhi_out_all,
-                       nxlo_out[0],nxhi_out[0],nylo_out[0],
-                       nyhi_out[0],nzlo_out[0],nzhi_out[0]);
+                     nxlo_in[0],nxhi_in[0],nylo_in[0],
+                     nyhi_in[0],nzlo_in[0],nzhi_in[0],
+                     nxlo_out_all,nxhi_out_all,nylo_out_all,
+                     nyhi_out_all,nzlo_out_all,nzhi_out_all,
+                     nxlo_out[0],nxhi_out[0],nylo_out[0],
+                     nyhi_out[0],nzlo_out[0],nzhi_out[0]);
 
   gcall->setup_comm(ngcall_buf1,ngcall_buf2);
   npergrid = 1;

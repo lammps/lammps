@@ -395,9 +395,10 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   else if (modegrid) maxdist = 0.0;
 
   if (dimension == 2) {
-    grid2d = new Grid2d(lmp, world, nxgrid, nygrid, maxdist, 0, 0.5,
-                        nxlo_in, nxhi_in, nylo_in, nyhi_in,
-                        nxlo_out, nxhi_out, nylo_out, nyhi_out);
+    grid2d = new Grid2d(lmp, world, nxgrid, nygrid);
+    grid2d->set_distance(maxdist);
+    grid2d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in,
+                       nxlo_out, nxhi_out, nylo_out, nyhi_out);
 
     // ngrid_buf12 converted to nvalues + count
 

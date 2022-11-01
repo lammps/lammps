@@ -43,6 +43,14 @@ The fix style *freeze* zeroes both the force and torque of frozen
 atoms, and should be used for granular system instead of the fix style
 *setforce*\ .
 
+To model heat conduction, one must use the atom style:
+* :doc:`atom_style sphere/temp <atom_style>`
+a temperature integration fix
+* :doc:`fix temp/integrate <fix_temp_integrate>`
+and a heat conduction option defined in both
+* :doc:`pair_style granular <pair_granular>`
+* :doc:`fix wall/gran <fix_wall_gran>`
+
 For computational efficiency, you can eliminate needless pairwise
 computations between frozen atoms by using this command:
 
@@ -55,3 +63,6 @@ computations between frozen atoms by using this command:
    will be the same as in 3d.  If you wish to model granular particles in
    2d as 2d discs, see the note on this topic on the :doc:`Howto 2d <Howto_2d>`
    doc page, where 2d simulations are discussed.
+
+To add custom granular contact models, see the
+:doc:`modifying granular submodels page <Modify_gsm>`.

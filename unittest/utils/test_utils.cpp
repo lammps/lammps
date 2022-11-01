@@ -631,6 +631,18 @@ TEST(Utils, strmatch_whitespace_nonwhitespace)
     ASSERT_TRUE(utils::strmatch(" 5.0  angles\n", "^\\s*\\S+\\s+\\S+\\s"));
 }
 
+TEST(Utils, strmatch_range)
+{
+    ASSERT_TRUE(utils::strmatch("*11", "^\\d*\\*\\d*$"));
+    ASSERT_TRUE(utils::strmatch("2*11", "^\\d*\\*\\d*$"));
+    ASSERT_TRUE(utils::strmatch("5*", "^\\d*\\*\\d*$"));
+    ASSERT_TRUE(utils::strmatch("*", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("x5*", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("x*", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("*a", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("1*2d", "^\\d*\\*\\d*$"));
+}
+
 TEST(Utils, strfind_beg)
 {
     ASSERT_THAT(utils::strfind("rigid/small/omp", "^rigid"), StrEq("rigid"));

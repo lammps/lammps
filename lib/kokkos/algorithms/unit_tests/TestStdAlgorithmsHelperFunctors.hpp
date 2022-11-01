@@ -157,12 +157,6 @@ struct CustomLessThanComparator {
   }
 
   KOKKOS_INLINE_FUNCTION
-  bool operator()(const volatile ValueType1& a,
-                  const volatile ValueType1& b) const {
-    return a < b;
-  }
-
-  KOKKOS_INLINE_FUNCTION
   CustomLessThanComparator() {}
 };
 

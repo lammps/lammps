@@ -42,7 +42,6 @@
 //@HEADER
 */
 
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 #include <limits>
@@ -296,8 +295,24 @@ struct TestReducers {
     Scalar reference_sum = 0;
 
     for (int i = 0; i < N; i++) {
-      int denom   = sizeof(Scalar) <= 2 ? 10 : 100;
-      h_values(i) = (Scalar)(rand() % denom);
+      int denom = sizeof(Scalar) <= 2 ? 10 : 100;
+      // clang-format off
+      // For bhalf, we start overflowing integer values at 2^8.
+      //            after 2^8,  we lose representation of odd numbers;
+      //            after 2^9,  we lose representation of odd and even numbers in position 1.
+      //            after 2^10, we lose representation of odd and even numbers in position 1-3.
+      //            after 2^11, we lose representation of odd and even numbers in position 1-7.
+      //            ...
+      // Generally, for IEEE 754 floating point numbers, we start this overflow pattern at: 2^(num_fraction_bits+1).
+      // brain float has num_fraction_bits = 7.
+      // This mask addresses #4719 for N <= 51.
+      // The mask is not needed for N <= 25.
+      // clang-format on
+      int mask =
+          std::is_same<Scalar, Kokkos::Experimental::bhalf_t>::value && N > 25
+              ? (int)0xfffffffe
+              : (int)0xffffffff;
+      h_values(i) = (Scalar)((rand() % denom) & mask);
       reference_sum += h_values(i);
     }
     Kokkos::deep_copy(values, h_values);
@@ -314,19 +329,19 @@ struct TestReducers {
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, 0), f,
                               reducer_scalar);
-      ASSERT_EQ(sum_scalar, init);
+      ASSERT_EQ(sum_scalar, init) << "N: " << N;
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_scalar);
-      ASSERT_EQ(sum_scalar, reference_sum);
+      ASSERT_EQ(sum_scalar, reference_sum) << "N: " << N;
 
       sum_scalar = init;
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace, ReducerTag>(0, N),
                               f_tag, reducer_scalar);
-      ASSERT_EQ(sum_scalar, reference_sum);
+      ASSERT_EQ(sum_scalar, reference_sum) << "N: " << N;
 
       Scalar sum_scalar_view = reducer_scalar.reference();
-      ASSERT_EQ(sum_scalar_view, reference_sum);
+      ASSERT_EQ(sum_scalar_view, reference_sum) << "N: " << N;
     }
 
     {
@@ -337,16 +352,16 @@ struct TestReducers {
                               reducer_view);
       Kokkos::fence();
       Scalar sum_view_scalar = sum_view();
-      ASSERT_EQ(sum_view_scalar, init);
+      ASSERT_EQ(sum_view_scalar, init) << "N: " << N;
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_view);
       Kokkos::fence();
       sum_view_scalar = sum_view();
-      ASSERT_EQ(sum_view_scalar, reference_sum);
+      ASSERT_EQ(sum_view_scalar, reference_sum) << "N: " << N;
 
       Scalar sum_view_view = reducer_view.reference();
-      ASSERT_EQ(sum_view_view, reference_sum);
+      ASSERT_EQ(sum_view_view, reference_sum) << "N: " << N;
     }
 
     {
@@ -359,13 +374,13 @@ struct TestReducers {
       Kokkos::fence();
       Scalar sum_view_scalar;
       Kokkos::deep_copy(sum_view_scalar, sum_view);
-      ASSERT_EQ(sum_view_scalar, init);
+      ASSERT_EQ(sum_view_scalar, init) << "N: " << N;
 
       Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, N), f,
                               reducer_view);
       Kokkos::fence();
       Kokkos::deep_copy(sum_view_scalar, sum_view);
-      ASSERT_EQ(sum_view_scalar, reference_sum);
+      ASSERT_EQ(sum_view_scalar, reference_sum) << "N: " << N;
     }
   }
 

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -149,24 +149,23 @@ class FixNPTCauchy : public Fix {
   void nh_omega_dot();
 
   // Implementation of CauchyStat
-  char *id_store;                // fix id of the STORE fix for retaining data
-  class FixStore *init_store;    // fix pointer to STORE fix
-  double H0[3][3];               // shape matrix for the undeformed cell
-  double h_old[6];               // previous time step shape matrix for
-                                 // the undeformed cell
-  double invH0[3][3];            // inverse of H0;
-  double CSvol0;                 // volume of undeformed cell
-  double setPK[3][3];            // current set values of the PK stress
-                                 // (this is modified until the cauchy
-                                 // stress converges)
-  double alpha;                  // integration parameter for the cauchystat
-  int initPK;                    // 1 if setPK needs to be initialized either
-                                 // from cauchy or restart, else 0
-  int restartPK;                 // Read PK stress from the previous run
-  int restart_stored;            // values of PK stress from the previous step stored
-  int initRUN;                   // 0 if run not initialized
-                                 // (pressure->vector not computed yet),
-                                 // else 1 (pressure->vector available)
+  char *id_store;                      // fix id of the STORE fix for retaining data
+  class FixStoreGlobal *init_store;    // fix pointer to STORE fix
+  double H0[3][3];                     // shape matrix for the undeformed cell
+  double h_old[6];                     // previous time step shape matrix for
+                                       // the undeformed cell
+  double invH0[3][3];                  // inverse of H0;
+  double CSvol0;                       // volume of undeformed cell
+  double setPK[3][3];                  // current set values of the PK stress
+                                       // (this is modified until the cauchy
+                                       // stress converges)
+  double alpha;                        // integration parameter for the cauchystat
+  int initPK;                          // 1 if setPK needs to be initialized either
+                                       // from cauchy or restart, else 0
+  int restartPK;                       // Read PK stress from the previous run
+  int initRUN;                         // 0 if run not initialized
+                                       // (pressure->vector not computed yet),
+                                       // else 1 (pressure->vector available)
 
   void CauchyStat_init();
   void CauchyStat_cleanup();

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -63,7 +63,8 @@ class ReadDump : public Command {
   int dimension;    // same as in Domain
   int triclinic;
 
-  int boxflag;                 // overwrite simulation with dump file box params
+  int boxflag;                 // overwrite simulation box with dump file box params
+  int timestepflag;            // overwrite simulation timestep with dump file timestep
   int replaceflag, addflag;    // flags for processing dump snapshot atoms
   int trimflag, purgeflag;
   int scaleflag;        // user 0/1 if dump file coords are unscaled/scaled

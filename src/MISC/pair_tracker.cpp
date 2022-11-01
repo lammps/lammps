@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -300,7 +300,7 @@ void PairTracker::settings(int narg, char **arg)
   fix_store_local = dynamic_cast<FixStoreLocal *>(modify->get_fix_by_id(id_fix_store_local));
   if (!fix_store_local)
     fix_store_local = dynamic_cast<FixStoreLocal *>(modify->add_fix(
-        fmt::format("{} all STORE_LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues)));
+        fmt::format("{} all STORE/LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues)));
 }
 
 /* ----------------------------------------------------------------------

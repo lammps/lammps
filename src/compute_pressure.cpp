@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -202,7 +202,7 @@ void ComputePressure::init()
     vptr = new double*[nvirial];
     nvirial = 0;
     if (pairhybridflag && force->pair) {
-      auto ph = dynamic_cast<PairHybrid *>( force->pair);
+      auto ph = dynamic_cast<PairHybrid *>(force->pair);
       ph->no_virial_fdotr_compute = 1;
       vptr[nvirial++] = pairhybrid->virial;
     }

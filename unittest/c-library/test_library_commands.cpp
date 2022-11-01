@@ -104,7 +104,7 @@ TEST_F(LibraryCommands, from_list)
 
 TEST_F(LibraryCommands, from_string)
 {
-    std::string cmds("");
+    std::string cmds;
 
     for (auto &inp : demo_input) {
         cmds += inp;

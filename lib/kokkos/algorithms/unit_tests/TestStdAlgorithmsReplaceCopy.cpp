@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
 #include <utility>
 
 namespace Test {
@@ -142,40 +140,40 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
   }
 
   else if (name == "one-element-a") {
-    EXPECT_TRUE(view_from_h(0) == ValueType{1});
-    EXPECT_TRUE(view_test_h(0) == view_from_h(0));
+    EXPECT_EQ(view_from_h(0), ValueType{1});
+    EXPECT_EQ(view_test_h(0), view_from_h(0));
   }
 
   else if (name == "one-element-b") {
-    EXPECT_TRUE(view_from_h(0) == ValueType{2});
-    EXPECT_TRUE(view_test_h(0) == new_value);
+    EXPECT_EQ(view_from_h(0), ValueType{2});
+    EXPECT_EQ(view_test_h(0), new_value);
   }
 
   else if (name == "two-elements-a") {
-    EXPECT_TRUE(view_from_h(0) == ValueType{1});
-    EXPECT_TRUE(view_from_h(1) == ValueType{2});
+    EXPECT_EQ(view_from_h(0), ValueType{1});
+    EXPECT_EQ(view_from_h(1), ValueType{2});
 
-    EXPECT_TRUE(view_test_h(0) == view_from_h(0));
-    EXPECT_TRUE(view_test_h(1) == new_value);
+    EXPECT_EQ(view_test_h(0), view_from_h(0));
+    EXPECT_EQ(view_test_h(1), new_value);
   }
 
   else if (name == "two-elements-b") {
-    EXPECT_TRUE(view_from_h(0) == ValueType{2});
-    EXPECT_TRUE(view_from_h(1) == ValueType{-1});
+    EXPECT_EQ(view_from_h(0), ValueType{2});
+    EXPECT_EQ(view_from_h(1), ValueType{-1});
 
-    EXPECT_TRUE(view_test_h(0) == new_value);
-    EXPECT_TRUE(view_test_h(1) == view_from_h(1));
+    EXPECT_EQ(view_test_h(0), new_value);
+    EXPECT_EQ(view_test_h(1), view_from_h(1));
   }
 
   else if (name == "small-a") {
     for (std::size_t i = 0; i < view_test_h.extent(0); ++i) {
       if (i == 0 || i == 3 || i == 5 || i == 6) {
-        EXPECT_TRUE(view_from_h(i) == ValueType{2});
-        EXPECT_TRUE(view_test_h(i) == new_value);
+        EXPECT_EQ(view_from_h(i), ValueType{2});
+        EXPECT_EQ(view_test_h(i), new_value);
       } else {
         const auto gold = ValueType{-5} + static_cast<ValueType>(i + 1);
-        EXPECT_TRUE(view_from_h(i) == gold);
-        EXPECT_TRUE(view_test_h(i) == gold);
+        EXPECT_EQ(view_from_h(i), gold);
+        EXPECT_EQ(view_test_h(i), gold);
       }
     }
   }
@@ -183,11 +181,11 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
   else if (name == "small-b") {
     for (std::size_t i = 0; i < view_test_h.extent(0); ++i) {
       if (i < 4) {
-        EXPECT_TRUE(view_from_h(i) == ValueType{-1});
-        EXPECT_TRUE(view_test_h(i) == view_from_h(i));
+        EXPECT_EQ(view_from_h(i), ValueType{-1});
+        EXPECT_EQ(view_test_h(i), view_from_h(i));
       } else {
-        EXPECT_TRUE(view_from_h(i) == ValueType{2});
-        EXPECT_TRUE(view_test_h(i) == new_value);
+        EXPECT_EQ(view_from_h(i), ValueType{2});
+        EXPECT_EQ(view_test_h(i), new_value);
       }
     }
   }
@@ -195,11 +193,11 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
   else if (name == "medium" || name == "large") {
     for (std::size_t i = 0; i < view_test_h.extent(0); ++i) {
       if (i % 2 == 0) {
-        EXPECT_TRUE(view_from_h(i) == ValueType{-1});
-        EXPECT_TRUE(view_test_h(i) == view_from_h(i));
+        EXPECT_EQ(view_from_h(i), ValueType{-1});
+        EXPECT_EQ(view_test_h(i), view_from_h(i));
       } else {
-        EXPECT_TRUE(view_from_h(i) == ValueType{2});
-        EXPECT_TRUE(view_test_h(i) == new_value);
+        EXPECT_EQ(view_from_h(i), ValueType{2});
+        EXPECT_EQ(view_test_h(i), new_value);
       }
     }
   }
@@ -232,7 +230,7 @@ void run_single_scenario(const InfoType& scenario_info) {
         KE::replace_copy(exespace(), KE::cbegin(view_from), KE::cend(view_from),
                          KE::begin(view_dest), old_value, new_value);
     verify_data(name, view_from, view_dest, new_value);
-    EXPECT_TRUE(rit == (KE::begin(view_dest) + view_ext));
+    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   {
@@ -245,7 +243,7 @@ void run_single_scenario(const InfoType& scenario_info) {
                                 KE::cend(view_from), KE::begin(view_dest),
                                 old_value, new_value);
     verify_data(name, view_from, view_dest, new_value);
-    EXPECT_TRUE(rit == (KE::begin(view_dest) + view_ext));
+    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   {
@@ -257,7 +255,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     auto rit = KE::replace_copy(exespace(), view_from, view_dest, old_value,
                                 new_value);
     verify_data(name, view_from, view_dest, new_value);
-    EXPECT_TRUE(rit == (KE::begin(view_dest) + view_ext));
+    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   {
@@ -269,7 +267,7 @@ void run_single_scenario(const InfoType& scenario_info) {
     auto rit = KE::replace_copy("label", exespace(), view_from, view_dest,
                                 old_value, new_value);
     verify_data(name, view_from, view_dest, new_value);
-    EXPECT_TRUE(rit == (KE::begin(view_dest) + view_ext));
+    EXPECT_EQ(rit, (KE::begin(view_dest) + view_ext));
   }
 
   Kokkos::fence();

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -91,7 +91,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
 
     // utility lambdas to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
     auto parse_input_script = [&](const std::string &filename) {
         lmp->input->file(filename.c_str());
@@ -142,7 +142,7 @@ void run_lammps(LAMMPS *lmp)
 {
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
 
     command("fix 1 all nve");
@@ -157,7 +157,7 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool nofdotr = false, bo
 {
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
 
     command("clear");
@@ -188,7 +188,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     // utility lambdas to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
     auto parse_input_script = [&](const std::string &filename) {
         lmp->input->file(filename.c_str());
@@ -239,7 +239,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
 
     const int natoms = lmp->atom->natoms;
-    std::string block("");
+    std::string block;
 
     YamlWriter writer(outfile);
 
@@ -316,7 +316,6 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit_block("run_forces", block);
 
     cleanup_lammps(lmp, config);
-    return;
 }
 
 TEST(PairStyle, plain)
@@ -767,7 +766,7 @@ TEST(PairStyle, gpu)
         GTEST_SKIP();
 
     const char *args_neigh[]   = {"PairStyle", "-log",    "none", "-echo",
-                                "screen",    "-nocite", "-sf",  "gpu"};
+                                  "screen",    "-nocite", "-sf",  "gpu"};
     const char *args_noneigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf",
                                   "gpu",       "-pk",  "gpu",  "0",     "neigh",  "no"};
 
@@ -1085,7 +1084,7 @@ TEST(PairStyle, single)
 
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
 
     command("clear");
@@ -1317,7 +1316,7 @@ TEST(PairStyle, extract)
 
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
-        lmp->input->one(line.c_str());
+        lmp->input->one(line);
     };
 
     if (!verbose) ::testing::internal::CaptureStdout();

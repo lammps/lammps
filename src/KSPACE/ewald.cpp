@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1171,7 +1171,7 @@ void Ewald::slabcorr()
 
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
@@ -1200,7 +1200,7 @@ void Ewald::slabcorr()
   // compute corrections
 
   const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
-    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
+    qsum*dipole_r2 - qsum*qsum*zprd_slab*zprd_slab/12.0)/volume;
   const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -1211,7 +1211,7 @@ void Ewald::slabcorr()
     double efact = qscale * MY_2PI/volume;
     for (int i = 0; i < nlocal; i++)
       eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
-        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
+        qsum*x[i][2]*x[i][2]) - qsum*zprd_slab*zprd_slab/12.0);
   }
 
   // add on force corrections
@@ -1380,7 +1380,7 @@ void Ewald::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
 
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
@@ -1436,7 +1436,7 @@ void Ewald::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
   const double efact = qscale * MY_2PI/volume;
 
   e2group += efact * (dipole_A*dipole_B - 0.5*(qsum_A*dipole_r2_B +
-    qsum_B*dipole_r2_A) - qsum_A*qsum_B*zprd*zprd/12.0);
+    qsum_B*dipole_r2_A) - qsum_A*qsum_B*zprd_slab*zprd_slab/12.0);
 
   // add on force corrections
 

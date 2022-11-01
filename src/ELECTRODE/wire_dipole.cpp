@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -34,8 +34,8 @@ using namespace MathConst;
 */
 WireDipole::WireDipole(LAMMPS *lmp) : BoundaryCorrection(lmp){};
 
-void WireDipole::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global, double &energy,
-                              double *eatom)
+void WireDipole::compute_corr(double /*qsum*/, double /*slab_volfactor*/, int eflag_atom,
+                              int eflag_global, double &energy, double *eatom)
 {
   double *q = atom->q;
   double **x = atom->x;

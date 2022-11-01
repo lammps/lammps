@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,6 +27,7 @@
 #include "group.h"
 #include "improper.h"
 #include "irregular.h"
+#include "label_map.h"
 #include "memory.h"
 #include "modify.h"
 #include "mpiio.h"
@@ -61,9 +62,10 @@ void ReadRestart::command(int narg, char **arg)
 
   // check for remap option
 
-  int remapflag = 0;
+  int remapflag = 1;
   if (narg == 2) {
-    if (strcmp(arg[1],"remap") == 0) remapflag = 1;
+    if (strcmp(arg[1],"noremap") == 0) remapflag = 0;
+    else if (strcmp(arg[1],"remap") == 0) remapflag = 1; // for backward compatibility
     else error->all(FLERR,"Illegal read_restart command");
   }
 
@@ -449,7 +451,7 @@ void ReadRestart::command(int narg, char **arg)
     if (nextra) {
       memory->destroy(atom->extra);
       memory->create(atom->extra,atom->nmax,nextra,"atom:extra");
-      auto fix = dynamic_cast<FixReadRestart *>( modify->get_fix_by_id("_read_restart"));
+      auto fix = dynamic_cast<FixReadRestart *>(modify->get_fix_by_id("_read_restart"));
       int *count = fix->count;
       double **extra = fix->extra;
       double **atom_extra = atom->extra;
@@ -558,6 +560,10 @@ std::string ReadRestart::file_search(const std::string &inpfile)
   bigint maxnum = -1;
   loc = pattern.find('*');
   if (loc != std::string::npos) {
+    // the regex matcher in utils::strmatch() only checks the first 256 characters.
+    if (loc > 256)
+      error->one(FLERR, "Filename part before '*' is too long to find restart with largest step");
+
     // convert pattern to equivalent regexp
     pattern.replace(loc,1,"\\d+");
 
@@ -643,8 +649,7 @@ void ReadRestart::header()
       int dimension = read_int();
       domain->dimension = dimension;
       if (domain->dimension == 2 && domain->zperiodic == 0)
-        error->all(FLERR,
-                   "Cannot run 2d simulation with non-periodic Z dimension");
+        error->all(FLERR, "Cannot run 2d simulation with non-periodic Z dimension");
 
     // read nprocs from restart file, warn if different
 
@@ -888,6 +893,11 @@ void ReadRestart::type_arrays()
       read_double_vec(atom->ntypes,&mass[1]);
       atom->set_mass(mass);
       delete[] mass;
+
+    } else if (flag == LABELMAP) {
+      read_int();
+      atom->add_label_map();
+      atom->lmap->read_restart(fp);
 
     } else error->all(FLERR,
                       "Invalid flag in type arrays section of restart file");

@@ -8,13 +8,13 @@
 #          data.txt = text file to create
 #          X Y ... = columns to include (optional), X,Y are thermo keywords
 #                    if no columns listed, all columns are included
-# Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
+# Author:  Steve Plimpton (Sandia), sjplimp at gmail.com
 
 from __future__ import print_function
 
 import sys,os,argparse
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
-sys.path.append(path)
+sys.path.insert(1,path)
 from log import log
 
 # set up arg parser

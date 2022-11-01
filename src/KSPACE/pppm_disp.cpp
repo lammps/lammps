@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -266,9 +266,8 @@ void PPPMDisp::init()
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
-  if (comm->style != 0)
-    error->universe_all(FLERR,"PPPMDisp can only currently be used with "
-                        "comm_style brick");
+  if (comm->style != Comm::BRICK)
+    error->universe_all(FLERR,"PPPMDisp can only currently be used with comm_style brick");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use non-periodic boundaries with PPPMDisp");
@@ -279,8 +278,7 @@ void PPPMDisp::init()
   }
 
   if (order > MAXORDER || order_6 > MAXORDER)
-    error->all(FLERR,"PPPMDisp coulomb or dispersion order cannot"
-                                 " be greater than {}",MAXORDER);
+    error->all(FLERR,"PPPMDisp coulomb or dispersion order cannot be greater than {}",MAXORDER);
 
   // compute two charge force
 
@@ -328,8 +326,7 @@ void PPPMDisp::init()
           else error->all(FLERR,"Unsupported mixing rule in kspace_style pppm/disp");
           break;
         default:
-          error->all(FLERR,std::string("Unsupported order in kspace_style "
-                                       "pppm/disp, pair_style ")
+          error->all(FLERR,std::string("Unsupported order in kspace_style pppm/disp, pair_style ")
                      + force->pair_style);
       }
       function[k] = 1;
@@ -8110,7 +8107,7 @@ void PPPMDisp::slabcorr(int /*eflag*/)
 
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
 
   double dipole = 0.0;
@@ -8139,7 +8136,7 @@ void PPPMDisp::slabcorr(int /*eflag*/)
   // compute corrections
 
   const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
-    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
+    qsum*dipole_r2 - qsum*qsum*zprd_slab*zprd_slab/12.0)/volume;
   const double qscale = force->qqrd2e * scale;
 
   if (eflag_global) energy_1 += qscale * e_slabcorr;
@@ -8150,7 +8147,7 @@ void PPPMDisp::slabcorr(int /*eflag*/)
     double efact = qscale * MY_2PI/volume;
     for (int i = 0; i < nlocal; i++)
       eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
-        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
+        qsum*x[i][2]*x[i][2]) - qsum*zprd_slab*zprd_slab/12.0);
   }
 
   // add on force corrections

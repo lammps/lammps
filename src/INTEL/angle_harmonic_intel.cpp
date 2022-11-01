@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -166,10 +166,10 @@ void AngleHarmonicIntel::eval(const int vflag,
     #else
     for (int n = nfrom; n < nto; n += npl) {
     #endif
-      const int i1 = anglelist[n].a;
-      const int i2 = anglelist[n].b;
-      const int i3 = anglelist[n].c;
-      const int type = anglelist[n].t;
+      const int i1 = IP_PRE_dword_index(anglelist[n].a);
+      const int i2 = IP_PRE_dword_index(anglelist[n].b);
+      const int i3 = IP_PRE_dword_index(anglelist[n].c);
+      const int type = IP_PRE_dword_index(anglelist[n].t);
 
       // 1st bond
 

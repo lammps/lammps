@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -31,12 +31,15 @@ class AtomVecDielectric : public AtomVec {
  public:
   AtomVecDielectric(class LAMMPS *);
 
+  void init() override;
   void grow_pointers() override;
   void create_atom_post(int) override;
   void data_atom_post(int) override;
   void unpack_restart_init(int) override;
   int property_atom(const std::string &) override;
   void pack_property_atom(int, double *, int, int) override;
+  void pack_data_pre(int) override;
+  void pack_data_post(int) override;
 
  protected:
   int *num_bond, *num_angle, *num_dihedral, *num_improper;

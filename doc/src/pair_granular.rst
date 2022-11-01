@@ -100,7 +100,7 @@ on particle *i* due to contact with particle *j* is given by:
 
 Where :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle
 overlap, :math:`R_i, R_j` are the particle radii, :math:`\mathbf{r}_{ij} = \mathbf{r}_i - \mathbf{r}_j` is the vector separating the two
-particle centers (note the i-j ordering so that :math:`F_{ne}` is
+particle centers (note the i-j ordering so that :math:`\mathbf{F}_{ne}` is
 positive for repulsion), and :math:`\mathbf{n} = \frac{\mathbf{r}_{ij}}{\|\mathbf{r}_{ij}\|}`.  Therefore,
 for *hooke*, the units of the spring constant :math:`k_n` are
 *force*\ /\ *distance*, or equivalently *mass*\ /*time\^2*.

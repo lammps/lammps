@@ -2,7 +2,7 @@
 /* ---------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation. Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,24 +35,24 @@ using namespace FixConst;
 // ---------------------------------------------------------------------
 
 static const char cite_fix_electron_stopping_fit_c[] =
-  "fix electron/stopping/fit command:\n\n"
+  "fix electron/stopping/fit command: doi:10.1063/1.5022471, doi:10.1103/PhysRevB.102.024107\n\n"
   "@Article{Stewart2018,\n"
-  " author  = { J.A. Stewart and G. Brookman and P. Price and M. Franco and W. Ji and K. Hattar and R. Dingreville },\n"
-  " title   = { Characterizing single isolated radiation-damage events from molecular dynamics via virtual diffraction methods },\n"
-  " journal = { Journal of Applied Physics },\n"
-  " year    = { 2018 },\n"
-  " volume  = { 123 },\n"
-  " number  = { 16 },\n"
-  " pages   = { 165902 }\n"
+  " author  = {J. A. Stewart and G. Brookman and P. Price and M. Franco and W. Ji and K. Hattar and R. Dingreville},\n"
+  " title   = {Characterizing Single Isolated Radiation-Damage Events from Molecular Dynamics via Virtual Diffraction Methods},\n"
+  " journal = {Journal of Applied Physics},\n"
+  " year    = {2018},\n"
+  " volume  = {123},\n"
+  " number  = {16},\n"
+  " pages   = {165902}\n"
   "}\n\n"
   "@Article{Lee2020,\n"
-  " author  = { C.W. Lee and J.A. Stewart and S.M. Foiles and R. Dingreville and A. Schleife },\n"
-  " title   = { Multiscale simulations of electron and ion dynamics in self-irradiated silicon },\n"
-  " journal = { Physical Review B },\n"
-  " year    = { 2020 },\n"
-  " volume  = { 102 },\n"
-  " number  = { 2 },\n"
-  " pages   = { 024107 }\n"
+  " author  = {C. W. Lee and J. A. Stewart and S. M. Foiles and R. Dingreville and A. Schleife },\n"
+  " title   = {Multiscale Simulations of Electron and Ion Dynamics in Self-Irradiated Silicon},\n"
+  " journal = {Physical Review~B},\n"
+  " year    = {2020},\n"
+  " volume  = {102},\n"
+  " number  = {2},\n"
+  " pages   = {024107}\n"
   "}\n\n";
 
 // ---------------------------------------------------------------------
@@ -139,9 +139,9 @@ void FixElectronStoppingFit::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
      post_force(vflag);
   else {
-     (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
+     (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa-1);
      post_force_respa(vflag,nlevels_respa-1,0);
-     (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
+     (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa-1);
   };
 };
 

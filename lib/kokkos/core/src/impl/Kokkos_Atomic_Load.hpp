@@ -72,25 +72,23 @@ namespace Impl {
 template <class T, class MemoryOrder>
 KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH T _atomic_load(
     T* ptr, MemoryOrder,
-    typename std::enable_if<
-        (sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
-         sizeof(T) == 8) &&
-            std::is_same<typename MemoryOrder::memory_order,
-                         typename std::remove_cv<MemoryOrder>::type>::value,
-        void const**>::type = nullptr) {
+    std::enable_if_t<(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
+                      sizeof(T) == 8) &&
+                         std::is_same<typename MemoryOrder::memory_order,
+                                      std::remove_cv_t<MemoryOrder>>::value,
+                     void const**> = nullptr) {
   return __atomic_load_n(ptr, MemoryOrder::gnu_constant);
 }
 
 template <class T, class MemoryOrder>
 KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH T _atomic_load(
     T* ptr, MemoryOrder,
-    typename std::enable_if<
-        !(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
-          sizeof(T) == 8) &&
-            std::is_default_constructible<T>::value &&
-            std::is_same<typename MemoryOrder::memory_order,
-                         typename std::remove_cv<MemoryOrder>::type>::value,
-        void const**>::type = nullptr) {
+    std::enable_if_t<!(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
+                       sizeof(T) == 8) &&
+                         std::is_default_constructible<T>::value &&
+                         std::is_same<typename MemoryOrder::memory_order,
+                                      std::remove_cv_t<MemoryOrder>>::value,
+                     void const**> = nullptr) {
   T rv{};
   __atomic_load(ptr, &rv, MemoryOrder::gnu_constant);
   return rv;
@@ -104,9 +102,9 @@ KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH T _atomic_load(
 
 template <class T>
 __device__ __inline__ T _relaxed_atomic_load_impl(
-    T* ptr, typename std::enable_if<(sizeof(T) == 1 || sizeof(T) == 2 ||
-                                     sizeof(T) == 4 || sizeof(T) == 8),
-                                    void const**>::type = nullptr) {
+    T* ptr, std::enable_if_t<(sizeof(T) == 1 || sizeof(T) == 2 ||
+                              sizeof(T) == 4 || sizeof(T) == 8),
+                             void const**> = nullptr) {
   return *ptr;
 }
 
@@ -120,9 +118,9 @@ struct NoOpOper {
 
 template <class T>
 __device__ __inline__ T _relaxed_atomic_load_impl(
-    T* ptr, typename std::enable_if<!(sizeof(T) == 1 || sizeof(T) == 2 ||
-                                      sizeof(T) == 4 || sizeof(T) == 8),
-                                    void const**>::type = nullptr) {
+    T* ptr, std::enable_if_t<!(sizeof(T) == 1 || sizeof(T) == 2 ||
+                               sizeof(T) == 4 || sizeof(T) == 8),
+                             void const**> = nullptr) {
   T rv{};
   // TODO remove a copy operation here?
   return Kokkos::Impl::atomic_oper_fetch(NoOpOper<T>{}, ptr, rv);

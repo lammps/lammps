@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,7 +27,8 @@ class Special : protected Pointers {
  private:
   int me, nprocs;
   int maxall;
-  tagint **onetwo, **onethree, **onefour;
+  int onefive_flag;
+  tagint **onetwo, **onethree, **onefour, **onefive;
 
   // data used by rendezvous callback methods
 
@@ -51,6 +52,7 @@ class Special : protected Pointers {
   void onetwo_build_newton_off();
   void onethree_build();
   void onefour_build();
+  void onefive_build();
 
   void dedup();
   void angle_trim();

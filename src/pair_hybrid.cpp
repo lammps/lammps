@@ -3,7 +3,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,9 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairHybrid::PairHybrid(LAMMPS *lmp) : Pair(lmp),
-  styles(nullptr), keywords(nullptr), multiple(nullptr), nmap(nullptr),
-  map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr)
+PairHybrid::PairHybrid(LAMMPS *lmp) :
+    Pair(lmp), styles(nullptr), cutmax_style(nullptr), keywords(nullptr), multiple(nullptr),
+    nmap(nullptr), map(nullptr), special_lj(nullptr), special_coul(nullptr), compute_tally(nullptr)
 {
   nstyles = 0;
 
@@ -56,6 +56,7 @@ PairHybrid::~PairHybrid()
     }
   }
   delete[] styles;
+  delete[] cutmax_style;
   delete[] keywords;
   delete[] multiple;
 
@@ -115,7 +116,7 @@ void PairHybrid::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    respa = dynamic_cast<Respa *>( update->integrate);
+    respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 
@@ -192,6 +193,12 @@ void PairHybrid::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairHybrid::finish()
+{
+  for (int m = 0; m < nstyles; m++) styles[m]->finish();
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -298,6 +305,8 @@ void PairHybrid::settings(int narg, char **arg)
   // allocate list of sub-styles as big as possibly needed if no extra args
 
   styles = new Pair *[narg];
+  cutmax_style = new double[narg];
+  memset(cutmax_style, 0.0, narg*sizeof(double));
   keywords = new char *[narg];
   multiple = new int[narg];
 
@@ -716,6 +725,24 @@ double PairHybrid::init_one(int i, int j)
       ptail_ij += styles[map[i][j][k]]->ptail_ij;
     }
     cutmax = MAX(cutmax,cut);
+
+    int istyle;
+    for (istyle = 0; istyle < nstyles; istyle++)
+      if (styles[istyle] == styles[map[i][j][k]]) break;
+
+    if (styles[istyle]->trim_flag) {
+
+      if (cut > cutmax_style[istyle]) {
+        cutmax_style[istyle] = cut;
+
+        for (auto &request : neighbor->get_pair_requests()) {
+          if (styles[istyle] == request->get_requestor() && styles[istyle]->trim_flag) {
+            request->set_cutoff(cutmax_style[istyle]);
+            break;
+          }
+        }
+      }
+    }
   }
 
   return cutmax;
@@ -778,6 +805,8 @@ void PairHybrid::read_restart(FILE *fp)
   delete[] compute_tally;
 
   styles = new Pair*[nstyles];
+  cutmax_style = new double[nstyles];
+  memset(cutmax_style, 0.0, nstyles*sizeof(double));
   keywords = new char*[nstyles];
   multiple = new int[nstyles];
 

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,10 +29,12 @@
 
 #ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
+#include "mliap_unified.h"
 // The above should somehow really be included in the next file.
 // We could get around this with cython --capi-reexport-cincludes
 // However, that exposes -too many- headers.
 #include "mliap_model_python_couple.h"
+#include "mliap_unified_couple.h"
 #endif
 
 using namespace LAMMPS_NS;
@@ -66,6 +68,9 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   // This -must- happen before python is initialized.
   int err = PyImport_AppendInittab("mliap_model_python_couple", PyInit_mliap_model_python_couple);
   if (err) error->all(FLERR, "Could not register MLIAPPY embedded python module.");
+
+  err = PyImport_AppendInittab("mliap_unified_couple", PyInit_mliap_unified_couple);
+  if (err) error->all(FLERR, "Could not register MLIAPPY unified embedded python module.");
 #endif
 
   Py_Initialize();

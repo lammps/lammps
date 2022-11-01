@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -77,7 +77,7 @@
 using namespace LAMMPS_NS;
 
 static constexpr const char *const cite_openkim =
-  "OpenKIM: https://doi.org/10.1007/s11837-011-0102-6\n\n"
+  "OpenKIM Project: doi:10.1007/s11837-011-0102-6\n\n"
   "@Article{tadmor:elliott:2011,\n"
   " author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller "
   "and C. A. Becker},\n"
@@ -308,12 +308,12 @@ void PairKIM::settings(int narg, char **arg)
   init_style_call_count = 0;
 
   // arg[0] is the KIM Model name
-  if (narg == 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg == 0) utils::missing_cmd_args(FLERR, "pair_style kim", error);
   if (narg > 1) {
     const std::string arg_str(arg[1]);
     if ((arg_str == "KIMvirial") || (arg_str == "LAMMPSvirial")) {
       error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported with kim-api");
-    } else error->all(FLERR,"Illegal pair_style command");
+    } else error->all(FLERR,"Unknown pair_style kim keyword: {}", arg_str);
   }
 
   lmps_using_molecular = (atom->molecular > 0);
@@ -355,18 +355,6 @@ void PairKIM::coeff(int narg, char **arg)
   if (narg < 2 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // insure I,J args are * *
-
-  const std::string arg_0_str(arg[0]);
-  const std::string arg_1_str(arg[1]);
-  if ((arg_0_str != "*") || (arg_1_str != "*"))
-    error->all(FLERR,"Incorrect args for pair coefficients.\nThe first two arguments of "
-               "pair_coeff command must be * * to span all LAMMPS atom types");
-
-  int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg_0_str,1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg_1_str,1,atom->ntypes,jlo,jhi,error);
-
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =
   // which element the Ith atom type is
@@ -398,8 +386,8 @@ void PairKIM::coeff(int narg, char **arg)
   }
 
   int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j <= jhi; j++) {
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
       if (lmps_map_species_to_unique[i] >= 0 &&
           lmps_map_species_to_unique[j] >= 0) {
         setflag[i][j] = 1;
@@ -474,8 +462,7 @@ void PairKIM::coeff(int narg, char **arg)
 
       if (param_index >= numberOfParameters)
         error->all(FLERR,"Wrong argument for pair coefficients.\n"
-                   "This Model does not have the requested "
-                   "'{}' parameter", paramname);
+                   "This Model does not have the requested '{}' parameter", paramname);
 
       // Get the index_range for the requested parameter
       int nlbound(0);
@@ -587,7 +574,7 @@ void PairKIM::init_style()
   // make sure comm_reverse expects (at most) 9 values when newton is off
   if (!lmps_using_newton) comm_reverse_off = 9;
 
-  // request full neighbor
+  // request full neighbor list
   for (int i = 0; i < kim_number_of_neighbor_lists; ++i) {
     int neighflags = NeighConst::REQ_FULL | NeighConst::REQ_NEWTON_OFF;
     if (!modelWillNotRequestNeighborsOfNoncontributingParticles[i])
@@ -597,7 +584,8 @@ void PairKIM::init_style()
 
     // set cutoff
     if (kim_cutoff_values[i] <= neighbor->skin)
-      error->all(FLERR,"Illegal neighbor request (force cutoff <= skin)");
+      error->all(FLERR,"Illegal neighbor request (force cutoff {:.3} <= skin {:.3})",
+                 kim_cutoff_values[i], neighbor->skin);
     req->set_cutoff(kim_cutoff_values[i] + neighbor->skin);
   }
   // increment instance_me in case of need to change the neighbor list

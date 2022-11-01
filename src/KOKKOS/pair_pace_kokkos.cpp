@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    aE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,11 +29,11 @@
 #include "neighbor_kokkos.h"
 #include "neigh_request.h"
 
-#include "ace_c_basis.h"
-#include "ace_evaluator.h"
-#include "ace_recursive.h"
-#include "ace_version.h"
-#include "ace_radial.h"
+#include "ace-evaluator/ace_c_basis.h"
+#include "ace-evaluator/ace_evaluator.h"
+#include "ace-evaluator/ace_recursive.h"
+#include "ace-evaluator/ace_version.h"
+#include "ace-evaluator/ace_radial.h"
 #include <cstring>
 
 namespace LAMMPS_NS {
@@ -534,8 +534,7 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   copymode = 1;
-  int newton_pair = force->newton_pair;
-  if (newton_pair == false)
+  if (!force->newton_pair)
     error->all(FLERR,"PairPACEKokkos requires 'newton on'");
 
   if (recursive)

@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,6 +30,7 @@ class KokkosLMP : protected Pointers {
   int exchange_comm_classic;
   int forward_comm_classic;
   int forward_pair_comm_classic;
+  int reverse_pair_comm_classic;
   int forward_fix_comm_classic;
   int reverse_comm_classic;
   int exchange_comm_on_host;
@@ -38,6 +39,7 @@ class KokkosLMP : protected Pointers {
   int exchange_comm_changed;
   int forward_comm_changed;
   int forward_pair_comm_changed;
+  int reverse_pair_comm_changed;
   int forward_fix_comm_changed;
   int reverse_comm_changed;
   int nthreads,ngpus;

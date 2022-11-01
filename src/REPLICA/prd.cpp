@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -167,7 +167,7 @@ void PRD::command(int narg, char **arg)
 
   // create FixEventPRD class to store event and pre-quench states
 
-  fix_event = dynamic_cast<FixEventPRD *>( modify->add_fix("prd_event all EVENT/PRD"));
+  fix_event = dynamic_cast<FixEventPRD *>(modify->add_fix("prd_event all EVENT/PRD"));
 
   // create Finish for timing output
 
@@ -229,10 +229,10 @@ void PRD::command(int narg, char **arg)
 
   // cannot use PRD with time-dependent fixes or regions
 
-  for (auto ifix : modify->get_fix_list())
+  for (auto &ifix : modify->get_fix_list())
     if (ifix->time_depend) error->all(FLERR,"Cannot use PRD with a time-dependent fix defined");
 
-  for (auto reg : domain->get_region_list())
+  for (auto &reg : domain->get_region_list())
     if (reg->dynamic_check())
       error->all(FLERR,"Cannot use PRD with a time-dependent region defined");
 

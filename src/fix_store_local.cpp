@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,16 +29,16 @@ using namespace FixConst;
 FixStoreLocal::FixStoreLocal(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), nvalues(0), vector(nullptr), array(nullptr)
 {
-  if (narg != 5) error->all(FLERR, "Illegal fix store/local command");
+  if (narg != 5) error->all(FLERR, "Illegal fix STORE/LOCAL command");
   local_flag = 1;
 
   nreset = utils::inumeric(FLERR, arg[3], false, lmp);
-  if (nreset <= 0) error->all(FLERR, "Illegal fix store/local command");
+  if (nreset <= 0) error->all(FLERR, "Illegal fix STORE/LOCAL command");
   local_freq = nreset;
 
   nvalues = utils::inumeric(FLERR, arg[4], false, lmp);
 
-  if (nvalues <= 0) error->all(FLERR, "Illegal fix store/local command");
+  if (nvalues <= 0) error->all(FLERR, "Illegal fix STORE/LOCAL command");
   if (nvalues == 1)
     size_local_cols = 0;
   else

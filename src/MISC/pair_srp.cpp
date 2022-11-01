@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,7 +33,6 @@ Please contact Timothy Sirk for questions (tim.sirk@us.army.mil).
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
 #include "fix_srp.h"
 #include "force.h"
 #include "memory.h"
@@ -53,10 +52,11 @@ using namespace LAMMPS_NS;
 #define ONETWOBIT 0x40000000
 
 static const char cite_srp[] =
+  "pair srp command: doi:10.1063/1.3698476\n\n"
   "@Article{Sirk2012\n"
-  " author = {T. Sirk and Y. Sliozberg and J. Brennan and M. Lisal and J. Andzelm},\n"
-  " title = {An enhanced entangled polymer model for dissipative particle dynamics},\n"
-  " journal = {J.~Chem.~Phys.},\n"
+  " author = {T. W. Sirk and Y. R. Sliozberg and J. K. Brennan and M. Lisal and J. W. Andzelm},\n"
+  " title = {An Enhanced Entangled Polymer Model for Dissipative Particle Dynamics},\n"
+  " journal = {J.~Chem.\\ Phys.},\n"
   " year =    2012,\n"
   " volume =  136,\n"
   " pages =   {134903}\n"
@@ -84,7 +84,7 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), fix_id(nullptr)
   //   will be invoked before other fixes that migrate atoms
   //   this is checked for in FixSRP
 
-  f_srp = dynamic_cast<FixSRP *>( modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP",srp_instance)));
+  f_srp = dynamic_cast<FixSRP *>(modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP", srp_instance)));
   ++srp_instance;
 }
 
@@ -126,7 +126,7 @@ PairSRP::~PairSRP()
   }
 
   // check nfix in case all fixes have already been deleted
-  if (modify->nfix) modify->delete_fix(f_srp->id);
+  if (modify->nfix && modify->get_fix_by_id(f_srp->id)!=nullptr) modify->delete_fix(f_srp->id);
 }
 
 /* ----------------------------------------------------------------------
@@ -439,7 +439,7 @@ void PairSRP::coeff(int narg, char **arg)
 void PairSRP::init_style()
 {
   if (!force->newton_pair)
-    error->all(FLERR,"PairSRP: Pair srp requires newton pair on");
+    error->all(FLERR,"Pair srp requires newton pair on");
 
   // verify that fix SRP is still defined and has not been changed.
 

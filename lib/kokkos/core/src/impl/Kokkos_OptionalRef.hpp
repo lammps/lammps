@@ -120,18 +120,14 @@ struct OptionalRef {
   //----------------------------------------
 
   KOKKOS_INLINE_FUNCTION
-  OptionalRef<typename std::add_volatile<T>::type>
-  as_volatile() volatile noexcept {
-    return OptionalRef<typename std::add_volatile<T>::type>(*(*this));
+  OptionalRef<std::add_volatile_t<T>> as_volatile() volatile noexcept {
+    return OptionalRef<std::add_volatile_t<T>>(*(*this));
   }
 
   KOKKOS_INLINE_FUNCTION
-  OptionalRef<
-      typename std::add_volatile<typename std::add_const<T>::type>::type>
-  as_volatile() const volatile noexcept {
-    return OptionalRef<
-        typename std::add_volatile<typename std::add_const<T>::type>::type>(
-        *(*this));
+  OptionalRef<std::add_volatile_t<std::add_const_t<T>>> as_volatile() const
+      volatile noexcept {
+    return OptionalRef<std::add_volatile_t<std::add_const_t<T>>>(*(*this));
   }
 
   //----------------------------------------

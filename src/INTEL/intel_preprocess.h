@@ -2,7 +2,7 @@
 /* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,10 +16,16 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "lmptype.h"
+
 #ifdef __INTEL_LLVM_COMPILER
 #define USE_OMP_SIMD
 #define __INTEL_COMPILER __INTEL_LLVM_COMPILER
 #define __INTEL_COMPILER_BUILD_DATE __INTEL_LLVM_COMPILER
+// Indicate to vectorizer that it is safe to use dword indexed gather
+#define IP_PRE_dword_index(i) ((i) & NEIGHMASK)
+#else
+#define IP_PRE_dword_index(i) i
 #endif
 
 #ifdef __INTEL_COMPILER

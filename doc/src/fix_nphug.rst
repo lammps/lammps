@@ -88,20 +88,23 @@ target temperature Tt obtained from the following equation:
 
    T_t - T = \frac{\left(\frac{1}{2}\left(P + P_0\right)\left(V_0 - V\right) + E_0 - E\right)}{N_{dof} k_B } = \Delta
 
-where *T* and :math:`T_t` are the instantaneous and target temperatures,
-*P* and :math:`P_0` are the instantaneous and reference pressures or axial stresses,
-depending on whether hydrostatic or uniaxial compression is being
-performed, *V* and :math:`V_0` are the instantaneous and reference volumes,
-*E* and :math:`E_0` are the instantaneous and reference internal energy (potential
-plus kinetic), :math:`N_{dof}` is the number of degrees of freedom used in the
-definition of temperature, and :math:`k_B` is the Boltzmann constant. :math:`\Delta` is the
-negative deviation of the instantaneous temperature from the target temperature.
-When the system reaches a stable equilibrium, the value of :math:`\Delta` should
-fluctuate about zero.
+where :math:`T` and :math:`T_t` are the instantaneous and target
+temperatures, *P* and :math:`P_0` are the instantaneous and reference
+pressures or axial stresses, depending on whether hydrostatic or
+uniaxial compression is being performed, *V* and :math:`V_0` are the
+instantaneous and reference volumes, *E* and :math:`E_0` are the
+instantaneous and reference internal energy (potential plus kinetic),
+:math:`N_{dof}` is the number of degrees of freedom used in the
+definition of temperature, and :math:`k_B` is the Boltzmann
+constant. :math:`\Delta` is the negative deviation of the instantaneous
+temperature from the target temperature.  When the system reaches a
+stable equilibrium, the value of :math:`\Delta` should fluctuate about
+zero.
 
-The values of :math:`E_0`, :math:`V_0`, and :math:`P_0` are the instantaneous values at the start of
-the simulation. These can be overridden using the fix_modify keywords *e0*,
-*v0*, and *p0* described below.
+The values of :math:`E_0`, :math:`V_0`, and :math:`P_0` are the
+instantaneous values at the start of the simulation. These can be
+overridden using the fix_modify keywords *e0*, *v0*, and *p0* described
+below.
 
 ----------
 

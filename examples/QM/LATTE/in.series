@@ -1,0 +1,37 @@
+# Series of single-point calcs of 2,3,4 UO2 molecules
+# with LATTE in MDI stand-alone mode
+
+variable        files index 2uo2 3uo2 4uo2
+
+mdi             connect
+
+label LOOP
+
+  units           metal
+  atom_style      full
+  atom_modify     sort 0 0.0
+
+  read_data       ${files}.lmp
+
+  neighbor        0.3 bin
+  neigh_modify    every 1 delay 0 check yes
+
+  timestep        0.001
+
+  fix             1 all mdi/qm virial yes elements 92 8 connect no
+
+  thermo_style    custom step temp pe etotal press
+  thermo          1
+
+  run             0
+
+  write_dump      all custom dump.series.mpi.${files} &
+                  id type x y z fx fy fz modify sort id
+
+  clear
+
+next            files
+
+jump            SELF LOOP
+
+mdi             exit

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -65,8 +65,7 @@ enum { FORWARD_IK, FORWARD_AD, FORWARD_IK_PERATOM, FORWARD_AD_PERATOM };
 /* ---------------------------------------------------------------------- */
 
 PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
-    PPPM(lmp), ElectrodeKSpace(), electrolyte_density_brick(nullptr),
-    electrolyte_density_fft(nullptr)
+    PPPM(lmp), electrolyte_density_brick(nullptr), electrolyte_density_fft(nullptr)
 {
   group_group_enable = 0;
   electrolyte_density_brick = nullptr;
@@ -553,7 +552,7 @@ void PPPMElectrode::compute(int eflag, int vflag)
     }
   }
 
-  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
+  boundcorr->compute_corr(qsum, slab_volfactor, eflag_atom, eflag_global, energy, eatom);
   compute_vector_called = false;
 }
 

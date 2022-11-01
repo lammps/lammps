@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -70,7 +70,7 @@ void FixBrownian::initial_integrate(int /*vflag */)
       initial_integrate_templated<1, 0, 0>();
     }
   }
-  }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -126,4 +126,4 @@ template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void FixBrownian::initial_int
       v[i][2] = dz / dt;
     }
   }
-  }
+}

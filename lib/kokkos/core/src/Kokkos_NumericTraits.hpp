@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_NUMERIC_TRAITS_HPP
 #define KOKKOS_NUMERIC_TRAITS_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_NUMERICTRAITS
+#endif
 
 #include <Kokkos_Macros.hpp>
 #include <cfloat>
@@ -650,4 +654,8 @@ struct reduction_identity<long double> {
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_NUMERICTRAITS
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_NUMERICTRAITS
+#endif
 #endif

@@ -48,11 +48,6 @@
 
 namespace Test {
 
-#ifdef KOKKOS_COMPILER_NVHPC
-// warning: 'long double' is treated as 'double' in device code
-#pragma diag_suppress 20208
-#endif
-
 // Test construction and assignment
 
 template <class ExecSpace>
@@ -369,6 +364,10 @@ struct TestComplexSpecialFunctions {
     r = {1.380543138238714, 0.2925178131625636};
     ASSERT_FLOAT_EQ(h_results(17).real(), r.real());
     ASSERT_FLOAT_EQ(h_results(17).imag(), r.imag());
+    // log10
+    r = std::log10(a);
+    ASSERT_FLOAT_EQ(h_results(18).real(), r.real());
+    ASSERT_FLOAT_EQ(h_results(18).imag(), r.imag());
 #endif
   }
 
@@ -396,6 +395,7 @@ struct TestComplexSpecialFunctions {
     d_results(15) = Kokkos::asin(a);
     d_results(16) = Kokkos::acos(a);
     d_results(17) = Kokkos::atan(a);
+    d_results(18) = Kokkos::log10(a);
   }
 };
 

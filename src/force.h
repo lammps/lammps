@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -115,6 +115,7 @@ class Force : protected Pointers {
   int special_dihedral;      // 0 if defined dihedrals are ignored
                              // 1 if only weight 1,4 atoms if in a dihedral
   int special_extra;         // extra space for added bonds
+  int special_onefive;       // 0 if 1-5 neighbors are not stored, 1 if yes
 
   Force(class LAMMPS *);
   ~Force() override;

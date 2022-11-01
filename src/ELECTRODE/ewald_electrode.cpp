@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -40,7 +40,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-EwaldElectrode::EwaldElectrode(LAMMPS *lmp) : Ewald(lmp), ElectrodeKSpace()
+EwaldElectrode::EwaldElectrode(LAMMPS *lmp) : Ewald(lmp)
 {
   eikr_step = -1;
 }
@@ -418,7 +418,7 @@ void EwaldElectrode::compute(int eflag, int vflag)
         for (int j = 0; j < 6; j++) vatom[i][j] *= q[i] * qscale;
   }
 
-  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
+  boundcorr->compute_corr(qsum, slab_volfactor, eflag_atom, eflag_global, energy, eatom);
 }
 
 /* ---------------------------------------------------------------------- */

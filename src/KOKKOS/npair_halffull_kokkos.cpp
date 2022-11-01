@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,8 +26,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int NEWTON>
-NPairHalffullKokkos<DeviceType,NEWTON>::NPairHalffullKokkos(LAMMPS *lmp) : NPair(lmp) {
+template<class DeviceType, int NEWTON, int TRIM>
+NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::NPairHalffullKokkos(LAMMPS *lmp) : NPair(lmp) {
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 }
@@ -41,14 +41,16 @@ NPairHalffullKokkos<DeviceType,NEWTON>::NPairHalffullKokkos(LAMMPS *lmp) : NPair
    if ghost, also store neighbors of ghost atoms & set inum,gnum correctly
 ------------------------------------------------------------------------- */
 
-template<class DeviceType, int NEWTON>
-void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
+template<class DeviceType, int NEWTON, int TRIM>
+void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::build(NeighList *list)
 {
-  if (NEWTON) {
+  if (NEWTON || TRIM) {
     x = atomKK->k_x.view<DeviceType>();
     atomKK->sync(execution_space,X_MASK);
   }
   nlocal = atom->nlocal;
+
+  cutsq_custom = cutoff_custom*cutoff_custom;
 
   NeighListKokkos<DeviceType>* k_list_full = static_cast<NeighListKokkos<DeviceType>*>(list->listfull);
   d_ilist_full = k_list_full->d_ilist;
@@ -76,14 +78,14 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
   k_list->k_ilist.template modify<DeviceType>();
 }
 
-template<class DeviceType, int NEWTON>
+template<class DeviceType, int NEWTON, int TRIM>
 KOKKOS_INLINE_FUNCTION
-void NPairHalffullKokkos<DeviceType,NEWTON>::operator()(TagNPairHalffullCompute, const int &ii) const {
+void NPairHalffullKokkos<DeviceType,NEWTON,TRIM>::operator()(TagNPairHalffullCompute, const int &ii) const {
   int n = 0;
 
   const int i = d_ilist_full(ii);
   F_FLOAT xtmp,ytmp,ztmp;
-  if (NEWTON) {
+  if (NEWTON || TRIM) {
     xtmp = x(i,0);
     ytmp = x(i,1);
     ztmp = x(i,2);
@@ -108,9 +110,29 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::operator()(TagNPairHalffullCompute,
           if (x(j,1) == ytmp && x(j,0) < xtmp) continue;
         }
       }
+
+      if (TRIM) {
+        const double delx = xtmp - x(j,0);
+        const double dely = ytmp - x(j,1);
+        const double delz = ztmp - x(j,2);
+        const double rsq = delx*delx + dely*dely + delz*delz;
+
+        if (rsq > cutsq_custom) continue;
+      }
+
       neighbors_i(n++) = joriginal;
-    } else {
-      if (j > i) neighbors_i(n++) = joriginal;
+    } else if (j > i) {
+
+      if (TRIM) {
+        const double delx = xtmp - x(j,0);
+        const double dely = ytmp - x(j,1);
+        const double delz = ztmp - x(j,2);
+        const double rsq = delx*delx + dely*dely + delz*delz;
+
+        if (rsq > cutsq_custom) continue;
+      }
+
+      neighbors_i(n++) = joriginal;
     }
   }
 
@@ -119,10 +141,14 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::operator()(TagNPairHalffullCompute,
 }
 
 namespace LAMMPS_NS {
-template class NPairHalffullKokkos<LMPDeviceType,0>;
-template class NPairHalffullKokkos<LMPDeviceType,1>;
+template class NPairHalffullKokkos<LMPDeviceType,0,0>;
+template class NPairHalffullKokkos<LMPDeviceType,0,1>;
+template class NPairHalffullKokkos<LMPDeviceType,1,0>;
+template class NPairHalffullKokkos<LMPDeviceType,1,1>;
 #ifdef LMP_KOKKOS_GPU
-template class NPairHalffullKokkos<LMPHostType,0>;
-template class NPairHalffullKokkos<LMPHostType,1>;
+template class NPairHalffullKokkos<LMPHostType,0,0>;
+template class NPairHalffullKokkos<LMPHostType,0,1>;
+template class NPairHalffullKokkos<LMPHostType,1,0>;
+template class NPairHalffullKokkos<LMPHostType,1,1>;
 #endif
 }

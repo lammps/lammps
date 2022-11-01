@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -63,11 +63,8 @@ PairSNAP::~PairSNAP()
   memory->destroy(radelem);
   memory->destroy(wjelem);
   memory->destroy(coeffelem);
-
-  if (switchinnerflag) {
-    memory->destroy(sinnerelem);
-    memory->destroy(dinnerelem);
-  }
+  memory->destroy(sinnerelem);
+  memory->destroy(dinnerelem);
 
   memory->destroy(beta);
   memory->destroy(bispectrum);

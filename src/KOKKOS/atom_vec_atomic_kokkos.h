@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale AtomicKokkos/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,7 +44,7 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
   int pack_restart(int, double *) override;
   int unpack_restart(double *) override;
   void create_atom(int, double *) override;
-  void data_atom(double *, imageint, const std::vector<std::string> &) override;
+  void data_atom(double *, imageint, const std::vector<std::string> &, std::string &) override;
   void pack_data(double **) override;
   void write_data(FILE *, int, double **) override;
   double memory_usage() override;

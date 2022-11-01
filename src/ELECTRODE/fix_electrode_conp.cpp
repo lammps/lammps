@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1055,10 +1055,13 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
 FixElectrodeConp::~FixElectrodeConp()
 {
   if (timer_flag && (comm->me == 0)) {
-    utils::logmesg(lmp, fmt::format("Multiplication time: {:.4g} s\n", mult_time));
-    utils::logmesg(lmp, fmt::format("Update time: {:.4g} s\n", update_time));
+    try {
+      utils::logmesg(lmp, fmt::format("Multiplication time: {:.4g} s\n", mult_time));
+      utils::logmesg(lmp, fmt::format("Update time: {:.4g} s\n", update_time));
+    } catch (std::exception &) {
+    }
   }
-  if (modify->find_fix(id) != -1)             // avoid segfault if derived fixes' ctor throws err
+  if (!modify->get_fix_by_id(id))             // avoid segfault if derived fixes' ctor throws err
     atom->delete_callback(id, Atom::GROW);    // atomvec track local electrode atoms
   delete[] recvcounts;
   delete[] displs;
@@ -1105,7 +1108,7 @@ void FixElectrodeConp::write_to_file(FILE *file, const std::vector<tagint> &tags
 
 /*----------------------------------------------------------------------- */
 
-void FixElectrodeConp::read_from_file(const std::string& input_file, double **array,
+void FixElectrodeConp::read_from_file(const std::string &input_file, double **array,
                                       const std::string &filetype)
 {
   if (comm->me == 0) {

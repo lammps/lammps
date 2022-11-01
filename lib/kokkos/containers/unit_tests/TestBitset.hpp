@@ -75,9 +75,7 @@ struct TestBitset {
   void init(value_type& v) const { v = 0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dst, const volatile value_type& src) const {
-    dst += src;
-  }
+  void join(value_type& dst, const value_type& src) const { dst += src; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(uint32_t i, value_type& v) const {
@@ -116,9 +114,7 @@ struct TestBitsetTest {
   void init(value_type& v) const { v = 0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dst, const volatile value_type& src) const {
-    dst += src;
-  }
+  void join(value_type& dst, const value_type& src) const { dst += src; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(uint32_t i, value_type& v) const {
@@ -148,9 +144,7 @@ struct TestBitsetAny {
   void init(value_type& v) const { v = 0; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& dst, const volatile value_type& src) const {
-    dst += src;
-  }
+  void join(value_type& dst, const value_type& src) const { dst += src; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(uint32_t i, value_type& v) const {

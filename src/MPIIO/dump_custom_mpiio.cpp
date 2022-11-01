@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -74,14 +74,12 @@ void DumpCustomMPIIO::openfile()
     filecurrent = utils::strdup(utils::star_subst(filecurrent, update->ntimestep, padflag));
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent) + 1];
-        strcpy(nameslist[numfiles], filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
         remove(nameslist[fileidx]);
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent) + 1];
-        strcpy(nameslist[fileidx], filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -209,7 +207,7 @@ void DumpCustomMPIIO::init_style()
   delete[] columns;
   std::string combined;
   int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
+  for (const auto &item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
     if (keyword_user[icol].size())
       combined += keyword_user[icol];
@@ -233,10 +231,12 @@ void DumpCustomMPIIO::init_style()
   // lo priority = line, medium priority = int/float, hi priority = column
 
   auto words = utils::split_words(format);
-  if ((int) words.size() < nfield) error->all(FLERR, "Dump_modify format line is too short");
+  if ((int) words.size() < nfield)
+    error->all(FLERR, "Dump_modify format line is too short: {}", format);
 
   int i = 0;
   for (const auto &word : words) {
+    if (i >= nfield) break;
     delete[] vformat[i];
 
     if (format_column_user[i])

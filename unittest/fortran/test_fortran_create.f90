@@ -1,13 +1,7 @@
-MODULE keepcreate
-  USE liblammps
-  TYPE(LAMMPS) :: lmp
-  INTEGER :: mycomm
-END MODULE keepcreate
-
 FUNCTION f_lammps_no_mpi_no_args() BIND(C, name="f_lammps_no_mpi_no_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps
-  USE keepcreate,      ONLY: lmp
+  USE keepstuff,      ONLY: lmp
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_no_mpi_no_args
 
@@ -18,7 +12,7 @@ END FUNCTION f_lammps_no_mpi_no_args
 FUNCTION f_lammps_no_mpi_with_args() BIND(C, name="f_lammps_no_mpi_with_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE liblammps
-  USE keepcreate,      ONLY: lmp
+  USE keepstuff,      ONLY: lmp
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_no_mpi_with_args
 
@@ -33,7 +27,7 @@ FUNCTION f_lammps_open_no_args() BIND(C, name="f_lammps_open_no_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE MPI,           ONLY: MPI_COMM_WORLD, mpi_comm_split
   USE liblammps
-  USE keepcreate,      ONLY: lmp,mycomm
+  USE keepstuff,      ONLY: lmp,mycomm
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_open_no_args
   INTEGER     :: color, key, ierr
@@ -49,7 +43,7 @@ FUNCTION f_lammps_open_with_args() BIND(C, name="f_lammps_open_with_args")
   USE ISO_C_BINDING, ONLY: c_ptr
   USE MPI,           ONLY: MPI_COMM_WORLD, mpi_comm_split
   USE liblammps
-  USE keepcreate,      ONLY: lmp,mycomm
+  USE keepstuff,      ONLY: lmp,mycomm
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_open_with_args
   INTEGER     :: color, key, ierr
@@ -67,7 +61,7 @@ END FUNCTION f_lammps_open_with_args
 SUBROUTINE f_lammps_close() BIND(C, name="f_lammps_close")
   USE ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
-  USE keepcreate, ONLY: lmp
+  USE keepstuff, ONLY: lmp
   IMPLICIT NONE
 
   CALL lmp%close()
@@ -75,10 +69,11 @@ SUBROUTINE f_lammps_close() BIND(C, name="f_lammps_close")
 END SUBROUTINE f_lammps_close
 
 FUNCTION f_lammps_get_comm() BIND(C, name="f_lammps_get_comm")
+  USE ISO_C_BINDING, ONLY: c_int
   USE liblammps
-  USE keepcreate, ONLY: mycomm
+  USE keepstuff, ONLY: mycomm
   IMPLICIT NONE
-  INTEGER :: f_lammps_get_comm
+  INTEGER(c_int) :: f_lammps_get_comm
 
   f_lammps_get_comm = mycomm
 END FUNCTION f_lammps_get_comm

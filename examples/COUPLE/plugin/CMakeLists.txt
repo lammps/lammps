@@ -1,3 +1,8 @@
+##########################################
+# CMake build system for coupling to the LAMMPS library
+# where the library is loaded dynamically at runtime.
+##########################################
+
 cmake_minimum_required(VERSION 3.10)
 
 # enforce out-of-source build
@@ -6,7 +11,7 @@ if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
     "Please remove CMakeCache.txt and CMakeFiles first.")
 endif()
 
-project(couple-simple VERSION 1.0 LANGUAGES C CXX)
+project(liblammpsplugin VERSION 1.0 LANGUAGES C)
 
 # by default, install into $HOME/.local (not /usr/local),
 # so that no root access (and sudo) is needed
@@ -25,20 +30,18 @@ if(MSVC)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
-find_package(MPI QUIET)
+find_package(MPI REQUIRED)
 # do not include the (obsolete) MPI C++ bindings which makes
 # for leaner object files and avoids namespace conflicts
 set(MPI_CXX_SKIP_MPICXX TRUE)
 
 ##########################
 
-# build within LAMMPS build system
-if(NOT LAMMPS_SOURCE_DIR)
-  find_package(LAMMPS REQUIRED)
+add_executable(simple-plugin simple.c liblammpsplugin.c)
+target_link_libraries(simple-plugin PRIVATE MPI::MPI_C)
+target_compile_definitions(simple-plugin PRIVATE LAMMPS_LIB_MPI)
+
+# link with -ldl or equivalent for plugin loading; except on Windows
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+   target_link_libraries(simple-plugin PRIVATE ${CMAKE_DL_LIBS})
 endif()
-
-add_executable(simpleCC simple.cpp)
-target_link_libraries(simpleCC LAMMPS::lammps)
-
-add_executable(simpleC simple.c)
-target_link_libraries(simpleC LAMMPS::lammps)

@@ -397,29 +397,26 @@ void FixACKS2ReaxFF::init_matvec()
     }
   }
 
-  /* compute condition number of Jacobi preconditioner */
+  // compute condition number of Jacobi preconditioner
+
   double sing_max = std::numeric_limits<double>::min();
   double sing_min = std::numeric_limits<double>::max();
 
   for (ii = 0; ii < nn; ++ii) {
-    if (fabs(Hdia_inv[ii]) > sing_max)
-      sing_max = fabs(Hdia_inv[ii]);
-    if (fabs(Hdia_inv[ii]) < sing_min)
-      sing_min = fabs(Hdia_inv[ii]);
+    sing_max = MAX(sing_max,fabs(Hdia_inv[ii]));
+    sing_min = MIN(sing_min,fabs(Hdia_inv[ii]));
   }
 
   for (ii = 0; ii < nn; ++ii) {
-    if (fabs(Xdia_inv[ii]) > sing_max)
-      sing_max = fabs(Xdia_inv[ii]);
-    if (fabs(Xdia_inv[ii]) < sing_min)
-      sing_min = fabs(Xdia_inv[ii]);
+    sing_max = MAX(sing_max,fabs(Xdia_inv[ii]));
+    sing_min = MIN(sing_min,fabs(Xdia_inv[ii]));
   }
 
   MPI_Allreduce(MPI_IN_PLACE,&sing_max,1,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(MPI_IN_PLACE,&sing_min,1,MPI_DOUBLE,MPI_MIN,world);
 
   double cond_num = sing_max / sing_min;
-  /* fix ill-conditioned Jaocbi preconditioner due to ACKS2-specific region */
+  // fix ill-conditioned Jaocbi preconditioner due to ACKS2-specific region
   if (cond_num > 100.0) {
     for (ii = 0; ii < nn; ++ii)
       Xdia_inv[ii] = 1.0;

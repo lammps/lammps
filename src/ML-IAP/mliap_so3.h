@@ -14,7 +14,6 @@ class MLIAP_SO3 : protected Pointers {
   ~MLIAP_SO3() override;
 
   void init();
-
   double memory_usage();
 
   int ncoeff;
@@ -46,7 +45,7 @@ class MLIAP_SO3 : protected Pointers {
   double *m_ulist_r, *m_ulist_i;
 
   double *m_Ylms_r, *m_Ylms_i, *m_dYlm_r, *m_dYlm_i;
-  double *m_dplist_i, *m_dclist_r, *m_dclist_i, *m_tempdp_r;
+  double *m_dclist_r, *m_dclist_i, *m_tempdp_r;
 
  public:
   void spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem, double **rij, int nmax,

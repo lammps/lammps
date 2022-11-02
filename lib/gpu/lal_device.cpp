@@ -86,7 +86,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   #ifdef LAL_OCL_EXTRA_ARGS
   extra_args+=":" LAL_PRE_STRINGIFY(LAL_OCL_EXTRA_ARGS);
   #endif
-  for (int i=0; i<extra_args.length(); i++)
+  for (int i=0; i < (int)extra_args.length(); i++)
     if (extra_args[i]==':') extra_args[i]=' ';
 
   // --------------------------- MPI setup -------------------------------
@@ -301,7 +301,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   #ifdef USE_OPENCL
   if (device_type_flags==nullptr) {
     std::string pname = gpu->platform_name();
-    for (int i=0; i<pname.length(); i++)
+    for (int i=0; i < (int)pname.length(); i++)
       if (pname[i]<='z' && pname[i]>='a')
         pname[i]=toupper(pname[i]);
     if (pname.find("NVIDIA")!=std::string::npos)

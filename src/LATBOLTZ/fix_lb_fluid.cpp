@@ -2483,7 +2483,8 @@ void FixLbFluid::write_restartfile()
   // we only take 1/2 force here.  We can use fnew as it will be overwritten in initial_integrate.
   // This ensures total momentum is conserved after a restart.
 
-  double etacov[numvel];
+  std::vector<double> etacov;
+  etacov.resize(numvel);
   for (int i = 0; i < subNbx; i++)
     for (int j = 0; j < subNby; j++)
       for (int k = 0; k < subNbz; k++) {

@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *_lmp, char *paramfilename) : MLIAPDescriptor(_lmp)
+MLIAPDescriptorSNAP::MLIAPDescriptorSNAP(LAMMPS *_lmp, char *paramfilename) : Pointers(_lmp),  MLIAPDescriptor(_lmp)
 {
   radelem = nullptr;
   wjelem = nullptr;

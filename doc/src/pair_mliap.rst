@@ -1,7 +1,10 @@
 .. index:: pair_style mliap
+.. index:: pair_style mliap/kk
 
 pair_style mliap command
 ========================
+
+Accelerator Variants: *mliap/kk*
 
 Syntax
 """"""
@@ -206,6 +209,12 @@ cutoff manually, such as in the following example.
   the library mode, you will need to call `lammps.mliappy.activate_mliappy(lmp)`
   on the active LAMMPS object before the pair style is defined. This call locates
   and loads the mliap-specific python module that is built into LAMMPS.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

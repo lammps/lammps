@@ -308,7 +308,7 @@ void PPPM::init()
     gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
     gc->set_distance(0.5*neighbor->skin + qdist);
     gc->set_stencil_atom(-nlower,nupper);
-    gc->set_shift_atom(shiftatom);
+    gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
     gc->set_zfactor(slab_volfactor);
   
     gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
@@ -336,6 +336,18 @@ void PPPM::init()
 
   double estimated_accuracy = final_accuracy();
 
+  // allocate K-space dependent memory
+  // don't invoke allocate peratom() or group(), will be allocated when needed
+
+  allocate();
+
+  // pre-compute Green's function denomiator expansion
+  // pre-compute 1d charge distribution coefficients
+
+  compute_gf_denom();
+  if (differentiation_flag == 1) compute_sf_precoeff();
+  compute_rho_coeff();
+
   // print stats
 
   int ngrid_max,nfft_both_max;
@@ -355,18 +367,6 @@ void PPPM::init()
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);
   }
-
-  // allocate K-space dependent memory
-  // don't invoke allocate peratom() or group(), will be allocated when needed
-
-  allocate();
-
-  // pre-compute Green's function denomiator expansion
-  // pre-compute 1d charge distribution coefficients
-
-  compute_gf_denom();
-  if (differentiation_flag == 1) compute_sf_precoeff();
-  compute_rho_coeff();
 }
 
 /* ----------------------------------------------------------------------
@@ -751,7 +751,7 @@ void PPPM::allocate()
   gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
   gc->set_distance(0.5*neighbor->skin + qdist);
   gc->set_stencil_atom(-nlower,nupper);
-  gc->set_shift_atom(shiftatom);
+  gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
   gc->set_zfactor(slab_volfactor);
 
   gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
@@ -765,6 +765,24 @@ void PPPM::allocate()
   memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
   memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
 
+  // tally local grid sizes
+  // ngrid = count of owned+ghost grid cells on this proc
+  // nfft_brick = FFT points in 3d brick-decomposition on this proc
+  //              same as count of owned grid cells
+  // nfft = FFT points in x-pencil FFT decomposition on this proc
+  // nfft_both = greater of nfft and nfft_brick
+
+  ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
+    (nzhi_out-nzlo_out+1);
+
+  nfft_brick = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
+    (nzhi_in-nzlo_in+1);
+
+  nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
+    (nzhi_fft-nzlo_fft+1);
+
+  nfft_both = MAX(nfft,nfft_brick);
+  
   // allocate distributed grid data
   
   memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
@@ -1324,77 +1342,46 @@ double PPPM::final_accuracy()
 
 /* ----------------------------------------------------------------------
    set params which determine which owned and ghost cells this proc owns
-   Grid3d will use these params to partition grid
+   Grid3d uses these params to partition grid
    also partition FFT grid
      n xyz lo/hi fft = FFT columns that I own (all of x dim, 2d decomp in yz)
 ------------------------------------------------------------------------- */
 
 void PPPM::set_grid_local()
 {
-  // shift values for particle <-> grid mapping
+  // shift values for particle <-> grid mapping depend on stencil order
   // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
-
-  if (order % 2) shiftatom = 0.5;
-  else shiftatom = 0.0;
-  shift = OFFSET + shiftatom;
+  // used in particle_map() and make_rho() and fieldforce()
+  
+  if (order % 2) shift = OFFSET + 0.5;
+  else shift = OFFSET;
   
   if (order % 2) shiftone = 0.0;
   else shiftone = 0.5;
 
-  // nlower,nupper = stencil size for mapping particles to PPPM grid
+  // nlower/nupper = stencil size for mapping particles to grid
 
   nlower = -(order-1)/2;
   nupper = order/2;
 
+  // shiftatom lo/hi are passed to Grid3d to determine ghost cell extents
+  // shiftatom_lo = min shift on lo side
+  // shiftatom_hi = max shift on hi side
+  // for PPPMStagger, stagger value (0.0 or 0.5) also affects this
 
-
-  
-  // NOTE: still to do: stagger and zperiod effects
-
-  /*
-
-  // extent of zprd when 2d slab mode is selected
-  
-  double zprd_slab = zprd*slab_volfactor;
-
-  // for slab PPPM, assign z grid as if it were not extended
-
-  nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) *
-                            nz_pppm/zprd_slab + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) *
-                            nz_pppm/zprd_slab + shift) - OFFSET;
-  nzlo_out = nlo + nlower;
-  nzhi_out = nhi + nupper;
-
-
-  if (stagger_flag) {
-    nxhi_out++;
-    nyhi_out++;
-    nzhi_out++;
+  if ((order % 2) && !stagger_flag) {
+    shiftatom_lo = 0.5;
+    shiftatom_hi = 0.5;
+  } else if ((order % 2) && stagger_flag) {
+    shiftatom_lo = 0.5;
+    shiftatom_hi = 0.5 + 0.5;
+  } else if ((order % 2 == 0) && !stagger_flag) {
+    shiftatom_lo = 0.0;
+    shiftatom_hi = 0.0;
+  } else if ((order % 2 == 0) && stagger_flag) {
+    shiftatom_lo = 0.0;
+    shiftatom_hi = 0.0 + 0.5;
   }
-
-  // for slab PPPM, change the grid boundary for processors at +z end
-  //   to include the empty volume between periodically repeating slabs
-  // for slab PPPM, want charge data communicated from -z proc to +z proc,
-  //   but not vice versa, also want field data communicated from +z proc to
-  //   -z proc, but not vice versa
-  // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
-  // also insure no other procs use ghost cells beyond +z limit
-  // differnet logic for non-tiled vs tiled decomposition
-
-  if (slabflag == 1) {
-    if (comm->layout != Comm::LAYOUT_TILED) {
-      if (comm->myloc[2] == comm->procgrid[2]-1) nzhi_in = nzhi_out = nz_pppm - 1;
-    } else {
-      if (comm->mysplit[2][1] == 1.0) nzhi_in = nzhi_out = nz_pppm - 1;
-    }
-    nzhi_out = MIN(nzhi_out,nz_pppm-1);
-  }
-
-  */
-
-
-
   
   // x-pencil decomposition of FFT mesh
   // global indices range from 0 to N-1
@@ -1421,26 +1408,6 @@ void PPPM::set_grid_local()
   nyhi_fft = (me_y+1)*ny_pppm/npey_fft - 1;
   nzlo_fft = me_z*nz_pppm/npez_fft;
   nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
-
-  // nfft = FFT points in x-pencil FFT decomposition on this proc
-
-  nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
-    (nzhi_fft-nzlo_fft+1);
-
-
-  
-  // ngrid = count of PPPM grid pts owned by this proc, including ghosts
-
-  ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
-    (nzhi_out-nzlo_out+1);
-
-  // count of FFT grids pts owned by this proc, without ghosts
-  // nfft_brick = FFT points in 3d brick-decomposition on this proc
-  // nfft_both = greater of 2 values
-
-  int nfft_brick = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
-    (nzhi_in-nzlo_in+1);
-  nfft_both = MAX(nfft,nfft_brick);
 }
 
 /* ----------------------------------------------------------------------

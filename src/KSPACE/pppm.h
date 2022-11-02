@@ -48,7 +48,7 @@ class PPPM : public KSpace {
   double volume;
   double delxinv, delyinv, delzinv, delvolinv;
   double h_x, h_y, h_z;
-  double shift, shiftone, shiftatom;
+  double shift, shiftone, shiftatom_lo, shiftatom_hi;
   int peratom_allocate_flag;
 
   int nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in;
@@ -56,7 +56,7 @@ class PPPM : public KSpace {
   int nxlo_ghost, nxhi_ghost, nylo_ghost, nyhi_ghost, nzlo_ghost, nzhi_ghost;
   int nxlo_fft, nylo_fft, nzlo_fft, nxhi_fft, nyhi_fft, nzhi_fft;
   int nlower, nupper;
-  int ngrid, nfft, nfft_both;
+  int ngrid, nfft_brick, nfft, nfft_both;
 
   FFT_SCALAR ***density_brick;
   FFT_SCALAR ***vdx_brick, ***vdy_brick, ***vdz_brick;

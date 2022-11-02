@@ -205,7 +205,7 @@ void PPPMDipole::init()
     gc_dipole = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
     gc_dipole->set_distance(0.5*neighbor->skin + qdist);
     gc_dipole->set_stencil_atom(-nlower,nupper);
-    gc_dipole->set_shift_atom(shiftatom);
+    gc_dipole->set_shift_atom(shiftatom_lo,shiftatom_hi);
     gc_dipole->set_zfactor(slab_volfactor);
   
     gc_dipole->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
@@ -541,7 +541,7 @@ void PPPMDipole::allocate()
   gc_dipole = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
   gc_dipole->set_distance(0.5*neighbor->skin + qdist);
   gc_dipole->set_stencil_atom(-nlower,nupper);
-  gc_dipole->set_shift_atom(shiftatom);
+  gc_dipole->set_shift_atom(shiftatom_lo,shiftatom_hi);
   gc_dipole->set_zfactor(slab_volfactor);
 
   gc_dipole->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,

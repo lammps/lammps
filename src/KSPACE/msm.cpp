@@ -594,8 +594,24 @@ void MSM::allocate()
   memory->create2d_offset(phi1d,3,-order,order,"msm:phi1d");
   memory->create2d_offset(dphi1d,3,-order,order,"msm:dphi1d");
 
-  // commgrid using all processors for finest grid level
+  // one Grid3d using all processors for finest grid level
 
+  gcall = new Grid3d(lmp,world,nx_msm[0],ny_msm[0],nz_msm[0]);
+  gcall->set_distance(0.5*neighbor->skin);
+  gcall->set_stencil_atom(-nlower,nupper);
+
+  gcall->setup_grid(nxlo_in[0],nxhi_in[0],nylo_in[0],
+                    nyhi_in[0],nzlo_in[0],nzhi_in[0],
+                    nxlo_out_all,nxhi_out_all,nylo_out_all,
+                    nyhi_out_all,nzlo_out_all,nzhi_out_all);
+
+  gcall->set_larger_grid(nxlo_out[0],nxhi_out[0],nylo_out[0],
+                         nyhi_out[0],nzlo_out[0],nzhi_out[0]);
+  
+  // NOTE: or is it out[0] ??
+  // NOTE: worry about flag = 1 here, 2 later
+
+  /*
   gcall = new Grid3d(lmp,world,1,nx_msm[0],ny_msm[0],nz_msm[0],
                      nxlo_in[0],nxhi_in[0],nylo_in[0],
                      nyhi_in[0],nzlo_in[0],nzhi_in[0],
@@ -603,7 +619,8 @@ void MSM::allocate()
                      nyhi_out_all,nzlo_out_all,nzhi_out_all,
                      nxlo_out[0],nxhi_out[0],nylo_out[0],
                      nyhi_out[0],nzlo_out[0],nzhi_out[0]);
-
+  */
+  
   gcall->setup_comm(ngcall_buf1,ngcall_buf2);
   npergrid = 1;
   memory->destroy(gcall_buf1);
@@ -613,7 +630,7 @@ void MSM::allocate()
 
   // allocate memory for each grid level
 
-  for (int n=0; n<levels; n++) {
+  for (int n = 0; n < levels; n++) {
     memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->create3d_offset(qgrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:qgrid");
@@ -626,15 +643,29 @@ void MSM::allocate()
 
     if (active_flag[n]) {
       delete gc[n];
-      int **procneigh = procneigh_levels[n];
 
+      // NOTE: why is n = 0 same as all for grid size ?
+      
+      gc[n] = new Grid3d(lmp,world_levels[n],nx_msm[n],ny_msm[n],nz_msm[n]);
+      gc[n]->set_stencil_atom(-nlower,nupper);
+      
+      gc[n]->setup_grid(nxlo_in[n],nxhi_in[n],nylo_in[n],
+                        nyhi_in[n],nzlo_in[n],nzhi_in[n],
+                        nxlo_out[n],nxhi_out[n],nylo_out[n],
+                        nyhi_out[n],nzlo_out[n],nzhi_out[n]);
+
+      int **procneigh = procneigh_levels[n];
+      gc[n]->set_proc_neighs(procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                             procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+      
+      /*
       gc[n] = new Grid3d(lmp,world_levels[n],2,nx_msm[n],ny_msm[n],nz_msm[n],
                            nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
                            nzlo_in[n],nzhi_in[n],
                            nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],
-                           nzlo_out[n],nzhi_out[n],
                            procneigh[0][0],procneigh[0][1],procneigh[1][0],
                            procneigh[1][1],procneigh[2][0],procneigh[2][1]);
+      */
 
       gc[n]->setup_comm(ngc_buf1[n],ngc_buf2[n]);
       npergrid = 1;
@@ -642,6 +673,7 @@ void MSM::allocate()
       memory->destroy(gc_buf2[n]);
       memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
       memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
+
     } else {
       delete gc[n];
       memory->destroy(gc_buf1[n]);
@@ -1160,9 +1192,10 @@ void MSM::set_grid_local()
 {
   // loop over grid levels
 
-  for (int n=0; n<levels; n++) {
+  for (int n = 0; n < levels; n++) {
 
     // deleted and nullify grid arrays since the number or offset of gridpoints may change
+    
     memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
@@ -1170,9 +1203,9 @@ void MSM::set_grid_local()
     // n xyz lo/hi in[] = lower/upper bounds of global grid this proc owns
     // indices range from 0 to N-1 inclusive in each dim
 
-    comm->partition_grid(nx_msm[n],ny_msm[n],nz_msm[n],0.0,
-                         nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
-                         nzlo_in[n],nzhi_in[n]);
+    //comm->partition_grid(nx_msm[n],ny_msm[n],nz_msm[n],0.0,
+    //                     nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
+    //                     nzlo_in[n],nzhi_in[n]);
 
     nlower = -(order-1)/2;
     nupper = order/2;
@@ -1195,11 +1228,9 @@ void MSM::set_grid_local()
     double yprd = prd[1];
     double zprd = prd[2];
 
-    // shift values for particle <-> grid mapping
-    // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
-
     // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
     //   global MSM grid that my particles can contribute charge to
+    // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
     // effectively nlo_in,nhi_in + ghost cells
     // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
     //           position a particle in my box can be at
@@ -1223,7 +1254,9 @@ void MSM::set_grid_local()
       nxlo_out_all = nlo + nlower;
       nxhi_out_all = nhi + nupper;
     }
+    
     // a larger ghost region is needed for the direct sum and for restriction/prolongation
+    
     nxlo_out[n] = nlo + MIN(-order,nxlo_direct);
     nxhi_out[n] = nhi + MAX(order,nxhi_direct);
 
@@ -1246,8 +1279,10 @@ void MSM::set_grid_local()
       nzlo_out_all = nlo + nlower;
       nzhi_out_all = nhi + nupper;
     }
-    // a hemisphere is used for direct sum interactions,
-    //   so no ghosting is needed for direct sum in the -z direction
+    
+    // hemisphere is used for direct sum interactions
+    // so no ghosting is needed for direct sum in the -z direction
+    
     nzlo_out[n] = nlo - order;
     nzhi_out[n] = nhi + MAX(order,nzhi_direct);
 
@@ -1255,7 +1290,6 @@ void MSM::set_grid_local()
     // skip reset of lo/hi for procs who do not own any grid cells
 
     if (domain->nonperiodic) {
-
       if (!domain->xperiodic && nxlo_in[n] <= nxhi_in[n]) {
         if (nxlo_in[n] == 0) nxlo_in[n] = alpha[n];
         nxlo_out[n] = MAX(nxlo_out[n],alpha[n]);

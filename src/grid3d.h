@@ -23,21 +23,16 @@ class Grid3d : protected Pointers {
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int);
-
-  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int,
-         int, int, int, int, int, int);
-  Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int,
-         int, int, int, int, int, int, int, int, int, int, int, int,
-         int, int, int, int, int, int);
-
-  ~Grid3d() override;
+  ~Grid3d();
 
   void set_distance(double);
   void set_stencil_grid(int, int);
   void set_stencil_atom(int, int);
   void set_shift_grid(double);
-  void set_shift_atom(double);
+  void set_shift_atom(double, double);
   void set_zfactor(double);
+  void set_larger_grid(int, int, int, int, int, int);
+  void set_proc_neighs(int, int, int, int, int, int);
   
   int identical(Grid3d *);
   void get_size(int &, int &, int &);
@@ -72,10 +67,12 @@ class Grid3d : protected Pointers {
   int stencil_grid_lo,stencil_grid_hi;    // grid cells accessed beyond owned cell
   double shift_grid;   // location of grid point within grid cell
                        // only affects which proc owns grid cell
-  double shift_atom;   // shift applied to atomd when mapped to grid cell by caller
+  double shift_atom_lo,shift_atom_hi;;   // max shift applied to atoms
+                       // when mapped to grid cell by caller
+                       // can be different in lo/hi directions
                        // only affects extent of ghost cells
-  double zfactor;      // multiplier on extend of grid in Z direction
-                       // 1.0 = no extra grid cells in Z
+  int zextra;          // 1 if extra grid cells in Z, 0 if not
+  double zfactor;      // multiplier on extent of grid in Z direction
 
   // extent of my owned and ghost cells
   

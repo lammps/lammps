@@ -145,7 +145,7 @@ void PPPMStagger::compute(int eflag, int vflag)
   nstagger = 2;
 
   stagger = 0.0;
-  for (int n=0; n<nstagger; n++) {
+  for (int n = 0; n < nstagger; n++) {
 
     // find grid points for all my particles
     // map my particle charge onto my local 3d density grid
@@ -197,7 +197,7 @@ void PPPMStagger::compute(int eflag, int vflag)
 
     if (evflag_atom) fieldforce_peratom();
 
-    stagger += 1.0/float(nstagger);
+    stagger += 1.0/nstagger;
   }
 
   // update qsum and qsqsum, if atom count has changed and energy needed

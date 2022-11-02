@@ -530,8 +530,8 @@ void Grid2d::ghost_grid()
 
   lo = static_cast<int>((sublo[1]-dist[1]-boxlo[1]) * dyinv + shift_atom + OFFSET) - OFFSET;
   hi = static_cast<int>((subhi[1]+dist[1]-boxlo[1]) * dyinv + shift_atom + OFFSET) - OFFSET;
-  outxlo = MIN(lo - stencil_atom_lo, inylo - stencil_grid_lo);
-  outxhi = MAX(hi + stencil_atom_hi, inyhi + stencil_grid_hi);
+  outylo = MIN(lo - stencil_atom_lo, inylo - stencil_grid_lo);
+  outyhi = MAX(hi + stencil_atom_hi, inyhi + stencil_grid_hi);
 
   // limit out xyz lo/hi indices to global grid for non-periodic dims
 
@@ -1889,7 +1889,7 @@ int Grid2d::proc_index_uniform(int igrid, int n, int dim, double *split)
   double fraclo,frachi;
 
   // loop over # of procs in this dime
-  // compute the grid bounds for that proc, same as comm->partition_grid()
+  // compute the grid bounds for that proc
   // if igrid falls within those bounds, return m = proc index
 
   int m;

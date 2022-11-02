@@ -1,5 +1,5 @@
 INCLUDE(FindPackageHandleStandardArgs)
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/tpls/FindTPLPthread.cmake")
+INCLUDE("${CMAKE_CURRENT_SOURCE_DIR}/cmake/tpls/FindTPLPthread.cmake")
 
 IF (TARGET Threads::Threads)
   SET(FOUND_THREADS TRUE)

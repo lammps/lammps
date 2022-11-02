@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -346,8 +346,10 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
     estyle += "/";
     if (sflag == 1)
       estyle += lmp->suffix;
-    else
+    else if (sflag == 2)
       estyle += lmp->suffix2;
+    else if ((sflag == 3) && lmp->non_pair_suffix())
+      estyle += lmp->non_pair_suffix();
   }
   integrate_style = utils::strdup(estyle);
 }
@@ -359,9 +361,9 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
 void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + std::string("/") + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2*lmp->pair_only_flag;
+      std::string estyle = style + std::string("/") + lmp->non_pair_suffix();
       if (integrate_map->find(estyle) != integrate_map->end()) {
         IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
         integrate = integrate_creator(lmp, narg, arg);
@@ -407,8 +409,10 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
     estyle += "/";
     if (sflag == 1)
       estyle += lmp->suffix;
-    else
+    else if (sflag == 2)
       estyle += lmp->suffix2;
+    else if ((sflag == 3) && lmp->non_pair_suffix())
+      estyle += lmp->non_pair_suffix();
   }
   minimize_style = utils::strdup(estyle);
 }
@@ -420,9 +424,9 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
 void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + std::string("/") + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2*lmp->pair_only_flag;
+      std::string estyle = style + std::string("/") + lmp->non_pair_suffix();
       if (minimize_map->find(estyle) != minimize_map->end()) {
         MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
         minimize = minimize_creator(lmp);

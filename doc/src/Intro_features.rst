@@ -95,7 +95,7 @@ commands)
 * metal-organic framework potentials (QuickFF, MO-FF)
 * implicit solvent potentials: hydrodynamic lubrication, Debye
 * force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
-* access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim command <kim_commands>`
+* access to the `OpenKIM Repository <https://openkim.org>`_ of potentials via the :doc:`kim command <kim_commands>`
 * hybrid potentials: multiple pair, bond, angle, dihedral, improper potentials can be used in one simulation
 * overlaid potentials: superposition of multiple pair potentials (including many-body) with optional scale factor
 
@@ -205,7 +205,7 @@ Pre- and post-processing
 
 .. _pizza: https://lammps.github.io/pizza
 
-.. _python: http://www.python.org
+.. _python: https://www.python.org
 
 .. _special:
 

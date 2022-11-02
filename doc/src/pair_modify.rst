@@ -284,6 +284,8 @@ the *pair* keyword.  Use *no* to disable, or *yes* to enable.
    The "pair_modify pair compute/tally" command must be issued
    **before** the corresponding compute style is defined.
 
+.. versionadded:: 3Aug2022
+
 The *neigh/trim* keyword controls whether an explicit cutoff is set for
 each neighbor list request issued by individual pair sub-styles when
 using :doc:`pair hybrid/overlay <pair_hybrid>`.  When this keyword is

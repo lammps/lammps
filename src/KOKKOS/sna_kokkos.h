@@ -2,7 +2,7 @@
 /* -*- c++ -*- -------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -60,6 +60,70 @@ struct alignas(8) FullHalfMapper {
   int idxu_half;
   int flip_sign; // 0 -> isn't flipped, 1 -> conj, -1 -> -conj
 };
+
+// Packed types for Zi, Yi lookup tables
+// This is abstracted into a stand-alone struct so different implementations
+// could be used for different architectures via various `ifdef` guards.
+struct alignas(16) idxz_struct {
+  reax_int4 j1_j2_j_jjuhalf;
+  reax_int4 mabminmax;
+  reax_int4 nanb_idxcg;
+
+  idxz_struct() = default;
+
+  KOKKOS_INLINE_FUNCTION
+  idxz_struct(int j1, int j2, int j, int ma1min, int ma2max, int mb1min, int mb2max, int na, int nb, int jju_half, int idxcg)
+    : j1_j2_j_jjuhalf{j1, j2, j, jju_half},
+      mabminmax{ma1min, ma2max, mb1min, mb2max},
+      nanb_idxcg{na, nb, idxcg, 0}
+  { }
+
+  KOKKOS_INLINE_FUNCTION
+  void get_zi(int &j1, int &j2, int &j, int &ma1min, int &ma2max, int &mb1min, int &mb2max, int &na, int &nb, int &idxcg) {
+    reax_int4 pack1 = this->j1_j2_j_jjuhalf;
+    j1 = pack1.i0;
+    j2 = pack1.i1;
+    j = pack1.i2;
+    reax_int4 pack2 = this->mabminmax;
+    ma1min = pack2.i0;
+    ma2max = pack2.i1;
+    mb1min = pack2.i2;
+    mb2max = pack2.i3;
+    reax_int4 pack3 = this->nanb_idxcg;
+    na = pack3.i0;
+    nb = pack3.i1;
+    idxcg = pack3.i2;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void get_yi(int &j1, int &j2, int &j, int &ma1min, int &ma2max, int &mb1min, int &mb2max, int &na, int &nb, int& jju_half, int& idxcg) {
+    reax_int4 pack1 = this->j1_j2_j_jjuhalf;
+    j1 = pack1.i0;
+    j2 = pack1.i1;
+    j = pack1.i2;
+    jju_half = pack1.i3;
+    reax_int4 pack2 = this->mabminmax;
+    ma1min = pack2.i0;
+    ma2max = pack2.i1;
+    mb1min = pack2.i2;
+    mb2max = pack2.i3;
+    reax_int4 pack3 = this->nanb_idxcg;
+    na = pack3.i0;
+    nb = pack3.i1;
+    idxcg = pack3.i2;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void get_yi_with_zlist(int &j1, int &j2, int &j, int &jju_half) {
+    reax_int4 pack1 = this->j1_j2_j_jjuhalf;
+    j1 = pack1.i0;
+    j2 = pack1.i1;
+    j = pack1.i2;
+    jju_half = pack1.i3;
+  }
+
+};
+
 
 template<class DeviceType, typename real_type_, int vector_length_>
 class SNAKokkos {
@@ -263,7 +327,7 @@ class SNAKokkos {
 
   //use indexlist instead of loops, constructor generates these
   // Same across all SNAKokkos
-  Kokkos::View<int*[10], DeviceType> idxz;
+  Kokkos::View<idxz_struct*, DeviceType> idxz;
   Kokkos::View<int*[3], DeviceType> idxb;
   Kokkos::View<int***, DeviceType> idxcg_block;
 

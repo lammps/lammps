@@ -91,7 +91,7 @@ int tersoff_gpu_init(const int ntypes, const int inum, const int nall, const int
                         ts_c1, ts_c2, ts_c3, ts_c4, ts_c, ts_d, ts_h,
                         ts_gamma, ts_beta, ts_powern, ts_cutsq);
 
-    TSMF.device->gpu_barrier();
+    TSMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

@@ -99,6 +99,7 @@ struct OCLProperties {
   int cl_device_version;
   bool has_subgroup_support;
   bool has_shuffle_support;
+  bool shared_main_memory;
 };
 
 /// Class for looking at data parallel device properties
@@ -124,6 +125,14 @@ class UCL_Device {
 
   /// Return the number of devices that support OpenCL
   inline int num_devices() { return _num_devices; }
+
+  /// Specify whether profiling (device timers) will be used (yes=true)
+  /** No-op for CUDA and HIP **/
+  inline void configure_profiling(const bool profiling_on) {
+    #ifndef GERYON_NO_OCL_MARKERS
+    _cq_profiling = profiling_on;
+    #endif
+  }
 
   /// Set the OpenCL device to the specified device number
   /** A context and default command queue will be created for the device *
@@ -169,10 +178,22 @@ class UCL_Device {
     _cq.push_back(cl_command_queue());
 
 #ifdef CL_VERSION_2_0
-    cl_queue_properties props[] = {CL_QUEUE_PROPERTIES, CL_QUEUE_PROFILING_ENABLE, 0};
-    _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props, &errorv);
+    if (_cq_profiling) {
+      cl_queue_properties props[] = {CL_QUEUE_PROPERTIES,
+                                     CL_QUEUE_PROFILING_ENABLE, 0};
+      _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
+                                                    &errorv);
+    } else {
+      cl_queue_properties props[] = {0};
+      _cq.back()=clCreateCommandQueueWithProperties(_context, _cl_device, props,
+                                                    &errorv);
+    }
 #else
-    _cq.back()=clCreateCommandQueue(_context, _cl_device, CL_QUEUE_PROFILING_ENABLE, &errorv);
+    if (_cq_profiling)
+      _cq.back()=clCreateCommandQueue(_context, _cl_device,
+                                      CL_QUEUE_PROFILING_ENABLE, &errorv);
+    else
+      _cq.back()=clCreateCommandQueue(_context, _cl_device, 0, &errorv);
 #endif
     if (errorv!=CL_SUCCESS) {
       std::cerr << "Could not create command queue on device: " << name()
@@ -209,7 +230,7 @@ class UCL_Device {
   inline bool shared_memory() { return shared_memory(_device); }
   /// Returns true if host memory is efficiently addressable from device
   inline bool shared_memory(const int i)
-    { return _shared_mem_device(_cl_devices[i]); }
+    { return _properties[i].shared_main_memory; }
 
   /// Returns preferred vector width
   inline int preferred_fp32_width() { return preferred_fp32_width(_device); }
@@ -370,6 +391,7 @@ class UCL_Device {
   cl_platform_id _cl_platforms[20]; // OpenCL IDs for all platforms
   cl_context _context;              // Context used for accessing the device
   std::vector<cl_command_queue> _cq;// The default command queue for this device
+  bool _cq_profiling;               // True=create command queues w/ profiling support
   int _device;                            // UCL_Device ID for current device
   cl_device_id _cl_device;                // OpenCL ID for current device
   std::vector<cl_device_id> _cl_devices;  // OpenCL IDs for all devices
@@ -384,6 +406,11 @@ class UCL_Device {
 // Grabs the properties for all devices
 UCL_Device::UCL_Device() {
   _device=-1;
+  #ifndef GERYON_NO_OCL_MARKERS
+  _cq_profiling=true;
+  #else
+  _cq_profiling=false;
+  #endif
 
   // --- Get Number of Platforms
   cl_uint nplatforms;
@@ -462,6 +489,7 @@ int UCL_Device::set_platform(int pid) {
   _num_devices = 0;
   for (int i=0; i<num_unpart; i++) {
     cl_uint num_subdevices = 1;
+    cl_device_id *subdevice_list = device_list + i;
 
     #ifdef CL_VERSION_1_2
     cl_device_affinity_domain adomain;
@@ -474,25 +502,29 @@ int UCL_Device::set_platform(int pid) {
     props[0]=CL_DEVICE_PARTITION_BY_AFFINITY_DOMAIN;
     props[1]=CL_DEVICE_AFFINITY_DOMAIN_NUMA;
     props[2]=0;
+
+    cl_int err = CL_SUCCESS;
     if (adomain & CL_DEVICE_AFFINITY_DOMAIN_NUMA)
-      CL_SAFE_CALL(clCreateSubDevices(device_list[i], props, 0, NULL,
-                                      &num_subdevices));
-    if (num_subdevices > 1) {
-      cl_device_id *subdevice_list = new cl_device_id[num_subdevices];
-      CL_SAFE_CALL(clCreateSubDevices(device_list[i], props, num_subdevices,
-                                      subdevice_list, &num_subdevices));
-      for (cl_uint j=0; j<num_subdevices; j++) {
-        _cl_devices.push_back(device_list[i]);
-        add_properties(device_list[i]);
-        _num_devices++;
+      err = clCreateSubDevices(device_list[i], props, 0, NULL,
+                               &num_subdevices);
+    if (err == CL_SUCCESS && num_subdevices > 1) {
+      subdevice_list = new cl_device_id[num_subdevices];
+      err = clCreateSubDevices(device_list[i], props, num_subdevices,
+                               subdevice_list, &num_subdevices);
+      if (err != CL_SUCCESS) {
+        delete[] subdevice_list;
+        num_subdevices = 1;
+        subdevice_list = device_list + i;
       }
-      delete[] subdevice_list;
-    } else {
-      _cl_devices.push_back(device_list[i]);
-      add_properties(device_list[i]);
-      _num_devices++;
     }
     #endif
+
+    for (cl_uint j=0; j<num_subdevices; j++) {
+      _num_devices++;
+      _cl_devices.push_back(subdevice_list[j]);
+      add_properties(subdevice_list[j]);
+    }
+    if (num_subdevices > 1) delete[] subdevice_list;
   } // for i
   #endif
 
@@ -563,8 +595,9 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   op.preferred_vector_width64=double_width;
 
   // Determine if double precision is supported: All bits in the mask must be set.
-  cl_device_fp_config double_mask = (CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_ROUND_TO_ZERO|
-                                     CL_FP_ROUND_TO_INF|CL_FP_INF_NAN|CL_FP_DENORM);
+  cl_device_fp_config double_mask = (CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|
+                                     CL_FP_ROUND_TO_ZERO|CL_FP_ROUND_TO_INF|
+                                     CL_FP_INF_NAN|CL_FP_DENORM);
   cl_device_fp_config double_avail;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_DOUBLE_FP_CONFIG,
                                sizeof(double_avail),&double_avail,nullptr));
@@ -668,6 +701,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   }
   delete[] buffer2;
   #endif
+  op.shared_main_memory=_shared_mem_device(device_list);
 
   _properties.push_back(op);
 }

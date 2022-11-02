@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -203,7 +203,7 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
     lmp->error->all(FLERR, "Could not initialize embedded Python");
   }
 
-  PyObject *unified_module = PyImport_ImportModule("mliap_unified_couple");
+  PyImport_ImportModule("mliap_unified_couple");
 
   if (PyErr_Occurred()) {
     PyErr_Print();

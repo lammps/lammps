@@ -42,6 +42,10 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <Kokkos_Core.hpp>
 
 #if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ENABLE_TASKPOLICY)

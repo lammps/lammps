@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -34,7 +34,7 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
   Pointers(lmp), f(nullptr), gradforce(nullptr), betas(nullptr),
   descriptors(nullptr), eatoms(nullptr), gamma(nullptr),
   gamma_row_index(nullptr), gamma_col_index(nullptr), egradient(nullptr),
-  numneighs(nullptr), iatoms(nullptr), pair_i(nullptr), ielems(nullptr),
+  numneighs(nullptr), iatoms(nullptr), ielems(nullptr), pair_i(nullptr),
   jatoms(nullptr), jelems(nullptr), elems(nullptr), rij(nullptr),
   graddesc(nullptr), model(nullptr), descriptor(nullptr), list(nullptr)
 {

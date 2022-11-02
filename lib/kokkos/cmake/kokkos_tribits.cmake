@@ -88,6 +88,9 @@ MACRO(KOKKOS_PROCESS_SUBPACKAGES)
     ADD_SUBDIRECTORY(core)
     ADD_SUBDIRECTORY(containers)
     ADD_SUBDIRECTORY(algorithms)
+    if (KOKKOS_CXX_STANDARD GREATER_EQUAL 17)
+      ADD_SUBDIRECTORY(simd)
+    endif()
     ADD_SUBDIRECTORY(example)
   endif()
 ENDMACRO()
@@ -342,7 +345,6 @@ MACRO(KOKKOS_INSTALL_ADDITIONAL_FILES)
   INSTALL(PROGRAMS
           "${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper"
           "${CMAKE_CURRENT_SOURCE_DIR}/bin/hpcbind"
-          "${CMAKE_CURRENT_SOURCE_DIR}/bin/kokkos_launch_compiler"
           "${PROJECT_BINARY_DIR}/temp/kokkos_launch_compiler"
           DESTINATION ${CMAKE_INSTALL_BINDIR})
   INSTALL(FILES

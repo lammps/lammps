@@ -30,7 +30,7 @@ and dump files.  Typically, this command is used at the very beginning
 of an input script.
 
 For all units except *lj*, LAMMPS uses physical constants from
-www.physics.nist.gov.  For the definition of Kcal in real units,
+www.physics.nist.gov.  For the definition of kcal in real units,
 LAMMPS uses the thermochemical calorie = 4.184 J.
 
 The choice you make for units simply sets some internal conversion
@@ -102,17 +102,17 @@ For style *real*, these are the units:
 * mass = grams/mole
 * distance = Angstroms
 * time = femtoseconds
-* energy = Kcal/mole
+* energy = kcal/mol
 * velocity = Angstroms/femtosecond
-* force = Kcal/mole-Angstrom
-* torque = Kcal/mole
+* force = (kcal/mol)/Angstrom
+* torque = kcal/mol
 * temperature = Kelvin
 * pressure = atmospheres
 * dynamic viscosity = Poise
 * charge = multiple of electron charge (1.0 is a proton)
 * dipole = charge\*Angstroms
 * electric field = volts/Angstrom
-* density = gram/cm\^dim
+* density = g/cm\^dim
 
 For style *metal*, these are the units:
 

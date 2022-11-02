@@ -373,7 +373,7 @@ void ComputePACE::compute_array()
         int k = typeoffset_global;
 
         for (int icoeff = 0; icoeff < ncoeff; icoeff++){
-          pace[0][k++] += Bs(icoeff);
+          pace[irow][k++] += Bs(icoeff);
         }
       } else {
         int k = 3;

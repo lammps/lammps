@@ -18,7 +18,7 @@
 
 namespace LAMMPS_NS {
 
-class MLIAPDescriptor : protected Pointers {
+class MLIAPDescriptor : virtual protected Pointers {
  public:
   MLIAPDescriptor(LAMMPS *);
   ~MLIAPDescriptor() override;

@@ -22,7 +22,7 @@
 
 namespace LAMMPS_NS {
 
-class MLIAPDummyDescriptor : public MLIAPDescriptor {
+class MLIAPDummyDescriptor : public MLIAPDescriptor, virtual protected Pointers {
  public:
   MLIAPDummyDescriptor(LAMMPS *);
   ~MLIAPDummyDescriptor() override;

@@ -163,7 +163,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
     KOKKOS_INLINE_FUNCTION
     params_acks2(){chi=0;eta=0;gamma=0;bcut_acks2=0;};
     KOKKOS_INLINE_FUNCTION
-    params_acks2(int i){chi=0;eta=0;gamma=0;bcut_acks2=0;};
+    params_acks2(int){chi=0;eta=0;gamma=0;bcut_acks2=0;};
     F_FLOAT chi, eta, gamma, bcut_acks2;
   };
 
@@ -276,10 +276,10 @@ struct FixACKS2ReaxFFKokkosNumNeighFunctor  {
 
 template <class DeviceType, int NEIGHFLAG>
 struct FixACKS2ReaxFFKokkosComputeHFunctor {
+  FixACKS2ReaxFFKokkos<DeviceType> c;
   int atoms_per_team, vector_length;
   typedef int value_type;
   typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
-  FixACKS2ReaxFFKokkos<DeviceType> c;
 
   FixACKS2ReaxFFKokkosComputeHFunctor(FixACKS2ReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
@@ -324,10 +324,10 @@ struct FixACKS2ReaxFFKokkosComputeHFunctor {
 
 template <class DeviceType, int NEIGHFLAG>
 struct FixACKS2ReaxFFKokkosComputeXFunctor {
+  FixACKS2ReaxFFKokkos<DeviceType> c;
   int atoms_per_team, vector_length;
   typedef int value_type;
   typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
-  FixACKS2ReaxFFKokkos<DeviceType> c;
 
   FixACKS2ReaxFFKokkosComputeXFunctor(FixACKS2ReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();

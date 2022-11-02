@@ -191,7 +191,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::setup_pre_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
+void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 

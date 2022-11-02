@@ -594,32 +594,17 @@ void MSM::allocate()
   memory->create2d_offset(phi1d,3,-order,order,"msm:phi1d");
   memory->create2d_offset(dphi1d,3,-order,order,"msm:dphi1d");
 
-  // one Grid3d using all processors for finest grid level
-
-  gcall = new Grid3d(lmp,world,nx_msm[0],ny_msm[0],nz_msm[0]);
-  gcall->set_distance(0.5*neighbor->skin);
-  gcall->set_stencil_atom(-nlower,nupper);
-
-  gcall->setup_grid(nxlo_in[0],nxhi_in[0],nylo_in[0],
-                    nyhi_in[0],nzlo_in[0],nzhi_in[0],
-                    nxlo_out_all,nxhi_out_all,nylo_out_all,
-                    nyhi_out_all,nzlo_out_all,nzhi_out_all);
-
-  gcall->set_larger_grid(nxlo_out[0],nxhi_out[0],nylo_out[0],
-                         nyhi_out[0],nzlo_out[0],nzhi_out[0]);
+  // one Grid3d for finest grid level, using world comm and all procs
+  // use set_caller_grid() b/c MSM allocates local grid > out_all values
   
-  // NOTE: or is it out[0] ??
-  // NOTE: worry about flag = 1 here, 2 later
-
-  /*
-  gcall = new Grid3d(lmp,world,1,nx_msm[0],ny_msm[0],nz_msm[0],
+  gcall = new Grid3d(lmp,world,nx_msm[0],ny_msm[0],nz_msm[0],
                      nxlo_in[0],nxhi_in[0],nylo_in[0],
                      nyhi_in[0],nzlo_in[0],nzhi_in[0],
                      nxlo_out_all,nxhi_out_all,nylo_out_all,
-                     nyhi_out_all,nzlo_out_all,nzhi_out_all,
-                     nxlo_out[0],nxhi_out[0],nylo_out[0],
-                     nyhi_out[0],nzlo_out[0],nzhi_out[0]);
-  */
+                     nyhi_out_all,nzlo_out_all,nzhi_out_all);
+
+  gcall->set_caller_grid(nxlo_out[0],nxhi_out[0],nylo_out[0],
+                         nyhi_out[0],nzlo_out[0],nzhi_out[0]);
   
   gcall->setup_comm(ngcall_buf1,ngcall_buf2);
   npergrid = 1;
@@ -639,34 +624,20 @@ void MSM::allocate()
     memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
 
-    // create commgrid object for rho and electric field communication
+    // one Grid3d per level, using level-specific comm for coarser grids
+    // use set_proc_neigh() b/c MSM excludes non-participating procs from owned/ghost comm
 
     if (active_flag[n]) {
       delete gc[n];
 
-      // NOTE: why is n = 0 same as all for grid size ?
-      
-      gc[n] = new Grid3d(lmp,world_levels[n],nx_msm[n],ny_msm[n],nz_msm[n]);
-      gc[n]->set_stencil_atom(-nlower,nupper);
-      
-      gc[n]->setup_grid(nxlo_in[n],nxhi_in[n],nylo_in[n],
-                        nyhi_in[n],nzlo_in[n],nzhi_in[n],
-                        nxlo_out[n],nxhi_out[n],nylo_out[n],
-                        nyhi_out[n],nzlo_out[n],nzhi_out[n]);
+      gc[n] = new Grid3d(lmp,world_levels[n],nx_msm[n],ny_msm[n],nz_msm[n],
+                         nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
+                         nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n]);
 
       int **procneigh = procneigh_levels[n];
       gc[n]->set_proc_neighs(procneigh[0][0],procneigh[0][1],procneigh[1][0],
                              procneigh[1][1],procneigh[2][0],procneigh[2][1]);
       
-      /*
-      gc[n] = new Grid3d(lmp,world_levels[n],2,nx_msm[n],ny_msm[n],nz_msm[n],
-                           nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
-                           nzlo_in[n],nzhi_in[n],
-                           nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],
-                           procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                           procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-      */
-
       gc[n]->setup_comm(ngc_buf1[n],ngc_buf2[n]);
       npergrid = 1;
       memory->destroy(gc_buf1[n]);
@@ -1194,18 +1165,23 @@ void MSM::set_grid_local()
 
   for (int n = 0; n < levels; n++) {
 
-    // deleted and nullify grid arrays since the number or offset of gridpoints may change
+    // delete and nullify grid arrays since the number or offset of gridpoints may change
     
     memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
-    // partition global grid across procs
-    // n xyz lo/hi in[] = lower/upper bounds of global grid this proc owns
-    // indices range from 0 to N-1 inclusive in each dim
+    // use Grid3d to partition each grid into owned cells on each proc
+    // assignment of ghost cells is done below
+    // Grid3d is called later in allocate() with owned+ghost bounds
 
-    //comm->partition_grid(nx_msm[n],ny_msm[n],nz_msm[n],0.0,
-    //                     nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
-    //                     nzlo_in[n],nzhi_in[n]);
+    gcall = new Grid3d(lmp,world,nx_msm[n],ny_msm[n],nz_msm[n]);
+    gcall->setup_grid(nxlo_in[n],nxhi_in[n],nylo_in[n],
+                      nyhi_in[n],nzlo_in[n],nzhi_in[n],
+                      nxlo_out[n],nxhi_out[n],nylo_out[n],
+                      nyhi_out[n],nzlo_out[n],nzhi_out[n]);
+    delete gcall;
+    
+    // nlower/nupper = stencil size for mapping particles to grid
 
     nlower = -(order-1)/2;
     nupper = order/2;
@@ -1236,10 +1212,12 @@ void MSM::set_grid_local()
     //           position a particle in my box can be at
     // dist[3] = particle position bound = subbox + skin/2.0
     // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
+    // for n = 0, use a smaller ghost region for interpolation
+    // for n > 0, larger ghost region needed for direct sum and restriction/prolongation
 
     double dist[3];
     double cuthalf = 0.0;
-    if (n == 0) cuthalf = 0.5*neighbor->skin; // only applies to finest grid
+    if (n == 0) cuthalf = 0.5*neighbor->skin;   // only applies to finest grid
     dist[0] = dist[1] = dist[2] = cuthalf;
     if (triclinic) MathExtra::tribbox(domain->h,cuthalf,&dist[0]);
 
@@ -1249,13 +1227,11 @@ void MSM::set_grid_local()
                             nx_msm[n]/xprd + OFFSET) - OFFSET;
     nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
                             nx_msm[n]/xprd + OFFSET) - OFFSET;
+    
     if (n == 0) {
-      // use a smaller ghost region for interpolation
       nxlo_out_all = nlo + nlower;
       nxhi_out_all = nhi + nupper;
     }
-    
-    // a larger ghost region is needed for the direct sum and for restriction/prolongation
     
     nxlo_out[n] = nlo + MIN(-order,nxlo_direct);
     nxhi_out[n] = nhi + MAX(order,nxhi_direct);
@@ -1268,6 +1244,7 @@ void MSM::set_grid_local()
       nylo_out_all = nlo + nlower;
       nyhi_out_all = nhi + nupper;
     }
+    
     nylo_out[n] = nlo + MIN(-order,nylo_direct);
     nyhi_out[n] = nhi + MAX(order,nyhi_direct);
 

@@ -23,6 +23,8 @@ class Grid3d : protected Pointers {
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int);
+  Grid3d(class LAMMPS *, MPI_Comm, int, int, int,
+         int, int, int, int, int, int, int, int, int, int, int, int);
   ~Grid3d();
 
   void set_distance(double);
@@ -31,7 +33,7 @@ class Grid3d : protected Pointers {
   void set_shift_grid(double);
   void set_shift_atom(double, double);
   void set_zfactor(double);
-  void set_larger_grid(int, int, int, int, int, int);
+  void set_caller_grid(int, int, int, int, int, int);
   void set_proc_neighs(int, int, int, int, int, int);
   
   int identical(Grid3d *);
@@ -59,7 +61,7 @@ class Grid3d : protected Pointers {
   MPI_Comm gridcomm;    // communicator for this class
                         // usually world, but MSM calls with subset
 
-  // inputs from caller
+  // input from caller
 
   int nx, ny, nz;      // size of global grid in all 3 dims
   double maxdist;      // distance owned atoms can move outside subdomain
@@ -230,13 +232,11 @@ class Grid3d : protected Pointers {
   // internal methods
   // -------------------------------------------
 
-  void partition_grid(int, double, double, double, int &, int &);
+  void initialize();
+  void partition_grid(int, double, double, double, int, int &, int &);
   void ghost_grid();
   void extract_comm_info();
   
-  void store(int, int, int, int, int, int, int, int, int, int, int, int,
-             int, int, int, int, int, int, int, int, int, int, int, int);
-
   void setup_comm_brick(int &, int &);
   void setup_comm_tiled(int &, int &);
   int ghost_adjacent_brick();

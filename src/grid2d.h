@@ -23,18 +23,17 @@ class Grid2d : protected Pointers {
   enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
 
   Grid2d(class LAMMPS *, MPI_Comm, int, int);
-  
   Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int);
-  Grid2d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int,
-         int, int, int, int, int);
-  
   ~Grid2d() override;
 
   void set_distance(double);
   void set_stencil_grid(int, int);
   void set_stencil_atom(int, int);
   void set_shift_grid(double);
-  void set_shift_atom(double);
+  void set_shift_atom(double, double);
+  void set_yfactor(double);
+  void set_caller_grid(int, int, int, int);
+  void set_proc_neighs(int, int, int, int);
 
   int identical(Grid2d *);
   void get_size(int &, int &);
@@ -68,8 +67,12 @@ protected:
   int stencil_grid_lo,stencil_grid_hi;    // grid cells accessed beyond owned cell
   double shift_grid;   // location of grid point within grid cell
                        // only affects which proc owns grid cell
-  double shift_atom;   // shift applied to atomd when mapped to grid cell by caller
+  double shift_atom_lo,shift_atom_hi;;   // max shift applied to atoms
+                       // when mapped to grid cell by caller
+                       // can be different in lo/hi directions
                        // only affects extent of ghost cells
+  int yextra;          // 1 if extra grid cells in Y, 0 if not
+  double yfactor;      // multiplier on extent of grid in Y direction
 
   // extent of my owned and ghost cells
   
@@ -224,13 +227,11 @@ protected:
   // internal methods
   // -------------------------------------------
 
-  void partition_grid(int, double, double, double, int &, int &);
+  void initialize();
+  void partition_grid(int, double, double, double, int, int &, int &);
   void ghost_grid();
   void extract_comm_info();
 
-  void store(int, int, int, int, int, int, int, int,
-             int, int, int, int, int, int, int, int);
-  
   void setup_comm_brick(int &, int &);
   void setup_comm_tiled(int &, int &);
   int ghost_adjacent_brick();

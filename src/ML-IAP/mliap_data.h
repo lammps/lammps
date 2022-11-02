@@ -28,7 +28,7 @@ class MLIAPData : protected Pointers {
   void init();
   virtual void generate_neighdata(class NeighList *, int = 0, int = 0);
   virtual void grow_neigharrays();
-  virtual double memory_usage();
+  double memory_usage();
 
   int size_array_rows, size_array_cols;
   int natoms;

@@ -50,11 +50,11 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
  public:
   MLIAPDataKokkos(class LAMMPS *, int, int *, class MLIAPModel *, class MLIAPDescriptor *,
                   class PairMLIAPKokkos<DeviceType> * = nullptr);
-  ~MLIAPDataKokkos();
+  ~MLIAPDataKokkos() override;
   ExecutionSpace execution_space;
 
-  void generate_neighdata(class NeighList *, int = 0, int = 0);
-  void grow_neigharrays();
+  void generate_neighdata(class NeighList *, int = 0, int = 0) override;
+  void grow_neigharrays() override;
 
   void modified(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync = false);
 

@@ -36,9 +36,9 @@
 #include <stdint.h>  /* for int64_t */
 #endif
 
-/* The following must be kept in sync with the equivalent constants in
- *  python/lammps/constants.py, fortran/lammps.f90, tools/swig/lammps.i,
- *  and examples/COUPLE/plugin/liblammpsplugin.h */
+/* The following enums must be kept in sync with the equivalent enums
+ * or constants in python/lammps/constants.py, fortran/lammps.f90,
+ * tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
 
 /* Data type constants for extracting data from atoms, computes and fixes */
 

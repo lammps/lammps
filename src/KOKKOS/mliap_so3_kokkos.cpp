@@ -277,14 +277,14 @@ void MLIAP_SO3Kokkos<DeviceType>::init_arrays(int nlocal, int ncoefs)
   }
 
   int totali = nlocal * ncoefs;
-  if ( nlocal > m_plist_r.extent(0)) {
+  if ( nlocal > (int)m_plist_r.extent(0)) {
     memoryKK->destroy_kokkos(m_plist_r);
     memoryKK->create_kokkos(m_plist_r, nlocal, ncoefs, "MLIAP_SO3Kokkos:m_plist_r");
     alloc_arrays = totali * sizeof(double);
   }
 
   int num_of_temp = std::min(nlocal, m_chunk_size);
-  if ( m_ulist_r.extent(0) < num_of_temp ) {
+  if ((int)m_ulist_r.extent(0) < num_of_temp ) {
     totali = m_idxu_count;
     memoryKK->destroy_kokkos(m_ulist_r);
     memoryKK->create_kokkos(m_ulist_r, num_of_temp, totali, "MLIAP_SO3Kokkos:m_ulist_r");
@@ -412,7 +412,7 @@ void MLIAP_SO3Kokkos<DeviceType>::compute_W(int nmax, double *arr)
 template <class DeviceType>
 template <typename ViewType>
 KOKKOS_INLINE_FUNCTION
-void MLIAP_SO3Kokkos<DeviceType>::compute_pi(int nmax, int lmax, ViewType clisttot_r, ViewType clisttot_i, int lcl2,
+void MLIAP_SO3Kokkos<DeviceType>::compute_pi(int nmax, int lmax, ViewType clisttot_r, ViewType clisttot_i, int /*lcl2*/,
                            float_2d plist_r, int indpl) const
 {
   int n1, n2, j, l, m, i = 0;
@@ -733,21 +733,21 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneig
   bigint totali;
 
   totali = totaln * m_Nmax * (m_lmax + 1);
-  if ( totali > m_sbes_array.extent(0)) {
+  if ( totali > (int)m_sbes_array.extent(0)) {
     memoryKK->realloc_kokkos(m_sbes_array, "MLIAP_SO3Kokkos:m_sbes_array", totali);
     memoryKK->realloc_kokkos(m_sbes_darray, "MLIAP_SO3Kokkos:m_sbes_darray", totali);
     alloc_arrays += 2.0 * totali * sizeof(double);
   }
 
   totali = totaln * m_nmax * (m_lmax + 1);
-  if ( totali > m_rip_array.extent(0)) {
+  if ( totali > (int)m_rip_array.extent(0)) {
     memoryKK->realloc_kokkos(m_rip_array, "MLIAP_SO3Kokkos:m_rip_array", totali);
     memoryKK->realloc_kokkos(m_rip_darray, "MLIAP_SO3Kokkos:m_rip_darray", totali);
     alloc_arrays += 2.0 * totali * sizeof(double);
   }
 
   totali = totaln * ncoefs * 3;
-  if ( totali > k_dplist_r.extent(0)) {
+  if ( totali > (int)k_dplist_r.extent(0)) {
     memoryKK->realloc_kokkos(k_dplist_r, "MLIAP_SO3Kokkos:m_dplist_r", (int)totaln, ncoefs, 3);
     alloc_arrays += 2.0 * totali * sizeof(double);
   }
@@ -849,7 +849,7 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
 {
   bigint totali;
 
-  if ( nlocal > m_clisttot_r.extent(0)){
+  if ( nlocal > (int)m_clisttot_r.extent(0)){
     memoryKK->destroy_kokkos(m_clisttot_r);
     memoryKK->create_kokkos(m_clisttot_r, nlocal, m_nmax, m_numYlms, "MLIAP_SO3Kokkos:m_clisttot_r");
     memoryKK->destroy_kokkos(m_clisttot_i);
@@ -871,7 +871,7 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
   }
 
   totali = totaln * m_Nmax * (m_lmax + 1);
-  if ( totali > m_sbes_array.extent(0)) {
+  if ( totali > (int)m_sbes_array.extent(0)) {
     memoryKK->destroy_kokkos(m_sbes_array);
     memoryKK->create_kokkos(m_sbes_array, totali, "MLIAP_SO3Kokkos:m_sbes_array");
     memoryKK->destroy_kokkos(m_sbes_darray);
@@ -1077,7 +1077,6 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
                              (bigint) n * (m_lmax + 1) + l];
           double r_int_temp = m_rip_darray[(ipair - 1) * m_nmax * (m_lmax + 1) +
                                     (bigint) n * (m_lmax + 1) + l];
-          double norm = 2.0 * sqrt(2.0) * MY_PI / sqrt(2.0 * l + 1.0);
           double dr_int[3];
           for (int ii = 0; ii < 3; ii++) dr_int[ii] = r_int_temp * 2.0 * t_alpha * rvec[ii] / r;
 
@@ -1136,7 +1135,6 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
                              (bigint) n * (m_lmax + 1) + l];
           double r_int_temp = m_rip_darray[(ipair - 1) * m_nmax * (m_lmax + 1) +
                                     (bigint) n * (m_lmax + 1) + l];
-          double norm = 2.0 * sqrt(2.0) * MY_PI / sqrt(2.0 * l + 1.0);
           double dr_int[3];
           for (int ii = 0; ii < 3; ii++) dr_int[ii] = r_int_temp * 2.0 * t_alpha * rvec[ii] / r;
 

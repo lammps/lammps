@@ -361,59 +361,92 @@ void CPairPOD::estimate_tempmemory()
   szd = nablockmax*(podptr->pod.nd1234) + szd;
 }
 
-void CPairPOD::check_tempmemory(int start, int end)
+// void CPairPOD::check_tempmemory(int start, int end)
+// {
+//   nablock = end - start;
+//   nij = 0;
+//   for (int ii=0; ii<nablock; ii++) {
+//   int gi = start + ii;
+//   nij += pairnumsum[gi+1] - pairnumsum[gi];
+//   }
+// 
+//   if ( (nij > nijmax) || (nablock > nablockmax) ) {
+//   nijmax = PODMAX(nijmax, nij);
+//   nablockmax = PODMAX(nablockmax, nablock);
+//   this->estimate_tempmemory();
+//   this->free_tempmemory();
+//   this->allocate_tempmemory();
+//   }
+// }
+
+void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
 {
-  nablock = end - start;
+
+  double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
+
   nij = 0;
-  for (int ii=0; ii<nablock; ii++) {
-  int gi = start + ii;
-  nij += pairnumsum[gi+1] - pairnumsum[gi];
-  }
-
-  if ( (nij > nijmax) || (nablock > nablockmax) ) {
-  nijmax = PODMAX(nijmax, nij);
-  nablockmax = PODMAX(nablockmax, nablock);
-  this->estimate_tempmemory();
-  this->free_tempmemory();
-  this->allocate_tempmemory();
-  }
-}
-
-void CPairPOD::podNeighPairs(int *atomtypes, int start, int end)
-{
-  this->check_tempmemory(start, end);
-
-  nablock = end - start;
-  int k = 0;
-
-  // loop over atoms ini a simulation block, used for GPU
-
-  for (int ii=0; ii<nablock; ii++) {
-    int gi = start + ii; // atom i
-    int itype = atomtypes[gi];
-    int s = pairnumsum[gi];
-    int m = pairnumsum[gi+1] - s;
-    typeai[ii] = itype;
-    numneighsum[ii+1] = m;
-    for (int l=0; l<m ; l++) {
-      int gj = pairlist[s + l]; // atom j
-      idxi[k]  = ii;
-      ai[k]  = atomID[gi];
-      aj[k]  = atomID[gj];
-      ti[k]  = itype;
-      tj[k]  = atomtypes[aj[k]];
-      rij[k*3+0]   = y[gj*3+0] -  y[gi*3+0];  // xj - xi
-      rij[k*3+1]   = y[gj*3+1] -  y[gi*3+1];  // xj - xi
-      rij[k*3+2]   = y[gj*3+2] -  y[gi*3+2];  // xj - xi
-      k += 1;
+  int itype = map[atomtypes[gi]]+1;
+  int m = numneigh[gi];
+  typeai[0] = itype;
+  for (int l=0; l<m ; l++) {   // loop over each atom around atom i
+    int gj = firstneigh[gi][l];  // atom j
+    double delx   = x[gj][0] -  x[gi][0];  // xj - xi
+    double dely   = x[gj][1] -  x[gi][1];  // xj - xi
+    double delz   = x[gj][2] -  x[gi][2];  // xj - xi
+    double rsq = delx*delx + dely*dely + delz*delz;
+    if (rsq < rcutsq && rsq > 1e-20) {
+      rij[nij*3 + 0] = delx;
+      rij[nij*3 + 1] = dely;
+      rij[nij*3 + 2] = delz;
+      idxi[nij]    = 0;
+      ai[nij]    = gi;
+      aj[nij]    = gj;
+      ti[nij]    = itype;
+      tj[nij]    = map[atomtypes[gj]]+1;
+      nij++;
     }
   }
 
   numneighsum[0] = 0;
-  for (int ii=0; ii<nablock; ii++)
-    numneighsum[ii+1] = numneighsum[ii+1] + numneighsum[ii];
+  numneighsum[1] = nij;
+
 }
 
+// void CPairPOD::podNeighPairs(int *atomtypes, int start, int end)
+// {
+//   this->check_tempmemory(start, end);
+// 
+//   nablock = end - start;
+//   int k = 0;
+// 
+//   // loop over atoms ini a simulation block, used for GPU
+// 
+//   for (int ii=0; ii<nablock; ii++) {
+//     int gi = start + ii; // atom i
+//     int itype = atomtypes[gi];
+//     int s = pairnumsum[gi];
+//     int m = pairnumsum[gi+1] - s;
+//     typeai[ii] = itype;
+//     numneighsum[ii+1] = m;
+//     for (int l=0; l<m ; l++) {
+//       int gj = pairlist[s + l]; // atom j
+//       idxi[k]  = ii;
+//       ai[k]  = atomID[gi];
+//       aj[k]  = atomID[gj];
+//       ti[k]  = itype;
+//       tj[k]  = atomtypes[aj[k]];
+//       rij[k*3+0]   = y[gj*3+0] -  y[gi*3+0];  // xj - xi
+//       rij[k*3+1]   = y[gj*3+1] -  y[gi*3+1];  // xj - xi
+//       rij[k*3+2]   = y[gj*3+2] -  y[gi*3+2];  // xj - xi
+//       k += 1;
+//     }
+//   }
+// 
+//   numneighsum[0] = 0;
+//   for (int ii=0; ii<nablock; ii++)
+//     numneighsum[ii+1] = numneighsum[ii+1] + numneighsum[ii];
+// }
+// 
 // double CPairPOD::podenergy(double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum)
 // {
 //   // determine computation blocks
@@ -542,63 +575,30 @@ void CPairPOD::podNeighPairs(int *atomtypes, int start, int end)
 // 
 //   return energy;
 // }
-
-void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
-{
-
-  double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
-
-  nij = 0;
-  int itype = map[atomtypes[gi]]+1;
-  int m = numneigh[gi];
-  typeai[0] = itype;
-  for (int l=0; l<m ; l++) {   // loop over each atom around atom i
-    int gj = firstneigh[gi][l];  // atom j
-    double delx   = x[gj][0] -  x[gi][0];  // xj - xi
-    double dely   = x[gj][1] -  x[gi][1];  // xj - xi
-    double delz   = x[gj][2] -  x[gi][2];  // xj - xi
-    double rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq < rcutsq && rsq > 1e-20) {
-      rij[nij*3 + 0] = delx;
-      rij[nij*3 + 1] = dely;
-      rij[nij*3 + 2] = delz;
-      idxi[nij]    = 0;
-      ai[nij]    = gi;
-      aj[nij]    = gj;
-      ti[nij]    = itype;
-      tj[nij]    = map[atomtypes[gj]]+1;
-      nij++;
-    }
-  }
-
-  numneighsum[0] = 0;
-  numneighsum[1] = nij;
-
-}
-
-void CPairPOD::check_tempmemory(double **x, int **firstneigh, int *numneigh, int *ilist, int start, int end)
-{
-  double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
-  nablock = end - start;
-  nij = 0;
-  for (int ii=0; ii<nablock; ii++) {  // for each atom i in the simulation box
-    int gi = ilist[start+ii];   // atom i
-    int m = numneigh[gi];
-    for (int l=0; l<m ; l++) {   // loop over each atom around atom i
-      int gj = firstneigh[gi][l];  // atom j
-      double delx   = x[gj][0] -  x[gi][0];  // xj - xi
-      double dely   = x[gj][1] -  x[gi][1];  // xj - xi
-      double delz   = x[gj][2] -  x[gi][2];  // xj - xi
-      double rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq < rcutsq && rsq > 1e-20) nij++;
-    }
-  }
-
-  if ( (nij > nijmax) || (nablock > nablockmax) ) {
-    nijmax = PODMAX(nijmax, nij);
-    nablockmax = PODMAX(nablockmax, nablock);
-    this->estimate_tempmemory();
-    this->free_tempmemory();
-    this->allocate_tempmemory();
-  }
-}
+//
+// void CPairPOD::check_tempmemory(double **x, int **firstneigh, int *numneigh, int *ilist, int start, int end)
+// {
+//   double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
+//   nablock = end - start;
+//   nij = 0;
+//   for (int ii=0; ii<nablock; ii++) {  // for each atom i in the simulation box
+//     int gi = ilist[start+ii];   // atom i
+//     int m = numneigh[gi];
+//     for (int l=0; l<m ; l++) {   // loop over each atom around atom i
+//       int gj = firstneigh[gi][l];  // atom j
+//       double delx   = x[gj][0] -  x[gi][0];  // xj - xi
+//       double dely   = x[gj][1] -  x[gi][1];  // xj - xi
+//       double delz   = x[gj][2] -  x[gi][2];  // xj - xi
+//       double rsq = delx*delx + dely*dely + delz*delz;
+//       if (rsq < rcutsq && rsq > 1e-20) nij++;
+//     }
+//   }
+// 
+//   if ( (nij > nijmax) || (nablock > nablockmax) ) {
+//     nijmax = PODMAX(nijmax, nij);
+//     nablockmax = PODMAX(nablockmax, nablock);
+//     this->estimate_tempmemory();
+//     this->free_tempmemory();
+//     this->allocate_tempmemory();
+//   }
+// }

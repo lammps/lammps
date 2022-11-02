@@ -11,10 +11,10 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pace.h"
-#include "ace_evaluator.h"
-#include "ace_c_basis.h"
-#include "ace_abstract_basis.h"
-#include "ace_types.h"
+#include "ace-evaluator/ace_evaluator.h"
+#include "ace-evaluator/ace_c_basis.h"
+#include "ace-evaluator/ace_abstract_basis.h"
+#include "ace-evaluator/ace_types.h"
 #include <cstring>
 #include <map>
 

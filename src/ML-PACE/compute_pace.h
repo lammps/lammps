@@ -21,9 +21,9 @@ ComputeStyle(pace,ComputePACE);
 #define LMP_COMPUTE_PACE_H
 
 #include "compute.h"
-#include "ace_c_basis.h"
-#include "ace_evaluator.h"
-#include "ace_abstract_basis.h"
+#include "ace-evaluator/ace_c_basis.h"
+#include "ace-evaluator/ace_evaluator.h"
+#include "ace-evaluator/ace_abstract_basis.h"
 
 namespace LAMMPS_NS {
 

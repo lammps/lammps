@@ -18,7 +18,7 @@ Syntax
   .. parsed-literal::
 
        attributes = id, ix, iy, iz, x, y, z, xs, ys, zs, xc, yc, zc, xsc, ysc, zsc
-         id = ID of grid point, x fastest, y next, z slowest
+         id = ID of grid cell, x fastest, y next, z slowest
          ix,iy,iz = grid indices in each dimension (1 to N inclusive)
          x,y,z = coords of lower left corner of grid cell
          xs,ys,zs = scaled coords of lower left corner of grid cell (0.0 to 1.0)
@@ -39,9 +39,9 @@ Description
 Define a computation that stores the specified attributes of a
 distributed grid.  In LAMMPS, distributed grids are regular 2d or 3d
 grids which overlay a 2d or 3d simulation domain.  Each processor owns
-the grid points within its sub-domain.  See the :doc:`Howto grid
-<Howto_grid>` doc page for details of how distributed grids can be
-defined by various commands and referenced.
+the grid cells whose center points lie within its sub-domain.  See the
+:doc:`Howto grid <Howto_grid>` doc page for details of how distributed
+grids can be defined by various commands and referenced.
 
 This compute stores the specified attributes of grids as per-grid data
 so they can be accessed by other :doc:`output commands <Howto_output>`
@@ -53,14 +53,14 @@ to output per-grid values from other computes of fixes, the grid size
 specified for this command must be consistent with the grid sizes
 used by the other commands.
 
-The *id* attribute stores the grid ID for each grid point.  For a
+The *id* attribute stores the grid ID for each grid cell.  For a
 global grid of size Nx by Ny by Nz (in 3d simulations) the grid IDs
 range from 1 to Nx*Ny*Nz.  They are ordered with the X index of the 3d
 grid varying fastest, then Y, then Z slowest.  For 2d grids (in 2d
 simulations), the grid IDs range from 1 to Nx*Ny, with X varying
 fastest and Y slowest.
 
-The *ix*, *iy*, *iz* attributes are the indices of a grid point in
+The *ix*, *iy*, *iz* attributes are the indices of a grid cell in
 each dimension.  They range from 1 to Nx inclusive in the X dimension,
 and similar for Y and Z.
 
@@ -91,8 +91,8 @@ Output info
 This compute calculates a per-grid vector or array depending on the
 number of input values.  The length of the vector or number of array
 rows (distributed across all processors) is Nx * Ny * Nz.  For access
-by other commands, the name of the grid produced by this command is
-"grid".  The name of its data is "data".
+by other commands, the name of the single grid produced by this
+command is "grid".  The name of its per-grid data is "data".
 
 The (x,y,z) and (xc,yc,zc) coordinates are in distance :doc:`units
 <units>`.

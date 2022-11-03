@@ -29,6 +29,9 @@
 #include "update.h"
 #include "variable.h"
 
+// DEBUG
+#include "comm.h"
+
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -390,7 +393,6 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   // instantiate the Grid class and allocate per-grid memory
 
-  double maxdist;
   if (modeatom) maxdist = 0.5 * neighbor->skin;
   else if (modegrid) maxdist = 0.0;
 
@@ -1890,16 +1892,121 @@ void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
 }
 
 /* ----------------------------------------------------------------------
+   pack old grid values to buf to send to another proc
+------------------------------------------------------------------------- */
+
+void FixAveGrid::pack_remap_grid(void *vbuf, int nlist, int *list)
+{
+  auto buf = (double *) vbuf;
+  double *src;
+  //double *src =
+  //  &T_electron_previous[nzlo_out_previous][nylo_out_previous][nxlo_out_previous];
+
+  for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
+}
+
+/* ----------------------------------------------------------------------
+   unpack another proc's own values from buf and set own ghost values
+------------------------------------------------------------------------- */
+
+void FixAveGrid::unpack_remap_grid(void *vbuf, int nlist, int *list)
+{
+  auto buf = (double *) vbuf;
+  double *dest;
+  //double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];
+
+  for (int i = 0; i < nlist; i++) dest[list[i]] = buf[i];
+}
+
+/* ----------------------------------------------------------------------
    subset of grid assigned to each proc may have changed
    called by load balancer when proc subdomains are adjusted
-   not supported for now, b/c requires per-grid values to persist, i.e. a remap()
+   persist per-grid data by performing a grid remap
 ------------------------------------------------------------------------- */
 
 void FixAveGrid::reset_grid()
 {
-  error->all(FLERR,"Fix ave/grid does not support load balancing (yet)");
-}
+  // check if new grid partitioning is different on any proc
+  // if not, just return
 
+  if (dimension == 2) {
+    int tmp[8];
+    Grid2d *gridnew = new Grid2d(lmp, world, nxgrid, nygrid);
+    gridnew->set_distance(maxdist);
+    gridnew->setup_grid(tmp[0], tmp[1], tmp[2], tmp[3],
+                        tmp[4], tmp[5], tmp[6], tmp[7]);
+
+    if (grid2d->identical(gridnew)) {
+      delete gridnew;
+      return;
+    } else delete gridnew;
+
+  } else {
+
+    int tmp[12];
+    Grid3d *gridnew = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
+    gridnew->set_distance(maxdist);
+    gridnew->setup_grid(tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5],
+                        tmp[6], tmp[7], tmp[8], tmp[9], tmp[10], tmp[11]);
+  
+    if (grid3d->identical(gridnew)) {
+      delete gridnew;
+      return;
+    } else delete gridnew;
+  }
+
+  // DEBUG
+  if (comm->me == 0) printf("Remapping grid on step %ld\n",update->ntimestep);
+
+  /*
+  // delete grid data which doesn't need to persist from previous to new decomp
+
+  memory->destroy(grid_buf1);
+  memory->destroy(grid_buf2);
+  memory->destroy3d_offset(T_electron_old, nzlo_out, nylo_out, nxlo_out);
+  memory->destroy3d_offset(net_energy_transfer, nzlo_out, nylo_out, nxlo_out);
+
+  // make copy of ptrs to grid data which does need to persist
+
+  grid_previous = grid;
+  T_electron_previous = T_electron;
+  nxlo_out_previous = nxlo_out;
+  nylo_out_previous = nylo_out;
+  nzlo_out_previous = nzlo_out;
+
+  // allocate new per-grid data for new decomposition
+
+  allocate_grid();
+
+  // perform remap from previous decomp to new decomp
+
+  int nremap_buf1,nremap_buf2;
+  grid->setup_remap(grid_previous,nremap_buf1,nremap_buf2);
+
+  double *remap_buf1,*remap_buf2;
+  memory->create(remap_buf1, nremap_buf1, "ave/grid:remap_buf1");
+  memory->create(remap_buf2, nremap_buf2, "ave/grid:remap_buf2");
+
+  grid->remap(Grid3d::FIX,this,1,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
+
+  memory->destroy(remap_buf1);
+  memory->destroy(remap_buf2);
+
+  // delete grid data and grid for previous decomposition
+
+  memory->destroy3d_offset(T_electron_previous,
+                           nzlo_out_previous, nylo_out_previous,
+                           nxlo_out_previous);
+  delete grid_previous;
+
+  // zero new net_energy_transfer
+  // in case compute_vector accesses it on timestep 0
+
+  outflag = 0;
+  memset(&net_energy_transfer[nzlo_out][nylo_out][nxlo_out],0,
+         ngridout*sizeof(double));
+  */
+}
 
 /* ----------------------------------------------------------------------
    return index of grid associated with name

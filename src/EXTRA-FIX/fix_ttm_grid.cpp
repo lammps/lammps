@@ -496,9 +496,6 @@ void FixTTMGrid::reset_grid()
     return;
   } else delete gridnew;
 
-  // DEBUG
-  if (comm->me == 0) printf("Remapping grid on step %ld\n",update->ntimestep);
-  
   // delete grid data which doesn't need to persist from previous to new decomp
 
   memory->destroy(grid_buf1);
@@ -601,7 +598,7 @@ void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
 }
 
 /* ----------------------------------------------------------------------
-   pack old grid  values to buf to send to another proc
+   pack old grid values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
 void FixTTMGrid::pack_remap_grid(void *vbuf, int nlist, int *list)

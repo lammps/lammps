@@ -56,10 +56,10 @@ of each atom.  Local datums are calculated by each processor based on
 the atoms it owns, but there may be zero or more per atom, e.g. a list
 of bond distances.
 
-A per-grid datum is one or more values per grid point, for a grid
-which overlays the simulation domain.  The grid points and the data
-they store are distributed across processors; each processor owns the
-grid points which fall within its sub-domain.
+A per-grid datum is one or more values per grid cell, for a grid which
+overlays the simulation domain.  The grid cells and the data they
+store are distributed across processors; each processor owns the grid
+cells whose center point falls within its sub-domain.
 
 .. _scalar:
 
@@ -97,7 +97,7 @@ Per-grid data
 ------------------------
 
 Per-grid data can come in two kinds: a vector of values (one per grid
-point), or a 2d array of values (multiple values per grid point).  The
+cekk), or a 2d array of values (multiple values per grid ckk).  The
 doc page for a "compute" or "fix" that generates data will specify
 names for both the grid(s) and datum(s) it produces, e.g. per-grid
 vectors or arrays, which can be referenced by other commands.
@@ -213,7 +213,7 @@ global and can also be used as input to other output commands.
 
 Note that the :doc:`fix ave/grid <fix_ave_grid>` command can also
 average the same per-atom quantities within spatial bins, but it does
-this for a distributed grid whose grid points are owned by different
+this for a distributed grid whose grid cells are owned by different
 processors.  It outputs per-grid data, not global data, so it is more
 efficient for large numbers of averaging bins.
 
@@ -269,7 +269,7 @@ These are produced as output values which can be used as input to
 other output commands.
 
 The :doc:`compute property/grid <compute_property_grid>` command takes
-a list of one or more pre-defined per-grid attributes (id, grid point
+a list of one or more pre-defined per-grid attributes (id, grid cell
 coords, etc) and stores the values in a per-grid vector or array.
 These are produced as output values which can be used as input to the
 :doc:`dump grid <dump>` command.
@@ -321,7 +321,7 @@ The chief difference between the :doc:`fix ave/grid <fix_ave_grid>`
 and :doc:`fix ave/chunk <fix_ave_chunk>` commands when used in this
 context is that the former uses a distributed grid, while the latter
 uses a global grid.  Distributed means that each processor owns the
-subset of grid points within its sub-domain.  Global means that each
+subset of grid cells within its sub-domain.  Global means that each
 processor owns a copy of the entire grid.  The :doc:`fix ave/grid
 <fix_ave_grid>` command is thus more efficient for large grids.
 

@@ -35,6 +35,8 @@ class FixAveGrid : public Fix {
 
   void pack_reverse_grid(int, void *, int, int *) override;
   void unpack_reverse_grid(int, void *, int, int *) override;
+  void pack_remap_grid(void *, int, int *) override;
+  void unpack_remap_grid(void *, int, int *) override;
 
   void reset_grid() override;
 
@@ -53,6 +55,7 @@ class FixAveGrid : public Fix {
   int modeatom, modegrid;
   int discardflag, normflag, aveflag, nwindow;
 
+  double maxdist;
   int running_count;
   int window_count,window_oldest,window_newest;
 

@@ -183,8 +183,8 @@ i.e. total-mass/volume.  The output values are in units of 1/volume or
 density (mass/volume).  See the :doc:`units <units>` command page for
 the definition of density for each choice of units, e.g. gram/cm\^3.
 
-The *temp* value means the temperature is computed for each grid cell,
-by the formula
+The *temp* value computes the temperature for each grid cell, by the
+formula
 
 .. math::
 
@@ -444,24 +444,24 @@ No information about this fix is written to :doc:`binary restart files
 <restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
 relevant to this fix.
 
-This fix computes a global array of values which can be accessed by
-various :doc:`output commands <Howto_output>`.  The values can only be
-accessed on timesteps that are multiples of *Nfreq* since that is when
-averaging is performed.  The global array has # of rows = the number
-of grids *grid* as calculated by the specified :doc:`compute
-property/grid <compute_property_grid>` command.  The # of columns =
-M+1+Nvalues, where M = 1 to 4, depending on whether the optional
-columns for OrigID and CoordN are used, as explained above.  Following
-the optional columns, the next column contains the count of atoms in
-the grid, and the remaining columns are the Nvalue quantities.  When
-the array is accessed with a row I that exceeds the current number of
-grids, than a 0.0 is returned by the fix instead of an error, since
-the number of grids can vary as a simulation runs depending on how
-that value is computed by the compute grid/atom command.
+This fix calculates a per-grid array which has one column for each of
+the specified input values.  The units for each column with be in the
+:doc:`units <units>` for the per-atom or per-grid quantity for the
+corresponding input value.  If the fix is used in per-atom mode, it
+also calculates a per-grid vector with the count of atoms in each grid
+cell.  The number of rows in the per-grid array and number of values
+in the per-grid vector (distributed across all processors) is Nx *
+Ny * Nz.
 
-The array values calculated by this fix are treated as "intensive",
-since they are typically already normalized by the count of atoms in
-each grid.
+For access by other commands, the name of the single grid produced by
+this fix is "grid".  The names of its two per-grid datums are "data"
+for the per-grid array and "count" for the per-grid vector.  Both
+datums can be accessed by various :doc:`output commands
+<Howto_output>`.
+
+In per-atom mode, the per-grid array values calculated by this fix are
+treated as "intensive", since they are typically already normalized by
+the count of atoms in each grid cell.
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during

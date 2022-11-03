@@ -41,12 +41,6 @@ the *constant* or *type* keywords. For style *constant*, the specific heat
 is a constant value *cp* for all atoms. For style *type*, *N* different values
 of the specific heat are defined, one for each of the *N* types of atoms.
 
-
-
-----------
-
-.. include:: accel_styles.rst
-
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info

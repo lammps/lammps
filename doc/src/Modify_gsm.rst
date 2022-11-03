@@ -1,5 +1,5 @@
-Granular Submodel (GSM) styles
-===========
+Granular Sub-model (GSM) styles
+===============================
 
 In granular models, particles are spheres with a finite radius and rotational
 degrees of freedom as further described in the
@@ -9,22 +9,22 @@ of motion as described in :doc:`pair granular <pair_granular>` and
 :doc:`fix wall/gran <fix_wall_gran>`. In both cases, the exchange of forces,
 torques, and heat flow between two types of bodies is defined using a
 GranularModel class. The GranularModel class organizes the details of an
-interaction using a series of granular submodels each of which describe a
+interaction using a series of granular sub-models each of which describe a
 particular interaction mode (e.g. normal forces or rolling friction). From a
-parent GSM class, several types of submodel classes are derived:
+parent GSM class, several types of sub-model classes are derived:
 
-* GSMNormal: normal force submodel
-* GSMDamping: normal damping submodel
-* GSMTangential: tangential forces and sliding friction submodel
-* GSMRolling: rolling friction submodel
-* GSMTwisting: twisting friction submodel
-* GSMHeat: heat conduction submodel
+* GSMNormal: normal force sub-model
+* GSMDamping: normal damping sub-model
+* GSMTangential: tangential forces and sliding friction sub-model
+* GSMRolling: rolling friction sub-model
+* GSMTwisting: twisting friction sub-model
+* GSMHeat: heat conduction sub-model
 
-For each type of submodel, more classes are further derived, each describing
+For each type of sub-model, more classes are further derived, each describing
 a specific implementation. For instance, from the GSMNormal class the
 GSMNormalHooke, GSMNormalHertz, and GSMNormalJKR classes are derived which
 calculate Hookean, Hertzian, or JKR normal forces, respectively. This modular
-structure simplifies the addition of new granualar contact models as as one only
+structure simplifies the addition of new granular contact models as as one only
 needs to create a new GSM class without having to modify the more complex
 PairGranular, FixGranWall, and GranularModel classes. Most GSM methods are also
 already defined by the parent classes so new contact models typically only require
@@ -82,7 +82,7 @@ There are also several type-specific methods
    * - ``GSMNormal->calculate_area()``
      - Optional method to return the surface area of the contact. By default, this returns the geometric cross section.
    * - ``GSMNormal->set_fncrit()``
-     - Optional method that defines the critical force to break the contact used by some tangential, rolling, and twisting submodels. By default, this is the current total normal force including damping.
+     - Optional method that defines the critical force to break the contact used by some tangential, rolling, and twisting sub-models. By default, this is the current total normal force including damping.
    * - ``GSMNormal->calculate_forces()``
      - Required method that returns the normal contact force
    * - ``GSMDamping->calculate_forces()``

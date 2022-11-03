@@ -766,26 +766,29 @@ These extra quantities can be accessed by the :doc:`compute pair/local <compute_
 Restrictions
 """"""""""""
 
-All the granular pair styles are part of the GRANULAR package.  It is
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This pair style is part of the GRANULAR package.  It is
+only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
-These pair styles require that atoms store torque and angular velocity
-(omega) as defined by the :doc:`atom_style <atom_style>`.  They also
-require a per-particle radius is stored.  The *sphere* atom style does
-all of this.
+This pair style requires that atoms store per-particle radius,
+torque, and angular velocity (omega) as defined by the
+:doc:`atom_style sphere <atom_style>`.
 
-This pair style requires you to use the :doc:`comm_modify vel yes <comm_modify>` command so that velocities are stored by ghost
-atoms.
+This pair style requires you to use the :doc:`comm_modify vel yes <comm_modify>`
+command so that velocities are stored by ghost atoms.
 
-These pair styles will not restart exactly when using the
-:doc:`read_restart <read_restart>` command, though they should provide
-statistically similar results.  This is because the forces they
-compute depend on atom velocities.  See the
-:doc:`read_restart <read_restart>` command for more details.
+This pair style will not restart exactly when using the
+:doc:`read_restart <read_restart>` command, though it should provide
+statistically similar results.  This is because the forces it
+computes depend on atom velocities and the atom velocities have
+been propagated half a timestep between the force computation and
+when the restart is written, due to using Velocity Verlet time
+integration. See the :doc:`read_restart <read_restart>` command
+for more details.
 
-Accumulated values for individual contacts are saved to to restart
+Accumulated values for individual contacts are saved to restart
 files but are not saved to data files. Therefore, forces may
-differ significantly when a system is reloaded using A
+differ significantly when a system is reloaded using the
 :doc:`read_data <read_data>` command.
 
 Related commands

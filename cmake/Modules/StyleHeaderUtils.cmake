@@ -104,6 +104,7 @@ function(RegisterStyles search_path)
     FindStyleHeaders(${search_path} DIHEDRAL_CLASS  dihedral_  DIHEDRAL  ) # dihedral  ) # force
     FindStyleHeaders(${search_path} DUMP_CLASS      dump_      DUMP      ) # dump      ) # output    write_dump
     FindStyleHeaders(${search_path} FIX_CLASS       fix_       FIX       ) # fix       ) # modify
+    FindStyleHeaders(${search_path} GSM_CLASS       gsm_       GSM       ) # gsm       ) # granular_model
     FindStyleHeaders(${search_path} IMPROPER_CLASS  improper_  IMPROPER  ) # improper  ) # force
     FindStyleHeaders(${search_path} INTEGRATE_CLASS "[^.]"     INTEGRATE ) # integrate ) # update
     FindStyleHeaders(${search_path} KSPACE_CLASS    "[^.]"     KSPACE    ) # kspace    ) # force
@@ -127,6 +128,7 @@ function(RegisterStylesExt search_path extension sources)
     FindStyleHeadersExt(${search_path} DIHEDRAL_CLASS  ${extension}  DIHEDRAL  ${sources})
     FindStyleHeadersExt(${search_path} DUMP_CLASS      ${extension}  DUMP      ${sources})
     FindStyleHeadersExt(${search_path} FIX_CLASS       ${extension}  FIX       ${sources})
+    FindStyleHeadersExt(${search_path} GSM_CLASS       ${extension}  GSM       ${sources})
     FindStyleHeadersExt(${search_path} IMPROPER_CLASS  ${extension}  IMPROPER  ${sources})
     FindStyleHeadersExt(${search_path} INTEGRATE_CLASS ${extension}  INTEGRATE ${sources})
     FindStyleHeadersExt(${search_path} KSPACE_CLASS    ${extension}  KSPACE    ${sources})
@@ -151,6 +153,7 @@ function(GenerateStyleHeaders output_path)
     GenerateStyleHeader(${output_path} DIHEDRAL   dihedral  ) # force
     GenerateStyleHeader(${output_path} DUMP       dump      ) # output    write_dump
     GenerateStyleHeader(${output_path} FIX        fix       ) # modify
+    GenerateStyleHeader(${output_path} GSM        gsm       ) # granular_model
     GenerateStyleHeader(${output_path} IMPROPER   improper  ) # force
     GenerateStyleHeader(${output_path} INTEGRATE  integrate ) # update
     GenerateStyleHeader(${output_path} KSPACE     kspace    ) # force

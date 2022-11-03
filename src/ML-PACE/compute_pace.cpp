@@ -138,7 +138,7 @@ void ComputePACE::init()
   if (force->pair == nullptr)
     error->all(FLERR,"Compute pace requires a pair style be defined");
 
-  printf("----- cutoffmax: %f\n", cutmax);
+  //printf("----- cutoffmax: %f\n", cutmax);
   if (cutmax > force->pair->cutforce)
     error->all(FLERR,"Compute pace cutoff is longer than pairwise cutoff");
 

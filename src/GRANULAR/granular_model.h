@@ -29,7 +29,7 @@ enum SubmodelType {
   TWISTING,
   HEAT,
   NSUBMODELS
-}; // Relative order matters since some derive coeffs from others
+};
 
 enum ContactType {
   PAIR = 0,

@@ -95,13 +95,11 @@ GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
 GranularModel::~GranularModel()
 {
   delete [] transfer_history_factor;
+  delete [] gsmclass;
+  delete [] gsmnames;
+  delete [] gsmtypes;
 
-  delete normal_model;
-  delete damping_model;
-  delete tangential_model;
-  delete rolling_model;
-  delete twisting_model;
-  delete heat_model;
+  for (int i = 0; i < NSUBMODELS; i ++) delete sub_models[i];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -119,7 +117,7 @@ int GranularModel::add_submodel(char **arg, int iarg, int narg, SubmodelType mod
     error->all(FLERR, "Insufficient arguments provided for {} model", model_name);
 
   for (int i = 0; i < num_coeffs; i++) {
-    // A few parameters (eg.g kt for tangential mindlin) allow null
+    // A few parameters (e.g. kt for tangential mindlin) allow null
     if (strcmp(arg[iarg + i], "NULL") == 0) sub_models[model_type]->coeffs[i] = -1;
     else sub_models[model_type]->coeffs[i] = utils::numeric(FLERR,arg[iarg + i],false,lmp);
   }
@@ -138,6 +136,7 @@ void GranularModel::construct_submodel(std::string model_name, SubmodelType mode
     if (gsmtypes[i] == model_type) {
       if (strcmp(gsmnames[i], model_name.c_str()) == 0) {
         GSMCreator &gsm_creator = gsmclass[i];
+        delete sub_models[model_type];
         sub_models[model_type] = gsm_creator(this, lmp);
         break;
       }
@@ -145,7 +144,7 @@ void GranularModel::construct_submodel(std::string model_name, SubmodelType mode
   }
 
   if (i == nclass)
-    error->all(FLERR, "Illegal model type {}", model_type);
+    error->all(FLERR, "Illegal model type {}", model_name);
 
   sub_models[model_type]->name.assign(model_name);
   sub_models[model_type]->allocate_coeffs();
@@ -252,7 +251,7 @@ void GranularModel::init()
       error->all(FLERR,"Cannot use {} model with a cohesive normal model, {}", sub_models[i]->name, normal_model->name);
   }
 
-  if (limit_damping && (normal_model->cohesive_flag))
+  if (limit_damping && normal_model->cohesive_flag)
     error->all(FLERR,"Cannot limit damping with a cohesive normal model, {}", normal_model->name);
 
   if (nondefault_history_transfer) {
@@ -263,7 +262,7 @@ void GranularModel::init()
       // Find which model owns this history value
       size_cumulative = 0;
       for (j = 0; j < NSUBMODELS; j++) {
-        if (size_cumulative + sub_models[j]->size_history > i) break;
+        if ((size_cumulative + sub_models[j]->size_history) > i) break;
         size_cumulative += sub_models[j]->size_history;
       }
 
@@ -451,7 +450,7 @@ void GranularModel::calculate_forces()
   scale3(-1, torquesi);
   if (contact_type == PAIR) copy3(torquesi, torquesj);
 
-  if (!classic_model && contact_type == PAIR) {
+  if (!classic_model && (contact_type == PAIR)) {
     dist_to_contact = radi - 0.5 * delta;
     scale3(dist_to_contact, torquesi);
     dist_to_contact = radj - 0.5 * delta;
@@ -461,16 +460,16 @@ void GranularModel::calculate_forces()
     scale3(dist_to_contact, torquesi);
   }
 
-  double torroll[3];
   if (rolling_defined) {
+    double torroll[3];
     cross3(nx, fr, torroll);
     scale3(Reff, torroll);
     add3(torquesi, torroll, torquesi);
     if (contact_type == PAIR) sub3(torquesj, torroll, torquesj);
   }
 
-  double tortwist[3];
   if (twisting_defined) {
+    double tortwist[3];
     scale3(magtortwist, nx, tortwist);
     add3(torquesi, tortwist, torquesi);
     if (contact_type == PAIR) sub3(torquesj, tortwist, torquesj);

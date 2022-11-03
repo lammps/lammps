@@ -93,7 +93,10 @@ double GSMDampingViscoelastic::calculate_forces()
    Tsuji damping
 ------------------------------------------------------------------------- */
 
-GSMDampingTsuji::GSMDampingTsuji(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, lmp) {}
+GSMDampingTsuji::GSMDampingTsuji(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, lmp)
+{
+  allow_cohesion = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 

@@ -636,7 +636,8 @@ The *rate_limit* keyword can enforce an upper limit on the overall
 rate of the reaction. The number of reaction occurences is limited to
 Nlimit within an interval of Nsteps timesteps. At the beginning of a
 run, including when reading from a restart file, no reactions are
-permitted within the first Nsteps timesteps.
+permitted within the first Nsteps timesteps. Nlimit can be specified
+with an equal-style :doc:`variable <variable>`.
 
 The *stabilize_steps* keyword allows for the specification of how many
 time steps a reaction site is stabilized before being returned to the

@@ -45,7 +45,7 @@ else()
   target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER} YAML_DECLARE_STATIC)
 endif()
 target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
-target_link_libraries(style_tests PUBLIC gmock Yaml::Yaml lammps)
+target_link_libraries(style_tests PUBLIC GTest::GMock Yaml::Yaml lammps)
 
 # propagate sanitizer options to test tools
 if(ENABLE_SANITIZER AND (NOT (ENABLE_SANITIZER STREQUAL "none")))
@@ -58,7 +58,7 @@ endif()
 # unit test for error stats class
 add_executable(test_error_stats test_error_stats.cpp)
 target_include_directories(test_error_stats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LAMMPS_SOURCE_DIR})
-target_link_libraries(test_error_stats PRIVATE gtest_main)
+target_link_libraries(test_error_stats PRIVATE GTest::GMockMain)
 add_test(NAME ErrorStats COMMAND test_error_stats)
 
 # pair style tester

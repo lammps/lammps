@@ -810,6 +810,18 @@ void Variable::set_arrays(int /*i*/)
 }
 
 /* ----------------------------------------------------------------------
+   delete all atomfile style variables.
+   must scan list in reverse since remove() will compact list.
+   called from LAMMPS::destroy()
+------------------------------------------------------------------------- */
+
+void Variable::purge_atomfile()
+{
+  for (int i = nvar-1; i >= 0; --i)
+    if (style[i] == ATOMFILE) remove(i);
+}
+
+/* ----------------------------------------------------------------------
    called by python command in input script
    simply pass input script line args to Python class
 ------------------------------------------------------------------------- */

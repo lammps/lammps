@@ -25,6 +25,7 @@ PairStyle(hybrid,PairHybrid);
 namespace LAMMPS_NS {
 
 class PairHybrid : public Pair {
+  friend class AtomVecDielectric;
   friend class ComputeSpin;
   friend class FixGPU;
   friend class FixIntel;

@@ -1503,8 +1503,8 @@ static int re_matchp(const char *text, re_t pattern, int *matchlen);
 
 /* Definitions: */
 
-#define MAX_REGEXP_OBJECTS 30 /* Max number of regex symbols in expression. */
-#define MAX_CHAR_CLASS_LEN 40 /* Max length of character-class buffer in.   */
+#define MAX_REGEXP_OBJECTS 256 /* Max number of regex symbols in expression. */
+#define MAX_CHAR_CLASS_LEN 256 /* Max length of character-class buffer in.   */
 
 enum {
   RX_UNUSED,

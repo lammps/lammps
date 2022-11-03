@@ -147,6 +147,16 @@ compile and will download and compile a specific recent version of the
 `Googletest <https://github.com/google/googletest/>`_ C++ test framework
 for implementing the tests.
 
+.. admonition:: Software version requirements for testing
+   :class: note
+
+   The compiler and library version requirements for the testing
+   framework are more strict than for the main part of LAMMPS.  For
+   example the default GNU C++ and Fortran compilers of RHEL/CentOS 7.x
+   (version 4.8.x) are not sufficient.  The CMake configuration will try
+   to detect compatible versions and either skip incompatible tests or
+   stop with an error.
+
 After compilation is complete, the unit testing is started in the build
 folder using the ``ctest`` command, which is part of the CMake software.
 The output of this command will be looking something like this::

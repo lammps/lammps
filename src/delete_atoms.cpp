@@ -416,6 +416,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       break;
     }
   }
+  neighbor->init();
 }
 
 /* ----------------------------------------------------------------------

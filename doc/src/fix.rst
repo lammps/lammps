@@ -382,6 +382,7 @@ accelerated styles exist.
 * :doc:`temp/berendsen <fix_temp_berendsen>` - temperature control by Berendsen thermostat
 * :doc:`temp/csld <fix_temp_csvr>` - canonical sampling thermostat with Langevin dynamics
 * :doc:`temp/csvr <fix_temp_csvr>` - canonical sampling thermostat with Hamiltonian dynamics
+* :doc:`temp/integrate <fix_temp_integrate>` - plain time integration with per-atom temperature updates
 * :doc:`temp/rescale <fix_temp_rescale>` - temperature control by velocity rescaling
 * :doc:`temp/rescale/eff <fix_temp_rescale_eff>` - temperature control by velocity rescaling in the electron force field model
 * :doc:`tfmc <fix_tfmc>` - perform force-bias Monte Carlo with time-stamped method

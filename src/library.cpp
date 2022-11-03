@@ -435,7 +435,7 @@ of constants from :cpp:enum:`_LMP_ERROR_CONST`.  If the value does not
 match any valid combination of constants a warning is printed and the
 function returns.
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 \endverbatim
  *
@@ -2188,7 +2188,7 @@ with the specified name. See :cpp:enum:`_LMP_VAR_CONST` for valid values.
 Callers of :cpp:func:`lammps_extract_variable` can use this information to
 decide how to cast the ``void *`` pointer and access the data.
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 \endverbatim
  *
@@ -5865,7 +5865,7 @@ This function is used by the ML-IAP python code (mliappy) to verify
 the API version of the embedded python interpreter of the PYTHON
 package.  It returns -1 if the PYTHON package is not enabled.
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 \endverbatim
  *

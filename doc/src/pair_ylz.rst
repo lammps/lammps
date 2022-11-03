@@ -25,7 +25,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 The *ylz* (Yuan-Li-Zhang) style computes an anisotropic interaction
 between pairs of coarse-grained particles considering the relative

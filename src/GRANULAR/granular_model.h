@@ -20,15 +20,15 @@ namespace LAMMPS_NS {
 namespace Granular_NS {
 
 #define EPSILON 1e-10
-#define NSUBMODELS 6
 
 enum SubmodelType {
   NORMAL = 0,
-  DAMPING = 1,
-  TANGENTIAL = 2,
-  ROLLING = 3,
-  TWISTING = 4,
-  HEAT = 5
+  DAMPING,
+  TANGENTIAL,
+  ROLLING,
+  TWISTING,
+  HEAT,
+  NSUBMODELS
 }; // Relative order matters since some derive coeffs from others
 
 enum ContactType {
@@ -37,7 +37,7 @@ enum ContactType {
   WALLREGION = 2
 };
 
-// forward declaration
+// forward declarations
 class GSM;
 class GSMNormal;
 class GSMDamping;

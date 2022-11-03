@@ -42,13 +42,16 @@ Syntax
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
 * map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *custom_charges* or *molecule* or *modify_create*
+* individual_keyword = *prob* or *rate_limit* or *max_rxn* or *stabilize_steps* or *custom_charges* or *molecule* or *modify_create*
 
   .. parsed-literal::
 
          *prob* values = fraction seed
            fraction = initiate reaction with this probability if otherwise eligible
            seed = random number seed (positive integer)
+         *rate_limit* = Nlimit Nsteps
+           Nlimit = maximum number of reactions allowed to occur within interval
+           Nsteps = the interval (number of timesteps) over which to count reactions
          *max_rxn* value = N
            N = maximum number of reactions allowed to occur
          *stabilize_steps* value = timesteps
@@ -628,6 +631,12 @@ A uniform random number between 0.0 and 1.0 is generated and the
 eligible reaction only occurs if the random number is less than the
 fraction. Up to :math:`N` reactions are permitted to occur, as optionally
 specified by the *max_rxn* keyword.
+
+The *rate_limit* keyword can enforce an upper limit on the overall
+rate of the reaction. The number of reaction occurences is limited to
+Nlimit within an interval of Nsteps timesteps. At the beginning of a
+run, including when reading from a restart file, no reactions are
+permitted within the first Nsteps timesteps.
 
 The *stabilize_steps* keyword allows for the specification of how many
 time steps a reaction site is stabilized before being returned to the

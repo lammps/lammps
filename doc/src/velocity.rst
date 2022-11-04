@@ -33,7 +33,7 @@ Syntax
          *angular* = zero the angular momentum
 
 * zero or more keyword/value pairs may be appended
-* keyword = *dist* or *sum* or *mom* or *rot* or *temp* or *bias* or *loop* or *units*
+* keyword = *dist* or *sum* or *mom* or *rot* or *temp* or *bias* or *loop* or *rigid* or *units*
 
   .. parsed-literal::
 

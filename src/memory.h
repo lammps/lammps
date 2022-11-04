@@ -1,7 +1,8 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -785,16 +786,15 @@ class Memory : protected Pointers {
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  TYPE ****create4d_offset_last(TYPE ****&array, int n1lo, int n1hi,
-                                int n2lo, int n2hi, int n3lo, int n3hi, int n4,
-                                const char *name)
+  TYPE ****create4d_offset_last(TYPE ****&array, int n1lo, int n1hi, int n2lo, int n2hi, int n3lo,
+                                int n3hi, int n4, const char *name)
   {
     if (n1lo > n1hi || n2lo > n2hi || n3lo > n3hi || n4 <= 0) return nullptr;
 
     int n1 = n1hi - n1lo + 1;
     int n2 = n2hi - n2lo + 1;
     int n3 = n3hi - n3lo + 1;
-    create(array,n1,n2,n3,n4,name);
+    create(array, n1, n2, n3, n4, name);
 
     bigint m = ((bigint) n1) * n2;
     for (bigint i = 0; i < m; i++) array[0][i] -= n3lo;
@@ -804,19 +804,20 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ****create4d_offset_last(TYPE *****& /*array*/, int /*n1lo*/, int /*n1hi*/,
-                                int /*n2lo*/, int /*n2hi*/,
-                                int /*n3lo*/, int /*n3hi*/, int /*n4*/,
+  TYPE ****create4d_offset_last(TYPE *****& /*array*/, int /*n1lo*/, int /*n1hi*/, int /*n2lo*/,
+                                int /*n2hi*/, int /*n3lo*/, int /*n3hi*/, int /*n4*/,
                                 const char *name)
-  {fail(name); return nullptr;}
+  {
+    fail(name);
+    return nullptr;
+  }
 
 /* ----------------------------------------------------------------------
    free a 4d array with indices 1,2,3 offset, but not last
 ------------------------------------------------------------------------- */
 
   template <typename TYPE>
-  void destroy4d_offset_last(TYPE ****&array,
-                             int n1_offset, int n2_offset, int n3_offset)
+  void destroy4d_offset_last(TYPE ****&array, int n1_offset, int n2_offset, int n3_offset)
   {
     if (array == nullptr) return;
     sfree(&array[n1_offset][n2_offset][n3_offset][0]);

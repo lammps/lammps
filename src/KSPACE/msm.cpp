@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -125,9 +125,8 @@ void MSM::init()
   triclinic_check();
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot (yet) use MSM with 2d simulation");
-  if (comm->style != 0)
-    error->universe_all(FLERR,"MSM can only currently be used with "
-                        "comm_style brick");
+  if (comm->style != Comm::BRICK)
+    error->universe_all(FLERR,"MSM can only currently be used with comm_style brick");
 
   if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -247,7 +247,7 @@ void Balance::command(int narg, char **arg)
     }
   }
 
-  if (style == BISECTION && comm->style == 0)
+  if (style == BISECTION && comm->style == Comm::BRICK)
     error->all(FLERR,"Balance rcb cannot be used with comm_style brick");
 
   // process remaining optional args

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,7 +30,8 @@ namespace MathConst {
   static constexpr double MY_ISPI4 = 1.12837916709551257389;        // 1/sqrt(pi/4)
   static constexpr double MY_SQRT2 = 1.41421356237309504880;        // sqrt(2)
   static constexpr double MY_ISQRT2 = 0.707106781186547524401;      // 1/sqrt(2)
-  static constexpr double MY_CUBEROOT2 = 1.25992104989487316476;    // 2*(1/3)
+  static constexpr double MY_CUBEROOT2 = 1.25992104989487316476;    // 2^(1/3)
+  static constexpr double MY_TWOBYSIXTH = 1.12246204830937298142;   // 2^(1/6)                                                                  //
   static constexpr double DEG2RAD = MY_PI / 180.0;                  // degree to radians
   static constexpr double RAD2DEG = 180.0 / MY_PI;                  // radians to degree
 }    // namespace MathConst

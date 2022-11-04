@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -150,11 +150,9 @@ void PairLJCutTIP4PLongGPU::init_style()
 
   if (atom->map_style == Atom::MAP_HASH)
     error->all(FLERR,
-               "GPU-accelerated lj/cut/tip4p/long currently"
-               " requires 'array' style atom map (atom_modify map array)");
+               "GPU-accelerated pair style lj/cut/tip4p/long currently"
+               " requires an 'array' style atom map (atom_modify map array)");
 
-  //PairLJCutCoulLong::init_style();
-  // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
   double cut;
   for (int i = 1; i <= atom->ntypes; i++) {
@@ -188,12 +186,11 @@ void PairLJCutTIP4PLongGPU::init_style()
   cut_coulsq = cut_coul * cut_coul;
   double cut_coulplus = cut_coul + qdist + blen;
   double cut_coulsqplus = cut_coulplus * cut_coulplus;
-  if (maxcut < cut_coulsqplus) { cell_size = cut_coulplus + neighbor->skin; }
-  if (comm->cutghostuser < cell_size) {
+  if (maxcut < cut_coulsqplus) cell_size = cut_coulplus + neighbor->skin;
+  if (comm->get_comm_cutoff() < cell_size) {
     if (comm->me == 0)
-      error->warning(FLERR,
-                     "Increasing communication cutoff from {:.8} to {:.8} for TIP4P GPU style",
-                     comm->cutghostuser, cell_size);
+      error->warning(FLERR, "Increasing communication cutoff to {:.8} for TIP4P GPU style",
+                     cell_size);
     comm->cutghostuser = cell_size;
   }
 

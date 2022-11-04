@@ -727,14 +727,16 @@ int BaseAmoebaT::fphi_uind() {
     return 0;
 
   // Compute the block size and grid size to keep all cores busy
-  const int cus = device->gpu->cus();
-  int BX=block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
-  while (GX < cus) {
+
+  const int BX=block_size();
+  const int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  /*
+  const int cus = this->device->gpu->cus();
+  while (GX < cus && GX > 1) {
     BX /= 2;
     GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
   }
-  
+  */
   time_pair.start();
   int ngridxy = _ngridx * _ngridy;
   k_fphi_uind.set_size(GX,BX);
@@ -793,14 +795,16 @@ int BaseAmoebaT::fphi_mpole() {
   int nbor_pitch=nbor->nbor_pitch();
 
   // Compute the block size and grid size to keep all cores busy
+
+  const int BX=block_size();
+  const int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  /*
   const int cus = device->gpu->cus();
-  int BX=block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
-  while (GX < cus) {
+  while (GX < cus && GX > 1) {
     BX /= 2;
     GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
   }
-
+  */
   time_pair.start();
   int ngridxy = _ngridx * _ngridy;
   k_fphi_mpole.set_size(GX,BX);

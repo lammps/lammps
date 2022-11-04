@@ -1078,6 +1078,7 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
   double ****gridpost = (double ****) ic_kspace->post_convolution();
 
   // get potential
+
   time0 = MPI_Wtime();
 
   fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);

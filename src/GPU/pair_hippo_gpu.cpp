@@ -1170,21 +1170,23 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
     fuinp[i][1] = a[1][0]*uinp[i][0] + a[1][1]*uinp[i][1] + a[1][2]*uinp[i][2];
     fuinp[i][2] = a[2][0]*uinp[i][0] + a[2][1]*uinp[i][1] + a[2][2]*uinp[i][2];
   }
-/*
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      fuind[i][j] = a[j][0]*uind[i][0] + a[j][1]*uind[i][1] + a[j][2]*uind[i][2];
-      fuinp[i][j] = a[j][0]*uinp[i][0] + a[j][1]*uinp[i][1] + a[j][2]*uinp[i][2];
-    }
-  }
-*/
+
+  double time0, time1;
+
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
   double ****gridpre = (double ****) ic_kspace->zero();
 
   // map 2 values to grid
 
+
+  MPI_Barrier(world);
+  time0 = MPI_Wtime();
+
   grid_uind(fuind,fuinp,gridpre);
+
+  time1 = MPI_Wtime();
+  time_grid_uind += (time1 - time0);
 
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomposition
@@ -1222,9 +1224,7 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
   double ****gridpost = (double ****) ic_kspace->post_convolution();
 
   // get potential
-  double time0, time1;
 
-  MPI_Barrier(world);
   time0 = MPI_Wtime();
 
   fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);

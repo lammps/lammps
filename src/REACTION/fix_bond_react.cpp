@@ -419,7 +419,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   }
 
   max_natoms = 0; // the number of atoms in largest molecule template
-  int max_rate_limit_steps = 0;
+  max_rate_limit_steps = 0;
   for (int myrxn = 0; myrxn < nreacts; myrxn++) {
     twomol = atom->molecules[reacted_mol[myrxn]];
     max_natoms = MAX(max_natoms,twomol->natoms);
@@ -817,8 +817,9 @@ void FixBondReact::post_integrate()
   // update store_rxn_count on every step
   for (int myrxn = 0; myrxn < nreacts; myrxn++) {
     if (rate_limit[0][myrxn] == 1) {
-      for (int i = rate_limit[2][myrxn]-1; i > 0; i--)
+      for (int i = rate_limit[2][myrxn]-1; i > 0; i--) {
         store_rxn_count[i][myrxn] = store_rxn_count[i-1][myrxn];
+      }
       store_rxn_count[0][myrxn] = reaction_count_total[myrxn];
     }
   }
@@ -3067,7 +3068,7 @@ void FixBondReact::update_everything()
     }
     delete [] iskip;
 
-    if (update_num_mega == 0) continue; // can i do this?
+    if (update_num_mega == 0) continue;
 
     // if inserted atoms and global map exists, reset map now instead
     //   of waiting for comm since other pre-exchange fixes may use it
@@ -4398,17 +4399,25 @@ void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
 void FixBondReact::write_restart(FILE *fp)
 {
   set[0].nreacts = nreacts;
+  set[0].max_rate_limit_steps = max_rate_limit_steps;
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
     strncpy(set[i].rxn_name,rxn_name[i],MAXLINE-1);
     set[i].rxn_name[MAXLINE-1] = '\0';
   }
 
+  int *rbuf;
+  int rbufcount = max_rate_limit_steps*nreacts;
+  memory->create(rbuf,rbufcount,"bond/react:rbuf");
+  memcpy(rbuf,&store_rxn_count[0][0],sizeof(int)*rbufcount);
+
   if (me == 0) {
-    int size = nreacts*sizeof(Set);
+    int size = nreacts*sizeof(Set)+rbufcount*sizeof(int);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(set,sizeof(Set),nreacts,fp);
+    fwrite(rbuf,sizeof(int),rbufcount,fp);
   }
+  memory->destroy(rbuf);
 }
 
 /* ----------------------------------------------------------------------
@@ -4418,13 +4427,25 @@ void FixBondReact::write_restart(FILE *fp)
 void FixBondReact::restart(char *buf)
 {
   Set *set_restart = (Set *) buf;
-  for (int i = 0; i < set_restart[0].nreacts; i++) {
+  int r_nreacts = set_restart[0].nreacts;
+  int r_max_rate_limit_steps = set_restart[0].max_rate_limit_steps;
+  int **ibuf;
+  int ibufcount = r_max_rate_limit_steps*r_nreacts;
+  memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
+  memcpy(&ibuf[0][0],&buf[nreacts*sizeof(Set)],sizeof(int)*ibufcount);
+  int n2cpy = r_max_rate_limit_steps;
+  if (max_rate_limit_steps < n2cpy) n2cpy = max_rate_limit_steps;
+  for (int i = 0; i < r_nreacts; i++) {
     for (int j = 0; j < nreacts; j++) {
       if (strcmp(set_restart[i].rxn_name,rxn_name[j]) == 0) {
         reaction_count_total[j] = set_restart[i].reaction_count_total;
+        // read rate_limit restart information
+        for (int k = 0; k < n2cpy; k++)
+          store_rxn_count[k][j] = ibuf[k][i];
       }
     }
   }
+  memory->destroy(ibuf);
 }
 
 /* ----------------------------------------------------------------------

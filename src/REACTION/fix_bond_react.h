@@ -90,6 +90,7 @@ class FixBondReact : public Fix {
   int *reaction_count_total;
   int nmax;          // max num local atoms
   int max_natoms;    // max natoms in a molecule template
+  int max_rate_limit_steps;    // max rate limit interval
   tagint *partner, *finalpartner;
   double **distsq;
   int *nattempt;
@@ -213,6 +214,7 @@ class FixBondReact : public Fix {
     int nreacts;
     char rxn_name[MAXLINE];
     int reaction_count_total;
+    int max_rate_limit_steps;
   };
   Set *set;
 

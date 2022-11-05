@@ -232,6 +232,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(rate_limit,3,nreacts,"bond/react:rate_limit");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
+  memory->create(rescale_charges_flag,nreacts,"bond/react:rescale_charges_flag");
   memory->create(create_atoms_flag,nreacts,"bond/react:create_atoms_flag");
   memory->create(modify_create_fragid,nreacts,"bond/react:modify_create_fragid");
   memory->create(overlapsq,nreacts,"bond/react:overlapsq");
@@ -259,6 +260,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       rate_limit[j][i] = 0;
     stabilize_steps_flag[i] = 0;
     custom_charges_fragid[i] = -1;
+    rescale_charges_flag[i] = 0;
     create_atoms_flag[i] = 0;
     modify_create_fragid[i] = -1;
     overlapsq[i] = 0;
@@ -383,6 +385,13 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           if (custom_charges_fragid[rxn] < 0) error->one(FLERR,"Fix bond/react: Molecule fragment for "
                                                          "'custom_charges' keyword does not exist");
         }
+        iarg += 2;
+      } else if (strcmp(arg[iarg],"rescale_charges") == 0) {
+        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                      "'rescale_charges' has too few arguments");
+        if (strcmp(arg[iarg+1],"no") == 0) rescale_charges_flag[rxn] = 0; //default
+        else if (strcmp(arg[iarg+1],"yes") == 0) rescale_charges_flag[rxn] = 1;
+        else error->one(FLERR,"Bond/react: Illegal option for 'rescale_charges' keyword");
         iarg += 2;
       } else if (strcmp(arg[iarg],"molecule") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
@@ -614,6 +623,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(rate_limit);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
+  memory->destroy(rescale_charges_flag);
   memory->destroy(molecule_keyword);
   memory->destroy(nconstraints);
   memory->destroy(constraintstr);
@@ -3098,6 +3108,33 @@ void FixBondReact::update_everything()
     }
 
     // update charges and types of landlocked atoms
+    double charge_rescale_addend = 0;
+    if (rescale_charges_flag[rxnID] == 1) {
+      double sim_total_charge = 0;
+      double mol_total_charge = 0;
+      int n_custom_charge = 0;
+      for (int i = 0; i < update_num_mega; i++) {
+        rxnID = update_mega_glove[0][i];
+        twomol = atom->molecules[reacted_mol[rxnID]];
+        for (int j = 0; j < twomol->natoms; j++) {
+          int jj = equivalences[j][1][rxnID]-1;
+          if (atom->map(update_mega_glove[jj+1][i]) >= 0 &&
+              atom->map(update_mega_glove[jj+1][i]) < nlocal) {
+            if (landlocked_atoms[j][rxnID] == 1)
+              type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
+            if (twomol->qflag && atom->q_flag && custom_charges[jj][rxnID] == 1) {
+              double *q = atom->q;
+              sim_total_charge += q[atom->map(update_mega_glove[jj+1][i])];
+              mol_total_charge += twomol->q[j];
+              n_custom_charge++;
+            }
+          }
+        }
+      }
+      charge_rescale_addend = (sim_total_charge-mol_total_charge)/n_custom_charge;
+    }
+
+    // update charges and types of landlocked atoms
     for (int i = 0; i < update_num_mega; i++) {
       rxnID = update_mega_glove[0][i];
       twomol = atom->molecules[reacted_mol[rxnID]];
@@ -3109,7 +3146,7 @@ void FixBondReact::update_everything()
             type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
           if (twomol->qflag && atom->q_flag && custom_charges[jj][rxnID] == 1) {
             double *q = atom->q;
-            q[atom->map(update_mega_glove[jj+1][i])] = twomol->q[j];
+            q[atom->map(update_mega_glove[jj+1][i])] = twomol->q[j]+charge_rescale_addend;
           }
         }
       }

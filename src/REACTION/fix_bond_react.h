@@ -69,6 +69,7 @@ class FixBondReact : public Fix {
   int **store_rxn_count;
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
+  int *rescale_charges_flag;
   int *create_atoms_flag;
   int *modify_create_fragid;
   double *overlapsq;

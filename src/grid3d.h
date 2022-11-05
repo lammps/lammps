@@ -262,7 +262,7 @@ class Grid3d : protected Pointers {
   void deallocate_remap();
   
   int indices(int *&, int, int, int, int, int, int);
-  int proc_index_uniform(int, int, int, double *);
+  int proc_index_uniform(int, int, double, int, double *);
   void partition_tiled(int, int, int, int *);
 };
 

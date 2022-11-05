@@ -89,6 +89,14 @@ class FixAveGrid : public Fix {
   GridData *grid_sample,*grid_nfreq,*grid_running;
   GridData **grid_window;
 
+  // old grid data for remap operation
+
+  class Grid2d *grid2d_previous;
+  class Grid3d *grid3d_previous;
+  int nxlo_out_previous,nylo_out_previous,nzlo_out_previous;
+  GridData *grid_sample_previous,*grid_nfreq_previous,*grid_running_previous;
+  GridData **grid_window_previous;
+
   int **bin;
   int *skip;
   int maxatom;
@@ -103,8 +111,14 @@ class FixAveGrid : public Fix {
   void normalize_grid(int, GridData *);
   void normalize_count(int, GridData *);
 
-  void allocate_grid(GridData *);
-  void deallocate_grid(GridData *);
+  void allocate_grid();
+  GridData *allocate_one_grid();
+  GridData *clone_one_grid(GridData *);
+  void deallocate_one_grid(GridData *, int, int, int);
+
+  int pack_one_grid(GridData *, int, double *);
+  int unpack_one_grid(double *, GridData *, int);
+  
   double size_grid(GridData *);
   void zero_grid(GridData *);
   void copy_grid(GridData *, GridData *);

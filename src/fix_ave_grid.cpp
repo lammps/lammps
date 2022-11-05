@@ -29,9 +29,6 @@
 #include "update.h"
 #include "variable.h"
 
-// DEBUG
-#include "comm.h"
-
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -391,65 +388,24 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // instantiate the Grid class and allocate per-grid memory
+  // instantiate Grid class and buffers
+  // allocate/zero per-grid data
 
-  if (modeatom) maxdist = 0.5 * neighbor->skin;
-  else if (modegrid) maxdist = 0.0;
+  allocate_grid();
 
-  if (dimension == 2) {
-    grid2d = new Grid2d(lmp, world, nxgrid, nygrid);
-    grid2d->set_distance(maxdist);
-    grid2d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in,
-                       nxlo_out, nxhi_out, nylo_out, nyhi_out);
-
-    // ngrid_buf12 converted to nvalues + count
-
-    grid2d->setup_comm(ngrid_buf1, ngrid_buf2);
-    ngrid_buf1 *= nvalues + 1;
-    ngrid_buf2 *= nvalues + 1;
-
-    memory->create(grid_buf1, ngrid_buf1, "ave/grid:grid_buf1");
-    memory->create(grid_buf2, ngrid_buf2, "ave/grid:grid_buf2");
-
-    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
-
-  } else {
-    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
-    grid3d->set_distance(maxdist);
-    grid3d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
-                       nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
-
-    // ngrid_buf12 converted to nvalues + count
-
-    grid3d->setup_comm(ngrid_buf1, ngrid_buf2);
-    ngrid_buf1 *= nvalues + 1;
-    ngrid_buf2 *= nvalues + 1;
-
-    memory->create(grid_buf1, ngrid_buf1, "ave/grid:grid_buf1");
-    memory->create(grid_buf2, ngrid_buf2, "ave/grid:grid_buf2");
-
-    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) *
-      (nzhi_out - nzlo_out + 1);
-  }
-
-  // create data structs for per-grid data
-
-  grid_output = new GridData();
-  grid_sample = new GridData();
-  grid_nfreq = new GridData();
-  grid_running = new GridData();
+  grid_sample = allocate_one_grid();
+  grid_nfreq = allocate_one_grid();
+  if (aveflag == RUNNING || aveflag == WINDOW) grid_nfreq = allocate_one_grid();
   if (aveflag == WINDOW) {
     grid_window = new GridData*[nwindow];
     for (int i = 0; i < nwindow; i++)
-      grid_window[i] = new GridData();
-  } else grid_window = nullptr;
+      grid_window[i] = allocate_one_grid();
+  }
 
-  allocate_grid(grid_sample);
-  allocate_grid(grid_nfreq);
-  if (aveflag == RUNNING || aveflag == WINDOW) allocate_grid(grid_running);
-  if (aveflag == WINDOW)
-    for (int i = 0; i < nwindow; i++)
-      allocate_grid(grid_window[i]);
+  // output may occur via dump on timestep 0
+
+  grid_output = new GridData();
+  output_grid(grid_nfreq);
 
   // initialize running and window values
 
@@ -457,14 +413,6 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   window_count = 0;
   window_oldest = -1;
   window_newest = 0;
-
-  // zero grid_nfreq for output since dump may access it on timestep 0
-  // also one-time zero of grid_running for ave = RUNNING or WINDOW
-
-  zero_grid(grid_nfreq);
-  output_grid(grid_nfreq);
-
-  if (aveflag == RUNNING || aveflag == WINDOW) zero_grid(grid_running);
 
   // bin indices and skip flags for ATOM mode
   // vresult for per-atom variable evaluation
@@ -499,29 +447,28 @@ FixAveGrid::~FixAveGrid()
   delete[] value2grid;
   delete[] value2data;
 
-  delete grid2d;
-  delete grid3d;
+  // deallocate Grid class and buffers
+  
+  if (dimension == 2) delete grid2d;
+  else delete grid3d;
 
   memory->destroy(grid_buf1);
   memory->destroy(grid_buf2);
 
-  // deallocate all per-grid data
+  // deallocate per-grid data
 
-  deallocate_grid(grid_sample);
-  deallocate_grid(grid_nfreq);
-  if (aveflag == RUNNING || aveflag == WINDOW) deallocate_grid(grid_running);
-  if (aveflag == WINDOW)
-    for (int i = 0; i < nwindow; i++) {
-      deallocate_grid(grid_window[i]);
-      delete grid_window[i];
-    }
+  deallocate_one_grid(grid_sample,nxlo_out,nylo_out,nzlo_out);
+  deallocate_one_grid(grid_nfreq,nxlo_out,nylo_out,nzlo_out);
+  if (aveflag == RUNNING || aveflag == WINDOW)
+    deallocate_one_grid(grid_running,nxlo_out,nylo_out,nzlo_out);
+  if (aveflag == WINDOW) {
+    for (int i = 0; i < nwindow; i++)
+      deallocate_one_grid(grid_window[i],nxlo_out,nylo_out,nzlo_out);
+    delete [] grid_window;
+  }
 
   delete grid_output;
-  delete grid_sample;
-  delete grid_nfreq;
-  delete grid_running;
-  delete [] grid_window;
-
+  
   if (modeatom) {
     memory->destroy(bin);
     memory->destroy(skip);
@@ -719,12 +666,12 @@ void FixAveGrid::end_of_step()
   //   for norm = ALL, normalize sample grid by counts over all samples
   //   for norm = SAMPLE, normalize Nfreq grid by Nrepeat
   //   for norm = NONORM, normalize sample grid by Nrepeat, not by counts
-  //              this check is made inside normalize_grid()
+  //              this check is made inside normalize_atom()
   // for GRID mode:
   //   normalize sample grid by Nrepeat
 
   if (modeatom) {
-    if (normflag == ALL) {
+    if (normflag == ALL) { 
       normalize_atom(nrepeat,grid_sample);
       normalize_count(nrepeat,grid_sample);
       copy_grid(grid_sample,grid_nfreq);
@@ -1342,7 +1289,7 @@ void FixAveGrid::normalize_atom(int numsamples, GridData *grid)
             else if (which[0] == ArgInfo::DENSITY_MASS)
               norm = density_mass_norm;
             else if (which[0] == ArgInfo::TEMPERATURE)
-              norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+              norm = mvv2e / ((repeat*cdof + adof*count) * boltz);
             else if (normflag == NONORM)
               norm = invrepeat;
             else
@@ -1363,7 +1310,7 @@ void FixAveGrid::normalize_atom(int numsamples, GridData *grid)
               else if (which[m] == ArgInfo::DENSITY_MASS)
                 norm = density_mass_norm;
               else if (which[m] == ArgInfo::TEMPERATURE)
-                norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+                norm = mvv2e / ((repeat*cdof + adof*count) * boltz);
               else if (normflag == NONORM)
                 norm = invrepeat;
               else
@@ -1389,7 +1336,7 @@ void FixAveGrid::normalize_atom(int numsamples, GridData *grid)
               else if (which[0] == ArgInfo::DENSITY_MASS)
                 norm = density_mass_norm;
               else if (which[0] == ArgInfo::TEMPERATURE)
-                norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+                norm = mvv2e / ((repeat*cdof + adof*count) * boltz);
               else if (normflag == NONORM)
                 norm = invrepeat;
               else
@@ -1411,7 +1358,7 @@ void FixAveGrid::normalize_atom(int numsamples, GridData *grid)
                 else if (which[m] == ArgInfo::DENSITY_MASS)
                 norm = density_mass_norm;
                 else if (which[m] == ArgInfo::TEMPERATURE)
-                  norm = mvv2e /((repeat*cdof + adof*count) * boltz);
+                  norm = mvv2e / ((repeat*cdof + adof*count) * boltz);
                 else if (normflag == NONORM)
                   norm = invrepeat;
                 else
@@ -1495,12 +1442,69 @@ void FixAveGrid::normalize_count(int numsamples, GridData *grid)
 }
 
 /* ----------------------------------------------------------------------
-   allocate a data grid
+   allocate instance of Grid2d or Grid3d
+------------------------------------------------------------------------- */
+
+void FixAveGrid::allocate_grid()
+{
+  if (modeatom) maxdist = 0.5 * neighbor->skin;
+  else if (modegrid) maxdist = 0.0;
+
+  if (dimension == 2) {
+    grid2d = new Grid2d(lmp, world, nxgrid, nygrid);
+    grid2d->set_distance(maxdist);
+    grid2d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in,
+                       nxlo_out, nxhi_out, nylo_out, nyhi_out);
+
+    // ngrid_buf12 converted to nvalues + count
+
+    grid2d->setup_comm(ngrid_buf1, ngrid_buf2);
+    ngrid_buf1 *= nvalues + 1;
+    ngrid_buf2 *= nvalues + 1;
+
+    grid_buf1 = grid_buf2 = nullptr;
+    if (ngrid_buf1) memory->create(grid_buf1, ngrid_buf1, "ave/grid:grid_buf1");
+    if (ngrid_buf2) memory->create(grid_buf2, ngrid_buf2, "ave/grid:grid_buf2");
+
+    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
+
+  } else {
+    grid3d = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
+    grid3d->set_distance(maxdist);
+    grid3d->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
+                       nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
+
+    // ngrid_buf12 converted to nvalues + count
+
+    grid3d->setup_comm(ngrid_buf1, ngrid_buf2);
+    ngrid_buf1 *= nvalues + 1;
+    ngrid_buf2 *= nvalues + 1;
+
+    grid_buf1 = grid_buf2 = nullptr;
+    if (ngrid_buf1) memory->create(grid_buf1, ngrid_buf1, "ave/grid:grid_buf1");
+    if (ngrid_buf2) memory->create(grid_buf2, ngrid_buf2, "ave/grid:grid_buf2");
+
+    ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) *
+      (nzhi_out - nzlo_out + 1);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   allocate a data grid and zero its values
    if ATOM mode, also allocate per-grid count
 ------------------------------------------------------------------------- */
 
-void FixAveGrid::allocate_grid(GridData *grid)
+FixAveGrid::GridData *FixAveGrid::allocate_one_grid()
 {
+  GridData *grid = new GridData();
+
+  grid->vec2d = nullptr;
+  grid->array2d = nullptr;
+  grid->count2d = nullptr;
+  grid->vec3d = nullptr;
+  grid->array3d = nullptr;
+  grid->count3d = nullptr;
+  
   if (dimension == 2) {
     if (nvalues == 1)
       memory->create2d_offset(grid->vec2d, nylo_out, nyhi_out,
@@ -1525,31 +1529,59 @@ void FixAveGrid::allocate_grid(GridData *grid)
       memory->create3d_offset(grid->count3d, nzlo_out, nzhi_out, nylo_out,
                               nyhi_out, nxlo_out, nxhi_out, "ave/grid:count3d");
   }
+
+  zero_grid(grid);
+  
+  return grid;
+}
+
+
+/* ----------------------------------------------------------------------
+   create clone of a data grid
+   allocate a new grid and copy only the pointers from the source grid
+   used by reset_grid() to keep old data values until remap is complete
+------------------------------------------------------------------------- */
+
+FixAveGrid::GridData *FixAveGrid::clone_one_grid(GridData *src)
+{
+  GridData *grid = new GridData();
+
+  grid->vec2d = src->vec2d;
+  grid->array2d = src->array2d;
+  grid->count2d = src->count2d;
+  grid->vec3d = src->vec3d;
+  grid->array3d = src->array3d;
+  grid->count3d = src->count3d;
+
+  return grid;
 }
 
 /* ----------------------------------------------------------------------
-   deallocate a data grid
+   deallocate a data grid and all its memory
    if ATOM mode, also deallocate per-grid count
 ------------------------------------------------------------------------- */
 
-void FixAveGrid::deallocate_grid(GridData *grid)
+void FixAveGrid::deallocate_one_grid(GridData *grid,
+                                     int xoffset, int yoffset, int zoffset)
 {
   if (dimension == 2) {
     if (nvalues == 1)
-      memory->destroy2d_offset(grid->vec2d,nylo_out,nxlo_out);
+      memory->destroy2d_offset(grid->vec2d,yoffset,xoffset);
     else
-      memory->destroy3d_offset_last(grid->array2d,nylo_out,nxlo_out);
+      memory->destroy3d_offset_last(grid->array2d,yoffset,xoffset);
     if (modeatom)
-      memory->destroy2d_offset(grid->count2d,nylo_out,nxlo_out);
+      memory->destroy2d_offset(grid->count2d,yoffset,xoffset);
 
   } else if (dimension == 3) {
     if (nvalues == 1)
-      memory->destroy3d_offset(grid->vec3d,nzlo_out,nylo_out,nxlo_out);
+      memory->destroy3d_offset(grid->vec3d,zoffset,yoffset,xoffset);
     else
-      memory->destroy4d_offset_last(grid->array3d,nzlo_out,nylo_out,nxlo_out);
+      memory->destroy4d_offset_last(grid->array3d,zoffset,yoffset,xoffset);
     if (modeatom)
-      memory->destroy3d_offset(grid->count3d,nzlo_out,nylo_out,nxlo_out);
+      memory->destroy3d_offset(grid->count3d,zoffset,yoffset,xoffset);
   }
+
+  delete grid;
 }
 
 /* ----------------------------------------------------------------------
@@ -1591,7 +1623,7 @@ void FixAveGrid::zero_grid(GridData *grid)
     if (modeatom)
       memset(&grid->count2d[nylo_out][nxlo_out],0,ngridout*sizeof(double));
 
-  } else if (dimension == 3) {
+  } else {
     if (nvalues == 1)
       memset(&grid->vec3d[nzlo_out][nylo_out][nxlo_out],0,
              ngridout*sizeof(double));
@@ -1817,8 +1849,9 @@ void FixAveGrid::output_grid(GridData *src)
 
 /* ----------------------------------------------------------------------
    pack ghost values into buf to send to another proc
-   nvalues per grid point + count
-------------------------------------------------------------------------- */
+   nvalues per grid point + count-
+   only invoked for ATOM mode
+------------------------------------------------------------------------ */
 
 void FixAveGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
 {
@@ -1837,7 +1870,7 @@ void FixAveGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *lis
     if (nvalues == 1) data = &grid_sample->vec3d[nzlo_out][nylo_out][nxlo_out];
     else data = &grid_sample->array3d[nzlo_out][nylo_out][nxlo_out][0];
   }
-
+  
   if (nvalues == 1) {
     for (i = 0; i < nlist; i++) {
       buf[m++] = count[list[i]];
@@ -1856,6 +1889,7 @@ void FixAveGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *lis
 /* ----------------------------------------------------------------------
    unpack another proc's ghost values from buf and add to own values
    nvalues per grid point + count
+   only invoked for ATOM mode
 ------------------------------------------------------------------------- */
 
 void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
@@ -1864,7 +1898,6 @@ void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
 
   auto buf = (double *) vbuf;
   double *count,*data,*values;
-  m = 0;
 
   if (dimension == 2) {
     count = &grid_sample->count2d[nylo_out][nxlo_out];
@@ -1876,6 +1909,7 @@ void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
     else data = &grid_sample->array3d[nzlo_out][nylo_out][nxlo_out][0];
   }
 
+  m = 0;
   if (nvalues == 1) {
     for (i = 0; i < nlist; i++) {
       count[list[i]] += buf[m++];
@@ -1893,29 +1927,118 @@ void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
 
 /* ----------------------------------------------------------------------
    pack old grid values to buf to send to another proc
+   invoked for both GRID and ATOM mode
 ------------------------------------------------------------------------- */
 
 void FixAveGrid::pack_remap_grid(void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
-  double *src;
-  //double *src =
-  //  &T_electron_previous[nzlo_out_previous][nylo_out_previous][nxlo_out_previous];
+  int i,j,m,iwindow;
 
-  for (int i = 0; i < nlist; i++) buf[i] = src[list[i]];
+  auto buf = (double *) vbuf;
+
+  int running_flag = 0;
+  if (aveflag == RUNNING || aveflag == WINDOW) running_flag = 1;
+  int window_flag = 0;
+  if (aveflag == WINDOW) window_flag = 1;
+
+  m = 0;
+  for (i = 0; i < nlist; i++) { 
+    m += pack_one_grid(grid_sample_previous,list[i],&buf[m]);
+    m += pack_one_grid(grid_nfreq_previous,list[i],&buf[m]);
+    if (running_flag) m += pack_one_grid(grid_running_previous,list[i],&buf[m]);
+    if (window_flag)
+      for (iwindow = 0; iwindow < nwindow; iwindow++)
+        m += pack_one_grid(grid_window_previous[iwindow],list[i],&buf[m]);
+  }
 }
 
 /* ----------------------------------------------------------------------
-   unpack another proc's own values from buf and set own ghost values
+   unpack received owned values from buf into new grid
+   invoked for both GRID and ATOM mode
 ------------------------------------------------------------------------- */
 
 void FixAveGrid::unpack_remap_grid(void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
-  double *dest;
-  //double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];
+  int i,j,m,iwindow;
 
-  for (int i = 0; i < nlist; i++) dest[list[i]] = buf[i];
+  auto buf = (double *) vbuf;
+
+  int running_flag = 0;
+  if (aveflag == RUNNING || aveflag == WINDOW) running_flag = 1;
+  int window_flag = 0;
+  if (aveflag == WINDOW) window_flag = 1;
+
+  m = 0;
+  for (i = 0; i < nlist; i++) {
+    m += unpack_one_grid(&buf[m],grid_sample,list[i]);
+    m += unpack_one_grid(&buf[m],grid_nfreq,list[i]);
+    if (running_flag) m += unpack_one_grid(&buf[m],grid_running,list[i]);
+    if (window_flag)
+      for (iwindow = 0; iwindow < nwindow; iwindow++)
+        m += unpack_one_grid(&buf[m],grid_window[iwindow],list[i]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack values for a single grid cell to buf
+   return number of values packed
+------------------------------------------------------------------------- */
+
+int FixAveGrid::pack_one_grid(GridData *grid, int index, double *buf)
+{
+  double *count,*data,*values;
+
+  if (dimension == 2) {
+    count = &grid->count2d[nylo_out_previous][nxlo_out_previous];
+    if (nvalues == 1) data = &grid->vec2d[nylo_out_previous][nxlo_out_previous];
+    else data = &grid->array2d[nylo_out_previous][nxlo_out_previous][0];
+  } else if (dimension == 3) {
+    count = &grid->count3d[nzlo_out_previous][nylo_out_previous][nxlo_out_previous];
+    if (nvalues == 1) data = &grid->vec3d[nzlo_out_previous][nylo_out_previous][nxlo_out_previous];
+    else data = &grid->array3d[nzlo_out_previous][nylo_out_previous][nxlo_out_previous][0];
+  }
+
+  int m = 0;
+  if (modeatom) buf[m++] = count[index];
+  if (nvalues == 1) buf[m++] = data[index];
+  else {
+    values = &data[nvalues*index];
+    for (int j = 0; j < nvalues; j++)
+      buf[m++] = values[j];
+  }
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values for a single grid cell from buf
+   return number of values unpacked
+------------------------------------------------------------------------- */
+
+int FixAveGrid::unpack_one_grid(double *buf, GridData *grid, int index)
+{
+  double *count,*data,*values;
+
+  if (dimension == 2) {
+    count = &grid->count2d[nylo_out][nxlo_out];
+    if (nvalues == 1) data = &grid->vec2d[nylo_out][nxlo_out];
+    else data = &grid->array2d[nylo_out][nxlo_out][0];
+  } else if (dimension == 3) {
+    count = &grid->count3d[nzlo_out][nylo_out][nxlo_out];
+    if (nvalues == 1) data = &grid->vec3d[nzlo_out][nylo_out][nxlo_out];
+    else data = &grid->array3d[nzlo_out][nylo_out][nxlo_out][0];
+  }
+
+  int m = 0;
+  if (modeatom) count[index] = buf[m++];
+  if (nvalues == 1) data[index] = buf[m++];
+  else {
+    values = &data[nvalues*index];
+    for (int j = 0; j < nvalues; j++)
+      values[j] = buf[m++];
+  }
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------
@@ -1955,57 +2078,104 @@ void FixAveGrid::reset_grid()
     } else delete gridnew;
   }
 
-  // DEBUG
-  if (comm->me == 0) printf("Remapping grid on step %ld\n",update->ntimestep);
+  // for ATOM mode, perform ghost to owned grid comm for grid_sample
+  // necessary b/c remap will only communicate owned grid cell data
+  //   so can't lose ghost data not yet summed to owned cells
+  // nvalues+1 includes atom count
 
-  /*
-  // delete grid data which doesn't need to persist from previous to new decomp
+  if (modeatom) {
+    if (dimension == 2)
+      grid2d->reverse_comm(Grid2d::FIX,this,nvalues+1,sizeof(double),0,
+                           grid_buf1,grid_buf2,MPI_DOUBLE);
+    else
+      grid3d->reverse_comm(Grid3d::FIX,this,nvalues+1,sizeof(double),0,
+                           grid_buf1,grid_buf2,MPI_DOUBLE);
+  }
+
+  // deallocate local comm buffers b/c new ones will be allocated
 
   memory->destroy(grid_buf1);
   memory->destroy(grid_buf2);
-  memory->destroy3d_offset(T_electron_old, nzlo_out, nylo_out, nxlo_out);
-  memory->destroy3d_offset(net_energy_transfer, nzlo_out, nylo_out, nxlo_out);
 
-  // make copy of ptrs to grid data which does need to persist
+  // make copy of ptrs to grid data which needs to persist
 
-  grid_previous = grid;
-  T_electron_previous = T_electron;
+  if (dimension == 2) grid2d_previous = grid2d;
+  else grid3d_previous = grid3d;
+  
   nxlo_out_previous = nxlo_out;
   nylo_out_previous = nylo_out;
   nzlo_out_previous = nzlo_out;
 
-  // allocate new per-grid data for new decomposition
+  grid_sample_previous = clone_one_grid(grid_sample);
+  grid_nfreq_previous = clone_one_grid(grid_nfreq);
+  if (aveflag == RUNNING || aveflag == WINDOW)
+    grid_running_previous = clone_one_grid(grid_running);
+  if (aveflag == WINDOW) {
+    grid_window_previous = new GridData*[nwindow];
+    for (int i = 0; i < nwindow; i++)
+      grid_window_previous[i] = clone_one_grid(grid_window[i]);
+  }
+
+  // allocate grid instance and grid data for new decomposition
 
   allocate_grid();
 
+  grid_sample = allocate_one_grid();
+  grid_nfreq = allocate_one_grid();
+  if (aveflag == RUNNING || aveflag == WINDOW) grid_nfreq = allocate_one_grid();
+  if (aveflag == WINDOW) {
+    grid_window = new GridData*[nwindow];
+    for (int i = 0; i < nwindow; i++)
+      grid_window[i] = allocate_one_grid();
+  }
+
   // perform remap from previous decomp to new decomp
+  // nper = # of remapped values per grid cell
+  //   depends on atom vs grid mode, and running/window options
 
   int nremap_buf1,nremap_buf2;
-  grid->setup_remap(grid_previous,nremap_buf1,nremap_buf2);
+  if (dimension == 2)
+    grid2d->setup_remap(grid2d_previous,nremap_buf1,nremap_buf2);
+  else
+    grid3d->setup_remap(grid3d_previous,nremap_buf1,nremap_buf2);
 
-  double *remap_buf1,*remap_buf2;
-  memory->create(remap_buf1, nremap_buf1, "ave/grid:remap_buf1");
-  memory->create(remap_buf2, nremap_buf2, "ave/grid:remap_buf2");
+  int n = 2;                                          // grid_sample & grid_nfreq
+  if (aveflag == RUNNING || aveflag == WINDOW) n++;   // grid_running
+  if (aveflag == WINDOW) n += nwindow;                // grid_window
+  int nper = n*nvalues;
+  if (modeatom) nper += n;
 
-  grid->remap(Grid3d::FIX,this,1,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
+  double *remap_buf1 = nullptr;
+  double *remap_buf2 = nullptr;
+  if (nremap_buf1) memory->create(remap_buf1, nper*nremap_buf1, "ave/grid:remap_buf1");
+  if (nremap_buf2) memory->create(remap_buf2, nper*nremap_buf2, "ave/grid:remap_buf2");
+
+  if (dimension == 2)
+    grid2d->remap(Grid2d::FIX,this,nper,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
+  else
+    grid3d->remap(Grid3d::FIX,this,nper,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
 
   memory->destroy(remap_buf1);
   memory->destroy(remap_buf2);
 
-  // delete grid data and grid for previous decomposition
+  // delete grid instance and grid data for previous decomposition
 
-  memory->destroy3d_offset(T_electron_previous,
-                           nzlo_out_previous, nylo_out_previous,
-                           nxlo_out_previous);
-  delete grid_previous;
+  if (dimension == 2) delete grid2d_previous;
+  else delete grid3d_previous;
 
-  // zero new net_energy_transfer
-  // in case compute_vector accesses it on timestep 0
+  deallocate_one_grid(grid_sample_previous,nxlo_out_previous,nylo_out_previous,nzlo_out_previous);
+  deallocate_one_grid(grid_nfreq_previous,nxlo_out_previous,nylo_out_previous,nzlo_out_previous);
+  if (aveflag == RUNNING || aveflag == WINDOW)
+    deallocate_one_grid(grid_running_previous,nxlo_out_previous,nylo_out_previous,nzlo_out_previous);
+  if (aveflag == WINDOW) {
+    for (int i = 0; i < nwindow; i++)
+      deallocate_one_grid(grid_window_previous[i],nxlo_out_previous,nylo_out_previous,nzlo_out_previous);
+    delete [] grid_window_previous;
+  }
 
-  outflag = 0;
-  memset(&net_energy_transfer[nzlo_out][nylo_out][nxlo_out],0,
-         ngridout*sizeof(double));
-  */
+  // set output data in case load balance fix comes after fix ave/grid
+
+  output_grid(grid_nfreq);
 }
 
 /* ----------------------------------------------------------------------

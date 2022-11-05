@@ -361,7 +361,8 @@ void Grid3d::setup_grid(int &ixlo, int &ixhi, int &iylo, int &iyhi,
                         int &ozlo, int &ozhi)
 {
   // owned grid cells = those whose grid point is within proc subdomain
-  
+  // shift_grid = 0.5 for grid point at cell center, 0.0 for lower-left corner
+
   double fraclo,frachi;
   
   if (comm->layout != Comm::LAYOUT_TILED) {
@@ -469,14 +470,14 @@ void Grid3d::initialize()
      this includes sub-domain lo boundary but excludes hi boundary
    ngrid = extent of global grid in a dimension
      indices into the global grid range from 0 to Ngrid-1 in that dim
-   shift factor determines position of grid pt within grid cell
+   shift determines position of grid pt within grid cell
      shift = 0.5 for cell center, 0.0 for lower-left corner
    extra = 0 if grid exactly covers the simulation box
    extra = 1 if grid extends beyond the +z boundary by zfactor (PPPM slab)
      effectively maps proc partitions to the box-size subset of the grid
    lo/hi = inclusive lo/hi bounds for brick of global grid cells I own
-     lo grid index = first grid pt >= fraclo bound
-     hi grid index = last grid pt < frachi bound
+     lo grid index = first grid pt >= fraclo*bound
+     hi grid index = last grid pt < frachi*bound
      if proc owns no grid cells in a dim, then inlo > inhi
    special case: 2 procs share boundary which a grid point is exactly on
      2 if test equalties insure a consistent decision as to which proc owns it
@@ -487,14 +488,14 @@ void Grid3d::partition_grid(int ngrid, double fraclo, double frachi,
 {
   if (extra == 0) {
     lo = static_cast<int> (fraclo * ngrid);
-    while (1.0*lo + shift/ngrid < fraclo*ngrid) lo++;
+    while (lo+shift < fraclo*ngrid) lo++;
     hi = static_cast<int> (frachi * ngrid);
-    while (1.0*hi + shift/ngrid >= frachi*ngrid) hi--;
+    while (hi+shift >= frachi*ngrid) hi--;
   } else {
     lo = static_cast<int> (fraclo * ngrid/zfactor);
-    while (1.0*lo + shift/ngrid < fraclo*ngrid) lo++;
+    while (lo+shift < fraclo*ngrid/zfactor) lo++;
     hi = static_cast<int> (frachi * ngrid/zfactor);
-    while (1.0*hi + shift/ngrid >= frachi*ngrid) hi--;
+    while (hi+shift >= frachi*ngrid/zfactor) hi--;
   }
 }
 
@@ -665,7 +666,7 @@ void Grid3d::extract_comm_info()
 
 /* ----------------------------------------------------------------------
    setup commmunication of owned/ghost grid cells
-     either for brick decomp or tiling decomp
+     either for brick decomp or tiled decomp
    return sizes of two buffers needed for communication
      nbuf1 = largest pack or unpack in any Send or Recv or Copy
      nbuf2 = larget of sum of all packs or unpacks in Send or Recv
@@ -1498,11 +1499,14 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   int noverlap_old = compute_overlap(0,oldbox,pbc,overlap_old);
 
   // use overlap_old to construct send and copy lists
-  
+  // skip overlaps that contain no grid cells
+
   self_remap = 0;
 
   nsend_remap = 0;
   for (m = 0; m < noverlap_old; m++) {
+    box = overlap_old[m].box;
+    if (box[0] > box[1] || box[2] > box[3] || box[4] > box[5]) continue;
     if (overlap_old[m].proc == me) self_remap = 1;
     else nsend_remap++;
   }
@@ -1512,6 +1516,7 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   nsend_remap = 0;
   for (m = 0; m < noverlap_old; m++) {
     box = overlap_old[m].box;
+    if (box[0] > box[1] || box[2] > box[3] || box[4] > box[5]) continue;
     if (overlap_old[m].proc == me) {
       copy_remap.npack =
 	old->indices(copy_remap.packlist,
@@ -1537,17 +1542,22 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   int noverlap_new = old->compute_overlap(0,newbox,pbc,overlap_new);
 
   // use overlap_new to construct recv and copy lists
+  // skip overlaps that contain no grid cells
   // set offsets for Recv data
 
   nrecv_remap = 0;
-  for (m = 0; m < noverlap_new; m++)
+  for (m = 0; m < noverlap_new; m++) {
+    box = overlap_new[m].box;
+    if (box[0] > box[1] || box[2] > box[3] || box[4] > box[5]) continue;
     if (overlap_new[m].proc != me) nrecv_remap++;
-
+  }
+  
   recv_remap = new Recv[nrecv_remap];
 
   nrecv_remap = 0;
   for (m = 0; m < noverlap_new; m++) {
     box = overlap_new[m].box;
+    if (box[0] > box[1] || box[2] > box[3] || box[4] > box[5]) continue;
     if (overlap_new[m].proc == me) {
       copy_remap.nunpack =
 	indices(copy_remap.unpacklist,
@@ -1810,16 +1820,23 @@ int Grid3d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap
   noverlap_list = maxoverlap_list = 0;
   overlap_list = nullptr;
 
+    // skip overlap check if box contains no grid cells
+
+  if (box[0] > box[1] || box[2] > box[3] || box[4] > box[5]) {
+    overlap = overlap_list;
+    return noverlap_list;
+  }
+
   if (layout != Comm::LAYOUT_TILED) {
 
     // find comm->procgrid indices in each dim for box bounds
     
-    int iproclo = proc_index_uniform(box[0],nx,0,xsplit);
-    int iprochi = proc_index_uniform(box[1],nx,0,xsplit);
-    int jproclo = proc_index_uniform(box[2],ny,1,ysplit);
-    int jprochi = proc_index_uniform(box[3],ny,1,ysplit);
-    int kproclo = proc_index_uniform(box[4],nz,2,zsplit);
-    int kprochi = proc_index_uniform(box[5],nz,2,zsplit);
+    int iproclo = proc_index_uniform(box[0],nx,shift_grid,0,xsplit);
+    int iprochi = proc_index_uniform(box[1],nx,shift_grid,0,xsplit);
+    int jproclo = proc_index_uniform(box[2],ny,shift_grid,1,ysplit);
+    int jprochi = proc_index_uniform(box[3],ny,shift_grid,1,ysplit);
+    int kproclo = proc_index_uniform(box[4],nz,shift_grid,2,zsplit);
+    int kprochi = proc_index_uniform(box[5],nz,shift_grid,2,zsplit);
 
     // compute extent of overlap of box with with each proc's obox
     
@@ -2073,30 +2090,34 @@ int Grid3d::indices(int *&list,
 /* ----------------------------------------------------------------------
    find the comm->procgrid index = which proc owns the igrid index
    igrid = grid index (0 to N-1) in dim
-   n = # of grid points in dim
+   n = # of grid points in dim 
+   shift determines position of grid pt within grid cell
+     shift = 0.5 for cell center, 0.0 for lower-left corner
    dim = which dimension (0,1,2)
    split = comm->x/y/z split for fractional bounds of each proc domain
 ------------------------------------------------------------------------- */
 
-int Grid3d::proc_index_uniform(int igrid, int n, int dim, double *split)
+int Grid3d::proc_index_uniform(int igrid, int n, double shift, int dim, double *split)
 {
-  int gridlo,gridhi;
+  int lo,hi;
   double fraclo,frachi;
 
   // loop over # of procs in this dime
   // compute the grid bounds for that proc
   // if igrid falls within those bounds, return m = proc index
+  // same logic as in partition_grid()
 
   int m;
   for (m = 0; m < comm->procgrid[dim]; m++) {
     fraclo = split[m];
     frachi = split[m+1];
-    gridlo = static_cast<int> (fraclo * n);
-    if (1.0*gridlo != fraclo*n) gridlo++;
-    gridhi = static_cast<int> (frachi * n);
-    if (1.0*gridhi == frachi*n) gridhi--;
 
-    if (igrid >= gridlo && igrid <= gridhi) break;
+    lo = static_cast<int> (fraclo * n);
+    while (lo+shift < fraclo*n) lo++;
+    hi = static_cast<int> (frachi * n);
+    if (hi+shift >= frachi*n) hi--;
+
+    if (igrid >= lo && igrid <= hi) break;
   }
 
   return m;
@@ -2108,8 +2129,7 @@ int Grid3d::proc_index_uniform(int igrid, int n, int dim, double *split)
    return box = lo/hi bounds of proc's box in 3 dims
 ------------------------------------------------------------------------- */
 
-void Grid3d::partition_tiled(int proc, int proclower, int procupper,
-                             int *box)
+void Grid3d::partition_tiled(int proc, int proclower, int procupper, int *box)
 {
   // end recursion when partition is a single proc
 

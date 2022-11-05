@@ -26,6 +26,9 @@
 #include "region.h"
 #include "update.h"
 
+// DEBUG
+#include "comm.h"
+
 #include <cstring>
 
 using namespace LAMMPS_NS;

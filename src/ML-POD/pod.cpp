@@ -13,6 +13,7 @@
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
+#include "tokenizer.h"
 
 #include <fstream>
 #include <sstream>
@@ -35,6 +36,8 @@ using std::ofstream;
 using std::ifstream;
 using std::ostringstream;
 using namespace LAMMPS_NS;
+
+#define MAXLINE 1024
 
 CPOD::CPOD(LAMMPS* lmp, std::string pod_file, std::string coeff_file) : Pointers(lmp)
 {
@@ -675,43 +678,88 @@ void CPOD::read_pod(std::string pod_file)
 
 void CPOD::read_coeff_file(std::string coeff_file)
 {
-  std::ifstream file_in(coeff_file);
-  if (!file_in) {error->all(FLERR,"Error: Coefficient input file is not found");}
 
-  int ncoeff=0;
-  std::string line;
-  while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines.
-  {
-    if (line != "") {
-      std::string s;
-      int n;
+  std::string coefffilename = coeff_file;
+  FILE *fpcoeff;
+  if (comm->me == 0){
 
-      std::istringstream ss_line(line);
-      ss_line >> s;
+    fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
+    if (fpcoeff == nullptr)
+      error->one(FLERR,"Cannot open SNAP coefficient file {}: ",
+                                   coefffilename, utils::getsyserror());
+  }
 
-      if (s == "POD_coefficients:") {
-        ss_line >> n;
-        ncoeff = n;
-        break;
+  // check format for first line of file
+
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+  int nwords = 0;
+  while (nwords == 0) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fpcoeff);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fpcoeff);
       }
     }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    // strip comment, skip line if blank
+
+    nwords = utils::count_words(utils::trim_comment(line));
+    printf("nwords: %d\n", nwords);
   }
 
-  pod.coeff = (double *) malloc(ncoeff*sizeof(double));
+  if (nwords != 2)
+    error->all(FLERR,"Incorrect format in POD coefficient file");
 
-  int k = 0;
-  while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines.
-  {
-    if (line != "") {
-      double d;
-      std::istringstream ss_line(line);
-      ss_line >> d;
-      pod.coeff[k] = d;
-      k += 1;
+  // strip single and double quotes from words
+
+  int nelemtmp = 0;
+  int ncoeffall;
+  std::string tmp_str;
+  try {
+    ValueTokenizer words(utils::trim_comment(line),"\"' \t\n\r\f");
+    tmp_str = words.next_string();
+    ncoeffall = words.next_int();
+  } catch (TokenizerException &e) {
+    error->all(FLERR,"Incorrect format in SNAP coefficient file: {}", e.what());
+  }
+
+  printf("ncoeffall: %d\n", ncoeffall);
+
+  // loop over single block of coefficients and insert values in pod.coeff
+
+  pod.coeff = (double *) malloc(ncoeffall*sizeof(double));
+
+  for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fpcoeff);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fpcoeff);
+      }
+    }
+
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof)
+      error->all(FLERR,"Incorrect format in SNAP coefficient file");
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    try {
+      ValueTokenizer coeff(utils::trim_comment(line));
+      if (coeff.count() != 1)
+        error->all(FLERR,"Incorrect format in SNAP coefficient file");
+
+      //coeffelem[jelem][icoeff] = coeff.next_double();
+      //printf("%f\n", coeff.next_double());
+      pod.coeff[icoeff] = coeff.next_double();
+    } catch (TokenizerException &e) {
+      error->all(FLERR,"Incorrect format in SNAP coefficient file: {}", e.what());
     }
   }
-
-  file_in.close();
 
 //   std::cout<<"**************** Begin of Coefficient File ****************"<<std::endl;
 //   std::cout<<"number of POD coefficients: "<<ncoeff<<std::endl;

@@ -42,7 +42,7 @@ Syntax
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
 * map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual_keyword = *prob* or *rate_limit* or *max_rxn* or *stabilize_steps* or *custom_charges* or *molecule* or *modify_create*
+* individual_keyword = *prob* or *rate_limit* or *max_rxn* or *stabilize_steps* or *custom_charges* or *rescale_charges* or *molecule* or *modify_create*
 
   .. parsed-literal::
 
@@ -59,6 +59,9 @@ Syntax
          *custom_charges* value = *no* or fragment-ID
            *no* = update all atomic charges (default)
            fragment-ID = ID of molecule fragment whose charges are updated
+         *rescale_charges* value = *no* or *yes*
+           *no* = do not rescale atomic charges (default)
+           *yes* = rescale charges such that total charge does not change during reaction
          *molecule* value = *off* or *inter* or *intra*
            *off* = allow both inter- and intramolecular reactions (default)
            *inter* = search for reactions between molecules with different IDs
@@ -656,6 +659,17 @@ charges are updated to those specified by the post-reaction template
 (default). Otherwise, the value should be the name of a molecule
 fragment defined in the pre-reaction molecule template. In this case,
 only the atomic charges of atoms in the molecule fragment are updated.
+
+The *rescale_charges* keyword can be used to ensure the total charge
+of the system does not change as reactions occur. When the argument is
+set to *yes*\ , a fixed value is added to the charges of post-reaction
+atoms such that their total charge equals that of the pre-reaction
+site. If only a subset of atomic charges are updated via the
+*custom_charges* keyword, this rescaling is applied to the subset.
+This keyword could be useful for systems that contain different
+molecules with the same reactive site, if the partial charges on the
+reaction site vary from molecule to molecule, or when removing
+reaction by-products.
 
 The *molecule* keyword can be used to force the reaction to be
 intermolecular, intramolecular or either. When the value is set to

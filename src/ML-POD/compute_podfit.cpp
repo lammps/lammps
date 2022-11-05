@@ -19,6 +19,7 @@
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+#include "tokenizer.h"
 
 #include <fstream>
 #include <sstream>
@@ -42,6 +43,8 @@ using std::ifstream;
 using std::ostringstream;
 using namespace LAMMPS_NS;
 
+#define MAXLINE 1024
+
 enum{SCALAR,VECTOR,ARRAY};
 
 CPODFIT::CPODFIT(LAMMPS *lmp, int narg, char **arg) :
@@ -59,12 +62,12 @@ CPODFIT::CPODFIT(LAMMPS *lmp, int narg, char **arg) :
     coeff_file = "";
   
   podptr = new CPOD(lmp, pod_file, coeff_file);
-  this->read_data_files(data_file, podptr->pod.species);     
+  read_data_files(data_file, podptr->pod.species);     
   
   if ((int) traindata.data_path.size() > 1) 
-    this->allocate_memory(traindata);  
+    allocate_memory(traindata);  
   else if ((int) testdata.data_path.size() > 1)
-    this->allocate_memory(testdata);  
+    allocate_memory(testdata);  
         
   // get POD coefficients from an input file       
   if (coeff_file != "") podptr->podArrayCopy(desc.c, podptr->pod.coeff, podptr->pod.nd);    
@@ -106,23 +109,23 @@ void CPODFIT::init()
 //   c_pe = modify->compute[ipe];
   
   // compute POD coefficients using least-squares method
-  this->least_squares_fit(traindata);
+  least_squares_fit(traindata);
   
   // calculate errors for the training data set
   if ((traindata.training_analysis) && ((int) traindata.data_path.size() > 1) )
-    this->error_analsysis(traindata, desc.c);  
+    error_analysis(traindata, desc.c);  
   
   // calculate errors for the test data set
   if ((testdata.test_analysis) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path)) 
-    this->error_analsysis(testdata, desc.c);  
+    error_analysis(testdata, desc.c);  
   
   // calculate energy and force for the training data set
   if ((traindata.training_calculation) && ((int) traindata.data_path.size() > 1) )
-    this->energyforce_calculation(traindata, desc.c);   
+    energyforce_calculation(traindata, desc.c);   
   
   // calculate energy and force for the test data set
   if ((testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path) )
-    this->energyforce_calculation(testdata, desc.c);     
+    energyforce_calculation(testdata, desc.c);     
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,23 +138,23 @@ void CPODFIT::init_list(int /*id*/, NeighList *ptr)
 void CPODFIT::compute_array()
 {
 //   // compute POD coefficients using least-squares method
-//   this->least_squares_fit(traindata);
+//   least_squares_fit(traindata);
 //   
 //   // calculate errors for the training data set
 //   if ((traindata.training_analysis) && ((int) traindata.data_path.size() > 1) )
-//     this->error_analsysis(traindata, desc.c);  
+//     error_analysis(traindata, desc.c);  
 //   
 //   // calculate errors for the test data set
 //   if ((testdata.test_analysis) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path)) 
-//     this->error_analsysis(testdata, desc.c);  
+//     error_analysis(testdata, desc.c);  
 //   
 //   // calculate energy and force for the training data set
 //   if ((traindata.training_calculation) && ((int) traindata.data_path.size() > 1) )
-//     this->energyforce_calculation(traindata, desc.c);   
+//     energyforce_calculation(traindata, desc.c);   
 //   
 //   // calculate energy and force for the test data set
 //   if ((testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path) )
-//     this->energyforce_calculation(testdata, desc.c);     
+//     energyforce_calculation(testdata, desc.c);     
 }
 
 template <typename T> void CPODFIT::writearray2file(const char* filename, T *a, int N, int backend)
@@ -192,89 +195,84 @@ bool CPODFIT::is_a_number(std::string line)
 void CPODFIT::read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension, 
     std::string &test_path, std::string &training_path, std::string data_file)
 {
-  std::ifstream file_in(data_file);
-  if (!file_in) error->all(FLERR,"Error: Data input file is not found");       
-  
-  std::string line;    
-  while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines.
-  {                      
-    if (line != "") {
-      std::string s, s2;
-      double d;
-      
-      std::istringstream ss_line(line);                  
-      ss_line >> s;
-                  
-      if (s == "fitting_weight_energy") {
-        ss_line >> d;       
-        fitting_weights[0] = d;         
-      }
-      else if (s == "fitting_weight_force") {
-        ss_line >> d;       
-        fitting_weights[1] = d;         
-      }
-      else if (s == "fitting_weight_stress") {
-        ss_line >> d;       
-        fitting_weights[2] = d;         
-      }
-      else if (s == "error_analysis_for_training_data_set") {
-        ss_line >> d;       
-        fitting_weights[3] = d;         
-      }
-      else if (s == "error_analysis_for_test_data_set") {
-        ss_line >> d;       
-        fitting_weights[4] = d;         
-      }
-      else if (s == "energy_force_calculation_for_training_data_set") {
-        ss_line >> d;       
-        fitting_weights[5] = d;         
-      }
-      else if (s == "energy_force_calculation_for_test_data_set") {
-        ss_line >> d;       
-        fitting_weights[6] = d;         
-      }
-      else if (s == "percentage_training_data_set") {
-        ss_line >> d;       
-        fitting_weights[7] = d;         
-      }
-      else if (s == "percentage_test_data_set") {
-        ss_line >> d;       
-        fitting_weights[8] = d;         
-      }
-      else if (s == "randomize_training_data_set") {
-        ss_line >> d;       
-        fitting_weights[9] = d;         
-      }
-      else if (s == "randomize_test_data_set") {
-        ss_line >> d;       
-        fitting_weights[10] = d;         
-      }
-      else if (s != "#") {
-        ss_line >> s2;        
-        if (s == "file_format") file_format = s2;
-        if (s == "file_extension") file_extension = s2;
-        if (s == "path_to_training_data_set") {
-          training_path = s2;          
-          while(ss_line >> s2){  
-            training_path = training_path + " " + s2;   
-          }            
-          //training_path.erase(std::remove(training_path.begin(), training_path.end(), '"'), training_path.end());                    
-          training_path.erase(training_path.begin());          
-          training_path.erase(training_path.end()-1);                    
-        }        
-        if (s == "path_to_test_data_set") {
-          test_path = s2;  
-          while (ss_line >> s2) {       
-            test_path = test_path + " " + s2;
-          }
-          //test_path.erase(remove(test_path.begin(), test_path.end(), '"'), test_path.end());
-          test_path.erase(test_path.begin());          
-          test_path.erase(test_path.end()-1);                    
-        }
+
+  std::string datafilename = data_file;
+  FILE *fpdata;
+  if (comm->me == 0){
+
+    fpdata = utils::open_potential(datafilename,lmp,nullptr);
+    if (fpdata == nullptr)
+      error->one(FLERR,"Cannot open training data file {}: ",
+                                   datafilename, utils::getsyserror());
+  }
+
+  // loop through lines of training data file and parse keywords
+
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+  int nwords = 0;
+  while (true) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fpdata);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fpdata);
       }
     }
-  }    
-  file_in.close();
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    // words = ptrs to all words in line
+    // strip single and double quotes from words
+
+    std::vector<std::string> words;
+    try {
+      words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
+    } catch (TokenizerException &) {
+      // ignore
+    }
+
+    if (words.size() == 0) continue;
+
+    auto keywd = words[0];
+
+    if (words.size() != 2)
+      error->one(FLERR,"Improper POD file.", utils::getsyserror());
+
+    // settings for fitting weights 
+
+    if (keywd == "fitting_weight_energy") fitting_weights[0] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "fitting_weight_force") fitting_weights[1] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "fitting_weight_stress") fitting_weights[2] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "error_analysis_for_training_data_set") fitting_weights[3] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "error_analysis_for_test_data_set") fitting_weights[4] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "energy_force_calculation_for_training_data_set") fitting_weights[5] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "energy_force_calculation_for_test_data_set") fitting_weights[6] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "percentage_training_data_set") fitting_weights[7] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "percentage_test_data_set") fitting_weights[8] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "randomize_training_data_set") fitting_weights[9] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "randomize_test_data_set") fitting_weights[10] = utils::numeric(FLERR,words[1],false,lmp);
+
+    // other settings
+
+    if (keywd == "file_format") file_format = words[1];
+    if (keywd == "file_extension") file_extension = words[1];
+    if (keywd == "path_to_training_data_set"){
+      std::cout << words[1] << std::endl;
+      training_path = words[1];
+      for (int i=2; i < words.size(); i++){
+        training_path = training_path + " " + words[i];
+      }
+    }
+    if (keywd == "path_to_test_data_set"){
+      test_path = words[1];
+      for (int i=2; i < words.size(); i++){
+        test_path = test_path + " " + words[i];
+      }
+    }
+
+  }
   
   utils::logmesg(lmp, "**************** Begin of Data File ****************\n");
   utils::logmesg(lmp, "file format: {}\n", file_format);
@@ -310,7 +308,7 @@ std::vector<std::string> CPODFIT::globVector(const std::string& pattern, std::ve
 
 void CPODFIT::get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension)  
 {
-  std::vector<std::string> res = this->globVector(datapath + "/*." + extension, files);
+  std::vector<std::string> res = globVector(datapath + "/*." + extension, files);
 } 
 
 int CPODFIT::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)  
@@ -324,7 +322,7 @@ int CPODFIT::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
   while (std::getline(datafile, line)) // Read next line to `line`, stop if no more lines.
   {
     int d;
-    if (this->is_a_number(line)) {      
+    if (is_a_number(line)) {      
       d = std::stoi(line);
       num_atom.push_back(d);                    
       num_configs += 1;
@@ -342,7 +340,7 @@ int CPODFIT::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_
   int d, n;
   
   for (int i=0; i<nfiles; i++) {
-    d = this->get_number_atom_exyz(num_atom, n, training_files[i]);  
+    d = get_number_atom_exyz(num_atom, n, training_files[i]);  
     num_config.push_back(d);  
     num_atom_sum.push_back(n);  
   }
@@ -408,7 +406,7 @@ void CPODFIT::read_exyz_file(double *lattice, double *stress, double *energy, do
             
       cfi += 1;      
     }
-    else if (!this->is_a_number(line)) {      
+    else if (!is_a_number(line)) {      
       std::string s0;
       std::istringstream ss(line);            
       ss >> s0;
@@ -431,8 +429,8 @@ void CPODFIT::read_exyz_file(double *lattice, double *stress, double *energy, do
 
 void CPODFIT::get_data(datastruct &data, std::vector<std::string> species)
 {  
-  this->get_exyz_files(data.data_files, data.data_path, data.file_extension);
-  data.num_atom_sum = this->get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);      
+  get_exyz_files(data.data_files, data.data_path, data.file_extension);
+  data.num_atom_sum = get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);      
   data.num_config_sum = data.num_atom.size();
   
   utils::logmesg(lmp, "data file   |  number of configurations   |   number of atoms\n");
@@ -458,7 +456,7 @@ void CPODFIT::get_data(datastruct &data, std::vector<std::string> species)
   int nconfigs = 0;
   int natoms = 0;
   for (int i=0; i<nfiles; i++) {    
-    this->read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs], 
+    read_exyz_file(&data.lattice[9*nconfigs], &data.stress[9*nconfigs], &data.energy[nconfigs], 
         &data.position[3*natoms], &data.force[3*natoms], &data.atomtype[natoms], 
         data.data_files[i], species);      
     nconfigs += data.num_config[i];
@@ -558,7 +556,7 @@ std::vector<int> CPODFIT::select(int n, double percentage, int randomize)
   int m = (int) std::round(n*percentage);  
   m = PODMAX(m, 1);
   
-  selected = (randomize==1) ? this->shuffle(1, n, m) : this->linspace(1, n, m);
+  selected = (randomize==1) ? shuffle(1, n, m) : linspace(1, n, m);
     
   return selected;
 }
@@ -671,7 +669,7 @@ void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> sp
   datastruct data;
       
   // read data input file to datastruct
-  this->read_data_file(data.fitting_weights, data.file_format, data.file_extension, 
+  read_data_file(data.fitting_weights, data.file_format, data.file_extension, 
       testdata.data_path, data.data_path, data_file);
     
   data.training_analysis = (int) data.fitting_weights[3];
@@ -686,7 +684,7 @@ void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> sp
   if (data.percentage >= 1.0) {        
     utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");  
     if ((int) traindata.data_path.size() > 1) 
-      this->get_data(traindata, species);
+      get_data(traindata, species);
     else 
       error->all(FLERR,"data set is not found");     
     utils::logmesg(lmp, "**************** End of Training Data Set ****************\n");               
@@ -694,7 +692,7 @@ void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> sp
   else {
     utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");    
     if ((int) data.data_path.size() > 1) 
-      this->get_data(data, species);
+      get_data(data, species);
     else 
       error->all(FLERR,"data set is not found");            
     utils::logmesg(lmp, "**************** End of Training Data Set ****************\n");          
@@ -717,7 +715,7 @@ void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> sp
     testdata.percentage = traindata.fitting_weights[8];
     testdata.randomize = (int) traindata.fitting_weights[10];   
     utils::logmesg(lmp, "**************** Begin of Test Data Set ****************\n");
-    this->get_data(testdata, species);
+    get_data(testdata, species);
     utils::logmesg(lmp, "**************** End of Test Data Set ****************\n"); 
   }
   else {
@@ -795,11 +793,11 @@ int CPODFIT::podfullneighborlist(double *y, int *alist, int *neighlist, int *num
   int dim = 3, nl = 0, nn = 0;
   
   // number of lattices
-  nl = this->latticecoords(y, alist, x, a1, a2, a3, rcut, pbc, nx);    
+  nl = latticecoords(y, alist, x, a1, a2, a3, rcut, pbc, nx);    
   int N = nx*nl;
       
   // total number of neighbors
-   nn = this->podneighborlist(neighlist, numneigh, y, rcutsq, nx, N, dim);
+   nn = podneighborlist(neighlist, numneigh, y, rcutsq, nx, N, dim);
   
    podptr->podCumsum(numneighsum, numneigh, nx+1); 
      
@@ -958,7 +956,7 @@ void CPODFIT::linear_descriptors(datastruct data, int ci)
   double *a3 = &lattice[6];
         
   // neighbor list
-  int Nij = this->podfullneighborlist(nb.y, nb.alist, nb.pairlist, nb.pairnum, nb.pairnum_cumsum, 
+  int Nij = podfullneighborlist(nb.y, nb.alist, nb.pairlist, nb.pairnum, nb.pairnum_cumsum, 
         position, a1, a2, a3, rcut, pbc, natom);
 
   int *tmpint = &desc.tmpint[0];   
@@ -1173,19 +1171,19 @@ void CPODFIT::least_squares_fit(datastruct data)
     
     // compute linear POD descriptors
 
-    this->linear_descriptors(data, ci);
+    linear_descriptors(data, ci);
     
     // compute quadratic POD descriptors
 
-    this->quadratic_descriptors(data, ci);    
+    quadratic_descriptors(data, ci);    
     
     // compute cubic POD descriptors
 
-    this->cubic_descriptors(data, ci);  
+    cubic_descriptors(data, ci);  
     
     // assemble the least-squares linear system
 
-    this->least_squares_matrix(data, ci);      
+    least_squares_matrix(data, ci);      
   }
   
   int nd = podptr->pod.nd;
@@ -1236,7 +1234,7 @@ double CPODFIT::energyforce_calculation(double *force, double *coeff, datastruct
 
   // neighbor list
 
-  int Nij = this->podfullneighborlist(nb.y, nb.alist, nb.pairlist, nb.pairnum, nb.pairnum_cumsum, 
+  int Nij = podfullneighborlist(nb.y, nb.alist, nb.pairlist, nb.pairnum, nb.pairnum_cumsum, 
         position, a1, a2, a3, rcut, pbc, natom);
 
   double *tmpmem = &desc.gdd[0];
@@ -1371,7 +1369,7 @@ void CPODFIT::print_analysis(datastruct data, double *outarray, double *errors)
   mfile.close();  
 }
 
-void CPODFIT::error_analsysis(datastruct data, double *coeff)
+void CPODFIT::error_analysis(datastruct data, double *coeff)
 {        
   int dim = 3;
   double energy;
@@ -1429,7 +1427,7 @@ void CPODFIT::error_analsysis(datastruct data, double *coeff)
       for (int j=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j<nd; j++)
         newcoeff[j] = coeff[j]/(natom*natom);
                   
-      energy = this->energyforce_calculation(force, newcoeff, data, ci);
+      energy = energyforce_calculation(force, newcoeff, data, ci);
       
       double DFTenergy = data.energy[ci];   
       int natom_cumsum = data.num_atom_cumsum[ci];  
@@ -1502,14 +1500,14 @@ void CPODFIT::energyforce_calculation(datastruct data, double *coeff)
       int natom = data.num_atom[ci];
       int nforce = dim*natom;
       
-      energy = this->energyforce_calculation(&force[1], coeff, data, ci);
+      energy = energyforce_calculation(&force[1], coeff, data, ci);
       
       ci += 1;       
       
       // save energy and force into a binary file
 
       force[0] = energy;
-      string filename = "energyforce_config" + std::to_string(ci) + ".bin";
+      std::string filename = "energyforce_config" + std::to_string(ci) + ".bin";
       writearray2file(filename.c_str(), force, 1 + nforce, 1);
     }
   }     

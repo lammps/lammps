@@ -15,11 +15,8 @@
 #include "memory.h"
 #include "tokenizer.h"
 
-#include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
-#include <iostream>
 #include <iomanip>
 #include <limits>
 #include <glob.h>
@@ -30,11 +27,6 @@
 #include <math.h>
 #include <sys/time.h>
 
-using std::string;
-using std::ios;
-using std::ofstream;
-using std::ifstream;
-using std::ostringstream;
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
@@ -43,12 +35,12 @@ CPOD::CPOD(LAMMPS* lmp, std::string pod_file, std::string coeff_file) : Pointers
 {
   // read pod input file to podstruct
 
-  this->read_pod(pod_file);
+  read_pod(pod_file);
 
   // read pod coefficient file to podstruct
 
   if (coeff_file != "")
-    this->read_coeff_file(coeff_file);
+    read_coeff_file(coeff_file);
 
   if (pod.snaptwojmax > 0) {
     InitSnap();
@@ -434,8 +426,6 @@ void CPOD::read_pod(std::string pod_file)
 
     if (words.size() == 0) continue;
 
-    std::cout << words[0] << std::endl;
-
     auto keywd = words[0];
 
     if (keywd == "species") {
@@ -763,8 +753,6 @@ void CPOD::read_coeff_file(std::string coeff_file)
     error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
   }
 
-  printf("ncoeffall: %d\n", ncoeffall);
-
   // loop over single block of coefficients and insert values in pod.coeff
 
   pod.coeff = (double *) malloc(ncoeffall*sizeof(double));
@@ -837,13 +825,13 @@ void CPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tmp
   podArraySetValue(fatom1, 0.0, (1+dim)*natom*(nd1+nd2+nd3+nd4));
 
 //   // peratom descriptors for one-body, two-body, and three-body linear potentials
-//   this->poddesc(eatom1, fatom1, eatom2, fatom2, eatom3, fatom3, y, Phi2, besselparams,
+//   poddesc(eatom1, fatom1, eatom2, fatom2, eatom3, fatom3, y, Phi2, besselparams,
 //       tmpmem, rin, rcut, atomtype, alist, pairlist, pairnum, pairnumsum,
 //       elemindex, pdegree2, tmpint, nbesselpars, nrbf2, nrbf3, nabf3,
 //       nelements, Nij, natom);
 //
 //   if (pod.snaptwojmax>0)
-//     this->snapdesc(eatom4, fatom4, y, tmpmem, atomtype, alist,
+//     snapdesc(eatom4, fatom4, y, tmpmem, atomtype, alist,
 //         pairlist, pairnumsum, tmpint, natom, Nij);
 
   double *rij = &tmpmem[0]; // 3*Nij
@@ -851,17 +839,17 @@ void CPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tmp
   int *aj = &tmpint[Nij];   // Nij
   int *ti = &tmpint[2*Nij]; // Nij
   int *tj = &tmpint[3*Nij]; // Nij
-  this->podNeighPairs(rij, y, ai, aj, ti, tj, pairlist, pairnumsum, atomtype,
+  podNeighPairs(rij, y, ai, aj, ti, tj, pairlist, pairnumsum, atomtype,
         alist, natom, dim);
 
   // peratom descriptors for one-body, two-body, and three-body linear potentials
 
-  this->poddesc(eatom1, fatom1, eatom2, fatom2, eatom3, fatom3, rij, Phi2, besselparams,
+  poddesc(eatom1, fatom1, eatom2, fatom2, eatom3, fatom3, rij, Phi2, besselparams,
       &tmpmem[3*Nij], rin, rcut, pairnumsum, atomtype, ai, aj, ti, tj, elemindex, pdegree2,
       nbesselpars, nrbf2, nrbf3, nabf3, nelements, Nij, natom);
 
   if (pod.snaptwojmax>0)
-    this->snapdesc(eatom4, fatom4, rij, &tmpmem[3*Nij], atomtype, ai, aj, ti, tj, natom, Nij);
+    snapdesc(eatom4, fatom4, rij, &tmpmem[3*Nij], atomtype, ai, aj, ti, tj, natom, Nij);
 
   // global descriptors for one-body, two-body, three-body, and four-bodt linear potentials
 
@@ -1154,39 +1142,39 @@ double CPOD::calculate_energyforce(double *force, double *gd, double *gdd, doubl
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) energy += this->quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22>0) energy += quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) energy += this->quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23>0) energy += quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) energy += this->quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24>0) energy += quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) energy += this->quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33>0) energy += quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) energy += this->quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34>0) energy += quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) energy += this->quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44>0) energy += quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) energy += this->cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234>0) energy += cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) energy += this->cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333>0) energy += cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) energy += this->cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444>0) energy += cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -1211,13 +1199,13 @@ double CPOD::energyforce_calculation(double *force, double *gd, double *gdd, dou
 
   // calculate POD and SNAP descriptors and their derivatives
 
-  this->linear_descriptors(gd, gdd, y, tmpmem, atomtype, alist,
+  linear_descriptors(gd, gdd, y, tmpmem, atomtype, alist,
       pairlist, pairnum, pairnumsum, tmpint, natom, Nij);
 
   // calculate energy and force
 
   double energy = 0.0;
-  energy = this->calculate_energyforce(force, gd, gdd, coeff, &gdd[dim*natom*nd1234], natom);
+  energy = calculate_energyforce(force, gd, gdd, coeff, &gdd[dim*natom*nd1234], natom);
 
   return energy;
 }
@@ -1472,21 +1460,21 @@ void CPOD::poddesc(double *eatom1, double *fatom1, double *eatom2, double *fatom
 
   // orthogonal radial basis functions
 
-  this->podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
-  this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
-  this->podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
+  podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
+  podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
+  podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
 
   // one-body descriptors
 
-  this->pod1body(eatom1, fatom1, atomtype, nelements, natom);
+  pod1body(eatom1, fatom1, atomtype, nelements, natom);
 
   // two-body descriptors
 
-  this->podtally2b(eatom2, fatom2, e2ij, f2ij, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+  podtally2b(eatom2, fatom2, e2ij, f2ij, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
 
   // three-body descriptors
 
-  this->pod3body(eatom3, fatom3, rij, e2ij, f2ij, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum,
+  pod3body(eatom3, fatom3, rij, e2ij, f2ij, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum,
        ai, aj, ti, tj, nrbf3, nabf, nelements, natom, Nij);
 }
 
@@ -1767,7 +1755,7 @@ void CPOD::InitSnap()
   for (int ielem = 0; ielem < ntypes; ielem++)
   rcutmax = PODMAX(2.0*elemradius[ielem]*rcutfac,rcutmax);
 
-  this->snapSetup(twojmax, ntypes);
+  snapSetup(twojmax, ntypes);
   TemplateCopytoDevice(&sna.radelem[1], elemradius, ntypes, backend);
   TemplateCopytoDevice(&sna.wjelem[1], elemweight, ntypes, backend);
   podArrayFill(&sna.map[1], (int) 0, ntypes);
@@ -2756,18 +2744,18 @@ void CPOD::poddesc_ij(double *eatom1, double *eatom2, double *eatom3, double *ri
 
   // orthogonal radial basis functions
 
-  this->podradialbasis(e2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
-  this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
+  podradialbasis(e2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
+  podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
 
   // one-body descriptors
 
-  this->pod1body(eatom1, atomtype, nelements, natom);
+  pod1body(eatom1, atomtype, nelements, natom);
 
-  this->podtally2b(eatom2, e2ij, idxi, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+  podtally2b(eatom2, e2ij, idxi, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
 
   // three-body descriptors
 
-  this->pod3body(eatom3, rij, e2ij, &tmpmem[Nij*nrbf], elemindex, pairnumsum,
+  pod3body(eatom3, rij, e2ij, &tmpmem[Nij*nrbf], elemindex, pairnumsum,
        idxi, ti, tj, nrbf3, nabf, nelements, natom, Nij);
 
 }
@@ -2921,18 +2909,18 @@ void CPOD::snapdesc_ij(double *blist, double *rij, double *tmpmem, int *atomtype
   ne += idxu_max*nelements*natom;
   double *Utoti = &tmpmem[ne];
 
-  this->snapComputeUij(Ur, Ui, rootpqarray, rij, wjelem, radelem, rmin0,
+  snapComputeUij(Ur, Ui, rootpqarray, rij, wjelem, radelem, rmin0,
      rfac0, rcutfac, idxu_block, ti, tj, twojmax, idxu_max, Nij, switchflag);
 
-  this->snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
+  snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
       chemflag, idxu_max, nelem, twojmax, natom);
 
-  this->snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
+  snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
 
-  this->snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
+  snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
       idxcg_block, twojmax, idxu_max, idxz_max, nelem, bnormflag, natom);
 
-  this->snapComputeBi1(blist, Zr, Zi, Utotr, Utoti, idxb, idxu_block, idxz_block, twojmax, idxb_max,
+  snapComputeBi1(blist, Zr, Zi, Utotr, Utoti, idxb, idxu_block, idxz_block, twojmax, idxb_max,
       idxu_max, idxz_max, nelem, natom);
 }
 
@@ -2965,14 +2953,14 @@ void CPOD::linear_descriptors_ij(double *gd, double *eatom, double *rij, double 
 
   // peratom descriptors for one-body, two-body, and three-body linear potentials
 
-  this->poddesc_ij(eatom1, eatom2, eatom3, rij, Phi2, besselparams,
+  poddesc_ij(eatom1, eatom2, eatom3, rij, Phi2, besselparams,
       tmpmem, rin, rcut, pairnumsum, atomtype, idxi, ti, tj, elemindex, pdegree2,
       nbesselpars, nrbf2, nrbf3, nabf3, nelements, Nij, natom);
 
   // peratom snap descriptors
 
   if (pod.snaptwojmax>0)
-    this->snapdesc_ij(eatom4, rij, tmpmem, atomtype, idxi, ti, tj, natom, Nij);
+    snapdesc_ij(eatom4, rij, tmpmem, atomtype, idxi, ti, tj, natom, Nij);
 
   // global descriptors for one-body, two-body, three-body, and four-bodt linear potentials
 
@@ -3038,39 +3026,39 @@ double CPOD::calculate_energy(double *effectivecoeff, double *gd, double *coeff)
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) energy += this->quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22>0) energy += quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) energy += this->quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23>0) energy += quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) energy += this->quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24>0) energy += quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) energy += this->quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33>0) energy += quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) energy += this->quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34>0) energy += quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) energy += this->quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44>0) energy += quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) energy += this->cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234>0) energy += cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) energy += this->cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333>0) energy += cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) energy += this->cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444>0) energy += cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -3138,39 +3126,39 @@ double CPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *g
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) energy += this->quadratic_coefficients(ce2, c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22>0) energy += quadratic_coefficients(ce2, c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) energy += this->quadratic_coefficients(ce2, ce3, c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23>0) energy += quadratic_coefficients(ce2, ce3, c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) energy += this->quadratic_coefficients(ce2, ce4, c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24>0) energy += quadratic_coefficients(ce2, ce4, c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) energy += this->quadratic_coefficients(ce3, c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33>0) energy += quadratic_coefficients(ce3, c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) energy += this->quadratic_coefficients(ce3, ce4, c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34>0) energy += quadratic_coefficients(ce3, ce4, c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) energy += this->quadratic_coefficients(ce4, c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44>0) energy += quadratic_coefficients(ce4, c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) energy += this->cubic_coefficients(ce2, ce3, ce4, c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234>0) energy += cubic_coefficients(ce2, ce3, ce4, c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) energy += this->cubic_coefficients(ce3, c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333>0) energy += cubic_coefficients(ce3, c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) energy += this->cubic_coefficients(ce4, c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444>0) energy += cubic_coefficients(ce4, c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -3426,21 +3414,21 @@ void CPOD::pod4body_force(double *force, double *rij, double *coeff4, double *tm
   ne += idxu_max*nelements*natom;
   double *Utoti = &tmpmem[ne];
 
-  this->snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
+  snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
      rfac0, rcutfac, idxu_block, ti, tj, twojmax, idxu_max, Nij, switchflag);
 
-  this->snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
+  snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
       chemflag, idxu_max, nelem, twojmax, natom);
 
-  this->snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
+  snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
 
-  this->snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
+  snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
       idxcg_block, twojmax, idxu_max, idxz_max, nelem, bnormflag, natom);
 
-  this->snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
+  snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
       twojmax, idxb_max, idxu_max, idxz_max, nelements, bnormflag, chemflag, natom, Nij);
 
-  this->snapTallyForce(force, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
+  snapTallyForce(force, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
 }
 
 void CPOD::calculate_force(double *force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,
@@ -3476,17 +3464,17 @@ void CPOD::calculate_force(double *force, double *effectivecoeff, double *rij, d
 
   // orthogonal radial basis functions
 
-  this->podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
-  this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
-  this->podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
+  podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
+  podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
+  podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
 
-  this->pod2body_force(force, f2ij, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+  pod2body_force(force, f2ij, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
 
-  this->pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
+  pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
       ti, tj, nrbf3, nabf3, nelements, natom, Nij);
 
   if (pod.snaptwojmax>0)
-    this->pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
+    pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
 }
 
 double CPOD::energyforce_calculation(double *force, double *podcoeff, double *effectivecoeff, double *gd, double *rij,
@@ -3496,15 +3484,15 @@ double CPOD::energyforce_calculation(double *force, double *podcoeff, double *ef
   double *eatom = &tmpmem[0];
 
   podArraySetValue(gd, 0.0, nd1234);
-  this->linear_descriptors_ij(gd, eatom, rij, &tmpmem[natom*nd1234], pairnumsum, atomtype, idxi, ti, tj, natom, Nij);
+  linear_descriptors_ij(gd, eatom, rij, &tmpmem[natom*nd1234], pairnumsum, atomtype, idxi, ti, tj, natom, Nij);
 
   // Need to do MPI_Allreduce on gd for paralell
 
-  double energy = this->calculate_energy(effectivecoeff, gd, podcoeff);
+  double energy = calculate_energy(effectivecoeff, gd, podcoeff);
 
   podArraySetValue(force, 0.0, 3*natom);
 
-  this->calculate_force(force, effectivecoeff, rij, tmpmem, pairnumsum, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
+  calculate_force(force, effectivecoeff, rij, tmpmem, pairnumsum, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
 
   return energy;
 }
@@ -3770,21 +3758,21 @@ void CPOD::pod4body_force(double **force, double *rij, double *coeff4, double *t
     ne += idxu_max*nelements*natom;
     double *Utoti = &tmpmem[ne];
 
-    this->snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
+    snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
          rfac0, rcutfac, idxu_block, ti, tj, twojmax, idxu_max, Nij, switchflag);
 
-    this->snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
+    snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
             chemflag, idxu_max, nelem, twojmax, natom);
 
-    this->snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
+    snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
 
-    this->snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
+    snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
           idxcg_block, twojmax, idxu_max, idxz_max, nelem, bnormflag, natom);
 
-    this->snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
+    snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
             twojmax, idxb_max, idxu_max, idxz_max, nelements, bnormflag, chemflag, natom, Nij);
 
-    this->snapTallyForce(force, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
+    snapTallyForce(force, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
 }
 
 void CPOD::calculate_force(double **force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,
@@ -3818,15 +3806,15 @@ void CPOD::calculate_force(double **force, double *effectivecoeff, double *rij, 
     double *f2ijt = &tmpmem[4*Nij*nrbf+Nij*ns]; // dim*Nij*ns
 
     // orthogonal radial basis functions
-    this->podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
-    this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
-    this->podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
+    podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
+    podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
+    podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
 
-    this->pod2body_force(force, f2ij, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+    pod2body_force(force, f2ij, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
 
-    this->pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
+    pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
             ti, tj, nrbf3, nabf3, nelements, natom, Nij);
 
     if (pod.snaptwojmax>0)
-        this->pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
+        pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
 }

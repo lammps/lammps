@@ -199,7 +199,7 @@ public:
   
   void print_analysis(datastruct data, double *outarray, double *errors);
   
-  void error_analsysis(datastruct data, double *coeff);
+  void error_analysis(datastruct data, double *coeff);
   
   double energyforce_calculation(double *force, double *coeff, datastruct data, int ci);
   

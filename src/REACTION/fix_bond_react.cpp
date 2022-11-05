@@ -3107,7 +3107,7 @@ void FixBondReact::update_everything()
       }
     }
 
-    // update charges and types of landlocked atoms
+    // get charge rescale delta
     double charge_rescale_addend = 0;
     if (rescale_charges_flag[rxnID] == 1) {
       double sim_total_charge = 0;
@@ -4437,24 +4437,28 @@ void FixBondReact::write_restart(FILE *fp)
 {
   set[0].nreacts = nreacts;
   set[0].max_rate_limit_steps = max_rate_limit_steps;
+
+  if (set[0].max_rate_limit_steps > 0)
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
     strncpy(set[i].rxn_name,rxn_name[i],MAXLINE-1);
     set[i].rxn_name[MAXLINE-1] = '\0';
   }
 
-  int *rbuf;
   int rbufcount = max_rate_limit_steps*nreacts;
-  memory->create(rbuf,rbufcount,"bond/react:rbuf");
-  memcpy(rbuf,&store_rxn_count[0][0],sizeof(int)*rbufcount);
+  int *rbuf;
+  if (rbufcount) {
+    memory->create(rbuf,rbufcount,"bond/react:rbuf");
+    memcpy(rbuf,&store_rxn_count[0][0],sizeof(int)*rbufcount);
+  }
 
   if (me == 0) {
     int size = nreacts*sizeof(Set)+rbufcount*sizeof(int);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(set,sizeof(Set),nreacts,fp);
-    fwrite(rbuf,sizeof(int),rbufcount,fp);
+    if (rbufcount) fwrite(rbuf,sizeof(int),rbufcount,fp);
   }
-  memory->destroy(rbuf);
+  if (rbufcount) memory->destroy(rbuf);
 }
 
 /* ----------------------------------------------------------------------

@@ -395,85 +395,120 @@ void CPOD::read_pod(std::string pod_file)
   pod.besselparams[1] = 2.0;
   pod.besselparams[2] = 4.0;
 
-  std::ifstream file_in(pod_file);
-  if (!file_in) {error->all(FLERR,"Error: POD input file is not found");}
+  std::string podfilename = pod_file;
+  FILE *fppod;
+  if (comm->me == 0){
 
-  std::string line;
-  while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines
-  {
-    if (line != "") {
-      std::string s;
-      double d;
+    fppod = utils::open_potential(podfilename,lmp,nullptr);
+    if (fppod == nullptr)
+      error->one(FLERR,"Cannot open POD coefficient file {}: ",
+                                   podfilename, utils::getsyserror());
+  }
 
-      std::istringstream ss_line(line);
-      ss_line >> s;
-      if (s == "species") {
-        std::string element;
-        while(ss_line >> element){
-          pod.species.push_back(element);
-          pod.nelements += 1;
-        }
-      }
+  // loop through lines of POD file and parse keywords
 
-      if (s == "pbc") {
-        int i, j = 0;
-        while(ss_line >> i) {
-          pod.pbc[j++] = i;
-        }
-      }
-
-      if ((s != "#") && (s != "species") && (s != "pbc")) {
-        ss_line >> d;
-
-        if (s == "rin") pod.rin = d;
-        if (s == "rcut") pod.rcut = d;
-        if (s == "bessel_scaling_parameter1") pod.besselparams[0] = d;
-        if (s == "bessel_scaling_parameter2") pod.besselparams[1] = d;
-        if (s == "bessel_scaling_parameter3") pod.besselparams[2] = d;
-        if (s == "bessel_polynomial_degree") pod.besseldegree = (int) d;
-        if (s == "inverse_polynomial_degree") pod.inversedegree = (int) d;
-        if (s == "onebody") pod.onebody = (int) d;
-        if (s == "twobody_bessel_polynomial_degree") pod.twobody[0] = (int) d;
-        if (s == "twobody_inverse_polynomial_degree") pod.twobody[1] = (int) d;
-        if (s == "twobody_number_radial_basis_functions") pod.twobody[2] = (int) d;
-        if (s == "threebody_bessel_polynomial_degree") pod.threebody[0] = (int) d;
-        if (s == "threebody_inverse_polynomial_degree") pod.threebody[1] = (int) d;
-        if (s == "threebody_number_radial_basis_functions") pod.threebody[2] = (int) d;
-        if (s == "threebody_number_angular_basis_functions") pod.threebody[3] = (int) (d-1);
-        if (s == "fourbody_bessel_polynomial_degree") pod.fourbody[0] = (int) d;
-        if (s == "fourbody_inverse_polynomial_degree") pod.fourbody[1] = (int) d;
-        if (s == "fourbody_number_radial_basis_functions") pod.fourbody[2] = (int) d;
-        if (s == "fourbody_snap_twojmax") pod.snaptwojmax = (int) d;
-        if (s == "fourbody_snap_chemflag") pod.snapchemflag = (int) d;
-        if (s == "fourbody_snap_rfac0") pod.snaprfac0 = d;
-        if (s == "fourbody_snap_neighbor_weight1") pod.snapelementweight[0] = d;
-        if (s == "fourbody_snap_neighbor_weight2") pod.snapelementweight[1] = d;
-        if (s == "fourbody_snap_neighbor_weight3") pod.snapelementweight[2] = d;
-        if (s == "fourbody_snap_neighbor_weight4") pod.snapelementweight[3] = d;
-        if (s == "fourbody_snap_neighbor_weight5") pod.snapelementweight[4] = d;
-        //if (s == "fourbody_number_spherical_harmonic_basis_functions") pod.fourbody[3] = (int) d;
-        if (s == "quadratic_pod_potential") pod.quadraticpod = (int) d;
-        if (s == "quadratic22_number_twobody_basis_functions") pod.quadratic22[0] = (int) d;
-        if (s == "quadratic22_number_twobody_basis_functions") pod.quadratic22[1] = (int) d;
-        if (s == "quadratic23_number_twobody_basis_functions") pod.quadratic23[0] = (int) d;
-        if (s == "quadratic23_number_threebody_basis_functions") pod.quadratic23[1] = (int) d;
-        if (s == "quadratic24_number_twobody_basis_functions") pod.quadratic24[0] = (int) d;
-        if (s == "quadratic24_number_fourbody_basis_functions") pod.quadratic24[1] = (int) d;
-        if (s == "quadratic33_number_threebody_basis_functions") pod.quadratic33[0] = (int) d;
-        if (s == "quadratic33_number_threebody_basis_functions") pod.quadratic33[1] = (int) d;
-        if (s == "quadratic34_number_threebody_basis_functions") pod.quadratic34[0] = (int) d;
-        if (s == "quadratic34_number_fourbody_basis_functions") pod.quadratic34[1] = (int) d;
-        if (s == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[0] = (int) d;
-        if (s == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[1] = (int) d;
-        if (s == "cubic234_number_twobody_basis_functions") pod.cubic234[0] = (int) d;
-        if (s == "cubic234_number_threebody_basis_functions") pod.cubic234[1] = (int) d;
-        if (s == "cubic234_number_fourbody_basis_functions") pod.cubic234[2] = (int) d;
-        if (s == "cubic333_number_threebody_basis_functions") pod.cubic333[0] = (int) d;
-        if (s == "cubic444_number_fourbody_basis_functions") pod.cubic444[0] = (int) d;
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+  int nwords = 0;
+  while (true) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fppod);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fppod);
       }
     }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    // words = ptrs to all words in line
+    // strip single and double quotes from words
+
+    std::vector<std::string> words;
+    try {
+      words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
+    } catch (TokenizerException &) {
+      // ignore
+    }
+
+    if (words.size() == 0) continue;
+
+    std::cout << words[0] << std::endl;
+
+    auto keywd = words[0];
+
+    if (keywd == "species") {
+
+        pod.nelements = words.size()-1;
+        for (int ielem = 1; ielem <= pod.nelements; ielem++){
+          pod.species.push_back(words[ielem]);
+        }
+
+    }
+
+    if (keywd == "pbc"){
+      if (words.size() != 4)
+        error->one(FLERR,"Improper POD file.", utils::getsyserror());
+      pod.pbc[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      pod.pbc[1] = utils::inumeric(FLERR,words[2],false,lmp);
+      pod.pbc[2] = utils::inumeric(FLERR,words[3],false,lmp);
+    }
+
+    if ((keywd != "#") && (keywd != "species") && (keywd != "pbc")) {
+
+      if (words.size() != 2)
+        error->one(FLERR,"Improper POD file.", utils::getsyserror());
+
+      if (keywd == "rin") pod.rin = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "rcut") pod.rcut = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_scaling_parameter1") pod.besselparams[0] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_scaling_parameter2") pod.besselparams[1] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_scaling_parameter3") pod.besselparams[2] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_polynomial_degree") pod.besseldegree = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "inverse_polynomial_degree") pod.inversedegree = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "onebody") pod.onebody = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "twobody_bessel_polynomial_degree") pod.twobody[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "twobody_inverse_polynomial_degree") pod.twobody[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "twobody_number_radial_basis_functions") pod.twobody[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_bessel_polynomial_degree") pod.threebody[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_inverse_polynomial_degree") pod.threebody[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_number_radial_basis_functions") pod.threebody[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_number_angular_basis_functions") pod.threebody[3] = utils::inumeric(FLERR,words[1],false,lmp)-1;
+      if (keywd == "fourbody_bessel_polynomial_degree") pod.fourbody[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_inverse_polynomial_degree") pod.fourbody[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_number_radial_basis_functions") pod.fourbody[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_twojmax") pod.snaptwojmax = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_chemflag") pod.snapchemflag = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_rfac0") pod.snaprfac0 = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight1") pod.snapelementweight[0] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight2") pod.snapelementweight[1] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight3") pod.snapelementweight[2] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight4") pod.snapelementweight[3] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight5") pod.snapelementweight[4] = utils::numeric(FLERR,words[1],false,lmp);
+      //if (keywd == "fourbody_number_spherical_harmonic_basis_functions") pod.fourbody[3] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic_pod_potential") pod.quadraticpod = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic22_number_twobody_basis_functions") pod.quadratic22[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic22_number_twobody_basis_functions") pod.quadratic22[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic23_number_twobody_basis_functions") pod.quadratic23[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic23_number_threebody_basis_functions") pod.quadratic23[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic24_number_twobody_basis_functions") pod.quadratic24[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic24_number_fourbody_basis_functions") pod.quadratic24[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic33_number_threebody_basis_functions") pod.quadratic33[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic33_number_threebody_basis_functions") pod.quadratic33[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic34_number_threebody_basis_functions") pod.quadratic34[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic34_number_fourbody_basis_functions") pod.quadratic34[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic234_number_twobody_basis_functions") pod.cubic234[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic234_number_threebody_basis_functions") pod.cubic234[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic234_number_fourbody_basis_functions") pod.cubic234[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic333_number_threebody_basis_functions") pod.cubic333[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic444_number_fourbody_basis_functions") pod.cubic444[0] = utils::inumeric(FLERR,words[1],false,lmp);
+
+    }
+
   }
-  file_in.close();
 
   pod.twobody[0] = pod.besseldegree;
   pod.twobody[1] = pod.inversedegree;
@@ -685,7 +720,7 @@ void CPOD::read_coeff_file(std::string coeff_file)
 
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == nullptr)
-      error->one(FLERR,"Cannot open SNAP coefficient file {}: ",
+      error->one(FLERR,"Cannot open POD coefficient file {}: ",
                                    coefffilename, utils::getsyserror());
   }
 
@@ -725,7 +760,7 @@ void CPOD::read_coeff_file(std::string coeff_file)
     tmp_str = words.next_string();
     ncoeffall = words.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,"Incorrect format in SNAP coefficient file: {}", e.what());
+    error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
   }
 
   printf("ncoeffall: %d\n", ncoeffall);
@@ -745,19 +780,19 @@ void CPOD::read_coeff_file(std::string coeff_file)
 
     MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof)
-      error->all(FLERR,"Incorrect format in SNAP coefficient file");
+      error->all(FLERR,"Incorrect format in POD coefficient file");
     MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
     try {
       ValueTokenizer coeff(utils::trim_comment(line));
       if (coeff.count() != 1)
-        error->all(FLERR,"Incorrect format in SNAP coefficient file");
+        error->all(FLERR,"Incorrect format in POD coefficient file");
 
       //coeffelem[jelem][icoeff] = coeff.next_double();
       //printf("%f\n", coeff.next_double());
       pod.coeff[icoeff] = coeff.next_double();
     } catch (TokenizerException &e) {
-      error->all(FLERR,"Incorrect format in SNAP coefficient file: {}", e.what());
+      error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
     }
   }
 

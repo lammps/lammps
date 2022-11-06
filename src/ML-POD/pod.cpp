@@ -734,7 +734,6 @@ void CPOD::read_coeff_file(std::string coeff_file)
     // strip comment, skip line if blank
 
     nwords = utils::count_words(utils::trim_comment(line));
-    printf("nwords: %d\n", nwords);
   }
 
   if (nwords != 2)

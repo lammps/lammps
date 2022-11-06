@@ -94,7 +94,7 @@ void CPODFIT::init()
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
   if (modify->get_compute_by_style("podfit").size() > 1 && comm->me == 0)
-  error->warning(FLERR,"More than one compute podfit");
+    error->warning(FLERR,"More than one compute podfit");
   
 //   memory->create(coeff, podptr->pod.nd, podptr->pod.nelements+1, "podfit:coeff");
 //   for (int i=0; i<podptr->pod.nd; i++)
@@ -313,23 +313,58 @@ void CPODFIT::get_exyz_files(std::vector<std::string>& files, std::string datapa
 
 int CPODFIT::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)  
 {
-  std::ifstream datafile(file);
-  if (!datafile) {/*error*/}  
-         
-  std::string line; 
+  std::string filename = file;
+  FILE *fp;
+  if (comm->me == 0){
+
+    fp = utils::open_potential(filename,lmp,nullptr);
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open POD coefficient file {}: ",
+                                   filename, utils::getsyserror());
+  }
+
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+  int nwords = 0;
   int num_configs = 0;
   num_atom_sum = 0;
-  while (std::getline(datafile, line)) // Read next line to `line`, stop if no more lines.
-  {
-    int d;
-    if (is_a_number(line)) {      
-      d = std::stoi(line);
-      num_atom.push_back(d);                    
+
+  // loop over all lines of this xyz file and extract number of atoms and number of configs
+
+  while (true) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fp);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fp);
+      }
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    // words = ptrs to all words in line
+    // strip single and double quotes from words
+
+    std::vector<std::string> words;
+    try {
+      words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
+    } catch (TokenizerException &) {
+      // ignore
+    }
+
+    if (words.size() == 0) continue;
+
+    int natom;
+    if (words.size() == 1){
+
+      natom = utils::inumeric(FLERR,words[0],false,lmp);
+      num_atom.push_back(natom);                    
       num_configs += 1;
-      num_atom_sum += d;
-    }    
-  }  
-  datafile.close();
+      num_atom_sum += natom;
+    }
+
+  }
   
   return num_configs;
 }
@@ -355,76 +390,147 @@ int CPODFIT::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_
 void CPODFIT::read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces, 
     int *atomtype, std::string file, std::vector<std::string> species)  
 {
-  std::ifstream datafile(file);
-  if (!datafile) {/*error*/}  
-         
-  std::string substr1 = "nergy";
-  //std::string substr2 = "ttice";
-  std::string substr3 = "tress";
-    
+
+  std::string filename = file;
+  FILE *fp;
+  if (comm->me == 0){
+
+    fp = utils::open_potential(filename,lmp,nullptr);
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open POD coefficient file {}: ",
+                                   filename, utils::getsyserror());
+  }
+
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+  int nwords = 0;
+
   int cfi = 0, nat=0, k = 0, ns = species.size();
   double d; 
-  
-  std::string line;       
-  while (std::getline(datafile, line)) // Read next line to `line`, stop if no more lines.
-  {
-    if (line.substr(1,6) == "attice") {
-      int index1 = line.find(substr1);
-      //int index2 = line.find(substr2);
-      int index3 = line.find(substr3);
-                  
-      if (line.substr(index1,6) == "nergy=") {    
-        std::string s1 = line.substr(index1+6,-1);
-        int ind = s1.find(" ");
-        energy[cfi] = stod(line.substr(index1+6,ind));
+
+  // loop over all lines of this xyz file and extract training data
+
+  while (true) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fp);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fp);
       }
-      
-      //std::cout<<line<<std::endl;
-      if (line.substr(1,6) == "attice") {    
-        //std::string s1 = line.substr(0,-1);
-        int ind1 = line.find("\"");
-        int ind2 = line.find("\"",ind1+1);
-        std::istringstream ss(line.substr(ind1+1,ind2-ind1));  
-        //std::cout<<line.substr(ind1+1,ind2-ind1-1)<<std::endl;
-        k = 0;
-        while(ss >> d){      
-          lattice[k + 9*cfi] = d;
-          k += 1;
-        }        
-      }
-      
-      if (line.substr(index3,6) == "tress=") {    
-        std::string s1 = line.substr(index3+7,-1);
-        int ind = s1.find("\"");
-        std::istringstream ss(line.substr(index3+7,ind));  
-        k = 0;
-        while(ss >> d){      
-          stress[k + 9*cfi] = d;
-          k += 1;
-        }        
-      }
-            
-      cfi += 1;      
     }
-    else if (!is_a_number(line)) {      
-      std::string s0;
-      std::istringstream ss(line);            
-      ss >> s0;
-          
-      for (int ii=0; ii<ns; ii++)
-        if (species[ii] == s0)
-          atomtype[nat] = ii+1;
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    // words = ptrs to all words in line
+    // strip single and double quotes from words
+
+    std::vector<std::string> words;
+    try {
+      words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
+    } catch (TokenizerException &) {
+      // ignore
+    }
+
+    if (words.size() == 0) continue;
+
+    ValueTokenizer text(utils::trim_comment(line),"\"' \t\n\r\f");
+    if (text.contains("attice")){
+
+      // find the word containing "lattice"
+
+      auto it = std::find_if(words.begin(), words.end(), [](const std::string& str) { return str.find("attice") != std::string::npos; });
+
+      // get index of element from iterator
+
+      int index = std::distance(words.begin(), it);
+
+      if (words[index].find("=") != std::string::npos) {
+
+        // lattice numbers start at index + 1
+
+        for (int k = 0; k < 9; k++){
+          lattice[k + 9*cfi] = utils::numeric(FLERR,words[index+1+k],false,lmp);
+        }
+      }
+      else{
+
+        // lattice numbers start at index + 2
+
+        for (int k = 0; k < 9; k++){
+          lattice[k + 9*cfi] = utils::numeric(FLERR,words[index+2+k],false,lmp);
+        }
+      }
+
+      // find the word containing "energy"
+
+      it = std::find_if(words.begin(), words.end(), [](const std::string& str) { return str.find("nergy") != std::string::npos; });
+
+      // get index of element from iterator
+
+      index = std::distance(words.begin(), it);
+
+      if (words[index].find("=") != std::string::npos) {
+
+        // energy is after "=" inside this string
+
+        std::size_t found = words[index].find("=");
+        energy[cfi] = utils::numeric(FLERR,words[index].substr(found+1),false,lmp);
+      }
+      else{
+
+        // energy is at index + 2
+
+        energy[cfi] = utils::numeric(FLERR,words[index+2],false,lmp);
+
+      }
+
+      // find the word containing "stress"
+
+      it = std::find_if(words.begin(), words.end(), [](const std::string& str) { return str.find("tress") != std::string::npos; });
+
+      // get index of element from iterator
+
+      index = std::distance(words.begin(), it);
+
+      if (words[index].find("=") != std::string::npos) {
+
+        // lattice numbers start at index + 1
+
+        for (int k = 0; k < 9; k++){
+          stress[k + 9*cfi] = utils::numeric(FLERR,words[index+1+k],false,lmp);
+        }
+      }
+      else{
+
+        // lattice numbers start at index + 2
         
-      k = 0;
-      while(ss >> d){      
-        if (k <=2 ) pos[k + 3*nat] = d;
-        if (k > 2 ) forces[k-3 + 3*nat] = d;
-        k += 1;
-      }      
-      nat += 1;       
-    }        
-  }  
-  datafile.close();  
+        for (int k = 0; k < 9; k++){
+          stress[k + 9*cfi] = utils::numeric(FLERR,words[index+2+k],false,lmp);
+        }
+      }
+
+      cfi += 1;
+
+    }
+
+    // loop over atoms
+
+    else if (words.size() > 1){
+
+      for (int ii = 0; ii < ns; ii++)
+        if (species[ii] == words[0])
+          atomtype[nat] = ii+1;
+
+      for (int k = 0; k < 6; k++){
+        if (k <= 2) pos[k + 3*nat] = utils::numeric(FLERR,words[1+k],false,lmp);
+        if (k > 2 ) forces[k-3 + 3*nat] = utils::numeric(FLERR,words[1+k],false,lmp);
+      }
+
+      nat += 1;
+    }
+  }
+ 
 }
 
 void CPODFIT::get_data(datastruct &data, std::vector<std::string> species)

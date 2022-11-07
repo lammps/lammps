@@ -33,6 +33,8 @@ jobs:
       run: |
         python3 -m pip install numpy
         python3 -m pip install pyyaml
+        nuget install MSMPIsdk
+        nuget install MSMPIDIST
         cmake -C cmake/presets/windows.cmake \
               -D PKG_PYTHON=on \
               -S cmake -B build \

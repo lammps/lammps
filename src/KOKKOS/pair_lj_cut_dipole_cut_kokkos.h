@@ -112,9 +112,9 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
-  //NeighListKokkos<DeviceType> k_list;
 
   void allocate() override;
+/*
   friend struct PairComputeFunctor<PairLJCutDipoleCutKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairLJCutDipoleCutKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJCutDipoleCutKokkos,HALFTHREAD,true>;
@@ -124,10 +124,9 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
   friend EV_FLOAT pair_compute_neighlist<PairLJCutDipoleCutKokkos,FULL,void>(PairLJCutDipoleCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutDipoleCutKokkos,HALF,void>(PairLJCutDipoleCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutDipoleCutKokkos,HALFTHREAD,void>(PairLJCutDipoleCutKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairLJCutDipoleCutKokkos,void>(PairLJCutDipoleCutKokkos*,
-                                                            NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairLJCutDipoleCutKokkos,void>(PairLJCutDipoleCutKokkos*,NeighListKokkos<DeviceType>*);
+*/  
   friend void pair_virial_fdotr_compute<PairLJCutDipoleCutKokkos>(PairLJCutDipoleCutKokkos*);
-
 };
 
 }

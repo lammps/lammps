@@ -650,54 +650,32 @@ void CPOD::read_pod(std::string pod_file)
     }
 
   if (comm->me == 0) {
-  std::cout<<"**************** Begin of POD Potentials ****************"<<std::endl;
-  std::cout<<"species: ";
-  for (int i=0; i<pod.nelements; i++)
-    utils::logmesg(lmp, "{} ", pod.species[i]);
-  utils::logmesg(lmp, "\n");
-  utils::logmesg(lmp, "periodic boundary conditions: {} {} {}\n", pod.pbc[0], pod.pbc[1], pod.pbc[2]);
-  utils::logmesg(lmp, "inner cut-off radius: {}\n", pod.rin);
-  utils::logmesg(lmp, "outer cut-off radius: {}\n", pod.rcut);
-  //std::cout<<"bessel parameters: "<<pod.besselparams[0]<<"  "<<pod.besselparams[1]<<"  "<<pod.besselparams[2]<<std::endl;
-  utils::logmesg(lmp, "bessel polynomial degree: {}\n", pod.besseldegree);
-  utils::logmesg(lmp, "inverse polynomial degree: {}\n", pod.inversedegree);
-  utils::logmesg(lmp, "one-body potential: {}\n", pod.onebody);
-  utils::logmesg(lmp, "two-body potential: {} {} {}\n", pod.twobody[0], pod.twobody[1], pod.twobody[2]);
-  utils::logmesg(lmp, "three-body potential: {} {} {} {}\n", pod.threebody[0], pod.threebody[1], pod.threebody[2], pod.threebody[3]+1);
-  utils::logmesg(lmp, "four-body SNAP potential: {} {}\n", pod.snaptwojmax, pod.snapchemflag);
-  utils::logmesg(lmp, "quadratic POD potential: {}\n", pod.quadraticpod);
-//   std::cout<<"three-body quadratic22 potential: "<<pod.quadratic22[0]<<"  "<<pod.quadratic22[1]<<std::endl;
-//   std::cout<<"four-body quadratic23 potential: "<<pod.quadratic23[0]<<"  "<<pod.quadratic23[1]<<std::endl;
-//   std::cout<<"five-body quadratic24 potential: "<<pod.quadratic24[0]<<"  "<<pod.quadratic24[1]<<std::endl;
-//   std::cout<<"five-body quadratic33 potential: "<<pod.quadratic33[0]<<"  "<<pod.quadratic33[1]<<std::endl;
-//   std::cout<<"six-body quadratic34 potential: "<<pod.quadratic34[0]<<"  "<<pod.quadratic34[1]<<std::endl;
-//   std::cout<<"seven-body quadratic44 potential: "<<pod.quadratic44[0]<<"  "<<pod.quadratic44[1]<<std::endl;
-//   std::cout<<"seven-body cubic234 potential: "<<pod.cubic234[0]<<"  "<<pod.cubic234[1]<<"  "<<pod.cubic234[2]<<std::endl;
-//   std::cout<<"seven-body cubic333 potential: "<<pod.cubic333[0]<<"  "<<pod.cubic333[1]<<"  "<<pod.cubic333[2]<<std::endl;
-//   std::cout<<"ten-body cubic444 potential: "<<pod.cubic444[0]<<"  "<<pod.cubic444[1]<<"  "<<pod.cubic444[2]<<std::endl;
-//   std::cout<<"number of snapshots for two-body potential: "<<pod.ns2<<std::endl;
-//   std::cout<<"number of snapshots for three-body potential: "<<pod.ns3<<std::endl;
-//   std::cout<<"number of snapshots for four-body potential: "<<pod.ns4<<std::endl;
-  utils::logmesg(lmp, "number of basis functions for one-body potential: {}\n", pod.nbf1);
-  utils::logmesg(lmp, "number of basis functions for two-body potential: {}\n", pod.nbf2);
-  utils::logmesg(lmp, "number of basis functions for three-body potential: {}\n", pod.nbf3);
-  utils::logmesg(lmp, "number of basis functions for four-body potential: {}\n", pod.nbf4);
-  utils::logmesg(lmp, "number of descriptors for one-body potential: {}\n", pod.nd1);
-  utils::logmesg(lmp, "number of descriptors for two-body potential: {}\n", pod.nd2);
-  utils::logmesg(lmp, "number of descriptors for three-body potential: {}\n", pod.nd3);
-  utils::logmesg(lmp, "number of descriptors for four-body potential: {}\n", pod.nd4);
-  utils::logmesg(lmp, "number of descriptors for quadratic POD potential: {}\n", pod.nd23);
-//   std::cout<<"number of descriptors for three-body quadratic22 potential: "<<pod.nd22<<std::endl;
-//   std::cout<<"number of descriptors for four-body quadratic23 potential: "<<pod.nd23<<std::endl;
-//   std::cout<<"number of descriptors for five-body quadratic24 potential: "<<pod.nd24<<std::endl;
-//   std::cout<<"number of descriptors for five-body quadratic33 potential: "<<pod.nd33<<std::endl;
-//   std::cout<<"number of descriptors for six-body quadratic34 potential: "<<pod.nd34<<std::endl;
-//   std::cout<<"number of descriptors for seven-body quadratic44 potential: "<<pod.nd44<<std::endl;
-//   std::cout<<"number of descriptors for seven-body cubic234 potential: "<<pod.nd333<<std::endl;
-//   std::cout<<"number of descriptors for seven-body cubic333 potential: "<<pod.nd234<<std::endl;
-//   std::cout<<"number of descriptors for ten-body cubic444 potential: "<<pod.nd444<<std::endl;
-  std::cout<<"total number of descriptors for all potentials: "<<pod.nd<<std::endl;
-  std::cout<<"**************** End of POD Potentials ****************"<<std::endl<<std::endl;
+    utils::logmesg(lmp, "**************** Begin of POD Potentials ****************\n");
+    utils::logmesg(lmp, "species: ");
+    for (int i=0; i<pod.nelements; i++)
+      utils::logmesg(lmp, "{} ", pod.species[i]);
+    utils::logmesg(lmp, "\n");
+    utils::logmesg(lmp, "periodic boundary conditions: {} {} {}\n", pod.pbc[0], pod.pbc[1], pod.pbc[2]);
+    utils::logmesg(lmp, "inner cut-off radius: {}\n", pod.rin);
+    utils::logmesg(lmp, "outer cut-off radius: {}\n", pod.rcut);
+    utils::logmesg(lmp, "bessel polynomial degree: {}\n", pod.besseldegree);
+    utils::logmesg(lmp, "inverse polynomial degree: {}\n", pod.inversedegree);
+    utils::logmesg(lmp, "one-body potential: {}\n", pod.onebody);
+    utils::logmesg(lmp, "two-body potential: {} {} {}\n", pod.twobody[0], pod.twobody[1], pod.twobody[2]);
+    utils::logmesg(lmp, "three-body potential: {} {} {} {}\n", pod.threebody[0], pod.threebody[1], pod.threebody[2], pod.threebody[3]+1);
+    utils::logmesg(lmp, "four-body SNAP potential: {} {}\n", pod.snaptwojmax, pod.snapchemflag);
+    utils::logmesg(lmp, "quadratic POD potential: {}\n", pod.quadraticpod);
+    utils::logmesg(lmp, "number of basis functions for one-body potential: {}\n", pod.nbf1);
+    utils::logmesg(lmp, "number of basis functions for two-body potential: {}\n", pod.nbf2);
+    utils::logmesg(lmp, "number of basis functions for three-body potential: {}\n", pod.nbf3);
+    utils::logmesg(lmp, "number of basis functions for four-body potential: {}\n", pod.nbf4);
+    utils::logmesg(lmp, "number of descriptors for one-body potential: {}\n", pod.nd1);
+    utils::logmesg(lmp, "number of descriptors for two-body potential: {}\n", pod.nd2);
+    utils::logmesg(lmp, "number of descriptors for three-body potential: {}\n", pod.nd3);
+    utils::logmesg(lmp, "number of descriptors for four-body potential: {}\n", pod.nd4);
+    utils::logmesg(lmp, "number of descriptors for quadratic POD potential: {}\n", pod.nd23);
+    utils::logmesg(lmp, "total number of descriptors for all potentials: {}\n", pod.nd);
+    utils::logmesg(lmp, "**************** End of POD Potentials ****************\n\n");
   }
 }
 
@@ -782,11 +760,6 @@ void CPOD::read_coeff_file(std::string coeff_file)
       error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
     }
   }
-
-//   std::cout<<"**************** Begin of Coefficient File ****************"<<std::endl;
-//   std::cout<<"number of POD coefficients: "<<ncoeff<<std::endl;
-//   print_matrix( "POD coefficient vector:", 1, ncoeff, pod.coeff, 1);
-//   std::cout<<"**************** End of Coefficient File ****************"<<std::endl<<std::endl;
 }
 
 /*********************************************************************************************************/

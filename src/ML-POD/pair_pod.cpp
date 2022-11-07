@@ -170,7 +170,6 @@ void CPairPOD::settings(int narg, char ** /* arg */)
 
 void CPairPOD::coeff(int narg, char **arg)
 {
-  // set default scaling
   int n = atom->ntypes;
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
@@ -181,17 +180,14 @@ void CPairPOD::coeff(int narg, char **arg)
       scale[ii][jj] = 1.0;
   allocated = 1;
 
-  //if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
-//  if (narg != 5 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  //map_element2type(narg-4,&arg[4]);
   map_element2type(narg-4,arg+4);
 
-  //cout<<map[0]<<endl;
-  //cout<<map[1]<<endl;
-  //cout<<map[2]<<endl;
-  //cout<<map[3]<<endl;
+  //std::cout<<map[0]<<std::endl;
+  //std::cout<<map[1]<<std::endl;
+  //std::cout<<map[2]<<std::endl;
+  //std::cout<<map[3]<<std::endl;
 
   std::string pod_file = std::string(arg[2]);  // pod input file
   std::string coeff_file = std::string(arg[3]); // coefficient input file

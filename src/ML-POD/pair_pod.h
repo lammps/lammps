@@ -23,18 +23,6 @@ namespace LAMMPS_NS {
       int podneighborcount(double *r, double rcutsq, int nx, int N, int dim);
       int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
       
-      void read_data_file(double *inputs, std::string &file_format, std::string &file_extension, 
-          std::string &data_path, std::string data_file);
-
-      void get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension);
-      
-      int get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file);  
-      
-      int get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files);  
-      
-      void read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *vel, 
-              double *forces, int *atomtype, std::string file, std::vector<std::string> species);
-      
       void get_data(std::vector<std::string> species);
 
       void read_data_files(std::string data_file, std::vector<std::string> species);    

@@ -151,8 +151,6 @@ public:
   void init_list(int, class NeighList *) override;
   
   // main 
-
-  void compute_array() override;
           
   void read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension, 
     std::string &test_path, std::string &training_path, std::string data_file);

@@ -21,11 +21,8 @@
 #include "error.h"
 #include "tokenizer.h"
 
-#include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
-#include <iostream>
 #include <iomanip>
 #include <limits>
 #include <glob.h>
@@ -36,11 +33,6 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-using std::string;
-using std::ios;
-using std::ofstream;
-using std::ifstream;
-using std::ostringstream;
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
@@ -84,8 +76,6 @@ CPODFIT::~CPODFIT()
 
 void CPODFIT::init()
 {
-  //cout<<"POD init"<<endl;
-  //cout<<modify->get_compute_by_style("podfit").size()<<endl;
   
   if (force->pair == nullptr)
   error->all(FLERR,"Compute podfit requires a pair style be defined");
@@ -95,18 +85,6 @@ void CPODFIT::init()
 
   if (modify->get_compute_by_style("podfit").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute podfit");
-  
-//   memory->create(coeff, podptr->pod.nd, podptr->pod.nelements+1, "podfit:coeff");
-//   for (int i=0; i<podptr->pod.nd; i++)
-//     coeff[i][0] = 0.0;  
-//   array = coeff;  
-  
-//   // find compute for reference energy
-//   std::string id_pe = std::string("thermo_pe");
-//   int ipe = modify->find_compute(id_pe);
-//   if (ipe == -1)
-//   error->all(FLERR,"compute thermo_pe does not exist.");
-//   c_pe = modify->compute[ipe];
   
   // compute POD coefficients using least-squares method
   least_squares_fit(traindata);
@@ -125,7 +103,8 @@ void CPODFIT::init()
   
   // calculate energy and force for the test data set
   if ((testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path) )
-    energyforce_calculation(testdata, desc.c);     
+    energyforce_calculation(testdata, desc.c); 
+ 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,30 +114,20 @@ void CPODFIT::init_list(int /*id*/, NeighList *ptr)
   list = ptr;
 }
 
-void CPODFIT::compute_array()
-{
-//   // compute POD coefficients using least-squares method
-//   least_squares_fit(traindata);
-//   
-//   // calculate errors for the training data set
-//   if ((traindata.training_analysis) && ((int) traindata.data_path.size() > 1) )
-//     error_analysis(traindata, desc.c);  
-//   
-//   // calculate errors for the test data set
-//   if ((testdata.test_analysis) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path)) 
-//     error_analysis(testdata, desc.c);  
-//   
-//   // calculate energy and force for the training data set
-//   if ((traindata.training_calculation) && ((int) traindata.data_path.size() > 1) )
-//     energyforce_calculation(traindata, desc.c);   
-//   
-//   // calculate energy and force for the test data set
-//   if ((testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path) )
-//     energyforce_calculation(testdata, desc.c);     
-}
-
 template <typename T> void CPODFIT::writearray2file(const char* filename, T *a, int N, int backend)
 {
+
+  if (N > 0){
+
+    FILE *fp = fopen(filename, "wb");
+
+    fwrite( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N, 1, fp);
+
+    fclose(fp);
+  }
+
+  // old version using streams:
+  /*
   if (N>0) {    
     // Open file to read
     ofstream out(filename, ios::out | ios::binary);
@@ -167,24 +136,11 @@ template <typename T> void CPODFIT::writearray2file(const char* filename, T *a, 
       error->all(FLERR,"Unable to open file ");            
     }
 
-    if (backend==2) { //GPU
-#ifdef  USE_CUDA            
-      T *a_host;      
-      a_host = (T*) malloc (sizeof (T)*N);      
-      
-      // transfer data from GPU to CPU to save in a file
-      cudaMemcpy(&a_host[0], &a[0], N*sizeof(T), cudaMemcpyDeviceToHost);  
-      
-      out.write( reinterpret_cast<char*>( &a_host[0] ), sizeof(T) * N );
-      
-      free(a_host);
-#endif      
-    }
-    else 
-      out.write( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N );          
+    out.write( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N );       
     
     out.close();
   }
+  */
 }
 
 bool CPODFIT::is_a_number(std::string line)
@@ -259,7 +215,7 @@ void CPODFIT::read_data_file(double *fitting_weights, std::string &file_format, 
     if (keywd == "file_format") file_format = words[1];
     if (keywd == "file_extension") file_extension = words[1];
     if (keywd == "path_to_training_data_set"){
-      std::cout << words[1] << std::endl;
+      utils::logmesg(lmp, "{}\n", words[1]);
       training_path = words[1];
       for (int i=2; i < words.size(); i++){
         training_path = training_path + " " + words[i];
@@ -299,7 +255,6 @@ std::vector<std::string> CPODFIT::globVector(const std::string& pattern, std::ve
   glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
   for(unsigned int i=0;i<glob_result.gl_pathc;++i){
     std::string s = string(glob_result.gl_pathv[i]);
-    //std::cout << s << "\n";
     files.push_back(s);
   }
   globfree(&glob_result);
@@ -685,14 +640,9 @@ void CPODFIT::select_data(datastruct &newdata, datastruct data)
   newdata.num_atom_each_file.resize(nfiles);  
   
   for (int file = 0; file < nfiles; file++) {   
-    //cout<<data.filenames[file]<<endl;
     int nconfigs = data.num_config[file];
     selected[file] = select(nconfigs, percentage, randomize);    
     int ns = (int) selected[file].size(); // number of selected configurations   
-//     cout<<nconfigs<<"  "<<ns<<endl;
-//     for (int ii=0; ii < ns; ii++) 
-//       cout<<selected[file][ii]<<"  ";
-//     cout<<endl;
     
     newdata.num_config[file] = ns;   
     int num_atom_sum = 0;
@@ -1019,7 +969,6 @@ void CPODFIT::allocate_memory(datastruct data)
       szd1 += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*Nij, 2*podptr->sna.idxu_max*podptr->sna.nelements*natom); // dblist and (Utotr, Utoti)                  
       szsnap = PODMAX(szsnap, szd1);   
     }    
-    //std::cout<<"Ni, Nj, Nij, Nijk: "<<natom<<", "<<Nj<<", "<<Nij<<", "<<Nijk<<std::endl;
   }    
   
   szd = PODMAX(szsnap, szd);   
@@ -1309,15 +1258,15 @@ void CPODFIT::least_squares_fit(datastruct data)
   
   // save coefficients into a text file
 
-  std::ofstream myfile ("coefficients.txt");
-  if (myfile.is_open())
-  {
-    myfile << "POD_coefficients: " + std::to_string(nd) + "\n";
-    for(int count = 0; count < nd; count ++)
-      myfile << std::setprecision(20)<< desc.c[count] << std::endl;    
-    myfile.close();
+  FILE *fp = fopen("coefficients.txt", "w");
+
+  fmt::print(fp, "POD_coefficients: {}\n", nd);
+  for (int count = 0; count < nd; count++){
+
+    fmt::print(fp, "{:.20}\n", desc.c[count]);
   }
-  else utils::logmesg(lmp, "Unable to open file\n");
+
+  fclose(fp);
   
   utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
 }
@@ -1370,45 +1319,43 @@ void CPODFIT::print_analysis(datastruct data, double *outarray, double *errors)
   for (int i = 0; i < nfiles; i++) 
     lm = PODMAX(lm, (int) data.filenames[i].size());        
   lm = lm + 2;
-  
-  std::string filename = data.training ? "training_errors.txt" : "test_errors.txt";   
-  std::ofstream myfile (filename);
-  if (!myfile.is_open()) utils::logmesg(lmp, "Unable to open file");
-  
-  filename = data.training ? "training_analysis.txt" : "test_analysis.txt";
-  std::ofstream mfile (filename);
-  if (!mfile.is_open()) utils::logmesg(lmp, "Unable to open file");
-    
+
+  std::string filename_errors = data.training ? "training_errors.txt" : "test_errors.txt";  
+  std::string filename_analysis = data.training ? "training_analysis.txt" : "test_analysis.txt";
+
+  FILE *fp_errors = fopen(filename_errors.c_str(), "w");
+  FILE *fp_analysis = fopen(filename_errors.c_str(), "w");
+
   std::string sa = "**************** Begin of Error Analysis for the Training Data Set ****************";
   std::string sb = "**************** Begin of Error Analysis for the Test Data Set ****************";      
-  std::string mystr = (data.training) ? sa : sb;   
-  utils::logmesg(lmp, "{}\n", mystr);    
-  myfile <<mystr+"\n";
-  
+  std::string mystr = (data.training) ? sa : sb;  
+
+  utils::logmesg(lmp, "{}\n", mystr);
+  fmt::print(fp_errors, mystr + "\n");
+
   sa = "----------------------------------------------------------------------------------------\n";
   sb = "  File    | # configs | # atoms  | MAE energy | RMSE energy | MAE force | RMSE force |\n";
   utils::logmesg(lmp, "{}", sa); 
   utils::logmesg(lmp, "{}", sb);
   utils::logmesg(lmp, "{}", sa);
-  myfile << sa;
-  myfile << sb;
-  myfile << sa;   
-  
+  fmt::print(fp_errors, sa);
+  fmt::print(fp_errors, sb);
+  fmt::print(fp_errors, sa);
+
   int ci=0, m=8, nc=0, nf=0;  
   for (int file = 0; file < nfiles; file++) {    
-    mfile<<"# " + data.filenames[file] + "\n";
+    fmt::print(fp_analysis, "# {}\n", data.filenames[file]);
     sb = "|  config  |  # atoms  |  energy  | DFT energy | energy error |  force  | DFT force | force error |\n";
-    mfile <<sb;
+    fmt::print(fp_analysis, sb);
     
     int nforceall = 0;
     int nconfigs = data.num_config[file];
     nc += nconfigs;
     for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
-      
-      mfile <<"   "; 
-      for(int count = 0; count < m; count ++)
-        mfile << outarray[count + m*ci] << "    ";  
-      mfile<<std::endl;
+      fmt::print(fp_analysis, "   ");
+      for(int count = 0; count < m; count ++) 
+        fmt::print(fp_analysis, "{}   ", outarray[count + m*ci]);
+      fmt::print(fp_analysis, "\n");
       
       nforceall += 3*data.num_atom[ci];      
       ci += 1;
@@ -1436,12 +1383,12 @@ void CPODFIT::print_analysis(datastruct data, double *outarray, double *errors)
     s1 = std::to_string(errors[3 + 4*q]);
     s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');  
     s = s + "   " + s1 + "\n";    
-    utils::logmesg(lmp, "{}", s);
-    myfile <<s;    
+    utils::logmesg(lmp, "{}", s);  
+    fmt::print(fp_errors, "{}", s); 
   }
   utils::logmesg(lmp, "{}", sa);
-  myfile << sa;
-    
+  fmt::print(fp_errors, "{}", sa); 
+
   s = s + std::string(PODMAX(lm - (int) s.size(),1), ' ');     
   string s1 = std::to_string(nc);
   s1 = s1 + std::string(PODMAX(6- (int) s1.size(),1), ' ');  
@@ -1463,16 +1410,18 @@ void CPODFIT::print_analysis(datastruct data, double *outarray, double *errors)
   s = s + "   " + s1 + "\n";  
   utils::logmesg(lmp, "{}", s);
   utils::logmesg(lmp, "{}", sa);
-  myfile << s;
-  myfile << sa;
+  fmt::print(fp_errors, "{}", s);
+  fmt::print(fp_errors, "{}", sa);
   
   sa = "**************** End of Error Analysis for the Training Data Set ****************";    
   sb = "**************** End of Error Analysis for the Test Data Set ****************";   
   mystr = (data.training) ? sa : sb;       
   utils::logmesg(lmp, "{}\n", mystr); 
-  myfile <<mystr+"\n";  
-  myfile.close();
-  mfile.close();  
+  fmt::print(fp_errors, "{}\n", mystr);
+
+  fclose(fp_errors);
+  fclose(fp_analysis);
+
 }
 
 void CPODFIT::error_analysis(datastruct data, double *coeff)

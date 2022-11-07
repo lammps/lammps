@@ -69,15 +69,15 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
   int init_ok=0;
   if (world_me==0)
     init_ok=HIPPOMF.init(ntypes, max_amtype, max_amclass,
-                          host_pdamp, host_thole, host_dirdamp,
-                          host_amtype2class, host_special_repel, host_special_disp,
-                          host_special_mpole, host_special_polar_wscale,
-                          host_special_polar_piscale, host_special_polar_pscale,
-                          host_sizpr, host_dmppr, host_elepr,
-                          host_csix, host_adisp, host_pcore, host_palpha,
-                          nlocal, nall, max_nbors,
-                          maxspecial, maxspecial15, cell_size, gpu_split,
-                          screen, polar_dscale, polar_uscale);
+                         host_pdamp, host_thole, host_dirdamp,
+                         host_amtype2class, host_special_repel, host_special_disp,
+                         host_special_mpole, host_special_polar_wscale,
+                         host_special_polar_piscale, host_special_polar_pscale,
+                         host_sizpr, host_dmppr, host_elepr,
+                         host_csix, host_adisp, host_pcore, host_palpha,
+                         nlocal, nall, max_nbors,
+                         maxspecial, maxspecial15, cell_size, gpu_split,
+                         screen, polar_dscale, polar_uscale);
 
   HIPPOMF.device->world_barrier();
   if (message)
@@ -94,15 +94,15 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=HIPPOMF.init(ntypes, max_amtype, max_amclass,
-                            host_pdamp, host_thole, host_dirdamp,
-                            host_amtype2class, host_special_repel, host_special_disp,
-                            host_special_mpole, host_special_polar_wscale,
-                            host_special_polar_piscale, host_special_polar_pscale,
-                            host_sizpr, host_dmppr, host_elepr,
-                            host_csix, host_adisp, host_pcore, host_palpha,
-                            nlocal, nall, max_nbors,
-                            maxspecial, maxspecial15, cell_size, gpu_split,
-                            screen, polar_dscale, polar_uscale);
+                           host_pdamp, host_thole, host_dirdamp,
+                           host_amtype2class, host_special_repel, host_special_disp,
+                           host_special_mpole, host_special_polar_wscale,
+                           host_special_polar_piscale, host_special_polar_pscale,
+                           host_sizpr, host_dmppr, host_elepr,
+                           host_csix, host_adisp, host_pcore, host_palpha,
+                           nlocal, nall, max_nbors,
+                           maxspecial, maxspecial15, cell_size, gpu_split,
+                           screen, polar_dscale, polar_uscale);
 
     HIPPOMF.device->gpu_barrier();
     if (message)
@@ -121,16 +121,16 @@ void hippo_gpu_clear() {
 }
 
 int** hippo_gpu_precompute(const int ago, const int inum_full, const int nall,
-                            double **host_x, int *host_type, int *host_amtype,
-                            int *host_amgroup, double **host_rpole,
-                            double **host_uind, double **host_uinp, double *host_pval,
-                            double *sublo, double *subhi, tagint *tag,
-                            int **nspecial, tagint **special,
-                            int *nspecial15, tagint **special15,
-                            const bool eflag_in, const bool vflag_in,
-                            const bool eatom, const bool vatom, int &host_start,
-                            int **ilist, int **jnum, const double cpu_time,
-                            bool &success, double *host_q, double *boxlo, double *prd) {
+                           double **host_x, int *host_type, int *host_amtype,
+                           int *host_amgroup, double **host_rpole,
+                           double **host_uind, double **host_uinp, double *host_pval,
+                           double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special,
+                           int *nspecial15, tagint **special15,
+                           const bool eflag_in, const bool vflag_in,
+                           const bool eatom, const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time,
+                           bool &success, double *host_q, double *boxlo, double *prd) {
   return HIPPOMF.precompute(ago, inum_full, nall, host_x, host_type,
                             host_amtype, host_amgroup, host_rpole,
                             nullptr, nullptr, nullptr, sublo, subhi, tag,
@@ -141,17 +141,17 @@ int** hippo_gpu_precompute(const int ago, const int inum_full, const int nall,
 }
 
 void hippo_gpu_compute_repulsion(const int ago, const int inum_full,
-                           const int nall, double **host_x, int *host_type,
-                           int *host_amtype, int *host_amgroup, double **host_rpole,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
-                           tagint **special, int *nspecial15, tagint** special15,
-                           const bool eflag, const bool vflag, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double off2,
-                           double *host_q, double *boxlo, double *prd,
-                           double cut2, double c0, double c1, double c2,
-                           double c3, double c4, double c5, void **tep_ptr) {
+                                 const int nall, double **host_x, int *host_type,
+                                 int *host_amtype, int *host_amgroup, double **host_rpole,
+                                 double *sublo, double *subhi, tagint *tag, int **nspecial,
+                                 tagint **special, int *nspecial15, tagint** special15,
+                                 const bool eflag, const bool vflag, const bool eatom,
+                                 const bool vatom, int &host_start,
+                                 int **ilist, int **jnum, const double cpu_time,
+                                 bool &success, const double aewald, const double off2,
+                                 double *host_q, double *boxlo, double *prd,
+                                 double cut2, double c0, double c1, double c2,
+                                 double c3, double c4, double c5, void **tep_ptr) {
   HIPPOMF.compute_repulsion(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole, sublo, subhi,
                           tag, nspecial, special, nspecial15, special15,

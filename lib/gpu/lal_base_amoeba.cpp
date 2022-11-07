@@ -271,99 +271,6 @@ inline int BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
 }
 
 // ---------------------------------------------------------------------------
-// Copy nbor list from host if necessary and then calculate forces, virials
-// for the polar real-space term
-// ---------------------------------------------------------------------------
-template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_full,
-                          const int nall, double **host_x, int *host_type,
-                          int *host_amtype, int *host_amgroup, double **host_rpole,
-                          double **host_uind, double **host_uinp,
-                          int *ilist, int *numj, int **firstneigh,
-                          const bool eflag_in, const bool vflag_in,
-                          const bool eatom, const bool vatom,
-                          int &host_start, const double cpu_time,
-                          bool &success, const double aewald, const double felec,
-                          const double off2_polar, double *host_q, const int nlocal,
-                          double *boxlo, double *prd, void **tep_ptr) {
-  acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  set_kernel(eflag,vflag);
-
-  // ------------------- Resize _tep array ------------------------
-
-  if (nall>_max_tep_size) {
-    _max_tep_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    _tep.resize(_max_tep_size*4);
-
-    dev_nspecial15.clear();
-    dev_special15.clear();
-    dev_special15_t.clear();
-    dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
-    dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
-    dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
-  }
-
-  *tep_ptr=_tep.host.begin();
-
-  if (inum_full==0) {
-    host_start=0;
-    // Make sure textures are correct if realloc by a different hybrid style
-    resize_atom(0,nall,success);
-    zero_timers();
-    return;
-  }
-
-  int ago=hd_balancer.ago_first(f_ago);
-  int inum=hd_balancer.balance(ago,inum_full,cpu_time);
-  ans->inum(inum);
-  host_start=inum;
-
-  if (ago==0) {
-    reset_nbors(nall, inum, ilist, numj, firstneigh, success);
-    if (!success)
-      return;
-  }
-
-  // packing host arrays into host_extra
-
-  atom->cast_x_data(host_x,host_type);
-  atom->cast_q_data(host_q);
-  cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp);
-  hd_balancer.start_timer();
-  atom->add_x_data(host_x,host_type);
-  atom->add_q_data();
-  atom->add_extra_data();
-
-  device->precompute(f_ago,nlocal,nall,host_x,host_type,success,host_q,
-                     boxlo, prd);
-
-  _off2_polar = off2_polar;
-  _felec = felec;
-  const int red_blocks=polar_real(eflag,vflag);
-
-  ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
-  device->add_ans_object(ans);
-  hd_balancer.stop_timer();
-
-  // copy tep from device to host
-
-  _tep.update_host(_max_tep_size*4,false);
-}
-
-// ---------------------------------------------------------------------------
 // Prepare for multiple kernel calls in a time step:
 //   - reallocate per-atom arrays, if needed
 //   - transfer extra data from host to device
@@ -450,6 +357,8 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
     dev_short_nbor.resize((2+_max_nbors)*_nmax);
   }
 
+  hd_balancer.stop_timer();
+
   return nbor->host_jlist.begin()-host_start;
 }
 
@@ -490,8 +399,6 @@ void BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
   //   only copy them back in the last kernel (polar_real)
   //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   //device->add_ans_object(ans);
-
-  hd_balancer.stop_timer();
 
   // copy tep from device to host
 
@@ -828,7 +735,7 @@ void BaseAmoebaT::compute_polar_real(int *host_amtype, int *host_amgroup,
                                      const double aewald, const double felec,
                                      const double off2_polar, void **tep_ptr) {
 
-  int** firstneigh = nullptr;
+  // cast necessary data arrays from host to device
 
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();                    
@@ -845,10 +752,7 @@ void BaseAmoebaT::compute_polar_real(int *host_amtype, int *host_amgroup,
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);
 
-  hd_balancer.stop_timer();
-
   // copy tep from device to host
-
   _tep.update_host(_max_tep_size*4,false);
 }
 

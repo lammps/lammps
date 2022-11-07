@@ -182,11 +182,12 @@ class BaseAmoeba {
                                  const int nzlo_out, const int nzhi_out,
                                  const int nylo_out, const int nyhi_out,
                                  const int nxlo_out, const int nxhi_out);
-
+  /// Interpolate the induced potential from the grid
   virtual void compute_fphi_uind(double ****host_grid_brick,
                                  void **host_fdip_phi1, void **host_fdip_phi2,
                                  void **host_fdip_sum_phi);
 
+  /// Interpolate the multipolar potential from the grid
   virtual void compute_fphi_mpole(double ***host_grid_brick, void **host_fphi,
                                   const double felec);
 
@@ -197,17 +198,6 @@ class BaseAmoeba {
                 const bool eatom, const bool vatom,
                 const double aewald, const double felec, const double off2_polar,
                 void **tep_ptr);
-
-  /// Compute polar real-space with host neighboring (not active for now)
-  void compute_polar_real_host_nbor(const int f_ago, const int inum_full, const int nall,
-               double **host_x, int *host_type, int *host_amtype,
-               int *host_amgroup, double **host_rpole, double **host_uind,
-               double **host_uinp, int *ilist, int *numj,
-               int **firstneigh, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, const double aewald, const double felec,
-               const double off2_polar, double *charge, const int nlocal, double *boxlo,
-               double *prd, void **tep_ptr);
 
   // copy field and fieldp from device to host after umutual2b
   virtual void update_fieldp(void **fieldp_ptr) {

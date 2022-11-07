@@ -177,20 +177,20 @@ double HippoT::host_memory_usage() const {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void HippoT::compute_repulsion(const int ago, const int inum_full,
-                                const int nall, double **host_x,
-                                int *host_type, int *host_amtype,
-                                int *host_amgroup, double **host_rpole,
-                                double *sublo, double *subhi, tagint *tag,
-                                int **nspecial, tagint **special,
-                                int *nspecial15, tagint **special15,
-                                const bool eflag_in, const bool vflag_in,
-                                const bool eatom, const bool vatom,
-                                int &host_start, int **ilist, int **jnum,
-                                const double cpu_time, bool &success,
-                                const double aewald, const double off2_repulse,
-                                double *host_q, double *boxlo, double *prd,
-                                double cut2, double c0, double c1, double c2,
-                                double c3, double c4, double c5, void **tep_ptr) {
+                               const int nall, double **host_x,
+                               int *host_type, int *host_amtype,
+                               int *host_amgroup, double **host_rpole,
+                               double *sublo, double *subhi, tagint *tag,
+                               int **nspecial, tagint **special,
+                               int *nspecial15, tagint **special15,
+                               const bool eflag_in, const bool vflag_in,
+                               const bool eatom, const bool vatom,
+                               int &host_start, int **ilist, int **jnum,
+                               const double cpu_time, bool &success,
+                               const double aewald, const double off2_repulse,
+                               double *host_q, double *boxlo, double *prd,
+                               double cut2, double c0, double c1, double c2,
+                               double c3, double c4, double c5, void **tep_ptr) {
   this->acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -225,16 +225,7 @@ void HippoT::compute_repulsion(const int ago, const int inum_full,
   _c5 = c5;
   const int red_blocks=repulsion(this->_eflag,this->_vflag);
 
-  // only copy them back if this is the last kernel
-  //   otherwise, commenting out these two lines to leave the answers
-  //   (forces, energies and virial) on the device until the last kernel
-  //this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
-  //this->device->add_ans_object(this->ans);
-
-  this->hd_balancer.stop_timer();
-
   // copy tep from device to host
-
   this->_tep.update_host(this->_max_tep_size*4,false);
 }
 
@@ -303,8 +294,6 @@ void HippoT::compute_dispersion_real(int *host_amtype, int *host_amgroup,
   //   (forces, energies and virial) on the device until the last kernel
   //this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   //this->device->add_ans_object(this->ans);
-
-  this->hd_balancer.stop_timer();
 }
 
 // ---------------------------------------------------------------------------
@@ -386,15 +375,7 @@ void HippoT::compute_multipole_real(const int ago, const int inum_full,
   this->_aewald = aewald;
   const int red_blocks=multipole_real(this->_eflag,this->_vflag);
 
-  // leave the answers (forces, energies and virial) on the device,
-  //   only copy them back in the last kernel (this one, or polar_real once done)
-  //this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
-  //this->device->add_ans_object(this->ans);
-
-  this->hd_balancer.stop_timer();
-
   // copy tep from device to host
-
   this->_tep.update_host(this->_max_tep_size*4,false);
 }
 
@@ -595,14 +576,11 @@ void HippoT::compute_polar_real(int *host_amtype, int *host_amgroup, double **ho
   const int red_blocks=polar_real(this->_eflag,this->_vflag);
 
   // only copy answers (forces, energies and virial) back from the device
-  //   in the last kernel (which is polar_real here)
+  //   in the last kernel in a timestep (which is polar_real here)
   this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   this->device->add_ans_object(this->ans);
 
-  this->hd_balancer.stop_timer();
-
   // copy tep from device to host
-
   this->_tep.update_host(this->_max_tep_size*4,false);
 }
 

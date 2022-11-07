@@ -1041,6 +1041,7 @@ void PPPMElectrode::allocate()
 void PPPMElectrode::deallocate()
 {
   delete gc;
+  gc = nullptr;
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
 
@@ -1082,6 +1083,9 @@ void PPPMElectrode::deallocate()
   delete fft1;
   delete fft2;
   delete remap;
+  fft1 = nullptr;
+  fft2 = nullptr;
+  remap = nullptr;
 }
 
 void PPPMElectrode::allocate_peratom()

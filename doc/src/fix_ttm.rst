@@ -195,20 +195,20 @@ the '#' character.  Each line contains four numeric columns:
 ix,iy,iz,Temperature.  Empty or comment-only lines will be
 ignored. The number of lines must be equal to the number of
 user-specified grid points (Nx by Ny by Nz).  The ix,iy,iz are grid
-point indices ranging from 0 to nxnodes-1 inclusive in each dimension.
-The lines can appear in any order.  For example, the initial
-electronic temperatures on a 1 by 2 by 3 grid could be specified in
-the file as follows:
+point indices ranging from 1 to Nxyz inclusive in each dimension.  The
+lines can appear in any order.  For example, the initial electronic
+temperatures on a 1 by 2 by 3 grid could be specified in the file as
+follows:
 
 .. parsed-literal::
 
    # UNITS: metal COMMENT: initial electron temperature
-   0 0 0 1.0
-   0 0 1 1.0
-   0 0 2 1.0
-   0 1 0 2.0
-   0 1 1 2.0
-   0 1 2 2.0
+   1 1 1 1.0
+   1 1 2 1.0
+   1 1 3 1.0
+   1 2 1 2.0
+   1 2 2 2.0
+   1 2 3 2.0
 
 where the electronic temperatures along the y=0 plane have been set to
 1.0, and the electronic temperatures along the y=1 plane have been set
@@ -226,8 +226,8 @@ units used.
 
 The *outfile* keyword has 2 values.  The first value *Nout* triggers
 output of the electronic temperatures for each grid point every Nout
-timesteps.  The second value is the filename for output which will
-be suffixed by the timestep.  The format of each output file is exactly
+timesteps.  The second value is the filename for output, which will be
+suffixed by the timestep.  The format of each output file is exactly
 the same as the input temperature file. It will contain a comment in
 the first line reporting the date the file was created, the LAMMPS
 units setting in use, grid size and the current timestep.
@@ -236,16 +236,21 @@ units setting in use, grid size and the current timestep.
 
   The fix ttm/grid command does not support the *outfile* keyword.
   Instead you can use the :doc:`dump grid <dump>` command to output
-  the electronic temperature on the distributed grid to a dump file.
+  the electronic temperature on the distributed grid to a dump file or
+  the :doc:`restart <restart>` command which creates a file specific
+  to this fix which the :doc:`read restart <read_restart>` command
+  reads.  The file has the same format as the file the *infile* option
+  reads.
 
 For the fix ttm and fix ttm/mod commands, the corresponding atomic
 temperature for atoms in each grid cell can be computed and output by
 the :doc:`fix ave/chunk <fix_ave_chunk>` command using the
 :doc:`compute chunk/atom <compute_chunk_atom>` command to create a 3d
-array of chunks consistent with the grid used by this fix.  For the
-fix ttm/grid command the same thing can be done using the :doc:`fix
-ave/grid <fix_ave_grid>` command and its per-grid values can be output
-via the :doc:`dump grid <dump>` command.
+array of chunks consistent with the grid used by this fix.
+
+For the fix ttm/grid command the same thing can be done using the
+:doc:`fix ave/grid <fix_ave_grid>` command and its per-grid values can
+be output via the :doc:`dump grid <dump>` command.
 
 ----------
 
@@ -362,11 +367,14 @@ the operation of the fix continues in an uninterrupted fashion.  Note
 that the restart script must define the same size grid as the original
 script.
 
-Because the state of the random number generator is not saved in the
-restart files, this means you cannot do "exact" restarts with this
-fix, where the simulation continues on the same as if no restart had
-taken place.  However, in a statistical sense, a restarted simulation
-should produce the same behavior.
+The fix ttm/grid command also outputs an auxiliary file each time a
+restart file is written, with the electron temperatures for each grid
+cell.  The format of this file is the same as that read by the
+*infile* option explained above.  The filename is the same as the
+restart filename with ".ttm" appended.  This auxiliary file can be
+read in for a restared run by using the *infile* option for the fix
+ttm/grid command, following the :doc:`read_restart <read_restart>`
+command.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to
 these fixes.
@@ -386,13 +394,13 @@ electronic subsystem energies reported at the end of the timestep.
 
 The vector values calculated are "extensive".
 
-The fix ttm/grid command also calculates a per-grid vector which
-stores the electron temperature for each grid cell in temperature
-:doc:`units <units>`. which can be accessed by various :doc:`output
-commands <Howto_output>`.  The length of the vector (distributed
-across all processors) is Nx * Ny * Nz.  For access by other commands,
-the name of the single grid produced by fix ttm/grid is "grid".  The
-name of its per-grid data is "data".
+The fix ttm/grid command also outputs a per-grid vector which stores
+the electron temperature for each grid cell in temperature :doc:`units
+<units>`. which can be accessed by various :doc:`output commands
+<Howto_output>`.  The length of the vector (distributed across all
+processors) is Nx * Ny * Nz.  For access by other commands, the name
+of the single grid produced by fix ttm/grid is "grid".  The name of
+its per-grid data is "data".
 
 No parameter of the fixes can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  The fixes are not invoked during
@@ -407,6 +415,15 @@ package <Build_package>` page for more info.
 
 As mentioned above, these fixes require 3d simulations and orthogonal
 simulation boxes periodic in all 3 dimensions.
+
+These fixes used a random number generator to Langevin thermostat the
+electron temperature.  This means you will not get identical answers
+when running on different numbers of processors or when restarting a
+simulation (even on the same number of processors).  However, in a
+statistical sense, simulations on different processor counts and
+restarted simulation should produce results whiich are statistically
+the same.
+
 
 Related commands
 """"""""""""""""

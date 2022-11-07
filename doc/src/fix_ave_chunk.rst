@@ -112,6 +112,17 @@ or atoms in a spatial bin.  See the :doc:`compute chunk/atom
 page for details of how chunks can be defined and examples of how they
 can be used to measure properties of a system.
 
+Note that if the :doc:`compute chunk/atom <compute_chunk_atom>`
+command defines spatial bins, the fix ave/chunk command performs a
+similar computation as the :doc:`fix ave/grid <fix_ave_grid>` command.
+However, the per-bin outputs from the fix ave/chunk command are
+global; each processor stores a copy of the entire set of bin data.
+By contrast, the :doc:`fix ave/grid <fix_ave_grid>` command uses a
+distributed grid where each processor owns a subset of the bins.  Thus
+it is more efficient to use the :doc:`fix ave/grid <fix_ave_grid>`
+command when the grid is large and a simulation is run on many
+processors.
+
 Note that only atoms in the specified group contribute to the summing
 and averaging calculations.  The :doc:`compute chunk/atom
 <compute_chunk_atom>` command defines its own group as well as an
@@ -530,12 +541,14 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`,
-:doc:`fix ave/histo <fix_ave_histo>`, :doc:`fix ave/time <fix_ave_time>`,
-:doc:`variable <variable>`, :doc:`fix ave/correlate <fix_ave_correlate>`
+:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, `fix
+:doc:ave/histo <fix_ave_histo>`, :doc:`fix ave/time <fix_ave_time>`,
+:doc:`variable <variable>`, :doc:`fix ave/correlate
+:doc:<fix_ave_correlate>`, `fix ave/atogrid <fix_ave_grid>`
+     
 
 Default
 """""""
 
-The option defaults are norm = all, ave = one, bias = none, no file output, and
-title 1,2,3 = strings as described above.
+The option defaults are norm = all, ave = one, bias = none, no file
+output, and title 1,2,3 = strings as described above.

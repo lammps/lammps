@@ -100,7 +100,8 @@ Per-grid data can come in two kinds: a vector of values (one per grid
 cekk), or a 2d array of values (multiple values per grid ckk).  The
 doc page for a "compute" or "fix" that generates data will specify
 names for both the grid(s) and datum(s) it produces, e.g. per-grid
-vectors or arrays, which can be referenced by other commands.
+vectors or arrays, which can be referenced by other commands.  See the
+:doc:`Howto grid <Howto_grid>` doc page for more details.
 
 .. _disambiguation:
 

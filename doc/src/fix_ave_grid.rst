@@ -70,7 +70,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all ave/grid 10000 1 10000 10 10 10 fx fy fz c_myMSD[*]
-   fix 1 flow ave/chunk 100 10 1000 20 20 30 f_TTM:grid:data
+   fix 1 flow ave/grid 100 10 1000 20 20 30 f_TTM:grid:data
 
 Description
 """""""""""
@@ -84,13 +84,13 @@ produced by other computes or fixes.  This fix operates in either
 per-grid inputs in the same command.
 
 The grid created by this command is distributed; each processor owns
-the grid points that are within its sub-domain.  This is in contrast to
+the grid points that are within its sub-domain.  This is similar to
 the :doc:`fix ave/chunk <fix_ave_chunk>` command when it uses chunks
 from the :doc:`compute chunk/atom <compute_chunk_atom>` command which
-are 2d or 3d regular bins.  The per-bin outputs in that case are
-global; each processor stores a copy of the entire set of bin data.
-Thus it is better to use this command when the grid is large and a
-simulation is run on many processors.
+are 2d or 3d regular bins.  However, the per-bin outputs in that case
+are global; each processor stores a copy of the entire set of bin
+data.  Thus it more efficient to use the fix ave/grid command when the
+grid is large and a simulation is run on many processors.
 
 For per-atom mode, only atoms in the specified group contribute to the
 summing and averaging calculations.  For per-grid mode, the specified
@@ -120,6 +120,32 @@ in each grid cell.  The way the averaging is done across the *Nrepeat*
 timesteps to produce output on the *Nfreq* timesteps, and across
 multiple *Nfreq* outputs, is determined by the *norm* and *ave*
 keyword settings, as discussed below.
+
+----------
+
+The *Nx*, *Ny*, and *Nz* arguements specify the size of the grid that
+overlays the simulation box.  For 2d simulations, *Nz* must be 1.  The
+*Nx*, *Ny*, *Nz* values can be any positive integer.  The grid can be
+very coarse compared to the particle count, or very fine.  If one or
+more of the values = 1, then bins are 2d planes or 1d slices of the
+simulation domain.  Note that if the total number of grid cells is
+small, it may be more efficient to use the doc:`fix ave/chunk
+<fix_ave_chunk>` command which can treat a grid defined by the
+:doc:`compute chunk/atom <compute_chunk_atom>` command as a global
+grid where each processor owns a copy of all the grid cells.  If *Nx*
+= *Ny* = *Nz* = 1 is used, the same calculation would be more
+efficiently performed by the doc:`fix ave/atom <fix_ave_atom>`
+command.
+
+If the simulation box size or shape changes during a simulation, the
+grid always conforms to the size/shape of the current simulation box.
+If one more dimensions have non-peridoic shrink-wrapped boundary
+conditions, as defined by the :doc:`boundary <boundary>` command, then
+the grid will extend over the (dynamic) shrink-wrapped extent in each
+dimension.  If the box shape is triclinic, as explained in :doc:`Howto
+triclinic <Howto_triclinic>`, then the grid is also triclinic; each
+grid cell is a small triclinic cell with the same shape as the
+simulation box.
 
 ----------
 
@@ -455,9 +481,9 @@ Ny * Nz.
 
 For access by other commands, the name of the single grid produced by
 this fix is "grid".  The names of its two per-grid datums are "data"
-for the per-grid array and "count" for the per-grid vector.  Both
-datums can be accessed by various :doc:`output commands
-<Howto_output>`.
+for the per-grid array and "count" for the per-grid vector (if using
+per-atom values).  Both datums can be accessed by various :doc:`output
+commands <Howto_output>`.
 
 In per-atom mode, the per-grid array values calculated by this fix are
 treated as "intensive", since they are typically already normalized by

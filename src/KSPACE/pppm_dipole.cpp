@@ -205,7 +205,7 @@ void PPPMDipole::init()
     gc_dipole->set_stencil_atom(-nlower,nupper);
     gc_dipole->set_shift_atom(shiftatom_lo,shiftatom_hi);
     gc_dipole->set_zfactor(slab_volfactor);
-  
+
     gc_dipole->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                           nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -440,7 +440,7 @@ void PPPMDipole::compute(int eflag, int vflag)
 
   particle_map();
   make_rho_dipole();
- 
+
   // all procs communicate density values from their ghost cells
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
@@ -553,7 +553,7 @@ void PPPMDipole::allocate()
   memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
 
   // allocate distributed grid data
-  
+
   memory->create3d_offset(densityx_brick_dipole,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm_dipole:densityx_brick_dipole");
   memory->create3d_offset(densityy_brick_dipole,nzlo_out,nzhi_out,nylo_out,nyhi_out,

@@ -168,7 +168,7 @@ void FixTTMGrid::post_force(int /*vflag*/)
       f[i][2] += flangevin[i][2];
     }
   }
-  
+
   if (flag) error->one(FLERR,"Out of range fix ttm/grid atoms");
 }
 
@@ -323,24 +323,24 @@ int FixTTMGrid::unpack_read_grid(char *buffer)
     try {
       ValueTokenizer values(utils::trim_comment(line));
       if (values.count() == 0) {
-	;    // ignore comment only or blank lines
+        ;    // ignore comment only or blank lines
       } else if (values.count() == 4) {
-	++nread;
-	
-	int ix = values.next_int() - 1;
-	int iy = values.next_int() - 1;
-	int iz = values.next_int() - 1;
+        ++nread;
 
-	if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
-	  throw TokenizerException("Fix ttm/grid invalid grid index in input", "");
-	
-	if (ix >= nxlo_in && ix <= nxhi_in && iy >= nylo_in && iy <= nyhi_in && iz >= nzlo_in &&
-	    iz <= nzhi_in) {
-	  T_electron[iz][iy][ix] = values.next_double();
-	  T_electron_read[iz][iy][ix] = 1;
-	}
+        int ix = values.next_int() - 1;
+        int iy = values.next_int() - 1;
+        int iz = values.next_int() - 1;
+
+        if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
+          throw TokenizerException("Fix ttm/grid invalid grid index in input", "");
+
+        if (ix >= nxlo_in && ix <= nxhi_in && iy >= nylo_in && iy <= nyhi_in && iz >= nzlo_in &&
+            iz <= nzhi_in) {
+          T_electron[iz][iy][ix] = values.next_double();
+          T_electron_read[iz][iy][ix] = 1;
+        }
       } else {
-	throw TokenizerException("Incorrect format in fix ttm electron grid file", "");
+        throw TokenizerException("Incorrect format in fix ttm electron grid file", "");
       }
     } catch (std::exception &e) {
       error->one(FLERR, e.what());
@@ -443,7 +443,7 @@ void FixTTMGrid::pack_write_grid(int /*which*/, void *vbuf)
   for (iz = nzlo_in; iz <= nzhi_in; iz++)
     for (iy = nylo_in; iy <= nyhi_in; iy++)
       for (ix = nxlo_in; ix <= nxhi_in; ix++)
-	buf[m++] = T_electron[iz][iy][ix];
+        buf[m++] = T_electron[iz][iy][ix];
 }
 
 /* ----------------------------------------------------------------------
@@ -460,7 +460,7 @@ void FixTTMGrid::unpack_write_grid(int /*which*/, void *vbuf, int *bounds)
   int yhi = bounds[3];
   int zlo = bounds[4];
   int zhi = bounds[5];
-  
+
   auto buf = (double *) vbuf;
   double value;
 
@@ -468,8 +468,8 @@ void FixTTMGrid::unpack_write_grid(int /*which*/, void *vbuf, int *bounds)
   for (iz = zlo; iz <= zhi; iz++)
     for (iy = ylo; iy <= yhi; iy++)
       for (ix = xlo; ix <= xhi; ix++) {
-	value = buf[m++];
-	fprintf(fpout, "%d %d %d %20.16g\n", ix+1, iy+1, iz+1, value);
+        value = buf[m++];
+        fprintf(fpout, "%d %d %d %20.16g\n", ix+1, iy+1, iz+1, value);
       }
 }
 
@@ -490,7 +490,7 @@ void FixTTMGrid::reset_grid()
   gridnew->set_stencil_grid(1,1);
   gridnew->setup_grid(tmp[0],tmp[1],tmp[2],tmp[3],tmp[4],tmp[5],
                       tmp[6],tmp[7],tmp[8],tmp[9],tmp[10],tmp[11]);
-  
+
   if (grid->identical(gridnew)) {
     delete gridnew;
     return;
@@ -759,7 +759,7 @@ double FixTTMGrid::compute_vector(int n)
               T_electron[iz][iy][ix] * electronic_specific_heat * electronic_density * volgrid;
           transfer_energy_me += net_energy_transfer[iz][iy][ix] * update->dt;
         }
-    
+
     MPI_Allreduce(&e_energy_me, &e_energy, 1, MPI_DOUBLE, MPI_SUM, world);
     MPI_Allreduce(&transfer_energy_me, &transfer_energy, 1, MPI_DOUBLE, MPI_SUM, world);
     outflag = 1;

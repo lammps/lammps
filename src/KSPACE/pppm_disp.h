@@ -150,7 +150,7 @@ class PPPMDisp : public KSpace {
       ****v4_brick_none, ****v5_brick_none;
 
   // needed for each interaction type
-  
+
   double *greensfn;
   double **vg;
   double **vg2;
@@ -191,7 +191,7 @@ class PPPMDisp : public KSpace {
 
   int triclinic;    // domain settings, orthog or triclinic
   double *boxlo;
-  
+
   // TIP4P settings
 
   int typeH, typeO;    // atom types of TIP4P water H and O atoms
@@ -211,10 +211,10 @@ class PPPMDisp : public KSpace {
                       int &, int &, int &, int &, int &, int &, int &, int &);
   void set_init_g6();
   void set_n_pppm_6();
-  
+
   void adjust_gewald();
   void adjust_gewald_6();
-  
+
   double f();
   double derivf();
   double f_6();
@@ -236,7 +236,7 @@ class PPPMDisp : public KSpace {
   virtual void allocate_peratom();
   virtual void deallocate();
   virtual void deallocate_peratom();
-  
+
   int factorable(int);
   double rms(double, double, bigint, double, double **);
   double diffpr(double, double, double, double, double **);

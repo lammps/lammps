@@ -222,7 +222,7 @@ class Fix : protected Pointers {
   virtual int unpack_read_grid(char *) {return 0;};
   virtual void pack_write_grid(int, void *){};
   virtual void unpack_write_grid(int, void *, int *){};
-  
+
   virtual int get_grid_by_name(const std::string &, int &) { return -1; };
   virtual void *get_grid_by_index(int) { return nullptr; };
   virtual int get_griddata_by_name(int, const std::string &, int &) { return -1; };

@@ -310,7 +310,7 @@ void PPPM::init()
     gc->set_stencil_atom(-nlower,nupper);
     gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
     gc->set_zfactor(slab_volfactor);
-  
+
     gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -782,9 +782,9 @@ void PPPM::allocate()
     (nzhi_fft-nzlo_fft+1);
 
   nfft_both = MAX(nfft,nfft_brick);
-  
+
   // allocate distributed grid data
-  
+
   memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:density_brick");
 
@@ -1352,10 +1352,10 @@ void PPPM::set_grid_local()
   // shift values for particle <-> grid mapping depend on stencil order
   // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
   // used in particle_map() and make_rho() and fieldforce()
-  
+
   if (order % 2) shift = OFFSET + 0.5;
   else shift = OFFSET;
-  
+
   if (order % 2) shiftone = 0.0;
   else shiftone = 0.5;
 
@@ -1382,7 +1382,7 @@ void PPPM::set_grid_local()
     shiftatom_lo = 0.0;
     shiftatom_hi = 0.0 + 0.5;
   }
-  
+
   // x-pencil decomposition of FFT mesh
   // global indices range from 0 to N-1
   // each proc owns entire x-dimension, clumps of columns in y,z dimensions

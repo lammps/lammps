@@ -595,7 +595,7 @@ void MSM::allocate()
 
   // one Grid3d for finest grid level, using world comm and all procs
   // use set_caller_grid() b/c MSM allocates local grid > out_all values
-  
+
   gcall = new Grid3d(lmp,world,nx_msm[0],ny_msm[0],nz_msm[0],
                      nxlo_in[0],nxhi_in[0],nylo_in[0],
                      nyhi_in[0],nzlo_in[0],nzhi_in[0],
@@ -604,7 +604,7 @@ void MSM::allocate()
 
   gcall->set_caller_grid(nxlo_out[0],nxhi_out[0],nylo_out[0],
                          nyhi_out[0],nzlo_out[0],nzhi_out[0]);
-  
+
   gcall->setup_comm(ngcall_buf1,ngcall_buf2);
   npergrid = 1;
   memory->destroy(gcall_buf1);
@@ -636,7 +636,7 @@ void MSM::allocate()
       int **procneigh = procneigh_levels[n];
       gc[n]->set_proc_neighs(procneigh[0][0],procneigh[0][1],procneigh[1][0],
                              procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-      
+
       gc[n]->setup_comm(ngc_buf1[n],ngc_buf2[n]);
       npergrid = 1;
       memory->destroy(gc_buf1[n]);
@@ -1165,7 +1165,7 @@ void MSM::set_grid_local()
   for (int n = 0; n < levels; n++) {
 
     // delete and nullify grid arrays since the number or offset of gridpoints may change
-    
+
     memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
@@ -1179,7 +1179,7 @@ void MSM::set_grid_local()
                       nxlo_out[n],nxhi_out[n],nylo_out[n],
                       nyhi_out[n],nzlo_out[n],nzhi_out[n]);
     delete gcall;
-    
+
     // nlower/nupper = stencil size for mapping particles to grid
 
     nlower = -(order-1)/2;
@@ -1226,12 +1226,12 @@ void MSM::set_grid_local()
                             nx_msm[n]/xprd + OFFSET) - OFFSET;
     nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
                             nx_msm[n]/xprd + OFFSET) - OFFSET;
-    
+
     if (n == 0) {
       nxlo_out_all = nlo + nlower;
       nxhi_out_all = nhi + nupper;
     }
-    
+
     nxlo_out[n] = nlo + MIN(-order,nxlo_direct);
     nxhi_out[n] = nhi + MAX(order,nxhi_direct);
 
@@ -1243,7 +1243,7 @@ void MSM::set_grid_local()
       nylo_out_all = nlo + nlower;
       nyhi_out_all = nhi + nupper;
     }
-    
+
     nylo_out[n] = nlo + MIN(-order,nylo_direct);
     nyhi_out[n] = nhi + MAX(order,nyhi_direct);
 
@@ -1255,10 +1255,10 @@ void MSM::set_grid_local()
       nzlo_out_all = nlo + nlower;
       nzhi_out_all = nhi + nupper;
     }
-    
+
     // hemisphere is used for direct sum interactions
     // so no ghosting is needed for direct sum in the -z direction
-    
+
     nzlo_out[n] = nlo - order;
     nzhi_out[n] = nhi + MAX(order,nzhi_direct);
 

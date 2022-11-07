@@ -190,7 +190,7 @@ void PPPMDipoleSpin::init()
     gc_dipole->set_stencil_atom(-nlower,nupper);
     gc_dipole->set_shift_atom(shiftatom_lo,shiftatom_hi);
     gc_dipole->set_zfactor(slab_volfactor);
-  
+
     gc_dipole->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                           nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 

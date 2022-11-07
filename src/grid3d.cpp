@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -60,7 +60,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
 
   // default settings, can be overridden by set() methods
   // these affect assignment of owned and ghost cells
-  
+
   maxdist = 0.0;
   stencil_grid_lo = stencil_grid_hi = 0;
   stencil_atom_lo = stencil_atom_hi = 0;
@@ -98,7 +98,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
   nz = gnz;
 
   // store owned/ghost indices provided by caller
-  
+
   inxlo = ixlo;
   inxhi = ixhi;
   inylo = iylo;
@@ -135,7 +135,7 @@ Grid3d::~Grid3d()
   delete [] ysplit;
   delete [] zsplit;
   memory->destroy(grid2proc);
-  
+
   // tiled comm data structs
 
   for (int i = 0; i < nsend; i++)
@@ -151,14 +151,14 @@ Grid3d::~Grid3d()
     memory->destroy(copy[i].unpacklist);
   }
   memory->sfree(copy);
-  
+
   delete [] requests;
   delete [] requests_remap;
 
   memory->sfree(rcbinfo);
 
   // remap data structs
-  
+
   deallocate_remap();
 }
 
@@ -263,7 +263,7 @@ void Grid3d::set_proc_neighs(int pxlo, int pxhi, int pylo, int pyhi,
    set allocation dimensions of caller grid used by indices() to setup pack/unpack
    called AFTER setup_grid() but BEFORE setup_comm() to override
      the caller grid size set by setup_grid() and used in indices()
-   used by MSM to allow a larger level 0 grid to be allocated 
+   used by MSM to allow a larger level 0 grid to be allocated
      with more ghost cells for other operations
 ------------------------------------------------------------------------- */
 
@@ -286,7 +286,7 @@ int Grid3d::identical(Grid3d *grid2)
 {
   int inxlo2,inxhi2,inylo2,inyhi2,inzlo2,inzhi2;
   int outxlo2,outxhi2,outylo2,outyhi2,outzlo2,outzhi2;
-  
+
   grid2->get_bounds_owned(inxlo2,inxhi2,inylo2,inyhi2,inzlo2,inzhi2);
   grid2->get_bounds_ghost(outxlo2,outxhi2,outylo2,outyhi2,outzlo2,outzhi2);
 
@@ -330,7 +330,7 @@ void Grid3d::get_bounds_owned(int &xlo, int &xhi, int &ylo, int &yhi,
 /* ---------------------------------------------------------------------- */
 
 void Grid3d::get_bounds_ghost(int &xlo, int &xhi, int &ylo, int &yhi,
-			      int &zlo, int &zhi)
+                              int &zlo, int &zhi)
 {
   xlo = outxlo;
   xhi = outxhi;
@@ -364,7 +364,7 @@ void Grid3d::setup_grid(int &ixlo, int &ixhi, int &iylo, int &iyhi,
   // shift_grid = 0.5 for grid point at cell center, 0.0 for lower-left corner
 
   double fraclo,frachi;
-  
+
   if (comm->layout != Comm::LAYOUT_TILED) {
     fraclo = comm->xsplit[comm->myloc[0]];
     frachi = comm->xsplit[comm->myloc[0]+1];
@@ -395,9 +395,9 @@ void Grid3d::setup_grid(int &ixlo, int &ixhi, int &iylo, int &iyhi,
   // other constructor invokes this directly
 
   initialize();
-  
+
   // return values
-  
+
   ixlo = inxlo;
   ixhi = inxhi;
   iylo = inylo;
@@ -429,7 +429,7 @@ void Grid3d::initialize()
   // default = caller grid is allocated to ghost grid
   // used when computing pack/unpack lists in indices()
   // these values can be overridden using set_caller_grid()
-  
+
   fullxlo = outxlo;
   fullxhi = outxhi;
   fullylo = outylo;
@@ -523,7 +523,7 @@ void Grid3d::ghost_grid()
   }
 
   // for triclinic, maxdist = different value in each orthogonal direction
-  
+
   double dist[3] = {0.0,0.0,0.0};
   if (triclinic == 0) dist[0] = dist[1] = dist[2] = maxdist;
   else MathExtra::tribbox(domain->h,maxdist,&dist[0]);
@@ -535,12 +535,12 @@ void Grid3d::ghost_grid()
   // ghost cell layers needed in each dim/dir = max of two extension effects
   // OFFSET allows generation of negative indices with static_cast
   // out xyz lo/hi = index range of owned + ghost cells
-  
+
   double dxinv = nx / prd[0];
   double dyinv = ny / prd[1];
   double dzinv = nz / prd[2];
   double dzinv_slab = nz / (prd[2] * zfactor);
-    
+
   int lo, hi;
 
   lo = static_cast<int>((sublo[0]-dist[0]-boxlo[0]) * dxinv + shift_atom_lo + OFFSET) - OFFSET;
@@ -585,7 +585,7 @@ void Grid3d::ghost_grid()
 
   // limit out xyz lo/hi indices to global grid for non-periodic dims
   // if zextra = 1 (e.g. PPPM), grid is still fully periodic
-  
+
   int *periodicity = domain->periodicity;
 
   if (!periodicity[0]) {
@@ -633,7 +633,7 @@ void Grid3d::extract_comm_info()
     memcpy(xsplit,comm->xsplit,(comm->procgrid[0]+1)*sizeof(double));
     memcpy(ysplit,comm->ysplit,(comm->procgrid[1]+1)*sizeof(double));
     memcpy(zsplit,comm->zsplit,(comm->procgrid[2]+1)*sizeof(double));
-    
+
     memory->create(grid2proc,comm->procgrid[0],comm->procgrid[1],comm->procgrid[2],
                    "grid3d:grid2proc");
     memcpy(&grid2proc[0][0][0],&comm->grid2proc[0][0][0],
@@ -656,7 +656,7 @@ void Grid3d::extract_comm_info()
     else if (rcbone.dim == 1) rcbone.cut = inylo;
     else if (rcbone.dim == 2) rcbone.cut = inzlo;
     MPI_Allgather(&rcbone,sizeof(RCBinfo),MPI_CHAR,
-		  rcbinfo,sizeof(RCBinfo),MPI_CHAR,gridcomm);
+                  rcbinfo,sizeof(RCBinfo),MPI_CHAR,gridcomm);
   }
 }
 
@@ -1116,7 +1116,7 @@ void Grid3d::setup_comm_tiled(int &nbuf1, int &nbuf2)
 
   // create Copy data struct from overlaps with self
   // skip copy to self when non-PBC
-  
+
   copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"grid3d:copy");
 
   ncopy = 0;
@@ -1256,13 +1256,13 @@ void Grid3d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
   if (layout != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
       forward_comm_brick<KSpace>((KSpace *) ptr,nper,nbyte,which,
-				 buf1,buf2,datatype);
+                                 buf1,buf2,datatype);
     else if (caller == PAIR)
       forward_comm_brick<Pair>((Pair *) ptr,nper,nbyte,which,
-			       buf1,buf2,datatype);
+                               buf1,buf2,datatype);
     else if (caller == FIX)
       forward_comm_brick<Fix>((Fix *) ptr,nper,nbyte,which,
-			      buf1,buf2,datatype);
+                              buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
       forward_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
@@ -1283,7 +1283,7 @@ void Grid3d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
 template < class T >
 void Grid3d::
 forward_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
-		   void *buf1, void *buf2, MPI_Datatype datatype)
+                   void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -1361,13 +1361,13 @@ void Grid3d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
   if (layout != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
       reverse_comm_brick<KSpace>((KSpace *) ptr,nper,nbyte,which,
-				buf1,buf2,datatype);
+                                buf1,buf2,datatype);
     else if (caller == PAIR)
       reverse_comm_brick<Pair>((Pair *) ptr,nper,nbyte,which,
-			       buf1,buf2,datatype);
+                               buf1,buf2,datatype);
     else if (caller == FIX)
       reverse_comm_brick<Fix>((Fix *) ptr,nper,nbyte,which,
-			      buf1,buf2,datatype);
+                              buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
       reverse_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
@@ -1388,7 +1388,7 @@ void Grid3d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
 template < class T >
 void Grid3d::
 reverse_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
-		   void *buf1, void *buf2, MPI_Datatype datatype)
+                   void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -1479,13 +1479,13 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   int *box;
 
   // deallocated existing remap data structs
-  
+
   deallocate_remap();
 
   // set layout to current Comm layout
 
   layout = comm->layout;
-  
+
   // overlaps of my old decomp owned box with all owned boxes in new decomp
   // noverlap_old = # of overlaps, including self
   // overlap_old = vector of overlap info in Overlap data struct
@@ -1512,20 +1512,20 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
   }
 
   send_remap = new Send[nsend_remap];
-  
+
   nsend_remap = 0;
   for (m = 0; m < noverlap_old; m++) {
     box = overlap_old[m].box;
     if (box[0] > box[1] || box[2] > box[3] || box[4] > box[5]) continue;
     if (overlap_old[m].proc == me) {
       copy_remap.npack =
-	old->indices(copy_remap.packlist,
-		     box[0],box[1],box[2],box[3],box[4],box[5]);
+        old->indices(copy_remap.packlist,
+                     box[0],box[1],box[2],box[3],box[4],box[5]);
     } else {
       send_remap[nsend_remap].proc = overlap_old[m].proc;
       send_remap[nsend_remap].npack =
-	old->indices(send_remap[nsend_remap].packlist,
-		     box[0],box[1],box[2],box[3],box[4],box[5]);
+        old->indices(send_remap[nsend_remap].packlist,
+                     box[0],box[1],box[2],box[3],box[4],box[5]);
       nsend_remap++;
     }
   }
@@ -1551,7 +1551,7 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
     if (box[0] > box[1] || box[2] > box[3] || box[4] > box[5]) continue;
     if (overlap_new[m].proc != me) nrecv_remap++;
   }
-  
+
   recv_remap = new Recv[nrecv_remap];
 
   nrecv_remap = 0;
@@ -1560,13 +1560,13 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
     if (box[0] > box[1] || box[2] > box[3] || box[4] > box[5]) continue;
     if (overlap_new[m].proc == me) {
       copy_remap.nunpack =
-	indices(copy_remap.unpacklist,
-		box[0],box[1],box[2],box[3],box[4],box[5]);
+        indices(copy_remap.unpacklist,
+                box[0],box[1],box[2],box[3],box[4],box[5]);
     } else {
       recv_remap[nrecv_remap].proc = overlap_new[m].proc;
       recv_remap[nrecv_remap].nunpack =
-	indices(recv_remap[nrecv_remap].unpacklist,
-		box[0],box[1],box[2],box[3],box[4],box[5]);
+        indices(recv_remap[nrecv_remap].unpacklist,
+                box[0],box[1],box[2],box[3],box[4],box[5]);
       nrecv_remap++;
     }
   }
@@ -1588,7 +1588,7 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 
   clean_overlap();
   old->clean_overlap();
-    
+
   // nremap_buf1 = largest pack or unpack in any Send or Recv or Copy
   // nremap_buf2 = sum of all unpacks in Recv
 
@@ -1615,7 +1615,7 @@ void Grid3d::setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
 ------------------------------------------------------------------------- */
 
 void Grid3d::remap(int caller, void *ptr, int nper, int nbyte,
-		   void *buf1, void *buf2, MPI_Datatype datatype)
+                   void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (caller == FIX) remap_style<Fix>((Fix *) ptr,nper,nbyte,buf1,buf2,datatype);
 }
@@ -1624,7 +1624,7 @@ void Grid3d::remap(int caller, void *ptr, int nper, int nbyte,
 
 template < class T >
 void Grid3d::remap_style(T *ptr, int nper, int nbyte,
-			 void *buf1, void *vbuf2, MPI_Datatype datatype)
+                         void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
   int i,m,offset;
 
@@ -1658,7 +1658,7 @@ void Grid3d::remap_style(T *ptr, int nper, int nbyte,
     MPI_Waitany(nrecv_remap,requests_remap,&m,MPI_STATUS_IGNORE);
     offset = nper * recv_remap[m].offset * nbyte;
     ptr->unpack_remap_grid((void *) &buf2[offset],
-			   recv_remap[m].nunpack,recv_remap[m].unpacklist);
+                           recv_remap[m].nunpack,recv_remap[m].unpacklist);
   }
 }
 
@@ -1706,7 +1706,7 @@ void Grid3d::read_file_style(T *ptr, FILE *fp, int nchunk, int maxline)
 ------------------------------------------------------------------------- */
 
 void Grid3d::write_file(int caller, void *ptr, int which,
-			int nper, int nbyte, MPI_Datatype datatype)
+                        int nper, int nbyte, MPI_Datatype datatype)
 {
   if (caller == FIX)
     write_file_style<Fix>((Fix *) ptr, which, nper, nbyte, datatype);
@@ -1721,7 +1721,7 @@ void Grid3d::write_file(int caller, void *ptr, int which,
 
 template < class T >
 void Grid3d::write_file_style(T *ptr, int which,
-			      int nper, int nbyte, MPI_Datatype datatype)
+                              int nper, int nbyte, MPI_Datatype datatype)
 {
   // maxsize = max size of grid data owned by any proc
 
@@ -1778,7 +1778,7 @@ void Grid3d::write_file_style(T *ptr, int which,
   }
 
   // clean up
-  
+
   memory->destroy(onebuf);
 }
 
@@ -1830,7 +1830,7 @@ int Grid3d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap
   if (layout != Comm::LAYOUT_TILED) {
 
     // find comm->procgrid indices in each dim for box bounds
-    
+
     int iproclo = proc_index_uniform(box[0],nx,shift_grid,0,xsplit);
     int iprochi = proc_index_uniform(box[1],nx,shift_grid,0,xsplit);
     int jproclo = proc_index_uniform(box[2],ny,shift_grid,1,ysplit);
@@ -1839,24 +1839,24 @@ int Grid3d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap
     int kprochi = proc_index_uniform(box[5],nz,shift_grid,2,zsplit);
 
     // compute extent of overlap of box with with each proc's obox
-    
+
     for (int k = kproclo; k <= kprochi; k++)
       for (int j = jproclo; j <= jprochi; j++)
-	for (int i = iproclo; i <= iprochi; i++) {
+        for (int i = iproclo; i <= iprochi; i++) {
           partition_grid(nx,xsplit[i],xsplit[i+1],shift_grid,0,obox[0],obox[1]);
           partition_grid(ny,ysplit[j],ysplit[j+1],shift_grid,0,obox[2],obox[3]);
           partition_grid(nz,zsplit[k],zsplit[k+1],shift_grid,zextra,obox[4],obox[5]);
 
-	  if (noverlap_list == maxoverlap_list) grow_overlap();
-	  overlap_list[noverlap_list].proc = grid2proc[i][j][k];
-	  overlap_list[noverlap_list].box[0] = MAX(box[0],obox[0]);
-	  overlap_list[noverlap_list].box[1] = MIN(box[1],obox[1]);
-	  overlap_list[noverlap_list].box[2] = MAX(box[2],obox[2]);
-	  overlap_list[noverlap_list].box[3] = MIN(box[3],obox[3]);
-	  overlap_list[noverlap_list].box[4] = MAX(box[4],obox[4]);
-	  overlap_list[noverlap_list].box[5] = MIN(box[5],obox[5]);
-	  noverlap_list++;
-	}
+          if (noverlap_list == maxoverlap_list) grow_overlap();
+          overlap_list[noverlap_list].proc = grid2proc[i][j][k];
+          overlap_list[noverlap_list].box[0] = MAX(box[0],obox[0]);
+          overlap_list[noverlap_list].box[1] = MIN(box[1],obox[1]);
+          overlap_list[noverlap_list].box[2] = MAX(box[2],obox[2]);
+          overlap_list[noverlap_list].box[3] = MIN(box[3],obox[3]);
+          overlap_list[noverlap_list].box[4] = MAX(box[4],obox[4]);
+          overlap_list[noverlap_list].box[5] = MIN(box[5],obox[5]);
+          noverlap_list++;
+        }
 
   } else {
     box_drop(box,pbc);
@@ -1871,9 +1871,9 @@ int Grid3d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap
         obox[3] = ny-1;
         obox[4] = 0;
         obox[5] = nz-1;
-        
+
         partition_tiled(overlap_list[m].proc,0,nprocs-1,obox);
-        
+
         overlap_list[m].box[0] = MAX(box[0],obox[0]);
         overlap_list[m].box[1] = MIN(box[1],obox[1]);
         overlap_list[m].box[2] = MAX(box[2],obox[2]);
@@ -2050,7 +2050,7 @@ void Grid3d::deallocate_remap()
   for (int i = 0; i < nsend_remap; i++)
     memory->destroy(send_remap[i].packlist);
   delete [] send_remap;
-  
+
   for (int i = 0; i < nrecv_remap; i++)
     memory->destroy(recv_remap[i].unpacklist);
   delete [] recv_remap;
@@ -2068,7 +2068,7 @@ void Grid3d::deallocate_remap()
 ------------------------------------------------------------------------- */
 
 int Grid3d::indices(int *&list,
-		    int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
+                    int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
   memory->create(list,nmax,"grid3d:indices");
@@ -2090,7 +2090,7 @@ int Grid3d::indices(int *&list,
 /* ----------------------------------------------------------------------
    find the comm->procgrid index = which proc owns the igrid index
    igrid = grid index (0 to N-1) in dim
-   n = # of grid points in dim 
+   n = # of grid points in dim
    shift determines position of grid pt within grid cell
      shift = 0.5 for cell center, 0.0 for lower-left corner
    dim = which dimension (0,1,2)
@@ -2146,7 +2146,7 @@ void Grid3d::partition_tiled(int proc, int proclower, int procupper, int *box)
   int cut = rcbinfo[procmid].cut;
 
   // adjust box to reflect which half of partition the proc is in
-  
+
   if (proc < procmid) {
     box[2*dim+1] = cut-1;
     partition_tiled(proc,proclower,procmid-1,box);

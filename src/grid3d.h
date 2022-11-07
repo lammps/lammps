@@ -35,7 +35,7 @@ class Grid3d : protected Pointers {
   void set_zfactor(double);
   void set_caller_grid(int, int, int, int, int, int);
   void set_proc_neighs(int, int, int, int, int, int);
-  
+
   int identical(Grid3d *);
   void get_size(int &, int &, int &);
   void get_bounds_owned(int &, int &, int &, int &, int &, int &);
@@ -77,7 +77,7 @@ class Grid3d : protected Pointers {
   double zfactor;      // multiplier on extent of grid in Z direction
 
   // extent of my owned and ghost cells
-  
+
   int inxlo, inxhi;    // inclusive extent of my grid chunk, 0 <= in <= N-1
   int inylo, inyhi;
   int inzlo, inzhi;
@@ -117,7 +117,7 @@ class Grid3d : protected Pointers {
   // -------------------------------------------
   // internal variables for TILED layout
   // -------------------------------------------
-  
+
   MPI_Request *requests;    // length of max messages this proc receives
 
   // request = sent to each proc whose owned cells overlap my ghost cells
@@ -195,7 +195,7 @@ class Grid3d : protected Pointers {
   // -------------------------------------------
   // internal variables for OVERLAP operation
   // -------------------------------------------
-  
+
   int *overlap_procs;       // length of Nprocs in communicator
 
   // BRICK decomposition
@@ -236,7 +236,7 @@ class Grid3d : protected Pointers {
   void partition_grid(int, double, double, double, int, int &, int &);
   void ghost_grid();
   void extract_comm_info();
-  
+
   void setup_comm_brick(int &, int &);
   void setup_comm_tiled(int &, int &);
   int ghost_adjacent_brick();
@@ -260,7 +260,7 @@ class Grid3d : protected Pointers {
   void grow_swap();
   void grow_overlap();
   void deallocate_remap();
-  
+
   int indices(int *&, int, int, int, int, int, int);
   int proc_index_uniform(int, int, double, int, double *);
   void partition_tiled(int, int, int, int *);

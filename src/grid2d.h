@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -75,9 +75,9 @@ protected:
   double yfactor;      // multiplier on extent of grid in Y direction
 
   // extent of my owned and ghost cells
-  
+
   int inxlo, inxhi;    // inclusive extent of my grid chunk, 0 <= in <= N-1
-  int inylo, inyhi; 
+  int inylo, inyhi;
   int outxlo, outxhi;      // inclusive extent of my grid chunk plus
   int outylo, outyhi;      //   ghost cells in all 4 directions
                            //   lo indices can be < 0, hi indices can be >= N
@@ -174,7 +174,7 @@ protected:
   Send *send;
   Recv *recv;
   Copy *copy;
-  
+
   // -------------------------------------------
   // internal variables for REMAP operation
   // -------------------------------------------
@@ -189,7 +189,7 @@ protected:
   // -------------------------------------------
   // internal variables for OVERLAP operation
   // -------------------------------------------
-  
+
   int *overlap_procs;       // length of Nprocs in communicator
 
   // BRICK decomposition
@@ -236,7 +236,7 @@ protected:
   void setup_comm_tiled(int &, int &);
   int ghost_adjacent_brick();
   int ghost_adjacent_tiled();
-  
+
   template <class T> void forward_comm_brick(T *, int, int, int, void *, void *, MPI_Datatype);
   template <class T> void forward_comm_tiled(T *, int, int, int, void *, void *, MPI_Datatype);
   template <class T> void reverse_comm_brick(T *, int, int, int, void *, void *, MPI_Datatype);

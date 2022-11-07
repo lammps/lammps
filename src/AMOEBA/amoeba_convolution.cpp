@@ -115,7 +115,7 @@ void AmoebaConvolution::allocate_grid()
 
   // Grid3d determines my owned + ghost grid cells
   // ghost cell extent depends on maxdist, nlower, nupper
-  
+
   gc = new Grid3d(lmp,world,nx,ny,nz);
   gc->set_distance(maxdist);
   gc->set_stencil_atom(-nlower,nupper);

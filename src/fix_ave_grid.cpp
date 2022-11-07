@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -448,7 +448,7 @@ FixAveGrid::~FixAveGrid()
   delete[] value2data;
 
   // deallocate Grid class and buffers
-  
+
   if (dimension == 2) delete grid2d;
   else delete grid3d;
 
@@ -468,7 +468,7 @@ FixAveGrid::~FixAveGrid()
   }
 
   delete grid_output;
-  
+
   if (modeatom) {
     memory->destroy(bin);
     memory->destroy(skip);
@@ -671,7 +671,7 @@ void FixAveGrid::end_of_step()
   //   normalize sample grid by Nrepeat
 
   if (modeatom) {
-    if (normflag == ALL) { 
+    if (normflag == ALL) {
       normalize_atom(nrepeat,grid_sample);
       normalize_count(nrepeat,grid_sample);
       copy_grid(grid_sample,grid_nfreq);
@@ -1504,7 +1504,7 @@ FixAveGrid::GridData *FixAveGrid::allocate_one_grid()
   grid->vec3d = nullptr;
   grid->array3d = nullptr;
   grid->count3d = nullptr;
-  
+
   if (dimension == 2) {
     if (nvalues == 1)
       memory->create2d_offset(grid->vec2d, nylo_out, nyhi_out,
@@ -1531,7 +1531,7 @@ FixAveGrid::GridData *FixAveGrid::allocate_one_grid()
   }
 
   zero_grid(grid);
-  
+
   return grid;
 }
 
@@ -1870,7 +1870,7 @@ void FixAveGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *lis
     if (nvalues == 1) data = &grid_sample->vec3d[nzlo_out][nylo_out][nxlo_out];
     else data = &grid_sample->array3d[nzlo_out][nylo_out][nxlo_out][0];
   }
-  
+
   if (nvalues == 1) {
     for (i = 0; i < nlist; i++) {
       buf[m++] = count[list[i]];
@@ -1942,7 +1942,7 @@ void FixAveGrid::pack_remap_grid(void *vbuf, int nlist, int *list)
   if (aveflag == WINDOW) window_flag = 1;
 
   m = 0;
-  for (i = 0; i < nlist; i++) { 
+  for (i = 0; i < nlist; i++) {
     m += pack_one_grid(grid_sample_previous,list[i],&buf[m]);
     m += pack_one_grid(grid_nfreq_previous,list[i],&buf[m]);
     if (running_flag) m += pack_one_grid(grid_running_previous,list[i],&buf[m]);
@@ -2071,7 +2071,7 @@ void FixAveGrid::reset_grid()
     gridnew->set_distance(maxdist);
     gridnew->setup_grid(tmp[0], tmp[1], tmp[2], tmp[3], tmp[4], tmp[5],
                         tmp[6], tmp[7], tmp[8], tmp[9], tmp[10], tmp[11]);
-  
+
     if (grid3d->identical(gridnew)) {
       delete gridnew;
       return;
@@ -2101,7 +2101,7 @@ void FixAveGrid::reset_grid()
 
   if (dimension == 2) grid2d_previous = grid2d;
   else grid3d_previous = grid3d;
-  
+
   nxlo_out_previous = nxlo_out;
   nylo_out_previous = nylo_out;
   nzlo_out_previous = nzlo_out;

@@ -316,7 +316,7 @@ void FixTTM::post_force(int /*vflag*/)
       flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
       flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
       flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
-      
+
       f[i][0] += flangevin[i][0];
       f[i][1] += flangevin[i][1];
       f[i][2] += flangevin[i][2];

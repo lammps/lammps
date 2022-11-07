@@ -437,7 +437,7 @@ void PPPMDisp::init()
       gc->set_stencil_atom(-nlower,nupper);
       gc->set_shift_atom(shiftatom,shiftatom);
       gc->set_zfactor(slab_volfactor);
-      
+
       gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -514,7 +514,7 @@ void PPPMDisp::init()
       gc6->set_stencil_atom(-nlower_6,nupper_6);
       gc6->set_shift_atom(shiftatom_6,shiftatom_6);
       gc6->set_zfactor(slab_volfactor);
-      
+
       gc->setup_grid(nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                      nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
@@ -1668,7 +1668,7 @@ void _noopt PPPMDisp::allocate()
   // --------------------------------------
   // Coulomb grids
   // --------------------------------------
-  
+
   if (function[0]) {
 
     // create ghost grid object for rho and electric field communication
@@ -1698,20 +1698,20 @@ void _noopt PPPMDisp::allocate()
     //              same as count of owned grid cells
     // nfft = FFT points in x-pencil FFT decomposition on this proc
     // nfft_both = greater of nfft and nfft_brick
-    
+
     ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
       (nzhi_out-nzlo_out+1);
-    
+
     nfft_brick = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
       (nzhi_in-nzlo_in+1);
-    
+
     nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
       (nzhi_fft-nzlo_fft+1);
-    
+
     nfft_both = MAX(nfft,nfft_brick);
 
     // allocate distributed grid data
-    
+
     memory->create(work1,2*nfft_both,"pppm/disp:work1");
     memory->create(work2,2*nfft_both,"pppm/disp:work2");
 
@@ -1756,7 +1756,7 @@ void _noopt PPPMDisp::allocate()
       memory->create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                               nxlo_out,nxhi_out,"pppm/disp:vdz_brick");
     }
-    
+
     // create 2 FFTs and a Remap
     // 1st FFT keeps data in FFT decomposition
     // 2nd FFT returns data in 3d brick decomposition
@@ -1810,7 +1810,7 @@ void _noopt PPPMDisp::allocate()
     } else if (function[3]) {
       if (differentiation_flag) npergrid6 = 1*nsplit_alloc;
       else npergrid6 = 3*nsplit_alloc;
-    }      
+    }
 
     memory->create(gc6_buf1,npergrid6*ngc6_buf1,"pppm:gc_buf1");
     memory->create(gc6_buf2,npergrid6*ngc6_buf2,"pppm:gc_buf2");
@@ -1821,16 +1821,16 @@ void _noopt PPPMDisp::allocate()
     //              same as count of owned grid cells
     // nfft = FFT points in x-pencil FFT decomposition on this proc
     // nfft_both = greater of nfft and nfft_brick
-    
+
     ngrid_6 = (nxhi_out_6-nxlo_out_6+1) * (nyhi_out_6-nylo_out_6+1) *
       (nzhi_out_6-nzlo_out_6+1);
-    
+
     nfft_brick_6 = (nxhi_in_6-nxlo_in_6+1) * (nyhi_in_6-nylo_in_6+1) *
       (nzhi_in_6-nzlo_in_6+1);
-    
+
     nfft_6 = (nxhi_fft_6-nxlo_fft_6+1) * (nyhi_fft_6-nylo_fft_6+1) *
       (nzhi_fft_6-nzlo_fft_6+1);
-    
+
     nfft_both_6 = MAX(nfft_6,nfft_brick_6);
 
     // create 2 FFTs and a Remap
@@ -1858,7 +1858,7 @@ void _noopt PPPMDisp::allocate()
                 nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
                 1,0,0,FFT_PRECISION,collective_flag);
   }
-      
+
   // --------------------------------------
   // dispersion grids with geometric mixing
   // --------------------------------------
@@ -1915,7 +1915,7 @@ void _noopt PPPMDisp::allocate()
   // --------------------------------------
   // dispersion grids with arithmetic mixing
   // --------------------------------------
-  
+
   if (function[2]) {
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
     memory->create(work2_6,2*nfft_both_6,"pppm/disp:work2_6");
@@ -2719,10 +2719,10 @@ void PPPMDisp::set_grid_local(int order_either,
   // shift values for particle <-> grid mapping depend on stencil order
   // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
   // used in particle_map() and make_rho() and fieldforce()
-  
+
   if (order_either % 2) shift_either = OFFSET + 0.5;
   else shift_either = OFFSET;
-  
+
   if (order_either % 2) shiftone_either = 0.0;
   else shiftone_either = 0.5;
 
@@ -3305,7 +3305,7 @@ void PPPMDisp::set_grid_global_6()
   if (!csumflag) calc_csum();
   if (!gewaldflag_6) set_init_g6();
   if (!gridflag_6) set_n_pppm_6();
-  
+
   while (!factorable(nx_pppm_6)) nx_pppm_6++;
   while (!factorable(ny_pppm_6)) ny_pppm_6++;
   while (!factorable(nz_pppm_6)) nz_pppm_6++;

@@ -260,7 +260,7 @@ void PPPMElectrode::init()
 
   // pre-compute Green's function denomiator expansion
   // pre-compute 1d charge distribution coefficients
-  
+
   compute_gf_denom();
   if (differentiation_flag == 1) compute_sf_precoeff();
   compute_rho_coeff();
@@ -914,7 +914,7 @@ void PPPMElectrode::allocate()
   // ----------------------------------------------------------------------
   // code from PPPM::allocate(), altered to use different Grid3d constructor
   // ----------------------------------------------------------------------
-  
+
   // create ghost grid object for rho and electric field communication
   // returns local owned and ghost grid bounds
   // setup communication patterns and buffers
@@ -948,9 +948,9 @@ void PPPMElectrode::allocate()
     (nzhi_fft-nzlo_fft+1);
 
   nfft_both = MAX(nfft,nfft_brick);
-  
+
   // allocate distributed grid data
-  
+
   memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"pppm:density_brick");
 
@@ -1023,11 +1023,11 @@ void PPPMElectrode::allocate()
                     1,0,0,FFT_PRECISION,collective_flag);
 
   // ELECTRODE specific allocations
-  
+
   memory->create3d_offset(electrolyte_density_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out,
                           nxlo_out, nxhi_out, "pppm/electrode:electrolyte_density_brick");
   memory->create(electrolyte_density_fft, nfft_both, "pppm/electrode:electrolyte_density_fft");
-  
+
   if (differentiation_flag != 1)
     memory->create3d_offset(u_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
                             "pppm:u_brick");
@@ -1401,7 +1401,7 @@ void PPPMElectrode::set_grid_local()
     shift = OFFSET + 0.5;
   else
     shift = OFFSET;
-  
+
   if (order % 2)
     shiftone = 0.0;
   else

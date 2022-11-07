@@ -74,7 +74,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
    alternate constructor to create a 3d distributed grid
    caller assigns owned/ghost cells to each proc
      setup_grid() must NOT be called
-   used by MSM b/c its definition of ghost cells is complex
+   used by MSM and PPPM/Electrode b/c their definition of ghost cells is complex
    gcomm = caller's communicator
    gnx,gny,gnz = global grid size
    i xyz lo/hi = extent of owned grid cells on this proc

@@ -492,7 +492,6 @@ void FixWallGran::post_force(int /*vflag*/)
     }
 
     // Reset model and copy initial geometric data
-    model->i = i;
     model->dx[0] = dx;
     model->dx[1] = dy;
     model->dx[2] = dz;

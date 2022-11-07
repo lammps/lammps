@@ -44,7 +44,7 @@ GSMTangentialNone::GSMTangentialNone(GranularModel *gm, LAMMPS *lmp) : GSMTangen
 GSMTangentialLinearNoHistory::GSMTangentialLinearNoHistory(GranularModel *gm, LAMMPS *lmp) : GSMTangential(gm, lmp)
 {
   num_coeffs = 2;
-  size_history = 3;
+  size_history = 0;
 }
 
 /* ---------------------------------------------------------------------- */

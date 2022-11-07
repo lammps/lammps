@@ -122,6 +122,9 @@ void PairGranular::compute(int eflag, int vflag)
   bool touchflag = false;
   const bool history_update = update->setupflag == 0;
 
+  for (int i = 0; i < vec_models.size(); i++)
+    vec_models[i].history_update = history_update;
+
   ev_init(eflag,vflag);
 
   // update rigid body info for owned & ghost atoms if using FixRigid masses
@@ -190,13 +193,12 @@ void PairGranular::compute(int eflag, int vflag)
       jtype = type[j];
 
       // Reset model and copy initial geometric data
-      models[itype][jtype]->i = i;
-      models[itype][jtype]->j = j;
       models[itype][jtype]->xi = x[i];
       models[itype][jtype]->xj = x[j];
       models[itype][jtype]->radi = radius[i];
       models[itype][jtype]->radj = radius[j];
-      models[itype][jtype]->touch = touch[jj];
+      if (use_history || models[itype][jtype]->beyond_contact)
+        models[itype][jtype]->touch = touch[jj];
 
       touchflag = models[itype][jtype]->check_contact();
 
@@ -234,12 +236,11 @@ void PairGranular::compute(int eflag, int vflag)
       models[itype][jtype]->vj = v[j];
       models[itype][jtype]->omegai = omega[i];
       models[itype][jtype]->omegaj = omega[j];
-      models[itype][jtype]->history_update = history_update;
       if (use_history) {
         history = &allhistory[size_history*jj];
         models[itype][jtype]->history = history;
       }
-;
+
       if (heat_flag) {
         models[itype][jtype]->Ti = temperature[i];
         models[itype][jtype]->Tj = temperature[j];
@@ -411,7 +412,10 @@ void PairGranular::init_style()
 
   for (auto &model : vec_models) {
     model.init();
-    if (model.beyond_contact) beyond_contact = 1;
+    if (model.beyond_contact) {
+      beyond_contact = 1;
+      use_history = 1; // Need to track if in contact
+    }
     if (model.size_history != 0) use_history = 1;
 
     for (i = 0; i < NSUBMODELS; i++)
@@ -700,13 +704,27 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double *radius = atom->radius;
 
   // Reset model and copy initial geometric data
-  models[itype][jtype]->i = i;
-  models[itype][jtype]->j = j;
   models[itype][jtype]->xi = x[i];
   models[itype][jtype]->xj = x[j];
   models[itype][jtype]->radi = radius[i];
   models[itype][jtype]->radj = radius[j];
   models[i][j]->history_update = 0; // Don't update history
+
+  // If history is needed
+  jnum = list->numneigh[i];
+  jlist = list->firstneigh[i];
+  if (use_history) {
+    if ((fix_history == nullptr) || (fix_history->firstvalue == nullptr))
+      error->one(FLERR,"Pair granular single computation needs history");
+    allhistory = fix_history->firstvalue[i];
+    for (int jj = 0; jj < jnum; jj++) {
+      neighprev++;
+      if (neighprev >= jnum) neighprev = 0;
+      if (jlist[neighprev] == j) break;
+    }
+    history = &allhistory[size_history*neighprev];
+    models[itype][jtype]->touch = fix_history->firstflag[i][neighprev];
+  }
 
   touchflag = models[itype][jtype]->check_contact();
 
@@ -732,22 +750,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   meff = mi * mj / (mi + mj);
   if (mask[i] & freeze_group_bit) meff = mj;
   if (mask[j] & freeze_group_bit) meff = mi;
-
-  // if any history is needed
-  jnum = list->numneigh[i];
-  jlist = list->firstneigh[i];
-
-  if (use_history) {
-    if ((fix_history == nullptr) || (fix_history->firstvalue == nullptr))
-      error->one(FLERR,"Pair granular single computation needs history");
-    allhistory = fix_history->firstvalue[i];
-    for (int jj = 0; jj < jnum; jj++) {
-      neighprev++;
-      if (neighprev >= jnum) neighprev = 0;
-      if (jlist[neighprev] == j) break;
-    }
-    history = &allhistory[size_history*neighprev];
-  }
 
   // Copy additional information and calculate forces
   double **v = atom->v;

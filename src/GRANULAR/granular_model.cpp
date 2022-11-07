@@ -380,9 +380,8 @@ bool GranularModel::check_contact()
 
 void GranularModel::calculate_forces()
 {
-  double temp[3];
-
   // Standard geometric quantities
+
   if (contact_type != WALLREGION) r = sqrt(rsq);
   rinv = 1.0 / r;
   delta = radsum - r;
@@ -403,29 +402,12 @@ void GranularModel::calculate_forces()
   scaleadd3(radi, omegai, radj, omegaj, wr);
 
   // relative tangential velocities
+  double temp[3];
   cross3(wr, nx, temp);
   sub3(vt, temp, vtr);
   vrel = len3(vtr);
 
-  if (rolling_defined || twisting_defined)
-    sub3(omegai, omegaj, relrot);
-
-  if (rolling_defined) {
-    // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
-    // this is different from the Marshall papers, which use the Bagi/Kuhn formulation
-    // for rolling velocity (see Wang et al for why the latter is wrong)
-    vrl[0] = Reff * (relrot[1] * nx[2] - relrot[2] * nx[1]);
-    vrl[1] = Reff * (relrot[2] * nx[0] - relrot[0] * nx[2]);
-    vrl[2] = Reff * (relrot[0] * nx[1] - relrot[1] * nx[0]);
-  }
-
-  if (twisting_defined) {
-    // omega_T (eq 29 of Marshall)
-    magtwist = dot3(relrot, nx);
-  }
-
   // calculate forces/torques
-
   forces[0] = 0.0;
   double Fdamp, dist_to_contact;
   area = normal_model->calculate_area();
@@ -437,30 +419,43 @@ void GranularModel::calculate_forces()
 
   normal_model->set_fncrit(); // Needed for tangential, rolling, twisting
   tangential_model->calculate_forces();
-  if (rolling_defined) rolling_model->calculate_forces();
-  if (twisting_defined) twisting_model->calculate_forces();
 
-  // sum contributions
+  // sum normal + tangential contributions
 
   scale3(Fntot, nx, forces);
   add3(forces, fs, forces);
 
-  //May need to rethink eventually tris..
+  // May need to eventually rethink tris..
   cross3(nx, fs, torquesi);
   scale3(-1, torquesi);
-  if (contact_type == PAIR) copy3(torquesi, torquesj);
 
-  if (!classic_model && (contact_type == PAIR)) {
+  if (contact_type == PAIR) {
+    copy3(torquesi, torquesj);
+
+    // Classic pair styles wouldn't scale, but classic option is only used by walls
     dist_to_contact = radi - 0.5 * delta;
     scale3(dist_to_contact, torquesi);
     dist_to_contact = radj - 0.5 * delta;
     scale3(dist_to_contact, torquesj);
   } else {
-    dist_to_contact = radi;
-    scale3(dist_to_contact, torquesi);
+    scale3(radi, torquesi);
   }
 
+  // Extra modes
+
+  if (rolling_defined || twisting_defined)
+    sub3(omegai, omegaj, relrot);
+
   if (rolling_defined) {
+    // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
+    // this is different from the Marshall papers, which use the Bagi/Kuhn formulation
+    // for rolling velocity (see Wang et al for why the latter is wrong)
+    vrl[0] = Reff * (relrot[1] * nx[2] - relrot[2] * nx[1]);
+    vrl[1] = Reff * (relrot[2] * nx[0] - relrot[0] * nx[2]);
+    vrl[2] = Reff * (relrot[0] * nx[1] - relrot[1] * nx[0]);
+
+    rolling_model->calculate_forces();
+
     double torroll[3];
     cross3(nx, fr, torroll);
     scale3(Reff, torroll);
@@ -469,6 +464,11 @@ void GranularModel::calculate_forces()
   }
 
   if (twisting_defined) {
+    // omega_T (eq 29 of Marshall)
+    magtwist = dot3(relrot, nx);
+
+    twisting_model->calculate_forces();
+
     double tortwist[3];
     scale3(magtortwist, nx, tortwist);
     add3(torquesi, tortwist, torquesi);

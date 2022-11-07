@@ -112,7 +112,7 @@ PairGranular::~PairGranular()
 void PairGranular::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,inum,jnum,itype,jtype;
-  double factor_lj,mi,mj,meff,delx,dely,delz;
+  double factor_lj,mi,mj,meff;
   double *forces, *torquesi, *torquesj, dq;
 
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -121,6 +121,8 @@ void PairGranular::compute(int eflag, int vflag)
 
   bool touchflag = false;
   const bool history_update = update->setupflag == 0;
+
+  class GranularModel* model;
 
   for (int i = 0; i < vec_models.size(); i++)
     vec_models[i].history_update = history_update;
@@ -191,31 +193,29 @@ void PairGranular::compute(int eflag, int vflag)
       if (factor_lj == 0) continue;
 
       jtype = type[j];
+      model = models[itype][jtype];
 
       // Reset model and copy initial geometric data
-      models[itype][jtype]->xi = x[i];
-      models[itype][jtype]->xj = x[j];
-      models[itype][jtype]->radi = radius[i];
-      models[itype][jtype]->radj = radius[j];
-      if (use_history || models[itype][jtype]->beyond_contact)
-        models[itype][jtype]->touch = touch[jj];
+      model->xi = x[i];
+      model->xj = x[j];
+      model->radi = radius[i];
+      model->radj = radius[j];
+      if (use_history) model->touch = touch[jj];
 
-      touchflag = models[itype][jtype]->check_contact();
+      touchflag = model->check_contact();
 
       if (!touchflag) {
         // unset non-touching neighbors
         if (use_history) {
           touch[jj] = 0;
-          history = &allhistory[size_history*jj];
+          history = &allhistory[size_history * jj];
           for (k = 0; k < size_history; k++) history[k] = 0.0;
         }
         continue;
       }
 
       // if any history is needed
-      if (use_history || models[itype][jtype]->beyond_contact) {
-        touch[jj] = 1;
-      }
+      if (use_history) touch[jj] = 1;
 
       // meff = effective mass of pair of particles
       // if I or J part of rigid body, use body mass
@@ -231,27 +231,26 @@ void PairGranular::compute(int eflag, int vflag)
       if (mask[j] & freeze_group_bit) meff = mi;
 
       // Copy additional information and prepare force calculations
-      models[itype][jtype]->meff = meff;
-      models[itype][jtype]->vi = v[i];
-      models[itype][jtype]->vj = v[j];
-      models[itype][jtype]->omegai = omega[i];
-      models[itype][jtype]->omegaj = omega[j];
+      model->meff = meff;
+      model->vi = v[i];
+      model->vj = v[j];
+      model->omegai = omega[i];
+      model->omegaj = omega[j];
       if (use_history) {
-        history = &allhistory[size_history*jj];
-        models[itype][jtype]->history = history;
+        history = &allhistory[size_history * jj];
+        model->history = history;
       }
 
       if (heat_flag) {
-        models[itype][jtype]->Ti = temperature[i];
-        models[itype][jtype]->Tj = temperature[j];
+        model->Ti = temperature[i];
+        model->Tj = temperature[j];
       }
 
-      models[itype][jtype]->calculate_forces();
+      model->calculate_forces();
 
-      forces = models[itype][jtype]->forces;
-      torquesi = models[itype][jtype]->torquesi;
-      torquesj = models[itype][jtype]->torquesj;
-      if (heat_flag) dq = models[itype][jtype]->dq;
+      forces = model->forces;
+      torquesi = model->torquesi;
+      torquesj = model->torquesj;
 
       // apply forces & torques
       scale3(factor_lj, forces);
@@ -259,21 +258,22 @@ void PairGranular::compute(int eflag, int vflag)
 
       scale3(factor_lj, torquesi);
       add3(torque[i], torquesi, torque[i]);
-      if (heat_flag) heatflow[i] += dq;
 
       if (force->newton_pair || j < nlocal) {
         sub3(f[j], forces, f[j]);
         scale3(factor_lj, torquesj);
         add3(torque[j], torquesj, torque[j]);
-        if (heat_flag) heatflow[j] -= dq;
+      }
+
+      if (heat_flag) {
+        dq = model->dq;
+        heatflow[i] += dq;
+        if (force->newton_pair || j < nlocal) heatflow[j] -= dq;
       }
 
       if (evflag) {
-        delx = x[i][0] - x[j][0];
-        dely = x[i][1] - x[j][1];
-        delz = x[i][2] - x[j][2];
         ev_tally_xyz(i,j,nlocal,force->newton_pair,
-          0.0,0.0,forces[0],forces[1],forces[2],delx,dely,delz);
+          0.0,0.0,forces[0],forces[1],forces[2],model->dx[0],model->dx[1],model->dx[2]);
       }
     }
   }
@@ -703,12 +703,14 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double **x = atom->x;
   double *radius = atom->radius;
 
+  class GranularModel* model = models[itype][jtype];
+
   // Reset model and copy initial geometric data
-  models[itype][jtype]->xi = x[i];
-  models[itype][jtype]->xj = x[j];
-  models[itype][jtype]->radi = radius[i];
-  models[itype][jtype]->radj = radius[j];
-  models[i][j]->history_update = 0; // Don't update history
+  model->xi = x[i];
+  model->xj = x[j];
+  model->radi = radius[i];
+  model->radj = radius[j];
+  model->history_update = 0; // Don't update history
 
   // If history is needed
   jnum = list->numneigh[i];
@@ -723,10 +725,10 @@ double PairGranular::single(int i, int j, int itype, int jtype,
       if (jlist[neighprev] == j) break;
     }
     history = &allhistory[size_history*neighprev];
-    models[itype][jtype]->touch = fix_history->firstflag[i][neighprev];
+    model->touch = fix_history->firstflag[i][neighprev];
   }
 
-  touchflag = models[itype][jtype]->check_contact();
+  touchflag = model->check_contact();
 
   if (!touchflag) {
     fforce = 0.0;
@@ -755,18 +757,18 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double **v = atom->v;
   double **omega = atom->omega;
 
-  models[itype][jtype]->meff = meff;
-  models[itype][jtype]->vi = v[i];
-  models[itype][jtype]->vj = v[j];
-  models[itype][jtype]->omegai = omega[i];
-  models[itype][jtype]->omegaj = omega[j];
-  models[itype][jtype]->history = history;
+  model->meff = meff;
+  model->vi = v[i];
+  model->vj = v[j];
+  model->omegai = omega[i];
+  model->omegaj = omega[j];
+  model->history = history;
 
   double *forces, *torquesi, *torquesj;
-  models[itype][jtype]->calculate_forces();
-  forces = models[itype][jtype]->forces;
-  torquesi = models[itype][jtype]->torquesi;
-  torquesj = models[itype][jtype]->torquesj;
+  model->calculate_forces();
+  forces = model->forces;
+  torquesi = model->torquesi;
+  torquesj = model->torquesj;
 
   // apply forces & torques
 
@@ -774,22 +776,18 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 
   // set single_extra quantities
 
-  double delx = x[i][0] - x[j][0];
-  double dely = x[i][1] - x[j][1];
-  double delz = x[i][2] - x[j][2];
-
-  svector[0] = models[itype][jtype]->fs[0];
-  svector[1] = models[itype][jtype]->fs[1];
-  svector[2] = models[itype][jtype]->fs[2];
-  svector[3] = MathExtra::len3(models[itype][jtype]->fs);
-  svector[4] = models[itype][jtype]->fr[0];
-  svector[5] = models[itype][jtype]->fr[1];
-  svector[6] = models[itype][jtype]->fr[2];
-  svector[7] = MathExtra::len3(models[itype][jtype]->fr);
-  svector[8] = models[itype][jtype]->magtortwist;
-  svector[9] = delx;
-  svector[10] = dely;
-  svector[11] = delz;
+  svector[0] = model->fs[0];
+  svector[1] = model->fs[1];
+  svector[2] = model->fs[2];
+  svector[3] = MathExtra::len3(model->fs);
+  svector[4] = model->fr[0];
+  svector[5] = model->fr[1];
+  svector[6] = model->fr[2];
+  svector[7] = MathExtra::len3(model->fr);
+  svector[8] = model->magtortwist;
+  svector[9] = model->dx[0];
+  svector[10] = model->dx[1];
+  svector[11] = model->dx[2];
 
   return 0.0;
 }

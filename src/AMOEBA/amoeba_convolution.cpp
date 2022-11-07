@@ -76,6 +76,8 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   if (which == POLAR_GRIDC || which == INDUCE_GRIDC) flag3d = 0;
 
   nfft_global = (bigint) nx * ny * nz;
+
+  allocate_grid();
 }
 
 /* ----------------------------------------------------------------------

@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
 #include <utility>
 #include <algorithm>
 
@@ -147,12 +145,12 @@ void verify_data(ViewTypeData view_data_h, ViewTypeTest view_test,
   // check that returned iterators are correct
   const std::size_t std_diff = std_result - KE::begin(view_data_h);
   const std::size_t my_diff  = my_result - KE::begin(view_test);
-  EXPECT_TRUE(std_diff == my_diff);
+  EXPECT_EQ(std_diff, my_diff);
 
   // check the actual data after algo has been applied
   auto view_test_h = create_host_space_copy(view_test);
   for (std::size_t i = 0; i < my_diff; ++i) {
-    EXPECT_TRUE(view_test_h(i) == view_data_h[i]);
+    EXPECT_EQ(view_test_h(i), view_data_h[i]);
     // std::cout << "i= " << i << " "
     // 	      << "mine: " << view_test_h(i) << " "
     // 	      << "std: " << view_data_h(i)

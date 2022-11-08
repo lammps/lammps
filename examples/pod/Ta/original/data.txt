@@ -10,7 +10,5 @@ fitting_weight_force 1.0
 error_analysis_for_training_data_set 1
 error_analysis_for_test_data_set 0
 
-energy_force_calculation_for_training_data_set 0
-energy_force_calculation_for_test_data_set 1
 
 

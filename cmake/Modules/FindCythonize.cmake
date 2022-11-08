@@ -22,7 +22,7 @@ endif()
 if(Python_EXECUTABLE)
   get_filename_component(_python_path ${Python_EXECUTABLE} PATH)
   find_program(Cythonize_EXECUTABLE
-    NAMES cythonize3 cythonize cythonize.bat
+    NAMES cythonize-${Python_VERSION_MAJOR}.${Python_VERSION_MINOR} cythonize3 cythonize cythonize.bat
     HINTS ${_python_path})
 endif()
 

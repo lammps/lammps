@@ -13,12 +13,10 @@
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
+#include "tokenizer.h"
 
-#include <fstream>
-#include <sstream>
 #include <string>
 #include <vector>
-#include <iostream>
 #include <iomanip>
 #include <limits>
 #include <glob.h>
@@ -29,23 +27,20 @@
 #include <math.h>
 #include <sys/time.h>
 
-using std::string;
-using std::ios;
-using std::ofstream;
-using std::ifstream;
-using std::ostringstream;
 using namespace LAMMPS_NS;
+
+#define MAXLINE 1024
 
 CPOD::CPOD(LAMMPS* lmp, std::string pod_file, std::string coeff_file) : Pointers(lmp)
 {
   // read pod input file to podstruct
 
-  this->read_pod(pod_file);
+  read_pod(pod_file);
 
   // read pod coefficient file to podstruct
 
   if (coeff_file != "")
-    this->read_coeff_file(coeff_file);
+    read_coeff_file(coeff_file);
 
   if (pod.snaptwojmax > 0) {
     InitSnap();
@@ -110,8 +105,8 @@ void CPOD::podMatMul(double *c, double *a, double *b, int r1, int c1, int c2)
 
 void CPOD::podArrayFill(int* output, int start, int length)
 {
-	for (int j = 0; j < length; ++j)
-		output[j] = start + j;
+        for (int j = 0; j < length; ++j)
+                output[j] = start + j;
 }
 
 double CPOD::podArraySum(double *a, int n)
@@ -171,9 +166,9 @@ void CPOD::podKron(double *C, double *A, double *B, double alpha, int M1, int M2
 
 void CPOD::podCumsum(int* output, int* input, int length)
 {
-	output[0] = 0;
-	for (int j = 1; j < length; ++j)
-		output[j] = input[j - 1] + output[j - 1];
+        output[0] = 0;
+        for (int j = 1; j < length; ++j)
+                output[j] = input[j - 1] + output[j - 1];
 }
 
 double CPOD::podArrayNorm(double *a, int n)
@@ -284,8 +279,6 @@ void CPOD::triclinic_lattice_conversion(double *a, double *b, double *c, double 
   c[0] = cx; c[1] = cy;  c[2] = cz;
 }
 
-/**************************************************************************************************************/
-
 void podsnapshots(double *rbf, double *xij, double *besselparams, double rin, double rcut,
     int besseldegree, int inversedegree, int nbesselpars, int N)
 {
@@ -350,15 +343,17 @@ void podeigenvaluedecomposition(double *Phi, double *Lambda, double *besselparam
   for (int i=0; i<ns*ns; i++)
     A[i] = A[i]*(1.0/N);
 
-  // Declaring Function Input for DSYEV
-//   char jobz = 'V';  // 'V':  Compute eigenvalues and eigenvectors.
-//   char uplo = 'U';  // 'U':  Upper triangle of A is stored.
-  int lwork = ns * ns;  // The length of the array work, lwork >= max(1,3*N-1).
+  // declare function input for DSYEV
+  // char jobz = 'V';  // 'V':  Compute eigenvalues and eigenvectors
+  // char uplo = 'U';  // 'U':  Upper triangle of A is stored
+
+  int lwork = ns * ns;  // the length of the array work, lwork >= max(1,3*N-1)
   int info = 1;     // = 0:  successful exit
   double work[ns*ns];
   DSYEV(&chv, &chu, &ns, A, &ns, b, work, &lwork, &info);
 
   // order eigenvalues and eigenvectors from largest to smallest
+
   for (int j=0; j<ns; j++)
     for (int i=0; i<ns; i++)
       Phi[i + ns*(ns-j-1)] = A[i + ns*j];
@@ -392,85 +387,118 @@ void CPOD::read_pod(std::string pod_file)
   pod.besselparams[1] = 2.0;
   pod.besselparams[2] = 4.0;
 
-  std::ifstream file_in(pod_file);
-  if (!file_in) {error->all(FLERR,"Error: POD input file is not found");}
+  std::string podfilename = pod_file;
+  FILE *fppod;
+  if (comm->me == 0){
 
-  std::string line;
-  while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines
-  {
-    if (line != "") {
-      std::string s;
-      double d;
+    fppod = utils::open_potential(podfilename,lmp,nullptr);
+    if (fppod == nullptr)
+      error->one(FLERR,"Cannot open POD coefficient file {}: ",
+                                   podfilename, utils::getsyserror());
+  }
 
-      std::istringstream ss_line(line);
-      ss_line >> s;
-      if (s == "species") {
-        std::string element;
-        while(ss_line >> element){
-          pod.species.push_back(element);
-          pod.nelements += 1;
-        }
-      }
+  // loop through lines of POD file and parse keywords
 
-      if (s == "pbc") {
-        int i, j = 0;
-        while(ss_line >> i) {
-          pod.pbc[j++] = i;
-        }
-      }
-
-      if ((s != "#") && (s != "species") && (s != "pbc")) {
-        ss_line >> d;
-
-        if (s == "rin") pod.rin = d;
-        if (s == "rcut") pod.rcut = d;
-        if (s == "bessel_scaling_parameter1") pod.besselparams[0] = d;
-        if (s == "bessel_scaling_parameter2") pod.besselparams[1] = d;
-        if (s == "bessel_scaling_parameter3") pod.besselparams[2] = d;
-        if (s == "bessel_polynomial_degree") pod.besseldegree = (int) d;
-        if (s == "inverse_polynomial_degree") pod.inversedegree = (int) d;
-        if (s == "onebody") pod.onebody = (int) d;
-        if (s == "twobody_bessel_polynomial_degree") pod.twobody[0] = (int) d;
-        if (s == "twobody_inverse_polynomial_degree") pod.twobody[1] = (int) d;
-        if (s == "twobody_number_radial_basis_functions") pod.twobody[2] = (int) d;
-        if (s == "threebody_bessel_polynomial_degree") pod.threebody[0] = (int) d;
-        if (s == "threebody_inverse_polynomial_degree") pod.threebody[1] = (int) d;
-        if (s == "threebody_number_radial_basis_functions") pod.threebody[2] = (int) d;
-        if (s == "threebody_number_angular_basis_functions") pod.threebody[3] = (int) (d-1);
-        if (s == "fourbody_bessel_polynomial_degree") pod.fourbody[0] = (int) d;
-        if (s == "fourbody_inverse_polynomial_degree") pod.fourbody[1] = (int) d;
-        if (s == "fourbody_number_radial_basis_functions") pod.fourbody[2] = (int) d;
-        if (s == "fourbody_snap_twojmax") pod.snaptwojmax = (int) d;
-        if (s == "fourbody_snap_chemflag") pod.snapchemflag = (int) d;
-        if (s == "fourbody_snap_rfac0") pod.snaprfac0 = d;
-        if (s == "fourbody_snap_neighbor_weight1") pod.snapelementweight[0] = d;
-        if (s == "fourbody_snap_neighbor_weight2") pod.snapelementweight[1] = d;
-        if (s == "fourbody_snap_neighbor_weight3") pod.snapelementweight[2] = d;
-        if (s == "fourbody_snap_neighbor_weight4") pod.snapelementweight[3] = d;
-        if (s == "fourbody_snap_neighbor_weight5") pod.snapelementweight[4] = d;
-        //if (s == "fourbody_number_spherical_harmonic_basis_functions") pod.fourbody[3] = (int) d;
-        if (s == "quadratic_pod_potential") pod.quadraticpod = (int) d;
-        if (s == "quadratic22_number_twobody_basis_functions") pod.quadratic22[0] = (int) d;
-        if (s == "quadratic22_number_twobody_basis_functions") pod.quadratic22[1] = (int) d;
-        if (s == "quadratic23_number_twobody_basis_functions") pod.quadratic23[0] = (int) d;
-        if (s == "quadratic23_number_threebody_basis_functions") pod.quadratic23[1] = (int) d;
-        if (s == "quadratic24_number_twobody_basis_functions") pod.quadratic24[0] = (int) d;
-        if (s == "quadratic24_number_fourbody_basis_functions") pod.quadratic24[1] = (int) d;
-        if (s == "quadratic33_number_threebody_basis_functions") pod.quadratic33[0] = (int) d;
-        if (s == "quadratic33_number_threebody_basis_functions") pod.quadratic33[1] = (int) d;
-        if (s == "quadratic34_number_threebody_basis_functions") pod.quadratic34[0] = (int) d;
-        if (s == "quadratic34_number_fourbody_basis_functions") pod.quadratic34[1] = (int) d;
-        if (s == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[0] = (int) d;
-        if (s == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[1] = (int) d;
-        if (s == "cubic234_number_twobody_basis_functions") pod.cubic234[0] = (int) d;
-        if (s == "cubic234_number_threebody_basis_functions") pod.cubic234[1] = (int) d;
-        if (s == "cubic234_number_fourbody_basis_functions") pod.cubic234[2] = (int) d;
-        if (s == "cubic333_number_threebody_basis_functions") pod.cubic333[0] = (int) d;
-        if (s == "cubic444_number_fourbody_basis_functions") pod.cubic444[0] = (int) d;
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+  int nwords = 0;
+  while (true) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fppod);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fppod);
       }
     }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    // words = ptrs to all words in line
+    // strip single and double quotes from words
+
+    std::vector<std::string> words;
+    try {
+      words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
+    } catch (TokenizerException &) {
+      // ignore
+    }
+
+    if (words.size() == 0) continue;
+
+    auto keywd = words[0];
+
+    if (keywd == "species") {
+
+        pod.nelements = words.size()-1;
+        for (int ielem = 1; ielem <= pod.nelements; ielem++){
+          pod.species.push_back(words[ielem]);
+        }
+
+    }
+
+    if (keywd == "pbc"){
+      if (words.size() != 4)
+        error->one(FLERR,"Improper POD file.", utils::getsyserror());
+      pod.pbc[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      pod.pbc[1] = utils::inumeric(FLERR,words[2],false,lmp);
+      pod.pbc[2] = utils::inumeric(FLERR,words[3],false,lmp);
+    }
+
+    if ((keywd != "#") && (keywd != "species") && (keywd != "pbc")) {
+
+      if (words.size() != 2)
+        error->one(FLERR,"Improper POD file.", utils::getsyserror());
+
+      if (keywd == "rin") pod.rin = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "rcut") pod.rcut = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_scaling_parameter1") pod.besselparams[0] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_scaling_parameter2") pod.besselparams[1] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_scaling_parameter3") pod.besselparams[2] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_polynomial_degree") pod.besseldegree = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "inverse_polynomial_degree") pod.inversedegree = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "onebody") pod.onebody = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "twobody_bessel_polynomial_degree") pod.twobody[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "twobody_inverse_polynomial_degree") pod.twobody[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "twobody_number_radial_basis_functions") pod.twobody[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_bessel_polynomial_degree") pod.threebody[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_inverse_polynomial_degree") pod.threebody[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_number_radial_basis_functions") pod.threebody[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_number_angular_basis_functions") pod.threebody[3] = utils::inumeric(FLERR,words[1],false,lmp)-1;
+      if (keywd == "fourbody_bessel_polynomial_degree") pod.fourbody[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_inverse_polynomial_degree") pod.fourbody[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_number_radial_basis_functions") pod.fourbody[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_twojmax") pod.snaptwojmax = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_chemflag") pod.snapchemflag = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_rfac0") pod.snaprfac0 = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight1") pod.snapelementweight[0] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight2") pod.snapelementweight[1] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight3") pod.snapelementweight[2] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight4") pod.snapelementweight[3] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight5") pod.snapelementweight[4] = utils::numeric(FLERR,words[1],false,lmp);
+      //if (keywd == "fourbody_number_spherical_harmonic_basis_functions") pod.fourbody[3] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic_pod_potential") pod.quadraticpod = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic22_number_twobody_basis_functions") pod.quadratic22[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic22_number_twobody_basis_functions") pod.quadratic22[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic23_number_twobody_basis_functions") pod.quadratic23[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic23_number_threebody_basis_functions") pod.quadratic23[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic24_number_twobody_basis_functions") pod.quadratic24[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic24_number_fourbody_basis_functions") pod.quadratic24[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic33_number_threebody_basis_functions") pod.quadratic33[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic33_number_threebody_basis_functions") pod.quadratic33[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic34_number_threebody_basis_functions") pod.quadratic34[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic34_number_fourbody_basis_functions") pod.quadratic34[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic234_number_twobody_basis_functions") pod.cubic234[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic234_number_threebody_basis_functions") pod.cubic234[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic234_number_fourbody_basis_functions") pod.cubic234[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic333_number_threebody_basis_functions") pod.cubic333[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic444_number_fourbody_basis_functions") pod.cubic444[0] = utils::inumeric(FLERR,words[1],false,lmp);
+
+    }
+
   }
-  file_in.close();
 
   pod.twobody[0] = pod.besseldegree;
   pod.twobody[1] = pod.inversedegree;
@@ -622,101 +650,114 @@ void CPOD::read_pod(std::string pod_file)
     }
 
   if (comm->me == 0) {
-  std::cout<<"**************** Begin of POD Potentials ****************"<<std::endl;
-  std::cout<<"species: ";
-  for (int i=0; i<pod.nelements; i++)
-    utils::logmesg(lmp, "{} ", pod.species[i]);
-  utils::logmesg(lmp, "\n");
-  utils::logmesg(lmp, "periodic boundary conditions: {} {} {}\n", pod.pbc[0], pod.pbc[1], pod.pbc[2]);
-  utils::logmesg(lmp, "inner cut-off radius: {}\n", pod.rin);
-  utils::logmesg(lmp, "outer cut-off radius: {}\n", pod.rcut);
-  //std::cout<<"bessel parameters: "<<pod.besselparams[0]<<"  "<<pod.besselparams[1]<<"  "<<pod.besselparams[2]<<std::endl;
-  utils::logmesg(lmp, "bessel polynomial degree: {}\n", pod.besseldegree);
-  utils::logmesg(lmp, "inverse polynomial degree: {}\n", pod.inversedegree);
-  utils::logmesg(lmp, "one-body potential: {}\n", pod.onebody);
-  utils::logmesg(lmp, "two-body potential: {} {} {}\n", pod.twobody[0], pod.twobody[1], pod.twobody[2]);
-  utils::logmesg(lmp, "three-body potential: {} {} {} {}\n", pod.threebody[0], pod.threebody[1], pod.threebody[2], pod.threebody[3]+1);
-  utils::logmesg(lmp, "four-body SNAP potential: {} {}\n", pod.snaptwojmax, pod.snapchemflag);
-  utils::logmesg(lmp, "quadratic POD potential: {}\n", pod.quadraticpod);
-//   std::cout<<"three-body quadratic22 potential: "<<pod.quadratic22[0]<<"  "<<pod.quadratic22[1]<<std::endl;
-//   std::cout<<"four-body quadratic23 potential: "<<pod.quadratic23[0]<<"  "<<pod.quadratic23[1]<<std::endl;
-//   std::cout<<"five-body quadratic24 potential: "<<pod.quadratic24[0]<<"  "<<pod.quadratic24[1]<<std::endl;
-//   std::cout<<"five-body quadratic33 potential: "<<pod.quadratic33[0]<<"  "<<pod.quadratic33[1]<<std::endl;
-//   std::cout<<"six-body quadratic34 potential: "<<pod.quadratic34[0]<<"  "<<pod.quadratic34[1]<<std::endl;
-//   std::cout<<"seven-body quadratic44 potential: "<<pod.quadratic44[0]<<"  "<<pod.quadratic44[1]<<std::endl;
-//   std::cout<<"seven-body cubic234 potential: "<<pod.cubic234[0]<<"  "<<pod.cubic234[1]<<"  "<<pod.cubic234[2]<<std::endl;
-//   std::cout<<"seven-body cubic333 potential: "<<pod.cubic333[0]<<"  "<<pod.cubic333[1]<<"  "<<pod.cubic333[2]<<std::endl;
-//   std::cout<<"ten-body cubic444 potential: "<<pod.cubic444[0]<<"  "<<pod.cubic444[1]<<"  "<<pod.cubic444[2]<<std::endl;
-//   std::cout<<"number of snapshots for two-body potential: "<<pod.ns2<<std::endl;
-//   std::cout<<"number of snapshots for three-body potential: "<<pod.ns3<<std::endl;
-//   std::cout<<"number of snapshots for four-body potential: "<<pod.ns4<<std::endl;
-  utils::logmesg(lmp, "number of basis functions for one-body potential: {}\n", pod.nbf1);
-  utils::logmesg(lmp, "number of basis functions for two-body potential: {}\n", pod.nbf2);
-  utils::logmesg(lmp, "number of basis functions for three-body potential: {}\n", pod.nbf3);
-  utils::logmesg(lmp, "number of basis functions for four-body potential: {}\n", pod.nbf4);
-  utils::logmesg(lmp, "number of descriptors for one-body potential: {}\n", pod.nd1);
-  utils::logmesg(lmp, "number of descriptors for two-body potential: {}\n", pod.nd2);
-  utils::logmesg(lmp, "number of descriptors for three-body potential: {}\n", pod.nd3);
-  utils::logmesg(lmp, "number of descriptors for four-body potential: {}\n", pod.nd4);
-  utils::logmesg(lmp, "number of descriptors for quadratic POD potential: {}\n", pod.nd23);
-//   std::cout<<"number of descriptors for three-body quadratic22 potential: "<<pod.nd22<<std::endl;
-//   std::cout<<"number of descriptors for four-body quadratic23 potential: "<<pod.nd23<<std::endl;
-//   std::cout<<"number of descriptors for five-body quadratic24 potential: "<<pod.nd24<<std::endl;
-//   std::cout<<"number of descriptors for five-body quadratic33 potential: "<<pod.nd33<<std::endl;
-//   std::cout<<"number of descriptors for six-body quadratic34 potential: "<<pod.nd34<<std::endl;
-//   std::cout<<"number of descriptors for seven-body quadratic44 potential: "<<pod.nd44<<std::endl;
-//   std::cout<<"number of descriptors for seven-body cubic234 potential: "<<pod.nd333<<std::endl;
-//   std::cout<<"number of descriptors for seven-body cubic333 potential: "<<pod.nd234<<std::endl;
-//   std::cout<<"number of descriptors for ten-body cubic444 potential: "<<pod.nd444<<std::endl;
-  std::cout<<"total number of descriptors for all potentials: "<<pod.nd<<std::endl;
-  std::cout<<"**************** End of POD Potentials ****************"<<std::endl<<std::endl;
+    utils::logmesg(lmp, "**************** Begin of POD Potentials ****************\n");
+    utils::logmesg(lmp, "species: ");
+    for (int i=0; i<pod.nelements; i++)
+      utils::logmesg(lmp, "{} ", pod.species[i]);
+    utils::logmesg(lmp, "\n");
+    utils::logmesg(lmp, "periodic boundary conditions: {} {} {}\n", pod.pbc[0], pod.pbc[1], pod.pbc[2]);
+    utils::logmesg(lmp, "inner cut-off radius: {}\n", pod.rin);
+    utils::logmesg(lmp, "outer cut-off radius: {}\n", pod.rcut);
+    utils::logmesg(lmp, "bessel polynomial degree: {}\n", pod.besseldegree);
+    utils::logmesg(lmp, "inverse polynomial degree: {}\n", pod.inversedegree);
+    utils::logmesg(lmp, "one-body potential: {}\n", pod.onebody);
+    utils::logmesg(lmp, "two-body potential: {} {} {}\n", pod.twobody[0], pod.twobody[1], pod.twobody[2]);
+    utils::logmesg(lmp, "three-body potential: {} {} {} {}\n", pod.threebody[0], pod.threebody[1], pod.threebody[2], pod.threebody[3]+1);
+    utils::logmesg(lmp, "four-body SNAP potential: {} {}\n", pod.snaptwojmax, pod.snapchemflag);
+    utils::logmesg(lmp, "quadratic POD potential: {}\n", pod.quadraticpod);
+    utils::logmesg(lmp, "number of basis functions for one-body potential: {}\n", pod.nbf1);
+    utils::logmesg(lmp, "number of basis functions for two-body potential: {}\n", pod.nbf2);
+    utils::logmesg(lmp, "number of basis functions for three-body potential: {}\n", pod.nbf3);
+    utils::logmesg(lmp, "number of basis functions for four-body potential: {}\n", pod.nbf4);
+    utils::logmesg(lmp, "number of descriptors for one-body potential: {}\n", pod.nd1);
+    utils::logmesg(lmp, "number of descriptors for two-body potential: {}\n", pod.nd2);
+    utils::logmesg(lmp, "number of descriptors for three-body potential: {}\n", pod.nd3);
+    utils::logmesg(lmp, "number of descriptors for four-body potential: {}\n", pod.nd4);
+    utils::logmesg(lmp, "number of descriptors for quadratic POD potential: {}\n", pod.nd23);
+    utils::logmesg(lmp, "total number of descriptors for all potentials: {}\n", pod.nd);
+    utils::logmesg(lmp, "**************** End of POD Potentials ****************\n\n");
   }
 }
 
 void CPOD::read_coeff_file(std::string coeff_file)
 {
-  std::ifstream file_in(coeff_file);
-  if (!file_in) {error->all(FLERR,"Error: Coefficient input file is not found");}
 
-  int ncoeff=0;
-  std::string line;
-  while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines.
-  {
-    if (line != "") {
-      std::string s;
-      int n;
+  std::string coefffilename = coeff_file;
+  FILE *fpcoeff;
+  if (comm->me == 0){
 
-      std::istringstream ss_line(line);
-      ss_line >> s;
+    fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
+    if (fpcoeff == nullptr)
+      error->one(FLERR,"Cannot open POD coefficient file {}: ",
+                                   coefffilename, utils::getsyserror());
+  }
 
-      if (s == "POD_coefficients:") {
-        ss_line >> n;
-        ncoeff = n;
-        break;
+  // check format for first line of file
+
+  char line[MAXLINE],*ptr;
+  int eof = 0;
+  int nwords = 0;
+  while (nwords == 0) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fpcoeff);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fpcoeff);
       }
     }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof) break;
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    // strip comment, skip line if blank
+
+    nwords = utils::count_words(utils::trim_comment(line));
   }
 
-  pod.coeff = (double *) malloc(ncoeff*sizeof(double));
+  if (nwords != 2)
+    error->all(FLERR,"Incorrect format in POD coefficient file");
 
-  int k = 0;
-  while (std::getline(file_in, line)) // Read next line to `line`, stop if no more lines.
-  {
-    if (line != "") {
-      double d;
-      std::istringstream ss_line(line);
-      ss_line >> d;
-      pod.coeff[k] = d;
-      k += 1;
+  // strip single and double quotes from words
+
+  int nelemtmp = 0;
+  int ncoeffall;
+  std::string tmp_str;
+  try {
+    ValueTokenizer words(utils::trim_comment(line),"\"' \t\n\r\f");
+    tmp_str = words.next_string();
+    ncoeffall = words.next_int();
+  } catch (TokenizerException &e) {
+    error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
+  }
+
+  // loop over single block of coefficients and insert values in pod.coeff
+
+  pod.coeff = (double *) malloc(ncoeffall*sizeof(double));
+
+  for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
+    if (comm->me == 0) {
+      ptr = fgets(line,MAXLINE,fpcoeff);
+      if (ptr == nullptr) {
+        eof = 1;
+        fclose(fpcoeff);
+      }
+    }
+
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    if (eof)
+      error->all(FLERR,"Incorrect format in POD coefficient file");
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+
+    try {
+      ValueTokenizer coeff(utils::trim_comment(line));
+      if (coeff.count() != 1)
+        error->all(FLERR,"Incorrect format in POD coefficient file");
+
+      pod.coeff[icoeff] = coeff.next_double();
+    } catch (TokenizerException &e) {
+      error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
     }
   }
-
-  file_in.close();
-
-//   std::cout<<"**************** Begin of Coefficient File ****************"<<std::endl;
-//   std::cout<<"number of POD coefficients: "<<ncoeff<<std::endl;
-//   print_matrix( "POD coefficient vector:", 1, ncoeff, pod.coeff, 1);
-//   std::cout<<"**************** End of Coefficient File ****************"<<std::endl<<std::endl;
 }
 
 /*********************************************************************************************************/
@@ -753,32 +794,22 @@ void CPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tmp
 
   podArraySetValue(fatom1, 0.0, (1+dim)*natom*(nd1+nd2+nd3+nd4));
 
-//   // peratom descriptors for one-body, two-body, and three-body linear potentials
-//   this->poddesc(eatom1, fatom1, eatom2, fatom2, eatom3, fatom3, y, Phi2, besselparams,
-//       tmpmem, rin, rcut, atomtype, alist, pairlist, pairnum, pairnumsum,
-//       elemindex, pdegree2, tmpint, nbesselpars, nrbf2, nrbf3, nabf3,
-//       nelements, Nij, natom);
-//
-//   if (pod.snaptwojmax>0)
-//     this->snapdesc(eatom4, fatom4, y, tmpmem, atomtype, alist,
-//         pairlist, pairnumsum, tmpint, natom, Nij);
-
   double *rij = &tmpmem[0]; // 3*Nij
   int *ai = &tmpint[0];   // Nij
   int *aj = &tmpint[Nij];   // Nij
   int *ti = &tmpint[2*Nij]; // Nij
   int *tj = &tmpint[3*Nij]; // Nij
-  this->podNeighPairs(rij, y, ai, aj, ti, tj, pairlist, pairnumsum, atomtype,
+  podNeighPairs(rij, y, ai, aj, ti, tj, pairlist, pairnumsum, atomtype,
         alist, natom, dim);
 
   // peratom descriptors for one-body, two-body, and three-body linear potentials
 
-  this->poddesc(eatom1, fatom1, eatom2, fatom2, eatom3, fatom3, rij, Phi2, besselparams,
+  poddesc(eatom1, fatom1, eatom2, fatom2, eatom3, fatom3, rij, Phi2, besselparams,
       &tmpmem[3*Nij], rin, rcut, pairnumsum, atomtype, ai, aj, ti, tj, elemindex, pdegree2,
       nbesselpars, nrbf2, nrbf3, nabf3, nelements, Nij, natom);
 
   if (pod.snaptwojmax>0)
-    this->snapdesc(eatom4, fatom4, rij, &tmpmem[3*Nij], atomtype, ai, aj, ti, tj, natom, Nij);
+    snapdesc(eatom4, fatom4, rij, &tmpmem[3*Nij], atomtype, ai, aj, ti, tj, natom, Nij);
 
   // global descriptors for one-body, two-body, three-body, and four-bodt linear potentials
 
@@ -1071,39 +1102,39 @@ double CPOD::calculate_energyforce(double *force, double *gd, double *gdd, doubl
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) energy += this->quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22>0) energy += quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) energy += this->quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23>0) energy += quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) energy += this->quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24>0) energy += quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) energy += this->quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33>0) energy += quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) energy += this->quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34>0) energy += quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) energy += this->quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44>0) energy += quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) energy += this->cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234>0) energy += cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) energy += this->cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333>0) energy += cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) energy += this->cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444>0) energy += cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -1128,13 +1159,13 @@ double CPOD::energyforce_calculation(double *force, double *gd, double *gdd, dou
 
   // calculate POD and SNAP descriptors and their derivatives
 
-  this->linear_descriptors(gd, gdd, y, tmpmem, atomtype, alist,
+  linear_descriptors(gd, gdd, y, tmpmem, atomtype, alist,
       pairlist, pairnum, pairnumsum, tmpint, natom, Nij);
 
   // calculate energy and force
 
   double energy = 0.0;
-  energy = this->calculate_energyforce(force, gd, gdd, coeff, &gdd[dim*natom*nd1234], natom);
+  energy = calculate_energyforce(force, gd, gdd, coeff, &gdd[dim*natom*nd1234], natom);
 
   return energy;
 }
@@ -1389,21 +1420,21 @@ void CPOD::poddesc(double *eatom1, double *fatom1, double *eatom2, double *fatom
 
   // orthogonal radial basis functions
 
-  this->podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
-  this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
-  this->podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
+  podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
+  podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
+  podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
 
   // one-body descriptors
 
-  this->pod1body(eatom1, fatom1, atomtype, nelements, natom);
+  pod1body(eatom1, fatom1, atomtype, nelements, natom);
 
   // two-body descriptors
 
-  this->podtally2b(eatom2, fatom2, e2ij, f2ij, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+  podtally2b(eatom2, fatom2, e2ij, f2ij, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
 
   // three-body descriptors
 
-  this->pod3body(eatom3, fatom3, rij, e2ij, f2ij, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum,
+  pod3body(eatom3, fatom3, rij, e2ij, f2ij, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum,
        ai, aj, ti, tj, nrbf3, nabf, nelements, natom, Nij);
 }
 
@@ -1684,7 +1715,7 @@ void CPOD::InitSnap()
   for (int ielem = 0; ielem < ntypes; ielem++)
   rcutmax = PODMAX(2.0*elemradius[ielem]*rcutfac,rcutmax);
 
-  this->snapSetup(twojmax, ntypes);
+  snapSetup(twojmax, ntypes);
   TemplateCopytoDevice(&sna.radelem[1], elemradius, ntypes, backend);
   TemplateCopytoDevice(&sna.wjelem[1], elemweight, ntypes, backend);
   podArrayFill(&sna.map[1], (int) 0, ntypes);
@@ -2038,7 +2069,8 @@ void CPOD::snapComputeZi2(double *zlist_r, double *zlist_i, double *Stotr, doubl
       double suma1_r = 0.0;
       double suma1_i = 0.0;
 
-      // Stotr: inum*idxu_max*nelements
+      // Stotr has size inum*idxu_max*nelements
+
       const double *u1_r = &Stotr[ii + inum*jju1 + inum*idxu_max*elem1];
       const double *u1_i = &Stoti[ii + inum*jju1 + inum*idxu_max*elem1];
       const double *u2_r = &Stotr[ii + inum*jju2 + inum*idxu_max*elem2];
@@ -2157,7 +2189,6 @@ void CPOD::snapComputeBi1(double *blist, double *zlist_r, double *zlist_i, doubl
   int nelemsq = nelements*nelements;
   int nz_max = idxz_max*inum;
   int nu_max = idxu_max*inum;
-  //int nb_max = idxb_max*inum;
   int N2 = inum*idxb_max;
   int N3 = N2*nelements*nelemsq;
   int jdim = twojmax+1;
@@ -2268,7 +2299,7 @@ void CPOD::snapComputeDbidrj(double *dblist, double *zlist_r, double *zlist_i,
       for (int k = 0; k < 3; k++)
         dbdr[ij + ijnum*k + ijnum*3*jjb] += 2.0 * sumzdu_r[k];
 
-      // Sum over Conj(dudr(j1,ma1,mb1))*z(j,j2,j1,ma1,mb1)
+      // sum over Conj(dudr(j1,ma1,mb1))*z(j,j2,j1,ma1,mb1)
 
       double j1fac = (j + 1) / (j1 + 1.0);
       idouble = elem1*nelements+elem2;
@@ -2291,7 +2322,7 @@ void CPOD::snapComputeDbidrj(double *dblist, double *zlist_r, double *zlist_i,
         jju++;
         } //end loop over ma mb
 
-      // For j1 even, handle middle column
+      // for j1 even, handle middle column
 
       if (j1 % 2 == 0) {
         int mb = j1 / 2;
@@ -2319,7 +2350,7 @@ void CPOD::snapComputeDbidrj(double *dblist, double *zlist_r, double *zlist_i,
         else
         dbdr[ij + ijnum*k + ijnum*3*jjb] += 2.0 * sumzdu_r[k] * j1fac;
 
-      // Sum over Conj(dudr(j2,ma2,mb2))*z(j,j1,j2,ma2,mb2)
+      // sum over Conj(dudr(j2,ma2,mb2))*z(j,j1,j2,ma2,mb2)
 
       double j2fac = (j + 1) / (j2 + 1.0);
       idouble = elem2*nelements+elem1;
@@ -2342,7 +2373,7 @@ void CPOD::snapComputeDbidrj(double *dblist, double *zlist_r, double *zlist_i,
         jju++;
         } //end loop over ma mb
 
-      // For j2 even, handle middle column
+      // for j2 even, handle middle column
 
       if (j2 % 2 == 0) {
         int mb = j2 / 2;
@@ -2673,18 +2704,18 @@ void CPOD::poddesc_ij(double *eatom1, double *eatom2, double *eatom3, double *ri
 
   // orthogonal radial basis functions
 
-  this->podradialbasis(e2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
-  this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
+  podradialbasis(e2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
+  podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
 
   // one-body descriptors
 
-  this->pod1body(eatom1, atomtype, nelements, natom);
+  pod1body(eatom1, atomtype, nelements, natom);
 
-  this->podtally2b(eatom2, e2ij, idxi, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+  podtally2b(eatom2, e2ij, idxi, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
 
   // three-body descriptors
 
-  this->pod3body(eatom3, rij, e2ij, &tmpmem[Nij*nrbf], elemindex, pairnumsum,
+  pod3body(eatom3, rij, e2ij, &tmpmem[Nij*nrbf], elemindex, pairnumsum,
        idxi, ti, tj, nrbf3, nabf, nelements, natom, Nij);
 
 }
@@ -2838,18 +2869,18 @@ void CPOD::snapdesc_ij(double *blist, double *rij, double *tmpmem, int *atomtype
   ne += idxu_max*nelements*natom;
   double *Utoti = &tmpmem[ne];
 
-  this->snapComputeUij(Ur, Ui, rootpqarray, rij, wjelem, radelem, rmin0,
+  snapComputeUij(Ur, Ui, rootpqarray, rij, wjelem, radelem, rmin0,
      rfac0, rcutfac, idxu_block, ti, tj, twojmax, idxu_max, Nij, switchflag);
 
-  this->snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
+  snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
       chemflag, idxu_max, nelem, twojmax, natom);
 
-  this->snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
+  snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
 
-  this->snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
+  snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
       idxcg_block, twojmax, idxu_max, idxz_max, nelem, bnormflag, natom);
 
-  this->snapComputeBi1(blist, Zr, Zi, Utotr, Utoti, idxb, idxu_block, idxz_block, twojmax, idxb_max,
+  snapComputeBi1(blist, Zr, Zi, Utotr, Utoti, idxb, idxu_block, idxz_block, twojmax, idxb_max,
       idxu_max, idxz_max, nelem, natom);
 }
 
@@ -2882,14 +2913,14 @@ void CPOD::linear_descriptors_ij(double *gd, double *eatom, double *rij, double 
 
   // peratom descriptors for one-body, two-body, and three-body linear potentials
 
-  this->poddesc_ij(eatom1, eatom2, eatom3, rij, Phi2, besselparams,
+  poddesc_ij(eatom1, eatom2, eatom3, rij, Phi2, besselparams,
       tmpmem, rin, rcut, pairnumsum, atomtype, idxi, ti, tj, elemindex, pdegree2,
       nbesselpars, nrbf2, nrbf3, nabf3, nelements, Nij, natom);
 
   // peratom snap descriptors
 
   if (pod.snaptwojmax>0)
-    this->snapdesc_ij(eatom4, rij, tmpmem, atomtype, idxi, ti, tj, natom, Nij);
+    snapdesc_ij(eatom4, rij, tmpmem, atomtype, idxi, ti, tj, natom, Nij);
 
   // global descriptors for one-body, two-body, three-body, and four-bodt linear potentials
 
@@ -2955,39 +2986,39 @@ double CPOD::calculate_energy(double *effectivecoeff, double *gd, double *coeff)
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) energy += this->quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22>0) energy += quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) energy += this->quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23>0) energy += quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) energy += this->quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24>0) energy += quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) energy += this->quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33>0) energy += quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) energy += this->quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34>0) energy += quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) energy += this->quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44>0) energy += quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) energy += this->cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234>0) energy += cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) energy += this->cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333>0) energy += cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) energy += this->cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444>0) energy += cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -3055,39 +3086,39 @@ double CPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *g
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) energy += this->quadratic_coefficients(ce2, c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22>0) energy += quadratic_coefficients(ce2, c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) energy += this->quadratic_coefficients(ce2, ce3, c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23>0) energy += quadratic_coefficients(ce2, ce3, c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) energy += this->quadratic_coefficients(ce2, ce4, c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24>0) energy += quadratic_coefficients(ce2, ce4, c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) energy += this->quadratic_coefficients(ce3, c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33>0) energy += quadratic_coefficients(ce3, c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) energy += this->quadratic_coefficients(ce3, ce4, c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34>0) energy += quadratic_coefficients(ce3, ce4, c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) energy += this->quadratic_coefficients(ce4, c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44>0) energy += quadratic_coefficients(ce4, c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) energy += this->cubic_coefficients(ce2, ce3, ce4, c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234>0) energy += cubic_coefficients(ce2, ce3, ce4, c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) energy += this->cubic_coefficients(ce3, c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333>0) energy += cubic_coefficients(ce3, c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) energy += this->cubic_coefficients(ce4, c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444>0) energy += cubic_coefficients(ce4, c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -3343,21 +3374,21 @@ void CPOD::pod4body_force(double *force, double *rij, double *coeff4, double *tm
   ne += idxu_max*nelements*natom;
   double *Utoti = &tmpmem[ne];
 
-  this->snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
+  snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
      rfac0, rcutfac, idxu_block, ti, tj, twojmax, idxu_max, Nij, switchflag);
 
-  this->snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
+  snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
       chemflag, idxu_max, nelem, twojmax, natom);
 
-  this->snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
+  snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
 
-  this->snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
+  snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
       idxcg_block, twojmax, idxu_max, idxz_max, nelem, bnormflag, natom);
 
-  this->snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
+  snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
       twojmax, idxb_max, idxu_max, idxz_max, nelements, bnormflag, chemflag, natom, Nij);
 
-  this->snapTallyForce(force, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
+  snapTallyForce(force, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
 }
 
 void CPOD::calculate_force(double *force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,
@@ -3393,17 +3424,17 @@ void CPOD::calculate_force(double *force, double *effectivecoeff, double *rij, d
 
   // orthogonal radial basis functions
 
-  this->podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
-  this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
-  this->podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
+  podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
+  podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
+  podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
 
-  this->pod2body_force(force, f2ij, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+  pod2body_force(force, f2ij, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
 
-  this->pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
+  pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
       ti, tj, nrbf3, nabf3, nelements, natom, Nij);
 
   if (pod.snaptwojmax>0)
-    this->pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
+    pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
 }
 
 double CPOD::energyforce_calculation(double *force, double *podcoeff, double *effectivecoeff, double *gd, double *rij,
@@ -3413,15 +3444,15 @@ double CPOD::energyforce_calculation(double *force, double *podcoeff, double *ef
   double *eatom = &tmpmem[0];
 
   podArraySetValue(gd, 0.0, nd1234);
-  this->linear_descriptors_ij(gd, eatom, rij, &tmpmem[natom*nd1234], pairnumsum, atomtype, idxi, ti, tj, natom, Nij);
+  linear_descriptors_ij(gd, eatom, rij, &tmpmem[natom*nd1234], pairnumsum, atomtype, idxi, ti, tj, natom, Nij);
 
-  // Need to do MPI_Allreduce on gd for paralell
+  // Need to do MPI_Allreduce on gd for parallel
 
-  double energy = this->calculate_energy(effectivecoeff, gd, podcoeff);
+  double energy = calculate_energy(effectivecoeff, gd, podcoeff);
 
   podArraySetValue(force, 0.0, 3*natom);
 
-  this->calculate_force(force, effectivecoeff, rij, tmpmem, pairnumsum, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
+  calculate_force(force, effectivecoeff, rij, tmpmem, pairnumsum, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
 
   return energy;
 }
@@ -3437,8 +3468,6 @@ void CPOD::pod2body_force(double **force, double *fij, double *coeff2, int *ai, 
         int typei = ti[n]-1;
         int typej = tj[n]-1;
         for (int m=0; m<nbf; m++) {
-            //int im =  3*i1;
-            //int jm =  3*j1;
             int nm = n + N*m;
             int km = (elemindex[typei + typej*nelements] - 1) + nelements2*m;
             double ce = coeff2[km];
@@ -3464,8 +3493,6 @@ void CPOD::pod3body_force(double **force, double *yij, double *e2ij, double *f2i
     double xdot, rijsq, riksq, rij, rik;
     double costhe, sinthe, theta, dtheta;
     double tm, tm1, tm2, dct1, dct2, dct3, dct4, dct5, dct6;
-    //double uj, uk, rbf, drbf1, drbf2, drbf3, drbf4, drbf5, drbf6;
-    //double fj1, fj2, fj3, fk1, fk2, fk3;
 
     double *abf = &tmpmem[0];
     double *dabf1 = &tmpmem[nabf1];
@@ -3570,21 +3597,6 @@ void CPOD::pod3body_force(double **force, double *yij, double *e2ij, double *f2i
                         fkx += fk1*tm;
                         fky += fk2*tm;
                         fkz += fk3*tm;
-
-//                         nijk3 = 3*i;
-//                         force[0 + nijk3] += (fj1 + fk1)*tm;
-//                         force[1 + nijk3] += (fj2 + fk2)*tm;
-//                         force[2 + nijk3] += (fj3 + fk3)*tm;
-//
-//                         nijk3 = 3*j;
-//                         force[0 + nijk3] -= fj1*tm;
-//                         force[1 + nijk3] -= fj2*tm;
-//                         force[2 + nijk3] -= fj3*tm;
-//
-//                         nijk3 = 3*k;
-//                         force[0 + nijk3] -= fk1*tm;
-//                         force[1 + nijk3] -= fk2*tm;
-//                         force[2 + nijk3] -= fk3*tm;
                     }
                 }
                 nijk3 = k;
@@ -3687,21 +3699,21 @@ void CPOD::pod4body_force(double **force, double *rij, double *coeff4, double *t
     ne += idxu_max*nelements*natom;
     double *Utoti = &tmpmem[ne];
 
-    this->snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
+    snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
          rfac0, rcutfac, idxu_block, ti, tj, twojmax, idxu_max, Nij, switchflag);
 
-    this->snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
+    snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
             chemflag, idxu_max, nelem, twojmax, natom);
 
-    this->snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
+    snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
 
-    this->snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
+    snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
           idxcg_block, twojmax, idxu_max, idxz_max, nelem, bnormflag, natom);
 
-    this->snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
+    snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
             twojmax, idxb_max, idxu_max, idxz_max, nelements, bnormflag, chemflag, natom, Nij);
 
-    this->snapTallyForce(force, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
+    snapTallyForce(force, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
 }
 
 void CPOD::calculate_force(double **force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,
@@ -3723,6 +3735,7 @@ void CPOD::calculate_force(double **force, double *effectivecoeff, double *rij, 
     double *besselparams = pod.besselparams;
 
     // effective POD coefficients for calculating force
+
     double *coeff2 = &effectivecoeff[nd1];
     double *coeff3 = &effectivecoeff[nd1+nd2];
     double *coeff4 = &effectivecoeff[nd1+nd2+nd3];
@@ -3735,15 +3748,16 @@ void CPOD::calculate_force(double **force, double *effectivecoeff, double *rij, 
     double *f2ijt = &tmpmem[4*Nij*nrbf+Nij*ns]; // dim*Nij*ns
 
     // orthogonal radial basis functions
-    this->podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
-    this->podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
-    this->podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
 
-    this->pod2body_force(force, f2ij, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+    podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
+    podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
+    podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
 
-    this->pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
+    pod2body_force(force, f2ij, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+
+    pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
             ti, tj, nrbf3, nabf3, nelements, natom, Nij);
 
     if (pod.snaptwojmax>0)
-        this->pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
+        pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
 }

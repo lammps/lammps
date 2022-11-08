@@ -80,7 +80,7 @@ int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
                               special_lj, inum, nall, max_nbors, maxspecial,
                               cell_size, gpu_split, screen);
 
-    LJCubicLMF.device->gpu_barrier();
+    LJCubicLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

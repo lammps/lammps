@@ -71,81 +71,81 @@ void impl_testResize() {
     using view_type = Kokkos::View<int*, DeviceType>;
     view_type view_1d("view_1d", sizes[0]);
     const int* oldPointer = view_1d.data();
-    EXPECT_TRUE(oldPointer != nullptr);
+    EXPECT_NE(oldPointer, nullptr);
     resize_dispatch(Tag{}, view_1d, sizes[0]);
     const int* newPointer = view_1d.data();
-    EXPECT_TRUE(oldPointer == newPointer);
+    EXPECT_EQ(oldPointer, newPointer);
   }
   {
     using view_type = Kokkos::View<int**, DeviceType>;
     view_type view_2d("view_2d", sizes[0], sizes[1]);
     const int* oldPointer = view_2d.data();
-    EXPECT_TRUE(oldPointer != nullptr);
+    EXPECT_NE(oldPointer, nullptr);
     resize_dispatch(Tag{}, view_2d, sizes[0], sizes[1]);
     const int* newPointer = view_2d.data();
-    EXPECT_TRUE(oldPointer == newPointer);
+    EXPECT_EQ(oldPointer, newPointer);
   }
   {
     using view_type = Kokkos::View<int***, DeviceType>;
     view_type view_3d("view_3d", sizes[0], sizes[1], sizes[2]);
     const int* oldPointer = view_3d.data();
-    EXPECT_TRUE(oldPointer != nullptr);
+    EXPECT_NE(oldPointer, nullptr);
     resize_dispatch(Tag{}, view_3d, sizes[0], sizes[1], sizes[2]);
     const int* newPointer = view_3d.data();
-    EXPECT_TRUE(oldPointer == newPointer);
+    EXPECT_EQ(oldPointer, newPointer);
   }
   {
     using view_type = Kokkos::View<int****, DeviceType>;
     view_type view_4d("view_4d", sizes[0], sizes[1], sizes[2], sizes[3]);
     const int* oldPointer = view_4d.data();
-    EXPECT_TRUE(oldPointer != nullptr);
+    EXPECT_NE(oldPointer, nullptr);
     resize_dispatch(Tag{}, view_4d, sizes[0], sizes[1], sizes[2], sizes[3]);
     const int* newPointer = view_4d.data();
-    EXPECT_TRUE(oldPointer == newPointer);
+    EXPECT_EQ(oldPointer, newPointer);
   }
   {
     using view_type = Kokkos::View<int*****, DeviceType>;
     view_type view_5d("view_5d", sizes[0], sizes[1], sizes[2], sizes[3],
                       sizes[4]);
     const int* oldPointer = view_5d.data();
-    EXPECT_TRUE(oldPointer != nullptr);
+    EXPECT_NE(oldPointer, nullptr);
     resize_dispatch(Tag{}, view_5d, sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4]);
     const int* newPointer = view_5d.data();
-    EXPECT_TRUE(oldPointer == newPointer);
+    EXPECT_EQ(oldPointer, newPointer);
   }
   {
     using view_type = Kokkos::View<int******, DeviceType>;
     view_type view_6d("view_6d", sizes[0], sizes[1], sizes[2], sizes[3],
                       sizes[4], sizes[5]);
     const int* oldPointer = view_6d.data();
-    EXPECT_TRUE(oldPointer != nullptr);
+    EXPECT_NE(oldPointer, nullptr);
     resize_dispatch(Tag{}, view_6d, sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4], sizes[5]);
     const int* newPointer = view_6d.data();
-    EXPECT_TRUE(oldPointer == newPointer);
+    EXPECT_EQ(oldPointer, newPointer);
   }
   {
     using view_type = Kokkos::View<int*******, DeviceType>;
     view_type view_7d("view_7d", sizes[0], sizes[1], sizes[2], sizes[3],
                       sizes[4], sizes[5], sizes[6]);
     const int* oldPointer = view_7d.data();
-    EXPECT_TRUE(oldPointer != nullptr);
+    EXPECT_NE(oldPointer, nullptr);
     resize_dispatch(Tag{}, view_7d, sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4], sizes[5], sizes[6]);
     const int* newPointer = view_7d.data();
-    EXPECT_TRUE(oldPointer == newPointer);
+    EXPECT_EQ(oldPointer, newPointer);
   }
   {
     using view_type = Kokkos::View<int********, DeviceType>;
     view_type view_8d("view_8d", sizes[0], sizes[1], sizes[2], sizes[3],
                       sizes[4], sizes[5], sizes[6], sizes[7]);
     const int* oldPointer = view_8d.data();
-    EXPECT_TRUE(oldPointer != nullptr);
+    EXPECT_NE(oldPointer, nullptr);
     resize_dispatch(Tag{}, view_8d, sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4], sizes[5], sizes[6], sizes[7]);
     const int* newPointer = view_8d.data();
-    EXPECT_TRUE(oldPointer == newPointer);
+    EXPECT_EQ(oldPointer, newPointer);
   }
   // Resize without initialization: check if data preserved
   {
@@ -156,7 +156,7 @@ void impl_testResize() {
     Kokkos::deep_copy(view_1d, 111);
     Kokkos::deep_copy(h_view_1d_old, view_1d);
     resize_dispatch(Tag{}, view_1d, 2 * sizes[0]);
-    EXPECT_TRUE(view_1d.extent(0) == 2 * sizes[0]);
+    EXPECT_EQ(view_1d.extent(0), 2 * sizes[0]);
     typename view_type::HostMirror h_view_1d =
         Kokkos::create_mirror_view(view_1d);
     Kokkos::deep_copy(h_view_1d, view_1d);
@@ -167,7 +167,7 @@ void impl_testResize() {
         break;
       }
     }
-    EXPECT_TRUE(test == true);
+    EXPECT_TRUE(test);
   }
   {
     using view_type = Kokkos::View<int**, DeviceType>;
@@ -177,7 +177,7 @@ void impl_testResize() {
     Kokkos::deep_copy(view_2d, 222);
     Kokkos::deep_copy(h_view_2d_old, view_2d);
     resize_dispatch(Tag{}, view_2d, 2 * sizes[0], sizes[1]);
-    EXPECT_TRUE(view_2d.extent(0) == 2 * sizes[0]);
+    EXPECT_EQ(view_2d.extent(0), 2 * sizes[0]);
     typename view_type::HostMirror h_view_2d =
         Kokkos::create_mirror_view(view_2d);
     Kokkos::deep_copy(h_view_2d, view_2d);
@@ -190,7 +190,7 @@ void impl_testResize() {
         }
       }
     }
-    EXPECT_TRUE(test == true);
+    EXPECT_TRUE(test);
   }
   {
     using view_type = Kokkos::View<int***, DeviceType>;
@@ -200,7 +200,7 @@ void impl_testResize() {
     Kokkos::deep_copy(view_3d, 333);
     Kokkos::deep_copy(h_view_3d_old, view_3d);
     resize_dispatch(Tag{}, view_3d, 2 * sizes[0], sizes[1], sizes[2]);
-    EXPECT_TRUE(view_3d.extent(0) == 2 * sizes[0]);
+    EXPECT_EQ(view_3d.extent(0), 2 * sizes[0]);
     typename view_type::HostMirror h_view_3d =
         Kokkos::create_mirror_view(view_3d);
     Kokkos::deep_copy(h_view_3d, view_3d);
@@ -215,7 +215,7 @@ void impl_testResize() {
         }
       }
     }
-    EXPECT_TRUE(test == true);
+    EXPECT_TRUE(test);
   }
   {
     using view_type = Kokkos::View<int****, DeviceType>;
@@ -225,7 +225,7 @@ void impl_testResize() {
     Kokkos::deep_copy(view_4d, 444);
     Kokkos::deep_copy(h_view_4d_old, view_4d);
     resize_dispatch(Tag{}, view_4d, 2 * sizes[0], sizes[1], sizes[2], sizes[3]);
-    EXPECT_TRUE(view_4d.extent(0) == 2 * sizes[0]);
+    EXPECT_EQ(view_4d.extent(0), 2 * sizes[0]);
     typename view_type::HostMirror h_view_4d =
         Kokkos::create_mirror_view(view_4d);
     Kokkos::deep_copy(h_view_4d, view_4d);
@@ -242,7 +242,7 @@ void impl_testResize() {
         }
       }
     }
-    EXPECT_TRUE(test == true);
+    EXPECT_TRUE(test);
   }
   {
     using view_type = Kokkos::View<int*****, DeviceType>;
@@ -254,7 +254,7 @@ void impl_testResize() {
     Kokkos::deep_copy(h_view_5d_old, view_5d);
     resize_dispatch(Tag{}, view_5d, 2 * sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4]);
-    EXPECT_TRUE(view_5d.extent(0) == 2 * sizes[0]);
+    EXPECT_EQ(view_5d.extent(0), 2 * sizes[0]);
     typename view_type::HostMirror h_view_5d =
         Kokkos::create_mirror_view(view_5d);
     Kokkos::deep_copy(h_view_5d, view_5d);
@@ -274,7 +274,7 @@ void impl_testResize() {
         }
       }
     }
-    EXPECT_TRUE(test == true);
+    EXPECT_TRUE(test);
   }
   {
     using view_type = Kokkos::View<int******, DeviceType>;
@@ -286,7 +286,7 @@ void impl_testResize() {
     Kokkos::deep_copy(h_view_6d_old, view_6d);
     resize_dispatch(Tag{}, view_6d, 2 * sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4], sizes[5]);
-    EXPECT_TRUE(view_6d.extent(0) == 2 * sizes[0]);
+    EXPECT_EQ(view_6d.extent(0), 2 * sizes[0]);
     typename view_type::HostMirror h_view_6d =
         Kokkos::create_mirror_view(view_6d);
     Kokkos::deep_copy(h_view_6d, view_6d);
@@ -308,7 +308,7 @@ void impl_testResize() {
         }
       }
     }
-    EXPECT_TRUE(test == true);
+    EXPECT_TRUE(test);
   }
   {
     using view_type = Kokkos::View<int*******, DeviceType>;
@@ -320,7 +320,7 @@ void impl_testResize() {
     Kokkos::deep_copy(h_view_7d_old, view_7d);
     resize_dispatch(Tag{}, view_7d, 2 * sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4], sizes[5], sizes[6]);
-    EXPECT_TRUE(view_7d.extent(0) == 2 * sizes[0]);
+    EXPECT_EQ(view_7d.extent(0), 2 * sizes[0]);
     typename view_type::HostMirror h_view_7d =
         Kokkos::create_mirror_view(view_7d);
     Kokkos::deep_copy(h_view_7d, view_7d);
@@ -344,7 +344,7 @@ void impl_testResize() {
         }
       }
     }
-    EXPECT_TRUE(test == true);
+    EXPECT_TRUE(test);
   }
   {
     using view_type = Kokkos::View<int********, DeviceType>;
@@ -356,7 +356,7 @@ void impl_testResize() {
     Kokkos::deep_copy(h_view_8d_old, view_8d);
     resize_dispatch(Tag{}, view_8d, 2 * sizes[0], sizes[1], sizes[2], sizes[3],
                     sizes[4], sizes[5], sizes[6], sizes[7]);
-    EXPECT_TRUE(view_8d.extent(0) == 2 * sizes[0]);
+    EXPECT_EQ(view_8d.extent(0), 2 * sizes[0]);
     typename view_type::HostMirror h_view_8d =
         Kokkos::create_mirror_view(view_8d);
     Kokkos::deep_copy(h_view_8d, view_8d);
@@ -382,7 +382,7 @@ void impl_testResize() {
         }
       }
     }
-    EXPECT_TRUE(test == true);
+    EXPECT_TRUE(test);
   }
 }
 

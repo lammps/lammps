@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -84,7 +84,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     int columns = 0;         // set in case fieldname not recognized by pstyle
-    void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
+    pstyle->extract_peratom(fieldname[ifield],columns);
     if (columns) ncols += columns;
     else ncols++;
     if (trigger[ifield]) {
@@ -120,7 +120,8 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(Atom::GROW);
 
   // zero the vector/array since dump may access it on timestep 0
-  // zero the vector/array since a variable may access it before first run
+  // zero the vector/array since a variable may access it before first ru
+  // initialize lasttime so step 0 will trigger/extract
 
   int nlocal = atom->nlocal;
 
@@ -132,6 +133,8 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
       for (int m = 0; m < ncols; m++)
         array[i][m] = 0.0;
   }
+
+  lasttime = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -188,6 +191,13 @@ void FixPair::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixPair::min_setup(int vflag)
+{
+  setup(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPair::setup_pre_force(int vflag)
 {
   pre_force(vflag);
@@ -195,11 +205,13 @@ void FixPair::setup_pre_force(int vflag)
 
 /* ----------------------------------------------------------------------
    trigger pair style computation on steps which are multiples of Nevery
+   lasttime prevents mulitiple triggers by min linesearch on same iteration
 ------------------------------------------------------------------------- */
 
 void FixPair::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
+  if (update->ntimestep == lasttime) return;
 
   // set pair style triggers
 
@@ -215,25 +227,32 @@ void FixPair::min_pre_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   extract results from pair style
+   extract results from pair style on steps which are multiples of Nevery
+   lasttime prevents mulitiple extracts by min linesearch on same iteration
 ------------------------------------------------------------------------- */
 
 void FixPair::post_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
+  if (update->ntimestep == lasttime) return;
+  lasttime = update->ntimestep;
 
   // extract pair style fields one by one
   // store their values in this fix
 
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
 
   int icol = 0;
   int columns;
 
   for (int ifield = 0; ifield < nfield; ifield++) {
     void *pvoid = pstyle->extract_peratom(fieldname[ifield],columns);
-    if (pvoid == nullptr)
-      error->all(FLERR,"Fix pair pair style cannot extract {}",fieldname[ifield]);
+
+    // Pair::extract_peratom() may return a null pointer if there are no atoms the sub-domain
+    // so returning null is only an error if there are local atoms.
+
+    if ((pvoid == nullptr) && (nlocal > 0))
+      error->one(FLERR, "Fix pair cannot extract property {} from pair style", fieldname[ifield]);
 
     if (columns == 0) {
       double *pvector = (double *) pvoid;

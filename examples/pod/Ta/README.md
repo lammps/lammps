@@ -1,6 +1,6 @@
 ### POD example for Ta
 
-First, obtain the training data (the `XYZ` directory) from [here](https://github.com/FitSNAP/FitSNAP/tree/master/examples/Ta_XYZ/XYZ)
+First, obtain the training data (the `XYZ` directory) from [the FitSNAP repo](https://github.com/FitSNAP/FitSNAP/tree/master/examples/Ta_XYZ/XYZ)
 
 Fit POD with
 
@@ -8,7 +8,7 @@ Fit POD with
 
 This creates `coefficients.txt`, which we can use to run MD with
 
-    lmp < in.podrun
+    lmp < in.pod
 
 
  

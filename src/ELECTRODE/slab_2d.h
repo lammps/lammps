@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,7 +27,7 @@ class Slab2d : public BoundaryCorrection {
   Slab2d(LAMMPS *);
   void vector_corr(double *, int, int, bool) override;
   void matrix_corr(bigint *, double **) override;
-  void compute_corr(double, int, int, double &, double *) override;
+  void compute_corr(double, double, int, int, double &, double *) override;
   void setup(double);
 };
 

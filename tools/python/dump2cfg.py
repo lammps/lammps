@@ -7,7 +7,7 @@
 #          Nid,Ntype,Nx,Ny,Nz = columns #s for ID,type,x,y,z
 #                               (usually 1,2,3,4,5)
 #          cfgfile = new CFG file
-# Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
+# Author:  Steve Plimpton (Sandia), sjplimp at gmail.com
 
 import sys,os
 path = os.environ["LAMMPS_PYTHON_TOOLS"]

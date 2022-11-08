@@ -11,7 +11,7 @@ rin 1.0
 rcut 5.0
 
 # polynomial degrees for radial basis functions
-bessel_polynomial_degree 3 
+bessel_polynomial_degree 3
 inverse_polynomial_degree 6
 
 # one-body potential
@@ -23,7 +23,3 @@ twobody_number_radial_basis_functions 6
 # three-body linear POD potential
 threebody_number_radial_basis_functions 5
 threebody_number_angular_basis_functions 5
-
-
-
-

@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
-#include "std_algorithms/Kokkos_BeginEnd.hpp"
 
 namespace KE = Kokkos::Experimental;
 
@@ -390,16 +388,16 @@ void test_swap_ranges(ViewType view) {
   parallel_for(ext, cp_func_a_t(view, checkViewA));
   auto cvA_h =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), checkViewA);
-  EXPECT_TRUE(cvA_h(0) == 0);
-  EXPECT_TRUE(cvA_h(1) == 1);
-  EXPECT_TRUE(cvA_h(2) == 99);
-  EXPECT_TRUE(cvA_h(3) == 98);
-  EXPECT_TRUE(cvA_h(4) == 97);
-  EXPECT_TRUE(cvA_h(5) == 96);
-  EXPECT_TRUE(cvA_h(6) == 6);
-  EXPECT_TRUE(cvA_h(7) == 7);
-  EXPECT_TRUE(cvA_h(8) == 8);
-  EXPECT_TRUE(cvA_h(9) == 9);
+  EXPECT_EQ(cvA_h(0), 0);
+  EXPECT_EQ(cvA_h(1), 1);
+  EXPECT_EQ(cvA_h(2), 99);
+  EXPECT_EQ(cvA_h(3), 98);
+  EXPECT_EQ(cvA_h(4), 97);
+  EXPECT_EQ(cvA_h(5), 96);
+  EXPECT_EQ(cvA_h(6), 6);
+  EXPECT_EQ(cvA_h(7), 7);
+  EXPECT_EQ(cvA_h(8), 8);
+  EXPECT_EQ(cvA_h(9), 9);
 
   /* check viewB */
   static_view_type checkViewB("tmpB");
@@ -407,16 +405,16 @@ void test_swap_ranges(ViewType view) {
   Kokkos::parallel_for(ext, cp_func_b_t(viewB, checkViewB));
   auto cvB_h =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), checkViewB);
-  EXPECT_TRUE(cvB_h(0) == 100);
-  EXPECT_TRUE(cvB_h(1) == 2);
-  EXPECT_TRUE(cvB_h(2) == 3);
-  EXPECT_TRUE(cvB_h(3) == 4);
-  EXPECT_TRUE(cvB_h(4) == 5);
-  EXPECT_TRUE(cvB_h(5) == 95);
-  EXPECT_TRUE(cvB_h(6) == 94);
-  EXPECT_TRUE(cvB_h(7) == 93);
-  EXPECT_TRUE(cvB_h(8) == 92);
-  EXPECT_TRUE(cvB_h(9) == 91);
+  EXPECT_EQ(cvB_h(0), 100);
+  EXPECT_EQ(cvB_h(1), 2);
+  EXPECT_EQ(cvB_h(2), 3);
+  EXPECT_EQ(cvB_h(3), 4);
+  EXPECT_EQ(cvB_h(4), 5);
+  EXPECT_EQ(cvB_h(5), 95);
+  EXPECT_EQ(cvB_h(6), 94);
+  EXPECT_EQ(cvB_h(7), 93);
+  EXPECT_EQ(cvB_h(8), 92);
+  EXPECT_EQ(cvB_h(9), 91);
 }
 
 TEST_F(std_algorithms_mod_seq_ops_test, swap_ranges) {

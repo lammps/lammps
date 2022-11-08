@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -166,6 +166,7 @@ class Neighbor : protected Pointers {
 
   bigint get_nneigh_full();    // return number of neighbors in a regular full neighbor list
   bigint get_nneigh_half();    // return number of neighbors in a regular half neighbor list
+  void add_temporary_bond(int, int, int);    // add temporary bond to bondlist array
   double memory_usage();
 
   bigint last_setup_bins;    // step of last neighbor::setup_bins() call

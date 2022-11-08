@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,7 +35,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR, "Illegal fix property/atom command");
 
   restart_peratom = 1;
-  wd_section = 1;
+  wd_section = 1;    // can be overwitten using optional arguments
 
   int iarg = 3;
   nvalue = narg - iarg;
@@ -152,6 +152,10 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "ghost") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
       border = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "writedata") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
+      wd_section = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal fix property/atom command");

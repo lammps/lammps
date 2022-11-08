@@ -33,7 +33,7 @@ CPairPOD::CPairPOD(LAMMPS *lmp) : Pair(lmp)
 
 CPairPOD::~CPairPOD()
 {
-  this->free_memory();
+  free_memory();
   TemplateFree(gd, backend);
   TemplateFree(energycoeff, backend);
   TemplateFree(forcecoeff, backend);
@@ -78,14 +78,14 @@ void CPairPOD::compute(int eflag, int vflag)
     if (nijmax < jnum) {
       nijmax = PODMAX(nijmax, jnum);
       nablockmax = 1;
-      this->free_tempmemory();
-      this->estimate_tempmemory();
-      this->allocate_tempmemory();
+      free_tempmemory();
+      estimate_tempmemory();
+      allocate_tempmemory();
     }
 
     // get neighbor pairs for atom i
 
-    this->lammpsNeighPairs(x, firstneigh, type, map, numneigh, i);
+    lammpsNeighPairs(x, firstneigh, type, map, numneigh, i);
 
     // compute global POD descriptors for atom i
 
@@ -121,7 +121,7 @@ void CPairPOD::compute(int eflag, int vflag)
 
     // get neighbor pairs for atom i
 
-    this->lammpsNeighPairs(x, firstneigh, type, map, numneigh, i);
+    lammpsNeighPairs(x, firstneigh, type, map, numneigh, i);
 
     // compute atomic force for atom i
 
@@ -131,27 +131,6 @@ void CPairPOD::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 
-
-//  printf("%d %d %d %d\n", eflag, vflag, vflag_fdotr, eflag_atom);
-//
-//   if (eflag_atom) {
-//     eng_vdwl = this->lammpseatom(eatom, atom->x, list->firstneigh, atom->type, list->numneigh,
-//             list->ilist, list->inum, list->inum + atom->nghost);
-//
-//     this->lammpsforce(atom->f, atom->x, list->firstneigh, atom->type, list->numneigh,
-//             list->ilist, list->inum, list->inum + atom->nghost);
-//   }
-//   else {
-//     eng_vdwl = this->lammpsenergyforce(atom->f, atom->x, list->firstneigh, atom->type, list->numneigh,
-//           list->ilist, list->inum, list->inum + atom->nghost);
-//   }
-//
-// //   podptr->print_matrix("atom->f", 3, list->inum + atom->nghost, atom->f, 3);
-// //   podptr->print_matrix("atom->x", 3, list->inum + atom->nghost, atom->x, 3);
-// //   cout<<"Energy: "<< eng_vdwl<<endl;
-// //   podptr->print_matrix("virial", 1, 6, virial, 1);
-//
-//   if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -170,7 +149,6 @@ void CPairPOD::settings(int narg, char ** /* arg */)
 
 void CPairPOD::coeff(int narg, char **arg)
 {
-  // set default scaling
   int n = atom->ntypes;
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
@@ -181,22 +159,19 @@ void CPairPOD::coeff(int narg, char **arg)
       scale[ii][jj] = 1.0;
   allocated = 1;
 
-  //if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
   if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
-//  if (narg != 5 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  //map_element2type(narg-4,&arg[4]);
   map_element2type(narg-4,arg+4);
 
-  //cout<<map[0]<<endl;
-  //cout<<map[1]<<endl;
-  //cout<<map[2]<<endl;
-  //cout<<map[3]<<endl;
+  //std::cout<<map[0]<<std::endl;
+  //std::cout<<map[1]<<std::endl;
+  //std::cout<<map[2]<<std::endl;
+  //std::cout<<map[3]<<std::endl;
 
   std::string pod_file = std::string(arg[2]);  // pod input file
   std::string coeff_file = std::string(arg[3]); // coefficient input file
 
-  this->InitPairPOD(pod_file, coeff_file);
+  InitPairPOD(pod_file, coeff_file);
 
   for (int ii = 0; ii < n+1; ii++)
     for (int jj = 0; jj < n+1; jj++)
@@ -262,6 +237,7 @@ void CPairPOD::InitPairPOD(std::string pod_file, std::string coeff_file)
   }
 }
 
+
 void CPairPOD::free_tempmemory()
 {
   TemplateFree(rij, backend);
@@ -288,9 +264,8 @@ void CPairPOD::free_atommemory()
 
 void CPairPOD::free_memory()
 {
-  this->free_tempmemory();
-  this->free_atommemory();
-  //this->free_pairmemory();
+  free_tempmemory();
+  free_atommemory();
 }
 
 void CPairPOD::allocate_tempmemory()
@@ -320,8 +295,8 @@ void CPairPOD::allocate_atommemory()
 void CPairPOD::allocate_memory()
 {
 
-  this->allocate_tempmemory();
-  this->allocate_atommemory();
+  allocate_tempmemory();
+  allocate_atommemory();
 
 }
 
@@ -329,9 +304,9 @@ void CPairPOD::check_atommemory(int inum, int nall)
 {
 
   if (nmaxatom < nall) {
-  nmaxatom = nall;
-  this->free_atommemory();
-  this->allocate_atommemory();
+    nmaxatom = nall;
+    free_atommemory();
+    allocate_atommemory();
   }
   nlocalatom = inum;
   nghostatom = nall - inum;
@@ -360,24 +335,6 @@ void CPairPOD::estimate_tempmemory()
   szd = PODMAX(szsnap, szd);
   szd = nablockmax*(podptr->pod.nd1234) + szd;
 }
-
-// void CPairPOD::check_tempmemory(int start, int end)
-// {
-//   nablock = end - start;
-//   nij = 0;
-//   for (int ii=0; ii<nablock; ii++) {
-//   int gi = start + ii;
-//   nij += pairnumsum[gi+1] - pairnumsum[gi];
-//   }
-// 
-//   if ( (nij > nijmax) || (nablock > nablockmax) ) {
-//   nijmax = PODMAX(nijmax, nij);
-//   nablockmax = PODMAX(nablockmax, nablock);
-//   this->estimate_tempmemory();
-//   this->free_tempmemory();
-//   this->allocate_tempmemory();
-//   }
-// }
 
 void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
 {
@@ -411,194 +368,3 @@ void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, in
   numneighsum[1] = nij;
 
 }
-
-// void CPairPOD::podNeighPairs(int *atomtypes, int start, int end)
-// {
-//   this->check_tempmemory(start, end);
-// 
-//   nablock = end - start;
-//   int k = 0;
-// 
-//   // loop over atoms ini a simulation block, used for GPU
-// 
-//   for (int ii=0; ii<nablock; ii++) {
-//     int gi = start + ii; // atom i
-//     int itype = atomtypes[gi];
-//     int s = pairnumsum[gi];
-//     int m = pairnumsum[gi+1] - s;
-//     typeai[ii] = itype;
-//     numneighsum[ii+1] = m;
-//     for (int l=0; l<m ; l++) {
-//       int gj = pairlist[s + l]; // atom j
-//       idxi[k]  = ii;
-//       ai[k]  = atomID[gi];
-//       aj[k]  = atomID[gj];
-//       ti[k]  = itype;
-//       tj[k]  = atomtypes[aj[k]];
-//       rij[k*3+0]   = y[gj*3+0] -  y[gi*3+0];  // xj - xi
-//       rij[k*3+1]   = y[gj*3+1] -  y[gi*3+1];  // xj - xi
-//       rij[k*3+2]   = y[gj*3+2] -  y[gi*3+2];  // xj - xi
-//       k += 1;
-//     }
-//   }
-// 
-//   numneighsum[0] = 0;
-//   for (int ii=0; ii<nablock; ii++)
-//     numneighsum[ii+1] = numneighsum[ii+1] + numneighsum[ii];
-// }
-// 
-// double CPairPOD::podenergy(double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum)
-// {
-//   // determine computation blocks
-// 
-//   this->get_atomblocks(inum);
-// 
-//   // check and allocate memory for atom/pair arrays, and create full neighbor list
-// 
-//   this->check_pairmemory(x, a1, a2, a3, inum);
-// 
-//   // initialize global descriptors to zero
-// 
-//   int nd1234 = podptr->pod.nd1234;
-//   podptr->podArraySetValue(gd, 0.0, nd1234);
-// 
-//   for (int i = 0; i< numblocks; i++) {
-// 
-//     // number of atoms in this computation block
-// 
-//     int nat = atomblocks[i+1] - atomblocks[i];
-// 
-//     // get POD neighbor pairs for this computation block
-// 
-//     podNeighPairs(atomtypes, atomblocks[i], atomblocks[i+1]);
-// 
-//     // compute global POD descriptors for this computation block
-// 
-//     podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nat*nd1234], numneighsum,
-//       typeai, idxi, ti, tj, nat, nij);
-// 
-//   }
-// 
-//   // compute energy and effective coefficients
-// 
-//   energy = podptr->calculate_energy(energycoeff, forcecoeff, gd, podcoeff);
-// 
-//   return energy;
-// }
-// 
-// double CPairPOD::podeatom(double *eatom, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum)
-// {
-//   int nd1234 = podptr->pod.nd1234;
-// 
-//   // compute energy and effective coefficients
-// 
-//   energy = this->podenergy(x, a1, a2, a3, atomtypes, inum);
-// 
-//   // initialize force to zero
-// 
-//   podptr->podArraySetValue(eatom, 0.0, inum);
-// 
-//   for (int i = 0; i< numblocks; i++) { // loop over each computation block
-// 
-//     // # of atoms in this computation block
-// 
-//     int nat = atomblocks[i+1] - atomblocks[i];
-// 
-//     // get POD neighbor pairs for this computation block
-// 
-//     podNeighPairs(atomtypes, atomblocks[i], atomblocks[i+1]);
-// 
-//     // compute global POD descriptors for this computation block
-// 
-//     podptr->linear_descriptors_ij(gd, tmpmem, rij, &tmpmem[nat*nd1234], numneighsum,
-//       typeai, idxi, ti, tj, nat, nij);
-// 
-//     // calculate eatom = ld * energycoeff
-// 
-//     char chn = 'N';
-//     double one = 1.0, zero = 0.0;
-//     int inc1 = 1;
-//     DGEMV(&chn, &nat, &nd1234, &one, tmpmem, &nat, energycoeff, &inc1, &zero, &eatom[atomblocks[i]], &inc1);
-//   }
-// 
-//   return energy;
-// }
-// 
-// void CPairPOD::podforce(double *f, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum)
-// {
-//   // initialize force to zero
-// 
-//   podptr->podArraySetValue(f, 0.0, dim*inum);
-// 
-//   for (int i = 0; i< numblocks; i++) { // loop over each computation block
-// 
-//     // # of atoms in this computation block
-// 
-//     int nat = atomblocks[i+1] - atomblocks[i];
-// 
-//     // get POD neighbor pairs for this computation block
-// 
-//     podNeighPairs(atomtypes, atomblocks[i], atomblocks[i+1]);
-// 
-//     // compute atomic force for this computation block
-// 
-//     podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum,
-//       typeai, idxi, ai, aj, ti, tj, nat, nij);
-//     }
-// }
-// 
-// double CPairPOD::podenergyforce(double *f, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum)
-// {
-//   // compute energy and effective coefficients
-// 
-//   energy = this->podenergy(x, a1, a2, a3, atomtypes, inum);
-// 
-//   // initialize force to zero
-// 
-//   podptr->podArraySetValue(f, 0.0, dim*inum);
-// 
-//   for (int i = 0; i< numblocks; i++) { // loop over each computation block
-// 
-//     // # of atoms in this computation block
-// 
-//     int nat = atomblocks[i+1] - atomblocks[i];
-// 
-//     // get POD neighbor pairs for this computation block
-// 
-//     podNeighPairs(atomtypes, atomblocks[i], atomblocks[i+1]);
-// 
-//     // compute atomic force for this computation block
-// 
-//     podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum,
-//       typeai, idxi, ai, aj, ti, tj, nat, nij);
-//     }
-// 
-//   return energy;
-// }
-//
-// void CPairPOD::check_tempmemory(double **x, int **firstneigh, int *numneigh, int *ilist, int start, int end)
-// {
-//   double rcutsq = podptr->pod.rcut*podptr->pod.rcut;
-//   nablock = end - start;
-//   nij = 0;
-//   for (int ii=0; ii<nablock; ii++) {  // for each atom i in the simulation box
-//     int gi = ilist[start+ii];   // atom i
-//     int m = numneigh[gi];
-//     for (int l=0; l<m ; l++) {   // loop over each atom around atom i
-//       int gj = firstneigh[gi][l];  // atom j
-//       double delx   = x[gj][0] -  x[gi][0];  // xj - xi
-//       double dely   = x[gj][1] -  x[gi][1];  // xj - xi
-//       double delz   = x[gj][2] -  x[gi][2];  // xj - xi
-//       double rsq = delx*delx + dely*dely + delz*delz;
-//       if (rsq < rcutsq && rsq > 1e-20) nij++;
-//     }
-//   }
-// 
-//   if ( (nij > nijmax) || (nablock > nablockmax) ) {
-//     nijmax = PODMAX(nijmax, nij);
-//     nablockmax = PODMAX(nablockmax, nablock);
-//     this->estimate_tempmemory();
-//     this->free_tempmemory();
-//     this->allocate_tempmemory();
-//   }
-// }

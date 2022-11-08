@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -80,7 +80,7 @@ void DumpAtom::init_style()
 
   int icol = 0;
   columns.clear();
-  for (auto item : utils::split_words(default_columns)) {
+  for (const auto &item : utils::split_words(default_columns)) {
     if (columns.size()) columns += " ";
     if (keyword_user[icol].size()) columns += keyword_user[icol];
     else columns += item;
@@ -131,10 +131,12 @@ int DumpAtom::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"scale") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     scale_flag = utils::logical(FLERR,arg[1],false,lmp);
+    for (auto &item : keyword_user) item.clear();
     return 2;
   } else if (strcmp(arg[0],"image") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     image_flag = utils::logical(FLERR,arg[1],false,lmp);
+    for (auto &item : keyword_user) item.clear();
     return 2;
   }
   return 0;

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,17 +42,18 @@ using namespace InterLayer;
 #define DELTA 4
 #define PGDELTA 1
 
-static const char cite_ilp_tmd[] = "ilp/tmd potential doi/10.1021/acs.jctc.1c00782\n"
-                                   "@Article{Ouyang2021\n"
-                                   " author = {W. Ouyang, R. Sofer, X. Gao, J. Hermann, A. "
-                                   "Tkatchenko, L. Kronik, M. Urbakh, and O. Hod},\n"
-                                   " title = {Anisotropic Interlayer Force Field for Transition "
-                                   "Metal Dichalcogenides: The Case of Molybdenum Disulfide},\n"
-                                   " journal = {J. Chem. Theory Comput.},\n"
-                                   " volume =  17,\n"
-                                   " pages =   {7237–7245}\n"
-                                   " year =    2021,\n"
-                                   "}\n\n";
+static const char cite_ilp_tmd[] =
+    "ilp/tmd potential doi:10.1021/acs.jctc.1c00782\n"
+    "@Article{Ouyang2021\n"
+    "  author = {W. Ouyang and R. Sofer and X. Gao and J. Hermann and\n"
+    "    A. Tkatchenko and L. Kronik and M. Urbakh and O. Hod},\n"
+    "  title = {Anisotropic Interlayer Force Field for Transition\n"
+    "    Metal Dichalcogenides: The Case of Molybdenum Disulfide},\n"
+    "  journal = {J.~Chem.\\ Theory Comput.},\n"
+    " volume   = 17,\n"
+    " pages    = {7237--7245}\n"
+    " year     = 2021,\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 

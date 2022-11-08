@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -265,6 +265,6 @@ void ComputeGridLocal::assign_coords()
 
 double ComputeGridLocal::memory_usage()
 {
-  int nbytes = size_local_rows * size_local_cols * sizeof(double);    // gridlocal
+  double nbytes = (double) size_local_rows * size_local_cols * sizeof(double);    // gridlocal
   return nbytes;
 }

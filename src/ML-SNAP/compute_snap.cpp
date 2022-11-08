@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -539,18 +539,18 @@ void ComputeSnap::compute_array()
         for (int icoeff = 0; icoeff < ncoeff; icoeff++)
           snap[irow][k++] += snaptr->blist[icoeff];
 
-          // quadratic contributions
+        // quadratic contributions
 
-          if (quadraticflag) {
-            for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
-              double bveci = snaptr->blist[icoeff];
-              snap[irow][k++] += 0.5*bveci*bveci;
-              for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
-                double bvecj = snaptr->blist[jcoeff];
-                snap[irow][k++] += bveci*bvecj;
-              }
+        if (quadraticflag) {
+          for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
+            double bveci = snaptr->blist[icoeff];
+            snap[irow][k++] += 0.5*bveci*bveci;
+            for (int jcoeff = icoeff+1; jcoeff < ncoeff; jcoeff++) {
+              double bvecj = snaptr->blist[jcoeff];
+              snap[irow][k++] += bveci*bvecj;
             }
           }
+        }
 
       } else {
           int k = 3;

@@ -25,41 +25,49 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID electrode/conp potential eta keyword values ...
-   fix ID group-ID electrode/conq charge eta keyword values ...
-   fix ID group-ID electrode/thermo potential eta temp T_v tau_v rng_v keyword values ...
+   fix ID group-ID style args keyword value ...
 
-* ID, group-ID are documented in fix command
-* mode = electrode/conp or electrode/conq or electrode/thermo
-* potential = electrode potential (can be an equal-style variable, see below)
-* charge = electrode charge (can be an equal-style variable, see below)
-* eta = reciprocal width of electrode charge Gaussian distribution
-* T_v = temperature of thermo-potentiostat
-* tau_v = time constant of thermo-potentiostat
-* rng_v = integer used to initialize thermo-potentiostat random number generator
-* Optional keywords and values:
+* ID, group-ID are documented in :doc:`fix <fix>` command
+* style = *electrode/conp* or *electrode/conq* or *electrode/thermo*
+* args = arguments used by a particular style
+
+  .. parsed-literal::
+
+       *electrode/conp* args = potential eta
+       *electrode/conq* args = charge eta
+       *electrode/thermo* args = potential eta *temp* values
+            potential = electrode potential
+            charge = electrode charge
+            eta = reciprocal width of electrode charge smearing
+            *temp* values = T_v tau_v rng_v
+                T_v = temperature of thermo-potentiostat
+                tau_v = time constant of thermo-potentiostat
+                rng_v = integer used to initialize random number generator
+
+* zero or more keyword/value pairs may be appended
+* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv*
 
 .. parsed-literal::
 
-    *algo mat_inv/mat_cg tol/cg tol*
+    *algo* values = *mat_inv* or *mat_cg* tol or *cg* tol
         specify the algorithm used to compute the electrode charges
-    *couple group-ID value*
-        group-ID = group of atoms treated as additional electrode
-        value = electric potential or charge on this electrode
-    *write_mat filename*
-        write elastance matrix to file
-    *write_inv filename*
-        write inverted matrix to file
-    *read_mat filename*
-        read elastance matrix from file
-    *read_inv filename*
-        read inverted matrix from file
-    *symm(etry) on/off*
+    *symm* value = *on* or *off*
         turn on/off charge neutrality constraint for the electrodes
-    *ffield on/off*
-        turn on/off finite-field implementation
-    *etypes on/off*
+    *couple* values = group-ID val
+        group-ID = group of atoms treated as additional electrode
+        val = electric potential or charge on this electrode
+    *etypes* value = *on* or *off*
         turn on/off type-based optimized neighbor lists (electrode and electrolyte types may not overlap)
+    *ffield* value = *on* or *off*
+        turn on/off finite-field implementation
+    *write_mat* value = filename
+        filename = file to which to write elastance matrix
+    *write_inv* value = filename
+        filename = file to which to write inverted matrix
+    *read_mat* value = filename
+        filename = file from which to read elastance matrix
+    *read_inv* value = filename
+        filename = file from which to read inverted matrix
 
 Examples
 """"""""

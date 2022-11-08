@@ -76,7 +76,7 @@ int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                          host_cut, special_lj, false, inum, nall, max_nbors,
                          maxspecial, cell_size, gpu_split, screen);
 
-    DPDMF.device->gpu_barrier();
+    DPDMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

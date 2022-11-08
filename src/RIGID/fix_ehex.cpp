@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -574,7 +574,7 @@ void FixEHEX::com_properties(double *vr, double *sfr, double *sfvr, double *K, d
     mi = (rmass) ? rmass[0] : mass[type[0]];
   else
     mi = 1.0;
-  if ((*mr / mi) < 1.e-14)  error->all(FLERR, "Fix ehex error mass of region is close to zero");
+  if ((*mr / mi) < 1.e-14) error->all(FLERR, "Fix ehex error mass of region is close to zero");
 
   // total kinetic energy of region
 

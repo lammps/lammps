@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
          LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
          https://www.lammps.org/, Sandia National Laboratories
-         Steve Plimpton, sjplimp@sandia.gov
+         LAMMPS development team: developers@lammps.org
 
          Copyright (2003) Sandia Corporation.  Under the terms of Contract
          DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -47,13 +47,13 @@ under
 using namespace LAMMPS_NS;
 
 static const char cite_user_ptm_package[] =
-    "PTM package:\n\n"
+    "PTM package: doi:10.1088/0965-0393/24/5/055007\n\n"
     "@Article{larsen2016ptm,\n"
-    " author={Larsen, Peter Mahler and Schmidt, S{\\o}ren and Schi{\\o}tz, "
-    "Jakob},\n"
-    " title={Robust structural identification via polyhedral template "
-    "matching},\n"
-    " journal={Modelling~Simul.~Mater.~Sci.~Eng.},\n"
+    " author={Larsen, Peter Mahler and Schmidt, S{\\o}ren and\n"
+    "    Schi{\\o}tz, Jakob},\n"
+    " title={Robust Structural Identification via Polyhedral Template\n"
+    "    Matching},\n"
+    " journal={Model.\\ Simulat.\\ Mater.\\ Sci.\\ Eng.},\n"
     " year={2016},\n"
     " number={5},\n"
     " volume={24},\n"

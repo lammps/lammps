@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,17 +36,17 @@
 using namespace LAMMPS_NS;
 
 static const char cite_user_hdnnp_package[] =
-    "ML-HDNNP package: 10.1021/acs.jctc.8b00770\n\n"
+    "ML-HDNNP package: doi:10.1021/acs.jctc.8b00770\n\n"
     "@Article{Singraber19,\n"
     " author = {Singraber, Andreas and Behler, J{\"o}rg and Dellago, Christoph},\n"
-    " title = {Library-{{Based LAMMPS Implementation}} of {{High}}-{{Dimensional Neural Network "
-    "Potentials}}},\n"
+    " title = {Library-Based {LAMMPS} Implementation of High-Dimensional\n"
+    "    Neural Network Potentials},\n"
     " year = {2019},\n"
     " month = mar,\n"
     " volume = {15},\n"
     " pages = {1827--1840},\n"
     " doi = {10.1021/acs.jctc.8b00770},\n"
-    " journal = {J.~Chem.~Theory~Comput.},\n"
+    " journal = {J.~Chem.\\ Theory Comput.},\n"
     " number = {3}\n"
     "}\n\n";
 

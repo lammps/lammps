@@ -60,6 +60,13 @@ class PythonCapabilities(unittest.TestCase):
         for pkg in selected_packages:
             self.assertIn(pkg, installed_packages)
 
+    def test_has_package(self):
+        selected_packages = [key[4:] for key in self.cmake_cache.keys() if not key.startswith('PKG_CONFIG') and key.startswith('PKG_') and self.cmake_cache[key]]
+        self.assertFalse(self.lmp.has_package('XXXXXX'))
+
+        for pkg in selected_packages:
+            self.assertTrue(self.lmp.has_package(pkg))
+
     def test_has_style(self):
         self.assertTrue(self.lmp.has_style('pair', 'lj/cut'))
         self.assertFalse(self.lmp.has_style('pair', 'lennard_jones'))

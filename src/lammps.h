@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -58,18 +58,20 @@ class LAMMPS {
   double initclock;       // wall clock at instantiation
   int skiprunflag;        // 1 inserts timer command to skip run and minimize loops
 
-  char *suffix, *suffix2, *suffixp;    // suffixes to add to input script style names
-  int suffix_enable;                   // 1 if suffixes are enabled, 0 if disabled
-  char *exename;                       // pointer to argv[0]
+  char *suffix, *suffix2;    // suffixes to add to input script style names
+  int suffix_enable;         // 1 if suffixes are enabled, 0 if disabled
+  int pair_only_flag;        // 1 if only force field pair styles are accelerated, 0 if all
+  const char *non_pair_suffix() const;
+  char *exename;             // pointer to argv[0]
 
-  char ***packargs;                    // arguments for cmdline package commands
-  int num_package;                     // number of cmdline package commands
+  char ***packargs;    // arguments for cmdline package commands
+  int num_package;     // number of cmdline package commands
 
-  MPI_Comm external_comm;      // MPI comm encompassing external programs
-                               // when multiple programs launched by mpirun
-                               // set by -mpicolor command line arg
+  MPI_Comm external_comm;    // MPI comm encompassing external programs
+                             // when multiple programs launched by mpirun
+                             // set by -mpicolor command line arg
 
-  void *mdicomm;               // for use with MDI code coupling library
+  void *mdicomm;    // for use with MDI code coupling library
 
   const char *match_style(const char *style, const char *name);
   static const char *installed_packages[];

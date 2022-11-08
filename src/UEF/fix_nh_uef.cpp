@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,14 +44,16 @@ enum{ISO,ANISO,TRICLINIC};
 // citation info
 
 static const char cite_user_uef_package[] =
-  "UEF package:\n\n"
+  "UEF package: doi:10.1063/1.4972894\n\n"
   "@Article{NicholsonRutledge16,\n"
   "author = {David A. Nicholson and Gregory C. Rutledge},\n"
-  "title = {Molecular simulation of flow-enhanced nucleation in n-eicosane melts under steady shear and uniaxial extension},\n"
+  "title = {Molecular Simulation of Flow-Enhanced Nucleation in\n"
+  "   {$n$}-Eicosane Melts Under Steady Shear and Uniaxial Extension},\n"
   "journal = {The Journal of Chemical Physics},\n"
   "volume = {145},\n"
   "number = {24},\n"
   "pages = {244903},\n"
+  "doi = {10.1063/1.4972894},\n"
   "year = {2016}\n"
   "}\n\n";
 
@@ -121,7 +123,7 @@ FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (!erate_flag)
-    error->all(FLERR,"Keyword erate must be set for fix npt/npt/uef command");
+    error->all(FLERR,"Keyword erate must be set for fix nvt/npt/uef command");
 
   if (mtchain_default_flag) mtchain=1;
 
@@ -272,9 +274,9 @@ void FixNHUef::setup(int j)
     error->all(FLERR,"Initial box is not close enough to the expected uef box");
 
   uefbox->get_rot(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->yes_rot();
-  (dynamic_cast<ComputePressureUef*>( pressure))->in_fix = true;
-  (dynamic_cast<ComputePressureUef*>( pressure))->update_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->yes_rot();
+  (dynamic_cast<ComputePressureUef*>(pressure))->in_fix = true;
+  (dynamic_cast<ComputePressureUef*>(pressure))->update_rot();
   FixNH::setup(j);
 }
 
@@ -286,12 +288,12 @@ void FixNHUef::initial_integrate(int vflag)
   inv_rotate_x(rot);
   inv_rotate_v(rot);
   inv_rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->no_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->no_rot();
   FixNH::initial_integrate(vflag);
   rotate_x(rot);
   rotate_v(rot);
   rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->yes_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->yes_rot();
 }
 
 /* ----------------------------------------------------------------------
@@ -302,12 +304,12 @@ void FixNHUef::initial_integrate_respa(int vflag, int ilevel, int iloop)
   inv_rotate_x(rot);
   inv_rotate_v(rot);
   inv_rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->no_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->no_rot();
   FixNH::initial_integrate_respa(vflag,ilevel,iloop);
   rotate_x(rot);
   rotate_v(rot);
   rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->yes_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->yes_rot();
 }
 
 /* ----------------------------------------------------------------------
@@ -316,14 +318,14 @@ void FixNHUef::initial_integrate_respa(int vflag, int ilevel, int iloop)
 void FixNHUef::final_integrate()
 {
   // update rot here since it must directly follow the virial calculation
-  (dynamic_cast<ComputePressureUef*>( pressure))->update_rot();
+  (dynamic_cast<ComputePressureUef*>(pressure))->update_rot();
   inv_rotate_v(rot);
   inv_rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->no_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->no_rot();
   FixNH::final_integrate();
   rotate_v(rot);
   rotate_f(rot);
-  (dynamic_cast<ComputeTempUef*>( temperature))->yes_rot();
+  (dynamic_cast<ComputeTempUef*>(temperature))->yes_rot();
 }
 
 /* ----------------------------------------------------------------------

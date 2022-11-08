@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,7 +46,7 @@ template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAve
   void operator()(TagComputeAveSphereAtom, const int &) const;
 
  private:
-  double adof,mvv2e,mv2d,boltz;
+  double adof, mvv2e, mv2d, boltz;
 
   typename AT::t_x_array x;
   typename AT::t_v_array v;

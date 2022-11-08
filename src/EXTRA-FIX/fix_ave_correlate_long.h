@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -58,18 +58,27 @@ class FixAveCorrelateLong : public Fix {
   int length;    // Length of result arrays
   int kmax;      // Maximum correlator attained during simulation
 
-  int me, nvalues;
-  int nfreq;
+  struct value_t {
+    int which;         // type of data: COMPUTE, FIX, VARIABLE
+    int argindex;      // 1-based index if data is vector, else 0
+    std::string id;    // compute/fix/variable ID
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
+
+  int nvalues, nfreq;
   bigint nvalid, nvalid_last, last_accumulated_step;
-  int *which, *argindex, *value2index;
-  char **ids;
   FILE *fp;
 
   int type, startstep, overwrite;
   bigint filepos;
 
   int npair;    // number of correlation pairs to calculate
-  double *values;
+  double *cvalues;
 
   void accumulate();
   void evaluate();

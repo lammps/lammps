@@ -48,7 +48,7 @@ namespace ATC {
   }
 
   // add user function into the if statement and assign returnFunction to it
-  UXT_Function* UXT_Function_Mgr::function(string & type, int nargs, double * args)
+  UXT_Function* UXT_Function_Mgr::function(const string & type, int nargs, double * args)
   {
     UXT_Function * returnFunction;
     if      (type=="linear") {
@@ -167,7 +167,7 @@ XT_Function_Mgr * XT_Function_Mgr::myInstance_ = nullptr;
   }
 
   // add user function into the if statement and assign returnFunction to it
-  XT_Function* XT_Function_Mgr::function(string & type, int nargs, double * args)
+  XT_Function* XT_Function_Mgr::function(const string & type, int nargs, double * args)
   {
     XT_Function * returnFunction;
     if      (type=="constant") {

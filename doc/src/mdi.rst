@@ -6,7 +6,7 @@ mdi command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    mdi option args
 
@@ -14,17 +14,17 @@ Syntax
 
   .. parsed-literal::
 
-     *engine* args = zero or more keyword arg pairs
+     *engine* args = zero or more keyword/args pairs
        keywords = *elements*
          *elements* args = N_1 N_2 ... N_ntypes
            N_1,N_2,...N_ntypes = atomic number for each of ntypes LAMMPS atom types
      *plugin* args = name keyword value keyword value ...
-       name = name of plugin library, e.g. lammps means a liblammps.so library will be loaded
+       name = name of plugin library (e.g., *lammps* means a liblammps.so library will be loaded)
        keyword/value pairs in any order, some are required, some are optional
        keywords = *mdi* or *infile* or *extra* or *command*
          *mdi* value = args passed to MDI for driver to operate with plugins (required)
          *infile* value = filename the engine will read at start-up (optional)
-         *extra* value = aditional command-line args to pass to engine library when loaded
+         *extra* value = aditional command-line args to pass to engine library when loaded (optional)
          *command* value = a LAMMPS input script command to execute (required)
      *connect* args = none
      *exit* args = none
@@ -173,8 +173,8 @@ commands, which are described further below.
    atom type values are consistent in both codes, then the >TYPES
    command can be used.  If not, the optional *elements* keyword can
    be used to specify what element each LAMMPS atom type corresponds
-   to.  This is specified by the atomic number of the element, e.g. 13
-   for Al.  An atomic number must be specified for each of the ntypes
+   to.  This is specified by the atomic number of the element (e.g., 13
+   for Al).  An atomic number must be specified for each of the ntypes
    LAMMPS atom types.  Ntypes is typically specified via the
    create_box command or in the data file read by the read_data
    command.  In this has been done, the MDI driver can send an
@@ -289,11 +289,11 @@ are required.  The -name setting can be anything you choose.  MDI
 drivers and engines can query their names to verify they are values
 they expect.
 
-The *infile* keyword is also required.  It is the name of an input
-script which the engine will open and process.  MDI will pass it as a
+The *infile* keyword is optional.  It sets the name of an input script
+which the engine will open and process.  MDI will pass it as a
 command-line argument to the library when it is launched.  The file
 typically contains settings that an MD or QM code will use for its
-subsequent calculations.
+calculations.
 
 The *extra* keyword is optional.  It contains additional command-line
 arguments which MDI will pass to the library when it is launched.
@@ -309,12 +309,12 @@ could specify a filename with multiple LAMMPS commands.
 
 .. note::
 
-   When the single *command* is complete, LAMMPS will send an MDI
-   EXIT command to the plugin engine and the plugin will be removed.
-   The "mdi plugin" command will then exit and the next command
-   (if any) in the LAMMPS input script will be processed.  A subsequent
-   "mdi plugin" command could then load the same library plugin or
-   a different one if desired.
+   When the *command* is complete, LAMMPS will send an MDI EXIT
+   command to the plugin engine and the plugin will be removed.  The
+   "mdi plugin" command will then exit and the next command (if any)
+   in the LAMMPS input script will be processed.  A subsequent "mdi
+   plugin" command could then load the same or a different MDI
+   plugin if desired.
 
 ----------
 
@@ -325,15 +325,15 @@ able to initiate and terminate the connection to the engine code.
 
 The only current MDI driver command in LAMMPS is the :doc:`fix mdi/qm
 <fix_mdi_qm>` command.  If it is only used once in an input script
-then it can initiate and terminate the connection.  But if it is being
-issued multiple times, e.g. in a loop that issues a :doc:`clear
-<clear>` command, then it cannot initiate or terminate the connection
+then it can initiate and terminate the connection, but if it is being
+issued multiple times (e.g., in a loop that issues a :doc:`clear
+<clear>` command), then it cannot initiate or terminate the connection
 multiple times.  Instead, the *mdi connect* and *mdi exit* commands
 should be used outside the loop to initiate or terminate the connection.
 
 See the examples/mdi/in.series.driver script for an example of how
 this is done.  The LOOP in that script is reading a series of data
-file configurations and passing them to an MDI engine (e.g. quantum
+file configurations and passing them to an MDI engine (e.g., quantum
 code) for energy and force evaluation.  A *clear* command inside the
 loop wipes out the current system so a new one can be defined.  This
 operation also destroys all fixes.  So the :doc:`fix mdi/qm
@@ -356,7 +356,7 @@ LAMMPS and MDI units, which the other codes will also perform in their
 preferred units.
 
 LAMMPS can also be used as an MDI engine in other unit choices it
-supports, e.g. *lj*, but then no unit conversion is performed.
+supports (e.g., *lj*), but then no unit conversion is performed.
 
 Related commands
 """"""""""""""""

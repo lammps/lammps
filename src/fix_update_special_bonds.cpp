@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,6 +17,7 @@
 #include "atom_vec.h"
 #include "error.h"
 #include "force.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -25,6 +26,8 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+
+#define DELTA 10000
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,6 +51,11 @@ int FixUpdateSpecialBonds::setmask()
 
 void FixUpdateSpecialBonds::setup(int /*vflag*/)
 {
+  // error if more than one fix update/special/bonds
+
+  if (modify->get_fix_by_style("UPDATE_SPECIAL_BONDS").size() > 1)
+    error->all(FLERR, "More than one fix update/special/bonds");
+
   // Require atoms know about all of their bonds and if they break
   if (force->newton_bond) error->all(FLERR, "Fix update/special/bonds requires Newton bond off");
 
@@ -61,18 +69,22 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
   if (force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 ||
       force->special_coul[3] != 1.0)
     error->all(FLERR, "Fix update/special/bonds requires special Coulomb weights = 1,1,1");
+  // Implies neighbor->special_flag = [X, 2, 1, 1]
 
   new_broken_pairs.clear();
   broken_pairs.clear();
+
+  new_created_pairs.clear();
+  created_pairs.clear();
 }
 
 /* ----------------------------------------------------------------------
-  Update special bond list and atom bond arrays, empty broken bond list
+  Update special bond list and atom bond arrays, empty broken/created lists
 ------------------------------------------------------------------------- */
 
 void FixUpdateSpecialBonds::pre_exchange()
 {
-  int i, j, m, n1, n3;
+  int i, j, m, n1;
   tagint tagi, tagj;
   int nlocal = atom->nlocal;
 
@@ -83,21 +95,19 @@ void FixUpdateSpecialBonds::pre_exchange()
   for (auto const &it : broken_pairs) {
     tagi = it.first;
     tagj = it.second;
-
     i = atom->map(tagi);
     j = atom->map(tagj);
 
     // remove i from special bond list for atom j and vice versa
+    // ignore n2, n3 since 1-3, 1-4 special factors required to be 1.0
     if (i < nlocal) {
       slist = special[i];
       n1 = nspecial[i][0];
       for (m = 0; m < n1; m++)
         if (slist[m] == tagj) break;
-      n3 = nspecial[i][2];
-      for (; m < n3 - 1; m++) slist[m] = slist[m + 1];
+      for (; m < n1 - 1; m++) slist[m] = slist[m + 1];
       nspecial[i][0]--;
-      nspecial[i][1]--;
-      nspecial[i][2]--;
+      nspecial[i][1] = nspecial[i][2] = nspecial[i][0];
     }
 
     if (j < nlocal) {
@@ -105,19 +115,43 @@ void FixUpdateSpecialBonds::pre_exchange()
       n1 = nspecial[j][0];
       for (m = 0; m < n1; m++)
         if (slist[m] == tagi) break;
-      n3 = nspecial[j][2];
-      for (; m < n3 - 1; m++) slist[m] = slist[m + 1];
+      for (; m < n1 - 1; m++) slist[m] = slist[m + 1];
       nspecial[j][0]--;
-      nspecial[j][1]--;
-      nspecial[j][2]--;
+      nspecial[j][1] = nspecial[j][2] = nspecial[j][0];
     }
   }
 
+  for (auto const &it : created_pairs) {
+    tagi = it.first;
+    tagj = it.second;
+    i = atom->map(tagi);
+    j = atom->map(tagj);
+
+    // add i to special bond list for atom j and vice versa
+    // ignore n2, n3 since 1-3, 1-4 special factors required to be 1.0
+    n1 = nspecial[i][0];
+    if (n1 >= atom->maxspecial)
+      error->one(FLERR, "Special list size exceeded in fix update/special/bond");
+    special[i][n1] = tagj;
+    nspecial[i][0] += 1;
+    nspecial[i][1] = nspecial[i][2] = nspecial[i][0];
+
+    n1 = nspecial[j][0];
+    if (n1 >= atom->maxspecial)
+      error->one(FLERR, "Special list size exceeded in fix update/special/bond");
+    special[j][n1] = tagi;
+    nspecial[j][0] += 1;
+    nspecial[j][1] = nspecial[j][2] = nspecial[j][0];
+  }
+
   broken_pairs.clear();
+  created_pairs.clear();
 }
 
 /* ----------------------------------------------------------------------
-  Loop neighbor list and update special bond lists for recently broken bonds
+  Update special lists for recently broken/created bonds
+  Assumes appropriate atom/bond arrays were updated, e.g. had called
+      neighbor->add_temporary_bond(i1, i2, btype);
 ------------------------------------------------------------------------- */
 
 void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
@@ -129,7 +163,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
   int nlocal = atom->nlocal;
 
   tagint *tag = atom->tag;
-  NeighList *list = force->pair->list;    // may need to be generalized to work with pair hybrid*
+  NeighList *list = force->pair->list;    // may need to be generalized for pair hybrid*
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
@@ -163,7 +197,37 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       }
     }
   }
+
+  for (auto const &it : new_created_pairs) {
+    tag1 = it.first;
+    tag2 = it.second;
+    i1 = atom->map(tag1);
+    i2 = atom->map(tag2);
+
+    // Loop through atoms of owned atoms i j and update SB bits
+    if (i1 < nlocal) {
+      jlist = firstneigh[i1];
+      jnum = numneigh[i1];
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
+        if (tag[j] == tag2) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
+      }
+    }
+
+    if (i2 < nlocal) {
+      jlist = firstneigh[i2];
+      jnum = numneigh[i2];
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
+        if (tag[j] == tag1) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
+      }
+    }
+  }
+
   new_broken_pairs.clear();
+  new_created_pairs.clear();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -173,4 +237,13 @@ void FixUpdateSpecialBonds::add_broken_bond(int i, int j)
   auto tag_pair = std::make_pair(atom->tag[i], atom->tag[j]);
   new_broken_pairs.push_back(tag_pair);
   broken_pairs.push_back(tag_pair);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixUpdateSpecialBonds::add_created_bond(int i, int j)
+{
+  auto tag_pair = std::make_pair(atom->tag[i], atom->tag[j]);
+  new_created_pairs.push_back(tag_pair);
+  created_pairs.push_back(tag_pair);
 }

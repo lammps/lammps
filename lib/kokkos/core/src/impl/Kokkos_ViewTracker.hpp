@@ -60,7 +60,7 @@ namespace Impl {
  * constructors that match the view.  The constructors and assignments
  * from view will externalize the logic needed to enable/disable
  * ref counting to provide a single gate to enable further developments
- * which may hing on the same logic.
+ * which may hinge on the same logic.
  *
  */
 template <class ParentView>

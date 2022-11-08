@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -208,6 +208,7 @@ MEAM::get_shpfcn(const lattice_t latt, const double sthe, const double cthe, dou
     case BCC:
     case B1:
     case B2:
+    case SC:
       s[0] = 0.0;
       s[1] = 0.0;
       s[2] = 0.0;
@@ -267,6 +268,7 @@ MEAM::get_Zij(const lattice_t latt)
     case DIM:
       return 1;
     case B1:
+    case SC:
       return 6;
     case C11:
       return 10;
@@ -320,6 +322,7 @@ MEAM::get_Zij2(const lattice_t latt, const double cmin, const double cmax,
     break;
 
   case B1:
+  case SC:
     Zij2 = 12;
     a = sqrt(2.0);
     numscr = 2;

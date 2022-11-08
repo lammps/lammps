@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -40,7 +40,7 @@ class FixMDIQM : public Fix {
 
  private:
   int nprocs;
-  int every,virialflag,addflag,connectflag;
+  int every, virialflag, addflag, connectflag;
   int plugin;
   int maxlocal;
   int sumflag;
@@ -48,7 +48,7 @@ class FixMDIQM : public Fix {
 
   double qm_energy;
   int lmpunits;
-  double qm_virial[9],qm_virial_symmetric[6];
+  double qm_virial[9], qm_virial_symmetric[6];
   double **fqm;
 
   MDI_Comm mdicomm;

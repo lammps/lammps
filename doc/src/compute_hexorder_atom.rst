@@ -6,7 +6,7 @@ compute hexorder/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID hexorder/atom keyword values ...
 
@@ -102,7 +102,7 @@ Output info
 
 This compute calculates a per-atom array with 2 columns, giving the
 real and imaginary parts :math:`q_n`, a complex number restricted to the
-unit disk of the complex plane i.e. :math:`Re(q_n)^2 + Im(q_n)^2 <= 1`.
+unit disk of the complex plane (i.e., :math:`\Re(q_n)^2 + \Im(q_n)^2 \le 1`).
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc

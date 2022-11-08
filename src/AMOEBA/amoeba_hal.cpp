@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,11 +16,16 @@
 
 #include "atom.h"
 #include "error.h"
+#include "math_special.h"
 #include "neigh_list.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
+
+using MathSpecial::square;
+using MathSpecial::cube;
+using MathSpecial::powint;
 
 enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 
@@ -114,14 +119,14 @@ void PairAmoeba::hal()
       }
       eps *= factor_hal;
 
-      rv7 = pow(rv,7.0);
-      rik6 = pow(rik2,3.0);
+      rv7 = powint(rv,7);
+      rik6 = cube(rik2);
       rik7 = rik6 * rik;
       rho = rik7 + ghal*rv7;
       tau = (dhal+1.0) / (rik + dhal*rv);
-      tau7 = pow(tau,7.0);
+      tau7 = powint(tau,7);
       dtau = tau / (dhal+1.0);
-      gtau = eps*tau7*rik6*(ghal+1.0)*pow(rv7/rho,2.0);
+      gtau = eps*tau7*rik6*(ghal+1.0)*square(rv7/rho);
       e = eps*tau7*rv7*((ghal+1.0)*rv7/rho-2.0);
       de = -7.0 * (dtau*e+gtau);
 

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1207,15 +1207,19 @@ double FixElectrodeConp::gausscorr(int eflag, bool fflag)
 FixElectrodeConp::~FixElectrodeConp()
 {
   if (comm->me == 0) {
-    if (timer_flag) {
-      utils::logmesg(lmp, fmt::format("Multiplication time: {:.4g} s\n", mult_time));
-      utils::logmesg(lmp, fmt::format("Update time: {:.4g} s\n", update_time));
+    try {
+      if (timer_flag) {
+        utils::logmesg(lmp, fmt::format("Multiplication time: {:.4g} s\n", mult_time));
+        utils::logmesg(lmp, fmt::format("Update time: {:.4g} s\n", update_time));
+      }
+      if (algo == Algo::CG || algo == Algo::MATRIX_CG)
+        utils::logmesg(
+            lmp,
+            fmt::format("Average conjugate gradient steps: {:.4g}\n", n_cg_step * 1. / n_call));
+    } catch (std::exception &) {
     }
-    if (algo == Algo::CG || algo == Algo::MATRIX_CG)
-      utils::logmesg(
-          lmp, fmt::format("Average conjugate gradient steps: {:.4g}\n", n_cg_step * 1. / n_call));
   }
-  if (modify->find_fix(id) != -1)             // avoid segfault if derived fixes' ctor throws err
+  if (!modify->get_fix_by_id(id))             // avoid segfault if derived fixes' ctor throws err
     atom->delete_callback(id, Atom::GROW);    // atomvec track local electrode atoms
   if (matrix_algo) {
     delete[] recvcounts;

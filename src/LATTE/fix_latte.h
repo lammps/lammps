@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -44,17 +44,26 @@ class FixLatte : public Fix {
   double memory_usage() override;
 
  protected:
-  char *id_pe;
   int coulomb, pbcflag, pe_peratom, virial_global, virial_peratom, neighflag;
+  int exclude, excludebit;
   int eflag_caller;
+  char *id_pe, *id_exclude;
+  int *exclusion_group_ptr;
+  int setupflag, newsystem;
+  bigint natoms_last;
 
-  int nmax, newsystem;
+  int flags_latte[6];
+
+  int nmax;
   double *qpotential;
   double **flatte;
   double latte_energy;
 
   class NeighList *list;
   class Compute *c_pe;
+
+  void latte_wrapper_all();
+  void latte_wrapper_exclude();
 };
 
 }    // namespace LAMMPS_NS

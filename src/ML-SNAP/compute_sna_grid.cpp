@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -292,7 +292,7 @@ void ComputeSNAGrid::compute_array()
         }
       }
 
-  memset(&grid[0][0], 0, size_array_rows * size_array_cols * sizeof(double));
+  memset(&grid[0][0], 0, sizeof(double) * size_array_rows * size_array_cols);
 
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)

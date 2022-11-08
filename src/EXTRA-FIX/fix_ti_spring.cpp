@@ -2,7 +2,7 @@
 /* -------------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,10 +35,10 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_ti_spring[] =
-  "ti/spring command:\n\n"
+  "ti/spring command: doi:10.1016/j.commatsci.2015.10.050\n\n"
   "@article{freitas2016,\n"
   "  author={Freitas, Rodrigo and Asta, Mark and de Koning, Maurice},\n"
-  "  title={Nonequilibrium free-energy calculation of solids using LAMMPS},\n"
+  "  title={Nonequilibrium Free-Energy Calculation of Solids Using {LAMMPS}},\n"
   "  journal={Computational Materials Science},\n"
   "  volume={112},\n"
   "  pages={333--341},\n"
@@ -143,7 +143,7 @@ int FixTISpring::setmask()
 void FixTISpring::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,9 +153,9 @@ void FixTISpring::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 

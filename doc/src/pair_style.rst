@@ -81,12 +81,12 @@ only the global settings in that command are reset.  Any previous
 doc:`pair_coeff <pair_coeff>` and :doc:`pair_modify <pair_modify>`
 command settings are preserved.  The only exception is that if the
 global cutoff in the pair_style command is changed, it will override
-the corresponding cutoff in any of the previous doc:`pair_modify
+the corresponding cutoff in any of the previous :doc:`pair_modify
 <pair_coeff>` commands.
 
 Two pair styles which do not follow this rule are the pair_style
 *table* and *hybrid* commands.  A new pair_style command for these
-styles will wipe out all previously specified doc:`pair_coeff
+styles will wipe out all previously specified :doc:`pair_coeff
 <pair_coeff>` and :doc:`pair_modify <pair_modify>` settings, including
 for the sub-styles of the *hybrid* command.
 
@@ -260,9 +260,9 @@ accelerated styles exist.
 * :doc:`lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulomb for TIP4P water
 * :doc:`lj/mdf <pair_mdf>` - LJ potential with a taper function
 * :doc:`lj/relres <pair_lj_relres>` - LJ using multiscale Relative Resolution (RelRes) methodology :ref:`(Chaimovich) <Chaimovich2>`.
-* :doc:`lj/sdk <pair_sdk>` - LJ for SDK coarse-graining
-* :doc:`lj/sdk/coul/long <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb
-* :doc:`lj/sdk/coul/msm <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb via MSM
+* :doc:`lj/spica <pair_spica>` - LJ for SPICA coarse-graining
+* :doc:`lj/spica/coul/long <pair_spica>` - LJ for SPICA coarse-graining with long-range Coulomb
+* :doc:`lj/spica/coul/msm <pair_spica>` - LJ for SPICA coarse-graining with long-range Coulomb via MSM
 * :doc:`lj/sf/dipole/sf <pair_dipole>` - LJ with dipole interaction with shifted forces
 * :doc:`lj/smooth <pair_lj_smooth>` - smoothed Lennard-Jones potential
 * :doc:`lj/smooth/linear <pair_lj_smooth_linear>` - linear smoothed LJ potential
@@ -278,7 +278,8 @@ accelerated styles exist.
 * :doc:`meam <pair_meam>` - modified embedded atom method (MEAM) in C
 * :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
-* :doc:`mesocnt <pair_mesocnt>` - mesoscale model for (carbon) nanotubes
+* :doc:`mesocnt <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes
+* :doc:`mesocnt/viscous <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes with friction
 * :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mesont/tpm <pair_mesont_tpm>` - nanotubes mesoscopic force field
 * :doc:`mie/cut <pair_mie>` - Mie potential
@@ -312,6 +313,7 @@ accelerated styles exist.
 * :doc:`oxrna2/stk <pair_oxrna2>` -
 * :doc:`oxrna2/xstk <pair_oxrna2>` -
 * :doc:`pace <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential
+* :doc:`pace/extrapolation <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential with extrapolation grades
 * :doc:`peri/eps <pair_peri>` - peridynamic EPS potential
 * :doc:`peri/lps <pair_peri>` - peridynamic LPS potential
 * :doc:`peri/pmb <pair_peri>` - peridynamic PMB potential
@@ -349,6 +351,7 @@ accelerated styles exist.
 * :doc:`spin/magelec <pair_spin_magelec>` -
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
+* :doc:`srp/react <pair_srp>` -
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
 * :doc:`sw/angle/table <pair_sw_angle_table>` - Stillinger-Weber potential with tabulated angular term
 * :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential
@@ -371,6 +374,7 @@ accelerated styles exist.
 * :doc:`vashishta <pair_vashishta>` - Vashishta 2-body and 3-body potential
 * :doc:`vashishta/table <pair_vashishta>` -
 * :doc:`wf/cut <pair_wf_cut>` - Wang-Frenkel Potential for short-ranged interactions
+* :doc:`ylz <pair_ylz>` - Yuan-Li-Zhang Potential for anisotropic interactions
 * :doc:`yukawa <pair_yukawa>` - Yukawa potential
 * :doc:`yukawa/colloid <pair_yukawa_colloid>` - screened Yukawa potential for finite-size particles
 * :doc:`zbl <pair_zbl>` - Ziegler-Biersack-Littmark potential

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -54,7 +54,7 @@ enum { DEFAULT, MD, OPT };       // top-level MDI engine modes
 
 enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
 
-#define MAXELEMENT 103           // used elsewhere in MDI package
+#define MAXELEMENT 103    // used elsewhere in MDI package
 
 /* ----------------------------------------------------------------------
    trigger LAMMPS to start acting as an MDI engine
@@ -65,7 +65,7 @@ enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
    when EXIT command is received, mdi engine command exits
 ---------------------------------------------------------------------- */
 
-MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** arg) : Pointers(_lmp)
+MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
 {
   // check requirements for LAMMPS to work with MDI as an engine
 
@@ -80,18 +80,19 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** arg) : Pointers(_lmp)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"elements") == 0) {
+    if (strcmp(arg[iarg], "elements") == 0) {
       int ntypes = atom->ntypes;
-      delete [] elements;
-      elements = new int[ntypes+1];
-      if (iarg+ntypes+1 > narg) error->all(FLERR,"Illegal mdi engine command");
+      delete[] elements;
+      elements = new int[ntypes + 1];
+      if (iarg + ntypes + 1 > narg) error->all(FLERR, "Illegal mdi engine command");
       for (int i = 1; i <= ntypes; i++) {
-        elements[i] = utils::inumeric(FLERR,arg[iarg+i],false,lmp);
+        elements[i] = utils::inumeric(FLERR, arg[iarg + i], false, lmp);
         if (elements[i] < 0 || elements[i] > MAXELEMENT)
-          error->all(FLERR,"Illegal mdi engine command");
+          error->all(FLERR, "Illegal mdi engine command");
       }
-      iarg += ntypes+1;
-    } else error->all(FLERR,"Illegal mdi engine command");
+      iarg += ntypes + 1;
+    } else
+      error->all(FLERR, "Illegal mdi engine command");
   }
 
   // error check an MDI element does not map to multiple atom types
@@ -99,10 +100,10 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** arg) : Pointers(_lmp)
   if (elements) {
     int ntypes = atom->ntypes;
     for (int i = 1; i < ntypes; i++)
-      for (int j = i+1; j <= ntypes; j++) {
+      for (int j = i + 1; j <= ntypes; j++) {
         if (elements[i] == 0 || elements[j] == 0) continue;
         if (elements[i] == elements[j])
-          error->all(FLERR,"MDI engine element cannot map to multiple types");
+          error->all(FLERR, "MDI engine element cannot map to multiple types");
       }
   }
 
@@ -167,7 +168,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** arg) : Pointers(_lmp)
   ibuf1 = ibuf1all = nullptr;
 
   maxatom = 0;
-  sys_natoms = static_cast<int> (atom->natoms);
+  sys_natoms = static_cast<int>(atom->natoms);
   reallocate();
 
   nsteps = 0;
@@ -184,10 +185,10 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char ** arg) : Pointers(_lmp)
 
   mdi_commands();
 
-  // register the execute_command function with MDI
-  // only used when engine runs in plugin mode
+  // register a callback function with MDI used when engine runs in plugin mode
+  // execute_command_plugin_wrapper() must be a static method
 
-  MDI_Set_execute_command_func(lammps_execute_mdi_command, this);
+  MDI_Set_execute_command_func(execute_command_plugin_wrapper, this);
 
   // one-time operation to establish a connection with the driver
 
@@ -292,10 +293,21 @@ void MDIEngine::engine_node(const char *node)
 }
 
 /* ----------------------------------------------------------------------
+   wrapper function on execute_command()
+   invoked as callback by MDI when engine operates in plugin mode
+   this is a static method in mdi_engine.h
+---------------------------------------------------------------------- */
+
+int MDIEngine::execute_command_plugin_wrapper(const char *command, MDI_Comm comm, void *class_obj)
+{
+  auto mdi_engine = (MDIEngine *) class_obj;
+  return mdi_engine->execute_command(command, comm);
+}
+
+/* ----------------------------------------------------------------------
    process a single driver command
-   called by engine_node() in loop
-   also called by MDI itself via lib::lammps_execute_mdi_command()
-     when LAMMPS is running as a plugin
+   called by engine_node() in loop when engine runs as stand-alone code
+   called by execute_command_plugin_wrapper() when engine runs as plugin lib
 ---------------------------------------------------------------------- */
 
 int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
@@ -334,8 +346,7 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     receive_coords();
 
   } else if (strcmp(command, ">ELEMENTS") == 0) {
-    if (!elements)
-      error->all(FLERR,"MDI engine command did not define element list");
+    if (!elements) error->all(FLERR, "MDI engine command did not define element list");
     receive_elements();
 
   } else if (strcmp(command, ">FORCES") == 0) {
@@ -362,7 +373,7 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     else
       receive_double3(VELOCITY);
 
-  // -----------------------------------------------
+    // -----------------------------------------------
 
   } else if (strcmp(command, "<@") == 0) {
     ierr = MDI_Send(node_engine, MDI_NAME_LENGTH, MDI_CHAR, mdicomm);
@@ -411,9 +422,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "<VELOCITIES") == 0) {
     send_double3(VELOCITY);
 
-  // -----------------------------------------------
+    // -----------------------------------------------
 
-  // MDI action commands at @DEFAULT node
+    // MDI action commands at @DEFAULT node
 
   } else if (strcmp(command, "MD") == 0) {
     md();
@@ -421,9 +432,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "OPTG") == 0) {
     optg();
 
-  // -----------------------------------------------
+    // -----------------------------------------------
 
-  // MDI node commands
+    // MDI node commands
 
   } else if (strcmp(command, "@INIT_MD") == 0) {
     if (mode != DEFAULT) error->all(FLERR, "MDI: MDI engine is already performing a simulation");
@@ -458,14 +469,14 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     strncpy(node_driver, command, MDI_COMMAND_LENGTH);
     node_match = false;
 
-  // exit command
+    // exit command
 
   } else if (strcmp(command, "EXIT") == 0) {
     exit_command = true;
 
-  // -------------------------------------------------------
-  // custom LAMMPS commands
-  // -------------------------------------------------------
+    // -------------------------------------------------------
+    // custom LAMMPS commands
+    // -------------------------------------------------------
 
   } else if (strcmp(command, "NBYTES") == 0) {
     nbytes_command();
@@ -478,9 +489,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "<KE") == 0) {
     send_ke();
 
-  // -------------------------------------------------------
-  // unknown command
-  // -------------------------------------------------------
+    // -------------------------------------------------------
+    // unknown command
+    // -------------------------------------------------------
 
   } else {
     error->all(FLERR, "MDI: Unknown command {} received from driver", command);
@@ -930,7 +941,7 @@ void MDIEngine::evaluate()
       output->thermo->compute(1);
 
     } else {
-      if (!comm->style) {
+      if (comm->style == Comm::BRICK) {
         if (domain->triclinic) domain->x2lamda(atom->nlocal);
         domain->pbc();
         domain->reset_box();
@@ -998,9 +1009,9 @@ void MDIEngine::create_system()
   // create list of 1 to sys_natoms IDs
   // optionally set charges if specified by ">CHARGES"
 
-  tagint* sys_ids;
+  tagint *sys_ids;
   memory->create(sys_ids, sys_natoms, "mdi:sys_ids");
-  for (int i = 0; i < sys_natoms; i++) sys_ids[i] = i+1;
+  for (int i = 0; i < sys_natoms; i++) sys_ids[i] = i + 1;
 
   if (flag_velocities)
     lammps_create_atoms(lmp, sys_natoms, sys_ids, sys_types, sys_coords, sys_velocities, nullptr,
@@ -1148,9 +1159,16 @@ void MDIEngine::receive_cell()
   for (int icell = 0; icell < 9; icell++) sys_cell[icell] *= mdi2lmp_length;
 
   // error check that edge vectors match LAMMPS triclinic requirement
+  // 3,7,6 = xy, yz, xz tilt factors
 
   if (sys_cell[1] != 0.0 || sys_cell[2] != 0.0 || sys_cell[5] != 0.0)
-    error->all(FLERR, "MDI: Received cell edges are not LAMMPS compatible");
+    error->all(FLERR, "MDI: Received cell edges are not an upper triangular matrix");
+
+  if (sys_cell[3] != 0.0 || sys_cell[7] != 0.0 || sys_cell[6] != 0.0)
+    if (!domain->triclinic)
+      error->all(FLERR,
+                 "MDI: Received cell edges are for a triclinic box, "
+                 "but LAMMPS is using an orthogonal box");
 }
 
 /* ----------------------------------------------------------------------
@@ -1227,8 +1245,7 @@ void MDIEngine::receive_elements()
         break;
       }
     }
-    if (itype > ntypes)
-      error->all(FLERR,"MDI element not found in element list");
+    if (itype > ntypes) error->all(FLERR, "MDI element not found in element list");
   }
 }
 
@@ -1493,6 +1510,9 @@ void MDIEngine::send_pe()
 /* ----------------------------------------------------------------------
    <STRESS command
    send 9-component stress tensor (no kinetic energy term)
+   should be intensive quantity (divided by volume in pressure compute)
+   MDI stress tensor units are energy/volume,
+     so conversion factor includes nktv2p to convert pressure back to virial
 ---------------------------------------------------------------------- */
 
 void MDIEngine::send_stress()
@@ -1837,6 +1857,8 @@ void MDIEngine::unit_conversions()
   }
 
   // pressure or stress units = force/area = energy/volume
+  // MDI energy/volume = Hartree/Bohr^3,
+  //   so need to remove LAMMPS nktv2p from pressure
 
   mdi2lmp_pressure = 1.0;
   lmp2mdi_pressure = 1.0;

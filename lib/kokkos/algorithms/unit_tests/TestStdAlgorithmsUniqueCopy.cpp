@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
 #include <utility>
 
 namespace Test {
@@ -204,51 +202,51 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
   }
 
   else if (name == "one-element-a") {
-    EXPECT_TRUE(view_test_h(0) == static_cast<value_type>(1));
+    EXPECT_EQ(view_test_h(0), static_cast<value_type>(1));
   }
 
   else if (name == "one-element-b") {
-    EXPECT_TRUE(view_test_h(0) == static_cast<value_type>(2));
+    EXPECT_EQ(view_test_h(0), static_cast<value_type>(2));
   }
 
   else if (name == "two-elements-a") {
-    EXPECT_TRUE(view_test_h(0) == static_cast<value_type>(1));
-    EXPECT_TRUE(view_test_h(1) == static_cast<value_type>(2));
+    EXPECT_EQ(view_test_h(0), static_cast<value_type>(1));
+    EXPECT_EQ(view_test_h(1), static_cast<value_type>(2));
   }
 
   else if (name == "two-elements-b") {
-    EXPECT_TRUE(view_test_h(0) == static_cast<value_type>(2));
-    EXPECT_TRUE(view_test_h(1) == static_cast<value_type>(-1));
+    EXPECT_EQ(view_test_h(0), static_cast<value_type>(2));
+    EXPECT_EQ(view_test_h(1), static_cast<value_type>(-1));
   }
 
   else if (name == "small-a") {
-    EXPECT_TRUE(view_test_h(0) == static_cast<value_type>(0));
-    EXPECT_TRUE(view_test_h(1) == static_cast<value_type>(1));
-    EXPECT_TRUE(view_test_h(2) == static_cast<value_type>(2));
-    EXPECT_TRUE(view_test_h(3) == static_cast<value_type>(3));
-    EXPECT_TRUE(view_test_h(4) == static_cast<value_type>(4));
-    EXPECT_TRUE(view_test_h(5) == static_cast<value_type>(5));
-    EXPECT_TRUE(view_test_h(6) == static_cast<value_type>(6));
-    EXPECT_TRUE(view_test_h(7) == static_cast<value_type>(0));
-    EXPECT_TRUE(view_test_h(8) == static_cast<value_type>(0));
-    EXPECT_TRUE(view_test_h(9) == static_cast<value_type>(0));
-    EXPECT_TRUE(view_test_h(10) == static_cast<value_type>(0));
+    EXPECT_EQ(view_test_h(0), static_cast<value_type>(0));
+    EXPECT_EQ(view_test_h(1), static_cast<value_type>(1));
+    EXPECT_EQ(view_test_h(2), static_cast<value_type>(2));
+    EXPECT_EQ(view_test_h(3), static_cast<value_type>(3));
+    EXPECT_EQ(view_test_h(4), static_cast<value_type>(4));
+    EXPECT_EQ(view_test_h(5), static_cast<value_type>(5));
+    EXPECT_EQ(view_test_h(6), static_cast<value_type>(6));
+    EXPECT_EQ(view_test_h(7), static_cast<value_type>(0));
+    EXPECT_EQ(view_test_h(8), static_cast<value_type>(0));
+    EXPECT_EQ(view_test_h(9), static_cast<value_type>(0));
+    EXPECT_EQ(view_test_h(10), static_cast<value_type>(0));
   }
 
   else if (name == "small-b") {
-    EXPECT_TRUE(view_test_h(0) == static_cast<value_type>(1));
-    EXPECT_TRUE(view_test_h(1) == static_cast<value_type>(2));
-    EXPECT_TRUE(view_test_h(2) == static_cast<value_type>(3));
-    EXPECT_TRUE(view_test_h(3) == static_cast<value_type>(4));
-    EXPECT_TRUE(view_test_h(4) == static_cast<value_type>(5));
-    EXPECT_TRUE(view_test_h(5) == static_cast<value_type>(6));
-    EXPECT_TRUE(view_test_h(6) == static_cast<value_type>(8));
-    EXPECT_TRUE(view_test_h(7) == static_cast<value_type>(9));
-    EXPECT_TRUE(view_test_h(8) == static_cast<value_type>(8));
-    EXPECT_TRUE(view_test_h(9) == static_cast<value_type>(0));
-    EXPECT_TRUE(view_test_h(10) == static_cast<value_type>(0));
-    EXPECT_TRUE(view_test_h(11) == static_cast<value_type>(0));
-    EXPECT_TRUE(view_test_h(12) == static_cast<value_type>(0));
+    EXPECT_EQ(view_test_h(0), static_cast<value_type>(1));
+    EXPECT_EQ(view_test_h(1), static_cast<value_type>(2));
+    EXPECT_EQ(view_test_h(2), static_cast<value_type>(3));
+    EXPECT_EQ(view_test_h(3), static_cast<value_type>(4));
+    EXPECT_EQ(view_test_h(4), static_cast<value_type>(5));
+    EXPECT_EQ(view_test_h(5), static_cast<value_type>(6));
+    EXPECT_EQ(view_test_h(6), static_cast<value_type>(8));
+    EXPECT_EQ(view_test_h(7), static_cast<value_type>(9));
+    EXPECT_EQ(view_test_h(8), static_cast<value_type>(8));
+    EXPECT_EQ(view_test_h(9), static_cast<value_type>(0));
+    EXPECT_EQ(view_test_h(10), static_cast<value_type>(0));
+    EXPECT_EQ(view_test_h(11), static_cast<value_type>(0));
+    EXPECT_EQ(view_test_h(12), static_cast<value_type>(0));
   }
 
   else if (name == "medium" || name == "large") {
@@ -260,7 +258,7 @@ void verify_data(const std::string& name, ViewTypeFrom view_from,
     (void)std_r;
 
     for (std::size_t i = 0; i < view_from_h.extent(0); ++i) {
-      EXPECT_TRUE(view_test_h(i) == tmp[i]);
+      EXPECT_EQ(view_test_h(i), tmp[i]);
     }
   }
 
@@ -303,7 +301,7 @@ void run_single_scenario(const InfoType& scenario_info, Args... args) {
         KE::unique_copy(exespace(), KE::cbegin(view_from), KE::cend(view_from),
                         KE::begin(view_dest), args...);
     verify_data(name, view_from, view_dest, args...);
-    EXPECT_TRUE(rit == (KE::begin(view_dest) + n));
+    EXPECT_EQ(rit, (KE::begin(view_dest) + n));
   }
 
   {
@@ -313,7 +311,7 @@ void run_single_scenario(const InfoType& scenario_info, Args... args) {
         KE::unique_copy("label", exespace(), KE::cbegin(view_from),
                         KE::cend(view_from), KE::begin(view_dest), args...);
     verify_data(name, view_from, view_dest, args...);
-    EXPECT_TRUE(rit == (KE::begin(view_dest) + n));
+    EXPECT_EQ(rit, (KE::begin(view_dest) + n));
   }
 
   {
@@ -321,7 +319,7 @@ void run_single_scenario(const InfoType& scenario_info, Args... args) {
         create_view<ValueType>(Tag{}, view_ext, "unique_copy_dest");
     auto rit = KE::unique_copy(exespace(), view_from, view_dest, args...);
     verify_data(name, view_from, view_dest, args...);
-    EXPECT_TRUE(rit == (KE::begin(view_dest) + n));
+    EXPECT_EQ(rit, (KE::begin(view_dest) + n));
   }
 
   {
@@ -330,7 +328,7 @@ void run_single_scenario(const InfoType& scenario_info, Args... args) {
     auto rit =
         KE::unique_copy("label", exespace(), view_from, view_dest, args...);
     verify_data(name, view_from, view_dest, args...);
-    EXPECT_TRUE(rit == (KE::begin(view_dest) + n));
+    EXPECT_EQ(rit, (KE::begin(view_dest) + n));
   }
 
   Kokkos::fence();

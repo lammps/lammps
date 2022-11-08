@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -54,7 +54,7 @@ https://doi.org/10.1103/PhysRevE.92.043303
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
@@ -90,8 +90,8 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   // our new fix's group = same as compute group
 
   id_fix = utils::strdup(std::string(id)+"_COMPUTE_STORE");
-  fix = dynamic_cast<FixStore *>(modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
-                                                id_fix, group->names[igroup])));
+  fix = dynamic_cast<FixStorePeratom *>(
+    modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 3", id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -196,9 +196,8 @@ void ComputeHMA::setup()
 
   // set fix which stores original atom coords
 
-  int ifix2 = modify->find_fix(id_fix);
-  if (ifix2 < 0) error->all(FLERR,"Could not find hma store fix ID");
-  fix = dynamic_cast<FixStore *>( modify->fix[ifix2]);
+  fix = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(id_fix));
+  if (!fix) error->all(FLERR,"Could not find hma per-atom store fix ID {}", id_fix);
 }
 
 /* ---------------------------------------------------------------------- */

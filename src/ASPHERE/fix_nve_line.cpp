@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -56,7 +56,7 @@ void FixNVELine::init()
 {
   // error checks
 
-  avec = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  avec = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
   if (!avec) error->all(FLERR,"Fix nve/line requires atom style line");
 
   if (domain->dimension != 2)

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,7 +19,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "irregular.h"
 #include "kspace.h"
@@ -94,7 +94,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (lbstyle == BISECTION && comm->style == 0)
+  if (lbstyle == BISECTION && comm->style == Comm::BRICK)
     error->all(FLERR,"Fix balance rcb cannot be used with comm_style brick");
 
   // create instance of Balance class

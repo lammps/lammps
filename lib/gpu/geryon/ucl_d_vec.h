@@ -375,7 +375,7 @@ class UCL_D_Vec : public UCL_BaseMat {
   /// Resize (only if bigger) the allocation to contain cols elements
   /** \note Cannot be used on views **/
   inline int resize_ib(const int cols)
-    { if (cols>_cols) return resize(cols); else return UCL_SUCCESS; }
+    { if (cols > (int)_cols) return resize(cols); else return UCL_SUCCESS; }
 
   /// Set each element to zero asynchronously in the default command_queue
   inline void zero() { zero(_cq); }

@@ -14,8 +14,8 @@
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
-using ::LAMMPS_NS::platform::path_join;
 using ::LAMMPS_NS::tagint;
+using ::LAMMPS_NS::platform::path_join;
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
 using ::testing::StrEq;
@@ -432,6 +432,33 @@ TEST_F(LibraryProperties, neighlist)
         EXPECT_EQ(inum, nlocal - 1 - i);
         EXPECT_NE(neighbors, nullptr);
     }
+};
+
+TEST_F(LibraryProperties, has_error)
+{
+    // need errors to throw exceptions to be able to intercept them.
+    if (!lammps_config_has_exceptions()) GTEST_SKIP();
+
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+
+    // trigger an error, but hide output
+    ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "this_is_not_a_known_command");
+    ::testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(lammps_has_error(lmp), 1);
+
+    // retrieve error message
+    char errmsg[1024];
+    int err = lammps_get_last_error_message(lmp, errmsg, 1024);
+    EXPECT_EQ(err, 1);
+    EXPECT_THAT(errmsg, HasSubstr("ERROR: Unknown command: this_is_not_a_known_command"));
+
+    // retrieving the error message clear the error status
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+    err = lammps_get_last_error_message(lmp, errmsg, 1024);
+    EXPECT_EQ(err, 0);
+    EXPECT_THAT(errmsg, StrEq(""));
 };
 
 class AtomProperties : public ::testing::Test {

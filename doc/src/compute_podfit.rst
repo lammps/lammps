@@ -213,7 +213,7 @@ Hence, the total number of parameter points is :math:`N_{\rm s} = N_\alpha N_\be
 Although  :math:`N_\alpha, N_\beta, N_\gamma` can be chosen conservatively large,
 we find that :math:`N_\alpha = 6, N_\beta = 3, N_\gamma = 8` are adequate for most problems.
 Note that :math:`N_\alpha` and :math:`N_\gamma` correspond to *bessel_polynomial_degree*
-and *inverse_polynomial_degree*, respectively. 
+and *inverse_polynomial_degree*, respectively.
 
 We employ the Karhunen-Loeve (KL) expansion to generate an orthogonal basis set which is known to be optimal for representation of
 the snapshot family :math:`\{\xi_\ell\}_{\ell=1}^{N_{\rm s}}`. The two-body  orthogonal basis

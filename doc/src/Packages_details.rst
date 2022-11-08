@@ -1789,7 +1789,7 @@ ML-POD package
 
 A pair style and compute for Proper Orthogonal Descriptors (POD). POD
 is a methodology for deriving descriptors based on the Karhuen-Loeve
-expansion. The ML-POD package provides an efficient implementation for 
+expansion. The ML-POD package provides an efficient implementation for
 running simulations with POD potentials, along with fitting the potentials
 natively in LAMMPS. If you want to use the fitting functionality in `compute_podfit`,
 you must install the LAPACK library on your machine, which will be included in

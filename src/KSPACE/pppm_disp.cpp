@@ -389,8 +389,8 @@ void PPPMDisp::init()
     alpha = qdist / (cos(0.5*theta) * blen);
   }
 
-  //if g_ewald and g_ewald_6 have not been specified, set some initial value
-  //  to avoid problems when calculating the energies!
+  // if g_ewald and g_ewald_6 have not been specified,
+  // set some initial value, to avoid problems when calculating the energies!
 
   if (!gewaldflag) g_ewald = 1;
   if (!gewaldflag_6) g_ewald_6 = 1;
@@ -407,6 +407,9 @@ void PPPMDisp::init()
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
   else accuracy = accuracy_relative * two_charge_force;
 
+  double acc;
+  double acc_6,acc_real_6,acc_kspace_6;
+      
   int iteration = 0;
   if (function[0]) {
 
@@ -459,31 +462,9 @@ void PPPMDisp::init()
 
     if (!gewaldflag) adjust_gewald();
 
-    // calculate the final accuracy
+    // calculate the final Coulomb accuracy
 
-    double acc = final_accuracy();
-
-    // print stats
-
-    int ngrid_max,nfft_both_max;
-    MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
-    MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
-
-    if (me == 0) {
-      std::string mesg = fmt::format("  Coulomb G vector (1/distance)= {:.16g}\n",
-                                     g_ewald);
-      mesg += fmt::format("  Coulomb grid = {} {} {}\n",
-                          nx_pppm,ny_pppm,nz_pppm);
-      mesg += fmt::format("  Coulomb stencil order = {}\n",order);
-      mesg += fmt::format("  Coulomb estimated absolute RMS force accuracy "
-                          "= {:.8g}\n",acc);
-      mesg += fmt::format("  Coulomb estimated relative force accuracy = {:.8g}\n",
-                          acc/two_charge_force);
-      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
-      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
-                          ngrid_max,nfft_both_max);
-      utils::logmesg(lmp,mesg);
-    }
+    acc = final_accuracy();
   }
 
   iteration = 0;
@@ -537,34 +518,11 @@ void PPPMDisp::init()
 
     if (!gewaldflag_6 && accuracy_kspace_6 == accuracy_real_6) adjust_gewald_6();
 
-    // calculate the final accuracy
+    // calculate the final displerson accuracy
 
-    double acc,acc_real,acc_kspace;
-    final_accuracy_6(acc,acc_real,acc_kspace);
-
-    // print stats
-
-    int ngrid_6_max,nfft_both_6_max;
-    MPI_Allreduce(&ngrid_6,&ngrid_6_max,1,MPI_INT,MPI_MAX,world);
-    MPI_Allreduce(&nfft_both_6,&nfft_both_6_max,1,MPI_INT,MPI_MAX,world);
-
-    if (me == 0) {
-      std::string mesg = fmt::format("  Dispersion G vector (1/distance)= "
-                                     "{:.16}\n",g_ewald_6);
-      mesg += fmt::format("  Dispersion grid = {} {} {}\n",
-                          nx_pppm_6,ny_pppm_6,nz_pppm_6);
-      mesg += fmt::format("  Dispersion stencil order = {}\n",order_6);
-      mesg += fmt::format("  Dispersion estimated absolute RMS force accuracy "
-                          "= {:.8}\n",acc);
-      mesg += fmt::format("  Dispersion estimated relative force accuracy "
-                          "= {:.8}\n",acc/two_charge_force);
-      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
-      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
-                          ngrid_6_max,nfft_both_6_max);
-      utils::logmesg(lmp,mesg);
-    }
+    final_accuracy_6(acc_6,acc_real_6,acc_kspace_6);
   }
-
+  
   // allocate K-space dependent memory
 
   allocate();
@@ -591,6 +549,54 @@ void PPPMDisp::init()
                           nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
                           sf_precoeff1_6,sf_precoeff2_6,sf_precoeff3_6,
                           sf_precoeff4_6,sf_precoeff5_6,sf_precoeff6_6);
+  }
+
+  // print Coulomb stats
+
+  if (function[0]) {
+    int ngrid_max,nfft_both_max;
+    MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
+    
+    if (me == 0) {
+      std::string mesg = fmt::format("  Coulomb G vector (1/distance)= {:.16g}\n",
+                                     g_ewald);
+      mesg += fmt::format("  Coulomb grid = {} {} {}\n",
+                          nx_pppm,ny_pppm,nz_pppm);
+      mesg += fmt::format("  Coulomb stencil order = {}\n",order);
+      mesg += fmt::format("  Coulomb estimated absolute RMS force accuracy "
+                          "= {:.8g}\n",acc);
+      mesg += fmt::format("  Coulomb estimated relative force accuracy = {:.8g}\n",
+                          acc/two_charge_force);
+      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                          ngrid_max,nfft_both_max);
+      utils::logmesg(lmp,mesg);
+    }
+  }
+  
+  // print dipserion stats
+
+  if (function[1] + function[2] + function[3]) {
+    int ngrid_6_max,nfft_both_6_max;
+    MPI_Allreduce(&ngrid_6,&ngrid_6_max,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&nfft_both_6,&nfft_both_6_max,1,MPI_INT,MPI_MAX,world);
+  
+    if (me == 0) {
+      std::string mesg = fmt::format("  Dispersion G vector (1/distance)= "
+                                   "{:.16}\n",g_ewald_6);
+      mesg += fmt::format("  Dispersion grid = {} {} {}\n",
+                          nx_pppm_6,ny_pppm_6,nz_pppm_6);
+      mesg += fmt::format("  Dispersion stencil order = {}\n",order_6);
+      mesg += fmt::format("  Dispersion estimated absolute RMS force accuracy "
+                          "= {:.8}\n",acc_6);
+      mesg += fmt::format("  Dispersion estimated relative force accuracy "
+                          "= {:.8}\n",acc_6/two_charge_force);
+      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                          ngrid_6_max,nfft_both_6_max);
+      utils::logmesg(lmp,mesg);
+    }
   }
 }
 

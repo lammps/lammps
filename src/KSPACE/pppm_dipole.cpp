@@ -205,7 +205,7 @@ void PPPMDipole::init()
     gc_dipole->set_stencil_atom(-nlower,nupper);
     gc_dipole->set_shift_atom(shiftatom_lo,shiftatom_hi);
     gc_dipole->set_zfactor(slab_volfactor);
-
+    
     gc_dipole->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                           nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -231,6 +231,17 @@ void PPPMDipole::init()
 
   double estimated_accuracy = final_accuracy_dipole();
 
+  // allocate K-space dependent memory
+  // don't invoke allocate peratom(), will be allocated when needed
+
+  allocate();
+
+  // pre-compute Green's function denomiator expansion
+  // pre-compute 1d charge distribution coefficients
+
+  compute_gf_denom();
+  compute_rho_coeff();
+
   // print stats
 
   int ngrid_max,nfft_both_max;
@@ -250,17 +261,6 @@ void PPPMDipole::init()
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);
   }
-
-  // allocate K-space dependent memory
-  // don't invoke allocate peratom(), will be allocated when needed
-
-  allocate();
-
-  // pre-compute Green's function denomiator expansion
-  // pre-compute 1d charge distribution coefficients
-
-  compute_gf_denom();
-  compute_rho_coeff();
 }
 
 /* ----------------------------------------------------------------------
@@ -541,7 +541,7 @@ void PPPMDipole::allocate()
   gc_dipole->set_stencil_atom(-nlower,nupper);
   gc_dipole->set_shift_atom(shiftatom_lo,shiftatom_hi);
   gc_dipole->set_zfactor(slab_volfactor);
-
+    
   gc_dipole->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
@@ -551,6 +551,24 @@ void PPPMDipole::allocate()
 
   memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
   memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
+
+  // tally local grid sizes
+  // ngrid = count of owned+ghost grid cells on this proc
+  // nfft_brick = FFT points in 3d brick-decomposition on this proc
+  //              same as count of owned grid cells
+  // nfft = FFT points in x-pencil FFT decomposition on this proc
+  // nfft_both = greater of nfft and nfft_brick
+
+  ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
+    (nzhi_out-nzlo_out+1);
+
+  nfft_brick = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
+    (nzhi_in-nzlo_in+1);
+
+  nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
+    (nzhi_fft-nzlo_fft+1);
+
+  nfft_both = MAX(nfft,nfft_brick);
 
   // allocate distributed grid data
 
@@ -638,6 +656,7 @@ void PPPMDipole::deallocate()
   delete gc_dipole;
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
+  gc_buf1 = gc_buf2 = nullptr;
 
   memory->destroy3d_offset(densityx_brick_dipole,nzlo_out,nylo_out,nxlo_out);
   memory->destroy3d_offset(densityy_brick_dipole,nzlo_out,nylo_out,nxlo_out);
@@ -664,6 +683,9 @@ void PPPMDipole::deallocate()
   delete fft1;
   delete fft2;
   delete remap;
+
+  fft1 = fft2 = nullptr;
+  remap = nullptr;
 }
 
 /* ----------------------------------------------------------------------

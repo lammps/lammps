@@ -105,8 +105,8 @@ void CPOD::podMatMul(double *c, double *a, double *b, int r1, int c1, int c2)
 
 void CPOD::podArrayFill(int* output, int start, int length)
 {
-	for (int j = 0; j < length; ++j)
-		output[j] = start + j;
+        for (int j = 0; j < length; ++j)
+                output[j] = start + j;
 }
 
 double CPOD::podArraySum(double *a, int n)
@@ -166,9 +166,9 @@ void CPOD::podKron(double *C, double *A, double *B, double alpha, int M1, int M2
 
 void CPOD::podCumsum(int* output, int* input, int length)
 {
-	output[0] = 0;
-	for (int j = 1; j < length; ++j)
-		output[j] = input[j - 1] + output[j - 1];
+        output[0] = 0;
+        for (int j = 1; j < length; ++j)
+                output[j] = input[j - 1] + output[j - 1];
 }
 
 double CPOD::podArrayNorm(double *a, int n)

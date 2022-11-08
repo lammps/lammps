@@ -111,4 +111,4 @@ Related commands
 .. _ipihome:
 
 **(IPI)**
-`http://epfl-cosmo.github.io/gle4md/index.html?page=ipi <http://epfl-cosmo.github.io/gle4md/index.html?page=ipi>`_
+`https://ipi-code.org <https://ipi-code.org>`_

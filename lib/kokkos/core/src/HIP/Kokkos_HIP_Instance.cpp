@@ -45,6 +45,10 @@
 /*--------------------------------------------------------------------------*/
 /* Kokkos interfaces */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <Kokkos_Core.hpp>
 
 #include <HIP/Kokkos_HIP_Instance.hpp>
@@ -175,8 +179,9 @@ HIPInternal::~HIPInternal() {
 
 int HIPInternal::verify_is_initialized(const char *const label) const {
   if (m_hipDev < 0) {
-    std::cerr << "Kokkos::Experimental::HIP::" << label
-              << " : ERROR device not initialized" << std::endl;
+    Kokkos::abort((std::string("Kokkos::Experimental::HIP::") + label +
+                   " : ERROR device not initialized\n")
+                      .c_str());
   }
   return 0 <= m_hipDev;
 }
@@ -421,10 +426,13 @@ void HIPInternal::finalize() {
   this->fence("Kokkos::HIPInternal::finalize: fence on finalization");
   was_finalized = true;
 
-  if (nullptr != m_scratchSpace || nullptr != m_scratchFlags) {
-    if (this == &singleton())
-      (void)Kokkos::Impl::hip_global_unique_token_locks(true);
+  if (this == &singleton()) {
+    (void)Kokkos::Impl::hip_global_unique_token_locks(true);
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipHostFree(constantMemHostStaging));
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipEventDestroy(constantMemReusable));
+  }
 
+  if (nullptr != m_scratchSpace || nullptr != m_scratchFlags) {
     using RecordHIP =
         Kokkos::Impl::SharedAllocationRecord<Kokkos::Experimental::HIPSpace>;
 
@@ -436,34 +444,29 @@ void HIPInternal::finalize() {
 
     if (m_manage_stream && m_stream != nullptr)
       KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamDestroy(m_stream));
-
-    m_hipDev                    = -1;
-    m_hipArch                   = -1;
-    m_multiProcCount            = 0;
-    m_maxWarpCount              = 0;
-    m_maxBlock                  = {0, 0, 0};
-    m_maxSharedWords            = 0;
-    m_maxShmemPerBlock          = 0;
-    m_scratchSpaceCount         = 0;
-    m_scratchFlagsCount         = 0;
-    m_scratchSpace              = nullptr;
-    m_scratchFlags              = nullptr;
-    m_stream                    = nullptr;
-    m_team_scratch_current_size = 0;
-    m_team_scratch_ptr          = nullptr;
-
-    KOKKOS_IMPL_HIP_SAFE_CALL(hipFree(m_scratch_locks));
-    m_scratch_locks = nullptr;
   }
+
+  m_hipDev                    = -1;
+  m_hipArch                   = -1;
+  m_multiProcCount            = 0;
+  m_maxWarpCount              = 0;
+  m_maxBlock                  = {0, 0, 0};
+  m_maxSharedWords            = 0;
+  m_maxShmemPerBlock          = 0;
+  m_scratchSpaceCount         = 0;
+  m_scratchFlagsCount         = 0;
+  m_scratchSpace              = nullptr;
+  m_scratchFlags              = nullptr;
+  m_stream                    = nullptr;
+  m_team_scratch_current_size = 0;
+  m_team_scratch_ptr          = nullptr;
+
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipFree(m_scratch_locks));
+  m_scratch_locks = nullptr;
+
   if (nullptr != d_driverWorkArray) {
     KOKKOS_IMPL_HIP_SAFE_CALL(hipHostFree(d_driverWorkArray));
     d_driverWorkArray = nullptr;
-  }
-
-  // only destroy these if we're finalizing the singleton
-  if (this == &singleton()) {
-    KOKKOS_IMPL_HIP_SAFE_CALL(hipHostFree(constantMemHostStaging));
-    KOKKOS_IMPL_HIP_SAFE_CALL(hipEventDestroy(constantMemReusable));
   }
 }
 

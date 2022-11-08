@@ -50,6 +50,18 @@
 
 #include <hip/hip_runtime.h>
 
+// FIXME_HIP ROCm 4.5 version header include would be <rocm/rocm_version.h>
+#if __has_include(<rocm_version.h>)
+#include <rocm_version.h>
+#define KOKKOS_IMPL_ROCM_VERSION \
+  ROCM_VERSION_MAJOR * 10000 + ROCM_VERSION_MINOR * 100 + ROCM_VERSION_PATCH
+#endif
+
+// FIXME_HIP workaround for ROCm version less than 5.0.2
+#if KOKKOS_IMPL_ROCM_VERSION < 50002
+#define KOKKOS_IMPL_HIP_ABORT_DOES_NOT_PRINT_MESSAGE
+#endif
+
 namespace Kokkos {
 namespace Impl {
 
@@ -57,14 +69,8 @@ namespace Impl {
 // directive to the optimizer.
 [[noreturn]] __device__ __attribute__((noinline)) inline void hip_abort(
     char const *msg) {
-#ifdef NDEBUG
-  (void)msg;
-#else
-  // disable printf on release builds, as it has a non-trivial performance
-  // impact
-  printf("Aborting with message `%s'.\n", msg);
-#endif
-  abort();
+  const char empty[] = "";
+  __assert_fail(msg, empty, 0, empty);
   // This loop is never executed. It's intended to suppress warnings that the
   // function returns, even though it does not. This is necessary because
   // abort() is not marked as [[noreturn]], even though it does not return.

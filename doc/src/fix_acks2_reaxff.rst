@@ -71,7 +71,7 @@ potential in eV, *gamma*, the valence orbital exponent, and *bcut*, the
 bond cutoff distance.  Note that these 4 quantities are also in the
 ReaxFF potential file, except that eta is defined here as twice the eta
 value in the ReaxFF file. Note that unlike the rest of LAMMPS, the units
-of this fix are hard-coded to be :math:`\mathrm{\mathring{A}}`, eV, and
+of this fix are hard-coded to be :math:`\AA`, eV, and
 electronic charge.
 
 The optional *maxiter* keyword allows changing the max number
@@ -111,7 +111,7 @@ LAMMPS was built with that package. See the :doc:`Build package
 
 This fix does not correctly handle interactions involving multiple
 periodic images of the same atom.  Hence, it should not be used for
-periodic cell dimensions less than :math:`10~\mathrm{\mathring{A}}`.
+periodic cell dimensions less than :math:`10~\AA`.
 
 This fix may be used in combination with :doc:`fix efield <fix_efield>`
 and will apply the external electric field during charge equilibration,

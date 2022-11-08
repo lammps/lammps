@@ -24,6 +24,21 @@ function(validate_option name values)
     endif()
 endfunction(validate_option)
 
+# helper function to check for usable omp.h header
+function(check_omp_h_include)
+  find_package(OpenMP COMPONENTS CXX QUIET)
+  if(OpenMP_CXX_FOUND)
+    set(CMAKE_REQUIRED_FLAGS ${OpenMP_CXX_FLAGS})
+    set(CMAKE_REQUIRED_INCLUDES ${OpenMP_CXX_INCLUDE_DIRS})
+    set(CMAKE_REQUIRED_LINK_OPTIONS ${OpenMP_CXX_FLAGS})
+    set(CMAKE_REQUIRED_LIBRARIES ${OpenMP_CXX_LIBRARIES})
+    check_include_file_cxx(omp.h _have_omp_h)
+  else()
+    set(_have_omp_h FALSE)
+  endif()
+  set(HAVE_OMP_H_INCLUDE ${_have_omp_h} PARENT_SCOPE)
+endfunction()
+
 # helper function for getting the most recently modified file or folder from a glob pattern
 function(get_newest_file path variable)
   file(GLOB _dirs ${path})

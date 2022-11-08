@@ -138,7 +138,7 @@ class LammpsShell(unittest.TestCase):
             for line in lines:
                 if line.startswith('LAMMPS Shell>'): break
                 idx += 1
-                
+
             self.assertEqual(lines[idx+4],"dimension 2")
             self.assertEqual(lines[idx+6],"units real")
             self.assertEqual(lines[idx+8],"dimension 2")

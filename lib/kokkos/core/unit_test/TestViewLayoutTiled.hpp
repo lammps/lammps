@@ -42,6 +42,10 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <cstdio>
 
 #include <gtest/gtest.h>
@@ -1776,3 +1780,5 @@ TEST(TEST_CATEGORY, view_layouttiled_subtile) {
       4, 12, 16, 12);
 }
 }  // namespace Test
+
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE

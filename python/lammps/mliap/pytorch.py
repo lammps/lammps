@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 #   https://www.lammps.org/ Sandia National Laboratories
-#   Steve Plimpton, sjplimp@sandia.gov
+#   LAMMPS Development team: developers@lammps.org
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 #   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -80,10 +80,10 @@ class TorchWrapper(torch.nn.Module):
 
             n_params : torch.nn.Module (None)
                 Number of NN model parameters
-            
+
             device : torch.nn.Module (None)
                 Accelerator device
-            
+
             dtype : torch.dtype (torch.float64)
                 Dtype to use on device
         """
@@ -325,6 +325,6 @@ class ElemwiseModels(torch.nn.Module):
         per_atom_attributes = torch.zeros(elems.size(dim=0), dtype=self.dtype)
         given_elems, elem_indices = torch.unique(elems, return_inverse=True)
         for i, elem in enumerate(given_elems):
-            self.subnets[elem].to(self.dtype) 
+            self.subnets[elem].to(self.dtype)
             per_atom_attributes[elem_indices == i] = self.subnets[elem](descriptors[elem_indices == i]).flatten()
         return per_atom_attributes

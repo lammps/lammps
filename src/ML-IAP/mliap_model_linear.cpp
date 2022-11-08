@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -57,22 +57,17 @@ void MLIAPModelLinear::compute_gradients(MLIAPData* data)
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
 
-    double* coeffi = coeffelem[ielem];
+    double const* coeffi = coeffelem[ielem];
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
       data->betas[ii][icoeff] = coeffi[icoeff+1];
 
     // add in contributions to global and per-atom energy
     // this is optional and has no effect on force calculation
-
     if (data->eflag) {
-
       // energy of atom I
-
-      double* coeffi = coeffelem[ielem];
       double etmp = coeffi[0];
 
       // E_i = beta.B_i
-
       for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
         etmp += coeffi[icoeff+1]*data->descriptors[ii][icoeff];
 

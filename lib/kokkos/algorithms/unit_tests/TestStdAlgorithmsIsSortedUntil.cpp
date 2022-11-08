@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_SortingOperations.hpp>
 #include <utility>
 
 namespace Test {
@@ -175,12 +173,12 @@ void run_single_scenario(const InfoType& scenario_info) {
       KE::is_sorted_until("label", exespace(), KE::begin(view), KE::end(view));
   auto r3 = KE::is_sorted_until(exespace(), view);
   auto r4 = KE::is_sorted_until("label", exespace(), view);
-  EXPECT_TRUE(r1 == gold);
-  EXPECT_TRUE(r2 == gold);
-  EXPECT_TRUE(r3 == gold);
-  EXPECT_TRUE(r4 == gold);
+  EXPECT_EQ(r1, gold);
+  EXPECT_EQ(r2, gold);
+  EXPECT_EQ(r3, gold);
+  EXPECT_EQ(r4, gold);
 
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
   CustomLessThanComparator<ValueType, ValueType> comp;
   auto r5 =
       KE::is_sorted_until(exespace(), KE::cbegin(view), KE::cend(view), comp);
@@ -190,10 +188,10 @@ void run_single_scenario(const InfoType& scenario_info) {
   auto r8 = KE::is_sorted_until("label", exespace(), view, comp);
 #endif
 
-  EXPECT_TRUE(r1 == gold);
-  EXPECT_TRUE(r2 == gold);
-  EXPECT_TRUE(r3 == gold);
-  EXPECT_TRUE(r4 == gold);
+  EXPECT_EQ(r1, gold);
+  EXPECT_EQ(r2, gold);
+  EXPECT_EQ(r3, gold);
+  EXPECT_EQ(r4, gold);
 
   Kokkos::fence();
 }

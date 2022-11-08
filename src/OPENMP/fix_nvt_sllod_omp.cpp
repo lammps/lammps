@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -56,9 +56,9 @@ FixNVTSllodOMP::FixNVTSllodOMP(LAMMPS *lmp, int narg, char **arg) :
   // id = fix-ID + temp
 
   id_temp = utils::strdup(std::string(id) + "_temp");
-  modify->add_compute(fmt::format("{} {} temp/deform",
-                                  id_temp,group->names[igroup]));
+  modify->add_compute(fmt::format("{} {} temp/deform",id_temp,group->names[igroup]));
   tcomputeflag = 1;
+  nondeformbias = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,8 +79,7 @@ void FixNVTSllodOMP::init()
   for (i = 0; i < modify->nfix; i++)
     if (utils::strmatch(modify->fix[i]->style,"^deform")) {
       if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag != Domain::V_REMAP)
-        error->all(FLERR,"Using fix nvt/sllod/omp with inconsistent fix "
-                   "deform remap option");
+        error->all(FLERR,"Using fix nvt/sllod/omp with inconsistent fix deform remap option");
       break;
     }
   if (i == modify->nfix)

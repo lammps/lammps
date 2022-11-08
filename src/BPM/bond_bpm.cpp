@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,6 +14,7 @@
 #include "bond_bpm.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_bond_history.h"
@@ -35,7 +36,6 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
     id_fix_bond_history(nullptr), id_fix_store_local(nullptr), id_fix_prop_atom(nullptr),
     fix_store_local(nullptr), fix_bond_history(nullptr), fix_update_special_bonds(nullptr),
     pack_choice(nullptr), output_data(nullptr)
-
 {
   overlay_flag = 0;
   prop_atom_flag = 0;
@@ -256,24 +256,42 @@ double BondBPM::equilibrium_distance(int /*i*/)
 {
   // Ghost atoms may not yet be communicated, this may only be an estimate
   if (r0_max_estimate == 0) {
-    int type, j;
-    double delx, dely, delz, r;
-    double **x = atom->x;
-    for (int i = 0; i < atom->nlocal; i++) {
-      for (int m = 0; m < atom->num_bond[i]; m++) {
-        type = atom->bond_type[i][m];
-        if (type == 0) continue;
+    if (!fix_bond_history->restart_reset) {
+      int type, j;
+      double delx, dely, delz, r;
+      double **x = atom->x;
+      for (int i = 0; i < atom->nlocal; i++) {
+        for (int m = 0; m < atom->num_bond[i]; m++) {
+          type = atom->bond_type[i][m];
+          if (type == 0) continue;
 
-        j = atom->map(atom->bond_atom[i][m]);
-        if (j == -1) continue;
+          j = atom->map(atom->bond_atom[i][m]);
+          if (j == -1) continue;
 
-        delx = x[i][0] - x[j][0];
-        dely = x[i][1] - x[j][1];
-        delz = x[i][2] - x[j][2];
-        domain->minimum_image(delx, dely, delz);
+          delx = x[i][0] - x[j][0];
+          dely = x[i][1] - x[j][1];
+          delz = x[i][2] - x[j][2];
+          domain->minimum_image(delx, dely, delz);
 
-        r = sqrt(delx * delx + dely * dely + delz * delz);
-        if (r > r0_max_estimate) r0_max_estimate = r;
+          r = sqrt(delx * delx + dely * dely + delz * delz);
+          if (r > r0_max_estimate) r0_max_estimate = r;
+        }
+      }
+    } else {
+      int type, j;
+      double r;
+      for (int i = 0; i < atom->nlocal; i++) {
+        for (int m = 0; m < atom->num_bond[i]; m++) {
+          type = atom->bond_type[i][m];
+          if (type == 0) continue;
+
+          j = atom->map(atom->bond_atom[i][m]);
+          if (j == -1) continue;
+
+          // First value must always be reference length
+          r = fix_bond_history->get_atom_value(i, m, 0);
+          if (r > r0_max_estimate) r0_max_estimate = r;
+        }
       }
     }
 
@@ -284,6 +302,25 @@ double BondBPM::equilibrium_distance(int /*i*/)
 
   // Divide out heuristic prefactor added in comm class
   return max_stretch * r0_max_estimate / 1.5;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void BondBPM::write_restart(FILE *fp)
+{
+  fwrite(&overlay_flag, sizeof(int), 1, fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void BondBPM::read_restart(FILE *fp)
+{
+  if (comm->me == 0) utils::sfread(FLERR, &overlay_flag, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&overlay_flag, 1, MPI_INT, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */

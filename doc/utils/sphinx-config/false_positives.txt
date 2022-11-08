@@ -78,6 +78,7 @@ Alexey
 ali
 aliceblue
 Allinger
+allocatable
 allocator
 allocators
 allosws
@@ -122,6 +123,7 @@ Antonelli
 api
 Apoorva
 Appl
+Appshaw
 apptainer
 Apu
 arallel
@@ -180,6 +182,7 @@ Avalos
 avalue
 aveforce
 Avendano
+Averett
 avi
 AVX
 awpmd
@@ -236,6 +239,7 @@ bcolor
 bdiam
 bdw
 Beckman
+Becton
 Belak
 Bellott
 bem
@@ -269,6 +273,7 @@ bilayers
 binsize
 binstyle
 binutils
+Biomech
 biomolecular
 biomolecule
 Biomolecules
@@ -599,6 +604,7 @@ Cummins
 Cundall
 cundall
 Curk
+curv
 Cusentino
 customIDs
 cutbond
@@ -657,6 +663,7 @@ Dcut
 de
 dE
 De
+deallocate
 deallocated
 debye
 Debye
@@ -691,6 +698,7 @@ dequidt
 Dequidt
 der
 dereference
+dereferenced
 derekt
 Deresiewicz
 Derjagin
@@ -747,6 +755,7 @@ dirname
 discoverable
 discretization
 discretized
+discretizing
 disp
 dissipative
 Dissipative
@@ -915,9 +924,11 @@ emax
 Emax
 Embt
 emi
+Emmrich
 emol
 eN
 endian
+endocytosis
 energetics
 energyCorr
 eng
@@ -1080,7 +1091,7 @@ filesystem
 filesystems
 Fily
 Fincham
-Finchham
+Fint
 fingerprintconstants
 fingerprintsperelement
 Finnis
@@ -1093,6 +1104,7 @@ flagHI
 flaglog
 flagN
 flagVF
+flang
 fld
 floralwhite
 Florez
@@ -1148,6 +1160,7 @@ ftm
 ftol
 fuer
 fugacity
+Fu
 Fumi
 func
 funcs
@@ -1204,6 +1217,7 @@ gewald
 Gezelter
 Gflop
 gfortran
+ghostneigh
 ghostwhite
 Giacomo
 gif
@@ -1298,6 +1312,7 @@ Hamaker
 Hamel
 Hammerschmidt
 Hanley
+Hanna
 haptic
 Haque
 Hara
@@ -1482,6 +1497,7 @@ interfacial
 interial
 interlayer
 intermolecular
+interoperable
 Interparticle
 interstitials
 intertube
@@ -1648,6 +1664,7 @@ kepler
 keV
 Keyes
 keyfile
+Kfoury
 Khersonskii
 Khrapak
 Khvostov
@@ -1903,6 +1920,7 @@ lwsock
 lx
 ly
 Lybrand
+Lykotrafitis
 lyon
 Lysogorskiy
 Lyulin
@@ -2013,6 +2031,7 @@ MEAM
 meamf
 meanDist
 mech
+Mechanobiology
 Mecke
 mediumaquamarine
 mediumblue
@@ -2122,6 +2141,7 @@ modelled
 modelling
 Modelling
 Modine
+moduli
 mofff
 MOFFF
 Mohd
@@ -2137,6 +2157,7 @@ Monaghan
 Monaghans
 monodisperse
 monodispersity
+monolayer
 monopole
 monovalent
 Montalenti
@@ -2381,6 +2402,7 @@ Nmols
 nn
 nnodes
 npits
+npj
 nO
 Nocedal
 nocite
@@ -2412,6 +2434,7 @@ normy
 normz
 Noskov
 noslip
+notational
 noticable
 Nout
 noutcol
@@ -2527,7 +2550,6 @@ oneAPI
 onelevel
 oneway
 onlysalt
-onn
 ons
 OO
 Oord
@@ -2725,6 +2747,7 @@ Polym
 polymorph
 polymorphism
 Ponder
+Ponte
 popen
 Popoola
 Popov
@@ -2772,6 +2795,7 @@ ps
 Ps
 pscreen
 pscrozi
+Pseudocode
 pseudodynamics
 pseudopotential
 pSp
@@ -3129,8 +3153,10 @@ seagreen
 Secor
 sectoring
 sed
+Seddon
 segmental
 Seifert
+Seleson
 sellerio
 Sellerio
 Semaev
@@ -3154,6 +3180,7 @@ sfree
 Sg
 Shan
 Shanno
+Shapeev
 shapex
 shapey
 shapez
@@ -3209,7 +3236,7 @@ slategray
 slater
 Slepoy
 Sliozberg
-sLLG
+sLL
 sllod
 sm
 smallbig
@@ -3610,6 +3637,7 @@ Universite
 unix
 unmaintained
 unoptimized
+unordered
 unpadded
 unphysical
 unphysically
@@ -3620,6 +3648,7 @@ unsmoothed
 unsolvated
 unsplit
 unstrained
+unstretched
 untar
 untilted
 Unwin
@@ -3674,6 +3703,7 @@ vdw
 vdW
 vdwl
 vec
+Vecchio
 vectorial
 vectorization
 Vectorization
@@ -3880,6 +3910,7 @@ yhi
 yi
 ylat
 ylo
+ylz
 ymax
 ymin
 yml

@@ -45,7 +45,6 @@
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 

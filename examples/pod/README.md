@@ -8,13 +8,13 @@ Go to `lammps` directory and build with the POD package:
     cmake -C ../cmake/presets/basic.cmake -D PKG_ML-POD=on ../cmake
     cmake --build .
 
-### Run an example to fit a POD potential for Tantalum element
+### Fit a POD potential for tantalum
 
-Go to lammps/examples/pod/Ta directory and run 
+Go to `lammps/examples/pod/Ta` directory and run 
 
-    ../../../build-pod/lmp -in in.podfit
+    lmp < in.podfit
 
-Also see the README in the `Ta` directory for instructions on how to run MD with the potential.
+See the README in `lammps/examples/pod/Ta` for instructions on how to run MD with the potential.
 
 ### Examples for other materials
 

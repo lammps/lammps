@@ -40,8 +40,9 @@ class GSM : protected Pointers {
   double *transfer_history_factor;
 
   int history_index;
-  int beyond_contact;
-  int allow_cohesion;
+  int beyond_contact;  // If the submodel contact extends beyond overlap
+  int allow_cohesion;  // If the submodel works with a cohesive normal force
+  int area_flag;       // If the submodel requires area
 
   GranularModel *gm;
 

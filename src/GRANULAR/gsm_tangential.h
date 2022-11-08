@@ -106,7 +106,6 @@ class GSMTangentialLinearHistoryClassic : public GSMTangentialLinearHistory {
   GSMTangentialLinearHistoryClassic(class GranularModel *, class LAMMPS *);
   void calculate_forces();
  protected:
-  int scale_area;
   double xt;
 };
 

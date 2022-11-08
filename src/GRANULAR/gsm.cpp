@@ -42,6 +42,7 @@ GSM::GSM(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
   allow_cohesion = 1;
   beyond_contact = 0;
   num_coeffs = 0;
+  area_flag = 0;
 
   nondefault_history_transfer = 0;
   transfer_history_factor = nullptr;

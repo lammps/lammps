@@ -45,6 +45,7 @@ double GSMHeatNone::calculate_heat()
 GSMHeatArea::GSMHeatArea(GranularModel *gm, LAMMPS *lmp) : GSMHeat(gm, lmp)
 {
   num_coeffs = 1;
+  area_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

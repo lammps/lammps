@@ -165,7 +165,7 @@ void GSMTangentialLinearHistory::calculate_forces()
 
 GSMTangentialLinearHistoryClassic::GSMTangentialLinearHistoryClassic(GranularModel *gm, LAMMPS *lmp) : GSMTangentialLinearHistory(gm, lmp)
 {
-  scale_area = 0; // Sets gran/hooke/history behavior
+  area_flag = 1; // Sets gran/hooke/history behavior
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,7 +197,7 @@ void GSMTangentialLinearHistoryClassic::calculate_forces()
   }
 
   // tangential forces = history + tangential velocity damping
-  if (scale_area) scale3(-k * gm->area, history, gm->fs);
+  if (area_flag) scale3(-k * gm->area, history, gm->fs);
   else scale3(-k, history, gm->fs);
   scale3(damp, gm->vtr, temp_array);
   sub3(gm->fs, temp_array, gm->fs);
@@ -224,7 +224,7 @@ void GSMTangentialLinearHistoryClassic::calculate_forces()
 
 GSMTangentialMindlinClassic::GSMTangentialMindlinClassic(GranularModel *gm, LAMMPS *lmp) : GSMTangentialLinearHistoryClassic(gm, lmp)
 {
-  scale_area = 1; // Sets gran/hertz/history behavior
+  area_flag = 1; // Sets gran/hertz/history behavior
 }
 
 /* ----------------------------------------------------------------------
@@ -237,6 +237,7 @@ GSMTangentialMindlin::GSMTangentialMindlin(GranularModel *gm, LAMMPS *lmp) : GSM
   size_history = 3;
   mindlin_force = 0;
   mindlin_rescale = 0;
+  area_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -367,10 +368,7 @@ void GSMTangentialMindlin::calculate_forces()
 
 GSMTangentialMindlinForce::GSMTangentialMindlinForce(GranularModel *gm, LAMMPS *lmp) : GSMTangentialMindlin(gm, lmp)
 {
-  num_coeffs = 3;
-  size_history = 3;
   mindlin_force = 1;
-  mindlin_rescale = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -379,9 +377,7 @@ GSMTangentialMindlinForce::GSMTangentialMindlinForce(GranularModel *gm, LAMMPS *
 
 GSMTangentialMindlinRescale::GSMTangentialMindlinRescale(GranularModel *gm, LAMMPS *lmp) : GSMTangentialMindlin(gm, lmp)
 {
-  num_coeffs = 3;
   size_history = 4;
-  mindlin_force = 0;
   mindlin_rescale = 1;
 
   nondefault_history_transfer = 1;
@@ -396,7 +392,6 @@ GSMTangentialMindlinRescale::GSMTangentialMindlinRescale(GranularModel *gm, LAMM
 
 GSMTangentialMindlinRescaleForce::GSMTangentialMindlinRescaleForce(GranularModel *gm, LAMMPS *lmp) : GSMTangentialMindlin(gm, lmp)
 {
-  num_coeffs = 3;
   size_history = 4;
   mindlin_force = 1;
   mindlin_rescale = 1;

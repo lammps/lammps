@@ -87,7 +87,6 @@ GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
 #include "style_gsm.h"  // IWYU pragma: keep
 #undef GSMStyle
 #undef GSM_CLASS
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -241,6 +240,7 @@ void GranularModel::init()
 
   int size_cumulative;
   size_history = 0;
+  area_flag = 0;
   for (int i = 0; i < NSUBMODELS; i++) {
     if (sub_models[i]->nondefault_history_transfer)
       nondefault_history_transfer = 1;
@@ -249,6 +249,7 @@ void GranularModel::init()
     size_history += sub_models[i]->size_history;
     if (!sub_models[i]->allow_cohesion && normal_model->cohesive_flag)
       error->all(FLERR,"Cannot use {} model with a cohesive normal model, {}", sub_models[i]->name, normal_model->name);
+    if (sub_models[i]->area_flag) area_flag = 1;
   }
 
   if (limit_damping && normal_model->cohesive_flag)
@@ -410,7 +411,8 @@ void GranularModel::calculate_forces()
   // calculate forces/torques
   forces[0] = 0.0;
   double Fdamp, dist_to_contact;
-  area = normal_model->calculate_area();
+  if (area_flag)
+    area = normal_model->calculate_area();
   Fnormal = normal_model->calculate_forces();
 
   Fdamp = damping_model->calculate_forces();

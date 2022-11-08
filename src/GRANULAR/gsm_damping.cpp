@@ -44,6 +44,7 @@ GSMDampingNone::GSMDampingNone(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, 
 
 double GSMDampingNone::calculate_forces()
 {
+  damp_prefactor = 0.0;
   return 0.0;
 }
 
@@ -79,7 +80,10 @@ double GSMDampingMassVelocity::calculate_forces()
    Default, viscoelastic damping
 ------------------------------------------------------------------------- */
 
-GSMDampingViscoelastic::GSMDampingViscoelastic(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, lmp) {}
+GSMDampingViscoelastic::GSMDampingViscoelastic(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, lmp)
+{
+  area_flag = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

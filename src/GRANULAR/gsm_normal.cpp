@@ -115,6 +115,7 @@ double GSMNormalHooke::calculate_forces()
 GSMNormalHertz::GSMNormalHertz(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
 {
   num_coeffs = 2;
+  area_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,6 +143,7 @@ GSMNormalHertzMaterial::GSMNormalHertzMaterial(GranularModel *gm, LAMMPS *lmp) :
 {
   material_properties = 1;
   num_coeffs = 3;
+  area_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -179,6 +181,7 @@ GSMNormalDMT::GSMNormalDMT(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
   material_properties = 1;
   cohesive_flag = 1;
   num_coeffs = 4;
+  area_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -236,6 +239,7 @@ GSMNormalJKR::GSMNormalJKR(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
   cohesive_flag = 1;
   beyond_contact = 1;
   num_coeffs = 4;
+  area_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -43,6 +43,7 @@ GSMTwistingMarshall::GSMTwistingMarshall(GranularModel *gm, LAMMPS *lmp) : GSMTw
 {
   num_coeffs = 0;
   size_history = 3;
+  area_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

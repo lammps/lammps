@@ -46,7 +46,7 @@ CPODFIT::CPODFIT(LAMMPS *lmp, int narg, char **arg) :
 
   std::string pod_file = std::string(arg[3]);  // pod input file
   std::string data_file = std::string(arg[4]); // data input file
-  std::string coeff_file;             // coefficient input file
+  std::string coeff_file; // coefficient input file
 
   if (narg > 5)
     coeff_file = std::string(arg[5]); // coefficient input file
@@ -62,10 +62,10 @@ CPODFIT::CPODFIT(LAMMPS *lmp, int narg, char **arg) :
     allocate_memory(testdata);
 
   // get POD coefficients from an input file
+
   if (coeff_file != "") podptr->podArrayCopy(desc.c, podptr->pod.coeff, podptr->pod.nd);
 }
 
-// destructor
 CPODFIT::~CPODFIT()
 {
   traindata.freememory(1);
@@ -81,27 +81,33 @@ void CPODFIT::init()
   error->all(FLERR,"Compute podfit requires a pair style be defined");
 
   // need an occasional full neighbor list
+
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
   if (modify->get_compute_by_style("podfit").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute podfit");
 
   // compute POD coefficients using least-squares method
+
   least_squares_fit(traindata);
 
   // calculate errors for the training data set
+
   if ((traindata.training_analysis) && ((int) traindata.data_path.size() > 1) )
     error_analysis(traindata, desc.c);
 
   // calculate errors for the test data set
+
   if ((testdata.test_analysis) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path))
     error_analysis(testdata, desc.c);
 
   // calculate energy and force for the training data set
+
   if ((traindata.training_calculation) && ((int) traindata.data_path.size() > 1) )
     energyforce_calculation(traindata, desc.c);
 
   // calculate energy and force for the test data set
+
   if ((testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path) )
     energyforce_calculation(testdata, desc.c);
 
@@ -126,7 +132,7 @@ template <typename T> void CPODFIT::writearray2file(const char* filename, T *a, 
     fclose(fp);
   }
 
-  // old version using streams:
+  // old version using ofstream:
   /*
   if (N>0) {
     // Open file to read
@@ -534,6 +540,7 @@ void CPODFIT::get_data(datastruct &data, std::vector<std::string> species)
   podptr->podCumsum(&data.num_config_cumsum[0], &data.num_config[0], nfiles+1);
 
   // convert all structures to triclinic system
+
   int dim = 3;
   double Qmat[dim*dim];
   for (int ci=0; ci<len; ci++) {
@@ -598,8 +605,6 @@ std::vector<int> CPODFIT::shuffle(int start_in, int end_in, int num_in)
   for (int i = 0; i<sz; i++)
     myvector[i] = start_in + i;
 
-//   auto rng = std::default_random_engine {};
-//   std::shuffle (myvector.begin(), myvector.end(), rng);
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::shuffle (myvector.begin(), myvector.end(), std::default_random_engine(seed));
 
@@ -725,6 +730,7 @@ void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> sp
   datastruct data;
 
   // read data input file to datastruct
+
   read_data_file(data.fitting_weights, data.file_format, data.file_extension,
       testdata.data_path, data.data_path, data_file);
 
@@ -787,12 +793,13 @@ int CPODFIT::latticecoords(double *y, int *alist, double *x, double *a1, double 
   if (pbc[2] == 1) p = (int) ceil(rcut/a3[2]);
 
   // index for the center lattice
+
   int ind = m + (2*m+1)*(n) + (2*m+1)*(2*n+1)*(p);
 
   // number of lattices
+
   int nl = (2*m+1)*(2*n+1)*(2*p+1);
 
-  //y = zeros(3, nx*nl)
   for (int j=0; j<3*nx; j++)
     y[j] = x[j];
   int q = nx;
@@ -814,7 +821,6 @@ int CPODFIT::latticecoords(double *y, int *alist, double *x, double *a1, double 
         }
       }
 
-  //alist = zeros(Int32,nx*nl)
   for (int i=0; i <nl; i++)
     for (int j=0; j<nx; j++)
       alist[j + nx*i] = j;
@@ -849,15 +855,17 @@ int CPODFIT::podfullneighborlist(double *y, int *alist, int *neighlist, int *num
   int dim = 3, nl = 0, nn = 0;
 
   // number of lattices
+
   nl = latticecoords(y, alist, x, a1, a2, a3, rcut, pbc, nx);
   int N = nx*nl;
 
   // total number of neighbors
-   nn = podneighborlist(neighlist, numneigh, y, rcutsq, nx, N, dim);
 
-   podptr->podCumsum(numneighsum, numneigh, nx+1);
+  nn = podneighborlist(neighlist, numneigh, y, rcutsq, nx, N, dim);
 
-   return nn;
+  podptr->podCumsum(numneighsum, numneigh, nx+1);
+
+  return nn;
 }
 
 void CPODFIT::allocate_memory(datastruct data)
@@ -902,6 +910,7 @@ void CPODFIT::allocate_memory(datastruct data)
     if (pbc[2] == 1) p = (int) ceil(rcut/a3[2]);
 
     // number of lattices
+
     nl = (2*m+1)*(2*n+1)*(2*p+1);
     ny = PODMAX(ny,dim*natom*nl);
     na = PODMAX(na, natom*nl);
@@ -913,15 +922,6 @@ void CPODFIT::allocate_memory(datastruct data)
   nb.pairnum = (int*) malloc (sizeof (int)*(natom_max));
   nb.pairnum_cumsum = (int*) malloc (sizeof (int)*(natom_max+1));
   nb.pairlist = (int*) malloc (sizeof (int)*(np));
-
-//   nb.elemindex = (int*) malloc (sizeof (int)*(nelements*nelements));
-//   int k = 1;
-//   for (int i=0; i < nelements; i++)
-//     for (int j=i; j < nelements; j++) {
-//       nb.elemindex[i + nelements*j] = k;
-//       nb.elemindex[j + nelements*i] = k;
-//       k += 1;
-//     }
 
   nb.natom_max = natom_max;
   nb.sze = nelements*nelements;
@@ -942,20 +942,11 @@ void CPODFIT::allocate_memory(datastruct data)
     double *a2 = &lattice[3];
     double *a3 = &lattice[6];
 
-    // neighbor list
     Nij = podfullneighborlist(nb.y, nb.alist, nb.pairlist, nb.pairnum, nb.pairnum_cumsum, x, a1, a2, a3, rcut, pbc, natom);
 
     int ns2 = pdegree2[0]*nbesselpars + pdegree2[1];
     int ns3 = pdegree3[0]*nbesselpars + pdegree3[1];
 
-//     Nj=0, Nijk=0;
-//     for (int i=0; i < natom; i++) {
-//       Nj = (Nj > nb.pairnum[i]) ? Nj : nb.pairnum[i];
-//       Nijk +=  (nb.pairnum[i]-1)*nb.pairnum[i]/2;
-//     }
-
-    //int szd1 = 3*Nij+ (1+dim)*Nij*(nrbf3+ns3) + 2*(1+dim)*Nijk*nrbf3 + 4*Nj*nrbf3 + 2*dim*Nijk + 7*Nijk*nabf3;
-    //int szi1 = 4*Nij + 2*natom+1 + 2*Nijk + (Nj-1)*Nj + 6*Nijk;
     int szd1 = 3*Nij+ (1+dim)*Nij*PODMAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
     int szi1 = 6*Nij + 2*natom+1 + (Nj-1)*Nj;
     szd = PODMAX(szd, szd1);
@@ -976,6 +967,7 @@ void CPODFIT::allocate_memory(datastruct data)
   szd = dim*natom_max*(nd1+nd2+nd3+nd4) + szd;
 
   // gdd includes linear descriptors derivatives, quadratic descriptors derivatives and temporary memory
+
   desc.gdd = (double*) malloc (sizeof (double)*(szd)); // [ldd qdd]
   desc.tmpint = (int*) malloc (sizeof (int)*(szi));
   desc.szd = szd;

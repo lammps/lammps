@@ -98,7 +98,6 @@ namespace LAMMPS_NS {
       int runMD = 0;
       int savecalculation = 0;
       int savefrequency = 0;
-      int blocksize=8192;      // avereage size of computation blocks
       int randomrotation = 0;
 
       double energy=0.0;    // potential energy
@@ -145,73 +144,20 @@ namespace LAMMPS_NS {
 
       void free_memory();
       void allocate_memory();
-      void estimate_memory(datastruct data);
 
-      void get_atomblocks(int natom);
-
-      int podfullneighborlist(double *y, int *alist, int *pairlist, int *pairnum, int *pairnumsum,
-          double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
-
-      void podNeighPairs(int *atomtype, int istart, int iend);
-
-      void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *numneigh,
-              int *ilist, int istart, int iend);
+      //void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *numneigh,
+      //        int *ilist, int istart, int iend);
 
       void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh, int i);
 
-      double podenergy(double *x, double *a1, double *a2, double *a3, int *atomtype, int inum);
-      double podeatom(double *eatom, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum);
-      void podforce(double *f, double *x, double *a1, double *a2, double *a3, int *atomtypes, int inum);
-      double podenergyforce(double *f, double *x, double *a1, double *a2, double *a3, int *atomtype, int inum);
-
-      double lammpsenergy(double **x, int **firstneigh, int *atype, int *numneigh, int *ilist, int inum, int nall);
-      double lammpseatom(double *eatom, double **x, int **firstneigh, int *atomtypes, int *numneigh,
-          int *ilist, int inum, int nall);
-      void lammpsforce(double **f, double **x, int **firstneigh, int *atomtypes,
-          int *numneigh, int *ilist, int inum, int nall);
-      double lammpsenergyforce(double **f, double **x, int **firstneigh, int *atomtype, int *numneigh, int *ilist, int inum, int nall);
-
-
-      void print_analysis(double *outarray, double *errors);
-      void error_analsysis();
-
-      void printinfo()
-      {
-          printf("print pairpod information: \n");
-          printf("backend %d \n", backend);
-          printf("podpairlist %d \n", podpairlist);
-          printf("lammpspairlist %d \n", lammpspairlist);
-          printf("analysis %d \n", analysis);
-          printf("runMD %d \n", runMD);
-          printf("savecalculation %d \n", savecalculation);
-          printf("savefrequency %d \n", savefrequency);
-          printf("numatoms %d \n", numatoms);
-          printf("nlocalatom %d \n", nlocalatom);
-          printf("nghostatom %d \n", nghostatom);
-          printf("ntotalatom %d \n", ntotalatom);
-          printf("nlocalmax %d \n", nlocalmax);
-          printf("nmaxatom %d \n", nmaxatom);
-          printf("natompairs %d \n", natompairs);
-          printf("nmaxpairs %d \n", nmaxpairs);
-          printf("numblocks %d \n", numblocks);
-          printf("blocksize %d \n", blocksize);
-          printf("nablock %d \n", nablock);
-          printf("nablockmax %d \n", nablockmax);
-          printf("nij %d \n", nij);
-          printf("nijmax %d \n", nijmax);
-          printf("szd %d \n", szd);
-      }
-
   protected:
-      int atomblocks[1001]; // store sizes of computation blocks
-      int numblocks=1;      // number of computation blocks
-      int nablock=0;        // number of atoms per computation block
       int nablockmax=0;     // maximum number of atoms per computation block
-      int nij=0;    //  number of atom pairs per computation block
-      int nijmax=0;  // maximum number of atom pairs per computation block
+      int nij=0;    //  number of atom pairs
+      int nijmax=0;  // maximum number of atom pairs
       int szd=0;    // size of tmpmem
 
       // temporary arrays for computation blocks
+
       double *tmpmem=NULL;  // temporary memory
       int *typeai=NULL;     // types of atoms I only
       int *numneighsum=NULL;// cumulative sum for an array of numbers of neighbors

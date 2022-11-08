@@ -279,8 +279,6 @@ void CPOD::triclinic_lattice_conversion(double *a, double *b, double *c, double 
   c[0] = cx; c[1] = cy;  c[2] = cz;
 }
 
-/**************************************************************************************************************/
-
 void podsnapshots(double *rbf, double *xij, double *besselparams, double rin, double rcut,
     int besseldegree, int inversedegree, int nbesselpars, int N)
 {
@@ -345,15 +343,17 @@ void podeigenvaluedecomposition(double *Phi, double *Lambda, double *besselparam
   for (int i=0; i<ns*ns; i++)
     A[i] = A[i]*(1.0/N);
 
-  // Declaring Function Input for DSYEV
-//   char jobz = 'V';  // 'V':  Compute eigenvalues and eigenvectors.
-//   char uplo = 'U';  // 'U':  Upper triangle of A is stored.
-  int lwork = ns * ns;  // The length of the array work, lwork >= max(1,3*N-1).
+  // declare function input for DSYEV
+  // char jobz = 'V';  // 'V':  Compute eigenvalues and eigenvectors
+  // char uplo = 'U';  // 'U':  Upper triangle of A is stored
+
+  int lwork = ns * ns;  // the length of the array work, lwork >= max(1,3*N-1)
   int info = 1;     // = 0:  successful exit
   double work[ns*ns];
   DSYEV(&chv, &chu, &ns, A, &ns, b, work, &lwork, &info);
 
   // order eigenvalues and eigenvectors from largest to smallest
+
   for (int j=0; j<ns; j++)
     for (int i=0; i<ns; i++)
       Phi[i + ns*(ns-j-1)] = A[i + ns*j];
@@ -753,8 +753,6 @@ void CPOD::read_coeff_file(std::string coeff_file)
       if (coeff.count() != 1)
         error->all(FLERR,"Incorrect format in POD coefficient file");
 
-      //coeffelem[jelem][icoeff] = coeff.next_double();
-      //printf("%f\n", coeff.next_double());
       pod.coeff[icoeff] = coeff.next_double();
     } catch (TokenizerException &e) {
       error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
@@ -795,16 +793,6 @@ void CPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tmp
   double *eatom4 = &efatom[dim*natom*(nd1+nd2+nd3+nd4)+natom*(nd1+nd2+nd3)];
 
   podArraySetValue(fatom1, 0.0, (1+dim)*natom*(nd1+nd2+nd3+nd4));
-
-//   // peratom descriptors for one-body, two-body, and three-body linear potentials
-//   poddesc(eatom1, fatom1, eatom2, fatom2, eatom3, fatom3, y, Phi2, besselparams,
-//       tmpmem, rin, rcut, atomtype, alist, pairlist, pairnum, pairnumsum,
-//       elemindex, pdegree2, tmpint, nbesselpars, nrbf2, nrbf3, nabf3,
-//       nelements, Nij, natom);
-//
-//   if (pod.snaptwojmax>0)
-//     snapdesc(eatom4, fatom4, y, tmpmem, atomtype, alist,
-//         pairlist, pairnumsum, tmpint, natom, Nij);
 
   double *rij = &tmpmem[0]; // 3*Nij
   int *ai = &tmpint[0];   // Nij
@@ -2081,7 +2069,8 @@ void CPOD::snapComputeZi2(double *zlist_r, double *zlist_i, double *Stotr, doubl
       double suma1_r = 0.0;
       double suma1_i = 0.0;
 
-      // Stotr: inum*idxu_max*nelements
+      // Stotr has size inum*idxu_max*nelements
+
       const double *u1_r = &Stotr[ii + inum*jju1 + inum*idxu_max*elem1];
       const double *u1_i = &Stoti[ii + inum*jju1 + inum*idxu_max*elem1];
       const double *u2_r = &Stotr[ii + inum*jju2 + inum*idxu_max*elem2];
@@ -2200,7 +2189,6 @@ void CPOD::snapComputeBi1(double *blist, double *zlist_r, double *zlist_i, doubl
   int nelemsq = nelements*nelements;
   int nz_max = idxz_max*inum;
   int nu_max = idxu_max*inum;
-  //int nb_max = idxb_max*inum;
   int N2 = inum*idxb_max;
   int N3 = N2*nelements*nelemsq;
   int jdim = twojmax+1;
@@ -2311,7 +2299,7 @@ void CPOD::snapComputeDbidrj(double *dblist, double *zlist_r, double *zlist_i,
       for (int k = 0; k < 3; k++)
         dbdr[ij + ijnum*k + ijnum*3*jjb] += 2.0 * sumzdu_r[k];
 
-      // Sum over Conj(dudr(j1,ma1,mb1))*z(j,j2,j1,ma1,mb1)
+      // sum over Conj(dudr(j1,ma1,mb1))*z(j,j2,j1,ma1,mb1)
 
       double j1fac = (j + 1) / (j1 + 1.0);
       idouble = elem1*nelements+elem2;
@@ -2334,7 +2322,7 @@ void CPOD::snapComputeDbidrj(double *dblist, double *zlist_r, double *zlist_i,
         jju++;
         } //end loop over ma mb
 
-      // For j1 even, handle middle column
+      // for j1 even, handle middle column
 
       if (j1 % 2 == 0) {
         int mb = j1 / 2;
@@ -2362,7 +2350,7 @@ void CPOD::snapComputeDbidrj(double *dblist, double *zlist_r, double *zlist_i,
         else
         dbdr[ij + ijnum*k + ijnum*3*jjb] += 2.0 * sumzdu_r[k] * j1fac;
 
-      // Sum over Conj(dudr(j2,ma2,mb2))*z(j,j1,j2,ma2,mb2)
+      // sum over Conj(dudr(j2,ma2,mb2))*z(j,j1,j2,ma2,mb2)
 
       double j2fac = (j + 1) / (j2 + 1.0);
       idouble = elem2*nelements+elem1;
@@ -2385,7 +2373,7 @@ void CPOD::snapComputeDbidrj(double *dblist, double *zlist_r, double *zlist_i,
         jju++;
         } //end loop over ma mb
 
-      // For j2 even, handle middle column
+      // for j2 even, handle middle column
 
       if (j2 % 2 == 0) {
         int mb = j2 / 2;
@@ -3458,7 +3446,7 @@ double CPOD::energyforce_calculation(double *force, double *podcoeff, double *ef
   podArraySetValue(gd, 0.0, nd1234);
   linear_descriptors_ij(gd, eatom, rij, &tmpmem[natom*nd1234], pairnumsum, atomtype, idxi, ti, tj, natom, Nij);
 
-  // Need to do MPI_Allreduce on gd for paralell
+  // Need to do MPI_Allreduce on gd for parallel
 
   double energy = calculate_energy(effectivecoeff, gd, podcoeff);
 
@@ -3480,8 +3468,6 @@ void CPOD::pod2body_force(double **force, double *fij, double *coeff2, int *ai, 
         int typei = ti[n]-1;
         int typej = tj[n]-1;
         for (int m=0; m<nbf; m++) {
-            //int im =  3*i1;
-            //int jm =  3*j1;
             int nm = n + N*m;
             int km = (elemindex[typei + typej*nelements] - 1) + nelements2*m;
             double ce = coeff2[km];
@@ -3507,8 +3493,6 @@ void CPOD::pod3body_force(double **force, double *yij, double *e2ij, double *f2i
     double xdot, rijsq, riksq, rij, rik;
     double costhe, sinthe, theta, dtheta;
     double tm, tm1, tm2, dct1, dct2, dct3, dct4, dct5, dct6;
-    //double uj, uk, rbf, drbf1, drbf2, drbf3, drbf4, drbf5, drbf6;
-    //double fj1, fj2, fj3, fk1, fk2, fk3;
 
     double *abf = &tmpmem[0];
     double *dabf1 = &tmpmem[nabf1];
@@ -3613,21 +3597,6 @@ void CPOD::pod3body_force(double **force, double *yij, double *e2ij, double *f2i
                         fkx += fk1*tm;
                         fky += fk2*tm;
                         fkz += fk3*tm;
-
-//                         nijk3 = 3*i;
-//                         force[0 + nijk3] += (fj1 + fk1)*tm;
-//                         force[1 + nijk3] += (fj2 + fk2)*tm;
-//                         force[2 + nijk3] += (fj3 + fk3)*tm;
-//
-//                         nijk3 = 3*j;
-//                         force[0 + nijk3] -= fj1*tm;
-//                         force[1 + nijk3] -= fj2*tm;
-//                         force[2 + nijk3] -= fj3*tm;
-//
-//                         nijk3 = 3*k;
-//                         force[0 + nijk3] -= fk1*tm;
-//                         force[1 + nijk3] -= fk2*tm;
-//                         force[2 + nijk3] -= fk3*tm;
                     }
                 }
                 nijk3 = k;
@@ -3766,6 +3735,7 @@ void CPOD::calculate_force(double **force, double *effectivecoeff, double *rij, 
     double *besselparams = pod.besselparams;
 
     // effective POD coefficients for calculating force
+
     double *coeff2 = &effectivecoeff[nd1];
     double *coeff3 = &effectivecoeff[nd1+nd2];
     double *coeff4 = &effectivecoeff[nd1+nd2+nd3];
@@ -3778,6 +3748,7 @@ void CPOD::calculate_force(double **force, double *effectivecoeff, double *rij, 
     double *f2ijt = &tmpmem[4*Nij*nrbf+Nij*ns]; // dim*Nij*ns
 
     // orthogonal radial basis functions
+
     podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
     podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
     podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);

@@ -12,10 +12,10 @@ Go to `lammps` directory and build with the POD package:
 
 Go to lammps/examples/pod/Ta directory and run 
 
-    ../../../build-pod/lmp -in in.podfit -sc tmp
+    ../../../build-pod/lmp -in in.podfit
 
-Also see the README in this directory for instructions on how to run MD with the potential.
+Also see the README in the `Ta` directory for instructions on how to run MD with the potential.
 
 ### Examples for other materials
 
-See [https://github.com/cesmix-mit/pod_examples](https://github.com/cesmix-mit/pod_examples)
+See [https://github.com/cesmix-mit/pod-examples](https://github.com/cesmix-mit/pod-examples)

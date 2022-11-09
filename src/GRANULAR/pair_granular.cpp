@@ -57,7 +57,8 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   svector = new double[single_extra];
 
   neighprev = 0;
-
+  nmodels = 0;
+  maxmodels = 0;
   nmax = 0;
   mass_rigid = nullptr;
 
@@ -65,8 +66,6 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   onerad_frozen = nullptr;
   maxrad_dynamic = nullptr;
   maxrad_frozen = nullptr;
-
-  dt = update->dt;
 
   // set comm size needed by this Pair if used with fix rigid
 
@@ -97,6 +96,9 @@ PairGranular::~PairGranular()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutoff_type);
+    memory->destroy(types_indices);
+    for (int i = 0; i < nmodels; i++) delete models_list[i];
+    memory->sfree(models_list);
 
     delete [] onerad_dynamic;
     delete [] onerad_frozen;
@@ -124,8 +126,8 @@ void PairGranular::compute(int eflag, int vflag)
 
   class GranularModel* model;
 
-  for (int i = 0; i < vec_models.size(); i++)
-    vec_models[i].history_update = history_update;
+  for (int i = 0; i < nmodels; i++)
+    models_list[i]->history_update = history_update;
 
   ev_init(eflag,vflag);
 
@@ -193,7 +195,7 @@ void PairGranular::compute(int eflag, int vflag)
       if (factor_lj == 0) continue;
 
       jtype = type[j];
-      model = models[itype][jtype];
+      model = models_list[types_indices[itype][jtype]];
 
       // Reset model and copy initial geometric data
       model->xi = x[i];
@@ -288,9 +290,6 @@ void PairGranular::allocate()
   allocated = 1;
   int n = atom->ntypes;
 
-  // Reserve enough memory for vector to avoid reallocation/changing pointers
-  vec_models.reserve(atom->ntypes * atom->ntypes);
-
   memory->create(setflag,n+1,n+1,"pair:setflag");
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
@@ -298,7 +297,11 @@ void PairGranular::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutoff_type,n+1,n+1,"pair:cutoff_type");
-  models.resize(n+1, std::vector<GranularModel*> (n+1, nullptr));
+  memory->create(types_indices,n+1,n+1,"pair:types_indices");
+
+  maxmodels = n * n + 1; // should never need any more space
+  models_list = (GranularModel **) memory->smalloc(maxmodels * sizeof(GranularModel *), "pair:models_list");
+  for (int i = 0; i < maxmodels; i++) models_list[i] = nullptr;
 
   onerad_dynamic = new double[n+1];
   onerad_frozen = new double[n+1];
@@ -336,27 +339,29 @@ void PairGranular::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  // Construct new model within vector
-  vec_models.emplace_back(lmp);
+
+  // Construct new model
+  models_list[nmodels] = new GranularModel(lmp);
+  class GranularModel* model = models_list[nmodels];
+  nmodels += 1;
 
   //Parse mandatory specification
   int iarg = 2;
-  iarg = vec_models.back().add_submodel(arg, iarg, narg, NORMAL);
+  iarg = model->add_submodel(arg, iarg, narg, NORMAL);
 
   //Parse optional arguments
-
   while (iarg < narg) {
 
     if (strcmp(arg[iarg], "tangential") == 0) {
-      iarg = vec_models.back().add_submodel(arg, iarg + 1, narg, TANGENTIAL);
+      iarg = model->add_submodel(arg, iarg + 1, narg, TANGENTIAL);
     } else if (strcmp(arg[iarg], "damping") == 0) {
-      iarg = vec_models.back().add_submodel(arg, iarg + 1, narg, DAMPING);
+      iarg = model->add_submodel(arg, iarg + 1, narg, DAMPING);
     } else if (strcmp(arg[iarg], "rolling") == 0) {
-      iarg = vec_models.back().add_submodel(arg, iarg + 1, narg, ROLLING);
+      iarg = model->add_submodel(arg, iarg + 1, narg, ROLLING);
     } else if (strcmp(arg[iarg], "twisting") == 0) {
-      iarg = vec_models.back().add_submodel(arg, iarg + 1, narg, TWISTING);
+      iarg = model->add_submodel(arg, iarg + 1, narg, TWISTING);
     } else if (strcmp(arg[iarg], "heat") == 0) {
-      iarg = vec_models.back().add_submodel(arg, iarg + 1, narg, HEAT);
+      iarg = model->add_submodel(arg, iarg + 1, narg, HEAT);
       heat_flag = 1;
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
@@ -364,24 +369,27 @@ void PairGranular::coeff(int narg, char **arg)
       cutoff_one = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "limit_damping") == 0) {
-      vec_models.back().limit_damping = 1;
+      model->limit_damping = 1;
       iarg += 1;
     } else error->all(FLERR, "Illegal pair_coeff command {}", arg[iarg]);
   }
 
   // Define default damping model if unspecified, has no coeffs
-  if (!vec_models.back().damping_model)
-    vec_models.back().construct_submodel("viscoelastic", DAMPING);
+  if (!model->damping_model)
+    model->construct_submodel("viscoelastic", DAMPING);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
-      models[i][j] = & vec_models.back();
+      types_indices[i][j] = nmodels - 1;
       cutoff_type[i][j] = cutoff_type[j][i] = cutoff_one;
       setflag[i][j] = 1;
       count++;
     }
   }
+
+  // If there are > ntype^2 models, delete unused ones
+  if (nmodels == maxmodels) prune_models();
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
@@ -392,7 +400,6 @@ void PairGranular::coeff(int narg, char **arg)
 
 void PairGranular::init_style()
 {
-  int i;
   // error and warning checks
 
   if (!atom->radius_flag || !atom->rmass_flag)
@@ -408,38 +415,39 @@ void PairGranular::init_style()
   }
 
   // allocate history and initialize models
+  class GranularModel* model;
   int size_max[NSUBMODELS] = {0};
+  for (int n = 0; n < nmodels; n++) {
+    model = models_list[n];
+    model->init();
 
-  for (auto &model : vec_models) {
-    model.init();
-    if (model.beyond_contact) {
+    if (model->beyond_contact) {
       beyond_contact = 1;
       use_history = 1; // Need to track if in contact
     }
-    if (model.size_history != 0) use_history = 1;
+    if (model->size_history != 0) use_history = 1;
 
-    for (i = 0; i < NSUBMODELS; i++)
-      if (model.sub_models[i]->size_history > size_max[i])
-        size_max[i] = model.sub_models[i]->size_history;
+    for (int i = 0; i < NSUBMODELS; i++)
+      if (model->sub_models[i]->size_history > size_max[i])
+        size_max[i] = model->sub_models[i]->size_history;
 
-    if (model.nondefault_history_transfer) nondefault_history_transfer = 1;
+    if (model->nondefault_history_transfer) nondefault_history_transfer = 1;
   }
 
   size_history = 0;
-  for (i = 0; i < NSUBMODELS; i++) size_history += size_max[i];
+  for (int i = 0; i < NSUBMODELS; i++) size_history += size_max[i];
 
-  for (auto &model : vec_models) {
+  for (int n = 0; n < nmodels; n++) {
+    model = models_list[n];
     int next_index = 0;
-    for (i = 0; i < NSUBMODELS; i++) {
-      model.sub_models[i]->history_index = next_index;
+    for (int i = 0; i < NSUBMODELS; i++) {
+      model->sub_models[i]->history_index = next_index;
       next_index += size_max[i];
     }
   }
 
   if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
   else neighbor->add_request(this, NeighConst::REQ_SIZE);
-
-  dt = update->dt;
 
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor
@@ -483,7 +491,7 @@ void PairGranular::init_style()
   // include future FixPour and FixDeposit particles as dynamic
 
   int itype;
-  for (i = 1; i <= atom->ntypes; i++) {
+  for (int i = 1; i <= atom->ntypes; i++) {
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
     for (auto &ipour : pours) {
       itype = i;
@@ -502,7 +510,7 @@ void PairGranular::init_style()
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & freeze_group_bit)
       onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]], radius[i]);
     else
@@ -527,32 +535,42 @@ void PairGranular::init_style()
 double PairGranular::init_one(int i, int j)
 {
   double cutoff = 0.0;
+  class GranularModel* model;
 
   if (setflag[i][j] == 0) {
 
-    vec_models.push_back(GranularModel(lmp));
-    models[i][j] = models[j][i] = & vec_models.back();
+    models_list[nmodels] = new GranularModel(lmp);
+    types_indices[i][j] = nmodels;
+    model = models_list[nmodels];
 
-    int error_code = vec_models.back().mix_coeffs(models[i][i], models[j][j]);
+    nmodels += 1;
+    if (nmodels == maxmodels) prune_models();
+
+    class GranularModel* model1 = models_list[types_indices[i][i]];
+    class GranularModel* model2 = models_list[types_indices[j][j]];
+
+    int error_code = model->mix_coeffs(model1, model2);
     if (error_code != -1)
       error->all(FLERR,"Granular pair style functional forms are different, "
                  "cannot mix coefficients for types {} and {} \n"
                  "with submodels {} and {}. \n"
                  "This combination must be set explicitly via a "
                  "pair_coeff command",i,j,
-                 models[i][i]->sub_models[error_code]->name,
-                 models[j][j]->sub_models[error_code]->name);
+                 model1->sub_models[error_code]->name,
+                 model2->sub_models[error_code]->name);
 
-    vec_models.back().init(); // Calculates cumulative properties of sub models
+    // Initialize new model, init_one() occurs after init_style
+    model->init();
 
     for (int k = 0; k < NSUBMODELS; k++)
-      vec_models.back().sub_models[k]->history_index = models[i][i]->sub_models[k]->history_index;
+      model->sub_models[k]->history_index = model1->sub_models[k]->history_index;
 
     cutoff_type[i][j] = cutoff_type[j][i] = MAX(cutoff_type[i][i], cutoff_type[j][j]);
   }
 
+  model = models_list[types_indices[i][j]];
   // Check if heat model is defined for all type combinations
-  if (heat_flag && !models[i][j]->heat_model)
+  if (heat_flag && !model->heat_model)
     error->all(FLERR, "Must specify a heat model for all pair types");
 
   // It is possible that cut[i][j] at this point is still 0.0.
@@ -571,14 +589,14 @@ double PairGranular::init_one(int i, int j)
         ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) {
       cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
       pulloff = 0.0;
-      if (models[i][j]->beyond_contact) {
-        pulloff = models[i][j]->pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j]);
+      if (model->beyond_contact) {
+        pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j]);
         cutoff += pulloff;
 
-        pulloff = models[i][j]->pulloff_distance(maxrad_frozen[i], maxrad_dynamic[j]);
+        pulloff = model->pulloff_distance(maxrad_frozen[i], maxrad_dynamic[j]);
         cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j] + pulloff);
 
-        pulloff = models[i][j]->pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j]);
+        pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j]);
         cutoff = MAX(cutoff,maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
       }
     } else {
@@ -599,9 +617,8 @@ double PairGranular::init_one(int i, int j)
     cutoff = cutoff_global;
   }
 
-  // Copy global options
-  models[i][j]->dt = dt;
-  models[j][i] = models[i][j];
+  model->dt = update->dt;
+  types_indices[j][i] = types_indices[i][j];
   return cutoff;
 }
 
@@ -611,18 +628,16 @@ double PairGranular::init_one(int i, int j)
 
 void PairGranular::write_restart(FILE *fp)
 {
-  int i,j,index;
-  int nmodels = vec_models.size();
+  int i,j;
   fwrite(&nmodels,sizeof(int),1,fp);
-  for (auto &model : vec_models) model.write_restart(fp);
+  for (i = 0; i < nmodels; i++) models_list[i]->write_restart(fp);
 
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j],sizeof(int),1,fp);
       if (setflag[i][j]) {
         fwrite(&cutoff_type[i][j],sizeof(double),1,fp);
-        index = models[i][j] - &vec_models[0];
-        fwrite(&index,sizeof(int),1,fp); // save index of model
+        fwrite(&types_indices[i][j],sizeof(int),1,fp);
       }
     }
   }
@@ -635,16 +650,15 @@ void PairGranular::write_restart(FILE *fp)
 void PairGranular::read_restart(FILE *fp)
 {
   allocate();
-  int i,j,index,nmodels;
+  int i,j;
   int me = comm->me;
 
   if (me == 0) utils::sfread(FLERR,&nmodels,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nmodels,1,MPI_INT,0,world);
 
   for (i = 0; i < nmodels; i++) {
-    vec_models.push_back(GranularModel(lmp));
-    vec_models.back().read_restart(fp);
-    vec_models.back().init();
+    models_list[i] = new GranularModel(lmp);
+    models_list[i]->read_restart(fp);
   }
 
   for (i = 1; i <= atom->ntypes; i++) {
@@ -654,12 +668,10 @@ void PairGranular::read_restart(FILE *fp)
       if (setflag[i][j]) {
         if (me == 0) {
           utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&index,sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&types_indices[i][j],sizeof(int),1,fp,nullptr,error);
         }
         MPI_Bcast(&cutoff_type[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&index,1,MPI_INT,0,world);
-
-        models[i][j] = & vec_models[index];
+        MPI_Bcast(&types_indices[i][j],1,MPI_INT,0,world);
       }
     }
   }
@@ -669,13 +681,7 @@ void PairGranular::read_restart(FILE *fp)
 
 void PairGranular::reset_dt()
 {
-  dt = update->dt;
-
-  for (int i = 1; i <= atom->ntypes; i++) {
-    for (int j = i; j <= atom->ntypes; j++) {
-      models[i][j]->dt = dt;
-    }
-  }
+  for (int i = 0; i < nmodels; i++) models_list[i]->dt = update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -703,7 +709,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   double **x = atom->x;
   double *radius = atom->radius;
 
-  class GranularModel* model = models[itype][jtype];
+  class GranularModel* model = models_list[types_indices[itype][jtype]];
 
   // Reset model and copy initial geometric data
   model->xi = x[i];
@@ -771,11 +777,9 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   torquesj = model->torquesj;
 
   // apply forces & torques
-
   fforce = MathExtra::len3(forces);
 
   // set single_extra quantities
-
   svector[0] = model->fs[0];
   svector[1] = model->fs[1];
   svector[2] = model->fs[2];
@@ -836,9 +840,10 @@ double PairGranular::memory_usage()
 
 void PairGranular::transfer_history(double* source, double* target, int itype, int jtype)
 {
-  if (models[itype][jtype]->nondefault_history_transfer) {
+  class GranularModel* model = models_list[types_indices[itype][jtype]];
+  if (model->nondefault_history_transfer) {
     for (int i = 0; i < size_history; i++) {
-      target[i] = models[itype][jtype]->transfer_history_factor[i] * source [i];
+      target[i] = model->transfer_history_factor[i] * source [i];
     }
   } else {
     for (int i = 0; i < size_history; i++) {
@@ -858,8 +863,9 @@ double PairGranular::atom2cut(int i)
   cut = atom->radius[i] * 2;
   if (beyond_contact) {
     int itype = atom->type[i];
-    if (models[itype][itype]->beyond_contact) {
-      cut += models[itype][itype]->pulloff_distance(cut, cut);
+    class GranularModel* model = models_list[types_indices[itype][itype]];
+    if (model->beyond_contact) {
+      cut += model->pulloff_distance(cut, cut);
     }
   }
 
@@ -879,10 +885,12 @@ double PairGranular::radii2cut(double r1, double r2)
     double temp;
 
     // Check all combinations of i and j to find theoretical maximum pull off distance
-    for (int i = 0; i < n; i++){
-      for (int j = 0; j < n; j++){
-        if (models[i][j]->beyond_contact) {
-          temp = models[i][j]->pulloff_distance(r1, r2);
+    class GranularModel* model;
+    for (int i = 1; i <= n; i++) {
+      for (int j = 1; j <= n; j++) {
+        model = models_list[types_indices[i][j]];
+        if (model->beyond_contact) {
+          temp = model->pulloff_distance(r1, r2);
           if (temp > cut) cut = temp;
         }
       }
@@ -892,4 +900,36 @@ double PairGranular::radii2cut(double r1, double r2)
   cut += r1 + r2;
 
   return cut;
+}
+
+/* ----------------------------------------------------------------------
+   remove unused models
+------------------------------------------------------------------------- */
+
+void PairGranular::prune_models()
+{
+  int ntypes = atom->ntypes;
+  for (int n = nmodels-1; n >= 0; n--) {
+
+    // Find and delete unused models
+    int in_use = 0;
+    for (int i = 1; i <= ntypes; i++)
+      for (int j = 1; j <= ntypes; j++)
+        if (types_indices[i][j] == n) in_use = 1;
+
+    if (in_use) continue;
+    delete models_list[n];
+
+    // Shift models if needed
+    if (n != nmodels - 1) {
+      models_list[n] = models_list[nmodels-1];
+      for (int i = 1; i <= ntypes; i++)
+        for (int j = 1; j <= ntypes; j++)
+          if (types_indices[i][j] == nmodels-1)
+            types_indices[i][j] = n;
+    }
+
+    models_list[nmodels-1] = nullptr;
+    nmodels -= 1;
+  }
 }

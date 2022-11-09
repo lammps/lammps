@@ -721,4 +721,5 @@ int FixWallGran::size_restart(int /*nlocal*/)
 void FixWallGran::reset_dt()
 {
   dt = update->dt;
+  model->dt = dt;
 }

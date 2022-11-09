@@ -46,7 +46,6 @@ class PairGranular : public Pair {
   double radii2cut(double, double) override;
 
  protected:
-  double dt;
   int freeze_group_bit;
   int use_history;
 
@@ -66,14 +65,16 @@ class PairGranular : public Pair {
 
   void allocate();
   void transfer_history(double *, double *, int, int) override;
+  void prune_models();
 
  private:
   int size_history;
   int heat_flag;
 
   // granular models
-  std::vector <Granular_NS::GranularModel> vec_models;
-  std::vector <std::vector<Granular_NS::GranularModel*>> models;
+  int nmodels, maxmodels;
+  Granular_NS::GranularModel** models_list;
+  int **types_indices;
 
   // optional user-specified global cutoff, per-type user-specified cutoffs
   double **cutoff_type;

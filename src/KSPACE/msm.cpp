@@ -612,12 +612,6 @@ void MSM::allocate()
   memory->create(gcall_buf1,npergrid*ngcall_buf1,"msm:gcall_buf1");
   memory->create(gcall_buf2,npergrid*ngcall_buf2,"msm:gcall_buf2");
 
-  printf("MSM ALL me %d IN %d %d: %d %d: %d %d\n",comm->me,
-         nxlo_in[0],nxhi_in[0],nylo_in[0],nyhi_in[0],nzlo_in[0],nzhi_in[0]);
-  printf("MSM ALL me %d OUT %d %d: %d %d: %d %d\n",comm->me,
-         nxlo_out[0],nxhi_out[0],nylo_out[0],nyhi_out[0],nzlo_out[0],nzhi_out[0]);
-  printf("MSM ALL me %d BUF %d %d\n",comm->me,ngcall_buf1,ngcall_buf2);
-
   // allocate memory for each grid level
 
   for (int n = 0; n < levels; n++) {
@@ -649,12 +643,6 @@ void MSM::allocate()
       memory->destroy(gc_buf2[n]);
       memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
       memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
-
-      printf("MSM %d me %d IN %d %d: %d %d: %d %d\n",n,comm->me,
-             nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n]);
-      printf("MSM %d me %d OUT %d %d: %d %d: %d %d\n",n,comm->me,
-             nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n]);
-      printf("MSM %d me %d BUF %d %d\n",n,comm->me,ngc_buf1[n],ngc_buf2[n]);
 
     } else {
       delete gc[n];

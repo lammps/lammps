@@ -547,13 +547,6 @@ void PPPMDipole::allocate()
 
   gc_dipole->setup_comm(ngc_buf1,ngc_buf2);
 
-  printf("PPPM DIPOLE me %d IN %d %d: %d %d: %d %d\n",comm->me,
-         nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
-  printf("PPPM DIPOLE me %d OUT %d %d: %d %d: %d %d\n",comm->me,
-         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
-  printf("PPPM DIPOLE me %d BUG %d %d\n",comm->me,
-         ngc_buf1,ngc_buf2);
-
   npergrid = 9;
 
   memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");

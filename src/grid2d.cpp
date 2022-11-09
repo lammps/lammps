@@ -1694,9 +1694,6 @@ int Grid2d::compute_overlap(int ghostflag, int *box, int *pbc, Overlap *&overlap
 
         partition_tiled(overlap_list[m].proc,0,nprocs-1,obox);
 
-        if (me == 1) printf("OBOX: proc %d obox %d %d: %d %d\n",
-                            overlap_list[m].proc,obox[0],obox[1],obox[2],obox[3]);
-
         overlap_list[m].box[0] = MAX(box[0],obox[0]);
         overlap_list[m].box[1] = MIN(box[1],obox[1]);
         overlap_list[m].box[2] = MAX(box[2],obox[2]);

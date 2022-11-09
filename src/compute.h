@@ -16,9 +16,6 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
-#include <map>
-#include <set>
-
 namespace LAMMPS_NS {
 
 class Compute : protected Pointers {
@@ -96,8 +93,6 @@ class Compute : protected Pointers {
   bigint invoked_local;      // ditto for compute_local()
 
   double dof;    // degrees-of-freedom for temperature
-
-  std::map<std::set<tagint>, int> atoms2bond;    // maps atom pair to index of local bond array
 
   int comm_forward;           // size of forward communication (0 if none)
   int comm_reverse;           // size of reverse communication (0 if none)

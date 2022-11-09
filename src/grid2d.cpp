@@ -217,6 +217,7 @@ void Grid2d::set_shift_atom(double shift_lo, double shift_hi)
    enable extra grid cells in Y
    factor = muliplication factor on box size Y and thus grid size
    factor > 1.0 when grid extends beyond Y box size (3.0 = tripled in size)
+   only enable yextra if factor > 1.0
    default zextra = 0, factor = 1.0 (no extra grid cells in Y)
 ------------------------------------------------------------------------- */
 

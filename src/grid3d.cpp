@@ -231,6 +231,7 @@ void Grid3d::set_shift_atom(double shift_lo, double shift_hi)
    factor = muliplication factor on box size Z and thus grid size
    factor > 1.0 when grid extends beyond Z box size (3.0 = tripled in size)
    used by PPPM for 2d periodic slab geometries
+   only enable zextra if factor > 1.0
    default zextra = 0, factor = 1.0 (no extra grid cells in Z)
 ------------------------------------------------------------------------- */
 

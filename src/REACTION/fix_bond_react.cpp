@@ -888,6 +888,8 @@ void FixBondReact::post_integrate()
   for (int i = 0; i < nreacts; i++) {
     nattempt[i] = 0;
   }
+  // reset per-bond compute map flag
+  atoms2bondflag = 0;
 
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
@@ -2346,6 +2348,11 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
     if (cperbond->size_local_cols > 0) error->one(FLERR,"Bond/react: 'Compute bond/local' used by reaction "
                                          "special function 'rxnbond' must compute one value");
 
+    if (atoms2bondflag == 0) {
+      atoms2bondflag = 1;
+      get_atoms2bond(cperbond->groupbit);
+    }
+
     nsum = 0;
     for (int i = 0; i < onemol->natoms; i++) {
       if (onemol->fragmentmask[ifrag][i]) {
@@ -2359,8 +2366,8 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
     if (cperbond->invoked_local != lmp->update->ntimestep)
       cperbond->compute_local();
 
-    it = cperbond->atoms2bond.find(aset);
-    if (it == cperbond->atoms2bond.end()) error->one(FLERR,"Bond/react: Unable to locate bond referenced by "
+    it = atoms2bond.find(aset);
+    if (it == atoms2bond.end()) error->one(FLERR,"Bond/react: Unable to locate bond referenced by "
                                             "reaction special function 'rxnbond'");
     ibond = it->second;
     perbondval = cperbond->vector_local[ibond];
@@ -2404,6 +2411,39 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
   if (rxnfunc == "rxnsum") return sumvvec;
   if (rxnfunc == "rxnave") return sumvvec/nsum;
   return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+populate map to get bond index from atom IDs
+------------------------------------------------------------------------- */
+
+void FixBondReact::get_atoms2bond(int cgroupbit)
+{
+  int i,m,atom1,atom2,btype,nb;
+  std::set<tagint> aset;
+
+  int nlocal = atom->nlocal;
+  tagint *tag = atom->tag;
+  int *num_bond = atom->num_bond;
+  tagint **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+  int *mask = atom->mask;
+
+  m = 0;
+  atoms2bond.clear();
+  for (atom1 = 0; atom1 < nlocal; atom1++) {
+    if (!(mask[atom1] & cgroupbit)) continue;
+    nb = num_bond[atom1];
+    for (i = 0; i < nb; i++) {
+      btype = bond_type[atom1][i];
+      atom2 = atom->map(bond_atom[atom1][i]);
+      if (atom2 < 0 || !(mask[atom2] & cgroupbit)) continue;
+      if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
+      if (btype == 0) continue;
+      aset = {tag[atom1], tag[atom2]};
+      atoms2bond.insert(std::make_pair(aset,m++));
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

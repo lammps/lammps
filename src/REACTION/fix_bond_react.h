@@ -27,6 +27,9 @@ FixStyle(bond/react,FixBondReact);
 #include "fix.h"
 #include "compute.h"
 
+#include <map>
+#include <set>
+
 namespace LAMMPS_NS {
 
 class FixBondReact : public Fix {
@@ -79,9 +82,10 @@ class FixBondReact : public Fix {
   char **constraintstr;
   int nrxnfunction;
   std::vector<std::string> rxnfunclist;     // lists current special rxn function
-  std::vector<int> peratomflag;     // 1 if special rxn function uses per-atom variable (vs. per-bond)
+  std::vector<int> peratomflag; // 1 if special rxn function uses per-atom variable (vs. per-bond)
+  int atoms2bondflag;           // 1 if atoms2bond map has been populated on this timestep
   int narrhenius;
-  int **var_flag, **var_id;    // for keyword values with variable inputs
+  int **var_flag, **var_id;     // for keyword values with variable inputs
   int status;
   int *groupbits;
 
@@ -191,6 +195,7 @@ class FixBondReact : public Fix {
   double custom_constraint(const std::string &);    // evaulate expression for custom constraint
   double rxnfunction(const std::string &, const std::string &,
                      const std::string &);    // eval rxn_sum and rxn_ave
+  void get_atoms2bond(int);
   int get_chirality(double[12]);              // get handedness given an ordered set of coordinates
 
   void open(char *);
@@ -231,6 +236,7 @@ class FixBondReact : public Fix {
   int nvvec;
   double **vvec;    // per-atom vector to store custom constraint atom-style variable values
   Compute *cperbond;    // pointer to 'compute bond/local' used by custom constraint ('rxnbond' function)
+  std::map<std::set<tagint>, int> atoms2bond;    // maps atom pair to index of local bond array
   std::vector<std::vector<Constraint>> constraints;
 
   // DEBUG

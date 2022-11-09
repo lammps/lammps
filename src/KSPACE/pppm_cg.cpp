@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -595,7 +595,7 @@ void PPPMCG::slabcorr()
 
   const double * const q = atom->q;
   const double * const * const x = atom->x;
-  const double zprd = domain->zprd;
+  const double zprd_slab = domain->zprd*slab_volfactor;
   double dipole = 0.0;
 
 
@@ -629,7 +629,7 @@ void PPPMCG::slabcorr()
   // compute corrections
 
   const double e_slabcorr = MY_2PI*(dipole_all*dipole_all -
-    qsum*dipole_r2 - qsum*qsum*zprd*zprd/12.0)/volume;
+    qsum*dipole_r2 - qsum*qsum*zprd_slab*zprd_slab/12.0)/volume;
   const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -641,7 +641,7 @@ void PPPMCG::slabcorr()
     for (j = 0; j < num_charged; j++) {
       i = is_charged[j];
       eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
-        qsum*x[i][2]*x[i][2]) - qsum*zprd*zprd/12.0);
+        qsum*x[i][2]*x[i][2]) - qsum*zprd_slab*zprd_slab/12.0);
     }
   }
 

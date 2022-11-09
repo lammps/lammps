@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -680,7 +680,8 @@ void Atom::create_avec(const std::string &style, int narg, char **arg, int trysu
   if (sflag) {
     std::string estyle = style + "/";
     if (sflag == 1) estyle += lmp->suffix;
-    else estyle += lmp->suffix2;
+    else if (sflag == 2) estyle += lmp->suffix2;
+    else if (sflag == 3) estyle += lmp->non_pair_suffix();
     atom_style = utils::strdup(estyle);
   } else {
     atom_style = utils::strdup(style);
@@ -704,9 +705,9 @@ void Atom::create_avec(const std::string &style, int narg, char **arg, int trysu
 AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      sflag = 1;
-      std::string estyle = style + "/" + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      sflag = 1 + 2*lmp->pair_only_flag;
+      std::string estyle = style + "/" + lmp->non_pair_suffix();
       if (avec_map->find(estyle) != avec_map->end()) {
         AtomVecCreator &avec_creator = (*avec_map)[estyle];
         return avec_creator(lmp);
@@ -2470,7 +2471,7 @@ void Atom::setup_sort_bins()
 /* ----------------------------------------------------------------------
    register a callback to a fix so it can manage atom-based arrays
    happens when fix is created
-   flag = 0 for grow, 1 for restart, 2 for border comm
+   flag = Atom::GROW for grow, Atom::RESTART for restart, Atom::BORDER for border comm
 ------------------------------------------------------------------------- */
 
 void Atom::add_callback(int flag)

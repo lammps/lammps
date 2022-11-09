@@ -313,6 +313,7 @@ accelerated styles exist.
 * :doc:`oxrna2/stk <pair_oxrna2>` -
 * :doc:`oxrna2/xstk <pair_oxrna2>` -
 * :doc:`pace <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential
+* :doc:`pace/extrapolation <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential with extrapolation grades
 * :doc:`peri/eps <pair_peri>` - peridynamic EPS potential
 * :doc:`peri/lps <pair_peri>` - peridynamic LPS potential
 * :doc:`peri/pmb <pair_peri>` - peridynamic PMB potential
@@ -373,6 +374,7 @@ accelerated styles exist.
 * :doc:`vashishta <pair_vashishta>` - Vashishta 2-body and 3-body potential
 * :doc:`vashishta/table <pair_vashishta>` -
 * :doc:`wf/cut <pair_wf_cut>` - Wang-Frenkel Potential for short-ranged interactions
+* :doc:`ylz <pair_ylz>` - Yuan-Li-Zhang Potential for anisotropic interactions
 * :doc:`yukawa <pair_yukawa>` - Yukawa potential
 * :doc:`yukawa/colloid <pair_yukawa_colloid>` - screened Yukawa potential for finite-size particles
 * :doc:`zbl <pair_zbl>` - Ziegler-Biersack-Littmark potential

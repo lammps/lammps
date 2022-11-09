@@ -144,7 +144,7 @@ artifacts.
    conversion factor used internally in the code, from the LAMMPS value
    to the CHARMM value, as if it were effectively a parameter of the
    force field.  This is because the CHARMM code uses a slightly
-   different value for the this conversion factor in :doc:`real units <units>` (Kcal/mole), namely CHARMM = 332.0716, LAMMPS =
+   different value for the this conversion factor in :doc:`real units <units>` (kcal/mol), namely CHARMM = 332.0716, LAMMPS =
    332.06371.  This is to enable more precise agreement by LAMMPS with
    the CHARMM force field energies and forces, when using one of these
    two CHARMM pair styles.

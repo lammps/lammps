@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -726,7 +726,7 @@ TEST_F(DumpAtomTest, frequency)
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"0", "5", "10", "15", "20", "25", "30", "10", "20"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     BEGIN_HIDE_OUTPUT();
@@ -739,7 +739,7 @@ TEST_F(DumpAtomTest, frequency)
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"10", "20", "30"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     BEGIN_HIDE_OUTPUT();
@@ -753,7 +753,7 @@ TEST_F(DumpAtomTest, frequency)
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"0", "10", "15", "20", "30"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     delete_file(dump_file);
@@ -777,7 +777,7 @@ TEST_F(DumpAtomTest, delay)
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"20", "30", "40", "50"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     delete_file(dump_file);
@@ -808,25 +808,25 @@ TEST_F(DumpAtomTest, colname)
     values   = extract_items(dump_file, "ATOMS id type xs ys zs");
     expected = {"1 1 0 0 0", "1 1 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "ATOMS AtomID type x-scaled ys z-scaled");
     expected = {"1 1 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "ATOMS id type x y z ix iy iz");
     expected = {"1 1 0 0 0 0 0 0", "1 1 0 0 0 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "ATOMS AtomID type X y Z img_x iy iz");
     expected = {"1 1 0 0 0 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     delete_file(dump_file);
@@ -848,13 +848,13 @@ TEST_F(DumpAtomTest, units_time)
     values   = extract_items(dump_file, "TIME");
     expected = {"0", "0.05", "0.1", "0.15", "0.25", "0.35", "0.45"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "UNITS");
     expected = {"lj"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     delete_file(dump_file);
@@ -877,7 +877,7 @@ TEST_F(DumpAtomTest, every)
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"0", "10", "20", "25", "30", "35", "40", "50", "60"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     delete_file(dump_file);
@@ -897,7 +897,7 @@ TEST_F(DumpAtomTest, every)
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"1", "4", "25", "60", "70", "100"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     delete_file(dump_file);
@@ -919,7 +919,7 @@ TEST_F(DumpAtomTest, every_time)
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"0", "20", "40", "50", "60"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     delete_file(dump_file);
@@ -940,7 +940,7 @@ TEST_F(DumpAtomTest, header)
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"10", "20", "30", "40"};
     ASSERT_EQ(values.size(), expected.size());
-    for (int i = 0; i < expected.size(); ++i)
+    for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     BEGIN_HIDE_OUTPUT();

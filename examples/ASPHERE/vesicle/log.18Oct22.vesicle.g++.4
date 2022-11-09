@@ -1,0 +1,122 @@
+LAMMPS (15 Sep 2022)
+  using 1 OpenMP thread(s) per MPI task
+# Vesicle demo
+
+variable     T  equal  0.2
+variable     LD equal  1.0
+
+units        lj
+atom_style   ellipsoid
+
+boundary     p p p
+
+read_data    read_data.vesicle1026
+Reading data file ...
+  orthogonal box = (-35 -35 -35) to (35 35 35)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  2938 atoms
+  2938 ellipsoids
+  read_data CPU = 0.137 seconds
+
+compute      ali  all temp/com
+compute      rott all temp/asphere bias ali
+
+velocity     all create ${T} 87287 loop geom
+velocity     all create 0.2 87287 loop geom
+
+pair_style   ylz  2.6
+pair_coeff   *  *   1.0  1.0  4  3  0.0  2.6
+neighbor     1.0 bin
+
+thermo_style custom step temp press pxx pyy
+thermo       200
+
+timestep     0.001
+
+#dump         1 all atom 10 onlymembrane2.lammpstrj
+
+fix          1 all langevin ${T} ${T}  ${LD}  48279
+fix          1 all langevin 0.2 ${T}  ${LD}  48279
+fix          1 all langevin 0.2 0.2  ${LD}  48279
+fix          1 all langevin 0.2 0.2  1  48279
+fix          2 all nve/asphere
+
+run          3000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair ylz command:
+
+@Article{Yuan10,
+ author =  {H. Yuan, C. Huang, J. Li, G. Lykotrafitis, and S. Zhang},
+ title =   {One-particle-thick, solvent-free, coarse-grained model for biological and biomimetic fluid membranes},
+ journal = {Phys. Rev. E},
+ year =    2010,
+ volume =  82,
+ pages =   {011905}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 10 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.6
+  ghost atom cutoff = 3.6
+  binsize = 1.8, bins = 39 39 39
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair ylz, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.899 | 4.9 | 4.902 Mbytes
+   Step          Temp          Press           Pxx            Pyy      
+         0   0.2           -0.0054891414  -0.0052713616  -0.0053641136 
+       200   0.12893798    -0.0051492794  -0.0048734875  -0.0049624005 
+       400   0.13798694    -0.004875313   -0.0047071897  -0.0049305051 
+       600   0.14725193    -0.0046349542  -0.004719983   -0.0045791451 
+       800   0.16146954    -0.0042232199  -0.0040789193  -0.0043672895 
+      1000   0.17268468    -0.0037146703  -0.0036270393  -0.0039169034 
+      1200   0.18266242    -0.0032749755  -0.0032971704  -0.0033323855 
+      1400   0.18500165    -0.0028179031  -0.0030659821  -0.0027519633 
+      1600   0.19513132    -0.0023407512  -0.0025109801  -0.0023416835 
+      1800   0.19645259    -0.0019995412  -0.0019064341  -0.0021757747 
+      2000   0.19658104    -0.0015897919  -0.0015850523  -0.0016828478 
+      2200   0.1989936     -0.0011794062  -0.0011779716  -0.0012070706 
+      2400   0.20011525    -0.0009147432  -0.00094040885 -0.001073922  
+      2600   0.2013975     -0.00059253676 -0.00051920304 -0.00075138934
+      2800   0.19715513    -0.00020995605 -0.00024386426 -0.0005475745 
+      3000   0.1976782     -0.0001308553   5.693004e-05  -0.00034478469
+Loop time of 8.46954 on 4 procs for 3000 steps with 2938 atoms
+
+Performance: 30603.800 tau/day, 354.211 timesteps/s
+77.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.1751     | 2.4162     | 2.6707     |  13.2 | 28.53
+Neigh   | 0.0090503  | 0.0098389  | 0.010503   |   0.6 |  0.12
+Comm    | 3.5807     | 4.1526     | 4.9283     |  24.3 | 49.03
+Output  | 0.00032165 | 0.0029648  | 0.010842   |   8.4 |  0.04
+Modify  | 0.34554    | 0.37442    | 0.39198    |   2.8 |  4.42
+Other   |            | 1.514      |            |       | 17.87
+
+Nlocal:          734.5 ave         739 max         730 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Nghost:         420.25 ave         424 max         415 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+Neighs:        18304.5 ave       19839 max       16636 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+
+Total # of neighbors = 73218
+Ave neighs/atom = 24.921035
+Neighbor list builds = 25
+Dangerous builds = 0
+
+Total wall time: 0:00:08

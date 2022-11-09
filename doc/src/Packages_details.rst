@@ -200,6 +200,7 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * :doc:`Howto spherical <Howto_spherical>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
+* :doc:`pair_style ylz <pair_ylz>`
 * `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * examples/ASPHERE
@@ -1736,8 +1737,6 @@ must be installed.
 
 .. versionadded:: 30Jun2020
 
-   .. versionadded:: 30Jun2020
-
 **Supporting info:**
 
 * src/ML-IAP: filenames -> commands
@@ -2220,6 +2219,7 @@ Foster (UTSA).
 **Supporting info:**
 
 * src/PERI: filenames -> commands
+* :doc:`Peridynamics Howto <Howto_peri>`
 * `doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_
 * `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
 * `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_

@@ -10,15 +10,15 @@ import warnings
 py_ver = sysconfig.get_config_vars('VERSION')[0]
 OS_name = platform.system()
 
-if OS_name == "Linux":
-    SHLIB_SUFFIX = '.so'
-    library = 'libpython' + py_ver + SHLIB_SUFFIX
-elif OS_name == "Darwin":
+if OS_name == "Darwin":
     SHLIB_SUFFIX = '.dylib'
     library = 'libpython' + py_ver + SHLIB_SUFFIX
 elif OS_name == "Windows":
     SHLIB_SUFFIX = '.dll'
     library = 'python' + py_ver + SHLIB_SUFFIX
+else:
+    SHLIB_SUFFIX = '.so'
+    library = 'libpython' + py_ver + SHLIB_SUFFIX
 
 try:
     pylib = ctypes.CDLL(library)

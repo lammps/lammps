@@ -137,7 +137,12 @@ void test_1D_sort_impl(unsigned int n, bool force_kokkos) {
   // Test sorting array with all numbers equal
   ExecutionSpace exec;
   Kokkos::deep_copy(exec, keys, KeyType(1));
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   Kokkos::sort(exec, keys, force_kokkos);
+#else
+  (void)force_kokkos;  // suppress warnings about unused variable
+  Kokkos::sort(exec, keys);
+#endif
 
   Kokkos::Random_XorShift64_Pool<ExecutionSpace> g(1931);
   Kokkos::fill_random(keys, g,
@@ -151,7 +156,11 @@ void test_1D_sort_impl(unsigned int n, bool force_kokkos) {
   Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(exec, 0, n),
                           sum<ExecutionSpace, KeyType>(keys), sum_before);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   Kokkos::sort(exec, keys, force_kokkos);
+#else
+  Kokkos::sort(exec, keys);
+#endif
 
   Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(exec, 0, n),
                           sum<ExecutionSpace, KeyType>(keys), sum_after);
@@ -396,7 +405,7 @@ void test_sort_integer_overflow() {
             Kokkos::Experimental::finite_min<T>::value};
   auto vd = Kokkos::create_mirror_view_and_copy(
       ExecutionSpace(), Kokkos::View<T[2], Kokkos::HostSpace>(a));
-  Kokkos::sort(vd, /*force using Kokkos bin sort*/ true);
+  Kokkos::sort(vd);
   auto vh = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), vd);
   EXPECT_TRUE(std::is_sorted(vh.data(), vh.data() + 2))
       << "view (" << vh[0] << ", " << vh[1] << ") is not sorted";
@@ -407,7 +416,9 @@ void test_sort_integer_overflow() {
 template <class ExecutionSpace, typename KeyType>
 void test_1D_sort(unsigned int N) {
   test_1D_sort_impl<ExecutionSpace, KeyType>(N * N * N, true);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   test_1D_sort_impl<ExecutionSpace, KeyType>(N * N * N, false);
+#endif
 }
 
 template <class ExecutionSpace, typename KeyType>

@@ -17,7 +17,7 @@ Syntax
 * M = insert a single atom or molecule every M steps
 * seed = random # seed (positive integer)
 * one or more keyword/value pairs may be appended to args
-* keyword = *region* or *id* or *global* or *local* or *near* or *gaussian* or *attempt* or *rate* or *vx* or *vy* or *vz* or *mol* or *rigid* or *shake* or *units*
+* keyword = *region* or *id* or *global* or *local* or *near* or *gaussian* or *attempt* or *rate* or *vx* or *vy* or *vz* or *target* or *mol* or *molfrac* or *rigid* or *shake* or *orient* or *units*
 
   .. parsed-literal::
 

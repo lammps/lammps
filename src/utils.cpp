@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1815,7 +1815,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
 /* Private functions: */
 static int matchdigit(char c)
 {
-  return ((c >= '0') && (c <= '9'));
+  return isdigit(c);
 }
 
 static int matchint(char c)
@@ -1830,12 +1830,12 @@ static int matchfloat(char c)
 
 static int matchalpha(char c)
 {
-  return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
+  return isalpha(c);
 }
 
 static int matchwhitespace(char c)
 {
-  return ((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r') || (c == '\f') || (c == '\v'));
+  return isspace(c);
 }
 
 static int matchalphanum(char c)

@@ -1696,7 +1696,14 @@ void _noopt PPPMDisp::allocate()
 
     gc->setup_comm(ngc_buf1,ngc_buf2);
 
-    if (differentiation_flag) npergrid = 1;
+    printf("PPPM/DISP COUL me %d IN %d %d: %d %d: %d %d\n",comm->me,
+           nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+    printf("PPPM/DISP COUL me %d OUT %d %d: %d %d: %d %d\n",comm->me,
+           nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+    printf("PPPM/DISP COUL me %d BUG %d %d\n",comm->me,
+           ngc_buf1,ngc_buf2);
+
+  if (differentiation_flag) npergrid = 1;
     else npergrid = 3;
 
     memory->create(gc_buf1,npergrid*ngc_buf1,"pppm/disp:gc_buf1");
@@ -1810,6 +1817,13 @@ void _noopt PPPMDisp::allocate()
                     nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
     gc6->setup_comm(ngc6_buf1,ngc6_buf2);
+
+    printf("PPPM/DISP LJ me %d IN %d %d: %d %d: %d %d\n",comm->me,
+           nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6);
+    printf("PPPM/DISP LJ me %d OUT %d %d: %d %d: %d %d\n",comm->me,
+           nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
+    printf("PPPM/DISP LJ me %d BUG %d %d\n",comm->me,
+           ngc6_buf1,ngc6_buf2);
 
     if (function[1]) {
       if (differentiation_flag) npergrid6 = 1;

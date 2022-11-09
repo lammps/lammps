@@ -759,6 +759,12 @@ void PPPM::allocate()
 
   gc->setup_comm(ngc_buf1,ngc_buf2);
 
+  printf("COUL GRID me %d IN %d %d: %d %d: %d %d\n",comm->me,
+         nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+  printf("COUL GRID me %d OUT %d %d: %d %d: %d %d\n",comm->me,
+         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+  printf("COUL BUF me %d buf %d %d\n",comm->me,ngc_buf1,ngc_buf2);
+  
   if (differentiation_flag) npergrid = 1;
   else npergrid = 3;
 

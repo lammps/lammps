@@ -429,7 +429,8 @@ void PPPMDisp::init()
         error->all(FLERR,"PPPMDisp Coulomb grid is too large");
 
       set_grid_local(order,nx_pppm,ny_pppm,nz_pppm,
-                     shift,shiftone,shiftatom,nlower,nupper,
+                     shift,shiftone,shiftatom_lo,shiftatom_hi,
+                     nlower,nupper,
                      nxlo_fft,nylo_fft,nzlo_fft,
                      nxhi_fft,nyhi_fft,nzhi_fft);
 
@@ -438,7 +439,7 @@ void PPPMDisp::init()
       gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
       gc->set_distance(0.5*neighbor->skin + qdist);
       gc->set_stencil_atom(-nlower,nupper);
-      gc->set_shift_atom(shiftatom,shiftatom);
+      gc->set_shift_atom(shiftatom_lo,shiftatom_lo);
       gc->set_zfactor(slab_volfactor);
 
       gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
@@ -484,7 +485,8 @@ void PPPMDisp::init()
         error->all(FLERR,"PPPMDisp Dispersion grid is too large");
 
       set_grid_local(order_6,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                     shift_6,shiftone_6,shiftatom_6,nlower_6,nupper_6,
+                     shift_6,shiftone_6,shiftatom_lo_6,shiftatom_hi_6,
+                     nlower_6,nupper_6,
                      nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
                      nxhi_fft_6,nyhi_fft_6,nzhi_fft_6);
 
@@ -493,7 +495,7 @@ void PPPMDisp::init()
       gc6 = new Grid3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6);
       gc6->set_distance(0.5*neighbor->skin + qdist);
       gc6->set_stencil_atom(-nlower_6,nupper_6);
-      gc6->set_shift_atom(shiftatom_6,shiftatom_6);
+      gc6->set_shift_atom(shiftatom_lo_6,shiftatom_hi_6);
       gc6->set_zfactor(slab_volfactor);
 
       gc->setup_grid(nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
@@ -803,13 +805,15 @@ void PPPMDisp::reset_grid()
 
   if (function[0])
     set_grid_local(order,nx_pppm,ny_pppm,nz_pppm,
-                   shift,shiftone,shiftatom,nlower,nupper,
+                   shift,shiftone,shiftatom_lo,shiftatom_hi,
+                   nlower,nupper,
                    nxlo_fft,nylo_fft,nzlo_fft,
                    nxhi_fft,nyhi_fft,nzhi_fft);
 
   if (function[1] + function[2] + function[3])
     set_grid_local(order_6,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                   shift_6,shiftone_6,shiftatom_6,nlower_6,nupper_6,
+                   shift_6,shiftone_6,shiftatom_lo_6,shiftatom_hi_6,
+                   nlower_6,nupper_6,
                    nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
                    nxhi_fft_6,nyhi_fft_6,nzhi_fft_6);
 
@@ -1684,7 +1688,7 @@ void _noopt PPPMDisp::allocate()
     gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
     gc->set_distance(0.5*neighbor->skin + qdist);
     gc->set_stencil_atom(-nlower,nupper);
-    gc->set_shift_atom(shiftatom,shiftatom);
+    gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
     gc->set_zfactor(slab_volfactor);
 
     gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
@@ -1692,12 +1696,6 @@ void _noopt PPPMDisp::allocate()
 
     gc->setup_comm(ngc_buf1,ngc_buf2);
 
-    printf("COUL GRID me %d IN %d %d: %d %d: %d %d\n",comm->me,
-           nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
-    printf("COUL GRID me %d OUT %d %d: %d %d: %d %d\n",comm->me,
-           nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
-    printf("COUL BUF me %d buf %d %d\n",comm->me,ngc_buf1,ngc_buf2);
-    
     if (differentiation_flag) npergrid = 1;
     else npergrid = 3;
 
@@ -1805,19 +1803,13 @@ void _noopt PPPMDisp::allocate()
     gc6 = new Grid3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6);
     gc6->set_distance(0.5*neighbor->skin + qdist);
     gc6->set_stencil_atom(-nlower_6,nupper_6);
-    gc6->set_shift_atom(shiftatom_6,shiftatom_6);
+    gc6->set_shift_atom(shiftatom_lo_6,shiftatom_hi_6);
     gc6->set_zfactor(slab_volfactor);
 
     gc6->setup_grid(nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
                     nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
     gc6->setup_comm(ngc6_buf1,ngc6_buf2);
-
-    printf("DISP GRID me %d IN %d %d: %d %d: %d %d\n",comm->me,
-           nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6);
-    printf("DISP GRID me %d OUT %d %d: %d %d: %d %d\n",comm->me,
-           nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
-    printf("DISP BUF me %d buf %d %d\n",comm->me,ngc6_buf1,ngc6_buf2);
 
     if (function[1]) {
       if (differentiation_flag) npergrid6 = 1;
@@ -2729,7 +2721,7 @@ void PPPMDisp::set_grid_global()
 void PPPMDisp::set_grid_local(int order_either,
                               int nx_either, int ny_either, int nz_either,
                               double &shift_either, double &shiftone_either,
-                              double &shiftatom_either,
+                              double &shiftatom_lo_either,double &shiftatom_hi_either,
                               int &nlower_either, int &nupper_either,
                               int &nxlo_fft_either, int &nylo_fft_either, int &nzlo_fft_either,
                               int &nxhi_fft_either, int &nyhi_fft_either, int &nzhi_fft_either)
@@ -2748,6 +2740,19 @@ void PPPMDisp::set_grid_local(int order_either,
 
   nlower_either = -(order_either-1)/2;
   nupper_either = order_either/2;
+
+  // shiftatom lo/hi are passed to Grid3d to determine ghost cell extents
+  // shiftatom_lo = min shift on lo side
+  // shiftatom_hi = max shift on hi side
+  // for PPPMStagger, stagger value (0.0 or 0.5) also affects this
+
+  if (order % 2) {
+    shiftatom_lo_either = 0.5;
+    shiftatom_hi_either = 0.5;
+  } else if (order % 2 == 0) {
+    shiftatom_lo_either = 0.0;
+    shiftatom_hi_either = 0.0;
+  }
 
   // x-pencil decomposition of Coulomb FFT mesh
   // global indices range from 0 to N-1

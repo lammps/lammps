@@ -64,14 +64,14 @@ class PPPMDisp : public KSpace {
   double delxinv, delyinv, delzinv, delvolinv;
   double delxinv_6, delyinv_6, delzinv_6, delvolinv_6;
 
-  double shift, shiftone, shiftatom;
+  double shift, shiftone, shiftatom_lo, shiftatom_hi;
   int nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in;
   int nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out;
   int nxlo_fft, nylo_fft, nzlo_fft, nxhi_fft, nyhi_fft, nzhi_fft;
   int nlower, nupper;
   int ngrid, nfft_brick, nfft, nfft_both;
 
-  double shift_6, shiftone_6, shiftatom_6;
+  double shift_6, shiftone_6, shiftatom_lo_6, shiftatom_hi_6;
   int nxlo_in_6, nylo_in_6, nzlo_in_6, nxhi_in_6, nyhi_in_6, nzhi_in_6;
   int nxlo_out_6, nylo_out_6, nzlo_out_6, nxhi_out_6, nyhi_out_6, nzhi_out_6;
   int nxlo_fft_6, nylo_fft_6, nzlo_fft_6, nxhi_fft_6, nyhi_fft_6, nzhi_fft_6;
@@ -207,7 +207,7 @@ class PPPMDisp : public KSpace {
 
   void set_grid_global();
   void set_grid_global_6();
-  void set_grid_local(int, int, int, int, double &, double &, double &,
+  void set_grid_local(int, int, int, int, double &, double &, double &, double &,
                       int &, int &, int &, int &, int &, int &, int &, int &);
   void set_init_g6();
   void set_n_pppm_6();

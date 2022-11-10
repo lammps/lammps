@@ -54,6 +54,7 @@ class FixViscousKokkos : public FixViscous {
   typename AT::t_int_1d_randomread type;
 
   Kokkos::DualView<double*, Kokkos::LayoutRight, DeviceType> k_gamma;
+  typename Kokkos::DualView<double*,Kokkos::LayoutRight,DeviceType>::t_dev_const_um gamma2;
 };
 
 }

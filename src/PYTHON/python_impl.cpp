@@ -130,19 +130,17 @@ void PythonImpl::command(int narg, char **arg)
     return;
   }
 
-  // if source is only keyword, execute the python code
+  // if source is only keyword, execute the python code in file
 
-  if (narg == 3 && strcmp(arg[1], "source") == 0) {
-    int err;
+  if ((narg > 1) && (strcmp(arg[0], "source") == 0)) {
+    int err = -1;
 
-    FILE *fp = fopen(arg[2], "r");
-    if (fp == nullptr)
+    if ((narg > 2) && (strcmp(arg[1], "inline") == 0)) {
       err = execute_string(arg[2]);
-    else
-      err = execute_file(arg[2]);
-
-    if (fp) fclose(fp);
-    if (err) error->all(FLERR, "Could not process Python source command");
+    } else {
+      if (platform::file_is_readable(arg[1])) err = execute_file(arg[1]);
+    }
+    if (err) error->warning(FLERR, "Could not process Python source command. Error code: {}", err);
 
     return;
   }

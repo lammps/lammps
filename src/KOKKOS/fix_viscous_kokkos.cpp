@@ -49,6 +49,7 @@ template<class DeviceType>
 FixViscousKokkos<DeviceType>::~FixViscousKokkos()
 {
   if (copymode) return;
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,6 +58,10 @@ template<class DeviceType>
 void FixViscousKokkos<DeviceType>::init()
 {
   FixViscous::init();
+
+  k_gamma = Kokkos::DualView<double*, Kokkos::LayoutRight, DeviceType>("FixViscousKokkos:gamma",atom->ntypes+1);
+
+  for (int i = 1; i <= atom->ntypes; i++) k_gamma.h_view(i) = gamma[i]; 
 
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot (yet) use respa with Kokkos");
@@ -88,7 +93,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixViscousKokkos<DeviceType>::operator()(TagFixViscous, const int &i) const {
   if (mask[i] & groupbit) {
-    double drag = gamma[type[i]];
+    double drag = k_gamma.h_view(type[i]);
     f(i,0) -= drag*v(i,0);
     f(i,1) -= drag*v(i,1);
     f(i,2) -= drag*v(i,2);

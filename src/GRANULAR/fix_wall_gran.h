@@ -25,6 +25,10 @@ FixStyle(wall/gran,FixWallGran);
 
 namespace LAMMPS_NS {
 
+namespace Granular_NS {
+  class GranularModel;
+}
+
 class FixWallGran : public Fix {
  public:
   FixWallGran(class LAMMPS *, int, char **);
@@ -53,7 +57,7 @@ class FixWallGran : public Fix {
   bigint time_origin;
 
   // for granular model choices
-  Granular_NS::GranularModel *model;
+  class Granular_NS::GranularModel *model;
 
   double lo, hi, cylradius;
   double amplitude, period, omega, vshear;

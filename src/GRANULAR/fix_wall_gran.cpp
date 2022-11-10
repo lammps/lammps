@@ -21,7 +21,7 @@
 
 #include "atom.h"
 #include "granular_model.h"
-#include "gsm.h"
+#include "gran_sub_mod.h"
 #include "domain.h"
 #include "error.h"
 #include "input.h"

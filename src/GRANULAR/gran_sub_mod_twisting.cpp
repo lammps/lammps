@@ -12,9 +12,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gsm_normal.h"
-#include "gsm_tangential.h"
-#include "gsm_twisting.h"
+#include "gran_sub_mod_normal.h"
+#include "gran_sub_mod_tangential.h"
+#include "gran_sub_mod_twisting.h"
 #include "granular_model.h"
 #include "error.h"
 #include "math_const.h"
@@ -27,19 +27,19 @@ using namespace MathConst;
    Default twisting model
 ------------------------------------------------------------------------- */
 
-GSMTwisting::GSMTwisting(GranularModel *gm, LAMMPS *lmp) : GSM(gm, lmp) {}
+GranSubModTwisting::GranSubModTwisting(GranularModel *gm, LAMMPS *lmp) : GranSubMod(gm, lmp) {}
 
 /* ----------------------------------------------------------------------
    No model
 ------------------------------------------------------------------------- */
 
-GSMTwistingNone::GSMTwistingNone(GranularModel *gm, LAMMPS *lmp) : GSMTwisting(gm, lmp) {}
+GranSubModTwistingNone::GranSubModTwistingNone(GranularModel *gm, LAMMPS *lmp) : GranSubModTwisting(gm, lmp) {}
 
 /* ----------------------------------------------------------------------
    Marshall twisting model
 ------------------------------------------------------------------------- */
 
-GSMTwistingMarshall::GSMTwistingMarshall(GranularModel *gm, LAMMPS *lmp) : GSMTwisting(gm, lmp)
+GranSubModTwistingMarshall::GranSubModTwistingMarshall(GranularModel *gm, LAMMPS *lmp) : GranSubModTwisting(gm, lmp)
 {
   num_coeffs = 0;
   size_history = 3;
@@ -49,7 +49,7 @@ GSMTwistingMarshall::GSMTwistingMarshall(GranularModel *gm, LAMMPS *lmp) : GSMTw
 /* ---------------------------------------------------------------------- */
 
 
-void GSMTwistingMarshall::init()
+void GranSubModTwistingMarshall::init()
 {
   k_tang = gm->tangential_model->k;
   mu_tang = gm->tangential_model->mu;
@@ -57,7 +57,7 @@ void GSMTwistingMarshall::init()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTwistingMarshall::calculate_forces()
+void GranSubModTwistingMarshall::calculate_forces()
 {
   double signtwist, Mtcrit;
 
@@ -86,7 +86,7 @@ void GSMTwistingMarshall::calculate_forces()
    SDS twisting model
 ------------------------------------------------------------------------- */
 
-GSMTwistingSDS::GSMTwistingSDS(GranularModel *gm, LAMMPS *lmp) : GSMTwisting(gm, lmp)
+GranSubModTwistingSDS::GranSubModTwistingSDS(GranularModel *gm, LAMMPS *lmp) : GranSubModTwisting(gm, lmp)
 {
   num_coeffs = 3;
   size_history = 3;
@@ -94,7 +94,7 @@ GSMTwistingSDS::GSMTwistingSDS(GranularModel *gm, LAMMPS *lmp) : GSMTwisting(gm,
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTwistingSDS::coeffs_to_local()
+void GranSubModTwistingSDS::coeffs_to_local()
 {
   k = coeffs[0];
   damp = coeffs[1];
@@ -106,7 +106,7 @@ void GSMTwistingSDS::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTwistingSDS::calculate_forces()
+void GranSubModTwistingSDS::calculate_forces()
 {
   double signtwist, Mtcrit;
 

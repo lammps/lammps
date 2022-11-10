@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   This class contains a framework for granular submodels (GSM) including:
+   This class contains a framework for granular submodels (GranSubMod):
    normal, damping, tangential, rolling, twisting, and heat
    These are used to calculate forces/torques/etc based on contact geometry
 
@@ -21,7 +21,7 @@
    Dan Bolintineanu (SNL), Joel Clemmer (SNL)
 ----------------------------------------------------------------------- */
 
-#include "gsm.h"
+#include "gran_sub_mod.h"
 #include "error.h"
 #include "utils.h"
 
@@ -32,7 +32,7 @@ using namespace Granular_NS;
    Parent class for all types of granular submodels
 ------------------------------------------------------------------------- */
 
-GSM::GSM(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
+GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
 {
   this->gm = gm;
 
@@ -51,7 +51,7 @@ GSM::GSM(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-GSM::~GSM()
+GranSubMod::~GranSubMod()
 {
   if (allocated) delete [] coeffs;
   delete [] transfer_history_factor;
@@ -59,7 +59,7 @@ GSM::~GSM()
 
 /* ---------------------------------------------------------------------- */
 
-void GSM::allocate_coeffs()
+void GranSubMod::allocate_coeffs()
 {
   allocated = 1;
   coeffs = new double[num_coeffs];
@@ -67,7 +67,7 @@ void GSM::allocate_coeffs()
 
 /* ---------------------------------------------------------------------- */
 
-void GSM::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubMod::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
   for (int i = 0; i < num_coeffs; i++)
     coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]);
@@ -78,7 +78,7 @@ void GSM::mix_coeffs(double* icoeffs, double* jcoeffs)
    mixing of Young's modulus (E)
 ------------------------------------------------------------------------- */
 
-double GSM::mix_stiffnessE(double E1, double E2,
+double GranSubMod::mix_stiffnessE(double E1, double E2,
                                     double pois1, double pois2)
 {
   double factor1 = (1 - pois1 * pois1) / E1;
@@ -90,7 +90,7 @@ double GSM::mix_stiffnessE(double E1, double E2,
    mixing of shear modulus (G)
 ------------------------------------------------------------------------ */
 
-double GSM::mix_stiffnessG(double E1, double E2,
+double GranSubMod::mix_stiffnessG(double E1, double E2,
                                     double pois1, double pois2)
 {
   double factor1 = 2 * (2 - pois1) * (1 + pois1) / E1;
@@ -102,7 +102,7 @@ double GSM::mix_stiffnessG(double E1, double E2,
    mixing of Young's modulus (E) for walls
 ------------------------------------------------------------------------- */
 
-double GSM::mix_stiffnessE_wall(double E, double pois)
+double GranSubMod::mix_stiffnessE_wall(double E, double pois)
 {
   double factor = 2 * (1 - pois);
   return E / factor;
@@ -112,7 +112,7 @@ double GSM::mix_stiffnessE_wall(double E, double pois)
    mixing of shear modulus (G) for walls
 ------------------------------------------------------------------------ */
 
-double GSM::mix_stiffnessG_wall(double E, double pois)
+double GranSubMod::mix_stiffnessG_wall(double E, double pois)
 {
   double factor = 32.0 * (2 - pois) * (1 + pois);
   return E / factor;
@@ -122,7 +122,7 @@ double GSM::mix_stiffnessG_wall(double E, double pois)
    mixing of everything else
 ------------------------------------------------------------------------- */
 
-double GSM::mix_geom(double val1, double val2)
+double GranSubMod::mix_geom(double val1, double val2)
 {
   return sqrt(val1 * val2);
 }

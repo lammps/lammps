@@ -13,20 +13,20 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(temp/integrate,FixTempIntegrate);
+FixStyle(heat/flow/sphere/temp,FixHeatFlowSphereTemp);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_TEMP_INTEGRATE_H
-#define LMP_FIX_TEMP_INTEGRATE_H
+#ifndef LMP_FIX_HEAT_FLOW_SPHERE_TEMP_H
+#define LMP_FIX_HEAT_FLOW_SPHERE_TEMP_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixTempIntegrate : public Fix {
+class FixHeatFlowSphereTemp : public Fix {
  public:
-  FixTempIntegrate(class LAMMPS *, int, char **);
+  FixHeatFlowSphereTemp(class LAMMPS *, int, char **);
 
   int setmask() override;
   void init() override;

@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gsm_heat.h"
+#include "gran_sub_mod_heat.h"
 #include "granular_model.h"
 #include "error.h"
 
@@ -23,17 +23,17 @@ using namespace Granular_NS;
    Default heat conduction
 ------------------------------------------------------------------------- */
 
-GSMHeat::GSMHeat(GranularModel *gm, LAMMPS *lmp) : GSM(gm, lmp) {}
+GranSubModHeat::GranSubModHeat(GranularModel *gm, LAMMPS *lmp) : GranSubMod(gm, lmp) {}
 
 /* ----------------------------------------------------------------------
    Area-based heat conduction
 ------------------------------------------------------------------------- */
 
-GSMHeatNone::GSMHeatNone(GranularModel *gm, LAMMPS *lmp) : GSMHeat(gm, lmp) {}
+GranSubModHeatNone::GranSubModHeatNone(GranularModel *gm, LAMMPS *lmp) : GranSubModHeat(gm, lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-double GSMHeatNone::calculate_heat()
+double GranSubModHeatNone::calculate_heat()
 {
   return 0.0;
 }
@@ -42,7 +42,7 @@ double GSMHeatNone::calculate_heat()
    Area-based heat conduction
 ------------------------------------------------------------------------- */
 
-GSMHeatArea::GSMHeatArea(GranularModel *gm, LAMMPS *lmp) : GSMHeat(gm, lmp)
+GranSubModHeatArea::GranSubModHeatArea(GranularModel *gm, LAMMPS *lmp) : GranSubModHeat(gm, lmp)
 {
   num_coeffs = 1;
   area_flag = 1;
@@ -50,7 +50,7 @@ GSMHeatArea::GSMHeatArea(GranularModel *gm, LAMMPS *lmp) : GSMHeat(gm, lmp)
 
 /* ---------------------------------------------------------------------- */
 
-void GSMHeatArea::coeffs_to_local()
+void GranSubModHeatArea::coeffs_to_local()
 {
   conductivity = coeffs[0];
 
@@ -59,7 +59,7 @@ void GSMHeatArea::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-double GSMHeatArea::calculate_heat()
+double GranSubModHeatArea::calculate_heat()
 {
   return conductivity * gm->area * (gm->Tj - gm->Ti);
 }

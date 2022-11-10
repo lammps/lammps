@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gsm_normal.h"
+#include "gran_sub_mod_normal.h"
 #include "granular_model.h"
 #include "error.h"
 #include "math_const.h"
@@ -33,7 +33,7 @@ using namespace MathConst;
    Default normal model
 ------------------------------------------------------------------------- */
 
-GSMNormal::GSMNormal(GranularModel *gm, LAMMPS *lmp) : GSM(gm, lmp)
+GranSubModNormal::GranSubModNormal(GranularModel *gm, LAMMPS *lmp) : GranSubMod(gm, lmp)
 {
   material_properties = 0;
   cohesive_flag = 0;
@@ -41,7 +41,7 @@ GSMNormal::GSMNormal(GranularModel *gm, LAMMPS *lmp) : GSM(gm, lmp)
 
 /* ---------------------------------------------------------------------- */
 
-bool GSMNormal::touch()
+bool GranSubModNormal::touch()
 {
   bool touchflag = (gm->rsq < gm->radsum * gm->radsum);
   return touchflag;
@@ -49,7 +49,7 @@ bool GSMNormal::touch()
 
 /* ---------------------------------------------------------------------- */
 
-double GSMNormal::pulloff_distance(double radi, double radj)
+double GranSubModNormal::pulloff_distance(double radi, double radj)
 {
   //called outside of compute(), do not assume correct geometry defined in contact
   return radi + radj;
@@ -57,14 +57,14 @@ double GSMNormal::pulloff_distance(double radi, double radj)
 
 /* ---------------------------------------------------------------------- */
 
-double GSMNormal::calculate_area()
+double GranSubModNormal::calculate_area()
 {
   return sqrt(gm->dR);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormal::set_fncrit()
+void GranSubModNormal::set_fncrit()
 {
   Fncrit = fabs(gm->Fntot);
 }
@@ -73,11 +73,11 @@ void GSMNormal::set_fncrit()
    No model
 ------------------------------------------------------------------------- */
 
-GSMNormalNone::GSMNormalNone(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp) {}
+GranSubModNormalNone::GranSubModNormalNone(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-double GSMNormalNone::calculate_forces()
+double GranSubModNormalNone::calculate_forces()
 {
   return 0.0;
 }
@@ -86,14 +86,14 @@ double GSMNormalNone::calculate_forces()
    Hookean normal force
 ------------------------------------------------------------------------- */
 
-GSMNormalHooke::GSMNormalHooke(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
+GranSubModNormalHooke::GranSubModNormalHooke(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
 {
   num_coeffs = 2;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalHooke::coeffs_to_local()
+void GranSubModNormalHooke::coeffs_to_local()
 {
   k = coeffs[0];
   damp = coeffs[1];
@@ -103,7 +103,7 @@ void GSMNormalHooke::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-double GSMNormalHooke::calculate_forces()
+double GranSubModNormalHooke::calculate_forces()
 {
   return k * gm->delta;
 }
@@ -112,7 +112,7 @@ double GSMNormalHooke::calculate_forces()
    Hertzian normal force
 ------------------------------------------------------------------------- */
 
-GSMNormalHertz::GSMNormalHertz(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
+GranSubModNormalHertz::GranSubModNormalHertz(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
 {
   num_coeffs = 2;
   area_flag = 1;
@@ -120,7 +120,7 @@ GSMNormalHertz::GSMNormalHertz(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, l
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalHertz::coeffs_to_local()
+void GranSubModNormalHertz::coeffs_to_local()
 {
   k = coeffs[0];
   damp = coeffs[1];
@@ -130,7 +130,7 @@ void GSMNormalHertz::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-double GSMNormalHertz::calculate_forces()
+double GranSubModNormalHertz::calculate_forces()
 {
   return k * gm->area * gm->delta;
 }
@@ -139,7 +139,7 @@ double GSMNormalHertz::calculate_forces()
    Hertzian normal force with material properties
 ------------------------------------------------------------------------- */
 
-GSMNormalHertzMaterial::GSMNormalHertzMaterial(GranularModel *gm, LAMMPS *lmp) : GSMNormalHertz(gm, lmp)
+GranSubModNormalHertzMaterial::GranSubModNormalHertzMaterial(GranularModel *gm, LAMMPS *lmp) : GranSubModNormalHertz(gm, lmp)
 {
   material_properties = 1;
   num_coeffs = 3;
@@ -148,7 +148,7 @@ GSMNormalHertzMaterial::GSMNormalHertzMaterial(GranularModel *gm, LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalHertzMaterial::coeffs_to_local()
+void GranSubModNormalHertzMaterial::coeffs_to_local()
 {
   Emod = coeffs[0];
   damp = coeffs[1];
@@ -164,7 +164,7 @@ void GSMNormalHertzMaterial::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalHertzMaterial::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModNormalHertzMaterial::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
   coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
@@ -176,7 +176,7 @@ void GSMNormalHertzMaterial::mix_coeffs(double* icoeffs, double* jcoeffs)
    DMT normal force
 ------------------------------------------------------------------------- */
 
-GSMNormalDMT::GSMNormalDMT(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
+GranSubModNormalDMT::GranSubModNormalDMT(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
 {
   material_properties = 1;
   cohesive_flag = 1;
@@ -186,7 +186,7 @@ GSMNormalDMT::GSMNormalDMT(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalDMT::coeffs_to_local()
+void GranSubModNormalDMT::coeffs_to_local()
 {
   Emod = coeffs[0];
   damp = coeffs[1];
@@ -203,7 +203,7 @@ void GSMNormalDMT::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalDMT::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModNormalDMT::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
   coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
@@ -214,7 +214,7 @@ void GSMNormalDMT::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 /* ---------------------------------------------------------------------- */
 
-double GSMNormalDMT::calculate_forces()
+double GranSubModNormalDMT::calculate_forces()
 {
   Fne = k * gm->area * gm->delta;
   F_pulloff = 4.0 * MathConst::MY_PI * cohesion * gm->Reff;
@@ -224,7 +224,7 @@ double GSMNormalDMT::calculate_forces()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalDMT::set_fncrit()
+void GranSubModNormalDMT::set_fncrit()
 {
   Fncrit = fabs(Fne + 2.0 * F_pulloff);
 }
@@ -233,7 +233,7 @@ void GSMNormalDMT::set_fncrit()
    JKR normal force
 ------------------------------------------------------------------------- */
 
-GSMNormalJKR::GSMNormalJKR(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
+GranSubModNormalJKR::GranSubModNormalJKR(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
 {
   material_properties = 1;
   cohesive_flag = 1;
@@ -244,7 +244,7 @@ GSMNormalJKR::GSMNormalJKR(GranularModel *gm, LAMMPS *lmp) : GSMNormal(gm, lmp)
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalJKR::coeffs_to_local()
+void GranSubModNormalJKR::coeffs_to_local()
 {
   Emod = coeffs[0];
   damp = coeffs[1];
@@ -264,7 +264,7 @@ void GSMNormalJKR::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalJKR::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModNormalJKR::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
   coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
@@ -275,7 +275,7 @@ void GSMNormalJKR::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 /* ---------------------------------------------------------------------- */
 
-bool GSMNormalJKR::touch()
+bool GranSubModNormalJKR::touch()
 {
   double area_at_pulloff, R2, delta_pulloff, dist_pulloff;
   bool touchflag;
@@ -297,7 +297,7 @@ bool GSMNormalJKR::touch()
   called outside of compute(), do not assume geometry defined in contact
 ------------------------------------------------------------------------- */
 
-double GSMNormalJKR::pulloff_distance(double radi, double radj)
+double GranSubModNormalJKR::pulloff_distance(double radi, double radj)
 {
   double area_at_pulloff, Reff_tmp;
 
@@ -310,7 +310,7 @@ double GSMNormalJKR::pulloff_distance(double radi, double radj)
 
 /* ---------------------------------------------------------------------- */
 
-double GSMNormalJKR::calculate_area()
+double GranSubModNormalJKR::calculate_area()
 {
   double R2, dR2, t0, t1, t2, t3, t4, t5, t6;
   double sqrt1, sqrt2, sqrt3;
@@ -335,7 +335,7 @@ double GSMNormalJKR::calculate_area()
 
 /* ---------------------------------------------------------------------- */
 
-double GSMNormalJKR::calculate_forces()
+double GranSubModNormalJKR::calculate_forces()
 {
   double a2;
   a2 = gm->area * gm->area;
@@ -347,7 +347,7 @@ double GSMNormalJKR::calculate_forces()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMNormalJKR::set_fncrit()
+void GranSubModNormalJKR::set_fncrit()
 {
   Fncrit = fabs(Fne + 2.0 * F_pulloff);
 }

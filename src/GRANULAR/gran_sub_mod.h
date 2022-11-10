@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_GSM_H_
-#define LMP_GSM_H_
+#ifndef LMP_GRAN_SUB_MOD_H_
+#define LMP_GRAN_SUB_MOD_H_
 
 #include "granular_model.h"
 #include "pointers.h"    // IWYU pragma: export
@@ -20,10 +20,10 @@
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-class GSM : protected Pointers {
+class GranSubMod : protected Pointers {
  public:
-  GSM(class GranularModel *, class LAMMPS *);
-  virtual ~GSM();
+  GranSubMod(class GranularModel *, class LAMMPS *);
+  virtual ~GranSubMod();
 
   int num_coeffs;
   double *coeffs;
@@ -59,4 +59,4 @@ class GSM : protected Pointers {
 }    // namespace GranularModel
 }    // namespace LAMMPS_NS
 
-#endif /* GSM_H_ */
+#endif /* GRAN_SUB_MOD_H_ */

@@ -20,11 +20,14 @@ PairStyle(granular,PairGranular);
 #ifndef LMP_PAIR_GRANULAR_H
 #define LMP_PAIR_GRANULAR_H
 
-#include "granular_model.h"
 #include "pair.h"
 #include <vector>
 
 namespace LAMMPS_NS {
+
+namespace Granular_NS {
+  class GranularModel;
+}
 
 class PairGranular : public Pair {
  public:
@@ -73,7 +76,7 @@ class PairGranular : public Pair {
 
   // granular models
   int nmodels, maxmodels;
-  Granular_NS::GranularModel** models_list;
+  class Granular_NS::GranularModel** models_list;
   int **types_indices;
 
   // optional user-specified global cutoff, per-type user-specified cutoffs

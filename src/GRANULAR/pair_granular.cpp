@@ -23,7 +23,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "granular_model.h"
-#include "gsm.h"
+#include "gran_sub_mod.h"
 #include "error.h"
 #include "fix.h"
 #include "fix_dummy.h"

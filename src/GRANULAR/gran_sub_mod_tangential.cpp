@@ -12,9 +12,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gsm_damping.h"
-#include "gsm_normal.h"
-#include "gsm_tangential.h"
+#include "gran_sub_mod_damping.h"
+#include "gran_sub_mod_normal.h"
+#include "gran_sub_mod_tangential.h"
 #include "granular_model.h"
 #include "error.h"
 #include "math_const.h"
@@ -25,23 +25,25 @@ using namespace Granular_NS;
 using namespace MathConst;
 using namespace MathExtra;
 
+#define EPSILON 1e-10
+
 /* ----------------------------------------------------------------------
    Default model
 ------------------------------------------------------------------------- */
 
-GSMTangential::GSMTangential(GranularModel *gm, LAMMPS *lmp) : GSM(gm, lmp) {}
+GranSubModTangential::GranSubModTangential(GranularModel *gm, LAMMPS *lmp) : GranSubMod(gm, lmp) {}
 
 /* ----------------------------------------------------------------------
    No model
 ------------------------------------------------------------------------- */
 
-GSMTangentialNone::GSMTangentialNone(GranularModel *gm, LAMMPS *lmp) : GSMTangential(gm, lmp) {}
+GranSubModTangentialNone::GranSubModTangentialNone(GranularModel *gm, LAMMPS *lmp) : GranSubModTangential(gm, lmp) {}
 
 /* ----------------------------------------------------------------------
    Linear model with no history
 ------------------------------------------------------------------------- */
 
-GSMTangentialLinearNoHistory::GSMTangentialLinearNoHistory(GranularModel *gm, LAMMPS *lmp) : GSMTangential(gm, lmp)
+GranSubModTangentialLinearNoHistory::GranSubModTangentialLinearNoHistory(GranularModel *gm, LAMMPS *lmp) : GranSubModTangential(gm, lmp)
 {
   num_coeffs = 2;
   size_history = 0;
@@ -49,7 +51,7 @@ GSMTangentialLinearNoHistory::GSMTangentialLinearNoHistory(GranularModel *gm, LA
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTangentialLinearNoHistory::coeffs_to_local()
+void GranSubModTangentialLinearNoHistory::coeffs_to_local()
 {
   k = 0.0; // No tangential stiffness with no history
   xt = coeffs[0];
@@ -61,7 +63,7 @@ void GSMTangentialLinearNoHistory::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTangentialLinearNoHistory::calculate_forces()
+void GranSubModTangentialLinearNoHistory::calculate_forces()
 {
   // classic pair gran/hooke (no history)
   damp = xt * gm->damping_model->damp_prefactor;
@@ -80,7 +82,7 @@ void GSMTangentialLinearNoHistory::calculate_forces()
    Linear model with history
 ------------------------------------------------------------------------- */
 
-GSMTangentialLinearHistory::GSMTangentialLinearHistory(GranularModel *gm, LAMMPS *lmp) : GSMTangential(gm, lmp)
+GranSubModTangentialLinearHistory::GranSubModTangentialLinearHistory(GranularModel *gm, LAMMPS *lmp) : GranSubModTangential(gm, lmp)
 {
   num_coeffs = 3;
   size_history = 3;
@@ -88,7 +90,7 @@ GSMTangentialLinearHistory::GSMTangentialLinearHistory(GranularModel *gm, LAMMPS
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTangentialLinearHistory::coeffs_to_local()
+void GranSubModTangentialLinearHistory::coeffs_to_local()
 {
   k = coeffs[0];
   xt = coeffs[1];
@@ -100,7 +102,7 @@ void GSMTangentialLinearHistory::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTangentialLinearHistory::calculate_forces()
+void GranSubModTangentialLinearHistory::calculate_forces()
 {
   // Note: this is the same as the base Mindlin calculation except k isn't scaled by area
   double magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl, temp_array[3];
@@ -163,14 +165,14 @@ void GSMTangentialLinearHistory::calculate_forces()
    Linear model with history from pair gran/hooke/history
 ------------------------------------------------------------------------- */
 
-GSMTangentialLinearHistoryClassic::GSMTangentialLinearHistoryClassic(GranularModel *gm, LAMMPS *lmp) : GSMTangentialLinearHistory(gm, lmp)
+GranSubModTangentialLinearHistoryClassic::GranSubModTangentialLinearHistoryClassic(GranularModel *gm, LAMMPS *lmp) : GranSubModTangentialLinearHistory(gm, lmp)
 {
   area_flag = 1; // Sets gran/hooke/history behavior
 }
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTangentialLinearHistoryClassic::calculate_forces()
+void GranSubModTangentialLinearHistoryClassic::calculate_forces()
 {
   double magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl;
   double temp_array[3];
@@ -222,7 +224,7 @@ void GSMTangentialLinearHistoryClassic::calculate_forces()
    Mindlin from pair gran/hertz/history
 ------------------------------------------------------------------------- */
 
-GSMTangentialMindlinClassic::GSMTangentialMindlinClassic(GranularModel *gm, LAMMPS *lmp) : GSMTangentialLinearHistoryClassic(gm, lmp)
+GranSubModTangentialMindlinClassic::GranSubModTangentialMindlinClassic(GranularModel *gm, LAMMPS *lmp) : GranSubModTangentialLinearHistoryClassic(gm, lmp)
 {
   area_flag = 1; // Sets gran/hertz/history behavior
 }
@@ -231,7 +233,7 @@ GSMTangentialMindlinClassic::GSMTangentialMindlinClassic(GranularModel *gm, LAMM
    Mindlin model
 ------------------------------------------------------------------------- */
 
-GSMTangentialMindlin::GSMTangentialMindlin(GranularModel *gm, LAMMPS *lmp) : GSMTangential(gm, lmp)
+GranSubModTangentialMindlin::GranSubModTangentialMindlin(GranularModel *gm, LAMMPS *lmp) : GranSubModTangential(gm, lmp)
 {
   num_coeffs = 3;
   size_history = 3;
@@ -242,7 +244,7 @@ GSMTangentialMindlin::GSMTangentialMindlin(GranularModel *gm, LAMMPS *lmp) : GSM
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTangentialMindlin::coeffs_to_local()
+void GranSubModTangentialMindlin::coeffs_to_local()
 {
   k = coeffs[0];
   xt = coeffs[1];
@@ -268,7 +270,7 @@ void GSMTangentialMindlin::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTangentialMindlin::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModTangentialMindlin::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
   if (icoeffs[0] == -1 || jcoeffs[0] == -1) coeffs[0] = -1;
   else coeffs[0] = mix_geom(icoeffs[0], jcoeffs[0]);
@@ -279,7 +281,7 @@ void GSMTangentialMindlin::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 /* ---------------------------------------------------------------------- */
 
-void GSMTangentialMindlin::calculate_forces()
+void GranSubModTangentialMindlin::calculate_forces()
 {
   double k_scaled, magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl;
   double temp_array[3];
@@ -366,7 +368,7 @@ void GSMTangentialMindlin::calculate_forces()
    Mindlin force model
 ------------------------------------------------------------------------- */
 
-GSMTangentialMindlinForce::GSMTangentialMindlinForce(GranularModel *gm, LAMMPS *lmp) : GSMTangentialMindlin(gm, lmp)
+GranSubModTangentialMindlinForce::GranSubModTangentialMindlinForce(GranularModel *gm, LAMMPS *lmp) : GranSubModTangentialMindlin(gm, lmp)
 {
   mindlin_force = 1;
 }
@@ -375,7 +377,7 @@ GSMTangentialMindlinForce::GSMTangentialMindlinForce(GranularModel *gm, LAMMPS *
    Mindlin rescale model
 ------------------------------------------------------------------------- */
 
-GSMTangentialMindlinRescale::GSMTangentialMindlinRescale(GranularModel *gm, LAMMPS *lmp) : GSMTangentialMindlin(gm, lmp)
+GranSubModTangentialMindlinRescale::GranSubModTangentialMindlinRescale(GranularModel *gm, LAMMPS *lmp) : GranSubModTangentialMindlin(gm, lmp)
 {
   size_history = 4;
   mindlin_rescale = 1;
@@ -390,7 +392,7 @@ GSMTangentialMindlinRescale::GSMTangentialMindlinRescale(GranularModel *gm, LAMM
    Mindlin rescale force model
 ------------------------------------------------------------------------- */
 
-GSMTangentialMindlinRescaleForce::GSMTangentialMindlinRescaleForce(GranularModel *gm, LAMMPS *lmp) : GSMTangentialMindlin(gm, lmp)
+GranSubModTangentialMindlinRescaleForce::GranSubModTangentialMindlinRescaleForce(GranularModel *gm, LAMMPS *lmp) : GranSubModTangentialMindlin(gm, lmp)
 {
   size_history = 4;
   mindlin_force = 1;

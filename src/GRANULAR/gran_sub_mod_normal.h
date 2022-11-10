@@ -11,46 +11,46 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GSM_CLASS
+#ifdef GRAN_SUB_MOD_CLASS
 // clang-format off
-GSMStyle(none,
-         GSMNormalNone,
+GranSubModStyle(none,
+         GranSubModNormalNone,
          NORMAL);
 
-GSMStyle(hooke,
-         GSMNormalHooke,
+GranSubModStyle(hooke,
+         GranSubModNormalHooke,
          NORMAL);
 
-GSMStyle(hertz,
-         GSMNormalHertz,
+GranSubModStyle(hertz,
+         GranSubModNormalHertz,
          NORMAL);
 
-GSMStyle(hertz/material,
-         GSMNormalHertzMaterial,
+GranSubModStyle(hertz/material,
+         GranSubModNormalHertzMaterial,
          NORMAL);
 
-GSMStyle(dmt,
-         GSMNormalDMT,
+GranSubModStyle(dmt,
+         GranSubModNormalDMT,
          NORMAL);
 
-GSMStyle(jkr,
-         GSMNormalJKR,
+GranSubModStyle(jkr,
+         GranSubModNormalJKR,
          NORMAL);
 // clang-format on
 #else
 
-#ifndef GSM_NORMAL_H_
-#define GSM_NORMAL_H_
+#ifndef GRAN_SUB_MOD_NORMAL_H_
+#define GRAN_SUB_MOD_NORMAL_H_
 
-#include "gsm.h"
+#include "gran_sub_mod.h"
 
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-class GSMNormal : public GSM {
+class GranSubModNormal : public GranSubMod {
  public:
-  GSMNormal(class GranularModel *, class LAMMPS *);
-  ~GSMNormal() {};
+  GranSubModNormal(class GranularModel *, class LAMMPS *);
+  ~GranSubModNormal() {};
   virtual void coeffs_to_local() {};
   virtual void init() {};
   virtual bool touch();
@@ -66,17 +66,17 @@ class GSMNormal : public GSM {
 
 /* ---------------------------------------------------------------------- */
 
-class GSMNormalNone : public GSMNormal {
+class GranSubModNormalNone : public GranSubModNormal {
  public:
-  GSMNormalNone(class GranularModel *, class LAMMPS *);
+  GranSubModNormalNone(class GranularModel *, class LAMMPS *);
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class GSMNormalHooke : public GSMNormal {
+class GranSubModNormalHooke : public GranSubModNormal {
  public:
-  GSMNormalHooke(class GranularModel *, class LAMMPS *);
+  GranSubModNormalHooke(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   double calculate_forces();
  protected:
@@ -85,9 +85,9 @@ class GSMNormalHooke : public GSMNormal {
 
 /* ---------------------------------------------------------------------- */
 
-class GSMNormalHertz : public GSMNormal {
+class GranSubModNormalHertz : public GranSubModNormal {
  public:
-  GSMNormalHertz(class GranularModel *, class LAMMPS *);
+  GranSubModNormalHertz(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   double calculate_forces();
  protected:
@@ -96,18 +96,18 @@ class GSMNormalHertz : public GSMNormal {
 
 /* ---------------------------------------------------------------------- */
 
-class GSMNormalHertzMaterial : public GSMNormalHertz {
+class GranSubModNormalHertzMaterial : public GranSubModNormalHertz {
  public:
-  GSMNormalHertzMaterial(class GranularModel *, class LAMMPS *);
+  GranSubModNormalHertzMaterial(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class GSMNormalDMT : public GSMNormal {
+class GranSubModNormalDMT : public GranSubModNormal {
  public:
-  GSMNormalDMT(class GranularModel *, class LAMMPS *);
+  GranSubModNormalDMT(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
   double calculate_forces();
@@ -119,9 +119,9 @@ class GSMNormalDMT : public GSMNormal {
 
 /* ---------------------------------------------------------------------- */
 
-class GSMNormalJKR : public GSMNormal {
+class GranSubModNormalJKR : public GranSubModNormal {
  public:
-  GSMNormalJKR(class GranularModel *, class LAMMPS *);
+  GranSubModNormalJKR(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
   bool touch() override;
@@ -137,5 +137,5 @@ class GSMNormalJKR : public GSMNormal {
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS
 
-#endif /*GSM_NORMAL_H_ */
-#endif /*GSM_CLASS_H_ */
+#endif /*GRAN_SUB_MOD_NORMAL_H_ */
+#endif /*GRAN_SUB_MOD_CLASS_H_ */

@@ -22,12 +22,12 @@
 ----------------------------------------------------------------------- */
 
 #include "granular_model.h"
-#include "gsm.h"
+#include "gran_sub_mod.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
-#include "style_gsm.h"  // IWYU pragma: keep
+#include "style_gran_sub_mod.h"  // IWYU pragma: keep
 
 #include <cmath>
 
@@ -36,10 +36,10 @@ using namespace Granular_NS;
 using namespace MathExtra;
 
 /* ----------------------------------------------------------------------
-   one instance per GSM style in style_gsm.h
+   one instance per GranSubMod style in style_gran_sub_mod.h
 ------------------------------------------------------------------------- */
 
-template <typename T> static GSM *gsm_creator(GranularModel *gm, LAMMPS *lmp)
+template <typename T> static GranSubMod *gran_sub_mod_creator(GranularModel *gm, LAMMPS *lmp)
 {
   return new T(gm, lmp);
 }
@@ -64,29 +64,29 @@ GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
   for (int i = 0; i < NSUBMODELS; i++) sub_models[i] = nullptr;
   transfer_history_factor = nullptr;
 
-  // extract info from GSM classes listed in style_gsm.h
+  // extract info from GranSubMod classes listed in style_gran_sub_mod.h
 
   nclass = 0;
 
-#define GSM_CLASS
-#define GSMStyle(key,Class,type) nclass++;
-#include "style_gsm.h"  // IWYU pragma: keep
-#undef GSMStyle
-#undef GSM_CLASS
+#define GRANSUBMOD_CLASS
+#define GranSubModStyle(key,Class,type) nclass++;
+#include "style_gran_sub_mod.h"  // IWYU pragma: keep
+#undef GranSubModStyle
+#undef GRANSUBMOD_CLASS
 
-  gsmclass = new GSMCreator[nclass];
-  gsmnames = new char*[nclass];
-  gsmtypes = new int[nclass];
+  gran_sub_mod_class = new GranSubModCreator[nclass];
+  gran_sub_mod_names = new char*[nclass];
+  gran_sub_mod_types = new int[nclass];
   nclass = 0;
 
-#define GSM_CLASS
-#define GSMStyle(key,Class,type) \
-  gsmclass[nclass] = &gsm_creator<Class>;   \
-  gsmnames[nclass] = (char *) #key; \
-  gsmtypes[nclass++] = type;
-#include "style_gsm.h"  // IWYU pragma: keep
-#undef GSMStyle
-#undef GSM_CLASS
+#define GRANSUBMOD_CLASS
+#define GranSubModStyle(key,Class,type) \
+  gran_sub_mod_class[nclass] = &gran_sub_mod_creator<Class>;   \
+  gran_sub_mod_names[nclass] = (char *) #key; \
+  gran_sub_mod_types[nclass++] = type;
+#include "style_gran_sub_mod.h"  // IWYU pragma: keep
+#undef GranSubModStyle
+#undef GRANSUBMOD_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -94,9 +94,9 @@ GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
 GranularModel::~GranularModel()
 {
   delete [] transfer_history_factor;
-  delete [] gsmclass;
-  delete [] gsmnames;
-  delete [] gsmtypes;
+  delete [] gran_sub_mod_class;
+  delete [] gran_sub_mod_names;
+  delete [] gran_sub_mod_types;
 
   for (int i = 0; i < NSUBMODELS; i ++) delete sub_models[i];
 }
@@ -132,11 +132,11 @@ void GranularModel::construct_submodel(std::string model_name, SubmodelType mode
 {
   int i;
   for (i = 0; i < nclass; i++) {
-    if (gsmtypes[i] == model_type) {
-      if (strcmp(gsmnames[i], model_name.c_str()) == 0) {
-        GSMCreator &gsm_creator = gsmclass[i];
+    if (gran_sub_mod_types[i] == model_type) {
+      if (strcmp(gran_sub_mod_names[i], model_name.c_str()) == 0) {
+        GranSubModCreator &gran_sub_mod_creator = gran_sub_mod_class[i];
         delete sub_models[model_type];
-        sub_models[model_type] = gsm_creator(this, lmp);
+        sub_models[model_type] = gran_sub_mod_creator(this, lmp);
         break;
       }
     }
@@ -148,12 +148,12 @@ void GranularModel::construct_submodel(std::string model_name, SubmodelType mode
   sub_models[model_type]->name.assign(model_name);
   sub_models[model_type]->allocate_coeffs();
 
-  if (model_type == NORMAL) normal_model = dynamic_cast<GSMNormal *> (sub_models[NORMAL]);
-  if (model_type == DAMPING) damping_model = dynamic_cast<GSMDamping *> (sub_models[DAMPING]);
-  if (model_type == TANGENTIAL) tangential_model = dynamic_cast<GSMTangential *> (sub_models[TANGENTIAL]);
-  if (model_type == ROLLING) rolling_model = dynamic_cast<GSMRolling *> (sub_models[ROLLING]);
-  if (model_type == TWISTING) twisting_model = dynamic_cast<GSMTwisting *> (sub_models[TWISTING]);
-  if (model_type == HEAT) heat_model = dynamic_cast<GSMHeat *> (sub_models[HEAT]);
+  if (model_type == NORMAL) normal_model = dynamic_cast<GranSubModNormal *> (sub_models[NORMAL]);
+  if (model_type == DAMPING) damping_model = dynamic_cast<GranSubModDamping *> (sub_models[DAMPING]);
+  if (model_type == TANGENTIAL) tangential_model = dynamic_cast<GranSubModTangential *> (sub_models[TANGENTIAL]);
+  if (model_type == ROLLING) rolling_model = dynamic_cast<GranSubModRolling *> (sub_models[ROLLING]);
+  if (model_type == TWISTING) twisting_model = dynamic_cast<GranSubModTwisting *> (sub_models[TWISTING]);
+  if (model_type == HEAT) heat_model = dynamic_cast<GranSubModHeat *> (sub_models[HEAT]);
 }
 
 /* ---------------------------------------------------------------------- */

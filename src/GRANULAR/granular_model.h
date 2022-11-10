@@ -19,8 +19,6 @@
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-#define EPSILON 1e-10
-
 enum SubmodelType {
   NORMAL = 0,
   DAMPING,
@@ -38,13 +36,13 @@ enum ContactType {
 };
 
 // forward declarations
-class GSM;
-class GSMNormal;
-class GSMDamping;
-class GSMTangential;
-class GSMRolling;
-class GSMTwisting;
-class GSMHeat;
+class GranSubMod;
+class GranSubModNormal;
+class GranSubModDamping;
+class GranSubModTangential;
+class GranSubModRolling;
+class GranSubModTwisting;
+class GranSubModHeat;
 
 class GranularModel : protected Pointers {
  public:
@@ -64,13 +62,13 @@ class GranularModel : protected Pointers {
   void read_restart(FILE *);
 
   // Sub models
-  GSMNormal *normal_model;
-  GSMDamping *damping_model;
-  GSMTangential *tangential_model;
-  GSMRolling *rolling_model;
-  GSMTwisting *twisting_model;
-  GSMHeat *heat_model;
-  GSM *sub_models[NSUBMODELS];  // Need to resize if we add more model flavors
+  GranSubModNormal *normal_model;
+  GranSubModDamping *damping_model;
+  GranSubModTangential *tangential_model;
+  GranSubModRolling *rolling_model;
+  GranSubModTwisting *twisting_model;
+  GranSubModHeat *heat_model;
+  GranSubMod *sub_models[NSUBMODELS];  // Need to resize if we add more model flavors
 
   // Extra options
   int beyond_contact, limit_damping, history_update;
@@ -102,10 +100,10 @@ class GranularModel : protected Pointers {
 
   int nclass;
 
-  typedef class GSM *(*GSMCreator)(class GranularModel *, class LAMMPS *);
-  GSMCreator *gsmclass;
-  char **gsmnames;
-  int *gsmtypes;
+  typedef class GranSubMod *(*GranSubModCreator)(class GranularModel *, class LAMMPS *);
+  GranSubModCreator *gran_sub_mod_class;
+  char **gran_sub_mod_names;
+  int *gran_sub_mod_types;
 };
 
 }    // namespace Granular_NS

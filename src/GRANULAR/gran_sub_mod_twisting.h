@@ -11,34 +11,34 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GSM_CLASS
+#ifdef GRAN_SUB_MOD_CLASS
 // clang-format off
-GSMStyle(none,
-         GSMTwistingNone,
+GranSubModStyle(none,
+         GranSubModTwistingNone,
          TWISTING);
 
-GSMStyle(marshall,
-         GSMTwistingMarshall,
+GranSubModStyle(marshall,
+         GranSubModTwistingMarshall,
          TWISTING);
 
-GSMStyle(sds,
-         GSMTwistingSDS,
+GranSubModStyle(sds,
+         GranSubModTwistingSDS,
          TWISTING);
 // clang-format on
 #else
 
-#ifndef GSM_TWISTING_H_
-#define GSM_TWISTING_H_
+#ifndef GRAN_SUB_MOD_TWISTING_H_
+#define GRAN_SUB_MOD_TWISTING_H_
 
-#include "gsm.h"
+#include "gran_sub_mod.h"
 
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-class GSMTwisting : public GSM {
+class GranSubModTwisting : public GranSubMod {
  public:
-  GSMTwisting(class GranularModel *, class LAMMPS *);
-  virtual ~GSMTwisting() {};
+  GranSubModTwisting(class GranularModel *, class LAMMPS *);
+  virtual ~GranSubModTwisting() {};
   virtual void coeffs_to_local() {};
   virtual void init() {};
   virtual void calculate_forces() = 0;
@@ -46,17 +46,17 @@ class GSMTwisting : public GSM {
 
 /* ---------------------------------------------------------------------- */
 
-class GSMTwistingNone : public GSMTwisting {
+class GranSubModTwistingNone : public GranSubModTwisting {
  public:
-  GSMTwistingNone(class GranularModel *, class LAMMPS *);
+  GranSubModTwistingNone(class GranularModel *, class LAMMPS *);
   void calculate_forces() {};
 };
 
 /* ---------------------------------------------------------------------- */
 
-class GSMTwistingMarshall : public GSMTwisting {
+class GranSubModTwistingMarshall : public GranSubModTwisting {
  public:
-  GSMTwistingMarshall(class GranularModel *, class LAMMPS *);
+  GranSubModTwistingMarshall(class GranularModel *, class LAMMPS *);
   void calculate_forces();
   void init();
  protected:
@@ -65,9 +65,9 @@ class GSMTwistingMarshall : public GSMTwisting {
 
 /* ---------------------------------------------------------------------- */
 
-class GSMTwistingSDS : public GSMTwisting {
+class GranSubModTwistingSDS : public GranSubModTwisting {
  public:
-  GSMTwistingSDS(class GranularModel *, class LAMMPS *);
+  GranSubModTwistingSDS(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   void calculate_forces();
  protected:
@@ -77,5 +77,5 @@ class GSMTwistingSDS : public GSMTwisting {
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS
 
-#endif /*GSM_TWISTING_H_ */
-#endif /*GSM_CLASS_H_ */
+#endif /*GRAN_SUB_MOD_TWISTING_H_ */
+#endif /*GRAN_SUB_MOD_CLASS_H_ */

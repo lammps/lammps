@@ -11,56 +11,56 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GSM_CLASS
+#ifdef GRAN_SUB_MOD_CLASS
 // clang-format off
-GSMStyle(none,
-         GSMRollingNone,
-         ROLLING);
+GranSubModStyle(none,
+         GranSubModHeatNone,
+         HEAT);
 
-GSMStyle(sds,
-         GSMRollingSDS,
-         ROLLING);
+GranSubModStyle(area,
+         GranSubModHeatArea,
+         HEAT);
 // clang-format on
 #else
 
-#ifndef GSM_ROLLING_H_
-#define GSM_ROLLING_H_
+#ifndef GRAN_SUB_MOD_HEAT_H_
+#define GRAN_SUB_MOD_HEAT_H_
 
-#include "gsm.h"
+#include "gran_sub_mod.h"
 
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-class GSMRolling : public GSM {
+class GranSubModHeat : public GranSubMod {
  public:
-  GSMRolling(class GranularModel *, class LAMMPS *);
-  ~GSMRolling() {};
+  GranSubModHeat(class GranularModel *, class LAMMPS *);
+  ~GranSubModHeat() {};
   virtual void coeffs_to_local() {};
   virtual void init() {};
-  virtual void calculate_forces() = 0;
+  virtual double calculate_heat() = 0;
 };
 
 /* ---------------------------------------------------------------------- */
 
-class GSMRollingNone : public GSMRolling {
+class GranSubModHeatNone : public GranSubModHeat {
  public:
-  GSMRollingNone(class GranularModel *, class LAMMPS *);
-  void calculate_forces() {};
+  GranSubModHeatNone(class GranularModel *, class LAMMPS *);
+  double calculate_heat();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class GSMRollingSDS : public GSMRolling {
+class GranSubModHeatArea : public GranSubModHeat {
  public:
-  GSMRollingSDS(class GranularModel *, class LAMMPS *);
+  GranSubModHeatArea(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
-  void calculate_forces();
+  double calculate_heat();
  protected:
-  double k, mu, gamma;
+  double conductivity;
 };
 
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS
 
-#endif /*GSM_ROLLING_H_ */
-#endif /*GSM_CLASS_H_ */
+#endif /*GRAN_SUB_MOD_HEAT_H_ */
+#endif /*GRAN_SUB_MOD_CLASS_H_ */

@@ -12,8 +12,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gsm_normal.h"
-#include "gsm_rolling.h"
+#include "gran_sub_mod_normal.h"
+#include "gran_sub_mod_rolling.h"
 #include "granular_model.h"
 #include "error.h"
 #include "math_const.h"
@@ -24,23 +24,25 @@ using namespace Granular_NS;
 using namespace MathConst;
 using namespace MathExtra;
 
+#define EPSILON 1e-10
+
 /* ----------------------------------------------------------------------
    Default rolling friction model
 ------------------------------------------------------------------------- */
 
-GSMRolling::GSMRolling(GranularModel *gm, LAMMPS *lmp) : GSM(gm, lmp) {}
+GranSubModRolling::GranSubModRolling(GranularModel *gm, LAMMPS *lmp) : GranSubMod(gm, lmp) {}
 
 /* ----------------------------------------------------------------------
    No model
 ------------------------------------------------------------------------- */
 
-GSMRollingNone::GSMRollingNone(GranularModel *gm, LAMMPS *lmp) : GSMRolling(gm, lmp) {}
+GranSubModRollingNone::GranSubModRollingNone(GranularModel *gm, LAMMPS *lmp) : GranSubModRolling(gm, lmp) {}
 
 /* ----------------------------------------------------------------------
    SDS rolling friction model
 ------------------------------------------------------------------------- */
 
-GSMRollingSDS::GSMRollingSDS(GranularModel *gm, LAMMPS *lmp) : GSMRolling(gm, lmp)
+GranSubModRollingSDS::GranSubModRollingSDS(GranularModel *gm, LAMMPS *lmp) : GranSubModRolling(gm, lmp)
 {
   num_coeffs = 3;
   size_history = 3;
@@ -48,7 +50,7 @@ GSMRollingSDS::GSMRollingSDS(GranularModel *gm, LAMMPS *lmp) : GSMRolling(gm, lm
 
 /* ---------------------------------------------------------------------- */
 
-void GSMRollingSDS::coeffs_to_local()
+void GranSubModRollingSDS::coeffs_to_local()
 {
   k = coeffs[0];
   gamma = coeffs[1];
@@ -60,7 +62,7 @@ void GSMRollingSDS::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GSMRollingSDS::calculate_forces()
+void GranSubModRollingSDS::calculate_forces()
 {
   int rhist0, rhist1, rhist2, frameupdate;
   double Frcrit, rolldotn, rollmag, prjmag, magfr, hist_temp[3], scalefac, temp_array[3];

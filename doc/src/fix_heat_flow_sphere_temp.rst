@@ -1,6 +1,6 @@
-.. index:: fix temp/integrate
+.. index:: fix heat/flow/sphere/temp
 
-fix temp/integrate command
+fix heat/flow/sphere/temp command
 ==========================
 
 Syntax
@@ -8,10 +8,10 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID temp/integrate style values ...
+   fix ID group-ID heat/flow/sphere/temp style values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* temp/integrate = style name of this fix command
+* heat/flow/sphere/temp = style name of this fix command
 * one style with corresponding value(s) needs to be listed
 
   .. parsed-literal::
@@ -29,8 +29,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all temp/integrate constant 1.0
-   fix 1 all temp/integrate type 1.0 0.5
+   fix 1 all heat/flow/sphere/temp constant 1.0
+   fix 1 all heat/flow/sphere/temp type 1.0 0.5
 
 Description
 """""""""""

@@ -34,6 +34,6 @@ style requirements and recommendations <Modify_style>`.
    Modify_min
    Modify_region
    Modify_body
-   Modify_gsm
+   Modify_gran_sub_mod
    Modify_thermo
    Modify_variable

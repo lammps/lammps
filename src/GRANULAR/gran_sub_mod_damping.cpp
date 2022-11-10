@@ -12,8 +12,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gsm_damping.h"
-#include "gsm_normal.h"
+#include "gran_sub_mod_damping.h"
+#include "gran_sub_mod_normal.h"
 #include "granular_model.h"
 #include "math_special.h"
 
@@ -25,11 +25,11 @@ using namespace MathSpecial;
    Default damping model
 ------------------------------------------------------------------------- */
 
-GSMDamping::GSMDamping(GranularModel *gm, LAMMPS *lmp) : GSM(gm, lmp) {}
+GranSubModDamping::GranSubModDamping(GranularModel *gm, LAMMPS *lmp) : GranSubMod(gm, lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void GSMDamping::init()
+void GranSubModDamping::init()
 {
   damp = gm->normal_model->damp;
 }
@@ -38,11 +38,11 @@ void GSMDamping::init()
    No model
 ------------------------------------------------------------------------- */
 
-GSMDampingNone::GSMDampingNone(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, lmp) {}
+GranSubModDampingNone::GranSubModDampingNone(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-double GSMDampingNone::calculate_forces()
+double GranSubModDampingNone::calculate_forces()
 {
   damp_prefactor = 0.0;
   return 0.0;
@@ -52,11 +52,11 @@ double GSMDampingNone::calculate_forces()
    Velocity damping
 ------------------------------------------------------------------------- */
 
-GSMDampingVelocity::GSMDampingVelocity(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, lmp) {}
+GranSubModDampingVelocity::GranSubModDampingVelocity(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-double GSMDampingVelocity::calculate_forces()
+double GranSubModDampingVelocity::calculate_forces()
 {
   damp_prefactor = damp;
   return -damp_prefactor * gm->vnnr;
@@ -66,11 +66,11 @@ double GSMDampingVelocity::calculate_forces()
    Mass velocity damping
 ------------------------------------------------------------------------- */
 
-GSMDampingMassVelocity::GSMDampingMassVelocity(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, lmp) {}
+GranSubModDampingMassVelocity::GranSubModDampingMassVelocity(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-double GSMDampingMassVelocity::calculate_forces()
+double GranSubModDampingMassVelocity::calculate_forces()
 {
   damp_prefactor = damp * gm->meff;
   return -damp_prefactor * gm->vnnr;
@@ -80,14 +80,14 @@ double GSMDampingMassVelocity::calculate_forces()
    Default, viscoelastic damping
 ------------------------------------------------------------------------- */
 
-GSMDampingViscoelastic::GSMDampingViscoelastic(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, lmp)
+GranSubModDampingViscoelastic::GranSubModDampingViscoelastic(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp)
 {
   area_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double GSMDampingViscoelastic::calculate_forces()
+double GranSubModDampingViscoelastic::calculate_forces()
 {
   damp_prefactor = damp * gm->meff * gm->area;
   return -damp_prefactor * gm->vnnr;
@@ -97,14 +97,14 @@ double GSMDampingViscoelastic::calculate_forces()
    Tsuji damping
 ------------------------------------------------------------------------- */
 
-GSMDampingTsuji::GSMDampingTsuji(GranularModel *gm, LAMMPS *lmp) : GSMDamping(gm, lmp)
+GranSubModDampingTsuji::GranSubModDampingTsuji(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp)
 {
   allow_cohesion = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void GSMDampingTsuji::init()
+void GranSubModDampingTsuji::init()
 {
   double tmp = gm->normal_model->damp;
   damp = 1.2728 - 4.2783 * tmp + 11.087 * square(tmp);
@@ -114,7 +114,7 @@ void GSMDampingTsuji::init()
 
 /* ---------------------------------------------------------------------- */
 
-double GSMDampingTsuji::calculate_forces()
+double GranSubModDampingTsuji::calculate_forces()
 {
   damp_prefactor = damp * sqrt(gm->meff * gm->Fnormal / gm->delta);
   return -damp_prefactor * gm->vnnr;

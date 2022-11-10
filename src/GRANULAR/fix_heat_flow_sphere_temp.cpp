@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_temp_integrate.h"
+#include "fix_heat_flow_sphere_temp.h"
 
 #include "atom.h"
 #include "error.h"
@@ -28,7 +28,7 @@ enum {NONE, CONSTANT, TYPE};
 
 /* ---------------------------------------------------------------------- */
 
-FixTempIntegrate::FixTempIntegrate(LAMMPS *lmp, int narg, char **arg) :
+FixHeatFlowSphereTemp::FixHeatFlowSphereTemp(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
@@ -56,12 +56,11 @@ FixTempIntegrate::FixTempIntegrate(LAMMPS *lmp, int narg, char **arg) :
   if (cp_style == NONE)
     error->all(FLERR, "Must specify specific heat in fix temp/integrate");
   dynamic_group_allow = 1;
-  time_integrate = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixTempIntegrate::setmask()
+int FixHeatFlowSphereTemp::setmask()
 {
   int mask = 0;
   mask |= FINAL_INTEGRATE;
@@ -71,7 +70,7 @@ int FixTempIntegrate::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTempIntegrate::init()
+void FixHeatFlowSphereTemp::init()
 {
   dt = update->dt;
 
@@ -83,7 +82,7 @@ void FixTempIntegrate::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTempIntegrate::final_integrate()
+void FixHeatFlowSphereTemp::final_integrate()
 {
   // update temperature of atoms in group
 
@@ -111,7 +110,7 @@ void FixTempIntegrate::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixTempIntegrate::final_integrate_respa(int ilevel, int /*iloop*/)
+void FixHeatFlowSphereTemp::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dt = update->dt;
   final_integrate();
@@ -119,14 +118,14 @@ void FixTempIntegrate::final_integrate_respa(int ilevel, int /*iloop*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTempIntegrate::reset_dt()
+void FixHeatFlowSphereTemp::reset_dt()
 {
   dt = update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixTempIntegrate::calc_cp(int i)
+double FixHeatFlowSphereTemp::calc_cp(int i)
 {
   if (cp_style == TYPE) {
     return cp_type[atom->type[i]];

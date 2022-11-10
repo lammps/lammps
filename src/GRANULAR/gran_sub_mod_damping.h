@@ -11,43 +11,43 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GSM_CLASS
+#ifdef GRAN_SUB_MOD_CLASS
 // clang-format off
-GSMStyle(none,
-         GSMDampingNone,
+GranSubModStyle(none,
+         GranSubModDampingNone,
          DAMPING);
 
-GSMStyle(velocity,
-         GSMDampingVelocity,
+GranSubModStyle(velocity,
+         GranSubModDampingVelocity,
          DAMPING);
 
-GSMStyle(mass_velocity,
-         GSMDampingMassVelocity,
+GranSubModStyle(mass_velocity,
+         GranSubModDampingMassVelocity,
          DAMPING);
 
-GSMStyle(viscoelastic,
-         GSMDampingViscoelastic,
+GranSubModStyle(viscoelastic,
+         GranSubModDampingViscoelastic,
          DAMPING);
 
-GSMStyle(tsuji,
-         GSMDampingTsuji,
+GranSubModStyle(tsuji,
+         GranSubModDampingTsuji,
          DAMPING);
 // clang-format on
 #else
 
-#ifndef GSM_DAMPING_H_
-#define GSM_DAMPING_H_
+#ifndef GRAN_SUB_MOD_DAMPING_H_
+#define GRAN_SUB_MOD_DAMPING_H_
 
-#include "gsm.h"
+#include "gran_sub_mod.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-class GSMDamping : public GSM {
+class GranSubModDamping : public GranSubMod {
  public:
-  GSMDamping(class GranularModel *, class LAMMPS *);
-  ~GSMDamping() {};
+  GranSubModDamping(class GranularModel *, class LAMMPS *);
+  ~GranSubModDamping() {};
   virtual void coeffs_to_local() {};
   virtual void mix_coeffs(double*, double*) {};
   virtual void init();
@@ -59,42 +59,42 @@ class GSMDamping : public GSM {
 
 /* ---------------------------------------------------------------------- */
 
-class GSMDampingNone : public GSMDamping {
+class GranSubModDampingNone : public GranSubModDamping {
  public:
-  GSMDampingNone(class GranularModel *, class LAMMPS *);
+  GranSubModDampingNone(class GranularModel *, class LAMMPS *);
   void init() override {};
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class GSMDampingVelocity : public GSMDamping {
+class GranSubModDampingVelocity : public GranSubModDamping {
  public:
-  GSMDampingVelocity(class GranularModel *, class LAMMPS *);
+  GranSubModDampingVelocity(class GranularModel *, class LAMMPS *);
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class GSMDampingMassVelocity : public GSMDamping {
+class GranSubModDampingMassVelocity : public GranSubModDamping {
  public:
-  GSMDampingMassVelocity(class GranularModel *, class LAMMPS *);
+  GranSubModDampingMassVelocity(class GranularModel *, class LAMMPS *);
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class GSMDampingViscoelastic : public GSMDamping {
+class GranSubModDampingViscoelastic : public GranSubModDamping {
  public:
-  GSMDampingViscoelastic(class GranularModel *, class LAMMPS *);
+  GranSubModDampingViscoelastic(class GranularModel *, class LAMMPS *);
   double calculate_forces();
 };
 
 /* ---------------------------------------------------------------------- */
 
-class GSMDampingTsuji : public GSMDamping {
+class GranSubModDampingTsuji : public GranSubModDamping {
  public:
-  GSMDampingTsuji(class GranularModel *, class LAMMPS *);
+  GranSubModDampingTsuji(class GranularModel *, class LAMMPS *);
   void init() override;
   double calculate_forces();
 };
@@ -102,5 +102,5 @@ class GSMDampingTsuji : public GSMDamping {
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS
 
-#endif /*GSM_DAMPING_H_ */
-#endif /*GSM_CLASS_H_ */
+#endif /*GRAN_SUB_MOD_DAMPING_H_ */
+#endif /*GRAN_SUB_MOD_CLASS_H_ */

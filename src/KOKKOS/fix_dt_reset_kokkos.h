@@ -29,6 +29,7 @@ FixStyle(dt/reset/kk/host,FixDtResetKokkos<LMPHostType>);
 namespace LAMMPS_NS {
 
 struct TagFixDtResetMass{};
+struct TagFixDtResetRMass{};
 
 template<class DeviceType>
 class FixDtResetKokkos : public FixDtReset {
@@ -43,6 +44,8 @@ class FixDtResetKokkos : public FixDtReset {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixDtResetMass, const int&, double&) const;
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixDtResetRMass, const int&, double&) const;
 
  private:
   typename AT::t_v_array v;
@@ -53,7 +56,7 @@ class FixDtResetKokkos : public FixDtReset {
   typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
 
 
-  Kokkos::DualView<double*, Kokkos::LayoutRight, DeviceType> k_params;
+  Kokkos::DualView<double*, Kokkos::LayoutRight, DeviceType> k_emax;
 };
 
 }

@@ -112,18 +112,18 @@ PythonImpl::~PythonImpl()
 
 void PythonImpl::command(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR, "Invalid python command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "python", error);
 
   // if invoke is only keyword, invoke the previously defined function
 
   if (narg == 2 && strcmp(arg[1], "invoke") == 0) {
     int ifunc = find(arg[0]);
-    if (ifunc < 0) error->all(FLERR, "Python invoke of undefined function");
+    if (ifunc < 0) error->all(FLERR, "Python invoke of undefined function: {}", arg[0]);
 
     char *str = nullptr;
     if (pfuncs[ifunc].noutput) {
       str = input->variable->pythonstyle(pfuncs[ifunc].ovarname, pfuncs[ifunc].name);
-      if (!str) error->all(FLERR, "Python variable does not match Python function");
+      if (!str) error->all(FLERR, "Python variable {} does not match variable {} registered with Python function {}",arg[0], pfuncs[ifunc].ovarname, pfuncs[ifunc].name);
     }
 
     invoke_function(ifunc, str);
@@ -363,9 +363,9 @@ int PythonImpl::variable_match(const char *name, const char *varname, int numeri
 {
   int ifunc = find(name);
   if (ifunc < 0) return -1;
-  if (pfuncs[ifunc].noutput == 0) return -1;
-  if (strcmp(pfuncs[ifunc].ovarname, varname) != 0) return -1;
-  if (numeric && pfuncs[ifunc].otype == STRING) return -1;
+  if (pfuncs[ifunc].noutput == 0) return -2;
+  if (strcmp(pfuncs[ifunc].ovarname, varname) != 0) return -3;
+  if (numeric && pfuncs[ifunc].otype == STRING) return -4;
   return ifunc;
 }
 

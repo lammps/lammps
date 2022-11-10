@@ -68,25 +68,25 @@ GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
 
   nclass = 0;
 
-#define GRANSUBMOD_CLASS
+#define GRAN_SUB_MOD_CLASS
 #define GranSubModStyle(key,Class,type) nclass++;
 #include "style_gran_sub_mod.h"  // IWYU pragma: keep
 #undef GranSubModStyle
-#undef GRANSUBMOD_CLASS
+#undef GRAN_SUB_MOD_CLASS
 
   gran_sub_mod_class = new GranSubModCreator[nclass];
   gran_sub_mod_names = new char*[nclass];
   gran_sub_mod_types = new int[nclass];
   nclass = 0;
 
-#define GRANSUBMOD_CLASS
+#define GRAN_SUB_MOD_CLASS
 #define GranSubModStyle(key,Class,type) \
   gran_sub_mod_class[nclass] = &gran_sub_mod_creator<Class>;   \
   gran_sub_mod_names[nclass] = (char *) #key; \
   gran_sub_mod_types[nclass++] = type;
 #include "style_gran_sub_mod.h"  // IWYU pragma: keep
 #undef GranSubModStyle
-#undef GRANSUBMOD_CLASS
+#undef GRAN_SUB_MOD_CLASS
 }
 
 /* ---------------------------------------------------------------------- */

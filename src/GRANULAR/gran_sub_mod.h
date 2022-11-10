@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_GRAN_SUB_MOD_H_
-#define LMP_GRAN_SUB_MOD_H_
+#ifndef LMP_GRAN_SUB_MOD_H
+#define LMP_GRAN_SUB_MOD_H
 
 #include "granular_model.h"
 #include "pointers.h"    // IWYU pragma: export
@@ -59,4 +59,4 @@ class GranSubMod : protected Pointers {
 }    // namespace GranularModel
 }    // namespace LAMMPS_NS
 
-#endif /* GRAN_SUB_MOD_H_ */
+#endif /* GRAN_SUB_MOD_H */

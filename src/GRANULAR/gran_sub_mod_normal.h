@@ -39,8 +39,8 @@ GranSubModStyle(jkr,
 // clang-format on
 #else
 
-#ifndef GRAN_SUB_MOD_NORMAL_H_
-#define GRAN_SUB_MOD_NORMAL_H_
+#ifndef GRAN_SUB_MOD_NORMAL_H
+#define GRAN_SUB_MOD_NORMAL_H
 
 #include "gran_sub_mod.h"
 
@@ -137,5 +137,5 @@ class GranSubModNormalJKR : public GranSubModNormal {
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS
 
-#endif /*GRAN_SUB_MOD_NORMAL_H_ */
-#endif /*GRAN_SUB_MOD_CLASS_H_ */
+#endif /*GRAN_SUB_MOD_NORMAL_H */
+#endif /*GRAN_SUB_MOD_CLASS_H */

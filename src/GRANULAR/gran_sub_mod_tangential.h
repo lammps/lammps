@@ -51,8 +51,8 @@ GranSubModStyle(mindlin_rescale/force,
 // clang-format on
 #else
 
-#ifndef GRAN_SUB_MOD_TANGENTIAL_H_
-#define GRAN_SUB_MOD_TANGENTIAL_H_
+#ifndef GRAN_SUB_MOD_TANGENTIAL_H
+#define GRAN_SUB_MOD_TANGENTIAL_H
 
 #include "gran_sub_mod.h"
 
@@ -153,5 +153,5 @@ class GranSubModTangentialMindlinRescaleForce : public GranSubModTangentialMindl
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS
 
-#endif /*GRAN_SUB_MOD_TANGENTIAL_H_ */
-#endif /*GRAN_SUB_MOD_CLASS_H_ */
+#endif /*GRAN_SUB_MOD_TANGENTIAL_H */
+#endif /*GRAN_SUB_MOD_CLASS_H */

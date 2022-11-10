@@ -27,8 +27,8 @@ GranSubModStyle(sds,
 // clang-format on
 #else
 
-#ifndef GRAN_SUB_MOD_TWISTING_H_
-#define GRAN_SUB_MOD_TWISTING_H_
+#ifndef GRAN_SUB_MOD_TWISTING_H
+#define GRAN_SUB_MOD_TWISTING_H
 
 #include "gran_sub_mod.h"
 
@@ -77,5 +77,5 @@ class GranSubModTwistingSDS : public GranSubModTwisting {
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS
 
-#endif /*GRAN_SUB_MOD_TWISTING_H_ */
-#endif /*GRAN_SUB_MOD_CLASS_H_ */
+#endif /*GRAN_SUB_MOD_TWISTING_H */
+#endif /*GRAN_SUB_MOD_CLASS_H */

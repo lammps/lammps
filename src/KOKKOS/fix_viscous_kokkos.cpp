@@ -17,15 +17,11 @@
 #include "atom_kokkos.h"
 #include "update.h"
 #include "modify.h"
-#include "domain.h"
 #include "input.h"
-#include "variable.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 #include "kokkos_base.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -49,7 +45,6 @@ template<class DeviceType>
 FixViscousKokkos<DeviceType>::~FixViscousKokkos()
 {
   if (copymode) return;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,10 +56,9 @@ void FixViscousKokkos<DeviceType>::init()
 
   k_gamma = Kokkos::DualView<double*, Kokkos::LayoutRight, DeviceType>("FixViscousKokkos:gamma",atom->ntypes+1);
 
-  gamma2 = k_gamma.template view<DeviceType>();
+  for (int i = 1; i <= atom->ntypes; i++) k_gamma.h_view(i) = gamma[i];
 
-  for (int i = 1; i <= atom->ntypes; i++) k_gamma.h_view(i) = gamma[i]; 
-
+  k_gamma.template modify<LMPHostType>();
   k_gamma.template sync<DeviceType>();
 
   if (utils::strmatch(update->integrate_style,"^respa"))
@@ -76,7 +70,7 @@ void FixViscousKokkos<DeviceType>::init()
 template<class DeviceType>
 void FixViscousKokkos<DeviceType>::post_force(int /*vflag*/)
 {
-  atomKK->sync(execution_space, V_MASK | F_MASK | MASK_MASK);
+  atomKK->sync(execution_space, V_MASK | F_MASK | MASK_MASK | TYPE_MASK);
 
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -90,14 +84,13 @@ void FixViscousKokkos<DeviceType>::post_force(int /*vflag*/)
   copymode = 0;
 
   atomKK->modified(execution_space, F_MASK);
-
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixViscousKokkos<DeviceType>::operator()(TagFixViscous, const int &i) const {
   if (mask[i] & groupbit) {
-    double drag = gamma2(type[i]);
+    double drag = k_gamma.d_view(type[i]);
     f(i,0) -= drag*v(i,0);
     f(i,1) -= drag*v(i,1);
     f(i,2) -= drag*v(i,2);

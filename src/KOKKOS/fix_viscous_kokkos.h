@@ -30,13 +30,10 @@ namespace LAMMPS_NS {
 
 struct TagFixViscous{};
 
-struct TagFixViscousNonConstant{};
-
 template<class DeviceType>
 class FixViscousKokkos : public FixViscous {
  public:
   typedef DeviceType device_type;
-//  typedef double_3 value_type;
   typedef ArrayTypes<DeviceType> AT;
 
   FixViscousKokkos(class LAMMPS *, int, char **);
@@ -54,7 +51,6 @@ class FixViscousKokkos : public FixViscous {
   typename AT::t_int_1d_randomread type;
 
   Kokkos::DualView<double*, Kokkos::LayoutRight, DeviceType> k_gamma;
-  typename Kokkos::DualView<double*,Kokkos::LayoutRight,DeviceType>::t_dev_const_um gamma2;
 };
 
 }

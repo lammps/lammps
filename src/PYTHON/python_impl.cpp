@@ -118,12 +118,16 @@ void PythonImpl::command(int narg, char **arg)
 
   if (narg == 2 && strcmp(arg[1], "invoke") == 0) {
     int ifunc = find(arg[0]);
-    if (ifunc < 0) error->all(FLERR, "Python invoke of undefined function: {}", arg[0]);
+    if (ifunc < 0) error->all(FLERR, "Python invoke of unknown function: {}", arg[0]);
 
     char *str = nullptr;
     if (pfuncs[ifunc].noutput) {
       str = input->variable->pythonstyle(pfuncs[ifunc].ovarname, pfuncs[ifunc].name);
-      if (!str) error->all(FLERR, "Python variable {} does not match variable {} registered with Python function {}",arg[0], pfuncs[ifunc].ovarname, pfuncs[ifunc].name);
+      if (!str)
+        error->all(FLERR,
+                   "Python variable {} does not match variable {} "
+                   "registered with Python function {}",
+                   arg[0], pfuncs[ifunc].ovarname, pfuncs[ifunc].name);
     }
 
     invoke_function(ifunc, str);
@@ -138,9 +142,12 @@ void PythonImpl::command(int narg, char **arg)
     if ((narg > 2) && (strcmp(arg[1], "inline") == 0)) {
       err = execute_string(arg[2]);
     } else {
-      if (platform::file_is_readable(arg[1])) err = execute_file(arg[1]);
+      if (platform::file_is_readable(arg[1]))
+        err = execute_file(arg[1]);
+      else
+        error->all(FLERR, "Could not open python source file {} for processing", arg[1]);
     }
-    if (err) error->warning(FLERR, "Could not process Python source command. Error code: {}", err);
+    if (err) error->all(FLERR, "Failure in python source command");
 
     return;
   }
@@ -160,48 +167,51 @@ void PythonImpl::command(int narg, char **arg)
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "input") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Invalid python command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "python input", error);
       ninput = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (ninput < 0) error->all(FLERR, "Invalid python command");
+      if (ninput < 0) error->all(FLERR, "Invalid number of python input arguments: {}", ninput);
       iarg += 2;
       delete[] istr;
       istr = new char *[ninput];
-      if (iarg + ninput > narg) error->all(FLERR, "Invalid python command");
+      if (iarg + ninput > narg) utils::missing_cmd_args(FLERR, "python input", error);
       for (int i = 0; i < ninput; i++) istr[i] = arg[iarg + i];
       iarg += ninput;
     } else if (strcmp(arg[iarg], "return") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Invalid python command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "python return", error);
       noutput = 1;
       ostr = arg[iarg + 1];
       iarg += 2;
     } else if (strcmp(arg[iarg], "format") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Invalid python command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "python format", error);
       format = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "length") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Invalid python command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "python length", error);
       length_longstr = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (length_longstr <= 0) error->all(FLERR, "Invalid python command");
+      if (length_longstr <= 0) error->all(FLERR, "Invalid python return value length");
       iarg += 2;
     } else if (strcmp(arg[iarg], "file") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Invalid python command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "python file", error);
       delete[] pyfile;
       pyfile = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "here") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Invalid python command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "python here", error);
       herestr = arg[iarg + 1];
       iarg += 2;
     } else if (strcmp(arg[iarg], "exists") == 0) {
       existflag = 1;
       iarg++;
     } else
-      error->all(FLERR, "Invalid python command");
+      error->all(FLERR, "Unknown python command keyword: {}", arg[iarg]);
   }
 
-  if (pyfile && herestr) error->all(FLERR, "Invalid python command");
-  if (pyfile && existflag) error->all(FLERR, "Invalid python command");
-  if (herestr && existflag) error->all(FLERR, "Invalid python command");
+  if (pyfile && herestr)
+    error->all(FLERR, "Must not use python 'file' and 'here' keywords at the same time");
+  if (pyfile && existflag)
+    error->all(FLERR, "Must not use python 'file' and 'exists' keywords at the same time");
+  if (herestr && existflag)
+    error->all(FLERR, "Must not use python 'here' and 'exists' keywords at the same time");
 
   // create or overwrite entry in pfuncs vector with name = arg[0]
 
@@ -219,23 +229,21 @@ void PythonImpl::command(int narg, char **arg)
 
     if (fp == nullptr) {
       PyUtils::Print_Errors();
-      error->all(FLERR, "Could not open Python file");
+      error->all(FLERR, "Could not open Python file: {}", pyfile);
     }
 
     int err = PyRun_SimpleFile(fp, pyfile);
-
     if (err) {
       PyUtils::Print_Errors();
-      error->all(FLERR, "Could not process Python file");
+      error->all(FLERR, "Could not process Python file: {}", pyfile);
     }
-
     fclose(fp);
+
   } else if (herestr) {
     int err = PyRun_SimpleString(herestr);
-
     if (err) {
       PyUtils::Print_Errors();
-      error->all(FLERR, "Could not process Python string");
+      error->all(FLERR, "Could not process Python string: {}", herestr);
     }
   }
 
@@ -278,14 +286,17 @@ void PythonImpl::invoke_function(int ifunc, char *result)
   int ninput = pfuncs[ifunc].ninput;
   PyObject *pArgs = PyTuple_New(ninput);
 
-  if (!pArgs) { error->all(FLERR, "Could not create Python function arguments"); }
+  if (!pArgs)
+    error->all(FLERR, "Could not prepare arguments for Python function {}", pfuncs[ifunc].name);
 
   for (int i = 0; i < ninput; i++) {
     int itype = pfuncs[ifunc].itype[i];
     if (itype == INT) {
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
-        if (!str) { error->all(FLERR, "Could not evaluate Python function input variable"); }
+        if (!str)
+          error->all(FLERR, "Could not evaluate Python function {} input variable: {}",
+                     pfuncs[ifunc].name, pfuncs[ifunc].svalue[i]);
         pValue = PY_INT_FROM_LONG(atoi(str));
       } else {
         pValue = PY_INT_FROM_LONG(pfuncs[ifunc].ivalue[i]);
@@ -293,7 +304,9 @@ void PythonImpl::invoke_function(int ifunc, char *result)
     } else if (itype == DOUBLE) {
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
-        if (!str) { error->all(FLERR, "Could not evaluate Python function input variable"); }
+        if (!str)
+          error->all(FLERR, "Could not evaluate Python function {} input variable: {}",
+                     pfuncs[ifunc].name, pfuncs[ifunc].svalue[i]);
         pValue = PyFloat_FromDouble(atof(str));
       } else {
         pValue = PyFloat_FromDouble(pfuncs[ifunc].dvalue[i]);
@@ -301,7 +314,9 @@ void PythonImpl::invoke_function(int ifunc, char *result)
     } else if (itype == STRING) {
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
-        if (!str) { error->all(FLERR, "Could not evaluate Python function input variable"); }
+        if (!str)
+          error->all(FLERR, "Could not evaluate Python function {} input variable: {}",
+                     pfuncs[ifunc].name, pfuncs[ifunc].svalue[i]);
         pValue = PY_STRING_FROM_STRING(str);
       } else {
         pValue = PY_STRING_FROM_STRING(pfuncs[ifunc].svalue[i]);
@@ -309,7 +324,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
     } else if (itype == PTR) {
       pValue = PY_VOID_POINTER(lmp);
     } else {
-      error->all(FLERR, "Unsupported variable type");
+      error->all(FLERR, "Unsupported variable type: {}", itype);
     }
     PyTuple_SetItem(pArgs, i, pValue);
   }
@@ -322,7 +337,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
 
   if (!pValue) {
     PyUtils::Print_Errors();
-    error->one(FLERR, "Python function evaluation failed");
+    error->one(FLERR, "Python evaluation of function {} failed", pfuncs[ifunc].name);
   }
 
   // function returned a value
@@ -398,9 +413,10 @@ int PythonImpl::create_entry(char *name, int ninput, int noutput, int length_lon
   pfuncs[ifunc].noutput = noutput;
 
   if (!format && ninput + noutput)
-    error->all(FLERR, "Invalid python command");
+    error->all(FLERR, "Missing python format keyword");
   else if (format && ((int) strlen(format) != ninput + noutput))
-    error->all(FLERR, "Invalid python command");
+    error->all(FLERR, "Input/output arguments ({}) and format characters ({}) are inconsistent",
+               (ninput + noutput), strlen(format));
 
   // process inputs as values or variables
 
@@ -446,7 +462,7 @@ int PythonImpl::create_entry(char *name, int ninput, int noutput, int length_lon
       if (strcmp(istr[i], "SELF") != 0) error->all(FLERR, "Invalid python command");
 
     } else
-      error->all(FLERR, "Invalid python command");
+      error->all(FLERR, "Invalid python format character: {}", type);
   }
 
   // process output as value or variable
@@ -463,7 +479,7 @@ int PythonImpl::create_entry(char *name, int ninput, int noutput, int length_lon
   else if (type == 's')
     pfuncs[ifunc].otype = STRING;
   else
-    error->all(FLERR, "Invalid python command");
+    error->all(FLERR, "Invalid python return format character: {}", type);
 
   if (length_longstr) {
     if (pfuncs[ifunc].otype != STRING)
@@ -484,7 +500,9 @@ int PythonImpl::create_entry(char *name, int ninput, int noutput, int length_lon
 int PythonImpl::execute_string(char *cmd)
 {
   PyUtils::GIL lock;
-  return PyRun_SimpleString(cmd);
+  int err = PyRun_SimpleString(cmd);
+  if (err) PyUtils::Print_Errors();
+  return err;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -496,6 +514,7 @@ int PythonImpl::execute_file(char *fname)
 
   PyUtils::GIL lock;
   int err = PyRun_SimpleFile(fp, fname);
+  if (err) PyUtils::Print_Errors();
 
   if (fp) fclose(fp);
   return err;

@@ -520,6 +520,8 @@ example, the molecule fragment could consist of only the backbone
 atoms of a polymer chain. This constraint can be used to enforce a
 specific relative position and orientation between reacting molecules.
 
+.. versionchanged:: TBD
+
 The constraint of type "custom" has the following syntax:
 
 .. parsed-literal::
@@ -635,6 +637,8 @@ eligible reaction only occurs if the random number is less than the
 fraction. Up to :math:`N` reactions are permitted to occur, as optionally
 specified by the *max_rxn* keyword.
 
+.. versionadded:: TBD
+
 The *rate_limit* keyword can enforce an upper limit on the overall
 rate of the reaction. The number of reaction occurences is limited to
 Nlimit within an interval of Nsteps timesteps. No reactions are
@@ -659,6 +663,8 @@ charges are updated to those specified by the post-reaction template
 (default). Otherwise, the value should be the name of a molecule
 fragment defined in the pre-reaction molecule template. In this case,
 only the atomic charges of atoms in the molecule fragment are updated.
+
+.. versionadded:: TBD
 
 The *rescale_charges* keyword can be used to ensure the total charge
 of the system does not change as reactions occur. When the argument is

@@ -4475,6 +4475,7 @@ void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
 
 void FixBondReact::write_restart(FILE *fp)
 {
+  int revision = 1;
   set[0].nreacts = nreacts;
   set[0].max_rate_limit_steps = max_rate_limit_steps;
 
@@ -4493,8 +4494,9 @@ void FixBondReact::write_restart(FILE *fp)
   }
 
   if (me == 0) {
-    int size = nreacts*sizeof(Set)+rbufcount*sizeof(int);
+    int size = nreacts*sizeof(Set)+(rbufcount+1)*sizeof(int);
     fwrite(&size,sizeof(int),1,fp);
+    fwrite(&revision,sizeof(int),1,fp);
     fwrite(set,sizeof(Set),nreacts,fp);
     if (rbufcount) fwrite(rbuf,sizeof(int),rbufcount,fp);
   }
@@ -4503,23 +4505,30 @@ void FixBondReact::write_restart(FILE *fp)
 
 /* ----------------------------------------------------------------------
    use selected state info from restart file to restart the Fix
-   bond/react restart format was updated after LAMMPS version 3 Nov 2022
+   bond/react restart revisions numbers added after LAMMPS version 3 Nov 2022
 ------------------------------------------------------------------------- */
 
 void FixBondReact::restart(char *buf)
 {
-  int r_nreacts,r_max_rate_limit_steps,ibufcount,n2cpy;
+  int revision,r_nreacts,r_max_rate_limit_steps,ibufcount,n2cpy;
   int **ibuf;
   Set *set_restart = (Set *) buf;
 
+  if (lmp->restart_ver > utils::date2num("3 Nov 2022")) {
+    revision = buf[0];
+    buf++;
+  } else revision = 0;
+
   r_nreacts = set_restart[0].nreacts;
-  if (lmp->restart_ver > utils::date2num("3 Nov 2022"))  {
+
+  if (revision > 0) {
     r_max_rate_limit_steps = set_restart[0].max_rate_limit_steps;
     ibufcount = r_max_rate_limit_steps*r_nreacts;
     memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
     memcpy(&ibuf[0][0],&buf[nreacts*sizeof(Set)],sizeof(int)*ibufcount);
     n2cpy = r_max_rate_limit_steps;
   } else n2cpy = 0;
+
   if (max_rate_limit_steps < n2cpy) n2cpy = max_rate_limit_steps;
   for (int i = 0; i < r_nreacts; i++) {
     for (int j = 0; j < nreacts; j++) {
@@ -4531,7 +4540,7 @@ void FixBondReact::restart(char *buf)
       }
     }
   }
-  if (lmp->restart_ver > utils::date2num("3 Nov 2022")) memory->destroy(ibuf);
+  if (revision > 0) memory->destroy(ibuf);
 }
 
 /* ----------------------------------------------------------------------

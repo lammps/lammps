@@ -216,6 +216,7 @@ class FixBondReact : public Fix {
   void write_restart(FILE *) override;
   void restart(char *buf) override;
 
+  // store restart data
   struct Set {
     int nreacts;
     char rxn_name[MAXLINE];

@@ -119,52 +119,52 @@ function(RegisterStyles search_path)
 endfunction(RegisterStyles)
 
 function(RegisterStylesExt search_path extension sources)
-    FindStyleHeadersExt(${search_path} ANGLE_CLASS     ${extension}  ANGLE     ${sources})
-    FindStyleHeadersExt(${search_path} ATOM_CLASS      ${extension}  ATOM_VEC  ${sources})
-    FindStyleHeadersExt(${search_path} BODY_CLASS      ${extension}  BODY      ${sources})
-    FindStyleHeadersExt(${search_path} BOND_CLASS      ${extension}  BOND      ${sources})
-    FindStyleHeadersExt(${search_path} COMMAND_CLASS   ${extension}  COMMAND   ${sources})
-    FindStyleHeadersExt(${search_path} COMPUTE_CLASS   ${extension}  COMPUTE   ${sources})
-    FindStyleHeadersExt(${search_path} DIHEDRAL_CLASS  ${extension}  DIHEDRAL  ${sources})
-    FindStyleHeadersExt(${search_path} DUMP_CLASS      ${extension}  DUMP      ${sources})
-    FindStyleHeadersExt(${search_path} FIX_CLASS       ${extension}  FIX       ${sources})
-    FindStyleHeadersExt(${search_path} GSM_CLASS       ${extension}  GSM       ${sources})
-    FindStyleHeadersExt(${search_path} IMPROPER_CLASS  ${extension}  IMPROPER  ${sources})
-    FindStyleHeadersExt(${search_path} INTEGRATE_CLASS ${extension}  INTEGRATE ${sources})
-    FindStyleHeadersExt(${search_path} KSPACE_CLASS    ${extension}  KSPACE    ${sources})
-    FindStyleHeadersExt(${search_path} MINIMIZE_CLASS  ${extension}  MINIMIZE  ${sources})
-    FindStyleHeadersExt(${search_path} NBIN_CLASS      ${extension}  NBIN      ${sources})
-    FindStyleHeadersExt(${search_path} NPAIR_CLASS     ${extension}  NPAIR     ${sources})
-    FindStyleHeadersExt(${search_path} NSTENCIL_CLASS  ${extension}  NSTENCIL  ${sources})
-    FindStyleHeadersExt(${search_path} NTOPO_CLASS     ${extension}  NTOPO     ${sources})
-    FindStyleHeadersExt(${search_path} PAIR_CLASS      ${extension}  PAIR      ${sources})
-    FindStyleHeadersExt(${search_path} READER_CLASS    ${extension}  READER    ${sources})
-    FindStyleHeadersExt(${search_path} REGION_CLASS    ${extension}  REGION    ${sources})
+    FindStyleHeadersExt(${search_path} ANGLE_CLASS        ${extension}  ANGLE        ${sources})
+    FindStyleHeadersExt(${search_path} ATOM_CLASS         ${extension}  ATOM_VEC     ${sources})
+    FindStyleHeadersExt(${search_path} BODY_CLASS         ${extension}  BODY         ${sources})
+    FindStyleHeadersExt(${search_path} BOND_CLASS         ${extension}  BOND         ${sources})
+    FindStyleHeadersExt(${search_path} COMMAND_CLASS      ${extension}  COMMAND      ${sources})
+    FindStyleHeadersExt(${search_path} COMPUTE_CLASS      ${extension}  COMPUTE      ${sources})
+    FindStyleHeadersExt(${search_path} DIHEDRAL_CLASS     ${extension}  DIHEDRAL     ${sources})
+    FindStyleHeadersExt(${search_path} DUMP_CLASS         ${extension}  DUMP         ${sources})
+    FindStyleHeadersExt(${search_path} FIX_CLASS          ${extension}  FIX          ${sources})
+    FindStyleHeadersExt(${search_path} GRAN_SUB_MOD_CLASS ${extension}  GRAN_SUB_MOD ${sources})
+    FindStyleHeadersExt(${search_path} IMPROPER_CLASS     ${extension}  IMPROPER     ${sources})
+    FindStyleHeadersExt(${search_path} INTEGRATE_CLASS    ${extension}  INTEGRATE    ${sources})
+    FindStyleHeadersExt(${search_path} KSPACE_CLASS       ${extension}  KSPACE       ${sources})
+    FindStyleHeadersExt(${search_path} MINIMIZE_CLASS     ${extension}  MINIMIZE     ${sources})
+    FindStyleHeadersExt(${search_path} NBIN_CLASS         ${extension}  NBIN         ${sources})
+    FindStyleHeadersExt(${search_path} NPAIR_CLASS        ${extension}  NPAIR        ${sources})
+    FindStyleHeadersExt(${search_path} NSTENCIL_CLASS     ${extension}  NSTENCIL     ${sources})
+    FindStyleHeadersExt(${search_path} NTOPO_CLASS        ${extension}  NTOPO        ${sources})
+    FindStyleHeadersExt(${search_path} PAIR_CLASS         ${extension}  PAIR         ${sources})
+    FindStyleHeadersExt(${search_path} READER_CLASS       ${extension}  READER       ${sources})
+    FindStyleHeadersExt(${search_path} REGION_CLASS       ${extension}  REGION       ${sources})
 endfunction(RegisterStylesExt)
 
 function(GenerateStyleHeaders output_path)
     message(STATUS "Generating style headers...")
-    GenerateStyleHeader(${output_path} ANGLE      angle     ) # force
-    GenerateStyleHeader(${output_path} ATOM_VEC   atom      ) # atom      atom_vec_hybrid
-    GenerateStyleHeader(${output_path} BODY       body      ) # atom_vec_body
-    GenerateStyleHeader(${output_path} BOND       bond      ) # force
-    GenerateStyleHeader(${output_path} COMMAND    command   ) # input
-    GenerateStyleHeader(${output_path} COMPUTE    compute   ) # modify
-    GenerateStyleHeader(${output_path} DIHEDRAL   dihedral  ) # force
-    GenerateStyleHeader(${output_path} DUMP       dump      ) # output    write_dump
-    GenerateStyleHeader(${output_path} FIX        fix       ) # modify
-    GenerateStyleHeader(${output_path} GSM        gsm       ) # granular_model
-    GenerateStyleHeader(${output_path} IMPROPER   improper  ) # force
-    GenerateStyleHeader(${output_path} INTEGRATE  integrate ) # update
-    GenerateStyleHeader(${output_path} KSPACE     kspace    ) # force
-    GenerateStyleHeader(${output_path} MINIMIZE   minimize  ) # update
-    GenerateStyleHeader(${output_path} NBIN       nbin      ) # neighbor
-    GenerateStyleHeader(${output_path} NPAIR      npair     ) # neighbor
-    GenerateStyleHeader(${output_path} NSTENCIL   nstencil  ) # neighbor
-    GenerateStyleHeader(${output_path} NTOPO      ntopo     ) # neighbor
-    GenerateStyleHeader(${output_path} PAIR       pair      ) # force
-    GenerateStyleHeader(${output_path} READER     reader    ) # read_dump
-    GenerateStyleHeader(${output_path} REGION     region    ) # domain
+    GenerateStyleHeader(${output_path} ANGLE        angle        ) # force
+    GenerateStyleHeader(${output_path} ATOM_VEC     atom         ) # atom      atom_vec_hybrid
+    GenerateStyleHeader(${output_path} BODY         body         ) # atom_vec_body
+    GenerateStyleHeader(${output_path} BOND         bond         ) # force
+    GenerateStyleHeader(${output_path} COMMAND      command      ) # input
+    GenerateStyleHeader(${output_path} COMPUTE      compute      ) # modify
+    GenerateStyleHeader(${output_path} DIHEDRAL     dihedral     ) # force
+    GenerateStyleHeader(${output_path} DUMP         dump         ) # output    write_dump
+    GenerateStyleHeader(${output_path} FIX          fix          ) # modify
+    GenerateStyleHeader(${output_path} GRAN_SUB_MOD gran_sub_mod ) # granular_model
+    GenerateStyleHeader(${output_path} IMPROPER     improper     ) # force
+    GenerateStyleHeader(${output_path} INTEGRATE    integrate    ) # update
+    GenerateStyleHeader(${output_path} KSPACE       kspace       ) # force
+    GenerateStyleHeader(${output_path} MINIMIZE     minimize     ) # update
+    GenerateStyleHeader(${output_path} NBIN         nbin         ) # neighbor
+    GenerateStyleHeader(${output_path} NPAIR        npair        ) # neighbor
+    GenerateStyleHeader(${output_path} NSTENCIL     nstencil     ) # neighbor
+    GenerateStyleHeader(${output_path} NTOPO        ntopo        ) # neighbor
+    GenerateStyleHeader(${output_path} PAIR         pair         ) # force
+    GenerateStyleHeader(${output_path} READER       reader       ) # read_dump
+    GenerateStyleHeader(${output_path} REGION       region       ) # domain
 endfunction(GenerateStyleHeaders)
 
 function(DetectBuildSystemConflict lammps_src_dir)

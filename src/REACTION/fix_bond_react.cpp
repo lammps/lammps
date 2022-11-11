@@ -4503,18 +4503,23 @@ void FixBondReact::write_restart(FILE *fp)
 
 /* ----------------------------------------------------------------------
    use selected state info from restart file to restart the Fix
+   bond/react restart format was updated after LAMMPS version 3 Nov 2022
 ------------------------------------------------------------------------- */
 
 void FixBondReact::restart(char *buf)
 {
-  Set *set_restart = (Set *) buf;
-  int r_nreacts = set_restart[0].nreacts;
-  int r_max_rate_limit_steps = set_restart[0].max_rate_limit_steps;
+  int r_nreacts,r_max_rate_limit_steps,ibufcount,n2cpy;
   int **ibuf;
-  int ibufcount = r_max_rate_limit_steps*r_nreacts;
-  memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
-  memcpy(&ibuf[0][0],&buf[nreacts*sizeof(Set)],sizeof(int)*ibufcount);
-  int n2cpy = r_max_rate_limit_steps;
+  Set *set_restart = (Set *) buf;
+
+  r_nreacts = set_restart[0].nreacts;
+  if (lmp->restart_ver > utils::date2num("3 Nov 2022"))  {
+    r_max_rate_limit_steps = set_restart[0].max_rate_limit_steps;
+    ibufcount = r_max_rate_limit_steps*r_nreacts;
+    memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
+    memcpy(&ibuf[0][0],&buf[nreacts*sizeof(Set)],sizeof(int)*ibufcount);
+    n2cpy = r_max_rate_limit_steps;
+  } else n2cpy = 0;
   if (max_rate_limit_steps < n2cpy) n2cpy = max_rate_limit_steps;
   for (int i = 0; i < r_nreacts; i++) {
     for (int j = 0; j < nreacts; j++) {
@@ -4526,7 +4531,7 @@ void FixBondReact::restart(char *buf)
       }
     }
   }
-  memory->destroy(ibuf);
+  if (lmp->restart_ver > utils::date2num("3 Nov 2022")) memory->destroy(ibuf);
 }
 
 /* ----------------------------------------------------------------------

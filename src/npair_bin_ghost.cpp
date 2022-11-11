@@ -103,17 +103,17 @@ void NPairBinGhost<HALF>::build(NeighList *list)
       for (k = 0; k < nstencil; k++) {
         bin_start = binhead[ibin+stencil[k]];
         for (j = bin_start; j >= 0; j = bins[j]) {
-          if (!HALF) {
-            // Full neighbor list
-            // only skip i = j
-            if (i == j) continue;
-          } else {
+          if (HALF) {
             // Half neighbor list, newton off
             // only store pair if i < j
             // stores own/own pairs only once
             // stores own/ghost pairs on both procs
             // stores ghost/ghost pairs only once
             if (j <= i) continue;
+          } else {
+            // Full neighbor list
+            // only skip i = j
+            if (i == j) continue;
           }
 
           jtype = type[j];
@@ -151,10 +151,10 @@ void NPairBinGhost<HALF>::build(NeighList *list)
             ybin2 < 0 || ybin2 >= mbiny ||
             zbin2 < 0 || zbin2 >= mbinz) continue;
         for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
-          if (!HALF) {
-            if (i == j) continue;
-          } else {
+          if (HALF) {
             if (j <= i) continue;
+          } else {
+            if (i == j) continue;
           }
 
           jtype = type[j];

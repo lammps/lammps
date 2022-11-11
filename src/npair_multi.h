@@ -14,7 +14,7 @@
 #ifdef NPAIR_CLASS
 // clang-format off
 typedef NPairMulti<0, 1, 0, 0> NPairFullMulti;
-NPairStyle(full/Multi,
+NPairStyle(full/multi,
            NPairFullMulti,
            NP_FULL | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
@@ -35,7 +35,7 @@ NPairStyle(half/multi/newton/tri,
            NP_HALF | NP_MULTI | NP_NEWTON | NP_TRI);
 
 typedef NPairMulti<0, 1, 0, 1> NPairFullSizeMulti;
-NPairStyle(full/size/Multi,
+NPairStyle(full/size/multi,
            NPairFullSizeMulti,
            NP_FULL | NP_SIZE | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);

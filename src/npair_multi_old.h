@@ -16,44 +16,44 @@
 typedef NPairMultiOld<0, 1, 0, 0> NPairFullMultiOld;
 NPairStyle(full/multi/old,
            NPairFullMultiOld,
-           NP_FULL | NP_MULTI_OLD | NP_MOLONLY |
+           NP_FULL | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairMultiOld<1, 0, 0, 0> NPairHalfMultiOldNewtoff;
 NPairStyle(half/multi/old/newtoff,
            NPairHalfMultiOldNewtoff,
-           NP_HALF | NP_MULTI_OLD | NP_MOLONLY | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+           NP_HALF | NP_MULTI_OLD | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairMultiOld<1, 1, 0, 0> NPairHalfMultiOldNewton;
 NPairStyle(half/multi/old/newton,
            NPairHalfMultiOldNewton,
-           NP_HALF | NP_MULTI_OLD | NP_MOLONLY | NP_NEWTON | NP_ORTHO);
+           NP_HALF | NP_MULTI_OLD | NP_NEWTON | NP_ORTHO);
 
 typedef NPairMultiOld<1, 1, 1, 0> NPairHalfMultiOldNewtonTri;
 NPairStyle(half/multi/old/newton/tri,
            NPairHalfMultiOldNewtonTri,
-           NP_HALF | NP_MULTI_OLD | NP_MOLONLY | NP_NEWTON | NP_TRI);
+           NP_HALF | NP_MULTI_OLD | NP_NEWTON | NP_TRI);
 
 typedef NPairMultiOld<0, 1, 0, 1> NPairFullSizeMultiOld;
 NPairStyle(full/size/multi/old,
            NPairFullSizeMultiOld,
-           NP_FULL | NP_SIZE | NP_MULTI_OLD | NP_MOLONLY |
+           NP_FULL | NP_SIZE | NP_MULTI_OLD |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairMultiOld<1, 0, 0, 1> NPairHalfSizeMultiOldNewtoff;
 NPairStyle(half/size/multi/old/newtoff,
            NPairHalfSizeMultiOldNewtoff,
-           NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_MOLONLY | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+           NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairMultiOld<1, 1, 0, 1> NPairHalfSizeMultiOldNewton;
 NPairStyle(half/size/multi/old/newton,
            NPairHalfSizeMultiOldNewton,
-           NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_MOLONLY | NP_NEWTON | NP_ORTHO);
+           NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_NEWTON | NP_ORTHO);
 
 typedef NPairMultiOld<1, 1, 1, 1> NPairHalfSizeMultiOldNewtonTri;
 NPairStyle(half/size/multi/old/newton/tri,
            NPairHalfSizeMultiOldNewtonTri,
-           NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_MOLONLY | NP_NEWTON | NP_TRI);
+           NP_HALF | NP_SIZE | NP_MULTI_OLD | NP_NEWTON | NP_TRI);
 // clang-format on
 #else
 

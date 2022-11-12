@@ -42,7 +42,6 @@ typedef NPairNsq<1, 1, 1> NPairHalfSizeNsqNewton;
 NPairStyle(half/size/nsq/newton,
            NPairHalfSizeNsqNewton,
            NP_HALF | NP_SIZE | NP_NSQ | NP_NEWTON | NP_ORTHO | NP_TRI);
-
 // clang-format on
 #else
 

@@ -1,5 +1,4 @@
-// clang-format off
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -12,8 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_multi_old.h"
-
+#include "npair_multi_old_omp.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "domain.h"
@@ -21,13 +19,15 @@
 #include "molecule.h"
 #include "my_page.h"
 #include "neigh_list.h"
+#include "npair_omp.h"
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 template<int HALF, int NEWTON, int TRI, int SIZE>
-NPairMultiOld<HALF, NEWTON, TRI, SIZE>::NPairMultiOld(LAMMPS *lmp) : NPair(lmp) {}
+NPairMultiOldOmp<HALF, NEWTON, TRI, SIZE>::NPairMultiOldOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
   multi/old-type stencil is itype dependent and is distance checked
@@ -49,14 +49,26 @@ NPairMultiOld<HALF, NEWTON, TRI, SIZE>::NPairMultiOld(LAMMPS *lmp) : NPair(lmp) 
 ------------------------------------------------------------------------- */
 
 template<int HALF, int NEWTON, int TRI, int SIZE>
-void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
+void NPairMultiOldOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 {
-  int i,j,jh,k,n,itype,jtype,ibin,bin_start,which,ns,imol,iatom,moltemplate;
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
+
+  NPAIR_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
+#endif
+  NPAIR_OMP_SETUP(nlocal);
+
+  int i, j, jh, k, n, itype, jtype, ibin, bin_start, which, ns, imol, iatom;
   tagint tagprev;
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
+  double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
   double radsum,cut,cutsq;
-  int *neighptr,*s;
-  double *cutnsq,*distsq;
+  int *neighptr, *s;
+  double *cutnsq, *distsq;
+
+  // loop over each atom, storing neighbors
 
   double **x = atom->x;
   double *radius = atom->radius;
@@ -66,14 +78,10 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-  if (includegroup) nlocal = atom->nfirst;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == Atom::TEMPLATE) moltemplate = 1;
-  else moltemplate = 0;
 
   int history = list->history;
   int mask_history = 1 << HISTBITS;
@@ -81,14 +89,15 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  MyPage<int> *ipage = list->ipage;
 
-  int inum = 0;
-  ipage->reset();
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
-  for (i = 0; i < nlocal; i++) {
+  for (i = ifrom; i < ito; i++) {
+
     n = 0;
-    neighptr = ipage->vget();
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -160,12 +169,12 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
         jtype = type[j];
         if (cutnsq[jtype] < distsq[k]) continue;
 
-        if (exclude && exclusion(i,j,itype,jtype,mask,molecule)) continue;
+        if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx*delx + dely*dely + delz*delz;
+        rsq = delx * delx + dely * dely + delz * delz;
 
         if (SIZE) {
           radsum = radius[i] + radius[j];
@@ -211,25 +220,24 @@ void NPairMultiOld<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
       }
     }
 
-    ilist[inum++] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    ipage.vgot(n);
+    if (ipage.status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
-
-  list->inum = inum;
+  NPAIR_OMP_CLOSE;
+  list->inum = nlocal;
   list->gnum = 0;
 }
 
 namespace LAMMPS_NS {
-template class NPairMultiOld<0,1,0,0>;
-template class NPairMultiOld<1,0,0,0>;
-template class NPairMultiOld<1,1,0,0>;
-template class NPairMultiOld<1,1,1,0>;
-template class NPairMultiOld<0,1,0,1>;
-template class NPairMultiOld<1,0,0,1>;
-template class NPairMultiOld<1,1,0,1>;
-template class NPairMultiOld<1,1,1,1>;
+template class NPairMultiOldOmp<0,1,0,0>;
+template class NPairMultiOldOmp<1,0,0,0>;
+template class NPairMultiOldOmp<1,1,0,0>;
+template class NPairMultiOldOmp<1,1,1,0>;
+template class NPairMultiOldOmp<0,1,0,1>;
+template class NPairMultiOldOmp<1,0,0,1>;
+template class NPairMultiOldOmp<1,1,0,1>;
+template class NPairMultiOldOmp<1,1,1,1>;
 }

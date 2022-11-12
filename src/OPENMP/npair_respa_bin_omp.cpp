@@ -12,7 +12,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_respa_bin.h"
+#include "omp_compat.h"
+#include "npair_respa_bin_omp.h"
+#include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -26,7 +28,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<int NEWTON, int TRI>
-NPairRespaBin<NEWTON, TRI>::NPairRespaBin(LAMMPS *lmp) : NPair(lmp) {}
+NPairRespaBinOmp<NEWTON, TRI>::NPairRespaBinOmp(LAMMPS *lmp) :
+  NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    multiple respa lists
@@ -42,12 +45,27 @@ NPairRespaBin<NEWTON, TRI>::NPairRespaBin(LAMMPS *lmp) : NPair(lmp) {}
 ------------------------------------------------------------------------- */
 
 template<int NEWTON, int TRI>
-void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
+void NPairRespaBinOmp<NEWTON, TRI>::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,bin_start,n_inner,n_middle,imol,iatom,moltemplate;
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
+
+  NPAIR_OMP_INIT;
+
+  const int respamiddle = list->respamiddle;
+
+#if defined(_OPENMP)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
+#endif
+  NPAIR_OMP_SETUP(nlocal);
+
+  int i,j,k,n,itype,jtype,ibin,bin_start,n_inner,n_middle,imol,iatom;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*neighptr_inner,*neighptr_middle;
+
+  // loop over each atom, storing neighbors
 
   double **x = atom->x;
   int *type = atom->type;
@@ -56,46 +74,46 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-  if (includegroup) nlocal = atom->nfirst;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == Atom::TEMPLATE) moltemplate = 1;
-  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  MyPage<int> *ipage = list->ipage;
 
   int *ilist_inner = list->ilist_inner;
   int *numneigh_inner = list->numneigh_inner;
   int **firstneigh_inner = list->firstneigh_inner;
-  MyPage<int> *ipage_inner = list->ipage_inner;
 
   int *ilist_middle,*numneigh_middle,**firstneigh_middle;
-  MyPage<int> *ipage_middle;
-  int respamiddle = list->respamiddle;
   if (respamiddle) {
     ilist_middle = list->ilist_middle;
     numneigh_middle = list->numneigh_middle;
     firstneigh_middle = list->firstneigh_middle;
-    ipage_middle = list->ipage_middle;
   }
 
-  int inum = 0;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  MyPage<int> &ipage_inner = list->ipage_inner[tid];
+  ipage.reset();
+  ipage_inner.reset();
+
+  MyPage<int> *ipage_middle;
+  if (respamiddle) {
+    ipage_middle = list->ipage_middle + tid;
+    ipage_middle->reset();
+  }
+
   int which = 0;
   int minchange = 0;
-  ipage->reset();
-  ipage_inner->reset();
-  if (respamiddle) ipage_middle->reset();
 
-  for (i = 0; i < nlocal; i++) {
+  for (i = ifrom; i < ito; i++) {
+
     n = n_inner = 0;
-    neighptr = ipage->vget();
-    neighptr_inner = ipage_inner->vget();
+    neighptr = ipage.vget();
+    neighptr_inner = ipage_inner.vget();
     if (respamiddle) {
       n_middle = 0;
       neighptr_middle = ipage_middle->vget();
@@ -105,13 +123,12 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    ibin = atom2bin[i];
     if (moltemplate) {
       imol = molindex[i];
       iatom = molatom[i];
       tagprev = tag[i] - iatom - 1;
     }
-
-    ibin = atom2bin[i];
 
     for (k = 0; k < nstencil; k++) {
       bin_start = binhead[ibin+stencil[k]];
@@ -173,7 +190,7 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(special[i],nspecial[i],tag[j]);
-            else if (imol >= 0)
+            else if (imol >=0)
               which = find_special(onemols[imol]->special[iatom],
                                    onemols[imol]->nspecial[iatom],
                                    tag[j]-tagprev);
@@ -202,39 +219,37 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
       }
     }
 
-    ilist[inum] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    ipage->vgot(n);
-    if (ipage->status())
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
-    ilist_inner[inum] = i;
+    ilist_inner[i] = i;
     firstneigh_inner[i] = neighptr_inner;
     numneigh_inner[i] = n_inner;
-    ipage_inner->vgot(n_inner);
-    if (ipage_inner->status())
+    ipage.vgot(n_inner);
+    if (ipage_inner.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
 
     if (respamiddle) {
-      ilist_middle[inum] = i;
+      ilist_middle[i] = i;
       firstneigh_middle[i] = neighptr_middle;
       numneigh_middle[i] = n_middle;
       ipage_middle->vgot(n_middle);
       if (ipage_middle->status())
         error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
     }
-
-    inum++;
   }
-
-  list->inum = inum;
-  list->inum_inner = inum;
-  if (respamiddle) list->inum_middle = inum;
+  NPAIR_OMP_CLOSE;
+  list->inum = nlocal;
+  list->inum_inner = nlocal;
+  if (respamiddle) list->inum_middle = nlocal;
 }
 
 namespace LAMMPS_NS {
-template class NPairRespaBin<0,0>;
-template class NPairRespaBin<1,0>;
-template class NPairRespaBin<1,1>;
+template class NPairRespaBinOmp<0,0>;
+template class NPairRespaBinOmp<1,0>;
+template class NPairRespaBinOmp<1,1>;
 }

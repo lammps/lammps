@@ -12,23 +12,23 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_bin_ghost.h"
+#include "omp_compat.h"
+#include "npair_bin_ghost_omp.h"
+#include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
-#include "neighbor.h"
 #include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
 template<int HALF>
-NPairBinGhost<HALF>::NPairBinGhost(LAMMPS *lmp) : NPair(lmp) {}
+NPairBinGhostOmp<HALF>::NPairBinGhostOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    Full:
@@ -45,9 +45,20 @@ NPairBinGhost<HALF>::NPairBinGhost(LAMMPS *lmp) : NPair(lmp) {}
 ------------------------------------------------------------------------- */
 
 template<int HALF>
-void NPairBinGhost<HALF>::build(NeighList *list)
+void NPairBinGhostOmp<HALF>::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,bin_start,which,imol,iatom,moltemplate;
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
+
+  NPAIR_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
+#endif
+  NPAIR_OMP_SETUP(nall);
+
+  int i,j,k,n,itype,jtype,ibin,bin_start,which,imol,iatom;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int xbin,ybin,zbin,xbin2,ybin2,zbin2;
@@ -60,28 +71,25 @@ void NPairBinGhost<HALF>::build(NeighList *list)
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  if (includegroup) nlocal = atom->nfirst;
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == Atom::TEMPLATE) moltemplate = 1;
-  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  MyPage<int> *ipage = list->ipage;
 
-  int inum = 0;
-  ipage->reset();
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   // loop over owned & ghost atoms, storing neighbors
-  for (i = 0; i < nall; i++) {
+
+  for (i = ifrom; i < ito; i++) {
+
     n = 0;
-    neighptr = ipage->vget();
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -93,15 +101,14 @@ void NPairBinGhost<HALF>::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
+    // loop over all atoms in surrounding bins in stencil including self
+    // when i is a ghost atom, must check if stencil bin is out of bounds
+    // no molecular test when i = ghost atom
+
     if (i < nlocal) {
       ibin = atom2bin[i];
-
-      // loop over all atoms in surrounding bins in stencil including self
-      // when i is a ghost atom, must check if stencil bin is out of bounds
-      // no molecular test when i = ghost atom
       for (k = 0; k < nstencil; k++) {
-        bin_start = binhead[ibin+stencil[k]];
-        for (j = bin_start; j >= 0; j = bins[j]) {
+        for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
           if (HALF) {
             // Half neighbor list, newton off
             // only store pair if i < j
@@ -121,13 +128,13 @@ void NPairBinGhost<HALF>::build(NeighList *list)
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];
-          rsq = delx * delx + dely * dely + delz * delz;
+          rsq = delx*delx + dely*dely + delz*delz;
 
           if (rsq <= cutneighsq[itype][jtype]) {
             if (molecular != Atom::ATOMIC) {
               if (!moltemplate)
                 which = find_special(special[i],nspecial[i],tag[j]);
-              else if (imol >= 0)
+              else if (imol >=0)
                 which = find_special(onemols[imol]->special[iatom],
                                      onemols[imol]->nspecial[iatom],
                                      tag[j]-tagprev);
@@ -140,6 +147,7 @@ void NPairBinGhost<HALF>::build(NeighList *list)
           }
         }
       }
+
     } else {
       ibin = coord2bin(x[i],xbin,ybin,zbin);
       for (k = 0; k < nstencil; k++) {
@@ -169,19 +177,19 @@ void NPairBinGhost<HALF>::build(NeighList *list)
       }
     }
 
-    ilist[inum++] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    ipage->vgot(n);
-    if (ipage->status())
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
-
-  list->inum = atom->nlocal;
-  list->gnum = inum - atom->nlocal;
+  NPAIR_OMP_CLOSE;
+  list->inum = nlocal;
+  list->gnum = nall - nlocal;
 }
 
 namespace LAMMPS_NS {
-template class NPairBinGhost<0>;
-template class NPairBinGhost<1>;
+template class NPairBinGhostOmp<0>;
+template class NPairBinGhostOmp<1>;
 }

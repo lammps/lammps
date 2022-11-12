@@ -12,7 +12,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_respa_bin.h"
+#include "omp_compat.h"
+#include "npair_bin_omp.h"
+#include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -25,81 +27,72 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template<int NEWTON, int TRI>
-NPairRespaBin<NEWTON, TRI>::NPairRespaBin(LAMMPS *lmp) : NPair(lmp) {}
+template<int HALF, int NEWTON, int TRI, int SIZE>
+NPairBinOmp<HALF, NEWTON, TRI, SIZE>::NPairBinOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
-   multiple respa lists
-   Newtoff
+   Full:
+     binned neighbor list construction for all neighbors
+     every neighbor pair appears in list of both atoms i and j
+   Half + Newtoff:
      binned neighbor list construction with partial Newton's 3rd law
-     each owned atom i checks own bin and surrounding bins in non-Newton stencil
+     each owned atom i checks own bin and other bins in stencil
      pair stored once if i,j are both owned and i < j
      pair stored by me if j is ghost (also stored by proc owning j)
-  Newton
+   Half + Newton:
      binned neighbor list construction with full Newton's 3rd law
      each owned atom i checks its own bin and other bins in Newton stencil
      every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
-template<int NEWTON, int TRI>
-void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
+template<int HALF, int NEWTON, int TRI, int SIZE>
+void NPairBinOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,ibin,bin_start,n_inner,n_middle,imol,iatom,moltemplate;
+  const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
+
+  NPAIR_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
+#endif
+  NPAIR_OMP_SETUP(nlocal);
+
+  int i,j,jh,k,n,itype,jtype,ibin,bin_start,which,imol,iatom;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
-  int *neighptr,*neighptr_inner,*neighptr_middle;
+  double radsum,cut,cutsq;
+  int *neighptr;
 
   double **x = atom->x;
+  double *radius = atom->radius;
   int *type = atom->type;
   int *mask = atom->mask;
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-  if (includegroup) nlocal = atom->nfirst;
-
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == Atom::TEMPLATE) moltemplate = 1;
-  else moltemplate = 0;
+
+  int history = list->history;
+  int mask_history = 1 << HISTBITS;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  MyPage<int> *ipage = list->ipage;
 
-  int *ilist_inner = list->ilist_inner;
-  int *numneigh_inner = list->numneigh_inner;
-  int **firstneigh_inner = list->firstneigh_inner;
-  MyPage<int> *ipage_inner = list->ipage_inner;
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
-  int *ilist_middle,*numneigh_middle,**firstneigh_middle;
-  MyPage<int> *ipage_middle;
-  int respamiddle = list->respamiddle;
-  if (respamiddle) {
-    ilist_middle = list->ilist_middle;
-    numneigh_middle = list->numneigh_middle;
-    firstneigh_middle = list->firstneigh_middle;
-    ipage_middle = list->ipage_middle;
-  }
+  // loop over owned atoms, storing neighbors
 
-  int inum = 0;
-  int which = 0;
-  int minchange = 0;
-  ipage->reset();
-  ipage_inner->reset();
-  if (respamiddle) ipage_middle->reset();
+  for (i = ifrom; i < ito; i++) {
 
-  for (i = 0; i < nlocal; i++) {
-    n = n_inner = 0;
-    neighptr = ipage->vget();
-    neighptr_inner = ipage_inner->vget();
-    if (respamiddle) {
-      n_middle = 0;
-      neighptr_middle = ipage_middle->vget();
-    }
+    n = 0;
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -111,12 +104,15 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
       tagprev = tag[i] - iatom - 1;
     }
 
+    // loop over all atoms in surrounding bins in stencil including self
+    // skip i = j
+
     ibin = atom2bin[i];
 
     for (k = 0; k < nstencil; k++) {
       bin_start = binhead[ibin+stencil[k]];
       if (stencil[k] == 0) {
-        if (NEWTON && (!TRI)) {
+        if (HALF && NEWTON && (!TRI)) {
           // Half neighbor list, newton on, orthonormal
           // loop over rest of atoms in i's bin, ghosts are at end of linked list
           bin_start = bins[i];
@@ -124,7 +120,11 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
       }
 
       for (j = bin_start; j >= 0; j = bins[j]) {
-        if (!NEWTON) {
+        if (!HALF) {
+          // Full neighbor list
+          // only skip i = j
+          if (i == j) continue;
+        } else if (!NEWTON) {
           // Half neighbor list, newton off
           // only store pair if i < j
           // stores own/own pairs only once
@@ -169,72 +169,69 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
 
-        if (rsq <= cutneighsq[itype][jtype]) {
-          if (molecular != Atom::ATOMIC) {
-            if (!moltemplate)
-              which = find_special(special[i],nspecial[i],tag[j]);
-            else if (imol >= 0)
-              which = find_special(onemols[imol]->special[iatom],
-                                   onemols[imol]->nspecial[iatom],
-                                   tag[j]-tagprev);
-            else which = 0;
-            if (which == 0) neighptr[n++] = j;
-            else if ((minchange = domain->minimum_image_check(delx,dely,delz)))
-              neighptr[n++] = j;
-            else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
-          } else neighptr[n++] = j;
+        if (SIZE) {
+          radsum = radius[i] + radius[j];
+          cut = radsum + skin;
+          cutsq = cut * cut;
 
-          if (rsq < cut_inner_sq) {
-            if (which == 0) neighptr_inner[n_inner++] = j;
-            else if (minchange) neighptr_inner[n_inner++] = j;
-            else if (which > 0)
-              neighptr_inner[n_inner++] = j ^ (which << SBBITS);
+          if (rsq <= cutsq) {
+            jh = j;
+            if (history && rsq < radsum * radsum)
+              jh = jh ^ mask_history;
+
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = jh;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = jh;
+              else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
+            } else neighptr[n++] = jh;
           }
-
-          if (respamiddle &&
-              rsq < cut_middle_sq && rsq > cut_middle_inside_sq) {
-            if (which == 0) neighptr_middle[n_middle++] = j;
-            else if (minchange) neighptr_middle[n_middle++] = j;
-            else if (which > 0)
-              neighptr_middle[n_middle++] = j ^ (which << SBBITS);
+        } else {
+          if (rsq <= cutneighsq[itype][jtype]) {
+            if (molecular != Atom::ATOMIC) {
+              if (!moltemplate)
+                which = find_special(special[i],nspecial[i],tag[j]);
+              else if (imol >= 0)
+                which = find_special(onemols[imol]->special[iatom],
+                                     onemols[imol]->nspecial[iatom],
+                                     tag[j]-tagprev);
+              else which = 0;
+              if (which == 0) neighptr[n++] = j;
+              else if (domain->minimum_image_check(delx,dely,delz))
+                neighptr[n++] = j;
+              else if (which > 0) neighptr[n++] = j ^ (which << SBBITS);
+            } else neighptr[n++] = j;
           }
         }
       }
     }
 
-    ilist[inum] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    ipage->vgot(n);
-    if (ipage->status())
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
-
-    ilist_inner[inum] = i;
-    firstneigh_inner[i] = neighptr_inner;
-    numneigh_inner[i] = n_inner;
-    ipage_inner->vgot(n_inner);
-    if (ipage_inner->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
-
-    if (respamiddle) {
-      ilist_middle[inum] = i;
-      firstneigh_middle[i] = neighptr_middle;
-      numneigh_middle[i] = n_middle;
-      ipage_middle->vgot(n_middle);
-      if (ipage_middle->status())
-        error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
-    }
-
-    inum++;
   }
-
-  list->inum = inum;
-  list->inum_inner = inum;
-  if (respamiddle) list->inum_middle = inum;
+  NPAIR_OMP_CLOSE;
+  list->inum = nlocal;
+  if (!HALF) list->gnum = 0;
 }
 
 namespace LAMMPS_NS {
-template class NPairRespaBin<0,0>;
-template class NPairRespaBin<1,0>;
-template class NPairRespaBin<1,1>;
+template class NPairBinOmp<0,1,0,0>;
+template class NPairBinOmp<1,0,0,0>;
+template class NPairBinOmp<1,1,0,0>;
+template class NPairBinOmp<1,1,1,0>;
+template class NPairBinOmp<0,1,0,1>;
+template class NPairBinOmp<1,0,0,1>;
+template class NPairBinOmp<1,1,0,1>;
+template class NPairBinOmp<1,1,1,1>;
 }

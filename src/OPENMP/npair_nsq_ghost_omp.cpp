@@ -12,24 +12,23 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "npair_nsq_ghost.h"
+#include "omp_compat.h"
+#include "npair_nsq_ghost_omp.h"
+#include "npair_omp.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
 #include "molecule.h"
-#include "neighbor.h"
 #include "domain.h"
 #include "my_page.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
 template<int HALF>
-NPairNsqGhost<HALF>::NPairNsqGhost(LAMMPS *lmp) : NPair(lmp) {}
+NPairNsqGhostOmp<HALF>::NPairNsqGhostOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    Full:
@@ -45,9 +44,20 @@ NPairNsqGhost<HALF>::NPairNsqGhost(LAMMPS *lmp) : NPair(lmp) {}
 ------------------------------------------------------------------------- */
 
 template<int HALF>
-void NPairNsqGhost<HALF>::build(NeighList *list)
+void NPairNsqGhostOmp<HALF>::build(NeighList *list)
 {
-  int i,j,jstart,n,itype,jtype,which,bitmask,imol,iatom,moltemplate;
+  const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+  const int molecular = atom->molecular;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
+
+  NPAIR_OMP_INIT;
+#if defined(_OPENMP)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
+#endif
+  NPAIR_OMP_SETUP(nall);
+
+  int i,j,jstart,n,itype,jtype,which,imol,iatom;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr;
@@ -59,31 +69,25 @@ void NPairNsqGhost<HALF>::build(NeighList *list)
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-  if (includegroup) {
-    nlocal = atom->nfirst;
-    bitmask = group->bitmask[includegroup];
-  }
 
   int *molindex = atom->molindex;
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
-  if (molecular == Atom::TEMPLATE) moltemplate = 1;
-  else moltemplate = 0;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-  MyPage<int> *ipage = list->ipage;
 
-  int inum = 0;
-  ipage->reset();
+  // each thread has its own page allocator
+  MyPage<int> &ipage = list->ipage[tid];
+  ipage.reset();
 
   // loop over owned & ghost atoms, storing neighbors
-  for (i = 0; i < nall; i++) {
+
+  for (i = ifrom; i < ito; i++) {
+
     n = 0;
-    neighptr = ipage->vget();
+    neighptr = ipage.vget();
 
     itype = type[i];
     xtmp = x[i][0];
@@ -110,7 +114,6 @@ void NPairNsqGhost<HALF>::build(NeighList *list)
 
     if (i < nlocal) {
       for (j = jstart; j < nall; j++) {
-        if (includegroup && !(mask[j] & bitmask)) continue; // JTC: missing in original full version
         if (!HALF) {
           if (i == j) continue;
         }
@@ -121,13 +124,12 @@ void NPairNsqGhost<HALF>::build(NeighList *list)
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx * delx + dely * dely + delz * delz;
-
+        rsq = delx*delx + dely*dely + delz*delz;
         if (rsq <= cutneighsq[itype][jtype]) {
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(special[i],nspecial[i],tag[j]);
-            else if (imol >= 0)
+            else if (imol >=0)
               which = find_special(onemols[imol]->special[iatom],
                                    onemols[imol]->nspecial[iatom],
                                    tag[j]-tagprev);
@@ -141,7 +143,6 @@ void NPairNsqGhost<HALF>::build(NeighList *list)
       }
     } else {
       for (j = jstart; j < nall; j++) {
-        if (includegroup && !(mask[j] & bitmask)) continue; // JTC: missing in original full version
         if (!HALF) {
           if (i == j) continue;
         }
@@ -152,7 +153,7 @@ void NPairNsqGhost<HALF>::build(NeighList *list)
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
         delz = ztmp - x[j][2];
-        rsq = delx * delx + dely * dely + delz * delz;
+        rsq = delx*delx + dely*dely + delz*delz;
 
         if (HALF) {
           if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
@@ -162,19 +163,19 @@ void NPairNsqGhost<HALF>::build(NeighList *list)
       }
     }
 
-    ilist[inum++] = i;
+    ilist[i] = i;
     firstneigh[i] = neighptr;
     numneigh[i] = n;
-    ipage->vgot(n);
-    if (ipage->status())
+    ipage.vgot(n);
+    if (ipage.status())
       error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
   }
-
-  list->inum = atom->nlocal;
-  list->gnum = inum - atom->nlocal;
+  NPAIR_OMP_CLOSE;
+  list->inum = nlocal;
+  list->gnum = nall - nlocal;
 }
 
 namespace LAMMPS_NS {
-template class NPairNsqGhost<0>;
-template class NPairNsqGhost<1>;
+template class NPairNsqGhostOmp<0>;
+template class NPairNsqGhostOmp<1>;
 }

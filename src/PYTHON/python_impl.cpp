@@ -139,7 +139,7 @@ void PythonImpl::command(int narg, char **arg)
   if ((narg > 1) && (strcmp(arg[0], "source") == 0)) {
     int err = -1;
 
-    if ((narg > 2) && (strcmp(arg[1], "inline") == 0)) {
+    if ((narg > 2) && (strcmp(arg[1], "here") == 0)) {
       err = execute_string(arg[2]);
     } else {
       if (platform::file_is_readable(arg[1]))

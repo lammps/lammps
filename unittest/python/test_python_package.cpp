@@ -286,7 +286,7 @@ TEST_F(PythonPackageTest, RunSourceInline)
 {
     // execute inline python script
     auto output = CAPTURE_OUTPUT([&] {
-        command("python source inline \"\"\"\n"
+        command("python source here \"\"\"\n"
                 "from __future__ import print_function\n"
                 "print(2+2)\n"
                 "\"\"\"");

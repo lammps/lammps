@@ -599,6 +599,8 @@ void ReadRestart::header()
 
     if (flag == VERSION) {
       char *version = read_string();
+      lmp->restart_ver = utils::date2num(version);
+
       if (me == 0)
         utils::logmesg(lmp,"  restart file = {}, LAMMPS = {}\n", version, lmp->version);
       delete[] version;

@@ -435,7 +435,7 @@ of constants from :cpp:enum:`_LMP_ERROR_CONST`.  If the value does not
 match any valid combination of constants a warning is printed and the
 function returns.
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 \endverbatim
  *
@@ -953,6 +953,7 @@ not recognized, the function returns -1.  The integer sizes functions may
 be called without a valid LAMMPS object handle (it is ignored).
 
 * :ref:`Integer sizes <extract_integer_sizes>`
+* :ref:`Image masks <extract_image_masks>`
 * :ref:`System status <extract_system_status>`
 * :ref:`System sizes <extract_system_sizes>`
 * :ref:`Atom style flags <extract_atom_flags>`
@@ -976,6 +977,28 @@ be called without a valid LAMMPS object handle (it is ignored).
    * - imageint
      - size of the ``imageint`` integer type, 4 or 8 bytes.
        Set at :ref:`compile time <size>`.
+
+.. _extract_image_masks:
+
+**Image masks**
+
+These settings are related to how LAMMPS stores and interprets periodic images. The values are used
+internally by the Fortran interface and are not likely to be useful to users.
+
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+
+   * - Keyword
+     - Description / Return value
+   * - IMGMASK
+     - Bit-mask used to convert image flags to a single integer
+   * - IMGMAX
+     - Maximum allowed image number for a particular atom
+   * - IMGBITS
+     - Bits used in image counts
+   * - IMG2BITS
+     - Second bitmask used in image counts
 
 .. _extract_system_status:
 
@@ -1095,6 +1118,11 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"bigint") == 0) return sizeof(bigint);
   if (strcmp(keyword,"tagint") == 0) return sizeof(tagint);
   if (strcmp(keyword,"imageint") == 0) return sizeof(imageint);
+
+  if (strcmp(keyword,"IMGMASK") == 0) return IMGMASK;
+  if (strcmp(keyword,"IMGBITS") == 0) return IMGBITS;
+  if (strcmp(keyword,"IMG2BITS") == 0) return IMG2BITS;
+  if (strcmp(keyword,"IMGMAX") == 0) return IMGMAX;
 
   if (strcmp(keyword,"dimension") == 0) return lmp->domain->dimension;
   if (strcmp(keyword,"box_exist") == 0) return lmp->domain->box_exist;
@@ -2160,7 +2188,7 @@ with the specified name. See :cpp:enum:`_LMP_VAR_CONST` for valid values.
 Callers of :cpp:func:`lammps_extract_variable` can use this information to
 decide how to cast the ``void *`` pointer and access the data.
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 \endverbatim
  *
@@ -5837,7 +5865,7 @@ This function is used by the ML-IAP python code (mliappy) to verify
 the API version of the embedded python interpreter of the PYTHON
 package.  It returns -1 if the PYTHON package is not enabled.
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 \endverbatim
  *

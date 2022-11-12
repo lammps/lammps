@@ -848,8 +848,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     int match = 0;
     if (strcmp(arg[2], fix[ifix]->style) == 0) match = 1;
     if (!match && trysuffix && lmp->suffix_enable) {
-      if (lmp->suffix) {
-        std::string estyle = arg[2] + std::string("/") + lmp->suffix;
+      if (lmp->non_pair_suffix()) {
+        std::string estyle = arg[2] + std::string("/") + lmp->non_pair_suffix();
         if (estyle == fix[ifix]->style) match = 1;
       }
       if (lmp->suffix2) {
@@ -879,8 +879,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   fix[ifix] = nullptr;
 
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      std::string estyle = arg[2] + std::string("/") + lmp->non_pair_suffix();
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp, narg, arg);
@@ -1243,8 +1243,8 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
   compute[ncompute] = nullptr;
 
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
-      std::string estyle = arg[2] + std::string("/") + lmp->suffix;
+    if (lmp->non_pair_suffix()) {
+      std::string estyle = arg[2] + std::string("/") + lmp->non_pair_suffix();
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp, narg, arg);

@@ -18,10 +18,29 @@
    a LAMMPS plugin to some other software.
 */
 
-#include "library.h"
 #include "liblammpsplugin.h"
-#include <stdlib.h>
+
+#if defined(_WIN32)
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+#if defined(_WIN32_WINNT)
+#undef _WIN32_WINNT
+#endif
+
+// target Windows version is windows 7 and later
+#define _WIN32_WINNT _WIN32_WINNT_WIN7
+#define PSAPI_VERSION 2
+
+#include <windows.h>
+#else
 #include <dlfcn.h>
+#endif
+
+#include <stdlib.h>
+
 
 liblammpsplugin_t *liblammpsplugin_load(const char *lib)
 {
@@ -29,14 +48,29 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   void *handle;
 
   if (lib == NULL) return NULL;
+
+#ifdef _WIN32
+  handle = (void *) LoadLibrary(lib);
+#else
   handle = dlopen(lib,RTLD_NOW|RTLD_GLOBAL);
+#endif
   if (handle == NULL) return NULL;
 
   lmp = (liblammpsplugin_t *) malloc(sizeof(liblammpsplugin_t));
   lmp->handle = handle;
 
-#define ADDSYM(symbol) lmp->symbol = dlsym(handle,"lammps_" #symbol)
+#ifdef _WIN32
+#define ADDSYM(symbol) *(void **) (&lmp->symbol) = (void *) GetProcAddress((HINSTANCE) handle, "lammps_" #symbol)
+#else
+#define ADDSYM(symbol) *(void **) (&lmp->symbol) = dlsym(handle,"lammps_" #symbol)
+#endif
+
+#if defined(LAMMPS_LIB_MPI)
   ADDSYM(open);
+#else
+  lmp->open = NULL;
+#endif
+
   ADDSYM(open_no_mpi);
   ADDSYM(open_fortran);
   ADDSYM(close);
@@ -45,6 +79,8 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(mpi_finalize);
   ADDSYM(kokkos_finalize);
   ADDSYM(python_finalize);
+
+  ADDSYM(error);
 
   ADDSYM(file);
   ADDSYM(command);
@@ -70,6 +106,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(extract_compute);
   ADDSYM(extract_fix);
   ADDSYM(extract_variable);
+  ADDSYM(extract_variable_datatype);
   ADDSYM(set_variable);
 
   ADDSYM(gather_atoms);
@@ -77,7 +114,14 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(gather_atoms_subset);
   ADDSYM(scatter_atoms);
   ADDSYM(scatter_atoms_subset);
+
   ADDSYM(gather_bonds);
+
+  ADDSYM(gather);
+  ADDSYM(gather_concat);
+  ADDSYM(gather_subset);
+  ADDSYM(scatter);
+  ADDSYM(scatter_subset);
 
   ADDSYM(create_atoms);
 
@@ -116,6 +160,9 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(plugin_count);
   ADDSYM(plugin_name);
 
+  ADDSYM(encode_image_flags);
+  ADDSYM(decode_image_flags);
+
   ADDSYM(set_fix_external_callback);
   ADDSYM(fix_external_get_force);
   ADDSYM(fix_external_set_energy_global);
@@ -124,6 +171,8 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(fix_external_set_virial_peratom);
   ADDSYM(fix_external_set_vector_length);
   ADDSYM(fix_external_set_vector);
+
+  ADDSYM(flush_buffers);
 
   ADDSYM(free);
 
@@ -139,6 +188,8 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   lmp->has_error = NULL;
   lmp->get_last_error_message = NULL;
 #endif
+
+  ADDSYM(python_api_version);
   return lmp;
 }
 
@@ -147,7 +198,11 @@ int liblammpsplugin_release(liblammpsplugin_t *lmp)
   if (lmp == NULL) return 1;
   if (lmp->handle == NULL) return 2;
 
+#ifdef _WIN32
+  FreeLibrary((HINSTANCE) handle);
+#else
   dlclose(lmp->handle);
+#endif
   free((void *)lmp);
   return 0;
 }

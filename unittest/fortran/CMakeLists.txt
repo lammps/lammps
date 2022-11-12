@@ -14,8 +14,9 @@ if(CMAKE_Fortran_COMPILER)
     message(STATUS "Skipping Tests for the LAMMPS Fortran Module: cannot identify Fortran compiler")
     return()
   endif()
-  # GNU Fortran 4.8.x on RHEL/CentOS 7.x is not sufficient to compile the Fortran module
-  if((CMAKE_Fortran_COMPILER_ID STREQUAL "GNU") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 6.0))
+  # GNU Fortran 4.8.x on RHEL/CentOS 7.x is not sufficient to compile the Fortran module. Work around flang being detected as GNU
+  get_filename_component(_tmp_fc ${CMAKE_Fortran_COMPILER} NAME)
+  if((CMAKE_Fortran_COMPILER_ID STREQUAL "GNU") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 6.0) AND NOT (_tmp_fc STREQUAL "flang"))
     message(FATAL_ERROR "Need GNU Fortran compiler version 6.x or later for unit testing")
   endif()
 
@@ -36,6 +37,10 @@ if(CMAKE_Fortran_COMPILER)
   endif()
 
   add_library(flammps STATIC ${LAMMPS_FORTRAN_MODULE} keepstuff.f90)
+  get_filename_component(_tmp_fc ${CMAKE_Fortran_COMPILER} NAME)
+  if (_tmp_fc STREQUAL "flang")
+    target_link_libraries(flammps PUBLIC gfortran)
+  endif()
 
   if(MPI_Fortran_HAVE_F90_MODULE)
     add_executable(test_fortran_create wrap_create.cpp test_fortran_create.f90)
@@ -86,6 +91,18 @@ if(CMAKE_Fortran_COMPILER)
   add_executable(test_fortran_gather_scatter wrap_gather_scatter.cpp test_fortran_gather_scatter.f90)
   target_link_libraries(test_fortran_gather_scatter PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
   add_test(NAME FortranGatherScatter COMMAND test_fortran_gather_scatter)
+
+  add_executable(test_fortran_create_atoms wrap_create_atoms.cpp test_fortran_create_atoms.f90)
+  target_link_libraries(test_fortran_create_atoms PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
+  add_test(NAME FortranCreateAtoms COMMAND test_fortran_create_atoms)
+
+  add_executable(test_fortran_configuration wrap_configuration.cpp test_fortran_configuration.f90 test_fortran_commands.f90)
+  target_link_libraries(test_fortran_configuration PRIVATE flammps lammps MPI::MPI_Fortran GTest::GMockMain)
+  add_test(NAME FortranConfiguration COMMAND test_fortran_configuration)
+
+  add_executable(test_fortran_neighlist wrap_neighlist.cpp test_fortran_neighlist.f90)
+  target_link_libraries(test_fortran_neighlist PRIVATE flammps lammps MPI::MPI_Fortran GTest::GMockMain)
+  add_test(NAME FortranNeighlist COMMAND test_fortran_neighlist)
 
 else()
   message(STATUS "Skipping Tests for the LAMMPS Fortran Module: no Fortran compiler")

@@ -21,7 +21,7 @@
 !
 ! Contributing authors:
 !  - Axel Kohlmeyer <akohlmey@gmail.com>, Temple University, 2020-2022
-!  - Karl D. Hammond <hammondkd@missouri.edu> University of Missouri, 2022
+!  - Karl D. Hammond <hammondkd@missouri.edu>, University of Missouri, 2022
 !
 ! The Fortran module tries to follow the API of the C library interface
 ! closely, but like the Python wrapper, it employs an object-oriented
@@ -44,15 +44,16 @@ MODULE LIBLAMMPS
   ! Data type constants for extracting data from global, atom, compute, and fix
   !
   ! Must be kept in sync with the equivalent declarations in
-  ! src/library.h and python/lammps/constants.py
+  ! src/library.h, python/lammps/constants.py, tools/swig/lammps.i,
+  ! and examples/COUPLE/plugin/liblammpsplugin.h
   !
   ! These are NOT part of the API (the part the user sees)
   INTEGER(c_int), PARAMETER :: &
-    LAMMPS_INT = 0, &         ! 32-bit integer (array)
+    LAMMPS_INT = 0, &         ! 32-bit integer (or array)
     LAMMPS_INT_2D = 1, &      ! two-dimensional 32-bit integer array
-    LAMMPS_DOUBLE = 2, &      ! 64-bit double (array)
+    LAMMPS_DOUBLE = 2, &      ! 64-bit double (or array)
     LAMMPS_DOUBLE_2D = 3, &   ! two-dimensional 64-bit double array
-    LAMMPS_INT64 = 4, &       ! 64-bit integer (array)
+    LAMMPS_INT64 = 4, &       ! 64-bit integer (or array)
     LAMMPS_INT64_2D = 5, &    ! two-dimensional 64-bit integer array
     LAMMPS_STRING = 6, &      ! C-String
     LMP_STYLE_GLOBAL = 0, &   ! request global compute/fix/etc. data
@@ -123,24 +124,53 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_scatter_atoms_double
     GENERIC   :: scatter_atoms          => lmp_scatter_atoms_int, &
                                            lmp_scatter_atoms_double
-!
     PROCEDURE, PRIVATE :: lmp_scatter_atoms_subset_int
     PROCEDURE, PRIVATE :: lmp_scatter_atoms_subset_double
     GENERIC   :: scatter_atoms_subset   => lmp_scatter_atoms_subset_int, &
                                            lmp_scatter_atoms_subset_double
+    PROCEDURE, PRIVATE :: lmp_gather_bonds_small
+    PROCEDURE, PRIVATE :: lmp_gather_bonds_big
+    GENERIC   :: gather_bonds           => lmp_gather_bonds_small, &
+                                           lmp_gather_bonds_big
+!
+    PROCEDURE, PRIVATE :: lmp_create_atoms_int
+    PROCEDURE, PRIVATE :: lmp_create_atoms_bigbig
+    GENERIC   :: create_atoms           => lmp_create_atoms_int, &
+                                           lmp_create_atoms_bigbig
+    PROCEDURE :: find_pair_neighlist    => lmp_find_pair_neighlist
+    PROCEDURE :: find_fix_neighlist     => lmp_find_fix_neighlist
+    PROCEDURE :: find_compute_neighlist => lmp_find_compute_neighlist
+    PROCEDURE :: neighlist_num_elements => lmp_neighlist_num_elements
+    PROCEDURE :: neighlist_element_neighbors => lmp_neighlist_element_neighbors
     PROCEDURE :: version                => lmp_version
-    PROCEDURE,NOPASS :: get_os_info     => lmp_get_os_info
-    PROCEDURE,NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
-    PROCEDURE,NOPASS :: config_has_gzip_support => lmp_config_has_gzip_support
-    PROCEDURE,NOPASS :: config_has_png_support => lmp_config_has_png_support
-    PROCEDURE,NOPASS :: config_has_jpeg_support => lmp_config_has_jpeg_support
-    PROCEDURE,NOPASS :: config_has_ffmpeg_support &
-      => lmp_config_has_ffmpeg_support
-    PROCEDURE,NOPASS :: config_has_exceptions => lmp_config_has_exceptions
-    PROCEDURE,NOPASS :: config_has_package => lmp_config_has_package
-    PROCEDURE,NOPASS :: config_package_count => lammps_config_package_count
-    PROCEDURE,NOPASS :: config_package_name => lmp_config_package_name
-    PROCEDURE,NOPASS :: installed_packages => lmp_installed_packages
+    PROCEDURE, NOPASS :: get_os_info    => lmp_get_os_info
+    PROCEDURE, NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
+    PROCEDURE, NOPASS :: config_has_gzip_support => lmp_config_has_gzip_support
+    PROCEDURE, NOPASS :: config_has_png_support => lmp_config_has_png_support
+    PROCEDURE, NOPASS :: config_has_jpeg_support => lmp_config_has_jpeg_support
+    PROCEDURE, NOPASS :: config_has_ffmpeg_support &
+                                        => lmp_config_has_ffmpeg_support
+    PROCEDURE, NOPASS :: config_has_exceptions => lmp_config_has_exceptions
+    PROCEDURE, NOPASS :: config_has_package => lmp_config_has_package
+    PROCEDURE, NOPASS :: config_package_count => lammps_config_package_count
+    PROCEDURE :: config_package_name    => lmp_config_package_name
+    PROCEDURE :: installed_packages     => lmp_installed_packages
+    PROCEDURE, NOPASS :: config_accelerator => lmp_config_accelerator
+    PROCEDURE, NOPASS :: has_gpu_device => lmp_has_gpu_device
+    PROCEDURE, NOPASS :: get_gpu_device_info => lmp_get_gpu_device_info
+    PROCEDURE :: has_style              => lmp_has_style
+    PROCEDURE :: style_count            => lmp_style_count
+    PROCEDURE :: style_name             => lmp_style_name
+    PROCEDURE :: has_id                 => lmp_has_id
+    PROCEDURE :: id_count               => lmp_id_count
+    PROCEDURE :: id_name                => lmp_id_name
+    PROCEDURE, NOPASS :: plugin_count   => lammps_plugin_count
+    PROCEDURE :: plugin_name            => lmp_plugin_name
+    PROCEDURE :: encode_image_flags     => lmp_encode_image_flags
+    PROCEDURE, PRIVATE :: lmp_decode_image_flags
+    PROCEDURE, PRIVATE :: lmp_decode_image_flags_bigbig
+    GENERIC   :: decode_image_flags     => lmp_decode_image_flags, &
+                                           lmp_decode_image_flags_bigbig
 !
     PROCEDURE :: flush_buffers          => lmp_flush_buffers
     PROCEDURE :: is_running             => lmp_is_running
@@ -201,6 +231,11 @@ MODULE LIBLAMMPS
     CHARACTER(LEN=:), ALLOCATABLE :: str
   END TYPE lammps_variable_data
 
+  TYPE, EXTENDS(lammps_data_baseclass) :: lammps_image_data
+    INTEGER(c_int) :: i32
+    INTEGER(c_int64_t) :: i64
+  END TYPE lammps_image_data
+
   ! This overloads the assignment operator (=) so that assignments of the
   ! form
   !    nlocal = extract_global('nlocal')
@@ -221,6 +256,9 @@ MODULE LIBLAMMPS
     MODULE PROCEDURE assign_double_to_lammps_variable_data, &
       assign_doublevec_to_lammps_variable_data, &
       assign_string_to_lammps_variable_data
+    ! Image data, too
+    MODULE PROCEDURE assign_int_to_lammps_image_data, &
+      assign_int64_to_lammps_image_data
   END INTERFACE
 
   ! interface definitions for calling functions in library.cpp
@@ -353,13 +391,6 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_extract_global_datatype
     END FUNCTION lammps_extract_global_datatype
 
-    FUNCTION c_strlen(str) BIND(C,name='strlen')
-      IMPORT :: c_ptr, c_size_t
-      IMPLICIT NONE
-      TYPE(c_ptr), INTENT(IN), VALUE :: str
-      INTEGER(c_size_t) :: c_strlen
-    END FUNCTION c_strlen
-
     FUNCTION lammps_extract_global(handle, name) BIND(C)
       IMPORT :: c_ptr
       IMPLICIT NONE
@@ -456,7 +487,11 @@ MODULE LIBLAMMPS
       INTEGER(c_int), VALUE :: count, ndata, type
     END SUBROUTINE lammps_scatter_atoms_subset
 
-    !SUBROUTINE lammps_gather_bonds
+    SUBROUTINE lammps_gather_bonds(handle, data) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, data
+    END SUBROUTINE lammps_gather_bonds
 
     !SUBROUTINE lammps_gather
 
@@ -466,18 +501,55 @@ MODULE LIBLAMMPS
 
     !SUBROUTINE lammps_scatter_subset
 
-    !(generic / id, type, and image are special) / requires LAMMPS_BIGBIG
-    !INTEGER(c_int) FUNCTION lammps_create_atoms
+    FUNCTION lammps_create_atoms(handle, n, id, type, x, v, image, bexpand) &
+    BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id, type, x, v, image
+      INTEGER(c_int), VALUE :: n, bexpand
+      INTEGER(c_int) :: lammps_create_atoms
+    END FUNCTION lammps_create_atoms
 
-    !INTEGER(c_int) FUNCTION lammps_find_pair_neighlist
+    FUNCTION lammps_find_pair_neighlist(handle, style, exact, nsub, reqid) &
+    BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, style
+      INTEGER(c_int), VALUE :: exact, nsub, reqid
+      INTEGER(c_int) :: lammps_find_pair_neighlist
+    END FUNCTION lammps_find_pair_neighlist
 
-    !INTEGER(c_int) FUNCTION lammps_find_fix_neighlist
+    FUNCTION lammps_find_fix_neighlist(handle, id, reqid) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: reqid
+      INTEGER(c_int) :: lammps_find_fix_neighlist
+    END FUNCTION lammps_find_fix_neighlist
 
-    !INTEGER(c_int) FUNCTION lammps_find_compute_neighlist
+    FUNCTION lammps_find_compute_neighlist(handle, id, reqid) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: reqid
+      INTEGER(c_int) :: lammps_find_compute_neighlist
+    END FUNCTION lammps_find_compute_neighlist
 
-    !INTEGER(c_int) FUNCTION lammps_neighlist_num_elements
+    FUNCTION lammps_neighlist_num_elements(handle, idx) BIND(C)
+      IMPORT :: c_ptr, c_int
+      TYPE(c_ptr), VALUE :: handle
+      INTEGER(c_int), VALUE :: idx
+      INTEGER(c_int) :: lammps_neighlist_num_elements
+    END FUNCTION lammps_neighlist_num_elements
 
-    !SUBROUTINE lammps_neighlist_element_neighbors
+    SUBROUTINE lammps_neighlist_element_neighbors(handle, idx, element, &
+        iatom, numneigh, neighbors) BIND(C)
+      IMPORT :: c_ptr, c_int
+      TYPE(c_ptr), VALUE :: handle
+      INTEGER(c_int), VALUE :: idx, element
+      INTEGER(c_int) :: iatom, numneigh
+      TYPE(c_ptr) :: neighbors
+    END SUBROUTINE lammps_neighlist_element_neighbors
 
     FUNCTION lammps_version(handle) BIND(C)
       IMPORT :: c_ptr, c_int
@@ -550,20 +622,88 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: buffer
     END FUNCTION lammps_config_package_name
 
-    !LOGICAL FUNCTION lammps_config_accelerator
-    !LOGICAL FUNCTION lammps_has_gpu_device
-    !SUBROUTINE lammps_get_gpu_device
+    FUNCTION lammps_config_accelerator(package, category, setting) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: package, category, setting
+      INTEGER(c_int) :: lammps_config_accelerator
+    END FUNCTION lammps_config_accelerator
 
-    !LOGICAL FUNCTION lammps_has_id
-    !INTEGER(c_int) FUNCTION lammps_id_count
-    !SUBROUTINE lammps_id_name
+    FUNCTION lammps_has_gpu_device() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_has_gpu_device
+    END FUNCTION lammps_has_gpu_device
 
-    !INTEGER(c_int) FUNCTION lammps_plugin_count
-    !SUBROUTINE lammps_plugin_name
+    SUBROUTINE lammps_get_gpu_device_info(buffer, buf_size) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: buffer
+      INTEGER(c_int), VALUE :: buf_size
+    END SUBROUTINE lammps_get_gpu_device_info
 
-    !Both of these use LAMMPS_BIGBIG
-    !INTEGER(LAMMPS_imageint) FUNCTION lammps_encode_image_flags
-    !SUBROUTINE lammps_decode_image_flags
+    FUNCTION lammps_has_style(handle, category, name) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category, name
+      INTEGER(c_int) :: lammps_has_style
+    END FUNCTION lammps_has_style
+
+    FUNCTION lammps_style_count(handle, category) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category
+      INTEGER(c_int) :: lammps_style_count
+    END FUNCTION lammps_style_count
+
+    FUNCTION lammps_style_name(handle, category, idx, buffer, buf_size) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category, buffer
+      INTEGER(c_int), VALUE :: idx, buf_size
+      INTEGER(c_int) :: lammps_style_name
+    END FUNCTION lammps_style_name
+
+    FUNCTION lammps_has_id(handle, category, name) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category, name
+      INTEGER(c_int) :: lammps_has_id
+    END FUNCTION lammps_has_id
+
+    FUNCTION lammps_id_count(handle, category) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category
+      INTEGER(c_int) :: lammps_id_count
+    END FUNCTION lammps_id_count
+
+    FUNCTION lammps_id_name(handle, category, idx, buffer, buf_size) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, category, buffer
+      INTEGER(c_int), VALUE :: idx, buf_size
+      INTEGER(c_int) :: lammps_id_name
+    END FUNCTION lammps_id_name
+
+    FUNCTION lammps_plugin_count() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_plugin_count
+    END FUNCTION lammps_plugin_count
+
+    FUNCTION lammps_plugin_name(idx, stylebuf, namebuf, buf_size) BIND(C)
+      IMPORT :: c_int, c_ptr
+      IMPLICIT NONE
+      INTEGER(c_int), VALUE :: idx, buf_size
+      TYPE(c_ptr), VALUE :: stylebuf, namebuf
+      INTEGER(c_int) :: lammps_plugin_name
+    END FUNCTION lammps_plugin_name
+
+    ! We don't call lammps_encode_image_flags because its interface is
+    ! ambiguous: we don't know sizeof(imageint) prior to compile time.
+    ! It is re-written in Fortran below. It was easier to do the same for
+    ! lammps_decode_image_flags's equivalent.
 
     !SUBROUTINE lammps_set_fix_external_callback ! may have trouble....
     !FUNCTION lammps_fix_external_get_force() ! returns real(c_double)(:)
@@ -580,13 +720,6 @@ MODULE LIBLAMMPS
       IMPLICIT NONE
       TYPE(c_ptr), VALUE :: handle
     END SUBROUTINE lammps_flush_buffers
-
-    FUNCTION lammps_malloc(size) BIND(C, name='malloc')
-      IMPORT :: c_ptr, c_size_t
-      IMPLICIT NONE
-      INTEGER(c_size_t), VALUE :: size
-      TYPE(c_ptr) :: lammps_malloc
-    END FUNCTION lammps_malloc
 
     SUBROUTINE lammps_free(ptr) BIND(C)
       IMPORT :: c_ptr
@@ -619,6 +752,23 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle, buffer
       INTEGER(c_int), VALUE :: buf_size
     END FUNCTION lammps_get_last_error_message
+
+    !---------------------------------------------------------------------
+    ! Utility functions imported for convenience (not in library.h)
+    !---------------------------------------------------------------------
+    FUNCTION lammps_malloc(size) BIND(C, name='malloc')
+      IMPORT :: c_ptr, c_size_t
+      IMPLICIT NONE
+      INTEGER(c_size_t), VALUE :: size
+      TYPE(c_ptr) :: lammps_malloc
+    END FUNCTION lammps_malloc
+
+    FUNCTION c_strlen(str) BIND(C, name='strlen')
+      IMPORT :: c_ptr, c_size_t
+      IMPLICIT NONE
+      TYPE(c_ptr), INTENT(IN), VALUE :: str
+      INTEGER(c_size_t) :: c_strlen
+    END FUNCTION c_strlen
 
   END INTERFACE
 
@@ -686,7 +836,7 @@ CONTAINS
   ! equivalent function to lammps_error()
   SUBROUTINE lmp_error(self, error_type, error_text)
     CLASS(lammps) :: self
-    INTEGER :: error_type
+    INTEGER(c_int) :: error_type
     CHARACTER(len=*) :: error_text
     TYPE(c_ptr) :: str
 
@@ -834,11 +984,9 @@ CONTAINS
     CLASS(lammps), INTENT(IN), TARGET :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
     TYPE(lammps_data) :: global_data
-
     INTEGER(c_int) :: datatype
     TYPE(c_ptr) :: Cname, Cptr
-    INTEGER(c_size_t) :: length, i
-    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Fptr
+    INTEGER(c_size_t) :: length
 
     ! Determine vector length
     ! FIXME Is there a way to get the length of the vector from C rather
@@ -849,7 +997,7 @@ CONTAINS
         length = 3
       CASE DEFAULT
         length = 1
-      ! string cases are overridden later
+      ! string cases doesn't use "length"
     END SELECT
 
     Cname = f2c_string(name)
@@ -886,12 +1034,7 @@ CONTAINS
         END IF
       CASE (LAMMPS_STRING)
         global_data%datatype = DATA_STRING
-        length = c_strlen(Cptr)
-        CALL C_F_POINTER(Cptr, Fptr, [length])
-        ALLOCATE(CHARACTER(LEN=length) :: global_data%str)
-        DO i = 1, length
-          global_data%str(i:i) = Fptr(i)
-        END DO
+        global_data%str = c2f_string(Cptr)
       CASE DEFAULT
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
           'Unknown pointer type in extract_global')
@@ -959,6 +1102,7 @@ CONTAINS
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
           'per-atom property ' // name // 'not found in extract_setting')
       CASE DEFAULT
+        error_msg = ''
         WRITE(error_msg,'(A,I0,A)') 'return value ', datatype, &
           ' from lammps_extract_atom_datatype not known [Fortran/extract_atom]'
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
@@ -1138,8 +1282,7 @@ CONTAINS
     TYPE(lammps_variable_data) :: variable_data
 
     TYPE(c_ptr) :: Cptr, Cname, Cgroup, Cveclength
-    INTEGER(c_size_t) :: length, i
-    CHARACTER(KIND=c_char, LEN=1), DIMENSION(:), POINTER :: Cstring
+    INTEGER(c_size_t) :: length
     INTEGER(c_int) :: datatype
     REAL(c_double), POINTER :: double => NULL()
     REAL(c_double), DIMENSION(:), POINTER :: double_vec => NULL()
@@ -1190,11 +1333,8 @@ CONTAINS
       CASE (LMP_VAR_STRING)
         variable_data%datatype = DATA_STRING
         length = c_strlen(Cptr)
-        CALL C_F_POINTER(Cptr, Cstring, [length])
         ALLOCATE(CHARACTER(LEN=length) :: variable_data%str)
-        DO i = 1, length
-          variable_data%str(i:i) = Cstring(i)
-        END DO
+        variable_data%str = c2f_string(Cptr)
         ! DO NOT deallocate the C pointer
       CASE (-1)
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
@@ -1488,6 +1628,7 @@ CONTAINS
     CALL lammps_free(Cname)
   END SUBROUTINE lmp_scatter_atoms_double
 
+  ! equivalent function to lammps_scatter_atoms_subset (for integers)
   SUBROUTINE lmp_scatter_atoms_subset_int(self, name, ids, data)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1512,6 +1653,7 @@ CONTAINS
     CALL lammps_free(Cname)
   END SUBROUTINE lmp_scatter_atoms_subset_int
 
+  ! equivalent function to lammps_scatter_atoms_subset (for doubles)
   SUBROUTINE lmp_scatter_atoms_subset_double(self, name, ids, data)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
@@ -1536,6 +1678,282 @@ CONTAINS
     CALL lammps_free(Cname)
   END SUBROUTINE lmp_scatter_atoms_subset_double
 
+  ! equivalent function to lammps_gather_bonds (LAMMPS_SMALLSMALL or SMALLBIG)
+  SUBROUTINE lmp_gather_bonds_small(self, data)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    INTEGER(c_int) :: size_tagint, size_bigint
+    INTEGER(c_int), POINTER :: nbonds_small
+    INTEGER(c_int64_t), POINTER :: nbonds_big
+    TYPE(c_ptr) :: Cdata
+
+    size_tagint = lmp_extract_setting(self, 'tagint')
+    IF (size_tagint /= 4_c_int) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Incompatible integer kind in gather_bonds [Fortran API]')
+    END IF
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    size_bigint = lmp_extract_setting(self, 'bigint')
+    IF (size_bigint == 4_c_int) THEN
+      nbonds_small = lmp_extract_global(self, 'nbonds')
+      ALLOCATE(data(3*nbonds_small))
+    ELSE
+      nbonds_big = lmp_extract_global(self, 'nbonds')
+      ALLOCATE(data(3*nbonds_big))
+    END IF
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_bonds(self%handle, Cdata)
+  END SUBROUTINE lmp_gather_bonds_small
+
+  ! equivalent function to lammps_gather_bonds (LAMMPS_BIGBIG)
+  SUBROUTINE lmp_gather_bonds_big(self, data)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int64_t), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    INTEGER(c_int) :: size_tagint
+    INTEGER(c_int64_t), POINTER :: nbonds
+    TYPE(c_ptr) :: Cdata
+
+    size_tagint = lmp_extract_setting(self, 'tagint')
+    IF (size_tagint /= 8_c_int) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Incompatible integer kind in gather_bonds [Fortran API]')
+    END IF
+    nbonds = lmp_extract_global(self, 'nbonds')
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    ALLOCATE(data(3*nbonds))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_bonds(self%handle, Cdata)
+  END SUBROUTINE lmp_gather_bonds_big
+
+  ! equivalent function to lammps_create_atoms (int ids or id absent)
+  SUBROUTINE lmp_create_atoms_int(self, id, type, x, v, image, bexpand)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), DIMENSION(:), TARGET, OPTIONAL :: id, image
+    INTEGER(c_int), DIMENSION(:), TARGET, OPTIONAL :: type
+    REAL(c_double), DIMENSION(:), TARGET, OPTIONAL :: x, v
+    LOGICAL, OPTIONAL :: bexpand
+    INTEGER(c_int) :: n, Cbexpand
+    TYPE(c_ptr) :: Cid, Ctype, Cx, Cv, Cimage
+    INTEGER(c_int) :: tagint_size, atoms_created
+
+    ! type is actually NOT optional, but we can't make id optional without it,
+    ! so we check at run-time
+    IF (.NOT. PRESENT(type)) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'the "type" argument to create_atoms is required&
+        & [Fortran/create_atoms]')
+    END IF
+
+    tagint_size = lmp_extract_setting(self, 'tagint')
+    IF (tagint_size /= 4_c_int .AND. (PRESENT(id) .OR. PRESENT(image))) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Unable to create_atoms; your id/image array types are incompatible&
+        & with LAMMPS_SMALLBIG and LAMMPS_SMALLSMALL [Fortran/create_atoms]')
+    END IF
+    n = SIZE(type, KIND=c_int)
+    IF (PRESENT(bexpand)) THEN
+      IF (bexpand) THEN
+        Cbexpand = 1_c_int
+      ELSE
+        Cbexpand = 0_c_int
+      END IF
+    ELSE
+      Cbexpand = 0_c_int
+    END IF
+    IF (PRESENT(id)) THEN
+      Cid = C_LOC(id(1))
+    ELSE
+      Cid = c_null_ptr
+    END IF
+    IF (PRESENT(type)) THEN
+      Ctype = C_LOC(type(1))
+    END IF
+    IF (PRESENT(image)) THEN
+      Cimage = C_LOC(image(1))
+    ELSE
+      Cimage = c_null_ptr
+    END IF
+    IF (PRESENT(x)) THEN
+      Cx = C_LOC(x(1))
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'the argument "x" to create_atoms is required')
+    END IF
+    IF (PRESENT(v)) THEN
+      Cv = C_LOC(v(1))
+    ELSE
+      Cv = c_null_ptr
+    END IF
+    atoms_created = lammps_create_atoms(self%handle, n, Cid, Ctype, Cx, Cv, &
+      Cimage, Cbexpand)
+    IF ( atoms_created < 0_c_int ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'error when trying to create atoms [Fortran/create_atoms]')
+    ELSE IF ( atoms_created /= n ) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'atoms created /= atoms asked to create [Fortran/create_atoms]')
+    END IF
+  END SUBROUTINE lmp_create_atoms_int
+
+  ! equivalent function to lammps_create_atoms (long int ids and images)
+  SUBROUTINE lmp_create_atoms_bigbig(self, id, type, x, v, image, bexpand)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int64_t), DIMENSION(:), TARGET :: id
+    INTEGER(c_int), DIMENSION(:), TARGET :: type
+    REAL(c_double), DIMENSION(:), TARGET :: x
+    REAL(c_double), DIMENSION(:), OPTIONAL, TARGET :: v
+    INTEGER(c_int64_t), DIMENSION(:), OPTIONAL, TARGET :: image
+    LOGICAL, OPTIONAL :: bexpand
+    INTEGER(c_int) :: n, Cbexpand
+    TYPE(c_ptr) :: Cid, Ctype, Cx, Cv, Cimage
+    INTEGER(c_int) :: tagint_size, atoms_created
+
+    tagint_size = lmp_extract_setting(self, 'tagint')
+    IF ( tagint_size /= 8_c_int ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Unable to create_atoms; your id/image array types are incompatible&
+        & with LAMMPS_BIGBIG')
+    END IF
+    n = SIZE(type, KIND=c_int)
+    IF (PRESENT(bexpand)) THEN
+      IF (bexpand) THEN
+        Cbexpand = 1_c_int
+      ELSE
+        Cbexpand = 0_c_int
+      END IF
+    ELSE
+      Cbexpand = 0_c_int
+    END IF
+    Cid = C_LOC(id(1))
+    Ctype = C_LOC(type(1))
+    IF (PRESENT(image)) THEN
+      Cimage = C_LOC(image(1))
+    ELSE
+      Cimage = c_null_ptr
+    END IF
+    Cx = C_LOC(x(1))
+    IF (PRESENT(v)) THEN
+      Cv = C_LOC(v(1))
+    ELSE
+      Cv = c_null_ptr
+    END IF
+    atoms_created = lammps_create_atoms(self%handle, n, Cid, Ctype, Cx, Cv, &
+      Cimage, Cbexpand)
+    IF ( atoms_created < 0_c_int ) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'error when trying to create atoms [Fortran/create_atoms]')
+    ELSE IF ( atoms_created /= n ) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'atoms created /= atoms asked to create [Fortran/create_atoms]')
+    END IF
+  END SUBROUTINE lmp_create_atoms_bigbig
+
+  ! equivalent function to lammps_find_pair_neighlist
+  INTEGER(c_int) FUNCTION lmp_find_pair_neighlist(self, style, exact, nsub, &
+      reqid)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: style
+    LOGICAL, INTENT(IN), OPTIONAL :: exact
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: nsub, reqid
+    TYPE(c_ptr) :: Cstyle
+    INTEGER(c_int) :: Cexact, Cnsub, Creqid
+
+    Cexact = 0_c_int
+    IF (PRESENT(exact)) THEN
+      IF (exact) THEN
+        Cexact = 1_c_int
+      END IF
+    END IF
+    IF (PRESENT(nsub)) THEN
+      Cnsub = nsub
+    ELSE
+      Cnsub = 0_c_int
+    END IF
+    IF (PRESENT(reqid)) THEN
+      Creqid = reqid
+    ELSE
+      Creqid = 0_c_int
+    END IF
+    Cstyle = f2c_string(style)
+    lmp_find_pair_neighlist = lammps_find_pair_neighlist(self%handle, Cstyle, &
+      Cexact, Cnsub, Creqid)
+    IF (lmp_find_pair_neighlist < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'unable to find pair neighbor list [Fortran/find_pair_neighlist]')
+    END IF
+    CALL lammps_free(Cstyle)
+  END FUNCTION lmp_find_pair_neighlist
+
+  ! equivalent function to lammps_find_fix_neighlist
+  INTEGER(c_int) FUNCTION lmp_find_fix_neighlist(self, id, reqid) RESULT(idx)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: reqid
+    TYPE(c_ptr) :: Cid
+    INTEGER(c_int) :: Creqid
+
+    IF (PRESENT(reqid)) THEN
+      Creqid = reqid
+    ELSE
+      Creqid = 0_c_int
+    END IF
+    Cid = f2c_string(id)
+    idx = lammps_find_fix_neighlist(self%handle, Cid, Creqid)
+    IF (idx < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'neighbor list not found [Fortran/find_fix_neighlist]')
+    END IF
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_find_fix_neighlist
+
+  ! equivalent function to lammps_find_compute_neighlist
+  INTEGER(c_int) FUNCTION lmp_find_compute_neighlist(self, id, reqid) &
+  RESULT(idx)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: reqid
+    TYPE(c_ptr) :: Cid
+    INTEGER(c_int) :: Creqid
+
+    IF (PRESENT(reqid)) THEN
+      Creqid = reqid
+    ELSE
+      Creqid = 0_c_int
+    END IF
+    Cid = f2c_string(id)
+    idx = lammps_find_compute_neighlist(self%handle, Cid, Creqid)
+    IF (idx < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'neighbor list not found [Fortran/find_compute_neighlist]')
+    END IF
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_find_compute_neighlist
+
+  INTEGER(c_int) FUNCTION lmp_neighlist_num_elements(self, idx) RESULT(inum)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN) :: idx
+
+    inum = lammps_neighlist_num_elements(self%handle, idx)
+    IF (inum < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'neighbor list not found [Fortran/neighlist_num_elements]')
+    END IF
+  END FUNCTION lmp_neighlist_num_elements
+
+  SUBROUTINE lmp_neighlist_element_neighbors(self, idx, element, iatom, &
+      neighbors)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN) :: idx, element
+    INTEGER(c_int), INTENT(OUT) :: iatom
+    INTEGER(c_int), DIMENSION(:), POINTER, INTENT(OUT) :: neighbors
+    INTEGER(c_int) :: numneigh
+    TYPE(c_ptr) :: Cneighbors
+
+    CALL lammps_neighlist_element_neighbors(self%handle, idx, element, iatom, &
+      numneigh, Cneighbors)
+    CALL C_F_POINTER(Cneighbors, neighbors, [numneigh])
+  END SUBROUTINE lmp_neighlist_element_neighbors
+
   ! equivalent function to lammps_version
   INTEGER FUNCTION lmp_version(self)
     CLASS(lammps), INTENT(IN) :: self
@@ -1547,18 +1965,14 @@ CONTAINS
   SUBROUTINE lmp_get_os_info(buffer)
     CHARACTER(LEN=*) :: buffer
     INTEGER(c_int) :: buf_size
-    CHARACTER(LEN=1,KIND=c_char), DIMENSION(LEN(buffer)), TARGET :: Cbuffer
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: ptr
-    INTEGER :: i
 
-    buffer = ' '
+    buffer = ''
+    buf_size = LEN(buffer, KIND=c_int) + 1_c_int
     ptr = C_LOC(Cbuffer(1))
-    buf_size = LEN(buffer)
-    CALL lammps_get_os_info(ptr, buf_size)
-    DO i=1,buf_size
-      IF (Cbuffer(i) == c_null_char) EXIT
-      buffer(i:i) = Cbuffer(i)
-    END DO
+    CALL lammps_get_os_info(ptr, INT(buf_size, KIND=c_int))
+    buffer = array2string(Cbuffer)
   END SUBROUTINE lmp_get_os_info
 
   ! equivalent function to lammps_config_has_mpi_support
@@ -1622,28 +2036,29 @@ CONTAINS
   END FUNCTION lmp_config_has_package
 
   ! equivalent subroutine to lammps_config_package_name
-  SUBROUTINE lmp_config_package_name(idx, buffer)
+  SUBROUTINE lmp_config_package_name(self, idx, buffer)
+    CLASS(lammps), INTENT(IN) :: self
     INTEGER, INTENT(IN) :: idx
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     INTEGER(c_int) :: Cidx, Csuccess
     TYPE(c_ptr) :: Cptr
-    CHARACTER(LEN=1,KIND=c_char), TARGET :: Cbuffer(LEN(buffer)+1)
-    INTEGER(c_size_t) :: i, strlen
 
     Cidx = idx - 1
     Cptr = C_LOC(Cbuffer(1))
     Csuccess = lammps_config_package_name(Cidx, Cptr, LEN(buffer)+1)
-    buffer = ' '
+    buffer = ''
     IF (Csuccess /= 0_c_int) THEN
-      strlen = c_strlen(Cptr)
-      DO i = 1, strlen
-        buffer(i:i) = Cbuffer(i)
-      END DO
+      buffer = array2string(Cbuffer)
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'failure of lammps_config_package_name [Fortran/config_package_name]')
     END IF
   END SUBROUTINE lmp_config_package_name
 
-  ! equivalent function to Python routine .installed_packages()
-  SUBROUTINE lmp_installed_packages(package, length)
+  ! equivalent function to Python routine lammps.installed_packages()
+  SUBROUTINE lmp_installed_packages(self, package, length)
+    CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=:), DIMENSION(:), ALLOCATABLE, INTENT(OUT) :: package
     INTEGER, INTENT(IN), OPTIONAL :: length
     INTEGER, PARAMETER :: MAX_BUFFER_LENGTH = 31
@@ -1659,9 +2074,257 @@ CONTAINS
     npackage = lammps_config_package_count()
     ALLOCATE(CHARACTER(LEN=MAX_BUFFER_LENGTH) :: package(npackage))
     DO i=1, npackage
-      CALL lmp_config_package_name(i, package(i))
+      CALL lmp_config_package_name(self, i, package(i))
     END DO
   END SUBROUTINE lmp_installed_packages
+
+  ! equivalent function to lammps_config_accelerator
+  LOGICAL FUNCTION lmp_config_accelerator(package, category, setting)
+    CHARACTER(LEN=*), INTENT(IN) :: package, category, setting
+    TYPE(c_ptr) :: Cpackage, Ccategory, Csetting
+    INTEGER(c_int) :: is_configured
+
+    Cpackage = f2c_string(package)
+    Ccategory = f2c_string(category)
+    Csetting = f2c_string(setting)
+    is_configured = lammps_config_accelerator(Cpackage, Ccategory, Csetting)
+    CALL lammps_free(Cpackage)
+    CALL lammps_free(Ccategory)
+    CALL lammps_free(Csetting)
+    lmp_config_accelerator = (is_configured /= 0_c_int)
+  END FUNCTION lmp_config_accelerator
+
+  ! equivalent function to lammps_has_gpu_device
+  LOGICAL FUNCTION lmp_has_gpu_device()
+    lmp_has_gpu_device = (lammps_has_gpu_device() /= 0_c_int)
+  END FUNCTION lmp_has_gpu_device
+
+  ! equivalent subroutine to lammps_get_gpu_device_info
+  SUBROUTINE lmp_get_gpu_device_info(buffer)
+    CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    INTEGER(c_int) :: buf_size
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
+    TYPE(c_ptr) :: Cptr
+
+    buffer = ''
+    buf_size = LEN(buffer) + 1
+    Cptr = C_LOC(Cbuffer)
+    CALL lammps_get_gpu_device_info(Cptr, buf_size)
+    buffer = array2string(Cbuffer)
+  END SUBROUTINE lmp_get_gpu_device_info
+
+  ! equivalent function to lammps_has_style
+  LOGICAL FUNCTION lmp_has_style(self, category, name)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category, name
+    TYPE(c_ptr) :: Ccategory, Cname
+    INTEGER(c_int) :: has_style
+
+    Ccategory = f2c_string(category)
+    Cname = f2c_string(name)
+    has_style = lammps_has_style(self%handle, Ccategory, Cname)
+    CALL lammps_free(Ccategory)
+    CALL lammps_free(Cname)
+    lmp_has_style = (has_style /= 0_c_int)
+  END FUNCTION
+
+  ! equivalent function to lammps_style_count
+  INTEGER(c_int) FUNCTION lmp_style_count(self, category)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category
+    TYPE(c_ptr) :: Ccategory
+
+    Ccategory = f2c_string(category)
+    lmp_style_count = lammps_style_count(self%handle, Ccategory)
+    CALL lammps_free(Ccategory)
+  END FUNCTION lmp_style_count
+
+  ! equivalent function to lammps_style_name
+  SUBROUTINE lmp_style_name(self, category, idx, buffer)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category
+    INTEGER(c_int), INTENT(IN) :: idx
+    CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    INTEGER(c_int) :: buf_size, success
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
+    TYPE(c_ptr) :: Ccategory, Cptr
+
+    buffer = ''
+    buf_size = LEN(buffer, KIND=c_int) + 1_c_int
+    Ccategory = f2c_string(category)
+    Cptr = C_LOC(Cbuffer)
+    success = lammps_style_name(self%handle, Ccategory, idx - 1, Cptr, buf_size)
+    IF (success == 1_c_int) THEN
+      buffer = array2string(Cbuffer)
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'idx value not in range [Fortran/style_name]')
+    END IF
+    CALL lammps_free(Ccategory)
+  END SUBROUTINE lmp_style_name
+
+  ! equivalent function to lammps_has_id
+  LOGICAL FUNCTION lmp_has_id(self, category, name)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category, name
+    TYPE(c_ptr) :: Ccategory, Cname
+    INTEGER(c_int) :: has_id
+
+    Ccategory = f2c_string(category)
+    Cname = f2c_string(name)
+    has_id = lammps_has_id(self%handle, Ccategory, Cname)
+    CALL lammps_free(Ccategory)
+    CALL lammps_free(Cname)
+    lmp_has_id = (has_id /= 0_c_int)
+  END FUNCTION lmp_has_id
+
+  ! equivalent function to lammps_id_count
+  INTEGER(c_int) FUNCTION lmp_id_count(self, category)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category
+    TYPE(c_ptr) :: Ccategory
+
+    Ccategory = f2c_string(category)
+    lmp_id_count = lammps_id_count(self%handle, Ccategory)
+    CALL lammps_free(Ccategory)
+  END FUNCTION lmp_id_count
+
+  ! equivalent function to lammps_id_name
+  SUBROUTINE lmp_id_name(self, category, idx, buffer)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: category
+    INTEGER(c_int), INTENT(IN) :: idx
+    CHARACTER(LEN=*), INTENT(OUT) :: buffer
+    INTEGER(c_int) :: success
+    INTEGER(c_int) :: buf_size
+    TYPE(c_ptr) :: Ccategory, Cptr
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
+
+    buffer = ''
+    Ccategory = f2c_string(category)
+    buf_size = LEN(buffer, KIND=c_int)
+    Cptr = C_LOC(Cbuffer(1))
+    success = lammps_id_name(self%handle, Ccategory, idx - 1, Cptr, buf_size)
+    IF (success /= 0) THEN
+      buffer = array2string(Cbuffer)
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'lammps_id_name failed [Fortran/id_name]')
+    END IF
+    CALL lammps_free(Ccategory)
+  END SUBROUTINE lmp_id_name
+
+  ! equivalent function to lammps_plugin_name
+  SUBROUTINE lmp_plugin_name(self, idx, stylebuf, namebuf)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN) :: idx
+    CHARACTER(LEN=*), INTENT(OUT) :: stylebuf, namebuf
+    INTEGER(c_int) :: buf_size, success
+    TYPE(c_ptr) :: Cstylebuf, Cnamebuf
+
+    buf_size = MIN(LEN(stylebuf, KIND=c_int), LEN(namebuf, KIND=c_int))
+    Cstylebuf = lammps_malloc(INT(buf_size, KIND=c_size_t))
+    Cnamebuf = lammps_malloc(INT(buf_size, KIND=c_size_t))
+    success = lammps_plugin_name(idx - 1, Cstylebuf, Cnamebuf, buf_size)
+    IF (success /= 0_c_int) THEN
+      stylebuf = c2f_string(Cstylebuf)
+      namebuf = c2f_string(Cnamebuf)
+    ELSE
+      stylebuf = ''
+      namebuf = ''
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'call to lammps_plugin_name failed [Fortran/plugin_name]')
+    END IF
+    CALL lammps_free(Cstylebuf)
+    CALL lammps_free(Cnamebuf)
+  END SUBROUTINE lmp_plugin_name
+
+  ! equivalent function to lammps_encode_image_flags
+  FUNCTION lmp_encode_image_flags(self, ix, iy, iz) RESULT (image)
+    CLASS(lammps), INTENT(IN), TARGET :: self
+    INTEGER(c_int), INTENT(IN) :: ix, iy, iz
+    TYPE(lammps_image_data) :: image
+    INTEGER(c_int) :: imageint_size
+    INTEGER(c_int) :: IMGMAX, IMGMASK, IMGBITS, IMG2BITS
+    INTEGER(c_int64_t) :: ibx, iby, ibz, BIMGMAX, BIMGMASK, BIMGBITS, BIMG2BITS
+
+    image%lammps_instance => self
+    IMGMASK = lmp_extract_setting(self, 'IMGMASK')
+    IMGMAX = lmp_extract_setting(self, 'IMGMAX')
+    IMGBITS = lmp_extract_setting(self, 'IMGBITS')
+    IMG2BITS = lmp_extract_setting(self, 'IMG2BITS')
+    imageint_size = lmp_extract_setting(self, 'imageint')
+    IF (imageint_size == 4_c_int) THEN
+      image%datatype = DATA_INT
+      image%i32 = IOR( IOR(IAND(ix + IMGMAX, IMGMASK), &
+                     ISHFT(IAND(iy + IMGMAX, IMGMASK), IMGBITS)), &
+                     ISHFT(IAND(iz + IMGMAX, IMGMASK), IMG2BITS) )
+    ELSE
+      image%datatype = DATA_INT64
+      ibx = ix
+      iby = iy
+      ibz = iz
+      BIMGMAX = IMGMAX
+      BIMGMASK = IMGMASK
+      BIMGBITS = IMGBITS
+      BIMG2BITS = IMG2BITS
+      image%i64 = IOR( IOR(IAND(ibx + BIMGMAX, BIMGMASK), &
+                     ISHFT(IAND(iby + BIMGMAX, BIMGMASK), BIMGBITS)), &
+                     ISHFT(IAND(ibz + BIMGMAX, BIMGMASK), BIMG2BITS) )
+    END IF
+  END FUNCTION lmp_encode_image_flags
+
+  ! equivalent function to lammps_decode_image_flags
+  SUBROUTINE lmp_decode_image_flags(self, image, flags)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int), INTENT(IN) :: image
+    INTEGER(c_int), DIMENSION(3), TARGET, INTENT(OUT) :: flags
+    INTEGER(c_int) :: size_imageint
+    INTEGER(c_int) :: IMGMASK, IMGMAX, IMGBITS, IMG2BITS
+
+    size_imageint = lmp_extract_setting(self, 'imageint')
+    IF (size_imageint == 4_c_int) THEN
+      IMGMASK = lmp_extract_setting(self, 'IMGMASK')
+      IMGMAX = lmp_extract_setting(self, 'IMGMAX')
+      IMGBITS = lmp_extract_setting(self, 'IMGBITS')
+      IMG2BITS = lmp_extract_setting(self, 'IMG2BITS')
+      flags(1) = IAND(image, IMGMASK) - IMGMAX
+      flags(2) = IAND(ISHFT(image, -IMGBITS), IMGMASK) - IMGMAX
+      flags(3) = ISHFT(image, -IMG2BITS) - IMGMAX
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'Incorrect&
+        & integer kind passed as "image" [Fortran/decode_image_flags]')
+    END IF
+  END SUBROUTINE lmp_decode_image_flags
+
+  ! equivalent function to lammps_decode_image_flags if -DLAMMPS_BIGBIG is used
+  SUBROUTINE lmp_decode_image_flags_bigbig(self, image, flags)
+    CLASS(lammps), INTENT(IN) :: self
+    INTEGER(c_int64_t), INTENT(IN) :: image
+    INTEGER(c_int), DIMENSION(3), TARGET, INTENT(OUT) :: flags
+    INTEGER(c_int) :: size_imageint
+    INTEGER(c_int) :: IMGMASK, IMGMAX, IMGBITS, IMG2BITS
+    INTEGER(c_int64_t) :: BIMGMASK, BIMGMAX, BIMGBITS, BIMG2BITS
+
+    size_imageint = lmp_extract_setting(self, 'imageint')
+    IF (size_imageint == 8_c_int) THEN
+      IMGMASK = lmp_extract_setting(self, 'IMGMASK')
+      IMGMAX = lmp_extract_setting(self, 'IMGMAX')
+      IMGBITS = lmp_extract_setting(self, 'IMGBITS')
+      IMG2BITS = lmp_extract_setting(self, 'IMG2BITS')
+      BIMGMASK = IMGMASK
+      BIMGMAX = IMGMAX
+      BIMGBITS = IMGBITS
+      BIMG2BITS = IMG2BITS
+      flags(1) = INT(IAND(image, BIMGMASK) - BIMGMAX, KIND=c_int)
+      flags(2) = INT(IAND(ISHFT(image, -BIMGBITS), BIMGMASK) - BIMGMAX, &
+        KIND=c_int)
+      flags(3) = INT(ISHFT(image, -BIMG2BITS) - BIMGMAX, KIND=c_int)
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, 'Incorrect&
+        & integer kind passed as "image" [Fortran/decode_image_flags]')
+    END IF
+  END SUBROUTINE lmp_decode_image_flags_bigbig
 
   ! equivalent function to lammps_flush_buffers
   SUBROUTINE lmp_flush_buffers(self)
@@ -1699,27 +2362,20 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(OUT) :: buffer
     INTEGER, INTENT(OUT), OPTIONAL :: status
     INTEGER(c_int) :: buflen, Cstatus
-    INTEGER(c_size_t) :: i, length
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: Cptr
-    CHARACTER(LEN=1, KIND=c_char), POINTER :: c_string(:)
 
-    buffer = ' '
+    buffer = ''
     IF (lmp_has_error(self)) THEN
-      buflen = LEN(buffer)
-      length = buflen
-      Cptr = lammps_malloc(length)
+      buflen = LEN(buffer, KIND=c_int) + 1_c_int
+      Cptr = C_LOC(Cbuffer(1))
       Cstatus = lammps_get_last_error_message(self%handle, Cptr, buflen)
-      CALL C_F_POINTER(Cptr, c_string, [1])
-      DO i=1, length
-        buffer(i:i) = c_string(i)
-        IF (c_string(i) == c_null_char) EXIT
-      END DO
+      buffer = array2string(Cbuffer)
       IF (PRESENT(status)) THEN
         status = Cstatus
       END IF
-      CALL lammps_free(Cptr)
     ELSE
-      buffer = ' '
+      buffer = ''
       IF (PRESENT(status)) THEN
         status = 0
       END IF
@@ -1899,6 +2555,28 @@ CONTAINS
     END IF
   END SUBROUTINE assign_string_to_lammps_variable_data
 
+  SUBROUTINE assign_int_to_lammps_image_data(lhs, rhs)
+    INTEGER(c_int), INTENT(OUT) :: lhs
+    CLASS(lammps_image_data), INTENT(IN) :: rhs
+
+    IF (rhs%datatype == DATA_INT) THEN
+      lhs = rhs%i32
+    ELSE
+      CALL assignment_error(rhs, 'scalar int')
+    END IF
+  END SUBROUTINE assign_int_to_lammps_image_data
+
+  SUBROUTINE assign_int64_to_lammps_image_data(lhs, rhs)
+    INTEGER(c_int64_t), INTENT(OUT) :: lhs
+    CLASS(lammps_image_data), INTENT(IN) :: rhs
+
+    IF (rhs%datatype == DATA_INT64) THEN
+      lhs = rhs%i64
+    ELSE
+      CALL assignment_error(rhs, 'scalar long int')
+    END IF
+  END SUBROUTINE assign_int64_to_lammps_image_data
+
   ! ----------------------------------------------------------------------
   ! Generic function to catch all errors in assignments of LAMMPS data to
   ! user-space variables/pointers
@@ -1954,6 +2632,46 @@ CONTAINS
     END DO
     c_string(n+1) = c_null_char
   END FUNCTION f2c_string
+
+  ! copy null-terminated C string to fortran string
+  FUNCTION c2f_string(ptr) RESULT(f_string)
+    TYPE(c_ptr), INTENT(IN) :: ptr
+    CHARACTER(LEN=:), ALLOCATABLE :: f_string
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(:), POINTER :: c_string
+    INTEGER :: n
+
+    IF (.NOT. C_ASSOCIATED(ptr)) THEN
+      f_string = ''
+    ELSE
+      n = INT(c_strlen(ptr), KIND=KIND(n))
+      CALL C_F_POINTER(ptr, c_string, [n+1])
+      f_string = array2string(c_string, n)
+    END IF
+  END FUNCTION c2f_string
+
+  ! Copy a known-length or null-terminated array of C characters into a string
+  FUNCTION array2string(array, length) RESULT(string)
+    CHARACTER(LEN=1, KIND=c_char), DIMENSION(:) :: array
+! NOTE: giving "length" the VALUE attribute reveals a bug in gfortran 12.2.1
+! https://gcc.gnu.org/bugzilla/show_bug.cgi?id=107441
+    INTEGER, INTENT(IN), OPTIONAL :: length
+    CHARACTER(LEN=:), ALLOCATABLE :: string
+    INTEGER :: n, i
+
+    IF (PRESENT(length)) THEN
+      n = length
+    ELSE
+      n = 1
+      DO WHILE (n < SIZE(array) .AND. array(n+1) /= c_null_char)
+        n = n + 1
+      END DO
+    END IF
+    ALLOCATE(CHARACTER(LEN=n) :: string)
+    DO i = 1, n
+      string(i:i) = array(i)
+    END DO
+  END FUNCTION array2string
+
 END MODULE LIBLAMMPS
 
 ! vim: ts=2 sts=2 sw=2 et

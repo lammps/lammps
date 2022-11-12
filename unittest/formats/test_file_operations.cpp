@@ -303,6 +303,7 @@ TEST_F(FileOperationsTest, error_all_one)
 
 TEST_F(FileOperationsTest, write_restart)
 {
+    ASSERT_EQ(lmp->restart_ver, -1);
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
@@ -356,6 +357,7 @@ TEST_F(FileOperationsTest, write_restart)
     BEGIN_HIDE_OUTPUT();
     command("clear");
     END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, -1);
     ASSERT_EQ(lmp->atom->natoms, 0);
     ASSERT_EQ(lmp->update->ntimestep, 0);
     ASSERT_EQ(lmp->domain->triclinic, 0);
@@ -369,18 +371,21 @@ TEST_F(FileOperationsTest, write_restart)
     command("change_box all triclinic");
     command("write_restart triclinic.restart");
     END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_EQ(lmp->update->ntimestep, 333);
     ASSERT_EQ(lmp->domain->triclinic, 1);
     BEGIN_HIDE_OUTPUT();
     command("clear");
     END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, -1);
     ASSERT_EQ(lmp->atom->natoms, 0);
     ASSERT_EQ(lmp->update->ntimestep, 0);
     ASSERT_EQ(lmp->domain->triclinic, 0);
     BEGIN_HIDE_OUTPUT();
     command("read_restart triclinic.restart");
     END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_EQ(lmp->update->ntimestep, 333);
     ASSERT_EQ(lmp->domain->triclinic, 1);

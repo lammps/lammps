@@ -4479,9 +4479,9 @@ void FixBondReact::write_restart(FILE *fp)
   set[0].nreacts = nreacts;
   set[0].max_rate_limit_steps = max_rate_limit_steps;
 
-  if (set[0].max_rate_limit_steps > 0)
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
+
     strncpy(set[i].rxn_name,rxn_name[i],MAXLINE-1);
     set[i].rxn_name[MAXLINE-1] = '\0';
   }
@@ -4510,22 +4510,21 @@ void FixBondReact::write_restart(FILE *fp)
 
 void FixBondReact::restart(char *buf)
 {
-  int revision,r_nreacts,r_max_rate_limit_steps,ibufcount,n2cpy;
+  int n,revision,r_nreacts,r_max_rate_limit_steps,ibufcount,n2cpy;
   int **ibuf;
-  Set *set_restart = (Set *) buf;
 
-  if (lmp->restart_ver > utils::date2num("3 Nov 2022")) {
-    revision = buf[0];
-    buf++;
-  } else revision = 0;
+  n = 0;
+  if (lmp->restart_ver > utils::date2num("3 Nov 2022")) revision = buf[n++];
+  else revision = 0;
 
+  Set *set_restart = (Set *) &buf[n*sizeof(int)];
   r_nreacts = set_restart[0].nreacts;
 
   if (revision > 0) {
     r_max_rate_limit_steps = set_restart[0].max_rate_limit_steps;
     ibufcount = r_max_rate_limit_steps*r_nreacts;
     memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
-    memcpy(&ibuf[0][0],&buf[nreacts*sizeof(Set)],sizeof(int)*ibufcount);
+    memcpy(&ibuf[0][0],&buf[sizeof(int)+r_nreacts*sizeof(Set)],sizeof(int)*ibufcount);
     n2cpy = r_max_rate_limit_steps;
   } else n2cpy = 0;
 

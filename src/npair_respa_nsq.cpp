@@ -119,14 +119,14 @@ void NPairRespaNsq<NEWTON>::build(NeighList *list)
 
     // loop over remaining atoms, owned and ghost
 
-    for (j = i+1; j < nall; j++) {
+    for (j = i + 1; j < nall; j++) {
       if (includegroup && !(mask[j] & bitmask)) continue;
 
       if (NEWTON) {
         if (j >= nlocal) {
           jtag = tag[j];
           if (itag > jtag) {
-            if ((itag+jtag) % 2 == 0) continue;
+            if ((itag + jtag) % 2 == 0) continue;
           } else if (itag < jtag) {
             if ((itag+jtag) % 2 == 1) continue;
           } else {

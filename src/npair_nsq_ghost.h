@@ -18,9 +18,9 @@ NPairStyle(full/nsq/ghost,
            NPairFullNsqGhost,
            NP_FULL | NP_NSQ | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI);
 
-typedef NPairNsqGhost<1> NPairHalfNsqGhostNewtoff;
-NPairStyle(half/nsq/ghost/newtoff,
-           NPairHalfNsqGhostNewtoff,
+typedef NPairNsqGhost<1> NPairHalfNsqNewtoffGhost;
+NPairStyle(half/nsq/newtoff/ghost,
+           NPairHalfNsqNewtoffGhost,
            NP_HALF | NP_NSQ | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI);
 // clang-format on
 #else

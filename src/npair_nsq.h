@@ -16,8 +16,7 @@
 typedef NPairNsq<0, 1, 0> NPairFullNsq;
 NPairStyle(full/nsq,
            NPairFullNsq,
-           NP_FULL | NP_NSQ | NP_MOLONLY |
-           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+           NP_FULL | NP_NSQ | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairNsq<1, 0, 0> NPairHalfNsqNewtoff;
 NPairStyle(half/nsq/newtoff,
@@ -27,13 +26,12 @@ NPairStyle(half/nsq/newtoff,
 typedef NPairNsq<1, 1, 0> NPairHalfNsqNewton;
 NPairStyle(half/nsq/newton,
            NPairHalfNsqNewton,
-           NP_HALF | NP_NSQ | NP_MOLONLY | NP_NEWTON | NP_ORTHO | NP_TRI);
+           NP_HALF | NP_NSQ | NP_NEWTON | NP_ORTHO | NP_TRI);
 
 typedef NPairNsq<0, 1, 1> NPairFullSizeNsq;
 NPairStyle(full/size/nsq,
            NPairFullSizeNsq,
-           NP_FULL | NP_SIZE | NP_NSQ | NP_MOLONLY |
-           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+           NP_FULL | NP_SIZE | NP_NSQ | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairNsq<1, 0, 1> NPairHalfSizeNsqNewtoff;
 NPairStyle(half/size/nsq/newtoff,
@@ -43,13 +41,13 @@ NPairStyle(half/size/nsq/newtoff,
 typedef NPairNsq<1, 1, 1> NPairHalfSizeNsqNewton;
 NPairStyle(half/size/nsq/newton,
            NPairHalfSizeNsqNewton,
-           NP_HALF | NP_SIZE | NP_NSQ | NP_MOLONLY | NP_NEWTON | NP_ORTHO | NP_TRI);
+           NP_HALF | NP_SIZE | NP_NSQ | NP_NEWTON | NP_ORTHO | NP_TRI);
 
 // clang-format on
 #else
 
-#ifndef LMP_NPAIR_Nsq_H
-#define LMP_NPAIR_Nsq_H
+#ifndef LMP_NPAIR_NSQ_H
+#define LMP_NPAIR_NSQ_H
 
 #include "npair.h"
 

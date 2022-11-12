@@ -106,8 +106,8 @@ void NPairNsqGhost<HALF>::build(NeighList *list)
     //   stores ghost/ghost pairs only once
     // no molecular test when i = ghost atom
 
-    if (!HALF) jstart = 0;
-    else jstart = i + 1;
+    if (HALF) jstart = i + 1;
+    else jstart = 0;
 
     if (i < nlocal) {
       for (j = jstart; j < nall; j++) {
@@ -155,7 +155,10 @@ void NPairNsqGhost<HALF>::build(NeighList *list)
         delz = ztmp - x[j][2];
         rsq = delx * delx + dely * dely + delz * delz;
 
-        if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
+        if (HALF) {
+          if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
+        } else {
+          if (rsq <= cutneighghostsq[itype][jtype]) neighptr[n++] = j;
       }
     }
 

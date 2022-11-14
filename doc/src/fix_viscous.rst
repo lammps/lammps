@@ -3,7 +3,7 @@
 fix viscous command
 ===================
 
-Accelerator Variants: *setforce/kk*
+Accelerator Variants: *viscous/kk*
 
 Syntax
 """"""

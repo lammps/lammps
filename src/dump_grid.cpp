@@ -317,33 +317,6 @@ void DumpGrid::write_header(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpGrid::format_magic_string_binary()
-{
-  // use negative ntimestep as marker for new format
-  bigint fmtlen = strlen(MAGIC_STRING);
-  bigint marker = -fmtlen;
-  fwrite(&marker, sizeof(bigint), 1, fp);
-  fwrite(MAGIC_STRING, sizeof(char), fmtlen, fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpGrid::format_endian_binary()
-{
-  int endian = ENDIAN;
-  fwrite(&endian, sizeof(int), 1, fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpGrid::format_revision_binary()
-{
-  int revision = FORMAT_REVISION;
-  fwrite(&revision, sizeof(int), 1, fp);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void DumpGrid::header_unit_style_binary()
 {
   int len = 0;
@@ -404,6 +377,9 @@ void DumpGrid::header_binary(bigint ndump)
   fwrite(&boxyhi,sizeof(double),1,fp);
   fwrite(&boxzlo,sizeof(double),1,fp);
   fwrite(&boxzhi,sizeof(double),1,fp);
+  fwrite(&nxgrid,sizeof(int),1,fp);
+  fwrite(&nygrid,sizeof(int),1,fp);
+  fwrite(&nzgrid,sizeof(int),1,fp);
   fwrite(&nfield,sizeof(int),1,fp);
 
   header_unit_style_binary();
@@ -433,6 +409,9 @@ void DumpGrid::header_binary_triclinic(bigint ndump)
   fwrite(&boxxy,sizeof(double),1,fp);
   fwrite(&boxxz,sizeof(double),1,fp);
   fwrite(&boxyz,sizeof(double),1,fp);
+  fwrite(&nxgrid,sizeof(int),1,fp);
+  fwrite(&nygrid,sizeof(int),1,fp);
+  fwrite(&nzgrid,sizeof(int),1,fp);
   fwrite(&nfield,sizeof(int),1,fp);
 
   header_unit_style_binary();
@@ -453,17 +432,14 @@ void DumpGrid::header_item(bigint ndump)
   }
   if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
-             "ITEM: NUMBER OF ATOMS\n{}\n",
-             update->ntimestep, ndump);
-
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",update->ntimestep);
   fmt::print(fp,"ITEM: BOX BOUNDS {}\n"
              "{:>1.16e} {:>1.16e}\n"
              "{:>1.16e} {:>1.16e}\n"
              "{:>1.16e} {:>1.16e}\n",
              boundstr,boxxlo,boxxhi,boxylo,boxyhi,boxzlo,boxzhi);
-
-  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
+  fmt::print(fp,"ITEM: GRID SIZE nx ny nz\n{} {} {}\n",nxgrid,nygrid,nzgrid);
+  fmt::print(fp,"ITEM: GRID CELLS {}\n",columns);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -476,17 +452,41 @@ void DumpGrid::header_item_triclinic(bigint ndump)
   }
   if (time_flag) fmt::print(fp,"ITEM: TIME\n{:.16}\n",compute_time());
 
-  fmt::print(fp,"ITEM: TIMESTEP\n{}\n"
-             "ITEM: NUMBER OF ATOMS\n{}\n",
-             update->ntimestep, ndump);
-
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",update->ntimestep);
   fmt::print(fp,"ITEM: BOX BOUNDS xy xz yz {}\n"
              "{:>1.16e} {:>1.16e} {:>1.16e}\n"
              "{:>1.16e} {:>1.16e} {:>1.16e}\n"
              "{:>1.16e} {:>1.16e} {:>1.16e}\n",
              boundstr,boxxlo,boxxhi,boxxy,boxylo,boxyhi,boxxz,boxzlo,boxzhi,boxyz);
+  fmt::print(fp,"ITEM: GRID SIZE nx ny nz\n{} {} {}\n",nxgrid,nygrid,nzgrid);
+  fmt::print(fp,"ITEM: GRID CELLS {}\n",columns);
+}
 
-  fmt::print(fp,"ITEM: ATOMS {}\n",columns);
+/* ---------------------------------------------------------------------- */
+
+void DumpGrid::format_magic_string_binary()
+{
+  // use negative ntimestep as marker for new format
+  bigint fmtlen = strlen(MAGIC_STRING);
+  bigint marker = -fmtlen;
+  fwrite(&marker, sizeof(bigint), 1, fp);
+  fwrite(MAGIC_STRING, sizeof(char), fmtlen, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpGrid::format_endian_binary()
+{
+  int endian = ENDIAN;
+  fwrite(&endian, sizeof(int), 1, fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpGrid::format_revision_binary()
+{
+  int revision = FORMAT_REVISION;
+  fwrite(&revision, sizeof(int), 1, fp);
 }
 
 /* ---------------------------------------------------------------------- */

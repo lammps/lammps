@@ -74,7 +74,7 @@ class DumpGrid : public Dump {
   int nylo_in, nyhi_in;
   int nzlo_in, nzhi_in;
 
-  // private methods
+  // methods
 
   void init_style() override;
   void write_header(bigint) override;
@@ -93,9 +93,6 @@ class DumpGrid : public Dump {
   void header_unit_style_binary();
   void header_time_binary();
   void header_columns_binary();
-  void format_magic_string_binary();
-  void format_endian_binary();
-  void format_revision_binary();
 
   typedef void (DumpGrid::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;    // ptr to write header functions
@@ -103,6 +100,10 @@ class DumpGrid : public Dump {
   void header_binary_triclinic(bigint);
   void header_item(bigint);
   void header_item_triclinic(bigint);
+
+  void format_magic_string_binary();
+  void format_endian_binary();
+  void format_revision_binary();
 
   typedef void (DumpGrid::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions

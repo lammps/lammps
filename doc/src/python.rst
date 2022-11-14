@@ -88,10 +88,10 @@ Description
 """""""""""
 
 The *python* command allows to interface LAMMPS with an embedded Python
-interpreter and enabled to either execute arbitrary python code in that
-interpreter, register a Python function for future execution (as a python
-style variable, from a fix interfaced with python or for direct
-invocation), or invoke such a previously registered function.
+interpreter and enables either executing arbitrary python code in that
+interpreter, registering a Python function for future execution (as a
+python style variable, from a fix interfaced with python or for direct
+invocation), or invoking such a previously registered function.
 
 Arguments, including LAMMPS variables, can be passed to the function
 from the LAMMPS input script and a value returned by the Python function

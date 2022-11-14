@@ -442,7 +442,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       iarg += 3;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
 
-    } else error->universe_all(FLERR,"Invalid command-line argument");
+    } else {
+      std::string errmsg("Invalid command-line argument");
+      errmsg += arg[iarg];
+      error->universe_all(FLERR,errmsg.c_str());
+    }
   }
 
   // if no partition command-line switch, universe is one world with all procs

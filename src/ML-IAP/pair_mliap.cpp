@@ -131,52 +131,52 @@ void PairMLIAP::settings(int narg, char ** arg)
 {
   if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style mliap", error);
 
-  // set flags for required keywords
-
-  delete model;
-  model = nullptr;
-  delete descriptor;
-  descriptor = nullptr;
-
   // process keywords
 
   int iarg = 0;
 
+  //Check to see if there are more than one model or descriptor
+  int nmodel=0,ndescriptor=0;
+  for (int iarg=0;iarg<narg;++iarg)
+    if (strcmp(arg[iarg],"model") == 0)
+      nmodel++;
+    else if (strcmp(arg[iarg],"descriptor") == 0)
+      ndescriptor++;
+  if (nmodel != 1 || ndescriptor != 1 )
+    error->all(FLERR,"One can only specify one model and one descriptor");
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model", error);
-      if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
       if (strcmp(arg[iarg+1],"linear") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model linear", error);
-        model = new MLIAPModelLinear(lmp,arg[iarg+2]);
+        if (model==nullptr) model = new MLIAPModelLinear(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model quadratic", error);
-        model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
+        if (model==nullptr) model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"nn") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model nn", error);
-        model = new MLIAPModelNN(lmp,arg[iarg+2]);
+        if (model==nullptr) model = new MLIAPModelNN(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
 #ifdef MLIAP_PYTHON
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap mliappy", error);
-        model = new MLIAPModelPython(lmp,arg[iarg+2]);
+        if (model==nullptr) model = new MLIAPModelPython(lmp,arg[iarg+2]);
         iarg += 3;
 #else
         error->all(FLERR,"Using pair_style mliap model mliappy requires ML-IAP with python support");
 #endif
       } else error->all(FLERR,"Unknown pair_style mliap model keyword: {}", arg[iarg]);
-    } else if (strcmp(arg[iarg],"descriptor") == 0) {
+    } else if (strcmp(arg[iarg],"descriptor") == 0 && descriptor==nullptr) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor", error);
-      if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
       if (strcmp(arg[iarg+1],"sna") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor sna", error);
-        descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
+        if (descriptor==nullptr) descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"so3") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor so3", error);
-        descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
+        if (descriptor==nullptr) descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
         iarg += 3;
 
       } else error->all(FLERR,"Illegal pair_style mliap command");

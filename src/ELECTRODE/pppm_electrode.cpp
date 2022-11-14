@@ -322,8 +322,6 @@ void PPPMElectrode::setup()
   double zprd_slab = zprd * slab_volfactor;
   volume = xprd_wire * yprd_wire * zprd_slab;
 
-  boundcorr->setup(xprd_wire, yprd_wire, zprd_slab);
-
   delxinv = nx_pppm / xprd_wire;
   delyinv = ny_pppm / yprd_wire;
   delzinv = nz_pppm / zprd_slab;
@@ -449,7 +447,6 @@ void PPPMElectrode::compute(int eflag, int vflag)
 
   // return if there are no charges
 
-
   start_compute();
 
   if (compute_vector_called && last_invert_source) {
@@ -563,7 +560,7 @@ void PPPMElectrode::compute(int eflag, int vflag)
     }
   }
 
-  boundcorr->compute_corr(qsum, slab_volfactor, eflag_atom, eflag_global, energy, eatom);
+  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
   compute_vector_called = false;
 }
 
@@ -676,7 +673,7 @@ void PPPMElectrode::project_psi(double *vec, int sensor_grpbit)
 
 void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_flag)
 {
-  compute(1, 0); // make sure density bricks etc. are set up
+  compute(1, 0);    // make sure density bricks etc. are set up
 
   // fft green's function k -> r (double)
   double *greens_real;

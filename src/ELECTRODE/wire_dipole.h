@@ -27,7 +27,7 @@ class WireDipole : public BoundaryCorrection {
   WireDipole(LAMMPS *);
   void vector_corr(double *, int, int, bool);
   void matrix_corr(bigint *, double **);
-  void compute_corr(double, double, int, int, double &, double *);
+  void compute_corr(double, int, int, double &, double *);
   void setup(double);
 };
 

@@ -20,6 +20,8 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "force.h"
+#include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
 
@@ -32,13 +34,14 @@ using namespace MathConst;
 ------------------------------------------------------------------------- */
 Slab2d::Slab2d(LAMMPS *lmp) : BoundaryCorrection(lmp){};
 
-void Slab2d::compute_corr(double /*qsum*/, double /*slab_volfactor*/, int eflag_atom,
-                          int eflag_global, double &energy, double *eatom)
+void Slab2d::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global, double &energy,
+                          double *eatom)
 {
   double *q = atom->q;
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
+  double const g_ewald = force->kspace->g_ewald;
   bigint natoms = atom->natoms;
 
   std::vector<double> z = std::vector<double>(nlocal);
@@ -53,7 +56,9 @@ void Slab2d::compute_corr(double /*qsum*/, double /*slab_volfactor*/, int eflag_
                  &displs.front(), MPI_DOUBLE, world);
 
   const double g_ewald_inv = 1.0 / g_ewald;
-  const double qscale = qqrd2e * scale;
+  double const scale = 1.0;
+  const double qscale = force->qqrd2e * scale;
+  double const area = domain->xprd * domain->yprd;
   const double ffact = qscale * MY_2PI / area;
   const double efact = qscale * MY_PIS / area;
   double e_keq0 = 0;
@@ -105,6 +110,8 @@ void Slab2d::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, bool
                  &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
   MPI_Allgatherv(&q_local.front(), n_electrolyte_local, MPI_DOUBLE, &q_all.front(),
                  &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
+  double const g_ewald = force->kspace->g_ewald;
+  double const area = domain->xprd * domain->yprd;
   double const prefac = 2 * MY_PIS / area;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & sensor_grpbit)) continue;
@@ -148,8 +155,10 @@ void Slab2d::matrix_corr(bigint *imat, double **matrix)
   MPI_Allgatherv(&nprd_local.front(), ngrouplocal, MPI_DOUBLE, &nprd_all.front(),
                  &recvcounts.front(), &displs.front(), MPI_DOUBLE, world);
 
+  double const g_ewald = force->kspace->g_ewald;
   const double g_ewald_inv = 1.0 / g_ewald;
   const double g_ewald_sq = g_ewald * g_ewald;
+  double const area = domain->xprd * domain->yprd;
   const double prefac = 2.0 * MY_PIS / area;
   std::vector<bigint> jmat = gather_jmat(imat);
   for (int i = 0; i < nlocal; i++) {

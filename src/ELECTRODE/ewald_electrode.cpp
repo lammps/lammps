@@ -302,7 +302,6 @@ void EwaldElectrode::setup()
     memory->create3d_offset(sn, -kmax, kmax, 3, nmax, "ewald/electrode:sn");
     kmax_created = kmax;
   }
-  boundcorr->setup(xprd_wire, yprd_wire, zprd_slab, g_ewald);
 
   // pre-compute Ewald coefficients
 
@@ -419,7 +418,7 @@ void EwaldElectrode::compute(int eflag, int vflag)
         for (int j = 0; j < 6; j++) vatom[i][j] *= q[i] * qscale;
   }
 
-  boundcorr->compute_corr(qsum, slab_volfactor, eflag_atom, eflag_global, energy, eatom);
+  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
 }
 
 /* ---------------------------------------------------------------------- */

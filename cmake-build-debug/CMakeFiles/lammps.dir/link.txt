@@ -1,0 +1,1 @@
+/usr/local/bin/icc -g -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/lammps.dir/main.cpp.o -o lammps 

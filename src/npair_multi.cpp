@@ -112,6 +112,11 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
 
       for (k = 0; k < ns; k++) {
         js = binhead_multi[jcollection][jbin + s[k]];
+
+        // own-bin for half stencil
+        if (HALF)
+          if (flag_half_multi[icollection][jcollection] && s[k] == 0) js = bins[i];
+
         for (j = js; j >= 0; j = bins[j]) {
           if (!HALF) {
             // Full neighbor list
@@ -129,26 +134,39 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
             // below = lower z or (equal z and lower y) or (equal zy and lower x)
             //         (equal zyx and j <= i)
             // latter excludes self-self interaction but allows superposed atoms
-            if (x[j][2] < ztmp) continue;
-            if (x[j][2] == ztmp) {
-              if (x[j][1] < ytmp) continue;
-              if (x[j][1] == ytmp) {
-                if (x[j][0] < xtmp) continue;
-                if (x[j][0] == xtmp && j <= i) continue;
+
+            // if same size (same collection), use half stencil
+            if (flag_half_multi[icollection][jcollection]) {
+              if (x[j][2] < ztmp) continue;
+              if (x[j][2] == ztmp) {
+                if (x[j][1] < ytmp) continue;
+                if (x[j][1] == ytmp) {
+                  if (x[j][0] < xtmp) continue;
+                  if (x[j][0] == xtmp && j <= i) continue;
+                }
               }
             }
           } else {
             // Half neighbor list, newton on, orthonormal
-            // store every pair for every bin in stencil,except for i's bin
+            // if same size: uses half stencil so includes a check of the central bin
+            if (flag_half_multi[icollection][jcollection]) {
+              if (s[k] == 0) {
+                // if same collection,
+                //   if j is owned atom, store it, since j is beyond i in linked list
+                //   if j is ghost, only store if j coords are "above and to the right" of i
 
-            if (stencil[k] == 0) {
-              // if j is owned atom, store it, since j is beyond i in linked list
-              // if j is ghost, only store if j coords are "above and to the "right" of i
-              if (j >= nlocal) {
-                if (x[j][2] < ztmp) continue;
-                if (x[j][2] == ztmp) {
-                  if (x[j][1] < ytmp) continue;
-                  if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+                // if different collections,
+                //   if j is owned atom, store it if j > i
+                //   if j is ghost, only store if j coords are "above and to the right" of i
+
+                if ((icollection != jcollection) && (j < i)) continue;
+
+                if (j >= nlocal) {
+                  if (x[j][2] < ztmp) continue;
+                  if (x[j][2] == ztmp) {
+                    if (x[j][1] < ytmp) continue;
+                    if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+                  }
                 }
               }
             }

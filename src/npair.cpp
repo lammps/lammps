@@ -174,6 +174,8 @@ void NPair::copy_stencil_info()
 
   nstencil_multi = ns->nstencil_multi;
   stencil_multi = ns->stencil_multi;
+
+  flag_half_multi = ns->flag_half_multi;
 }
 
 /* ----------------------------------------------------------------------

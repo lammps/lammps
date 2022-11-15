@@ -87,13 +87,13 @@ void NStencilMulti<HALF, DIM_3D, TRI>::create()
 
       bin_collection = bin_collection_multi[icollection][jcollection];
       cutsq = cutcollectionsq[icollection][jcollection];
-
       half_flag = flag_half_multi[icollection][jcollection];
 
       // Half and ortho stencils include central bin first
       // This preserves the historical order of the neighbor list
       // as the old npair classes used to separately parse the central bin first
-      if (half_flag && (!TRI)) stencil[nstencil++] = 0;
+      if (HALF && (!TRI))
+        if (half_flag) stencil_multi[icollection][jcollection][ns++] = 0;
 
       // For half stencils, only the upper plane is needed
       int sy_min = sy;
@@ -106,15 +106,16 @@ void NStencilMulti<HALF, DIM_3D, TRI>::create()
       for (k = -sz_min; k <= sz; k++) {
         for (j = -sy_min; j <= sy; j++) {
           for (i = -sx; i <= sx; i++) {
-
             // Now only include "upper right" bins for half and ortho stencils
-            if (HALF) {
-              if (half_flag && (!DIM_3D) && (!TRI))
-                if (! (j > 0 || (j == 0 && i > 0))) continue;
-              if (half_flag && DIM_3D && (!TRI))
-                if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
+            if (HALF && (!TRI)) {
+              if (half_flag) {
+                if (DIM_3D) {
+                  if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
+                } else {
+                  if (! (j > 0 || (j == 0 && i > 0))) continue;
+                }
+              }
             }
-
             if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
               stencil_multi[icollection][jcollection][ns++] = k * mbiny * mbinx + j * mbinx + i;
           }

@@ -87,15 +87,15 @@ Examples
 Description
 """""""""""
 
-The *python* command allows to interface LAMMPS with an embedded Python
+The *python* command allows interfacing LAMMPS with an embedded Python
 interpreter and enables either executing arbitrary python code in that
 interpreter, registering a Python function for future execution (as a
-python style variable, from a fix interfaced with python or for direct
+python style variable, from a fix interfaced with python, or for direct
 invocation), or invoking such a previously registered function.
 
 Arguments, including LAMMPS variables, can be passed to the function
 from the LAMMPS input script and a value returned by the Python function
-to a LAMMPS variable.  The Python code for the function can be included
+assigned to a LAMMPS variable.  The Python code for the function can be included
 directly in the input script or in a separate Python file.  The function
 can be standard Python code or it can make "callbacks" to LAMMPS through
 its library interface to query or set internal values within LAMMPS.
@@ -132,14 +132,16 @@ of the python command.
 If the *source* keyword is used, it is followed by either a file name or
 the *here* keyword.  No other keywords can be used.  The *here* keyword
 is followed by a string with python commands, either on a single line
-enclosed in quotes, or as multiple lines enclosed in triple
-quotes.  These Python commands will be passed to the python interpreter
-and executed immediately without registering a Python function for
-future execution.  This allows to run arbitrary Python code at any
-time while processing the LAMMPS input file.  This can be used to pre-load
-Python modules, initialize global variables or perform operations
-using the python programming language.  The Python code will be executed
-in parallel on all MPI processes.  No arguments can be passed.
+enclosed in quotes, or as multiple lines enclosed in triple quotes.
+These Python commands will be passed to the python interpreter and
+executed immediately without registering a Python function for future
+execution.  The code will be loaded into and run in the "main" module of
+the Python interpreter.  This allows running arbitrary Python code at
+any time while processing the LAMMPS input file.  This can be used to
+pre-load Python modules, initialize global variables, define functions
+or classes, or perform operations using the python programming language.
+The Python code will be executed in parallel on all MPI processes.  No
+arguments can be passed.
 
 In all other cases, the first argument is the name of a Python function
 that will be registered with LAMMPS for future execution.  The function
@@ -225,7 +227,8 @@ one of them.  These keywords specify what Python code to load into the
 Python interpreter.  The *file* keyword gives the name of a file
 containing Python code, which should end with a ".py" suffix.  The code
 will be immediately loaded into and run in the "main" module of the
-Python interpreter.  Note that Python code which contains a function
+Python interpreter.  The Python code will be executed in parallel on all
+MPI processes.  Note that Python code which contains a function
 definition does not "execute" the function when it is run; it simply
 defines the function so that it can be invoked later.
 

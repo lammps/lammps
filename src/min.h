@@ -85,7 +85,7 @@ class Min : protected Pointers {
 
   double dtinit;    // store the default timestep
 
-  // only for minimize style fire2
+  // only for minimize style fire2 and abcfire
   int delaystep;                 // minium steps of dynamics
   double dtgrow, dtshrink;       // timestep increase, decrease
   double alpha0, alphashrink;    // mixing velocities+forces coefficient

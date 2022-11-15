@@ -91,6 +91,8 @@ void FixDtResetKokkos<DeviceType>::end_of_step()
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixDtResetMass>(0,nlocal), *this, Kokkos::Min<double>(dt));
   copymode = 0;
 
+  MPI_Allreduce(MPI_IN_PLACE, &dt, 1, MPI_DOUBLE, MPI_MIN, world);
+
   atomKK->modified(execution_space, F_MASK);
 
    if (minbound) dt = MAX(dt, tmin);

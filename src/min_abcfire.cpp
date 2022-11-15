@@ -15,6 +15,8 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Julien Guénolé, CNRS and
                          Erik Bitzek, FAU Erlangen-Nuernberg
+			 Sebastian Echeverri Restrepo, SKF, King's College London
+			 Predrag Andric, SKF
 ------------------------------------------------------------------------- */
 
 #include "min_abcfire.h"

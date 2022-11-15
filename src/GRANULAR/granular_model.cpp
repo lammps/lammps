@@ -409,7 +409,6 @@ void GranularModel::calculate_forces()
   vrel = len3(vtr);
 
   // calculate forces/torques
-  forces[0] = 0.0;
   double Fdamp, dist_to_contact;
   if (area_flag)
     area = normal_model->calculate_area();

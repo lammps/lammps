@@ -46,7 +46,7 @@ atoms, and should be used for granular system instead of the fix style
 To model heat conduction, one must use the atom style:
 * :doc:`atom_style sphere/temp <atom_style>`
 a temperature integration fix
-* :doc:`fix temp/integrate <fix_temp_integrate>`
+* :doc:`fix heat/flow/sphere/temp <fix_heat_flow_sphere_temp>`
 and a heat conduction option defined in both
 * :doc:`pair_style granular <pair_granular>`
 * :doc:`fix wall/gran <fix_wall_gran>`
@@ -65,4 +65,4 @@ computations between frozen atoms by using this command:
    doc page, where 2d simulations are discussed.
 
 To add custom granular contact models, see the
-:doc:`modifying granular submodels page <Modify_gsm>`.
+:doc:`modifying granular sub-models page <Modify_gran_sub_mod>`.

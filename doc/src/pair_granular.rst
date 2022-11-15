@@ -659,8 +659,9 @@ where :math:`\Delta T` is the difference in the two particles' temperature,
 :math:`a` is the area of the contact and depends on the normal force model.
 
 Note that the option *none* must either be used in all or none of of the
-*pair_coeff* calls. See :doc:`fix temp/integrate <fix_temp_integrate>` for
-more information on this option.
+*pair_coeff* calls. See
+:doc:`fix heat/flow/sphere/temp <fix_heat_flow_sphere_temp>` for more
+information on this option.
 
 ----------
 

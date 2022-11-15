@@ -91,6 +91,7 @@ OPT.
    * :doc:`grem <fix_grem>`
    * :doc:`halt <fix_halt>`
    * :doc:`heat <fix_heat>`
+   * :doc:`heat/flow/sphere/temp <fix_heat_flow_sphere_temp>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
    * :doc:`imd <fix_imd>`
@@ -235,7 +236,6 @@ OPT.
    * :doc:`temp/berendsen <fix_temp_berendsen>`
    * :doc:`temp/csld <fix_temp_csvr>`
    * :doc:`temp/csvr <fix_temp_csvr>`
-   * :doc:`temp/integrate <fix_temp_integrate>`
    * :doc:`temp/rescale <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`

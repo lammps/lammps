@@ -2248,6 +2248,7 @@ MxN
 myCompute
 myIndex
 mylammps
+myMultiply
 MyPool
 mysocket
 mySpin
@@ -2473,7 +2474,7 @@ nsq
 Nstart
 nstats
 Nstep
-Nsteplast
+nsteplast
 Nstop
 nsub
 Nsw
@@ -2503,7 +2504,7 @@ numpy
 Numpy
 Nurdin
 Nvalue
-Nvaluelast
+nvaluelast
 Nvalues
 nvc
 nvcc

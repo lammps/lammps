@@ -984,22 +984,34 @@ void Domain::subbox_too_small_check(double thresh)
      use minimum_image_once() instead
 ------------------------------------------------------------------------- */
 
+#ifdef LAMMPS_BIGBIG
+static constexpr double maximgcount = 1<<21;
+#else
+static constexpr double maximgcount = 1<<10;
+#endif
+
 void Domain::minimum_image(double &dx, double &dy, double &dz)
 {
   if (triclinic == 0) {
     if (xperiodic) {
+      if (fabs(dx) > (maximgcount * xprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
       }
     }
     if (yperiodic) {
+      if (fabs(dy) > (maximgcount * yprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
         if (dy < 0.0) dy += yprd;
         else dy -= yprd;
       }
     }
     if (zperiodic) {
+      if (fabs(dz) > (maximgcount * zprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
         if (dz < 0.0) dz += zprd;
         else dz -= zprd;
@@ -1008,6 +1020,8 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 
   } else {
     if (zperiodic) {
+      if (fabs(dz) > (maximgcount * zprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
         if (dz < 0.0) {
           dz += zprd;
@@ -1021,6 +1035,8 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (yperiodic) {
+      if (fabs(dy) > (maximgcount * yprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
         if (dy < 0.0) {
           dy += yprd;
@@ -1032,6 +1048,8 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (xperiodic) {
+      if (fabs(dx) > (maximgcount * xprd))
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
         else dx -= xprd;
@@ -1042,71 +1060,12 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 
 /* ----------------------------------------------------------------------
    minimum image convention in periodic dimensions
-   use 1/2 of box size as test
-   for triclinic, also add/subtract tilt factors in other dims as needed
-   changed "if" to "while" to enable distance to
-     far-away ghost atom returned by atom->map() to be wrapped back into box
-     could be problem for looking up atom IDs when cutoff > boxsize
-   this should not be used if atom has moved infinitely far outside box
-     b/c while could iterate forever
-     e.g. fix shake prediction of new position with highly overlapped atoms
-     use minimum_image_once() instead
+   use same algorithm as before
 ------------------------------------------------------------------------- */
 
 void Domain::minimum_image(double *delta)
 {
-  if (triclinic == 0) {
-    if (xperiodic) {
-      while (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
-    }
-    if (yperiodic) {
-      while (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) delta[1] += yprd;
-        else delta[1] -= yprd;
-      }
-    }
-    if (zperiodic) {
-      while (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) delta[2] += zprd;
-        else delta[2] -= zprd;
-      }
-    }
-
-  } else {
-    if (zperiodic) {
-      while (fabs(delta[2]) > zprd_half) {
-        if (delta[2] < 0.0) {
-          delta[2] += zprd;
-          delta[1] += yz;
-          delta[0] += xz;
-        } else {
-          delta[2] -= zprd;
-          delta[1] -= yz;
-          delta[0] -= xz;
-        }
-      }
-    }
-    if (yperiodic) {
-      while (fabs(delta[1]) > yprd_half) {
-        if (delta[1] < 0.0) {
-          delta[1] += yprd;
-          delta[0] += xy;
-        } else {
-          delta[1] -= yprd;
-          delta[0] -= xy;
-        }
-      }
-    }
-    if (xperiodic) {
-      while (fabs(delta[0]) > xprd_half) {
-        if (delta[0] < 0.0) delta[0] += xprd;
-        else delta[0] -= xprd;
-      }
-    }
-  }
+  minimum_image(delta[0], delta[1], delta[2]);
 }
 
 /* ----------------------------------------------------------------------

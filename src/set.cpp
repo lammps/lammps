@@ -857,15 +857,15 @@ void Set::set(int keyword)
     else if (keyword == VZ) atom->v[i][2] = dvalue;
     else if (keyword == CHARGE) atom->q[i] = dvalue;
     else if (keyword == MASS) {
-      if (dvalue <= 0.0) error->one(FLERR,"Invalid mass in set command");
+      if (dvalue <= 0.0) error->one(FLERR,"Invalid mass in set command: {}", dvalue);
       atom->rmass[i] = dvalue;
     }
     else if (keyword == DIAMETER) {
-      if (dvalue < 0.0) error->one(FLERR,"Invalid diameter in set command");
+      if (dvalue < 0.0) error->one(FLERR,"Invalid diameter in set command: {}", dvalue);
       atom->radius[i] = 0.5 * dvalue;
     }
     else if (keyword == VOLUME) {
-      if (dvalue <= 0.0) error->one(FLERR,"Invalid volume in set command");
+      if (dvalue <= 0.0) error->one(FLERR,"Invalid volume in set command: {}", dvalue);
       atom->vfrac[i] = dvalue;
     }
     else if (keyword == SPH_E) atom->esph[i] = dvalue;

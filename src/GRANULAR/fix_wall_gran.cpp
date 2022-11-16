@@ -67,11 +67,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   model = new GranularModel(lmp);
   model->contact_type = WALL;
 
-  if (strcmp(arg[3],"granular") == 0)  classic_flag = 0;
-  else classic_flag = 1;
-  limit_damping = 0;
   heat_flag = 0;
-  int Twall_defined = 0;
+  int classic_flag = 1;
+  if (strcmp(arg[3],"granular") == 0)  classic_flag = 0;
 
   // wall/particle coefficients
 
@@ -117,10 +115,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // Define default damping model if unspecified, takes no args
+  // Define default damping submodel if unspecified, takes no args
   if (!model->damping_model)
     model->construct_submodel("viscoelastic", DAMPING);
-
   model->init();
 
   size_history = model->size_history;
@@ -177,6 +174,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   wiggle = 0;
   wshear = 0;
   peratom_flag = 0;
+  int Twall_defined = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
@@ -216,7 +214,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (heat_flag != Twall_defined)
-    error->all(FLERR, "To model conduction, must define both heat model and wall temperature");
+    error->all(FLERR, "Must define wall temperature with heat model");
 
   if (wallstyle == NOSTYLE)
     error->all(FLERR,"No wall style defined");
@@ -376,6 +374,7 @@ void FixWallGran::post_force(int /*vflag*/)
 
   history_update = 1;
   if (update->setupflag) history_update = 0;
+  model->history_update = history_update;
 
   // if just reneighbored:
   // update rigid body masses for owned atoms if using FixRigid
@@ -407,10 +406,10 @@ void FixWallGran::post_force(int /*vflag*/)
   if (wiggle) {
     double arg = omega * (update->ntimestep - time_origin) * dt;
     if (wallstyle == axis) {
-      wlo = lo + amplitude - amplitude*cos(arg);
-      whi = hi + amplitude - amplitude*cos(arg);
+      wlo = lo + amplitude - amplitude * cos(arg);
+      whi = hi + amplitude - amplitude * cos(arg);
     }
-    vwall[axis] = amplitude*omega*sin(arg);
+    vwall[axis] = amplitude * omega * sin(arg);
   } else if (wshear) vwall[axis] = vshear;
 
   // loop over all my atoms
@@ -473,19 +472,19 @@ void FixWallGran::post_force(int /*vflag*/)
       if (del1 < del2) dz = del1;
       else dz = -del2;
     } else if (wallstyle == ZCYLINDER) {
-      delxy = sqrt(x[i][0]*x[i][0] + x[i][1]*x[i][1]);
+      delxy = sqrt(x[i][0] * x[i][0] + x[i][1] * x[i][1]);
       delr = cylradius - delxy;
       if (delr > radius[i]) {
         dz = cylradius;
         rwall = 0.0;
       } else {
-        dx = -delr/delxy * x[i][0];
-        dy = -delr/delxy * x[i][1];
+        dx = -delr / delxy * x[i][0];
+        dy = -delr / delxy * x[i][1];
         // rwall = -2r_c if inside cylinder, 2r_c outside
-        rwall = (delxy < cylradius) ? -2*cylradius : 2*cylradius;
+        rwall = (delxy < cylradius) ? -2 * cylradius : 2 * cylradius;
         if (wshear && axis != 2) {
-          vwall[0] += vshear * x[i][1]/delxy;
-          vwall[1] += -vshear * x[i][0]/delxy;
+          vwall[0] += vshear * x[i][1] / delxy;
+          vwall[1] += -vshear * x[i][0] / delxy;
           vwall[2] = 0.0;
         }
       }
@@ -521,7 +520,6 @@ void FixWallGran::post_force(int /*vflag*/)
     model->meff = meff;
     model->vi = v[i];
     model->omegai = omega[i];
-    model->history_update = history_update;
     if (use_history) model->history = history_one[i];
     if (heat_flag) model->Ti = temperature[i];
 

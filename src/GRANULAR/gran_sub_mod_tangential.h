@@ -63,8 +63,6 @@ class GranSubModTangential : public GranSubMod {
  public:
   GranSubModTangential(class GranularModel *, class LAMMPS *);
   virtual ~GranSubModTangential() {};
-  virtual void coeffs_to_local() {};
-  virtual void init() {};
   virtual void calculate_forces() = 0;
   double k, damp, mu; // Used by Marshall twisting model
 };
@@ -105,8 +103,6 @@ class GranSubModTangentialLinearHistoryClassic : public GranSubModTangentialLine
  public:
   GranSubModTangentialLinearHistoryClassic(class GranularModel *, class LAMMPS *);
   void calculate_forces();
- protected:
-  double xt;
 };
 
 /* ---------------------------------------------------------------------- */

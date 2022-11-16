@@ -35,8 +35,6 @@ class GranSubModRolling : public GranSubMod {
  public:
   GranSubModRolling(class GranularModel *, class LAMMPS *);
   ~GranSubModRolling() {};
-  virtual void coeffs_to_local() {};
-  virtual void init() {};
   virtual void calculate_forces() = 0;
 };
 

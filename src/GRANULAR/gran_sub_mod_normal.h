@@ -51,8 +51,6 @@ class GranSubModNormal : public GranSubMod {
  public:
   GranSubModNormal(class GranularModel *, class LAMMPS *);
   ~GranSubModNormal() {};
-  virtual void coeffs_to_local() {};
-  virtual void init() {};
   virtual bool touch();
   virtual double pulloff_distance(double, double);
   virtual double calculate_area();
@@ -60,7 +58,7 @@ class GranSubModNormal : public GranSubMod {
   virtual void set_fncrit();
   double damp; // argument historically needed by damping
   double Emod, poiss;
-  double Fncrit, knfac;
+  double Fncrit;
   int material_properties, cohesive_flag;
 };
 

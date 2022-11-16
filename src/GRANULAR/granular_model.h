@@ -68,7 +68,7 @@ class GranularModel : protected Pointers {
   GranSubModRolling *rolling_model;
   GranSubModTwisting *twisting_model;
   GranSubModHeat *heat_model;
-  GranSubMod *sub_models[NSUBMODELS];  // Need to resize if we add more model flavors
+  GranSubMod *sub_models[NSUBMODELS];
 
   // Extra options
   int beyond_contact, limit_damping, history_update;
@@ -94,9 +94,9 @@ class GranularModel : protected Pointers {
   bool touch;
 
  protected:
-  int rolling_defined, twisting_defined, heat_defined; // Used to quickly skip undefined submodels
-  int classic_model;
-  int area_flag;
+  int rolling_defined, twisting_defined, heat_defined; // Flag optional submodels
+  int classic_model;                                   // Flag original pair/gran calculations
+  int area_flag;                                       // Flag whether area is needed
 
   int nclass;
 

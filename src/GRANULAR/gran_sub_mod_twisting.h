@@ -39,8 +39,6 @@ class GranSubModTwisting : public GranSubMod {
  public:
   GranSubModTwisting(class GranularModel *, class LAMMPS *);
   virtual ~GranSubModTwisting() {};
-  virtual void coeffs_to_local() {};
-  virtual void init() {};
   virtual void calculate_forces() = 0;
 };
 
@@ -57,8 +55,8 @@ class GranSubModTwistingNone : public GranSubModTwisting {
 class GranSubModTwistingMarshall : public GranSubModTwisting {
  public:
   GranSubModTwistingMarshall(class GranularModel *, class LAMMPS *);
+  void init() override;
   void calculate_forces();
-  void init();
  protected:
   double k_tang, mu_tang;
 };

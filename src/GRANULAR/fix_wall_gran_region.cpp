@@ -135,6 +135,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
   history_update = 1;
   if (update->setupflag) history_update = 0;
+  model->history_update = history_update;
 
   // if just reneighbored:
   // update rigid body masses for owned atoms if using FixRigid
@@ -262,7 +263,6 @@ void FixWallGranRegion::post_force(int /*vflag*/)
       model->meff = meff;
       model->vi = v[i];
       model->omegai = omega[i];
-      model->history_update = history_update;
 
       if (use_history) model->history = history_many[i][c2r[ic]];
       if (heat_flag) model->Ti = temperature[i];

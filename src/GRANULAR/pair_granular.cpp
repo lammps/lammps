@@ -57,8 +57,6 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   svector = new double[single_extra];
 
   neighprev = 0;
-  nmodels = 0;
-  maxmodels = 0;
   nmax = 0;
   mass_rigid = nullptr;
 
@@ -302,6 +300,7 @@ void PairGranular::allocate()
   maxmodels = n * n + 1; // should never need any more space
   models_list = (GranularModel **) memory->smalloc(maxmodels * sizeof(GranularModel *), "pair:models_list");
   for (int i = 0; i < maxmodels; i++) models_list[i] = nullptr;
+  nmodels = 0;
 
   onerad_dynamic = new double[n+1];
   onerad_frozen = new double[n+1];
@@ -339,7 +338,6 @@ void PairGranular::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-
   // Construct new model
   models_list[nmodels] = new GranularModel(lmp);
   class GranularModel* model = models_list[nmodels];
@@ -374,9 +372,10 @@ void PairGranular::coeff(int narg, char **arg)
     } else error->all(FLERR, "Illegal pair_coeff command {}", arg[iarg]);
   }
 
-  // Define default damping model if unspecified, has no coeffs
+  // Define default damping submodel if unspecified, has no coeffs
   if (!model->damping_model)
     model->construct_submodel("viscoelastic", DAMPING);
+  model->init();
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -388,7 +387,7 @@ void PairGranular::coeff(int narg, char **arg)
     }
   }
 
-  // If there are > ntype^2 models, delete unused ones
+  // If there are > ntype^2 models, delete unused models
   if (nmodels == maxmodels) prune_models();
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -419,7 +418,6 @@ void PairGranular::init_style()
   int size_max[NSUBMODELS] = {0};
   for (int n = 0; n < nmodels; n++) {
     model = models_list[n];
-    model->init();
 
     if (model->beyond_contact) {
       beyond_contact = 1;
@@ -559,7 +557,6 @@ double PairGranular::init_one(int i, int j)
                  model1->sub_models[error_code]->name,
                  model2->sub_models[error_code]->name);
 
-    // Initialize new model, init_one() occurs after init_style
     model->init();
 
     for (int k = 0; k < NSUBMODELS; k++)
@@ -657,8 +654,10 @@ void PairGranular::read_restart(FILE *fp)
   MPI_Bcast(&nmodels,1,MPI_INT,0,world);
 
   for (i = 0; i < nmodels; i++) {
+    delete models_list[i];
     models_list[i] = new GranularModel(lmp);
     models_list[i]->read_restart(fp);
+    models_list[i]->init();
   }
 
   for (i = 1; i <= atom->ntypes; i++) {
@@ -690,28 +689,22 @@ double PairGranular::single(int i, int j, int itype, int jtype,
                             double rsq, double /* factor_coul */,
                             double factor_lj, double &fforce)
 {
-
   if (factor_lj == 0) {
     fforce = 0.0;
     for (int m = 0; m < single_extra; m++) svector[m] = 0.0;
     return 0.0;
   }
 
-  int jnum;
-  int *jlist;
-  double *history,*allhistory;
-
   int nall = atom->nlocal + atom->nghost;
   if ((i >= nall) || (j >= nall))
     error->all(FLERR,"Not enough atoms for pair granular single function");
 
-  int touchflag;
-  double **x = atom->x;
-  double *radius = atom->radius;
-
   class GranularModel* model = models_list[types_indices[itype][jtype]];
 
   // Reset model and copy initial geometric data
+  double **x = atom->x;
+  double *radius = atom->radius;
+
   model->xi = x[i];
   model->xj = x[j];
   model->radi = radius[i];
@@ -719,8 +712,9 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   model->history_update = 0; // Don't update history
 
   // If history is needed
-  jnum = list->numneigh[i];
-  jlist = list->firstneigh[i];
+  double *history,*allhistory;
+  int jnum = list->numneigh[i];
+  int *jlist = list->firstneigh[i];
   if (use_history) {
     if ((fix_history == nullptr) || (fix_history->firstvalue == nullptr))
       error->one(FLERR,"Pair granular single computation needs history");
@@ -730,11 +724,11 @@ double PairGranular::single(int i, int j, int itype, int jtype,
       if (neighprev >= jnum) neighprev = 0;
       if (jlist[neighprev] == j) break;
     }
-    history = &allhistory[size_history*neighprev];
+    history = &allhistory[size_history * neighprev];
     model->touch = fix_history->firstflag[i][neighprev];
   }
 
-  touchflag = model->check_contact();
+  int touchflag = model->check_contact();
 
   if (!touchflag) {
     fforce = 0.0;
@@ -745,17 +739,16 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // meff = effective mass of pair of particles
   // if I or J part of rigid body, use body mass
   // if I or J is frozen, meff is other particle
-  double mi, mj, meff;
   double *rmass = atom->rmass;
   int *mask = atom->mask;
 
-  mi = rmass[i];
-  mj = rmass[j];
+  double mi = rmass[i];
+  double mj = rmass[j];
   if (fix_rigid) {
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
     if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }
-  meff = mi * mj / (mi + mj);
+  double meff = mi * mj / (mi + mj);
   if (mask[i] & freeze_group_bit) meff = mj;
   if (mask[j] & freeze_group_bit) meff = mi;
 
@@ -770,11 +763,10 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   model->omegaj = omega[j];
   model->history = history;
 
-  double *forces, *torquesi, *torquesj;
   model->calculate_forces();
-  forces = model->forces;
-  torquesi = model->torquesi;
-  torquesj = model->torquesj;
+  double *forces = model->forces;
+  double *torquesi = model->torquesi;
+  double *torquesj = model->torquesj;
 
   // apply forces & torques
   fforce = MathExtra::len3(forces);
@@ -843,7 +835,7 @@ void PairGranular::transfer_history(double* source, double* target, int itype, i
   class GranularModel* model = models_list[types_indices[itype][jtype]];
   if (model->nondefault_history_transfer) {
     for (int i = 0; i < size_history; i++) {
-      target[i] = model->transfer_history_factor[i] * source [i];
+      target[i] = model->transfer_history_factor[i] * source[i];
     }
   } else {
     for (int i = 0; i < size_history; i++) {

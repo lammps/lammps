@@ -35,8 +35,6 @@ class GranSubModHeat : public GranSubMod {
  public:
   GranSubModHeat(class GranularModel *, class LAMMPS *);
   ~GranSubModHeat() {};
-  virtual void coeffs_to_local() {};
-  virtual void init() {};
   virtual double calculate_heat() = 0;
 };
 

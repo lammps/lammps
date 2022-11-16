@@ -53,7 +53,7 @@ class FixWallGran : public Fix {
 
  protected:
   int wallstyle, wiggle, wshear, axis;
-  int classic_flag, nlevels_respa;
+  int nlevels_respa;
   bigint time_origin;
 
   // for granular model choices
@@ -69,7 +69,6 @@ class FixWallGran : public Fix {
   int history_update;    // flag for whether shear history is updated
   int size_history;      // # of shear history values per contact
   int heat_flag;
-  int limit_damping;
 
   int tvar;
   char *tstr;

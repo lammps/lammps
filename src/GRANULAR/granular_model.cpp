@@ -148,12 +148,13 @@ void GranularModel::construct_submodel(std::string model_name, SubmodelType mode
   sub_models[model_type]->name.assign(model_name);
   sub_models[model_type]->allocate_coeffs();
 
-  if (model_type == NORMAL) normal_model = dynamic_cast<GranSubModNormal *> (sub_models[NORMAL]);
-  if (model_type == DAMPING) damping_model = dynamic_cast<GranSubModDamping *> (sub_models[DAMPING]);
-  if (model_type == TANGENTIAL) tangential_model = dynamic_cast<GranSubModTangential *> (sub_models[TANGENTIAL]);
-  if (model_type == ROLLING) rolling_model = dynamic_cast<GranSubModRolling *> (sub_models[ROLLING]);
-  if (model_type == TWISTING) twisting_model = dynamic_cast<GranSubModTwisting *> (sub_models[TWISTING]);
-  if (model_type == HEAT) heat_model = dynamic_cast<GranSubModHeat *> (sub_models[HEAT]);
+  // Assign specific submodel pointer
+  if (model_type == NORMAL) normal_model = dynamic_cast<GranSubModNormal *> (sub_models[model_type]);
+  if (model_type == DAMPING) damping_model = dynamic_cast<GranSubModDamping *> (sub_models[model_type]);
+  if (model_type == TANGENTIAL) tangential_model = dynamic_cast<GranSubModTangential *> (sub_models[model_type]);
+  if (model_type == ROLLING) rolling_model = dynamic_cast<GranSubModRolling *> (sub_models[model_type]);
+  if (model_type == TWISTING) twisting_model = dynamic_cast<GranSubModTwisting *> (sub_models[model_type]);
+  if (model_type == HEAT) heat_model = dynamic_cast<GranSubModHeat *> (sub_models[model_type]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -248,7 +249,8 @@ void GranularModel::init()
       beyond_contact = 1;
     size_history += sub_models[i]->size_history;
     if (!sub_models[i]->allow_cohesion && normal_model->cohesive_flag)
-      error->all(FLERR,"Cannot use {} model with a cohesive normal model, {}", sub_models[i]->name, normal_model->name);
+      error->all(FLERR,"Cannot use {} model with a cohesive normal model, {}",
+                 sub_models[i]->name, normal_model->name);
     if (sub_models[i]->area_flag) area_flag = 1;
   }
 
@@ -260,14 +262,14 @@ void GranularModel::init()
 
     int j;
     for (int i = 0; i < size_history; i++) {
-      // Find which model owns this history value
+      // Find which submodel owns this history value
       size_cumulative = 0;
       for (j = 0; j < NSUBMODELS; j++) {
         if ((size_cumulative + sub_models[j]->size_history) > i) break;
         size_cumulative += sub_models[j]->size_history;
       }
 
-      // Check if model has nondefault transfers, if so copy its array
+      // Check if submodel has nondefault transfers, if so copy its array
       transfer_history_factor[i] = -1;
       if (j != NSUBMODELS) {
         if (sub_models[j]->nondefault_history_transfer) {
@@ -284,8 +286,7 @@ void GranularModel::init()
 
 int GranularModel::mix_coeffs(GranularModel *g1, GranularModel *g2)
 {
-  int i;
-  for (i = 0; i < NSUBMODELS; i++) {
+  for (int i = 0; i < NSUBMODELS; i++) {
     if (g1->sub_models[i]->name != g2->sub_models[i]->name) return i;
 
     construct_submodel(g1->sub_models[i]->name, (SubmodelType) i);
@@ -311,6 +312,8 @@ void GranularModel::write_restart(FILE *fp)
     fwrite(&num_coeffs, sizeof(int), 1, fp);
     fwrite(sub_models[i]->coeffs, sizeof(double), num_coeffs, fp);
   }
+
+  fwrite(&limit_damping, sizeof(int), 1, fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -328,22 +331,23 @@ void GranularModel::read_restart(FILE *fp)
     if (comm->me == 0)
       utils::sfread(FLERR, const_cast<char*>(model_name.data()), sizeof(char),num_char, fp, nullptr, error);
     MPI_Bcast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, 0, world);
-
     construct_submodel(model_name, (SubmodelType) i);
 
-    if (comm->me == 0) {
+    if (comm->me == 0)
       utils::sfread(FLERR, &num_coeff, sizeof(int), 1, fp, nullptr, error);
-      if (num_coeff != sub_models[i]->num_coeffs)
-        error->one(FLERR, "Invalid granular model written to restart file");
-    }
     MPI_Bcast(&num_coeff, 1, MPI_INT, 0, world);
+    if (num_coeff != sub_models[i]->num_coeffs)
+      error->all(FLERR, "Invalid granular model written to restart file");
 
-    if (comm->me == 0) {
+    if (comm->me == 0)
       utils::sfread(FLERR, sub_models[i]->coeffs, sizeof(double), num_coeff, fp, nullptr, error);
-    }
     MPI_Bcast(sub_models[i]->coeffs, num_coeff, MPI_DOUBLE, 0, world);
     sub_models[i]->coeffs_to_local();
   }
+
+  if (comm->me == 0)
+    utils::sfread(FLERR, &limit_damping, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&limit_damping, 1, MPI_INT, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -393,7 +397,7 @@ void GranularModel::calculate_forces()
   sub3(vi, vj, vr);
 
   // normal component
-  vnnr = dot3(vr, nx); //v_R . n
+  vnnr = dot3(vr, nx);
   scale3(vnnr, nx, vn);
 
   // tangential component
@@ -433,7 +437,7 @@ void GranularModel::calculate_forces()
   if (contact_type == PAIR) {
     copy3(torquesi, torquesj);
 
-    // Classic pair styles wouldn't scale, but classic option is only used by walls
+    // Classic pair styles don't scale, but classic option is currently only used by walls
     dist_to_contact = radi - 0.5 * delta;
     scale3(dist_to_contact, torquesi);
     dist_to_contact = radj - 0.5 * delta;

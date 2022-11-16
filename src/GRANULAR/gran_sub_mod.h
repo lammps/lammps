@@ -29,8 +29,8 @@ class GranSubMod : protected Pointers {
   double *coeffs;
   void read_restart();
   virtual void mix_coeffs(double*, double*);
-  virtual void coeffs_to_local() = 0;
-  virtual void init() = 0;   // called after all submodel coeffs defined
+  virtual void coeffs_to_local() {};
+  virtual void init() {}; // called after all submodels + coeffs defined
 
   void allocate_coeffs();
   std::string name;

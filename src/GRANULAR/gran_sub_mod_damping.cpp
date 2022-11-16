@@ -108,7 +108,7 @@ void GranSubModDampingTsuji::init()
 {
   double tmp = gm->normal_model->damp;
   damp = 1.2728 - 4.2783 * tmp + 11.087 * square(tmp);
-  damp += -22.348 * cube(tmp)+ 27.467 * powint(tmp, 4);
+  damp += -22.348 * cube(tmp) + 27.467 * powint(tmp, 4);
   damp += -18.022 * powint(tmp, 5) + 4.8218 * powint(tmp,6);
 }
 

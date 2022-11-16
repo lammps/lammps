@@ -48,8 +48,6 @@ class GranSubModDamping : public GranSubMod {
  public:
   GranSubModDamping(class GranularModel *, class LAMMPS *);
   ~GranSubModDamping() {};
-  virtual void coeffs_to_local() {};
-  virtual void mix_coeffs(double*, double*) {};
   virtual void init();
   virtual double calculate_forces() = 0;
   double damp_prefactor; // Used by tangential models

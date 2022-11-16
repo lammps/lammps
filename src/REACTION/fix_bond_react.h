@@ -25,7 +25,6 @@ FixStyle(bond/react,FixBondReact);
 #define LMP_FIX_BOND_REACT_H
 
 #include "fix.h"
-#include "compute.h"
 
 #include <map>
 #include <set>
@@ -55,7 +54,6 @@ class FixBondReact : public Fix {
   double memory_usage() override;
 
  private:
-  int me, nprocs;
   int newton_bond;
   int nreacts;
   int *nevery;
@@ -236,7 +234,7 @@ class FixBondReact : public Fix {
   std::vector<std::string> customvarstrs;
   int nvvec;
   double **vvec;    // per-atom vector to store custom constraint atom-style variable values
-  Compute *cperbond;    // pointer to 'compute bond/local' used by custom constraint ('rxnbond' function)
+  class Compute *cperbond;    // pointer to 'compute bond/local' used by custom constraint ('rxnbond' function)
   std::map<std::set<tagint>, int> atoms2bond;    // maps atom pair to index of local bond array
   std::vector<std::vector<Constraint>> constraints;
 

@@ -120,7 +120,7 @@ class Domain : protected Pointers {
   void box_too_small_check();
   void subbox_too_small_check(double);
   void minimum_image(double &, double &, double &);
-  void minimum_image(double *);
+  void minimum_image(double *delta) { minimum_image(delta[0], delta[1], delta[2]); }
   void minimum_image_once(double *);
   int closest_image(int, int);
   int closest_image(const double *const, int);

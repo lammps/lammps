@@ -1060,16 +1060,6 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 
 /* ----------------------------------------------------------------------
    minimum image convention in periodic dimensions
-   use same algorithm as before
-------------------------------------------------------------------------- */
-
-void Domain::minimum_image(double *delta)
-{
-  minimum_image(delta[0], delta[1], delta[2]);
-}
-
-/* ----------------------------------------------------------------------
-   minimum image convention in periodic dimensions
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed
    only shift by one box length in each direction

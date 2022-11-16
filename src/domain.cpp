@@ -985,16 +985,16 @@ void Domain::subbox_too_small_check(double thresh)
 ------------------------------------------------------------------------- */
 
 #ifdef LAMMPS_BIGBIG
-static constexpr double maximgcount = 1<<21;
+static constexpr double MAXIMGCOUNT = 1<<21;
 #else
-static constexpr double maximgcount = 1<<10;
+static constexpr double MAXIMGCOUNT = 1<<10;
 #endif
 
 void Domain::minimum_image(double &dx, double &dy, double &dz)
 {
   if (triclinic == 0) {
     if (xperiodic) {
-      if (fabs(dx) > (maximgcount * xprd))
+      if (fabs(dx) > (MAXIMGCOUNT * xprd))
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;
@@ -1002,7 +1002,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (yperiodic) {
-      if (fabs(dy) > (maximgcount * yprd))
+      if (fabs(dy) > (MAXIMGCOUNT * yprd))
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
         if (dy < 0.0) dy += yprd;
@@ -1010,7 +1010,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (zperiodic) {
-      if (fabs(dz) > (maximgcount * zprd))
+      if (fabs(dz) > (MAXIMGCOUNT * zprd))
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
         if (dz < 0.0) dz += zprd;
@@ -1020,7 +1020,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
 
   } else {
     if (zperiodic) {
-      if (fabs(dz) > (maximgcount * zprd))
+      if (fabs(dz) > (MAXIMGCOUNT * zprd))
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
         if (dz < 0.0) {
@@ -1035,7 +1035,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (yperiodic) {
-      if (fabs(dy) > (maximgcount * yprd))
+      if (fabs(dy) > (MAXIMGCOUNT * yprd))
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
         if (dy < 0.0) {
@@ -1048,7 +1048,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
       }
     }
     if (xperiodic) {
-      if (fabs(dx) > (maximgcount * xprd))
+      if (fabs(dx) > (MAXIMGCOUNT * xprd))
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
         if (dx < 0.0) dx += xprd;

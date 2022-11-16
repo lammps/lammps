@@ -104,10 +104,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[6],"type") == 0) adiam = TYPE;
   else if (strcmp(arg[6],"element") == 0) adiam = ELEMENT;
 
-  // create Image class with single colormap for atoms
+  // create Image class with two colormaps for atoms and grid cells
   // change defaults for 2d
 
-  image = new Image(lmp,1);
+  image = new Image(lmp,2);
 
   if (domain->dimension == 2) {
     image->theta = 0.0;
@@ -118,6 +118,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   // set defaults for optional args
 
   atomflag = YES;
+  gridflag = NO;
   lineflag = triflag = bodyflag = fixflag = NO;
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
@@ -175,6 +176,14 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal dump image command");
       iarg += 3;
 
+    } else if (strcmp(arg[iarg],"grid") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
+      gridflag = YES;
+      if (strcmp(arg[iarg+1],"type") == 0) lcolor = TYPE;
+      else error->all(FLERR,"Illegal dump image command");
+      ldiam = NUMERIC;
+      ldiamvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"line") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
@@ -560,6 +569,25 @@ void DumpImage::write()
   // set minmax color range if using dynamic atom color map
 
   if (acolor == ATTRIBUTE && image->map_dynamic(0)) {
+    double two[2],twoall[2];
+    double lo = BIG;
+    double hi = -BIG;
+    int m = 0;
+    for (int i = 0; i < nchoose; i++) {
+      lo = MIN(lo,buf[m]);
+      hi = MAX(hi,buf[m]);
+      m += size_one;
+    }
+    two[0] = -lo;
+    two[1] = hi;
+    MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
+    int flag = image->map_minmax(0,-twoall[0],twoall[1]);
+    if (flag) error->all(FLERR,"Invalid color map min/max values");
+  }
+
+  // set minmax color range if using dynamic grid color map
+
+  if (acolor == ATTRIBUTE && image->map_dynamic(1)) {
     double two[2],twoall[2];
     double lo = BIG;
     double hi = -BIG;
@@ -1217,7 +1245,7 @@ int DumpImage::modify_param(int narg, char **arg)
     return 3;
   }
 
-  if (strcmp(arg[0],"amap") == 0) {
+  if ((strcmp(arg[0],"amap") == 0) || (strcmp(arg[0],"gmap") == 0)) {
     if (narg < 6) error->all(FLERR,"Illegal dump_modify command");
     if (strlen(arg[3]) != 2) error->all(FLERR,"Illegal dump_modify command");
     int factor = 0;
@@ -1229,7 +1257,9 @@ int DumpImage::modify_param(int narg, char **arg)
     if (nentry < 1) error->all(FLERR,"Illegal dump_modify command");
     n = 6 + factor*nentry;
     if (narg < n) error->all(FLERR,"Illegal dump_modify command");
-    int flag = image->map_reset(0,n-1,&arg[1]);
+    int flag;
+    if (strcmp(arg[0],"amap") == 0) flag = image->map_reset(0,n-1,&arg[1]);
+    if (strcmp(arg[0],"gmap") == 0) flag = image->map_reset(1,n-1,&arg[1]);
     if (flag) error->all(FLERR,"Illegal dump_modify command");
     return n;
   }

@@ -41,6 +41,8 @@ class DumpImage : public DumpCustom {
   int acolor, adiam;    // what determines color/diam of atoms
   double adiamvalue;    // atom diameter value
 
+  int gridflag;         // 0/1 for draw grid cells
+  
   int lineflag;                   // 0/1 for draw atoms as lines
   int lcolor, ldiam;              // what determines color/diam of lines
   double ldiamvalue;              // line diameter value

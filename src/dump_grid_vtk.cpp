@@ -56,7 +56,7 @@ void DumpGridVTK::init_style()
 {
   DumpGrid::init_style();
 
- if (multifile == 0)
+  if (multifile == 0)
     error->all(FLERR,"Dump grid/vtk requires one snapshot per file");
   if (sort_flag == 0 || sortcol > 0)
     error->all(FLERR,"Dump grid/vtk requires sorting on IDs");
@@ -66,9 +66,9 @@ void DumpGridVTK::init_style()
  if (binary) error->all(FLERR,"Dump grid/vtk cannot write binary files\n");
 
   if (!xcoord) {
-    memory->create(xcoord,nxgrid,"dumpgridVTK:xcoord");
-    memory->create(ycoord,nygrid,"dumpgridVTK:ycoord");
-    memory->create(zcoord,nzgrid,"dumpgridVTK:zcoord");
+    memory->create(xcoord,nxgrid+1,"dumpgridVTK:xcoord");
+    memory->create(ycoord,nygrid+1,"dumpgridVTK:ycoord");
+    memory->create(zcoord,nzgrid+1,"dumpgridVTK:zcoord");
   }
 }
 
@@ -81,7 +81,7 @@ void DumpGridVTK::write_header(bigint ndump)
   xyz_grid();
   
   fprintf(fp,"<?xml version=\"1.0\"\?>\n");
-  fprintf(fp,"<VTKFile type=\"RectilinearGrid\"\n");
+  fprintf(fp,"<VTKFile type=\"RectilinearGrid\">\n");
   fprintf(fp,"<RectilinearGrid WholeExtent=\"0 %d 0 %d 0 %d\" "
           "Origin=\"0 0 0\" Spacing=\"1 1 1\">\n",nxgrid,nygrid,nzgrid);
   fprintf(fp,"<Piece Extent=\"0 %d 0 %d 0 %d\">\n",nxgrid,nygrid,nzgrid);
@@ -91,29 +91,27 @@ void DumpGridVTK::write_header(bigint ndump)
 
   // coords of center point of grid cells in each of xyz dimensions
   
-  fprintf(fp,"<DataArray type=\"Float32\"\n");
-  for (int i = 0; i < nxgrid; i++)
+  fprintf(fp,"<DataArray type=\"Float32\" format=\"ascii\">\n");
+  for (int i = 0; i <= nxgrid; i++)
     fprintf(fp,"%g ",xcoord[i]);
-  fprintf(fp,"\n");
-  fprintf(fp,"</DataArray>\n");
-  fprintf(fp,"<DataArray type=\"Float32\"\n");
-  for (int i = 0; i < nygrid; i++)
+  fprintf(fp,"\n</DataArray>\n");
+  fprintf(fp,"<DataArray type=\"Float32\" format=\"ascii\">\n");
+  for (int i = 0; i <= nygrid; i++)
     fprintf(fp,"%g ",ycoord[i]);
-  fprintf(fp,"\n");
-  fprintf(fp,"</DataArray>\n");
-  fprintf(fp,"<DataArray type=\"Float32\"\n");
-  for (int i = 0; i < nzgrid; i++)
+  fprintf(fp,"\n</DataArray>\n");
+  fprintf(fp,"<DataArray type=\"Float32\" format=\"ascii\">\n");
+  for (int i = 0; i <= nzgrid; i++)
     fprintf(fp,"%g ",zcoord[i]);
-  fprintf(fp,"\n");
-  fprintf(fp,"</DataArray>\n");
+  fprintf(fp,"\n</DataArray>\n");
   
   fprintf(fp,"</Coordinates>\n");
   
   fprintf(fp,"<CellData>\n");
   if (mode == SCALAR)
-    fprintf(fp,"<DataArray type=\"Float32\" Name=\"Scalar\"\n");
+    fprintf(fp,"<DataArray type=\"Float32\" Name=\"Scalar\" format=\"ascii\">\n");
   else if (mode == VECTOR)
-    fprintf(fp,"<DataArray type=\"Float32\" Name=\"Vector\" NumberOfComponents=\"3\"\n");
+    fprintf(fp,"<DataArray type=\"Float32\" Name=\"Vector\" "
+            "NumberOfComponents=\"3\" format=\"ascii\">\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -158,12 +156,12 @@ void DumpGridVTK::xyz_grid()
   double dy = domain->prd[1] / nygrid;
   double dz = domain->prd[2] / nzgrid;
   
-  for (int ix = 0; ix < nxgrid; ix++)
-    xcoord[ix] = boxlo[0] + (ix + 0.5) * dx;
+  for (int ix = 0; ix <= nxgrid; ix++)
+    xcoord[ix] = boxlo[0] + ix*dx;
   
-  for (int iy = 0; iy < nygrid; iy++)
-    ycoord[iy] = boxlo[1] + (iy + 0.5) * dy;
+  for (int iy = 0; iy <= nygrid; iy++)
+    ycoord[iy] = boxlo[1] + iy*dy;
 
-  for (int iz = 0; iz < nzgrid; iz++)
-    zcoord[iz] = boxlo[2] + (iz + 0.5) * dz;
+  for (int iz = 0; iz <= nzgrid; iz++)
+    zcoord[iz] = boxlo[2] + iz*dz;
 }

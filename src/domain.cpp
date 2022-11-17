@@ -981,14 +981,10 @@ void Domain::subbox_too_small_check(double thresh)
    this should not be used if atom has moved infinitely far outside box
      b/c while could iterate forever
      e.g. fix shake prediction of new position with highly overlapped atoms
-     use minimum_image_once() instead
+       uses minimum_image_once() instead
 ------------------------------------------------------------------------- */
 
-#ifdef LAMMPS_BIGBIG
-static constexpr double MAXIMGCOUNT = 1<<21;
-#else
-static constexpr double MAXIMGCOUNT = 1<<10;
-#endif
+static constexpr double MAXIMGCOUNT = 16;
 
 void Domain::minimum_image(double &dx, double &dy, double &dz)
 {

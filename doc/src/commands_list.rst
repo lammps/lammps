@@ -91,6 +91,7 @@ Commands
    replicate
    rerun
    reset_atom_ids
+   reset_image_flags
    reset_mol_ids
    reset_timestep
    restart

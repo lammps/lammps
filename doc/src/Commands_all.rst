@@ -91,6 +91,7 @@ table above.
    * :doc:`replicate <replicate>`
    * :doc:`rerun <rerun>`
    * :doc:`reset_atom_ids <reset_atom_ids>`
+   * :doc:`reset_image_flags <reset_image_flags>`
    * :doc:`reset_mol_ids <reset_mol_ids>`
    * :doc:`reset_timestep <reset_timestep>`
    * :doc:`restart <restart>`

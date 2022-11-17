@@ -877,13 +877,9 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
      caller decides what to do if not COMPUTE or FIX
 ------------------------------------------------------------------------- */
 
-//int check_grid_reference(char *errstr, char *ref, int &igrid, int &idata, int &index,
-//                         LAMMPS *lmp)
-int check_grid_reference(int &igrid, int &idata, int &index, LAMMPS *lmp)
+int utils::check_grid_reference(char *errstr, char *ref, int &igrid, int &idata, int &index,
+                                LAMMPS *lmp)
 {
-  char *ref;
-  char *errstr;
-  
   ArgInfo argi(ref, ArgInfo::COMPUTE | ArgInfo::FIX);
   index = argi.get_index1();
   auto name = argi.get_name();
@@ -900,7 +896,7 @@ int check_grid_reference(int &igrid, int &idata, int &index, LAMMPS *lmp)
 
       // split name = idcompute:gname:dname into 3 strings
   
-      auto words = utils::parse_grid_id(FLERR,name,lmp->error);
+      auto words = parse_grid_id(FLERR,name,lmp->error);
       const auto &idcompute = words[0];
       const auto &gname = words[1];
       const auto &dname = words[2];
@@ -937,7 +933,7 @@ int check_grid_reference(int &igrid, int &idata, int &index, LAMMPS *lmp)
 
       // split name = idfix:gname:dname into 3 strings
 
-      auto words = utils::parse_grid_id(FLERR,name,lmp->error);
+      auto words = parse_grid_id(FLERR,name,lmp->error);
       const auto &idfix = words[0];
       const auto &gname = words[1];
       const auto &dname = words[2];

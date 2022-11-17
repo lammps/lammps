@@ -187,9 +187,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       char *id;
       int igrid,idata,index;
       int iflag =
-        utils::check_grid_reference(igrid,idata,index,lmp);
-      //        utils::check_grid_reference((char *) "Dump image",
-      //                             arg[iarg+1],igrid,idata,index,lmp);
+        utils::check_grid_reference((char *) "Dump image",
+                                    arg[iarg+1],igrid,idata,index,lmp);
       
       iarg += 2;
 

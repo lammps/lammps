@@ -383,9 +383,8 @@ namespace utils {
 
 
 
-  //int check_grid_reference(char *errstr, char *ref, int &igrid, int &idata, int &index,
-  //                         LAMMPS *lmp);
-  int check_grid_reference(int &igrid, int &idata, int &index, LAMMPS *lmp);
+  int check_grid_reference(char *errstr, char *ref, int &igrid, int &idata, int &index,
+                           LAMMPS *lmp);
 
   
   /*! Parse grid reference into 3 sub-strings

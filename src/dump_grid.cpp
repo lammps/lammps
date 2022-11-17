@@ -653,9 +653,8 @@ int DumpGrid::parse_fields(int narg, char **arg)
     int igrid,idata,index;
     
     int iflag =
-      utils::check_grid_reference(igrid,idata,index,lmp);
-    //utils::check_grid_reference((char *) "Dump grid",
-    //                              arg[iarg],igrid,idata,index,lmp);
+      utils::check_grid_reference((char *) "Dump grid",
+                                  arg[iarg],igrid,idata,index,lmp);
 
     // arg is not a Grid reference
     

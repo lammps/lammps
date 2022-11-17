@@ -1017,13 +1017,13 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
        See :doc:`create_box`.
    * - kokkos_active
      - 1 if the KOKKOS package is compiled in **and** activated, 0 if not.
-       See :doc:`<Speed_kokkos>`.
+       See :doc:`Speed_kokkos`.
    * - kokkos_nthreads
      - Number of Kokkos threads per MPI process, 0 if Kokkos is not active.
-       See :doc:`<Speed_kokkos>`.
+       See :doc:`Speed_kokkos`.
    * - kokkos_ngpus
-     - Number of Kokkos gpus per MPI process, 0 if Kokkos is not active or no GPU support.
-       See :doc:`<Speed_kokkos>`.
+     - Number of Kokkos gpus per physical node, 0 if Kokkos is not active or no GPU support.
+       See :doc:`Speed_kokkos`.
    * - nthreads
      - Number of requested OpenMP threads per MPI process for LAMMPS' execution
    * - newton_bond

@@ -570,6 +570,6 @@ TEST(SystemSettings, kokkos)
 
     EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_active"), 1);
     EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 4);
-    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);    
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);
     lammps_close(lmp);
 }

@@ -983,7 +983,7 @@ be called without a valid LAMMPS object handle (it is ignored).
 **Image masks**
 
 These settings are related to how LAMMPS stores and interprets periodic images. The values are used
-internally by the Fortran interface and are not likely to be useful to users.
+internally by the :doc:`Fortran interface <Fortran>` and are not likely to be useful to users.
 
 .. list-table::
    :header-rows: 1
@@ -1015,8 +1015,17 @@ internally by the Fortran interface and are not likely to be useful to users.
    * - box_exist
      - 1 if the simulation box is defined, 0 if not.
        See :doc:`create_box`.
+   * - kokkos_active
+     - 1 if the KOKKOS package is compiled in **and** activated, 0 if not.
+       See :doc:`<Speed_kokkos>`.
+   * - kokkos_nthreads
+     - Number of Kokkos threads per MPI process, 0 if Kokkos is not active.
+       See :doc:`<Speed_kokkos>`.
+   * - kokkos_ngpus
+     - Number of Kokkos gpus per MPI process, 0 if Kokkos is not active or no GPU support.
+       See :doc:`<Speed_kokkos>`.
    * - nthreads
-     - Number of requested OpenMP threads for LAMMPS' execution
+     - Number of requested OpenMP threads per MPI process for LAMMPS' execution
    * - newton_bond
      - 1 if Newton's 3rd law is applied to bonded interactions, 0 if not.
    * - newton_pair
@@ -1126,6 +1135,9 @@ int lammps_extract_setting(void *handle, const char *keyword)
 
   if (strcmp(keyword,"dimension") == 0) return lmp->domain->dimension;
   if (strcmp(keyword,"box_exist") == 0) return lmp->domain->box_exist;
+  if (strcmp(keyword,"kokkos_active") == 0) return (lmp->kokkos) ? 1 : 0;
+  if (strcmp(keyword,"kokkos_nthreads") == 0) return (lmp->kokkos) ? lmp->kokkos->nthreads : 0;
+  if (strcmp(keyword,"kokkos_ngpus") == 0) return (lmp->kokkos) ? lmp->kokkos->ngpus : 0;
   if (strcmp(keyword,"newton_bond") == 0) return lmp->force->newton_bond;
   if (strcmp(keyword,"newton_pair") == 0) return lmp->force->newton_pair;
   if (strcmp(keyword,"triclinic") == 0) return lmp->domain->triclinic;

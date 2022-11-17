@@ -41,8 +41,6 @@ class DumpImage : public DumpCustom {
   int acolor, adiam;    // what determines color/diam of atoms
   double adiamvalue;    // atom diameter value
 
-  int gridflag;         // 0/1 for draw grid cells
-  
   int lineflag;                   // 0/1 for draw atoms as lines
   int lcolor, ldiam;              // what determines color/diam of lines
   double ldiamvalue;              // line diameter value
@@ -81,16 +79,27 @@ class DumpImage : public DumpCustom {
   double *diamtype, *diamelement, *bdiamtype;          // per-type diameters
   double **colortype, **colorelement, **bcolortype;    // per-type colors
 
+  int gridflag;         // 0/1 for draw grid cells
+  class Grid2d *grid2d;
+  class Grid3d *grid3d;
+  char *id_grid_compute,*id_grid_fix;
+  class Compute *grid_compute;
+  class Fix *grid_fix;
+  int grid_index;
+  double *gbuf;
+  int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
+  int ngrid_owned;
+  
   class AtomVecLine *avec_line;    // ptrs to atom style (sub)classes
   class AtomVecTri *avec_tri;
   class AtomVecBody *avec_body;
 
   class Fix *fixptr;    // ptr to Fix that provides image data
 
-  class Image *image;    // class that renders each image
+  class Image *image;   // class that renders each image
 
-  int *chooseghost;    // extended choose array for comm
-  double **bufcopy;    // buffer for communicating bond/atom info
+  int *chooseghost;     // extended choose array for comm
+  double **bufcopy;     // buffer for communicating bond/atom info
   int maxbufcopy;
 
   void init_style() override;

@@ -379,6 +379,15 @@ namespace utils {
 
   char *expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
 
+
+
+
+
+  //int check_grid_reference(char *errstr, char *ref, int &igrid, int &idata, int &index,
+  //                         LAMMPS *lmp);
+  int check_grid_reference(int &igrid, int &idata, int &index, LAMMPS *lmp);
+
+  
   /*! Parse grid reference into 3 sub-strings
    *
    * Format of grid ID reference = id:gname:dname
@@ -387,8 +396,8 @@ namespace utils {
    * \param name = complete grid ID
    * \return std::vector<std::string> containing the 3 sub-strings  */
 
-  std::vector<std::string> parse_gridid(const char *file, int line, const std::string &name,
-                                        Error *error);
+  std::vector<std::string> parse_grid_id(const char *file, int line, const std::string &name,
+                                         Error *error);
 
   /*! Make C-style copy of string in new storage
    *

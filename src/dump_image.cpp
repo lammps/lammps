@@ -21,10 +21,13 @@
 #include "atom_vec_tri.h"
 #include "body.h"
 #include "comm.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
+#include "grid2d.h"
+#include "grid3d.h"
 #include "image.h"
 #include "input.h"
 #include "math_const.h"
@@ -33,6 +36,7 @@
 #include "modify.h"
 #include "molecule.h"
 #include "tokenizer.h"
+#include "update.h"
 #include "variable.h"
 
 #include <cmath>
@@ -179,10 +183,14 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"grid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       gridflag = YES;
-      if (strcmp(arg[iarg+1],"type") == 0) lcolor = TYPE;
-      else error->all(FLERR,"Illegal dump image command");
-      ldiam = NUMERIC;
-      ldiamvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+
+      char *id;
+      int igrid,idata,index;
+      int iflag =
+        utils::check_grid_reference(igrid,idata,index,lmp);
+      //        utils::check_grid_reference((char *) "Dump image",
+      //                             arg[iarg+1],igrid,idata,index,lmp);
+      
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"line") == 0) {
@@ -453,7 +461,23 @@ void DumpImage::init_style()
 
   DumpCustom::init_style();
 
-  // check variables
+  // for grid output, find current ptr for compute or fix
+  // check that fix frequency is acceptable
+
+  if (gridflag) {
+    if (id_grid_compute) {
+      grid_compute = modify->get_compute_by_id(id_grid_compute);
+      if (!grid_compute)
+        error->all(FLERR,"Could not find dump image grid compute ID {}",id_grid_compute);
+    } else if (id_grid_fix) {
+      grid_fix = modify->get_fix_by_id(id_grid_fix);
+      if (!grid_fix) error->all(FLERR,"Could not find dump image fix ID {}",id_grid_fix);
+      if (nevery % grid_fix->peratom_freq)
+        error->all(FLERR,"Dump image and grid fix not computed at compatible times");
+    }
+  }
+  
+  // check image variables
 
   if (thetastr) {
     thetavar = input->variable->find(thetastr);
@@ -562,7 +586,7 @@ void DumpImage::write()
     memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
-  // pack buf with color & diameter
+  // pack atom buf with color & diameter
 
   pack(nullptr);
 
@@ -582,26 +606,95 @@ void DumpImage::write()
     two[1] = hi;
     MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
     int flag = image->map_minmax(0,-twoall[0],twoall[1]);
-    if (flag) error->all(FLERR,"Invalid color map min/max values");
+    if (flag) error->all(FLERR,"Invalid atom color map min/max values");
+  }
+
+  // pack grid gbuf with grid cell values
+  // ngrid_mine = # of grid cells this proc owns
+
+  if (gridflag) {
+    if (domain->dimension == 2) {
+      if (grid_compute)
+        grid2d = (Grid2d *) grid_compute->get_grid_by_index(grid_index);
+      else if (grid_fix)
+        grid2d = (Grid2d *) grid_fix->get_grid_by_index(grid_index);
+      grid2d->get_bounds_owned(nxlo_in,nxhi_in,nylo_in,nyhi_in);
+    } else {
+      if (grid_compute)
+        grid3d = (Grid3d *) grid_compute->get_grid_by_index(grid_index);
+      else if (grid_fix)
+        grid3d = (Grid3d *) grid_fix->get_grid_by_index(grid_index);
+      grid3d->get_bounds_owned(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+    }
+
+    // invoke Compute for per-grid quantities
+    // only if within a run or minimize
+    // else require the compute is current
+    // this prevents the compute from being invoked by the WriteDump class
+
+    if (grid_compute) {
+      if (update->whichflag == 0) {
+        if (grid_compute->invoked_pergrid != update->ntimestep)
+          error->all(FLERR,"Grid compute {} used in dump image between runs is not current",
+                     grid_compute->id);
+      } else {
+        if (!(grid_compute->invoked_flag & Compute::INVOKED_PERGRID)) {
+          grid_compute->compute_pergrid();
+          grid_compute->invoked_flag |= Compute::INVOKED_PERGRID;
+        }
+      }
+    }
+
+    // access grid data and load gbuf
+
+    /*
+    if (index == 0) {
+      double **vec2d;
+      if (field2source[n] == COMPUTE)
+        vec2d = (double **)
+          compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+      else if (field2source[n] == FIX)
+        vec2d = (double **)
+          fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+          buf[n] = vec2d[iy][ix];
+          n += size_one;
+        }
+    } else {
+      double ***array2d;
+      if (field2source[n] == COMPUTE)
+        array2d = (double ***)
+          compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+      else if (field2source[n] == FIX)
+        array2d = (double ***)
+          fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+      index--;
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+          buf[n] = array2d[iy][ix][index];
+          n += size_one;
+        }
+    }
+    */
+
   }
 
   // set minmax color range if using dynamic grid color map
 
-  if (acolor == ATTRIBUTE && image->map_dynamic(1)) {
+  if (gridflag && image->map_dynamic(1)) {
     double two[2],twoall[2];
     double lo = BIG;
     double hi = -BIG;
-    int m = 0;
-    for (int i = 0; i < nchoose; i++) {
-      lo = MIN(lo,buf[m]);
-      hi = MAX(hi,buf[m]);
-      m += size_one;
+    for (int i = 0; i < ngrid_owned; i++) {
+      lo = MIN(lo,gbuf[i]);
+      hi = MAX(hi,gbuf[i]);
     }
     two[0] = -lo;
     two[1] = hi;
     MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
-    int flag = image->map_minmax(0,-twoall[0],twoall[1]);
-    if (flag) error->all(FLERR,"Invalid color map min/max values");
+    int flag = image->map_minmax(1,-twoall[0],twoall[1]);
+    if (flag) error->all(FLERR,"Invalid grid color map min/max values");
   }
 
   // create image on each proc, then merge them
@@ -702,8 +795,9 @@ void DumpImage::view_params()
 }
 
 /* ----------------------------------------------------------------------
-   create image for atoms on this proc
-   every pixel has depth
+   create image for all data this proc owns
+   all procs draw simulation box edges if requested
+   every drawn pixel has depth so merge can decide which to keep
 ------------------------------------------------------------------------- */
 
 void DumpImage::create_image()
@@ -765,6 +859,16 @@ void DumpImage::create_image()
 
       m += size_one;
     }
+  }
+
+  // render my grid cells
+
+  if (gridflag) {
+
+
+    // draw 2 or 12 triangles
+    //image->draw_triangle(x,y,z,color);
+    
   }
 
   // render atoms that are lines

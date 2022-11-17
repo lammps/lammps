@@ -13,6 +13,7 @@
 
 #include "utils.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
@@ -632,7 +633,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     // match grids
 
     if (strmatch(word, "^[cf]_\\w+:\\w+:\\w+\\[\\d*\\*\\d*\\]")) {
-      auto gridid = utils::parse_gridid(FLERR, word, lmp->error);
+      auto gridid = utils::parse_grid_id(FLERR, word, lmp->error);
 
       size_t first = gridid[2].find('[');
       size_t second = gridid[2].find(']', first + 1);
@@ -864,12 +865,122 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
 }
 
 /* ----------------------------------------------------------------------
+   Check grid reference for valid Compute or Fix which produces per-grid data
+   errstr = name of calling command used if error is generated
+   ref = grid reference as it appears in an input script
+   return arguments:
+     id = ID of compute or fix
+     igrid = index of which grid in compute/fix
+     idata = index of which data field in igrid
+     index = index into data field (0 for vector, 1-N for column of array)
+   method return = ArgInfo::COMPUTE or ArgInfo::FIX or -1 for neither
+     caller decides what to do if not COMPUTE or FIX
+------------------------------------------------------------------------- */
+
+//int check_grid_reference(char *errstr, char *ref, int &igrid, int &idata, int &index,
+//                         LAMMPS *lmp)
+int check_grid_reference(int &igrid, int &idata, int &index, LAMMPS *lmp)
+{
+  char *ref;
+  char *errstr;
+  
+  ArgInfo argi(ref, ArgInfo::COMPUTE | ArgInfo::FIX);
+  index = argi.get_index1();
+  auto name = argi.get_name();
+
+  switch (argi.get_type()) {
+    
+    case ArgInfo::UNKNOWN: {
+      lmp->error->all(FLERR,"%s grid reference %s is invalid",errstr,ref);
+    } break;
+      
+    // compute value = c_ID
+
+    case ArgInfo::COMPUTE: {
+
+      // split name = idcompute:gname:dname into 3 strings
+  
+      auto words = utils::parse_grid_id(FLERR,name,lmp->error);
+      const auto &idcompute = words[0];
+      const auto &gname = words[1];
+      const auto &dname = words[2];
+      
+      auto icompute = lmp->modify->get_compute_by_id(idcompute);
+      if (!icompute) lmp->error->all(FLERR,"%s compute ID {} not found",errstr,idcompute);
+      if (icompute->pergrid_flag == 0)
+        lmp->error->all(FLERR,"%s compute {} does not compute per-grid info",errstr,idcompute);
+      
+      int dim;
+      igrid = icompute->get_grid_by_name(gname,dim);
+      if (igrid < 0)
+        lmp->error->all(FLERR,"%s compute {} does not recognize grid name {}",errstr,idcompute,gname);
+
+      int ncol;
+      idata = icompute->get_griddata_by_name(igrid,dname,ncol);
+      if (idata < 0)
+        lmp->error->all(FLERR,"%s compute {} does not recognize data name {}",errstr,idcompute,dname);
+
+      if (argi.get_dim() == 0 && ncol)
+        lmp->error->all(FLERR,"%s compute {} data {} is not per-grid vector",errstr,idcompute,dname);
+      if (argi.get_dim() && ncol == 0)
+        lmp->error->all(FLERR,"%s compute {} data {} is not per-grid array",errstr,idcompute,dname);
+      if (argi.get_dim() && argi.get_index1() > ncol)
+        lmp->error->all(FLERR,"%s compute {} array {} is accessed out-of-range",errstr,idcompute,dname);
+
+      //id = utils::strdup(idcompute);
+      return ArgInfo::COMPUTE;
+    } break;
+
+    // fix value = f_ID
+
+    case ArgInfo::FIX: {
+
+      // split name = idfix:gname:dname into 3 strings
+
+      auto words = utils::parse_grid_id(FLERR,name,lmp->error);
+      const auto &idfix = words[0];
+      const auto &gname = words[1];
+      const auto &dname = words[2];
+
+      auto ifix = lmp->modify->get_fix_by_id(idfix);
+      if (!ifix) lmp->error->all(FLERR,"%s fix ID {} not found",errstr,idfix);
+      if (ifix->pergrid_flag == 0)
+        lmp->error->all(FLERR,"%s fix {} does not compute per-grid info",errstr,idfix);
+      //if (nevery % ifix->pergrid_freq)
+      //  lmp->error->all(FLERR,"%s fix {} not computed at compatible time",errstr,if);
+
+      int dim;
+      int igrid = ifix->get_grid_by_name(gname,dim);
+      if (igrid < 0)
+        lmp->error->all(FLERR,"%s fix {} does not recognize grid name {}",errstr,idfix,gname);
+
+      int ncol;
+      int idata = ifix->get_griddata_by_name(igrid,dname,ncol);
+      if (idata < 0)
+        lmp->error->all(FLERR,"%s fix {} does not recognize data name {}",errstr,idfix,dname);
+
+      if (argi.get_dim() == 0 && ncol)
+        lmp->error->all(FLERR,"%s fix {} data {} is not per-grid vector",errstr,idfix,dname);
+      if (argi.get_dim() > 0 && ncol == 0)
+        lmp->error->all(FLERR,"%s fix {} data {} is not per-grid array",errstr,idfix,dname);
+      if (argi.get_dim() > 0 && argi.get_index1() > ncol)
+        lmp->error->all(FLERR,"%s fix {} array {} is accessed out-of-range",errstr,idfix,dname);
+
+      //id = utils::strdup(idfix);
+      return ArgInfo::FIX;
+    } break;
+  }
+
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
    Parse grid reference into id:gridname:dataname
    return vector of 3 substrings
 ------------------------------------------------------------------------- */
 
-std::vector<std::string> utils::parse_gridid(const char *file, int line, const std::string &name,
-                                             Error *error)
+std::vector<std::string> utils::parse_grid_id(const char *file, int line, const std::string &name,
+                                              Error *error)
 {
   auto words = Tokenizer(name, ":").as_vector();
   if (words.size() != 3) {

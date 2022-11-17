@@ -26,9 +26,6 @@
 #include "region.h"
 #include "update.h"
 
-// DEBUG
-#include "comm.h"
-
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -652,6 +649,37 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
 
+    char *id;
+    int igrid,idata,index;
+    
+    int iflag =
+      utils::check_grid_reference(igrid,idata,index,lmp);
+    //utils::check_grid_reference((char *) "Dump grid",
+    //                              arg[iarg],igrid,idata,index,lmp);
+
+    // arg is not a Grid reference
+    
+    if (iflag < 0) return iarg;
+    
+    // grid reference is to a compute
+    
+    if (iflag == ArgInfo::COMPUTE) {
+
+      
+    // grid reference is to a fix
+
+    } else if (iflag == ArgInfo::FIX) {
+
+    }
+  }
+
+  return narg;
+}
+
+
+
+
+/*   
     ArgInfo argi(arg[iarg], ArgInfo::COMPUTE | ArgInfo::FIX);
     argindex[iarg] = argi.get_index1();
     auto name = argi.get_name();
@@ -762,6 +790,7 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
   return narg;
 }
+*/
 
 /* ----------------------------------------------------------------------
    add Compute to list of Compute objects used by dump

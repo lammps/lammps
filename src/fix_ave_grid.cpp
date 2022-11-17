@@ -312,7 +312,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     for (int i = 0; i < nvalues; i++) {
       if (which[i] == ArgInfo::COMPUTE) {
 
-        auto words = utils::parse_gridid(FLERR,ids[i],error);
+        auto words = utils::parse_grid_id(FLERR,ids[i],error);
         const auto &idcompute = words[0];
         const auto &gname = words[1];
         const auto &dname = words[2];
@@ -350,7 +350,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
       } else if (which[i] == ArgInfo::FIX) {
 
-        auto words = utils::parse_gridid(FLERR,ids[i],error);
+        auto words = utils::parse_grid_id(FLERR,ids[i],error);
         const auto &idfix = words[0];
         const auto &gname = words[1];
         const auto &dname = words[2];

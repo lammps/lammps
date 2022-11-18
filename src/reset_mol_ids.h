@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(reset_mol_ids,ResetMolIDs);
+CommandStyle(RESET_MOL_IDS,ResetMolIDs);
 // clang-format on
 #else
 

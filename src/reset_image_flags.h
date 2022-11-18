@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(reset_image_flags,ResetImageFlags);
+CommandStyle(RESET_IMAGE_FLAGS,ResetImageFlags);
 // clang-format on
 #else
 

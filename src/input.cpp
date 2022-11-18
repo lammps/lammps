@@ -2003,7 +2003,7 @@ void Input::units()
 
 int Input::meta(const std::string &prefix)
 {
-  auto mycmd = fmt::format("{}_{}", prefix, arg[0]);
+  auto mycmd = fmt::format("{}_{}", utils::uppercase(prefix), utils::uppercase(arg[0]));
   if (command_map->find(mycmd) != command_map->end()) {
     CommandCreator &command_creator = (*command_map)[mycmd];
     Command *cmd = command_creator(lmp);

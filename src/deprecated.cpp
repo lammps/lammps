@@ -34,14 +34,25 @@ void Deprecated::command(int narg, char **arg)
     return;
   } else if (cmd == "reset_ids") {
     if (lmp->comm->me == 0)
-      utils::logmesg(lmp, "\n'reset_ids' has been renamed to 'reset_atom_ids'\n\n");
+      utils::logmesg(lmp, "\n'reset_ids' has been renamed to 'reset atom_ids'\n\n");
   } else if (utils::strmatch(cmd, "^kim_")) {
-    if (lmp->comm->me == 0)
-      utils::logmesg(lmp,
-                     "\nWARNING: 'kim_<command>' has been renamed to 'kim <command>'. "
-                     "Please update your input.\n\n");
     std::string newcmd("kim");
     newcmd += " " + cmd.substr(4);
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nWARNING: '{}' has been renamed to '{}'. Please update your input.\n\n",
+                     cmd, newcmd);
+    for (int i = 0; i < narg; ++i) {
+      newcmd.append(1, ' ');
+      newcmd.append(arg[i]);
+    }
+    input->one(newcmd);
+    return;
+  } else if (utils::strmatch(cmd, "^reset_")) {
+    std::string newcmd("reset");
+    newcmd += " " + cmd.substr(6);
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nWARNING: '{}' has been renamed to '{}'. Please update your input.\n\n",
+                     cmd, newcmd);
     for (int i = 0; i < narg; ++i) {
       newcmd.append(1, ' ');
       newcmd.append(arg[i]);

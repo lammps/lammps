@@ -53,7 +53,7 @@ ResetMolIDs::~ResetMolIDs()
 }
 
 /* ----------------------------------------------------------------------
-   called as reset_mol_ids command in input script
+   called as reset mol_ids command in input script
 ------------------------------------------------------------------------- */
 
 void ResetMolIDs::command(int narg, char **arg)
@@ -139,7 +139,7 @@ void ResetMolIDs::command(int narg, char **arg)
 void ResetMolIDs::create_computes(char *fixid, char *groupid)
 {
   int igroup = group->find(groupid);
-  if (igroup < 0) error->all(FLERR, "Could not find reset_mol_ids group {}", groupid);
+  if (igroup < 0) error->all(FLERR, "Could not find reset mol_ids group {}", groupid);
   groupbit = group->bitmask[igroup];
 
   // create instances of compute fragment/atom, compute reduce (if needed),

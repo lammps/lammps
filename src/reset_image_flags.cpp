@@ -49,6 +49,7 @@ void ResetImageFlags::command(int narg, char **arg)
   // process args
 
   if (narg < 1) utils::missing_cmd_args(FLERR, "reset image_flags", error);
+  if (narg > 1) error->all(FLERR, "Unknown reset image_flags keyword: {}", arg[1]);
   int igroup = group->find(arg[0]);
   if (igroup < 0) error->all(FLERR, "Could not find reset image_flags group {}", arg[0]);
   int groupbit = group->bitmask[igroup];

@@ -758,12 +758,13 @@ TEST_F(ResetImageFlagsTest, ResetImageFlags)
     EXPECT_EQ(lmp->atom->image[GETIDX(31)], lammps_encode_image_flags(-2, 0, 1));
     EXPECT_EQ(lmp->atom->image[GETIDX(32)], lammps_encode_image_flags(0, 20, 0));
     BEGIN_HIDE_OUTPUT();
-    command("reset image_flags all");
+    command("group subset id 5:32");
+    command("reset image_flags subset");
     END_HIDE_OUTPUT();
-    EXPECT_EQ(lmp->atom->image[GETIDX(1)], lammps_encode_image_flags(0, 1, -1));
-    EXPECT_EQ(lmp->atom->image[GETIDX(2)], lammps_encode_image_flags(0, 1, -1));
-    EXPECT_EQ(lmp->atom->image[GETIDX(3)], lammps_encode_image_flags(0, 1, -1));
-    EXPECT_EQ(lmp->atom->image[GETIDX(4)], lammps_encode_image_flags(0, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(1)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(2)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(3)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(4)], lammps_encode_image_flags(1, 1, -1));
     EXPECT_EQ(lmp->atom->image[GETIDX(5)], lammps_encode_image_flags(0, 1, -1));
     EXPECT_EQ(lmp->atom->image[GETIDX(6)], lammps_encode_image_flags(0, 1, -1));
     EXPECT_EQ(lmp->atom->image[GETIDX(7)], lammps_encode_image_flags(0, 1, -1));

@@ -25,7 +25,7 @@ The *gaussian* angle style uses the potential:
 
 .. math::
 
-   E = -k_B T ln\left(\sum_{i=1}^{n} \frac{A_i}{w_i \sqrt{\pi/2}} exp\left( \frac{-(\theta-\theta_{i})^2}{w_i^2})\right) \right)
+   E = -k_B T ln\left(\sum_{i=1}^{n} \frac{A_i}{w_i \sqrt{\pi/2}} exp\left( \frac{-2(\theta-\theta_{i})^2}{w_i^2}\right) \right)
 
 This analytical form is a suitable potential for obtaining
 mesoscale effective force fields which can reproduce target atomistic distributions :ref:`(Milano) <Milano1>`
@@ -34,7 +34,7 @@ The following coefficients must be defined for each angle type via the
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* T temperature at which the potential was derived
+* :math:`T` temperature at which the potential was derived
 * :math:`n` (integer >=1)
 * :math:`A_1` (-)
 * :math:`w_1` (-)

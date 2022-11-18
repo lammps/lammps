@@ -1,14 +1,14 @@
 .. index:: reset_mol_ids
 
-reset_mol_ids command
-=====================
+reset mol_ids sub-command
+=========================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   reset_mol_ids group-ID keyword value ...
+   reset mol_ids group-ID keyword value ...
 
 * group-ID = ID of group of atoms whose molecule IDs will be reset
 * zero or more keyword/value pairs may be appended
@@ -25,10 +25,10 @@ Examples
 
 .. code-block:: LAMMPS
 
-   reset_mol_ids all
-   reset_mol_ids all offset 10 single yes
-   reset_mol_ids solvent compress yes offset 100
-   reset_mol_ids solvent compress no
+   reset mol_ids all
+   reset mol_ids all offset 10 single yes
+   reset mol_ids solvent compress yes offset 100
+   reset mol_ids solvent compress no
 
 Description
 """""""""""
@@ -88,12 +88,14 @@ is not *all* there may be collisions with the molecule IDs of other atoms.
 
 .. note::
 
-   The same as explained for the :doc:`compute fragment/atom
+   Same as explained for the :doc:`compute fragment/atom
    <compute_cluster_atom>` command, molecules are identified using the
-   current bond topology.  This will not account for bonds broken by
-   the :doc:`bond_style quartic <bond_quartic>` command because it
-   does not perform a full update of the bond topology data structures
-   within LAMMPS.
+   current bond topology.  This will **not** account for bonds broken by
+   the :doc:`bond_style quartic <bond_quartic>` command, because this
+   bond style does not perform a full update of the bond topology data
+   structures within LAMMPS.  In that case, using the :doc:`delete_bonds
+   all bond 0 remove <delete_bonds>` will permanently delete such broken
+   bonds and should thus be used first.
 
 Restrictions
 """"""""""""
@@ -102,11 +104,12 @@ none
 Related commands
 """"""""""""""""
 
-:doc:`reset_atom_ids <reset_atom_ids>`, :doc:`fix bond/react <fix_bond_react>`,
+:doc:`reset atom_ids <reset_atom_ids>`, :doc:`fix bond/react <fix_bond_react>`,
 :doc:`fix bond/create <fix_bond_create>`,
 :doc:`fix bond/break <fix_bond_break>`,
 :doc:`fix evaporate <fix_evaporate>`,
 :doc:`delete_atoms <delete_atoms>`,
+:doc:`delete_bonds <delete_bonds>`,
 :doc:`compute fragment/atom <compute_cluster_atom>`
 
 Default

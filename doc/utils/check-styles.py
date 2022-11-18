@@ -259,10 +259,11 @@ skip_angle = ('sdk')
 skip_fix = ('python', 'NEIGH_HISTORY/omp','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species')
 skip_pair = ('meam/c','lj/sf','reax/c','lj/sdk','lj/sdk/coul/long','lj/sdk/coul/msm')
 skip_compute = ('pressure/cylinder')
+skip_command = ('reset_atom_ids', 'reset_image_flags', 'reset_mol_ids')
 
 counter = 0
 
-counter += check_style('Commands_all.rst', doc_dir, ":doc:`(.+) <.+>`",command,'Command',suffix=True)
+counter += check_style('Commands_all.rst', doc_dir, ":doc:`(.+) <.+>`",command,'Command',skip=skip_command,suffix=True)
 counter += check_style('Commands_compute.rst', doc_dir, ":doc:`(.+) <compute.+>`",compute,'Compute',skip=skip_compute,suffix=True)
 counter += check_style('compute.rst', doc_dir, ":doc:`(.+) <compute.+>` -",compute,'Compute',skip=skip_compute,suffix=False)
 counter += check_style('Commands_fix.rst', doc_dir, ":doc:`(.+) <fix.+>`",fix,'Fix',skip=skip_fix,suffix=True)

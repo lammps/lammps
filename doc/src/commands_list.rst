@@ -90,6 +90,7 @@ Commands
    region
    replicate
    rerun
+   reset
    reset_atom_ids
    reset_image_flags
    reset_mol_ids

@@ -1,14 +1,14 @@
 .. index:: reset_atom_ids
 
-reset_atom_ids command
-======================
+reset atom_ids sub-command
+==========================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   reset_atom_ids keyword values ...
+   reset atom_ids keyword values ...
 
    * zero or more keyword/value pairs may be appended
    * keyword = *sort*
@@ -22,8 +22,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   reset_atom_ids
-   reset_atom_ids sort yes
+   reset atom_ids
+   reset atom_ids sort yes
 
 Description
 """""""""""
@@ -74,10 +74,11 @@ processor have consecutive IDs, as the :doc:`create_atoms
    defined, an error about bond topology atom IDs not being found may
    result.  This is because the cutoff distance for ghost atom
    communication was not sufficient to find atoms in bonds, angles, etc
-   that are owned by other processors.  The :doc:`comm_modify cutoff <comm_modify>` command can be used to correct this issue.
-   Or you can define a pair style before using this command.  If you do
-   the former, you should unset the comm_modify cutoff after using
-   reset_atom_ids so that subsequent communication is not inefficient.
+   that are owned by other processors.  The :doc:`comm_modify cutoff
+   <comm_modify>` command can be used to correct this issue.  Or you can
+   define a pair style before using this command.  If you do the former,
+   you should unset the *comm_modify cutoff* after using *reset
+   atom_ids* so that subsequent communication is not inefficient.
 
 Restrictions
 """"""""""""

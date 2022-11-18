@@ -59,33 +59,33 @@ ResetMolIDs::~ResetMolIDs()
 void ResetMolIDs::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Reset_mol_ids command before simulation box is defined");
-  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset_mol_ids unless atoms have IDs");
+    error->all(FLERR, "Reset mol_ids command before simulation box is defined");
+  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset mol_ids unless atoms have IDs");
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR, "Can only use reset_mol_ids on molecular systems");
+    error->all(FLERR, "Can only use reset mol_ids on molecular systems");
 
   // process args
 
-  if (narg < 1) utils::missing_cmd_args(FLERR, "reset_mol_ids", error);
+  if (narg < 1) utils::missing_cmd_args(FLERR, "reset mol_ids", error);
   char *groupid = arg[0];
 
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "compress") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset_mol_ids compress", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset mol_ids compress", error);
       compressflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "single") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset_mol_ids single", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset mol_ids single", error);
       singleflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "offset") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset_mol_ids offset", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset mol_ids offset", error);
       offset = utils::tnumeric(FLERR, arg[iarg + 1], true, lmp);
-      if (offset < -1) error->all(FLERR, "Illegal reset_mol_ids command");
+      if (offset < -1) error->all(FLERR, "Illegal reset mol_ids command");
       iarg += 2;
     } else
-      error->all(FLERR, "Unknown reset_mol_ids keyword: {}", arg[iarg]);
+      error->all(FLERR, "Unknown reset mol_ids keyword: {}", arg[iarg]);
   }
 
   if (comm->me == 0) utils::logmesg(lmp, "Resetting molecule IDs ...\n");
@@ -128,7 +128,7 @@ void ResetMolIDs::command(int narg, char **arg)
       utils::logmesg(lmp, "  number of new molecule IDs = unknown\n");
     else
       utils::logmesg(lmp, "  number of new molecule IDs = {}\n", nchunk);
-    utils::logmesg(lmp, "  reset_mol_ids CPU = {:.3f} seconds\n", platform::walltime() - time1);
+    utils::logmesg(lmp, "  reset mol_ids CPU = {:.3f} seconds\n", platform::walltime() - time1);
   }
 }
 

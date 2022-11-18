@@ -40,17 +40,17 @@ ResetImageFlags::ResetImageFlags(LAMMPS *lmp) : Command(lmp) {}
 void ResetImageFlags::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Reset_image_flags command before simulation box is defined");
+    error->all(FLERR, "Reset image_flags command before simulation box is defined");
   if (atom->tag_enable == 0)
-    error->all(FLERR, "Cannot use reset_image_flags unless atoms have IDs");
+    error->all(FLERR, "Cannot use reset image_flags unless atoms have IDs");
   if (atom->avec->bonds_allow == 0)
-    error->all(FLERR, "Cannot use reset_image_flags used when bonds are not allowed");
+    error->all(FLERR, "Cannot use reset image_flags used when bonds are not allowed");
 
   // process args
 
-  if (narg < 1) error->all(FLERR, "Illegal reset_image_flags command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "reset image_flags", error);
   int igroup = group->find(arg[0]);
-  if (igroup < 0) error->all(FLERR, "Could not find reset_image_flags group {}", arg[0]);
+  if (igroup < 0) error->all(FLERR, "Could not find reset image_flags group {}", arg[0]);
   int groupbit = group->bitmask[igroup];
 
   if (comm->me == 0) utils::logmesg(lmp, "Resetting image flags ...\n");
@@ -136,5 +136,5 @@ void ResetImageFlags::command(int narg, char **arg)
 
   MPI_Barrier(world);
   if (comm->me == 0)
-    utils::logmesg(lmp, "  reset_image_flags CPU = {:.3f} seconds\n", platform::walltime() - time1);
+    utils::logmesg(lmp, "  reset image_flags CPU = {:.3f} seconds\n", platform::walltime() - time1);
 }

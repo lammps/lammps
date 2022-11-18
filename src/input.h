@@ -142,8 +142,8 @@ class Input : protected Pointers {
   void undump();
   void unfix();
   void units();
+
+  int reset();    // meta-commands
 };
-
 }    // namespace LAMMPS_NS
-
 #endif

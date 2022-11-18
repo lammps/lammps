@@ -827,6 +827,12 @@ int Input::execute_command()
 
   if (flag) return 0;
 
+  // process "meta-commands", i.e. commands that may have sub-commands
+  // they return 1 if there was a match and 0 if not
+
+  if (!strcmp(command,"reset")) flag = reset();
+  if (flag) return 0;
+
   // invoke commands added via style_command.h
   // try suffixed version first
 
@@ -1987,4 +1993,22 @@ void Input::units()
   if (domain->box_exist)
     error->all(FLERR,"Units command after simulation box is defined");
   update->set_units(arg[0]);
+}
+
+/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   one function for each meta command
+------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+int Input::reset()
+{
+  auto mycmd = fmt::format("reset_{}", arg[0]);
+  if (command_map->find(mycmd) != command_map->end()) {
+    CommandCreator &command_creator = (*command_map)[mycmd];
+    Command *cmd = command_creator(lmp);
+    cmd->command(narg-1,arg+1);
+    delete cmd;
+    return 1;
+  } else return 0;
 }

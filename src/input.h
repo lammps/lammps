@@ -70,6 +70,8 @@ class Input : protected Pointers {
   void reallocate(char *&, int &, int);    // reallocate a char string
   int execute_command();                   // execute a single command
 
+  int meta(const std::string &);    // process meta-commands
+
   void clear();    // input script commands
   void echo();
   void ifthenelse();
@@ -142,8 +144,6 @@ class Input : protected Pointers {
   void undump();
   void unfix();
   void units();
-
-  int reset();    // meta-commands
 };
 }    // namespace LAMMPS_NS
 #endif

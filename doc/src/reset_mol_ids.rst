@@ -33,6 +33,8 @@ Examples
 Description
 """""""""""
 
+.. versionchanged:: TBD
+
 Reset molecule IDs for a group of atoms based on current bond
 connectivity.  This will typically create a new set of molecule IDs
 for atoms in the group.  Only molecule IDs for atoms in the specified

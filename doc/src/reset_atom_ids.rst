@@ -28,6 +28,8 @@ Examples
 Description
 """""""""""
 
+.. versionchanged:: TBD
+
 Reset atom IDs for the system, including all the global IDs stored
 for bond, angle, dihedral, improper topology data.  This will
 create a set of IDs that are numbered contiguously from 1 to N

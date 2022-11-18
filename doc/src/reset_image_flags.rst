@@ -23,6 +23,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Reset the image flags of atoms so that molecular fragments with atoms in
 different periodic images retain their geometry.  This avoids
 inconsistent image flags resulting from resetting them all to zero.

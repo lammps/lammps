@@ -8,6 +8,7 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "pod.h"
 #include "tokenizer.h"
 
 #include <cmath>

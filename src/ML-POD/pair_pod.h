@@ -8,7 +8,6 @@ PairStyle(pod,CPairPOD);
 #define LMP_PAIR_POD_H
 
 #include "pair.h"
-#include "pod.h"
 
 namespace LAMMPS_NS {
 
@@ -64,7 +63,6 @@ namespace LAMMPS_NS {
       };
 
       datastruct data;
-      //class CPOD *podptr;
 
       CPairPOD(class LAMMPS *);
       ~CPairPOD() override;
@@ -146,7 +144,6 @@ namespace LAMMPS_NS {
       int szd=0;    // size of tmpmem
 
       class CPOD *podptr;
-      // class SNA *snaptr; // why does this work, but commenting #include pod.h causes the above line to fail?
 
       // temporary arrays for computation blocks
 

@@ -325,12 +325,12 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf, tagint 
 }
 
 /* ----------------------------------------------------------------------
-   return # of lines in section of data file labeled by keyword
+   return # of lines in section of data file labeled by keyword. -1 signals use # of added atoms
 ------------------------------------------------------------------------- */
 
 bigint FixPropertyAtom::read_data_skip_lines(char * /*keyword*/)
 {
-  return atom->natoms;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

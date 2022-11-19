@@ -275,6 +275,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf, tagint 
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf, '\n');
+    if (!next) error->all(FLERR, "Unexpected end of file while reading data section");
     *next = '\0';
 
     try {

@@ -12,7 +12,7 @@ Go to `lammps` directory and build with the POD package:
 
 Go to `lammps/examples/pod/Ta` directory and run 
 
-    lmp < in.podfit
+    lmp -n in.podfit
 
 See the README in `lammps/examples/pod/Ta` for instructions on how to run MD with the potential.
 

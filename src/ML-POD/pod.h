@@ -4,8 +4,11 @@
  Contributing authors: Ngoc-Cuong Nguyen (cuongng@mit.edu, exapde@gmail.com)
  ***************************************************************************/
 
-#ifndef __POD_H__
-#define __POD_H__
+#ifndef LMP_POD_H__
+#define LMP_POD_H__
+
+//#ifndef LMP_SNA_H
+//#define LMP_SNA_H
 
 #include "podcommon.h"
 #include "pointers.h"

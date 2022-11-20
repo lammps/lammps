@@ -54,6 +54,7 @@ CPODFIT::CPODFIT(LAMMPS *lmp, int narg, char **arg) :
     coeff_file = "";
 
   podptr = new CPOD(lmp, pod_file, coeff_file);
+    
   read_data_files(data_file, podptr->pod.species);
 
   if ((int) traindata.data_path.size() > 1)
@@ -157,7 +158,6 @@ bool CPODFIT::is_a_number(std::string line)
 void CPODFIT::read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
     std::string &test_path, std::string &training_path, std::string data_file)
 {
-
   std::string datafilename = data_file;
   FILE *fpdata;
   if (comm->me == 0){

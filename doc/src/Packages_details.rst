@@ -1804,11 +1804,11 @@ ML-POD package
 
 **Contents:**
 
-A pair style and compute for Proper Orthogonal Descriptors (POD). POD
-is a methodology for deriving descriptors based on the Karhuen-Loeve
-expansion. The ML-POD package provides an efficient implementation for
+A pair style and fitpod style for Proper Orthogonal Descriptors (POD). POD
+is a methodology for deriving descriptors based on the proper orthogonal
+decomposition. The ML-POD package provides an efficient implementation for
 running simulations with POD potentials, along with fitting the potentials
-natively in LAMMPS. If you want to use the fitting functionality in `compute_podfit`,
+natively in LAMMPS. If you want to use the fitting functionality in `fitpod`,
 you must install the LAPACK library on your machine, which will be included in
 your build via `CMakeLists.txt`
 
@@ -1830,7 +1830,7 @@ Go to the `lammps` directory and build with the POD package::
 
 * src/ML-POD: filenames -> commands
 * :doc:`pair_style pod <pair_pod>`
-* :doc:`compute_style podfit <compute_podfit>`
+* :doc:`command_style fitpod <fitpod_command>`
 * examples/pod
 
 ----------

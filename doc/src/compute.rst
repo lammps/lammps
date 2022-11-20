@@ -248,7 +248,6 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`pe/mol/tally <compute_tally>` - potential energy between two groups of atoms separated into intermolecular and intramolecular components via the tally callback mechanism
 * :doc:`pe/tally <compute_tally>` - potential energy between two groups of atoms via the tally callback mechanism
 * :doc:`plasticity/atom <compute_plasticity_atom>` - Peridynamic plasticity for each atom
-* :doc:`podfit <compute_podfit>` - Proper orthogonal descriptor potentials and parameterization
 * :doc:`pressure <compute_pressure>` - total pressure and pressure tensor
 * :doc:`pressure/uef <compute_pressure_uef>` - pressure tensor in the reference frame of an applied flow field
 * :doc:`property/atom <compute_property_atom>` - convert atom attributes to per-atom vectors/arrays

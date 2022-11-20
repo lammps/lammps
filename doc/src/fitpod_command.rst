@@ -1,6 +1,6 @@
-.. index:: compute podfit
+.. index:: fitpod
 
-compute podfit command
+fitpod command
 ======================
 
 Syntax
@@ -8,20 +8,18 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID podfit pod.txt data.txt
+   fitpod pod.txt data.txt
 
-* ID, group-ID are documented in :doc:`compute <compute>` command
-* podfit = style name of this compute command
+* fitpod = style name of this command
 * pod.txt = an input file that describes proper orthogonal descriptors (PODs)
 * data.txt = an input file that specifies DFT data used to fit a POD potential
-
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   compute pod all podfit pod.txt data.txt
+   fitpod pod.txt data.txt
 
 Description
 """""""""""
@@ -568,7 +566,7 @@ PODs for constructing the new descriptors.
 Restrictions
 """"""""""""
 
-This compute is part of the ML-POD package.  It is only enabled
+This command is part of the ML-POD package.  It is only enabled
 if LAMMPS was built with that package by setting -D PKG_ML-POD=on. See the :doc:`Build package
 <Build_package>` page for more info.
 

@@ -24,7 +24,7 @@ mass 1 180.88
 
 
 # POD potential
-pair_style pod
+pair_style mlpod
 pair_coeff * * pod.txt coefficients.txt Ta
 
 # Setup output

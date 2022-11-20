@@ -46,24 +46,20 @@ namespace LAMMPS_NS {
     int savefrequency = 0;
     int randomrotation = 0;
 
+    /*
     double energy=0.0;    // potential energy
     double *forces=NULL;   // atomic forces
     double *stress=NULL;  // stress tensor
     int *atomtype=NULL;   // atomic types for all atoms
     double *pos=NULL;     // positions of atoms
     double *vel=NULL;     // velocity of atoms
+    */
 
-    double *gd=NULL;         // global linear descriptors
-    double *podcoeff=NULL;   // POD coefficients
-    double *newpodcoeff=NULL;// normalized POD coefficients
-    double *energycoeff=NULL; // energy coefficients
-    double *forcecoeff=NULL; // force coefficients
-
-    double *y=NULL;      // [dim * nmaxatom] positions of own and ghost atoms
-    int *atomID=NULL;  // [nmaxatom]  IDs of owned and ghost atoms
-    int *pairlist=NULL;  // [nmaxpairs] indices of neighbors for owned atoms
-    int *pairnum=NULL;   // [nmaxatom] number of pairs for all atoms i
-    int *pairnumsum=NULL;// [nmaxatom+1] cumulative sum of pairnum
+    double *gd;         // global linear descriptors
+    double *podcoeff;   // POD coefficients
+    double *newpodcoeff;// normalized POD coefficients
+    double *energycoeff; // energy coefficients
+    double *forcecoeff; // force coefficients
 
     int numatoms=0;    // number of atom in the simulation box
     int nlocalatom=0;  // number of owned atoms

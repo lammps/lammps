@@ -108,7 +108,6 @@ void CFITPOD::command(int narg, char **arg)
 
   if ((int) traindata.data_path.size() > 1){
     memory->destroy(traindata.lattice);
-    memory->destroy(traindata.lattice);
     memory->destroy(traindata.energy);
     memory->destroy(traindata.stress);
     memory->destroy(traindata.position);
@@ -118,8 +117,7 @@ void CFITPOD::command(int narg, char **arg)
   
   // deallocate testing data
 
-  if ((int) testdata.data_path.size() > 1){
-    memory->destroy(testdata.lattice);
+  if ((int) testdata.data_path.size() > 1 && (testdata.data_path != traindata.data_path)){
     memory->destroy(testdata.lattice);
     memory->destroy(testdata.energy);
     memory->destroy(testdata.stress);

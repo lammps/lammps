@@ -256,6 +256,7 @@ void PairPOD::free_tempmemory()
 
 void PairPOD::free_atommemory()
 {
+  /*
   memory->destroy(forces);
   memory->destroy(stress);
   if (atommemory) {
@@ -263,6 +264,7 @@ void PairPOD::free_atommemory()
     memory->destroy(pos);
     memory->destroy(vel);
   }
+  */
 }
 
 void PairPOD::free_memory()
@@ -286,6 +288,7 @@ void PairPOD::allocate_tempmemory()
 
 void PairPOD::allocate_atommemory()
 {
+  /*
   memory->create(forces, dim*nmaxatom, "pair:forces");
   memory->create(stress, 9, "pair:stress");
   if (atommemory) {
@@ -293,6 +296,7 @@ void PairPOD::allocate_atommemory()
     memory->create(pos, dim*nmaxatom, "pair:pos");
     memory->create(vel, dim*nmaxatom, "pair:vel");
   }
+  */
 }
 
 void PairPOD::allocate_memory()

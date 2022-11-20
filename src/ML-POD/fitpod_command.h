@@ -26,14 +26,12 @@ CommandStyle(fitpod,CFITPOD);
 #define LMP_FITPOD_COMMAND_H
 
 #include "command.h"
-#include "pod.h"
 
 namespace LAMMPS_NS {
 
 class CFITPOD : public Command {
 private:
 
-  //class NeighList *list;
   std::vector<std::string> globVector(const std::string& pattern, std::vector<std::string> & files);
 
   bool is_a_number(std::string line);

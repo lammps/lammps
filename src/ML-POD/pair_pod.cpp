@@ -29,13 +29,12 @@
 
 #include <cmath>
 #include <cstring>
-#include <sys/time.h>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-CPairPOD::CPairPOD(LAMMPS *lmp) : Pair(lmp)
+PairPOD::PairPOD(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -47,7 +46,7 @@ CPairPOD::CPairPOD(LAMMPS *lmp) : Pair(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-CPairPOD::~CPairPOD()
+PairPOD::~PairPOD()
 {
   free_memory();
   memory->destroy(podcoeff);
@@ -65,7 +64,7 @@ CPairPOD::~CPairPOD()
   }
 }
 
-void CPairPOD::compute(int eflag, int vflag)
+void PairPOD::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
   vflag_fdotr = 1;
@@ -153,7 +152,7 @@ void CPairPOD::compute(int eflag, int vflag)
    global settings
 ------------------------------------------------------------------------- */
 
-void CPairPOD::settings(int narg, char ** /* arg */)
+void PairPOD::settings(int narg, char ** /* arg */)
 {
   if (narg > 0)
   error->all(FLERR,"Illegal pair_style command");
@@ -163,7 +162,7 @@ void CPairPOD::settings(int narg, char ** /* arg */)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void CPairPOD::coeff(int narg, char **arg)
+void PairPOD::coeff(int narg, char **arg)
 {
   int n = atom->ntypes;
   memory->create(setflag,n+1,n+1,"pair:setflag");
@@ -179,15 +178,20 @@ void CPairPOD::coeff(int narg, char **arg)
 
   map_element2type(narg-4,arg+4);
 
-  //std::cout<<map[0]<<std::endl;
-  //std::cout<<map[1]<<std::endl;
-  //std::cout<<map[2]<<std::endl;
-  //std::cout<<map[3]<<std::endl;
-
   std::string pod_file = std::string(arg[2]);  // pod input file
   std::string coeff_file = std::string(arg[3]); // coefficient input file
 
-  InitPairPOD(pod_file, coeff_file);
+  podptr = new CPOD(lmp, pod_file, coeff_file);
+
+  if (coeff_file != "") {
+    memory->create(podcoeff, podptr->pod.nd, "pair:podcoeff");
+    memory->create(newpodcoeff, podptr->pod.nd, "pair:newpodcoeff");
+    memory->create(energycoeff, podptr->pod.nd1234, "pair:energycoeff");
+    memory->create(forcecoeff, podptr->pod.nd1234, "pair:forcecoeff");
+    memory->create(gd, podptr->pod.nd1234, "pair:gd");
+    podptr->podArrayCopy(podcoeff, podptr->pod.coeff, podptr->pod.nd);
+    podptr->podArrayCopy(newpodcoeff, podptr->pod.coeff, podptr->pod.nd);
+  }
 
   for (int ii = 0; ii < n+1; ii++)
     for (int jj = 0; jj < n+1; jj++)
@@ -198,7 +202,7 @@ void CPairPOD::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void CPairPOD::init_style()
+void PairPOD::init_style()
 {
   if (force->newton_pair == 0)
   error->all(FLERR,"Pair style POD requires newton pair on");
@@ -212,7 +216,7 @@ void CPairPOD::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double CPairPOD::init_one(int i, int j)
+double PairPOD::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
     scale[j][i] = scale[i][j];
@@ -223,38 +227,20 @@ double CPairPOD::init_one(int i, int j)
    memory usage
 ------------------------------------------------------------------------- */
 
-double CPairPOD::memory_usage()
+double PairPOD::memory_usage()
 {
   double bytes = Pair::memory_usage();
   return bytes;
 }
 
-void *CPairPOD::extract(const char *str, int &dim)
+void *PairPOD::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;
   return nullptr;
 }
 
-void CPairPOD::InitPairPOD(std::string pod_file, std::string coeff_file)
-{
-  podptr = new CPOD(lmp, pod_file, coeff_file);
-
-  lammpspairlist = 1;
-
-  if (coeff_file != "") {
-    memory->create(podcoeff, podptr->pod.nd, "pair:podcoeff");
-    memory->create(newpodcoeff, podptr->pod.nd, "pair:newpodcoeff");
-    memory->create(energycoeff, podptr->pod.nd1234, "pair:energycoeff");
-    memory->create(forcecoeff, podptr->pod.nd1234, "pair:forcecoeff");
-    memory->create(gd, podptr->pod.nd1234, "pair:gd");
-    podptr->podArrayCopy(podcoeff, podptr->pod.coeff, podptr->pod.nd);
-    podptr->podArrayCopy(newpodcoeff, podptr->pod.coeff, podptr->pod.nd);
-  }
-}
-
-
-void CPairPOD::free_tempmemory()
+void PairPOD::free_tempmemory()
 {
   memory->destroy(rij);
   memory->destroy(idxi);
@@ -267,7 +253,7 @@ void CPairPOD::free_tempmemory()
   memory->destroy(tmpmem);
 }
 
-void CPairPOD::free_atommemory()
+void PairPOD::free_atommemory()
 {
   memory->destroy(forces);
   memory->destroy(stress);
@@ -278,13 +264,13 @@ void CPairPOD::free_atommemory()
   }
 }
 
-void CPairPOD::free_memory()
+void PairPOD::free_memory()
 {
   free_tempmemory();
   free_atommemory();
 }
 
-void CPairPOD::allocate_tempmemory()
+void PairPOD::allocate_tempmemory()
 {
   memory->create(rij, dim*nijmax, "pair:rij");
   memory->create(idxi, nijmax, "pair:idxi");
@@ -297,7 +283,7 @@ void CPairPOD::allocate_tempmemory()
   memory->create(tmpmem, szd, "pair:tmpmem");
 }
 
-void CPairPOD::allocate_atommemory()
+void PairPOD::allocate_atommemory()
 {
   memory->create(forces, dim*nmaxatom, "pair:forces");
   memory->create(stress, 9, "pair:stress");
@@ -308,7 +294,7 @@ void CPairPOD::allocate_atommemory()
   }
 }
 
-void CPairPOD::allocate_memory()
+void PairPOD::allocate_memory()
 {
 
   allocate_tempmemory();
@@ -316,7 +302,7 @@ void CPairPOD::allocate_memory()
 
 }
 
-void CPairPOD::check_atommemory(int inum, int nall)
+void PairPOD::check_atommemory(int inum, int nall)
 {
 
   if (nmaxatom < nall) {
@@ -331,7 +317,7 @@ void CPairPOD::check_atommemory(int inum, int nall)
 
 }
 
-void CPairPOD::estimate_tempmemory()
+void PairPOD::estimate_tempmemory()
 {
   int nrbf2 = podptr->pod.nbf2;
   int nabf3 = podptr->pod.nabf3;
@@ -352,7 +338,7 @@ void CPairPOD::estimate_tempmemory()
   szd = nablockmax*(podptr->pod.nd1234) + szd;
 }
 
-void CPairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
+void PairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
 {
 
   double rcutsq = podptr->pod.rcut*podptr->pod.rcut;

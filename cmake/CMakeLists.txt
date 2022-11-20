@@ -630,10 +630,6 @@ foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
   endif()
 endforeach()
 
-if(PKG_ELECTRODE)
-  target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
-endif()
-
 if(PKG_ELECTRODE OR PKG_ML-POD)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()

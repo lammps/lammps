@@ -60,8 +60,45 @@ CPOD::CPOD(LAMMPS* lmp, std::string pod_file, std::string coeff_file) : Pointers
 
 CPOD::~CPOD()
 {
-  pod.freememory(1);
-  sna.freememory(1);
+
+  // deallocate pod arrays
+
+  memory->destroy(pod.pbc);
+  memory->destroy(pod.elemindex);
+  memory->destroy(pod.besselparams);
+  memory->destroy(pod.coeff);
+  if (pod.ns2 > 0){
+    memory->destroy(pod.Phi2);
+    memory->destroy(pod.Lambda2);
+  }
+  if (pod.ns3 > 0){
+    memory->destroy(pod.Phi3);
+    memory->destroy(pod.Lambda3);
+  }
+  if (pod.ns4 > 0){
+    memory->destroy(pod.Phi4);
+    memory->destroy(pod.Lambda4);
+  }
+
+  // deallocate snap arrays if used
+
+  if (pod.snaptwojmax > 0) {
+    memory->destroy(sna.map);
+    memory->destroy(sna.idx_max);
+    memory->destroy(sna.idxz);
+    memory->destroy(sna.idxb);
+    memory->destroy(sna.idxb_block);
+    memory->destroy(sna.idxu_block);
+    memory->destroy(sna.idxz_block);
+    memory->destroy(sna.idxcg_block);
+    memory->destroy(sna.rootpqarray);
+    memory->destroy(sna.cglist);
+    memory->destroy(sna.fac);
+    memory->destroy(sna.bzero);
+    memory->destroy(sna.wjelem);
+    memory->destroy(sna.radelem);
+    memory->destroy(sna.rcutsq);
+  }
 }
 
 void CPOD::print_matrix(const char* desc, int m, int n, double **a, int lda )
@@ -385,7 +422,11 @@ void CPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *besse
       Phi[i + ns*m] = Phi[i + ns*m]/sqrt(area);
   }
 
-  free(xij); free(S); free(A); free(b); free(Q);
+  memory->destroy(xij);
+  memory->destroy(S);
+  memory->destroy(A);
+  memory->destroy(b);
+  memory->destroy(Q);
 }
 
 
@@ -488,7 +529,6 @@ void CPOD::read_pod(std::string pod_file)
       if (keywd == "fourbody_snap_neighbor_weight3") pod.snapelementweight[2] = utils::numeric(FLERR,words[1],false,lmp);
       if (keywd == "fourbody_snap_neighbor_weight4") pod.snapelementweight[3] = utils::numeric(FLERR,words[1],false,lmp);
       if (keywd == "fourbody_snap_neighbor_weight5") pod.snapelementweight[4] = utils::numeric(FLERR,words[1],false,lmp);
-      //if (keywd == "fourbody_number_spherical_harmonic_basis_functions") pod.fourbody[3] = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "quadratic_pod_potential") pod.quadraticpod = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "quadratic22_number_twobody_basis_functions") pod.quadratic22[0] = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "quadratic22_number_twobody_basis_functions") pod.quadratic22[1] = utils::inumeric(FLERR,words[1],false,lmp);
@@ -528,12 +568,20 @@ void CPOD::read_pod(std::string pod_file)
 
   // allocate memory for eigenvectors and eigenvalues
 
-  memory->create(pod.Phi2, pod.ns2*pod.ns2, "pod:pod_Phi2");
-  memory->create(pod.Lambda2, pod.ns2, "pod:pod_Lambda2");
-  memory->create(pod.Phi3, pod.ns3*pod.ns3, "pod:pod_Phi3");
-  memory->create(pod.Lambda3, pod.ns3, "pod:pod_Lambda3");
-  memory->create(pod.Phi4, pod.ns4*pod.ns4, "pod:pod_Phi4");
-  memory->create(pod.Lambda4, pod.ns4, "pod:pod_Lambda4");
+  if (pod.ns2 > 0){
+    memory->create(pod.Phi2, pod.ns2*pod.ns2, "pod:pod_Phi2");
+    memory->create(pod.Lambda2, pod.ns2, "pod:pod_Lambda2");
+  }
+  if (pod.ns3 > 0){
+    memory->create(pod.Phi3, pod.ns3*pod.ns3, "pod:pod_Phi3");
+    memory->create(pod.Lambda3, pod.ns3, "pod:pod_Lambda3");
+  }
+  if (pod.ns4 > 0){
+    memory->create(pod.Phi4, pod.ns4*pod.ns4, "pod:pod_Phi4");
+    memory->create(pod.Lambda4, pod.ns4, "pod:pod_Lambda4");
+  }
+
+
 
   if (pod.ns2>0) {
     podeigenvaluedecomposition(pod.Phi2, pod.Lambda2, pod.besselparams, pod.rin, pod.rcut,

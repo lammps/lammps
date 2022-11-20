@@ -96,17 +96,52 @@ void CFITPOD::command(int narg, char **arg)
   if ((testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path) )
     energyforce_calculation(testdata, desc.c);
 
-  traindata.freememory(1);
-  testdata.freememory(1);
-  desc.freememory(1);
-  nb.freememory(1);  
+  // deallocate training data
+
+  if ((int) traindata.data_path.size() > 1){
+    memory->destroy(traindata.lattice);
+    memory->destroy(traindata.lattice);
+    memory->destroy(traindata.energy);
+    memory->destroy(traindata.stress);
+    memory->destroy(traindata.position);
+    memory->destroy(traindata.force);
+    memory->destroy(traindata.atomtype);
+  }
+  
+  // deallocate testing data
+
+  if ((int) testdata.data_path.size() > 1){
+    memory->destroy(testdata.lattice);
+    memory->destroy(testdata.lattice);
+    memory->destroy(testdata.energy);
+    memory->destroy(testdata.stress);
+    memory->destroy(testdata.position);
+    memory->destroy(testdata.force);
+    memory->destroy(testdata.atomtype);
+  }
+
+  // deallocate descriptors
+
+  memory->destroy(desc.gd);
+  memory->destroy(desc.gdd);
+  memory->destroy(desc.A);
+  memory->destroy(desc.b);
+  memory->destroy(desc.c);
+  memory->destroy(desc.tmpint);
+
+  // deallocate neighbor data
+
+  memory->destroy(nb.alist);
+  memory->destroy(nb.pairnum);
+  memory->destroy(nb.pairnum_cumsum);
+  memory->destroy(nb.pairlist);
+  memory->destroy(nb.y);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <typename T> void CFITPOD::writearray2file(const char* filename, T *a, int N, int backend)
 {
-
   if (N > 0){
 
     FILE *fp = fopen(filename, "wb");
@@ -115,22 +150,6 @@ template <typename T> void CFITPOD::writearray2file(const char* filename, T *a, 
 
     fclose(fp);
   }
-
-  // old version using ofstream:
-  /*
-  if (N>0) {
-    // Open file to read
-    ofstream out(filename, ios::out | ios::binary);
-
-    if (!out) {
-      error->all(FLERR,"Unable to open file ");
-    }
-
-    out.write( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N );
-
-    out.close();
-  }
-  */
 }
 
 bool CFITPOD::is_a_number(std::string line)
@@ -746,7 +765,12 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
     select_data(traindata, data);
     utils::logmesg(lmp, "**************** End of Select Training Data Set ****************\n");
 
-    data.freememory(1);
+    memory->destroy(data.lattice);
+    memory->destroy(data.energy);
+    memory->destroy(data.stress);
+    memory->destroy(data.position);
+    memory->destroy(data.force);
+    memory->destroy(data.atomtype);
   }
 
   if (((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path)) {

@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)   
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(mlpod,PairPOD);

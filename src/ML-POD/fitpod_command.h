@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)   
-------------------------------------------------------------------------- */
-
 
 #ifdef COMMAND_CLASS
 // clang-format off
@@ -31,10 +27,6 @@ namespace LAMMPS_NS {
 
 class CFITPOD : public Command {
 private:
-
-  std::vector<std::string> globVector(const std::string& pattern, std::vector<std::string> & files);
-
-  bool is_a_number(std::string line);
 
 public:
   struct datastruct {
@@ -154,8 +146,6 @@ public:
   void error_analysis(datastruct data, double *coeff);
   double energyforce_calculation(double *force, double *coeff, datastruct data, int ci);
   void energyforce_calculation(datastruct data, double *coeff);
-  template <typename T> void writearray2file(const char* filename, T *a, int N, int backend);
-
 };
 
 }  // namespace LAMMPS_NS

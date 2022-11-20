@@ -11,10 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)   
-------------------------------------------------------------------------- */
-
 #ifndef LMP_POD_H__
 #define LMP_POD_H__
 

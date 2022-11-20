@@ -31,16 +31,28 @@
 #include "update.h"
 #include "math_const.h"
 
-#include <string>
-#include <vector>
-#include <glob.h>
-#include <random>
 #include <algorithm>
 #include <cmath>
+#include <glob.h>
+#include <random>
+#include <string>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
+
+std::vector<std::string> static globVector(const std::string& pattern, std::vector<std::string> & files)
+{
+  glob_t glob_result;
+  glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
+  for(unsigned int i=0;i<glob_result.gl_pathc;++i){
+    std::string s = std::string(glob_result.gl_pathv[i]);
+    files.push_back(s);
+  }
+  globfree(&glob_result);
+  return files;
+}
 
 void CFITPOD::command(int narg, char **arg)
 {    
@@ -135,23 +147,6 @@ void CFITPOD::command(int narg, char **arg)
 }
 
 /* ---------------------------------------------------------------------- */
-
-template <typename T> void CFITPOD::writearray2file(const char* filename, T *a, int N, int backend)
-{
-  if (N > 0){
-
-    FILE *fp = fopen(filename, "wb");
-
-    fwrite( reinterpret_cast<char*>( &a[0] ), sizeof(T) * N, 1, fp);
-
-    fclose(fp);
-  }
-}
-
-bool CFITPOD::is_a_number(std::string line)
-{
-  return isdigit(line.at(0));
-}
 
 void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
     std::string &test_path, std::string &training_path, std::string data_file)
@@ -251,18 +246,6 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format, 
   utils::logmesg(lmp, "fitting weight for force: {}\n", fitting_weights[1]);
   utils::logmesg(lmp, "fitting weight for stress: {}\n", fitting_weights[2]);
   utils::logmesg(lmp, "**************** End of Data File ****************\n");
-}
-
-std::vector<std::string> CFITPOD::globVector(const std::string& pattern, std::vector<std::string> & files)
-{
-  glob_t glob_result;
-  glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
-  for(unsigned int i=0;i<glob_result.gl_pathc;++i){
-    std::string s = std::string(glob_result.gl_pathv[i]);
-    files.push_back(s);
-  }
-  globfree(&glob_result);
-  return files;
 }
 
 void CFITPOD::get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension)
@@ -618,7 +601,7 @@ std::vector<int> CFITPOD::select(int n, double percentage, int randomize)
   std::vector<int> selected;
 
   int m = (int) std::round(n*percentage);
-  m = PODMAX(m, 1);
+  m = MAX(m, 1);
 
   selected = (randomize==1) ? shuffle(1, n, m) : linspace(1, n, m);
 
@@ -915,9 +898,9 @@ void CFITPOD::allocate_memory(datastruct data)
     // number of lattices
 
     nl = (2*m+1)*(2*n+1)*(2*p+1);
-    ny = PODMAX(ny,dim*natom*nl);
-    na = PODMAX(na, natom*nl);
-    np = PODMAX(np, natom*natom*nl);
+    ny = MAX(ny,dim*natom*nl);
+    na = MAX(na, natom*nl);
+    np = MAX(np, natom*natom*nl);
   }
 
   memory->create(nb.y, ny, "fitpod:nb_y");
@@ -950,23 +933,23 @@ void CFITPOD::allocate_memory(datastruct data)
     int ns2 = pdegree2[0]*nbesselpars + pdegree2[1];
     int ns3 = pdegree3[0]*nbesselpars + pdegree3[1];
 
-    int szd1 = 3*Nij+ (1+dim)*Nij*PODMAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
+    int szd1 = 3*Nij+ (1+dim)*Nij*MAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
     int szi1 = 6*Nij + 2*natom+1 + (Nj-1)*Nj;
-    szd = PODMAX(szd, szd1);
-    szi = PODMAX(szi, szi1);
+    szd = MAX(szd, szd1);
+    szi = MAX(szi, szi1);
 
     if (podptr->sna.twojmax>0) {
       szd1 = 0;
       szd1 += Nij*dim; // rij
-      szd1 += PODMAX(2*podptr->sna.idxu_max*Nij, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*natom); // (Ur, Ui) and (Zr, Zi)
+      szd1 += MAX(2*podptr->sna.idxu_max*Nij, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*natom); // (Ur, Ui) and (Zr, Zi)
       szd1 += 2*podptr->sna.idxu_max*dim*Nij; // dUr, dUi
-      szd1 += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*Nij, 2*podptr->sna.idxu_max*podptr->sna.nelements*natom); // dblist and (Utotr, Utoti)
-      szsnap = PODMAX(szsnap, szd1);
+      szd1 += MAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*Nij, 2*podptr->sna.idxu_max*podptr->sna.nelements*natom); // dblist and (Utotr, Utoti)
+      szsnap = MAX(szsnap, szd1);
     }
   }
 
-  szd = PODMAX(szsnap, szd);
-  szd = PODMAX(natom_max*(nd1+nd2+nd3+nd4) + szd, dim*natom_max*(nd-nd1-nd2-nd3-nd4));
+  szd = MAX(szsnap, szd);
+  szd = MAX(natom_max*(nd1+nd2+nd3+nd4) + szd, dim*natom_max*(nd-nd1-nd2-nd3-nd4));
   szd = dim*natom_max*(nd1+nd2+nd3+nd4) + szd;
 
   // gdd includes linear descriptors derivatives, quadratic descriptors derivatives and temporary memory
@@ -1312,7 +1295,7 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
   int nfiles = data.data_files.size();  // number of files
   int lm = s.size();
   for (int i = 0; i < nfiles; i++)
-    lm = PODMAX(lm, (int) data.filenames[i].size());
+    lm = MAX(lm, (int) data.filenames[i].size());
   lm = lm + 2;
 
   std::string filename_errors = data.training ? "training_errors.txt" : "test_errors.txt";
@@ -1361,22 +1344,22 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
     std::string s = data.filenames[file];
     s = s + std::string(lm-s.size(), ' ');
     std::string s1 = std::to_string(nconfigs);
-    s1 = s1 + std::string(PODMAX(6- (int) s1.size(),1), ' ');
+    s1 = s1 + std::string(MAX(6- (int) s1.size(),1), ' ');
     s = s + "   " + s1;
     s1 = std::to_string(nforceall/3);
-    s1 = s1 + std::string(PODMAX(7 - (int) s1.size(),1), ' ');
+    s1 = s1 + std::string(MAX(7 - (int) s1.size(),1), ' ');
     s = s + "   " + s1;
     s1 = std::to_string(errors[0 + 4*q]);
-    s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');
+    s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
     s = s + "   " + s1;
     s1 = std::to_string(errors[1 + 4*q]);
-    s1 = s1 + std::string(PODMAX(10 - (int)  s1.size(),1), ' ');
+    s1 = s1 + std::string(MAX(10 - (int)  s1.size(),1), ' ');
     s = s + "   " + s1;
     s1 = std::to_string(errors[2 + 4*q]);
-    s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');
+    s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
     s = s + "   " + s1;
     s1 = std::to_string(errors[3 + 4*q]);
-    s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');
+    s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
     s = s + "   " + s1 + "\n";
     utils::logmesg(lmp, "{}", s);
     fmt::print(fp_errors, "{}", s);
@@ -1384,24 +1367,24 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
   utils::logmesg(lmp, "{}", sa);
   fmt::print(fp_errors, "{}", sa);
 
-  s = s + std::string(PODMAX(lm - (int) s.size(),1), ' ');
+  s = s + std::string(MAX(lm - (int) s.size(),1), ' ');
   std::string s1 = std::to_string(nc);
-  s1 = s1 + std::string(PODMAX(6- (int) s1.size(),1), ' ');
+  s1 = s1 + std::string(MAX(6- (int) s1.size(),1), ' ');
   s = s + "   " + s1;
   s1 = std::to_string(nf/3);
-  s1 = s1 + std::string(PODMAX(7 - (int) s1.size(),1), ' ');
+  s1 = s1 + std::string(MAX(7 - (int) s1.size(),1), ' ');
   s = s + "   " + s1;
   s1 = std::to_string(errors[0]);
-  s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');
+  s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
   s = s + "   " + s1;
   s1 = std::to_string(errors[1]);
-  s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');
+  s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
   s = s + "   " + s1;
   s1 = std::to_string(errors[2]);
-  s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');
+  s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
   s = s + "   " + s1;
   s1 = std::to_string(errors[3]);
-  s1 = s1 + std::string(PODMAX(10 - (int) s1.size(),1), ' ');
+  s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
   s = s + "   " + s1 + "\n";
   utils::logmesg(lmp, "{}", s);
   utils::logmesg(lmp, "{}", sa);
@@ -1558,8 +1541,14 @@ void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
 
       force[0] = energy;
       std::string filename = "energyforce_config" + std::to_string(ci) + ".bin";
-      writearray2file(filename.c_str(), force, 1 + nforce, 1);
+      
+      FILE *fp = fopen(filename.c_str(), "wb");
+
+      fwrite( reinterpret_cast<char*>( &force[0] ), sizeof(double) * (1 + nforce), 1, fp);
+
+      fclose(fp);
     }
   }
   utils::logmesg(lmp, "**************** End of Energy/Force Calculation ****************\n");
 }
+

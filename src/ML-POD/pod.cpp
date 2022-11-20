@@ -1,8 +1,19 @@
-/***************************************************************************
-               CESMIX-MIT Project
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/ Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
 
- Contributing authors: Ngoc-Cuong Nguyen (cuongng@mit.edu, exapde@gmail.com)
- ***************************************************************************/
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)   
+------------------------------------------------------------------------- */
 
 // POD header file
 
@@ -1632,12 +1643,18 @@ void CPOD::snapSetup(int twojmax, int ntypes)
   int jdim = twojmax + 1;
   int jdimpq = twojmax + 2;
 
-  TemplateMalloc(&sna.map, ntypes+1, backend);
-  TemplateMalloc(&sna.idxcg_block, jdim*jdim*jdim, backend);
-  TemplateMalloc(&sna.idxz_block, jdim*jdim*jdim, backend);
-  TemplateMalloc(&sna.idxb_block, jdim*jdim*jdim, backend);
-  TemplateMalloc(&sna.idxu_block, jdim, backend);
-  TemplateMalloc(&sna.idx_max, 5, backend);
+  memory->create(sna.map, ntypes+1, "sna:map");  
+  memory->create(sna.idxcg_block, jdim*jdim*jdim, "sna:idxcg_block");
+  memory->create(sna.idxz_block, jdim*jdim*jdim, "sna:idxz_block");
+  memory->create(sna.idxb_block, jdim*jdim*jdim, "sna:idxb_block");
+  memory->create(sna.idxu_block, jdim, "sna:idxu_block");
+  memory->create(sna.idx_max, 5, "sna:idx_max");
+  //TemplateMalloc(&sna.map, ntypes+1, backend);
+//   TemplateMalloc(&sna.idxcg_block, jdim*jdim*jdim, backend);
+//   TemplateMalloc(&sna.idxz_block, jdim*jdim*jdim, backend);
+//   TemplateMalloc(&sna.idxb_block, jdim*jdim*jdim, backend);
+//   TemplateMalloc(&sna.idxu_block, jdim, backend);
+//   TemplateMalloc(&sna.idx_max, 5, backend);
 
   int idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
@@ -1662,17 +1679,29 @@ void CPOD::snapSetup(int twojmax, int ntypes)
           idxcg_count++;
       }
 
-  TemplateMalloc(&sna.idxz, idxz_count*10, backend);
-  TemplateMalloc(&sna.idxb, idxb_count*3, backend);
+  memory->create(sna.idxz, idxz_count*10, "sna:idxz");
+  memory->create(sna.idxb, idxb_count*3, "sna:idxb");
 
-  TemplateMalloc(&sna.rcutsq, (ntypes+1)*(ntypes+1), backend);
-  TemplateMalloc(&sna.radelem, ntypes+1, backend);
-  TemplateMalloc(&sna.wjelem, ntypes+1, backend);
+  memory->create(sna.rcutsq, (ntypes+1)*(ntypes+1), "sna:rcutsq");
+  memory->create(sna.radelem, ntypes+1, "sna:radelem");
+  memory->create(sna.wjelem, ntypes+1, "sna:wjelem");
 
-  TemplateMalloc(&sna.rootpqarray, jdimpq*jdimpq, backend);
-  TemplateMalloc(&sna.cglist, idxcg_count, backend);
-  TemplateMalloc(&sna.bzero, jdim, backend);
-  TemplateMalloc(&sna.fac, 168, backend);
+  memory->create(sna.rootpqarray, jdimpq*jdimpq, "sna:rootpqarray");
+  memory->create(sna.cglist, idxcg_count, "sna:cglist");
+  memory->create(sna.bzero, jdim, "sna:bzero");
+  memory->create(sna.fac, 168, "sna:fac");
+  
+//   TemplateMalloc(&sna.idxz, idxz_count*10, backend);
+//   TemplateMalloc(&sna.idxb, idxb_count*3, backend);
+// 
+//   TemplateMalloc(&sna.rcutsq, (ntypes+1)*(ntypes+1), backend);
+//   TemplateMalloc(&sna.radelem, ntypes+1, backend);
+//   TemplateMalloc(&sna.wjelem, ntypes+1, backend);
+// 
+//   TemplateMalloc(&sna.rootpqarray, jdimpq*jdimpq, backend);
+//   TemplateMalloc(&sna.cglist, idxcg_count, backend);
+//   TemplateMalloc(&sna.bzero, jdim, backend);
+//   TemplateMalloc(&sna.fac, 168, backend);
 
   for (int i=0; i<jdimpq*jdimpq; i++)
     sna.rootpqarray[i] = 0;
@@ -1716,27 +1745,31 @@ void CPOD::InitSnap()
   rcutmax = PODMAX(2.0*elemradius[ielem]*rcutfac,rcutmax);
 
   snapSetup(twojmax, ntypes);
-  TemplateCopytoDevice(&sna.radelem[1], elemradius, ntypes, backend);
-  TemplateCopytoDevice(&sna.wjelem[1], elemweight, ntypes, backend);
+  //TemplateCopytoDevice(&sna.radelem[1], elemradius, ntypes, backend);
+  //TemplateCopytoDevice(&sna.wjelem[1], elemweight, ntypes, backend);
+  for (int i=0; i<ntypes; i++) {
+    sna.radelem[1+i] = elemradius[i];
+    sna.wjelem[1+i] = elemweight[i];
+  }
   podArrayFill(&sna.map[1], (int) 0, ntypes);
 
-  double cutsq[100];
+  //double cutsq[100];
   for (int i=0; i<ntypes; i++)
     for (int j=0; j<ntypes; j++) {
       double cut = (elemradius[i] + elemradius[j])*rcutfac;
-      cutsq[j+1 + (i+1)*(ntypes+1)] = cut*cut;
-    }
-  TemplateCopytoDevice(sna.rcutsq, cutsq, (ntypes+1)*(ntypes+1), backend);
+      sna.rcutsq[j+1 + (i+1)*(ntypes+1)] = cut*cut;      
+    }  
+  //TemplateCopytoDevice(sna.rcutsq, cutsq, (ntypes+1)*(ntypes+1), backend);
 
   if (bzeroflag) {
-  double www = wself*wself*wself;
-  double bzero[100];
-  for (int j = 0; j <= twojmax; j++)
-    if (bnormflag)
-    bzero[j] = www;
-    else
-    bzero[j] = www*(j+1);
-  TemplateCopytoDevice(sna.bzero, bzero, twojmax+1, backend);
+    double www = wself*wself*wself;
+    //double bzero[100];
+    for (int j = 0; j <= twojmax; j++)
+      if (bnormflag)
+      sna.bzero[j] = www;
+      else
+      sna.bzero[j] = www*(j+1);
+    //TemplateCopytoDevice(sna.bzero, bzero, twojmax+1, backend);
   }
 
   int nelements = ntypes;

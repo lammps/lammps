@@ -1,3 +1,21 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/ Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)   
+------------------------------------------------------------------------- */
+
+
 #ifdef COMMAND_CLASS
 // clang-format off
 CommandStyle(fitpod,CFITPOD);
@@ -76,12 +94,12 @@ public:
 
     void freememory(int backend)
     {
-      TemplateFree(lattice, backend);
-      TemplateFree(energy, backend);
-      TemplateFree(stress, backend);
-      TemplateFree(position, backend);
-      TemplateFree(force, backend);
-      TemplateFree(atomtype, backend);
+      free(lattice);
+      free(energy);
+      free(stress);
+      free(position);
+      free(force);
+      free(atomtype);
     }
   };
 
@@ -102,11 +120,11 @@ public:
 
     void freememory(int backend)
     {
-      TemplateFree(alist, backend);
-      TemplateFree(pairnum, backend);
-      TemplateFree(pairnum_cumsum, backend);
-      TemplateFree(pairlist, backend);
-      TemplateFree(y, backend);
+      free(alist);
+      free(pairnum);
+      free(pairnum_cumsum);
+      free(pairlist);
+      free(y);
     }
   };
 
@@ -122,12 +140,12 @@ public:
 
     void freememory(int backend)
     {
-      TemplateFree(gd, backend);
-      TemplateFree(gdd, backend);
-      TemplateFree(A, backend);
-      TemplateFree(b, backend);
-      TemplateFree(c, backend);
-      TemplateFree(tmpint, backend);
+      free(gd);
+      free(gdd);
+      free(A);
+      free(b);
+      free(c);
+      free(tmpint);
     }
   };
 

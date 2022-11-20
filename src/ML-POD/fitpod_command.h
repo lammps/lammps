@@ -140,13 +140,7 @@ public:
   CFITPOD(LAMMPS *lmp) : Command(lmp) {}  
   
   void command(int, char **) override;
-  
-  //CFITPOD(class LAMMPS *, int, char **);  
-  //~CFITPOD() override;    
-  //CFITPOD(class LAMMPS *, int, char **);
-  //void init() override;
-  //void init_list(int, class NeighList *) override;
-  
+    
   // main
 
   void read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,

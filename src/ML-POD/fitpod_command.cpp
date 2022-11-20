@@ -1,13 +1,4 @@
-/***************************************************************************
-               CESMIX-MIT Project
-
- Contributing authors: Ngoc-Cuong Nguyen (cuongng@mit.edu, exapde@gmail.com)
- ***************************************************************************/
-
-#ifndef __COMPUTEPODFIT
-#define __COMPUTEPODFIT
-
-#include "compute_podfit.h"
+#include "fitpod_command.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -37,19 +28,16 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
-enum{SCALAR,VECTOR,ARRAY};
+void CFITPOD::command(int narg, char **arg)
+{    
+  if (narg < 2) error->all(FLERR,"Illegal fitpod command");
 
-CPODFIT::CPODFIT(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),  podptr(nullptr)
-{
-  if (narg < 5) error->all(FLERR,"Illegal compute podfit command");
-
-  std::string pod_file = std::string(arg[3]);  // pod input file
-  std::string data_file = std::string(arg[4]); // data input file
+  std::string pod_file = std::string(arg[0]);  // pod input file
+  std::string data_file = std::string(arg[1]); // data input file
   std::string coeff_file; // coefficient input file
 
-  if (narg > 5)
-    coeff_file = std::string(arg[5]); // coefficient input file
+  if (narg > 2)
+    coeff_file = std::string(arg[2]); // coefficient input file
   else
     coeff_file = "";
 
@@ -65,29 +53,7 @@ CPODFIT::CPODFIT(LAMMPS *lmp, int narg, char **arg) :
   // get POD coefficients from an input file
 
   if (coeff_file != "") podptr->podArrayCopy(desc.c, podptr->pod.coeff, podptr->pod.nd);
-}
-
-CPODFIT::~CPODFIT()
-{
-  traindata.freememory(1);
-  testdata.freememory(1);
-  desc.freememory(1);
-  nb.freememory(1);
-}
-
-void CPODFIT::init()
-{
-
-  if (force->pair == nullptr)
-  error->all(FLERR,"Compute podfit requires a pair style be defined");
-
-  // need an occasional full neighbor list
-
-  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
-
-  if (modify->get_compute_by_style("podfit").size() > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute podfit");
-
+  
   // compute POD coefficients using least-squares method
 
   least_squares_fit(traindata);
@@ -112,16 +78,15 @@ void CPODFIT::init()
   if ((testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path) )
     energyforce_calculation(testdata, desc.c);
 
+  traindata.freememory(1);
+  testdata.freememory(1);
+  desc.freememory(1);
+  nb.freememory(1);  
 }
 
 /* ---------------------------------------------------------------------- */
 
-void CPODFIT::init_list(int /*id*/, NeighList *ptr)
-{
-  list = ptr;
-}
-
-template <typename T> void CPODFIT::writearray2file(const char* filename, T *a, int N, int backend)
+template <typename T> void CFITPOD::writearray2file(const char* filename, T *a, int N, int backend)
 {
 
   if (N > 0){
@@ -150,12 +115,12 @@ template <typename T> void CPODFIT::writearray2file(const char* filename, T *a, 
   */
 }
 
-bool CPODFIT::is_a_number(std::string line)
+bool CFITPOD::is_a_number(std::string line)
 {
   return isdigit(line.at(0));
 }
 
-void CPODFIT::read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
+void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
     std::string &test_path, std::string &training_path, std::string data_file)
 {
   std::string datafilename = data_file;
@@ -255,7 +220,7 @@ void CPODFIT::read_data_file(double *fitting_weights, std::string &file_format, 
   utils::logmesg(lmp, "**************** End of Data File ****************\n");
 }
 
-std::vector<std::string> CPODFIT::globVector(const std::string& pattern, std::vector<std::string> & files)
+std::vector<std::string> CFITPOD::globVector(const std::string& pattern, std::vector<std::string> & files)
 {
   glob_t glob_result;
   glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
@@ -267,12 +232,12 @@ std::vector<std::string> CPODFIT::globVector(const std::string& pattern, std::ve
   return files;
 }
 
-void CPODFIT::get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension)
+void CFITPOD::get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension)
 {
   std::vector<std::string> res = globVector(datapath + "/*." + extension, files);
 }
 
-int CPODFIT::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)
+int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)
 {
   std::string filename = file;
   FILE *fp;
@@ -330,7 +295,7 @@ int CPODFIT::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
   return num_configs;
 }
 
-int CPODFIT::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files)
+int CFITPOD::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files)
 {
   int nfiles = training_files.size(); // number of files
   int d, n;
@@ -348,7 +313,7 @@ int CPODFIT::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_
   return num_atom_all;
 }
 
-void CPODFIT::read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces,
+void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces,
     int *atomtype, std::string file, std::vector<std::string> species)
 {
 
@@ -494,7 +459,7 @@ void CPODFIT::read_exyz_file(double *lattice, double *stress, double *energy, do
 
 }
 
-void CPODFIT::get_data(datastruct &data, std::vector<std::string> species)
+void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
 {
   get_exyz_files(data.data_files, data.data_path, data.file_extension);
   data.num_atom_sum = get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);
@@ -564,7 +529,7 @@ void CPODFIT::get_data(datastruct &data, std::vector<std::string> species)
   utils::logmesg(lmp, "maximum number of atoms: {}\n", data.num_atom_max);
 }
 
-std::vector<int> CPODFIT::linspace(int start_in, int end_in, int num_in)
+std::vector<int> CFITPOD::linspace(int start_in, int end_in, int num_in)
 {
 
   std::vector<int> linspaced;
@@ -597,7 +562,7 @@ std::vector<int> CPODFIT::linspace(int start_in, int end_in, int num_in)
   return linspaced;
 }
 
-std::vector<int> CPODFIT::shuffle(int start_in, int end_in, int num_in)
+std::vector<int> CFITPOD::shuffle(int start_in, int end_in, int num_in)
 {
   int sz = end_in - start_in + 1;
   std::vector<int> myvector(sz);
@@ -615,7 +580,7 @@ std::vector<int> CPODFIT::shuffle(int start_in, int end_in, int num_in)
   return shuffle_vec;
 }
 
-std::vector<int> CPODFIT::select(int n, double percentage, int randomize)
+std::vector<int> CFITPOD::select(int n, double percentage, int randomize)
 {
   std::vector<int> selected;
 
@@ -627,7 +592,7 @@ std::vector<int> CPODFIT::select(int n, double percentage, int randomize)
   return selected;
 }
 
-void CPODFIT::select_data(datastruct &newdata, datastruct data)
+void CFITPOD::select_data(datastruct &newdata, datastruct data)
 {
   double percentage = data.percentage;
   int randomize = data.randomize;
@@ -725,7 +690,7 @@ void CPODFIT::select_data(datastruct &newdata, datastruct data)
   utils::logmesg(lmp, "number of atoms in all files (selected and original: {} and {}\n", newdata.num_atom_sum, data.num_atom_sum);
 }
 
-void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> species)
+void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> species)
 {
   datastruct data;
 
@@ -785,7 +750,7 @@ void CPODFIT::read_data_files(std::string data_file, std::vector<std::string> sp
   }
 }
 
-int CPODFIT::latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx)
+int CFITPOD::latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx)
 {
   int m=0, n=0, p=0;
   if (pbc[0] == 1) m = (int) ceil(rcut/a1[0]);
@@ -828,7 +793,7 @@ int CPODFIT::latticecoords(double *y, int *alist, double *x, double *a1, double 
   return nl;
 }
 
-int CPODFIT::podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim)
+int CFITPOD::podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim)
 {
   int k = 0;
   for (int i = 0; i<nx; i++) {
@@ -848,7 +813,7 @@ int CPODFIT::podneighborlist(int *neighlist, int *numneigh, double *r, double rc
   return k;
 }
 
-int CPODFIT::podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
+int CFITPOD::podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
     double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx)
 {
   double rcutsq = rcut*rcut;
@@ -868,7 +833,7 @@ int CPODFIT::podfullneighborlist(double *y, int *alist, int *neighlist, int *num
   return nn;
 }
 
-void CPODFIT::allocate_memory(datastruct data)
+void CFITPOD::allocate_memory(datastruct data)
 {
   int nd = podptr->pod.nd;
   desc.gd = (double *) malloc(nd*sizeof(double));
@@ -982,7 +947,7 @@ void CPODFIT::allocate_memory(datastruct data)
   utils::logmesg(lmp, "**************** End of Memory Allocation ****************\n");
 }
 
-void CPODFIT::linear_descriptors(datastruct data, int ci)
+void CFITPOD::linear_descriptors(datastruct data, int ci)
 {
   int dim = 3;
   int nd1 = podptr->pod.nd1;
@@ -1013,7 +978,7 @@ void CPODFIT::linear_descriptors(datastruct data, int ci)
 
 }
 
-void CPODFIT::quadratic_descriptors(datastruct data, int ci)
+void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1094,7 +1059,7 @@ void CPODFIT::quadratic_descriptors(datastruct data, int ci)
     desc.gdd[dim*natom*nd1234+i] = desc.gdd[dim*natom*nd1234+i]/(natom);
 }
 
-void CPODFIT::cubic_descriptors(datastruct data, int ci)
+void CFITPOD::cubic_descriptors(datastruct data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1161,7 +1126,7 @@ void CPODFIT::cubic_descriptors(datastruct data, int ci)
     desc.gdd[i] = desc.gdd[i]/(natom*natom);
 }
 
-void CPODFIT::least_squares_matrix(datastruct data, int ci)
+void CFITPOD::least_squares_matrix(datastruct data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1207,7 +1172,7 @@ void CPODFIT::least_squares_matrix(datastruct data, int ci)
 
 }
 
-void CPODFIT::least_squares_fit(datastruct data)
+void CFITPOD::least_squares_fit(datastruct data)
 {
   utils::logmesg(lmp, "**************** Begin of Least-Squares Fitting ****************\n");
 
@@ -1263,7 +1228,7 @@ void CPODFIT::least_squares_fit(datastruct data)
   utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
 }
 
-double CPODFIT::energyforce_calculation(double *force, double *coeff, datastruct data, int ci)
+double CFITPOD::energyforce_calculation(double *force, double *coeff, datastruct data, int ci)
 {
   int dim = 3;
   int *pbc = podptr->pod.pbc;
@@ -1303,7 +1268,7 @@ double CPODFIT::energyforce_calculation(double *force, double *coeff, datastruct
   return energy;
 }
 
-void CPODFIT::print_analysis(datastruct data, double *outarray, double *errors)
+void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
 {
   std::string s = "All files";
   int nfiles = data.data_files.size();  // number of files
@@ -1416,7 +1381,7 @@ void CPODFIT::print_analysis(datastruct data, double *outarray, double *errors)
 
 }
 
-void CPODFIT::error_analysis(datastruct data, double *coeff)
+void CFITPOD::error_analysis(datastruct data, double *coeff)
 {
   int dim = 3;
   double energy;
@@ -1526,7 +1491,7 @@ void CPODFIT::error_analysis(datastruct data, double *coeff)
   print_analysis(data, outarray, errors);
 }
 
-void CPODFIT::energyforce_calculation(datastruct data, double *coeff)
+void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
 {
   int dim = 3;
   double energy;
@@ -1560,5 +1525,3 @@ void CPODFIT::energyforce_calculation(datastruct data, double *coeff)
   }
   utils::logmesg(lmp, "**************** End of Energy/Force Calculation ****************\n");
 }
-
-#endif

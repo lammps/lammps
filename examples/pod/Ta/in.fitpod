@@ -1,0 +1,4 @@
+# Demonstrate fitpod for POD potential
+
+fitpod pod.txt data.txt
+

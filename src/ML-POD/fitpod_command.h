@@ -1,27 +1,21 @@
-/***************************************************************************
-               CESMIX-MIT Project
-
- Contributing authors: Ngoc-Cuong Nguyen (cuongng@mit.edu, exapde@gmail.com)
- ***************************************************************************/
-
-#ifdef COMPUTE_CLASS
+#ifdef COMMAND_CLASS
 // clang-format off
-ComputeStyle(podfit,CPODFIT);
+CommandStyle(fitpod,CFITPOD);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_PODFIT_H
-#define LMP_COMPUTE_PODFIT_H
+#ifndef LMP_FITPOD_COMMAND_H
+#define LMP_FITPOD_COMMAND_H
 
-#include "compute.h"
+#include "command.h"
 #include "pod.h"
 
 namespace LAMMPS_NS {
 
-class CPODFIT : public Compute {
+class CFITPOD : public Command {
 private:
 
-  class NeighList *list;
+  //class NeighList *list;
   std::vector<std::string> globVector(const std::string& pattern, std::vector<std::string> & files);
 
   bool is_a_number(std::string line);
@@ -141,15 +135,18 @@ public:
   datastruct testdata;
   descriptorstruct desc;
   neighborstruct nb;
-  class CPOD *podptr;
+  class CPOD *podptr;  
 
-  CPODFIT(class LAMMPS *, int, char **);
-
-  ~CPODFIT() override;
-
-  void init() override;
-  void init_list(int, class NeighList *) override;
-
+  CFITPOD(LAMMPS *lmp) : Command(lmp) {}  
+  
+  void command(int, char **) override;
+  
+  //CFITPOD(class LAMMPS *, int, char **);  
+  //~CFITPOD() override;    
+  //CFITPOD(class LAMMPS *, int, char **);
+  //void init() override;
+  //void init_list(int, class NeighList *) override;
+  
   // main
 
   void read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,

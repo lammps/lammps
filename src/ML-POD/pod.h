@@ -146,6 +146,11 @@ private:
 
     void pod4body_force(double **force, double *rij, double *coeff4, double *tmpmem, int *atomtype,
         int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);
+
+    // ***********************  eigenproblem functions **************************/
+
+    void podeigenvaluedecomposition(double *Phi, double *Lambda, double *besselparams, double rin, double rcut,
+    int besseldegree, int inversedegree, int nbesselpars, int N);
     // ******************************************************************************/
 
 public:
@@ -179,6 +184,8 @@ public:
         double *Phi2=NULL, *Phi3=NULL, *Phi4=NULL, *Lambda2=NULL, *Lambda3=NULL, *Lambda4=NULL;
         double *coeff=NULL;
 
+        // variables declaring number of snapshots, descriptors, and combinations
+
         int nbesselpars = 3;
         int ns2, ns3, ns4;       // number of snapshots for radial basis functions for linear POD potentials
         int nc2, nc3, nc4;       // number of chemical  combinations for linear POD potentials
@@ -194,12 +201,6 @@ public:
         double snaprfac0 = 0.99363;
         double snapelementradius[10] = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
         double snapelementweight[10] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
-
-        void allocatememory(int backend)
-        {
-            TemplateMalloc(&pbc, 3, backend);
-            TemplateMalloc(&besselparams, 3, backend);
-        }
 
         void freememory(int backend)
         {
@@ -398,6 +399,14 @@ public:
     double energyforce_calculation(double *force, double *podcoeff, double *effectivecoeff, double *gd, double *rij,
         double *tmpmem, int *pairnumsum, int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);
     // ******************************************************************************/
+
+    // variables used in eigenvaluedecomposition
+
+    double *xij;
+    double *S;
+    double *Q;
+    double *A;
+    double *b;
 
 };
 

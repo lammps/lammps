@@ -317,17 +317,18 @@ void podsnapshots(double *rbf, double *xij, double *besselparams, double rin, do
   }
 }
 
-void podeigenvaluedecomposition(double *Phi, double *Lambda, double *besselparams, double rin, double rcut,
+void CPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *besselparams, double rin, double rcut,
     int besseldegree, int inversedegree, int nbesselpars, int N)
 {
   int ns = besseldegree*nbesselpars + inversedegree;
 
-  double *xij = (double *) malloc(N*sizeof(double));
-  double *S = (double *) malloc(N*ns*sizeof(double));
-  double *Q = (double *) malloc(N*ns*sizeof(double));
-  double *A = (double *) malloc(ns*ns*sizeof(double));
-  double *b = (double *) malloc(ns*sizeof(double));
 
+  memory->create(xij, N, "pod:xij");
+  memory->create(S, N*ns, "pod:S");
+  memory->create(Q, N*ns, "pod:Q");
+  memory->create(A, ns*ns, "pod:A");
+  memory->create(b, ns, "pod:ns");
+  
   for (int i=0; i<N; i++)
     xij[i] = (rin+1e-6) + (rcut-rin-1e-6)*(i*1.0/(N-1));
 
@@ -380,8 +381,8 @@ void podeigenvaluedecomposition(double *Phi, double *Lambda, double *besselparam
 void CPOD::read_pod(std::string pod_file)
 {
   pod.nbesselpars = 3;
-  pod.besselparams = (double *) malloc(3*sizeof(double));
-  pod.pbc = (int *) malloc(3*sizeof(int));
+  memory->create(pod.besselparams, 3, "pod:pod_besselparams");
+  memory->create(pod.pbc, 3, "pod:pod_pbc");
 
   pod.besselparams[0] = 0.0;
   pod.besselparams[1] = 2.0;
@@ -516,12 +517,12 @@ void CPOD::read_pod(std::string pod_file)
 
   // allocate memory for eigenvectors and eigenvalues
 
-  pod.Phi2 = (double *) malloc(pod.ns2*pod.ns2*sizeof(double));
-  pod.Lambda2 = (double *) malloc(pod.ns2*sizeof(double));
-  pod.Phi3 = (double *) malloc(pod.ns3*pod.ns3*sizeof(double));
-  pod.Lambda3 = (double *) malloc(pod.ns3*sizeof(double));
-  pod.Phi4 = (double *) malloc(pod.ns4*pod.ns4*sizeof(double));
-  pod.Lambda4 = (double *) malloc(pod.ns4*sizeof(double));
+  memory->create(pod.Phi2, pod.ns2*pod.ns2, "pod:pod_Phi2");
+  memory->create(pod.Lambda2, pod.ns2, "pod:pod_Lambda2");
+  memory->create(pod.Phi3, pod.ns3*pod.ns3, "pod:pod_Phi3");
+  memory->create(pod.Lambda3, pod.ns3, "pod:pod_Lambda3");
+  memory->create(pod.Phi4, pod.ns4*pod.ns4, "pod:pod_Phi4");
+  memory->create(pod.Lambda4, pod.ns4, "pod:pod_Lambda4");
 
   if (pod.ns2>0) {
     podeigenvaluedecomposition(pod.Phi2, pod.Lambda2, pod.besselparams, pod.rin, pod.rcut,
@@ -639,7 +640,7 @@ void CPOD::read_pod(std::string pod_file)
   pod.nd1234 = pod.nd1 + pod.nd2 + pod.nd3 + pod.nd4;
 
   int nelements = pod.nelements;
-  pod.elemindex = (int*) malloc (sizeof (int)*(nelements*nelements));
+  memory->create(pod.elemindex, nelements*nelements, "pod:pod_elemindex");
 
   int k = 1;
   for (int i=0; i < nelements; i++)
@@ -732,7 +733,7 @@ void CPOD::read_coeff_file(std::string coeff_file)
 
   // loop over single block of coefficients and insert values in pod.coeff
 
-  pod.coeff = (double *) malloc(ncoeffall*sizeof(double));
+  memory->create(pod.coeff, ncoeffall, "pod:pod_coeff");
 
   for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
     if (comm->me == 0) {
@@ -1632,12 +1633,12 @@ void CPOD::snapSetup(int twojmax, int ntypes)
   int jdim = twojmax + 1;
   int jdimpq = twojmax + 2;
 
-  TemplateMalloc(&sna.map, ntypes+1, backend);
-  TemplateMalloc(&sna.idxcg_block, jdim*jdim*jdim, backend);
-  TemplateMalloc(&sna.idxz_block, jdim*jdim*jdim, backend);
-  TemplateMalloc(&sna.idxb_block, jdim*jdim*jdim, backend);
-  TemplateMalloc(&sna.idxu_block, jdim, backend);
-  TemplateMalloc(&sna.idx_max, 5, backend);
+  memory->create(sna.map, ntypes+1, "pod:sna_map");
+  memory->create(sna.idxcg_block, jdim*jdim*jdim, "pod:sna_idxcg_block");
+  memory->create(sna.idxz_block, jdim*jdim*jdim, "pod:sna_idxz_block");
+  memory->create(sna.idxb_block, jdim*jdim*jdim, "pod:sna_idxb_block");
+  memory->create(sna.idxu_block, jdim, "pod:sna_idxu_block");
+  memory->create(sna.idx_max, 5, "pod:sna_idx_max");
 
   int idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
@@ -1662,17 +1663,15 @@ void CPOD::snapSetup(int twojmax, int ntypes)
           idxcg_count++;
       }
 
-  TemplateMalloc(&sna.idxz, idxz_count*10, backend);
-  TemplateMalloc(&sna.idxb, idxb_count*3, backend);
-
-  TemplateMalloc(&sna.rcutsq, (ntypes+1)*(ntypes+1), backend);
-  TemplateMalloc(&sna.radelem, ntypes+1, backend);
-  TemplateMalloc(&sna.wjelem, ntypes+1, backend);
-
-  TemplateMalloc(&sna.rootpqarray, jdimpq*jdimpq, backend);
-  TemplateMalloc(&sna.cglist, idxcg_count, backend);
-  TemplateMalloc(&sna.bzero, jdim, backend);
-  TemplateMalloc(&sna.fac, 168, backend);
+  memory->create(sna.idxz, idxz_count*10, "pod:sna_idxz");
+  memory->create(sna.idxb, idxb_count*3, "pod:sna_idxb");
+  memory->create(sna.rcutsq, (ntypes+1)*(ntypes+1), "pod:sna_rcutsq");
+  memory->create(sna.radelem, ntypes+1, "pod:sna_radelem");
+  memory->create(sna.wjelem, ntypes+1, "pod:sna_wjelem");
+  memory->create(sna.rootpqarray, jdimpq*jdimpq, "pod:sna_rootpqarray");
+  memory->create(sna.cglist, idxcg_count, "pod:sna_cglist");
+  memory->create(sna.bzero, jdim, "pod:sna_bzero");
+  memory->create(sna.fac, 168, "pod:sna_fac");
 
   for (int i=0; i<jdimpq*jdimpq; i++)
     sna.rootpqarray[i] = 0;
@@ -1710,7 +1709,8 @@ void CPOD::InitSnap()
   int bnormflag = chemflag;
   double wself=1.0;
 
-  // Calculate maximum cutoff for all elements
+  // calculate maximum cutoff for all elements
+
   double rcutmax = 0.0;
   for (int ielem = 0; ielem < ntypes; ielem++)
   rcutmax = PODMAX(2.0*elemradius[ielem]*rcutfac,rcutmax);

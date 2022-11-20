@@ -9,6 +9,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
+#include "pod.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -476,13 +477,13 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
   utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
 
   int n = data.num_config_sum;
-  data.lattice = (double *) malloc(9*n*sizeof(double));
-  data.stress = (double *) malloc(9*n*sizeof(double));
-  data.energy = (double *) malloc(n*sizeof(double));
+  memory->create(data.lattice, 9*n, "fitpod:lattice");
+  memory->create(data.stress, 9*n, "fitpod:stress");
+  memory->create(data.energy, n, "fitpod:energy");
   n = data.num_atom_sum;
-  data.position = (double *) malloc(3*n*sizeof(double));
-  data.force = (double *) malloc(3*n*sizeof(double));
-  data.atomtype = (int *) malloc(n*sizeof(int));
+  memory->create(data.position, 3*n, "fitpod:position");
+  memory->create(data.force, 3*n, "fitpod:force");
+  memory->create(data.atomtype, n, "fitpod:atomtype");
 
   int nfiles = data.data_files.size(); // number of files
   int nconfigs = 0;
@@ -634,13 +635,13 @@ void CFITPOD::select_data(datastruct &newdata, datastruct data)
   newdata.num_config_sum = newdata.num_atom.size();
 
   int n = data.num_config_sum;
-  newdata.lattice = (double *) malloc(9*n*sizeof(double));
-  newdata.stress = (double *) malloc(9*n*sizeof(double));
-  newdata.energy = (double *) malloc(n*sizeof(double));
+  memory->create(newdata.lattice, 9*n, "fitpod:newdata_lattice");
+  memory->create(newdata.stress, 9*n, "fitpod:newdata_stress");
+  memory->create(newdata.energy, n, "fitpod:newdata_energy");
   n = data.num_atom_sum;
-  newdata.position = (double *) malloc(3*n*sizeof(double));
-  newdata.force = (double *) malloc(3*n*sizeof(double));
-  newdata.atomtype = (int *) malloc(n*sizeof(int));
+  memory->create(newdata.position, 3*n, "fitpod:newdata_position");
+  memory->create(newdata.force, 3*n, "fitpod:newdata_force");
+  memory->create(newdata.atomtype, n, "fitpod:newdata_atomtype");
 
   int cn = 0, dim=3;
   for (int file = 0; file < nfiles; file++) {
@@ -836,10 +837,10 @@ int CFITPOD::podfullneighborlist(double *y, int *alist, int *neighlist, int *num
 void CFITPOD::allocate_memory(datastruct data)
 {
   int nd = podptr->pod.nd;
-  desc.gd = (double *) malloc(nd*sizeof(double));
-  desc.A = (double *) malloc(nd*nd*sizeof(double));
-  desc.b = (double *) malloc(nd*sizeof(double));
-  desc.c = (double *) malloc(nd*sizeof(double));
+  memory->create(desc.gd, nd, "fitpod:desc_gd");
+  memory->create(desc.A, nd*nd, "fitpod:desc_A");
+  memory->create(desc.b, nd, "fitpod:desc_b");
+  memory->create(desc.c, nd, "fitpod:desc_c");
   podptr->podArraySetValue(desc.A, 0.0, nd*nd);
   podptr->podArraySetValue(desc.b, 0.0, nd);
   podptr->podArraySetValue(desc.c, 0.0, nd);
@@ -882,11 +883,11 @@ void CFITPOD::allocate_memory(datastruct data)
     np = PODMAX(np, natom*natom*nl);
   }
 
-  nb.y = (double*) malloc (sizeof (double)*(ny));
-  nb.alist = (int*) malloc (sizeof (int)*(na));
-  nb.pairnum = (int*) malloc (sizeof (int)*(natom_max));
-  nb.pairnum_cumsum = (int*) malloc (sizeof (int)*(natom_max+1));
-  nb.pairlist = (int*) malloc (sizeof (int)*(np));
+  memory->create(nb.y, ny, "fitpod:nb_y");
+  memory->create(nb.alist, na, "fitpod:nb_alist");
+  memory->create(nb.pairnum, natom_max, "fitpod:nb_pairnum");
+  memory->create(nb.pairnum_cumsum, natom_max+1, "fitpod:nb_pairnum_cumsum");
+  memory->create(nb.pairlist, np, "fitpod:nb_pairlist");
 
   nb.natom_max = natom_max;
   nb.sze = nelements*nelements;
@@ -933,8 +934,8 @@ void CFITPOD::allocate_memory(datastruct data)
 
   // gdd includes linear descriptors derivatives, quadratic descriptors derivatives and temporary memory
 
-  desc.gdd = (double*) malloc (sizeof (double)*(szd)); // [ldd qdd]
-  desc.tmpint = (int*) malloc (sizeof (int)*(szi));
+  memory->create(desc.gdd, szd, "fitpod:desc_gdd");
+  memory->create(desc.tmpint, szi, "fitpod:desc_tmpint");
   desc.szd = szd;
   desc.szi = szi;
 

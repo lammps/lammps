@@ -40,26 +40,6 @@ extern "C" {
   void DPOSV( char* uplo, int* n, int* nrhs, double* a, int* lda,
         double* b, int* ldb, int* info );
 }
-template <typename T> static void TemplateMalloc(T **data, int n, int backend)
-{
-  if (backend == 0)     // One thread CPU
-
-    // allocate the memory on the CPU
-
-    *data = (T *) malloc(n*sizeof(T));
-  if (backend == 1)  // Open MP
-
-    // allocate the memory on the CPU
-
-    *data = (T *) malloc(n*sizeof(T));
-#ifdef USE_CUDA
-  if (backend == 2)  // CUDA C
-
-    // allocate the memory on the GPU
-
-    CUDA_CHECK( cudaMalloc( (void**)data, n * sizeof(T) ) );
-#endif
-}
 
 template <typename T> static void TemplateCopytoDevice(T *d_data, T *h_data, int n, int backend)
 {

@@ -1,6 +1,6 @@
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(pod,CPairPOD);
+PairStyle(mlpod,PairPOD);
 // clang-format on
 #else
 
@@ -11,61 +11,10 @@ PairStyle(pod,CPairPOD);
 
 namespace LAMMPS_NS {
 
-  class CPairPOD : public Pair {
-  private:
-      std::vector<std::string> globVector(const std::string& pattern, std::vector<std::string> & files);
-
-      bool is_a_number(std::string line);
-
-      int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
-
-      int podneighborcount(double *r, double rcutsq, int nx, int N, int dim);
-      int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
-
-      void get_data(std::vector<std::string> species);
-
-      void read_data_files(std::string data_file, std::vector<std::string> species);
-
+  class PairPOD : public Pair {
   public:
-      struct datastruct {
-          std::string file_format;
-          std::string file_extension;
-          std::string data_path;
-          std::vector<std::string> data_files;
-          std::vector<std::string> filenames;
-
-          std::vector<int> num_atom;
-          std::vector<int> num_atom_cumsum;
-          std::vector<int> num_atom_each_file;
-          std::vector<int> num_config;
-          std::vector<int> num_config_cumsum;
-          int num_atom_sum;
-          int num_atom_min;
-          int num_atom_max;
-          int num_config_sum;
-
-          double *lattice=NULL;
-          double *energy=NULL;
-          double *stress=NULL;
-          double *position=NULL;
-          double *velocity=NULL;
-          double *force=NULL;
-          int *atomtype=NULL;
-
-          void copydatainfo(datastruct &data) {
-              data.data_path = data_path;
-              data.file_format = file_format;
-              data.file_extension = file_extension;
-              data.data_files = data_files;
-              data.filenames = filenames;
-          }
-
-      };
-
-      datastruct data;
-
-      CPairPOD(class LAMMPS *);
-      ~CPairPOD() override;
+      PairPOD(class LAMMPS *);
+      ~PairPOD() override;
       void compute(int, int) override;
 
       void settings(int, char **) override;
@@ -75,12 +24,9 @@ namespace LAMMPS_NS {
       double memory_usage() override;
       void *extract(const char *, int &) override;
 
-      void InitPairPOD(std::string pod_file, std::string coeff_file);
-
       int dim = 3;
       int atommemory = 0;
       int podpairlist=0;
-      int lammpspairlist=0;
       int analysis = 0;
       int runMD = 0;
       int savecalculation = 0;

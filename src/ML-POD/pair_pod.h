@@ -8,7 +8,6 @@ PairStyle(pod,CPairPOD);
 #define LMP_PAIR_POD_H
 
 #include "pair.h"
-#include "pod.h"
 
 namespace LAMMPS_NS {
 
@@ -61,20 +60,9 @@ namespace LAMMPS_NS {
               data.filenames = filenames;
           }
 
-          void freememory(int backend)
-          {
-              TemplateFree(lattice, backend);
-              TemplateFree(energy, backend);
-              TemplateFree(stress, backend);
-              TemplateFree(position, backend);
-              TemplateFree(velocity, backend);
-              TemplateFree(force, backend);
-              TemplateFree(atomtype, backend);
-          }
       };
 
       datastruct data;
-      class CPOD *podptr;
 
       CPairPOD(class LAMMPS *);
       ~CPairPOD() override;
@@ -89,7 +77,6 @@ namespace LAMMPS_NS {
 
       void InitPairPOD(std::string pod_file, std::string coeff_file);
 
-      int backend=1;
       int dim = 3;
       int atommemory = 0;
       int podpairlist=0;
@@ -155,6 +142,8 @@ namespace LAMMPS_NS {
       int nij=0;    //  number of atom pairs
       int nijmax=0;  // maximum number of atom pairs
       int szd=0;    // size of tmpmem
+
+      class CPOD *podptr;
 
       // temporary arrays for computation blocks
 

@@ -8,9 +8,8 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "pod.h"
 #include "tokenizer.h"
-
-#include <glob.h>
 
 #include <cmath>
 #include <cstring>
@@ -27,6 +26,7 @@ CPairPOD::CPairPOD(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  podptr = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -34,11 +34,11 @@ CPairPOD::CPairPOD(LAMMPS *lmp) : Pair(lmp)
 CPairPOD::~CPairPOD()
 {
   free_memory();
-  TemplateFree(gd, backend);
-  TemplateFree(energycoeff, backend);
-  TemplateFree(forcecoeff, backend);
-  TemplateFree(podcoeff, backend);
-  TemplateFree(newpodcoeff, backend);
+  memory->destroy(podcoeff);
+  memory->destroy(newpodcoeff);
+  memory->destroy(gd);
+  memory->destroy(energycoeff);
+  memory->destroy(forcecoeff);
 
   delete podptr;
 
@@ -227,11 +227,11 @@ void CPairPOD::InitPairPOD(std::string pod_file, std::string coeff_file)
   lammpspairlist = 1;
 
   if (coeff_file != "") {
-    TemplateMalloc(&podcoeff, podptr->pod.nd, backend);
-    TemplateMalloc(&newpodcoeff, podptr->pod.nd, backend);
-    TemplateMalloc(&energycoeff, podptr->pod.nd1234, backend);
-    TemplateMalloc(&forcecoeff, podptr->pod.nd1234, backend);
-    TemplateMalloc(&gd, podptr->pod.nd1234, backend);
+    memory->create(podcoeff, podptr->pod.nd, "pair:podcoeff");
+    memory->create(newpodcoeff, podptr->pod.nd, "pair:newpodcoeff");
+    memory->create(energycoeff, podptr->pod.nd1234, "pair:energycoeff");
+    memory->create(forcecoeff, podptr->pod.nd1234, "pair:forcecoeff");
+    memory->create(gd, podptr->pod.nd1234, "pair:gd");
     podptr->podArrayCopy(podcoeff, podptr->pod.coeff, podptr->pod.nd);
     podptr->podArrayCopy(newpodcoeff, podptr->pod.coeff, podptr->pod.nd);
   }
@@ -240,25 +240,25 @@ void CPairPOD::InitPairPOD(std::string pod_file, std::string coeff_file)
 
 void CPairPOD::free_tempmemory()
 {
-  TemplateFree(rij, backend);
-  TemplateFree(idxi, backend);
-  TemplateFree(ai, backend);
-  TemplateFree(aj, backend);
-  TemplateFree(ti, backend);
-  TemplateFree(tj, backend);
-  TemplateFree(numneighsum, backend);
-  TemplateFree(typeai, backend);
-  TemplateFree(tmpmem, backend);
+  memory->destroy(rij);
+  memory->destroy(idxi);
+  memory->destroy(ai);
+  memory->destroy(aj);
+  memory->destroy(ti);
+  memory->destroy(tj);
+  memory->destroy(numneighsum);
+  memory->destroy(typeai);
+  memory->destroy(tmpmem);
 }
 
 void CPairPOD::free_atommemory()
 {
-  TemplateFree(forces, backend);
-  TemplateFree(stress, backend);
+  memory->destroy(forces);
+  memory->destroy(stress);
   if (atommemory) {
-  TemplateFree(atomtype, backend);
-  TemplateFree(pos, backend);
-  TemplateFree(vel, backend);
+    memory->destroy(atomtype);
+    memory->destroy(pos);
+    memory->destroy(vel);
   }
 }
 
@@ -270,25 +270,25 @@ void CPairPOD::free_memory()
 
 void CPairPOD::allocate_tempmemory()
 {
-  TemplateMalloc(&rij, dim*nijmax, backend);
-  TemplateMalloc(&idxi, nijmax, backend);
-  TemplateMalloc(&ai, nijmax, backend);
-  TemplateMalloc(&aj, nijmax, backend);
-  TemplateMalloc(&ti, nijmax, backend);
-  TemplateMalloc(&tj, nijmax, backend);
-  TemplateMalloc(&numneighsum, nablockmax+1, backend);
-  TemplateMalloc(&typeai, nablockmax, backend);
-  TemplateMalloc(&tmpmem, szd, backend);
+  memory->create(rij, dim*nijmax, "pair:rij");
+  memory->create(idxi, nijmax, "pair:idxi");
+  memory->create(ai, nijmax, "pair:ai");
+  memory->create(aj, nijmax, "pair:aj");
+  memory->create(ti, nijmax, "pair:ti");
+  memory->create(tj, nijmax, "pair:tj");
+  memory->create(numneighsum, nablockmax+1, "pair:numneighsum");
+  memory->create(typeai, nablockmax, "pair:typeai");
+  memory->create(tmpmem, szd, "pair:tmpmem");
 }
 
 void CPairPOD::allocate_atommemory()
 {
-  TemplateMalloc(&forces, dim*nmaxatom, backend);
-  TemplateMalloc(&stress, 9, backend);
+  memory->create(forces, dim*nmaxatom, "pair:forces");
+  memory->create(stress, 9, "pair:stress");
   if (atommemory) {
-  TemplateMalloc(&atomtype, nmaxatom, backend);
-  TemplateMalloc(&pos, dim*nmaxatom, backend);
-  TemplateMalloc(&vel, dim*nmaxatom, backend);
+    memory->create(atomtype, nmaxatom, "pair:atomtype");
+    memory->create(pos, dim*nmaxatom, "pair:pos");
+    memory->create(vel, dim*nmaxatom, "pair:vel");
   }
 }
 

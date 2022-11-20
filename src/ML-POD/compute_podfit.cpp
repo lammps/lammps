@@ -10,16 +10,16 @@
 #include "compute_podfit.h"
 
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair.h"
 #include "tokenizer.h"
+#include "update.h"
 
 #include <string>
 #include <vector>

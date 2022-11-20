@@ -26,6 +26,7 @@
 #include "neighbor.h"
 #include "pod.h"
 #include "tokenizer.h"
+#include "math_const.h"
 
 #include <cmath>
 #include <cstring>

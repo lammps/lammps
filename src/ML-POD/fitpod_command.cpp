@@ -29,18 +29,14 @@
 #include "pod.h"
 #include "tokenizer.h"
 #include "update.h"
+#include "math_const.h"
 
 #include <string>
 #include <vector>
-#include <iomanip>
-#include <limits>
 #include <glob.h>
 #include <random>
 #include <algorithm>
-#include <chrono>
-
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

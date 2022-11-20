@@ -25,18 +25,8 @@
 #include "error.h"
 #include "memory.h"
 #include "tokenizer.h"
-
-#include <string>
-#include <vector>
-#include <iomanip>
-#include <limits>
-#include <glob.h>
-#include <random>
-#include <algorithm>
-
-#define _USE_MATH_DEFINES
-#include <math.h>
-#include <sys/time.h>
+#include "math_const.h"         
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

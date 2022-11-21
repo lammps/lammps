@@ -82,7 +82,6 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   minzlo = minzhi = 0.0;
 
   triclinic = 0;
-  tiltsmall = 1;
 
   boxlo[0] = boxlo[1] = boxlo[2] = -0.5;
   boxhi[0] = boxhi[1] = boxhi[2] = 0.5;
@@ -218,10 +217,8 @@ void Domain::set_initial_box(int expandflag)
     if ((fabs(xy/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) ||
         (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) ||
         (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5 && yperiodic)) {
-      if (tiltsmall)
-        error->all(FLERR,"Triclinic box skew is too large");
-      else if (comm->me == 0)
-        error->warning(FLERR,"Triclinic box skew is large");
+      if (comm->me == 0)
+        error->warning(FLERR,"Triclinic box skew is large. LAMMPS will run inefficiently.");
     }
   }
 
@@ -1871,26 +1868,6 @@ void Domain::set_boundary(int narg, char **arg, int flag)
     MPI_Allreduce(&pflag,&flag_all, 1, MPI_INT, MPI_SUM, world);
     if ((flag_all > 0) && (comm->me == 0))
       error->warning(FLERR,"Resetting image flags for non-periodic dimensions");
-  }
-}
-
-/* ----------------------------------------------------------------------
-   set domain attributes
-------------------------------------------------------------------------- */
-
-void Domain::set_box(int narg, char **arg)
-{
-  if (narg < 1) utils::missing_cmd_args(FLERR, "box", error);
-
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"tilt") == 0) {
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "box tilt", error);
-      if (strcmp(arg[iarg+1],"small") == 0) tiltsmall = 1;
-      else if (strcmp(arg[iarg+1],"large") == 0) tiltsmall = 0;
-      else error->all(FLERR,"Unknown box tilt argument: {}", arg[iarg+1]);
-      iarg += 2;
-    } else error->all(FLERR,"Unknown box keyword: {}", arg[iarg]);
   }
 }
 

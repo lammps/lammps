@@ -41,7 +41,6 @@ class Domain : protected Pointers {
                          // 3 = shrink-wrap non-per w/ min
 
   int triclinic;    // 0 = orthog box, 1 = triclinic
-  int tiltsmall;    // 1 if limit tilt, else 0
 
   // orthogonal box
 
@@ -141,7 +140,6 @@ class Domain : protected Pointers {
   const std::vector<Region *> get_region_by_style(const std::string &) const;
   const std::vector<Region *> get_region_list();
   void set_boundary(int, char **, int);
-  void set_box(int, char **);
   void print_box(const std::string &);
   void boundary_string(char *);
 

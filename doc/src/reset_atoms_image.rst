@@ -1,6 +1,6 @@
-.. index:: reset_image_flags
+.. index:: reset_atoms image
 
-reset image_flags sub-command
+reset_atoms image sub-command
 =============================
 
 Syntax
@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   reset image_flags group-ID
+   reset_atoms image group-ID
 
 * group-ID = ID of group of atoms whose image flags will be reset
 
@@ -17,8 +17,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   reset image_flags all
-   reset image_flags mobile
+   reset_atoms image all
+   reset_atoms image mobile
 
 Description
 """""""""""
@@ -63,7 +63,7 @@ The command can only be used when the atom style supports bonds.
 Related commands
 """"""""""""""""
 
-:doc:`reset mol_ids <reset_mol_ids>`,
+:doc:`reset_atoms <reset_atoms>`,
 :doc:`compute fragment/atom <compute_cluster_atom>`
 
 Defaults

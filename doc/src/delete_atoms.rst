@@ -129,14 +129,14 @@ other options listed above.
 
 Here is the meaning of the optional keywords.
 
-If the *compress* keyword is set to *yes*, then after atoms are
-deleted, then atom IDs are re-assigned so that they run from 1 to the
-number of atoms in the system.  Note that this is not done for
-molecular systems (see the :doc:`atom_style <atom_style>` command),
-regardless of the *compress* setting, since it would foul up the bond
-connectivity that has already been assigned.  However, the
-:doc:`reset_atom_ids <reset_atom_ids>` command can be used after this
-command to accomplish the same thing.
+If the *compress* keyword is set to *yes*, then after atoms are deleted,
+then atom IDs are re-assigned so that they run from 1 to the number of
+atoms in the system.  Note that this is not done for molecular systems
+(see the :doc:`atom_style <atom_style>` command), regardless of the
+*compress* setting, since it would foul up the bond connectivity that
+has already been assigned.  However, the :doc:`reset_atoms id
+<reset_atoms_id>` command can be used after this command to accomplish
+the same thing.
 
 Note that the re-assignment of IDs is not really a compression, where
 gaps in atom IDs are removed by decrementing atom IDs that are larger.
@@ -203,7 +203,7 @@ using molecule template files via the :doc:`molecule <molecule>` and
 Related commands
 """"""""""""""""
 
-:doc:`create_atoms <create_atoms>`, :doc:`reset_atom_ids <reset_atom_ids>`
+:doc:`create_atoms <create_atoms>`, :doc:`reset_atoms id <reset_atoms_id>`
 
 Default
 """""""

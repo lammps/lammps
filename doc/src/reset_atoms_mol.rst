@@ -1,14 +1,14 @@
-.. index:: reset_mol_ids
+.. index:: reset_atoms mol
 
-reset mol_ids sub-command
-=========================
+reset_atoms mol sub-command
+===========================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   reset mol_ids group-ID keyword value ...
+   reset_atoms mol group-ID keyword value ...
 
 * group-ID = ID of group of atoms whose molecule IDs will be reset
 * zero or more keyword/value pairs may be appended
@@ -25,10 +25,10 @@ Examples
 
 .. code-block:: LAMMPS
 
-   reset mol_ids all
-   reset mol_ids all offset 10 single yes
-   reset mol_ids solvent compress yes offset 100
-   reset mol_ids solvent compress no
+   reset_atoms mol all
+   reset_atoms mol all offset 10 single yes
+   reset_atoms mol solvent compress yes offset 100
+   reset_atoms mol solvent compress no
 
 Description
 """""""""""
@@ -106,7 +106,9 @@ none
 Related commands
 """"""""""""""""
 
-:doc:`reset atom_ids <reset_atom_ids>`, :doc:`fix bond/react <fix_bond_react>`,
+:doc:`reset_atoms <reset_atoms>`,
+:doc:`reset_atoms id <reset_atoms_id>`,
+:doc:`fix bond/react <fix_bond_react>`,
 :doc:`fix bond/create <fix_bond_create>`,
 :doc:`fix bond/break <fix_bond_break>`,
 :doc:`fix evaporate <fix_evaporate>`,

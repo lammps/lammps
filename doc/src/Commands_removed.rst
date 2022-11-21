@@ -17,10 +17,14 @@ ways through the :doc:`compute chunk/atom <compute_chunk_atom>` command
 and then averaging is done using :doc:`fix ave/chunk <fix_ave_chunk>`.
 Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 
-Reset_ids command
------------------
+Reset_ids, reset_atom_ids, reset_mol_ids commands
+-------------------------------------------------
 
-The reset_ids command has been renamed to :doc:`reset_atom_ids <reset_atom_ids>`.
+.. versionchanged:: TBD
+
+The *reset_ids* or *reset_atom_ids* commands have been renamed to
+:doc:`reset_atoms id <reset_atoms_id>`.  The *reset_mol_ids* command has
+been renamed to :doc:`reset_atoms mol <reset_atoms_mol>`.
 
 MEAM package
 ------------
@@ -30,18 +34,21 @@ The code in the :ref:`MEAM package <PKG-MEAM>` is a translation of the
 Fortran code of MEAM into C++, which removes several restrictions
 (e.g. there can be multiple instances in hybrid pair styles) and allows
 for some optimizations leading to better performance.  The pair style
-:doc:`meam <pair_meam>` has the exact same syntax.
+:doc:`meam <pair_meam>` has the exact same syntax.  For a transition
+period the C++ version of MEAM was called USER-MEAMC so it could
+coexist with the Fortran version.
 
 REAX package
 ------------
 
 The REAX package has been removed since it was superseded by the
-:ref:`REAXFF package <PKG-REAXFF>`.  The REAXFF
-package has been tested to yield equivalent results to the REAX package,
-offers better performance, supports OpenMP multi-threading via OPENMP,
-and GPU and threading parallelization through KOKKOS.  The new pair styles
-are not syntax compatible with the removed reax pair style, so input
-files will have to be adapted.
+:ref:`REAXFF package <PKG-REAXFF>`.  The REAXFF package has been tested
+to yield equivalent results to the REAX package, offers better
+performance, supports OpenMP multi-threading via OPENMP, and GPU and
+threading parallelization through KOKKOS.  The new pair styles are not
+syntax compatible with the removed reax pair style, so input files will
+have to be adapted.  The REAXFF package was originally called
+USER-REAXC.
 
 USER-CUDA package
 -----------------

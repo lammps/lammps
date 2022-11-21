@@ -1,6 +1,6 @@
-.. index:: reset_atom_ids
+.. index:: reset_atoms id
 
-reset atom_ids sub-command
+reset_atoms id sub-command
 ==========================
 
 Syntax
@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   reset atom_ids keyword values ...
+   reset_atoms id keyword values ...
 
    * zero or more keyword/value pairs may be appended
    * keyword = *sort*
@@ -22,8 +22,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   reset atom_ids
-   reset atom_ids sort yes
+   reset_atoms id
+   reset_atoms id sort yes
 
 Description
 """""""""""
@@ -80,7 +80,7 @@ processor have consecutive IDs, as the :doc:`create_atoms
    <comm_modify>` command can be used to correct this issue.  Or you can
    define a pair style before using this command.  If you do the former,
    you should unset the *comm_modify cutoff* after using *reset
-   atom_ids* so that subsequent communication is not inefficient.
+   atoms id* so that subsequent communication is not inefficient.
 
 Restrictions
 """"""""""""
@@ -89,7 +89,8 @@ none
 Related commands
 """"""""""""""""
 
-:doc:`delete_atoms <delete_atoms>`
+:doc:`delete_atoms <delete_atoms>`, :doc:`reset_atoms <reset_atoms>`,
+:doc:`reset_atoms mol <reset_atoms_mol>`
 
 Default
 """""""

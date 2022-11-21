@@ -13,7 +13,6 @@ Commands
    bond_style
    bond_write
    boundary
-   box
    change_box
    clear
    comm_modify

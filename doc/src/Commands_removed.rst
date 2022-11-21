@@ -20,11 +20,12 @@ Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 Reset_ids, reset_atom_ids, reset_mol_ids commands
 -------------------------------------------------
 
-.. versionchanged:: TBD
+.. deprecated:: TBD
 
-The *reset_ids* or *reset_atom_ids* commands have been renamed to
-:doc:`reset_atoms id <reset_atoms_id>`.  The *reset_mol_ids* command has
-been renamed to :doc:`reset_atoms mol <reset_atoms_mol>`.
+The *reset_ids* or *reset_atom_ids* or *reset_mol_ids* commands have
+been folded into the :doc:`reset_atoms <reset_atoms>` meta-command.  If
+present, LAMMPS will replace the commands accordingly and print a
+warning.
 
 MEAM package
 ------------

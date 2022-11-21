@@ -59,7 +59,11 @@ inline int cuda_max_active_blocks_per_sm(cudaDeviceProp const& properties,
   // Limits due do registers/SM
   int const regs_per_sm     = properties.regsPerMultiprocessor;
   int const regs_per_thread = attributes.numRegs;
-  int const max_blocks_regs = regs_per_sm / (regs_per_thread * block_size);
+  // The granularity of register allocation is chunks of 256 registers per warp
+  // -> 8 registers per thread
+  int const allocated_regs_per_thread = 8 * ((regs_per_thread + 8 - 1) / 8);
+  int const max_blocks_regs =
+      regs_per_sm / (allocated_regs_per_thread * block_size);
 
   // Limits due to shared memory/SM
   size_t const shmem_per_sm            = properties.sharedMemPerMultiprocessor;

@@ -257,7 +257,7 @@ __kernel void k_lj_tip4p_reneigh(
     }
     if (i<inum && itype == typeH) {
       if (hneigh[i*4+2] != -1) {
-        int iI, iH;
+        int iI;
         iI = atom_mapping(map,tag[i] - 1);
         iO  = closest_image(i,iI,sametag, x_);
         numtyp4 iIx; fetch4(iIx,iO,pos_tex); //x_[iI];

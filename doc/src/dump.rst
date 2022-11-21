@@ -202,7 +202,7 @@ or multiple smaller files).
    to a dump file may be slightly outside the simulation box.
    Re-neighbor timesteps will not typically coincide with the
    timesteps dump snapshots are written.  See the :doc:`dump_modify
-   pbc <dump_modify>` command if you with to force coordinates to be
+   pbc <dump_modify>` command if you wish to force coordinates to be
    strictly inside the simulation box.
 
 .. note::

@@ -6,7 +6,7 @@ compute rigid/local command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID rigid/local rigidID input1 input2 ...
 
@@ -25,6 +25,9 @@ Syntax
                              quatw, quati, quatj, quatk,
                              tqx, tqy, tqz,
                              inertiax, inertiay, inertiaz
+
+  .. parsed-literal::
+
            id = atom ID of atom within body which owns body properties
            mol = molecule ID used to define body in :doc:`fix rigid/small <fix_rigid>` command
            mass = total mass of body
@@ -69,8 +72,8 @@ the atoms owned on a processor.  If the atom is not in the specified
 the atom within a body that is assigned to store the body information
 it is skipped (only one atom per body is so assigned).  If it is the
 assigned atom, then the info for that body is output.  This means that
-information for N bodies is generated.  N may be less than the # of
-bodies defined by the fix rigid command, if the atoms in some bodies
+information for :math:`N` bodies is generated.  :math:`N` may be less than the
+number of bodies defined by the fix rigid command, if the atoms in some bodies
 are not in the *group-ID*\ .
 
 .. note::
@@ -119,7 +122,7 @@ The image flags for the body can be generated directly using the *ix*,
 *iy*, *iz* attributes.  For periodic dimensions, they specify which
 image of the simulation box the COM is considered to be in.  An image
 of 0 means it is inside the box as defined.  A value of 2 means add 2
-box lengths to get the true value.  A value of -1 means subtract 1 box
+box lengths to get the true value.  A value of :math:`-1` means subtract 1 box
 length to get the true value.  LAMMPS updates these flags as the rigid
 body COMs cross periodic boundaries during the simulation.
 
@@ -141,8 +144,8 @@ The *tqx*, *tqy*, *tqz* attributes are components of the torque acting
 on the body around its COM.
 
 The *inertiax*, *inertiay*, *inertiaz* attributes are components of
-diagonalized inertia tensor for the body, i.e the 3 moments of inertia
-for the body around its principal axes, as computed internally by
+diagonalized inertia tensor for the body (i.e., the three moments of inertia
+for the body around its principal axes), as computed internally by
 LAMMPS.
 
 ----------
@@ -169,10 +172,10 @@ corresponding attribute is in:
 * vx,vy,vz = velocity units
 * fx,fy,fz = force units
 * omegax,omegay,omegaz = radians/time units
-* angmomx,angmomy,angmomz = mass\*distance\^2/time units
+* angmomx,angmomy,angmomz = mass\*distance\ :math:`^2`\ /time units
 * quatw,quati,quatj,quatk = unitless
 * tqx,tqy,tqz = torque units
-* inertiax,inertiay,inertiaz = mass\*distance\^2 units
+* inertiax,inertiay,inertiaz = mass\*distance\ :math:`^2` units
 
 Restrictions
 """"""""""""

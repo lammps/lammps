@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -198,8 +198,12 @@ void ComputeFEP::init()
 
     if (pert->which == PAIR) {
       pairflag = 1;
+      Pair *pair = nullptr;
 
-      Pair *pair = force->pair_match(pert->pstyle, 1);
+      if (lmp->suffix_enable)
+        pair = force->pair_match(std::string(pert->pstyle)+"/"+lmp->suffix,1);
+
+      if (pair == nullptr) pair = force->pair_match(pert->pstyle,1);
       if (pair == nullptr)
         error->all(FLERR,
                    "compute fep pair style "

@@ -45,6 +45,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 4May2022
+
 The *bpm/spring* bond style computes forces and torques based on
 deviations from the initial reference state of the two atoms.  The
 reference state is stored by each bond when it is first computed in
@@ -167,9 +169,9 @@ extra quantity can be accessed by the
 Restrictions
 """"""""""""
 
-This bond style can only be used if LAMMPS was built with the BPM
-package. See the :doc:`Build package <Build_package>` doc page for
-more info.
+This bond style is part of the BPM package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 By default if pair interactions are to be disabled, this bond style
 requires setting

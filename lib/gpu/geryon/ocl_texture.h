@@ -76,7 +76,7 @@ class UCL_Const {
   /// Copy from array on host to const memory
   template <class numtyp>
   inline void update_device(UCL_H_Vec<numtyp> &src, const int numel) {
-    const int bytes=numel*sizeof(numtyp);
+    const size_t bytes=numel*sizeof(numtyp);
     if (_global_bytes < bytes) {
       if (_global_bytes) CL_SAFE_CALL(clReleaseMemObject(_global));
       cl_int e;
@@ -84,7 +84,7 @@ class UCL_Const {
       CL_SAFE_CALL(e);
     }
     CL_SAFE_CALL(clEnqueueWriteBuffer(_cq, _global, CL_FALSE, 0, bytes,
-				      (void *)src.begin(), 0, NULL, NULL));
+                                      (void *)src.begin(), 0, NULL, NULL));
   }
   /// Get device ptr associated with object
   inline const cl_mem * begin() const { return &_global; }

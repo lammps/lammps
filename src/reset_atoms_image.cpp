@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "reset_image_flags.h"
+#include "reset_atoms_image.h"
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -31,27 +31,27 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ResetImageFlags::ResetImageFlags(LAMMPS *lmp) : Command(lmp) {}
+ResetAtomsImage::ResetAtomsImage(LAMMPS *lmp) : Command(lmp) {}
 
 /* ----------------------------------------------------------------------
-   called as reset_image_flags command in input script
+   called as reset_atoms image command in input script
 ------------------------------------------------------------------------- */
 
-void ResetImageFlags::command(int narg, char **arg)
+void ResetAtomsImage::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Reset image_flags command before simulation box is defined");
+    error->all(FLERR, "Reset_atoms image command before simulation box is defined");
   if (atom->tag_enable == 0)
-    error->all(FLERR, "Cannot use reset image_flags unless atoms have IDs");
+    error->all(FLERR, "Cannot use reset_atoms image unless atoms have IDs");
   if (atom->avec->bonds_allow == 0)
-    error->all(FLERR, "Cannot use reset image_flags used when bonds are not allowed");
+    error->all(FLERR, "Cannot use reset_atoms image used when bonds are not allowed");
 
   // process args
 
-  if (narg < 1) utils::missing_cmd_args(FLERR, "reset image_flags", error);
-  if (narg > 1) error->all(FLERR, "Unknown reset image_flags keyword: {}", arg[1]);
+  if (narg < 1) utils::missing_cmd_args(FLERR, "reset_atoms image", error);
+  if (narg > 1) error->all(FLERR, "Unknown reset_atoms image keyword: {}", arg[1]);
   int igroup = group->find(arg[0]);
-  if (igroup < 0) error->all(FLERR, "Could not find reset image_flags group {}", arg[0]);
+  if (igroup < 0) error->all(FLERR, "Could not find reset_atoms image group {}", arg[0]);
   int groupbit = group->bitmask[igroup];
 
   if (comm->me == 0) utils::logmesg(lmp, "Resetting image flags ...\n");
@@ -137,5 +137,5 @@ void ResetImageFlags::command(int narg, char **arg)
 
   MPI_Barrier(world);
   if (comm->me == 0)
-    utils::logmesg(lmp, "  reset image_flags CPU = {:.3f} seconds\n", platform::walltime() - time1);
+    utils::logmesg(lmp, "  reset_atoms image CPU = {:.3f} seconds\n", platform::walltime() - time1);
 }

@@ -37,11 +37,11 @@ namespace LAMMPS_NS {
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
-class ResetAtomIDsTest : public LAMMPSTest {
+class ResetAtomsIDTest : public LAMMPSTest {
 protected:
     void SetUp() override
     {
-        testbinary = "ResetAtomIDsTest";
+        testbinary = "ResetAtomsIDTest";
         LAMMPSTest::SetUp();
         if (info->has_style("atom", "full")) {
             BEGIN_HIDE_OUTPUT();
@@ -52,7 +52,7 @@ protected:
     }
 };
 
-TEST_F(ResetAtomIDsTest, MolIDAll)
+TEST_F(ResetAtomsIDTest, MolIDAll)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -90,7 +90,7 @@ TEST_F(ResetAtomIDsTest, MolIDAll)
     // the original data file has two different molecule IDs
     // for two residues of the same molecule/fragment.
     BEGIN_HIDE_OUTPUT();
-    command("reset mol_ids all");
+    command("reset_atoms mol all");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(1)], 1);
@@ -124,7 +124,7 @@ TEST_F(ResetAtomIDsTest, MolIDAll)
     ASSERT_EQ(molid[GETIDX(29)], 5);
 }
 
-TEST_F(ResetAtomIDsTest, DeletePlusAtomID)
+TEST_F(ResetAtomsIDTest, DeletePlusAtomID)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -135,7 +135,7 @@ TEST_F(ResetAtomIDsTest, DeletePlusAtomID)
     command("group allwater molecule 3:6");
     command("group twowater molecule 4:6:2");
     command("delete_atoms group twowater compress no bond yes");
-    command("reset mol_ids all");
+    command("reset_atoms mol all");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 23);
     ASSERT_EQ(lmp->atom->map_tag_max, 26);
@@ -194,7 +194,7 @@ TEST_F(ResetAtomIDsTest, DeletePlusAtomID)
     ASSERT_GE(GETIDX(26), 0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(lmp->atom->map_tag_max, 23);
@@ -202,7 +202,7 @@ TEST_F(ResetAtomIDsTest, DeletePlusAtomID)
         ASSERT_GE(GETIDX(i), 0);
 }
 
-TEST_F(ResetAtomIDsTest, PartialOffset)
+TEST_F(ResetAtomsIDTest, PartialOffset)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -212,7 +212,7 @@ TEST_F(ResetAtomIDsTest, PartialOffset)
     BEGIN_HIDE_OUTPUT();
     command("group allwater molecule 3:6");
     command("group nowater subtract all allwater");
-    command("reset mol_ids allwater offset 4");
+    command("reset_atoms mol allwater offset 4");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 29);
     ASSERT_EQ(lmp->atom->map_tag_max, 29);
@@ -248,7 +248,7 @@ TEST_F(ResetAtomIDsTest, PartialOffset)
     ASSERT_EQ(molid[GETIDX(29)], 8);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset mol_ids nowater offset 0");
+    command("reset_atoms mol nowater offset 0");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(1)], 1);
@@ -282,7 +282,7 @@ TEST_F(ResetAtomIDsTest, PartialOffset)
     ASSERT_EQ(molid[GETIDX(29)], 8);
 }
 
-TEST_F(ResetAtomIDsTest, DeleteAdd)
+TEST_F(ResetAtomsIDTest, DeleteAdd)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -294,7 +294,7 @@ TEST_F(ResetAtomIDsTest, DeleteAdd)
     command("group twowater molecule 4:6:2");
     command("group nowater subtract all allwater");
     command("delete_atoms group twowater compress no bond yes mol yes");
-    command("reset mol_ids allwater");
+    command("reset_atoms mol allwater");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 23);
     ASSERT_EQ(lmp->atom->map_tag_max, 26);
@@ -353,7 +353,7 @@ TEST_F(ResetAtomIDsTest, DeleteAdd)
     ASSERT_GE(GETIDX(26), 0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset atom_ids sort yes");
+    command("reset_atoms id sort yes");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(lmp->atom->map_tag_max, 23);
@@ -361,7 +361,7 @@ TEST_F(ResetAtomIDsTest, DeleteAdd)
         ASSERT_GE(GETIDX(i), 0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset mol_ids nowater offset 1");
+    command("reset_atoms mol nowater offset 1");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(1)], 2);
@@ -393,7 +393,7 @@ TEST_F(ResetAtomIDsTest, DeleteAdd)
     command("create_atoms 2 single 1.0 0.0 0.0");
     command("create_atoms 3 single 2.0 0.0 0.0");
     command("create_atoms 4 single 3.0 0.0 0.0");
-    command("reset mol_ids all single yes");
+    command("reset_atoms mol all single yes");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 27);
     ASSERT_EQ(lmp->atom->map_tag_max, 27);
@@ -407,7 +407,7 @@ TEST_F(ResetAtomIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(27)], 7);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset mol_ids all single no");
+    command("reset_atoms mol all single no");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(21)], 3);
@@ -419,7 +419,7 @@ TEST_F(ResetAtomIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(27)], 0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset mol_ids all compress no single yes");
+    command("reset_atoms mol all compress no single yes");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(21)], 21);
@@ -431,7 +431,7 @@ TEST_F(ResetAtomIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(27)], 27);
 }
 
-TEST_F(ResetAtomIDsTest, TopologyData)
+TEST_F(ResetAtomsIDTest, TopologyData)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -526,7 +526,7 @@ TEST_F(ResetAtomIDsTest, TopologyData)
     ASSERT_EQ(angle_atom3[GETIDX(24)][0], 26);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset atom_ids sort yes");
+    command("reset_atoms id sort yes");
     END_HIDE_OUTPUT();
 
     num_bond    = lmp->atom->num_bond;
@@ -619,82 +619,85 @@ TEST_F(ResetAtomIDsTest, TopologyData)
     ASSERT_EQ(angle_atom3[GETIDX(22)][0], 23);
 }
 
-TEST_F(ResetAtomIDsTest, DeathTests)
+TEST_F(ResetAtomsIDTest, DeathTests)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
-    TEST_FAILURE(".*ERROR: Illegal reset mol_ids command.*", command("reset mol_ids"););
-    TEST_FAILURE(".*ERROR: Unknown reset mol_ids keyword: 1.*",
-                 command("reset mol_ids all offset 1 1"););
-    TEST_FAILURE(".*ERROR: Illegal reset mol_ids command.*",
-                 command("reset mol_ids all offset -2"););
-    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*", command("reset mol_ids all offset xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol command.*", command("reset_atoms mol"););
+    TEST_FAILURE(".*ERROR: Unknown reset_atoms mol keyword: 1.*",
+                 command("reset_atoms mol all offset 1 1"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol offset: -2.*",
+                 command("reset_atoms mol all offset -2"););
     TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
-                 command("reset mol_ids all compress yes single no offset xxx"););
-    TEST_FAILURE(".*ERROR: Illegal reset mol_ids offset command: missing argument.*",
-                 command("reset mol_ids all offset"););
-    TEST_FAILURE(".*ERROR: Illegal reset mol_ids compress command: missing argument.*",
-                 command("reset mol_ids all compress"););
+                 command("reset_atoms mol all offset xxx"););
+    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
+                 command("reset_atoms mol all compress yes single no offset xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol offset command: missing argument.*",
+                 command("reset_atoms mol all offset"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol compress command: missing argument.*",
+                 command("reset_atoms mol all compress"););
 
     TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
-                 command("reset mol_ids all compress xxx"););
-    TEST_FAILURE(".*ERROR: Illegal reset mol_ids single command: missing argument.*",
-                 command("reset mol_ids all single"););
+                 command("reset_atoms mol all compress xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol single command: missing argument.*",
+                 command("reset_atoms mol all single"););
     TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
-                 command("reset mol_ids all single xxx"););
+                 command("reset_atoms mol all single xxx"););
 
-    TEST_FAILURE(".*ERROR: Illegal reset image_flags command: missing argument.*",
-                 command("reset image_flags"););
-    TEST_FAILURE(".*ERROR: Unknown reset image_flags keyword: xxx.*",
-                 command("reset image_flags all xxx"););
-    TEST_FAILURE(".*ERROR: Could not find reset image_flags group xxx.*",
-                 command("reset image_flags xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms image command: missing argument.*",
+                 command("reset_atoms image"););
+    TEST_FAILURE(".*ERROR: Unknown reset_atoms image keyword: xxx.*",
+                 command("reset_atoms image all xxx"););
+    TEST_FAILURE(".*ERROR: Could not find reset_atoms image group xxx.*",
+                 command("reset_atoms image xxx"););
 }
 
-class ResetMolIDsTest : public LAMMPSTest {
+class ResetAtomsMolTest : public LAMMPSTest {
 protected:
     void SetUp() override
     {
-        testbinary = "ResetAtomIDsTest";
+        testbinary = "ResetAtomsMolTest";
         LAMMPSTest::SetUp();
     }
 };
 
-TEST_F(ResetMolIDsTest, FailBeforeBox)
+TEST_F(ResetAtomsMolTest, FailBeforeBox)
 {
-    TEST_FAILURE(".*ERROR: Reset mol_ids command before simulation box is.*",
-                 command("reset mol_ids all"););
-    TEST_FAILURE(".*ERROR: Reset image_flags command before simulation box is.*",
-                 command("reset image_flags all"););
+    TEST_FAILURE(".*ERROR: Reset_atoms id command before simulation box is.*",
+                 command("reset_atoms id"););
+    TEST_FAILURE(".*ERROR: Reset_atoms mol command before simulation box is.*",
+                 command("reset_atoms mol all"););
+    TEST_FAILURE(".*ERROR: Reset_atoms image command before simulation box is.*",
+                 command("reset_atoms image all"););
 }
 
-TEST_F(ResetMolIDsTest, FailMissingId)
+TEST_F(ResetAtomsMolTest, FailMissingId)
 {
     BEGIN_HIDE_OUTPUT();
     command("atom_modify id no");
     command("region box block 0 1 0 1 0 1");
     command("create_box 1 box");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*ERROR: Cannot use reset mol_ids unless.*", command("reset mol_ids all"););
-    TEST_FAILURE(".*ERROR: Cannot use reset image_flags unless.*",
-                 command("reset image_flags all"););
+    TEST_FAILURE(".*ERROR: Cannot use reset_atoms mol unless.*", command("reset_atoms mol all"););
+    TEST_FAILURE(".*ERROR: Cannot use reset_atoms image unless.*",
+                 command("reset_atoms image all"););
 }
 
-TEST_F(ResetMolIDsTest, FailOnlyMolecular)
+TEST_F(ResetAtomsMolTest, FailOnlyMolecular)
 {
     BEGIN_HIDE_OUTPUT();
     command("clear");
     command("region box block 0 1 0 1 0 1");
     command("create_box 1 box");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*ERROR: Can only use reset mol_ids.*", command("reset mol_ids all"););
+    TEST_FAILURE(".*ERROR: Can only use reset_atoms mol.*", command("reset_atoms mol all"););
 }
 
-class ResetImageFlagsTest : public LAMMPSTest {
+class ResetAtomsImageTest : public LAMMPSTest {
 protected:
     void SetUp() override
     {
-        testbinary = "ResetAtomIDsTest";
+        testbinary = "ResetAtomsImageTest";
         LAMMPSTest::SetUp();
         if (info->has_style("atom", "full")) {
             BEGIN_HIDE_OUTPUT();
@@ -722,7 +725,7 @@ protected:
     }
 };
 
-TEST_F(ResetImageFlagsTest, ResetImageFlags)
+TEST_F(ResetAtomsImageTest, ResetAtomsImage)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
     EXPECT_EQ(lmp->atom->image[GETIDX(1)], lammps_encode_image_flags(1, 1, -1));
@@ -759,7 +762,7 @@ TEST_F(ResetImageFlagsTest, ResetImageFlags)
     EXPECT_EQ(lmp->atom->image[GETIDX(32)], lammps_encode_image_flags(0, 20, 0));
     BEGIN_HIDE_OUTPUT();
     command("group subset id 5:32");
-    command("reset image_flags subset");
+    command("reset_atoms image subset");
     END_HIDE_OUTPUT();
     EXPECT_EQ(lmp->atom->image[GETIDX(1)], lammps_encode_image_flags(1, 1, -1));
     EXPECT_EQ(lmp->atom->image[GETIDX(2)], lammps_encode_image_flags(1, 1, -1));

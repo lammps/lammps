@@ -38,7 +38,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include "neighbor.h"
 #include "pair.h"
 #include "random_mars.h"
-#include "reset_mol_ids.h"
+#include "reset_atoms_mol.h"
 #include "respa.h"
 #include "update.h"
 #include "variable.h"
@@ -118,8 +118,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   fix3 = nullptr;
   reset_mol_ids = nullptr;
 
-  if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: "
-                           "too few arguments");
+  if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: " "too few arguments");
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -209,7 +208,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   if (reset_mol_ids_flag) {
     delete reset_mol_ids;
-    reset_mol_ids = new ResetMolIDs(lmp);
+    reset_mol_ids = new ResetAtomsMol(lmp);
     reset_mol_ids->create_computes(id,group->names[igroup]);
   }
 

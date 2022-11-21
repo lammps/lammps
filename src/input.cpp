@@ -831,7 +831,7 @@ int Input::execute_command()
   // process "meta-commands", i.e. commands that may have sub-commands
   // they return 1 if there was a match and 0 if not
 
-  if (mycmd == "reset") flag = meta(mycmd);
+  if (mycmd == "reset_atoms") flag = meta(mycmd);
   if (flag) return 0;
 
   // invoke commands added via style_command.h

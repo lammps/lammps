@@ -14,14 +14,13 @@
 #ifdef COMMAND_CLASS
 // clang-format off
 CommandStyle(DEPRECATED,Deprecated);
-CommandStyle(reset_ids,Deprecated);
 CommandStyle(kim_init,Deprecated);
 CommandStyle(kim_interactions,Deprecated);
 CommandStyle(kim_param,Deprecated);
 CommandStyle(kim_property,Deprecated);
 CommandStyle(kim_query,Deprecated);
+CommandStyle(reset_ids,Deprecated);
 CommandStyle(reset_atom_ids,Deprecated);
-CommandStyle(reset_image_flags,Deprecated);
 CommandStyle(reset_mol_ids,Deprecated);
 CommandStyle(message,Deprecated);
 CommandStyle(server,Deprecated);

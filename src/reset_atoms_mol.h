@@ -13,23 +13,36 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(RESET_IMAGE_FLAGS,ResetImageFlags);
+CommandStyle(RESET_ATOMS_MOL,ResetAtomsMol);
 // clang-format on
 #else
 
-#ifndef LMP_RESET_IMAGE_FLAGS_H
-#define LMP_RESET_IMAGE_FLAGS_H
+#ifndef LMP_RESET_ATOMS_MOL_H
+#define LMP_RESET_ATOMS_MOL_H
 
 #include "command.h"
 
 namespace LAMMPS_NS {
 
-class ResetImageFlags : public Command {
+class ResetAtomsMol : public Command {
  public:
-  ResetImageFlags(class LAMMPS *);
+  ResetAtomsMol(class LAMMPS *);
+  ~ResetAtomsMol() override;
   void command(int, char **) override;
-};
+  void create_computes(char *, char *);
+  void reset();
 
+ private:
+  std::string idfrag, idchunk;
+  int nchunk;
+  int groupbit;
+  int compressflag;    // 1 = contiguous values for new IDs
+  int singleflag;      // 0 = mol IDs of single atoms set to 0
+  tagint offset;       // offset for contiguous mol ID values
+
+  class ComputeFragmentAtom *cfa;
+  class ComputeChunkAtom *cca;
+};
 }    // namespace LAMMPS_NS
 
 #endif

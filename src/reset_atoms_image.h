@@ -13,49 +13,22 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(RESET_ATOM_IDS,ResetIDs);
+CommandStyle(RESET_ATOMS_IMAGE,ResetAtomsImage);
 // clang-format on
 #else
 
-#ifndef LMP_RESET_IDS_H
-#define LMP_RESET_IDS_H
+#ifndef LMP_RESET_ATOMS_IMAGE_H
+#define LMP_RESET_ATOMS_IMAGE_H
 
 #include "command.h"
 
 namespace LAMMPS_NS {
 
-class ResetIDs : public Command {
+class ResetAtomsImage : public Command {
  public:
-  struct AtomRvous {
-    bigint ibin;
-    int proc, ilocal;
-    double x[3];
-  };
-
-  struct IDRvous {
-    tagint newID;
-    int ilocal;
-  };
-
-#if defined(LMP_QSORT)
-  // static variable across all ResetID objects, for qsort callback
-  static AtomRvous *sortrvous;
-#endif
-
-  ResetIDs(class LAMMPS *);
+  ResetAtomsImage(class LAMMPS *);
   void command(int, char **) override;
-
- private:
-  bigint binlo, binhi;
-
-  // callback functions for rendezvous communication
-
-  static int sort_bins(int, char *, int &, int *&, char *&, void *);
-
-  void sort();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

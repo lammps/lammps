@@ -13,38 +13,47 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(RESET_MOL_IDS,ResetMolIDs);
+CommandStyle(RESET_ATOMS_ID,ResetAtomsID);
 // clang-format on
 #else
 
-#ifndef LMP_RESET_MOL_IDS_H
-#define LMP_RESET_MOL_IDS_H
+#ifndef LMP_RESET_ATOMS_ID_H
+#define LMP_RESET_ATOMS_ID_H
 
 #include "command.h"
 
 namespace LAMMPS_NS {
 
-class ResetMolIDs : public Command {
+class ResetAtomsID : public Command {
  public:
-  ResetMolIDs(class LAMMPS *);
-  ~ResetMolIDs() override;
+  struct AtomRvous {
+    bigint ibin;
+    int proc, ilocal;
+    double x[3];
+  };
+
+  struct IDRvous {
+    tagint newID;
+    int ilocal;
+  };
+
+#if defined(LMP_QSORT)
+  // static variable across all ResetID objects, for qsort callback
+  static AtomRvous *sortrvous;
+#endif
+
+  ResetAtomsID(class LAMMPS *);
   void command(int, char **) override;
-  void create_computes(char *, char *);
-  void reset();
 
  private:
-  std::string idfrag, idchunk;
-  int nchunk;
-  int groupbit;
-  int compressflag;    // 1 = contiguous values for new IDs
-  int singleflag;      // 0 = mol IDs of single atoms set to 0
-  tagint offset;       // offset for contiguous mol ID values
+  bigint binlo, binhi;
 
-  class ComputeFragmentAtom *cfa;
-  class ComputeChunkAtom *cca;
+  // callback functions for rendezvous communication
+
+  static int sort_bins(int, char *, int &, int *&, char *&, void *);
+
+  void sort();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

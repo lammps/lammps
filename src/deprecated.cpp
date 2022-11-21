@@ -32,9 +32,6 @@ void Deprecated::command(int narg, char **arg)
   if (cmd == "DEPRECATED") {
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nCommand 'DEPRECATED' is a dummy command\n\n");
     return;
-  } else if (cmd == "reset_ids") {
-    if (lmp->comm->me == 0)
-      utils::logmesg(lmp, "\n'reset_ids' has been renamed to 'reset atom_ids'\n\n");
   } else if (utils::strmatch(cmd, "^kim_")) {
     std::string newcmd("kim");
     newcmd += " " + cmd.substr(4);
@@ -48,8 +45,9 @@ void Deprecated::command(int narg, char **arg)
     input->one(newcmd);
     return;
   } else if (utils::strmatch(cmd, "^reset_")) {
-    std::string newcmd("reset");
-    newcmd += " " + cmd.substr(6);
+    std::string newcmd("reset_atoms");
+    if ((cmd == "reset_ids") || (cmd == "reset_atom_ids")) newcmd += " id";
+    if (cmd == "reset_mol_ids") newcmd += " mol";
     if (lmp->comm->me == 0)
       utils::logmesg(lmp, "\nWARNING: '{}' has been renamed to '{}'. Please update your input.\n\n",
                      cmd, newcmd);

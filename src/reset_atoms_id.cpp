@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "reset_atom_ids.h"
+#include "reset_atoms_id.h"
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 #if defined(LMP_QSORT)
 // allocate space for static class variable
 // prototype for non-class function
-ResetIDs::AtomRvous *ResetIDs::sortrvous;
+ResetAtomsID::AtomRvous *ResetAtomsID::sortrvous;
 static int compare_coords(const void *, const void *);
 #else
 // prototype for non-class function
@@ -43,19 +43,19 @@ static int compare_coords(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
-ResetIDs::ResetIDs(LAMMPS *lmp) : Command(lmp) {}
+ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void ResetIDs::command(int narg, char **arg)
+void ResetAtomsID::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, "Reset atom_ids command before simulation box is defined");
-  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset atom_ids unless atoms have IDs");
+    error->all(FLERR, "Reset_atoms id command before simulation box is defined");
+  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset_atoms id unless atoms have IDs");
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->stores_ids)
-      error->all(FLERR, "Cannot use reset atom_ids when a fix exists that stores atom IDs");
+      error->all(FLERR, "Cannot use reset_atoms id when a fix exists that stores atom IDs");
 
   if (comm->me == 0) utils::logmesg(lmp, "Resetting atom IDs ...\n");
 
@@ -66,11 +66,11 @@ void ResetIDs::command(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "sort") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset atom_ids", error);
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset_atoms id", error);
       sortflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Unknown reset atom_ids keyword: {}", arg[iarg]);
+      error->all(FLERR, "Unknown reset_atoms id keyword: {}", arg[iarg]);
   }
 
   // create an atom map if one doesn't exist already
@@ -278,7 +278,7 @@ void ResetIDs::command(int narg, char **arg)
   MPI_Allreduce(&badcount, &all, 1, MPI_INT, MPI_SUM, world);
   if (all)
     error->all(FLERR,
-               "Reset atom_ids is missing {} bond topology atom IDs - use comm_modify cutoff", all);
+               "reset_atoms id is missing {} bond topology atom IDs - use comm_modify cutoff", all);
 
   // reset IDs and atom map for owned atoms
 
@@ -312,7 +312,7 @@ void ResetIDs::command(int narg, char **arg)
    spatial sort of atoms followed by rendezvous comm to reset atom IDs
 ------------------------------------------------------------------------- */
 
-void ResetIDs::sort()
+void ResetAtomsID::sort()
 {
   double mylo[3], myhi[3], bboxlo[3], bboxhi[3];
 
@@ -469,11 +469,11 @@ void ResetIDs::sort()
    outbuf = list of N IDRvous datums, sent back to sending proc
 ------------------------------------------------------------------------- */
 
-int ResetIDs::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&outbuf, void *ptr)
+int ResetAtomsID::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&outbuf, void *ptr)
 {
   int i, ibin, index;
 
-  auto rptr = (ResetIDs *) ptr;
+  auto rptr = (ResetAtomsID *) ptr;
   Memory *memory = rptr->memory;
   Error *error = rptr->error;
   MPI_Comm world = rptr->world;
@@ -504,7 +504,7 @@ int ResetIDs::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&ou
     if (in[i].ibin < binlo || in[i].ibin >= binhi) {
       //printf("BAD me %d i %d %d ibin %d binlohi %d %d\n",
       //             rptr->comm->me,i,n,in[i].ibin,binlo,binhi);
-      error->one(FLERR, "Bad spatial bin assignment in reset atom_ids sort");
+      error->one(FLERR, "Bad spatial bin assignment in reset_atoms id sort");
     }
     ibin = in[i].ibin - binlo;
     if (head[ibin] < 0) head[ibin] = i;
@@ -597,7 +597,7 @@ int compare_coords(const void *iptr, const void *jptr)
 {
   int i = *((int *) iptr);
   int j = *((int *) jptr);
-  ResetIDs::AtomRvous *rvous = ResetIDs::sortrvous;
+  ResetAtomsID::AtomRvous *rvous = ResetAtomsID::sortrvous;
   double *xi = rvous[i].x;
   double *xj = rvous[j].x;
   if (xi[0] < xj[0]) return -1;
@@ -618,7 +618,7 @@ int compare_coords(const void *iptr, const void *jptr)
 
 int compare_coords(const int i, const int j, void *ptr)
 {
-  auto rvous = (ResetIDs::AtomRvous *) ptr;
+  auto rvous = (ResetAtomsID::AtomRvous *) ptr;
   double *xi = rvous[i].x;
   double *xj = rvous[j].x;
   if (xi[0] < xj[0]) return -1;

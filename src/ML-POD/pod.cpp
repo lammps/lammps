@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)   
+   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)
 ------------------------------------------------------------------------- */
 
 // POD header file
@@ -25,7 +25,7 @@
 #include "error.h"
 #include "memory.h"
 #include "tokenizer.h"
-#include "math_const.h"         
+#include "math_const.h"
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -366,7 +366,7 @@ void CPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *besse
   memory->create(Q, N*ns, "pod:Q");
   memory->create(A, ns*ns, "pod:A");
   memory->create(b, ns, "pod:ns");
-  
+
   for (int i=0; i<N; i++)
     xij[i] = (rin+1e-6) + (rcut-rin-1e-6)*(i*1.0/(N-1));
 
@@ -1777,8 +1777,8 @@ void CPOD::InitSnap()
   for (int i=0; i<ntypes; i++)
     for (int j=0; j<ntypes; j++) {
       double cut = (elemradius[i] + elemradius[j])*rcutfac;
-      sna.rcutsq[j+1 + (i+1)*(ntypes+1)] = cut*cut;      
-    }  
+      sna.rcutsq[j+1 + (i+1)*(ntypes+1)] = cut*cut;
+    }
   //TemplateCopytoDevice(sna.rcutsq, cutsq, (ntypes+1)*(ntypes+1), backend);
 
   if (bzeroflag) {

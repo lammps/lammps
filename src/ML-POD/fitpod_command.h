@@ -114,10 +114,10 @@ public:
   datastruct testdata;
   descriptorstruct desc;
   neighborstruct nb;
-  class CPOD *podptr;  
+  class CPOD *podptr;
 
-  CFITPOD(LAMMPS *lmp) : Command(lmp) {}  
-  
+  CFITPOD(LAMMPS *lmp) : Command(lmp) {}
+
   void command(int, char **) override;
   void read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
     std::string &test_path, std::string &training_path, std::string data_file);

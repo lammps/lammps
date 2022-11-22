@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)   
+   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)
 ------------------------------------------------------------------------- */
 
 #include "fitpod_command.h"
@@ -55,8 +55,8 @@ std::vector<std::string> static globVector(const std::string& pattern, std::vect
 }
 
 void CFITPOD::command(int narg, char **arg)
-{    
-  if (narg < 2) error->all(FLERR,"Illegal fitpod command");
+{
+  if (narg < 2) utils::missing_cmd_args(FLERR, "fitpod", error);
 
   std::string pod_file = std::string(arg[0]);  // pod input file
   std::string data_file = std::string(arg[1]); // data input file
@@ -68,7 +68,6 @@ void CFITPOD::command(int narg, char **arg)
     coeff_file = "";
 
   podptr = new CPOD(lmp, pod_file, coeff_file);
-    
   read_data_files(data_file, podptr->pod.species);
 
   if ((int) traindata.data_path.size() > 1)
@@ -79,7 +78,7 @@ void CFITPOD::command(int narg, char **arg)
   // get POD coefficients from an input file
 
   if (coeff_file != "") podptr->podArrayCopy(desc.c, podptr->pod.coeff, podptr->pod.nd);
-  
+
   // compute POD coefficients using least-squares method
 
   least_squares_fit(traindata);
@@ -114,7 +113,7 @@ void CFITPOD::command(int narg, char **arg)
     memory->destroy(traindata.force);
     memory->destroy(traindata.atomtype);
   }
-  
+
   // deallocate testing data
 
   if ((int) testdata.data_path.size() > 1 && (testdata.data_path != traindata.data_path)){
@@ -214,23 +213,25 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format, 
     if (keywd == "path_to_test_data_set") test_path = words[1];
   }
 
-  utils::logmesg(lmp, "**************** Begin of Data File ****************\n");
-  utils::logmesg(lmp, "file format: {}\n", file_format);
-  utils::logmesg(lmp, "file extension: {}\n", file_extension);
-  utils::logmesg(lmp, "path to training data set: {}\n", training_path);
-  utils::logmesg(lmp, "path to test data set: {}\n", test_path);
-  utils::logmesg(lmp, "training percentage: {}\n", fitting_weights[7]);
-  utils::logmesg(lmp, "test percentage: {}\n", fitting_weights[8]);
-  utils::logmesg(lmp, "randomize training data set: {}\n", fitting_weights[9]);
-  utils::logmesg(lmp, "randomize test data set: {}\n", fitting_weights[10]);
-  utils::logmesg(lmp, "error analysis for training data set: {}\n", fitting_weights[3]);
-  utils::logmesg(lmp, "error analysis for test data set: {}\n", fitting_weights[4]);
-  utils::logmesg(lmp, "energy/force calculation for training data set: {}\n", fitting_weights[5]);
-  utils::logmesg(lmp, "energy/force calculation for test data set: {}\n", fitting_weights[6]);
-  utils::logmesg(lmp, "fitting weight for energy: {}\n", fitting_weights[0]);
-  utils::logmesg(lmp, "fitting weight for force: {}\n", fitting_weights[1]);
-  utils::logmesg(lmp, "fitting weight for stress: {}\n", fitting_weights[2]);
-  utils::logmesg(lmp, "**************** End of Data File ****************\n");
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "**************** Begin of Data File ****************\n");
+    utils::logmesg(lmp, "file format: {}\n", file_format);
+    utils::logmesg(lmp, "file extension: {}\n", file_extension);
+    utils::logmesg(lmp, "path to training data set: {}\n", training_path);
+    utils::logmesg(lmp, "path to test data set: {}\n", test_path);
+    utils::logmesg(lmp, "training percentage: {}\n", fitting_weights[7]);
+    utils::logmesg(lmp, "test percentage: {}\n", fitting_weights[8]);
+    utils::logmesg(lmp, "randomize training data set: {}\n", fitting_weights[9]);
+    utils::logmesg(lmp, "randomize test data set: {}\n", fitting_weights[10]);
+    utils::logmesg(lmp, "error analysis for training data set: {}\n", fitting_weights[3]);
+    utils::logmesg(lmp, "error analysis for test data set: {}\n", fitting_weights[4]);
+    utils::logmesg(lmp, "energy/force calculation for training data set: {}\n", fitting_weights[5]);
+    utils::logmesg(lmp, "energy/force calculation for test data set: {}\n", fitting_weights[6]);
+    utils::logmesg(lmp, "fitting weight for energy: {}\n", fitting_weights[0]);
+    utils::logmesg(lmp, "fitting weight for force: {}\n", fitting_weights[1]);
+    utils::logmesg(lmp, "fitting weight for stress: {}\n", fitting_weights[2]);
+    utils::logmesg(lmp, "**************** End of Data File ****************\n");
+  }
 }
 
 void CFITPOD::get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension)
@@ -246,8 +247,7 @@ int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
 
     fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open POD coefficient file {}: ",
-                                   filename, utils::getsyserror());
+      error->one(FLERR,"Cannot open POD coefficient file {}: ", filename, utils::getsyserror());
   }
 
   char line[MAXLINE],*ptr;
@@ -283,15 +283,12 @@ int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
 
     int natom;
     if (words.size() == 1){
-
       natom = utils::inumeric(FLERR,words[0],false,lmp);
       num_atom.push_back(natom);
       num_configs += 1;
       num_atom_sum += natom;
     }
-
   }
-
   return num_configs;
 }
 
@@ -377,8 +374,7 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
         for (int k = 0; k < 9; k++){
           lattice[k + 9*cfi] = utils::numeric(FLERR,words[index+1+k],false,lmp);
         }
-      }
-      else{
+      } else {
 
         // lattice numbers start at index + 2
 
@@ -401,8 +397,7 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
 
         std::size_t found = words[index].find("=");
         energy[cfi] = utils::numeric(FLERR,words[index].substr(found+1),false,lmp);
-      }
-      else{
+      } else {
 
         // energy is at index + 2
 
@@ -425,8 +420,7 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
         for (int k = 0; k < 9; k++){
           stress[k + 9*cfi] = utils::numeric(FLERR,words[index+1+k],false,lmp);
         }
-      }
-      else{
+      } else {
 
         // lattice numbers start at index + 2
 
@@ -648,7 +642,8 @@ void CFITPOD::select_data(datastruct &newdata, datastruct data)
   memory->create(newdata.force, 3*n, "fitpod:newdata_force");
   memory->create(newdata.atomtype, n, "fitpod:newdata_atomtype");
 
-  int cn = 0, dim=3;
+  int cn = 0;
+  int dim = 3;
   for (int file = 0; file < nfiles; file++) {
     int ns = (int) selected[file].size(); // number of selected configurations
     for (int ii=0; ii < ns; ii++) { // loop over each selected configuration in a file
@@ -1531,7 +1526,7 @@ void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
 
       force[0] = energy;
       std::string filename = "energyforce_config" + std::to_string(ci) + ".bin";
-      
+
       FILE *fp = fopen(filename.c_str(), "wb");
 
       fwrite( reinterpret_cast<char*>( &force[0] ), sizeof(double) * (1 + nforce), 1, fp);
@@ -1541,4 +1536,3 @@ void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
   }
   utils::logmesg(lmp, "**************** End of Energy/Force Calculation ****************\n");
 }
-

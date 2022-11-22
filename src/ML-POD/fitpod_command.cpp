@@ -163,7 +163,6 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format, 
 
   char line[MAXLINE],*ptr;
   int eof = 0;
-  int nwords = 0;
   while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpdata);
@@ -211,20 +210,8 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format, 
 
     if (keywd == "file_format") file_format = words[1];
     if (keywd == "file_extension") file_extension = words[1];
-    if (keywd == "path_to_training_data_set"){
-      utils::logmesg(lmp, "{}\n", words[1]);
-      training_path = words[1];
-      for (int i=2; i < words.size(); i++){
-        training_path = training_path + " " + words[i];
-      }
-    }
-    if (keywd == "path_to_test_data_set"){
-      test_path = words[1];
-      for (int i=2; i < words.size(); i++){
-        test_path = test_path + " " + words[i];
-      }
-    }
-
+    if (keywd == "path_to_training_data_set") training_path = words[1];
+    if (keywd == "path_to_test_data_set") test_path = words[1];
   }
 
   utils::logmesg(lmp, "**************** Begin of Data File ****************\n");
@@ -265,7 +252,6 @@ int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
 
   char line[MAXLINE],*ptr;
   int eof = 0;
-  int nwords = 0;
   int num_configs = 0;
   num_atom_sum = 0;
 
@@ -343,10 +329,9 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
 
   char line[MAXLINE],*ptr;
   int eof = 0;
-  int nwords = 0;
-
-  int cfi = 0, nat=0, k = 0, ns = species.size();
-  double d;
+  int cfi = 0;
+  int nat = 0;
+  int ns = species.size();
 
   // loop over all lines of this xyz file and extract training data
 

@@ -877,8 +877,8 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
      caller decides what to do if not COMPUTE or FIX
 ------------------------------------------------------------------------- */
 
-int utils::check_grid_reference(char *errstr, char *ref, int &igrid, int &idata, int &index,
-                                LAMMPS *lmp)
+int utils::check_grid_reference(char *errstr, char *ref, int nevery,
+                                char *&id, int &igrid, int &idata, int &index, LAMMPS *lmp)
 {
   ArgInfo argi(ref, ArgInfo::COMPUTE | ArgInfo::FIX);
   index = argi.get_index1();
@@ -902,28 +902,28 @@ int utils::check_grid_reference(char *errstr, char *ref, int &igrid, int &idata,
       const auto &dname = words[2];
       
       auto icompute = lmp->modify->get_compute_by_id(idcompute);
-      if (!icompute) lmp->error->all(FLERR,"%s compute ID {} not found",errstr,idcompute);
+      if (!icompute) lmp->error->all(FLERR,"{} compute ID {} not found",errstr,idcompute);
       if (icompute->pergrid_flag == 0)
-        lmp->error->all(FLERR,"%s compute {} does not compute per-grid info",errstr,idcompute);
+        lmp->error->all(FLERR,"{} compute {} does not compute per-grid info",errstr,idcompute);
       
       int dim;
       igrid = icompute->get_grid_by_name(gname,dim);
       if (igrid < 0)
-        lmp->error->all(FLERR,"%s compute {} does not recognize grid name {}",errstr,idcompute,gname);
+        lmp->error->all(FLERR,"{} compute {} does not recognize grid name {}",errstr,idcompute,gname);
 
       int ncol;
       idata = icompute->get_griddata_by_name(igrid,dname,ncol);
       if (idata < 0)
-        lmp->error->all(FLERR,"%s compute {} does not recognize data name {}",errstr,idcompute,dname);
+        lmp->error->all(FLERR,"{} compute {} does not recognize data name {}",errstr,idcompute,dname);
 
       if (argi.get_dim() == 0 && ncol)
-        lmp->error->all(FLERR,"%s compute {} data {} is not per-grid vector",errstr,idcompute,dname);
+        lmp->error->all(FLERR,"{} compute {} data {} is not per-grid vector",errstr,idcompute,dname);
       if (argi.get_dim() && ncol == 0)
-        lmp->error->all(FLERR,"%s compute {} data {} is not per-grid array",errstr,idcompute,dname);
+        lmp->error->all(FLERR,"{} compute {} data {} is not per-grid array",errstr,idcompute,dname);
       if (argi.get_dim() && argi.get_index1() > ncol)
-        lmp->error->all(FLERR,"%s compute {} array {} is accessed out-of-range",errstr,idcompute,dname);
+        lmp->error->all(FLERR,"{} compute {} array {} is accessed out-of-range",errstr,idcompute,dname);
 
-      //id = utils::strdup(idcompute);
+      id = utils::strdup(idcompute);
       return ArgInfo::COMPUTE;
     } break;
 
@@ -939,30 +939,30 @@ int utils::check_grid_reference(char *errstr, char *ref, int &igrid, int &idata,
       const auto &dname = words[2];
 
       auto ifix = lmp->modify->get_fix_by_id(idfix);
-      if (!ifix) lmp->error->all(FLERR,"%s fix ID {} not found",errstr,idfix);
+      if (!ifix) lmp->error->all(FLERR,"{} fix ID {} not found",errstr,idfix);
       if (ifix->pergrid_flag == 0)
-        lmp->error->all(FLERR,"%s fix {} does not compute per-grid info",errstr,idfix);
-      //if (nevery % ifix->pergrid_freq)
-      //  lmp->error->all(FLERR,"%s fix {} not computed at compatible time",errstr,if);
+        lmp->error->all(FLERR,"{} fix {} does not compute per-grid info",errstr,idfix);
+      if (nevery % ifix->pergrid_freq)
+        lmp->error->all(FLERR,"{} fix {} not computed at compatible time",errstr,idfix);
 
       int dim;
-      int igrid = ifix->get_grid_by_name(gname,dim);
+      igrid = ifix->get_grid_by_name(gname,dim);
       if (igrid < 0)
-        lmp->error->all(FLERR,"%s fix {} does not recognize grid name {}",errstr,idfix,gname);
+        lmp->error->all(FLERR,"{} fix {} does not recognize grid name {}",errstr,idfix,gname);
 
       int ncol;
-      int idata = ifix->get_griddata_by_name(igrid,dname,ncol);
+      idata = ifix->get_griddata_by_name(igrid,dname,ncol);
       if (idata < 0)
-        lmp->error->all(FLERR,"%s fix {} does not recognize data name {}",errstr,idfix,dname);
+        lmp->error->all(FLERR,"{} fix {} does not recognize data name {}",errstr,idfix,dname);
 
       if (argi.get_dim() == 0 && ncol)
-        lmp->error->all(FLERR,"%s fix {} data {} is not per-grid vector",errstr,idfix,dname);
+        lmp->error->all(FLERR,"{} fix {} data {} is not per-grid vector",errstr,idfix,dname);
       if (argi.get_dim() > 0 && ncol == 0)
-        lmp->error->all(FLERR,"%s fix {} data {} is not per-grid array",errstr,idfix,dname);
+        lmp->error->all(FLERR,"{} fix {} data {} is not per-grid array",errstr,idfix,dname);
       if (argi.get_dim() > 0 && argi.get_index1() > ncol)
-        lmp->error->all(FLERR,"%s fix {} array {} is accessed out-of-range",errstr,idfix,dname);
+        lmp->error->all(FLERR,"{} fix {} array {} is accessed out-of-range",errstr,idfix,dname);
 
-      //id = utils::strdup(idfix);
+      id = utils::strdup(idfix);
       return ArgInfo::FIX;
     } break;
   }

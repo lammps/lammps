@@ -77,6 +77,10 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
 
   dimension = domain->dimension;
 
+  // for 2d, set nzgrid = 1 for dump grid and grid/vtk files
+  
+  if (dimension == 2) nzgrid = 1;
+  
   // computes and fixes which the dump accesses
 
   ncompute = 0;
@@ -269,9 +273,9 @@ void DumpGrid::init_style()
   int nxtmp,nytmp,nztmp;
   for (int i = 0; i < nfield; i++) {
      if (dimension == 2) {
-      if (field2source[i] == COMPUTE)
-        grid2d = (Grid2d *) compute[field2index[i]]->get_grid_by_index(field2grid[i]);
-      else
+       if (field2source[i] == COMPUTE)
+         grid2d = (Grid2d *) compute[field2index[i]]->get_grid_by_index(field2grid[i]);
+       else
         grid2d = (Grid2d *) fix[field2index[i]]->get_grid_by_index(field2grid[i]);
       if (i == 0) grid2d->get_size(nxgrid,nygrid);
       else {
@@ -651,145 +655,39 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
     char *id;
     int igrid,idata,index;
-    
     int iflag =
       utils::check_grid_reference((char *) "Dump grid",
-                                  arg[iarg],igrid,idata,index,lmp);
+                                  arg[iarg],nevery,id,igrid,idata,index,lmp);
 
-    // arg is not a Grid reference
+    // arg is not a valid Grid reference
+    // assume it's an additional dump grid option and return
     
     if (iflag < 0) return iarg;
-    
-    // grid reference is to a compute
+
+    // grid reference is to a compute or fix
     
     if (iflag == ArgInfo::COMPUTE) {
-
-      
-    // grid reference is to a fix
-
+      auto icompute = lmp->modify->get_compute_by_id(id);
+      field2index[iarg] = add_compute(id,icompute);
+      field2source[iarg] = COMPUTE;
     } else if (iflag == ArgInfo::FIX) {
-
+      auto ifix = modify->get_fix_by_id(id);
+      field2index[iarg] = add_fix(id,ifix);
+      field2source[iarg] = FIX;
     }
+
+    delete [] id;
+    argindex[iarg] = index;
+    vtype[iarg] = Dump::DOUBLE;
+    field2grid[iarg] = igrid;
+    field2data[iarg] = idata;
+
+    if (dimension == 2) pack_choice[iarg] = &DumpGrid::pack_grid2d;
+    else pack_choice[iarg] = &DumpGrid::pack_grid3d;
   }
 
   return narg;
 }
-
-
-
-
-/*   
-    ArgInfo argi(arg[iarg], ArgInfo::COMPUTE | ArgInfo::FIX);
-    argindex[iarg] = argi.get_index1();
-    auto name = argi.get_name();
-
-    switch (argi.get_type()) {
-
-      case ArgInfo::UNKNOWN: {
-        error->all(FLERR,"Invalid attribute in dump grid command");
-      } break;
-
-      // compute value = c_ID
-      // if no trailing [], then arg is set to 0, else arg is int between []
-
-      case ArgInfo::COMPUTE: {
-        if (dimension == 2) pack_choice[iarg] = &DumpGrid::pack_grid2d;
-        else pack_choice[iarg] = &DumpGrid::pack_grid3d;
-        vtype[iarg] = Dump::DOUBLE;
-        field2source[iarg] = COMPUTE;
-
-        // split name = idcompute:gname:dname into 3 strings
-
-        auto words = utils::parse_gridid(FLERR,name,error);
-        const auto &idcompute = words[0];
-        const auto &gname = words[1];
-        const auto &dname = words[2];
-
-        auto icompute = modify->get_compute_by_id(idcompute);
-        if (!icompute) error->all(FLERR,"Could not find dump grid compute ID: {}",idcompute);
-        if (icompute->pergrid_flag == 0)
-          error->all(FLERR,"Dump grid compute {} does not compute per-grid info",idcompute);
-
-        int dim;
-        int igrid = icompute->get_grid_by_name(gname,dim);
-        if (igrid < 0)
-          error->all(FLERR,"Dump grid compute {} does not recognize grid name {}",idcompute,gname);
-
-        int ncol;
-        int idata = icompute->get_griddata_by_name(igrid,dname,ncol);
-        if (idata < 0)
-          error->all(FLERR,"Dump grid compute {} does not recognize data name {}",idcompute,dname);
-
-        if (argi.get_dim() == 0 && ncol)
-          error->all(FLERR,"Dump grid compute {} data {} is not per-grid vector",idcompute,dname);
-        if (argi.get_dim() && ncol == 0)
-          error->all(FLERR,"Dump grid compute {} data {} is not per-grid array",idcompute,dname);
-        if (argi.get_dim() && argi.get_index1() > ncol)
-          error->all(FLERR,"Dump grid compute {} array {} is accessed out-of-range",idcompute,dname);
-
-        field2index[iarg] = add_compute(idcompute,icompute);
-        field2grid[iarg] = igrid;
-        field2data[iarg] = idata;
-
-      } break;
-
-      // fix value = f_ID
-      // if no trailing [], then arg is set to 0, else arg is between []
-
-      case ArgInfo::FIX: {
-        if (dimension == 2) pack_choice[iarg] = &DumpGrid::pack_grid2d;
-        else pack_choice[iarg] = &DumpGrid::pack_grid3d;
-        vtype[iarg] = Dump::DOUBLE;
-        field2source[iarg] = FIX;
-
-        // split name = idfix:gname:dname into 3 strings
-
-        auto words = utils::parse_gridid(FLERR,name,error);
-        const auto &idfix = words[0];
-        const auto &gname = words[1];
-        const auto &dname = words[2];
-
-        auto ifix = modify->get_fix_by_id(idfix);
-        if (!ifix) error->all(FLERR,"Could not find dump grid fix ID: {}",idfix);
-        if (ifix->pergrid_flag == 0)
-          error->all(FLERR,"Dump grid fix {} does not compute per-grid info",idfix);
-        if (nevery % ifix->pergrid_freq)
-          error->all(FLERR,"Fix ID {} for dump grid not computed at compatible time",idfix);
-
-        int dim;
-        int igrid = ifix->get_grid_by_name(gname,dim);
-        if (igrid < 0)
-          error->all(FLERR,"Dump grid fix {} does not recognize grid name {}",idfix,gname);
-
-        int ncol;
-        int idata = ifix->get_griddata_by_name(igrid,dname,ncol);
-        if (idata < 0)
-          error->all(FLERR,"Dump grid fix {} does not recognize data name {}",idfix,dname);
-
-        if (argi.get_dim() == 0 && ncol)
-          error->all(FLERR,"Dump grid fix {} data {} is not per-grid vector",idfix,dname);
-        if (argi.get_dim() > 0 && ncol == 0)
-          error->all(FLERR,"Dump grid fix {} data {} is not per-grid array",idfix,dname);
-        if (argi.get_dim() > 0 && argi.get_index1() > ncol)
-          error->all(FLERR,"Dump grid fix {} array {} is accessed out-of-range",idfix,dname);
-
-        field2index[iarg] = add_fix(idfix,ifix);
-        field2grid[iarg] = igrid;
-        field2data[iarg] = idata;
-
-      } break;
-
-      // no match
-
-      default: {
-        return iarg;
-      } break;
-    }
-  }
-
-  return narg;
-}
-*/
 
 /* ----------------------------------------------------------------------
    add Compute to list of Compute objects used by dump

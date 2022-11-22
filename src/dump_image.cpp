@@ -14,6 +14,7 @@
 
 #include "dump_image.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
@@ -124,6 +125,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   atomflag = YES;
   gridflag = NO;
   lineflag = triflag = bodyflag = fixflag = NO;
+  id_grid_compute = id_grid_fix = nullptr;
+  
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
     bondflag = YES;
@@ -188,8 +191,16 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       int igrid,idata,index;
       int iflag =
         utils::check_grid_reference((char *) "Dump image",
-                                    arg[iarg+1],igrid,idata,index,lmp);
-      
+                                    arg[iarg+1],nevery,id,
+                                    igrid,idata,index,lmp);
+      if (iflag < 0) error->all(FLERR,"Invalid grid reference in dump image command");
+
+      if (iflag == ArgInfo::COMPUTE) id_grid_compute = utils::strdup(id);
+      else if (iflag == ArgInfo::FIX) id_grid_fix = utils::strdup(id);
+      delete [] id;
+      grid_igrid = igrid;
+      grid_idata = idata;
+      grid_index = index;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"line") == 0) {
@@ -432,6 +443,9 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   maxbufcopy = 0;
   chooseghost = nullptr;
   bufcopy = nullptr;
+
+  maxgrid = 0;
+  gbuf = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -448,6 +462,7 @@ DumpImage::~DumpImage()
   delete [] bcolortype;
   memory->destroy(chooseghost);
   memory->destroy(bufcopy);
+  memory->destroy(gbuf);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -609,21 +624,33 @@ void DumpImage::write()
   }
 
   // pack grid gbuf with grid cell values
-  // ngrid_mine = # of grid cells this proc owns
-
+  // ngrid = # of grid cells this proc owns
+  
   if (gridflag) {
     if (domain->dimension == 2) {
       if (grid_compute)
-        grid2d = (Grid2d *) grid_compute->get_grid_by_index(grid_index);
+        grid2d = (Grid2d *) grid_compute->get_grid_by_index(grid_igrid);
       else if (grid_fix)
-        grid2d = (Grid2d *) grid_fix->get_grid_by_index(grid_index);
+        grid2d = (Grid2d *) grid_fix->get_grid_by_index(grid_igrid);
+      grid2d->get_size(nxgrid,nygrid);
       grid2d->get_bounds_owned(nxlo_in,nxhi_in,nylo_in,nyhi_in);
+      ngrid = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1);
     } else {
       if (grid_compute)
-        grid3d = (Grid3d *) grid_compute->get_grid_by_index(grid_index);
+        grid3d = (Grid3d *) grid_compute->get_grid_by_index(grid_igrid);
       else if (grid_fix)
-        grid3d = (Grid3d *) grid_fix->get_grid_by_index(grid_index);
+        grid3d = (Grid3d *) grid_fix->get_grid_by_index(grid_igrid);
+      grid3d->get_size(nxgrid,nygrid,nzgrid);
       grid3d->get_bounds_owned(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+      ngrid = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) * (nzhi_in-nzlo_in+1);
+    }
+
+    // insure gbuf is large enough
+
+    if (ngrid > maxgrid) {
+      memory->destroy(gbuf);
+      maxgrid = ngrid;
+      memory->create(gbuf,maxgrid,"dump/image:gbuf");
     }
 
     // invoke Compute for per-grid quantities
@@ -646,37 +673,65 @@ void DumpImage::write()
 
     // access grid data and load gbuf
 
-    /*
-    if (index == 0) {
-      double **vec2d;
-      if (field2source[n] == COMPUTE)
-        vec2d = (double **)
-          compute[field2index[n]]->get_griddata_by_index(field2data[n]);
-      else if (field2source[n] == FIX)
-        vec2d = (double **)
-          fix[field2index[n]]->get_griddata_by_index(field2data[n]);
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-          buf[n] = vec2d[iy][ix];
-          n += size_one;
+    if (domain->dimension == 2) {
+      if (grid_index == 0) {
+        double **vec2d;
+        if (grid_compute)
+          vec2d = (double **)
+            grid_compute->get_griddata_by_index(grid_idata);
+        else if (grid_fix)
+          vec2d = (double **)
+          grid_fix->get_griddata_by_index(grid_idata);
+        int n = 0;
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            gbuf[n++] = vec2d[iy][ix];
+      } else {
+        double ***array2d;
+        if (grid_compute)
+          array2d = (double ***)
+            grid_compute->get_griddata_by_index(grid_idata);
+        else if (grid_fix)
+          array2d = (double ***)
+            grid_fix->get_griddata_by_index(grid_idata);
+        int index = grid_index - 1;
+        int n = 0;
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            gbuf[n++] = array2d[iy][ix][index];
+      }
+      
+    } else if (domain->dimension == 3) {
+      if (grid_index == 0) {
+        double ***vec3d;
+        if (grid_compute)
+          vec3d = (double ***)
+            grid_compute->get_griddata_by_index(grid_idata);
+        else if (grid_fix)
+          vec3d = (double ***)
+            grid_fix->get_griddata_by_index(grid_idata);
+        int n = 0;
+        for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (int iy = nylo_in; iy <= nyhi_in; iy++)
+            for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+              gbuf[n++] = vec3d[iz][iy][ix];
+        
         }
     } else {
-      double ***array2d;
-      if (field2source[n] == COMPUTE)
-        array2d = (double ***)
-          compute[field2index[n]]->get_griddata_by_index(field2data[n]);
-      else if (field2source[n] == FIX)
-        array2d = (double ***)
-          fix[field2index[n]]->get_griddata_by_index(field2data[n]);
-      index--;
-      for (int iy = nylo_in; iy <= nyhi_in; iy++)
-        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-          buf[n] = array2d[iy][ix][index];
-          n += size_one;
-        }
-    }
-    */
-
+      double ****array3d;
+      if (grid_compute)
+        array3d = (double ****)
+          grid_compute->get_griddata_by_index(grid_idata);
+      else if (grid_fix)
+        array3d = (double ****)
+          grid_fix->get_griddata_by_index(grid_idata);
+      int index = grid_index - 1;
+      int n = 0;
+      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            gbuf[n++] = array3d[iz][iy][ix][index];
+      }
   }
 
   // set minmax color range if using dynamic grid color map
@@ -685,7 +740,7 @@ void DumpImage::write()
     double two[2],twoall[2];
     double lo = BIG;
     double hi = -BIG;
-    for (int i = 0; i < ngrid_owned; i++) {
+    for (int i = 0; i < ngrid; i++) {
       lo = MIN(lo,gbuf[i]);
       hi = MAX(hi,gbuf[i]);
     }
@@ -861,13 +916,46 @@ void DumpImage::create_image()
   }
 
   // render my grid cells
-
+  // 2 triangles for 2d rectangle, 12 triangles for 3d cube surface
+  // grid_cell_corners_2d/3d calculates orthogonal vs triclinic corner pts
+  // for 3d, outward normals on all 6 faces
+  
   if (gridflag) {
-
-
-    // draw 2 or 12 triangles
-    //image->draw_triangle(x,y,z,color);
-    
+    int n = 0;
+    if (domain->dimension == 2) {
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+          grid_cell_corners_2d(ix,iy);
+          color = image->map_value2color(1,gbuf[n++]);
+          image->draw_triangle(gcorners[0],gcorners[1],gcorners[3],color);
+          image->draw_triangle(gcorners[0],gcorners[3],gcorners[2],color);
+        }
+    } else {
+      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            grid_cell_corners_3d(ix,iy,iz);
+            color = image->map_value2color(1,gbuf[n++]);
+            // lower x face
+            image->draw_triangle(gcorners[0],gcorners[4],gcorners[6],color);
+            image->draw_triangle(gcorners[0],gcorners[6],gcorners[2],color);
+            // upper x face
+            image->draw_triangle(gcorners[1],gcorners[5],gcorners[7],color);
+            image->draw_triangle(gcorners[1],gcorners[7],gcorners[3],color);
+            // lower y face
+            image->draw_triangle(gcorners[0],gcorners[1],gcorners[5],color);
+            image->draw_triangle(gcorners[0],gcorners[5],gcorners[4],color);
+            // upper y face
+            image->draw_triangle(gcorners[2],gcorners[6],gcorners[7],color);
+            image->draw_triangle(gcorners[2],gcorners[7],gcorners[3],color);
+            // lower z face
+            image->draw_triangle(gcorners[0],gcorners[2],gcorners[3],color);
+            image->draw_triangle(gcorners[0],gcorners[3],gcorners[1],color);
+            // upper z face
+            image->draw_triangle(gcorners[4],gcorners[5],gcorners[7],color);
+            image->draw_triangle(gcorners[4],gcorners[7],gcorners[6],color);
+          }
+    }
   }
 
   // render atoms that are lines
@@ -1261,6 +1349,83 @@ void DumpImage::create_image()
     axes[3][2] = axes[0][2] + axeslen*(axes[3][2]-axes[0][2]);
 
     image->draw_axes(axes,diameter);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpImage::grid_cell_corners_2d(int ix, int iy)
+{
+  double *boxlo = domain->boxlo;
+  double *prd = domain->prd;
+  
+  if (!domain->triclinic) {
+    double xdelta = prd[0] / nxgrid;
+    double ydelta = prd[1] / nygrid;
+
+    int n = 0;
+    for (int y = 0; y < 2; y++)
+      for (int x = 0; x < 2; x++) {
+        gcorners[n][0] = boxlo[0] + (ix+x) * xdelta;
+        gcorners[n][1] = boxlo[1] + (iy+y) * ydelta;
+        n++;
+      }
+
+  } else {
+    double lamda[3],xone[3];
+    lamda[2] = 0.0;
+
+    double dx = 1.0 / nxgrid;
+    double dy = 1.0 / nygrid;
+
+    int n = 0;
+    for (int y = 0; y < 2; y++)
+      for (int x = 0; x < 2; x++) {
+        lamda[0] = (ix+x) * dx;
+        lamda[1] = (iy+y) * dy;
+        domain->lamda2x(lamda,gcorners[n++]);
+      }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+  
+void DumpImage::grid_cell_corners_3d(int ix, int iy, int iz)
+{
+  double *boxlo = domain->boxlo;
+  double *prd = domain->prd;
+  
+  if (!domain->triclinic) {
+    double xdelta = prd[0] / nxgrid;
+    double ydelta = prd[1] / nygrid;
+    double zdelta = prd[2] / nzgrid;
+
+    int n = 0;
+    for (int z = 0; z < 2; z++)
+      for (int y = 0; y < 2; y++)
+        for (int x = 0; x < 2; x++) {
+          gcorners[n][0] = boxlo[0] + (ix+x) * xdelta;
+          gcorners[n][1] = boxlo[1] + (iy+y) * ydelta;
+          gcorners[n][2] = boxlo[2] + (iz+z) * zdelta;
+          n++;
+        }
+
+  } else {
+    double lamda[3],xone[3];
+
+    double dx = 1.0 / nxgrid;
+    double dy = 1.0 / nygrid;
+    double dz = 1.0 / nzgrid;
+
+    int n = 0;
+    for (int z = 0; z < 2; z++)
+      for (int y = 0; y < 2; y++)
+        for (int x = 0; x < 2; x++) {
+          lamda[0] = (ix+x) * dx;
+          lamda[1] = (iy+y) * dy;
+          lamda[2] = (iz+z) * dz;
+          domain->lamda2x(lamda,gcorners[n++]);
+        }
   }
 }
 

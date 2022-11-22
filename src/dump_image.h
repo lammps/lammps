@@ -85,10 +85,12 @@ class DumpImage : public DumpCustom {
   char *id_grid_compute,*id_grid_fix;
   class Compute *grid_compute;
   class Fix *grid_fix;
-  int grid_index;
-  double *gbuf;
+  int grid_igrid,grid_idata,grid_index;
+  int nxgrid,nygrid,nzgrid;
   int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
-  int ngrid_owned;
+  double *gbuf;
+  int ngrid,maxgrid;
+  double gcorners[8][3];
   
   class AtomVecLine *avec_line;    // ptrs to atom style (sub)classes
   class AtomVecTri *avec_tri;
@@ -111,6 +113,8 @@ class DumpImage : public DumpCustom {
   void box_bounds();
 
   void create_image();
+  void grid_cell_corners_2d(int, int);
+  void grid_cell_corners_3d(int, int, int);
 };
 
 }    // namespace LAMMPS_NS

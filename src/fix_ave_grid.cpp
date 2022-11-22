@@ -59,6 +59,11 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   pergrid_freq = utils::inumeric(FLERR,arg[5],false,lmp);
   time_depend = 1;
 
+  if (nevery <= 0 || nrepeat <= 0 || pergrid_freq <= 0)
+    error->all(FLERR,"Illegal fix ave/grid command");
+  if (pergrid_freq % nevery || nrepeat*nevery > pergrid_freq)
+    error->all(FLERR,"Illegal fix ave/grid command");
+
   // NOTE: allow Dxyz as well at some point ?
 
   nxgrid = utils::inumeric(FLERR,arg[6],false,lmp);
@@ -135,21 +140,38 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
       modeatom = 1;
 
     } else {
+
+      // if arg is not a per-atom or per-grid value
+      // then it's an optional arg after the values
+      
       ArgInfo argi(arg[iarg]);
+      if (argi.get_type() == ArgInfo::NONE || argi.get_type() == ArgInfo::UNKNOWN) break;
+      if (argi.get_dim() > 1) error->all(FLERR,"Invalid fix ave/grid command");
 
-      if (argi.get_type() == ArgInfo::NONE) break;
-      if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
-        error->all(FLERR,"Invalid fix ave/grid command");
+      // atom value has no colon
+      
+      if (!strchr(arg[iarg],':')) {
+        modeatom = 1;
+        ids[nvalues] = argi.copy_name();
+        which[nvalues] = argi.get_type();
+        argindex[nvalues] = argi.get_index1();
 
-      which[nvalues] = argi.get_type();
-      argindex[nvalues] = argi.get_index1();
-      ids[nvalues] = argi.copy_name();
+      // per-grid value has colons
 
-      if (strchr(ids[nvalues],':')) modegrid = 1;
-      else modeatom = 1;
+      } else {
+        modegrid = 1;
 
-      if (modegrid && which[nvalues] == ArgInfo::VARIABLE)
-        error->all(FLERR,"Fix ave/grid cannot use variable for grid info");
+        int igrid,idata,index;
+        int iflag =
+          utils::check_grid_reference((char *) "Fix ave/grid",
+                                      arg[iarg],nevery,ids[nvalues],igrid,idata,index,lmp);
+        if (iflag < 0) error->all(FLERR,"Invalid grid reference in fix ave/grid command");
+
+        which[nvalues] = iflag;
+        value2grid[nvalues] = igrid;
+        value2data[nvalues] = idata;
+        argindex[nvalues] = index;
+      }
     }
 
     nvalues++;
@@ -231,15 +253,10 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     memory->sfree(earg);
   }
 
-  // setup and error check
+  // more error checks
   // for fix inputs, check that fix frequency is acceptable
 
   dimension = domain->dimension;
-
-  if (nevery <= 0 || nrepeat <= 0 || pergrid_freq <= 0)
-    error->all(FLERR,"Illegal fix ave/grid command");
-  if (pergrid_freq % nevery || nrepeat*nevery > pergrid_freq)
-    error->all(FLERR,"Illegal fix ave/grid command");
 
   if (nxgrid < 1 || nygrid < 1 || nzgrid < 1)
     error->all(FLERR,"Invalid fix ave/grid grid size");
@@ -302,88 +319,6 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,"Variable name for fix ave/atom does not exist");
         if (input->variable->atomstyle(ivariable) == 0)
           error->all(FLERR,"Fix ave/atom variable is not atom-style variable");
-      }
-    }
-  }
-
-  // setup and error checks for GRID mode
-
-  if (modegrid) {
-    for (int i = 0; i < nvalues; i++) {
-      if (which[i] == ArgInfo::COMPUTE) {
-
-        auto words = utils::parse_grid_id(FLERR,ids[i],error);
-        const auto &idcompute = words[0];
-        const auto &gname = words[1];
-        const auto &dname = words[2];
-
-        delete[] ids[i];
-        ids[i] = utils::strdup(idcompute);
-
-        auto icompute = modify->get_compute_by_id(idcompute);
-        if (!icompute) error->all(FLERR,"Could not find fix ave/grid compute ID: {}",idcompute);
-        if (icompute->pergrid_flag == 0)
-          error->all(FLERR,"Fix ave/grid compute {} does not compute per-grid info",idcompute);
-
-        int dim;
-        int igrid = icompute->get_grid_by_name(gname,dim);
-        if (igrid < 0)
-          error->all(FLERR,"Fix ave/grid compute {} does not recognize grid name {}",
-                     idcompute,gname);
-
-        int ncol;
-        int idata = icompute->get_griddata_by_name(igrid,dname,ncol);
-        if (idata < 0)
-          error->all(FLERR,"Fix ave/grid compute {} does not recognize data name {}",
-                     idcompute,dname);
-
-        if (argindex[i] == 0 && ncol)
-          error->all(FLERR,"Fix ave/grid compute {} data {} is not per-grid vector",idcompute,dname);
-        if (argindex[i] && ncol == 0)
-          error->all(FLERR,"Fix ave/grid compute {} data {} is not per-grid array",idcompute,dname);
-        if (argindex[i] && argindex[i] > ncol)
-          error->all(FLERR,"Fix ave/grid compute {} array {} is accessed out-of-range",
-                     idcompute,dname);
-
-        value2grid[i] = igrid;
-        value2data[i] = idata;
-
-      } else if (which[i] == ArgInfo::FIX) {
-
-        auto words = utils::parse_grid_id(FLERR,ids[i],error);
-        const auto &idfix = words[0];
-        const auto &gname = words[1];
-        const auto &dname = words[2];
-
-        delete[] ids[i];
-        ids[i] = utils::strdup(idfix);
-
-        Fix *ifix = modify->get_fix_by_id(idfix);
-        if (!ifix) error->all(FLERR,"Could not find fix ave/grid fix ID: {}",idfix);
-        if (ifix->pergrid_flag == 0)
-          error->all(FLERR,"Fix ave/grid fix {} does not compute per-grid info",idfix);
-        if (nevery % ifix->pergrid_freq)
-          error->all(FLERR, "Fix ID {} for fix grid/atom not computed at compatible time",idfix);
-
-        int dim;
-        int igrid = ifix->get_grid_by_name(gname,dim);
-        if (igrid < 0)
-          error->all(FLERR,"Fix ave/grid fix {} does not recognize grid name {}",idfix,gname);
-
-        int ncol;
-        int idata = ifix->get_griddata_by_name(igrid,dname,ncol);
-        if (idata < 0)
-          error->all(FLERR,"Fix ave/grid fix {} does not recognize data name {}",idfix,dname);
-
-        if (argindex[i] == 0 && ncol)
-          error->all(FLERR, "Fix ave/grid fix {} data {} is not per-grid vector",idfix,dname);
-        if (argindex[i] && ncol == 0)
-          error->all(FLERR,"Fix ave/grid fix {} data {} is not per-grid array",idfix,dname);
-        if (argindex[i] && argindex[i] > ncol)
-          error->all(FLERR,"Fix ave/grid fix {} array {} is accessed out-of-range",idfix,dname);
-
-        value2grid[i] = igrid;
-        value2data[i] = idata;
       }
     }
   }

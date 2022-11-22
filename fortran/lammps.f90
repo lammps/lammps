@@ -35,7 +35,7 @@ MODULE LIBLAMMPS
 
   USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, C_ASSOCIATED, &
     C_LOC, c_int, c_int64_t, c_char, c_null_char, c_double, c_size_t, &
-    C_F_POINTER
+    C_F_POINTER, c_funptr, C_FUNLOC
 
   IMPLICIT NONE
   PRIVATE
@@ -171,7 +171,7 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_decode_image_flags_bigbig
     GENERIC   :: decode_image_flags     => lmp_decode_image_flags, &
                                            lmp_decode_image_flags_bigbig
-!
+    PROCEDURE :: set_fix_external_callback => lmp_set_fix_external_callback
     PROCEDURE :: flush_buffers          => lmp_flush_buffers
     PROCEDURE :: is_running             => lmp_is_running
     PROCEDURE :: force_timeout          => lmp_force_timeout
@@ -260,6 +260,50 @@ MODULE LIBLAMMPS
     MODULE PROCEDURE assign_int_to_lammps_image_data, &
       assign_int64_to_lammps_image_data
   END INTERFACE
+
+  ! Interface templates for fix external callbacks
+  ABSTRACT INTERFACE
+    SUBROUTINE external_callback_smallsmall(caller, timestep, ids, x, fexternal)
+      IMPORT :: c_int, c_double
+      CLASS(*), INTENT(IN) :: caller
+      INTEGER(c_int), INTENT(IN) :: timestep
+      INTEGER(c_int), DIMENSION(:), INTENT(IN) :: ids
+      REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
+      REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: fexternal
+    END SUBROUTINE external_callback_smallsmall
+    SUBROUTINE external_callback_smallbig(caller, timestep, ids, x, fexternal)
+      IMPORT :: c_int, c_double, c_int64_t
+      CLASS(*), INTENT(IN) :: caller
+      INTEGER(c_int64_t), INTENT(IN) :: timestep
+      INTEGER(c_int), DIMENSION(:), INTENT(IN) :: ids
+      REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
+      REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: fexternal
+    END SUBROUTINE external_callback_smallbig
+    SUBROUTINE external_callback_bigbig(caller, timestep, ids, x, fexternal)
+      IMPORT :: c_double, c_int64_t
+      CLASS(*), INTENT(IN) :: caller
+      INTEGER(c_int64_t), INTENT(IN) :: timestep
+      INTEGER(c_int64_t), DIMENSION(:), INTENT(IN) :: ids
+      REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
+      REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: fexternal
+    END SUBROUTINE external_callback_bigbig
+  END INTERFACE
+
+  ! Derived type for fix external callback data
+  TYPE fix_external_data
+    CHARACTER(LEN=:), ALLOCATABLE :: id
+    PROCEDURE(external_callback_smallsmall), NOPASS, POINTER :: &
+      callback_smallsmall => NULL()
+    PROCEDURE(external_callback_smallbig), NOPASS, POINTER :: &
+      callback_smallbig => NULL()
+    PROCEDURE(external_callback_bigbig), NOPASS, POINTER :: &
+      callback_bigbig => NULL()
+    CLASS(*), POINTER :: caller => NULL()
+    CLASS(lammps), POINTER :: lammps_instance => NULL()
+  END TYPE fix_external_data
+
+  ! Array used to store Fortran-facing callback functions for fix external
+  TYPE(fix_external_data), DIMENSION(:), ALLOCATABLE, TARGET, SAVE :: ext_data
 
   ! interface definitions for calling functions in library.cpp
   INTERFACE
@@ -705,7 +749,12 @@ MODULE LIBLAMMPS
     ! It is re-written in Fortran below. It was easier to do the same for
     ! lammps_decode_image_flags's equivalent.
 
-    !SUBROUTINE lammps_set_fix_external_callback ! may have trouble....
+    SUBROUTINE lammps_set_fix_external_callback(handle, id, funcptr, ptr) &
+    BIND(C)
+      IMPORT :: c_ptr, c_funptr
+      TYPE(c_ptr), VALUE :: handle, id, ptr
+      TYPE(c_funptr), VALUE :: funcptr
+    END SUBROUTINE lammps_set_fix_external_callback
     !FUNCTION lammps_fix_external_get_force() ! returns real(c_double)(:)
 
     !SUBROUTINE lammps_fix_external_set_energy_global
@@ -2325,6 +2374,174 @@ CONTAINS
         & integer kind passed as "image" [Fortran/decode_image_flags]')
     END IF
   END SUBROUTINE lmp_decode_image_flags_bigbig
+
+  ! equivalent function to lammps_set_fix_external_callback for -DSMALLSMALL
+  ! note that "caller" is wrapped into a fix_external_data derived type along
+  ! with the fix id and the Fortran calling function.
+  SUBROUTINE lmp_set_fix_external_callback(self, id, callback, caller)
+    CLASS(lammps), TARGET, INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    EXTERNAL :: callback
+    CLASS(*), INTENT(IN), TARGET, OPTIONAL :: caller
+    TYPE(c_ptr) :: c_id, c_caller
+    TYPE(c_funptr) :: c_callback
+    INTEGER :: i, this_fix, size_tagint, size_bigint
+
+    size_tagint = lmp_extract_setting(self, 'tagint')
+    size_bigint = lmp_extract_setting(self, 'bigint')
+
+    c_id = f2c_string(id)
+    IF (ALLOCATED(ext_data)) THEN
+      this_fix = SIZE(ext_data) + 1
+      DO i = 1, SIZE(ext_data)
+        IF (ext_data(i)%id == id) THEN
+          this_fix = i
+          EXIT
+        END IF
+      END DO
+      IF (this_fix > SIZE(ext_data)) THEN
+        ext_data = [ext_data, fix_external_data()] ! extends ext_data by 1
+      END IF
+    ELSE
+      ALLOCATE(ext_data(1))
+      this_fix = 1
+    END IF
+    ext_data(this_fix)%id = id
+    ext_data(this_fix)%lammps_instance => self
+
+    IF (size_tagint == 4_c_int .AND. size_bigint == 4_c_int) THEN
+      ! -DSMALLSMALL
+      c_callback = C_FUNLOC(callback_wrapper_smallsmall)
+      CALL set_fix_external_callback_smallsmall(this_fix, callback)
+    ELSE IF (size_tagint == 8_c_int .AND. size_bigint == 8_c_int) THEN
+      ! -DBIGBIG
+      c_callback = C_FUNLOC(callback_wrapper_bigbig)
+      CALL set_fix_external_callback_bigbig(this_fix, callback)
+    ELSE
+      ! -DSMALLBIG
+      c_callback = C_FUNLOC(callback_wrapper_smallbig)
+      CALL set_fix_external_callback_smallbig(this_fix, callback)
+    END IF
+
+    IF (PRESENT(caller)) THEN
+      ext_data(this_fix)%caller => caller
+    ELSE
+      NULLIFY(ext_data(this_fix)%caller)
+    END IF
+    c_caller = C_LOC(ext_data(this_fix))
+    CALL lammps_set_fix_external_callback(self%handle, c_id, c_callback, &
+      c_caller)
+  END SUBROUTINE lmp_set_fix_external_callback
+
+  ! Wrappers to assign callback pointers with explicit interfaces
+  SUBROUTINE set_fix_external_callback_smallsmall(id, callback)
+    INTEGER, INTENT(IN) :: id
+    PROCEDURE(external_callback_smallsmall) :: callback
+
+    ext_data(id)%callback_smallsmall => callback
+  END SUBROUTINE set_fix_external_callback_smallsmall
+
+  SUBROUTINE set_fix_external_callback_smallbig(id, callback)
+    INTEGER, INTENT(IN) :: id
+    PROCEDURE(external_callback_smallbig) :: callback
+
+    ext_data(id)%callback_smallbig => callback
+  END SUBROUTINE set_fix_external_callback_smallbig
+
+  SUBROUTINE set_fix_external_callback_bigbig(id, callback)
+    INTEGER, INTENT(IN) :: id
+    PROCEDURE(external_callback_bigbig) :: callback
+
+    ext_data(id)%callback_bigbig => callback
+  END SUBROUTINE set_fix_external_callback_bigbig
+
+  ! companions to lmp_set_fix_external_callback to change interface
+  SUBROUTINE callback_wrapper_smallsmall(caller, timestep, nlocal, ids, x, &
+      fexternal) BIND(C)
+    TYPE(c_ptr), INTENT(IN), VALUE :: caller
+    INTEGER(c_int), INTENT(IN), VALUE :: timestep
+    INTEGER(c_int), INTENT(IN), VALUE :: nlocal
+    TYPE(c_ptr), INTENT(IN), VALUE :: ids, x, fexternal
+    TYPE(c_ptr), DIMENSION(:), POINTER :: x0, f0
+    INTEGER(c_int), DIMENSION(:), POINTER :: f_ids => NULL()
+    REAL(c_double), DIMENSION(:,:), POINTER :: f_x => NULL(), &
+        f_fexternal => NULL()
+    TYPE(fix_external_data), POINTER :: f_caller => NULL()
+
+    CALL C_F_POINTER(ids, f_ids, [nlocal])
+    CALL C_F_POINTER(x, x0, [nlocal])
+    CALL C_F_POINTER(x0(1), f_x, [3, nlocal])
+    CALL C_F_POINTER(fexternal, f0, [nlocal])
+    CALL C_F_POINTER(f0(1), f_fexternal, [3, nlocal])
+    IF (C_ASSOCIATED(caller)) THEN
+      CALL C_F_POINTER(caller, f_caller)
+      CALL f_caller%callback_smallsmall(f_caller%caller, timestep, f_ids, &
+        f_x, f_fexternal)
+    ELSE
+      CALL lmp_error(f_caller%lammps_instance, &
+        LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Got null pointer from "caller"; this should never happen;&
+        & please report a bug')
+    END IF
+  END SUBROUTINE callback_wrapper_smallsmall
+
+  SUBROUTINE callback_wrapper_smallbig(caller, timestep, nlocal, ids, x, &
+      fexternal) BIND(C)
+    TYPE(c_ptr), INTENT(IN), VALUE :: caller
+    INTEGER(c_int64_t), INTENT(IN), VALUE :: timestep
+    INTEGER(c_int), INTENT(IN), VALUE :: nlocal
+    TYPE(c_ptr), INTENT(IN), VALUE :: ids, x, fexternal
+    TYPE(c_ptr), DIMENSION(:), POINTER :: x0, f0
+    INTEGER(c_int), DIMENSION(:), POINTER :: f_ids => NULL()
+    REAL(c_double), DIMENSION(:,:), POINTER :: f_x => NULL(), &
+        f_fexternal => NULL()
+    TYPE(fix_external_data), POINTER :: f_caller => NULL()
+
+    CALL C_F_POINTER(ids, f_ids, [nlocal])
+    CALL C_F_POINTER(x, x0, [nlocal])
+    CALL C_F_POINTER(x0(1), f_x, [3, nlocal])
+    CALL C_F_POINTER(fexternal, f0, [nlocal])
+    CALL C_F_POINTER(f0(1), f_fexternal, [3, nlocal])
+    IF (C_ASSOCIATED(caller)) THEN
+      CALL C_F_POINTER(caller, f_caller)
+      CALL f_caller%callback_smallbig(f_caller%caller, timestep, f_ids, f_x, &
+        f_fexternal)
+    ELSE
+      CALL lmp_error(f_caller%lammps_instance, &
+        LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Got null pointer from "caller"; this should never happen;&
+        & please report a bug')
+    END IF
+  END SUBROUTINE callback_wrapper_smallbig
+
+  SUBROUTINE callback_wrapper_bigbig(caller, timestep, nlocal, ids, x, &
+      fexternal) BIND(C)
+    TYPE(c_ptr), INTENT(IN), VALUE :: caller
+    INTEGER(c_int64_t), INTENT(IN), VALUE :: timestep
+    INTEGER(c_int), INTENT(IN), VALUE :: nlocal
+    TYPE(c_ptr), INTENT(IN), VALUE :: ids, x, fexternal
+    TYPE(c_ptr), DIMENSION(:), POINTER :: x0, f0
+    INTEGER(c_int64_t), DIMENSION(:), POINTER :: f_ids => NULL()
+    REAL(c_double), DIMENSION(:,:), POINTER :: f_x => NULL(), &
+        f_fexternal => NULL()
+    TYPE(fix_external_data), POINTER :: f_caller => NULL()
+
+    CALL C_F_POINTER(ids, f_ids, [nlocal])
+    CALL C_F_POINTER(x, x0, [nlocal])
+    CALL C_F_POINTER(x0(1), f_x, [3, nlocal])
+    CALL C_F_POINTER(fexternal, f0, [nlocal])
+    CALL C_F_POINTER(f0(1), f_fexternal, [3, nlocal])
+    IF (C_ASSOCIATED(caller)) THEN
+      CALL C_F_POINTER(caller, f_caller)
+      CALL f_caller%callback_bigbig(f_caller%caller, timestep, f_ids, f_x, &
+        f_fexternal)
+    ELSE
+      CALL lmp_error(f_caller%lammps_instance, &
+        LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Got null pointer from "caller"; this should never happen;&
+        & please report a bug')
+    END IF
+  END SUBROUTINE callback_wrapper_bigbig
 
   ! equivalent function to lammps_flush_buffers
   SUBROUTINE lmp_flush_buffers(self)

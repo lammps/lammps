@@ -91,7 +91,7 @@ CPOD::~CPOD()
   }
 }
 
-void CPOD::print_matrix(const char* desc, int m, int n, double **a, int lda )
+void CPOD::print_matrix(const char *desc, int m, int n, double **a, int /*lda*/ )
 {
   int i, j;
   printf( "\n %s\n", desc );
@@ -103,7 +103,7 @@ void CPOD::print_matrix(const char* desc, int m, int n, double **a, int lda )
   }
 }
 
-void CPOD::print_matrix(const char* desc, int m, int n, double* a, int lda )
+void CPOD::print_matrix(const char *desc, int m, int n, double *a, int lda )
 {
   int i, j;
   printf( "\n %s\n", desc );
@@ -115,7 +115,7 @@ void CPOD::print_matrix(const char* desc, int m, int n, double* a, int lda )
   }
 }
 
-void CPOD::print_matrix(const char* desc, int m, int n, int* a, int lda )
+void CPOD::print_matrix(const char *desc, int m, int n, int *a, int lda)
 {
   int i, j;
   printf( "\n %s\n", desc );
@@ -2696,7 +2696,6 @@ void CPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, in
 
     for (int lj=0; lj<numneigh ; lj++) {   // loop over each atom j around atom i
       ij = lj + s;
-      i = idxi[ij];  // atom i
       typei = ti[ij] - 1;
       typej = tj[ij] - 1;
       xij1 = yij[0+dim*ij];  // xj - xi

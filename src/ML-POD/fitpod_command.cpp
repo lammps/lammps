@@ -1392,7 +1392,7 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
 {
   int dim = 3;
   double energy;
-  double force[dim*data.num_atom_max];
+  std::vector<double> force(dim*data.num_atom_max);
 
   int nfiles = data.data_files.size();  // number of files
   int num_configs = data.num_atom.size(); // number of configurations in all files
@@ -1402,8 +1402,8 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
   //double effectivecoeff[nd1234];
 
   int m = 8;
-  double outarray[m*num_configs];
-  double errors[4*(nfiles+1)];
+  std::vector<double> outarray(m*num_configs);
+  std::vector<double> errors(4*(nfiles+1));
   for (int i=0; i<4*(nfiles+1); i++)
     errors[i] = 0.0;
 
@@ -1420,7 +1420,7 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
   int nd1234 = nd1+nd2+nd3+nd4;
   int nd = podptr->pod.nd;
 
-  double newcoeff[nd];
+  std::vector<double> newcoeff(nd);
   for (int j=0; j<nd; j++)
     newcoeff[j] = coeff[j];
 
@@ -1446,7 +1446,7 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
       for (int j=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j<nd; j++)
         newcoeff[j] = coeff[j]/(natom*natom);
 
-      energy = energyforce_calculation(force, newcoeff, data, ci);
+      energy = energyforce_calculation(force.data(), newcoeff.data(), data, ci);
 
       double DFTenergy = data.energy[ci];
       int natom_cumsum = data.num_atom_cumsum[ci];
@@ -1457,7 +1457,7 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
       outarray[2 + m*ci] = energy;
       outarray[3 + m*ci] = DFTenergy;
       outarray[4 + m*ci] = fabs(DFTenergy-energy)/natom;
-      outarray[5 + m*ci] = podptr->podArrayNorm(force, nforce);
+      outarray[5 + m*ci] = podptr->podArrayNorm(force.data(), nforce);
       outarray[6 + m*ci] = podptr->podArrayNorm(DFTforce, nforce);
 
       double diff, sum = 0.0, ssr = 0.0;
@@ -1495,14 +1495,14 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
 
   utils::logmesg(lmp, "**************** End of Error Calculation ****************\n");
 
-  print_analysis(data, outarray, errors);
+  print_analysis(data, outarray.data(), errors.data());
 }
 
 void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
 {
   int dim = 3;
   double energy;
-  double force[1+dim*data.num_atom_max];
+  std::vector<double> force(1+dim*data.num_atom_max);
 
   int nfiles = data.data_files.size();  // number of files
 
@@ -1519,7 +1519,7 @@ void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
       int natom = data.num_atom[ci];
       int nforce = dim*natom;
 
-      energy = energyforce_calculation(&force[1], coeff, data, ci);
+      energy = energyforce_calculation(force.data()+1, coeff, data, ci);
 
       ci += 1;
 
@@ -1530,7 +1530,7 @@ void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
 
       FILE *fp = fopen(filename.c_str(), "wb");
 
-      fwrite( reinterpret_cast<char*>( &force[0] ), sizeof(double) * (1 + nforce), 1, fp);
+      fwrite( reinterpret_cast<char*>( force.data() ), sizeof(double) * (1 + nforce), 1, fp);
 
       fclose(fp);
     }

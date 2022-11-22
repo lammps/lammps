@@ -584,7 +584,7 @@ std::vector<int> CFITPOD::shuffle(int start_in, int end_in, int num_in)
   for (int i = 0; i<sz; i++)
     myvector[i] = start_in + i;
 
-  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  unsigned seed = (unsigned) platform::walltime()*1.0e9;
   std::shuffle (myvector.begin(), myvector.end(), std::default_random_engine(seed));
 
   std::vector<int> shuffle_vec(num_in);

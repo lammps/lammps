@@ -422,7 +422,7 @@ void FixElectrodeConp::post_constructor()
   input->variable->set(fmt::format("{} equal f_{}[{}]", var_vtop, fixname, 1 + top_group));
   input->variable->set(fmt::format("{} equal (v_{}-v_{})/lz", var_efield, var_vbot, var_vtop));
   // check for other efields and warn if found
-  if (modify->get_fix_by_style("efield").size() > 0)
+  if (modify->get_fix_by_style("efield").size() > 0 && comm->me == 0)
     error->warning(FLERR, "Other efield fixes found -- please make sure this is intended!");
   // call fix command:
   // fix [varstem]_efield all efield 0.0 0.0 [var_vdiff]/lz
@@ -611,7 +611,7 @@ void FixElectrodeConp::invert()
 void FixElectrodeConp::symmetrize()
 {
   // S matrix to enforce charge neutrality constraint
-  if (read_inv)
+  if (read_inv && comm->me == 0)
     error->warning(FLERR,
                    "Symmetrizing matrix from file. Make sure the provided matrix has not been "
                    "symmetrized yet.");
@@ -690,7 +690,7 @@ void FixElectrodeConp::setup_pre_exchange()    // create_taglist
   // if memory_usage > 0.5 GiB, warn with expected usage
   double mem_needed = memory_usage();
   mem_needed /= (1024 * 1024 * 1024);    // convert to GiB
-  if (mem_needed > 0.5)
+  if (mem_needed > 0.5 && comm->me == 0)
     error->warning(FLERR,
                    fmt::format("Please ensure there is sufficient memory for fix electrode "
                                "(anticipated usage is at least {:.1f} GiB per proc)",

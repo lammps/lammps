@@ -34,9 +34,10 @@ FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
   if (symm) {
     if (num_of_groups == 1)
       error->all(FLERR, "Keyword symm on not allowed in electrode/conq with only one electrode");
-    error->warning(FLERR,
-                   "Fix electrode/conq with keyword symm ignores the charge setting for the last "
-                   "electrode listed");
+    if (comm->me == 0)
+      error->warning(FLERR,
+                     "Fix electrode/conq with keyword symm ignores the charge setting for the last "
+                     "electrode listed");
   }
 }
 

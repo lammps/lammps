@@ -146,8 +146,9 @@ void CFITPOD::command(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
-    std::string &test_path, std::string &training_path, std::string data_file)
+void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format,
+                             std::string &file_extension, std::string &test_path,
+                             std::string &training_path, const std::string &data_file)
 {
   std::string datafilename = data_file;
   FILE *fpdata;

@@ -17,16 +17,17 @@
 
 #include "pair_pod.h"
 
+#include "pod.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "pod.h"
 #include "tokenizer.h"
-#include "math_const.h"
 
 #include <cmath>
 #include <cstring>

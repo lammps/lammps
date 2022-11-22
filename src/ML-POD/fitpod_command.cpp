@@ -463,13 +463,20 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
   get_exyz_files(data.data_files, data.data_path, data.file_extension);
   data.num_atom_sum = get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);
   data.num_config_sum = data.num_atom.size();
-
-  utils::logmesg(lmp, "data file   |  number of configurations   |   number of atoms\n");
-  for (int i=0; i< (int) data.data_files.size(); i++) {
-    std::string filename = data.data_files[i].substr(data.data_path.size()+1,data.data_files[i].size());
-    data.filenames.push_back(filename.c_str());
-    utils::logmesg(lmp, "{}   |   {}   |   {}\n", data.filenames[i], data.num_config[i], data.num_atom_each_file[i]);
+  size_t maxname = 9;
+  for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
+  maxname -= data.data_path.size()+1;
+  utils::logmesg(lmp, " {:^{}} | number of configurations | number of atoms\n{:=<{}}\n", "data file",
+                 maxname, "", maxname+46);
+  int i = 0;
+  for (auto fname : data.data_files) {
+    std::string filename = fname.substr(data.data_path.size()+1);
+    data.filenames.push_back(filename);
+    utils::logmesg(lmp, " {:<{}} |        {:>10}        |    {:>8}\n",
+                   filename, maxname, data.num_config[i], data.num_atom_each_file[i]);
+    ++i;
   }
+  utils::logmesg(lmp, "{:=<{}}\n", "", maxname+46);
   utils::logmesg(lmp, "number of files: {}\n", data.data_files.size());
   utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
   utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);

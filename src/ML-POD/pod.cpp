@@ -388,8 +388,8 @@ void CPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *besse
 
   int lwork = ns * ns;  // the length of the array work, lwork >= max(1,3*N-1)
   int info = 1;     // = 0:  successful exit
-  double work[ns*ns];
-  DSYEV(&chv, &chu, &ns, A, &ns, b, work, &lwork, &info);
+  std::vector<double> work(ns*ns);
+  DSYEV(&chv, &chu, &ns, A, &ns, b, work.data(), &lwork, &info);
 
   // order eigenvalues and eigenvectors from largest to smallest
 

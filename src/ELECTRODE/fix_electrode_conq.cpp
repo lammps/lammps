@@ -31,19 +31,25 @@ FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
   // copy const-style values across because update_psi will change group_psi
   group_q = group_psi;
 
-  if (symm) error->all(FLERR, "Keyword symm on not allowed in electrode/conq");
+  if (symm) {
+    if (num_of_groups == 1)
+      error->all(FLERR, "Keyword symm on not allowed in electrode/conq with only one electrode");
+    error->warning(FLERR,
+                   "Fix electrode/conq with keyword symm ignores the charge setting for the last "
+                   "electrode listed");
+  }
 }
 
 void FixElectrodeConq::update_psi()
 {
-  for (int g = 0; g < num_of_groups; g++) {
+  int const numsymm = num_of_groups - ((symm) ? 1 : 0);
+  for (int g = 0; g < numsymm; g++) {
     if (group_psi_var_styles[g] == VarStyle::CONST) continue;
     group_q[g] = input->variable->compute_equal(group_psi_var_ids[g]);
   }
   if (algo == Algo::MATRIX_INV) {
-    std::vector<double> group_remainder_q(num_of_groups);
-    for (int g = 0; g < num_of_groups; g++) { group_remainder_q[g] = group_q[g] - sb_charges[g]; }
-
+    std::vector<double> group_remainder_q(num_of_groups, 0.);
+    for (int g = 0; g < numsymm; g++) { group_remainder_q[g] = group_q[g] - sb_charges[g]; }
     for (int g = 0; g < num_of_groups; g++) {
       double vtmp = 0;
       for (int h = 0; h < num_of_groups; h++) {
@@ -98,9 +104,7 @@ void FixElectrodeConq::recompute_potential(std::vector<double> b, std::vector<do
   int const n = b.size();
   auto a = ele_ele_interaction(q_local);
   auto psi_sums = std::vector<double>(num_of_groups, 0);
-  for (int i = 0; i < n; i++) {
-    psi_sums[iele_to_group_local[i]] += (a[i] + b[i]) / evscale;
-  }
+  for (int i = 0; i < n; i++) { psi_sums[iele_to_group_local[i]] += (a[i] + b[i]) / evscale; }
   MPI_Allreduce(MPI_IN_PLACE, &psi_sums.front(), num_of_groups, MPI_DOUBLE, MPI_SUM, world);
   for (int g = 0; g < num_of_groups; g++) group_psi[g] = psi_sums[g] / group->count(groups[g]);
 }

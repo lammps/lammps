@@ -444,7 +444,6 @@ void CPOD::read_pod(std::string pod_file)
 
   char line[MAXLINE],*ptr;
   int eof = 0;
-  int nwords = 0;
   while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fppod);
@@ -769,7 +768,6 @@ void CPOD::read_coeff_file(std::string coeff_file)
 
   // strip single and double quotes from words
 
-  int nelemtmp = 0;
   int ncoeffall;
   std::string tmp_str;
   try {
@@ -1675,7 +1673,6 @@ void snapInitSna(double *rootpqarray, double *cglist, double *factorial, int *id
 
 void CPOD::snapSetup(int twojmax, int ntypes)
 {
-  int backend = 1;
   sna.twojmax = twojmax;
   sna.ntypes = ntypes;
 
@@ -1751,7 +1748,6 @@ void CPOD::InitSnap()
   int ntypes = pod.nelements;
   int chemflag = pod.snapchemflag;
 
-  int backend=1;
   int bzeroflag = 0;
   int switchflag = 1;
   int wselfallflag = 0;
@@ -2680,7 +2676,7 @@ void CPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, in
 {
   int dim = 3, nabf1 = nabf + 1;
   int nelements2 = nelements*(nelements+1)/2;
-  int n, nijk, typei, typej, typek, ij, ik, i, j, k;
+  int n, nijk, typei, typej, typek, ij, ik;
 
   double xij1, xij2, xij3, xik1, xik2, xik3;
   double xdot, rijsq, riksq, rij, rik;

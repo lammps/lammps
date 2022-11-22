@@ -77,9 +77,7 @@ void PairPOD::compute(int eflag, int vflag)
   int *numneigh = list->numneigh;
   int *type = atom->type;
   int *ilist = list->ilist;
-  int nlocal = atom->nlocal;
   int inum = list->inum;
-  int nall = inum + atom->nghost;
 
   // initialize global descriptors to zero
 
@@ -110,10 +108,6 @@ void PairPOD::compute(int eflag, int vflag)
       typeai, idxi, ti, tj, 1, nij);
   }
 
-  int nd1 = podptr->pod.nd1;
-  int nd2 = podptr->pod.nd2;
-  int nd3 = podptr->pod.nd3;
-  int nd4 = podptr->pod.nd4;
   int nd22 = podptr->pod.nd22;
   int nd23 = podptr->pod.nd23;
   int nd24 = podptr->pod.nd24;
@@ -322,5 +316,4 @@ void PairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int
 
   numneighsum[0] = 0;
   numneighsum[1] = nij;
-
 }

@@ -139,17 +139,22 @@ For both *cg* methods, the command must specify the conjugate gradient
 tolerance. *fix electrode/thermo* currently only supports the *mat_inv*
 algorithm.
 
-For *fix electrode/conp*, the keyword *symm* can be set *on* (or *off*) to turn
-on (or turn off) the constraint requiring total electrode charge to be zero.
-With *symm off*, the potentials specified are absolute potentials, but the
-charge configurations satisfying them may add up to an overall non-zero, varying
+The keyword *symm* can be set *on* (or *off*) to turn on (or turn off)
+the capacitance matrix constraint that sets total electrode charge to be zero.
+This has slightly different effects for each *fix electrode* variant.
+For *fix electrode/conp*, with *symm off*, the potentials specified are absolute potentials,
+but the charge configurations satisfying them may add up to an overall non-zero, varying
 charge for the electrodes (and thus the simulation box). With *symm on*, the
-total charge over all electrode groups is constrained to zero.
+total charge over all electrode groups is constrained to zero, and
+potential differences rather than absolute potentials are the physically relevant quantities.
 
-The *symm* keyword is not allowed for *electrode/conq*, for which overall
-neutrality is explicitly obeyed or violated by the user input, and for
-*electrode/thermo*, for which overall neutrality is always automatically
-imposed.
+For *fix electrode/conq*, with *symm off*, overall neutrality is explicitly obeyed or
+violated by the user input (which is not checked!). With *symm on*, overall neutrality
+is ensured by ignoring the user-input charge for the last listed electrode (instead,
+its charge will always be minus the total sum of all other electrode charges). For
+*fix electrode/thermo*, overall neutrality is always automatically imposed for any setting
+of *symm*, but *symm on* allows finite-field mode (*ffield on*, described below)
+for faster simulations.
 
 For all three fixes, any potential (or charge for *conq*) can be specified as an
 equal-style variable prefixed with "v\_". For example, the following code will
@@ -213,7 +218,8 @@ by cell length.  The internal commands use variable so that the electric field
 will correctly vary with changing potentials in the correct way (for example
 with equal-style potential difference or with *fix electrode/conq*).  This
 keyword requires two electrodes and will issue an error with any other number of
-electrodes.
+electrodes. This keyword requires electroneutrality to be imposed (*symm on*)
+and will issue an error otherwise.
 
 For all versions of the fix, the keyword-value *etypes on* enables type-based
 optimized neighbor lists. With this feature enabled, LAMMPS provides the fix

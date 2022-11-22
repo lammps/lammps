@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)   
+   Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)
 ------------------------------------------------------------------------- */
 
 // POD header file
@@ -25,7 +25,7 @@
 #include "error.h"
 #include "memory.h"
 #include "tokenizer.h"
-#include "math_const.h"         
+#include "math_const.h"
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -91,7 +91,7 @@ CPOD::~CPOD()
   }
 }
 
-void CPOD::print_matrix(const char* desc, int m, int n, double **a, int lda )
+void CPOD::print_matrix(const char *desc, int m, int n, double **a, int /*lda*/ )
 {
   int i, j;
   printf( "\n %s\n", desc );
@@ -103,7 +103,7 @@ void CPOD::print_matrix(const char* desc, int m, int n, double **a, int lda )
   }
 }
 
-void CPOD::print_matrix(const char* desc, int m, int n, double* a, int lda )
+void CPOD::print_matrix(const char *desc, int m, int n, double *a, int lda )
 {
   int i, j;
   printf( "\n %s\n", desc );
@@ -115,7 +115,7 @@ void CPOD::print_matrix(const char* desc, int m, int n, double* a, int lda )
   }
 }
 
-void CPOD::print_matrix(const char* desc, int m, int n, int* a, int lda )
+void CPOD::print_matrix(const char *desc, int m, int n, int *a, int lda)
 {
   int i, j;
   printf( "\n %s\n", desc );
@@ -366,7 +366,7 @@ void CPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *besse
   memory->create(Q, N*ns, "pod:Q");
   memory->create(A, ns*ns, "pod:A");
   memory->create(b, ns, "pod:ns");
-  
+
   for (int i=0; i<N; i++)
     xij[i] = (rin+1e-6) + (rcut-rin-1e-6)*(i*1.0/(N-1));
 
@@ -388,8 +388,8 @@ void CPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *besse
 
   int lwork = ns * ns;  // the length of the array work, lwork >= max(1,3*N-1)
   int info = 1;     // = 0:  successful exit
-  double work[ns*ns];
-  DSYEV(&chv, &chu, &ns, A, &ns, b, work, &lwork, &info);
+  std::vector<double> work(ns*ns);
+  DSYEV(&chv, &chu, &ns, A, &ns, b, work.data(), &lwork, &info);
 
   // order eigenvalues and eigenvectors from largest to smallest
 
@@ -444,7 +444,6 @@ void CPOD::read_pod(std::string pod_file)
 
   char line[MAXLINE],*ptr;
   int eof = 0;
-  int nwords = 0;
   while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fppod);
@@ -769,7 +768,6 @@ void CPOD::read_coeff_file(std::string coeff_file)
 
   // strip single and double quotes from words
 
-  int nelemtmp = 0;
   int ncoeffall;
   std::string tmp_str;
   try {
@@ -1675,7 +1673,6 @@ void snapInitSna(double *rootpqarray, double *cglist, double *factorial, int *id
 
 void CPOD::snapSetup(int twojmax, int ntypes)
 {
-  int backend = 1;
   sna.twojmax = twojmax;
   sna.ntypes = ntypes;
 
@@ -1751,7 +1748,6 @@ void CPOD::InitSnap()
   int ntypes = pod.nelements;
   int chemflag = pod.snapchemflag;
 
-  int backend=1;
   int bzeroflag = 0;
   int switchflag = 1;
   int wselfallflag = 0;
@@ -1777,8 +1773,8 @@ void CPOD::InitSnap()
   for (int i=0; i<ntypes; i++)
     for (int j=0; j<ntypes; j++) {
       double cut = (elemradius[i] + elemradius[j])*rcutfac;
-      sna.rcutsq[j+1 + (i+1)*(ntypes+1)] = cut*cut;      
-    }  
+      sna.rcutsq[j+1 + (i+1)*(ntypes+1)] = cut*cut;
+    }
   //TemplateCopytoDevice(sna.rcutsq, cutsq, (ntypes+1)*(ntypes+1), backend);
 
   if (bzeroflag) {
@@ -2680,7 +2676,7 @@ void CPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, in
 {
   int dim = 3, nabf1 = nabf + 1;
   int nelements2 = nelements*(nelements+1)/2;
-  int n, nijk, typei, typej, typek, ij, ik, i, j, k;
+  int n, nijk, typei, typej, typek, ij, ik;
 
   double xij1, xij2, xij3, xik1, xik2, xik3;
   double xdot, rijsq, riksq, rij, rik;
@@ -2700,7 +2696,6 @@ void CPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, in
 
     for (int lj=0; lj<numneigh ; lj++) {   // loop over each atom j around atom i
       ij = lj + s;
-      i = idxi[ij];  // atom i
       typei = ti[ij] - 1;
       typej = tj[ij] - 1;
       xij1 = yij[0+dim*ij];  // xj - xi

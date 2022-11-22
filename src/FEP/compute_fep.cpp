@@ -198,8 +198,12 @@ void ComputeFEP::init()
 
     if (pert->which == PAIR) {
       pairflag = 1;
+      Pair *pair = nullptr;
 
-      Pair *pair = force->pair_match(pert->pstyle, 1);
+      if (lmp->suffix_enable)
+        pair = force->pair_match(std::string(pert->pstyle)+"/"+lmp->suffix,1);
+
+      if (pair == nullptr) pair = force->pair_match(pert->pstyle,1);
       if (pair == nullptr)
         error->all(FLERR,
                    "compute fep pair style "

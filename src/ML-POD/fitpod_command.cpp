@@ -505,13 +505,13 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
 
   // convert all structures to triclinic system
 
-  int dim = 3;
-  double Qmat[dim*dim];
+  constexpr int DIM = 3;
+  double Qmat[DIM*DIM];
   for (int ci=0; ci<len; ci++) {
     int natom = data.num_atom[ci];
     int natom_cumsum = data.num_atom_cumsum[ci];
-    double *x = &data.position[dim*natom_cumsum];
-    double *f = &data.force[dim*natom_cumsum];
+    double *x = &data.position[DIM*natom_cumsum];
+    double *f = &data.force[DIM*natom_cumsum];
     double *lattice = &data.lattice[9*ci];
     double *a1 = &lattice[0];
     double *a2 = &lattice[3];
@@ -519,7 +519,7 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
 
     podptr->matrix33_inverse(Qmat, a1, a2, a3);
     podptr->triclinic_lattice_conversion(a1, a2, a3, a1, a2, a3);
-    podptr->matrix33_multiplication(Qmat, lattice, Qmat, dim);
+    podptr->matrix33_multiplication(Qmat, lattice, Qmat, DIM);
     podptr->matrix33_multiplication(x, Qmat, x, natom);
     podptr->matrix33_multiplication(f, Qmat, f, natom);
   }

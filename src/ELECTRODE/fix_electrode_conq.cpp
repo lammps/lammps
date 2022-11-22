@@ -17,6 +17,7 @@
 
 #include "fix_electrode_conq.h"
 
+#include "comm.h"
 #include "error.h"
 #include "fix_electrode_conp.h"
 #include "group.h"

@@ -234,13 +234,6 @@ double PairPOD::memory_usage()
   return bytes;
 }
 
-void *PairPOD::extract(const char *str, int &dim)
-{
-  dim = 2;
-  if (strcmp(str,"scale") == 0) return (void *) scale;
-  return nullptr;
-}
-
 void PairPOD::free_tempmemory()
 {
   memory->destroy(rij);
@@ -254,23 +247,9 @@ void PairPOD::free_tempmemory()
   memory->destroy(tmpmem);
 }
 
-void PairPOD::free_atommemory()
-{
-  /*
-  memory->destroy(forces);
-  memory->destroy(stress);
-  if (atommemory) {
-    memory->destroy(atomtype);
-    memory->destroy(pos);
-    memory->destroy(vel);
-  }
-  */
-}
-
 void PairPOD::free_memory()
 {
   free_tempmemory();
-  free_atommemory();
 }
 
 void PairPOD::allocate_tempmemory()
@@ -286,40 +265,9 @@ void PairPOD::allocate_tempmemory()
   memory->create(tmpmem, szd, "pair:tmpmem");
 }
 
-void PairPOD::allocate_atommemory()
-{
-  /*
-  memory->create(forces, dim*nmaxatom, "pair:forces");
-  memory->create(stress, 9, "pair:stress");
-  if (atommemory) {
-    memory->create(atomtype, nmaxatom, "pair:atomtype");
-    memory->create(pos, dim*nmaxatom, "pair:pos");
-    memory->create(vel, dim*nmaxatom, "pair:vel");
-  }
-  */
-}
-
 void PairPOD::allocate_memory()
 {
-
   allocate_tempmemory();
-  allocate_atommemory();
-
-}
-
-void PairPOD::check_atommemory(int inum, int nall)
-{
-
-  if (nmaxatom < nall) {
-    nmaxatom = nall;
-    free_atommemory();
-    allocate_atommemory();
-  }
-  nlocalatom = inum;
-  nghostatom = nall - inum;
-  ntotalatom = nall;
-  nlocalmax = PODMAX(nlocalmax, nlocalatom);
-
 }
 
 void PairPOD::estimate_tempmemory()

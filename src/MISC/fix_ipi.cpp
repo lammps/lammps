@@ -401,7 +401,7 @@ void FixIPI::final_integrate()
   char retstr[1024];
 
   // conversions from LAMMPS units to atomic units, which are used by i-PI
-  if (force->boltz == 1.0 ) potconv = posconv = 1.0;  // if one uses LJ units, posconv and potconv should be 1
+  if (strcmp(update->unit_style,"lj") == 0) posconv = 1.0; // if one uses LJ units, posconv should be 1
   else { // if one does not use LJ units, convert energy to eV and length to Angstrom
     potconv=3.1668152e-06/force->boltz;
     posconv=0.52917721*force->angstrom;

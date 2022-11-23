@@ -14,6 +14,7 @@
 #ifdef COMMAND_CLASS
 // clang-format off
 CommandStyle(DEPRECATED,Deprecated);
+CommandStyle(box,Deprecated);
 CommandStyle(reset_ids,Deprecated);
 CommandStyle(kim_init,Deprecated);
 CommandStyle(kim_interactions,Deprecated);

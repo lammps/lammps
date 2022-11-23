@@ -18,7 +18,10 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<int HALF, int DIM_3D, int TRI>
-NStencilGhostBin<HALF, DIM_3D, TRI>::NStencilGhostBin(LAMMPS *lmp) : NStencil(lmp) {}
+NStencilGhostBin<HALF, DIM_3D, TRI>::NStencilGhostBin(LAMMPS *lmp) : NStencil(lmp)
+{
+  xyzflag = 1;
+}
 
 /* ----------------------------------------------------------------------
    create stencil based on bin geometry and cutoff
@@ -52,11 +55,12 @@ void NStencilGhostBin<HALF, DIM_3D, TRI>::create()
         if (HALF && DIM_3D && (!TRI))
           if (! (k > 0 || j > 0 || (j == 0 && i > 0))) continue;
 
-        if (bin_distance(i,j,k) < cutneighmaxsq)
+        if (bin_distance(i,j,k) < cutneighmaxsq) {
           stencilxyz[nstencil][0] = i;
           stencilxyz[nstencil][1] = j;
           stencilxyz[nstencil][2] = k;
           stencil[nstencil++] = k * mbiny * mbinx + j * mbinx + i;
+        }
       }
     }
   }

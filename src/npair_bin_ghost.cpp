@@ -149,7 +149,7 @@ void NPairBinGhost<HALF>::build(NeighList *list)
         if (xbin2 < 0 || xbin2 >= mbinx ||
             ybin2 < 0 || ybin2 >= mbiny ||
             zbin2 < 0 || zbin2 >= mbinz) continue;
-        for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
+        for (j = binhead[ibin + stencil[k]]; j >= 0; j = bins[j]) {
           if (HALF) {
             if (j <= i) continue;
           } else {

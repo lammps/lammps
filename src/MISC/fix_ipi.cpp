@@ -322,7 +322,8 @@ void FixIPI::initial_integrate(int /*vflag*/)
   double *boxhi = domain->boxhi;
   double *boxlo = domain->boxlo;
   double posconv;
-  posconv=0.52917721*force->angstrom;
+  if (force->boltz == 1.0) posconv = 1.0; // if one uses LJ units, posconv should be 1
+  else posconv=0.52917721*force->angstrom; // if one does not use LJ units, convert length to Angstrom
   boxlo[0] = -0.5*cellh[0]*posconv;
   boxlo[1] = -0.5*cellh[4]*posconv;
   boxlo[2] = -0.5*cellh[8]*posconv;
@@ -400,11 +401,14 @@ void FixIPI::final_integrate()
   char retstr[1024];
 
   // conversions from LAMMPS units to atomic units, which are used by i-PI
-  potconv=3.1668152e-06/force->boltz;
-  posconv=0.52917721*force->angstrom;
-  posconv3=posconv*posconv*posconv;
-  forceconv=potconv*posconv;
-  pressconv=1/force->nktv2p*potconv*posconv3;
+  if (force->boltz == 1.0 ) potconv = posconv = 1.0;  // if one uses LJ units, posconv and potconv should be 1
+  else { // if one does not use LJ units, convert energy to eV and length to Angstrom
+    potconv=3.1668152e-06/force->boltz;
+    posconv=0.52917721*force->angstrom;
+  }
+    posconv3=posconv*posconv*posconv;
+    forceconv=potconv*posconv;
+    pressconv=1/force->nktv2p*potconv*posconv3;
 
   // compute for potential energy
   pot=modify->compute[modify->find_compute("thermo_pe")]->compute_scalar();

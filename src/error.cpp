@@ -122,7 +122,7 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
 void Error::universe_warn(const std::string &file, int line, const std::string &str)
 {
   ++numwarn;
-  if ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0)) return;
+  if ((maxwarn != 0) && ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0))) return;
   if (universe->uscreen)
     fmt::print(universe->uscreen,"WARNING on proc {}: {} ({}:{})\n",
                universe->me,str,truncpath(file),line);
@@ -254,7 +254,7 @@ void Error::_one(const std::string &file, int line, fmt::string_view format,
 void Error::warning(const std::string &file, int line, const std::string &str)
 {
   ++numwarn;
-  if ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0)) return;
+  if ((maxwarn != 0) && ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0))) return;
   std::string mesg = fmt::format("WARNING: {} ({}:{})\n",
                                  str,truncpath(file),line);
   if (screen) fputs(mesg.c_str(),screen);

@@ -144,11 +144,6 @@ does not change the atom positions due to non-periodicity.  In this
 mode, if you tilt the system to extreme angles, the simulation will
 simply become inefficient, due to the highly skewed simulation box.
 
-The limitation on not creating a simulation box with a tilt factor
-skewing the box more than half the distance of the parallel box length
-can be overridden via the :doc:`box <box>` command.  Setting the *tilt*
-keyword to *large* allows any tilt factors to be specified.
-
 Box flips that may occur using the :doc:`fix deform <fix_deform>` or
 :doc:`fix npt <fix_nh>` commands can be turned off using the *flip no*
 option with either of the commands.

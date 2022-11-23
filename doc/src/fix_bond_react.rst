@@ -640,7 +640,7 @@ specified by the *max_rxn* keyword.
 .. versionadded:: TBD
 
 The *rate_limit* keyword can enforce an upper limit on the overall
-rate of the reaction. The number of reaction occurences is limited to
+rate of the reaction. The number of reaction occurrences is limited to
 Nlimit within an interval of Nsteps timesteps. No reactions are
 permitted to occur within the first Nsteps timesteps of the first run
 after reading a data file. Nlimit can be specified with an equal-style

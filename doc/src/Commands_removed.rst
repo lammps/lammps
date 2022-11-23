@@ -2,10 +2,11 @@ Removed commands and packages
 =============================
 
 This page lists LAMMPS commands and packages that have been removed from
-the distribution and provides suggestions for alternatives or replacements.
-LAMMPS has special dummy styles implemented, that will stop LAMMPS and
-print a suitable error message in most cases, when a style/command is used
-that has been removed.
+the distribution and provides suggestions for alternatives or
+replacements.  LAMMPS has special dummy styles implemented, that will
+stop LAMMPS and print a suitable error message in most cases, when a
+style/command is used that has been removed or will replace the command
+with the direct alternative (if available) and print a warning.
 
 Fix ave/spatial and fix ave/spatial/sphere
 ------------------------------------------
@@ -16,6 +17,14 @@ infrastructure".  Here the system is partitioned in one of many possible
 ways through the :doc:`compute chunk/atom <compute_chunk_atom>` command
 and then averaging is done using :doc:`fix ave/chunk <fix_ave_chunk>`.
 Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
+
+Box command
+-----------
+
+.. deprecated:: TBD
+
+The *box* command has been removed and the LAMMPS code changed so it won't
+be needed.  If present, LAMMPS will ignore the command and print a warning.
 
 Reset_ids, reset_atom_ids, reset_mol_ids commands
 -------------------------------------------------

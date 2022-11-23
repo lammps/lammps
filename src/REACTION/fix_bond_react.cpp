@@ -22,6 +22,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include "atom_vec.h"
 #include "citeme.h"
 #include "comm.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_bond_history.h"
@@ -118,10 +119,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   fix3 = nullptr;
   reset_mol_ids = nullptr;
 
-  if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: " "too few arguments");
+  if (narg < 8) utils::missing_cmd_args(FLERR,"fix bond/react", error);
 
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
   newton_bond = force->newton_bond;
 
   restart_global = 1;
@@ -494,7 +493,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nreacts; i++) {
     for (int j = 0; j < nconstraints[i]; j++) {
       if (constraints[j][i].type == ARRHENIUS) {
-        rrhandom[tmp++] = new RanMars(lmp,(int) constraints[j][i].par[4] + me);
+        rrhandom[tmp++] = new RanMars(lmp,(int) constraints[j][i].par[4] + comm->me);
       }
     }
   }
@@ -529,7 +528,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   random = new RanMars*[nreacts];
   for (int i = 0; i < nreacts; i++) {
-    random[i] = new RanMars(lmp,seed[i] + me);
+    random[i] = new RanMars(lmp,seed[i] + comm->me);
   }
 
   // set comm sizes needed by this fix
@@ -1251,6 +1250,7 @@ void FixBondReact::close_partner()
 
 void FixBondReact::superimpose_algorithm()
 {
+  const int nprocs = comm->nprocs;
   local_num_mega = 0;
   ghostly_num_mega = 0;
 
@@ -1400,7 +1400,7 @@ void FixBondReact::superimpose_algorithm()
   MPI_Allreduce(&local_rxn_count[0],&reaction_count[0],nreacts,MPI_INT,MPI_SUM,world);
 
   int rxnflag = 0;
-  if (me == 0)
+  if (comm->me == 0)
     for (int i = 0; i < nreacts; i++) {
       reaction_count_total[i] += reaction_count[i] + ghostly_rxn_count[i];
       rxnflag += reaction_count[i] + ghostly_rxn_count[i];
@@ -1440,7 +1440,7 @@ void FixBondReact::superimpose_algorithm()
       memory->create(local_rxncounts,nprocs,"bond/react:local_rxncounts");
       memory->create(all_localskips,nprocs,"bond/react:all_localskips");
       MPI_Gather(&local_rxn_count[i],1,MPI_INT,local_rxncounts,1,MPI_INT,0,world);
-      if (me == 0) {
+      if (comm->me == 0) {
         int delta_rxn = reaction_count[i] + ghostly_rxn_count[i];
         // when using variable input for rate_limit, rate_limit_overstep could be > delta_rxn (below)
         // we need to limit overstep to the number of reactions on this timestep
@@ -2615,7 +2615,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   }
 
   // also, if atoms change number of bonds, but aren't landlocked, that could be bad
-  if (me == 0)
+  if (comm->me == 0)
     for (int i = 0; i < twomol->natoms; i++) {
       if ((create_atoms[i][myrxn] == 0) &&
           (twomol_nxspecial[i][0] != onemol_nxspecial[equivalences[i][1][myrxn]-1][0]) &&
@@ -2947,6 +2947,7 @@ broadcast entries of mega_glove which contain nonlocal atoms for perusal by all 
 void FixBondReact::ghost_glovecast()
 {
 #if !defined(MPI_STUBS)
+  const int nprocs = comm->nprocs;
 
   global_megasize = 0;
 
@@ -2965,7 +2966,7 @@ void FixBondReact::ghost_glovecast()
   int *allstarts = new int[nprocs];
 
   int start = 0;
-  for (int i = 0; i < me; i++) {
+  for (int i = 0; i < comm->me; i++) {
     start += allncols[i];
   }
   MPI_Allgather(&start, 1, MPI_INT, allstarts, 1, MPI_INT, world);
@@ -2993,7 +2994,7 @@ void FixBondReact::ghost_glovecast()
     }
   }
   // let's send to root, dedup, then broadcast
-  if (me == 0) {
+  if (comm->me == 0) {
     MPI_Gatherv(MPI_IN_PLACE, ghostly_num_mega, column, // Note: some values ignored for MPI_IN_PLACE
                 &(global_mega_glove[0][0]), allncols, allstarts,
                 column, 0, world);
@@ -3003,7 +3004,7 @@ void FixBondReact::ghost_glovecast()
                 column, 0, world);
   }
 
-  if (me == 0) dedup_mega_gloves(GLOBAL); // global_mega_glove mode
+  if (comm->me == 0) dedup_mega_gloves(GLOBAL); // global_mega_glove mode
   MPI_Bcast(&global_megasize,1,MPI_INT,0,world);
   MPI_Bcast(&(global_mega_glove[0][0]), global_megasize, column, 0, world);
 
@@ -3745,7 +3746,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
   Superpose3D<double, double **> superposer(n2superpose);
   int fitroot = 0;
   if (ifit >= 0 && ifit < atom->nlocal) {
-    fitroot = me;
+    fitroot = comm->me;
 
     // get 'temperatere' averaged over site, used for created atoms' vels
     t = get_temperature(my_mega_glove,1,iupdate);
@@ -3763,7 +3764,8 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       int ipre = equivalences[j][1][rxnID]-1; // equiv pre-reaction template index
       if (!create_atoms[j][rxnID] && !delete_atoms[ipre][rxnID]) {
         if (atom->map(my_mega_glove[ipre+1][iupdate]) < 0) {
-          error->warning(FLERR," eligible atoms skipped for created-atoms fit on rank {}\n",me);
+          error->warning(FLERR," eligible atoms skipped for created-atoms fit on rank {}\n",
+                         comm->me);
           continue;
         }
         iatom = atom->map(my_mega_glove[ipre+1][iupdate]);
@@ -3791,7 +3793,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
     if (create_atoms[m][rxnID] == 1) {
       // apply optimal rotation/translation for created atom coords
       // also map coords back into simulation box
-      if (fitroot == me) {
+      if (fitroot == comm->me) {
         MathExtra::matvec(rotmat,twomol->x[m],coords[m]);
         for (int i = 0; i < 3; i++) coords[m][i] += superposer.T[i];
         imageflags[m] = atom->image[ifit];
@@ -3879,7 +3881,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 
       int root = 0;
       if (flag) {
-        root = me;
+        root = comm->me;
 
         atom->avec->create_atom(twomol->type[m],coords[m]);
         int n = atom->nlocal - 1;
@@ -4025,7 +4027,7 @@ void FixBondReact::read_map_file(int myrxn)
   while (strlen(keyword)) {
     if (strcmp(keyword,"InitiatorIDs") == 0 || strcmp(keyword,"BondingIDs") == 0) {
       if (strcmp(keyword,"BondingIDs") == 0)
-        if (me == 0) error->warning(FLERR,"Fix bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
+        if (comm->me == 0) error->warning(FLERR,"Fix bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
       bondflag = 1;
       readline(line);
       sscanf(line,"%d",&ibonding[myrxn]);
@@ -4291,7 +4293,7 @@ void FixBondReact::open(char *file)
 void FixBondReact::readline(char *line)
 {
   int n;
-  if (me == 0) {
+  if (comm->me == 0) {
     if (fgets(line,MAXLINE,fp) == nullptr) n = 0;
     else n = strlen(line) + 1;
   }
@@ -4308,7 +4310,7 @@ void FixBondReact::parse_keyword(int flag, char *line, char *keyword)
     // eof is set to 1 if any read hits end-of-file
 
     int eof = 0;
-    if (me == 0) {
+    if (comm->me == 0) {
       if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
       while (eof == 0 && strspn(line," \t\n\r") == strlen(line)) {
         if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
@@ -4327,7 +4329,7 @@ void FixBondReact::parse_keyword(int flag, char *line, char *keyword)
     // bcast keyword line to all procs
 
     int n;
-    if (me == 0) n = strlen(line) + 1;
+    if (comm->me == 0) n = strlen(line) + 1;
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
   }
@@ -4492,7 +4494,7 @@ void FixBondReact::write_restart(FILE *fp)
     memcpy(rbuf,&store_rxn_count[0][0],sizeof(int)*rbufcount);
   }
 
-  if (me == 0) {
+  if (comm->me == 0) {
     int size = nreacts*sizeof(Set)+(rbufcount+1)*sizeof(int);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(&revision,sizeof(int),1,fp);

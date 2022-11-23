@@ -96,7 +96,6 @@ class Input : protected Pointers {
   void bond_style();
   void bond_write();
   void boundary();
-  void box();
   void comm_modify();
   void comm_style();
   void compute();

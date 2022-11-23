@@ -25,33 +25,34 @@ The *gaussian* bond style uses the potential:
 
 .. math::
 
-   E = -k_B T ln\left(\sum_{i=1}^{n} \frac{A_i}{w_i \sqrt{\pi/2}} exp\left( \frac{-(r-r_{i})^2}{w_i^2})\right) \right)
+   E = -k_B T ln\left(\sum_{i=1}^{n} \frac{A_i}{w_i \sqrt{\pi/2}} exp\left( \frac{-2(r-r_{i})^2}{w_i^2}\right)\right)
 
-This analytical form is a suitable potential for obtaining
-mesoscale effective force fields which can reproduce target atomistic distributions :ref:`(Milano) <Milano0>`
+This analytical form is a suitable potential for obtaining mesoscale
+effective force fields which can reproduce target atomistic
+distributions :ref:`(Milano) <Milano0>`
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* T temperature at which the potential was derived
+* :math:`T` temperature at which the potential was derived
 * :math:`n` (integer >=1)
-* :math:`A_1` (-)
-* :math:`w_1` (-)
-* :math:`r_1` (length)
+* :math:`A_1` (> 0, distance)
+* :math:`w_1` (> 0, distance)
+* :math:`r_1` (>= 0, distance)
 * ...
-* :math:`A_n` (-)
-* :math:`w_n` (-)
-* :math:`r_n` (length)
+* :math:`A_n` (> 0, distance)
+* :math:`w_n` (> 0, distance)
+* :math:`r_n` (>= 0, distance)
 
 
 Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the
-EXTRA-MOLECULE package.  See the :doc:`Build package <Build_package>` doc
-page for more info.
+EXTRA-MOLECULE package.  See the :doc:`Build package <Build_package>`
+doc page for more info.
 
 Related commands
 """"""""""""""""

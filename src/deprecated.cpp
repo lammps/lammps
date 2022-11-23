@@ -32,6 +32,10 @@ void Deprecated::command(int narg, char **arg)
   if (cmd == "DEPRECATED") {
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nCommand 'DEPRECATED' is a dummy command\n\n");
     return;
+  } else if (cmd == "box") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nThe 'box' command has been removed and will be ignored\n\n");
+    return;
   } else if (utils::strmatch(cmd, "^kim_")) {
     std::string newcmd("kim");
     newcmd += " " + cmd.substr(4);

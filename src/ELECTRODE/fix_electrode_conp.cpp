@@ -793,6 +793,7 @@ void FixElectrodeConp::update_charges()
   double *q = atom->q;
   gather_list_iele();
   pre_update();
+  accel_interface->intel_pack_buffers();    // update buffers for pppmintel to compute potential
   auto q_local = std::vector<double>(nlocalele, 0.);
   if (algo == Algo::MATRIX_INV) {
     std::fill(sb_charges.begin(), sb_charges.end(), 0.);
@@ -886,6 +887,7 @@ void FixElectrodeConp::set_charges(std::vector<double> q_local)
   double *q = atom->q;
   for (int i = 0; i < nlocalele; i++) q[atom->map(taglist_local[i])] = q_local[i];
   comm->forward_comm(this);
+  accel_interface->intel_pack_buffers();
 }
 
 /* ---------------------------------------------------------------------- */

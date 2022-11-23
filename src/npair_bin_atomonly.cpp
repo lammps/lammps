@@ -82,7 +82,7 @@ void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     ibin = atom2bin[i];
 
     for (k = 0; k < nstencil; k++) {
-      bin_start = binhead[ibin+stencil[k]];
+      bin_start = binhead[ibin + stencil[k]];
       if (stencil[k] == 0) {
         if (HALF && NEWTON && (!TRI)) {
           // Half neighbor list, newton on, orthonormal
@@ -118,7 +118,7 @@ void NPairBinAtomonly<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
           }
         } else {
           // Half neighbor list, newton on, orthonormal
-          // store every pair for every bin in stencil,except for i's bin
+          // store every pair for every bin in stencil, except for i's bin
 
           if (stencil[k] == 0) {
             // if j is owned atom, store it, since j is beyond i in linked list

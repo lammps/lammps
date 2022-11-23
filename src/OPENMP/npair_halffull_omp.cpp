@@ -85,6 +85,10 @@ void NPairHalffullOmp<NEWTON, TRIM>::build(NeighList *list)
     // loop over parent full list
 
     i = ilist_full[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+
     jlist = firstneigh_full[i];
     jnum = numneigh_full[i];
 

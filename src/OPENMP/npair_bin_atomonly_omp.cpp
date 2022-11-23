@@ -80,7 +80,6 @@ void NPairBinAtomonlyOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
   // loop over owned atoms, storing neighbors
 
   for (i = ifrom; i < ito; i++) {
-
     n = 0;
     neighptr = ipage.vget();
 
@@ -89,13 +88,10 @@ void NPairBinAtomonlyOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
     ytmp = x[i][1];
     ztmp = x[i][2];
 
-    // loop over all atoms in surrounding bins in stencil including self
-    // skip i = j
-
     ibin = atom2bin[i];
 
     for (k = 0; k < nstencil; k++) {
-      bin_start = binhead[ibin+stencil[k]];
+      bin_start = binhead[ibin + stencil[k]];
       if (stencil[k] == 0) {
         if (HALF && NEWTON && (!TRI)) {
           // Half neighbor list, newton on, orthonormal
@@ -131,7 +127,7 @@ void NPairBinAtomonlyOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
           }
         } else {
           // Half neighbor list, newton on, orthonormal
-          // store every pair for every bin in stencil,except for i's bin
+          // store every pair for every bin in stencil, except for i's bin
 
           if (stencil[k] == 0) {
             // if j is owned atom, store it, since j is beyond i in linked list

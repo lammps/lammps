@@ -108,7 +108,7 @@ void NPairBinGhostOmp<HALF>::build(NeighList *list)
     if (i < nlocal) {
       ibin = atom2bin[i];
       for (k = 0; k < nstencil; k++) {
-        for (j = binhead[ibin+stencil[k]]; j >= 0; j = bins[j]) {
+        for (j = binhead[ibin + stencil[k]]; j >= 0; j = bins[j]) {
           if (HALF) {
             // Half neighbor list, newton off
             // only store pair if i < j

@@ -125,7 +125,7 @@ void NPairMultiOmp<HALF, NEWTON, TRI, SIZE>::build(NeighList *list)
         js = binhead_multi[jcollection][jbin + s[k]];
 
         // own-bin for half stencil
-        if (HALF)
+        if (HALF && !TRI)
           if (flag_half_multi[icollection][jcollection] && s[k] == 0) js = bins[i];
 
         for (j = js; j >= 0; j = bins[j]) {

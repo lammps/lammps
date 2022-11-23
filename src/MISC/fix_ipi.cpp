@@ -406,9 +406,9 @@ void FixIPI::final_integrate()
     potconv=3.1668152e-06/force->boltz;
     posconv=0.52917721*force->angstrom;
   }
-    posconv3=posconv*posconv*posconv;
-    forceconv=potconv*posconv;
-    pressconv=1/force->nktv2p*potconv*posconv3;
+  posconv3=posconv*posconv*posconv;
+  forceconv=potconv*posconv;
+  pressconv=1/force->nktv2p*potconv*posconv3;
 
   // compute for potential energy
   pot=modify->compute[modify->find_compute("thermo_pe")]->compute_scalar();

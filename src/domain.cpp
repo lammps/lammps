@@ -211,12 +211,11 @@ void Domain::set_initial_box(int expandflag)
   if (dimension == 2 && (xz != 0.0 || yz != 0.0))
     error->all(FLERR,"Cannot skew triclinic box in z for 2d simulation");
 
-  // error check or warning on triclinic tilt factors
+  // check on triclinic tilt factors
 
   if (triclinic) {
-    if ((fabs(xy/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) ||
-        (fabs(xz/(boxhi[0]-boxlo[0])) > 0.5 && xperiodic) ||
-        (fabs(yz/(boxhi[1]-boxlo[1])) > 0.5 && yperiodic)) {
+    if ((fabs(xy/(boxhi[1]-boxlo[1])) > 0.5 && yperiodic) ||
+        ((fabs(xz)+fabs(yz))/(boxhi[2]-boxlo[2]) > 0.5 && zperiodic)) {
       if (comm->me == 0)
         error->warning(FLERR,"Triclinic box skew is large. LAMMPS will run inefficiently.");
     }

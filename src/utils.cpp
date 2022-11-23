@@ -868,13 +868,15 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
    Check grid reference for valid Compute or Fix which produces per-grid data
    errstr = name of calling command used if error is generated
    ref = grid reference as it appears in an input script
+     e.g. c_myCompute:grid:data[2], ditto for a fix
+   nevery = frequency at which caller will access fix, not used if a compute
    return arguments:
      id = ID of compute or fix
-     igrid = index of which grid in compute/fix
-     idata = index of which data field in igrid
+     igrid = index of which grid in compute/fix (0 to N-1)
+     idata = index of which data field in igrid (0 to N-1)
      index = index into data field (0 for vector, 1-N for column of array)
    method return = ArgInfo::COMPUTE or ArgInfo::FIX or -1 for neither
-     caller decides what to do if not COMPUTE or FIX
+     caller decides what to do if arg is not a COMPUTE or FIX reference
 ------------------------------------------------------------------------- */
 
 int utils::check_grid_reference(char *errstr, char *ref, int nevery,

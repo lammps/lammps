@@ -5,14 +5,14 @@ LAMMPS has internal capabilities to create uniformly spaced grids
 which overlay the simulation domain.  For 2d and 3d simulations these
 are 2d and 3d grids respectively.  Conceptually a grid can be thought
 of as a collection of grid cells, each of which has an associated grid
-point.  Internally, the grid point can either be a corner point of the
-grid cell, or at its center.  Each grid cell (or point) stores one or
-more values (data).
+point.  Internally, the grid point is typically the center point of
+the grid cell, though that is a coding option when using grids.  Each
+grid cell stores one or more values (data).
 
 The grid points and data they store are distributed across processors.
-Each processor owns the grid points (and their data) that lie within
-the spatial sub-domain of the processor.  If needed for its
-computations, it may also store ghost grid points with data.
+Each processor owns the grid cells (and their data) whose grid points
+lie within the spatial sub-domain of the processor.  If needed for its
+computations, it may also store ghost grid cells with their data.
 
 These grids can overlay orthogonal or triclinic simulation boxes; see
 the :doc:`Howto triclinic <Howto_triclinic>` doc page for an
@@ -27,31 +27,42 @@ box size, i.e. as set by the :doc:`boundary <boundary>` command for
 fixed or shrink-wrapped boundaries.
 
 If load-balancing is invoked by the :doc:`balance <balance>` or
-:doc:`fix balance <fix_balance>` commands, then the sub-domain owned by
-a processor will change which would also change which grid points they
-own.  Some of the commands listed below support that operation; others
-do not.  Eventually we plan to have all commands which define and
-store per-grid data support load-balancing.
+:doc:`fix balance <fix_balance>` commands, then the sub-domain owned
+by a processor will change which may also change which grid points
+they own.
+
+Post-processing and visualization of per-grid data can be enabled by
+the :doc:`dump grid <dump>`, :doc:`dump grid/vtk <dump>`, and
+:doc:`dump image <dump_image>` commands, the latter by using its
+optional *grid* keyword.  The `OVITO visualization tool
+<https://www.ovito.org>`_ also plans (as of Nov 2022) to add support
+for visualizing per-grid data (along with atoms) using the :doc:`dump
+grid <dump>` output format.
 
 .. note::
 
    For developers, distributed grids are implemented within the code
    via two classes: Grid2d and Grid3d.  These partition the grid
    across processors and have methods which allow forward and reverse
-   communication of ghost grid data.  If you write a new compute or
-   fix which needs a distributed grid, these are the classes to look
-   at.  A new pair style could use a distributed grid by having a fix
-   define it.
-
+   communication of ghost grid data as well as load balancing.  If you
+   write a new compute or fix which needs a distributed grid, these
+   are the classes to look at.  A new pair style could use a
+   distributed grid by having a fix define it.  We plan (as of
+   Nov 2022) to add a section in the :doc:`Developer <Developer>`
+   section of the manual with a detailed description of how to use
+   these classes.
+        
 ----------
 
 These are the commands which currently define or use distributed
 grids:
 
-* :doc:`fix ave/grid <fix_ave_grid>` - time average per-atom or per-grid values
 * :doc:`fix ttm/grid <fix_ttm>` - store electron temperature on grid
+* :doc:`fix ave/grid <fix_ave_grid>` - time average per-atom or per-grid values
 * :doc:`compute property/grid <compute_property_grid>` - generate grid IDs and coords
-* :doc:`dump grid <dump>` - output per-grid values
+* :doc:`dump grid <dump>` - output per-grid values in LAMMPS format
+* :doc:`dump grid/vtk <dump>` - output per-grid values in VTK format
+* :doc:`dump image grid <dump_image>` - include colored grid in output images
 * :doc:`kspace_style pppm <kspace_style>` (and variants) - FFT grids
 * :doc:`kspace_style msm <kspace_style>` (and variants) - MSM grids
 

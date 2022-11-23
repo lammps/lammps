@@ -379,13 +379,28 @@ namespace utils {
 
   char *expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
 
-
-
-
+  /*! Check grid reference for valid Compute or Fix which produces per-grid data
+   *
+   *  This function checks if a command argument in the input script
+   *  is a valid reference to per-grid data produced by a Compute or Fix.
+   *  If it is, the ID of the compute/fix is returned which the caller must
+   *  free with delete [].  It also returns igrid/idata/index integers
+   *  which allow the caller to access the per-grid data.
+   *  A flag is also returned to indicate compute vs fix vs error.
+   *
+   * \param errstr  name of calling command, e.g. "Fix ave/grid"
+   * \param ref     per-grid reference from input script, e.g. "c_10:grid:data[2]"
+   * \param nevery  frequency at which caller will access fix for per-grid info,
+   *                ignored when reference is to a compute
+   * \param lmp     pointer to top-level LAMMPS class instance
+   * \return id     ID of Compute or Fix
+   * \return igrid  which grid is referenced (0 to N-1)
+   * \return idata  which data on grid is referenced (0 to N-1)
+   * \return index  which column of data is referenced (0 for vec, 1-N for array)
+   * \return        ArgINFO::COMPUTE or FIX or UNKNOWN or NONE */
 
   int check_grid_reference(char *errstr, char *ref, int nevery,
-                           char *& id, int &igrid, int &idata, int &index, LAMMPS *lmp);
-
+                           char *&id, int &igrid, int &idata, int &index, LAMMPS *lmp);
   
   /*! Parse grid reference into 3 sub-strings
    *

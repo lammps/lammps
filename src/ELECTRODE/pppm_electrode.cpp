@@ -97,7 +97,6 @@ PPPMElectrode::~PPPMElectrode()
   if (copymode) return;
 
   deallocate();
-  delete boundcorr;
   if (peratom_allocate_flag) deallocate_peratom();
   if (group_allocate_flag) deallocate_groups();
   memory->destroy(part2grid);
@@ -999,6 +998,7 @@ void PPPMElectrode::allocate()
 
 void PPPMElectrode::deallocate()
 {
+  if (boundcorr != nullptr) delete boundcorr;
   memory->destroy3d_offset(electrolyte_density_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy(electrolyte_density_fft);
 

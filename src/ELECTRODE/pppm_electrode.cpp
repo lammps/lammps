@@ -77,7 +77,8 @@ static const char cite_pppm_electrode[] =
 /* ---------------------------------------------------------------------- */
 
 PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
-    PPPM(lmp), electrolyte_density_brick(nullptr), electrolyte_density_fft(nullptr)
+    PPPM(lmp), electrolyte_density_brick(nullptr), electrolyte_density_fft(nullptr),
+    boundcorr(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
 

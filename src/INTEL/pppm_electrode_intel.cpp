@@ -80,7 +80,7 @@ static const char cite_pppm_electrode[] =
 
 PPPMElectrodeIntel::PPPMElectrodeIntel(LAMMPS *lmp) :
     PPPMIntel(lmp), ElectrodeKSpace(), electrolyte_density_brick(nullptr),
-    electrolyte_density_fft(nullptr)
+    electrolyte_density_fft(nullptr), boundcorr(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
 
@@ -98,7 +98,6 @@ PPPMElectrodeIntel::~PPPMElectrodeIntel()
   memory->destroy(electrolyte_density_fft);
   if ((differentiation_flag != 1) && !peratom_allocate_flag)
     memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);
-  delete boundcorr;
 }
 
 void PPPMElectrodeIntel::init()
@@ -1148,6 +1147,7 @@ void PPPMElectrodeIntel::allocate_peratom()
 
 void PPPMElectrodeIntel::deallocate()
 {
+  if (boundcorr != nullptr) delete boundcorr;
   // duplicated to always deallocate u_brick
   memory->destroy3d_offset(density_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);

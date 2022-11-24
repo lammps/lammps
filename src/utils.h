@@ -430,7 +430,23 @@ namespace utils {
 
   std::string star_subst(const std::string &name, bigint step, int pad);
 
-  /*! Check if a string will likely have UTF-8 encoded characters
+  /*! Remove style suffix from string if suffix flag is active
+   *
+   *
+\verbatim embed:rst
+
+This will try to undo the effect from using the :doc:`suffix command <suffix>`
+or the *-suffix/-sf* command line flag and return correspondingly modified string.
+
+\endverbatim
+   *
+   * \param style  string of style name
+   * \param lmp    pointer to the LAMMPS class (has suffix_flag and suffix strings)
+   * \return  processed string */
+
+  std::string strip_style_suffix(const std::string &style, LAMMPS *lmp);
+
+/*! Check if a string will likely have UTF-8 encoded characters
    *
    * UTF-8 uses the 7-bit standard ASCII table for the first 127 characters and
    * all other characters are encoded as multiple bytes.  For the multi-byte

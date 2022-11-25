@@ -230,8 +230,8 @@ void Grid2d::set_yfactor(double factor)
 
 /* ----------------------------------------------------------------------
    set IDs of proc neighbors used in uniform local owned/ghost comm
-   called AFTER setup_grid() but BEFORE setup_comm() to override
-     the processor neighbors stored by extract_comm()
+   must be called BEFORE setup_comm() to override
+     the processor neighbors stored by extract_comm_info()
 ------------------------------------------------------------------------- */
 
 void Grid2d::set_proc_neighs(int pxlo, int pxhi, int pylo, int pyhi)
@@ -244,8 +244,8 @@ void Grid2d::set_proc_neighs(int pxlo, int pxhi, int pylo, int pyhi)
 
 /* ----------------------------------------------------------------------
    set allocation dimensions of caller grid used by indices() to setup pack/unpack
-   called AFTER setup_grid() but BEFORE setup_comm() to override
-     the caller grid size set by setup_grid() and used in indices()
+   must be called BEFORE setup_comm() to override
+     the caller grid size used in indices()
 ------------------------------------------------------------------------- */
 
 void Grid2d::set_caller_grid(int fxlo, int fxhi, int fylo, int fyhi)

@@ -244,8 +244,8 @@ void Grid3d::set_zfactor(double factor)
 
 /* ----------------------------------------------------------------------
    set IDs of proc neighbors used in uniform local owned/ghost comm
-   called AFTER setup_grid() but BEFORE setup_comm() to override
-     the processor neighbors stored by extract_comm()
+   must be called BEFORE setup_comm() to override
+     the processor neighbors stored by extract_comm_info()
    used by MSM to exclude non-participating procs for coarse grid comm
 ------------------------------------------------------------------------- */
 
@@ -262,8 +262,8 @@ void Grid3d::set_proc_neighs(int pxlo, int pxhi, int pylo, int pyhi,
 
 /* ----------------------------------------------------------------------
    set allocation dimensions of caller grid used by indices() to setup pack/unpack
-   called AFTER setup_grid() but BEFORE setup_comm() to override
-     the caller grid size set by setup_grid() and used in indices()
+   must be called BEFORE setup_comm() to override
+     the caller grid size used in indices()
    used by MSM to allow a larger level 0 grid to be allocated
      with more ghost cells for other operations
 ------------------------------------------------------------------------- */

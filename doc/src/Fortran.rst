@@ -358,6 +358,8 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype encode_image_flags: function
    :f decode_image_flags: :f:subr:`decode_image_flags`
    :ftype decode_image_flags: subroutine
+   :f set_fix_external_callback: :f:subr:`set_fix_external_callback`
+   :ftype set_fix_external_callback: subroutine
    :f flush_buffers: :f:subr:`flush_buffers`
    :ftype flush_buffers: subroutine
    :f is_running: :f:func:`is_running`
@@ -2093,6 +2095,67 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     ``c_int64_t``. Kind compatibility is checked at run-time.
    :p integer(c_int) flags [dimension(3)]: three-element vector where the
     decoded image flags will be stored.
+
+--------
+
+.. f:subroutine:: set_fix_external_callback(id, callback, caller)
+
+   Set the callback function for a :doc:`fix external <fix_external>` instance
+   with the given ID.
+
+   .. versionadded:: TBD
+
+   Fix :doc:`external <fix_external>` allows programs that are running LAMMPS
+   through its library interface to modify certain LAMMPS properties on
+   specific time steps, similar to the way other fixes do.
+
+   This subroutine sets the callback function for use with the "pf/callback"
+   mode. The function should have Fortran language bindings with the following
+   interface, which depends on how LAMMPS was compiled:
+
+   .. code-block:: Fortran
+
+      ABSTRACT INTERFACE
+        SUBROUTINE external_callback(caller, timestep, ids, x, fexternal)
+          USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double, c_int64_t
+          CLASS(*), INTENT(IN) :: caller
+          INTEGER(c_bigint), INTENT(IN) :: timestep
+          INTEGER(c_tagint), DIMENSION(:), INTENT(IN) :: ids
+          REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
+          REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: fexternal
+        END SUBROUTINE external_callback
+      END INTERFACE
+
+   where ``c_bigint`` is ``c_int`` if ``-DLAMMPS_SMALLSMALL`` was used and
+   ``c_int64_t`` otherwise; and ``c_tagint`` is ``c_int64_t`` if
+   ``-DLAMMPS_BIGBIG`` was used and ``c_int`` otherwise.
+
+   The argument *caller* to :f:subr:`set_fix_external_callback` is unlimited
+   polymorphic (i.e., it can be any Fortran object you want to pass to the
+   calling function) and will be available as the first argument to the
+   callback function. It can be your LAMMPS instance, which you might need if
+   the callback function needs access to the library interface.
+
+   The array *ids* is an array of length *nlocal* (as accessed from the
+   :cpp:class:`Atom` class or through :f:func:`extract_global`). The arrays
+   *x* and *fexternal* are :math:`3 \times {}`\ *nlocal* arrays; these are
+   transposed from what they would look like in C (see note about array index
+   order at :f:func:`extract_atom`).
+
+   The callback mechanism is one of two ways that forces can be applied to a
+   simulation with the help of :doc:`fix external <fix_external>`. The
+   alternative is *array* mode, where one calls
+   :f:func:`fix_external_get_force`.
+
+   Please see the documentation for :doc:`fix external <fix_external>` for
+   more information about how to use the fix and couple it with external
+   programs.
+
+   :p character(len=*) id: ID of :doc:`fix external <fix_external>` instance
+   :p callback: subroutine :doc:`fix external <fix_external>` should call
+   :ptype callback: external
+   :p class(*) caller [optional]: object you wish to pass to the callback
+    procedure
 
 --------
 

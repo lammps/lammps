@@ -75,6 +75,9 @@ MODULE LIBLAMMPS
     LMP_VAR_VECTOR = 2, &     ! vector variables
     LMP_VAR_STRING = 3        ! string variables (everything else)
 
+  ! Constants we set once (in the constructor) and never need to check again
+  INTEGER(c_int), SAVE :: SIZE_TAGINT, SIZE_BIGINT, SIZE_IMAGEINT
+
   ! "Constants" to use with extract_compute and friends
   TYPE lammps_style
     INTEGER(c_int) :: global, atom, local
@@ -865,6 +868,11 @@ CONTAINS
     lmp_open%type%scalar = LMP_TYPE_SCALAR
     lmp_open%type%vector = LMP_TYPE_VECTOR
     lmp_open%type%array = LMP_TYPE_ARRAY
+
+    ! Assign constants for bigint and tagint for use elsewhere
+    SIZE_TAGINT = lmp_extract_setting(lmp_open, 'tagint')
+    SIZE_BIGINT = lmp_extract_setting(lmp_open, 'bigint')
+    SIZE_IMAGEINT = lmp_extract_setting(lmp_open, 'imageint')
   END FUNCTION lmp_open
 
   ! Combined Fortran wrapper around lammps_close() and lammps_mpi_finalize()
@@ -1731,19 +1739,16 @@ CONTAINS
   SUBROUTINE lmp_gather_bonds_small(self, data)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
-    INTEGER(c_int) :: size_tagint, size_bigint
     INTEGER(c_int), POINTER :: nbonds_small
     INTEGER(c_int64_t), POINTER :: nbonds_big
     TYPE(c_ptr) :: Cdata
 
-    size_tagint = lmp_extract_setting(self, 'tagint')
-    IF (size_tagint /= 4_c_int) THEN
+    IF (SIZE_TAGINT /= 4_c_int) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'Incompatible integer kind in gather_bonds [Fortran API]')
     END IF
     IF (ALLOCATED(data)) DEALLOCATE(data)
-    size_bigint = lmp_extract_setting(self, 'bigint')
-    IF (size_bigint == 4_c_int) THEN
+    IF (SIZE_BIGINT == 4_c_int) THEN
       nbonds_small = lmp_extract_global(self, 'nbonds')
       ALLOCATE(data(3*nbonds_small))
     ELSE
@@ -1758,12 +1763,10 @@ CONTAINS
   SUBROUTINE lmp_gather_bonds_big(self, data)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int64_t), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
-    INTEGER(c_int) :: size_tagint
     INTEGER(c_int64_t), POINTER :: nbonds
     TYPE(c_ptr) :: Cdata
 
-    size_tagint = lmp_extract_setting(self, 'tagint')
-    IF (size_tagint /= 8_c_int) THEN
+    IF (SIZE_TAGINT /= 8_c_int) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'Incompatible integer kind in gather_bonds [Fortran API]')
     END IF
@@ -2385,10 +2388,7 @@ CONTAINS
     CLASS(*), INTENT(IN), TARGET, OPTIONAL :: caller
     TYPE(c_ptr) :: c_id, c_caller
     TYPE(c_funptr) :: c_callback
-    INTEGER :: i, this_fix, size_tagint, size_bigint
-
-    size_tagint = lmp_extract_setting(self, 'tagint')
-    size_bigint = lmp_extract_setting(self, 'bigint')
+    INTEGER :: i, this_fix
 
     c_id = f2c_string(id)
     IF (ALLOCATED(ext_data)) THEN
@@ -2400,7 +2400,10 @@ CONTAINS
         END IF
       END DO
       IF (this_fix > SIZE(ext_data)) THEN
+        ! reallocates ext_data; this requires us to re-bind "caller" on the C
+        ! side to the new data structure, which likely moved to a new address
         ext_data = [ext_data, fix_external_data()] ! extends ext_data by 1
+        CALL rebind_external_callback_data()
       END IF
     ELSE
       ALLOCATE(ext_data(1))
@@ -2409,11 +2412,11 @@ CONTAINS
     ext_data(this_fix)%id = id
     ext_data(this_fix)%lammps_instance => self
 
-    IF (size_tagint == 4_c_int .AND. size_bigint == 4_c_int) THEN
+    IF (SIZE_TAGINT == 4_c_int .AND. SIZE_BIGINT == 4_c_int) THEN
       ! -DSMALLSMALL
       c_callback = C_FUNLOC(callback_wrapper_smallsmall)
       CALL set_fix_external_callback_smallsmall(this_fix, callback)
-    ELSE IF (size_tagint == 8_c_int .AND. size_bigint == 8_c_int) THEN
+    ELSE IF (SIZE_TAGINT == 8_c_int .AND. SIZE_BIGINT == 8_c_int) THEN
       ! -DBIGBIG
       c_callback = C_FUNLOC(callback_wrapper_bigbig)
       CALL set_fix_external_callback_bigbig(this_fix, callback)
@@ -2431,6 +2434,7 @@ CONTAINS
     c_caller = C_LOC(ext_data(this_fix))
     CALL lammps_set_fix_external_callback(self%handle, c_id, c_callback, &
       c_caller)
+    CALL lammps_free(c_id)
   END SUBROUTINE lmp_set_fix_external_callback
 
   ! Wrappers to assign callback pointers with explicit interfaces
@@ -2454,6 +2458,28 @@ CONTAINS
 
     ext_data(id)%callback_bigbig => callback
   END SUBROUTINE set_fix_external_callback_bigbig
+
+  ! subroutine that re-binds all external callback data after a reallocation
+  SUBROUTINE rebind_external_callback_data()
+    INTEGER :: i
+    TYPE(c_ptr) :: c_id, c_caller
+    TYPE(c_funptr) :: c_callback
+
+    DO i = 1, SIZE(ext_data) - 1
+      c_id = f2c_string(ext_data(i)%id)
+      c_caller = C_LOC(ext_data(i))
+      IF (SIZE_TAGINT == 4_c_int .AND. SIZE_BIGINT == 4_c_int) THEN
+        c_callback = C_FUNLOC(callback_wrapper_smallsmall)
+      ELSE IF (SIZE_TAGINT == 8_c_int .AND. SIZE_BIGINT == 8_c_int) THEN
+        c_callback = C_FUNLOC(callback_wrapper_bigbig)
+      ELSE
+        c_callback = C_FUNLOC(callback_wrapper_smallbig)
+      END IF
+      CALL lammps_set_fix_external_callback( &
+        ext_data(i)%lammps_instance%handle, c_id, c_callback, c_caller)
+      CALL lammps_free(c_id)
+    END DO
+  END SUBROUTINE rebind_external_callback_data
 
   ! companions to lmp_set_fix_external_callback to change interface
   SUBROUTINE callback_wrapper_smallsmall(caller, timestep, nlocal, ids, x, &

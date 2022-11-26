@@ -15,7 +15,7 @@
    Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)
 ------------------------------------------------------------------------- */
 
-#include "pair_pod.h"
+#include "pair_mlpod.h"
 
 #include "pod.h"
 
@@ -36,19 +36,34 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairPOD::PairPOD(LAMMPS *lmp) : Pair(lmp)
+PairMLPOD::PairMLPOD(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+
+  dim = 3;
+  nablockmax=0;
+  nij=0;
+  nijmax=0;
+  szd=0;
   podptr = nullptr;
+  tmpmem = nullptr;
+  typeai = nullptr;
+  numneighsum = nullptr;
+  rij = nullptr;
+  idxi = nullptr;
+  ai = nullptr;
+  aj = nullptr;
+  ti = nullptr;
+  tj = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairPOD::~PairPOD()
+PairMLPOD::~PairMLPOD()
 {
   free_memory();
   memory->destroy(podcoeff);
@@ -66,7 +81,7 @@ PairPOD::~PairPOD()
   }
 }
 
-void PairPOD::compute(int eflag, int vflag)
+void PairMLPOD::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
   vflag_fdotr = 1;
@@ -148,7 +163,7 @@ void PairPOD::compute(int eflag, int vflag)
    global settings
 ------------------------------------------------------------------------- */
 
-void PairPOD::settings(int narg, char ** /* arg */)
+void PairMLPOD::settings(int narg, char ** /* arg */)
 {
   if (narg > 0)
   error->all(FLERR,"Illegal pair_style command");
@@ -158,7 +173,7 @@ void PairPOD::settings(int narg, char ** /* arg */)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairPOD::coeff(int narg, char **arg)
+void PairMLPOD::coeff(int narg, char **arg)
 {
   int n = atom->ntypes;
   memory->create(setflag,n+1,n+1,"pair:setflag");
@@ -198,7 +213,7 @@ void PairPOD::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairPOD::init_style()
+void PairMLPOD::init_style()
 {
   if (force->newton_pair == 0)
   error->all(FLERR,"Pair style POD requires newton pair on");
@@ -212,7 +227,7 @@ void PairPOD::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairPOD::init_one(int i, int j)
+double PairMLPOD::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
     scale[j][i] = scale[i][j];
@@ -223,13 +238,13 @@ double PairPOD::init_one(int i, int j)
    memory usage
 ------------------------------------------------------------------------- */
 
-double PairPOD::memory_usage()
+double PairMLPOD::memory_usage()
 {
   double bytes = Pair::memory_usage();
   return bytes;
 }
 
-void PairPOD::free_tempmemory()
+void PairMLPOD::free_tempmemory()
 {
   memory->destroy(rij);
   memory->destroy(idxi);
@@ -242,12 +257,12 @@ void PairPOD::free_tempmemory()
   memory->destroy(tmpmem);
 }
 
-void PairPOD::free_memory()
+void PairMLPOD::free_memory()
 {
   free_tempmemory();
 }
 
-void PairPOD::allocate_tempmemory()
+void PairMLPOD::allocate_tempmemory()
 {
   memory->create(rij, dim*nijmax, "pair:rij");
   memory->create(idxi, nijmax, "pair:idxi");
@@ -260,12 +275,12 @@ void PairPOD::allocate_tempmemory()
   memory->create(tmpmem, szd, "pair:tmpmem");
 }
 
-void PairPOD::allocate_memory()
+void PairMLPOD::allocate_memory()
 {
   allocate_tempmemory();
 }
 
-void PairPOD::estimate_tempmemory()
+void PairMLPOD::estimate_tempmemory()
 {
   int nrbf2 = podptr->pod.nbf2;
   int nabf3 = podptr->pod.nabf3;
@@ -286,7 +301,7 @@ void PairPOD::estimate_tempmemory()
   szd = nablockmax*(podptr->pod.nd1234) + szd;
 }
 
-void PairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
+void PairMLPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
 {
 
   double rcutsq = podptr->pod.rcut*podptr->pod.rcut;

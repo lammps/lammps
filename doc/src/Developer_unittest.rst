@@ -77,7 +77,7 @@ to the ``CMakeLists.txt`` file in the ``unittest/utils`` folder.  Example:
 .. code-block:: cmake
 
    add_executable(test_tokenizer test_tokenizer.cpp)
-   target_link_libraries(test_tokenizer PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
+   target_link_libraries(test_tokenizer PRIVATE lammps GTest::gmock_main GTest::gmock GTest::gtest)
    add_test(Tokenizer test_tokenizer)
 
 This adds instructions to build the ``test_tokenizer`` executable from
@@ -253,7 +253,7 @@ script code for adding this kind of test looks like this:
 
    if (BUILD_MPI)
      add_executable(test_library_mpi test_library_mpi.cpp)
-     target_link_libraries(test_library_mpi PRIVATE lammps GTest::GTest GTest::GMock)
+     target_link_libraries(test_library_mpi PRIVATE lammps GTest::gtest GTest::gmock)
      target_compile_definitions(test_library_mpi PRIVATE ${TEST_CONFIG_DEFS})
      add_mpi_test(NAME LibraryMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_library_mpi>)
    endif()

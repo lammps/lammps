@@ -49,7 +49,7 @@ else()
   target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER} YAML_DECLARE_STATIC)
 endif()
 target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
-target_link_libraries(style_tests PUBLIC GTest::GMock Yaml::Yaml lammps)
+target_link_libraries(style_tests PUBLIC GTest::gmock Yaml::Yaml lammps)
 
 # propagate sanitizer options to test tools
 if(ENABLE_SANITIZER AND (NOT (ENABLE_SANITIZER STREQUAL "none")))
@@ -62,7 +62,7 @@ endif()
 # unit test for error stats class
 add_executable(test_error_stats test_error_stats.cpp)
 target_include_directories(test_error_stats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LAMMPS_SOURCE_DIR})
-target_link_libraries(test_error_stats PRIVATE GTest::GMockMain)
+target_link_libraries(test_error_stats PRIVATE GTest::gmock_main)
 add_test(NAME ErrorStats COMMAND test_error_stats)
 
 # pair style tester
@@ -255,12 +255,12 @@ endforeach()
 
 if(MLIAP_ENABLE_PYTHON AND (NOT WIN32))
   add_executable(test_mliappy_unified test_mliappy_unified.cpp)
-  target_link_libraries(test_mliappy_unified PRIVATE lammps GTest::GMockMain)
+  target_link_libraries(test_mliappy_unified PRIVATE lammps GTest::gmock_main)
   add_test(NAME TestMliapPyUnified COMMAND test_mliappy_unified)
   set_tests_properties(TestMliapPyUnified PROPERTIES ENVIRONMENT "PYTHONPATH=${LAMMPS_PYTHON_DIR};PYTHONDONTWRITEBYTECODE=1")
 endif()
 
 add_executable(test_pair_list test_pair_list.cpp)
-target_link_libraries(test_pair_list PRIVATE lammps GTest::GMockMain)
+target_link_libraries(test_pair_list PRIVATE lammps GTest::gmock_main)
 add_test(NAME TestPairList COMMAND test_pair_list)
 

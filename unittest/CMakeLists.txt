@@ -3,31 +3,37 @@
 # This file is part of LAMMPS
 # Created by Axel Kohlmeyer and Richard Berger
 ########################################
-# download and build googletest framework
+
+if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.20)
+  find_package(GTest 1.12.1 EXACT)
+endif()
 
 # cannot compile googletest anymore with the default GCC on RHEL 7.x
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.0))
   message(FATAL_ERROR "Need GNU C++ compiler version 6.x or later for unit testing")
 endif()
 
-message(STATUS "Downloading and building googletest framework")
-set(GTEST_URL "https://github.com/google/googletest/archive/release-1.12.1.tar.gz" CACHE STRING "URL of googletest source")
-set(GTEST_MD5 "e82199374acdfda3f425331028eb4e2a" CACHE STRING "MD5 sum for googletest source")
-mark_as_advanced(GTEST_URL)
-mark_as_advanced(GTEST_MD5)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+if(NOT TARGET GTest::gtest)
+  # download and build googletest framework
+  message(STATUS "Downloading and building googletest framework")
+  set(GTEST_URL "https://github.com/google/googletest/archive/release-1.12.1.tar.gz" CACHE STRING "URL of googletest source")
+  set(GTEST_MD5 "e82199374acdfda3f425331028eb4e2a" CACHE STRING "MD5 sum for googletest source")
+  mark_as_advanced(GTEST_URL)
+  mark_as_advanced(GTEST_MD5)
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-include(ExternalCMakeProject)
-if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-  set(cxx_strict_flags "-Wno-error -Wno-unused-command-line-argument")
+  include(ExternalCMakeProject)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+    set(cxx_strict_flags "-Wno-error -Wno-unused-command-line-argument")
+  endif()
+  set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+  set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
+  ExternalCMakeProject(googletest ${GTEST_URL} ${GTEST_MD5} googletest . "")
+  add_library(GTest::gtest ALIAS gtest)
+  add_library(GTest::gmock ALIAS gmock)
+  add_library(GTest::gtest_main ALIAS gtest_main)
+  add_library(GTest::gmock_main ALIAS gmock_main)
 endif()
-set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
-set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
-ExternalCMakeProject(googletest ${GTEST_URL} ${GTEST_MD5} googletest . "")
-add_library(GTest::GTest ALIAS gtest)
-add_library(GTest::GMock ALIAS gmock)
-add_library(GTest::GTestMain ALIAS gtest_main)
-add_library(GTest::GMockMain ALIAS gmock_main)
 
 # import
 foreach(_FLAG ${CMAKE_TUNE_FLAGS})

@@ -265,6 +265,16 @@ void PairSW::coeff(int narg, char **arg)
 
   // read potential file and set up element maps only once
   if (one_coeff || !params_mapped) {
+    // make certain that the setflag array is always fully initialized
+    // the sw/intel pair style depends on it
+    if (!one_coeff) {
+      for (int i = 0; i <= atom->ntypes; i++) {
+        for (int j = 0; j <= atom->ntypes; j++) {
+          setflag[i][j] = 0;
+        }
+      }
+    }
+
     map_element2type(narg-3, arg+3, (one_coeff != 0));
 
     // read potential file and initialize potential parameters

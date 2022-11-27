@@ -39,15 +39,22 @@ FixElectrodeConq::FixElectrodeConq(LAMMPS *lmp, int narg, char **arg) :
       error->warning(FLERR,
                      "Fix electrode/conq with keyword symm ignores the charge setting for the last "
                      "electrode listed");
+    if (algo != Algo::MATRIX_INV) {
+      double last_q = 0.;
+      for (int g = 0; g < num_of_groups - 1; g++) last_q -= group_q[g];
+      group_q.back() = last_q;    // needed for CG algos
+    }
   }
 }
 
 void FixElectrodeConq::update_psi()
 {
   int const numsymm = num_of_groups - ((symm) ? 1 : 0);
+  bool symm_update_back = false;
   for (int g = 0; g < numsymm; g++) {
     if (group_psi_var_styles[g] == VarStyle::CONST) continue;
     group_q[g] = input->variable->compute_equal(group_psi_var_ids[g]);
+    symm_update_back = true;
   }
   if (algo == Algo::MATRIX_INV) {
     std::vector<double> group_remainder_q(num_of_groups, 0.);
@@ -60,6 +67,11 @@ void FixElectrodeConq::update_psi()
       group_psi[g] = vtmp;
     }
   } else {
+    if (symm_update_back) {    // needed for CG algos
+      double last_q = 0.;
+      for (int g = 0; g < num_of_groups - 1; g++) last_q -= group_q[g];
+      group_q.back() = last_q;
+    }
     for (double &g : group_psi) g = 0;
   }
 }

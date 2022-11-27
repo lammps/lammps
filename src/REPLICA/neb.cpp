@@ -108,9 +108,9 @@ NEB::~NEB()
 void NEB::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"NEB command before simulation box is defined");
+    error->universe_all(FLERR,"NEB command before simulation box is defined");
 
-  if (narg < 6) error->universe_all(FLERR,"Illegal NEB command");
+  if (narg < 6) error->universe_all(FLERR,"Illegal NEB command: missing argument(s)");
 
   etol = utils::numeric(FLERR,arg[0],false,lmp);
   ftol = utils::numeric(FLERR,arg[1],false,lmp);
@@ -120,11 +120,14 @@ void NEB::command(int narg, char **arg)
 
   // error checks
 
-  if (etol < 0.0) error->all(FLERR,"Illegal NEB command");
-  if (ftol < 0.0) error->all(FLERR,"Illegal NEB command");
-  if (nevery <= 0) error->universe_all(FLERR,"Illegal NEB command");
-  if (n1steps % nevery || n2steps % nevery)
-    error->universe_all(FLERR,"Illegal NEB command");
+  if (etol < 0.0) error->universe_all(FLERR, fmt::format("Illegal NEB energy tolerance: {}", etol));
+  if (ftol < 0.0) error->universe_all(FLERR, fmt::format("Illegal NEB force tolerance: {}", ftol));
+  if (nevery <= 0)
+    error->universe_all(FLERR,fmt::format("Illegal NEB command every parameter: {}", nevery));
+  if (n1steps % nevery)
+    error->all(FLERR, fmt::format("NEB N1 value {} incompatible with every {}", n1steps, nevery));
+  if (n2steps % nevery)
+    error->all(FLERR, fmt::format("NEB N2 value {} incompatible with every {}", n2steps, nevery));
 
   // replica info
 
@@ -136,26 +139,38 @@ void NEB::command(int narg, char **arg)
 
   // error checks
 
-  if (nreplica == 1) error->all(FLERR,"Cannot use NEB with a single replica");
+  if (nreplica == 1) error->universe_all(FLERR,"Cannot use NEB with a single replica");
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"Cannot use NEB unless atom map exists");
+    error->universe_all(FLERR,"Cannot use NEB without an atom map");
 
   // process file-style setting to setup initial configs for all replicas
-
-  if (strcmp(arg[5],"final") == 0) {
-    if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB command");
-    inpfile = arg[6];
-    readfile(inpfile,0);
-  } else if (strcmp(arg[5],"each") == 0) {
-    if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB command");
-    inpfile = arg[6];
-    readfile(inpfile,1);
-  } else if (strcmp(arg[5],"none") == 0) {
-    if (narg != 6 && narg !=7) error->universe_all(FLERR,"Illegal NEB command");
-  } else error->universe_all(FLERR,"Illegal NEB command");
-
+  int iarg = 5;
+  int filecmd = 0;
   verbose=false;
-  if (strcmp(arg[narg-1],"verbose") == 0) verbose=true;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"final") == 0) {
+      if (iarg + 2 > narg) error->universe_all(FLERR,"Illegal NEB command: missing arguments");
+      inpfile = arg[iarg+1];
+      readfile(inpfile,0);
+      filecmd = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"each") == 0) {
+      if (iarg + 2 > narg) error->universe_all(FLERR,"Illegal NEB command: missing arguments");
+      inpfile = arg[iarg+1];
+      readfile(inpfile,1);
+      filecmd = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"none") == 0) {
+      filecmd = 1;
+      ++iarg;
+    } else if (strcmp(arg[iarg],"verbose") == 0) {
+      verbose=true;
+      ++iarg;
+    } else error->universe_all(FLERR,fmt::format("Unknown NEB command keyword: {}", arg[iarg]));
+  }
+
+  if (!filecmd) error->universe_all(FLERR, "NEB is missing 'final', 'each', or 'none' keyword");
+
   // run the NEB calculation
 
   run();
@@ -176,7 +191,7 @@ void NEB::run()
 
   auto fixes = modify->get_fix_by_style("^neb$");
   if (fixes.size() != 1)
-    error->all(FLERR,"NEB requires use of exactly one fix neb instance");
+    error->universe_all(FLERR,"NEB requires use of exactly one fix neb instance");
 
   fneb = dynamic_cast<FixNEB *>(fixes[0]);
   if (verbose) numall =7;
@@ -194,7 +209,7 @@ void NEB::run()
   lmp->init();
 
   if (update->minimize->searchflag)
-    error->all(FLERR,"NEB requires damped dynamics minimizer");
+    error->universe_all(FLERR,"NEB requires a damped dynamics minimizer");
 
   // setup regular NEB minimization
   FILE *uscreen = universe->uscreen;
@@ -207,8 +222,7 @@ void NEB::run()
   update->endstep = update->laststep = update->firststep + n1steps;
   update->nsteps = n1steps;
   update->max_eval = n1steps;
-  if (update->laststep < 0)
-    error->all(FLERR,"Too many timesteps for NEB");
+  if (update->laststep < 0) error->universe_all(FLERR,"Too many timesteps for NEB");
 
   update->minimize->setup();
 
@@ -292,8 +306,7 @@ void NEB::run()
   update->endstep = update->laststep = update->firststep + n2steps;
   update->nsteps = n2steps;
   update->max_eval = n2steps;
-  if (update->laststep < 0)
-    error->all(FLERR,"Too many timesteps");
+  if (update->laststep < 0) error->universe_all(FLERR,"Too many timesteps");
 
   update->minimize->init();
   fneb->rclimber = top;
@@ -420,7 +433,7 @@ void NEB::readfile(char *file, int flag)
     }
     MPI_Bcast(&nlines,1,MPI_INT,0,world);
     if (nlines < 0)
-      error->all(FLERR,"Incorrectly formatted NEB file");
+      error->universe_all(FLERR,"Incorrectly formatted NEB file");
   }
 
   auto buffer = new char[CHUNK*MAXLINE];
@@ -542,11 +555,11 @@ void NEB::open(char *file)
   if (platform::has_compress_extension(file)) {
     compressed = 1;
     fp = platform::compressed_read(file);
-    if (!fp) error->one(FLERR,"Cannot open compressed file");
+    if (!fp) error->one(FLERR,"Cannot open compressed file {}: {}", file, utils::getsyserror());
   } else fp = fopen(file,"r");
 
   if (fp == nullptr)
-    error->one(FLERR,"Cannot open file {}: {}",file,utils::getsyserror());
+    error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

@@ -47,7 +47,7 @@ jobs:
       shell: bash
       run: |
         ./build/Release/lmp.exe -h
-        ./build/Release/lmp.exe -in bench/in.lj
+        #        ./build/Release/lmp.exe -in bench/in.lj
 
     - name: Run Unit Tests
       working-directory: build

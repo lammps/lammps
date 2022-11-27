@@ -36,7 +36,7 @@ jobs:
         nuget install MSMPIsdk
         nuget install MSMPIDIST
         cmake -C cmake/presets/windows.cmake \
-              -D PKG_PYTHON=on \
+              -D PKG_PYTHON=off \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
               -D LAMMPS_EXCEPTIONS=on \
@@ -46,9 +46,8 @@ jobs:
     - name: Run LAMMPS executable
       shell: bash
       run: |
-        which python3
-        #./build/Release/lmp.exe -h
-        #./build/Release/lmp.exe -in bench/in.lj
+        ./build/Release/lmp.exe -h
+        ./build/Release/lmp.exe -in bench/in.lj
 
     - name: Run Unit Tests
       working-directory: build

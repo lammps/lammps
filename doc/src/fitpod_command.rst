@@ -69,7 +69,7 @@ On successful training, it produces a number of output files:
 * coefficents.txt contains the coeffcients of the POD potential
 
 After training the POD potential, pod.txt and coefficents.txt are two files needed to use the
-POD potential in LAMMPS. See :doc:`pair_style pod <pair_pod>` for using the POD potential. Examples about training and using POD potentials are found in the directory lammps/examples/pod.
+POD potential in LAMMPS. See :doc:`pair_style mlpod <pair_mlpod>` for using the POD potential. Examples about training and using POD potentials are found in the directory lammps/examples/mlpod.
 
 Parametrized Potential Energy Surface
 """""""""""""""""""""""""""""""""""""
@@ -573,7 +573,7 @@ if LAMMPS was built with that package by setting -D PKG_ML-POD=on. See the :doc:
 Related commands
 """"""""""""""""
 
-:doc:`pair_style pod <pair_pod>`
+:doc:`pair_style mlpod <pair_mlpod>`
 
 Default
 """""""

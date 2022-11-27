@@ -1,32 +1,32 @@
-.. index:: pair_style pod
+.. index:: pair_style mlpod
 
-pair_style pod command
-======================
+pair_style mlpod command
+========================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style pod
+   pair_style mlpod
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   pair_style pod
+   pair_style mlpod
    pair_coeff * * pod.txt coefficient.txt
 
 Description
 """""""""""
 
-Pair style *pod* defines the proper orthogonal descriptor (POD) potential
+Pair style *mlpod* defines the proper orthogonal descriptor (POD) potential
 :ref:`(Nguyen) <Nguyen20221>`.  The mathematical definition of the POD potential
 is described from :doc:`fitpod <fitpod_command>`, which is used to fit the POD
 potential to *ab initio* energy and force data.
 
-Only a single pair_coeff command is used with the *pod* style which
+Only a single pair_coeff command is used with the *mlpod* style which
 specifies a POD parameter file followed by a coefficient file.
 
 The coefficient file (coefficient.txt) contains coefficients for the POD potential. The top of the coefficient

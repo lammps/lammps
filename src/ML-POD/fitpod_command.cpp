@@ -17,7 +17,7 @@
 
 #include "fitpod_command.h"
 
-#include "pod.h"
+#include "mlpod.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -68,7 +68,7 @@ void CFITPOD::command(int narg, char **arg)
   else
     coeff_file = "";
 
-  podptr = new CPOD(lmp, pod_file, coeff_file);
+  podptr = new MLPOD(lmp, pod_file, coeff_file);
   read_data_files(data_file, podptr->pod.species);
 
   if ((int) traindata.data_path.size() > 1)
@@ -417,7 +417,7 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
 
       if (words[index].find("=") != std::string::npos) {
 
-        // lattice numbers start at index + 1
+        // stress numbers start at index + 1
 
         for (int k = 0; k < 9; k++){
           stress[k + 9*cfi] = utils::numeric(FLERR,words[index+1+k],false,lmp);

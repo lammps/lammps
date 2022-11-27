@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_POD_H__
-#define LMP_POD_H__
+#ifndef LMP_MLPOD_H__
+#define LMP_MLPOD_H__
 
 #include "pointers.h"
 
@@ -48,7 +48,7 @@ extern "C" {
 
 namespace LAMMPS_NS {
 
-class CPOD : protected Pointers {
+class MLPOD : protected Pointers {
 
 private:
 
@@ -153,15 +153,15 @@ private:
   int besseldegree, int inversedegree, int nbesselpars, int N);
 
 public:
-  CPOD(LAMMPS *, std::string pod_file, std::string coeff_file);
+  MLPOD(LAMMPS *, std::string pod_file, std::string coeff_file);
 
-  CPOD(LAMMPS *lmp) : Pointers(lmp){};
-  ~CPOD() override;
+  MLPOD(LAMMPS *lmp) : Pointers(lmp){};
+  ~MLPOD() override;
 
   struct podstruct {
     std::vector<std::string> species;
-    int *pbc=NULL; //[3] = {1,1,1};
-    int *elemindex=NULL;
+    int *pbc=nullptr; //[3] = {1,1,1};
+    int *elemindex=nullptr;
 
     int nelements = 0;
     int onebody = 1;

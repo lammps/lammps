@@ -59,7 +59,7 @@ namespace LAMMPS_NS {
     int nijmax;  // maximum number of atom pairs
     int szd;    // size of tmpmem
 
-    class CPOD *podptr;
+    class MLPOD *podptr;
 
     // temporary arrays for computation blocks
 

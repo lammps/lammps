@@ -114,7 +114,7 @@ public:
   datastruct testdata;
   descriptorstruct desc;
   neighborstruct nb;
-  class CPOD *podptr;
+  class MLPOD *podptr;
 
   CFITPOD(LAMMPS *lmp) : Command(lmp) {}
 

@@ -17,7 +17,7 @@
 
 #include "pair_mlpod.h"
 
-#include "pod.h"
+#include "mlpod.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -192,7 +192,7 @@ void PairMLPOD::coeff(int narg, char **arg)
   std::string pod_file = std::string(arg[2]);  // pod input file
   std::string coeff_file = std::string(arg[3]); // coefficient input file
 
-  podptr = new CPOD(lmp, pod_file, coeff_file);
+  podptr = new MLPOD(lmp, pod_file, coeff_file);
 
   if (coeff_file != "") {
     memory->create(podcoeff, podptr->pod.nd, "pair:podcoeff");

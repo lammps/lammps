@@ -650,4 +650,8 @@ void NEB::print_status()
       fflush(universe->ulogfile);
     }
   }
+  if (verbose) {
+    delete[] freplica;
+    delete[] fmaxatomInRepl;
+  }
 }

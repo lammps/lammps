@@ -16,7 +16,7 @@ Syntax
   .. code-block:: LAMMPS
 
      reset_atoms id keyword value ...
-   
+
   * zero or more keyword/value pairs can be appended
   * keyword = *sort*
 
@@ -27,7 +27,7 @@ Syntax
   .. code-block:: LAMMPS
 
      reset_atoms image group-ID
-   
+
   * group-ID = ID of group of atoms whose image flags will be reset
 
   .. code-block:: LAMMPS
@@ -161,7 +161,7 @@ image flags to zero with the :doc:`set <set>` command.
    since image flags for different atoms do not need to be
    consistent.  Use the :doc:`set <set>` command with its *image*
    keyword instead.
-        
+
 Only image flags for atoms in the specified *group-ID* are reset; all
 others remain unchanged.  No check is made for whether the group
 covers complete molecule fragments and thus whether the command will

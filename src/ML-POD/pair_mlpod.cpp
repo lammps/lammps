@@ -45,6 +45,7 @@ PairMLPOD::PairMLPOD(LAMMPS *lmp)
   one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  peratom_warn = true;
 
   dim = 3;
   nablockmax=0;
@@ -85,7 +86,15 @@ PairMLPOD::~PairMLPOD()
 void PairMLPOD::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
+
+  // we must enforce using F dot r, since we have no energy or stress tally calls.
   vflag_fdotr = 1;
+
+  if (peratom_warn && (vflag_atom || eflag_atom)) {
+    peratom_warn = false;
+    if (comm->me == 0)
+      error->warning(FLERR, "Pair style mlpod does not support per-atom energies or stresses");
+  }
 
   double **x = atom->x;
   double **f = atom->f;
@@ -228,6 +237,9 @@ void PairMLPOD::init_style()
   // need a full neighbor list
 
   neighbor->add_request(this, NeighConst::REQ_FULL);
+
+  // reset flag to print warning about per-atom energies or stresses
+  peratom_warn = true;
 }
 
 /* ----------------------------------------------------------------------

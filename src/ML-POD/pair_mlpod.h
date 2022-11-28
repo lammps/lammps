@@ -49,9 +49,6 @@ class PairMLPOD : public Pair {
   void free_tempmemory();
   void allocate_tempmemory();
 
-  void free_memory();
-  void allocate_memory();
-
   void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
                         int i);
 
@@ -74,8 +71,6 @@ class PairMLPOD : public Pair {
   int *aj;             // IDs of atoms J for all pairs (I, J)
   int *ti;             // types of atoms I for all pairs (I, J)
   int *tj;             // types of atoms J  for all pairs (I, J)
-
-  double **scale;    // for thermodynamic integration
 };
 
 }    // namespace LAMMPS_NS

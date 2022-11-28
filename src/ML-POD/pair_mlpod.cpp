@@ -36,7 +36,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMLPOD::PairMLPOD(LAMMPS *lmp) : Pair(lmp), podptr(nullptr)
+PairMLPOD::PairMLPOD(LAMMPS *lmp)
+  : Pair(lmp), gd(nullptr), gdall(nullptr), podcoeff(nullptr), newpodcoeff(nullptr),
+    energycoeff(nullptr), forcecoeff(nullptr), podptr(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -49,7 +51,6 @@ PairMLPOD::PairMLPOD(LAMMPS *lmp) : Pair(lmp), podptr(nullptr)
   nij=0;
   nijmax=0;
   szd=0;
-  podptr = nullptr;
   tmpmem = nullptr;
   typeai = nullptr;
   numneighsum = nullptr;
@@ -65,10 +66,11 @@ PairMLPOD::PairMLPOD(LAMMPS *lmp) : Pair(lmp), podptr(nullptr)
 
 PairMLPOD::~PairMLPOD()
 {
-  free_memory();
+  free_tempmemory();
   memory->destroy(podcoeff);
   memory->destroy(newpodcoeff);
   memory->destroy(gd);
+  memory->destroy(gdall);
   memory->destroy(energycoeff);
   memory->destroy(forcecoeff);
 
@@ -77,7 +79,6 @@ PairMLPOD::~PairMLPOD()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(scale);
   }
 }
 
@@ -175,13 +176,11 @@ void PairMLPOD::settings(int narg, char ** /* arg */)
 void PairMLPOD::coeff(int narg, char **arg)
 {
   int n = atom->ntypes;
+  memory->destroy(setflag);
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(scale,n+1,n+1,"pair:scale");
+  delete[] map;
   map = new int[n+1];
-  for (int ii = 0; ii < n+1; ii++)
-    for (int jj = 0; jj < n+1; jj++)
-      scale[ii][jj] = 1.0;
   allocated = 1;
 
   if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -195,6 +194,12 @@ void PairMLPOD::coeff(int narg, char **arg)
   podptr = new MLPOD(lmp, pod_file, coeff_file);
 
   if (coeff_file != "") {
+    memory->destroy(podcoeff);
+    memory->destroy(newpodcoeff);
+    memory->destroy(energycoeff);
+    memory->destroy(forcecoeff);
+    memory->destroy(gd);
+    memory->destroy(gdall);
     memory->create(podcoeff, podptr->pod.nd, "pair:podcoeff");
     memory->create(newpodcoeff, podptr->pod.nd, "pair:newpodcoeff");
     memory->create(energycoeff, podptr->pod.nd1234, "pair:energycoeff");
@@ -231,7 +236,6 @@ void PairMLPOD::init_style()
 double PairMLPOD::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-    scale[j][i] = scale[i][j];
   return podptr->pod.rcut;
 }
 
@@ -258,11 +262,6 @@ void PairMLPOD::free_tempmemory()
   memory->destroy(tmpmem);
 }
 
-void PairMLPOD::free_memory()
-{
-  free_tempmemory();
-}
-
 void PairMLPOD::allocate_tempmemory()
 {
   memory->create(rij, dim*nijmax, "pair:rij");
@@ -274,11 +273,6 @@ void PairMLPOD::allocate_tempmemory()
   memory->create(numneighsum, nablockmax+1, "pair:numneighsum");
   memory->create(typeai, nablockmax, "pair:typeai");
   memory->create(tmpmem, szd, "pair:tmpmem");
-}
-
-void PairMLPOD::allocate_memory()
-{
-  allocate_tempmemory();
 }
 
 void PairMLPOD::estimate_tempmemory()

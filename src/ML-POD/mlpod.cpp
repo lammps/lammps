@@ -3075,7 +3075,8 @@ double MLPOD::calculate_energy(double *effectivecoeff, double *gd, double *coeff
   return energy;
 }
 
-double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *gd, double *coeff)
+double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *gd, 
+        double *gdall, double *coeff)
 {
   int nd1 = pod.nd1;
   int nd2 = pod.nd2;
@@ -3095,12 +3096,6 @@ double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *
   int nc3 = pod.nc3;
   int nc4 = pod.nc4;
 
-  // two-body, three-body, and four-body descriptors
-
-  double *d2 = &gd[nd1];
-  double *d3 = &gd[nd1+nd2];
-  double *d4 = &gd[nd1+nd2+nd3];
-
   // quadratic and cubic POD coefficients
 
   double *coeff22 = &coeff[nd1234];
@@ -3113,60 +3108,68 @@ double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *
   double *coeff333 = &coeff[nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234];
   double *coeff444 = &coeff[nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234+nd333];
 
-  // calculate energy for linear potentials
-
-  double energy = 0.0;
-  for (int i=0; i< nd1234; i++) {
+  // sum global descriptors over all MPI ranks 
+  
+  MPI_Allreduce(gd, gdall, nd1234, MPI_DOUBLE, MPI_SUM, world);    
+  
+  for (int i=0; i< nd1234; i++) {    
     energycoeff[i] = 0.0;
     forcecoeff[i] = 0.0;
-    energy += coeff[i]*gd[i];
   }
-
+  
   // effective POD coefficients for calculating force
 
   double *c2 = &forcecoeff[nd1];
   double *c3 = &forcecoeff[nd1+nd2];
   double *c4 = &forcecoeff[nd1+nd2+nd3];
 
+  // effective POD coefficients for calculating energy
+  
   double *ce2 = &energycoeff[nd1];
   double *ce3 = &energycoeff[nd1+nd2];
   double *ce4 = &energycoeff[nd1+nd2+nd3];
+ 
+  // two-body, three-body, and four-body descriptors
+
+  double *d2 = &gdall[nd1];
+  double *d3 = &gdall[nd1+nd2];
+  double *d4 = &gdall[nd1+nd2+nd3];
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) energy += quadratic_coefficients(ce2, c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22>0) quadratic_coefficients(ce2, c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) energy += quadratic_coefficients(ce2, ce3, c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23>0) quadratic_coefficients(ce2, ce3, c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) energy += quadratic_coefficients(ce2, ce4, c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24>0) quadratic_coefficients(ce2, ce4, c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) energy += quadratic_coefficients(ce3, c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33>0) quadratic_coefficients(ce3, c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) energy += quadratic_coefficients(ce3, ce4, c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34>0) quadratic_coefficients(ce3, ce4, c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) energy += quadratic_coefficients(ce4, c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44>0) quadratic_coefficients(ce4, c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) energy += cubic_coefficients(ce2, ce3, ce4, c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234>0) cubic_coefficients(ce2, ce3, ce4, c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) energy += cubic_coefficients(ce3, c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333>0) cubic_coefficients(ce3, c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) energy += cubic_coefficients(ce4, c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444>0) cubic_coefficients(ce4, c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -3175,6 +3178,12 @@ double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *
     forcecoeff[i] += coeff[i];
   }
 
+  // calculate energy 
+
+  double energy = 0.0;
+  for (int i=0; i< nd1234; i++) 
+    energy += energycoeff[i]*gd[i];  
+  
   return energy;
 }
 

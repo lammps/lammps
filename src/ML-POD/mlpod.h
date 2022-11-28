@@ -322,7 +322,7 @@ public:
   void linear_descriptors_ij(double *gd, double *eatom, double *rij, double *tmpmem, int *pairnumsum,
       int *atomtype, int *ai, int *ti, int *tj, int natom, int Nij);
   double calculate_energy(double *effectivecoeff, double *gd, double *coeff);
-  double calculate_energy(double *energycoeff, double *forcecoeff, double *gd, double *coeff);
+  double calculate_energy(double *energycoeff, double *forcecoeff, double *gd, double *gdall, double *coeff);
   void calculate_force(double *force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,
           int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);
   void calculate_force(double **force, double *effectivecoeff, double *rij, double *tmpmem, int *pairnumsum,

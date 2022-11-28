@@ -130,17 +130,16 @@ void PairMLPOD::compute(int eflag, int vflag)
   int nd34 = podptr->pod.nd34;
   int nd44 = podptr->pod.nd44;
   int nd = podptr->pod.nd;
-  bigint natom = atom->natoms;
-
+  bigint natom = atom->natoms;  
+  
   for (int j=nd1234; j<(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j++)
     newpodcoeff[j] = podcoeff[j]/(natom);
 
   for (int j=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j<nd; j++)
     newpodcoeff[j] = podcoeff[j]/(natom*natom);
-
+  
   // compute energy and effective coefficients
-
-  eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, newpodcoeff);
+  eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
 
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
@@ -200,6 +199,7 @@ void PairMLPOD::coeff(int narg, char **arg)
     memory->create(energycoeff, podptr->pod.nd1234, "pair:energycoeff");
     memory->create(forcecoeff, podptr->pod.nd1234, "pair:forcecoeff");
     memory->create(gd, podptr->pod.nd1234, "pair:gd");
+    memory->create(gdall, podptr->pod.nd1234, "pair:gdall");
     podptr->podArrayCopy(podcoeff, podptr->pod.coeff, podptr->pod.nd);
     podptr->podArrayCopy(newpodcoeff, podptr->pod.coeff, podptr->pod.nd);
   }

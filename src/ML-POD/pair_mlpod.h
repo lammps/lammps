@@ -39,6 +39,7 @@ namespace LAMMPS_NS {
       int dim; // typically 3
 
       double *gd;         // global linear descriptors
+      double *gdall;      // global linear descriptors summed over all MPI ranks
       double *podcoeff;   // POD coefficients
       double *newpodcoeff;// normalized POD coefficients
       double *energycoeff; // energy coefficients

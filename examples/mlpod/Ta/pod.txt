@@ -26,3 +26,6 @@ threebody_number_angular_basis_functions 5
 
 # four-body linear SNAP potential
 fourbody_snap_twojmax 0 
+
+# quadratic POD potential
+quadratic_pod_potential 0

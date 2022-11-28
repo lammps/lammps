@@ -87,9 +87,9 @@ interactions.  Similarly the ``Modify`` class contains a list of
 ``Fix`` and ``Compute`` classes.  If the input commands that
 correspond to these classes include the word *style*, then LAMMPS
 stores only a single instance of that class.  E.g. *atom_style*,
-*comm_style*, *pair_style*, *bond_style*.  It the input command does
-not include the word *style*, there can be many instances of that
-class defined.  E.g. *region*, *fix*, *compute*, *dump*.
+*comm_style*, *pair_style*, *bond_style*.  If the input command does
+**not** include the word *style*, then there may be many instances of
+that class definedr, for example *region*, *fix*, *compute*, *dump*.
 
 **Inheritance** enables creation of *derived* classes that can share
 common functionality in their base class while providing a consistent

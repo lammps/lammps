@@ -178,9 +178,9 @@ due to the internal dynamic grouping performed by fix bond/react.
    should also be specified as this static group or a subset.
 
 The *reset_mol_ids* keyword invokes the :doc:`reset_atoms mol
-<reset_atoms_mol>` command after a reaction occurs, to ensure that
+<reset_atoms>` command after a reaction occurs, to ensure that
 molecule IDs are consistent with the new bond topology. The group-ID
-used for :doc:`reset_atoms mol <reset_atoms_mol>` is the group-ID for this
+used for :doc:`reset_atoms mol <reset_atoms>` is the group-ID for this
 fix.  Resetting molecule IDs is necessarily a global operation, so it
 can be slow for very large systems.
 

@@ -31,8 +31,8 @@ Reset_ids, reset_atom_ids, reset_mol_ids commands
 
 .. deprecated:: TBD
 
-The *reset_ids* or *reset_atom_ids* or *reset_mol_ids* commands have
-been folded into the :doc:`reset_atoms <reset_atoms>` meta-command.  If
+The *reset_ids*, *reset_atom_ids*, and *reset_mol_ids* commands have
+been folded into the :doc:`reset_atoms <reset_atoms>` command.  If
 present, LAMMPS will replace the commands accordingly and print a
 warning.
 
@@ -77,5 +77,6 @@ restart2data tool
 The functionality of the restart2data tool has been folded into the
 LAMMPS executable directly instead of having a separate tool.  A
 combination of the commands :doc:`read_restart <read_restart>` and
-:doc:`write_data <write_data>` can be used to the same effect.  For added
-convenience this conversion can also be triggered by :doc:`command line flags <Run_options>`
+:doc:`write_data <write_data>` can be used to the same effect.  For
+added convenience this conversion can also be triggered by
+:doc:`command line flags <Run_options>`

@@ -90,9 +90,6 @@ Commands
    replicate
    rerun
    reset_atoms
-   reset_atoms_id
-   reset_atoms_image
-   reset_atoms_mol
    reset_timestep
    restart
    run

@@ -203,8 +203,7 @@ using molecule template files via the :doc:`molecule <molecule>` and
 Related commands
 """"""""""""""""
 
-:doc:`create_atoms <create_atoms>`, :doc:`reset_atoms id
-     <reset_atoms>`
+:doc:`create_atoms <create_atoms>`, :doc:`reset_atoms id <reset_atoms>`
 
 Default
 """""""

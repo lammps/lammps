@@ -36,9 +36,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMLPOD::PairMLPOD(LAMMPS *lmp)
-  : Pair(lmp), gd(nullptr), gdall(nullptr), podcoeff(nullptr), newpodcoeff(nullptr),
-    energycoeff(nullptr), forcecoeff(nullptr), podptr(nullptr)
+PairMLPOD::PairMLPOD(LAMMPS *lmp) :
+    Pair(lmp), gd(nullptr), gdall(nullptr), podcoeff(nullptr), newpodcoeff(nullptr),
+    energycoeff(nullptr), forcecoeff(nullptr), podptr(nullptr), tmpmem(nullptr), typeai(nullptr),
+    numneighsum(nullptr), rij(nullptr), idxi(nullptr), ai(nullptr), aj(nullptr), ti(nullptr),
+    tj(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -48,19 +50,10 @@ PairMLPOD::PairMLPOD(LAMMPS *lmp)
   peratom_warn = true;
 
   dim = 3;
-  nablockmax=0;
-  nij=0;
-  nijmax=0;
-  szd=0;
-  tmpmem = nullptr;
-  typeai = nullptr;
-  numneighsum = nullptr;
-  rij = nullptr;
-  idxi = nullptr;
-  ai = nullptr;
-  aj = nullptr;
-  ti = nullptr;
-  tj = nullptr;
+  nablockmax = 0;
+  nij = 0;
+  nijmax = 0;
+  szd = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -174,8 +167,7 @@ void PairMLPOD::compute(int eflag, int vflag)
 
 void PairMLPOD::settings(int narg, char ** /* arg */)
 {
-  if (narg > 0)
-  error->all(FLERR,"Illegal pair_style command");
+  if (narg > 0) error->all(FLERR,"Pair style mlpod accepts no arguments");
 }
 
 /* ----------------------------------------------------------------------
@@ -231,8 +223,7 @@ void PairMLPOD::coeff(int narg, char **arg)
 
 void PairMLPOD::init_style()
 {
-  if (force->newton_pair == 0)
-  error->all(FLERR,"Pair style POD requires newton pair on");
+  if (force->newton_pair == 0) error->all(FLERR,"Pair style mlpod requires newton pair on");
 
   // need a full neighbor list
 

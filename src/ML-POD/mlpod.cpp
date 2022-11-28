@@ -3075,7 +3075,7 @@ double MLPOD::calculate_energy(double *effectivecoeff, double *gd, double *coeff
   return energy;
 }
 
-double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *gd, 
+double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *gd,
         double *gdall, double *coeff)
 {
   int nd1 = pod.nd1;
@@ -3108,15 +3108,15 @@ double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *
   double *coeff333 = &coeff[nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234];
   double *coeff444 = &coeff[nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234+nd333];
 
-  // sum global descriptors over all MPI ranks 
-  
-  MPI_Allreduce(gd, gdall, nd1234, MPI_DOUBLE, MPI_SUM, world);    
-  
-  for (int i=0; i< nd1234; i++) {    
+  // sum global descriptors over all MPI ranks
+
+  MPI_Allreduce(gd, gdall, nd1234, MPI_DOUBLE, MPI_SUM, world);
+
+  for (int i=0; i< nd1234; i++) {
     energycoeff[i] = 0.0;
     forcecoeff[i] = 0.0;
   }
-  
+
   // effective POD coefficients for calculating force
 
   double *c2 = &forcecoeff[nd1];
@@ -3124,11 +3124,11 @@ double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *
   double *c4 = &forcecoeff[nd1+nd2+nd3];
 
   // effective POD coefficients for calculating energy
-  
+
   double *ce2 = &energycoeff[nd1];
   double *ce3 = &energycoeff[nd1+nd2];
   double *ce4 = &energycoeff[nd1+nd2+nd3];
- 
+
   // two-body, three-body, and four-body descriptors
 
   double *d2 = &gdall[nd1];
@@ -3178,12 +3178,12 @@ double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *
     forcecoeff[i] += coeff[i];
   }
 
-  // calculate energy 
+  // calculate energy
 
   double energy = 0.0;
-  for (int i=0; i< nd1234; i++) 
-    energy += energycoeff[i]*gd[i];  
-  
+  for (int i=0; i< nd1234; i++)
+    energy += energycoeff[i]*gd[i];
+
   return energy;
 }
 

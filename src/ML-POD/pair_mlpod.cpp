@@ -130,14 +130,14 @@ void PairMLPOD::compute(int eflag, int vflag)
   int nd34 = podptr->pod.nd34;
   int nd44 = podptr->pod.nd44;
   int nd = podptr->pod.nd;
-  bigint natom = atom->natoms;  
-  
+  bigint natom = atom->natoms;
+
   for (int j=nd1234; j<(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j++)
     newpodcoeff[j] = podcoeff[j]/(natom);
 
   for (int j=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j<nd; j++)
     newpodcoeff[j] = podcoeff[j]/(natom*natom);
-  
+
   // compute energy and effective coefficients
   eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
 

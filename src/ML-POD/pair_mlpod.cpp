@@ -36,39 +36,35 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMLPOD::PairMLPOD(LAMMPS *lmp) : Pair(lmp)
+PairMLPOD::PairMLPOD(LAMMPS *lmp) :
+    Pair(lmp), gd(nullptr), gdall(nullptr), podcoeff(nullptr), newpodcoeff(nullptr),
+    energycoeff(nullptr), forcecoeff(nullptr), podptr(nullptr), tmpmem(nullptr), typeai(nullptr),
+    numneighsum(nullptr), rij(nullptr), idxi(nullptr), ai(nullptr), aj(nullptr), ti(nullptr),
+    tj(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  peratom_warn = true;
 
   dim = 3;
-  nablockmax=0;
-  nij=0;
-  nijmax=0;
-  szd=0;
-  podptr = nullptr;
-  tmpmem = nullptr;
-  typeai = nullptr;
-  numneighsum = nullptr;
-  rij = nullptr;
-  idxi = nullptr;
-  ai = nullptr;
-  aj = nullptr;
-  ti = nullptr;
-  tj = nullptr;
+  nablockmax = 0;
+  nij = 0;
+  nijmax = 0;
+  szd = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairMLPOD::~PairMLPOD()
 {
-  free_memory();
+  free_tempmemory();
   memory->destroy(podcoeff);
   memory->destroy(newpodcoeff);
   memory->destroy(gd);
+  memory->destroy(gdall);
   memory->destroy(energycoeff);
   memory->destroy(forcecoeff);
 
@@ -77,14 +73,21 @@ PairMLPOD::~PairMLPOD()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(scale);
   }
 }
 
 void PairMLPOD::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
+
+  // we must enforce using F dot r, since we have no energy or stress tally calls.
   vflag_fdotr = 1;
+
+  if (peratom_warn && (vflag_atom || eflag_atom)) {
+    peratom_warn = false;
+    if (comm->me == 0)
+      error->warning(FLERR, "Pair style mlpod does not support per-atom energies or stresses");
+  }
 
   double **x = atom->x;
   double **f = atom->f;
@@ -106,7 +109,7 @@ void PairMLPOD::compute(int eflag, int vflag)
     // allocate temporary memory
 
     if (nijmax < jnum) {
-      nijmax = PODMAX(nijmax, jnum);
+      nijmax = MAX(nijmax, jnum);
       nablockmax = 1;
       free_tempmemory();
       estimate_tempmemory();
@@ -130,14 +133,14 @@ void PairMLPOD::compute(int eflag, int vflag)
   int nd34 = podptr->pod.nd34;
   int nd44 = podptr->pod.nd44;
   int nd = podptr->pod.nd;
-  bigint natom = atom->natoms;  
-  
+  bigint natom = atom->natoms;
+
   for (int j=nd1234; j<(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j++)
     newpodcoeff[j] = podcoeff[j]/(natom);
 
   for (int j=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j<nd; j++)
     newpodcoeff[j] = podcoeff[j]/(natom*natom);
-  
+
   // compute energy and effective coefficients
   eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
 
@@ -164,8 +167,7 @@ void PairMLPOD::compute(int eflag, int vflag)
 
 void PairMLPOD::settings(int narg, char ** /* arg */)
 {
-  if (narg > 0)
-  error->all(FLERR,"Illegal pair_style command");
+  if (narg > 0) error->all(FLERR,"Pair style mlpod accepts no arguments");
 }
 
 /* ----------------------------------------------------------------------
@@ -175,13 +177,12 @@ void PairMLPOD::settings(int narg, char ** /* arg */)
 void PairMLPOD::coeff(int narg, char **arg)
 {
   int n = atom->ntypes;
+  memory->destroy(setflag);
+  memory->destroy(cutsq);
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(scale,n+1,n+1,"pair:scale");
+  delete[] map;
   map = new int[n+1];
-  for (int ii = 0; ii < n+1; ii++)
-    for (int jj = 0; jj < n+1; jj++)
-      scale[ii][jj] = 1.0;
   allocated = 1;
 
   if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -191,9 +192,16 @@ void PairMLPOD::coeff(int narg, char **arg)
   std::string pod_file = std::string(arg[2]);  // pod input file
   std::string coeff_file = std::string(arg[3]); // coefficient input file
 
+  delete podptr;
   podptr = new MLPOD(lmp, pod_file, coeff_file);
 
   if (coeff_file != "") {
+    memory->destroy(podcoeff);
+    memory->destroy(newpodcoeff);
+    memory->destroy(energycoeff);
+    memory->destroy(forcecoeff);
+    memory->destroy(gd);
+    memory->destroy(gdall);
     memory->create(podcoeff, podptr->pod.nd, "pair:podcoeff");
     memory->create(newpodcoeff, podptr->pod.nd, "pair:newpodcoeff");
     memory->create(energycoeff, podptr->pod.nd1234, "pair:energycoeff");
@@ -215,12 +223,14 @@ void PairMLPOD::coeff(int narg, char **arg)
 
 void PairMLPOD::init_style()
 {
-  if (force->newton_pair == 0)
-  error->all(FLERR,"Pair style POD requires newton pair on");
+  if (force->newton_pair == 0) error->all(FLERR,"Pair style mlpod requires newton pair on");
 
   // need a full neighbor list
 
   neighbor->add_request(this, NeighConst::REQ_FULL);
+
+  // reset flag to print warning about per-atom energies or stresses
+  peratom_warn = true;
 }
 
 /* ----------------------------------------------------------------------
@@ -230,7 +240,6 @@ void PairMLPOD::init_style()
 double PairMLPOD::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-    scale[j][i] = scale[i][j];
   return podptr->pod.rcut;
 }
 
@@ -257,11 +266,6 @@ void PairMLPOD::free_tempmemory()
   memory->destroy(tmpmem);
 }
 
-void PairMLPOD::free_memory()
-{
-  free_tempmemory();
-}
-
 void PairMLPOD::allocate_tempmemory()
 {
   memory->create(rij, dim*nijmax, "pair:rij");
@@ -275,11 +279,6 @@ void PairMLPOD::allocate_tempmemory()
   memory->create(tmpmem, szd, "pair:tmpmem");
 }
 
-void PairMLPOD::allocate_memory()
-{
-  allocate_tempmemory();
-}
-
 void PairMLPOD::estimate_tempmemory()
 {
   int nrbf2 = podptr->pod.nbf2;
@@ -288,16 +287,16 @@ void PairMLPOD::estimate_tempmemory()
   int ns2 = podptr->pod.ns2;
   int ns3 = podptr->pod.ns3;
 
-  szd = dim*nijmax+ (1+dim)*nijmax*PODMAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
+  szd = dim*nijmax+ (1+dim)*nijmax*MAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
   int szsnap = 0;
   if (podptr->sna.twojmax>0) {
-  szsnap += nijmax*dim;
-  szsnap += PODMAX(2*podptr->sna.idxu_max*nijmax, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*nablockmax); // (Ur, Ui) and (Zr, Zi)
-  szsnap += 2*podptr->sna.idxu_max*dim*nijmax; // dUr, dUi
-  szsnap += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*nijmax, 2*podptr->sna.idxu_max*podptr->sna.nelements*nablockmax); // dblist and (Utotr, Utoti)
+    szsnap += nijmax*dim;
+    szsnap += MAX(2*podptr->sna.idxu_max*nijmax, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*nablockmax); // (Ur, Ui) and (Zr, Zi)
+    szsnap += 2*podptr->sna.idxu_max*dim*nijmax; // dUr, dUi
+    szsnap += MAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*nijmax, 2*podptr->sna.idxu_max*podptr->sna.nelements*nablockmax); // dblist and (Utotr, Utoti)
   }
 
-  szd = PODMAX(szsnap, szd);
+  szd = MAX(szsnap, szd);
   szd = nablockmax*(podptr->pod.nd1234) + szd;
 }
 

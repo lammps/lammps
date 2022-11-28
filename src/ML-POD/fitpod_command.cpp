@@ -152,29 +152,29 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format,
 {
   std::string datafilename = data_file;
   FILE *fpdata;
-  if (comm->me == 0){
+  //if (comm->me == 0){
 
     fpdata = utils::open_potential(datafilename,lmp,nullptr);
     if (fpdata == nullptr)
       error->one(FLERR,"Cannot open training data file {}: ",
                                    datafilename, utils::getsyserror());
-  }
+  //}
 
   // loop through lines of training data file and parse keywords
 
   char line[MAXLINE],*ptr;
   int eof = 0;
   while (true) {
-    if (comm->me == 0) {
+    //if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpdata);
       if (ptr == nullptr) {
         eof = 1;
         fclose(fpdata);
       }
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    //}
+    //MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) break;
-    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+    //MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
     // words = ptrs to all words in line
     // strip single and double quotes from words
@@ -245,12 +245,12 @@ int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
 {
   std::string filename = file;
   FILE *fp;
-  if (comm->me == 0){
+  //if (comm->me == 0){
 
     fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr)
       error->one(FLERR,"Cannot open POD coefficient file {}: ", filename, utils::getsyserror());
-  }
+  //}
 
   char line[MAXLINE],*ptr;
   int eof = 0;
@@ -260,16 +260,16 @@ int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
   // loop over all lines of this xyz file and extract number of atoms and number of configs
 
   while (true) {
-    if (comm->me == 0) {
+    //if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       }
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    //}
+    //MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) break;
-    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+    //MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
     // words = ptrs to all words in line
     // strip single and double quotes from words
@@ -318,13 +318,13 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
 
   std::string filename = file;
   FILE *fp;
-  if (comm->me == 0){
+  //if (comm->me == 0){
 
     fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr)
       error->one(FLERR,"Cannot open POD coefficient file {}: ",
                                    filename, utils::getsyserror());
-  }
+  //}
 
   char line[MAXLINE],*ptr;
   int eof = 0;
@@ -335,16 +335,16 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
   // loop over all lines of this xyz file and extract training data
 
   while (true) {
-    if (comm->me == 0) {
+    //if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       }
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
+    //}
+    //MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) break;
-    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+    //MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
     // words = ptrs to all words in line
     // strip single and double quotes from words
@@ -462,21 +462,25 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
   size_t maxname = 9;
   for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
   maxname -= data.data_path.size()+1;
-  utils::logmesg(lmp, " {:^{}} | number of configurations | number of atoms\n{:=<{}}\n", "data file",
+  if (comm->me == 0)
+    utils::logmesg(lmp, " {:^{}} | number of configurations | number of atoms\n{:=<{}}\n", "data file",
                  maxname, "", maxname+46);
   int i = 0;
   for (auto fname : data.data_files) {
     std::string filename = fname.substr(data.data_path.size()+1);
     data.filenames.push_back(filename);
-    utils::logmesg(lmp, " {:<{}} |        {:>10}        |    {:>8}\n",
+    if (comm->me == 0)
+      utils::logmesg(lmp, " {:<{}} |        {:>10}        |    {:>8}\n",
                    filename, maxname, data.num_config[i], data.num_atom_each_file[i]);
     ++i;
   }
-  utils::logmesg(lmp, "{:=<{}}\n", "", maxname+46);
-  utils::logmesg(lmp, "number of files: {}\n", data.data_files.size());
-  utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
-  utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
-
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "{:=<{}}\n", "", maxname+46);
+    utils::logmesg(lmp, "number of files: {}\n", data.data_files.size());
+    utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
+    utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
+  }
+  
   int n = data.num_config_sum;
   memory->create(data.lattice, 9*n, "fitpod:lattice");
   memory->create(data.stress, 9*n, "fitpod:stress");
@@ -527,8 +531,10 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
     podptr->matrix33_multiplication(f, Qmat, f, natom);
   }
 
-  utils::logmesg(lmp, "minimum number of atoms: {}\n", data.num_atom_min);
-  utils::logmesg(lmp, "maximum number of atoms: {}\n", data.num_atom_max);
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "minimum number of atoms: {}\n", data.num_atom_min);
+    utils::logmesg(lmp, "maximum number of atoms: {}\n", data.num_atom_max);
+  }
 }
 
 std::vector<int> CFITPOD::linspace(int start_in, int end_in, int num_in)
@@ -599,11 +605,13 @@ void CFITPOD::select_data(datastruct &newdata, datastruct data)
   double percentage = data.percentage;
   int randomize = data.randomize;
 
-  if (randomize==1)
-    utils::logmesg(lmp, "Select {} percent of the data set at random using shuffle\n", data.percentage*100);
-  else
-    utils::logmesg(lmp, "Select {} percent of the data set deterministically using linspace\n", data.percentage*100);
-
+  if (comm->me == 0) {
+    if (randomize==1)
+      utils::logmesg(lmp, "Select {} percent of the data set at random using shuffle\n", data.percentage*100);
+    else
+      utils::logmesg(lmp, "Select {} percent of the data set deterministically using linspace\n", data.percentage*100);
+  }
+  
   int nfiles = data.data_files.size();  // number of files
   std::vector<std::vector<int>> selected(nfiles);
 
@@ -682,15 +690,19 @@ void CFITPOD::select_data(datastruct &newdata, datastruct data)
 
   data.copydatainfo(newdata);
 
-  utils::logmesg(lmp, "data file  | # configs (selected) | # atoms (selected) | # configs (original) | # atoms (original)\n");
+  if (comm->me == 0)
+    utils::logmesg(lmp, "data file  | # configs (selected) | # atoms (selected) | # configs (original) | # atoms (original)\n");
   for (int i=0; i< (int) newdata.data_files.size(); i++) {
     std::string filename = newdata.data_files[i].substr(newdata.data_path.size()+1,newdata.data_files[i].size());
     newdata.filenames.push_back(filename.c_str());
-    utils::logmesg(lmp, "{}   |   {}   |   {}   |   {}   |   {}\n", newdata.filenames[i], newdata.num_config[i], newdata.num_atom_each_file[i], data.num_config[i], data.num_atom_each_file[i]);
+    if (comm->me == 0)
+      utils::logmesg(lmp, "{}   |   {}   |   {}   |   {}   |   {}\n", newdata.filenames[i], newdata.num_config[i], newdata.num_atom_each_file[i], data.num_config[i], data.num_atom_each_file[i]);
   }
-  utils::logmesg(lmp, "number of files: {}\n", newdata.data_files.size());
-  utils::logmesg(lmp, "number of configurations in all files (selected and original): {} and {}\n", newdata.num_config_sum, data.num_config_sum);
-  utils::logmesg(lmp, "number of atoms in all files (selected and original: {} and {}\n", newdata.num_atom_sum, data.num_atom_sum);
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "number of files: {}\n", newdata.data_files.size());
+    utils::logmesg(lmp, "number of configurations in all files (selected and original): {} and {}\n", newdata.num_config_sum, data.num_config_sum);
+    utils::logmesg(lmp, "number of atoms in all files (selected and original: {} and {}\n", newdata.num_atom_sum, data.num_atom_sum);
+  }
 }
 
 void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> species)
@@ -712,24 +724,30 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
   data.copydatainfo(traindata);
 
   if (data.percentage >= 1.0) {
-    utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
     if ((int) traindata.data_path.size() > 1)
       get_data(traindata, species);
     else
       error->all(FLERR,"data set is not found");
-    utils::logmesg(lmp, "**************** End of Training Data Set ****************\n");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "**************** End of Training Data Set ****************\n");
   }
   else {
-    utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
     if ((int) data.data_path.size() > 1)
       get_data(data, species);
     else
       error->all(FLERR,"data set is not found");
-    utils::logmesg(lmp, "**************** End of Training Data Set ****************\n");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "**************** End of Training Data Set ****************\n");
 
-    utils::logmesg(lmp, "**************** Begin of Select Training Data Set ****************\n");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "**************** Begin of Select Training Data Set ****************\n");
     select_data(traindata, data);
-    utils::logmesg(lmp, "**************** End of Select Training Data Set ****************\n");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "**************** End of Select Training Data Set ****************\n");
 
     memory->destroy(data.lattice);
     memory->destroy(data.energy);
@@ -749,9 +767,11 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
     testdata.test_calculation = traindata.test_calculation;
     testdata.percentage = traindata.fitting_weights[8];
     testdata.randomize = (int) traindata.fitting_weights[10];
-    utils::logmesg(lmp, "**************** Begin of Test Data Set ****************\n");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "**************** Begin of Test Data Set ****************\n");
     get_data(testdata, species);
-    utils::logmesg(lmp, "**************** End of Test Data Set ****************\n");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "**************** End of Test Data Set ****************\n");
   }
   else {
     testdata.data_path = traindata.data_path;
@@ -902,7 +922,8 @@ void CFITPOD::allocate_memory(datastruct data)
   nb.szy = ny;
   nb.szp = np;
 
-  utils::logmesg(lmp,"**************** Begin of Memory Allocation ****************\n");
+  if (comm->me == 0)
+    utils::logmesg(lmp,"**************** Begin of Memory Allocation ****************\n");
 
   int szd = 0, szi=0, szsnap=0;
   for (int ci=0; ci<(int) data.num_atom.size(); ci++)
@@ -946,13 +967,15 @@ void CFITPOD::allocate_memory(datastruct data)
   desc.szd = szd;
   desc.szi = szi;
 
-  utils::logmesg(lmp, "maximum number of atoms in periodic domain: {}\n", natom_max);
-  utils::logmesg(lmp, "maximum number of atoms in extended domain: {}\n", nb.sza);
-  utils::logmesg(lmp, "maximum number of neighbors in extended domain: {}\n", nb.szp);
-  utils::logmesg(lmp, "size of double memory: {}\n", szd);
-  utils::logmesg(lmp, "size of int memory: {}\n", szi);
-  utils::logmesg(lmp, "size of descriptor matrix: {} x {}\n", nd, nd);
-  utils::logmesg(lmp, "**************** End of Memory Allocation ****************\n");
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "maximum number of atoms in periodic domain: {}\n", natom_max);
+    utils::logmesg(lmp, "maximum number of atoms in extended domain: {}\n", nb.sza);
+    utils::logmesg(lmp, "maximum number of neighbors in extended domain: {}\n", nb.szp);
+    utils::logmesg(lmp, "size of double memory: {}\n", szd);
+    utils::logmesg(lmp, "size of int memory: {}\n", szi);
+    utils::logmesg(lmp, "size of descriptor matrix: {} x {}\n", nd, nd);
+    utils::logmesg(lmp, "**************** End of Memory Allocation ****************\n");
+  }
 }
 
 void CFITPOD::linear_descriptors(datastruct data, int ci)
@@ -1182,32 +1205,43 @@ void CFITPOD::least_squares_matrix(datastruct data, int ci)
 
 void CFITPOD::least_squares_fit(datastruct data)
 {
-  utils::logmesg(lmp, "**************** Begin of Least-Squares Fitting ****************\n");
+  if (comm->me == 0)
+    utils::logmesg(lmp, "**************** Begin of Least-Squares Fitting ****************\n");
 
   // loop over each configuration in the training data set
 
   for (int ci=0; ci < (int) data.num_atom.size(); ci++) {
-    if ((ci % 100)==0) utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
+    
+    if ((ci % 100)==0) {
+      if (comm->me == 0)
+        utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
+    }
 
-    // compute linear POD descriptors
+    if ((ci % comm->nprocs) == comm->me) {
+            
+      // compute linear POD descriptors
 
-    linear_descriptors(data, ci);
+      linear_descriptors(data, ci);
 
-    // compute quadratic POD descriptors
+      // compute quadratic POD descriptors
 
-    quadratic_descriptors(data, ci);
+      quadratic_descriptors(data, ci);
 
-    // compute cubic POD descriptors
+      // compute cubic POD descriptors
 
-    cubic_descriptors(data, ci);
+      cubic_descriptors(data, ci);
 
-    // assemble the least-squares linear system
+      // assemble the least-squares linear system
 
-    least_squares_matrix(data, ci);
+      least_squares_matrix(data, ci);
+    }
   }
-
+    
   int nd = podptr->pod.nd;
 
+  MPI_Allreduce(MPI_IN_PLACE, desc.b, nd, MPI_DOUBLE, MPI_SUM, world);    
+  MPI_Allreduce(MPI_IN_PLACE, desc.A, nd*nd, MPI_DOUBLE, MPI_SUM, world);    
+  
   for (int i = 0; i<nd; i++) {
     desc.c[i] = desc.b[i];
     desc.A[i + nd*i] = desc.A[i + nd*i]*(1.0 + 1e-12);
@@ -1219,7 +1253,8 @@ void CFITPOD::least_squares_fit(datastruct data)
   char chu = 'U';
   DPOSV(&chu, &nd, &nrhs, desc.A, &nd, desc.c, &nd, &info);
 
-  podptr->print_matrix( "Least-squares coefficient vector:", 1, nd, desc.c, 1);
+  if (comm->me == 0)
+    podptr->print_matrix( "Least-squares coefficient vector:", 1, nd, desc.c, 1);
 
   // save coefficients into a text file
 
@@ -1233,7 +1268,8 @@ void CFITPOD::least_squares_fit(datastruct data)
 
   fclose(fp);
 
-  utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
+  if (comm->me == 0)
+    utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
 }
 
 double CFITPOD::energyforce_calculation(double *force, double *coeff, datastruct data, int ci)
@@ -1295,14 +1331,17 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
   std::string sb = "**************** Begin of Error Analysis for the Test Data Set ****************";
   std::string mystr = (data.training) ? sa : sb;
 
-  utils::logmesg(lmp, "{}\n", mystr);
+  if (comm->me == 0)
+    utils::logmesg(lmp, "{}\n", mystr);
   fmt::print(fp_errors, mystr + "\n");
 
   sa = "----------------------------------------------------------------------------------------\n";
   sb = "  File    | # configs | # atoms  | MAE energy | RMSE energy | MAE force | RMSE force |\n";
-  utils::logmesg(lmp, "{}", sa);
-  utils::logmesg(lmp, "{}", sb);
-  utils::logmesg(lmp, "{}", sa);
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "{}", sa);
+    utils::logmesg(lmp, "{}", sb);
+    utils::logmesg(lmp, "{}", sa);
+  }
   fmt::print(fp_errors, sa);
   fmt::print(fp_errors, sb);
   fmt::print(fp_errors, sa);
@@ -1348,10 +1387,12 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
     s1 = std::to_string(errors[3 + 4*q]);
     s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
     s = s + "   " + s1 + "\n";
-    utils::logmesg(lmp, "{}", s);
+    if (comm->me == 0)
+      utils::logmesg(lmp, "{}", s);
     fmt::print(fp_errors, "{}", s);
   }
-  utils::logmesg(lmp, "{}", sa);
+  if (comm->me == 0)
+    utils::logmesg(lmp, "{}", sa);
   fmt::print(fp_errors, "{}", sa);
 
   s = s + std::string(MAX(lm - (int) s.size(),1), ' ');
@@ -1373,15 +1414,18 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
   s1 = std::to_string(errors[3]);
   s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
   s = s + "   " + s1 + "\n";
-  utils::logmesg(lmp, "{}", s);
-  utils::logmesg(lmp, "{}", sa);
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "{}", s);
+    utils::logmesg(lmp, "{}", sa);
+  }
   fmt::print(fp_errors, "{}", s);
   fmt::print(fp_errors, "{}", sa);
 
   sa = "**************** End of Error Analysis for the Training Data Set ****************";
   sb = "**************** End of Error Analysis for the Test Data Set ****************";
   mystr = (data.training) ? sa : sb;
-  utils::logmesg(lmp, "{}\n", mystr);
+  if (comm->me == 0)
+    utils::logmesg(lmp, "{}\n", mystr);
   fmt::print(fp_errors, "{}\n", mystr);
 
   fclose(fp_errors);
@@ -1397,13 +1441,16 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
 
   int nfiles = data.data_files.size();  // number of files
   int num_configs = data.num_atom.size(); // number of configurations in all files
-  //int nd12 = podptr->pod.nd1 + podptr->pod.nd2;
-  //int nd123 = podptr->pod.nd1 + podptr->pod.nd2 + podptr->pod.nd3;
-  //int nd1234 = podptr->pod.nd1 + podptr->pod.nd2 + podptr->pod.nd3 + podptr->pod.nd4;
-  //double effectivecoeff[nd1234];
 
   int m = 8;
   std::vector<double> outarray(m*num_configs);
+  for (int i=0; i<m*num_configs; i++)
+    outarray[i] = 0.0;
+  
+  std::vector<double> ssrarray(num_configs);
+  for (int i=0; i<num_configs; i++)
+    ssrarray[i] = 0.0;  
+  
   std::vector<double> errors(4*(nfiles+1));
   for (int i=0; i<4*(nfiles+1); i++)
     errors[i] = 0.0;
@@ -1425,57 +1472,81 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
   for (int j=0; j<nd; j++)
     newcoeff[j] = coeff[j];
 
-  utils::logmesg(lmp, "**************** Begin of Error Calculation ****************\n");
+  if (comm->me == 0)
+    utils::logmesg(lmp, "**************** Begin of Error Calculation ****************\n");
 
   int ci = 0; // configuration counter
+  for (int file = 0; file < nfiles; file++) { // loop over each file in the training data set
+    
+    int nconfigs = data.num_config[file];
+    for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
+      
+      if ((ci % 100)==0) {
+        if (comm->me == 0)
+          utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
+      }
+
+      if ((ci % comm->nprocs) == comm->me) {
+        int natom = data.num_atom[ci];
+        int nforce = dim*natom;
+
+        for (int j=nd1234; j<(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j++)
+          newcoeff[j] = coeff[j]/(natom);
+
+        for (int j=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j<nd; j++)
+          newcoeff[j] = coeff[j]/(natom*natom);
+
+        energy = energyforce_calculation(force.data(), newcoeff.data(), data, ci);
+
+        double DFTenergy = data.energy[ci];
+        int natom_cumsum = data.num_atom_cumsum[ci];
+        double *DFTforce = &data.force[dim*natom_cumsum];
+
+        outarray[0 + m*ci] = ci+1;
+        outarray[1 + m*ci] = natom;
+        outarray[2 + m*ci] = energy;
+        outarray[3 + m*ci] = DFTenergy;
+        outarray[4 + m*ci] = fabs(DFTenergy-energy)/natom;
+        outarray[5 + m*ci] = podptr->podArrayNorm(force.data(), nforce);
+        outarray[6 + m*ci] = podptr->podArrayNorm(DFTforce, nforce);
+
+        double diff, sum = 0.0, ssr = 0.0;
+        for (int j=0; j<dim*natom; j++) {
+          diff = DFTforce[j] - force[j];
+          sum += fabs(diff);
+          ssr += diff*diff;
+        }
+        outarray[7 + m*ci] = sum/nforce;
+        ssrarray[ci] = ssr;        
+      }
+      
+      ci += 1;
+    }
+  }
+  
+  MPI_Allreduce(MPI_IN_PLACE, &outarray[0], m*num_configs, MPI_DOUBLE, MPI_SUM, world);    
+  MPI_Allreduce(MPI_IN_PLACE, &ssrarray[0], num_configs, MPI_DOUBLE, MPI_SUM, world);    
+  
+  ci = 0; // configuration counter
   int nc = 0, nf = 0;
   for (int file = 0; file < nfiles; file++) { // loop over each file in the training data set
+    
     double emae=0.0, essr=0.0, fmae=0.0, fssr=0.0;
     int nforceall = 0;
 
     int nconfigs = data.num_config[file];
     nc += nconfigs;
     for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
-      if ((ci % 100)==0) utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
-
+      
       int natom = data.num_atom[ci];
       int nforce = dim*natom;
 
-      for (int j=nd1234; j<(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j++)
-        newcoeff[j] = coeff[j]/(natom);
-
-      for (int j=(nd1234+nd22+nd23+nd24+nd33+nd34+nd44); j<nd; j++)
-        newcoeff[j] = coeff[j]/(natom*natom);
-
-      energy = energyforce_calculation(force.data(), newcoeff.data(), data, ci);
-
-      double DFTenergy = data.energy[ci];
-      int natom_cumsum = data.num_atom_cumsum[ci];
-      double *DFTforce = &data.force[dim*natom_cumsum];
-
-      outarray[0 + m*ci] = ci+1;
-      outarray[1 + m*ci] = natom;
-      outarray[2 + m*ci] = energy;
-      outarray[3 + m*ci] = DFTenergy;
-      outarray[4 + m*ci] = fabs(DFTenergy-energy)/natom;
-      outarray[5 + m*ci] = podptr->podArrayNorm(force.data(), nforce);
-      outarray[6 + m*ci] = podptr->podArrayNorm(DFTforce, nforce);
-
-      double diff, sum = 0.0, ssr = 0.0;
-      for (int j=0; j<dim*natom; j++) {
-        diff = DFTforce[j] - force[j];
-        sum += fabs(diff);
-        ssr += diff*diff;
-      }
-      outarray[7 + m*ci] = sum/nforce;
-
       emae += outarray[4 + m*ci];
       essr += outarray[4 + m*ci]*outarray[4 + m*ci];
-      fmae += sum;
-      fssr += ssr;
+      fmae += outarray[7 + m*ci]*nforce;
+      fssr += ssrarray[ci];
       nforceall += nforce;
       ci += 1;
-
     }
     int q = file + 1;
     errors[0 + 4*q] = emae/nconfigs;
@@ -1489,12 +1560,14 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
     errors[2] += fmae;
     errors[3] += fssr;
   }
+  
   errors[0] = errors[0]/nc;
   errors[1] = sqrt(errors[1]/nc);
   errors[2] = errors[2]/nf;
   errors[3] = sqrt(errors[3]/nf);
 
-  utils::logmesg(lmp, "**************** End of Error Calculation ****************\n");
+  if (comm->me == 0)
+    utils::logmesg(lmp, "**************** End of Error Calculation ****************\n");
 
   print_analysis(data, outarray.data(), errors.data());
 }
@@ -1507,34 +1580,38 @@ void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
 
   int nfiles = data.data_files.size();  // number of files
 
-
-  utils::logmesg(lmp, "**************** Begin of Energy/Force Calculation ****************\n");
+  if (comm->me == 0)
+    utils::logmesg(lmp, "**************** Begin of Energy/Force Calculation ****************\n");
 
   int ci = 0; // configuration counter
   for (int file = 0; file < nfiles; file++) { // loop over each file in the data set
 
     int nconfigs = data.num_config[file];
     for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
-      if ((ci % 100)==0) utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
+      if ((ci % 100)==0) {
+        if (comm->me == 0) utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
+      }
 
       int natom = data.num_atom[ci];
       int nforce = dim*natom;
 
-      energy = energyforce_calculation(force.data()+1, coeff, data, ci);
+      if ((ci % comm->nprocs) == comm->me) {
+        energy = energyforce_calculation(force.data()+1, coeff, data, ci);      
 
+        // save energy and force into a binary file
+
+        force[0] = energy;
+        std::string filename = "energyforce_config" + std::to_string(ci+1) + ".bin";
+
+        FILE *fp = fopen(filename.c_str(), "wb");
+
+        fwrite( reinterpret_cast<char*>( force.data() ), sizeof(double) * (1 + nforce), 1, fp);
+
+        fclose(fp);
+      }
       ci += 1;
-
-      // save energy and force into a binary file
-
-      force[0] = energy;
-      std::string filename = "energyforce_config" + std::to_string(ci) + ".bin";
-
-      FILE *fp = fopen(filename.c_str(), "wb");
-
-      fwrite( reinterpret_cast<char*>( force.data() ), sizeof(double) * (1 + nforce), 1, fp);
-
-      fclose(fp);
     }
   }
-  utils::logmesg(lmp, "**************** End of Energy/Force Calculation ****************\n");
+  if (comm->me == 0)
+    utils::logmesg(lmp, "**************** End of Energy/Force Calculation ****************\n");
 }

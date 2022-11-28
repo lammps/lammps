@@ -13,36 +13,36 @@ Syntax
 * property = *id* or *image* or *mol*
 * additional arguments depend on the property
 
-.. code-block:: LAMMPS
+  .. code-block:: LAMMPS
 
-   reset_atoms *id* keyword value ...
+     reset_atoms id keyword value ...
    
-* zero or more keyword/value pairs can be appended
-* keyword = *sort*
+  * zero or more keyword/value pairs can be appended
+  * keyword = *sort*
 
-.. parsed-literal::
+    .. parsed-literal::
 
-   *sort* value = *yes* or *no*
+       *sort* value = *yes* or *no*
 
-.. code-block:: LAMMPS
+  .. code-block:: LAMMPS
 
-   reset_atoms image group-ID
+     reset_atoms image group-ID
    
-* group-ID = ID of group of atoms whose image flags will be reset
+  * group-ID = ID of group of atoms whose image flags will be reset
 
-.. code-block:: LAMMPS
+  .. code-block:: LAMMPS
 
-   reset atoms mol group keyword value ...
+     reset atoms mol group-ID keyword value ...
 
-* group-ID = ID of group of atoms whose molecule IDs will be reset
-* zero or more keyword/value pairs can be appended
-* keyword = *compress* or *offset* or *single*
+  * group-ID = ID of group of atoms whose molecule IDs will be reset
+  * zero or more keyword/value pairs can be appended
+  * keyword = *compress* or *offset* or *single*
 
-.. parsed-literal::
+    .. parsed-literal::
 
-   *compress* value = *yes* or *no*
-   *offset* value = *Noffset* >= -1
-   *single* value = *yes* or *no* to treat single atoms (no bonds) as molecules
+       *compress* value = *yes* or *no*
+       *offset* value = *Noffset* >= -1
+       *single* value = *yes* or *no* to treat single atoms (no bonds) as molecules
 
 
 Examples
@@ -88,7 +88,7 @@ values.
 More details on these operations and their arguments or optional
 keyword/value settings are given below.
 
----
+----------
 
 *Property id*
 
@@ -144,7 +144,7 @@ processor have consecutive IDs, as the :doc:`create_atoms
    you should unset the *comm_modify cutoff* after using *reset
    atoms id* so that subsequent communication is not inefficient.
 
----
+----------
 
 *Property image*
 
@@ -158,7 +158,7 @@ image flags to zero with the :doc:`set <set>` command.
 .. note::
 
    If the system has no bonds, there is no reason to use this command,
-   since image flags for differenet atoms do not need to be
+   since image flags for different atoms do not need to be
    consistent.  Use the :doc:`set <set>` command with its *image*
    keyword instead.
         
@@ -189,7 +189,7 @@ flags.
    all bond 0 remove <delete_bonds>` will permanently delete such
    broken bonds and should thus be used first.
 
----
+----------
 
 *Property mol*
 

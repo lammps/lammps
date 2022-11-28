@@ -52,7 +52,7 @@ Next, we describe all the keywords that can be assigned in the second input file
 * file_extension xyz (STRING): extension of the data files
 * path_to_training_data_set (STRING): specifies the path to training data files in double quotes
 * path_to_test_data_set "" (STRING): specifies the path to test data files in double quotes
-* percentage_training_data_set 1.0 (REAL): a real number (<= 1.0) specifies the percentage of the training set used to fit POD
+* fraction_training_data_set 1.0 (REAL): a real number (<= 1.0) specifies the fraction of the training set used to fit POD
 * randomize_training_data_set 0 (BOOL): turns on/off randomization of the training set
 * fitting_weight_energy 100.0 (REAL): a real constant specifies the weight for energy in the least-squares fit
 * fitting_weight_force 1.0 (REAL): a real constant specifies the weight for force in the least-squares fit

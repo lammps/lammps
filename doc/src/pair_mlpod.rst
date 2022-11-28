@@ -52,6 +52,8 @@ This style is part of the ML-POD package.  It is only enabled if LAMMPS
 was built with that package by setting -D PKG_ML-POD=on. See the :doc:`Build package
 <Build_package>` page for more info.
 
+This pair style does not compute per-atom energies and per-atom stresses. 
+
 Related commands
 """"""""""""""""
 

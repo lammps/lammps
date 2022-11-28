@@ -60,7 +60,7 @@ public:
     int training_calculation = 0;
     int test_calculation = 0;
     int randomize = 1;
-    double percentage = 1.0;
+    double fraction = 1.0;
 
     double fitting_weights[12] = {0.0, 0.0, 0.0, 1, 1, 0, 0, 1, 1, 1, 1, 0};
 
@@ -74,7 +74,7 @@ public:
       data.test_analysis = test_analysis;
       data.training_calculation = training_calculation;
       data.test_calculation = test_calculation;
-      data.percentage = percentage;
+      data.fraction = fraction;
       data.randomize = randomize;
       data.training = training;
       data.normalizeenergy = normalizeenergy;
@@ -129,7 +129,7 @@ public:
   void get_data(datastruct &data, std::vector<std::string> species);
   std::vector<int> linspace(int start_in, int end_in, int num_in);
   std::vector<int> shuffle(int start_in, int end_in, int num_in);
-  std::vector<int> select(int n, double percentage, int randomize);
+  std::vector<int> select(int n, double fraction, int randomize);
   void select_data(datastruct &newdata, datastruct data);
   void read_data_files(std::string data_file, std::vector<std::string> species);
   int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);

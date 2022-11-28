@@ -165,16 +165,16 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format,
   char line[MAXLINE],*ptr;
   int eof = 0;
   while (true) {
-    //if (comm->me == 0) {
+    if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpdata);
       if (ptr == nullptr) {
         eof = 1;
         fclose(fpdata);
       }
-    //}
-    //MPI_Bcast(&eof,1,MPI_INT,0,world);
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) break;
-    //MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
     // words = ptrs to all words in line
     // strip single and double quotes from words
@@ -202,8 +202,8 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format,
     if (keywd == "error_analysis_for_test_data_set") fitting_weights[4] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "energy_force_calculation_for_training_data_set") fitting_weights[5] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "energy_force_calculation_for_test_data_set") fitting_weights[6] = utils::numeric(FLERR,words[1],false,lmp);
-    if (keywd == "percentage_training_data_set") fitting_weights[7] = utils::numeric(FLERR,words[1],false,lmp);
-    if (keywd == "percentage_test_data_set") fitting_weights[8] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "fraction_training_data_set") fitting_weights[7] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "fraction_test_data_set") fitting_weights[8] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "randomize_training_data_set") fitting_weights[9] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "randomize_test_data_set") fitting_weights[10] = utils::numeric(FLERR,words[1],false,lmp);
 
@@ -221,8 +221,8 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format,
     utils::logmesg(lmp, "file extension: {}\n", file_extension);
     utils::logmesg(lmp, "path to training data set: {}\n", training_path);
     utils::logmesg(lmp, "path to test data set: {}\n", test_path);
-    utils::logmesg(lmp, "training percentage: {}\n", fitting_weights[7]);
-    utils::logmesg(lmp, "test percentage: {}\n", fitting_weights[8]);
+    utils::logmesg(lmp, "training fraction: {}\n", fitting_weights[7]);
+    utils::logmesg(lmp, "test fraction: {}\n", fitting_weights[8]);
     utils::logmesg(lmp, "randomize training data set: {}\n", fitting_weights[9]);
     utils::logmesg(lmp, "randomize test data set: {}\n", fitting_weights[10]);
     utils::logmesg(lmp, "error analysis for training data set: {}\n", fitting_weights[3]);
@@ -260,16 +260,16 @@ int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
   // loop over all lines of this xyz file and extract number of atoms and number of configs
 
   while (true) {
-    //if (comm->me == 0) {
+    if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       }
-    //}
-    //MPI_Bcast(&eof,1,MPI_INT,0,world);
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) break;
-    //MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
     // words = ptrs to all words in line
     // strip single and double quotes from words
@@ -335,16 +335,16 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
   // loop over all lines of this xyz file and extract training data
 
   while (true) {
-    //if (comm->me == 0) {
+    if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       }
-    //}
-    //MPI_Bcast(&eof,1,MPI_INT,0,world);
+    }
+    MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) break;
-    //MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
     // words = ptrs to all words in line
     // strip single and double quotes from words
@@ -588,11 +588,11 @@ std::vector<int> CFITPOD::shuffle(int start_in, int end_in, int num_in)
   return shuffle_vec;
 }
 
-std::vector<int> CFITPOD::select(int n, double percentage, int randomize)
+std::vector<int> CFITPOD::select(int n, double fraction, int randomize)
 {
   std::vector<int> selected;
 
-  int m = (int) std::round(n*percentage);
+  int m = (int) std::round(n*fraction);
   m = MAX(m, 1);
 
   selected = (randomize==1) ? shuffle(1, n, m) : linspace(1, n, m);
@@ -602,14 +602,14 @@ std::vector<int> CFITPOD::select(int n, double percentage, int randomize)
 
 void CFITPOD::select_data(datastruct &newdata, datastruct data)
 {
-  double percentage = data.percentage;
+  double fraction = data.fraction;
   int randomize = data.randomize;
 
   if (comm->me == 0) {
     if (randomize==1)
-      utils::logmesg(lmp, "Select {} percent of the data set at random using shuffle\n", data.percentage*100);
+      utils::logmesg(lmp, "Select {} fraction of the data set at random using shuffle\n", data.fraction);
     else
-      utils::logmesg(lmp, "Select {} percent of the data set deterministically using linspace\n", data.percentage*100);
+      utils::logmesg(lmp, "Select {} fraction of the data set deterministically using linspace\n", data.fraction);
   }
   
   int nfiles = data.data_files.size();  // number of files
@@ -621,7 +621,7 @@ void CFITPOD::select_data(datastruct &newdata, datastruct data)
 
   for (int file = 0; file < nfiles; file++) {
     int nconfigs = data.num_config[file];
-    selected[file] = select(nconfigs, percentage, randomize);
+    selected[file] = select(nconfigs, fraction, randomize);
     int ns = (int) selected[file].size(); // number of selected configurations
 
     newdata.num_config[file] = ns;
@@ -725,12 +725,12 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
   data.test_analysis = (int) data.fitting_weights[4];
   data.training_calculation = (int) data.fitting_weights[5];
   data.test_calculation = (int) data.fitting_weights[6];
-  data.percentage = data.fitting_weights[7];
+  data.fraction = data.fitting_weights[7];
   data.randomize = (int) data.fitting_weights[9];
 
   data.copydatainfo(traindata);
 
-  if (data.percentage >= 1.0) {
+  if (data.fraction >= 1.0) {
     if (comm->me == 0)
       utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
     if ((int) traindata.data_path.size() > 1)
@@ -771,7 +771,7 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
     testdata.test_analysis = traindata.test_analysis;
     testdata.training_calculation = traindata.training_calculation;
     testdata.test_calculation = traindata.test_calculation;
-    testdata.percentage = traindata.fitting_weights[8];
+    testdata.fraction = traindata.fitting_weights[8];
     testdata.randomize = (int) traindata.fitting_weights[10];
     if (comm->me == 0)
       utils::logmesg(lmp, "**************** Begin of Test Data Set ****************\n");
@@ -1331,7 +1331,7 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
   std::string filename_analysis = data.training ? "training_analysis.txt" : "test_analysis.txt";
 
   FILE *fp_errors = fopen(filename_errors.c_str(), "w");
-  FILE *fp_analysis = fopen(filename_errors.c_str(), "w");
+  FILE *fp_analysis = fopen(filename_analysis.c_str(), "w");
 
   std::string sa = "**************** Begin of Error Analysis for the Training Data Set ****************";
   std::string sb = "**************** Begin of Error Analysis for the Test Data Set ****************";

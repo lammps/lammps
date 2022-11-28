@@ -67,7 +67,7 @@ void FixElectrodeConq::update_psi()
       group_psi[g] = vtmp;
     }
   } else {
-    if (symm_update_back) {    // needed for CG algos
+    if (symm && symm_update_back) {    // needed for CG algos
       double last_q = 0.;
       for (int g = 0; g < num_of_groups - 1; g++) last_q -= group_q[g];
       group_q.back() = last_q;

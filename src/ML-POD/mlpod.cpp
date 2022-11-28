@@ -454,7 +454,7 @@ void MLPOD::read_pod(const std::string &pod_file)
 
   std::string podfilename = pod_file;
   FILE *fppod;
-  if (comm->me == 0){
+  if (comm->me == 0) {
 
     fppod = utils::open_potential(podfilename,lmp,nullptr);
     if (fppod == nullptr)
@@ -827,6 +827,9 @@ void MLPOD::read_coeff_file(const std::string &coeff_file)
     } catch (TokenizerException &e) {
       error->all(FLERR,"Incorrect format in POD coefficient file: {}", e.what());
     }
+  }
+  if (comm->me == 0) {
+    if (!eof) fclose(fpcoeff);
   }
 }
 

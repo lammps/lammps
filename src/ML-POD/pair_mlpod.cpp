@@ -177,6 +177,7 @@ void PairMLPOD::coeff(int narg, char **arg)
 {
   int n = atom->ntypes;
   memory->destroy(setflag);
+  memory->destroy(cutsq);
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   delete[] map;

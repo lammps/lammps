@@ -5,11 +5,11 @@ of the training data taken from [the FitSNAP repo](https://github.com/FitSNAP/Fi
 
 Fit POD with
 
-    lmp -in in.podfit
+    lmp -in in.fitpod
 
 This creates `coefficients.txt` for the linear model, which we can use to run MD with
 
-    lmp -in in.pod
+    lmp -in in.mlpod
 
 
  

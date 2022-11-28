@@ -480,7 +480,7 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
     utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
     utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
   }
-  
+
   int n = data.num_config_sum;
   memory->create(data.lattice, 9*n, "fitpod:lattice");
   memory->create(data.stress, 9*n, "fitpod:stress");
@@ -611,7 +611,7 @@ void CFITPOD::select_data(datastruct &newdata, datastruct data)
     else
       utils::logmesg(lmp, "Select {} fraction of the data set deterministically using linspace\n", data.fraction);
   }
-  
+
   int nfiles = data.data_files.size();  // number of files
   std::vector<std::vector<int>> selected(nfiles);
 
@@ -693,7 +693,7 @@ void CFITPOD::select_data(datastruct &newdata, datastruct data)
   for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
   maxname -= data.data_path.size()+1;
 
-  if (comm->me == 0)  
+  if (comm->me == 0)
     utils::logmesg(lmp, "{:-<{}}\n {:^{}} | # configs (selected) | # atoms (selected) "
                    "| # configs (original) | # atoms (original)\n{:-<{}}\n",
                    "", maxname+90, "data_file", maxname, "", maxname+90);
@@ -1217,14 +1217,14 @@ void CFITPOD::least_squares_fit(datastruct data)
   // loop over each configuration in the training data set
 
   for (int ci=0; ci < (int) data.num_atom.size(); ci++) {
-    
+
     if ((ci % 100)==0) {
       if (comm->me == 0)
         utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
     }
 
     if ((ci % comm->nprocs) == comm->me) {
-            
+
       // compute linear POD descriptors
 
       linear_descriptors(data, ci);
@@ -1242,12 +1242,12 @@ void CFITPOD::least_squares_fit(datastruct data)
       least_squares_matrix(data, ci);
     }
   }
-    
+
   int nd = podptr->pod.nd;
 
-  MPI_Allreduce(MPI_IN_PLACE, desc.b, nd, MPI_DOUBLE, MPI_SUM, world);    
-  MPI_Allreduce(MPI_IN_PLACE, desc.A, nd*nd, MPI_DOUBLE, MPI_SUM, world);    
-  
+  MPI_Allreduce(MPI_IN_PLACE, desc.b, nd, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, desc.A, nd*nd, MPI_DOUBLE, MPI_SUM, world);
+
   for (int i = 0; i<nd; i++) {
     desc.c[i] = desc.b[i];
     desc.A[i + nd*i] = desc.A[i + nd*i]*(1.0 + 1e-12);
@@ -1452,11 +1452,11 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
   std::vector<double> outarray(m*num_configs);
   for (int i=0; i<m*num_configs; i++)
     outarray[i] = 0.0;
-  
+
   std::vector<double> ssrarray(num_configs);
   for (int i=0; i<num_configs; i++)
-    ssrarray[i] = 0.0;  
-  
+    ssrarray[i] = 0.0;
+
   std::vector<double> errors(4*(nfiles+1));
   for (int i=0; i<4*(nfiles+1); i++)
     errors[i] = 0.0;
@@ -1483,10 +1483,10 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
 
   int ci = 0; // configuration counter
   for (int file = 0; file < nfiles; file++) { // loop over each file in the training data set
-    
+
     int nconfigs = data.num_config[file];
     for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
-      
+
       if ((ci % 100)==0) {
         if (comm->me == 0)
           utils::logmesg(lmp, "Configuration: # {}\n", ci+1);
@@ -1523,27 +1523,27 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
           ssr += diff*diff;
         }
         outarray[7 + m*ci] = sum/nforce;
-        ssrarray[ci] = ssr;        
+        ssrarray[ci] = ssr;
       }
-      
+
       ci += 1;
     }
   }
-  
-  MPI_Allreduce(MPI_IN_PLACE, &outarray[0], m*num_configs, MPI_DOUBLE, MPI_SUM, world);    
-  MPI_Allreduce(MPI_IN_PLACE, &ssrarray[0], num_configs, MPI_DOUBLE, MPI_SUM, world);    
-  
+
+  MPI_Allreduce(MPI_IN_PLACE, &outarray[0], m*num_configs, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, &ssrarray[0], num_configs, MPI_DOUBLE, MPI_SUM, world);
+
   ci = 0; // configuration counter
   int nc = 0, nf = 0;
   for (int file = 0; file < nfiles; file++) { // loop over each file in the training data set
-    
+
     double emae=0.0, essr=0.0, fmae=0.0, fssr=0.0;
     int nforceall = 0;
 
     int nconfigs = data.num_config[file];
     nc += nconfigs;
     for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
-      
+
       int natom = data.num_atom[ci];
       int nforce = dim*natom;
 
@@ -1566,7 +1566,7 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
     errors[2] += fmae;
     errors[3] += fssr;
   }
-  
+
   errors[0] = errors[0]/nc;
   errors[1] = sqrt(errors[1]/nc);
   errors[2] = errors[2]/nf;
@@ -1602,7 +1602,7 @@ void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
       int nforce = dim*natom;
 
       if ((ci % comm->nprocs) == comm->me) {
-        energy = energyforce_calculation(force.data()+1, coeff, data, ci);      
+        energy = energyforce_calculation(force.data()+1, coeff, data, ci);
 
         // save energy and force into a binary file
 

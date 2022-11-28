@@ -5,7 +5,7 @@ From: nvidia/cuda:11.6.2-devel-ubuntu18.04
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
     apt-get install --no-install-recommends -y software-properties-common
-    add-apt-repository ppa:openkim/latest
+    add-apt-repository ppa:openkim/latest -y
     apt-get update
     apt-get upgrade --no-install-recommends -y
     apt-get install --no-install-recommends -y \

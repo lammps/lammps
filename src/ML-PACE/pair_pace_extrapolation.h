@@ -51,7 +51,6 @@ class PairPACEExtrapolation : public Pair {
 
   void allocate();
   std::vector<std::string> element_names;    // list of elements (used by dump pace/extrapolation)
-  int nelements;                             // # of unique elements
   double *extrapolation_grade_gamma;         //per-atom gamma value
 
   int flag_compute_extrapolation_grade;

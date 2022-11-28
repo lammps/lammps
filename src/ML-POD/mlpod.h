@@ -11,13 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_MLPOD_H__
-#define LMP_MLPOD_H__
+#ifndef LMP_MLPOD_H
+#define LMP_MLPOD_H
 
 #include "pointers.h"
-
-#define PODMIN(a,b) ((a) < (b) ? (a) : (b))
-#define PODMAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define DDOT ddot_
 #define DGEMV dgemv_
@@ -28,22 +25,15 @@
 #define DPOSV dposv_
 
 extern "C" {
-  double DNRM2(int*,double*,int*);
-  double DDOT(int*,double*,int*,double*,int*);
-  void DAXPY(int*,double*,double*,int*,double*,int*);
-  void DGEMV(char*,int*,int*,double*,double*,int*,double*,int*,double*,double*,int*);
-  void DGEMM(char*,char*,int*,int*,int*,double*,double*,int*,
-       double*,int*,double*,double*,int*);
-  void DGETRF(int*,int*,double*,int*,int*,int*);
-  void DGETRI(int*,double*,int*,int*,double*,int*,int*);
-  void DTRSM(char *, char*, char*, char *, int *, int *, double*, double*, int*,
-       double*, int*);
-
-  void DSYEV( char* jobz, char* uplo, int* n, double* a, int* lda,
-    double* w, double* work, int* lwork, int* info );
-
-  void DPOSV( char* uplo, int* n, int* nrhs, double* a, int* lda,
-        double* b, int* ldb, int* info );
+  double DDOT(int *, double *, int *, double *, int *);
+  void DGEMV(char *, int *, int *, double *, double *, int *, double *, int *, double *, double *,
+             int *);
+  void DGEMM(char *, char *, int *, int *, int *, double *, double *, int *, double *, int *,
+             double *, double *, int *);
+  void DGETRF(int *, int *, double *, int *, int *, int *);
+  void DGETRI(int *, double *, int *, int *, double *, int *, int *);
+  void DSYEV(char *, char *, int *, double *, int *, double *, double *, int *, int *);
+  void DPOSV(char *, int *, int *, double *, int *, double *, int *, int *);
 }
 
 namespace LAMMPS_NS {
@@ -54,8 +44,8 @@ private:
 
   // functions for reading input files
 
-  void read_pod(std::string pod_file);
-  void read_coeff_file(std::string coeff_file);
+  void read_pod(const std::string &pod_file);
+  void read_coeff_file(const std::string &coeff_file);
 
   // functions for calculating/collating POD descriptors/coefficients for energies
 
@@ -153,25 +143,19 @@ private:
   int besseldegree, int inversedegree, int nbesselpars, int N);
 
 public:
-  MLPOD(LAMMPS *, std::string pod_file, std::string coeff_file);
+  MLPOD(LAMMPS *, const std::string &pod_file, const std::string &coeff_file);
 
   MLPOD(LAMMPS *lmp) : Pointers(lmp){};
   ~MLPOD() override;
 
   struct podstruct {
     std::vector<std::string> species;
-    int *pbc=nullptr; //[3] = {1,1,1};
-    int *elemindex=nullptr;
-
-    int nelements = 0;
-    int onebody = 1;
-    int besseldegree = 3;
-    int inversedegree = 6;
     int twobody[3] = {5,10,10};
     int threebody[4] = {4,8,8,5};
     int fourbody[4] = {0,0,0,0};
+    int *pbc; //[3] = {1,1,1};
+    int *elemindex;
 
-    int quadraticpod = 0;
     int quadratic22[2] = {0,0};
     int quadratic23[2] = {0,0};
     int quadratic24[2] = {0,0};
@@ -181,9 +165,15 @@ public:
     int cubic234[3] = {0,0,0};
     int cubic333[3] = {0,0,0};
     int cubic444[3] = {0,0,0};
+    int nelements;
+    int onebody;
+    int besseldegree;
+    int inversedegree;
 
-    double rin = 0.5;
-    double rcut = 4.6;
+    int quadraticpod;
+
+    double rin;
+    double rcut;
     double *besselparams;
     double *coeff;
     double *Phi2, *Phi3, *Phi4, *Lambda2, *Lambda3, *Lambda4;
@@ -200,11 +190,11 @@ public:
     int nrbf3, nabf3, nrbf4, nabf4;
     int nd, nd1234;
 
-    int snaptwojmax = 0; // also used to tell if SNAP is used when allocating/deallocating
-    int snapchemflag = 0;
-    double snaprfac0 = 0.99363;
-    double snapelementradius[10] = {0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5};
-    double snapelementweight[10] = {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
+    int snaptwojmax; // also used to tell if SNAP is used when allocating/deallocating
+    int snapchemflag;
+    double snaprfac0;
+    double snapelementradius[10];
+    double snapelementweight[10];
   };
 
   struct snastruct {

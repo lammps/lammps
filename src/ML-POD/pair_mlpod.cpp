@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMLPOD::PairMLPOD(LAMMPS *lmp) : Pair(lmp)
+PairMLPOD::PairMLPOD(LAMMPS *lmp) : Pair(lmp), podptr(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -106,7 +106,7 @@ void PairMLPOD::compute(int eflag, int vflag)
     // allocate temporary memory
 
     if (nijmax < jnum) {
-      nijmax = PODMAX(nijmax, jnum);
+      nijmax = MAX(nijmax, jnum);
       nablockmax = 1;
       free_tempmemory();
       estimate_tempmemory();
@@ -191,6 +191,7 @@ void PairMLPOD::coeff(int narg, char **arg)
   std::string pod_file = std::string(arg[2]);  // pod input file
   std::string coeff_file = std::string(arg[3]); // coefficient input file
 
+  delete podptr;
   podptr = new MLPOD(lmp, pod_file, coeff_file);
 
   if (coeff_file != "") {
@@ -288,16 +289,16 @@ void PairMLPOD::estimate_tempmemory()
   int ns2 = podptr->pod.ns2;
   int ns3 = podptr->pod.ns3;
 
-  szd = dim*nijmax+ (1+dim)*nijmax*PODMAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
+  szd = dim*nijmax+ (1+dim)*nijmax*MAX(nrbf2+ns2,nrbf3+ns3) + (nabf3+1)*7;
   int szsnap = 0;
   if (podptr->sna.twojmax>0) {
-  szsnap += nijmax*dim;
-  szsnap += PODMAX(2*podptr->sna.idxu_max*nijmax, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*nablockmax); // (Ur, Ui) and (Zr, Zi)
-  szsnap += 2*podptr->sna.idxu_max*dim*nijmax; // dUr, dUi
-  szsnap += PODMAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*nijmax, 2*podptr->sna.idxu_max*podptr->sna.nelements*nablockmax); // dblist and (Utotr, Utoti)
+    szsnap += nijmax*dim;
+    szsnap += MAX(2*podptr->sna.idxu_max*nijmax, 2*podptr->sna.idxz_max*podptr->sna.ndoubles*nablockmax); // (Ur, Ui) and (Zr, Zi)
+    szsnap += 2*podptr->sna.idxu_max*dim*nijmax; // dUr, dUi
+    szsnap += MAX(podptr->sna.idxb_max*podptr->sna.ntriples*dim*nijmax, 2*podptr->sna.idxu_max*podptr->sna.nelements*nablockmax); // dblist and (Utotr, Utoti)
   }
 
-  szd = PODMAX(szsnap, szd);
+  szd = MAX(szsnap, szd);
   szd = nablockmax*(podptr->pod.nd1234) + szd;
 }
 

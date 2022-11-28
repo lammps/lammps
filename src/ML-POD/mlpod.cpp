@@ -23,17 +23,22 @@
 
 #include "comm.h"
 #include "error.h"
+#include "math_const.h"
 #include "memory.h"
 #include "tokenizer.h"
-#include "math_const.h"
+
 #include <cmath>
 
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
-MLPOD::MLPOD(LAMMPS* lmp, std::string pod_file, std::string coeff_file) : Pointers(lmp)
+MLPOD::MLPOD(LAMMPS* _lmp, const std::string &pod_file, const std::string &coeff_file)
+  : Pointers(_lmp)
 {
+  pod.besselparams = nullptr;
+  pod.pbc = nullptr;
+
   // read pod input file to podstruct
 
   read_pod(pod_file);
@@ -419,16 +424,33 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
   memory->destroy(Q);
 }
 
-
-void MLPOD::read_pod(std::string pod_file)
+void MLPOD::read_pod(const std::string &pod_file)
 {
   pod.nbesselpars = 3;
+  memory->destroy(pod.besselparams);
+  memory->destroy(pod.pbc);
   memory->create(pod.besselparams, 3, "pod:pod_besselparams");
   memory->create(pod.pbc, 3, "pod:pod_pbc");
 
   pod.besselparams[0] = 0.0;
   pod.besselparams[1] = 2.0;
   pod.besselparams[2] = 4.0;
+
+  pod.elemindex=nullptr;
+  pod.nelements = 0;
+  pod.onebody = 1;
+  pod.besseldegree = 3;
+  pod.inversedegree = 6;
+  pod.quadraticpod = 0;
+  pod.rin = 0.5;
+  pod.rcut = 4.6;
+
+  pod.snaptwojmax = 0;
+  pod.snapchemflag = 0;
+  pod.snaprfac0 = 0.99363;
+
+  sna.twojmax = 0;
+  sna.ntypes = 0;
 
   std::string podfilename = pod_file;
   FILE *fppod;
@@ -627,7 +649,7 @@ void MLPOD::read_pod(std::string pod_file)
   if (twojmax > 0) {
     for(int j1 = 0; j1 <= twojmax; j1++)
       for(int j2 = 0; j2 <= j1; j2++)
-        for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2)
+        for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
           if (j >= j1) idxb_count++;
   }
   pod.nbf4 = idxb_count;
@@ -638,28 +660,28 @@ void MLPOD::read_pod(std::string pod_file)
     pod.quadratic23[1] = pod.nbf3;
   }
 
-  pod.quadratic22[0] = PODMIN(pod.quadratic22[0], pod.nbf2);
-  pod.quadratic22[1] = PODMIN(pod.quadratic22[1], pod.nbf2);
-  pod.quadratic23[0] = PODMIN(pod.quadratic23[0], pod.nbf2);
-  pod.quadratic23[1] = PODMIN(pod.quadratic23[1], pod.nbf3);
-  pod.quadratic24[0] = PODMIN(pod.quadratic24[0], pod.nbf2);
-  pod.quadratic24[1] = PODMIN(pod.quadratic24[1], pod.nbf4);
-  pod.quadratic33[0] = PODMIN(pod.quadratic33[0], pod.nbf3);
-  pod.quadratic33[1] = PODMIN(pod.quadratic33[1], pod.nbf3);
-  pod.quadratic34[0] = PODMIN(pod.quadratic34[0], pod.nbf3);
-  pod.quadratic34[1] = PODMIN(pod.quadratic34[1], pod.nbf4);
-  pod.quadratic44[0] = PODMIN(pod.quadratic44[0], pod.nbf4);
-  pod.quadratic44[1] = PODMIN(pod.quadratic44[1], pod.nbf4);
+  pod.quadratic22[0] = MIN(pod.quadratic22[0], pod.nbf2);
+  pod.quadratic22[1] = MIN(pod.quadratic22[1], pod.nbf2);
+  pod.quadratic23[0] = MIN(pod.quadratic23[0], pod.nbf2);
+  pod.quadratic23[1] = MIN(pod.quadratic23[1], pod.nbf3);
+  pod.quadratic24[0] = MIN(pod.quadratic24[0], pod.nbf2);
+  pod.quadratic24[1] = MIN(pod.quadratic24[1], pod.nbf4);
+  pod.quadratic33[0] = MIN(pod.quadratic33[0], pod.nbf3);
+  pod.quadratic33[1] = MIN(pod.quadratic33[1], pod.nbf3);
+  pod.quadratic34[0] = MIN(pod.quadratic34[0], pod.nbf3);
+  pod.quadratic34[1] = MIN(pod.quadratic34[1], pod.nbf4);
+  pod.quadratic44[0] = MIN(pod.quadratic44[0], pod.nbf4);
+  pod.quadratic44[1] = MIN(pod.quadratic44[1], pod.nbf4);
 
-  pod.cubic234[0] = PODMIN(pod.cubic234[0], pod.nbf2);
-  pod.cubic234[1] = PODMIN(pod.cubic234[1], pod.nbf3);
-  pod.cubic234[2] = PODMIN(pod.cubic234[2], pod.nbf4);
-  pod.cubic333[0] = PODMIN(pod.cubic333[0], pod.nbf3);
-  pod.cubic333[1] = PODMIN(pod.cubic333[0], pod.nbf3);
-  pod.cubic333[2] = PODMIN(pod.cubic333[0], pod.nbf3);
-  pod.cubic444[0] = PODMIN(pod.cubic444[0], pod.nbf4);
-  pod.cubic444[1] = PODMIN(pod.cubic444[0], pod.nbf4);
-  pod.cubic444[2] = PODMIN(pod.cubic444[0], pod.nbf4);
+  pod.cubic234[0] = MIN(pod.cubic234[0], pod.nbf2);
+  pod.cubic234[1] = MIN(pod.cubic234[1], pod.nbf3);
+  pod.cubic234[2] = MIN(pod.cubic234[2], pod.nbf4);
+  pod.cubic333[0] = MIN(pod.cubic333[0], pod.nbf3);
+  pod.cubic333[1] = MIN(pod.cubic333[0], pod.nbf3);
+  pod.cubic333[2] = MIN(pod.cubic333[0], pod.nbf3);
+  pod.cubic444[0] = MIN(pod.cubic444[0], pod.nbf4);
+  pod.cubic444[1] = MIN(pod.cubic444[0], pod.nbf4);
+  pod.cubic444[2] = MIN(pod.cubic444[0], pod.nbf4);
 
   // number of descriptors for quadratic POD potentials
 
@@ -728,7 +750,7 @@ void MLPOD::read_pod(std::string pod_file)
   }
 }
 
-void MLPOD::read_coeff_file(std::string coeff_file)
+void MLPOD::read_coeff_file(const std::string &coeff_file)
 {
 
   std::string coefffilename = coeff_file;
@@ -1458,7 +1480,7 @@ void MLPOD::poddesc(double *eatom1, double *fatom1, double *eatom2, double *fato
       double rcut, int *pairnumsum, int *atomtype, int *ai, int *aj, int *ti, int *tj, int *elemindex,
       int *pdegree, int nbesselpars, int nrbf2, int nrbf3, int nabf, int nelements, int Nij, int natom)
 {
-  int nrbf = PODMAX(nrbf2, nrbf3);
+  int nrbf = MAX(nrbf2, nrbf3);
   int ns = pdegree[0]*nbesselpars + pdegree[1];
 
   double *e2ij = &tmpmem[0]; // Nij*nrbf
@@ -1496,7 +1518,7 @@ void snapBuildIndexList(int *idx_max, int *idxz, int *idxz_block, int *idxb, int
   int idxcg_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
   for(int j2 = 0; j2 <= j1; j2++)
-    for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2) {
+    for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
     idxcg_block[j + j2*jdim + j1*jdim*jdim] = idxcg_count;
     for (int m1 = 0; m1 <= j1; m1++)
       for (int m2 = 0; m2 <= j2; m2++)
@@ -1519,7 +1541,7 @@ void snapBuildIndexList(int *idx_max, int *idxz, int *idxz_block, int *idxb, int
   int idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
   for(int j2 = 0; j2 <= j1; j2++)
-    for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2)
+    for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
     if (j >= j1) idxb_count++;
 
   int idxb_max = idxb_count;
@@ -1528,7 +1550,7 @@ void snapBuildIndexList(int *idx_max, int *idxz, int *idxz_block, int *idxb, int
   idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
   for(int j2 = 0; j2 <= j1; j2++)
-    for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2)
+    for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
     if (j >= j1) {
       idxb[idxb_count*3 + 0] = j1;
       idxb[idxb_count*3 + 1] = j2;
@@ -1539,7 +1561,7 @@ void snapBuildIndexList(int *idx_max, int *idxz, int *idxz_block, int *idxb, int
   idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
   for(int j2 = 0; j2 <= j1; j2++)
-    for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2) {
+    for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
     if (j >= j1) {
       idxb_block[j + j2*jdim + j1*jdim*jdim] = idxb_count;
       idxb_count++;
@@ -1552,7 +1574,7 @@ void snapBuildIndexList(int *idx_max, int *idxz, int *idxz_block, int *idxb, int
 
   for(int j1 = 0; j1 <= twojmax; j1++)
   for(int j2 = 0; j2 <= j1; j2++)
-    for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2)
+    for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
     for (int mb = 0; 2*mb <= j; mb++)
       for (int ma = 0; ma <= j; ma++)
       idxz_count++;
@@ -1563,7 +1585,7 @@ void snapBuildIndexList(int *idx_max, int *idxz, int *idxz_block, int *idxb, int
   idxz_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
   for(int j2 = 0; j2 <= j1; j2++)
-    for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2) {
+    for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
     idxz_block[j + j2*jdim + j1*jdim*jdim] = idxz_count;
 
     for (int mb = 0; 2*mb <= j; mb++)
@@ -1572,12 +1594,12 @@ void snapBuildIndexList(int *idx_max, int *idxz, int *idxz_block, int *idxb, int
       idxz[idxz_count*10 + 0] = j1;
       idxz[idxz_count*10 + 1] = j2;
       idxz[idxz_count*10 + 2] = j;
-      idxz[idxz_count*10 + 3] = PODMAX(0, (2 * ma - j - j2 + j1) / 2);
+      idxz[idxz_count*10 + 3] = MAX(0, (2 * ma - j - j2 + j1) / 2);
       idxz[idxz_count*10 + 4] = (2 * ma - j - (2 * idxz[idxz_count*10 + 3] - j1) + j2) / 2;
-      idxz[idxz_count*10 + 5] = PODMIN(j1, (2 * ma - j + j2 + j1) / 2) - idxz[idxz_count*10 + 3] + 1;
-      idxz[idxz_count*10 + 6] = PODMAX(0, (2 * mb - j - j2 + j1) / 2);
+      idxz[idxz_count*10 + 5] = MIN(j1, (2 * ma - j + j2 + j1) / 2) - idxz[idxz_count*10 + 3] + 1;
+      idxz[idxz_count*10 + 6] = MAX(0, (2 * mb - j - j2 + j1) / 2);
       idxz[idxz_count*10 + 7] = (2 * mb - j - (2 * idxz[idxz_count*10 + 6] - j1) + j2) / 2;
-      idxz[idxz_count*10 + 8] = PODMIN(j1, (2 * mb - j + j2 + j1) / 2) - idxz[idxz_count*10 + 6] + 1;
+      idxz[idxz_count*10 + 8] = MIN(j1, (2 * mb - j + j2 + j1) / 2) - idxz[idxz_count*10 + 6] + 1;
 
       const int jju = idxu_block[j] + (j+1)*mb + ma;
       idxz[idxz_count*10 + 9] = jju;
@@ -1612,7 +1634,7 @@ void snapInitClebschGordan(double *cglist, double *factorial, int twojmax)
   int idxcg_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
   for(int j2 = 0; j2 <= j1; j2++)
-    for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2) {
+    for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
     for (int m1 = 0; m1 <= j1; m1++) {
       aa2 = 2 * m1 - j1;
 
@@ -1629,10 +1651,10 @@ void snapInitClebschGordan(double *cglist, double *factorial, int twojmax)
 
       sum = 0.0;
 
-      for (int z = PODMAX(0, PODMAX(-(j - j2 + aa2)
+      for (int z = MAX(0, MAX(-(j - j2 + aa2)
                   / 2, -(j - j1 - bb2) / 2));
-         z <= PODMIN((j1 + j2 - j) / 2,
-              PODMIN((j1 - aa2) / 2, (j2 + bb2) / 2));
+         z <= MIN((j1 + j2 - j) / 2,
+              MIN((j1 - aa2) / 2, (j2 + bb2) / 2));
          z++) {
         ifac = z % 2 ? -1 : 1;
         sum += ifac /
@@ -1689,13 +1711,13 @@ void MLPOD::snapSetup(int twojmax, int ntypes)
   int idxb_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-    for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2)
+    for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
       if (j >= j1) idxb_count++;
 
   int idxz_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-    for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2)
+    for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
       for (int mb = 0; 2*mb <= j; mb++)
       for (int ma = 0; ma <= j; ma++)
         idxz_count++;
@@ -1703,7 +1725,7 @@ void MLPOD::snapSetup(int twojmax, int ntypes)
   int idxcg_count = 0;
   for(int j1 = 0; j1 <= twojmax; j1++)
     for(int j2 = 0; j2 <= j1; j2++)
-      for(int j = j1 - j2; j <= PODMIN(twojmax, j1 + j2); j += 2) {
+      for(int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2) {
         for (int m1 = 0; m1 <= j1; m1++)
           for (int m2 = 0; m2 <= j2; m2++)
           idxcg_count++;
@@ -1758,7 +1780,7 @@ void MLPOD::InitSnap()
 
   double rcutmax = 0.0;
   for (int ielem = 0; ielem < ntypes; ielem++)
-  rcutmax = PODMAX(2.0*elemradius[ielem]*rcutfac,rcutmax);
+  rcutmax = MAX(2.0*elemradius[ielem]*rcutfac,rcutmax);
 
   snapSetup(twojmax, ntypes);
   //TemplateCopytoDevice(&sna.radelem[1], elemradius, ntypes, backend);
@@ -2521,10 +2543,10 @@ void MLPOD::snapdesc(double *blist, double *bd, double *rij, double *tmpmem, int
   int ne = 0;
   double *Ur = &tmpmem[ne];
   double *Zr = &tmpmem[ne];
-  ne += PODMAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+  ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
   double *Ui = &tmpmem[ne];
   double *Zi = &tmpmem[ne];
-  ne += PODMAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+  ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
   double *dUr = &tmpmem[ne];
   ne += idxu_max*dim*Nij;
   double *dUi = &tmpmem[ne];
@@ -2744,7 +2766,7 @@ void MLPOD::poddesc_ij(double *eatom1, double *eatom2, double *eatom3, double *r
       double *tmpmem, double rin, double rcut, int *pairnumsum, int *atomtype, int *idxi, int *ti, int *tj,
       int *elemindex, int *pdegree, int nbesselpars, int nrbf2, int nrbf3, int nabf, int nelements, int Nij, int natom)
 {
-  int nrbf = PODMAX(nrbf2, nrbf3);
+  int nrbf = MAX(nrbf2, nrbf3);
   int ns = pdegree[0]*nbesselpars + pdegree[1];
 
   double *e2ij = &tmpmem[0]; // Nij*nrbf
@@ -2909,10 +2931,10 @@ void MLPOD::snapdesc_ij(double *blist, double *rij, double *tmpmem, int *atomtyp
   int ne = 0;
   double *Ur = &tmpmem[ne];
   double *Zr = &tmpmem[ne];
-  ne += PODMAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+  ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
   double *Ui = &tmpmem[ne];
   double *Zi = &tmpmem[ne];
-  ne += PODMAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+  ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
   double *Utotr = &tmpmem[ne];
   ne += idxu_max*nelements*natom;
   double *Utoti = &tmpmem[ne];
@@ -3418,10 +3440,10 @@ void MLPOD::pod4body_force(double *force, double *rij, double *coeff4, double *t
   int ne = 0;
   double *Ur = &tmpmem[ne];
   double *Zr = &tmpmem[ne];
-  ne += PODMAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+  ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
   double *Ui = &tmpmem[ne];
   double *Zi = &tmpmem[ne];
-  ne += PODMAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+  ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
   double *dUr = &tmpmem[ne];
   ne += idxu_max*dim*Nij;
   double *dUi = &tmpmem[ne];
@@ -3472,7 +3494,7 @@ void MLPOD::calculate_force(double *force, double *effectivecoeff, double *rij, 
   double *coeff3 = &effectivecoeff[nd1+nd2];
   double *coeff4 = &effectivecoeff[nd1+nd2+nd3];
 
-  int nrbf = PODMAX(nrbf2, nrbf3);
+  int nrbf = MAX(nrbf2, nrbf3);
   int ns = pdegree[0]*nbesselpars + pdegree[1];
   double *e2ij = &tmpmem[0]; // Nij*nrbf
   double *f2ij = &tmpmem[Nij*nrbf]; // dim*Nij*nrbf
@@ -3743,10 +3765,10 @@ void MLPOD::pod4body_force(double **force, double *rij, double *coeff4, double *
     int ne = 0;
     double *Ur = &tmpmem[ne];
     double *Zr = &tmpmem[ne];
-    ne += PODMAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+    ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
     double *Ui = &tmpmem[ne];
     double *Zi = &tmpmem[ne];
-    ne += PODMAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+    ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
     double *dUr = &tmpmem[ne];
     ne += idxu_max*dim*Nij;
     double *dUi = &tmpmem[ne];
@@ -3797,7 +3819,7 @@ void MLPOD::calculate_force(double **force, double *effectivecoeff, double *rij,
     double *coeff3 = &effectivecoeff[nd1+nd2];
     double *coeff4 = &effectivecoeff[nd1+nd2+nd3];
 
-    int nrbf = PODMAX(nrbf2, nrbf3);
+    int nrbf = MAX(nrbf2, nrbf3);
     int ns = pdegree[0]*nbesselpars + pdegree[1];
     double *e2ij = &tmpmem[0]; // Nij*nrbf
     double *f2ij = &tmpmem[Nij*nrbf]; // dim*Nij*nrbf

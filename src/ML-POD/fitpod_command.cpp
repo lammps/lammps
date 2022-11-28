@@ -57,6 +57,9 @@ std::vector<std::string> static globVector(const std::string& pattern, std::vect
 
 void CFITPOD::command(int narg, char **arg)
 {
+  if (comm->nprocs > 1)
+    error->all(FLERR, "The fitpod command is not intended to be run in parallel");
+
   if (narg < 2) utils::missing_cmd_args(FLERR, "fitpod", error);
 
   std::string pod_file = std::string(arg[0]);  // pod input file
@@ -462,8 +465,8 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
   size_t maxname = 9;
   for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
   maxname -= data.data_path.size()+1;
-  utils::logmesg(lmp, " {:^{}} | number of configurations | number of atoms\n{:=<{}}\n", "data file",
-                 maxname, "", maxname+46);
+  utils::logmesg(lmp, "{:-<{}}\n {:^{}} | number of configurations | number of atoms\n{:-<{}}\n",
+                 "", maxname+46, "data file", maxname, "", maxname+46);
   int i = 0;
   for (auto fname : data.data_files) {
     std::string filename = fname.substr(data.data_path.size()+1);
@@ -472,7 +475,7 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
                    filename, maxname, data.num_config[i], data.num_atom_each_file[i]);
     ++i;
   }
-  utils::logmesg(lmp, "{:=<{}}\n", "", maxname+46);
+  utils::logmesg(lmp, "{:-<{}}\n", "", maxname+46);
   utils::logmesg(lmp, "number of files: {}\n", data.data_files.size());
   utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
   utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
@@ -681,14 +684,21 @@ void CFITPOD::select_data(datastruct &newdata, datastruct data)
   }
 
   data.copydatainfo(newdata);
+  size_t maxname = 9;
+  for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
+  maxname -= data.data_path.size()+1;
 
-  utils::logmesg(lmp, "data file  | # configs (selected) | # atoms (selected) | # configs (original) | # atoms (original)\n");
+  utils::logmesg(lmp, "{:-<{}}\n {:^{}} | # configs (selected) | # atoms (selected) "
+                 "| # configs (original) | # atoms (original)\n{:-<{}}\n",
+                 "", maxname+90, "data_file", maxname, "", maxname+90);
   for (int i=0; i< (int) newdata.data_files.size(); i++) {
     std::string filename = newdata.data_files[i].substr(newdata.data_path.size()+1,newdata.data_files[i].size());
     newdata.filenames.push_back(filename.c_str());
-    utils::logmesg(lmp, "{}   |   {}   |   {}   |   {}   |   {}\n", newdata.filenames[i], newdata.num_config[i], newdata.num_atom_each_file[i], data.num_config[i], data.num_atom_each_file[i]);
+    utils::logmesg(lmp, " {:<{}} |       {:>8}       |      {:>8}      |       {:>8}       |     {:>8}\n",
+                   newdata.filenames[i], maxname, newdata.num_config[i], newdata.num_atom_each_file[i],
+                   data.num_config[i], data.num_atom_each_file[i]);
   }
-  utils::logmesg(lmp, "number of files: {}\n", newdata.data_files.size());
+  utils::logmesg(lmp, "{:-<{}}\nnumber of files: {}\n", "", maxname+90, newdata.data_files.size());
   utils::logmesg(lmp, "number of configurations in all files (selected and original): {} and {}\n", newdata.num_config_sum, data.num_config_sum);
   utils::logmesg(lmp, "number of atoms in all files (selected and original: {} and {}\n", newdata.num_atom_sum, data.num_atom_sum);
 }
@@ -718,8 +728,7 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
     else
       error->all(FLERR,"data set is not found");
     utils::logmesg(lmp, "**************** End of Training Data Set ****************\n");
-  }
-  else {
+  } else {
     utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
     if ((int) data.data_path.size() > 1)
       get_data(data, species);

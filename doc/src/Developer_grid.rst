@@ -635,11 +635,11 @@ these methods are used to read/write electron temperature values
 from/to a file, as well as for implementations of the the pack/unpack
 functions described below.
 
-.. code-block:: c
-
 Here are the details of the two I/O methods and the 3 callback
 functions.  See the src/fix_ave_grid.cpp file for examples of all of
 them.
+
+.. code-block:: c
 
    void read_file(int caller, void *ptr, FILE *fp, int nchunk, int maxline)
    void write_file(int caller, void *ptr, int which,

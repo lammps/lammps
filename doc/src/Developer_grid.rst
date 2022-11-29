@@ -34,6 +34,9 @@ owned cells.
 
 ----------
 
+Style commands
+^^^^^^^^^^^^^^
+
 Style commands which can define and use distributed grids include the
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`pair <pair_style>`,
 and :doc:`kspace <kspace_style>` styles.  If you wish grid cell data
@@ -77,6 +80,9 @@ for a 2d grid, or 4d array for a 3d grid.  A command can choose to
 define multiple data arrays for each grid it defines.
 
 ----------
+
+Grid data allocation and access
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The simplest way for a command to allocate and access grid cell data
 is to use the *create_offset()* methods provided by the Memory class.
@@ -149,11 +155,12 @@ cells (the entire allocated grid).
 
 ----------
 
-What follows are the public methods of the Grid3d class which a style
-command can invoke.  The Grid2d methods are similar; simply remove
-arguments which refer to the z-dimension.
+Grid class constructors
+^^^^^^^^^^^^^^^^^^^^^^^
 
-----------
+The following sub-sections describe the public methods of the Grid3d
+class which a style command can invoke.  The Grid2d methods are
+similar; simply remove arguments which refer to the z-dimension.
 
 There are 2 constructors which can be used.  They differ in the extra
 i/o xyz lo/hi arguments:
@@ -204,6 +211,9 @@ only the kspace_style pppm/electrode and kspace_style msm commands use
 the second constructor.
 
 ----------
+
+Grid class set methods
+^^^^^^^^^^^^^^^^^^^^^^
 
 The following methods affect how the Grid class computes which owned
 and ghost cells are assigned to each processor.  *Set_shift_grid()* is
@@ -288,6 +298,9 @@ simulation box.
 
 ----------
 
+Grid class setup_grid method
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 The *setup_grid()* method is called after the first constructor
 (above) to partition the grid across processors, which determines
 which grid cells each processor owns.  It also calculates how many
@@ -320,6 +333,9 @@ case.
 
 ----------
 
+More grid class set methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 The following 2 methods can be used to override settings made by the
 constructors above.  If used, they must be called called before the
 *setup_comm()* method is invoked, since it uses the settings that
@@ -349,6 +365,9 @@ allows MSM to override the default values.
 
 ----------
 
+Grid class get methods
+^^^^^^^^^^^^^^^^^^^^^^
+
 The following methods allow the caller to query the settings for a
 specific grid, whether it created the grid or another command created
 it.
@@ -373,6 +392,9 @@ greater than or equal to N in each dimension.  These values are the
 same as the "o" values returned by *setup_grid()*.
 
 ----------
+
+Grid class owned/ghost communication
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If needed by the command, the following methods setup and perform
 communication of grid data to/from neighboring processors.  The
@@ -519,6 +541,9 @@ variants have this option.
 
 ----------
 
+Grid class remap methods for load balancing
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 The following methods are used when a load-balancing operation,
 triggered by the :doc:`balance <balance>` or :doc:`fix balance
 <fix_balance>` commands, changes the partitioning of the simulation
@@ -597,6 +622,9 @@ After the remap operation for grid cell data has been performed, the
 and can then exit.
 
 ----------
+
+Grid class I/O methods
+^^^^^^^^^^^^^^^^^^^^^^
 
 There are two I/O methods in the Grid classes which can be used to
 read and write grid cell data to files.  The caller can decide on the
@@ -708,6 +736,9 @@ one line to the output file.
 
 ----------
 
+Style class grid access methods
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 A style command can enable its grid cell data to be accessible from
 other commands.  For example :doc:`fix ave/grid <fix_ave_grid>` or
 :doc:`dump grid <dump>` or :doc:`dump grid/vtk <dump>`.  Those
@@ -785,6 +816,9 @@ between owned or ghost index bounds returned by the
 array.  Example code snippets with this logic were listed above,
 
 ----------
+
+Final notes
+^^^^^^^^^^^
 
 Finally, here are two additional issues to pay attention to for
 writing any style command which uses distributed grids via the Grid2d

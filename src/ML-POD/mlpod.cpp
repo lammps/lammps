@@ -494,13 +494,15 @@ void MLPOD::read_pod(const std::string &pod_file)
 
     if (keywd == "species") {
 
-        pod.nelements = words.size()-1;
-        for (int ielem = 1; ielem <= pod.nelements; ielem++){
-          pod.species.push_back(words[ielem]);
-        }
+      pod.nelements = words.size()-1;
+      for (int ielem = 1; ielem <= pod.nelements; ielem++){
+        pod.species.push_back(words[ielem]);
+      }
 
     }
 
+    if (keywd == "filename_tag") pod.filenametag = words[1];                        
+    
     if (keywd == "pbc"){
       if (words.size() != 4)
         error->one(FLERR,"Improper POD file.", utils::getsyserror());
@@ -591,8 +593,6 @@ void MLPOD::read_pod(const std::string &pod_file)
     memory->create(pod.Phi4, pod.ns4*pod.ns4, "pod:pod_Phi4");
     memory->create(pod.Lambda4, pod.ns4, "pod:pod_Lambda4");
   }
-
-
 
   if (pod.ns2>0) {
     podeigenvaluedecomposition(pod.Phi2, pod.Lambda2, pod.besselparams, pod.rin, pod.rcut,

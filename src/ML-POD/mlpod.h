@@ -150,6 +150,7 @@ public:
 
   struct podstruct {
     std::vector<std::string> species;
+    std::string filenametag = "";
     int twobody[3] = {5,10,10};
     int threebody[4] = {4,8,8,5};
     int fourbody[4] = {0,0,0,0};

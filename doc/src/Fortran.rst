@@ -409,7 +409,7 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
            USE LIBLAMMPS
            USE MPI_F08
            TYPE(lammps) :: lmp
-           lmp = lammps(MPI_COMM_SELF%MPI_VAL)
+           lmp = lammps(comm=MPI_COMM_SELF%MPI_VAL)
          END PROGRAM testmpi
 
 .. f:type:: lammps_style
@@ -773,8 +773,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Note that this function actually does not return a pointer, but rather
    associates the pointer on the left side of the assignment to point
    to internal LAMMPS data. Pointers must be of the correct type, kind, and
-   rank (e.g., ``INTEGER(c_int), DIMENSION(:)`` for "type", "mask", or "tag";
-   ``INTEGER(c_int64_t), DIMENSION(:)`` for "tag" if LAMMPS was compiled
+   rank (e.g., ``INTEGER(c_int), DIMENSION(:)`` for "type", "mask", or "id";
+   ``INTEGER(c_int64_t), DIMENSION(:)`` for "id" if LAMMPS was compiled
    with the ``-DLAMMPS_BIGBIG`` flag; ``REAL(c_double), DIMENSION(:,:)`` for
    "x", "v", or "f"; and so forth). The pointer being associated with LAMMPS
    data is type-, kind-, and rank-checked at run-time.
@@ -2118,7 +2118,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       ABSTRACT INTERFACE
         SUBROUTINE external_callback(caller, timestep, ids, x, fexternal)
           USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double, c_int64_t
-          CLASS(*), INTENT(IN) :: caller
+          CLASS(*), INTENT(INOUT) :: caller
           INTEGER(c_bigint), INTENT(IN) :: timestep
           INTEGER(c_tagint), DIMENSION(:), INTENT(IN) :: ids
           REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
@@ -2135,6 +2135,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    calling function) and will be available as the first argument to the
    callback function. It can be your LAMMPS instance, which you might need if
    the callback function needs access to the library interface.
+   The argument must be a scalar; to pass non-scalar data, wrap those data in
+   a derived type and pass an instance of the derived type to *caller*.
 
    The array *ids* is an array of length *nlocal* (as accessed from the
    :cpp:class:`Atom` class or through :f:func:`extract_global`). The arrays
@@ -2155,7 +2157,41 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p callback: subroutine :doc:`fix external <fix_external>` should call
    :ptype callback: external
    :p class(*) caller [optional]: object you wish to pass to the callback
-    procedure
+    procedure (must be a scalar; see note)
+
+   .. note::
+
+      The interface for your callback function must match types precisely
+      with the abstract interface block given above. **The compiler probably
+      will not be able to check this for you.** In particular, the first
+      argument ("caller") must be of type ``CLASS(*)`` or you will probably
+      get a segmentation fault or at least a misinterpretation of whatever is
+      in memory there. You can resolve the object using the ``SELECT TYPE``
+      construct. An example callback function (assuming LAMMPS was compiled
+      with ``-DLAMMPS_SMALLBIG``) that applies something akin to Hooke's Law
+      (with each atom having a different *k* value) is shown below.
+
+      .. code-block:: Fortran
+
+         TYPE shield
+            REAL(c_double), DIMENSION(:), ALLOCATABLE :: k
+            ! assume k gets allocated to dimension(3,nlocal) at some point
+         END TYPE shield
+
+         SUBROUTINE my_callback(caller, timestep, ids, x, fexternal)
+           CLASS(*), INTENT(INOUT) :: caller
+           INTEGER(c_int), INTENT(IN) :: timestep
+           INTEGER(c_int64_t), INTENT(IN) :: ids
+           REAL(c_double), INTENT(IN) :: x(:,:)
+           REAL(c_double), INTENT(OUT) :: fexternal(:,:)
+
+           SELECT TYPE (caller)
+             TYPE IS (shield)
+                fexternal = - caller%k * x
+             CLASS DEFAULT
+                WRITE(error_unit,*) 'UH OH...'
+           END SELECT
+        END SUBROUTINE my_callback
 
 --------
 

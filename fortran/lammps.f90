@@ -55,7 +55,7 @@ MODULE LIBLAMMPS
     LAMMPS_DOUBLE_2D = 3, &   ! two-dimensional 64-bit double array
     LAMMPS_INT64 = 4, &       ! 64-bit integer (or array)
     LAMMPS_INT64_2D = 5, &    ! two-dimensional 64-bit integer array
-    LAMMPS_STRING = 6, &      ! C-String
+    LAMMPS_STRING = 6, &      ! string
     LMP_STYLE_GLOBAL = 0, &   ! request global compute/fix/etc. data
     LMP_STYLE_ATOM = 1, &     ! request per-atom compute/fix/etc. data
     LMP_STYLE_LOCAL = 2, &    ! request local compute/fix/etc. data
@@ -64,7 +64,7 @@ MODULE LIBLAMMPS
     LMP_TYPE_ARRAY = 2, &     ! request array
     LMP_SIZE_VECTOR = 3, &    ! request size of vector
     LMP_SIZE_ROWS = 4, &      ! request rows (actually columns)
-    LMP_SIZE_COLS = 5, &      ! request colums (actually rows)
+    LMP_SIZE_COLS = 5, &      ! request columns (actually rows)
     LMP_ERROR_WARNING = 0, &  ! call Error::warning()
     LMP_ERROR_ONE = 1, &      ! call Error::one() (from this MPI rank)
     LMP_ERROR_ALL = 2, &      ! call Error::all() (from all MPI ranks)
@@ -268,7 +268,7 @@ MODULE LIBLAMMPS
   ABSTRACT INTERFACE
     SUBROUTINE external_callback_smallsmall(caller, timestep, ids, x, fexternal)
       IMPORT :: c_int, c_double
-      CLASS(*), INTENT(IN) :: caller
+      CLASS(*), INTENT(INOUT) :: caller
       INTEGER(c_int), INTENT(IN) :: timestep
       INTEGER(c_int), DIMENSION(:), INTENT(IN) :: ids
       REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
@@ -276,7 +276,7 @@ MODULE LIBLAMMPS
     END SUBROUTINE external_callback_smallsmall
     SUBROUTINE external_callback_smallbig(caller, timestep, ids, x, fexternal)
       IMPORT :: c_int, c_double, c_int64_t
-      CLASS(*), INTENT(IN) :: caller
+      CLASS(*), INTENT(INOUT) :: caller
       INTEGER(c_int64_t), INTENT(IN) :: timestep
       INTEGER(c_int), DIMENSION(:), INTENT(IN) :: ids
       REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
@@ -284,7 +284,7 @@ MODULE LIBLAMMPS
     END SUBROUTINE external_callback_smallbig
     SUBROUTINE external_callback_bigbig(caller, timestep, ids, x, fexternal)
       IMPORT :: c_double, c_int64_t
-      CLASS(*), INTENT(IN) :: caller
+      CLASS(*), INTENT(INOUT) :: caller
       INTEGER(c_int64_t), INTENT(IN) :: timestep
       INTEGER(c_int64_t), DIMENSION(:), INTENT(IN) :: ids
       REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
@@ -836,28 +836,28 @@ CONTAINS
     INTEGER(c_int)               :: i, c_comm, argc
 
     IF (PRESENT(args)) THEN
-        ! convert fortran argument list to c style
-        argc = SIZE(args)
-        ALLOCATE(argv(argc))
-        DO i=1, argc
-           argv(i) = f2c_string(args(i))
-        END DO
+      ! convert fortran argument list to c style
+      argc = SIZE(args)
+      ALLOCATE(argv(argc))
+      DO i=1, argc
+         argv(i) = f2c_string(args(i))
+      END DO
     ELSE
-        argc = 1
-        ALLOCATE(argv(1))
-        argv(1) = f2c_string("liblammps")
+      argc = 1
+      ALLOCATE(argv(1))
+      argv(1) = f2c_string("liblammps")
     ENDIF
 
     IF (PRESENT(comm)) THEN
-        c_comm = comm
-        lmp_open%handle = lammps_open(argc, argv, c_comm)
+      c_comm = comm
+      lmp_open%handle = lammps_open(argc, argv, c_comm)
     ELSE
-        lmp_open%handle = lammps_open_no_mpi(argc, argv, c_null_ptr)
+      lmp_open%handle = lammps_open_no_mpi(argc, argv, c_null_ptr)
     END IF
 
     ! Clean up allocated memory
     DO i=1, argc
-        CALL lammps_free(argv(i))
+      CALL lammps_free(argv(i))
     END DO
     DEALLOCATE(argv)
 
@@ -883,10 +883,10 @@ CONTAINS
     CALL lammps_close(self%handle)
 
     IF (PRESENT(finalize)) THEN
-        IF (finalize) THEN
-            CALL lammps_kokkos_finalize()
-            CALL lammps_mpi_finalize()
-        END IF
+      IF (finalize) THEN
+        CALL lammps_kokkos_finalize()
+        CALL lammps_mpi_finalize()
+      END IF
     END IF
   END SUBROUTINE lmp_close
 
@@ -1054,7 +1054,7 @@ CONTAINS
         length = 3
       CASE DEFAULT
         length = 1
-      ! string cases doesn't use "length"
+      ! string cases do not use "length"
     END SELECT
 
     Cname = f2c_string(name)

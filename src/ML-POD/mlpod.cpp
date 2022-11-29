@@ -30,6 +30,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
 
 #define MAXLINE 1024
 
@@ -344,7 +345,7 @@ void podsnapshots(double *rbf, double *xij, double *besselparams, double rin, do
       double x =  (1.0 - exp(-alpha*r/rmax))/(1.0-exp(-alpha));
 
       for (int i=0; i<besseldegree; i++) {
-        double a = (i+1)*M_PI;
+        double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         int nij = n + N*i + N*besseldegree*j;
         rbf[nij] = b*fcut*sin(a*x)/r;
@@ -1295,7 +1296,7 @@ void MLPOD::podradialbasis(double *rbf, double *drbf, double *xij, double *besse
       double dx = (alpha/rmax)*exp(-(alpha*r/rmax))/(1.0 - exp(-alpha));
 
       for (int i=0; i<besseldegree; i++) {
-        double a = (i+1)*M_PI;
+        double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         int nij = n + N*i + N*besseldegree*j;
         rbf[nij] = b*fcut*sin(a*x)/r;
@@ -1856,7 +1857,7 @@ void MLPOD::snapComputeUlist(double *Sr, double *Si, double *dSr, double *dSi, d
   double uz = z * rinv;
 
   double rcutij = (radelem[ti[ij]]+radelem[tj[ij]])*rcutfac;
-  double rscale0 = rfac0 * M_PI / (rcutij - rmin0);
+  double rscale0 = rfac0 * MY_PI / (rcutij - rmin0);
   double theta0 = (r - rmin0) * rscale0;
   double z0 = r / tan(theta0);
   double dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
@@ -1876,7 +1877,7 @@ void MLPOD::snapComputeUlist(double *Sr, double *Si, double *dSr, double *dSi, d
       dsfac = 0.0;
     }
     else {
-      double rcutfac0 = M_PI / (rcutij - rmin0);
+      double rcutfac0 = MY_PI / (rcutij - rmin0);
       sfac =  0.5 * (cos((r - rmin0) * rcutfac0) + 1.0);
       dsfac = -0.5 * sin((r - rmin0) * rcutfac0) * rcutfac0;
     }
@@ -2662,7 +2663,7 @@ void MLPOD::podradialbasis(double *rbf, double *xij, double *besselparams, doubl
     for (int j=0; j<nbesselpars; j++) {
       double x =  (1.0 - exp(-besselparams[j]*r/rmax))/(1.0-exp(-besselparams[j]));
       for (int i=0; i<besseldegree; i++)
-        rbf[n + N*i + N*besseldegree*j] = ((sqrt(2.0/(rmax))/(i+1)))*fcut*sin((i+1)*M_PI*x)/r;
+        rbf[n + N*i + N*besseldegree*j] = ((sqrt(2.0/(rmax))/(i+1)))*fcut*sin((i+1)*MY_PI*x)/r;
     }
 
     for (int i=0; i<inversedegree; i++) {
@@ -2805,7 +2806,7 @@ void MLPOD::snapComputeUij(double *Sr, double *Si, double *rootpqarray, double *
   double r = sqrt(rsq);
 
   double rcutij = (radelem[ti[ij]]+radelem[tj[ij]])*rcutfac; //(radelem[type[ii]]+radelem[type[jj]])*rcutfac;
-  double rscale0 = rfac0 * M_PI / (rcutij - rmin0);
+  double rscale0 = rfac0 * MY_PI / (rcutij - rmin0);
   double theta0 = (r - rmin0) * rscale0;
   double z0 = r / tan(theta0);
 
@@ -2821,7 +2822,7 @@ void MLPOD::snapComputeUij(double *Sr, double *Si, double *rootpqarray, double *
       sfac = 0.0;
     }
     else {
-      double rcutfac0 = M_PI / (rcutij - rmin0);
+      double rcutfac0 = MY_PI / (rcutij - rmin0);
       sfac =  0.5 * (cos((r - rmin0) * rcutfac0) + 1.0);
     }
   }

@@ -51,7 +51,7 @@ to persist could be coded to work in tandem with a fix style which
 provides that capability.
 
 The *size* of a grid is specified by the number of grid cells in each
-dimension of the simulation domain.  In any dimemsion the size can be
+dimension of the simulation domain.  In any dimension the size can be
 any value >= 1.  Thus a 10x10x1 grid for a 3d simulation is
 effectively a 2d grid, where each grid cell spans the entire
 z-dimension.  A 1x100x1 grid for a 3d simulation is effectively a 1d
@@ -264,7 +264,7 @@ command, shift the position of an atom when mapping it to a grid cell,
 based on the size of the stencil used to map values to the grid
 (charge in the case of PPPM).  The lo and hi arguments of the
 *set_shift_atom()* method are the minimum shift in the low direction
-and the maxmium shift in the high direction, assumed to be the same in
+and the maximum shift in the high direction, assumed to be the same in
 each of the 3 dimensions.  The shifts should be fractions of a grid
 cell size with values between 0.0 and 1.0 inclusive.  The default
 values are both 0.0.  See the src/pppm.cpp file for examples of these

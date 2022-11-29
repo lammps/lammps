@@ -376,7 +376,7 @@ cell volume at the sample timestep.  For *norm none*, the output is
 the same as for *norm all*.
 
 For *temp*, the output temperature uses the formula for kinetic energy
-KE listed above, and is normalized similarl to the formulas above for
+KE listed above, and is normalized similarly to the formulas above for
 *norm all* and *norm sample*, except for the way the degrees of
 freedom (DOF) are calculated.  For *norm none*, the output is the same
 as for *norm all*.

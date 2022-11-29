@@ -24,12 +24,16 @@
 #include "comm.h"
 #include "error.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "tokenizer.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI;
+using MathSpecial::powint;
+using MathSpecial::cube;
 
 #define MAXLINE 1024
 
@@ -334,7 +338,7 @@ void podsnapshots(double *rbf, double *xij, double *besselparams, double rin, do
     double y2 = y*y;
     double y3 = 1.0 - y2*y;
     double y4 = y3*y3 + 1e-6;
-    double y5 = pow(y4, 0.5);
+    double y5 = sqrt(y4);
     double y6 = exp(-1.0/y5);
     double fcut = y6/exp(-1.0);
 
@@ -344,7 +348,7 @@ void podsnapshots(double *rbf, double *xij, double *besselparams, double rin, do
       double x =  (1.0 - exp(-alpha*r/rmax))/(1.0-exp(-alpha));
 
       for (int i=0; i<besseldegree; i++) {
-        double a = (i+1)*M_PI;
+        double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         int nij = n + N*i + N*besseldegree*j;
         rbf[nij] = b*fcut*sin(a*x)/r;
@@ -354,7 +358,7 @@ void podsnapshots(double *rbf, double *xij, double *besselparams, double rin, do
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;
       int nij = n + N*p;
-      double a = pow(dij, (double) (i+1.0));
+      double a = powint(dij, i+1);
       rbf[nij] = fcut/a;
     }
   }
@@ -1272,7 +1276,7 @@ void MLPOD::podradialbasis(double *rbf, double *drbf, double *xij, double *besse
     double xij2 = xij[1+3*n];
     double xij3 = xij[2+3*n];
 
-    double dij = pow(xij1*xij1 + xij2*xij2 + xij3*xij3, 0.5);
+    double dij = sqrt(xij1*xij1 + xij2*xij2 + xij3*xij3);
     double dr1 = xij1/dij;
     double dr2 = xij2/dij;
     double dr3 = xij3/dij;
@@ -1282,9 +1286,9 @@ void MLPOD::podradialbasis(double *rbf, double *drbf, double *xij, double *besse
     double y2 = y*y;
     double y3 = 1.0 - y2*y;
     double y4 = y3*y3 + 1e-6;
-    double y5 = pow(y4, 0.5);
+    double y5 = sqrt(y4);
     double y6 = exp(-1.0/y5);
-    double y7 = pow(y4, 1.5);
+    double y7 = y4*sqrt(y4);
     double fcut = y6/exp(-1.0);
     double dfcut = ((3.0/(rmax*exp(-1.0)))*(y2)*y6*(y*y2 - 1.0))/y7;
 
@@ -1295,7 +1299,7 @@ void MLPOD::podradialbasis(double *rbf, double *drbf, double *xij, double *besse
       double dx = (alpha/rmax)*exp(-(alpha*r/rmax))/(1.0 - exp(-alpha));
 
       for (int i=0; i<besseldegree; i++) {
-        double a = (i+1)*M_PI;
+        double a = (i+1)*MY_PI;
         double b = (sqrt(2.0/(rmax))/(i+1));
         int nij = n + N*i + N*besseldegree*j;
         rbf[nij] = b*fcut*sin(a*x)/r;
@@ -1309,7 +1313,7 @@ void MLPOD::podradialbasis(double *rbf, double *drbf, double *xij, double *besse
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;
       int nij = n + N*p;
-      double a = pow(dij, (double) (i+1.0));
+      double a = powint(dij, i+1);
       rbf[nij] = fcut/a;
       double drbfdr = dfcut/a - (i+1.0)*fcut/(a*dij);
       drbf[0 + 3*nij] = drbfdr*dr1;
@@ -1389,7 +1393,7 @@ void MLPOD::pod3body(double *eatom, double *fatom, double *yij, double *e2ij, do
       xij2 = yij[1+dim*ij];  // xj - xi
       xij3 = yij[2+dim*ij];  // xj - xi
       rijsq = xij1*xij1 + xij2*xij2 + xij3*xij3;
-      rij = pow(rijsq, 0.5);
+      rij = sqrt(rijsq);
       for (int lk=lj+1; lk<numneigh; lk++) { // loop over each atom k around atom i (k > j)
         ik = lk + s;
         k = aj[ik];  // atom k
@@ -1398,7 +1402,7 @@ void MLPOD::pod3body(double *eatom, double *fatom, double *yij, double *e2ij, do
         xik2 = yij[1+dim*ik];  // xk - xi
         xik3 = yij[2+dim*ik];  // xk - xi
         riksq = xik1*xik1 + xik2*xik2 + xik3*xik3;
-        rik = pow(riksq, 0.5);
+        rik = sqrt(riksq);
 
         xdot  = xij1*xik1 + xij2*xik2 + xij3*xik3;
         costhe = xdot/(rij*rik);
@@ -1406,15 +1410,13 @@ void MLPOD::pod3body(double *eatom, double *fatom, double *yij, double *e2ij, do
         costhe = costhe < -1.0 ? -1.0 : costhe;
         xdot = costhe*(rij*rik);
 
-        sinthe = pow(1.0 - costhe*costhe, 0.5);
+        sinthe = sqrt(1.0 - costhe*costhe);
         sinthe = sinthe > 1e-12 ? sinthe : 1e-12;
         theta = acos(costhe);
         dtheta = -1.0/sinthe;
 
-        tm1 = pow(rijsq,1.5)*rik;
-        tm2 = rij*pow(riksq,1.5);
-        tm1 = 1.0/tm1;
-        tm2 = 1.0/tm2;
+        tm1 = 1.0/(rij*rijsq*rik);
+        tm2 = 1.0/(rij*riksq*rik);
         dct1 = (xik1*rijsq - xij1*xdot)*tm1;
         dct2 = (xik2*rijsq - xij2*xdot)*tm1;
         dct3 = (xik3*rijsq - xij3*xdot)*tm1;
@@ -1856,7 +1858,7 @@ void MLPOD::snapComputeUlist(double *Sr, double *Si, double *dSr, double *dSi, d
   double uz = z * rinv;
 
   double rcutij = (radelem[ti[ij]]+radelem[tj[ij]])*rcutfac;
-  double rscale0 = rfac0 * M_PI / (rcutij - rmin0);
+  double rscale0 = rfac0 * MY_PI / (rcutij - rmin0);
   double theta0 = (r - rmin0) * rscale0;
   double z0 = r / tan(theta0);
   double dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
@@ -1876,7 +1878,7 @@ void MLPOD::snapComputeUlist(double *Sr, double *Si, double *dSr, double *dSi, d
       dsfac = 0.0;
     }
     else {
-      double rcutfac0 = M_PI / (rcutij - rmin0);
+      double rcutfac0 = MY_PI / (rcutij - rmin0);
       sfac =  0.5 * (cos((r - rmin0) * rcutfac0) + 1.0);
       dsfac = -0.5 * sin((r - rmin0) * rcutfac0) * rcutfac0;
     }
@@ -1897,7 +1899,7 @@ void MLPOD::snapComputeUlist(double *Sr, double *Si, double *dSr, double *dSi, d
   b_r = r0inv * y;
   b_i = -r0inv * x;
 
-  dr0invdr = -pow(r0inv, 3.0) * (r + z0 * dz0dr);
+  dr0invdr = -cube(r0inv) * (r + z0 * dz0dr);
 
   dr0inv[0] = dr0invdr * ux;
   dr0inv[1] = dr0invdr * uy;
@@ -2649,25 +2651,25 @@ void MLPOD::podradialbasis(double *rbf, double *xij, double *besselparams, doubl
     double xij2 = xij[1+3*n];
     double xij3 = xij[2+3*n];
 
-    double dij = pow(xij1*xij1 + xij2*xij2 + xij3*xij3, 0.5);
+    double dij = sqrt(xij1*xij1 + xij2*xij2 + xij3*xij3);
     double r = dij - rin;
     double y = r/rmax;
     double y2 = y*y;
     double y3 = 1.0 - y2*y;
     double y4 = y3*y3 + 1e-6;
-    double y5 = pow(y4, 0.5);
+    double y5 = sqrt(y4);
     double y6 = exp(-1.0/y5);
     double fcut = y6/exp(-1.0);
 
     for (int j=0; j<nbesselpars; j++) {
       double x =  (1.0 - exp(-besselparams[j]*r/rmax))/(1.0-exp(-besselparams[j]));
       for (int i=0; i<besseldegree; i++)
-        rbf[n + N*i + N*besseldegree*j] = ((sqrt(2.0/(rmax))/(i+1)))*fcut*sin((i+1)*M_PI*x)/r;
+        rbf[n + N*i + N*besseldegree*j] = ((sqrt(2.0/(rmax))/(i+1)))*fcut*sin((i+1)*MY_PI*x)/r;
     }
 
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;
-      double a = pow(dij, (double) (i+1.0));
+      double a = powint(dij, i+1);
       rbf[n + N*p] = fcut/a;
     }
   }
@@ -2727,7 +2729,7 @@ void MLPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, i
       xij2 = yij[1+dim*ij];  // xj - xi
       xij3 = yij[2+dim*ij];  // xj - xi
       rijsq = xij1*xij1 + xij2*xij2 + xij3*xij3;
-      rij = pow(rijsq, 0.5);
+      rij = sqrt(rijsq);
       for (int lk=lj+1; lk<numneigh; lk++) { // loop over each atom k around atom i (k > j)
         ik = lk + s;
         typek = tj[ik] - 1;
@@ -2735,7 +2737,7 @@ void MLPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, i
         xik2 = yij[1+dim*ik];  // xk - xi
         xik3 = yij[2+dim*ik];  // xk - xi       s
         riksq = xik1*xik1 + xik2*xik2 + xik3*xik3;
-        rik = pow(riksq, 0.5);
+        rik = sqrt(riksq);
 
         xdot  = xij1*xik1 + xij2*xik2 + xij3*xik3;
         costhe = xdot/(rij*rik);
@@ -2805,7 +2807,7 @@ void MLPOD::snapComputeUij(double *Sr, double *Si, double *rootpqarray, double *
   double r = sqrt(rsq);
 
   double rcutij = (radelem[ti[ij]]+radelem[tj[ij]])*rcutfac; //(radelem[type[ii]]+radelem[type[jj]])*rcutfac;
-  double rscale0 = rfac0 * M_PI / (rcutij - rmin0);
+  double rscale0 = rfac0 * MY_PI / (rcutij - rmin0);
   double theta0 = (r - rmin0) * rscale0;
   double z0 = r / tan(theta0);
 
@@ -2821,7 +2823,7 @@ void MLPOD::snapComputeUij(double *Sr, double *Si, double *rootpqarray, double *
       sfac = 0.0;
     }
     else {
-      double rcutfac0 = M_PI / (rcutij - rmin0);
+      double rcutfac0 = MY_PI / (rcutij - rmin0);
       sfac =  0.5 * (cos((r - rmin0) * rcutfac0) + 1.0);
     }
   }
@@ -3271,7 +3273,7 @@ void MLPOD::pod3body_force(double *force, double *yij, double *e2ij, double *f2i
       xij2 = yij[1+dim*ij];  // xj - xi
       xij3 = yij[2+dim*ij];  // xj - xi
       rijsq = xij1*xij1 + xij2*xij2 + xij3*xij3;
-      rij = pow(rijsq, 0.5);
+      rij = sqrt(rijsq);
 
       double fixtmp,fiytmp,fiztmp;
       fixtmp = fiytmp = fiztmp = 0.0;
@@ -3285,7 +3287,7 @@ void MLPOD::pod3body_force(double *force, double *yij, double *e2ij, double *f2i
         xik2 = yij[1+dim*ik];  // xk - xi
         xik3 = yij[2+dim*ik];  // xk - xi       s
         riksq = xik1*xik1 + xik2*xik2 + xik3*xik3;
-        rik = pow(riksq, 0.5);
+        rik = sqrt(riksq);
 
         xdot  = xij1*xik1 + xij2*xik2 + xij3*xik3;
         costhe = xdot/(rij*rik);
@@ -3293,15 +3295,13 @@ void MLPOD::pod3body_force(double *force, double *yij, double *e2ij, double *f2i
         costhe = costhe < -1.0 ? -1.0 : costhe;
         xdot = costhe*(rij*rik);
 
-        sinthe = pow(1.0 - costhe*costhe, 0.5);
+        sinthe = sqrt(1.0 - costhe*costhe);
         sinthe = sinthe > 1e-12 ? sinthe : 1e-12;
         theta = acos(costhe);
         dtheta = -1.0/sinthe;
 
-        tm1 = pow(rijsq,1.5)*rik;
-        tm2 = rij*pow(riksq,1.5);
-        tm1 = 1.0/tm1;
-        tm2 = 1.0/tm2;
+        tm1 = 1.0/(rij*rijsq*rik);
+        tm2 = 1.0/(rij*riksq*rik);
         dct1 = (xik1*rijsq - xij1*xdot)*tm1;
         dct2 = (xik2*rijsq - xij2*xdot)*tm1;
         dct3 = (xik3*rijsq - xij3*xdot)*tm1;
@@ -3597,7 +3597,7 @@ void MLPOD::pod3body_force(double **force, double *yij, double *e2ij, double *f2
             xij2 = yij[1+dim*ij];  // xj - xi
             xij3 = yij[2+dim*ij];  // xj - xi
             rijsq = xij1*xij1 + xij2*xij2 + xij3*xij3;
-            rij = pow(rijsq, 0.5);
+            rij = sqrt(rijsq);
 
             double fixtmp,fiytmp,fiztmp;
             fixtmp = fiytmp = fiztmp = 0.0;
@@ -3611,7 +3611,7 @@ void MLPOD::pod3body_force(double **force, double *yij, double *e2ij, double *f2
                 xik2 = yij[1+dim*ik];  // xk - xi
                 xik3 = yij[2+dim*ik];  // xk - xi           s
                 riksq = xik1*xik1 + xik2*xik2 + xik3*xik3;
-                rik = pow(riksq, 0.5);
+                rik = sqrt(riksq);
 
                 xdot  = xij1*xik1 + xij2*xik2 + xij3*xik3;
                 costhe = xdot/(rij*rik);
@@ -3624,10 +3624,8 @@ void MLPOD::pod3body_force(double **force, double *yij, double *e2ij, double *f2
                 theta = acos(costhe);
                 dtheta = -1.0/sinthe;
 
-                tm1 = pow(rijsq,1.5)*rik;
-                tm2 = rij*pow(riksq,1.5);
-                tm1 = 1.0/tm1;
-                tm2 = 1.0/tm2;
+                tm1 = 1.0/(rij*rijsq*rik);
+                tm2 = 1.0/(rij*riksq*rik);
                 dct1 = (xik1*rijsq - xij1*xdot)*tm1;
                 dct2 = (xik2*rijsq - xij2*xdot)*tm1;
                 dct3 = (xik3*rijsq - xij3*xdot)*tm1;

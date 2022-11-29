@@ -89,8 +89,7 @@ table above.
    * :doc:`region <region>`
    * :doc:`replicate <replicate>`
    * :doc:`rerun <rerun>`
-   * :doc:`reset_atom_ids <reset_atom_ids>`
-   * :doc:`reset_mol_ids <reset_mol_ids>`
+   * :doc:`reset_atoms <reset_atoms>`
    * :doc:`reset_timestep <reset_timestep>`
    * :doc:`restart <restart>`
    * :doc:`run <run>`

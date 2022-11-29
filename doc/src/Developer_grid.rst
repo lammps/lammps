@@ -5,7 +5,7 @@ The LAMMPS source code includes two classes which facilitate the
 creation and use of distributed grids.  These are the Grid2d and
 Grid3d classes in the src/grid2d.cpp.h and src/grid3d.cpp.h files
 respectively.  As the names imply, they are used for 2d or 3d
-simulations, as defined by the :doc:`dimension <dimenaion>` command.
+simulations, as defined by the :doc:`dimension <dimension>` command.
 
 The :doc:`Howto_grid <Howto_grid>` page gives an overview of how
 distributed grids are defined from a user perspective, lists LAMMPS
@@ -51,7 +51,7 @@ to persist could be coded to work in tandem with a fix style which
 provides that capability.
 
 The *size* of a grid is specified by the number of grid cells in each
-dimension of the simulation domain.  In any dimemsin the size can be
+dimension of the simulation domain.  In any dimemsion the size can be
 any value >= 1.  Thus a 10x10x1 grid for a 3d simulation is
 effectively a 2d grid, where each grid cell spans the entire
 z-dimension.  A 1x100x1 grid for a 3d simulation is effectively a 1d
@@ -91,7 +91,7 @@ Arguments for these methods can be values returned by the
 the grid cells (owned+ghost) the processor owns.  These 4 methods
 allocate memory for 2d (first two) and 3d (second two) grid data.  The
 two methods that end in "_one" allocate an array which stores a single
-value per grid cell.  The two that end in "_multi" allocate an aray
+value per grid cell.  The two that end in "_multi" allocate an array
 which stores *Nvalues* per grid cell.
 
 .. code-block:: c
@@ -177,20 +177,20 @@ over which the grid will be distributed.  Typically this is the
 *world* communicator the LAMMPS instance is using.  The
 :doc:`kspace_style msm <kspace_style>` command creates a series of
 grids, each of different size, which are partitioned across different
-sub-communicators of processos.  Both constructors are also passed the
-global grid size: *gnx* by *gny* by *gnz*.
+sub-communicators of processors.  Both constructors are also passed
+the global grid size: *gnx* by *gny* by *gnz*.
 
 The first constructor is used when the caller wants the Grid class to
 partition the global grid across processors; the Grid class defines
 which grid cells each processor owns and also which it stores as ghost
-cells.  A subsequent call to *setup_grid()*, disccussed below, returns
+cells.  A subsequent call to *setup_grid()*, discussed below, returns
 this info to the caller.
 
 The second constructor allows the caller to define the extent of owned
 and ghost cells, and pass them to the Grid class.  The 6 arguments
 which start with "i" are the inclusive lower and upper index bounds of
 the owned (inner) grid cells this processor owns in each of the 3
-dimensions within the global grid.  Onwed grid cells are indexed from
+dimensions within the global grid.  Owned grid cells are indexed from
 0 to N-1 in each dimension.
 
 The 6 arguments which start with "o" are the inclusive bounds of the
@@ -202,11 +202,11 @@ always the case.
 For example, if Nx = 100, then a processor might pass ixlo=50,
 ixhi=60, oxlo=48, oxhi=62 to the Grid class.  Or ixlo=0, ixhi=10,
 oxlo=-2, oxhi=13.  If a processor owns no grid cells in a dimension,
-then the ihi value should be speficied as one less than the ilo value.
+then the ihi value should be specified as one less than the ilo value.
 
 Note that the only reason to use the second constructor is if the
 logic for assigning ghost cells is too complex for the Grid class to
-compute, using the various set() methods decsribed next.  Currently
+compute, using the various set() methods described next.  Currently
 only the kspace_style pppm/electrode and kspace_style msm commands use
 the second constructor.
 
@@ -217,8 +217,8 @@ Grid class set methods
 
 The following methods affect how the Grid class computes which owned
 and ghost cells are assigned to each processor.  *Set_shift_grid()* is
-the only method which influences owned cell assignement; all the rest
-influence ghost cell assignemnt.  These methods are only used with the
+the only method which influences owned cell assignment; all the rest
+influence ghost cell assignment.  These methods are only used with the
 first constructor; they are ignored if the second constructor is used.
 These methods must be called before the *setup_grid()* method is
 invoked, because they influence its operation.
@@ -252,49 +252,49 @@ determining how many ghost cells a processor needs to store to enable
 its particles to be mapped to grid cells.  The default value is 0.0.
 
 Some commands, like the :doc:`kspace_style pppm <kspace_style>`
-commmand, map values (charge in the case of PPPM) to a stencil of grid
+command, map values (charge in the case of PPPM) to a stencil of grid
 cells beyond the grid cell the particle is in.  The stencil extent may
 be different in the low and high directions.  The *set_stencil_atom()*
 method defines the maximum values of those 2 extents, assumed to be
-the same in each of the 3 dimensions.  Both the lo and hi valuse are
+the same in each of the 3 dimensions.  Both the lo and hi values are
 specified as positive integers.  The default values are both 0.
 
 Some commands, like the :doc:`kspace_style pppm <kspace_style>`
-commmand, shift the position of an atom when mapping it to a grid
-cell, based on the size of the stencil used to map values to the grid
+command, shift the position of an atom when mapping it to a grid cell,
+based on the size of the stencil used to map values to the grid
 (charge in the case of PPPM).  The lo and hi arguments of the
 *set_shift_atom()* method are the minimum shift in the low direction
-and the maxmimum shift in the high direction, assumed to be the same
-in each of the 3 dimensions.  The shifts should be fractions of a grid
+and the maxmium shift in the high direction, assumed to be the same in
+each of the 3 dimensions.  The shifts should be fractions of a grid
 cell size with values between 0.0 and 1.0 inclusive.  The default
 values are both 0.0.  See the src/pppm.cpp file for examples of these
 lo/hi values for regular and staggered grids.
 
 Some methods like the :doc:`fix ttm/grid <fix_ttm>` command, perform
-finite difference kinds of operations on the grid, to diffuse electon
+finite difference kinds of operations on the grid, to diffuse electron
 heat in the case of the two-temperature model (TTM).  This operation
 uses ghost grid values beyond the owned grid values the processor
 updates.  The *set_stencil_grid()* method defines the extent of this
 stencil in both directions, assumed to be the same in each of the 3
-dimensions.  Both the lo and hi valuse are sepecified as positive
+dimensions.  Both the lo and hi values are specified as positive
 integers.  The default values are both 0.
 
-The kspace_style pppm commmands allow a grid to be defined which
+The kspace_style pppm commands allow a grid to be defined which
 overlays a volume which extends beyond the simulation box in the z
 dimension.  This is for the purpose of modeling a 2d-periodic slab
-(non-perioidc in z) as if it were a larger 3d periodic sytem, extended
-(with empty space) in the z dimension.  The :doc:`kspace_modify slab
-<kspace_modify>` command is used to specify the ratio of the larger
-volume to the simulation volume; a volume ratio of ~3 is typical.  For
-this kind of model, the PPPM caller sets the global grid size *gnz*
-~3x larger than it would be otherwise.  This same ratio is passed by
-the PPPM caller as the *factor* argument to the Grid class via the
-*set_zfactor()* method (*set_yfactor()* for 2d grids).  The Grid class
-will then assign ownership of the 1/3 of grid cells that overlay the
-simulation box to the processors which also overlay the simulation
-box.  The remaining 2/3 of the grid cells are assigned to processors
-whose subdomains are adjacent to the upper z boundary of the
-simulation box.
+(non-periodic in z) as if it were a larger 3d periodic system,
+extended (with empty space) in the z dimension.  The
+:doc:`kspace_modify slab <kspace_modify>` command is used to specify
+the ratio of the larger volume to the simulation volume; a volume
+ratio of ~3 is typical.  For this kind of model, the PPPM caller sets
+the global grid size *gnz* ~3x larger than it would be otherwise.
+This same ratio is passed by the PPPM caller as the *factor* argument
+to the Grid class via the *set_zfactor()* method (*set_yfactor()* for
+2d grids).  The Grid class will then assign ownership of the 1/3 of
+grid cells that overlay the simulation box to the processors which
+also overlay the simulation box.  The remaining 2/3 of the grid cells
+are assigned to processors whose subdomains are adjacent to the upper
+z boundary of the simulation box.
 
 ----------
 
@@ -322,7 +322,7 @@ cells.
 
 The 6 return arguments which start with "i" are the inclusive lower
 and upper index bounds of the owned (inner) grid cells this processor
-owns in each of the 3 dimensions within the global grid.  Onwed grid
+owns in each of the 3 dimensions within the global grid.  Owned grid
 cells are indexed from 0 to N-1 in each dimension.
 
 The 6 return arguments which start with "o" are the inclusive bounds of
@@ -350,7 +350,7 @@ instantiates using the 2nd constructor above.
 
 The *set_proc_neighs()* method sets the processor IDs of the 6
 neighboring processors for each processor.  Normally these would match
-the proccessor grid neighbors which LAMMPS creates to overlay the
+the processor grid neighbors which LAMMPS creates to overlay the
 simulation box (the default).  However, MSM excludes non-participating
 processors from coarse grid communication when less processors are
 used.  This method allows MSM to override the default values.
@@ -386,7 +386,7 @@ each dimension.  These values are the same as the "i" values returned
 by *setup_grid()*.
 
 The *get_bounds_ghost()* method return the inclusive index bounds of
-the owned+ghost grid cells this processor stores.  The onwed cell
+the owned+ghost grid cells this processor stores.  The owned cell
 indices range from 0 to N-1, so these indices may be less than 0 or
 greater than or equal to N in each dimension.  These values are the
 same as the "o" values returned by *setup_grid()*.
@@ -487,7 +487,7 @@ In this case, the *which* argument is not used, *vbuf* points to a
 buffer of doubles, and the electron temperature is stored by the
 FixTTMGrid class in a 3d array of owned+ghost cells called T_electron.
 That array is allocated by the *memory->create_3d_offset()* method
-descibed above so that the first grid cell it stores is indexed as
+described above so that the first grid cell it stores is indexed as
 T_electron[nzlo_out][nylo_out][nxlo_out].  The *nlist* values in
 *list* are integer offsets from that first grid cell.  Setting *src*
 to the address of the first cell allows those offsets to be used to
@@ -576,10 +576,10 @@ persist its grid data from the old partitioning to the new one, then
 the command can simply delete the old data array(s) and grid
 instance(s).  It can then return.
 
-If the grid data does need to perist, then the data for each grid
+If the grid data does need to persist, then the data for each grid
 needs to be "remapped" from the old grld partitioning to the new grid
-partitioning.  The *setup_remap()* and *remap()* methods are used
-for that purpose.
+partitioning.  The *setup_remap()* and *remap()* methods are used for
+that purpose.
 
 .. code-block:: c
 
@@ -629,7 +629,7 @@ Grid class I/O methods
 There are two I/O methods in the Grid classes which can be used to
 read and write grid cell data to files.  The caller can decide on the
 precise format of each file, e.g. whether header lines are prepended
-or comment lines are allowed.  Fundmamentally, the file should contain
+or comment lines are allowed.  Fundamentally, the file should contain
 one line per grid cell for the entire global grid.  Each line should
 contain identifying info as to which grid cell it is, e.g. a unique
 grid cell ID or the ix,iy,iz indices of the cell within a 3d grid.

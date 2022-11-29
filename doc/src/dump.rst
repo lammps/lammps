@@ -251,8 +251,8 @@ The *style* keyword determines what kind of data is written to the
 dump file(s) and in what format.
 
 Note that *atom*, *custom*, *dcd*, *xtc*, and *xyz* style dump files
-can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_, a
-popular tool for viewing molecular systesm.
+can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_,
+a popular tool for viewing molecular system.
 
 Likewise the `OVITO visualization tool <https://www.ovito.org>`_,
 popular for materials modeling, can read the *atom*, *custom*, and
@@ -653,7 +653,7 @@ how to control the compression level in both variants.
 Arguments for different styles:
 
 The sections below describe per-atom, local, and per grid cell
-attibutes which can be used as arguments to the various styles.
+attributes which can be used as arguments to the various styles.
 
 Note that in the discussion below, for styles which can reference
 values from a compute or fix or custom atom property, like the

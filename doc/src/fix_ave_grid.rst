@@ -123,7 +123,7 @@ keyword settings, as discussed below.
 
 ----------
 
-The *Nx*, *Ny*, and *Nz* arguements specify the size of the grid that
+The *Nx*, *Ny*, and *Nz* arguments specify the size of the grid that
 overlays the simulation box.  For 2d simulations, *Nz* must be 1.  The
 *Nx*, *Ny*, *Nz* values can be any positive integer.  The grid can be
 very coarse compared to the particle count, or very fine.  If one or
@@ -139,7 +139,7 @@ command.
 
 If the simulation box size or shape changes during a simulation, the
 grid always conforms to the size/shape of the current simulation box.
-If one more dimensions have non-peridoic shrink-wrapped boundary
+If one more dimensions have non-periodic shrink-wrapped boundary
 conditions, as defined by the :doc:`boundary <boundary>` command, then
 the grid will extend over the (dynamic) shrink-wrapped extent in each
 dimension.  If the box shape is triclinic, as explained in :doc:`Howto
@@ -328,7 +328,7 @@ applicable to both per-atom and per-grid mode.
 The *discard* keyword is only applicable to per-atom mode.  If a
 dimension of the system is non-periodic, then grid cells will only
 span the box dimension (fixed or shrink-wrap boundaries as set by the
-:doc:`boundary` command).  An atom may thus be slighlty outside the
+:doc:`boundary` command).  An atom may thus be slightly outside the
 range of grid cells on a particular timestep.  If *discard* is set to
 *yes* (the default), then the atom will be assigned to the closest
 grid cell (lowest or highest) in that dimension.  If *discard* is set

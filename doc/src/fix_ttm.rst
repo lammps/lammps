@@ -372,7 +372,7 @@ restart file is written, with the electron temperatures for each grid
 cell.  The format of this file is the same as that read by the
 *infile* option explained above.  The filename is the same as the
 restart filename with ".ttm" appended.  This auxiliary file can be
-read in for a restared run by using the *infile* option for the fix
+read in for a restarted run by using the *infile* option for the fix
 ttm/grid command, following the :doc:`read_restart <read_restart>`
 command.
 
@@ -421,7 +421,7 @@ electron temperature.  This means you will not get identical answers
 when running on different numbers of processors or when restarting a
 simulation (even on the same number of processors).  However, in a
 statistical sense, simulations on different processor counts and
-restarted simulation should produce results whiich are statistically
+restarted simulation should produce results which are statistically
 the same.
 
 

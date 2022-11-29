@@ -479,20 +479,20 @@ per-atom properties per grid cell (*nvalues*) is shown here:
 
 .. code-block:: c
 
-void FixAveGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *list)
-{
-  auto buf = (double *) vbuf;
-  double *count,*data,*values;
-  count = &count2d[nylo_out][nxlo_out];
-  data = &array2d[nylo_out][nxlo_out][0];
-  m = 0;
-  for (i = 0; i < nlist; i++) {
-    count[list[i]] += buf[m++];
-    values = &data[nvalues*list[i]];
-    for (j = 0; j < nvalues; j++)
-      values[j] += buf[m++];
-  }
-}
+   void FixAveGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *list)
+   {
+     auto buf = (double *) vbuf;
+     double *count,*data,*values;
+     count = &count2d[nylo_out][nxlo_out];
+     data = &array2d[nylo_out][nxlo_out][0];
+     m = 0;
+     for (i = 0; i < nlist; i++) {
+       count[list[i]] += buf[m++];
+       values = &data[nvalues*list[i]];
+       for (j = 0; j < nvalues; j++)
+        values[j] += buf[m++];
+     }
+   }
 
 Both the count and the multiple values per grid cell are communicated
 in *vbuf*.  Note that *data* is now a pointer to the first value in

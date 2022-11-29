@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   This class contains a framework for granular submodels (GranSubMod):
+   This class contains a framework for granular sub models (GranSubMod):
    normal, damping, tangential, rolling, twisting, and heat
    These are used to calculate forces/torques/etc based on contact geometry
 
@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 using namespace Granular_NS;
 
 /* ----------------------------------------------------------------------
-   Parent class for all types of granular submodels
+   Parent class for all types of granular sub models
 ------------------------------------------------------------------------- */
 
 GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
@@ -79,10 +79,10 @@ void GranSubMod::mix_coeffs(double* icoeffs, double* jcoeffs)
 ------------------------------------------------------------------------- */
 
 double GranSubMod::mix_stiffnessE(double E1, double E2,
-                                    double pois1, double pois2)
+                                    double poiss1, double poiss2)
 {
-  double factor1 = (1 - pois1 * pois1) / E1;
-  double factor2 = (1 - pois2 * pois2) / E2;
+  double factor1 = (1 - poiss1 * poiss1) / E1;
+  double factor2 = (1 - poiss2 * poiss2) / E2;
   return 1 / (factor1 + factor2);
 }
 
@@ -91,10 +91,10 @@ double GranSubMod::mix_stiffnessE(double E1, double E2,
 ------------------------------------------------------------------------ */
 
 double GranSubMod::mix_stiffnessG(double E1, double E2,
-                                    double pois1, double pois2)
+                                    double poiss1, double poiss2)
 {
-  double factor1 = 2 * (2 - pois1) * (1 + pois1) / E1;
-  double factor2 = 2 * (2 - pois2) * (1 + pois2) / E2;
+  double factor1 = 2 * (2 - poiss1) * (1 + poiss1) / E1;
+  double factor2 = 2 * (2 - poiss2) * (1 + poiss2) / E2;
   return 1 / (factor1 + factor2);
 }
 
@@ -102,9 +102,9 @@ double GranSubMod::mix_stiffnessG(double E1, double E2,
    mixing of Young's modulus (E) for walls
 ------------------------------------------------------------------------- */
 
-double GranSubMod::mix_stiffnessE_wall(double E, double pois)
+double GranSubMod::mix_stiffnessE_wall(double E, double poiss)
 {
-  double factor = 2 * (1 - pois);
+  double factor = 2 * (1 - poiss * poiss);
   return E / factor;
 }
 
@@ -112,9 +112,9 @@ double GranSubMod::mix_stiffnessE_wall(double E, double pois)
    mixing of shear modulus (G) for walls
 ------------------------------------------------------------------------ */
 
-double GranSubMod::mix_stiffnessG_wall(double E, double pois)
+double GranSubMod::mix_stiffnessG_wall(double E, double poiss)
 {
-  double factor = 32.0 * (2 - pois) * (1 + pois);
+  double factor = 4.0 * (2 - poiss) * (1 + poiss);
   return E / factor;
 }
 

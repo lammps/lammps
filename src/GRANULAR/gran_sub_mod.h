@@ -30,7 +30,7 @@ class GranSubMod : protected Pointers {
   void read_restart();
   virtual void mix_coeffs(double*, double*);
   virtual void coeffs_to_local() {};
-  virtual void init() {}; // called after all submodels + coeffs defined
+  virtual void init() {}; // called after all sub models + coeffs defined
 
   void allocate_coeffs();
   std::string name;
@@ -40,9 +40,9 @@ class GranSubMod : protected Pointers {
   double *transfer_history_factor;
 
   int history_index;
-  int beyond_contact;  // If the submodel contact extends beyond overlap
-  int allow_cohesion;  // If the submodel works with a cohesive normal force
-  int area_flag;       // If the submodel requires area
+  int beyond_contact;  // If the sub model contact extends beyond overlap
+  int allow_cohesion;  // If the sub model works with a cohesive normal force
+  int area_flag;       // If the sub model requires area
 
   GranularModel *gm;
 

@@ -19,7 +19,7 @@
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-enum SubmodelType {
+enum SubModelType {
   NORMAL = 0,
   DAMPING,
   TANGENTIAL,
@@ -53,9 +53,9 @@ class GranularModel : protected Pointers {
   void calculate_forces();
   double pulloff_distance(double, double);
 
-  int add_submodel(char **, int, int, SubmodelType);
+  int add_sub_model(char **, int, int, SubModelType);
   int define_classic_model(char **, int, int);
-  void construct_submodel(std::string, SubmodelType);
+  void construct_sub_model(std::string, SubModelType);
   int mix_coeffs(GranularModel*, GranularModel*);
 
   void write_restart(FILE *);
@@ -94,7 +94,7 @@ class GranularModel : protected Pointers {
   bool touch;
 
  protected:
-  int rolling_defined, twisting_defined, heat_defined; // Flag optional submodels
+  int rolling_defined, twisting_defined, heat_defined; // Flag optional sub models
   int classic_model;                                   // Flag original pair/gran calculations
   int area_flag;                                       // Flag whether area is needed
 

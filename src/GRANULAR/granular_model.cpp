@@ -103,13 +103,13 @@ GranularModel::~GranularModel()
 
 /* ---------------------------------------------------------------------- */
 
-int GranularModel::add_submodel(char **arg, int iarg, int narg, SubmodelType model_type)
+int GranularModel::add_sub_model(char **arg, int iarg, int narg, SubModelType model_type)
 {
   if (iarg >= narg)
-    error->all(FLERR, "Must specify granular submodel name");
+    error->all(FLERR, "Must specify granular sub model name");
 
   std::string model_name = std::string(arg[iarg++]);
-  construct_submodel(model_name, model_type);
+  construct_sub_model(model_name, model_type);
 
   int num_coeffs = sub_models[model_type]->num_coeffs;
   if (iarg + num_coeffs > narg)
@@ -128,7 +128,7 @@ int GranularModel::add_submodel(char **arg, int iarg, int narg, SubmodelType mod
 
 /* ---------------------------------------------------------------------- */
 
-void GranularModel::construct_submodel(std::string model_name, SubmodelType model_type)
+void GranularModel::construct_sub_model(std::string model_name, SubModelType model_type)
 {
   int i;
   for (i = 0; i < nclass; i++) {
@@ -148,7 +148,7 @@ void GranularModel::construct_submodel(std::string model_name, SubmodelType mode
   sub_models[model_type]->name.assign(model_name);
   sub_models[model_type]->allocate_coeffs();
 
-  // Assign specific submodel pointer
+  // Assign specific sub model pointer
   if (model_type == NORMAL) normal_model = dynamic_cast<GranSubModNormal *> (sub_models[model_type]);
   if (model_type == DAMPING) damping_model = dynamic_cast<GranSubModDamping *> (sub_models[model_type]);
   if (model_type == TANGENTIAL) tangential_model = dynamic_cast<GranSubModTangential *> (sub_models[model_type]);
@@ -185,26 +185,26 @@ int GranularModel::define_classic_model(char **arg, int iarg, int narg)
     error->all(FLERR,"Illegal classic gran model command");
 
   if (strcmp(arg[iarg],"hooke") == 0) {
-    construct_submodel("hooke", NORMAL);
-    construct_submodel("linear_nohistory", TANGENTIAL);
-    construct_submodel("mass_velocity", DAMPING);
+    construct_sub_model("hooke", NORMAL);
+    construct_sub_model("linear_nohistory", TANGENTIAL);
+    construct_sub_model("mass_velocity", DAMPING);
   } else if (strcmp(arg[iarg],"hooke/history") == 0) {
-    construct_submodel("hooke", NORMAL);
-    construct_submodel("linear_history_classic", TANGENTIAL);
-    construct_submodel("mass_velocity", DAMPING);
+    construct_sub_model("hooke", NORMAL);
+    construct_sub_model("linear_history_classic", TANGENTIAL);
+    construct_sub_model("mass_velocity", DAMPING);
   } else if (strcmp(arg[iarg],"hertz/history") == 0) {
     // convert Kn and Kt from pressure units to force/distance^2 if Hertzian
     kn /= force->nktv2p;
     kt /= force->nktv2p;
-    construct_submodel("hertz", NORMAL);
-    construct_submodel("mindlin_classic", TANGENTIAL);
-    construct_submodel("viscoelastic", DAMPING);
+    construct_sub_model("hertz", NORMAL);
+    construct_sub_model("mindlin_classic", TANGENTIAL);
+    construct_sub_model("viscoelastic", DAMPING);
   } else error->all(FLERR,"Invalid classic gran model");
 
   // ensure additional models are undefined
-  construct_submodel("none", ROLLING);
-  construct_submodel("none", TWISTING);
-  construct_submodel("none", HEAT);
+  construct_sub_model("none", ROLLING);
+  construct_sub_model("none", TWISTING);
+  construct_sub_model("none", HEAT);
 
   // manually parse coeffs
   normal_model->coeffs[0] = kn;
@@ -226,7 +226,7 @@ int GranularModel::define_classic_model(char **arg, int iarg, int narg)
 void GranularModel::init()
 {
   for (int i = 0; i < NSUBMODELS; i++)
-    if (!sub_models[i]) construct_submodel("none", (SubmodelType) i);
+    if (!sub_models[i]) construct_sub_model("none", (SubModelType) i);
 
   // Must have valid normal, damping, and tangential models
   if (normal_model->name == "none") error->all(FLERR, "Must specify normal granular model");
@@ -262,14 +262,14 @@ void GranularModel::init()
 
     int j;
     for (int i = 0; i < size_history; i++) {
-      // Find which submodel owns this history value
+      // Find which sub model owns this history value
       size_cumulative = 0;
       for (j = 0; j < NSUBMODELS; j++) {
         if ((size_cumulative + sub_models[j]->size_history) > i) break;
         size_cumulative += sub_models[j]->size_history;
       }
 
-      // Check if submodel has nondefault transfers, if so copy its array
+      // Check if sub model has nondefault transfers, if so copy its array
       transfer_history_factor[i] = -1;
       if (j != NSUBMODELS) {
         if (sub_models[j]->nondefault_history_transfer) {
@@ -289,7 +289,7 @@ int GranularModel::mix_coeffs(GranularModel *g1, GranularModel *g2)
   for (int i = 0; i < NSUBMODELS; i++) {
     if (g1->sub_models[i]->name != g2->sub_models[i]->name) return i;
 
-    construct_submodel(g1->sub_models[i]->name, (SubmodelType) i);
+    construct_sub_model(g1->sub_models[i]->name, (SubModelType) i);
     sub_models[i]->mix_coeffs(g1->sub_models[i]->coeffs, g2->sub_models[i]->coeffs);
   }
 
@@ -331,7 +331,7 @@ void GranularModel::read_restart(FILE *fp)
     if (comm->me == 0)
       utils::sfread(FLERR, const_cast<char*>(model_name.data()), sizeof(char),num_char, fp, nullptr, error);
     MPI_Bcast(const_cast<char*>(model_name.data()), num_char, MPI_CHAR, 0, world);
-    construct_submodel(model_name, (SubmodelType) i);
+    construct_sub_model(model_name, (SubModelType) i);
 
     if (comm->me == 0)
       utils::sfread(FLERR, &num_coeff, sizeof(int), 1, fp, nullptr, error);

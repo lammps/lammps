@@ -345,21 +345,21 @@ void PairGranular::coeff(int narg, char **arg)
 
   //Parse mandatory specification
   int iarg = 2;
-  iarg = model->add_submodel(arg, iarg, narg, NORMAL);
+  iarg = model->add_sub_model(arg, iarg, narg, NORMAL);
 
   //Parse optional arguments
   while (iarg < narg) {
 
     if (strcmp(arg[iarg], "tangential") == 0) {
-      iarg = model->add_submodel(arg, iarg + 1, narg, TANGENTIAL);
+      iarg = model->add_sub_model(arg, iarg + 1, narg, TANGENTIAL);
     } else if (strcmp(arg[iarg], "damping") == 0) {
-      iarg = model->add_submodel(arg, iarg + 1, narg, DAMPING);
+      iarg = model->add_sub_model(arg, iarg + 1, narg, DAMPING);
     } else if (strcmp(arg[iarg], "rolling") == 0) {
-      iarg = model->add_submodel(arg, iarg + 1, narg, ROLLING);
+      iarg = model->add_sub_model(arg, iarg + 1, narg, ROLLING);
     } else if (strcmp(arg[iarg], "twisting") == 0) {
-      iarg = model->add_submodel(arg, iarg + 1, narg, TWISTING);
+      iarg = model->add_sub_model(arg, iarg + 1, narg, TWISTING);
     } else if (strcmp(arg[iarg], "heat") == 0) {
-      iarg = model->add_submodel(arg, iarg + 1, narg, HEAT);
+      iarg = model->add_sub_model(arg, iarg + 1, narg, HEAT);
       heat_flag = 1;
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
@@ -372,9 +372,9 @@ void PairGranular::coeff(int narg, char **arg)
     } else error->all(FLERR, "Illegal pair_coeff command {}", arg[iarg]);
   }
 
-  // Define default damping submodel if unspecified, has no coeffs
+  // Define default damping sub model if unspecified, has no coeffs
   if (!model->damping_model)
-    model->construct_submodel("viscoelastic", DAMPING);
+    model->construct_sub_model("viscoelastic", DAMPING);
   model->init();
 
   int count = 0;
@@ -551,7 +551,7 @@ double PairGranular::init_one(int i, int j)
     if (error_code != -1)
       error->all(FLERR,"Granular pair style functional forms are different, "
                  "cannot mix coefficients for types {} and {} \n"
-                 "with submodels {} and {}. \n"
+                 "with sub models {} and {}. \n"
                  "This combination must be set explicitly via a "
                  "pair_coeff command",i,j,
                  model1->sub_models[error_code]->name,
@@ -834,11 +834,11 @@ void PairGranular::transfer_history(double* source, double* target, int itype, i
 {
   class GranularModel* model = models_list[types_indices[itype][jtype]];
   if (model->nondefault_history_transfer) {
-    for (int i = 0; i < size_history; i++) {
+    for (int i = 0; i < model->size_history; i++) {
       target[i] = model->transfer_history_factor[i] * source[i];
     }
   } else {
-    for (int i = 0; i < size_history; i++) {
+    for (int i = 0; i < model->size_history; i++) {
       target[i] = -source[i];
     }
   }

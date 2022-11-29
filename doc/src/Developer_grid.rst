@@ -738,7 +738,7 @@ implement the following 4 methods:
 Currently only computes and fixes can implement these methods.  If it
 does so, the compute of fix should also set the variable
 *pergrid_flag* to 1.  See any of the compute or fix commands which set
-"pregrid_flag = 1" for examples of how these 4 functions can be
+"pergrid_flag = 1" for examples of how these 4 functions can be
 implemented.
 
 The *get_grid_by_name()* method takes a grid name as input and returns
@@ -747,7 +747,7 @@ dimensionality of the grid.  The function return is a grid index from
 0 to G-1 where *G* is the number of grids the command instantiates.  A
 value of -1 is returned if the grid name is not recognized.
 
-The *get_grid_by_index()* method can be called after the
+The *get_grid_by_index()* method is called after the
 *get_grid_by_name()* method, using the grid index it returned as its
 argument.  This method will return a pointer to the Grid2d or Grid3d
 class.  The caller can use this to query grid attributes, such as the
@@ -763,7 +763,7 @@ scalar.  The function return is a data index from 0 to D-1 where *D*
 is the number of data sets associated with that grid by the command.
 A value of -1 is returned if the data name is not recognized.
 
-The *get_griddata_by_index()* method can be called after the
+The *get_griddata_by_index()* method is called after the
 *get_griddata_by_name()* method, using the data index it returned as
 its argument.  This method will return a pointer to the
 multi-dimensional array which stores the requested data.

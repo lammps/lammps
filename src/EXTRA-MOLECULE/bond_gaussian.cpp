@@ -27,7 +27,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 1.0e-10
+static constexpr double SMALL = 2.0e-308;
 
 /* ---------------------------------------------------------------------- */
 
@@ -92,15 +92,16 @@ void BondGaussian::compute(int eflag, int vflag)
     for (int i = 0; i < nterms[type]; i++) {
       dr = r - r0[type][i];
       prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
-      exponent = -2 * dr * dr / (width[type][i] * width[type][i]);
+      exponent = -2.0 * dr * dr / (width[type][i] * width[type][i]);
       g_i = prefactor * exp(exponent);
       sum_g_i += g_i;
       sum_numerator += g_i * dr / (width[type][i] * width[type][i]);
     }
 
-    // force & energy
-    if (sum_g_i < SMALL) sum_g_i = SMALL;
+    // avoid overflow
+    if (sum_g_i < sum_numerator * SMALL) sum_g_i = sum_numerator * SMALL;
 
+    // force & energy
     if (r > 0.0)
       fbond = -4.0 * (force->boltz * bond_temperature[type]) * (sum_numerator / sum_g_i) / r;
     else
@@ -153,14 +154,15 @@ void BondGaussian::allocate()
 
 void BondGaussian::coeff(int narg, char **arg)
 {
-  if (narg < 6) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "bond_coeff", error);
 
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
   double bond_temp_one = utils::numeric(FLERR, arg[1], false, lmp);
   int n = utils::inumeric(FLERR, arg[2], false, lmp);
-  if (narg != 3 * n + 3) error->all(FLERR, "Incorrect args for bond coefficients");
+  if (n < 1) error->all(FLERR, "Invalid bond style gaussian value for n: {}", n);
+  if (narg != 3 * n + 3) utils::missing_cmd_args(FLERR, "bond_coeff", error);
 
   if (!allocated) allocate();
 
@@ -176,8 +178,11 @@ void BondGaussian::coeff(int narg, char **arg)
     r0[i] = new double[n];
     for (int j = 0; j < n; j++) {
       alpha[i][j] = utils::numeric(FLERR, arg[3 + 3 * j], false, lmp);
+      if (alpha[i][j] <= 0.0) error->all(FLERR, "Invalid value for A_{}: {}", j, alpha[i][j]);
       width[i][j] = utils::numeric(FLERR, arg[4 + 3 * j], false, lmp);
+      if (width[i][j] <= 0.0) error->all(FLERR, "Invalid value for w_{}: {}", j, width[i][j]);
       r0[i][j] = utils::numeric(FLERR, arg[5 + 3 * j], false, lmp);
+      if (r0[i][j] <= 0.0) error->all(FLERR, "Invalid value for r0_{}: {}", j, r0[i][j]);
       setflag[i] = 1;
     }
     count++;

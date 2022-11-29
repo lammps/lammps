@@ -18,8 +18,6 @@
 
 #include "pair_nm_cut.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -28,6 +26,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

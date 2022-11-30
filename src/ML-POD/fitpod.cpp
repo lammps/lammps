@@ -227,6 +227,7 @@ void CFITPOD::get_exyz_files(std::vector<std::string>& files, const std::string 
                              const std::string &extension)
 {
   auto allfiles = platform::list_directory(datapath);
+  std::sort(allfiles.begin(), allfiles.end());
   for (auto fname : allfiles) {
     if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
       files.push_back(datapath + platform::filepathsep + fname);

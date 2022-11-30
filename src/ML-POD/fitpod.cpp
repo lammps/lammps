@@ -34,7 +34,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <glob.h>
 #include <random>
 #include <string>
 #include <vector>
@@ -42,18 +41,6 @@
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
-
-std::vector<std::string> static globVector(const std::string& pattern, std::vector<std::string> & files)
-{
-  glob_t glob_result;
-  glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
-  for(unsigned int i=0;i<glob_result.gl_pathc;++i){
-    std::string s = std::string(glob_result.gl_pathv[i]);
-    files.push_back(s);
-  }
-  globfree(&glob_result);
-  return files;
-}
 
 void CFITPOD::command(int narg, char **arg)
 {
@@ -236,21 +223,26 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format,
   }
 }
 
-void CFITPOD::get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension)
+void CFITPOD::get_exyz_files(std::vector<std::string>& files, const std::string &datapath,
+                             const std::string &extension)
 {
-  std::vector<std::string> res = globVector(datapath + "/*." + extension, files);
+  auto allfiles = platform::list_directory(datapath);
+  for (auto fname : allfiles) {
+    if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
+      files.push_back(datapath + platform::filepathsep + fname);
+  }
 }
 
 int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)
 {
   std::string filename = file;
   FILE *fp;
-  //if (comm->me == 0){
+  if (comm->me == 0) {
 
     fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr)
       error->one(FLERR,"Cannot open POD coefficient file {}: ", filename, utils::getsyserror());
-  //}
+  }
 
   char line[MAXLINE],*ptr;
   int eof = 0;
@@ -480,6 +472,8 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
     utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
     utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
   }
+
+  if (data.data_files.size() < 1) error->all(FLERR, "Cannot fit potential without data files");
 
   int n = data.num_config_sum;
   memory->create(data.lattice, 9*n, "fitpod:lattice");

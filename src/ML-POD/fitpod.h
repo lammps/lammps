@@ -121,7 +121,7 @@ public:
   void command(int, char **) override;
   void read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
     std::string &test_path, std::string &training_path, const std::string &data_file);
-  void get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension);
+  void get_exyz_files(std::vector<std::string> &, const std::string &, const std::string &);
   int get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file);
   int get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files);
   void read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces,

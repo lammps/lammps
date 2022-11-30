@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(mlpod,PairMLPOD);
+PairStyle(pod,PairPOD);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_MLPOD_H
-#define LMP_PAIR_MLPOD_H
+#ifndef LMP_PAIR_POD_H
+#define LMP_PAIR_POD_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairMLPOD : public Pair {
+class PairPOD : public Pair {
  public:
-  PairMLPOD(class LAMMPS *);
-  ~PairMLPOD() override;
+  PairPOD(class LAMMPS *);
+  ~PairPOD() override;
   void compute(int, int) override;
 
   void settings(int, char **) override;

@@ -15,7 +15,7 @@
    Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)
 ------------------------------------------------------------------------- */
 
-#include "fitpod_command.h"
+#include "fitpod.h"
 
 #include "mlpod.h"
 

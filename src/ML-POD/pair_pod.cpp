@@ -15,7 +15,7 @@
    Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)
 ------------------------------------------------------------------------- */
 
-#include "pair_mlpod.h"
+#include "pair_pod.h"
 
 #include "mlpod.h"
 
@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMLPOD::PairMLPOD(LAMMPS *lmp) :
+PairPOD::PairPOD(LAMMPS *lmp) :
     Pair(lmp), gd(nullptr), gdall(nullptr), podcoeff(nullptr), newpodcoeff(nullptr),
     energycoeff(nullptr), forcecoeff(nullptr), podptr(nullptr), tmpmem(nullptr), typeai(nullptr),
     numneighsum(nullptr), rij(nullptr), idxi(nullptr), ai(nullptr), aj(nullptr), ti(nullptr),
@@ -58,7 +58,7 @@ PairMLPOD::PairMLPOD(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairMLPOD::~PairMLPOD()
+PairPOD::~PairPOD()
 {
   free_tempmemory();
   memory->destroy(podcoeff);
@@ -76,7 +76,7 @@ PairMLPOD::~PairMLPOD()
   }
 }
 
-void PairMLPOD::compute(int eflag, int vflag)
+void PairPOD::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
@@ -165,7 +165,7 @@ void PairMLPOD::compute(int eflag, int vflag)
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMLPOD::settings(int narg, char ** /* arg */)
+void PairPOD::settings(int narg, char ** /* arg */)
 {
   if (narg > 0) error->all(FLERR,"Pair style mlpod accepts no arguments");
 }
@@ -174,7 +174,7 @@ void PairMLPOD::settings(int narg, char ** /* arg */)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairMLPOD::coeff(int narg, char **arg)
+void PairPOD::coeff(int narg, char **arg)
 {
   int n = atom->ntypes;
   memory->destroy(setflag);
@@ -221,7 +221,7 @@ void PairMLPOD::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairMLPOD::init_style()
+void PairPOD::init_style()
 {
   if (force->newton_pair == 0) error->all(FLERR,"Pair style mlpod requires newton pair on");
 
@@ -237,7 +237,7 @@ void PairMLPOD::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairMLPOD::init_one(int i, int j)
+double PairPOD::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
   return podptr->pod.rcut;
@@ -247,13 +247,13 @@ double PairMLPOD::init_one(int i, int j)
    memory usage
 ------------------------------------------------------------------------- */
 
-double PairMLPOD::memory_usage()
+double PairPOD::memory_usage()
 {
   double bytes = Pair::memory_usage();
   return bytes;
 }
 
-void PairMLPOD::free_tempmemory()
+void PairPOD::free_tempmemory()
 {
   memory->destroy(rij);
   memory->destroy(idxi);
@@ -266,7 +266,7 @@ void PairMLPOD::free_tempmemory()
   memory->destroy(tmpmem);
 }
 
-void PairMLPOD::allocate_tempmemory()
+void PairPOD::allocate_tempmemory()
 {
   memory->create(rij, dim*nijmax, "pair:rij");
   memory->create(idxi, nijmax, "pair:idxi");
@@ -279,7 +279,7 @@ void PairMLPOD::allocate_tempmemory()
   memory->create(tmpmem, szd, "pair:tmpmem");
 }
 
-void PairMLPOD::estimate_tempmemory()
+void PairPOD::estimate_tempmemory()
 {
   int nrbf2 = podptr->pod.nbf2;
   int nabf3 = podptr->pod.nabf3;
@@ -300,7 +300,7 @@ void PairMLPOD::estimate_tempmemory()
   szd = nablockmax*(podptr->pod.nd1234) + szd;
 }
 
-void PairMLPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
+void PairPOD::lammpsNeighPairs(double **x, int **firstneigh, int *atomtypes, int *map, int *numneigh, int gi)
 {
 
   double rcutsq = podptr->pod.rcut*podptr->pod.rcut;

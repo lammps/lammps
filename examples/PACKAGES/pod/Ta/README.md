@@ -9,7 +9,7 @@ Fit POD with
 
 This creates `coefficients.txt` for the linear model, which we can use to run MD with
 
-    lmp -in in.mlpod
+    lmp -in in.pod
 
 
  

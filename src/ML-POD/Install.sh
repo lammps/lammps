@@ -41,11 +41,11 @@ if (test $1 = 1) then
         sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(mlpod_SYSLIB) |' ../Makefile.package
     fi
     if (test -e ../Makefile.package.settings) then
-        sed -i -e '/^include.*mlpod.*$/d' ../Makefile.package.settings
+        sed -i -e '/^[ \t]*include.*mlpod.*$/d' ../Makefile.package.settings
         # multiline form needed for BSD sed on Macs
         sed -i -e '4 i \
-            include ..\/..\/lib\/mlpod\/Makefile.lammps
-                    ' ../Makefile.package.settings
+include ..\/..\/lib\/mlpod\/Makefile.lammps
+' ../Makefile.package.settings
     fi
 
 elif (test $1 = 0) then
@@ -53,7 +53,7 @@ elif (test $1 = 0) then
         sed -i -e 's/[^ \t]*mlpod[^ \t]* //g' ../Makefile.package
     fi
     if (test -e ../Makefile.package.settings) then
-        sed -i -e '/^include.*mlpod.*$/d' ../Makefile.package.settings
+        sed -i -e '/^[ \t]*include.*mlpod.*$/d' ../Makefile.package.settings
     fi
 fi
 

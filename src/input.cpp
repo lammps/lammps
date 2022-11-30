@@ -1724,7 +1724,7 @@ void Input::pair_coeff()
   if (force->pair == nullptr) error->all(FLERR,"Pair_coeff command without a pair style");
   if (narg < 2) utils::missing_cmd_args(FLERR,"pair_coeff", error);
   if (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0)))
-    error->all(FLERR,"Pair_coeff must start with * * for this pair style");
+    error->all(FLERR,"Pair_coeff must start with * * for pair style {}", force->pair_style);
 
   char *newarg0 = utils::expand_type(FLERR, arg[0], Atom::ATOM, lmp);
   if (newarg0) arg[0] = newarg0;

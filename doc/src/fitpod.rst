@@ -63,15 +63,15 @@ All keywords except path_to_training_data_set have default values. If keywords a
 On successful training, it produces a number of output files:
 
 * training_errors.txt  reports the errors in energy and forces for the training data set
-* traning_analysis.txt reports detailed errors for all training configurations
+* training_analysis.txt reports detailed errors for all training configurations
 * test_errors.txt reports errors for the test data set
 * test_analysis.txt reports detailed errors for all test configurations
-* coefficents.txt contains the coeffcients of the POD potential
+* coefficients.txt contains the coefficients of the POD potential
 
 After training the POD potential, pod.txt and coefficents.txt are two files needed to use the
 POD potential in LAMMPS. See :doc:`pair_style pod <pair_pod>` for using the POD potential. Examples about training and using POD potentials are found in the directory lammps/examples/PACKAGES/pod.
 
-Parametrized Potential Energy Surface
+Parameterized Potential Energy Surface
 """""""""""""""""""""""""""""""""""""
 
 We consider a multi-element system of *N* atoms with :math:`N_{\rm e}` unique elements.
@@ -93,7 +93,7 @@ The superscript on each potential denotes its body order. Each *q*-body potentia
 depends on :math:`\boldsymbol \mu^{(q)}`  which are sets of parameters to fit the PES. Note
 that :math:`\boldsymbol \mu` is a collection of all potential parameters
 :math:`\boldsymbol \mu^{(1)}`, :math:`\boldsymbol \mu^{(2)}`, :math:`\boldsymbol \mu^{(3)}`, etc,
-and that :math:`\boldsymbol \eta` is a set of hyperparameters such as inner cut-off radius
+and that :math:`\boldsymbol \eta` is a set of hyper-parameters such as inner cut-off radius
 :math:`r_{\rm in}` and outer cut-off radius :math:`r_{\rm cut}`.
 
 Interatomic potentials rely on parameters to learn relationship between atomic environments
@@ -107,8 +107,8 @@ obtain *Q* different optimized potentials, :math:`E(\boldsymbol R,\boldsymbol Z,
 Consequently, there exist many different sets of optimized parameters for empirical interatomic potentials.
 
 Instead of optimizing the potential parameters,  inspired by the reduced basis method
-:ref:`(Grepl) <Grepl20072>` for parametrized partial differential equations,
-we view the parametrized PES as a parametric manifold of potential energies
+:ref:`(Grepl) <Grepl20072>` for parameterized partial differential equations,
+we view the parameterized PES as a parametric manifold of potential energies
 
 .. math::
 
@@ -120,8 +120,8 @@ of :math:`\boldsymbol \mu \in \Omega^{\boldsymbol \mu}`.  Therefore, the paramet
 and  more transferable atomic representation than any particular individual PES
 :math:`E(\boldsymbol R, \boldsymbol Z, \boldsymbol \eta, \boldsymbol \mu^*)`.
 
-We propose specific forms of the parametrized potentials for one-body, two-body,
-and three-body interactions. We apply the Karhunen-Loeve expansion to snapshots of the parametrized potentials
+We propose specific forms of the parameterized potentials for one-body, two-body,
+and three-body interactions. We apply the Karhunen-Loeve expansion to snapshots of the parameterized potentials
 to obtain sets of orthogonal basis functions. These basis functions are aggregated
 according to the chemical elements of atoms, thus leading to multi-element proper orthogonal descriptors.
 
@@ -153,7 +153,7 @@ We adopt the usual assumption that the direct interaction between two atoms vani
 when their distance is greater than the outer cutoff distance :math:`r_{\rm cut}`. Furthermore, we
 assume that two atoms can not get closer than the inner cutoff distance :math:`r_{\rm in}`
 due to the Pauli repulsion  principle. Let :math:`r \in (r_{\rm in}, r_{\rm cut})`, we introduce the
-following parametrized radial functions
+following parameterized radial functions
 
 .. math::
 
@@ -176,7 +176,7 @@ and :math:`r_{\rm cut}`, and parameters :math:`\alpha, \beta, \gamma, \kappa`. T
 these parameters allow the function :math:`\psi` to characterize a diverse spectrum of
 two-body interactions within the cut-off interval :math:`(r_{\rm in}, r_{\rm cut})`.
 
-Next, we introduce the following parametrized potential
+Next, we introduce the following parameterized potential
 
 .. math::
 
@@ -191,7 +191,7 @@ its derivative for :math:`r_{ij} \ge r_{\rm cut}`:
 
     f_{\rm c}(r_{ij},  r_{\rm in}, r_{\rm cut})  =  \exp \left(1 -\frac{1}{\sqrt{\left(1 - \frac{(r-r_{\rm in})^3}{(r_{\rm cut} - r_{\rm in})^3} \right)^2 + 10^{-6}}} \right)
 
-Based on the parametrized potential, we form a set of snapshots as follows.
+Based on the parameterized potential, we form a set of snapshots as follows.
 We assume that we are given :math:`N_{\rm s}` parameter tuples
 :math:`\boldsymbol \mu^{(2)}_\ell, 1 \le \ell \le N_{\rm s}`. We introduce the
 following set of  snapshots on :math:`(r_{\rm in}, r_{\rm cut})`:
@@ -276,7 +276,7 @@ descriptors depend on :math:`\boldsymbol Z`, their computational complexity
 is independent of :math:`N_{\rm e}`.
 
 In order to provide proper orthogonal descriptors for three-body interactions,
-we need to introduce a three-body parametrized potential. In particular, the
+we need to introduce a three-body parameterized potential. In particular, the
 three-body potential is defined as a product of radial and angular functions as follows
 
 .. math::
@@ -308,7 +308,7 @@ obtain orthogonal basis functions as follows
     U^{r}_m(r_{ij}, r_{\rm min}, r_{\rm max} ) = \sum_{\ell = 1}^{L_{\rm r}} A_{\ell m} \,  \zeta_\ell(r_{ij}, r_{\rm min}, r_{\rm max} ), \qquad m = 1, \ldots, N_{\rm r} ,
 
 where the matrix :math:`\boldsymbol A \in \mathbb{R}^{L_{\rm r} \times L_{\rm r}}` consists
-of eigenvectors of the eigenvalue problem. For the parametrized angular function,
+of eigenvectors of the eigenvalue problem. For the parameterized angular function,
 we consider angular basis functions
 
 .. math::
@@ -316,7 +316,7 @@ we consider angular basis functions
     U^{a}_n(\theta_{ijk}) = \cos ((n-1) \theta_{ijk}), \qquad  n = 1,\ldots, N_{\rm a},
 
 where :math:`N_{\rm a}` is the number of angular basis functions. The orthogonal
-basis functions for the parametrized potential are computed as follows
+basis functions for the parameterized potential are computed as follows
 
 .. math::
 
@@ -353,7 +353,7 @@ where
     \right.
 
 The number of three-body descriptors per atom is thus :math:`N_{\rm 3b} N_{\rm e}^2(N_{\rm e}+1)/2`.
-While the number of three-body PODs increases cubically as a function of the number of elements,
+While the number of three-body PODs is cubic function of the number of elements,
 the computational complexity of the three-body PODs is independent of the number of elements.
 
 Four-Body SNAP Descriptors
@@ -558,8 +558,8 @@ descriptors, it is more expensive to train the linear POD potential. This is
 because the training of the quadratic POD potential
 still requires us to calculate and store the quadratic global descriptors  and
 their gradient. Furthermore, the quadratic POD potential may require more training
-data in order to prevent overfitting. In order to reduce the computational cost of fitting
-the quadratic POD potential and avoid overfitting, we can use subsets of two-body and three-body
+data in order to prevent over-fitting. In order to reduce the computational cost of fitting
+the quadratic POD potential and avoid over-fitting, we can use subsets of two-body and three-body
 PODs for constructing the new descriptors.
 
 

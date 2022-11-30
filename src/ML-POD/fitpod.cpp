@@ -1032,7 +1032,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for four-body quadratic22 potential
 
-  if (nd22>0) {
+  if (nd22 > 0) {
     int nq2 = podptr->pod.quadratic22[0]*podptr->pod.nc2;
     podptr->quadratic_descriptors(&desc.gd[nd1234], &desc.gdd[dim*natom*nd1234],
         &desc.gd[nd1], fatom2, nq2, dim*natom);
@@ -1040,7 +1040,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for four-body quadratic23 potential
 
-  if (nd23>0) {
+  if (nd23 > 0) {
     int nq2 = podptr->pod.quadratic23[0]*podptr->pod.nc2;
     int nq3 = podptr->pod.quadratic23[1]*podptr->pod.nc3;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22], &desc.gdd[dim*natom*(nd1234+nd22)],
@@ -1049,7 +1049,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for five-body quadratic24 potential
 
-  if (nd24>0) {
+  if (nd24 > 0) {
     int nq2 = podptr->pod.quadratic24[0]*podptr->pod.nc2;
     int nq4 = podptr->pod.quadratic24[1]*podptr->pod.nc4;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22+nd23], &desc.gdd[dim*natom*(nd1234+nd22+nd23)],
@@ -1058,7 +1058,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for five-body quadratic33 potential
 
-  if (nd33>0) {
+  if (nd33 > 0) {
     int nq3 = podptr->pod.quadratic33[0]*podptr->pod.nc3;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22+nd23+nd24], &desc.gdd[dim*natom*(nd1234+nd22+nd23+nd24)],
         &desc.gd[nd1+nd2], fatom3, nq3, dim*natom);
@@ -1066,7 +1066,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for six-body quadratic34 potential
 
-  if (nd34>0) {
+  if (nd34 > 0) {
     int nq3 = podptr->pod.quadratic34[0]*podptr->pod.nc3;
     int nq4 = podptr->pod.quadratic34[1]*podptr->pod.nc4;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22+nd23+nd24+nd33], &desc.gdd[dim*natom*(nd1234+nd22+nd23+nd24+nd33)],
@@ -1075,7 +1075,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for seven-body quadratic44 potential
 
-  if (nd44>0) {
+  if (nd44 > 0) {
     int nq4 = podptr->pod.quadratic44[0]*podptr->pod.nc4;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22+nd23+nd24+nd33+nd34], &desc.gdd[dim*natom*(nd1234+nd22+nd23+nd24+nd33+nd34)],
         &desc.gd[nd1+nd2+nd3], fatom4, nq4, dim*natom);
@@ -1111,7 +1111,7 @@ void CFITPOD::cubic_descriptors(datastruct data, int ci)
   int nd1234 = nd1+nd2+nd3+nd4;
 
   // global descriptors for seven-body cubic234 potential
-  if (nd234>0) {
+  if (nd234 > 0) {
     int nq2 = podptr->pod.cubic234[0]*podptr->pod.nc2;
     int nq3 = podptr->pod.cubic234[1]*podptr->pod.nc3;
     int nq4 = podptr->pod.cubic234[2]*podptr->pod.nc4;
@@ -1128,7 +1128,7 @@ void CFITPOD::cubic_descriptors(datastruct data, int ci)
 
   // global descriptors for seven-body cubic333 potential
 
-  if (nd333>0) {
+  if (nd333 > 0) {
     int nq3 = podptr->pod.cubic333[0]*podptr->pod.nc3;
     int np3 = nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234;
     double *eatom3 = &desc.gd[nd1+nd2];
@@ -1139,7 +1139,7 @@ void CFITPOD::cubic_descriptors(datastruct data, int ci)
 
   // global descriptors for ten-body cubic444 potential
 
-  if (nd444>0) {
+  if (nd444 > 0) {
     int nq4 = podptr->pod.cubic444[0]*podptr->pod.nc4;
     int np4 = nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234+nd333;
     double *eatom4 = &desc.gd[nd123];

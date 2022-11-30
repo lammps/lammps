@@ -78,7 +78,7 @@ LAMMPS makes extensive use of the object oriented programming (OOP)
 principles of *compositing* and *inheritance*. Classes like the
 ``LAMMPS`` class are a **composite** containing pointers to instances
 of other classes like ``Atom``, ``Comm``, ``Force``, ``Neighbor``,
-``Modify``, and so on.  Each of these classes implement certain
+``Modify``, and so on.  Each of these classes implements certain
 functionality by storing and manipulating data related to the
 simulation and providing member functions that trigger certain
 actions.  Some of those classes like ``Force`` are themselves
@@ -87,9 +87,9 @@ interactions.  Similarly the ``Modify`` class contains a list of
 ``Fix`` and ``Compute`` classes.  If the input commands that
 correspond to these classes include the word *style*, then LAMMPS
 stores only a single instance of that class.  E.g. *atom_style*,
-*comm_style*, *pair_style*, *bond_style*.  It the input command does
-not include the word *style*, there can be many instances of that
-class defined.  E.g. *region*, *fix*, *compute*, *dump*.
+*comm_style*, *pair_style*, *bond_style*.  If the input command does
+**not** include the word *style*, then there may be many instances of
+that class defined, for example *region*, *fix*, *compute*, *dump*.
 
 **Inheritance** enables creation of *derived* classes that can share
 common functionality in their base class while providing a consistent

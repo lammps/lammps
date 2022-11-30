@@ -90,8 +90,7 @@ Commands
    region
    replicate
    rerun
-   reset_atom_ids
-   reset_mol_ids
+   reset_atoms
    reset_timestep
    restart
    run

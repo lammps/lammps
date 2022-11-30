@@ -758,7 +758,12 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle, id, ptr
       TYPE(c_funptr), VALUE :: funcptr
     END SUBROUTINE lammps_set_fix_external_callback
-    !FUNCTION lammps_fix_external_get_force() ! returns real(c_double)(:)
+
+    FUNCTION lammps_fix_external_get_force(handle, id) BIND(C)
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: handle, id
+      TYPE(c_ptr) :: lammps_fix_external_get_force
+    END FUNCTION lammps_fix_external_get_force
 
     !SUBROUTINE lammps_fix_external_set_energy_global
     !SUBROUTINE lammps_fix_external_set_energy_peratom
@@ -2568,6 +2573,23 @@ CONTAINS
         & please report a bug')
     END IF
   END SUBROUTINE callback_wrapper_bigbig
+
+  ! equivalent function to lammps_fix_external_get_force
+  FUNCTION lmp_fix_external_get_force(self, id) RESULT(fexternal)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    REAL(c_double), DIMENSION(:,:), POINTER :: fexternal
+    TYPE(c_ptr) :: ptr, Cid
+    TYPE(c_ptr), DIMENSION(:), POINTER :: f
+    INTEGER(c_int) :: nmax
+
+    Cid = f2c_string(id)
+    ptr = lammps_fix_external_get_force(self%handle, Cid)
+    nmax = lmp_extract_setting(self, 'nmax')
+    CALL C_F_POINTER(ptr, f, [nmax])
+    CALL C_F_POINTER(f(1), fexternal, [3, nmax])
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_fix_external_get_force
 
   ! equivalent function to lammps_flush_buffers
   SUBROUTINE lmp_flush_buffers(self)

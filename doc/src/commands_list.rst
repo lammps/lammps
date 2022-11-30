@@ -13,7 +13,6 @@ Commands
    bond_style
    bond_write
    boundary
-   box
    change_box
    clear
    comm_modify
@@ -90,8 +89,7 @@ Commands
    region
    replicate
    rerun
-   reset_atom_ids
-   reset_mol_ids
+   reset_atoms
    reset_timestep
    restart
    run

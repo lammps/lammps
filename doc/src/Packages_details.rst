@@ -1829,9 +1829,9 @@ Go to the `lammps` directory and build with the POD package::
 **Supporting info:**
 
 * src/ML-POD: filenames -> commands
-* :doc:`pair_style mlpod <pair_mlpod>`
-* :doc:`command_style fitpod <fitpod_command>`
-* examples/mlpod
+* :doc:`pair_style pod <pair_pod>`
+* :doc:`command_style fitpod <fitpod>`
+* examples/pod
 
 ----------
 

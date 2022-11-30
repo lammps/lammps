@@ -43,7 +43,7 @@ Commands
    echo
    fix
    fix_modify
-   fitpod_command
+   fitpod
    group
    group2ndx
    hyper

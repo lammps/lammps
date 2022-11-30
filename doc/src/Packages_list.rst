@@ -300,8 +300,8 @@ whether an extra library is needed to build and use the package:
      - ext
    * - :ref:`ML-POD <PKG-ML-POD>`
      - Proper orthogonal decomposition potentials
-     - :doc:`pair mlpod <pair_mlpod>`
-     - mlpod
+     - :doc:`pair pod <pair_pod>`
+     - pod
      - ext
    * - :ref:`ML-QUIP <PKG-ML-QUIP>`
      - QUIP/libatoms interface

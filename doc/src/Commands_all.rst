@@ -31,7 +31,6 @@ table above.
    * :doc:`bond_style <bond_style>`
    * :doc:`bond_write <bond_write>`
    * :doc:`boundary <boundary>`
-   * :doc:`box <box>`
    * :doc:`change_box <change_box>`
    * :doc:`clear <clear>`
    * :doc:`comm_modify <comm_modify>`

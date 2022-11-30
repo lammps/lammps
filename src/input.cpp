@@ -772,7 +772,6 @@ int Input::execute_command()
   else if (!strcmp(command,"bond_style")) bond_style();
   else if (!strcmp(command,"bond_write")) bond_write();
   else if (!strcmp(command,"boundary")) boundary();
-  else if (!strcmp(command,"box")) box();
   else if (!strcmp(command,"comm_modify")) comm_modify();
   else if (!strcmp(command,"comm_style")) comm_style();
   else if (!strcmp(command,"compute")) compute();
@@ -1407,15 +1406,6 @@ void Input::boundary()
   if (domain->box_exist)
     error->all(FLERR,"Boundary command after simulation box is defined");
   domain->set_boundary(narg,arg,0);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Input::box()
-{
-  if (domain->box_exist)
-    error->all(FLERR,"Box command after simulation box is defined");
-  domain->set_box(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

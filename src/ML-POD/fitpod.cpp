@@ -1258,9 +1258,9 @@ void CFITPOD::least_squares_fit(datastruct data)
 
   // save coefficients into a text file
 
-  std::string filename = "coefficients"  + podptr->pod.filenametag + ".txt";           
+  std::string filename = "coefficients"  + podptr->pod.filenametag + ".txt";
   FILE *fp = fopen(filename.c_str(), "w");
-  
+
   fmt::print(fp, "POD_coefficients: {}\n", nd);
   for (int count = 0; count < nd; count++){
 
@@ -1324,9 +1324,9 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
 
   //std::string filename_errors = data.training ? "training_errors.txt" : "test_errors.txt";
   //std::string filename_analysis = data.training ? "training_analysis.txt" : "test_analysis.txt";
-  std::string filename_errors = (data.training ? "training_errors" : "test_errors")  + podptr->pod.filenametag + ".txt";   
-  std::string filename_analysis = data.training ? "training_analysis" : "test_analysis" + podptr->pod.filenametag + ".txt";   
-  
+  std::string filename_errors = (data.training ? "training_errors" : "test_errors")  + podptr->pod.filenametag + ".txt";
+  std::string filename_analysis = data.training ? "training_analysis" : "test_analysis" + podptr->pod.filenametag + ".txt";
+
   FILE *fp_errors = fopen(filename_errors.c_str(), "w");
   FILE *fp_analysis = fopen(filename_analysis.c_str(), "w");
 

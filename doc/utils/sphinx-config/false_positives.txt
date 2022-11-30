@@ -608,6 +608,7 @@ curv
 Cusentino
 customIDs
 cutbond
+cutghost
 cuthi
 cutinner
 cutlo
@@ -749,6 +750,7 @@ dimensionality
 dimensioned
 dimgray
 dipolar
+dipoleflag
 dir
 Direc
 dirname
@@ -757,6 +759,7 @@ discretization
 discretized
 discretizing
 disp
+dispersionflag
 dissipative
 Dissipative
 distharm
@@ -1022,6 +1025,7 @@ evirials
 ew
 ewald
 Ewald
+ewaldflag
 excitations
 excv
 exe
@@ -1094,6 +1098,7 @@ Fincham
 Fint
 fingerprintconstants
 fingerprintsperelement
+finitecutflag
 Finnis
 Fiorin
 fixID
@@ -2198,6 +2203,7 @@ msd
 msi
 MSI
 msm
+msmflag
 msse
 msst
 Mtchell
@@ -2773,6 +2779,7 @@ PowerShell
 ppme
 ppn
 pppm
+pppmflag
 Prakash
 Praprotnik
 prd
@@ -2952,6 +2959,7 @@ refactoring
 reflectionstyle
 Reinders
 reinit
+reinitflag
 relaxbox
 relink
 relres
@@ -3285,6 +3293,7 @@ SPH
 spica
 SPICA
 Spickermann
+spinflag
 splined
 spparks
 Sprik
@@ -3837,6 +3846,7 @@ workflows
 Workum
 Worley
 Wriggers
+writedata
 Wuppertal
 Wurtzite
 www

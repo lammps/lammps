@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -12,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "reset_atom_ids.h"
+#include "reset_atoms_id.h"
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -32,7 +31,7 @@ using namespace LAMMPS_NS;
 #if defined(LMP_QSORT)
 // allocate space for static class variable
 // prototype for non-class function
-ResetIDs::AtomRvous *ResetIDs::sortrvous;
+ResetAtomsID::AtomRvous *ResetAtomsID::sortrvous;
 static int compare_coords(const void *, const void *);
 #else
 // prototype for non-class function
@@ -44,22 +43,21 @@ static int compare_coords(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
-ResetIDs::ResetIDs(LAMMPS *lmp) : Command(lmp) {}
+ResetAtomsID::ResetAtomsID(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-void ResetIDs::command(int narg, char **arg)
+void ResetAtomsID::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Reset_ids command before simulation box is defined");
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use reset_atom_ids unless atoms have IDs");
+    error->all(FLERR, "Reset_atoms id command before simulation box is defined");
+  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset_atoms id unless atoms have IDs");
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->stores_ids)
-      error->all(FLERR,"Cannot use reset_atom_ids when a fix exists that stores atom IDs");
+      error->all(FLERR, "Cannot use reset_atoms id when a fix exists that stores atom IDs");
 
-  if (comm->me == 0) utils::logmesg(lmp,"Resetting atom IDs ...\n");
+  if (comm->me == 0) utils::logmesg(lmp, "Resetting atom IDs ...\n");
 
   // process args
 
@@ -67,11 +65,12 @@ void ResetIDs::command(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"sort") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_atom_ids command");
-      sortflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    if (strcmp(arg[iarg], "sort") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset_atoms id", error);
+      sortflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal reset_atom_ids command");
+    } else
+      error->all(FLERR, "Unknown reset_atoms id keyword: {}", arg[iarg]);
   }
 
   // create an atom map if one doesn't exist already
@@ -99,7 +98,7 @@ void ResetIDs::command(int narg, char **arg)
   comm->setup();
   comm->exchange();
   comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
 
   // oldIDs = copy of current owned IDs
 
@@ -108,7 +107,7 @@ void ResetIDs::command(int narg, char **arg)
   int nall = nlocal + atom->nghost;
 
   tagint *oldIDs;
-  memory->create(oldIDs,nlocal,"reset_atom_ids:oldIDs");
+  memory->create(oldIDs, nlocal, "reset_atom_ids:oldIDs");
 
   for (int i = 0; i < nlocal; i++) {
     oldIDs[i] = tag[i];
@@ -119,22 +118,24 @@ void ResetIDs::command(int narg, char **arg)
   // if sortflag = no: use fast tag_extend()
   // if sortflag = yes: use slower full spatial sort plus rendezvous comm
 
-  if (sortflag == 0) atom->tag_extend();
-  else sort();
+  if (sortflag == 0)
+    atom->tag_extend();
+  else
+    sort();
 
   // newIDs = copy of new IDs
   // restore old IDs, consistent with existing atom map
   // forward_comm_array acquires new IDs for ghost atoms
 
   double **newIDs;
-  memory->create(newIDs,nall,1,"reset_atom_ids:newIDs");
+  memory->create(newIDs, nall, 1, "reset_atom_ids:newIDs");
 
   for (int i = 0; i < nlocal; i++) {
     newIDs[i][0] = ubuf(tag[i]).d;
     tag[i] = oldIDs[i];
   }
 
-  comm->forward_comm_array(1,newIDs);
+  comm->forward_comm_array(1, newIDs);
 
   // loop over bonds, angles, etc and reset IDs in stored topology arrays
   // only necessary for molecular = Atom::MOLECULAR, not molecular = Atom::TEMPLATE
@@ -143,7 +144,7 @@ void ResetIDs::command(int narg, char **arg)
   int badcount = 0;
 
   if (atom->molecular == Atom::MOLECULAR) {
-    int j,m;
+    int j, m;
     tagint oldID;
 
     if (atom->avec->bonds_allow) {
@@ -153,8 +154,10 @@ void ResetIDs::command(int narg, char **arg)
         for (j = 0; j < num_bond[i]; j++) {
           oldID = bond_atom[i][j];
           m = atom->map(oldID);
-          if (m >= 0) bond_atom[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            bond_atom[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
         }
       }
     }
@@ -168,18 +171,24 @@ void ResetIDs::command(int narg, char **arg)
         for (j = 0; j < num_angle[i]; j++) {
           oldID = angle_atom1[i][j];
           m = atom->map(oldID);
-          if (m >= 0) angle_atom1[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            angle_atom1[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
 
           oldID = angle_atom2[i][j];
           m = atom->map(oldID);
-          if (m >= 0) angle_atom2[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            angle_atom2[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
 
           oldID = angle_atom3[i][j];
           m = atom->map(oldID);
-          if (m >= 0) angle_atom3[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            angle_atom3[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
         }
       }
     }
@@ -194,23 +203,31 @@ void ResetIDs::command(int narg, char **arg)
         for (j = 0; j < num_dihedral[i]; j++) {
           oldID = dihedral_atom1[i][j];
           m = atom->map(oldID);
-          if (m >= 0) dihedral_atom1[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            dihedral_atom1[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
 
           oldID = dihedral_atom2[i][j];
           m = atom->map(oldID);
-          if (m >= 0) dihedral_atom2[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            dihedral_atom2[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
 
           oldID = dihedral_atom3[i][j];
           m = atom->map(oldID);
-          if (m >= 0) dihedral_atom3[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            dihedral_atom3[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
 
           oldID = dihedral_atom4[i][j];
           m = atom->map(oldID);
-          if (m >= 0) dihedral_atom4[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            dihedral_atom4[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
         }
       }
     }
@@ -225,23 +242,31 @@ void ResetIDs::command(int narg, char **arg)
         for (j = 0; j < num_improper[i]; j++) {
           oldID = improper_atom1[i][j];
           m = atom->map(oldID);
-          if (m >= 0) improper_atom1[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            improper_atom1[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
 
           oldID = improper_atom2[i][j];
           m = atom->map(oldID);
-          if (m >= 0) improper_atom2[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            improper_atom2[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
 
           oldID = improper_atom3[i][j];
           m = atom->map(oldID);
-          if (m >= 0) improper_atom3[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            improper_atom3[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
 
           oldID = improper_atom4[i][j];
           m = atom->map(oldID);
-          if (m >= 0) improper_atom4[i][j] = (tagint) ubuf(newIDs[m][0]).i;
-          else badcount++;
+          if (m >= 0)
+            improper_atom4[i][j] = (tagint) ubuf(newIDs[m][0]).i;
+          else
+            badcount++;
         }
       }
     }
@@ -250,10 +275,10 @@ void ResetIDs::command(int narg, char **arg)
   // error check
 
   int all;
-  MPI_Allreduce(&badcount,&all,1,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(&badcount, &all, 1, MPI_INT, MPI_SUM, world);
   if (all)
-    error->all(FLERR,"Reset_ids missing {} bond topology atom IDs - "
-                                 "use comm_modify cutoff",all);
+    error->all(FLERR,
+               "reset_atoms id is missing {} bond topology atom IDs - use comm_modify cutoff", all);
 
   // reset IDs and atom map for owned atoms
 
@@ -287,9 +312,9 @@ void ResetIDs::command(int narg, char **arg)
    spatial sort of atoms followed by rendezvous comm to reset atom IDs
 ------------------------------------------------------------------------- */
 
-void ResetIDs::sort()
+void ResetAtomsID::sort()
 {
-  double mylo[3],myhi[3],bboxlo[3],bboxhi[3];
+  double mylo[3], myhi[3], bboxlo[3], bboxhi[3];
 
   int me = comm->me;
   int nprocs = comm->nprocs;
@@ -306,12 +331,12 @@ void ResetIDs::sort()
   myhi[0] = myhi[1] = myhi[2] = -BIG;
 
   for (int i = 0; i < nlocal; i++) {
-    mylo[0] = MIN(mylo[0],x[i][0]);
-    mylo[1] = MIN(mylo[1],x[i][1]);
-    mylo[2] = MIN(mylo[2],x[i][2]);
-    myhi[0] = MAX(myhi[0],x[i][0]);
-    myhi[1] = MAX(myhi[1],x[i][1]);
-    myhi[2] = MAX(myhi[2],x[i][2]);
+    mylo[0] = MIN(mylo[0], x[i][0]);
+    mylo[1] = MIN(mylo[1], x[i][1]);
+    mylo[2] = MIN(mylo[2], x[i][2]);
+    myhi[0] = MAX(myhi[0], x[i][0]);
+    myhi[1] = MAX(myhi[1], x[i][1]);
+    myhi[2] = MAX(myhi[2], x[i][2]);
   }
 
   if (dim == 2) mylo[2] = myhi[2] = 0.0;
@@ -325,15 +350,15 @@ void ResetIDs::sort()
     }
   }
 
-  MPI_Allreduce(mylo,bboxlo,3,MPI_DOUBLE,MPI_MIN,world);
-  MPI_Allreduce(myhi,bboxhi,3,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(mylo, bboxlo, 3, MPI_DOUBLE, MPI_MIN, world);
+  MPI_Allreduce(myhi, bboxhi, 3, MPI_DOUBLE, MPI_MAX, world);
 
-  bboxlo[0] -= 0.0001 * (bboxhi[0]-bboxlo[0]);
-  bboxlo[1] -= 0.0001 * (bboxhi[1]-bboxlo[1]);
-  bboxlo[2] -= 0.0001 * (bboxhi[2]-bboxlo[2]);
-  bboxhi[0] += 0.0001 * (bboxhi[0]-bboxlo[0]);
-  bboxhi[1] += 0.0001 * (bboxhi[1]-bboxlo[1]);
-  bboxhi[2] += 0.0001 * (bboxhi[2]-bboxlo[2]);
+  bboxlo[0] -= 0.0001 * (bboxhi[0] - bboxlo[0]);
+  bboxlo[1] -= 0.0001 * (bboxhi[1] - bboxlo[1]);
+  bboxlo[2] -= 0.0001 * (bboxhi[2] - bboxlo[2]);
+  bboxhi[0] += 0.0001 * (bboxhi[0] - bboxlo[0]);
+  bboxhi[1] += 0.0001 * (bboxhi[1] - bboxlo[1]);
+  bboxhi[2] += 0.0001 * (bboxhi[2] - bboxlo[2]);
 
   // nbin_estimate = estimate of total number of bins, each with PERBIN atoms
   // binsize = edge length of a cubic bin
@@ -342,19 +367,23 @@ void ResetIDs::sort()
   bigint nbin_estimate = atom->natoms / PERBIN + 1;
 
   double vol;
-  if (dim == 2) vol = (bboxhi[0]-bboxlo[0]) * (bboxhi[1]-bboxlo[1]);
-  else vol = (bboxhi[0]-bboxlo[0]) * (bboxhi[1]-bboxlo[1]) * (bboxhi[2]-bboxlo[2]);
-  double binsize = pow(vol/nbin_estimate,1.0/dim);
+  if (dim == 2)
+    vol = (bboxhi[0] - bboxlo[0]) * (bboxhi[1] - bboxlo[1]);
+  else
+    vol = (bboxhi[0] - bboxlo[0]) * (bboxhi[1] - bboxlo[1]) * (bboxhi[2] - bboxlo[2]);
+  double binsize = pow(vol / nbin_estimate, 1.0 / dim);
 
-  int nbinx = static_cast<int> ((bboxhi[0]-bboxlo[0]) / binsize) + 1;
-  int nbiny = static_cast<int> ((bboxhi[1]-bboxlo[1]) / binsize) + 1;
-  int nbinz = static_cast<int> ((bboxhi[2]-bboxlo[2]) / binsize) + 1;
+  int nbinx = static_cast<int>((bboxhi[0] - bboxlo[0]) / binsize) + 1;
+  int nbiny = static_cast<int>((bboxhi[1] - bboxlo[1]) / binsize) + 1;
+  int nbinz = static_cast<int>((bboxhi[2] - bboxlo[2]) / binsize) + 1;
 
-  double invx = 1.0 / (bboxhi[0]-bboxlo[0]);
-  double invy = 1.0 / (bboxhi[1]-bboxlo[1]);
+  double invx = 1.0 / (bboxhi[0] - bboxlo[0]);
+  double invy = 1.0 / (bboxhi[1] - bboxlo[1]);
   double invz;
-  if (dim == 2) invz = 0.0;
-  else invz = 1.0 / (bboxhi[2]-bboxlo[2]);
+  if (dim == 2)
+    invz = 0.0;
+  else
+    invz = 1.0 / (bboxhi[2] - bboxlo[2]);
 
   // nbins = actual total number of bins
   // bins are split evenly across procs
@@ -366,18 +395,18 @@ void ResetIDs::sort()
   // binlo to binhi-1 = bin indices this proc will own in Rvous decomp
   // bins are numbered from 0 to Nbins-1
 
-  bigint nbins = (bigint) nbinx*nbiny*nbinz;
+  bigint nbins = (bigint) nbinx * nbiny * nbinz;
   bigint nlo = nbins / nprocs;
   bigint nhi = nlo + 1;
   bigint nplo = nprocs - (nbins % nprocs);
-  bigint nbinlo = nplo*nlo;
+  bigint nbinlo = nplo * nlo;
 
   if (me < nplo) {
     binlo = me * nlo;
-    binhi = (me+1) * nlo;
+    binhi = (me + 1) * nlo;
   } else {
-    binlo = nbinlo + (me-nplo) * nhi;
-    binhi = nbinlo + (me+1-nplo) * nhi;
+    binlo = nbinlo + (me - nplo) * nhi;
+    binhi = nbinlo + (me + 1 - nplo) * nhi;
   }
 
   // fill atombuf with info on my atoms
@@ -385,20 +414,23 @@ void ResetIDs::sort()
   // proclist = proc that owns ibin
 
   int *proclist;
-  memory->create(proclist,nlocal,"special:proclist");
-  auto atombuf = (AtomRvous *) memory->smalloc((bigint) nlocal*sizeof(AtomRvous),"resetIDs:idbuf");
+  memory->create(proclist, nlocal, "special:proclist");
+  auto atombuf =
+      (AtomRvous *) memory->smalloc((bigint) nlocal * sizeof(AtomRvous), "resetIDs:idbuf");
 
-  int ibinx,ibiny,ibinz,iproc;
+  int ibinx, ibiny, ibinz, iproc;
   bigint ibin;
 
   for (int i = 0; i < nlocal; i++) {
-    ibinx = static_cast<int> ((x[i][0]-bboxlo[0])*invx * nbinx);
-    ibiny = static_cast<int> ((x[i][1]-bboxlo[1])*invy * nbiny);
-    ibinz = static_cast<int> ((x[i][2]-bboxlo[2])*invz * nbinz);
-    ibin = (bigint) ibinz*nbiny*nbinx + (bigint) ibiny*nbinx + ibinx;
+    ibinx = static_cast<int>((x[i][0] - bboxlo[0]) * invx * nbinx);
+    ibiny = static_cast<int>((x[i][1] - bboxlo[1]) * invy * nbiny);
+    ibinz = static_cast<int>((x[i][2] - bboxlo[2]) * invz * nbinz);
+    ibin = (bigint) ibinz * nbiny * nbinx + (bigint) ibiny * nbinx + ibinx;
 
-    if (ibin < nbinlo) iproc = ibin / nlo;
-    else iproc = nplo + (ibin-nbinlo) / nhi;
+    if (ibin < nbinlo)
+      iproc = ibin / nlo;
+    else
+      iproc = nplo + (ibin - nbinlo) / nhi;
     proclist[i] = iproc;
 
     atombuf[i].ibin = ibin;
@@ -412,8 +444,8 @@ void ResetIDs::sort()
   // perform rendezvous operation, send atombuf to other procs
 
   char *buf;
-  int nreturn = comm->rendezvous(1,nlocal,(char *) atombuf,sizeof(AtomRvous),0,proclist,
-                                 sort_bins,0,buf,sizeof(IDRvous),(void *) this);
+  int nreturn = comm->rendezvous(1, nlocal, (char *) atombuf, sizeof(AtomRvous), 0, proclist,
+                                 sort_bins, 0, buf, sizeof(IDRvous), (void *) this);
   auto outbuf = (IDRvous *) buf;
 
   memory->destroy(proclist);
@@ -437,11 +469,11 @@ void ResetIDs::sort()
    outbuf = list of N IDRvous datums, sent back to sending proc
 ------------------------------------------------------------------------- */
 
-int ResetIDs::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&outbuf, void *ptr)
+int ResetAtomsID::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&outbuf, void *ptr)
 {
-  int i,ibin,index;
+  int i, ibin, index;
 
-  auto rptr = (ResetIDs *) ptr;
+  auto rptr = (ResetAtomsID *) ptr;
   Memory *memory = rptr->memory;
   Error *error = rptr->error;
   MPI_Comm world = rptr->world;
@@ -451,13 +483,13 @@ int ResetIDs::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&ou
   // nbins = my subset of bins from binlo to binhi-1
   // initialize linked lists of my Rvous atoms in each bin
 
-  int *next,*head,*last,*count;
+  int *next, *head, *last, *count;
 
   int nbins = binhi - binlo;
-  memory->create(next,n,"resetIDs:next");
-  memory->create(head,nbins,"resetIDs:head");
-  memory->create(last,nbins,"resetIDs:last");
-  memory->create(count,nbins,"resetIDs:count");
+  memory->create(next, n, "resetIDs:next");
+  memory->create(head, nbins, "resetIDs:head");
+  memory->create(last, nbins, "resetIDs:last");
+  memory->create(count, nbins, "resetIDs:count");
 
   for (i = 0; i < n; i++) next[i] = -1;
 
@@ -472,7 +504,7 @@ int ResetIDs::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&ou
     if (in[i].ibin < binlo || in[i].ibin >= binhi) {
       //printf("BAD me %d i %d %d ibin %d binlohi %d %d\n",
       //             rptr->comm->me,i,n,in[i].ibin,binlo,binhi);
-      error->one(FLERR,"Bad spatial bin assignment in reset_atom_ids sort");
+      error->one(FLERR, "Bad spatial bin assignment in reset_atoms id sort");
     }
     ibin = in[i].ibin - binlo;
     if (head[ibin] < 0) head[ibin] = i;
@@ -482,11 +514,10 @@ int ResetIDs::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&ou
   }
 
   int maxcount = 0;
-  for (ibin = 0; ibin < nbins; ibin++)
-    maxcount = MAX(maxcount,count[ibin]);
+  for (ibin = 0; ibin < nbins; ibin++) maxcount = MAX(maxcount, count[ibin]);
 
   int *order;
-  memory->create(order,maxcount,"resetIDs:order");
+  memory->create(order, maxcount, "resetIDs:order");
 
   // sort atoms in each bin by their spatial position
   // recreate linked list for each bin based on sorted order
@@ -498,12 +529,11 @@ int ResetIDs::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&ou
       index = next[index];
     }
 
-
 #if defined(LMP_QSORT)
     sortrvous = in;
-    qsort(order,count[ibin],sizeof(int),compare_coords);
+    qsort(order, count[ibin], sizeof(int), compare_coords);
 #else
-    utils::merge_sort(order,count[ibin],(void *) in,compare_coords);
+    utils::merge_sort(order, count[ibin], (void *) in, compare_coords);
 #endif
 
     head[ibin] = last[ibin] = -1;
@@ -518,15 +548,15 @@ int ResetIDs::sort_bins(int n, char *inbuf, int &flag, int *&proclist, char *&ou
 
   tagint ntag = n;
   tagint nprev;
-  MPI_Scan(&ntag,&nprev,1,MPI_LMP_TAGINT,MPI_SUM,world);
+  MPI_Scan(&ntag, &nprev, 1, MPI_LMP_TAGINT, MPI_SUM, world);
   nprev -= n;
 
   // loop over bins and sorted atoms in each bin, reset ids to be consecutive
   // pass outbuf of IDRvous datums back to comm->rendezvous
 
   int nout = n;
-  memory->create(proclist,nout,"resetIDs:proclist");
-  auto out = (IDRvous *) memory->smalloc(nout*sizeof(IDRvous),"resetIDs:out");
+  memory->create(proclist, nout, "resetIDs:proclist");
+  auto out = (IDRvous *) memory->smalloc(nout * sizeof(IDRvous), "resetIDs:out");
 
   tagint one = nprev + 1;
   for (ibin = 0; ibin < nbins; ibin++) {
@@ -567,7 +597,7 @@ int compare_coords(const void *iptr, const void *jptr)
 {
   int i = *((int *) iptr);
   int j = *((int *) jptr);
-  ResetIDs::AtomRvous *rvous = ResetIDs::sortrvous;
+  ResetAtomsID::AtomRvous *rvous = ResetAtomsID::sortrvous;
   double *xi = rvous[i].x;
   double *xj = rvous[j].x;
   if (xi[0] < xj[0]) return -1;
@@ -588,7 +618,7 @@ int compare_coords(const void *iptr, const void *jptr)
 
 int compare_coords(const int i, const int j, void *ptr)
 {
-  auto rvous = (ResetIDs::AtomRvous *) ptr;
+  auto rvous = (ResetAtomsID::AtomRvous *) ptr;
   double *xi = rvous[i].x;
   double *xj = rvous[j].x;
   if (xi[0] < xj[0]) return -1;

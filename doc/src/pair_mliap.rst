@@ -180,7 +180,7 @@ to specify the path for these *model* and *descriptor* files.
    larger systems since their size depends on the total number of
    neighbors per MPI process.
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 The *unified* keyword is followed by an argument specifying the
 filename containing the serialized unified Python object and the "ghostneigh" toggle

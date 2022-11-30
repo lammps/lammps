@@ -13,21 +13,21 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(reset_mol_ids,ResetMolIDs);
+CommandStyle(RESET_ATOMS_MOL,ResetAtomsMol);
 // clang-format on
 #else
 
-#ifndef LMP_RESET_MOL_IDS_H
-#define LMP_RESET_MOL_IDS_H
+#ifndef LMP_RESET_ATOMS_MOL_H
+#define LMP_RESET_ATOMS_MOL_H
 
 #include "command.h"
 
 namespace LAMMPS_NS {
 
-class ResetMolIDs : public Command {
+class ResetAtomsMol : public Command {
  public:
-  ResetMolIDs(class LAMMPS *);
-  ~ResetMolIDs() override;
+  ResetAtomsMol(class LAMMPS *);
+  ~ResetAtomsMol() override;
   void command(int, char **) override;
   void create_computes(char *, char *);
   void reset();
@@ -43,7 +43,6 @@ class ResetMolIDs : public Command {
   class ComputeFragmentAtom *cfa;
   class ComputeChunkAtom *cca;
 };
-
 }    // namespace LAMMPS_NS
 
 #endif

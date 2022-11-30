@@ -461,7 +461,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This method is a wrapper around the :cpp:func:`lammps_error` function and
    will dispatch an error through the LAMMPS Error class.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p error_type: constant to select which Error class function to call
    :ptype error_type: integer(c_int)
@@ -531,7 +531,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function will call :cpp:func:`lammps_get_thermo` and return the value
    of the corresponding thermodynamic keyword.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p character(len=\*) name: string with the name of the thermo keyword
    :to: :cpp:func:`lammps_get_thermo`
@@ -547,7 +547,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    as integers, but should be declared as ``LOGICAL`` variables when
    calling from Fortran.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :o real(c_double) boxlo [dimension(3),optional]: vector in which to store
     lower-bounds of simulation box
@@ -586,7 +586,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This subroutine will call :cpp:func:`lammps_reset_box`. All parameters
    are required.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p real(c_double) boxlo [dimension(3)]: vector of three doubles containing
     the lower box boundary
@@ -604,7 +604,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This subroutine will call :cpp:func:`lammps_memory_usage` and store the
    result in the three-element array *meminfo*.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p real(c_double) meminfo [dimension(3)]: vector of three doubles in which
     to store memory usage data
@@ -617,7 +617,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function returns a Fortran representation of the LAMMPS "world"
    communicator.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :to: :cpp:func:`lammps_get_mpi_comm`
    :r comm: Fortran integer equivalent to the MPI communicator LAMMPS is
@@ -657,7 +657,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Query LAMMPS about global settings. See the documentation for the
    :cpp:func:`lammps_extract_setting` function from the C library.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p character(len=\*) keyword: string containing the name of the thermo keyword
    :to: :cpp:func:`lammps_extract_setting`
@@ -672,7 +672,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    either a string or a pointer to internal global LAMMPS data,
    depending on the data requested through *name*.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    Note that this function actually does not return a value, but rather
    associates the pointer on the left side of the assignment to point to
@@ -766,7 +766,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    LAMMPS data tied to the :cpp:class:`Atom` class, depending on the data
    requested through *name*.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    Note that this function actually does not return a pointer, but rather
    associates the pointer on the left side of the assignment to point
@@ -881,7 +881,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    required to specify which set of data is to be returned through the
    *style* and *type* variables.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    Note that this function actually does not return a value, but rather
    associates the pointer on the left side of the assignment to point to
@@ -993,7 +993,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    which set of data is to be returned through the *style* and *type*
    variables.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    Global data are calculated at the time they are requested and are only
    available element-by-element. As such, the user is expected to provide
@@ -1188,7 +1188,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    for *atom* style variables and is ignored otherwise. If *group* is absent
    for *atom*-style variables, the group is assumed to be "all".
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function returns the values of the variables, not pointers to them.
    Vectors pointing to *atom*-style variables should be of type
@@ -1247,7 +1247,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    vector *data*. The vector *data* will be ordered by atom
    ID, which requires consecutive atom IDs (1 to *natoms*).
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    If you need a similar array but have non-consecutive atom IDs, see
    :f:func:`gather_atoms_concat`; for a similar array but for a subset
@@ -1298,7 +1298,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    named atom-based entity for all atoms on all processors and return it in the
    vector *data*.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    The vector *data* will not be ordered by atom ID, and there is no
    restriction on the IDs being consecutive. If you need the IDs, you can do
@@ -1327,7 +1327,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    named atom-based entity for the atoms in the array *ids* from all processors
    and return it in the vector *data*.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This subroutine gathers data for the requested atom IDs and stores them in a
    one-dimensional array allocated by the user. The data will be ordered by
@@ -1362,7 +1362,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function calls :cpp:func:`lammps_scatter_atoms` to scatter the named
    atom-based entities in *data* to all processors.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to all atoms on all processors. The data must be
@@ -1392,7 +1392,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function calls :cpp:func:`lammps_scatter_atoms_subset` to scatter the
    named atom-based entities in *data* to all processors.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to a subset of atoms on all processors. The array
@@ -1424,7 +1424,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Gather type and constituent atom information for all bonds.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function copies the list of all bonds into an allocated array.
    The array will be filled with (bond type, bond atom 1, bond atom 2) for each
@@ -1471,7 +1471,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    from a given list of coordinates and a list of atom types. Additionally,
    the atom IDs, velocities, and image flags may be provided.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p integer(c_int) type [dimension(N)]: vector of :math:`N` atom types
     (required/see note below)
@@ -1521,7 +1521,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Find index of a neighbor list requested by a pair style.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function determines which of the available neighbor lists for pair
    styles matches the given conditions.  It first matches the style name.
@@ -1557,7 +1557,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Find index of a neighbor list requested by a fix.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    The neighbor list request from a fix is identified by the fix ID and the
    request ID. The request ID is typically zero, but will be :math:`>0` for
@@ -1576,7 +1576,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Find index of a neighbor list requested by a compute.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    The neighbor list request from a compute is identified by the compute ID and
    the request ID.  The request ID is typically zero, but will be :math:`> 0`
@@ -1595,7 +1595,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Return the number of entries in the neighbor list with the given index.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p integer(c_int) idx: neighbor list index
    :to: :cpp:func:`lammps_neighlist_num_elements`
@@ -1621,7 +1621,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function can be used to retrieve detailed information about the hosting
    operating system and compiler/runtime environment.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    A suitable buffer has to be provided. The assembled text will be truncated
    so as not to overflow this buffer. The string is typically a few hundred
@@ -1638,7 +1638,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function is used to query whether LAMMPS was compiled with a real MPI
    library or in serial.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :to: :cpp:func:`lammps_config_has_mpi_support`
    :r has_mpi: ``.FALSE.`` when compiled with STUBS, ``.TRUE.`` if
@@ -1652,7 +1652,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Check if the LAMMPS library supports reading or writing compressed
    files via a pipe to gzip or similar compression programs.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    Several LAMMPS commands (e.g., :doc:`read_data`, :doc:`write_data`,
    :doc:`dump styles atom, custom, and xyz <dump>`) support reading and writing
@@ -1671,7 +1671,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Check if the LAMMPS library supports writing PNG format images.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
    image file formats.  Most of them, however, need support from an external
@@ -1690,7 +1690,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Check if the LAMMPS library supports writing JPEG format images.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    The LAMMPS :doc:`dump style image <dump_image>` supports writing multiple
    image file formats.  Most of them, however, need support from an external
@@ -1709,7 +1709,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Check if the LAMMPS library supports creating movie files via a pipe to
    ffmpeg.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
    from images on-the-fly via creating a pipe to the
@@ -1728,7 +1728,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Check whether LAMMPS errors will throw C++ exceptions.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    In case of an error, LAMMPS will either abort or throw a C++ exception.
    The latter has to be :ref:`enabled at compile time <exceptions>`.
@@ -1754,7 +1754,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Check whether a specific package has been included in LAMMPS
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function checks whether the LAMMPS library in use includes the specific
    :doc:`LAMMPS package <Packages>` provided as argument.
@@ -1769,7 +1769,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Count the number of installed packages in the LAMMPS library.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function counts how many :doc:`LAMMPS packages <Packages>` are
    included in the LAMMPS library in use. It directly calls the C library
@@ -1785,7 +1785,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Get the name of a package in the list of installed packages in the LAMMPS
    library.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This subroutine copies the name of the package with the index *idx* into the
    provided string *buffer*. If the name of the package exceeds the length of
@@ -1804,7 +1804,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Obtain a list of the names of enabled packages in the LAMMPS shared library
    and store it in *package*.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function is analogous to the :py:func`installed_packages` function in
    the Python API. The optional argument *length* sets the length of each
@@ -1826,7 +1826,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    availability of compile time settings of included
    :doc:`accelerator packages <Speed_packages>` in LAMMPS.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    Supported packages names are "GPU", "KOKKOS", "INTEL", and "OPENMP".
    Supported categories are "api" with possible settings "cuda", "hip", "phi",
@@ -1849,7 +1849,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Checks for the presence of a viable GPU package device.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function calls :cpp:func:`lammps_has_gpu_device`, which checks at
    runtime whether an accelerator device is present that can be used with the
@@ -1869,7 +1869,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Get GPU package device information.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    Calls :cpp:func:`lammps_get_gpu_device_info` to retrieve detailed
    information about any accelerator devices that are viable for use with the
@@ -1891,7 +1891,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Check whether a specific style has been included in LAMMPS.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function calls :cpp:func:`lammps_has_style` to check whether the
    LAMMPS library in use includes the specific style *name* associated with a
@@ -1910,7 +1910,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Count the number of styles of *category* in the LAMMPS library.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function counts how many styles in the provided *category* are
    included in the LAMMPS library currently in use. Please see
@@ -1927,7 +1927,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Look up the name of a style by index in the list of styles of a given
    category in the LAMMPS library.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function calls :cpp:func:`lammps_style_name` and copies the name of
    the *category* style with index *idx* into the provided string *buffer*.
@@ -1951,7 +1951,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    the given *name* exists.  Valid categories are: *compute*\ , *dump*\ ,
    *fix*\ , *group*\ , *molecule*\ , *region*\ , and *variable*\ .
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p character(len=\*) category: category of the ID
    :p character(len=\*) name:     name of the ID
@@ -1967,7 +1967,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    the current LAMMPS instance. Please see :f:func:`has_id` for a list of
    valid categories.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p character(len=\*) category: category of the ID
    :to: :cpp:func:`lammps_id_count`
@@ -1980,7 +1980,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Look up the name of an ID by index in the list of IDs of a given category.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function copies the name of the *category* ID with the index *idx* into
    the provided string *buffer*\ .  The length of the buffer must be long
@@ -2003,7 +2003,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    This function counts the number of loaded plugins.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :to: :cpp:func:`lammps_plugin_count`
    :r n: number of loaded plugins
@@ -2015,7 +2015,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Look up the style and name of a plugin by its index in the list of plugins.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function copies the name of the *style* plugin with the index *idx*
    into the provided C-style string buffer.  The length of the buffer must be
@@ -2038,7 +2038,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Encodes three integer image flags into a single imageint.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function performs the bit-shift, addition, and bit-wise OR operations
    necessary to combine the values of three integers representing the image
@@ -2086,7 +2086,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    operations to decode it and stores the resulting three integers into the
    array *flags*.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :p integer(kind=\*) image: encoded image flag. \*The ``KIND`` parameter is
     either ``c_int`` or, if LAMMPS was compiled with ``-DLAMMPS_BIGBIG``,
@@ -2102,7 +2102,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    output to be written to screen and logfile. This can simplify capturing
    output from LAMMPS library calls.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    :to: :cpp:func:`lammps_flush_buffers`
 
@@ -2112,7 +2112,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Check if LAMMPS is currently inside a run or minimization.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function can be used from signal handlers or multi-threaded
    applications to determine if the LAMMPS instance is currently active.
@@ -2127,7 +2127,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Force a timeout to stop an ongoing run cleanly.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function can be used from signal handlers or multi-threaded
    applications to cleanly terminate an ongoing run.
@@ -2140,7 +2140,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Check if there is a (new) error message available.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function can be used to query if an error inside of LAMMPS
    has thrown a :ref:`C++ exception <exceptions>`.
@@ -2163,7 +2163,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Copy the last error message into the provided buffer.
 
-   .. versionadded:: TBD
+   .. versionadded:: 3Nov2022
 
    This function can be used to retrieve the error message that was set
    in the event of an error inside of LAMMPS that resulted in a

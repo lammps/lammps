@@ -130,6 +130,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   version = (const char *) LAMMPS_VERSION;
   num_ver = utils::date2num(version);
+  restart_ver = -1;
 
   external_comm = 0;
   mdicomm = nullptr;
@@ -993,6 +994,8 @@ void LAMMPS::destroy()
 
   delete python;
   python = nullptr;
+
+  restart_ver = -1;       // reset last restart version id
 }
 
 /* ----------------------------------------------------------------------

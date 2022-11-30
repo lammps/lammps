@@ -536,11 +536,12 @@ void Grid3d::ghost_grid()
   // ghost cell layers needed in each dim/dir = max of two extension effects
   // OFFSET allows generation of negative indices with static_cast
   // out xyz lo/hi = index range of owned + ghost cells
-
+  // if zextra, nz and effective prd[2] are both larger, so dzinv is the same
+  
   double dxinv = nx / prd[0];
   double dyinv = ny / prd[1];
   double dzinv = nz / prd[2];
-  double dzinv_slab = nz / (prd[2] * zfactor);
+  if (zextra) dzinv = nz / (prd[2] * zfactor);
 
   int lo, hi;
 
@@ -554,17 +555,10 @@ void Grid3d::ghost_grid()
   outylo = MIN(lo - stencil_atom_lo, inylo - stencil_grid_lo);
   outyhi = MAX(hi + stencil_atom_hi, inyhi + stencil_grid_hi);
 
-  if (zextra == 0) {
-    lo = static_cast<int>((sublo[2]-dist[2]-boxlo[2]) * dzinv + shift_atom_lo + OFFSET) - OFFSET;
-    hi = static_cast<int>((subhi[2]+dist[2]-boxlo[2]) * dzinv + shift_atom_hi + OFFSET) - OFFSET;
-    outzlo = MIN(lo - stencil_atom_lo, inzlo - stencil_grid_lo);
-    outzhi = MAX(hi + stencil_atom_hi, inzhi + stencil_grid_hi);
-  } else {
-    lo = static_cast<int>((sublo[2]-dist[2]-boxlo[2]) * dzinv_slab + shift_atom_lo + OFFSET) - OFFSET;
-    hi = static_cast<int>((subhi[2]+dist[2]-boxlo[2]) * dzinv_slab + shift_atom_hi + OFFSET) - OFFSET;
-    outzlo = MIN(lo - stencil_atom_lo, inzlo - stencil_grid_lo);
-    outzhi = MAX(hi + stencil_atom_hi, inzhi + stencil_grid_hi);
-  }
+  lo = static_cast<int>((sublo[2]-dist[2]-boxlo[2]) * dzinv + shift_atom_lo + OFFSET) - OFFSET;
+  hi = static_cast<int>((subhi[2]+dist[2]-boxlo[2]) * dzinv + shift_atom_hi + OFFSET) - OFFSET;
+  outzlo = MIN(lo - stencil_atom_lo, inzlo - stencil_grid_lo);
+  outzhi = MAX(hi + stencil_atom_hi, inzhi + stencil_grid_hi);
 
   // if zextra = 1:
   //   adjust grid boundaries for processors at +z end,
@@ -585,7 +579,7 @@ void Grid3d::ghost_grid()
   }
 
   // limit out xyz lo/hi indices to global grid for non-periodic dims
-  // if zextra = 1 (e.g. PPPM), grid is still fully periodic
+  // if zextra = 1 (e.g. PPPM), treat z-dimension as if periodic
 
   int *periodicity = domain->periodicity;
 
@@ -599,7 +593,7 @@ void Grid3d::ghost_grid()
     outyhi = MIN(ny-1,outyhi);
   }
 
-  if (!periodicity[2]) {
+  if (!periodicity[2] && !zextra) {
     outzlo = MAX(0,outzlo);
     outzhi = MIN(nz-1,outzhi);
   }

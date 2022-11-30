@@ -489,10 +489,11 @@ void Grid2d::ghost_grid()
   // ghost cell layers needed in each dim/dir = max of two extension effects
   // OFFSET allows generation of negative indices with static_cast
   // out xyz lo/hi = index range of owned + ghost cells
+  // if yextra, ny and effective prd[1] are both larger, so dyinv is the same
 
   double dxinv = nx / prd[0];
   double dyinv = ny / prd[1];
-  double dyinv_slab = ny / (prd[1] * yfactor);
+  if (yextra) dyinv = ny / (prd[1] * yfactor);
 
   int lo, hi;
 
@@ -501,17 +502,10 @@ void Grid2d::ghost_grid()
   outxlo = MIN(lo - stencil_atom_lo, inxlo - stencil_grid_lo);
   outxhi = MAX(hi + stencil_atom_hi, inxhi + stencil_grid_hi);
 
-  if (yextra == 0) {
-    lo = static_cast<int>((sublo[1]-dist[1]-boxlo[1]) * dyinv + shift_atom_lo + OFFSET) - OFFSET;
-    hi = static_cast<int>((subhi[1]+dist[1]-boxlo[1]) * dyinv + shift_atom_hi + OFFSET) - OFFSET;
-    outylo = MIN(lo - stencil_atom_lo, inylo - stencil_grid_lo);
-    outyhi = MAX(hi + stencil_atom_hi, inyhi + stencil_grid_hi);
-  } else {
-    lo = static_cast<int>((sublo[1]-dist[1]-boxlo[1]) * dyinv_slab + shift_atom_lo + OFFSET) - OFFSET;
-    hi = static_cast<int>((subhi[1]+dist[1]-boxlo[1]) * dyinv_slab + shift_atom_hi + OFFSET) - OFFSET;
-    outylo = MIN(lo - stencil_atom_lo, inylo - stencil_grid_lo);
-    outyhi = MAX(hi + stencil_atom_hi, inyhi + stencil_grid_hi);
-  }
+  lo = static_cast<int>((sublo[1]-dist[1]-boxlo[1]) * dyinv + shift_atom_lo + OFFSET) - OFFSET;
+  hi = static_cast<int>((subhi[1]+dist[1]-boxlo[1]) * dyinv + shift_atom_hi + OFFSET) - OFFSET;
+  outylo = MIN(lo - stencil_atom_lo, inylo - stencil_grid_lo);
+  outyhi = MAX(hi + stencil_atom_hi, inyhi + stencil_grid_hi);
 
   // if yextra = 1:
   //   adjust grid boundaries for processors at +y end,
@@ -532,7 +526,7 @@ void Grid2d::ghost_grid()
   }
 
   // limit out xyz lo/hi indices to global grid for non-periodic dims
-  // if yextra = 1, grid is still fully periodic
+  // if yextra = 1, treat y-dimension as if periodic
 
   int *periodicity = domain->periodicity;
 
@@ -541,7 +535,7 @@ void Grid2d::ghost_grid()
     outxhi = MIN(nx-1,outxhi);
   }
 
-  if (!periodicity[1]) {
+  if (!periodicity[1] && !yextra) {
     outylo = MAX(0,outylo);
     outyhi = MIN(ny-1,outyhi);
   }

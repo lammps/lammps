@@ -34,7 +34,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <glob.h>
 #include <random>
 #include <string>
 #include <vector>
@@ -42,18 +41,6 @@
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
-
-std::vector<std::string> static globVector(const std::string& pattern, std::vector<std::string> & files)
-{
-  glob_t glob_result;
-  glob(pattern.c_str(),GLOB_TILDE,NULL,&glob_result);
-  for(unsigned int i=0;i<glob_result.gl_pathc;++i){
-    std::string s = std::string(glob_result.gl_pathv[i]);
-    files.push_back(s);
-  }
-  globfree(&glob_result);
-  return files;
-}
 
 void CFITPOD::command(int narg, char **arg)
 {
@@ -236,21 +223,26 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format,
   }
 }
 
-void CFITPOD::get_exyz_files(std::vector<std::string>& files, std::string datapath, std::string extension)
+void CFITPOD::get_exyz_files(std::vector<std::string>& files, const std::string &datapath,
+                             const std::string &extension)
 {
-  std::vector<std::string> res = globVector(datapath + "/*." + extension, files);
+  auto allfiles = platform::list_directory(datapath);
+  for (auto fname : allfiles) {
+    if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
+      files.push_back(datapath + platform::filepathsep + fname);
+  }
 }
 
 int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)
 {
   std::string filename = file;
   FILE *fp;
-  //if (comm->me == 0){
+  if (comm->me == 0) {
 
     fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr)
       error->one(FLERR,"Cannot open POD coefficient file {}: ", filename, utils::getsyserror());
-  //}
+  }
 
   char line[MAXLINE],*ptr;
   int eof = 0;
@@ -480,6 +472,8 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
     utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
     utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
   }
+
+  if (data.data_files.size() < 1) error->all(FLERR, "Cannot fit potential without data files");
 
   int n = data.num_config_sum;
   memory->create(data.lattice, 9*n, "fitpod:lattice");
@@ -1038,7 +1032,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for four-body quadratic22 potential
 
-  if (nd22>0) {
+  if (nd22 > 0) {
     int nq2 = podptr->pod.quadratic22[0]*podptr->pod.nc2;
     podptr->quadratic_descriptors(&desc.gd[nd1234], &desc.gdd[dim*natom*nd1234],
         &desc.gd[nd1], fatom2, nq2, dim*natom);
@@ -1046,7 +1040,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for four-body quadratic23 potential
 
-  if (nd23>0) {
+  if (nd23 > 0) {
     int nq2 = podptr->pod.quadratic23[0]*podptr->pod.nc2;
     int nq3 = podptr->pod.quadratic23[1]*podptr->pod.nc3;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22], &desc.gdd[dim*natom*(nd1234+nd22)],
@@ -1055,7 +1049,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for five-body quadratic24 potential
 
-  if (nd24>0) {
+  if (nd24 > 0) {
     int nq2 = podptr->pod.quadratic24[0]*podptr->pod.nc2;
     int nq4 = podptr->pod.quadratic24[1]*podptr->pod.nc4;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22+nd23], &desc.gdd[dim*natom*(nd1234+nd22+nd23)],
@@ -1064,7 +1058,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for five-body quadratic33 potential
 
-  if (nd33>0) {
+  if (nd33 > 0) {
     int nq3 = podptr->pod.quadratic33[0]*podptr->pod.nc3;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22+nd23+nd24], &desc.gdd[dim*natom*(nd1234+nd22+nd23+nd24)],
         &desc.gd[nd1+nd2], fatom3, nq3, dim*natom);
@@ -1072,7 +1066,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for six-body quadratic34 potential
 
-  if (nd34>0) {
+  if (nd34 > 0) {
     int nq3 = podptr->pod.quadratic34[0]*podptr->pod.nc3;
     int nq4 = podptr->pod.quadratic34[1]*podptr->pod.nc4;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22+nd23+nd24+nd33], &desc.gdd[dim*natom*(nd1234+nd22+nd23+nd24+nd33)],
@@ -1081,7 +1075,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
 
   // global descriptors for seven-body quadratic44 potential
 
-  if (nd44>0) {
+  if (nd44 > 0) {
     int nq4 = podptr->pod.quadratic44[0]*podptr->pod.nc4;
     podptr->quadratic_descriptors(&desc.gd[nd1234+nd22+nd23+nd24+nd33+nd34], &desc.gdd[dim*natom*(nd1234+nd22+nd23+nd24+nd33+nd34)],
         &desc.gd[nd1+nd2+nd3], fatom4, nq4, dim*natom);
@@ -1117,7 +1111,7 @@ void CFITPOD::cubic_descriptors(datastruct data, int ci)
   int nd1234 = nd1+nd2+nd3+nd4;
 
   // global descriptors for seven-body cubic234 potential
-  if (nd234>0) {
+  if (nd234 > 0) {
     int nq2 = podptr->pod.cubic234[0]*podptr->pod.nc2;
     int nq3 = podptr->pod.cubic234[1]*podptr->pod.nc3;
     int nq4 = podptr->pod.cubic234[2]*podptr->pod.nc4;
@@ -1134,7 +1128,7 @@ void CFITPOD::cubic_descriptors(datastruct data, int ci)
 
   // global descriptors for seven-body cubic333 potential
 
-  if (nd333>0) {
+  if (nd333 > 0) {
     int nq3 = podptr->pod.cubic333[0]*podptr->pod.nc3;
     int np3 = nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234;
     double *eatom3 = &desc.gd[nd1+nd2];
@@ -1145,7 +1139,7 @@ void CFITPOD::cubic_descriptors(datastruct data, int ci)
 
   // global descriptors for ten-body cubic444 potential
 
-  if (nd444>0) {
+  if (nd444 > 0) {
     int nq4 = podptr->pod.cubic444[0]*podptr->pod.nc4;
     int np4 = nd1234+nd22+nd23+nd24+nd33+nd34+nd44+nd234+nd333;
     double *eatom4 = &desc.gd[nd123];
@@ -1264,9 +1258,9 @@ void CFITPOD::least_squares_fit(datastruct data)
 
   // save coefficients into a text file
 
-  std::string filename = "coefficients"  + podptr->pod.filenametag + ".txt";           
+  std::string filename = "coefficients"  + podptr->pod.filenametag + ".txt";
   FILE *fp = fopen(filename.c_str(), "w");
-  
+
   fmt::print(fp, "POD_coefficients: {}\n", nd);
   for (int count = 0; count < nd; count++){
 
@@ -1330,9 +1324,9 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
 
   //std::string filename_errors = data.training ? "training_errors.txt" : "test_errors.txt";
   //std::string filename_analysis = data.training ? "training_analysis.txt" : "test_analysis.txt";
-  std::string filename_errors = (data.training ? "training_errors" : "test_errors")  + podptr->pod.filenametag + ".txt";   
-  std::string filename_analysis = data.training ? "training_analysis" : "test_analysis" + podptr->pod.filenametag + ".txt";   
-  
+  std::string filename_errors = (data.training ? "training_errors" : "test_errors")  + podptr->pod.filenametag + ".txt";
+  std::string filename_analysis = data.training ? "training_analysis" : "test_analysis" + podptr->pod.filenametag + ".txt";
+
   FILE *fp_errors = fopen(filename_errors.c_str(), "w");
   FILE *fp_analysis = fopen(filename_analysis.c_str(), "w");
 

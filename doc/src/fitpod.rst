@@ -24,12 +24,13 @@ Examples
 Description
 """""""""""
 
-Fit a machine-learning interatomic potential (ML-IAP) based on proper orthogonal descriptors (POD).
-Two input files are required for this command. The first input file describes
-a POD potential, while the second input file specifies the DFT data.
+Fit a machine-learning interatomic potential (ML-IAP) based on proper
+orthogonal descriptors (POD).  Two input files are required for this
+command. The first input file describes a POD potential, while the
+second input file specifies the DFT data.
 
-Below is a one-line description of all the keywords that can be assigned in the
-first input file (pod.txt):
+Below is a one-line description of all the keywords that can be assigned
+in the first input file (``pod.txt``):
 
 * species (STRING): Chemical symbols for all elements in the system and have to match XYZ training files.
 * pbc 1 1 1 (INT): three integer constants specify boundary conditions
@@ -45,8 +46,9 @@ first input file (pod.txt):
 * fourbody_snap_chemflag 0 (BOOL): turns on/off the explicit multi-element variant of the SNAP bispectrum components
 * quadratic_pod_potential 0 (BOOL): turns on/off quadratic POD potential
 
-All keywords except species have default values. If keywords are not set in the input file, their defaults are used.
-Next, we describe all the keywords that can be assigned in the second input file (data.txt):
+All keywords except species have default values. If keywords are not set
+in the input file, their defaults are used.  Next, we describe all the
+keywords that can be assigned in the second input file (``data.txt``):
 
 * file_format extxyz (STRING): only extended xyz format is currently supported
 * file_extension xyz (STRING): extension of the data files
@@ -59,71 +61,91 @@ Next, we describe all the keywords that can be assigned in the second input file
 * error_analysis_for_training_data_set 0 (BOOL): turns on/off error analysis for the training data set
 * error_analysis_for_test_data_set 0 (BOOL): turns on/off error analysis for the test data set
 
-All keywords except path_to_training_data_set have default values. If keywords are not set in the input file, their defaults are used.
-On successful training, it produces a number of output files:
+All keywords except path_to_training_data_set have default values. If
+keywords are not set in the input file, their defaults are used.  On
+successful training, it produces a number of output files:
 
-* training_errors.txt  reports the errors in energy and forces for the training data set
-* traning_analysis.txt reports detailed errors for all training configurations
-* test_errors.txt reports errors for the test data set
-* test_analysis.txt reports detailed errors for all test configurations
-* coefficents.txt contains the coeffcients of the POD potential
+* ``training_errors.txt``  reports the errors in energy and forces for the training data set
+* ``training_analysis.txt`` reports detailed errors for all training configurations
+* ``test_errors.txt`` reports errors for the test data set
+* ``test_analysis.txt`` reports detailed errors for all test configurations
+* ``coefficients.txt`` contains the coefficients of the POD potential
 
-After training the POD potential, pod.txt and coefficents.txt are two files needed to use the
-POD potential in LAMMPS. See :doc:`pair_style pod <pair_pod>` for using the POD potential. Examples about training and using POD potentials are found in the directory lammps/examples/PACKAGES/pod.
+After training the POD potential, ``pod.txt`` and ``coefficients.txt``
+are two files needed to use the POD potential in LAMMPS. See
+:doc:`pair_style pod <pair_pod>` for using the POD potential. Examples
+about training and using POD potentials are found in the directory
+lammps/examples/PACKAGES/pod.
 
-Parametrized Potential Energy Surface
-"""""""""""""""""""""""""""""""""""""
+Parameterized Potential Energy Surface
+""""""""""""""""""""""""""""""""""""""
 
-We consider a multi-element system of *N* atoms with :math:`N_{\rm e}` unique elements.
-We denote by :math:`\boldsymbol r_n` and :math:`Z_n` position vector and type of an atom *n* in
-the system, respectively. Note that we have :math:`Z_n \in \{1, \ldots, N_{\rm e} \}`,
-:math:`\boldsymbol R = (\boldsymbol r_1, \boldsymbol r_2, \ldots, \boldsymbol r_N) \in \mathbb{R}^{3N}`, and
-:math:`\boldsymbol Z = (Z_1, Z_2, \ldots, Z_N) \in \mathbb{N}^{N}`. The potential energy surface
-(PES) of the system can be expressed as a many-body expansion of the form
+We consider a multi-element system of *N* atoms with :math:`N_{\rm e}`
+unique elements.  We denote by :math:`\boldsymbol r_n` and :math:`Z_n`
+position vector and type of an atom *n* in the system,
+respectively. Note that we have :math:`Z_n \in \{1, \ldots, N_{\rm e}
+\}`, :math:`\boldsymbol R = (\boldsymbol r_1, \boldsymbol r_2, \ldots,
+\boldsymbol r_N) \in \mathbb{R}^{3N}`, and :math:`\boldsymbol Z = (Z_1,
+Z_2, \ldots, Z_N) \in \mathbb{N}^{N}`. The potential energy surface
+(PES) of the system can be expressed as a many-body expansion of the
+form
 
 .. math::
 
     E(\boldsymbol R, \boldsymbol Z, \boldsymbol{\eta}, \boldsymbol{\mu}) \ = \ & \sum_{i} V^{(1)}(\boldsymbol r_i, Z_i, \boldsymbol \mu^{(1)} ) + \frac12 \sum_{i,j} V^{(2)}(\boldsymbol r_i, \boldsymbol r_j, Z_i, Z_j, \boldsymbol \eta, \boldsymbol \mu^{(2)})  \\
     & + \frac16 \sum_{i,j,k} V^{(3)}(\boldsymbol r_i, \boldsymbol r_j, \boldsymbol r_k, Z_i, Z_j, Z_k, \boldsymbol \eta, \boldsymbol \mu^{(3)}) + \ldots
 
-where :math:`V^{(1)}` is the one-body potential often used for representing external field
-or energy of isolated elements, and the higher-body potentials :math:`V^{(2)}, V^{(3)}, \ldots`
-are symmetric, uniquely defined, and zero if two or more indices take identical values.
-The superscript on each potential denotes its body order. Each *q*-body potential :math:`V^{(q)}`
-depends on :math:`\boldsymbol \mu^{(q)}`  which are sets of parameters to fit the PES. Note
-that :math:`\boldsymbol \mu` is a collection of all potential parameters
-:math:`\boldsymbol \mu^{(1)}`, :math:`\boldsymbol \mu^{(2)}`, :math:`\boldsymbol \mu^{(3)}`, etc,
-and that :math:`\boldsymbol \eta` is a set of hyperparameters such as inner cut-off radius
-:math:`r_{\rm in}` and outer cut-off radius :math:`r_{\rm cut}`.
+where :math:`V^{(1)}` is the one-body potential often used for
+representing external field or energy of isolated elements, and the
+higher-body potentials :math:`V^{(2)}, V^{(3)}, \ldots` are symmetric,
+uniquely defined, and zero if two or more indices take identical values.
+The superscript on each potential denotes its body order. Each *q*-body
+potential :math:`V^{(q)}` depends on :math:`\boldsymbol \mu^{(q)}` which
+are sets of parameters to fit the PES. Note that :math:`\boldsymbol \mu`
+is a collection of all potential parameters :math:`\boldsymbol
+\mu^{(1)}`, :math:`\boldsymbol \mu^{(2)}`, :math:`\boldsymbol
+\mu^{(3)}`, etc, and that :math:`\boldsymbol \eta` is a set of
+hyper-parameters such as inner cut-off radius :math:`r_{\rm in}` and
+outer cut-off radius :math:`r_{\rm cut}`.
 
-Interatomic potentials rely on parameters to learn relationship between atomic environments
-and interactions.  Since interatomic potentials are approximations by nature, their parameters
-need to be set to some reference values or fitted against data by necessity.  Typically,
-potential fitting finds optimal parameters, :math:`\boldsymbol \mu^*`, to  minimize a certain loss
-function of the predicted quantities and data. Since the fitted potential depends on the data
-set used to fit it, different data sets will yield different optimal parameters and thus different
-fitted potentials. When fitting the same functional form on *Q* different data sets, we would
-obtain *Q* different optimized potentials, :math:`E(\boldsymbol R,\boldsymbol Z, \boldsymbol \eta, \boldsymbol \mu_q^*), 1 \le q \le Q`.
-Consequently, there exist many different sets of optimized parameters for empirical interatomic potentials.
+Interatomic potentials rely on parameters to learn relationship between
+atomic environments and interactions.  Since interatomic potentials are
+approximations by nature, their parameters need to be set to some
+reference values or fitted against data by necessity.  Typically,
+potential fitting finds optimal parameters, :math:`\boldsymbol \mu^*`,
+to minimize a certain loss function of the predicted quantities and
+data. Since the fitted potential depends on the data set used to fit it,
+different data sets will yield different optimal parameters and thus
+different fitted potentials. When fitting the same functional form on
+*Q* different data sets, we would obtain *Q* different optimized
+potentials, :math:`E(\boldsymbol R,\boldsymbol Z, \boldsymbol \eta,
+\boldsymbol \mu_q^*), 1 \le q \le Q`.  Consequently, there exist many
+different sets of optimized parameters for empirical interatomic
+potentials.
 
-Instead of optimizing the potential parameters,  inspired by the reduced basis method
-:ref:`(Grepl) <Grepl20072>` for parametrized partial differential equations,
-we view the parametrized PES as a parametric manifold of potential energies
+Instead of optimizing the potential parameters, inspired by the reduced
+basis method :ref:`(Grepl) <Grepl20072>` for parameterized partial
+differential equations, we view the parameterized PES as a parametric
+manifold of potential energies
 
 .. math::
 
     \mathcal{M} = \{E(\boldsymbol R, \boldsymbol Z, \boldsymbol \eta, \boldsymbol \mu) \ | \  \boldsymbol \mu \in \Omega^{\boldsymbol \mu} \}
 
-where :math:`\Omega^{\boldsymbol \mu}` is a parameter domain in which :math:`\boldsymbol \mu` resides.
-The parametric manifold :math:`\mathcal{M}` contains potential energy surfaces for all values
-of :math:`\boldsymbol \mu \in \Omega^{\boldsymbol \mu}`.  Therefore, the parametric manifold yields a much richer
-and  more transferable atomic representation than any particular individual PES
-:math:`E(\boldsymbol R, \boldsymbol Z, \boldsymbol \eta, \boldsymbol \mu^*)`.
+where :math:`\Omega^{\boldsymbol \mu}` is a parameter domain in which
+:math:`\boldsymbol \mu` resides.  The parametric manifold
+:math:`\mathcal{M}` contains potential energy surfaces for all values of
+:math:`\boldsymbol \mu \in \Omega^{\boldsymbol \mu}`.  Therefore, the
+parametric manifold yields a much richer and more transferable atomic
+representation than any particular individual PES :math:`E(\boldsymbol
+R, \boldsymbol Z, \boldsymbol \eta, \boldsymbol \mu^*)`.
 
-We propose specific forms of the parametrized potentials for one-body, two-body,
-and three-body interactions. We apply the Karhunen-Loeve expansion to snapshots of the parametrized potentials
-to obtain sets of orthogonal basis functions. These basis functions are aggregated
-according to the chemical elements of atoms, thus leading to multi-element proper orthogonal descriptors.
+We propose specific forms of the parameterized potentials for one-body,
+two-body, and three-body interactions. We apply the Karhunen-Loeve
+expansion to snapshots of the parameterized potentials to obtain sets of
+orthogonal basis functions. These basis functions are aggregated
+according to the chemical elements of atoms, thus leading to
+multi-element proper orthogonal descriptors.
 
 Proper Orthogonal Descriptors
 """""""""""""""""""""""""""""
@@ -133,7 +155,8 @@ radial and angular distribution of a system of atoms. The detailed
 mathematical definition is given in the paper by Nguyen and Rohskopf
 :ref:`(Nguyen) <Nguyen20222>`.
 
-The descriptors for the one-body interaction are used to capture energy of isolated elements and defined as follows
+The descriptors for the one-body interaction are used to capture energy
+of isolated elements and defined as follows
 
 .. math::
 
@@ -144,16 +167,18 @@ The descriptors for the one-body interaction are used to capture energy of isola
         \end{array}
     \right.
 
-for :math:`1 \le i \le N, 1 \le p \le N_{\rm e}`. The number of one-body descriptors per atom
-is equal to the number of elements. The one-body descriptors are independent of atom positions,
-but dependent on atom types. The one-body descriptors are active only when the keyword *onebody*
-is set to 1.
+for :math:`1 \le i \le N, 1 \le p \le N_{\rm e}`. The number of one-body
+descriptors per atom is equal to the number of elements. The one-body
+descriptors are independent of atom positions, but dependent on atom
+types. The one-body descriptors are active only when the keyword
+*onebody* is set to 1.
 
-We adopt the usual assumption that the direct interaction between two atoms vanishes smoothly
-when their distance is greater than the outer cutoff distance :math:`r_{\rm cut}`. Furthermore, we
-assume that two atoms can not get closer than the inner cutoff distance :math:`r_{\rm in}`
-due to the Pauli repulsion  principle. Let :math:`r \in (r_{\rm in}, r_{\rm cut})`, we introduce the
-following parametrized radial functions
+We adopt the usual assumption that the direct interaction between two
+atoms vanishes smoothly when their distance is greater than the outer
+cutoff distance :math:`r_{\rm cut}`. Furthermore, we assume that two
+atoms can not get closer than the inner cutoff distance :math:`r_{\rm
+in}` due to the Pauli repulsion principle. Let :math:`r \in (r_{\rm in},
+r_{\rm cut})`, we introduce the following parameterized radial functions
 
 .. math::
 
@@ -171,58 +196,69 @@ We introduce the following function as a convex combination of the two functions
 
     \psi(r, r_{\rm in}, r_{\rm cut}, \alpha, \beta, \gamma, \kappa)  = \kappa \phi(r, r_{\rm in}, r_{\rm cut}, \alpha, \beta) + (1- \kappa)  \varphi(r, \gamma) .
 
-We see that :math:`\psi` is a function of distance :math:`r`, cut-off distances :math:`r_{\rm in}`
-and :math:`r_{\rm cut}`, and parameters :math:`\alpha, \beta, \gamma, \kappa`. Together
-these parameters allow the function :math:`\psi` to characterize a diverse spectrum of
-two-body interactions within the cut-off interval :math:`(r_{\rm in}, r_{\rm cut})`.
+We see that :math:`\psi` is a function of distance :math:`r`, cut-off
+distances :math:`r_{\rm in}` and :math:`r_{\rm cut}`, and parameters
+:math:`\alpha, \beta, \gamma, \kappa`. Together these parameters allow
+the function :math:`\psi` to characterize a diverse spectrum of two-body
+interactions within the cut-off interval :math:`(r_{\rm in}, r_{\rm
+cut})`.
 
-Next, we introduce the following parametrized potential
+Next, we introduce the following parameterized potential
 
 .. math::
 
     W^{(2)}(r_{ij}, \boldsymbol \eta, \boldsymbol \mu^{(2)})  = f_{\rm c}(r_{ij}, \boldsymbol \eta) \psi(r_{ij}, \boldsymbol \eta, \boldsymbol \mu^{(2)})
 
-where :math:`\eta_1 = r_{\rm in}, \eta_2 = r_{\rm cut}, \mu_1^{(2)} = \alpha, \mu_2^{(2)} = \beta, \mu_3^{(2)} = \gamma`,
-and :math:`\mu_4^{(2)} = \kappa`. Here the cut-off function :math:`f_{\rm c}(r_{ij}, \boldsymbol \eta)`
-proposed in [refs] is used to ensure the smooth vanishing of the potential and
-its derivative for :math:`r_{ij} \ge r_{\rm cut}`:
+where :math:`\eta_1 = r_{\rm in}, \eta_2 = r_{\rm cut}, \mu_1^{(2)} =
+\alpha, \mu_2^{(2)} = \beta, \mu_3^{(2)} = \gamma`, and
+:math:`\mu_4^{(2)} = \kappa`. Here the cut-off function :math:`f_{\rm
+c}(r_{ij}, \boldsymbol \eta)` proposed in [refs] is used to ensure the
+smooth vanishing of the potential and its derivative for :math:`r_{ij}
+\ge r_{\rm cut}`:
 
 .. math::
 
     f_{\rm c}(r_{ij},  r_{\rm in}, r_{\rm cut})  =  \exp \left(1 -\frac{1}{\sqrt{\left(1 - \frac{(r-r_{\rm in})^3}{(r_{\rm cut} - r_{\rm in})^3} \right)^2 + 10^{-6}}} \right)
 
-Based on the parametrized potential, we form a set of snapshots as follows.
-We assume that we are given :math:`N_{\rm s}` parameter tuples
-:math:`\boldsymbol \mu^{(2)}_\ell, 1 \le \ell \le N_{\rm s}`. We introduce the
-following set of  snapshots on :math:`(r_{\rm in}, r_{\rm cut})`:
+Based on the parameterized potential, we form a set of snapshots as
+follows.  We assume that we are given :math:`N_{\rm s}` parameter tuples
+:math:`\boldsymbol \mu^{(2)}_\ell, 1 \le \ell \le N_{\rm s}`. We
+introduce the following set of snapshots on :math:`(r_{\rm in}, r_{\rm
+cut})`:
 
 .. math::
 
     \xi_\ell(r_{ij}, \boldsymbol \eta) =  W^{(2)}(r_{ij}, \boldsymbol \eta, \boldsymbol \mu^{(2)}_\ell),  \quad \ell = 1, \ldots, N_{\rm s} .
 
-To ensure adequate sampling of the PES for different parameters, we choose
-:math:`N_{\rm s}` parameter points :math:`\boldsymbol \mu^{(2)}_\ell = (\alpha_\ell, \beta_\ell, \gamma_\ell, \kappa_\ell), 1 \le \ell \le N_{\rm s}`
-as follows. The parameters :math:`\alpha \in [1, N_\alpha]` and :math:`\gamma \in [1, N_\gamma]`
-are integers, where :math:`N_\alpha` and :math:`N_\gamma` are the highest degrees for
-:math:`\alpha` and :math:`\gamma`, respectively. We next choose :math:`N_\beta` different values of
-:math:`\beta` in the interval :math:`[\beta_{\min}, \beta_{\max}]`, where :math:`\beta_{\min} = 0` and
-:math:`\beta_{\max} = 4`. The parameter :math:`\kappa` can be set either 0 or 1.
-Hence, the total number of parameter points is :math:`N_{\rm s} = N_\alpha N_\beta + N_\gamma`.
-Although  :math:`N_\alpha, N_\beta, N_\gamma` can be chosen conservatively large,
-we find that :math:`N_\alpha = 6, N_\beta = 3, N_\gamma = 8` are adequate for most problems.
-Note that :math:`N_\alpha` and :math:`N_\gamma` correspond to *bessel_polynomial_degree*
-and *inverse_polynomial_degree*, respectively.
+To ensure adequate sampling of the PES for different parameters, we
+choose :math:`N_{\rm s}` parameter points :math:`\boldsymbol
+\mu^{(2)}_\ell = (\alpha_\ell, \beta_\ell, \gamma_\ell, \kappa_\ell), 1
+\le \ell \le N_{\rm s}` as follows. The parameters :math:`\alpha \in [1,
+N_\alpha]` and :math:`\gamma \in [1, N_\gamma]` are integers, where
+:math:`N_\alpha` and :math:`N_\gamma` are the highest degrees for
+:math:`\alpha` and :math:`\gamma`, respectively. We next choose
+:math:`N_\beta` different values of :math:`\beta` in the interval
+:math:`[\beta_{\min}, \beta_{\max}]`, where :math:`\beta_{\min} = 0` and
+:math:`\beta_{\max} = 4`. The parameter :math:`\kappa` can be set either
+0 or 1.  Hence, the total number of parameter points is :math:`N_{\rm s}
+= N_\alpha N_\beta + N_\gamma`.  Although :math:`N_\alpha, N_\beta,
+N_\gamma` can be chosen conservatively large, we find that
+:math:`N_\alpha = 6, N_\beta = 3, N_\gamma = 8` are adequate for most
+problems.  Note that :math:`N_\alpha` and :math:`N_\gamma` correspond to
+*bessel_polynomial_degree* and *inverse_polynomial_degree*,
+respectively.
 
-We employ the Karhunen-Loeve (KL) expansion to generate an orthogonal basis set which is known to be optimal for representation of
-the snapshot family :math:`\{\xi_\ell\}_{\ell=1}^{N_{\rm s}}`. The two-body  orthogonal basis
-functions are computed as follows
+We employ the Karhunen-Loeve (KL) expansion to generate an orthogonal
+basis set which is known to be optimal for representation of the
+snapshot family :math:`\{\xi_\ell\}_{\ell=1}^{N_{\rm s}}`. The two-body
+orthogonal basis functions are computed as follows
 
 .. math::
 
     U^{(2)}_m(r_{ij}, \boldsymbol \eta) = \sum_{\ell = 1}^{N_{\rm s}} A_{\ell m}(\boldsymbol \eta) \,  \xi_\ell(r_{ij}, \boldsymbol \eta), \qquad m = 1, \ldots, N_{\rm 2b} ,
 
-where the matrix :math:`\boldsymbol A \in \mathbb{R}^{N_{\rm s} \times N_{\rm s}}` consists of
-eigenvectors of the eigenvalue problem
+where the matrix :math:`\boldsymbol A \in \mathbb{R}^{N_{\rm s} \times
+N_{\rm s}}` consists of eigenvectors of the eigenvalue problem
 
 .. math::
 
@@ -234,16 +270,18 @@ with the entries of :math:`\boldsymbol C \in \mathbb{R}^{N_{\rm s} \times N_{\rm
 
     C_{ij}  = \frac{1}{N_{\rm s}} \int_{r_{\rm in}}^{r_{\rm cut}} \xi_i(x, \boldsymbol \eta) \xi_j(x, \boldsymbol \eta) dx, \quad 1 \le i, j \le N_{\rm s}
 
-Note that the  eigenvalues :math:`\lambda_\ell, 1 \le \ell \le N_{\rm s}`, are ordered such
-that :math:`\lambda_1 \ge \lambda_2 \ge \ldots \ge \lambda_{N_{\rm s}}`, and that the
-matrix :math:`\boldsymbol A` is pe-computed and stored for any given :math:`\boldsymbol \eta`.
-Owing to the rapid convergence of the KL expansion, only a small number of orthogonal
-basis functions is needed to obtain accurate approximation. The value of :math:`N_{\rm 2b}`
-corresponds to *twobody_number_radial_basis_functions*.
+Note that the eigenvalues :math:`\lambda_\ell, 1 \le \ell \le N_{\rm
+s}`, are ordered such that :math:`\lambda_1 \ge \lambda_2 \ge \ldots \ge
+\lambda_{N_{\rm s}}`, and that the matrix :math:`\boldsymbol A` is
+pe-computed and stored for any given :math:`\boldsymbol \eta`.  Owing to
+the rapid convergence of the KL expansion, only a small number of
+orthogonal basis functions is needed to obtain accurate
+approximation. The value of :math:`N_{\rm 2b}` corresponds to
+*twobody_number_radial_basis_functions*.
 
-The two-body proper orthogonal descriptors at each atom *i* are computed by
-summing the orthogonal basis functions over the neighbors of atom *i* and numerating on
-the atom types as follows
+The two-body proper orthogonal descriptors at each atom *i* are computed
+by summing the orthogonal basis functions over the neighbors of atom *i*
+and numerating on the atom types as follows
 
 .. math::
 
@@ -254,8 +292,8 @@ the atom types as follows
     \end{array}
     \right.
 
-for :math:`1 \le i \le N, 1 \le m \le N_{\rm 2b}, 1 \le q, p \le N_{\rm e}`. Here :math:`l(p,q)` is a
-symmetric index mapping such that
+for :math:`1 \le i \le N, 1 \le m \le N_{\rm 2b}, 1 \le q, p \le N_{\rm
+e}`. Here :math:`l(p,q)` is a symmetric index mapping such that
 
 .. math::
 
@@ -266,18 +304,21 @@ symmetric index mapping such that
     \end{array}
     \right.
 
-The number of two-body descriptors per atom is thus :math:`N_{\rm 2b} N_{\rm e}(N_{\rm e}+1)/2`.
+The number of two-body descriptors per atom is thus :math:`N_{\rm 2b}
+N_{\rm e}(N_{\rm e}+1)/2`.
 
-It is important to note that the orthogonal basis functions
-do not depend on the atomic numbers :math:`Z_i` and :math:`Z_j`. Therefore, the cost of evaluating
-the basis functions and their derivatives with respect to :math:`r_{ij}` is independent of the
-number of elements :math:`N_{\rm e}`. Consequently, even though the two-body proper orthogonal
-descriptors depend on :math:`\boldsymbol Z`, their computational complexity
-is independent of :math:`N_{\rm e}`.
+It is important to note that the orthogonal basis functions do not
+depend on the atomic numbers :math:`Z_i` and :math:`Z_j`. Therefore, the
+cost of evaluating the basis functions and their derivatives with
+respect to :math:`r_{ij}` is independent of the number of elements
+:math:`N_{\rm e}`. Consequently, even though the two-body proper
+orthogonal descriptors depend on :math:`\boldsymbol Z`, their
+computational complexity is independent of :math:`N_{\rm e}`.
 
-In order to provide proper orthogonal descriptors for three-body interactions,
-we need to introduce a three-body parametrized potential. In particular, the
-three-body potential is defined as a product of radial and angular functions as follows
+In order to provide proper orthogonal descriptors for three-body
+interactions, we need to introduce a three-body parameterized
+potential. In particular, the three-body potential is defined as a
+product of radial and angular functions as follows
 
 .. math::
 
@@ -285,22 +326,26 @@ three-body potential is defined as a product of radial and angular functions as 
     \psi(r_{ik}, r_{\rm min}, r_{\rm max}, \alpha, \beta, \gamma, \kappa) f_{\rm c}(r_{ik}, r_{\rm min}, r_{\rm max}) \\
     \cos (\sigma \theta_{ijk} + \zeta)
 
-where :math:`\sigma` is the periodic multiplicity, :math:`\zeta` is the equilibrium angle,
-:math:`\boldsymbol \mu^{(3)} = (\alpha, \beta, \gamma, \kappa, \sigma, \zeta)`. The three-body
-potential provides an angular fingerprint of the atomic environment through the
-bond angles :math:`\theta_{ijk}` formed with each pair of neighbors :math:`j` and :math:`k`.
-Compared to the two-body potential, the three-body potential
-has two extra parameters :math:`(\sigma, \zeta)` associated with the angular component.
+where :math:`\sigma` is the periodic multiplicity, :math:`\zeta` is the
+equilibrium angle, :math:`\boldsymbol \mu^{(3)} = (\alpha, \beta,
+\gamma, \kappa, \sigma, \zeta)`. The three-body potential provides an
+angular fingerprint of the atomic environment through the bond angles
+:math:`\theta_{ijk}` formed with each pair of neighbors :math:`j` and
+:math:`k`.  Compared to the two-body potential, the three-body potential
+has two extra parameters :math:`(\sigma, \zeta)` associated with the
+angular component.
 
-Let :math:`\boldsymbol \varrho = (\alpha, \beta, \gamma, \kappa)`. We assume that
-we are given :math:`L_{\rm r}` parameter tuples :math:`\boldsymbol \varrho_\ell, 1 \le \ell \le L_{\rm r}`.
-We introduce the following set of  snapshots on :math:`(r_{\min}, r_{\max})`:
+Let :math:`\boldsymbol \varrho = (\alpha, \beta, \gamma, \kappa)`. We
+assume that we are given :math:`L_{\rm r}` parameter tuples
+:math:`\boldsymbol \varrho_\ell, 1 \le \ell \le L_{\rm r}`.  We
+introduce the following set of snapshots on :math:`(r_{\min},
+r_{\max})`:
 
 .. math::
 
     \zeta_\ell(r_{ij}, r_{\rm min}, r_{\rm max} ) =  \psi(r_{ij}, r_{\rm min}, r_{\rm max}, \boldsymbol \varrho_\ell) f_{\rm c}(r_{ij}, r_{\rm min},  r_{\rm max}), \quad 1 \le \ell \le L_{\rm r} .
 
-We apply the Karhunen-Lo\`eve (KL) expansion to this set of snapshots to
+We apply the Karhunen-Loeve (KL) expansion to this set of snapshots to
 obtain orthogonal basis functions as follows
 
 .. math::
@@ -308,7 +353,7 @@ obtain orthogonal basis functions as follows
     U^{r}_m(r_{ij}, r_{\rm min}, r_{\rm max} ) = \sum_{\ell = 1}^{L_{\rm r}} A_{\ell m} \,  \zeta_\ell(r_{ij}, r_{\rm min}, r_{\rm max} ), \qquad m = 1, \ldots, N_{\rm r} ,
 
 where the matrix :math:`\boldsymbol A \in \mathbb{R}^{L_{\rm r} \times L_{\rm r}}` consists
-of eigenvectors of the eigenvalue problem. For the parametrized angular function,
+of eigenvectors of the eigenvalue problem. For the parameterized angular function,
 we consider angular basis functions
 
 .. math::
@@ -316,7 +361,7 @@ we consider angular basis functions
     U^{a}_n(\theta_{ijk}) = \cos ((n-1) \theta_{ijk}), \qquad  n = 1,\ldots, N_{\rm a},
 
 where :math:`N_{\rm a}` is the number of angular basis functions. The orthogonal
-basis functions for the parametrized potential are computed as follows
+basis functions for the parameterized potential are computed as follows
 
 .. math::
 
@@ -353,7 +398,7 @@ where
     \right.
 
 The number of three-body descriptors per atom is thus :math:`N_{\rm 3b} N_{\rm e}^2(N_{\rm e}+1)/2`.
-While the number of three-body PODs increases cubically as a function of the number of elements,
+While the number of three-body PODs is cubic function of the number of elements,
 the computational complexity of the three-body PODs is independent of the number of elements.
 
 Four-Body SNAP Descriptors
@@ -526,48 +571,56 @@ As a result, the quadratic  POD potential does not increase the computational co
 Training
 """"""""
 
-POD potentials are trained using the least-squares regression against density functional theory (DFT) data.
-Let :math:`J` be the number of training configurations, with :math:`N_j` being the number of
-atoms in the jth configuration. Let :math:`\{E^{\star}_j\}_{j=1}^{J}`
-and :math:`\{\boldsymbol F^{\star}_j\}_{j=1}^{J}` be the DFT energies and forces
-for :math:`J` configurations. Next, we calculate the global descriptors
-and their derivatives for all training  configurations. Let :math:`d_{jm}, 1 \le m \le M`, be the
-global descriptors associated with the jth configuration, where :math:`M` is the number of global
-descriptors. We then form a matrix :math:`\boldsymbol A \in \mathbb{R}^{J \times M}`
-with entries :math:`A_{jm} = d_{jm}/ N_j` for :math:`j=1,\ldots,J` and :math:`m=1,\ldots,M`.
-Moreover, we form a matrix :math:`\boldsymbol B \in \mathbb{R}^{\mathcal{N} \times M}` by stacking
-the derivatives of the global descriptors for all training configurations from top
-to bottom, where :math:`\mathcal{N} = 3\sum_{j=1}^{J} N_j`.
+POD potentials are trained using the least-squares regression against
+density functional theory (DFT) data.  Let :math:`J` be the number of
+training configurations, with :math:`N_j` being the number of atoms in
+the j-th configuration. Let :math:`\{E^{\star}_j\}_{j=1}^{J}` and
+:math:`\{\boldsymbol F^{\star}_j\}_{j=1}^{J}` be the DFT energies and
+forces for :math:`J` configurations. Next, we calculate the global
+descriptors and their derivatives for all training configurations. Let
+:math:`d_{jm}, 1 \le m \le M`, be the global descriptors associated with
+the j-th configuration, where :math:`M` is the number of global
+descriptors. We then form a matrix :math:`\boldsymbol A \in
+\mathbb{R}^{J \times M}` with entries :math:`A_{jm} = d_{jm}/ N_j` for
+:math:`j=1,\ldots,J` and :math:`m=1,\ldots,M`.  Moreover, we form a
+matrix :math:`\boldsymbol B \in \mathbb{R}^{\mathcal{N} \times M}` by
+stacking the derivatives of the global descriptors for all training
+configurations from top to bottom, where :math:`\mathcal{N} =
+3\sum_{j=1}^{J} N_j`.
 
-The coefficient vector :math:`\boldsymbol c` of the POD potential is found by solving
-the following least-squares problem
+The coefficient vector :math:`\boldsymbol c` of the POD potential is
+found by solving the following least-squares problem
 
 .. math::
 
     {\min}_{\boldsymbol c \in \mathbb{R}^{M}} \ w_E \|\boldsymbol A(\boldsymbol \eta) \boldsymbol c - \bar{\boldsymbol E}^{\star} \|^2 + w_F \|\boldsymbol B(\boldsymbol \eta) \boldsymbol c + \boldsymbol F^{\star} \|^2,
 
-where :math:`w_E` and :math:`w_F` are weights for the energy (*fitting_weight_energy*) and
-force (*fitting_weight_force*), respectively.
-Here :math:`\bar{\boldsymbol E}^{\star} \in \mathbb{R}^{J}` is a vector of with entries
-:math:`\bar{E}^{\star}_j = E^{\star}_j/N_j` and :math:`\boldsymbol F^{\star}` is a vector of :math:`\mathcal{N}`
-entries obtained by stacking :math:`\{\boldsymbol F^{\star}_j\}_{j=1}^{J}` from top to bottom.
+where :math:`w_E` and :math:`w_F` are weights for the energy
+(*fitting_weight_energy*) and force (*fitting_weight_force*),
+respectively.  Here :math:`\bar{\boldsymbol E}^{\star} \in
+\mathbb{R}^{J}` is a vector of with entries :math:`\bar{E}^{\star}_j =
+E^{\star}_j/N_j` and :math:`\boldsymbol F^{\star}` is a vector of
+:math:`\mathcal{N}` entries obtained by stacking :math:`\{\boldsymbol
+F^{\star}_j\}_{j=1}^{J}` from top to bottom.
 
-The training procedure is the same for both the linear and quadratic POD potentials.
-However, since the quadratic POD potential has a significantly larger number of the global
-descriptors, it is more expensive to train the linear POD potential. This is
-because the training of the quadratic POD potential
-still requires us to calculate and store the quadratic global descriptors  and
-their gradient. Furthermore, the quadratic POD potential may require more training
-data in order to prevent overfitting. In order to reduce the computational cost of fitting
-the quadratic POD potential and avoid overfitting, we can use subsets of two-body and three-body
-PODs for constructing the new descriptors.
+The training procedure is the same for both the linear and quadratic POD
+potentials.  However, since the quadratic POD potential has a
+significantly larger number of the global descriptors, it is more
+expensive to train the linear POD potential. This is because the
+training of the quadratic POD potential still requires us to calculate
+and store the quadratic global descriptors and their
+gradient. Furthermore, the quadratic POD potential may require more
+training data in order to prevent over-fitting. In order to reduce the
+computational cost of fitting the quadratic POD potential and avoid
+over-fitting, we can use subsets of two-body and three-body PODs for
+constructing the new descriptors.
 
 
 Restrictions
 """"""""""""
 
-This command is part of the ML-POD package.  It is only enabled
-if LAMMPS was built with that package by setting -D PKG_ML-POD=on. See the :doc:`Build package
+This command is part of the ML-POD package.  It is only enabled if
+LAMMPS was built with that package. See the :doc:`Build package
 <Build_package>` page for more info.
 
 Related commands

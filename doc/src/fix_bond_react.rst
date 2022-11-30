@@ -177,12 +177,12 @@ due to the internal dynamic grouping performed by fix bond/react.
    If the group-ID is an existing static group, react-group-IDs
    should also be specified as this static group or a subset.
 
-The *reset_mol_ids* keyword invokes the :doc:`reset_mol_ids <reset_mol_ids>`
-command after a reaction occurs, to ensure that molecule IDs are
-consistent with the new bond topology. The group-ID used for
-:doc:`reset_mol_ids <reset_mol_ids>` is the group-ID for this fix.
-Resetting molecule IDs is necessarily a global operation, so it can
-be slow for very large systems.
+The *reset_mol_ids* keyword invokes the :doc:`reset_atoms mol
+<reset_atoms>` command after a reaction occurs, to ensure that
+molecule IDs are consistent with the new bond topology. The group-ID
+used for :doc:`reset_atoms mol <reset_atoms>` is the group-ID for this
+fix.  Resetting molecule IDs is necessarily a global operation, so it
+can be slow for very large systems.
 
 The following comments pertain to each *react* argument (in other
 words, they can be customized for each reaction, or reaction step):
@@ -640,7 +640,7 @@ specified by the *max_rxn* keyword.
 .. versionadded:: TBD
 
 The *rate_limit* keyword can enforce an upper limit on the overall
-rate of the reaction. The number of reaction occurences is limited to
+rate of the reaction. The number of reaction occurrences is limited to
 Nlimit within an interval of Nsteps timesteps. No reactions are
 permitted to occur within the first Nsteps timesteps of the first run
 after reading a data file. Nlimit can be specified with an equal-style

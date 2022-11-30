@@ -57,10 +57,10 @@
 /pair_pace.cpp
 /pair_pace.h
 
-/pair_mlpod.cpp
-/pair_mlpod.h
-/fitpod_command.cpp
-/fitpod_command.h
+/pair_pod.cpp
+/pair_pod.h
+/fitpod.cpp
+/fitpod.h
 /mlpod.cpp
 /mlpod.h
 

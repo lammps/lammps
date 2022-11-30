@@ -505,8 +505,8 @@ void MLPOD::read_pod(const std::string &pod_file)
 
     }
 
-    if (keywd == "filename_tag") pod.filenametag = words[1];                        
-    
+    if (keywd == "filename_tag") pod.filenametag = words[1];
+
     if (keywd == "pbc"){
       if (words.size() != 4)
         error->one(FLERR,"Improper POD file.", utils::getsyserror());

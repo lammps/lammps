@@ -210,7 +210,7 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
         make_rho_in_brick<float, float>(fix->get_single_buffers(), last_source_grpbit,
                                         density_brick, !last_invert_source);
     }
-    gc->reverse_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
+    gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
     for (int nz = nzlo_out; nz <= nzhi_out; nz++)
       for (int ny = nylo_out; ny <= nyhi_out; ny++)
@@ -232,7 +232,7 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
     //   to fully sum contribution in their 3d bricks
     // remap from 3d decomposition to FFT decomposition
 
-    gc->reverse_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
+    gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
   }
 
@@ -252,20 +252,20 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
+    gc->forward_comm(Grid3d::KSPACE, this, FORWARD_AD, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
   else
-    gc->forward_comm(Grid3d::KSPACE, this, 3, sizeof(FFT_SCALAR), FORWARD_IK, gc_buf1, gc_buf2,
+    gc->forward_comm(Grid3d::KSPACE, this, FORWARD_IK, 3, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm(Grid3d::KSPACE, this, 6, sizeof(FFT_SCALAR), FORWARD_AD_PERATOM, gc_buf1,
+      gc->forward_comm(Grid3d::KSPACE, this, FORWARD_AD_PERATOM, 6, sizeof(FFT_SCALAR), gc_buf1,
                        gc_buf2, MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm(Grid3d::KSPACE, this, 7, sizeof(FFT_SCALAR), FORWARD_IK_PERATOM, gc_buf1,
+      gc->forward_comm(Grid3d::KSPACE, this, FORWARD_IK_PERATOM, 7, sizeof(FFT_SCALAR), gc_buf1,
                        gc_buf2, MPI_FFT_SCALAR);
   }
   int tempslabflag = slabflag;
@@ -340,7 +340,7 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
   }
   density_brick = electrolyte_density_brick;
   density_fft = electrolyte_density_fft;
-  gc->reverse_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
+  gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                    MPI_FFT_SCALAR);
   brick2fft();
   // switch back pointers
@@ -370,7 +370,7 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
         n += 2;
       }
 
-  gc->forward_comm(Grid3d::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
+  gc->forward_comm(Grid3d::KSPACE, this, FORWARD_AD, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                    MPI_FFT_SCALAR);
 
   switch (fix->precision()) {

@@ -655,13 +655,13 @@ void Grid3dKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void Grid3dKokkos<DeviceType>::forward_comm_kspace(KSpace *kspace, int nper, int which,
+void Grid3dKokkos<DeviceType>::forward_comm_kspace(KSpace *kspace, int which, int nper,
                                    FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR)
-    forward_comm_kspace_regular(kspace,nper,which,k_buf1,k_buf2,datatype);
+    forward_comm_kspace_regular(kspace,which,nper,k_buf1,k_buf2,datatype);
   else
-    forward_comm_kspace_tiled(kspace,nper,which,k_buf1,k_buf2,datatype);
+    forward_comm_kspace_tiled(kspace,which,nper,k_buf1,k_buf2,datatype);
 }
 
 /* ----------------------------------------------------------------------
@@ -670,7 +670,7 @@ void Grid3dKokkos<DeviceType>::forward_comm_kspace(KSpace *kspace, int nper, int
 
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::
-forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
+forward_comm_kspace_regular(KSpace *kspace, int which, int nper,
                             FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
@@ -724,7 +724,7 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
 
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::
-forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
+forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
                           FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;
@@ -791,13 +791,13 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void Grid3dKokkos<DeviceType>::reverse_comm_kspace(KSpace *kspace, int nper, int which,
+void Grid3dKokkos<DeviceType>::reverse_comm_kspace(KSpace *kspace, int which, int nper,
                                     FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   if (layout == REGULAR)
-    reverse_comm_kspace_regular(kspace,nper,which,k_buf1,k_buf2,datatype);
+    reverse_comm_kspace_regular(kspace,which,nper,k_buf1,k_buf2,datatype);
   else
-    reverse_comm_kspace_tiled(kspace,nper,which,k_buf1,k_buf2,datatype);
+    reverse_comm_kspace_tiled(kspace,which,nper,k_buf1,k_buf2,datatype);
 }
 
 /* ----------------------------------------------------------------------
@@ -806,7 +806,7 @@ void Grid3dKokkos<DeviceType>::reverse_comm_kspace(KSpace *kspace, int nper, int
 
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::
-reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
+reverse_comm_kspace_regular(KSpace *kspace, int which, int nper,
                             FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
@@ -861,7 +861,7 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
 
 template<class DeviceType>
 void Grid3dKokkos<DeviceType>::
-reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
+reverse_comm_kspace_tiled(KSpace *kspace, int which, int nper,
                           FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;

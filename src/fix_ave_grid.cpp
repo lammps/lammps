@@ -560,10 +560,10 @@ void FixAveGrid::end_of_step()
 
   if (modeatom) {
     if (dimension == 2)
-      grid2d->reverse_comm(Grid2d::FIX,this,nvalues+1,sizeof(double),0,
+      grid2d->reverse_comm(Grid2d::FIX,this,0,nvalues+1,sizeof(double),
                            grid_buf1,grid_buf2,MPI_DOUBLE);
     else
-      grid3d->reverse_comm(Grid3d::FIX,this,nvalues+1,sizeof(double),0,
+      grid3d->reverse_comm(Grid3d::FIX,this,0,nvalues+1,sizeof(double),
                            grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 
@@ -1788,7 +1788,7 @@ void FixAveGrid::output_grid(GridData *src)
    only invoked for ATOM mode
 ------------------------------------------------------------------------ */
 
-void FixAveGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+void FixAveGrid::pack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   int i,j,m;
 
@@ -1827,7 +1827,7 @@ void FixAveGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *lis
    only invoked for ATOM mode
 ------------------------------------------------------------------------- */
 
-void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+void FixAveGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   int i,j,m;
 
@@ -2020,10 +2020,10 @@ void FixAveGrid::reset_grid()
 
   if (modeatom) {
     if (dimension == 2)
-      grid2d->reverse_comm(Grid2d::FIX,this,nvalues+1,sizeof(double),0,
+      grid2d->reverse_comm(Grid2d::FIX,this,0,nvalues+1,sizeof(double),
                            grid_buf1,grid_buf2,MPI_DOUBLE);
     else
-      grid3d->reverse_comm(Grid3d::FIX,this,nvalues+1,sizeof(double),0,
+      grid3d->reverse_comm(Grid3d::FIX,this,0,nvalues+1,sizeof(double),
                            grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 

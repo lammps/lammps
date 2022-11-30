@@ -291,7 +291,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
   debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE Grid3d");
 #endif
 
-  gc->reverse_comm(Grid3d::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
+  gc->reverse_comm(Grid3d::PAIR,amoeba,which,1,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 #if DEBUG_AMOEBA
@@ -354,7 +354,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
   debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE Grid3d");
 #endif
 
-  gc->reverse_comm(Grid3d::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
+  gc->reverse_comm(Grid3d::PAIR,amoeba,which,2,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 #if DEBUG_AMOEBA
@@ -443,7 +443,7 @@ void *AmoebaConvolution::post_convolution_3d()
   debug_scalar(GRIDBRICK_IN,"POST Convo / PRE grid3d");
   debug_file(GRIDBRICK_IN,"post.convo.pre.grid3d");
 #endif
-  gc->forward_comm(Grid3d::PAIR,amoeba,1,sizeof(FFT_SCALAR),which,
+  gc->forward_comm(Grid3d::PAIR,amoeba,which,1,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) grid_brick;
@@ -485,7 +485,7 @@ void *AmoebaConvolution::post_convolution_4d()
   debug_scalar(GRIDBRICK_IN,"POST Convo / PRE grid3d");
   debug_file(GRIDBRICK_IN,"post.convo.pre.grid3d");
 #endif
-  gc->forward_comm(Grid3d::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
+  gc->forward_comm(Grid3d::PAIR,amoeba,which,2,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) cgrid_brick;

@@ -2195,6 +2195,236 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
+.. f:function:: fix_external_get_force(id)
+
+   Get pointer to the force array storage in a fix external instance with the
+   given ID.
+
+   .. versionadded:: TBD
+
+   Fix :doc:`external <fix_external>` allows programs that are running LAMMPS
+   through its library interfaces to add or modify certain LAMMPS properties on
+   specific time steps, similar to the way other fixes do.
+
+   This function provides access to the per-atom force storage in a fix
+   external instance with the given fix-ID to be added to the individual
+   atoms when using the "pf/array" mode.  The *fexternal* array can be
+   accessed like other "native" per-atom arrays accessible via the
+   :f:func:`extract_atom` function.  Please note that the array
+   stores the forces for *local* atoms for each MPI rank, in the order
+   determined by the neighbor list build.  Because the underlying data
+   structures can change as well as the order of atom as they migrate between
+   MPI processes because of the domain decomposition parallelization, this
+   function should be always called immediately before the forces are going to
+   be set to get an up-to-date pointer.  You can use, for example,
+   :f:func:`extract_setting` to obtain the number of local atoms `nlocal` and
+   then assume the dimensions of the returned force array as
+   ``REAL(c_double) :: force(3,nlocal)``.
+
+   This function is an alternative to the callback mechanism in fix external
+   set up by :f:subr:`set_fix_external_callback`. The main difference is that
+   this mechanism can be used when forces are to be pre-computed and the
+   control alternates between LAMMPS and the external driver, while the
+   callback mechanism can call an external subroutine to compute the force when
+   the fix is triggered and needs them.
+
+   Please see the documentation for :doc:`fix external <fix_external>` for
+   more information about how to use the fix and how to couple it with an
+   external program.
+
+   :p character(len=*) id: ID of :doc:`fix external <fix_external>` instance
+   :to: :cpp:func:`lammps_fix_external_get_force`
+   :r fexternal: pointer to the per-atom force array allocated by the fix
+   :rtype fexternal: real(c_double), dimension(3,nlocal)
+
+--------
+
+.. f:subroutine:: fix_external_set_energy_global(id, eng)
+
+   Set the global energy contribution for a :doc:`fix external <fix_external>`
+   instance with the given ID.
+
+   .. versionadded:: TBD
+
+   This is a companion function to :f:func:`set_fix_external_callback`
+   and :f:func:`fix_external_get_force` that also sets the contribution to the
+   global energy from the external program.  The value of the *eng* argument
+   will be stored in the fix and applied on the current and all following
+   time steps until changed by another call to this function. The energy is in
+   energy units as determined by the current :doc:`units <units>` settings and
+   is the **total** energy of the contribution.  Thus, when running in
+   parallel, all MPI processes have to call this function with the **same**
+   value, and this will be returned as scalar property of the fix external
+   instance when accessed in LAMMPS input commands or from variables.
+
+   Please see the documentation for :doc:`fix external <fix_external>` for more
+   information about how to use the fix and how to couple it with an external
+   program.
+
+   :p character(len=*) id: fix ID of fix external instance
+   :p real(c_double) eng:  total energy to be added to the global energy
+   :to: :cpp:func:`lammps_fix_external_set_energy_global`
+
+--------
+
+.. f:subroutine:: fix_external_set_virial_global(id, virial)
+
+   Set the global virial contribution for a fix external instance with the
+   given ID.
+
+   .. versionadded:: TBD
+
+   This is a companion function to :f:subr:`set_fix_external_callback`
+   and :f:func:`fix_external_get_force` to set the contribution to the global
+   virial from an external program.
+
+   The six values of the *virial* array will be stored in the fix and applied
+   on the current and all following time steps until changed by another call
+   to this function. The components of the virial need to be stored in the
+   following order: *xx*, *yy*, *zz*, *xy*, *xz*, *yz*.  In LAMMPS, the virial
+   is stored internally as `stress*volume` in units of `pressure*volume` as
+   determined by the current :doc:`units <units>` settings and is the
+   **total** contribution.  Thus, when running in parallel, all MPI processes
+   have to call this function with the **same** value, and this will then be
+   added by fix external.
+
+   Please see the documentation for :doc:`fix external <fix_external>` for
+   more information about how to use the fix and how to couple it with an
+   external code.
+
+   :p character(len=*) id: fix ID of fix external instance
+   :p real(c_double) virial [dimension(6)]: the six global stress tensor
+    components to be added to the global virial
+   :to: :cpp:func:`lammps_fix_external_set_virial_global`
+
+--------
+
+.. f:subroutine:: fix_external_set_energy_peratom(id, eng)
+
+   Set the per-atom energy contribution for a fix external instance with the
+   given ID.
+
+   .. versionadded:: TBD
+
+   This is a companion function to :f:subr:`set_fix_external_callback` to set
+   the per-atom energy contribution due to the fix from the external code as
+   part of the callback function.  For this to work, the handle to the LAMMPS
+   object must be passed as the *ptr* argument when registering the callback
+   function.
+
+   .. note::
+
+      This function is fully independent from
+      :f:subr:`fix_external_set_energy_global` and will **NOT** add any
+      contributions to the global energy tally and will **NOT** check whether
+      the sum of the contributions added here are consistent with the global
+      added energy.
+
+   Please see the documentation for :doc:`fix external <fix_external>` for
+   more information about how to use the fix and how to couple it with an
+   external code.
+
+   :p character(len=*) id: fix ID of the fix external instance
+   :p real(c_double) eng [dimension(:)]: array of length nlocal containing
+    the energy to add to the per-atom energy
+   :to: :cpp:func:`lammps_fix_external_set_energy_peratom`
+
+--------
+
+.. f:subroutine:: set_fix_external_set_virial_peratom(id, virial)
+
+   This is a companion function to :f:subr:`set_fix_external_callback` to set
+   the per-atom virial contribution due to the fix from the external program as
+   part of the callback function.  For this to work, the LAMMPS object must be
+   passed as the *caller* argument when registering the callback function.
+
+   .. versionadded:: TBD
+
+   .. note::
+
+      This function is fully independent from
+      :f:subr:`fix_external_set_virial_global` and will **NOT** add any
+      contributions to the global virial tally and **NOT** check whether the
+      sum of the contributions added here are consistent with the global added
+      virial.
+
+   The order and units of the per-atom stress tensor elements are the same
+   as for the global virial.  The type and dimensions of the per-atom virial
+   array must be ``REAL(c_double), DIMENSION(6,nlocal)``.
+
+   Please see the documentation for :doc:`fix external <fix_external>` for
+   more information about how to use the fix and how to couple it with an
+   external program.
+
+   :p character(len=*) id: fix ID of fix external instance
+   :p real(c_double) virial [dimension(:,:)]: an array of :math:`6 \times{}`\
+    *nlocal* components to be added to the per-atom virial
+   :to: :cpp:func:`lammps_set_virial_peratom`
+
+--------
+
+.. f:subroutine:: fix_external_set_vector_length(id, length)
+
+   Set the vector length for a global vector stored with fix external for
+   analysis.
+
+   .. versionadded:: TBD
+
+   This is a companion function to :f:subr:`set_fix_external_callback` and
+   :f:func:`fix_external_get_force` to set the length of a global vector of
+   properties that will be stored with the fix via
+   :f:subr:`fix_external_set_vector`.
+
+   This function needs to be called **before** a call to
+   :f:subr:`fix_external_set_vector` and **before** a run or minimize command.
+   When running in parallel, it must be called from **all** MPI
+   processes with the same length argument.
+
+   Please see the documentation for :doc:`fix external <fix_external>` for
+   more information about how to use the fix and how to couple it with an
+   external program.
+
+   :p character(len=*) id: fix ID of fix external instance
+   :p integer(c_int) length: length of the global vector to be stored with the
+    fix
+
+--------
+
+.. f:subroutine:: fix_external_set_vector(id, idx, val)
+
+   Store a global vector value for a fix external instance with the given ID.
+
+   .. versionadded:: TBD
+
+   This is a companion function to :f:subr:`set_fix_external_callback` and
+   :f:func:`fix_external_get_force` to set the values of a global vector of
+   properties that will be stored with the fix and can be accessed from
+   within LAMMPS input commands (e.g., fix ave/time or variables) when used
+   in a vector context.
+
+   This function needs to be called **after** a call to
+   :f:subr:`fix_external_set_vector_length` and **before** a run or minimize
+   command.  When running in parallel, it must be called from **all** MPI
+   processes with the **same**\ *idx* and *val* parameters.  The variable
+   *val* is assumed to be extensive.
+
+   .. note::
+
+      The index in the *idx* parameter is 1-based (i.e., the first element
+      is set with *idx*\ :math:`{} = 1`, and the last element of the vector
+      with *idx*\ :math:`{} = N`, where :math:`N` is the value of the *length*
+      parameter of the call to :f:subr:`fix_external_set_vector_length`.
+
+   Please see the documentation for :doc:`fix external <fix_external>` for
+   more information about how to use the fix and how to couple it with an
+   external code.
+
+   :p character(len=*) id: ID of fix external instance
+   :p integer(c_int) idx: 1-based index in global vector
+   :p integer(c_int) val: value to be stored in global vector at index *idx*
+
+--------
+
 .. f:subroutine:: flush_buffers()
 
    This function calls :cpp:func:`lammps_flush_buffers`, which flushes buffered

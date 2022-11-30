@@ -175,6 +175,18 @@ MODULE LIBLAMMPS
     GENERIC   :: decode_image_flags     => lmp_decode_image_flags, &
                                            lmp_decode_image_flags_bigbig
     PROCEDURE :: set_fix_external_callback => lmp_set_fix_external_callback
+    PROCEDURE :: fix_external_get_force => lmp_fix_external_get_force
+    PROCEDURE :: fix_external_set_energy_global &
+                                        => lmp_fix_external_set_energy_global
+    PROCEDURE :: fix_external_set_virial_global &
+                                        => lmp_fix_external_set_virial_global
+    PROCEDURE :: fix_external_set_energy_peratom &
+                                        => lmp_fix_external_set_energy_peratom
+    PROCEDURE :: fix_external_set_virial_peratom &
+                                        => lmp_fix_external_set_virial_peratom
+    PROCEDURE :: fix_external_set_vector_length &
+                                        => lmp_fix_external_set_vector_length
+    PROCEDURE :: fix_external_set_vector => lmp_fix_external_set_vector
     PROCEDURE :: flush_buffers          => lmp_flush_buffers
     PROCEDURE :: is_running             => lmp_is_running
     PROCEDURE :: force_timeout          => lmp_force_timeout
@@ -765,12 +777,42 @@ MODULE LIBLAMMPS
       TYPE(c_ptr) :: lammps_fix_external_get_force
     END FUNCTION lammps_fix_external_get_force
 
-    !SUBROUTINE lammps_fix_external_set_energy_global
-    !SUBROUTINE lammps_fix_external_set_energy_peratom
-    !SUBROUTINE lammps_fix_external_set_virial_global
-    !SUBROUTINE lammps_fix_external_set_virial_peratom
-    !SUBROUTINE lammps_fix_external_set_vector_length
-    !SUBROUTINE lammps_fix_external_set_vector
+    SUBROUTINE lammps_fix_external_set_energy_global(handle, id, eng) BIND(C)
+      IMPORT :: c_ptr, c_double
+      TYPE(c_ptr), VALUE :: handle, id
+      REAL(c_double), VALUE :: eng
+    END SUBROUTINE lammps_fix_external_set_energy_global
+
+    SUBROUTINE lammps_fix_external_set_virial_global(handle, id, virial) &
+    BIND(C)
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: handle, id, virial
+    END SUBROUTINE lammps_fix_external_set_virial_global
+
+    SUBROUTINE lammps_fix_external_set_energy_peratom(handle, id, eng) BIND(C)
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: handle, id, eng
+    END SUBROUTINE lammps_fix_external_set_energy_peratom
+
+    SUBROUTINE lammps_fix_external_set_virial_peratom(handle, id, virial) &
+    BIND(C)
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: handle, id, virial
+    END SUBROUTINE lammps_fix_external_set_virial_peratom
+
+    SUBROUTINE lammps_fix_external_set_vector_length(handle, id, length) &
+    BIND(C)
+      IMPORT :: c_ptr, c_int
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: length
+    END SUBROUTINE lammps_fix_external_set_vector_length
+
+    SUBROUTINE lammps_fix_external_set_vector(handle, id, idx, val) BIND(C)
+      IMPORT :: c_ptr, c_int, c_double
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: idx
+      REAL(c_double), VALUE :: val
+    END SUBROUTINE lammps_fix_external_set_vector
 
     SUBROUTINE lammps_flush_buffers(handle) BIND(C)
       IMPORT :: c_ptr
@@ -2590,6 +2632,92 @@ CONTAINS
     CALL C_F_POINTER(f(1), fexternal, [3, nmax])
     CALL lammps_free(Cid)
   END FUNCTION lmp_fix_external_get_force
+
+  SUBROUTINE lmp_fix_external_set_energy_global(self, id, eng)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    REAL(c_double), INTENT(OUT) :: eng
+    TYPE(c_ptr) :: Cid
+
+    Cid = f2c_string(id)
+    CALL lammps_fix_external_set_energy_global(self%handle, Cid, eng)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_energy_global
+
+  SUBROUTINE lmp_fix_external_set_virial_global(self, id, virial)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    REAL(c_double), DIMENSION(6), TARGET, INTENT(IN) :: virial
+    TYPE(c_ptr) :: Cid, Cvirial
+
+    Cid = f2c_string(id)
+    Cvirial = C_LOC(virial(1))
+    CALL lammps_fix_external_set_virial_global(self%handle, Cid, Cvirial)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_virial_global
+
+  SUBROUTINE lmp_fix_external_set_energy_peratom(self, id, eng)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    REAL(c_double), DIMENSION(:), TARGET, INTENT(IN) :: eng
+    TYPE(c_ptr) :: Cid, Ceng
+    INTEGER(c_int) :: nlocal
+
+    nlocal = lmp_extract_setting(self, 'nlocal')
+    IF (SIZE(eng) < nlocal) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Array "eng" should be length nlocal or greater &
+        &[Fortran/fix_external_set_energy_peratom]')
+    END IF
+    Cid = f2c_string(id)
+    Ceng = C_LOC(eng)
+    CALL lammps_fix_external_set_energy_peratom(self%handle, Cid, Ceng)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_energy_peratom
+
+  SUBROUTINE lmp_fix_external_set_virial_peratom(self, id, virial)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    REAL(c_double), DIMENSION(:,:), TARGET, INTENT(IN) :: virial
+    TYPE(c_ptr) :: Cid, Cvirial
+    TYPE(c_ptr), TARGET :: Cptr
+    INTEGER(c_int) :: nlocal
+
+    nlocal = lmp_extract_setting(self, 'nlocal')
+    IF (SIZE(virial,2) < nlocal .OR. SIZE(virial,1) /= 6) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Array "virial" should be size 6 x nlocal or greater &
+        &[Fortran/fix_external_set_energy_peratom]')
+    END IF
+    Cid = f2c_string(id)
+    Cptr = C_LOC(virial(1,1))
+    Cvirial = C_LOC(Cptr)
+    CALL lammps_fix_external_set_virial_peratom(self%handle, Cid, Cvirial)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_virial_peratom
+
+  SUBROUTINE lmp_fix_external_set_vector_length(self, id, length)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN) :: length
+    TYPE(c_ptr) :: Cid
+
+    Cid = f2c_string(id)
+    CALL lammps_fix_external_set_vector_length(self%handle, Cid, length)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_vector_length
+
+  SUBROUTINE lmp_fix_external_set_vector(self, id, idx, val)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN) :: idx
+    REAL(c_double), INTENT(IN) :: val
+    TYPE(c_ptr) :: Cid
+
+    Cid = f2c_string(id)
+    CALL lammps_fix_external_set_vector(self%handle, Cid, idx, val)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_vector
 
   ! equivalent function to lammps_flush_buffers
   SUBROUTINE lmp_flush_buffers(self)

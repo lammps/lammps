@@ -313,6 +313,16 @@ void DihedralHybrid::coeff(int narg, char **arg)
 
 void DihedralHybrid::init_style()
 {
+  // error if sub-style is not used
+
+  int used;
+  for (int istyle = 0; istyle < nstyles; ++istyle) {
+    used = 0;
+    for (int itype = 1; itype <= atom->ndihedraltypes; ++itype)
+      if (map[itype] == istyle) used = 1;
+    if (used == 0) error->all(FLERR, "Dihedral hybrid sub-style {} is not used", keywords[istyle]);
+  }
+
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) styles[m]->init_style();
 }

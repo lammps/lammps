@@ -820,7 +820,7 @@ array.  Example code snippets with this logic were listed above,
 Final notes
 ^^^^^^^^^^^
 
-Finally, here are two additional issues to pay attention to for
+Finally, here are some additional issues to pay attention to for
 writing any style command which uses distributed grids via the Grid2d
 or Grid3d class.
 
@@ -833,3 +833,12 @@ it should have logic to instantiate either 2d or 3d grids and their
 associated data arrays, depending on the dimension of the simulation
 box.  The :doc:`fix ave/grid <fix_ave_grid>` command is an example of
 such a command.
+
+When a command maps its particles to the grid and updates grid cell
+values, it should check that it is not updating or accessing a grid
+cell value outside the range of its owned+ghost cells, and generate an
+error message if that is the case.  This could happen, for example, if
+a particle has moved further than half the neighbor skin distance,
+because the neighbor list update criterion are not adequate to prevent
+it from happening.  See the src/KSPACE/pppm.cpp file and its
+*particle_map()* method for an example of this kind of error check.

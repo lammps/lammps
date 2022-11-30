@@ -96,7 +96,7 @@ void FixTTMGrid::post_constructor()
 
   if (infile) {
     read_electron_temperatures(infile);
-    grid->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,
+    grid->forward_comm(Grid3d::FIX,this,0,1,sizeof(double),
                        grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 }
@@ -204,7 +204,7 @@ void FixTTMGrid::end_of_step()
          flangevin[i][2]*v[i][2]);
     }
 
-  grid->reverse_comm(Grid3d::FIX,this,1,sizeof(double),0,
+  grid->reverse_comm(Grid3d::FIX,this,0,1,sizeof(double),
                      grid_buf1,grid_buf2,MPI_DOUBLE);
 
   // clang-format off
@@ -257,7 +257,7 @@ void FixTTMGrid::end_of_step()
 
     // communicate new T_electron values to ghost grid points
 
-    grid->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,
+    grid->forward_comm(Grid3d::FIX,this,0,1,sizeof(double),
                        grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 }
@@ -310,7 +310,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
    called back to from Grid3d::read_file()
 ------------------------------------------------------------------------- */
 
-int FixTTMGrid::unpack_read_grid(char *buffer)
+int FixTTMGrid::unpack_read_grid(int /*nlines*/, char *buffer)
 {
   // loop over chunk of lines of grid point values
   // skip comment lines
@@ -524,7 +524,7 @@ void FixTTMGrid::reset_grid()
   memory->create(remap_buf1, nremap_buf1, "ttm/grid:remap_buf1");
   memory->create(remap_buf2, nremap_buf2, "ttm/grid:remap_buf2");
 
-  grid->remap(Grid3d::FIX,this,1,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
+  grid->remap(Grid3d::FIX,this,0,1,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
 
   memory->destroy(remap_buf1);
   memory->destroy(remap_buf2);
@@ -538,7 +538,7 @@ void FixTTMGrid::reset_grid()
 
   // communicate temperatures to ghost cells on new grid
 
-  grid->forward_comm(Grid3d::FIX,this,1,sizeof(double),0,
+  grid->forward_comm(Grid3d::FIX,this,0,1,sizeof(double),
                      grid_buf1,grid_buf2,MPI_DOUBLE);
 
   // zero new net_energy_transfer
@@ -553,7 +553,7 @@ void FixTTMGrid::reset_grid()
    pack own values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::pack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+void FixTTMGrid::pack_forward_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   auto buf = (double *) vbuf;
   double *src = &T_electron[nzlo_out][nylo_out][nxlo_out];
@@ -565,7 +565,7 @@ void FixTTMGrid::pack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *lis
    unpack another proc's own values from buf and set own ghost values
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::unpack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+void FixTTMGrid::unpack_forward_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   auto buf = (double *) vbuf;
   double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];
@@ -577,7 +577,7 @@ void FixTTMGrid::unpack_forward_grid(int /*flag*/, void *vbuf, int nlist, int *l
    pack ghost values into buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+void FixTTMGrid::pack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   auto buf = (double *) vbuf;
   double *src = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
@@ -589,7 +589,7 @@ void FixTTMGrid::pack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *lis
    unpack another proc's ghost values from buf and add to own values
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *list)
+void FixTTMGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   auto buf = (double *) vbuf;
   double *dest = &net_energy_transfer[nzlo_out][nylo_out][nxlo_out];
@@ -601,7 +601,7 @@ void FixTTMGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
    pack old grid values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::pack_remap_grid(void *vbuf, int nlist, int *list)
+void FixTTMGrid::pack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   auto buf = (double *) vbuf;
   double *src =
@@ -614,7 +614,7 @@ void FixTTMGrid::pack_remap_grid(void *vbuf, int nlist, int *list)
    unpack another proc's own values from buf and set own ghost values
 ------------------------------------------------------------------------- */
 
-void FixTTMGrid::unpack_remap_grid(void *vbuf, int nlist, int *list)
+void FixTTMGrid::unpack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   auto buf = (double *) vbuf;
   double *dest = &T_electron[nzlo_out][nylo_out][nxlo_out];

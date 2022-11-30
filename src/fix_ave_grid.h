@@ -35,8 +35,8 @@ class FixAveGrid : public Fix {
 
   void pack_reverse_grid(int, void *, int, int *) override;
   void unpack_reverse_grid(int, void *, int, int *) override;
-  void pack_remap_grid(void *, int, int *) override;
-  void unpack_remap_grid(void *, int, int *) override;
+  void pack_remap_grid(int, void *, int, int *) override;
+  void unpack_remap_grid(int, void *, int, int *) override;
 
   void reset_grid() override;
 

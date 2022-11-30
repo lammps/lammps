@@ -1083,29 +1083,29 @@ int Grid2d::ghost_adjacent_tiled()
    forward comm of my owned cells to other's ghost cells
 ------------------------------------------------------------------------- */
 
-void Grid2d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
+void Grid2d::forward_comm(int caller, void *ptr, int which, int nper, int nbyte,
                           void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (layout != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
-      forward_comm_brick<KSpace>((KSpace *) ptr,nper,nbyte,which,
+      forward_comm_brick<KSpace>((KSpace *) ptr,which,nper,nbyte,
                                  buf1,buf2,datatype);
     else if (caller == PAIR)
-      forward_comm_brick<Pair>((Pair *) ptr,nper,nbyte,which,
+      forward_comm_brick<Pair>((Pair *) ptr,which,nper,nbyte,
                                buf1,buf2,datatype);
     else if (caller == FIX)
-      forward_comm_brick<Fix>((Fix *) ptr,nper,nbyte,which,
+      forward_comm_brick<Fix>((Fix *) ptr,which,nper,nbyte,
                               buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
-      forward_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
+      forward_comm_tiled<KSpace>((KSpace *) ptr,which,nper,nbyte,
                                  buf1,buf2,datatype);
     else if (caller == PAIR)
-      forward_comm_tiled<Pair>((Pair *) ptr,nper,nbyte,which,
-                                 buf1,buf2,datatype);
+      forward_comm_tiled<Pair>((Pair *) ptr,which,nper,nbyte,
+                               buf1,buf2,datatype);
     else if (caller == FIX)
-      forward_comm_tiled<Fix>((Fix *) ptr,nper,nbyte,
-                              which,buf1,buf2,datatype);
+      forward_comm_tiled<Fix>((Fix *) ptr,which,nper,nbyte,
+                              buf1,buf2,datatype);
   }
 }
 
@@ -1115,7 +1115,7 @@ void Grid2d::forward_comm(int caller, void *ptr, int nper, int nbyte, int which,
 
 template < class T >
 void Grid2d::
-forward_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
+forward_comm_brick(T *ptr, int which, int nper, int /*nbyte*/,
                    void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
@@ -1145,7 +1145,7 @@ forward_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
 
 template < class T >
 void Grid2d::
-forward_comm_tiled(T *ptr, int nper, int nbyte, int which,
+forward_comm_tiled(T *ptr, int which, int nper, int nbyte,
                    void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
   int i,m,offset;
@@ -1188,28 +1188,28 @@ forward_comm_tiled(T *ptr, int nper, int nbyte, int which,
    reverse comm of my ghost cells to sum to owner cells
 ------------------------------------------------------------------------- */
 
-void Grid2d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
+void Grid2d::reverse_comm(int caller, void *ptr, int which, int nper, int nbyte,
                           void *buf1, void *buf2, MPI_Datatype datatype)
 {
   if (layout != Comm::LAYOUT_TILED) {
     if (caller == KSPACE)
-      reverse_comm_brick<KSpace>((KSpace *) ptr,nper,nbyte,which,
+      reverse_comm_brick<KSpace>((KSpace *) ptr,which,nper,nbyte,
                                  buf1,buf2,datatype);
     else if (caller == PAIR)
-      reverse_comm_brick<Pair>((Pair *) ptr,nper,nbyte,which,
+      reverse_comm_brick<Pair>((Pair *) ptr,which,nper,nbyte,
                                buf1,buf2,datatype);
     else if (caller == FIX)
-      reverse_comm_brick<Fix>((Fix *) ptr,nper,nbyte,which,
+      reverse_comm_brick<Fix>((Fix *) ptr,which,nper,nbyte,
                               buf1,buf2,datatype);
   } else {
     if (caller == KSPACE)
-      reverse_comm_tiled<KSpace>((KSpace *) ptr,nper,nbyte,which,
+      reverse_comm_tiled<KSpace>((KSpace *) ptr,which,nper,nbyte,
                                  buf1,buf2,datatype);
     else if (caller == PAIR)
-      reverse_comm_tiled<Pair>((Pair *) ptr,nper,nbyte,which,
+      reverse_comm_tiled<Pair>((Pair *) ptr,which,nper,nbyte,
                                  buf1,buf2,datatype);
     else if (caller == FIX)
-      reverse_comm_tiled<Fix>((Fix *) ptr,nper,nbyte,which,
+      reverse_comm_tiled<Fix>((Fix *) ptr,which,nper,nbyte,
                               buf1,buf2,datatype);
   }
 }
@@ -1220,7 +1220,7 @@ void Grid2d::reverse_comm(int caller, void *ptr, int nper, int nbyte, int which,
 
 template < class T >
 void Grid2d::
-reverse_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
+reverse_comm_brick(T *ptr, int which, int nper, int /*nbyte*/,
                    void *buf1, void *buf2, MPI_Datatype datatype)
 {
   int m;
@@ -1250,7 +1250,7 @@ reverse_comm_brick(T *ptr, int nper, int /*nbyte*/, int which,
 
 template < class T >
 void Grid2d::
-reverse_comm_tiled(T *ptr, int nper, int nbyte, int which,
+reverse_comm_tiled(T *ptr, int which, int nper, int nbyte,
                    void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
   int i,m,offset;
@@ -1444,16 +1444,16 @@ void Grid2d::setup_remap(Grid2d *old, int &nremap_buf1, int &nremap_buf2)
    pack/unpack operations are performed by caller via callbacks
 ------------------------------------------------------------------------- */
 
-void Grid2d::remap(int caller, void *ptr, int nper, int nbyte,
+void Grid2d::remap(int caller, void *ptr, int which, int nper, int nbyte,
                    void *buf1, void *buf2, MPI_Datatype datatype)
 {
-  if (caller == FIX) remap_style<Fix>((Fix *) ptr,nper,nbyte,buf1,buf2,datatype);
+  if (caller == FIX) remap_style<Fix>((Fix *) ptr,which,nper,nbyte,buf1,buf2,datatype);
 }
 
 /* ------------------------------------------------------------------------- */
 
 template < class T >
-void Grid2d::remap_style(T *ptr, int nper, int nbyte,
+void Grid2d::remap_style(T *ptr, int which, int nper, int nbyte,
                          void *buf1, void *vbuf2, MPI_Datatype datatype)
 {
   int i,m,offset;
@@ -1471,15 +1471,15 @@ void Grid2d::remap_style(T *ptr, int nper, int nbyte,
   // perform all sends to other procs
 
   for (m = 0; m < nsend_remap; m++) {
-    ptr->pack_remap_grid(buf1,send_remap[m].npack,send_remap[m].packlist);
+    ptr->pack_remap_grid(which,buf1,send_remap[m].npack,send_remap[m].packlist);
     MPI_Send(buf1,nper*send_remap[m].npack,datatype,send_remap[m].proc,0,gridcomm);
   }
 
   // perform remap to self if defined
 
   if (self_remap) {
-    ptr->pack_remap_grid(buf1,copy_remap.npack,copy_remap.packlist);
-    ptr->unpack_remap_grid(buf1,copy_remap.nunpack,copy_remap.unpacklist);
+    ptr->pack_remap_grid(which,buf1,copy_remap.npack,copy_remap.packlist);
+    ptr->unpack_remap_grid(which,buf1,copy_remap.nunpack,copy_remap.unpacklist);
   }
 
   // unpack all received data
@@ -1487,7 +1487,7 @@ void Grid2d::remap_style(T *ptr, int nper, int nbyte,
   for (i = 0; i < nrecv_remap; i++) {
     MPI_Waitany(nrecv_remap,requests_remap,&m,MPI_STATUS_IGNORE);
     offset = nper * recv_remap[m].offset * nbyte;
-    ptr->unpack_remap_grid((void *) &buf2[offset],
+    ptr->unpack_remap_grid(which,(void *) &buf2[offset],
                            recv_remap[m].nunpack,recv_remap[m].unpacklist);
   }
 }
@@ -1525,7 +1525,7 @@ void Grid2d::read_file_style(T *ptr, FILE *fp, int nchunk, int maxline)
     int eof = utils::read_lines_from_file(fp, nchunk, maxline, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of grid data file");
 
-    nread += ptr->unpack_read_grid(buffer);
+    nread += ptr->unpack_read_grid(nchunk,buffer);
   }
 
   delete [] buffer;

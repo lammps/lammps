@@ -1865,7 +1865,7 @@ void FixAveGrid::unpack_reverse_grid(int /*flag*/, void *vbuf, int nlist, int *l
    invoked for both GRID and ATOM mode
 ------------------------------------------------------------------------- */
 
-void FixAveGrid::pack_remap_grid(void *vbuf, int nlist, int *list)
+void FixAveGrid::pack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   int i,j,m,iwindow;
 
@@ -1892,7 +1892,7 @@ void FixAveGrid::pack_remap_grid(void *vbuf, int nlist, int *list)
    invoked for both GRID and ATOM mode
 ------------------------------------------------------------------------- */
 
-void FixAveGrid::unpack_remap_grid(void *vbuf, int nlist, int *list)
+void FixAveGrid::unpack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
   int i,j,m,iwindow;
 
@@ -2086,9 +2086,9 @@ void FixAveGrid::reset_grid()
   if (nremap_buf2) memory->create(remap_buf2, nper*nremap_buf2, "ave/grid:remap_buf2");
 
   if (dimension == 2)
-    grid2d->remap(Grid2d::FIX,this,nper,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
+    grid2d->remap(Grid2d::FIX,this,0,nper,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
   else
-    grid3d->remap(Grid3d::FIX,this,nper,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
+    grid3d->remap(Grid3d::FIX,this,0,nper,sizeof(double),remap_buf1,remap_buf2,MPI_DOUBLE);
 
   memory->destroy(remap_buf1);
   memory->destroy(remap_buf2);

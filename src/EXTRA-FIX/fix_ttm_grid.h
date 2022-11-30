@@ -46,9 +46,9 @@ class FixTTMGrid : public FixTTM {
   void unpack_forward_grid(int, void *, int, int *) override;
   void pack_reverse_grid(int, void *, int, int *) override;
   void unpack_reverse_grid(int, void *, int, int *) override;
-  void pack_remap_grid(void *, int, int *) override;
-  void unpack_remap_grid(void *, int, int *) override;
-  int unpack_read_grid(char *) override;
+  void pack_remap_grid(int, void *, int, int *) override;
+  void unpack_remap_grid(int, void *, int, int *) override;
+  int unpack_read_grid(int, char *) override;
   void pack_write_grid(int, void *) override;
   void unpack_write_grid(int, void *, int *) override;
 

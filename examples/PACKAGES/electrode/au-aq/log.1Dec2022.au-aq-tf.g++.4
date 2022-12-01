@@ -1,4 +1,4 @@
-LAMMPS (24 Mar 2022)
+LAMMPS (3 Nov 2022)
 # electrodes with constant potential using finite field
 # for z-periodic gold-saline electrochemical cell
 # using Thomas-Fermi metallicity model: electrode q and qz will be
@@ -41,7 +41,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
   special bonds CPU = 0.002 seconds
-  read_data CPU = 0.091 seconds
+  read_data CPU = 0.114 seconds
 
 group bot type 6
 1620 atoms in group bot
@@ -55,11 +55,12 @@ group electrolyte type 1 2 3 4 5
 
 fix nvt electrolyte nvt temp 298.0 298.0 241
 fix shake SPC shake 1e-4 20 0 b 1 2 a 1
+Finding SHAKE clusters ...
        0 = # of size 2 clusters
        0 = # of size 3 clusters
        0 = # of size 4 clusters
     2160 = # of frozen angles
-  find clusters CPU = 0.001 seconds
+  find clusters CPU = 0.002 seconds
 
 variable q atom q
 variable qz atom q*(z-lz/2)
@@ -70,7 +71,7 @@ compute qzbot bot reduce sum v_qz
 compute ctemp electrolyte temp
 
 
-fix conp bot electrode/conp -1.0 1.805132 couple top 1.0 symm on ffield yes etypes 6*7
+fix conp bot electrode/conp -1.0 1.805132 couple top 1.0 symm on ffield yes etypes on
 3240 atoms in group conp_group
 fix_modify conp tf 6 1.0 18.1715745
 fix_modify conp tf 7 1.0 18.1715745
@@ -78,6 +79,35 @@ fix_modify conp tf 7 1.0 18.1715745
 thermo 50
 thermo_style custom step temp c_ctemp epair etotal c_qtop c_qbot c_qztop c_qzbot
 run 500
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- kspace_style pppm/electrode command:
+
+@article{Ahrens2021,
+author = {Ahrens-Iwers, Ludwig J.V. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0063381},
+title = {{Constant potential simulations on a mesh}},
+journal = {Journal of Chemical Physics},
+year = {2021}
+volume = {155},
+pages = {104104},
+}
+- fix electrode command:
+
+@article{Ahrens2022
+author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0099239},
+title = {{ELECTRODE: An electrochemistry package for LAMMPS}},
+journal = {The Journal of Chemical Physics},
+year = {2022}
+volume = {157},
+pages = {084801},
+}
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
 PPPM/electrode initialization ...
   using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
   G vector (1/distance) = 0.24017705
@@ -87,9 +117,9 @@ PPPM/electrode initialization ...
   estimated relative force accuracy = 1.093542e-07
   using double precision MKL FFT
   3d grid and FFT values/proc = 138958 87480
-  generated 21 of 21 mixed pair_coeff terms from geometric mixing rule
+Generated 21 of 21 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 1 steps, delay 10 steps, check yes
+  update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 17
   ghost atom cutoff = 17
@@ -110,35 +140,35 @@ Neighbor list info ...
       pair build: skip
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 118.1 | 120.6 | 123.1 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 118.2 | 120.7 | 123.2 Mbytes
    Step          Temp         c_ctemp         E_pair         TotEng         c_qtop         c_qbot        c_qztop        c_qzbot    
-         0   171.61215      298.06731     -39190.106     -35283.45       4.0804484     -4.0804484      79.075127      131.20697    
-        50   147.14308      255.56782     -39849.964     -36500.334      3.9990346     -3.9990346      77.497181      128.57759    
-       100   149.94935      260.44194     -39857.533     -36444.019      3.8613914     -3.8613914      74.82985       124.15315    
-       150   151.95924      263.93285     -39855.567     -36396.299      3.8677064     -3.8677064      74.957279      124.33201    
-       200   151.66737      263.42591     -39802.585     -36349.961      3.99842       -3.99842        77.491015      128.54496    
-       250   152.36874      264.64408     -39763.306     -36294.716      3.9925863     -3.9925863      77.379445      128.37226    
-       300   153.83916      267.19802     -39737.075     -36235.012      3.94995       -3.94995        76.553896      127.00395    
-       350   155.88897      270.75827     -39722.265     -36173.539      4.0598524     -4.0598524      78.679643      130.5394     
-       400   156.51993      271.85415     -39674.759     -36111.669      4.1312899     -4.1312899      80.060369      132.83599    
-       450   160.21339      278.26919     -39697.962     -36050.793      3.9068098     -3.9068098      75.713485      125.59216    
-       500   161.63639      280.74075     -39669.412     -35989.849      3.9261654     -3.9261654      76.080597      126.22255    
-Loop time of 110.716 on 4 procs for 500 steps with 9798 atoms
+         0   171.61215      298.06731     -39001.911     -35095.255      4.0804484     -4.0804484      79.075127      131.20697    
+        50   147.14308      255.56782     -39665.525     -36315.894      3.9990346     -3.9990346      77.497181      128.57759    
+       100   149.94935      260.44194     -39679.441     -36265.927      3.8613914     -3.8613914      74.82985       124.15315    
+       150   151.95924      263.93285     -39677.184     -36217.916      3.8677064     -3.8677064      74.957279      124.33201    
+       200   151.66737      263.42591     -39618.173     -36165.549      3.99842       -3.99842        77.491015      128.54496    
+       250   152.36874      264.64408     -39579.163     -36110.574      3.9925863     -3.9925863      77.379445      128.37226    
+       300   153.83916      267.19802     -39554.899     -36052.835      3.94995       -3.94995        76.553896      127.00395    
+       350   155.88897      270.75826     -39535.02      -35986.294      4.0598523     -4.0598523      78.679642      130.5394     
+       400   156.51993      271.85415     -39484.219     -35921.13       4.1312897     -4.1312897      80.060366      132.83598    
+       450   160.21339      278.26919     -39517.776     -35870.607      3.9068099     -3.9068099      75.713486      125.59216    
+       500   161.63639      280.74075     -39488.333     -35808.771      3.9261657     -3.9261657      76.080602      126.22256    
+Loop time of 104.099 on 4 procs for 500 steps with 9798 atoms
 
-Performance: 0.390 ns/day, 61.509 hours/ns, 4.516 timesteps/s
-97.2% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 0.415 ns/day, 57.833 hours/ns, 4.803 timesteps/s, 47.061 katom-step/s
+87.7% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 21.17      | 30.449     | 39.65      | 164.9 | 27.50
-Bond    | 0.0007313  | 0.00077537 | 0.00081477 |   0.0 |  0.00
-Kspace  | 29.854     | 38.911     | 48.058     | 143.8 | 35.14
-Neigh   | 2.7206     | 2.7213     | 2.722      |   0.0 |  2.46
-Comm    | 0.33023    | 0.33225    | 0.33384    |   0.2 |  0.30
-Output  | 0.0024528  | 0.0027565  | 0.0035754  |   0.9 |  0.00
-Modify  | 38.091     | 38.233     | 38.365     |   2.1 | 34.53
-Other   |            | 0.06636    |            |       |  0.06
+Pair    | 20.951     | 30.326     | 40.07      | 166.7 | 29.13
+Bond    | 0.00098259 | 0.0010706  | 0.0011926  |   0.3 |  0.00
+Kspace  | 33.465     | 43.037     | 52.268     | 137.5 | 41.34
+Neigh   | 2.6007     | 2.6014     | 2.6021     |   0.0 |  2.50
+Comm    | 0.57766    | 0.58318    | 0.58875    |   0.7 |  0.56
+Output  | 0.0022277  | 0.0024765  | 0.0031841  |   0.8 |  0.00
+Modify  | 27.292     | 27.47      | 27.647     |   3.1 | 26.39
+Other   |            | 0.0787     |            |       |  0.08
 
 Nlocal:         2449.5 ave        2908 max        2017 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -147,9 +177,9 @@ Histogram: 2 0 0 0 0 0 0 0 0 2
 Neighs:    2.06421e+06 ave  2.7551e+06 max 1.40237e+06 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
 
-Total # of neighbors = 8256853
-Ave neighs/atom = 842.708
+Total # of neighbors = 8256852
+Ave neighs/atom = 842.7079
 Ave special neighs/atom = 1.3227189
 Neighbor list builds = 23
 Dangerous builds = 0
-Total wall time: 0:08:22
+Total wall time: 0:03:12

@@ -1372,7 +1372,7 @@ void DumpImage::grid_cell_corners_2d(int ix, int iy)
       }
 
   } else {
-    double lamda[3],xone[3];
+    double lamda[3];
     lamda[2] = 0.0;
 
     double dx = 1.0 / nxgrid;
@@ -1411,7 +1411,7 @@ void DumpImage::grid_cell_corners_3d(int ix, int iy, int iz)
         }
 
   } else {
-    double lamda[3],xone[3];
+    double lamda[3];
 
     double dx = 1.0 / nxgrid;
     double dy = 1.0 / nygrid;

@@ -425,7 +425,7 @@ void DumpGrid::header_binary_triclinic(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpGrid::header_item(bigint ndump)
+void DumpGrid::header_item(bigint /*ndump*/)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;
@@ -445,7 +445,7 @@ void DumpGrid::header_item(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpGrid::header_item_triclinic(bigint ndump)
+void DumpGrid::header_item_triclinic(bigint /*ndump*/)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;

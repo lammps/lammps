@@ -74,7 +74,7 @@ void DumpGridVTK::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void DumpGridVTK::write_header(bigint ndump)
+void DumpGridVTK::write_header(bigint /*ndump*/)
 {
   if (me) return;
 

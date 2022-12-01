@@ -518,8 +518,6 @@ void FixAveGrid::setup(int /*vflag*/)
 
 void FixAveGrid::end_of_step()
 {
-  int m,ix,iy,iz;
-
   // skip if not step which requires doing something
 
   bigint ntimestep = update->ntimestep;
@@ -1524,7 +1522,7 @@ void FixAveGrid::deallocate_one_grid(GridData *grid,
    if ATOM mode, also include per-grid count
 ------------------------------------------------------------------------- */
 
-double FixAveGrid::size_grid(GridData *grid)
+double FixAveGrid::size_grid(GridData * /*grid*/)
 {
   int nper = nvalues;
   if (modeatom) nper++;
@@ -1867,8 +1865,6 @@ void FixAveGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *
 
 void FixAveGrid::pack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-  int i,j,m,iwindow;
-
   auto buf = (double *) vbuf;
 
   int running_flag = 0;
@@ -1876,13 +1872,13 @@ void FixAveGrid::pack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list
   int window_flag = 0;
   if (aveflag == WINDOW) window_flag = 1;
 
-  m = 0;
-  for (i = 0; i < nlist; i++) {
+  int m = 0;
+  for (int i = 0; i < nlist; i++) {
     m += pack_one_grid(grid_sample_previous,list[i],&buf[m]);
     m += pack_one_grid(grid_nfreq_previous,list[i],&buf[m]);
     if (running_flag) m += pack_one_grid(grid_running_previous,list[i],&buf[m]);
     if (window_flag)
-      for (iwindow = 0; iwindow < nwindow; iwindow++)
+      for (int iwindow = 0; iwindow < nwindow; iwindow++)
         m += pack_one_grid(grid_window_previous[iwindow],list[i],&buf[m]);
   }
 }
@@ -1894,22 +1890,20 @@ void FixAveGrid::pack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list
 
 void FixAveGrid::unpack_remap_grid(int /*which*/, void *vbuf, int nlist, int *list)
 {
-  int i,j,m,iwindow;
-
-  auto buf = (double *) vbuf;
+   auto buf = (double *) vbuf;
 
   int running_flag = 0;
   if (aveflag == RUNNING || aveflag == WINDOW) running_flag = 1;
   int window_flag = 0;
   if (aveflag == WINDOW) window_flag = 1;
 
-  m = 0;
-  for (i = 0; i < nlist; i++) {
+  int m = 0;
+  for (int i = 0; i < nlist; i++) {
     m += unpack_one_grid(&buf[m],grid_sample,list[i]);
     m += unpack_one_grid(&buf[m],grid_nfreq,list[i]);
     if (running_flag) m += unpack_one_grid(&buf[m],grid_running,list[i]);
     if (window_flag)
-      for (iwindow = 0; iwindow < nwindow; iwindow++)
+      for (int iwindow = 0; iwindow < nwindow; iwindow++)
         m += unpack_one_grid(&buf[m],grid_window[iwindow],list[i]);
   }
 }

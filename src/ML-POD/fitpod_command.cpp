@@ -1318,10 +1318,10 @@ void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
 
   std::string filename_errors = (data.training ? "training_errors" : "test_errors");
   std::string filename_analysis = (data.training ? "training_analysis" : "test_analysis");
-  
+
   filename_errors = podptr->pod.filenametag + "_" + filename_errors + ".pod";
   filename_analysis = podptr->pod.filenametag + "_" + filename_analysis + ".pod";
-  
+
   FILE *fp_errors = nullptr;
   FILE *fp_analysis = nullptr;
   fp_errors = fopen(filename_errors.c_str(), "w");

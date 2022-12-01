@@ -38,9 +38,9 @@ using MathSpecial::powint;
 #define MAXLINE 1024
 
 MLPOD::podstruct::podstruct() :
-    filenametag(""), twobody{5, 10, 10}, threebody{4, 8, 8, 5}, fourbody{0, 0, 0, 0},
-    quadratic22{0, 0}, quadratic23{0, 0}, quadratic24{0, 0}, quadratic33{0, 0}, quadratic34{0, 0},
-    quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0}
+    filenametag(""), twobody{5, 10, 10}, threebody{4, 8, 8, 5}, fourbody{0, 0, 0, 0}, pbc(nullptr),
+    elemindex(nullptr), quadratic22{0, 0}, quadratic23{0, 0}, quadratic24{0, 0}, quadratic33{0, 0},
+    quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0}
 {
 }
 
@@ -447,7 +447,6 @@ void MLPOD::read_pod(const std::string &pod_file)
   pod.besselparams[1] = 2.0;
   pod.besselparams[2] = 4.0;
 
-  pod.elemindex=nullptr;
   pod.nelements = 0;
   pod.onebody = 1;
   pod.besseldegree = 3;
@@ -721,6 +720,7 @@ void MLPOD::read_pod(const std::string &pod_file)
   pod.nd1234 = pod.nd1 + pod.nd2 + pod.nd3 + pod.nd4;
 
   int nelements = pod.nelements;
+  memory->destroy(pod.elemindex);
   memory->create(pod.elemindex, nelements*nelements, "pod:pod_elemindex");
 
   int k = 1;

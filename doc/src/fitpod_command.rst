@@ -27,54 +27,145 @@ Description
 
 Fit a machine-learning interatomic potential (ML-IAP) based on proper
 orthogonal descriptors (POD).  Two input files are required for this
-command. The first input file describes a POD potential, while the
-second input file specifies the DFT data.
+command. The first input file describes a POD potential parameter
+settings, while the second input file specifies the DFT data used for
+the fitting procedure.
 
-Below is a one-line description of all the keywords that can be assigned
-in the first input file (``Ta_param.pod``):
+The table below has one-line descriptions of all the keywords that can
+be used in the first input file (i.e. ``Ta_param.pod`` in the example
+above):
 
-* species (STRING): Chemical symbols for all elements in the system and have to match XYZ training files.
-* pbc 1 1 1 (INT): three integer constants specify boundary conditions
-* rin 1.0 (REAL): a real number specifies the inner cut-off radius
-* rcut 5.0 (REAL): a real number specifies the outer cut-off radius
-* bessel_polynomial_degree 3 (INT): the maximum degree of Bessel polynomials
-* inverse_polynomial_degree 6 (INT): the maximum degree of inverse radial basis functions
-* onebody 1 (BOOL): turns on/off one-body potential
-* twobody_number_radial_basis_functions 6 (INT): number of radial basis functions for two-body potential
-* threebody_number_radial_basis_functions 5 (INT): number of radial basis functions for three-body potential
-* threebody_number_angular_basis_functions 5 (INT): number of angular basis functions for three-body potential
-* fourbody_snap_twojmax 0 (INT): band limit for SNAP bispectrum components (0,2,4,6,8... allowed)
-* fourbody_snap_chemflag 0 (BOOL): turns on/off the explicit multi-element variant of the SNAP bispectrum components
-* quadratic_pod_potential 0 (BOOL): turns on/off quadratic POD potential
-* basename_for_output_files pod (STRING): a basename string added to the output files
+.. list-table::
+   :header-rows: 1
+   :widths: auto
 
-All keywords except species have default values. If keywords are not set
-in the input file, their defaults are used.  Next, we describe all the
-keywords that can be assigned in the second input file (``Ta_data.pod``):
+   * - Keyword
+     - Default
+     - Type
+     - Description
+   * - species
+     - (none)
+     - STRING
+     - Chemical symbols for all elements in the system and have to match XYZ training files.
+   * - pbc
+     - 1 1 1
+     - INT
+     - three integer constants specify boundary conditions
+   * - rin
+     - 1.0
+     - REAL
+     - a real number specifies the inner cut-off radius
+   * - rcut
+     - 5.0
+     - REAL
+     - a real number specifies the outer cut-off radius
+   * - bessel_polynomial_degree
+     - 3
+     - INT
+     - the maximum degree of Bessel polynomials
+   * - inverse_polynomial_degree
+     - 6
+     - INT
+     - the maximum degree of inverse radial basis functions
+   * - onebody
+     - 1
+     - BOOL
+     - turns on/off one-body potential
+   * - twobody_number_radial_basis_functions
+     - 6
+     - INT
+     - number of radial basis functions for two-body potential
+   * - threebody_number_radial_basis_functions
+     - 5
+     - INT
+     - number of radial basis functions for three-body potential
+   * - threebody_number_angular_basis_functions
+     - 5
+     - INT
+     - number of angular basis functions for three-body potential
+   * - fourbody_snap_twojmax
+     - 0
+     - INT
+     - band limit for SNAP bispectrum components (0,2,4,6,8... allowed)
+   * - fourbody_snap_chemflag
+     - 0
+     - BOOL
+     - turns on/off the explicit multi-element variant of the SNAP bispectrum components
+   * - quadratic_pod_potential
+     - 0
+     - BOOL
+     - turns on/off quadratic POD potential
+   * - basename_for_output_files
+     - pod
+     - STRING
+     - a basename string added to the output files
 
-* file_format extxyz (STRING): only extended xyz format is currently supported
-* file_extension xyz (STRING): extension of the data files
-* path_to_training_data_set (STRING): specifies the path to training data files in double quotes
-* path_to_test_data_set "" (STRING): specifies the path to test data files in double quotes
-* fraction_training_data_set 1.0 (REAL): a real number (<= 1.0) specifies the fraction of the training set used to fit POD
-* randomize_training_data_set 0 (BOOL): turns on/off randomization of the training set
-* fitting_weight_energy 100.0 (REAL): a real constant specifies the weight for energy in the least-squares fit
-* fitting_weight_force 1.0 (REAL): a real constant specifies the weight for force in the least-squares fit
-* error_analysis_for_training_data_set 0 (BOOL): turns on/off error analysis for the training data set
-* error_analysis_for_test_data_set 0 (BOOL): turns on/off error analysis for the test data set
+All keywords except *species* have default values. If a keyword is not
+set in the input file, its default value is used.  The next table
+describes all keywords that can be used in the second input file
+(i.e. ``Ta_data.pod`` in the example above):
 
-All keywords except path_to_training_data_set have default values. If
-keywords are not set in the input file, their defaults are used.  On
-successful training, it produces a number of output files:
+.. list-table::
+   :header-rows: 1
+   :widths: auto
 
-* ``basename_training_errors.pod``  reports the errors in energy and forces for the training data set
-* ``basename_training_analysis.pod`` reports detailed errors for all training configurations
-* ``basename_test_errors.pod`` reports errors for the test data set
-* ``basename_test_analysis.pod`` reports detailed errors for all test configurations
-* ``basename_coefficients.pod`` contains the coefficients of the POD potential
+   * - Keyword
+     - Default
+     - Type
+     - Description
+   * - file_format
+     - extxyz
+     - STRING
+     - only the extended xyz format (extxyz) is currently supported
+   * - file_extension
+     - xyz
+     - STRING
+     - extension of the data files
+   * - path_to_training_data_set
+     - (none)
+     - STRING
+     - specifies the path to training data files in double quotes
+   * - path_to_test_data_set
+     - ""
+     - STRING
+     - specifies the path to test data files in double quotes
+   * - fraction_training_data_set
+     - 1.0
+     - REAL
+     - a real number (<= 1.0) specifies the fraction of the training set used to fit POD
+   * - randomize_training_data_set
+     - 0
+     - BOOL
+     - turns on/off randomization of the training set
+   * - fitting_weight_energy
+     - 100.0
+     - REAL
+     - a real constant specifies the weight for energy in the least-squares fit
+   * - fitting_weight_force
+     - 1.0
+     - REAL
+     - a real constant specifies the weight for force in the least-squares fit
+   * - error_analysis_for_training_data_set
+     - 0
+     - BOOL
+     - turns on/off error analysis for the training data set
+   * - error_analysis_for_test_data_set
+     - 0
+     - BOOL
+     - turns on/off error analysis for the test data set
 
-After training the POD potential, ``Ta_param.pod`` and ``basename_coefficients.pod``
-are two files needed to use the POD potential in LAMMPS. See
+All keywords except *path_to_training_data_set* have default values. If
+a keyword is not set in the input file, its default value is used.  After
+successful training, a number of output files are produced, if enabled:
+
+* ``<basename>_training_errors.pod``  reports the errors in energy and forces for the training data set
+* ``<basename>_training_analysis.pod`` reports detailed errors for all training configurations
+* ``<basename>_test_errors.pod`` reports errors for the test data set
+* ``<basename>_test_analysis.pod`` reports detailed errors for all test configurations
+* ``<basename>_coefficients.pod`` contains the coefficients of the POD potential
+
+After training the POD potential, ``Ta_param.pod`` and ``<basename>_coefficients.pod``
+are the two files needed to use the POD potential in LAMMPS. See
 :doc:`pair_style pod <pair_pod>` for using the POD potential. Examples
 about training and using POD potentials are found in the directory
 lammps/examples/PACKAGES/pod.

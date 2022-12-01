@@ -42,6 +42,8 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
+static constexpr double SMALL = 1.0e-12;
+
 void FitPOD::command(int narg, char **arg)
 {
   if (narg < 2) utils::missing_cmd_args(FLERR, "fitpod", error);
@@ -827,7 +829,7 @@ int FitPOD::podneighborlist(int *neighlist, int *numneigh, double *r, double rcu
     for (int j=0; j<N; j++) {
       double *rj = &r[dim*j];
       double rijsq = (ri[0]-rj[0])*(ri[0]-rj[0]) + (ri[1]-rj[1])*(ri[1]-rj[1]) + (ri[2]-rj[2])*((ri[2]-rj[2]));
-      if  ((rijsq > 1e-12) && (rijsq <= rcutsq))  {
+      if  ((rijsq > SMALL) && (rijsq <= rcutsq))  {
         inc += 1;
         neighlist[k] = j;
         k += 1;
@@ -1241,7 +1243,7 @@ void FitPOD::least_squares_fit(datastruct data)
 
   for (int i = 0; i<nd; i++) {
     desc.c[i] = desc.b[i];
-    desc.A[i + nd*i] = desc.A[i + nd*i]*(1.0 + 1e-12);
+    desc.A[i + nd*i] = desc.A[i + nd*i]*(1.0 + SMALL);
   }
 
   // solving the linear system A * c = b
@@ -1260,7 +1262,7 @@ void FitPOD::least_squares_fit(datastruct data)
 
     fmt::print(fp, "POD_coefficients: {}\n", nd);
     for (int count = 0; count < nd; count++) {
-      fmt::print(fp, "{:.16}\n", desc.c[count]);
+      fmt::print(fp, "{:.8}\n", desc.c[count]);
     }
     fclose(fp);
     utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");

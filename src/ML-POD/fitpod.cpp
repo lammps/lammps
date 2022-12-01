@@ -129,6 +129,7 @@ void FitPOD::command(int narg, char **arg)
   memory->destroy(nb.pairnum_cumsum);
   memory->destroy(nb.pairlist);
   memory->destroy(nb.y);
+  delete podptr;
 }
 
 /* ---------------------------------------------------------------------- */

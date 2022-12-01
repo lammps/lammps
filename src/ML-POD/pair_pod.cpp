@@ -86,7 +86,7 @@ void PairPOD::compute(int eflag, int vflag)
   if (peratom_warn && (vflag_atom || eflag_atom)) {
     peratom_warn = false;
     if (comm->me == 0)
-      error->warning(FLERR, "Pair style mlpod does not support per-atom energies or stresses");
+      error->warning(FLERR, "Pair style pod does not support per-atom energies or stresses");
   }
 
   double **x = atom->x;
@@ -167,7 +167,7 @@ void PairPOD::compute(int eflag, int vflag)
 
 void PairPOD::settings(int narg, char ** /* arg */)
 {
-  if (narg > 0) error->all(FLERR,"Pair style mlpod accepts no arguments");
+  if (narg > 0) error->all(FLERR, "Pair style pod accepts no arguments");
 }
 
 /* ----------------------------------------------------------------------
@@ -223,7 +223,7 @@ void PairPOD::coeff(int narg, char **arg)
 
 void PairPOD::init_style()
 {
-  if (force->newton_pair == 0) error->all(FLERR,"Pair style mlpod requires newton pair on");
+  if (force->newton_pair == 0) error->all(FLERR, "Pair style pod requires newton pair on");
 
   // need a full neighbor list
 

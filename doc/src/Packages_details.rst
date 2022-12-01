@@ -1816,6 +1816,7 @@ your build via `CMakeLists.txt`
 
 Ngoc Cuong Nguyen (MIT), Andrew Rohskopf (Sandia)
 
+.. versionadded:: TBD
 **Install:**
 
 Go to the `lammps` directory and build with the POD package::

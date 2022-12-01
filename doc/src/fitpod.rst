@@ -23,6 +23,7 @@ Examples
 
 Description
 """""""""""
+.. versionadded:: TBD
 
 Fit a machine-learning interatomic potential (ML-IAP) based on proper
 orthogonal descriptors (POD).  Two input files are required for this

@@ -21,6 +21,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Pair style *pod* defines the proper orthogonal descriptor (POD)
 potential :ref:`(Nguyen) <Nguyen20221>`.  The mathematical definition of
 the POD potential is described from :doc:`fitpod <fitpod>`, which is

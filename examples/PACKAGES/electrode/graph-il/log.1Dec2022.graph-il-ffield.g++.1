@@ -1,4 +1,4 @@
-LAMMPS (24 Mar 2022)
+LAMMPS (3 Nov 2022)
 # electrodes with constant potential using finite field
 # for z-periodic graphene-ionic liquid supercapacitor
 
@@ -37,13 +37,20 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-3 neighbors
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
-  special bonds CPU = 0.001 seconds
-  read_data CPU = 0.022 seconds
+  special bonds CPU = 0.002 seconds
+  read_data CPU = 0.021 seconds
 
-group bot molecule 641
-416 atoms in group bot
-group top molecule 642
+# replicate 4 4 1 # test different sys sizes
+
+variable zpos atom "z > 0"
+group zpos variable zpos
+1891 atoms in group zpos
+group ele type 5
+832 atoms in group ele
+group top intersect ele zpos
 416 atoms in group top
+group bot subtract ele top
+416 atoms in group bot
 
 group bmi type 1 2 3
 960 atoms in group bmi
@@ -52,6 +59,7 @@ group electrolyte type 1 2 3 4
 
 fix nvt electrolyte nvt temp 500.0 500.0 100
 fix shake bmi shake 1e-4 20 0 b 1 2 a 1
+Finding SHAKE clusters ...
        0 = # of size 2 clusters
        0 = # of size 3 clusters
        0 = # of size 4 clusters
@@ -63,12 +71,41 @@ compute qtop top reduce sum v_q
 compute qbot bot reduce sum v_q
 compute ctemp electrolyte temp
 
-fix conp bot electrode/conp -1.0 1.979 couple top 1.0 symm on etypes 5 ffield yes
+fix conp bot electrode/conp -1.0 1.979 couple top 1.0 symm on etypes on ffield yes
 832 atoms in group conp_group
 
 thermo 50
 thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop
 run 500
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- kspace_style pppm/electrode command:
+
+@article{Ahrens2021,
+author = {Ahrens-Iwers, Ludwig J.V. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0063381},
+title = {{Constant potential simulations on a mesh}},
+journal = {Journal of Chemical Physics},
+year = {2021}
+volume = {155},
+pages = {104104},
+}
+- fix electrode command:
+
+@article{Ahrens2022
+author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0099239},
+title = {{ELECTRODE: An electrochemistry package for LAMMPS}},
+journal = {The Journal of Chemical Physics},
+year = {2022}
+volume = {157},
+pages = {084801},
+}
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
 PPPM/electrode initialization ...
   using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
   G vector (1/distance) = 0.20949995
@@ -78,9 +115,9 @@ PPPM/electrode initialization ...
   estimated relative force accuracy = 1.0544465e-07
   using double precision MKL FFT
   3d grid and FFT values/proc = 147537 92160
-  generated 10 of 10 mixed pair_coeff terms from geometric mixing rule
+Generated 15 of 15 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 1 steps, delay 10 steps, check yes
+  update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 18
   ghost atom cutoff = 18
@@ -101,35 +138,35 @@ Neighbor list info ...
       pair build: skip
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 49.5 | 49.5 | 49.5 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 46.1 | 46.1 | 46.1 Mbytes
    Step          Temp         c_ctemp         E_pair         TotEng         c_qbot         c_qtop    
-         0   0              0              25137187       25137187       0.0085209384  -0.0085209384 
-        50   17.837642      64.263873      25137027       25137211       0.0045513522  -0.0045513522 
-       100   48.393984      174.34955      25136771       25137269      -0.0097291786   0.0097291786 
-       150   70.421823      253.70949      25136651       25137377      -0.033522793    0.033522793  
-       200   82.205535      296.1628       25136664       25137510      -0.064555648    0.064555648  
-       250   87.542843      315.39158      25136754       25137655      -0.098075546    0.098075546  
-       300   91.705733      330.38927      25136862       25137806      -0.13006751     0.13006751   
-       350   100.36128      361.5727       25136930       25137964      -0.15852814     0.15852814   
-       400   111.37586      401.25505      25136982       25138129      -0.18297207     0.18297207   
-       450   121.79814      438.80351      25137039       25138294      -0.2023394      0.2023394    
-       500   126.95882      457.39597      25137142       25138449      -0.21305221     0.21305221   
-Loop time of 36.7618 on 1 procs for 500 steps with 3776 atoms
+         0   0              0              25137186       25137186       0.0085209384  -0.0085209384 
+        50   17.837642      64.263873      25137027       25137210       0.0045513522  -0.0045513522 
+       100   48.393984      174.34955      25136771       25137270      -0.0097291786   0.0097291786 
+       150   70.421823      253.70949      25136653       25137378      -0.033522793    0.033522793  
+       200   82.205535      296.1628       25136667       25137513      -0.064555648    0.064555648  
+       250   87.542843      315.39158      25136758       25137660      -0.098075546    0.098075546  
+       300   91.705733      330.38927      25136868       25137812      -0.13006751     0.13006751   
+       350   100.36128      361.5727       25136938       25137971      -0.15852814     0.15852814   
+       400   111.37586      401.25505      25136990       25138137      -0.18297207     0.18297207   
+       450   121.79814      438.80351      25137049       25138303      -0.2023394      0.2023394    
+       500   126.95882      457.39597      25137151       25138459      -0.21305221     0.21305221   
+Loop time of 53.8411 on 1 procs for 500 steps with 3776 atoms
 
-Performance: 1.175 ns/day, 20.423 hours/ns, 13.601 timesteps/s
-393.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 0.802 ns/day, 29.912 hours/ns, 9.287 timesteps/s, 35.066 katom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 19.737     | 19.737     | 19.737     |   0.0 | 53.69
-Bond    | 0.00092668 | 0.00092668 | 0.00092668 |   0.0 |  0.00
-Kspace  | 6.5854     | 6.5854     | 6.5854     |   0.0 | 17.91
-Neigh   | 0.33914    | 0.33914    | 0.33914    |   0.0 |  0.92
-Comm    | 0.090124   | 0.090124   | 0.090124   |   0.0 |  0.25
-Output  | 0.0013975  | 0.0013975  | 0.0013975  |   0.0 |  0.00
-Modify  | 9.9834     | 9.9834     | 9.9834     |   0.0 | 27.16
-Other   |            | 0.02455    |            |       |  0.07
+Pair    | 19.843     | 19.843     | 19.843     |   0.0 | 36.85
+Bond    | 0.0016963  | 0.0016963  | 0.0016963  |   0.0 |  0.00
+Kspace  | 11.232     | 11.232     | 11.232     |   0.0 | 20.86
+Neigh   | 0.39189    | 0.39189    | 0.39189    |   0.0 |  0.73
+Comm    | 0.12348    | 0.12348    | 0.12348    |   0.0 |  0.23
+Output  | 0.0017904  | 0.0017904  | 0.0017904  |   0.0 |  0.00
+Modify  | 22.207     | 22.207     | 22.207     |   0.0 | 41.25
+Other   |            | 0.04008    |            |       |  0.07
 
 Nlocal:           3776 ave        3776 max        3776 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -143,4 +180,4 @@ Ave neighs/atom = 493.56224
 Ave special neighs/atom = 0.50847458
 Neighbor list builds = 7
 Dangerous builds = 0
-Total wall time: 0:01:39
+Total wall time: 0:01:10

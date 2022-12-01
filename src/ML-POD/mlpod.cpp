@@ -63,7 +63,6 @@ MLPOD::MLPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff
 
 MLPOD::~MLPOD()
 {
-
   // deallocate pod arrays
 
   memory->destroy(pod.pbc);
@@ -505,7 +504,7 @@ void MLPOD::read_pod(const std::string &pod_file)
     if (keywd == "species") {
 
       pod.nelements = words.size()-1;
-      for (int ielem = 1; ielem <= pod.nelements; ielem++){
+      for (int ielem = 1; ielem <= pod.nelements; ielem++) {
         pod.species.push_back(words[ielem]);
       }
 
@@ -513,7 +512,7 @@ void MLPOD::read_pod(const std::string &pod_file)
 
     if (keywd == "filename_tag") pod.filenametag = words[1];
 
-    if (keywd == "pbc"){
+    if (keywd == "pbc") {
       if (words.size() != 4)
         error->one(FLERR,"Improper POD file.", utils::getsyserror());
       pod.pbc[0] = utils::inumeric(FLERR,words[1],false,lmp);
@@ -591,15 +590,15 @@ void MLPOD::read_pod(const std::string &pod_file)
 
   // allocate memory for eigenvectors and eigenvalues
 
-  if (pod.ns2 > 0){
+  if (pod.ns2 > 0) {
     memory->create(pod.Phi2, pod.ns2*pod.ns2, "pod:pod_Phi2");
     memory->create(pod.Lambda2, pod.ns2, "pod:pod_Lambda2");
   }
-  if (pod.ns3 > 0){
+  if (pod.ns3 > 0) {
     memory->create(pod.Phi3, pod.ns3*pod.ns3, "pod:pod_Phi3");
     memory->create(pod.Lambda3, pod.ns3, "pod:pod_Lambda3");
   }
-  if (pod.ns4 > 0){
+  if (pod.ns4 > 0) {
     memory->create(pod.Phi4, pod.ns4*pod.ns4, "pod:pod_Phi4");
     memory->create(pod.Lambda4, pod.ns4, "pod:pod_Lambda4");
   }
@@ -724,12 +723,13 @@ void MLPOD::read_pod(const std::string &pod_file)
   memory->create(pod.elemindex, nelements*nelements, "pod:pod_elemindex");
 
   int k = 1;
-  for (int i=0; i < nelements; i++)
+  for (int i=0; i < nelements; i++) {
     for (int j=i; j < nelements; j++) {
       pod.elemindex[i + nelements*j] = k;
       pod.elemindex[j + nelements*i] = k;
       k += 1;
     }
+  }
 
   if (comm->me == 0) {
     utils::logmesg(lmp, "**************** Begin of POD Potentials ****************\n");
@@ -766,7 +766,7 @@ void MLPOD::read_coeff_file(const std::string &coeff_file)
 
   std::string coefffilename = coeff_file;
   FILE *fpcoeff;
-  if (comm->me == 0){
+  if (comm->me == 0) {
 
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == nullptr)

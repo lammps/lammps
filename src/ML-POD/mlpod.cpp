@@ -38,11 +38,11 @@ using MathSpecial::powint;
 #define MAXLINE 1024
 
 MLPOD::podstruct::podstruct() :
-    filenametag("pod"), twobody{5, 10, 10}, threebody{4, 8, 8, 5}, fourbody{0, 0, 0, 0}, pbc(nullptr),
-    elemindex(nullptr), quadratic22{0, 0}, quadratic23{0, 0}, quadratic24{0, 0}, quadratic33{0, 0},
-    quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0},
-    besselparams(nullptr), coeff(nullptr), Phi2(nullptr), Phi3(nullptr), Phi4(nullptr),
-    Lambda2(nullptr), Lambda3(nullptr), Lambda4(nullptr)
+    filenametag("pod"), precision("8"), twobody{5, 10, 10}, threebody{4, 8, 8, 5}, 
+    fourbody{0, 0, 0, 0}, pbc(nullptr), elemindex(nullptr), quadratic22{0, 0}, quadratic23{0, 0}, 
+    quadratic24{0, 0}, quadratic33{0, 0}, quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0}, 
+    cubic333{0, 0, 0}, cubic444{0, 0, 0}, besselparams(nullptr), coeff(nullptr), Phi2(nullptr), 
+    Phi3(nullptr), Phi4(nullptr), Lambda2(nullptr), Lambda3(nullptr), Lambda4(nullptr)
 {
 }
 
@@ -520,6 +520,8 @@ void MLPOD::read_pod(const std::string &pod_file)
 
     if (keywd == "basename_for_output_files") pod.filenametag = words[1];
 
+    if (keywd == "precision_for_pod_coefficients") pod.precision = words[1];
+    
     if (keywd == "pbc") {
       if (words.size() != 4)
         error->one(FLERR,"Improper POD file.", utils::getsyserror());

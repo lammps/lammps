@@ -24,6 +24,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -39,6 +40,7 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
+using MathSpecial::powint;
 
 #define MAXLINE 1024
 
@@ -1254,22 +1256,26 @@ void FitPOD::least_squares_fit(datastruct data)
     int nrhs=1, info;
     char chu = 'U';
     DPOSV(&chu, &nd, &nrhs, desc.A, &nd, desc.c, &nd, &info);
+    
+    // rounding the coefficients up to prec digits after the decimal point
+    
+    int prec = utils::inumeric(FLERR,podptr->pod.precision,false,lmp);
+    double p = powint(10.0, prec);        
+    for (int count = 0; count < nd; count++) 
+      desc.c[count] = roundf(desc.c[count]  * p) / p;    
   }
   
   MPI_Bcast(desc.c, nd, MPI_DOUBLE, 0, world);
     
-  if (comm->me == 0) {
-    
-    podptr->print_matrix( "POD coefficient vector:", 1, nd, desc.c, 1);
-
+  if (comm->me == 0) {    
     // save coefficients into a text file
 
     std::string filename = podptr->pod.filenametag + "_coefficients"  + ".pod";
-    FILE *fp = fopen(filename.c_str(), "w");
+    FILE *fp = fopen(filename.c_str(), "w");    
 
     fmt::print(fp, "POD_coefficients: {}\n", nd);
     for (int count = 0; count < nd; count++) {
-      fmt::print(fp, "{:.8}\n", desc.c[count]);
+      fmt::print(fp, "{} \n", desc.c[count]);
     }
     fclose(fp);
     utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");

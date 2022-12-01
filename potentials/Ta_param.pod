@@ -33,3 +33,6 @@ quadratic_pod_potential 0
 
 # Add the following basename to the name of output files
 basename_for_output_files Ta
+
+# number of digits after the decimal point
+precision_for_pod_coefficients 6

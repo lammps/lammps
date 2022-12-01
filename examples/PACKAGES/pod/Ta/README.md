@@ -7,7 +7,7 @@ Fit POD with
 
     lmp -in in.fitpod
 
-This creates `coefficients.txt` for the linear model, which we can use to run MD with
+This creates `Ta_coefficients.pod` for the linear model, which we can use to run MD with
 
     lmp -in in.pod
 

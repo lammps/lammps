@@ -1,6 +1,7 @@
-LAMMPS (24 Mar 2022)
-boundary p p p # finite field, fully periodic
-kspace_style pppm/electrode 1.0e-7
+LAMMPS (3 Nov 2022)
+boundary p p f
+kspace_style ewald/electrode 1.0e-7
+kspace_modify slab 3.0 # ew3dc
 
 include "settings.mod" # styles, computes, groups and fixes
 # set boundary in main script because ffield is periodic
@@ -28,7 +29,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      0 = max # of 1-4 neighbors
      1 = max # of special neighbors
   special bonds CPU = 0.001 seconds
-  read_data CPU = 0.006 seconds
+  read_data CPU = 0.004 seconds
 
 group bot molecule 1
 144 atoms in group bot
@@ -58,7 +59,7 @@ variable qtheory equal "v_capac * v_v"
 variable percdev equal "100 * (c_qtop - v_qtheory) / (v_qtheory + 1e-9)" # avoid divide-by-zero
 
 # constant potential electrodes with ramping potential difference
-fix conp bot electrode/conp 0 1.979 couple top v_v symm on ffield yes
+fix conp bot electrode/conp 0 1.979 couple top v_v symm on
 288 atoms in group conp_group
 
 thermo 1
@@ -66,20 +67,36 @@ thermo 1
 thermo_style custom step v_v c_qbot c_qtop v_qtheory v_percdev
 
 run 10
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix electrode command:
+
+@article{Ahrens2022
+author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0099239},
+title = {{ELECTRODE: An electrochemistry package for LAMMPS}},
+journal = {The Journal of Chemical Physics},
+year = {2022}
+volume = {157},
+pages = {084801},
+}
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
 WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
-PPPM/electrode initialization ...
+Ewald/electrode initialization ...
 WARNING: System is not charge neutral, net charge = 0.000219 (src/kspace.cpp:327)
   using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
-  G vector (1/distance) = 0.17138393
-  grid = 8 8 12
-  stencil order = 5
-  estimated absolute RMS force accuracy = 1.8143403e-05
-  estimated relative force accuracy = 5.4638319e-08
-  using double precision MKL FFT
-  3d grid and FFT values/proc = 2873 768
-  generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+  G vector (1/distance) = 0.15955673
+  estimated absolute RMS force accuracy = 3.1187248e-05
+  estimated relative force accuracy = 9.3919471e-08
+  KSpace vectors: actual max1d max3d = 266 12 7812
+                  kxmax kymax kzmax  = 3 3 12
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 1 steps, delay 10 steps, check yes
+  update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 16
   ghost atom cutoff = 16
@@ -95,40 +112,39 @@ Neighbor list info ...
       pair build: copy
       stencil: none
       bin: none
-WARNING: Using kspace solver on system with no charge (src/kspace.cpp:314)
-Per MPI rank memory allocation (min/avg/max) = 7.86 | 7.86 | 7.86 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 27.29 | 27.29 | 27.29 Mbytes
    Step          v_v           c_qbot         c_qtop       v_qtheory      v_percdev   
          0   0              0              0              0              0            
-         1   0.2           -0.030902       0.030902       0.031376826   -1.5133027    
-         2   0.4           -0.061804       0.061804       0.062753652   -1.5133028    
-         3   0.6           -0.092705999    0.092705999    0.094130479   -1.5133028    
-         4   0.8           -0.123608       0.123608       0.1255073     -1.5133028    
-         5   1             -0.15451        0.15451        0.15688413    -1.5133028    
-         6   1.2           -0.185412       0.185412       0.18826096    -1.5133028    
-         7   1.4           -0.216314       0.216314       0.21963778    -1.5133028    
-         8   1.6           -0.247216       0.247216       0.25101461    -1.5133028    
-         9   1.8           -0.278118       0.278118       0.28239144    -1.5133028    
-        10   2             -0.30902        0.30902        0.31376826    -1.5133028    
-Loop time of 0.054016 on 1 procs for 10 steps with 288 atoms
+         1   0.2           -0.030925182    0.030925182    0.031376826   -1.4394194    
+         2   0.4           -0.061850364    0.061850364    0.062753652   -1.4394194    
+         3   0.6           -0.092775546    0.092775546    0.094130479   -1.4394194    
+         4   0.8           -0.12370073     0.12370073     0.1255073     -1.4394195    
+         5   1             -0.15462591     0.15462591     0.15688413    -1.4394195    
+         6   1.2           -0.18555109     0.18555109     0.18826096    -1.4394195    
+         7   1.4           -0.21647627     0.21647627     0.21963778    -1.4394195    
+         8   1.6           -0.24740146     0.24740146     0.25101461    -1.4394195    
+         9   1.8           -0.27832664     0.27832664     0.28239144    -1.4394195    
+        10   2             -0.30925182     0.30925182     0.31376826    -1.4394195    
+Loop time of 0.0243868 on 1 procs for 10 steps with 288 atoms
 
-Performance: 15.995 ns/day, 1.500 hours/ns, 185.130 timesteps/s
-400.3% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 35.429 ns/day, 0.677 hours/ns, 410.058 timesteps/s, 118.097 katom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0081119  | 0.0081119  | 0.0081119  |   0.0 | 15.02
-Bond    | 4.802e-06  | 4.802e-06  | 4.802e-06  |   0.0 |  0.01
-Kspace  | 0.0053539  | 0.0053539  | 0.0053539  |   0.0 |  9.91
+Pair    | 0.0041504  | 0.0041504  | 0.0041504  |   0.0 | 17.02
+Bond    | 8.92e-07   | 8.92e-07   | 8.92e-07   |   0.0 |  0.00
+Kspace  | 0.0046942  | 0.0046942  | 0.0046942  |   0.0 | 19.25
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00052577 | 0.00052577 | 0.00052577 |   0.0 |  0.97
-Output  | 0.0033476  | 0.0033476  | 0.0033476  |   0.0 |  6.20
-Modify  | 0.036562   | 0.036562   | 0.036562   |   0.0 | 67.69
-Other   |            | 0.0001102  |            |       |  0.20
+Comm    | 6.7942e-05 | 6.7942e-05 | 6.7942e-05 |   0.0 |  0.28
+Output  | 0.0010799  | 0.0010799  | 0.0010799  |   0.0 |  4.43
+Modify  | 0.014311   | 0.014311   | 0.014311   |   0.0 | 58.69
+Other   |            | 8.199e-05  |            |       |  0.34
 
 Nlocal:            288 ave         288 max         288 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           2628 ave        2628 max        2628 min
+Nghost:           1170 ave        1170 max        1170 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Neighs:          26496 ave       26496 max       26496 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -138,4 +154,4 @@ Ave neighs/atom = 92
 Ave special neighs/atom = 0
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:09
+Total wall time: 0:00:00

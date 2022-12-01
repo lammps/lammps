@@ -72,7 +72,7 @@ class PairPOD : public Pair {
   int *ti;             // types of atoms I for all pairs (I, J)
   int *tj;             // types of atoms J  for all pairs (I, J)
 
-  bool peratom_warn;            // print warning about missing per-atom energies or stresses
+  bool peratom_warn;    // print warning about missing per-atom energies or stresses
 };
 
 }    // namespace LAMMPS_NS

@@ -227,6 +227,7 @@ void CFITPOD::get_exyz_files(std::vector<std::string>& files, const std::string 
                              const std::string &extension)
 {
   auto allfiles = platform::list_directory(datapath);
+  std::sort(allfiles.begin(), allfiles.end());
   for (auto fname : allfiles) {
     if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
       files.push_back(datapath + platform::filepathsep + fname);
@@ -727,7 +728,7 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
   if (data.fraction >= 1.0) {
     if (comm->me == 0)
       utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
-    if ((int) traindata.data_path.size() > 1)
+    if (traindata.data_path.size() > 1)
       get_data(traindata, species);
     else
       error->all(FLERR,"data set is not found");
@@ -736,7 +737,7 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
   } else {
     if (comm->me == 0)
       utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
-    if ((int) data.data_path.size() > 1)
+    if (data.data_path.size() > 1)
       get_data(data, species);
     else
       error->all(FLERR,"data set is not found");
@@ -1322,10 +1323,8 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
     lm = MAX(lm, (int) data.filenames[i].size());
   lm = lm + 2;
 
-  //std::string filename_errors = data.training ? "training_errors.txt" : "test_errors.txt";
-  //std::string filename_analysis = data.training ? "training_analysis.txt" : "test_analysis.txt";
   std::string filename_errors = (data.training ? "training_errors" : "test_errors")  + podptr->pod.filenametag + ".txt";
-  std::string filename_analysis = data.training ? "training_analysis" : "test_analysis" + podptr->pod.filenametag + ".txt";
+  std::string filename_analysis = (data.training ? "training_analysis" : "test_analysis") + podptr->pod.filenametag + ".txt";
 
   FILE *fp_errors = fopen(filename_errors.c_str(), "w");
   FILE *fp_analysis = fopen(filename_analysis.c_str(), "w");

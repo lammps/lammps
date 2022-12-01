@@ -1,4 +1,5 @@
 # Demonstrate fitpod for POD potential
 
+units metal
 fitpod pod.txt data.txt
 

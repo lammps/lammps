@@ -409,7 +409,7 @@ void PPPMDisp::init()
 
   double acc;
   double acc_6,acc_real_6,acc_kspace_6;
-      
+
   int iteration = 0;
   if (function[0]) {
 
@@ -524,7 +524,7 @@ void PPPMDisp::init()
 
     final_accuracy_6(acc_6,acc_real_6,acc_kspace_6);
   }
-  
+
   // allocate K-space dependent memory
 
   allocate();
@@ -559,7 +559,7 @@ void PPPMDisp::init()
     int ngrid_max,nfft_both_max;
     MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
     MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
-    
+
     if (me == 0) {
       std::string mesg = fmt::format("  Coulomb G vector (1/distance)= {:.16g}\n",
                                      g_ewald);
@@ -576,14 +576,14 @@ void PPPMDisp::init()
       utils::logmesg(lmp,mesg);
     }
   }
-  
+
   // print dipserion stats
 
   if (function[1] + function[2] + function[3]) {
     int ngrid_6_max,nfft_both_6_max;
     MPI_Allreduce(&ngrid_6,&ngrid_6_max,1,MPI_INT,MPI_MAX,world);
     MPI_Allreduce(&nfft_both_6,&nfft_both_6_max,1,MPI_INT,MPI_MAX,world);
-  
+
     if (me == 0) {
       std::string mesg = fmt::format("  Dispersion G vector (1/distance)= "
                                    "{:.16}\n",g_ewald_6);

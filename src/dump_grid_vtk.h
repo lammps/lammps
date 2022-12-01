@@ -31,8 +31,8 @@ class DumpGridVTK : public DumpGrid {
 
  protected:
   int mode;
-  double *xcoord,*ycoord,*zcoord;
-  
+  double *xcoord, *ycoord, *zcoord;
+
   // methods
 
   void init_style() override;

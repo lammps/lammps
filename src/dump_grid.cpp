@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 // customize by adding keyword
 // also customize compute_atom_property.cpp
 
-enum{COMPUTE,FIX};
+enum {COMPUTE,FIX};
 
 #define ONEFIELD 32
 #define DELTA 1048576
@@ -51,7 +51,7 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
   clearstep = 1;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal dump grid command");
+  if (nevery <= 0) error->all(FLERR,"Illegal dump grid nevery value: {}", nevery);
 
   // expand args if any have wildcard character "*"
   // ok to include trailing optional args,
@@ -78,9 +78,9 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
   dimension = domain->dimension;
 
   // for 2d, set nzgrid = 1 for dump grid and grid/vtk files
-  
+
   if (dimension == 2) nzgrid = 1;
-  
+
   // computes and fixes which the dump accesses
 
   ncompute = 0;
@@ -93,8 +93,7 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
 
   if (ioptional < nfield &&
       strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
-    error->all(FLERR,"Invalid attribute {} in dump {} command",
-               earg[ioptional],style);
+    error->all(FLERR,"Invalid attribute {} in dump {} command", earg[ioptional],style);
 
   // noptional = # of optional args
   // reset nfield to subtract off optional args
@@ -425,7 +424,7 @@ void DumpGrid::header_binary_triclinic(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpGrid::header_item(bigint ndump)
+void DumpGrid::header_item(bigint /*ndump*/)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;
@@ -445,7 +444,7 @@ void DumpGrid::header_item(bigint ndump)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpGrid::header_item_triclinic(bigint ndump)
+void DumpGrid::header_item_triclinic(bigint /*ndump*/)
 {
   if (unit_flag && !unit_count) {
     ++unit_count;
@@ -661,11 +660,11 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
     // arg is not a valid Grid reference
     // assume it's an additional dump grid option and return
-    
+
     if (iflag < 0) return iarg;
 
     // grid reference is to a compute or fix
-    
+
     if (iflag == ArgInfo::COMPUTE) {
       auto icompute = lmp->modify->get_compute_by_id(id);
       field2index[iarg] = add_compute(id,icompute);

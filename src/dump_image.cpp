@@ -126,7 +126,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   gridflag = NO;
   lineflag = triflag = bodyflag = fixflag = NO;
   id_grid_compute = id_grid_fix = nullptr;
-  
+
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
     bondflag = YES;
@@ -490,7 +490,7 @@ void DumpImage::init_style()
         error->all(FLERR,"Dump image and grid fix not computed at compatible times");
     }
   }
-  
+
   // check image variables
 
   if (thetastr) {
@@ -625,7 +625,7 @@ void DumpImage::write()
 
   // pack grid gbuf with grid cell values
   // ngrid = # of grid cells this proc owns
-  
+
   if (gridflag) {
     if (domain->dimension == 2) {
       if (grid_compute)
@@ -700,7 +700,7 @@ void DumpImage::write()
           for (int ix = nxlo_in; ix <= nxhi_in; ix++)
             gbuf[n++] = array2d[iy][ix][index];
       }
-      
+
     } else if (domain->dimension == 3) {
       if (grid_index == 0) {
         double ***vec3d;
@@ -715,7 +715,7 @@ void DumpImage::write()
           for (int iy = nylo_in; iy <= nyhi_in; iy++)
             for (int ix = nxlo_in; ix <= nxhi_in; ix++)
               gbuf[n++] = vec3d[iz][iy][ix];
-        
+
         }
     } else {
       double ****array3d;
@@ -919,7 +919,7 @@ void DumpImage::create_image()
   // 2 triangles for 2d rectangle, 12 triangles for 3d cube surface
   // grid_cell_corners_2d/3d calculates orthogonal vs triclinic corner pts
   // for 3d, outward normals on all 6 faces
-  
+
   if (gridflag) {
     int n = 0;
     if (domain->dimension == 2) {
@@ -1358,7 +1358,7 @@ void DumpImage::grid_cell_corners_2d(int ix, int iy)
 {
   double *boxlo = domain->boxlo;
   double *prd = domain->prd;
-  
+
   if (!domain->triclinic) {
     double xdelta = prd[0] / nxgrid;
     double ydelta = prd[1] / nygrid;
@@ -1372,7 +1372,7 @@ void DumpImage::grid_cell_corners_2d(int ix, int iy)
       }
 
   } else {
-    double lamda[3],xone[3];
+    double lamda[3];
     lamda[2] = 0.0;
 
     double dx = 1.0 / nxgrid;
@@ -1389,12 +1389,12 @@ void DumpImage::grid_cell_corners_2d(int ix, int iy)
 }
 
 /* ---------------------------------------------------------------------- */
-  
+
 void DumpImage::grid_cell_corners_3d(int ix, int iy, int iz)
 {
   double *boxlo = domain->boxlo;
   double *prd = domain->prd;
-  
+
   if (!domain->triclinic) {
     double xdelta = prd[0] / nxgrid;
     double ydelta = prd[1] / nygrid;
@@ -1411,7 +1411,7 @@ void DumpImage::grid_cell_corners_3d(int ix, int iy, int iz)
         }
 
   } else {
-    double lamda[3],xone[3];
+    double lamda[3];
 
     double dx = 1.0 / nxgrid;
     double dy = 1.0 / nygrid;

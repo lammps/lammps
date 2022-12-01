@@ -91,7 +91,7 @@ class DumpImage : public DumpCustom {
   double *gbuf;
   int ngrid,maxgrid;
   double gcorners[8][3];
-  
+
   class AtomVecLine *avec_line;    // ptrs to atom style (sub)classes
   class AtomVecTri *avec_tri;
   class AtomVecBody *avec_body;

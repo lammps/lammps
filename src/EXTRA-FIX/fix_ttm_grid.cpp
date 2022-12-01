@@ -411,7 +411,6 @@ void FixTTMGrid::write_restart_file(const char *file)
     if (fpout == nullptr)
       error->one(FLERR,"Cannot open fix ttm/grid restart file {}: {}",outfile,utils::getsyserror());
 
-    bigint ngrid = (bigint) nxgrid * nygrid * nzgrid;
     fmt::print(fpout,"# DATE: {} UNITS: {} COMMENT: "
                "Electron temperature on {}x{}x{} grid at step {} - "
                "created by fix {}\n",

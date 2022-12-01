@@ -401,7 +401,7 @@ namespace utils {
 
   int check_grid_reference(char *errstr, char *ref, int nevery,
                            char *&id, int &igrid, int &idata, int &index, LAMMPS *lmp);
-  
+
   /*! Parse grid reference into 3 sub-strings
    *
    * Format of grid ID reference = id:gname:dname

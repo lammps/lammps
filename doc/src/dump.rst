@@ -66,7 +66,7 @@ Syntax
 * style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *custom/adios* or *dcd* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
 * N = dump on timesteps which are multiples of N
 * file = name of file to write dump info to
-* attribute1,filel2,... = list of attributes for a particular style
+* attribute1,attribute2,... = list of attributes for a particular style
 
   .. parsed-literal::
 

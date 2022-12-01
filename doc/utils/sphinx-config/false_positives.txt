@@ -412,6 +412,7 @@ cdennist
 cdof
 ceil
 Ceil
+cekk
 centerline
 centro
 centroid
@@ -470,6 +471,7 @@ Cij
 cis
 civ
 CKD
+ckk
 Clang
 clearstore
 Cleary
@@ -559,6 +561,8 @@ Coulombic
 Coulombics
 counterion
 counterions
+CountI
+CountN
 Courant
 covalent
 covalently
@@ -1240,6 +1244,7 @@ Glosli
 Glotzer
 gmail
 gmake
+gmap
 gmask
 Gmask
 GMock
@@ -1439,6 +1444,7 @@ ieni
 ifdefs
 iff
 ifort
+ihi
 Ihle
 ij
 ijk
@@ -1449,6 +1455,7 @@ ilabel
 Ilie
 ilmenau
 Ilmenau
+ilo
 ilp
 Ilya
 im
@@ -1550,6 +1557,8 @@ Iw
 Iwers
 iwyu
 ixcm
+ixhi
+ixlo
 ixx
 Ixx
 ixy
@@ -2250,6 +2259,7 @@ MxN
 myCompute
 myIndex
 mylammps
+myMultiply
 MyPool
 mysocket
 mySpin
@@ -2361,6 +2371,7 @@ Ng
 nghost
 Nghost
 Ngpu
+ngpus
 Ngyuen
 nh
 nharmonic
@@ -2386,8 +2397,10 @@ nktv
 nl
 nlayers
 nlen
+Nlimit
 nlines
 Nlines
+nlist
 nlo
 nlocal
 Nlocal
@@ -2475,7 +2488,8 @@ nsq
 Nstart
 nstats
 Nstep
-Nsteplast
+Nsteps
+nsteplast
 Nstop
 nsub
 Nsw
@@ -2505,7 +2519,7 @@ numpy
 Numpy
 Nurdin
 Nvalue
-Nvaluelast
+nvaluelast
 Nvalues
 nvc
 nvcc
@@ -2517,11 +2531,15 @@ Nwait
 nwchem
 nx
 Nx
+nxlo
 nxnodes
+Nxyz
 ny
 Ny
+nylo
 nz
 Nz
+nzlo
 ocl
 octahedral
 octants
@@ -2590,6 +2608,8 @@ overlayed
 Ovito
 oxdna
 oxDNA
+oxhi
+oxlo
 oxrna
 oxRNA
 packings
@@ -2657,6 +2677,7 @@ Peng
 peptide
 peratom
 Pergamon
+pergrid
 peri
 peridynamic
 Peridynamic
@@ -3092,6 +3113,7 @@ Rutuparna
 rx
 rxd
 rxnave
+rxnbond
 rxnsum
 ry
 Ryckaert
@@ -3370,6 +3392,8 @@ Sugaku
 Suhai
 Sukumaran
 Sulc
+SumI
+SumN
 sumsq
 Sunderland
 supercell

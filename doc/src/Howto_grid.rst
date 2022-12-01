@@ -50,7 +50,7 @@ grid <dump>` output files as input.
    Nov 2022) to add a section in the :doc:`Developer <Developer>`
    section of the manual with a detailed description of how to use
    these classes.
-        
+
 ----------
 
 These are the commands which currently define or use distributed

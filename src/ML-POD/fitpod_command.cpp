@@ -453,20 +453,21 @@ void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
   size_t maxname = 9;
   for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
   maxname -= data.data_path.size()+1;
+  const std::string sepline(maxname+46, '-');
   if (comm->me == 0)
-    utils::logmesg(lmp, "{:-<{}}\n {:^{}} | number of configurations | number of atoms\n{:=<{}}\n",
-    "", maxname+46, "data file", maxname, "", maxname+46);
+    utils::logmesg(lmp, "{}\n {:^{}} | number of configurations | number of atoms\n{}\n",
+                   sepline, "data file", maxname, sepline);
   int i = 0;
   for (auto fname : data.data_files) {
     std::string filename = fname.substr(data.data_path.size()+1);
     data.filenames.push_back(filename);
     if (comm->me == 0)
       utils::logmesg(lmp, " {:<{}} |        {:>10}        |    {:>8}\n",
-                   filename, maxname, data.num_config[i], data.num_atom_each_file[i]);
+                     filename, maxname, data.num_config[i], data.num_atom_each_file[i]);
     ++i;
   }
   if (comm->me == 0) {
-    utils::logmesg(lmp, "{:-<{}}\n", "", maxname+46);
+    utils::logmesg(lmp, "{}\n", sepline);
     utils::logmesg(lmp, "number of files: {}\n", data.data_files.size());
     utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
     utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);

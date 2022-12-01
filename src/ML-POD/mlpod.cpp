@@ -38,18 +38,24 @@ using MathSpecial::powint;
 #define MAXLINE 1024
 
 MLPOD::podstruct::podstruct() :
-    filenametag(""), twobody{5, 10, 10}, threebody{4, 8, 8, 5}, fourbody{0, 0, 0, 0},
-    quadratic22{0, 0}, quadratic23{0, 0}, quadratic24{0, 0}, quadratic33{0, 0}, quadratic34{0, 0},
-    quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0}
+    filenametag(""), twobody{5, 10, 10}, threebody{4, 8, 8, 5}, fourbody{0, 0, 0, 0}, pbc(nullptr),
+    elemindex(nullptr), quadratic22{0, 0}, quadratic23{0, 0}, quadratic24{0, 0}, quadratic33{0, 0},
+    quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0},
+    besselparams(nullptr), coeff(nullptr), Phi2(nullptr), Phi3(nullptr), Phi4(nullptr),
+    Lambda2(nullptr), Lambda3(nullptr), Lambda4(nullptr)
 {
+}
+
+MLPOD::podstruct::~podstruct()
+{
+  delete[] pbc;
+  delete[] elemindex;
+  delete[] besselparams;
 }
 
 MLPOD::MLPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff_file) :
     Pointers(_lmp)
 {
-  pod.besselparams = nullptr;
-  pod.pbc = nullptr;
-
   // read pod input file to podstruct
 
   read_pod(pod_file);
@@ -63,12 +69,8 @@ MLPOD::MLPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff
 
 MLPOD::~MLPOD()
 {
-
   // deallocate pod arrays
 
-  memory->destroy(pod.pbc);
-  memory->destroy(pod.elemindex);
-  memory->destroy(pod.besselparams);
   memory->destroy(pod.coeff);
   if (pod.ns2 > 0) {
     memory->destroy(pod.Phi2);
@@ -438,16 +440,15 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
 void MLPOD::read_pod(const std::string &pod_file)
 {
   pod.nbesselpars = 3;
-  memory->destroy(pod.besselparams);
-  memory->destroy(pod.pbc);
-  memory->create(pod.besselparams, 3, "pod:pod_besselparams");
-  memory->create(pod.pbc, 3, "pod:pod_pbc");
+  delete[] pod.besselparams;
+  pod.besselparams = new double[3];
+  delete[] pod.pbc;
+  pod.pbc = new int[3];
 
   pod.besselparams[0] = 0.0;
   pod.besselparams[1] = 2.0;
   pod.besselparams[2] = 4.0;
 
-  pod.elemindex=nullptr;
   pod.nelements = 0;
   pod.onebody = 1;
   pod.besseldegree = 3;
@@ -504,17 +505,15 @@ void MLPOD::read_pod(const std::string &pod_file)
     auto keywd = words[0];
 
     if (keywd == "species") {
-
       pod.nelements = words.size()-1;
-      for (int ielem = 1; ielem <= pod.nelements; ielem++){
+      for (int ielem = 1; ielem <= pod.nelements; ielem++) {
         pod.species.push_back(words[ielem]);
       }
-
     }
 
     if (keywd == "filename_tag") pod.filenametag = words[1];
 
-    if (keywd == "pbc"){
+    if (keywd == "pbc") {
       if (words.size() != 4)
         error->one(FLERR,"Improper POD file.", utils::getsyserror());
       pod.pbc[0] = utils::inumeric(FLERR,words[1],false,lmp);
@@ -592,20 +591,20 @@ void MLPOD::read_pod(const std::string &pod_file)
 
   // allocate memory for eigenvectors and eigenvalues
 
-  if (pod.ns2 > 0){
+  if (pod.ns2 > 0) {
     memory->create(pod.Phi2, pod.ns2*pod.ns2, "pod:pod_Phi2");
     memory->create(pod.Lambda2, pod.ns2, "pod:pod_Lambda2");
   }
-  if (pod.ns3 > 0){
+  if (pod.ns3 > 0) {
     memory->create(pod.Phi3, pod.ns3*pod.ns3, "pod:pod_Phi3");
     memory->create(pod.Lambda3, pod.ns3, "pod:pod_Lambda3");
   }
-  if (pod.ns4 > 0){
+  if (pod.ns4 > 0) {
     memory->create(pod.Phi4, pod.ns4*pod.ns4, "pod:pod_Phi4");
     memory->create(pod.Lambda4, pod.ns4, "pod:pod_Lambda4");
   }
 
-  if (pod.ns2>0) {
+  if (pod.ns2 > 0) {
     podeigenvaluedecomposition(pod.Phi2, pod.Lambda2, pod.besselparams, pod.rin, pod.rcut,
       pod.twobody[0], pod.twobody[1], pod.nbesselpars, 2000);
 
@@ -615,11 +614,11 @@ void MLPOD::read_pod(const std::string &pod_file)
 //     /* Print eigenvectors */
 //     print_matrix( "Eigenvectors for two-body potential:", pod.ns2, pod.ns2, pod.Phi2, pod.ns2);
   }
-  if (pod.ns3>0) {
+  if (pod.ns3 > 0) {
     podeigenvaluedecomposition(pod.Phi3, pod.Lambda3, pod.besselparams, pod.rin, pod.rcut,
       pod.threebody[0], pod.threebody[1], pod.nbesselpars, 2000);
   }
-  if (pod.ns4>0) {
+  if (pod.ns4 > 0) {
     podeigenvaluedecomposition(pod.Phi4, pod.Lambda4, pod.besselparams, pod.rin, pod.rcut,
       pod.fourbody[0], pod.fourbody[1], pod.nbesselpars, 2000);
   }
@@ -635,8 +634,7 @@ void MLPOD::read_pod(const std::string &pod_file)
   if (pod.onebody==1) {
     pod.nbf1 = 1;
     pod.nd1 = pod.nelements;
-  }
-  else {
+  } else {
     pod.nbf1 = 0;
     pod.nd1 = 0;
   }
@@ -721,15 +719,17 @@ void MLPOD::read_pod(const std::string &pod_file)
   pod.nd1234 = pod.nd1 + pod.nd2 + pod.nd3 + pod.nd4;
 
   int nelements = pod.nelements;
-  memory->create(pod.elemindex, nelements*nelements, "pod:pod_elemindex");
+  delete[] pod.elemindex;
+  pod.elemindex = new int[nelements*nelements];
 
   int k = 1;
-  for (int i=0; i < nelements; i++)
+  for (int i=0; i < nelements; i++) {
     for (int j=i; j < nelements; j++) {
       pod.elemindex[i + nelements*j] = k;
       pod.elemindex[j + nelements*i] = k;
       k += 1;
     }
+  }
 
   if (comm->me == 0) {
     utils::logmesg(lmp, "**************** Begin of POD Potentials ****************\n");
@@ -766,7 +766,7 @@ void MLPOD::read_coeff_file(const std::string &coeff_file)
 
   std::string coefffilename = coeff_file;
   FILE *fpcoeff;
-  if (comm->me == 0){
+  if (comm->me == 0) {
 
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == nullptr)

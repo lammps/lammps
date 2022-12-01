@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
 
-void CFITPOD::command(int narg, char **arg)
+void FitPOD::command(int narg, char **arg)
 {
   if (narg < 2) utils::missing_cmd_args(FLERR, "fitpod", error);
 
@@ -129,23 +129,23 @@ void CFITPOD::command(int narg, char **arg)
   memory->destroy(nb.pairnum_cumsum);
   memory->destroy(nb.pairlist);
   memory->destroy(nb.y);
+  delete podptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format,
+void FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
                              std::string &file_extension, std::string &test_path,
                              std::string &training_path, const std::string &data_file)
 {
   std::string datafilename = data_file;
   FILE *fpdata;
-  //if (comm->me == 0){
+  if (comm->me == 0) {
 
     fpdata = utils::open_potential(datafilename,lmp,nullptr);
     if (fpdata == nullptr)
-      error->one(FLERR,"Cannot open training data file {}: ",
-                                   datafilename, utils::getsyserror());
-  //}
+      error->one(FLERR,"Cannot open training data file {}: ", datafilename, utils::getsyserror());
+  }
 
   // loop through lines of training data file and parse keywords
 
@@ -223,7 +223,7 @@ void CFITPOD::read_data_file(double *fitting_weights, std::string &file_format,
   }
 }
 
-void CFITPOD::get_exyz_files(std::vector<std::string>& files, const std::string &datapath,
+void FitPOD::get_exyz_files(std::vector<std::string>& files, const std::string &datapath,
                              const std::string &extension)
 {
   auto allfiles = platform::list_directory(datapath);
@@ -234,7 +234,7 @@ void CFITPOD::get_exyz_files(std::vector<std::string>& files, const std::string 
   }
 }
 
-int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)
+int FitPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)
 {
   std::string filename = file;
   FILE *fp;
@@ -277,7 +277,7 @@ int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
     if (words.size() == 0) continue;
 
     int natom;
-    if (words.size() == 1){
+    if (words.size() == 1) {
       natom = utils::inumeric(FLERR,words[0],false,lmp);
       num_atom.push_back(natom);
       num_configs += 1;
@@ -287,7 +287,7 @@ int CFITPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum,
   return num_configs;
 }
 
-int CFITPOD::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files)
+int FitPOD::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files)
 {
   int nfiles = training_files.size(); // number of files
   int d, n;
@@ -305,19 +305,17 @@ int CFITPOD::get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_
   return num_atom_all;
 }
 
-void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces,
+void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces,
     int *atomtype, std::string file, std::vector<std::string> species)
 {
 
   std::string filename = file;
   FILE *fp;
-  //if (comm->me == 0){
-
+  if (comm->me == 0) {
     fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open POD coefficient file {}: ",
-                                   filename, utils::getsyserror());
-  //}
+      error->one(FLERR,"Cannot open POD coefficient file {}: ", filename, utils::getsyserror());
+  }
 
   char line[MAXLINE],*ptr;
   int eof = 0;
@@ -352,7 +350,7 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
     if (words.size() == 0) continue;
 
     ValueTokenizer text(utils::trim_comment(line),"\"' \t\n\r\f");
-    if (text.contains("attice")){
+    if (text.contains("attice")) {
 
       // find the word containing "lattice"
 
@@ -366,14 +364,14 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
 
         // lattice numbers start at index + 1
 
-        for (int k = 0; k < 9; k++){
+        for (int k = 0; k < 9; k++) {
           lattice[k + 9*cfi] = utils::numeric(FLERR,words[index+1+k],false,lmp);
         }
       } else {
 
         // lattice numbers start at index + 2
 
-        for (int k = 0; k < 9; k++){
+        for (int k = 0; k < 9; k++) {
           lattice[k + 9*cfi] = utils::numeric(FLERR,words[index+2+k],false,lmp);
         }
       }
@@ -412,14 +410,14 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
 
         // stress numbers start at index + 1
 
-        for (int k = 0; k < 9; k++){
+        for (int k = 0; k < 9; k++) {
           stress[k + 9*cfi] = utils::numeric(FLERR,words[index+1+k],false,lmp);
         }
       } else {
 
         // lattice numbers start at index + 2
 
-        for (int k = 0; k < 9; k++){
+        for (int k = 0; k < 9; k++) {
           stress[k + 9*cfi] = utils::numeric(FLERR,words[index+2+k],false,lmp);
         }
       }
@@ -430,24 +428,22 @@ void CFITPOD::read_exyz_file(double *lattice, double *stress, double *energy, do
 
     // loop over atoms
 
-    else if (words.size() > 1){
+    else if (words.size() > 1) {
 
       for (int ii = 0; ii < ns; ii++)
         if (species[ii] == words[0])
           atomtype[nat] = ii+1;
 
-      for (int k = 0; k < 6; k++){
+      for (int k = 0; k < 6; k++) {
         if (k <= 2) pos[k + 3*nat] = utils::numeric(FLERR,words[1+k],false,lmp);
         if (k > 2 ) forces[k-3 + 3*nat] = utils::numeric(FLERR,words[1+k],false,lmp);
       }
-
       nat += 1;
     }
   }
-
 }
 
-void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
+void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
 {
   get_exyz_files(data.data_files, data.data_path, data.file_extension);
   data.num_atom_sum = get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);
@@ -532,7 +528,7 @@ void CFITPOD::get_data(datastruct &data, std::vector<std::string> species)
   }
 }
 
-std::vector<int> CFITPOD::linspace(int start_in, int end_in, int num_in)
+std::vector<int> FitPOD::linspace(int start_in, int end_in, int num_in)
 {
 
   std::vector<int> linspaced;
@@ -565,7 +561,7 @@ std::vector<int> CFITPOD::linspace(int start_in, int end_in, int num_in)
   return linspaced;
 }
 
-std::vector<int> CFITPOD::shuffle(int start_in, int end_in, int num_in)
+std::vector<int> FitPOD::shuffle(int start_in, int end_in, int num_in)
 {
   int sz = end_in - start_in + 1;
   std::vector<int> myvector(sz);
@@ -583,7 +579,7 @@ std::vector<int> CFITPOD::shuffle(int start_in, int end_in, int num_in)
   return shuffle_vec;
 }
 
-std::vector<int> CFITPOD::select(int n, double fraction, int randomize)
+std::vector<int> FitPOD::select(int n, double fraction, int randomize)
 {
   std::vector<int> selected;
 
@@ -595,7 +591,7 @@ std::vector<int> CFITPOD::select(int n, double fraction, int randomize)
   return selected;
 }
 
-void CFITPOD::select_data(datastruct &newdata, datastruct data)
+void FitPOD::select_data(datastruct &newdata, datastruct data)
 {
   double fraction = data.fraction;
   int randomize = data.randomize;
@@ -707,7 +703,7 @@ void CFITPOD::select_data(datastruct &newdata, datastruct data)
   }
 }
 
-void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> species)
+void FitPOD::read_data_files(std::string data_file, std::vector<std::string> species)
 {
   datastruct data;
 
@@ -779,7 +775,7 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
   }
 }
 
-int CFITPOD::latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx)
+int FitPOD::latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx)
 {
   int m=0, n=0, p=0;
   if (pbc[0] == 1) m = (int) ceil(rcut/a1[0]);
@@ -822,7 +818,7 @@ int CFITPOD::latticecoords(double *y, int *alist, double *x, double *a1, double 
   return nl;
 }
 
-int CFITPOD::podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim)
+int FitPOD::podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim)
 {
   int k = 0;
   for (int i = 0; i<nx; i++) {
@@ -842,7 +838,7 @@ int CFITPOD::podneighborlist(int *neighlist, int *numneigh, double *r, double rc
   return k;
 }
 
-int CFITPOD::podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
+int FitPOD::podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
     double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx)
 {
   double rcutsq = rcut*rcut;
@@ -862,7 +858,7 @@ int CFITPOD::podfullneighborlist(double *y, int *alist, int *neighlist, int *num
   return nn;
 }
 
-void CFITPOD::allocate_memory(datastruct data)
+void FitPOD::allocate_memory(datastruct data)
 {
   int nd = podptr->pod.nd;
   memory->create(desc.gd, nd, "fitpod:desc_gd");
@@ -979,7 +975,7 @@ void CFITPOD::allocate_memory(datastruct data)
   }
 }
 
-void CFITPOD::linear_descriptors(datastruct data, int ci)
+void FitPOD::linear_descriptors(datastruct data, int ci)
 {
   int dim = 3;
   int nd1 = podptr->pod.nd1;
@@ -1010,7 +1006,7 @@ void CFITPOD::linear_descriptors(datastruct data, int ci)
 
 }
 
-void CFITPOD::quadratic_descriptors(datastruct data, int ci)
+void FitPOD::quadratic_descriptors(datastruct data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1091,7 +1087,7 @@ void CFITPOD::quadratic_descriptors(datastruct data, int ci)
     desc.gdd[dim*natom*nd1234+i] = desc.gdd[dim*natom*nd1234+i]/(natom);
 }
 
-void CFITPOD::cubic_descriptors(datastruct data, int ci)
+void FitPOD::cubic_descriptors(datastruct data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1158,7 +1154,7 @@ void CFITPOD::cubic_descriptors(datastruct data, int ci)
     desc.gdd[i] = desc.gdd[i]/(natom*natom);
 }
 
-void CFITPOD::least_squares_matrix(datastruct data, int ci)
+void FitPOD::least_squares_matrix(datastruct data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1204,7 +1200,7 @@ void CFITPOD::least_squares_matrix(datastruct data, int ci)
 
 }
 
-void CFITPOD::least_squares_fit(datastruct data)
+void FitPOD::least_squares_fit(datastruct data)
 {
   if (comm->me == 0)
     utils::logmesg(lmp, "**************** Begin of Least-Squares Fitting ****************\n");
@@ -1254,27 +1250,24 @@ void CFITPOD::least_squares_fit(datastruct data)
   char chu = 'U';
   DPOSV(&chu, &nd, &nrhs, desc.A, &nd, desc.c, &nd, &info);
 
-  if (comm->me == 0)
+  if (comm->me == 0) {
     podptr->print_matrix( "Least-squares coefficient vector:", 1, nd, desc.c, 1);
 
-  // save coefficients into a text file
+    // save coefficients into a text file
 
-  std::string filename = "coefficients"  + podptr->pod.filenametag + ".txt";
-  FILE *fp = fopen(filename.c_str(), "w");
+    std::string filename = "coefficients"  + podptr->pod.filenametag + ".txt";
+    FILE *fp = fopen(filename.c_str(), "w");
 
-  fmt::print(fp, "POD_coefficients: {}\n", nd);
-  for (int count = 0; count < nd; count++){
-
-    fmt::print(fp, "{:.20}\n", desc.c[count]);
-  }
-
-  fclose(fp);
-
-  if (comm->me == 0)
+    fmt::print(fp, "POD_coefficients: {}\n", nd);
+    for (int count = 0; count < nd; count++) {
+      fmt::print(fp, "{:.16}\n", desc.c[count]);
+    }
+    fclose(fp);
     utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
+  }
 }
 
-double CFITPOD::energyforce_calculation(double *force, double *coeff, datastruct data, int ci)
+double FitPOD::energyforce_calculation(double *force, double *coeff, datastruct data, int ci)
 {
   int dim = 3;
   int *pbc = podptr->pod.pbc;
@@ -1314,7 +1307,7 @@ double CFITPOD::energyforce_calculation(double *force, double *coeff, datastruct
   return energy;
 }
 
-void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
+void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
 {
   std::string s = "All files";
   int nfiles = data.data_files.size();  // number of files
@@ -1326,24 +1319,24 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
   std::string filename_errors = (data.training ? "training_errors" : "test_errors")  + podptr->pod.filenametag + ".txt";
   std::string filename_analysis = (data.training ? "training_analysis" : "test_analysis") + podptr->pod.filenametag + ".txt";
 
-  FILE *fp_errors = fopen(filename_errors.c_str(), "w");
-  FILE *fp_analysis = fopen(filename_analysis.c_str(), "w");
+  FILE *fp_errors = nullptr;
+  FILE *fp_analysis = nullptr;
+  fp_errors = fopen(filename_errors.c_str(), "w");
+  fp_analysis = fopen(filename_analysis.c_str(), "w");
 
   std::string sa = "**************** Begin of Error Analysis for the Training Data Set ****************";
   std::string sb = "**************** Begin of Error Analysis for the Test Data Set ****************";
   std::string mystr = (data.training) ? sa : sb;
 
-  if (comm->me == 0)
-    utils::logmesg(lmp, "{}\n", mystr);
+  utils::logmesg(lmp, "{}\n", mystr);
   fmt::print(fp_errors, mystr + "\n");
 
   sa = "----------------------------------------------------------------------------------------\n";
   sb = "  File    | # configs | # atoms  | MAE energy | RMSE energy | MAE force | RMSE force |\n";
-  if (comm->me == 0) {
-    utils::logmesg(lmp, "{}", sa);
-    utils::logmesg(lmp, "{}", sb);
-    utils::logmesg(lmp, "{}", sa);
-  }
+
+  utils::logmesg(lmp, "{}", sa);
+  utils::logmesg(lmp, "{}", sb);
+  utils::logmesg(lmp, "{}", sa);
   fmt::print(fp_errors, sa);
   fmt::print(fp_errors, sb);
   fmt::print(fp_errors, sa);
@@ -1389,12 +1382,11 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
     s1 = std::to_string(errors[3 + 4*q]);
     s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
     s = s + "   " + s1 + "\n";
-    if (comm->me == 0)
-      utils::logmesg(lmp, "{}", s);
+    utils::logmesg(lmp, "{}", s);
     fmt::print(fp_errors, "{}", s);
   }
-  if (comm->me == 0)
-    utils::logmesg(lmp, "{}", sa);
+
+  utils::logmesg(lmp, "{}", sa);
   fmt::print(fp_errors, "{}", sa);
 
   s = s + std::string(MAX(lm - (int) s.size(),1), ' ');
@@ -1416,26 +1408,23 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
   s1 = std::to_string(errors[3]);
   s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
   s = s + "   " + s1 + "\n";
-  if (comm->me == 0) {
-    utils::logmesg(lmp, "{}", s);
-    utils::logmesg(lmp, "{}", sa);
-  }
+  utils::logmesg(lmp, "{}", s);
+  utils::logmesg(lmp, "{}", sa);
   fmt::print(fp_errors, "{}", s);
   fmt::print(fp_errors, "{}", sa);
 
   sa = "**************** End of Error Analysis for the Training Data Set ****************";
   sb = "**************** End of Error Analysis for the Test Data Set ****************";
   mystr = (data.training) ? sa : sb;
-  if (comm->me == 0)
-    utils::logmesg(lmp, "{}\n", mystr);
+
+  utils::logmesg(lmp, "{}\n", mystr);
   fmt::print(fp_errors, "{}\n", mystr);
 
   fclose(fp_errors);
   fclose(fp_analysis);
-
 }
 
-void CFITPOD::error_analysis(datastruct data, double *coeff)
+void FitPOD::error_analysis(datastruct data, double *coeff)
 {
   int dim = 3;
   double energy;
@@ -1568,13 +1557,13 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
   errors[2] = errors[2]/nf;
   errors[3] = sqrt(errors[3]/nf);
 
-  if (comm->me == 0)
+  if (comm->me == 0) {
     utils::logmesg(lmp, "**************** End of Error Calculation ****************\n");
-
-  print_analysis(data, outarray.data(), errors.data());
+    print_analysis(data, outarray.data(), errors.data());
+  }
 }
 
-void CFITPOD::energyforce_calculation(datastruct data, double *coeff)
+void FitPOD::energyforce_calculation(datastruct data, double *coeff)
 {
   int dim = 3;
   double energy;

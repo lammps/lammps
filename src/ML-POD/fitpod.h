@@ -14,7 +14,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(fitpod,CFITPOD);
+CommandStyle(fitpod,FitPOD);
 // clang-format on
 #else
 
@@ -25,7 +25,7 @@ CommandStyle(fitpod,CFITPOD);
 
 namespace LAMMPS_NS {
 
-class CFITPOD : public Command {
+class FitPOD : public Command {
 private:
 
 public:
@@ -116,7 +116,7 @@ public:
   neighborstruct nb;
   class MLPOD *podptr;
 
-  CFITPOD(LAMMPS *lmp) : Command(lmp) {}
+  FitPOD(LAMMPS *lmp) : Command(lmp) {}
 
   void command(int, char **) override;
   void read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,

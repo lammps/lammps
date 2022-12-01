@@ -604,7 +604,7 @@ void MLPOD::read_pod(const std::string &pod_file)
     memory->create(pod.Lambda4, pod.ns4, "pod:pod_Lambda4");
   }
 
-  if (pod.ns2>0) {
+  if (pod.ns2 > 0) {
     podeigenvaluedecomposition(pod.Phi2, pod.Lambda2, pod.besselparams, pod.rin, pod.rcut,
       pod.twobody[0], pod.twobody[1], pod.nbesselpars, 2000);
 
@@ -614,11 +614,11 @@ void MLPOD::read_pod(const std::string &pod_file)
 //     /* Print eigenvectors */
 //     print_matrix( "Eigenvectors for two-body potential:", pod.ns2, pod.ns2, pod.Phi2, pod.ns2);
   }
-  if (pod.ns3>0) {
+  if (pod.ns3 > 0) {
     podeigenvaluedecomposition(pod.Phi3, pod.Lambda3, pod.besselparams, pod.rin, pod.rcut,
       pod.threebody[0], pod.threebody[1], pod.nbesselpars, 2000);
   }
-  if (pod.ns4>0) {
+  if (pod.ns4 > 0) {
     podeigenvaluedecomposition(pod.Phi4, pod.Lambda4, pod.besselparams, pod.rin, pod.rcut,
       pod.fourbody[0], pod.fourbody[1], pod.nbesselpars, 2000);
   }
@@ -634,8 +634,7 @@ void MLPOD::read_pod(const std::string &pod_file)
   if (pod.onebody==1) {
     pod.nbf1 = 1;
     pod.nd1 = pod.nelements;
-  }
-  else {
+  } else {
     pod.nbf1 = 0;
     pod.nd1 = 0;
   }

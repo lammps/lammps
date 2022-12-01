@@ -238,29 +238,6 @@ public:
     double *fac;
     double *rootpqarray;
     double *cglist;
-
-    void printout()
-    {
-      printf("twojmax %d \n", twojmax);
-      printf("ncoeff %d \n", ncoeff);
-      printf("idxb_max %d \n", idxb_max);
-      printf("idxu_max %d \n", idxu_max);
-      printf("idxz_max %d \n", idxz_max);
-      printf("idxcg_max %d \n", idxcg_max);
-      printf("ntypes %d \n", ntypes);
-      printf("nelements %d \n", nelements);
-      printf("ndoubles %d \n", ndoubles);
-      printf("ntriples %d \n", ntriples);
-      printf("bnormflag %d \n", bnormflag);
-      printf("chemflag %d \n", chemflag);
-      printf("switchflag %d \n", switchflag);
-      printf("bzeroflag %d \n", bzeroflag);
-      printf("wselfallflag %d \n", wselfallflag);
-      printf("rfac0 %g \n", rfac0);
-      printf("rmin0 %g \n", rmin0);
-      printf("rcutfac %g \n", rcutfac);
-      printf("rcutmax %g \n", rcutmax);
-    }
   };
 
   podstruct pod;

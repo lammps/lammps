@@ -2254,7 +2254,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    energy units as determined by the current :doc:`units <units>` settings and
    is the **total** energy of the contribution.  Thus, when running in
    parallel, all MPI processes have to call this function with the **same**
-   value, and this will be returned as scalar property of the fix external
+   value, and this will be returned as a scalar property of the fix external
    instance when accessed in LAMMPS input commands or from variables.
 
    Please see the documentation for :doc:`fix external <fix_external>` for more
@@ -2307,10 +2307,11 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    .. versionadded:: TBD
 
    This is a companion function to :f:subr:`set_fix_external_callback` to set
-   the per-atom energy contribution due to the fix from the external code as
-   part of the callback function.  For this to work, the handle to the LAMMPS
-   object must be passed as the *ptr* argument when registering the callback
-   function.
+   the per-atom energy contribution due to the fix from the external program as
+   part of the callback function.  For this to work, the LAMMPS object must be
+   passed as part of the *caller* argument when registering the callback
+   function, or the callback function must otherwise have access to the
+   LAMMPS object, such as through a module-based pointer.
 
    .. note::
 
@@ -2325,7 +2326,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    external code.
 
    :p character(len=*) id: fix ID of the fix external instance
-   :p real(c_double) eng [dimension(:)]: array of length nlocal containing
+   :p real(c_double) eng [dimension(:)]: array of length *nlocal* containing
     the energy to add to the per-atom energy
    :to: :cpp:func:`lammps_fix_external_set_energy_peratom`
 

@@ -2618,9 +2618,9 @@ CONTAINS
 
   ! equivalent function to lammps_fix_external_get_force
   FUNCTION lmp_fix_external_get_force(self, id) RESULT(fexternal)
-    CLASS(lammps), INTENT(IN) :: self
+    CLASS(lammps), TARGET, INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: id
-    REAL(c_double), DIMENSION(:,:), POINTER :: fexternal
+    TYPE(lammps_fix_data) :: fexternal
     TYPE(c_ptr) :: ptr, Cid
     TYPE(c_ptr), DIMENSION(:), POINTER :: f
     INTEGER(c_int) :: nmax
@@ -2629,14 +2629,16 @@ CONTAINS
     ptr = lammps_fix_external_get_force(self%handle, Cid)
     nmax = lmp_extract_setting(self, 'nmax')
     CALL C_F_POINTER(ptr, f, [nmax])
-    CALL C_F_POINTER(f(1), fexternal, [3, nmax])
+    fexternal%datatype = DATA_DOUBLE_2D
+    fexternal%lammps_instance => self
+    CALL C_F_POINTER(f(1), fexternal%r64_mat, [3, nmax])
     CALL lammps_free(Cid)
   END FUNCTION lmp_fix_external_get_force
 
   SUBROUTINE lmp_fix_external_set_energy_global(self, id, eng)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: id
-    REAL(c_double), INTENT(OUT) :: eng
+    REAL(c_double), INTENT(IN) :: eng
     TYPE(c_ptr) :: Cid
 
     Cid = f2c_string(id)

@@ -15,10 +15,14 @@
 extern "C" {
 void *f_lammps_with_args();
 void f_lammps_close();
-void f_lammps_setup_fix_external();
+void f_lammps_setup_fix_external_callback();
+void f_lammps_setup_fix_external_array();
 void f_lammps_set_fix_external_callbacks();
 void f_lammps_get_force(int, double*);
 void f_lammps_reverse_direction();
+void f_lammps_find_forces();
+void f_lammps_add_energy();
+void f_lammps_set_virial();
 }
 
 using namespace LAMMPS_NS;
@@ -48,7 +52,7 @@ protected:
 
 TEST_F(LAMMPS_fixexternal, callback)
 {
-    f_lammps_setup_fix_external();
+    f_lammps_setup_fix_external_callback();
     f_lammps_set_fix_external_callbacks();
     lammps_command(lmp, "run 0");
     double f[3];
@@ -72,4 +76,62 @@ TEST_F(LAMMPS_fixexternal, callback)
     EXPECT_DOUBLE_EQ(f[0], 1.0);
     EXPECT_DOUBLE_EQ(f[1], -1.0);
     EXPECT_DOUBLE_EQ(f[2], 1.25);
+};
+
+TEST_F(LAMMPS_fixexternal, array)
+{
+    f_lammps_setup_fix_external_array();
+    double **f;
+    f = (double**) lammps_extract_atom(lmp, "f");
+    f_lammps_find_forces();
+    lammps_command(lmp, "run 0");
+    EXPECT_DOUBLE_EQ(f[0][0], 14.0);
+    EXPECT_DOUBLE_EQ(f[0][1], -14.0);
+    EXPECT_DOUBLE_EQ(f[0][2], 18.0);
+    EXPECT_DOUBLE_EQ(f[1][0], 16.0);
+    EXPECT_DOUBLE_EQ(f[1][1], -16.0);
+    EXPECT_DOUBLE_EQ(f[1][2], 20.0);
+};
+
+TEST_F(LAMMPS_fixexternal, energy_global)
+{
+    f_lammps_setup_fix_external_array();
+    double energy;
+    f_lammps_add_energy();
+    lammps_command(lmp, "run 0");
+    energy = lammps_get_thermo(lmp, "etotal");
+    EXPECT_DOUBLE_EQ(energy, -20.2);
+};
+
+TEST_F(LAMMPS_fixexternal, virial_global)
+{
+    f_lammps_setup_fix_external_array();
+    double virial[6], volume;
+    f_lammps_set_virial();
+    lammps_command(lmp, "run 0");
+    volume = lammps_get_thermo(lmp, "vol");
+    virial[0] = lammps_get_thermo(lmp, "pxx");
+    virial[1] = lammps_get_thermo(lmp, "pyy");
+    virial[2] = lammps_get_thermo(lmp, "pzz");
+    virial[3] = lammps_get_thermo(lmp, "pxy");
+    virial[4] = lammps_get_thermo(lmp, "pxz");
+    virial[5] = lammps_get_thermo(lmp, "pyz");
+    EXPECT_DOUBLE_EQ(virial[0], 1.0/volume);
+    EXPECT_DOUBLE_EQ(virial[1], 2.0/volume);
+    EXPECT_DOUBLE_EQ(virial[2], 2.5/volume);
+    EXPECT_DOUBLE_EQ(virial[3], -1.0/volume);
+    EXPECT_DOUBLE_EQ(virial[4], -2.25/volume);
+    EXPECT_DOUBLE_EQ(virial[5], -3.02/volume);
+};
+
+TEST_F(LAMMPS_fixexternal, energy_peratom)
+{
+    f_lammps_setup_fix_external_callback();
+    f_lammps_set_fix_external_callbacks();
+    double energy;
+    lammps_command(lmp, "run 0");
+/* FIXME: the per-atom energy is NOT summed up by this function! We need
+   another test. */
+    energy = lammps_get_thermo(lmp, "pe");
+    EXPECT_DOUBLE_EQ(energy, 11.0);
 };

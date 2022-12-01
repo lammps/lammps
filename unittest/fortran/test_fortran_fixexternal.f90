@@ -5,6 +5,7 @@ MODULE ext_stuff
   IMPLICIT NONE
 
   REAL(c_double), SAVE :: direction = 1.0_c_double
+  REAL(c_double), DIMENSION(:,:), POINTER, SAVE :: f3 => NULL(), f4 => NULL()
 
 CONTAINS
 
@@ -18,16 +19,26 @@ CONTAINS
     INTEGER(c_int), DIMENSION(:), INTENT(IN) :: id
     REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
     REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: f
+    REAL(c_double), DIMENSION(SIZE(id)) :: e
 
     WHERE (id == 1)
       f(1,:) = 1.0_c_double
       f(2,:) = -1.0_c_double
       f(3,:) = 1.25_c_double
+      e = 1.0_c_double
     ELSEWHERE
       f(1,:) = -1.0_c_double
       f(2,:) = +1.0_c_double
       f(3,:) = -1.25_c_double
+      e = 10.0_c_double
     END WHERE
+    SELECT TYPE (instance)
+      CLASS IS (lammps)
+        CALL instance%fix_external_set_energy_peratom('ext1', e)
+      CLASS DEFAULT
+        WRITE(0,*) 'UMM...this should never happen.'
+        STOP 1
+    END SELECT
   END SUBROUTINE f_callback_ss
 
   SUBROUTINE f_callback_sb(instance, timestep, id, x, f)
@@ -36,16 +47,26 @@ CONTAINS
     INTEGER(c_int), DIMENSION(:), INTENT(IN) :: id
     REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
     REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: f
+    REAL(c_double), DIMENSION(SIZE(id)) :: e
 
     WHERE (id == 1_c_int)
       f(1,:) = 1.0_c_double
       f(2,:) = -1.0_c_double
       f(3,:) = 1.25_c_double
+      e = 1.0_c_double
     ELSEWHERE
       f(1,:) = -1.0_c_double
       f(2,:) = +1.0_c_double
       f(3,:) = -1.25_c_double
+      e = 10.0_c_double
     END WHERE
+    SELECT TYPE (instance)
+      CLASS IS (lammps)
+        CALL instance%fix_external_set_energy_peratom('ext1', e)
+      CLASS DEFAULT
+        WRITE(0,*) 'UMM...this should never happen.'
+        STOP 1
+    END SELECT
   END SUBROUTINE f_callback_sb
 
   SUBROUTINE f_callback_bb(instance, timestep, id, x, f)
@@ -54,16 +75,26 @@ CONTAINS
     INTEGER(c_int64_t), DIMENSION(:), INTENT(IN) :: id
     REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
     REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: f
+    REAL(c_double), DIMENSION(SIZE(id)) :: e
 
     WHERE (id == 1_c_int64_t)
       f(1,:) = 1.0_c_double
       f(2,:) = -1.0_c_double
       f(3,:) = 1.25_c_double
+      e = 1.0_c_double
     ELSEWHERE
       f(1,:) = -1.0_c_double
       f(2,:) = +1.0_c_double
       f(3,:) = -1.25_c_double
+      e = 10.0_c_double
     END WHERE
+    SELECT TYPE (instance)
+      CLASS IS (lammps)
+        CALL instance%fix_external_set_energy_peratom('ext1', e)
+      CLASS DEFAULT
+        WRITE(0,*) 'UMM...this should never happen.'
+        STOP 1
+    END SELECT
   END SUBROUTINE f_callback_bb
 
   SUBROUTINE f_callback2_ss(entity, timestep, id, x, f)
@@ -158,7 +189,7 @@ FUNCTION f_lammps_with_args() BIND(C)
 END FUNCTION f_lammps_with_args
 
 SUBROUTINE f_lammps_close() BIND(C)
-  USE ISO_C_BINDING, ONLY: c_null_ptr
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_null_ptr
   USE liblammps
   USE keepstuff, ONLY: lmp
   IMPLICIT NONE
@@ -167,7 +198,7 @@ SUBROUTINE f_lammps_close() BIND(C)
   lmp%handle = c_null_ptr
 END SUBROUTINE f_lammps_close
 
-SUBROUTINE f_lammps_setup_fix_external() BIND(C)
+SUBROUTINE f_lammps_setup_fix_external_callback() BIND(C)
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp, demo_input, cont_input, pair_input
   IMPLICIT NONE
@@ -178,10 +209,29 @@ SUBROUTINE f_lammps_setup_fix_external() BIND(C)
   CALL lmp%command('neigh_modify exclude group all all')
   CALL lmp%command('fix ext1 all external pf/callback 1 1')
   CALL lmp%command('fix ext2 all external pf/callback 1 1')
-END SUBROUTINE f_lammps_setup_fix_external
+END SUBROUTINE f_lammps_setup_fix_external_callback
+
+SUBROUTINE f_lammps_setup_fix_external_array() BIND(C)
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp, demo_input, cont_input, pair_input
+  USE ext_stuff, ONLY : f3, f4
+  IMPLICIT NONE
+
+  CALL lmp%commands_list(demo_input)
+  CALL lmp%commands_list(cont_input)
+  CALL lmp%commands_list(pair_input)
+  CALL lmp%command('neigh_modify exclude group all all')
+  CALL lmp%command('fix ext3 all external pf/array 1')
+  CALL lmp%command('fix ext4 all external pf/array 1')
+  CALL lmp%command('thermo_style custom step pxx pe etotal')
+  CALL lmp%command('thermo_modify norm no')
+  CALL lmp%command('thermo 100')
+  f3 = lmp%fix_external_get_force('ext3')
+  f4 = lmp%fix_external_get_force('ext4')
+END SUBROUTINE f_lammps_setup_fix_external_array
 
 SUBROUTINE f_lammps_set_fix_external_callbacks() BIND(C)
-  USE ISO_C_BINDING, ONLY : c_int
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
   USE ext_stuff
@@ -193,19 +243,19 @@ SUBROUTINE f_lammps_set_fix_external_callbacks() BIND(C)
   size_bigint = lmp%extract_setting('bigint')
   size_tagint = lmp%extract_setting('tagint')
   IF (size_bigint == 4_c_int .AND. size_tagint == 4_c_int) THEN
-    CALL lmp%set_fix_external_callback('ext1', f_callback_ss)
+    CALL lmp%set_fix_external_callback('ext1', f_callback_ss, lmp)
     CALL lmp%set_fix_external_callback('ext2', f_callback2_ss, direction)
   ELSE IF (size_bigint == 8_c_int .AND. size_tagint == 8_c_int) THEN
-    CALL lmp%set_fix_external_callback('ext1', f_callback_bb)
+    CALL lmp%set_fix_external_callback('ext1', f_callback_bb, lmp)
     CALL lmp%set_fix_external_callback('ext2', f_callback2_bb, direction)
   ELSE
-    CALL lmp%set_fix_external_callback('ext1', f_callback_sb)
+    CALL lmp%set_fix_external_callback('ext1', f_callback_sb, lmp)
     CALL lmp%set_fix_external_callback('ext2', f_callback2_sb, direction)
   END IF
 END SUBROUTINE f_lammps_set_fix_external_callbacks
 
 SUBROUTINE f_lammps_get_force (i, ptr) BIND(C)
-  USE ISO_C_BINDING, ONLY : c_int, c_double, c_ptr, C_F_POINTER
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double, c_ptr, C_F_POINTER
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
   IMPLICIT NONE
@@ -218,3 +268,69 @@ SUBROUTINE f_lammps_get_force (i, ptr) BIND(C)
   force = lmp%extract_atom('f')
   f = force(:,i)
 END SUBROUTINE f_lammps_get_force
+
+SUBROUTINE f_lammps_find_forces() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int, c_int64_t
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  USE ext_stuff, ONLY : f3, f4
+  IMPLICIT NONE
+  INTEGER(c_int) :: size_tagint
+  INTEGER(c_int), DIMENSION(:), POINTER :: id
+  INTEGER(c_int64_t), DIMENSION(:), POINTER :: tag
+
+  f3(:,:) = 0.0_c_double
+  f4(:,:) = 0.0_c_double
+  size_tagint = lmp%extract_setting('tagint')
+  IF (size_tagint == 4_c_int) THEN
+    id = lmp%extract_atom('id')
+    WHERE (id == 1_c_int)
+      f3(1,:) = 4.0_c_double
+      f3(2,:) = -4.0_c_double
+      f3(3,:) = 6.0_c_double
+      f4(1,:) = 10.0_c_double
+      f4(2,:) = -10.0_c_double
+      f4(3,:) = 12.0_c_double
+    ELSEWHERE
+      f3(1,:) = 5.0_c_double
+      f3(2,:) = -5.0_c_double
+      f3(3,:) = 7.0_c_double
+      f4(1,:) = 11.0_c_double
+      f4(2,:) = -11.0_c_double
+      f4(3,:) = 13.0_c_double
+    END WHERE
+  ELSE
+    tag = lmp%extract_atom('id')
+    WHERE (tag == 1_c_int64_t)
+      f3(1,:) = 4.0_c_double
+      f3(2,:) = -4.0_c_double
+      f3(3,:) = 6.0_c_double
+    ELSEWHERE
+      f3(1,:) = 5.0_c_double
+      f3(2,:) = -5.0_c_double
+      f3(3,:) = 7.0_c_double
+      f4(1,:) = 11.0_c_double
+      f4(2,:) = -11.0_c_double
+      f4(3,:) = 13.0_c_double
+    END WHERE
+  END IF
+END SUBROUTINE f_lammps_find_forces
+
+SUBROUTINE f_lammps_add_energy() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+
+  CALL lmp%fix_external_set_energy_global('ext3', -20.2_c_double);
+END SUBROUTINE f_lammps_add_energy
+
+SUBROUTINE f_lammps_set_virial() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+
+  CALL lmp%fix_external_set_virial_global('ext4', [1.0_c_double, &
+    2.0_c_double, 2.5_c_double, -1.0_c_double, -2.25_c_double, -3.02_c_double])
+END SUBROUTINE f_lammps_set_virial

@@ -176,18 +176,17 @@ void PairPOD::settings(int narg, char ** /* arg */)
 
 void PairPOD::coeff(int narg, char **arg)
 {
-  int n = atom->ntypes;
+  const int np1 = atom->ntypes + 1;
   memory->destroy(setflag);
   memory->destroy(cutsq);
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(setflag, np1, np1, "pair:setflag");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
   delete[] map;
-  map = new int[n+1];
+  map = new int[np1];
   allocated = 1;
 
-  if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
-
-  map_element2type(narg-4,arg+4);
+  if (narg < 4) utils::missing_cmd_args(FLERR, "pair_coeff", error);
+  map_element2type(narg - 4, arg + 4);
 
   std::string pod_file = std::string(arg[2]);  // pod input file
   std::string coeff_file = std::string(arg[3]); // coefficient input file
@@ -212,9 +211,8 @@ void PairPOD::coeff(int narg, char **arg)
     podptr->podArrayCopy(newpodcoeff, podptr->pod.coeff, podptr->pod.nd);
   }
 
-  for (int ii = 0; ii < n+1; ii++)
-    for (int jj = 0; jj < n+1; jj++)
-      cutsq[ii][jj] = podptr->pod.rcut*podptr->pod.rcut;
+  for (int ii = 0; ii < np1; ii++)
+    for (int jj = 0; jj < np1; jj++) cutsq[ii][jj] = podptr->pod.rcut * podptr->pod.rcut;
 }
 
 /* ----------------------------------------------------------------------

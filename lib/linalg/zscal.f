@@ -93,7 +93,11 @@
 *     .. Local Scalars ..
       INTEGER I,NINCX
 *     ..
-      IF (N.LE.0 .OR. INCX.LE.0) RETURN
+*     .. Parameters ..
+      COMPLEX*16 ONE
+      PARAMETER (ONE= (1.0D+0,0.0D+0))
+*     ..
+      IF (N.LE.0 .OR. INCX.LE.0 .OR. ZA.EQ.ONE) RETURN
       IF (INCX.EQ.1) THEN
 *
 *        code for increment equal to 1

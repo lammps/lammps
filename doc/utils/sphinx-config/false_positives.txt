@@ -2259,6 +2259,7 @@ MxN
 myCompute
 myIndex
 mylammps
+myMultiply
 MyPool
 mysocket
 mySpin
@@ -2370,6 +2371,7 @@ Ng
 nghost
 Nghost
 Ngpu
+ngpus
 Ngyuen
 nh
 nharmonic
@@ -2395,6 +2397,7 @@ nktv
 nl
 nlayers
 nlen
+Nlimit
 nlines
 Nlines
 nlist
@@ -2485,7 +2488,8 @@ nsq
 Nstart
 nstats
 Nstep
-Nsteplast
+Nsteps
+nsteplast
 Nstop
 nsub
 Nsw
@@ -2515,7 +2519,7 @@ numpy
 Numpy
 Nurdin
 Nvalue
-Nvaluelast
+nvaluelast
 Nvalues
 nvc
 nvcc
@@ -3109,6 +3113,7 @@ Rutuparna
 rx
 rxd
 rxnave
+rxnbond
 rxnsum
 ry
 Ryckaert

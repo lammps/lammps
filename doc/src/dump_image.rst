@@ -77,7 +77,7 @@ Syntax
          yes/no = do or do not draw simulation box lines
          diam = diameter of box lines as fraction of shortest box length
        *axes* values = axes length diam = draw xyz axes
-         axes = *yes* or *no = do or do not draw xyz axes lines next to simulation box
+         axes = *yes* or *no* = do or do not draw xyz axes lines next to simulation box
          length = length of axes lines as fraction of respective box lengths
          diam = diameter of axes lines as fraction of shortest box length
        *subbox* values = lines diam = draw outline of processor sub-domains

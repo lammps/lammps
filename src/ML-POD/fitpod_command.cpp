@@ -15,7 +15,7 @@
    Contributing authors: Ngoc Cuong Nguyen (MIT) and Andrew Rohskopf (SNL)
 ------------------------------------------------------------------------- */
 
-#include "fitpod.h"
+#include "fitpod_command.h"
 
 #include "mlpod.h"
 
@@ -1255,7 +1255,7 @@ void FitPOD::least_squares_fit(datastruct data)
 
     // save coefficients into a text file
 
-    std::string filename = "coefficients"  + podptr->pod.filenametag + ".txt";
+    std::string filename = podptr->pod.filenametag + "_coefficients"  + ".pod";
     FILE *fp = fopen(filename.c_str(), "w");
 
     fmt::print(fp, "POD_coefficients: {}\n", nd);
@@ -1316,9 +1316,12 @@ void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
     lm = MAX(lm, (int) data.filenames[i].size());
   lm = lm + 2;
 
-  std::string filename_errors = (data.training ? "training_errors" : "test_errors")  + podptr->pod.filenametag + ".txt";
-  std::string filename_analysis = (data.training ? "training_analysis" : "test_analysis") + podptr->pod.filenametag + ".txt";
-
+  std::string filename_errors = (data.training ? "training_errors" : "test_errors");
+  std::string filename_analysis = (data.training ? "training_analysis" : "test_analysis");
+  
+  filename_errors = podptr->pod.filenametag + "_" + filename_errors + ".pod";
+  filename_analysis = podptr->pod.filenametag + "_" + filename_analysis + ".pod";
+  
   FILE *fp_errors = nullptr;
   FILE *fp_analysis = nullptr;
   fp_errors = fopen(filename_errors.c_str(), "w");

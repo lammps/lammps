@@ -18,8 +18,8 @@ CommandStyle(fitpod,FitPOD);
 // clang-format on
 #else
 
-#ifndef LMP_FITPOD_H
-#define LMP_FITPOD_H
+#ifndef LMP_FITPOD_COMMAND_H
+#define LMP_FITPOD_COMMAND_H
 
 #include "command.h"
 

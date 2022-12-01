@@ -1,5 +1,5 @@
 # Demonstrate fitpod for POD potential
 
 units metal
-fitpod pod.txt data.txt
+fitpod Ta_pod.txt Ta_data.txt
 

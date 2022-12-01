@@ -378,7 +378,14 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
 {
   int ns = besseldegree*nbesselpars + inversedegree;
 
+  // variables used in eigenvaluedecomposition
 
+  double *xij;
+  double *S;
+  double *Q;
+  double *A;
+  double *b;
+  
   memory->create(xij, N, "pod:xij");
   memory->create(S, N*ns, "pod:S");
   memory->create(Q, N*ns, "pod:Q");
@@ -511,7 +518,7 @@ void MLPOD::read_pod(const std::string &pod_file)
       }
     }
 
-    if (keywd == "filename_tag") pod.filenametag = words[1];
+    if (keywd == "basename_for_output_files") pod.filenametag = words[1];
 
     if (keywd == "pbc") {
       if (words.size() != 4)

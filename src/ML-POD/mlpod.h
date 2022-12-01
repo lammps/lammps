@@ -319,13 +319,6 @@ class MLPOD : protected Pointers {
                                  int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj,
                                  int natom, int Nij);
 
-  // variables used in eigenvaluedecomposition
-
-  double *xij;
-  double *S;
-  double *Q;
-  double *A;
-  double *b;
 };
 
 }    // namespace LAMMPS_NS

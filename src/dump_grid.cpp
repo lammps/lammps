@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 // customize by adding keyword
 // also customize compute_atom_property.cpp
 
-enum{COMPUTE,FIX};
+enum {COMPUTE,FIX};
 
 #define ONEFIELD 32
 #define DELTA 1048576
@@ -51,7 +51,7 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
   clearstep = 1;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal dump grid command");
+  if (nevery <= 0) error->all(FLERR,"Illegal dump grid nevery value: {}", nevery);
 
   // expand args if any have wildcard character "*"
   // ok to include trailing optional args,
@@ -93,8 +93,7 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
 
   if (ioptional < nfield &&
       strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
-    error->all(FLERR,"Invalid attribute {} in dump {} command",
-               earg[ioptional],style);
+    error->all(FLERR,"Invalid attribute {} in dump {} command", earg[ioptional],style);
 
   // noptional = # of optional args
   // reset nfield to subtract off optional args

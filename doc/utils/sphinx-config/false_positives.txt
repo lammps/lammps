@@ -228,6 +228,7 @@ Bartels
 Bartelt
 barycenter
 barye
+basename
 Bashford
 bashrc
 Baskes

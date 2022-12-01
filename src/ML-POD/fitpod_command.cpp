@@ -1246,6 +1246,7 @@ void FitPOD::least_squares_fit(datastruct data)
     for (int i = 0; i<nd; i++) {
       desc.c[i] = desc.b[i];
       desc.A[i + nd*i] = desc.A[i + nd*i]*(1.0 + SMALL);
+      if (desc.A[i + nd*i] < SMALL) desc.A[i + nd*i] = SMALL; 
     }
 
     // solving the linear system A * c = b

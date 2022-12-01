@@ -1241,19 +1241,24 @@ void FitPOD::least_squares_fit(datastruct data)
   MPI_Allreduce(MPI_IN_PLACE, desc.b, nd, MPI_DOUBLE, MPI_SUM, world);
   MPI_Allreduce(MPI_IN_PLACE, desc.A, nd*nd, MPI_DOUBLE, MPI_SUM, world);
 
-  for (int i = 0; i<nd; i++) {
-    desc.c[i] = desc.b[i];
-    desc.A[i + nd*i] = desc.A[i + nd*i]*(1.0 + SMALL);
-  }
-
-  // solving the linear system A * c = b
-
-  int nrhs=1, info;
-  char chu = 'U';
-  DPOSV(&chu, &nd, &nrhs, desc.A, &nd, desc.c, &nd, &info);
-
   if (comm->me == 0) {
-    podptr->print_matrix( "Least-squares coefficient vector:", 1, nd, desc.c, 1);
+    for (int i = 0; i<nd; i++) {
+      desc.c[i] = desc.b[i];
+      desc.A[i + nd*i] = desc.A[i + nd*i]*(1.0 + SMALL);
+    }
+
+    // solving the linear system A * c = b
+
+    int nrhs=1, info;
+    char chu = 'U';
+    DPOSV(&chu, &nd, &nrhs, desc.A, &nd, desc.c, &nd, &info);
+  }
+  
+  MPI_Bcast(desc.c, nd, MPI_DOUBLE, 0, world);
+    
+  if (comm->me == 0) {
+    
+    podptr->print_matrix( "POD coefficient vector:", 1, nd, desc.c, 1);
 
     // save coefficients into a text file
 

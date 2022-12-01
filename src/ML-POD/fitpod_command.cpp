@@ -453,20 +453,21 @@ void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
   size_t maxname = 9;
   for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
   maxname -= data.data_path.size()+1;
+  const std::string sepline(maxname+46, '-');
   if (comm->me == 0)
-    utils::logmesg(lmp, "{:-<{}}\n {:^{}} | number of configurations | number of atoms\n{:=<{}}\n",
-    "", maxname+46, "data file", maxname, "", maxname+46);
+    utils::logmesg(lmp, "{}\n {:^{}} | number of configurations | number of atoms\n{}\n",
+                   sepline, "data file", maxname, sepline);
   int i = 0;
   for (auto fname : data.data_files) {
     std::string filename = fname.substr(data.data_path.size()+1);
     data.filenames.push_back(filename);
     if (comm->me == 0)
       utils::logmesg(lmp, " {:<{}} |        {:>10}        |    {:>8}\n",
-                   filename, maxname, data.num_config[i], data.num_atom_each_file[i]);
+                     filename, maxname, data.num_config[i], data.num_atom_each_file[i]);
     ++i;
   }
   if (comm->me == 0) {
-    utils::logmesg(lmp, "{:-<{}}\n", "", maxname+46);
+    utils::logmesg(lmp, "{}\n", sepline);
     utils::logmesg(lmp, "number of files: {}\n", data.data_files.size());
     utils::logmesg(lmp, "number of configurations in all files: {}\n", data.num_config_sum);
     utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
@@ -1316,54 +1317,46 @@ double FitPOD::energyforce_calculation(double *force, double *coeff, datastruct 
 
 void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
 {
-  std::string s = "All files";
   int nfiles = data.data_files.size();  // number of files
-  int lm = s.size();
+  int lm = 10;
   for (int i = 0; i < nfiles; i++)
     lm = MAX(lm, (int) data.filenames[i].size());
   lm = lm + 2;
 
-  std::string filename_errors = (data.training ? "training_errors" : "test_errors");
-  std::string filename_analysis = (data.training ? "training_analysis" : "test_analysis");
-
-  filename_errors = podptr->pod.filenametag + "_" + filename_errors + ".pod";
-  filename_analysis = podptr->pod.filenametag + "_" + filename_analysis + ".pod";
+  std::string filename_errors = fmt::format("{}_{}_errors.pod", podptr->pod.filenametag, data.training ? "training" : "test");
+  std::string filename_analysis = fmt::format("{}_{}_analysis.pod", podptr->pod.filenametag, data.training ? "training" : "test");
 
   FILE *fp_errors = nullptr;
   FILE *fp_analysis = nullptr;
   fp_errors = fopen(filename_errors.c_str(), "w");
   fp_analysis = fopen(filename_analysis.c_str(), "w");
 
-  std::string sa = "**************** Begin of Error Analysis for the Training Data Set ****************";
-  std::string sb = "**************** Begin of Error Analysis for the Test Data Set ****************";
-  std::string mystr = (data.training) ? sa : sb;
+  std::string mystr = fmt::format("**************** Begin of Error Analysis for the {} Data Set ****************\n",
+                                  data.training ? "Training" : "Test");
 
-  utils::logmesg(lmp, "{}\n", mystr);
-  fmt::print(fp_errors, mystr + "\n");
+  utils::logmesg(lmp, mystr);
+  fmt::print(fp_errors, mystr);
 
-  sa = "----------------------------------------------------------------------------------------\n";
-  sb = "  File    | # configs | # atoms  | MAE energy | RMSE energy | MAE force | RMSE force |\n";
-
-  utils::logmesg(lmp, "{}", sa);
-  utils::logmesg(lmp, "{}", sb);
-  utils::logmesg(lmp, "{}", sa);
-  fmt::print(fp_errors, sa);
-  fmt::print(fp_errors, sb);
-  fmt::print(fp_errors, sa);
+  std::string sa(lm+80,'-');
+  sa += '\n';
+  std::string sb = fmt::format(" {:^{}} | # configs |  # atoms  | MAE energy  | RMSE energy | MAE force  | RMSE force\n",
+                               "File", lm);
+  utils::logmesg(lmp, sa + sb + sa);
+  fmt::print(fp_errors, sa + sb + sa);
 
   int ci=0, m=8, nc=0, nf=0;
   for (int file = 0; file < nfiles; file++) {
     fmt::print(fp_analysis, "# {}\n", data.filenames[file]);
-    sb = "|  config  |  # atoms  |  energy  | DFT energy | energy error |  force  | DFT force | force error |\n";
-    fmt::print(fp_analysis, sb);
+    fmt::print(fp_analysis, "  config   # atoms      energy        DFT energy     energy error   "
+               "  force          DFT force       force error\n");
 
     int nforceall = 0;
     int nconfigs = data.num_config[file];
     nc += nconfigs;
     for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
-      fmt::print(fp_analysis, "   ");
-      for(int count = 0; count < m; count ++)
-        fmt::print(fp_analysis, "{}   ", outarray[count + m*ci]);
+      fmt::print(fp_analysis, "{:6}   {:8}    ", outarray[m*ci], outarray[1 + m*ci]);
+      for(int count = 2; count < m; count ++)
+        fmt::print(fp_analysis, "{:<15.10} ", outarray[count + m*ci]);
       fmt::print(fp_analysis, "\n");
 
       nforceall += 3*data.num_atom[ci];
@@ -1372,63 +1365,25 @@ void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
     nf += nforceall;
 
     int q = file+1;
-    std::string s = data.filenames[file];
-    s = s + std::string(lm-s.size(), ' ');
-    std::string s1 = std::to_string(nconfigs);
-    s1 = s1 + std::string(MAX(6- (int) s1.size(),1), ' ');
-    s = s + "   " + s1;
-    s1 = std::to_string(nforceall/3);
-    s1 = s1 + std::string(MAX(7 - (int) s1.size(),1), ' ');
-    s = s + "   " + s1;
-    s1 = std::to_string(errors[0 + 4*q]);
-    s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
-    s = s + "   " + s1;
-    s1 = std::to_string(errors[1 + 4*q]);
-    s1 = s1 + std::string(MAX(10 - (int)  s1.size(),1), ' ');
-    s = s + "   " + s1;
-    s1 = std::to_string(errors[2 + 4*q]);
-    s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
-    s = s + "   " + s1;
-    s1 = std::to_string(errors[3 + 4*q]);
-    s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
-    s = s + "   " + s1 + "\n";
-    utils::logmesg(lmp, "{}", s);
-    fmt::print(fp_errors, "{}", s);
+    auto s = fmt::format("{:<{}} {:>10} {:>11}     {:<10.6f}    {:<10.6f}    {:<10.6f}    {:<10.6f}\n",
+                         data.filenames[file], lm, nconfigs, nforceall/3,
+                         errors[0 + 4*q], errors[1 + 4*q], errors[2 + 4*q], errors[3 + 4*q]);
+    utils::logmesg(lmp, s);
+    fmt::print(fp_errors, s);
   }
+  utils::logmesg(lmp, sa);
+  fmt::print(fp_errors, sa);
 
-  utils::logmesg(lmp, "{}", sa);
-  fmt::print(fp_errors, "{}", sa);
+  auto s = fmt::format("{:<{}} {:>10} {:>11}     {:<10.6f}    {:<10.6f}    {:<10.6f}    {:<10.6f}\n",
+                       "All files", lm, nc, nf/3, errors[0], errors[1], errors[2], errors[3]);
+  utils::logmesg(lmp, s + sa);
+  fmt::print(fp_errors, "{}", s + sa);
 
-  s = s + std::string(MAX(lm - (int) s.size(),1), ' ');
-  std::string s1 = std::to_string(nc);
-  s1 = s1 + std::string(MAX(6- (int) s1.size(),1), ' ');
-  s = s + "   " + s1;
-  s1 = std::to_string(nf/3);
-  s1 = s1 + std::string(MAX(7 - (int) s1.size(),1), ' ');
-  s = s + "   " + s1;
-  s1 = std::to_string(errors[0]);
-  s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
-  s = s + "   " + s1;
-  s1 = std::to_string(errors[1]);
-  s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
-  s = s + "   " + s1;
-  s1 = std::to_string(errors[2]);
-  s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
-  s = s + "   " + s1;
-  s1 = std::to_string(errors[3]);
-  s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
-  s = s + "   " + s1 + "\n";
-  utils::logmesg(lmp, "{}", s);
-  utils::logmesg(lmp, "{}", sa);
-  fmt::print(fp_errors, "{}", s);
-  fmt::print(fp_errors, "{}", sa);
+  mystr = fmt::format("**************** End of Error Analysis for the {} Data Set ****************\n",
+                      data.training ? "Training" : "Test");
 
-  sa = "**************** End of Error Analysis for the Training Data Set ****************";
-  sb = "**************** End of Error Analysis for the Test Data Set ****************";
-  mystr = (data.training) ? sa : sb;
-
-  utils::logmesg(lmp, "{}\n", mystr);
-  fmt::print(fp_errors, "{}\n", mystr);
+  utils::logmesg(lmp, mystr);
+  fmt::print(fp_errors, mystr);
 
   fclose(fp_errors);
   fclose(fp_analysis);

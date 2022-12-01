@@ -8,18 +8,18 @@ Syntax
 
 .. parsed-literal::
 
-   fitpod pod.txt data.txt
+   fitpod Ta_param.pod Ta_data.pod
 
 * fitpod = style name of this command
-* pod.txt = an input file that describes proper orthogonal descriptors (PODs)
-* data.txt = an input file that specifies DFT data used to fit a POD potential
+* Ta_param.pod = an input file that describes proper orthogonal descriptors (PODs)
+* Ta_data.pod = an input file that specifies DFT data used to fit a POD potential
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fitpod pod.txt data.txt
+   fitpod Ta_param.pod Ta_data.pod
 
 Description
 """""""""""
@@ -31,7 +31,7 @@ command. The first input file describes a POD potential, while the
 second input file specifies the DFT data.
 
 Below is a one-line description of all the keywords that can be assigned
-in the first input file (``pod.txt``):
+in the first input file (``Ta_param.pod``):
 
 * species (STRING): Chemical symbols for all elements in the system and have to match XYZ training files.
 * pbc 1 1 1 (INT): three integer constants specify boundary conditions
@@ -46,10 +46,11 @@ in the first input file (``pod.txt``):
 * fourbody_snap_twojmax 0 (INT): band limit for SNAP bispectrum components (0,2,4,6,8... allowed)
 * fourbody_snap_chemflag 0 (BOOL): turns on/off the explicit multi-element variant of the SNAP bispectrum components
 * quadratic_pod_potential 0 (BOOL): turns on/off quadratic POD potential
+* basename_for_output_files pod (STRING): a basename string added to the output files
 
 All keywords except species have default values. If keywords are not set
 in the input file, their defaults are used.  Next, we describe all the
-keywords that can be assigned in the second input file (``data.txt``):
+keywords that can be assigned in the second input file (``Ta_data.pod``):
 
 * file_format extxyz (STRING): only extended xyz format is currently supported
 * file_extension xyz (STRING): extension of the data files
@@ -66,13 +67,13 @@ All keywords except path_to_training_data_set have default values. If
 keywords are not set in the input file, their defaults are used.  On
 successful training, it produces a number of output files:
 
-* ``training_errors.txt``  reports the errors in energy and forces for the training data set
-* ``training_analysis.txt`` reports detailed errors for all training configurations
-* ``test_errors.txt`` reports errors for the test data set
-* ``test_analysis.txt`` reports detailed errors for all test configurations
-* ``coefficients.txt`` contains the coefficients of the POD potential
+* ``basename_training_errors.pod``  reports the errors in energy and forces for the training data set
+* ``basename_training_analysis.pod`` reports detailed errors for all training configurations
+* ``basename_test_errors.pod`` reports errors for the test data set
+* ``basename_test_analysis.pod`` reports detailed errors for all test configurations
+* ``basename_coefficients.pod`` contains the coefficients of the POD potential
 
-After training the POD potential, ``pod.txt`` and ``coefficients.txt``
+After training the POD potential, ``Ta_param.pod`` and ``basename_coefficients.pod``
 are two files needed to use the POD potential in LAMMPS. See
 :doc:`pair_style pod <pair_pod>` for using the POD potential. Examples
 about training and using POD potentials are found in the directory

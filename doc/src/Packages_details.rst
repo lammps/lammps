@@ -1825,7 +1825,7 @@ This package has :ref:`specific installation instructions <ml-pod>` on the
 
 * src/ML-POD: filenames -> commands
 * :doc:`pair_style pod <pair_pod>`
-* :doc:`command_style fitpod <fitpod>`
+* :doc:`command_style fitpod <fitpod_command>`
 * examples/PACKAGES/pod
 
 ----------

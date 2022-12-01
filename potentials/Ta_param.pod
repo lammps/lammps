@@ -30,3 +30,6 @@ fourbody_snap_twojmax 0
 
 # quadratic POD potential
 quadratic_pod_potential 0
+
+# Add the following basename to the name of output files
+basename_for_output_files Ta

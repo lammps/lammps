@@ -125,7 +125,7 @@ additional letter in parenthesis: k = KOKKOS.
    * :doc:`group2ndx <group2ndx>`
    * :doc:`hyper <hyper>`
    * :doc:`kim <kim_commands>`
-   * :doc:`fitpod <fitpod>`
+   * :doc:`fitpod <fitpod_command>`
    * :doc:`mdi <mdi>`
    * :doc:`ndx2group <group2ndx>`
    * :doc:`neb <neb>`

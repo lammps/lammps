@@ -1254,24 +1254,21 @@ void CFITPOD::least_squares_fit(datastruct data)
   char chu = 'U';
   DPOSV(&chu, &nd, &nrhs, desc.A, &nd, desc.c, &nd, &info);
 
-  if (comm->me == 0)
+  if (comm->me == 0) {
     podptr->print_matrix( "Least-squares coefficient vector:", 1, nd, desc.c, 1);
 
-  // save coefficients into a text file
+    // save coefficients into a text file
 
-  std::string filename = "coefficients"  + podptr->pod.filenametag + ".txt";
-  FILE *fp = fopen(filename.c_str(), "w");
+    std::string filename = "coefficients"  + podptr->pod.filenametag + ".txt";
+    FILE *fp = fopen(filename.c_str(), "w");
 
-  fmt::print(fp, "POD_coefficients: {}\n", nd);
-  for (int count = 0; count < nd; count++){
-
-    fmt::print(fp, "{:.20}\n", desc.c[count]);
-  }
-
-  fclose(fp);
-
-  if (comm->me == 0)
+    fmt::print(fp, "POD_coefficients: {}\n", nd);
+    for (int count = 0; count < nd; count++){
+      fmt::print(fp, "{:.20}\n", desc.c[count]);
+    }
+    fclose(fp);
     utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
+  }
 }
 
 double CFITPOD::energyforce_calculation(double *force, double *coeff, datastruct data, int ci)
@@ -1326,24 +1323,24 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
   std::string filename_errors = (data.training ? "training_errors" : "test_errors")  + podptr->pod.filenametag + ".txt";
   std::string filename_analysis = (data.training ? "training_analysis" : "test_analysis") + podptr->pod.filenametag + ".txt";
 
-  FILE *fp_errors = fopen(filename_errors.c_str(), "w");
-  FILE *fp_analysis = fopen(filename_analysis.c_str(), "w");
+  FILE *fp_errors = nullptr;
+  FILE *fp_analysis = nullptr;
+  fp_errors = fopen(filename_errors.c_str(), "w");
+  fp_analysis = fopen(filename_analysis.c_str(), "w");
 
   std::string sa = "**************** Begin of Error Analysis for the Training Data Set ****************";
   std::string sb = "**************** Begin of Error Analysis for the Test Data Set ****************";
   std::string mystr = (data.training) ? sa : sb;
 
-  if (comm->me == 0)
-    utils::logmesg(lmp, "{}\n", mystr);
+  utils::logmesg(lmp, "{}\n", mystr);
   fmt::print(fp_errors, mystr + "\n");
 
   sa = "----------------------------------------------------------------------------------------\n";
   sb = "  File    | # configs | # atoms  | MAE energy | RMSE energy | MAE force | RMSE force |\n";
-  if (comm->me == 0) {
-    utils::logmesg(lmp, "{}", sa);
-    utils::logmesg(lmp, "{}", sb);
-    utils::logmesg(lmp, "{}", sa);
-  }
+
+  utils::logmesg(lmp, "{}", sa);
+  utils::logmesg(lmp, "{}", sb);
+  utils::logmesg(lmp, "{}", sa);
   fmt::print(fp_errors, sa);
   fmt::print(fp_errors, sb);
   fmt::print(fp_errors, sa);
@@ -1389,12 +1386,11 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
     s1 = std::to_string(errors[3 + 4*q]);
     s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
     s = s + "   " + s1 + "\n";
-    if (comm->me == 0)
-      utils::logmesg(lmp, "{}", s);
+    utils::logmesg(lmp, "{}", s);
     fmt::print(fp_errors, "{}", s);
   }
-  if (comm->me == 0)
-    utils::logmesg(lmp, "{}", sa);
+
+  utils::logmesg(lmp, "{}", sa);
   fmt::print(fp_errors, "{}", sa);
 
   s = s + std::string(MAX(lm - (int) s.size(),1), ' ');
@@ -1416,23 +1412,20 @@ void CFITPOD::print_analysis(datastruct data, double *outarray, double *errors)
   s1 = std::to_string(errors[3]);
   s1 = s1 + std::string(MAX(10 - (int) s1.size(),1), ' ');
   s = s + "   " + s1 + "\n";
-  if (comm->me == 0) {
-    utils::logmesg(lmp, "{}", s);
-    utils::logmesg(lmp, "{}", sa);
-  }
+  utils::logmesg(lmp, "{}", s);
+  utils::logmesg(lmp, "{}", sa);
   fmt::print(fp_errors, "{}", s);
   fmt::print(fp_errors, "{}", sa);
 
   sa = "**************** End of Error Analysis for the Training Data Set ****************";
   sb = "**************** End of Error Analysis for the Test Data Set ****************";
   mystr = (data.training) ? sa : sb;
-  if (comm->me == 0)
-    utils::logmesg(lmp, "{}\n", mystr);
+
+  utils::logmesg(lmp, "{}\n", mystr);
   fmt::print(fp_errors, "{}\n", mystr);
 
   fclose(fp_errors);
   fclose(fp_analysis);
-
 }
 
 void CFITPOD::error_analysis(datastruct data, double *coeff)
@@ -1568,10 +1561,10 @@ void CFITPOD::error_analysis(datastruct data, double *coeff)
   errors[2] = errors[2]/nf;
   errors[3] = sqrt(errors[3]/nf);
 
-  if (comm->me == 0)
+  if (comm->me == 0) {
     utils::logmesg(lmp, "**************** End of Error Calculation ****************\n");
-
-  print_analysis(data, outarray.data(), errors.data());
+    print_analysis(data, outarray.data(), errors.data());
+  }
 }
 
 void CFITPOD::energyforce_calculation(datastruct data, double *coeff)

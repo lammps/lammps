@@ -537,7 +537,7 @@ void Grid3d::ghost_grid()
   // OFFSET allows generation of negative indices with static_cast
   // out xyz lo/hi = index range of owned + ghost cells
   // if zextra, nz and effective prd[2] are both larger, so dzinv is the same
-  
+
   double dxinv = nx / prd[0];
   double dyinv = ny / prd[1];
   double dzinv = nz / prd[2];

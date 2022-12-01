@@ -305,7 +305,7 @@ The *setup_grid()* method is called after the first constructor
 (above) to partition the grid across processors, which determines
 which grid cells each processor owns.  It also calculates how many
 ghost grid cells in each dimension and each direction each processor
-needs to store. 
+needs to store.
 
 Note that this method is NOT called if the second constructor above is
 used.  In that case, the caller assigns owned and ghost cells to each
@@ -528,7 +528,7 @@ The *ghost_adjacent()* method returns a 1 if every processor can
 perform the necessary owned/ghost communication with only its nearest
 neighbor processors (4 in 2d, 6 in 3d).  It returns a 0 if any
 processor's ghost cells extend further than nearest neighbor
-processors.  
+processors.
 
 This can be checked by callers who have the option to change the
 global grid size to insure more efficient nearest-neighbor-only

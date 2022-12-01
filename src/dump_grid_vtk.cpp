@@ -79,7 +79,7 @@ void DumpGridVTK::write_header(bigint ndump)
   if (me) return;
 
   xyz_grid();
-  
+
   fprintf(fp,"<?xml version=\"1.0\"\?>\n");
   fprintf(fp,"<VTKFile type=\"RectilinearGrid\">\n");
   fprintf(fp,"<RectilinearGrid WholeExtent=\"0 %d 0 %d 0 %d\" "
@@ -90,7 +90,7 @@ void DumpGridVTK::write_header(bigint ndump)
   fprintf(fp,"<Coordinates>\n");
 
   // coords of center point of grid cells in each of xyz dimensions
-  
+
   fprintf(fp,"<DataArray type=\"Float32\" format=\"ascii\">\n");
   for (int i = 0; i <= nxgrid; i++)
     fprintf(fp,"%g ",xcoord[i]);
@@ -103,9 +103,9 @@ void DumpGridVTK::write_header(bigint ndump)
   for (int i = 0; i <= nzgrid; i++)
     fprintf(fp,"%g ",zcoord[i]);
   fprintf(fp,"\n</DataArray>\n");
-  
+
   fprintf(fp,"</Coordinates>\n");
-  
+
   fprintf(fp,"<CellData>\n");
   if (mode == SCALAR)
     fprintf(fp,"<DataArray type=\"Float32\" Name=\"Scalar\" format=\"ascii\">\n");
@@ -155,10 +155,10 @@ void DumpGridVTK::xyz_grid()
   double dx = domain->prd[0] / nxgrid;
   double dy = domain->prd[1] / nygrid;
   double dz = domain->prd[2] / nzgrid;
-  
+
   for (int ix = 0; ix <= nxgrid; ix++)
     xcoord[ix] = boxlo[0] + ix*dx;
-  
+
   for (int iy = 0; iy <= nygrid; iy++)
     ycoord[iy] = boxlo[1] + iy*dy;
 

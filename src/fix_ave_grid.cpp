@@ -143,13 +143,13 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
       // if arg is not a per-atom or per-grid value
       // then it's an optional arg after the values
-      
+
       ArgInfo argi(arg[iarg]);
       if (argi.get_type() == ArgInfo::NONE || argi.get_type() == ArgInfo::UNKNOWN) break;
       if (argi.get_dim() > 1) error->all(FLERR,"Invalid fix ave/grid command");
 
       // atom value has no colon
-      
+
       if (!strchr(arg[iarg],':')) {
         modeatom = 1;
         ids[nvalues] = argi.copy_name();

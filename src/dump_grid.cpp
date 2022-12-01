@@ -78,9 +78,9 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
   dimension = domain->dimension;
 
   // for 2d, set nzgrid = 1 for dump grid and grid/vtk files
-  
+
   if (dimension == 2) nzgrid = 1;
-  
+
   // computes and fixes which the dump accesses
 
   ncompute = 0;
@@ -661,11 +661,11 @@ int DumpGrid::parse_fields(int narg, char **arg)
 
     // arg is not a valid Grid reference
     // assume it's an additional dump grid option and return
-    
+
     if (iflag < 0) return iarg;
 
     // grid reference is to a compute or fix
-    
+
     if (iflag == ArgInfo::COMPUTE) {
       auto icompute = lmp->modify->get_compute_by_id(id);
       field2index[iarg] = add_compute(id,icompute);

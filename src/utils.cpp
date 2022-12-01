@@ -887,27 +887,27 @@ int utils::check_grid_reference(char *errstr, char *ref, int nevery,
   auto name = argi.get_name();
 
   switch (argi.get_type()) {
-    
+
     case ArgInfo::UNKNOWN: {
       lmp->error->all(FLERR,"%s grid reference %s is invalid",errstr,ref);
     } break;
-      
+
     // compute value = c_ID
 
     case ArgInfo::COMPUTE: {
 
       // split name = idcompute:gname:dname into 3 strings
-  
+
       auto words = parse_grid_id(FLERR,name,lmp->error);
       const auto &idcompute = words[0];
       const auto &gname = words[1];
       const auto &dname = words[2];
-      
+
       auto icompute = lmp->modify->get_compute_by_id(idcompute);
       if (!icompute) lmp->error->all(FLERR,"{} compute ID {} not found",errstr,idcompute);
       if (icompute->pergrid_flag == 0)
         lmp->error->all(FLERR,"{} compute {} does not compute per-grid info",errstr,idcompute);
-      
+
       int dim;
       igrid = icompute->get_grid_by_name(gname,dim);
       if (igrid < 0)

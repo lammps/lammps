@@ -868,7 +868,7 @@ void PPPM::deallocate()
   memory->destroy(gc_buf2);
 
   memory->destroy3d_offset(density_brick,nzlo_out,nylo_out,nxlo_out);
-  
+
   if (differentiation_flag == 1) {
     memory->destroy3d_offset(u_brick,nzlo_out,nylo_out,nxlo_out);
     memory->destroy(sf_precoeff1);
@@ -882,7 +882,7 @@ void PPPM::deallocate()
     memory->destroy3d_offset(vdy_brick,nzlo_out,nylo_out,nxlo_out);
     memory->destroy3d_offset(vdz_brick,nzlo_out,nylo_out,nxlo_out);
   }
-  
+
   memory->destroy(density_fft);
   memory->destroy(greensfn);
   memory->destroy(work1);

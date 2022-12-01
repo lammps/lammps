@@ -728,7 +728,7 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
   if (data.fraction >= 1.0) {
     if (comm->me == 0)
       utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
-    if ((int) traindata.data_path.size() > 1)
+    if (traindata.data_path.size() > 1)
       get_data(traindata, species);
     else
       error->all(FLERR,"data set is not found");
@@ -737,7 +737,7 @@ void CFITPOD::read_data_files(std::string data_file, std::vector<std::string> sp
   } else {
     if (comm->me == 0)
       utils::logmesg(lmp, "**************** Begin of Training Data Set ****************\n");
-    if ((int) data.data_path.size() > 1)
+    if (data.data_path.size() > 1)
       get_data(data, species);
     else
       error->all(FLERR,"data set is not found");

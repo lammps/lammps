@@ -32,8 +32,8 @@
 
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
-using MathSpecial::powint;
 using MathSpecial::cube;
+using MathSpecial::powint;
 
 #define MAXLINE 1024
 
@@ -44,8 +44,8 @@ MLPOD::podstruct::podstruct() :
 {
 }
 
-MLPOD::MLPOD(LAMMPS* _lmp, const std::string &pod_file, const std::string &coeff_file)
-  : Pointers(_lmp)
+MLPOD::MLPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff_file) :
+    Pointers(_lmp)
 {
   pod.besselparams = nullptr;
   pod.pbc = nullptr;
@@ -56,12 +56,9 @@ MLPOD::MLPOD(LAMMPS* _lmp, const std::string &pod_file, const std::string &coeff
 
   // read pod coefficient file to podstruct
 
-  if (coeff_file != "")
-    read_coeff_file(coeff_file);
+  if (coeff_file != "") read_coeff_file(coeff_file);
 
-  if (pod.snaptwojmax > 0) {
-    InitSnap();
-  }
+  if (pod.snaptwojmax > 0) { InitSnap(); }
 }
 
 MLPOD::~MLPOD()
@@ -73,15 +70,15 @@ MLPOD::~MLPOD()
   memory->destroy(pod.elemindex);
   memory->destroy(pod.besselparams);
   memory->destroy(pod.coeff);
-  if (pod.ns2 > 0){
+  if (pod.ns2 > 0) {
     memory->destroy(pod.Phi2);
     memory->destroy(pod.Lambda2);
   }
-  if (pod.ns3 > 0){
+  if (pod.ns3 > 0) {
     memory->destroy(pod.Phi3);
     memory->destroy(pod.Lambda3);
   }
-  if (pod.ns4 > 0){
+  if (pod.ns4 > 0) {
     memory->destroy(pod.Phi4);
     memory->destroy(pod.Lambda4);
   }
@@ -106,6 +103,9 @@ MLPOD::~MLPOD()
     memory->destroy(sna.rcutsq);
   }
 }
+
+// clang-format off
+
 
 void MLPOD::print_matrix(const char *desc, int m, int n, double **a, int /*lda*/ )
 {

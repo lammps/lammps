@@ -149,23 +149,24 @@ public:
   ~MLPOD() override;
 
   struct podstruct {
+    podstruct();
     std::vector<std::string> species;
-    std::string filenametag = "";
-    int twobody[3] = {5,10,10};
-    int threebody[4] = {4,8,8,5};
-    int fourbody[4] = {0,0,0,0};
-    int *pbc; //[3] = {1,1,1};
+    std::string filenametag;
+    int twobody[3];
+    int threebody[4];
+    int fourbody[4];
+    int *pbc;
     int *elemindex;
 
-    int quadratic22[2] = {0,0};
-    int quadratic23[2] = {0,0};
-    int quadratic24[2] = {0,0};
-    int quadratic33[2] = {0,0};
-    int quadratic34[2] = {0,0};
-    int quadratic44[2] = {0,0};
-    int cubic234[3] = {0,0,0};
-    int cubic333[3] = {0,0,0};
-    int cubic444[3] = {0,0,0};
+    int quadratic22[2];
+    int quadratic23[2];
+    int quadratic24[2];
+    int quadratic33[2];
+    int quadratic34[2];
+    int quadratic44[2];
+    int cubic234[3];
+    int cubic333[3];
+    int cubic444[3];
     int nelements;
     int onebody;
     int besseldegree;

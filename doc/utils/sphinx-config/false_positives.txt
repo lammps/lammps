@@ -412,6 +412,7 @@ cdennist
 cdof
 ceil
 Ceil
+cekk
 centerline
 centro
 centroid
@@ -470,6 +471,7 @@ Cij
 cis
 civ
 CKD
+ckk
 Clang
 clearstore
 Cleary
@@ -559,6 +561,8 @@ Coulombic
 Coulombics
 counterion
 counterions
+CountI
+CountN
 Courant
 covalent
 covalently
@@ -1240,6 +1244,7 @@ Glosli
 Glotzer
 gmail
 gmake
+gmap
 gmask
 Gmask
 GMock
@@ -1439,6 +1444,7 @@ ieni
 ifdefs
 iff
 ifort
+ihi
 Ihle
 ij
 ijk
@@ -1449,6 +1455,7 @@ ilabel
 Ilie
 ilmenau
 Ilmenau
+ilo
 ilp
 Ilya
 im
@@ -1550,6 +1557,8 @@ Iw
 Iwers
 iwyu
 ixcm
+ixhi
+ixlo
 ixx
 Ixx
 ixy
@@ -2388,6 +2397,7 @@ nlayers
 nlen
 nlines
 Nlines
+nlist
 nlo
 nlocal
 Nlocal
@@ -2517,11 +2527,15 @@ Nwait
 nwchem
 nx
 Nx
+nxlo
 nxnodes
+Nxyz
 ny
 Ny
+nylo
 nz
 Nz
+nzlo
 ocl
 octahedral
 octants
@@ -2590,6 +2604,8 @@ overlayed
 Ovito
 oxdna
 oxDNA
+oxhi
+oxlo
 oxrna
 oxRNA
 packings
@@ -2657,6 +2673,7 @@ Peng
 peptide
 peratom
 Pergamon
+pergrid
 peri
 peridynamic
 Peridynamic
@@ -3370,6 +3387,8 @@ Sugaku
 Suhai
 Sukumaran
 Sulc
+SumI
+SumN
 sumsq
 Sunderland
 supercell

@@ -29,7 +29,7 @@ the POD potential is described from :doc:`fitpod <fitpod_command>`, which is
 used to fit the POD potential to *ab initio* energy and force data.
 
 Only a single pair_coeff command is used with the *pod* style which
-specifies a POD parameter file followed by a coefficient file. 
+specifies a POD parameter file followed by a coefficient file.
 
 The coefficient file (``Ta_coefficients.pod``) contains coefficients for the
 POD potential. The top of the coefficient file can contain any number of

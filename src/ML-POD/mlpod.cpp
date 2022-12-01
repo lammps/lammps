@@ -64,7 +64,7 @@ MLPOD::MLPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff
 
   if (coeff_file != "") read_coeff_file(coeff_file);
 
-  if (pod.snaptwojmax > 0) { InitSnap(); }
+  if (pod.snaptwojmax > 0) InitSnap();
 }
 
 MLPOD::~MLPOD()
@@ -385,7 +385,7 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
   double *Q;
   double *A;
   double *b;
-  
+
   memory->create(xij, N, "pod:xij");
   memory->create(S, N*ns, "pod:S");
   memory->create(Q, N*ns, "pod:Q");

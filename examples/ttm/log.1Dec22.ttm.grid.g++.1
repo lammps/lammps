@@ -1,5 +1,4 @@
-LAMMPS (3 Aug 2022)
-WARNING: Using I/O redirection is unreliable with parallel runs. Better use -in switch to read input file. (../lammps.cpp:524)
+LAMMPS (3 Nov 2022)
 units           metal
 atom_style      atomic
 boundary        p p p
@@ -24,7 +23,7 @@ region 		sim_box block -10 10 -10 10 -10 ${zmax}                 units lattice
 region 		sim_box block -10 10 -10 10 -10 10                 units lattice
 create_box 	1 sim_box
 Created orthogonal box = (-28.7 -28.7 -28.7) to (28.7 28.7 28.7)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 region 		atom_box block ${xmin} ${xmax} ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
 region 		atom_box block -10 ${xmax} ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
 region 		atom_box block -10 10 ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
@@ -59,10 +58,22 @@ thermo          100
 thermo_style    custom step temp etotal f_twotemp[1] f_twotemp[2]
                 thermo_modify format float "%20.16g"
 
-compute         10 all property/grid 10 10 10 id xc yc zc
-fix             ave all ave/grid 100 5 500 10 10 10 f_twotemp:grid:data
-dump            ave all grid 500 tmp.dump.ave                 c_10:grid:data[*] f_ave:grid:data
-dump_modify     ave sort 1
+# dump output
+
+#compute         1 all property/grid 10 10 10 id ix iy iz
+#dump            1 all grid 100 tmp.dump c_1:grid:data[*] f_twotemp:grid:data
+#dump_modify     1 sort 1
+
+#compute         10 all property/grid 10 10 10 id xc yc zc
+#fix             ave all ave/grid 10 10 100 10 10 10 f_twotemp:grid:data
+
+#dump            ave all grid 100 tmp.dump.ave #                c_10:grid:data[*] f_ave:grid:data
+#dump_modify     ave sort id
+
+#dump            vtk all grid/vtk 100 tmp.dump.*.vtk f_ave:grid:data
+#dump_modify     vtk sort id buffer no
+
+# run simulation
 
 run             1000
 Neighbor list info ...
@@ -77,43 +88,43 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 5.902 | 5.903 | 5.904 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 10.99 | 10.99 | 10.99 Mbytes
    Step          Temp          TotEng      f_twotemp[1]   f_twotemp[2] 
-         0                     0   -68483.52254530673    371.9188105082186                    0
-       100     16.95536995775684   -68446.64765713879    334.7745598327931   0.3602932995006087
-       200     27.82619298359641   -68413.48663012494    301.6568409464847   0.2922875754523593
-       300     32.28660976355901   -68383.41369945828    271.6030085280586     0.26987388247804
-       400     33.33119316198579   -68356.74598240001    244.9747750036311   0.2061586600914003
-       500     35.14534756499593   -68332.73504057307    220.9328922343961   0.2800368538794578
-       600     39.58922469808521   -68311.03191758461    199.2602622784512   0.2310303196166884
-       700     45.34652315787151   -68291.65247941404    179.9297699858464   0.1438135463248855
-       800     49.66707856481075   -68274.98092841901    163.2540575286425   0.1600890300738265
-       900     52.17692450487317    -68259.8031091165    148.1017576370548   0.1177316234407941
-      1000     54.24228199265479   -68245.58589458198    133.8816957314364   0.1314999893461343
-Loop time of 4.78682 on 4 procs for 1000 steps with 16000 atoms
+         0                     0   -68483.52254543516    371.9188105082105                    0
+       100     17.01353086098387   -68446.50228930202    334.6217068813629   0.3763710887774046
+       200     27.91331236535322   -68413.16008042906    301.3181773007303   0.3165912892484031
+       300     32.20115656493125   -68383.19634217303    271.3756381838045   0.2901111802983097
+       400     33.46056398887347   -68355.73057141017    243.9344715501159   0.2548133388123378
+       500      35.5346204243821   -68331.63060947017      219.84946888619   0.2388591367999414
+       600     40.61692458441596   -68309.36124792948    197.5527667607886   0.3056696014124338
+       700     46.20303146200326   -68290.12727395598    178.3775768561405   0.1982123493608406
+       800      50.4375018189932   -68272.72651051797     160.995046695269   0.1708386295858845
+       900     52.17011714635106   -68257.85059865142    146.1567281868867   0.1032829304640776
+      1000     53.49296457217382   -68244.38715993936    132.7166474251702  0.06428993394665769
+Loop time of 5.99191 on 1 procs for 1000 steps with 16000 atoms
 
-Performance: 1.805 ns/day, 13.297 hours/ns, 208.907 timesteps/s
-100.0% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 1.442 ns/day, 16.644 hours/ns, 166.892 timesteps/s, 2.670 Matom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.1562     | 4.2154     | 4.2851     |   2.7 | 88.06
+Pair    | 5.3136     | 5.3136     | 5.3136     |   0.0 | 88.68
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.16658    | 0.23631    | 0.29566    |  11.5 |  4.94
-Output  | 0.0016285  | 0.0016618  | 0.0017414  |   0.1 |  0.03
-Modify  | 0.31425    | 0.31577    | 0.31755    |   0.2 |  6.60
-Other   |            | 0.01766    |            |       |  0.37
+Comm    | 0.035738   | 0.035738   | 0.035738   |   0.0 |  0.60
+Output  | 0.00049119 | 0.00049119 | 0.00049119 |   0.0 |  0.01
+Modify  | 0.62365    | 0.62365    | 0.62365    |   0.0 | 10.41
+Other   |            | 0.01844    |            |       |  0.31
 
-Nlocal:           4000 ave        4000 max        4000 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Nghost:           6329 ave        6329 max        6329 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Neighs:         224000 ave      227436 max      220450 min
-Histogram: 1 0 1 0 0 0 0 1 0 1
+Nlocal:          16000 ave       16000 max       16000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          13449 ave       13449 max       13449 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         896000 ave      896000 max      896000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 896000
 Ave neighs/atom = 56
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:04
+Total wall time: 0:00:06

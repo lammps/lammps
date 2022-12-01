@@ -40,16 +40,22 @@ using MathSpecial::powint;
 MLPOD::podstruct::podstruct() :
     filenametag(""), twobody{5, 10, 10}, threebody{4, 8, 8, 5}, fourbody{0, 0, 0, 0}, pbc(nullptr),
     elemindex(nullptr), quadratic22{0, 0}, quadratic23{0, 0}, quadratic24{0, 0}, quadratic33{0, 0},
-    quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0}
+    quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0},
+    besselparams(nullptr), coeff(nullptr), Phi2(nullptr), Phi3(nullptr), Phi4(nullptr),
+    Lambda2(nullptr), Lambda3(nullptr), Lambda4(nullptr)
 {
+}
+
+MLPOD::podstruct::~podstruct()
+{
+  delete[] pbc;
+  delete[] elemindex;
+  delete[] besselparams;
 }
 
 MLPOD::MLPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff_file) :
     Pointers(_lmp)
 {
-  pod.besselparams = nullptr;
-  pod.pbc = nullptr;
-
   // read pod input file to podstruct
 
   read_pod(pod_file);
@@ -65,9 +71,6 @@ MLPOD::~MLPOD()
 {
   // deallocate pod arrays
 
-  memory->destroy(pod.pbc);
-  memory->destroy(pod.elemindex);
-  memory->destroy(pod.besselparams);
   memory->destroy(pod.coeff);
   if (pod.ns2 > 0) {
     memory->destroy(pod.Phi2);
@@ -437,10 +440,10 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
 void MLPOD::read_pod(const std::string &pod_file)
 {
   pod.nbesselpars = 3;
-  memory->destroy(pod.besselparams);
-  memory->destroy(pod.pbc);
-  memory->create(pod.besselparams, 3, "pod:pod_besselparams");
-  memory->create(pod.pbc, 3, "pod:pod_pbc");
+  delete[] pod.besselparams;
+  pod.besselparams = new double[3];
+  delete[] pod.pbc;
+  pod.pbc = new int[3];
 
   pod.besselparams[0] = 0.0;
   pod.besselparams[1] = 2.0;
@@ -502,12 +505,10 @@ void MLPOD::read_pod(const std::string &pod_file)
     auto keywd = words[0];
 
     if (keywd == "species") {
-
       pod.nelements = words.size()-1;
       for (int ielem = 1; ielem <= pod.nelements; ielem++) {
         pod.species.push_back(words[ielem]);
       }
-
     }
 
     if (keywd == "filename_tag") pod.filenametag = words[1];
@@ -719,8 +720,8 @@ void MLPOD::read_pod(const std::string &pod_file)
   pod.nd1234 = pod.nd1 + pod.nd2 + pod.nd3 + pod.nd4;
 
   int nelements = pod.nelements;
-  memory->destroy(pod.elemindex);
-  memory->create(pod.elemindex, nelements*nelements, "pod:pod_elemindex");
+  delete[] pod.elemindex;
+  pod.elemindex = new int[nelements*nelements];
 
   int k = 1;
   for (int i=0; i < nelements; i++) {

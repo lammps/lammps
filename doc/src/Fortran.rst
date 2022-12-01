@@ -30,7 +30,7 @@ as a static or dynamic library <Build_link>`.
 
 If the LAMMPS library itself has been compiled with MPI support, the
 resulting executable will still be able to run LAMMPS in parallel with
-``mpirun``, ``mpiexec`` or equivalent.  Please also note that the order
+``mpirun``, ``mpiexec``, or equivalent.  Please also note that the order
 of the source files matters: the ``lammps.f90`` file needs to be
 compiled first, since it provides the :f:mod:`LIBLAMMPS` module that is
 imported by the Fortran code that uses the interface.  A working example
@@ -42,14 +42,14 @@ can be found together with equivalent examples in C and C++ in the
 .. admonition:: Work in Progress
    :class: note
 
-   This Fortran module is work in progress and only the documented
+   This Fortran module is a work in progress, and only the documented
    functionality is currently available. The final implementation should
    cover the entire range of functionality available in the C and
    Python library interfaces.
 
 .. note::
 
-   A contributed (and more complete!) Fortran interface that more
+   A contributed Fortran interface that more
    closely resembles the C library interface is available in the
    ``examples/COUPLE/fortran2`` folder.  Please see the ``README`` file
    in that folder for more information about it and how to contact its
@@ -79,7 +79,7 @@ function and triggered with the optional logical argument set to
      USE LIBLAMMPS                 ! include the LAMMPS library interface
      IMPLICIT NONE
      TYPE(lammps) :: lmp           ! derived type to hold LAMMPS instance
-     CHARACTER(LEN=*), PARAMETER :: args(3) = &
+     CHARACTER(LEN=12), PARAMETER :: args(3) = &
          [ CHARACTER(LEN=12) :: 'liblammps', '-log', 'none' ]
 
      ! create a LAMMPS instance (and initialize MPI)
@@ -136,11 +136,11 @@ is done similarly to how it is implemented in the :doc:`C library
 interface <Library_execute>`. Before handing off the calls to the
 C library interface, the corresponding Fortran versions of the calls
 (:f:func:`file`, :f:func:`command`, :f:func:`commands_list`, and
-:f:func:`commands_string`) have to make a copy of the strings passed as
+:f:func:`commands_string`) have to make copies of the strings passed as
 arguments so that they can be modified to be compatible with the
 requirements of strings in C without affecting the original strings.
 Those copies are automatically deleted after the functions return.
-Below is a small demonstration of the uses of the different functions:
+Below is a small demonstration of the uses of the different functions.
 
 .. code-block:: fortran
 
@@ -360,6 +360,20 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype decode_image_flags: subroutine
    :f set_fix_external_callback: :f:subr:`set_fix_external_callback`
    :ftype set_fix_external_callback: subroutine
+   :f fix_external_get_force: :f:func:`fix_external_get_force`
+   :ftype fix_external_get_force: function
+   :f fix_external_set_energy_global: :f:subr:`fix_external_set_energy_global`
+   :ftype fix_external_set_energy_global: subroutine
+   :f fix_external_set_virial_global: :f:subr:`fix_external_set_virial_global`
+   :ftype fix_external_set_virial_global: subroutine
+   :f fix_external_set_energy_peratom: :f:subr:`fix_external_set_energy_peratom`
+   :ftype fix_external_set_energy_peratom: subroutine
+   :f fix_external_set_virial_peratom: :f:subr:`fix_external_set_virial_peratom`
+   :ftype fix_external_set_virial_peratom: subroutine
+   :f fix_external_set_vector_length: :f:subr:`fix_external_set_vector_length`
+   :ftype fix_external_set_vector_length: subroutine
+   :f fix_external_set_vector: :f:subr:`fix_external_set_vector`
+   :ftype fix_external_set_vector: subroutine
    :f flush_buffers: :f:subr:`flush_buffers`
    :ftype flush_buffers: subroutine
    :f is_running: :f:func:`is_running`
@@ -577,9 +591,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    .. code-block:: fortran
 
       ! code to start up
-      logical :: periodic(3)
+      LOGICAL :: periodic(3)
       ! code to initialize LAMMPS / run things / etc.
-      call lmp%extract_box(pflags = periodic)
+      CALL lmp%extract_box(pflags = periodic)
 
 --------
 
@@ -645,8 +659,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
          USE MPI_F08
          USE LIBLAMMPS
-         TYPE (lammps) :: lmp
-         TYPE (MPI_Comm) :: comm
+         TYPE(lammps) :: lmp
+         TYPE(MPI_Comm) :: comm
          ! ... [commands to set up LAMMPS/etc.]
          comm%MPI_VAL = lmp%get_mpi_comm()
 
@@ -686,7 +700,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    LAMMPS data is type-, kind-, and rank-checked at run-time via an
    overloaded assignment operator.  The pointers returned by this
    function are generally persistent; therefore it is not necessary to
-   call the function again, unless a :doc:`clear` command has been
+   call the function again unless a :doc:`clear` command has been
    issued, which wipes out and recreates the contents of the
    :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` class.
 
@@ -735,7 +749,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
            CHARACTER(LEN=:), ALLOCATABLE :: str
            lmp = lammps()
            CALL lmp%command('units metal')
-           ALLOCATE ( CHARACTER(LEN=80) :: str )
+           ALLOCATE(CHARACTER(LEN=80) :: str)
            str = lmp%extract_global('units')
            str = TRIM(str) ! re-allocates to length len_trim(str) here
            PRINT*, LEN(str), LEN_TRIM(str)
@@ -899,7 +913,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       TYPE(lammps) :: lmp
       REAL(c_double), DIMENSION(:), POINTER :: COM
       ! code to setup, create atoms, etc.
-      CALL lmp%compute('compute COM all com')
+      CALL lmp%command('compute COM all com')
       COM = lmp%extract_compute('COM', lmp%style%global, lmp%style%type)
 
    will bind the variable *COM* to the center of mass of the atoms created in
@@ -1073,10 +1087,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
         - Per-atom array
 
    In the case of global data, this function returns a value of type
-   ``real(c_double)``. For per-atom or local data, this function does not
+   ``REAL(c_double)``. For per-atom or local data, this function does not
    return a value but instead associates the pointer on the left side of the
    assignment to point to internal LAMMPS data. Pointers must be of the correct
-   data type to point to said data (i.e., ``REAL(c_double)``) and have
+   type and kind to point to said data (i.e., ``REAL(c_double)``) and have
    compatible rank.  The pointer being associated with LAMMPS data is type-,
    kind-, and rank-checked at run-time via an overloaded assignment operator.
 
@@ -1256,10 +1270,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    of atoms, see :f:func:`gather_atoms_subset`.
 
    The *data* array will be ordered in groups of *count* values, sorted by atom
-   ID (e.g., if *name* is *x* and *count* = 3, then *data* = x[1][1], x[2][1],
-   x[3][1], x[1][2], x[2][2], x[3][2], x[1][3], :math:`\dots`);
-   *data* must be ``ALLOCATABLE`` and will be allocated to length
-   (*count* :math:`\times` *natoms*), as queried by
+   ID (e.g., if *name* is *x* and *count* = 3, then *data* = *x*\ (1,1),
+   *x*\ (2,1), *x*\ (3,1), *x*\ (1,2), *x*\ (2,2), *x*\ (3,2), *x*\ (1,3),
+   :math:`\dots`); *data* must be ``ALLOCATABLE`` and will be allocated to
+   length (*count* :math:`\times` *natoms*), as queried by
    :f:func:`extract_setting`.
 
    :p character(len=\*) name: desired quantity (e.g., *x* or *mask*)
@@ -1340,9 +1354,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    The *data* array will be in groups of *count* values, sorted by atom ID
    in the same order as the array *ids* (e.g., if *name* is *x*, *count* = 3,
    and *ids* is [100, 57, 210], then *data* might look like
-   [x(1,100), x(2,100), x(3,100), x(1,57), x(2,57), x(3,57), x(1,210),
-   :math:`\dots`]; *ids* must be provided by the user, and *data* must be
-   of rank 1 (i.e., ``DIMENSION(:)``) and have the ``ALLOCATABLE`` attribute.
+   [*x*\ (1,100), *x*\ (2,100), *x*\ (3,100), *x*\ (1,57), *x*\ (2,57),
+   *x*\ (3,57), *x*\ (1,210), :math:`\dots`]; *ids* must be provided by the
+   user, and *data* must be of rank 1 (i.e., ``DIMENSION(:)``) and have the
+   ``ALLOCATABLE`` attribute.
 
    :p character(len=\*) name: desired quantity (e.g., *x* or *mask*)
    :p integer(c_int) count: number of per-atom values you expect per atom
@@ -1374,13 +1389,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    The *data* array needs to be ordered in groups of *count* values, sorted by
    atom ID (e.g., if *name* is *x* and *count* = 3, then
-   *data* = [x(1,1) x(2,1) x(3,1) x(1,2) x(2,2) x(3,2) x(1,3) :math:`\dots`];
-   *data* must be of length (*count* :math:`\times` *natoms*).
+   *data* = [x(1,1), x(2,1), x(3,1), x(1,2), x(2,2), x(3,2), x(1,3),
+   :math:`\dots`]; *data* must be of length (*count* :math:`\times` *natoms*).
 
    :p character(len=\*) name: quantity to be scattered (e.g., *x* or *charge*)
    :p data: per-atom values packed in a one-dimensional array
     containing the data to be scattered. This array must have length *natoms*
-    (e.g., for *type* or *charge*) or length *natoms*\ :math:`\times 3`
+    (e.g., for *type* or *charge*) or length *natoms*\ :math:`{}\times 3`
     (e.g., for *x* or *f*). The array *data* must be rank 1 (i.e.,
     ``DIMENSION(:)``) and be of type ``INTEGER(c_int)`` (e.g., for *mask* or
     *type*) or of type ``REAL(c_double)`` (e.g., for *x* or *charge* or *f*).
@@ -1405,8 +1420,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    The *data* array needs to be organized in groups of 1 or 3 values,
    depending on which quantity is being scattered, with the groups in the same
    order as the array *ids*. For example, if you want *data* to be the array
-   [x(1,1) x(2,1) x(3,1) x(1,100) x(2,100) x(3,100) x(1,57) x(2,57) x(3,57)],
-   then *ids* would be [1 100 57] and *name* would be *x*.
+   [x(1,1), x(2,1), x(3,1), x(1,100), x(2,100), x(3,100), x(1,57), x(2,57),
+   x(3,57)], then *ids* would be [1, 100, 57] and *name* would be *x*.
 
    :p character(len=\*) name: quantity to be scattered (e.g., *x* or *charge*)
    :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
@@ -1452,10 +1467,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
         INTEGER :: i
         ! other commands to initialize LAMMPS, create bonds, etc.
         CALL lmp%gather_bonds(bonds)
-        bonds_array(1:3,1:SIZE(bonds)/3) => bonds
+        bonds_array(1:3, 1:SIZE(bonds)/3) => bonds
         DO i = 1, SIZE(bonds)/3
-          WRITE(OUTPUT_UNIT,'(A,1X,I4,A,I4,1X,I4)') 'bond', bonds(1,i), &
-            '; type = ', bonds(2,i), bonds(3,i)
+          WRITE(OUTPUT_UNIT,'(A,1X,I4,A,I4,1X,I4)') 'bond', bonds_array(1,i), &
+            '; type = ', bonds_array(2,i), bonds_array(3,i)
         END DO
       END PROGRAM bonds
 
@@ -1480,21 +1495,22 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p real(c_double) x [dimension(3N)]: vector of :math:`3N` x/y/z positions
     of the new atoms, arranged as :math:`[x_1,y_1,z_1,x_2,y_2,\dotsc]`
     (required/see note below)
-   :o integer(kind=\*) id [dimension(N)]: vector of :math:`N` atom IDs; if
-    absent, LAMMPS will generate them for you. \*The ``KIND`` parameter should
-    be ``c_int`` unless LAMMPS was compiled with ``-DLAMMPS_BIGBIG``, in which
-    case it should be ``c_int64_t``.
-   :o real(c_double) v [dimension(3N)]: vector of :math:`3N` x/y/z velocities
-    of the new atoms, arranged as :math:`[v_{1,x},v_{1,y},v_{1,z},v_{2,x},
-    \dotsc]`; if absent, they will be set to zero
-   :o integer(kind=\*) image [dimension(N)]: vector of :math:`N` image flags;
-    if absent, they are set to zero. \*The ``KIND`` parameter should be
+   :o integer(kind=\*) id [dimension(N),optional]: vector of :math:`N` atom
+    IDs; if absent, LAMMPS will generate them for you. \*The ``KIND`` parameter
+    should be ``c_int`` unless LAMMPS was compiled with ``-DLAMMPS_BIGBIG``, in
+    which case it should be ``c_int64_t``.
+   :o real(c_double) v [dimension(3N),optional]: vector of :math:`3N`
+    *x*\ /*y*\ /*z* velocities of the new atoms, arranged as
+    :math:`[v_{1,x},v_{1,y},v_{1,z},v_{2,x}, \dotsc]`; if absent, they will be
+    set to zero
+   :o integer(kind=\*) image [dimension(N),optional]: vector of :math:`N` image
+    flags; if absent, they are set to zero. \*The ``KIND`` parameter should be
     ``c_int`` unless LAMMPS was compiled with ``-DLAMMPS_BIGBIG``, in which
     case it should be ``c_int64_t``. See note below.
    :o bexpand: if ``.TRUE.``, atoms outside of shrink-wrap boundaries
     will be created, not dropped, and the box dimensions will be extended.
     Default is ``.FALSE.``
-   :otype bexpand: logical
+   :otype bexpand: logical,optional
    :to: :cpp:func:`lammps_create_atoms`
 
    .. note::
@@ -1543,11 +1559,11 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=\*) style: String used to search for pair style instance.
    :o exact: Flag to control whether style should match exactly or only a
     regular expression/sub-string match is applied. Default: ``.TRUE.``.
-   :otype exact: logical
-   :o integer(c_int) nsub:     Match *nsub*\ th hybrid sub-style instance of
-    the same style. Default: 0.
-   :o integer(c_int) reqid:    Request ID to identify the neighbor list in
-    case there are multiple requests from the same pair style instance.
+   :otype exact: logical,optional
+   :o integer(c_int) nsub [optional]: Match *nsub*\ th hybrid sub-style
+    instance of the same style. Default: 0.
+   :o integer(c_int) reqid [optional]: Request ID to identify the neighbor list
+    in case there are multiple requests from the same pair style instance.
     Default: 0.
    :to: :cpp:func:`lammps_find_pair_neighlist`
    :r integer(c_int) index:    Neighbor list index if found, otherwise
@@ -1566,8 +1582,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    fixes with multiple neighbor list requests.
 
    :p character(len=\*) id: Identifier of fix instance
-   :o integer(c_int) reqid: request ID to identify the neighbor list in cases
-    in which there are multiple requests from the same fix. Default: 0.
+   :o integer(c_int) reqid [optional]: request ID to identify the neighbor list
+    in cases in which there are multiple requests from the same fix.
+    Default: 0.
    :to: :cpp:func:`lammps_find_fix_neighlist`
    :r index: neighbor list index if found, otherwise :math:`-1`
    :rtype index: integer(c_int)
@@ -1585,8 +1602,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    in case a compute has multiple neighbor list requests.
 
    :p character(len=\*) id: Identifier of compute instance.
-   :o integer(c_int) reqid: request ID to identify the neighbor list in cases
-    in which there are multiple requests from the same compute. Default: 0.
+   :o integer(c_int) reqid [optional]: request ID to identify the neighbor list
+    in cases in which there are multiple requests from the same compute.
+    Default: 0.
    :to: :cpp:func:`lammps_find_compute_neighlist`
    :r index: neighbor list index if found, otherwise :math:`-1`.
    :rtype index: integer(c_int)
@@ -1808,9 +1826,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   This function is analogous to the :py:func`installed_packages` function in
-   the Python API. The optional argument *length* sets the length of each
-   string in the vector *package* (default: 31).
+   This function is analogous to the :py:meth:`installed_packages
+   <lammps.lammps.installed_packages>` function in the Python API.
+   The optional argument *length* sets the length of each string in the vector
+   *package* (default: 31).
 
    :p character(len=:) package [dimension(:),allocatable]: list of packages;
     *must* have the ``ALLOCATABLE`` attribute and be of rank 1
@@ -2046,11 +2065,12 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    necessary to combine the values of three integers representing the image
    flags in the :math:`x`-, :math:`y`-, and :math:`z`-directions. Unless LAMMPS
    is compiled with ``-DLAMMPS_BIGBIG``, those integers are limited to 10-bit
-   signed integers :math:`[-512,512]`. If ``-DLAMMPS_BIGBIG`` was used when
+   signed integers :math:`[-512,512)`. If ``-DLAMMPS_BIGBIG`` was used when
    compiling, then the return value is of kind ``c_int64_t`` instead of
    kind ``c_int``, and the valid range for the individual image flags becomes
-   :math:`[-1048576,1048575]` (i.e., the range of a 21-bit signed integer).
-   There is no check on whether the arguments conform to these requirements.
+   :math:`[-1048576,1048575)` (i.e., the range of a 21-bit signed integer).
+   There is no check on whether the arguments conform to these requirements;
+   values out of range will simply be wrapped back into the interval.
 
    :p integer(c_int) ix: image flag in :math:`x`-direction
    :p integer(c_int) iy: image flag in :math:`y`-direction
@@ -2173,25 +2193,42 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
       .. code-block:: Fortran
 
-         TYPE shield
-            REAL(c_double), DIMENSION(:), ALLOCATABLE :: k
-            ! assume k gets allocated to dimension(3,nlocal) at some point
-         END TYPE shield
+         MODULE stuff
+           USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double, c_int64_t
+           IMPLICIT NONE
 
-         SUBROUTINE my_callback(caller, timestep, ids, x, fexternal)
-           CLASS(*), INTENT(INOUT) :: caller
-           INTEGER(c_int), INTENT(IN) :: timestep
-           INTEGER(c_int64_t), INTENT(IN) :: ids
-           REAL(c_double), INTENT(IN) :: x(:,:)
-           REAL(c_double), INTENT(OUT) :: fexternal(:,:)
+           TYPE shield
+              REAL(c_double), DIMENSION(:), ALLOCATABLE :: k
+              ! assume k gets allocated to dimension(3,nlocal) at some point
+              ! and assigned values
+           END TYPE shield
 
-           SELECT TYPE (caller)
-             TYPE IS (shield)
-                fexternal = - caller%k * x
-             CLASS DEFAULT
-                WRITE(error_unit,*) 'UH OH...'
-           END SELECT
-        END SUBROUTINE my_callback
+           SUBROUTINE my_callback(caller, timestep, ids, x, fexternal)
+             CLASS(*), INTENT(INOUT) :: caller
+             INTEGER(c_int), INTENT(IN) :: timestep
+             INTEGER(c_int64_t), INTENT(IN) :: ids
+             REAL(c_double), INTENT(IN) :: x(:,:)
+             REAL(c_double), INTENT(OUT) :: fexternal(:,:)
+
+             SELECT TYPE (caller)
+               TYPE IS (shield)
+                  fexternal = - caller%k * x
+               CLASS DEFAULT
+                  WRITE(error_unit,*) 'UH OH...'
+             END SELECT
+           END SUBROUTINE my_callback
+         END MODULE stuff
+
+         ! then, when assigning the callback function, do this:
+         PROGRAM example
+           USE LIBLAMMPS
+           USE stuff
+           TYPE(lammps) :: lmp
+           TYPE(shield) :: my_shield
+           lmp = lammps()
+           CALL lmp%command('fix ext all external pf/callback 1 1')
+           CALL lmp%set_fix_external_callback('ext', my_callback, my_shield)
+         END PROGRAM example
 
 --------
 
@@ -2235,7 +2272,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=*) id: ID of :doc:`fix external <fix_external>` instance
    :to: :cpp:func:`lammps_fix_external_get_force`
    :r fexternal: pointer to the per-atom force array allocated by the fix
-   :rtype fexternal: real(c_double), dimension(3,nlocal)
+   :rtype fexternal: real(c_double),dimension(3,nlocal)
 
 --------
 
@@ -2414,7 +2451,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       The index in the *idx* parameter is 1-based (i.e., the first element
       is set with *idx*\ :math:`{} = 1`, and the last element of the vector
       with *idx*\ :math:`{} = N`, where :math:`N` is the value of the *length*
-      parameter of the call to :f:subr:`fix_external_set_vector_length`.
+      parameter of the call to :f:subr:`fix_external_set_vector_length`).
 
    Please see the documentation for :doc:`fix external <fix_external>` for
    more information about how to use the fix and how to couple it with an

@@ -171,7 +171,7 @@ run, and so these fixes will accept equal-style variables defined *after* the
 fix definition, including variables dependent on the fix's own output. This is
 useful, for example, in the fix's internal finite-field commands (see below).
 For an advanced example of this see the in.conq2 input file in the directory
-examples/PACKAGES/electrode/graph-il.
+``examples/PACKAGES/electrode/graph-il``.
 
 This fix necessitates the use of a long range solver that calculates and
 provides the matrix of electrode-electrode interactions and a vector of
@@ -223,21 +223,14 @@ and will issue an error otherwise.
 
 For all versions of the fix, the keyword-value *etypes on* enables type-based
 optimized neighbor lists. With this feature enabled, LAMMPS provides the fix
-with an occasional neighborlist restricted to electrode-electrode interactions
-for calculating the electrode matrix, and a perpetual neighborlist restricted to
+with an occasional neighbor list restricted to electrode-electrode interactions
+for calculating the electrode matrix, and a perpetual neighbor list restricted to
 electrode-electrolyte interactions for calculating the electrode potentials,
 using particle types to list only desired interactions, and typically resulting
 in 5--10\% less computational time.  Without this feature the fix will simply
-use the active pair style's neighborlist.  This feature cannot be enabled if any
+use the active pair style's neighbor list.  This feature cannot be enabled if any
 electrode particle has the same type as any electrolyte particle (which would be
 unusual in a typical simulation) and the fix will issue an error in that case.
-
-..
-  (if we merge the overlap_etypes branch)
-  This feature will provide minimal benefit if any electrode particle has the same type as any
-  electrolyte particle, since it will be impossible for LAMMPS to list only electrode-electrolyte
-  neighbor pairs and discard other neighbor pairs from the provided perpetual neighborlist.
-
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -310,7 +303,7 @@ its last row is replaced with *N* copies of its top-left entry
 The global array output is mainly useful for quickly determining the 'vacuum
 capacitance' of the system (capacitance with only electrodes, no electrolyte),
 and can also be used for advanced simulations setting the potential as some
-function of the charge-at-0V (such as the `in.conq2` example mentioned above).
+function of the charge-at-0V (such as the ``in.conq2`` example mentioned above).
 
 Please cite :ref:`(Ahrens-Iwers2022) <Ahrens-Iwers2>` in any publication that
 uses this implementation.  Please cite also the publication on the combination

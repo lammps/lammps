@@ -188,7 +188,7 @@ void FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
 
     if (keywd == "fitting_weight_energy") fitting_weights[0] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "fitting_weight_force") fitting_weights[1] = utils::numeric(FLERR,words[1],false,lmp);
-    if (keywd == "fitting_weight_stress") fitting_weights[2] = utils::numeric(FLERR,words[1],false,lmp);   
+    if (keywd == "fitting_weight_stress") fitting_weights[2] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "error_analysis_for_training_data_set") fitting_weights[3] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "error_analysis_for_test_data_set") fitting_weights[4] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "energy_force_calculation_for_training_data_set") fitting_weights[5] = utils::numeric(FLERR,words[1],false,lmp);
@@ -198,7 +198,7 @@ void FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
     if (keywd == "randomize_training_data_set") fitting_weights[9] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "randomize_test_data_set") fitting_weights[10] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "fitting_regularization_parameter") fitting_weights[11] = utils::numeric(FLERR,words[1],false,lmp);
-    
+
     // other settings
 
     if (keywd == "file_format") file_format = words[1];
@@ -1272,7 +1272,7 @@ void FitPOD::least_squares_fit(datastruct data)
       desc.A[i] = desc.A[i]*maxb;
 
     double regularizing_parameter = data.fitting_weights[11];
-    
+
     for (int i = 0; i<nd; i++) {
       desc.c[i] = desc.b[i];
       desc.A[i + nd*i] = desc.A[i + nd*i]*(1.0 + regularizing_parameter);

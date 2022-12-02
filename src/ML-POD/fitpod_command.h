@@ -30,11 +30,12 @@ private:
 
 public:
   struct datastruct {
-    std::string file_format;
-    std::string file_extension;
+    std::string file_format = "extxyz";
+    std::string file_extension = "xyz";
     std::string data_path;
     std::vector<std::string> data_files;
     std::vector<std::string> filenames;
+    std::string filenametag = "pod";
 
     std::vector<int> num_atom;
     std::vector<int> num_atom_cumsum;
@@ -60,6 +61,7 @@ public:
     int training_calculation = 0;
     int test_calculation = 0;
     int randomize = 1;
+    int precision = 8;
     double fraction = 1.0;
 
     double fitting_weights[12] = {100.0, 1.0, 0.0, 1, 1, 0, 0, 1, 1, 1, 1, 1e-10};
@@ -69,6 +71,7 @@ public:
       data.file_format = file_format;
       data.file_extension = file_extension;
       data.data_files = data_files;
+      data.filenametag = filenametag;
       data.filenames = filenames;
       data.training_analysis = training_analysis;
       data.test_analysis = test_analysis;
@@ -76,6 +79,7 @@ public:
       data.test_calculation = test_calculation;
       data.fraction = fraction;
       data.randomize = randomize;
+      data.precision = precision;
       data.training = training;
       data.normalizeenergy = normalizeenergy;
       for (int i = 0; i < 12; i++)
@@ -119,8 +123,8 @@ public:
   FitPOD(LAMMPS *lmp) : Command(lmp) {}
 
   void command(int, char **) override;
-  void read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
-    std::string &test_path, std::string &training_path, const std::string &data_file);
+  int read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
+    std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file);
   void get_exyz_files(std::vector<std::string> &, const std::string &, const std::string &);
   int get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file);
   int get_number_atoms(std::vector<int>& num_atom, std::vector<int> &num_atom_sum, std::vector<int>& num_config, std::vector<std::string> training_files);

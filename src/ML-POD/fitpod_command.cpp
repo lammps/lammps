@@ -138,10 +138,13 @@ void FitPOD::command(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
+int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
                              std::string &file_extension, std::string &test_path,
-                             std::string &training_path, const std::string &data_file)
+                             std::string &training_path, std::string &filenametag,
+                             const std::string &data_file)
 {
+  int precision = 8;
+
   std::string datafilename = data_file;
   FILE *fpdata;
   if (comm->me == 0) {
@@ -198,6 +201,7 @@ void FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
     if (keywd == "randomize_training_data_set") fitting_weights[9] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "randomize_test_data_set") fitting_weights[10] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "fitting_regularization_parameter") fitting_weights[11] = utils::numeric(FLERR,words[1],false,lmp);
+    if (keywd == "precision_for_pod_coefficients") precision = utils::inumeric(FLERR,words[1],false,lmp);
 
     // other settings
 
@@ -205,6 +209,7 @@ void FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
     if (keywd == "file_extension") file_extension = words[1];
     if (keywd == "path_to_training_data_set") training_path = words[1];
     if (keywd == "path_to_test_data_set") test_path = words[1];
+    if (keywd == "basename_for_output_files") filenametag = words[1];
   }
 
   if (comm->me == 0) {
@@ -227,6 +232,8 @@ void FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
     utils::logmesg(lmp, "fitting regularization parameter: {}\n", fitting_weights[11]);
     utils::logmesg(lmp, "**************** End of Data File ****************\n");
   }
+
+  return precision;
 }
 
 void FitPOD::get_exyz_files(std::vector<std::string>& files, const std::string &datapath,
@@ -716,8 +723,8 @@ void FitPOD::read_data_files(std::string data_file, std::vector<std::string> spe
 
   // read data input file to datastruct
 
-  read_data_file(data.fitting_weights, data.file_format, data.file_extension,
-      testdata.data_path, data.data_path, data_file);
+  data.precision = read_data_file(data.fitting_weights, data.file_format, data.file_extension,
+                      testdata.data_path, data.data_path, data.filenametag, data_file);
 
   data.training_analysis = (int) data.fitting_weights[3];
   data.test_analysis = (int) data.fitting_weights[4];
@@ -1289,12 +1296,12 @@ void FitPOD::least_squares_fit(datastruct data)
   MPI_Bcast(desc.c, nd, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {     // save coefficients into a text file
-    std::string filename = podptr->pod.filenametag + "_coefficients"  + ".pod";
+    std::string filename = data.filenametag + "_coefficients"  + ".pod";
     FILE *fp = fopen(filename.c_str(), "w");
 
     fmt::print(fp, "POD_coefficients: {}\n", nd);
     for (int count = 0; count < nd; count++) {
-      fmt::print(fp, "{:<10.{}f}\n",  desc.c[count], podptr->pod.precision);
+      fmt::print(fp, "{:<10.{}f}\n",  desc.c[count], data.precision);
     }
     fclose(fp);
     utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
@@ -1349,8 +1356,8 @@ void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
     lm = MAX(lm, (int) data.filenames[i].size());
   lm = lm + 2;
 
-  std::string filename_errors = fmt::format("{}_{}_errors.pod", podptr->pod.filenametag, data.training ? "training" : "test");
-  std::string filename_analysis = fmt::format("{}_{}_analysis.pod", podptr->pod.filenametag, data.training ? "training" : "test");
+  std::string filename_errors = fmt::format("{}_{}_errors.pod", data.filenametag, data.training ? "training" : "test");
+  std::string filename_analysis = fmt::format("{}_{}_analysis.pod", data.filenametag, data.training ? "training" : "test");
 
   FILE *fp_errors = nullptr;
   FILE *fp_analysis = nullptr;

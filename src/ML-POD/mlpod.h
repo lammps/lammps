@@ -159,8 +159,6 @@ class MLPOD : protected Pointers {
     virtual ~podstruct();
 
     std::vector<std::string> species;
-    std::string filenametag;
-    int precision;
     int twobody[3];
     int threebody[4];
     int fourbody[4];

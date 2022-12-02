@@ -1280,27 +1280,6 @@ void FitPOD::least_squares_fit(datastruct data)
     int nrhs=1, info;
     char chu = 'U';
     DPOSV(&chu, &nd, &nrhs, desc.A, &nd, desc.c, &nd, &info);
-
-    // compute the inverse of A
-
-//     int lwork = 10*nd;
-//     int info;
-//     int *ipiv;
-//     double *work;
-//     memory->create(ipiv, nd, "ipiv");
-//     memory->create(work, lwork, "work");
-//     DGETRF(&nd, &nd, desc.A, &nd,ipiv, &info);
-//     DGETRI(&nd, desc.A, &nd, ipiv, work, &lwork, &info);
-//     memory->destroy(ipiv);
-//     memory->destroy(work);
-
-    // compute c = inverse(A) * b
-
-//     for (int i = 0; i<nd; i++) {
-//       desc.c[i] = 0.0;
-//       for (int j = 0; j<nd; j++)
-//         desc.c[i] += desc.A[i + nd*j]*desc.b[j];
-//     }
   }
 
   MPI_Bcast(desc.c, nd, MPI_DOUBLE, 0, world);

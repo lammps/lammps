@@ -95,14 +95,6 @@ above):
      - 0
      - BOOL
      - turns on/off quadratic POD potential
-   * - basename_for_output_files
-     - pod
-     - STRING
-     - a basename string added to the output files
-   * - precision_for_pod_coefficients
-     - 8
-     - INT
-     - number of digits after the decimal points for numbers in the coefficient file
 
 All keywords except *species* have default values. If a keyword is not
 set in the input file, its default value is used.  The next table
@@ -161,6 +153,14 @@ describes all keywords that can be used in the second input file
      - 0
      - BOOL
      - turns on/off error analysis for the test data set
+   * - basename_for_output_files
+     - pod
+     - STRING
+     - a basename string added to the output files
+   * - precision_for_pod_coefficients
+     - 8
+     - INT
+     - number of digits after the decimal points for numbers in the coefficient file
 
 All keywords except *path_to_training_data_set* have default values. If
 a keyword is not set in the input file, its default value is used.  After

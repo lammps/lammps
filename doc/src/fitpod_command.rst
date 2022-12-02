@@ -694,11 +694,11 @@ found by solving the following least-squares problem
 
 .. math::
 
-    {\min}_{\boldsymbol c \in \mathbb{R}^{M}} \ w_E \|\boldsymbol A(\boldsymbol \eta) \boldsymbol c - \bar{\boldsymbol E}^{\star} \|^2 + w_F \|\boldsymbol B(\boldsymbol \eta) \boldsymbol c + \boldsymbol F^{\star} \|^2,
+    {\min}_{\boldsymbol c \in \mathbb{R}^{M}} \ w_E \|\boldsymbol A(\boldsymbol \eta) \boldsymbol c - \bar{\boldsymbol E}^{\star} \|^2 + w_F \|\boldsymbol B(\boldsymbol \eta) \boldsymbol c + \boldsymbol F^{\star} \|^2 + w_R \|\boldsymbol c \|^2,
 
 where :math:`w_E` and :math:`w_F` are weights for the energy
 (*fitting_weight_energy*) and force (*fitting_weight_force*),
-respectively.  Here :math:`\bar{\boldsymbol E}^{\star} \in
+respectively; and :math:`w_R` is the regularization parameter (*fitting_regularization_parameter*).  Here :math:`\bar{\boldsymbol E}^{\star} \in
 \mathbb{R}^{J}` is a vector of with entries :math:`\bar{E}^{\star}_j =
 E^{\star}_j/N_j` and :math:`\boldsymbol F^{\star}` is a vector of
 :math:`\mathcal{N}` entries obtained by stacking :math:`\{\boldsymbol

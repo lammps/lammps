@@ -1284,18 +1284,13 @@ void FitPOD::least_squares_fit(datastruct data)
 
   MPI_Bcast(desc.c, nd, MPI_DOUBLE, 0, world);
 
-  if (comm->me == 0) {
-    // save coefficients into a text file
-
+  if (comm->me == 0) {     // save coefficients into a text file
     std::string filename = podptr->pod.filenametag + "_coefficients"  + ".pod";
     FILE *fp = fopen(filename.c_str(), "w");
 
-    //int prec = utils::inumeric(FLERR,podptr->pod.precision,false,lmp);
-    std::string prec = "{:<10." + podptr->pod.precision + "f}\n";
-
     fmt::print(fp, "POD_coefficients: {}\n", nd);
     for (int count = 0; count < nd; count++) {
-      fmt::print(fp, prec.c_str(), desc.c[count]);
+      fmt::print(fp, "{:<10.{}f}\n",  desc.c[count], podptr->pod.precision);
     }
     fclose(fp);
     utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");

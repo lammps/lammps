@@ -17,6 +17,7 @@
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
+#include "library.h"
 #include "output.h"
 #include "update.h"
 #include "utils.h"
@@ -36,11 +37,11 @@ namespace LAMMPS_NS {
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
-class ResetIDsTest : public LAMMPSTest {
+class ResetAtomsIDTest : public LAMMPSTest {
 protected:
     void SetUp() override
     {
-        testbinary = "ResetIDsTest";
+        testbinary = "ResetAtomsIDTest";
         LAMMPSTest::SetUp();
         if (info->has_style("atom", "full")) {
             BEGIN_HIDE_OUTPUT();
@@ -51,7 +52,7 @@ protected:
     }
 };
 
-TEST_F(ResetIDsTest, MolIDAll)
+TEST_F(ResetAtomsIDTest, MolIDAll)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -89,7 +90,7 @@ TEST_F(ResetIDsTest, MolIDAll)
     // the original data file has two different molecule IDs
     // for two residues of the same molecule/fragment.
     BEGIN_HIDE_OUTPUT();
-    command("reset_mol_ids all");
+    command("reset_atoms mol all");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(1)], 1);
@@ -123,7 +124,7 @@ TEST_F(ResetIDsTest, MolIDAll)
     ASSERT_EQ(molid[GETIDX(29)], 5);
 }
 
-TEST_F(ResetIDsTest, DeletePlusAtomID)
+TEST_F(ResetAtomsIDTest, DeletePlusAtomID)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -134,7 +135,7 @@ TEST_F(ResetIDsTest, DeletePlusAtomID)
     command("group allwater molecule 3:6");
     command("group twowater molecule 4:6:2");
     command("delete_atoms group twowater compress no bond yes");
-    command("reset_mol_ids all");
+    command("reset_atoms mol all");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 23);
     ASSERT_EQ(lmp->atom->map_tag_max, 26);
@@ -193,7 +194,7 @@ TEST_F(ResetIDsTest, DeletePlusAtomID)
     ASSERT_GE(GETIDX(26), 0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids");
+    command("reset_atoms id");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(lmp->atom->map_tag_max, 23);
@@ -201,7 +202,7 @@ TEST_F(ResetIDsTest, DeletePlusAtomID)
         ASSERT_GE(GETIDX(i), 0);
 }
 
-TEST_F(ResetIDsTest, PartialOffset)
+TEST_F(ResetAtomsIDTest, PartialOffset)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -211,7 +212,7 @@ TEST_F(ResetIDsTest, PartialOffset)
     BEGIN_HIDE_OUTPUT();
     command("group allwater molecule 3:6");
     command("group nowater subtract all allwater");
-    command("reset_mol_ids allwater offset 4");
+    command("reset_atoms mol allwater offset 4");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 29);
     ASSERT_EQ(lmp->atom->map_tag_max, 29);
@@ -247,7 +248,7 @@ TEST_F(ResetIDsTest, PartialOffset)
     ASSERT_EQ(molid[GETIDX(29)], 8);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_mol_ids nowater offset 0");
+    command("reset_atoms mol nowater offset 0");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(1)], 1);
@@ -281,7 +282,7 @@ TEST_F(ResetIDsTest, PartialOffset)
     ASSERT_EQ(molid[GETIDX(29)], 8);
 }
 
-TEST_F(ResetIDsTest, DeleteAdd)
+TEST_F(ResetAtomsIDTest, DeleteAdd)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -293,7 +294,7 @@ TEST_F(ResetIDsTest, DeleteAdd)
     command("group twowater molecule 4:6:2");
     command("group nowater subtract all allwater");
     command("delete_atoms group twowater compress no bond yes mol yes");
-    command("reset_mol_ids allwater");
+    command("reset_atoms mol allwater");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 23);
     ASSERT_EQ(lmp->atom->map_tag_max, 26);
@@ -352,7 +353,7 @@ TEST_F(ResetIDsTest, DeleteAdd)
     ASSERT_GE(GETIDX(26), 0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids sort yes");
+    command("reset_atoms id sort yes");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(lmp->atom->map_tag_max, 23);
@@ -360,7 +361,7 @@ TEST_F(ResetIDsTest, DeleteAdd)
         ASSERT_GE(GETIDX(i), 0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_mol_ids nowater offset 1");
+    command("reset_atoms mol nowater offset 1");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(1)], 2);
@@ -392,7 +393,7 @@ TEST_F(ResetIDsTest, DeleteAdd)
     command("create_atoms 2 single 1.0 0.0 0.0");
     command("create_atoms 3 single 2.0 0.0 0.0");
     command("create_atoms 4 single 3.0 0.0 0.0");
-    command("reset_mol_ids all single yes");
+    command("reset_atoms mol all single yes");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->atom->natoms, 27);
     ASSERT_EQ(lmp->atom->map_tag_max, 27);
@@ -406,7 +407,7 @@ TEST_F(ResetIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(27)], 7);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_mol_ids all single no");
+    command("reset_atoms mol all single no");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(21)], 3);
@@ -418,7 +419,7 @@ TEST_F(ResetIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(27)], 0);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_mol_ids all compress no single yes");
+    command("reset_atoms mol all compress no single yes");
     END_HIDE_OUTPUT();
 
     ASSERT_EQ(molid[GETIDX(21)], 21);
@@ -430,7 +431,7 @@ TEST_F(ResetIDsTest, DeleteAdd)
     ASSERT_EQ(molid[GETIDX(27)], 27);
 }
 
-TEST_F(ResetIDsTest, TopologyData)
+TEST_F(ResetAtomsIDTest, TopologyData)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
@@ -525,7 +526,7 @@ TEST_F(ResetIDsTest, TopologyData)
     ASSERT_EQ(angle_atom3[GETIDX(24)][0], 26);
 
     BEGIN_HIDE_OUTPUT();
-    command("reset_atom_ids sort yes");
+    command("reset_atoms id sort yes");
     END_HIDE_OUTPUT();
 
     num_bond    = lmp->atom->num_bond;
@@ -618,63 +619,186 @@ TEST_F(ResetIDsTest, TopologyData)
     ASSERT_EQ(angle_atom3[GETIDX(22)][0], 23);
 }
 
-TEST_F(ResetIDsTest, DeathTests)
+TEST_F(ResetAtomsIDTest, DeathTests)
 {
     if (lmp->atom->natoms == 0) GTEST_SKIP();
 
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", command("reset_mol_ids"););
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 command("reset_mol_ids all offset 1 1"););
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 command("reset_mol_ids all offset -2"););
-    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*", command("reset_mol_ids all offset xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol command.*", command("reset_atoms mol"););
+    TEST_FAILURE(".*ERROR: Unknown reset_atoms mol keyword: 1.*",
+                 command("reset_atoms mol all offset 1 1"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol offset: -2.*",
+                 command("reset_atoms mol all offset -2"););
     TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
-                 command("reset_mol_ids all compress yes single no offset xxx"););
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", command("reset_mol_ids all offset"););
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
-                 command("reset_mol_ids all compress"););
+                 command("reset_atoms mol all offset xxx"););
+    TEST_FAILURE(".*ERROR on proc 0: Expected integer.*",
+                 command("reset_atoms mol all compress yes single no offset xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol offset command: missing argument.*",
+                 command("reset_atoms mol all offset"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol compress command: missing argument.*",
+                 command("reset_atoms mol all compress"););
 
     TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
-                 command("reset_mol_ids all compress xxx"););
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", command("reset_mol_ids all single"););
+                 command("reset_atoms mol all compress xxx"););
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms mol single command: missing argument.*",
+                 command("reset_atoms mol all single"););
     TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
-                 command("reset_mol_ids all single xxx"););
+                 command("reset_atoms mol all single xxx"););
+
+    TEST_FAILURE(".*ERROR: Illegal reset_atoms image command: missing argument.*",
+                 command("reset_atoms image"););
+    TEST_FAILURE(".*ERROR: Unknown reset_atoms image keyword: xxx.*",
+                 command("reset_atoms image all xxx"););
+    TEST_FAILURE(".*ERROR: Could not find reset_atoms image group xxx.*",
+                 command("reset_atoms image xxx"););
 }
 
-class ResetMolIDsTest : public LAMMPSTest {
+class ResetAtomsMolTest : public LAMMPSTest {
 protected:
     void SetUp() override
     {
-        testbinary = "ResetIDsTest";
+        testbinary = "ResetAtomsMolTest";
         LAMMPSTest::SetUp();
     }
 };
 
-TEST_F(ResetMolIDsTest, FailBeforeBox)
+TEST_F(ResetAtomsMolTest, FailBeforeBox)
 {
-    TEST_FAILURE(".*ERROR: Reset_mol_ids command before simulation box is.*",
-                 command("reset_mol_ids all"););
+    TEST_FAILURE(".*ERROR: Reset_atoms id command before simulation box is.*",
+                 command("reset_atoms id"););
+    TEST_FAILURE(".*ERROR: Reset_atoms mol command before simulation box is.*",
+                 command("reset_atoms mol all"););
+    TEST_FAILURE(".*ERROR: Reset_atoms image command before simulation box is.*",
+                 command("reset_atoms image all"););
 }
 
-TEST_F(ResetMolIDsTest, FailMissingId)
+TEST_F(ResetAtomsMolTest, FailMissingId)
 {
     BEGIN_HIDE_OUTPUT();
     command("atom_modify id no");
     command("region box block 0 1 0 1 0 1");
     command("create_box 1 box");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*ERROR: Cannot use reset_mol_ids unless.*", command("reset_mol_ids all"););
+    TEST_FAILURE(".*ERROR: Cannot use reset_atoms mol unless.*", command("reset_atoms mol all"););
+    TEST_FAILURE(".*ERROR: Cannot use reset_atoms image unless.*",
+                 command("reset_atoms image all"););
 }
 
-TEST_F(ResetMolIDsTest, FailOnlyMolecular)
+TEST_F(ResetAtomsMolTest, FailOnlyMolecular)
 {
     BEGIN_HIDE_OUTPUT();
     command("clear");
     command("region box block 0 1 0 1 0 1");
     command("create_box 1 box");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*ERROR: Can only use reset_mol_ids.*", command("reset_mol_ids all"););
+    TEST_FAILURE(".*ERROR: Can only use reset_atoms mol.*", command("reset_atoms mol all"););
 }
+
+class ResetAtomsImageTest : public LAMMPSTest {
+protected:
+    void SetUp() override
+    {
+        testbinary = "ResetAtomsImageTest";
+        LAMMPSTest::SetUp();
+        if (info->has_style("atom", "full")) {
+            BEGIN_HIDE_OUTPUT();
+            command("variable input_dir index \"" STRINGIFY(TEST_INPUT_FOLDER) "\"");
+            command("include \"${input_dir}/in.fourmol\"");
+            command("create_atoms 1 single 1.0 1.0 1.0");
+            command("create_atoms 1 single 2.0 1.0 1.0");
+            command("create_atoms 1 single 1.0 2.0 1.0");
+            command("set atom 1*7 image 1 1 -1");
+            command("set atom 8*9 image 2 -1 0");
+            command("set atom 8*9 image 2 -1 0");
+            command("set atom 10 image 2 0 0");
+            command("set atom 11*12 image 2 0 -1");
+            command("set atom 13*15 image 1 0 0");
+            command("set atom 16*17 image 0 1 1");
+            command("set atom 18*19 image 0 1 0");
+            command("set atom 20 image 0 2 0");
+            command("set atom 21*23 image 20 -1 0");
+            command("set atom 27*28 image 1 0 0");
+            command("set atom 29 image 1 2 0");
+            command("set atom 31 image -2 0 1");
+            command("set atom 32 image 0 20 0");
+            END_HIDE_OUTPUT();
+        }
+    }
+};
+
+TEST_F(ResetAtomsImageTest, ResetAtomsImage)
+{
+    if (lmp->atom->natoms == 0) GTEST_SKIP();
+    EXPECT_EQ(lmp->atom->image[GETIDX(1)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(2)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(3)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(4)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(5)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(6)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(7)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(8)], lammps_encode_image_flags(2, -1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(9)], lammps_encode_image_flags(2, -1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(10)], lammps_encode_image_flags(2, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(11)], lammps_encode_image_flags(2, 0, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(12)], lammps_encode_image_flags(2, 0, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(13)], lammps_encode_image_flags(1, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(14)], lammps_encode_image_flags(1, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(15)], lammps_encode_image_flags(1, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(16)], lammps_encode_image_flags(0, 1, 1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(17)], lammps_encode_image_flags(0, 1, 1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(18)], lammps_encode_image_flags(0, 1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(19)], lammps_encode_image_flags(0, 1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(20)], lammps_encode_image_flags(0, 2, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(21)], lammps_encode_image_flags(20, -1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(22)], lammps_encode_image_flags(20, -1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(23)], lammps_encode_image_flags(20, -1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(24)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(25)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(26)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(27)], lammps_encode_image_flags(1, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(28)], lammps_encode_image_flags(1, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(29)], lammps_encode_image_flags(1, 2, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(30)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(31)], lammps_encode_image_flags(-2, 0, 1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(32)], lammps_encode_image_flags(0, 20, 0));
+    BEGIN_HIDE_OUTPUT();
+    command("group subset id 5:32");
+    command("reset_atoms image subset");
+    END_HIDE_OUTPUT();
+    EXPECT_EQ(lmp->atom->image[GETIDX(1)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(2)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(3)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(4)], lammps_encode_image_flags(1, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(5)], lammps_encode_image_flags(0, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(6)], lammps_encode_image_flags(0, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(7)], lammps_encode_image_flags(0, 1, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(8)], lammps_encode_image_flags(1, -1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(9)], lammps_encode_image_flags(1, -1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(10)], lammps_encode_image_flags(1, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(11)], lammps_encode_image_flags(1, 0, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(12)], lammps_encode_image_flags(1, 0, -1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(13)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(14)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(15)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(16)], lammps_encode_image_flags(-1, 1, 1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(17)], lammps_encode_image_flags(-1, 1, 1));
+    EXPECT_EQ(lmp->atom->image[GETIDX(18)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(19)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(20)], lammps_encode_image_flags(0, 1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(21)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(22)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(23)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(24)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(25)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(26)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(27)], lammps_encode_image_flags(0, -1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(28)], lammps_encode_image_flags(0, -1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(29)], lammps_encode_image_flags(0, 1, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(30)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(30)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(31)], lammps_encode_image_flags(0, 0, 0));
+    EXPECT_EQ(lmp->atom->image[GETIDX(32)], lammps_encode_image_flags(0, 0, 0));
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

@@ -51,7 +51,7 @@ CONTAINS
         CALL instance%fix_external_set_energy_peratom('ext1', e)
         CALL instance%fix_external_set_virial_peratom('ext1', v)
       CLASS DEFAULT
-        WRITE(0,*) 'UMM...this should never happen.'
+        WRITE(error_unit,*) 'UMM...this should never happen.'
         STOP 1
     END SELECT
   END SUBROUTINE f_callback_ss
@@ -93,7 +93,7 @@ CONTAINS
         CALL instance%fix_external_set_energy_peratom('ext1', e)
         CALL instance%fix_external_set_virial_peratom('ext1', v)
       CLASS DEFAULT
-        WRITE(0,*) 'UMM...this should never happen.'
+        WRITE(error_unit,*) 'UMM...this should never happen.'
         STOP 1
     END SELECT
   END SUBROUTINE f_callback_sb
@@ -135,7 +135,7 @@ CONTAINS
         CALL instance%fix_external_set_energy_peratom('ext1', e)
         CALL instance%fix_external_set_virial_peratom('ext1', v)
       CLASS DEFAULT
-        WRITE(0,*) 'UMM...this should never happen.'
+        WRITE(error_unit,*) 'UMM...this should never happen.'
         STOP 1
     END SELECT
   END SUBROUTINE f_callback_bb

@@ -298,6 +298,16 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype scatter_atoms_subset: subroutine
    :f gather_bonds: :f:subr:`gather_bonds`
    :ftype gather_bonds: subroutine
+   :f gather: :f:subr:`gather`
+   :ftype gather: subroutine
+   :f gather_concat: :f:subr:`gather_concat`
+   :ftype gather_concat: subroutine
+   :f gather_subset: :f:subr:`gather_subset`
+   :ftype gather_subset: subroutine
+   :f scatter: :f:subr:`scatter`
+   :ftype scatter: subroutine
+   :f scatter_subset: :f:subr:`scatter_subset`
+   :ftype scatter_subset: subroutine
    :f create_atoms: :f:subr:`create_atoms`
    :ftype create_atoms: subroutine
    :f find_pair_neighlist: :f:func:`find_pair_neighlist`
@@ -1194,8 +1204,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 .. f:function:: extract_variable(name[,group])
 
-   This function calls :cpp:func:`lammps_extract_variable` and returns a scalar,
-   vector, or string containing the value of the variable identified by
+   This function calls :cpp:func:`lammps_extract_variable` and returns a
+   scalar, vector, or string containing the value of the variable identified by
    *name*. When the variable is an *equal*-style variable (or one compatible
    with that style such as *internal*), the variable is evaluated and the
    corresponding value returned. When the variable is an *atom*-style variable,
@@ -1276,15 +1286,19 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    length (*count* :math:`\times` *natoms*), as queried by
    :f:func:`extract_setting`.
 
+   This function is not compatible with ``-DLAMMPS_BIGBIG``.
+
    :p character(len=\*) name: desired quantity (e.g., *x* or *mask*)
    :p integer(c_int) count: number of per-atom values you expect per atom
     (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
     *count* = 3 with *image* if you want a single image flag unpacked into
     *x*/*y*/*z* components.
-   :p real(c_double) data [dimension(:),allocatable]: array into which to store
+   :p polymorphic data [dimension(:),allocatable]: array into which to store
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
-    reallocated to fit the length of the incoming data.
+    reallocated to fit the length of the incoming data. It should have type
+    ``INTEGER(c_int)`` if expecting integer data and ``REAL(c_double)`` if
+    expecting floating-point data.
    :to: :cpp:func:`lammps_gather_atoms`
 
    .. note::
@@ -1324,15 +1338,19 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :f:func:`gather_atoms`; for a similar array but for a subset of atoms, see
    :f:func:`gather_atoms_subset`.
 
+   This function is not compatible with ``-DLAMMPS_BIGBIG``.
+
    :p character(len=\*) name: desired quantity (e.g., *x* or *mask*)
    :p integer(c_int) count: number of per-atom values you expect per atom
     (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
     *count* = 3 with *image* if you want a single image flag unpacked into
     *x*/*y*/*z* components.
-   :p real(c_double) data [dimension(:),allocatable]: array into which to store
+   :p polymorphic data [dimension(:),allocatable]: array into which to store
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
-    reallocated to fit the length of the incoming data.
+    reallocated to fit the length of the incoming data. It should have type
+    ``INTEGER(c_int)`` if expecting integer data and ``REAL(c_double)`` if
+    expecting floating-point data.
    :to: :cpp:func:`lammps_gather_atoms_concat`
 
 --------
@@ -1346,7 +1364,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    .. versionadded:: 3Nov2022
 
    This subroutine gathers data for the requested atom IDs and stores them in a
-   one-dimensional array allocated by the user. The data will be ordered by
+   one-dimensional allocatable array. The data will be ordered by
    atom ID, but there is no requirement that the IDs be consecutive. If you
    wish to return a similar array for *all* the atoms, use
    :f:func:`gather_atoms` or :f:func:`gather_atoms_concat`.
@@ -1359,6 +1377,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    user, and *data* must be of rank 1 (i.e., ``DIMENSION(:)``) and have the
    ``ALLOCATABLE`` attribute.
 
+   This function is not compatible with ``-DLAMMPS_BIGBIG``.
+
    :p character(len=\*) name: desired quantity (e.g., *x* or *mask*)
    :p integer(c_int) count: number of per-atom values you expect per atom
     (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
@@ -1366,10 +1386,12 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     *x*/*y*/*z* components.
    :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
     to be gathered
-   :p real(c_double) data [dimension(:),allocatable]: array into which to store
+   :p polymorphic data [dimension(:),allocatable]: array into which to store
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
-    reallocated to fit the length of the incoming data.
+    reallocated to fit the length of the incoming data. It should have type
+    ``INTEGER(c_int)`` if expecting integer data and ``REAL(c_double)`` if
+    expecting floating-point data.
    :to: :cpp:func:`lammps_gather_atoms_subset`
 
 --------
@@ -1443,7 +1465,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionadded:: 3Nov2022
 
-   This function copies the list of all bonds into an allocated array.
+   This function copies the list of all bonds into an allocatable array.
    The array will be filled with (bond type, bond atom 1, bond atom 2) for each
    bond. The array is allocated to the right length (i.e., three times the
    number of bonds). The array *data* must be of the same type as the LAMMPS
@@ -1479,6 +1501,173 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     kind ``c_int64_t``.
    :ptype data: integer(kind=\*),allocatable
    :to: :cpp:func:`lammps_gather_bonds`
+
+--------
+
+.. f:subroutine:: gather(self, name, count, data)
+
+   Gather the named per-atom, per-atom fix, per-atom compute, or fix
+   property/atom-based entities from all processes, in order by atom ID.
+
+   .. versionadded:: TBD
+
+   This subroutine gathers data from all processes and stores them in a
+   one-dimensional allocatable array. The array *data* will be
+   ordered by atom ID, which requires consecutive IDs (1 to *natoms*\ ). If you
+   need a similar array but for non-consecutive atom IDs, see
+   :cpp:func:`lammps_gather_concat`; for a similar array but for a subset of
+   atoms, see :cpp:func:`lammps_gather_subset`.
+
+   The *data* array will be ordered in groups of *count* values, sorted by atom
+   ID (e.g., if *name* is *x*, then *data* is [x(1,1), x(2,1), x(3,1), x(1,2),
+   x(2,2), x(3,2), x(1,3), :math:`\dots`]); *data* must be ``ALLOCATABLE`` and
+   will be allocated to length (*count*\ :math:`{}\times{}`\ *natoms*), as
+   queried by :f:func:`extract_setting`.
+
+   This function will return an error if fix or compute data are requested and
+   the fix or compute ID given does not have per-atom data. See the note about
+   re-interpreting the vector as a matrix at :f:subr:`gather_atoms`.
+
+   This function is not compatible with ``-DLAMMPS_BIGBIG``.
+
+   :p character(len=\*) name: desired quantity (e.g., "x" or "mask" for atom
+    properties, "f_id" for per-atom fix data, "c_id" for per-atom compute data,
+    "d_name" or "i_name" for fix property/atom vectors with *count* = 1,
+    "d2_name" or "i2_name" for fix propert/atom vectors with
+    *count*\ :math:`{}> 1`)
+   :p integer(c_int) count: number of per-atom values (e.g., 1 for *type* or
+    *charge*, 3 for *x* or *f*); use *count* = 3 with *image* if you want the
+    image flags unpacked into (*x*,\ *y*,\ *z*) components.
+   :p real(c_double) data [dimension(:),allocatable]: array into which to store
+    the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
+    (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
+    reallocated to fit the length of the incoming data.
+   :to: :cpp:func:`lammps_gather`
+
+--------
+
+.. f:subroutine:: gather_concat(self, name, count, data)
+
+   Gather the named per-atom, per-atom fix, per-atom compute, or fix
+   property/atom-based entities from all processes, unordered.
+
+   This subroutine gathers data for all atoms and stores them in a
+   one-dimensional allocatable array. The data will be a
+   concatenation of chunks from each processor's owned atoms, in whatever order
+   the atoms are in on each processor. This process has no requirement that the
+   atom IDs be consecutive. If you need the ID of each atom, you can do another
+   call to either :f:subr:`gather_atoms_concat` or :f:subr:`gather_concat` with
+   *name* set to ``id``. If you have consecutive IDs and want the data to be in
+   order, use :f:subr:`gather`; for a similar array but for a subset of
+   atoms, use :f:subr:`gather_subset`.
+
+   The *data* array will be in groups of *count* values, with *natoms* groups
+   total, but not in order by atom ID (e.g., if *name* is *x* and *count* is 3,
+   then *data* might be something like [x(1,11), x(2,11), x(3,11), x(1,3),
+   x(2,3), x(3,3), x(1,5), :math:`\dots`]); *data* must be ``ALLOCATABLE`` and
+   will be allocated to length (*count* :math:`\times` *natoms*), as queried by
+   :f:func:`extract_setting`.
+
+   This function is not compatible with ``-DLAMMPS_BIGBIG``.
+
+   :p character(len=\*) name: desired quantity (e.g., "x" or "mask" for atom
+    properties, "f_id" for per-atom fix data, "c_id" for per-atom compute data,
+    "d_name" or "i_name" for fix property/atom vectors with *count* = 1,
+    "d2_name" or "i2_name" for fix propert/atom vectors with
+    *count*\ :math:`{}> 1`)
+   :p integer(c_int) count: number of per-atom values you expect per atom
+    (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
+    *count* = 3 with *image* if you want a single image flag unpacked into
+    *x*/*y*/*z* components.
+   :p polymorphic data [dimension(:),allocatable]: array into which to store
+    the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
+    (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
+    reallocated to fit the length of the incoming data. It should have type
+    ``INTEGER(c_int)`` if expecting integer data and ``REAL(c_double)`` if
+    expecting floating-point data.
+   :to: :cpp:func:`lammps_gather_concat`
+
+--------
+
+.. f:subroutine:: gather_subset(name, count, ids, data)
+
+   Gather the named per-atom, per-atom fix, per-atom compute, or fix
+   property/atom-based entities from all processes for a subset of atoms.
+ 
+   This subroutine gathers data for the requested atom IDs and stores them in a
+   one-dimensional allocatable array. The data will be ordered by atom ID, but
+   there is no requirement that the IDs be consecutive. If you wish to return a
+   similar array for *all* the atoms, use :f:subr:`gather` or
+   :f:subr:`gather_concat`.
+
+   The *data* array will be in groups of *count* values, sorted by atom ID in
+   the same order as the array *ids* (e.g., if *name* is *x*, *count* = 3, and
+   *ids* is [100, 57, 210], then *data* might look like [x(1,100), x(2,100),
+   x(3,100), x(1,57), x(2,57), x(3,57), x(1,210), :math:`\dots`]); *ids* must
+   be provided by the user, and *data* must have the ``ALLOCATABLE`` attribute
+   and be of rank 1 (i.e., ``DIMENSION(:)``). If *data* is already allocated,
+   it will be reallocated to fit the length of the incoming data.
+
+   This function is not compatible with ``-DLAMMPS_BIGBIG``.
+
+   :p character(len=\*) name: quantity to be scattered
+
+   :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
+    being scattered (e.g., "x" or "f" for atom properties, "f_id" for per-atom
+    fix data, "c_id" for per-atom compute data, "d_name" or "i_name" for fix
+    property/atom vectors with *count* = 1, "d2_name" or "i2_name" for fix
+    property/atom vectors with *count*\ :math:`{} > 1`)
+   :p data: per-atom values packed into a one-dimensional array containing the
+    data to be scattered. This array must have either the same length as *ids*
+    (for *mask*, *type*, etc.) or three times its length (for *x*, *f*, etc.);
+    the array must be rank 1 and be of type ``INTEGER(c_int)`` (e.g., for
+    *mask* or *type*) or of type ``REAL(c_double)`` (e.g., for *charge*, *x*,
+    or *f*).
+   :ptype data: polymorphic,dimension(:)
+   :to: :cpp:func:`lammps_scatter_subset`
+
+--------
+
+.. f:subroutine:: scatter(name, data)
+
+   This function calls :cpp:func:`lammps_scatter` to scatter the named
+   atom-based entities in *data* to all processes.
+
+   *This function is not yet documented, as the underlying C routine has not
+   been thoroughly tested yet.*
+
+--------
+
+.. f:subroutine:: scatter_subset(name, ids, data)
+
+   This function calls :cpp:func:`lammps_scatter_subset` to scatter the named
+   per-atom, per-atom fix, per-atom compute, or fix property/atom-based
+   entities in *data* from a subset of atoms to all processes.
+
+   .. versionadded:: TBD
+
+   This subroutine takes data stored in a one-dimensional array supplied by the
+   user and scatters them to a subset of atoms on all processes. The array
+   *data* contains data associated with atom IDs, but there is no requirement
+   that the IDs be consecutive, as they are provided in a separate array.
+   Use :f:subr:`scatter` to scatter data for all atoms, in order.
+
+   The *data* array needs to be organized in groups of *count* values, with the
+   groups in the same order as the array *ids*. For example, if you want *data*
+   to be the array [x(1,1), x(2,1), x(3,1), x(1,100), x(2,100), x(3,100),
+   x(1,57), x(2,57), x(3,57)], then *count* = 3 and *ids* = [1, 100, 57].
+
+   This function is not compatible with ``-DLAMMPS_BIGBIG``.
+
+   :p character(len=\*) name: desired quantity (e.g., "x" or "mask" for atom
+    properties, "f_id" for per-atom fix data, "c_id" for per-atom compute data,
+    "d_name" or "i_name" for fix property/atom vectors with *count* = 1,
+    "d2_name" or "i2_name" for fix propert/atom vectors with
+    *count*\ :math:`{}> 1`)
+   :p integer(c_int) ids: list of atom IDs to scatter data for
+   :p polymorphic data [dimension(:)]: per-atom values packed in a
+    one-dimensional array of length *size(ids)* \* *count*.
+   :to: :cpp:func:`lammps_scatter_subset`
 
 --------
 

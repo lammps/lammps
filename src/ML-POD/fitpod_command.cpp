@@ -44,7 +44,7 @@ using MathSpecial::powint;
 
 #define MAXLINE 1024
 
-static constexpr double SMALL = 1.0e-12;
+static constexpr double SMALL = 1.0e-10;
 
 void FitPOD::command(int narg, char **arg)
 {
@@ -1245,6 +1245,30 @@ void FitPOD::least_squares_fit(datastruct data)
   MPI_Allreduce(MPI_IN_PLACE, desc.A, nd*nd, MPI_DOUBLE, MPI_SUM, world);
 
   if (comm->me == 0) {
+
+    // symmetrize A
+    
+    for (int i = 0; i<nd; i++)
+      for (int j = i; j<nd; j++) {
+        double a1 = desc.A[i + nd*j];
+        double a2 = desc.A[j + nd*i];
+        desc.A[i + nd*j] = 0.5*(a1+a2);
+        desc.A[j + nd*i] = 0.5*(a1+a2);
+      }
+       
+    // scale A and b
+    
+    double maxb = 0.0;
+    for (int i = 0; i<nd; i++)
+      maxb = (maxb > fabs(desc.b[i])) ? maxb : fabs(desc.b[i]); 
+        
+    maxb = 1.0/maxb;    
+    for (int i = 0; i<nd; i++) 
+      desc.b[i] = desc.b[i]*maxb;
+    
+    for (int i = 0; i<nd*nd; i++) 
+      desc.A[i] = desc.A[i]*maxb;
+    
     for (int i = 0; i<nd; i++) {
       desc.c[i] = desc.b[i];
       desc.A[i + nd*i] = desc.A[i + nd*i]*(1.0 + SMALL);
@@ -1252,17 +1276,31 @@ void FitPOD::least_squares_fit(datastruct data)
     }
 
     // solving the linear system A * c = b
-
+    
     int nrhs=1, info;
     char chu = 'U';
     DPOSV(&chu, &nd, &nrhs, desc.A, &nd, desc.c, &nd, &info);
 
-    // rounding the coefficients up to prec digits after the decimal point
-
-    int prec = utils::inumeric(FLERR,podptr->pod.precision,false,lmp);
-    double p = powint(10.0, prec);
-    for (int count = 0; count < nd; count++)
-      desc.c[count] = roundf(desc.c[count]  * p) / p;
+    // compute the inverse of A
+    
+//     int lwork = 10*nd;
+//     int info;
+//     int *ipiv;
+//     double *work;
+//     memory->create(ipiv, nd, "ipiv");
+//     memory->create(work, lwork, "work");
+//     DGETRF(&nd, &nd, desc.A, &nd,ipiv, &info);
+//     DGETRI(&nd, desc.A, &nd, ipiv, work, &lwork, &info);
+//     memory->destroy(ipiv);
+//     memory->destroy(work);
+    
+    // compute c = inverse(A) * b
+    
+//     for (int i = 0; i<nd; i++) {
+//       desc.c[i] = 0.0;
+//       for (int j = 0; j<nd; j++) 
+//         desc.c[i] += desc.A[i + nd*j]*desc.b[j];
+//     }        
   }
 
   MPI_Bcast(desc.c, nd, MPI_DOUBLE, 0, world);
@@ -1273,10 +1311,13 @@ void FitPOD::least_squares_fit(datastruct data)
     std::string filename = podptr->pod.filenametag + "_coefficients"  + ".pod";
     FILE *fp = fopen(filename.c_str(), "w");
 
+    //int prec = utils::inumeric(FLERR,podptr->pod.precision,false,lmp);    
+    std::string prec = "{:<10." + podptr->pod.precision + "f}\n";
+            
     fmt::print(fp, "POD_coefficients: {}\n", nd);
     for (int count = 0; count < nd; count++) {
-      fmt::print(fp, "{} \n", desc.c[count]);
-    }
+      fmt::print(fp, prec.c_str(), desc.c[count]);
+    }    
     fclose(fp);
     utils::logmesg(lmp, "**************** End of Least-Squares Fitting ****************\n");
   }

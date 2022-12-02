@@ -35,4 +35,4 @@ quadratic_pod_potential 1
 basename_for_output_files Ta
 
 # number of digits after the decimal point
-precision_for_pod_coefficients 8
+precision_for_pod_coefficients 5

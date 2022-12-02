@@ -160,7 +160,7 @@ class MLPOD : protected Pointers {
 
     std::vector<std::string> species;
     std::string filenametag;
-    std::string precision;
+    int precision;
     int twobody[3];
     int threebody[4];
     int fourbody[4];

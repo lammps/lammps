@@ -99,6 +99,10 @@ above):
      - pod
      - STRING
      - a basename string added to the output files
+   * - precision_for_pod_coefficients
+     - 8
+     - INT
+     - number of digits after the decimal points for numbers in the coefficient file
 
 All keywords except *species* have default values. If a keyword is not
 set in the input file, its default value is used.  The next table

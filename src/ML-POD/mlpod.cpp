@@ -38,11 +38,12 @@ using MathSpecial::powint;
 #define MAXLINE 1024
 
 MLPOD::podstruct::podstruct() :
-    filenametag("pod"), precision("8"), twobody{5, 10, 10}, threebody{4, 8, 8, 5},
-    fourbody{0, 0, 0, 0}, pbc(nullptr), elemindex(nullptr), quadratic22{0, 0}, quadratic23{0, 0},
-    quadratic24{0, 0}, quadratic33{0, 0}, quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0},
-    cubic333{0, 0, 0}, cubic444{0, 0, 0}, besselparams(nullptr), coeff(nullptr), Phi2(nullptr),
-    Phi3(nullptr), Phi4(nullptr), Lambda2(nullptr), Lambda3(nullptr), Lambda4(nullptr)
+    filenametag("pod"),
+    precision(8), twobody{5, 10, 10}, threebody{4, 8, 8, 5}, fourbody{0, 0, 0, 0}, pbc(nullptr),
+    elemindex(nullptr), quadratic22{0, 0}, quadratic23{0, 0}, quadratic24{0, 0}, quadratic33{0, 0},
+    quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0},
+    besselparams(nullptr), coeff(nullptr), Phi2(nullptr), Phi3(nullptr), Phi4(nullptr),
+    Lambda2(nullptr), Lambda3(nullptr), Lambda4(nullptr)
 {
 }
 
@@ -520,7 +521,8 @@ void MLPOD::read_pod(const std::string &pod_file)
 
     if (keywd == "basename_for_output_files") pod.filenametag = words[1];
 
-    if (keywd == "precision_for_pod_coefficients") pod.precision = words[1];
+    if (keywd == "precision_for_pod_coefficients")
+      pod.precision = utils::inumeric(FLERR,words[1],false,lmp);
 
     if (keywd == "pbc") {
       if (words.size() != 4)
@@ -537,51 +539,90 @@ void MLPOD::read_pod(const std::string &pod_file)
 
       if (keywd == "rin") pod.rin = utils::numeric(FLERR,words[1],false,lmp);
       if (keywd == "rcut") pod.rcut = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "bessel_scaling_parameter1") pod.besselparams[0] = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "bessel_scaling_parameter2") pod.besselparams[1] = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "bessel_scaling_parameter3") pod.besselparams[2] = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "bessel_polynomial_degree") pod.besseldegree = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "inverse_polynomial_degree") pod.inversedegree = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_scaling_parameter1")
+        pod.besselparams[0] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_scaling_parameter2")
+        pod.besselparams[1] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_scaling_parameter3")
+        pod.besselparams[2] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "bessel_polynomial_degree")
+        pod.besseldegree = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "inverse_polynomial_degree")
+        pod.inversedegree = utils::inumeric(FLERR,words[1],false,lmp);
       if (keywd == "onebody") pod.onebody = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "twobody_bessel_polynomial_degree") pod.twobody[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "twobody_inverse_polynomial_degree") pod.twobody[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "twobody_number_radial_basis_functions") pod.twobody[2] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "threebody_bessel_polynomial_degree") pod.threebody[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "threebody_inverse_polynomial_degree") pod.threebody[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "threebody_number_radial_basis_functions") pod.threebody[2] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "threebody_number_angular_basis_functions") pod.threebody[3] = utils::inumeric(FLERR,words[1],false,lmp)-1;
-      if (keywd == "fourbody_bessel_polynomial_degree") pod.fourbody[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_inverse_polynomial_degree") pod.fourbody[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_number_radial_basis_functions") pod.fourbody[2] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_snap_twojmax") pod.snaptwojmax = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_snap_chemflag") pod.snapchemflag = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_snap_rfac0") pod.snaprfac0 = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_snap_neighbor_weight1") pod.snapelementweight[0] = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_snap_neighbor_weight2") pod.snapelementweight[1] = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_snap_neighbor_weight3") pod.snapelementweight[2] = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_snap_neighbor_weight4") pod.snapelementweight[3] = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "fourbody_snap_neighbor_weight5") pod.snapelementweight[4] = utils::numeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic_pod_potential") pod.quadraticpod = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic22_number_twobody_basis_functions") pod.quadratic22[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic22_number_twobody_basis_functions") pod.quadratic22[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic23_number_twobody_basis_functions") pod.quadratic23[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic23_number_threebody_basis_functions") pod.quadratic23[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic24_number_twobody_basis_functions") pod.quadratic24[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic24_number_fourbody_basis_functions") pod.quadratic24[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic33_number_threebody_basis_functions") pod.quadratic33[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic33_number_threebody_basis_functions") pod.quadratic33[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic34_number_threebody_basis_functions") pod.quadratic34[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic34_number_fourbody_basis_functions") pod.quadratic34[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "quadratic44_number_fourbody_basis_functions") pod.quadratic44[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "cubic234_number_twobody_basis_functions") pod.cubic234[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "cubic234_number_threebody_basis_functions") pod.cubic234[1] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "cubic234_number_fourbody_basis_functions") pod.cubic234[2] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "cubic333_number_threebody_basis_functions") pod.cubic333[0] = utils::inumeric(FLERR,words[1],false,lmp);
-      if (keywd == "cubic444_number_fourbody_basis_functions") pod.cubic444[0] = utils::inumeric(FLERR,words[1],false,lmp);
-
+      if (keywd == "twobody_bessel_polynomial_degree")
+        pod.twobody[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "twobody_inverse_polynomial_degree")
+        pod.twobody[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "twobody_number_radial_basis_functions")
+        pod.twobody[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_bessel_polynomial_degree")
+        pod.threebody[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_inverse_polynomial_degree")
+        pod.threebody[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_number_radial_basis_functions")
+        pod.threebody[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "threebody_number_angular_basis_functions")
+        pod.threebody[3] = utils::inumeric(FLERR,words[1],false,lmp)-1;
+      if (keywd == "fourbody_bessel_polynomial_degree")
+        pod.fourbody[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_inverse_polynomial_degree")
+        pod.fourbody[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_number_radial_basis_functions")
+        pod.fourbody[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_twojmax")
+        pod.snaptwojmax = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_chemflag")
+        pod.snapchemflag = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_rfac0")
+        pod.snaprfac0 = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight1")
+        pod.snapelementweight[0] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight2")
+        pod.snapelementweight[1] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight3")
+        pod.snapelementweight[2] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight4")
+        pod.snapelementweight[3] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "fourbody_snap_neighbor_weight5")
+        pod.snapelementweight[4] = utils::numeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic_pod_potential")
+        pod.quadraticpod = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic22_number_twobody_basis_functions")
+        pod.quadratic22[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic22_number_twobody_basis_functions")
+        pod.quadratic22[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic23_number_twobody_basis_functions")
+        pod.quadratic23[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic23_number_threebody_basis_functions")
+        pod.quadratic23[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic24_number_twobody_basis_functions")
+        pod.quadratic24[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic24_number_fourbody_basis_functions")
+        pod.quadratic24[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic33_number_threebody_basis_functions")
+        pod.quadratic33[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic33_number_threebody_basis_functions")
+        pod.quadratic33[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic34_number_threebody_basis_functions")
+        pod.quadratic34[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic34_number_fourbody_basis_functions")
+        pod.quadratic34[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic44_number_fourbody_basis_functions")
+        pod.quadratic44[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "quadratic44_number_fourbody_basis_functions")
+        pod.quadratic44[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic234_number_twobody_basis_functions")
+        pod.cubic234[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic234_number_threebody_basis_functions")
+        pod.cubic234[1] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic234_number_fourbody_basis_functions")
+        pod.cubic234[2] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic333_number_threebody_basis_functions")
+        pod.cubic333[0] = utils::inumeric(FLERR,words[1],false,lmp);
+      if (keywd == "cubic444_number_fourbody_basis_functions")
+        pod.cubic444[0] = utils::inumeric(FLERR,words[1],false,lmp);
     }
-
   }
 
   pod.twobody[0] = pod.besseldegree;
@@ -901,7 +942,7 @@ void MLPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tm
       &tmpmem[3*Nij], rin, rcut, pairnumsum, atomtype, ai, aj, ti, tj, elemindex, pdegree2,
       nbesselpars, nrbf2, nrbf3, nabf3, nelements, Nij, natom);
 
-  if (pod.snaptwojmax>0)
+  if (pod.snaptwojmax > 0)
     snapdesc(eatom4, fatom4, rij, &tmpmem[3*Nij], atomtype, ai, aj, ti, tj, natom, Nij);
 
   // global descriptors for one-body, two-body, three-body, and four-bodt linear potentials
@@ -1195,39 +1236,39 @@ double MLPOD::calculate_energyforce(double *force, double *gd, double *gdd, doub
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) energy += quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22 > 0) energy += quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) energy += quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23 > 0) energy += quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) energy += quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24 > 0) energy += quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) energy += quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33 > 0) energy += quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) energy += quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34 > 0) energy += quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) energy += quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44 > 0) energy += quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) energy += cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234 > 0) energy += cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) energy += cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333 > 0) energy += cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) energy += cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444 > 0) energy += cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -3010,7 +3051,7 @@ void MLPOD::linear_descriptors_ij(double *gd, double *eatom, double *rij, double
 
   // peratom snap descriptors
 
-  if (pod.snaptwojmax>0)
+  if (pod.snaptwojmax > 0)
     snapdesc_ij(eatom4, rij, tmpmem, atomtype, idxi, ti, tj, natom, Nij);
 
   // global descriptors for one-body, two-body, three-body, and four-bodt linear potentials
@@ -3077,39 +3118,39 @@ double MLPOD::calculate_energy(double *effectivecoeff, double *gd, double *coeff
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) energy += quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22 > 0) energy += quadratic_coefficients(c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) energy += quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23 > 0) energy += quadratic_coefficients(c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) energy += quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24 > 0) energy += quadratic_coefficients(c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) energy += quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33 > 0) energy += quadratic_coefficients(c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) energy += quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34 > 0) energy += quadratic_coefficients(c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) energy += quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44 > 0) energy += quadratic_coefficients(c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) energy += cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234 > 0) energy += cubic_coefficients(c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) energy += cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333 > 0) energy += cubic_coefficients(c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) energy += cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444 > 0) energy += cubic_coefficients(c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -3180,39 +3221,39 @@ double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *
 
   // calculate energy for quadratic22 potential
 
-  if (nd22>0) quadratic_coefficients(ce2, c2, d2, coeff22, pod.quadratic22, nc2);
+  if (nd22 > 0) quadratic_coefficients(ce2, c2, d2, coeff22, pod.quadratic22, nc2);
 
   // calculate energy for quadratic23 potential
 
-  if (nd23>0) quadratic_coefficients(ce2, ce3, c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
+  if (nd23 > 0) quadratic_coefficients(ce2, ce3, c2, c3, d2, d3, coeff23, pod.quadratic23, nc2, nc3);
 
   // calculate energy for quadratic24 potential
 
-  if (nd24>0) quadratic_coefficients(ce2, ce4, c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
+  if (nd24 > 0) quadratic_coefficients(ce2, ce4, c2, c4, d2, d4, coeff24, pod.quadratic24, nc2, nc4);
 
   // calculate energy for quadratic33 potential
 
-  if (nd33>0) quadratic_coefficients(ce3, c3, d3, coeff33, pod.quadratic33, nc3);
+  if (nd33 > 0) quadratic_coefficients(ce3, c3, d3, coeff33, pod.quadratic33, nc3);
 
   // calculate energy for quadratic34 potential
 
-  if (nd34>0) quadratic_coefficients(ce3, ce4, c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
+  if (nd34 > 0) quadratic_coefficients(ce3, ce4, c3, c4, d3, d4, coeff34, pod.quadratic34, nc3, nc4);
 
   // calculate energy for quadratic44 potential
 
-  if (nd44>0) quadratic_coefficients(ce4, c4, d4, coeff44, pod.quadratic44, nc4);
+  if (nd44 > 0) quadratic_coefficients(ce4, c4, d4, coeff44, pod.quadratic44, nc4);
 
   // calculate energy for cubic234 potential
 
-  if (nd234>0) cubic_coefficients(ce2, ce3, ce4, c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
+  if (nd234 > 0) cubic_coefficients(ce2, ce3, ce4, c2, c3, c4, d2, d3, d4, coeff234, pod.cubic234, nc2, nc3, nc4);
 
   // calculate energy for cubic333 potential
 
-  if (nd333>0) cubic_coefficients(ce3, c3, d3, coeff333, pod.cubic333, nc3);
+  if (nd333 > 0) cubic_coefficients(ce3, c3, d3, coeff333, pod.cubic333, nc3);
 
   // calculate energy for cubic444 potential
 
-  if (nd444>0) cubic_coefficients(ce4, c4, d4, coeff444, pod.cubic444, nc4);
+  if (nd444 > 0) cubic_coefficients(ce4, c4, d4, coeff444, pod.cubic444, nc4);
 
   // calculate effective POD coefficients
 
@@ -3531,7 +3572,7 @@ void MLPOD::calculate_force(double *force, double *effectivecoeff, double *rij, 
   pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
       ti, tj, nrbf3, nabf3, nelements, natom, Nij);
 
-  if (pod.snaptwojmax>0)
+  if (pod.snaptwojmax > 0)
     pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
 }
 
@@ -3854,6 +3895,6 @@ void MLPOD::calculate_force(double **force, double *effectivecoeff, double *rij,
     pod3body_force(force, rij, e2ij, f2ij, coeff3, &tmpmem[4*Nij*nrbf], elemindex, pairnumsum, ai, aj,
             ti, tj, nrbf3, nabf3, nelements, natom, Nij);
 
-    if (pod.snaptwojmax>0)
+    if (pod.snaptwojmax > 0)
         pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
 }

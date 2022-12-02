@@ -13,35 +13,47 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(DEPRECATED,Deprecated);
-CommandStyle(box,Deprecated);
-CommandStyle(kim_init,Deprecated);
-CommandStyle(kim_interactions,Deprecated);
-CommandStyle(kim_param,Deprecated);
-CommandStyle(kim_property,Deprecated);
-CommandStyle(kim_query,Deprecated);
-CommandStyle(reset_ids,Deprecated);
-CommandStyle(reset_atom_ids,Deprecated);
-CommandStyle(reset_mol_ids,Deprecated);
-CommandStyle(message,Deprecated);
-CommandStyle(server,Deprecated);
+CommandStyle(RESET_ATOMS_ID,ResetAtomsID);
 // clang-format on
 #else
 
-#ifndef LMP_DEPRECATED_H
-#define LMP_DEPRECATED_H
+#ifndef LMP_RESET_ATOMS_ID_H
+#define LMP_RESET_ATOMS_ID_H
 
 #include "command.h"
 
 namespace LAMMPS_NS {
 
-class Deprecated : public Command {
+class ResetAtomsID : public Command {
  public:
-  Deprecated(class LAMMPS *lmp) : Command(lmp){};
+  struct AtomRvous {
+    bigint ibin;
+    int proc, ilocal;
+    double x[3];
+  };
+
+  struct IDRvous {
+    tagint newID;
+    int ilocal;
+  };
+
+#if defined(LMP_QSORT)
+  // static variable across all ResetID objects, for qsort callback
+  static AtomRvous *sortrvous;
+#endif
+
+  ResetAtomsID(class LAMMPS *);
   void command(int, char **) override;
+
+ private:
+  bigint binlo, binhi;
+
+  // callback functions for rendezvous communication
+
+  static int sort_bins(int, char *, int &, int *&, char *&, void *);
+
+  void sort();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

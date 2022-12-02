@@ -149,6 +149,10 @@ describes all keywords that can be used in the second input file
      - 1.0
      - REAL
      - a real constant specifies the weight for force in the least-squares fit
+   * - fitting_regularization_parameter
+     - 1.0e-10
+     - REAL
+     - a real constant specifies the regularization parameter in the least-squares fit
    * - error_analysis_for_training_data_set
      - 0
      - BOOL

@@ -2682,8 +2682,8 @@ CONTAINS
     CHARACTER(LEN=*), INTENT(IN) :: id
     REAL(c_double), DIMENSION(:,:), TARGET, INTENT(IN) :: virial
     TYPE(c_ptr) :: Cid, Cvirial
-    TYPE(c_ptr), TARGET :: Cptr
-    INTEGER(c_int) :: nlocal
+    TYPE(c_ptr), DIMENSION(:), ALLOCATABLE, TARGET :: Cptr
+    INTEGER(c_int) :: nlocal, i
 
     nlocal = lmp_extract_setting(self, 'nlocal')
     IF (SIZE(virial,2) < nlocal .OR. SIZE(virial,1) /= 6) THEN
@@ -2692,10 +2692,14 @@ CONTAINS
         &[Fortran/fix_external_set_energy_peratom]')
     END IF
     Cid = f2c_string(id)
-    Cptr = C_LOC(virial(1,1))
-    Cvirial = C_LOC(Cptr)
+    ALLOCATE(Cptr(nlocal))
+    DO i = 1, nlocal
+      Cptr(i) = C_LOC(virial(1,i))
+    END DO
+    Cvirial = C_LOC(Cptr(1))
     CALL lammps_fix_external_set_virial_peratom(self%handle, Cid, Cvirial)
     CALL lammps_free(Cid)
+    DEALLOCATE(Cptr)
   END SUBROUTINE lmp_fix_external_set_virial_peratom
 
   SUBROUTINE lmp_fix_external_set_vector_length(self, id, length)

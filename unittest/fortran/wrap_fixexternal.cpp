@@ -23,6 +23,9 @@ void f_lammps_reverse_direction();
 void f_lammps_find_forces();
 void f_lammps_add_energy();
 void f_lammps_set_virial();
+double f_lammps_find_peratom_energy(int);
+void f_lammps_find_peratom_virial(double[6], int);
+void f_lammps_fixexternal_set_vector();
 }
 
 using namespace LAMMPS_NS;
@@ -128,10 +131,64 @@ TEST_F(LAMMPS_fixexternal, energy_peratom)
 {
     f_lammps_setup_fix_external_callback();
     f_lammps_set_fix_external_callbacks();
+    lammps_command(lmp, "compute peratom all pe/atom");
     double energy;
     lammps_command(lmp, "run 0");
-/* FIXME: the per-atom energy is NOT summed up by this function! We need
-   another test. */
-    energy = lammps_get_thermo(lmp, "pe");
-    EXPECT_DOUBLE_EQ(energy, 11.0);
+    int nlocal = lammps_extract_setting(lmp, "nlocal");
+    for (int i = 1; i <= nlocal; i++)
+    {
+        energy = f_lammps_find_peratom_energy(i);
+        if (i == 1)
+          EXPECT_DOUBLE_EQ(energy, 1.0);
+        else
+          EXPECT_DOUBLE_EQ(energy, 10.0);
+    }
+};
+
+TEST_F(LAMMPS_fixexternal, virial_peratom)
+{
+    f_lammps_setup_fix_external_callback();
+    f_lammps_set_fix_external_callbacks();
+    lammps_command(lmp, "compute vperatom all stress/atom NULL");
+    double virial[6];
+    lammps_command(lmp, "run 0");
+    int nlocal = lammps_extract_setting(lmp, "nlocal");
+    for (int i = 1; i <= nlocal; i++)
+    {
+        f_lammps_find_peratom_virial(virial, i);
+        if (i == 1)
+        {
+          EXPECT_DOUBLE_EQ(virial[0], -1.0);
+          EXPECT_DOUBLE_EQ(virial[1], -2.0);
+          EXPECT_DOUBLE_EQ(virial[2], 1.0);
+          EXPECT_DOUBLE_EQ(virial[3], 2.0);
+          EXPECT_DOUBLE_EQ(virial[4], -3.0);
+          EXPECT_DOUBLE_EQ(virial[5], 3.0);
+        }
+        else
+        {
+          EXPECT_DOUBLE_EQ(virial[0], -10.0);
+          EXPECT_DOUBLE_EQ(virial[1], -20.0);
+          EXPECT_DOUBLE_EQ(virial[2], 10.0);
+          EXPECT_DOUBLE_EQ(virial[3], 20.0);
+          EXPECT_DOUBLE_EQ(virial[4], -30.0);
+          EXPECT_DOUBLE_EQ(virial[5], 30.0);
+        }
+    }
+};
+
+TEST_F(LAMMPS_fixexternal, vector)
+{
+    f_lammps_setup_fix_external_callback();
+    f_lammps_set_fix_external_callbacks();
+    f_lammps_fixexternal_set_vector();
+    lammps_command(lmp, "run 0");
+    double *v;
+    for (int i = 0; i < 8; i++)
+    {
+      v = (double*) lammps_extract_fix(lmp, "ext2", LMP_STYLE_GLOBAL,
+        LMP_TYPE_VECTOR, i, 1);
+      EXPECT_DOUBLE_EQ(i+1, *v);
+      std::free(v);
+    }
 };

@@ -4,6 +4,7 @@ MODULE ext_stuff
   USE LIBLAMMPS
   IMPLICIT NONE
 
+  INTEGER, PARAMETER :: vec_length = 8
   REAL(c_double), SAVE :: direction = 1.0_c_double
   REAL(c_double), DIMENSION(:,:), POINTER, SAVE :: f3 => NULL(), f4 => NULL()
 
@@ -20,21 +21,35 @@ CONTAINS
     REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
     REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: f
     REAL(c_double), DIMENSION(SIZE(id)) :: e
+    REAL(c_double), DIMENSION(6,SIZE(id)) :: v
 
     WHERE (id == 1)
       f(1,:) = 1.0_c_double
       f(2,:) = -1.0_c_double
       f(3,:) = 1.25_c_double
       e = 1.0_c_double
+      v(1,:) = 1.0_c_double
+      v(2,:) = 2.0_c_double
+      v(3,:) = -1.0_c_double
+      v(4,:) = -2.0_c_double
+      v(5,:) = 3.0_c_double
+      v(6,:) = -3.0_c_double
     ELSEWHERE
       f(1,:) = -1.0_c_double
       f(2,:) = +1.0_c_double
       f(3,:) = -1.25_c_double
       e = 10.0_c_double
+      v(1,:) = 10.0_c_double
+      v(2,:) = 20.0_c_double
+      v(3,:) = -10.0_c_double
+      v(4,:) = -20.0_c_double
+      v(5,:) = 30.0_c_double
+      v(6,:) = -30.0_c_double
     END WHERE
     SELECT TYPE (instance)
       CLASS IS (lammps)
         CALL instance%fix_external_set_energy_peratom('ext1', e)
+        CALL instance%fix_external_set_virial_peratom('ext1', v)
       CLASS DEFAULT
         WRITE(0,*) 'UMM...this should never happen.'
         STOP 1
@@ -48,21 +63,35 @@ CONTAINS
     REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
     REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: f
     REAL(c_double), DIMENSION(SIZE(id)) :: e
+    REAL(c_double), DIMENSION(6,SIZE(id)) :: v
 
     WHERE (id == 1_c_int)
       f(1,:) = 1.0_c_double
       f(2,:) = -1.0_c_double
       f(3,:) = 1.25_c_double
       e = 1.0_c_double
+      v(1,:) = 1.0_c_double
+      v(2,:) = 2.0_c_double
+      v(3,:) = -1.0_c_double
+      v(4,:) = -2.0_c_double
+      v(5,:) = 3.0_c_double
+      v(6,:) = -3.0_c_double
     ELSEWHERE
       f(1,:) = -1.0_c_double
       f(2,:) = +1.0_c_double
       f(3,:) = -1.25_c_double
       e = 10.0_c_double
+      v(1,:) = 10.0_c_double
+      v(2,:) = 20.0_c_double
+      v(3,:) = -10.0_c_double
+      v(4,:) = -20.0_c_double
+      v(5,:) = 30.0_c_double
+      v(6,:) = -30.0_c_double
     END WHERE
     SELECT TYPE (instance)
       CLASS IS (lammps)
         CALL instance%fix_external_set_energy_peratom('ext1', e)
+        CALL instance%fix_external_set_virial_peratom('ext1', v)
       CLASS DEFAULT
         WRITE(0,*) 'UMM...this should never happen.'
         STOP 1
@@ -76,21 +105,35 @@ CONTAINS
     REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
     REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: f
     REAL(c_double), DIMENSION(SIZE(id)) :: e
+    REAL(c_double), DIMENSION(6,SIZE(id)) :: v
 
     WHERE (id == 1_c_int64_t)
       f(1,:) = 1.0_c_double
       f(2,:) = -1.0_c_double
       f(3,:) = 1.25_c_double
       e = 1.0_c_double
+      v(1,:) = 1.0_c_double
+      v(2,:) = 2.0_c_double
+      v(3,:) = -1.0_c_double
+      v(4,:) = -2.0_c_double
+      v(5,:) = 3.0_c_double
+      v(6,:) = -3.0_c_double
     ELSEWHERE
       f(1,:) = -1.0_c_double
       f(2,:) = +1.0_c_double
       f(3,:) = -1.25_c_double
       e = 10.0_c_double
+      v(1,:) = 10.0_c_double
+      v(2,:) = 20.0_c_double
+      v(3,:) = -10.0_c_double
+      v(4,:) = -20.0_c_double
+      v(5,:) = 30.0_c_double
+      v(6,:) = -30.0_c_double
     END WHERE
     SELECT TYPE (instance)
       CLASS IS (lammps)
         CALL instance%fix_external_set_energy_peratom('ext1', e)
+        CALL instance%fix_external_set_virial_peratom('ext1', v)
       CLASS DEFAULT
         WRITE(0,*) 'UMM...this should never happen.'
         STOP 1
@@ -201,6 +244,7 @@ END SUBROUTINE f_lammps_close
 SUBROUTINE f_lammps_setup_fix_external_callback() BIND(C)
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp, demo_input, cont_input, pair_input
+  USE ext_stuff, ONLY : vec_length
   IMPLICIT NONE
 
   CALL lmp%commands_list(demo_input)
@@ -209,6 +253,7 @@ SUBROUTINE f_lammps_setup_fix_external_callback() BIND(C)
   CALL lmp%command('neigh_modify exclude group all all')
   CALL lmp%command('fix ext1 all external pf/callback 1 1')
   CALL lmp%command('fix ext2 all external pf/callback 1 1')
+  CALL lmp%fix_external_set_vector_length('ext2', vec_length)
 END SUBROUTINE f_lammps_setup_fix_external_callback
 
 SUBROUTINE f_lammps_setup_fix_external_array() BIND(C)
@@ -305,6 +350,9 @@ SUBROUTINE f_lammps_find_forces() BIND(C)
       f3(1,:) = 4.0_c_double
       f3(2,:) = -4.0_c_double
       f3(3,:) = 6.0_c_double
+      f4(1,:) = 10.0_c_double
+      f4(2,:) = -10.0_c_double
+      f4(3,:) = 12.0_c_double
     ELSEWHERE
       f3(1,:) = 5.0_c_double
       f3(2,:) = -5.0_c_double
@@ -334,3 +382,43 @@ SUBROUTINE f_lammps_set_virial() BIND(C)
   CALL lmp%fix_external_set_virial_global('ext4', [1.0_c_double, &
     2.0_c_double, 2.5_c_double, -1.0_c_double, -2.25_c_double, -3.02_c_double])
 END SUBROUTINE f_lammps_set_virial
+
+FUNCTION f_lammps_find_peratom_energy(i) RESULT(energy) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: i
+  REAL(c_double) :: energy
+  REAL(c_double), DIMENSION(:), POINTER :: e
+
+  e = lmp%extract_compute('peratom', lmp%style%atom, lmp%type%vector)
+  energy = e(i)
+END FUNCTION f_lammps_Find_peratom_energy
+
+SUBROUTINE f_lammps_find_peratom_virial(v, i) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  REAL(c_double), DIMENSION(6) :: v
+  INTEGER(c_int), INTENT(IN), VALUE :: i
+  REAL(c_double), DIMENSION(:,:), POINTER :: virial
+
+  virial = lmp%extract_compute('vperatom', lmp%style%atom, lmp%type%array)
+  v = virial(:,i)
+END SUBROUTINE f_lammps_find_peratom_virial
+
+SUBROUTINE f_lammps_fixexternal_set_vector() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  USE ext_stuff, ONLY : vec_length
+  IMPLICIT NONE
+  REAL(c_double), DIMENSION(vec_length) :: v
+  INTEGER :: i
+  DO i = 1, vec_length
+    v(i) = REAL(i, c_double)
+    CALL lmp%fix_external_set_vector('ext2', i, v(i))
+  END DO
+END SUBROUTINE f_lammps_fixexternal_set_vector

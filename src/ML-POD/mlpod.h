@@ -253,27 +253,10 @@ class MLPOD : protected Pointers {
 
   // functions for collecting/collating arrays
 
-  void print_matrix(const char *desc, int m, int n, int *a, int lda);
-  void print_matrix(const char *desc, int m, int n, double *a, int lda);
-  void print_matrix(const char *desc, int m, int n, double **a, int lda);
   void podMatMul(double *c, double *a, double *b, int r1, int c1, int c2);
-  void podCumsum(int *output, int *input, int length);
-  double podArrayNorm(double *a, int n);
-  double podArrayErrorNorm(double *a, double *b, int n);
   void podArraySetValue(double *y, double a, int n);
   void podArrayCopy(double *y, double *x, int n);
   void podArrayFill(int *output, int start, int length);
-  double podArrayMin(double *a, int n);
-  double podArrayMax(double *a, int n);
-  double podArraySum(double *a, int n);
-  int podArrayMin(int *a, int n);
-  int podArrayMax(int *a, int n);
-  void podKron(double *C, double *A, double *B, double alpha, int M1, int M2);
-  void rotation_matrix(double *Rmat, double alpha, double beta, double gamma);
-  void triclinic_lattice_conversion(double *a, double *b, double *c, double *A, double *B,
-                                    double *C);
-  void matrix33_multiplication(double *xrot, double *Rmat, double *x, int natom);
-  void matrix33_inverse(double *invA, double *A1, double *A2, double *A3);
 
   // functions for calculating energy and force descriptors
 

@@ -39,21 +39,12 @@ can be found together with equivalent examples in C and C++ in the
 
 .. versionadded:: 9Oct2020
 
-.. admonition:: Work in Progress
-   :class: note
-
-   This Fortran module is a work in progress, and only the documented
-   functionality is currently available. The final implementation should
-   cover the entire range of functionality available in the C and
-   Python library interfaces.
-
 .. note::
 
-   A contributed Fortran interface that more
-   closely resembles the C library interface is available in the
-   ``examples/COUPLE/fortran2`` folder.  Please see the ``README`` file
-   in that folder for more information about it and how to contact its
-   author and maintainer.
+   A contributed Fortran interface that more closely resembles the C library
+   interface is available in the ``examples/COUPLE/fortran2`` folder.  Please
+   see the ``README`` file in that folder for more information about it and how
+   to contact its author and maintainer.
 
 ----------
 
@@ -1280,11 +1271,11 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    of atoms, see :f:func:`gather_atoms_subset`.
 
    The *data* array will be ordered in groups of *count* values, sorted by atom
-   ID (e.g., if *name* is *x* and *count* = 3, then *data* = *x*\ (1,1),
+   ID (e.g., if *name* is *x* and *count* = 3, then *data* = [*x*\ (1,1),
    *x*\ (2,1), *x*\ (3,1), *x*\ (1,2), *x*\ (2,2), *x*\ (3,2), *x*\ (1,3),
-   :math:`\dots`); *data* must be ``ALLOCATABLE`` and will be allocated to
+   :math:`\dots`]); *data* must be ``ALLOCATABLE`` and will be allocated to
    length (*count* :math:`\times` *natoms*), as queried by
-   :f:func:`extract_setting`.
+   :f:func:`get_natoms`.
 
    This function is not compatible with ``-DLAMMPS_BIGBIG``.
 
@@ -1293,12 +1284,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
     *count* = 3 with *image* if you want a single image flag unpacked into
     *x*/*y*/*z* components.
-   :p polymorphic data [dimension(:),allocatable]: array into which to store
+   :p data: array into which to store
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
     reallocated to fit the length of the incoming data. It should have type
     ``INTEGER(c_int)`` if expecting integer data and ``REAL(c_double)`` if
     expecting floating-point data.
+   :ptype data: polymorphic,dimension(:),allocatable
    :to: :cpp:func:`lammps_gather_atoms`
 
    .. note::
@@ -1345,12 +1337,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
     *count* = 3 with *image* if you want a single image flag unpacked into
     *x*/*y*/*z* components.
-   :p polymorphic data [dimension(:),allocatable]: array into which to store
+   :p data: array into which to store
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
     reallocated to fit the length of the incoming data. It should have type
     ``INTEGER(c_int)`` if expecting integer data and ``REAL(c_double)`` if
     expecting floating-point data.
+   :ptype data: polymorphic,dimension(:),allocatable
    :to: :cpp:func:`lammps_gather_atoms_concat`
 
 --------
@@ -1386,12 +1379,13 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     *x*/*y*/*z* components.
    :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
     to be gathered
-   :p polymorphic data [dimension(:),allocatable]: array into which to store
+   :p data: array into which to store
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
     reallocated to fit the length of the incoming data. It should have type
     ``INTEGER(c_int)`` if expecting integer data and ``REAL(c_double)`` if
     expecting floating-point data.
+   :ptype data: polymorphic,dimension(:),allocatable
    :to: :cpp:func:`lammps_gather_atoms_subset`
 
 --------
@@ -1411,8 +1405,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    The *data* array needs to be ordered in groups of *count* values, sorted by
    atom ID (e.g., if *name* is *x* and *count* = 3, then
-   *data* = [x(1,1), x(2,1), x(3,1), x(1,2), x(2,2), x(3,2), x(1,3),
-   :math:`\dots`]; *data* must be of length (*count* :math:`\times` *natoms*).
+   *data* = [*x*\ (1,1), *x*\ (2,1), *x*\ (3,1), *x*\ (1,2), *x*\ (2,2),
+   *x*\ (3,2), *x*\ (1,3), :math:`\dots`]); *data* must be of length *natoms*
+   or 3\*\ *natoms*.
 
    :p character(len=\*) name: quantity to be scattered (e.g., *x* or *charge*)
    :p data: per-atom values packed in a one-dimensional array
@@ -1442,8 +1437,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    The *data* array needs to be organized in groups of 1 or 3 values,
    depending on which quantity is being scattered, with the groups in the same
    order as the array *ids*. For example, if you want *data* to be the array
-   [x(1,1), x(2,1), x(3,1), x(1,100), x(2,100), x(3,100), x(1,57), x(2,57),
-   x(3,57)], then *ids* would be [1, 100, 57] and *name* would be *x*.
+   [*x*\ (1,1), *x*\ (2,1), *x*\ (3,1), *x*\ (1,100), *x*\ (2,100),
+   *x*\ (3,100), *x*\ (1,57), *x*\ (2,57), *x*\ (3,57)], then *ids* would be
+   [1, 100, 57] and *name* would be *x*.
 
    :p character(len=\*) name: quantity to be scattered (e.g., *x* or *charge*)
    :p integer(c_int) ids [dimension(:)]: atom IDs corresponding to the atoms
@@ -1522,7 +1518,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    ID (e.g., if *name* is *x*, then *data* is [x(1,1), x(2,1), x(3,1), x(1,2),
    x(2,2), x(3,2), x(1,3), :math:`\dots`]); *data* must be ``ALLOCATABLE`` and
    will be allocated to length (*count*\ :math:`{}\times{}`\ *natoms*), as
-   queried by :f:func:`extract_setting`.
+   queried by :f:func:`get_natoms`.
 
    This function will return an error if fix or compute data are requested and
    the fix or compute ID given does not have per-atom data. See the note about
@@ -1533,7 +1529,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=\*) name: desired quantity (e.g., "x" or "mask" for atom
     properties, "f_id" for per-atom fix data, "c_id" for per-atom compute data,
     "d_name" or "i_name" for fix property/atom vectors with *count* = 1,
-    "d2_name" or "i2_name" for fix propert/atom vectors with
+    "d2_name" or "i2_name" for fix property/atom vectors with
     *count*\ :math:`{}> 1`)
    :p integer(c_int) count: number of per-atom values (e.g., 1 for *type* or
     *charge*, 3 for *x* or *f*); use *count* = 3 with *image* if you want the
@@ -1566,25 +1562,26 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    then *data* might be something like [x(1,11), x(2,11), x(3,11), x(1,3),
    x(2,3), x(3,3), x(1,5), :math:`\dots`]); *data* must be ``ALLOCATABLE`` and
    will be allocated to length (*count* :math:`\times` *natoms*), as queried by
-   :f:func:`extract_setting`.
+   :f:func:`get_natoms`.
 
    This function is not compatible with ``-DLAMMPS_BIGBIG``.
 
    :p character(len=\*) name: desired quantity (e.g., "x" or "mask" for atom
     properties, "f_id" for per-atom fix data, "c_id" for per-atom compute data,
     "d_name" or "i_name" for fix property/atom vectors with *count* = 1,
-    "d2_name" or "i2_name" for fix propert/atom vectors with
+    "d2_name" or "i2_name" for fix property/atom vectors with
     *count*\ :math:`{}> 1`)
    :p integer(c_int) count: number of per-atom values you expect per atom
     (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
     *count* = 3 with *image* if you want a single image flag unpacked into
     *x*/*y*/*z* components.
-   :p polymorphic data [dimension(:),allocatable]: array into which to store
+   :p data: array into which to store
     the data. Array *must* have the ``ALLOCATABLE`` attribute and be of rank 1
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
     reallocated to fit the length of the incoming data. It should have type
     ``INTEGER(c_int)`` if expecting integer data and ``REAL(c_double)`` if
     expecting floating-point data.
+   :ptype data: polymorphic,dimension(:),allocatable
    :to: :cpp:func:`lammps_gather_concat`
 
 --------
@@ -1602,11 +1599,12 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    The *data* array will be in groups of *count* values, sorted by atom ID in
    the same order as the array *ids* (e.g., if *name* is *x*, *count* = 3, and
-   *ids* is [100, 57, 210], then *data* might look like [x(1,100), x(2,100),
-   x(3,100), x(1,57), x(2,57), x(3,57), x(1,210), :math:`\dots`]); *ids* must
-   be provided by the user, and *data* must have the ``ALLOCATABLE`` attribute
-   and be of rank 1 (i.e., ``DIMENSION(:)``). If *data* is already allocated,
-   it will be reallocated to fit the length of the incoming data.
+   *ids* is [100, 57, 210], then *data* might look like [*x*\ (1,100),
+   *x*\ (2,100), *x*\ (3,100), *x*\ (1,57), *x*\ (2,57), *x*\ (3,57),
+   *x*\ (1,210), :math:`\dots`]); *ids* must be provided by the user, and
+   *data* must have the ``ALLOCATABLE`` attribute and be of rank 1 (i.e.,
+   ``DIMENSION(:)``). If *data* is already allocated, it will be reallocated to
+   fit the length of the incoming data.
 
    This function is not compatible with ``-DLAMMPS_BIGBIG``.
 
@@ -1617,24 +1615,52 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     fix data, "c_id" for per-atom compute data, "d_name" or "i_name" for fix
     property/atom vectors with *count* = 1, "d2_name" or "i2_name" for fix
     property/atom vectors with *count*\ :math:`{} > 1`)
+   :p integer(c_int) count: number of per-atom values you expect per atom
+    (e.g., 1 for *type*, *mask*, or *charge*; 3 for *x*, *v*, or *f*). Use
+    *count* = 3 with *image* if you want a single image flag unpacked into
+    *x*/*y*/*z* components.
    :p data: per-atom values packed into a one-dimensional array containing the
-    data to be scattered. This array must have either the same length as *ids*
-    (for *mask*, *type*, etc.) or three times its length (for *x*, *f*, etc.);
-    the array must be rank 1 and be of type ``INTEGER(c_int)`` (e.g., for
-    *mask* or *type*) or of type ``REAL(c_double)`` (e.g., for *charge*, *x*,
-    or *f*).
-   :ptype data: polymorphic,dimension(:)
-   :to: :cpp:func:`lammps_scatter_subset`
+    data to be scattered. This array must have the ``ALLOCATABLE`` attribute
+    and will be allocated either to the same length as *ids*
+    (for *mask*, *type*, etc.) or to three times its length (for *x*, *f*,
+    etc.); the array must be rank 1 and be of type ``INTEGER(c_int)`` (e.g.,
+    for *mask* or *type*) or of type ``REAL(c_double)`` (e.g., for *charge*,
+    *x*, or *f*).
+   :ptype data: polymorphic,dimension(:),allocatable
+   :to: :cpp:func:`lammps_gather_subset`
 
 --------
 
 .. f:subroutine:: scatter(name, data)
 
    This function calls :cpp:func:`lammps_scatter` to scatter the named
-   atom-based entities in *data* to all processes.
+   per-atom, per-atom fix, per-atom compute, or fix property/atom-based entity
+   in *data* to all processes.
 
-   *This function is not yet documented, as the underlying C routine has not
-   been thoroughly tested yet.*
+   .. versionadded:: TBD
+
+   This subroutine takes data stored in a one-dimensional array supplied by the
+   user and scatters them to all atoms on all processes. The data must be
+   ordered by atom ID, with the requirement that the IDs be consecutive. Use
+   :f:subr:`scatter_subset` to scatter data for some (or all) atoms, unordered.
+
+   The *data* array needs to be ordered in groups of *count* values, sorted by
+   atom ID (e.g., if *name* is *x* and *count* = 3, then *data* = [*x*\ (1,1),
+   *x*\ (2,1), *x*\ (3,1), *x*\ (1,2), *x*\ (2,2), *x*\ (3,2), *x*\ (1,3),
+   :math:`\dots`]); *data* must be of length (*count* :math:`\times` *natoms*).
+
+   This function is not compatible with ``-DLAMMPS_BIGBIG``.
+
+   :p character(len=*) name: desired quantity (e.g., "x" or "f" for atom
+    properties, "f_id" for per-atom fix data, "c_id" for per-atom compute data,
+    "d_name" or "i_name" for fix property/atom vectors with *count* = 1,
+    "d2_name" or "i2_name" for fix property/atom vectors with *count*\
+    :math:`{} > 1`)
+   :p data: per-atom values packed in a one-dimensional array; *data* should be
+    of type ``INTEGER(c_int)`` or ``REAL(c_double)``, depending on the type of
+    data being scattered, and be of rank 1 (i.e., ``DIMENSION(:)``).
+   :ptype data: polymorphic,dimension(:)
+   :to: :cpp:func:`lammps_scatter`
 
 --------
 
@@ -1662,7 +1688,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=\*) name: desired quantity (e.g., "x" or "mask" for atom
     properties, "f_id" for per-atom fix data, "c_id" for per-atom compute data,
     "d_name" or "i_name" for fix property/atom vectors with *count* = 1,
-    "d2_name" or "i2_name" for fix propert/atom vectors with
+    "d2_name" or "i2_name" for fix property/atom vectors with
     *count*\ :math:`{}> 1`)
    :p integer(c_int) ids: list of atom IDs to scatter data for
    :p polymorphic data [dimension(:)]: per-atom values packed in a
@@ -1681,7 +1707,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    :p integer(c_int) type [dimension(N)]: vector of :math:`N` atom types
     (required/see note below)
-   :p real(c_double) x [dimension(3N)]: vector of :math:`3N` x/y/z positions
+   :p real(c_double) x [dimension(3N)]: vector of :math:`3N\ x/y/z` positions
     of the new atoms, arranged as :math:`[x_1,y_1,z_1,x_2,y_2,\dotsc]`
     (required/see note below)
    :o integer(kind=\*) id [dimension(N),optional]: vector of :math:`N` atom
@@ -2384,10 +2410,11 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
          MODULE stuff
            USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double, c_int64_t
+           USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : error_unit
            IMPLICIT NONE
 
            TYPE shield
-              REAL(c_double), DIMENSION(:), ALLOCATABLE :: k
+              REAL(c_double), DIMENSION(:,:), ALLOCATABLE :: k
               ! assume k gets allocated to dimension(3,nlocal) at some point
               ! and assigned values
            END TYPE shield
@@ -2632,7 +2659,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    This function needs to be called **after** a call to
    :f:subr:`fix_external_set_vector_length` and **before** a run or minimize
    command.  When running in parallel, it must be called from **all** MPI
-   processes with the **same**\ *idx* and *val* parameters.  The variable
+   processes with the **same** *idx* and *val* parameters.  The variable
    *val* is assumed to be extensive.
 
    .. note::
@@ -2686,7 +2713,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    .. versionadded:: 3Nov2022
 
    This function can be used from signal handlers or multi-threaded
-   applications to cleanly terminate an ongoing run.
+   applications to terminate an ongoing run cleanly.
 
    :to: :cpp:func:`lammps_force_timeout`
 
@@ -2725,12 +2752,11 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    in the event of an error inside of LAMMPS that resulted in a
    :ref:`C++ exception <exceptions>`.  A suitable buffer for a string has
    to be provided.  If the internally-stored error message is longer than the
-   string and the string does not have ``ALLOCATABLE`` length, it will be
-   truncated accordingly.  The optional argument *status* indicates the
-   kind of error: a "1" indicates an error that occurred on all MPI ranks and
-   is often recoverable, while a "2" indicates an abort that would happen only
-   in a single MPI rank and thus may not be recoverable, as other MPI ranks may
-   be waiting on the failing MPI rank(s) to send messages.
+   string, it will be truncated accordingly.  The optional argument *status*
+   indicates the kind of error: a "1" indicates an error that occurred on all
+   MPI ranks and is often recoverable, while a "2" indicates an abort that
+   would happen only in a single MPI rank and thus may not be recoverable, as
+   other MPI ranks may be waiting on the failing MPI rank(s) to send messages.
 
    .. note::
 

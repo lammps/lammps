@@ -2098,7 +2098,7 @@ CONTAINS
   END SUBROUTINE lmp_scatter_int
 
   ! equivalent function to lammps_scatter (for doubles)
-  SUBROUTINE lmp_scatter_atoms_double(self, name, data)
+  SUBROUTINE lmp_scatter_double(self, name, data)
     CLASS(lammps), INTENT(IN) :: self
     CHARACTER(LEN=*), INTENT(IN) :: name
     REAL(c_double), DIMENSION(:), TARGET :: data

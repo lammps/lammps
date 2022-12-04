@@ -2432,6 +2432,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :ptype callback: external
    :p class(*) caller [optional]: object you wish to pass to the callback
     procedure (must be a scalar; see note)
+   :to: :cpp:func:`lammps_set_fix_external_callback`
 
    .. note::
 
@@ -2680,6 +2681,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=*) id: fix ID of fix external instance
    :p integer(c_int) length: length of the global vector to be stored with the
     fix
+   :to: :cpp:func:`lammps_fix_external_set_vector_length`
 
 --------
 
@@ -2715,6 +2717,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=*) id: ID of fix external instance
    :p integer(c_int) idx: 1-based index in global vector
    :p integer(c_int) val: value to be stored in global vector at index *idx*
+   :to: :cpp:func:`lammps_fix_external_set_vector`
 
 --------
 

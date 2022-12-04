@@ -1,6 +1,8 @@
 Use of distributed grids within style classes
 ---------------------------------------------
 
+.. versionadded:: TBD
+
 The LAMMPS source code includes two classes which facilitate the
 creation and use of distributed grids.  These are the Grid2d and
 Grid3d classes in the src/grid2d.cpp.h and src/grid3d.cpp.h files

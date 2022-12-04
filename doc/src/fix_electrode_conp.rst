@@ -23,7 +23,7 @@ Accelerator Variant: *electrode/thermo/intel*
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix ID group-ID style args keyword value ...
 
@@ -82,15 +82,17 @@ Description
 """""""""""
 
 The *electrode* fixes implement the constant potential method (CPM)
-(:ref:`Siepmann <Siepmann>`, :ref:`Reed <Reed3>`), and modern variants, to
-accurately model electrified, conductive electrodes. This is primarily useful
-for studying electrode-electrolyte interfaces, especially at high potential
-differences or ionicities, with non-planar electrodes such as nanostructures or
-nanopores, and to study dynamic phenomena such as charging or discharging time
-scales or conductivity or ionic diffusivities.
+(:ref:`Siepmann <Siepmann>`, :ref:`Reed <Reed3>`), and modern variants,
+to accurately model electrified, conductive electrodes. This is
+primarily useful for studying electrode-electrolyte interfaces,
+especially at high potential differences or ionicities, with non-planar
+electrodes such as nanostructures or nanopores, and to study dynamic
+phenomena such as charging or discharging time scales or conductivity or
+ionic diffusivities.
 
-Each *electrode* fix allows users to set additional electrostatic relationships
-between the specified groups which model useful electrostatic configurations:
+Each *electrode* fix allows users to set additional electrostatic
+relationships between the specified groups which model useful
+electrostatic configurations:
 
 * *electrode/conp* sets potentials or potential differences between electrodes
 
@@ -100,89 +102,99 @@ between the specified groups which model useful electrostatic configurations:
 
   *  (resulting in changing electrode potentials)
 
-* *electrode/thermo* sets a thermopotentiostat :ref:`(Deissenbeck)<Deissenbeck>` between two electrodes
+* *electrode/thermo* sets a thermopotentiostat
+  :ref:`(Deissenbeck)<Deissenbeck>` between two electrodes
 
-  *  (resulting in changing charges and potentials with appropriate average potential difference and thermal variance)
+  * (resulting in changing charges and potentials with appropriate
+     average potential difference and thermal variance)
 
-The first group-ID provided to each fix specifies the first electrode group, and
-more group(s) are added using the *couple* keyword for each additional group.
-While *electrode/thermo* only accepts two groups, *electrode/conp* and
-*electrode/conq* accept any number of groups, up to LAMMPS's internal
-restrictions (see Restrictions below). Electrode groups must not overlap, i.e.
-the fix will issue an error if any particle is detected to belong to at least
-two electrode groups.
+The first group-ID provided to each fix specifies the first electrode
+group, and more group(s) are added using the *couple* keyword for each
+additional group.  While *electrode/thermo* only accepts two groups,
+*electrode/conp* and *electrode/conq* accept any number of groups, up to
+LAMMPS's internal restrictions (see Restrictions below). Electrode
+groups must not overlap, i.e.  the fix will issue an error if any
+particle is detected to belong to at least two electrode groups.
 
-CPM involves updating charges on groups of electrode particles, per time step,
-so that the system's total energy is minimized with respect to those charges.
-From basic electrostatics, this is equivalent to making each group conductive,
-or imposing an equal electrostatic potential on every particle in the same group
-(hence the name CPM).  The charges are usually modelled as a Gaussian
-distribution to make the charge-charge interaction matrix invertible
-(:ref:`Gingrich <Gingrich>`).  The keyword *eta* specifies the distribution's
-width in units of inverse length.
+CPM involves updating charges on groups of electrode particles, per time
+step, so that the system's total energy is minimized with respect to
+those charges.  From basic electrostatics, this is equivalent to making
+each group conductive, or imposing an equal electrostatic potential on
+every particle in the same group (hence the name CPM).  The charges are
+usually modelled as a Gaussian distribution to make the charge-charge
+interaction matrix invertible (:ref:`Gingrich <Gingrich>`).  The keyword
+*eta* specifies the distribution's width in units of inverse length.
 
-Three algorithms are available to minimize the energy, varying in how matrices
-are pre-calculated before a run to provide computational speedup. These
-algorithms can be selected using the keyword *algo*:
+.. versionadded:: TBD
 
-* *algo mat_inv* pre-calculates the capacitance matrix
-  and obtains the charge configuration in one matrix-vector calculation per time step
+Three algorithms are available to minimize the energy, varying in how
+matrices are pre-calculated before a run to provide computational
+speedup. These algorithms can be selected using the keyword *algo*:
 
-* *algo mat_cg* pre-calculates the elastance matrix (inverse of capacitance matrix)
-  and obtains the charge configuration using a conjugate gradient solver
-  in multiple matrix-vector calculations per time step
+* *algo mat_inv* pre-calculates the capacitance matrix and obtains the
+  charge configuration in one matrix-vector calculation per time step
 
-* *algo cg* does not perform any pre-calculation and obtains the charge configuration
-  using a conjugate gradient solver and multiple calculations of the electric potential per time step.
+* *algo mat_cg* pre-calculates the elastance matrix (inverse of
+  capacitance matrix) and obtains the charge configuration using a
+  conjugate gradient solver in multiple matrix-vector calculations per
+  time step
+
+* *algo cg* does not perform any pre-calculation and obtains the charge
+  configuration using a conjugate gradient solver and multiple
+  calculations of the electric potential per time step.
 
 For both *cg* methods, the command must specify the conjugate gradient
 tolerance. *fix electrode/thermo* currently only supports the *mat_inv*
 algorithm.
 
 The keyword *symm* can be set *on* (or *off*) to turn on (or turn off)
-the capacitance matrix constraint that sets total electrode charge to be zero.
-This has slightly different effects for each *fix electrode* variant.
-For *fix electrode/conp*, with *symm off*, the potentials specified are absolute potentials,
-but the charge configurations satisfying them may add up to an overall non-zero, varying
-charge for the electrodes (and thus the simulation box). With *symm on*, the
-total charge over all electrode groups is constrained to zero, and
-potential differences rather than absolute potentials are the physically relevant quantities.
+the capacitance matrix constraint that sets total electrode charge to be
+zero.  This has slightly different effects for each *fix electrode*
+variant.  For *fix electrode/conp*, with *symm off*, the potentials
+specified are absolute potentials, but the charge configurations
+satisfying them may add up to an overall non-zero, varying charge for
+the electrodes (and thus the simulation box). With *symm on*, the total
+charge over all electrode groups is constrained to zero, and potential
+differences rather than absolute potentials are the physically relevant
+quantities.
 
-For *fix electrode/conq*, with *symm off*, overall neutrality is explicitly obeyed or
-violated by the user input (which is not checked!). With *symm on*, overall neutrality
-is ensured by ignoring the user-input charge for the last listed electrode (instead,
-its charge will always be minus the total sum of all other electrode charges). For
-*fix electrode/thermo*, overall neutrality is always automatically imposed for any setting
-of *symm*, but *symm on* allows finite-field mode (*ffield on*, described below)
-for faster simulations.
+For *fix electrode/conq*, with *symm off*, overall neutrality is
+explicitly obeyed or violated by the user input (which is not
+checked!). With *symm on*, overall neutrality is ensured by ignoring the
+user-input charge for the last listed electrode (instead, its charge
+will always be minus the total sum of all other electrode charges). For
+*fix electrode/thermo*, overall neutrality is always automatically
+imposed for any setting of *symm*, but *symm on* allows finite-field
+mode (*ffield on*, described below) for faster simulations.
 
-For all three fixes, any potential (or charge for *conq*) can be specified as an
-equal-style variable prefixed with "v\_". For example, the following code will
-ramp the potential difference between electrodes from 0.0V to 2.0V over the
-course of the simulation:
+For all three fixes, any potential (or charge for *conq*) can be
+specified as an equal-style variable prefixed with "v\_". For example,
+the following code will ramp the potential difference between electrodes
+from 0.0V to 2.0V over the course of the simulation:
 
 .. code-block:: LAMMPS
 
    fix fxconp bot electrode/conp 0.0 1.805 couple top v_v symm on
    variable v equal ramp(0.0, 2.0)
 
-Note that these fixes only parse their supplied variable name when starting a
-run, and so these fixes will accept equal-style variables defined *after* the
-fix definition, including variables dependent on the fix's own output. This is
-useful, for example, in the fix's internal finite-field commands (see below).
-For an advanced example of this see the in.conq2 input file in the directory
+Note that these fixes only parse their supplied variable name when
+starting a run, and so these fixes will accept equal-style variables
+defined *after* the fix definition, including variables dependent on the
+fix's own output. This is useful, for example, in the fix's internal
+finite-field commands (see below).  For an advanced example of this see
+the in.conq2 input file in the directory
 ``examples/PACKAGES/electrode/graph-il``.
 
 This fix necessitates the use of a long range solver that calculates and
 provides the matrix of electrode-electrode interactions and a vector of
-electrode-electrolyte interactions.  The Kspace styles *ewald/electrode*,
-*pppm/electrode* and *pppm/electrode/intel* are created specifically for this
-task :ref:`(Ahrens-Iwers) <Ahrens-Iwers>`.
+electrode-electrolyte interactions.  The Kspace styles
+*ewald/electrode*, *pppm/electrode* and *pppm/electrode/intel* are
+created specifically for this task :ref:`(Ahrens-Iwers) <Ahrens-Iwers>`.
 
 For systems with non-periodic boundaries in one or two directions dipole
-corrections are available with the :doc:`kspace_modify <kspace_modify>`.  For
-ewald/electrode a two-dimensional Ewald summation :ref:`(Hu) <Hu>` can be used
-by setting "slab ew2d":
+corrections are available with the :doc:`kspace_modify <kspace_modify>`.
+For ewald/electrode a two-dimensional Ewald summation :ref:`(Hu) <Hu>`
+can be used by setting "slab ew2d":
 
 .. code-block:: LAMMPS
 
@@ -190,47 +202,52 @@ by setting "slab ew2d":
    kspace_modify wire <wire_factor>
    kspace_modify slab ew2d
 
-Two implementations for the calculation of the elastance matrix are available
-with pppm and can be selected using the *amat onestep/twostep* keyword.
-*onestep* is the default; *twostep* can be faster for large electrodes and a
-moderate mesh size but requires more memory.
+Two implementations for the calculation of the elastance matrix are
+available with pppm and can be selected using the *amat onestep/twostep*
+keyword.  *onestep* is the default; *twostep* can be faster for large
+electrodes and a moderate mesh size but requires more memory.
 
 .. code-block:: LAMMPS
 
    kspace_modify amat onestep/twostep
 
 For all versions of the fix, the keyword-value *ffield on* enables the
-finite-field mode (:ref:`Dufils <Dufils>`, :ref:`Tee <Tee>`), which uses an
-electric field across a periodic cell instead of non-periodic boundary
-conditions to impose a potential difference between the two electrodes bounding
-the cell. The fix (with name *fix-ID*) detects which of the two electrodes is
-"on top" (has the larger maximum *z*-coordinate among all particles).  Assuming
-the first electrode group is on top, it then issues the following commands
-internally:
+finite-field mode (:ref:`Dufils <Dufils>`, :ref:`Tee <Tee>`), which uses
+an electric field across a periodic cell instead of non-periodic
+boundary conditions to impose a potential difference between the two
+electrodes bounding the cell. The fix (with name *fix-ID*) detects which
+of the two electrodes is "on top" (has the larger maximum *z*-coordinate
+among all particles).  Assuming the first electrode group is on top, it
+then issues the following commands internally:
 
 .. code-block:: LAMMPS
 
    variable fix-ID_ffield_zfield equal (f_fix-ID[2]-f_fix-ID[1])/lz
    efield fix-ID_efield all efield 0.0 0.0 v_fix-ID_ffield_zfield
 
-which implements the required electric field as the potential difference divided
-by cell length.  The internal commands use variable so that the electric field
-will correctly vary with changing potentials in the correct way (for example
-with equal-style potential difference or with *fix electrode/conq*).  This
-keyword requires two electrodes and will issue an error with any other number of
-electrodes. This keyword requires electroneutrality to be imposed (*symm on*)
-and will issue an error otherwise.
+which implements the required electric field as the potential difference
+divided by cell length.  The internal commands use variable so that the
+electric field will correctly vary with changing potentials in the
+correct way (for example with equal-style potential difference or with
+*fix electrode/conq*).  This keyword requires two electrodes and will
+issue an error with any other number of electrodes. This keyword
+requires electroneutrality to be imposed (*symm on*) and will issue an
+error otherwise.
 
-For all versions of the fix, the keyword-value *etypes on* enables type-based
-optimized neighbor lists. With this feature enabled, LAMMPS provides the fix
-with an occasional neighbor list restricted to electrode-electrode interactions
-for calculating the electrode matrix, and a perpetual neighbor list restricted to
-electrode-electrolyte interactions for calculating the electrode potentials,
-using particle types to list only desired interactions, and typically resulting
-in 5--10\% less computational time.  Without this feature the fix will simply
-use the active pair style's neighbor list.  This feature cannot be enabled if any
-electrode particle has the same type as any electrolyte particle (which would be
-unusual in a typical simulation) and the fix will issue an error in that case.
+.. versionchanged:: TBD
+
+For all versions of the fix, the keyword-value *etypes on* enables
+type-based optimized neighbor lists. With this feature enabled, LAMMPS
+provides the fix with an occasional neighbor list restricted to
+electrode-electrode interactions for calculating the electrode matrix,
+and a perpetual neighbor list restricted to electrode-electrolyte
+interactions for calculating the electrode potentials, using particle
+types to list only desired interactions, and typically resulting in
+5--10\% less computational time.  Without this feature the fix will
+simply use the active pair style's neighbor list.  This feature cannot
+be enabled if any electrode particle has the same type as any
+electrolyte particle (which would be unusual in a typical simulation)
+and the fix will issue an error in that case.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -257,31 +274,33 @@ file, for code developers to track optimization.
 
 ----------
 
-These fixes compute a global (extensive) scalar, a global (intensive) vector,
-and a global array, which can be accessed by various :doc:`output commands
-<Howto_output>`.
+These fixes compute a global (extensive) scalar, a global (intensive)
+vector, and a global array, which can be accessed by various
+:doc:`output commands <Howto_output>`.
 
-The global scalar outputs the energy added to the system by this fix, which is
-the negative of the total charge on each electrode multiplied by that
-electrode's potential.
+The global scalar outputs the energy added to the system by this fix,
+which is the negative of the total charge on each electrode multiplied
+by that electrode's potential.
 
-The global vector outputs the potential on each electrode (and thus has *N*
-entries if the fix manages *N* electrode groups), in :doc:`units <units>` of
-electric field multiplied by distance (thus volts for *real* and *metal* units).
-The electrode groups' ordering follows the order in which they were input in the
-fix command using *couple*. The global vector output is useful for *fix
-electrode/conq* and *fix electrode/thermo*, where potential is dynamically
-updated based on electrolyte configuration instead of being directly set.
+The global vector outputs the potential on each electrode (and thus has
+*N* entries if the fix manages *N* electrode groups), in :doc:`units
+<units>` of electric field multiplied by distance (thus volts for *real*
+and *metal* units).  The electrode groups' ordering follows the order in
+which they were input in the fix command using *couple*. The global
+vector output is useful for *fix electrode/conq* and *fix
+electrode/thermo*, where potential is dynamically updated based on
+electrolyte configuration instead of being directly set.
 
-The global array has *N* rows and *2N+1* columns, where the fix manages *N*
-electrode groups managed by the fix. For the *I*-th row of the array, the
-elements are:
+The global array has *N* rows and *2N+1* columns, where the fix manages
+*N* electrode groups managed by the fix. For the *I*-th row of the
+array, the elements are:
 
-* array[I][1] = total charge that group *I* would have had *if it were at 0 V
-  applied potential* * array[I][2 to *N* + 1] = the *N* entries of the *I*-th
-  row of the electrode capacitance matrix (definition follows) * array[I][*N* +
-  2 to *2N* + 1] = the *N* entries of the *I*-th row of the electrode elastance
-  matrix (the inverse of the electrode capacitance matrix)
+* array[I][1] = total charge that group *I* would have had *if it were
+  at 0 V applied potential* * array[I][2 to *N* + 1] = the *N* entries
+  of the *I*-th row of the electrode capacitance matrix (definition
+  follows) * array[I][*N* + 2 to *2N* + 1] = the *N* entries of the
+  *I*-th row of the electrode elastance matrix (the inverse of the
+  electrode capacitance matrix)
 
 The :math:`N \times N` electrode capacitance matrix, denoted :math:`\mathbf{C}`
 in the following equation, summarizes how the total charge induced on each
@@ -315,16 +334,15 @@ of the CPM with PPPM if you use *pppm/electrode* :ref:`(Ahrens-Iwers)
 Restrictions
 """"""""""""
 
-For algorithms that use a matrix for the electrode-electrode interactions,
-positions of electrode particles have to be immobilized at all times.
+For algorithms that use a matrix for the electrode-electrode
+interactions, positions of electrode particles have to be immobilized at
+all times.
 
 With *ffield off* (i.e. the default), the box geometry is expected to be
-*z*-non-periodic (i.e. *boundary p p f*), and this fix will issue an error if
-the box is *z*-periodic. With *ffield on*, the box geometry is expected to be
-*z*-periodic, and this fix will issue an error if the box is *z*-non-periodic.
-
-TODO: will fix check if *kspace_modify slab* is enabled or does it silently give
-wrong results?
+*z*-non-periodic (i.e. *boundary p p f*), and this fix will issue an
+error if the box is *z*-periodic. With *ffield on*, the box geometry is
+expected to be *z*-periodic, and this fix will issue an error if the box
+is *z*-non-periodic.
 
 The parallelization for the fix works best if electrode atoms are evenly
 distributed across processors. For a system with two electrodes at the bottom
@@ -335,24 +353,26 @@ line
 
    if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
 
-which avoids an error if the script is run on an odd number of processors (such
-as on just one processor for testing).
+which avoids an error if the script is run on an odd number of
+processors (such as on just one processor for testing).
 
-The fix creates an additional group named *[fix-ID]_group* which is the union of
-all electrode groups supplied to LAMMPS. This additional group counts towards
-LAMMPS's limitation on the total number of groups (currently 32), which may not
-allow scripts that use that many groups to run with this fix.
+The fix creates an additional group named *[fix-ID]_group* which is the
+union of all electrode groups supplied to LAMMPS. This additional group
+counts towards LAMMPS's limitation on the total number of groups
+(currently 32), which may not allow scripts that use that many groups to
+run with this fix.
 
-The matrix-based algorithms (*algo mat_inv* and *algo mat_cg*) currently store
-an interaction matrix (either elastance or capacitance) of *N* by *N* doubles
-for each MPI process. This memory requirement may be prohibitive for large
-electrode groups.  The fix will issue a warning if it expects to use more than
-0.5 GiB of memory.
+The matrix-based algorithms (*algo mat_inv* and *algo mat_cg*) currently
+store an interaction matrix (either elastance or capacitance) of *N* by
+*N* doubles for each MPI process. This memory requirement may be
+prohibitive for large electrode groups.  The fix will issue a warning if
+it expects to use more than 0.5 GiB of memory.
 
 Default
 """""""
-The default keyword-option settings are *algo mat_inv*, *symm off*, *etypes off*
-and *ffield off*.
+
+The default keyword-option settings are *algo mat_inv*, *symm off*,
+*etypes off* and *ffield off*.
 
 ----------
 

@@ -878,7 +878,7 @@ This package has :ref:`specific installation instructions <electrode>` on the
 
 **Supporting info:**
 
-* :doc:`fix electrode/conp <fix_electrode_conp>`
+* :doc:`fix electrode/conp <fix_electrode>`
 
 ----------
 

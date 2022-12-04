@@ -1567,6 +1567,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
    property/atom-based entities from all processes, unordered.
 
+   .. versionadded:: TBD
+
    This subroutine gathers data for all atoms and stores them in a
    one-dimensional allocatable array. The data will be a
    concatenation of chunks from each processor's owned atoms, in whatever order
@@ -1610,7 +1612,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
    property/atom-based entities from all processes for a subset of atoms.
- 
+
+   .. versionadded:: TBD
+
    This subroutine gathers data for the requested atom IDs and stores them in a
    one-dimensional allocatable array. The data will be ordered by atom ID, but
    there is no requirement that the IDs be consecutive. If you wish to return a

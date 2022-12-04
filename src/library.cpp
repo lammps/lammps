@@ -2303,7 +2303,8 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
      Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 
-void lammps_gather_atoms(void *handle, char *name, int type, int count, void *data)
+void lammps_gather_atoms(void *handle, const char *name, int type, int count,
+                         void *data)
 {
   auto lmp = (LAMMPS *) handle;
 
@@ -2460,7 +2461,8 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
      Allgather Nlocal atoms from each proc into data
 ------------------------------------------------------------------------- */
 
-void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, void *data)
+void lammps_gather_atoms_concat(void *handle, const char *name, int type,
+                                int count, void *data)
 {
   auto lmp = (LAMMPS *) handle;
 
@@ -2627,8 +2629,8 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
      Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 
-void lammps_gather_atoms_subset(void *handle, char *name, int type, int count,
-                                int ndata, int *ids, void *data)
+void lammps_gather_atoms_subset(void *handle, const char *name, int type,
+                                int count, int ndata, int *ids, void *data)
 {
   auto lmp = (LAMMPS *) handle;
 
@@ -2786,7 +2788,8 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
      loop over Natoms, if I own atom ID, set its values from data
 ------------------------------------------------------------------------- */
 
-void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *data)
+void lammps_scatter_atoms(void *handle, const char *name, int type, int count,
+                          void *data)
 {
   auto lmp = (LAMMPS *) handle;
 
@@ -2938,8 +2941,8 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
      loop over Ndata, if I own atom ID, set its values from data
 ------------------------------------------------------------------------- */
 
-void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count,
-                                 int ndata, int *ids, void *data)
+void lammps_scatter_atoms_subset(void *handle, const char *name, int type,
+                                 int count, int ndata, int *ids, void *data)
 {
   auto lmp = (LAMMPS *) handle;
 
@@ -3219,7 +3222,7 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
     Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 
-void lammps_gather(void *handle, char *name, int type, int count, void *data)
+void lammps_gather(void *handle, const char *name, int type, int count, void *data)
 {
   auto lmp = (LAMMPS *) handle;
 
@@ -3492,7 +3495,8 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
     Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 
-void lammps_gather_concat(void *handle, char *name, int type, int count, void *data)
+void lammps_gather_concat(void *handle, const char *name, int type, int count,
+                          void *data)
 {
   auto lmp = (LAMMPS *) handle;
 
@@ -3779,9 +3783,8 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
     Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 
-void lammps_gather_subset(void *handle, char *name,
-                                int type, int count,
-                                int ndata, int *ids, void *data)
+void lammps_gather_subset(void *handle, const char *name, int type, int count,
+                          int ndata, int *ids, void *data)
 {
   auto lmp = (LAMMPS *) handle;
 
@@ -4059,7 +4062,8 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
     Allreduce to sum vector into data across all procs
 ------------------------------------------------------------------------- */
 
-void lammps_scatter(void *handle, char *name, int type, int count, void *data)
+void lammps_scatter(void *handle, const char *name, int type, int count,
+                    void *data)
 {
   auto lmp = (LAMMPS *) handle;
 
@@ -4312,7 +4316,7 @@ This function is not compatible with ``-DLAMMPS_BIGBIG``.
      loop over Ndata, if I own atom ID, set its values from data
 ------------------------------------------------------------------------- */
 
-void lammps_scatter_subset(void *handle, char *name,int type, int count,
+void lammps_scatter_subset(void *handle, const char *name,int type, int count,
                                  int ndata, int *ids, void *data)
 {
   auto lmp = (LAMMPS *) handle;

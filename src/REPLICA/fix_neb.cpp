@@ -33,6 +33,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <iostream>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -46,7 +47,7 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  id_pe(nullptr), pe(nullptr), nlenall(nullptr), xprev(nullptr), xnext(nullptr),
+  id_pe(nullptr), pe(nullptr), nlenall(nullptr), vengall(nullptr), xprev(nullptr), xnext(nullptr),
   fnext(nullptr), springF(nullptr), tangent(nullptr), xsend(nullptr), xrecv(nullptr),
   fsend(nullptr), frecv(nullptr), tagsend(nullptr), tagrecv(nullptr),
   xsendall(nullptr), xrecvall(nullptr), fsendall(nullptr), frecvall(nullptr),
@@ -62,6 +63,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   // optional params
 
   NEBLongRange = false;
+  EqualForceNEB = false;
   StandardNEB = true;
   PerpSpring = FreeEndIni = FreeEndFinal = false;
   FreeEndFinalWithRespToEIni = FinalAndInterWithRespToEIni = false;
@@ -75,9 +77,15 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix neb command");
       if (strcmp(arg[iarg+1],"ideal") == 0) {
         NEBLongRange = true;
+        EqualForceNEB = false;
+        StandardNEB = false;
+      } else if (strcmp(arg[iarg+1],"equal") == 0) {
+        NEBLongRange = false;
+        EqualForceNEB = true;
         StandardNEB = false;
       } else if (strcmp(arg[iarg+1],"neigh") == 0) {
         NEBLongRange = false;
+        EqualForceNEB = false;
         StandardNEB = true;
       } else error->all(FLERR,"Illegal fix neb command");
       iarg += 2;
@@ -135,7 +143,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   else procnext = -1;
 
   uworld = universe->uworld;
-  if (NEBLongRange) {
+  if (NEBLongRange or EqualForceNEB) {
     int *iroots = new int[nreplica];
     MPI_Group uworldgroup,rootgroup;
 
@@ -189,10 +197,11 @@ FixNEB::~FixNEB()
   memory->destroy(counts);
   memory->destroy(displacements);
 
-  if (NEBLongRange) {
+  if (NEBLongRange or EqualForceNEB) {
     if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
     memory->destroy(nlenall);
   }
+  if(EqualForceNEB) memory->destroy(vengall);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -546,8 +555,10 @@ void FixNEB::min_post_force(int /*vflag*/)
 
   double lentot = 0;
   double meanDist,idealPos,lenuntilIm,lenuntilClimber;
+  double meanDistBeforeClimber,meanDistAfterClimber;
   lenuntilClimber=0;
-  if (NEBLongRange) {
+
+  if (NEBLongRange or EqualForceNEB) {
     if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,uworld);
     } else {
@@ -568,15 +579,67 @@ void FixNEB::min_post_force(int /*vflag*/)
     if (rclimber>0) {
       for (int i = 0; i < rclimber; i++)
         lenuntilClimber += nlenall[i];
-      double meanDistBeforeClimber = lenuntilClimber/rclimber;
-      double meanDistAfterClimber =
-        (lentot-lenuntilClimber)/(nreplica-rclimber-1);
+      meanDistBeforeClimber = lenuntilClimber/rclimber;
+      meanDistAfterClimber = (lentot-lenuntilClimber)/(nreplica-rclimber-1);
       if (ireplica<rclimber)
         idealPos = ireplica * meanDistBeforeClimber;
       else
         idealPos = lenuntilClimber+ (ireplica-rclimber)*meanDistAfterClimber;
     } else idealPos = ireplica * meanDist;
   }
+
+  double Elentot = 0;
+  double meanEDist,idealEPos,ElenuntilIm,ElenuntilClimber;
+  double meanEDistBeforeClimber,meanEDistAfterClimber;
+  ElenuntilClimber=0;
+  
+
+  if (EqualForceNEB) {
+    if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
+      MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,uworld);
+    } else {
+      if (me == 0)
+        MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,rootworld);
+      MPI_Bcast(vengall,nreplica,MPI_DOUBLE,0,world);
+    }
+
+    ElenuntilIm = 0;
+    for (int i = 0; i < ireplica-1; i++)
+      ElenuntilIm += std::abs(vengall[i+1]-vengall[i]);
+    
+    Elentot = 0;
+    for (int i = 0; i < nreplica-1; i++)
+      Elentot += std::abs(vengall[i+1]-vengall[i]);
+    meanEDist = Elentot/(nreplica -1);
+
+    if (rclimber>0) {
+      for (int i = 0; i < rclimber-1; i++)
+        ElenuntilClimber += std::abs(vengall[i+1]-vengall[i]);
+      
+      meanEDistBeforeClimber = ElenuntilClimber/rclimber;
+      meanEDistAfterClimber = (Elentot-ElenuntilClimber)/(nreplica-rclimber-1);
+      if (ireplica<rclimber)
+        idealEPos = ireplica * meanDistBeforeClimber;
+      else
+        idealEPos = ElenuntilClimber + (ireplica-rclimber)*meanEDistAfterClimber;
+      
+      double ndE = 0;
+      double runningElen = 0;
+      double runninglen = 0;
+
+      for (int i = 0; i < nreplica-1; i++) {
+        ndE = abs(vengall[i+1]-vengall[i]);
+        if ( idealEPos <= runningElen + ndE ) {
+          if(ireplica!=rclimber) idealPos = runninglen + nlenall[i] * (idealEPos-runningElen)/ndE;
+          break;
+        }
+        runningElen += ndE; 
+        runninglen += nlenall[i];
+      }
+    }
+  }
+
+
 
   if (ireplica == 0 || ireplica == nreplica-1) return ;
 
@@ -605,7 +668,7 @@ void FixNEB::min_post_force(int /*vflag*/)
 
   if (ireplica == rclimber) prefactor = -2.0*dot;
   else {
-    if (NEBLongRange) {
+    if (NEBLongRange or EqualForceNEB) {
       prefactor = -dot - kspring*(lenuntilIm-idealPos)/(2*meanDist);
     } else if (StandardNEB) {
       prefactor = -dot + kspring*(nlen-plen);
@@ -885,8 +948,12 @@ void FixNEB::reallocate()
     memory->create(tagrecv,maxlocal,"neb:tagrecv");
   }
 
-  if (NEBLongRange) {
+  if (NEBLongRange or EqualForceNEB) {
     memory->destroy(nlenall);
     memory->create(nlenall,nreplica,"neb:nlenall");
+  }
+  if (EqualForceNEB) {
+    memory->destroy(vengall);
+    memory->create(vengall,nreplica,"neb:vengall");
   }
 }

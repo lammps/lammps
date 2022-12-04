@@ -39,7 +39,7 @@ class FixNEB : public Fix {
  private:
   int me, nprocs, nprocs_universe;
   double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni;
-  bool StandardNEB, NEBLongRange, PerpSpring, FreeEndIni, FreeEndFinal;
+  bool StandardNEB, NEBLongRange, EqualForceNEB, PerpSpring, FreeEndIni, FreeEndFinal;
   bool FreeEndFinalWithRespToEIni, FinalAndInterWithRespToEIni;
   int ireplica, nreplica;
   int procnext, procprev;
@@ -53,7 +53,7 @@ class FixNEB : public Fix {
   int nebatoms;
   int ntotal;      // total # of atoms, NEB or not
   int maxlocal;    // size of xprev,xnext,tangent arrays
-  double *nlenall;
+  double *nlenall, *vengall;
   double **xprev, **xnext, **fnext, **springF;
   double **tangent;
   double **xsend, **xrecv;      // coords to send/recv to/from other replica

@@ -94,7 +94,7 @@ two methods that end in "_one" allocate an array which stores a single
 value per grid cell.  The two that end in "_multi" allocate an array
 which stores *Nvalues* per grid cell.
 
-.. code-block:: c
+.. code-block:: c++
 
    // single value per cell for a 2d grid = 2d array
    memory->create2d_offset(data2d_one, nylo_out, nyhi_out,
@@ -127,7 +127,7 @@ where the "i" loop bounds are the range of owned grid cells for the
 processor.  These are the bounds returned by the *setup_grid()*
 method:
 
-.. code-block:: c
+.. code-block:: c++
 
     for (int iy = iylo; iy <= iyhi; iy++)
       for (int ix = ixlo; ix <= ixhi; ix++)
@@ -165,7 +165,7 @@ similar; simply remove arguments which refer to the z-dimension.
 There are 2 constructors which can be used.  They differ in the extra
 i/o xyz lo/hi arguments:
 
-.. code-block:: c
+.. code-block:: c++
 
    Grid3d(class LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz)
    Grid3d(class LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
@@ -223,7 +223,7 @@ first constructor; they are ignored if the second constructor is used.
 These methods must be called before the *setup_grid()* method is
 invoked, because they influence its operation.
 
-.. code-block:: c
+.. code-block:: c++
 
    void set_shift_grid(double shift);
    void set_distance(double distance);
@@ -315,7 +315,7 @@ Also note that this method must be invoked after any *set_*()* methods have
 been used, since they can influence the assignment of owned and ghost
 cells.
 
-.. code-block:: c
+.. code-block:: c++
 
    void setup_grid(int &ixlo, int &ixhi, int &iylo, int &iyhi, int &izlo, int &izhi,
                    int &oxlo, int &oxhi, int &oylo, int &oyhi, int &ozlo, int &ozhi)
@@ -343,7 +343,7 @@ these methods override.  In LAMMPS these methods are called by by the
 :doc:`kspace_style msm <kspace_style>` command for the grids it
 instantiates using the 2nd constructor above.
 
-.. code-block:: c
+.. code-block:: c++
 
    void set_proc_neighs(int pxlo, int pxhi, int pylo, int pyhi, int pzlo, int pzhi)
    void set_caller_grid(int fxlo, int fxhi, int fylo, int fyhi, int fzlo, int fzhi)
@@ -372,7 +372,7 @@ The following methods allow the caller to query the settings for a
 specific grid, whether it created the grid or another command created
 it.
 
-.. code-block:: c
+.. code-block:: c++
 
    void get_size(int &nxgrid, int &nygrid, int &nzgrid);
    void get_bounds_owned(int &xlo, int &xhi, int &ylo, int &yhi, int &zlo, int &zhi)
@@ -405,7 +405,7 @@ corresponding owned grid cells on another processor.  The caller can
 choose to sum ghost grid cell data to the owned grid cell or simply
 copy it.
 
-.. code-block:: c
+.. code-block:: c++
 
    void setup_comm(int &nbuf1, int &nbuf2)
    void forward_comm(int caller, void *ptr, int which, int nper, int nbyte,
@@ -455,7 +455,7 @@ To use the *forward_grid()* method, the caller must provide two
 callback functions; likewise for use of the *reverse_grid()* methods.
 These are the 4 functions, their arguments are all the same.
 
-.. code-block:: c
+.. code-block:: c++
 
    void pack_forward_grid(int which, void *vbuf, int nlist, int *list);
    void unpack_forward_grid(int which, void *vbuf, int nlist, int *list);
@@ -474,7 +474,7 @@ illustrated with an example from the src/EXTRA-FIX/fix_ttm_grid.cpp
 class which stores the scalar electron temperature for 3d system in a
 3d grid (one value per grid cell):
 
-.. code-block:: c
+.. code-block:: c++
 
    void FixTTMGrid::pack_forward_grid(int /*which*/, void *vbuf, int nlist, int *list)
    {
@@ -499,7 +499,7 @@ cell, and one or more grid-cell-averaged atom properties.  The code
 from its *unpack_reverse_grid()* function for 2d grids and multiple
 per-atom properties per grid cell (*nvalues*) is shown here:
 
-.. code-block:: c
+.. code-block:: c++
 
    void FixAveGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *list)
    {
@@ -581,7 +581,7 @@ needs to be "remapped" from the old grid partitioning to the new grid
 partitioning.  The *setup_remap()* and *remap()* methods are used for
 that purpose.
 
-.. code-block:: c
+.. code-block:: c++
 
    int identical(Grid3d *old);
    void setup_remap(Grid3d *old, int &nremap_buf1, int &nremap_buf2)
@@ -598,7 +598,7 @@ communication buffers.
 To use the *remap()* method, the caller must provide two
 callback functions:
 
-.. code-block:: c
+.. code-block:: c++
 
    void pack_remap_grid(int which, void *vbuf, int nlist, int *list);
    void unpack_remap_grid(int which, void *vbuf, int list, int *list);
@@ -667,7 +667,7 @@ Here are the details of the two I/O methods and the 3 callback
 functions.  See the src/fix_ave_grid.cpp file for examples of all of
 them.
 
-.. code-block:: c
+.. code-block:: c++
 
    void read_file(int caller, void *ptr, FILE *fp, int nchunk, int maxline)
    void write_file(int caller, void *ptr, int which,
@@ -701,7 +701,7 @@ To use the *read_grid()* method, the caller must provide one callback
 function.  To use the *write_grid()* method, it provides two callback
 functions:
 
-.. code-block:: c
+.. code-block:: c++
 
    int unpack_read_grid(int nlines, char *buffer)
    void pack_write_grid(int which, void *vbuf)
@@ -759,7 +759,7 @@ command.
 To provide access to its grid cell data, a style command needs to
 implement the following 4 methods:
 
-.. code-block:: c
+.. code-block:: c++
 
    int get_grid_by_name(const std::string &name, int &dim);
    void *get_grid_by_index(int index);

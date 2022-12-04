@@ -277,6 +277,8 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype extract_fix: function
    :f extract_variable: :f:func:`extract_variable`
    :ftype extract_variable: function
+   :f set_variable: :f:subr:`set_variable`
+   :ftype set_variable: subroutine
    :f gather_atoms: :f:subr:`gather_atoms`
    :ftype gather_atoms: subroutine
    :f gather_atoms_concat: :f:subr:`gather_atoms_concat`
@@ -309,6 +311,8 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype find_compute_neighlist: function
    :f neighlist_num_elements: :f:func:`neighlist_num_elements`
    :ftype neighlist_num_elements: function
+   :f neighlist_element_neighbors: :f:subr:`neighlist_element_neighbors`
+   :ftype neighlist_element_neighbors: subroutine
    :f version: :f:func:`version`
    :ftype version: function
    :f get_os_info: :f:subr:`get_os_info`
@@ -1257,6 +1261,22 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
+.. f:subroutine:: set_variable(name, str)
+
+   Set the value of a string-style variable.
+
+   .. versionadded:: 3Nov2022
+
+   This function assigns a new value from the string *str* to the string-style
+   variable *name*\ . If *name* does not exist or is not a string-style
+   variable, an error is generated.
+
+   :p character(len=*) name: name of the variable
+   :p character(len=*) str:  new value to assign to the variable
+   :to: :cpp:func:`lammps_set_variable`
+
+--------
+
 .. f:subroutine:: gather_atoms(name, count, data)
 
    This function calls :cpp:func:`lammps_gather_atoms` to gather the named
@@ -1837,6 +1857,25 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :r inum: number of entries in neighbor list, or :math:`-1` if *idx* is not
     a valid index.
    :rtype inum: integer(c_int)
+   :to: :cpp:func:`lammps_neighlist_num_elements`
+
+--------
+
+.. f:subroutine:: neighlist_element_neighbors(idx, element, iatom, neighbors)
+
+   Return atom local index, number of neighbors, and array of neighbor local
+   atom indices of a neighbor list entry.
+
+   .. versionadded:: 3Nov2022
+
+   :p integer(c_int) idx: index of this neighbor list in the list of all
+    neighbor lists
+   :p integer(c_int) element: index of this neighbor list entry
+   :p integer(c_int) iatom: local atom index (i.e., in the range
+    [1,nlocal+nghost]; -1 if invalid or element value
+   :p integer(c_int) neighbors [dimension(:),pointer]: pointer to an array of
+    neighboring atom local indices
+   :to: :cpp:func:`lammps_neighlist_element_neighbors`
 
 --------
 

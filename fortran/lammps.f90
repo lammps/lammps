@@ -2406,7 +2406,12 @@ CONTAINS
 
     CALL lammps_neighlist_element_neighbors(self%handle, idx, element, iatom, &
       numneigh, Cneighbors)
-    CALL C_F_POINTER(Cneighbors, neighbors, [numneigh])
+    IF (C_ASSOCIATED(Cneighbors)) THEN
+      CALL C_F_POINTER(Cneighbors, neighbors, [numneigh])
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Pointer returned from lammps_neighlist_element_neighbors is NULL')
+    END IF
   END SUBROUTINE lmp_neighlist_element_neighbors
 
   ! equivalent function to lammps_version

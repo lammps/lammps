@@ -64,7 +64,6 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   NEBLongRange = false;
   EqualForceNEB = false;
-  EqualForceNEBDone = false;
   StandardNEB = true;
   PerpSpring = FreeEndIni = FreeEndFinal = false;
   FreeEndFinalWithRespToEIni = FinalAndInterWithRespToEIni = false;
@@ -226,6 +225,11 @@ void FixNEB::init()
   // turn off climbing mode, NEB command turns it on after init()
 
   rclimber = -1;
+
+  // turn off equal force mode, NEB command turns it on if running "equal" mode
+
+  equal_force = -1;
+
 
   // nebatoms = # of atoms in fix group = atoms with inter-replica forces
 
@@ -576,7 +580,7 @@ void FixNEB::min_post_force(int /*vflag*/)
   if (ireplica == rclimber) prefactor = -2.0*dot;
   else {
     if (NEBLongRange or EqualForceNEB) {
-      prefactor = -dot - kspring*(actualPos-idealPos)/(2*meanDist);
+      prefactor = -dot - kspring*(actualPos-idealPos)/2;
     } else if (StandardNEB) {
       prefactor = -dot + kspring*(nlen-plen);
     }
@@ -856,11 +860,12 @@ void FixNEB::calculate_ideal_positions()
       else
         idealPos = lenuntilClimber+ (ireplica-rclimber)*meanDistAfterClimber;
     } else idealPos = ireplica * meanDist;
+    idealPos /= meanDist;
+    actualPos /= meanDist;
   }
 
-  if (EqualForceNEB and rclimber>0 and !EqualForceNEBDone) {
+  if (EqualForceNEB and rclimber>0 and equal_force>0) {
     double lenEtot = 0;
-    
     if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,uworld);
     } else {
@@ -871,12 +876,11 @@ void FixNEB::calculate_ideal_positions()
 
     actualPos = 0;
     for (int i = 0; i < ireplica; i++)
-      actualPos += std::abs(nlenall[i+1]-nlenall[i]);
+      actualPos += std::abs(vengall[i+1]-vengall[i]);
     for (int i = 0; i < nreplica-1; i++)
-      lenEtot += std::abs(nlenall[i+1]-nlenall[i]);
-    
-    actualPos *= lentot/lenEtot;
-    EqualForceNEBDone = true;
+      lenEtot += std::abs(vengall[i+1]-vengall[i]);
+    actualPos *=  (nreplica-1)/lenEtot;
+    idealPos = ireplica;
   }
 }
 

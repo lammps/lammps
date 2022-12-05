@@ -28,6 +28,8 @@ class FixNEB : public Fix {
  public:
   double veng, plen, nlen, dotpath, dottangrad, gradlen, dotgrad;
   int rclimber;
+  int equal_force;
+  bool EqualForceNEB;
 
   FixNEB(class LAMMPS *, int, char **);
   ~FixNEB() override;
@@ -39,7 +41,7 @@ class FixNEB : public Fix {
  private:
   int me, nprocs, nprocs_universe;
   double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni, idealPos, actualPos, meanDist;
-  bool StandardNEB, NEBLongRange, EqualForceNEB, PerpSpring, FreeEndIni, FreeEndFinal, EqualForceNEBDone;
+  bool StandardNEB, NEBLongRange, PerpSpring, FreeEndIni, FreeEndFinal;
   bool FreeEndFinalWithRespToEIni, FinalAndInterWithRespToEIni;
   int ireplica, nreplica;
   int procnext, procprev;

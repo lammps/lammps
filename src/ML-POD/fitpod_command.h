@@ -26,9 +26,11 @@ CommandStyle(fitpod,FitPOD);
 namespace LAMMPS_NS {
 
 class FitPOD : public Command {
-private:
-
 public:
+  FitPOD(LAMMPS *);
+  void command(int, char **) override;
+
+private:
   struct datastruct {
     std::string file_format = "extxyz";
     std::string file_extension = "xyz";
@@ -120,9 +122,6 @@ public:
   neighborstruct nb;
   class MLPOD *podptr;
 
-  FitPOD(LAMMPS *lmp) : Command(lmp) {}
-
-
   // functions for collecting/collating arrays
 
   void print_matrix(const char *desc, int m, int n, int *a, int lda);
@@ -148,7 +147,7 @@ public:
 
   // functions for reading input files and fitting
 
-  void command(int, char **) override;
+
   int read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
     std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file);
   void get_exyz_files(std::vector<std::string> &, const std::string &, const std::string &);

@@ -1536,7 +1536,10 @@ void FitPOD::error_analysis(const datastruct &data, double *coeff)
       nforceall += nforce;
       ci += 1;
     }
+
     int q = file + 1;
+    if (nconfigs == 0) nconfigs = 1;
+    if (nforceall == 0) nforceall = 1;
     errors[0 + 4*q] = emae/nconfigs;
     errors[1 + 4*q] = sqrt(essr/nconfigs);
     errors[2 + 4*q] = fmae/nforceall;
@@ -1549,6 +1552,8 @@ void FitPOD::error_analysis(const datastruct &data, double *coeff)
     errors[3] += fssr;
   }
 
+  if (nc == 0) nc = 1;
+  if (nf == 0) nf = 1;
   errors[0] = errors[0]/nc;
   errors[1] = sqrt(errors[1]/nc);
   errors[2] = errors[2]/nf;

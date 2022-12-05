@@ -125,17 +125,17 @@ in force units.
 Note that the *ideal* form of nudging can often be more effective at
 keeping the replicas equally spaced.
 
-With a value of *equal* the spring force is computed as for *ideal*,
+With a value of *equal* the spring force is computed as for *ideal*
 before the climbing stage, then is computed to promote equidistant 
 spacing in energy rather than distance:
 
 .. parsed-literal::
    Fnudge_parallel = -\ *Kspring* \* (ED-EDideal) / (2 \* meanEDist)
 
-where ED is the sum of absolute (nonnegative) energy differences 
-between knots, EDideal = (I-1)\*meanEdist and meanEdist is the 
-average absolute energy difference. This form of nudging is 
-intended to aid schemes which integrate forces along NEB
+where ED is the cumulative sum of absolute energy differences 
+|E(Ri+1)-E(Ri)| for i<I, EDideal = (I-1)\*meanEdist 
+and meanEdist is the average absolute energy difference. This form of 
+nudging is intended to aid schemes which integrate forces along NEB
 pathways such as :doc:`fix_pafi <fix_pafi>`.
 
 ----------

@@ -860,7 +860,7 @@ void FixNEB::calculate_ideal_positions()
 
   if (EqualForceNEB and rclimber>0 and !EqualForceNEBDone) {
     double lenEtot = 0;
-
+    
     if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,uworld);
     } else {
@@ -872,13 +872,12 @@ void FixNEB::calculate_ideal_positions()
     actualPos = 0;
     for (int i = 0; i < ireplica; i++)
       actualPos += std::abs(nlenall[i+1]-nlenall[i]);
-    for (int i = 0; i < nreplica -1; i++)
+    for (int i = 0; i < nreplica-1; i++)
       lenEtot += std::abs(nlenall[i+1]-nlenall[i]);
     
     actualPos *= lentot/lenEtot;
     EqualForceNEBDone = true;
   }
-
 }
 
 /* ----------------------------------------------------------------------

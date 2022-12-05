@@ -57,6 +57,13 @@
 /pair_pace.cpp
 /pair_pace.h
 
+/pair_pod.cpp
+/pair_pod.h
+/fitpod.cpp
+/fitpod.h
+/mlpod.cpp
+/mlpod.h
+
 /fix_polarize*.cpp
 /fix_polarize*.h
 /*_dielectric.cpp

@@ -46,6 +46,10 @@ using MathSpecial::powint;
 
 static constexpr double SMALL = 1.0e-10;
 
+FitPOD::FitPOD(LAMMPS *_lmp) : Command(_lmp), podptr(nullptr)
+{
+}
+
 void FitPOD::command(int narg, char **arg)
 {
   if (narg < 2) utils::missing_cmd_args(FLERR, "fitpod", error);
@@ -1820,4 +1824,3 @@ void FitPOD::triclinic_lattice_conversion(double *a, double *b, double *c, doubl
   b[0] = bx; b[1] = by;  b[2] = 0.0;
   c[0] = cx; c[1] = cy;  c[2] = cz;
 }
-

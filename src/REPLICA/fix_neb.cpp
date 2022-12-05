@@ -226,11 +226,6 @@ void FixNEB::init()
 
   rclimber = -1;
 
-  // turn off equal force mode, NEB command turns it on if running "equal" mode
-
-  equal_force = -1;
-
-
   // nebatoms = # of atoms in fix group = atoms with inter-replica forces
 
   bigint count = group->count(igroup);
@@ -864,7 +859,7 @@ void FixNEB::calculate_ideal_positions()
     actualPos /= meanDist;
   }
 
-  if (EqualForceNEB and rclimber>0 and equal_force>0) {
+  if (EqualForceNEB and rclimber>0) {
     double lenEtot = 0;
     if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,uworld);
@@ -873,7 +868,6 @@ void FixNEB::calculate_ideal_positions()
         MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,rootworld);
       MPI_Bcast(vengall,nreplica,MPI_DOUBLE,0,world);
     }
-
     actualPos = 0;
     for (int i = 0; i < ireplica; i++)
       actualPos += std::abs(vengall[i+1]-vengall[i]);

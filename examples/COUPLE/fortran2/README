@@ -1,3 +1,12 @@
+!! NOTE -------------------------------------------------------------------
+!  This interface is obsolete and may be removed in a future release of
+!  LAMMPS. The interface in fortran/lammps.f90 replaces this one. That API
+!  is maintained by the LAMMPS developers and has documentation written for
+!  it; it is based loosely on this one, but binds all procedures to a lammps
+!  derived type. That interface was written in large
+!  part by the same author, but is also supported by other developers.
+!--------------------------------------------------------------------------
+
 LAMMPS.F90 defines a Fortran 2003 module, LAMMPS, which wraps all functions in
 src/library.h so they can be used directly from Fortran-encoded programs.
 

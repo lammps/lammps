@@ -1,0 +1,5 @@
+# Settings that the LAMMPS build will import when this package library is used
+
+mlpod_SYSINC =
+mlpod_SYSLIB =
+mlpod_SYSPATH =

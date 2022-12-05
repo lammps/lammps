@@ -38,8 +38,8 @@ class FixNEB : public Fix {
 
  private:
   int me, nprocs, nprocs_universe;
-  double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni;
-  bool StandardNEB, NEBLongRange, EqualForceNEB, PerpSpring, FreeEndIni, FreeEndFinal;
+  double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni, idealPos, actualPos, meanDist;
+  bool StandardNEB, NEBLongRange, EqualForceNEB, PerpSpring, FreeEndIni, FreeEndFinal, EqualForceNEBDone;
   bool FreeEndFinalWithRespToEIni, FinalAndInterWithRespToEIni;
   int ireplica, nreplica;
   int procnext, procprev;
@@ -68,6 +68,7 @@ class FixNEB : public Fix {
   int *counts, *displacements;    // used for MPI_Gather
 
   void inter_replica_comm();
+  void calculate_ideal_positions();
   void reallocate();
 };
 

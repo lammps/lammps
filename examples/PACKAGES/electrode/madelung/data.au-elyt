@@ -1,0 +1,27 @@
+LAMMPS data file via write_data, version 24 Dec 2020, timestep = 0
+
+4 atoms
+3 atom types
+
+0 1 xlo xhi
+0 1 ylo yhi
+-10 10 zlo zhi
+
+Masses
+
+1 196.966553
+2 196.966553
+3 1.0
+
+Pair Coeffs # lj/cut/coul/long
+
+1 0 0
+2 0 0
+3 0 0
+
+Atoms # full
+
+1 1 1  0.00 0.00 0.00 -2.00 # bottom electrode
+2 2 2  0.00 0.00 0.00  2.00 # top electrode
+3 3 3  0.50 0.00 0.00 -1.00 # bottom electrolyte
+4 3 3 -0.50 0.00 0.00  1.00 # top electrolyte

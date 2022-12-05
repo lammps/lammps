@@ -4,7 +4,7 @@
 boundary p p p # ffield uses periodic z-boundary and no slab
 include settings.mod # styles, groups, computes and fixes
 
-fix conp bot electrode/conp -1.0 1.805132 couple top 1.0 symm on ffield yes etypes 6*7
+fix conp bot electrode/conp -1.0 1.805132 couple top 1.0 symm on ffield yes etypes on
 
 thermo 50
 thermo_style custom step temp c_ctemp epair etotal c_qtop c_qbot c_qztop c_qzbot

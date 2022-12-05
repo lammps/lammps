@@ -12,8 +12,13 @@ kspace_style pppm/electrode 1e-7
 
 read_data "data.graph-il"
 
-group bot molecule 641
-group top molecule 642
+# replicate 4 4 1 # test different sys sizes
+
+variable zpos atom "z > 0"
+group zpos variable zpos
+group ele type 5
+group top intersect ele zpos
+group bot subtract ele top
 
 group bmi type 1 2 3
 group electrolyte type 1 2 3 4

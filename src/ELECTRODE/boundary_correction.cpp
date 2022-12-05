@@ -19,34 +19,18 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "force.h"
+#include "kspace.h"
 
 using namespace LAMMPS_NS;
 
-// use EW3DC slab correction
-//
 BoundaryCorrection::BoundaryCorrection(LAMMPS *lmp) : Pointers(lmp) {}
 
-void BoundaryCorrection::setup(double x, double y, double z)
+double BoundaryCorrection::get_volume()
 {
-  xprd_wire = x;
-  yprd_wire = y;
-  zprd_slab = z;
-  volume = x * y * z;
-  area = x * y;
-  qqrd2e = force->qqrd2e;
-  scale = 1.0;
-}
-void BoundaryCorrection::setup(double x, double y, double z, double g)
-{
-  xprd_wire = x;
-  yprd_wire = y;
-  zprd_slab = z;
-  volume = x * y * z;
-  area = x * y;
-  qqrd2e = force->qqrd2e;
-  scale = 1.0;
-  g_ewald = g;
+  return domain->xprd * force->kspace->wire_volfactor * domain->yprd *
+      force->kspace->wire_volfactor * domain->zprd * force->kspace->slab_volfactor;
 }
 
 std::vector<int> BoundaryCorrection::gather_recvcounts(int n)

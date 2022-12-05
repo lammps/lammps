@@ -738,6 +738,7 @@ diel
 Dietz
 differentiable
 diffusively
+diffusivities
 diffusivity
 dihedral
 dihedrals
@@ -819,6 +820,7 @@ du
 dU
 Ducastelle
 Dudarev
+Dufils
 Duin
 Dullweber
 dumpfile
@@ -906,6 +908,7 @@ elastance
 Electroneg
 electronegative
 electronegativity
+electroneutrality
 Eleftheriou
 ElementN
 elementset
@@ -1510,6 +1513,9 @@ inumeric
 inv
 invariants
 inversed
+invertible
+invertibility
+ionicities
 ionizable
 ionocovalent
 iostreams
@@ -2277,6 +2283,8 @@ nanometer
 nanometers
 nanoparticle
 nanoparticles
+nanopores
+nanostructures
 nanotube
 Nanotube
 nanotubes
@@ -3155,6 +3163,7 @@ sdpd
 SDPD
 se
 seagreen
+Searles
 Secor
 sectoring
 sed
@@ -3470,6 +3479,7 @@ thermo
 thermochemical
 thermochemistry
 thermodynamically
+thermopotentiostat
 Thermophysical
 thermostatted
 thermostatting

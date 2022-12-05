@@ -105,7 +105,7 @@ against invalid accesses.
       variables, compute or fix data (see :doc:`Howto_output`):
 
 
-      .. code-block:: Python
+      .. code-block:: python
 
          result = L.eval("ke") # kinetic energy
          result = L.eval("pe") # potential energy

@@ -872,7 +872,7 @@ int FitPOD::podfullneighborlist(double *y, int *alist, int *neighlist, int *numn
   return nn;
 }
 
-void FitPOD::allocate_memory(datastruct data)
+void FitPOD::allocate_memory(const datastruct &data)
 {
   int nd = podptr->pod.nd;
   memory->create(desc.gd, nd, "fitpod:desc_gd");
@@ -989,7 +989,7 @@ void FitPOD::allocate_memory(datastruct data)
   }
 }
 
-void FitPOD::linear_descriptors(datastruct data, int ci)
+void FitPOD::linear_descriptors(const datastruct &data, int ci)
 {
   int dim = 3;
   int nd1 = podptr->pod.nd1;
@@ -1020,7 +1020,7 @@ void FitPOD::linear_descriptors(datastruct data, int ci)
 
 }
 
-void FitPOD::quadratic_descriptors(datastruct data, int ci)
+void FitPOD::quadratic_descriptors(const datastruct &data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1101,7 +1101,7 @@ void FitPOD::quadratic_descriptors(datastruct data, int ci)
     desc.gdd[dim*natom*nd1234+i] = desc.gdd[dim*natom*nd1234+i]/(natom);
 }
 
-void FitPOD::cubic_descriptors(datastruct data, int ci)
+void FitPOD::cubic_descriptors(const datastruct &data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1168,7 +1168,7 @@ void FitPOD::cubic_descriptors(datastruct data, int ci)
     desc.gdd[i] = desc.gdd[i]/(natom*natom);
 }
 
-void FitPOD::least_squares_matrix(datastruct data, int ci)
+void FitPOD::least_squares_matrix(const datastruct &data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1214,7 +1214,7 @@ void FitPOD::least_squares_matrix(datastruct data, int ci)
 
 }
 
-void FitPOD::least_squares_fit(datastruct data)
+void FitPOD::least_squares_fit(const datastruct &data)
 {
   if (comm->me == 0)
     utils::logmesg(lmp, "**************** Begin of Least-Squares Fitting ****************\n");
@@ -1308,7 +1308,7 @@ void FitPOD::least_squares_fit(datastruct data)
   }
 }
 
-double FitPOD::energyforce_calculation(double *force, double *coeff, datastruct data, int ci)
+double FitPOD::energyforce_calculation(double *force, double *coeff, const datastruct &data, int ci)
 {
   int dim = 3;
   int *pbc = podptr->pod.pbc;
@@ -1348,7 +1348,7 @@ double FitPOD::energyforce_calculation(double *force, double *coeff, datastruct 
   return energy;
 }
 
-void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
+void FitPOD::print_analysis(const datastruct &data, double *outarray, double *errors)
 {
   int nfiles = data.data_files.size();  // number of files
   int lm = 10;
@@ -1422,7 +1422,7 @@ void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
   fclose(fp_analysis);
 }
 
-void FitPOD::error_analysis(datastruct data, double *coeff)
+void FitPOD::error_analysis(const datastruct &data, double *coeff)
 {
   int dim = 3;
   double energy;
@@ -1561,7 +1561,7 @@ void FitPOD::error_analysis(datastruct data, double *coeff)
   }
 }
 
-void FitPOD::energyforce_calculation(datastruct data, double *coeff)
+void FitPOD::energyforce_calculation(const datastruct &data, double *coeff)
 {
   int dim = 3;
   double energy;

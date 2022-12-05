@@ -166,16 +166,16 @@ public:
   int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
   int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
     double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
-  void allocate_memory(datastruct data);
-  void linear_descriptors(datastruct data, int ci);
-  void quadratic_descriptors(datastruct data, int ci);
-  void cubic_descriptors(datastruct data, int ci);
-  void least_squares_matrix(datastruct data, int ci);
-  void least_squares_fit(datastruct data);
-  void print_analysis(datastruct data, double *outarray, double *errors);
-  void error_analysis(datastruct data, double *coeff);
-  double energyforce_calculation(double *force, double *coeff, datastruct data, int ci);
-  void energyforce_calculation(datastruct data, double *coeff);
+  void allocate_memory(const datastruct &data);
+  void linear_descriptors(const datastruct &data, int ci);
+  void quadratic_descriptors(const datastruct &data, int ci);
+  void cubic_descriptors(const datastruct &data, int ci);
+  void least_squares_matrix(const datastruct &data, int ci);
+  void least_squares_fit(const datastruct &data);
+  void print_analysis(const datastruct &data, double *outarray, double *errors);
+  void error_analysis(const datastruct &data, double *coeff);
+  double energyforce_calculation(double *force, double *coeff, const datastruct &data, int ci);
+  void energyforce_calculation(const datastruct &data, double *coeff);
 };
 
 }  // namespace LAMMPS_NS

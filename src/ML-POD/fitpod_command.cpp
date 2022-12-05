@@ -241,7 +241,7 @@ void FitPOD::get_exyz_files(std::vector<std::string>& files, const std::string &
 {
   auto allfiles = platform::list_directory(datapath);
   std::sort(allfiles.begin(), allfiles.end());
-  for (auto fname : allfiles) {
+  for (const auto &fname : allfiles) {
     if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
       files.push_back(datapath + platform::filepathsep + fname);
   }
@@ -252,7 +252,6 @@ int FitPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, 
   std::string filename = file;
   FILE *fp;
   if (comm->me == 0) {
-
     fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr)
       error->one(FLERR,"Cannot open POD coefficient file {}: ", filename, utils::getsyserror());
@@ -469,7 +468,7 @@ void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
     utils::logmesg(lmp, "{}\n {:^{}} | number of configurations | number of atoms\n{}\n",
                    sepline, "data file", maxname, sepline);
   int i = 0;
-  for (auto fname : data.data_files) {
+  for (const auto &fname : data.data_files) {
     std::string filename = fname.substr(data.data_path.size()+1);
     data.filenames.push_back(filename);
     if (comm->me == 0)
@@ -695,7 +694,7 @@ void FitPOD::select_data(datastruct &newdata, datastruct data)
 
   data.copydatainfo(newdata);
   size_t maxname = 9;
-  for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
+  for (const auto &fname : data.data_files) maxname = MAX(maxname,fname.size());
   maxname -= data.data_path.size()+1;
 
   if (comm->me == 0)

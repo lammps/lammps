@@ -155,7 +155,7 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`ELECTRODE <PKG-ELECTRODE>`
      - electrode charges to match potential
-     - :doc:`fix electrode/conp <fix_electrode_conp>`
+     - :doc:`fix electrode/conp <fix_electrode>`
      - PACKAGES/electrode
      - no
    * - :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`

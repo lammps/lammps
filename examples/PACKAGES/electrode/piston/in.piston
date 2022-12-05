@@ -1,0 +1,65 @@
+# The intention is to find the average position of one wall at atmospheric
+# pressure.  The output is the wall position over time which can be used to
+# find the average position for a run with fixed wall position.
+#
+# ----------------- Init Section -----------------
+
+atom_style    full
+units         real
+boundary      p p f
+kspace_style  pppm/electrode 1e-4
+kspace_modify slab 3.0
+pair_style    lj/cut/coul/long 8 8
+bond_style    harmonic
+angle_style   harmonic
+if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
+
+# ----------------- Atom Definition Section -----------------
+
+read_data "data.piston"
+
+# ----------------- Settings Section -----------------
+
+pair_coeff 1 1 0.069 2.78
+pair_coeff 2 2 5.29 2.951
+pair_coeff 3 3 0.1553 3.166
+pair_coeff 4 4 0.0 0.0
+bond_coeff 1 600.0 1.0
+angle_coeff 1 75.0 109.47
+group wall type 1
+group gold type 2
+group spce type 3:4
+group ele union wall gold
+fix fRattleSPCE spce shake 0.0001 10 0 b 1 a 1
+pair_modify mix arithmetic
+
+# ----------------- Run Section -----------------
+
+neigh_modify every 1 delay 0
+timestep 2
+fix fxnvt      spce nvt temp 300 300 500
+fix fxforce_au gold setforce 0.0 0.0 0.0
+
+# equilibrate z-coordinate of upper electrode while keeping the electrode rigid
+fix fxforce_wa wall setforce 0.0 0.0 NULL
+fix fxpressure wall aveforce 0 0 -0.005246 # atomspheric pressure: area/force->nktv2p
+fix fxdrag     wall viscous 100
+fix fxrigid    wall rigid/nve single
+
+# maintain constant potential during equilibration
+# 'algo cg' allows for moving electrodes
+fix fxele      ele electrode/conp 0.0 1.805 symm on algo cg 1e-4
+
+# setup output and run
+variable q atom q
+compute qwa wall reduce sum v_q
+compute qau gold reduce sum v_q
+variable top_wall equal (bound(wall,zmin))
+compute temp_mobile spce temp
+variable s equal step
+fix fxprint    all print 1000 "${s} ${top_wall}" file top_wall.csv screen no
+thermo_style custom step c_temp_mobile c_qwa c_qau v_top_wall
+thermo 5000
+run 100000
+write_data "data.piston.final"
+

@@ -133,10 +133,11 @@ spacing in energy rather than distance:
    Fnudge_parallel = -\ *Kspring* \* (ED-EDideal) / (2 \* meanEDist)
 
 where ED is the cumulative sum of absolute energy differences 
-|E(Ri+1)-E(Ri)| for i<I, EDideal = (I-1)\*meanEdist 
-and meanEdist is the average absolute energy difference. This form of 
-nudging is intended to aid schemes which integrate forces along NEB
-pathways such as :doc:`fix_pafi <fix_pafi>`.
+ED=sum(i<I)\|E(Ri+1)-E(Ri)\|, EDideal = (I-1)\*meanEdist 
+and meanEdist is the average absolute energy difference between replicas. 
+This form of nudging is to aid schemes which integrate forces along 
+NEB pathways such as :doc:`fix_pafi <fix_pafi>`, by providing optimal
+quadrature points.
 
 ----------
 

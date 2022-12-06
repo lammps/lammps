@@ -695,8 +695,9 @@ void MLPOD::read_coeff_file(const std::string &coeff_file)
 
 /*********************************************************************************************************/
 
-void MLPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tmpmem, int *atomtype,
-      int *alist, int *pairlist, int *pairnum, int *pairnumsum, int *tmpint, int natom, int Nij)
+void MLPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tmpmem,
+                               int *atomtype, int *alist, int *pairlist, int * /*pairnum*/,
+                               int *pairnumsum, int *tmpint, int natom, int Nij)
 {
   int dim = 3;
   int nelements = pod.nelements;
@@ -1900,8 +1901,8 @@ void MLPOD::snapComputeUlist(double *Sr, double *Si, double *dSr, double *dSi, d
 };
 
 void MLPOD::snapZeroUarraytot2(double *Stotr, double *Stoti, double wself, int *idxu_block,
-    int *type, int *map, int *ai, int wselfall_flag, int chemflag, int idxu_max, int nelements,
-     int twojmax, int inum)
+                               int *type, int *map, int * /*ai*/, int wselfall_flag, int chemflag,
+                               int idxu_max, int nelements, int twojmax, int inum)
 {
   int N1 = inum;
   int N2 = N1*(twojmax+1);
@@ -2552,8 +2553,9 @@ void MLPOD::pod1body(double *eatom, int *atomtype, int nelements, int natom)
       eatom[i + natom*(m-1)] = (atomtype[i] == m) ? 1.0 : 0.0;
 }
 
-void MLPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, int *elemindex, int *pairnumsum,
-    int *idxi, int *ti, int *tj, int nrbf, int nabf, int nelements, int natom, int Nij)
+void MLPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, int *elemindex,
+                     int *pairnumsum, int * /*idxi*/, int *ti, int *tj, int nrbf, int nabf,
+                     int nelements, int natom, int Nij)
 {
   int dim = 3, nabf1 = nabf + 1;
   int nelements2 = nelements*(nelements+1)/2;
@@ -3067,8 +3069,8 @@ double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *
   return energy;
 }
 
-void MLPOD::pod2body_force(double *force, double *fij, double *coeff2, int *ai, int *aj,
-    int *ti, int *tj, int *elemindex, int nelements, int nbf, int natom, int N)
+void MLPOD::pod2body_force(double *force, double *fij, double *coeff2, int *ai, int *aj, int *ti,
+                           int *tj, int *elemindex, int nelements, int nbf, int /*natom*/, int N)
 {
   int nelements2 = nelements*(nelements+1)/2;
   for (int n=0; n<N; n++) {
@@ -3233,7 +3235,7 @@ void MLPOD::pod3body_force(double *force, double *yij, double *e2ij, double *f2i
 }
 
 void MLPOD::snapTallyForce(double *force, double *dbdr, double *coeff4,
-    int *ai, int *aj, int *ti, int ijnum, int ncoeff, int ntype)
+                           int *ai, int *aj, int *ti, int ijnum, int ncoeff, int /*ntype*/)
 {
   int N2 = ijnum*ncoeff;
   for (int idx=0; idx<N2; idx++) {
@@ -3393,8 +3395,8 @@ double MLPOD::energyforce_calculation(double *force, double *podcoeff, double *e
 }
 
 
-void MLPOD::pod2body_force(double **force, double *fij, double *coeff2, int *ai, int *aj,
-        int *ti, int *tj, int *elemindex, int nelements, int nbf, int natom, int N)
+void MLPOD::pod2body_force(double **force, double *fij, double *coeff2, int *ai, int *aj, int *ti,
+                           int *tj, int *elemindex, int nelements, int nbf, int /*natom*/, int N)
 {
     int nelements2 = nelements*(nelements+1)/2;
     for (int n=0; n<N; n++) {
@@ -3556,7 +3558,7 @@ void MLPOD::pod3body_force(double **force, double *yij, double *e2ij, double *f2
 }
 
 void MLPOD::snapTallyForce(double **force, double *dbdr, double *coeff4,
-        int *ai, int *aj, int *ti, int ijnum, int ncoeff, int ntype)
+                           int *ai, int *aj, int *ti, int ijnum, int ncoeff, int /*ntype*/)
 {
     int N2 = ijnum*ncoeff;
     for (int idx=0; idx<N2; idx++) {

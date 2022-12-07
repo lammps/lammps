@@ -82,7 +82,11 @@ ReaderADIOS::ReaderADIOS(LAMMPS *lmp) : Reader(lmp)
 
   internal = new ReadADIOSInternal();
   try {
+#if defined(MPI_STUBS)
+    internal->ad = new adios2::ADIOS("adios2_config.xml", adios2::DebugON);
+#else
     internal->ad = new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+#endif
   } catch (std::ios_base::failure &e) {
     error->one(FLERR, "ADIOS initialization failed with error: {}", e.what());
   }
@@ -134,7 +138,11 @@ void ReaderADIOS::open_file(const std::string &file)
   if (internal->fh) internal->fh.Close();
 
   try {
+#if defined(MPI_STUBS)
+    internal->fh = internal->io.Open(file, adios2::Mode::Read);
+#else
     internal->fh = internal->io.Open(file, adios2::Mode::Read, world);
+#endif
   } catch (std::ios_base::failure &e) {
     error->one(FLERR, "Error opening file {}: {}", file, e.what());
   }

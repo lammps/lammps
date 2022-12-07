@@ -31,7 +31,6 @@ table above.
    * :doc:`bond_style <bond_style>`
    * :doc:`bond_write <bond_write>`
    * :doc:`boundary <boundary>`
-   * :doc:`box <box>`
    * :doc:`change_box <change_box>`
    * :doc:`clear <clear>`
    * :doc:`comm_modify <comm_modify>`
@@ -90,8 +89,7 @@ table above.
    * :doc:`region <region>`
    * :doc:`replicate <replicate>`
    * :doc:`rerun <rerun>`
-   * :doc:`reset_atom_ids <reset_atom_ids>`
-   * :doc:`reset_mol_ids <reset_mol_ids>`
+   * :doc:`reset_atoms <reset_atoms>`
    * :doc:`reset_timestep <reset_timestep>`
    * :doc:`restart <restart>`
    * :doc:`run <run>`

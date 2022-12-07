@@ -36,7 +36,7 @@ patterns:
 """
 
 def check_pending_tag(f):
-    pattern = re.compile(r'^ *\.\. +version(changed|added):: +TBD')
+    pattern = re.compile(r'^ *\.\. +(version(changed|added)|deprecated):: +TBD')
     last_line = "\n"
     lineno = 1
     errors = set()

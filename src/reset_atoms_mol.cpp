@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -16,7 +15,7 @@
    Contributing author: Jacob Gissinger (jacob.gissinger@colorado.edu)
 ------------------------------------------------------------------------- */
 
-#include "reset_mol_ids.h"
+#include "reset_atoms_mol.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -33,10 +32,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Command(lmp) {
-  cfa = nullptr;
-  cca = nullptr;
-
+ResetAtomsMol::ResetAtomsMol(LAMMPS *lmp) : Command(lmp), cfa(nullptr), cca(nullptr)
+{
   // default settings
 
   compressflag = 1;
@@ -49,49 +46,49 @@ ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Command(lmp) {
 
 /* ---------------------------------------------------------------------- */
 
-ResetMolIDs::~ResetMolIDs()
+ResetAtomsMol::~ResetAtomsMol()
 {
   if (!idfrag.empty()) modify->delete_compute(idfrag);
   if (compressflag && !idchunk.empty()) modify->delete_compute(idchunk);
 }
 
 /* ----------------------------------------------------------------------
-   called as reset_mol_ids command in input script
+   called as reset_atoms mol command in input script
 ------------------------------------------------------------------------- */
 
-void ResetMolIDs::command(int narg, char **arg)
+void ResetAtomsMol::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Reset_mol_ids command before simulation box is defined");
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use reset_mol_ids unless atoms have IDs");
+    error->all(FLERR, "Reset_atoms mol command before simulation box is defined");
+  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use reset_atoms mol unless atoms have IDs");
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR,"Can only use reset_mol_ids on molecular systems");
+    error->all(FLERR, "Can only use reset_atoms mol on molecular systems");
 
   // process args
 
-  if (narg < 1) error->all(FLERR,"Illegal reset_mol_ids command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "reset_atoms mol", error);
   char *groupid = arg[0];
 
   int iarg = 1;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"compress") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      compressflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    if (strcmp(arg[iarg], "compress") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset_atoms mol compress", error);
+      compressflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"single") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      singleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "single") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset_atoms mol single", error);
+      singleflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"offset") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      offset = utils::tnumeric(FLERR,arg[iarg+1],true,lmp);
-      if (offset < -1) error->all(FLERR,"Illegal reset_mol_ids command");
+    } else if (strcmp(arg[iarg], "offset") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "reset_atoms mol offset", error);
+      offset = utils::tnumeric(FLERR, arg[iarg + 1], true, lmp);
+      if (offset < -1) error->all(FLERR, "Illegal reset_atoms mol offset: {}", offset);
       iarg += 2;
-    } else error->all(FLERR,"Illegal reset_mol_ids command");
+    } else
+      error->all(FLERR, "Unknown reset_atoms mol keyword: {}", arg[iarg]);
   }
 
-  if (comm->me == 0) utils::logmesg(lmp,"Resetting molecule IDs ...\n");
+  if (comm->me == 0) utils::logmesg(lmp, "Resetting molecule IDs ...\n");
 
   // record wall time for resetting molecule IDs
 
@@ -112,11 +109,11 @@ void ResetMolIDs::command(int narg, char **arg)
   comm->setup();
   comm->exchange();
   comm->borders();
-  if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
 
   // create computes
 
-  create_computes((char *) "COMMAND",groupid);
+  create_computes((char *) "COMMAND", groupid);
 
   // reset molecule IDs
 
@@ -128,44 +125,43 @@ void ResetMolIDs::command(int narg, char **arg)
 
   if (comm->me == 0) {
     if (nchunk < 0)
-      utils::logmesg(lmp,"  number of new molecule IDs = unknown\n");
+      utils::logmesg(lmp, "  number of new molecule IDs = unknown\n");
     else
-      utils::logmesg(lmp,"  number of new molecule IDs = {}\n",nchunk);
-    utils::logmesg(lmp,"  reset_mol_ids CPU = {:.3f} seconds\n",
-                   platform::walltime()-time1);
+      utils::logmesg(lmp, "  number of new molecule IDs = {}\n", nchunk);
+    utils::logmesg(lmp, "  reset_atoms mol CPU = {:.3f} seconds\n", platform::walltime() - time1);
   }
 }
 
 /* ----------------------------------------------------------------------
-   create computes used by reset_mol_ids
+   create computes used by reset_atoms_mol
 ------------------------------------------------------------------------- */
 
-void ResetMolIDs::create_computes(char *fixid, char *groupid)
+void ResetAtomsMol::create_computes(char *fixid, char *groupid)
 {
   int igroup = group->find(groupid);
-  if (igroup == -1) error->all(FLERR,"Could not find reset_mol_ids group ID");
+  if (igroup < 0) error->all(FLERR, "Could not find reset_atoms mol group {}", groupid);
   groupbit = group->bitmask[igroup];
 
   // create instances of compute fragment/atom, compute reduce (if needed),
   // and compute chunk/atom.  all use the group-ID for this command.
   // 'fixid' allows for creating independent instances of the computes
 
-  idfrag = fmt::format("{}_reset_mol_ids_FRAGMENT_ATOM",fixid);
+  idfrag = fmt::format("{}_reset_atoms_mol_FRAGMENT_ATOM", fixid);
   auto use_single = singleflag ? "yes" : "no";
-  cfa = dynamic_cast<ComputeFragmentAtom *>(
-    modify->add_compute(fmt::format("{} {} fragment/atom single {}",idfrag,groupid,use_single)));
+  cfa = dynamic_cast<ComputeFragmentAtom *>(modify->add_compute(
+      fmt::format("{} {} fragment/atom single {}", idfrag, groupid, use_single)));
 
-  idchunk = fmt::format("{}_reset_mol_ids_CHUNK_ATOM",fixid);
+  idchunk = fmt::format("{}_reset_atoms_mol_CHUNK_ATOM", fixid);
   if (compressflag)
-    cca = dynamic_cast<ComputeChunkAtom *>(
-      modify->add_compute(fmt::format("{} {} chunk/atom molecule compress yes",idchunk,groupid)));
+    cca = dynamic_cast<ComputeChunkAtom *>(modify->add_compute(
+        fmt::format("{} {} chunk/atom molecule compress yes", idchunk, groupid)));
 }
 
 /* ----------------------------------------------------------------------
    called from command() and directly from fixes that update molecules
 ------------------------------------------------------------------------- */
 
-void ResetMolIDs::reset()
+void ResetAtomsMol::reset()
 {
   // invoke peratom method of compute fragment/atom
   // walks bond connectivity and assigns each atom a fragment ID
@@ -181,8 +177,7 @@ void ResetMolIDs::reset()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit)
-      molecule[i] = static_cast<tagint> (fragIDs[i]);
+    if (mask[i] & groupbit) molecule[i] = static_cast<tagint>(fragIDs[i]);
 
   // if compressflag = 0, done
   // set nchunk = -1 since cannot easily determine # of new molecule IDs
@@ -208,7 +203,7 @@ void ResetMolIDs::reset()
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit)
           if (fragIDs[i] == 0.0) mysingle = 1;
-      MPI_Allreduce(&mysingle,&singleexist,1,MPI_INT,MPI_MAX,world);
+      MPI_Allreduce(&mysingle, &singleexist, 1, MPI_INT, MPI_MAX, world);
       if (singleexist) nchunk--;
     }
 
@@ -220,10 +215,10 @@ void ResetMolIDs::reset()
       if (groupbit != 1) {
         tagint mymol = 0;
         for (int i = 0; i < nlocal; i++)
-          if (!(mask[i] & groupbit))
-            mymol = MAX(mymol,molecule[i]);
-        MPI_Allreduce(&mymol,&offset,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      } else offset = 0;
+          if (!(mask[i] & groupbit)) mymol = MAX(mymol, molecule[i]);
+        MPI_Allreduce(&mymol, &offset, 1, MPI_LMP_TAGINT, MPI_MAX, world);
+      } else
+        offset = 0;
     }
 
     // reset molecule ID for all atoms in group
@@ -231,11 +226,14 @@ void ResetMolIDs::reset()
 
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        auto  newid =  static_cast<tagint>(chunkIDs[i]);
+        auto newid = static_cast<tagint>(chunkIDs[i]);
         if (singleexist) {
-          if (newid == 1) newid = 0;
-          else newid += offset - 1;
-        } else newid += offset;
+          if (newid == 1)
+            newid = 0;
+          else
+            newid += offset - 1;
+        } else
+          newid += offset;
         molecule[i] = newid;
       }
     }

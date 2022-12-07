@@ -262,6 +262,8 @@ Disable generating a citation reminder (see above) at all.
 
 **-nonbuf**
 
+.. versionadded:: 15Sep2022
+
 Turn off buffering for screen and logfile output.  For performance
 reasons, output to the screen and logfile is usually buffered, i.e.
 output is only written to a file if its buffer - typically 4096 bytes -

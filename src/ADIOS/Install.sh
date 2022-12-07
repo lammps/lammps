@@ -69,7 +69,7 @@ adios_SYSLIB=${ADIOS2_LIB}
     fi
 
     if (test -e ../Makefile.package.settings) then
-      sed -i -e '/^include.*ADIOS.*$/d' ../Makefile.package.settings
+      sed -i -e '/^[ \t]*include.*ADIOS.*$/d' ../Makefile.package.settings
       # multiline form needed for BSD sed on Macs
       sed -i -e '4 i \
 include ../ADIOS/Makefile.lammps
@@ -85,7 +85,7 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*ADIOS.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*ADIOS.*$/d' ../Makefile.package.settings
   fi
 
   rm -f Makefile.lammps

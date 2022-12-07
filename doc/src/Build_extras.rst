@@ -48,6 +48,7 @@ This is the list of packages that may require additional steps.
    * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`ML-IAP <mliap>`
    * :ref:`ML-PACE <ml-pace>`
+   * :ref:`ML-POD <ml-pod>`
    * :ref:`ML-QUIP <ml-quip>`
    * :ref:`MOLFILE <molfile>`
    * :ref:`MSCG <mscg>`
@@ -1408,6 +1409,49 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
          $ make lib-pace args="-b"                # download and build the default version in lib/pace
 
       You should not need to edit the ``lib/pace/Makefile.lammps`` file.
+
+----------
+
+.. _ml-pod:
+
+ML-POD package
+-----------------------------
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      No additional settings are needed besides ``-D PKG_ML-POD=yes``.
+
+   .. tab:: Traditional make
+
+      Before building LAMMPS, you must configure the ML-POD support
+      settings in ``lib/mlpod``.  You can do this manually, if you
+      prefer, or do it in one step from the ``lammps/src`` dir, using a
+      command like the following, which simply invoke the
+      ``lib/mlpod/Install.py`` script with the specified args:
+
+      .. code-block:: bash
+
+         $ make lib-mlpod                   # print help message
+         $ make lib-mlpod args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
+         $ make lib-mlpod args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
+         $ make lib-mlpod args="-m mpi -e linalg"   # same as above but use the bundled linalg lib
+
+      Note that the ``Makefile.lammps`` file has settings to use the BLAS
+      and LAPACK linear algebra libraries.  These can either exist on
+      your system, or you can use the files provided in ``lib/linalg``.
+      In the latter case you also need to build the library in
+      ``lib/linalg`` with a command like these:
+
+      .. code-block:: bash
+
+         $ make lib-linalg                     # print help message
+         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+
+      The package itself is activated with ``make yes-ML-POD``.
 
 ----------
 

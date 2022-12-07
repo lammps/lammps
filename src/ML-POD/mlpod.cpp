@@ -38,7 +38,7 @@ using MathSpecial::powint;
 #define MAXLINE 1024
 
 MLPOD::podstruct::podstruct() :
-    twobody{5, 10, 10}, threebody{4, 8, 8, 5}, fourbody{0, 0, 0, 0}, pbc(nullptr),
+    twobody{4, 8, 6}, threebody{4, 8, 5, 4}, fourbody{0, 0, 0, 0}, pbc(nullptr),
     elemindex(nullptr), quadratic22{0, 0}, quadratic23{0, 0}, quadratic24{0, 0}, quadratic33{0, 0},
     quadratic34{0, 0}, quadratic44{0, 0}, cubic234{0, 0, 0}, cubic333{0, 0, 0}, cubic444{0, 0, 0},
     besselparams(nullptr), coeff(nullptr), Phi2(nullptr), Phi3(nullptr), Phi4(nullptr),
@@ -51,6 +51,14 @@ MLPOD::podstruct::~podstruct()
   delete[] pbc;
   delete[] elemindex;
   delete[] besselparams;
+}
+
+MLPOD::snastruct::snastruct() :
+    map(nullptr), idx_max(nullptr), idxz(nullptr), idxz_block(nullptr), idxb(nullptr),
+    idxb_block(nullptr), idxu_block(nullptr), idxcg_block(nullptr), rcutsq(nullptr),
+    radelem(nullptr), wjelem(nullptr), bzero(nullptr), fac(nullptr), rootpqarray(nullptr),
+    cglist(nullptr)
+{
 }
 
 MLPOD::MLPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff_file) :
@@ -695,8 +703,9 @@ void MLPOD::read_coeff_file(const std::string &coeff_file)
 
 /*********************************************************************************************************/
 
-void MLPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tmpmem, int *atomtype,
-      int *alist, int *pairlist, int *pairnum, int *pairnumsum, int *tmpint, int natom, int Nij)
+void MLPOD::linear_descriptors(double *gd, double *efatom, double *y, double *tmpmem,
+                               int *atomtype, int *alist, int *pairlist, int * /*pairnum*/,
+                               int *pairnumsum, int *tmpint, int natom, int Nij)
 {
   int dim = 3;
   int nelements = pod.nelements;
@@ -1641,39 +1650,33 @@ void MLPOD::InitSnap()
 
   double rcutmax = 0.0;
   for (int ielem = 0; ielem < ntypes; ielem++)
-  rcutmax = MAX(2.0*elemradius[ielem]*rcutfac,rcutmax);
+    rcutmax = MAX(2.0*elemradius[ielem]*rcutfac,rcutmax);
 
   snapSetup(twojmax, ntypes);
-  //TemplateCopytoDevice(&sna.radelem[1], elemradius, ntypes, backend);
-  //TemplateCopytoDevice(&sna.wjelem[1], elemweight, ntypes, backend);
   for (int i=0; i<ntypes; i++) {
     sna.radelem[1+i] = elemradius[i];
     sna.wjelem[1+i] = elemweight[i];
   }
   podArrayFill(&sna.map[1], (int) 0, ntypes);
 
-  //double cutsq[100];
   for (int i=0; i<ntypes; i++)
     for (int j=0; j<ntypes; j++) {
       double cut = (elemradius[i] + elemradius[j])*rcutfac;
       sna.rcutsq[j+1 + (i+1)*(ntypes+1)] = cut*cut;
     }
-  //TemplateCopytoDevice(sna.rcutsq, cutsq, (ntypes+1)*(ntypes+1), backend);
 
   if (bzeroflag) {
     double www = wself*wself*wself;
-    //double bzero[100];
     for (int j = 0; j <= twojmax; j++)
       if (bnormflag)
-      sna.bzero[j] = www;
+        sna.bzero[j] = www;
       else
-      sna.bzero[j] = www*(j+1);
-    //TemplateCopytoDevice(sna.bzero, bzero, twojmax+1, backend);
+        sna.bzero[j] = www*(j+1);
   }
 
   int nelements = ntypes;
   if (!chemflag)
-  nelements = 1;
+    nelements = 1;
 
   sna.nelements = nelements;
   sna.ndoubles = nelements*nelements;   // number of multi-element pairs
@@ -1902,8 +1905,8 @@ void MLPOD::snapComputeUlist(double *Sr, double *Si, double *dSr, double *dSi, d
 };
 
 void MLPOD::snapZeroUarraytot2(double *Stotr, double *Stoti, double wself, int *idxu_block,
-    int *type, int *map, int *ai, int wselfall_flag, int chemflag, int idxu_max, int nelements,
-     int twojmax, int inum)
+                               int *type, int *map, int * /*ai*/, int wselfall_flag, int chemflag,
+                               int idxu_max, int nelements, int twojmax, int inum)
 {
   int N1 = inum;
   int N2 = N1*(twojmax+1);
@@ -2554,8 +2557,9 @@ void MLPOD::pod1body(double *eatom, int *atomtype, int nelements, int natom)
       eatom[i + natom*(m-1)] = (atomtype[i] == m) ? 1.0 : 0.0;
 }
 
-void MLPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, int *elemindex, int *pairnumsum,
-    int *idxi, int *ti, int *tj, int nrbf, int nabf, int nelements, int natom, int Nij)
+void MLPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, int *elemindex,
+                     int *pairnumsum, int * /*idxi*/, int *ti, int *tj, int nrbf, int nabf,
+                     int nelements, int natom, int Nij)
 {
   int dim = 3, nabf1 = nabf + 1;
   int nelements2 = nelements*(nelements+1)/2;
@@ -2599,7 +2603,6 @@ void MLPOD::pod3body(double *eatom, double *yij, double *e2ij, double *tmpmem, i
         costhe = xdot/(rij*rik);
         costhe = costhe > 1.0 ? 1.0 : costhe;
         costhe = costhe < -1.0 ? -1.0 : costhe;
-        xdot = costhe*(rij*rik);
         theta = acos(costhe);
 
         for (int p=0; p <nabf1; p++)
@@ -3070,8 +3073,8 @@ double MLPOD::calculate_energy(double *energycoeff, double *forcecoeff, double *
   return energy;
 }
 
-void MLPOD::pod2body_force(double *force, double *fij, double *coeff2, int *ai, int *aj,
-    int *ti, int *tj, int *elemindex, int nelements, int nbf, int natom, int N)
+void MLPOD::pod2body_force(double *force, double *fij, double *coeff2, int *ai, int *aj, int *ti,
+                           int *tj, int *elemindex, int nelements, int nbf, int /*natom*/, int N)
 {
   int nelements2 = nelements*(nelements+1)/2;
   for (int n=0; n<N; n++) {
@@ -3395,9 +3398,8 @@ double MLPOD::energyforce_calculation(double *force, double *podcoeff, double *e
   return energy;
 }
 
-
-void MLPOD::pod2body_force(double **force, double *fij, double *coeff2, int *ai, int *aj,
-        int *ti, int *tj, int *elemindex, int nelements, int nbf, int natom, int N)
+void MLPOD::pod2body_force(double **force, double *fij, double *coeff2, int *ai, int *aj, int *ti,
+                           int *tj, int *elemindex, int nelements, int nbf, int /*natom*/, int N)
 {
     int nelements2 = nelements*(nelements+1)/2;
     for (int n=0; n<N; n++) {

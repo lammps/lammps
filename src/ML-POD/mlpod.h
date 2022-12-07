@@ -208,6 +208,8 @@ class MLPOD : protected Pointers {
   };
 
   struct snastruct {
+    snastruct();
+
     int twojmax;
     int ncoeff;
     int idxb_max;

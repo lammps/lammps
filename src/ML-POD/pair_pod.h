@@ -37,6 +37,7 @@ class PairPOD : public Pair {
   double memory_usage() override;
 
   int dim;    // typically 3
+  int descriptormethod;   // method used to generate descriptors
 
   double *gd;             // global linear descriptors
   double *gdall;          // global linear descriptors summed over all MPI ranks
@@ -49,9 +50,14 @@ class PairPOD : public Pair {
   void free_tempmemory();
   void allocate_tempmemory();
 
-  void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
-                        int i);
+  void free_tempmemory_fastpod();
+  void allocate_tempmemory_fastpod(int nmem);
 
+  int query_pod(std::string pod_file);
+  void lammpsNeighPairs(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
+                        double rcutsq, int i);
+  void lammpsNeighborList(double **x, int **firstneigh, int *atomtype, int *map, int *numneigh,
+                        double rcutsq, int i);
  protected:
   int nablockmax;    // maximum number of atoms per computation block
   int nij;           //  number of atom pairs
@@ -59,6 +65,7 @@ class PairPOD : public Pair {
   int szd;           // size of tmpmem
 
   class MLPOD *podptr;
+  class FASTPOD *fastpodptr;
 
   // temporary arrays for computation blocks
 
@@ -66,6 +73,7 @@ class PairPOD : public Pair {
   int *typeai;         // types of atoms I only
   int *numneighsum;    // cumulative sum for an array of numbers of neighbors
   double *rij;         // (xj - xi) for all pairs (I, J)
+  double *fij;         // force for all pairs (I, J)
   int *idxi;           // storing linear indices for all pairs (I, J)
   int *ai;             // IDs of atoms I for all pairs (I, J)
   int *aj;             // IDs of atoms J for all pairs (I, J)

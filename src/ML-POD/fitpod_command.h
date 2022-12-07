@@ -26,9 +26,11 @@ CommandStyle(fitpod,FitPOD);
 namespace LAMMPS_NS {
 
 class FitPOD : public Command {
-private:
-
 public:
+  FitPOD(LAMMPS *);
+  void command(int, char **) override;
+
+private:
   struct datastruct {
     std::string file_format = "extxyz";
     std::string file_extension = "xyz";
@@ -47,12 +49,12 @@ public:
     int num_atom_max;
     int num_config_sum;
 
-    double *lattice;
-    double *energy;
-    double *stress;
-    double *position;
-    double *force;
-    int *atomtype;
+    double *lattice=nullptr;
+    double *energy=nullptr;
+    double *stress=nullptr;
+    double *position=nullptr;
+    double *force=nullptr;
+    int *atomtype=nullptr;
 
     int training = 1;
     int normalizeenergy = 1;
@@ -88,11 +90,11 @@ public:
   };
 
   struct neighborstruct {
-    int *alist;
-    int *pairnum;
-    int *pairnum_cumsum;
-    int *pairlist;
-    double *y;
+    int *alist=nullptr;
+    int *pairnum=nullptr;
+    int *pairnum_cumsum=nullptr;
+    int *pairlist=nullptr;
+    double *y=nullptr;
 
     int natom;
     int nalist;
@@ -104,14 +106,16 @@ public:
   };
 
   struct descriptorstruct {
-    double *gd;  // global descriptors
-    double *gdd; // derivatives of global descriptors and peratom descriptors
-    double *A;  // least-square matrix for all descriptors
-    double *b;  // least-square vector for all descriptors
-    double *c;  // coefficents of descriptors
-    int *tmpint;
+    double *gd=nullptr;  // global descriptors
+    double *gdd=nullptr; // derivatives of global descriptors and peratom descriptors
+    double *A=nullptr;  // least-square matrix for all descriptors
+    double *b=nullptr;  // least-square vector for all descriptors
+    double *c=nullptr;  // coefficents of descriptors
+    int *tmpint=nullptr;
     int szd;
     int szi;
+    int nd;
+    int method;
   };
 
   datastruct traindata;
@@ -119,9 +123,7 @@ public:
   descriptorstruct desc;
   neighborstruct nb;
   class MLPOD *podptr;
-
-  FitPOD(LAMMPS *lmp) : Command(lmp) {}
-
+  class FASTPOD *fastpodptr;
 
   // functions for collecting/collating arrays
 
@@ -148,7 +150,7 @@ public:
 
   // functions for reading input files and fitting
 
-  void command(int, char **) override;
+  int query_pod(std::string pod_file);
   int read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
     std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file);
   void get_exyz_files(std::vector<std::string> &, const std::string &, const std::string &);
@@ -166,16 +168,19 @@ public:
   int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
   int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
     double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
-  void allocate_memory(datastruct data);
-  void linear_descriptors(datastruct data, int ci);
-  void quadratic_descriptors(datastruct data, int ci);
-  void cubic_descriptors(datastruct data, int ci);
-  void least_squares_matrix(datastruct data, int ci);
-  void least_squares_fit(datastruct data);
-  void print_analysis(datastruct data, double *outarray, double *errors);
-  void error_analysis(datastruct data, double *coeff);
-  double energyforce_calculation(double *force, double *coeff, datastruct data, int ci);
-  void energyforce_calculation(datastruct data, double *coeff);
+  void allocate_memory(const datastruct &data);
+  void allocate_memory_fastpod(const datastruct &data);
+  void linear_descriptors(const datastruct &data, int ci);
+  void linear_descriptors_fastpod(const datastruct &data, int ci);
+  void quadratic_descriptors(const datastruct &data, int ci);
+  void cubic_descriptors(const datastruct &data, int ci);
+  void least_squares_matrix(const datastruct &data, int ci);
+  void least_squares_fit(const datastruct &data);
+  void print_analysis(const datastruct &data, double *outarray, double *errors);
+  void error_analysis(const datastruct &data, double *coeff);
+  double energyforce_calculation(double *force, double *coeff, const datastruct &data, int ci);
+  double energyforce_calculation_fastpod(double *force, const datastruct &data, int ci);
+  void energyforce_calculation(const datastruct &data, double *coeff);
 };
 
 }  // namespace LAMMPS_NS

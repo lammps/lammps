@@ -521,6 +521,8 @@
 /compute_dpd.h
 /compute_dpd_atom.cpp
 /compute_dpd_atom.h
+/compute_efield_wolf_atom.cpp
+/compute_efield_wolf_atom.h
 /compute_entropy_atom.cpp
 /compute_entropy_atom.h
 /compute_erotate_asphere.cpp

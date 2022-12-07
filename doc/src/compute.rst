@@ -202,6 +202,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`dpd/atom <compute_dpd_atom>` - per-particle values of internal conductive energy, internal mechanical energy, chemical energy, and internal temperature
 * :doc:`edpd/temp/atom <compute_edpd_temp_atom>` - per-atom temperature for each eDPD particle in a group
 * :doc:`efield/atom <compute_efield_atom>` - electric field at each atom
+* :doc:`efield/wolf/atom <compute_efield_wolf_atom>` - electric field at each atom
 * :doc:`entropy/atom <compute_entropy_atom>` - pair entropy fingerprint of each atom
 * :doc:`erotate/asphere <compute_erotate_asphere>` - rotational energy of aspherical particles
 * :doc:`erotate/rigid <compute_erotate_rigid>` - rotational energy of rigid bodies

@@ -822,44 +822,9 @@ calculate ideal positions
 */
 void FixNEB::calculate_ideal_positions()
 {
-  double lentot = 0;
-  double lenuntilClimber = 0;
-  double meanDistBeforeClimber,meanDistAfterClimber;
+  double lentot,lenuntilClimber,meanDistBeforeClimber,meanDistAfterClimber;
 
-  if (NEBLongRange or EqualForceNEB) {
-    if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
-      MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,uworld);
-    } else {
-      if (me == 0)
-        MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,rootworld);
-      MPI_Bcast(nlenall,nreplica,MPI_DOUBLE,0,world);
-    }
-
-    actualPos = 0;
-    for (int i = 0; i < ireplica; i++)
-      actualPos += nlenall[i];
-
-    for (int i = 0; i < nreplica; i++)
-      lentot += nlenall[i];
-
-    meanDist = lentot/(nreplica-1);
-
-    if (rclimber>0) {
-      for (int i = 0; i < rclimber; i++)
-        lenuntilClimber += nlenall[i];
-      meanDistBeforeClimber = lenuntilClimber/rclimber;
-      meanDistAfterClimber = (lentot-lenuntilClimber)/(nreplica-rclimber-1);
-      if (ireplica<rclimber)
-        idealPos = ireplica * meanDistBeforeClimber;
-      else
-        idealPos = lenuntilClimber+ (ireplica-rclimber)*meanDistAfterClimber;
-    } else idealPos = ireplica * meanDist;
-    idealPos /= meanDist;
-    actualPos /= meanDist;
-  }
-
-  if (EqualForceNEB and rclimber>0) {
-    double lenEtot = 0;
+  if(EqualForceNEB and rclimber>0.) {
     if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,uworld);
     } else {
@@ -867,14 +832,41 @@ void FixNEB::calculate_ideal_positions()
         MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,rootworld);
       MPI_Bcast(vengall,nreplica,MPI_DOUBLE,0,world);
     }
-    actualPos = 0;
-    for (int i = 0; i < ireplica; i++)
-      actualPos += std::abs(vengall[i+1]-vengall[i]);
     for (int i = 0; i < nreplica-1; i++)
-      lenEtot += std::abs(vengall[i+1]-vengall[i]);
-    actualPos *=  (nreplica-1)/lenEtot;
-    idealPos = ireplica;
+      nlenall[i] = std::abs(vengall[i+1]-vengall[i]);
+    nlenall[nreplica-1] = 0.0;
+  } else if(NEBLongRange or EqualForceNEB) {
+    if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
+      MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,uworld);
+    } else {
+      if (me == 0)
+        MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,rootworld);
+      MPI_Bcast(nlenall,nreplica,MPI_DOUBLE,0,world);
+    }
   }
+  actualPos = 0.;
+  for (int i = 0; i < ireplica; i++)
+    actualPos += nlenall[i];
+    
+  lentot = 0.;
+  for (int i = 0; i < nreplica; i++)
+    lentot += nlenall[i];
+
+  meanDist = lentot/(nreplica-1);
+
+  lenuntilClimber = 0.;
+  if (rclimber>0) {
+    for (int i = 0; i < rclimber; i++)
+      lenuntilClimber += nlenall[i];
+    meanDistBeforeClimber = lenuntilClimber/rclimber;
+    meanDistAfterClimber = (lentot-lenuntilClimber)/(nreplica-rclimber-1);
+    if (ireplica<rclimber)
+      idealPos = ireplica * meanDistBeforeClimber;
+    else
+      idealPos = lenuntilClimber+ (ireplica-rclimber)*meanDistAfterClimber;
+  } else idealPos = ireplica * meanDist;
+  idealPos /= meanDist;
+  actualPos /= meanDist;
 }
 
 /* ----------------------------------------------------------------------

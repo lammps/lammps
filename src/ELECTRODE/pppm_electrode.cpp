@@ -678,7 +678,7 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_fla
   // fft green's function k -> r (double)
   double *greens_real;
   memory->create(greens_real, nz_pppm * ny_pppm * nx_pppm, "pppm/electrode:greens_real");
-  memset(greens_real, 0, nz_pppm * ny_pppm * nx_pppm * sizeof(double));
+  memset(greens_real, 0, (std::size_t)nz_pppm * (std::size_t)ny_pppm * (std::size_t)nx_pppm * sizeof(double));
   for (int i = 0, n = 0; i < nfft; i++) {
     work2[n++] = greensfn[i];
     work2[n++] = ZEROF;
@@ -871,7 +871,7 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, d
 
   double **gw;
   memory->create(gw, nmat, nxyz, "pppm/electrode:gw");
-  memset(&(gw[0][0]), 0, nmat * nxyz * sizeof(double));
+  memset(&(gw[0][0]), 0, (std::size_t)nmat * (std::size_t)nxyz * sizeof(double));
 
   auto fmod = [](int x, int n) {    // fast unsigned mod
     int r = abs(x);

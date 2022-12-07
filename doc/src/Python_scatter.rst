@@ -1,7 +1,7 @@
 Scatter/gather operations
 =========================
 
-.. code-block:: Python
+.. code-block:: python
 
    data = lmp.gather_atoms(name,type,count)  # return per-atom property of all atoms gathered into data, ordered by atom ID
                                              # name = "x", "charge", "type", etc
@@ -42,7 +42,7 @@ For the scatter methods, the array of coordinates passed to must be a
 ctypes vector of ints or doubles, allocated and initialized something
 like this:
 
-.. code-block:: Python
+.. code-block:: python
 
    from ctypes import c_double
    natoms = lmp.get_natoms()

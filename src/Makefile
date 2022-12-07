@@ -55,7 +55,7 @@ PACKAGE = \
 	awpmd \
 	bocs \
 	body \
-        bpm \
+	bpm \
 	brownian \
 	cg-dna \
 	cg-spica \

@@ -53,12 +53,20 @@ class KokkosLMP : protected Pointers {
   double binsize;
 
   static int is_finalized;
+#if KOKKOS_VERSION>=30700
+  static Kokkos::InitializationSettings args;
+#else
   static Kokkos::InitArguments args;
+#endif
   static int init_ngpus;
 
   KokkosLMP(class LAMMPS *, int, char **);
 
+#if KOKKOS_VERSION>=30700
+  static void initialize(Kokkos::InitializationSettings, Error *);
+#else
   static void initialize(Kokkos::InitArguments, Error *);
+#endif
   static void finalize();
   void accelerator(int, char **);
   int neigh_count(int);

@@ -30,6 +30,7 @@ class MEAM {
   virtual ~MEAM();
 
   int copymode;
+  int msmeamflag;
 
  protected:
   Memory *memory;
@@ -125,7 +126,7 @@ class MEAM {
   
   double t1m_meam[maxelt], t2m_meam[maxelt], t3m_meam[maxelt];
   double beta1m_meam[maxelt], beta2m_meam[maxelt], beta3m_meam[maxelt];
-  int msmeamflag;
+  //int msmeamflag; // made public for pair style settings
   
  public:
   int nmax;

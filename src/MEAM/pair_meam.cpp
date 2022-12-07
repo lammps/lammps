@@ -53,6 +53,7 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  msmeamflag = 0;
 
   allocated = 0;
 
@@ -190,9 +191,20 @@ void PairMEAM::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAM::settings(int narg, char ** /*arg*/)
+void PairMEAM::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg > 1) error->all(FLERR,"Illegal pair_style command");
+
+  meam_inst->msmeamflag = 0;
+
+  if (narg == 1){
+    if (strcmp("ms", arg[0]) == 0){
+        msmeamflag = 1;
+        meam_inst->msmeamflag = 1;
+    } else
+      error->all(FLERR, "Unknown pair style zero option {}", arg[0]);
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -433,6 +445,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         t2[index] = values.next_double();
         t3[index] = values.next_double();
         rozero[index] = values.next_double();
+        printf("ibar:\n");
         ibar[index] = values.next_int();
 
         if (!isone(t0[index]))

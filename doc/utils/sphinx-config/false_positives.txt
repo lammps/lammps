@@ -977,7 +977,6 @@ equilization
 equipartitioning
 eradius
 erate
-erc
 Ercolessi
 Erdmann
 erf

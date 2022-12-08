@@ -52,7 +52,7 @@ if (test $1 = 1) then
       sed -i -e 's|^PKG_INC =[ \t]*|&-DMLIAP_PYTHON |' ../Makefile.package
     fi
     if (test -e ../Makefile.package.settings) then
-      sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
+      sed -i -e '/^[ \t]*include.*python.*mliap_python.*$/d' ../Makefile.package.settings
       # multiline form needed for BSD sed on Macs
       sed -i -e '4 i \
 include ..\/..\/lib\/python\/Makefile.mliap_python
@@ -68,7 +68,7 @@ elif (test $1 = 0) then
   fi
   rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h \
     ../mliap_unified_couple.cpp ../mliap_unified_couple.h
-  sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
+  sed -i -e '/^[ \t]*include.*python.*mliap_python.*$/d' ../Makefile.package.settings
 
 elif (test $1 = 2) then
   if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
@@ -77,12 +77,12 @@ elif (test $1 = 2) then
     fi
     rm -f ../mliap_model_python_couple.cpp ../mliap_model_python_couple.h \
       ../mliap_unified_couple.cpp ../mliap_unified_couple.h
-    sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*python.*mliap_python.*$/d' ../Makefile.package.settings
     if (test -e ../Makefile.package) then
       sed -i -e 's|^PKG_INC =[ \t]*|&-DMLIAP_PYTHON |' ../Makefile.package
     fi
     if (test -e ../Makefile.package.settings) then
-      sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
+      sed -i -e '/^[ \t]*include.*python.*mliap_python.*$/d' ../Makefile.package.settings
       # multiline form needed for BSD sed on Macs
       sed -i -e '4 i \
 include ..\/..\/lib\/python\/Makefile.mliap_python

@@ -26,9 +26,11 @@ CommandStyle(fitpod,FitPOD);
 namespace LAMMPS_NS {
 
 class FitPOD : public Command {
-private:
-
 public:
+  FitPOD(LAMMPS *);
+  void command(int, char **) override;
+
+private:
   struct datastruct {
     std::string file_format = "extxyz";
     std::string file_extension = "xyz";
@@ -120,9 +122,6 @@ public:
   neighborstruct nb;
   class MLPOD *podptr;
 
-  FitPOD(LAMMPS *lmp) : Command(lmp) {}
-
-
   // functions for collecting/collating arrays
 
   void print_matrix(const char *desc, int m, int n, int *a, int lda);
@@ -148,7 +147,7 @@ public:
 
   // functions for reading input files and fitting
 
-  void command(int, char **) override;
+
   int read_data_file(double *fitting_weights, std::string &file_format, std::string &file_extension,
     std::string &test_path, std::string &training_path, std::string &filenametag, const std::string &data_file);
   void get_exyz_files(std::vector<std::string> &, const std::string &, const std::string &);
@@ -166,16 +165,16 @@ public:
   int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N, int dim);
   int podfullneighborlist(double *y, int *alist, int *neighlist, int *numneigh, int *numneighsum,
     double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx);
-  void allocate_memory(datastruct data);
-  void linear_descriptors(datastruct data, int ci);
-  void quadratic_descriptors(datastruct data, int ci);
-  void cubic_descriptors(datastruct data, int ci);
-  void least_squares_matrix(datastruct data, int ci);
-  void least_squares_fit(datastruct data);
-  void print_analysis(datastruct data, double *outarray, double *errors);
-  void error_analysis(datastruct data, double *coeff);
-  double energyforce_calculation(double *force, double *coeff, datastruct data, int ci);
-  void energyforce_calculation(datastruct data, double *coeff);
+  void allocate_memory(const datastruct &data);
+  void linear_descriptors(const datastruct &data, int ci);
+  void quadratic_descriptors(const datastruct &data, int ci);
+  void cubic_descriptors(const datastruct &data, int ci);
+  void least_squares_matrix(const datastruct &data, int ci);
+  void least_squares_fit(const datastruct &data);
+  void print_analysis(const datastruct &data, double *outarray, double *errors);
+  void error_analysis(const datastruct &data, double *coeff);
+  double energyforce_calculation(double *force, double *coeff, const datastruct &data, int ci);
+  void energyforce_calculation(const datastruct &data, double *coeff);
 };
 
 }  // namespace LAMMPS_NS

@@ -2,11 +2,15 @@
 .. index:: pair_style table/gpu
 .. index:: pair_style table/kk
 .. index:: pair_style table/omp
+.. index:: pair_style table/mod
 
 pair_style table command
 ========================
 
 Accelerator Variants: *table/gpu*, *table/kk*, *table/omp*
+
+pair_style table/mod command
+============================
 
 Syntax
 """"""
@@ -26,21 +30,26 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style table linear 1000
-   pair_style table linear 1000 pppm
+   pair_style table lookup 1000
+   pair_style table linear 2000 pppm
+   pair_style table spline 500
    pair_style table bitmap 12
+   pair_style table/mod linear 4000
+   pair_style table/mod spline 1000
    pair_coeff * 3 morse.table ENTRY1
    pair_coeff * 3 morse.table ENTRY1 7.0
 
 Description
 """""""""""
 
-Style *table* creates interpolation tables from potential energy and
-force values listed in a file(s) as a function of distance.  When
+Pair style *table* creates interpolation tables from potential energy
+and force values listed in a file(s) as a function of distance.  When
 performing dynamics or minimization, the interpolation tables are used
 to evaluate energy and forces for pairwise interactions between
 particles, similar to how analytic formulas are used for other pair
-styles.
+styles.  Pair style *table/mod* differs from pair style table by using
+equidistant spacing in *r* while pair style *table* uses equidistant
+spacing in :math:`r^2`.
 
 The interpolation tables are created as a pre-computation by fitting
 cubic splines to the file values and interpolating energy and force
@@ -69,7 +78,8 @@ For the *bitmap* style, the specified *N* is used to create
 interpolation tables that are 2\^N in length.  The distance *R* is used
 to index into the table via a fast bit-mapping technique due to
 :ref:`(Wolff) <Wolff2>`, and a linear interpolation is performed between
-adjacent table values.
+adjacent table values.  The *bitmap* style is not available for
+pair style *table/mod*.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -110,8 +120,9 @@ best effect:
   interpolation "features" you may not like.
 * Start with the linear style; it's the style least likely to have problems.
 * Use *N* in the pair_style command equal to the "N" in the tabulation
-  file, and use the "RSQ" or "BITMAP" parameter, so additional interpolation
-  is not needed.  See discussion below.
+  file, and with pair style *table* use the "RSQ" or "BITMAP" parameter,
+  so additional interpolation is not needed.  For pair style *table/mod*
+  the table should use the "R" setting.  See discussion below.
 * Make sure that your tabulated forces and tabulated energies are
   consistent (dE/dr = -F) over the entire range of r values.  LAMMPS
   will warn if this is not the case.

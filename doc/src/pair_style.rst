@@ -357,6 +357,7 @@ accelerated styles exist.
 * :doc:`sw/angle/table <pair_sw_angle_table>` - Stillinger-Weber potential with tabulated angular term
 * :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential
 * :doc:`table <pair_table>` - tabulated pair potential
+* :doc:`table/mod <pair_table>` - tabulated pair potential
 * :doc:`table/rx <pair_table_rx>` -
 * :doc:`tdpd <pair_mesodpd>` - tDPD particle interactions
 * :doc:`tersoff <pair_tersoff>` - Tersoff 3-body potential

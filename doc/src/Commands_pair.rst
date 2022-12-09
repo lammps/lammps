@@ -279,6 +279,7 @@ OPT.
    * :doc:`sw/angle/table <pair_sw_angle_table>`
    * :doc:`sw/mod (o) <pair_sw>`
    * :doc:`table (gko) <pair_table>`
+   * :doc:`table/mod <pair_table>`
    * :doc:`table/rx (k) <pair_table_rx>`
    * :doc:`tdpd <pair_mesodpd>`
    * :doc:`tersoff (giko) <pair_tersoff>`

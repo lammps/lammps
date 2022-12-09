@@ -67,7 +67,7 @@ class FitPOD : public Command {
 
     double fitting_weights[12] = {100.0, 1.0, 0.0, 1, 1, 0, 0, 1, 1, 1, 1, 1e-10};
 
-    void copydatainfo(datastruct &data)
+    void copydatainfo(datastruct &data) const
     {
       data.data_path = data_path;
       data.file_format = file_format;

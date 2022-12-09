@@ -4274,12 +4274,14 @@ void FixBondReact::readID(char *strarg, int iconstr, int myrxn, int i)
   if (isalpha(strarg[0])) {
     constraints[iconstr][myrxn].idtype[i] = FRAG; // fragment vs. atom ID flag
     int ifragment = onemol->findfragment(strarg);
-    if (ifragment < 0) error->one(FLERR,"Fix bond/react: Molecule fragment does not exist");
+    if (ifragment < 0)
+      error->one(FLERR,"Fix bond/react: Molecule fragment {} does not exist", strarg);
     constraints[iconstr][myrxn].id[i] = ifragment;
   } else {
     constraints[iconstr][myrxn].idtype[i] = ATOM; // fragment vs. atom ID flag
-    int iatom = atoi(strarg);
-    if (iatom > onemol->natoms) error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
+    int iatom = utils::inumeric(FLERR, strarg, true, lmp);
+    if (iatom > onemol->natoms)
+      error->one(FLERR,"Fix bond/react: Invalid template atom ID {} in map file", strarg);
     constraints[iconstr][myrxn].id[i] = iatom;
   }
 }
@@ -4287,7 +4289,7 @@ void FixBondReact::readID(char *strarg, int iconstr, int myrxn, int i)
 void FixBondReact::open(char *file)
 {
   fp = fopen(file,"r");
-  if (fp == nullptr) error->one(FLERR, "Fix bond/react: Cannot open map file {}",file);
+  if (fp == nullptr) error->one(FLERR, "Fix bond/react: Cannot open map file {}", file);
 }
 
 void FixBondReact::readline(char *line)

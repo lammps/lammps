@@ -465,7 +465,7 @@ void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
   data.num_atom_sum = get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);
   data.num_config_sum = data.num_atom.size();
   size_t maxname = 9;
-  for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
+  for (const auto &fname : data.data_files) maxname = MAX(maxname,fname.size());
   maxname -= data.data_path.size()+1;
   const std::string sepline(maxname+46, '-');
   if (comm->me == 0)
@@ -608,7 +608,7 @@ std::vector<int> FitPOD::select(int n, double fraction, int randomize)
   return selected;
 }
 
-void FitPOD::select_data(datastruct &newdata, datastruct data)
+void FitPOD::select_data(datastruct &newdata, const datastruct &data)
 {
   double fraction = data.fraction;
   int randomize = data.randomize;

@@ -57,7 +57,7 @@ Pre-processing tools
    * :ref:`msi2lmp <msi>`
    * :ref:`polybond <polybond>`
    * :ref:`stl_bin2txt <stlconvert>`
-
+   * :ref:`tabulate <tabulate>`
 
 Post-processing tools
 =====================
@@ -1159,13 +1159,25 @@ For illustration purposes below is a part of the Tcl example script.
 
 ----------
 
+.. _tabulate:
+
+tabulate tool
+--------------
+
+The ``tabulate`` folder contains Python scripts scripts to generate tabulated
+potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module
+in the ``tabulate.py`` file.  Some example files demonstrating its use are
+included.
+
+----------
+
 .. _vim:
 
 vim tool
 ------------------
 
-The files in the tools/vim directory are add-ons to the VIM editor
-that allow easier editing of LAMMPS input scripts.  See the README.txt
+The files in the ``tools/vim`` directory are add-ons to the VIM editor
+that allow easier editing of LAMMPS input scripts.  See the ``README.txt``
 file for details.
 
 These files were provided by Gerolf Ziegenhain (gerolf at

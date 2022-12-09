@@ -47,8 +47,12 @@ and force values listed in a file(s) as a function of distance.  When
 performing dynamics or minimization, the interpolation tables are used
 to evaluate energy and forces for pairwise interactions between
 particles, similar to how analytic formulas are used for other pair
-styles.  Pair style *table/mod* differs from pair style table by using
-equidistant spacing in *r* while pair style *table* uses equidistant
+styles.
+
+.. versionadded:: TBD
+
+Pair style *table/mod* differs from pair style *table* by using
+equidistant spacing in *r* internally while pair style *table* uses equidistant
 spacing in :math:`r^2`.
 
 The interpolation tables are created as a pre-computation by fitting
@@ -102,11 +106,12 @@ short-range part of one of the long-range solvers specified by the
 :doc:`kspace_style <kspace_style>` command, then you must use one or
 more of the optional keywords listed above for the pair_style command.
 These are *ewald* or *pppm* or *msm* or *dispersion* or *tip4p*\ .  This
-is so LAMMPS can insure the short-range potential and long-range
-solver are compatible with each other, as it does for other
-short-range pair styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`.  Note that it is up to you to insure
-the tabulated values for each pair of atom types has the correct
-functional form to be compatible with the matching long-range solver.
+is so LAMMPS can insure the short-range potential and long-range solver
+are compatible with each other, as it does for other short-range pair
+styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`.
+Note that it is up to you to insure the tabulated values for each pair
+of atom types has the correct functional form to be compatible with the
+matching long-range solver.
 
 ----------
 
@@ -117,12 +122,14 @@ best effect:
   to get good resolution.
 * Always use the :doc:`pair_write <pair_write>` command to produce a plot
   of what the final interpolated potential looks like.  This can show up
-  interpolation "features" you may not like.
+  interpolation "features" you may not like.  You can try using pair style
+  *table/mod* if this happens.
 * Start with the linear style; it's the style least likely to have problems.
 * Use *N* in the pair_style command equal to the "N" in the tabulation
   file, and with pair style *table* use the "RSQ" or "BITMAP" parameter,
   so additional interpolation is not needed.  For pair style *table/mod*
-  the table should use the "R" setting.  See discussion below.
+  the table should use the "R" setting to avoid the internal interpolation.
+  See discussion below.
 * Make sure that your tabulated forces and tabulated energies are
   consistent (dE/dr = -F) over the entire range of r values.  LAMMPS
   will warn if this is not the case.
@@ -130,6 +137,13 @@ best effect:
   to very steep parts of the potential.
 
 ----------
+
+Suitable tables for use with these pair styles can be created by LAMMPS
+itself using the :doc:`pair_write <pair_write>` command.  In combination
+with the :doc:`pair style python <pair_python>` this can be a powerful
+mechanism to implement and test tables for use with LAMMPS.  Another
+option to generate tables is the Python code in the ``tools/tabulate``
+folder of the LAMMPS source code distribution.
 
 The format of a tabulated file has an (optional) header followed by a
 series of one or more sections, defined as follows (without the

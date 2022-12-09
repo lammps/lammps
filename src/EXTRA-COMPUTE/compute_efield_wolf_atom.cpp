@@ -88,6 +88,9 @@ ComputeEfieldWolfAtom::~ComputeEfieldWolfAtom()
 
 void ComputeEfieldWolfAtom::init()
 {
+  if (!atom->q_flag)
+    error->all(FLERR,"Compute efield/wolf/atom requires atom attribute q", style);
+
   // need an occasional full neighbor list
   auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   if (cutoff_flag) req->set_cutoff(cutoff);

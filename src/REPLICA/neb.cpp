@@ -61,6 +61,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
   n2steps = n2steps_in;
   nevery = nevery_in;
   verbose = false;
+  terse = false;
 
   // replica info
 
@@ -147,6 +148,7 @@ void NEB::command(int narg, char **arg)
   int iarg = 5;
   int filecmd = 0;
   verbose=false;
+  terse=false;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"final") == 0) {
       if (iarg + 2 > narg) error->universe_all(FLERR,"Illegal NEB command: missing arguments");
@@ -166,8 +168,12 @@ void NEB::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"verbose") == 0) {
       verbose=true;
       ++iarg;
+    } else if (strcmp(arg[iarg],"terse") == 0) {
+      terse=true;
+      ++iarg;
     } else error->universe_all(FLERR,fmt::format("Unknown NEB command keyword: {}", arg[iarg]));
   }
+  if(terse and verbose) terse = false; // verbose overrides terse....
 
   if (!filecmd) error->universe_all(FLERR, "NEB is missing 'final', 'each', or 'none' keyword");
 
@@ -230,8 +236,11 @@ void NEB::run()
     if (uscreen) {
       fmt::print(uscreen,"    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0","GradV1","GradVc","EBF", "EBR", "RDT");
-      for (int i = 1; i <= nreplica; ++i)
-        fmt::print(uscreen, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
+      
+      if (not terse) {
+        for (int i = 1; i <= nreplica; ++i)
+          fmt::print(uscreen, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
+      }
 
       if (verbose) {
         for (int i = 1; i <= nreplica; ++i) {
@@ -247,8 +256,11 @@ void NEB::run()
     if (ulogfile) {
       fmt::print(ulogfile,"    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0","GradV1","GradVc","EBF", "EBR", "RDT");
-      for (int i = 1; i <= nreplica; ++i)
-        fmt::print(ulogfile, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
+      
+      if (not terse) {
+        for (int i = 1; i <= nreplica; ++i)
+          fmt::print(ulogfile, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
+      }
 
       if (verbose) {
         for (int i = 1; i <= nreplica; ++i) {
@@ -258,6 +270,7 @@ void NEB::run()
                      "RepForce"+idx, "MaxAtomForce"+idx);
         }
       }
+
       fprintf(ulogfile,"\n");
     }
   }
@@ -323,9 +336,12 @@ void NEB::run()
     if (uscreen) {
       fmt::print(uscreen,"    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0","GradV1","GradVc","EBF", "EBR", "RDT");
-      for (int i = 1; i <= nreplica; ++i)
-        fmt::print(uscreen, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
-
+      
+      if (not terse) {
+        for (int i = 1; i <= nreplica; ++i)
+          fmt::print(uscreen, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
+      }
+      
       if (verbose) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
@@ -340,8 +356,11 @@ void NEB::run()
     if (ulogfile) {
       fmt::print(ulogfile,"    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0","GradV1","GradVc","EBF", "EBR", "RDT");
-      for (int i = 1; i <= nreplica; ++i)
-        fmt::print(ulogfile, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
+      
+      if (not terse) {
+        for (int i = 1; i <= nreplica; ++i)
+          fmt::print(ulogfile, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
+      }
 
       if (verbose) {
         for (int i = 1; i <= nreplica; ++i) {
@@ -652,7 +671,9 @@ void NEB::print_status()
     std::string mesg = fmt::format("{:10}   {:<14.8g}   {:<14.8g} ",update->ntimestep,fmaxreplica,fmaxatom);
     mesg += fmt::format("{:<14.8g} {:<14.8g} {:<14.8g} ",gradvnorm0,gradvnorm1,gradvnormc);
     mesg += fmt::format("{:<14.8g} {:<14.8g} {:<14.8g} ",ebf,ebr,endpt);
-    for (int i = 0; i < nreplica; i++) mesg += fmt::format("{:<14.8g} {:<14.8g} ",rdist[i],all[i][0]);
+    if (not terse) {
+      for (int i = 0; i < nreplica; i++) mesg += fmt::format("{:<14.8g} {:<14.8g} ",rdist[i],all[i][0]);
+    }
     if (verbose) {
       mesg += fmt::format("{:<12.5g} {:<12.5g} {:<12.5g} {:<12.5g} {:<12.5g} {:<12.5g}",
                           NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,

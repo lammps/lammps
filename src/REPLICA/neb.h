@@ -37,7 +37,7 @@ class NEB : public Command {
  private:
   int me, me_universe;    // my proc ID in world and universe
   int ireplica, nreplica;
-  bool verbose;
+  bool verbose, terse;
   MPI_Comm uworld;
   MPI_Comm roots;    // MPI comm with 1 root proc from each world
   FILE *fp;

@@ -64,7 +64,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   NEBLongRange = false;
   EqualForceNEB = false;
   StandardNEB = true;
-
+  
   PerpSpring = FreeEndIni = FreeEndFinal = false;
   FreeEndFinalWithRespToEIni = FinalAndInterWithRespToEIni = false;
   kspringPerp = 0.0;
@@ -122,7 +122,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
       } else error->all(FLERR,"Illegal fix neb command");
 
       iarg += 3;
-
+      
     } else error->all(FLERR,"Illegal fix neb command");
   }
 

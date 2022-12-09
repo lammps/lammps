@@ -89,7 +89,9 @@ ComputeEfieldWolfAtom::~ComputeEfieldWolfAtom()
 void ComputeEfieldWolfAtom::init()
 {
   if (!atom->q_flag)
-    error->all(FLERR,"Compute efield/wolf/atom requires atom attribute q", style);
+    error->all(FLERR,"Compute efield/wolf/atom requires atom attribute q");
+  if (atom->mu_flag && (comm->me == 0))
+    error->warning(FLERR,"Compute efield/wolf/atom does not support per-atom dipoles");
 
   // need an occasional full neighbor list
   auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);

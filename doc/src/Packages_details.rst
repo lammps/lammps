@@ -2542,15 +2542,15 @@ REACTION package
 
 **Contents:**
 
-This package allows for complex bond topology changes (reactions)
-during a running MD simulation, when using classical force fields.
-Topology changes are defined in pre- and post-reaction molecule
-templates and can include creation and deletion of bonds, angles,
-dihedrals, impropers, atom types, bond types, angle types, dihedral
-types, improper types, and/or atomic charges. Other options currently
-available include reaction constraints (e.g., angle and Arrhenius
-constraints), deletion of reaction byproducts or other small
-molecules, creation of new atoms or molecules bonded to existing
+This package implements the REACTER protocol, which allows for complex
+bond topology changes (reactions) during a running MD simulation when
+using classical force fields. Topology changes are defined in pre- and
+post-reaction molecule templates and can include creation and deletion
+of bonds, angles, dihedrals, impropers, atom types, bond types, angle
+types, dihedral types, improper types, and/or atomic charges. Other
+options currently available include reaction constraints (e.g., angle
+and Arrhenius constraints), deletion of reaction byproducts or other
+small molecules, creation of new atoms or molecules bonded to existing
 atoms, and using LAMMPS variables for input parameters.
 
 **Author:** Jacob R. Gissinger (NASA Langley Research Center).
@@ -2564,7 +2564,7 @@ atoms, and using LAMMPS variables for input parameters.
 * `2017 LAMMPS Workshop <https://www.lammps.org/workshops/Aug17/pdf/gissinger.pdf>`_
 * `2019 LAMMPS Workshop <https://www.lammps.org/workshops/Aug19/talk_gissinger.pdf>`_
 * `2021 LAMMPS Workshop <https://www.lammps.org/workshops/Aug21/talk/jacob-gissinger/>`_
-* `reacter.org <https://www.reacter.org/>`_
+* `REACTER website (reacter.org) <https://www.reacter.org/>`_
 
 ----------
 

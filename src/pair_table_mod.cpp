@@ -273,7 +273,6 @@ void PairTableMod::eval()
         if (EVFLAG) ev_tally(i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz);
       }
     }
-    
     f[i][0] += fxtmp;
     f[i][1] += fytmp;
     f[i][2] += fztmp;

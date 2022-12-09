@@ -176,9 +176,13 @@ are placeholders for atom types that will be used with other potentials.
 
 .. note::
 
-   When the *threebody off* keyword is used, multiple pair_coeff commands may
-   be used to specific the pairs of atoms which don't require three-body term.
-   In these cases, the first 2 arguments are not required to be \* \*.
+   When the *threebody off* keyword is used, multiple pair_coeff
+   commands may be used to specific the pairs of atoms which don't
+   require three-body term.  In these cases, the first 2 arguments are
+   not required to be \* \*, the potential parameter file is only read
+   by the first :doc:`pair_coeff command <pair_coeff>` and the element
+   to atom type mappings must be consistent across all *pair_coeff*
+   statements.  If not LAMMPS will abort with an error.
 
 Stillinger-Weber files in the *potentials* directory of the LAMMPS
 distribution have a ".sw" suffix.  Lines that are not blank or

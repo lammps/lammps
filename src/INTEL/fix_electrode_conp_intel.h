@@ -36,8 +36,7 @@ class FixElectrodeConpIntel : public FixElectrodeConp {
   FixElectrodeConpIntel(class LAMMPS *lmp, int narg, char **arg) : FixElectrodeConp(lmp, narg, arg)
   {
     intelflag = true;
-    delete accel_interface;
-    accel_interface = new ElectrodeAccelIntel(lmp);
+    accel_interface = std::unique_ptr<ElectrodeAccelInterface>(new ElectrodeAccelIntel(lmp));
   }
 };
 

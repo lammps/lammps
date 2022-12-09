@@ -86,7 +86,6 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   DAT::tdual_virial_array k_vatom;
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
-  typename AT::t_tagint_1d tag;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;

@@ -194,7 +194,7 @@ macro. These tests operate by capturing the screen output when executing
 the failing command and then comparing that with a provided regular
 expression string pattern.  Example:
 
-.. code-block:: C++
+.. code-block:: c++
 
    TEST_F(SimpleCommandsTest, UnknownCommand)
    {
@@ -226,9 +226,9 @@ The following test programs are currently available:
    * - ``test_kim_commands.cpp``
      - KimCommands
      - Tests for several commands from the :ref:`KIM package <PKG-KIM>`
-   * - ``test_reset_ids.cpp``
-     - ResetIDs
-     - Tests to validate the :doc:`reset_atom_ids <reset_atom_ids>` and :doc:`reset_mol_ids <reset_mol_ids>` commands
+   * - ``test_reset_atoms.cpp``
+     - ResetAtoms
+     - Tests to validate the :doc:`reset_atoms <reset_atoms>` sub-commands
 
 
 Tests for the C-style library interface
@@ -249,7 +249,7 @@ MPI support.  These include tests where LAMMPS is run in multi-partition
 mode or only on a subset of the MPI world communicator.  The CMake
 script code for adding this kind of test looks like this:
 
-.. code-block:: CMake
+.. code-block:: cmake
 
    if (BUILD_MPI)
      add_executable(test_library_mpi test_library_mpi.cpp)

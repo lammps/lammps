@@ -93,11 +93,14 @@
 *
 *     .. Local Scalars ..
       INTEGER I,M,MP1,NINCX
+*     .. Parameters ..
+      DOUBLE PRECISION ONE
+      PARAMETER (ONE=1.0D+0)
 *     ..
 *     .. Intrinsic Functions ..
       INTRINSIC MOD
 *     ..
-      IF (N.LE.0 .OR. INCX.LE.0) RETURN
+      IF (N.LE.0 .OR. INCX.LE.0 .OR. DA.EQ.ONE) RETURN
       IF (INCX.EQ.1) THEN
 *
 *        code for increment equal to 1

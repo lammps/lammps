@@ -50,7 +50,7 @@ parallel each MPI process creates such an instance.  This can be seen
 in the ``main.cpp`` file where the core steps of running a LAMMPS
 simulation are the following 3 lines of code:
 
-.. code-block:: C++
+.. code-block:: c++
 
     LAMMPS *lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
@@ -78,7 +78,7 @@ LAMMPS makes extensive use of the object oriented programming (OOP)
 principles of *compositing* and *inheritance*. Classes like the
 ``LAMMPS`` class are a **composite** containing pointers to instances
 of other classes like ``Atom``, ``Comm``, ``Force``, ``Neighbor``,
-``Modify``, and so on.  Each of these classes implement certain
+``Modify``, and so on.  Each of these classes implements certain
 functionality by storing and manipulating data related to the
 simulation and providing member functions that trigger certain
 actions.  Some of those classes like ``Force`` are themselves
@@ -87,9 +87,9 @@ interactions.  Similarly the ``Modify`` class contains a list of
 ``Fix`` and ``Compute`` classes.  If the input commands that
 correspond to these classes include the word *style*, then LAMMPS
 stores only a single instance of that class.  E.g. *atom_style*,
-*comm_style*, *pair_style*, *bond_style*.  It the input command does
-not include the word *style*, there can be many instances of that
-class defined.  E.g. *region*, *fix*, *compute*, *dump*.
+*comm_style*, *pair_style*, *bond_style*.  If the input command does
+**not** include the word *style*, then there may be many instances of
+that class defined, for example *region*, *fix*, *compute*, *dump*.
 
 **Inheritance** enables creation of *derived* classes that can share
 common functionality in their base class while providing a consistent
@@ -232,7 +232,7 @@ macro ``PairStyle()`` will associate the style name "lj/cut"
 with a factory function creating an instance of the ``PairLJCut``
 class.
 
-.. code-block:: C++
+.. code-block:: c++
 
    // from force.h
    typedef Pair *(*PairCreator)(LAMMPS *);
@@ -360,7 +360,7 @@ characters; "{:<8}" would do this as left aligned, "{:^8}" as centered,
 argument type must be compatible or else the {fmt} formatting code will
 throw an exception. Some format string examples are given below:
 
-.. code-block:: C
+.. code-block:: c++
 
    auto mesg = fmt::format("  CPU time: {:4d}:{:02d}:{:02d}\n", cpuh, cpum, cpus);
    mesg = fmt::format("{:<8s}| {:<10.5g} | {:<10.5g} | {:<10.5g} |{:6.1f} |{:6.2f}\n",

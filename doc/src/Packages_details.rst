@@ -2548,11 +2548,12 @@ Topology changes are defined in pre- and post-reaction molecule
 templates and can include creation and deletion of bonds, angles,
 dihedrals, impropers, atom types, bond types, angle types, dihedral
 types, improper types, and/or atomic charges. Other options currently
-available include reaction constraints (e.g. angle and Arrhenius
+available include reaction constraints (e.g., angle and Arrhenius
 constraints), deletion of reaction byproducts or other small
-molecules, and chiral-sensitive reactions.
+molecules, creation of new atoms or molecules bonded to existing
+atoms, and using LAMMPS variables for input parameters.
 
-**Author:** Jacob R. Gissinger (CU Boulder) while at NASA Langley Research Center.
+**Author:** Jacob R. Gissinger (NASA Langley Research Center).
 
 **Supporting info:**
 
@@ -2562,7 +2563,8 @@ molecules, and chiral-sensitive reactions.
 * examples/PACKAGES/reaction
 * `2017 LAMMPS Workshop <https://www.lammps.org/workshops/Aug17/pdf/gissinger.pdf>`_
 * `2019 LAMMPS Workshop <https://www.lammps.org/workshops/Aug19/talk_gissinger.pdf>`_
-* reacter.org
+* `2021 LAMMPS Workshop <https://www.lammps.org/workshops/Aug21/talk/jacob-gissinger/>`_
+* `reacter.org <https://www.reacter.org/>`_
 
 ----------
 

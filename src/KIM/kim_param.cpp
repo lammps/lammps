@@ -283,7 +283,7 @@ void KimParam::command(int narg, char **arg)
           // Get the variable/variable_base name
           varname = std::string(arg[i++]);
           if ((varname == "split") || (varname == "list") || (varname == "explicit"))
-            error->all(FLERR, "Illegal variable name {} in 'kim param get'", varname);
+            error->all(FLERR, "Illegal variable name '{}' in 'kim param get'", varname);
         } else
           error->all(FLERR, "Wrong number of arguments in 'kim param get' command.\n"
                      "The LAMMPS variable name is mandatory");
@@ -312,7 +312,7 @@ void KimParam::command(int narg, char **arg)
               for (int j = 0; j < nvars; ++j, ++i) {
                 varsname[j] = std::string(arg[i]);
                 if (varsname[j] == "split" || varsname[j] == "list" || varsname[j] == "explicit")
-                  error->all(FLERR, "Illegal variable name {} in 'kim param get'", varsname[j]);
+                  error->all(FLERR, "Illegal variable name '{}' in 'kim param get'", varsname[j]);
               }
               if (i < narg) {
                 formatarg = std::string(arg[i]);

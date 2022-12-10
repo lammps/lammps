@@ -228,9 +228,9 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
       contact[0].r =
           DistancePointEllipsoid(axes[2], axes[1], axes[0], coords[sorting[2]], coords[sorting[1]],
                                  coords[sorting[0]], x0[2], x0[1], x0[0]);
-      contact[0].delx = copysign(x0[sorting[2]], x[0] - xc) + xc;
-      contact[0].dely = copysign(x0[sorting[1]], x[1] - yc) + yc;
-      contact[0].delz = copysign(x0[sorting[0]], x[2] - zc) + zc;
+      contact[0].delx = x[0] - (copysign(x0[sorting[2]], x[0] - xc) + xc);
+      contact[0].dely = x[1] - (copysign(x0[sorting[1]], x[1] - yc) + yc);
+      contact[0].delz = x[2] - (copysign(x0[sorting[0]], x[2] - zc) + zc);
       //      contact[0].radius = -radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
@@ -255,12 +255,12 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
       double x0, x1;
       if (a >= b) {
         contact[0].r = DistancePointEllipse(a, b, fabs(x[0] - xc), fabs(x[1] - yc), x0, x1);
-        contact[0].delx = copysign(x0, x[0] - xc) + xc;
-        contact[0].dely = copysign(x1, x[1] - yc) + yc;
+        contact[0].delx = x[0] - (copysign(x0, x[0] - xc) + xc);
+        contact[0].dely = x[1] - (copysign(x1, x[1] - yc) + yc);
       } else {
         contact[0].r = DistancePointEllipse(b, a, fabs(x[1] - yc), fabs(x[0] - xc), x0, x1);
-        contact[0].delx = copysign(x1, x[0] - xc) + xc;
-        contact[0].dely = copysign(x0, x[1] - yc) + yc;
+        contact[0].delx = x[0] - (copysign(x1, x[0] - xc) + xc);
+        contact[0].dely = x[1] - (copysign(x0, x[1] - yc) + yc);
       }
       contact[0].delz = 0;
       //     contact[0].radius = -radius;
@@ -329,9 +329,9 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
       contact[0].r =
           DistancePointEllipsoid(axes[2], axes[1], axes[0], coords[sorting[2]], coords[sorting[1]],
                                  coords[sorting[0]], x0[2], x0[1], x0[0]);
-      contact[0].delx = copysign(x0[sorting[2]], x[0] - xc) + xc;
-      contact[0].dely = copysign(x0[sorting[1]], x[1] - yc) + yc;
-      contact[0].delz = copysign(x0[sorting[0]], x[2] - zc) + zc;
+      contact[0].delx = x[0] - (copysign(x0[sorting[2]], x[0] - xc) + xc);
+      contact[0].dely = x[1] - (copysign(x0[sorting[1]], x[1] - yc) + yc);
+      contact[0].delz = x[2] - (copysign(x0[sorting[0]], x[2] - zc) + zc);
       //      contact[0].radius = radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
@@ -356,12 +356,12 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
       double x0, x1;
       if (a >= b) {
         contact[0].r = DistancePointEllipse(a, b, fabs(x[0] - xc), fabs(x[1] - yc), x0, x1);
-        contact[0].delx = copysign(x0, x[0] - xc) + xc;
-        contact[0].dely = copysign(x1, x[1] - yc) + yc;
+        contact[0].delx = x[0] - (copysign(x0, x[0] - xc) + xc);
+        contact[0].dely = x[1] - (copysign(x1, x[1] - yc) + yc);
       } else {
         contact[0].r = DistancePointEllipse(b, a, fabs(x[1] - yc), fabs(x[0] - xc), x0, x1);
-        contact[0].delx = copysign(x1, x[0] - xc) + xc;
-        contact[0].dely = copysign(x0, x[1] - yc) + yc;
+        contact[0].delx = x[0] - (copysign(x1, x[0] - xc) + xc);
+        contact[0].dely = x[1] - (copysign(x0, x[1] - yc) + yc);
       }
       contact[0].delz = 0;
       //    contact[0].radius = radius;

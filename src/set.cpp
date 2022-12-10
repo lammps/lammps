@@ -1087,14 +1087,11 @@ void Set::set(int keyword)
     else if (keyword == EPSILON) {
       if (dvalue >= 0.0) {
 
-        // compute the unscaled charge value (i.e. atom->q_unscaled)
         // assign the new local dielectric constant
-        // update both the scaled and unscaled charge values
+        // update both the scaled charge value
 
-        double q_unscaled = atom->q[i] * atom->epsilon[i];
         atom->epsilon[i] = dvalue;
-        atom->q[i] = q_unscaled / dvalue;
-        atom->q_unscaled[i] = q_unscaled;
+        atom->q_scaled[i] = atom->q[i] / dvalue;
       }
     }
 

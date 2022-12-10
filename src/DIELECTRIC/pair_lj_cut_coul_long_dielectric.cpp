@@ -81,7 +81,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;
@@ -252,6 +252,7 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, d
   double r2inv, r6inv, r, grij, expm2, t, erfc, ei, ej, prefactor;
   double fraction, table, forcecoul, forcelj, phicoul, philj;
   int itable;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
 
   r2inv = 1.0 / rsq;
@@ -262,7 +263,7 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, d
       expm2 = exp(-grij * grij);
       t = 1.0 / (1.0 + EWALD_P * grij);
       erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-      prefactor = force->qqrd2e * atom->q[i] * atom->q[j] / r;
+      prefactor = force->qqrd2e * q[i] * q[j] / r;
       forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
       if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
     } else {
@@ -272,10 +273,10 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, d
       itable >>= ncoulshiftbits;
       fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction * dftable[itable];
-      forcecoul = atom->q[i] * atom->q[j] * table;
+      forcecoul = q[i] * q[j] * table;
       if (factor_coul < 1.0) {
         table = ctable[itable] + fraction * dctable[itable];
-        prefactor = atom->q[i] * atom->q[j] * table;
+        prefactor = q[i] * q[j] * table;
         forcecoul -= (1.0 - factor_coul) * prefactor;
       }
     }
@@ -301,12 +302,11 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, d
     ej = eps[j];
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor * (ei + ej) * erfc;
+      phicoul = prefactor * 0.5 * (ei + ej) * erfc;
     else {
       table = etable[itable] + fraction * detable[itable];
-      phicoul = atom->q[i] * atom->q[j] * (ei + ej) * table;
+      phicoul = q[i] * q[j] * 0.5 * (ei + ej) * table;
     }
-    phicoul *= 0.5;
     if (factor_coul < 1.0) phicoul -= (1.0 - factor_coul) * prefactor;
     eng += phicoul;
   }

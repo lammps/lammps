@@ -74,7 +74,7 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;
@@ -195,11 +195,12 @@ double PairLJCutCoulCutDielectric::single(int i, int j, int itype, int jtype, do
                                           double factor_coul, double factor_lj, double &fforce)
 {
   double r2inv, r6inv, forcecoul, forcelj, phicoul, ei, ej, philj;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
 
   r2inv = 1.0 / rsq;
   if (rsq < cut_coulsq[itype][jtype])
-    forcecoul = force->qqrd2e * atom->q[i] * atom->q[j] * sqrt(r2inv) * eps[i];
+    forcecoul = force->qqrd2e * q[i] * q[j] * sqrt(r2inv) * eps[i];
   else
     forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {
@@ -219,7 +220,7 @@ double PairLJCutCoulCutDielectric::single(int i, int j, int itype, int jtype, do
   else
     ej = eps[j];
   if (rsq < cut_coulsq[itype][jtype]) {
-    phicoul = force->qqrd2e * atom->q[i] * atom->q[j] * sqrt(r2inv);
+    phicoul = force->qqrd2e * q[i] * q[j] * sqrt(r2inv);
     phicoul *= 0.5 * (ei + ej);
     eng += factor_coul * phicoul;
   }

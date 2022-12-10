@@ -172,7 +172,7 @@ class Atom : protected Pointers {
 
   // DIELECTRIC package
 
-  double *area, *ed, *em, *epsilon, *curvature, *q_unscaled;
+  double *area, *ed, *em, *epsilon, *curvature, *q_scaled;
 
   // end of customization section
   // --------------------------------------------------------------------

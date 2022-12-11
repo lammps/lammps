@@ -87,7 +87,7 @@ if(CMAKE_Fortran_COMPILER)
   add_test(NAME FortranNeighlist COMMAND test_fortran_neighlist)
 
   add_executable(test_fortran_fixexternal wrap_fixexternal.cpp test_fortran_fixexternal.f90)
-  target_link_libraries(test_fortran_fixexternal PRIVATE flammps lammps MPI::MPI_Fortran GTest::GMockMain)
+  target_link_libraries(test_fortran_fixexternal PRIVATE flammps lammps GTest::GMockMain)
   add_test(NAME FortranFixExternal COMMAND test_fortran_fixexternal)
 
 else()

@@ -341,8 +341,8 @@ void FixPolarizeBEMGMRES::pre_force(int)
 
 void FixPolarizeBEMGMRES::compute_induced_charges()
 {
+  double *q_scaled = atom->q_scaled;
   double *q = atom->q;
-  double *q_real = atom->q_unscaled;
   double **norm = atom->mu;
   double *area = atom->area;
   double *ed = atom->ed;
@@ -356,18 +356,20 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   // compute the right hand side (vector b) of Eq. (40) according to Eq. (42)
   // keep the scaled real charges intact here to compute efield for the right hand side (b)
   //   and backup all the charges
-  // for induced charges q_real stores the free surface charge
+  // for induced charges q stores the free surface charge
   // set the induced charges to be zero to compute the right hand side (b)
   // the current value can be accessed via induced_charges[induced_charge_idx[i]]
 
   for (int i = 0; i < nlocal; i++) {
-    q_backup[i] = q[i];
-    if (induced_charge_idx[i] >= 0) q[i] = 0;
+    q_backup[i] = q_scaled[i];
+    if (induced_charge_idx[i] >= 0) q_scaled[i] = 0;
   }
+
+  // communicate q_scaled between the neighboring procs
 
   comm->forward_comm(this);
 
-  // note here q[i] are the bound charges including area
+  // note here q_scaled[i] are the bound charges including area
   // so that kspace solver can be used directly with the charge values
   // for the moment, require that newton off and full neighbor list for pair
   // Note that in the definition of the electrical fields in Equations (41) and (53)
@@ -398,7 +400,8 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
       Ez += efield_kspace[i][2];
     }
     double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i];
-    double sigma_f = q_real[i] / area[i];
+    // NOTE: need to review here if sigma_f be divided by epsilon or not
+    double sigma_f = q[i] / area[i];
     buffer[idx] = (1 - em[i]) * sigma_f - ed[i] * ndotE / (4 * MY_PI);
   }
 
@@ -431,11 +434,14 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   for (int i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] >= 0) {
       int idx = induced_charge_idx[i];
-      q[i] = induced_charges[idx] * area[i] + q_real[i];
+      // NOTE: need to review here q be divided by epsilon or not
+      q_scaled[i] = induced_charges[idx] * area[i] + q[i];
     } else {
-      q[i] = q_backup[i];
+      q_scaled[i] = q_backup[i];
     }
   }
+
+  // communicate q_scaled to neighboring procs
 
   comm->forward_comm(this);
 
@@ -447,8 +453,8 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   int ncount = group->count(igroup);
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-
-    double q_bound = q[i] - q_real[i];
+    // NOTE: need to review here q_free be divided by epsilon or not
+    double q_bound = q_scaled[i] - q[i];
     tmp += q_bound;
   }
 
@@ -458,7 +464,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q[i] -=  qboundave;
+    q_scaled[i] -=  qboundave;
   }
 }
 
@@ -631,7 +637,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
 void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int /*n*/)
 {
   int i;
-  double *q = atom->q;
+  double *q_scaled = atom->q_scaled;
   double **norm = atom->mu;
   double *area = atom->area;
   double *ed = atom->ed;
@@ -648,10 +654,10 @@ void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int /*n*/)
 
   for (i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] < 0) {
-      q[i] = 0;
+      q_scaled[i] = 0;
     } else {
       int idx = induced_charge_idx[i];
-      q[i] = w[idx] * area[i];
+      q_scaled[i] = w[idx] * area[i];
     }
   }
 
@@ -699,8 +705,8 @@ void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int /*n*/)
 void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
 {
   int i;
+  double *q_scaled = atom->q_scaled;
   double *q = atom->q;
-  double *q_real = atom->q_unscaled;
   double **norm = atom->mu;
   double *area = atom->area;
   double *ed = atom->ed;
@@ -717,12 +723,14 @@ void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
 
   for (i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] < 0) {
-      q[i] = q_backup[i];
+      q_scaled[i] = q_backup[i];
     } else {
       int idx = induced_charge_idx[i];
-      q[i] = w[idx] * area[i] + q_real[i];
+      q_scaled[i] = w[idx] * area[i] + q[i];
     }
   }
+
+  // communicate q_scaled between neighboring procs
 
   comm->forward_comm(this);
 
@@ -755,7 +763,7 @@ void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
     }
     double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
         epsilon[i] / (4 * MY_PI);
-    double sigma_f = q_real[i] / area[i];
+    double sigma_f = q[i] / area[i];
     buffer[idx] = (1 - em[i]) * sigma_f - em[i] * w[idx] - ed[i] * ndotE;
   }
 
@@ -917,7 +925,7 @@ int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf, int /*
                                            int * /*pbc*/)
 {
   int m;
-  for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  for (m = 0; m < n; m++) buf[m] = atom->q_scaled[list[m]];
   return n;
 }
 
@@ -926,7 +934,7 @@ int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf, int /*
 void FixPolarizeBEMGMRES::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
-  for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  for (m = 0, i = first; m < n; m++, i++) atom->q_scaled[i] = buf[m];
 }
 
 /* ----------------------------------------------------------------------
@@ -974,7 +982,7 @@ void FixPolarizeBEMGMRES::set_dielectric_params(double ediff, double emean, doub
   double *area = atom->area;
   double *ed = atom->ed;
   double *em = atom->em;
-  double *q_unscaled = atom->q_unscaled;
+  double *q = atom->q;
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -985,7 +993,7 @@ void FixPolarizeBEMGMRES::set_dielectric_params(double ediff, double emean, doub
       em[i] = emean;
       if (areai > 0) area[i] = areai;
       if (epsiloni > 0) epsilon[i] = epsiloni;
-      if (set_charge) q_unscaled[i] = qvalue;
+      if (set_charge) q[i] = qvalue;
     }
   }
 }

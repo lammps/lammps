@@ -502,6 +502,58 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   create discretized "density" on section of global grid due to my particles
+   density(x,y,z) = charge "density" at grid points of my 3d brick
+   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
+   in global grid
+------------------------------------------------------------------------- */
+
+void PPPMDispDielectric::make_rho_c()
+{
+  int l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+
+  // clear 3d density array
+
+  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,
+         ngrid*sizeof(FFT_SCALAR));
+
+  // loop over my charges, add their contribution to nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+
+  double *q = atom->q_scaled;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+
+    compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
+
+    z0 = delvolinv * q[i];
+    for (n = nlower; n <= nupper; n++) {
+      mz = n+nz;
+      y0 = z0*rho1d[2][n];
+      for (m = nlower; m <= nupper; m++) {
+        my = m+ny;
+        x0 = y0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          density_brick[mz][my][mx] += x0*rho1d[0][l];
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    interpolate from grid to get electric field & force on my particles
    for ik scheme
 ------------------------------------------------------------------------- */

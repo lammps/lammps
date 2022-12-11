@@ -241,8 +241,8 @@ void FixPolarizeBEMICC::pre_force(int)
 
 void FixPolarizeBEMICC::compute_induced_charges()
 {
+  double *q_scaled = atom->q_scaled;
   double *q = atom->q;
-  double *q_real = atom->q_unscaled;
   double **norm = atom->mu;
   double *area = atom->area;
   double *ed = atom->ed;
@@ -283,11 +283,13 @@ void FixPolarizeBEMICC::compute_induced_charges()
     // divide (Ex,Ey,Ez) by epsilon[i] here
     double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
         epsilon[i] / (2 * MY_PI);
-    double q_free = q_real[i];
+    double q_free = q[i];
     double q_bound = 0;
     q_bound = (1.0 / em[i] - 1) * q_free - (ed[i] / (2 * em[i])) * ndotE * area[i];
     q[i] = q_free + q_bound;
   }
+
+  // communicate q_scaled between neighboring procs
 
   comm->forward_comm(this);
 
@@ -304,8 +306,10 @@ void FixPolarizeBEMICC::compute_induced_charges()
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
 
-      double q_free = q_real[i];
-      double qtmp = q[i] - q_free;
+      // NOTE: need to review here q_free be divided by epsilon or not
+
+      double q_free = q[i];
+      double qtmp = q_scaled[i] - q_free;
       double Ex = efield_pair[i][0];
       double Ey = efield_pair[i][1];
       double Ez = efield_pair[i][2];
@@ -324,7 +328,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
       double q_bound = q[i] - q_free;
       q_bound = (1 - omega) * q_bound +
           omega * ((1.0 / em[i] - 1) * q_free - (ed[i] / em[i]) * ndotE * area[i]);
-      q[i] = q_free + q_bound;
+      q_scaled[i] = q_free + q_bound;
 
       // Eq. (11) in Tyagi et al., with f from Eq. (6)
       // NOTE: Tyagi et al. defined the normal vector n_i pointing
@@ -359,7 +363,8 @@ void FixPolarizeBEMICC::compute_induced_charges()
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
 
-    double q_bound = q[i] - q_real[i];
+    // NOTE: need to review here q_free be divided by epsilon or not
+    double q_bound = q_scaled[i] - q[i];
     tmp += q_bound;
   }
 
@@ -369,7 +374,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q[i] -=  qboundave;
+    q_scaled[i] -=  qboundave;
   }
 }
 
@@ -442,7 +447,7 @@ int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int /*pb
                                          int * /*pbc*/)
 {
   int m;
-  for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  for (m = 0; m < n; m++) buf[m] = atom->q_scaled[list[m]];
   return n;
 }
 
@@ -451,7 +456,7 @@ int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int /*pb
 void FixPolarizeBEMICC::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
-  for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  for (m = 0, i = first; m < n; m++, i++) atom->q_scaled[i] = buf[m];
 }
 
 /* ----------------------------------------------------------------------
@@ -464,7 +469,7 @@ void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean, double
   double *area = atom->area;
   double *ed = atom->ed;
   double *em = atom->em;
-  double *q_unscaled = atom->q_unscaled;
+  double *q = atom->q;
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -475,7 +480,7 @@ void FixPolarizeBEMICC::set_dielectric_params(double ediff, double emean, double
       em[i] = emean;
       if (areai > 0) area[i] = areai;
       if (epsiloni > 0) epsilon[i] = epsiloni;
-      if (set_charge) q_unscaled[i] = qvalue;
+      if (set_charge) q[i] = qvalue;
     }
   }
 }

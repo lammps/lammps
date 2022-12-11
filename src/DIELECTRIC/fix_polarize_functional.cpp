@@ -408,17 +408,17 @@ void FixPolarizeFunctional::update_induced_charges()
 
 void FixPolarizeFunctional::charge_rescaled(int scaled2real)
 {
+  double *q_scaled = atom->q_scaled;
   double *q = atom->q;
-  double *q_real = atom->q_unscaled;
   double *epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
 
-  if (scaled2real) {
+  if (scaled2real == SCALED2REAL) {
     for (int i = 0; i < nlocal; i++)
-      if (induced_charge_idx[i] < 0) q[i] = q_real[i];
+      if (induced_charge_idx[i] < 0) q_scaled[i] = q[i];
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (induced_charge_idx[i] < 0) q[i] = q_real[i] / epsilon[i];
+      if (induced_charge_idx[i] < 0) q_scaled[i] = q[i] / epsilon[i];
   }
 
   comm->forward_comm(this);
@@ -542,7 +542,7 @@ int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int 
                                              int * /*pbc*/)
 {
   int m;
-  for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  for (m = 0; m < n; m++) buf[m] = atom->q_scaled[list[m]];
   return n;
 }
 
@@ -551,7 +551,7 @@ int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int 
 void FixPolarizeFunctional::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m;
-  for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  for (m = 0, i = first; m < n; m++, i++) atom->q_scaled[i] = buf[m];
 }
 
 /* ----------------------------------------------------------------------
@@ -830,7 +830,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
   int *mask = atom->mask;
   tagint *tag = atom->tag;
   double **x = atom->x;
-  double *q = atom->q_unscaled;
+  double *q = atom->q;
   double *epsilon = atom->epsilon;
   double *area = atom->area;
   double **norm = atom->mu;
@@ -1039,7 +1039,7 @@ void FixPolarizeFunctional::set_dielectric_params(double ediff, double emean, do
   double *area = atom->area;
   double *ed = atom->ed;
   double *em = atom->em;
-  double *q_unscaled = atom->q_unscaled;
+  double *q = atom->q;
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1050,7 +1050,7 @@ void FixPolarizeFunctional::set_dielectric_params(double ediff, double emean, do
       em[i] = emean;
       if (areai > 0) area[i] = areai;
       if (epsiloni > 0) epsilon[i] = epsiloni;
-      if (set_charge) q_unscaled[i] = qvalue;
+      if (set_charge) q[i] = qvalue;
     }
   }
 }

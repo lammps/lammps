@@ -37,6 +37,7 @@ class PPPMDispDielectric : public PPPMDisp {
   int potflag;    // 1/0 if per-atom electrostatic potential phi is needed
 
  protected:
+  void make_rho_c() override;
   void fieldforce_c_ik() override;
   void fieldforce_c_ad() override;
   void fieldforce_c_peratom() override;

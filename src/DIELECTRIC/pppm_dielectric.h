@@ -36,7 +36,7 @@ class PPPMDielectric : public PPPM {
 
  protected:
   void slabcorr() override;
-
+  void make_rho() override;
   void fieldforce_ik() override;
   void fieldforce_ad() override;
 

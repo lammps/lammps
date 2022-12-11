@@ -75,7 +75,7 @@ class FixElectrodeConp : public Fix {
   virtual std::vector<double> constraint_projection(std::vector<double>);
   virtual std::vector<double> constraint_correction(std::vector<double>);
   virtual void compute_macro_matrices();
-  std::vector<double> ele_ele_interaction(std::vector<double>);
+  std::vector<double> ele_ele_interaction(const std::vector<double>&);
   std::vector<double> group_psi;
   std::vector<int> group_bits;
   std::vector<int> groups;

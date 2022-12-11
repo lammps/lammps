@@ -867,7 +867,7 @@ void FixElectrodeConp::update_charges()
   accel_interface->intel_pack_buffers();
 }
 
-std::vector<double> FixElectrodeConp::ele_ele_interaction(std::vector<double> q_local)
+std::vector<double> FixElectrodeConp::ele_ele_interaction(const std::vector<double>& q_local)
 {
   assert(q_local.size() == nlocalele);
   assert(algo == Algo::CG || algo == Algo::MATRIX_CG);

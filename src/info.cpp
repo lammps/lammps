@@ -1185,11 +1185,10 @@ bool Info::has_accelerator_feature(const std::string &package,
     }
     if (category == "api") {
 #if defined(_OPENMP)
-      if (setting == "openmp") return true;
+      return setting == "openmp";
 #else
-      if (setting == "serial") return true;
+      return setting == "serial";
 #endif
-      return false;
     }
   }
 #endif
@@ -1198,7 +1197,7 @@ bool Info::has_accelerator_feature(const std::string &package,
     if (category == "precision") {
       if (setting == "double") return true;
       else if (setting == "mixed") return true;
-      else if (setting == "single")return true;
+      else if (setting == "single") return true;
       else return false;
     }
     if (category == "api") {

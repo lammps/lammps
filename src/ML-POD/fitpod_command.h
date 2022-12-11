@@ -155,12 +155,12 @@ class FitPOD : public Command {
                        std::vector<int> &num_config, std::vector<std::string> training_files);
   void read_exyz_file(double *lattice, double *stress, double *energy, double *pos, double *forces,
                       int *atomtype, std::string file, std::vector<std::string> species);
-  void get_data(datastruct &data, std::vector<std::string> species);
+  void get_data(datastruct &data, const std::vector<std::string>& species);
   std::vector<int> linspace(int start_in, int end_in, int num_in);
   std::vector<int> shuffle(int start_in, int end_in, int num_in);
   std::vector<int> select(int n, double fraction, int randomize);
   void select_data(datastruct &newdata, const datastruct &data);
-  void read_data_files(std::string data_file, std::vector<std::string> species);
+  void read_data_files(const std::string& data_file, const std::vector<std::string>& species);
   int latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3,
                     double rcut, int *pbc, int nx);
   int podneighborlist(int *neighlist, int *numneigh, double *r, double rcutsq, int nx, int N,

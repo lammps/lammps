@@ -37,6 +37,7 @@
 #include <cmath>
 #include <random>
 #include <string>
+#include <utility>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -253,7 +254,7 @@ void FitPOD::get_exyz_files(std::vector<std::string>& files, const std::string &
 
 int FitPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)
 {
-  std::string filename = file;
+  std::string filename = std::move(file);
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(filename,lmp,nullptr);
@@ -325,7 +326,7 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
     int *atomtype, std::string file, std::vector<std::string> species)
 {
 
-  std::string filename = file;
+  std::string filename = std::move(file);
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(filename,lmp,nullptr);
@@ -459,7 +460,7 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
   }
 }
 
-void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
+void FitPOD::get_data(datastruct &data, const std::vector<std::string>& species)
 {
   get_exyz_files(data.data_files, data.data_path, data.file_extension);
   data.num_atom_sum = get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);
@@ -707,7 +708,7 @@ void FitPOD::select_data(datastruct &newdata, const datastruct &data)
                    "", maxname+90, "data_file", maxname, "", maxname+90);
   for (int i=0; i< (int) newdata.data_files.size(); i++) {
     std::string filename = newdata.data_files[i].substr(newdata.data_path.size()+1,newdata.data_files[i].size());
-    newdata.filenames.push_back(filename.c_str());
+    newdata.filenames.emplace_back(filename.c_str());
     if (comm->me == 0)
       utils::logmesg(lmp, " {:<{}} |       {:>8}       |      {:>8}      |       {:>8}       |     {:>8}\n",
                      newdata.filenames[i], maxname, newdata.num_config[i], newdata.num_atom_each_file[i],
@@ -720,7 +721,7 @@ void FitPOD::select_data(datastruct &newdata, const datastruct &data)
   }
 }
 
-void FitPOD::read_data_files(std::string data_file, std::vector<std::string> species)
+void FitPOD::read_data_files(const std::string& data_file, const std::vector<std::string>& species)
 {
   datastruct data;
 

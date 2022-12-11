@@ -2308,7 +2308,7 @@ double FixBondReact::custom_constraint(const std::string& varstr)
   evlstr.push_back(varstr.substr(prev3+1));
 
   for (auto & evl : evlstr) evlcat += evl;
-  return input->variable->compute_equal(evlcat.c_str());
+  return input->variable->compute_equal(evlcat);
 }
 
 /* ----------------------------------------------------------------------

@@ -1,8 +1,20 @@
-#! /usr/bin/env python
+# ----------------------------------------------------------------------
+#   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+#   https://www.lammps.org/ Sandia National Laboratories
+#   LAMMPS Development team: developers@lammps.org
+#
+#   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+#   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+#   certain rights in this software.  This software is distributed under
+#   the GNU General Public License.
+#
+#   See the README file in the top-level LAMMPS directory.
+# -------------------------------------------------------------------------
 """
 Python classes and support functions to generate tabulated potential files for LAMMPS.
 """
 
+# for python2/3 compatibility
 from __future__ import print_function
 
 import sys
@@ -23,6 +35,9 @@ def numdiff(x, func):
 ########################################################################
 
 def mktable(tstyle, label, num, xmin, xmax, efunc, diff=False, ffunc=None):
+    """ Do the tabulation of the provided energy function. Compute force from
+    numerical differentiation if no force function is provided.  Also detect
+    minimum for use to determine potential shifting in bonded potentials."""
 
     # must use numerical differentiation if no force function provided
     if not ffunc: diff = True
@@ -50,7 +65,7 @@ def mktable(tstyle, label, num, xmin, xmax, efunc, diff=False, ffunc=None):
 
 
 ########################################################################
-
+# base class with shared functionality
 class Tabulate(object):
 
     def __init__(self, style, efunc, ffunc=None):
@@ -85,7 +100,7 @@ class Tabulate(object):
             self.fp.write("%8d %- 22.15g %- 22.15g %- 22.15g\n" % (i, r, e - offset, f))
 
 ################################################################################
-
+# create tabulation for pair styles
 class PairTabulate(Tabulate):
     def __init__(self, efunc, ffunc=None):
         super(PairTabulate, self).__init__('pair', efunc, ffunc)
@@ -125,10 +140,10 @@ class PairTabulate(Tabulate):
         
 
 ################################################################################
-
-class BondTabulate(Tabulate):
-    def __init__(self, efunc, ffunc=None):
-        super(BondTabulate, self).__init__('bond', efunc, ffunc)
+# shared functionality to create tabulation for bond or angle styles
+class BondAngleTabulate(Tabulate):
+    def __init__(self, style, efunc, ffunc=None):
+        super(BondAngleTabulate, self).__init__(style, efunc, ffunc)
         self.parser.add_argument('--eshift', '-e', dest='eshift', default=False, action='store_true',
                                   help="Shift potential energy to be zero at minimum")
         try:
@@ -160,5 +175,15 @@ class BondTabulate(Tabulate):
 
         self.writetable(table, offset)
         if self.args.filename != '-': self.fp.close()
+
+################################################################################
+class BondTabulate(BondAngleTabulate):
+    def __init__(self, efunc, ffunc=None):
+        super(BondTabulate, self).__init__('bond', efunc, ffunc)
+
+################################################################################
+class AngleTabulate(BondAngleTabulate):
+    def __init__(self, efunc, ffunc=None):
+        super(AngleTabulate, self).__init__('angle', efunc, ffunc)
 
 ################################################################################

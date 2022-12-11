@@ -59,8 +59,8 @@
 
 /pair_pod.cpp
 /pair_pod.h
-/fitpod.cpp
-/fitpod.h
+/fitpod_command.cpp
+/fitpod_command.h
 /mlpod.cpp
 /mlpod.h
 

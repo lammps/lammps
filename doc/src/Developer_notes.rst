@@ -105,7 +105,7 @@ list, where each pair of atoms is listed only once (except when the
 pairs straddling sub-domains or periodic boundaries will be listed twice).
 Thus these are the default settings when a neighbor list request is created in:
 
-.. code-block:: C++
+.. code-block:: c++
 
    void Pair::init_style()
    {
@@ -129,7 +129,7 @@ neighbor list request to the specific needs of a style an additional
 request flag is needed.  The :doc:`tersoff <pair_tersoff>` pair style,
 for example, needs a "full" neighbor list:
 
-.. code-block:: C++
+.. code-block:: c++
 
    void PairTersoff::init_style()
    {
@@ -141,7 +141,7 @@ When a pair style supports r-RESPA time integration with different cutoff region
 the request flag may depend on the corresponding r-RESPA settings. Here an example
 from pair style lj/cut:
 
-.. code-block:: C++
+.. code-block:: c++
 
    void PairLJCut::init_style()
    {
@@ -160,7 +160,7 @@ Granular pair styles need neighbor lists based on particle sizes and not cutoff
 and also may require to have the list of previous neighbors available ("history").
 For example with:
 
-.. code-block:: C++
+.. code-block:: c++
 
    if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_HISTORY);
    else neighbor->add_request(this, NeighConst::REQ_SIZE);
@@ -170,7 +170,7 @@ settings each request can set an id which is then used in the corresponding
 ``init_list()`` function to assign it to the suitable pointer variable. This is
 done for example by the :doc:`pair style meam <pair_meam>`:
 
-.. code-block:: C++
+.. code-block:: c++
 
    void PairMEAM::init_style()
    {
@@ -189,7 +189,7 @@ just once) and this can also be indicated by a flag.  As an example here
 is the request from the ``FixPeriNeigh`` class which is created
 internally by :doc:`Peridynamics pair styles <pair_peri>`:
 
-.. code-block:: C++
+.. code-block:: c++
 
    neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
@@ -198,7 +198,7 @@ than what is usually inferred from the pair style settings (largest cutoff of
 all pair styles plus neighbor list skin).  The following is used in the
 :doc:`compute rdf <compute_rdf>` command implementation:
 
-.. code-block:: C++
+.. code-block:: c++
 
   if (cutflag)
     neighbor->add_request(this, NeighConst::REQ_OCCASIONAL)->set_cutoff(mycutneigh);
@@ -212,7 +212,7 @@ for printing the neighbor list summary the name of the requesting command
 should be set.  Below is the request from the :doc:`delete atoms <delete_atoms>`
 command:
 
-.. code-block:: C++
+.. code-block:: c++
 
    neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
 

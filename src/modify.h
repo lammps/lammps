@@ -17,7 +17,6 @@
 #include "pointers.h"
 
 #include <map>
-#include <vector>
 
 namespace LAMMPS_NS {
 

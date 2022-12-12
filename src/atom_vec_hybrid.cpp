@@ -16,7 +16,6 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "tokenizer.h"
 
 #include <algorithm>
 #include <cstring>

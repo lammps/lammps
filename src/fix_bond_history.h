@@ -23,8 +23,6 @@ FixStyle(BOND_HISTORY,FixBondHistory);
 #include "fix.h"
 
 #include <map>
-#include <utility>
-#include <vector>
 
 namespace LAMMPS_NS {
 

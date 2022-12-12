@@ -70,12 +70,10 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   kspringPerp = 0.0;
   kspringIni = 1.0;
   kspringFinal = 1.0;
-
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"parallel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix neb command");
-
       if (strcmp(arg[iarg+1],"ideal") == 0) {
         NEBLongRange = true;
         EqualForceNEB = false;
@@ -828,7 +826,8 @@ void FixNEB::calculate_ideal_positions()
   // Skip unless "ideal" or "equal"
   if (not (EqualForceNEB or NEBLongRange)) return;
 
-  double lentot,lenuntilClimber,meanDistBeforeClimber,meanDistAfterClimber;
+  double Elentot,lentot,lenuntilClimber;
+  double meanDist,meanDistBeforeClimber,meanDistAfterClimber;
 
   if (EqualForceNEB and rclimber>0.) {
     if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
@@ -838,9 +837,11 @@ void FixNEB::calculate_ideal_positions()
         MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,rootworld);
       MPI_Bcast(vengall,nreplica,MPI_DOUBLE,0,world);
     }
+
     for (int i = 0; i < nreplica-1; i++)
       nlenall[i] = std::abs(vengall[i+1]-vengall[i]);
     nlenall[nreplica-1] = 0.0;
+
   } else if(NEBLongRange or EqualForceNEB) {
     if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,uworld);
@@ -848,17 +849,17 @@ void FixNEB::calculate_ideal_positions()
       if (me == 0)
         MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,rootworld);
       MPI_Bcast(nlenall,nreplica,MPI_DOUBLE,0,world);
-    }
+    } 
   }
-
-  actualPos = 0.;
-  for (int i = 0; i < ireplica; i++)
-    actualPos += nlenall[i];
-    
+  
   lentot = 0.;
   for (int i = 0; i < nreplica; i++)
     lentot += nlenall[i];
-
+  
+  actualPos = 0.;
+  for (int i = 0; i < ireplica; i++)
+    actualPos += nlenall[i];
+  
   meanDist = lentot/(nreplica-1);
 
   lenuntilClimber = 0.;

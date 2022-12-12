@@ -38,7 +38,7 @@ class FixNEB : public Fix {
 
  private:
   int me, nprocs, nprocs_universe;
-  double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni, idealPos, actualPos, meanDist;
+  double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni, idealPos, actualPos;
   bool StandardNEB, NEBLongRange, EqualForceNEB, PerpSpring, FreeEndIni, FreeEndFinal;
   bool FreeEndFinalWithRespToEIni, FinalAndInterWithRespToEIni;
   int ireplica, nreplica;

@@ -104,7 +104,11 @@ int FixPolarizeBEMICC::setmask()
 void FixPolarizeBEMICC::init()
 {
   int ncount = group->count(igroup);
-  if (comm->me == 0) utils::logmesg(lmp, "BEM/ICC solver for {} induced charges\n", ncount);
+  if (comm->me == 0) {
+    utils::logmesg(lmp, "BEM/ICC solver for {} induced charges\n", ncount);
+    utils::logmesg(lmp, " using pair style {}\n", force->pair_style);
+    if (force->kspace) utils::logmesg(lmp, " using kspace style {}\n", force->kspace_style);
+  }
 
   // initialize random induced charges with zero sum
 
@@ -280,13 +284,15 @@ void FixPolarizeBEMICC::compute_induced_charges()
       Ez += efield_kspace[i][2];
     }
 
+
+
     // divide (Ex,Ey,Ez) by epsilon[i] here
     double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
         epsilon[i] / (2 * MY_PI);
     double q_free = q[i];
     double q_bound = 0;
     q_bound = (1.0 / em[i] - 1) * q_free - (ed[i] / (2 * em[i])) * ndotE * area[i];
-    q[i] = q_free + q_bound;
+    q_scaled[i] = q_free + q_bound;
   }
 
   // communicate q_scaled between neighboring procs
@@ -325,10 +331,14 @@ void FixPolarizeBEMICC::compute_induced_charges()
 
       double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
           (4 * MY_PI) / epsilon[i];
-      double q_bound = q[i] - q_free;
+      double q_bound = q_scaled[i] - q_free;
       q_bound = (1 - omega) * q_bound +
           omega * ((1.0 / em[i] - 1) * q_free - (ed[i] / em[i]) * ndotE * area[i]);
       q_scaled[i] = q_free + q_bound;
+
+      
+      
+      //printf("itr = %d: i = %d: q_scaled = %f q = %f E = %f %f %f\n", itr, i, q_scaled[i], q[i], Ex, Ey, Ez);
 
       // Eq. (11) in Tyagi et al., with f from Eq. (6)
       // NOTE: Tyagi et al. defined the normal vector n_i pointing
@@ -356,6 +366,17 @@ void FixPolarizeBEMICC::compute_induced_charges()
 
   iterations = itr;
 
+  // communicate q_scaled to neighboring procs
+
+  comm->forward_comm(this);
+
+  // set q from q_scaled for interface particles
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    q[i] = q_scaled[i] * epsilon[i];
+  }
+
   // ensure sum of all induced charges being zero
 
   double tmp = 0;
@@ -376,6 +397,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
     if (!(mask[i] & groupbit)) continue;
     q_scaled[i] -=  qboundave;
   }
+
 }
 
 /* ---------------------------------------------------------------------- */

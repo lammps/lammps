@@ -445,6 +445,13 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
   comm->forward_comm(this);
 
+  // set q from q_scaled for interface particles
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    q[i] = q_scaled[i] * epsilon[i];
+  }
+
   if (first) first = 0;
 
   // ensure sum of all induced charges being zero

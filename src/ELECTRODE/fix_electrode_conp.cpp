@@ -1417,14 +1417,13 @@ void FixElectrodeConp::gather_list_iele()
   }
   taglist_local.clear();
   iele_to_group_local.clear();
-  for (int i = 0, iele = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       tagint const t = tag[i];
       if (matrix_algo) list_iele.push_back(tag_to_iele[t]);
       taglist_local.push_back(t);
       for (int g = 0; g < num_of_groups; g++)
         if (mask[i] & group_bits[g]) iele_to_group_local.push_back(g);
-      iele++;
     }
   }
   nlocalele = static_cast<int>(taglist_local.size());    // just for safety

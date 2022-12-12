@@ -29,7 +29,6 @@ FixStyle(electrode/conp, FixElectrodeConp);
 #include "electrode_accel_interface.h"
 #include "fix.h"
 
-#include <algorithm>
 #include <map>
 #include <memory>
 #include <unordered_map>

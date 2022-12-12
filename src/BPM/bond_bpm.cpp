@@ -25,8 +25,6 @@
 #include "modify.h"
 #include "update.h"
 
-#include <vector>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

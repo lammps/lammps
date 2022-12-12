@@ -17,10 +17,9 @@
 
 #include "../version.h"
 
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN

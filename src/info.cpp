@@ -63,7 +63,9 @@
 #endif
 
 #if defined(__linux__)
+#include <features.h>
 #include <malloc.h>
+#include <sys/types.h>
 #endif
 
 namespace LAMMPS_NS {

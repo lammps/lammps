@@ -18,7 +18,6 @@
 #include "slab_dipole.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "force.h"
 #include "kspace.h"

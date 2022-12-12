@@ -19,7 +19,6 @@
 #include "force.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 #include "pair.h"
 
 #include <utility>

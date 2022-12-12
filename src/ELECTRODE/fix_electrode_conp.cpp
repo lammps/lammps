@@ -20,7 +20,6 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
-#include "compute.h"
 #include "domain.h"
 #include "electrode_accel_interface.h"
 #include "electrode_math.h"
@@ -37,12 +36,15 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "pointers.h"
 #include "text_file_reader.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cassert>
-#include <numeric>
+#include <cmath>
+#include <cstring>
+#include <exception>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

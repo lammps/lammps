@@ -21,6 +21,7 @@
 #include "tokenizer.h"    // IWYU pragma: export
 
 #include <cstdio>
+#include <exception>
 
 namespace LAMMPS_NS {
 class TextFileReader {

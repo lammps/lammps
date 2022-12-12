@@ -25,6 +25,8 @@
 #include "update.h"
 #include "variable.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 #define NUM_GROUPS 2

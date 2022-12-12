@@ -23,6 +23,8 @@
 #include "kspace.h"
 #include "math_const.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 

@@ -35,7 +35,6 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "random_mars.h"
@@ -52,6 +51,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 
 #include <algorithm>
 #include <random>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

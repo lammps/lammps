@@ -22,6 +22,7 @@
 
 #include <cstdio>
 #include <exception>
+#include <string>
 
 namespace LAMMPS_NS {
 class TextFileReader {

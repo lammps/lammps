@@ -360,6 +360,7 @@ accelerated styles exist.
 * :doc:`saed/vtk <fix_saed_vtk>` - time-average the intensities from :doc:`compute saed <compute_saed>`
 * :doc:`setforce <fix_setforce>` - set the force on each atom
 * :doc:`setforce/spin <fix_setforce>` - set magnetic precession vectors on each atom
+* :doc:`sgcmc <fix_sgcmc>` - fix for hybrid semi-grandcanonical MD/MC simulations
 * :doc:`shake <fix_shake>` - SHAKE constraints on bonds and/or angles
 * :doc:`shardlow <fix_shardlow>` - integration of DPD equations of motion using the Shardlow splitting
 * :doc:`smd <fix_smd>` - applied a steered MD force to a group

@@ -15,7 +15,7 @@
  * Parallel Monte-Carlo code for the semi-grandcanonical ensemble (SGC)
  * and the variance-constrained semi-grandcanonical ensemble (VC-SGC).
  *
- * See Sadigh et al., Phys. Rev. B 85, 184203 (2012) for a 
+ * See Sadigh et al., Phys. Rev. B 85, 184203 (2012) for a
  * description of the algorithm.
  *
  * Code author: Alexander Stukowski (stukowski@mm.tu-darmstadt.de)

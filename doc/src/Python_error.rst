@@ -7,7 +7,7 @@ current Python process with an error message.  C++ exceptions allow capturing
 them on the C++ side and rethrowing them on the Python side. This way
 LAMMPS errors can be handled through the Python exception handling mechanism.
 
-.. code-block:: Python
+.. code-block:: python
 
    from lammps import lammps, MPIAbortException
 

@@ -374,7 +374,7 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
-    sed -i -e '/^include.*kokkos.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
 CXX = $(CC)
@@ -401,7 +401,7 @@ elif (test $1 = 0) then
 
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
-    sed -i -e '/^include.*kokkos.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
   fi
 
 fi

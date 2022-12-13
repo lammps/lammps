@@ -24,7 +24,7 @@ AtomStyle(template,AtomVecTemplate);
 
 namespace LAMMPS_NS {
 
-class AtomVecTemplate : public AtomVec {
+class AtomVecTemplate : virtual public AtomVec {
  public:
   AtomVecTemplate(class LAMMPS *);
 

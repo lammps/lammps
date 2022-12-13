@@ -81,7 +81,7 @@ class Tabulate(object):
                                               + self.tstyle + ' potential files for LAMMPS')
         self.parser.add_argument('--num-points', '-n', dest='num', default=1000, type=int,
                                  help="Number of tabulated points")
-        self.parser.add_argument('--filename', '-f', dest='filename', default='-', type=ascii,
+        self.parser.add_argument('--filename', '-f', dest='filename', default='-',
                                  help="Name of output file")
         self.parser.add_argument('--diff-num', '-d', dest='diff',default=False,
                                  action='store_true',
@@ -109,15 +109,19 @@ class PairTabulate(Tabulate):
                                  action='store_true',
                                  help="Shift potential energy to be zero at outer cutoff")
         try:
-            self.args = self.parser.parse_args(sys.argv[1:])
-        except BaseException:
+            self.args = self.parser.parse_args()
+        except argparse.ArgumentError:
             sys.exit()
 
     def run(self, label):
+        # sanity checks
         if self.args.num < 2:
-            sys.exit('Expect 2 or more points in table for tabulation')
+            sys.exit('\nExpect 2 or more points in table for tabulation\n\n' + self.parser.format_help())
         if self.args.xmin <= 0.0:
-            sys.exit('Inner tabulation cutoff must be > 0 for pair style table')
+            sys.exit('\nInner tabulation cutoff must be > 0 for pair style table\n\n' + self.parser.format_help())
+        if self.args.xmax <= self.args.xmin:
+            sys.exit('\nOuter cutoff must be larger than inner cutoff\n\n' + self.parser.format_help())
+
         self.diff = self.args.diff
         if not self.forcefunc: self.diff = True
         offset = 0.0
@@ -150,14 +154,26 @@ class BondAngleTabulate(Tabulate):
         self.parser.add_argument('--eshift', '-e', dest='eshift', default=False,
                                  action='store_true',
                                  help="Shift potential energy to be zero at minimum")
+        idx = [a.dest for a in self.parser._actions].index('xmin')
+        self.parser._actions[idx].required=False
+        self.parser._actions[idx].default=0.0
+        if style == 'angle':
+            idx = [a.dest for a in self.parser._actions].index('xmax')
+            self.parser._actions[idx].required=False
+            self.parser._actions[idx].default=180.0
         try:
-            self.args = self.parser.parse_args(sys.argv[1:])
-        except BaseException:
+            self.args = self.parser.parse_args()
+        except argparse.ArgumentError:
             sys.exit()
 
     def run(self, label):
+        # sanity checks
         if self.args.num < 2:
-            sys.exit('Expect 2 or more points in table for tabulation')
+            sys.exit('\nExpect 2 or more points in table for tabulation\n\n' + self.parser.format_help())
+        if self.args.xmin < 0.0:
+            sys.exit('\nInner cutoff must not be negative\n\n' + self.parser.format_help())
+        if self.tstyle == 'angle' and self.args.xmax > 180.0:
+            sys.exit('\nOuter cutoff must not be larger than 180.0 degrees\n\n' + self.parser.format_help())
 
         self.diff = self.args.diff
         if not self.forcefunc: self.diff = True

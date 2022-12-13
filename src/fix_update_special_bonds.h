@@ -23,7 +23,6 @@ FixStyle(UPDATE_SPECIAL_BONDS,FixUpdateSpecialBonds);
 #include "fix.h"
 
 #include <utility>
-#include <vector>
 
 namespace LAMMPS_NS {
 

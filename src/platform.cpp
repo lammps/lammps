@@ -16,6 +16,8 @@
  * the "utils" namespace with convenience and utility functions. */
 
 #include "platform.h"
+
+#include "fmt/format.h"
 #include "text_file_reader.h"
 #include "utils.h"
 

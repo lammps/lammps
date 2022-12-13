@@ -19,13 +19,13 @@
 #include "error.h"
 #include "fix_bond_history.h"
 #include "force.h"
-#include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 #define EPSILON 1e-10
 

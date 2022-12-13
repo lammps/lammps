@@ -20,7 +20,6 @@
 #include "memory.h"
 #include "neighbor.h"
 
-#include <cctype>
 #include <cstring>
 
 using namespace LAMMPS_NS;

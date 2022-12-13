@@ -17,14 +17,11 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "memory.h"
-#include "utils.h"
 #include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 

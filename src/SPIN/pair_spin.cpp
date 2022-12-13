@@ -32,7 +32,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"

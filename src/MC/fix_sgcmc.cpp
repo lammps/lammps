@@ -111,7 +111,7 @@ FixSemiGrandCanonicalMC::FixSemiGrandCanonicalMC(LAMMPS *lmp, int narg, char **a
     iarg++;
     double temperature = atof(arg[iarg]);
     if (comm->me == 0)
-      utils::logmesg(lmp, "  SGC - Temperature: %f\n", temperature);
+      utils::logmesg(lmp, "  SGC - Temperature: {}\n", temperature);
     if(temperature <= 0)
         error->all(FLERR, "Illegal fix sgcmc command. Temperature invalid.");
     double kb = 8.617343e-5;

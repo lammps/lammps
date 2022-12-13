@@ -74,6 +74,8 @@ class Tabulate(object):
         self.energyfunc = efunc
         self.forcefunc = ffunc
         self.eshift = 0.0
+        self.args = None
+        self.diff = True
 
         self.parser = argparse.ArgumentParser(description='Tool to generate tabulated '
                                               + self.tstyle + ' potential files for LAMMPS')
@@ -90,9 +92,8 @@ class Tabulate(object):
                                  help="Outer cutoff of table")
 
     def openfile(self, label):
-        if self.args.filename != '-':
-            self.fp = open(self.args.filename, 'a')
-
+        if self.args and self.args.filename != '-':
+            self.fp = open(self.args.filename, 'a', encoding='ascii')
         self.fp.write('\n' + label + '\n')
 
     def writetable(self, table, offset):
@@ -104,11 +105,12 @@ class Tabulate(object):
 class PairTabulate(Tabulate):
     def __init__(self, efunc, ffunc=None):
         super(PairTabulate, self).__init__('pair', efunc, ffunc)
-        self.parser.add_argument('--eshift', '-e', dest='eshift', default=False, action='store_true',
-                                  help="Shift potential energy to be zero at outer cutoff")
+        self.parser.add_argument('--eshift', '-e', dest='eshift', default=False,
+                                 action='store_true',
+                                 help="Shift potential energy to be zero at outer cutoff")
         try:
             self.args = self.parser.parse_args(sys.argv[1:])
-        except:
+        except BaseException:
             sys.exit()
 
     def run(self, label):
@@ -138,18 +140,19 @@ class PairTabulate(Tabulate):
 
         self.writetable(table, offset)
         if self.args.filename != '-': self.fp.close()
-        
+
 
 ################################################################################
 # shared functionality to create tabulation for bond or angle styles
 class BondAngleTabulate(Tabulate):
     def __init__(self, style, efunc, ffunc=None):
         super(BondAngleTabulate, self).__init__(style, efunc, ffunc)
-        self.parser.add_argument('--eshift', '-e', dest='eshift', default=False, action='store_true',
-                                  help="Shift potential energy to be zero at minimum")
+        self.parser.add_argument('--eshift', '-e', dest='eshift', default=False,
+                                 action='store_true',
+                                 help="Shift potential energy to be zero at minimum")
         try:
             self.args = self.parser.parse_args(sys.argv[1:])
-        except:
+        except BaseException:
             sys.exit()
 
     def run(self, label):

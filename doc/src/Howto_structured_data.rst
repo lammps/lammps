@@ -43,7 +43,7 @@ JSON
      "ke": $(ke)
    }""" file current_state.json screen no
 
-.. code-block:: JSON
+.. code-block:: json
    :caption: current_state.json
 
    {

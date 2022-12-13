@@ -24,7 +24,7 @@ AtomStyle(amoeba,AtomVecAmoeba);
 
 namespace LAMMPS_NS {
 
-class AtomVecAmoeba : public AtomVec {
+class AtomVecAmoeba : virtual public AtomVec {
  public:
   AtomVecAmoeba(class LAMMPS *);
   ~AtomVecAmoeba() override;

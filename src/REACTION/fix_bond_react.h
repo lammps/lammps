@@ -110,7 +110,7 @@ class FixBondReact : public Fix {
   class RanMars **random;      // random number for 'prob' keyword
   class RanMars **rrhandom;    // random number for Arrhenius constraint
   class NeighList *list;
-  class ResetMolIDs *reset_mol_ids;    // class for resetting mol IDs
+  class ResetAtomsMol *reset_mol_ids;    // class for resetting mol IDs
 
   int *reacted_mol, *unreacted_mol;
   int *limit_duration;     // indicates how long to relax

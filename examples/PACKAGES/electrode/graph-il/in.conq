@@ -5,14 +5,10 @@ boundary p p f # slab calculation
 include settings.mod # styles, groups, computes and fixes
 kspace_modify slab 3.0
 
-fix conq bot electrode/conq -1.0 1.979 couple top 1.0 etypes 5 # conq doesn't take symm option
-
-# ask fix conq to output electrode potentials to internal variables
-variable vbot internal 0.0
-variable vtop internal 0.0
-fix_modify conq set v bot vbot
-fix_modify conq set v top vtop
+fix conq bot electrode/conq -1.0 1.979 couple top 1.0 etypes on # symm on
+variable dv equal f_conq[2]-f_conq[1] 
+# symm on and off give different electrode potentials, but identical potential difference
 
 thermo 50
-thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop v_vbot v_vtop
+thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop f_conq[1] f_conq[2] v_dv
 run 500

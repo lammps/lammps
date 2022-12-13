@@ -16,12 +16,13 @@ force will be determined through numerical differentiation.
 
 Please see the individual tabulation scripts in this folder for examples:
 
-| File                       | Description                                                                |
-| ---------------------------|----------------------------------------------------------------------------|
-| pair_lj_tabulate.py        | creates two Lennard-Jones pair potential tables with different parameters  |
-| bond_morse_tabulate.py     | creates a table for a Morse bond potential table                           |
-| angle_harmonic_tabulate.py | creates a table for a harmonic angle potential table                       |
-| pair_hybrid_tabulate.py    | creates a Morse/Lennard-Jones hybrid potential table with smooth switching |
+| File                          | Description                                                                |
+| ------------------------------|----------------------------------------------------------------------------|
+| pair_lj_tabulate.py           | creates two Lennard-Jones pair potential tables with different parameters  |
+| bond_morse_tabulate.py        | creates a table for a Morse bond potential table                           |
+| angle_harmonic_tabulate.py    | creates a table for a harmonic angle potential table                       |
+| dihedral_harmonic_tabulate.py | creates a table for a harmonic dihedral potential table                    |
+| pair_hybrid_tabulate.py       | creates a Morse/Lennard-Jones hybrid potential table with smooth switching |
 
 Common command line flags:
 
@@ -31,7 +32,6 @@ options:
   --num-points NUM, -n NUM            Number of tabulated points (default: 1000)
   --filename FILENAME, -f FILENAME    Name of output file (default: -)
   --diff-num, -d                      Differentiate energy function numerically
-  --inner XMIN, -i XMIN               Inner cutoff of table (required)
+  --inner XMIN, -i XMIN               Inner cutoff of table (required for pair)
   --outer XMAX, -o XMAX               Outer cutoff of table (required)
 ```
-

@@ -208,3 +208,40 @@ class AngleTabulate(BondAngleTabulate):
         super(AngleTabulate, self).__init__('angle', efunc, ffunc)
 
 ################################################################################
+# create tabulation for dihdedral
+class DihedralTabulate(Tabulate):
+    def __init__(self, efunc, ffunc=None):
+        super(DihedralTabulate, self).__init__('dihedral', efunc, ffunc)
+        idx = [a.dest for a in self.parser._actions].index('xmin')
+        self.parser._actions[idx].required=False
+        self.parser._actions[idx].default=-180.0
+        idx = [a.dest for a in self.parser._actions].index('xmax')
+        self.parser._actions[idx].required=False
+        self.parser._actions[idx].default=180.0
+        try:
+            self.args = self.parser.parse_args()
+        except argparse.ArgumentError:
+            sys.exit()
+
+    def run(self, label):
+        # sanity checks
+        if self.args.num < 2:
+            sys.exit('\nExpect 2 or more points in table for tabulation\n\n' + self.parser.format_help())
+        if self.args.xmin < -180 or self.args.xmin > 0.0:
+            sys.exit('\nInner cutoff must be within -180.0 and 0.0 degrees\n\n' + self.parser.format_help())
+        if self.args.xmax < 180 or self.args.xmin > 360.0:
+            sys.exit('\nOuter cutoff must be within 0.0 and 360.0 degrees\n\n' + self.parser.format_help())
+        if (self.args.xmax - self.args.xmin) > 360.0:
+            sys.exit('\nDifference between inner and outer cutoff not be larger than 360.0 degrees\n\n' + self.parser.format_help())
+
+        self.diff = self.args.diff
+        if not self.forcefunc: self.diff = True
+
+        (table, xzero) = mktable(self.tstyle, label, self.args.num, self.args.xmin, self.args.xmax,
+                                 self.energyfunc, self.args.diff, self.forcefunc)
+        print("# Minimum energy of tabulated potential is at %g" % xzero)
+
+        self.openfile(label)
+        self.fp.write("N %d DEGREES \n\n" % (self.args.num))
+        self.writetable(table, 0.0)
+        if self.args.filename != '-': self.fp.close()

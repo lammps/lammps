@@ -77,16 +77,16 @@ class Tabulate(object):
 
         self.parser = argparse.ArgumentParser(description='Tool to generate tabulated '
                                               + self.tstyle + ' potential files for LAMMPS')
-        self.parser.add_argument('--num-points', '-n', dest='num', default=1000,
+        self.parser.add_argument('--num-points', '-n', dest='num', default=1000, type=int,
                                  help="Number of tabulated points")
-        self.parser.add_argument('--filename', '-f', dest='filename', default='-',
+        self.parser.add_argument('--filename', '-f', dest='filename', default='-', type=ascii,
                                  help="Name of output file")
         self.parser.add_argument('--diff-num', '-d', dest='diff',default=False,
                                  action='store_true',
                                  help="Differentiate energy function numerically")
-        self.parser.add_argument('--inner', '-i', dest='xmin', required=True,
+        self.parser.add_argument('--inner', '-i', dest='xmin', required=True, type=float,
                                  help="Inner cutoff of table")
-        self.parser.add_argument('--outer', '-o', dest='xmax', required=True,
+        self.parser.add_argument('--outer', '-o', dest='xmax', required=True, type=float,
                                  help="Outer cutoff of table")
 
     def openfile(self, label):
@@ -112,15 +112,16 @@ class PairTabulate(Tabulate):
             sys.exit()
 
     def run(self, label):
-        num = int(self.args.num)
-        xmin = float(self.args.xmin)
-        xmax = float(self.args.xmax)
+        if self.args.num < 2:
+            sys.exit('Expect 2 or more points in table for tabulation')
+        if self.args.xmin <= 0.0:
+            sys.exit('Inner tabulation cutoff must be > 0 for pair style table')
         self.diff = self.args.diff
         if not self.forcefunc: self.diff = True
         offset = 0.0
-        if self.args.eshift: offset=self.energyfunc(xmax)
+        if self.args.eshift: offset=self.energyfunc(self.args.xmax)
 
-        (table, dummy) = mktable(self.tstyle, label, num, xmin, xmax,
+        (table, dummy) = mktable(self.tstyle, label, self.args.num, self.args.xmin, self.args.xmax,
                                  self.energyfunc, self.args.diff, self.forcefunc)
 
         # open table file
@@ -128,12 +129,12 @@ class PairTabulate(Tabulate):
 
         # write pair style specific header
         if self.forcefunc:
-            diffmin = numdiff(xmin, self.forcefunc)
-            diffmax = numdiff(xmax, self.forcefunc)
+            diffmin = numdiff(self.args.xmin, self.forcefunc)
+            diffmax = numdiff(self.args.xmax, self.forcefunc)
             self.fp.write("N %d R %g %g FPRIME %- 22.15g %- 22.15g\n\n"
-                          % (num, xmin, xmax, diffmin, diffmax))
+                          % (self.args.num, self.args.xmin, self.args.xmax, diffmin, diffmax))
         else:
-            self.fp.write("N %d R %g %g\n\n" % (num, xmin, xmax))
+            self.fp.write("N %d R %g %g\n\n" % (self.args.num, self.args.xmin, self.args.xmax))
 
         self.writetable(table, offset)
         if self.args.filename != '-': self.fp.close()
@@ -152,13 +153,13 @@ class BondAngleTabulate(Tabulate):
             sys.exit()
 
     def run(self, label):
-        num = int(self.args.num)
-        xmin = float(self.args.xmin)
-        xmax = float(self.args.xmax)
+        if self.args.num < 2:
+            sys.exit('Expect 2 or more points in table for tabulation')
+
         self.diff = self.args.diff
         if not self.forcefunc: self.diff = True
 
-        (table, xzero) = mktable(self.tstyle, label, num, xmin, xmax,
+        (table, xzero) = mktable(self.tstyle, label, self.args.num, self.args.xmin, self.args.xmax,
                                  self.energyfunc, self.args.diff, self.forcefunc)
         print("# Minimum energy of tabulated potential is at %g" % xzero)
         offset = 0.0
@@ -167,11 +168,12 @@ class BondAngleTabulate(Tabulate):
         self.openfile(label)
 
         if self.forcefunc:
-            diffmin = numdiff(xmin, self.forcefunc)
-            diffmax = numdiff(xmax, self.forcefunc)
-            self.fp.write("N %d FP %- 22.15g %- 22.15g EQ %g\n\n" % (num, diffmin, diffmax, xzero))
+            diffmin = numdiff(self.args.xmin, self.forcefunc)
+            diffmax = numdiff(self.args.xmax, self.forcefunc)
+            self.fp.write("N %d FP %- 22.15g %- 22.15g EQ %g\n\n" %
+                          (self.args.num, diffmin, diffmax, xzero))
         else:
-            self.fp.write("N %d EQ %g\n\n" % (num, xzero))
+            self.fp.write("N %d EQ %g\n\n" % (self.args.num, xzero))
 
         self.writetable(table, offset)
         if self.args.filename != '-': self.fp.close()

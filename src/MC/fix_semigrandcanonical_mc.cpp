@@ -1,3 +1,17 @@
+// clang-format off
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
  * Parallel Monte-Carlo code for the semi-grandcanonical ensemble (SGC)
  * and the variance-constrained semi-grandcanonical ensemble (VC-SGC).
@@ -7,59 +21,7 @@
  *
  * Code author: Alexander Stukowski (stukowski@mm.tu-darmstadt.de)
  *
- * History:
- *
- * 27-Feb-09 - AS - Original version
- *
- * 11-Mar-09 - AS - The MC fix is now invoked on the POST_FORCE stage of an
- *                  MD step to avoid conflicts with other fixes that change
- *                  the box size.
- *
- * 12-Mar-09 - AS - Added support for an arbitrary number of atom types.
- *
- * 13-Mar-09 - AS - Particle velocity is rescaled after accepted swap
- *                  to conserve kinetic energy.
- *
- * 19-Jul-09 - AS - Made the MC routine compatible with Finnis-Sinclair type
- *                  potentials. Takes now into account that the electron density
- *                  at the swapped atom may change.
- *
- * 19-Jul-09 - AS - Added printing of parameter values to log file.
- *
- * 19-Jul-09 - AS - Added a serial VCSGC mode that doesn't use the second
- *                  rejection step for simulations on a single processor.
- *
- * 17-Nov-09 - AS - The MC routine can now be used with arbitrary potential styles
- *                  in serial mode. In this mode the generic total energy routine
- *                  is used to calculate the energy difference.
- *
- * 15-Apr-10 - AS - Added the Install.sh script and made some small changes
- *                  to make the module compatible with current version of LAMMPS.
- *
- * 17-Nov-10 - AS - Added debug code to check whether the random selection
- *                  of trial particles is evenly distributed in parallel simulations.
- *                  The individual trial count of each particle can be written to a dump file.
- *
- * 17-Nov-10 - AS - Fixed a bug in the printLog() function that led to
- *                  corrupted log files.
- *
- * 15-Feb-11 - AS - Fixed compilation error in the compute_vector() method by replacing
- *                  the max() function with inline code.
- *
- * 24-Sep-11 - AS - Adapted code to new interface of Error::one() function.
- *
- * 18-Sep-12 - AS - Renamed fix style from "sgc_mc" to "sgcmc".
- *
- * 07-Feb-13 - AS - Changed computeEnergyChangeGeneric() such that it no longer screws
- *                  up the stored atomic forces. Now it can actual be used for hybrid MD/MC simulations.
- *
- * 20-Jan-15 - AS - Updated call to Neighbor::request() to include the 'instance_me' identifier.
- *                  This change breaks backward-compatibility with LAMMPS versions prior to "20 Jan 2015".
- *
- * 10-Feb-15 - AS - Changed function pack_comm() to pack_forward_comm(), as required by recent LAMMPS version.
- *
- * 14-Apr-16 - AS - Restricted MC swaps to atoms in the fix group.
- *
+ * Updates for integrtion into LAMMPS: Aidan Thompson, SNL and Axel Kohlmeyer, Temple U
 ------------------------------------------------------------------------- */
 
 #include "fix_semigrandcanonical_mc.h"
@@ -87,13 +49,6 @@
 
 #include "pair_eam.h"
 #include "random_park.h"
-
-#if CDEAM_MC_SUPPORT
- #include "pair_eam_cd.h"
-#endif
-#if TERSOFF_MC_SUPPORT
- #include "pair_tersoff.h"
-#endif
 
 #include <cstring>
 #include <cstdlib>

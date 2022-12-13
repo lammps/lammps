@@ -14,7 +14,6 @@
 #include "fix_store_local.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "memory.h"
 #include "update.h"

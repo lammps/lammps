@@ -60,7 +60,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   b_t(nullptr), p(nullptr), q(nullptr), r(nullptr), d(nullptr),
   qf(nullptr), q1(nullptr), q2(nullptr), qv(nullptr)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
+  if (narg < 8) utils::missing_cmd_args(FLERR, "fix " + std::string(style), error);
 
   scalar_flag = 1;
   extscalar = 0;

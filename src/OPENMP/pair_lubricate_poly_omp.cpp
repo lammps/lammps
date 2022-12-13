@@ -163,8 +163,6 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int * const type = atom->type;
   const int nlocal = atom->nlocal;
 
-  int overlaps = 0;
-
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -321,10 +319,6 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         // scalar resistances XA and YA
 
         h_sep = r - radi-radj;
-
-        // check for overlaps
-
-        if (h_sep < 0.0) overlaps++;
 
         // if less than the minimum gap use the minimum gap instead
 

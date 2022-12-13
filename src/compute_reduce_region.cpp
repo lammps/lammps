@@ -15,13 +15,11 @@
 
 #include "arg_info.h"
 #include "atom.h"
-#include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "group.h"
 #include "input.h"
 #include "memory.h"
-#include "modify.h"
 #include "region.h"
 #include "update.h"
 #include "variable.h"

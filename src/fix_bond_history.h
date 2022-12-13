@@ -24,7 +24,6 @@ FixStyle(BOND_HISTORY,FixBondHistory);
 
 #include <map>
 #include <utility>
-#include <vector>
 
 namespace LAMMPS_NS {
 

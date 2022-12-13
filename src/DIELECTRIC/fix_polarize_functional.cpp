@@ -59,7 +59,7 @@ using namespace MathExtra;
 using namespace MathConst;
 using namespace MathSpecial;
 
-#define _POLARIZE_DEBUG
+//#define _POLARIZE_DEBUG
 
 enum { REAL2SCALED = 0, SCALED2REAL = 1 };
 
@@ -265,7 +265,7 @@ void FixPolarizeFunctional::init()
   // need a full neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
-  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   if (force->kspace)
     g_ewald = force->kspace->g_ewald;
@@ -379,14 +379,15 @@ void FixPolarizeFunctional::update_induced_charges()
 
   double *q_scaled = atom->q_scaled;
   double *q = atom->q;
+  double *epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
   double tmp = 0;
 
   for (int i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] < 0) continue;
     int idx = induced_charge_idx[i];
-    q_scaled[i] = -induced_charges[idx] / (4 * MY_PI);
-    //printf("i = %d: q_scaled = %f\n", i, q_scaled[i]);
+    q[i] = -induced_charges[idx] / (4 * MY_PI);
+    q_scaled[i] = q[i] / epsilon[i];
     tmp += q_scaled[i];
   }
 /*
@@ -418,19 +419,10 @@ void FixPolarizeFunctional::charge_rescaled(int scaled2real)
 
   if (scaled2real == SCALED2REAL) {
     for (int i = 0; i < nlocal; i++)
-      if (induced_charge_idx[i] < 0) {
-        printf("setting scaled charge to real for ion: %f %f\n", q_scaled[i], q[i]);
-        q_scaled[i] = q[i];
-        
-      }
-      
+      if (induced_charge_idx[i] < 0) q_scaled[i] = q[i];
   } else {
     for (int i = 0; i < nlocal; i++)
-      if (induced_charge_idx[i] < 0) {
-
-        q_scaled[i] = q[i] / epsilon[i];
-        printf("setting real charge to scaled for ion: %f  %f\n", q_scaled[i], q[i]);
-      }
+      if (induced_charge_idx[i] < 0) q_scaled[i] = q[i] / epsilon[i];
   }
 
   // communicate q_scaled to neighboring procs
@@ -996,7 +988,7 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
   // fill up rhs1 with local qiRqwVector
 
   memset(rhs1, 0, num_induced_charges * sizeof(double));
-  printf("getting here: inum = %d\n", inum);
+
   for (kk = 0; kk < inum; kk++) {
     k = ilist[kk];    // k is local index
     if (mask[k] & groupbit) {
@@ -1016,7 +1008,6 @@ void FixPolarizeFunctional::calculate_qiRqw_cutoff()
         } else {
           // ions particles: i can be ghost atoms
           int mi = tag2mat_ions[tag[i]];    //ion_idx[i];
-          printf("i = %d: q_scaled = %f q = %f\n", i, q[i], atom->q[i]);
           qiRwwVectorTemp1 += q[i] * (1.0 - em[k] / epsilon[i]) * G1qw_real[mi][mk];
         }
       }

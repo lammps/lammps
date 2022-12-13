@@ -55,12 +55,6 @@ class AtomVecSpinKokkos : public AtomVecKokkos, public AtomVecSpin {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
-                                // spin quantities
-  double **sp;                  // sp[i][0-2] direction of the spin i
-                                // sp[i][3] atomic magnetic moment of the spin i
-  double **fm;                  // fm[i][0-2] direction of magnetic precession
-  double **fm_long;             // storage of long-range spin prec. components
-
   DAT::t_tagint_1d d_tag;
   HAT::t_tagint_1d h_tag;
 
@@ -83,8 +77,7 @@ class AtomVecSpinKokkos : public AtomVecKokkos, public AtomVecSpin {
   HAT::t_fm_long_array h_fm_long;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

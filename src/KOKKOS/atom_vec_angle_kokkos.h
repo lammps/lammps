@@ -64,14 +64,8 @@ class AtomVecAngleKokkos : public AtomVecKokkos, public AtomVecAngle {
 
  protected:
   tagint *molecule;
-  int **nspecial;
   tagint **special;
-  int *num_bond;
-  int **bond_type;
   tagint **bond_atom;
-
-  int *num_angle;
-  int **angle_type;
   tagint **angle_atom1,**angle_atom2,**angle_atom3;
 
   DAT::t_tagint_1d d_tag;
@@ -112,8 +106,7 @@ class AtomVecAngleKokkos : public AtomVecKokkos, public AtomVecAngle {
   HAT::t_tagint_2d h_angle_atom1,h_angle_atom2,h_angle_atom3;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

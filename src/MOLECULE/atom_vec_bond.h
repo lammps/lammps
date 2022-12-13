@@ -35,7 +35,7 @@ class AtomVecBond : virtual public AtomVec {
   void unpack_restart_init(int) override;
   void data_atom_post(int) override;
 
- private:
+ protected:
   int *num_bond;
   int **bond_type;
   int **nspecial;

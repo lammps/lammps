@@ -92,8 +92,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
   int known_style(char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

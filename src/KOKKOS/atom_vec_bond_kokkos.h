@@ -53,12 +53,9 @@ class AtomVecBondKokkos : public AtomVecKokkos, public AtomVecBond {
   void modified(ExecutionSpace space, unsigned int mask) override;
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
- protected:
+ private:
   tagint *molecule;
-  int **nspecial;
   tagint **special;
-  int *num_bond;
-  int **bond_type;
   tagint **bond_atom;
 
   DAT::t_tagint_1d d_tag;

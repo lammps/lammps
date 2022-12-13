@@ -62,7 +62,7 @@ class AtomVecDPDKokkos : public AtomVecKokkos, public AtomVecDPD {
   void sync(ExecutionSpace space, unsigned int mask) override;
   void modified(ExecutionSpace space, unsigned int mask) override;
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
-  double *uCond,*uMech,*uChem,*uCG,*uCGnew,*rho,*dpdTheta;
+
   double *duChem;
 
  protected:
@@ -81,8 +81,7 @@ class AtomVecDPDKokkos : public AtomVecKokkos, public AtomVecDPD {
   DAT::t_f_array d_f;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

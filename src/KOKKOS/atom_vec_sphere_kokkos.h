@@ -77,9 +77,7 @@ class AtomVecSphereKokkos : public AtomVecKokkos, public AtomVecSphere {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  private:
-  double *radius,*rmass;
-  double **omega,**torque;
-  int radvary;
+  double **torque;
 
   DAT::t_tagint_1d d_tag;
   HAT::t_tagint_1d h_tag;
@@ -101,8 +99,7 @@ class AtomVecSphereKokkos : public AtomVecKokkos, public AtomVecSphere {
   HAT::t_f_array h_torque;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

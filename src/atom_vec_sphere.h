@@ -36,7 +36,7 @@ class AtomVecSphere : virtual public AtomVec {
   void pack_data_pre(int) override;
   void pack_data_post(int) override;
 
- private:
+ protected:
   double *radius, *rmass;
   double **omega;
 

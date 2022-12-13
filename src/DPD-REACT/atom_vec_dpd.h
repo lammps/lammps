@@ -32,7 +32,7 @@ class AtomVecDPD : virtual public AtomVec {
   void unpack_restart_init(int) override;
   void data_atom_post(int) override;
 
- private:
+ protected:
   double *rho, *dpdTheta;
   double *uCond, *uMech, *uChem;
   double *uCG, *uCGnew;

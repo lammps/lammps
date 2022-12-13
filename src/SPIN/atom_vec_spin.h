@@ -32,7 +32,7 @@ class AtomVecSpin : virtual public AtomVec {
   void force_clear(int, size_t) override;
   void data_atom_post(int) override;
 
- private:
+ protected:
   double **sp, **fm, **fm_long;
 };
 

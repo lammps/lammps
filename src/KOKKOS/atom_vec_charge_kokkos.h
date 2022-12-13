@@ -75,8 +75,7 @@ class AtomVecChargeKokkos : public AtomVecKokkos, public AtomVecCharge {
   HAT::t_float_1d h_q;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

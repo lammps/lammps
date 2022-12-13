@@ -55,11 +55,6 @@ class AtomVecChargeKokkos : public AtomVecKokkos, public AtomVecCharge {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-
   double *q;
 
   DAT::t_tagint_1d d_tag;

@@ -65,10 +65,6 @@ class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  private:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
   double **omega,**angmom;
 
   DAT::t_tagint_1d d_tag;
@@ -88,8 +84,6 @@ class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
 
   DAT::t_v_array d_omega, d_angmom;
   HAT::t_v_array h_omega, h_angmom;
-
-  DAT::tdual_int_1d k_count;
 
   int nallstyles;
   char **allstyles;

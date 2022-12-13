@@ -69,11 +69,6 @@ class AtomVecDPDKokkos : public AtomVecKokkos, public AtomVecDPD {
   DAT::t_efloat_1d d_uCond, d_uMech, d_uChem, d_uCG, d_uCGnew,d_rho,d_dpdTheta,d_duChem;
   HAT::t_efloat_1d h_uCond, h_uMech, h_uChem, h_uCG, h_uCGnew,h_rho,h_dpdTheta,h_duChem;
 
-  tagint *tag;
-  imageint *image;
-  int *type,*mask;
-  double **x,**v,**f;
-
   DAT::t_tagint_1d d_tag;
   HAT::t_tagint_1d h_tag;
   DAT::t_imageint_1d d_image;

@@ -63,12 +63,6 @@ class AtomVecMolecularKokkos : public AtomVecKokkos, public AtomVecMolecular {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
-
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-
   tagint *molecule;
   int **nspecial;
   tagint **special;

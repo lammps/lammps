@@ -77,10 +77,6 @@ class AtomVecSphereKokkos : public AtomVecKokkos, public AtomVecSphere {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  private:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
   double *radius,*rmass;
   double **omega,**torque;
   int radvary;

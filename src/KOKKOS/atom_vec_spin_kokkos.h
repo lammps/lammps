@@ -55,11 +55,6 @@ class AtomVecSpinKokkos : public AtomVecKokkos, public AtomVecSpin {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;           // lattice quantities
-
                                 // spin quantities
   double **sp;                  // sp[i][0-2] direction of the spin i
                                 // sp[i][3] atomic magnetic moment of the spin i

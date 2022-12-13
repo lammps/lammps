@@ -32,24 +32,6 @@ FixStyle(sgcmc,FixSemiGrandCanonicalMC);
 
 #include "fix.h"
 
-// Setting this to 1 enables support for the concentration-dependent EAM potential (pair_style eam/cd)
-// in the Monte Carlo routine. Setting to 0 limits support to standard EAM only and removes all dependencies
-// on the CD-EAM potential code.
-#ifndef CDEAM_MC_SUPPORT
-#define CDEAM_MC_SUPPORT 0
-#endif
-
-// Setting this to 1 enables support for Tersoff-like potentials (pair_style tersoff)
-// in the Monte Carlo routine.
-#ifndef TERSOFF_MC_SUPPORT
-#define TERSOFF_MC_SUPPORT 0
-#endif
-// Setting this to 1 enables additional debugging/sanity checks (with a small performance penalty).
-#ifndef SGCMC_DEBUG
-#define SGCMC_DEBUG 0
-#endif
-
-#include <math.h>
 #include <vector>
 
 namespace LAMMPS_NS {
@@ -104,24 +86,6 @@ class FixSemiGrandCanonicalMC : public Fix {
   /// This routine is for the case of a standard EAM potential.
   double computeEnergyChangeEAM(int flipAtom, int flipAtomNL, int oldSpecies, int newSpecies);
 
-#if CDEAM_MC_SUPPORT
-  /// Calculates the change in energy that swapping the given atom would produce.
-  /// This routine is for the case of the concentration dependent CD-EAM potential.
-  double computeEnergyChangeCDEAM(int flipAtom, int flipAtomNL, int oldSpecies, int newSpecies);
-#endif
-
-#if TERSOFF_MC_SUPPORT
-  /// Calculates the change in energy that swapping the given atom would produce.
-  /// This routine is for the Tersoff potential.
-  double computeEnergyChangeTersoff(int flipAtom, int flipAtomNL, int oldSpecies, int newSpecies);
-
-  /// Computes the energy of the atom group around the flipped atom using the Tersoff potential.
-  double computeEnergyTersoff(int flipAtom);
-
-  /// Computes the energy of an atom using the Tersoff potential.
-  double computeAtomicEnergyTersoff(int i);
-#endif
-
   /// Calculates the change in energy that swapping the given atom would produce.
   /// This routine is for the general case of an arbitrary potential and
   /// IS VERY SLOW! It computes the total energies of the system for the unmodified state
@@ -146,19 +110,6 @@ class FixSemiGrandCanonicalMC : public Fix {
 
   /// Transfers the locally changed electron densities and atom types to the neighbors.
   void communicateRhoAndTypes();
-
-#if SGCMC_DEBUG
-  /// Allocate atom-based array.
-  void grow_arrays(int) override;
-  /// Copy values within local atom-based array.
-  void copy_arrays(int, int) override;
-  /// Initialize one atom's array values, called when atom is created.
-  void set_arrays(int) override;
-  /// Pack values in local atom-based array for exchange with another proc.
-  int pack_exchange(int, double *) override;
-  /// Unpack values in local atom-based array from exchange with another proc.
-  int unpack_exchange(int, double *) override;
-#endif
 
  private:
   /// The number of MD steps between each MC cycle.
@@ -237,20 +188,6 @@ class FixSemiGrandCanonicalMC : public Fix {
   /// This is required to access the Rho arrays calculated by the potential class and its potential tables.
   class PairEAM *pairEAM;
 
-#if CDEAM_MC_SUPPORT
-  /// Pointer to the CD-EAM potential class.
-  /// This is required to access the RhoB arrays calculated by the potential class.
-  /// The pointer is NULL if only the standard EAM model is used in the simulation.
-  class PairEAMCD *pairCDEAM;
-#endif
-
-#if TERSOFF_MC_SUPPORT
-  /// Pointer to the Tersoff potential class.
-  /// This is required to access the parameters of the potential when computing the
-  /// change in energy.
-  class PairTersoff *pairTersoff;
-#endif
-
   /// This array contains a boolean value per atom (real and ghosts) that indicates whether
   /// the electron density or another property at that site has been affected by one of the accepted MC swaps.
   std::vector<bool> changedAtoms;
@@ -272,14 +209,8 @@ class FixSemiGrandCanonicalMC : public Fix {
 
   /// A compute used to compute the total potential energy of the system.
   class Compute *compute_pe;
-
-#if SGCMC_DEBUG
-  /// This per-atom array counts how often each atom is picked for a trial move.
-  /// This is only used for debugging purposes.
-  double *trialCounters;
-#endif
 };
 }    // namespace LAMMPS_NS
 
-#endif    // FIX_SEMIGRANDCANONICAL_MC_H
-#endif    // FIX_CLASS
+#endif
+#endif

@@ -24,7 +24,7 @@
  * Updates for integrtion into LAMMPS: Aidan Thompson, SNL and Axel Kohlmeyer, Temple U
 ------------------------------------------------------------------------- */
 
-#include "fix_semigrandcanonical_mc.h"
+#include "fix_sgcmc.h"
 
 #include "atom.h"
 #include "update.h"

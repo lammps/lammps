@@ -27,8 +27,8 @@ FixStyle(sgcmc,FixSemiGrandCanonicalMC);
 // clang-format on
 #else
 
-#ifndef FIX_SEMIGRANDCANONICAL_MC_H
-#define FIX_SEMIGRANDCANONICAL_MC_H
+#ifndef FIX_SGCMC_H
+#define FIX_SGCMC_H
 
 #include "fix.h"
 

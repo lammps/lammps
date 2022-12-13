@@ -96,6 +96,8 @@ class CommKokkos : public CommBrick {
   void grow_list(int, int) override;
   void grow_swap(int) override;
   void copy_swap_info();
+
+  class AtomVecKokkos* avec_kk;
 };
 
 }

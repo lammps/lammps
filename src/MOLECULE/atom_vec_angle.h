@@ -24,7 +24,7 @@ AtomStyle(angle,AtomVecAngle);
 
 namespace LAMMPS_NS {
 
-class AtomVecAngle : public AtomVec {
+class AtomVecAngle : virtual public AtomVec {
  public:
   AtomVecAngle(class LAMMPS *);
   ~AtomVecAngle() override;

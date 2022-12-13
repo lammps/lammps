@@ -24,7 +24,7 @@ AtomStyle(bond,AtomVecBond);
 
 namespace LAMMPS_NS {
 
-class AtomVecBond : public AtomVec {
+class AtomVecBond : virtual public AtomVec {
  public:
   AtomVecBond(class LAMMPS *);
   ~AtomVecBond() override;

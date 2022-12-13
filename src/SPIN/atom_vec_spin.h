@@ -24,7 +24,7 @@ AtomStyle(spin,AtomVecSpin);
 
 namespace LAMMPS_NS {
 
-class AtomVecSpin : public AtomVec {
+class AtomVecSpin : virtual public AtomVec {
  public:
   AtomVecSpin(class LAMMPS *);
 

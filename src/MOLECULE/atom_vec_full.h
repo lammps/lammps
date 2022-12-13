@@ -24,7 +24,7 @@ AtomStyle(full,AtomVecFull);
 
 namespace LAMMPS_NS {
 
-class AtomVecFull : public AtomVec {
+class AtomVecFull : virtual public AtomVec {
  public:
   AtomVecFull(class LAMMPS *);
   ~AtomVecFull() override;

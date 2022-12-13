@@ -24,7 +24,7 @@ AtomStyle(molecular,AtomVecMolecular);
 
 namespace LAMMPS_NS {
 
-class AtomVecMolecular : public AtomVec {
+class AtomVecMolecular : virtual public AtomVec {
  public:
   AtomVecMolecular(class LAMMPS *);
   ~AtomVecMolecular() override;

@@ -126,7 +126,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   gridflag = NO;
   lineflag = triflag = bodyflag = fixflag = NO;
   id_grid_compute = id_grid_fix = nullptr;
-
+  
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
     bondflag = YES;
@@ -439,6 +439,9 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (viewflag == STATIC) view_params();
 
   // local data
+
+  grid_compute = nullptr;
+  grid_fix = nullptr;
 
   maxbufcopy = 0;
   chooseghost = nullptr;
@@ -1383,6 +1386,7 @@ void DumpImage::grid_cell_corners_2d(int ix, int iy)
       for (int x = 0; x < 2; x++) {
         gcorners[n][0] = boxlo[0] + (ix+x) * xdelta;
         gcorners[n][1] = boxlo[1] + (iy+y) * ydelta;
+        gcorners[n][2] = 0.0;
         n++;
       }
 
@@ -1398,7 +1402,8 @@ void DumpImage::grid_cell_corners_2d(int ix, int iy)
       for (int x = 0; x < 2; x++) {
         lamda[0] = (ix+x) * dx;
         lamda[1] = (iy+y) * dy;
-        domain->lamda2x(lamda,gcorners[n++]);
+        domain->lamda2x(lamda,gcorners[n]);
+        n++;
       }
   }
 }
@@ -1439,7 +1444,8 @@ void DumpImage::grid_cell_corners_3d(int ix, int iy, int iz)
           lamda[0] = (ix+x) * dx;
           lamda[1] = (iy+y) * dy;
           lamda[2] = (iz+z) * dz;
-          domain->lamda2x(lamda,gcorners[n++]);
+          domain->lamda2x(lamda,gcorners[n]);
+          n++;
         }
   }
 }

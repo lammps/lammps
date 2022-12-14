@@ -40,6 +40,15 @@ AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
 
 /* ---------------------------------------------------------------------- */
 
+AtomVecKokkos::~AtomVecKokkos()
+{
+  // Kokkos already deallocated host memory
+
+  ngrow = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType,int PBC_FLAG,int TRICLINIC>
 struct AtomVecKokkos_PackComm {
   typedef DeviceType device_type;

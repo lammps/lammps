@@ -921,6 +921,14 @@ void DumpImage::create_image()
   // for 3d, outward normals on all 6 faces
 
   if (gridflag) {
+
+    // reset lighting for flat surfaces to make them brighter
+ 
+    image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] = 0.9;
+    image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] = 0.3;
+    image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] = 0.3;
+    image->backLightColor[0] = image->backLightColor[1] = image->backLightColor[2] = 0.3;
+
     int n = 0;
     if (domain->dimension == 2) {
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
@@ -956,6 +964,13 @@ void DumpImage::create_image()
             image->draw_triangle(gcorners[4],gcorners[7],gcorners[6],color);
           }
     }
+
+    // restore lighting for curved objects
+
+    image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] = 0.0;
+    image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] = 0.9;
+    image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] = 0.45;
+    image->backLightColor[0] = image->backLightColor[1] = image->backLightColor[2] = 0.9;
   }
 
   // render atoms that are lines

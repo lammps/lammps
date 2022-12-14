@@ -25,10 +25,15 @@
 #include "force.h"
 #include "group.h"
 #include "kspace.h"
+#include "math_const.h"
 #include "neigh_list.h"
 #include "pair.h"
 
+#include <cmath>
+#include <exception>
+
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group, double eta,
                                  bool invert_source) :
@@ -41,6 +46,7 @@ ElectrodeVector::ElectrodeVector(LAMMPS *lmp, int sensor_group, int source_group
   ngroup = group->count(igroup);
   source_grpbit = group->bitmask[source_group];
   this->eta = eta;
+  tfflag = false;
 
   kspace_time_total = 0;
   pair_time_total = 0;
@@ -79,6 +85,14 @@ void ElectrodeVector::setup(class Pair *fix_pair, class NeighList *fix_neighlist
 
 /* ---------------------------------------------------------------------- */
 
+void ElectrodeVector::setup_tf(const std::map<int, double> &tf_types)
+{
+  tfflag = true;
+  this->tf_types = tf_types;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void ElectrodeVector::compute_vector(double *vector)
 {
   MPI_Barrier(world);
@@ -86,6 +100,8 @@ void ElectrodeVector::compute_vector(double *vector)
   // pair
   double pair_start_time = MPI_Wtime();
   pair_contribution(vector);
+  self_contribution(vector);
+  if (tfflag) tf_contribution(vector);
   MPI_Barrier(world);
   pair_time_total += MPI_Wtime() - pair_start_time;
   // kspace
@@ -105,6 +121,7 @@ void ElectrodeVector::compute_vector(double *vector)
 
 void ElectrodeVector::pair_contribution(double *vector)
 {
+  double const etaij = eta * MY_ISQRT2;
   double **x = atom->x;
   double *q = atom->q;
   int *type = atom->type;
@@ -121,6 +138,7 @@ void ElectrodeVector::pair_contribution(double *vector)
     int const i = ilist[ii];
     bool const i_in_sensor = (mask[i] & groupbit);
     bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
+    if (!(i_in_sensor || i_in_source)) continue;
     double const xtmp = x[i][0];
     double const ytmp = x[i][1];
     double const ztmp = x[i][2];
@@ -144,12 +162,53 @@ void ElectrodeVector::pair_contribution(double *vector)
       double const rinv = 1.0 / r;
       double aij = rinv;
       aij *= ElectrodeMath::safe_erfc(g_ewald * r);
-      aij -= ElectrodeMath::safe_erfc(eta * r) * rinv;
+      if (invert_source)
+        aij -= ElectrodeMath::safe_erfc(eta * r) * rinv;
+      else
+        aij -= ElectrodeMath::safe_erfc(etaij * r) * rinv;
       if (i_in_sensor) {
         vector[i] += aij * q[j];
-      } else if (j_in_sensor) {
-        vector[j] += aij * q[i];
+        //} else if (j_in_sensor) {
       }
+      if (j_in_sensor && (!invert_source || !i_in_sensor)) { vector[j] += aij * q[i]; }
     }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeVector::self_contribution(double *vector)
+{
+  int const inum = list->inum;
+  int *mask = atom->mask;
+  int *ilist = list->ilist;
+  double *q = atom->q;
+
+  const double selfint = 2.0 / MY_PIS * g_ewald;
+  const double preta = MY_SQRT2 / MY_PIS;
+
+  for (int ii = 0; ii < inum; ii++) {
+    int const i = ilist[ii];
+    bool const i_in_sensor = (mask[i] & groupbit);
+    bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
+    if (i_in_sensor && i_in_source) vector[i] += (preta * eta - selfint) * q[i];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeVector::tf_contribution(double *vector)
+{
+  int const inum = list->inum;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int *ilist = list->ilist;
+  double *q = atom->q;
+
+  for (int ii = 0; ii < inum; ii++) {
+    int const i = ilist[ii];
+    bool const i_in_sensor = (mask[i] & groupbit);
+    bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
+    if (i_in_sensor && i_in_source) vector[i] += tf_types[type[i]] * q[i];
   }
 }

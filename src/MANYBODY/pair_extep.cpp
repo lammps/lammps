@@ -32,7 +32,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

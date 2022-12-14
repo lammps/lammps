@@ -25,7 +25,6 @@
 #include "force.h"
 #include "memory.h"
 #include "neighbor.h"
-#include "domain.h"
 
 #include <cmath>
 

@@ -24,7 +24,7 @@ AtomStyle(sph,AtomVecSPH);
 
 namespace LAMMPS_NS {
 
-class AtomVecSPH : public AtomVec {
+class AtomVecSPH : virtual public AtomVec {
  public:
   AtomVecSPH(class LAMMPS *);
 

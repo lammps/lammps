@@ -15,19 +15,12 @@
 #include "fix_pair.h"
 
 #include "atom.h"
-#include "dump.h"
 #include "error.h"
 #include "force.h"
 #include "fix.h"
-#include "input.h"
 #include "memory.h"
 #include "pair.h"
-#include "output.h"
-#include "variable.h"
 #include "update.h"
-#include "variable.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

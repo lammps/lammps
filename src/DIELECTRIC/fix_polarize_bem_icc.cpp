@@ -284,8 +284,6 @@ void FixPolarizeBEMICC::compute_induced_charges()
       Ez += efield_kspace[i][2];
     }
 
-
-
     // divide (Ex,Ey,Ez) by epsilon[i] here
     double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
         epsilon[i] / (2 * MY_PI);
@@ -312,7 +310,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
 
-      // NOTE: need to review here q_free be divided by epsilon or not
+      // NOTE: 13Dec2022: for interface particles q_free be divided by epsilon or not
 
       double q_free = q[i];
       double qtmp = q_scaled[i] - q_free;
@@ -336,10 +334,6 @@ void FixPolarizeBEMICC::compute_induced_charges()
           omega * ((1.0 / em[i] - 1) * q_free - (ed[i] / em[i]) * ndotE * area[i]);
       q_scaled[i] = q_free + q_bound;
 
-      
-      
-      //printf("itr = %d: i = %d: q_scaled = %f q = %f E = %f %f %f\n", itr, i, q_scaled[i], q[i], Ex, Ey, Ez);
-
       // Eq. (11) in Tyagi et al., with f from Eq. (6)
       // NOTE: Tyagi et al. defined the normal vector n_i pointing
       // from the medium containg the ions toward the other medium,
@@ -358,6 +352,8 @@ void FixPolarizeBEMICC::compute_induced_charges()
       if (tol < r) tol = r;
     }
 
+    // communicate q_scaled for efield compute in the next iteration
+
     comm->forward_comm(this);
 
     MPI_Allreduce(&tol, &rho, 1, MPI_DOUBLE, MPI_MAX, world);
@@ -366,19 +362,16 @@ void FixPolarizeBEMICC::compute_induced_charges()
 
   iterations = itr;
 
-  // communicate q_scaled to neighboring procs
-
-  comm->forward_comm(this);
-
   // set q from q_scaled for interface particles
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     q[i] = q_scaled[i] * epsilon[i];
+    if (i < 10) printf("i = %d: q = %f q_scaled = %f\n", i, q[i], q_scaled[i]);
   }
 
   // ensure sum of all induced charges being zero
-
+/*
   double tmp = 0;
   int ncount = group->count(igroup);
   for (int i = 0; i < nlocal; i++) {
@@ -397,7 +390,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
     if (!(mask[i] & groupbit)) continue;
     q_scaled[i] -=  qboundave;
   }
-
+*/
 }
 
 /* ---------------------------------------------------------------------- */

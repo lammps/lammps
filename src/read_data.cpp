@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -41,6 +41,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <unordered_map>
 #include <unordered_set>
 
 using namespace LAMMPS_NS;
@@ -875,10 +876,13 @@ void ReadData::command(int narg, char **arg)
         int i;
         for (i = 0; i < nfix; i++)
           if (strcmp(keyword, fix_section[i]) == 0) {
-            if (firstpass)
+            if (firstpass) {
               fix(fix_index[i], keyword);
-            else
-              skip_lines(fix_index[i]->read_data_skip_lines(keyword));
+            } else {
+              auto nskip = fix_index[i]->read_data_skip_lines(keyword);
+              if (nskip < 0) nskip = natoms;
+              skip_lines(nskip);
+            }
             break;
           }
         if (i == nfix)
@@ -2225,6 +2229,7 @@ void ReadData::fix(Fix *ifix, char *keyword)
   int nchunk, eof;
 
   bigint nline = ifix->read_data_skip_lines(keyword);
+  if (nline < 0) nline = natoms;
 
   bigint nread = 0;
   while (nread < nline) {

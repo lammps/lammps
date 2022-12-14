@@ -190,6 +190,16 @@ action meam_funcs_kokkos.h meam_funcs.cpp
 action meam_impl_kokkos.h meam_impl.cpp
 action meam_setup_done_kokkos.h meam_setup_done.cpp
 action memory_kokkos.h
+action mliap_data_kokkos.cpp mliap_data.cpp
+action mliap_data_kokkos.h mliap_data.h
+action mliap_descriptor_kokkos.h mliap_descriptor.h
+action mliap_descriptor_so3_kokkos.cpp mliap_descriptor_so3.cpp
+action mliap_descriptor_so3_kokkos.h mliap_descriptor_so3.h
+action mliap_model_linear_kokkos.cpp mliap_model_linear.cpp
+action mliap_model_linear_kokkos.h mliap_model_linear.h
+action mliap_model_kokkos.h mliap_model.h
+action mliap_so3_kokkos.cpp mliap_so3.cpp
+action mliap_so3_kokkos.h mliap_so3.h
 action modify_kokkos.cpp
 action modify_kokkos.h
 action neigh_bond_kokkos.cpp
@@ -298,6 +308,8 @@ action pair_lj_spica_kokkos.cpp pair_lj_spica.cpp
 action pair_lj_spica_kokkos.h pair_lj_spica.h
 action pair_meam_kokkos.cpp pair_meam.cpp
 action pair_meam_kokkos.h pair_meam.h
+action pair_mliap_kokkos.cpp pair_mliap.cpp
+action pair_mliap_kokkos.h pair_mliap.h
 action pair_morse_kokkos.cpp
 action pair_morse_kokkos.h
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp
@@ -362,7 +374,7 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
-    sed -i -e '/^include.*kokkos.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
 CXX = $(CC)
@@ -389,7 +401,7 @@ elif (test $1 = 0) then
 
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
-    sed -i -e '/^include.*kokkos.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
   fi
 
 fi

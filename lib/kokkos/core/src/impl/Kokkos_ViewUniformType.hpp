@@ -76,15 +76,13 @@ struct ViewUniformLayout<Kokkos::LayoutRight, 1> {
 
 template <class ViewType, int Traits>
 struct ViewUniformType {
-  using data_type = typename ViewType::data_type;
-  using const_data_type =
-      typename std::add_const<typename ViewType::data_type>::type;
+  using data_type       = typename ViewType::data_type;
+  using const_data_type = std::add_const_t<typename ViewType::data_type>;
   using runtime_data_type =
       typename ViewScalarToDataType<typename ViewType::value_type,
                                     ViewType::rank>::type;
   using runtime_const_data_type = typename ViewScalarToDataType<
-      typename std::add_const<typename ViewType::value_type>::type,
-      ViewType::rank>::type;
+      std::add_const_t<typename ViewType::value_type>, ViewType::rank>::type;
 
   using array_layout =
       typename ViewUniformLayout<typename ViewType::array_layout,

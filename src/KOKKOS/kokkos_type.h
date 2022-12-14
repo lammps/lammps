@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -708,6 +708,15 @@ typedef tdual_float_2d::t_dev_const t_float_2d_const;
 typedef tdual_float_2d::t_dev_um t_float_2d_um;
 typedef tdual_float_2d::t_dev_const_um t_float_2d_const_um;
 typedef tdual_float_2d::t_dev_const_randomread t_float_2d_randomread;
+
+//3d float array n
+typedef Kokkos::DualView<LMP_FLOAT***, Kokkos::LayoutRight, LMPDeviceType> tdual_float_3d;
+typedef tdual_float_3d::t_dev t_float_3d;
+typedef tdual_float_3d::t_dev_const t_float_3d_const;
+typedef tdual_float_3d::t_dev_um t_float_3d_um;
+typedef tdual_float_3d::t_dev_const_um t_float_3d_const_um;
+typedef tdual_float_3d::t_dev_const_randomread t_float_3d_randomread;
+
 
 //Position Types
 //1d X_FLOAT array n

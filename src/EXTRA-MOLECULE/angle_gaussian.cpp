@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -28,8 +28,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMAL 0.001
-#define SMALL 1.0e-8
+static constexpr double SMALL = 0.001;
+static constexpr double SMALLG = 2.0e-308;
 
 /* ---------------------------------------------------------------------- */
 
@@ -112,7 +112,7 @@ void AngleGaussian::compute(int eflag, int vflag)
     if (c < -1.0) c = -1.0;
 
     s = sqrt(1.0 - c * c);
-    if (s < SMAL) s = SMAL;
+    if (s < SMALL) s = SMALL;
     s = 1.0 / s;
 
     // force & energy
@@ -123,13 +123,15 @@ void AngleGaussian::compute(int eflag, int vflag)
     for (int i = 0; i < nterms[type]; i++) {
       dtheta = theta - theta0[type][i];
       prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
-      exponent = -2 * dtheta * dtheta / (width[type][i] * width[type][i]);
+      exponent = -2.0 * dtheta * dtheta / (width[type][i] * width[type][i]);
       g_i = prefactor * exp(exponent);
       sum_g_i += g_i;
       sum_numerator += g_i * dtheta / (width[type][i] * width[type][i]);
     }
 
-    if (sum_g_i < SMALL) sum_g_i = SMALL;
+    // avoid overflow
+    if (sum_g_i < sum_numerator * SMALLG) sum_g_i = sum_numerator * SMALLG;
+
     if (eflag) eangle = -(force->boltz * angle_temperature[type]) * log(sum_g_i);
 
     // I should check about the sign of this expression
@@ -198,14 +200,16 @@ void AngleGaussian::allocate()
 
 void AngleGaussian::coeff(int narg, char **arg)
 {
-  if (narg < 6) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "angle_coeff", error);
 
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
 
   double angle_temperature_one = utils::numeric(FLERR, arg[1], false, lmp);
   int n = utils::inumeric(FLERR, arg[2], false, lmp);
-  if (narg != 3 * n + 3) error->all(FLERR, "Incorrect args for angle coefficients");
+  if (n < 1) error->all(FLERR, "Invalid angle style gaussian value for n: {}", n);
+
+  if (narg != 3 * n + 3) utils::missing_cmd_args(FLERR, "angle_coeff", error);
 
   if (!allocated) allocate();
 
@@ -223,7 +227,9 @@ void AngleGaussian::coeff(int narg, char **arg)
     theta0[i] = new double[n];
     for (int j = 0; j < n; j++) {
       alpha[i][j] = utils::numeric(FLERR, arg[3 + 3 * j], false, lmp);
+      if (alpha[i][j] <= 0.0) error->all(FLERR, "Invalid value for A_{}: {}", j, alpha[i][j]);
       width[i][j] = utils::numeric(FLERR, arg[4 + 3 * j], false, lmp);
+      if (width[i][j] <= 0.0) error->all(FLERR, "Invalid value for w_{}: {}", j, width[i][j]);
       theta0[i][j] = utils::numeric(FLERR, arg[5 + 3 * j], false, lmp) * MY_PI / 180.0;
       setflag[i] = 1;
     }

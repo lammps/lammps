@@ -80,6 +80,7 @@ page gives those details.
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
    * :ref:`ML-IAP <PKG-ML-IAP>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
+   * :ref:`ML-POD <PKG-ML-POD>`
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
    * :ref:`ML-RANN <PKG-ML-RANN>`
    * :ref:`ML-SNAP <PKG-ML-SNAP>`
@@ -200,6 +201,7 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * :doc:`Howto spherical <Howto_spherical>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
+* :doc:`pair_style ylz <pair_ylz>`
 * `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * examples/ASPHERE
@@ -864,7 +866,7 @@ ELECTRODE package
 The ELECTRODE package allows the user to enforce a constant potential method for
 groups of atoms that interact with the remaining atoms as electrolyte.
 
-**Authors:** The ELECTRODE library is written and maintained by Ludwig
+**Authors:** The ELECTRODE package is written and maintained by Ludwig
 Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
 Robert Meissner (TUHH, Hamburg, Germany).
 
@@ -877,7 +879,7 @@ This package has :ref:`specific installation instructions <electrode>` on the
 
 **Supporting info:**
 
-* :doc:`fix electrode/conp <fix_electrode_conp>`
+* :doc:`fix electrode/conp <fix_electrode>`
 
 ----------
 
@@ -1736,8 +1738,6 @@ must be installed.
 
 .. versionadded:: 30Jun2020
 
-   .. versionadded:: 30Jun2020
-
 **Supporting info:**
 
 * src/ML-IAP: filenames -> commands
@@ -1794,6 +1794,39 @@ This package has :ref:`specific installation instructions <ml-pace>` on the
 * src/ML-PACE: filenames -> commands
 * :doc:`pair_style pace <pair_pace>`
 * examples/PACKAGES/pace
+
+----------
+
+.. _PKG-ML-POD:
+
+ML-POD package
+-------------------
+
+**Contents:**
+
+A pair style and fitpod style for Proper Orthogonal Descriptors
+(POD). POD is a methodology for deriving descriptors based on the proper
+orthogonal decomposition. The ML-POD package provides an efficient
+implementation for running simulations with POD potentials, along with
+fitting the potentials natively in LAMMPS.
+
+**Authors:**
+
+Ngoc Cuong Nguyen (MIT), Andrew Rohskopf (Sandia)
+
+.. versionadded:: TBD
+
+**Install:**
+
+This package has :ref:`specific installation instructions <ml-pod>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/ML-POD: filenames -> commands
+* :doc:`pair_style pod <pair_pod>`
+* :doc:`command_style fitpod <fitpod_command>`
+* examples/PACKAGES/pod
 
 ----------
 

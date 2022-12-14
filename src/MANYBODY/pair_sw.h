@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -54,6 +54,7 @@ class PairSW : public Pair {
   int maxshort;               // size of short neighbor list array
   int *neighshort;            // short neighbor list array
   int skip_threebody_flag;    // whether to run threebody loop
+  int params_mapped;          // whether parameters have been read and mapped to elements
 
   void settings(int, char **) override;
   virtual void allocate();

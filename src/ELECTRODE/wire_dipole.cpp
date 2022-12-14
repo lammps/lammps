@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,7 +19,7 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
+#include "force.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
@@ -37,6 +37,7 @@ WireDipole::WireDipole(LAMMPS *lmp) : BoundaryCorrection(lmp){};
 void WireDipole::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global, double &energy,
                               double *eatom)
 {
+  double const volume = get_volume();
   double *q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -72,7 +73,8 @@ void WireDipole::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global,
   // compute corrections
   const double e_wirecorr =
       MY_PI * (xdipole_all * xdipole_all + ydipole_all * ydipole_all) / volume;
-  const double qscale = qqrd2e * scale;
+  double const scale = 1.0;
+  const double qscale = force->qqrd2e * scale;
   if (eflag_global) energy += qscale * e_wirecorr;
 
   // per-atom energy
@@ -94,6 +96,7 @@ void WireDipole::compute_corr(double /*qsum*/, int eflag_atom, int eflag_global,
 
 void WireDipole::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, bool invert_source)
 {
+  double const volume = get_volume();
   int const nlocal = atom->nlocal;
   double **x = atom->x;
   double *q = atom->q;
@@ -113,6 +116,7 @@ void WireDipole::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, 
 
 void WireDipole::matrix_corr(bigint *imat, double **matrix)
 {
+  double const volume = get_volume();
   int nlocal = atom->nlocal;
   double **x = atom->x;
 

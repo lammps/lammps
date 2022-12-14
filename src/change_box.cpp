@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -281,9 +281,7 @@ void ChangeBox::command(int narg, char **arg)
     } else if (ops[m].style == BOUNDARY) {
       domain->set_boundary(3,&arg[ops[m].boundindex],1);
       if (domain->dimension == 2 && domain->zperiodic == 0)
-        error->all(FLERR,
-                   "Cannot change box z boundary to "
-                   "non-periodic for a 2d simulation");
+        error->all(FLERR, "Cannot change box z boundary to non-periodic for a 2d simulation");
       domain->set_initial_box();
       domain->set_global_box();
       domain->set_local_box();

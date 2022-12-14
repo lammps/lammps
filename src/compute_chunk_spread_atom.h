@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,13 +33,20 @@ class ComputeChunkSpreadAtom : public Compute {
   double memory_usage() override;
 
  protected:
-  int mode, nvalues;
-  char *idchunk;
-  char **ids;
-  int *which, *argindex, *value2index;
+  struct value_t {
+    int which;
+    int argindex;
+    std::string id;
+    union {
+      class Compute *c;
+      class Fix *f;
+    } val;
+  };
+  std::vector<value_t> values;
 
-  int nmax;
+  char *idchunk;
   class ComputeChunkAtom *cchunk;
+  int nmax;
 
   void init_chunk();
 };

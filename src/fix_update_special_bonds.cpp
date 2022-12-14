@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,7 +19,6 @@
 #include "force.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 #include "pair.h"
 
 #include <utility>
@@ -54,7 +53,7 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
   // error if more than one fix update/special/bonds
 
   if (modify->get_fix_by_style("UPDATE_SPECIAL_BONDS").size() > 1)
-    error->all(FLERR,"More than one fix update/special/bonds");
+    error->all(FLERR, "More than one fix update/special/bonds");
 
   // Require atoms know about all of their bonds and if they break
   if (force->newton_bond) error->all(FLERR, "Fix update/special/bonds requires Newton bond off");
@@ -131,14 +130,14 @@ void FixUpdateSpecialBonds::pre_exchange()
     // ignore n2, n3 since 1-3, 1-4 special factors required to be 1.0
     n1 = nspecial[i][0];
     if (n1 >= atom->maxspecial)
-      error->one(FLERR,"Special list size exceeded in fix update/special/bond");
+      error->one(FLERR, "Special list size exceeded in fix update/special/bond");
     special[i][n1] = tagj;
     nspecial[i][0] += 1;
     nspecial[i][1] = nspecial[i][2] = nspecial[i][0];
 
     n1 = nspecial[j][0];
     if (n1 >= atom->maxspecial)
-      error->one(FLERR,"Special list size exceeded in fix update/special/bond");
+      error->one(FLERR, "Special list size exceeded in fix update/special/bond");
     special[j][n1] = tagi;
     nspecial[j][0] += 1;
     nspecial[j][1] = nspecial[j][2] = nspecial[j][0];
@@ -210,8 +209,8 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       jnum = numneigh[i1];
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        if (((j >> SBBITS) & 3) != 0) continue;              // Skip bonded pairs
-        if (tag[j] == tag2) jlist[jj] = j ^ (1 << SBBITS);   // Add 1-2 special bond bits
+        if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
+        if (tag[j] == tag2) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
       }
     }
 
@@ -220,8 +219,8 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       jnum = numneigh[i2];
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        if (((j >> SBBITS) & 3) != 0) continue;              // Skip bonded pairs
-        if (tag[j] == tag1) jlist[jj] = j ^ (1 << SBBITS);   // Add 1-2 special bond bits
+        if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
+        if (tag[j] == tag1) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
       }
     }
   }

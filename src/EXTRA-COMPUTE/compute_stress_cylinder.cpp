@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -21,7 +21,6 @@
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -29,7 +28,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <mpi.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

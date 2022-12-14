@@ -1,0 +1,20 @@
+file_format extxyz
+file_extension xyz
+
+path_to_training_data_set "XYZ"
+path_to_test_data_set "XYZ"
+
+fitting_weight_energy 100.0
+fitting_weight_force 1.0
+fitting_regularization_parameter 1e-10
+
+error_analysis_for_training_data_set 1
+error_analysis_for_test_data_set 0
+
+# Add the following basename to the name of output files
+basename_for_output_files Ta
+
+# number of digits after the decimal point for pod coefficients
+precision_for_pod_coefficients 5
+
+

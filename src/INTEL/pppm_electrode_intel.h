@@ -1,7 +1,7 @@
 /* *- c++ -*- -----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -89,10 +89,9 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
       project_psi<flt_t, acc_t, 0>(buffers, vec, sensor_grpbit);
   }
 
-  void one_step_multiplication(bigint *, std::vector<double>, double **, double **, int const,
-                               bool);
-  void two_step_multiplication(bigint *, std::vector<double>, double **, double **, int const,
-                               bool);
+  void one_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void two_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void build_amesh(int, int, int, double *, double *);
   bool compute_vector_called;
 };
 

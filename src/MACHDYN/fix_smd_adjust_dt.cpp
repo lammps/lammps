@@ -13,7 +13,7 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://www.lammps.org/, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
+ LAMMPS development team: developers@lammps.org
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
  DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,8 +43,7 @@ using namespace FixConst;
 
 FixSMDTlsphDtReset::FixSMDTlsphDtReset(LAMMPS *lmp, int narg, char **arg) :
                 Fix(lmp, narg, arg) {
-        if (narg != 4)
-                error->all(FLERR, "Illegal fix smd/adjust_dt command");
+        if (narg != 4) error->all(FLERR, "Illegal fix smd/adjust_dt command");
 
         // set time_depend, else elapsed time accumulation can be messed up
 
@@ -57,7 +56,7 @@ FixSMDTlsphDtReset::FixSMDTlsphDtReset(LAMMPS *lmp, int narg, char **arg) :
         extvector = 0;
         restart_global = 1; // this fix stores global (i.e., not per-atom) info: elaspsed time
 
-        safety_factor = atof(arg[3]);
+        safety_factor = utils::numeric(FLERR,arg[3],false,lmp);
 
         // initializations
         t_elapsed = 0.0;

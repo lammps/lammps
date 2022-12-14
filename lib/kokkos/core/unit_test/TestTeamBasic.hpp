@@ -114,6 +114,54 @@ TEST(TEST_CATEGORY, team_reduce_large) {
   }
 }
 
+template <typename ExecutionSpace>
+struct LargeTeamScratchFunctor {
+  using team_member = typename Kokkos::TeamPolicy<ExecutionSpace>::member_type;
+  const size_t m_per_team_bytes;
+
+  KOKKOS_FUNCTION void operator()(const team_member& member) const {
+    double* team_shared = static_cast<double*>(
+        member.team_scratch(/*level*/ 1).get_shmem(m_per_team_bytes));
+    if (team_shared == nullptr)
+      Kokkos::abort("Couldn't allocate required size!\n");
+    double* team_shared_1 = static_cast<double*>(
+        member.team_scratch(/*level*/ 1).get_shmem(sizeof(double)));
+    if (team_shared_1 != nullptr)
+      Kokkos::abort("Allocated more memory than requested!\n");
+  }
+};
+
+TEST(TEST_CATEGORY, large_team_scratch_size) {
+  const int level   = 1;
+  const int n_teams = 1;
+
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+  // Allocate slightly more than (2^31-1) bytes. The other value resulted in
+  // problems allocating too much memory.
+  const size_t per_team_extent = 268435460;
+#else
+  // Value originally chosen in the reproducer.
+  const size_t per_team_extent = 502795560;
+#endif
+
+  const size_t per_team_bytes = per_team_extent * sizeof(double);
+
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+  Kokkos::TeamPolicy<TEST_EXECSPACE> policy(
+      n_teams,
+      std::is_same<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>::value
+          ? 32
+          : 1);
+#else
+  Kokkos::TeamPolicy<TEST_EXECSPACE> policy(n_teams, 1);
+#endif
+  policy.set_scratch_size(level, Kokkos::PerTeam(per_team_bytes));
+
+  Kokkos::parallel_for(policy,
+                       LargeTeamScratchFunctor<TEST_EXECSPACE>{per_team_bytes});
+  Kokkos::fence();
+}
+
 TEST(TEST_CATEGORY, team_broadcast_long) {
   TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
                     long>::test_teambroadcast(0, 1);
@@ -151,12 +199,6 @@ struct long_wrapper {
 
   KOKKOS_FUNCTION
   friend void operator+=(long_wrapper& lhs, const long_wrapper& rhs) {
-    lhs.value += rhs.value;
-  }
-
-  KOKKOS_FUNCTION
-  friend void operator+=(volatile long_wrapper& lhs,
-                         const volatile long_wrapper& rhs) {
     lhs.value += rhs.value;
   }
 

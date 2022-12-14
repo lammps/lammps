@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -187,7 +187,6 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
   RanMars &rng = *random_thr[thr->get_tid()];
 
   double vxmu2f = force->vxmu2f;
-  int overlaps = 0;
   double randr;
   double prethermostat;
   double xl[3],a_sq,a_sh,a_pu,Fbmag;
@@ -247,10 +246,6 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         // scalar resistances a_sq and a_sh
 
         h_sep = r - radi-radj;
-
-        // check for overlaps
-
-        if (h_sep < 0.0) overlaps++;
 
         // if less than minimum gap, use minimum gap instead
 

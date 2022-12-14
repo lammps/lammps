@@ -31,7 +31,7 @@ Syntax
        v_name = per-atom vector calculated by an atom-style variable with name
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *norm* or *ave* or *bias* or *adof* or *cdof* or *file* or *overwrite* or *title1* or *title2* or *title3*
+* keyword = *norm* or *ave* or *bias* or *adof* or *cdof* or *file* or *overwrite* or *format* or *title1* or *title2* or *title3*
 
   .. parsed-literal::
 

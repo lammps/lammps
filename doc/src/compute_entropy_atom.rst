@@ -97,13 +97,13 @@ by the corresponding volume. This option can be useful when dealing with
 inhomogeneous systems such as those that have surfaces.
 
 Here are typical input parameters for fcc aluminum (lattice
-constant :math:`4.05~\mathrm{\mathring A}`),
+constant :math:`4.05~\AA`),
 
 .. parsed-literal::
 
    compute 1 all entropy/atom 0.25 5.7 avg yes 3.7
 
-and for bcc sodium (lattice constant 4.23 Angstroms),
+and for bcc sodium (lattice constant :math:`4.23~\AA`),
 
 .. parsed-literal::
 

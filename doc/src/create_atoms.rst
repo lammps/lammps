@@ -28,7 +28,7 @@ Syntax
          region-ID = create atoms within this region, use NULL for entire simulation box
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *overlap* or *maxtry* or *units*
+* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *radscale* or *meshmode* or *rotate* or *overlap* or *maxtry* or *units*
 
   .. parsed-literal::
 
@@ -464,7 +464,7 @@ The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*
 style, or the overlap distance *Doverlap* by the *overlap* keyword.  A
 *box* value selects standard distance units as defined by the
-:doc:`units <units>` command (e.g., :math:`\mathrm{\mathring{A}}` for
+:doc:`units <units>` command (e.g., :math:`\AA` for
 units = *real* or *metal*\ .  A *lattice* value means the distance units are in
 lattice spacings.
 

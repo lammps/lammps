@@ -104,6 +104,7 @@ mliap         MLIAP potential
 mliap.descriptor MLIAP potential descriptor
 mliap.model   MLIAP potential model
 nb3b.harmonic nonbonded 3-body harmonic potential
+pod           ML potential with proper orthogonal descriptors (POD)
 poly          polymorphic 3-body potential
 reax          ReaxFF potential (see README.reax for more info)
 smtbq         second moment tight binding QEq (SMTBQ) potential

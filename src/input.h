@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -70,6 +70,8 @@ class Input : protected Pointers {
   void reallocate(char *&, int &, int);    // reallocate a char string
   int execute_command();                   // execute a single command
 
+  int meta(const std::string &);    // process meta-commands
+
   void clear();    // input script commands
   void echo();
   void ifthenelse();
@@ -94,7 +96,6 @@ class Input : protected Pointers {
   void bond_style();
   void bond_write();
   void boundary();
-  void box();
   void comm_modify();
   void comm_style();
   void compute();
@@ -143,7 +144,5 @@ class Input : protected Pointers {
   void unfix();
   void units();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif

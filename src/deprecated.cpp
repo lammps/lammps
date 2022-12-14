@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,16 +32,29 @@ void Deprecated::command(int narg, char **arg)
   if (cmd == "DEPRECATED") {
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nCommand 'DEPRECATED' is a dummy command\n\n");
     return;
-  } else if (cmd == "reset_ids") {
+  } else if (cmd == "box") {
     if (lmp->comm->me == 0)
-      utils::logmesg(lmp, "\n'reset_ids' has been renamed to 'reset_atom_ids'\n\n");
+      utils::logmesg(lmp, "\nThe 'box' command has been removed and will be ignored\n\n");
+    return;
   } else if (utils::strmatch(cmd, "^kim_")) {
-    if (lmp->comm->me == 0)
-      utils::logmesg(lmp,
-                     "\nWARNING: 'kim_<command>' has been renamed to 'kim <command>'. "
-                     "Please update your input.\n\n");
     std::string newcmd("kim");
     newcmd += " " + cmd.substr(4);
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nWARNING: '{}' has been renamed to '{}'. Please update your input.\n\n",
+                     cmd, newcmd);
+    for (int i = 0; i < narg; ++i) {
+      newcmd.append(1, ' ');
+      newcmd.append(arg[i]);
+    }
+    input->one(newcmd);
+    return;
+  } else if (utils::strmatch(cmd, "^reset_")) {
+    std::string newcmd("reset_atoms");
+    if ((cmd == "reset_ids") || (cmd == "reset_atom_ids")) newcmd += " id";
+    if (cmd == "reset_mol_ids") newcmd += " mol";
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nWARNING: '{}' has been renamed to '{}'. Please update your input.\n\n",
+                     cmd, newcmd);
     for (int i = 0; i < narg; ++i) {
       newcmd.append(1, ' ');
       newcmd.append(arg[i]);

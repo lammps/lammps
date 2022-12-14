@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,6 +23,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -65,10 +66,24 @@ enum : bool { ELECTRODE = true, ELECTROLYTE = false };
 #define ONEF 1.0
 #endif
 
+static const char cite_pppm_electrode[] =
+    "kspace_style pppm/electrode command:\n\n"
+    "@article{Ahrens2021,\n"
+    "author = {Ahrens-Iwers, Ludwig J.V. and Mei{\\ss}ner, Robert H.},\n"
+    "doi = {10.1063/5.0063381},\n"
+    "title = {{Constant potential simulations on a mesh}},\n"
+    "journal = {Journal of Chemical Physics},\n"
+    "year = {2021}\n"
+    "volume = {155},\n"
+    "pages = {104104},\n"
+    "}\n";
+
 PPPMElectrodeIntel::PPPMElectrodeIntel(LAMMPS *lmp) :
     PPPMIntel(lmp), ElectrodeKSpace(), electrolyte_density_brick(nullptr),
-    electrolyte_density_fft(nullptr)
+    electrolyte_density_fft(nullptr), boundcorr(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
+
   group_group_enable = 0;
   electrolyte_density_brick = nullptr;
   electrolyte_density_fft = nullptr;
@@ -83,7 +98,6 @@ PPPMElectrodeIntel::~PPPMElectrodeIntel()
   memory->destroy(electrolyte_density_fft);
   if ((differentiation_flag != 1) && !peratom_allocate_flag)
     memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);
-  delete boundcorr;
 }
 
 void PPPMElectrodeIntel::init()
@@ -156,7 +170,6 @@ void PPPMElectrodeIntel::setup()
   prd[0] /= wire_volfactor;
   prd[1] /= wire_volfactor;
 
-  boundcorr->setup(xprd_wire, yprd_wire, zprd_slab);
 }
 
 void PPPMElectrodeIntel::compute(int eflag, int vflag)
@@ -272,7 +285,7 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
   slabflag = 0;    // bypass compute_second's slabcorr()
   PPPMIntel::compute_second(eflag, vflag);
   slabflag = tempslabflag;
-  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
+  boundcorr->compute_corr(qsum,  eflag_atom, eflag_global, energy, eatom);
   compute_vector_called = false;
 }
 
@@ -505,7 +518,9 @@ void PPPMElectrodeIntel::compute_matrix(bigint *imat, double **matrix, bool time
   compute(1, 0);
 
   // fft green's function k -> r
-  vector<double> greens_real(nz_pppm * ny_pppm * nx_pppm, 0.);
+  double *greens_real;
+  memory->create(greens_real, nz_pppm * ny_pppm * nx_pppm, "pppm/electrode:greens_real");
+  memset(greens_real, 0, nz_pppm * ny_pppm * nx_pppm * sizeof(double));
   for (int i = 0, n = 0; i < nfft; i++) {
     work2[n++] = greensfn[i];
     work2[n++] = ZEROF;
@@ -517,8 +532,7 @@ void PPPMElectrodeIntel::compute_matrix(bigint *imat, double **matrix, bool time
         greens_real[ny_pppm * nx_pppm * k + nx_pppm * j + i] = work2[n];
         n += 2;
       }
-  MPI_Allreduce(MPI_IN_PLACE, &greens_real.front(), nz_pppm * ny_pppm * nx_pppm, MPI_DOUBLE,
-                MPI_SUM, world);
+  MPI_Allreduce(MPI_IN_PLACE, greens_real, nz_pppm * ny_pppm * nx_pppm, MPI_DOUBLE, MPI_SUM, world);
   int const nlocal = atom->nlocal;
   int nmat = std::count_if(&imat[0], &imat[nlocal], [](int x) {
     return x >= 0;
@@ -539,47 +553,50 @@ void PPPMElectrodeIntel::compute_matrix(bigint *imat, double **matrix, bool time
     one_step_multiplication(imat, greens_real, x_ele, matrix, nmat, timer_flag);
   else
     two_step_multiplication(imat, greens_real, x_ele, matrix, nmat, timer_flag);
+  memory->destroy(greens_real);
   memory->destroy(x_ele);
 }
 
 /* ----------------------------------------------------------------------*/
 
-void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, vector<double> greens_real,
-                                                 double **x_ele, double **matrix, int const nmat,
-                                                 bool timer_flag)
+void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
+                                                 double **matrix, int const nmat, bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
   // with matrix multiplication 'W^T G W' in one steps. Uses less memory than
   // two_step_multiplication
   //
   int const nlocal = atom->nlocal;
-  // double **x = atom->x;
+  double **x = atom->x;
   MPI_Barrier(world);
   double step1_time = MPI_Wtime();
 
   // precalculate rho_1d for local electrode
-  vector<vector<vector<double>>> rho1d_j(nlocal,
-                                         vector<vector<double>>(3, vector<double>(order, 0)));
-
-  _alignvar(FFT_SCALAR rho[3][INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
-
+  std::vector<int> j_list;
   for (int j = 0; j < nlocal; j++) {
     int jpos = imat[j];
     if (jpos < 0) continue;
-    double *_noalias xj = x_ele[jpos];
+    j_list.push_back(j);
+  }
+  int const nj_local = j_list.size();
+
+  FFT_SCALAR ***rho1d_j;
+  memory->create(rho1d_j, nj_local, 3, order, "pppm/electrode:rho1d_j");
+
+  _alignvar(FFT_SCALAR rho[3][INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
+
+  for (int jlist_pos = 0; jlist_pos < nj_local; jlist_pos++) {
+    int j = j_list[jlist_pos];
     int njx = part2grid[j][0];
     int njy = part2grid[j][1];
     int njz = part2grid[j][2];
-    FFT_SCALAR djx = njx + shiftone - (xj[0] - boxlo[0]) * delxinv;
-    FFT_SCALAR djy = njy + shiftone - (xj[1] - boxlo[1]) * delyinv;
-    FFT_SCALAR djz = njz + shiftone - (xj[2] - boxlo[2]) * delzinv;
+    FFT_SCALAR const djx = njx + shiftone - (x[j][0] - boxlo[0]) * delxinv;
+    FFT_SCALAR const djy = njy + shiftone - (x[j][1] - boxlo[1]) * delyinv;
+    FFT_SCALAR const djz = njz + shiftone - (x[j][2] - boxlo[2]) * delzinv;
     if (_use_table) {
-      djx = djx * half_rho_scale + half_rho_scale_plus;
-      int idx = djx;
-      djy = djy * half_rho_scale + half_rho_scale_plus;
-      int idy = djy;
-      djz = djz * half_rho_scale + half_rho_scale_plus;
-      int idz = djz;
+      int idx = (int) (djx * half_rho_scale + half_rho_scale_plus);
+      int idy = (int) (djy * half_rho_scale + half_rho_scale_plus);
+      int idz = (int) (djz * half_rho_scale + half_rho_scale_plus);
 #if defined(LMP_SIMD_COMPILER)
 #pragma simd
 #endif
@@ -607,7 +624,7 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, vector<double> gr
       }
     }
     for (int dim = 0; dim < 3; dim++) {
-      for (int oi = 0; oi < order; oi++) { rho1d_j[j][dim][oi] = (double) rho[dim][oi]; }
+      for (int oi = 0; oi < order; oi++) { rho1d_j[jlist_pos][dim][oi] = rho[dim][oi]; }
     }
   }
 
@@ -615,6 +632,9 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, vector<double> gr
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
   // (mx,my,mz) = global coords of moving stencil pt
+  int const order2 = INTEL_P3M_ALIGNED_MAXORDER * INTEL_P3M_ALIGNED_MAXORDER;
+  int const order6 = order2 * order2 * order2;
+  _alignvar(double amesh[order6], 64) = {0};
   for (int ipos = 0; ipos < nmat; ipos++) {
     double *_noalias xi_ele = x_ele[ipos];
     // new calculation for nx, ny, nz because part2grid available for nlocal,
@@ -626,12 +646,9 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, vector<double> gr
     FFT_SCALAR diy = niy + shiftone - (xi_ele[1] - boxlo[1]) * delyinv;
     FFT_SCALAR diz = niz + shiftone - (xi_ele[2] - boxlo[2]) * delzinv;
     if (_use_table) {
-      dix = dix * half_rho_scale + half_rho_scale_plus;
-      int idx = dix;
-      diy = diy * half_rho_scale + half_rho_scale_plus;
-      int idy = diy;
-      diz = diz * half_rho_scale + half_rho_scale_plus;
-      int idz = diz;
+      int idx = (int) (dix * half_rho_scale + half_rho_scale_plus);
+      int idy = (int) (diy * half_rho_scale + half_rho_scale_plus);
+      int idz = (int) (diz * half_rho_scale + half_rho_scale_plus);
 #if defined(LMP_SIMD_COMPILER)
 #pragma simd
 #endif
@@ -658,54 +675,85 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, vector<double> gr
         rho[2][k - nlower] = r3;
       }
     }
-    for (int j = 0; j < nlocal; j++) {
+    int njx = -1;
+    int njy = -1;
+    int njz = -1;    // force initial build_amesh
+    for (int jlist_pos = 0; jlist_pos < nj_local; jlist_pos++) {
+      int j = j_list[jlist_pos];
       int jpos = imat[j];
-      if (jpos < 0) continue;
+      if ((ipos < jpos) == !((ipos - jpos) % 2)) continue;
       double aij = 0.;
-      int njx = part2grid[j][0];
-      int njy = part2grid[j][1];
-      int njz = part2grid[j][2];
-      for (int ni = nlower; ni <= nupper; ni++) {
-        double iz0 = rho[2][ni - nlower];
-        int miz = ni + niz;
-        for (int mi = nlower; mi <= nupper; mi++) {
-          double iy0 = iz0 * rho[1][mi - nlower];
-          int miy = mi + niy;
-          for (int li = nlower; li <= nupper; li++) {
-            int mix = li + nix;
-            double const ix0 = iy0 * rho[0][li - nlower];
-            for (int nj = nlower; nj <= nupper; nj++) {
-              double jz0 = rho1d_j[j][2][nj - nlower];
-              int mjz = nj + njz;
-              int mz = abs(mjz - miz) % nz_pppm;
-              for (int mj = nlower; mj <= nupper; mj++) {
-                double jy0 = jz0 * rho1d_j[j][1][mj - nlower];
-                int mjy = mj + njy;
-                int my = abs(mjy - miy) % ny_pppm;
-                for (int lj = nlower; lj <= nupper; lj++) {
-                  int mjx = lj + njx;
-                  int mx = abs(mjx - mix) % nx_pppm;
-                  double const jx0 = jy0 * rho1d_j[j][0][lj - nlower];
-                  aij += ix0 * jx0 * greens_real[mz * nx_pppm * ny_pppm + my * nx_pppm + mx];
+      if (njx != part2grid[j][0] || njy != part2grid[j][1] || njz != part2grid[j][2]) {
+        njx = part2grid[j][0];
+        njy = part2grid[j][1];
+        njz = part2grid[j][2];
+        build_amesh(njx - nix, njy - niy, njz - niz, amesh, greens_real);
+      }
+      int ind_amesh = 0;
+      for (int ni = 0; ni < order; ni++) {
+        FFT_SCALAR const iz0 = rho[2][ni];
+        for (int nj = 0; nj < order; nj++) {
+          FFT_SCALAR const jz0 = rho1d_j[jlist_pos][2][nj];
+          for (int mi = 0; mi < order; mi++) {
+            FFT_SCALAR const iy0 = iz0 * rho[1][mi];
+            for (int mj = 0; mj < order; mj++) {
+              FFT_SCALAR const jy0 = jz0 * rho1d_j[jlist_pos][1][mj];
+              for (int li = 0; li < order; li++) {
+                FFT_SCALAR const ix0 = iy0 * rho[0][li];
+                double aij_xscan = 0.;
+                for (int lj = 0; lj < order; lj++) {
+                  aij_xscan += amesh[ind_amesh] * rho1d_j[jlist_pos][0][lj];
+                  ind_amesh++;
                 }
+                aij += (double) ix0 * jy0 * aij_xscan;
               }
             }
           }
         }
       }
       matrix[ipos][jpos] += aij / volume;
+      if (ipos != jpos) matrix[jpos][ipos] += aij / volume;
     }
   }
   MPI_Barrier(world);
+  memory->destroy(rho1d_j);
   if (timer_flag && (comm->me == 0))
     utils::logmesg(lmp, fmt::format("Single step time: {:.4g} s\n", MPI_Wtime() - step1_time));
 }
 
 /* ----------------------------------------------------------------------*/
 
-void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, vector<double> greens_real,
-                                                 double **x_ele, double **matrix, int const nmat,
-                                                 bool timer_flag)
+void PPPMElectrodeIntel::build_amesh(const int dx,    // = njx - nix
+                                     const int dy,    // = njy - niy
+                                     const int dz,    // = njz - niz
+                                     double *amesh, double *const greens_real)
+{
+  auto fmod = [](int x, int n) {    // fast unsigned mod
+    int r = abs(x);
+    while (r >= n) r -= n;
+    return r;
+  };
+  int ind_amesh = 0;
+
+  for (int iz = 0; iz < order; iz++)
+    for (int jz = 0; jz < order; jz++) {
+      int const mz = fmod(dz + jz - iz, nz_pppm) * nx_pppm * ny_pppm;
+      for (int iy = 0; iy < order; iy++)
+        for (int jy = 0; jy < order; jy++) {
+          int const my = fmod(dy + jy - iy, ny_pppm) * nx_pppm;
+          for (int ix = 0; ix < order; ix++)
+            for (int jx = 0; jx < order; jx++) {
+              int const mx = fmod(dx + jx - ix, nx_pppm);
+              amesh[ind_amesh] = greens_real[mz + my + mx];
+              ind_amesh++;
+            }
+        }
+    }
+}
+/* ----------------------------------------------------------------------*/
+
+void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
+                                                 double **matrix, int const nmat, bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
   // with matrix multiplication 'W^T G W' in two steps. gw is result of
@@ -1099,6 +1147,7 @@ void PPPMElectrodeIntel::allocate_peratom()
 
 void PPPMElectrodeIntel::deallocate()
 {
+  if (boundcorr != nullptr) delete boundcorr;
   // duplicated to always deallocate u_brick
   memory->destroy3d_offset(density_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);

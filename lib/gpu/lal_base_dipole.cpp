@@ -363,8 +363,7 @@ void BaseDipoleT::compile_kernels(UCL_Device &dev, const void *pair_str,
     #if defined(LAL_OCL_EV_JIT)
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_pair_noev.max_subgroup_size(_block_size));
     #endif
-    if (_threads_per_atom > mx_subgroup_sz)
-      _threads_per_atom = mx_subgroup_sz;
+    if (_threads_per_atom > (int)mx_subgroup_sz) _threads_per_atom = mx_subgroup_sz;
     device->set_simd_size(mx_subgroup_sz);
   }
   #endif

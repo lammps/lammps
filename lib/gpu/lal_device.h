@@ -218,6 +218,12 @@ class Device {
   inline int gpu_rank() const { return _gpu_rank; }
   /// MPI Barrier for gpu
   inline void gpu_barrier() { MPI_Barrier(_comm_gpu); }
+  /// Serialize GPU initialization and JIT for unsafe platforms
+  inline void serialize_init() {
+    #ifdef LAL_SERIALIZE_INIT
+    gpu_barrier();
+    #endif
+  }
   /// Return the 'mode' for acceleration: GPU_FORCE, GPU_NEIGH or GPU_HYB_NEIGH
   inline int gpu_mode() const { return _gpu_mode; }
   /// Index of first device used by a node

@@ -174,8 +174,8 @@ the specified attribute.
 Restrictions
 """"""""""""
 
-This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package
+This pair style is part of the MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
 This pair style is currently incompatible with granular pair styles

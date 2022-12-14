@@ -57,6 +57,13 @@
 /pair_pace.cpp
 /pair_pace.h
 
+/pair_pod.cpp
+/pair_pod.h
+/fitpod_command.cpp
+/fitpod_command.h
+/mlpod.cpp
+/mlpod.h
+
 /fix_polarize*.cpp
 /fix_polarize*.h
 /*_dielectric.cpp
@@ -1336,6 +1343,8 @@
 /pair_yukawa_colloid.h
 /pair_wf_cut.cpp
 /pair_wf_cut.h
+/pair_ylz.cpp
+/pair_ylz.h
 /pair_momb.cpp
 /pair_momb.h
 /pppm.cpp

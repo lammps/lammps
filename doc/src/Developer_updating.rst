@@ -7,7 +7,7 @@ source files provided as a supplement to a publication) that are written
 for an older version of LAMMPS and thus need to be updated to be
 compatible with the current version of LAMMPS.  Due to the active
 development of LAMMPS it is likely to always be incomplete.  Please
-contact developer@lammps.org in case you run across an issue that is not
+contact developers@lammps.org in case you run across an issue that is not
 (yet) listed here.  Please also review the latest information about the
 LAMMPS :doc:`programming style conventions <Modify_style>`, especially
 if you are considering to submit the updated version for inclusion into
@@ -61,7 +61,7 @@ header file needs to be updated accordingly.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    int PairEAM::pack_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
    {
@@ -75,7 +75,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    int PairEAM::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
    {
@@ -112,14 +112,14 @@ Example from a pair style:
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    if (eflag || vflag) ev_setup(eflag, vflag);
    else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    ev_init(eflag, vflag);
 
@@ -142,14 +142,14 @@ when they are called from only one or a subset of the MPI processes.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
     val = force->numeric(FLERR, arg[1]);
     num = force->inumeric(FLERR, arg[2]);
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
     val = utils::numeric(FLERR, true, arg[1], lmp);
     num = utils::inumeric(FLERR, false, arg[2], lmp);
@@ -183,14 +183,14 @@ copy them around for simulations.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    fp = force->open_potential(filename);
    fp = fopen(filename, "r");
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    fp = utils::open_potential(filename, lmp);
 
@@ -207,7 +207,7 @@ Example:
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    if (fptr == NULL) {
      char str[128];
@@ -217,7 +217,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    if (fptr == nullptr)
      error->one(FLERR, "Cannot open AEAM potential file {}: {}", filename, utils::getsyserror());
@@ -237,7 +237,7 @@ an example from the ``FixWallReflect`` class:
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    FixWallReflect(class LAMMPS *, int, char **);
    virtual ~FixWallReflect();
@@ -247,7 +247,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    FixWallReflect(class LAMMPS *, int, char **);
    ~FixWallReflect() override;
@@ -271,7 +271,7 @@ the type of the "this" pointer argument.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    comm->forward_comm_pair(this);
    comm->forward_comm_fix(this);
@@ -284,7 +284,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    comm->forward_comm(this);
    comm->reverse_comm(this);
@@ -304,7 +304,7 @@ requests can be :doc:`found here <Developer_notes>`. Example from the
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    int irequest = neighbor->request(this,instance_me);
    neighbor->requests[irequest]->pair = 0;
@@ -317,7 +317,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
    if (cutflag) req->set_cutoff(mycutneigh);
@@ -340,7 +340,7 @@ these are internal fixes, there is no user visible change.
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "fix_store.h"
 
@@ -351,7 +351,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "fix_store_peratom.h"
 
@@ -362,7 +362,7 @@ New:
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "fix_store.h"
 
@@ -373,7 +373,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "fix_store_global.h"
 
@@ -396,7 +396,7 @@ the dump directly.  Example:
 
 Old:
 
-.. code-block:: C++
+.. code-block:: c++
 
    int idump = output->find_dump(arg[iarg+1]);
    if (idump < 0)
@@ -412,7 +412,7 @@ Old:
 
 New:
 
-.. code-block:: C++
+.. code-block:: c++
 
    auto idump = output->get_dump_by_id(arg[iarg+1]);
    if (!idump) error->all(FLERR,"Dump ID {} in hyper command does not exist", arg[iarg+1]);

@@ -42,6 +42,7 @@
 //@HEADER
 */
 
+#include <impl/Kokkos_StringManipulation.hpp>
 #include <impl/Kokkos_HostSharedPtr.hpp>
 #include <Kokkos_Core.hpp>
 
@@ -55,14 +56,9 @@ class Data {
   char d[64];
 
  public:
-  // Because strncpy is not supported within device code
-  static KOKKOS_FUNCTION void my_strncpy(char* dst, const char* src,
-                                         size_t cnt) {
-    while (cnt-- > 0 && (*dst++ = *src++) != '\0')
-      ;
-    while (cnt-- > 0) *dst++ = '\0';
+  KOKKOS_FUNCTION void write(char const* s) {
+    Kokkos::Impl::strncpy(d, s, sizeof(d));
   }
-  KOKKOS_FUNCTION void write(char const* s) { my_strncpy(d, s, sizeof(d)); }
 };
 
 template <class SmartPtr>
@@ -281,10 +277,14 @@ TEST(TEST_CATEGORY, host_shared_ptr_tracking) {
         Kokkos::Experimental::SYCLSharedUSMSpace>();
 #endif
 #ifdef KOKKOS_ENABLE_HIP
-  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::HIP>::value)
+  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::HIP>::value) {
     host_shared_ptr_test_reference_counting<
         Kokkos::Experimental::HIPHostPinnedSpace,
         Kokkos::Experimental::HIPHostPinnedSpace>();
+    host_shared_ptr_test_reference_counting<
+        Kokkos::Experimental::HIPManagedSpace,
+        Kokkos::Experimental::HIPManagedSpace>();
+  }
 #endif
 }
 

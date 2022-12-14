@@ -1,8 +1,7 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,13 +34,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg) {
+FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) : FixQEq(lmp, narg, arg)
+{
   if (narg == 10) {
-    if (strcmp(arg[8],"warn") == 0) {
-      maxwarn = utils::logical(FLERR,arg[9],false,lmp);
-    } else error->all(FLERR,"Illegal fix qeq/point command");
-  } else if (narg > 8) error->all(FLERR,"Illegal fix qeq/point command");
+    if (strcmp(arg[8], "warn") == 0) {
+      maxwarn = utils::logical(FLERR, arg[9], false, lmp);
+    } else
+      error->all(FLERR, "Illegal fix qeq/point command");
+  } else if (narg > 8)
+    error->all(FLERR, "Illegal fix qeq/point command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,8 +54,10 @@ void FixQEqPoint::init()
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
   int ntypes = atom->ntypes;
-  memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
+  memory->create(shld, ntypes + 1, ntypes + 1, "qeq:shielding");
 }
+
+// clang-format off
 
 /* ---------------------------------------------------------------------- */
 

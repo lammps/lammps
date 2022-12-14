@@ -283,7 +283,7 @@ parameters and how to choose them is described in
 ----------
 
 The *electrode* styles add methods that are required for the constant potential
-method implemented in :doc:`fix electrode/* <fix_electrode_conp>`.  The styles
+method implemented in :doc:`fix electrode/* <fix_electrode>`.  The styles
 *ewald/electrode*, *pppm/electrode* and *pppm/electrode/intel* are available.
 These styles do not support the `kspace_modify slab nozforce` command.
 
@@ -301,7 +301,7 @@ and for mixed periodic and non-periodic boundaries.
 MSM is most competitive versus Ewald and PPPM when only relatively
 low accuracy forces, about 1e-4 relative error or less accurate,
 are needed. Note that use of a larger Coulombic cutoff (i.e. 15
-angstroms instead of 10 angstroms) provides better MSM accuracy for
+Angstroms instead of 10 Angstroms) provides better MSM accuracy for
 both the real space and grid computed forces.
 
 Currently calculation of the full pressure tensor in MSM is expensive.

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -154,8 +154,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       border = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "writedata") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix property/atom command");
-      wd_section = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix property/atom command");
+      wd_section = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR, "Illegal fix property/atom command");
@@ -275,6 +275,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf, tagint 
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf, '\n');
+    if (!next) error->all(FLERR, "Unexpected end of file while reading data section");
     *next = '\0';
 
     try {
@@ -324,12 +325,12 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf, tagint 
 }
 
 /* ----------------------------------------------------------------------
-   return # of lines in section of data file labeled by keyword
+   return # of lines in section of data file labeled by keyword. -1 signals use # of added atoms
 ------------------------------------------------------------------------- */
 
 bigint FixPropertyAtom::read_data_skip_lines(char * /*keyword*/)
 {
-  return atom->natoms;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

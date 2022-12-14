@@ -55,10 +55,10 @@ TEST_F(LAMMPS_commands, get_thermo)
     EXPECT_DOUBLE_EQ(f_lammps_extract_box_zhi(), 2.0);
     f_lammps_delete_everything();
     f_lammps_reset_box_2x();
-    EXPECT_DOUBLE_EQ(f_lammps_extract_box_xlo(),-1.0);
+    EXPECT_DOUBLE_EQ(f_lammps_extract_box_xlo(), -1.0);
     EXPECT_DOUBLE_EQ(f_lammps_extract_box_xhi(), 3.0);
-    EXPECT_DOUBLE_EQ(f_lammps_extract_box_ylo(),-1.0);
+    EXPECT_DOUBLE_EQ(f_lammps_extract_box_ylo(), -1.0);
     EXPECT_DOUBLE_EQ(f_lammps_extract_box_yhi(), 3.0);
-    EXPECT_DOUBLE_EQ(f_lammps_extract_box_zlo(),-1.0);
+    EXPECT_DOUBLE_EQ(f_lammps_extract_box_zlo(), -1.0);
     EXPECT_DOUBLE_EQ(f_lammps_extract_box_zhi(), 3.0);
 };

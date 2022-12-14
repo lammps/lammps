@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -30,12 +30,10 @@
 #endif
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "neighbor.h"
-#include "neigh_request.h"
 
 #include <cmath>
 #include <cstring>
@@ -135,10 +133,10 @@ void PairMLIAP::settings(int narg, char ** arg)
 
   // set flags for required keywords
 
-  int modelflag = 0;
-  int descriptorflag = 0;
   delete model;
+  model = nullptr;
   delete descriptor;
+  descriptor = nullptr;
 
   // process keywords
 
@@ -147,7 +145,7 @@ void PairMLIAP::settings(int narg, char ** arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model", error);
-      if (modelflag) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
+      if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
       if (strcmp(arg[iarg+1],"linear") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model linear", error);
         model = new MLIAPModelLinear(lmp,arg[iarg+2]);
@@ -169,10 +167,9 @@ void PairMLIAP::settings(int narg, char ** arg)
         error->all(FLERR,"Using pair_style mliap model mliappy requires ML-IAP with python support");
 #endif
       } else error->all(FLERR,"Unknown pair_style mliap model keyword: {}", arg[iarg]);
-      modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor", error);
-      if (descriptorflag) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
+      if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
       if (strcmp(arg[iarg+1],"sna") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor sna", error);
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
@@ -183,11 +180,10 @@ void PairMLIAP::settings(int narg, char ** arg)
         iarg += 3;
 
       } else error->all(FLERR,"Illegal pair_style mliap command");
-      descriptorflag = 1;
     } else if (strcmp(arg[iarg], "unified") == 0) {
 #ifdef MLIAP_PYTHON
-      if (modelflag) error->all(FLERR,"Illegal multiple pair_style mliap model definitions");
-      if (descriptorflag) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definitions");
+      if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definitions");
+      if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definitions");
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap unified", error);
       MLIAPBuildUnified_t build = build_unified(arg[iarg+1], data, lmp);
       if (iarg+3 > narg) {
@@ -199,8 +195,6 @@ void PairMLIAP::settings(int narg, char ** arg)
       iarg += 3;
       model = build.model;
       descriptor = build.descriptor;
-      modelflag = 1;
-      descriptorflag = 1;
 #else
       error->all(FLERR,"Using pair_style mliap unified requires ML-IAP with python support");
 #endif
@@ -208,7 +202,7 @@ void PairMLIAP::settings(int narg, char ** arg)
       error->all(FLERR,"Unknown pair_style mliap keyword: {}", arg[iarg]);
   }
 
-  if (modelflag == 0 || descriptorflag == 0)
+  if (model == nullptr || descriptor == nullptr)
     error->all(FLERR,"Incomplete pair_style mliap setup: need model and descriptor, or unified");
 }
 

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -749,77 +749,77 @@ int Input::execute_command()
 {
   int flag = 1;
 
-  if (!strcmp(command,"clear")) clear();
-  else if (!strcmp(command,"echo")) echo();
-  else if (!strcmp(command,"if")) ifthenelse();
-  else if (!strcmp(command,"include")) include();
-  else if (!strcmp(command,"jump")) jump();
-  else if (!strcmp(command,"label")) label();
-  else if (!strcmp(command,"log")) log();
-  else if (!strcmp(command,"next")) next_command();
-  else if (!strcmp(command,"partition")) partition();
-  else if (!strcmp(command,"print")) print();
-  else if (!strcmp(command,"python")) python();
-  else if (!strcmp(command,"quit")) quit();
-  else if (!strcmp(command,"shell")) shell();
-  else if (!strcmp(command,"variable")) variable_command();
+  std::string mycmd = command;
+  if (mycmd == "clear") clear();
+  else if (mycmd == "echo") echo();
+  else if (mycmd == "if") ifthenelse();
+  else if (mycmd == "include") include();
+  else if (mycmd == "jump") jump();
+  else if (mycmd == "label") label();
+  else if (mycmd == "log") log();
+  else if (mycmd == "next") next_command();
+  else if (mycmd == "partition") partition();
+  else if (mycmd == "print") print();
+  else if (mycmd == "python") python();
+  else if (mycmd == "quit") quit();
+  else if (mycmd == "shell") shell();
+  else if (mycmd == "variable") variable_command();
 
-  else if (!strcmp(command,"angle_coeff")) angle_coeff();
-  else if (!strcmp(command,"angle_style")) angle_style();
-  else if (!strcmp(command,"atom_modify")) atom_modify();
-  else if (!strcmp(command,"atom_style")) atom_style();
-  else if (!strcmp(command,"bond_coeff")) bond_coeff();
-  else if (!strcmp(command,"bond_style")) bond_style();
-  else if (!strcmp(command,"bond_write")) bond_write();
-  else if (!strcmp(command,"boundary")) boundary();
-  else if (!strcmp(command,"box")) box();
-  else if (!strcmp(command,"comm_modify")) comm_modify();
-  else if (!strcmp(command,"comm_style")) comm_style();
-  else if (!strcmp(command,"compute")) compute();
-  else if (!strcmp(command,"compute_modify")) compute_modify();
-  else if (!strcmp(command,"dielectric")) dielectric();
-  else if (!strcmp(command,"dihedral_coeff")) dihedral_coeff();
-  else if (!strcmp(command,"dihedral_style")) dihedral_style();
-  else if (!strcmp(command,"dimension")) dimension();
-  else if (!strcmp(command,"dump")) dump();
-  else if (!strcmp(command,"dump_modify")) dump_modify();
-  else if (!strcmp(command,"fix")) fix();
-  else if (!strcmp(command,"fix_modify")) fix_modify();
-  else if (!strcmp(command,"group")) group_command();
-  else if (!strcmp(command,"improper_coeff")) improper_coeff();
-  else if (!strcmp(command,"improper_style")) improper_style();
-  else if (!strcmp(command,"kspace_modify")) kspace_modify();
-  else if (!strcmp(command,"kspace_style")) kspace_style();
-  else if (!strcmp(command,"labelmap")) labelmap();
-  else if (!strcmp(command,"lattice")) lattice();
-  else if (!strcmp(command,"mass")) mass();
-  else if (!strcmp(command,"min_modify")) min_modify();
-  else if (!strcmp(command,"min_style")) min_style();
-  else if (!strcmp(command,"molecule")) molecule();
-  else if (!strcmp(command,"neigh_modify")) neigh_modify();
-  else if (!strcmp(command,"neighbor")) neighbor_command();
-  else if (!strcmp(command,"newton")) newton();
-  else if (!strcmp(command,"package")) package();
-  else if (!strcmp(command,"pair_coeff")) pair_coeff();
-  else if (!strcmp(command,"pair_modify")) pair_modify();
-  else if (!strcmp(command,"pair_style")) pair_style();
-  else if (!strcmp(command,"pair_write")) pair_write();
-  else if (!strcmp(command,"processors")) processors();
-  else if (!strcmp(command,"region")) region();
-  else if (!strcmp(command,"reset_timestep")) reset_timestep();
-  else if (!strcmp(command,"restart")) restart();
-  else if (!strcmp(command,"run_style")) run_style();
-  else if (!strcmp(command,"special_bonds")) special_bonds();
-  else if (!strcmp(command,"suffix")) suffix();
-  else if (!strcmp(command,"thermo")) thermo();
-  else if (!strcmp(command,"thermo_modify")) thermo_modify();
-  else if (!strcmp(command,"thermo_style")) thermo_style();
-  else if (!strcmp(command,"timestep")) timestep();
-  else if (!strcmp(command,"timer")) timer_command();
-  else if (!strcmp(command,"uncompute")) uncompute();
-  else if (!strcmp(command,"undump")) undump();
-  else if (!strcmp(command,"unfix")) unfix();
-  else if (!strcmp(command,"units")) units();
+  else if (mycmd == "angle_coeff") angle_coeff();
+  else if (mycmd == "angle_style") angle_style();
+  else if (mycmd == "atom_modify") atom_modify();
+  else if (mycmd == "atom_style") atom_style();
+  else if (mycmd == "bond_coeff") bond_coeff();
+  else if (mycmd == "bond_style") bond_style();
+  else if (mycmd == "bond_write") bond_write();
+  else if (mycmd == "boundary") boundary();
+  else if (mycmd == "comm_modify") comm_modify();
+  else if (mycmd == "comm_style") comm_style();
+  else if (mycmd == "compute") compute();
+  else if (mycmd == "compute_modify") compute_modify();
+  else if (mycmd == "dielectric") dielectric();
+  else if (mycmd == "dihedral_coeff") dihedral_coeff();
+  else if (mycmd == "dihedral_style") dihedral_style();
+  else if (mycmd == "dimension") dimension();
+  else if (mycmd == "dump") dump();
+  else if (mycmd == "dump_modify") dump_modify();
+  else if (mycmd == "fix") fix();
+  else if (mycmd == "fix_modify") fix_modify();
+  else if (mycmd == "group") group_command();
+  else if (mycmd == "improper_coeff") improper_coeff();
+  else if (mycmd == "improper_style") improper_style();
+  else if (mycmd == "kspace_modify") kspace_modify();
+  else if (mycmd == "kspace_style") kspace_style();
+  else if (mycmd == "labelmap") labelmap();
+  else if (mycmd == "lattice") lattice();
+  else if (mycmd == "mass") mass();
+  else if (mycmd == "min_modify") min_modify();
+  else if (mycmd == "min_style") min_style();
+  else if (mycmd == "molecule") molecule();
+  else if (mycmd == "neigh_modify") neigh_modify();
+  else if (mycmd == "neighbor") neighbor_command();
+  else if (mycmd == "newton") newton();
+  else if (mycmd == "package") package();
+  else if (mycmd == "pair_coeff") pair_coeff();
+  else if (mycmd == "pair_modify") pair_modify();
+  else if (mycmd == "pair_style") pair_style();
+  else if (mycmd == "pair_write") pair_write();
+  else if (mycmd == "processors") processors();
+  else if (mycmd == "region") region();
+  else if (mycmd == "reset_timestep") reset_timestep();
+  else if (mycmd == "restart") restart();
+  else if (mycmd == "run_style") run_style();
+  else if (mycmd == "special_bonds") special_bonds();
+  else if (mycmd == "suffix") suffix();
+  else if (mycmd == "thermo") thermo();
+  else if (mycmd == "thermo_modify") thermo_modify();
+  else if (mycmd == "thermo_style") thermo_style();
+  else if (mycmd == "timestep") timestep();
+  else if (mycmd == "timer") timer_command();
+  else if (mycmd == "uncompute") uncompute();
+  else if (mycmd == "undump") undump();
+  else if (mycmd == "unfix") unfix();
+  else if (mycmd == "units") units();
 
   else flag = 0;
 
@@ -827,12 +827,17 @@ int Input::execute_command()
 
   if (flag) return 0;
 
+  // process "meta-commands", i.e. commands that may have sub-commands
+  // they return 1 if there was a match and 0 if not
+
+  if (mycmd == "reset_atoms") flag = meta(mycmd);
+  if (flag) return 0;
+
   // invoke commands added via style_command.h
   // try suffixed version first
 
-  std::string mycmd = command;
-  if (lmp->suffix_enable) {
-    mycmd = command + std::string("/") + lmp->suffix;
+  if (lmp->suffix_enable && lmp->non_pair_suffix()) {
+    mycmd = command + std::string("/") + lmp->non_pair_suffix();
     if (command_map->find(mycmd) == command_map->end()) {
       if (lmp->suffix2) {
         mycmd = command + std::string("/") + lmp->suffix2;
@@ -1411,15 +1416,6 @@ void Input::boundary()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::box()
-{
-  if (domain->box_exist)
-    error->all(FLERR,"Box command after simulation box is defined");
-  domain->set_box(narg,arg);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Input::comm_modify()
 {
   comm->modify_params(narg,arg);
@@ -1429,21 +1425,21 @@ void Input::comm_modify()
 
 void Input::comm_style()
 {
-  if (narg < 1) error->all(FLERR,"Illegal comm_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "comm_style", error);
   if (strcmp(arg[0],"brick") == 0) {
-    if (comm->style == 0) return;
+    if (comm->style == Comm::BRICK) return;
     Comm *oldcomm = comm;
     comm = new CommBrick(lmp,oldcomm);
     delete oldcomm;
   } else if (strcmp(arg[0],"tiled") == 0) {
-    if (comm->style == 1) return;
+    if (comm->style == Comm::TILED) return;
     Comm *oldcomm = comm;
 
     if (lmp->kokkos) comm = new CommTiledKokkos(lmp,oldcomm);
     else comm = new CommTiled(lmp,oldcomm);
 
     delete oldcomm;
-  } else error->all(FLERR,"Illegal comm_style command");
+  } else error->all(FLERR,"Unknown comm_style argument: {}", arg[0]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1499,7 +1495,7 @@ void Input::dihedral_style()
 
 void Input::dimension()
 {
-  if (narg != 1) error->all(FLERR,"Illegal dimension command: expected 1 argument but found {}", narg);
+  if (narg != 1) error->all(FLERR, "Dimension command expects exactly 1 argument");
   if (domain->box_exist)
     error->all(FLERR,"Dimension command after simulation box is defined");
   domain->dimension = utils::inumeric(FLERR,arg[0],false,lmp);
@@ -1509,8 +1505,7 @@ void Input::dimension()
   // must reset default extra_dof of all computes
   // since some were created before dimension command is encountered
 
-  for (int i = 0; i < modify->ncompute; i++)
-    modify->compute[i]->reset_extra_dof();
+  for (auto &c : modify->get_compute_list()) c->reset_extra_dof();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1726,11 +1721,10 @@ void Input::pair_coeff()
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Pair_coeff command before simulation box is defined");
-  if (force->pair == nullptr)
-    error->all(FLERR,"Pair_coeff command before pair_style is defined");
-  if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
-                                             || (strcmp(arg[1],"*") != 0))))
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (force->pair == nullptr) error->all(FLERR,"Pair_coeff command without a pair style");
+  if (narg < 2) utils::missing_cmd_args(FLERR,"pair_coeff", error);
+  if (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0)))
+    error->all(FLERR,"Pair_coeff must start with * * for pair style {}", force->pair_style);
 
   char *newarg0 = utils::expand_type(FLERR, arg[0], Atom::ATOM, lmp);
   if (newarg0) arg[0] = newarg0;
@@ -1740,9 +1734,9 @@ void Input::pair_coeff()
   // if arg[1] < arg[0], and neither contain a wildcard, reorder
 
   int itype,jtype;
-  if (strchr(arg[0],'*') == nullptr && strchr(arg[1],'*') == nullptr) {
-    itype = utils::numeric(FLERR,arg[0],false,lmp);
-    jtype = utils::numeric(FLERR,arg[1],false,lmp);
+  if (utils::strmatch(arg[0],"^\\d+$") && utils::strmatch(arg[1],"^\\d+$")) {
+    itype = utils::inumeric(FLERR,arg[0],false,lmp);
+    jtype = utils::inumeric(FLERR,arg[1],false,lmp);
     if (jtype < itype) {
       char *str = arg[0];
       arg[0] = arg[1];
@@ -1777,10 +1771,7 @@ void Input::pair_style()
     int match = 0;
     if (style == force->pair_style) match = 1;
     if (!match && lmp->suffix_enable) {
-      if (lmp->suffixp)
-        if (style + "/" + lmp->suffixp == force->pair_style) match = 1;
-
-      if (lmp->suffix && !lmp->suffixp)
+      if (lmp->suffix)
         if (style + "/" + lmp->suffix == force->pair_style) match = 1;
 
       if (lmp->suffix2)
@@ -1992,4 +1983,22 @@ void Input::units()
   if (domain->box_exist)
     error->all(FLERR,"Units command after simulation box is defined");
   update->set_units(arg[0]);
+}
+
+/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   function for meta commands
+------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+int Input::meta(const std::string &prefix)
+{
+  auto mycmd = fmt::format("{}_{}", utils::uppercase(prefix), utils::uppercase(arg[0]));
+  if (command_map->find(mycmd) != command_map->end()) {
+    CommandCreator &command_creator = (*command_map)[mycmd];
+    Command *cmd = command_creator(lmp);
+    cmd->command(narg-1,arg+1);
+    delete cmd;
+    return 1;
+  } else return 0;
 }

@@ -449,7 +449,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q[i] = q_scaled[i] * epsilon[i];
+    q[i] = q_scaled[i];// * epsilon[i];
   }
 
   if (first) first = 0;

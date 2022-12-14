@@ -366,8 +366,8 @@ void FixPolarizeBEMICC::compute_induced_charges()
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q[i] = q_scaled[i] * epsilon[i];
-    if (i < 10) printf("i = %d: q = %f q_scaled = %f\n", i, q[i], q_scaled[i]);
+    q[i] = q_scaled[i];// * epsilon[i];
+    //if (i < 10) printf("i = %d: q = %f q_scaled = %f\n", i, q[i], q_scaled[i]);
   }
 
   // ensure sum of all induced charges being zero

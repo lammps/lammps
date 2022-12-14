@@ -24,7 +24,7 @@ AtomStyle(dipole,AtomVecDipole);
 
 namespace LAMMPS_NS {
 
-class AtomVecDipole : public AtomVec {
+class AtomVecDipole : virtual public AtomVec {
  public:
   AtomVecDipole(class LAMMPS *);
 

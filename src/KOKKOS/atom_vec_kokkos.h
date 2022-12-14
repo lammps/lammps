@@ -36,7 +36,7 @@ union d_ubuf {
 class AtomVecKokkos : virtual public AtomVec {
  public:
   AtomVecKokkos(class LAMMPS *);
-  ~AtomVecKokkos();
+  ~AtomVecKokkos() override;
 
   virtual void sync(ExecutionSpace space, unsigned int mask) = 0;
   virtual void modified(ExecutionSpace space, unsigned int mask) = 0;

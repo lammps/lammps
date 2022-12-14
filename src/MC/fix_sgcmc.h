@@ -32,8 +32,6 @@ FixStyle(sgcmc,FixSemiGrandCanonicalMC);
 
 #include "fix.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class FixSemiGrandCanonicalMC : public Fix {

@@ -159,10 +159,12 @@ At present the fix provides optimized subroutines for EAM type
 potentials (see above) that calculate potential energy changes due to
 *local* atom type swaps very efficiently.  Other potentials are
 supported by using the generic potential functions. This, however, will
-lead to exceedingly slow simulations since the it implies that the
+lead to exceedingly slow simulations since it implies that the
 energy of the *entire* system is recomputed at each MC trial step.  If
 other potentials are to be used it is strongly recommended to modify and
 optimize the existing generic potential functions for this purpose.
+Also, the generic energy calculation can not be used for parallel
+execution i.e. it only works with a single MPI process.
 
 ------------
 

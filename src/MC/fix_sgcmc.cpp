@@ -247,6 +247,9 @@ void FixSemiGrandCanonicalMC::init()
     if (comm->me == 0)
       utils::logmesg(lmp, "  SGC - Using naive total energy calculation for MC -> SLOW!\n");
 
+    if (comm->nprocs > 1)
+      error->all(FLERR, "Can not run fix vcsgc with naive total energy calculation and more than one MPI process.");
+
     // Create a compute that will provide the total energy of the system.
     // This is needed by computeTotalEnergy().
     char* id_pe = (char*)"thermo_pe";

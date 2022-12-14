@@ -39,9 +39,11 @@ ResetAtomsMol::ResetAtomsMol(LAMMPS *lmp) : Command(lmp), cfa(nullptr), cca(null
   compressflag = 1;
   singleflag = 0;
   offset = -1;
+  groupbit = group->bitmask[0];
 
   idfrag.clear();
   idchunk.clear();
+  nchunk = 0;
 }
 
 /* ---------------------------------------------------------------------- */

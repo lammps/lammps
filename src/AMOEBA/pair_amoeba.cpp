@@ -19,7 +19,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fft3d_wrap.h"
 #include "fix.h"
 #include "fix_store_peratom.h"
 #include "force.h"
@@ -29,14 +28,11 @@
 #include "modify.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
-#include "utils.h"
 
-#include <cstdlib>
+#include <cmath>
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 

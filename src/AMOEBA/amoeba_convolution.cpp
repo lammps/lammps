@@ -22,7 +22,9 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "remap_wrap.h"
-#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

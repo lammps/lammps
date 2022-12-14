@@ -21,7 +21,7 @@ KSpaceStyle(pppm,PPPM);
 #define LMP_PPPM_H
 
 #include "kspace.h"
-#include "lmpfftsettings.h"
+#include "lmpfftsettings.h" // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

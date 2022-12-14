@@ -26,7 +26,7 @@ AtomStyle(mesont,AtomVecMesoNT);
 
 namespace LAMMPS_NS {
 
-class AtomVecMesoNT : public AtomVec {
+class AtomVecMesoNT : virtual public AtomVec {
  public:
   AtomVecMesoNT(class LAMMPS *);
 };

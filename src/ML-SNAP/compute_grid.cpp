@@ -13,14 +13,10 @@
 
 #include "compute_grid.h"
 
-#include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "memory.h"
-#include "modify.h"
-#include "update.h"
 
 #include <cstring>
 

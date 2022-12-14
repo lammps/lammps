@@ -20,10 +20,8 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "grid3d.h"
 #include "math_const.h"
 #include "math_special.h"

@@ -20,7 +20,6 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "grid3d.h"

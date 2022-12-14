@@ -20,11 +20,12 @@
 #include "atom.h"
 #include "error.h"
 #include "fix_electrode_conp.h"
-#include "force.h"
 #include "input.h"
 #include "random_mars.h"
 #include "update.h"
 #include "variable.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

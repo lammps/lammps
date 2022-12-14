@@ -64,8 +64,8 @@ action atom_vec_bond_kokkos.cpp atom_vec_bond.cpp
 action atom_vec_bond_kokkos.h atom_vec_bond.h
 action atom_vec_charge_kokkos.cpp
 action atom_vec_charge_kokkos.h
-action atom_vec_spin_kokkos.cpp
-action atom_vec_spin_kokkos.h
+action atom_vec_spin_kokkos.cpp atom_vec_spin.cpp
+action atom_vec_spin_kokkos.h atom_vec_spin.h
 action atom_vec_dpd_kokkos.cpp atom_vec_dpd.cpp
 action atom_vec_dpd_kokkos.h atom_vec_dpd.h
 action atom_vec_full_kokkos.cpp atom_vec_full.cpp

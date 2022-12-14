@@ -25,6 +25,8 @@
 #include "memory.h"
 #include "modify.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 

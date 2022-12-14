@@ -14,7 +14,7 @@
 #ifndef LMP_MLIAP_MODEL_H
 #define LMP_MLIAP_MODEL_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

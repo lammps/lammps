@@ -18,7 +18,6 @@
 
 #include "pppm_disp_dielectric.h"
 
-#include "angle.h"
 #include "atom.h"
 #include "atom_vec_dielectric.h"
 #include "domain.h"

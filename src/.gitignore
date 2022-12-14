@@ -920,6 +920,8 @@
 /fix_rigid_nvt_small.h
 /fix_rigid_small.cpp
 /fix_rigid_small.h
+/fix_sgcmc.cpp
+/fix_sgcmc.h
 /fix_shake.cpp
 /fix_shake.h
 /fix_shardlow.cpp

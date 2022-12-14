@@ -42,7 +42,7 @@ class FixSemiGrandCanonicalMC : public Fix {
 
   int setmask() override;
   void init() override;
-  void init_list(int id, NeighList *ptr) override;
+  void init_list(int id, class NeighList *ptr) override;
   void post_force(int vflag) override;
   double compute_vector(int index) override;
 

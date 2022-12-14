@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "atom_vec.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "modify.h"
@@ -35,6 +36,8 @@ FixUpdateSpecialBonds::FixUpdateSpecialBonds(LAMMPS *lmp, int narg, char **arg) 
     Fix(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR, "Illegal fix update/special/bonds command");
+
+  restart_global = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -240,4 +243,19 @@ void FixUpdateSpecialBonds::add_created_bond(int i, int j)
   auto tag_pair = std::make_pair(atom->tag[i], atom->tag[j]);
   new_created_pairs.push_back(tag_pair);
   created_pairs.push_back(tag_pair);
+}
+
+/* ----------------------------------------------------------------------
+   Use write_restart to invoke pre_exchange
+------------------------------------------------------------------------- */
+
+void FixUpdateSpecialBonds::write_restart(FILE *fp)
+{
+  // Call pre-exchange to process any broken/created bonds
+
+  pre_exchange();
+  if (comm->me == 0) {
+    int size = 0;
+    fwrite(&size,sizeof(int),1,fp);
+  }
 }

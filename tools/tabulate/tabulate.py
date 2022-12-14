@@ -28,9 +28,9 @@ def numdiff(x, func):
 
     # optimal delta x value for 2-point numerical differentiation of two floating point numbers
     epsilon = 6.05504e-6
-    f1 = func(x - epsilon)
-    f2 = func(x + epsilon)
-    return 0.5 * (f1-f2) / epsilon
+    fval1 = func(x - epsilon)
+    fval2 = func(x + epsilon)
+    return 0.5 * (fval2-fval1) / epsilon
 
 ########################################################################
 
@@ -40,7 +40,8 @@ def mktable(tstyle, label, num, xmin, xmax, efunc, diff=False, ffunc=None):
     minimum for use to determine potential shifting in bonded potentials."""
 
     # must use numerical differentiation if no force function provided
-    if not ffunc: diff = True
+    if not ffunc:
+        diff = True
 
     print("# Creating %s table %s with %d points from %g to %g" % (tstyle, label, num, xmin, xmax))
 
@@ -51,15 +52,15 @@ def mktable(tstyle, label, num, xmin, xmax, efunc, diff=False, ffunc=None):
 
     for i in range(0,num):
         x = xmin + i*delx
-        e = efunc(x)
-        if e < emin:
-            emin = e
+        energy = efunc(x)
+        if energy < emin:
+            emin = energy
             xzero = x
         if diff:
-            f = numdiff(x, efunc)
+            force = -numdiff(x, efunc)
         else:
-            f = ffunc(x)
-        table.append([i+1, x, e, f])
+            force = ffunc(x)
+        table.append([i+1, x, energy, force])
 
     return table, xzero
 
@@ -67,6 +68,8 @@ def mktable(tstyle, label, num, xmin, xmax, efunc, diff=False, ffunc=None):
 ########################################################################
 # base class with shared functionality
 class Tabulate(object):
+    """Base tabulation class. Contains all shared functionality: common argument parsing,
+    output file handling, table writing"""
 
     def __init__(self, style, efunc, ffunc=None):
         self.fp = sys.stdout
@@ -92,13 +95,19 @@ class Tabulate(object):
                                  help="Outer cutoff of table")
 
     def openfile(self, label):
+        """Open table file, if needed and print label for new table entry"""
         if self.args and self.args.filename != '-':
-            self.fp = open(self.args.filename, 'a', encoding='ascii')
+            self.fp = open(self.args.filename, 'a')
         self.fp.write('\n' + label + '\n')
 
     def writetable(self, table, offset):
-        for i,r,e,f in table:
-            self.fp.write("%8d %- 22.15g %- 22.15g %- 22.15g\n" % (i, r, e - offset, f))
+        """ Formatted output tabulated data with 4 columns"""
+        for i,r,energy,force in table:
+            self.fp.write("%8d %- 22.15g %- 22.15g %- 22.15g\n" % (i, r, energy - offset, force))
+
+    def helpexit(self, text):
+        """ Convenience function to exit program with error and help message"""
+        sys.exit('\n' + text + '\n\n' + self.parser.format_help())
 
 ################################################################################
 # create tabulation for pair styles
@@ -116,16 +125,18 @@ class PairTabulate(Tabulate):
     def run(self, label):
         # sanity checks
         if self.args.num < 2:
-            sys.exit('\nExpect 2 or more points in table for tabulation\n\n' + self.parser.format_help())
+            self.helpexit('Expect 2 or more points in table for tabulation')
         if self.args.xmin <= 0.0:
-            sys.exit('\nInner tabulation cutoff must be > 0 for pair style table\n\n' + self.parser.format_help())
+            self.helpexit('Inner tabulation cutoff must be > 0 for pair style table')
         if self.args.xmax <= self.args.xmin:
-            sys.exit('\nOuter cutoff must be larger than inner cutoff\n\n' + self.parser.format_help())
+            self.helpexit('Outer cutoff must be larger than inner cutoff')
 
         self.diff = self.args.diff
-        if not self.forcefunc: self.diff = True
+        if not self.forcefunc:
+            self.diff = True
         offset = 0.0
-        if self.args.eshift: offset=self.energyfunc(self.args.xmax)
+        if self.args.eshift:
+            offset=self.energyfunc(self.args.xmax)
 
         (table, dummy) = mktable(self.tstyle, label, self.args.num, self.args.xmin, self.args.xmax,
                                  self.energyfunc, self.args.diff, self.forcefunc)
@@ -135,15 +146,16 @@ class PairTabulate(Tabulate):
 
         # write pair style specific header
         if self.forcefunc:
-            diffmin = numdiff(self.args.xmin, self.forcefunc)
-            diffmax = numdiff(self.args.xmax, self.forcefunc)
+            diffmin = -numdiff(self.args.xmin, self.forcefunc)
+            diffmax = -numdiff(self.args.xmax, self.forcefunc)
             self.fp.write("N %d R %g %g FPRIME %- 22.15g %- 22.15g\n\n"
                           % (self.args.num, self.args.xmin, self.args.xmax, diffmin, diffmax))
         else:
             self.fp.write("N %d R %g %g\n\n" % (self.args.num, self.args.xmin, self.args.xmax))
 
         self.writetable(table, offset)
-        if self.args.filename != '-': self.fp.close()
+        if self.args.filename != '-':
+            self.fp.close()
 
 
 ################################################################################
@@ -169,33 +181,36 @@ class BondAngleTabulate(Tabulate):
     def run(self, label):
         # sanity checks
         if self.args.num < 2:
-            sys.exit('\nExpect 2 or more points in table for tabulation\n\n' + self.parser.format_help())
+            self.helpexit('Expect 2 or more points in table for tabulation')
         if self.args.xmin < 0.0:
-            sys.exit('\nInner cutoff must not be negative\n\n' + self.parser.format_help())
+            self.helpexit('Inner cutoff must not be negative')
         if self.tstyle == 'angle' and self.args.xmax > 180.0:
-            sys.exit('\nOuter cutoff must not be larger than 180.0 degrees\n\n' + self.parser.format_help())
+            self.helpexit('Outer cutoff must not be larger than 180.0 degrees')
 
         self.diff = self.args.diff
-        if not self.forcefunc: self.diff = True
+        if not self.forcefunc:
+            self.diff = True
 
         (table, xzero) = mktable(self.tstyle, label, self.args.num, self.args.xmin, self.args.xmax,
                                  self.energyfunc, self.args.diff, self.forcefunc)
         print("# Minimum energy of tabulated potential is at %g" % xzero)
         offset = 0.0
-        if self.args.eshift: offset=self.energyfunc(xzero)
+        if self.args.eshift:
+            offset=self.energyfunc(xzero)
 
         self.openfile(label)
 
         if self.forcefunc:
-            diffmin = numdiff(self.args.xmin, self.forcefunc)
-            diffmax = numdiff(self.args.xmax, self.forcefunc)
+            diffmin = -numdiff(self.args.xmin, self.forcefunc)
+            diffmax = -numdiff(self.args.xmax, self.forcefunc)
             self.fp.write("N %d FP %- 22.15g %- 22.15g EQ %g\n\n" %
                           (self.args.num, diffmin, diffmax, xzero))
         else:
             self.fp.write("N %d EQ %g\n\n" % (self.args.num, xzero))
 
         self.writetable(table, offset)
-        if self.args.filename != '-': self.fp.close()
+        if self.args.filename != '-':
+            self.fp.close()
 
 ################################################################################
 class BondTabulate(BondAngleTabulate):
@@ -217,7 +232,7 @@ class DihedralTabulate(Tabulate):
         self.parser._actions[idx].default=-180.0
         idx = [a.dest for a in self.parser._actions].index('xmax')
         self.parser._actions[idx].required=False
-        self.parser._actions[idx].default=180.0
+        self.parser._actions[idx].default=179.999999
         try:
             self.args = self.parser.parse_args()
         except argparse.ArgumentError:
@@ -226,22 +241,23 @@ class DihedralTabulate(Tabulate):
     def run(self, label):
         # sanity checks
         if self.args.num < 2:
-            sys.exit('\nExpect 2 or more points in table for tabulation\n\n' + self.parser.format_help())
+            self.helpexit('Expect 2 or more points in table for tabulation')
         if self.args.xmin < -180 or self.args.xmin > 0.0:
-            sys.exit('\nInner cutoff must be within -180.0 and 0.0 degrees\n\n' + self.parser.format_help())
-        if self.args.xmax < 180 or self.args.xmin > 360.0:
-            sys.exit('\nOuter cutoff must be within 0.0 and 360.0 degrees\n\n' + self.parser.format_help())
-        if (self.args.xmax - self.args.xmin) > 360.0:
-            sys.exit('\nDifference between inner and outer cutoff not be larger than 360.0 degrees\n\n' + self.parser.format_help())
+            self.helpexit('Inner cutoff must be within -180.0 and 0.0 degrees')
+        if self.args.xmax < 0.0 or self.args.xmin > 360.0:
+            self.helpexit('Outer cutoff must be within 0.0 and 360.0 degrees')
+        if (self.args.xmax - self.args.xmin) >= 360.0:
+            self.helpexit('Inner and outer cutoff range must be less than 360.0 degrees')
 
         self.diff = self.args.diff
-        if not self.forcefunc: self.diff = True
+        if not self.forcefunc:
+            self.diff = True
 
         (table, xzero) = mktable(self.tstyle, label, self.args.num, self.args.xmin, self.args.xmax,
                                  self.energyfunc, self.args.diff, self.forcefunc)
-        print("# Minimum energy of tabulated potential is at %g" % xzero)
 
         self.openfile(label)
         self.fp.write("N %d DEGREES \n\n" % (self.args.num))
         self.writetable(table, 0.0)
-        if self.args.filename != '-': self.fp.close()
+        if self.args.filename != '-':
+            self.fp.close()

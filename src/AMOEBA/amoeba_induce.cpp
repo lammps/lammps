@@ -19,16 +19,13 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fft3d_wrap.h"
 #include "fix_store_peratom.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

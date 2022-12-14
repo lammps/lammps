@@ -587,8 +587,8 @@ void PairReaxFF::set_far_nbr(far_neighbor_data *fdest,
 int PairReaxFF::estimate_reax_lists()
 {
   int itr_i, itr_j, i, j;
-  int num_nbrs, num_marked;
-  int *ilist, *jlist, *numneigh, **firstneigh, *marked;
+  int num_nbrs;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   double d_sqr;
   rvec dvec;
   double **x;
@@ -602,15 +602,11 @@ int PairReaxFF::estimate_reax_lists()
   firstneigh = list->firstneigh;
 
   num_nbrs = 0;
-  num_marked = 0;
-  marked = (int*) calloc(api->system->N, sizeof(int));
 
   int numall = list->inum + list->gnum;
 
   for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
-    marked[i] = 1;
-    ++num_marked;
     jlist = firstneigh[i];
 
     for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
@@ -622,8 +618,6 @@ int PairReaxFF::estimate_reax_lists()
         ++num_nbrs;
     }
   }
-
-  free(marked);
 
   return static_cast<int> (MAX(num_nbrs*safezone, mincap*REAX_MIN_NBRS));
 }

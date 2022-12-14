@@ -869,13 +869,11 @@ void FixShake::find_clusters()
   // else it's an error
 
   flag = 0;
-  int flag2 = 0;
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < npartner[i]; j++) {
       if (partner_type[i][j] == 0) flag++;
       if (!(mask[i] & groupbit)) continue;
       if (!(partner_mask[i][j] & groupbit)) continue;
-      if (partner_bondtype[i][j] == 0) flag2++;
     }
 
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);

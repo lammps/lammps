@@ -41,6 +41,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <unordered_map>
 #include <unordered_set>
 
 using namespace LAMMPS_NS;

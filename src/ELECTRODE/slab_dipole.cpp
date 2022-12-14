@@ -18,11 +18,12 @@
 #include "slab_dipole.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

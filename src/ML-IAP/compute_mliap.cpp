@@ -98,9 +98,7 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
       descriptorflag = 1;
     } else if (strcmp(arg[iarg],"gradgradflag") == 0) {
       if (iarg+1 > narg) error->all(FLERR,"Illegal compute mliap command");
-      gradgradflag = atoi(arg[iarg+1]);
-      if (gradgradflag != 0 && gradgradflag != 1)
-        error->all(FLERR,"Illegal compute mliap command");
+      gradgradflag = utils::logical(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
     } else
       error->all(FLERR,"Illegal compute mliap command");

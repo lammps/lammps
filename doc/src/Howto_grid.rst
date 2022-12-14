@@ -1,6 +1,8 @@
 Distributed grids
 =================
 
+.. versionadded:: TBD
+
 LAMMPS has internal capabilities to create uniformly spaced grids
 which overlay the simulation domain.  For 2d and 3d simulations these
 are 2d and 3d grids respectively.  Conceptually a grid can be thought
@@ -40,16 +42,15 @@ grid <dump>` output files as input.
 
 .. note::
 
-   For developers, distributed grids are implemented within the code
-   via two classes: Grid2d and Grid3d.  These partition the grid
-   across processors and have methods which allow forward and reverse
+   For developers, distributed grids are implemented within the code via
+   two classes: Grid2d and Grid3d.  These partition the grid across
+   processors and have methods which allow forward and reverse
    communication of ghost grid data as well as load balancing.  If you
-   write a new compute or fix which needs a distributed grid, these
-   are the classes to look at.  A new pair style could use a
-   distributed grid by having a fix define it.  We plan (as of
-   Nov 2022) to add a section in the :doc:`Developer <Developer>`
-   section of the manual with a detailed description of how to use
-   these classes.
+   write a new compute or fix which needs a distributed grid, these are
+   the classes to look at.  A new pair style could use a distributed
+   grid by having a fix define it.  Please see the section on
+   :doc:`using distributed grids within style classes <Developer_grid>`
+   for a detailed description.
 
 ----------
 

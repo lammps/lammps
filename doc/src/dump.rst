@@ -346,6 +346,8 @@ so atom attributes will include effects due to fixes that are applied
 during the timestep.  An explanation of the possible dump custom
 attributes is given below.
 
+.. versionadded:: TBD
+
 For style *grid* the extent of the Nx by Ny by Nz grid that overlays
 the simulation domain is output with each snapshot:
 
@@ -447,6 +449,8 @@ followed by one line per atom with the atom type and the :math:`x`-,
 from using the (numerical) atom type to an element name (or some other
 label). This will help many visualization programs to guess bonds and
 colors.
+
+.. versionadded:: TBD
 
 The *grid/vtk* style writes VTK files for grid data on a regular
 rectilinear grid.  Its content is conceptually similar to that of the

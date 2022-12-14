@@ -692,6 +692,7 @@ delocalized
 Delong
 delr
 deltaHf
+deltamu
 dem
 Dendrimer
 dendritic
@@ -2500,6 +2501,7 @@ Nstart
 nstats
 Nstep
 Nsteps
+nsteps
 nsteplast
 Nstop
 nsub
@@ -3213,6 +3215,7 @@ setvel
 sfftw
 sfree
 Sg
+sgcmc
 Shan
 Shanno
 Shapeev

@@ -48,11 +48,11 @@ Description
 
 This command allows to carry out parallel hybrid molecular
 dynamics/Monte Carlo (MD/MC) simulations using the algorithms described
-in [SadErhStu12]_.  Simulations can be carried out in either the
-semi-grandcanonical (SGC) or variance constrained semi-grandcanonical
-(VC-SGC) ensemble [SadErh12]_. Only atom type swaps are performed by the
-SGCMC fix. Relaxations are accounted for by the molecular dynamics
-integration steps.
+in :ref:`(Sadigh1) <Sadigh1>`.  Simulations can be carried out in either
+the semi-grand canonical (SGC) or variance constrained semi-grand
+canonical (VC-SGC) ensemble :ref:`(Sadigh2) <Sadigh2>`. Only atom type
+swaps are performed by the SGCMC fix. Relaxations are accounted for by
+the molecular dynamics integration steps.
 
 This fix can be used with standard multi-element EAM potentials
 (:doc:`pair styles eam/alloy or eam/fs <pair_eam>`)
@@ -90,26 +90,26 @@ the simulation, e.g., to speed up equilibration at low temperatures.
 
 ------------
 
-The parameter *deltamu* is used to set the chemical potential
-difference in the SGC MC algorithm (see Eq. 16 in [SadErhStu12]_). By convention
-it is the difference of the chemical potentials of elements `B`, `C`
-..., with respect to element A. When the simulation includes `N`
-elements, `N-1` values must be specified.
+The parameter *deltamu* is used to set the chemical potential difference
+in the SGC MC algorithm (see Eq. 16 in :ref:`Sadigh1 <Sadigh1>`). By
+convention it is the difference of the chemical potentials of elements
+`B`, `C` ..., with respect to element A. When the simulation includes
+`N` elements, `N-1` values must be specified.
 
 ------------
 
 The variance-constrained SGC MC algorithm is activated if the keyword
-*variance* is used. In that case the fix parameter *deltamu*
-determines the effective average constraint in the parallel VC-SGC MC
-algorithm (parameter :math:`\delta\mu_0` in Eq. (20) of [SadErhStu12]_). The
-parameter *kappa* specifies the variance contraint (see Eqs. (20-21)
-in [SadErhStu12]_).
+*variance* is used. In that case the fix parameter *deltamu* determines
+the effective average constraint in the parallel VC-SGC MC algorithm
+(parameter :math:`\delta\mu_0` in Eq. (20) of :ref:`Sadigh1
+<Sadigh1>`). The parameter *kappa* specifies the variance constraint
+(see Eqs. (20-21) in :ref:`Sadigh1 <Sadigh1>`).
 
 The parameter *conc* sets the target concentration (parameter
-:math:`c_0` in Eqs.  (20-21) of [SadErhStu12]_). The atomic concentrations refer
-to components `B`, `C` ..., with `A` being set automatically. When the
-simulation includes `N` elements, `N-1` concentration values must be
-specified.
+:math:`c_0` in Eqs.  (20-21) of :ref:`Sadigh1 <Sadigh1>`). The atomic
+concentrations refer to components `B`, `C` ..., with `A` being set
+automatically. When the simulation includes `N` elements, `N-1`
+concentration values must be specified.
 
 ------------
 
@@ -118,14 +118,15 @@ There are several technical parameters that can be set via optional flags.
 *randseed* is expected to be a positive integer number and is used
 to initialize the random number generator on each processor.
 
-*window_size* controls the size of the sampling window in a parallel
-MC simulation. The size has to lie between 0.5 and 1.0. Normally, this
-parameter should be left unspecified which instructs the code to
-choose the optimal window size automatically (see Sect. III.B and
-Figure 6 in [SadErhStu12]_ for details).
+*window_size* controls the size of the sampling window in a parallel MC
+simulation. The size has to lie between 0.5 and 1.0. Normally, this
+parameter should be left unspecified which instructs the code to choose
+the optimal window size automatically (see Sect. III.B and Figure 6 in
+:ref:`Sadigh1 <Sadigh1>` for details).
 
-The number of times the window is moved during a MC cycle is set using the
-parameter *window_moves* (see Sect. III.B in [SadErhStu12]_ for details).
+The number of times the window is moved during a MC cycle is set using
+the parameter *window_moves* (see Sect. III.B in :ref:`Sadigh1
+<Sadigh1>` for details).
 
 ------------
 
@@ -150,14 +151,18 @@ components of the vector represent the following quantities:
 Restrictions
 ============
 
-At present the fix provides optimized subroutines for EAM and CD-EAM type potentials
-(see above) that calculate potential energy changes due to *local* atom type swaps
-very efficiently.
-Other potentials are supported by using the generic potential functions. This,
-however, will lead to exceedingly slow simulations since the it implies that the
-energy of the *entire* system is recomputed at each MC trial step.
-If other potentials are to be used it is strongly recommended to modify and optimize
-the existing generic potential functions for this purpose.
+This fix is part of the MC package. It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
+
+At present the fix provides optimized subroutines for EAM type
+potentials (see above) that calculate potential energy changes due to
+*local* atom type swaps very efficiently.  Other potentials are
+supported by using the generic potential functions. This, however, will
+lead to exceedingly slow simulations since the it implies that the
+energy of the *entire* system is recomputed at each MC trial step.  If
+other potentials are to be used it is strongly recommended to modify and
+optimize the existing generic potential functions for this purpose.
 
 ------------
 
@@ -169,3 +174,13 @@ The optional parameters default to the following values:
 * *randseed* = 324234
 * *window_moves* = 8
 * *window_size* = automatic
+
+------------
+
+.. _Sadigh1:
+
+**(Sadigh1)** B. Sadigh, P. Erhart, A. Stukowski, A. Caro, E. Martinez, and L. Zepeda-Ruiz, Phys. Rev. B **85**, 184203 (2012)
+
+.. _Sadigh2:
+
+**(Sadigh2)** B. Sadigh and P. Erhart, Phys. Rev. B **86**, 134204 (2012)

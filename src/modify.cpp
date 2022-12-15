@@ -925,8 +925,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   // if yes, pass state info to the Fix so it can reset itself
 
   for (int i = 0; i < nfix_restart_global; i++)
-    if (strcmp(id_restart_global[i], fix[ifix]->id) == 0 &&
-        strcmp(style_restart_global[i], fix[ifix]->style) == 0) {
+    if ((strcmp(id_restart_global[i], fix[ifix]->id) == 0) &&
+        (utils::strip_style_suffix(fix[ifix]->style, lmp) == style_restart_global[i])) {
       fix[ifix]->restart(state_restart_global[i]);
       used_restart_global[i] = 1;
       fix[ifix]->restart_reset = 1;
@@ -1448,9 +1448,10 @@ void Modify::write_restart(FILE *fp)
         n = strlen(fix[i]->id) + 1;
         fwrite(&n, sizeof(int), 1, fp);
         fwrite(fix[i]->id, sizeof(char), n, fp);
-        n = strlen(fix[i]->style) + 1;
+        auto fix_style = utils::strip_style_suffix(fix[i]->style, lmp);
+        n = fix_style.size() + 1;
         fwrite(&n, sizeof(int), 1, fp);
-        fwrite(fix[i]->style, sizeof(char), n, fp);
+        fwrite(fix_style.c_str(), sizeof(char), n, fp);
       }
       fix[i]->write_restart(fp);
     }

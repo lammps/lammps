@@ -382,7 +382,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q[i] -=  qboundave;
+//    q[i] -=  qboundave;
   }
 }
 

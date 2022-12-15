@@ -235,7 +235,7 @@ void FixPolarizeBEMGMRES::init()
   }
 
   if (comm->me == 0)
-    utils::logmesg(lmp, "GMRES solver for {} induced charges using maximum {} q-vectors\n",
+    utils::logmesg(lmp, "BEM/GMRES solver for {} induced charges using maximum {} q-vectors\n",
                    num_induced_charges, mr);
 }
 
@@ -265,6 +265,8 @@ void FixPolarizeBEMGMRES::setup(int /*vflag*/)
     efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
   else
     error->all(FLERR, "Pair style not compatible with fix polarize/bem/gmres");
+
+  // check if kspace is used for force computation
 
   if (force->kspace) {
     kspaceflag = 1;
@@ -350,7 +352,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int eflag = 0;
+  int eflag = 1;
   int vflag = 0;
 
   // compute the right hand side (vector b) of Eq. (40) according to Eq. (42)
@@ -433,7 +435,6 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   for (int i = 0; i < nlocal; i++) {
     if (induced_charge_idx[i] >= 0) {
       int idx = induced_charge_idx[i];
-      // NOTE: need to review here q be divided by epsilon or not
       q_scaled[i] = induced_charges[idx] * area[i] + q[i];
     } else {
       q_scaled[i] = q_backup[i];
@@ -446,15 +447,15 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
   // compute the total induced charges of the interface particles
   // for interface particles: set the charge to be the sum of unscaled (free) charges and induced charges
-
+  printf("after convergence\n");
   double tmp = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-
+    //printf("q = %f %f\n", q[i], q_scaled[i]);
     double q_bound = q_scaled[i] - q[i];
     tmp += q_bound;
-
     q[i] = q_scaled[i];
+    
   }
 
   if (first) first = 0;
@@ -468,7 +469,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q[i] -=  qboundave;
+    //q[i] -=  qboundave;
   }
 }
 
@@ -648,7 +649,7 @@ void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int /*n*/)
   double *em = atom->em;
   double *epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
-  int eflag = 0;
+  int eflag = 1;
   int vflag = 0;
 
   // set the induced charges to be w
@@ -717,7 +718,7 @@ void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
   double *em = atom->em;
   double *epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
-  int eflag = 0;
+  int eflag = 1;
   int vflag = 0;
 
   // compute the Coulombic forces and electrical field E

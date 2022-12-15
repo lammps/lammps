@@ -71,7 +71,7 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
 
   evdwl = ecoul = 0.0;
   ev_init(eflag, vflag);
-
+  printf("eflag = %d; evflag = %d\n", eflag, evflag);
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q_scaled;
@@ -160,6 +160,8 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
         if (eflag) {
           if (rsq < cut_coulsq[itype][jtype]) {
             ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) * rinv;
+            //if (atom->tag[i]==2001) printf("qi = %f qj scaled = %f qj %f (tagj = %d) epsj = %f qtmp = %f ecoul = %f\n",
+               //q[i], q[j], atom->q[j], atom->tag[j], eps[j], qtmp, ecoul);
           } else
             ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
@@ -168,7 +170,7 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
           } else
             evdwl = 0.0;
         }
-
+        
         if (evflag) ev_tally_full(i, evdwl, ecoul, fpair_i, delx, dely, delz);
       }
     }

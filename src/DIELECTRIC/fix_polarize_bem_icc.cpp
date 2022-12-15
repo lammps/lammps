@@ -265,7 +265,8 @@ void FixPolarizeBEMICC::compute_induced_charges()
   //   q_real are read from the data file
   // Note that the electrical fields here are due to the rescaled real charges,
   //   and also multiplied by epsilon[i]
-  // Let's choose that epsilon[i] = em[i] for the interface particles
+  // for the interface particles assume that epsilon[i] = em[i]
+  // NOTE: 13Dec2022 pair and kspace with dielectric suffix operate on q_scaled
 
   force_clear();
   force->pair->compute(eflag, vflag);
@@ -297,7 +298,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
 
   comm->forward_comm(this);
 
-  // iterate
+  // iterate until convergence
 
   for (itr = 0; itr < itr_max; itr++) {
 
@@ -309,8 +310,6 @@ void FixPolarizeBEMICC::compute_induced_charges()
     double tol = 0;
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit)) continue;
-
-      // NOTE: 13Dec2022: for interface particles q_free be divided by epsilon or not
 
       double q_free = q[i];
       double qtmp = q_scaled[i] - q_free;
@@ -362,35 +361,29 @@ void FixPolarizeBEMICC::compute_induced_charges()
 
   iterations = itr;
 
-  // set q from q_scaled for interface particles
+  // compute the total induced charges of the interface particles
+  // for interface particles: set the charge to be the sum of unscaled (free) charges and induced charges
 
+  double tmp = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q[i] = q_scaled[i];// * epsilon[i];
-    //if (i < 10) printf("i = %d: q = %f q_scaled = %f\n", i, q[i], q_scaled[i]);
+
+    double q_bound = q_scaled[i] - q[i];
+    tmp += q_bound;
+    q[i] = q_scaled[i];
   }
 
   // ensure sum of all induced charges being zero
-/*
-  double tmp = 0;
+
   int ncount = group->count(igroup);
-  for (int i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
-
-    // NOTE: need to review here q_free be divided by epsilon or not
-    double q_bound = q_scaled[i] - q[i];
-    tmp += q_bound;
-  }
-
   double sum = 0;
   MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
   double qboundave = sum/(double)ncount;
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q_scaled[i] -=  qboundave;
+    q[i] -=  qboundave;
   }
-*/
 }
 
 /* ---------------------------------------------------------------------- */
@@ -473,6 +466,7 @@ void FixPolarizeBEMICC::unpack_forward_comm(int n, int first, double *buf)
   int i, m;
   for (m = 0, i = first; m < n; m++, i++) atom->q_scaled[i] = buf[m];
 }
+
 
 /* ----------------------------------------------------------------------
    set dielectric params for the atoms in the group

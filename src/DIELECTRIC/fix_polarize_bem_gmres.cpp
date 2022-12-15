@@ -400,7 +400,6 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
       Ez += efield_kspace[i][2];
     }
     double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i];
-    // NOTE: need to review here if sigma_f be divided by epsilon or not
     double sigma_f = q[i] / area[i];
     buffer[idx] = (1 - em[i]) * sigma_f - ed[i] * ndotE / (4 * MY_PI);
   }
@@ -445,33 +444,31 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
   comm->forward_comm(this);
 
-  // set q from q_scaled for interface particles
+  // compute the total induced charges of the interface particles
+  // for interface particles: set the charge to be the sum of unscaled (free) charges and induced charges
 
+  double tmp = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q[i] = q_scaled[i];// * epsilon[i];
+
+    double q_bound = q_scaled[i] - q[i];
+    tmp += q_bound;
+
+    q[i] = q_scaled[i];
   }
 
   if (first) first = 0;
 
   // ensure sum of all induced charges being zero
 
-  double tmp = 0;
   int ncount = group->count(igroup);
-  for (int i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit)) continue;
-    // NOTE: need to review here q_free be divided by epsilon or not
-    double q_bound = q_scaled[i] - q[i];
-    tmp += q_bound;
-  }
-
   double sum = 0;
   MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
   double qboundave = sum/(double)ncount;
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q_scaled[i] -=  qboundave;
+    q[i] -=  qboundave;
   }
 }
 

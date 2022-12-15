@@ -330,7 +330,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   grid_sample = allocate_one_grid();
   grid_nfreq = allocate_one_grid();
-  if (aveflag == RUNNING || aveflag == WINDOW) grid_nfreq = allocate_one_grid();
+  if (aveflag == RUNNING || aveflag == WINDOW) grid_running = allocate_one_grid();
   if (aveflag == WINDOW) {
     grid_window = new GridData*[nwindow];
     for (int i = 0; i < nwindow; i++)
@@ -2045,13 +2045,21 @@ void FixAveGrid::reset_grid()
       grid_window_previous[i] = clone_one_grid(grid_window[i]);
   }
 
+  delete grid_sample;
+  delete grid_nfreq;
+  if (aveflag == RUNNING || aveflag == WINDOW) delete grid_running;
+  if (aveflag == WINDOW) {
+    for (int i = 0; i < nwindow; i++)
+      delete grid_window;
+  }
+  
   // allocate grid instance and grid data for new decomposition
 
   allocate_grid();
 
   grid_sample = allocate_one_grid();
   grid_nfreq = allocate_one_grid();
-  if (aveflag == RUNNING || aveflag == WINDOW) grid_nfreq = allocate_one_grid();
+  if (aveflag == RUNNING || aveflag == WINDOW) grid_running = allocate_one_grid();
   if (aveflag == WINDOW) {
     grid_window = new GridData*[nwindow];
     for (int i = 0; i < nwindow; i++)
@@ -2091,7 +2099,7 @@ void FixAveGrid::reset_grid()
 
   if (dimension == 2) delete grid2d_previous;
   else delete grid3d_previous;
-
+ 
   deallocate_one_grid(grid_sample_previous,nxlo_out_previous,nylo_out_previous,nzlo_out_previous);
   deallocate_one_grid(grid_nfreq_previous,nxlo_out_previous,nylo_out_previous,nzlo_out_previous);
   if (aveflag == RUNNING || aveflag == WINDOW)

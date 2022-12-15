@@ -273,7 +273,7 @@ void ComputePropertyGrid::deallocate_grid()
   delete grid2d;
   delete grid3d;
   memory->destroy2d_offset(vec2d, nylo_out, nxlo_out);
-  memory->destroy2d_offset(array2d, nylo_out, nxlo_out);
+  memory->destroy3d_offset_last(array2d, nylo_out, nxlo_out);
   memory->destroy3d_offset(vec3d, nzlo_out, nylo_out, nxlo_out);
   memory->destroy4d_offset_last(array3d, nzlo_out, nylo_out, nxlo_out);
 }

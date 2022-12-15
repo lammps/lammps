@@ -466,6 +466,9 @@ DumpImage::~DumpImage()
   memory->destroy(chooseghost);
   memory->destroy(bufcopy);
   memory->destroy(gbuf);
+
+  delete [] id_grid_compute;
+  delete [] id_grid_fix;
 }
 
 /* ---------------------------------------------------------------------- */

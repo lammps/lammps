@@ -1,4 +1,25 @@
 LAMMPS (4 Nov 2022)
+# 35,000 atom nylon melt example
+
+units real
+
+boundary p p p
+
+atom_style full
+
+kspace_style pppm 1.0e-4
+
+pair_style lj/class2/coul/long 8.5
+
+angle_style class2
+
+bond_style class2
+
+dihedral_style class2
+
+improper_style class2
+
+read_data large_nylon_melt.data.gz   extra/bond/per/atom 5    extra/angle/per/atom 15   extra/dihedral/per/atom 15   extra/improper/per/atom 25   extra/special/per/atom 25
 Reading data file ...
   orthogonal box = (-2.6834403 -2.0679138 -2.2198803) to (73.455228 73.244835 73.40648)
   1 by 1 by 1 MPI processor grid
@@ -36,6 +57,10 @@ Finding 1-2 1-3 1-4 neighbors ...
     41 = max # of special neighbors
   special bonds CPU = 0.026 seconds
   read_data CPU = 0.937 seconds
+
+velocity all create 800.0 4928459 dist gaussian
+
+molecule mol1 rxn1_stp1_unreacted.molecule_template
 Read molecule template mol1:
   1 molecules
   0 fragments
@@ -44,6 +69,7 @@ Read molecule template mol1:
   25 angles with max type 24
   23 dihedrals with max type 33
   2 impropers with max type 9
+molecule mol2 rxn1_stp1_reacted.molecule_template
 Read molecule template mol2:
   1 molecules
   0 fragments
@@ -52,6 +78,7 @@ Read molecule template mol2:
   31 angles with max type 23
   39 dihedrals with max type 30
   0 impropers with max type 0
+molecule mol3 rxn1_stp2_unreacted.molecule_template
 Read molecule template mol3:
   1 molecules
   0 fragments
@@ -60,6 +87,7 @@ Read molecule template mol3:
   25 angles with max type 23
   30 dihedrals with max type 30
   0 impropers with max type 0
+molecule mol4 rxn1_stp2_reacted.molecule_template
 Read molecule template mol4:
   1 molecules
   0 fragments
@@ -68,15 +96,53 @@ Read molecule template mol4:
   19 angles with max type 25
   16 dihedrals with max type 29
   2 impropers with max type 11
+
+thermo 50
+
+# dump 1 all xyz 100 test_vis.xyz
+
+fix myrxns all bond/react stabilization yes statted_grp .03   react rxn1 all 1 0.0 2.9 mol1 mol2 rxn1_stp1_map   react rxn2 all 1 0.0 5.0 mol3 mol4 rxn1_stp2_map
 WARNING: Fix bond/react: Atom affected by reaction rxn2 is too close to template edge (../fix_bond_react.cpp:2624)
 dynamic group bond_react_MASTER_group defined
 dynamic group statted_grp_REACT defined
 
+# stable at 800K
+fix 1 statted_grp_REACT nvt temp 800 800 100
+
+# in order to customize behavior of reacting atoms,
+# you can use the internally created 'bond_react_MASTER_group', like so:
+# fix 2 bond_react_MASTER_group temp/rescale 1 800 800 10 1
+
+thermo_style custom step temp press density f_myrxns[1] f_myrxns[2] # cumulative reaction counts
+
+# restart 100 restart1 restart2
+
+run 200
+
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
+
 - fix bond/react: reacter.org doi:10.1016/j.polymer.2017.09.038, doi:10.1021/acs.macromol.0c02012
-The log file lists these citations in BibTeX format.
+
+@Article{Gissinger17,
+ author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},
+ title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},
+ journal = {Polymer},
+ year =    2017,
+ volume =  128,
+ pages =   {211--217}
+}
+
+@Article{Gissinger20,
+ author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},
+ title = {{REACTER}: A Heuristic Method for Reactive Molecular Dynamics},
+ journal = {Macromolecules},
+ year =    2020,
+ volume =  53,
+ number =  22,
+ pages =   {9953--9961}
+}
 
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
@@ -107,10 +173,6 @@ Neighbor list info ...
       pair build: copy
       stencil: none
       bin: none
-Setting up Verlet run ...
-  Unit style    : real
-  Current step  : 0
-  Time step     : 1
 Per MPI rank memory allocation (min/avg/max) = 209.8 | 209.8 | 209.8 Mbytes
    Step          Temp          Press         Density      f_myrxns[1]    f_myrxns[2]  
          0   800            3666.3948      0.80366765     0              0            
@@ -147,4 +209,7 @@ Ave neighs/atom = 196.80781
 Ave special neighs/atom = 9.8480114
 Neighbor list builds = 128
 Dangerous builds = 0
+
+# write_restart restart_longrun
+# write_data restart_longrun.data
 Total wall time: 0:01:29

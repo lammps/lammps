@@ -2050,7 +2050,8 @@ void FixAveGrid::reset_grid()
   if (aveflag == RUNNING || aveflag == WINDOW) delete grid_running;
   if (aveflag == WINDOW) {
     for (int i = 0; i < nwindow; i++)
-      delete grid_window;
+      delete grid_window[i];
+    delete [] grid_window;
   }
   
   // allocate grid instance and grid data for new decomposition

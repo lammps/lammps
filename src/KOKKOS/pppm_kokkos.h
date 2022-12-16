@@ -353,8 +353,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
-  int factors[3];
-
   typename FFT_AT::t_FFT_SCALAR_3d d_density_brick;
   typename FFT_AT::t_FFT_SCALAR_3d d_vdx_brick,d_vdy_brick,d_vdz_brick;
   typename FFT_AT::t_FFT_SCALAR_3d d_u_brick;

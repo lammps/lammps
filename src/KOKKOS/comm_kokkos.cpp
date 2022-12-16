@@ -146,7 +146,9 @@ void CommKokkos::init()
   if (!comm_f_only) // not all Kokkos atom_vec styles have reverse pack/unpack routines yet
     reverse_comm_classic = true;
 
-  if (ghost_velocity && ((AtomVecKokkos*)atom->avec)->no_comm_vel_flag) // not all Kokkos atom_vec styles have comm vel pack/unpack routines yet
+  atomKK->avecKK = dynamic_cast<AtomVecKokkos*>(atom->avec);
+
+  if (ghost_velocity && atomKK->avecKK->no_comm_vel_flag) // not all Kokkos atom_vec styles have comm vel pack/unpack routines yet
     forward_comm_classic = true;
 }
 
@@ -186,7 +188,6 @@ void CommKokkos::forward_comm_device(int)
 {
   int n;
   MPI_Request request;
-  AtomVecKokkos *avec = (AtomVecKokkos *) atom->avec;
   double *buf;
 
   // exchange data with another proc
@@ -200,7 +201,7 @@ void CommKokkos::forward_comm_device(int)
     k_swap.sync<DeviceType>();
     k_swap2.sync<DeviceType>();
     k_pbc.sync<DeviceType>();
-    n = avec->pack_comm_self_fused(totalsend,k_sendlist,k_sendnum_scan,
+    n = atomKK->avecKK->pack_comm_self_fused(totalsend,k_sendlist,k_sendnum_scan,
                     k_firstrecv,k_pbc_flag,k_pbc,k_g2l);
   } else {
 
@@ -213,7 +214,7 @@ void CommKokkos::forward_comm_device(int)
             MPI_Irecv(buf,size_forward_recv[iswap],MPI_DOUBLE,
                       recvproc[iswap],0,world,&request);
           }
-          n = avec->pack_comm_kokkos(sendnum[iswap],k_sendlist,
+          n = atomKK->avecKK->pack_comm_kokkos(sendnum[iswap],k_sendlist,
                                      iswap,k_buf_send,pbc_flag[iswap],pbc[iswap]);
           DeviceType().fence();
           if (n) {
@@ -232,7 +233,7 @@ void CommKokkos::forward_comm_device(int)
                       size_forward_recv[iswap],MPI_DOUBLE,
                       recvproc[iswap],0,world,&request);
           }
-          n = avec->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
+          n = atomKK->avecKK->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
                                          k_buf_send,pbc_flag[iswap],pbc[iswap]);
           DeviceType().fence();
           if (n) {
@@ -240,34 +241,34 @@ void CommKokkos::forward_comm_device(int)
                      MPI_DOUBLE,sendproc[iswap],0,world);
           }
           if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
-          avec->unpack_comm_vel_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv);
+          atomKK->avecKK->unpack_comm_vel_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv);
           DeviceType().fence();
         } else {
           if (size_forward_recv[iswap])
             MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
                       size_forward_recv[iswap],MPI_DOUBLE,
                       recvproc[iswap],0,world,&request);
-          n = avec->pack_comm_kokkos(sendnum[iswap],k_sendlist,iswap,
+          n = atomKK->avecKK->pack_comm_kokkos(sendnum[iswap],k_sendlist,iswap,
                                      k_buf_send,pbc_flag[iswap],pbc[iswap]);
           DeviceType().fence();
           if (n)
             MPI_Send(k_buf_send.view<DeviceType>().data(),n,
                      MPI_DOUBLE,sendproc[iswap],0,world);
           if (size_forward_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
-          avec->unpack_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv);
+          atomKK->avecKK->unpack_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_recv);
           DeviceType().fence();
         }
       } else {
         if (!ghost_velocity) {
           if (sendnum[iswap])
-            n = avec->pack_comm_self(sendnum[iswap],k_sendlist,iswap,
+            n = atomKK->avecKK->pack_comm_self(sendnum[iswap],k_sendlist,iswap,
                                      firstrecv[iswap],pbc_flag[iswap],pbc[iswap]);
           DeviceType().fence();
         } else {
-          n = avec->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
+          n = atomKK->avecKK->pack_comm_vel_kokkos(sendnum[iswap],k_sendlist,iswap,
                                          k_buf_send,pbc_flag[iswap],pbc[iswap]);
           DeviceType().fence();
-          avec->unpack_comm_vel_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
+          atomKK->avecKK->unpack_comm_vel_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
           DeviceType().fence();
         }
       }
@@ -310,7 +311,6 @@ void CommKokkos::reverse_comm_device()
 {
   int n;
   MPI_Request request;
-  AtomVecKokkos *avec = (AtomVecKokkos *) atom->avec;
   double *buf;
 
   // exchange data with another proc
@@ -343,19 +343,19 @@ void CommKokkos::reverse_comm_device()
           MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
                     size_reverse_recv[iswap],MPI_DOUBLE,
                     sendproc[iswap],0,world,&request);
-        n = avec->pack_reverse_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
+        n = atomKK->avecKK->pack_reverse_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
         DeviceType().fence();
         if (n)
           MPI_Send(k_buf_send.view<DeviceType>().data(),n,
                    MPI_DOUBLE,recvproc[iswap],0,world);
         if (size_reverse_recv[iswap]) MPI_Wait(&request,MPI_STATUS_IGNORE);
       }
-      avec->unpack_reverse_kokkos(sendnum[iswap],k_sendlist,iswap,
+      atomKK->avecKK->unpack_reverse_kokkos(sendnum[iswap],k_sendlist,iswap,
                                 k_buf_recv);
       DeviceType().fence();
     } else {
       if (sendnum[iswap])
-        n = avec->unpack_reverse_self(sendnum[iswap],k_sendlist,iswap,
+        n = atomKK->avecKK->unpack_reverse_self(sendnum[iswap],k_sendlist,iswap,
                                  firstrecv[iswap]);
     }
   }
@@ -717,7 +717,6 @@ void CommKokkos::exchange_device()
   double **x;
   double *sublo,*subhi;
   MPI_Request request;
-  AtomVecKokkos *avec = (AtomVecKokkos *) atom->avec;
 
   // clear global->local map for owned and ghost atoms
   // b/c atoms migrate to new procs in exchange() and
@@ -800,7 +799,7 @@ void CommKokkos::exchange_device()
         nsend = k_count.h_view();
         if (nsend > maxsend) grow_send_kokkos(nsend,1);
         nsend =
-          avec->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
+          atomKK->avecKK->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
                                      k_exchange_sendlist,k_exchange_copylist,
                                      ExecutionSpaceFromDevice<DeviceType>::space,
                                      dim,lo,hi);
@@ -809,8 +808,8 @@ void CommKokkos::exchange_device()
         while (i < nlocal) {
           if (x[i][dim] < lo || x[i][dim] >= hi) {
             if (nsend > maxsend) grow_send_kokkos(nsend,1);
-            nsend += avec->pack_exchange(i,&buf_send[nsend]);
-            avec->copy(nlocal-1,i,1);
+            nsend += atomKK->avecKK->pack_exchange(i,&buf_send[nsend]);
+            atomKK->avecKK->copy(nlocal-1,i,1);
             nlocal--;
           } else i++;
         }
@@ -825,7 +824,7 @@ void CommKokkos::exchange_device()
       if (procgrid[dim] == 1) {
         nrecv = nsend;
         if (nrecv) {
-          atom->nlocal=avec->
+          atom->nlocal=atomKK->avecKK->
             unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,
                                    ExecutionSpaceFromDevice<DeviceType>::space);
           DeviceType().fence();
@@ -858,7 +857,7 @@ void CommKokkos::exchange_device()
         }
 
         if (nrecv) {
-          atom->nlocal = avec->
+          atom->nlocal = atomKK->avecKK->
             unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,
                                    ExecutionSpaceFromDevice<DeviceType>::space);
           DeviceType().fence();
@@ -896,7 +895,7 @@ void CommKokkos::borders()
     static int print = 1;
 
     if (mode != Comm::SINGLE || bordergroup ||
-         (ghost_velocity && ((AtomVecKokkos*)atom->avec)->no_border_vel_flag)) {
+         (ghost_velocity && atomKK->avecKK->no_border_vel_flag)) {
       if (print && comm->me==0) {
         error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "
                       "switching to classic exchange/border communication");
@@ -982,7 +981,6 @@ void CommKokkos::borders_device() {
   double **x;
   double *mlo,*mhi;
   MPI_Request request;
-  AtomVecKokkos *avec = (AtomVecKokkos *) atom->avec;
 
   ExecutionSpace exec_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(exec_space,ALL_MASK);
@@ -1122,13 +1120,13 @@ void CommKokkos::borders_device() {
       if (nsend*size_border > maxsend)
         grow_send_kokkos(nsend*size_border,0);
       if (ghost_velocity) {
-        n = avec->
+        n = atomKK->avecKK->
           pack_border_vel_kokkos(nsend,k_sendlist,k_buf_send,iswap,
                                  pbc_flag[iswap],pbc[iswap],exec_space);
         DeviceType().fence();
       }
       else {
-        n = avec->
+        n = atomKK->avecKK->
           pack_border_kokkos(nsend,k_sendlist,k_buf_send,iswap,
                              pbc_flag[iswap],pbc[iswap],exec_space);
         DeviceType().fence();
@@ -1157,21 +1155,21 @@ void CommKokkos::borders_device() {
 
       if (ghost_velocity) {
         if (sendproc[iswap] != me) {
-          avec->unpack_border_vel_kokkos(nrecv,atom->nlocal+atom->nghost,
+          atomKK->avecKK->unpack_border_vel_kokkos(nrecv,atom->nlocal+atom->nghost,
                                          k_buf_recv,exec_space);
           DeviceType().fence();
         } else {
-          avec->unpack_border_vel_kokkos(nrecv,atom->nlocal+atom->nghost,
+          atomKK->avecKK->unpack_border_vel_kokkos(nrecv,atom->nlocal+atom->nghost,
                                          k_buf_send,exec_space);
           DeviceType().fence();
         }
       } else {
         if (sendproc[iswap] != me) {
-          avec->unpack_border_kokkos(nrecv,atom->nlocal+atom->nghost,
+          atomKK->avecKK->unpack_border_kokkos(nrecv,atom->nlocal+atom->nghost,
                                      k_buf_recv,exec_space);
           DeviceType().fence();
         } else {
-          avec->unpack_border_kokkos(nrecv,atom->nlocal+atom->nghost,
+          atomKK->avecKK->unpack_border_kokkos(nrecv,atom->nlocal+atom->nghost,
                                      k_buf_send,exec_space);
           DeviceType().fence();
         }
@@ -1299,7 +1297,7 @@ void CommKokkos::grow_recv(int n)
 void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 {
   maxsend = static_cast<int> (BUFFACTOR * n);
-  int maxsend_border = (maxsend+BUFEXTRA+5)/atom->avec->size_border + 2;
+  int maxsend_border = (maxsend+BUFEXTRA+5)/atomKK->avecKK->size_border + 2;
   if (flag) {
     if (space == Device)
       k_buf_send.modify<LMPDeviceType>();
@@ -1308,9 +1306,9 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 
     if (ghost_velocity)
       k_buf_send.resize(maxsend_border,
-                        atom->avec->size_border + atom->avec->size_velocity);
+                        atomKK->avecKK->size_border + atomKK->avecKK->size_velocity);
     else
-      k_buf_send.resize(maxsend_border,atom->avec->size_border);
+      k_buf_send.resize(maxsend_border,atomKK->avecKK->size_border);
     buf_send = k_buf_send.view<LMPHostType>().data();
   }
   else {
@@ -1318,10 +1316,10 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
       k_buf_send = DAT::
         tdual_xfloat_2d("comm:k_buf_send",
                         maxsend_border,
-                        atom->avec->size_border + atom->avec->size_velocity);
+                        atomKK->avecKK->size_border + atomKK->avecKK->size_velocity);
     else
       k_buf_send = DAT::
-        tdual_xfloat_2d("comm:k_buf_send",maxsend_border,atom->avec->size_border);
+        tdual_xfloat_2d("comm:k_buf_send",maxsend_border,atomKK->avecKK->size_border);
     buf_send = k_buf_send.view<LMPHostType>().data();
   }
 }
@@ -1333,9 +1331,9 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace /*space*/)
 {
   maxrecv = static_cast<int> (BUFFACTOR * n);
-  int maxrecv_border = (maxrecv+BUFEXTRA+5)/atom->avec->size_border + 2;
+  int maxrecv_border = (maxrecv+BUFEXTRA+5)/atomKK->avecKK->size_border + 2;
   k_buf_recv = DAT::
-    tdual_xfloat_2d("comm:k_buf_recv",maxrecv_border,atom->avec->size_border);
+    tdual_xfloat_2d("comm:k_buf_recv",maxrecv_border,atomKK->avecKK->size_border);
   buf_recv = k_buf_recv.view<LMPHostType>().data();
 }
 

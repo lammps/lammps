@@ -120,8 +120,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   // If ngpu is 0, autoset ngpu to the number of devices per node matching
   // best device
-  int ngpu = atoi(arg[3]);
-  if (ngpu < 0) error->all(FLERR,"Illegal package gpu command");
+  int ngpu = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (ngpu < 0) error->all(FLERR,"Illegal number of GPUs ({}) in package gpu command", ngpu);
 
   // Negative value indicate GPU package should find the best device ID
   int first_gpu_id = -1;

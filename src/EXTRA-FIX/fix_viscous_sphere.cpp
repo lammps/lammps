@@ -14,11 +14,9 @@
 #include "fix_viscous_sphere.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "input.h"
 #include "memory.h"
-#include "modify.h"
 #include "respa.h"
 #include "update.h"
 #include "variable.h"

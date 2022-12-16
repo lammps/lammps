@@ -155,11 +155,9 @@ void KimParam::command(int narg, char **arg)
 
   std::string kim_param_get_set(arg[0]);
 
-  if ((kim_param_get_set != "get") && (kim_param_get_set != "set")) {
-    std::string msg("Incorrect arguments in 'kim param' command.\n");
-    msg += "'kim param get/set' is mandatory";
-    error->all(FLERR, msg);
-  }
+  if ((kim_param_get_set != "get") && (kim_param_get_set != "set"))
+    error->all(FLERR, "Incorrect arguments in 'kim param' command.\n"
+               "'kim param get/set' is mandatory");
 
   int const ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {
@@ -170,8 +168,7 @@ void KimParam::command(int narg, char **arg)
             fix_store->getptr("simulator_model"));
 
     if (simulatorModel)
-      error->all(FLERR,
-        "'kim param' can only be used with a KIM Portable Model");
+      error->all(FLERR, "'kim param' can only be used with a KIM Portable Model");
   }
 
   input->write_echo(fmt::format("#=== BEGIN kim param {} ==================="
@@ -196,13 +193,10 @@ void KimParam::command(int narg, char **arg)
     } else
       error->all(FLERR, "Pair style is defined, but there is "
                         "no match for kim style in lammps");
-  } else {
-    auto msg = fmt::format("Illegal 'kim param {0}' command.\nTo {0} the new "
-                           "parameter values, pair style must be assigned.\n"
-                           "Must use 'kim interactions' or 'pair_style kim' "
-                           "before 'kim param {0}'", kim_param_get_set);
-    error->all(FLERR, msg);
-  }
+  } else
+    error->all(FLERR, "Illegal 'kim param {0}' command.\nTo {0} the new parameter values, "
+               "pair style must be assigned.\nMust use 'kim interactions' or 'pair_style kim' "
+               "before 'kim param {0}'", kim_param_get_set);
 
   // Get the number of mutable parameters in the kim model
   int numberOfParameters(0);
@@ -243,12 +237,9 @@ void KimParam::command(int narg, char **arg)
           if (paramname == str_name_str) break;
         }
 
-        if (param_index >= numberOfParameters) {
-          auto msg = fmt::format("Wrong argument in 'kim param get' command.\n"
-                                 "This Model does not have the requested '{}' "
-                                 "parameter", paramname);
-          error->all(FLERR, msg);
-        }
+        if (param_index >= numberOfParameters)
+          error->all(FLERR, "Wrong argument in 'kim param get' command.\n"
+                     "This Model does not have the requested '{}' parameter", paramname);
 
         // Get the index_range for the requested parameter
         int nlbound(0);
@@ -259,12 +250,9 @@ void KimParam::command(int narg, char **arg)
 
           // Check to see if the indices range contains
           // only integer numbers and/or range :
-          if (argtostr.find_first_not_of("0123456789:") != std::string::npos) {
-            auto msg = fmt::format("Illegal index_range.\nExpected integer "
-                                   "parameter(s) instead of '{}' in "
-                                   "index_range", argtostr);
-            error->all(FLERR, msg);
-          }
+          if (argtostr.find_first_not_of("0123456789:") != std::string::npos)
+            error->all(FLERR, "Illegal index_range.\nExpected integer parameter(s) instead "
+                       "of '{}' in index_range", argtostr);
 
           std::string::size_type npos = argtostr.find(':');
           if (npos != std::string::npos) {
@@ -273,30 +261,20 @@ void KimParam::command(int narg, char **arg)
             nlbound = atoi(words[0].c_str());
             nubound = atoi(words[1].c_str());
 
-            if (nubound < 1 || nubound > extent ||
-                nlbound < 1 || nlbound > nubound) {
-              auto msg = fmt::format("Illegal index_range '{}-{}' for '{}' "
-                                     "parameter with the extent of '{}'",
-                                     nlbound, nubound, paramname, extent);
-              error->all(FLERR, msg);
-            }
+            if ((nubound < 1) || (nubound > extent) || (nlbound < 1) || (nlbound > nubound))
+              error->all(FLERR, "Illegal index_range '{}-{}' for '{}' parameter with the "
+                         "extent of '{}'",nlbound, nubound, paramname, extent);
           } else {
             nlbound = atoi(argtostr.c_str());
 
-            if (nlbound < 1 || nlbound > extent) {
-              auto msg = fmt::format("Illegal index '{}' for '{}' parameter "
-                                     "with the extent of '{}'", nlbound,
-                                     paramname, extent);
-              error->all(FLERR, msg);
-            }
-
+            if (nlbound < 1 || nlbound > extent)
+              error->all(FLERR, "Illegal index '{}' for '{}' parameter with the extent of '{}'",
+                         nlbound, paramname, extent);
             nubound = nlbound;
           }
-        } else {
-          std::string msg("Wrong number of arguments in 'kim param get' ");
-          msg += "command.\nIndex range after parameter name is mandatory";
-          error->all(FLERR, msg);
-        }
+        } else
+          error->all(FLERR, "Wrong number of arguments in 'kim param get' command.\n"
+                     "Index range after parameter name is mandatory");
 
         int const nvars = nubound - nlbound + 1;
         std::vector<std::string> varsname;
@@ -304,15 +282,11 @@ void KimParam::command(int narg, char **arg)
         if (i < narg) {
           // Get the variable/variable_base name
           varname = std::string(arg[i++]);
-          if ((varname == "split") ||
-              (varname == "list") ||
-              (varname == "explicit"))
-            error->all(FLERR, "Illegal variable name in 'kim param get'");
-        } else {
-          std::string msg("Wrong number of arguments in 'kim param get' ");
-          msg += "command.\nThe LAMMPS variable name is mandatory";
-          error->all(FLERR, msg);
-        }
+          if ((varname == "split") || (varname == "list") || (varname == "explicit"))
+            error->all(FLERR, "Illegal variable name '{}' in 'kim param get'", varname);
+        } else
+          error->all(FLERR, "Wrong number of arguments in 'kim param get' command.\n"
+                     "The LAMMPS variable name is mandatory");
 
         // indicator flag for list request
         bool list_requested(false);
@@ -337,28 +311,22 @@ void KimParam::command(int narg, char **arg)
               --i;
               for (int j = 0; j < nvars; ++j, ++i) {
                 varsname[j] = std::string(arg[i]);
-                if (varsname[j] == "split" || varsname[j] == "list" ||
-                    varsname[j] == "explicit")
-                  error->all(FLERR, "Illegal variable name in 'kim param get'");
+                if (varsname[j] == "split" || varsname[j] == "list" || varsname[j] == "explicit")
+                  error->all(FLERR, "Illegal variable name '{}' in 'kim param get'", varsname[j]);
               }
               if (i < narg) {
                 formatarg = std::string(arg[i]);
                 if (formatarg == "explicit") ++i;
               }
             } else {
-              auto msg =
-                fmt::format("Wrong number of arguments in 'kim param get' "
-                            "command.\nThe LAMMPS '{}' variable names or "
-                            "'{} split' is mandatory", nvars, varname);
-              error->all(FLERR, msg);
+              error->all(FLERR, "Wrong number of arguments in 'kim param get' command.\n"
+                         "The LAMMPS '{}' variable names or '{} split' is mandatory",
+                         nvars, varname);
             }
-          } else {
-            auto msg =
-              fmt::format("Wrong number of arguments in 'kim param get' "
-                          "command.\nThe LAMMPS '{}' variable names or "
-                          "'{} split/list' is mandatory", nvars, varname);
-            error->all(FLERR, msg);
-          }
+          } else
+            error->all(FLERR, "Wrong number of arguments in 'kim param get' command.\n"
+                       "The LAMMPS '{}' variable names or '{} split/list' is mandatory",
+                       nvars, varname);
         } else {
           varsname.resize(1);
           if (i < narg) {

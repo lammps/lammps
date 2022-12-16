@@ -20,6 +20,8 @@
 #include "atom.h"
 #include "citeme.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 static const char cite_user_eff_package[] =

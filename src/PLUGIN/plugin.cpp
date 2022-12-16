@@ -21,7 +21,6 @@
 #include "force.h"
 #include "input.h"
 #include "modify.h"
-#include "region.h"
 
 #include <cstring>
 #include <list>

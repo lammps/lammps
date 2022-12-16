@@ -78,6 +78,8 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_scalar k_error_flag;
   dual_hash_type k_map_hash;
 
+  class AtomVecKokkos* avecKK;
+
   // map lookup function inlined for efficiency
   // return -1 if no map defined
 

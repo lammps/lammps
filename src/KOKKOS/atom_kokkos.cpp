@@ -104,23 +104,23 @@ AtomKokkos::~AtomKokkos()
 
 void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 {
-  if (space == Device && lmp->kokkos->auto_sync) ((AtomVecKokkos *) avec)->modified(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) avecKK->modified(Host, mask);
 
-  ((AtomVecKokkos *) avec)->sync(space, mask);
+  avecKK->sync(space, mask);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 {
-  ((AtomVecKokkos *) avec)->modified(space, mask);
+  avecKK->modified(space, mask);
 
-  if (space == Device && lmp->kokkos->auto_sync) ((AtomVecKokkos *) avec)->sync(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) avecKK->sync(Host, mask);
 }
 
 void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
 {
-  ((AtomVecKokkos *) avec)->sync_overlapping_device(space, mask);
+  avecKK->sync_overlapping_device(space, mask);
 }
 /* ---------------------------------------------------------------------- */
 
@@ -380,5 +380,8 @@ AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sfla
 {
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
   if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
+
+  avecKK = dynamic_cast<AtomVecKokkos*>(avec);
+
   return avec;
 }

@@ -118,6 +118,8 @@ void FixDtResetKokkos<DeviceType>::end_of_step()
 
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetMass, const int &i, double &k_dt) const {
@@ -127,7 +129,7 @@ void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetMass, const int &i, d
   double delx, dely, delz, delr;
 
   double emax = k_emax.d_view(0);
-  
+
   if (mask[i] & groupbit) {
 
     massinv = 1.0 / mass[type[i]];
@@ -148,8 +150,9 @@ void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetMass, const int &i, d
     delr = sqrt(delx * delx + dely * dely + delz * delz);
     if (delr > xmax) k_dt *= xmax / delr;
   }
-  
  }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -160,7 +163,7 @@ void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetRMass, const int &i, 
   double delx, dely, delz, delr;
 
   double emax = k_emax.d_view(0);
-  
+
   if (mask[i] & groupbit) {
 
     massinv = 1.0 / rmass[i];
@@ -181,8 +184,7 @@ void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetRMass, const int &i, 
     delr = sqrt(delx * delx + dely * dely + delz * delz);
     if (delr > xmax) k_dt *= xmax / delr;
   }
-  
- }
+}
 
 namespace LAMMPS_NS {
 template class FixDtResetKokkos<LMPDeviceType>;

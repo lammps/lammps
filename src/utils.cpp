@@ -654,7 +654,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           if (igrid >= 0) {
 
             int ncol = 0;
-            int idata = compute->get_griddata_by_name(igrid, id, ncol);
+            compute->get_griddata_by_name(igrid, id, ncol);
             nmax = ncol;
 
             expandflag = 1;
@@ -673,7 +673,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           if (igrid >= 0) {
 
             int ncol = 0;
-            int idata = fix->get_griddata_by_name(igrid, id, ncol);
+            fix->get_griddata_by_name(igrid, id, ncol);
             nmax = ncol;
 
             expandflag = 1;

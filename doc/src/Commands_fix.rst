@@ -65,7 +65,7 @@ OPT.
    * :doc:`drude <fix_drude>`
    * :doc:`drude/transform/direct <fix_drude_transform>`
    * :doc:`drude/transform/inverse <fix_drude_transform>`
-   * :doc:`dt/reset <fix_dt_reset>`
+   * :doc:`dt/reset (k) <fix_dt_reset>`
    * :doc:`edpd/source <fix_dpd_source>`
    * :doc:`efield <fix_efield>`
    * :doc:`ehex <fix_ehex>`
@@ -250,7 +250,7 @@ OPT.
    * :doc:`tune/kspace <fix_tune_kspace>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
-   * :doc:`viscous <fix_viscous>`
+   * :doc:`viscous (k) <fix_viscous>`
    * :doc:`viscous/sphere <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`

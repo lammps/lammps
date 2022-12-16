@@ -106,6 +106,13 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   acons(7,6) = 4887769399.0 / 37838389248.0;
 
   k_flag = DAT::tdual_int_scalar("PPPM:flag");
+
+  // same name but different than base class
+
+  gc = nullptr;
+  fft1 = nullptr;
+  fft2 = nullptr;
+  remap = nullptr;
 }
 
 template<class DeviceType>
@@ -211,7 +218,6 @@ void PPPMKokkos<DeviceType>::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  gc = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -851,6 +857,7 @@ template<class DeviceType>
 void PPPMKokkos<DeviceType>::deallocate()
 {
   delete gc;
+  gc = nullptr;
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
 
@@ -860,8 +867,11 @@ void PPPMKokkos<DeviceType>::deallocate()
   memoryKK->destroy_kokkos(d_work2,work2);
 
   delete fft1;
+  fft1 = nullptr;
   delete fft2;
+  fft1 = nullptr;
   delete remap;
+  remap = nullptr;
 }
 
 /* ----------------------------------------------------------------------

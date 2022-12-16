@@ -26,8 +26,6 @@ using namespace LAMMPS_NS;
 
 #define DELTA 16
 
-static constexpr int OFFSET = 16384;
-
 /* ----------------------------------------------------------------------
    NOTES:
    if o indices for ghosts are < 0 or hi indices are >= N,

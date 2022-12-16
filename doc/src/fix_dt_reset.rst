@@ -1,4 +1,5 @@
 .. index:: fix dt/reset
+.. index:: fix dt/reset/kk
 
 fix dt/reset command
 ====================

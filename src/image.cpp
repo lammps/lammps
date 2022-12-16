@@ -819,7 +819,7 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
       // using <= if test can leave single-pixel gaps between 2 tris
       // using < if test fixes it
       // suggested by Nathan Fabian, Nov 2022
-      
+
       MathExtra::sub3 (zlocal, xlocal, s1);
       MathExtra::sub3 (ylocal, xlocal, s2);
       MathExtra::sub3 (p, xlocal, s3);

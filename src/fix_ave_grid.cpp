@@ -2053,7 +2053,7 @@ void FixAveGrid::reset_grid()
       delete grid_window[i];
     delete [] grid_window;
   }
-  
+
   // allocate grid instance and grid data for new decomposition
 
   allocate_grid();
@@ -2100,7 +2100,7 @@ void FixAveGrid::reset_grid()
 
   if (dimension == 2) delete grid2d_previous;
   else delete grid3d_previous;
- 
+
   deallocate_one_grid(grid_sample_previous,nxlo_out_previous,nylo_out_previous,nzlo_out_previous);
   deallocate_one_grid(grid_nfreq_previous,nxlo_out_previous,nylo_out_previous,nzlo_out_previous);
   if (aveflag == RUNNING || aveflag == WINDOW)

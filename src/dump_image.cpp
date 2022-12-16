@@ -126,7 +126,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   gridflag = NO;
   lineflag = triflag = bodyflag = fixflag = NO;
   id_grid_compute = id_grid_fix = nullptr;
-  
+
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
     bondflag = YES;
@@ -929,7 +929,7 @@ void DumpImage::create_image()
   if (gridflag) {
 
     // reset lighting for flat surfaces to make them brighter
- 
+
     image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] = 0.9;
     image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] = 0.3;
     image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] = 0.3;

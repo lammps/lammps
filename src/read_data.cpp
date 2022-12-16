@@ -375,6 +375,14 @@ void ReadData::command(int narg, char **arg)
   if (addflag == NONE) {
     domain->box_exist = 1;
     update->ntimestep = 0;
+  } else {
+
+    // clear ghost count and any ghost bonus data internal to AtomVec
+    // same logic as beginning of Comm::exchange()
+    // do it now b/c creating atoms will overwrite ghost atoms
+
+    atom->nghost = 0;
+    atom->avec->clear_bonus();
   }
 
   // compute atomID and optionally moleculeID offset for addflag = APPEND

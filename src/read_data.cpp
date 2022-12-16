@@ -377,10 +377,12 @@ void ReadData::command(int narg, char **arg)
     update->ntimestep = 0;
   } else {
 
+    // clear global->local map for owned and ghost atoms
     // clear ghost count and any ghost bonus data internal to AtomVec
     // same logic as beginning of Comm::exchange()
-    // do it now b/c creating atoms will overwrite ghost atoms
+    // do it now b/c adding atoms will overwrite ghost atoms
 
+    if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
     atom->nghost = 0;
     atom->avec->clear_bonus();
   }

@@ -271,6 +271,9 @@ void PPPMKokkos<DeviceType>::init()
   compute_gf_denom();
   compute_rho_coeff();
 
+  k_rho_coeff.template modify<LMPHostType>();
+  k_rho_coeff.template sync<DeviceType>();
+
   // print stats
 
   int ngrid_max,nfft_both_max;

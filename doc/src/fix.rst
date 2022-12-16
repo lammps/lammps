@@ -216,9 +216,9 @@ accelerated styles exist.
 * :doc:`edpd/source <fix_dpd_source>` - add heat source to eDPD simulations
 * :doc:`efield <fix_efield>` - impose electric field on system
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
-* :doc:`electrode/conp <fix_electrode_conp>` - impose electric potential
-* :doc:`electrode/conq <fix_electrode_conp>` - impose total electric charge
-* :doc:`electrode/thermo <fix_electrode_conp>` - apply thermo-potentiostat
+* :doc:`electrode/conp <fix_electrode>` - impose electric potential
+* :doc:`electrode/conq <fix_electrode>` - impose total electric charge
+* :doc:`electrode/thermo <fix_electrode>` - apply thermo-potentiostat
 * :doc:`electron/stopping <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`electron/stopping/fit <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`enforce2d <fix_enforce2d>` - zero out *z*-dimension velocity and force
@@ -360,6 +360,7 @@ accelerated styles exist.
 * :doc:`saed/vtk <fix_saed_vtk>` - time-average the intensities from :doc:`compute saed <compute_saed>`
 * :doc:`setforce <fix_setforce>` - set the force on each atom
 * :doc:`setforce/spin <fix_setforce>` - set magnetic precession vectors on each atom
+* :doc:`sgcmc <fix_sgcmc>` - fix for hybrid semi-grand canonical MD/MC simulations
 * :doc:`shake <fix_shake>` - SHAKE constraints on bonds and/or angles
 * :doc:`shardlow <fix_shardlow>` - integration of DPD equations of motion using the Shardlow splitting
 * :doc:`smd <fix_smd>` - applied a steered MD force to a group

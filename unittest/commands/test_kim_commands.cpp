@@ -307,17 +307,17 @@ TEST_F(KimCommandsTest, kim_param)
 
     ASSERT_THAT(variable->retrieve("shift"), StrEq("2"));
 
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'list' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 list"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'list' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 list"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'split' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 split"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'split' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 split"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'explicit' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 explicit"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'explicit' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 explicit"););
     TEST_FAILURE(".*ERROR: Wrong number of arguments in 'kim param get' "
                  "command.\nThe LAMMPS '3' variable names or 'cutoffs "

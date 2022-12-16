@@ -26,6 +26,8 @@
 
 #include "atom.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 #define NMAT_FULL 9

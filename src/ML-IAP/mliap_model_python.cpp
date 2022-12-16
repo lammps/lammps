@@ -26,7 +26,6 @@
 #include "mliap_model_python_couple.h"
 #include "pair_mliap.h"
 #include "python_compat.h"
-#include "utils.h"
 
 #include <Python.h>
 

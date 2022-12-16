@@ -208,11 +208,11 @@ TEST_F(LAMMPS_gather_scatter, scatter_atoms_subset_mask)
 
 TEST_F(LAMMPS_gather_scatter, gather_bonds)
 {
-  f_lammps_setup_gather_bonds();
+    if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
+    f_lammps_setup_gather_bonds();
 #ifdef LAMMPS_BIGBIG
-  EXPECT_EQ(f_lammps_test_gather_bonds_big(), 1);
+    EXPECT_EQ(f_lammps_test_gather_bonds_big(), 1);
 #else
-  EXPECT_EQ(f_lammps_test_gather_bonds_small(), 1);
+    EXPECT_EQ(f_lammps_test_gather_bonds_small(), 1);
 #endif
-
 };

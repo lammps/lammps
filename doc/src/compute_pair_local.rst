@@ -59,7 +59,7 @@ commands.
 The value *dist* is the distance between the pair of atoms.
 The values *dx*, *dy*, and *dz* are the :math:`(x,y,z)` components of the
 *distance* between the pair of atoms. This value is always the
-distance from the atom of lower to the one with the higher id.
+distance from the atom of higher to the one with the lower atom ID.
 
 The value *eng* is the interaction energy for the pair of atoms.
 

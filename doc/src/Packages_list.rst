@@ -155,7 +155,7 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`ELECTRODE <PKG-ELECTRODE>`
      - electrode charges to match potential
-     - :doc:`fix electrode/conp <fix_electrode_conp>`
+     - :doc:`fix electrode/conp <fix_electrode>`
      - PACKAGES/electrode
      - no
    * - :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
@@ -297,6 +297,11 @@ whether an extra library is needed to build and use the package:
      - Atomic Cluster Expansion potential
      - :doc:`pair pace <pair_pace>`
      - PACKAGES/pace
+     - ext
+   * - :ref:`ML-POD <PKG-ML-POD>`
+     - Proper orthogonal decomposition potentials
+     - :doc:`pair pod <pair_pod>`
+     - pod
      - ext
    * - :ref:`ML-QUIP <PKG-ML-QUIP>`
      - QUIP/libatoms interface

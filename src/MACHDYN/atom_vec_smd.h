@@ -35,7 +35,7 @@ AtomStyle(smd,AtomVecSMD);
 
 namespace LAMMPS_NS {
 
-class AtomVecSMD : public AtomVec {
+class AtomVecSMD : virtual public AtomVec {
  public:
   AtomVecSMD(class LAMMPS *);
 

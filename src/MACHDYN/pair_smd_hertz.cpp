@@ -263,7 +263,7 @@ void PairHertz::coeff(int narg, char **arg) {
         utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
         utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-        double bulkmodulus_one = atof(arg[2]);
+        double bulkmodulus_one = utils::numeric(FLERR,arg[2],false,lmp);
 
         // set short-range force constant
         double kn_one = 0.0;

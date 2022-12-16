@@ -134,7 +134,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   torque = atomKK->k_torque.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
-  tag = atomKK->k_tag.view<DeviceType>();
   rmass = atomKK->k_rmass.view<DeviceType>();
   radius = atomKK->k_radius.view<DeviceType>();
   nlocal = atom->nlocal;

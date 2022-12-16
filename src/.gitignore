@@ -57,6 +57,13 @@
 /pair_pace.cpp
 /pair_pace.h
 
+/pair_pod.cpp
+/pair_pod.h
+/fitpod_command.cpp
+/fitpod_command.h
+/mlpod.cpp
+/mlpod.h
+
 /fix_polarize*.cpp
 /fix_polarize*.h
 /*_dielectric.cpp
@@ -913,6 +920,8 @@
 /fix_rigid_nvt_small.h
 /fix_rigid_small.cpp
 /fix_rigid_small.h
+/fix_sgcmc.cpp
+/fix_sgcmc.h
 /fix_shake.cpp
 /fix_shake.h
 /fix_shardlow.cpp

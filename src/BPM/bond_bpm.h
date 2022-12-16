@@ -16,8 +16,6 @@
 
 #include "bond.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class BondBPM : public Bond {

@@ -18,6 +18,7 @@
 #include "ewald_electrode.h"
 
 #include "atom.h"
+#include "boundary_correction.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -40,7 +41,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-EwaldElectrode::EwaldElectrode(LAMMPS *lmp) : Ewald(lmp)
+EwaldElectrode::EwaldElectrode(LAMMPS *lmp) : Ewald(lmp), boundcorr(nullptr)
 {
   eikr_step = -1;
 }
@@ -88,6 +89,7 @@ void EwaldElectrode::init()
   };
   int periodicity_2d[] = {1, 1, 0};
   int periodicity_1d[] = {0, 0, 1};
+  if (boundcorr != nullptr) delete boundcorr;
   if (slabflag == 1) {
     // EW3Dc dipole correction
     if (!equal_periodicity(periodicity_2d))
@@ -301,7 +303,6 @@ void EwaldElectrode::setup()
     memory->create3d_offset(sn, -kmax, kmax, 3, nmax, "ewald/electrode:sn");
     kmax_created = kmax;
   }
-  boundcorr->setup(xprd_wire, yprd_wire, zprd_slab, g_ewald);
 
   // pre-compute Ewald coefficients
 
@@ -418,7 +419,7 @@ void EwaldElectrode::compute(int eflag, int vflag)
         for (int j = 0; j < 6; j++) vatom[i][j] *= q[i] * qscale;
   }
 
-  boundcorr->compute_corr(qsum, slab_volfactor, eflag_atom, eflag_global, energy, eatom);
+  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1007,7 +1008,8 @@ void EwaldElectrode::compute_matrix(bigint *imat, double **matrix, bool /* timer
     n++;
   }
 
-  // TODO check if ((bigint) kxmax+1)*ngroup overflows ...
+  if (((bigint) kxmax + 1) * ngroup > INT_MAX)
+    error->all(FLERR, "kmax is too large, integer overflows might occur.");
 
   memory->create(csx_all, ((bigint) kxmax + 1) * ngroup, "ewald/electrode:csx_all");
   memory->create(snx_all, ((bigint) kxmax + 1) * ngroup, "ewald/electrode:snx_all");
@@ -1018,15 +1020,12 @@ void EwaldElectrode::compute_matrix(bigint *imat, double **matrix, bool /* timer
 
   memory->create(jmat, ngroup, "ewald/electrode:jmat");
 
-  int *recvcounts, *displs;    // TODO allgather requires int for displs but
-                               // displs might overflow!
+  int *recvcounts, *displs;
   memory->create(recvcounts, nprocs, "ewald/electrode:recvcounts");
   memory->create(displs, nprocs, "ewald/electrode:displs");
 
   // gather subsets global cs and sn
   int n = (kxmax + 1) * ngrouplocal;
-  // TODO check if (kxmax+1)*ngrouplocal, etc.
-  // overflows int n! typically kxmax small
 
   MPI_Allgather(&n, 1, MPI_INT, recvcounts, 1, MPI_INT, world);
   displs[0] = 0;

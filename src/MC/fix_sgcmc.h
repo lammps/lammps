@@ -179,11 +179,6 @@ class FixSemiGrandCanonicalMC : public Fix {
   // The total number of rejected swaps during the last MC step.
   int nRejectedSwaps;
 
-  // Keeps track of the current total potential energy.
-  // This is only used when no routine is available that can efficiently calculate the
-  // local energy change due to an atom swap.
-  double totalPotentialEnergy;
-
   // A compute used to compute the total potential energy of the system.
   class Compute *compute_pe;
 };

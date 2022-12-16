@@ -49,6 +49,7 @@ template<class DeviceType>
 Grid3dKokkos<DeviceType>::Grid3dKokkos(LAMMPS *lmp, MPI_Comm gcomm,int gnx, int gny, int gnz) :
   Grid3d(lmp, gcomm, gnx, gny, gnz)
 {
+
 }
 
 /* ----------------------------------------------------------------------
@@ -73,6 +74,7 @@ Grid3dKokkos<DeviceType>::Grid3dKokkos(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int
              ixlo, ixhi, iylo, iyhi, izlo, izhi,
              oxlo, oxhi, oylo, oyhi, ozlo, ozhi)
 {
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,6 +82,23 @@ Grid3dKokkos<DeviceType>::Grid3dKokkos(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int
 template<class DeviceType>
 Grid3dKokkos<DeviceType>::~Grid3dKokkos()
 {
+  for (int i = 0; i < nswap; i++) {
+    swap[i].packlist = nullptr;
+    swap[i].unpacklist = nullptr;
+  }
+
+  // tiled comm data structs
+
+  for (int i = 0; i < nsend; i++)
+    send[i].packlist = nullptr;
+
+  for (int i = 0; i < nrecv; i++)
+    recv[i].unpacklist = nullptr;
+
+  for (int i = 0; i < ncopy; i++) {
+    copy[i].packlist = nullptr;
+    copy[i].unpacklist = nullptr;
+  }
 }
 
 /* ----------------------------------------------------------------------

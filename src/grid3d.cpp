@@ -1190,7 +1190,7 @@ void Grid3d::setup_comm_tiled(int &nbuf1, int &nbuf2)
 }
 
 // ----------------------------------------------------------------------
-// query locality of forwrd/reverse grid comm
+// query locality of forward/reverse grid comm
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------

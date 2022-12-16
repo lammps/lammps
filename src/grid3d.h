@@ -237,8 +237,8 @@ class Grid3d : protected Pointers {
   void ghost_grid();
   void extract_comm_info();
 
-  void setup_comm_brick(int &, int &);
-  void setup_comm_tiled(int &, int &);
+  virtual void setup_comm_brick(int &, int &);
+  virtual void setup_comm_tiled(int &, int &);
   int ghost_adjacent_brick();
   int ghost_adjacent_tiled();
 
@@ -257,7 +257,7 @@ class Grid3d : protected Pointers {
   void box_drop(int *, int *);
   void box_drop_grid(int *, int, int, int &, int *);
 
-  void grow_swap();
+  virtual void grow_swap();
   void grow_overlap();
   void deallocate_remap();
 

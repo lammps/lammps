@@ -59,6 +59,10 @@ format of this file is described below.
 
 ----------
 
+Suitable tables for use with this angle style can be created using the
+Python code in the ``tools/tabulate`` folder of the LAMMPS source code
+distribution.
+
 The format of a tabulated file is as follows (without the
 parenthesized comments):
 

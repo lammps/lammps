@@ -20,6 +20,7 @@
 #include "input.h"
 #include "output.h"
 #include "update.h"
+#include "utils.h"
 #include "variable.h"
 
 #include "../testing/core.h"
@@ -265,14 +266,22 @@ TEST_F(SimpleCommandsTest, Suffix)
 
     BEGIN_HIDE_OUTPUT();
     command("suffix one");
+    command("suffix yes");
     END_HIDE_OUTPUT();
     ASSERT_THAT(lmp->suffix, StrEq("one"));
+    ASSERT_EQ(lmp->suffix_enable, 1);
+    ASSERT_THAT(utils::strip_style_suffix("one/four", lmp), StrEq("one/four"));
+    ASSERT_THAT(utils::strip_style_suffix("four/one", lmp), StrEq("four"));
 
     BEGIN_HIDE_OUTPUT();
     command("suffix hybrid two three");
     END_HIDE_OUTPUT();
     ASSERT_THAT(lmp->suffix, StrEq("two"));
     ASSERT_THAT(lmp->suffix2, StrEq("three"));
+    ASSERT_THAT(utils::strip_style_suffix("one/four", lmp), StrEq("one/four"));
+    ASSERT_THAT(utils::strip_style_suffix("one/two", lmp), StrEq("one"));
+    ASSERT_THAT(utils::strip_style_suffix("one/three", lmp), StrEq("one"));
+    ASSERT_THAT(utils::strip_style_suffix("four/one", lmp), StrEq("four/one"));
 
     BEGIN_HIDE_OUTPUT();
     command("suffix four");
@@ -284,11 +293,13 @@ TEST_F(SimpleCommandsTest, Suffix)
     command("suffix off");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->suffix_enable, 0);
+    ASSERT_THAT(utils::strip_style_suffix("one/four", lmp), StrEq("one/four"));
 
     BEGIN_HIDE_OUTPUT();
     command("suffix yes");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->suffix_enable, 1);
+    ASSERT_THAT(utils::strip_style_suffix("one/four", lmp), StrEq("one"));
 
     BEGIN_HIDE_OUTPUT();
     command("suffix no");

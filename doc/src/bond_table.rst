@@ -59,6 +59,13 @@ this file is described below.
 
 ----------
 
+Suitable tables for use with this bond style can be created by LAMMPS
+itself from existing bond styles using the :doc:`bond_write
+<bond_write>` command.  This can be useful to have a template file for
+testing the bond style settings and to build a compatible custom file.
+Another option to generate tables is the Python code in the
+``tools/tabulate`` folder of the LAMMPS source code distribution.
+
 The format of a tabulated file is as follows (without the
 parenthesized comments):
 
@@ -149,7 +156,8 @@ info.
 Related commands
 """"""""""""""""
 
-:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`,
+:doc:`bond_write <bond_write>`
 
 Default
 """""""

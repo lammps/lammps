@@ -22,7 +22,6 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "update.h"
 
 #include <cmath>
 

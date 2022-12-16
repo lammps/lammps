@@ -611,6 +611,7 @@ curv
 Cusentino
 customIDs
 cutbond
+cutghost
 cuthi
 cutinner
 cutlo
@@ -691,6 +692,7 @@ delocalized
 Delong
 delr
 deltaHf
+deltamu
 dem
 Dendrimer
 dendritic
@@ -753,6 +755,7 @@ dimensionality
 dimensioned
 dimgray
 dipolar
+dipoleflag
 dir
 Direc
 dirname
@@ -761,6 +764,7 @@ discretization
 discretized
 discretizing
 disp
+dispersionflag
 dissipative
 Dissipative
 distharm
@@ -977,7 +981,6 @@ equilization
 equipartitioning
 eradius
 erate
-erc
 Ercolessi
 Erdmann
 erf
@@ -1028,6 +1031,7 @@ evirials
 ew
 ewald
 Ewald
+ewaldflag
 excitations
 excv
 exe
@@ -1101,6 +1105,7 @@ Fincham
 Fint
 fingerprintconstants
 fingerprintsperelement
+finitecutflag
 Finnis
 Fiorin
 fitpod
@@ -2214,6 +2219,7 @@ msd
 msi
 MSI
 msm
+msmflag
 msse
 msst
 Mtchell
@@ -2495,6 +2501,7 @@ Nstart
 nstats
 Nstep
 Nsteps
+nsteps
 nsteplast
 Nstop
 nsub
@@ -2793,6 +2800,7 @@ PowerShell
 ppme
 ppn
 pppm
+pppmflag
 Prakash
 Praprotnik
 prd
@@ -2973,6 +2981,7 @@ refactoring
 reflectionstyle
 Reinders
 reinit
+reinitflag
 relaxbox
 relink
 relres
@@ -3206,6 +3215,7 @@ setvel
 sfftw
 sfree
 Sg
+sgcmc
 Shan
 Shanno
 Shapeev
@@ -3308,6 +3318,7 @@ SPH
 spica
 SPICA
 Spickermann
+spinflag
 splined
 spparks
 Sprik
@@ -3861,6 +3872,7 @@ workflows
 Workum
 Worley
 Wriggers
+writedata
 Wuppertal
 Wurtzite
 www

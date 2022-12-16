@@ -27,6 +27,8 @@
 #include "math_extra.h"
 #include "random_mars.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

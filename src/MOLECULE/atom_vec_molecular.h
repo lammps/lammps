@@ -24,7 +24,7 @@ AtomStyle(molecular,AtomVecMolecular);
 
 namespace LAMMPS_NS {
 
-class AtomVecMolecular : public AtomVec {
+class AtomVecMolecular : virtual public AtomVec {
  public:
   AtomVecMolecular(class LAMMPS *);
   ~AtomVecMolecular() override;
@@ -35,7 +35,7 @@ class AtomVecMolecular : public AtomVec {
   void unpack_restart_init(int) override;
   void data_atom_post(int) override;
 
- private:
+ protected:
   int *num_bond, *num_angle, *num_dihedral, *num_improper;
   int **bond_type, **angle_type, **dihedral_type, **improper_type;
   int **nspecial;

@@ -17,6 +17,14 @@ void f_lammps_close();
 int f_lammps_get_comm();
 }
 
+// C wrapper to split MPI communicator w/o requiring a Fortran MPI lib
+extern "C" int create_mpi_comm_split(int color, int key)
+{
+    MPI_Comm c_newcomm = MPI_COMM_NULL;
+    MPI_Comm_split(MPI_COMM_WORLD, color, key, &c_newcomm);
+    return MPI_Comm_c2f(c_newcomm);
+}
+
 TEST(open_no_mpi, no_args)
 {
     ::testing::internal::CaptureStdout();

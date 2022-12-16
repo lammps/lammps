@@ -218,7 +218,7 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
 
   int lwork = ns * ns;  // the length of the array work, lwork >= max(1,3*N-1)
   int info = 1;     // = 0:  successful exit
-  std::vector<double> work(ns*ns);
+  std::vector<double> work(lwork);
   DSYEV(&chv, &chu, &ns, A, &ns, b, work.data(), &lwork, &info);
 
   // order eigenvalues and eigenvectors from largest to smallest

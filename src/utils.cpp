@@ -866,6 +866,30 @@ std::string utils::star_subst(const std::string &name, bigint step, int pad)
   return fmt::format("{}{:0{}}{}", name.substr(0, star), step, pad, name.substr(star + 1));
 }
 
+
+/* ----------------------------------------------------------------------
+   Remove accelerator style suffix from string
+------------------------------------------------------------------------- */
+std::string utils::strip_style_suffix(const std::string &style, LAMMPS *lmp)
+{
+  std::string newstyle = style;
+  if (lmp->suffix_enable) {
+    if (lmp->suffix) {
+      if (utils::strmatch(style, fmt::format("/{}$", lmp->suffix))) {
+        newstyle.resize(style.size() - strlen(lmp->suffix) - 1);
+        return newstyle;
+      }
+    }
+    if (lmp->suffix2) {
+      if (utils::strmatch(style, fmt::format("/{}$", lmp->suffix2))) {
+        newstyle.resize(style.size() - strlen(lmp->suffix2) - 1);
+        return newstyle;
+      }
+    }
+  }
+  return newstyle;
+}
+
 /* ----------------------------------------------------------------------
    Replace UTF-8 encoded chars with known ASCII equivalents
 ------------------------------------------------------------------------- */

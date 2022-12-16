@@ -141,12 +141,6 @@ double ComputeTempRegionEff::compute_scalar()
   if (dof < 0.0 && tarray_all[0] > 0.0)
     error->all(FLERR, "Temperature compute degrees of freedom < 0");
 
-  int one = 0;
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && region->match(x[i][0], x[i][1], x[i][2])) {
-      if (abs(spin[i]) == 1) one++;
-    }
-
   if (dof > 0.0)
     scalar = force->mvv2e * tarray_all[1] / (dof * force->boltz);
   else

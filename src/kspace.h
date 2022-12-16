@@ -117,7 +117,7 @@ class KSpace : protected Pointers {
 
   // public so can be called by commands that change charge
 
-  void qsum_qsq(int warning_flag = 1);
+  virtual void qsum_qsq(int warning_flag = 1);
 
   // general child-class methods
 

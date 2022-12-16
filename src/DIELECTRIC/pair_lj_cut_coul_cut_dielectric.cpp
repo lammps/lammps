@@ -71,7 +71,7 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
 
   evdwl = ecoul = 0.0;
   ev_init(eflag, vflag);
-  printf("eflag = %d; evflag = %d\n", eflag, evflag);
+
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q_scaled;

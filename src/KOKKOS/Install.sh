@@ -117,6 +117,8 @@ action fix_acks2_reaxff_kokkos.cpp fix_acks2_reaxff.cpp
 action fix_acks2_reaxff_kokkos.h fix_acks2_reaxff.h
 action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
+action fix_dt_reset_kokkos.cpp
+action fix_dt_reset_kokkos.h
 action fix_enforce2d_kokkos.cpp
 action fix_enforce2d_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
@@ -165,6 +167,8 @@ action fix_wall_lj93_kokkos.cpp
 action fix_wall_lj93_kokkos.h
 action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
+action fix_viscous_kokkos.cpp
+action fix_viscous_kokkos.h
 action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp
 action fix_dpd_energy_kokkos.h fix_dpd_energy.h
 action fix_rx_kokkos.cpp fix_rx.cpp

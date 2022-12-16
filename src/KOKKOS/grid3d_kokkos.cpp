@@ -622,7 +622,7 @@ void Grid3dKokkos<DeviceType>::forward_comm(int caller, void *ptr, int which, in
                             FFT_DAT::tdual_FFT_SCALAR_1d& k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d& k_buf2,
                             MPI_Datatype datatype)
 {
-  if (caller == KSPACE) { 
+  if (caller == KSPACE) {
     if (layout != Comm::LAYOUT_TILED)
     forward_comm_kspace_brick((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);
   else

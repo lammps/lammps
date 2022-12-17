@@ -190,7 +190,7 @@ void PairDPDExtOMP::eval(int iifrom, int iito, ThrData * const thr)
         P[2][0] = P[0][2];
         P[2][1] = P[1][2];
         P[2][2] = 1.0 - delz*delz*rinv*rinv;
-        
+
         wd = 1.0 - r/cut[itype][jtype];
         wdPar = pow(wd,ws[itype][jtype]);
         wdPerp = pow(wd,wsT[itype][jtype]);

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/ Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,34 +11,40 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(dpd/ext/tstat,PairDPDExtTstat);
+PairStyle(dpd/ext/omp,PairDPDExtOMP);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_DPD_EXT_TSTAT_H
-#define LMP_PAIR_DPD_EXT_TSTAT_H
+#ifndef LMP_PAIR_DPD_EXT_OMP_H
+#define LMP_PAIR_DPD_EXT_OMP_H
 
 #include "pair_dpd_ext.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairDPDExtTstat : public PairDPDExt {
+class PairDPDExtOMP : public PairDPDExt, public ThrOMP {
+
  public:
-  PairDPDExtTstat(class LAMMPS *);
+  PairDPDExtOMP(class LAMMPS *);
+  ~PairDPDExtOMP() override;
+
   void compute(int, int) override;
-  void settings(int, char **) override;
-  void coeff(int, char **) override;
-  void write_restart(FILE *) override;
-  void read_restart(FILE *) override;
-  void write_restart_settings(FILE *) override;
-  void read_restart_settings(FILE *) override;
-  void write_data(FILE *) override;
-  void write_data_all(FILE *) override;
+  double memory_usage() override;
 
  protected:
-  double t_start, t_stop;
+  class RanMars **random_thr;
+  int nthreads;
+
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 }    // namespace LAMMPS_NS
 #endif

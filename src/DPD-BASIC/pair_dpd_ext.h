@@ -49,7 +49,6 @@ class PairDPDExt : public Pair {
   double **sigma, **sigmaT;
   double **ws, **wsT;
   class RanMars *random;
-
   virtual void allocate();
 };
 

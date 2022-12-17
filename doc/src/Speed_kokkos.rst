@@ -212,14 +212,15 @@ threads/task as Nt. The product of these two values should be N, i.e.
 .. note::
 
    The default for the :doc:`package kokkos <package>` command when
-   running on KNL is to use "half" neighbor lists and set the Newton flag
-   to "on" for both pairwise and bonded interactions. This will typically
-   be best for many-body potentials. For simpler pairwise potentials, it
-   may be faster to use a "full" neighbor list with Newton flag to "off".
-   Use the "-pk kokkos" :doc:`command-line switch <Run_options>` to change
-   the default :doc:`package kokkos <package>` options. See its page for
-   details and default settings. Experimenting with its options can provide
-   a speed-up for specific calculations. For example:
+   running on KNL is to use "half" neighbor lists and set the Newton
+   flag to "on" for both pairwise and bonded interactions. This will
+   typically be best for many-body potentials. For simpler pairwise
+   potentials, it may be faster to use a "full" neighbor list with
+   Newton flag to "off".  Use the "-pk kokkos" :doc:`command-line switch
+   <Run_options>` to change the default :doc:`package kokkos <package>`
+   options. See its documentation page for details and default
+   settings. Experimenting with its options can provide a speed-up for
+   specific calculations. For example:
 
 .. code-block:: bash
 
@@ -271,17 +272,18 @@ one or more nodes, each with two GPUs:
 .. note::
 
    The default for the :doc:`package kokkos <package>` command when
-   running on GPUs is to use "full" neighbor lists and set the Newton flag
-   to "off" for both pairwise and bonded interactions, along with threaded
-   communication. When running on Maxwell or Kepler GPUs, this will
-   typically be best. For Pascal GPUs and beyond, using "half" neighbor lists and
-   setting the Newton flag to "on" may be faster. For many pair styles,
-   setting the neighbor binsize equal to twice the CPU default value will
-   give speedup, which is the default when running on GPUs. Use the "-pk
-   kokkos" :doc:`command-line switch <Run_options>` to change the default
-   :doc:`package kokkos <package>` options. See its page for details and
-   default settings. Experimenting with its options can provide a speed-up
-   for specific calculations. For example:
+   running on GPUs is to use "full" neighbor lists and set the Newton
+   flag to "off" for both pairwise and bonded interactions, along with
+   threaded communication. When running on Maxwell or Kepler GPUs, this
+   will typically be best. For Pascal GPUs and beyond, using "half"
+   neighbor lists and setting the Newton flag to "on" may be faster. For
+   many pair styles, setting the neighbor binsize equal to twice the CPU
+   default value will give speedup, which is the default when running on
+   GPUs. Use the "-pk kokkos" :doc:`command-line switch <Run_options>`
+   to change the default :doc:`package kokkos <package>` options. See
+   its documentation page for details and default
+   settings. Experimenting with its options can provide a speed-up for
+   specific calculations. For example:
 
 .. code-block:: bash
 

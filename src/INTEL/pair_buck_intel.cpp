@@ -262,7 +262,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
           if (rsq < c_forcei[jtype].cutsq) {
           #endif
             const flt_t r6inv = r2inv * r2inv * r2inv;
-            const flt_t rexp = exp(-r * c_forcei[jtype].rhoinv);
+            const flt_t rexp = std::exp(-r * c_forcei[jtype].rhoinv);
             forcebuck = r * rexp * c_forcei[jtype].buck1 -
               r6inv * c_forcei[jtype].buck2;
 

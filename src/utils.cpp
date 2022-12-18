@@ -381,7 +381,7 @@ double utils::numeric(const char *file, int line, const std::string &str, bool d
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+.eE") != std::string::npos) {
+  if (!is_double(buf)) {
     std::string msg("Expected floating point parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -425,7 +425,7 @@ int utils::inumeric(const char *file, int line, const std::string &str, bool do_
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+  if (!is_integer(buf)) {
     std::string msg("Expected integer parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -470,7 +470,7 @@ bigint utils::bnumeric(const char *file, int line, const std::string &str, bool 
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+  if (!is_integer(buf)) {
     std::string msg("Expected integer parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -515,7 +515,7 @@ tagint utils::tnumeric(const char *file, int line, const std::string &str, bool 
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+  if (!is_integer(buf)) {
     std::string msg("Expected integer parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -866,7 +866,6 @@ std::string utils::star_subst(const std::string &name, bigint step, int pad)
   return fmt::format("{}{:0{}}{}", name.substr(0, star), step, pad, name.substr(star + 1));
 }
 
-
 /* ----------------------------------------------------------------------
    Remove accelerator style suffix from string
 ------------------------------------------------------------------------- */
@@ -1153,11 +1152,7 @@ bool utils::is_integer(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (const auto &c : str) {
-    if (isdigit(c) || c == '-' || c == '+') continue;
-    return false;
-  }
-  return true;
+  return strmatch(str, "^[+-]?\\d+$");
 }
 
 /* ----------------------------------------------------------------------
@@ -1168,13 +1163,12 @@ bool utils::is_double(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (const auto &c : str) {
-    if (isdigit(c)) continue;
-    if (c == '-' || c == '+' || c == '.') continue;
-    if (c == 'e' || c == 'E') continue;
+  if (strmatch(str, "^[-+]?\\d+\\.?\\d*$") || strmatch(str, "^[-+]?\\d*\\.\\d+$") ||
+      strmatch(str, "^[-+]?\\d+\\.?\\d*[eE][-+]?\\d+$") ||
+      strmatch(str, "^[-+]?\\d*\\.\\d+[eE][-+]?\\d+$"))
+    return true;
+  else
     return false;
-  }
-  return true;
 }
 
 /* ----------------------------------------------------------------------

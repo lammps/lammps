@@ -300,6 +300,26 @@ TEST(Utils, valid_double9)
     ASSERT_TRUE(utils::is_double("+.0"));
 }
 
+TEST(Utils, valid_double10)
+{
+    ASSERT_TRUE(utils::is_double("-0.15"));
+}
+
+TEST(Utils, valid_double11)
+{
+    ASSERT_TRUE(utils::is_double("-27.5"));
+}
+
+TEST(Utils, valid_double12)
+{
+    ASSERT_TRUE(utils::is_double("+0.15"));
+}
+
+TEST(Utils, valid_double13)
+{
+    ASSERT_TRUE(utils::is_double("+27.5"));
+}
+
 TEST(Utils, empty_not_an_integer)
 {
     ASSERT_FALSE(utils::is_integer(""));
@@ -315,24 +335,64 @@ TEST(Utils, text_not_an_integer)
     ASSERT_FALSE(utils::is_integer("one"));
 }
 
-TEST(Utils, minus_not_an_integer)
+TEST(Utils, minus_not_an_integer1)
 {
     ASSERT_FALSE(utils::is_integer("1-"));
 }
 
-TEST(Utils, plus_not_an_integer)
+TEST(Utils, plus_not_an_integer1)
 {
     ASSERT_FALSE(utils::is_integer("1+"));
 }
 
-TEST(Utils, minus_not_a_double)
+TEST(Utils, minus_not_an_integer2)
+{
+    ASSERT_FALSE(utils::is_integer("--1"));
+}
+
+TEST(Utils, plus_not_an_integer2)
+{
+    ASSERT_FALSE(utils::is_integer("++1"));
+}
+
+TEST(Utils, plusminus_not_an_integer1)
+{
+    ASSERT_FALSE(utils::is_integer("-+1"));
+}
+
+TEST(Utils, plusminus_not_an_integer2)
+{
+    ASSERT_FALSE(utils::is_integer("+-1"));
+}
+
+TEST(Utils, minus_not_a_double1)
 {
     ASSERT_FALSE(utils::is_double("1-"));
 }
 
-TEST(Utils, plus_not_a_double)
+TEST(Utils, plus_not_a_double1)
 {
     ASSERT_FALSE(utils::is_double("1+"));
+}
+
+TEST(Utils, minus_not_a_double2)
+{
+    ASSERT_FALSE(utils::is_double("--1"));
+}
+
+TEST(Utils, plus_not_a_double2)
+{
+    ASSERT_FALSE(utils::is_double("++1"));
+}
+
+TEST(Utils, plusminus_not_a_double1)
+{
+    ASSERT_FALSE(utils::is_double("+-1"));
+}
+
+TEST(Utils, plusminus_not_a_double2)
+{
+    ASSERT_FALSE(utils::is_double("-+1"));
 }
 
 TEST(Utils, text_not_a_double)

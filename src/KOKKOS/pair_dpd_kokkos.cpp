@@ -232,7 +232,7 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,EVFLAG>, cons
   int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,randnum,factor_dpd;
+  double rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
   double fx = 0,fy = 0,fz = 0;
   double evdwl = 0;
   i = d_ilist[ii];
@@ -248,6 +248,7 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,EVFLAG>, cons
   for (jj = 0; jj < jnum; jj++) {
     j = d_neighbors(i,jj);
     factor_dpd = special_lj[sbmask(j)];
+    factor_sqrt = special_sqrt[sbmask(i)];
     j &= NEIGHMASK;
 
     delx = xtmp - x(j,0);
@@ -273,10 +274,11 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,EVFLAG>, cons
 
       // drag force - parallel
       fpair -= params(itype,jtype).gamma*wd*wd*dot*rinv;
+      fpair *= factor_dpd;
 
       // random force - parallel
-      fpair += params(itype,jtype).sigma*wd*randnum*dtinvsqrt;
-      fpair *= factor_dpd*rinv;
+      fpair += factor_sqrt*params(itype,jtype).sigma*wd*randnum*dtinvsqrt;
+      fpair *= rinv;
 
       fx += fpair*delx;
       fy += fpair*dely;

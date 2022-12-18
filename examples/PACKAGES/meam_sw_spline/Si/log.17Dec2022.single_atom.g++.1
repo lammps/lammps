@@ -1,0 +1,89 @@
+LAMMPS (3 Nov 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Si single atom in vacuum
+
+units           metal
+boundary        f f f
+
+atom_style      atomic
+region          box block -100 100 -100 100 -100 100 units box
+create_box              1 box
+Created orthogonal box = (-100 -100 -100) to (100 100 100)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 single 0 0 0 units box
+Created 1 atoms
+  using box units in orthogonal box = (-100 -100 -100) to (100 100 100)
+  create_atoms CPU = 0.000 seconds
+
+pair_style      meam/sw/spline
+pair_coeff      * * Si.b.meam.sw.spline Si
+Reading meam/sw/spline potential file Si.b.meam.sw.spline with DATE: 2012-10-26
+mass            * 28.085
+
+variable        cohesive_energy equal pe/atoms
+run                     0
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.4
+  ghost atom cutoff = 6.4
+  binsize = 3.2, bins = 63 63 63
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair meam/sw/spline, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair meam/sw/spline, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 4.364 | 4.364 | 4.364 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0              0              0              0              0            
+Loop time of 1.903e-06 on 1 procs for 0 steps with 1 atoms
+
+157.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.903e-06  |            |       |100.00
+
+Nlocal:              1 ave           1 max           1 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:            0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+print           "===================================================="
+====================================================
+print           "Calculated cohesive energy: ${cohesive_energy} eV/atom"
+Calculated cohesive energy: 0 eV/atom
+print           "Reference cohesive energy:  0 eV/atom"
+Reference cohesive energy:  0 eV/atom
+print           "===================================================="
+====================================================
+
+
+#dump           1 all custom 1 single_atom.dump id type x y z fx fy fz
+#run            0
+
+
+Total wall time: 0:00:00

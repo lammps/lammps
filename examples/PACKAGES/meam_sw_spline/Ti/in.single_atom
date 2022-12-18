@@ -1,0 +1,27 @@
+# Ti single atom in vacuum
+
+units           metal
+boundary        f f f
+
+atom_style      atomic
+region          box block -100 100 -100 100 -100 100 units box
+create_box              1 box
+create_atoms    1 single 0 0 0 units box
+
+pair_style      meam/sw/spline
+pair_coeff      * * Ti.meam.sw.spline Ti
+mass            * 47.90
+
+variable        cohesive_energy equal pe/atoms
+run                     0
+
+print           "===================================================="
+print           "Calculated cohesive energy: ${cohesive_energy} eV/atom"
+print           "Reference cohesive energy:  0 eV/atom"
+print           "===================================================="
+
+
+#dump           1 all custom 1 single_atom.dump id type x y z fx fy fz
+#run            0
+
+

@@ -1163,9 +1163,8 @@ bool utils::is_double(const std::string &str)
 {
   if (str.empty()) return false;
 
-  if (strmatch(str, "^[+-]?\\d+\\.?\\d*$") || strmatch(str, "^[+-]?\\d*\\.?\\d+$") ||
-      strmatch(str, "^[+-]?\\d+\\.?\\d*[eE][+-]?\\d+$") ||
-      strmatch(str, "^[+-]?\\d*\\.?\\d+[eE][+-]?\\d+$"))
+  if (strmatch(str, "^[+-]?\\d+\\.?\\d*$") || strmatch(str, "^[+-]?\\d+\\.?\\d*[eE][+-]?\\d+$") ||
+      strmatch(str, "^[+-]?\\d*\\.?\\d+$") || strmatch(str, "^[+-]?\\d*\\.?\\d+[eE][+-]?\\d+$"))
     return true;
   else
     return false;

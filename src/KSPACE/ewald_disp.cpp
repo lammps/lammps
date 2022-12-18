@@ -111,12 +111,16 @@ EwaldDisp::EwaldDisp(LAMMPS *lmp) : KSpace(lmp),
   M2 = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void EwaldDisp::settings(int narg, char **arg)
 {
-  if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
+  if (narg!=1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
   accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
+  if (accuracy_relative > 1.0)
+    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
+               accuracy_relative, force->kspace_style);
 }
-
 
 /* ---------------------------------------------------------------------- */
 

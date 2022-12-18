@@ -17,13 +17,14 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_tip4p.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
 #include "error.h"
 #include "math_const.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

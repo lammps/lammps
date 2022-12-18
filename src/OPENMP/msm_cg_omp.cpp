@@ -59,7 +59,7 @@ MSMCGOMP::MSMCGOMP(LAMMPS *lmp) : MSMOMP(lmp),
 void MSMCGOMP::settings(int narg, char **arg)
 {
   if ((narg < 1) || (narg > 2))
-    error->all(FLERR,"Illegal kspace_style msm/cg/omp command");
+    error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
 
   MSMOMP::settings(narg,arg);
 

@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "memory.h"
@@ -59,7 +60,7 @@ PPPMCG::PPPMCG(LAMMPS *lmp) : PPPM(lmp),
 void PPPMCG::settings(int narg, char **arg)
 {
   if ((narg < 1) || (narg > 2))
-    error->all(FLERR,"Illegal kspace_style pppm/cg command");
+    error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
 
   // first argument is processed in parent class
 

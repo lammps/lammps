@@ -10047,9 +10047,9 @@ Per MPI rank memory allocation (min/avg/max) = 4.849 | 4.849 | 4.849 Mbytes
       9998   0             -17.781718      0             -17.781718      7.3004358e-10  66.486818    
       9999   0             -17.781718      0             -17.781718      3.0142584e-10  66.486818    
      10000   0             -17.781718      0             -17.781718     -1.1416058e-09  66.486818    
-Loop time of 1.26221 on 1 procs for 10000 steps with 4 atoms
+Loop time of 1.20503 on 1 procs for 10000 steps with 4 atoms
 
-98.1% CPU use with 1 MPI tasks x 1 OpenMP threads
+98.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
@@ -10063,12 +10063,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.0551     | 1.0551     | 1.0551     |   0.0 | 83.59
+Pair    | 0.98806    | 0.98806    | 0.98806    |   0.0 | 81.99
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.032425   | 0.032425   | 0.032425   |   0.0 |  2.57
-Output  | 0.063661   | 0.063661   | 0.063661   |   0.0 |  5.04
+Comm    | 0.033461   | 0.033461   | 0.033461   |   0.0 |  2.78
+Output  | 0.061824   | 0.061824   | 0.061824   |   0.0 |  5.13
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.1111     |            |       |  8.80
+Other   |            | 0.1217     |            |       | 10.10
 
 Nlocal:              4 ave           4 max           4 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -10093,9 +10093,9 @@ WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
 Per MPI rank memory allocation (min/avg/max) = 3.724 | 3.724 | 3.724 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
      10000   0             -17.781718      0             -17.781718     -1.0779541e-09  66.486818    
-Loop time of 7.46e-07 on 1 procs for 0 steps with 4 atoms
+Loop time of 8.81e-07 on 1 procs for 0 steps with 4 atoms
 
-134.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+113.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -10105,7 +10105,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 7.46e-07   |            |       |100.00
+Other   |            | 8.81e-07   |            |       |100.00
 
 Nlocal:              4 ave           4 max           4 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -10125,12 +10125,12 @@ print           "===================================================="
 ====================================================
 print           "Calculated cohesive energy: ${cohesive_energy} eV/atom"
 Calculated cohesive energy: -4.44542957873261 eV/atom
-print           "Reference cohesive energy:  -4.290 eV/atom"
-Reference cohesive energy:  -4.290 eV/atom
+print           "Reference cohesive energy:  -4.352 eV/atom"
+Reference cohesive energy:  -4.352 eV/atom
 print           "Calculated lattice parameter: ${lattice_parameter} A"
 Calculated lattice parameter: 2.76079963615789 A
-print           "Reference lattice parameter:  2.925 A"
-Reference lattice parameter:  2.925 A
+print           "Reference lattice parameter:  2.736 A"
+Reference lattice parameter:  2.736 A
 print           "Atomic volume                 ${atmVol} A^3"
 Atomic volume                 16.6217045402861 A^3
 print           "c/a ratio:                    ${c_to_a}"

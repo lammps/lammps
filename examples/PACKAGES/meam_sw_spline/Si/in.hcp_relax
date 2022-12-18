@@ -26,9 +26,9 @@ run                     0
 
 print           "===================================================="
 print           "Calculated cohesive energy: ${cohesive_energy} eV/atom"
-print           "Reference cohesive energy:  -4.290 eV/atom"
+print           "Reference cohesive energy:  -4.352 eV/atom"
 print           "Calculated lattice parameter: ${lattice_parameter} A"
-print           "Reference lattice parameter:  2.925 A"
+print           "Reference lattice parameter:  2.736 A"
 print           "Atomic volume                 ${atmVol} A^3"
 print           "c/a ratio:                    ${c_to_a}"
 print           "Reference c/a ratio:          1.633"

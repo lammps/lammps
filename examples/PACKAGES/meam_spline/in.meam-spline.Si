@@ -1,13 +1,13 @@
 # Si fcc phase
 
-units		metal
-boundary	p p p
+units           metal
+boundary        p p p
 
-atom_style	atomic
-lattice		fcc 3.98
-region		box block 0 5 0 5 0 5
-create_box		1 box
-create_atoms	1 box
+atom_style      atomic
+lattice         fcc 3.98
+region          box block 0 5 0 5 0 5
+create_box              1 box
+create_atoms    1 box
 
 pair_style      meam/spline
 pair_coeff      * * Si_1.meam.spline Si

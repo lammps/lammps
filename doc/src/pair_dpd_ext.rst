@@ -115,10 +115,10 @@ each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the examples above:
 
 * A (force units)
-* :math:`\gamma_{\perp}` (force/velocity units)
 * :math:`\gamma_{\parallel}` (force/velocity units)
-* :math:`s_{\perp}` (unitless)
+* :math:`\gamma_{\perp}` (force/velocity units)
 * :math:`s_{\parallel}` (unitless)
+* :math:`s_{\perp}` (unitless)
 * :math:`r_c` (distance units)
 
 The last coefficient is optional. If not specified, the global DPD

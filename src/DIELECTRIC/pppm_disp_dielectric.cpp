@@ -21,6 +21,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "atom_vec_dielectric.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -499,6 +500,52 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
   // convert atoms back from lamda to box coords
 
   if (triclinic) domain->lamda2x(atom->nlocal);
+}
+
+/* ----------------------------------------------------------------------
+   compute qsum,qsqsum,q2 and give error/warning if not charge neutral
+   called initially, when particle count changes, when charges are changed
+------------------------------------------------------------------------- */
+
+void PPPMDispDielectric::qsum_qsq(int warning_flag)
+{
+  const double * const q = atom->q;
+  const double * const epsilon = atom->epsilon;
+  const int nlocal = atom->nlocal;
+  double qsum_local(0.0), qsqsum_local(0.0), qsqsume_local(0.0);
+  double qsqsume;
+
+#if defined(_OPENMP)
+#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
+#endif
+  for (int i = 0; i < nlocal; i++) {
+    qsum_local += q[i];
+    qsqsum_local += q[i]*q[i];
+    qsqsume_local += q[i]*q[i]/epsilon[i];
+  }
+
+  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&qsqsume_local,&qsqsume,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge && warning_flag) {
+    error->warning(FLERR,"Using kspace solver on system with no charge");
+    warn_nocharge = 0;
+  }
+
+  // q2 is used to compute the mesh spacing, here using qsqsume to match with regular pppm
+  q2 = qsqsume * force->qqrd2e; //q2 = qsqsum * force->qqrd2e;
+  
+  // not yet sure of the correction needed for non-neutral systems
+  // so issue warning or error
+
+  if (fabs(qsum) > SMALL) {
+    std::string message = fmt::format("System is not charge neutral, net "
+                                      "charge = {:.8}",qsum);
+    if (!warn_nonneutral) error->all(FLERR,message);
+    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message);
+    warn_nonneutral = 2;
+  }
 }
 
 /* ----------------------------------------------------------------------

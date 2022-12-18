@@ -41,6 +41,7 @@ class PPPMDispDielectric : public PPPMDisp {
   void fieldforce_c_ik() override;
   void fieldforce_c_ad() override;
   void fieldforce_c_peratom() override;
+  void qsum_qsq(int warning_flag = 1) override;
 
   class AtomVecDielectric *avec;
   int mu_flag;

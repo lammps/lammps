@@ -37,8 +37,8 @@ using namespace MathSpecial;
 
 #define SMALL 0.00001
 
-enum{REVERSE_RHO};
-enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
+enum {REVERSE_RHO};
+enum {FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 
 #ifdef FFT_SINGLE
 #define ZEROF 0.0f
@@ -170,6 +170,10 @@ void PPPMDielectric::compute(int eflag, int vflag)
   if (evflag_atom) fieldforce_peratom();
 
   // sum global energy across procs and add in volume-dependent term
+  // NOTE: elong given by pppm/dielectric is not equal to elong by pppm
+  //       cannot rescale by a factor because energy is not linearly dependent
+  //       on charge density (unlike forces); recall that we are 
+  //       using atom->q_scaled for make_rho() while in pppm it is atom->q
 
   const double qscale = qqrd2e * scale;
 
@@ -182,6 +186,7 @@ void PPPMDielectric::compute(int eflag, int vflag)
     energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
     energy *= qscale;
+    
   }
 
   // sum global virial across procs
@@ -237,25 +242,29 @@ void PPPMDielectric::qsum_qsq(int warning_flag)
   const double * const q = atom->q;
   const double * const epsilon = atom->epsilon;
   const int nlocal = atom->nlocal;
-  double qsum_local(0.0), qsqsum_local(0.0);
+  double qsum_local(0.0), qsqsum_local(0.0), qsqsume_local(0.0);
+  double qsqsume;
 
 #if defined(_OPENMP)
 #pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
 #endif
   for (int i = 0; i < nlocal; i++) {
     qsum_local += q[i];
-    qsqsum_local += q[i]*q[i]/epsilon[i];
+    qsqsum_local += q[i]*q[i];
+    qsqsume_local += q[i]*q[i]/epsilon[i];
   }
 
   MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&qsqsume_local,&qsqsume,1,MPI_DOUBLE,MPI_SUM,world);
 
   if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge && warning_flag) {
     error->warning(FLERR,"Using kspace solver on system with no charge");
     warn_nocharge = 0;
   }
 
-  q2 = qsqsum * force->qqrd2e;
+  // q2 is used to compute the mesh spacing, here using qsqsume to match with regular pppm
+  q2 = qsqsume * force->qqrd2e; //q2 = qsqsum * force->qqrd2e;
 
   // not yet sure of the correction needed for non-neutral systems
   // so issue warning or error
@@ -504,7 +513,7 @@ void PPPMDielectric::slabcorr()
 {
   // compute local contribution to global dipole moment
 
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double **x = atom->x;
   double *eps = atom->epsilon;
 

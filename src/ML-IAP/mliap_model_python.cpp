@@ -124,7 +124,7 @@ void MLIAPModelPython::connect_param_counts()
   }
   PyGILState_Release(gstate);
   model_loaded = 1;
-  utils::logmesg(lmp, "Loading python model complete.\n");
+  if (comm->me == 0) utils::logmesg(lmp, "Loading python model complete.\n");
 }
 
 /* ----------------------------------------------------------------------

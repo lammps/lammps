@@ -22,7 +22,7 @@
 #include "atom_vec_dielectric.h"
 #include "domain.h"
 #include "error.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -127,8 +127,8 @@ void PPPMDielectric::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -142,21 +142,21 @@ void PPPMDielectric::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                     FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
-    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
-                     FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
-                       FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
-                       FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   // calculate the force on my particles

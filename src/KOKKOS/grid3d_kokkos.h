@@ -12,33 +12,31 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_GRIDCOMM_KOKKOS_H
-#define LMP_GRIDCOMM_KOKKOS_H
+#ifndef LMP_GRID3D_KOKKOS_H
+#define LMP_GRID3D_KOKKOS_H
 
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "kokkos_type.h"
 #include "fftdata_kokkos.h"
 
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class GridCommKokkos : public GridComm {
+class Grid3dKokkos : public Grid3d {
  public:
+  enum { KSPACE = 0, PAIR = 1, FIX = 2 };    // calling classes
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
-  GridCommKokkos(class LAMMPS *, MPI_Comm, int, int, int,
-           int, int, int, int, int, int,
-           int, int, int, int, int, int);
-  GridCommKokkos(class LAMMPS *, MPI_Comm, int, int, int, int,
-           int, int, int, int, int, int,
-           int, int, int, int, int, int,
-           int, int, int, int, int, int);
-  ~GridCommKokkos() override;
-  void forward_comm_kspace(class KSpace *, int, int,
-                           FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
-  void reverse_comm_kspace(class KSpace *, int, int,
-                           FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
+  Grid3dKokkos(class LAMMPS *, MPI_Comm, int, int, int);
+  Grid3dKokkos(class LAMMPS *, MPI_Comm, int, int, int,
+         int, int, int, int, int, int, int, int, int, int, int, int);
+  ~Grid3dKokkos() override;
+
+  void forward_comm(int, void *, int, int, int,
+                    FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
+  void reverse_comm(int, void *, int, int, int,
+                    FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
 
  private:
   DAT::tdual_int_2d k_swap_packlist;
@@ -55,14 +53,14 @@ class GridCommKokkos : public GridComm {
   // internal methods
   // -------------------------------------------
 
-  void setup_regular(int &, int &) override;
-  void setup_tiled(int &, int &) override;
+  void setup_comm_brick(int &, int &) override;
+  void setup_comm_tiled(int &, int &) override;
 
-  void forward_comm_kspace_regular(class KSpace *, int, int,
+  void forward_comm_kspace_brick(class KSpace *, int, int,
                                    FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void forward_comm_kspace_tiled(class KSpace *, int, int,
                                  FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
-  void reverse_comm_kspace_regular(class KSpace *, int, int,
+  void reverse_comm_kspace_brick(class KSpace *, int, int,
                                    FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
   void reverse_comm_kspace_tiled(class KSpace *, int, int,
                                  FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
@@ -72,6 +70,6 @@ class GridCommKokkos : public GridComm {
   int indices(DAT::tdual_int_2d &, int, int, int, int, int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

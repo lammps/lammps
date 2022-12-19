@@ -25,6 +25,7 @@
 #include "kspace.h"
 #include "modify.h"
 #include "neighbor.h"
+#include "pair.h"
 #include "rcb.h"
 #include "update.h"
 
@@ -155,9 +156,6 @@ void FixBalance::post_constructor()
 
 void FixBalance::init()
 {
-  if (force->kspace) kspace_flag = 1;
-  else kspace_flag = 0;
-
   balance->init_imbalance(1);
 }
 
@@ -278,11 +276,13 @@ void FixBalance::rebalance()
   }
 
   // reset proc sub-domains
-  // check and warn if any proc's subbox is smaller than neigh skin
-  //   since may lead to lost atoms in comm->exchange()
 
   if (domain->triclinic) domain->set_lamda_box();
   domain->set_local_box();
+
+  // check and warn if any proc's subbox is smaller than neigh skin
+  //   since may lead to lost atoms in comm->exchange()
+
   domain->subbox_too_small_check(neighbor->skin);
 
   // output of new decomposition
@@ -303,9 +303,12 @@ void FixBalance::rebalance()
   else if (irregular->migrate_check()) irregular->migrate_atoms();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // invoke KSpace setup_grid() to adjust to new proc sub-domains
+  // notify all classes that store distributed grids
+  // so they can adjust to new proc sub-domains
 
-  if (kspace_flag) force->kspace->setup_grid();
+  modify->reset_grid();
+  if (force->pair) force->pair->reset_grid();
+  if (force->kspace) force->kspace->reset_grid();
 
   // pending triggers pre_neighbor() to compute final imbalance factor
   // can only be done after atoms migrate in comm->exchange()

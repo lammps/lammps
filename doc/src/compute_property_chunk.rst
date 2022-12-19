@@ -12,7 +12,8 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * property/chunk = style name of this compute command
-* input = one or more attributes
+* chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command that defines the chunks
+* input1,etc = one or more attributes
 
   .. parsed-literal::
 
@@ -26,8 +27,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   compute 1 all property/chunk count
-   compute 1 all property/chunk ID coord1
+   compute 1 all property/chunk bin2d id count
+   compute 1 all property/chunk myChunks id coord1
 
 Description
 """""""""""
@@ -35,29 +36,28 @@ Description
 Define a computation that stores the specified attributes of chunks of
 atoms.
 
-In LAMMPS, chunks are collections of atoms defined by a
-:doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
-to a single chunk (or no chunk).  The ID for this command is specified
-as chunkID.  For example, a single chunk could be the atoms in a molecule or
-atoms in a spatial bin.  See the :doc:`compute chunk/atom <compute_chunk_atom>`
-and :doc:`Howto chunk <Howto_chunk>` doc pages for details of how chunks can be
-defined and examples of how they can be used to measure properties of a system.
+In LAMMPS, chunks are collections of atoms defined by a :doc:`compute
+chunk/atom <compute_chunk_atom>` command, which assigns each atom to a
+single chunk (or no chunk).  The ID for this command is specified as
+chunkID.  For example, a single chunk could be the atoms in a molecule
+or atoms in a spatial bin.  See the :doc:`compute chunk/atom
+<compute_chunk_atom>` and :doc:`Howto chunk <Howto_chunk>` doc pages
+for details of how chunks can be defined and examples of how they can
+be used to measure properties of a system.
 
 This compute calculates and stores the specified attributes of chunks
-as global data so they can be accessed by other
-:doc:`output commands <Howto_output>` and used in conjunction with other
-commands that generate per-chunk data, such as
-:doc:`compute com/chunk <compute_com_chunk>` or
-:doc:`compute msd/chunk <compute_msd_chunk>`.
+as global data so they can be accessed by other :doc:`output commands
+<Howto_output>` and used in conjunction with other commands that
+generate per-chunk data, such as :doc:`compute com/chunk
+<compute_com_chunk>` or :doc:`compute msd/chunk <compute_msd_chunk>`.
 
 Note that only atoms in the specified group contribute to the
-calculation of the *count* attribute.  The
-:doc:`compute chunk/atom <compute_chunk_atom>` command defines its own group;
-atoms will have a chunk ID = 0 if they are not in that group,
-signifying they are not assigned to a chunk, and will thus also not
-contribute to this calculation.  You can specify the "all" group for
-this command if you simply want to include atoms with non-zero chunk
-IDs.
+calculation of the *count* attribute.  The :doc:`compute chunk/atom
+<compute_chunk_atom>` command defines its own group; atoms will have a
+chunk ID = 0 if they are not in that group, signifying they are not
+assigned to a chunk, and will thus also not contribute to this
+calculation.  You can specify the "all" group for this command if you
+simply want to include atoms with non-zero chunk IDs.
 
 The *count* attribute is the number of atoms in the chunk.
 
@@ -66,21 +66,24 @@ can only be used if the *compress* keyword was set to *yes* for the
 :doc:`compute chunk/atom <compute_chunk_atom>` command referenced by
 chunkID.  This means that the original chunk IDs (e.g., molecule IDs)
 will have been compressed to remove chunk IDs with no atoms assigned
-to them.  Thus a compressed chunk ID of 3 may correspond to an original
-chunk ID (molecule ID in this case) of 415.  The *id* attribute will
-then be 415 for the third chunk.
+to them.  Thus a compressed chunk ID of 3 may correspond to an
+original chunk ID (molecule ID in this case) of 415.  The *id*
+attribute will then be 415 for the third chunk.
 
 The *coordN* attributes can only be used if a *binning* style was used
-in the :doc:`compute chunk/atom <compute_chunk_atom>` command referenced
-by chunkID.  For *bin/1d*, *bin/2d*, and *bin/3d* styles the attribute
-is the center point of the bin in the corresponding dimension.  Style
-*bin/1d* only defines a *coord1* attribute.  Style *bin/2d* adds a
-*coord2* attribute.  Style *bin/3d* adds a *coord3* attribute.
 
-Note that if the value of the *units* keyword used in the :doc:`compute chunk/atom command <compute_chunk_atom>` is *box* or *lattice*, the
-*coordN* attributes will be in distance :doc:`units <units>`.  If the
-value of the *units* keyword is *reduced*, the *coordN* attributes
-will be in unitless reduced units (0--1).
+in the :doc:`compute chunk/atom <compute_chunk_atom>` command
+referenced by chunkID.  For *bin/1d*, *bin/2d*, and *bin/3d* styles
+the attribute is the center point of the bin in the corresponding
+dimension.  Style *bin/1d* only defines a *coord1* attribute.  Style
+*bin/2d* adds a *coord2* attribute.  Style *bin/3d* adds a *coord3*
+attribute.
+
+Note that if the value of the *units* keyword used in the
+:doc:`compute chunk/atom command <compute_chunk_atom>` is *box* or
+*lattice*, the *coordN* attributes will be in distance :doc:`units
+<units>`.  If the value of the *units* keyword is *reduced*, the
+*coordN* attributes will be in unitless reduced units (0-1).
 
 The simplest way to output the results of the compute property/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`

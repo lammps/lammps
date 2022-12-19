@@ -1434,10 +1434,8 @@ void Input::comm_style()
   } else if (strcmp(arg[0],"tiled") == 0) {
     if (comm->style == Comm::TILED) return;
     Comm *oldcomm = comm;
-
     if (lmp->kokkos) comm = new CommTiledKokkos(lmp,oldcomm);
     else comm = new CommTiled(lmp,oldcomm);
-
     delete oldcomm;
   } else error->all(FLERR,"Unknown comm_style argument: {}", arg[0]);
 }

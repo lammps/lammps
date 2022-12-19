@@ -113,7 +113,6 @@ class KSpace : protected Pointers {
   void x2lamdaT(double *, double *);
   void lamda2xT(double *, double *);
   void lamda2xvector(double *, double *);
-  void kspacebbox(double, double *);
 
   // public so can be called by commands that change charge
 
@@ -124,7 +123,7 @@ class KSpace : protected Pointers {
   virtual void settings(int, char **){};
   virtual void init() = 0;
   virtual void setup() = 0;
-  virtual void setup_grid(){};
+  virtual void reset_grid(){};
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int){};
 

@@ -51,6 +51,7 @@ Analysis howto
 
    Howto_output
    Howto_chunk
+   Howto_grid
    Howto_temperature
    Howto_elastic
    Howto_kappa

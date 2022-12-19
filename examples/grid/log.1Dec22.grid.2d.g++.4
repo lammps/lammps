@@ -1,0 +1,105 @@
+LAMMPS (3 Nov 2022)
+WARNING: Using I/O redirection is unreliable with parallel runs. Better use -in switch to read input file. (../lammps.cpp:528)
+# 2d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+dimension       2
+
+lattice		sq 0.5
+Lattice spacing in x,y,z = 1.4142136 1.4142136 1.4142136
+region		box block 0 50 0 50 -0.5 0.5
+create_box	1 box
+Created orthogonal box = (0 0 -0.70710678) to (70.710678 70.710678 0.70710678)
+  2 by 2 by 1 MPI processor grid
+create_atoms	1 box
+Created 2500 atoms
+  using lattice units in orthogonal box = (0 0 -0.70710678) to (70.710678 70.710678 0.70710678)
+  create_atoms CPU = 0.000 seconds
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+fix             2 all enforce2d
+
+# load balancing
+
+comm_style      tiled
+fix             100 all balance 100 0.9 rcb
+
+# fix ave/grid
+
+fix             ave all ave/grid 10 10 100 10 10 1 vx vy
+
+# dump grid
+
+compute         ave all property/grid 10 10 1 id ix iy
+#dump            ave all grid 100 tmp.dump.2d #                c_ave:grid:data[*] f_ave:grid:count f_ave:grid:data[*]
+#dump_modify     ave sort 1
+
+#dump            vtk1 all grid/vtk 100 tmp.dump1.2d.*.vtr f_ave:grid:count
+
+#dump            vtk2 all grid/vtk 100 tmp.dump2.2d.*.vtr f_ave:grid:data[2]
+
+#dump            10 all image 100 tmp.image.*.2d.png type type #                zoom 1.6 grid f_ave:grid:count adiam 0.6 shiny 0.0 #                subbox yes 0.01
+
+# run
+
+thermo          100
+
+run		500
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 20 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 51 51 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.555 | 2.556 | 2.557 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   1.44          -0.99804687     0              0.44137712    -0.58692863     5000         
+       100   1.5598149     -1.1263538      0              0.43283708     1.5290994      5000         
+       200   1.6032951     -1.1706712      0              0.43198254     1.3417115      5000         
+       300   1.6027535     -1.1702899      0              0.43182248     1.3590294      5000         
+       400   1.6099053     -1.1774853      0              0.43177606     1.3305193      5000         
+       500   1.6163874     -1.184699       0              0.43104185     1.346977       5000         
+Loop time of 0.031365 on 4 procs for 500 steps with 2500 atoms
+
+Performance: 6886659.462 tau/day, 15941.341 timesteps/s, 39.853 Matom-step/s
+100.0% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0098202  | 0.01197    | 0.018294   |   3.3 | 38.16
+Neigh   | 0.0023502  | 0.0025479  | 0.0030895  |   0.6 |  8.12
+Comm    | 0.0046956  | 0.012744   | 0.015481   |   4.1 | 40.63
+Output  | 5.6153e-05 | 6.3163e-05 | 7.3849e-05 |   0.0 |  0.20
+Modify  | 0.0032687  | 0.0036046  | 0.0046066  |   1.0 | 11.49
+Other   |            | 0.0004358  |            |       |  1.39
+
+Nlocal:            625 ave         627 max         623 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:            212 ave         216 max         207 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Neighs:        3621.75 ave        3673 max        3585 min
+Histogram: 1 0 0 2 0 0 0 0 0 1
+
+Total # of neighbors = 14487
+Ave neighs/atom = 5.7948
+Neighbor list builds = 25
+Dangerous builds not checked
+Total wall time: 0:00:00

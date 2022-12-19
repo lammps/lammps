@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS development team: developers@lammps.org
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -12,9 +12,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gridcomm_kokkos.h"
+#include "grid3d_kokkos.h"
 
 #include "comm.h"
+#include "error.h"
 #include "irregular.h"
 #include "kokkos.h"
 #include "kokkos_base_fft.h"
@@ -23,74 +24,62 @@
 
 using namespace LAMMPS_NS;
 
-enum{REGULAR,TILED};
-
 #define DELTA 16
 
 /* ----------------------------------------------------------------------
-   NOTES
-   tiled implementation only currently works for RCB, not general tiled
-   b/c RCB tree is used to find neighboring tiles
+   NOTES:
    if o indices for ghosts are < 0 or hi indices are >= N,
      then grid is treated as periodic in that dimension,
-     communication is done across the periodic boundaries
+     comm is done across the periodic boundaries
+   tiled implementations only work for RCB, not general tilings
+     b/c RCB tree is used to find neighboring tiles
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   constructor called by all classes except MSM
-   gcomm = world communicator
-   gn xyz = size of global grid
-   i xyz lohi = portion of global grid this proc owns, 0 <= index < N
-   o xyz lohi = owned grid portion + ghost grid cells needed in all directions
-   if o indices are < 0 or hi indices are >= N,
-     then grid is treated as periodic in that dimension,
-     communication is done across the periodic boundaries
+   constructor to create a 3d distributed grid
+   Grid3d assigns owned/ghost cells to each proc via setup_grid()
+     it MUST be called after constructor
+   gcomm = caller's communicator
+   gnx,gny,gnz = global grid size
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm,
-                   int gnx, int gny, int gnz,
-                   int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
-  : GridComm(lmp, gcomm,
-             gnx, gny, gnz,
-             ixlo,ixhi, iylo, iyhi, izlo, izhi,
-             oxlo, oxhi, oylo, oyhi, ozlo, ozhi)
+Grid3dKokkos<DeviceType>::Grid3dKokkos(LAMMPS *lmp, MPI_Comm gcomm,int gnx, int gny, int gnz) :
+  Grid3d(lmp, gcomm, gnx, gny, gnz)
 {
+
 }
 
 /* ----------------------------------------------------------------------
-   constructor called by MSM
-   gcomm = world communicator or sub-communicator for a hierarchical grid
-   flag = 1 if e xyz lohi values = larger grid stored by caller in gcomm = world
-   flag = 2 if e xyz lohi values = 6 neighbor procs in gcomm
-   gn xyz = size of global grid
-   i xyz lohi = portion of global grid this proc owns, 0 <= index < N
-   o xyz lohi = owned grid portion + ghost grid cells needed in all directions
-   e xyz lohi for flag = 1: extent of larger grid stored by caller
-   e xyz lohi for flag = 2: 6 neighbor procs
+   alternate constructor to create a 3d distributed grid
+   caller assigns owned/ghost cells to each proc
+     setup_grid() must NOT be called
+   used by MSM and PPPM/Electrode b/c their definition of ghost cells is complex
+   gcomm = caller's communicator
+   gnx,gny,gnz = global grid size
+   i xyz lo/hi = extent of owned grid cells on this proc
+   o xyz lo/hi = extent of owned+ghost grid cells on this proc
+   owned and ghost indices are inclusive
+     owned indices range from 0 to N-1
+     ghost indices can extend < 0 or >= N
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-GridCommKokkos<DeviceType>::GridCommKokkos(LAMMPS *lmp, MPI_Comm gcomm, int /*flag*/,
-                   int gnx, int gny, int gnz,
+Grid3dKokkos<DeviceType>::Grid3dKokkos(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
                    int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
-                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi,
-           int /*exlo*/, int /*exhi*/, int /*eylo*/, int /*eyhi*/, int /*ezlo*/, int /*ezhi*/)
-  : GridComm(lmp, gcomm,
-             gnx, gny, gnz,
-             ixlo,ixhi, iylo, iyhi, izlo, izhi,
+                   int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi)
+  : Grid3d(lmp, gcomm, gnx, gny, gnz,
+             ixlo, ixhi, iylo, iyhi, izlo, izhi,
              oxlo, oxhi, oylo, oyhi, ozlo, ozhi)
 {
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-GridCommKokkos<DeviceType>::~GridCommKokkos()
+Grid3dKokkos<DeviceType>::~Grid3dKokkos()
 {
-  // regular comm data struct
-
   for (int i = 0; i < nswap; i++) {
     swap[i].packlist = nullptr;
     swap[i].unpacklist = nullptr;
@@ -108,11 +97,14 @@ GridCommKokkos<DeviceType>::~GridCommKokkos()
     copy[i].packlist = nullptr;
     copy[i].unpacklist = nullptr;
   }
-
 }
 
 /* ----------------------------------------------------------------------
-   setup comm for a regular grid of procs
+   grow list of swaps by DELTA
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   setup owned/ghost comm for brick comm
    each proc has 6 neighbors
    comm pattern = series of swaps with one of those 6 procs
    can be multiple swaps with same proc if ghost extent is large
@@ -121,7 +113,7 @@ GridCommKokkos<DeviceType>::~GridCommKokkos()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
+void Grid3dKokkos<DeviceType>::setup_comm_brick(int &nbuf1, int &nbuf2)
 {
   int nsent,sendfirst,sendlast,recvfirst,recvlast;
   int sendplanes,recvplanes;
@@ -414,7 +406,7 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
 }
 
 /* ----------------------------------------------------------------------
-   setup comm for RCB tiled proc domains
+   setup owned/ghost comm for tiled comm
    each proc has arbitrary # of neighbors that overlap its ghost extent
    identify which procs will send me ghost cells, and vice versa
    may not be symmetric if both procs do not need same layers of ghosts
@@ -423,29 +415,14 @@ void GridCommKokkos<DeviceType>::setup_regular(int &nbuf1, int &nbuf2)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
+void Grid3dKokkos<DeviceType>::setup_comm_tiled(int &nbuf1, int &nbuf2)
 {
   int i,m;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   int ghostbox[6],pbc[3];
 
-  // setup RCB tree of cut info for grid
-  // access CommTiled to get cut dimension
-  // cut = this proc's inlo in that dim
-  // dim is -1 for proc 0, but never accessed
-
-  rcbinfo = (RCBinfo *)
-    memory->smalloc(nprocs*sizeof(RCBinfo),"GridComm:rcbinfo");
-  RCBinfo rcbone;
-  rcbone.dim = comm->rcbcutdim;
-  if (rcbone.dim <= 0) rcbone.cut = inxlo;
-  else if (rcbone.dim == 1) rcbone.cut = inylo;
-  else if (rcbone.dim == 2) rcbone.cut = inzlo;
-  MPI_Allgather(&rcbone,sizeof(RCBinfo),MPI_CHAR,
-                rcbinfo,sizeof(RCBinfo),MPI_CHAR,gridcomm);
-
-  // find overlaps of my extended ghost box with all other procs
-  // accounts for crossings of periodic boundaries
+  // find overlaps of my extended ghost box with all owned boxes
+  // accounts for ghost box overlapping periodic boundaries
   // noverlap = # of overlaps, including self
   // overlap = vector of overlap info using Overlap data struct
 
@@ -458,27 +435,28 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 
   pbc[0] = pbc[1] = pbc[2] = 0;
 
-  memory->create(overlap_procs,nprocs,"GridComm:overlap_procs");
-  noverlap = maxoverlap = 0;
-  overlap = nullptr;
-
-  ghost_box_drop(ghostbox,pbc);
+  Overlap *overlap;
+  int noverlap = compute_overlap(1,ghostbox,pbc,overlap);
 
   // send each proc an overlap message
   // content: me, index of my overlap, box that overlaps with its owned cells
-  // ncopy = # of overlaps with myself, across a periodic boundary
+  // ncopy = # of overlaps with myself across a periodic boundary
+  //         skip copy to self when non-PBC
 
   int *proclist;
-  memory->create(proclist,noverlap,"GridComm:proclist");
+  memory->create(proclist,noverlap,"grid3d:proclist");
   srequest = (Request *)
-    memory->smalloc(noverlap*sizeof(Request),"GridComm:srequest");
+    memory->smalloc(noverlap*sizeof(Request),"grid3d:srequest");
 
   int nsend_request = 0;
   ncopy = 0;
 
   for (m = 0; m < noverlap; m++) {
-    if (overlap[m].proc == me) ncopy++;
-    else {
+    if (overlap[m].proc == me) {
+      if (overlap[m].pbc[0] == 0 && overlap[m].pbc[1] == 0 &&
+          overlap[m].pbc[2] == 0) continue;
+      ncopy++;
+    } else {
       proclist[nsend_request] = overlap[m].proc;
       srequest[nsend_request].sender = me;
       srequest[nsend_request].index = m;
@@ -488,24 +466,22 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
     }
   }
 
-  Irregular *irregular = new Irregular(lmp);
+  auto irregular = new Irregular(lmp);
   int nrecv_request = irregular->create_data(nsend_request,proclist,1);
-  Request *rrequest =
-    (Request *) memory->smalloc(nrecv_request*sizeof(Request),"GridComm:rrequest");
+  auto rrequest = (Request *) memory->smalloc(nrecv_request*sizeof(Request),"grid3d:rrequest");
   irregular->exchange_data((char *) srequest,sizeof(Request),(char *) rrequest);
   irregular->destroy_data();
 
   // compute overlaps between received ghost boxes and my owned box
   // overlap box used to setup my Send data struct and respond to requests
 
-  send = (Send *) memory->smalloc(nrecv_request*sizeof(Send),"GridComm:send");
+  send = (Send *) memory->smalloc(nrecv_request*sizeof(Send),"grid3d:send");
 
-  k_send_packlist = DAT::tdual_int_2d("GridComm:send_packlist",nrecv_request,k_send_packlist.extent(1));
+  k_send_packlist = DAT::tdual_int_2d("grid3d:send_packlist",nrecv_request,k_send_packlist.extent(1));
 
-  sresponse = (Response *)
-    memory->smalloc(nrecv_request*sizeof(Response),"GridComm:sresponse");
+  sresponse = (Response *) memory->smalloc(nrecv_request*sizeof(Response),"grid3d:sresponse");
   memory->destroy(proclist);
-  memory->create(proclist,nrecv_request,"GridComm:proclist");
+  memory->create(proclist,nrecv_request,"grid3d:proclist");
 
   for (m = 0; m < nrecv_request; m++) {
     send[m].proc = rrequest[m].sender;
@@ -534,8 +510,7 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 
   int nsend_response = nrecv_request;
   int nrecv_response = irregular->create_data(nsend_response,proclist,1);
-  Response *rresponse =
-    (Response *) memory->smalloc(nrecv_response*sizeof(Response),"GridComm:rresponse");
+  auto rresponse = (Response *) memory->smalloc(nrecv_response*sizeof(Response),"grid3d:rresponse");
   irregular->exchange_data((char *) sresponse,sizeof(Response),(char *) rresponse);
   irregular->destroy_data();
   delete irregular;
@@ -544,9 +519,9 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   // box used to setup my Recv data struct after unwrapping via PBC
   // adjacent = 0 if any box of ghost cells does not adjoin my owned cells
 
-  recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"GridComm:recv");
+  recv = (Recv *) memory->smalloc(nrecv_response*sizeof(Recv),"grid3d:recv");
 
-  k_recv_unpacklist = DAT::tdual_int_2d("GridComm:recv_unpacklist",nrecv_response,k_recv_unpacklist.extent(1));
+  k_recv_unpacklist = DAT::tdual_int_2d("grid3d:recv_unpacklist",nrecv_response,k_recv_unpacklist.extent(1));
 
   adjacent = 1;
 
@@ -569,15 +544,18 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   nrecv = nrecv_response;
 
   // create Copy data struct from overlaps with self
+  // skip copy to self when non-PBC
 
-  copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"GridComm:copy");
+  copy = (Copy *) memory->smalloc(ncopy*sizeof(Copy),"grid3d:copy");
 
-  k_copy_packlist = DAT::tdual_int_2d("GridComm:copy_packlist",ncopy,k_copy_packlist.extent(1));
-  k_copy_unpacklist = DAT::tdual_int_2d("GridComm:copy_unpacklist",ncopy,k_copy_unpacklist.extent(1));
+  k_copy_packlist = DAT::tdual_int_2d("grid3d:copy_packlist",ncopy,k_copy_packlist.extent(1));
+  k_copy_unpacklist = DAT::tdual_int_2d("grid3d:copy_unpacklist",ncopy,k_copy_unpacklist.extent(1));
 
   ncopy = 0;
   for (m = 0; m < noverlap; m++) {
     if (overlap[m].proc != me) continue;
+    if (overlap[m].pbc[0] == 0 && overlap[m].pbc[1] == 0 &&
+        overlap[m].pbc[2] == 0) continue;
     xlo = overlap[m].box[0];
     xhi = overlap[m].box[1];
     ylo = overlap[m].box[2];
@@ -616,10 +594,8 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
 
   // clean-up
 
-  memory->sfree(rcbinfo);
+  clean_overlap();
   memory->destroy(proclist);
-  memory->destroy(overlap_procs);
-  memory->sfree(overlap);
   memory->sfree(srequest);
   memory->sfree(rrequest);
   memory->sfree(sresponse);
@@ -650,28 +626,36 @@ void GridCommKokkos<DeviceType>::setup_tiled(int &nbuf1, int &nbuf2)
   nbuf2 = MAX(nbufs,nbufr);
 }
 
+// ----------------------------------------------------------------------
+// forward/reverse comm of owned/ghost grid data via callbacks
+// ----------------------------------------------------------------------
+
 /* ----------------------------------------------------------------------
    forward comm of my owned cells to other's ghost cells
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::forward_comm_kspace(KSpace *kspace, int nper, int which,
-                                   FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+void Grid3dKokkos<DeviceType>::forward_comm(int caller, void *ptr, int which, int nper, int nbyte,
+                            FFT_DAT::tdual_FFT_SCALAR_1d& k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d& k_buf2,
+                            MPI_Datatype datatype)
 {
-  if (layout == REGULAR)
-    forward_comm_kspace_regular(kspace,nper,which,k_buf1,k_buf2,datatype);
+  if (caller == KSPACE) {
+    if (layout != Comm::LAYOUT_TILED)
+    forward_comm_kspace_brick((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);
   else
-    forward_comm_kspace_tiled(kspace,nper,which,k_buf1,k_buf2,datatype);
+    forward_comm_kspace_tiled((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);
+  } else
+    error->all(FLERR,"Kokkos grid comm only supports Kspace");
 }
 
 /* ----------------------------------------------------------------------
-   forward comm on regular grid of procs via list of swaps with 6 neighbor procs
+   forward comm for brick decomp via list of swaps with 6 neighbor procs
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::
-forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
-                            FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+void Grid3dKokkos<DeviceType>::
+forward_comm_kspace_brick(KSpace *kspace, int which, int nper,
+                          FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -719,12 +703,12 @@ forward_comm_kspace_regular(KSpace *kspace, int nper, int which,
 }
 
 /* ----------------------------------------------------------------------
-   forward comm on tiled grid decomp via Send/Recv lists of each neighbor proc
+   forward comm for tiled decomp via Send/Recv lists of each neighbor proc
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::
-forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
+void Grid3dKokkos<DeviceType>::
+forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
                           FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;
@@ -791,23 +775,27 @@ forward_comm_kspace_tiled(KSpace *kspace, int nper, int which,
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::reverse_comm_kspace(KSpace *kspace, int nper, int which,
-                                    FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+void Grid3dKokkos<DeviceType>::reverse_comm(int caller, void *ptr, int which, int nper, int nbyte,
+                            FFT_DAT::tdual_FFT_SCALAR_1d& k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d& k_buf2,
+                            MPI_Datatype datatype)
 {
-  if (layout == REGULAR)
-    reverse_comm_kspace_regular(kspace,nper,which,k_buf1,k_buf2,datatype);
-  else
-    reverse_comm_kspace_tiled(kspace,nper,which,k_buf1,k_buf2,datatype);
+  if (caller == KSPACE) {
+    if (layout != Comm::LAYOUT_TILED)
+      reverse_comm_kspace_brick((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);
+    else
+      reverse_comm_kspace_tiled((KSpace *) ptr,which,nper,k_buf1,k_buf2,datatype);
+  } else
+    error->all(FLERR,"Kokkos grid comm only supports Kspace");
 }
 
 /* ----------------------------------------------------------------------
-   reverse comm on regular grid of procs via list of swaps with 6 neighbor procs
+   reverse comm for brick decomp via list of swaps with 6 neighbor procs
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::
-reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
-                            FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
+void Grid3dKokkos<DeviceType>::
+reverse_comm_kspace_brick(KSpace *kspace, int which, int nper,
+                          FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int m;
   MPI_Request request;
@@ -856,12 +844,12 @@ reverse_comm_kspace_regular(KSpace *kspace, int nper, int which,
 }
 
 /* ----------------------------------------------------------------------
-   reverse comm on tiled grid decomp via Send/Recv lists of each neighbor proc
+   reverse comm for tiled decomp via Send/Recv lists of each neighbor proc
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::
-reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
+void Grid3dKokkos<DeviceType>::
+reverse_comm_kspace_tiled(KSpace *kspace, int which, int nper,
                           FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
   int i,m,offset;
@@ -908,7 +896,6 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
   }
 
   // unpack all received data
-
   for (i = 0; i < nsend; i++) {
     MPI_Waitany(nsend,requests,&m,MPI_STATUS_IGNORE);
 
@@ -924,24 +911,23 @@ reverse_comm_kspace_tiled(KSpace *kspace, int nper, int which,
   }
 }
 
+// ----------------------------------------------------------------------
+// miscellaneous methods
+// ----------------------------------------------------------------------
+
 /* ----------------------------------------------------------------------
-   create swap stencil for grid own/ghost communication
-   swaps covers all 3 dimensions and both directions
-   swaps cover multiple iterations in a direction if need grid pts
-     from further away than nearest-neighbor proc
-   same swap list used by forward and reverse communication
+   grow list of swaps by DELTA
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void GridCommKokkos<DeviceType>::grow_swap()
+void Grid3dKokkos<DeviceType>::grow_swap()
 {
   maxswap += DELTA;
-  swap = (Swap *)
-    memory->srealloc(swap,maxswap*sizeof(Swap),"GridComm:swap");
+  swap = (Swap *) memory->srealloc(swap,maxswap*sizeof(Swap),"grid3d:swap");
 
   if (!k_swap_packlist.d_view.data()) {
-    k_swap_packlist = DAT::tdual_int_2d("GridComm:swap_packlist",maxswap,k_swap_packlist.extent(1));
-    k_swap_unpacklist = DAT::tdual_int_2d("GridComm:swap_unpacklist",maxswap,k_swap_unpacklist.extent(1));
+    k_swap_packlist = DAT::tdual_int_2d("grid3d:swap_packlist",maxswap,k_swap_packlist.extent(1));
+    k_swap_unpacklist = DAT::tdual_int_2d("grid3d:swap_unpacklist",maxswap,k_swap_unpacklist.extent(1));
   } else {
     k_swap_packlist.resize(maxswap,k_swap_packlist.extent(1));
     k_swap_unpacklist.resize(maxswap,k_swap_unpacklist.extent(1));
@@ -950,12 +936,12 @@ void GridCommKokkos<DeviceType>::grow_swap()
 
 /* ----------------------------------------------------------------------
    create 1d list of offsets into 3d array section (xlo:xhi,ylo:yhi,zlo:zhi)
-   assume 3d array is allocated as
+   assume caller's 3d array is allocated as
      (fullxlo:fullxhi,fullylo:fullyhi,fullzlo:fullzhi)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-int GridCommKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
+int Grid3dKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
                        int xlo, int xhi, int ylo, int yhi, int zlo, int zhi)
 {
   int nmax = (xhi-xlo+1) * (yhi-ylo+1) * (zhi-zlo+1);
@@ -983,9 +969,9 @@ int GridCommKokkos<DeviceType>::indices(DAT::tdual_int_2d &k_list, int index,
 }
 
 namespace LAMMPS_NS {
-template class GridCommKokkos<LMPDeviceType>;
+template class Grid3dKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-template class GridCommKokkos<LMPHostType>;
+template class Grid3dKokkos<LMPHostType>;
 #endif
 }
 

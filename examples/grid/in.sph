@@ -1,0 +1,112 @@
+# SPH water over dam
+
+atom_style         sph
+dimension          2
+newton             on
+boundary           s s p
+units              lj
+
+read_data          data.sph
+
+# upper limit of timestep based on CFL-like criterion
+# roughly estimate number of timesteps needed for 7.5 seconds
+
+variable           h equal 0.03
+variable           c equal 10.0 # soundspeed for Tait's EOS
+variable           dt equal 0.1*${h}/${c} 
+variable           nrun equal 15.0/${dt} 
+
+# assign group name "bc" to boundary particles (type 2)
+# assign group name "water" to water particles (type 1)
+
+group              bc    type 2 
+group              water type 1 
+
+# use hybrid pairstyle which does density summation 
+# with cutoff ${h} every timestep (1)
+# use target density of 1000, soundspeed ${c} for Tait's EOS
+
+pair_style         hybrid/overlay sph/rhosum 1 sph/taitwater
+pair_coeff         * * sph/taitwater 1000.0 ${c} 1.0 ${h} 
+pair_coeff         1 1 sph/rhosum ${h}
+
+# add gravity. This fix also computes potential energy of mass in gravity field
+
+fix                gfix water gravity -9.81 vector 0 1 0 
+fix                2d_fix all enforce2d
+
+compute            rho_peratom all sph/rho/atom
+compute            e_peratom all sph/e/atom
+compute            esph all reduce sum c_e_peratom
+compute            ke all ke
+variable           etot equal c_esph+c_ke+f_gfix
+compute            ke_peratom all ke/atom
+
+# adjust nevery | min. allowed dt | max. allowed dt | 
+# max. travel distance per dt 
+# ${dt} ~= CFL criterion 0.1*h/c
+
+# remove top atoms
+
+region            cut block INF INF 2.5 INF INF INF
+delete_atoms      region cut
+
+# use a variable timestep
+
+fix                dtfix all dt/reset 1 NULL ${dt} 0.0005 units box 
+
+# time-integrate position, velocities, 
+# internal energy and density of water particles
+
+fix                integrate_water_fix water sph
+
+# time-integrate only internal energy and density of boundary particles
+
+fix                integrate_bc_fix bc sph/stationary
+
+thermo             500
+thermo_style       custom step ke c_esph v_etot f_gfix press time f_dtfix
+thermo_modify      norm no
+
+# load balancing
+
+comm_style      tiled
+fix             100 all balance 100 0.9 rcb
+
+# fix ave/grid
+
+fix             ave all ave/grid 50 5 250 10 10 1 vx vy
+
+# dump particles
+
+#dump               dump_id all custom 100 tmp.dump &
+#                   id type x y z c_ke_peratom
+#dump_modify        dump_id first yes
+
+# dump grid
+
+#compute         ave all property/grid 10 10 1 id ix iy
+#dump            ave all grid 250 tmp.grid c_ave:grid:data[*] f_ave:grid:data[*]
+#dump_modify     ave sort 1
+
+# dump image
+
+#compute         1 all property/atom proc
+#variable        p atom c_1%10
+
+#dump            3 all image 500 tmp.*.png c_ke_peratom type &
+#                adiam 0.015 view 0 0 zoom 2.5 subbox yes 0.01 &
+#                center d 0.5 0.5 0.5 size 1024 768 box no 0.0 &
+#                grid f_ave:grid:count
+#variable        colors string &
+#                "min blue 0.25 green 0.5 orange 0.75 yellow max red"
+#dump_modify     3 pad 5 amap 0 1.5 cf 1 5 ${colors}
+
+# run
+
+neigh_modify       every 5 delay 0 check no
+variable           skin equal 0.3*${h}
+neighbor           ${skin} bin
+
+run                6000
+

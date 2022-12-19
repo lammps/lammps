@@ -414,6 +414,7 @@ cdennist
 cdof
 ceil
 Ceil
+cekk
 centerline
 centro
 centroid
@@ -473,6 +474,7 @@ Cij
 cis
 civ
 CKD
+ckk
 Clang
 clearstore
 Cleary
@@ -562,6 +564,8 @@ Coulombic
 Coulombics
 counterion
 counterions
+CountI
+CountN
 Courant
 covalent
 covalently
@@ -779,6 +783,7 @@ dmax
 Dmax
 dmg
 dmi
+dname
 dnf
 DNi
 Dobnikar
@@ -1253,10 +1258,12 @@ Glosli
 Glotzer
 gmail
 gmake
+gmap
 gmask
 Gmask
 GMock
 gmres
+gname
 gneb
 GNEB
 Goldfarb
@@ -1452,6 +1459,7 @@ ieni
 ifdefs
 iff
 ifort
+ihi
 Ihle
 ij
 ijk
@@ -1462,6 +1470,7 @@ ilabel
 Ilie
 ilmenau
 Ilmenau
+ilo
 ilp
 Ilya
 im
@@ -1566,6 +1575,8 @@ Iw
 Iwers
 iwyu
 ixcm
+ixhi
+ixlo
 ixx
 Ixx
 ixy
@@ -2413,6 +2424,7 @@ nlen
 Nlimit
 nlines
 Nlines
+nlist
 nlo
 nlocal
 Nlocal
@@ -2544,11 +2556,15 @@ Nwait
 nwchem
 nx
 Nx
+nxlo
 nxnodes
+Nxyz
 ny
 Ny
+nylo
 nz
 Nz
+nzlo
 ocl
 octahedral
 octants
@@ -2618,6 +2634,8 @@ overlayed
 Ovito
 oxdna
 oxDNA
+oxhi
+oxlo
 oxrna
 oxRNA
 packings
@@ -2686,6 +2704,7 @@ Peng
 peptide
 peratom
 Pergamon
+pergrid
 peri
 peridynamic
 Peridynamic
@@ -3407,6 +3426,8 @@ Sugaku
 Suhai
 Sukumaran
 Sulc
+SumI
+SumN
 sumsq
 Sunderland
 supercell
@@ -3887,6 +3908,7 @@ xa
 xAVX
 xb
 Xc
+xc
 xcm
 Xcm
 Xcode
@@ -3918,6 +3940,7 @@ xplane
 XPlor
 xrd
 xs
+xsc
 xstk
 xsu
 xtc
@@ -3941,6 +3964,7 @@ Yazdani
 Ybar
 ybox
 Yc
+yc
 ycm
 Yeh
 yellowgreen
@@ -3957,6 +3981,7 @@ ymin
 yml
 Yoshida
 ys
+ysc
 ysu
 yu
 Yu
@@ -3974,6 +3999,7 @@ Zavattieri
 zbl
 ZBL
 Zc
+zc
 zcm
 zeeman
 Zeeman
@@ -4001,6 +4027,7 @@ zmin
 zmq
 zN
 zs
+zsc
 zst
 Zstandard
 zstd

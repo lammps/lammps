@@ -164,6 +164,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 FixTTM::~FixTTM()
 {
   delete [] infile;
+  delete [] outfile;
 
   delete random;
 
@@ -224,13 +225,6 @@ void FixTTM::init()
     error->all(FLERR,"Cannot use non-periodic boundares with fix ttm");
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix ttm with triclinic box");
-
-  // to allow this, would have to reset grid bounds dynamically
-  // for RCB balancing would have to reassign grid pts to procs
-  //   and create a new GridComm, and pass old GC data to new GC
-
-  if (domain->box_change)
-    error->all(FLERR,"Cannot use fix ttm with changing box shape, size, or sub-domains");
 
   // set force prefactors
 
@@ -483,9 +477,9 @@ void FixTTM::read_electron_temperatures(const std::string &filename)
         auto values = reader.next_values(4);
         ++nread;
 
-        int ix = values.next_int();
-        int iy = values.next_int();
-        int iz = values.next_int();
+        int ix = values.next_int() - 1;
+        int iy = values.next_int() - 1;
+        int iz = values.next_int() - 1;
         double T_tmp  = values.next_double();
 
         // check correctness of input data
@@ -529,8 +523,8 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
   FILE *fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm could not open output file {}: {}",
                       filename,utils::getsyserror());
-  fmt::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature "
-             "{}x{}x{} grid at step {}. Created by fix {}\n", utils::current_date(),
+  fmt::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature on "
+             "{}x{}x{} grid at step {} - created by fix {}\n", utils::current_date(),
              update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep, style);
 
   int ix,iy,iz;
@@ -538,7 +532,7 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
   for (iz = 0; iz < nzgrid; iz++)
     for (iy = 0; iy < nygrid; iy++)
       for (ix = 0; ix < nxgrid; ix++)
-        fprintf(fp,"%d %d %d %20.16g\n",ix,iy,iz,T_electron[iz][iy][ix]);
+        fprintf(fp,"%d %d %d %20.16g\n",ix+1,iy+1,iz+1,T_electron[iz][iy][ix]);
 
   fclose(fp);
 }

@@ -78,6 +78,7 @@ flow:     Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
 gjf:      use of fix langevin Gronbech-Jensen/Farago option
 granregion: use of fix wall/region/gran as boundary on granular particles
+grid      use of commands which overlay grids on the simulation domain
 hugoniostat: Hugoniostat shock dynamics
 hyper:    global and local hyperdynamics of diffusion on Pt surface
 indent:   spherical indenter into a 2d solid

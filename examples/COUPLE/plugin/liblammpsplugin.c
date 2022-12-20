@@ -199,7 +199,7 @@ int liblammpsplugin_release(liblammpsplugin_t *lmp)
   if (lmp->handle == NULL) return 2;
 
 #ifdef _WIN32
-  FreeLibrary((HINSTANCE) handle);
+  FreeLibrary((HINSTANCE) lmp->handle);
 #else
   dlclose(lmp->handle);
 #endif

@@ -7,6 +7,7 @@ functions.  They do not directly call the LAMMPS library.
 - :cpp:func:`lammps_encode_image_flags`
 - :cpp:func:`lammps_decode_image_flags`
 - :cpp:func:`lammps_set_fix_external_callback`
+- :cpp:func:`lammps_fix_external_get_force`
 - :cpp:func:`lammps_fix_external_set_energy_global`
 - :cpp:func:`lammps_fix_external_set_energy_peratom`
 - :cpp:func:`lammps_fix_external_set_virial_global`
@@ -40,6 +41,11 @@ where such memory buffers were allocated that require the use of
 -----------------------
 
 .. doxygenfunction:: lammps_set_fix_external_callback(void *, const char *, FixExternalFnPtr, void*)
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_fix_external_get_force
    :project: progguide
 
 -----------------------

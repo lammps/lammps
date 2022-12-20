@@ -35,7 +35,7 @@ MODULE LIBLAMMPS
 
   USE, INTRINSIC :: ISO_C_BINDING, ONLY: c_ptr, c_null_ptr, C_ASSOCIATED, &
     C_LOC, c_int, c_int64_t, c_char, c_null_char, c_double, c_size_t, &
-    C_F_POINTER
+    C_F_POINTER, c_funptr, C_FUNLOC
 
   IMPLICIT NONE
   PRIVATE
@@ -55,7 +55,7 @@ MODULE LIBLAMMPS
     LAMMPS_DOUBLE_2D = 3, &   ! two-dimensional 64-bit double array
     LAMMPS_INT64 = 4, &       ! 64-bit integer (or array)
     LAMMPS_INT64_2D = 5, &    ! two-dimensional 64-bit integer array
-    LAMMPS_STRING = 6, &      ! C-String
+    LAMMPS_STRING = 6, &      ! string
     LMP_STYLE_GLOBAL = 0, &   ! request global compute/fix/etc. data
     LMP_STYLE_ATOM = 1, &     ! request per-atom compute/fix/etc. data
     LMP_STYLE_LOCAL = 2, &    ! request local compute/fix/etc. data
@@ -64,7 +64,7 @@ MODULE LIBLAMMPS
     LMP_TYPE_ARRAY = 2, &     ! request array
     LMP_SIZE_VECTOR = 3, &    ! request size of vector
     LMP_SIZE_ROWS = 4, &      ! request rows (actually columns)
-    LMP_SIZE_COLS = 5, &      ! request colums (actually rows)
+    LMP_SIZE_COLS = 5, &      ! request columns (actually rows)
     LMP_ERROR_WARNING = 0, &  ! call Error::warning()
     LMP_ERROR_ONE = 1, &      ! call Error::one() (from this MPI rank)
     LMP_ERROR_ALL = 2, &      ! call Error::all() (from all MPI ranks)
@@ -74,6 +74,9 @@ MODULE LIBLAMMPS
     LMP_VAR_ATOM = 1, &       ! atom-style variables
     LMP_VAR_VECTOR = 2, &     ! vector variables
     LMP_VAR_STRING = 3        ! string variables (everything else)
+
+  ! Constants we set once (in the constructor) and never need to check again
+  INTEGER(c_int), SAVE :: SIZE_TAGINT, SIZE_BIGINT, SIZE_IMAGEINT
 
   ! "Constants" to use with extract_compute and friends
   TYPE lammps_style
@@ -132,7 +135,24 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_gather_bonds_big
     GENERIC   :: gather_bonds           => lmp_gather_bonds_small, &
                                            lmp_gather_bonds_big
-!
+    PROCEDURE, PRIVATE :: lmp_gather_int
+    PROCEDURE, PRIVATE :: lmp_gather_double
+    GENERIC   :: gather                 => lmp_gather_int, lmp_gather_double
+    PROCEDURE, PRIVATE :: lmp_gather_concat_int
+    PROCEDURE, PRIVATE :: lmp_gather_concat_double
+    GENERIC   :: gather_concat          => lmp_gather_concat_int, &
+                                           lmp_gather_concat_double
+    PROCEDURE, PRIVATE :: lmp_gather_subset_int
+    PROCEDURE, PRIVATE :: lmp_gather_subset_double
+    GENERIC   :: gather_subset          => lmp_gather_subset_int, &
+                                           lmp_gather_subset_double
+    PROCEDURE, PRIVATE :: lmp_scatter_int
+    PROCEDURE, PRIVATE :: lmp_scatter_double
+    GENERIC   :: scatter                => lmp_scatter_int, lmp_scatter_double
+    PROCEDURE, PRIVATE :: lmp_scatter_subset_int
+    PROCEDURE, PRIVATE :: lmp_scatter_subset_double
+    GENERIC   :: scatter_subset         => lmp_scatter_subset_int, &
+                                           lmp_scatter_subset_double
     PROCEDURE, PRIVATE :: lmp_create_atoms_int
     PROCEDURE, PRIVATE :: lmp_create_atoms_bigbig
     GENERIC   :: create_atoms           => lmp_create_atoms_int, &
@@ -171,7 +191,19 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_decode_image_flags_bigbig
     GENERIC   :: decode_image_flags     => lmp_decode_image_flags, &
                                            lmp_decode_image_flags_bigbig
-!
+    PROCEDURE :: set_fix_external_callback => lmp_set_fix_external_callback
+    PROCEDURE :: fix_external_get_force => lmp_fix_external_get_force
+    PROCEDURE :: fix_external_set_energy_global &
+                                        => lmp_fix_external_set_energy_global
+    PROCEDURE :: fix_external_set_virial_global &
+                                        => lmp_fix_external_set_virial_global
+    PROCEDURE :: fix_external_set_energy_peratom &
+                                        => lmp_fix_external_set_energy_peratom
+    PROCEDURE :: fix_external_set_virial_peratom &
+                                        => lmp_fix_external_set_virial_peratom
+    PROCEDURE :: fix_external_set_vector_length &
+                                        => lmp_fix_external_set_vector_length
+    PROCEDURE :: fix_external_set_vector => lmp_fix_external_set_vector
     PROCEDURE :: flush_buffers          => lmp_flush_buffers
     PROCEDURE :: is_running             => lmp_is_running
     PROCEDURE :: force_timeout          => lmp_force_timeout
@@ -260,6 +292,50 @@ MODULE LIBLAMMPS
     MODULE PROCEDURE assign_int_to_lammps_image_data, &
       assign_int64_to_lammps_image_data
   END INTERFACE
+
+  ! Interface templates for fix external callbacks
+  ABSTRACT INTERFACE
+    SUBROUTINE external_callback_smallsmall(caller, timestep, ids, x, fexternal)
+      IMPORT :: c_int, c_double
+      CLASS(*), INTENT(INOUT) :: caller
+      INTEGER(c_int), INTENT(IN) :: timestep
+      INTEGER(c_int), DIMENSION(:), INTENT(IN) :: ids
+      REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
+      REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: fexternal
+    END SUBROUTINE external_callback_smallsmall
+    SUBROUTINE external_callback_smallbig(caller, timestep, ids, x, fexternal)
+      IMPORT :: c_int, c_double, c_int64_t
+      CLASS(*), INTENT(INOUT) :: caller
+      INTEGER(c_int64_t), INTENT(IN) :: timestep
+      INTEGER(c_int), DIMENSION(:), INTENT(IN) :: ids
+      REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
+      REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: fexternal
+    END SUBROUTINE external_callback_smallbig
+    SUBROUTINE external_callback_bigbig(caller, timestep, ids, x, fexternal)
+      IMPORT :: c_double, c_int64_t
+      CLASS(*), INTENT(INOUT) :: caller
+      INTEGER(c_int64_t), INTENT(IN) :: timestep
+      INTEGER(c_int64_t), DIMENSION(:), INTENT(IN) :: ids
+      REAL(c_double), DIMENSION(:,:), INTENT(IN) :: x
+      REAL(c_double), DIMENSION(:,:), INTENT(OUT) :: fexternal
+    END SUBROUTINE external_callback_bigbig
+  END INTERFACE
+
+  ! Derived type for fix external callback data
+  TYPE fix_external_data
+    CHARACTER(LEN=:), ALLOCATABLE :: id
+    PROCEDURE(external_callback_smallsmall), NOPASS, POINTER :: &
+      callback_smallsmall => NULL()
+    PROCEDURE(external_callback_smallbig), NOPASS, POINTER :: &
+      callback_smallbig => NULL()
+    PROCEDURE(external_callback_bigbig), NOPASS, POINTER :: &
+      callback_bigbig => NULL()
+    CLASS(*), POINTER :: caller => NULL()
+    CLASS(lammps), POINTER :: lammps_instance => NULL()
+  END TYPE fix_external_data
+
+  ! Array used to store Fortran-facing callback functions for fix external
+  TYPE(fix_external_data), DIMENSION(:), ALLOCATABLE, TARGET, SAVE :: ext_data
 
   ! interface definitions for calling functions in library.cpp
   INTERFACE
@@ -493,13 +569,42 @@ MODULE LIBLAMMPS
       TYPE(c_ptr), VALUE :: handle, data
     END SUBROUTINE lammps_gather_bonds
 
-    !SUBROUTINE lammps_gather
+    SUBROUTINE lammps_gather(handle, name, type, count, data) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, data
+      INTEGER(c_int), VALUE :: type, count
+    END SUBROUTINE lammps_gather
 
-    !SUBROUTINE lammps_gather_concat
+    SUBROUTINE lammps_gather_concat(handle, name, type, count, data) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, data
+      INTEGER(c_int), VALUE :: type, count
+    END SUBROUTINE lammps_gather_concat
 
-    !SUBROUTINE lammps_gather_subset
+    SUBROUTINE lammps_gather_subset(handle, name, type, count, ndata, ids, &
+        data) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, ids, data
+      INTEGER(c_int), VALUE :: type, count, ndata
+    END SUBROUTINE lammps_gather_subset
 
-    !SUBROUTINE lammps_scatter_subset
+    SUBROUTINE lammps_scatter(handle, name, type, count, data) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, data
+      INTEGER(c_int), VALUE :: type, count
+    END SUBROUTINE lammps_scatter
+
+    SUBROUTINE lammps_scatter_subset(handle, name, type, count, ndata, ids, &
+        data) BIND(C)
+      IMPORT :: c_ptr, c_int
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, name, ids, data
+      INTEGER(c_int), VALUE :: count, ndata, type
+    END SUBROUTINE lammps_scatter_subset
 
     FUNCTION lammps_create_atoms(handle, n, id, type, x, v, image, bexpand) &
     BIND(C)
@@ -705,15 +810,55 @@ MODULE LIBLAMMPS
     ! It is re-written in Fortran below. It was easier to do the same for
     ! lammps_decode_image_flags's equivalent.
 
-    !SUBROUTINE lammps_set_fix_external_callback ! may have trouble....
-    !FUNCTION lammps_fix_external_get_force() ! returns real(c_double)(:)
+    SUBROUTINE lammps_set_fix_external_callback(handle, id, funcptr, ptr) &
+    BIND(C)
+      IMPORT :: c_ptr, c_funptr
+      TYPE(c_ptr), VALUE :: handle, id, ptr
+      TYPE(c_funptr), VALUE :: funcptr
+    END SUBROUTINE lammps_set_fix_external_callback
 
-    !SUBROUTINE lammps_fix_external_set_energy_global
-    !SUBROUTINE lammps_fix_external_set_energy_peratom
-    !SUBROUTINE lammps_fix_external_set_virial_global
-    !SUBROUTINE lammps_fix_external_set_virial_peratom
-    !SUBROUTINE lammps_fix_external_set_vector_length
-    !SUBROUTINE lammps_fix_external_set_vector
+    FUNCTION lammps_fix_external_get_force(handle, id) BIND(C)
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: handle, id
+      TYPE(c_ptr) :: lammps_fix_external_get_force
+    END FUNCTION lammps_fix_external_get_force
+
+    SUBROUTINE lammps_fix_external_set_energy_global(handle, id, eng) BIND(C)
+      IMPORT :: c_ptr, c_double
+      TYPE(c_ptr), VALUE :: handle, id
+      REAL(c_double), VALUE :: eng
+    END SUBROUTINE lammps_fix_external_set_energy_global
+
+    SUBROUTINE lammps_fix_external_set_virial_global(handle, id, virial) &
+    BIND(C)
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: handle, id, virial
+    END SUBROUTINE lammps_fix_external_set_virial_global
+
+    SUBROUTINE lammps_fix_external_set_energy_peratom(handle, id, eng) BIND(C)
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: handle, id, eng
+    END SUBROUTINE lammps_fix_external_set_energy_peratom
+
+    SUBROUTINE lammps_fix_external_set_virial_peratom(handle, id, virial) &
+    BIND(C)
+      IMPORT :: c_ptr
+      TYPE(c_ptr), VALUE :: handle, id, virial
+    END SUBROUTINE lammps_fix_external_set_virial_peratom
+
+    SUBROUTINE lammps_fix_external_set_vector_length(handle, id, length) &
+    BIND(C)
+      IMPORT :: c_ptr, c_int
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: length
+    END SUBROUTINE lammps_fix_external_set_vector_length
+
+    SUBROUTINE lammps_fix_external_set_vector(handle, id, idx, val) BIND(C)
+      IMPORT :: c_ptr, c_int, c_double
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: idx
+      REAL(c_double), VALUE :: val
+    END SUBROUTINE lammps_fix_external_set_vector
 
     SUBROUTINE lammps_flush_buffers(handle) BIND(C)
       IMPORT :: c_ptr
@@ -784,28 +929,28 @@ CONTAINS
     INTEGER(c_int)               :: i, c_comm, argc
 
     IF (PRESENT(args)) THEN
-        ! convert fortran argument list to c style
-        argc = SIZE(args)
-        ALLOCATE(argv(argc))
-        DO i=1, argc
-           argv(i) = f2c_string(args(i))
-        END DO
+      ! convert fortran argument list to c style
+      argc = SIZE(args)
+      ALLOCATE(argv(argc))
+      DO i=1, argc
+         argv(i) = f2c_string(args(i))
+      END DO
     ELSE
-        argc = 1
-        ALLOCATE(argv(1))
-        argv(1) = f2c_string("liblammps")
+      argc = 1
+      ALLOCATE(argv(1))
+      argv(1) = f2c_string("liblammps")
     ENDIF
 
     IF (PRESENT(comm)) THEN
-        c_comm = comm
-        lmp_open%handle = lammps_open(argc, argv, c_comm)
+      c_comm = comm
+      lmp_open%handle = lammps_open(argc, argv, c_comm)
     ELSE
-        lmp_open%handle = lammps_open_no_mpi(argc, argv, c_null_ptr)
+      lmp_open%handle = lammps_open_no_mpi(argc, argv, c_null_ptr)
     END IF
 
     ! Clean up allocated memory
     DO i=1, argc
-        CALL lammps_free(argv(i))
+      CALL lammps_free(argv(i))
     END DO
     DEALLOCATE(argv)
 
@@ -816,6 +961,11 @@ CONTAINS
     lmp_open%type%scalar = LMP_TYPE_SCALAR
     lmp_open%type%vector = LMP_TYPE_VECTOR
     lmp_open%type%array = LMP_TYPE_ARRAY
+
+    ! Assign constants for bigint and tagint for use elsewhere
+    SIZE_TAGINT = lmp_extract_setting(lmp_open, 'tagint')
+    SIZE_BIGINT = lmp_extract_setting(lmp_open, 'bigint')
+    SIZE_IMAGEINT = lmp_extract_setting(lmp_open, 'imageint')
   END FUNCTION lmp_open
 
   ! Combined Fortran wrapper around lammps_close() and lammps_mpi_finalize()
@@ -826,10 +976,10 @@ CONTAINS
     CALL lammps_close(self%handle)
 
     IF (PRESENT(finalize)) THEN
-        IF (finalize) THEN
-            CALL lammps_kokkos_finalize()
-            CALL lammps_mpi_finalize()
-        END IF
+      IF (finalize) THEN
+        CALL lammps_kokkos_finalize()
+        CALL lammps_mpi_finalize()
+      END IF
     END IF
   END SUBROUTINE lmp_close
 
@@ -997,7 +1147,7 @@ CONTAINS
         length = 3
       CASE DEFAULT
         length = 1
-      ! string cases doesn't use "length"
+      ! string cases do not use "length"
     END SELECT
 
     Cname = f2c_string(name)
@@ -1518,7 +1668,7 @@ CONTAINS
     IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'gather_atoms_subset requires "count" to be 1 or 3 &
-        &[Fortran/gather_atoms]')
+        &[Fortran/gather_atoms_subset]')
     END IF
 
     ndata = SIZE(ids, KIND=c_int)
@@ -1548,7 +1698,7 @@ CONTAINS
     IF (count /= 1 .AND. count /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
         'gather_atoms_subset requires "count" to be 1 or 3 &
-        &[Fortran/gather_atoms]')
+        &[Fortran/gather_atoms_subset]')
     END IF
 
     ndata = SIZE(ids, KIND=c_int)
@@ -1642,7 +1792,8 @@ CONTAINS
     Ccount = SIZE(data, KIND=c_int) / Cndata
     IF (Ccount /= 1 .AND. Ccount /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
-        'scatter_atoms_subset requires either 1 or 3 data per atom')
+        'scatter_atoms_subset requires either 1 or 3 data per atom &
+        &[Fortran/scatter_atoms_subset]')
     END IF
 
     Cname = f2c_string(name)
@@ -1667,7 +1818,8 @@ CONTAINS
     Ccount = SIZE(data, KIND=c_int) / Cndata
     IF (Ccount /= 1 .AND. Ccount /= 3) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
-        'scatter_atoms_subset requires either 1 or 3 data per atom')
+        'scatter_atoms_subset requires either 1 or 3 data per atom &
+        &[Fortran/scatter_atoms_subset]')
     END IF
 
     Cname = f2c_string(name)
@@ -1682,19 +1834,16 @@ CONTAINS
   SUBROUTINE lmp_gather_bonds_small(self, data)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
-    INTEGER(c_int) :: size_tagint, size_bigint
     INTEGER(c_int), POINTER :: nbonds_small
     INTEGER(c_int64_t), POINTER :: nbonds_big
     TYPE(c_ptr) :: Cdata
 
-    size_tagint = lmp_extract_setting(self, 'tagint')
-    IF (size_tagint /= 4_c_int) THEN
+    IF (SIZE_TAGINT /= 4_c_int) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
-        'Incompatible integer kind in gather_bonds [Fortran API]')
+        'Incompatible integer kind in gather_bonds [Fortran/gather_bonds]')
     END IF
     IF (ALLOCATED(data)) DEALLOCATE(data)
-    size_bigint = lmp_extract_setting(self, 'bigint')
-    IF (size_bigint == 4_c_int) THEN
+    IF (SIZE_BIGINT == 4_c_int) THEN
       nbonds_small = lmp_extract_global(self, 'nbonds')
       ALLOCATE(data(3*nbonds_small))
     ELSE
@@ -1709,14 +1858,12 @@ CONTAINS
   SUBROUTINE lmp_gather_bonds_big(self, data)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int64_t), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
-    INTEGER(c_int) :: size_tagint
     INTEGER(c_int64_t), POINTER :: nbonds
     TYPE(c_ptr) :: Cdata
 
-    size_tagint = lmp_extract_setting(self, 'tagint')
-    IF (size_tagint /= 8_c_int) THEN
+    IF (SIZE_TAGINT /= 8_c_int) THEN
       CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
-        'Incompatible integer kind in gather_bonds [Fortran API]')
+        'Incompatible integer kind in gather_bonds [Fortran/gather_bonds]')
     END IF
     nbonds = lmp_extract_global(self, 'nbonds')
     IF (ALLOCATED(data)) DEALLOCATE(data)
@@ -1724,6 +1871,314 @@ CONTAINS
     Cdata = C_LOC(data(1))
     CALL lammps_gather_bonds(self%handle, Cdata)
   END SUBROUTINE lmp_gather_bonds_big
+
+  ! equivalent function to lammps_gather (for int data)
+  SUBROUTINE lmp_gather_int(self, name, count, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    TYPE(c_ptr) :: Cdata, Cname
+    INTEGER(c_int) :: natoms
+    INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
+    REAL(c_double) :: dnatoms
+    CHARACTER(LEN=100) :: error_msg
+
+    IF (count /= 1 .AND. count /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'gather requires "count" to be 1 or 3 [Fortran/gather]')
+    END IF
+
+    dnatoms = lmp_get_natoms(self)
+    IF (dnatoms > HUGE(1_c_int)) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function gather with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/gather]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    ALLOCATE(data(natoms*count))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather(self%handle, Cname, Ctype, count, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_int
+
+  ! equivalent function to lammps_gather_atoms (for doubles)
+  SUBROUTINE lmp_gather_double(self, name, count, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    REAL(c_double), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    TYPE(c_ptr) :: Cdata, Cname
+    INTEGER(c_int) :: natoms
+    INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
+    REAL(c_double) :: dnatoms
+    CHARACTER(LEN=100) :: error_msg
+
+    IF (count /= 1 .AND. count /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'gather requires "count" to be 1 or 3 [Fortran/gather]')
+    END IF
+
+    dnatoms = lmp_get_natoms(self)
+    IF (dnatoms > HUGE(1_c_int)) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function gather with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/gather]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    ALLOCATE(data(natoms*count))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather(self%handle, Cname, Ctype, count, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_double
+
+  ! equivalent function to lammps_gather_concat (for ints)
+  SUBROUTINE lmp_gather_concat_int(self, name, count, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    TYPE(c_ptr) :: Cdata, Cname
+    INTEGER(c_int) :: natoms
+    INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
+    REAL(c_double) :: dnatoms
+    CHARACTER(LEN=100) :: error_msg
+
+    IF (count /= 1 .AND. count /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'gather_concat requires "count" to be 1 or 3 [Fortran/gather_concat]')
+    END IF
+
+    dnatoms = lmp_get_natoms(self)
+    IF (dnatoms > HUGE(1_c_int)) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function gather_concat with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/gather_concat]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    ALLOCATE(data(natoms*count))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_concat(self%handle, Cname, Ctype, count, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_concat_int
+
+  ! equivalent function to lammps_gather_concat (for doubles)
+  SUBROUTINE lmp_gather_concat_double(self, name, count, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    REAL(c_double), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    TYPE(c_ptr) :: Cdata, Cname
+    INTEGER(c_int) :: natoms
+    INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
+    REAL(c_double) :: dnatoms
+    CHARACTER(LEN=100) :: error_msg
+
+    IF (count /= 1 .AND. count /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'gather_concat requires "count" to be 1 or 3 [Fortran/gather_concat]')
+    END IF
+
+    dnatoms = lmp_get_natoms(self)
+    IF (dnatoms > HUGE(1_c_int)) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function gather_concat with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/gather_concat]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    ALLOCATE(data(natoms*count))
+    Cdata = C_LOC(data(1))
+    CALL lammps_gather_concat(self%handle, Cname, Ctype, count, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_concat_double
+
+  ! equivalent function to lammps_gather_subset (for integers)
+  SUBROUTINE lmp_gather_subset_int(self, name, count, ids, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    INTEGER(c_int), DIMENSION(:), TARGET, INTENT(IN) :: ids
+    INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    INTEGER(c_int) :: ndata
+    TYPE(c_ptr) :: Cdata, Cname, Cids
+    INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
+
+    IF (count /= 1 .AND. count /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'gather_subset requires "count" to be 1 or 3 [Fortran/gather_subset]')
+    END IF
+
+    ndata = SIZE(ids, KIND=c_int)
+
+    Cname = f2c_string(name)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    ALLOCATE(data(ndata*count))
+    data = -1_c_int
+    Cdata = C_LOC(data(1))
+    Cids = C_LOC(ids(1))
+    CALL lammps_gather_subset(self%handle, Cname, Ctype, count, &
+        ndata, Cids, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_subset_int
+
+  ! equivalent function to lammps_gather_subset (for doubles)
+  SUBROUTINE lmp_gather_subset_double(self, name, count, ids, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), INTENT(IN) :: count
+    INTEGER(c_int), DIMENSION(:), TARGET, INTENT(IN) :: ids
+    REAL(c_double), DIMENSION(:), ALLOCATABLE, TARGET, INTENT(OUT) :: data
+    INTEGER(c_int) :: ndata
+    TYPE(c_ptr) :: Cdata, Cname, Cids
+    INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
+
+    IF (count /= 1 .AND. count /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'gather_subset requires "count" to be 1 or 3 [Fortran/gather_subset]')
+    END IF
+
+    ndata = SIZE(ids, KIND=c_int)
+
+    Cname = f2c_string(name)
+    IF (ALLOCATED(data)) DEALLOCATE(data)
+    ALLOCATE(data(ndata*count))
+    Cdata = C_LOC(data(1))
+    Cids = C_LOC(ids(1))
+    CALL lammps_gather_subset(self%handle, Cname, Ctype, count, &
+        ndata, Cids, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_gather_subset_double
+
+  ! equivalent function to lammps_scatter (for integers)
+  SUBROUTINE lmp_scatter_int(self, name, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), DIMENSION(:), TARGET :: data
+    INTEGER(c_int) :: natoms, Ccount
+    INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
+    TYPE(c_ptr) :: Cname, Cdata
+    REAL(c_double) :: dnatoms
+    CHARACTER(LEN=100) :: error_msg
+
+    dnatoms = lmp_get_natoms(self)
+    IF (dnatoms > HUGE(1_c_int)) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function scatter with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/scatter]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    Cdata = C_LOC(data(1))
+    Ccount = SIZE(data) / natoms
+
+    IF (Ccount /= 1 .AND. Ccount /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'lammps_scatter requires either 1 or 3 data per atom')
+    END IF
+    CALL lammps_scatter(self%handle, Cname, Ctype, Ccount, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_scatter_int
+
+  ! equivalent function to lammps_scatter (for doubles)
+  SUBROUTINE lmp_scatter_double(self, name, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    REAL(c_double), DIMENSION(:), TARGET :: data
+    INTEGER(c_int) :: natoms, Ccount
+    INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
+    TYPE(c_ptr) :: Cname, Cdata
+    REAL(c_double) :: dnatoms
+    CHARACTER(LEN=100) :: error_msg
+
+    dnatoms = lmp_get_natoms(self)
+    IF (dnatoms > HUGE(1_c_int)) THEN
+      WRITE(error_msg,'(A,1X,I0,1X,A)') &
+        'Cannot use library function scatter with more than', &
+        HUGE(0_c_int), 'atoms [Fortran/scatter]'
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
+    END IF
+    natoms = NINT(dnatoms, c_int)
+
+    Cname = f2c_string(name)
+    Cdata = C_LOC(data(1))
+    Ccount = SIZE(data) / natoms
+
+    IF (Ccount /= 1 .AND. Ccount /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'scatter requires either 1 or 3 data per atom [Fortran/scatter]')
+    END IF
+    CALL lammps_scatter(self%handle, Cname, Ctype, Ccount, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_scatter_double
+
+  ! equivalent function to lammps_scatter_subset (for integers)
+  SUBROUTINE lmp_scatter_subset_int(self, name, ids, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), DIMENSION(:), TARGET :: ids
+    INTEGER(c_int), DIMENSION(:), TARGET :: data
+    INTEGER(c_int), PARAMETER :: Ctype = 0_c_int
+    INTEGER(c_int) :: Cndata, Ccount
+    TYPE(c_ptr) :: Cdata, Cname, Cids
+
+    Cndata = SIZE(ids, KIND=c_int)
+    Ccount = SIZE(data, KIND=c_int) / Cndata
+    IF (Ccount /= 1 .AND. Ccount /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'scatter_subset requires either 1 or 3 data per atom &
+        &[Fortran/scatter_subset]')
+    END IF
+
+    Cname = f2c_string(name)
+    Cdata = C_LOC(data(1))
+    Cids = C_LOC(ids(1))
+    CALL lammps_scatter_subset(self%handle, Cname, Ctype, Ccount, &
+      Cndata, Cids, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_scatter_subset_int
+
+  ! equivalent function to lammps_scatter_subset (for doubles)
+  SUBROUTINE lmp_scatter_subset_double(self, name, ids, data)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: name
+    INTEGER(c_int), DIMENSION(:), TARGET :: ids
+    REAL(c_double), DIMENSION(:), TARGET :: data
+    INTEGER(c_int), PARAMETER :: Ctype = 1_c_int
+    INTEGER(c_int) :: Cndata, Ccount
+    TYPE(c_ptr) :: Cdata, Cname, Cids
+
+    Cndata = SIZE(ids, KIND=c_int)
+    Ccount = SIZE(data, KIND=c_int) / Cndata
+    IF (Ccount /= 1 .AND. Ccount /= 3) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'scatter_subset requires either 1 or 3 data per atom')
+    END IF
+
+    Cname = f2c_string(name)
+    Cdata = C_LOC(data(1))
+    Cids = C_LOC(ids(1))
+    CALL lammps_scatter_subset(self%handle, Cname, Ctype, Ccount, &
+      Cndata, Cids, Cdata)
+    CALL lammps_free(Cname)
+  END SUBROUTINE lmp_scatter_subset_double
 
   ! equivalent function to lammps_create_atoms (int ids or id absent)
   SUBROUTINE lmp_create_atoms_int(self, id, type, x, v, image, bexpand)
@@ -1951,7 +2406,12 @@ CONTAINS
 
     CALL lammps_neighlist_element_neighbors(self%handle, idx, element, iatom, &
       numneigh, Cneighbors)
-    CALL C_F_POINTER(Cneighbors, neighbors, [numneigh])
+    IF (C_ASSOCIATED(Cneighbors)) THEN
+      CALL C_F_POINTER(Cneighbors, neighbors, [numneigh])
+    ELSE
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Pointer returned from lammps_neighlist_element_neighbors is NULL')
+    END IF
   END SUBROUTINE lmp_neighlist_element_neighbors
 
   ! equivalent function to lammps_version
@@ -2325,6 +2785,306 @@ CONTAINS
         & integer kind passed as "image" [Fortran/decode_image_flags]')
     END IF
   END SUBROUTINE lmp_decode_image_flags_bigbig
+
+  ! equivalent function to lammps_set_fix_external_callback for -DSMALLSMALL
+  ! note that "caller" is wrapped into a fix_external_data derived type along
+  ! with the fix id and the Fortran calling function.
+  SUBROUTINE lmp_set_fix_external_callback(self, id, callback, caller)
+    CLASS(lammps), TARGET, INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    EXTERNAL :: callback
+    CLASS(*), INTENT(IN), TARGET, OPTIONAL :: caller
+    TYPE(c_ptr) :: c_id, c_caller
+    TYPE(c_funptr) :: c_callback
+    INTEGER :: i, this_fix
+
+    c_id = f2c_string(id)
+    IF (ALLOCATED(ext_data)) THEN
+      this_fix = SIZE(ext_data) + 1
+      DO i = 1, SIZE(ext_data)
+        IF (ext_data(i)%id == id) THEN
+          this_fix = i
+          EXIT
+        END IF
+      END DO
+      IF (this_fix > SIZE(ext_data)) THEN
+        ! reallocates ext_data; this requires us to re-bind "caller" on the C
+        ! side to the new data structure, which likely moved to a new address
+        ext_data = [ext_data, fix_external_data()] ! extends ext_data by 1
+        CALL rebind_external_callback_data()
+      END IF
+    ELSE
+      ALLOCATE(ext_data(1))
+      this_fix = 1
+    END IF
+    ext_data(this_fix)%id = id
+    ext_data(this_fix)%lammps_instance => self
+
+    IF (SIZE_TAGINT == 4_c_int .AND. SIZE_BIGINT == 4_c_int) THEN
+      ! -DSMALLSMALL
+      c_callback = C_FUNLOC(callback_wrapper_smallsmall)
+      CALL set_fix_external_callback_smallsmall(this_fix, callback)
+    ELSE IF (SIZE_TAGINT == 8_c_int .AND. SIZE_BIGINT == 8_c_int) THEN
+      ! -DBIGBIG
+      c_callback = C_FUNLOC(callback_wrapper_bigbig)
+      CALL set_fix_external_callback_bigbig(this_fix, callback)
+    ELSE
+      ! -DSMALLBIG
+      c_callback = C_FUNLOC(callback_wrapper_smallbig)
+      CALL set_fix_external_callback_smallbig(this_fix, callback)
+    END IF
+
+    IF (PRESENT(caller)) THEN
+      ext_data(this_fix)%caller => caller
+    ELSE
+      NULLIFY(ext_data(this_fix)%caller)
+    END IF
+    c_caller = C_LOC(ext_data(this_fix))
+    CALL lammps_set_fix_external_callback(self%handle, c_id, c_callback, &
+      c_caller)
+    CALL lammps_free(c_id)
+  END SUBROUTINE lmp_set_fix_external_callback
+
+  ! Wrappers to assign callback pointers with explicit interfaces
+  SUBROUTINE set_fix_external_callback_smallsmall(id, callback)
+    INTEGER, INTENT(IN) :: id
+    PROCEDURE(external_callback_smallsmall) :: callback
+
+    ext_data(id)%callback_smallsmall => callback
+  END SUBROUTINE set_fix_external_callback_smallsmall
+
+  SUBROUTINE set_fix_external_callback_smallbig(id, callback)
+    INTEGER, INTENT(IN) :: id
+    PROCEDURE(external_callback_smallbig) :: callback
+
+    ext_data(id)%callback_smallbig => callback
+  END SUBROUTINE set_fix_external_callback_smallbig
+
+  SUBROUTINE set_fix_external_callback_bigbig(id, callback)
+    INTEGER, INTENT(IN) :: id
+    PROCEDURE(external_callback_bigbig) :: callback
+
+    ext_data(id)%callback_bigbig => callback
+  END SUBROUTINE set_fix_external_callback_bigbig
+
+  ! subroutine that re-binds all external callback data after a reallocation
+  SUBROUTINE rebind_external_callback_data()
+    INTEGER :: i
+    TYPE(c_ptr) :: c_id, c_caller
+    TYPE(c_funptr) :: c_callback
+
+    DO i = 1, SIZE(ext_data) - 1
+      c_id = f2c_string(ext_data(i)%id)
+      c_caller = C_LOC(ext_data(i))
+      IF (SIZE_TAGINT == 4_c_int .AND. SIZE_BIGINT == 4_c_int) THEN
+        c_callback = C_FUNLOC(callback_wrapper_smallsmall)
+      ELSE IF (SIZE_TAGINT == 8_c_int .AND. SIZE_BIGINT == 8_c_int) THEN
+        c_callback = C_FUNLOC(callback_wrapper_bigbig)
+      ELSE
+        c_callback = C_FUNLOC(callback_wrapper_smallbig)
+      END IF
+      CALL lammps_set_fix_external_callback( &
+        ext_data(i)%lammps_instance%handle, c_id, c_callback, c_caller)
+      CALL lammps_free(c_id)
+    END DO
+  END SUBROUTINE rebind_external_callback_data
+
+  ! companions to lmp_set_fix_external_callback to change interface
+  SUBROUTINE callback_wrapper_smallsmall(caller, timestep, nlocal, ids, x, &
+      fexternal) BIND(C)
+    TYPE(c_ptr), INTENT(IN), VALUE :: caller
+    INTEGER(c_int), INTENT(IN), VALUE :: timestep
+    INTEGER(c_int), INTENT(IN), VALUE :: nlocal
+    TYPE(c_ptr), INTENT(IN), VALUE :: ids, x, fexternal
+    TYPE(c_ptr), DIMENSION(:), POINTER :: x0, f0
+    INTEGER(c_int), DIMENSION(:), POINTER :: f_ids => NULL()
+    REAL(c_double), DIMENSION(:,:), POINTER :: f_x => NULL(), &
+        f_fexternal => NULL()
+    TYPE(fix_external_data), POINTER :: f_caller => NULL()
+
+    CALL C_F_POINTER(ids, f_ids, [nlocal])
+    CALL C_F_POINTER(x, x0, [nlocal])
+    CALL C_F_POINTER(x0(1), f_x, [3, nlocal])
+    CALL C_F_POINTER(fexternal, f0, [nlocal])
+    CALL C_F_POINTER(f0(1), f_fexternal, [3, nlocal])
+    IF (C_ASSOCIATED(caller)) THEN
+      CALL C_F_POINTER(caller, f_caller)
+      CALL f_caller%callback_smallsmall(f_caller%caller, timestep, f_ids, &
+        f_x, f_fexternal)
+    ELSE
+      CALL lmp_error(f_caller%lammps_instance, &
+        LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Got null pointer from "caller"; this should never happen;&
+        & please report a bug')
+    END IF
+  END SUBROUTINE callback_wrapper_smallsmall
+
+  SUBROUTINE callback_wrapper_smallbig(caller, timestep, nlocal, ids, x, &
+      fexternal) BIND(C)
+    TYPE(c_ptr), INTENT(IN), VALUE :: caller
+    INTEGER(c_int64_t), INTENT(IN), VALUE :: timestep
+    INTEGER(c_int), INTENT(IN), VALUE :: nlocal
+    TYPE(c_ptr), INTENT(IN), VALUE :: ids, x, fexternal
+    TYPE(c_ptr), DIMENSION(:), POINTER :: x0, f0
+    INTEGER(c_int), DIMENSION(:), POINTER :: f_ids => NULL()
+    REAL(c_double), DIMENSION(:,:), POINTER :: f_x => NULL(), &
+        f_fexternal => NULL()
+    TYPE(fix_external_data), POINTER :: f_caller => NULL()
+
+    CALL C_F_POINTER(ids, f_ids, [nlocal])
+    CALL C_F_POINTER(x, x0, [nlocal])
+    CALL C_F_POINTER(x0(1), f_x, [3, nlocal])
+    CALL C_F_POINTER(fexternal, f0, [nlocal])
+    CALL C_F_POINTER(f0(1), f_fexternal, [3, nlocal])
+    IF (C_ASSOCIATED(caller)) THEN
+      CALL C_F_POINTER(caller, f_caller)
+      CALL f_caller%callback_smallbig(f_caller%caller, timestep, f_ids, f_x, &
+        f_fexternal)
+    ELSE
+      CALL lmp_error(f_caller%lammps_instance, &
+        LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Got null pointer from "caller"; this should never happen;&
+        & please report a bug')
+    END IF
+  END SUBROUTINE callback_wrapper_smallbig
+
+  SUBROUTINE callback_wrapper_bigbig(caller, timestep, nlocal, ids, x, &
+      fexternal) BIND(C)
+    TYPE(c_ptr), INTENT(IN), VALUE :: caller
+    INTEGER(c_int64_t), INTENT(IN), VALUE :: timestep
+    INTEGER(c_int), INTENT(IN), VALUE :: nlocal
+    TYPE(c_ptr), INTENT(IN), VALUE :: ids, x, fexternal
+    TYPE(c_ptr), DIMENSION(:), POINTER :: x0, f0
+    INTEGER(c_int64_t), DIMENSION(:), POINTER :: f_ids => NULL()
+    REAL(c_double), DIMENSION(:,:), POINTER :: f_x => NULL(), &
+        f_fexternal => NULL()
+    TYPE(fix_external_data), POINTER :: f_caller => NULL()
+
+    CALL C_F_POINTER(ids, f_ids, [nlocal])
+    CALL C_F_POINTER(x, x0, [nlocal])
+    CALL C_F_POINTER(x0(1), f_x, [3, nlocal])
+    CALL C_F_POINTER(fexternal, f0, [nlocal])
+    CALL C_F_POINTER(f0(1), f_fexternal, [3, nlocal])
+    IF (C_ASSOCIATED(caller)) THEN
+      CALL C_F_POINTER(caller, f_caller)
+      CALL f_caller%callback_bigbig(f_caller%caller, timestep, f_ids, f_x, &
+        f_fexternal)
+    ELSE
+      CALL lmp_error(f_caller%lammps_instance, &
+        LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Got null pointer from "caller"; this should never happen;&
+        & please report a bug')
+    END IF
+  END SUBROUTINE callback_wrapper_bigbig
+
+  ! equivalent function to lammps_fix_external_get_force
+  FUNCTION lmp_fix_external_get_force(self, id) RESULT(fexternal)
+    CLASS(lammps), TARGET, INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    TYPE(lammps_fix_data) :: fexternal
+    TYPE(c_ptr) :: ptr, Cid
+    TYPE(c_ptr), DIMENSION(:), POINTER :: f
+    INTEGER(c_int) :: nmax
+
+    Cid = f2c_string(id)
+    ptr = lammps_fix_external_get_force(self%handle, Cid)
+    nmax = lmp_extract_setting(self, 'nmax')
+    CALL C_F_POINTER(ptr, f, [nmax])
+    fexternal%datatype = DATA_DOUBLE_2D
+    fexternal%lammps_instance => self
+    CALL C_F_POINTER(f(1), fexternal%r64_mat, [3, nmax])
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_fix_external_get_force
+
+  SUBROUTINE lmp_fix_external_set_energy_global(self, id, eng)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    REAL(c_double), INTENT(IN) :: eng
+    TYPE(c_ptr) :: Cid
+
+    Cid = f2c_string(id)
+    CALL lammps_fix_external_set_energy_global(self%handle, Cid, eng)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_energy_global
+
+  SUBROUTINE lmp_fix_external_set_virial_global(self, id, virial)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    REAL(c_double), DIMENSION(6), TARGET, INTENT(IN) :: virial
+    TYPE(c_ptr) :: Cid, Cvirial
+
+    Cid = f2c_string(id)
+    Cvirial = C_LOC(virial(1))
+    CALL lammps_fix_external_set_virial_global(self%handle, Cid, Cvirial)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_virial_global
+
+  SUBROUTINE lmp_fix_external_set_energy_peratom(self, id, eng)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    REAL(c_double), DIMENSION(:), TARGET, INTENT(IN) :: eng
+    TYPE(c_ptr) :: Cid, Ceng
+    INTEGER(c_int) :: nlocal
+
+    nlocal = lmp_extract_setting(self, 'nlocal')
+    IF (SIZE(eng) < nlocal) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Array "eng" should be length nlocal or greater &
+        &[Fortran/fix_external_set_energy_peratom]')
+    END IF
+    Cid = f2c_string(id)
+    Ceng = C_LOC(eng)
+    CALL lammps_fix_external_set_energy_peratom(self%handle, Cid, Ceng)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_energy_peratom
+
+  SUBROUTINE lmp_fix_external_set_virial_peratom(self, id, virial)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    REAL(c_double), DIMENSION(:,:), TARGET, INTENT(IN) :: virial
+    TYPE(c_ptr) :: Cid, Cvirial
+    TYPE(c_ptr), DIMENSION(:), ALLOCATABLE, TARGET :: Cptr
+    INTEGER(c_int) :: nlocal, i
+
+    nlocal = lmp_extract_setting(self, 'nlocal')
+    IF (SIZE(virial,2) < nlocal .OR. SIZE(virial,1) /= 6) THEN
+      CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
+        'Array "virial" should be size 6 x nlocal or greater &
+        &[Fortran/fix_external_set_energy_peratom]')
+    END IF
+    Cid = f2c_string(id)
+    ALLOCATE(Cptr(nlocal))
+    DO i = 1, nlocal
+      Cptr(i) = C_LOC(virial(1,i))
+    END DO
+    Cvirial = C_LOC(Cptr(1))
+    CALL lammps_fix_external_set_virial_peratom(self%handle, Cid, Cvirial)
+    CALL lammps_free(Cid)
+    DEALLOCATE(Cptr)
+  END SUBROUTINE lmp_fix_external_set_virial_peratom
+
+  SUBROUTINE lmp_fix_external_set_vector_length(self, id, length)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN) :: length
+    TYPE(c_ptr) :: Cid
+
+    Cid = f2c_string(id)
+    CALL lammps_fix_external_set_vector_length(self%handle, Cid, length)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_vector_length
+
+  SUBROUTINE lmp_fix_external_set_vector(self, id, idx, val)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN) :: idx
+    REAL(c_double), INTENT(IN) :: val
+    TYPE(c_ptr) :: Cid
+
+    Cid = f2c_string(id)
+    CALL lammps_fix_external_set_vector(self%handle, Cid, idx, val)
+    CALL lammps_free(Cid)
+  END SUBROUTINE lmp_fix_external_set_vector
 
   ! equivalent function to lammps_flush_buffers
   SUBROUTINE lmp_flush_buffers(self)

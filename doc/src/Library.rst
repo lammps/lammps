@@ -2,12 +2,13 @@ LAMMPS Library Interfaces
 *************************
 
 As described on the :doc:`library interface to LAMMPS <Howto_library>`
-page, LAMMPS can be built as a library (static or shared), so that
-it can be called by another code, used in a :doc:`coupled manner
+page, LAMMPS can be built as a library (static or shared), so that it
+can be called by another code, used in a :doc:`coupled manner
 <Howto_couple>` with other codes, or driven through a :doc:`Python
-script <Python_head>`.  Even the LAMMPS standalone executable is
-essentially a thin wrapper on top of the LAMMPS library, creating a
-LAMMPS instance, processing input and then existing.
+script <Python_head>`.  The LAMMPS standalone executable itself is
+essentially a thin wrapper on top of the LAMMPS library, which creates a
+LAMMPS instance, passes the input for processing to that instance, and
+then exits.
 
 Most of the APIs described below are based on C language wrapper
 functions in the files ``src/library.h`` and ``src/library.cpp``, but
@@ -87,6 +88,18 @@ run LAMMPS in serial mode.
    message retrieved <lammps_get_last_error_message>`.  We thus
    recommend enabling C++ exceptions when using the library interface,
 
+.. admonition:: Using the C library interface as a plugin
+   :class: note
+
+   Rather than including the C library directly and link to the LAMMPS
+   library at compile time, you can use the ``liblammpsplugin.h`` header
+   file and the ``liblammpsplugin.c`` C code in the
+   ``examples/COUPLE/plugin`` folder for an interface to LAMMPS that is
+   largely identical to the regular library interface, only that it will
+   load a LAMMPS shared library file at runtime.  This can be useful for
+   applications where the interface to LAMMPS would be an optional
+   feature.
+
 .. warning::
 
    No checks are made on the arguments of the function calls of the C
@@ -163,5 +176,3 @@ The following links provide some examples and references to the C++ API.
    :maxdepth: 1
 
    Cplusplus
-
-

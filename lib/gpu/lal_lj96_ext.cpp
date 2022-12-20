@@ -76,7 +76,7 @@ int lj96_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                           offset, special_lj, inum,  nall, max_nbors, maxspecial,
                           cell_size, gpu_split, screen);
 
-    LJ96MF.device->gpu_barrier();
+    LJ96MF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

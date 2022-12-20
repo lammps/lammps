@@ -55,7 +55,7 @@ PACKAGE = \
 	awpmd \
 	bocs \
 	body \
-        bpm \
+	bpm \
 	brownian \
 	cg-dna \
 	cg-spica \
@@ -99,6 +99,7 @@ PACKAGE = \
 	misc \
 	ml-hdnnp \
 	ml-pace \
+	ml-pod \
 	ml-quip \
 	ml-rann \
 	ml-snap \
@@ -228,6 +229,7 @@ PACKLIB = \
 	molfile \
 	netcdf \
 	ml-pace \
+	ml-pod \
 	plumed \
 	qmmm \
 	ml-quip \
@@ -238,7 +240,7 @@ PACKLIB = \
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars electrode gpu kokkos mesont poems
+PACKINT = atc awpmd colvars electrode gpu kokkos mesont ml-pod poems
 
 PACKEXT = \
 	adios \
@@ -477,7 +479,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs
+check: check-whitespace check-permissions check-homepage check-errordocs check-version
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -502,6 +504,9 @@ check-errordocs:
 
 fix-errordocs:
 	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
+
+check-version:
+	$(PYTHON) ../tools/coding_standard/versiontags.py ..
 
 format-src:
 	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h

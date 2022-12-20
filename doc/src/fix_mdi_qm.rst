@@ -43,6 +43,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 3Aug2022
+
 This command enables LAMMPS to act as a client with another server
 code that will compute the total energy, per-atom forces, and total
 virial for atom conformations and simulation box size/shapes that

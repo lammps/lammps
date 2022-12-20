@@ -6,7 +6,7 @@
 #          oldfile = old LAMMPS dump file in native LAMMPS format
 #          N = column # for atom ID (usually 1)
 #          newfile = new sorted LAMMPS dump file
-# Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
+# Author:  Steve Plimpton (Sandia), sjplimp at gmail.com
 
 import sys,os
 path = os.environ["LAMMPS_PYTHON_TOOLS"]

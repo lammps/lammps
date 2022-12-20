@@ -1,7 +1,10 @@
 .. index:: pair_style mliap
+.. index:: pair_style mliap/kk
 
 pair_style mliap command
 ========================
+
+Accelerator Variants: *mliap/kk*
 
 Syntax
 """"""
@@ -61,6 +64,8 @@ with the PYTHON package (see below).  In order to train a model, it is
 useful to know the gradient or derivative of energy, force, and stress
 w.r.t. model parameters. This information can be accessed using the
 related :doc:`compute mliap <compute_mliap>` command.
+
+.. versionadded:: 2Jun2022
 
 The descriptor style *so3* is a descriptor that is derived from the
 the smooth SO(3) power spectrum with the explicit inclusion of a radial
@@ -175,7 +180,7 @@ to specify the path for these *model* and *descriptor* files.
    larger systems since their size depends on the total number of
    neighbors per MPI process.
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 The *unified* keyword is followed by an argument specifying the
 filename containing the serialized unified Python object and the "ghostneigh" toggle
@@ -204,6 +209,12 @@ cutoff manually, such as in the following example.
   the library mode, you will need to call `lammps.mliappy.activate_mliappy(lmp)`
   on the active LAMMPS object before the pair style is defined. This call locates
   and loads the mliap-specific python module that is built into LAMMPS.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

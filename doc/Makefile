@@ -38,16 +38,14 @@ endif
 # override settings for PIP commands
 # PIP_OPTIONS = --cert /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt --proxy http://proxy.mydomain.org
 
-#SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())') $(shell test -f $(BUILDDIR)/doxygen/xml/run.stamp && printf -- "-E")
-
 # temporarily disable caching so that the hack for the sphinx-tabs extensions to get proper non-html output works
-SPHINXEXTRA = -E -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
+SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())')
 
 # grab list of sources from doxygen config file.
 # we only want to use explicitly listed files.
 DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
-.PHONY: help clean-all clean clean-spelling epub mobi rst html pdf spelling anchor_check style_check char_check xmlgen fasthtml
+.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check role_check xmlgen fasthtml
 
 # ------------------------------------------
 
@@ -89,6 +87,8 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
+		sphinx-build -E $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
+		touch $(RSTDIR)/Fortran.rst ;\
 		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		ln -sf Manual.html html/index.html;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
@@ -96,6 +96,7 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 		rst_anchor_check src/*.rst ;\
 		python $(BUILDDIR)/utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
 		python $(BUILDDIR)/utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
@@ -114,7 +115,9 @@ fasthtml: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@mkdir -p fasthtml
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
-		sphinx-build -j 4 -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/fasthtml/doctrees $(RSTDIR) fasthtml ;\
+		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/fasthtml/doctrees $(RSTDIR) fasthtml ;\
+		touch $(RSTDIR)/Fortran.rst ;\
+		sphinx-build $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/fasthtml/doctrees $(RSTDIR) fasthtml ;\
 		deactivate ;\
 	)
 	@rm -rf fasthtml/_sources
@@ -144,6 +147,8 @@ epub: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@cp src/JPG/*.* epub/JPG
 	@(\
 		. $(VENV)/bin/activate ;\
+		sphinx-build -E $(SPHINXEXTRA) -b epub -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
+		touch $(RSTDIR)/Fortran.rst ;\
 		sphinx-build $(SPHINXEXTRA) -b epub -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) epub ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
@@ -163,12 +168,15 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX or latexmk were not found! Please check README for further instructions" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
-		sphinx-build $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+		sphinx-build -E $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
+		touch $(RSTDIR)/Fortran.rst ;\
+		sphinx-build  $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ;\
 		rst_anchor_check src/*.rst ;\
 		python utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
 		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
@@ -213,6 +221,9 @@ package_check : $(VENV)
 
 char_check :
 	@( env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst && exit 1 || : )
+
+role_check :
+	@( env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst && exit 1 || : )
 
 xmlgen : doxygen/xml/index.xml
 

@@ -228,18 +228,20 @@ command:
 See section below on output for a detailed explanation of the data
 layout in the global array.
 
+.. versionadded:: 3Aug2022
+
 The compute *sna/grid* and *sna/grid/local* commands calculate
-bispectrum components for a regular grid of points.
-These are calculated from the local density of nearby atoms *i'*
-around each grid point, as if there was a central atom *i*
-at the grid point. This is useful for characterizing fine-scale
-structure in a configuration of atoms, and it is used
-in the `MALA package <https://github.com/casus/mala>`_
-to build machine-learning surrogates for finite-temperature Kohn-Sham
-density functional theory (:ref:`Ellis et al. <Ellis2021>`)
-Neighbor atoms not in the group do not contribute to the
-bispectrum components of the grid points. The distance cutoff :math:`R_{ii'}`
-assumes that *i* has the same type as the neighbor atom *i'*.
+bispectrum components for a regular grid of points.  These are
+calculated from the local density of nearby atoms *i'* around each grid
+point, as if there was a central atom *i* at the grid point. This is
+useful for characterizing fine-scale structure in a configuration of
+atoms, and it is used in the `MALA package
+<https://github.com/casus/mala>`_ to build machine-learning surrogates
+for finite-temperature Kohn-Sham density functional theory (:ref:`Ellis
+et al. <Ellis2021>`) Neighbor atoms not in the group do not contribute
+to the bispectrum components of the grid points. The distance cutoff
+:math:`R_{ii'}` assumes that *i* has the same type as the neighbor atom
+*i'*.
 
 Compute *sna/grid* calculates a global array containing bispectrum
 components for a regular grid of points.

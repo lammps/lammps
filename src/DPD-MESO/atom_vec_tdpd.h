@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,7 +24,7 @@ AtomStyle(tdpd,AtomVecTDPD);
 
 namespace LAMMPS_NS {
 
-class AtomVecTDPD : public AtomVec {
+class AtomVecTDPD : virtual public AtomVec {
  public:
   AtomVecTDPD(class LAMMPS *);
   void process_args(int, char **) override;

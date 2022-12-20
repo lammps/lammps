@@ -1,0 +1,32 @@
+# DATE: 2022-11-30 UNITS: metal CONTRIBUTOR: Ngoc Cuong Nguyen, exapde@gmail.com CITATION:  https://arxiv.org/abs/2209.02362
+# chemical element symbols
+species Ta
+
+# periodic boundary conditions
+pbc 1 1 1
+
+# inner cut-off radius
+rin 1.0
+
+# outer cut-off radius
+rcut 5.0
+
+# polynomial degrees for radial basis functions
+bessel_polynomial_degree 3
+inverse_polynomial_degree 6
+
+# one-body potential
+onebody 1
+
+# two-body linear POD potential
+twobody_number_radial_basis_functions 6
+
+# three-body linear POD potential
+threebody_number_radial_basis_functions 5
+threebody_number_angular_basis_functions 5
+
+# four-body linear SNAP potential
+fourbody_snap_twojmax 0 
+
+# quadratic POD potential
+quadratic_pod_potential 0

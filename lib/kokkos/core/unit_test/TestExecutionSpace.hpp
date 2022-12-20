@@ -42,39 +42,41 @@
 //@HEADER
 */
 
-#include <cstdio>
-
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
 
-namespace Test {
-
 namespace {
 
-struct StructCopy {
+template <class ExecutionSpace>
+struct CheckClassWithExecutionSpaceAsDataMemberIsCopyable {
   Kokkos::DefaultExecutionSpace device;
   Kokkos::DefaultHostExecutionSpace host;
+
+  KOKKOS_FUNCTION void operator()(int, int& e) const {
+    auto copy = *this;
+    // not actually doing anything useful, mostly checking that
+    // ExecutionSpace::in_parallel() is callable
+    if (static_cast<int>(copy.device.in_parallel()) < 0) {
+      ++e;
+    }
+  }
+
+  CheckClassWithExecutionSpaceAsDataMemberIsCopyable() {
+    int errors;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(0, 1), *this,
+                            errors);
+    EXPECT_EQ(errors, 0);
+  }
 };
 
-template <class ExecutionSpace>
-void check_struct_copy() {
-#if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
-  // FIXME_OPENMPTARGET nvlink error: Undefined reference to
-  // '_ZSt25__throw_bad_function_callv' in
-  // '/tmp/TestOpenMPTarget_ExecutionSpace-434d81.cubin'
+// FIXME_OPENMPTARGET nvlink error: Undefined reference to
+// '_ZSt25__throw_bad_function_callv' in
+// '/tmp/TestOpenMPTarget_ExecutionSpace-434d81.cubin'
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
-  StructCopy data;
-  parallel_for(
-      Kokkos::RangePolicy<ExecutionSpace>(0, 1), KOKKOS_LAMBDA(int) {
-        StructCopy data2 = data;
-        KOKKOS_IMPL_DO_NOT_USE_PRINTF("%i \n", data2.device.in_parallel());
-      });
-#endif
-#endif
+TEST(TEST_CATEGORY, execution_space_as_class_data_member) {
+  CheckClassWithExecutionSpaceAsDataMemberIsCopyable<TEST_EXECSPACE>();
 }
+#endif
 
 }  // namespace
-
-TEST(TEST_CATEGORY, copy_structure) { check_struct_copy<TEST_EXECSPACE>(); }
-}  // namespace Test

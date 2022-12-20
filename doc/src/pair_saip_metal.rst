@@ -32,6 +32,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 17Feb2022
+
 The *saip/metal* style computes the registry-dependent interlayer
 potential (ILP) potential for hetero-junctions formed with hexagonal
 2D materials and metal surfaces, as described in :ref:`(Ouyang6) <Ouyang6>`.

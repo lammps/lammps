@@ -28,7 +28,7 @@ Syntax
          region-ID = create atoms within this region, use NULL for entire simulation box
 
 * zero or more keyword/value pairs may be appended
-* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *overlap* or *maxtry* or *units*
+* keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *radscale* or *meshmode* or *rotate* or *overlap* or *maxtry* or *units*
 
   .. parsed-literal::
 
@@ -188,6 +188,10 @@ to the area of that triangle.
    pressure and potential energy due to close contacts, it is usually
    beneficial to exclude computing interactions between the created
    particles using :doc:`neigh_modify exclude <neigh_modify>`.
+
+.. versionchanged:: 2Jun2022
+
+The *porosity* style has been renamed to *random* with added functionality.
 
 For the *random* style, *N* particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
@@ -460,7 +464,7 @@ The *units* keyword determines the meaning of the distance units used
 to specify the coordinates of the one particle created by the *single*
 style, or the overlap distance *Doverlap* by the *overlap* keyword.  A
 *box* value selects standard distance units as defined by the
-:doc:`units <units>` command (e.g., :math:`\mathrm{\mathring{A}}` for
+:doc:`units <units>` command (e.g., :math:`\AA` for
 units = *real* or *metal*\ .  A *lattice* value means the distance units are in
 lattice spacings.
 

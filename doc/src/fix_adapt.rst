@@ -319,6 +319,8 @@ with fix_adapt are
 
 ----------
 
+.. versionadded:: 4May2022
+
 The *angle* keyword uses the specified variable to change the value of
 an angle coefficient over time, very similar to how the *pair* keyword
 operates. The only difference is that now an angle coefficient for a

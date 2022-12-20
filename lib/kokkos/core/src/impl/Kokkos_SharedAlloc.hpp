@@ -86,9 +86,9 @@ class SharedAllocationHeader {
  public:
   /* Given user memory get pointer to the header */
   KOKKOS_INLINE_FUNCTION static const SharedAllocationHeader* get_header(
-      void* alloc_ptr) {
-    return reinterpret_cast<SharedAllocationHeader*>(
-        reinterpret_cast<char*>(alloc_ptr) - sizeof(SharedAllocationHeader));
+      void const* alloc_ptr) {
+    return reinterpret_cast<SharedAllocationHeader const*>(
+        static_cast<char const*>(alloc_ptr) - sizeof(SharedAllocationHeader));
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -141,15 +141,22 @@ class SharedAllocationRecord<void, void> {
       SharedAllocationHeader* arg_alloc_ptr, size_t arg_alloc_size,
       function_type arg_dealloc, const std::string& label);
  private:
-  static KOKKOS_THREAD_LOCAL int t_tracking_enabled;
+  static thread_local int t_tracking_enabled;
 
  public:
   virtual std::string get_label() const { return std::string("Unmanaged"); }
 
+#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#pragma push
+#pragma diag_suppress implicit_return_from_non_void_function
+#endif
   static KOKKOS_FUNCTION int tracking_enabled() {
     KOKKOS_IF_ON_HOST(return t_tracking_enabled;)
     KOKKOS_IF_ON_DEVICE(return 0;)
   }
+#if defined(__EDG__) && !defined(KOKKOS_COMPILER_INTEL)
+#pragma pop
+#endif
 
   /**\brief A host process thread claims and disables the
    *        shared allocation tracking flag.
@@ -185,7 +192,7 @@ class SharedAllocationRecord<void, void> {
 
   /* User's memory begins at the end of the header */
   KOKKOS_INLINE_FUNCTION
-  void* data() const { return reinterpret_cast<void*>(m_alloc_ptr + 1); }
+  void* data() const { return static_cast<void*>(m_alloc_ptr + 1); }
 
   /* User's memory begins at the end of the header */
   size_t size() const { return m_alloc_size - sizeof(SharedAllocationHeader); }
@@ -302,6 +309,16 @@ template <class MemorySpace, class DestroyFunctor>
 class SharedAllocationRecord
     : public SharedAllocationRecord<MemorySpace, void> {
  private:
+  template <typename ExecutionSpace>
+  SharedAllocationRecord(const ExecutionSpace& execution_space,
+                         const MemorySpace& arg_space,
+                         const std::string& arg_label, const size_t arg_alloc)
+      /*  Allocate user memory as [ SharedAllocationHeader , user_memory ] */
+      : SharedAllocationRecord<MemorySpace, void>(
+            execution_space, arg_space, arg_label, arg_alloc,
+            &Kokkos::Impl::deallocate<MemorySpace, DestroyFunctor>),
+        m_destroy() {}
+
   SharedAllocationRecord(const MemorySpace& arg_space,
                          const std::string& arg_label, const size_t arg_alloc)
       /*  Allocate user memory as [ SharedAllocationHeader , user_memory ] */
@@ -327,6 +344,17 @@ class SharedAllocationRecord
         (return new SharedAllocationRecord(arg_space, arg_label, arg_alloc);))
     KOKKOS_IF_ON_DEVICE(
         ((void)arg_space; (void)arg_label; (void)arg_alloc; return nullptr;))
+  }
+
+  template <typename ExecutionSpace>
+  KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
+      const ExecutionSpace& exec_space, const MemorySpace& arg_space,
+      const std::string& arg_label, const size_t arg_alloc) {
+    KOKKOS_IF_ON_HOST(
+        (return new SharedAllocationRecord(exec_space, arg_space, arg_label,
+                                           arg_alloc);))
+    KOKKOS_IF_ON_DEVICE(((void)exec_space; (void)arg_space; (void)arg_label;
+                         (void)arg_alloc; return nullptr;))
   }
 };
 

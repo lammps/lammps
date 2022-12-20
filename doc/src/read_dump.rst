@@ -266,6 +266,8 @@ replace properties of the current system.  There are various options
 for how this is done, determined by the specified fields and optional
 keywords.
 
+.. versionchanged:: 3Aug2022
+
 The timestep of the snapshot becomes the current timestep for the
 simulation unless the *timestep* keyword is specified with a *no* value
 (default setting is *yes*).  See the :doc:`reset_timestep <reset_timestep>`
@@ -397,4 +399,4 @@ Default
 The option defaults are box = yes, timestep = yes, replace = yes, purge = no,
 trim = no, add = no, scaled = no, wrapped = yes, and format = native.
 
-.. _vmd: http://www.ks.uiuc.edu/Research/vmd
+.. _vmd: https://www.ks.uiuc.edu/Research/vmd

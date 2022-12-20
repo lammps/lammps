@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -389,19 +389,37 @@ void Variable::set(int narg, char **arg)
   //   3rd is filled on retrieval
 
   } else if (strcmp(arg[1],"format") == 0) {
+    constexpr char validfmt[] = "^% ?-?[0-9]*\\.?[0-9]*[efgEFG]$";
     if (narg != 4) error->all(FLERR,"Illegal variable command: expected 4 arguments but found {}", narg);
-    if (find(arg[0]) >= 0) return;
-    if (nvar == maxvar) grow();
-    style[nvar] = FORMAT;
-    num[nvar] = 3;
-    which[nvar] = 0;
-    pad[nvar] = 0;
-    if (!utils::strmatch(arg[3],"%[0-9 ]*\\.[0-9]+[efgEFG]"))
-      error->all(FLERR,"Incorrect conversion in format string");
-    data[nvar] = new char*[num[nvar]];
-    copy(2,&arg[2],data[nvar]);
-    data[nvar][2] = new char[VALUELENGTH];
-    strcpy(data[nvar][2],"(undefined)");
+    int ivar = find(arg[0]);
+    int jvar = find(arg[2]);
+    if (jvar < 0)
+      error->all(FLERR, "Variable {}: format variable {} does not exist", arg[0], arg[2]);
+    if (!equalstyle(jvar))
+      error->all(FLERR, "Variable {}: format variable {} has incompatible style", arg[0], arg[2]);
+    if (ivar >= 0) {
+      if (style[ivar] != FORMAT)
+        error->all(FLERR,"Cannot redefine variable as a different style");
+      if (!utils::strmatch(arg[3], validfmt))
+        error->all(FLERR,"Incorrect conversion in format string");
+      delete[] data[ivar][0];
+      delete[] data[ivar][1];
+      data[ivar][0] = utils::strdup(arg[2]);
+      data[ivar][1] = utils::strdup(arg[3]);
+      replaceflag = 1;
+    } else {
+      if (nvar == maxvar) grow();
+      style[nvar] = FORMAT;
+      num[nvar] = 3;
+      which[nvar] = 0;
+      pad[nvar] = 0;
+      if (!utils::strmatch(arg[3], validfmt))
+        error->all(FLERR,"Incorrect conversion in format string");
+      data[nvar] = new char*[num[nvar]];
+      copy(2,&arg[2],data[nvar]);
+      data[nvar][2] = new char[VALUELENGTH];
+      strcpy(data[nvar][2],"(undefined)");
+    }
 
   // EQUAL
   // replace pre-existing var if also style EQUAL (allows it to be reset)
@@ -815,6 +833,18 @@ void Variable::set_arrays(int /*i*/)
 }
 
 /* ----------------------------------------------------------------------
+   delete all atomfile style variables.
+   must scan list in reverse since remove() will compact list.
+   called from LAMMPS::destroy()
+------------------------------------------------------------------------- */
+
+void Variable::purge_atomfile()
+{
+  for (int i = nvar-1; i >= 0; --i)
+    if (style[i] == ATOMFILE) remove(i);
+}
+
+/* ----------------------------------------------------------------------
    called by python command in input script
    simply pass input script line args to Python class
 ------------------------------------------------------------------------- */
@@ -940,8 +970,11 @@ char *Variable::retrieve(const char *name)
     str = data[ivar][1];
   } else if (style[ivar] == FORMAT) {
     int jvar = find(data[ivar][0]);
-    if (jvar == -1) return nullptr;
-    if (!equalstyle(jvar)) return nullptr;
+    if (jvar < 0)
+      error->all(FLERR, "Variable {}: format variable {} does not exist", names[ivar],data[ivar][0]);
+    if (!equalstyle(jvar))
+      error->all(FLERR, "Variable {}: format variable {} has incompatible style",
+                 names[ivar],data[ivar][0]);
     double answer = compute_equal(jvar);
     sprintf(data[ivar][2],data[ivar][1],answer);
     str = data[ivar][2];
@@ -952,8 +985,21 @@ char *Variable::retrieve(const char *name)
     str = data[ivar][1] = utils::strdup(result);
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
-    if (ifunc < 0)
-      error->all(FLERR,"Python variable {} does not match Python function {}", name, data[ivar][0]);
+    if (ifunc < 0) {
+      if (ifunc == -1) {
+        error->all(FLERR, "Could not find Python function {} linked to variable {}",
+                   data[ivar][0], name);
+      } else if (ifunc == -2) {
+        error->all(FLERR, "Python function {} for variable {} does not have a return value",
+                   data[ivar][0], name);
+      } else if (ifunc == -3) {
+        error->all(FLERR,"Python variable {} does not match variable name registered with "
+                   "Python function {}", name, data[ivar][0]);
+      } else {
+        error->all(FLERR, "Unknown error verifying function {} linked to python style variable {}",
+                   data[ivar][0],name);
+      }
+    }
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
     // if Python func returns a string longer than VALUELENGTH
@@ -4483,7 +4529,7 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
           error->one(FLERR,"Variable uses atom property that isn't allocated");
         mine = atom->q[index];
       }
-      else error->one(FLERR,"Invalid atom vector in variable formula");
+      else error->one(FLERR,"Invalid atom vector {} in variable formula", word);
 
     } else mine = vector[index*nstride];
 

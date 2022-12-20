@@ -4,12 +4,13 @@ import pickle
 class MLIAPUnified(ABC):
     """Abstract base class for MLIAPUnified."""
 
-    def __init__(self):
-        self.interface = None
-        self.element_types = None
-        self.ndescriptors = None
-        self.nparams = None
-        self.rcutfac = None
+    def __init__(self, interface = None, element_types = None,
+                 ndescriptors = None, nparams = None, rcutfac = None):
+        self.interface = interface
+        self.element_types = element_types
+        self.ndescriptors = ndescriptors
+        self.nparams = nparams
+        self.rcutfac = rcutfac
 
     @abstractmethod
     def compute_gradients(self, data):

@@ -74,6 +74,7 @@ enum struct DeviceType {
   HPX,
   Threads,
   SYCL,
+  OpenACC,
   Unknown
 };
 
@@ -98,6 +99,7 @@ inline DeviceType devicetype_from_uint32t(const uint32_t in) {
     case 5: return DeviceType::HPX;
     case 6: return DeviceType::Threads;
     case 7: return DeviceType::SYCL;
+    case 8: return DeviceType::OpenACC;
     default: return DeviceType::Unknown;  // TODO: error out?
   }
 }

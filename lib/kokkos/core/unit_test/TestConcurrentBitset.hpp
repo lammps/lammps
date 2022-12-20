@@ -47,7 +47,6 @@
 
 #include <gtest/gtest.h>
 
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 

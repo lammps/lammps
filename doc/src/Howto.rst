@@ -51,6 +51,7 @@ Analysis howto
 
    Howto_output
    Howto_chunk
+   Howto_grid
    Howto_temperature
    Howto_elastic
    Howto_kappa
@@ -85,6 +86,7 @@ Packages howto
    Howto_coreshell
    Howto_drude
    Howto_drude2
+   Howto_peri
    Howto_manifold
    Howto_spins
 

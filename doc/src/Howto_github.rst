@@ -10,7 +10,7 @@ changes or additions you have made to LAMMPS into the official LAMMPS
 distribution.  It uses the process of updating this very tutorial as an
 example to describe the individual steps and options.  You need to be
 familiar with git and you may want to have a look at the `git book
-<http://git-scm.com/book/>`_ to familiarize yourself with some of the
+<https://git-scm.com/book/>`_ to familiarize yourself with some of the
 more advanced git features used below.
 
 As of fall 2016, submitting contributions to LAMMPS via pull requests

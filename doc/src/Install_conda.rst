@@ -5,7 +5,7 @@ Binaries are available for MacOS or Linux via `Conda <conda_>`_.
 
 First, one must setup the Conda package manager on your system.  Follow the
 instructions to install `Miniconda <mini_conda_install_>`_, then create a conda
-environment (named `my-lammps-env` or whatever you prefer) for your lammps
+environment (named `my-lammps-env` or whatever you prefer) for your LAMMPS
 install:
 
 .. code-block:: bash
@@ -13,7 +13,7 @@ install:
    % conda config --add channels conda-forge
    % conda create -n my-lammps-env
 
-Then, you can install lammps on your system with the following command:
+Then, you can install LAMMPS on your system with the following command:
 
 .. code-block:: bash
 

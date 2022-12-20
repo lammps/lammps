@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_OPENMP_HPP
 #define KOKKOS_OPENMP_HPP
 
@@ -62,8 +71,9 @@
 #include <Kokkos_Parallel.hpp>
 #include <Kokkos_TaskScheduler.hpp>
 #include <Kokkos_Layout.hpp>
+#include <impl/Kokkos_HostSharedPtr.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
-#include <impl/Kokkos_ExecSpaceInitializer.hpp>
+#include <impl/Kokkos_InitializationSettings.hpp>
 
 #include <vector>
 
@@ -72,7 +82,7 @@
 namespace Kokkos {
 
 namespace Impl {
-class OpenMPExec;
+class OpenMPInternal;
 }
 
 /// \class OpenMP
@@ -95,8 +105,10 @@ class OpenMP {
   using size_type            = memory_space::size_type;
   using scratch_memory_space = ScratchMemorySpace<OpenMP>;
 
+  OpenMP();
+
   /// \brief Print configuration information to the given output stream.
-  static void print_configuration(std::ostream&, const bool verbose = false);
+  void print_configuration(std::ostream& os, bool verbose = false) const;
 
   /// \brief is the instance running a parallel algorithm
   inline static bool in_parallel(OpenMP const& = OpenMP()) noexcept;
@@ -104,11 +116,10 @@ class OpenMP {
   /// \brief Wait until all dispatched functors complete on the given instance
   ///
   ///  This is a no-op on OpenMP
-  static void impl_static_fence(OpenMP const&           = OpenMP(),
-                                const std::string& name = "") noexcept;
+  static void impl_static_fence(std::string const& name);
 
-  void fence() const;
-  void fence(const std::string& name) const;
+  void fence(std::string const& name =
+                 "Kokkos::OpenMP::fence: Unnamed Instance Fence") const;
 
   /// \brief Does the given instance return immediately after launching
   /// a parallel algorithm
@@ -116,6 +127,7 @@ class OpenMP {
   /// This always returns false on OpenMP
   inline static bool is_asynchronous(OpenMP const& = OpenMP()) noexcept;
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   /// \brief Partition the default instance into new instances without creating
   ///  new masters
   ///
@@ -129,7 +141,6 @@ class OpenMP {
   /// This is a no-op on OpenMP since a non default instance cannot be created
   static OpenMP create_instance(...);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   /// \brief Partition the default instance and call 'f' on each new 'master'
   /// thread
   ///
@@ -144,7 +155,7 @@ class OpenMP {
   // use UniqueToken
   static int concurrency();
 
-  static void impl_initialize(int thread_count = -1);
+  static void impl_initialize(InitializationSettings const&);
 
   /// \brief is the default execution space initialized for current 'master'
   /// thread
@@ -170,8 +181,23 @@ class OpenMP {
 
   static int impl_get_current_max_threads() noexcept;
 
+  Impl::OpenMPInternal* impl_internal_space_instance() const {
+#ifdef KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
+    return m_space_instance;
+#else
+    return m_space_instance.get();
+#endif
+  }
+
   static constexpr const char* name() noexcept { return "OpenMP"; }
   uint32_t impl_instance_id() const noexcept { return 1; }
+
+ private:
+#ifdef KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
+  Impl::OpenMPInternal* m_space_instance;
+#else
+  Kokkos::Impl::HostSharedPtr<Impl::OpenMPInternal> m_space_instance;
+#endif
 };
 
 namespace Tools {
@@ -183,21 +209,6 @@ struct DeviceTypeTraits<OpenMP> {
 };
 }  // namespace Experimental
 }  // namespace Tools
-
-namespace Impl {
-
-class OpenMPSpaceInitializer : public ExecSpaceInitializerBase {
- public:
-  OpenMPSpaceInitializer()  = default;
-  ~OpenMPSpaceInitializer() = default;
-  void initialize(const InitArguments& args) final;
-  void finalize(const bool) final;
-  void fence() final;
-  void fence(const std::string&) final;
-  void print_configuration(std::ostream& msg, const bool detail) final;
-};
-
-}  // namespace Impl
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -220,7 +231,7 @@ struct MemorySpaceAccess<Kokkos::OpenMP::memory_space,
 /*--------------------------------------------------------------------------*/
 /*--------------------------------------------------------------------------*/
 
-#include <OpenMP/Kokkos_OpenMP_Exec.hpp>
+#include <OpenMP/Kokkos_OpenMP_Instance.hpp>
 #include <OpenMP/Kokkos_OpenMP_Team.hpp>
 #include <OpenMP/Kokkos_OpenMP_Parallel.hpp>
 #include <OpenMP/Kokkos_OpenMP_Task.hpp>

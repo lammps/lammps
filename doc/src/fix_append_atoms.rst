@@ -79,7 +79,7 @@ measured from zhi and is set with the *extent* argument.
 The *units* keyword determines the meaning of the distance units used
 to define a wall position, but only when a numeric constant is used.
 A *box* value selects standard distance units as defined by the
-:doc:`units <units>` command (e.g., :math:`\mathrm{\mathring A}`
+:doc:`units <units>` command (e.g., :math:`\AA`
 for units = real or metal.
 A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to

@@ -58,6 +58,8 @@ SET(KOKKOS_SYCL_FEATURE_LEVEL 999)
 SET(KOKKOS_SYCL_NAME Experimental::SYCL)
 SET(KOKKOS_THREADS_FEATURE_LEVEL 999)
 SET(KOKKOS_THREADS_NAME Threads)
+SET(KOKKOS_OPENACC_FEATURE_LEVEL 3)
+SET(KOKKOS_OPENACC_NAME Experimental::OpenACC)
 
 
 #
@@ -70,8 +72,11 @@ KOKKOS_INCLUDE_DIRECTORIES(REQUIRED_DURING_INSTALLATION_TESTING ${CMAKE_CURRENT_
 KOKKOS_INCLUDE_DIRECTORIES(${KOKKOS_SOURCE_DIR}/core/unit_test/category_files)
 
 SET(COMPILE_ONLY_SOURCES
+  TestArray.cpp
   TestDetectionIdiom.cpp
   TestInterOp.cpp
+  TestLegionInteroperability.cpp
+  TestStringManipulation.cpp
   TestTypeList.cpp
 )
 # TestInterOp has a dependency on containers
@@ -116,10 +121,12 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
         ExecutionSpace
         FunctorAnalysis
         Init
+        JoinBackwardCompatibility
         LocalDeepCopy
         MinMaxClamp
         MathematicalConstants
-        MathematicalFunctions
+        MathematicalFunctions1
+        MathematicalFunctions2
         MDRange_a
         MDRange_b
         MDRange_c
@@ -172,8 +179,8 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
       list(APPEND ${Tag}_SOURCES1B ${file})
     endforeach()
 
-    SET(${Tag}_SOURCES2A)
-    foreach(Name
+    SET(SOURCES2A_NAME_LIST
+      Abort
       TeamBasic
       TeamReductionScan
       TeamScan
@@ -188,14 +195,27 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
       ViewAPI_e
       ViewCopy_a
       ViewCopy_b
+      ViewCtorDimMatch
+      ViewHooks
       ViewLayoutStrideAssignment
       ViewMapping_b
       ViewMapping_subview
+      ViewMemoryAccessViolation
       ViewOfClass
       ViewResize
       View_64bit
       WorkGraph
+      WithoutInitializing
+    )
+    IF(KOKKOS_HAS_TRILINOS)
+      LIST(REMOVE_ITEM SOURCES2A_NAME_LIST
+        Abort
+        ViewMemoryAccessViolation
       )
+    ENDIF()
+
+    SET(${Tag}_SOURCES2A)
+    foreach(Name ${SOURCES2A_NAME_LIST})
       set(file ${dir}/Test${Tag}_${Name}.cpp)
       # Write to a temporary intermediate file and call configure_file to avoid
       # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
@@ -211,7 +231,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
     if (Tag STREQUAL "Cuda")
       set(TagHostAccessible CudaUVM)
     elseif(Tag STREQUAL "HIP")
-      set(TagHostAccessible HIPHostPinned)
+      set(TagHostAccessible HIPManaged)
     elseif(Tag STREQUAL "SYCL")
       set(TagHostAccessible SYCLSharedUSM)
     endif()
@@ -262,7 +282,6 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
       SubView_c12
       SubView_c13
       SubView_c14
-      WithoutInitializing
       )
       set(file ${dir}/Test${Tag}_${Name}.cpp)
       # Write to a temporary intermediate file and call configure_file to avoid
@@ -281,7 +300,7 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;OpenMPTarget;HIP;SYCL)
   endif()
 endforeach()
 
-foreach(PairDeviceSpace HIP-HostPinned;Cuda-HostPinned;Cuda-UVM;SYCL-HostUSM;SYCL-SharedUSM)
+foreach(PairDeviceSpace HIP-HostPinned;HIP-Managed;Cuda-HostPinned;Cuda-UVM;SYCL-HostUSM;SYCL-SharedUSM)
   string(REGEX REPLACE "([^-]*)-(.*)" "\\1" DEVICE ${PairDeviceSpace})
   string(REGEX REPLACE "([^-]*)-(.*)" "\\2" SPACE ${PairDeviceSpace})
 
@@ -450,6 +469,7 @@ endif()
 if (Kokkos_ENABLE_OPENMP)
   set(OpenMP_EXTRA_SOURCES
     openmp/TestOpenMP_Task.cpp
+    openmp/TestOpenMP_PartitionMaster.cpp
   )
   if (Kokkos_ENABLE_DEPRECATED_CODE_3)
     list(APPEND OpenMP_EXTRA_SOURCES openmp/TestOpenMP_Task.cpp)
@@ -492,25 +512,10 @@ if(Kokkos_ENABLE_HPX)
   KOKKOS_ADD_EXECUTABLE_AND_TEST(
     UnitTest_HPX_IndependentInstances
     SOURCES
-      UnitTestMain.cpp
+      UnitTestMainInit.cpp
       hpx/TestHPX_IndependentInstances.cpp
-  )
-  KOKKOS_ADD_EXECUTABLE_AND_TEST(
-    UnitTest_HPX_IndependentInstancesDelayedExecution
-    SOURCES
-      UnitTestMain.cpp
       hpx/TestHPX_IndependentInstancesDelayedExecution.cpp
-  )
-  KOKKOS_ADD_EXECUTABLE_AND_TEST(
-    UnitTest_HPX_IndependentInstancesInstanceIds
-    SOURCES
-      UnitTestMain.cpp
       hpx/TestHPX_IndependentInstancesInstanceIds.cpp
-  )
-  KOKKOS_ADD_EXECUTABLE_AND_TEST(
-    UnitTest_HPX_IndependentInstancesRefCounting
-    SOURCES
-      UnitTestMain.cpp
       hpx/TestHPX_IndependentInstancesRefCounting.cpp
   )
 endif()
@@ -585,6 +590,8 @@ if(Kokkos_ENABLE_HIP)
       UnitTestMainInit.cpp
       ${HIP_SOURCES}
       hip/TestHIP_ScanUnit.cpp
+      hip/TestHIP_Spaces.cpp
+      hip/TestHIP_Memory_Requirements.cpp
       hip/TestHIP_TeamScratchStreams.cpp
       hip/TestHIP_AsyncLauncher.cpp
       hip/TestHIP_BlocksizeDeduction.cpp
@@ -690,11 +697,15 @@ endif()
 if (KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
   SET(DEFAULT_DEVICE_SOURCES
     UnitTestMainInit.cpp
+    TestInitializationSettings.cpp
+    TestParseCmdLineArgsAndEnvVars.cpp
     default/TestDefaultDeviceType.cpp
   )
 else()
   SET(DEFAULT_DEVICE_SOURCES
     UnitTestMainInit.cpp
+    TestInitializationSettings.cpp
+    TestParseCmdLineArgsAndEnvVars.cpp
     default/TestDefaultDeviceType.cpp
     default/TestDefaultDeviceType_a1.cpp
     default/TestDefaultDeviceType_b1.cpp
@@ -827,7 +838,7 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
       NAME ProfilingTestLibraryCmdLineHelp
       EXE  ProfilingAllCalls
       ARGS --kokkos-tools-help
-           --kokkos-tools-library=$<TARGET_FILE:kokkosprinter-tool>
+           --kokkos-tools-libs=$<TARGET_FILE:kokkosprinter-tool>
       PASS_REGULAR_EXPRESSION
         "kokkosp_init_library::kokkosp_print_help:KokkosCore_ProfilingAllCalls::kokkosp_finalize_library::")
 
@@ -853,7 +864,7 @@ KOKKOS_ADD_ADVANCED_TEST( UnitTest_PushFinalizeHook_terminate
       NAME ProfilingTestLibraryCmdLine
       EXE  ProfilingAllCalls
       ARGS [=[--kokkos-tools-args=-c test delimit]=]
-            --kokkos-tools-library=$<TARGET_FILE:kokkosprinter-tool>
+            --kokkos-tools-libs=$<TARGET_FILE:kokkosprinter-tool>
       PASS_REGULAR_EXPRESSION "kokkosp_init_library::kokkosp_parse_args:4:KokkosCore_ProfilingAllCalls:-c:test:delimit::.*::kokkosp_allocate_data:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_begin_parallel_for:Kokkos::View::initialization [[]source] via memset:[0-9]+:0::kokkosp_end_parallel_for:0::kokkosp_allocate_data:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:40::kokkosp_begin_parallel_for:Kokkos::View::initialization [[]destination] via memset:[0-9]+:0::kokkosp_end_parallel_for:0::kokkosp_begin_deep_copy:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::.*kokkosp_end_deep_copy::kokkosp_begin_parallel_for:parallel_for:${SIZE_REGEX}:0::kokkosp_end_parallel_for:0::kokkosp_begin_parallel_reduce:parallel_reduce:${SIZE_REGEX}:1${SKIP_SCRATCH_INITIALIZATION_REGEX}::kokkosp_end_parallel_reduce:1::kokkosp_begin_parallel_scan:parallel_scan:${SIZE_REGEX}:2::kokkosp_end_parallel_scan:2::kokkosp_push_profile_region:push_region::kokkosp_pop_profile_region::kokkosp_create_profile_section:created_section:3::kokkosp_start_profile_section:3::kokkosp_stop_profile_section:3::kokkosp_destroy_profile_section:3::kokkosp_profile_event:profiling_event::kokkosp_declare_metadata:dogs:good::kokkosp_deallocate_data:${MEMSPACE_REGEX}:destination:${ADDRESS_REGEX}:40::kokkosp_deallocate_data:${MEMSPACE_REGEX}:source:${ADDRESS_REGEX}:40::kokkosp_finalize_library::"
     )
   endif() #KOKKOS_ENABLE_LIBDL
@@ -878,12 +889,14 @@ KOKKOS_ADD_TEST( NAME UnitTest_StackTraceTest
                )
 endif()
 
-foreach(INITTESTS_NUM RANGE 1 18)
-KOKKOS_ADD_EXECUTABLE_AND_TEST(
-  UnitTest_DefaultInit_${INITTESTS_NUM}
-  SOURCES UnitTestMain.cpp default/TestDefaultDeviceTypeInit_${INITTESTS_NUM}.cpp
-)
-endforeach(INITTESTS_NUM)
+if(Kokkos_ENABLE_DEPRECATED_CODE_3)
+  foreach(INITTESTS_NUM RANGE 1 18)
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_DefaultInit_${INITTESTS_NUM}
+    SOURCES UnitTestMain.cpp default/TestDefaultDeviceTypeInit_${INITTESTS_NUM}.cpp
+  )
+  endforeach(INITTESTS_NUM)
+endif()
 
 if (KOKKOS_ENABLE_HWLOC)
 KOKKOS_ADD_EXECUTABLE_AND_TEST(

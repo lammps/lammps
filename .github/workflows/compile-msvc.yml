@@ -26,15 +26,19 @@ jobs:
     - name: Select Python version
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: '3.11'
 
     - name: Building LAMMPS via CMake
       shell: bash
       run: |
         python3 -m pip install numpy
         python3 -m pip install pyyaml
+        nuget install MSMPIsdk
+        nuget install MSMPIDIST
         cmake -C cmake/presets/windows.cmake \
               -D PKG_PYTHON=on \
+              -D WITH_PNG=off \
+              -D WITH_JPEG=off \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
               -D LAMMPS_EXCEPTIONS=on \
@@ -50,4 +54,4 @@ jobs:
     - name: Run Unit Tests
       working-directory: build
       shell: bash
-      run: ctest -V -C Release
+      run: ctest -V -C Release -E FixTimestep:python_move_nve

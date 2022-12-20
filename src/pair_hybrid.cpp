@@ -3,7 +3,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -271,10 +271,9 @@ void PairHybrid::allocate()
 
 void PairHybrid::settings(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "pair_style hybrid", error);
   if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
-    error->all(FLERR,"Must use pair_style {}/kk with Kokkos",
-                                 force->pair_style);
+    error->all(FLERR,"Must use pair_style {}/kk with Kokkos", force->pair_style);
 
   // delete old lists, since cannot just change settings
 
@@ -326,9 +325,9 @@ void PairHybrid::settings(int narg, char **arg)
   nstyles = 0;
   while (iarg < narg) {
     if (utils::strmatch(arg[iarg],"^hybrid"))
-      error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Pair style hybrid cannot have hybrid as a sub-style");
     if (strcmp(arg[iarg],"none") == 0)
-      error->all(FLERR,"Pair style hybrid cannot have none as an argument");
+      error->all(FLERR,"Pair style hybrid cannot have none as a sub-style");
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
     keywords[nstyles] = force->store_style(arg[iarg],0);
@@ -478,7 +477,7 @@ void PairHybrid::init_svector()
 
 void PairHybrid::coeff(int narg, char **arg)
 {
-  if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 3) utils::missing_cmd_args(FLERR,"pair_coeff", error);
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -497,7 +496,7 @@ void PairHybrid::coeff(int narg, char **arg)
     if (strcmp(arg[2],keywords[m]) == 0) {
       if (multiple[m]) {
         multflag = 1;
-        if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
+        if (narg < 4) utils::missing_cmd_args(FLERR, "pair_coeff", error);
         if (multiple[m] == utils::inumeric(FLERR,arg[3],false,lmp)) break;
         else continue;
       } else break;
@@ -507,7 +506,7 @@ void PairHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all(FLERR,"Pair coeff for hybrid has invalid style: {}",arg[2]);
+    else error->all(FLERR,"Pair coeff for hybrid has invalid style: {}", arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args
@@ -527,7 +526,7 @@ void PairHybrid::coeff(int narg, char **arg)
 
   if (!none && styles[m]->one_coeff) {
     if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
-      error->all(FLERR,"Incorrect args for pair coefficients");
+      error->all(FLERR,"Pair_coeff must start with * * for sub-style {}", keywords[m]);
     for (int i = 1; i <= atom->ntypes; i++)
       for (int j = i; j <= atom->ntypes; j++)
         if (nmap[i][j] && map[i][j][0] == m) {
@@ -578,7 +577,7 @@ void PairHybrid::init_style()
       for (jtype = itype; jtype <= ntypes; jtype++)
         for (m = 0; m < nmap[itype][jtype]; m++)
           if (map[itype][jtype][m] == istyle) used = 1;
-    if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
+    if (used == 0) error->all(FLERR,"Pair hybrid sub-style {} is not used", keywords[istyle]);
   }
 
   // The GPU library uses global data for each pair style, so the

@@ -75,7 +75,7 @@ Using the GDB debugger to get a stack trace
 There are two options to use the GDB debugger for identifying the origin
 of the segmentation fault or similar crash. The GDB debugger has many
 more features and options, as can be seen for example its `online
-documentation <http://sourceware.org/gdb/current/onlinedocs/gdb/>`_.
+documentation <https://sourceware.org/gdb/current/onlinedocs/gdb/>`_.
 
 Run LAMMPS from within the debugger
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

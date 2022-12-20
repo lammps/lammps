@@ -67,9 +67,9 @@ struct TestViewAPI<
       Kokkos::MemoryTraits<0>;  // maybe we want to add that later to the matrix
   using view_type =
       Kokkos::View<data_type, layout_type, space_type, traits_type>;
-  using alloc_layout_type = typename std::conditional<
-      std::is_same<layout_type, Kokkos::LayoutStride>::value,
-      Kokkos::LayoutLeft, layout_type>::type;
+  using alloc_layout_type =
+      std::conditional_t<std::is_same<layout_type, Kokkos::LayoutStride>::value,
+                         Kokkos::LayoutLeft, layout_type>;
   using d_alloc_type = Kokkos::View<data_type, alloc_layout_type, space_type>;
   using h_alloc_type = typename Kokkos::View<data_type, alloc_layout_type,
                                              space_type>::HostMirror;

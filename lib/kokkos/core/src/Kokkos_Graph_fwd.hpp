@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_KOKKOS_GRAPH_FWD_HPP
 #define KOKKOS_KOKKOS_GRAPH_FWD_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_GRAPH_FWD
+#endif
 
 #include <Kokkos_Macros.hpp>
 
@@ -62,4 +66,8 @@ class GraphNodeRef;
 }  // end namespace Experimental
 }  // end namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_GRAPH_FWD
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_GRAPH_FWD
+#endif
 #endif  // KOKKOS_KOKKOS_GRAPH_FWD_HPP

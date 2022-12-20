@@ -57,9 +57,8 @@ namespace Impl {
 // At the end of this function, the subgroup scans are stored in the local array
 // such that the last value (at position n_active_subgroups-1) contains the
 // total sum.
-template <class ValueJoin, class ValueInit, int dim, typename ValueType,
-          typename FunctorType>
-void workgroup_scan(sycl::nd_item<dim> item, const FunctorType& functor,
+template <int dim, typename ValueType, typename FunctorType>
+void workgroup_scan(sycl::nd_item<dim> item, const FunctorType& final_reducer,
                     sycl::local_ptr<ValueType> local_mem,
                     ValueType& local_value, unsigned int global_range) {
   // subgroup scans
@@ -68,7 +67,7 @@ void workgroup_scan(sycl::nd_item<dim> item, const FunctorType& functor,
   const auto id_in_sg    = sg.get_local_id()[0];
   for (unsigned int stride = 1; stride < global_range; stride <<= 1) {
     auto tmp = sg.shuffle_up(local_value, stride);
-    if (id_in_sg >= stride) ValueJoin::join(functor, &local_value, &tmp);
+    if (id_in_sg >= stride) final_reducer.join(&local_value, &tmp);
   }
 
   const auto max_subgroup_size = sg.get_max_local_range()[0];
@@ -79,7 +78,7 @@ void workgroup_scan(sycl::nd_item<dim> item, const FunctorType& functor,
   if (id_in_sg == local_range - 1 && sg_group_id < n_active_subgroups)
     local_mem[sg_group_id] = local_value;
   local_value = sg.shuffle_up(local_value, 1);
-  if (id_in_sg == 0) ValueInit::init(functor, &local_value);
+  if (id_in_sg == 0) final_reducer.init(&local_value);
   sycl::group_barrier(item.get_group());
 
   // scan subgroup results using the first subgroup
@@ -96,7 +95,7 @@ void workgroup_scan(sycl::nd_item<dim> item, const FunctorType& functor,
           auto tmp = sg.shuffle_up(local_sg_value, stride);
           if (id_in_sg >= stride) {
             if (idx < n_active_subgroups)
-              ValueJoin::join(functor, &local_sg_value, &tmp);
+              final_reducer.join(&local_sg_value, &tmp);
             else
               local_sg_value = tmp;
           }
@@ -104,8 +103,8 @@ void workgroup_scan(sycl::nd_item<dim> item, const FunctorType& functor,
         if (idx < n_active_subgroups) {
           local_mem[idx] = local_sg_value;
           if (round > 0)
-            ValueJoin::join(functor, &local_mem[idx],
-                            &local_mem[round * local_range - 1]);
+            final_reducer.join(&local_mem[idx],
+                               &local_mem[round * local_range - 1]);
         }
         if (round + 1 < n_rounds) sycl::group_barrier(sg);
       }
@@ -115,7 +114,7 @@ void workgroup_scan(sycl::nd_item<dim> item, const FunctorType& functor,
 
   // add results to all subgroups
   if (sg_group_id > 0)
-    ValueJoin::join(functor, &local_value, &local_mem[sg_group_id - 1]);
+    final_reducer.join(&local_value, &local_mem[sg_group_id - 1]);
 }
 
 template <class FunctorType, class... Traits>
@@ -129,14 +128,12 @@ class ParallelScanSYCLBase {
   using WorkRange    = typename Policy::WorkRange;
   using LaunchBounds = typename Policy::launch_bounds;
 
-  using ValueTraits = Kokkos::Impl::FunctorValueTraits<FunctorType, WorkTag>;
-  using ValueInit   = Kokkos::Impl::FunctorValueInit<FunctorType, WorkTag>;
-  using ValueJoin   = Kokkos::Impl::FunctorValueJoin<FunctorType, WorkTag>;
-
  public:
-  using pointer_type   = typename ValueTraits::pointer_type;
-  using value_type     = typename ValueTraits::value_type;
-  using reference_type = typename ValueTraits::reference_type;
+  using Analysis =
+      FunctorAnalysis<FunctorPatternInterface::SCAN, Policy, FunctorType>;
+  using pointer_type   = typename Analysis::pointer_type;
+  using value_type     = typename Analysis::value_type;
+  using reference_type = typename Analysis::reference_type;
   using functor_type   = FunctorType;
   using size_type      = Kokkos::Experimental::SYCL::size_type;
   using index_type     = typename Policy::index_type;
@@ -174,6 +171,9 @@ class ParallelScanSYCLBase {
       cgh.parallel_for(
           sycl::nd_range<1>(n_wgroups * wgroup_size, wgroup_size),
           [=](sycl::nd_item<1> item) {
+            const FunctorType& functor = functor_wrapper.get_functor();
+            typename Analysis::Reducer final_reducer(&functor);
+
             const auto local_id  = item.get_local_linear_id();
             const auto global_id = item.get_global_linear_id();
 
@@ -182,11 +182,10 @@ class ParallelScanSYCLBase {
             if (global_id < size)
               local_value = global_mem[global_id];
             else
-              ValueInit::init(functor_wrapper.get_functor(), &local_value);
+              final_reducer.init(&local_value);
 
-            workgroup_scan<ValueJoin, ValueInit>(
-                item, functor_wrapper.get_functor(), local_mem.get_pointer(),
-                local_value, wgroup_size);
+            workgroup_scan<>(item, final_reducer, local_mem.get_pointer(),
+                             local_value, wgroup_size);
 
             if (n_wgroups > 1 && local_id == wgroup_size - 1)
               group_results[item.get_group_linear_id()] =
@@ -204,11 +203,12 @@ class ParallelScanSYCLBase {
         cgh.parallel_for(
             sycl::nd_range<1>(n_wgroups * wgroup_size, wgroup_size),
             [=](sycl::nd_item<1> item) {
-              const auto global_id = item.get_global_linear_id();
+              const auto global_id       = item.get_global_linear_id();
+              const FunctorType& functor = functor_wrapper.get_functor();
+              typename Analysis::Reducer final_reducer(&functor);
               if (global_id < size)
-                ValueJoin::join(functor_wrapper.get_functor(),
-                                &global_mem[global_id],
-                                &group_results[item.get_group_linear_id()]);
+                final_reducer.join(&global_mem[global_id],
+                                   &group_results[item.get_group_linear_id()]);
             });
       });
       q.ext_oneapi_submit_barrier(
@@ -221,9 +221,7 @@ class ParallelScanSYCLBase {
                                  sycl::event memcpy_event) const {
     // Convenience references
     const Kokkos::Experimental::SYCL& space = m_policy.space();
-    Kokkos::Experimental::Impl::SYCLInternal& instance =
-        *space.impl_internal_space_instance();
-    sycl::queue& q = *instance.m_queue;
+    sycl::queue& q                          = space.sycl_queue();
 
     const std::size_t len = m_policy.end() - m_policy.begin();
 
@@ -236,9 +234,12 @@ class ParallelScanSYCLBase {
       cgh.parallel_for(sycl::range<1>(len), [=](sycl::item<1> item) {
         const typename Policy::index_type id =
             static_cast<typename Policy::index_type>(item.get_id()) + begin;
+        const FunctorType& functor = functor_wrapper.get_functor();
+        typename Analysis::Reducer final_reducer(&functor);
+
         value_type update{};
-        ValueInit::init(functor_wrapper.get_functor(), &update);
-        if constexpr (std::is_same<WorkTag, void>::value)
+        final_reducer.init(&update);
+        if constexpr (std::is_void<WorkTag>::value)
           functor_wrapper.get_functor()(id, update, false);
         else
           functor_wrapper.get_functor()(WorkTag(), id, update, false);
@@ -258,7 +259,7 @@ class ParallelScanSYCLBase {
         auto global_id = item.get_id(0);
 
         value_type update = global_mem[global_id];
-        if constexpr (std::is_same<WorkTag, void>::value)
+        if constexpr (std::is_void<WorkTag>::value)
           functor_wrapper.get_functor()(global_id, update, true);
         else
           functor_wrapper.get_functor()(WorkTag(), global_id, update, true);
@@ -297,8 +298,8 @@ class ParallelScanSYCLBase {
 
     // FIXME_SYCL consider only storing one value per block and recreate initial
     // results in the end before doing the final pass
-    m_scratch_space =
-        static_cast<pointer_type>(instance.scratch_space(total_memory));
+    m_scratch_space = static_cast<sycl::device_ptr<value_type>>(
+        instance.scratch_space(total_memory));
 
     Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem&
         indirectKernelMem = instance.get_indirect_kernel_mem();
@@ -346,14 +347,16 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
   using Base = ParallelScanSYCLBase<FunctorType, Traits...>;
 
   ReturnType& m_returnvalue;
+  const Kokkos::Experimental::SYCL& m_exec;
 
   inline void execute() {
     Base::impl_execute([&]() {
       const long long nwork = Base::m_policy.end() - Base::m_policy.begin();
       if (nwork > 0) {
-        const int size = Base::ValueTraits::value_size(Base::m_functor);
-        DeepCopy<HostSpace, Kokkos::Experimental::SYCLDeviceUSMSpace>(
-            &m_returnvalue, Base::m_scratch_space + nwork - 1, size);
+        const int size = Base::Analysis::value_size(Base::m_functor);
+        DeepCopy<HostSpace, Kokkos::Experimental::SYCLDeviceUSMSpace,
+                 Kokkos::Experimental::SYCL>(
+            m_exec, &m_returnvalue, Base::m_scratch_space + nwork - 1, size);
       }
     });
   }
@@ -361,7 +364,9 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
   ParallelScanWithTotal(const FunctorType& arg_functor,
                         const typename Base::Policy& arg_policy,
                         ReturnType& arg_returnvalue)
-      : Base(arg_functor, arg_policy), m_returnvalue(arg_returnvalue) {}
+      : Base(arg_functor, arg_policy),
+        m_returnvalue(arg_returnvalue),
+        m_exec(arg_policy.space()) {}
 };
 
 }  // namespace Impl

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -41,6 +41,7 @@
 
 #include <cctype>
 #include <cstring>
+#include <unordered_map>
 #include <unordered_set>
 
 using namespace LAMMPS_NS;
@@ -550,12 +551,33 @@ void ReadData::command(int narg, char **arg)
     // only done if firstpass and not first data file
 
     if (firstpass && addflag != NONE) {
+      double oldboxlo[3] = { domain->boxlo[0],  domain->boxlo[1] , domain->boxlo[2]};
+      double oldboxhi[3] = { domain->boxhi[0],  domain->boxhi[1] , domain->boxhi[2]};
       domain->boxlo[0] = MIN(domain->boxlo[0], boxlo[0] + shift[0]);
       domain->boxhi[0] = MAX(domain->boxhi[0], boxhi[0] + shift[0]);
       domain->boxlo[1] = MIN(domain->boxlo[1], boxlo[1] + shift[1]);
       domain->boxhi[1] = MAX(domain->boxhi[1], boxhi[1] + shift[1]);
       domain->boxlo[2] = MIN(domain->boxlo[2], boxlo[2] + shift[2]);
       domain->boxhi[2] = MAX(domain->boxhi[2], boxhi[2] + shift[2]);
+
+      // check of box has changed. If yes, warn about non-zero image flags
+      if ((oldboxlo[0] != domain->boxlo[0]) || (oldboxlo[1] != domain->boxlo[1]) ||
+          (oldboxlo[2] != domain->boxlo[2]) || (oldboxhi[0] != domain->boxhi[0]) ||
+          (oldboxhi[1] != domain->boxhi[1]) || (oldboxhi[2] != domain->boxhi[2])) {
+        int iflag = 1;
+        for (int i=0; i < atom->nlocal; ++i) {
+          int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
+          int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
+          int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
+          if (xbox != 0) iflag = 1;
+          if (ybox != 0) iflag = 1;
+          if (zbox != 0) iflag = 1;
+        }
+        int flag_all;
+        MPI_Allreduce(&iflag,&flag_all, 1, MPI_INT, MPI_SUM, world);
+        if ((flag_all > 0) && (comm->me == 0))
+          error->warning(FLERR,"Non-zero image flags with growing box leads to bad coordinates");
+      }
 
       // NOTE: not sure what to do about tilt value in subsequent data files
       //if (triclinic) {
@@ -875,10 +897,13 @@ void ReadData::command(int narg, char **arg)
         int i;
         for (i = 0; i < nfix; i++)
           if (strcmp(keyword, fix_section[i]) == 0) {
-            if (firstpass)
+            if (firstpass) {
               fix(fix_index[i], keyword);
-            else
-              skip_lines(fix_index[i]->read_data_skip_lines(keyword));
+            } else {
+              auto nskip = fix_index[i]->read_data_skip_lines(keyword);
+              if (nskip < 0) nskip = natoms;
+              skip_lines(nskip);
+            }
             break;
           }
         if (i == nfix)
@@ -2225,6 +2250,7 @@ void ReadData::fix(Fix *ifix, char *keyword)
   int nchunk, eof;
 
   bigint nline = ifix->read_data_skip_lines(keyword);
+  if (nline < 0) nline = natoms;
 
   bigint nread = 0;
   while (nread < nline) {

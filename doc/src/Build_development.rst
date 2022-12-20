@@ -140,12 +140,22 @@ of the LAMMPS project on GitHub.
 The unit testing facility is integrated into the CMake build process
 of the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
-It requires the `YAML <http://pyyaml.org/>`_ library and development
+It requires the `YAML <https://pyyaml.org/>`_ library and development
 headers (if those are not found locally a recent version will be
 downloaded and compiled along with LAMMPS and the test program) to
 compile and will download and compile a specific recent version of the
 `Googletest <https://github.com/google/googletest/>`_ C++ test framework
 for implementing the tests.
+
+.. admonition:: Software version requirements for testing
+   :class: note
+
+   The compiler and library version requirements for the testing
+   framework are more strict than for the main part of LAMMPS.  For
+   example the default GNU C++ and Fortran compilers of RHEL/CentOS 7.x
+   (version 4.8.x) are not sufficient.  The CMake configuration will try
+   to detect compatible versions and either skip incompatible tests or
+   stop with an error.
 
 After compilation is complete, the unit testing is started in the build
 folder using the ``ctest`` command, which is part of the CMake software.

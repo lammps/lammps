@@ -72,8 +72,7 @@ struct Dot {
   void operator()(int i, value_type& update) const { update += X[i] * Y[i]; }
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& source) {
+  static void join(value_type& update, const value_type& source) {
     update += source;
   }
 
@@ -105,8 +104,7 @@ struct DotSingle {
   }
 
   KOKKOS_INLINE_FUNCTION
-  static void join(volatile value_type& update,
-                   const volatile value_type& source) {
+  static void join(value_type& update, const value_type& source) {
     update += source;
   }
 

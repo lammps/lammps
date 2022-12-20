@@ -30,12 +30,13 @@ executable itself can be placed elsewhere.
 
 .. note::
 
-   The redirection operator "<" will not always work when running
-   in parallel with mpirun or mpiexec; for those systems the -in form is required.
+   The redirection operator "<" will not always work when running in
+   parallel with ``mpirun`` or ``mpiexec``; for those systems the -in
+   form is required.
 
 As LAMMPS runs it prints info to the screen and a logfile named
-*log.lammps*\ .  More info about output is given on the
-:doc:`screen and logfile output <Run_output>` page.
+*log.lammps*\ .  More info about output is given on the :doc:`screen and
+logfile output <Run_output>` page.
 
 If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING

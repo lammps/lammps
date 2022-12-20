@@ -86,9 +86,12 @@ if(CMAKE_Fortran_COMPILER)
   target_link_libraries(test_fortran_neighlist PRIVATE flammps lammps GTest::GMockMain)
   add_test(NAME FortranNeighlist COMMAND test_fortran_neighlist)
 
-  add_executable(test_fortran_fixexternal wrap_fixexternal.cpp test_fortran_fixexternal.f90)
-  target_link_libraries(test_fortran_fixexternal PRIVATE flammps lammps GTest::GMockMain)
-  add_test(NAME FortranFixExternal COMMAND test_fortran_fixexternal)
+  # gfortran from GCC 9 on ubuntu has an ICE compiling this test.
+  if ((CMAKE_Fortran_COMPILER_ID STREQUAL "GNU") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_GREATER 9.0))
+    add_executable(test_fortran_fixexternal wrap_fixexternal.cpp test_fortran_fixexternal.f90)
+    target_link_libraries(test_fortran_fixexternal PRIVATE flammps lammps GTest::GMockMain)
+    add_test(NAME FortranFixExternal COMMAND test_fortran_fixexternal)
+  endif()
 
 else()
   message(STATUS "Skipping Tests for the LAMMPS Fortran Module: no Fortran compiler")

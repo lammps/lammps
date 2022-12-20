@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -17,12 +16,12 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "irregular.h"
-#include "pair.h"
-#include "kspace.h"
 #include "fix.h"
+#include "irregular.h"
+#include "kspace.h"
 #include "math_extra.h"
 #include "memory.h"
+#include "pair.h"
 
 using namespace LAMMPS_NS;
 
@@ -47,11 +46,15 @@ static constexpr int OFFSET = 16384;
    gnx,gny,gnz = global grid size
 ------------------------------------------------------------------------- */
 
-Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) : Pointers(lmp)
+Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) :
+    Pointers(lmp), swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr),
+    sresponse(nullptr), rresponse(nullptr), send(nullptr), recv(nullptr), copy(nullptr),
+    send_remap(nullptr), recv_remap(nullptr), overlap_procs(nullptr), xsplit(nullptr),
+    ysplit(nullptr), zsplit(nullptr), grid2proc(nullptr), rcbinfo(nullptr), overlap_list(nullptr)
 {
   gridcomm = gcomm;
-  MPI_Comm_rank(gridcomm,&me);
-  MPI_Comm_size(gridcomm,&nprocs);
+  MPI_Comm_rank(gridcomm, &me);
+  MPI_Comm_size(gridcomm, &nprocs);
 
   nx = gnx;
   ny = gny;
@@ -81,14 +84,17 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny) : Pointers(lmp)
      ghost indices can extend < 0 or >= N
 ------------------------------------------------------------------------- */
 
-Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny,
-               int ixlo, int ixhi, int iylo, int iyhi,
-               int oxlo, int oxhi, int oylo, int oyhi) :
-  Pointers(lmp)
+Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int ixlo, int ixhi, int iylo,
+               int iyhi, int oxlo, int oxhi, int oylo, int oyhi) :
+    Pointers(lmp),
+    swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr), sresponse(nullptr),
+    rresponse(nullptr), send(nullptr), recv(nullptr), copy(nullptr), send_remap(nullptr),
+    recv_remap(nullptr), overlap_procs(nullptr), xsplit(nullptr), ysplit(nullptr), zsplit(nullptr),
+    grid2proc(nullptr), rcbinfo(nullptr), overlap_list(nullptr)
 {
   gridcomm = gcomm;
-  MPI_Comm_rank(gridcomm,&me);
-  MPI_Comm_size(gridcomm,&nprocs);
+  MPI_Comm_rank(gridcomm, &me);
+  MPI_Comm_size(gridcomm, &nprocs);
 
   nx = gnx;
   ny = gny;
@@ -123,18 +129,16 @@ Grid2d::~Grid2d()
   }
   memory->sfree(swap);
 
-  delete [] xsplit;
-  delete [] ysplit;
+  delete[] xsplit;
+  delete[] ysplit;
   memory->destroy(grid2proc);
 
   // tiled comm data structs
 
-  for (int i = 0; i < nsend; i++)
-    memory->destroy(send[i].packlist);
+  for (int i = 0; i < nsend; i++) memory->destroy(send[i].packlist);
   memory->sfree(send);
 
-  for (int i = 0; i < nrecv; i++)
-    memory->destroy(recv[i].unpacklist);
+  for (int i = 0; i < nrecv; i++) memory->destroy(recv[i].unpacklist);
   memory->sfree(recv);
 
   for (int i = 0; i < ncopy; i++) {
@@ -143,8 +147,8 @@ Grid2d::~Grid2d()
   }
   memory->sfree(copy);
 
-  delete [] requests;
-  delete [] requests_remap;
+  delete[] requests;
+  delete[] requests_remap;
 
   memory->sfree(rcbinfo);
 
@@ -223,8 +227,10 @@ void Grid2d::set_shift_atom(double shift_lo, double shift_hi)
 
 void Grid2d::set_yfactor(double factor)
 {
-  if (factor == 1.0) yextra = 0;
-  else yextra = 1;
+  if (factor == 1.0)
+    yextra = 0;
+  else
+    yextra = 1;
   yfactor = factor;
 }
 
@@ -262,20 +268,19 @@ void Grid2d::set_caller_grid(int fxlo, int fxhi, int fylo, int fyhi)
 
 int Grid2d::identical(Grid2d *grid2)
 {
-  int inxlo2,inxhi2,inylo2,inyhi2;
-  int outxlo2,outxhi2,outylo2,outyhi2;
+  int inxlo2, inxhi2, inylo2, inyhi2;
+  int outxlo2, outxhi2, outylo2, outyhi2;
 
-  grid2->get_bounds_owned(inxlo2,inxhi2,inylo2,inyhi2);
-  grid2->get_bounds_ghost(outxlo2,outxhi2,outylo2,outyhi2);
+  grid2->get_bounds_owned(inxlo2, inxhi2, inylo2, inyhi2);
+  grid2->get_bounds_ghost(outxlo2, outxhi2, outylo2, outyhi2);
 
   int flag = 0;
-  if (inxlo != inxlo2 || inxhi != inxhi2 ||
-      inylo != inylo2 || inyhi != inyhi2) flag = 1;
-  if (outxlo != outxlo2 || outxhi != outxhi2 ||
-      outylo != outylo2 || outyhi != outyhi2) flag = 1;
+  if ((inxlo != inxlo2) || (inxhi != inxhi2) || (inylo != inylo2) || (inyhi != inyhi2)) flag = 1;
+  if ((outxlo != outxlo2) || (outxhi != outxhi2) || (outylo != outylo2) || (outyhi != outyhi2))
+    flag = 1;
 
   int flagall;
-  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,gridcomm);
+  MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, gridcomm);
 
   if (flagall) return 0;
   return 1;
@@ -324,28 +329,28 @@ void Grid2d::get_bounds_ghost(int &xlo, int &xhi, int &ylo, int &yhi)
      since no grid comm is done across non-periodic boundaries
 ------------------------------------------------------------------------- */
 
-void Grid2d::setup_grid(int &ixlo, int &ixhi, int &iylo, int &iyhi,
-                        int &oxlo, int &oxhi, int &oylo, int &oyhi)
+void Grid2d::setup_grid(int &ixlo, int &ixhi, int &iylo, int &iyhi, int &oxlo, int &oxhi, int &oylo,
+                        int &oyhi)
 {
   // owned grid cells = those whose grid point is within proc subdomain
   // shift_grid = 0.5 for grid point at cell center, 0.0 for lower-left corner
 
-  double fraclo,frachi;
+  double fraclo, frachi;
 
   if (comm->layout != Comm::LAYOUT_TILED) {
     fraclo = comm->xsplit[comm->myloc[0]];
-    frachi = comm->xsplit[comm->myloc[0]+1];
-    partition_grid(nx,fraclo,frachi,shift_grid,0,inxlo,inxhi);
+    frachi = comm->xsplit[comm->myloc[0] + 1];
+    partition_grid(nx, fraclo, frachi, shift_grid, 0, inxlo, inxhi);
     fraclo = comm->ysplit[comm->myloc[1]];
-    frachi = comm->ysplit[comm->myloc[1]+1];
-    partition_grid(ny,fraclo,frachi,shift_grid,yextra,inylo,inyhi);
+    frachi = comm->ysplit[comm->myloc[1] + 1];
+    partition_grid(ny, fraclo, frachi, shift_grid, yextra, inylo, inyhi);
   } else {
     fraclo = comm->mysplit[0][0];
     frachi = comm->mysplit[0][1];
-    partition_grid(nx,fraclo,frachi,shift_grid,0,inxlo,inxhi);
+    partition_grid(nx, fraclo, frachi, shift_grid, 0, inxlo, inxhi);
     fraclo = comm->mysplit[1][0];
     frachi = comm->mysplit[1][1];
-    partition_grid(ny,fraclo,frachi,shift_grid,yextra,inylo,inyhi);
+    partition_grid(ny, fraclo, frachi, shift_grid, yextra, inylo, inyhi);
   }
 
   // extend owned grid bounds with ghost grid cells in each direction
@@ -379,8 +384,7 @@ void Grid2d::initialize()
   // error check on size of grid stored by this proc
 
   bigint total = (bigint) (outxhi - outxlo + 1) * (outyhi - outylo + 1);
-  if (total > MAXSMALLINT)
-    error->one(FLERR, "Too many owned+ghost grid2d points");
+  if (total > MAXSMALLINT) error->one(FLERR, "Too many owned+ghost grid2d points");
 
   // default = caller grid is allocated to ghost grid
   // used when computing pack/unpack lists in indices()
@@ -437,22 +441,23 @@ void Grid2d::initialize()
      2 if test equalties insure a consistent decision as to which proc owns it
 ------------------------------------------------------------------------- */
 
-void Grid2d::partition_grid(int ngrid, double fraclo, double frachi,
-                            double shift, int extra, int &lo, int &hi)
+void Grid2d::partition_grid(int ngrid, double fraclo, double frachi, double shift, int extra,
+                            int &lo, int &hi)
 {
   if (extra == 0) {
-    lo = static_cast<int> (fraclo * ngrid);
-    while (lo+shift < fraclo*ngrid) lo++;
-    hi = static_cast<int> (frachi * ngrid);
-    while (hi+shift >= frachi*ngrid) hi--;
+    lo = static_cast<int>(fraclo * ngrid);
+    while (lo + shift < fraclo * ngrid) lo++;
+    hi = static_cast<int>(frachi * ngrid);
+    while (hi + shift >= frachi * ngrid) hi--;
   } else {
-    lo = static_cast<int> (fraclo * ngrid/yfactor);
-    while (lo+shift < fraclo*ngrid/yfactor) lo++;
-    hi = static_cast<int> (frachi * ngrid/yfactor);
-    while (hi+shift >= frachi*ngrid/yfactor) hi--;
+    lo = static_cast<int>(fraclo * ngrid / yfactor);
+    while (lo + shift < fraclo * ngrid / yfactor) lo++;
+    hi = static_cast<int>(frachi * ngrid / yfactor);
+    while (hi + shift >= frachi * ngrid / yfactor) hi--;
   }
 }
 
+// clang-format off
 /* ----------------------------------------------------------------------
    extend ghost grid cells in each direction beyond owned grid
    indices into the global grid range from 0 to N-1 in each dim

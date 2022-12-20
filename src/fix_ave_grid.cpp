@@ -45,13 +45,15 @@ static constexpr int OFFSET = 16384;
 /* ---------------------------------------------------------------------- */
 
 FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  which(nullptr), argindex(nullptr), ids(nullptr),
-  value2index(nullptr), value2grid(nullptr), value2data(nullptr),
-  grid2d(nullptr), grid3d(nullptr),
-  grid_buf1(nullptr), grid_buf2(nullptr)
+  Fix(lmp, narg, arg), id_bias(nullptr), which(nullptr), argindex(nullptr), ids(nullptr),
+  value2index(nullptr), value2grid(nullptr), value2data(nullptr), grid2d(nullptr), grid3d(nullptr),
+  grid_buf1(nullptr), grid_buf2(nullptr), grid_output(nullptr), grid_sample(nullptr),
+  grid_nfreq(nullptr), grid_running(nullptr), grid_window(nullptr), grid2d_previous(nullptr),
+  grid3d_previous(nullptr), grid_sample_previous(nullptr), grid_nfreq_previous(nullptr),
+  grid_running_previous(nullptr), grid_window_previous(nullptr), bin(nullptr), skip(nullptr),
+  vresult(nullptr)
 {
-  if (narg < 10) error->all(FLERR,"Illegal fix ave/grid command");
+  if (narg < 10) utils::missing_cmd_args(FLERR,"fix ave/grid", error);
 
   pergrid_flag = 1;
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
@@ -258,7 +260,7 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
 
   dimension = domain->dimension;
 
-  if (nxgrid < 1 || nygrid < 1 || nzgrid < 1)
+  if ((nxgrid < 1) || (nygrid < 1) || (nzgrid < 1))
     error->all(FLERR,"Invalid fix ave/grid grid size");
   if (dimension == 2 && nzgrid != 1)
     error->all(FLERR,"Fix ave/grid grid Nz must be 1 for 2d simulation");
@@ -282,17 +284,13 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
         if (icompute < 0)
           error->all(FLERR,"Compute ID for fix ave/grid does not exist");
         if (modify->compute[icompute]->peratom_flag == 0)
-          error->all(FLERR,
-                     "Fix ave/atom compute does not calculate per-atom values");
+          error->all(FLERR, "Fix ave/atom compute does not calculate per-atom values");
         if (argindex[i] == 0 &&
             modify->compute[icompute]->size_peratom_cols != 0)
-          error->all(FLERR,"Fix ave/atom compute does not "
-                     "calculate a per-atom vector");
+          error->all(FLERR,"Fix ave/atom compute does not calculate a per-atom vector");
         if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
-          error->all(FLERR,"Fix ave/atom compute does not "
-                     "calculate a per-atom array");
-        if (argindex[i] &&
-            argindex[i] > modify->compute[icompute]->size_peratom_cols)
+          error->all(FLERR,"Fix ave/atom compute does not calculate a per-atom array");
+        if (argindex[i] && argindex[i] > modify->compute[icompute]->size_peratom_cols)
           error->all(FLERR,"Fix ave/atom compute array is accessed out-of-range");
 
       } else if (which[i] == ArgInfo::FIX) {
@@ -302,16 +300,13 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
         if (modify->fix[ifix]->peratom_flag == 0)
           error->all(FLERR,"Fix ave/atom fix does not calculate per-atom values");
         if (argindex[i] == 0 && modify->fix[ifix]->size_peratom_cols != 0)
-          error->all(FLERR,
-                     "Fix ave/atom fix does not calculate a per-atom vector");
+          error->all(FLERR, "Fix ave/atom fix does not calculate a per-atom vector");
         if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
-          error->all(FLERR,
-                     "Fix ave/atom fix does not calculate a per-atom array");
+          error->all(FLERR, "Fix ave/atom fix does not calculate a per-atom array");
         if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
           error->all(FLERR,"Fix ave/atom fix array is accessed out-of-range");
         if (nevery % modify->fix[ifix]->peratom_freq)
-          error->all(FLERR,
-                     "Fix for fix ave/atom not computed at compatible time");
+          error->all(FLERR, "Fix for fix ave/atom not computed at compatible time");
 
       } else if (which[i] == ArgInfo::VARIABLE) {
         int ivariable = input->variable->find(ids[i]);
@@ -1798,7 +1793,7 @@ void FixAveGrid::pack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *li
     count = &grid_sample->count2d[nylo_out][nxlo_out];
     if (nvalues == 1) data = &grid_sample->vec2d[nylo_out][nxlo_out];
     else data = &grid_sample->array2d[nylo_out][nxlo_out][0];
-  } else if (dimension == 3) {
+  } else {
     count = &grid_sample->count3d[nzlo_out][nylo_out][nxlo_out];
     if (nvalues == 1) data = &grid_sample->vec3d[nzlo_out][nylo_out][nxlo_out];
     else data = &grid_sample->array3d[nzlo_out][nylo_out][nxlo_out][0];
@@ -1836,7 +1831,7 @@ void FixAveGrid::unpack_reverse_grid(int /*which*/, void *vbuf, int nlist, int *
     count = &grid_sample->count2d[nylo_out][nxlo_out];
     if (nvalues == 1) data = &grid_sample->vec2d[nylo_out][nxlo_out];
     else data = &grid_sample->array2d[nylo_out][nxlo_out][0];
-  } else if (dimension == 3) {
+  } else {
     count = &grid_sample->count3d[nzlo_out][nylo_out][nxlo_out];
     if (nvalues == 1) data = &grid_sample->vec3d[nzlo_out][nylo_out][nxlo_out];
     else data = &grid_sample->array3d[nzlo_out][nylo_out][nxlo_out][0];
@@ -1921,7 +1916,7 @@ int FixAveGrid::pack_one_grid(GridData *grid, int index, double *buf)
     count = &grid->count2d[nylo_out_previous][nxlo_out_previous];
     if (nvalues == 1) data = &grid->vec2d[nylo_out_previous][nxlo_out_previous];
     else data = &grid->array2d[nylo_out_previous][nxlo_out_previous][0];
-  } else if (dimension == 3) {
+  } else {
     count = &grid->count3d[nzlo_out_previous][nylo_out_previous][nxlo_out_previous];
     if (nvalues == 1) data = &grid->vec3d[nzlo_out_previous][nylo_out_previous][nxlo_out_previous];
     else data = &grid->array3d[nzlo_out_previous][nylo_out_previous][nxlo_out_previous][0];
@@ -1952,7 +1947,7 @@ int FixAveGrid::unpack_one_grid(double *buf, GridData *grid, int index)
     count = &grid->count2d[nylo_out][nxlo_out];
     if (nvalues == 1) data = &grid->vec2d[nylo_out][nxlo_out];
     else data = &grid->array2d[nylo_out][nxlo_out][0];
-  } else if (dimension == 3) {
+  } else {
     count = &grid->count3d[nzlo_out][nylo_out][nxlo_out];
     if (nvalues == 1) data = &grid->vec3d[nzlo_out][nylo_out][nxlo_out];
     else data = &grid->array3d[nzlo_out][nylo_out][nxlo_out][0];

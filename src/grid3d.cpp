@@ -48,7 +48,11 @@ static constexpr int OFFSET = 16384;
 ------------------------------------------------------------------------- */
 
 Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
-  Pointers(lmp)
+  Pointers(lmp), swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr),
+    sresponse(nullptr), rresponse(nullptr), send(nullptr), recv(nullptr), copy(nullptr),
+    send_remap(nullptr), recv_remap(nullptr), overlap_procs(nullptr), xsplit(nullptr),
+    ysplit(nullptr), zsplit(nullptr), grid2proc(nullptr), rcbinfo(nullptr), overlap_list(nullptr)
+
 {
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);
@@ -87,7 +91,10 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
 Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
                int ixlo, int ixhi, int iylo, int iyhi, int izlo, int izhi,
                int oxlo, int oxhi, int oylo, int oyhi, int ozlo, int ozhi) :
-  Pointers(lmp)
+  Pointers(lmp), swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr),
+    sresponse(nullptr), rresponse(nullptr), send(nullptr), recv(nullptr), copy(nullptr),
+    send_remap(nullptr), recv_remap(nullptr), overlap_procs(nullptr), xsplit(nullptr),
+    ysplit(nullptr), zsplit(nullptr), grid2proc(nullptr), rcbinfo(nullptr), overlap_list(nullptr)
 {
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);

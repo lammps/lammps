@@ -1524,11 +1524,10 @@ double FixAveGrid::size_grid(GridData * /*grid*/)
 
   double bytes;
   if (dimension == 2)
-    bytes = nper * (nxhi_out - nxlo_out + 1) *
-      (nyhi_out - nylo_out + 1) * sizeof(double);
+    bytes = sizeof(double) * nper * (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1);
   else
-    bytes = nper * (nxhi_out - nxlo_out + 1) *
-      (nyhi_out - nylo_out + 1) * (nzhi_out - nzlo_out + 1) * sizeof(double);
+    bytes = sizeof(double) * nper * (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) *
+      (nzhi_out - nzlo_out + 1);
 
   return bytes;
 }
@@ -1544,23 +1543,18 @@ void FixAveGrid::zero_grid(GridData *grid)
 
   if (dimension == 2) {
     if (nvalues == 1)
-      memset(&grid->vec2d[nylo_out][nxlo_out],0,ngridout*sizeof(double));
+      memset(&grid->vec2d[nylo_out][nxlo_out], 0, sizeof(double) * ngridout);
     else
-      memset(&grid->array2d[nylo_out][nxlo_out][0],0,
-             ngridout*nvalues*sizeof(double));
-    if (modeatom)
-      memset(&grid->count2d[nylo_out][nxlo_out],0,ngridout*sizeof(double));
+      memset(&grid->array2d[nylo_out][nxlo_out][0], 0, sizeof(double) * ngridout * nvalues);
+    if (modeatom) memset(&grid->count2d[nylo_out][nxlo_out], 0, sizeof(double) * ngridout);
 
   } else {
     if (nvalues == 1)
-      memset(&grid->vec3d[nzlo_out][nylo_out][nxlo_out],0,
-             ngridout*sizeof(double));
+      memset(&grid->vec3d[nzlo_out][nylo_out][nxlo_out], 0, sizeof(double) * ngridout);
     else
-      memset(&grid->array3d[nzlo_out][nylo_out][nxlo_out][0],0,
-             ngridout*nvalues*sizeof(double));
+      memset(&grid->array3d[nzlo_out][nylo_out][nxlo_out][0], 0, sizeof(double)* ngridout * nvalues);
     if (modeatom)
-      memset(&grid->count3d[nzlo_out][nylo_out][nxlo_out],0,
-             ngridout*sizeof(double));
+      memset(&grid->count3d[nzlo_out][nylo_out][nxlo_out], 0, sizeof(double) * ngridout);
   }
 }
 
@@ -2213,9 +2207,9 @@ double FixAveGrid::memory_usage()
     bytes += nwindow * size_grid(grid_window[0]);
 
   if (modeatom) {
-    bytes += maxatom*dimension * sizeof(int);   // bin array
-    bytes += maxatom * sizeof(int);             // skip vector
-    bytes += maxvar * sizeof(double);           // vresult for per-atom variable
+    bytes += sizeof(int) * maxatom * dimension;   // bin array
+    bytes += sizeof(int) * maxatom;               // skip vector
+    bytes += sizeof(double) * maxvar;             // vresult for per-atom variable
   }
 
   return bytes;

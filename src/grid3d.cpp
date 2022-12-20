@@ -632,14 +632,14 @@ void Grid3d::extract_comm_info()
     xsplit = new double[comm->procgrid[0]+1];
     ysplit = new double[comm->procgrid[1]+1];
     zsplit = new double[comm->procgrid[2]+1];
-    memcpy(xsplit,comm->xsplit,(comm->procgrid[0]+1)*sizeof(double));
-    memcpy(ysplit,comm->ysplit,(comm->procgrid[1]+1)*sizeof(double));
-    memcpy(zsplit,comm->zsplit,(comm->procgrid[2]+1)*sizeof(double));
+    memcpy(xsplit, comm->xsplit, sizeof(double) * (comm->procgrid[0]+1));
+    memcpy(ysplit, comm->ysplit, sizeof(double) * (comm->procgrid[1]+1));
+    memcpy(zsplit, comm->zsplit, sizeof(double) * (comm->procgrid[2]+1));
 
     memory->create(grid2proc,comm->procgrid[0],comm->procgrid[1],comm->procgrid[2],
                    "grid3d:grid2proc");
     memcpy(&grid2proc[0][0][0],&comm->grid2proc[0][0][0],
-           comm->procgrid[0]*comm->procgrid[1]*comm->procgrid[2]*sizeof(int));
+           sizeof(int) * comm->procgrid[0] * comm->procgrid[1] * comm->procgrid[2]);
   }
 
   // for TILED layout:

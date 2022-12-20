@@ -1515,8 +1515,8 @@ void Grid2d::read_file_style(T *ptr, FILE *fp, int nchunk, int maxline)
   bigint nread = 0;
 
   while (nread < ntotal) {
-    int nchunk = MIN(ntotal - nread, nchunk);
-    int eof = utils::read_lines_from_file(fp, nchunk, maxline, buffer, me, world);
+    int mychunk = MIN(ntotal - nread, nchunk);
+    int eof = utils::read_lines_from_file(fp, mychunk, maxline, buffer, me, world);
     if (eof) error->all(FLERR, "Unexpected end of grid data file");
 
     nread += ptr->unpack_read_grid(nchunk,buffer);

@@ -3858,25 +3858,6 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
         v[n][1] = v[n][1]/vnorm*vtnorm;
         v[n][2] = v[n][2]/vnorm*vtnorm;
         modify->create_attribute(n);
-
-        // initialize group statuses
-        // why aren't these more global...
-        int flag,cols;
-        int index1 = atom->find_custom("limit_tags",flag,cols);
-        int *i_limit_tags = atom->ivector[index1];
-
-        int *i_statted_tags;
-        if (stabilization_flag == 1) {
-          int index2 = atom->find_custom(statted_id,flag,cols);
-          i_statted_tags = atom->ivector[index2];
-        }
-
-        int index3 = atom->find_custom("react_tags",flag,cols);
-        int *i_react_tags = atom->ivector[index3];
-
-        i_limit_tags[n] = update->ntimestep + 1;
-        if (stabilization_flag == 1) i_statted_tags[n] = 0;
-        i_react_tags[n] = rxnID;
       }
       // globally update mega_glove and equivalences
       MPI_Allreduce(MPI_IN_PLACE,&root,1,MPI_INT,MPI_SUM,world);

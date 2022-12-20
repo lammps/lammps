@@ -1164,7 +1164,7 @@ For illustration purposes below is a part of the Tcl example script.
 tabulate tool
 --------------
 
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 The ``tabulate`` folder contains Python scripts scripts to generate tabulated
 potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module

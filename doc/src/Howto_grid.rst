@@ -1,7 +1,7 @@
 Distributed grids
 =================
 
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 LAMMPS has internal capabilities to create uniformly spaced grids
 which overlay the simulation domain.  For 2d and 3d simulations these

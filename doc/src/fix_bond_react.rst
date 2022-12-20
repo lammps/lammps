@@ -123,6 +123,17 @@ using this fix is
   (4) create a map that relates the template-atom-IDs of each atom between pre- and post-reaction molecule templates
   (5) fill a simulation box with molecules and run a simulation with fix bond/react.
 
+.. note::
+
+   .. versionadded:: 15Sep2022
+
+   :doc:`Type labels <Howto_type_labels>` allow for molecule templates
+   and data files to use alphanumeric atom types that match those of
+   a force field. Input files that use type labels are inherently
+   compatible with each other and portable between different
+   simulations. Therefore, it is highly recommended to use type labels
+   to specify atom, bond, etc. types when using fix bond/react.
+
 Only one 'fix bond/react' command can be used at a time. Multiple
 reactions can be simultaneously applied by specifying multiple *react*
 arguments to a single 'fix bond/react' command. This syntax is
@@ -228,18 +239,18 @@ pairs are identified within the cutoff distance:
       initiator partners, these two atoms are identified as the initiator atom
       pair of the reaction site.
 
-Note that it can be helpful to select
-unique atom types for the initiator atoms: if an initiator atom pair
-is identified, as described in the previous steps, but it does not
-correspond to the same pair specified in the pre-reaction template, an
-otherwise eligible reaction could be prevented from occurring. Once
-this unique initiator atom pair is identified for each reaction, there
-could be two or more reactions that involve the same atom on the same
-time step. If this is the case, only one such reaction is permitted to
-occur. This reaction is chosen randomly from all potential reactions
-involving the overlapping atom. This capability allows, for example,
-different reaction pathways to proceed from identical reaction sites
-with user-specified probabilities.
+Note that it can be helpful to select unique atom types for the
+initiator atoms: if an initiator atom pair is identified, as described
+in the previous steps, but it does not correspond to the same pair
+specified in the pre-reaction template, an otherwise eligible reaction
+could be prevented from occurring. Once this unique initiator atom
+pair is identified for each reaction, there could be two or more
+reactions that involve the same atom on the same time step. If this is
+the case, only one such reaction is permitted to occur. This reaction
+is chosen randomly from all potential reactions involving the
+overlapping atom. This capability allows, for example, different
+reaction pathways to proceed from identical reaction sites with
+user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its
@@ -280,7 +291,10 @@ for a given simulation. All atom types in the pre-reacted template
 must be the same as those of a potential reaction site in the
 simulation. A detailed discussion of matching molecule template atom
 types with the simulation is provided on the :doc:`molecule <molecule>`
-command page.
+command page. It is highly recommended to use :doc:`Type labels <Howto_type_labels>`
+(added in version 15Sep2022) in both molecule templates and data
+files, which automates the process of syncing atom types between
+different input files.
 
 The post-reacted molecule template contains a sample of the reaction
 site and its surrounding topology after the reaction has occurred. It

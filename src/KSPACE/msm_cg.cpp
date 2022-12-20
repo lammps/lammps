@@ -52,7 +52,7 @@ MSMCG::MSMCG(LAMMPS *lmp) : MSM(lmp),
 void MSMCG::settings(int narg, char **arg)
 {
   if ((narg < 1) || (narg > 2))
-    error->all(FLERR,"Illegal kspace_style msm/cg command");
+    error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
 
   // first argument is processed in parent class
 

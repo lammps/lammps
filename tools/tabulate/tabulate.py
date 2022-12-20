@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 #   https://www.lammps.org/ Sandia National Laboratories
@@ -277,3 +278,7 @@ class DihedralTabulate(Tabulate):
         self.writetable(table, 0.0)
         if self.args.filename != '-':
             self.fp.close()
+
+################################################################################
+if __name__ == "__main__":
+    sys.exit("The tabulate module is not meant to be executed directly")

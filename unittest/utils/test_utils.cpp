@@ -300,6 +300,26 @@ TEST(Utils, valid_double9)
     ASSERT_TRUE(utils::is_double("+.0"));
 }
 
+TEST(Utils, valid_double10)
+{
+    ASSERT_TRUE(utils::is_double("-0.15"));
+}
+
+TEST(Utils, valid_double11)
+{
+    ASSERT_TRUE(utils::is_double("-27.5"));
+}
+
+TEST(Utils, valid_double12)
+{
+    ASSERT_TRUE(utils::is_double("+0.15"));
+}
+
+TEST(Utils, valid_double13)
+{
+    ASSERT_TRUE(utils::is_double("+27.5"));
+}
+
 TEST(Utils, empty_not_an_integer)
 {
     ASSERT_FALSE(utils::is_integer(""));
@@ -313,6 +333,66 @@ TEST(Utils, empty_not_a_double)
 TEST(Utils, text_not_an_integer)
 {
     ASSERT_FALSE(utils::is_integer("one"));
+}
+
+TEST(Utils, minus_not_an_integer1)
+{
+    ASSERT_FALSE(utils::is_integer("1-"));
+}
+
+TEST(Utils, plus_not_an_integer1)
+{
+    ASSERT_FALSE(utils::is_integer("1+"));
+}
+
+TEST(Utils, minus_not_an_integer2)
+{
+    ASSERT_FALSE(utils::is_integer("--1"));
+}
+
+TEST(Utils, plus_not_an_integer2)
+{
+    ASSERT_FALSE(utils::is_integer("++1"));
+}
+
+TEST(Utils, plusminus_not_an_integer1)
+{
+    ASSERT_FALSE(utils::is_integer("-+1"));
+}
+
+TEST(Utils, plusminus_not_an_integer2)
+{
+    ASSERT_FALSE(utils::is_integer("+-1"));
+}
+
+TEST(Utils, minus_not_a_double1)
+{
+    ASSERT_FALSE(utils::is_double("1-"));
+}
+
+TEST(Utils, plus_not_a_double1)
+{
+    ASSERT_FALSE(utils::is_double("1+"));
+}
+
+TEST(Utils, minus_not_a_double2)
+{
+    ASSERT_FALSE(utils::is_double("--1"));
+}
+
+TEST(Utils, plus_not_a_double2)
+{
+    ASSERT_FALSE(utils::is_double("++1"));
+}
+
+TEST(Utils, plusminus_not_a_double1)
+{
+    ASSERT_FALSE(utils::is_double("+-1"));
+}
+
+TEST(Utils, plusminus_not_a_double2)
+{
+    ASSERT_FALSE(utils::is_double("-+1"));
 }
 
 TEST(Utils, text_not_a_double)
@@ -363,6 +443,11 @@ TEST(Utils, is_double_with_pos_exponential)
 TEST(Utils, signed_double_and_exponential)
 {
     ASSERT_TRUE(utils::is_double("-10E-22"));
+}
+
+TEST(Utils, signed_double_and_broken_exponential)
+{
+    ASSERT_FALSE(utils::is_double("-10e10-2"));
 }
 
 TEST(Utils, is_double_with_d_exponential)

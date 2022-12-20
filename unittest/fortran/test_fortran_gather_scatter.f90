@@ -34,6 +34,7 @@ SUBROUTINE f_lammps_setup_gather_scatter() BIND(C)
   CALL lmp%commands_list(pair_input)
   CALL lmp%command('mass 1 1.0')
   CALL lmp%command("compute pe all pe/atom")
+  CALL lmp%command("fix dummy all ave/atom 1 1 1 c_pe")
 END SUBROUTINE f_lammps_setup_gather_scatter
 
 FUNCTION f_lammps_gather_atoms_mask(i) BIND(C)
@@ -313,7 +314,7 @@ SUBROUTINE f_lammps_gather_pe_atom_subset(ids, pe) BIND(C)
 
   natoms = NINT(lmp%get_natoms(), c_int)
   CALL lmp%gather_subset('c_pe', 1, ids, pe_atom)
-  pe(1:natoms) = pe_atom
+  pe(1:2) = pe_atom(1:2)
 END SUBROUTINE f_lammps_gather_pe_atom_subset
 
 SUBROUTINE f_lammps_scatter_compute() BIND(C)

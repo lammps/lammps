@@ -1,4 +1,5 @@
 .. index:: fix viscous
+.. index:: fix viscous/kk
 
 fix viscous command
 ===================

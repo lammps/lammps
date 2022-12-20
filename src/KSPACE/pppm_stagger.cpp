@@ -17,17 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_stagger.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
-#include "atom.h"
-#include "grid3d.h"
-#include "domain.h"
-#include "memory.h"
-#include "error.h"
 
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

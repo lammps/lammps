@@ -1476,9 +1476,6 @@ void FixBondReact::superimpose_algorithm()
   // this updates topology next step
   next_reneighbor = update->ntimestep;
 
-  // call limit_bond in 'global_mega_glove mode.' oh, and local mode
-  limit_bond(LOCAL); // add reacting atoms to nve/limit
-  limit_bond(GLOBAL);
   update_everything(); // change topology
 }
 
@@ -2780,80 +2777,6 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
 }
 
 /* ----------------------------------------------------------------------
-let's limit movement of newly bonded atoms
-and exclude them from other thermostats via exclude_group
-------------------------------------------------------------------------- */
-
-void FixBondReact::limit_bond(int limit_bond_mode)
-{
-  //two types of passes: 1) while superimpose algorithm is iterating (only local atoms)
-  //                     2) once more for global_mega_glove [after de-duplicating rxn instances]
-  //in second case, only add local atoms to group
-  //as with update_everything, we can pre-prepare these arrays, then run generic limit_bond code
-
-  //create local, generic variables for onemol->natoms and glove
-  //to be filled differently on respective passes
-
-  int nlocal = atom->nlocal;
-  int temp_limit_num = 0;
-  tagint *temp_limit_glove;
-  if (limit_bond_mode == LOCAL) {
-    int max_temp = local_num_mega * (max_natoms + 1);
-    temp_limit_glove = new tagint[max_temp];
-    for (int j = 0; j < local_num_mega; j++) {
-      rxnID = local_mega_glove[0][j];
-      onemol = atom->molecules[unreacted_mol[rxnID]];
-      for (int i = 0; i < onemol->natoms; i++) {
-        temp_limit_glove[temp_limit_num++] = local_mega_glove[i+1][j];
-      }
-    }
-
-  } else if (limit_bond_mode == GLOBAL) {
-    int max_temp = global_megasize * (max_natoms + 1);
-    temp_limit_glove = new tagint[max_temp];
-    for (int j = 0; j < global_megasize; j++) {
-      rxnID = global_mega_glove[0][j];
-      onemol = atom->molecules[unreacted_mol[rxnID]];
-      for (int i = 0; i < onemol->natoms; i++) {
-        if (atom->map(global_mega_glove[i+1][j]) >= 0 &&
-            atom->map(global_mega_glove[i+1][j]) < nlocal)
-          temp_limit_glove[temp_limit_num++] = global_mega_glove[i+1][j];
-      }
-    }
-  }
-
-  if (temp_limit_num == 0) {
-    delete [] temp_limit_glove;
-    return;
-  }
-
-  // we must keep our own list of limited atoms
-  // this will be a new per-atom property!
-
-  int flag,cols;
-  int index1 = atom->find_custom("limit_tags",flag,cols);
-  int *i_limit_tags = atom->ivector[index1];
-
-  int *i_statted_tags;
-  if (stabilization_flag == 1) {
-    int index2 = atom->find_custom(statted_id,flag,cols);
-    i_statted_tags = atom->ivector[index2];
-  }
-
-  int index3 = atom->find_custom("react_tags",flag,cols);
-  int *i_react_tags = atom->ivector[index3];
-
-  for (int i = 0; i < temp_limit_num; i++) {
-    // update->ntimestep could be 0. so add 1 throughout
-    i_limit_tags[atom->map(temp_limit_glove[i])] = update->ntimestep + 1;
-    if (stabilization_flag == 1) i_statted_tags[atom->map(temp_limit_glove[i])] = 0;
-    i_react_tags[atom->map(temp_limit_glove[i])] = rxnID;
-  }
-
-  delete [] temp_limit_glove;
-}
-
-/* ----------------------------------------------------------------------
 let's unlimit movement of newly bonded atoms after n timesteps.
 we give them back to the system thermostat
 ------------------------------------------------------------------------- */
@@ -3055,6 +2978,21 @@ void FixBondReact::update_everything()
   int delta_dihed = 0;
   int delta_imprp = 0;
 
+  // use the following per-atom arrays to keep track of reacting atoms
+
+  int flag,cols;
+  int index1 = atom->find_custom("limit_tags",flag,cols);
+  int *i_limit_tags = atom->ivector[index1];
+
+  int *i_statted_tags;
+  if (stabilization_flag == 1) {
+    int index2 = atom->find_custom(statted_id,flag,cols);
+    i_statted_tags = atom->ivector[index2];
+  }
+
+  int index3 = atom->find_custom("react_tags",flag,cols);
+  int *i_react_tags = atom->ivector[index3];
+
   // pass through twice
   // redefining 'update_num_mega' and 'update_mega_glove' each time
   //  first pass: when glove is all local atoms
@@ -3175,18 +3113,25 @@ void FixBondReact::update_everything()
     }
 
     // update charges and types of landlocked atoms
+    // also keep track of 'stabilization' groups here
     for (int i = 0; i < update_num_mega; i++) {
       rxnID = update_mega_glove[0][i];
       twomol = atom->molecules[reacted_mol[rxnID]];
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
-        if (atom->map(update_mega_glove[jj+1][i]) >= 0 &&
-            atom->map(update_mega_glove[jj+1][i]) < nlocal) {
+        int ilocal = atom->map(update_mega_glove[jj+1][i]);
+        if (ilocal >= 0 && ilocal < nlocal) {
+
+          // update->ntimestep could be 0. so add 1 throughout
+          i_limit_tags[ilocal] = update->ntimestep + 1;
+          if (stabilization_flag == 1) i_statted_tags[ilocal] = 0;
+          i_react_tags[ilocal] = rxnID;
+
           if (landlocked_atoms[j][rxnID] == 1)
-            type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
+            type[ilocal] = twomol->type[j];
           if (twomol->qflag && atom->q_flag && custom_charges[jj][rxnID] == 1) {
             double *q = atom->q;
-            q[atom->map(update_mega_glove[jj+1][i])] = twomol->q[j]+charge_rescale_addend;
+            q[ilocal] = twomol->q[j]+charge_rescale_addend;
           }
         }
       }

@@ -110,7 +110,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   ngpus = 0;
   int device = 0;
   nthreads = 1;
-  numa = 1;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -187,11 +186,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       if (nthreads <= 0)
         error->all(FLERR,"Invalid number of threads requested for Kokkos: must be 1 or greater");
 
-      iarg += 2;
-
-    } else if (strcmp(arg[iarg],"n") == 0 ||
-               strcmp(arg[iarg],"numa") == 0) {
-      numa = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
 
     } else error->all(FLERR,"Invalid Kokkos command-line arg: {}", arg[iarg]);

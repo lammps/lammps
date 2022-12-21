@@ -43,7 +43,6 @@ class KokkosLMP : protected Pointers {
   int forward_fix_comm_changed;
   int reverse_comm_changed;
   int nthreads,ngpus;
-  int numa;
   int auto_sync;
   int gpu_aware_flag;
   int neigh_thread;

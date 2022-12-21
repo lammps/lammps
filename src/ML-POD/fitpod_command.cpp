@@ -19,25 +19,16 @@
 
 #include "mlpod.h"
 
-#include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
-#include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
-#include "neigh_list.h"
-#include "neighbor.h"
-#include "pair.h"
 #include "tokenizer.h"
-#include "update.h"
 
 #include <algorithm>
 #include <cmath>
 #include <random>
-#include <string>
-#include <vector>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
@@ -45,6 +36,10 @@ using MathSpecial::powint;
 #define MAXLINE 1024
 
 static constexpr double SMALL = 1.0e-10;
+
+FitPOD::FitPOD(LAMMPS *_lmp) : Command(_lmp), podptr(nullptr)
+{
+}
 
 void FitPOD::command(int narg, char **arg)
 {
@@ -241,7 +236,7 @@ void FitPOD::get_exyz_files(std::vector<std::string>& files, const std::string &
 {
   auto allfiles = platform::list_directory(datapath);
   std::sort(allfiles.begin(), allfiles.end());
-  for (auto fname : allfiles) {
+  for (const auto &fname : allfiles) {
     if (utils::strmatch(fname, fmt::format(".*\\.{}$", extension)))
       files.push_back(datapath + platform::filepathsep + fname);
   }
@@ -249,10 +244,9 @@ void FitPOD::get_exyz_files(std::vector<std::string>& files, const std::string &
 
 int FitPOD::get_number_atom_exyz(std::vector<int>& num_atom, int& num_atom_sum, std::string file)
 {
-  std::string filename = file;
+  std::string filename = std::move(file);
   FILE *fp;
   if (comm->me == 0) {
-
     fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr)
       error->one(FLERR,"Cannot open POD coefficient file {}: ", filename, utils::getsyserror());
@@ -322,7 +316,7 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
     int *atomtype, std::string file, std::vector<std::string> species)
 {
 
-  std::string filename = file;
+  std::string filename = std::move(file);
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(filename,lmp,nullptr);
@@ -456,20 +450,20 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
   }
 }
 
-void FitPOD::get_data(datastruct &data, std::vector<std::string> species)
+void FitPOD::get_data(datastruct &data, const std::vector<std::string>& species)
 {
   get_exyz_files(data.data_files, data.data_path, data.file_extension);
   data.num_atom_sum = get_number_atoms(data.num_atom, data.num_atom_each_file, data.num_config, data.data_files);
   data.num_config_sum = data.num_atom.size();
   size_t maxname = 9;
-  for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
+  for (const auto &fname : data.data_files) maxname = MAX(maxname,fname.size());
   maxname -= data.data_path.size()+1;
   const std::string sepline(maxname+46, '-');
   if (comm->me == 0)
     utils::logmesg(lmp, "{}\n {:^{}} | number of configurations | number of atoms\n{}\n",
                    sepline, "data file", maxname, sepline);
   int i = 0;
-  for (auto fname : data.data_files) {
+  for (const auto &fname : data.data_files) {
     std::string filename = fname.substr(data.data_path.size()+1);
     data.filenames.push_back(filename);
     if (comm->me == 0)
@@ -605,7 +599,7 @@ std::vector<int> FitPOD::select(int n, double fraction, int randomize)
   return selected;
 }
 
-void FitPOD::select_data(datastruct &newdata, datastruct data)
+void FitPOD::select_data(datastruct &newdata, const datastruct &data)
 {
   double fraction = data.fraction;
   int randomize = data.randomize;
@@ -695,7 +689,7 @@ void FitPOD::select_data(datastruct &newdata, datastruct data)
 
   data.copydatainfo(newdata);
   size_t maxname = 9;
-  for (auto fname : data.data_files) maxname = MAX(maxname,fname.size());
+  for (const auto &fname : data.data_files) maxname = MAX(maxname,fname.size());
   maxname -= data.data_path.size()+1;
 
   if (comm->me == 0)
@@ -704,7 +698,7 @@ void FitPOD::select_data(datastruct &newdata, datastruct data)
                    "", maxname+90, "data_file", maxname, "", maxname+90);
   for (int i=0; i< (int) newdata.data_files.size(); i++) {
     std::string filename = newdata.data_files[i].substr(newdata.data_path.size()+1,newdata.data_files[i].size());
-    newdata.filenames.push_back(filename.c_str());
+    newdata.filenames.emplace_back(filename.c_str());
     if (comm->me == 0)
       utils::logmesg(lmp, " {:<{}} |       {:>8}       |      {:>8}      |       {:>8}       |     {:>8}\n",
                      newdata.filenames[i], maxname, newdata.num_config[i], newdata.num_atom_each_file[i],
@@ -717,7 +711,7 @@ void FitPOD::select_data(datastruct &newdata, datastruct data)
   }
 }
 
-void FitPOD::read_data_files(std::string data_file, std::vector<std::string> species)
+void FitPOD::read_data_files(const std::string& data_file, const std::vector<std::string>& species)
 {
   datastruct data;
 
@@ -872,7 +866,7 @@ int FitPOD::podfullneighborlist(double *y, int *alist, int *neighlist, int *numn
   return nn;
 }
 
-void FitPOD::allocate_memory(datastruct data)
+void FitPOD::allocate_memory(const datastruct &data)
 {
   int nd = podptr->pod.nd;
   memory->create(desc.gd, nd, "fitpod:desc_gd");
@@ -989,7 +983,7 @@ void FitPOD::allocate_memory(datastruct data)
   }
 }
 
-void FitPOD::linear_descriptors(datastruct data, int ci)
+void FitPOD::linear_descriptors(const datastruct &data, int ci)
 {
   int dim = 3;
   int nd1 = podptr->pod.nd1;
@@ -1020,7 +1014,7 @@ void FitPOD::linear_descriptors(datastruct data, int ci)
 
 }
 
-void FitPOD::quadratic_descriptors(datastruct data, int ci)
+void FitPOD::quadratic_descriptors(const datastruct &data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1101,7 +1095,7 @@ void FitPOD::quadratic_descriptors(datastruct data, int ci)
     desc.gdd[dim*natom*nd1234+i] = desc.gdd[dim*natom*nd1234+i]/(natom);
 }
 
-void FitPOD::cubic_descriptors(datastruct data, int ci)
+void FitPOD::cubic_descriptors(const datastruct &data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1168,7 +1162,7 @@ void FitPOD::cubic_descriptors(datastruct data, int ci)
     desc.gdd[i] = desc.gdd[i]/(natom*natom);
 }
 
-void FitPOD::least_squares_matrix(datastruct data, int ci)
+void FitPOD::least_squares_matrix(const datastruct &data, int ci)
 {
   int dim = 3;
   int natom = data.num_atom[ci];
@@ -1214,7 +1208,7 @@ void FitPOD::least_squares_matrix(datastruct data, int ci)
 
 }
 
-void FitPOD::least_squares_fit(datastruct data)
+void FitPOD::least_squares_fit(const datastruct &data)
 {
   if (comm->me == 0)
     utils::logmesg(lmp, "**************** Begin of Least-Squares Fitting ****************\n");
@@ -1308,7 +1302,7 @@ void FitPOD::least_squares_fit(datastruct data)
   }
 }
 
-double FitPOD::energyforce_calculation(double *force, double *coeff, datastruct data, int ci)
+double FitPOD::energyforce_calculation(double *force, double *coeff, const datastruct &data, int ci)
 {
   int dim = 3;
   int *pbc = podptr->pod.pbc;
@@ -1348,7 +1342,7 @@ double FitPOD::energyforce_calculation(double *force, double *coeff, datastruct 
   return energy;
 }
 
-void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
+void FitPOD::print_analysis(const datastruct &data, double *outarray, double *errors)
 {
   int nfiles = data.data_files.size();  // number of files
   int lm = 10;
@@ -1422,7 +1416,7 @@ void FitPOD::print_analysis(datastruct data, double *outarray, double *errors)
   fclose(fp_analysis);
 }
 
-void FitPOD::error_analysis(datastruct data, double *coeff)
+void FitPOD::error_analysis(const datastruct &data, double *coeff)
 {
   int dim = 3;
   double energy;
@@ -1537,7 +1531,10 @@ void FitPOD::error_analysis(datastruct data, double *coeff)
       nforceall += nforce;
       ci += 1;
     }
+
     int q = file + 1;
+    if (nconfigs == 0) nconfigs = 1;
+    if (nforceall == 0) nforceall = 1;
     errors[0 + 4*q] = emae/nconfigs;
     errors[1 + 4*q] = sqrt(essr/nconfigs);
     errors[2 + 4*q] = fmae/nforceall;
@@ -1550,6 +1547,8 @@ void FitPOD::error_analysis(datastruct data, double *coeff)
     errors[3] += fssr;
   }
 
+  if (nc == 0) nc = 1;
+  if (nf == 0) nf = 1;
   errors[0] = errors[0]/nc;
   errors[1] = sqrt(errors[1]/nc);
   errors[2] = errors[2]/nf;
@@ -1561,7 +1560,7 @@ void FitPOD::error_analysis(datastruct data, double *coeff)
   }
 }
 
-void FitPOD::energyforce_calculation(datastruct data, double *coeff)
+void FitPOD::energyforce_calculation(const datastruct &data, double *coeff)
 {
   int dim = 3;
   double energy;
@@ -1816,4 +1815,3 @@ void FitPOD::triclinic_lattice_conversion(double *a, double *b, double *c, doubl
   b[0] = bx; b[1] = by;  b[2] = 0.0;
   c[0] = cx; c[1] = cy;  c[2] = cz;
 }
-

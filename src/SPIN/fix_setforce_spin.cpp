@@ -24,7 +24,6 @@
 #include "fix_setforce_spin.h"
 
 #include "atom.h"
-#include "domain.h"
 #include "input.h"
 #include "memory.h"
 #include "modify.h"

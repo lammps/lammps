@@ -194,7 +194,7 @@ macro. These tests operate by capturing the screen output when executing
 the failing command and then comparing that with a provided regular
 expression string pattern.  Example:
 
-.. code-block:: C++
+.. code-block:: c++
 
    TEST_F(SimpleCommandsTest, UnknownCommand)
    {
@@ -249,7 +249,7 @@ MPI support.  These include tests where LAMMPS is run in multi-partition
 mode or only on a subset of the MPI world communicator.  The CMake
 script code for adding this kind of test looks like this:
 
-.. code-block:: CMake
+.. code-block:: cmake
 
    if (BUILD_MPI)
      add_executable(test_library_mpi test_library_mpi.cpp)

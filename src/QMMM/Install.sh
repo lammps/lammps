@@ -47,7 +47,7 @@ if (test $1 = 1) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*qmmm.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*qmmm.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
 include ..\/..\/lib\/qmmm\/Makefile.lammps
@@ -62,7 +62,7 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*qmmm.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*qmmm.*$/d' ../Makefile.package.settings
   fi
 
 fi

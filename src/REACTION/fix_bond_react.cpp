@@ -35,7 +35,6 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "random_mars.h"
@@ -52,6 +51,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 
 #include <algorithm>
 #include <random>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -2308,7 +2308,7 @@ double FixBondReact::custom_constraint(const std::string& varstr)
   evlstr.push_back(varstr.substr(prev3+1));
 
   for (auto & evl : evlstr) evlcat += evl;
-  return input->variable->compute_equal(evlcat.c_str());
+  return input->variable->compute_equal(evlcat);
 }
 
 /* ----------------------------------------------------------------------
@@ -4274,12 +4274,14 @@ void FixBondReact::readID(char *strarg, int iconstr, int myrxn, int i)
   if (isalpha(strarg[0])) {
     constraints[iconstr][myrxn].idtype[i] = FRAG; // fragment vs. atom ID flag
     int ifragment = onemol->findfragment(strarg);
-    if (ifragment < 0) error->one(FLERR,"Fix bond/react: Molecule fragment does not exist");
+    if (ifragment < 0)
+      error->one(FLERR,"Fix bond/react: Molecule fragment {} does not exist", strarg);
     constraints[iconstr][myrxn].id[i] = ifragment;
   } else {
     constraints[iconstr][myrxn].idtype[i] = ATOM; // fragment vs. atom ID flag
-    int iatom = atoi(strarg);
-    if (iatom > onemol->natoms) error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
+    int iatom = utils::inumeric(FLERR, strarg, true, lmp);
+    if (iatom > onemol->natoms)
+      error->one(FLERR,"Fix bond/react: Invalid template atom ID {} in map file", strarg);
     constraints[iconstr][myrxn].id[i] = iatom;
   }
 }
@@ -4287,7 +4289,7 @@ void FixBondReact::readID(char *strarg, int iconstr, int myrxn, int i)
 void FixBondReact::open(char *file)
 {
   fp = fopen(file,"r");
-  if (fp == nullptr) error->one(FLERR, "Fix bond/react: Cannot open map file {}",file);
+  if (fp == nullptr) error->one(FLERR, "Fix bond/react: Cannot open map file {}", file);
 }
 
 void FixBondReact::readline(char *line)

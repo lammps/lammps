@@ -405,6 +405,9 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
   reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
     line = reader.next_line();
+    if (!line)
+      error->one(FLERR, "Data missing when parsing angle table '{}' line {} of {}.", keyword, i + 1,
+                 tb->ninput);
     try {
       ValueTokenizer values(line);
       values.next_int();

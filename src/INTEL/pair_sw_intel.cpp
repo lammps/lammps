@@ -411,7 +411,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
           }
 
           const flt_t rainvsq = rainv1 * rainv1 * r1;
-          flt_t expsrainv = exp(sigma * rainv1);
+          flt_t expsrainv = std::exp(sigma * rainv1);
           if (jj >= ejnumhalf) expsrainv = (flt_t)0.0;
           const flt_t fpair = (c1 * rp - c2 * rq + (c3 * rp - c4 * rq) *
                                rainvsq) * expsrainv * rinvsq1;
@@ -453,7 +453,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
 
           flt_t gsrainv1 = sigma_gamma * rainv1;
           flt_t gsrainvsq1 = gsrainv1 * rainv1 / r1;
-          flt_t expgsrainv1 = exp(gsrainv1);
+          flt_t expgsrainv1 = std::exp(gsrainv1);
 
           for (int kk = 0; kk < ejnum; kk++) {
             int iktype, ijktype;
@@ -479,7 +479,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
             const flt_t rainv2 = (flt_t)1.0 / (r2 - cut);
             const flt_t gsrainv2 = sigma_gamma * rainv2;
             const flt_t gsrainvsq2 = gsrainv2 * rainv2 / r2;
-            const flt_t expgsrainv2 = exp(gsrainv2);
+            const flt_t expgsrainv2 = std::exp(gsrainv2);
 
             const flt_t rinv12 = (flt_t)1.0 / (r1 * r2);
             const flt_t cs = (delx * delr2[0] + dely * delr2[1] +

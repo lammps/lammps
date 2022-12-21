@@ -19,7 +19,8 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

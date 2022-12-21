@@ -30,7 +30,6 @@
 #include "kspace.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
 #include "update.h"

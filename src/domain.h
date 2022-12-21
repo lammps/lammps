@@ -19,7 +19,6 @@
 #include <cmath>
 #include <map>
 #include <unordered_set>
-#include <vector>
 
 namespace LAMMPS_NS {
 class Region;

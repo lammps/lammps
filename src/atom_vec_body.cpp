@@ -22,6 +22,8 @@
 #include "modify.h"
 #include "my_pool_chunk.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

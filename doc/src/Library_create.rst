@@ -22,7 +22,7 @@ as the "handle" argument in subsequent function calls until that
 instance is destroyed by calling :cpp:func:`lammps_close`.  Here is a
 simple example demonstrating its use:
 
-.. code-block:: C
+.. code-block:: c
 
    #include "library.h"
    #include <stdio.h>

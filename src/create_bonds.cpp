@@ -26,7 +26,6 @@
 #include "force.h"
 #include "group.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "special.h"
 

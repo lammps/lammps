@@ -11,6 +11,8 @@ with the direct alternative (if available) and print a warning.
 Fix ave/spatial and fix ave/spatial/sphere
 ------------------------------------------
 
+.. deprecated:: 11Dec2015
+
 The fixes ave/spatial and ave/spatial/sphere have been removed from LAMMPS
 since they were superseded by the more general and extensible "chunk
 infrastructure".  Here the system is partitioned in one of many possible

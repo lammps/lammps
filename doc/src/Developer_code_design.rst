@@ -50,7 +50,7 @@ parallel each MPI process creates such an instance.  This can be seen
 in the ``main.cpp`` file where the core steps of running a LAMMPS
 simulation are the following 3 lines of code:
 
-.. code-block:: C++
+.. code-block:: c++
 
     LAMMPS *lammps = new LAMMPS(argc, argv, lammps_comm);
     lammps->input->file();
@@ -232,7 +232,7 @@ macro ``PairStyle()`` will associate the style name "lj/cut"
 with a factory function creating an instance of the ``PairLJCut``
 class.
 
-.. code-block:: C++
+.. code-block:: c++
 
    // from force.h
    typedef Pair *(*PairCreator)(LAMMPS *);
@@ -360,7 +360,7 @@ characters; "{:<8}" would do this as left aligned, "{:^8}" as centered,
 argument type must be compatible or else the {fmt} formatting code will
 throw an exception. Some format string examples are given below:
 
-.. code-block:: C
+.. code-block:: c++
 
    auto mesg = fmt::format("  CPU time: {:4d}:{:02d}:{:02d}\n", cpuh, cpum, cpus);
    mesg = fmt::format("{:<8s}| {:<10.5g} | {:<10.5g} | {:<10.5g} |{:6.1f} |{:6.2f}\n",

@@ -292,7 +292,7 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
 
     if (r_r < rc_r) {
       // sort the values
-      double axes[3] = {a,b,c};
+      double axes[3] = {a, b, c};
       double coords[3] = {fabs(x[0] - xc), fabs(x[1] - yc), fabs(x[2] - zc)};
 
       int min, max;
@@ -303,19 +303,15 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
         min = 1;
         max = 0;
       }
-      if (axes[min] > axes[2]) {
-        min = 2;
-      }
-      if (axes[max] < axes[2]) {
-        max = 2;
-      }
+      if (axes[min] > axes[2]) { min = 2; }
+      if (axes[max] < axes[2]) { max = 2; }
       int mid = 3 - min - max;
       int sorting[3] = {min, mid, max};
 
       double x0[3];
-      contact[0].r =
-          DistancePointEllipsoid(axes[sorting[2]], axes[sorting[1]], axes[sorting[0]], coords[sorting[2]], coords[sorting[1]],
-                                 coords[sorting[0]], x0[sorting[2]], x0[sorting[1]], x0[sorting[0]]);
+      contact[0].r = DistancePointEllipsoid(
+          axes[sorting[2]], axes[sorting[1]], axes[sorting[0]], coords[sorting[2]],
+          coords[sorting[1]], coords[sorting[0]], x0[sorting[2]], x0[sorting[1]], x0[sorting[0]]);
       contact[0].delx = x[0] - (copysign(x0[sorting[2]], x[0] - xc) + xc);
       contact[0].dely = x[1] - (copysign(x0[sorting[1]], x[1] - yc) + yc);
       contact[0].delz = x[2] - (copysign(x0[sorting[0]], x[2] - zc) + zc);

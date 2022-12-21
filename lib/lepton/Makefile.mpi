@@ -1,15 +1,11 @@
 EXTRAMAKE=Makefile.lammps.empty
 
 CC=mpicxx
-
-# -DH5_NO_DEPRECATED_SYMBOLS is required here to ensure we are using
-# the v1.8 API when HDF5 is configured to default to using the v1.6 API.
 CXXFLAGS=-D_DEFAULT_SOURCE -O2 -Wall -fPIC -std=c++11
 INC=-I include
 AR=ar
 ARFLAGS=rc
-# need to build two libraries to not break compatibility and to support Install.py
-LIB=liblepton.a
+LIB=liblmplepton.a
 SRC=src/CompiledExpression.cpp src/ExpressionProgram.cpp src/ExpressionTreeNode.cpp src/Operation.cpp src/ParsedExpression.cpp src/Parser.cpp
 OBJ=$(SRC:src/%.cpp=build/%.o)
 

@@ -192,7 +192,6 @@ FixMDIQM::~FixMDIQM()
 int FixMDIQM::setmask()
 {
   int mask = 0;
-  mask |= PRE_REVERSE;
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
   return mask;

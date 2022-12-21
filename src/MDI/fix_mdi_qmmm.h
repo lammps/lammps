@@ -28,30 +28,65 @@ namespace LAMMPS_NS {
 class FixMDIQMMM : public Fix {
  public:
   FixMDIQMMM(class LAMMPS *, int, char **);
-  ~FixMDIQMMM();
-  int setmask();
+  virtual ~FixMDIQMMM();
+  int setmask() override;
 
-  void init();
-  void setup(int);
-  void post_force(int);
-  void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
+  void init() override;
+  void setup(int) override;
+  void setup_post_neighbor() override;
+  void setup_pre_force(int) override;
+  void post_neighbor() override;
+  void pre_force(int) override;
+  void post_force(int) override;
+  void min_setup(int) override;
+  void min_post_neighbor() override;
+  void min_pre_force(int) override;
+  void min_post_force(int) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  double memory_usage() override;
+  
  private:
   int nprocs;
-  int every, virialflag, addflag, connectflag;
+  int virialflag, connectflag;
   int plugin;
   int maxlocal;
   int sumflag;
   int *elements;
 
+  int qflag;           // 1 if per-atom charge defined, 0 if not
+  int qm_init;         // 1 if QM code and qqm are initialized, 0 if not
+
   double qm_energy;
   int lmpunits;
   double qm_virial[9], qm_virial_symmetric[6];
-  double **fqm;
 
   MDI_Comm mdicomm;
+
+  class Pair *pair_coul;    // ptr to instance of pair coul variant
+
+  // data for QMMM
+
+  int nqm;                   // # of QM atoms
+  tagint *qmIDs;             // IDs of QM atoms in ascending order
+  double **xqm,**fqm;        // QM coords and forces
+  double *qqm;               // QM charges
+  int *tqm;                  // QM atom types
+  double *qpotential;        // Coulomb potential
+  double **xqm_mine;         // same values for QM atoms I own
+  double *qqm_mine;
+  int *tqm_mine;
+  double *qpotential_mine;
+  int *qm2owned;             // index of local atom for each QM atom
+                             // index = -1 if this proc does not own
+  
+  double *ecoul;             // peratom Coulombic energy from LAMMPS
+  int ncoulmax;              // length of ecoul
 
   // unit conversion factors
 
@@ -59,7 +94,6 @@ class FixMDIQMMM : public Fix {
   double lmp2mdi_energy, mdi2lmp_energy;
   double lmp2mdi_force, mdi2lmp_force;
   double lmp2mdi_pressure, mdi2lmp_pressure;
-  double lmp2mdi_velocity, mdi2lmp_velocity;
 
   // buffers for MDI comm
 
@@ -69,11 +103,18 @@ class FixMDIQMMM : public Fix {
 
   // methods
 
+  void set_qm2owned();
+  void set_qqm();
+  void set_tqm();
+  void set_xqm();
+
   void reallocate();
   void send_types();
   void send_elements();
   void send_box();
   void unit_conversions();
+
+  void post_force_aimd(int);
 };
 
 }    // namespace LAMMPS_NS

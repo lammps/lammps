@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fft3d_wrap.h"
 #include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
@@ -95,6 +96,10 @@ void PPPMDielectric::compute(int eflag, int vflag)
     natoms_original = atom->natoms;
   }
 
+  // recompute the average epsilon of all the atoms
+
+  compute_ave_epsilon();
+
   // return if there are no charges or dipoles
 
   if (qsqsum == 0.0) return;
@@ -137,7 +142,8 @@ void PPPMDielectric::compute(int eflag, int vflag)
   //   portion of e_long on this proc's FFT grid
   // return gradients (electric fields) in 3d brick decomposition
   // also performs per-atom calculations via poisson_peratom()
-
+ 
+  double energy_before_poisson = energy;
   poisson();
 
   // all procs communicate E-field values
@@ -170,23 +176,44 @@ void PPPMDielectric::compute(int eflag, int vflag)
   if (evflag_atom) fieldforce_peratom();
 
   // sum global energy across procs and add in volume-dependent term
-  // NOTE: elong given by pppm/dielectric is not equal to elong by pppm
-  //       cannot rescale by a factor because energy is not linearly dependent
-  //       on charge density (unlike forces); recall that we are 
-  //       using atom->q_scaled for make_rho() while in pppm it is atom->q
+  // NOTE: electrostatic energy is not linearly dependent on charge density (unlike forces)
+  //       recall that we are using atom->q_scaled for make_rho()
+  //       need to switch to atom->q to compute energy (elong)
+  //       also need to use average epsilon (assuming that global dielectric = 1, not set in the input script)
 
   const double qscale = qqrd2e * scale;
 
   if (eflag_global) {
+   
+    energy = energy_before_poisson;
+
+    // switch to unscaled charges to find charge density
+    use_qscaled = false;
+    
+    // redo the charge density
+
+    make_rho();
+
+    // communicate for charge density
+
+    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+
+    brick2fft();
+
+    poisson(); // poisson computes elong with unscaled charges
+
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy = energy_all;
-
     energy *= 0.5*volume;
-    energy -= g_ewald*qsqsum/MY_PIS +
+      energy -= g_ewald*qsqsum/MY_PIS +
       MY_PI2*qsum*qsum / (g_ewald*g_ewald*volume);
-    energy *= qscale;
-    
+    energy *= (qscale/epsilon_ave);
+
+    // revert to qscaled charges (for force in the next time step)
+
+    use_qscaled = true;
   }
 
   // sum global virial across procs
@@ -230,6 +257,28 @@ void PPPMDielectric::compute(int eflag, int vflag)
   // convert atoms back from lamda to box coords
 
   if (triclinic) domain->lamda2x(atom->nlocal);
+}
+
+/* ----------------------------------------------------------------------
+   compute the average dielectric constant of all the atoms
+   NOTE: for dielectric use cases
+------------------------------------------------------------------------- */
+
+void PPPMDielectric::compute_ave_epsilon()
+{
+  const double * const epsilon = atom->epsilon;
+  const int nlocal = atom->nlocal;
+  double epsilon_local(0.0);
+
+#if defined(_OPENMP)
+#pragma omp parallel for default(shared) reduction(+:epsilon_local)
+#endif
+  for (int i = 0; i < nlocal; i++) {
+    epsilon_local += epsilon[i];
+  }
+
+  MPI_Allreduce(&epsilon_local,&epsilon_ave,1,MPI_DOUBLE,MPI_SUM,world);
+  epsilon_ave /= (double)atom->natoms;
 }
 
 /* ----------------------------------------------------------------------
@@ -283,7 +332,8 @@ void PPPMDielectric::qsum_qsq(int warning_flag)
    density(x,y,z) = charge "density" at grid points of my 3d brick
    (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
    in global grid
-   NOTE: compute charge density using q_scaled
+   NOTE: compute charge density using q_scaled if use_qscaled==true
+                        else using unscaled charge values
 ------------------------------------------------------------------------- */
 
 void PPPMDielectric::make_rho()
@@ -302,6 +352,7 @@ void PPPMDielectric::make_rho()
   // (mx,my,mz) = global coords of moving stencil pt
 
   double *q = atom->q_scaled;
+  if (use_qscaled == false) q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -330,6 +381,137 @@ void PPPMDielectric::make_rho()
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   FFT-based Poisson solver for ik
+------------------------------------------------------------------------- */
+
+void PPPMDielectric::poisson_ik()
+{
+  int i,j,k,n;
+  double eng;
+
+  // transform charge density (r -> k)
+
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work1[n++] = density_fft[i];
+    work1[n++] = ZEROF;
+  }
+
+  fft1->compute(work1,work1,FFT3d::FORWARD);
+
+  // global energy and virial contribution
+
+  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
+  double s2 = scaleinv*scaleinv;
+
+  if (eflag_global || vflag_global) {
+    if (vflag_global) {
+      n = 0;
+      for (i = 0; i < nfft; i++) {
+        eng = s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
+        for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
+        if (eflag_global) energy += eng;
+        n += 2;
+      }
+    } else {
+      n = 0;
+      for (i = 0; i < nfft; i++) {
+        energy +=
+          s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
+        n += 2;
+      }
+    }
+  }
+
+  // scale by 1/total-grid-pts to get rho(k)
+  // multiply by Green's function to get V(k)
+
+  n = 0;
+  for (i = 0; i < nfft; i++) {
+    work1[n++] *= scaleinv * greensfn[i];
+    work1[n++] *= scaleinv * greensfn[i];
+  }
+
+  // extra FFTs for per-atom energy/virial
+
+  if (evflag_atom) poisson_peratom();
+
+  // triclinic system
+
+  if (triclinic) {
+    poisson_ik_triclinic();
+    return;
+  }
+
+  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
+  // FFT leaves data in 3d brick decomposition
+  // copy it into inner portion of vdx,vdy,vdz arrays
+
+  // x direction gradient
+
+  n = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++)
+    for (j = nylo_fft; j <= nyhi_fft; j++)
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        work2[n] = -fkx[i]*work1[n+1];
+        work2[n+1] = fkx[i]*work1[n];
+        n += 2;
+      }
+
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
+
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+        vdx_brick[k][j][i] = work2[n];
+        n += 2;
+      }
+
+  // y direction gradient
+
+  n = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++)
+    for (j = nylo_fft; j <= nyhi_fft; j++)
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        work2[n] = -fky[j]*work1[n+1];
+        work2[n+1] = fky[j]*work1[n];
+        n += 2;
+      }
+
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
+
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+        vdy_brick[k][j][i] = work2[n];
+        n += 2;
+      }
+
+  // z direction gradient
+
+  n = 0;
+  for (k = nzlo_fft; k <= nzhi_fft; k++)
+    for (j = nylo_fft; j <= nyhi_fft; j++)
+      for (i = nxlo_fft; i <= nxhi_fft; i++) {
+        work2[n] = -fkz[k]*work1[n+1];
+        work2[n+1] = fkz[k]*work1[n];
+        n += 2;
+      }
+
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
+
+  n = 0;
+  for (k = nzlo_in; k <= nzhi_in; k++)
+    for (j = nylo_in; j <= nyhi_in; j++)
+      for (i = nxlo_in; i <= nxhi_in; i++) {
+        vdz_brick[k][j][i] = work2[n];
+        n += 2;
+      }
 }
 
 /* ----------------------------------------------------------------------

@@ -77,11 +77,7 @@ GPU_AWARE_UNKNOWN
 
 using namespace LAMMPS_NS;
 
-#if KOKKOS_VERSION>=30700
 Kokkos::InitializationSettings KokkosLMP::args;
-#else
-Kokkos::InitArguments KokkosLMP::args{-1, -1, -1, false};
-#endif
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
 
@@ -204,40 +200,18 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   // Initialize Kokkos. However, we cannot change any
   // Kokkos library parameters after the first initalization
 
-#if KOKKOS_VERSION>=30700
-  // Note: NUMA is now not a thing in Kokkos, and was more or less ignored for the longest time
-  // here just multipled nthreads and numa together, but maybe just get rid of numa option in LAMMPS?
   if (args.has_num_threads()) {
-    if ((args.get_num_threads() != nthreads*numa) || (args.get_device_id() != device))
+    if ((args.get_num_threads() != nthreads) || (args.get_device_id() != device))
       if (me == 0)
-        error->warning(FLERR,"Kokkos package already initalized, "
-                       "cannot reinitialize with different parameters");
+        error->warning(FLERR,"Kokkos package already initalized. Cannot change parameters");
     nthreads = args.get_num_threads();
-    numa = 1;
     device = args.get_device_id();
     ngpus = init_ngpus;
   } else {
-    args.set_num_threads(nthreads*numa);
+    args.set_num_threads(nthreads);
     args.set_device_id(device);
     init_ngpus = ngpus;
   }
-#else
-  if (args.num_threads != -1) {
-    if ((args.num_threads != nthreads) || (args.num_numa != numa) || (args.device_id != device))
-      if (me == 0)
-        error->warning(FLERR,"Kokkos package already initalized, "
-                       "cannot reinitialize with different parameters");
-    nthreads = args.num_threads;
-    numa = args.num_numa;
-    device = args.device_id;
-    ngpus = init_ngpus;
-  } else {
-    args.num_threads = nthreads;
-    args.num_numa = numa;
-    args.device_id = device;
-    init_ngpus = ngpus;
-  }
-#endif
 
   if ((me == 0) && (ngpus > 0))
     utils::logmesg(lmp, "  will use up to {} GPU(s) per node\n", ngpus);
@@ -373,11 +347,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-#if KOKKOS_VERSION>=30700
 void KokkosLMP::initialize(Kokkos::InitializationSettings args, Error *error)
-#else
-void KokkosLMP::initialize(Kokkos::InitArguments args, Error *error)
-#endif
 {
   if (!Kokkos::is_initialized()) {
     if (is_finalized)

@@ -25,9 +25,7 @@
 #include "neigh_list.h"
 #include "update.h"
 
-#include <cctype>
 #include <cmath>
-#include <cstring>
 
 #include "LMP_Lepton.h"
 
@@ -209,10 +207,7 @@ void PairLepton::coeff(int narg, char **arg)
 
   // remove whitespace and quotes from expression string and then
   // check if the expression can be parsed and evaluated without error
-  std::string exp_one;
-  for (const auto &c : std::string(arg[2]))
-    if (!isspace(c) && (c != '"') && (c != '\'')) exp_one.push_back(c);
-
+  std::string exp_one = LMP_Lepton::condense(arg[2]);
   try {
     auto parsed = LMP_Lepton::Parser::parse(exp_one);
     auto pairpot = parsed.createCompiledExpression();

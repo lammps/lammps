@@ -224,6 +224,7 @@ void BondLepton::write_restart(FILE *fp)
 {
   fwrite(&r0[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&type2expression[1], sizeof(int), atom->nbondtypes, fp);
+  fwrite(&offset[1], sizeof(double), atom->nbondtypes, fp);
 
   int num = expressions.size();
   int maxlen = 0;
@@ -250,9 +251,11 @@ void BondLepton::read_restart(FILE *fp)
   if (comm->me == 0) {
     utils::sfread(FLERR, &r0[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
     utils::sfread(FLERR, &type2expression[1], sizeof(int), atom->nbondtypes, fp, nullptr, error);
+    utils::sfread(FLERR, &offset[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
   }
   MPI_Bcast(&r0[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&type2expression[1], atom->nbondtypes, MPI_INT, 0, world);
+  MPI_Bcast(&offset[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 
   int num, maxlen, len;

@@ -33,7 +33,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLepton::PairLepton(LAMMPS *lmp) : Pair(lmp), cut(nullptr), type2expression(nullptr)
+PairLepton::PairLepton(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), type2expression(nullptr), offset(nullptr)
 {
   respa_enable = 0;
   single_enable = 1;
@@ -53,6 +54,7 @@ PairLepton::~PairLepton()
     memory->destroy(cutsq);
     memory->destroy(setflag);
     memory->destroy(type2expression);
+    memory->destroy(offset);
   }
 }
 
@@ -148,7 +150,8 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLepton::eval()
         if (EFLAG) {
           double &r_pot = pairpot[idx].getVariableReference("r");
           r_pot = r;
-          evdwl = factor_lj * pairpot[idx].evaluate();
+          evdwl = pairpot[idx].evaluate() - offset[itype][jtype];
+          evdwl *= factor_lj;
         }
 
         if (EVFLAG) ev_tally(i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz);
@@ -176,6 +179,7 @@ void PairLepton::allocate()
   memory->create(cut, np1, np1, "pair:cut");
   memory->create(cutsq, np1, np1, "pair:cutsq");
   memory->create(type2expression, np1, np1, "pair:type2expression");
+  memory->create(offset, np1, np1, "pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -249,8 +253,18 @@ double PairLepton::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
 
+  if (offset_flag) {
+    auto parsed = LMP_Lepton::Parser::parse(expressions[type2expression[i][j]]);
+    auto pairpot = parsed.createCompiledExpression();
+    double &r_pot = pairpot.getVariableReference("r");
+    r_pot = 1.0;
+    offset[i][j] = pairpot.evaluate();
+  } else
+    offset[i][j] = 0.0;
+
   cut[j][i] = cut[i][j];
   type2expression[j][i] = type2expression[i][j];
+  offset[j][i] = offset[i][j];
 
   return cut[i][j];
 }
@@ -341,6 +355,7 @@ void PairLepton::read_restart(FILE *fp)
 void PairLepton::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global, sizeof(double), 1, fp);
+  fwrite(&offset_flag, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -349,8 +364,12 @@ void PairLepton::write_restart_settings(FILE *fp)
 
 void PairLepton::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0) { utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error); }
+  if (comm->me == 0) {
+    utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
+  }
   MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -389,5 +408,5 @@ double PairLepton::single(int /* i */, int /* j */, int itype, int jtype, double
 
   r_pot = r_for = r;
   fforce = -pairforce.evaluate() / r * factor_lj;
-  return pairpot.evaluate() * factor_lj;
+  return (pairpot.evaluate() - offset[itype][jtype]) * factor_lj;
 }

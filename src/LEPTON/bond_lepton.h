@@ -41,6 +41,7 @@ class BondLepton : public Bond {
   std::vector<std::string> expressions;
   double *r0;
   int *type2expression;
+  double *offset;
 
   virtual void allocate();
 

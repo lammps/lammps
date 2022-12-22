@@ -32,7 +32,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondLepton::BondLepton(LAMMPS *_lmp) : Bond(_lmp), r0(nullptr), type2expression(nullptr)
+BondLepton::BondLepton(LAMMPS *_lmp) :
+    Bond(_lmp), r0(nullptr), type2expression(nullptr), offset(nullptr)
 {
   writedata = 1;
   reinitflag = 0;
@@ -46,6 +47,7 @@ BondLepton::~BondLepton()
     memory->destroy(setflag);
     memory->destroy(r0);
     memory->destroy(type2expression);
+    memory->destroy(offset);
   }
 }
 
@@ -133,7 +135,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void BondLepton::eval()
     if (EFLAG) {
       double &r_pot = bondpot[idx].getVariableReference("r");
       r_pot = dr;
-      ebond = bondpot[idx].evaluate();
+      ebond = bondpot[idx].evaluate() - offset[type];
     }
     if (EVFLAG) ev_tally(i1, i2, nlocal, NEWTON_BOND, ebond, fbond, delx, dely, delz);
   }
@@ -148,6 +150,7 @@ void BondLepton::allocate()
 
   memory->create(r0, np1, "bond:r0");
   memory->create(type2expression, np1, "bond:type2expression");
+  memory->create(offset, np1, "bond:offset");
   memory->create(setflag, np1, "bond:setflag");
   for (int i = 1; i < np1; i++) setflag[i] = 0;
 }
@@ -169,14 +172,15 @@ void BondLepton::coeff(int narg, char **arg)
   // remove whitespace and quotes from expression string and then
   // check if the expression can be parsed and evaluated without error
   std::string exp_one = LMP_Lepton::condense(arg[2]);
+  double offset_one = 0.0;
   try {
     auto parsed = LMP_Lepton::Parser::parse(exp_one);
     auto bondpot = parsed.createCompiledExpression();
     auto bondforce = parsed.differentiate("r").createCompiledExpression();
     double &r_pot = bondpot.getVariableReference("r");
     double &r_for = bondforce.getVariableReference("r");
-    r_for = r_pot = 1.0;
-    bondpot.evaluate();
+    r_for = r_pot = r0_one;
+    offset_one = bondpot.evaluate();
     bondforce.evaluate();
   } catch (std::exception &e) {
     error->all(FLERR, e.what());
@@ -195,6 +199,7 @@ void BondLepton::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     r0[i] = r0_one;
     type2expression[i] = idx;
+    offset[i] = offset_one;
     setflag[i] = 1;
     count++;
   }
@@ -302,7 +307,7 @@ double BondLepton::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   double ebond = 0.0;
   if (r > 0.0) {
     fforce = -bondforce.evaluate() / r;
-    ebond = bondpot.evaluate();
+    ebond = bondpot.evaluate() - offset[type];
   }
   return ebond;
 }

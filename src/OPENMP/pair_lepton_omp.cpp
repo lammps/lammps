@@ -144,7 +144,8 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
         if (EFLAG) {
           double &r_pot = pairpot[idx].getVariableReference("r");
           r_pot = r;
-          evdwl = factor_lj * pairpot[idx].evaluate();
+          evdwl = pairpot[idx].evaluate() - offset[itype][jtype];
+          evdwl *= factor_lj;
         }
 
         if (EVFLAG)

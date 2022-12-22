@@ -140,7 +140,7 @@ void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
     if (EFLAG) {
       double &r_pot = bondpot[idx].getVariableReference("r");
       r_pot = dr;
-      ebond = bondpot[idx].evaluate();
+      ebond = bondpot[idx].evaluate() - offset[type];
     }
     if (EVFLAG)
       ev_tally_thr(this, i1, i2, nlocal, NEWTON_BOND, ebond, fbond, delx, dely, delz, thr);

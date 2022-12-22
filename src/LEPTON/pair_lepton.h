@@ -54,6 +54,7 @@ class PairLepton : public Pair {
   std::vector<std::string> expressions;
   double **cut;
   int **type2expression;
+  double **offset;
   double cut_global;
 
   virtual void allocate();

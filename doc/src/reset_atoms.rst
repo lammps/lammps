@@ -63,7 +63,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 The *reset_atoms* command resets the values of a specified atom
 property.  In contrast to the set command, it does this in a

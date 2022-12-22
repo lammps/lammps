@@ -44,7 +44,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 This command allows to carry out parallel hybrid molecular
 dynamics/Monte Carlo (MD/MC) simulations using the algorithms described

@@ -45,7 +45,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 # we only want to use explicitly listed files.
 DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
-.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check xmlgen fasthtml
+.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check role_check xmlgen fasthtml
 
 # ------------------------------------------
 
@@ -96,6 +96,7 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 		rst_anchor_check src/*.rst ;\
 		python $(BUILDDIR)/utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
 		python $(BUILDDIR)/utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
@@ -175,6 +176,7 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 		rst_anchor_check src/*.rst ;\
 		python utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
+		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
 		python utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
@@ -219,6 +221,9 @@ package_check : $(VENV)
 
 char_check :
 	@( env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst && exit 1 || : )
+
+role_check :
+	@( env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst && exit 1 || : )
 
 xmlgen : doxygen/xml/index.xml
 

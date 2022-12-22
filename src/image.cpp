@@ -815,26 +815,34 @@ void Image::draw_triangle(double *x, double *y, double *z, double *surfaceColor)
       double s1[3], s2[3], s3[3];
       double c1[3], c2[3];
 
+      // for grid cell viz:
+      // using <= if test can leave single-pixel gaps between 2 tris
+      // using < if test fixes it
+      // suggested by Nathan Fabian, Nov 2022
+
       MathExtra::sub3 (zlocal, xlocal, s1);
       MathExtra::sub3 (ylocal, xlocal, s2);
       MathExtra::sub3 (p, xlocal, s3);
       MathExtra::cross3 (s1, s2, c1);
       MathExtra::cross3 (s1, s3, c2);
-      if (MathExtra::dot3 (c1, c2) <= 0) continue;
+      if (MathExtra::dot3 (c1, c2) < 0) continue;
+      //if (MathExtra::dot3 (c1, c2) <= 0) continue;
 
       MathExtra::sub3 (xlocal, ylocal, s1);
       MathExtra::sub3 (zlocal, ylocal, s2);
       MathExtra::sub3 (p, ylocal, s3);
       MathExtra::cross3 (s1, s2, c1);
       MathExtra::cross3 (s1, s3, c2);
-      if (MathExtra::dot3 (c1, c2) <= 0) continue;
+      if (MathExtra::dot3 (c1, c2) < 0) continue;
+      //if (MathExtra::dot3 (c1, c2) <= 0) continue;
 
       MathExtra::sub3 (ylocal, zlocal, s1);
       MathExtra::sub3 (xlocal, zlocal, s2);
       MathExtra::sub3 (p, zlocal, s3);
       MathExtra::cross3 (s1, s2, c1);
       MathExtra::cross3 (s1, s3, c2);
-      if (MathExtra::dot3 (c1, c2) <= 0) continue;
+      if (MathExtra::dot3 (c1, c2) < 0) continue;
+      //if (MathExtra::dot3 (c1, c2) <= 0) continue;
 
       double cNormal[3];
       cNormal[0] = MathExtra::dot3(camRight, normal);

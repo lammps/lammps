@@ -100,6 +100,8 @@ class Modify : protected Pointers {
   virtual int min_dof();
   virtual int min_reset_ref();
 
+  void reset_grid();
+
   Fix *add_fix(int, char **, int trysuffix = 1);
   Fix *add_fix(const std::string &, int trysuffix = 1);
   Fix *replace_fix(const char *, int, char **, int trysuffix = 1);

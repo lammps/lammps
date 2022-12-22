@@ -827,7 +827,7 @@ void PairAmoeba::init_style()
 
   // initialize KSpace Ewald settings and FFTs and parallel grid objects
   // Coulombic grid is used with two orders: bseorder and bsporder
-  //   so need two GridComm instantiations for ghost comm
+  //   so need two Grid3d instantiations for ghost comm
 
   if (first_flag) {
     kewald();
@@ -1414,37 +1414,64 @@ void PairAmoeba::unpack_reverse_comm(int n, int *list, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   subset of FFT grids assigned to each proc may have changed
+   notify each instance of AmoebaConvolution class
+   called by load balancer when proc subdomains are adjusted
+------------------------------------------------------------------------- */
+
+void PairAmoeba::reset_grid()
+{
+  if (use_ewald) {
+    m_kspace->reset_grid();
+    p_kspace->reset_grid();
+    pc_kspace->reset_grid();
+    i_kspace->reset_grid();
+    ic_kspace->reset_grid();
+  }
+  if (use_dewald) d_kspace->reset_grid();
+
+  // qfac is shared by induce and polar
+  // gridfft1 is copy of FFT grid used within polar
+
+  memory->destroy(qfac);
+  memory->destroy(gridfft1);
+  int nmine = p_kspace->nfft_owned;
+  memory->create(qfac,nmine,"ameoba/induce:qfac");
+  memory->create(gridfft1,2*nmine,"amoeba/polar:gridfft1");
+}
+
+/* ----------------------------------------------------------------------
    pack own values to buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
+void PairAmoeba::pack_forward_grid(int which, void *vbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
 
-  if (flag == MPOLE_GRID) {
+  if (which == MPOLE_GRID) {
     FFT_SCALAR *src = m_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == POLAR_GRID) {
+  } else if (which == POLAR_GRID) {
     FFT_SCALAR *src = p_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == POLAR_GRIDC) {
+  } else if (which == POLAR_GRIDC) {
     FFT_SCALAR *src = pc_kspace->grid_brick_start;
     int n = 0;
     for (int i = 0; i < nlist; i++) {
       buf[n++] = src[2*list[i]];
       buf[n++] = src[2*list[i]+1];
     }
-  } else if (flag == DISP_GRID) {
+  } else if (which == DISP_GRID) {
     FFT_SCALAR *src = d_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == INDUCE_GRID) {
+  } else if (which == INDUCE_GRID) {
     FFT_SCALAR *src = i_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == INDUCE_GRIDC) {
+  } else if (which == INDUCE_GRIDC) {
     FFT_SCALAR *src = ic_kspace->grid_brick_start;
     int n = 0;
     for (int i = 0; i < nlist; i++) {
@@ -1458,34 +1485,34 @@ void PairAmoeba::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
    unpack another proc's own values from buf and set own ghost values
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
+void PairAmoeba::unpack_forward_grid(int which, void *vbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
 
-  if (flag == MPOLE_GRID) {
+  if (which == MPOLE_GRID) {
     FFT_SCALAR *dest = m_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       dest[list[i]] = buf[i];
-  } else if (flag == POLAR_GRID) {
+  } else if (which == POLAR_GRID) {
     FFT_SCALAR *dest = p_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       dest[list[i]] = buf[i];
-  } else if (flag == POLAR_GRIDC) {
+  } else if (which == POLAR_GRIDC) {
     FFT_SCALAR *dest = pc_kspace->grid_brick_start;
     int n = 0;
     for (int i = 0; i < nlist; i++) {
       dest[2*list[i]] = buf[n++];
       dest[2*list[i]+1] = buf[n++];
     }
-  } else if (flag == DISP_GRID) {
+  } else if (which == DISP_GRID) {
     FFT_SCALAR *dest = d_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       dest[list[i]] = buf[i];
-  } else if (flag == INDUCE_GRID) {
+  } else if (which == INDUCE_GRID) {
     FFT_SCALAR *dest = i_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       dest[list[i]] = buf[i];
-  } else if (flag == INDUCE_GRIDC) {
+  } else if (which == INDUCE_GRIDC) {
     FFT_SCALAR *dest = ic_kspace->grid_brick_start;
     int n = 0;
     for (int i = 0; i < nlist; i++) {
@@ -1499,34 +1526,34 @@ void PairAmoeba::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
    pack ghost values into buf to send to another proc
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
+void PairAmoeba::pack_reverse_grid(int which, void *vbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
 
-  if (flag == MPOLE_GRID) {
+  if (which == MPOLE_GRID) {
     FFT_SCALAR *src = m_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == POLAR_GRID) {
+  } else if (which == POLAR_GRID) {
     FFT_SCALAR *src = p_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == POLAR_GRIDC) {
+  } else if (which == POLAR_GRIDC) {
     FFT_SCALAR *src = pc_kspace->grid_brick_start;
     int n = 0;
     for (int i = 0; i < nlist; i++) {
       buf[n++] = src[2*list[i]];
       buf[n++] = src[2*list[i]+1];
     }
-  } else if (flag == DISP_GRID) {
+  } else if (which == DISP_GRID) {
     FFT_SCALAR *src = d_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == INDUCE_GRID) {
+  } else if (which == INDUCE_GRID) {
     FFT_SCALAR *src = i_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       buf[i] = src[list[i]];
-  } else if (flag == INDUCE_GRIDC) {
+  } else if (which == INDUCE_GRIDC) {
     FFT_SCALAR *src = ic_kspace->grid_brick_start;
     int n = 0;
     for (int i = 0; i < nlist; i++) {
@@ -1540,34 +1567,34 @@ void PairAmoeba::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
    unpack another proc's ghost values from buf and add to own values
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
+void PairAmoeba::unpack_reverse_grid(int which, void *vbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
 
-  if (flag == MPOLE_GRID) {
+  if (which == MPOLE_GRID) {
     FFT_SCALAR *dest = m_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
-  } else if (flag == POLAR_GRID) {
+  } else if (which == POLAR_GRID) {
     FFT_SCALAR *dest = p_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
-  } else if (flag == POLAR_GRIDC) {
+  } else if (which == POLAR_GRIDC) {
     FFT_SCALAR *dest = pc_kspace->grid_brick_start;
     int n = 0;
     for (int i = 0; i < nlist; i++) {
       dest[2*list[i]] += buf[n++];
       dest[2*list[i]+1] += buf[n++];
     }
-  } else if (flag == DISP_GRID) {
+  } else if (which == DISP_GRID) {
     FFT_SCALAR *dest = d_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
-  } else if (flag == INDUCE_GRID) {
+  } else if (which == INDUCE_GRID) {
     FFT_SCALAR *dest = i_kspace->grid_brick_start;
     for (int i = 0; i < nlist; i++)
       dest[list[i]] += buf[i];
-  } else if (flag == INDUCE_GRIDC) {
+  } else if (which == INDUCE_GRIDC) {
     FFT_SCALAR *dest = ic_kspace->grid_brick_start;
     int n = 0;
     for (int i = 0; i < nlist; i++) {

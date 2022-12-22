@@ -1,7 +1,6 @@
 ---
-lammps_version: 3 Nov 2022
-tags: generated
-date_generated: Wed Dec 21 20:29:34 2022
+lammps_version: 22 Dec 2022
+date_generated: Thu Dec 22 09:57:30 2022
 epsilon: 5e-14
 skip_tests:
 prerequisites: ! |
@@ -9,7 +8,8 @@ prerequisites: ! |
   pair lepton
 pre_commands: ! |
   variable write_data_pair index ij
-post_commands: ! ""
+post_commands: ! |
+  pair_modify shift yes
 input_file: in.fourmol
 pair_style: lepton 8.0
 pair_coeff: ! |
@@ -27,7 +27,7 @@ pair_coeff: ! |
   3 5    "4.0*eps*((sig/r)^12-(sig/r)^6);eps=0.0173205;sig=3.15"
 extract: ! ""
 natoms: 29
-init_vdwl: 749.2370315373564
+init_vdwl: 749.2468149791969
 init_coul: 0
 init_stress: ! |2-
    2.1793853434038242e+03  2.1988955172192768e+03  4.6653977523326257e+03 -7.5956547636050584e+02  2.4751536734032861e+01  6.6652028436400667e+02
@@ -61,7 +61,7 @@ init_forces: ! |2
    27  5.1810388677546001e+01 -2.2705458321213797e+02  9.0849111082069669e+01
    28 -1.8041307121444069e+02  7.7534042932772905e+01 -1.2206956760706598e+02
    29  1.2861057254925012e+02  1.4952711274394568e+02  3.1216025556267880e+01
-run_vdwl: 719.4432816774653
+run_vdwl: 719.4530651193046
 run_coul: 0
 run_stress: ! |2-
    2.1330153957371017e+03  2.1547728168285516e+03  4.3976497417710125e+03 -7.3873328448298525e+02  4.1743821105370067e+01  6.2788012209191027e+02

@@ -179,7 +179,7 @@ void BondLepton::coeff(int narg, char **arg)
     auto bondforce = parsed.differentiate("r").createCompiledExpression();
     double &r_pot = bondpot.getVariableReference("r");
     double &r_for = bondforce.getVariableReference("r");
-    r_for = r_pot = r0_one;
+    r_for = r_pot = 0.0;
     offset_one = bondpot.evaluate();
     bondforce.evaluate();
   } catch (std::exception &e) {

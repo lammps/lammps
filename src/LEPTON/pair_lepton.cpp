@@ -257,7 +257,7 @@ double PairLepton::init_one(int i, int j)
     auto parsed = LMP_Lepton::Parser::parse(expressions[type2expression[i][j]]);
     auto pairpot = parsed.createCompiledExpression();
     double &r_pot = pairpot.getVariableReference("r");
-    r_pot = 1.0;
+    r_pot = cut[i][j];
     offset[i][j] = pairpot.evaluate();
   } else
     offset[i][j] = 0.0;

@@ -254,9 +254,12 @@ Note that *atom*, *custom*, *dcd*, *xtc*, and *xyz* style dump files
 can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_,
 a popular tool for viewing molecular system.
 
-Likewise the `OVITO visualization tool <https://www.ovito.org>`_,
-popular for materials modeling, can read the *atom*, *custom*, and
-*grid* style dump files.
+Likewise the `OVITO visualization package <https://www.ovito.org>`_,
+popular for materials modeling, can read the *atom*, *custom*,
+*local*, *xtc*, *cfg*, *netcdf*, and *xyz* style atom dump files
+directly.  WIth version 3.8 and above, OVITO can also read and
+visualize *grid* style dump files with grid cell data, including
+isosurface images of the grid cell values.
 
 Note that settings made via the :doc:`dump_modify <dump_modify>`
 command can also alter the format of individual values and content of

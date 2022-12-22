@@ -43,7 +43,7 @@ class PairLepton : public Pair {
   void coeff(int, char **) override;
   double init_one(int, int) override;
   void write_data(FILE *) override;
-  void write_data_all(FILE *) override;  
+  void write_data_all(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
@@ -51,6 +51,9 @@ class PairLepton : public Pair {
   double **cut;
   int **type2expression;
   double cut_global;
+
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
 
   virtual void allocate();
 };

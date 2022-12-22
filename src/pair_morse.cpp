@@ -114,8 +114,7 @@ void PairMorse::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) -
-            offset[itype][jtype];
+          evdwl = d0[itype][jtype] * (dexp*dexp - 2.0*dexp) - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 

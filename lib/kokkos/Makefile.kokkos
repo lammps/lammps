@@ -12,7 +12,7 @@ endif
 
 KOKKOS_VERSION_MAJOR = 3
 KOKKOS_VERSION_MINOR = 7
-KOKKOS_VERSION_PATCH = 00
+KOKKOS_VERSION_PATCH = 01
 KOKKOS_VERSION = $(shell echo $(KOKKOS_VERSION_MAJOR)*10000+$(KOKKOS_VERSION_MINOR)*100+$(KOKKOS_VERSION_PATCH) | bc)
 
 # Options: Cuda,HIP,SYCL,OpenMPTarget,OpenMP,Threads,Serial
@@ -505,10 +505,6 @@ KOKKOS_LINK_FLAGS =
 KOKKOS_SRC =
 KOKKOS_HEADERS =
 
-#ifeq ($(KOKKOS_INTERNAL_COMPILER_GCC), 1)
-  KOKKOS_LIBS += -latomic
-#endif
-
 # Generating the KokkosCore_config.h file.
 
 KOKKOS_INTERNAL_CONFIG_TMP=KokkosCore_config.tmp
@@ -550,6 +546,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_SYCL), 1)
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMPTARGET), 1)
+  KOKKOS_LIBS += -latomic
   tmp := $(call kokkos_append_header,'$H''define KOKKOS_ENABLE_OPENMPTARGET')
   ifeq ($(KOKKOS_INTERNAL_COMPILER_GCC), 1)
   tmp := $(call kokkos_append_header,"$H""define KOKKOS_WORKAROUND_OPENMPTARGET_GCC")

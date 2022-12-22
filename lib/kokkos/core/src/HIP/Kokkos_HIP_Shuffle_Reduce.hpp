@@ -116,6 +116,7 @@ __device__ inline void hip_inter_warp_shuffle_reduction(
   value = result[0];
   for (int i = 1; (i * step < max_active_thread) && (i < step_width); ++i)
     reducer.join(&value, &result[i]);
+  __syncthreads();
 }
 
 template <typename ValueType, typename ReducerType>

@@ -1128,9 +1128,8 @@ struct ViewOffset<
   KOKKOS_INLINE_FUNCTION constexpr ViewOffset(
       const ViewOffset<DimRHS, Kokkos::LayoutRight, void>& rhs)
       : m_dim(rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0) {
-    static_assert((DimRHS::rank == 0 && dimension_type::rank == 0) ||
-                      (DimRHS::rank == 1 && dimension_type::rank == 1 &&
-                       dimension_type::rank_dynamic == 1),
+    static_assert(((DimRHS::rank == 0 && dimension_type::rank == 0) ||
+                   (DimRHS::rank == 1 && dimension_type::rank == 1)),
                   "ViewOffset LayoutLeft and LayoutRight are only compatible "
                   "when rank <= 1");
   }
@@ -1778,8 +1777,7 @@ struct ViewOffset<
       const ViewOffset<DimRHS, Kokkos::LayoutLeft, void>& rhs)
       : m_dim(rhs.m_dim.N0, 0, 0, 0, 0, 0, 0, 0) {
     static_assert((DimRHS::rank == 0 && dimension_type::rank == 0) ||
-                      (DimRHS::rank == 1 && dimension_type::rank == 1 &&
-                       dimension_type::rank_dynamic == 1),
+                      (DimRHS::rank == 1 && dimension_type::rank == 1),
                   "ViewOffset LayoutRight and LayoutLeft are only compatible "
                   "when rank <= 1");
   }
@@ -3059,10 +3057,10 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
                    std::is_trivially_copy_assignable<Dummy>::value>
   construct_shared_allocation() {
     // Shortcut for zero initialization
-    ValueType value{};
 // On A64FX memset seems to do the wrong thing with regards to first touch
 // leading to the significant performance issues
 #ifndef KOKKOS_ARCH_A64FX
+    ValueType value{};
     if (Impl::is_zero_byte(value)) {
       uint64_t kpID = 0;
       if (Kokkos::Profiling::profileLibraryLoaded()) {
@@ -3539,9 +3537,7 @@ class ViewMapping<
                      typename SrcTraits::array_layout>::value ||
         std::is_same<typename DstTraits::array_layout,
                      Kokkos::LayoutStride>::value ||
-        (DstTraits::dimension::rank == 0) ||
-        (DstTraits::dimension::rank == 1 &&
-         DstTraits::dimension::rank_dynamic == 1)
+        (DstTraits::dimension::rank == 0) || (DstTraits::dimension::rank == 1)
   };
 
  public:

@@ -101,8 +101,8 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   void push_work(const std::int32_t w) const noexcept {
     const std::int32_t N = m_graph.numRows();
 
-    std::int32_t volatile* const ready_queue = &m_queue[0];
-    std::int32_t volatile* const end_hint    = &m_queue[2 * N + 1];
+    std::int32_t* const ready_queue = &m_queue[0];
+    std::int32_t* const end_hint    = &m_queue[2 * N + 1];
 
     // Push work to end of queue
     const std::int32_t j = atomic_fetch_add(end_hint, 1);
@@ -134,14 +134,14 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
   std::int32_t pop_work() const noexcept {
     const std::int32_t N = m_graph.numRows();
 
-    std::int32_t volatile* const ready_queue = &m_queue[0];
-    std::int32_t volatile* const begin_hint  = &m_queue[2 * N];
+    std::int32_t* const ready_queue = &m_queue[0];
+    std::int32_t* const begin_hint  = &m_queue[2 * N];
 
     // begin hint is guaranteed to be less than or equal to
     // actual begin location in the queue.
 
-    for (std::int32_t i = *begin_hint; i < N; ++i) {
-      const std::int32_t w = ready_queue[i];
+    for (std::int32_t i = Kokkos::atomic_load(begin_hint); i < N; ++i) {
+      const std::int32_t w = Kokkos::atomic_load(&ready_queue[i]);
 
       if (w == END_TOKEN) {
         return END_TOKEN;
@@ -169,7 +169,7 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 
     const std::int32_t N = m_graph.numRows();
 
-    std::int32_t volatile* const count_queue = &m_queue[N];
+    std::int32_t* const count_queue = &m_queue[N];
 
     const std::int32_t B = m_graph.row_map(w);
     const std::int32_t E = m_graph.row_map(w + 1);
@@ -199,7 +199,7 @@ class WorkGraphPolicy : public Kokkos::Impl::PolicyTraits<Properties...> {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const TagCount, int i) const noexcept {
-    std::int32_t volatile* const count_queue = &m_queue[m_graph.numRows()];
+    std::int32_t* const count_queue = &m_queue[m_graph.numRows()];
 
     atomic_increment(count_queue + m_graph.entries[i]);
   }

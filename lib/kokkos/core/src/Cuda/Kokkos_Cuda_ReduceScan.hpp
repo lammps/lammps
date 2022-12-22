@@ -116,6 +116,7 @@ __device__ inline void cuda_inter_warp_reduction(
   value = result[0];
   for (int i = 1; (i * step < max_active_thread) && i < STEP_WIDTH; i++)
     reducer.join(&value, &result[i]);
+  __syncthreads();
 }
 
 template <class ValueType, class ReducerType>

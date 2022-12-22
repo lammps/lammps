@@ -47,6 +47,7 @@
 #endif
 
 #include <Kokkos_Macros.hpp>
+#include <impl/Kokkos_DeviceManagement.hpp>
 
 #if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(_OPENMP)
 
@@ -164,7 +165,11 @@ void OpenMPTarget::impl_static_fence(const std::string& name) {
       name, Kokkos::Experimental::Impl::openmp_fence_is_static::yes);
 }
 
-void OpenMPTarget::impl_initialize(InitializationSettings const&) {
+void OpenMPTarget::impl_initialize(InitializationSettings const& settings) {
+  using Kokkos::Impl::get_gpu;
+  const int device_num = get_gpu(settings);
+  omp_set_default_device(device_num);
+
   Impl::OpenMPTargetInternal::impl_singleton()->impl_initialize();
 }
 void OpenMPTarget::impl_finalize() {

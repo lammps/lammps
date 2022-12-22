@@ -6,7 +6,14 @@ INC=-I include
 AR=ar
 ARFLAGS=rc
 LIB=liblmplepton.a
-SRC=src/CompiledExpression.cpp src/ExpressionProgram.cpp src/ExpressionTreeNode.cpp src/Operation.cpp src/ParsedExpression.cpp src/Parser.cpp
+SRC=src/CompiledExpression.cpp \
+    src/ExpressionProgram.cpp \
+    src/ExpressionTreeNode.cpp \
+    src/Operation.cpp \
+    src/ParsedExpression.cpp \
+    src/Parser.cpp \
+    src/Utils.cpp
+
 OBJ=$(SRC:src/%.cpp=build/%.o)
 
 all: $(LIB) Makefile.lammps

@@ -256,7 +256,7 @@ a popular tool for visualizing and analyzing trajectories from atomic
 and molecular systems.  For reading *netcdf* style dump files, the
 netcdf plugin needs to be recompiled from source using a NetCDF version
 compatible with the one used by LAMMPS.  The bundled plugin binary
-uses are very old version that is not compatible.
+uses a very old version of NetCDF that is not compatible with LAMMPS.
 
 Likewise the `OVITO visualization package <https://www.ovito.org>`_,
 popular for materials modeling, can read the *atom*, *custom*,

@@ -56,13 +56,11 @@ class PairLepton : public Pair {
   int **type2expression;
   double cut_global;
 
+  virtual void allocate();
+
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
-
-  virtual void allocate();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

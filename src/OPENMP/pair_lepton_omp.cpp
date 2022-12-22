@@ -93,12 +93,12 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
   const int *const *const firstneigh = list->firstneigh;
   double fxtmp, fytmp, fztmp;
 
-  std::vector<LMP_Lepton::CompiledExpression> force;
-  std::vector<LMP_Lepton::CompiledExpression> epot;
+  std::vector<LMP_Lepton::CompiledExpression> pairforce;
+  std::vector<LMP_Lepton::CompiledExpression> pairpot;
   for (const auto &expr : expressions) {
     auto parsed = LMP_Lepton::Parser::parse(expr);
-    force.emplace_back(parsed.differentiate("r").createCompiledExpression());
-    if (EFLAG) epot.emplace_back(parsed.createCompiledExpression());
+    pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+    if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
   }
 
   // loop over neighbors of my atoms
@@ -127,9 +127,9 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
       if (rsq < cutsq[itype][jtype]) {
         const double r = sqrt(rsq);
         const int idx = type2expression[itype][jtype];
-        double &r_for = force[idx].getVariableReference("r");
+        double &r_for = pairforce[idx].getVariableReference("r");
         r_for = r;
-        const double fpair = -force[idx].evaluate() / r * factor_lj;
+        const double fpair = -pairforce[idx].evaluate() / r * factor_lj;
 
         fxtmp += delx * fpair;
         fytmp += dely * fpair;
@@ -142,9 +142,9 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
 
         double evdwl = 0.0;
         if (EFLAG) {
-          double &r_pot = epot[idx].getVariableReference("r");
+          double &r_pot = pairpot[idx].getVariableReference("r");
           r_pot = r;
-          evdwl = factor_lj * epot[idx].evaluate();
+          evdwl = factor_lj * pairpot[idx].evaluate();
         }
 
         if (EVFLAG)

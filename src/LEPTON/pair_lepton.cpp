@@ -26,6 +26,7 @@
 #include "update.h"
 
 #include <cctype>
+#include <cmath>
 #include <cstring>
 
 #include "LMP_Lepton.h"
@@ -98,12 +99,12 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLepton::eval()
   const int *const *const firstneigh = list->firstneigh;
   double fxtmp, fytmp, fztmp;
 
-  std::vector<LMP_Lepton::CompiledExpression> force;
-  std::vector<LMP_Lepton::CompiledExpression> epot;
+  std::vector<LMP_Lepton::CompiledExpression> pairforce;
+  std::vector<LMP_Lepton::CompiledExpression> pairpot;
   for (const auto &expr : expressions) {
     auto parsed = LMP_Lepton::Parser::parse(expr);
-    force.emplace_back(parsed.differentiate("r").createCompiledExpression());
-    if (EFLAG) epot.emplace_back(parsed.createCompiledExpression());
+    pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+    if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
   }
 
   // loop over neighbors of my atoms
@@ -132,9 +133,9 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLepton::eval()
       if (rsq < cutsq[itype][jtype]) {
         const double r = sqrt(rsq);
         const int idx = type2expression[itype][jtype];
-        double &r_for = force[idx].getVariableReference("r");
+        double &r_for = pairforce[idx].getVariableReference("r");
         r_for = r;
-        const double fpair = -force[idx].evaluate() / r * factor_lj;
+        const double fpair = -pairforce[idx].evaluate() / r * factor_lj;
 
         fxtmp += delx * fpair;
         fytmp += dely * fpair;
@@ -147,9 +148,9 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLepton::eval()
 
         double evdwl = 0.0;
         if (EFLAG) {
-          double &r_pot = epot[idx].getVariableReference("r");
+          double &r_pot = pairpot[idx].getVariableReference("r");
           r_pot = r;
-          evdwl = factor_lj * epot[idx].evaluate();
+          evdwl = factor_lj * pairpot[idx].evaluate();
         }
 
         if (EVFLAG) ev_tally(i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz);
@@ -214,13 +215,13 @@ void PairLepton::coeff(int narg, char **arg)
 
   try {
     auto parsed = LMP_Lepton::Parser::parse(exp_one);
-    auto epot = parsed.createCompiledExpression();
-    auto force = parsed.differentiate("r").createCompiledExpression();
-    double &r_pot = epot.getVariableReference("r");
-    double &r_for = force.getVariableReference("r");
+    auto pairpot = parsed.createCompiledExpression();
+    auto pairforce = parsed.differentiate("r").createCompiledExpression();
+    double &r_pot = pairpot.getVariableReference("r");
+    double &r_for = pairforce.getVariableReference("r");
     r_for = r_pot = 1.0;
-    epot.evaluate();
-    force.evaluate();
+    pairpot.evaluate();
+    pairforce.evaluate();
   } catch (std::exception &e) {
     error->all(FLERR, e.what());
   }
@@ -323,6 +324,7 @@ void PairLepton::read_restart(FILE *fp)
   }
   MPI_Bcast(&num, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxlen, 1, MPI_INT, 0, world);
+
   char *buf = new char[maxlen];
 
   for (int i = 0; i < num; ++i) {
@@ -383,14 +385,14 @@ double PairLepton::single(int /* i */, int /* j */, int itype, int jtype, double
                           double /* factor_coul */, double factor_lj, double &fforce)
 {
   auto parsed = LMP_Lepton::Parser::parse(expressions[type2expression[itype][jtype]]);
-  auto epot = parsed.createCompiledExpression();
-  auto force = parsed.differentiate("r").createCompiledExpression();
+  auto pairpot = parsed.createCompiledExpression();
+  auto pairforce = parsed.differentiate("r").createCompiledExpression();
 
   double r = sqrt(rsq);
-  double &r_pot = epot.getVariableReference("r");
-  double &r_for = force.getVariableReference("r");
+  double &r_pot = pairpot.getVariableReference("r");
+  double &r_for = pairforce.getVariableReference("r");
 
   r_pot = r_for = r;
-  fforce = -force.evaluate() / r * factor_lj;
-  return epot.evaluate() * factor_lj;
+  fforce = -pairforce.evaluate() / r * factor_lj;
+  return pairpot.evaluate() * factor_lj;
 }

@@ -212,6 +212,7 @@ accelerated styles exist.
 * :doc:`lcbop <pair_lcbop>` - long-range bond-order potential (LCBOP)
 * :doc:`lebedeva/z <pair_lebedeva_z>` - Lebedeva interlayer potential for graphene with normals along z-axis
 * :doc:`lennard/mdf <pair_mdf>` - LJ potential in A/B form with a taper function
+* :doc:`lepton <pair_lepton>` - pair potential from evaluating a string
 * :doc:`line/lj <pair_line_lj>` - LJ potential between line segments
 * :doc:`list <pair_list>` - potential between pairs of atoms explicitly listed in an input file
 * :doc:`lj/charmm/coul/charmm <pair_charmm>` - CHARMM potential with cutoff Coulomb

@@ -238,6 +238,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix latte <fix_latte>`
      - latte
      - ext
+   * - :ref:`LEPTON <PKG-LEPTON>`
+     - evaluate strings as potential function
+     - :doc:`pair_style lepton <pair_lepton>`
+     - PACKAGES/lepton
+     - int
    * - :ref:`MACHDYN <PKG-MACHDYN>`
      - smoothed Mach dynamics
      - `SMD User Guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_

@@ -43,6 +43,7 @@ This is the list of packages that may require additional steps.
    * :ref:`KIM <kim>`
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LATTE <latte>`
+   * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
    * :ref:`MESONT <mesont>`
@@ -870,6 +871,50 @@ library.
       LAMMPS itself is built it will use these links.  You should also
       check that the ``Makefile.lammps`` file you create is appropriate
       for the compiler you use on your system to build LATTE.
+
+----------
+
+.. _lepton:
+
+LEPTON package
+--------------
+
+To build with this package, you must build the Lepton library which is
+included in the LAMMPS source distribution in the ``lib/lepton`` folder.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      This is the recommended build procedure for using Lepton in
+      LAMMPS. No additional settings are normally needed besides
+      ``-D PKG_LEPTON=yes``.
+
+   .. tab:: Traditional make
+
+      Before building LAMMPS, one must build the Lepton library in lib/lepton.
+
+      This can be done manually in the same folder by using or adapting
+      one of the provided Makefiles: for example, ``Makefile.serial`` for
+      the GNU C++ compiler, or ``Makefile.mpi`` for the MPI compiler wrapper.
+      The Lepton library is written in C++-11 and thus the C++ compiler
+      may need to be instructed to enable support for that.
+
+      In general, it is safer to use build setting consistent with the
+      rest of LAMMPS.  This is best carried out from the LAMMPS src
+      directory using a command like these, which simply invokes the
+      ``lib/lepton/Install.py`` script with the specified args:
+
+      .. code-block:: bash
+
+         $ make lib-lepton                      # print help message
+         $ make lib-lepton args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
+         $ make lib-lepton args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+
+      The "machine" argument of the "-m" flag is used to find a
+      Makefile.machine to use as build recipe.
+
+      The build should produce a ``build`` folder and the library ``lib/lepton/liblmplepton.a``
 
 ----------
 

@@ -44,6 +44,7 @@ OPT.
    * :doc:`harmonic (iko) <bond_harmonic>`
    * :doc:`harmonic/shift (o) <bond_harmonic_shift>`
    * :doc:`harmonic/shift/cut (o) <bond_harmonic_shift_cut>`
+   * :doc:`lepton (o) <bond_lepton>`
    * :doc:`mesocnt <bond_mesocnt>`
    * :doc:`mm3 <bond_mm3>`
    * :doc:`morse (o) <bond_morse>`

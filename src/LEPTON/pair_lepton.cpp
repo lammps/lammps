@@ -18,6 +18,7 @@
 #include "pair_lepton.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
@@ -38,7 +39,7 @@ PairLepton::PairLepton(LAMMPS *lmp) : Pair(lmp), cut(nullptr), type2expression(n
   respa_enable = 0;
   single_enable = 1;
   writedata = 1;
-  restartinfo = 0;
+  restartinfo = 1;
   reinitflag = 0;
   cut_global = 0.0;
   centroidstressflag = CENTROID_SAME;
@@ -256,6 +257,103 @@ double PairLepton::init_one(int i, int j)
   type2expression[j][i] = type2expression[i][j];
 
   return cut[i][j];
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairLepton::write_restart(FILE *fp)
+{
+  write_restart_settings(fp);
+
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++) {
+      fwrite(&setflag[i][j], sizeof(int), 1, fp);
+      if (setflag[i][j]) {
+        fwrite(&cut[i][j], sizeof(double), 1, fp);
+        fwrite(&type2expression[i][j], sizeof(int), 1, fp);
+      }
+    }
+
+  int num = expressions.size();
+  int maxlen = 0;
+  for (const auto &exp : expressions) maxlen = MAX(maxlen, (int) exp.size());
+  ++maxlen;
+
+  fwrite(&num, sizeof(int), 1, fp);
+  fwrite(&maxlen, sizeof(int), 1, fp);
+  for (const auto &exp : expressions) {
+    int n = exp.size() + 1;
+    fwrite(&n, sizeof(int), 1, fp);
+    fwrite(exp.c_str(), sizeof(char), n, fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairLepton::read_restart(FILE *fp)
+{
+  read_restart_settings(fp);
+
+  allocate();
+  expressions.clear();
+
+  const int me = comm->me;
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++) {
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
+      MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
+      if (setflag[i][j]) {
+        if (me == 0) {
+          utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &type2expression[i][j], sizeof(int), 1, fp, nullptr, error);
+        }
+        MPI_Bcast(&cut[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&type2expression[i][j], 1, MPI_INT, 0, world);
+      }
+    }
+
+  int num, maxlen, len;
+  if (me == 0) {
+    utils::sfread(FLERR, &num, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &maxlen, sizeof(int), 1, fp, nullptr, error);
+  }
+  MPI_Bcast(&num, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxlen, 1, MPI_INT, 0, world);
+  char *buf = new char[maxlen];
+
+  for (int i = 0; i < num; ++i) {
+    if (me == 0) {
+      utils::sfread(FLERR, &len, sizeof(int), 1, fp, nullptr, error);
+      utils::sfread(FLERR, buf, sizeof(char), len, fp, nullptr, error);
+    }
+    MPI_Bcast(buf, maxlen, MPI_CHAR, 0, world);
+    expressions.push_back(buf);
+  }
+
+  delete[] buf;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairLepton::write_restart_settings(FILE *fp)
+{
+  fwrite(&cut_global, sizeof(double), 1, fp);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairLepton::read_restart_settings(FILE *fp)
+{
+  if (comm->me == 0) { utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error); }
+  MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
 }
 
 /* ----------------------------------------------------------------------

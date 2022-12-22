@@ -189,7 +189,7 @@ void DumpGrid::init_style()
   delete[] columns;
   std::string combined;
   int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
+  for (const auto &item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
     if (keyword_user[icol].size()) combined += keyword_user[icol];
     else combined += item;
@@ -506,12 +506,14 @@ int DumpGrid::count()
       grid2d = (Grid2d *) compute[field2index[0]]->get_grid_by_index(field2grid[0]);
     else if (field2source[0] == FIX)
       grid2d = (Grid2d *) fix[field2index[0]]->get_grid_by_index(field2grid[0]);
+    else error->all(FLERR, "Unsupported grid data source type {}", field2source[0]);
     grid2d->get_bounds_owned(nxlo_in,nxhi_in,nylo_in,nyhi_in);
   } else {
     if (field2source[0] == COMPUTE)
       grid3d = (Grid3d *) compute[field2index[0]]->get_grid_by_index(field2grid[0]);
     else if (field2source[0] == FIX)
       grid3d = (Grid3d *) fix[field2index[0]]->get_grid_by_index(field2grid[0]);
+    else error->all(FLERR, "Unsupported grid data source type {}", field2source[0]);
     grid3d->get_bounds_owned(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
   }
 
@@ -818,11 +820,10 @@ void DumpGrid::pack_grid2d(int n)
   if (index == 0) {
     double **vec2d;
     if (field2source[n] == COMPUTE)
-      vec2d = (double **)
-        compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+      vec2d = (double **) compute[field2index[n]]->get_griddata_by_index(field2data[n]);
     else if (field2source[n] == FIX)
-      vec2d = (double **)
-        fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+      vec2d = (double **) fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+    else error->all(FLERR, "Unsupported grid data source type {}", field2source[n]);
     for (int iy = nylo_in; iy <= nyhi_in; iy++)
       for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
         buf[n] = vec2d[iy][ix];
@@ -831,11 +832,10 @@ void DumpGrid::pack_grid2d(int n)
   } else {
     double ***array2d;
     if (field2source[n] == COMPUTE)
-      array2d = (double ***)
-        compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+      array2d = (double ***) compute[field2index[n]]->get_griddata_by_index(field2data[n]);
     else if (field2source[n] == FIX)
-      array2d = (double ***)
-        fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+      array2d = (double ***) fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+    else error->all(FLERR, "Unsupported grid data source type {}", field2source[n]);
     index--;
     for (int iy = nylo_in; iy <= nyhi_in; iy++)
       for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
@@ -854,11 +854,10 @@ void DumpGrid::pack_grid3d(int n)
   if (index == 0) {
     double ***vec3d;
     if (field2source[n] == COMPUTE)
-      vec3d = (double ***)
-        compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+      vec3d = (double ***) compute[field2index[n]]->get_griddata_by_index(field2data[n]);
     else if (field2source[n] == FIX)
-      vec3d = (double ***)
-        fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+      vec3d = (double ***) fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+    else error->all(FLERR, "Unsupported grid data source type {}", field2source[n]);
     for (int iz = nzlo_in; iz <= nzhi_in; iz++)
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
         for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
@@ -868,11 +867,10 @@ void DumpGrid::pack_grid3d(int n)
   } else {
     double ****array3d;
     if (field2source[n] == COMPUTE)
-      array3d = (double ****)
-        compute[field2index[n]]->get_griddata_by_index(field2data[n]);
+      array3d = (double ****) compute[field2index[n]]->get_griddata_by_index(field2data[n]);
     else if (field2source[n] == FIX)
-      array3d = (double ****)
-        fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+      array3d = (double ****) fix[field2index[n]]->get_griddata_by_index(field2data[n]);
+    else error->all(FLERR, "Unsupported grid data source type {}", field2source[n]);
     index--;
     for (int iz = nzlo_in; iz <= nzhi_in; iz++)
       for (int iy = nylo_in; iy <= nyhi_in; iy++)

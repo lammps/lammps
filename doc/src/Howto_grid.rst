@@ -1,5 +1,5 @@
-Distributed grids
-=================
+Using distributed grids
+=======================
 
 .. versionadded:: TBD
 

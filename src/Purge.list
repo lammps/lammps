@@ -75,6 +75,9 @@ pair_lj_sdk_omp.cpp
 pair_lj_sdk_coul_msm_omp.h
 pair_lj_sdk_coul_long_omp.cpp
 angle_sdk_omp.h
+# renamed on 13 Jun 2022
+fix_mdi_aimd.cpp
+fix_mdi_aimd.h
 # removed on 8 April 2022
 fix_client_md.cpp
 fix_client_md.h

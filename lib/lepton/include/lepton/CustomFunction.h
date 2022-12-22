@@ -83,7 +83,7 @@ class LEPTON_EXPORT PlaceholderFunction : public CustomFunction {
 public:
     /**
      * Create a Placeholder function.
-     * 
+     *
      * @param numArgs    the number of arguments the function expects
      */
     PlaceholderFunction(int numArgs) : numArgs(numArgs) {

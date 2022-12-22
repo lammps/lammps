@@ -1525,7 +1525,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
    property/atom-based entities from all processes, in order by atom ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine gathers data from all processes and stores them in a
    one-dimensional allocatable array. The array *data* will be
@@ -1567,7 +1567,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
    property/atom-based entities from all processes, unordered.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine gathers data for all atoms and stores them in a
    one-dimensional allocatable array. The data will be a
@@ -1613,7 +1613,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
    property/atom-based entities from all processes for a subset of atoms.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine gathers data for the requested atom IDs and stores them in a
    one-dimensional allocatable array. The data will be ordered by atom ID, but
@@ -1661,7 +1661,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    per-atom, per-atom fix, per-atom compute, or fix property/atom-based entity
    in *data* to all processes.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to all atoms on all processes. The data must be
@@ -1694,7 +1694,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    per-atom, per-atom fix, per-atom compute, or fix property/atom-based
    entities in *data* from a subset of atoms to all processes.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to a subset of atoms on all processes. The array
@@ -2381,7 +2381,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the callback function for a :doc:`fix external <fix_external>` instance
    with the given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    Fix :doc:`external <fix_external>` allows programs that are running LAMMPS
    through its library interface to modify certain LAMMPS properties on
@@ -2497,7 +2497,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Get pointer to the force array storage in a fix external instance with the
    given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    Fix :doc:`external <fix_external>` allows programs that are running LAMMPS
    through its library interfaces to add or modify certain LAMMPS properties on
@@ -2541,7 +2541,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the global energy contribution for a :doc:`fix external <fix_external>`
    instance with the given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:func:`set_fix_external_callback`
    and :f:func:`fix_external_get_force` that also sets the contribution to the
@@ -2569,7 +2569,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the global virial contribution for a fix external instance with the
    given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:subr:`set_fix_external_callback`
    and :f:func:`fix_external_get_force` to set the contribution to the global
@@ -2601,7 +2601,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the per-atom energy contribution for a fix external instance with the
    given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:subr:`set_fix_external_callback` to set
    the per-atom energy contribution due to the fix from the external program as
@@ -2636,7 +2636,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    part of the callback function.  For this to work, the LAMMPS object must be
    passed as the *caller* argument when registering the callback function.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    .. note::
 
@@ -2666,7 +2666,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the vector length for a global vector stored with fix external for
    analysis.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:subr:`set_fix_external_callback` and
    :f:func:`fix_external_get_force` to set the length of a global vector of
@@ -2693,7 +2693,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Store a global vector value for a fix external instance with the given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:subr:`set_fix_external_callback` and
    :f:func:`fix_external_get_force` to set the values of a global vector of

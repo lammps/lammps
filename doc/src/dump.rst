@@ -250,13 +250,20 @@ the :doc:`dump_modify <dump_modify>` page for details.
 The *style* keyword determines what kind of data is written to the
 dump file(s) and in what format.
 
-Note that *atom*, *custom*, *dcd*, *xtc*, and *xyz* style dump files
-can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_,
-a popular tool for viewing molecular system.
+Note that *atom*, *custom*, *dcd*, *xtc*, *xyz*, and *yaml* style dump
+files can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_,
+a popular tool for visualizing and analyzing trajectories from atomic
+and molecular systems.  For reading *netcdf* style dump files, the
+netcdf plugin needs to be recompiled from source using a NetCDF version
+compatible with the one used by LAMMPS.  The bundled plugin binary
+uses a very old version of NetCDF that is not compatible with LAMMPS.
 
-Likewise the `OVITO visualization tool <https://www.ovito.org>`_,
-popular for materials modeling, can read the *atom*, *custom*, and
-*grid* style dump files.
+Likewise the `OVITO visualization package <https://www.ovito.org>`_,
+popular for materials modeling, can read the *atom*, *custom*,
+*local*, *xtc*, *cfg*, *netcdf*, and *xyz* style atom dump files
+directly.  With version 3.8 and above, OVITO can also read and
+visualize *grid* style dump files with grid cell data, including
+iso-surface images of the grid cell values.
 
 Note that settings made via the :doc:`dump_modify <dump_modify>`
 command can also alter the format of individual values and content of

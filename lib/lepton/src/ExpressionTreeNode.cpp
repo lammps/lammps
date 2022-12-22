@@ -37,25 +37,25 @@ using namespace LMP_Lepton;
 using namespace std;
 
 ExpressionTreeNode::ExpressionTreeNode(Operation* operation, const vector<ExpressionTreeNode>& children) : operation(operation), children(children) {
-    if (operation->getNumArguments() != children.size())
+  if (operation->getNumArguments() != (int)children.size())
         throw Exception("wrong number of arguments to function: "+operation->getName());
 }
 
 ExpressionTreeNode::ExpressionTreeNode(Operation* operation, const ExpressionTreeNode& child1, const ExpressionTreeNode& child2) : operation(operation) {
     children.push_back(child1);
     children.push_back(child2);
-    if (operation->getNumArguments() != children.size())
+    if (operation->getNumArguments() != (int)children.size())
         throw Exception("wrong number of arguments to function: "+operation->getName());
 }
 
 ExpressionTreeNode::ExpressionTreeNode(Operation* operation, const ExpressionTreeNode& child) : operation(operation) {
     children.push_back(child);
-    if (operation->getNumArguments() != children.size())
+    if (operation->getNumArguments() != (int)children.size())
         throw Exception("wrong number of arguments to function: "+operation->getName());
 }
 
 ExpressionTreeNode::ExpressionTreeNode(Operation* operation) : operation(operation) {
-    if (operation->getNumArguments() != children.size())
+  if (operation->getNumArguments() != (int)children.size())
         throw Exception("wrong number of arguments to function: "+operation->getName());
 }
 

@@ -177,7 +177,7 @@ public:
     Operation* clone() const {
         return new Constant(value);
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* , const std::map<std::string, double>& ) const {
         return value;
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -208,7 +208,7 @@ public:
     Operation* clone() const {
         return new Variable(name);
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* , const std::map<std::string, double>& variables) const {
         std::map<std::string, double>::const_iterator iter = variables.find(name);
         if (iter == variables.end())
             throw Exception("No value specified for variable "+name);
@@ -253,7 +253,7 @@ public:
         clone->derivOrder = derivOrder;
         return clone;
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         if (isDerivative)
             return function->evaluateDerivative(args, &derivOrder[0]);
         return function->evaluate(args);
@@ -289,7 +289,7 @@ public:
     Operation* clone() const {
         return new Add();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return args[0]+args[1];
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -317,7 +317,7 @@ public:
     Operation* clone() const {
         return new Subtract();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return args[0]-args[1];
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -342,7 +342,7 @@ public:
     Operation* clone() const {
         return new Multiply();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return args[0]*args[1];
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -370,7 +370,7 @@ public:
     Operation* clone() const {
         return new Divide();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return args[0]/args[1];
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -395,7 +395,7 @@ public:
     Operation* clone() const {
         return new Power();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::pow(args[0], args[1]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -420,7 +420,7 @@ public:
     Operation* clone() const {
         return new Negate();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return -args[0];
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -442,7 +442,7 @@ public:
     Operation* clone() const {
         return new Sqrt();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::sqrt(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -464,7 +464,7 @@ public:
     Operation* clone() const {
         return new Exp();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::exp(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -486,7 +486,7 @@ public:
     Operation* clone() const {
         return new Log();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::log(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -508,7 +508,7 @@ public:
     Operation* clone() const {
         return new Sin();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::sin(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -530,7 +530,7 @@ public:
     Operation* clone() const {
         return new Cos();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::cos(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -552,7 +552,7 @@ public:
     Operation* clone() const {
         return new Sec();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return 1.0/std::cos(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -574,7 +574,7 @@ public:
     Operation* clone() const {
         return new Csc();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return 1.0/std::sin(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -596,7 +596,7 @@ public:
     Operation* clone() const {
         return new Tan();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::tan(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -618,7 +618,7 @@ public:
     Operation* clone() const {
         return new Cot();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return 1.0/std::tan(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -640,7 +640,7 @@ public:
     Operation* clone() const {
         return new Asin();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::asin(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -662,7 +662,7 @@ public:
     Operation* clone() const {
         return new Acos();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::acos(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -684,7 +684,7 @@ public:
     Operation* clone() const {
         return new Atan();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::atan(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -706,7 +706,7 @@ public:
     Operation* clone() const {
         return new Atan2();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::atan2(args[0], args[1]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -728,7 +728,7 @@ public:
     Operation* clone() const {
         return new Sinh();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::sinh(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -750,7 +750,7 @@ public:
     Operation* clone() const {
         return new Cosh();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::cosh(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -772,7 +772,7 @@ public:
     Operation* clone() const {
         return new Tanh();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::tanh(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -834,7 +834,7 @@ public:
     Operation* clone() const {
         return new Step();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return (args[0] >= 0.0 ? 1.0 : 0.0);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -856,7 +856,7 @@ public:
     Operation* clone() const {
         return new Delta();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return (args[0] == 0.0 ? 1.0 : 0.0);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -878,7 +878,7 @@ public:
     Operation* clone() const {
         return new Square();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return args[0]*args[0];
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -900,7 +900,7 @@ public:
     Operation* clone() const {
         return new Cube();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return args[0]*args[0]*args[0];
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -922,7 +922,7 @@ public:
     Operation* clone() const {
         return new Reciprocal();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return 1.0/args[0];
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -946,7 +946,7 @@ public:
     Operation* clone() const {
         return new AddConstant(value);
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return args[0]+value;
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -979,7 +979,7 @@ public:
     Operation* clone() const {
         return new MultiplyConstant(value);
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return args[0]*value;
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -1014,7 +1014,7 @@ public:
     Operation* clone() const {
         return new PowerConstant(value);
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         if (isIntPower) {
             // Integer powers can be computed much more quickly by repeated multiplication.
 
@@ -1069,7 +1069,7 @@ public:
     Operation* clone() const {
         return new Min();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         // parens around (std::min) are workaround for horrible microsoft max/min macro trouble
         return (std::min)(args[0], args[1]);
     }
@@ -1092,7 +1092,7 @@ public:
     Operation* clone() const {
         return new Max();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         // parens around (std::min) are workaround for horrible microsoft max/min macro trouble
         return (std::max)(args[0], args[1]);
     }
@@ -1115,7 +1115,7 @@ public:
     Operation* clone() const {
         return new Abs();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::abs(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -1138,7 +1138,7 @@ public:
     Operation* clone() const {
         return new Floor();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::floor(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -1160,7 +1160,7 @@ public:
     Operation* clone() const {
         return new Ceil();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>& ) const {
         return std::ceil(args[0]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;
@@ -1182,7 +1182,7 @@ public:
     Operation* clone() const {
         return new Select();
     }
-    double evaluate(double* args, const std::map<std::string, double>& variables) const {
+    double evaluate(double* args, const std::map<std::string, double>&) const {
         return (args[0] != 0.0 ? args[1] : args[2]);
     }
     ExpressionTreeNode differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const;

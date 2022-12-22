@@ -288,11 +288,13 @@ ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const Expressio
         {
             if (children[0].getOperation().getId() == Operation::SQUARE) // sqrt(square(x)) = abs(x)
                 return ExpressionTreeNode(new Operation::Abs(), children[0].getChildren()[0]);
+            break;
         }
         case Operation::SQUARE:
         {
             if (children[0].getOperation().getId() == Operation::SQRT) // square(sqrt(x)) = x
                 return children[0].getChildren()[0];
+            break;
         }
         default:
         {

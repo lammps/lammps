@@ -91,10 +91,10 @@ public:
     int getNumArguments() const {
         return numArgs;
     }
-    double evaluate(const double* arguments) const {
+    double evaluate(const double* ) const {
         return 0.0;
     }
-    double evaluateDerivative(const double* arguments, const int* derivOrder) const {
+    double evaluateDerivative(const double* , const int* ) const {
         return 0.0;
     }
     CustomFunction* clone() const {

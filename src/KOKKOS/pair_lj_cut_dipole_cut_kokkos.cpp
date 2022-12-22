@@ -134,7 +134,6 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev;
 
   // compute kernel NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS
-  //printf("neighflag = %d newtonflag = %d evflag %d stackparams = %d vflag_global = %d vflag_fdotr = %d\n", neighflag, newton_pair, evflag, atom->ntypes > MAX_TYPES_STACKPARAMS?0:1, vflag_global, vflag_fdotr);
   if (atom->ntypes > MAX_TYPES_STACKPARAMS) { // STACKPARAMS==false
     if (evflag) { // EVFLAG==1
       if (neighflag == HALF) {
@@ -209,9 +208,8 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_vatom.template sync<LMPHostType>();
   }
 
-  //printf("virial before fdotr = %f %f %f %f %f %f\n", virial[0], virial[1], virial[2], virial[3], virial[4], virial[5]);
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
-  //printf("virial after fdotr  = %f %f %f %f %f %f\n", virial[0], virial[1], virial[2], virial[3], virial[4], virial[5]);
+
   copymode = 0;
 }
 
@@ -259,7 +257,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     X_FLOAT cutsq_ij = STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype);
-    
+
     if (rsq < cutsq_ij) {    
       const F_FLOAT r2inv = 1.0/rsq;
       const F_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -275,6 +273,9 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
       F_FLOAT tjxcoul = 0;
       F_FLOAT tjycoul = 0;
       F_FLOAT tjzcoul = 0;
+      F_FLOAT fx = 0;
+      F_FLOAT fy = 0;
+      F_FLOAT fz = 0;
 
       // lj term
       
@@ -377,9 +378,9 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         }
         
         F_FLOAT fq = factor_coul*qqrd2e;
-        F_FLOAT fx = fq*forcecoulx + delx*forcelj;
-        F_FLOAT fy = fq*forcecouly + dely*forcelj;
-        F_FLOAT fz = fq*forcecoulz + delz*forcelj;
+        fx = fq*forcecoulx + delx*forcelj;
+        fy = fq*forcecouly + dely*forcelj;
+        fz = fq*forcecoulz + delz*forcelj;
 
         // force & torque accumulation
 
@@ -414,9 +415,9 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
       if (EVFLAG) {
         if (EVFLAG == 2)
-          ev_tally_xyz_atom<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
+          ev_tally_xyz_atom<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx, fy, fz, delx, dely, delz);
         if (EVFLAG == 1)
-          ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx_i, fy_i, fz_i, delx, dely, delz);
+          ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, fx, fy, fz, delx, dely, delz);
       }
 
     } // cutsq_ij
@@ -466,9 +467,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int
       ev.v[3] += v[3];
       ev.v[4] += v[4];
       ev.v[5] += v[5];
-      //printf("i = %d; j = %d: v %f %f %f %f %f %f\n", i, j, ev.v[0], ev.v[1], ev.v[2], ev.v[3], ev.v[4], ev.v[5]);
     } else { // neigh half, newton off
-      
       if (i < nlocal) {
         ev.v[0] += 0.5*v[0];
         ev.v[1] += 0.5*v[1];
@@ -484,8 +483,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int
         ev.v[3] += 0.5*v[3];
         ev.v[4] += 0.5*v[4];
         ev.v[5] += 0.5*v[5];
-      }
-      //printf("i = %d; j = %d: ev %f %f %f %f %f %f\n", i, j, ev.v[0],ev.v[1], ev.v[2], ev.v[3], ev.v[4], ev.v[5]);
+      } 
     }
     
   } else { // NEIGHFLAG == FULL

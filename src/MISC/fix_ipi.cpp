@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -47,12 +46,12 @@ using namespace FixConst;
 
 // socket interface
 #ifndef _WIN32
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
 #include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/un.h>
+#include <unistd.h>
 #else
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -65,8 +64,7 @@ using namespace FixConst;
 
 /* Utility functions to simplify the interface with POSIX sockets */
 
-static void open_socket(int &sockfd, int inet, int port, char* host,
-                        Error *error)
+static void open_socket(int &sockfd, int inet, int port, char *host, Error *error)
 /* Opens a socket.
 
    Args:
@@ -83,9 +81,9 @@ static void open_socket(int &sockfd, int inet, int port, char* host,
   int ai_err;
 
 #ifdef _WIN32
-  error->one(FLERR,"i-PI socket implementation requires UNIX environment");
+  error->one(FLERR, "i-PI socket implementation requires UNIX environment");
 #else
-  if (inet>0) {  // creates an internet socket
+  if (inet > 0) {    // creates an internet socket
 
     // fetches information on the host
     struct addrinfo hints, *res;
@@ -96,40 +94,39 @@ static void open_socket(int &sockfd, int inet, int port, char* host,
     hints.ai_flags = AI_PASSIVE;
 
     ai_err = getaddrinfo(host, std::to_string(port).c_str(), &hints, &res);
-    if (ai_err!=0)
-      error->one(FLERR,"Error fetching host data. Wrong host name?");
+    if (ai_err != 0) error->one(FLERR, "Error fetching host data. Wrong host name?");
 
     // creates socket
     sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-    if (sockfd < 0)
-      error->one(FLERR,"Error opening socket");
+    if (sockfd < 0) error->one(FLERR, "Error opening socket");
 
     // makes connection
     if (connect(sockfd, res->ai_addr, res->ai_addrlen) < 0)
-      error->one(FLERR,"Error opening INET socket: wrong port or server unreachable");
+      error->one(FLERR, "Error opening INET socket: wrong port or server unreachable");
     freeaddrinfo(res);
 
-  } else {  // creates a unix socket
+  } else {    // creates a unix socket
     struct sockaddr_un serv_addr;
 
     // fills up details of the socket address
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
     strcpy(serv_addr.sun_path, "/tmp/ipi_");
-    strcpy(serv_addr.sun_path+9, host);
+    strcpy(serv_addr.sun_path + 9, host);
 
     // creates the socket
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
 
     // connects
     if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
-      error->one(FLERR,"Error opening UNIX socket: server may not be running "
+      error->one(FLERR,
+                 "Error opening UNIX socket: server may not be running "
                  "or the path to the socket unavailable");
   }
 #endif
 }
 
-static void writebuffer(int sockfd, const char *data, int len, Error* error)
+static void writebuffer(int sockfd, const char *data, int len, Error *error)
 /* Writes to a socket.
 
    Args:
@@ -140,14 +137,11 @@ static void writebuffer(int sockfd, const char *data, int len, Error* error)
 {
   int n;
 
-  n = write(sockfd,data,len);
-  if (n < 0)
-    error->one(FLERR,"Error writing to socket: broken connection");
+  n = write(sockfd, data, len);
+  if (n < 0) error->one(FLERR, "Error writing to socket: broken connection");
 }
 
-
-
-static void readbuffer(int sockfd, char *data, int len, Error* error)
+static void readbuffer(int sockfd, char *data, int len, Error *error)
 /* Reads from a socket.
 
    Args:
@@ -158,44 +152,52 @@ static void readbuffer(int sockfd, char *data, int len, Error* error)
 {
   int n, nr;
 
-  n = nr = read(sockfd,data,len);
+  n = nr = read(sockfd, data, len);
 
-  while (nr>0 && n<len) {
-    nr=read(sockfd,&data[n],len-n);
-    n+=nr;
+  while (nr > 0 && n < len) {
+    nr = read(sockfd, &data[n], len - n);
+    n += nr;
   }
 
-  if (n == 0)
-    error->one(FLERR,"Error reading from socket: broken connection");
+  if (n == 0) error->one(FLERR, "Error reading from socket: broken connection");
 }
 
 /* ---------------------------------------------------------------------- */
 
-FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), irregular(nullptr)
+FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), irregular(nullptr)
 {
-  /* format for fix:
-   *  fix  num  group_id ipi host port [unix]
-   */
-  if (strcmp(style,"ipi") != 0 && narg < 5)
-    error->all(FLERR,"Illegal fix ipi command");
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix ipi", error);
 
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use fix ipi without atom IDs");
+  if (atom->tag_enable == 0) error->all(FLERR, "Cannot use fix ipi without atom IDs");
+  if (atom->tag_consecutive() == 0) error->all(FLERR, "Fix ipi requires consecutive atom IDs");
+  if (strcmp(update->unit_style, "lj") == 0) error->all(FLERR, "Fix ipi does not support lj units");
 
-  if (atom->tag_consecutive() == 0)
-    error->all(FLERR,"Fix ipi requires consecutive atom IDs");
-
-  if (strcmp(arg[1],"all") != 0)
-    error->warning(FLERR,"Fix ipi always uses group all");
+  if ((strcmp(arg[1], "all") != 0) && (comm->me == 0))
+    error->warning(FLERR, "Not using group 'all' with fix ipi can result in undefined behavior");
 
   host = strdup(arg[3]);
-  port = utils::inumeric(FLERR,arg[4],false,lmp);
+  port = utils::inumeric(FLERR, arg[4], false, lmp);
 
-  inet   = ((narg > 5) && (strcmp(arg[5],"unix") == 0) ) ? 0 : 1;
-  master = (comm->me==0) ? 1 : 0;
-  // check if forces should be reinitialized and set flag
-  reset_flag = ((narg > 6 && (strcmp(arg[5],"reset") == 0 )) || ((narg > 5) && (strcmp(arg[5],"reset") == 0)) ) ? 1 : 0;
+  master = (comm->me == 0) ? 1 : 0;
+  inet = 1;
+  reset_flag = 0;
+
+  int iarg = 5;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "unix") == 0) {
+      inet = 0;
+      ++iarg;
+    } else if (strcmp(arg[iarg], "reset") == 0) {
+      reset_flag = 1;
+      ++iarg;
+    } else {
+      error->all(FLERR, "Unknown fix ipi keyword: {}", arg[iarg]);
+    }
+  }
+
+  // sanity check
+  if (inet && ((port <= 1024) || (port > 65536)))
+    error->all(FLERR, "Invalid port for fix ipi: {}", port);
 
   hasdata = bsize = 0;
 
@@ -223,7 +225,6 @@ FixIPI::~FixIPI()
   delete irregular;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 int FixIPI::setmask()
@@ -240,9 +241,11 @@ void FixIPI::init()
 {
   //only opens socket on master process
   if (master) {
-        if (!socketflag) open_socket(ipisock, inet, port, host, error);
-  } else ipisock=0;
-  //! should check for success in socket opening -- but the current open_socket routine dies brutally if unsuccessful
+    if (!socketflag) open_socket(ipisock, inet, port, host, error);
+  } else
+    ipisock = 0;
+  // TODO: should check for success in socket opening,
+  // but the current open_socket routine dies brutally if unsuccessful
   // tell lammps we have assigned a socket
   socketflag = 1;
 
@@ -252,11 +255,13 @@ void FixIPI::init()
 
   kspace_flag = (force->kspace) ? 1 : 0;
 
-  // makes sure that neighbor lists are re-built at each step (cannot make assumptions when cycling over beads!)
+  // makes sure that neighbor lists are re-built at each step
+  // (cannot make assumptions when cycling over beads!)
   neighbor->delay = 0;
   neighbor->every = 1;
 }
 
+// clang-format off
 void FixIPI::initial_integrate(int /*vflag*/)
 {
   /* This is called at the beginning of the integration loop,
@@ -374,9 +379,9 @@ void FixIPI::initial_integrate(int /*vflag*/)
     //   kspace->setup() is in some cases not enough since, e.g., g_ewald needs
     //   to be reestimated due to changes in box dimensions.
     force->init();
-    // setup_grid() is necessary for pppm since init() is not calling
-    //   setup() nor setup_grid() upon calling init().
-    if (force->kspace->pppmflag) force->kspace->setup_grid();
+    // reset_grid() is necessary for pppm since init() is not calling
+    //   setup() nor reset_grid() upon calling init().
+    if (force->kspace->pppmflag) force->kspace->reset_grid();
     // other kspace styles might need too another setup()?
   } else if (!reset_flag && kspace_flag) {
     // original version

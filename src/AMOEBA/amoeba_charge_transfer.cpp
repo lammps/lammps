@@ -15,7 +15,6 @@
 #include "pair_amoeba.h"
 
 #include "atom.h"
-#include "memory.h"
 #include "neigh_list.h"
 
 #include <cmath>

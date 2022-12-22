@@ -21,7 +21,6 @@
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
-#include "neigh_list.h"
 #include "neighbor.h"
 
 #include <cstring>

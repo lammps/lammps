@@ -49,11 +49,11 @@ if (test $1 = 1) then
         sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(electrode_SYSLIB) |' ../Makefile.package
     fi
     if (test -e ../Makefile.package.settings) then
-        sed -i -e '/^include.*electrode.*$/d' ../Makefile.package.settings
+        sed -i -e '/^[ \t]*include.*electrode.*$/d' ../Makefile.package.settings
         # multiline form needed for BSD sed on Macs
         sed -i -e '4 i \
-            include ..\/..\/lib\/electrode\/Makefile.lammps
-                    ' ../Makefile.package.settings
+include ..\/..\/lib\/electrode\/Makefile.lammps
+' ../Makefile.package.settings
     fi
 
 elif (test $1 = 0) then
@@ -61,7 +61,7 @@ elif (test $1 = 0) then
         sed -i -e 's/[^ \t]*electrode[^ \t]* //g' ../Makefile.package
     fi
     if (test -e ../Makefile.package.settings) then
-        sed -i -e '/^include.*electrode.*$/d' ../Makefile.package.settings
+        sed -i -e '/^[ \t]*include.*electrode.*$/d' ../Makefile.package.settings
     fi
 fi
 

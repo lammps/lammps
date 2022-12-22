@@ -1,7 +1,10 @@
 .. index:: fix dt/reset
+.. index:: fix dt/reset/kk
 
 fix dt/reset command
 ====================
+
+Accelerator Variants: *dt/reset/kk*
 
 Syntax
 """"""
@@ -85,6 +88,10 @@ Also note that the :doc:`dump_modify every/time <dump_modify>` option
 allows dump files to be written at intervals specified by simulation
 time, rather than by timesteps.  Simulation time is in time units;
 see the :doc:`units <units>` doc page for details.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

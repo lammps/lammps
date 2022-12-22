@@ -96,6 +96,7 @@ PairPACEExtrapolation::PairPACEExtrapolation(LAMMPS *lmp) : Pair(lmp)
 
   aceimpl = new ACEALImpl;
   scale = nullptr;
+  flag_compute_extrapolation_grade = 0;
   extrapolation_grade_gamma = nullptr;
 }
 

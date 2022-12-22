@@ -44,19 +44,23 @@ Examples
 Description
 """""""""""
 
-This fix can be used to simulate non-equilibrium molecular dynamics
-(NEMD) under diagonal flow fields, including uniaxial and bi-axial
-flow.  Simulations under continuous extensional flow may be carried
-out for an indefinite amount of time.  It is an implementation of the
-boundary conditions from :ref:`(Dobson) <Dobson>`, and also uses numerical
+These fixes can be used to simulate non-equilibrium molecular dynamics
+(NEMD) under diagonal flow fields, including uniaxial and bi-axial flow.
+Simulations under continuous extensional flow may be carried out for an
+indefinite amount of time.  It is an implementation of the boundary
+conditions from :ref:`(Dobson) <Dobson>`, and also uses numerical
 lattice reduction as was proposed by :ref:`(Hunt) <Hunt>`. The lattice
-reduction algorithm is from :ref:`(Semaev) <Semaev>`. The fix is intended for
-simulations of homogeneous flows, and integrates the SLLOD equations
-of motion, originally proposed by Hoover and Ladd (see :ref:`(Evans and Morriss) <Sllod>`).  Additional detail about this implementation can be
-found in :ref:`(Nicholson and Rutledge) <Nicholson>`.
+reduction algorithm is from :ref:`(Semaev) <Semaev>`. The fix is
+intended for simulations of homogeneous flows, and integrates the SLLOD
+equations of motion, originally proposed by Hoover and Ladd (see
+:ref:`(Evans and Morriss) <Sllod>`).  Additional detail about this
+implementation can be found in :ref:`(Nicholson and Rutledge)
+<Nicholson>`.
 
 Note that NEMD simulations of a continuously strained system can be
-performed using the :doc:`fix deform <fix_deform>`, :doc:`fix nvt/sllod <fix_nvt_sllod>`, and :doc:`compute temp/deform <compute_temp_deform>` commands.
+performed using the :doc:`fix deform <fix_deform>`, :doc:`fix nvt/sllod
+<fix_nvt_sllod>`, and :doc:`compute temp/deform <compute_temp_deform>`
+commands.
 
 The applied flow field is set by the *eps* keyword. The values
 *edot_x* and *edot_y* correspond to the strain rates in the xx and yy
@@ -73,11 +77,11 @@ to -(*edot_x* + *edot_y*).
 The boundary conditions require a simulation box that does not have a
 consistent alignment relative to the applied flow field. Since LAMMPS
 utilizes an upper-triangular simulation box, it is not possible to
-express the evolving simulation box in the same coordinate system as
-the flow field.  This fix keeps track of two coordinate systems: the
-flow frame, and the upper triangular LAMMPS frame. The coordinate
-systems are related to each other through the QR decomposition, as is
-illustrated in the image below.
+express the evolving simulation box in the same coordinate system as the
+flow field.  These fixes keep track of two coordinate systems: the flow
+frame, and the upper triangular LAMMPS frame. The coordinate systems are
+related to each other through the QR decomposition, as is illustrated in
+the image below.
 
 .. image:: JPG/uef_frames.jpg
    :align: center
@@ -99,12 +103,12 @@ using the dump command will be in the LAMMPS frame unless the
 ----------
 
 Temperature control is achieved with the default Nose-Hoover style
-thermostat documented in :doc:`fix npt <fix_nh>`. When this fix is
+thermostat documented in :doc:`fix nvt <fix_nh>`.  When this fix is
 active, only the peculiar velocity of each atom is stored, defined as
-the velocity relative to the streaming velocity. This is in contrast
-to :doc:`fix nvt/sllod <fix_nvt_sllod>`, which uses a lab-frame
-velocity, and removes the contribution from the streaming velocity in
-order to compute the temperature.
+the velocity relative to the streaming velocity. This is in contrast to
+:doc:`fix nvt/sllod <fix_nvt_sllod>`, which uses a lab-frame velocity,
+and removes the contribution from the streaming velocity in order to
+compute the temperature.
 
 Pressure control is achieved using the default Nose-Hoover barostat
 documented in :doc:`fix npt <fix_nh>`. There are two ways to control the
@@ -156,8 +160,8 @@ The following commands will not work:
 
 ----------
 
-These fix computes a temperature and pressure each timestep.  To do
-this, it creates its own computes of style "temp/uef" and
+These fixes compute a temperature and pressure each timestep.  To do
+this, they create their own computes of style "temp/uef" and
 "pressure/uef", as if one of these two sets of commands had been
 issued:
 
@@ -169,18 +173,19 @@ issued:
    compute fix-ID_temp all temp/uef
    compute fix-ID_press all pressure/uef fix-ID_temp
 
-See the :doc:`compute temp/uef <compute_temp_uef>` and :doc:`compute pressure/uef <compute_pressure_uef>` commands for details.  Note
-that the IDs of the new computes are the fix-ID + underscore + "temp"
-or fix_ID + underscore + "press".
+See the :doc:`compute temp/uef <compute_temp_uef>` and :doc:`compute
+pressure/uef <compute_pressure_uef>` commands for details.  Note that
+the IDs of the new computes are the fix-ID + underscore + "temp" or
+fix_ID + underscore + "press".
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The fix writes the state of all the thermostat and barostat variables,
-as well as the cumulative strain applied, to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
-for info on how to re-specify a fix in an input script that reads a
-restart file, so that the operation of the fix continues in an
-uninterrupted fashion.
+as well as the cumulative strain applied, to :doc:`binary restart files
+<restart>`.  See the :doc:`read_restart <read_restart>` command for info
+on how to re-specify a fix in an input script that reads a restart file,
+so that the operation of the fix continues in an uninterrupted fashion.
 
 .. note::
 
@@ -189,43 +194,41 @@ uninterrupted fashion.
    not contain the cumulative applied strain, will this keyword be
    necessary.
 
-This fix can be used with the :doc:`fix_modify <fix_modify>` *temp* and
-*press* options. The temperature and pressure computes used must be of
-type *temp/uef* and *pressure/uef*\ .
+These fixes can be used with the :doc:`fix_modify <fix_modify>` *temp*
+and *press* options. The temperature and pressure computes used must be
+of type *temp/uef* and *pressure/uef*\ .
 
-This fix computes the same global scalar and vector quantities as :doc:`fix npt <fix_nh>`.
+These fixes compute the same global scalar and vector quantities as
+:doc:`fix nvt andnpt <fix_nh>`.
 
-The fix is not invoked during :doc:`energy minimization <minimize>`.
+These fixes are not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the UEF package. It is only enabled if LAMMPS
-was built with that package. See the :doc:`Build package <Build_package>` page for more info.
+These fixes are part of the UEF package. They are only enabled if LAMMPS
+was built with that package. See the :doc:`Build package
+<Build_package>` page for more info.
 
 Due to requirements of the boundary conditions, when the *strain*
 keyword is set to zero (or unset), the initial simulation box must be
 cubic and have style triclinic. If the box is initially of type ortho,
 use :doc:`change_box <change_box>` before invoking the fix.
 
-.. note::
-
-   When resuming from restart files, you may need to use :doc:`box tilt
-   large <box>` since LAMMPS has internal criteria from lattice
-   reduction that are not the same as the criteria in the numerical
-   lattice reduction algorithm.
-
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix nvt/sllod <fix_nvt_sllod>`, :doc:`compute temp/uef <compute_temp_uef>`, :doc:`compute pressure/uef <compute_pressure_uef>`, :doc:`dump cfg/uef <dump_cfg_uef>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, `fix nvt/sllod
+:doc:<fix_nvt_sllod>`, `compute temp/uef <compute_temp_uef>`,
+:doc::doc:`compute pressure/uef <compute_pressure_uef>`, `dump cfg/uef
+:doc:<dump_cfg_uef>`
 
 Default
 """""""
 
-The default keyword values specific to this fix are exy = xyz, strain
-= 0 0.  The remaining defaults are the same as for :doc:`fix npt <fix_nh>`
-except tchain = 1.  The reason for this change is given in
+The default keyword values specific to these fixes are exy = xyz, strain
+= 0 0.  The remaining defaults are the same as for :doc:`fix nvt or npt
+<fix_nh>` except tchain = 1.  The reason for this change is given in
 :doc:`fix nvt/sllod <fix_nvt_sllod>`.
 
 ----------

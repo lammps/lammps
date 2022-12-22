@@ -38,7 +38,9 @@
 #include "text_file_reader.h"
 #include "variable.h"
 
+#include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_2PI;

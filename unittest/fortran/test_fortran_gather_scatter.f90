@@ -24,13 +24,17 @@ END SUBROUTINE f_lammps_close
 
 SUBROUTINE f_lammps_setup_gather_scatter() BIND(C)
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp, big_input, cont_input, more_input
+  USE keepstuff, ONLY : lmp, big_input, cont_input, more_input, pair_input
   IMPLICIT NONE
 
   CALL lmp%command('atom_modify map array')
   CALL lmp%commands_list(big_input)
   CALL lmp%commands_list(cont_input)
   CALL lmp%commands_list(more_input)
+  CALL lmp%commands_list(pair_input)
+  CALL lmp%command('mass 1 1.0')
+  CALL lmp%command("compute pe all pe/atom")
+  CALL lmp%command("fix dummy all ave/atom 1 1 1 c_pe")
 END SUBROUTINE f_lammps_setup_gather_scatter
 
 FUNCTION f_lammps_gather_atoms_mask(i) BIND(C)
@@ -262,3 +266,90 @@ FUNCTION f_lammps_test_gather_bonds_big() BIND(C) RESULT(success)
     success = 0_c_int
   END IF
 END FUNCTION f_lammps_test_gather_bonds_big
+
+FUNCTION f_lammps_gather_pe_atom(i) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: i
+  REAL(c_double) :: f_lammps_gather_pe_atom
+  REAL(c_double), DIMENSION(:), ALLOCATABLE :: pe_atom
+
+  CALL lmp%gather('c_pe', 1_c_int, pe_atom)
+  f_lammps_gather_pe_atom = pe_atom(i)
+END FUNCTION f_lammps_gather_pe_atom
+
+FUNCTION f_lammps_gather_pe_atom_concat(i) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN), VALUE :: i
+  REAL(c_double) :: f_lammps_gather_pe_atom_concat
+  REAL(c_double), DIMENSION(:), ALLOCATABLE :: pe_atom
+  INTEGER(c_int), DIMENSION(:), ALLOCATABLE :: tag
+  INTEGER :: j
+
+  CALL lmp%gather_concat('id', 1_c_int, tag)
+  CALL lmp%gather_concat('c_pe', 1_c_int, pe_atom)
+  DO j = 1, SIZE(tag)
+    IF (tag(j) == i) THEN
+       f_lammps_gather_pe_atom_concat = pe_atom(j)
+       EXIT
+    END IF
+  END DO
+  f_lammps_gather_pe_atom_concat = pe_atom(i)
+END FUNCTION f_lammps_gather_pe_atom_concat
+
+SUBROUTINE f_lammps_gather_pe_atom_subset(ids, pe) BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int), INTENT(IN) :: ids(2)
+  REAL(c_double), INTENT(OUT) :: pe(2)
+  REAL(c_double), DIMENSION(:), ALLOCATABLE :: pe_atom
+  INTEGER(c_int) :: natoms
+
+  natoms = NINT(lmp%get_natoms(), c_int)
+  CALL lmp%gather_subset('c_pe', 1, ids, pe_atom)
+  pe(1:2) = pe_atom(1:2)
+END SUBROUTINE f_lammps_gather_pe_atom_subset
+
+SUBROUTINE f_lammps_scatter_compute() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  REAL(c_double), DIMENSION(:), ALLOCATABLE :: pe_atom
+  REAL(c_double) :: swap
+
+  CALL lmp%gather('c_pe', 1_c_int, pe_atom)
+
+  ! swap the computed energy of atoms 1 and 3
+  swap = pe_atom(1)
+  pe_atom(1) = pe_atom(3)
+  pe_atom(3) = swap
+
+  CALL lmp%scatter('c_pe', pe_atom) ! push the swap back to LAMMPS
+END SUBROUTINE f_lammps_scatter_compute
+
+SUBROUTINE f_lammps_scatter_subset_compute() BIND(C)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER(c_int), PARAMETER :: ids(2) = [3,1]
+  REAL(c_double), DIMENSION(:), ALLOCATABLE :: pe_atom
+  REAL(c_double) :: swap
+
+  CALL lmp%gather_subset('c_pe', 1_c_int, ids, pe_atom)
+
+  ! swap the computed energy of atoms 1 and 3
+  swap = pe_atom(1)
+  pe_atom(1) = pe_atom(2)
+  pe_atom(2) = swap
+
+  CALL lmp%scatter_subset('c_pe', ids, pe_atom) ! push the swap back to LAMMPS
+END SUBROUTINE f_lammps_scatter_subset_compute

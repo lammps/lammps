@@ -4529,7 +4529,7 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
           error->one(FLERR,"Variable uses atom property that isn't allocated");
         mine = atom->q[index];
       }
-      else error->one(FLERR,"Invalid atom vector in variable formula");
+      else error->one(FLERR,"Invalid atom vector {} in variable formula", word);
 
     } else mine = vector[index*nstride];
 

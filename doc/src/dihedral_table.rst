@@ -114,6 +114,10 @@ below.
 
 ----------
 
+Suitable tables for use with this dihedral style can be created using
+the Python code in the ``tools/tabulate`` folder of the LAMMPS source
+code distribution.
+
 The format of a tabulated file is as follows (without the
 parenthesized comments).  It can begin with one or more comment
 or blank lines.

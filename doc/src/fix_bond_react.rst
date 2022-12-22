@@ -177,12 +177,12 @@ due to the internal dynamic grouping performed by fix bond/react.
    If the group-ID is an existing static group, react-group-IDs
    should also be specified as this static group or a subset.
 
-The *reset_mol_ids* keyword invokes the :doc:`reset_mol_ids <reset_mol_ids>`
-command after a reaction occurs, to ensure that molecule IDs are
-consistent with the new bond topology. The group-ID used for
-:doc:`reset_mol_ids <reset_mol_ids>` is the group-ID for this fix.
-Resetting molecule IDs is necessarily a global operation, so it can
-be slow for very large systems.
+The *reset_mol_ids* keyword invokes the :doc:`reset_atoms mol
+<reset_atoms>` command after a reaction occurs, to ensure that
+molecule IDs are consistent with the new bond topology. The group-ID
+used for :doc:`reset_atoms mol <reset_atoms>` is the group-ID for this
+fix.  Resetting molecule IDs is necessarily a global operation, so it
+can be slow for very large systems.
 
 The following comments pertain to each *react* argument (in other
 words, they can be customized for each reaction, or reaction step):
@@ -520,7 +520,7 @@ example, the molecule fragment could consist of only the backbone
 atoms of a polymer chain. This constraint can be used to enforce a
 specific relative position and orientation between reacting molecules.
 
-.. versionchanged:: TBD
+.. versionchanged:: 22Dec2022
 
 The constraint of type "custom" has the following syntax:
 
@@ -637,10 +637,10 @@ eligible reaction only occurs if the random number is less than the
 fraction. Up to :math:`N` reactions are permitted to occur, as optionally
 specified by the *max_rxn* keyword.
 
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 The *rate_limit* keyword can enforce an upper limit on the overall
-rate of the reaction. The number of reaction occurences is limited to
+rate of the reaction. The number of reaction occurrences is limited to
 Nlimit within an interval of Nsteps timesteps. No reactions are
 permitted to occur within the first Nsteps timesteps of the first run
 after reading a data file. Nlimit can be specified with an equal-style
@@ -664,7 +664,7 @@ charges are updated to those specified by the post-reaction template
 fragment defined in the pre-reaction molecule template. In this case,
 only the atomic charges of atoms in the molecule fragment are updated.
 
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 The *rescale_charges* keyword can be used to ensure the total charge
 of the system does not change as reactions occur. When the argument is

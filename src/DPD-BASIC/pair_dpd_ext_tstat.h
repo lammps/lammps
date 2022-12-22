@@ -40,8 +40,6 @@ class PairDPDExtTstat : public PairDPDExt {
  protected:
   double t_start, t_stop;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

@@ -23,8 +23,8 @@ namespace LAMMPS_NS {
 class ElectrodeAccelIntel : public ElectrodeAccelInterface {
  public:
   ElectrodeAccelIntel(class LAMMPS *lmp);
-  void intel_find_fix();
-  void intel_pack_buffers();
+  void intel_find_fix() override;
+  void intel_pack_buffers() override;
 
  private:
   class FixIntel *fix;

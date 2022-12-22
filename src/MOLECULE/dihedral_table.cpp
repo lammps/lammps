@@ -1021,6 +1021,9 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
 
   for (int i = 0; i < tb->ninput; i++) {
     line = reader.next_line();
+    if (!line)
+      error->one(FLERR, "Data missing when parsing dihedral table '{}' line {} of {}.",
+                 keyword, i + 1, tb->ninput);
     try {
       ValueTokenizer values(line);
       if (tb->f_unspecified) {

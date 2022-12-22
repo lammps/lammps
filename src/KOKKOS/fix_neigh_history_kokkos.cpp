@@ -20,6 +20,7 @@
 #include "modify.h"
 #include "neigh_list_kokkos.h"
 #include "pair_kokkos.h"
+#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 
@@ -170,6 +171,7 @@ template <class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 {
   tag = atomKK->k_tag.view<DeviceType>();
+  atomKK->sync(execution_space,TAG_MASK);
 
   k_firstflag.sync<DeviceType>();
   k_firstvalue.sync<DeviceType>();

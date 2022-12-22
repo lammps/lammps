@@ -14,13 +14,10 @@
 #include "fix_nve_bpm_sphere.h"
 
 #include "atom.h"
-#include "atom_vec.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "math_extra.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

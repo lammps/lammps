@@ -14,7 +14,6 @@
 #include "fix_nve_noforce.h"
 
 #include "atom.h"
-#include "error.h"
 #include "respa.h"
 #include "update.h"
 

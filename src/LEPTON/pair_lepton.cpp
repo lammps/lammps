@@ -200,11 +200,15 @@ void PairLepton::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
   utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  std::string exp_one = arg[2];
   double cut_one = cut_global;
   if (narg == 4) cut_one = utils::numeric(FLERR, arg[3], false, lmp);
 
-  // check if the expression can be parsed and evaluated as needed without error
+  // remove whitespace and quotes from expression string and then
+  // check if the expression can be parsed and evaluated without error
+  std::string exp_one;
+  for (const auto &c : std::string(arg[2]))
+    if (!isspace(c) && (c != '"') && (c != '\'')) exp_one.push_back(c);
+
   try {
     auto epot = LMP_Lepton::Parser::parse(exp_one).createCompiledExpression();
     auto force = LMP_Lepton::Parser::parse(exp_one).differentiate("r").createCompiledExpression();
@@ -258,7 +262,7 @@ double PairLepton::init_one(int i, int j)
 void PairLepton::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp, "%d '%s' %g\n", i, expressions[type2expression[i][i]].c_str(), cut[i][i]);
+    fprintf(fp, "%d %s %g\n", i, expressions[type2expression[i][i]].c_str(), cut[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -269,7 +273,7 @@ void PairLepton::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp, "%d %d '%s' %g\n", i, j, expressions[type2expression[i][j]].c_str(), cut[i][j]);
+      fprintf(fp, "%d %d %s %g\n", i, j, expressions[type2expression[i][j]].c_str(), cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */

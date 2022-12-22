@@ -54,6 +54,9 @@
 /pair_kim.cpp
 /pair_kim.h
 
+/pair_lepton.cpp
+/pair_lepton.h
+
 /pair_pace.cpp
 /pair_pace.h
 

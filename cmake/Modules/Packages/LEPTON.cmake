@@ -16,8 +16,12 @@ endif()
 
 add_library(lmplepton STATIC ${LEPTON_SOURCES} ${ASMJIT_SOURCES})
 set_target_properties(lmplepton PROPERTIES OUTPUT_NAME lammps_lmplepton${LAMMPS_MACHINE})
-target_compile_definitions(lmplepton PUBLIC -DLEPTON_BUILDING_STATIC_LIBRARY=1)
+target_compile_definitions(lmplepton PUBLIC LEPTON_BUILDING_STATIC_LIBRARY=1)
 target_include_directories(lmplepton PUBLIC ${LEPTON_SOURCE_DIR}/include)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  find_library(LIB_RT rt QUIET)
+  target_link_libraries(lmplepton PUBLIC ${LIB_RT})
+endif()
 
 if(LEPTON_ENABLE_JIT)
   target_compile_definitions(lmplepton PUBLIC "LEPTON_USE_JIT=1;ASMJIT_BUILD_X86=1;ASMJIT_EMBED=1;ASMJIT_BUILD_RELEASE=1")

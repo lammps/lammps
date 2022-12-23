@@ -37,8 +37,6 @@ lammps_quest        MD with quantum forces, coupling to Quest DFT code
 lammps_spparks      grain-growth Monte Carlo with strain via MD,
                     coupling to SPPARKS kinetic MC code
 library             collection of useful inter-code communication routines
-fortran             a simple wrapper on the LAMMPS library API that
-                      can be called from Fortran
 fortran2            a more sophisticated wrapper on the LAMMPS library API that
                       can be called from Fortran
 fortran_dftb        wrapper written by Nir Goldman (LLNL), as an

@@ -22,7 +22,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(LEPTON_ENABLE_JIT)
-  target_compile_definitions(lmplepton PUBLIC "LEPTON_USE_JIT=1;ASMJIT_BUILD_X86=1;ASMJIT_EMBED=1;ASMJIT_BUILD_RELEASE=1")
+  target_compile_definitions(lmplepton PUBLIC "LEPTON_USE_JIT=1;ASMJIT_BUILD_X86=1;ASMJIT_EMBED=1;ASMJIT_STATIC=1;ASMJIT_BUILD_RELEASE=1")
   target_include_directories(lmplepton PUBLIC ${LEPTON_SOURCE_DIR})
 endif()
 

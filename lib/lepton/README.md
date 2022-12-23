@@ -22,22 +22,7 @@ analysis. Here are some of its major features:
 - Computing analytic derivatives.
 - Representing parsed expressions in two different forms (tree or program) suitable for
   further analysis or processing.
+- Support for just-in-time compilation via asmjit library on x86 (autodetected)
+  This should make evaluation about 2 times faster
 
 Lepton was originally created for use in the [OpenMM project](https://openmm.org)
-ch5md is developed by Pierre de Buyl and is released under the 3-clause BSD
-license that can be found in the file LICENSE.
-
-To use the h5md dump style in lammps, execute
-make -f Makefile.h5cc
-in this directory then
-make yes-h5md
-in the src directory of LAMMPS to rebuild LAMMPS.
-
-Note that you must have the h5cc compiler installed to use
-Makefile.h5cc.  It should be part
-
-If HDF5 is not in a standard system location, edit Makefile.lammps accordingly.
-
-In the case of 2015 and more recent debian and ubuntu systems where concurrent
-serial and mpi are possible, use the full platform depedent path, i.e.
-`HDF5_PATH=/usr/lib/x86_64-linux-gnu/hdf5/serial`

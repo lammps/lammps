@@ -1,37 +1,8 @@
-EXTRAMAKE=Makefile.lammps.empty
+# -*- makefile -*-
 
 CC=g++
-CXXFLAGS=-D_DEFAULT_SOURCE -O2 -Wall -fPIC -std=c++11
-INC=-I include
+CXXFLAGS=-D_DEFAULT_SOURCE -O3 -DNDEBUG -Wall -fPIC -std=c++11 -ffast-math -msse4.2
 AR=ar
 ARFLAGS=rc
-LIB=liblmplepton.a
-SRC=src/CompiledExpression.cpp \
-    src/ExpressionProgram.cpp \
-    src/ExpressionTreeNode.cpp \
-    src/Operation.cpp \
-    src/ParsedExpression.cpp \
-    src/Parser.cpp \
-    src/Utils.cpp
 
-OBJ=$(SRC:src/%.cpp=build/%.o)
-
-all: $(LIB) Makefile.lammps
-
-build:
-	mkdir -p build
-
-build/%.o: src/%.cpp build
-	$(CXX) $(INC) $(CXXFLAGS) -c $< -o $@
-
-Makefile.lammps:
-	cp $(EXTRAMAKE) $@
-
-.PHONY: all lib clean
-
-$(LIB) : $(OBJ)
-	$(AR) $(ARFLAGS) $@ $^
-
-clean:
-	rm -f build/*.o $(LIB) *~
-
+include Common.mk

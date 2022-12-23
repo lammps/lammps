@@ -38,7 +38,7 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*lepton[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/lepton\/include |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/lepton\/include -I..\/..\/lib\/lepton |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/lepton$(LIBOBJDIR) |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-llmplepton |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(lepton_SYSINC) |' ../Makefile.package

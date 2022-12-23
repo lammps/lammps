@@ -1254,9 +1254,9 @@ CONTAINS
         CALL C_F_POINTER(Catomptr(1), peratom_data%r64_mat, [nrows,ncols])
       CASE (-1)
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, &
-          'per-atom property ' // name // 'not found in extract_setting')
+          'per-atom property ' // name // ' not found in extract_setting')
       CASE DEFAULT
-        error_msg = ''
+        error_msg = ' '
         WRITE(error_msg,'(A,I0,A)') 'return value ', datatype, &
           ' from lammps_extract_atom_datatype not known [Fortran/extract_atom]'
         CALL lmp_error(self, LMP_ERROR_ALL + LMP_ERROR_WORLD, error_msg)
@@ -2432,7 +2432,7 @@ CONTAINS
     CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: ptr
 
-    buffer = ''
+    buffer = ' '
     buf_size = LEN(buffer, KIND=c_int) + 1_c_int
     ptr = C_LOC(Cbuffer(1))
     CALL lammps_get_os_info(ptr, INT(buf_size, KIND=c_int))
@@ -2511,7 +2511,7 @@ CONTAINS
     Cidx = idx - 1
     Cptr = C_LOC(Cbuffer(1))
     Csuccess = lammps_config_package_name(Cidx, Cptr, LEN(buffer)+1)
-    buffer = ''
+    buffer = ' '
     IF (Csuccess /= 0_c_int) THEN
       buffer = array2string(Cbuffer)
     ELSE
@@ -2570,7 +2570,7 @@ CONTAINS
     CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: Cptr
 
-    buffer = ''
+    buffer = ' '
     buf_size = LEN(buffer) + 1
     Cptr = C_LOC(Cbuffer)
     CALL lammps_get_gpu_device_info(Cptr, buf_size)
@@ -2613,7 +2613,7 @@ CONTAINS
     CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: Ccategory, Cptr
 
-    buffer = ''
+    buffer = ' '
     buf_size = LEN(buffer, KIND=c_int) + 1_c_int
     Ccategory = f2c_string(category)
     Cptr = C_LOC(Cbuffer)
@@ -2664,7 +2664,7 @@ CONTAINS
     TYPE(c_ptr) :: Ccategory, Cptr
     CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
 
-    buffer = ''
+    buffer = ' '
     Ccategory = f2c_string(category)
     buf_size = LEN(buffer, KIND=c_int)
     Cptr = C_LOC(Cbuffer(1))
@@ -2694,8 +2694,8 @@ CONTAINS
       stylebuf = c2f_string(Cstylebuf)
       namebuf = c2f_string(Cnamebuf)
     ELSE
-      stylebuf = ''
-      namebuf = ''
+      stylebuf = ' '
+      namebuf = ' '
       CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
         'call to lammps_plugin_name failed [Fortran/plugin_name]')
     END IF
@@ -2793,7 +2793,7 @@ CONTAINS
   ! constructor for fix_external_data that avoids a warning with Fortran 2003
   ! compilers
   TYPE(fix_external_data) FUNCTION construct_fix_external_data()
-    construct_fix_external_data%id = ''
+    construct_fix_external_data%id = ' '
   END FUNCTION construct_fix_external_data
 
   ! equivalent function to lammps_set_fix_external_callback for -DSMALLSMALL
@@ -3135,7 +3135,7 @@ CONTAINS
     CHARACTER(LEN=1, KIND=c_char), DIMENSION(LEN(buffer)+1), TARGET :: Cbuffer
     TYPE(c_ptr) :: Cptr
 
-    buffer = ''
+    buffer = ' '
     IF (lmp_has_error(self)) THEN
       buflen = LEN(buffer, KIND=c_int) + 1_c_int
       Cptr = C_LOC(Cbuffer(1))
@@ -3145,7 +3145,7 @@ CONTAINS
         status = Cstatus
       END IF
     ELSE
-      buffer = ''
+      buffer = ' '
       IF (PRESENT(status)) THEN
         status = 0
       END IF
@@ -3411,7 +3411,7 @@ CONTAINS
     INTEGER :: n
 
     IF (.NOT. C_ASSOCIATED(ptr)) THEN
-      f_string = ''
+      f_string = ' '
     ELSE
       n = INT(c_strlen(ptr), KIND=KIND(n))
       CALL C_F_POINTER(ptr, c_string, [n+1])

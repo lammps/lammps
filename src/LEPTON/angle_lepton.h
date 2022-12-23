@@ -11,35 +11,35 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+#ifdef ANGLE_CLASS
 // clang-format off
-BondStyle(lepton,BondLepton);
+AngleStyle(lepton,AngleLepton);
 // clang-format on
 #else
 
-#ifndef LMP_BOND_LEPTON_H
-#define LMP_BOND_LEPTON_H
+#ifndef LMP_ANGLE_LEPTON_H
+#define LMP_ANGLE_LEPTON_H
 
-#include "bond.h"
+#include "angle.h"
 
 namespace LAMMPS_NS {
 
-class BondLepton : public Bond {
+class AngleLepton : public Angle {
  public:
-  BondLepton(class LAMMPS *);
-  ~BondLepton() override;
+  AngleLepton(class LAMMPS *);
+  ~AngleLepton() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
-  double equilibrium_distance(int) override;
+  double equilibrium_angle(int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
-  double single(int, double, int, int, double &) override;
+  double single(int, int, int, int) override;
   void *extract(const char *, int &) override;
 
  protected:
   std::vector<std::string> expressions;
-  double *r0;
+  double *theta0;
   int *type2expression;
   double *offset;
 

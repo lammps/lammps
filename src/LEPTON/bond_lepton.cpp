@@ -156,7 +156,7 @@ void BondLepton::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   set coeffs for one type
+   set coeffs for one or more types
 ------------------------------------------------------------------------- */
 
 void BondLepton::coeff(int narg, char **arg)
@@ -192,7 +192,7 @@ void BondLepton::coeff(int narg, char **arg)
     ++idx;
   }
 
-  // not found, add to list
+  // if not found, add to list
   if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(exp_one);
 
   int count = 0;

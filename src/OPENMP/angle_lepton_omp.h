@@ -11,42 +11,33 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef BOND_CLASS
+/* ----------------------------------------------------------------------
+   Contributing author: Axel Kohlmeyer (Temple U)
+------------------------------------------------------------------------- */
+
+#ifdef ANGLE_CLASS
 // clang-format off
-BondStyle(lepton,BondLepton);
+AngleStyle(lepton/omp,AngleLeptonOMP);
 // clang-format on
 #else
 
-#ifndef LMP_BOND_LEPTON_H
-#define LMP_BOND_LEPTON_H
+#ifndef LMP_ANGLE_LEPTON_OMP_H
+#define LMP_ANGLE_LEPTON_OMP_H
 
-#include "bond.h"
+#include "angle_lepton.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class BondLepton : public Bond {
+class AngleLeptonOMP : public AngleLepton, public ThrOMP {
+
  public:
-  BondLepton(class LAMMPS *);
-  ~BondLepton() override;
+  AngleLeptonOMP(class LAMMPS *lmp);
   void compute(int, int) override;
-  void coeff(int, char **) override;
-  double equilibrium_distance(int) override;
-  void write_restart(FILE *) override;
-  void read_restart(FILE *) override;
-  void write_data(FILE *) override;
-  double single(int, double, int, int, double &) override;
-  void *extract(const char *, int &) override;
-
- protected:
-  std::vector<std::string> expressions;
-  double *r0;
-  int *type2expression;
-  double *offset;
-
-  virtual void allocate();
 
  private:
-  template <int EVFLAG, int EFLAG, int NEWTON_BOND> void eval();
+  template <int EVFLAG, int EFLAG, int NEWTON_BOND>
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 }    // namespace LAMMPS_NS
 #endif

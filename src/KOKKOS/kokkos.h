@@ -52,7 +52,6 @@ class KokkosLMP : protected Pointers {
   double binsize;
 
   static int is_finalized;
-  static Kokkos::InitializationSettings args;
   static int init_ngpus;
 
   KokkosLMP(class LAMMPS *, int, char **);

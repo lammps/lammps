@@ -77,7 +77,6 @@ GPU_AWARE_UNKNOWN
 
 using namespace LAMMPS_NS;
 
-Kokkos::InitializationSettings KokkosLMP::args;
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
 
@@ -193,6 +192,8 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // Initialize Kokkos. However, we cannot change any
   // Kokkos library parameters after the first initalization
+
+  Kokkos::InitializationSettings args;
 
   if (args.has_num_threads()) {
     if ((args.get_num_threads() != nthreads) || (args.get_device_id() != device))

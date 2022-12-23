@@ -3033,7 +3033,7 @@ CONTAINS
         &[Fortran/fix_external_set_energy_peratom]')
     END IF
     Cid = f2c_string(id)
-    Ceng = C_LOC(eng)
+    Ceng = C_LOC(eng(1))
     CALL lammps_fix_external_set_energy_peratom(self%handle, Cid, Ceng)
     CALL lammps_free(Cid)
   END SUBROUTINE lmp_fix_external_set_energy_peratom

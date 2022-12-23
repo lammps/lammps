@@ -2,7 +2,9 @@ set(LEPTON_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/lepton)
 
 file(GLOB LEPTON_SOURCES ${LEPTON_SOURCE_DIR}/src/[^.]*.cpp)
 
-if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64")
+if((CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "amd64") OR
+   (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "AMD64") OR
+   (CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "x86_64"))
    option(LEPTON_ENABLE_JIT "Enable Just-In-Time compiler for Lepton" ON)
 else()
    option(LEPTON_ENABLE_JIT "Enable Just-In-Time compiler for Lepton" OFF)
@@ -22,7 +24,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(LEPTON_ENABLE_JIT)
-  target_compile_definitions(lmplepton PUBLIC "LEPTON_USE_JIT=1;ASMJIT_BUILD_X86=1;ASMJIT_EMBED=1;ASMJIT_STATIC=1;ASMJIT_BUILD_RELEASE=1")
+  target_compile_definitions(lmplepton PUBLIC "LEPTON_USE_JIT=1;ASMJIT_BUILD_X86=1;ASMJIT_STATIC=1;ASMJIT_BUILD_RELEASE=1")
   target_include_directories(lmplepton PUBLIC ${LEPTON_SOURCE_DIR})
 endif()
 

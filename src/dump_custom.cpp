@@ -1150,6 +1150,7 @@ int DumpCustom::count()
 void DumpCustom::pack(tagint *ids)
 {
   for (int n = 0; n < size_one; n++) (this->*pack_choice[n])(n);
+
   if (ids) {
     tagint *tag = atom->tag;
     for (int i = 0; i < nchoose; i++)

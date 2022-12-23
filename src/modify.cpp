@@ -792,6 +792,19 @@ int Modify::min_reset_ref()
 }
 
 /* ----------------------------------------------------------------------
+   reset grids for any Fix or Compute that uses distributed grids
+   called by load balancer when proc sub-domains change
+------------------------------------------------------------------------- */
+
+void Modify::reset_grid()
+{
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->pergrid_flag) fix[i]->reset_grid();
+  for (int i = 0; i < ncompute; i++)
+    if (compute[i]->pergrid_flag) compute[i]->reset_grid();
+}
+
+/* ----------------------------------------------------------------------
    add a new fix or replace one with same ID
 ------------------------------------------------------------------------- */
 

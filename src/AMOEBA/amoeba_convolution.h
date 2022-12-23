@@ -42,6 +42,7 @@ class AmoebaConvolution : protected Pointers {
 
   AmoebaConvolution(class LAMMPS *, class Pair *, int, int, int, int, int);
   ~AmoebaConvolution();
+  void reset_grid();
   void *zero();
   FFT_SCALAR *pre_convolution();
   void *post_convolution();
@@ -55,7 +56,7 @@ class AmoebaConvolution : protected Pointers {
 
   class Pair *amoeba;
   class FFT3d *fft1, *fft2;
-  class GridComm *gc;
+  class Grid3d *gc;
   class Remap *remap;
 
   double ***grid_brick;      // 3d real brick grid with ghosts
@@ -67,13 +68,14 @@ class AmoebaConvolution : protected Pointers {
   double *gc_buf1, *gc_buf2;    // buffers for GridComm
   double *remap_buf;            // buffer for Remap
 
+  void allocate_grid();
+  void deallocate_grid();
   void *zero_3d();
   void *zero_4d();
   FFT_SCALAR *pre_convolution_3d();
   FFT_SCALAR *pre_convolution_4d();
   void *post_convolution_3d();
   void *post_convolution_4d();
-  void kspacebbox(double, double *);
   void procs2grid2d(int, int, int, int &, int &);
 
   // DEBUG

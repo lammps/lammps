@@ -129,7 +129,7 @@ The first argument of the *python* command is either the *source*
 keyword or the name of a Python function.  This defines the mode
 of the python command.
 
-.. versionchanged:: TBD
+.. versionchanged:: 22Dec2022
 
 If the *source* keyword is used, it is followed by either a file name or
 the *here* keyword.  No other keywords can be used.  The *here* keyword

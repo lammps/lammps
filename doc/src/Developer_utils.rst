@@ -214,6 +214,9 @@ Argument processing
 .. doxygenfunction:: expand_args
    :project: progguide
 
+.. doxygenfunction:: parse_grid_id
+   :project: progguide
+
 .. doxygenfunction:: expand_type
    :project: progguide
 

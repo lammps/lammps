@@ -1392,17 +1392,17 @@ LEPTON package
 
 **Contents:**
 
-Styles for pair, bond forces that evaluate the potential function from a
-string using the `Lepton mathematical expression parser
+Styles for pair, bond, and angle forces that evaluate the potential
+function from a string using the `Lepton mathematical expression parser
 <https://simtk.org/projects/lepton>`_.  Lepton is a C++ library that is
 bundled with `OpenMM <https://openmm.org/>`_ and can be used for
 parsing, evaluating, differentiating, and analyzing mathematical
-expressions.  This is a more lightweight and efficient alternative
-for evaluating custom potential function to an embedded Python
-interpreter as used in the :ref:`PYTHON package <PKG-PYTHON>`.
-On the other hand, since the potentials are evaluated form analytical
-expressions, they are more precise than what can be done with
-:ref:`tabulated potentials <tabulate>`.
+expressions.  This is a more lightweight and efficient alternative for
+evaluating custom potential function to an embedded Python interpreter
+as used in the :ref:`PYTHON package <PKG-PYTHON>`.  On the other hand,
+since the potentials are evaluated form analytical expressions, they are
+more precise than what can be done with :ref:`tabulated potentials
+<tabulate>`.
 
 **Authors:** Axel Kohlmeyer (Temple U).  Lepton itself is developed
 by Peter Eastman at Stanford University.
@@ -1420,6 +1420,7 @@ the :doc:`Build extras <Build_extras>` page.
 * lib/lepton/README.md
 * :doc:`pair_style lepton <pair_lepton>`
 * :doc:`bond_style lepton <bond_lepton>`
+* :doc:`angle_style lepton <angle_lepton>`
 
 ----------
 

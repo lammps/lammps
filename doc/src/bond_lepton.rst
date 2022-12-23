@@ -19,27 +19,26 @@ Examples
 .. code-block:: LAMMPS
 
    bond_style lepton
+
    1 1.5 "k*r^2; k=250.0"
    2 1.1 "k2*r^2 + k3*r^3 + k4*r^4; k2=300.0; k3=-100.0; k4=50.0"
    3 1.3 "k*r^2; k=350.0"
-
-   bond_coeff 5 1.0 2.0 1.2
 
 Description
 """""""""""
 
 .. versionadded:: TBD
 
-Bond style *lepton* computes bonded interactions between two atom
-based on evaluating strings.  The potential function must be provided as an
+Bond style *lepton* computes bonded interactions between two atom based
+on evaluating strings.  The potential function must be provided as an
 expression string using "r" as the distance variable relative to the
 reference distance :math:`r_0` which is provided as a bond coefficient.
-For example `"200.0*(r)^2"` represents a harmonic potential with a
-force constant *K* of 200.0 energy units:
+For example `"200.0*(r)^2"` represents a harmonic potential with a force
+constant *K* of 200.0 energy units:
 
 .. math::
 
-   U_{bond} = K (r_i - r_0)^2 = K r^2 \qquad r = r_i-r_0
+   U_{bond,i} = K (r_i - r_0)^2 = K r^2 \qquad r = r_i - r_0
 
 The `Lepton library <https://simtk.org/projects/lepton>`_, that the
 *lepton* bond style interfaces with, evaluates this expression string at
@@ -61,7 +60,7 @@ contain any whitespace so that LAMMPS recognizes it as a single keyword.
 More on valid Lepton expressions below.  The :math:`r_0` it the
 "equilibrium distance".  The potential energy function in the Lepton
 expression is shifted in such a way, that the potential energy is 0 for
-a bond length *r* of :math:`r_0`.
+a bond length :math:`r_i == r_0`.
 
 ----------
 

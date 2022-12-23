@@ -94,6 +94,7 @@ OPT.
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
    * :doc:`gaussian <angle_gaussian>`
    * :doc:`harmonic (iko) <angle_harmonic>`
+   * :doc:`lepton (o) <angle_lepton>`
    * :doc:`mesocnt <angle_mesocnt>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`

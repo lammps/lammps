@@ -333,6 +333,10 @@ MODULE LIBLAMMPS
     CLASS(*), POINTER :: caller => NULL()
     CLASS(lammps), POINTER :: lammps_instance => NULL()
   END TYPE fix_external_data
+  ! constructor to make Fortran 2003 compilers happy (F2008 should be OK)
+  INTERFACE fix_external_data
+    MODULE PROCEDURE construct_fix_external_data
+  END INTERFACE fix_external_data
 
   ! Array used to store Fortran-facing callback functions for fix external
   TYPE(fix_external_data), DIMENSION(:), ALLOCATABLE, TARGET, SAVE :: ext_data
@@ -2785,6 +2789,12 @@ CONTAINS
         & integer kind passed as "image" [Fortran/decode_image_flags]')
     END IF
   END SUBROUTINE lmp_decode_image_flags_bigbig
+
+  ! constructor for fix_external_data that avoids a warning with Fortran 2003
+  ! compilers
+  TYPE(fix_external_data) FUNCTION construct_fix_external_data()
+    construct_fix_external_data%id = ''
+  END FUNCTION construct_fix_external_data
 
   ! equivalent function to lammps_set_fix_external_callback for -DSMALLSMALL
   ! note that "caller" is wrapped into a fix_external_data derived type along

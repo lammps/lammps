@@ -28,6 +28,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Bond style *lepton* computes bonded interactions between two atom
 based on evaluating strings.  The potential function must be provided as an
 expression string using "r" as the distance variable relative to the

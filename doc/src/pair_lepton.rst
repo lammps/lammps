@@ -34,6 +34,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Pair style *lepton* computes spherical pairwise interactions based on
 evaluating strings.  The potential function must be provided as an
 expression string using "r" as the distance variable, for example

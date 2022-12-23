@@ -1407,6 +1407,8 @@ expressions, they are more precise than what can be done with
 **Authors:** Axel Kohlmeyer (Temple U).  Lepton itself is developed
 by Peter Eastman at Stanford University.
 
+.. versionadded:: TBD
+
 **Install:**
 
 This package has :ref:`specific installation instructions <lepton>` on

@@ -414,7 +414,7 @@ void RegEllipsoid::variable_check()
     bvar = input->variable->find(bstr);
     if (bvar < 0) error->all(FLERR, "Variable name {} for region ellipsoid does not exist", bstr);
     if (!input->variable->equalstyle(bvar))
-      error->all(FLERR, "Variable {} for region ellipsoid is invalid style", cstr);
+      error->all(FLERR, "Variable {} for region ellipsoid is invalid style", bstr);
   }
 
   if (cstyle == VARIABLE) {

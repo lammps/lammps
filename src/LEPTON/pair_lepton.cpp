@@ -188,8 +188,7 @@ void PairLepton::allocate()
 
 void PairLepton::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR, "Illegal pair_style command");
-
+  if (narg != 1) error->all(FLERR, "Incorrect number of arguments for pair_style lepton command");
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 }
 

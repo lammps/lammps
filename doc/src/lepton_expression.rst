@@ -91,7 +91,10 @@ is exactly equivalent to
 
 The definition of an intermediate value may itself involve other
 intermediate values. Whitespace and quotation characters ('\'' and '"')
-are ignored.  All uses of a value must appear *before* that value’s
+are ignored.  All uses of a value must appear *before* that value's
 definition.  For efficiency reasons, the expression string is parsed,
 optimized, and then stored in an internal, pre-parsed representation for
 evaluation.
+
+Evaluating Lepton expressions is typically between 2 and 4 times
+slower than the corresponding compiled and optimized C++ code.

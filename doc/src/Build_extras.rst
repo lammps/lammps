@@ -890,6 +890,11 @@ included in the LAMMPS source distribution in the ``lib/lepton`` folder.
       LAMMPS. No additional settings are normally needed besides
       ``-D PKG_LEPTON=yes``.
 
+      On x86 hardware the Lepton library will also include a just-in-time
+      compiler for faster execution.  This is auto detected but can
+      be explicitly disabled by setting ``-D LEPTON_ENABLE_JIT=no``
+      (or enabled by setting it to yes).
+
    .. tab:: Traditional make
 
       Before building LAMMPS, one must build the Lepton library in lib/lepton.

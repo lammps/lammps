@@ -1401,9 +1401,8 @@ expressions.  This is a more lightweight and efficient alternative
 for evaluating custom potential function to an embedded Python
 interpreter as used in the :ref:`PYTHON package <PKG-PYTHON>`.
 On the other hand, since the potentials are evaluated form analytical
-expressions, they are more accurate than what can be done with
-:ref:`tabulated potentials <tabulate>`.  Using the runtime evaluation
-comes with a significant increase in runtime.
+expressions, they are more precise than what can be done with
+:ref:`tabulated potentials <tabulate>`.
 
 **Authors:** Axel Kohlmeyer (Temple U).  Lepton itself is developed
 by Peter Eastman at Stanford University.

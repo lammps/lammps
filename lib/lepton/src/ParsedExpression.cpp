@@ -6,7 +6,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009 Stanford University and the Authors.           *
+ * Portions copyright (c) 2009-2022 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -31,6 +31,7 @@
 
 #include "lepton/ParsedExpression.h"
 #include "lepton/CompiledExpression.h"
+#include "lepton/CompiledVectorExpression.h"
 #include "lepton/ExpressionProgram.h"
 #include "lepton/Operation.h"
 #include <limits>
@@ -68,9 +69,16 @@ double ParsedExpression::evaluate(const ExpressionTreeNode& node, const map<stri
 }
 
 ParsedExpression ParsedExpression::optimize() const {
-    ExpressionTreeNode result = precalculateConstantSubexpressions(getRootNode());
+    ExpressionTreeNode result = getRootNode();
+    vector<const ExpressionTreeNode*> examples;
+    result.assignTags(examples);
+    map<int, ExpressionTreeNode> nodeCache;
+    result = precalculateConstantSubexpressions(result, nodeCache);
     while (true) {
-        ExpressionTreeNode simplified = substituteSimplerExpression(result);
+        examples.clear();
+        result.assignTags(examples);
+        nodeCache.clear();
+        ExpressionTreeNode simplified = substituteSimplerExpression(result, nodeCache);
         if (simplified == result)
             break;
         result = simplified;
@@ -80,9 +88,15 @@ ParsedExpression ParsedExpression::optimize() const {
 
 ParsedExpression ParsedExpression::optimize(const map<string, double>& variables) const {
     ExpressionTreeNode result = preevaluateVariables(getRootNode(), variables);
-    result = precalculateConstantSubexpressions(result);
+    vector<const ExpressionTreeNode*> examples;
+    result.assignTags(examples);
+    map<int, ExpressionTreeNode> nodeCache;
+    result = precalculateConstantSubexpressions(result, nodeCache);
     while (true) {
-        ExpressionTreeNode simplified = substituteSimplerExpression(result);
+        examples.clear();
+        result.assignTags(examples);
+        nodeCache.clear();
+        ExpressionTreeNode simplified = substituteSimplerExpression(result, nodeCache);
         if (simplified == result)
             break;
         result = simplified;
@@ -104,27 +118,44 @@ ExpressionTreeNode ParsedExpression::preevaluateVariables(const ExpressionTreeNo
     return ExpressionTreeNode(node.getOperation().clone(), children);
 }
 
-ExpressionTreeNode ParsedExpression::precalculateConstantSubexpressions(const ExpressionTreeNode& node) {
+ExpressionTreeNode ParsedExpression::precalculateConstantSubexpressions(const ExpressionTreeNode& node, map<int, ExpressionTreeNode>& nodeCache) {
+    auto cached = nodeCache.find(node.tag);
+    if (cached != nodeCache.end())
+        return cached->second;
     vector<ExpressionTreeNode> children(node.getChildren().size());
     for (int i = 0; i < (int) children.size(); i++)
-        children[i] = precalculateConstantSubexpressions(node.getChildren()[i]);
+        children[i] = precalculateConstantSubexpressions(node.getChildren()[i], nodeCache);
     ExpressionTreeNode result = ExpressionTreeNode(node.getOperation().clone(), children);
-    if (node.getOperation().getId() == Operation::VARIABLE || node.getOperation().getId() == Operation::CUSTOM)
+    if (node.getOperation().getId() == Operation::VARIABLE || node.getOperation().getId() == Operation::CUSTOM) {
+        nodeCache[node.tag] = result;
         return result;
+    }
     for (int i = 0; i < (int) children.size(); i++)
-        if (children[i].getOperation().getId() != Operation::CONSTANT)
+        if (children[i].getOperation().getId() != Operation::CONSTANT) {
+            nodeCache[node.tag] = result;
             return result;
-    return ExpressionTreeNode(new Operation::Constant(evaluate(result, map<string, double>())));
+        }
+    result = ExpressionTreeNode(new Operation::Constant(evaluate(result, map<string, double>())));
+    nodeCache[node.tag] = result;
+    return result;
 }
 
-ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const ExpressionTreeNode& node) {
+ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const ExpressionTreeNode& node, map<int, ExpressionTreeNode>& nodeCache) {
     vector<ExpressionTreeNode> children(node.getChildren().size());
-    for (int i = 0; i < (int) children.size(); i++)
-        children[i] = substituteSimplerExpression(node.getChildren()[i]);
+    for (int i = 0; i < (int) children.size(); i++) {
+        const ExpressionTreeNode& child = node.getChildren()[i];
+        auto cached = nodeCache.find(child.tag);
+        if (cached == nodeCache.end()) {
+            children[i] = substituteSimplerExpression(child, nodeCache);
+            nodeCache[child.tag] = children[i];
+        }
+        else
+            children[i] = cached->second;
+    }
 
     // Collect some info on constant expressions in children
     bool first_const = children.size() > 0 && isConstant(children[0]); // is first child constant?
-    bool second_const = children.size() > 1 && isConstant(children[1]); ; // is second child constant?
+    bool second_const = children.size() > 1 && isConstant(children[1]); // is second child constant?
     double first, second; // if yes, value of first and second child
     if (first_const)
         first = getConstantValue(children[0]);
@@ -296,6 +327,12 @@ ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const Expressio
                 return children[0].getChildren()[0];
             break;
         }
+        case Operation::SELECT:
+        {
+            if (children[1] == children[2]) // Select between two identical values
+                return children[1];
+            break;
+        }
         default:
         {
             // If operation ID is not one of the above,
@@ -308,14 +345,22 @@ ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const Expressio
 }
 
 ParsedExpression ParsedExpression::differentiate(const string& variable) const {
-    return differentiate(getRootNode(), variable);
+    vector<const ExpressionTreeNode*> examples;
+    getRootNode().assignTags(examples);
+    map<int, ExpressionTreeNode> nodeCache;
+    return differentiate(getRootNode(), variable, nodeCache);
 }
 
-ExpressionTreeNode ParsedExpression::differentiate(const ExpressionTreeNode& node, const string& variable) {
+ExpressionTreeNode ParsedExpression::differentiate(const ExpressionTreeNode& node, const string& variable, map<int, ExpressionTreeNode>& nodeCache) {
+    auto cached = nodeCache.find(node.tag);
+    if (cached != nodeCache.end())
+        return cached->second;
     vector<ExpressionTreeNode> childDerivs(node.getChildren().size());
     for (int i = 0; i < (int) childDerivs.size(); i++)
-        childDerivs[i] = differentiate(node.getChildren()[i], variable);
-    return node.getOperation().differentiate(node.getChildren(),childDerivs, variable);
+        childDerivs[i] = differentiate(node.getChildren()[i], variable, nodeCache);
+    ExpressionTreeNode result = node.getOperation().differentiate(node.getChildren(), childDerivs, variable);
+    nodeCache[node.tag] = result;
+    return result;
 }
 
 bool ParsedExpression::isConstant(const ExpressionTreeNode& node) {
@@ -335,6 +380,10 @@ ExpressionProgram ParsedExpression::createProgram() const {
 
 CompiledExpression ParsedExpression::createCompiledExpression() const {
     return CompiledExpression(*this);
+}
+
+CompiledVectorExpression ParsedExpression::createCompiledVectorExpression(int width) const {
+    return CompiledVectorExpression(*this, width);
 }
 
 ParsedExpression ParsedExpression::renameVariables(const map<string, string>& replacements) const {

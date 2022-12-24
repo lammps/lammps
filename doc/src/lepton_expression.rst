@@ -72,8 +72,25 @@ The following mathematical functions are available:
    * step(x)
    * step(x) is 0 for `x < 0`, otherwise 1
 
-Numbers may be given in either decimal or exponential form.  All of the following are valid
-numbers: `5`, `-3.1`, `1e6`, and `3.12e-2`.
+Numbers may be given in either decimal or exponential form.  All of the
+following are valid numbers: `5`, `-3.1`, `1e6`, and `3.12e-2`.
+
+As an extension to the standard Lepton syntax, it is also possible to
+use LAMMPS :doc:`variables <variable>` in the format "v_name".  Before
+evaluating the expression, "v_name" will be replaced with the value of
+the variable "name".  This is compatible with all kinds of scalar
+variables, but not with vectors, arrays, local, or per-atom
+variables.  If necessary, a custom scalar variable needs to be defined
+that can access the desired (single) item from a non-scalar variable.
+As an example, the following lines will instruct LAMMPS to ramp
+the force constant for a harmonic bond from 100.0 to 200.0 during the
+next run;
+
+.. code-block:: LAMMPS
+
+   variable fconst equal ramp(100.0, 200)
+   bond_style lepton
+   bond_coeff 1 1.5 "v_fconst * (r^2)"
 
 An expression may be followed by definitions for intermediate values that appear in the
 expression. A semicolon ";" is used as a delimiter between value definitions. For example,
@@ -96,5 +113,5 @@ definition.  For efficiency reasons, the expression string is parsed,
 optimized, and then stored in an internal, pre-parsed representation for
 evaluation.
 
-Evaluating Lepton expressions is typically between 2 and 4 times
+Evaluating Lepton expressions is typically between 2.5 and 5 times
 slower than the corresponding compiled and optimized C++ code.

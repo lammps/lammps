@@ -15,14 +15,26 @@
 #include "comm.h"
 #include "fft3d_wrap.h"
 #include "remap_wrap.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 
 using namespace LAMMPS_NS;
+
+// DEBUG
+
+#define DEBUG_AMOEBA 0
+#if DEBUG_AMOEBA
+char *labels[7] =
+  {(char *) "MPOLE_GRID", (char *) "POLAR_GRID",
+   (char *) "POLAR_GRIDC", (char *) "DISP_GRID",
+   (char *) "INDUCE_GRID", (char *) "INDUCE_GRIDC"};
+
+enum{GRIDBRICK_OUT,GRIDBRICK_IN,FFT,CFFT1,CFFT2};
+#endif
+// END DEBUG
 
 #define SCALE 0
 
 //#define USE_AMOEBA_FFT
-
 #ifdef USE_AMOEBA_FFT
 // External functions from GPU library
 int amoeba_setup_fft(const int size, const int numel, const int element_type);
@@ -53,22 +65,20 @@ AmoebaConvolutionGPU::AmoebaConvolutionGPU(LAMMPS *lmp, Pair *pair,
 FFT_SCALAR *AmoebaConvolutionGPU::pre_convolution_4d()
 {
   int ix,iy,iz,n;
-  double time0,time1;
 
   // reverse comm for 4d brick grid + ghosts
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE GridComm");
+  debug_scalar(GRIDBRICK_OUT,"PRE Convo / PRE Grid3d");
 #endif
 
-  gc->reverse_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
+  gc->reverse_comm(Grid3d::PAIR,amoeba,which,2,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST GridComm");
-  debug_file(GRIDBRICK_IN,"pre.convo.post.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"PRE Convo / POST Grid3d");
+  debug_file(GRIDBRICK_IN,"pre.convo.post.grid3d");
 #endif
-
   // copy owned 4d brick grid values to FFT grid
 
   n = 0;
@@ -88,6 +98,8 @@ FFT_SCALAR *AmoebaConvolutionGPU::pre_convolution_4d()
   debug_scalar(FFT,"PRE Convo / POST Remap");
   debug_file(FFT,"pre.convo.post.remap");
 #endif
+
+  double time0,time1;
 
   MPI_Barrier(world);
   time0 = MPI_Wtime();
@@ -137,6 +149,7 @@ void *AmoebaConvolutionGPU::post_convolution_4d()
   time0 = MPI_Wtime();
 
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
+
   time1 = MPI_Wtime();
 
   time_fft += time1 - time0;
@@ -158,10 +171,10 @@ void *AmoebaConvolutionGPU::post_convolution_4d()
   // forward comm to populate ghost grid values
 
 #if DEBUG_AMOEBA
-  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE gridcomm");
-  debug_file(GRIDBRICK_IN,"post.convo.pre.gridcomm");
+  debug_scalar(GRIDBRICK_IN,"POST Convo / PRE grid3d");
+  debug_file(GRIDBRICK_IN,"post.convo.pre.grid3d");
 #endif
-  gc->forward_comm(GridComm::PAIR,amoeba,2,sizeof(FFT_SCALAR),which,
+  gc->forward_comm(Grid3d::PAIR,amoeba,which,2,sizeof(FFT_SCALAR),
                    gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   return (void *) cgrid_brick;

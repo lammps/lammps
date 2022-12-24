@@ -21,14 +21,12 @@ namespace LAMMPS_NS {
 
 class AmoebaConvolutionGPU : public AmoebaConvolution {
  public:
-  AmoebaConvolutionGPU(class LAMMPS *, class Pair *,
-                    int, int, int, int, int);
+  AmoebaConvolutionGPU(class LAMMPS *, class Pair *, int, int, int, int, int);
 
-  virtual FFT_SCALAR *pre_convolution_4d();
-  virtual void *post_convolution_4d();
+  FFT_SCALAR *pre_convolution_4d() override;
+  void *post_convolution_4d() override;
 
 };
 
-}
-
+} // namespace LAMMPS_NS
 #endif

@@ -90,8 +90,8 @@ hexahedrons in either legacy .vtk or .vtu XML format.
 
 Style *vtk* allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  The list of possible attributes
-is the same as for the :doc:`dump_style custom <dump>` command; see
-its page for a listing and an explanation of each attribute.
+is the same as for the :doc:`dump_style custom <dump>` command; see its
+documentation page for a listing and an explanation of each attribute.
 
 .. note::
 

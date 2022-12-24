@@ -1,0 +1,193 @@
+LAMMPS (3 Nov 2022)
+# SPH water over dam
+
+atom_style         sph
+dimension          2
+newton             on
+boundary           s s p
+units              lj
+
+read_data          data.sph
+Reading data file ...
+  orthogonal box = (0 0 -0.001) to (4.001 8.001 0.001)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  15702 atoms
+  reading velocities ...
+  15702 velocities
+  read_data CPU = 0.037 seconds
+
+# upper limit of timestep based on CFL-like criterion
+# roughly estimate number of timesteps needed for 7.5 seconds
+
+variable           h equal 0.03
+variable           c equal 10.0 # soundspeed for Tait's EOS
+variable           dt equal 0.1*${h}/${c}
+variable           dt equal 0.1*0.03/${c}
+variable           dt equal 0.1*0.03/10
+variable           nrun equal 15.0/${dt}
+variable           nrun equal 15.0/0.0003
+
+# assign group name "bc" to boundary particles (type 2)
+# assign group name "water" to water particles (type 1)
+
+group              bc    type 2
+6000 atoms in group bc
+group              water type 1
+9702 atoms in group water
+
+# use hybrid pairstyle which does density summation
+# with cutoff ${h} every timestep (1)
+# use target density of 1000, soundspeed ${c} for Tait's EOS
+
+pair_style         hybrid/overlay sph/rhosum 1 sph/taitwater
+pair_coeff         * * sph/taitwater 1000.0 ${c} 1.0 ${h}
+pair_coeff         * * sph/taitwater 1000.0 10 1.0 ${h}
+pair_coeff         * * sph/taitwater 1000.0 10 1.0 0.03
+pair_coeff         1 1 sph/rhosum ${h}
+pair_coeff         1 1 sph/rhosum 0.03
+
+# add gravity. This fix also computes potential energy of mass in gravity field
+
+fix                gfix water gravity -9.81 vector 0 1 0
+fix                2d_fix all enforce2d
+
+compute            rho_peratom all sph/rho/atom
+compute            e_peratom all sph/e/atom
+compute            esph all reduce sum c_e_peratom
+compute            ke all ke
+variable           etot equal c_esph+c_ke+f_gfix
+compute            ke_peratom all ke/atom
+
+# adjust nevery | min. allowed dt | max. allowed dt |
+# max. travel distance per dt
+# ${dt} ~= CFL criterion 0.1*h/c
+
+# remove top atoms
+
+region            cut block INF INF 2.5 INF INF INF
+delete_atoms      region cut
+Deleted 3174 atoms, new total = 12528
+
+# use a variable timestep
+
+fix                dtfix all dt/reset 1 NULL ${dt} 0.0005 units box
+fix                dtfix all dt/reset 1 NULL 0.0003 0.0005 units box
+
+# time-integrate position, velocities,
+# internal energy and density of water particles
+
+fix                integrate_water_fix water sph
+
+# time-integrate only internal energy and density of boundary particles
+
+fix                integrate_bc_fix bc sph/stationary
+
+thermo             500
+thermo_style       custom step ke c_esph v_etot f_gfix press time f_dtfix
+thermo_modify      norm no
+
+# load balancing
+
+comm_style      tiled
+fix             100 all balance 100 0.9 rcb
+
+# fix ave/grid
+
+fix             ave all ave/grid 50 5 250 10 10 1 vx vy
+
+# dump particles
+
+#dump               dump_id all custom 100 tmp.dump #                   id type x y z c_ke_peratom
+#dump_modify        dump_id first yes
+
+# dump grid
+
+#compute         ave all property/grid 10 10 1 id ix iy
+#dump            ave all grid 250 tmp.grid c_ave:grid:data[*] f_ave:grid:data[*]
+#dump_modify     ave sort 1
+
+# dump image
+
+#compute         1 all property/atom proc
+#variable        p atom c_1%10
+
+#dump            3 all image 500 tmp.*.png c_ke_peratom type #                adiam 0.015 view 0 0 zoom 2.5 subbox yes 0.01 #                center d 0.5 0.5 0.5 size 1024 768 box no 0.0 #                grid f_ave:grid:count
+#variable        colors string #                "min blue 0.25 green 0.5 orange 0.75 yellow max red"
+#dump_modify     3 pad 5 amap 0 1.5 cf 1 5 ${colors}
+
+# run
+
+neigh_modify       every 5 delay 0 check no
+variable           skin equal 0.3*${h}
+variable           skin equal 0.3*0.03
+neighbor           ${skin} bin
+neighbor           0.009 bin
+
+run                6000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 5 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.039
+  ghost atom cutoff = 0.039
+  binsize = 0.0195, bins = 205 411 1
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair sph/rhosum, perpetual, skip from (3)
+      attributes: full, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair sph/taitwater, perpetual, half/full from (3)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.755 | 6.755 | 6.755 Mbytes
+   Step         KinEng         c_esph         v_etot         f_gfix         Press           Time         f_dtfix    
+         0   0              0              19320.854      19320.854     -3.624517       0              0            
+       500   1274.8192      226.44643      19320.367      17819.101      754.35811      0.14057754     500          
+      1000   2793.9358      410.18897      19320.367      16116.242      1184.8364      0.21912692     1000         
+      1500   4227.2566      547.60309      19320.367      14545.508      1290.9567      0.27943572     1500         
+      2000   5515.6545      763.42902      19320.367      13041.284      1468.5449      0.33279685     2000         
+      2500   6595.5906      1087.0212      19320.368      11637.756      1878.9882      0.38198106     2500         
+      3000   7053.147       1574.0538      19320.369      10693.168      2250.759       0.41605101     3000         
+      3500   7396.4079      2058.4224      19320.369      9865.539       2517.1665      0.45034972     3500         
+      4000   7690.0468      2419.389       19320.369      9210.9336      2615.8142      0.48685712     4000         
+      4500   7986.5331      2529.7094      19320.369      8804.1268      2453.9595      0.52464306     4500         
+      5000   8206.3658      2497.1242      19320.369      8616.879       1998.6296      0.56308208     5000         
+      5500   8264.0602      2487.5778      19320.369      8568.7309      1614.3683      0.60225589     5500         
+      6000   8185.7128      2570.3178      19320.369      8564.3383      1463.8307      0.64295437     6000         
+Loop time of 22.4589 on 1 procs for 6000 steps with 12528 atoms
+
+Performance: 1919.324 tau/day, 267.155 timesteps/s, 3.347 Matom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 15.365     | 15.365     | 15.365     |   0.0 | 68.41
+Neigh   | 5.2774     | 5.2774     | 5.2774     |   0.0 | 23.50
+Comm    | 0.021675   | 0.021675   | 0.021675   |   0.0 |  0.10
+Output  | 0.0011944  | 0.0011944  | 0.0011944  |   0.0 |  0.01
+Modify  | 1.6991     | 1.6991     | 1.6991     |   0.0 |  7.57
+Other   |            | 0.09478    |            |       |  0.42
+
+Nlocal:          12528 ave       12528 max       12528 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         153317 ave      153317 max      153317 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 153317
+Ave neighs/atom = 12.237947
+Neighbor list builds = 1200
+Dangerous builds not checked
+
+Total wall time: 0:00:22

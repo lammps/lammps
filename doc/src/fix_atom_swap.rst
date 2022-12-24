@@ -63,7 +63,8 @@ be needed when running such a hybrid simulation, especially if the
 swapped atoms are not well equilibrated.
 
 The *types* keyword is required. At least two atom types must be
-specified.
+specified. If not using *semi-grand*, exactly two atom types
+are required.
 
 The *ke* keyword can be set to *no* to turn off kinetic energy
 conservation for swaps. The default is *yes*, which means that swapped

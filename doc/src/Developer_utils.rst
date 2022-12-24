@@ -133,6 +133,9 @@ and parsing files or arguments.
 .. doxygenfunction:: trim_comment
    :project: progguide
 
+.. doxygenfunction:: strip_style_suffix
+   :project: progguide
+
 .. doxygenfunction:: star_subst
    :project: progguide
 
@@ -209,6 +212,9 @@ Argument processing
    :project: progguide
 
 .. doxygenfunction:: expand_args
+   :project: progguide
+
+.. doxygenfunction:: parse_grid_id
    :project: progguide
 
 .. doxygenfunction:: expand_type

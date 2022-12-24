@@ -94,12 +94,9 @@ insert (delete) a proton (atom type 2). Besides, the fix implements
 self-ionization reaction of water :math:`\emptyset \rightleftharpoons
 \mathrm{H}^++\mathrm{OH}^-`.
 
-
-
-However, this approach is highly
-inefficient at :math:`\mathrm{pH} \approx 7` when the concentration of
-both protons and hydroxyl ions is low, resulting in a relatively low
-acceptance rate of MC moves.
+However, this approach is highly inefficient at :math:`\mathrm{pH}
+\approx 7` when the concentration of both protons and hydroxyl ions is
+low, resulting in a relatively low acceptance rate of MC moves.
 
 A more efficient way is to allow salt ions to participate in ionization
 reactions, which can be easily achieved via
@@ -108,10 +105,13 @@ reactions, which can be easily achieved via
 
     fix acid_reaction2 all charge/regulation 4 5 acid_type 1 pH 7.0 pKa 5.0 pIp 2.0 pIm 2.0
 
-where particles of atom type 4 and 5 are the salt cations and anions, both at activity (effective concentration) of :math:`10^{-2}` mol/l, see :ref:`(Curk1) <Curk1>` and
-:ref:`(Landsgesell) <Landsgesell>` for more details.
+where particles of atom type 4 and 5 are the salt cations and anions,
+both at activity (effective concentration) of :math:`10^{-2}` mol/l, see
+:ref:`(Curk1) <Curk1>` and :ref:`(Landsgesell) <Landsgesell>` for more
+details.
 
-We could have simultaneously added a base ionization reaction (:math:`\mathrm{B} \rightleftharpoons \mathrm{B}^++\mathrm{OH}^-`)
+We could have simultaneously added a base ionization reaction
+(:math:`\mathrm{B} \rightleftharpoons \mathrm{B}^++\mathrm{OH}^-`)
 
 .. code-block:: LAMMPS
 
@@ -122,7 +122,18 @@ where the fix will attempt to charge :math:`\mathrm{B}` (discharge
 insert (delete) a hydroxyl ion :math:`\mathrm{OH}^-` of atom type 3.
 
 
-Dissociated ions and salt ions can be combined into a single particle type, which reduces the number of necessary MC moves and increases sampling performance, see :ref:`(Curk1) <Curk1>`. The :math:`\mathrm{H}^+` and monovalent salt cation (:math:`\mathrm{S}^+`) are combined into a single particle type, :math:`\mathrm{X}^+ = \{\mathrm{H}^+, \mathrm{S}^+\}`. In this case "pIp" refers to the effective concentration of the combined cation type :math:`\mathrm{X}^+` and its value is determined by :math:`10^{-\mathrm{pIp}} = 10^{-\mathrm{pH}} + 10^{-\mathrm{pSp}}`, where :math:`10^{-\mathrm{pSp}}` is the effective concentration of salt cations. For example, at pH=7 and pSp=6 we would find pIp~5.958 and the command that performs reactions with combined ions could read,
+Dissociated ions and salt ions can be combined into a single particle
+type, which reduces the number of necessary MC moves and increases
+sampling performance, see :ref:`(Curk1) <Curk1>`. The
+:math:`\mathrm{H}^+` and monovalent salt cation (:math:`\mathrm{S}^+`)
+are combined into a single particle type, :math:`\mathrm{X}^+ =
+\{\mathrm{H}^+, \mathrm{S}^+\}`. In this case "pIp" refers to the
+effective concentration of the combined cation type :math:`\mathrm{X}^+`
+and its value is determined by :math:`10^{-\mathrm{pIp}} =
+10^{-\mathrm{pH}} + 10^{-\mathrm{pSp}}`, where
+:math:`10^{-\mathrm{pSp}}` is the effective concentration of salt
+cations. For example, at pH=7 and pSp=6 we would find pIp~5.958 and the
+command that performs reactions with combined ions could read,
 
 .. code-block:: LAMMPS
 
@@ -138,16 +149,16 @@ If neither the acid or the base type is specified, for example,
 
 the fix simply inserts or deletes an ion pair of a free cation (atom
 type 4) and a free anion (atom type 5) as done in a conventional
-grand-canonical MC simulation. Multivalent ions can be inserted (deleted) by using the *onlysalt* keyword.
+grand-canonical MC simulation. Multivalent ions can be inserted
+(deleted) by using the *onlysalt* keyword.
 
-
-The fix is compatible with LAMMPS sub-packages such as *molecule* or
-*rigid*. The acid and base particles can be part of larger
-molecules or rigid bodies. Free ions that are inserted to or deleted
-from the system must be defined as single particles (no bonded
-interactions allowed) and cannot be part of larger molecules or rigid
-bodies. If *molecule* package is used, all inserted ions have a molecule
-ID equal to zero.
+This fix is compatible with LAMMPS packages such as MOLECULE or
+RIGID. The acid and base particles can be part of larger molecules or
+rigid bodies. Free ions that are inserted to or deleted from the system
+must be defined as single particles (no bonded interactions allowed) and
+cannot be part of larger molecules or rigid bodies. If an atom style
+with molecule IDs is used, all inserted ions have a molecule ID equal to
+zero.
 
 Note that LAMMPS implicitly assumes a constant number of particles
 (degrees of freedom). Since using this fix alters the total number of
@@ -164,14 +175,15 @@ Langevin thermostat:
     fix fT all langevin 1.0 1.0 1.0 123
     fix_modify fT temp dtemp
 
-The units of  pH, pKa, pKb, pIp, pIm are considered to be in the standard -log10
-representation assuming reference concentration :math:`\rho_0 =
-\mathrm{mol}/\mathrm{l}`.  For example, in the dilute
+The units of pH, pKa, pKb, pIp, pIm are considered to be in the
+standard -log10 representation assuming reference concentration
+:math:`\rho_0 = \mathrm{mol}/\mathrm{l}`.  For example, in the dilute
 ideal solution limit, the concentration of free cations will be
-:math:`c_\mathrm{I} = 10^{-\mathrm{pIp}}\mathrm{mol}/\mathrm{l}`. To perform the internal unit
-conversion, the the value of the LAMMPS unit length must be
-specified in nanometers via *lunit_nm*. The default value is set to the Bjerrum length in water
-at room temperature (0.71 nm), *lunit_nm* = 0.71.
+:math:`c_\mathrm{I} = 10^{-\mathrm{pIp}}\mathrm{mol}/\mathrm{l}`. To
+perform the internal unit conversion, the the value of the LAMMPS unit
+length must be specified in nanometers via *lunit_nm*. The default value
+is set to the Bjerrum length in water at room temperature (0.71 nm),
+*lunit_nm* = 0.71.
 
 The temperature used in MC acceptance probability is set by *temp*. This
 temperature should be the same as the temperature set by the molecular
@@ -236,9 +248,9 @@ quantities:
 Restrictions
 """"""""""""
 
-This fix is part of the MC package. It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package
-<Build_package>` page for more info.
+This fix is part of the MC package. It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 The :doc:`atom_style <atom_style>`, used must contain the charge
 property, for example, the style could be *charge* or *full*. Only

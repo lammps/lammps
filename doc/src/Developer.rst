@@ -23,3 +23,4 @@ of time and requests from the LAMMPS user community.
    Classes
    Developer_platform
    Developer_utils
+   Developer_grid

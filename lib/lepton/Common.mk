@@ -8,8 +8,7 @@ SRC= \
     src/ExpressionTreeNode.cpp \
     src/Operation.cpp \
     src/ParsedExpression.cpp \
-    src/Parser.cpp \
-    src/Utils.cpp
+    src/Parser.cpp
 OBJ=$(SRC:src/%.cpp=build/lepton.%.o)
 
 JITARM= \

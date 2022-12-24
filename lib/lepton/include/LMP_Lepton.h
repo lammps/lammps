@@ -32,8 +32,6 @@
  * USE OR OTHER DEALINGS IN THE SOFTWARE.                                     *
  * -------------------------------------------------------------------------- */
 
-#include <string>
-
 #include "lepton/CompiledExpression.h"
 #include "lepton/CustomFunction.h"
 #include "lepton/ExpressionProgram.h"
@@ -42,10 +40,4 @@
 #include "lepton/ParsedExpression.h"
 #include "lepton/Parser.h"
 
-// utility functions
-namespace LMP_Lepton
-{
-  /// remove whitespace and quotes from expression string
-  std::string condense(const std::string &);
-}
 #endif /*LMP_LEPTON_H_*/

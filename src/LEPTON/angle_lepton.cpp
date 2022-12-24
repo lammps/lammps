@@ -29,6 +29,7 @@
 #include <cmath>
 
 #include "LMP_Lepton.h"
+#include "lepton_utils.h"
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
@@ -219,7 +220,7 @@ void AngleLepton::coeff(int narg, char **arg)
 
   // remove whitespace and quotes from expression string and then
   // check if the expression can be parsed and evaluated without error
-  std::string exp_one = LMP_Lepton::condense(arg[2]);
+  std::string exp_one = LeptonUtils::condense(arg[2]);
   double offset_one = 0.0;
   try {
     auto parsed = LMP_Lepton::Parser::parse(exp_one);

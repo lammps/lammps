@@ -28,6 +28,8 @@
 #include <cmath>
 
 #include "LMP_Lepton.h"
+#include "lepton_utils.h"
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -210,7 +212,7 @@ void PairLepton::coeff(int narg, char **arg)
 
   // remove whitespace and quotes from expression string and then
   // check if the expression can be parsed and evaluated without error
-  std::string exp_one = LMP_Lepton::condense(arg[2]);
+  auto exp_one = LeptonUtils::condense(arg[2]);
   try {
     auto parsed = LMP_Lepton::Parser::parse(exp_one);
     auto pairpot = parsed.createCompiledExpression();

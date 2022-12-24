@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -11,21 +11,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
-------------------------------------------------------------------------- */
+#include <string>
 
-#include "LMP_Lepton.h"
+// forward declarations
 
-#include <cctype>
-
-/// remove whitespace and quotes from expression string
-std::string LMP_Lepton::condense(const std::string & in)
-{
-  std::string out;
-  for (const auto &c : in)
-    if (!isspace(c) && (c != '"') && (c != '\'')) out.push_back(c);
-  return out;
+namespace LAMMPS_NS {
+class LAMMPS;
 }
 
+// utility functions and classes
 
+namespace LeptonUtils {
+
+/// remove whitespace and quotes from expression string
+std::string condense(const std::string &);
+/// substitute LAMMPS variable references with their value
+std::string substitute(const std::string &, LAMMPS_NS::LAMMPS *);
+
+}    // namespace LeptonUtils

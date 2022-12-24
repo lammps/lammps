@@ -447,15 +447,14 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
   // compute the total induced charges of the interface particles
   // for interface particles: set the charge to be the sum of unscaled (free) charges and induced charges
-  printf("after convergence\n");
+
   double tmp = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    //printf("q = %f %f\n", q[i], q_scaled[i]);
+
     double q_bound = q_scaled[i] - q[i];
     tmp += q_bound;
-    q[i] = q_scaled[i];
-    
+    q[i] = q_scaled[i];    
   }
 
   if (first) first = 0;
@@ -469,7 +468,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    //q[i] -=  qboundave;
+    q[i] -=  qboundave;
   }
 }
 

@@ -84,7 +84,7 @@ variables.  If necessary, a custom scalar variable needs to be defined
 that can access the desired (single) item from a non-scalar variable.
 As an example, the following lines will instruct LAMMPS to ramp
 the force constant for a harmonic bond from 100.0 to 200.0 during the
-next run;
+next run:
 
 .. code-block:: LAMMPS
 
@@ -113,5 +113,10 @@ definition.  For efficiency reasons, the expression string is parsed,
 optimized, and then stored in an internal, pre-parsed representation for
 evaluation.
 
-Evaluating Lepton expressions is typically between 2.5 and 5 times
-slower than the corresponding compiled and optimized C++ code.
+Evaluating a Lepton expression is typically between 2.5 and 5 times
+slower than the corresponding compiled and optimized C++ code.  If
+additional speed or GPU acceleration (via GPU or KOKKOS) is required,
+the interaction can be represented as a table.  Suitable table files
+can be created either internally using the :doc:`pair_write <pair_write>`
+or :doc:`bond_write <bond_write>` command or through the Python scripts
+in the :ref:`tools/tabulate <tabulate>` folder.

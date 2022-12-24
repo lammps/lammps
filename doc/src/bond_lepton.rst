@@ -20,21 +20,22 @@ Examples
 
    bond_style lepton
 
-   1 1.5 "k*r^2; k=250.0"
-   2 1.1 "k2*r^2 + k3*r^3 + k4*r^4; k2=300.0; k3=-100.0; k4=50.0"
-   3 1.3 "k*r^2; k=350.0"
+   bond_coeff  1  1.5 "k*r^2; k=250.0"
+   bond_coeff  2  1.1 "k2*r^2 + k3*r^3 + k4*r^4; k2=300.0; k3=-100.0; k4=50.0"
+   bond_coeff  3  1.3 "k*r^2; k=350.0"
 
 Description
 """""""""""
 
 .. versionadded:: TBD
 
-Bond style *lepton* computes bonded interactions between two atom based
-on evaluating strings.  The potential function must be provided as an
-expression string using "r" as the distance variable relative to the
-reference distance :math:`r_0` which is provided as a bond coefficient.
-For example `"200.0*(r)^2"` represents a harmonic potential with a force
-constant *K* of 200.0 energy units:
+Bond style *lepton* computes bonded interactions between two atoms,
+between which a bond has been defined, based on evaluating strings.  The
+potential function must be provided as an expression string using "r" as
+the distance variable relative to the reference distance :math:`r_0`
+which is provided as a bond coefficient.  For example `"200.0*r^2"`
+represents a harmonic potential with a force constant *K* of 200.0
+energy units:
 
 .. math::
 
@@ -43,12 +44,12 @@ constant *K* of 200.0 energy units:
 The `Lepton library <https://simtk.org/projects/lepton>`_, that the
 *lepton* bond style interfaces with, evaluates this expression string at
 run time to compute the pairwise energy.  It also creates an analytical
-representation of the differentiation of this expression with respect to
+representation of the first derivative of this expression with respect to
 "r" and then uses that to compute the force between the pairs atoms forming
 bonds as defined by the topology data.
 
 The following coefficients must be defined for each bond type via the
-:doc:`bond_coeff <bond_coeff>` command as in the example above, or in
+:doc:`bond_coeff <bond_coeff>` command as in the examples above, or in
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
@@ -57,7 +58,7 @@ or :doc:`read_restart <read_restart>` commands:
 
 The Lepton expression must be either enclosed in quotes or must not
 contain any whitespace so that LAMMPS recognizes it as a single keyword.
-More on valid Lepton expressions below.  The :math:`r_0` it the
+More on valid Lepton expressions below.  The :math:`r_0` is the
 "equilibrium distance".  The potential energy function in the Lepton
 expression is shifted in such a way, that the potential energy is 0 for
 a bond length :math:`r_i == r_0`.
@@ -75,14 +76,15 @@ a bond length :math:`r_i == r_0`.
 Restrictions
 """"""""""""
 
-This bond style can only be used if LAMMPS was built with the LEPTON
-package.  See the :doc:`Build package <Build_package>` page for more
-info.
+This bond style is part of the LEPTON package and only enabled if LAMMPS
+was built with this package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`bond_style table <bond_table>`,
+:doc:`bond_write <bond_write>`, :doc:`angle_style lepton <angle_lepton>`
 
 Default
 """""""

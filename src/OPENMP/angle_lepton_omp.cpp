@@ -20,12 +20,13 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "omp_compat.h"
+#include "suffix.h"
 
 #include <cmath>
 
 #include "LMP_Lepton.h"
-#include "suffix.h"
+#include "lepton_utils.h"
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 static constexpr double SMALL = 0.001;
@@ -90,10 +91,14 @@ void AngleLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 {
   std::vector<LMP_Lepton::CompiledExpression> angleforce;
   std::vector<LMP_Lepton::CompiledExpression> anglepot;
-  for (const auto &expr : expressions) {
-    auto parsed = LMP_Lepton::Parser::parse(expr);
-    angleforce.emplace_back(parsed.differentiate("theta").createCompiledExpression());
-    if (EFLAG) anglepot.emplace_back(parsed.createCompiledExpression());
+  try {
+    for (const auto &expr : expressions) {
+      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
+      angleforce.emplace_back(parsed.differentiate("theta").createCompiledExpression());
+      if (EFLAG) anglepot.emplace_back(parsed.createCompiledExpression());
+    }
+  } catch (std::exception &e) {
+    error->all(FLERR, e.what());
   }
 
   const auto *_noalias const x = (dbl3_t *) atom->x[0];
@@ -141,8 +146,7 @@ void AngleLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     const double dtheta = acos(c) - theta0[type];
     const int idx = type2expression[type];
-    double &theta_for = angleforce[idx].getVariableReference("theta");
-    theta_for = dtheta;
+    angleforce[idx].getVariableReference("theta") = dtheta;
 
     const double a = -angleforce[idx].evaluate() * s;
     const double a11 = a * c / rsq1;
@@ -179,8 +183,7 @@ void AngleLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     double eangle = 0.0;
     if (EFLAG) {
-      double &theta_pot = anglepot[idx].getVariableReference("theta");
-      theta_pot = dtheta;
+      anglepot[idx].getVariableReference("theta") = dtheta;
       eangle = anglepot[idx].evaluate() - offset[type];
     }
     if (EVFLAG)

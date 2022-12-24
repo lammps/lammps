@@ -25,8 +25,6 @@
 #include "neigh_list.h"
 #include "update.h"
 
-#include <cmath>
-
 #include "LMP_Lepton.h"
 #include "lepton_utils.h"
 #include <cmath>
@@ -103,10 +101,14 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLepton::eval()
 
   std::vector<LMP_Lepton::CompiledExpression> pairforce;
   std::vector<LMP_Lepton::CompiledExpression> pairpot;
-  for (const auto &expr : expressions) {
-    auto parsed = LMP_Lepton::Parser::parse(expr);
-    pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
-    if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
+  try {
+    for (const auto &expr : expressions) {
+      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+      pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
+    }
+  } catch (std::exception &e) {
+    error->all(FLERR, e.what());
   }
 
   // loop over neighbors of my atoms
@@ -150,8 +152,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLepton::eval()
 
         double evdwl = 0.0;
         if (EFLAG) {
-          double &r_pot = pairpot[idx].getVariableReference("r");
-          r_pot = r;
+          pairpot[idx].getVariableReference("r") = r;
           evdwl = pairpot[idx].evaluate() - offset[itype][jtype];
           evdwl *= factor_lj;
         }
@@ -214,12 +215,11 @@ void PairLepton::coeff(int narg, char **arg)
   // check if the expression can be parsed and evaluated without error
   auto exp_one = LeptonUtils::condense(arg[2]);
   try {
-    auto parsed = LMP_Lepton::Parser::parse(exp_one);
-    auto pairpot = parsed.createCompiledExpression();
+    auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
     auto pairforce = parsed.differentiate("r").createCompiledExpression();
-    double &r_pot = pairpot.getVariableReference("r");
-    double &r_for = pairforce.getVariableReference("r");
-    r_for = r_pot = 1.0;
+    auto pairpot = parsed.createCompiledExpression();
+    pairpot.getVariableReference("r") = 1.0;
+    pairforce.getVariableReference("r") = 1.0;
     pairpot.evaluate();
     pairforce.evaluate();
   } catch (std::exception &e) {
@@ -254,14 +254,16 @@ double PairLepton::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
 
+  offset[i][j] = 0.0;
   if (offset_flag) {
-    auto parsed = LMP_Lepton::Parser::parse(expressions[type2expression[i][j]]);
-    auto pairpot = parsed.createCompiledExpression();
-    double &r_pot = pairpot.getVariableReference("r");
-    r_pot = cut[i][j];
-    offset[i][j] = pairpot.evaluate();
-  } else
-    offset[i][j] = 0.0;
+    try {
+      auto expr = LeptonUtils::substitute(expressions[type2expression[i][j]], lmp);
+      auto pairpot = LMP_Lepton::Parser::parse(expr).createCompiledExpression();
+      pairpot.getVariableReference("r") = cut[i][j];
+      offset[i][j] = pairpot.evaluate();
+    } catch (std::exception &) {
+    }
+  }
 
   cut[j][i] = cut[i][j];
   type2expression[j][i] = type2expression[i][j];
@@ -399,15 +401,15 @@ void PairLepton::write_data_all(FILE *fp)
 double PairLepton::single(int /* i */, int /* j */, int itype, int jtype, double rsq,
                           double /* factor_coul */, double factor_lj, double &fforce)
 {
-  auto parsed = LMP_Lepton::Parser::parse(expressions[type2expression[itype][jtype]]);
+  auto expr = expressions[type2expression[itype][jtype]];
+  auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
   auto pairpot = parsed.createCompiledExpression();
   auto pairforce = parsed.differentiate("r").createCompiledExpression();
 
-  double r = sqrt(rsq);
-  double &r_pot = pairpot.getVariableReference("r");
-  double &r_for = pairforce.getVariableReference("r");
+  const double r = sqrt(rsq);
+  pairpot.getVariableReference("r") = r;
+  pairforce.getVariableReference("r") = r;
 
-  r_pot = r_for = r;
   fforce = -pairforce.evaluate() / r * factor_lj;
   return (pairpot.evaluate() - offset[itype][jtype]) * factor_lj;
 }

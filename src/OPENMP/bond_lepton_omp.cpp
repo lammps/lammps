@@ -20,17 +20,18 @@
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "omp_compat.h"
+#include "suffix.h"
 
 #include <cmath>
 
 #include "LMP_Lepton.h"
-#include "suffix.h"
+#include "lepton_utils.h"
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondLeptonOMP::BondLeptonOMP(class LAMMPS *lmp) : BondLepton(lmp), ThrOMP(lmp, THR_BOND)
+BondLeptonOMP::BondLeptonOMP(class LAMMPS *_lmp) : BondLepton(_lmp), ThrOMP(_lmp, THR_BOND)
 {
   suffix_flag |= Suffix::OMP;
 }
@@ -88,10 +89,14 @@ void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 {
   std::vector<LMP_Lepton::CompiledExpression> bondforce;
   std::vector<LMP_Lepton::CompiledExpression> bondpot;
-  for (const auto &expr : expressions) {
-    auto parsed = LMP_Lepton::Parser::parse(expr);
-    bondforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
-    if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
+  try {
+    for (const auto &expr : expressions) {
+      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
+      bondforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
+    }
+  } catch (std::exception &e) {
+    error->all(FLERR, e.what());
   }
 
   const auto *_noalias const x = (dbl3_t *) atom->x[0];
@@ -117,8 +122,7 @@ void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     double fbond = 0.0;
     if (r > 0.0) {
-      double &r_for = bondforce[idx].getVariableReference("r");
-      r_for = dr;
+      bondforce[idx].getVariableReference("r") = dr;
       fbond = -bondforce[idx].evaluate() / r;
     }
 
@@ -138,8 +142,7 @@ void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     double ebond = 0.0;
     if (EFLAG) {
-      double &r_pot = bondpot[idx].getVariableReference("r");
-      r_pot = dr;
+      bondpot[idx].getVariableReference("r") = dr;
       ebond = bondpot[idx].evaluate() - offset[type];
     }
     if (EVFLAG)

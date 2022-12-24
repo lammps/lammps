@@ -82,10 +82,14 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void BondLepton::eval()
 {
   std::vector<LMP_Lepton::CompiledExpression> bondforce;
   std::vector<LMP_Lepton::CompiledExpression> bondpot;
-  for (const auto &expr : expressions) {
-    auto parsed = LMP_Lepton::Parser::parse(expr);
-    bondforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
-    if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
+  try {
+    for (const auto &expr : expressions) {
+      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+      bondforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
+    }
+  } catch (std::exception &e) {
+    error->all(FLERR, e.what());
   }
 
   const double *const *const x = atom->x;
@@ -112,8 +116,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void BondLepton::eval()
 
     double fbond = 0.0;
     if (r > 0.0) {
-      double &r_for = bondforce[idx].getVariableReference("r");
-      r_for = dr;
+      bondforce[idx].getVariableReference("r") = dr;
       fbond = -bondforce[idx].evaluate() / r;
     }
 
@@ -133,8 +136,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_BOND> void BondLepton::eval()
 
     double ebond = 0.0;
     if (EFLAG) {
-      double &r_pot = bondpot[idx].getVariableReference("r");
-      r_pot = dr;
+      bondpot[idx].getVariableReference("r") = dr;
       ebond = bondpot[idx].evaluate() - offset[type];
     }
     if (EVFLAG) ev_tally(i1, i2, nlocal, NEWTON_BOND, ebond, fbond, delx, dely, delz);
@@ -174,12 +176,11 @@ void BondLepton::coeff(int narg, char **arg)
   std::string exp_one = LeptonUtils::condense(arg[2]);
   double offset_one = 0.0;
   try {
-    auto parsed = LMP_Lepton::Parser::parse(exp_one);
+    auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
     auto bondpot = parsed.createCompiledExpression();
     auto bondforce = parsed.differentiate("r").createCompiledExpression();
-    double &r_pot = bondpot.getVariableReference("r");
-    double &r_for = bondforce.getVariableReference("r");
-    r_for = r_pot = 0.0;
+    bondpot.getVariableReference("r") = 0.0;
+    bondforce.getVariableReference("r") = 0.0;
     offset_one = bondpot.evaluate();
     bondforce.evaluate();
   } catch (std::exception &e) {
@@ -297,12 +298,12 @@ double BondLepton::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   const double r = sqrt(rsq);
   const double dr = r - r0[type];
 
-  auto parsed = LMP_Lepton::Parser::parse(expressions[type2expression[type]]);
+  auto expr = expressions[type2expression[type]];
+  auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
   auto bondpot = parsed.createCompiledExpression();
   auto bondforce = parsed.differentiate("r").createCompiledExpression();
-  double &r_for = bondforce.getVariableReference("r");
-  double &r_pot = bondpot.getVariableReference("r");
-  r_for = r_pot = dr;
+  bondforce.getVariableReference("r") = dr;
+  bondpot.getVariableReference("r") = dr;
 
   // force and energy
 

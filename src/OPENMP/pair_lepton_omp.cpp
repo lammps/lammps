@@ -23,6 +23,7 @@
 #include <cmath>
 
 #include "LMP_Lepton.h"
+#include "lepton_utils.h"
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
 
@@ -95,10 +96,14 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
 
   std::vector<LMP_Lepton::CompiledExpression> pairforce;
   std::vector<LMP_Lepton::CompiledExpression> pairpot;
-  for (const auto &expr : expressions) {
-    auto parsed = LMP_Lepton::Parser::parse(expr);
-    pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
-    if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
+  try {
+    for (const auto &expr : expressions) {
+      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
+      pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
+    }
+  } catch (std::exception &e) {
+    error->all(FLERR, e.what());
   }
 
   // loop over neighbors of my atoms
@@ -127,8 +132,7 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
       if (rsq < cutsq[itype][jtype]) {
         const double r = sqrt(rsq);
         const int idx = type2expression[itype][jtype];
-        double &r_for = pairforce[idx].getVariableReference("r");
-        r_for = r;
+        pairforce[idx].getVariableReference("r") = r;
         const double fpair = -pairforce[idx].evaluate() / r * factor_lj;
 
         fxtmp += delx * fpair;
@@ -142,8 +146,7 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
 
         double evdwl = 0.0;
         if (EFLAG) {
-          double &r_pot = pairpot[idx].getVariableReference("r");
-          r_pot = r;
+          pairpot[idx].getVariableReference("r") = r;
           evdwl = pairpot[idx].evaluate() - offset[itype][jtype];
           evdwl *= factor_lj;
         }

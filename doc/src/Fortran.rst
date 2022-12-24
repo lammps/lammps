@@ -33,12 +33,18 @@ depending on how LAMMPS was configured and whether the LAMMPS library
 :doc:`was compiled as a static or dynamic library <Build_link>`.
 
 If the LAMMPS library itself has been compiled with MPI support, the
-resulting executable will still be able to run LAMMPS in parallel with
-``mpirun``, ``mpiexec``, or equivalent.  Please also note that the order
-of the source files matters: the ``lammps.f90`` file needs to be
-compiled first, since it provides the :f:mod:`LIBLAMMPS` module that
-would need to b imported by the Fortran code that uses the interface.  A
-working example can be found together with equivalent examples in C and
+resulting executable will be able to run LAMMPS in parallel with
+``mpirun``, ``mpiexec``, or equivalent.  This may be either on the
+"world" communicator or a sub-communicator created by the calling
+Fortran code.  If, on the other hand, the LAMMPS library has been
+compiled **without** MPI support, each LAMMPS instance will run
+independently using just one processor.
+
+Please also note that the order of the source files matters: the
+``lammps.f90`` file needs to be compiled first, since it provides the
+:f:mod:`LIBLAMMPS` module that would need to be imported by the calling
+Fortran code in order to uses the Fortran interface.
+A working example can be found together with equivalent examples in C and
 C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
 
 .. versionchanged:: TBD

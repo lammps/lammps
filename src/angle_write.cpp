@@ -170,23 +170,19 @@ void AngleWrite::command(int narg, char **arg)
                force->angle_style, atype);
     fmt::print(fp, "\n{}\nN {} EQ {:.15g}\n\n", keyword, n, theta0);
 
+#define GET_ENERGY(myphi, mytheta) \
+  theta = mytheta;                 \
+  atom3[0] = cos(theta * DEG2RAD); \
+  atom3[1] = sin(theta * DEG2RAD); \
+  myphi = angle->single(atype, i2, i1, i3)
+
     const double dtheta = 180.0 / static_cast<double>(n - 1);
 
     // get force for divergent 0 degree angle from interpolation to the right
-    theta = 0.0;
-    atom3[0] = cos(theta * DEG2RAD);
-    atom3[1] = sin(theta * DEG2RAD);
-    phi = angle->single(atype, i2, i1, i3);
 
-    theta = epsilon;
-    atom3[0] = cos(theta * DEG2RAD);
-    atom3[1] = sin(theta * DEG2RAD);
-    phi1 = angle->single(atype, i2, i1, i3);
-
-    theta = 2.0 * epsilon;
-    atom3[0] = cos(theta * DEG2RAD);
-    atom3[1] = sin(theta * DEG2RAD);
-    phi2 = angle->single(atype, i2, i1, i3);
+    GET_ENERGY(phi, 0.0);
+    GET_ENERGY(phi1, epsilon);
+    GET_ENERGY(phi2, 2.0 * epsilon);
 
     f = (1.5 * phi - 2.0 * phi1 + 0.5 * phi2) / epsilon;
     if (!std::isfinite(f)) f = 0.0;
@@ -194,20 +190,10 @@ void AngleWrite::command(int narg, char **arg)
     fprintf(fp, "%8d %- 22.15g %- 22.15g %- 22.15g\n", 1, 0.0, phi, f);
 
     for (int i = 1; i < n - 1; i++) {
-      theta = dtheta * static_cast<double>(i) - epsilon;
-      atom3[0] = cos(theta * DEG2RAD);
-      atom3[1] = sin(theta * DEG2RAD);
-      phi1 = angle->single(atype, i2, i1, i3);
+      GET_ENERGY(phi1, dtheta * static_cast<double>(i) - epsilon);
+      GET_ENERGY(phi2, dtheta * static_cast<double>(i) + epsilon);
+      GET_ENERGY(phi, dtheta * static_cast<double>(i));
 
-      theta = dtheta * static_cast<double>(i) + epsilon;
-      atom3[0] = cos(theta * DEG2RAD);
-      atom3[1] = sin(theta * DEG2RAD);
-      phi2 = angle->single(atype, i2, i1, i3);
-
-      theta = dtheta * static_cast<double>(i);
-      atom3[0] = cos(theta * DEG2RAD);
-      atom3[1] = sin(theta * DEG2RAD);
-      phi = angle->single(atype, i2, i1, i3);
       if (!std::isfinite(phi)) phi = 0.0;
 
       // get force from numerical differentiation
@@ -217,20 +203,9 @@ void AngleWrite::command(int narg, char **arg)
     }
 
     // get force for divergent 180 degree angle from interpolation to the left
-    theta = 180.0;
-    atom3[0] = cos(theta * DEG2RAD);
-    atom3[1] = sin(theta * DEG2RAD);
-    phi = angle->single(atype, i2, i1, i3);
-
-    theta = 180.0 - epsilon;
-    atom3[0] = cos(theta * DEG2RAD);
-    atom3[1] = sin(theta * DEG2RAD);
-    phi1 = angle->single(atype, i2, i1, i3);
-
-    theta = 180.0 - 2.0 * epsilon;
-    atom3[0] = cos(theta * DEG2RAD);
-    atom3[1] = sin(theta * DEG2RAD);
-    phi2 = angle->single(atype, i2, i1, i3);
+    GET_ENERGY(phi, 180.0);
+    GET_ENERGY(phi1, 180.0 - epsilon);
+    GET_ENERGY(phi2, 180.0 - 2.0 * epsilon);
 
     f = (2.0 * phi1 - 1.5 * phi - 0.5 * phi2) / epsilon;
     if (!std::isfinite(f)) f = 0.0;

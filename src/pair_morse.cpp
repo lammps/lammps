@@ -132,7 +132,7 @@ void PairMorse::compute(int eflag, int vflag)
 void PairMorse::allocate()
 {
   allocated = 1;
-  int np1 = atom->ntypes;
+  int np1 = atom->ntypes + 1;
 
   memory->create(setflag, np1, np1, "pair:setflag");
   for (int i = 1; i < np1; i++)

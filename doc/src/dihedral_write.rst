@@ -26,6 +26,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Write energy and force values to a file as a function of the dihedral
 angle for the currently defined dihedral potential.  Force in this
 context means the force with respect to the dihedral angle, not the

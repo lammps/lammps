@@ -26,6 +26,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Write energy and force values to a file as a function of angle for the
 currently defined angle potential.  Force in this context means the
 force with respect to the angle, not the force on individual atoms.

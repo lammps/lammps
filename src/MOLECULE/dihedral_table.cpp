@@ -1234,27 +1234,17 @@ void DihedralTable::param_extract(Table *tb, char *line)
       auto word = values.next_string();
       if (word == "N") {
         tb->ninput = values.next_int();
-      }
-      else if (word == "NOF") {
+      } else if (word == "NOF") {
         tb->f_unspecified = true;
-      }
-      else if ((word == "DEGREES") || (word == "degrees")) {
+      } else if ((word == "DEGREES") || (word == "degrees")) {
         tb->use_degrees = true;
-      }
-      else if ((word == "RADIANS") || (word == "radians")) {
+      } else if ((word == "RADIANS") || (word == "radians")) {
         tb->use_degrees = false;
-      }
-      else if (word == "CHECKU") {
+      } else if (word == "CHECKU") {
         checkU_fname = values.next_string();
-      }
-      else if (word == "CHECKF") {
+      } else if (word == "CHECKF") {
         checkF_fname = values.next_string();
-      }
-      // COMMENTING OUT:  equilibrium angles are not supported
-      //else if (word == "EQ") {
-      //  tb->theta0 = values.next_double();
-      //}
-      else error->one(FLERR,"Invalid keyword in dihedral angle table parameters ({})", word);
+      } else error->one(FLERR,"Invalid keyword in dihedral angle table parameters ({})", word);
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, e.what());
@@ -1262,8 +1252,7 @@ void DihedralTable::param_extract(Table *tb, char *line)
 
   if (tb->ninput == 0)
     error->one(FLERR,"Dihedral table parameters did not set N");
-
-} // DihedralTable::param_extract()
+}
 
 
 /* ----------------------------------------------------------------------

@@ -1921,7 +1921,7 @@ void Pair::write_file(int narg, char **arg)
       e = single(0,1,itype,jtype,rsq,1.0,1.0,f);
       f *= r;
     } else e = f = 0.0;
-    if (comm->me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
+    if (comm->me == 0) fprintf(fp,"%8d %- 22.15g %- 22.15g %- 22.15g\n",i+1,r,e,f);
   }
 
   // restore original vecs that were swapped in for

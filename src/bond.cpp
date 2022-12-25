@@ -349,16 +349,18 @@ void Bond::write_file(int narg, char **arg)
   if (narg == 8) {
     itype = utils::inumeric(FLERR, arg[6], false, lmp);
     jtype = utils::inumeric(FLERR, arg[7], false, lmp);
-    if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
-      error->all(FLERR, "Invalid atom types in bond_write command");
+    if ((itype < 1) || (itype > atom->ntypes))
+      error->all(FLERR, "Invalid atom type {} in bond_write command", itype);
+    if ((jtype < 1) || (jtype > atom->ntypes))
+      error->all(FLERR, "Invalid atom type {} in bond_write command", jtype);
   }
 
   int btype = utils::inumeric(FLERR, arg[0], false, lmp);
   int n = utils::inumeric(FLERR, arg[1], false, lmp);
   double inner = utils::numeric(FLERR, arg[2], false, lmp);
   double outer = utils::numeric(FLERR, arg[3], false, lmp);
-  if (inner <= 0.0 || inner >= outer)
-    error->all(FLERR, "Invalid rlo/rhi values in bond_write command");
+  if ((inner <= 0.0) || (inner >= outer))
+    error->all(FLERR, "Invalid rlo={} / rhi={} values in bond_write command.", inner, outer);
 
   double r0 = equilibrium_distance(btype);
 

@@ -365,7 +365,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
   double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
   char *line = reader.find_section_start(keyword);
 
-  if (!line) { error->one(FLERR, "Did not find keyword in table file"); }
+  if (!line) error->one(FLERR, "Did not find keyword {} in table file", keyword);
 
   // read args on 2nd line of section
   // allocate table arrays for file values

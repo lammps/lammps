@@ -24,6 +24,7 @@ table above.
 
    * :doc:`angle_coeff <angle_coeff>`
    * :doc:`angle_style <angle_style>`
+   * :doc:`angle_write <angle_write>`
    * :doc:`atom_modify <atom_modify>`
    * :doc:`atom_style <atom_style>`
    * :doc:`balance <balance>`

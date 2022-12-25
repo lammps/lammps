@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -77,6 +77,8 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_1d k_map_array;
   DAT::tdual_int_scalar k_error_flag;
   dual_hash_type k_map_hash;
+
+  class AtomVecKokkos* avecKK;
 
   // map lookup function inlined for efficiency
   // return -1 if no map defined

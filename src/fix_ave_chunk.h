@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,15 +36,24 @@ class FixAveChunk : public Fix {
   double memory_usage() override;
 
  private:
-  int nvalues;
-  int nrepeat, nfreq, irepeat;
+  struct value_t {
+    int which;         // type of data: COMPUTE, FIX, VARIABLE
+    int argindex;      // 1-based index if data is vector, else 0
+    std::string id;    // compute/fix/variable ID
+    union {
+      class Compute *c;
+      class Fix *f;
+      int v;
+    } val;
+  };
+  std::vector<value_t> values;
+
+  int nvalues, nrepeat, nfreq, irepeat;
   int normflag, scaleflag, overwrite, biasflag, colextra;
   bigint nvalid, nvalid_last;
   double adof, cdof;
   char *format, *format_user;
   char *tstring, *sstring, *id_bias;
-  int *which, *argindex, *value2index;
-  char **ids;
   class Compute *tbias;    // ptr to additional bias compute
   FILE *fp;
 

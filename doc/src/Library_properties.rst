@@ -32,7 +32,7 @@ indexed accordingly. Per-atom data can change sizes and ordering at
 every neighbor list rebuild or atom sort event as atoms migrate between
 sub-domains and processors.
 
-.. code-block:: C
+.. code-block:: c
 
    #include "library.h"
    #include <stdio.h>

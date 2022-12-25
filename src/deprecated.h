@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -14,12 +14,15 @@
 #ifdef COMMAND_CLASS
 // clang-format off
 CommandStyle(DEPRECATED,Deprecated);
-CommandStyle(reset_ids,Deprecated);
+CommandStyle(box,Deprecated);
 CommandStyle(kim_init,Deprecated);
 CommandStyle(kim_interactions,Deprecated);
 CommandStyle(kim_param,Deprecated);
 CommandStyle(kim_property,Deprecated);
 CommandStyle(kim_query,Deprecated);
+CommandStyle(reset_ids,Deprecated);
+CommandStyle(reset_atom_ids,Deprecated);
+CommandStyle(reset_mol_ids,Deprecated);
 CommandStyle(message,Deprecated);
 CommandStyle(server,Deprecated);
 // clang-format on

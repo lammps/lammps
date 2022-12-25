@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -22,6 +22,9 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 #define EPSILON 1e-10
 
@@ -356,8 +359,7 @@ void BondBPMSpring::write_restart_settings(FILE *fp)
 
 void BondBPMSpring::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0)
-    utils::sfread(FLERR, &smooth_flag, sizeof(int), 1, fp, nullptr, error);
+  if (comm->me == 0) utils::sfread(FLERR, &smooth_flag, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&smooth_flag, 1, MPI_INT, 0, world);
 }
 

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -821,7 +821,7 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
   // elements = list of element names
 
   if (narg != ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Number of element to type mappings does not match number of atom types");
 
   if (elements) {
     for (i = 0; i < nelements; i++) delete[] elements[i];

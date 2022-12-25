@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -172,7 +172,8 @@ void PairList::compute(int eflag, int vflag)
         const double dexp = exp(-par.param.morse.alpha * dr);
         fpair = 2.0 * par.param.morse.d0 * par.param.morse.alpha * (dexp * dexp - dexp) / r;
 
-        if (eflag_either) epair = par.param.morse.d0 * (dexp * dexp - 2.0 * dexp + 1.0) - par.offset;
+        if (eflag_either)
+          epair = par.param.morse.d0 * (dexp * dexp - 2.0 * dexp + 1.0) - par.offset;
 
       } else if (par.style == LJ126) {
 
@@ -186,7 +187,7 @@ void PairList::compute(int eflag, int vflag)
       } else if (par.style == QUARTIC) {
 
         const double r = sqrt(rsq);
-        double dr = r - sqrt(par.cutsq);
+        double dr = r - par.param.quartic.r0;
         double ra = dr - par.param.quartic.b1;
         double rb = dr - par.param.quartic.b2;
         double r2 = dr * dr;
@@ -303,10 +304,9 @@ void PairList::settings(int narg, char **arg)
 
           case QUARTIC:
             oneparam.param.quartic.k = values.next_double();
+            oneparam.param.quartic.r0 = values.next_double();
             oneparam.param.quartic.b1 = values.next_double();
             oneparam.param.quartic.b2 = values.next_double();
-            if (!values.has_next())
-              throw FileReaderException("Must specify individual cutoff for quartic interaction");
             ++nquartic;
             break;
 

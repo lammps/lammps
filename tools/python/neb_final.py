@@ -8,6 +8,7 @@
 #            must be in correct sequence
 #         -b dumpfile = background atoms (optional)
 #            last snapshot in this file used as static non-NEB atoms
+# Author:  Steve Plimpton (Sandia), sjplimp at gmail.com
 
 import sys,os
 path = os.environ["LAMMPS_PYTHON_TOOLS"]

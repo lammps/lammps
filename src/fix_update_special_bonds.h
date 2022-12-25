@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,7 +23,6 @@ FixStyle(UPDATE_SPECIAL_BONDS,FixUpdateSpecialBonds);
 #include "fix.h"
 
 #include <utility>
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -36,6 +35,7 @@ class FixUpdateSpecialBonds : public Fix {
   void pre_force(int) override;
   void add_broken_bond(int, int);
   void add_created_bond(int, int);
+  void write_restart(FILE *) override;
 
  protected:
   // Create two arrays to store bonds broken this timestep (new)

@@ -71,8 +71,14 @@ Also see the explanation of the :doc:`-restart command-line switch
 
 This command can be used multiple times to add new atoms and their
 properties to an existing system by using the *add*, *offset*, and
-*shift* keywords.  See more details below, which includes the use case
-for the *extra* keywords.
+*shift* keywords.  However, it is important to understand that several
+system parameters, like the number of types of different kinds and per
+atom settings are **locked in** after the first *read_data* command,
+which means that no type ID (including its offset) may have a larger
+value when processing additional data files than what is set by the
+first data file and the corresponding *read_data* command options.  See
+more details on this situation below, which includes the use case for
+the *extra* keywords.
 
 The *group* keyword adds all the atoms in the data file to the
 specified group-ID.  The group will be created if it does not already
@@ -334,16 +340,20 @@ and are called "tilt factors" because they are the amount of
 displacement applied to faces of an originally orthogonal box to
 transform it into the parallelepiped.
 
-By default, the tilt factors (xy,xz,yz) can not skew the box more than
-half the distance of the corresponding parallel box length.  For
-example, if xlo = 2 and xhi = 12, then the x box length is 10 and the
-xy tilt factor must be between -5 and 5.  Similarly, both xz and yz
-must be between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is not
-a limitation, since if the maximum tilt factor is 5 (as in this
-example), then configurations with tilt = ..., -15, -5, 5, 15, 25,
-... are all geometrically equivalent.  If you wish to define a box
-with tilt factors that exceed these limits, you can use the :doc:`box tilt <box>` command, with a setting of *large*\ ; a setting of
-*small* is the default.
+The tilt factors (xy,xz,yz) should not skew the box more than half the
+distance of the corresponding parallel box length.  For example, if
+:math:`x_\text{lo} = 2` and :math:`x_\text{hi} = 12`, then the :math:`x`
+box length is 10 and the :math:`xy` tilt factor must be between
+:math:`-5` and :math:`5`.  Similarly, both :math:`xz` and :math:`yz`
+must be between :math:`-(x_\text{hi}-x_\text{lo})/2` and
+:math:`+(y_\text{hi}-y_\text{lo})/2`.  Note that this is not a
+limitation, since if the maximum tilt factor is 5 (as in this example),
+then configurations with tilt :math:`= \dots, -15`, :math:`-5`,
+:math:`5`, :math:`15`, :math:`25, \dots` are all geometrically
+equivalent.  Simulations with large tilt factors will run inefficiently,
+since they require more ghost atoms and thus more communication.  With
+very large tilt factors, LAMMPS will eventually produce incorrect
+trajectories and stop with errors due to lost atoms or similar.
 
 See the :doc:`Howto triclinic <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and

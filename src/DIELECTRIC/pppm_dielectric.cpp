@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,7 +25,7 @@
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "force.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -134,8 +134,8 @@ void PPPMDielectric::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -150,21 +150,21 @@ void PPPMDielectric::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                     FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
-    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
-                     FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
-                       FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
-                       FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   // calculate the force on my particles
@@ -196,8 +196,8 @@ void PPPMDielectric::compute(int eflag, int vflag)
 
     // communicate for charge density
 
-    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     brick2fft();
 
@@ -698,7 +698,6 @@ void PPPMDielectric::slabcorr()
   double *q = atom->q_scaled;
   double **x = atom->x;
   double *eps = atom->epsilon;
-
   double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
 
@@ -715,7 +714,6 @@ void PPPMDielectric::slabcorr()
 
   double dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
-
     for (int i = 0; i < nlocal; i++)
       dipole_r2 += q[i]*x[i][2]*x[i][2];
 

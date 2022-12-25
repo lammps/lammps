@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -278,9 +278,13 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
   force->init();
 
   // set up grid
-  force->kspace->setup_grid();
 
-  // Re-init neighbor list. Probably only needed when redefining the pair style. Should happen after pair->init() to get pair style neighbor list request registered
+  force->kspace->reset_grid();
+
+  // re-init neighbor list
+  // probably only needed when redefining the pair style
+  // should happen after pair->init() to get pair style
+  //   neighbor list request registered
 
   neighbor->init();
 

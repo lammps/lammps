@@ -77,26 +77,31 @@ for individual fixes for info on which ones can be restarted.
 
 ----------
 
-Some fixes calculate one of three styles of quantities: global,
-per-atom, or local, which can be used by other commands or output as
-described below.  A global quantity is one or more system-wide values
-(e.g., the energy of a wall interacting with particles).  A per-atom
-quantity is one or more values per atom (e.g., the displacement vector
-for each atom since time 0).  Per-atom values are set to 0.0 for atoms
-not in the specified fix group.  Local quantities are calculated by
-each processor based on the atoms it owns, but there may be zero or
-more per atoms.
+Some fixes calculate one or more of four styles of quantities: global,
+per-atom, local, or per-grid, which can be used by other commands or
+output as described below.  A global quantity is one or more
+system-wide values, e.g. the energy of a wall interacting with
+particles.  A per-atom quantity is one or more values per atom,
+e.g. the displacement vector for each atom since time 0.  Per-atom
+values are set to 0.0 for atoms not in the specified fix group.  Local
+quantities are calculated by each processor based on the atoms it
+owns, but there may be zero or more per atoms.  Per-grid quantities
+are calculated on a regular 2d or 3d grid which overlays a 2d or 3d
+simulation domain.  The grid points and the data they store are
+distributed across processors; each processor owns the grid points
+which fall within its sub-domain.
 
-Note that a single fix can produce either global or per-atom or local
-quantities (or none at all), but not both global and per-atom.  It can
-produce local quantities in tandem with global or per-atom quantities.
-The fix page will explain.
+Note that a single fix typically produces either global or per-atom or
+local or per-grid values (or none at all).  It does not produce both
+global and per-atom.  It can produce local or per-grid values in
+tandem with global or per-atom values.  The fix doc page will explain
+the details.
 
-Global, per-atom, and local quantities each come in three kinds: a
-single scalar value, a vector of values, or a 2d array of values.  The
-doc page for each fix describes the style and kind of values it
-produces (e.g., a per-atom vector).  Some fixes produce more than one
-kind of a single style (e.g., a global scalar and a global vector).
+Global, per-atom, local, and per-grid quantities come in three kinds:
+a single scalar value, a vector of values, or a 2d array of values.
+The doc page for each fix describes the style and kind of values it
+produces, e.g. a per-atom vector.  Some fixes produce more than one
+kind of a single style, e.g. a global scalar and a global vector.
 
 When a fix quantity is accessed, as in many of the output commands
 discussed below, it can be referenced via the following bracket
@@ -185,6 +190,7 @@ accelerated styles exist.
 * :doc:`ave/chunk <fix_ave_chunk>` - compute per-chunk time-averaged quantities
 * :doc:`ave/correlate <fix_ave_correlate>` - compute/output time correlations
 * :doc:`ave/correlate/long <fix_ave_correlate_long>` - alternative to :doc:`ave/correlate <fix_ave_correlate>` that allows efficient calculation over long time windows
+* :doc:`ave/grid <fix_ave_grid>` - compute per-grid time-averaged quantities
 * :doc:`ave/histo <fix_ave_histo>` - compute/output time-averaged histograms
 * :doc:`ave/histo/weight <fix_ave_histo>` - weighted version of fix ave/histo
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities
@@ -216,9 +222,9 @@ accelerated styles exist.
 * :doc:`edpd/source <fix_dpd_source>` - add heat source to eDPD simulations
 * :doc:`efield <fix_efield>` - impose electric field on system
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
-* :doc:`electrode/conp <fix_electrode_conp>` - impose electric potential
-* :doc:`electrode/conq <fix_electrode_conp>` - impose total electric charge
-* :doc:`electrode/thermo <fix_electrode_conp>` - apply thermo-potentiostat
+* :doc:`electrode/conp <fix_electrode>` - impose electric potential
+* :doc:`electrode/conq <fix_electrode>` - impose total electric charge
+* :doc:`electrode/thermo <fix_electrode>` - apply thermo-potentiostat
 * :doc:`electron/stopping <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`electron/stopping/fit <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`enforce2d <fix_enforce2d>` - zero out *z*-dimension velocity and force
@@ -360,6 +366,7 @@ accelerated styles exist.
 * :doc:`saed/vtk <fix_saed_vtk>` - time-average the intensities from :doc:`compute saed <compute_saed>`
 * :doc:`setforce <fix_setforce>` - set the force on each atom
 * :doc:`setforce/spin <fix_setforce>` - set magnetic precession vectors on each atom
+* :doc:`sgcmc <fix_sgcmc>` - fix for hybrid semi-grand canonical MD/MC simulations
 * :doc:`shake <fix_shake>` - SHAKE constraints on bonds and/or angles
 * :doc:`shardlow <fix_shardlow>` - integration of DPD equations of motion using the Shardlow splitting
 * :doc:`smd <fix_smd>` - applied a steered MD force to a group

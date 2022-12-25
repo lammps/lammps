@@ -1,4 +1,4 @@
-# 
+#
 
 variable T_depart equal 300
 
@@ -17,13 +17,13 @@ variable by equal ${a}*${ny}
 variable bz equal ${c}*${nz}
 # =======================================================================
 
-units		metal
-atom_style	atomic
+units           metal
+atom_style      atomic
 dimension       3
 boundary        p p p
 
 
-lattice		sc 1.0
+lattice         sc 1.0
 region          box_vide prism 0 ${bx} 0 ${by} 0 ${bz} 0.0 0.0 0.0
 create_box      2 box_vide
 
@@ -31,15 +31,15 @@ create_box      2 box_vide
 #region          box_TiO2 block 0 ${bx} 0 ${by} 0 ${bz}
 
 # titanium atoms
-lattice 	custom ${a} origin 0.0 0.0 0.0 &
+lattice         custom ${a} origin 0.0 0.0 0.0 &
                             orient x 1 0 0 orient y 0 1 0 orient z 0 0 1 &
                             a1 1.0  0.0  0.0  &
                             a2 0.0  1.0  0.0  &
                             a3 0.0  0.0 ${ca} &
                             basis 0.0    0.0     0.0 &
- 			    basis 0.5    0.5     0.5
+                            basis 0.5    0.5     0.5
 
-create_atoms 	2 region box_vide
+create_atoms    2 region box_vide
 
 # Oxygen atoms
 lattice         custom ${a} origin 0.0 0.0 0.0 &
@@ -49,42 +49,42 @@ lattice         custom ${a} origin 0.0 0.0 0.0 &
                             a3 0.0  0.0 ${ca} &
                             basis 0.30478    0.30478     0.0 &
                             basis 0.69522    0.69522     0.0 &
-			    basis 0.19522    0.80478     0.5 &
-			    basis 0.80478    0.19522     0.5 
+                            basis 0.19522    0.80478     0.5 &
+                            basis 0.80478    0.19522     0.5
 
-create_atoms	1 region box_vide
- 
+create_atoms    1 region box_vide
+
 
 mass            1 16.00
 group           Oxy type 1
 
-mass		2 47.867
-group    	Ti type 2
+mass            2 47.867
+group           Ti type 2
 
-velocity	all create ${T_depart} 277387
+velocity        all create ${T_depart} 277387
 
-pair_style	meam/spline
-pair_coeff	* * TiO.meam.spline O Ti
+pair_style      meam/spline
+pair_coeff      * * TiO.meam.spline O Ti
 
-neighbor	0.5 bin
-neigh_modify	every 2 delay 0 check yes
+neighbor        0.5 bin
+neigh_modify    every 2 delay 0 check yes
 
 timestep        ${dt}
 
-thermo_style    custom step temp press pe ke etotal lx ly lz vol 
-thermo		10
+thermo_style    custom step temp press pe ke etotal lx ly lz vol
+thermo          10
 
 
-#dump            5 all custom 500 boxAlpha_alumina.lammpstrj id type q x y z  
+#dump            5 all custom 500 boxAlpha_alumina.lammpstrj id type q x y z
 
-fix		3 all nve
-run		100
+fix             3 all nve
+run             100
 
-unfix		3
+unfix           3
 fix             1 all box/relax tri 0.0 vmax 0.001
 minimize        1.0e-3 1.0e-5 1000 10000
 
-unfix		1
+unfix           1
 reset_timestep  0
 thermo          50
 fix             3 all npt temp 300 300 0.1 aniso 1.0 1.0 1.0

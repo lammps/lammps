@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -294,7 +294,7 @@ void PairBuckCoulCutIntel::eval(const int offload, const int vflag,
           if (rsq < c_cuti[jtype].cut_ljsq) {
           #endif
             flt_t r6inv = r2inv * r2inv * r2inv;
-            flt_t rexp = exp(-r * c_forcei[jtype].rhoinv);
+            flt_t rexp = std::exp(-r * c_forcei[jtype].rhoinv);
             forcebuck = r * rexp * c_forcei[jtype].buck1 -
               r6inv * c_forcei[jtype].buck2;
             if (EFLAG)

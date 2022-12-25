@@ -30,6 +30,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 4May2022
+
 Perform constant NVE integration to update position, velocity, angular
 velocity, and quaternion orientation for finite-size spherical
 particles in the group each timestep.  V is volume; E is energy.  This
@@ -64,6 +66,10 @@ the :doc:`run <run>` command.  This fix is not invoked during
 
 Restrictions
 """"""""""""
+
+This fix is part of the BPM package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 This fix requires that atoms store torque, angular velocity (omega), a
 radius, and a quaternion as defined by the :doc:`atom_style bpm/sphere

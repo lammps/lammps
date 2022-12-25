@@ -359,6 +359,12 @@ you are uncertain, please ask.
 
 - I/O is done via the C-style stdio library and **not** iostreams.
 
+- Do not use so-called "alternative tokens" like ``and``, ``or``,
+  ``not`` and similar, but rather use the corresponding operators
+  ``&&``, ``||``, and ``!``.  The alternative tokens are not available
+  by default on all compilers, and also we want to maintain a consistent
+  programming style.
+
 - Output to the screen and the logfile should be using the corresponding
   FILE pointers and only be done on MPI rank 0.  Use the :cpp:func:`utils::logmesg`
   convenience function where possible.

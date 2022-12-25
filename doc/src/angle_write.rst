@@ -28,10 +28,10 @@ Description
 
 Write energy and force values to a file as a function of angle for the
 currently defined angle potential.  Force in this context means the
-angle force, not the force on individual atoms.  This is useful for
-plotting the potential function or otherwise debugging its values.  The
-resulting file can also be used as input for use with :doc:`angle style
-table <angle_table>`.
+force with respect to the angle, not the force on individual atoms.
+This is useful for plotting the potential function or otherwise
+debugging its values.  The resulting file can also be used as input for
+use with :doc:`angle style table <angle_table>`.
 
 If the file already exists, the table of values is appended to the end
 of the file to allow multiple tables of energy and force to be included
@@ -69,7 +69,7 @@ separate, internally created, new LAMMPS instance with a dummy system of
 transferring the angle style and coefficients and arranging the 3 atoms
 into the corresponding geometries.  The angle force is then determined
 from the potential energies through numerical differentiation.  As a
-consequence or this approach, not all angle styles are compatible. The
+consequence of this approach, not all angle styles are compatible. The
 following conditions must be met:
 
 - The angle style must be able to write its coefficients to a data file.
@@ -77,20 +77,19 @@ following conditions must be met:
   :doc:`angle style table <angle_table>`.
 - The potential function must not have any terms that depend on geometry
   properties other than the angle. This condition excludes for example
-  all angle types for :doc:`angle style charmm <angle_charmm>` that have
-  non-zero Urey-Bradley terms.  Please note that the *write_angle*
-  command has no way of checking for this condition, so the resulting tables
-  may be bogus.  It is strongly recommended to make careful tests for any
-  created tables.
-- There must not be multiple angle interactions defined for the same
-  triple of atoms.  This applies for example to :doc:`angle_style class2
-  <angle_class2>`.
+  :doc:`angle style class2 <angle_class2>` all angle types for
+  :doc:`angle style charmm <angle_charmm>` that have non-zero
+  Urey-Bradley terms.  Please note that the *write_angle* command has no
+  way of checking for this condition, so the resulting tables may be
+  bogus if the requirement is not met.  It is thus recommended to make
+  careful tests for any created tables.
 
 Related commands
 """"""""""""""""
 
 :doc:`angle_style table <angle_table>`, :doc:`bond_write <bond_write>`,
-:doc:`angle_style <angle_style>`, :doc:`angle_coeff <angle_coeff>`
+:doc:`dihedral_write <dihedral_write>`, :doc:`angle_style <angle_style>`,
+:doc:`angle_coeff <angle_coeff>`
 
 Default
 """""""

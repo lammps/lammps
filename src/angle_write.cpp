@@ -147,6 +147,7 @@ void AngleWrite::command(int narg, char **arg)
       fgets(line, MAXLINE, coeffs);
       writer->input->one(fmt::format("angle_coeff {}", line));
     }
+    fclose(coeffs);
     platform::unlink(coeffs_file);
 
     // initialize system

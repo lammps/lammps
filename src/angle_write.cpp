@@ -51,6 +51,10 @@ void AngleWrite::command(int narg, char **arg)
   if (angle && (force->angle->writedata == 0))
     error->all(FLERR, "Angle style must support writing coeffs to data file for angle_write");
 
+  if (angle && (utils::strmatch(force->angle_style, "^class2")))
+    error->all(FLERR, "Angle_write command is not compatible with angle style {}",
+               force->angle_style);
+
   // parse arguments
 
   if (narg != 4) error->all(FLERR, "Illegal angle_write command");

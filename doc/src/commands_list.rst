@@ -28,6 +28,7 @@ Commands
    dielectric
    dihedral_coeff
    dihedral_style
+   dihedral_write
    dimension
    displace_atoms
    dump

@@ -46,6 +46,7 @@ table above.
    * :doc:`dielectric <dielectric>`
    * :doc:`dihedral_coeff <dihedral_coeff>`
    * :doc:`dihedral_style <dihedral_style>`
+   * :doc:`dihedral_write <dihedral_write>`
    * :doc:`dimension <dimension>`
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`

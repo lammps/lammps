@@ -829,6 +829,7 @@ dtemp
 dtgrow
 dtheta
 dtshrink
+dtype
 du
 dU
 Ducastelle

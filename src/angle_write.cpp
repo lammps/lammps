@@ -56,6 +56,9 @@ void AngleWrite::command(int narg, char **arg)
   if (narg != 4) error->all(FLERR, "Illegal angle_write command");
 
   int atype = utils::inumeric(FLERR, arg[0], false, lmp);
+  if ((atype <= 0) || (atype > atom->nangletypes))
+    error->all(FLERR, "Invalid angle type {} in angle_write command", atype);
+
   int n = utils::inumeric(FLERR, arg[1], false, lmp);
   std::string table_file = arg[2];
   std::string keyword = arg[3];

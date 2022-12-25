@@ -418,7 +418,7 @@ void Bond::write_file(int narg, char **arg)
     for (int i = 0; i < n; i++) {
       r = inner + dr * static_cast<double>(i);
       e = single(btype, r * r, itype, jtype, f);
-      fprintf(fp, "%d %.15g %.15g %.15g\n", i + 1, r, e, f * r);
+      fprintf(fp, "%8d %- 22.15g %- 22.15g %- 22.15g\n", i + 1, r, e, f * r);
     }
     fclose(fp);
   }

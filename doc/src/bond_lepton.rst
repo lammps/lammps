@@ -29,13 +29,12 @@ Description
 
 .. versionadded:: TBD
 
-Bond style *lepton* computes bonded interactions between two atoms,
-between which a bond has been defined, based on evaluating strings.  The
-potential function must be provided as an expression string using "r" as
-the distance variable relative to the reference distance :math:`r_0`
-which is provided as a bond coefficient.  For example `"200.0*r^2"`
-represents a harmonic potential with a force constant *K* of 200.0
-energy units:
+Bond style *lepton* computes bonded interactions between two atoms with
+a custom function.  The potential function must be provided as an
+expression string using "r" as the distance variable relative to the
+reference distance :math:`r_0` which is provided as a bond coefficient.
+For example `"200.0*r^2"` represents a harmonic potential with a force
+constant *K* of 200.0 energy units:
 
 .. math::
 
@@ -45,7 +44,7 @@ The `Lepton library <https://simtk.org/projects/lepton>`_, that the
 *lepton* bond style interfaces with, evaluates this expression string at
 run time to compute the pairwise energy.  It also creates an analytical
 representation of the first derivative of this expression with respect to
-"r" and then uses that to compute the force between the pairs atoms forming
+"r" and then uses that to compute the force between the atom pairs forming
 bonds as defined by the topology data.
 
 The following coefficients must be defined for each bond type via the
@@ -84,7 +83,8 @@ Related commands
 """"""""""""""""
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`bond_style table <bond_table>`,
-:doc:`bond_write <bond_write>`, :doc:`angle_style lepton <angle_lepton>`
+:doc:`bond_write <bond_write>`, :doc:`angle_style lepton <angle_lepton>`,
+:doc:`dihedral_style lepton <dihedral_lepton>`
 
 Default
 """""""

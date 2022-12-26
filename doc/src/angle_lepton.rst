@@ -29,12 +29,12 @@ Description
 
 .. versionadded:: TBD
 
-Angle style *lepton* computes angular interactions between three atoms,
-between which an angle has been defined, based on evaluating strings.
-The potential function must be provided as an expression string using
-"theta" as the angle variable relative to the reference angle
-:math:`\theta_0` which is provided as an angle coefficient.  For example
-`"200.0*theta^2"` represents a harmonic potential with a force constant
+Angle style *lepton* computes angular interactions between three atoms
+with a custom potential function.  The potential function must be
+provided as an expression string using "theta" as the angle variable
+relative to the reference angle :math:`\theta_0` which is provided as an
+angle coefficient.  For example `"200.0*theta^2"` represents a
+:doc:`harmonic angle <angle_harmonic>` potential with a force constant
 *K* of 200.0 energy units:
 
 .. math::
@@ -42,11 +42,11 @@ The potential function must be provided as an expression string using
    U_{angle,i} = K (\theta_i - \theta_0)^2 = K \theta^2 \qquad \theta = \theta_i - \theta_0
 
 The `Lepton library <https://simtk.org/projects/lepton>`_, that the
-*lepton* angle style interfaces with, evaluates this expression string at
-run time to compute the pairwise energy.  It also creates an analytical
-representation of the first derivative of this expression with respect to
-"r" and then uses that to compute the force between the pairs atoms forming
-angles as defined by the topology data.
+*lepton* angle style interfaces with, evaluates this expression string
+at run time to compute the pairwise energy.  It also creates an
+analytical representation of the first derivative of this expression
+with respect to "theta" and then uses that to compute the force between
+the angle atoms as defined by the topology data.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle_coeff <angle_coeff>` command as in the example above, or in
@@ -86,7 +86,7 @@ Related commands
 """"""""""""""""
 
 :doc:`angle_coeff <angle_coeff>`, :doc:`angle_style table <angle_table>`,
-:doc:`bond_style lepton <bond_lepton>`
+:doc:`bond_style lepton <bond_lepton>`,:doc:`dihedral_style lepton <dihedral_lepton>`
 
 Default
 """""""

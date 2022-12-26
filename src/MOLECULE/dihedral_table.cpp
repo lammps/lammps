@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Andrew Jewett (jewett.aij  g m ail)
+   Contributing author: Andrew Jewett (jewett.aij at gmail)
                         The cyclic tridiagonal matrix solver was borrowed from
                           the "tridiag.c" written by Gerard Jungman for GSL
 ------------------------------------------------------------------------- */
@@ -354,7 +354,7 @@ static double cyc_splintD(double const *xa, double const *ya, double const *y2a,
 // --------------------------------------------
 // ------- Calculate the dihedral angle -------
 // --------------------------------------------
-static const int g_dim=3;
+static constexpr int g_dim=3;
 
 static double Phi(double const *x1, //array holding x,y,z coords atom 1
                   double const *x2, // :       :      :      :        2
@@ -671,10 +671,9 @@ void DihedralTable::compute(int eflag, int vflag)
     }
 
     if (evflag)
-      ev_tally(i1,i2,i3,i4,
-               nlocal,newton_bond,edihedral,
+      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,edihedral,
                f1,f3,f4,
-               vb12[0],vb12[1],vb12[2],
+               -vb12[0],-vb12[1],-vb12[2],
                vb23[0],vb23[1],vb23[2],
                vb34[0],vb34[1],vb34[2]);
   }

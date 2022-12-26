@@ -60,6 +60,8 @@
 /bond_lepton.h
 /angle_lepton.cpp
 /angle_lepton.h
+/dihedral_lepton.cpp
+/dihedral_lepton.h
 /lepton_utils.cpp
 /lepton_utils.h
 

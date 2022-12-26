@@ -129,6 +129,7 @@ OPT.
    * :doc:`fourier (io) <dihedral_fourier>`
    * :doc:`harmonic (iko) <dihedral_harmonic>`
    * :doc:`helix (o) <dihedral_helix>`
+   * :doc:`lepton (o) <dihedral_lepton>`
    * :doc:`multi/harmonic (o) <dihedral_multi_harmonic>`
    * :doc:`nharmonic (o) <dihedral_nharmonic>`
    * :doc:`opls (iko) <dihedral_opls>`

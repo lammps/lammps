@@ -1357,13 +1357,11 @@ void FixPIMD::inter_replica_comm(double **ptr)
       bufsorted[tagtmp-1][2] = ptr[i][2];
       m++;
     }
-    MPI_Gather(&m, 1, MPI_INT, counts, 1, MPI_INT, 0, universe->uworld);
+    MPI_Allgather(&m, 1, MPI_INT, counts, 1, MPI_INT, universe->uworld);
     for (i = 0; i < nreplica; i++) { counts[i] *= 3; }
     displacements[0] = 0;
     for (i = 0; i < nreplica-1; i++) { displacements[i+1] = displacements[i] + counts[i]; }
-    MPI_Gatherv(bufsorted[0], 3*m, MPI_DOUBLE, bufsortedall[0], counts, displacements, MPI_DOUBLE, 0, universe->uworld);
-    MPI_Bcast(bufsortedall[0], nreplica*3*ntotal, MPI_DOUBLE, 0, universe->uworld);
-    // printf("me = %d bufsorted[0] = %.8f %.8f %.8f\n", universe->iworld, bufsorted[0][0], bufsorted[0][1], bufsorted[0][2]);
+    MPI_Allgatherv(bufsorted[0], 3*m, MPI_DOUBLE, bufsortedall[0], counts, displacements, MPI_DOUBLE, universe->uworld);
     // printf("me = %d bufsortedall[0] = %.8f %.8f %.8f bufsortedall[ntotal] = %.8f %.8f %.8f\n", universe->iworld, bufsortedall[0][0], bufsortedall[0][1], bufsortedall[0][2], bufsortedall[ntotal][0], bufsortedall[ntotal][1], bufsortedall[ntotal][2]);
     /*
     m = 0;

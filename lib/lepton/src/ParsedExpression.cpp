@@ -157,6 +157,7 @@ ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const Expressio
     bool first_const = children.size() > 0 && isConstant(children[0]); // is first child constant?
     bool second_const = children.size() > 1 && isConstant(children[1]); // is second child constant?
     double first, second; // if yes, value of first and second child
+    first = second = 0.0;
     if (first_const)
         first = getConstantValue(children[0]);
     if (second_const)

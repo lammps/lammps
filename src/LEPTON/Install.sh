@@ -58,11 +58,15 @@ include ..\/..\/lib\/lepton\/Makefile.lammps
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*lepton[^ \t]* //g' ../Makefile.package
+    if (test ! -e ../fix_colvars.cpp) then
+      sed -i -e 's/[^ \t]*lepton[^ \t]* //g' ../Makefile.package
+    fi
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^[ \t]*include.*lepton.*$/d' ../Makefile.package.settings
+    if (test ! -e ../fix_colvars.cpp) then
+      sed -i -e '/^[ \t]*include.*lepton.*$/d' ../Makefile.package.settings
+    fi
   fi
 
 fi

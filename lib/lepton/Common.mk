@@ -77,25 +77,19 @@ JITOBJ=$(JITX86:asmjit/x86/%.cpp=build/x86.%.o) \
        $(JITARM:asmjit/arm/%.cpp=build/arm.%.o) \
        $(JIXCORE:asmjit/core/%.cpp=build/core.%.o)
 
-ENABLE_JIT=0
-ifeq ($(shell uname -m),x86_64)
-ENABLE_JIT=1
-endif
-ifeq ($(shell uname -m),amd64)
-ENABLE_JIT=1
-endif
+LEPTON_DIR=.
+
+include $(LEPTON_DIR)/Settings.mk
 
 EXTRAMAKE=Makefile.lammps.empty
-INC=-I include
-DEF=-DLEPTON_BUILDING_STATIC_LIBRARY=1
-
 LIB=liblepton.a
 
 ifeq ($(ENABLE_JIT),1)
 OBJ += $(JITOBJ)
-INC += -I .
-DEF += -DLEPTON_USE_JIT=1 -DASMJIT_BUILD_X86=1 -DASMJIT_STATIC=1 -DASMJIT_BUILD_RELEASE=1
 endif
+
+INC += $(LEPTON_INC)
+CXXFLAGS += $(LEPTON_DEF)
 
 all: $(LIB) Makefile.lammps
 

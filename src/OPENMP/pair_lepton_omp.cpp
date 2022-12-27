@@ -22,7 +22,7 @@
 
 #include <cmath>
 
-#include "LMP_Lepton.h"
+#include "Lepton.h"
 #include "lepton_utils.h"
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
@@ -94,11 +94,11 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
   const int *const *const firstneigh = list->firstneigh;
   double fxtmp, fytmp, fztmp;
 
-  std::vector<LMP_Lepton::CompiledExpression> pairforce;
-  std::vector<LMP_Lepton::CompiledExpression> pairpot;
+  std::vector<Lepton::CompiledExpression> pairforce;
+  std::vector<Lepton::CompiledExpression> pairpot;
   try {
     for (const auto &expr : expressions) {
-      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
     }

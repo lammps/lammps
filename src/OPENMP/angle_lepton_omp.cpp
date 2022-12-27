@@ -24,7 +24,7 @@
 
 #include <cmath>
 
-#include "LMP_Lepton.h"
+#include "Lepton.h"
 #include "lepton_utils.h"
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
@@ -89,11 +89,11 @@ void AngleLeptonOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void AngleLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 {
-  std::vector<LMP_Lepton::CompiledExpression> angleforce;
-  std::vector<LMP_Lepton::CompiledExpression> anglepot;
+  std::vector<Lepton::CompiledExpression> angleforce;
+  std::vector<Lepton::CompiledExpression> anglepot;
   try {
     for (const auto &expr : expressions) {
-      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
       angleforce.emplace_back(parsed.differentiate("theta").createCompiledExpression());
       if (EFLAG) anglepot.emplace_back(parsed.createCompiledExpression());
     }

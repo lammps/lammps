@@ -25,7 +25,7 @@
 
 #include <cmath>
 
-#include "LMP_Lepton.h"
+#include "Lepton.h"
 #include "lepton_utils.h"
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
@@ -92,11 +92,11 @@ void DihedralLeptonOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void DihedralLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 {
-  std::vector<LMP_Lepton::CompiledExpression> dihedralforce;
-  std::vector<LMP_Lepton::CompiledExpression> dihedralpot;
+  std::vector<Lepton::CompiledExpression> dihedralforce;
+  std::vector<Lepton::CompiledExpression> dihedralpot;
   try {
     for (const auto &expr : expressions) {
-      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
       dihedralforce.emplace_back(parsed.differentiate("phi").createCompiledExpression());
       if (EFLAG) dihedralpot.emplace_back(parsed.createCompiledExpression());
     }

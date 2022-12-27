@@ -24,7 +24,7 @@
 
 #include <cmath>
 
-#include "LMP_Lepton.h"
+#include "Lepton.h"
 #include "lepton_utils.h"
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
@@ -87,11 +87,11 @@ void BondLeptonOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
 {
-  std::vector<LMP_Lepton::CompiledExpression> bondforce;
-  std::vector<LMP_Lepton::CompiledExpression> bondpot;
+  std::vector<Lepton::CompiledExpression> bondforce;
+  std::vector<Lepton::CompiledExpression> bondpot;
   try {
     for (const auto &expr : expressions) {
-      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
       bondforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
       if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
     }

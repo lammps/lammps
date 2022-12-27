@@ -61,22 +61,12 @@ COLVARS_SRCS = \
         colvarvalue.cpp \
         colvar_neuralnetworkcompute.cpp
 
-LEPTON_SRCS = \
-	lepton/src/CompiledExpression.cpp \
-	lepton/src/CompiledVectorExpression.cpp \
-	lepton/src/ExpressionProgram.cpp \
-	lepton/src/ExpressionTreeNode.cpp \
-	lepton/src/Operation.cpp \
-	lepton/src/ParsedExpression.cpp \
-	lepton/src/Parser.cpp
-
 # Allow to selectively turn off Lepton
 ifeq ($(COLVARS_LEPTON),no)
 LEPTON_INCFLAGS = 
 COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o)
 else
-LEPTON_INCFLAGS = -Ilepton/include -DLEPTON
-COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o) $(LEPTON_SRCS:.cpp=.o)
+LEPTON_INCFLAGS = -I../lepton/include -DLEPTON
 endif
 
 
@@ -97,12 +87,3 @@ Makefile.deps: $(COLVARS_SRCS)
 
 include Makefile.deps
 
-Makefile.lepton.deps: $(LEPTON_SRCS)
-	@echo > $@
-	@for src in $^ ; do \
-	  obj=`basename $$src .cpp`.o ; \
-	  $(CXX) $(CXXFLAGS) -MM $(LEPTON_INCFLAGS) \
-	    -MT '$$(COLVARS_OBJ_DIR)'$$obj $$src >> $@ ; \
-	  done
-
-include Makefile.lepton.deps

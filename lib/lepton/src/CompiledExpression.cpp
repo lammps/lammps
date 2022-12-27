@@ -38,6 +38,7 @@ using namespace Lepton;
 using namespace std;
 #ifdef LEPTON_USE_JIT
     using namespace asmjit;
+    #include <cinttypes>
 #endif
 
 CompiledExpression::CompiledExpression() : jitCode(NULL) {
@@ -513,6 +514,12 @@ void CompiledExpression::generateTwoArgCall(a64::Compiler& c, arm::Vec& dest, ar
     invoke->setRet(0, dest);
 }
 #else
+
+union int64_vs_double {
+    int64_t i;
+    double  d;
+};
+
 void CompiledExpression::generateJitCode() {
     const CpuInfo& cpu = CpuInfo::host();
     if (!cpu.hasFeature(CpuFeatures::X86::kAVX))
@@ -561,8 +568,9 @@ void CompiledExpression::generateJitCode() {
         else if (op.getId() == Operation::DELTA)
             value = 1.0;
         else if (op.getId() == Operation::ABS) {
-            long long mask = 0x7FFFFFFFFFFFFFFF;
-            value = *reinterpret_cast<double*>(&mask);
+            int64_vs_double mask;
+            mask.i = 0x7FFFFFFFFFFFFFFF;
+            value = mask.d;
         }
         else if (op.getId() == Operation::POWER_CONSTANT) {
             if (stepGroup[step] == -1)

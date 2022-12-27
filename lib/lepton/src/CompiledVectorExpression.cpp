@@ -573,6 +573,11 @@ void CompiledVectorExpression::generateTwoArgCall(a64::Compiler& c, arm::Vec& de
 }
 #else
 
+union int_vs_float {
+    int   i;
+    float f;
+};
+
 void CompiledVectorExpression::generateJitCode() {
     const CpuInfo& cpu = CpuInfo::host();
     if (!cpu.hasFeature(CpuFeatures::X86::kAVX))
@@ -624,8 +629,9 @@ void CompiledVectorExpression::generateJitCode() {
         else if (op.getId() == Operation::DELTA)
             value = 1.0;
         else if (op.getId() == Operation::ABS) {
-            int mask = 0x7FFFFFFF;
-            value = *reinterpret_cast<float*>(&mask);
+            int_vs_float mask;
+            mask.i = 0x7FFFFFFF;
+            value = mask.f;
         }
         else if (op.getId() == Operation::POWER_CONSTANT) {
             if (stepGroup[step] == -1)

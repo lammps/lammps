@@ -639,6 +639,8 @@ lib-%:
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
 	fi; touch main.cpp
 
+lib-colvars: lib-lepton
+
 # status = list src files that differ from package files
 # installed = list of installed packages
 # update = replace src files with newer package files

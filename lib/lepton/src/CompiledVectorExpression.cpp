@@ -573,7 +573,8 @@ void CompiledVectorExpression::generateTwoArgCall(a64::Compiler& c, arm::Vec& de
 }
 #else
 
-union int_vs_float {
+union int_to_float {
+    int_to_float(int _i) { i = _i; }
     int   i;
     float f;
 };
@@ -629,9 +630,7 @@ void CompiledVectorExpression::generateJitCode() {
         else if (op.getId() == Operation::DELTA)
             value = 1.0;
         else if (op.getId() == Operation::ABS) {
-            int_vs_float mask;
-            mask.i = 0x7FFFFFFF;
-            value = mask.f;
+            value = int_to_float(0x7FFFFFFF).f;
         }
         else if (op.getId() == Operation::POWER_CONSTANT) {
             if (stepGroup[step] == -1)

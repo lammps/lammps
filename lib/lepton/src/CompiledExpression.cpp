@@ -515,7 +515,8 @@ void CompiledExpression::generateTwoArgCall(a64::Compiler& c, arm::Vec& dest, ar
 }
 #else
 
-union int64_vs_double {
+union int64_to_double {
+    int64_to_double(int64_t _i) { i = _i; }
     int64_t i;
     double  d;
 };
@@ -568,9 +569,7 @@ void CompiledExpression::generateJitCode() {
         else if (op.getId() == Operation::DELTA)
             value = 1.0;
         else if (op.getId() == Operation::ABS) {
-            int64_vs_double mask;
-            mask.i = 0x7FFFFFFFFFFFFFFF;
-            value = mask.d;
+            value = int64_to_double(0x7FFFFFFFFFFFFFFF).d;
         }
         else if (op.getId() == Operation::POWER_CONSTANT) {
             if (stepGroup[step] == -1)

@@ -36,7 +36,7 @@
 #include <string>
 #include <vector>
 
-namespace LMP_Lepton {
+namespace Lepton {
 
 class Operation;
 class ParsedExpression;
@@ -106,6 +106,6 @@ private:
     mutable int tag;
 };
 
-} // namespace LMP_Lepton
+} // namespace Lepton
 
 #endif /*LEPTON_EXPRESSION_TREE_NODE_H_*/

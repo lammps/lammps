@@ -34,7 +34,7 @@
 #include "lepton/ExpressionTreeNode.h"
 #include "MSVC_erfc.h"
 
-using namespace LMP_Lepton;
+using namespace Lepton;
 using namespace std;
 
 static bool isZero(const ExpressionTreeNode& node) {

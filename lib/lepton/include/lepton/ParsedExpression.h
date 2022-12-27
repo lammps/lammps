@@ -37,7 +37,7 @@
 #include <map>
 #include <string>
 
-namespace LMP_Lepton {
+namespace Lepton {
 
 class CompiledExpression;
 class ExpressionProgram;
@@ -137,6 +137,6 @@ LEPTON_EXPORT std::ostream& operator<<(std::ostream& out, const ExpressionTreeNo
 
 LEPTON_EXPORT std::ostream& operator<<(std::ostream& out, const ParsedExpression& exp);
 
-} // namespace LMP_Lepton
+} // namespace Lepton
 
 #endif /*LEPTON_PARSED_EXPRESSION_H_*/

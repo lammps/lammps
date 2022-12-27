@@ -34,7 +34,7 @@
 #include "lepton/ParsedExpression.h"
 #include <utility>
 
-using namespace LMP_Lepton;
+using namespace Lepton;
 using namespace std;
 #ifdef LEPTON_USE_JIT
     using namespace asmjit;

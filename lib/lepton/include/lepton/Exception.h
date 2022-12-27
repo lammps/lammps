@@ -35,7 +35,7 @@
 #include <exception>
 #include <string>
 
-namespace LMP_Lepton {
+namespace Lepton {
 
 /**
  * This class is used for all exceptions thrown by Lepton.
@@ -54,6 +54,6 @@ private:
     std::string message;
 };
 
-} // namespace LMP_Lepton
+} // namespace Lepton
 
 #endif /*LEPTON_EXCEPTION_H_*/

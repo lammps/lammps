@@ -37,7 +37,7 @@
 #include <limits>
 #include <vector>
 
-using namespace LMP_Lepton;
+using namespace Lepton;
 using namespace std;
 
 ParsedExpression::ParsedExpression() : rootNode(ExpressionTreeNode()) {
@@ -402,7 +402,7 @@ ExpressionTreeNode ParsedExpression::renameNodeVariables(const ExpressionTreeNod
     return ExpressionTreeNode(node.getOperation().clone(), children);
 }
 
-ostream& LMP_Lepton::operator<<(ostream& out, const ExpressionTreeNode& node) {
+ostream& Lepton::operator<<(ostream& out, const ExpressionTreeNode& node) {
     if (node.getOperation().isInfixOperator() && node.getChildren().size() == 2) {
         out << "(" << node.getChildren()[0] << ")" << node.getOperation().getName() << "(" << node.getChildren()[1] << ")";
     }
@@ -424,7 +424,7 @@ ostream& LMP_Lepton::operator<<(ostream& out, const ExpressionTreeNode& node) {
     return out;
 }
 
-ostream& LMP_Lepton::operator<<(ostream& out, const ParsedExpression& exp) {
+ostream& Lepton::operator<<(ostream& out, const ParsedExpression& exp) {
     out << exp.getRootNode();
     return out;
 }

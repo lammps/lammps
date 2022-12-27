@@ -38,7 +38,7 @@
 #include <string>
 #include <vector>
 
-namespace LMP_Lepton {
+namespace Lepton {
 
 class ParsedExpression;
 
@@ -98,6 +98,6 @@ private:
     int maxArgs, stackSize;
 };
 
-} // namespace LMP_Lepton
+} // namespace Lepton
 
 #endif /*LEPTON_EXPRESSION_PROGRAM_H_*/

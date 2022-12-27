@@ -34,7 +34,7 @@
 
 #include "windowsIncludes.h"
 
-namespace LMP_Lepton {
+namespace Lepton {
 
 /**
  * This class is the interface for defining your own function that may be included in expressions.
@@ -104,6 +104,6 @@ private:
     int numArgs;
 };
 
-} // namespace LMP_Lepton
+} // namespace Lepton
 
 #endif /*LEPTON_CUSTOM_FUNCTION_H_*/

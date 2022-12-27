@@ -89,7 +89,7 @@ EXTRAMAKE=Makefile.lammps.empty
 INC=-I include
 DEF=-DLEPTON_BUILDING_STATIC_LIBRARY=1
 
-LIB=liblmplepton.a
+LIB=liblepton.a
 
 ifeq ($(ENABLE_JIT),1)
 OBJ += $(JITOBJ)

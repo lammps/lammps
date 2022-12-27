@@ -37,7 +37,7 @@
 #include <string>
 #include <vector>
 
-namespace LMP_Lepton {
+namespace Lepton {
 
 class CustomFunction;
 class ExpressionTreeNode;
@@ -72,6 +72,6 @@ private:
     static Operation* getFunctionOperation(const std::string& name, const std::map<std::string, CustomFunction*>& customFunctions);
 };
 
-} // namespace LMP_Lepton
+} // namespace Lepton
 
 #endif /*LEPTON_PARSER_H_*/

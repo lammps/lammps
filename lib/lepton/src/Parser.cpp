@@ -38,7 +38,7 @@
 #include <cctype>
 #include <iostream>
 
-using namespace LMP_Lepton;
+using namespace Lepton;
 using namespace std;
 
 static const string Digits = "0123456789";
@@ -47,7 +47,7 @@ static const bool LeftAssociative[] = {true, true, true, true, false};
 static const int Precedence[] = {0, 0, 1, 1, 3};
 static const Operation::Id OperationId[] = {Operation::ADD, Operation::SUBTRACT, Operation::MULTIPLY, Operation::DIVIDE, Operation::POWER};
 
-class LMP_Lepton::ParseToken {
+class Lepton::ParseToken {
 public:
     enum Type {Number, Operator, Variable, Function, LeftParen, RightParen, Comma, Whitespace};
 

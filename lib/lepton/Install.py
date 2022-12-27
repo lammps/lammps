@@ -51,7 +51,7 @@ if not os.path.exists("Makefile.%s" % machine):
 # make the library with parallel make
 n_cpus = get_cpus()
 
-print("Building liblmp%s.a ..." % lib)
+print("Building lib%s.a ..." % lib)
 cmd = "make -f Makefile.%s clean; make -f Makefile.%s -j%d" % (machine, machine, n_cpus)
 try:
   txt = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)
@@ -60,10 +60,10 @@ except subprocess.CalledProcessError as e:
   print("Make failed with:\n %s" % e.output.decode('UTF-8'))
   sys.exit(1)
 
-if os.path.exists("liblmp%s.a" % lib):
+if os.path.exists("lib%s.a" % lib):
   print("Build was successful")
 else:
-  sys.exit("Build of lib/%s/liblmp%s.a was NOT successful" % (lib, lib))
+  sys.exit("Build of lib/%s/lib%s.a was NOT successful" % (lib, lib))
 
 if not os.path.exists("Makefile.lammps"):
   print("WARNING: lib/%s/Makefile.lammps was NOT created" % lib)

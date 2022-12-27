@@ -34,7 +34,7 @@
 #include "lepton/Operation.h"
 #include <utility>
 
-using namespace LMP_Lepton;
+using namespace Lepton;
 using namespace std;
 
 ExpressionTreeNode::ExpressionTreeNode(Operation* operation, const vector<ExpressionTreeNode>& children) : operation(operation), children(children) {

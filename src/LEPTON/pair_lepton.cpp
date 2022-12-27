@@ -25,7 +25,7 @@
 #include "neigh_list.h"
 #include "update.h"
 
-#include "LMP_Lepton.h"
+#include "Lepton.h"
 #include "lepton_utils.h"
 #include <cmath>
 
@@ -99,11 +99,11 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLepton::eval()
   const int *const *const firstneigh = list->firstneigh;
   double fxtmp, fytmp, fztmp;
 
-  std::vector<LMP_Lepton::CompiledExpression> pairforce;
-  std::vector<LMP_Lepton::CompiledExpression> pairpot;
+  std::vector<Lepton::CompiledExpression> pairforce;
+  std::vector<Lepton::CompiledExpression> pairpot;
   try {
     for (const auto &expr : expressions) {
-      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
     }
@@ -215,7 +215,7 @@ void PairLepton::coeff(int narg, char **arg)
   // check if the expression can be parsed and evaluated without error
   auto exp_one = LeptonUtils::condense(arg[2]);
   try {
-    auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
+    auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
     auto pairforce = parsed.differentiate("r").createCompiledExpression();
     auto pairpot = parsed.createCompiledExpression();
     pairpot.getVariableReference("r") = 1.0;
@@ -258,7 +258,7 @@ double PairLepton::init_one(int i, int j)
   if (offset_flag) {
     try {
       auto expr = LeptonUtils::substitute(expressions[type2expression[i][j]], lmp);
-      auto pairpot = LMP_Lepton::Parser::parse(expr).createCompiledExpression();
+      auto pairpot = Lepton::Parser::parse(expr).createCompiledExpression();
       pairpot.getVariableReference("r") = cut[i][j];
       offset[i][j] = pairpot.evaluate();
     } catch (std::exception &) {
@@ -402,7 +402,7 @@ double PairLepton::single(int /* i */, int /* j */, int itype, int jtype, double
                           double /* factor_coul */, double factor_lj, double &fforce)
 {
   auto expr = expressions[type2expression[itype][jtype]];
-  auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+  auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
   auto pairpot = parsed.createCompiledExpression();
   auto pairforce = parsed.differentiate("r").createCompiledExpression();
 

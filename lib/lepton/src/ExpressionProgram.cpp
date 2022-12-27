@@ -33,7 +33,7 @@
 #include "lepton/Operation.h"
 #include "lepton/ParsedExpression.h"
 
-using namespace LMP_Lepton;
+using namespace Lepton;
 using namespace std;
 
 ExpressionProgram::ExpressionProgram() : maxArgs(0), stackSize(0) {

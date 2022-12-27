@@ -26,7 +26,7 @@
 
 #include <cmath>
 
-#include "LMP_Lepton.h"
+#include "Lepton.h"
 #include "lepton_utils.h"
 using namespace LAMMPS_NS;
 
@@ -80,11 +80,11 @@ void BondLepton::compute(int eflag, int vflag)
 /* ---------------------------------------------------------------------- */
 template <int EVFLAG, int EFLAG, int NEWTON_BOND> void BondLepton::eval()
 {
-  std::vector<LMP_Lepton::CompiledExpression> bondforce;
-  std::vector<LMP_Lepton::CompiledExpression> bondpot;
+  std::vector<Lepton::CompiledExpression> bondforce;
+  std::vector<Lepton::CompiledExpression> bondpot;
   try {
     for (const auto &expr : expressions) {
-      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
       bondforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
       if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
     }
@@ -176,7 +176,7 @@ void BondLepton::coeff(int narg, char **arg)
   std::string exp_one = LeptonUtils::condense(arg[2]);
   double offset_one = 0.0;
   try {
-    auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
+    auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
     auto bondpot = parsed.createCompiledExpression();
     auto bondforce = parsed.differentiate("r").createCompiledExpression();
     bondpot.getVariableReference("r") = 0.0;
@@ -299,7 +299,7 @@ double BondLepton::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   const double dr = r - r0[type];
 
   auto expr = expressions[type2expression[type]];
-  auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+  auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
   auto bondpot = parsed.createCompiledExpression();
   auto bondforce = parsed.differentiate("r").createCompiledExpression();
   bondforce.getVariableReference("r") = dr;

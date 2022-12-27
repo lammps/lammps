@@ -30,7 +30,7 @@
 
 #include <cmath>
 
-#include "LMP_Lepton.h"
+#include "Lepton.h"
 #include "lepton_utils.h"
 
 using namespace LAMMPS_NS;
@@ -90,11 +90,11 @@ void DihedralLepton::compute(int eflag, int vflag)
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND> void DihedralLepton::eval()
 {
-  std::vector<LMP_Lepton::CompiledExpression> dihedralforce;
-  std::vector<LMP_Lepton::CompiledExpression> dihedralpot;
+  std::vector<Lepton::CompiledExpression> dihedralforce;
+  std::vector<Lepton::CompiledExpression> dihedralpot;
   try {
     for (const auto &expr : expressions) {
-      auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
       dihedralforce.emplace_back(parsed.differentiate("phi").createCompiledExpression());
       if (EFLAG) dihedralpot.emplace_back(parsed.createCompiledExpression());
     }
@@ -359,7 +359,7 @@ void DihedralLepton::coeff(int narg, char **arg)
   // check if the expression can be parsed and evaluated without error
   std::string exp_one = LeptonUtils::condense(arg[1]);
   try {
-    auto parsed = LMP_Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
+    auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(exp_one, lmp));
     auto dihedralpot = parsed.createCompiledExpression();
     auto dihedralforce = parsed.differentiate("phi").createCompiledExpression();
     dihedralpot.getVariableReference("phi") = 0.0;

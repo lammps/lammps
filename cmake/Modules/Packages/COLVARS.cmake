@@ -8,13 +8,9 @@ option(COLVARS_DEBUG "Debugging messages for Colvars (quite verbose)" OFF)
 option(COLVARS_LEPTON "Build and link the Lepton library" ON)
 
 if(COLVARS_LEPTON)
-  set(LEPTON_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars/lepton)
-  file(GLOB LEPTON_SOURCES ${LEPTON_DIR}/src/[^.]*.cpp)
-  add_library(lepton STATIC ${LEPTON_SOURCES})
-  # Change the define below to LEPTON_BUILDING_SHARED_LIBRARY when linking Lepton as a DLL with MSVC
-  target_compile_definitions(lepton PRIVATE -DLEPTON_BUILDING_STATIC_LIBRARY)
-  set_target_properties(lepton PROPERTIES OUTPUT_NAME lammps_lepton${LAMMPS_MACHINE})
-  target_include_directories(lepton PRIVATE ${LEPTON_DIR}/include)
+  if(NOT LEPTON_SOURCE_DIR)
+    include(Packages/LEPTON)
+  endif()
 endif()
 
 add_library(colvars STATIC ${COLVARS_SOURCES})
@@ -35,9 +31,6 @@ if(COLVARS_DEBUG)
 endif()
 
 if(COLVARS_LEPTON)
-  target_link_libraries(lammps PRIVATE lepton)
   target_compile_definitions(colvars PRIVATE -DLEPTON)
-  # Disable the line below when linking Lepton as a DLL with MSVC
-  target_compile_definitions(colvars PRIVATE -DLEPTON_USE_STATIC_LIBRARIES)
-  target_include_directories(colvars PUBLIC ${LEPTON_DIR}/include)
+  target_link_libraries(colvars PRIVATE lepton)
 endif()

@@ -48,7 +48,7 @@
 #endif
 #endif
 
-namespace LMP_Lepton {
+namespace Lepton {
 
 class Operation;
 class ParsedExpression;
@@ -140,6 +140,6 @@ private:
 #endif
 };
 
-} // namespace LMP_Lepton
+} // namespace Lepton
 
 #endif /*LEPTON_VECTOR_EXPRESSION_H_*/

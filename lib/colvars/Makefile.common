@@ -63,9 +63,24 @@ COLVARS_SRCS = \
 
 # Allow to selectively turn off Lepton
 ifeq ($(COLVARS_LEPTON),no)
+
 LEPTON_INCFLAGS =
+
 else
-LEPTON_INCFLAGS = -I../lepton/include -DLEPTON
+
+# imported from ../lepton/Common.mk
+ENABLE_JIT=0
+ifeq ($(shell uname -m),x86_64)
+ENABLE_JIT=1
+endif
+ifeq ($(shell uname -m),amd64)
+ENABLE_JIT=1
+endif
+LEPTON_INCFLAGS = -I../lepton/include -DLEPTON -DLEPTON_BUILDING_STATIC_LIBRARY=1
+ifeq ($(ENABLE_JIT),1)
+LEPTON_INCLFLAGS += -I../lepton -DLEPTON_USE_JIT=1 -DASMJIT_BUILD_X86=1 -DASMJIT_STATIC=1 -DASMJIT_BUILD_RELEASE=1
+endif
+
 endif
 
 COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o)

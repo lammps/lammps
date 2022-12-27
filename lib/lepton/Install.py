@@ -34,7 +34,7 @@ parser.add_argument("-m", "--machine",
 args = parser.parse_args()
 
 # print help message and exit, if neither build nor path options are given
-if not args.machine and not args.extramake:
+if not args.machine:
   parser.print_help()
   sys.exit(HELP)
 

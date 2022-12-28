@@ -32,13 +32,13 @@
 #include "lepton/CompiledExpression.h"
 #include "lepton/Operation.h"
 #include "lepton/ParsedExpression.h"
+#include <cstring>
 #include <utility>
 
 using namespace Lepton;
 using namespace std;
 #ifdef LEPTON_USE_JIT
     using namespace asmjit;
-    #include <cinttypes>
 #endif
 
 CompiledExpression::CompiledExpression() : jitCode(NULL) {
@@ -515,12 +515,6 @@ void CompiledExpression::generateTwoArgCall(a64::Compiler& c, arm::Vec& dest, ar
 }
 #else
 
-union int64_to_double {
-    int64_to_double(int64_t _i) { i = _i; }
-    int64_t i;
-    double  d;
-};
-
 void CompiledExpression::generateJitCode() {
     const CpuInfo& cpu = CpuInfo::host();
     if (!cpu.hasFeature(CpuFeatures::X86::kAVX))
@@ -569,7 +563,8 @@ void CompiledExpression::generateJitCode() {
         else if (op.getId() == Operation::DELTA)
             value = 1.0;
         else if (op.getId() == Operation::ABS) {
-            value = int64_to_double(0x7FFFFFFFFFFFFFFF).d;
+            long long mask = 0x7FFFFFFFFFFFFFFF;
+            memcpy(&value, &mask, sizeof(value));
         }
         else if (op.getId() == Operation::POWER_CONSTANT) {
             if (stepGroup[step] == -1)

@@ -7,14 +7,13 @@ SHELL = /bin/sh
 # ------ FILES ------
 
 SRC =	$(wildcard *.f)
-SRC1 =	$(wildcard *.F)
 
-FILES = $(SRC) $(SRC1) Makefile.* README
+FILES = $(SRC) Makefile.* README
 
 # ------ DEFINITIONS ------
 
 LIB = liblinalg.a
-OBJ =   $(SRC:.f=.o) $(SRC1:.F=.o)
+OBJ =   $(SRC:.f=.o)
 
 # ------ SETTINGS ------
 
@@ -33,9 +32,6 @@ lib: 	$(OBJ)
 	$(ARCHIVE) $(ARFLAGS) $(LIB) $(OBJ)
 
 # ------ COMPILE RULES ------
-
-%.o:%.F
-	$(FC) $(FFLAGS) -c $<
 
 %.o:%.f
 	$(FC) $(FFLAGS) -c $<

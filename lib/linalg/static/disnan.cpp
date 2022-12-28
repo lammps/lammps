@@ -7,8 +7,8 @@ extern "C" {
 
 logical disnan_(const doublereal *din)
 {
-  if (!din) return TRUE_;
+    if (!din) return TRUE_;
 
-  return std::isnan(*din) ? TRUE_ : FALSE_;
+    return std::isnan(*din) ? TRUE_ : FALSE_;
 }
 }

@@ -10,8 +10,8 @@ double pow_lmp_di(doublereal *ap, integer *bp)
     unsigned long u;
 
     pow = 1;
-    x   = *ap;
-    n   = *bp;
+    x = *ap;
+    n = *bp;
 
     if (n != 0) {
         if (n < 0) {

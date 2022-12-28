@@ -7,11 +7,11 @@ extern "C" {
 
 logical lsame_(const char *a, const char *b)
 {
-  char ua, ub;
-  if (!a || !b) return FALSE_;
+    char ua, ub;
+    if (!a || !b) return FALSE_;
 
-  ua = toupper(*a);
-  ub = toupper(*b);
-  return (ua == ub) ? TRUE_ : FALSE_;
+    ua = toupper(*a);
+    ub = toupper(*b);
+    return (ua == ub) ? TRUE_ : FALSE_;
 }
 }

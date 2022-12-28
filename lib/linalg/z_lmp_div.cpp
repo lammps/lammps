@@ -17,14 +17,14 @@ void z_lmp_div(doublecomplex *c, doublecomplex *a, doublecomplex *b)
             return;
         }
         ratio = b->r / b->i;
-        den   = b->i * (1 + ratio * ratio);
-        cr    = (a->r * ratio + a->i) / den;
-        c->i  = (a->i * ratio - a->r) / den;
+        den = b->i * (1 + ratio * ratio);
+        cr = (a->r * ratio + a->i) / den;
+        c->i = (a->i * ratio - a->r) / den;
     } else {
         ratio = b->i / b->r;
-        den   = b->r * (1 + ratio * ratio);
-        cr    = (a->r + a->i * ratio) / den;
-        c->i  = (a->i - a->r * ratio) / den;
+        den = b->r * (1 + ratio * ratio);
+        cr = (a->r + a->i * ratio) / den;
+        c->i = (a->i - a->r * ratio) / den;
     }
     c->r = cr;
 }

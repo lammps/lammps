@@ -24,7 +24,7 @@ integer xerbla_(const char *srname, integer *info)
         buf[i + 16] = srname[i];
     }
     int len = strlen(buf);
-    snprintf(buf+len, BUFSZ-len, " parameter number %d had an illegal value\n", *info);
+    snprintf(buf + len, BUFSZ - len, " parameter number %d had an illegal value\n", *info);
     exit(1);
     return 0;
 }

@@ -1,0 +1,5 @@
+The C++ files in this folder are direct C++ implementations of their
+Fortran equivalents using the C++ runtime.
+.
+The Fortran files in this folder are modified from their
+original versions, so that f2c can correctly translate them.

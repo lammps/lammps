@@ -1466,18 +1466,18 @@ void FitPOD::least_squares_fit(const datastruct &data)
         desc.A[j + nd*i] = 0.5*(a1+a2);
       }
 
-    // scale A and b
-
-    double maxb = 0.0;
-    for (int i = 0; i<nd; i++)
-      maxb = (maxb > fabs(desc.b[i])) ? maxb : fabs(desc.b[i]);
-
-    maxb = 1.0/maxb;
-    for (int i = 0; i<nd; i++)
-      desc.b[i] = desc.b[i]*maxb;
-
-    for (int i = 0; i<nd*nd; i++)
-      desc.A[i] = desc.A[i]*maxb;
+//     // scale A and b
+// 
+//     double maxb = 0.0;
+//     for (int i = 0; i<nd; i++)
+//       maxb = (maxb > fabs(desc.b[i])) ? maxb : fabs(desc.b[i]);
+// 
+//     maxb = 1.0/maxb;
+//     for (int i = 0; i<nd; i++)
+//       desc.b[i] = desc.b[i]*maxb;
+// 
+//     for (int i = 0; i<nd*nd; i++)
+//       desc.A[i] = desc.A[i]*maxb;
 
     double regularizing_parameter = data.fitting_weights[11];
 

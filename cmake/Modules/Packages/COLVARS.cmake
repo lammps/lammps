@@ -2,10 +2,9 @@ set(COLVARS_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 
 file(GLOB COLVARS_SOURCES ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
 
-option(COLVARS_DEBUG "Debugging messages for Colvars (quite verbose)" OFF)
+option(COLVARS_DEBUG "Enable debugging messages for Colvars (quite verbose)" OFF)
 
-# Build Lepton by default
-option(COLVARS_LEPTON "Build and link the Lepton library" ON)
+option(COLVARS_LEPTON "Use the Lepton library for custom expressions" ON)
 
 if(COLVARS_LEPTON)
   if(NOT LEPTON_SOURCE_DIR)
@@ -26,7 +25,7 @@ target_include_directories(colvars PRIVATE ${LAMMPS_SOURCE_DIR})
 target_link_libraries(lammps PRIVATE colvars)
 
 if(COLVARS_DEBUG)
-  # Need to export the macro publicly to also affect the proxy
+  # Need to export the macro publicly to be valid in interface code
   target_compile_definitions(colvars PUBLIC -DCOLVARS_DEBUG)
 endif()
 

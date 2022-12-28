@@ -549,7 +549,7 @@ void CompiledExpression::generateJitCode() {
         // Find the constant value (if any) used by this operation.
 
         Operation& op = *operation[step];
-        double value;
+        double value = 0.0;
         if (op.getId() == Operation::CONSTANT)
             value = dynamic_cast<Operation::Constant&>(op).getValue();
         else if (op.getId() == Operation::ADD_CONSTANT)
@@ -564,7 +564,7 @@ void CompiledExpression::generateJitCode() {
             value = 1.0;
         else if (op.getId() == Operation::ABS) {
             long long mask = 0x7FFFFFFFFFFFFFFF;
-            memcpy(&value, &mask, sizeof(value));
+            memcpy(&value, &mask, sizeof(mask));
         }
         else if (op.getId() == Operation::POWER_CONSTANT) {
             if (stepGroup[step] == -1)

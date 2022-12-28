@@ -560,9 +560,10 @@ CORESHELL package
 
 Compute and pair styles that implement the adiabatic core/shell model
 for polarizability.  The pair styles augment Born, Buckingham, and
-Lennard-Jones styles with core/shell capabilities.  The :doc:`compute temp/cs <compute_temp_cs>` command calculates the temperature of a
-system with core/shell particles.  See the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of how to use
-this package.
+Lennard-Jones styles with core/shell capabilities.  The :doc:`compute
+temp/cs <compute_temp_cs>` command calculates the temperature of a
+system with core/shell particles.  See the :doc:`Howto coreshell
+<Howto_coreshell>` page for an overview of how to use this package.
 
 **Author:** Hendrik Heenen (Technical U of Munich).
 
@@ -974,10 +975,11 @@ FEP package
 
 **Contents:**
 
-FEP stands for free energy perturbation.  This package provides
-methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt_fep>` command with soft-core pair potentials,
-which have a "soft" in their style name.  There are auxiliary tools
-for using this package in tools/fep; see its README file.
+FEP stands for free energy perturbation.  This package provides methods
+for performing FEP simulations by using a :doc:`fix adapt/fep
+<fix_adapt_fep>` command with soft-core pair potentials, which have a
+"soft" in their style name.  There are auxiliary tools for using this
+package in tools/fep; see its README file.
 
 **Author:** Agilio Padua (ENS de Lyon)
 
@@ -1018,7 +1020,8 @@ Kuznetsov, Vladimir Stegailov, and Vsevolod Nikolskiy (HSE University).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <gpu>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <gpu>` on the
+:doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1371,7 +1374,8 @@ Cawkwell, Anders Niklasson, and Christian Negre.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <latte>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <latte>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 

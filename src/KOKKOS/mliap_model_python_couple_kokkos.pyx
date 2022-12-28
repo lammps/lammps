@@ -9,8 +9,11 @@ import pickle
 
 # For converting C arrays to numpy arrays
 import numpy
-import torch 
-import cupy
+import torch
+try:
+    import cupy
+except ImportError:
+    pass
 
 # For converting void * to integer for tracking object identity
 from libc.stdint cimport uintptr_t

@@ -1421,6 +1421,7 @@ the :doc:`Build extras <Build_extras>` page.
 * :doc:`pair_style lepton <pair_lepton>`
 * :doc:`bond_style lepton <bond_lepton>`
 * :doc:`angle_style lepton <angle_lepton>`
+* :doc:`dihedral_style lepton <dihedral_lepton>`
 
 ----------
 

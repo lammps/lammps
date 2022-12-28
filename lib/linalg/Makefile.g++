@@ -8,8 +8,6 @@ SHELL = /bin/sh
 
 SRC =	$(wildcard *.cpp)
 
-FILES = $(SRC) Makefile.* README
-
 # ------ DEFINITIONS ------
 
 LIB = liblinalg.a
@@ -39,7 +37,4 @@ lib: 	$(OBJ)
 
 clean:
 	-rm -f *.o *~ $(LIB)
-
-tar:
-	-tar -czvf ../linalg.tar.gz $(FILES)
 

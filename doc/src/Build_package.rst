@@ -36,7 +36,7 @@ packages:
    * :ref:`ADIOS <adios>`
    * :ref:`ATC <atc>`
    * :ref:`AWPMD <awpmd>`
-   * :ref:`COLVARS <colvars>`
+   * :ref:`COLVARS <colvar>`
    * :ref:`COMPRESS <compress>`
    * :ref:`GPU <gpu>`
    * :ref:`H5MD <h5md>`

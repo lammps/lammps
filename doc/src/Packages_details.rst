@@ -493,22 +493,21 @@ COLVARS package
 
 **Contents:**
 
-Colvars stands for collective variables, which can be used to
-implement various enhanced sampling methods, including Adaptive
-Biasing Force, Metadynamics, Steered MD, Umbrella Sampling and
-Restraints.  A :doc:`fix colvars <fix_colvars>` command is implemented
-which wraps a COLVARS library, which implements these methods.
-simulations.
+Colvars stands for collective variables, which can be used to implement
+various enhanced sampling methods, including Adaptive Biasing Force,
+Metadynamics, Steered MD, Umbrella Sampling and Restraints.  A :doc:`fix
+colvars <fix_colvars>` command is implemented which wraps a COLVARS
+library, which implements these methods.  simulations.
 
-**Authors:** The COLVARS library is written and maintained by
-Giacomo Fiorin (NIH, Bethesda, MD, USA)
-and Jerome Henin (CNRS, Paris, France), originally for
-the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
-(Temple U) provided the interface to LAMMPS.
+**Authors:** The COLVARS library is written and maintained by Giacomo
+Fiorin (NIH, Bethesda, MD, USA) and Jerome Henin (CNRS, Paris, France),
+originally for the NAMD MD code, but with portability in mind.  Axel
+Kohlmeyer (Temple U) provided the interface to LAMMPS.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <colvars>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <colvar>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -517,6 +516,8 @@ This package has :ref:`specific installation instructions <colvars>` on the :doc
 * src/COLVARS/README
 * lib/colvars/README
 * :doc:`fix colvars <fix_colvars>`
+* :doc:`group2ndx <group2ndx>`
+* :doc:`ndx2group <group2ndx>`
 * examples/PACKAGES/colvars
 
 ----------

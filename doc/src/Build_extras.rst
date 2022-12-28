@@ -34,7 +34,7 @@ This is the list of packages that may require additional steps.
    * :ref:`ADIOS <adios>`
    * :ref:`ATC <atc>`
    * :ref:`AWPMD <awpmd>`
-   * :ref:`COLVARS <colvars>`
+   * :ref:`COLVARS <colvar>`
    * :ref:`COMPRESS <compress>`
    * :ref:`ELECTRODE <electrode>`
    * :ref:`GPU <gpu>`
@@ -1268,7 +1268,7 @@ The ATC package requires the MANYBODY package also be installed.
 .. _awpmd:
 
 AWPMD package
-------------------
+-------------
 
 .. tabs::
 
@@ -1316,10 +1316,10 @@ AWPMD package
 
 ----------
 
-.. _colvars:
+.. _colvar:
 
 COLVARS package
----------------------------------------
+---------------
 
 This package enables the use of the `Colvars <https://colvars.github.io/>`_
 module included in the LAMMPS source distribution.

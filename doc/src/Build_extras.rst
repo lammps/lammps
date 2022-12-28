@@ -1347,16 +1347,20 @@ module included in the LAMMPS source distribution.
 
          $ make lib-colvars # print help message
          $ make lib-colvars args="-m mpi" # build with default MPI compiler (settings as with "make mpi")
-         $ make lib-colvars args="-m serial" # build with GNU g++ compiler (settings as with "make serial") 
+         $ make lib-colvars args="-m serial" # build with GNU g++ compiler (settings as with "make serial")
 
       The "machine" argument of the "-m" flag is used to find a
       ``Makefile.machine`` file to use as build recipe.  If such recipe does
       not already exist in ``lib/colvars``, suitable settings will be
       auto-generated consistent with those used in the core LAMMPS makefiles.
 
-      Please note that Colvars uses the Lepton library, which is enabled in
-      the LEPTON package; if you use anything other than the ``make
-      lib-colvars`` command, please make sure to build Lepton beforehand.
+
+      .. versionchanged:: TBD
+
+      Please note that Colvars uses the Lepton library, which is now
+      included with the LEPTON package; if you use anything other than
+      the ``make lib-colvars`` command, please make sure to :ref:`build
+      Lepton beforehand <lepton>`.
 
       Optional flags may be specified as environment variables:
 
@@ -1367,8 +1371,8 @@ module included in the LAMMPS source distribution.
 
       The build should produce two files: the library
       ``lib/colvars/libcolvars.a`` and the specification file
-      ``lib/colvars/Makefile.lammps``.  The latter is auto-generated, and
-      normally does not need to be edited.
+      ``lib/colvars/Makefile.lammps``.  The latter is auto-generated,
+      and normally does not need to be edited.
 
 ----------
 

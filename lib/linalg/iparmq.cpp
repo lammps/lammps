@@ -255,9 +255,9 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
 
     /* Builtin functions */
     double log(doublereal);
-    integer i_nint(real *);
-    /* Subroutine */ int s_copy(char *, char *, ftnlen, ftnlen);
-    integer s_cmp(char *, char *, ftnlen, ftnlen);
+    integer i_lmp_nint(real *);
+    /* Subroutine */ int s_lmp_copy(char *, char *, ftnlen, ftnlen);
+    integer s_lmp_cmp(char *, char *, ftnlen, ftnlen);
 
     /* Local variables */
     integer i__, ic, nh, ns, iz;
@@ -293,7 +293,7 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
         if (nh >= 150) {
 /* Computing MAX */
             r__1 = log((real) nh) / log((float)2.);
-            i__1 = 10, i__2 = nh / i_nint(&r__1);
+            i__1 = 10, i__2 = nh / i_lmp_nint(&r__1);
             ns = max(i__1,i__2);
         }
         if (nh >= 590) {
@@ -356,7 +356,7 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
 /*        Convert NAME to upper case if the first character is lower case. */
 
         ret_val = 0;
-        s_copy(subnam, name__, (ftnlen)6, name_len);
+        s_lmp_copy(subnam, name__, (ftnlen)6, name_len);
         ic = *(unsigned char *)subnam;
         iz = 'Z';
         if (iz == 90 || iz == 122) {
@@ -404,21 +404,21 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
             }
         }
 
-        if (s_cmp(subnam + 1, (char *)"GGHRD", (ftnlen)5, (ftnlen)5) == 0 || s_cmp(
+        if (s_lmp_cmp(subnam + 1, (char *)"GGHRD", (ftnlen)5, (ftnlen)5) == 0 || s_lmp_cmp(
                 subnam + 1, (char *)"GGHD3", (ftnlen)5, (ftnlen)5) == 0) {
             ret_val = 1;
             if (nh >= 14) {
                 ret_val = 2;
             }
-        } else if (s_cmp(subnam + 3, (char *)"EXC", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(subnam + 3, (char *)"EXC", (ftnlen)3, (ftnlen)3) == 0) {
             if (nh >= 14) {
                 ret_val = 1;
             }
             if (nh >= 14) {
                 ret_val = 2;
             }
-        } else if (s_cmp(subnam + 1, (char *)"HSEQR", (ftnlen)5, (ftnlen)5) == 0 ||
-                s_cmp(subnam + 1, (char *)"LAQR", (ftnlen)4, (ftnlen)4) == 0) {
+        } else if (s_lmp_cmp(subnam + 1, (char *)"HSEQR", (ftnlen)5, (ftnlen)5) == 0 ||
+                s_lmp_cmp(subnam + 1, (char *)"LAQR", (ftnlen)4, (ftnlen)4) == 0) {
             if (ns >= 14) {
                 ret_val = 1;
             }

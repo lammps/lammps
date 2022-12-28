@@ -189,7 +189,7 @@ f"> */
     doublecomplex z__1;
 
     /* Builtin functions */
-    void d_cnjg(doublecomplex *, doublecomplex *);
+    void d_lmp_cnjg(doublecomplex *, doublecomplex *);
 
     /* Local variables */
     integer i__, i1, i2, i3, ic, jc, mi, ni, nq;
@@ -319,7 +319,7 @@ f"> */
             i__3 = i__;
             taui.r = tau[i__3].r, taui.i = tau[i__3].i;
         } else {
-            d_cnjg(&z__1, &tau[i__]);
+            d_lmp_cnjg(&z__1, &tau[i__]);
             taui.r = z__1.r, taui.i = z__1.i;
         }
         i__3 = i__ + i__ * a_dim1;

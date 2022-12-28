@@ -248,7 +248,7 @@ f"> */
     char ch__1[2];
 
     /* Builtin functions */
-    /* Subroutine */ int s_cat(char *, char **, integer *, integer *, ftnlen);
+    /* Subroutine */ int s_lmp_cat(char *, char **, integer *, integer *, ftnlen);
     double sqrt(doublereal);
 
     /* Local variables */
@@ -391,7 +391,7 @@ f"> */
 /* Writing concatenation */
             i__1[0] = 1, a__1[0] = jobu;
             i__1[1] = 1, a__1[1] = jobvt;
-            s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
+            s_lmp_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
             mnthr = ilaenv_(&c__6, (char *)"DGESVD", ch__1, m, n, &c__0, &c__0, (
                     ftnlen)6, (ftnlen)2);
             bdspac = *n * 5;
@@ -650,7 +650,7 @@ f"> */
 /* Writing concatenation */
             i__1[0] = 1, a__1[0] = jobu;
             i__1[1] = 1, a__1[1] = jobvt;
-            s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
+            s_lmp_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
             mnthr = ilaenv_(&c__6, (char *)"DGESVD", ch__1, m, n, &c__0, &c__0, (
                     ftnlen)6, (ftnlen)2);
             bdspac = *m * 5;

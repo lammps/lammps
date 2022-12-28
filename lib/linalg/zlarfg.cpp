@@ -135,7 +135,7 @@ f"> */
     doublecomplex z__1, z__2;
 
     /* Builtin functions */
-    double d_imag(doublecomplex *), d_sign(doublereal *, doublereal *);
+    double d_lmp_imag(doublecomplex *), d_lmp_sign(doublereal *, doublereal *);
 
     /* Local variables */
     integer j, knt;
@@ -189,7 +189,7 @@ f"> */
     i__1 = *n - 1;
     xnorm = dznrm2_(&i__1, &x[1], incx);
     alphr = alpha->r;
-    alphi = d_imag(alpha);
+    alphi = d_lmp_imag(alpha);
 
     if (xnorm == 0. && alphi == 0.) {
 
@@ -201,7 +201,7 @@ f"> */
 /*        general case */
 
         d__1 = dlapy3_(&alphr, &alphi, &xnorm);
-        beta = -d_sign(&d__1, &alphr);
+        beta = -d_lmp_sign(&d__1, &alphr);
         safmin = dlamch_((char *)"S", (ftnlen)1) / dlamch_((char *)"E", (ftnlen)1);
         rsafmn = 1. / safmin;
 
@@ -228,7 +228,7 @@ L10:
             z__1.r = alphr, z__1.i = alphi;
             alpha->r = z__1.r, alpha->i = z__1.i;
             d__1 = dlapy3_(&alphr, &alphi, &xnorm);
-            beta = -d_sign(&d__1, &alphr);
+            beta = -d_lmp_sign(&d__1, &alphr);
         }
         d__1 = (beta - alphr) / beta;
         d__2 = -alphi / beta;

@@ -165,7 +165,7 @@ f"> */
     doublereal d__1, d__2, d__3, d__4;
 
     /* Builtin functions */
-    double sqrt(doublereal), log(doublereal), pow_di(doublereal *, integer *);
+    double sqrt(doublereal), log(doublereal), pow_lmp_di(doublereal *, integer *);
 
     /* Local variables */
     doublereal a, b, c__, f;
@@ -281,7 +281,7 @@ f"> */
     eps = dlamch_((char *)"Epsilon", (ftnlen)7);
     base = dlamch_((char *)"Base", (ftnlen)4);
     i__1 = (integer) (log(dlamch_((char *)"SafMin", (ftnlen)6)) / log(base) / 3.);
-    small1 = pow_di(&base, &i__1);
+    small1 = pow_lmp_di(&base, &i__1);
     sminv1 = 1. / small1;
     small2 = small1 * small1;
     sminv2 = sminv1 * sminv1;

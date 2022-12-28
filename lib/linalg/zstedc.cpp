@@ -247,7 +247,7 @@ f"> */
 
     /* Builtin functions */
     double log(doublereal);
-    integer pow_ii(integer *, integer *);
+    integer pow_lmp_ii(integer *, integer *);
     double sqrt(doublereal);
 
     /* Local variables */
@@ -365,10 +365,10 @@ f"> */
             lrwmin = *n - 1 << 1;
         } else if (icompz == 1) {
             lgn = (integer) (log((doublereal) (*n)) / log(2.));
-            if (pow_ii(&c__2, &lgn) < *n) {
+            if (pow_lmp_ii(&c__2, &lgn) < *n) {
                 ++lgn;
             }
-            if (pow_ii(&c__2, &lgn) < *n) {
+            if (pow_lmp_ii(&c__2, &lgn) < *n) {
                 ++lgn;
             }
             lwmin = *n * *n;

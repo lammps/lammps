@@ -139,7 +139,7 @@ f"> */
     doublecomplex z__1, z__2;
 
     /* Builtin functions */
-    void d_cnjg(doublecomplex *, doublecomplex *);
+    void d_lmp_cnjg(doublecomplex *, doublecomplex *);
 
     /* Local variables */
     integer i__, j, l;
@@ -235,7 +235,7 @@ f"> */
                 a[i__1].r = 1., a[i__1].i = 0.;
                 i__1 = *m - i__;
                 i__2 = *n - i__ + 1;
-                d_cnjg(&z__1, &tau[i__]);
+                d_lmp_cnjg(&z__1, &tau[i__]);
                 zlarf_((char *)"Right", &i__1, &i__2, &a[i__ + i__ * a_dim1], lda, &
                         z__1, &a[i__ + 1 + i__ * a_dim1], lda, &work[1], (
                         ftnlen)5);
@@ -248,7 +248,7 @@ f"> */
             zlacgv_(&i__1, &a[i__ + (i__ + 1) * a_dim1], lda);
         }
         i__1 = i__ + i__ * a_dim1;
-        d_cnjg(&z__2, &tau[i__]);
+        d_lmp_cnjg(&z__2, &tau[i__]);
         z__1.r = 1. - z__2.r, z__1.i = 0. - z__2.i;
         a[i__1].r = z__1.r, a[i__1].i = z__1.i;
 

@@ -217,7 +217,7 @@ f"> */
     doublereal d__1;
 
     /* Builtin functions */
-    double sqrt(doublereal), d_sign(doublereal *, doublereal *);
+    double sqrt(doublereal), d_lmp_sign(doublereal *, doublereal *);
 
     /* Local variables */
     integer i__, j, n2, n12, ii, n23, iq2;
@@ -374,7 +374,7 @@ f"> */
     i__1 = *k;
     for (i__ = 1; i__ <= i__1; ++i__) {
         d__1 = sqrt(-w[i__]);
-        w[i__] = d_sign(&d__1, &s[i__]);
+        w[i__] = d_lmp_sign(&d__1, &s[i__]);
 /* L70: */
     }
 

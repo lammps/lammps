@@ -142,7 +142,7 @@ f"> */
     char ch__1[2];
 
     /* Builtin functions */
-    /* Subroutine */ int s_cat(char *, char **, integer *, integer *, ftnlen);
+    /* Subroutine */ int s_lmp_cat(char *, char **, integer *, integer *, ftnlen);
 
     /* Local variables */
     integer j, jb, nb, nn;
@@ -235,7 +235,7 @@ f"> */
 /* Writing concatenation */
     i__2[0] = 1, a__1[0] = uplo;
     i__2[1] = 1, a__1[1] = diag;
-    s_cat(ch__1, a__1, i__2, &c__2, (ftnlen)2);
+    s_lmp_cat(ch__1, a__1, i__2, &c__2, (ftnlen)2);
     nb = ilaenv_(&c__1, (char *)"DTRTRI", ch__1, n, &c_n1, &c_n1, &c_n1, (ftnlen)6, (
             ftnlen)2);
     if (nb <= 1 || nb >= *n) {

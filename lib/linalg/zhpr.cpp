@@ -152,7 +152,7 @@ extern "C" {
     doublecomplex z__1, z__2;
 
     /* Builtin functions */
-    void d_cnjg(doublecomplex *, doublecomplex *);
+    void d_lmp_cnjg(doublecomplex *, doublecomplex *);
 
     /* Local variables */
     integer i__, j, k, kk, ix, jx, kx, info;
@@ -231,7 +231,7 @@ extern "C" {
             for (j = 1; j <= i__1; ++j) {
                 i__2 = j;
                 if (x[i__2].r != 0. || x[i__2].i != 0.) {
-                    d_cnjg(&z__2, &x[j]);
+                    d_lmp_cnjg(&z__2, &x[j]);
                     z__1.r = *alpha * z__2.r, z__1.i = *alpha * z__2.i;
                     temp.r = z__1.r, temp.i = z__1.i;
                     k = kk;
@@ -271,7 +271,7 @@ extern "C" {
             for (j = 1; j <= i__1; ++j) {
                 i__2 = jx;
                 if (x[i__2].r != 0. || x[i__2].i != 0.) {
-                    d_cnjg(&z__2, &x[jx]);
+                    d_lmp_cnjg(&z__2, &x[jx]);
                     z__1.r = *alpha * z__2.r, z__1.i = *alpha * z__2.i;
                     temp.r = z__1.r, temp.i = z__1.i;
                     ix = kx;
@@ -316,7 +316,7 @@ extern "C" {
             for (j = 1; j <= i__1; ++j) {
                 i__2 = j;
                 if (x[i__2].r != 0. || x[i__2].i != 0.) {
-                    d_cnjg(&z__2, &x[j]);
+                    d_lmp_cnjg(&z__2, &x[j]);
                     z__1.r = *alpha * z__2.r, z__1.i = *alpha * z__2.i;
                     temp.r = z__1.r, temp.i = z__1.i;
                     i__2 = kk;
@@ -356,7 +356,7 @@ extern "C" {
             for (j = 1; j <= i__1; ++j) {
                 i__2 = jx;
                 if (x[i__2].r != 0. || x[i__2].i != 0.) {
-                    d_cnjg(&z__2, &x[jx]);
+                    d_lmp_cnjg(&z__2, &x[jx]);
                     z__1.r = *alpha * z__2.r, z__1.i = *alpha * z__2.i;
                     temp.r = z__1.r, temp.i = z__1.i;
                     i__2 = kk;

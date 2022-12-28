@@ -229,7 +229,7 @@ f"> */
     doublecomplex z__1, z__2;
 
     /* Builtin functions */
-    void d_cnjg(doublecomplex *, doublecomplex *);
+    void d_lmp_cnjg(doublecomplex *, doublecomplex *);
 
     /* Local variables */
     integer i__, j;
@@ -371,7 +371,7 @@ f"> */
                     for (i__ = 1; i__ <= i__2; ++i__) {
                         i__3 = j + i__ * c_dim1;
                         i__4 = j + i__ * c_dim1;
-                        d_cnjg(&z__2, &work[i__ + j * work_dim1]);
+                        d_lmp_cnjg(&z__2, &work[i__ + j * work_dim1]);
                         z__1.r = c__[i__4].r - z__2.r, z__1.i = c__[i__4].i -
                                 z__2.i;
                         c__[i__3].r = z__1.r, c__[i__3].i = z__1.i;
@@ -529,7 +529,7 @@ f"> */
                     for (i__ = 1; i__ <= i__2; ++i__) {
                         i__3 = *m - *k + j + i__ * c_dim1;
                         i__4 = *m - *k + j + i__ * c_dim1;
-                        d_cnjg(&z__2, &work[i__ + j * work_dim1]);
+                        d_lmp_cnjg(&z__2, &work[i__ + j * work_dim1]);
                         z__1.r = c__[i__4].r - z__2.r, z__1.i = c__[i__4].i -
                                 z__2.i;
                         c__[i__3].r = z__1.r, c__[i__3].i = z__1.i;
@@ -689,7 +689,7 @@ f"> */
                     for (i__ = 1; i__ <= i__2; ++i__) {
                         i__3 = j + i__ * c_dim1;
                         i__4 = j + i__ * c_dim1;
-                        d_cnjg(&z__2, &work[i__ + j * work_dim1]);
+                        d_lmp_cnjg(&z__2, &work[i__ + j * work_dim1]);
                         z__1.r = c__[i__4].r - z__2.r, z__1.i = c__[i__4].i -
                                 z__2.i;
                         c__[i__3].r = z__1.r, c__[i__3].i = z__1.i;
@@ -848,7 +848,7 @@ f"> */
                     for (i__ = 1; i__ <= i__2; ++i__) {
                         i__3 = *m - *k + j + i__ * c_dim1;
                         i__4 = *m - *k + j + i__ * c_dim1;
-                        d_cnjg(&z__2, &work[i__ + j * work_dim1]);
+                        d_lmp_cnjg(&z__2, &work[i__ + j * work_dim1]);
                         z__1.r = c__[i__4].r - z__2.r, z__1.i = c__[i__4].i -
                                 z__2.i;
                         c__[i__3].r = z__1.r, c__[i__3].i = z__1.i;

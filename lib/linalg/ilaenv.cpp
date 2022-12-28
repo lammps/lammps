@@ -193,8 +193,8 @@ integer ilaenv_(integer *ispec, char *name__, char *opts, integer *n1,
     integer ret_val, i__1, i__2, i__3;
 
     /* Builtin functions */
-    /* Subroutine */ int s_copy(char *, char *, ftnlen, ftnlen);
-    integer i_len(char *, ftnlen), s_cmp(char *, char *, ftnlen, ftnlen);
+    /* Subroutine */ int s_lmp_copy(char *, char *, ftnlen, ftnlen);
+    integer i_lmp_len(char *, ftnlen), s_lmp_cmp(char *, char *, ftnlen, ftnlen);
 
     /* Local variables */
     logical twostage;
@@ -257,7 +257,7 @@ L10:
 /*     Convert NAME to upper case if the first character is lower case. */
 
     ret_val = 1;
-    s_copy(subnam, name__, (ftnlen)16, name_len);
+    s_lmp_copy(subnam, name__, (ftnlen)16, name_len);
     ic = *(unsigned char *)subnam;
     iz = 'Z';
     if (iz == 90 || iz == 122) {
@@ -314,10 +314,10 @@ L10:
     if (! (cname || sname)) {
         return ret_val;
     }
-    s_copy(c2, subnam + 1, (ftnlen)2, (ftnlen)2);
-    s_copy(c3, subnam + 3, (ftnlen)3, (ftnlen)3);
-    s_copy(c4, c3 + 1, (ftnlen)2, (ftnlen)2);
-    twostage = i_len(subnam, (ftnlen)16) >= 11 && *(unsigned char *)&subnam[
+    s_lmp_copy(c2, subnam + 1, (ftnlen)2, (ftnlen)2);
+    s_lmp_copy(c3, subnam + 3, (ftnlen)3, (ftnlen)3);
+    s_lmp_copy(c4, c3 + 1, (ftnlen)2, (ftnlen)2);
+    twostage = i_lmp_len(subnam, (ftnlen)16) >= 11 && *(unsigned char *)&subnam[
             10] == '2';
 
     switch (*ispec) {
@@ -336,7 +336,7 @@ L50:
 
     nb = 1;
 
-    if (s_cmp(subnam + 1, (char *)"LAORH", (ftnlen)5, (ftnlen)5) == 0) {
+    if (s_lmp_cmp(subnam + 1, (char *)"LAORH", (ftnlen)5, (ftnlen)5) == 0) {
 
 /*        This is for *LAORHR_GETRFNP routine */
 
@@ -345,23 +345,23 @@ L50:
         } else {
             nb = 32;
         }
-    } else if (s_cmp(c2, (char *)"GE", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"GE", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nb = 64;
             } else {
                 nb = 64;
             }
-        } else if (s_cmp(c3, (char *)"QRF", (ftnlen)3, (ftnlen)3) == 0 || s_cmp(c3,
-                (char *)"RQF", (ftnlen)3, (ftnlen)3) == 0 || s_cmp(c3, (char *)"LQF", (ftnlen)
-                3, (ftnlen)3) == 0 || s_cmp(c3, (char *)"QLF", (ftnlen)3, (ftnlen)3)
+        } else if (s_lmp_cmp(c3, (char *)"QRF", (ftnlen)3, (ftnlen)3) == 0 || s_lmp_cmp(c3,
+                (char *)"RQF", (ftnlen)3, (ftnlen)3) == 0 || s_lmp_cmp(c3, (char *)"LQF", (ftnlen)
+                3, (ftnlen)3) == 0 || s_lmp_cmp(c3, (char *)"QLF", (ftnlen)3, (ftnlen)3)
                 == 0) {
             if (sname) {
                 nb = 32;
             } else {
                 nb = 32;
             }
-        } else if (s_cmp(c3, (char *)"QR ", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"QR ", (ftnlen)3, (ftnlen)3) == 0) {
             if (*n3 == 1) {
                 if (sname) {
 /*     M*N */
@@ -384,7 +384,7 @@ L50:
                     nb = 1;
                 }
             }
-        } else if (s_cmp(c3, (char *)"LQ ", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"LQ ", (ftnlen)3, (ftnlen)3) == 0) {
             if (*n3 == 2) {
                 if (sname) {
 /*     M*N */
@@ -407,35 +407,35 @@ L50:
                     nb = 1;
                 }
             }
-        } else if (s_cmp(c3, (char *)"HRD", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"HRD", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nb = 32;
             } else {
                 nb = 32;
             }
-        } else if (s_cmp(c3, (char *)"BRD", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"BRD", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nb = 32;
             } else {
                 nb = 32;
             }
-        } else if (s_cmp(c3, (char *)"TRI", (ftnlen)3, (ftnlen)3) == 0) {
-            if (sname) {
-                nb = 64;
-            } else {
-                nb = 64;
-            }
-        }
-    } else if (s_cmp(c2, (char *)"PO", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"TRI", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nb = 64;
             } else {
                 nb = 64;
             }
         }
-    } else if (s_cmp(c2, (char *)"SY", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"PO", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
+            if (sname) {
+                nb = 64;
+            } else {
+                nb = 64;
+            }
+        }
+    } else if (s_lmp_cmp(c2, (char *)"SY", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 if (twostage) {
                     nb = 192;
@@ -449,65 +449,65 @@ L50:
                     nb = 64;
                 }
             }
-        } else if (sname && s_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (sname && s_lmp_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
             nb = 32;
-        } else if (sname && s_cmp(c3, (char *)"GST", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (sname && s_lmp_cmp(c3, (char *)"GST", (ftnlen)3, (ftnlen)3) == 0) {
             nb = 64;
         }
-    } else if (cname && s_cmp(c2, (char *)"HE", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (cname && s_lmp_cmp(c2, (char *)"HE", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
             if (twostage) {
                 nb = 192;
             } else {
                 nb = 64;
             }
-        } else if (s_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
             nb = 32;
-        } else if (s_cmp(c3, (char *)"GST", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"GST", (ftnlen)3, (ftnlen)3) == 0) {
             nb = 64;
         }
-    } else if (sname && s_cmp(c2, (char *)"OR", (ftnlen)2, (ftnlen)2) == 0) {
+    } else if (sname && s_lmp_cmp(c2, (char *)"OR", (ftnlen)2, (ftnlen)2) == 0) {
         if (*(unsigned char *)c3 == 'G') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nb = 32;
             }
         } else if (*(unsigned char *)c3 == 'M') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nb = 32;
             }
         }
-    } else if (cname && s_cmp(c2, (char *)"UN", (ftnlen)2, (ftnlen)2) == 0) {
+    } else if (cname && s_lmp_cmp(c2, (char *)"UN", (ftnlen)2, (ftnlen)2) == 0) {
         if (*(unsigned char *)c3 == 'G') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nb = 32;
             }
         } else if (*(unsigned char *)c3 == 'M') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nb = 32;
             }
         }
-    } else if (s_cmp(c2, (char *)"GB", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"GB", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 if (*n4 <= 64) {
                     nb = 1;
@@ -522,8 +522,8 @@ L50:
                 }
             }
         }
-    } else if (s_cmp(c2, (char *)"PB", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"PB", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 if (*n2 <= 64) {
                     nb = 1;
@@ -538,20 +538,20 @@ L50:
                 }
             }
         }
-    } else if (s_cmp(c2, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRI", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRI", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nb = 64;
             } else {
                 nb = 64;
             }
-        } else if (s_cmp(c3, (char *)"EVC", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"EVC", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nb = 64;
             } else {
                 nb = 64;
             }
-        } else if (s_cmp(c3, (char *)"SYL", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"SYL", (ftnlen)3, (ftnlen)3) == 0) {
 /*           The upper bound is to prevent overly aggressive scaling. */
             if (sname) {
 /* Computing MIN */
@@ -567,27 +567,27 @@ L50:
                 nb = min(i__1,80);
             }
         }
-    } else if (s_cmp(c2, (char *)"LA", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"UUM", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"LA", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"UUM", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nb = 64;
             } else {
                 nb = 64;
             }
-        } else if (s_cmp(c3, (char *)"TRS", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"TRS", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nb = 32;
             } else {
                 nb = 32;
             }
         }
-    } else if (sname && s_cmp(c2, (char *)"ST", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"EBZ", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (sname && s_lmp_cmp(c2, (char *)"ST", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"EBZ", (ftnlen)3, (ftnlen)3) == 0) {
             nb = 1;
         }
-    } else if (s_cmp(c2, (char *)"GG", (ftnlen)2, (ftnlen)2) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"GG", (ftnlen)2, (ftnlen)2) == 0) {
         nb = 32;
-        if (s_cmp(c3, (char *)"HD3", (ftnlen)3, (ftnlen)3) == 0) {
+        if (s_lmp_cmp(c3, (char *)"HD3", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nb = 32;
             } else {
@@ -603,92 +603,92 @@ L60:
 /*     ISPEC = 2:  minimum block size */
 
     nbmin = 2;
-    if (s_cmp(c2, (char *)"GE", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"QRF", (ftnlen)3, (ftnlen)3) == 0 || s_cmp(c3, (char *)"RQF", (
-                ftnlen)3, (ftnlen)3) == 0 || s_cmp(c3, (char *)"LQF", (ftnlen)3, (
-                ftnlen)3) == 0 || s_cmp(c3, (char *)"QLF", (ftnlen)3, (ftnlen)3) == 0)
+    if (s_lmp_cmp(c2, (char *)"GE", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"QRF", (ftnlen)3, (ftnlen)3) == 0 || s_lmp_cmp(c3, (char *)"RQF", (
+                ftnlen)3, (ftnlen)3) == 0 || s_lmp_cmp(c3, (char *)"LQF", (ftnlen)3, (
+                ftnlen)3) == 0 || s_lmp_cmp(c3, (char *)"QLF", (ftnlen)3, (ftnlen)3) == 0)
                  {
             if (sname) {
                 nbmin = 2;
             } else {
                 nbmin = 2;
             }
-        } else if (s_cmp(c3, (char *)"HRD", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"HRD", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nbmin = 2;
             } else {
                 nbmin = 2;
             }
-        } else if (s_cmp(c3, (char *)"BRD", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"BRD", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nbmin = 2;
             } else {
                 nbmin = 2;
             }
-        } else if (s_cmp(c3, (char *)"TRI", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"TRI", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nbmin = 2;
             } else {
                 nbmin = 2;
             }
         }
-    } else if (s_cmp(c2, (char *)"SY", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"SY", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRF", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nbmin = 8;
             } else {
                 nbmin = 8;
             }
-        } else if (sname && s_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (sname && s_lmp_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
             nbmin = 2;
         }
-    } else if (cname && s_cmp(c2, (char *)"HE", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (cname && s_lmp_cmp(c2, (char *)"HE", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
             nbmin = 2;
         }
-    } else if (sname && s_cmp(c2, (char *)"OR", (ftnlen)2, (ftnlen)2) == 0) {
+    } else if (sname && s_lmp_cmp(c2, (char *)"OR", (ftnlen)2, (ftnlen)2) == 0) {
         if (*(unsigned char *)c3 == 'G') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nbmin = 2;
             }
         } else if (*(unsigned char *)c3 == 'M') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nbmin = 2;
             }
         }
-    } else if (cname && s_cmp(c2, (char *)"UN", (ftnlen)2, (ftnlen)2) == 0) {
+    } else if (cname && s_lmp_cmp(c2, (char *)"UN", (ftnlen)2, (ftnlen)2) == 0) {
         if (*(unsigned char *)c3 == 'G') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nbmin = 2;
             }
         } else if (*(unsigned char *)c3 == 'M') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nbmin = 2;
             }
         }
-    } else if (s_cmp(c2, (char *)"GG", (ftnlen)2, (ftnlen)2) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"GG", (ftnlen)2, (ftnlen)2) == 0) {
         nbmin = 2;
-        if (s_cmp(c3, (char *)"HD3", (ftnlen)3, (ftnlen)3) == 0) {
+        if (s_lmp_cmp(c3, (char *)"HD3", (ftnlen)3, (ftnlen)3) == 0) {
             nbmin = 2;
         }
     }
@@ -700,62 +700,62 @@ L70:
 /*     ISPEC = 3:  crossover point */
 
     nx = 0;
-    if (s_cmp(c2, (char *)"GE", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"QRF", (ftnlen)3, (ftnlen)3) == 0 || s_cmp(c3, (char *)"RQF", (
-                ftnlen)3, (ftnlen)3) == 0 || s_cmp(c3, (char *)"LQF", (ftnlen)3, (
-                ftnlen)3) == 0 || s_cmp(c3, (char *)"QLF", (ftnlen)3, (ftnlen)3) == 0)
+    if (s_lmp_cmp(c2, (char *)"GE", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"QRF", (ftnlen)3, (ftnlen)3) == 0 || s_lmp_cmp(c3, (char *)"RQF", (
+                ftnlen)3, (ftnlen)3) == 0 || s_lmp_cmp(c3, (char *)"LQF", (ftnlen)3, (
+                ftnlen)3) == 0 || s_lmp_cmp(c3, (char *)"QLF", (ftnlen)3, (ftnlen)3) == 0)
                  {
             if (sname) {
                 nx = 128;
             } else {
                 nx = 128;
             }
-        } else if (s_cmp(c3, (char *)"HRD", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"HRD", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nx = 128;
             } else {
                 nx = 128;
             }
-        } else if (s_cmp(c3, (char *)"BRD", (ftnlen)3, (ftnlen)3) == 0) {
+        } else if (s_lmp_cmp(c3, (char *)"BRD", (ftnlen)3, (ftnlen)3) == 0) {
             if (sname) {
                 nx = 128;
             } else {
                 nx = 128;
             }
         }
-    } else if (s_cmp(c2, (char *)"SY", (ftnlen)2, (ftnlen)2) == 0) {
-        if (sname && s_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"SY", (ftnlen)2, (ftnlen)2) == 0) {
+        if (sname && s_lmp_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
             nx = 32;
         }
-    } else if (cname && s_cmp(c2, (char *)"HE", (ftnlen)2, (ftnlen)2) == 0) {
-        if (s_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
+    } else if (cname && s_lmp_cmp(c2, (char *)"HE", (ftnlen)2, (ftnlen)2) == 0) {
+        if (s_lmp_cmp(c3, (char *)"TRD", (ftnlen)3, (ftnlen)3) == 0) {
             nx = 32;
         }
-    } else if (sname && s_cmp(c2, (char *)"OR", (ftnlen)2, (ftnlen)2) == 0) {
+    } else if (sname && s_lmp_cmp(c2, (char *)"OR", (ftnlen)2, (ftnlen)2) == 0) {
         if (*(unsigned char *)c3 == 'G') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nx = 128;
             }
         }
-    } else if (cname && s_cmp(c2, (char *)"UN", (ftnlen)2, (ftnlen)2) == 0) {
+    } else if (cname && s_lmp_cmp(c2, (char *)"UN", (ftnlen)2, (ftnlen)2) == 0) {
         if (*(unsigned char *)c3 == 'G') {
-            if (s_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"RQ",
-                    (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"LQ", (ftnlen)2, (
-                    ftnlen)2) == 0 || s_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
-                     0 || s_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(
-                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_cmp(c4, (char *)"BR", (
+            if (s_lmp_cmp(c4, (char *)"QR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"RQ",
+                    (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"LQ", (ftnlen)2, (
+                    ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"QL", (ftnlen)2, (ftnlen)2) ==
+                     0 || s_lmp_cmp(c4, (char *)"HR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(
+                    c4, (char *)"TR", (ftnlen)2, (ftnlen)2) == 0 || s_lmp_cmp(c4, (char *)"BR", (
                     ftnlen)2, (ftnlen)2) == 0) {
                 nx = 128;
             }
         }
-    } else if (s_cmp(c2, (char *)"GG", (ftnlen)2, (ftnlen)2) == 0) {
+    } else if (s_lmp_cmp(c2, (char *)"GG", (ftnlen)2, (ftnlen)2) == 0) {
         nx = 128;
-        if (s_cmp(c3, (char *)"HD3", (ftnlen)3, (ftnlen)3) == 0) {
+        if (s_lmp_cmp(c3, (char *)"HD3", (ftnlen)3, (ftnlen)3) == 0) {
             nx = 128;
         }
     }

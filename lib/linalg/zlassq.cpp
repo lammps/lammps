@@ -132,7 +132,7 @@ f"> */
     doublereal d__1;
 
     /* Builtin functions */
-    double d_imag(doublecomplex *);
+    double d_lmp_imag(doublecomplex *);
 
     /* Local variables */
     integer ix;
@@ -184,7 +184,7 @@ f"> */
                     *sumsq += d__1 * d__1;
                 }
             }
-            temp1 = (d__1 = d_imag(&x[ix]), abs(d__1));
+            temp1 = (d__1 = d_lmp_imag(&x[ix]), abs(d__1));
             if (temp1 > 0. || disnan_(&temp1)) {
                 if (*scale < temp1) {
 /* Computing 2nd power */

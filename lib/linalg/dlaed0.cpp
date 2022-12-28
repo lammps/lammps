@@ -208,7 +208,7 @@ f"> */
 
     /* Builtin functions */
     double log(doublereal);
-    integer pow_ii(integer *, integer *);
+    integer pow_lmp_ii(integer *, integer *);
 
     /* Local variables */
     integer i__, j, k, iq, lgn, msd2, smm1, spm1, spm2;
@@ -354,10 +354,10 @@ L10:
 
         temp = log((doublereal) (*n)) / log(2.);
         lgn = (integer) temp;
-        if (pow_ii(&c__2, &lgn) < *n) {
+        if (pow_lmp_ii(&c__2, &lgn) < *n) {
             ++lgn;
         }
-        if (pow_ii(&c__2, &lgn) < *n) {
+        if (pow_lmp_ii(&c__2, &lgn) < *n) {
             ++lgn;
         }
         iprmpt = indxq + *n + 1;

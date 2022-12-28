@@ -1,30 +1,31 @@
 
-#include <exception>
-#include <string>
+#include "lmp_f2c.h"
 
-class LinalgException : public std::exception {
-  std::string message;
-
- public:
-  LinalgException() = delete;
-
-  explicit LinalgException(const std::string &msg) { message = msg; }
-  const char *what() const noexcept override { return message.c_str(); }
-};
+#undef abs
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 extern "C" {
 
-#include "lmp_f2c.h"
+static constexpr int BUFSZ = 1024;
 
 integer xerbla_(const char *srname, integer *info)
 {
-  std::string mesg = " ** On entry to ";
-  for (int i = 0; i < 1024; ++i) {
-    if ((srname[i] == '\0') || (srname[i] == ' ')) break;
-    mesg.push_back(srname[i]);
-  }
-  mesg += " parameter number " + std::to_string(*info) + " had an illegal value\n";
-  throw LinalgException(mesg);
-  return 0;
+    char buf[BUFSZ];
+    buf[0] = '\0';
+
+    strcat(buf, " ** On entry to ");
+    for (int i = 0; i < BUFSZ - 16; ++i) {
+        if ((srname[i] == '\0') || (srname[i] == ' ')) {
+            buf[i + 16] = '\0';
+            break;
+        }
+        buf[i + 16] = srname[i];
+    }
+    int len = strlen(buf);
+    snprintf(buf+len, BUFSZ-len, " parameter number %d had an illegal value\n", *info);
+    exit(1);
+    return 0;
 }
 }

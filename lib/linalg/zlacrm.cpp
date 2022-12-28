@@ -146,7 +146,7 @@ f"> */
     doublecomplex z__1;
 
     /* Builtin functions */
-    double d_imag(doublecomplex *);
+    double d_lmp_imag(doublecomplex *);
 
     /* Local variables */
     integer i__, j, l;
@@ -225,7 +225,7 @@ f"> */
     for (j = 1; j <= i__1; ++j) {
         i__2 = *m;
         for (i__ = 1; i__ <= i__2; ++i__) {
-            rwork[(j - 1) * *m + i__] = d_imag(&a[i__ + j * a_dim1]);
+            rwork[(j - 1) * *m + i__] = d_lmp_imag(&a[i__ + j * a_dim1]);
 /* L50: */
         }
 /* L60: */

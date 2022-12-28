@@ -100,7 +100,7 @@ extern "C" {
     doublecomplex z__1;
 
     /* Builtin functions */
-    double d_imag(doublecomplex *);
+    double d_lmp_imag(doublecomplex *);
 
     /* Local variables */
     integer i__, nincx;
@@ -138,7 +138,7 @@ extern "C" {
             i__2 = i__;
             i__3 = i__;
             d__1 = *da * zx[i__3].r;
-            d__2 = *da * d_imag(&zx[i__]);
+            d__2 = *da * d_lmp_imag(&zx[i__]);
             z__1.r = d__1, z__1.i = d__2;
             zx[i__2].r = z__1.r, zx[i__2].i = z__1.i;
         }
@@ -153,7 +153,7 @@ extern "C" {
             i__3 = i__;
             i__4 = i__;
             d__1 = *da * zx[i__4].r;
-            d__2 = *da * d_imag(&zx[i__]);
+            d__2 = *da * d_lmp_imag(&zx[i__]);
             z__1.r = d__1, z__1.i = d__2;
             zx[i__3].r = z__1.r, zx[i__3].i = z__1.i;
         }

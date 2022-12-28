@@ -223,7 +223,7 @@ extern "C" {
     doublecomplex z__1, z__2, z__3, z__4, z__5, z__6;
 
     /* Builtin functions */
-    void d_cnjg(doublecomplex *, doublecomplex *);
+    void d_lmp_cnjg(doublecomplex *, doublecomplex *);
 
     /* Local variables */
     integer i__, j, l, info;
@@ -418,7 +418,7 @@ extern "C" {
                     i__4 = j + l * b_dim1;
                     if (a[i__3].r != 0. || a[i__3].i != 0. || (b[i__4].r !=
                             0. || b[i__4].i != 0.)) {
-                        d_cnjg(&z__2, &b[j + l * b_dim1]);
+                        d_lmp_cnjg(&z__2, &b[j + l * b_dim1]);
                         z__1.r = alpha->r * z__2.r - alpha->i * z__2.i,
                                 z__1.i = alpha->r * z__2.i + alpha->i *
                                 z__2.r;
@@ -427,7 +427,7 @@ extern "C" {
                         z__2.r = alpha->r * a[i__3].r - alpha->i * a[i__3].i,
                                 z__2.i = alpha->r * a[i__3].i + alpha->i * a[
                                 i__3].r;
-                        d_cnjg(&z__1, &z__2);
+                        d_lmp_cnjg(&z__1, &z__2);
                         temp2.r = z__1.r, temp2.i = z__1.i;
                         i__3 = j - 1;
                         for (i__ = 1; i__ <= i__3; ++i__) {
@@ -502,7 +502,7 @@ extern "C" {
                     i__4 = j + l * b_dim1;
                     if (a[i__3].r != 0. || a[i__3].i != 0. || (b[i__4].r !=
                             0. || b[i__4].i != 0.)) {
-                        d_cnjg(&z__2, &b[j + l * b_dim1]);
+                        d_lmp_cnjg(&z__2, &b[j + l * b_dim1]);
                         z__1.r = alpha->r * z__2.r - alpha->i * z__2.i,
                                 z__1.i = alpha->r * z__2.i + alpha->i *
                                 z__2.r;
@@ -511,7 +511,7 @@ extern "C" {
                         z__2.r = alpha->r * a[i__3].r - alpha->i * a[i__3].i,
                                 z__2.i = alpha->r * a[i__3].i + alpha->i * a[
                                 i__3].r;
-                        d_cnjg(&z__1, &z__2);
+                        d_lmp_cnjg(&z__1, &z__2);
                         temp2.r = z__1.r, temp2.i = z__1.i;
                         i__3 = *n;
                         for (i__ = j + 1; i__ <= i__3; ++i__) {
@@ -565,14 +565,14 @@ extern "C" {
                     temp2.r = 0., temp2.i = 0.;
                     i__3 = *k;
                     for (l = 1; l <= i__3; ++l) {
-                        d_cnjg(&z__3, &a[l + i__ * a_dim1]);
+                        d_lmp_cnjg(&z__3, &a[l + i__ * a_dim1]);
                         i__4 = l + j * b_dim1;
                         z__2.r = z__3.r * b[i__4].r - z__3.i * b[i__4].i,
                                 z__2.i = z__3.r * b[i__4].i + z__3.i * b[i__4]
                                 .r;
                         z__1.r = temp1.r + z__2.r, z__1.i = temp1.i + z__2.i;
                         temp1.r = z__1.r, temp1.i = z__1.i;
-                        d_cnjg(&z__3, &b[l + i__ * b_dim1]);
+                        d_lmp_cnjg(&z__3, &b[l + i__ * b_dim1]);
                         i__4 = l + j * a_dim1;
                         z__2.r = z__3.r * a[i__4].r - z__3.i * a[i__4].i,
                                 z__2.i = z__3.r * a[i__4].i + z__3.i * a[i__4]
@@ -587,7 +587,7 @@ extern "C" {
                             z__2.r = alpha->r * temp1.r - alpha->i * temp1.i,
                                     z__2.i = alpha->r * temp1.i + alpha->i *
                                     temp1.r;
-                            d_cnjg(&z__4, alpha);
+                            d_lmp_cnjg(&z__4, alpha);
                             z__3.r = z__4.r * temp2.r - z__4.i * temp2.i,
                                     z__3.i = z__4.r * temp2.i + z__4.i *
                                     temp2.r;
@@ -601,7 +601,7 @@ extern "C" {
                             z__2.r = alpha->r * temp1.r - alpha->i * temp1.i,
                                     z__2.i = alpha->r * temp1.i + alpha->i *
                                     temp1.r;
-                            d_cnjg(&z__4, alpha);
+                            d_lmp_cnjg(&z__4, alpha);
                             z__3.r = z__4.r * temp2.r - z__4.i * temp2.i,
                                     z__3.i = z__4.r * temp2.i + z__4.i *
                                     temp2.r;
@@ -616,7 +616,7 @@ extern "C" {
                             z__2.r = alpha->r * temp1.r - alpha->i * temp1.i,
                                     z__2.i = alpha->r * temp1.i + alpha->i *
                                     temp1.r;
-                            d_cnjg(&z__4, alpha);
+                            d_lmp_cnjg(&z__4, alpha);
                             z__3.r = z__4.r * temp2.r - z__4.i * temp2.i,
                                     z__3.i = z__4.r * temp2.i + z__4.i *
                                     temp2.r;
@@ -633,7 +633,7 @@ extern "C" {
                                     temp1.r;
                             z__2.r = z__3.r + z__4.r, z__2.i = z__3.i +
                                     z__4.i;
-                            d_cnjg(&z__6, alpha);
+                            d_lmp_cnjg(&z__6, alpha);
                             z__5.r = z__6.r * temp2.r - z__6.i * temp2.i,
                                     z__5.i = z__6.r * temp2.i + z__6.i *
                                     temp2.r;
@@ -655,14 +655,14 @@ extern "C" {
                     temp2.r = 0., temp2.i = 0.;
                     i__3 = *k;
                     for (l = 1; l <= i__3; ++l) {
-                        d_cnjg(&z__3, &a[l + i__ * a_dim1]);
+                        d_lmp_cnjg(&z__3, &a[l + i__ * a_dim1]);
                         i__4 = l + j * b_dim1;
                         z__2.r = z__3.r * b[i__4].r - z__3.i * b[i__4].i,
                                 z__2.i = z__3.r * b[i__4].i + z__3.i * b[i__4]
                                 .r;
                         z__1.r = temp1.r + z__2.r, z__1.i = temp1.i + z__2.i;
                         temp1.r = z__1.r, temp1.i = z__1.i;
-                        d_cnjg(&z__3, &b[l + i__ * b_dim1]);
+                        d_lmp_cnjg(&z__3, &b[l + i__ * b_dim1]);
                         i__4 = l + j * a_dim1;
                         z__2.r = z__3.r * a[i__4].r - z__3.i * a[i__4].i,
                                 z__2.i = z__3.r * a[i__4].i + z__3.i * a[i__4]
@@ -677,7 +677,7 @@ extern "C" {
                             z__2.r = alpha->r * temp1.r - alpha->i * temp1.i,
                                     z__2.i = alpha->r * temp1.i + alpha->i *
                                     temp1.r;
-                            d_cnjg(&z__4, alpha);
+                            d_lmp_cnjg(&z__4, alpha);
                             z__3.r = z__4.r * temp2.r - z__4.i * temp2.i,
                                     z__3.i = z__4.r * temp2.i + z__4.i *
                                     temp2.r;
@@ -691,7 +691,7 @@ extern "C" {
                             z__2.r = alpha->r * temp1.r - alpha->i * temp1.i,
                                     z__2.i = alpha->r * temp1.i + alpha->i *
                                     temp1.r;
-                            d_cnjg(&z__4, alpha);
+                            d_lmp_cnjg(&z__4, alpha);
                             z__3.r = z__4.r * temp2.r - z__4.i * temp2.i,
                                     z__3.i = z__4.r * temp2.i + z__4.i *
                                     temp2.r;
@@ -706,7 +706,7 @@ extern "C" {
                             z__2.r = alpha->r * temp1.r - alpha->i * temp1.i,
                                     z__2.i = alpha->r * temp1.i + alpha->i *
                                     temp1.r;
-                            d_cnjg(&z__4, alpha);
+                            d_lmp_cnjg(&z__4, alpha);
                             z__3.r = z__4.r * temp2.r - z__4.i * temp2.i,
                                     z__3.i = z__4.r * temp2.i + z__4.i *
                                     temp2.r;
@@ -723,7 +723,7 @@ extern "C" {
                                     temp1.r;
                             z__2.r = z__3.r + z__4.r, z__2.i = z__3.i +
                                     z__4.i;
-                            d_cnjg(&z__6, alpha);
+                            d_lmp_cnjg(&z__6, alpha);
                             z__5.r = z__6.r * temp2.r - z__6.i * temp2.i,
                                     z__5.i = z__6.r * temp2.i + z__6.i *
                                     temp2.r;

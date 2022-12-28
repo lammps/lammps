@@ -201,7 +201,7 @@ f"> */
     char ch__1[2];
 
     /* Builtin functions */
-    /* Subroutine */ int s_cat(char *, char **, integer *, integer *, ftnlen);
+    /* Subroutine */ int s_lmp_cat(char *, char **, integer *, integer *, ftnlen);
 
     /* Local variables */
     integer i__, i1, i2, i3, ib, ic, jc, nb, mi, ni, nq, nw, iwt;
@@ -302,7 +302,7 @@ f"> */
 /* Writing concatenation */
         i__3[0] = 1, a__1[0] = side;
         i__3[1] = 1, a__1[1] = trans;
-        s_cat(ch__1, a__1, i__3, &c__2, (ftnlen)2);
+        s_lmp_cat(ch__1, a__1, i__3, &c__2, (ftnlen)2);
         i__1 = 64, i__2 = ilaenv_(&c__1, (char *)"DORMLQ", ch__1, m, n, k, &c_n1, (
                 ftnlen)6, (ftnlen)2);
         nb = min(i__1,i__2);
@@ -334,7 +334,7 @@ f"> */
 /* Writing concatenation */
             i__3[0] = 1, a__1[0] = side;
             i__3[1] = 1, a__1[1] = trans;
-            s_cat(ch__1, a__1, i__3, &c__2, (ftnlen)2);
+            s_lmp_cat(ch__1, a__1, i__3, &c__2, (ftnlen)2);
             i__1 = 2, i__2 = ilaenv_(&c__2, (char *)"DORMLQ", ch__1, m, n, k, &c_n1, (
                     ftnlen)6, (ftnlen)2);
             nbmin = max(i__1,i__2);

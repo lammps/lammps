@@ -165,7 +165,7 @@ f"> */
     doublereal d__1;
 
     /* Builtin functions */
-    integer i_dnnt(doublereal *);
+    integer i_lmp_dnnt(doublereal *);
 
     /* Local variables */
     integer i__;
@@ -246,7 +246,7 @@ L20:
         } else {
             x[i__] = -1.;
         }
-        isgn[i__] = i_dnnt(&x[i__]);
+        isgn[i__] = i_lmp_dnnt(&x[i__]);
 /* L30: */
     }
     *kase = 2;
@@ -287,7 +287,7 @@ L70:
         } else {
             xs = -1.;
         }
-        if (i_dnnt(&xs) != isgn[i__]) {
+        if (i_lmp_dnnt(&xs) != isgn[i__]) {
             goto L90;
         }
 /* L80: */
@@ -308,7 +308,7 @@ L90:
         } else {
             x[i__] = -1.;
         }
-        isgn[i__] = i_dnnt(&x[i__]);
+        isgn[i__] = i_lmp_dnnt(&x[i__]);
 /* L100: */
     }
     *kase = 2;

@@ -93,7 +93,7 @@ f"> */
 /* Subroutine */ int dlabad_(doublereal *small, doublereal *large)
 {
     /* Builtin functions */
-    double d_lg10(doublereal *), sqrt(doublereal);
+    double d_lmp_lg10(doublereal *), sqrt(doublereal);
 
 
 /*  -- LAPACK auxiliary routine -- */
@@ -112,7 +112,7 @@ f"> */
 /*     If it looks like we're on a Cray, take the square root of */
 /*     SMALL and LARGE to avoid overflow and underflow problems. */
 
-    if (d_lg10(large) > 2e3) {
+    if (d_lmp_lg10(large) > 2e3) {
         *small = sqrt(*small);
         *large = sqrt(*large);
     }

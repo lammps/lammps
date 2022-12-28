@@ -130,7 +130,7 @@ f"> */
     doublereal d__1;
 
     /* Builtin functions */
-    double d_sign(doublereal *, doublereal *);
+    double d_lmp_sign(doublereal *, doublereal *);
 
     /* Local variables */
     integer j, knt;
@@ -189,7 +189,7 @@ f"> */
 /*        general case */
 
         d__1 = dlapy2_(alpha, &xnorm);
-        beta = -d_sign(&d__1, alpha);
+        beta = -d_lmp_sign(&d__1, alpha);
         safmin = dlamch_((char *)"S", (ftnlen)1) / dlamch_((char *)"E", (ftnlen)1);
         knt = 0;
         if (abs(beta) < safmin) {
@@ -212,7 +212,7 @@ L10:
             i__1 = *n - 1;
             xnorm = dnrm2_(&i__1, &x[1], incx);
             d__1 = dlapy2_(alpha, &xnorm);
-            beta = -d_sign(&d__1, alpha);
+            beta = -d_lmp_sign(&d__1, alpha);
         }
         *tau = (beta - *alpha) / beta;
         i__1 = *n - 1;

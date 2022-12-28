@@ -97,7 +97,7 @@ f"> */
     doublecomplex z__1;
 
     /* Builtin functions */
-    void d_cnjg(doublecomplex *, doublecomplex *);
+    void d_lmp_cnjg(doublecomplex *, doublecomplex *);
 
     /* Local variables */
     integer i__, ioff;
@@ -128,7 +128,7 @@ f"> */
         i__1 = *n;
         for (i__ = 1; i__ <= i__1; ++i__) {
             i__2 = i__;
-            d_cnjg(&z__1, &x[i__]);
+            d_lmp_cnjg(&z__1, &x[i__]);
             x[i__2].r = z__1.r, x[i__2].i = z__1.i;
 /* L10: */
         }
@@ -140,7 +140,7 @@ f"> */
         i__1 = *n;
         for (i__ = 1; i__ <= i__1; ++i__) {
             i__2 = ioff;
-            d_cnjg(&z__1, &x[ioff]);
+            d_lmp_cnjg(&z__1, &x[ioff]);
             x[i__2].r = z__1.r, x[i__2].i = z__1.i;
             ioff += *incx;
 /* L20: */

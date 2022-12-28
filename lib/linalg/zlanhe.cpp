@@ -153,7 +153,7 @@ doublereal zlanhe_(char *norm, char *uplo, integer *n, doublecomplex *a,
     doublereal ret_val, d__1;
 
     /* Builtin functions */
-    double z_abs(doublecomplex *), sqrt(doublereal);
+    double z_lmp_abs(doublecomplex *), sqrt(doublereal);
 
     /* Local variables */
     integer i__, j;
@@ -207,7 +207,7 @@ doublereal zlanhe_(char *norm, char *uplo, integer *n, doublecomplex *a,
             for (j = 1; j <= i__1; ++j) {
                 i__2 = j - 1;
                 for (i__ = 1; i__ <= i__2; ++i__) {
-                    sum = z_abs(&a[i__ + j * a_dim1]);
+                    sum = z_lmp_abs(&a[i__ + j * a_dim1]);
                     if (value < sum || disnan_(&sum)) {
                         value = sum;
                     }
@@ -230,7 +230,7 @@ doublereal zlanhe_(char *norm, char *uplo, integer *n, doublecomplex *a,
                 }
                 i__2 = *n;
                 for (i__ = j + 1; i__ <= i__2; ++i__) {
-                    sum = z_abs(&a[i__ + j * a_dim1]);
+                    sum = z_lmp_abs(&a[i__ + j * a_dim1]);
                     if (value < sum || disnan_(&sum)) {
                         value = sum;
                     }
@@ -251,7 +251,7 @@ doublereal zlanhe_(char *norm, char *uplo, integer *n, doublecomplex *a,
                 sum = 0.;
                 i__2 = j - 1;
                 for (i__ = 1; i__ <= i__2; ++i__) {
-                    absa = z_abs(&a[i__ + j * a_dim1]);
+                    absa = z_lmp_abs(&a[i__ + j * a_dim1]);
                     sum += absa;
                     work[i__] += absa;
 /* L50: */
@@ -280,7 +280,7 @@ doublereal zlanhe_(char *norm, char *uplo, integer *n, doublecomplex *a,
                 sum = work[j] + (d__1 = a[i__2].r, abs(d__1));
                 i__2 = *n;
                 for (i__ = j + 1; i__ <= i__2; ++i__) {
-                    absa = z_abs(&a[i__ + j * a_dim1]);
+                    absa = z_lmp_abs(&a[i__ + j * a_dim1]);
                     sum += absa;
                     work[i__] += absa;
 /* L90: */

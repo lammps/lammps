@@ -167,7 +167,7 @@ f"> */
     doublereal d__1;
 
     /* Builtin functions */
-    double sqrt(doublereal), d_sign(doublereal *, doublereal *);
+    double sqrt(doublereal), d_lmp_sign(doublereal *, doublereal *);
 
     /* Local variables */
     doublereal a, d__, l, m, r__, s, t, fa, ga, ha, ft, gt, ht, mm, tt, clt,
@@ -305,9 +305,9 @@ f"> */
 /*              Note that M is very tiny */
 
                 if (l == 0.) {
-                    t = d_sign(&c_b3, &ft) * d_sign(&c_b4, &gt);
+                    t = d_lmp_sign(&c_b3, &ft) * d_lmp_sign(&c_b4, &gt);
                 } else {
-                    t = gt / d_sign(&d__, &ft) + m / t;
+                    t = gt / d_lmp_sign(&d__, &ft) + m / t;
                 }
             } else {
                 t = (m / (s + t) + m / (r__ + l)) * (a + 1.);
@@ -334,17 +334,17 @@ f"> */
 /*     Correct signs of SSMAX and SSMIN */
 
     if (pmax == 1) {
-        tsign = d_sign(&c_b4, csr) * d_sign(&c_b4, csl) * d_sign(&c_b4, f);
+        tsign = d_lmp_sign(&c_b4, csr) * d_lmp_sign(&c_b4, csl) * d_lmp_sign(&c_b4, f);
     }
     if (pmax == 2) {
-        tsign = d_sign(&c_b4, snr) * d_sign(&c_b4, csl) * d_sign(&c_b4, g);
+        tsign = d_lmp_sign(&c_b4, snr) * d_lmp_sign(&c_b4, csl) * d_lmp_sign(&c_b4, g);
     }
     if (pmax == 3) {
-        tsign = d_sign(&c_b4, snr) * d_sign(&c_b4, snl) * d_sign(&c_b4, h__);
+        tsign = d_lmp_sign(&c_b4, snr) * d_lmp_sign(&c_b4, snl) * d_lmp_sign(&c_b4, h__);
     }
-    *ssmax = d_sign(ssmax, &tsign);
-    d__1 = tsign * d_sign(&c_b4, f) * d_sign(&c_b4, h__);
-    *ssmin = d_sign(ssmin, &d__1);
+    *ssmax = d_lmp_sign(ssmax, &tsign);
+    d__1 = tsign * d_lmp_sign(&c_b4, f) * d_lmp_sign(&c_b4, h__);
+    *ssmin = d_lmp_sign(ssmin, &d__1);
     return 0;
 
 /*     End of DLASV2 */

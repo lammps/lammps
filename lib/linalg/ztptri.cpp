@@ -146,7 +146,7 @@ f"> */
     doublecomplex z__1;
 
     /* Builtin functions */
-    void z_div(doublecomplex *, doublecomplex *, doublecomplex *);
+    void z_lmp_div(doublecomplex *, doublecomplex *, doublecomplex *);
 
     /* Local variables */
     integer j, jc, jj;
@@ -243,7 +243,7 @@ f"> */
         for (j = 1; j <= i__1; ++j) {
             if (nounit) {
                 i__2 = jc + j - 1;
-                z_div(&z__1, &c_b1, &ap[jc + j - 1]);
+                z_lmp_div(&z__1, &c_b1, &ap[jc + j - 1]);
                 ap[i__2].r = z__1.r, ap[i__2].i = z__1.i;
                 i__2 = jc + j - 1;
                 z__1.r = -ap[i__2].r, z__1.i = -ap[i__2].i;
@@ -272,7 +272,7 @@ f"> */
         for (j = *n; j >= 1; --j) {
             if (nounit) {
                 i__1 = jc;
-                z_div(&z__1, &c_b1, &ap[jc]);
+                z_lmp_div(&z__1, &c_b1, &ap[jc]);
                 ap[i__1].r = z__1.r, ap[i__1].i = z__1.i;
                 i__1 = jc;
                 z__1.r = -ap[i__1].r, z__1.i = -ap[i__1].i;

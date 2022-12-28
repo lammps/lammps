@@ -193,7 +193,7 @@ f"> */
     doublecomplex z__1, z__2, z__3;
 
     /* Builtin functions */
-    void d_cnjg(doublecomplex *, doublecomplex *);
+    void d_lmp_cnjg(doublecomplex *, doublecomplex *);
 
     /* Local variables */
     integer i__, j, prevlastv;
@@ -281,7 +281,7 @@ L220:
                         i__3 = j + i__ * t_dim1;
                         i__4 = i__;
                         z__2.r = -tau[i__4].r, z__2.i = -tau[i__4].i;
-                        d_cnjg(&z__3, &v[i__ + j * v_dim1]);
+                        d_lmp_cnjg(&z__3, &v[i__ + j * v_dim1]);
                         z__1.r = z__2.r * z__3.r - z__2.i * z__3.i, z__1.i =
                                 z__2.r * z__3.i + z__2.i * z__3.r;
                         t[i__3].r = z__1.r, t[i__3].i = z__1.i;
@@ -382,7 +382,7 @@ L281:
                             i__2 = j + i__ * t_dim1;
                             i__3 = i__;
                             z__2.r = -tau[i__3].r, z__2.i = -tau[i__3].i;
-                            d_cnjg(&z__3, &v[*n - *k + i__ + j * v_dim1]);
+                            d_lmp_cnjg(&z__3, &v[*n - *k + i__ + j * v_dim1]);
                             z__1.r = z__2.r * z__3.r - z__2.i * z__3.i,
                                     z__1.i = z__2.r * z__3.i + z__2.i *
                                     z__3.r;

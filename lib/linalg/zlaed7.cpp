@@ -280,7 +280,7 @@ f"> */
     integer q_dim1, q_offset, i__1, i__2;
 
     /* Builtin functions */
-    integer pow_ii(integer *, integer *);
+    integer pow_lmp_ii(integer *, integer *);
 
     /* Local variables */
     integer i__, k, n1, n2, iq, iw, iz, ptr, indx, curr, indxc, indxp;
@@ -386,11 +386,11 @@ f"> */
 /*     Form the z-vector which consists of the last row of Q_1 and the */
 /*     first row of Q_2. */
 
-    ptr = pow_ii(&c__2, tlvls) + 1;
+    ptr = pow_lmp_ii(&c__2, tlvls) + 1;
     i__1 = *curlvl - 1;
     for (i__ = 1; i__ <= i__1; ++i__) {
         i__2 = *tlvls - i__;
-        ptr += pow_ii(&c__2, &i__2);
+        ptr += pow_lmp_ii(&c__2, &i__2);
 /* L10: */
     }
     curr = ptr + *curpbm;

@@ -203,7 +203,7 @@ f"> */
     char ch__1[2];
 
     /* Builtin functions */
-    /* Subroutine */ int s_cat(char *, char **, integer *, integer *, ftnlen);
+    /* Subroutine */ int s_lmp_cat(char *, char **, integer *, integer *, ftnlen);
 
     /* Local variables */
     integer i1, i2, nb, mi, ni, nq, nw;
@@ -297,7 +297,7 @@ f"> */
 /* Writing concatenation */
                 i__1[0] = 1, a__1[0] = side;
                 i__1[1] = 1, a__1[1] = trans;
-                s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
+                s_lmp_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
                 i__2 = *m - 1;
                 i__3 = *m - 1;
                 nb = ilaenv_(&c__1, (char *)"DORMQL", ch__1, &i__2, n, &i__3, &c_n1, (
@@ -306,7 +306,7 @@ f"> */
 /* Writing concatenation */
                 i__1[0] = 1, a__1[0] = side;
                 i__1[1] = 1, a__1[1] = trans;
-                s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
+                s_lmp_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
                 i__2 = *n - 1;
                 i__3 = *n - 1;
                 nb = ilaenv_(&c__1, (char *)"DORMQL", ch__1, m, &i__2, &i__3, &c_n1, (
@@ -317,7 +317,7 @@ f"> */
 /* Writing concatenation */
                 i__1[0] = 1, a__1[0] = side;
                 i__1[1] = 1, a__1[1] = trans;
-                s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
+                s_lmp_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
                 i__2 = *m - 1;
                 i__3 = *m - 1;
                 nb = ilaenv_(&c__1, (char *)"DORMQR", ch__1, &i__2, n, &i__3, &c_n1, (
@@ -326,7 +326,7 @@ f"> */
 /* Writing concatenation */
                 i__1[0] = 1, a__1[0] = side;
                 i__1[1] = 1, a__1[1] = trans;
-                s_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
+                s_lmp_cat(ch__1, a__1, i__1, &c__2, (ftnlen)2);
                 i__2 = *n - 1;
                 i__3 = *n - 1;
                 nb = ilaenv_(&c__1, (char *)"DORMQR", ch__1, m, &i__2, &i__3, &c_n1, (

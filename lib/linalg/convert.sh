@@ -10,20 +10,28 @@ fi
 # cleanup
 rm -f *.c *.cpp *.P *~ *.orig *.bak *.rej
 
-# translate files directly, skip those for which we have replacements.
+# translate original files directly
 for f in fortran/*.f
 do \
     b=$(basename $f .f)
+    # skip files for which we have replacements
     if test $b == dgetrf2 || test $b == disnan || test $b == dlaisnan ||    \
             test $b == dlamch || test $b == dlarft || test $b == dpotrf2 || \
             test $b == lsame || test $b == xerbla || test $b == zlarft
     then
         echo Skipping $b
     else
+        # convert to C++ with f2c. Make local variables dynamic.
         f2c -C++ -a -f $f && mv $b.c $b.cpp || exit 2
         # silence c++ compiler warnings about string constants
         sed -i -e 's/\("[^"]\+"\)/(char *)\1/g' -e 's/^extern.*"C"/extern "C"/' \
             -e 's/^#include.*"f2c.h"/#include "lmp_f2c.h"/' $b.cpp
+        # replace libf2c functions with local versions under a different name
+        sed -i -e 's/s_\(cat\|cmp\|copy\)(/s_lmp_\1(/g' \
+             -e 's/d_\(sign\|cnjg\|imag\|lg10\)(/d_lmp_\1(/g' \
+             -e 's/z_\(abs\|div\)(/z_lmp_\1(/g'         \
+             -e 's/i_\(len\|nint\|dnnt\)(/i_lmp_\1(/g'  \
+             -e 's/pow_\(dd\|di\|ii\)(/pow_lmp_\1(/g' $b.cpp
     fi
 done
 
@@ -31,10 +39,17 @@ done
 for f in static/*.f
 do \
     b=$(basename $f .f)
+    # convert to C++ with f2c. Make local variables dynamic.
     f2c -C++ -a -f $f && mv $b.c $b.cpp || exit 2
     # silence c++ compiler warnings about string constants
     sed -i -e 's/\("[^"]\+"\)/(char *)\1/g' -e 's/^extern.*"C"/extern "C"/' \
         -e 's/^#include.*"f2c.h"/#include "lmp_f2c.h"/' $b.cpp
+    # replace libf2c functions with local versions under a different name
+    sed -i -e 's/s_\(cat\|cmp\|copy\)(/s_lmp_\1(/g' \
+        -e 's/d_\(sign\|cnjg\|imag\|lg10\)(/d_lmp_\1(/g'  \
+        -e 's/z_\(abs\|div\)(/z_lmp_\1(/g'          \
+        -e 's/i_\(len\|nint\|dnnt\)(/i_lmp_\1(/g'   \
+        -e 's/pow_\(dd\|di\|ii\)(/pow_lmp_\1(/g' $b.cpp
 done
 
 # copy direct C++ alternatives
@@ -42,3 +57,6 @@ for c in static/*.cpp
 do \
     cp -v $c .
 done
+
+# fix whitespace
+python ../../tools/coding_standard/whitespace.py -c whitespace.conf  -f .

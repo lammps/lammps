@@ -166,7 +166,7 @@ extern "C" {
     doublecomplex z__1, z__2, z__3;
 
     /* Builtin functions */
-    void z_div(doublecomplex *, doublecomplex *, doublecomplex *), d_cnjg(
+    void z_lmp_div(doublecomplex *, doublecomplex *, doublecomplex *), d_lmp_cnjg(
             doublecomplex *, doublecomplex *);
 
     /* Local variables */
@@ -260,7 +260,7 @@ extern "C" {
                     if (x[i__1].r != 0. || x[i__1].i != 0.) {
                         if (nounit) {
                             i__1 = j;
-                            z_div(&z__1, &x[j], &ap[kk]);
+                            z_lmp_div(&z__1, &x[j], &ap[kk]);
                             x[i__1].r = z__1.r, x[i__1].i = z__1.i;
                         }
                         i__1 = j;
@@ -290,7 +290,7 @@ extern "C" {
                     if (x[i__1].r != 0. || x[i__1].i != 0.) {
                         if (nounit) {
                             i__1 = jx;
-                            z_div(&z__1, &x[jx], &ap[kk]);
+                            z_lmp_div(&z__1, &x[jx], &ap[kk]);
                             x[i__1].r = z__1.r, x[i__1].i = z__1.i;
                         }
                         i__1 = jx;
@@ -325,7 +325,7 @@ extern "C" {
                     if (x[i__2].r != 0. || x[i__2].i != 0.) {
                         if (nounit) {
                             i__2 = j;
-                            z_div(&z__1, &x[j], &ap[kk]);
+                            z_lmp_div(&z__1, &x[j], &ap[kk]);
                             x[i__2].r = z__1.r, x[i__2].i = z__1.i;
                         }
                         i__2 = j;
@@ -357,7 +357,7 @@ extern "C" {
                     if (x[i__2].r != 0. || x[i__2].i != 0.) {
                         if (nounit) {
                             i__2 = jx;
-                            z_div(&z__1, &x[jx], &ap[kk]);
+                            z_lmp_div(&z__1, &x[jx], &ap[kk]);
                             x[i__2].r = z__1.r, x[i__2].i = z__1.i;
                         }
                         i__2 = jx;
@@ -411,13 +411,13 @@ extern "C" {
 /* L90: */
                         }
                         if (nounit) {
-                            z_div(&z__1, &temp, &ap[kk + j - 1]);
+                            z_lmp_div(&z__1, &temp, &ap[kk + j - 1]);
                             temp.r = z__1.r, temp.i = z__1.i;
                         }
                     } else {
                         i__2 = j - 1;
                         for (i__ = 1; i__ <= i__2; ++i__) {
-                            d_cnjg(&z__3, &ap[k]);
+                            d_lmp_cnjg(&z__3, &ap[k]);
                             i__3 = i__;
                             z__2.r = z__3.r * x[i__3].r - z__3.i * x[i__3].i,
                                     z__2.i = z__3.r * x[i__3].i + z__3.i * x[
@@ -429,8 +429,8 @@ extern "C" {
 /* L100: */
                         }
                         if (nounit) {
-                            d_cnjg(&z__2, &ap[kk + j - 1]);
-                            z_div(&z__1, &temp, &z__2);
+                            d_lmp_cnjg(&z__2, &ap[kk + j - 1]);
+                            z_lmp_div(&z__1, &temp, &z__2);
                             temp.r = z__1.r, temp.i = z__1.i;
                         }
                     }
@@ -461,13 +461,13 @@ extern "C" {
 /* L120: */
                         }
                         if (nounit) {
-                            z_div(&z__1, &temp, &ap[kk + j - 1]);
+                            z_lmp_div(&z__1, &temp, &ap[kk + j - 1]);
                             temp.r = z__1.r, temp.i = z__1.i;
                         }
                     } else {
                         i__2 = kk + j - 2;
                         for (k = kk; k <= i__2; ++k) {
-                            d_cnjg(&z__3, &ap[k]);
+                            d_lmp_cnjg(&z__3, &ap[k]);
                             i__3 = ix;
                             z__2.r = z__3.r * x[i__3].r - z__3.i * x[i__3].i,
                                     z__2.i = z__3.r * x[i__3].i + z__3.i * x[
@@ -479,8 +479,8 @@ extern "C" {
 /* L130: */
                         }
                         if (nounit) {
-                            d_cnjg(&z__2, &ap[kk + j - 1]);
-                            z_div(&z__1, &temp, &z__2);
+                            d_lmp_cnjg(&z__2, &ap[kk + j - 1]);
+                            z_lmp_div(&z__1, &temp, &z__2);
                             temp.r = z__1.r, temp.i = z__1.i;
                         }
                     }
@@ -513,13 +513,13 @@ extern "C" {
 /* L150: */
                         }
                         if (nounit) {
-                            z_div(&z__1, &temp, &ap[kk - *n + j]);
+                            z_lmp_div(&z__1, &temp, &ap[kk - *n + j]);
                             temp.r = z__1.r, temp.i = z__1.i;
                         }
                     } else {
                         i__1 = j + 1;
                         for (i__ = *n; i__ >= i__1; --i__) {
-                            d_cnjg(&z__3, &ap[k]);
+                            d_lmp_cnjg(&z__3, &ap[k]);
                             i__2 = i__;
                             z__2.r = z__3.r * x[i__2].r - z__3.i * x[i__2].i,
                                     z__2.i = z__3.r * x[i__2].i + z__3.i * x[
@@ -531,8 +531,8 @@ extern "C" {
 /* L160: */
                         }
                         if (nounit) {
-                            d_cnjg(&z__2, &ap[kk - *n + j]);
-                            z_div(&z__1, &temp, &z__2);
+                            d_lmp_cnjg(&z__2, &ap[kk - *n + j]);
+                            z_lmp_div(&z__1, &temp, &z__2);
                             temp.r = z__1.r, temp.i = z__1.i;
                         }
                     }
@@ -563,13 +563,13 @@ extern "C" {
 /* L180: */
                         }
                         if (nounit) {
-                            z_div(&z__1, &temp, &ap[kk - *n + j]);
+                            z_lmp_div(&z__1, &temp, &ap[kk - *n + j]);
                             temp.r = z__1.r, temp.i = z__1.i;
                         }
                     } else {
                         i__1 = kk - (*n - (j + 1));
                         for (k = kk; k >= i__1; --k) {
-                            d_cnjg(&z__3, &ap[k]);
+                            d_lmp_cnjg(&z__3, &ap[k]);
                             i__2 = ix;
                             z__2.r = z__3.r * x[i__2].r - z__3.i * x[i__2].i,
                                     z__2.i = z__3.r * x[i__2].i + z__3.i * x[
@@ -581,8 +581,8 @@ extern "C" {
 /* L190: */
                         }
                         if (nounit) {
-                            d_cnjg(&z__2, &ap[kk - *n + j]);
-                            z_div(&z__1, &temp, &z__2);
+                            d_lmp_cnjg(&z__2, &ap[kk - *n + j]);
+                            z_lmp_div(&z__1, &temp, &z__2);
                             temp.r = z__1.r, temp.i = z__1.i;
                         }
                     }

@@ -302,7 +302,7 @@ f"> */
             i__2;
 
     /* Builtin functions */
-    integer pow_ii(integer *, integer *);
+    integer pow_lmp_ii(integer *, integer *);
 
     /* Local variables */
     integer i__, j, i1, ic, lf, nd, ll, nl, nr, im1, nlf, nrf, lvl, ndb1,
@@ -469,7 +469,7 @@ f"> */
 /*     Finally go through the left singular vector matrices of all */
 /*     the other subproblems bottom-up on the tree. */
 
-    j = pow_ii(&c__2, &nlvl);
+    j = pow_lmp_ii(&c__2, &nlvl);
     sqre = 0;
 
     for (lvl = nlvl; lvl >= 1; --lvl) {
@@ -483,7 +483,7 @@ f"> */
             ll = 1;
         } else {
             i__1 = lvl - 1;
-            lf = pow_ii(&c__2, &i__1);
+            lf = pow_lmp_ii(&c__2, &i__1);
             ll = (lf << 1) - 1;
         }
         i__1 = ll;
@@ -528,7 +528,7 @@ L50:
             ll = 1;
         } else {
             i__2 = lvl - 1;
-            lf = pow_ii(&c__2, &i__2);
+            lf = pow_lmp_ii(&c__2, &i__2);
             ll = (lf << 1) - 1;
         }
         i__2 = lf;

@@ -97,7 +97,7 @@ doublereal dznrm2_(integer *n, doublecomplex *x, integer *incx)
     doublereal ret_val, d__1;
 
     /* Builtin functions */
-    double d_imag(doublecomplex *), sqrt(doublereal);
+    double d_lmp_imag(doublecomplex *), sqrt(doublereal);
 
     /* Local variables */
     integer ix;
@@ -153,8 +153,8 @@ doublereal dznrm2_(integer *n, doublecomplex *x, integer *incx)
                     ssq += d__1 * d__1;
                 }
             }
-            if (d_imag(&x[ix]) != 0.) {
-                temp = (d__1 = d_imag(&x[ix]), abs(d__1));
+            if (d_lmp_imag(&x[ix]) != 0.) {
+                temp = (d__1 = d_lmp_imag(&x[ix]), abs(d__1));
                 if (scale < temp) {
 /* Computing 2nd power */
                     d__1 = scale / temp;

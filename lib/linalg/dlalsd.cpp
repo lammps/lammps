@@ -211,7 +211,7 @@ f"> */
     doublereal d__1;
 
     /* Builtin functions */
-    double log(doublereal), d_sign(doublereal *, doublereal *);
+    double log(doublereal), d_lmp_sign(doublereal *, doublereal *);
 
     /* Local variables */
     integer c__, i__, j, k;
@@ -470,7 +470,7 @@ f"> */
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
         if ((d__1 = d__[i__], abs(d__1)) < eps) {
-            d__[i__] = d_sign(&eps, &d__[i__]);
+            d__[i__] = d_lmp_sign(&eps, &d__[i__]);
         }
 /* L50: */
     }

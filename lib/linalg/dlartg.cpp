@@ -123,7 +123,7 @@ f"> */
     doublereal d__1, d__2;
 
     /* Builtin functions */
-    double log(doublereal), pow_di(doublereal *, integer *), sqrt(doublereal);
+    double log(doublereal), pow_lmp_di(doublereal *, integer *), sqrt(doublereal);
 
     /* Local variables */
     integer i__;
@@ -166,7 +166,7 @@ f"> */
     eps = dlamch_((char *)"E", (ftnlen)1);
     d__1 = dlamch_((char *)"B", (ftnlen)1);
     i__1 = (integer) (log(safmin / eps) / log(dlamch_((char *)"B", (ftnlen)1)) / 2.);
-    safmn2 = pow_di(&d__1, &i__1);
+    safmn2 = pow_lmp_di(&d__1, &i__1);
     safmx2 = 1. / safmn2;
 /*        FIRST = .FALSE. */
 /*     END IF */

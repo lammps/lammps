@@ -166,7 +166,7 @@ f"> */
     doublereal d__1, d__2;
 
     /* Builtin functions */
-    double sqrt(doublereal), d_sign(doublereal *, doublereal *);
+    double sqrt(doublereal), d_lmp_sign(doublereal *, doublereal *);
 
     /* Local variables */
     doublereal b, c__, f, g;
@@ -445,7 +445,7 @@ L60:
 
         g = (d__[l + 1] - p) / (e[l] * 2.);
         r__ = dlapy2_(&g, &c_b41);
-        g = d__[m] - p + e[l] / (g + d_sign(&r__, &g));
+        g = d__[m] - p + e[l] / (g + d_lmp_sign(&r__, &g));
 
         s = 1.;
         c__ = 1.;
@@ -568,7 +568,7 @@ L110:
 
         g = (d__[l - 1] - p) / (e[l - 1] * 2.);
         r__ = dlapy2_(&g, &c_b41);
-        g = d__[m] - p + e[l - 1] / (g + d_sign(&r__, &g));
+        g = d__[m] - p + e[l - 1] / (g + d_lmp_sign(&r__, &g));
 
         s = 1.;
         c__ = 1.;

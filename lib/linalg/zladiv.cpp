@@ -88,7 +88,7 @@ f"> */
     doublecomplex z__1;
 
     /* Builtin functions */
-    double d_imag(doublecomplex *);
+    double d_lmp_imag(doublecomplex *);
 
     /* Local variables */
     doublereal zi, zr;
@@ -114,9 +114,9 @@ f"> */
 /*     .. Executable Statements .. */
 
     d__1 = x->r;
-    d__2 = d_imag(x);
+    d__2 = d_lmp_imag(x);
     d__3 = y->r;
-    d__4 = d_imag(y);
+    d__4 = d_lmp_imag(y);
     dladiv_(&d__1, &d__2, &d__3, &d__4, &zr, &zi);
     z__1.r = zr, z__1.i = zi;
      ret_val->r = z__1.r,  ret_val->i = z__1.i;

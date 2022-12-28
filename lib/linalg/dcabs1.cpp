@@ -66,7 +66,7 @@ doublereal dcabs1_(doublecomplex *z__)
     doublereal ret_val, d__1, d__2;
 
     /* Builtin functions */
-    double d_imag(doublecomplex *);
+    double d_lmp_imag(doublecomplex *);
 
 
 /*  -- Reference BLAS level1 routine -- */
@@ -80,7 +80,7 @@ doublereal dcabs1_(doublecomplex *z__)
 
 /*     .. Intrinsic Functions .. */
 
-    ret_val = (d__1 = z__->r, abs(d__1)) + (d__2 = d_imag(z__), abs(d__2));
+    ret_val = (d__1 = z__->r, abs(d__1)) + (d__2 = d_lmp_imag(z__), abs(d__2));
     return ret_val;
 
 /*     End of DCABS1 */

@@ -310,7 +310,7 @@ f"> */
             z_dim1, z_offset, i__1, i__2;
 
     /* Builtin functions */
-    integer pow_ii(integer *, integer *);
+    integer pow_lmp_ii(integer *, integer *);
 
     /* Local variables */
     integer i__, j, m, i1, ic, lf, nd, ll, nl, vf, nr, vl, im1, ncc, nlf, nrf,
@@ -553,7 +553,7 @@ f"> */
 
 /*     Now conquer each subproblem bottom-up. */
 
-    j = pow_ii(&c__2, &nlvl);
+    j = pow_lmp_ii(&c__2, &nlvl);
     for (lvl = nlvl; lvl >= 1; --lvl) {
         lvl2 = (lvl << 1) - 1;
 
@@ -565,7 +565,7 @@ f"> */
             ll = 1;
         } else {
             i__1 = lvl - 1;
-            lf = pow_ii(&c__2, &i__1);
+            lf = pow_lmp_ii(&c__2, &i__1);
             ll = (lf << 1) - 1;
         }
         i__1 = ll;

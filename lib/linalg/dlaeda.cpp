@@ -198,7 +198,7 @@ f"> */
     integer i__1, i__2, i__3;
 
     /* Builtin functions */
-    integer pow_ii(integer *, integer *);
+    integer pow_lmp_ii(integer *, integer *);
     double sqrt(doublereal);
 
     /* Local variables */
@@ -277,7 +277,7 @@ f"> */
 /*     scheme */
 
     i__1 = *curlvl - 1;
-    curr = ptr + *curpbm * pow_ii(&c__2, curlvl) + pow_ii(&c__2, &i__1) - 1;
+    curr = ptr + *curpbm * pow_lmp_ii(&c__2, curlvl) + pow_lmp_ii(&c__2, &i__1) - 1;
 
 /*     Determine size of these matrices.  We add HALF to the value of */
 /*     the SQRT in case the machine underestimates one of these square */
@@ -304,12 +304,12 @@ f"> */
 /*     rotations and permutation and then multiplying the center matrices */
 /*     against the current Z. */
 
-    ptr = pow_ii(&c__2, tlvls) + 1;
+    ptr = pow_lmp_ii(&c__2, tlvls) + 1;
     i__1 = *curlvl - 1;
     for (k = 1; k <= i__1; ++k) {
         i__2 = *curlvl - k;
         i__3 = *curlvl - k - 1;
-        curr = ptr + *curpbm * pow_ii(&c__2, &i__2) + pow_ii(&c__2, &i__3) -
+        curr = ptr + *curpbm * pow_lmp_ii(&c__2, &i__2) + pow_lmp_ii(&c__2, &i__3) -
                 1;
         psiz1 = prmptr[curr + 1] - prmptr[curr];
         psiz2 = prmptr[curr + 2] - prmptr[curr + 1];
@@ -371,7 +371,7 @@ f"> */
                 c__1);
 
         i__2 = *tlvls - k;
-        ptr += pow_ii(&c__2, &i__2);
+        ptr += pow_lmp_ii(&c__2, &i__2);
 /* L70: */
     }
 

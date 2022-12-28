@@ -274,7 +274,7 @@ f"> */
     doublereal d__1, d__2, d__3, d__4;
 
     /* Builtin functions */
-    double pow_dd(doublereal *, doublereal *), sqrt(doublereal), d_sign(
+    double pow_lmp_dd(doublereal *, doublereal *), sqrt(doublereal), d_lmp_sign(
             doublereal *, doublereal *);
 
     /* Local variables */
@@ -454,7 +454,7 @@ f"> */
 
 /* Computing MAX */
 /* Computing MIN */
-    d__3 = 100., d__4 = pow_dd(&eps, &c_b15);
+    d__3 = 100., d__4 = pow_lmp_dd(&eps, &c_b15);
     d__1 = 10., d__2 = min(d__3,d__4);
     tolmul = max(d__1,d__2);
     tol = tolmul * eps;
@@ -852,7 +852,7 @@ L90:
 /*           Chase bulge from top to bottom */
 /*           Save cosines and sines for later singular vector updates */
 
-            f = ((d__1 = d__[ll], abs(d__1)) - shift) * (d_sign(&c_b49, &d__[
+            f = ((d__1 = d__[ll], abs(d__1)) - shift) * (d_lmp_sign(&c_b49, &d__[
                     ll]) + shift / d__[ll]);
             g = e[ll];
             i__1 = m - 1;
@@ -912,7 +912,7 @@ L90:
 /*           Chase bulge from bottom to top */
 /*           Save cosines and sines for later singular vector updates */
 
-            f = ((d__1 = d__[m], abs(d__1)) - shift) * (d_sign(&c_b49, &d__[m]
+            f = ((d__1 = d__[m], abs(d__1)) - shift) * (d_lmp_sign(&c_b49, &d__[m]
                     ) + shift / d__[m]);
             g = e[m - 1];
             i__1 = ll + 1;

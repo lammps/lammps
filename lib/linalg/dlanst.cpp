@@ -1,13 +1,13 @@
 /* fortran/dlanst.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -121,8 +121,8 @@ f"> */
 /* > \ingroup OTHERauxiliary */
 
 /*  ===================================================================== */
-doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e, 
-	ftnlen norm_len)
+doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e,
+        ftnlen norm_len)
 {
     /* System generated locals */
     integer i__1;
@@ -137,8 +137,8 @@ doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e,
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
     doublereal anorm;
     extern logical disnan_(doublereal *);
-    extern /* Subroutine */ int dlassq_(integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *);
+    extern /* Subroutine */ int dlassq_(integer *, doublereal *, integer *,
+            doublereal *, doublereal *);
 
 
 /*  -- LAPACK auxiliary routine -- */
@@ -170,61 +170,61 @@ doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e,
 
     /* Function Body */
     if (*n <= 0) {
-	anorm = 0.;
+        anorm = 0.;
     } else if (lsame_(norm, (char *)"M", (ftnlen)1, (ftnlen)1)) {
 
 /*        Find max(abs(A(i,j))). */
 
-	anorm = (d__1 = d__[*n], abs(d__1));
-	i__1 = *n - 1;
-	for (i__ = 1; i__ <= i__1; ++i__) {
-	    sum = (d__1 = d__[i__], abs(d__1));
-	    if (anorm < sum || disnan_(&sum)) {
-		anorm = sum;
-	    }
-	    sum = (d__1 = e[i__], abs(d__1));
-	    if (anorm < sum || disnan_(&sum)) {
-		anorm = sum;
-	    }
+        anorm = (d__1 = d__[*n], abs(d__1));
+        i__1 = *n - 1;
+        for (i__ = 1; i__ <= i__1; ++i__) {
+            sum = (d__1 = d__[i__], abs(d__1));
+            if (anorm < sum || disnan_(&sum)) {
+                anorm = sum;
+            }
+            sum = (d__1 = e[i__], abs(d__1));
+            if (anorm < sum || disnan_(&sum)) {
+                anorm = sum;
+            }
 /* L10: */
-	}
+        }
     } else if (lsame_(norm, (char *)"O", (ftnlen)1, (ftnlen)1) || *(unsigned char *)
-	    norm == '1' || lsame_(norm, (char *)"I", (ftnlen)1, (ftnlen)1)) {
+            norm == '1' || lsame_(norm, (char *)"I", (ftnlen)1, (ftnlen)1)) {
 
 /*        Find norm1(A). */
 
-	if (*n == 1) {
-	    anorm = abs(d__[1]);
-	} else {
-	    anorm = abs(d__[1]) + abs(e[1]);
-	    sum = (d__1 = e[*n - 1], abs(d__1)) + (d__2 = d__[*n], abs(d__2));
-	    if (anorm < sum || disnan_(&sum)) {
-		anorm = sum;
-	    }
-	    i__1 = *n - 1;
-	    for (i__ = 2; i__ <= i__1; ++i__) {
-		sum = (d__1 = d__[i__], abs(d__1)) + (d__2 = e[i__], abs(d__2)
-			) + (d__3 = e[i__ - 1], abs(d__3));
-		if (anorm < sum || disnan_(&sum)) {
-		    anorm = sum;
-		}
+        if (*n == 1) {
+            anorm = abs(d__[1]);
+        } else {
+            anorm = abs(d__[1]) + abs(e[1]);
+            sum = (d__1 = e[*n - 1], abs(d__1)) + (d__2 = d__[*n], abs(d__2));
+            if (anorm < sum || disnan_(&sum)) {
+                anorm = sum;
+            }
+            i__1 = *n - 1;
+            for (i__ = 2; i__ <= i__1; ++i__) {
+                sum = (d__1 = d__[i__], abs(d__1)) + (d__2 = e[i__], abs(d__2)
+                        ) + (d__3 = e[i__ - 1], abs(d__3));
+                if (anorm < sum || disnan_(&sum)) {
+                    anorm = sum;
+                }
 /* L20: */
-	    }
-	}
+            }
+        }
     } else if (lsame_(norm, (char *)"F", (ftnlen)1, (ftnlen)1) || lsame_(norm, (char *)"E", (
-	    ftnlen)1, (ftnlen)1)) {
+            ftnlen)1, (ftnlen)1)) {
 
 /*        Find normF(A). */
 
-	scale = 0.;
-	sum = 1.;
-	if (*n > 1) {
-	    i__1 = *n - 1;
-	    dlassq_(&i__1, &e[1], &c__1, &scale, &sum);
-	    sum *= 2;
-	}
-	dlassq_(n, &d__[1], &c__1, &scale, &sum);
-	anorm = scale * sqrt(sum);
+        scale = 0.;
+        sum = 1.;
+        if (*n > 1) {
+            i__1 = *n - 1;
+            dlassq_(&i__1, &e[1], &c__1, &scale, &sum);
+            sum *= 2;
+        }
+        dlassq_(n, &d__[1], &c__1, &scale, &sum);
+        anorm = scale * sqrt(sum);
     }
 
     ret_val = anorm;
@@ -235,5 +235,5 @@ doublereal dlanst_(char *norm, integer *n, doublereal *d__, doublereal *e,
 } /* dlanst_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

@@ -1,13 +1,13 @@
 /* fortran/dgetrf.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -132,26 +132,26 @@ f"> */
 
 /*  ===================================================================== */
 /* Subroutine */ int dgetrf_(integer *m, integer *n, doublereal *a, integer *
-	lda, integer *ipiv, integer *info)
+        lda, integer *ipiv, integer *info)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2, i__3, i__4, i__5;
 
     /* Local variables */
     integer i__, j, jb, nb;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
-	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, integer *, ftnlen, ftnlen);
+    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *,
+            integer *, doublereal *, doublereal *, integer *, doublereal *,
+            integer *, doublereal *, doublereal *, integer *, ftnlen, ftnlen);
     integer iinfo;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
-	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen), xerbla_(
-	    char *, integer *, ftnlen);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
-	    integer *, integer *, ftnlen, ftnlen);
-    extern /* Subroutine */ int dlaswp_(integer *, doublereal *, integer *, 
-	    integer *, integer *, integer *, integer *), dgetrf2_(integer *, 
-	    integer *, doublereal *, integer *, integer *, integer *);
+    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *,
+            integer *, integer *, doublereal *, doublereal *, integer *,
+            doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen), xerbla_(
+            char *, integer *, ftnlen);
+    extern integer ilaenv_(integer *, char *, char *, integer *, integer *,
+            integer *, integer *, ftnlen, ftnlen);
+    extern /* Subroutine */ int dlaswp_(integer *, doublereal *, integer *,
+            integer *, integer *, integer *, integer *), dgetrf2_(integer *,
+            integer *, doublereal *, integer *, integer *, integer *);
 
 
 /*  -- LAPACK computational routine -- */
@@ -188,99 +188,99 @@ f"> */
     /* Function Body */
     *info = 0;
     if (*m < 0) {
-	*info = -1;
+        *info = -1;
     } else if (*n < 0) {
-	*info = -2;
+        *info = -2;
     } else if (*lda < max(1,*m)) {
-	*info = -4;
+        *info = -4;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DGETRF", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DGETRF", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*m == 0 || *n == 0) {
-	return 0;
+        return 0;
     }
 
 /*     Determine the block size for this environment. */
 
     nb = ilaenv_(&c__1, (char *)"DGETRF", (char *)" ", m, n, &c_n1, &c_n1, (ftnlen)6, (ftnlen)
-	    1);
+            1);
     if (nb <= 1 || nb >= min(*m,*n)) {
 
 /*        Use unblocked code. */
 
-	dgetrf2_(m, n, &a[a_offset], lda, &ipiv[1], info);
+        dgetrf2_(m, n, &a[a_offset], lda, &ipiv[1], info);
     } else {
 
 /*        Use blocked code. */
 
-	i__1 = min(*m,*n);
-	i__2 = nb;
-	for (j = 1; i__2 < 0 ? j >= i__1 : j <= i__1; j += i__2) {
+        i__1 = min(*m,*n);
+        i__2 = nb;
+        for (j = 1; i__2 < 0 ? j >= i__1 : j <= i__1; j += i__2) {
 /* Computing MIN */
-	    i__3 = min(*m,*n) - j + 1;
-	    jb = min(i__3,nb);
+            i__3 = min(*m,*n) - j + 1;
+            jb = min(i__3,nb);
 
 /*           Factor diagonal and subdiagonal blocks and test for exact */
 /*           singularity. */
 
-	    i__3 = *m - j + 1;
-	    dgetrf2_(&i__3, &jb, &a[j + j * a_dim1], lda, &ipiv[j], &iinfo);
+            i__3 = *m - j + 1;
+            dgetrf2_(&i__3, &jb, &a[j + j * a_dim1], lda, &ipiv[j], &iinfo);
 
 /*           Adjust INFO and the pivot indices. */
 
-	    if (*info == 0 && iinfo > 0) {
-		*info = iinfo + j - 1;
-	    }
+            if (*info == 0 && iinfo > 0) {
+                *info = iinfo + j - 1;
+            }
 /* Computing MIN */
-	    i__4 = *m, i__5 = j + jb - 1;
-	    i__3 = min(i__4,i__5);
-	    for (i__ = j; i__ <= i__3; ++i__) {
-		ipiv[i__] = j - 1 + ipiv[i__];
+            i__4 = *m, i__5 = j + jb - 1;
+            i__3 = min(i__4,i__5);
+            for (i__ = j; i__ <= i__3; ++i__) {
+                ipiv[i__] = j - 1 + ipiv[i__];
 /* L10: */
-	    }
+            }
 
 /*           Apply interchanges to columns 1:J-1. */
 
-	    i__3 = j - 1;
-	    i__4 = j + jb - 1;
-	    dlaswp_(&i__3, &a[a_offset], lda, &j, &i__4, &ipiv[1], &c__1);
+            i__3 = j - 1;
+            i__4 = j + jb - 1;
+            dlaswp_(&i__3, &a[a_offset], lda, &j, &i__4, &ipiv[1], &c__1);
 
-	    if (j + jb <= *n) {
+            if (j + jb <= *n) {
 
 /*              Apply interchanges to columns J+JB:N. */
 
-		i__3 = *n - j - jb + 1;
-		i__4 = j + jb - 1;
-		dlaswp_(&i__3, &a[(j + jb) * a_dim1 + 1], lda, &j, &i__4, &
-			ipiv[1], &c__1);
+                i__3 = *n - j - jb + 1;
+                i__4 = j + jb - 1;
+                dlaswp_(&i__3, &a[(j + jb) * a_dim1 + 1], lda, &j, &i__4, &
+                        ipiv[1], &c__1);
 
 /*              Compute block row of U. */
 
-		i__3 = *n - j - jb + 1;
-		dtrsm_((char *)"Left", (char *)"Lower", (char *)"No transpose", (char *)"Unit", &jb, &i__3, &
-			c_b16, &a[j + j * a_dim1], lda, &a[j + (j + jb) * 
-			a_dim1], lda, (ftnlen)4, (ftnlen)5, (ftnlen)12, (
-			ftnlen)4);
-		if (j + jb <= *m) {
+                i__3 = *n - j - jb + 1;
+                dtrsm_((char *)"Left", (char *)"Lower", (char *)"No transpose", (char *)"Unit", &jb, &i__3, &
+                        c_b16, &a[j + j * a_dim1], lda, &a[j + (j + jb) *
+                        a_dim1], lda, (ftnlen)4, (ftnlen)5, (ftnlen)12, (
+                        ftnlen)4);
+                if (j + jb <= *m) {
 
 /*                 Update trailing submatrix. */
 
-		    i__3 = *m - j - jb + 1;
-		    i__4 = *n - j - jb + 1;
-		    dgemm_((char *)"No transpose", (char *)"No transpose", &i__3, &i__4, &jb, 
-			    &c_b19, &a[j + jb + j * a_dim1], lda, &a[j + (j + 
-			    jb) * a_dim1], lda, &c_b16, &a[j + jb + (j + jb) *
-			     a_dim1], lda, (ftnlen)12, (ftnlen)12);
-		}
-	    }
+                    i__3 = *m - j - jb + 1;
+                    i__4 = *n - j - jb + 1;
+                    dgemm_((char *)"No transpose", (char *)"No transpose", &i__3, &i__4, &jb,
+                            &c_b19, &a[j + jb + j * a_dim1], lda, &a[j + (j +
+                            jb) * a_dim1], lda, &c_b16, &a[j + jb + (j + jb) *
+                             a_dim1], lda, (ftnlen)12, (ftnlen)12);
+                }
+            }
 /* L20: */
-	}
+        }
     }
     return 0;
 
@@ -289,5 +289,5 @@ f"> */
 } /* dgetrf_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

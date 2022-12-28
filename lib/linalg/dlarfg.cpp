@@ -1,13 +1,13 @@
 /* fortran/dlarfg.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -122,8 +122,8 @@ f"> */
 /* > \ingroup doubleOTHERauxiliary */
 
 /*  ===================================================================== */
-/* Subroutine */ int dlarfg_(integer *n, doublereal *alpha, doublereal *x, 
-	integer *incx, doublereal *tau)
+/* Subroutine */ int dlarfg_(integer *n, doublereal *alpha, doublereal *x,
+        integer *incx, doublereal *tau)
 {
     /* System generated locals */
     integer i__1;
@@ -136,11 +136,11 @@ f"> */
     integer j, knt;
     doublereal beta;
     extern doublereal dnrm2_(integer *, doublereal *, integer *);
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *);
+    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *,
+            integer *);
     doublereal xnorm;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *, 
-	    ftnlen);
+    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *,
+            ftnlen);
     doublereal safmin, rsafmn;
 
 
@@ -172,8 +172,8 @@ f"> */
 
     /* Function Body */
     if (*n <= 1) {
-	*tau = 0.;
-	return 0;
+        *tau = 0.;
+        return 0;
     }
 
     i__1 = *n - 1;
@@ -183,50 +183,50 @@ f"> */
 
 /*        H  =  I */
 
-	*tau = 0.;
+        *tau = 0.;
     } else {
 
 /*        general case */
 
-	d__1 = dlapy2_(alpha, &xnorm);
-	beta = -d_sign(&d__1, alpha);
-	safmin = dlamch_((char *)"S", (ftnlen)1) / dlamch_((char *)"E", (ftnlen)1);
-	knt = 0;
-	if (abs(beta) < safmin) {
+        d__1 = dlapy2_(alpha, &xnorm);
+        beta = -d_sign(&d__1, alpha);
+        safmin = dlamch_((char *)"S", (ftnlen)1) / dlamch_((char *)"E", (ftnlen)1);
+        knt = 0;
+        if (abs(beta) < safmin) {
 
 /*           XNORM, BETA may be inaccurate; scale X and recompute them */
 
-	    rsafmn = 1. / safmin;
+            rsafmn = 1. / safmin;
 L10:
-	    ++knt;
-	    i__1 = *n - 1;
-	    dscal_(&i__1, &rsafmn, &x[1], incx);
-	    beta *= rsafmn;
-	    *alpha *= rsafmn;
-	    if (abs(beta) < safmin && knt < 20) {
-		goto L10;
-	    }
+            ++knt;
+            i__1 = *n - 1;
+            dscal_(&i__1, &rsafmn, &x[1], incx);
+            beta *= rsafmn;
+            *alpha *= rsafmn;
+            if (abs(beta) < safmin && knt < 20) {
+                goto L10;
+            }
 
 /*           New BETA is at most 1, at least SAFMIN */
 
-	    i__1 = *n - 1;
-	    xnorm = dnrm2_(&i__1, &x[1], incx);
-	    d__1 = dlapy2_(alpha, &xnorm);
-	    beta = -d_sign(&d__1, alpha);
-	}
-	*tau = (beta - *alpha) / beta;
-	i__1 = *n - 1;
-	d__1 = 1. / (*alpha - beta);
-	dscal_(&i__1, &d__1, &x[1], incx);
+            i__1 = *n - 1;
+            xnorm = dnrm2_(&i__1, &x[1], incx);
+            d__1 = dlapy2_(alpha, &xnorm);
+            beta = -d_sign(&d__1, alpha);
+        }
+        *tau = (beta - *alpha) / beta;
+        i__1 = *n - 1;
+        d__1 = 1. / (*alpha - beta);
+        dscal_(&i__1, &d__1, &x[1], incx);
 
 /*        If ALPHA is subnormal, it may lose relative accuracy */
 
-	i__1 = knt;
-	for (j = 1; j <= i__1; ++j) {
-	    beta *= safmin;
+        i__1 = knt;
+        for (j = 1; j <= i__1; ++j) {
+            beta *= safmin;
 /* L20: */
-	}
-	*alpha = beta;
+        }
+        *alpha = beta;
     }
 
     return 0;
@@ -236,5 +236,5 @@ L10:
 } /* dlarfg_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

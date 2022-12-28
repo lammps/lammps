@@ -1,13 +1,13 @@
 /* fortran/dlas2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -123,8 +123,8 @@ extern "C" {
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int dlas2_(doublereal *f, doublereal *g, doublereal *h__, 
-	doublereal *ssmin, doublereal *ssmax)
+/* Subroutine */ int dlas2_(doublereal *f, doublereal *g, doublereal *h__,
+        doublereal *ssmin, doublereal *ssmax)
 {
     /* System generated locals */
     doublereal d__1, d__2;
@@ -159,47 +159,47 @@ extern "C" {
     fhmn = min(fa,ha);
     fhmx = max(fa,ha);
     if (fhmn == 0.) {
-	*ssmin = 0.;
-	if (fhmx == 0.) {
-	    *ssmax = ga;
-	} else {
+        *ssmin = 0.;
+        if (fhmx == 0.) {
+            *ssmax = ga;
+        } else {
 /* Computing 2nd power */
-	    d__1 = min(fhmx,ga) / max(fhmx,ga);
-	    *ssmax = max(fhmx,ga) * sqrt(d__1 * d__1 + 1.);
-	}
+            d__1 = min(fhmx,ga) / max(fhmx,ga);
+            *ssmax = max(fhmx,ga) * sqrt(d__1 * d__1 + 1.);
+        }
     } else {
-	if (ga < fhmx) {
-	    as = fhmn / fhmx + 1.;
-	    at = (fhmx - fhmn) / fhmx;
+        if (ga < fhmx) {
+            as = fhmn / fhmx + 1.;
+            at = (fhmx - fhmn) / fhmx;
 /* Computing 2nd power */
-	    d__1 = ga / fhmx;
-	    au = d__1 * d__1;
-	    c__ = 2. / (sqrt(as * as + au) + sqrt(at * at + au));
-	    *ssmin = fhmn * c__;
-	    *ssmax = fhmx / c__;
-	} else {
-	    au = fhmx / ga;
-	    if (au == 0.) {
+            d__1 = ga / fhmx;
+            au = d__1 * d__1;
+            c__ = 2. / (sqrt(as * as + au) + sqrt(at * at + au));
+            *ssmin = fhmn * c__;
+            *ssmax = fhmx / c__;
+        } else {
+            au = fhmx / ga;
+            if (au == 0.) {
 
 /*              Avoid possible harmful underflow if exponent range */
 /*              asymmetric (true SSMIN may not underflow even if */
 /*              AU underflows) */
 
-		*ssmin = fhmn * fhmx / ga;
-		*ssmax = ga;
-	    } else {
-		as = fhmn / fhmx + 1.;
-		at = (fhmx - fhmn) / fhmx;
+                *ssmin = fhmn * fhmx / ga;
+                *ssmax = ga;
+            } else {
+                as = fhmn / fhmx + 1.;
+                at = (fhmx - fhmn) / fhmx;
 /* Computing 2nd power */
-		d__1 = as * au;
+                d__1 = as * au;
 /* Computing 2nd power */
-		d__2 = at * au;
-		c__ = 1. / (sqrt(d__1 * d__1 + 1.) + sqrt(d__2 * d__2 + 1.));
-		*ssmin = fhmn * c__ * au;
-		*ssmin += *ssmin;
-		*ssmax = ga / (c__ + c__);
-	    }
-	}
+                d__2 = at * au;
+                c__ = 1. / (sqrt(d__1 * d__1 + 1.) + sqrt(d__2 * d__2 + 1.));
+                *ssmin = fhmn * c__ * au;
+                *ssmin += *ssmin;
+                *ssmax = ga / (c__ + c__);
+            }
+        }
     }
     return 0;
 
@@ -208,5 +208,5 @@ extern "C" {
 } /* dlas2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

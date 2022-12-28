@@ -1,13 +1,13 @@
 /* fortran/dlasd7.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -19,7 +19,7 @@ extern "C" {
 
 static integer c__1 = 1;
 
-/* > \brief \b DLASD7 merges the two sets of singular values together into a single sorted set. Then it tries 
+/* > \brief \b DLASD7 merges the two sets of singular values together into a single sorted set. Then it tries
 to deflate the size of the problem. Used by sbdsdc. */
 
 /*  =========== DOCUMENTATION =========== */
@@ -298,13 +298,13 @@ f"> */
 /* >     California at Berkeley, USA */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int dlasd7_(integer *icompq, integer *nl, integer *nr, 
-	integer *sqre, integer *k, doublereal *d__, doublereal *z__, 
-	doublereal *zw, doublereal *vf, doublereal *vfw, doublereal *vl, 
-	doublereal *vlw, doublereal *alpha, doublereal *beta, doublereal *
-	dsigma, integer *idx, integer *idxp, integer *idxq, integer *perm, 
-	integer *givptr, integer *givcol, integer *ldgcol, doublereal *givnum,
-	 integer *ldgnum, doublereal *c__, doublereal *s, integer *info)
+/* Subroutine */ int dlasd7_(integer *icompq, integer *nl, integer *nr,
+        integer *sqre, integer *k, doublereal *d__, doublereal *z__,
+        doublereal *zw, doublereal *vf, doublereal *vfw, doublereal *vl,
+        doublereal *vlw, doublereal *alpha, doublereal *beta, doublereal *
+        dsigma, integer *idx, integer *idxp, integer *idxq, integer *perm,
+        integer *givptr, integer *givcol, integer *ldgcol, doublereal *givnum,
+         integer *ldgnum, doublereal *c__, doublereal *s, integer *info)
 {
     /* System generated locals */
     integer givcol_dim1, givcol_offset, givnum_dim1, givnum_offset, i__1;
@@ -316,17 +316,17 @@ f"> */
     integer jp;
     doublereal eps, tau, tol;
     integer nlp1, nlp2, idxi, idxj;
-    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *);
+    extern /* Subroutine */ int drot_(integer *, doublereal *, integer *,
+            doublereal *, integer *, doublereal *, doublereal *);
     integer idxjp;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *);
+    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *,
+            doublereal *, integer *);
     integer jprev;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *, 
-	    ftnlen);
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *, 
-	    ftnlen);
+    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *,
+            ftnlen);
+    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *,
+            integer *, integer *, integer *), xerbla_(char *, integer *,
+            ftnlen);
     doublereal hlftol;
 
 
@@ -382,28 +382,28 @@ f"> */
     m = n + *sqre;
 
     if (*icompq < 0 || *icompq > 1) {
-	*info = -1;
+        *info = -1;
     } else if (*nl < 1) {
-	*info = -2;
+        *info = -2;
     } else if (*nr < 1) {
-	*info = -3;
+        *info = -3;
     } else if (*sqre < 0 || *sqre > 1) {
-	*info = -4;
+        *info = -4;
     } else if (*ldgcol < n) {
-	*info = -22;
+        *info = -22;
     } else if (*ldgnum < n) {
-	*info = -24;
+        *info = -24;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DLASD7", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DLASD7", &i__1, (ftnlen)6);
+        return 0;
     }
 
     nlp1 = *nl + 1;
     nlp2 = *nl + 2;
     if (*icompq == 1) {
-	*givptr = 0;
+        *givptr = 0;
     }
 
 /*     Generate the first part of the vector Z and move the singular */
@@ -413,11 +413,11 @@ f"> */
     vl[nlp1] = 0.;
     tau = vf[nlp1];
     for (i__ = *nl; i__ >= 1; --i__) {
-	z__[i__ + 1] = *alpha * vl[i__];
-	vl[i__] = 0.;
-	vf[i__ + 1] = vf[i__];
-	d__[i__ + 1] = d__[i__];
-	idxq[i__ + 1] = idxq[i__] + 1;
+        z__[i__ + 1] = *alpha * vl[i__];
+        vl[i__] = 0.;
+        vf[i__ + 1] = vf[i__];
+        d__[i__ + 1] = d__[i__];
+        idxq[i__ + 1] = idxq[i__] + 1;
 /* L10: */
     }
     vf[1] = tau;
@@ -426,8 +426,8 @@ f"> */
 
     i__1 = m;
     for (i__ = nlp2; i__ <= i__1; ++i__) {
-	z__[i__] = *beta * vf[i__];
-	vf[i__] = 0.;
+        z__[i__] = *beta * vf[i__];
+        vf[i__] = 0.;
 /* L20: */
     }
 
@@ -435,7 +435,7 @@ f"> */
 
     i__1 = n;
     for (i__ = nlp2; i__ <= i__1; ++i__) {
-	idxq[i__] += nlp1;
+        idxq[i__] += nlp1;
 /* L30: */
     }
 
@@ -443,10 +443,10 @@ f"> */
 
     i__1 = n;
     for (i__ = 2; i__ <= i__1; ++i__) {
-	dsigma[i__] = d__[idxq[i__]];
-	zw[i__] = z__[idxq[i__]];
-	vfw[i__] = vf[idxq[i__]];
-	vlw[i__] = vl[idxq[i__]];
+        dsigma[i__] = d__[idxq[i__]];
+        zw[i__] = z__[idxq[i__]];
+        vfw[i__] = vf[idxq[i__]];
+        vlw[i__] = vl[idxq[i__]];
 /* L40: */
     }
 
@@ -454,11 +454,11 @@ f"> */
 
     i__1 = n;
     for (i__ = 2; i__ <= i__1; ++i__) {
-	idxi = idx[i__] + 1;
-	d__[i__] = dsigma[idxi];
-	z__[i__] = zw[idxi];
-	vf[i__] = vfw[idxi];
-	vl[i__] = vlw[idxi];
+        idxi = idx[i__] + 1;
+        d__[i__] = dsigma[idxi];
+        z__[i__] = zw[idxi];
+        vf[i__] = vfw[idxi];
+        vl[i__] = vlw[idxi];
 /* L50: */
     }
 
@@ -495,19 +495,19 @@ f"> */
     k2 = n + 1;
     i__1 = n;
     for (j = 2; j <= i__1; ++j) {
-	if ((d__1 = z__[j], abs(d__1)) <= tol) {
+        if ((d__1 = z__[j], abs(d__1)) <= tol) {
 
 /*           Deflate due to small z component. */
 
-	    --k2;
-	    idxp[k2] = j;
-	    if (j == n) {
-		goto L100;
-	    }
-	} else {
-	    jprev = j;
-	    goto L70;
-	}
+            --k2;
+            idxp[k2] = j;
+            if (j == n) {
+                goto L100;
+            }
+        } else {
+            jprev = j;
+            goto L70;
+        }
 /* L60: */
     }
 L70:
@@ -515,63 +515,63 @@ L70:
 L80:
     ++j;
     if (j > n) {
-	goto L90;
+        goto L90;
     }
     if ((d__1 = z__[j], abs(d__1)) <= tol) {
 
 /*        Deflate due to small z component. */
 
-	--k2;
-	idxp[k2] = j;
+        --k2;
+        idxp[k2] = j;
     } else {
 
 /*        Check if singular values are close enough to allow deflation. */
 
-	if ((d__1 = d__[j] - d__[jprev], abs(d__1)) <= tol) {
+        if ((d__1 = d__[j] - d__[jprev], abs(d__1)) <= tol) {
 
 /*           Deflation is possible. */
 
-	    *s = z__[jprev];
-	    *c__ = z__[j];
+            *s = z__[jprev];
+            *c__ = z__[j];
 
 /*           Find sqrt(a**2+b**2) without overflow or */
 /*           destructive underflow. */
 
-	    tau = dlapy2_(c__, s);
-	    z__[j] = tau;
-	    z__[jprev] = 0.;
-	    *c__ /= tau;
-	    *s = -(*s) / tau;
+            tau = dlapy2_(c__, s);
+            z__[j] = tau;
+            z__[jprev] = 0.;
+            *c__ /= tau;
+            *s = -(*s) / tau;
 
 /*           Record the appropriate Givens rotation */
 
-	    if (*icompq == 1) {
-		++(*givptr);
-		idxjp = idxq[idx[jprev] + 1];
-		idxj = idxq[idx[j] + 1];
-		if (idxjp <= nlp1) {
-		    --idxjp;
-		}
-		if (idxj <= nlp1) {
-		    --idxj;
-		}
-		givcol[*givptr + (givcol_dim1 << 1)] = idxjp;
-		givcol[*givptr + givcol_dim1] = idxj;
-		givnum[*givptr + (givnum_dim1 << 1)] = *c__;
-		givnum[*givptr + givnum_dim1] = *s;
-	    }
-	    drot_(&c__1, &vf[jprev], &c__1, &vf[j], &c__1, c__, s);
-	    drot_(&c__1, &vl[jprev], &c__1, &vl[j], &c__1, c__, s);
-	    --k2;
-	    idxp[k2] = jprev;
-	    jprev = j;
-	} else {
-	    ++(*k);
-	    zw[*k] = z__[jprev];
-	    dsigma[*k] = d__[jprev];
-	    idxp[*k] = jprev;
-	    jprev = j;
-	}
+            if (*icompq == 1) {
+                ++(*givptr);
+                idxjp = idxq[idx[jprev] + 1];
+                idxj = idxq[idx[j] + 1];
+                if (idxjp <= nlp1) {
+                    --idxjp;
+                }
+                if (idxj <= nlp1) {
+                    --idxj;
+                }
+                givcol[*givptr + (givcol_dim1 << 1)] = idxjp;
+                givcol[*givptr + givcol_dim1] = idxj;
+                givnum[*givptr + (givnum_dim1 << 1)] = *c__;
+                givnum[*givptr + givnum_dim1] = *s;
+            }
+            drot_(&c__1, &vf[jprev], &c__1, &vf[j], &c__1, c__, s);
+            drot_(&c__1, &vl[jprev], &c__1, &vl[j], &c__1, c__, s);
+            --k2;
+            idxp[k2] = jprev;
+            jprev = j;
+        } else {
+            ++(*k);
+            zw[*k] = z__[jprev];
+            dsigma[*k] = d__[jprev];
+            idxp[*k] = jprev;
+            jprev = j;
+        }
     }
     goto L80;
 L90:
@@ -591,22 +591,22 @@ L100:
 
     i__1 = n;
     for (j = 2; j <= i__1; ++j) {
-	jp = idxp[j];
-	dsigma[j] = d__[jp];
-	vfw[j] = vf[jp];
-	vlw[j] = vl[jp];
+        jp = idxp[j];
+        dsigma[j] = d__[jp];
+        vfw[j] = vf[jp];
+        vlw[j] = vl[jp];
 /* L110: */
     }
     if (*icompq == 1) {
-	i__1 = n;
-	for (j = 2; j <= i__1; ++j) {
-	    jp = idxp[j];
-	    perm[j] = idxq[idx[jp] + 1];
-	    if (perm[j] <= nlp1) {
-		--perm[j];
-	    }
+        i__1 = n;
+        for (j = 2; j <= i__1; ++j) {
+            jp = idxp[j];
+            perm[j] = idxq[idx[jp] + 1];
+            if (perm[j] <= nlp1) {
+                --perm[j];
+            }
 /* L120: */
-	}
+        }
     }
 
 /*     The deflated singular values go back into the last N - K slots of */
@@ -621,26 +621,26 @@ L100:
     dsigma[1] = 0.;
     hlftol = tol / 2.;
     if (abs(dsigma[2]) <= hlftol) {
-	dsigma[2] = hlftol;
+        dsigma[2] = hlftol;
     }
     if (m > n) {
-	z__[1] = dlapy2_(&z1, &z__[m]);
-	if (z__[1] <= tol) {
-	    *c__ = 1.;
-	    *s = 0.;
-	    z__[1] = tol;
-	} else {
-	    *c__ = z1 / z__[1];
-	    *s = -z__[m] / z__[1];
-	}
-	drot_(&c__1, &vf[m], &c__1, &vf[1], &c__1, c__, s);
-	drot_(&c__1, &vl[m], &c__1, &vl[1], &c__1, c__, s);
+        z__[1] = dlapy2_(&z1, &z__[m]);
+        if (z__[1] <= tol) {
+            *c__ = 1.;
+            *s = 0.;
+            z__[1] = tol;
+        } else {
+            *c__ = z1 / z__[1];
+            *s = -z__[m] / z__[1];
+        }
+        drot_(&c__1, &vf[m], &c__1, &vf[1], &c__1, c__, s);
+        drot_(&c__1, &vl[m], &c__1, &vl[1], &c__1, c__, s);
     } else {
-	if (abs(z1) <= tol) {
-	    z__[1] = tol;
-	} else {
-	    z__[1] = z1;
-	}
+        if (abs(z1) <= tol) {
+            z__[1] = tol;
+        } else {
+            z__[1] = z1;
+        }
     }
 
 /*     Restore Z, VF, and VL. */
@@ -659,5 +659,5 @@ L100:
 } /* dlasd7_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

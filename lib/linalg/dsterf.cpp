@@ -1,13 +1,13 @@
 /* fortran/dsterf.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -108,8 +108,8 @@ f"> */
 /* > \ingroup auxOTHERcomputational */
 
 /*  ===================================================================== */
-/* Subroutine */ int dsterf_(integer *n, doublereal *d__, doublereal *e, 
-	integer *info)
+/* Subroutine */ int dsterf_(integer *n, doublereal *d__, doublereal *e,
+        integer *info)
 {
     /* System generated locals */
     integer i__1;
@@ -129,22 +129,22 @@ f"> */
     integer lend;
     doublereal rmax;
     integer jtot;
-    extern /* Subroutine */ int dlae2_(doublereal *, doublereal *, doublereal 
-	    *, doublereal *, doublereal *);
+    extern /* Subroutine */ int dlae2_(doublereal *, doublereal *, doublereal
+            *, doublereal *, doublereal *);
     doublereal gamma, alpha, sigma, anorm;
-    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *, 
-	    ftnlen);
+    extern doublereal dlapy2_(doublereal *, doublereal *), dlamch_(char *,
+            ftnlen);
     integer iscale;
-    extern /* Subroutine */ int dlascl_(char *, integer *, integer *, 
-	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, integer *, ftnlen);
+    extern /* Subroutine */ int dlascl_(char *, integer *, integer *,
+            doublereal *, doublereal *, integer *, integer *, doublereal *,
+            integer *, integer *, ftnlen);
     doublereal oldgam, safmin;
     extern /* Subroutine */ int xerbla_(char *, integer *, ftnlen);
     doublereal safmax;
-    extern doublereal dlanst_(char *, integer *, doublereal *, doublereal *, 
-	    ftnlen);
-    extern /* Subroutine */ int dlasrt_(char *, integer *, doublereal *, 
-	    integer *, ftnlen);
+    extern doublereal dlanst_(char *, integer *, doublereal *, doublereal *,
+            ftnlen);
+    extern /* Subroutine */ int dlasrt_(char *, integer *, doublereal *,
+            integer *, ftnlen);
     integer lendsv;
     doublereal ssfmin;
     integer nmaxit;
@@ -186,13 +186,13 @@ f"> */
 /*     Quick return if possible */
 
     if (*n < 0) {
-	*info = -1;
-	i__1 = -(*info);
-	xerbla_((char *)"DSTERF", &i__1, (ftnlen)6);
-	return 0;
+        *info = -1;
+        i__1 = -(*info);
+        xerbla_((char *)"DSTERF", &i__1, (ftnlen)6);
+        return 0;
     }
     if (*n <= 1) {
-	return 0;
+        return 0;
     }
 
 /*     Determine the unit roundoff for this environment. */
@@ -221,18 +221,18 @@ f"> */
 
 L10:
     if (l1 > *n) {
-	goto L170;
+        goto L170;
     }
     if (l1 > 1) {
-	e[l1 - 1] = 0.;
+        e[l1 - 1] = 0.;
     }
     i__1 = *n - 1;
     for (m = l1; m <= i__1; ++m) {
-	if ((d__3 = e[m], abs(d__3)) <= sqrt((d__1 = d__[m], abs(d__1))) * 
-		sqrt((d__2 = d__[m + 1], abs(d__2))) * eps) {
-	    e[m] = 0.;
-	    goto L30;
-	}
+        if ((d__3 = e[m], abs(d__3)) <= sqrt((d__1 = d__[m], abs(d__1))) *
+                sqrt((d__2 = d__[m + 1], abs(d__2))) * eps) {
+            e[m] = 0.;
+            goto L30;
+        }
 /* L20: */
     }
     m = *n;
@@ -244,7 +244,7 @@ L30:
     lendsv = lend;
     l1 = m + 1;
     if (lend == l) {
-	goto L10;
+        goto L10;
     }
 
 /*     Scale submatrix in rows and columns L to LEND */
@@ -253,39 +253,39 @@ L30:
     anorm = dlanst_((char *)"M", &i__1, &d__[l], &e[l], (ftnlen)1);
     iscale = 0;
     if (anorm == 0.) {
-	goto L10;
+        goto L10;
     }
     if (anorm > ssfmax) {
-	iscale = 1;
-	i__1 = lend - l + 1;
-	dlascl_((char *)"G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &d__[l], n, 
-		info, (ftnlen)1);
-	i__1 = lend - l;
-	dlascl_((char *)"G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &e[l], n, 
-		info, (ftnlen)1);
+        iscale = 1;
+        i__1 = lend - l + 1;
+        dlascl_((char *)"G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &d__[l], n,
+                info, (ftnlen)1);
+        i__1 = lend - l;
+        dlascl_((char *)"G", &c__0, &c__0, &anorm, &ssfmax, &i__1, &c__1, &e[l], n,
+                info, (ftnlen)1);
     } else if (anorm < ssfmin) {
-	iscale = 2;
-	i__1 = lend - l + 1;
-	dlascl_((char *)"G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &d__[l], n, 
-		info, (ftnlen)1);
-	i__1 = lend - l;
-	dlascl_((char *)"G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &e[l], n, 
-		info, (ftnlen)1);
+        iscale = 2;
+        i__1 = lend - l + 1;
+        dlascl_((char *)"G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &d__[l], n,
+                info, (ftnlen)1);
+        i__1 = lend - l;
+        dlascl_((char *)"G", &c__0, &c__0, &anorm, &ssfmin, &i__1, &c__1, &e[l], n,
+                info, (ftnlen)1);
     }
 
     i__1 = lend - 1;
     for (i__ = l; i__ <= i__1; ++i__) {
 /* Computing 2nd power */
-	d__1 = e[i__];
-	e[i__] = d__1 * d__1;
+        d__1 = e[i__];
+        e[i__] = d__1 * d__1;
 /* L40: */
     }
 
 /*     Choose between QL and QR iteration */
 
     if ((d__1 = d__[lend], abs(d__1)) < (d__2 = d__[l], abs(d__2))) {
-	lend = lsv;
-	l = lendsv;
+        lend = lsv;
+        l = lendsv;
     }
 
     if (lend >= l) {
@@ -295,98 +295,98 @@ L30:
 /*        Look for small subdiagonal element. */
 
 L50:
-	if (l != lend) {
-	    i__1 = lend - 1;
-	    for (m = l; m <= i__1; ++m) {
-		if ((d__2 = e[m], abs(d__2)) <= eps2 * (d__1 = d__[m] * d__[m 
-			+ 1], abs(d__1))) {
-		    goto L70;
-		}
+        if (l != lend) {
+            i__1 = lend - 1;
+            for (m = l; m <= i__1; ++m) {
+                if ((d__2 = e[m], abs(d__2)) <= eps2 * (d__1 = d__[m] * d__[m
+                        + 1], abs(d__1))) {
+                    goto L70;
+                }
 /* L60: */
-	    }
-	}
-	m = lend;
+            }
+        }
+        m = lend;
 
 L70:
-	if (m < lend) {
-	    e[m] = 0.;
-	}
-	p = d__[l];
-	if (m == l) {
-	    goto L90;
-	}
+        if (m < lend) {
+            e[m] = 0.;
+        }
+        p = d__[l];
+        if (m == l) {
+            goto L90;
+        }
 
 /*        If remaining matrix is 2 by 2, use DLAE2 to compute its */
 /*        eigenvalues. */
 
-	if (m == l + 1) {
-	    rte = sqrt(e[l]);
-	    dlae2_(&d__[l], &rte, &d__[l + 1], &rt1, &rt2);
-	    d__[l] = rt1;
-	    d__[l + 1] = rt2;
-	    e[l] = 0.;
-	    l += 2;
-	    if (l <= lend) {
-		goto L50;
-	    }
-	    goto L150;
-	}
+        if (m == l + 1) {
+            rte = sqrt(e[l]);
+            dlae2_(&d__[l], &rte, &d__[l + 1], &rt1, &rt2);
+            d__[l] = rt1;
+            d__[l + 1] = rt2;
+            e[l] = 0.;
+            l += 2;
+            if (l <= lend) {
+                goto L50;
+            }
+            goto L150;
+        }
 
-	if (jtot == nmaxit) {
-	    goto L150;
-	}
-	++jtot;
+        if (jtot == nmaxit) {
+            goto L150;
+        }
+        ++jtot;
 
 /*        Form shift. */
 
-	rte = sqrt(e[l]);
-	sigma = (d__[l + 1] - p) / (rte * 2.);
-	r__ = dlapy2_(&sigma, &c_b33);
-	sigma = p - rte / (sigma + d_sign(&r__, &sigma));
+        rte = sqrt(e[l]);
+        sigma = (d__[l + 1] - p) / (rte * 2.);
+        r__ = dlapy2_(&sigma, &c_b33);
+        sigma = p - rte / (sigma + d_sign(&r__, &sigma));
 
-	c__ = 1.;
-	s = 0.;
-	gamma = d__[m] - sigma;
-	p = gamma * gamma;
+        c__ = 1.;
+        s = 0.;
+        gamma = d__[m] - sigma;
+        p = gamma * gamma;
 
 /*        Inner loop */
 
-	i__1 = l;
-	for (i__ = m - 1; i__ >= i__1; --i__) {
-	    bb = e[i__];
-	    r__ = p + bb;
-	    if (i__ != m - 1) {
-		e[i__ + 1] = s * r__;
-	    }
-	    oldc = c__;
-	    c__ = p / r__;
-	    s = bb / r__;
-	    oldgam = gamma;
-	    alpha = d__[i__];
-	    gamma = c__ * (alpha - sigma) - s * oldgam;
-	    d__[i__ + 1] = oldgam + (alpha - gamma);
-	    if (c__ != 0.) {
-		p = gamma * gamma / c__;
-	    } else {
-		p = oldc * bb;
-	    }
+        i__1 = l;
+        for (i__ = m - 1; i__ >= i__1; --i__) {
+            bb = e[i__];
+            r__ = p + bb;
+            if (i__ != m - 1) {
+                e[i__ + 1] = s * r__;
+            }
+            oldc = c__;
+            c__ = p / r__;
+            s = bb / r__;
+            oldgam = gamma;
+            alpha = d__[i__];
+            gamma = c__ * (alpha - sigma) - s * oldgam;
+            d__[i__ + 1] = oldgam + (alpha - gamma);
+            if (c__ != 0.) {
+                p = gamma * gamma / c__;
+            } else {
+                p = oldc * bb;
+            }
 /* L80: */
-	}
+        }
 
-	e[l] = s * p;
-	d__[l] = sigma + gamma;
-	goto L50;
+        e[l] = s * p;
+        d__[l] = sigma + gamma;
+        goto L50;
 
 /*        Eigenvalue found. */
 
 L90:
-	d__[l] = p;
+        d__[l] = p;
 
-	++l;
-	if (l <= lend) {
-	    goto L50;
-	}
-	goto L150;
+        ++l;
+        if (l <= lend) {
+            goto L50;
+        }
+        goto L150;
 
     } else {
 
@@ -395,96 +395,96 @@ L90:
 /*        Look for small superdiagonal element. */
 
 L100:
-	i__1 = lend + 1;
-	for (m = l; m >= i__1; --m) {
-	    if ((d__2 = e[m - 1], abs(d__2)) <= eps2 * (d__1 = d__[m] * d__[m 
-		    - 1], abs(d__1))) {
-		goto L120;
-	    }
+        i__1 = lend + 1;
+        for (m = l; m >= i__1; --m) {
+            if ((d__2 = e[m - 1], abs(d__2)) <= eps2 * (d__1 = d__[m] * d__[m
+                    - 1], abs(d__1))) {
+                goto L120;
+            }
 /* L110: */
-	}
-	m = lend;
+        }
+        m = lend;
 
 L120:
-	if (m > lend) {
-	    e[m - 1] = 0.;
-	}
-	p = d__[l];
-	if (m == l) {
-	    goto L140;
-	}
+        if (m > lend) {
+            e[m - 1] = 0.;
+        }
+        p = d__[l];
+        if (m == l) {
+            goto L140;
+        }
 
 /*        If remaining matrix is 2 by 2, use DLAE2 to compute its */
 /*        eigenvalues. */
 
-	if (m == l - 1) {
-	    rte = sqrt(e[l - 1]);
-	    dlae2_(&d__[l], &rte, &d__[l - 1], &rt1, &rt2);
-	    d__[l] = rt1;
-	    d__[l - 1] = rt2;
-	    e[l - 1] = 0.;
-	    l += -2;
-	    if (l >= lend) {
-		goto L100;
-	    }
-	    goto L150;
-	}
+        if (m == l - 1) {
+            rte = sqrt(e[l - 1]);
+            dlae2_(&d__[l], &rte, &d__[l - 1], &rt1, &rt2);
+            d__[l] = rt1;
+            d__[l - 1] = rt2;
+            e[l - 1] = 0.;
+            l += -2;
+            if (l >= lend) {
+                goto L100;
+            }
+            goto L150;
+        }
 
-	if (jtot == nmaxit) {
-	    goto L150;
-	}
-	++jtot;
+        if (jtot == nmaxit) {
+            goto L150;
+        }
+        ++jtot;
 
 /*        Form shift. */
 
-	rte = sqrt(e[l - 1]);
-	sigma = (d__[l - 1] - p) / (rte * 2.);
-	r__ = dlapy2_(&sigma, &c_b33);
-	sigma = p - rte / (sigma + d_sign(&r__, &sigma));
+        rte = sqrt(e[l - 1]);
+        sigma = (d__[l - 1] - p) / (rte * 2.);
+        r__ = dlapy2_(&sigma, &c_b33);
+        sigma = p - rte / (sigma + d_sign(&r__, &sigma));
 
-	c__ = 1.;
-	s = 0.;
-	gamma = d__[m] - sigma;
-	p = gamma * gamma;
+        c__ = 1.;
+        s = 0.;
+        gamma = d__[m] - sigma;
+        p = gamma * gamma;
 
 /*        Inner loop */
 
-	i__1 = l - 1;
-	for (i__ = m; i__ <= i__1; ++i__) {
-	    bb = e[i__];
-	    r__ = p + bb;
-	    if (i__ != m) {
-		e[i__ - 1] = s * r__;
-	    }
-	    oldc = c__;
-	    c__ = p / r__;
-	    s = bb / r__;
-	    oldgam = gamma;
-	    alpha = d__[i__ + 1];
-	    gamma = c__ * (alpha - sigma) - s * oldgam;
-	    d__[i__] = oldgam + (alpha - gamma);
-	    if (c__ != 0.) {
-		p = gamma * gamma / c__;
-	    } else {
-		p = oldc * bb;
-	    }
+        i__1 = l - 1;
+        for (i__ = m; i__ <= i__1; ++i__) {
+            bb = e[i__];
+            r__ = p + bb;
+            if (i__ != m) {
+                e[i__ - 1] = s * r__;
+            }
+            oldc = c__;
+            c__ = p / r__;
+            s = bb / r__;
+            oldgam = gamma;
+            alpha = d__[i__ + 1];
+            gamma = c__ * (alpha - sigma) - s * oldgam;
+            d__[i__] = oldgam + (alpha - gamma);
+            if (c__ != 0.) {
+                p = gamma * gamma / c__;
+            } else {
+                p = oldc * bb;
+            }
 /* L130: */
-	}
+        }
 
-	e[l - 1] = s * p;
-	d__[l] = sigma + gamma;
-	goto L100;
+        e[l - 1] = s * p;
+        d__[l] = sigma + gamma;
+        goto L100;
 
 /*        Eigenvalue found. */
 
 L140:
-	d__[l] = p;
+        d__[l] = p;
 
-	--l;
-	if (l >= lend) {
-	    goto L100;
-	}
-	goto L150;
+        --l;
+        if (l >= lend) {
+            goto L100;
+        }
+        goto L150;
 
     }
 
@@ -492,27 +492,27 @@ L140:
 
 L150:
     if (iscale == 1) {
-	i__1 = lendsv - lsv + 1;
-	dlascl_((char *)"G", &c__0, &c__0, &ssfmax, &anorm, &i__1, &c__1, &d__[lsv], 
-		n, info, (ftnlen)1);
+        i__1 = lendsv - lsv + 1;
+        dlascl_((char *)"G", &c__0, &c__0, &ssfmax, &anorm, &i__1, &c__1, &d__[lsv],
+                n, info, (ftnlen)1);
     }
     if (iscale == 2) {
-	i__1 = lendsv - lsv + 1;
-	dlascl_((char *)"G", &c__0, &c__0, &ssfmin, &anorm, &i__1, &c__1, &d__[lsv], 
-		n, info, (ftnlen)1);
+        i__1 = lendsv - lsv + 1;
+        dlascl_((char *)"G", &c__0, &c__0, &ssfmin, &anorm, &i__1, &c__1, &d__[lsv],
+                n, info, (ftnlen)1);
     }
 
 /*     Check for no convergence to an eigenvalue after a total */
 /*     of N*MAXIT iterations. */
 
     if (jtot < nmaxit) {
-	goto L10;
+        goto L10;
     }
     i__1 = *n - 1;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	if (e[i__] != 0.) {
-	    ++(*info);
-	}
+        if (e[i__] != 0.) {
+            ++(*info);
+        }
 /* L160: */
     }
     goto L180;
@@ -530,5 +530,5 @@ L180:
 } /* dsterf_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

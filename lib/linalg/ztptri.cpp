@@ -1,13 +1,13 @@
 /* fortran/ztptri.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -138,8 +138,8 @@ f"> */
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int ztptri_(char *uplo, char *diag, integer *n, 
-	doublecomplex *ap, integer *info, ftnlen uplo_len, ftnlen diag_len)
+/* Subroutine */ int ztptri_(char *uplo, char *diag, integer *n,
+        doublecomplex *ap, integer *info, ftnlen uplo_len, ftnlen diag_len)
 {
     /* System generated locals */
     integer i__1, i__2;
@@ -152,12 +152,12 @@ f"> */
     integer j, jc, jj;
     doublecomplex ajj;
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern /* Subroutine */ int zscal_(integer *, doublecomplex *, 
-	    doublecomplex *, integer *);
+    extern /* Subroutine */ int zscal_(integer *, doublecomplex *,
+            doublecomplex *, integer *);
     logical upper;
-    extern /* Subroutine */ int ztpmv_(char *, char *, char *, integer *, 
-	    doublecomplex *, doublecomplex *, integer *, ftnlen, ftnlen, 
-	    ftnlen), xerbla_(char *, integer *, ftnlen);
+    extern /* Subroutine */ int ztpmv_(char *, char *, char *, integer *,
+            doublecomplex *, doublecomplex *, integer *, ftnlen, ftnlen,
+            ftnlen), xerbla_(char *, integer *, ftnlen);
     integer jclast;
     logical nounit;
 
@@ -193,108 +193,108 @@ f"> */
     upper = lsame_(uplo, (char *)"U", (ftnlen)1, (ftnlen)1);
     nounit = lsame_(diag, (char *)"N", (ftnlen)1, (ftnlen)1);
     if (! upper && ! lsame_(uplo, (char *)"L", (ftnlen)1, (ftnlen)1)) {
-	*info = -1;
+        *info = -1;
     } else if (! nounit && ! lsame_(diag, (char *)"U", (ftnlen)1, (ftnlen)1)) {
-	*info = -2;
+        *info = -2;
     } else if (*n < 0) {
-	*info = -3;
+        *info = -3;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"ZTPTRI", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"ZTPTRI", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Check for singularity if non-unit. */
 
     if (nounit) {
-	if (upper) {
-	    jj = 0;
-	    i__1 = *n;
-	    for (*info = 1; *info <= i__1; ++(*info)) {
-		jj += *info;
-		i__2 = jj;
-		if (ap[i__2].r == 0. && ap[i__2].i == 0.) {
-		    return 0;
-		}
+        if (upper) {
+            jj = 0;
+            i__1 = *n;
+            for (*info = 1; *info <= i__1; ++(*info)) {
+                jj += *info;
+                i__2 = jj;
+                if (ap[i__2].r == 0. && ap[i__2].i == 0.) {
+                    return 0;
+                }
 /* L10: */
-	    }
-	} else {
-	    jj = 1;
-	    i__1 = *n;
-	    for (*info = 1; *info <= i__1; ++(*info)) {
-		i__2 = jj;
-		if (ap[i__2].r == 0. && ap[i__2].i == 0.) {
-		    return 0;
-		}
-		jj = jj + *n - *info + 1;
+            }
+        } else {
+            jj = 1;
+            i__1 = *n;
+            for (*info = 1; *info <= i__1; ++(*info)) {
+                i__2 = jj;
+                if (ap[i__2].r == 0. && ap[i__2].i == 0.) {
+                    return 0;
+                }
+                jj = jj + *n - *info + 1;
 /* L20: */
-	    }
-	}
-	*info = 0;
+            }
+        }
+        *info = 0;
     }
 
     if (upper) {
 
 /*        Compute inverse of upper triangular matrix. */
 
-	jc = 1;
-	i__1 = *n;
-	for (j = 1; j <= i__1; ++j) {
-	    if (nounit) {
-		i__2 = jc + j - 1;
-		z_div(&z__1, &c_b1, &ap[jc + j - 1]);
-		ap[i__2].r = z__1.r, ap[i__2].i = z__1.i;
-		i__2 = jc + j - 1;
-		z__1.r = -ap[i__2].r, z__1.i = -ap[i__2].i;
-		ajj.r = z__1.r, ajj.i = z__1.i;
-	    } else {
-		z__1.r = -1., z__1.i = -0.;
-		ajj.r = z__1.r, ajj.i = z__1.i;
-	    }
+        jc = 1;
+        i__1 = *n;
+        for (j = 1; j <= i__1; ++j) {
+            if (nounit) {
+                i__2 = jc + j - 1;
+                z_div(&z__1, &c_b1, &ap[jc + j - 1]);
+                ap[i__2].r = z__1.r, ap[i__2].i = z__1.i;
+                i__2 = jc + j - 1;
+                z__1.r = -ap[i__2].r, z__1.i = -ap[i__2].i;
+                ajj.r = z__1.r, ajj.i = z__1.i;
+            } else {
+                z__1.r = -1., z__1.i = -0.;
+                ajj.r = z__1.r, ajj.i = z__1.i;
+            }
 
 /*           Compute elements 1:j-1 of j-th column. */
 
-	    i__2 = j - 1;
-	    ztpmv_((char *)"Upper", (char *)"No transpose", diag, &i__2, &ap[1], &ap[jc], &
-		    c__1, (ftnlen)5, (ftnlen)12, (ftnlen)1);
-	    i__2 = j - 1;
-	    zscal_(&i__2, &ajj, &ap[jc], &c__1);
-	    jc += j;
+            i__2 = j - 1;
+            ztpmv_((char *)"Upper", (char *)"No transpose", diag, &i__2, &ap[1], &ap[jc], &
+                    c__1, (ftnlen)5, (ftnlen)12, (ftnlen)1);
+            i__2 = j - 1;
+            zscal_(&i__2, &ajj, &ap[jc], &c__1);
+            jc += j;
 /* L30: */
-	}
+        }
 
     } else {
 
 /*        Compute inverse of lower triangular matrix. */
 
-	jc = *n * (*n + 1) / 2;
-	for (j = *n; j >= 1; --j) {
-	    if (nounit) {
-		i__1 = jc;
-		z_div(&z__1, &c_b1, &ap[jc]);
-		ap[i__1].r = z__1.r, ap[i__1].i = z__1.i;
-		i__1 = jc;
-		z__1.r = -ap[i__1].r, z__1.i = -ap[i__1].i;
-		ajj.r = z__1.r, ajj.i = z__1.i;
-	    } else {
-		z__1.r = -1., z__1.i = -0.;
-		ajj.r = z__1.r, ajj.i = z__1.i;
-	    }
-	    if (j < *n) {
+        jc = *n * (*n + 1) / 2;
+        for (j = *n; j >= 1; --j) {
+            if (nounit) {
+                i__1 = jc;
+                z_div(&z__1, &c_b1, &ap[jc]);
+                ap[i__1].r = z__1.r, ap[i__1].i = z__1.i;
+                i__1 = jc;
+                z__1.r = -ap[i__1].r, z__1.i = -ap[i__1].i;
+                ajj.r = z__1.r, ajj.i = z__1.i;
+            } else {
+                z__1.r = -1., z__1.i = -0.;
+                ajj.r = z__1.r, ajj.i = z__1.i;
+            }
+            if (j < *n) {
 
 /*              Compute elements j+1:n of j-th column. */
 
-		i__1 = *n - j;
-		ztpmv_((char *)"Lower", (char *)"No transpose", diag, &i__1, &ap[jclast], &ap[
-			jc + 1], &c__1, (ftnlen)5, (ftnlen)12, (ftnlen)1);
-		i__1 = *n - j;
-		zscal_(&i__1, &ajj, &ap[jc + 1], &c__1);
-	    }
-	    jclast = jc;
-	    jc = jc - *n + j - 2;
+                i__1 = *n - j;
+                ztpmv_((char *)"Lower", (char *)"No transpose", diag, &i__1, &ap[jclast], &ap[
+                        jc + 1], &c__1, (ftnlen)5, (ftnlen)12, (ftnlen)1);
+                i__1 = *n - j;
+                zscal_(&i__1, &ajj, &ap[jc + 1], &c__1);
+            }
+            jclast = jc;
+            jc = jc - *n + j - 2;
 /* L40: */
-	}
+        }
     }
 
     return 0;
@@ -304,5 +304,5 @@ f"> */
 } /* ztptri_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

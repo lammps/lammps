@@ -1,13 +1,13 @@
 /* fortran/dgetrs.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -143,20 +143,20 @@ f"> */
 /* > \ingroup doubleGEcomputational */
 
 /*  ===================================================================== */
-/* Subroutine */ int dgetrs_(char *trans, integer *n, integer *nrhs, 
-	doublereal *a, integer *lda, integer *ipiv, doublereal *b, integer *
-	ldb, integer *info, ftnlen trans_len)
+/* Subroutine */ int dgetrs_(char *trans, integer *n, integer *nrhs,
+        doublereal *a, integer *lda, integer *ipiv, doublereal *b, integer *
+        ldb, integer *info, ftnlen trans_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, i__1;
 
     /* Local variables */
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
-	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen), xerbla_(
-	    char *, integer *, ftnlen), dlaswp_(integer *, doublereal *, 
-	    integer *, integer *, integer *, integer *, integer *);
+    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *,
+            integer *, integer *, doublereal *, doublereal *, integer *,
+            doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen), xerbla_(
+            char *, integer *, ftnlen), dlaswp_(integer *, doublereal *,
+            integer *, integer *, integer *, integer *, integer *);
     logical notran;
 
 
@@ -198,27 +198,27 @@ f"> */
     *info = 0;
     notran = lsame_(trans, (char *)"N", (ftnlen)1, (ftnlen)1);
     if (! notran && ! lsame_(trans, (char *)"T", (ftnlen)1, (ftnlen)1) && ! lsame_(
-	    trans, (char *)"C", (ftnlen)1, (ftnlen)1)) {
-	*info = -1;
+            trans, (char *)"C", (ftnlen)1, (ftnlen)1)) {
+        *info = -1;
     } else if (*n < 0) {
-	*info = -2;
+        *info = -2;
     } else if (*nrhs < 0) {
-	*info = -3;
+        *info = -3;
     } else if (*lda < max(1,*n)) {
-	*info = -5;
+        *info = -5;
     } else if (*ldb < max(1,*n)) {
-	*info = -8;
+        *info = -8;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DGETRS", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DGETRS", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0 || *nrhs == 0) {
-	return 0;
+        return 0;
     }
 
     if (notran) {
@@ -227,38 +227,38 @@ f"> */
 
 /*        Apply row interchanges to the right hand sides. */
 
-	dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c__1);
+        dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c__1);
 
 /*        Solve L*X = B, overwriting B with X. */
 
-	dtrsm_((char *)"Left", (char *)"Lower", (char *)"No transpose", (char *)"Unit", n, nrhs, &c_b12, &a[
-		a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
-		ftnlen)12, (ftnlen)4);
+        dtrsm_((char *)"Left", (char *)"Lower", (char *)"No transpose", (char *)"Unit", n, nrhs, &c_b12, &a[
+                a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
+                ftnlen)12, (ftnlen)4);
 
 /*        Solve U*X = B, overwriting B with X. */
 
-	dtrsm_((char *)"Left", (char *)"Upper", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &c_b12, &
-		a[a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
-		ftnlen)12, (ftnlen)8);
+        dtrsm_((char *)"Left", (char *)"Upper", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &c_b12, &
+                a[a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
+                ftnlen)12, (ftnlen)8);
     } else {
 
 /*        Solve A**T * X = B. */
 
 /*        Solve U**T *X = B, overwriting B with X. */
 
-	dtrsm_((char *)"Left", (char *)"Upper", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &c_b12, &a[
-		a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
-		ftnlen)9, (ftnlen)8);
+        dtrsm_((char *)"Left", (char *)"Upper", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &c_b12, &a[
+                a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
+                ftnlen)9, (ftnlen)8);
 
 /*        Solve L**T *X = B, overwriting B with X. */
 
-	dtrsm_((char *)"Left", (char *)"Lower", (char *)"Transpose", (char *)"Unit", n, nrhs, &c_b12, &a[
-		a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
-		ftnlen)9, (ftnlen)4);
+        dtrsm_((char *)"Left", (char *)"Lower", (char *)"Transpose", (char *)"Unit", n, nrhs, &c_b12, &a[
+                a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
+                ftnlen)9, (ftnlen)4);
 
 /*        Apply row interchanges to the solution vectors. */
 
-	dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c_n1);
+        dlaswp_(nrhs, &b[b_offset], ldb, &c__1, n, &ipiv[1], &c_n1);
     }
 
     return 0;
@@ -268,5 +268,5 @@ f"> */
 } /* dgetrs_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

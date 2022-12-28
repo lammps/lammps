@@ -1,13 +1,13 @@
 /* fortran/dsygv.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -197,9 +197,9 @@ static doublereal c_b16 = 1.;
 
 /*  ===================================================================== */
 /* Subroutine */ int dsygv_(integer *itype, char *jobz, char *uplo, integer *
-	n, doublereal *a, integer *lda, doublereal *b, integer *ldb, 
-	doublereal *w, doublereal *work, integer *lwork, integer *info, 
-	ftnlen jobz_len, ftnlen uplo_len)
+        n, doublereal *a, integer *lda, doublereal *b, integer *ldb,
+        doublereal *w, doublereal *work, integer *lwork, integer *info,
+        ftnlen jobz_len, ftnlen uplo_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, i__1, i__2;
@@ -207,27 +207,27 @@ static doublereal c_b16 = 1.;
     /* Local variables */
     integer nb, neig;
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *, 
-	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
+    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *,
+            integer *, integer *, doublereal *, doublereal *, integer *,
+            doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
     char trans[1];
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
-	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
+    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *,
+            integer *, integer *, doublereal *, doublereal *, integer *,
+            doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
     logical upper;
     extern /* Subroutine */ int dsyev_(char *, char *, integer *, doublereal *
-	    , integer *, doublereal *, doublereal *, integer *, integer *, 
-	    ftnlen, ftnlen);
+            , integer *, doublereal *, doublereal *, integer *, integer *,
+            ftnlen, ftnlen);
     logical wantz;
     extern /* Subroutine */ int xerbla_(char *, integer *, ftnlen);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
-	    integer *, integer *, ftnlen, ftnlen);
-    extern /* Subroutine */ int dpotrf_(char *, integer *, doublereal *, 
-	    integer *, integer *, ftnlen);
+    extern integer ilaenv_(integer *, char *, char *, integer *, integer *,
+            integer *, integer *, ftnlen, ftnlen);
+    extern /* Subroutine */ int dpotrf_(char *, integer *, doublereal *,
+            integer *, integer *, ftnlen);
     integer lwkmin;
-    extern /* Subroutine */ int dsygst_(integer *, char *, integer *, 
-	    doublereal *, integer *, doublereal *, integer *, integer *, 
-	    ftnlen);
+    extern /* Subroutine */ int dsygst_(integer *, char *, integer *,
+            doublereal *, integer *, doublereal *, integer *, integer *,
+            ftnlen);
     integer lwkopt;
     logical lquery;
 
@@ -274,102 +274,102 @@ static doublereal c_b16 = 1.;
 
     *info = 0;
     if (*itype < 1 || *itype > 3) {
-	*info = -1;
+        *info = -1;
     } else if (! (wantz || lsame_(jobz, (char *)"N", (ftnlen)1, (ftnlen)1))) {
-	*info = -2;
+        *info = -2;
     } else if (! (upper || lsame_(uplo, (char *)"L", (ftnlen)1, (ftnlen)1))) {
-	*info = -3;
+        *info = -3;
     } else if (*n < 0) {
-	*info = -4;
+        *info = -4;
     } else if (*lda < max(1,*n)) {
-	*info = -6;
+        *info = -6;
     } else if (*ldb < max(1,*n)) {
-	*info = -8;
+        *info = -8;
     }
 
     if (*info == 0) {
 /* Computing MAX */
-	i__1 = 1, i__2 = *n * 3 - 1;
-	lwkmin = max(i__1,i__2);
-	nb = ilaenv_(&c__1, (char *)"DSYTRD", uplo, n, &c_n1, &c_n1, &c_n1, (ftnlen)6,
-		 (ftnlen)1);
+        i__1 = 1, i__2 = *n * 3 - 1;
+        lwkmin = max(i__1,i__2);
+        nb = ilaenv_(&c__1, (char *)"DSYTRD", uplo, n, &c_n1, &c_n1, &c_n1, (ftnlen)6,
+                 (ftnlen)1);
 /* Computing MAX */
-	i__1 = lwkmin, i__2 = (nb + 2) * *n;
-	lwkopt = max(i__1,i__2);
-	work[1] = (doublereal) lwkopt;
+        i__1 = lwkmin, i__2 = (nb + 2) * *n;
+        lwkopt = max(i__1,i__2);
+        work[1] = (doublereal) lwkopt;
 
-	if (*lwork < lwkmin && ! lquery) {
-	    *info = -11;
-	}
+        if (*lwork < lwkmin && ! lquery) {
+            *info = -11;
+        }
     }
 
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DSYGV ", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DSYGV ", &i__1, (ftnlen)6);
+        return 0;
     } else if (lquery) {
-	return 0;
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0) {
-	return 0;
+        return 0;
     }
 
 /*     Form a Cholesky factorization of B. */
 
     dpotrf_(uplo, n, &b[b_offset], ldb, info, (ftnlen)1);
     if (*info != 0) {
-	*info = *n + *info;
-	return 0;
+        *info = *n + *info;
+        return 0;
     }
 
 /*     Transform problem to standard eigenvalue problem and solve. */
 
     dsygst_(itype, uplo, n, &a[a_offset], lda, &b[b_offset], ldb, info, (
-	    ftnlen)1);
+            ftnlen)1);
     dsyev_(jobz, uplo, n, &a[a_offset], lda, &w[1], &work[1], lwork, info, (
-	    ftnlen)1, (ftnlen)1);
+            ftnlen)1, (ftnlen)1);
 
     if (wantz) {
 
 /*        Backtransform eigenvectors to the original problem. */
 
-	neig = *n;
-	if (*info > 0) {
-	    neig = *info - 1;
-	}
-	if (*itype == 1 || *itype == 2) {
+        neig = *n;
+        if (*info > 0) {
+            neig = *info - 1;
+        }
+        if (*itype == 1 || *itype == 2) {
 
 /*           For A*x=(lambda)*B*x and A*B*x=(lambda)*x; */
 /*           backtransform eigenvectors: x = inv(L)**T*y or inv(U)*y */
 
-	    if (upper) {
-		*(unsigned char *)trans = 'N';
-	    } else {
-		*(unsigned char *)trans = 'T';
-	    }
+            if (upper) {
+                *(unsigned char *)trans = 'N';
+            } else {
+                *(unsigned char *)trans = 'T';
+            }
 
-	    dtrsm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, &neig, &c_b16, &b[
-		    b_offset], ldb, &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (
-		    ftnlen)1, (ftnlen)8);
+            dtrsm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, &neig, &c_b16, &b[
+                    b_offset], ldb, &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (
+                    ftnlen)1, (ftnlen)8);
 
-	} else if (*itype == 3) {
+        } else if (*itype == 3) {
 
 /*           For B*A*x=(lambda)*x; */
 /*           backtransform eigenvectors: x = L*y or U**T*y */
 
-	    if (upper) {
-		*(unsigned char *)trans = 'T';
-	    } else {
-		*(unsigned char *)trans = 'N';
-	    }
+            if (upper) {
+                *(unsigned char *)trans = 'T';
+            } else {
+                *(unsigned char *)trans = 'N';
+            }
 
-	    dtrmm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, &neig, &c_b16, &b[
-		    b_offset], ldb, &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (
-		    ftnlen)1, (ftnlen)8);
-	}
+            dtrmm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, &neig, &c_b16, &b[
+                    b_offset], ldb, &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (
+                    ftnlen)1, (ftnlen)8);
+        }
     }
 
     work[1] = (doublereal) lwkopt;
@@ -380,5 +380,5 @@ static doublereal c_b16 = 1.;
 } /* dsygv_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

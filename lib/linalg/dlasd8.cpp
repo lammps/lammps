@@ -1,13 +1,13 @@
 /* fortran/dlasd8.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -188,10 +188,10 @@ f"> */
 /* >     California at Berkeley, USA */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int dlasd8_(integer *icompq, integer *k, doublereal *d__, 
-	doublereal *z__, doublereal *vf, doublereal *vl, doublereal *difl, 
-	doublereal *difr, integer *lddifr, doublereal *dsigma, doublereal *
-	work, integer *info)
+/* Subroutine */ int dlasd8_(integer *icompq, integer *k, doublereal *d__,
+        doublereal *z__, doublereal *vf, doublereal *vl, doublereal *difl,
+        doublereal *difr, integer *lddifr, doublereal *dsigma, doublereal *
+        work, integer *info)
 {
     /* System generated locals */
     integer difr_dim1, difr_offset, i__1, i__2;
@@ -204,22 +204,22 @@ f"> */
     integer i__, j;
     doublereal dj, rho;
     integer iwk1, iwk2, iwk3;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
-	    integer *);
+    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *,
+            integer *);
     doublereal temp;
     extern doublereal dnrm2_(integer *, doublereal *, integer *);
     integer iwk2i, iwk3i;
     doublereal diflj, difrj, dsigj;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *);
+    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *,
+            doublereal *, integer *);
     extern doublereal dlamc3_(doublereal *, doublereal *);
-    extern /* Subroutine */ int dlasd4_(integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, integer *), dlascl_(char *, integer *, integer *, 
-	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    integer *, integer *, ftnlen), dlaset_(char *, integer *, integer 
-	    *, doublereal *, doublereal *, doublereal *, integer *, ftnlen), 
-	    xerbla_(char *, integer *, ftnlen);
+    extern /* Subroutine */ int dlasd4_(integer *, integer *, doublereal *,
+            doublereal *, doublereal *, doublereal *, doublereal *,
+            doublereal *, integer *), dlascl_(char *, integer *, integer *,
+            doublereal *, doublereal *, integer *, integer *, doublereal *,
+            integer *, integer *, ftnlen), dlaset_(char *, integer *, integer
+            *, doublereal *, doublereal *, doublereal *, integer *, ftnlen),
+            xerbla_(char *, integer *, ftnlen);
     doublereal dsigjp;
 
 
@@ -264,28 +264,28 @@ f"> */
     *info = 0;
 
     if (*icompq < 0 || *icompq > 1) {
-	*info = -1;
+        *info = -1;
     } else if (*k < 1) {
-	*info = -2;
+        *info = -2;
     } else if (*lddifr < *k) {
-	*info = -9;
+        *info = -9;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DLASD8", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DLASD8", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*k == 1) {
-	d__[1] = abs(z__[1]);
-	difl[1] = d__[1];
-	if (*icompq == 1) {
-	    difl[2] = 1.;
-	    difr[(difr_dim1 << 1) + 1] = 1.;
-	}
-	return 0;
+        d__[1] = abs(z__[1]);
+        difl[1] = d__[1];
+        if (*icompq == 1) {
+            difl[2] = 1.;
+            difr[(difr_dim1 << 1) + 1] = 1.;
+        }
+        return 0;
     }
 
 /*     Modify values DSIGMA(i) to make sure all DSIGMA(i)-DSIGMA(j) can */
@@ -307,7 +307,7 @@ f"> */
 
     i__1 = *k;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	dsigma[i__] = dlamc3_(&dsigma[i__], &dsigma[i__]) - dsigma[i__];
+        dsigma[i__] = dlamc3_(&dsigma[i__], &dsigma[i__]) - dsigma[i__];
 /* L10: */
     }
 
@@ -323,7 +323,7 @@ f"> */
 
     rho = dnrm2_(k, &z__[1], &c__1);
     dlascl_((char *)"G", &c__0, &c__0, &rho, &c_b8, k, &c__1, &z__[1], k, info, (
-	    ftnlen)1);
+            ftnlen)1);
     rho *= rho;
 
 /*     Initialize WORK(IWK3). */
@@ -335,31 +335,31 @@ f"> */
 
     i__1 = *k;
     for (j = 1; j <= i__1; ++j) {
-	dlasd4_(k, &j, &dsigma[1], &z__[1], &work[iwk1], &rho, &d__[j], &work[
-		iwk2], info);
+        dlasd4_(k, &j, &dsigma[1], &z__[1], &work[iwk1], &rho, &d__[j], &work[
+                iwk2], info);
 
 /*        If the root finder fails, report the convergence failure. */
 
-	if (*info != 0) {
-	    return 0;
-	}
-	work[iwk3i + j] = work[iwk3i + j] * work[j] * work[iwk2i + j];
-	difl[j] = -work[j];
-	difr[j + difr_dim1] = -work[j + 1];
-	i__2 = j - 1;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    work[iwk3i + i__] = work[iwk3i + i__] * work[i__] * work[iwk2i + 
-		    i__] / (dsigma[i__] - dsigma[j]) / (dsigma[i__] + dsigma[
-		    j]);
+        if (*info != 0) {
+            return 0;
+        }
+        work[iwk3i + j] = work[iwk3i + j] * work[j] * work[iwk2i + j];
+        difl[j] = -work[j];
+        difr[j + difr_dim1] = -work[j + 1];
+        i__2 = j - 1;
+        for (i__ = 1; i__ <= i__2; ++i__) {
+            work[iwk3i + i__] = work[iwk3i + i__] * work[i__] * work[iwk2i +
+                    i__] / (dsigma[i__] - dsigma[j]) / (dsigma[i__] + dsigma[
+                    j]);
 /* L20: */
-	}
-	i__2 = *k;
-	for (i__ = j + 1; i__ <= i__2; ++i__) {
-	    work[iwk3i + i__] = work[iwk3i + i__] * work[i__] * work[iwk2i + 
-		    i__] / (dsigma[i__] - dsigma[j]) / (dsigma[i__] + dsigma[
-		    j]);
+        }
+        i__2 = *k;
+        for (i__ = j + 1; i__ <= i__2; ++i__) {
+            work[iwk3i + i__] = work[iwk3i + i__] * work[i__] * work[iwk2i +
+                    i__] / (dsigma[i__] - dsigma[j]) / (dsigma[i__] + dsigma[
+                    j]);
 /* L30: */
-	}
+        }
 /* L40: */
     }
 
@@ -367,8 +367,8 @@ f"> */
 
     i__1 = *k;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	d__2 = sqrt((d__1 = work[iwk3i + i__], abs(d__1)));
-	z__[i__] = d_sign(&d__2, &z__[i__]);
+        d__2 = sqrt((d__1 = work[iwk3i + i__], abs(d__1)));
+        z__[i__] = d_sign(&d__2, &z__[i__]);
 /* L50: */
     }
 
@@ -376,32 +376,32 @@ f"> */
 
     i__1 = *k;
     for (j = 1; j <= i__1; ++j) {
-	diflj = difl[j];
-	dj = d__[j];
-	dsigj = -dsigma[j];
-	if (j < *k) {
-	    difrj = -difr[j + difr_dim1];
-	    dsigjp = -dsigma[j + 1];
-	}
-	work[j] = -z__[j] / diflj / (dsigma[j] + dj);
-	i__2 = j - 1;
-	for (i__ = 1; i__ <= i__2; ++i__) {
-	    work[i__] = z__[i__] / (dlamc3_(&dsigma[i__], &dsigj) - diflj) / (
-		    dsigma[i__] + dj);
+        diflj = difl[j];
+        dj = d__[j];
+        dsigj = -dsigma[j];
+        if (j < *k) {
+            difrj = -difr[j + difr_dim1];
+            dsigjp = -dsigma[j + 1];
+        }
+        work[j] = -z__[j] / diflj / (dsigma[j] + dj);
+        i__2 = j - 1;
+        for (i__ = 1; i__ <= i__2; ++i__) {
+            work[i__] = z__[i__] / (dlamc3_(&dsigma[i__], &dsigj) - diflj) / (
+                    dsigma[i__] + dj);
 /* L60: */
-	}
-	i__2 = *k;
-	for (i__ = j + 1; i__ <= i__2; ++i__) {
-	    work[i__] = z__[i__] / (dlamc3_(&dsigma[i__], &dsigjp) + difrj) / 
-		    (dsigma[i__] + dj);
+        }
+        i__2 = *k;
+        for (i__ = j + 1; i__ <= i__2; ++i__) {
+            work[i__] = z__[i__] / (dlamc3_(&dsigma[i__], &dsigjp) + difrj) /
+                    (dsigma[i__] + dj);
 /* L70: */
-	}
-	temp = dnrm2_(k, &work[1], &c__1);
-	work[iwk2i + j] = ddot_(k, &work[1], &c__1, &vf[1], &c__1) / temp;
-	work[iwk3i + j] = ddot_(k, &work[1], &c__1, &vl[1], &c__1) / temp;
-	if (*icompq == 1) {
-	    difr[j + (difr_dim1 << 1)] = temp;
-	}
+        }
+        temp = dnrm2_(k, &work[1], &c__1);
+        work[iwk2i + j] = ddot_(k, &work[1], &c__1, &vf[1], &c__1) / temp;
+        work[iwk3i + j] = ddot_(k, &work[1], &c__1, &vl[1], &c__1) / temp;
+        if (*icompq == 1) {
+            difr[j + (difr_dim1 << 1)] = temp;
+        }
 /* L80: */
     }
 
@@ -415,5 +415,5 @@ f"> */
 } /* dlasd8_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

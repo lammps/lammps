@@ -1,13 +1,13 @@
 /* fortran/dlaswp.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -131,8 +131,8 @@ f"> */
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int dlaswp_(integer *n, doublereal *a, integer *lda, integer 
-	*k1, integer *k2, integer *ipiv, integer *incx)
+/* Subroutine */ int dlaswp_(integer *n, doublereal *a, integer *lda, integer
+        *k1, integer *k2, integer *ipiv, integer *incx)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2, i__3, i__4;
@@ -168,63 +168,63 @@ f"> */
 
     /* Function Body */
     if (*incx > 0) {
-	ix0 = *k1;
-	i1 = *k1;
-	i2 = *k2;
-	inc = 1;
+        ix0 = *k1;
+        i1 = *k1;
+        i2 = *k2;
+        inc = 1;
     } else if (*incx < 0) {
-	ix0 = *k1 + (*k1 - *k2) * *incx;
-	i1 = *k2;
-	i2 = *k1;
-	inc = -1;
+        ix0 = *k1 + (*k1 - *k2) * *incx;
+        i1 = *k2;
+        i2 = *k1;
+        inc = -1;
     } else {
-	return 0;
+        return 0;
     }
 
     n32 = *n / 32 << 5;
     if (n32 != 0) {
-	i__1 = n32;
-	for (j = 1; j <= i__1; j += 32) {
-	    ix = ix0;
-	    i__2 = i2;
-	    i__3 = inc;
-	    for (i__ = i1; i__3 < 0 ? i__ >= i__2 : i__ <= i__2; i__ += i__3) 
-		    {
-		ip = ipiv[ix];
-		if (ip != i__) {
-		    i__4 = j + 31;
-		    for (k = j; k <= i__4; ++k) {
-			temp = a[i__ + k * a_dim1];
-			a[i__ + k * a_dim1] = a[ip + k * a_dim1];
-			a[ip + k * a_dim1] = temp;
+        i__1 = n32;
+        for (j = 1; j <= i__1; j += 32) {
+            ix = ix0;
+            i__2 = i2;
+            i__3 = inc;
+            for (i__ = i1; i__3 < 0 ? i__ >= i__2 : i__ <= i__2; i__ += i__3)
+                    {
+                ip = ipiv[ix];
+                if (ip != i__) {
+                    i__4 = j + 31;
+                    for (k = j; k <= i__4; ++k) {
+                        temp = a[i__ + k * a_dim1];
+                        a[i__ + k * a_dim1] = a[ip + k * a_dim1];
+                        a[ip + k * a_dim1] = temp;
 /* L10: */
-		    }
-		}
-		ix += *incx;
+                    }
+                }
+                ix += *incx;
 /* L20: */
-	    }
+            }
 /* L30: */
-	}
+        }
     }
     if (n32 != *n) {
-	++n32;
-	ix = ix0;
-	i__1 = i2;
-	i__3 = inc;
-	for (i__ = i1; i__3 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__3) {
-	    ip = ipiv[ix];
-	    if (ip != i__) {
-		i__2 = *n;
-		for (k = n32; k <= i__2; ++k) {
-		    temp = a[i__ + k * a_dim1];
-		    a[i__ + k * a_dim1] = a[ip + k * a_dim1];
-		    a[ip + k * a_dim1] = temp;
+        ++n32;
+        ix = ix0;
+        i__1 = i2;
+        i__3 = inc;
+        for (i__ = i1; i__3 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__3) {
+            ip = ipiv[ix];
+            if (ip != i__) {
+                i__2 = *n;
+                for (k = n32; k <= i__2; ++k) {
+                    temp = a[i__ + k * a_dim1];
+                    a[i__ + k * a_dim1] = a[ip + k * a_dim1];
+                    a[ip + k * a_dim1] = temp;
 /* L40: */
-		}
-	    }
-	    ix += *incx;
+                }
+            }
+            ix += *incx;
 /* L50: */
-	}
+        }
     }
 
     return 0;
@@ -234,5 +234,5 @@ f"> */
 } /* dlaswp_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

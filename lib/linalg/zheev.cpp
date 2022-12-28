@@ -1,13 +1,13 @@
 /* fortran/zheev.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -163,9 +163,9 @@ ices</b> */
 /* > \ingroup complex16HEeigen */
 
 /*  ===================================================================== */
-/* Subroutine */ int zheev_(char *jobz, char *uplo, integer *n, doublecomplex 
-	*a, integer *lda, doublereal *w, doublecomplex *work, integer *lwork, 
-	doublereal *rwork, integer *info, ftnlen jobz_len, ftnlen uplo_len)
+/* Subroutine */ int zheev_(char *jobz, char *uplo, integer *n, doublecomplex
+        *a, integer *lda, doublereal *w, doublecomplex *work, integer *lwork,
+        doublereal *rwork, integer *info, ftnlen jobz_len, ftnlen uplo_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
@@ -181,8 +181,8 @@ ices</b> */
     doublereal anrm;
     integer imax;
     doublereal rmin, rmax;
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *);
+    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *,
+            integer *);
     doublereal sigma;
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
     integer iinfo;
@@ -190,29 +190,29 @@ ices</b> */
     extern doublereal dlamch_(char *, ftnlen);
     integer iscale;
     doublereal safmin;
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
-	    integer *, integer *, ftnlen, ftnlen);
+    extern integer ilaenv_(integer *, char *, char *, integer *, integer *,
+            integer *, integer *, ftnlen, ftnlen);
     extern /* Subroutine */ int xerbla_(char *, integer *, ftnlen);
     doublereal bignum;
-    extern doublereal zlanhe_(char *, char *, integer *, doublecomplex *, 
-	    integer *, doublereal *, ftnlen, ftnlen);
+    extern doublereal zlanhe_(char *, char *, integer *, doublecomplex *,
+            integer *, doublereal *, ftnlen, ftnlen);
     integer indtau;
     extern /* Subroutine */ int dsterf_(integer *, doublereal *, doublereal *,
-	     integer *), zlascl_(char *, integer *, integer *, doublereal *, 
-	    doublereal *, integer *, integer *, doublecomplex *, integer *, 
-	    integer *, ftnlen);
+             integer *), zlascl_(char *, integer *, integer *, doublereal *,
+            doublereal *, integer *, integer *, doublecomplex *, integer *,
+            integer *, ftnlen);
     integer indwrk;
-    extern /* Subroutine */ int zhetrd_(char *, integer *, doublecomplex *, 
-	    integer *, doublereal *, doublereal *, doublecomplex *, 
-	    doublecomplex *, integer *, integer *, ftnlen);
+    extern /* Subroutine */ int zhetrd_(char *, integer *, doublecomplex *,
+            integer *, doublereal *, doublereal *, doublecomplex *,
+            doublecomplex *, integer *, integer *, ftnlen);
     integer llwork;
     doublereal smlnum;
     integer lwkopt;
     logical lquery;
-    extern /* Subroutine */ int zsteqr_(char *, integer *, doublereal *, 
-	    doublereal *, doublecomplex *, integer *, doublereal *, integer *,
-	     ftnlen), zungtr_(char *, integer *, doublecomplex *, integer *, 
-	    doublecomplex *, doublecomplex *, integer *, integer *, ftnlen);
+    extern /* Subroutine */ int zsteqr_(char *, integer *, doublereal *,
+            doublereal *, doublecomplex *, integer *, doublereal *, integer *,
+             ftnlen), zungtr_(char *, integer *, doublecomplex *, integer *,
+            doublecomplex *, doublecomplex *, integer *, integer *, ftnlen);
 
 
 /*  -- LAPACK driver routine -- */
@@ -255,53 +255,53 @@ ices</b> */
 
     *info = 0;
     if (! (wantz || lsame_(jobz, (char *)"N", (ftnlen)1, (ftnlen)1))) {
-	*info = -1;
+        *info = -1;
     } else if (! (lower || lsame_(uplo, (char *)"U", (ftnlen)1, (ftnlen)1))) {
-	*info = -2;
+        *info = -2;
     } else if (*n < 0) {
-	*info = -3;
+        *info = -3;
     } else if (*lda < max(1,*n)) {
-	*info = -5;
+        *info = -5;
     }
 
     if (*info == 0) {
-	nb = ilaenv_(&c__1, (char *)"ZHETRD", uplo, n, &c_n1, &c_n1, &c_n1, (ftnlen)6,
-		 (ftnlen)1);
+        nb = ilaenv_(&c__1, (char *)"ZHETRD", uplo, n, &c_n1, &c_n1, &c_n1, (ftnlen)6,
+                 (ftnlen)1);
 /* Computing MAX */
-	i__1 = 1, i__2 = (nb + 1) * *n;
-	lwkopt = max(i__1,i__2);
-	work[1].r = (doublereal) lwkopt, work[1].i = 0.;
+        i__1 = 1, i__2 = (nb + 1) * *n;
+        lwkopt = max(i__1,i__2);
+        work[1].r = (doublereal) lwkopt, work[1].i = 0.;
 
 /* Computing MAX */
-	i__1 = 1, i__2 = (*n << 1) - 1;
-	if (*lwork < max(i__1,i__2) && ! lquery) {
-	    *info = -8;
-	}
+        i__1 = 1, i__2 = (*n << 1) - 1;
+        if (*lwork < max(i__1,i__2) && ! lquery) {
+            *info = -8;
+        }
     }
 
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"ZHEEV ", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"ZHEEV ", &i__1, (ftnlen)6);
+        return 0;
     } else if (lquery) {
-	return 0;
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0) {
-	return 0;
+        return 0;
     }
 
     if (*n == 1) {
-	i__1 = a_dim1 + 1;
-	w[1] = a[i__1].r;
-	work[1].r = 1., work[1].i = 0.;
-	if (wantz) {
-	    i__1 = a_dim1 + 1;
-	    a[i__1].r = 1., a[i__1].i = 0.;
-	}
-	return 0;
+        i__1 = a_dim1 + 1;
+        w[1] = a[i__1].r;
+        work[1].r = 1., work[1].i = 0.;
+        if (wantz) {
+            i__1 = a_dim1 + 1;
+            a[i__1].r = 1., a[i__1].i = 0.;
+        }
+        return 0;
     }
 
 /*     Get machine constants. */
@@ -316,18 +316,18 @@ ices</b> */
 /*     Scale matrix to allowable range, if necessary. */
 
     anrm = zlanhe_((char *)"M", uplo, n, &a[a_offset], lda, &rwork[1], (ftnlen)1, (
-	    ftnlen)1);
+            ftnlen)1);
     iscale = 0;
     if (anrm > 0. && anrm < rmin) {
-	iscale = 1;
-	sigma = rmin / anrm;
+        iscale = 1;
+        sigma = rmin / anrm;
     } else if (anrm > rmax) {
-	iscale = 1;
-	sigma = rmax / anrm;
+        iscale = 1;
+        sigma = rmax / anrm;
     }
     if (iscale == 1) {
-	zlascl_(uplo, &c__0, &c__0, &c_b18, &sigma, n, n, &a[a_offset], lda, 
-		info, (ftnlen)1);
+        zlascl_(uplo, &c__0, &c__0, &c_b18, &sigma, n, n, &a[a_offset], lda,
+                info, (ftnlen)1);
     }
 
 /*     Call ZHETRD to reduce Hermitian matrix to tridiagonal form. */
@@ -337,31 +337,31 @@ ices</b> */
     indwrk = indtau + *n;
     llwork = *lwork - indwrk + 1;
     zhetrd_(uplo, n, &a[a_offset], lda, &w[1], &rwork[inde], &work[indtau], &
-	    work[indwrk], &llwork, &iinfo, (ftnlen)1);
+            work[indwrk], &llwork, &iinfo, (ftnlen)1);
 
 /*     For eigenvalues only, call DSTERF.  For eigenvectors, first call */
 /*     ZUNGTR to generate the unitary matrix, then call ZSTEQR. */
 
     if (! wantz) {
-	dsterf_(n, &w[1], &rwork[inde], info);
+        dsterf_(n, &w[1], &rwork[inde], info);
     } else {
-	zungtr_(uplo, n, &a[a_offset], lda, &work[indtau], &work[indwrk], &
-		llwork, &iinfo, (ftnlen)1);
-	indwrk = inde + *n;
-	zsteqr_(jobz, n, &w[1], &rwork[inde], &a[a_offset], lda, &rwork[
-		indwrk], info, (ftnlen)1);
+        zungtr_(uplo, n, &a[a_offset], lda, &work[indtau], &work[indwrk], &
+                llwork, &iinfo, (ftnlen)1);
+        indwrk = inde + *n;
+        zsteqr_(jobz, n, &w[1], &rwork[inde], &a[a_offset], lda, &rwork[
+                indwrk], info, (ftnlen)1);
     }
 
 /*     If matrix was scaled, then rescale eigenvalues appropriately. */
 
     if (iscale == 1) {
-	if (*info == 0) {
-	    imax = *n;
-	} else {
-	    imax = *info - 1;
-	}
-	d__1 = 1. / sigma;
-	dscal_(&imax, &d__1, &w[1], &c__1);
+        if (*info == 0) {
+            imax = *n;
+        } else {
+            imax = *info - 1;
+        }
+        d__1 = 1. / sigma;
+        dscal_(&imax, &d__1, &w[1], &c__1);
     }
 
 /*     Set WORK(1) to optimal complex workspace size. */
@@ -375,5 +375,5 @@ ices</b> */
 } /* zheev_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

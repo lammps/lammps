@@ -1,13 +1,13 @@
 /* fortran/zlarf.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -150,9 +150,9 @@ static integer c__1 = 1;
 /* > \ingroup complex16OTHERauxiliary */
 
 /*  ===================================================================== */
-/* Subroutine */ int zlarf_(char *side, integer *m, integer *n, doublecomplex 
-	*v, integer *incv, doublecomplex *tau, doublecomplex *c__, integer *
-	ldc, doublecomplex *work, ftnlen side_len)
+/* Subroutine */ int zlarf_(char *side, integer *m, integer *n, doublecomplex
+        *v, integer *incv, doublecomplex *tau, doublecomplex *c__, integer *
+        ldc, doublecomplex *work, ftnlen side_len)
 {
     /* System generated locals */
     integer c_dim1, c_offset, i__1;
@@ -163,14 +163,14 @@ static integer c__1 = 1;
     logical applyleft;
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
     integer lastc;
-    extern /* Subroutine */ int zgerc_(integer *, integer *, doublecomplex *, 
-	    doublecomplex *, integer *, doublecomplex *, integer *, 
-	    doublecomplex *, integer *), zgemv_(char *, integer *, integer *, 
-	    doublecomplex *, doublecomplex *, integer *, doublecomplex *, 
-	    integer *, doublecomplex *, doublecomplex *, integer *, ftnlen);
+    extern /* Subroutine */ int zgerc_(integer *, integer *, doublecomplex *,
+            doublecomplex *, integer *, doublecomplex *, integer *,
+            doublecomplex *, integer *), zgemv_(char *, integer *, integer *,
+            doublecomplex *, doublecomplex *, integer *, doublecomplex *,
+            integer *, doublecomplex *, doublecomplex *, integer *, ftnlen);
     integer lastv;
-    extern integer ilazlc_(integer *, integer *, doublecomplex *, integer *), 
-	    ilazlr_(integer *, integer *, doublecomplex *, integer *);
+    extern integer ilazlc_(integer *, integer *, doublecomplex *, integer *),
+            ilazlr_(integer *, integer *, doublecomplex *, integer *);
 
 
 /*  -- LAPACK auxiliary routine -- */
@@ -208,31 +208,31 @@ static integer c__1 = 1;
     if (tau->r != 0. || tau->i != 0.) {
 /*     Set up variables for scanning V.  LASTV begins pointing to the end */
 /*     of V. */
-	if (applyleft) {
-	    lastv = *m;
-	} else {
-	    lastv = *n;
-	}
-	if (*incv > 0) {
-	    i__ = (lastv - 1) * *incv + 1;
-	} else {
-	    i__ = 1;
-	}
+        if (applyleft) {
+            lastv = *m;
+        } else {
+            lastv = *n;
+        }
+        if (*incv > 0) {
+            i__ = (lastv - 1) * *incv + 1;
+        } else {
+            i__ = 1;
+        }
 /*     Look for the last non-zero row in V. */
-	for(;;) { /* while(complicated condition) */
-	    i__1 = i__;
-	    if (!(lastv > 0 && (v[i__1].r == 0. && v[i__1].i == 0.)))
-	    	break;
-	    --lastv;
-	    i__ -= *incv;
-	}
-	if (applyleft) {
+        for(;;) { /* while(complicated condition) */
+            i__1 = i__;
+            if (!(lastv > 0 && (v[i__1].r == 0. && v[i__1].i == 0.)))
+            	break;
+            --lastv;
+            i__ -= *incv;
+        }
+        if (applyleft) {
 /*     Scan for the last non-zero column in C(1:lastv,:). */
-	    lastc = ilazlc_(&lastv, n, &c__[c_offset], ldc);
-	} else {
+            lastc = ilazlc_(&lastv, n, &c__[c_offset], ldc);
+        } else {
 /*     Scan for the last non-zero row in C(:,1:lastv). */
-	    lastc = ilazlr_(m, &lastv, &c__[c_offset], ldc);
-	}
+            lastc = ilazlr_(m, &lastv, &c__[c_offset], ldc);
+        }
     }
 /*     Note that lastc.eq.0 renders the BLAS operations null; no special */
 /*     case is needed at this level. */
@@ -240,37 +240,37 @@ static integer c__1 = 1;
 
 /*        Form  H * C */
 
-	if (lastv > 0) {
+        if (lastv > 0) {
 
 /*           w(1:lastc,1) := C(1:lastv,1:lastc)**H * v(1:lastv,1) */
 
-	    zgemv_((char *)"Conjugate transpose", &lastv, &lastc, &c_b1, &c__[
-		    c_offset], ldc, &v[1], incv, &c_b2, &work[1], &c__1, (
-		    ftnlen)19);
+            zgemv_((char *)"Conjugate transpose", &lastv, &lastc, &c_b1, &c__[
+                    c_offset], ldc, &v[1], incv, &c_b2, &work[1], &c__1, (
+                    ftnlen)19);
 
 /*           C(1:lastv,1:lastc) := C(...) - v(1:lastv,1) * w(1:lastc,1)**H */
 
-	    z__1.r = -tau->r, z__1.i = -tau->i;
-	    zgerc_(&lastv, &lastc, &z__1, &v[1], incv, &work[1], &c__1, &c__[
-		    c_offset], ldc);
-	}
+            z__1.r = -tau->r, z__1.i = -tau->i;
+            zgerc_(&lastv, &lastc, &z__1, &v[1], incv, &work[1], &c__1, &c__[
+                    c_offset], ldc);
+        }
     } else {
 
 /*        Form  C * H */
 
-	if (lastv > 0) {
+        if (lastv > 0) {
 
 /*           w(1:lastc,1) := C(1:lastc,1:lastv) * v(1:lastv,1) */
 
-	    zgemv_((char *)"No transpose", &lastc, &lastv, &c_b1, &c__[c_offset], ldc,
-		     &v[1], incv, &c_b2, &work[1], &c__1, (ftnlen)12);
+            zgemv_((char *)"No transpose", &lastc, &lastv, &c_b1, &c__[c_offset], ldc,
+                     &v[1], incv, &c_b2, &work[1], &c__1, (ftnlen)12);
 
 /*           C(1:lastc,1:lastv) := C(...) - w(1:lastc,1) * v(1:lastv,1)**H */
 
-	    z__1.r = -tau->r, z__1.i = -tau->i;
-	    zgerc_(&lastc, &lastv, &z__1, &work[1], &c__1, &v[1], incv, &c__[
-		    c_offset], ldc);
-	}
+            z__1.r = -tau->r, z__1.i = -tau->i;
+            zgerc_(&lastc, &lastv, &z__1, &work[1], &c__1, &v[1], incv, &c__[
+                    c_offset], ldc);
+        }
     }
     return 0;
 
@@ -279,5 +279,5 @@ static integer c__1 = 1;
 } /* zlarf_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

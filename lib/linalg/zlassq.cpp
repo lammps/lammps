@@ -1,13 +1,13 @@
 /* fortran/zlassq.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -124,8 +124,8 @@ f"> */
 /* > \ingroup complex16OTHERauxiliary */
 
 /*  ===================================================================== */
-/* Subroutine */ int zlassq_(integer *n, doublecomplex *x, integer *incx, 
-	doublereal *scale, doublereal *sumsq)
+/* Subroutine */ int zlassq_(integer *n, doublecomplex *x, integer *incx,
+        doublereal *scale, doublereal *sumsq)
 {
     /* System generated locals */
     integer i__1, i__2, i__3;
@@ -167,38 +167,38 @@ f"> */
 
     /* Function Body */
     if (*n > 0) {
-	i__1 = (*n - 1) * *incx + 1;
-	i__2 = *incx;
-	for (ix = 1; i__2 < 0 ? ix >= i__1 : ix <= i__1; ix += i__2) {
-	    i__3 = ix;
-	    temp1 = (d__1 = x[i__3].r, abs(d__1));
-	    if (temp1 > 0. || disnan_(&temp1)) {
-		if (*scale < temp1) {
+        i__1 = (*n - 1) * *incx + 1;
+        i__2 = *incx;
+        for (ix = 1; i__2 < 0 ? ix >= i__1 : ix <= i__1; ix += i__2) {
+            i__3 = ix;
+            temp1 = (d__1 = x[i__3].r, abs(d__1));
+            if (temp1 > 0. || disnan_(&temp1)) {
+                if (*scale < temp1) {
 /* Computing 2nd power */
-		    d__1 = *scale / temp1;
-		    *sumsq = *sumsq * (d__1 * d__1) + 1;
-		    *scale = temp1;
-		} else {
+                    d__1 = *scale / temp1;
+                    *sumsq = *sumsq * (d__1 * d__1) + 1;
+                    *scale = temp1;
+                } else {
 /* Computing 2nd power */
-		    d__1 = temp1 / *scale;
-		    *sumsq += d__1 * d__1;
-		}
-	    }
-	    temp1 = (d__1 = d_imag(&x[ix]), abs(d__1));
-	    if (temp1 > 0. || disnan_(&temp1)) {
-		if (*scale < temp1) {
+                    d__1 = temp1 / *scale;
+                    *sumsq += d__1 * d__1;
+                }
+            }
+            temp1 = (d__1 = d_imag(&x[ix]), abs(d__1));
+            if (temp1 > 0. || disnan_(&temp1)) {
+                if (*scale < temp1) {
 /* Computing 2nd power */
-		    d__1 = *scale / temp1;
-		    *sumsq = *sumsq * (d__1 * d__1) + 1;
-		    *scale = temp1;
-		} else {
+                    d__1 = *scale / temp1;
+                    *sumsq = *sumsq * (d__1 * d__1) + 1;
+                    *scale = temp1;
+                } else {
 /* Computing 2nd power */
-		    d__1 = temp1 / *scale;
-		    *sumsq += d__1 * d__1;
-		}
-	    }
+                    d__1 = temp1 / *scale;
+                    *sumsq += d__1 * d__1;
+                }
+            }
 /* L10: */
-	}
+        }
     }
 
     return 0;
@@ -208,5 +208,5 @@ f"> */
 } /* zlassq_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

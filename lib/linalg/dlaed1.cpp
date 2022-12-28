@@ -1,13 +1,13 @@
 /* fortran/dlaed1.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -184,29 +184,29 @@ f"> */
 /* >  Modified by Francoise Tisseur, University of Tennessee */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int dlaed1_(integer *n, doublereal *d__, doublereal *q, 
-	integer *ldq, integer *indxq, doublereal *rho, integer *cutpnt, 
-	doublereal *work, integer *iwork, integer *info)
+/* Subroutine */ int dlaed1_(integer *n, doublereal *d__, doublereal *q,
+        integer *ldq, integer *indxq, doublereal *rho, integer *cutpnt,
+        doublereal *work, integer *iwork, integer *info)
 {
     /* System generated locals */
     integer q_dim1, q_offset, i__1, i__2;
 
     /* Local variables */
     integer i__, k, n1, n2, is, iw, iz, iq2, zpp1, indx, indxc;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *);
+    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *,
+            doublereal *, integer *);
     integer indxp;
-    extern /* Subroutine */ int dlaed2_(integer *, integer *, integer *, 
-	    doublereal *, doublereal *, integer *, integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, integer *,
-	     integer *, integer *, integer *, integer *), dlaed3_(integer *, 
-	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, doublereal *, doublereal *, integer *, integer *, 
-	    doublereal *, doublereal *, integer *);
+    extern /* Subroutine */ int dlaed2_(integer *, integer *, integer *,
+            doublereal *, doublereal *, integer *, integer *, doublereal *,
+            doublereal *, doublereal *, doublereal *, doublereal *, integer *,
+             integer *, integer *, integer *, integer *), dlaed3_(integer *,
+            integer *, integer *, doublereal *, doublereal *, integer *,
+            doublereal *, doublereal *, doublereal *, integer *, integer *,
+            doublereal *, doublereal *, integer *);
     integer idlmda;
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *, 
-	    ftnlen);
+    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *,
+            integer *, integer *, integer *), xerbla_(char *, integer *,
+            ftnlen);
     integer coltyp;
 
 
@@ -244,26 +244,26 @@ f"> */
     *info = 0;
 
     if (*n < 0) {
-	*info = -1;
+        *info = -1;
     } else if (*ldq < max(1,*n)) {
-	*info = -4;
+        *info = -4;
     } else /* if(complicated condition) */ {
 /* Computing MIN */
-	i__1 = 1, i__2 = *n / 2;
-	if (min(i__1,i__2) > *cutpnt || *n / 2 < *cutpnt) {
-	    *info = -7;
-	}
+        i__1 = 1, i__2 = *n / 2;
+        if (min(i__1,i__2) > *cutpnt || *n / 2 < *cutpnt) {
+            *info = -7;
+        }
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DLAED1", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DLAED1", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0) {
-	return 0;
+        return 0;
     }
 
 /*     The following values are integer pointers which indicate */
@@ -292,36 +292,36 @@ f"> */
 /*     Deflate eigenvalues. */
 
     dlaed2_(&k, n, cutpnt, &d__[1], &q[q_offset], ldq, &indxq[1], rho, &work[
-	    iz], &work[idlmda], &work[iw], &work[iq2], &iwork[indx], &iwork[
-	    indxc], &iwork[indxp], &iwork[coltyp], info);
+            iz], &work[idlmda], &work[iw], &work[iq2], &iwork[indx], &iwork[
+            indxc], &iwork[indxp], &iwork[coltyp], info);
 
     if (*info != 0) {
-	goto L20;
+        goto L20;
     }
 
 /*     Solve Secular Equation. */
 
     if (k != 0) {
-	is = (iwork[coltyp] + iwork[coltyp + 1]) * *cutpnt + (iwork[coltyp + 
-		1] + iwork[coltyp + 2]) * (*n - *cutpnt) + iq2;
-	dlaed3_(&k, n, cutpnt, &d__[1], &q[q_offset], ldq, rho, &work[idlmda],
-		 &work[iq2], &iwork[indxc], &iwork[coltyp], &work[iw], &work[
-		is], info);
-	if (*info != 0) {
-	    goto L20;
-	}
+        is = (iwork[coltyp] + iwork[coltyp + 1]) * *cutpnt + (iwork[coltyp +
+                1] + iwork[coltyp + 2]) * (*n - *cutpnt) + iq2;
+        dlaed3_(&k, n, cutpnt, &d__[1], &q[q_offset], ldq, rho, &work[idlmda],
+                 &work[iq2], &iwork[indxc], &iwork[coltyp], &work[iw], &work[
+                is], info);
+        if (*info != 0) {
+            goto L20;
+        }
 
 /*     Prepare the INDXQ sorting permutation. */
 
-	n1 = k;
-	n2 = *n - k;
-	dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
+        n1 = k;
+        n2 = *n - k;
+        dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
     } else {
-	i__1 = *n;
-	for (i__ = 1; i__ <= i__1; ++i__) {
-	    indxq[i__] = i__;
+        i__1 = *n;
+        for (i__ = 1; i__ <= i__1; ++i__) {
+            indxq[i__] = i__;
 /* L10: */
-	}
+        }
     }
 
 L20:
@@ -332,5 +332,5 @@ L20:
 } /* dlaed1_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

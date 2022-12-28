@@ -1,13 +1,13 @@
 /* fortran/dgesv.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -138,17 +138,17 @@ extern "C" {
 /* > \ingroup doubleGEsolve */
 
 /*  ===================================================================== */
-/* Subroutine */ int dgesv_(integer *n, integer *nrhs, doublereal *a, integer 
-	*lda, integer *ipiv, doublereal *b, integer *ldb, integer *info)
+/* Subroutine */ int dgesv_(integer *n, integer *nrhs, doublereal *a, integer
+        *lda, integer *ipiv, doublereal *b, integer *ldb, integer *info)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, i__1;
 
     /* Local variables */
-    extern /* Subroutine */ int dgetrf_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *, 
-	    ftnlen), dgetrs_(char *, integer *, integer *, doublereal *, 
-	    integer *, integer *, doublereal *, integer *, integer *, ftnlen);
+    extern /* Subroutine */ int dgetrf_(integer *, integer *, doublereal *,
+            integer *, integer *, integer *), xerbla_(char *, integer *,
+            ftnlen), dgetrs_(char *, integer *, integer *, doublereal *,
+            integer *, integer *, doublereal *, integer *, integer *, ftnlen);
 
 
 /*  -- LAPACK driver routine -- */
@@ -182,18 +182,18 @@ extern "C" {
     /* Function Body */
     *info = 0;
     if (*n < 0) {
-	*info = -1;
+        *info = -1;
     } else if (*nrhs < 0) {
-	*info = -2;
+        *info = -2;
     } else if (*lda < max(1,*n)) {
-	*info = -4;
+        *info = -4;
     } else if (*ldb < max(1,*n)) {
-	*info = -7;
+        *info = -7;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DGESV ", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DGESV ", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Compute the LU factorization of A. */
@@ -203,8 +203,8 @@ extern "C" {
 
 /*        Solve the system A*X = B, overwriting B with X. */
 
-	dgetrs_((char *)"No transpose", n, nrhs, &a[a_offset], lda, &ipiv[1], &b[
-		b_offset], ldb, info, (ftnlen)12);
+        dgetrs_((char *)"No transpose", n, nrhs, &a[a_offset], lda, &ipiv[1], &b[
+                b_offset], ldb, info, (ftnlen)12);
     }
     return 0;
 
@@ -213,5 +213,5 @@ extern "C" {
 } /* dgesv_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

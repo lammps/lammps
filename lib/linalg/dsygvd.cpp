@@ -1,13 +1,13 @@
 /* fortran/dsygvd.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -247,9 +247,9 @@ f"> */
 /* > */
 /*  ===================================================================== */
 /* Subroutine */ int dsygvd_(integer *itype, char *jobz, char *uplo, integer *
-	n, doublereal *a, integer *lda, doublereal *b, integer *ldb, 
-	doublereal *w, doublereal *work, integer *lwork, integer *iwork, 
-	integer *liwork, integer *info, ftnlen jobz_len, ftnlen uplo_len)
+        n, doublereal *a, integer *lda, doublereal *b, integer *ldb,
+        doublereal *w, doublereal *work, integer *lwork, integer *iwork,
+        integer *liwork, integer *info, ftnlen jobz_len, ftnlen uplo_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, i__1;
@@ -258,24 +258,24 @@ f"> */
     /* Local variables */
     integer lopt;
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *, 
-	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
+    extern /* Subroutine */ int dtrmm_(char *, char *, char *, char *,
+            integer *, integer *, doublereal *, doublereal *, integer *,
+            doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
     integer lwmin;
     char trans[1];
     integer liopt;
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
-	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
+    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *,
+            integer *, integer *, doublereal *, doublereal *, integer *,
+            doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
     logical upper, wantz;
     extern /* Subroutine */ int xerbla_(char *, integer *, ftnlen), dpotrf_(
-	    char *, integer *, doublereal *, integer *, integer *, ftnlen);
+            char *, integer *, doublereal *, integer *, integer *, ftnlen);
     integer liwmin;
-    extern /* Subroutine */ int dsyevd_(char *, char *, integer *, doublereal 
-	    *, integer *, doublereal *, doublereal *, integer *, integer *, 
-	    integer *, integer *, ftnlen, ftnlen), dsygst_(integer *, char *, 
-	    integer *, doublereal *, integer *, doublereal *, integer *, 
-	    integer *, ftnlen);
+    extern /* Subroutine */ int dsyevd_(char *, char *, integer *, doublereal
+            *, integer *, doublereal *, doublereal *, integer *, integer *,
+            integer *, integer *, ftnlen, ftnlen), dsygst_(integer *, char *,
+            integer *, doublereal *, integer *, doublereal *, integer *,
+            integer *, ftnlen);
     logical lquery;
 
 
@@ -322,72 +322,72 @@ f"> */
 
     *info = 0;
     if (*n <= 1) {
-	liwmin = 1;
-	lwmin = 1;
+        liwmin = 1;
+        lwmin = 1;
     } else if (wantz) {
-	liwmin = *n * 5 + 3;
+        liwmin = *n * 5 + 3;
 /* Computing 2nd power */
-	i__1 = *n;
-	lwmin = *n * 6 + 1 + (i__1 * i__1 << 1);
+        i__1 = *n;
+        lwmin = *n * 6 + 1 + (i__1 * i__1 << 1);
     } else {
-	liwmin = 1;
-	lwmin = (*n << 1) + 1;
+        liwmin = 1;
+        lwmin = (*n << 1) + 1;
     }
     lopt = lwmin;
     liopt = liwmin;
     if (*itype < 1 || *itype > 3) {
-	*info = -1;
+        *info = -1;
     } else if (! (wantz || lsame_(jobz, (char *)"N", (ftnlen)1, (ftnlen)1))) {
-	*info = -2;
+        *info = -2;
     } else if (! (upper || lsame_(uplo, (char *)"L", (ftnlen)1, (ftnlen)1))) {
-	*info = -3;
+        *info = -3;
     } else if (*n < 0) {
-	*info = -4;
+        *info = -4;
     } else if (*lda < max(1,*n)) {
-	*info = -6;
+        *info = -6;
     } else if (*ldb < max(1,*n)) {
-	*info = -8;
+        *info = -8;
     }
 
     if (*info == 0) {
-	work[1] = (doublereal) lopt;
-	iwork[1] = liopt;
+        work[1] = (doublereal) lopt;
+        iwork[1] = liopt;
 
-	if (*lwork < lwmin && ! lquery) {
-	    *info = -11;
-	} else if (*liwork < liwmin && ! lquery) {
-	    *info = -13;
-	}
+        if (*lwork < lwmin && ! lquery) {
+            *info = -11;
+        } else if (*liwork < liwmin && ! lquery) {
+            *info = -13;
+        }
     }
 
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DSYGVD", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DSYGVD", &i__1, (ftnlen)6);
+        return 0;
     } else if (lquery) {
-	return 0;
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0) {
-	return 0;
+        return 0;
     }
 
 /*     Form a Cholesky factorization of B. */
 
     dpotrf_(uplo, n, &b[b_offset], ldb, info, (ftnlen)1);
     if (*info != 0) {
-	*info = *n + *info;
-	return 0;
+        *info = *n + *info;
+        return 0;
     }
 
 /*     Transform problem to standard eigenvalue problem and solve. */
 
     dsygst_(itype, uplo, n, &a[a_offset], lda, &b[b_offset], ldb, info, (
-	    ftnlen)1);
+            ftnlen)1);
     dsyevd_(jobz, uplo, n, &a[a_offset], lda, &w[1], &work[1], lwork, &iwork[
-	    1], liwork, info, (ftnlen)1, (ftnlen)1);
+            1], liwork, info, (ftnlen)1, (ftnlen)1);
 /* Computing MAX */
     d__1 = (doublereal) lopt;
     lopt = (integer) max(d__1,work[1]);
@@ -399,36 +399,36 @@ f"> */
 
 /*        Backtransform eigenvectors to the original problem. */
 
-	if (*itype == 1 || *itype == 2) {
+        if (*itype == 1 || *itype == 2) {
 
 /*           For A*x=(lambda)*B*x and A*B*x=(lambda)*x; */
 /*           backtransform eigenvectors: x = inv(L)**T*y or inv(U)*y */
 
-	    if (upper) {
-		*(unsigned char *)trans = 'N';
-	    } else {
-		*(unsigned char *)trans = 'T';
-	    }
+            if (upper) {
+                *(unsigned char *)trans = 'N';
+            } else {
+                *(unsigned char *)trans = 'T';
+            }
 
-	    dtrsm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, n, &c_b11, &b[b_offset]
-		    , ldb, &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (ftnlen)1,
-		     (ftnlen)8);
+            dtrsm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, n, &c_b11, &b[b_offset]
+                    , ldb, &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (ftnlen)1,
+                     (ftnlen)8);
 
-	} else if (*itype == 3) {
+        } else if (*itype == 3) {
 
 /*           For B*A*x=(lambda)*x; */
 /*           backtransform eigenvectors: x = L*y or U**T*y */
 
-	    if (upper) {
-		*(unsigned char *)trans = 'T';
-	    } else {
-		*(unsigned char *)trans = 'N';
-	    }
+            if (upper) {
+                *(unsigned char *)trans = 'T';
+            } else {
+                *(unsigned char *)trans = 'N';
+            }
 
-	    dtrmm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, n, &c_b11, &b[b_offset]
-		    , ldb, &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (ftnlen)1,
-		     (ftnlen)8);
-	}
+            dtrmm_((char *)"Left", uplo, trans, (char *)"Non-unit", n, n, &c_b11, &b[b_offset]
+                    , ldb, &a[a_offset], lda, (ftnlen)4, (ftnlen)1, (ftnlen)1,
+                     (ftnlen)8);
+        }
     }
 
     work[1] = (doublereal) lopt;
@@ -441,5 +441,5 @@ f"> */
 } /* dsygvd_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

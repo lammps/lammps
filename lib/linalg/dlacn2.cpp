@@ -1,13 +1,13 @@
 /* fortran/dlacn2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -157,8 +157,8 @@ f"> */
 /* >  ACM Trans. Math. Soft., vol. 14, no. 4, pp. 381-396, December 1988. */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int dlacn2_(integer *n, doublereal *v, doublereal *x, 
-	integer *isgn, doublereal *est, integer *kase, integer *isave)
+/* Subroutine */ int dlacn2_(integer *n, doublereal *v, doublereal *x,
+        integer *isgn, doublereal *est, integer *kase, integer *isave)
 {
     /* System generated locals */
     integer i__1;
@@ -172,8 +172,8 @@ f"> */
     doublereal xs, temp;
     extern doublereal dasum_(integer *, doublereal *, integer *);
     integer jlast;
-    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *);
+    extern /* Subroutine */ int dcopy_(integer *, doublereal *, integer *,
+            doublereal *, integer *);
     extern integer idamax_(integer *, doublereal *, integer *);
     doublereal altsgn, estold;
 
@@ -209,22 +209,22 @@ f"> */
 
     /* Function Body */
     if (*kase == 0) {
-	i__1 = *n;
-	for (i__ = 1; i__ <= i__1; ++i__) {
-	    x[i__] = 1. / (doublereal) (*n);
+        i__1 = *n;
+        for (i__ = 1; i__ <= i__1; ++i__) {
+            x[i__] = 1. / (doublereal) (*n);
 /* L10: */
-	}
-	*kase = 1;
-	isave[1] = 1;
-	return 0;
+        }
+        *kase = 1;
+        isave[1] = 1;
+        return 0;
     }
 
     switch (isave[1]) {
-	case 1:  goto L20;
-	case 2:  goto L40;
-	case 3:  goto L70;
-	case 4:  goto L110;
-	case 5:  goto L140;
+        case 1:  goto L20;
+        case 2:  goto L40;
+        case 3:  goto L70;
+        case 4:  goto L110;
+        case 5:  goto L140;
     }
 
 /*     ................ ENTRY   (ISAVE( 1 ) = 1) */
@@ -232,21 +232,21 @@ f"> */
 
 L20:
     if (*n == 1) {
-	v[1] = x[1];
-	*est = abs(v[1]);
+        v[1] = x[1];
+        *est = abs(v[1]);
 /*        ... QUIT */
-	goto L150;
+        goto L150;
     }
     *est = dasum_(n, &x[1], &c__1);
 
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	if (x[i__] >= 0.) {
-	    x[i__] = 1.;
-	} else {
-	    x[i__] = -1.;
-	}
-	isgn[i__] = i_dnnt(&x[i__]);
+        if (x[i__] >= 0.) {
+            x[i__] = 1.;
+        } else {
+            x[i__] = -1.;
+        }
+        isgn[i__] = i_dnnt(&x[i__]);
 /* L30: */
     }
     *kase = 2;
@@ -265,7 +265,7 @@ L40:
 L50:
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	x[i__] = 0.;
+        x[i__] = 0.;
 /* L60: */
     }
     x[isave[2]] = 1.;
@@ -282,14 +282,14 @@ L70:
     *est = dasum_(n, &v[1], &c__1);
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	if (x[i__] >= 0.) {
-	    xs = 1.;
-	} else {
-	    xs = -1.;
-	}
-	if (i_dnnt(&xs) != isgn[i__]) {
-	    goto L90;
-	}
+        if (x[i__] >= 0.) {
+            xs = 1.;
+        } else {
+            xs = -1.;
+        }
+        if (i_dnnt(&xs) != isgn[i__]) {
+            goto L90;
+        }
 /* L80: */
     }
 /*     REPEATED SIGN VECTOR DETECTED, HENCE ALGORITHM HAS CONVERGED. */
@@ -298,17 +298,17 @@ L70:
 L90:
 /*     TEST FOR CYCLING. */
     if (*est <= estold) {
-	goto L120;
+        goto L120;
     }
 
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	if (x[i__] >= 0.) {
-	    x[i__] = 1.;
-	} else {
-	    x[i__] = -1.;
-	}
-	isgn[i__] = i_dnnt(&x[i__]);
+        if (x[i__] >= 0.) {
+            x[i__] = 1.;
+        } else {
+            x[i__] = -1.;
+        }
+        isgn[i__] = i_dnnt(&x[i__]);
 /* L100: */
     }
     *kase = 2;
@@ -322,8 +322,8 @@ L110:
     jlast = isave[2];
     isave[2] = idamax_(n, &x[1], &c__1);
     if (x[jlast] != (d__1 = x[isave[2]], abs(d__1)) && isave[3] < 5) {
-	++isave[3];
-	goto L50;
+        ++isave[3];
+        goto L50;
     }
 
 /*     ITERATION COMPLETE.  FINAL STAGE. */
@@ -332,9 +332,9 @@ L120:
     altsgn = 1.;
     i__1 = *n;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	x[i__] = altsgn * ((doublereal) (i__ - 1) / (doublereal) (*n - 1) + 
-		1.);
-	altsgn = -altsgn;
+        x[i__] = altsgn * ((doublereal) (i__ - 1) / (doublereal) (*n - 1) +
+                1.);
+        altsgn = -altsgn;
 /* L130: */
     }
     *kase = 1;
@@ -347,8 +347,8 @@ L120:
 L140:
     temp = dasum_(n, &x[1], &c__1) / (doublereal) (*n * 3) * 2.;
     if (temp > *est) {
-	dcopy_(n, &x[1], &c__1, &v[1], &c__1);
-	*est = temp;
+        dcopy_(n, &x[1], &c__1, &v[1], &c__1);
+        *est = temp;
     }
 
 L150:
@@ -360,5 +360,5 @@ L150:
 } /* dlacn2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

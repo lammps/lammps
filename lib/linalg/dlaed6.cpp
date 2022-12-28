@@ -1,13 +1,13 @@
 /* fortran/dlaed6.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -157,8 +157,8 @@ f"> */
 /* > */
 /*  ===================================================================== */
 /* Subroutine */ int dlaed6_(integer *kniter, logical *orgati, doublereal *
-	rho, doublereal *d__, doublereal *z__, doublereal *finit, doublereal *
-	tau, integer *info)
+        rho, doublereal *d__, doublereal *z__, doublereal *finit, doublereal *
+        tau, integer *info)
 {
     /* System generated locals */
     integer i__1;
@@ -211,65 +211,65 @@ f"> */
     *info = 0;
 
     if (*orgati) {
-	lbd = d__[2];
-	ubd = d__[3];
+        lbd = d__[2];
+        ubd = d__[3];
     } else {
-	lbd = d__[1];
-	ubd = d__[2];
+        lbd = d__[1];
+        ubd = d__[2];
     }
     if (*finit < 0.) {
-	lbd = 0.;
+        lbd = 0.;
     } else {
-	ubd = 0.;
+        ubd = 0.;
     }
 
     niter = 1;
     *tau = 0.;
     if (*kniter == 2) {
-	if (*orgati) {
-	    temp = (d__[3] - d__[2]) / 2.;
-	    c__ = *rho + z__[1] / (d__[1] - d__[2] - temp);
-	    a = c__ * (d__[2] + d__[3]) + z__[2] + z__[3];
-	    b = c__ * d__[2] * d__[3] + z__[2] * d__[3] + z__[3] * d__[2];
-	} else {
-	    temp = (d__[1] - d__[2]) / 2.;
-	    c__ = *rho + z__[3] / (d__[3] - d__[2] - temp);
-	    a = c__ * (d__[1] + d__[2]) + z__[1] + z__[2];
-	    b = c__ * d__[1] * d__[2] + z__[1] * d__[2] + z__[2] * d__[1];
-	}
+        if (*orgati) {
+            temp = (d__[3] - d__[2]) / 2.;
+            c__ = *rho + z__[1] / (d__[1] - d__[2] - temp);
+            a = c__ * (d__[2] + d__[3]) + z__[2] + z__[3];
+            b = c__ * d__[2] * d__[3] + z__[2] * d__[3] + z__[3] * d__[2];
+        } else {
+            temp = (d__[1] - d__[2]) / 2.;
+            c__ = *rho + z__[3] / (d__[3] - d__[2] - temp);
+            a = c__ * (d__[1] + d__[2]) + z__[1] + z__[2];
+            b = c__ * d__[1] * d__[2] + z__[1] * d__[2] + z__[2] * d__[1];
+        }
 /* Computing MAX */
-	d__1 = abs(a), d__2 = abs(b), d__1 = max(d__1,d__2), d__2 = abs(c__);
-	temp = max(d__1,d__2);
-	a /= temp;
-	b /= temp;
-	c__ /= temp;
-	if (c__ == 0.) {
-	    *tau = b / a;
-	} else if (a <= 0.) {
-	    *tau = (a - sqrt((d__1 = a * a - b * 4. * c__, abs(d__1)))) / (
-		    c__ * 2.);
-	} else {
-	    *tau = b * 2. / (a + sqrt((d__1 = a * a - b * 4. * c__, abs(d__1))
-		    ));
-	}
-	if (*tau < lbd || *tau > ubd) {
-	    *tau = (lbd + ubd) / 2.;
-	}
-	if (d__[1] == *tau || d__[2] == *tau || d__[3] == *tau) {
-	    *tau = 0.;
-	} else {
-	    temp = *finit + *tau * z__[1] / (d__[1] * (d__[1] - *tau)) + *tau 
-		    * z__[2] / (d__[2] * (d__[2] - *tau)) + *tau * z__[3] / (
-		    d__[3] * (d__[3] - *tau));
-	    if (temp <= 0.) {
-		lbd = *tau;
-	    } else {
-		ubd = *tau;
-	    }
-	    if (abs(*finit) <= abs(temp)) {
-		*tau = 0.;
-	    }
-	}
+        d__1 = abs(a), d__2 = abs(b), d__1 = max(d__1,d__2), d__2 = abs(c__);
+        temp = max(d__1,d__2);
+        a /= temp;
+        b /= temp;
+        c__ /= temp;
+        if (c__ == 0.) {
+            *tau = b / a;
+        } else if (a <= 0.) {
+            *tau = (a - sqrt((d__1 = a * a - b * 4. * c__, abs(d__1)))) / (
+                    c__ * 2.);
+        } else {
+            *tau = b * 2. / (a + sqrt((d__1 = a * a - b * 4. * c__, abs(d__1))
+                    ));
+        }
+        if (*tau < lbd || *tau > ubd) {
+            *tau = (lbd + ubd) / 2.;
+        }
+        if (d__[1] == *tau || d__[2] == *tau || d__[3] == *tau) {
+            *tau = 0.;
+        } else {
+            temp = *finit + *tau * z__[1] / (d__[1] * (d__[1] - *tau)) + *tau
+                    * z__[2] / (d__[2] * (d__[2] - *tau)) + *tau * z__[3] / (
+                    d__[3] * (d__[3] - *tau));
+            if (temp <= 0.) {
+                lbd = *tau;
+            } else {
+                ubd = *tau;
+            }
+            if (abs(*finit) <= abs(temp)) {
+                *tau = 0.;
+            }
+        }
     }
 
 /*     get machine parameters for possible scaling to avoid overflow */
@@ -291,75 +291,75 @@ f"> */
 
     if (*orgati) {
 /* Computing MIN */
-	d__3 = (d__1 = d__[2] - *tau, abs(d__1)), d__4 = (d__2 = d__[3] - *
-		tau, abs(d__2));
-	temp = min(d__3,d__4);
+        d__3 = (d__1 = d__[2] - *tau, abs(d__1)), d__4 = (d__2 = d__[3] - *
+                tau, abs(d__2));
+        temp = min(d__3,d__4);
     } else {
 /* Computing MIN */
-	d__3 = (d__1 = d__[1] - *tau, abs(d__1)), d__4 = (d__2 = d__[2] - *
-		tau, abs(d__2));
-	temp = min(d__3,d__4);
+        d__3 = (d__1 = d__[1] - *tau, abs(d__1)), d__4 = (d__2 = d__[2] - *
+                tau, abs(d__2));
+        temp = min(d__3,d__4);
     }
     scale = FALSE_;
     if (temp <= small1) {
-	scale = TRUE_;
-	if (temp <= small2) {
+        scale = TRUE_;
+        if (temp <= small2) {
 
 /*        Scale up by power of radix nearest 1/SAFMIN**(2/3) */
 
-	    sclfac = sminv2;
-	    sclinv = small2;
-	} else {
+            sclfac = sminv2;
+            sclinv = small2;
+        } else {
 
 /*        Scale up by power of radix nearest 1/SAFMIN**(1/3) */
 
-	    sclfac = sminv1;
-	    sclinv = small1;
-	}
+            sclfac = sminv1;
+            sclinv = small1;
+        }
 
 /*        Scaling up safe because D, Z, TAU scaled elsewhere to be O(1) */
 
-	for (i__ = 1; i__ <= 3; ++i__) {
-	    dscale[i__ - 1] = d__[i__] * sclfac;
-	    zscale[i__ - 1] = z__[i__] * sclfac;
+        for (i__ = 1; i__ <= 3; ++i__) {
+            dscale[i__ - 1] = d__[i__] * sclfac;
+            zscale[i__ - 1] = z__[i__] * sclfac;
 /* L10: */
-	}
-	*tau *= sclfac;
-	lbd *= sclfac;
-	ubd *= sclfac;
+        }
+        *tau *= sclfac;
+        lbd *= sclfac;
+        ubd *= sclfac;
     } else {
 
 /*        Copy D and Z to DSCALE and ZSCALE */
 
-	for (i__ = 1; i__ <= 3; ++i__) {
-	    dscale[i__ - 1] = d__[i__];
-	    zscale[i__ - 1] = z__[i__];
+        for (i__ = 1; i__ <= 3; ++i__) {
+            dscale[i__ - 1] = d__[i__];
+            zscale[i__ - 1] = z__[i__];
 /* L20: */
-	}
+        }
     }
 
     fc = 0.;
     df = 0.;
     ddf = 0.;
     for (i__ = 1; i__ <= 3; ++i__) {
-	temp = 1. / (dscale[i__ - 1] - *tau);
-	temp1 = zscale[i__ - 1] * temp;
-	temp2 = temp1 * temp;
-	temp3 = temp2 * temp;
-	fc += temp1 / dscale[i__ - 1];
-	df += temp2;
-	ddf += temp3;
+        temp = 1. / (dscale[i__ - 1] - *tau);
+        temp1 = zscale[i__ - 1] * temp;
+        temp2 = temp1 * temp;
+        temp3 = temp2 * temp;
+        fc += temp1 / dscale[i__ - 1];
+        df += temp2;
+        ddf += temp3;
 /* L30: */
     }
     f = *finit + *tau * fc;
 
     if (abs(f) <= 0.) {
-	goto L60;
+        goto L60;
     }
     if (f <= 0.) {
-	lbd = *tau;
+        lbd = *tau;
     } else {
-	ubd = *tau;
+        ubd = *tau;
     }
 
 /*        Iteration begins -- Use Gragg-Thornton-Warner cubic convergent */
@@ -377,71 +377,71 @@ f"> */
 
     for (niter = iter; niter <= 40; ++niter) {
 
-	if (*orgati) {
-	    temp1 = dscale[1] - *tau;
-	    temp2 = dscale[2] - *tau;
-	} else {
-	    temp1 = dscale[0] - *tau;
-	    temp2 = dscale[1] - *tau;
-	}
-	a = (temp1 + temp2) * f - temp1 * temp2 * df;
-	b = temp1 * temp2 * f;
-	c__ = f - (temp1 + temp2) * df + temp1 * temp2 * ddf;
+        if (*orgati) {
+            temp1 = dscale[1] - *tau;
+            temp2 = dscale[2] - *tau;
+        } else {
+            temp1 = dscale[0] - *tau;
+            temp2 = dscale[1] - *tau;
+        }
+        a = (temp1 + temp2) * f - temp1 * temp2 * df;
+        b = temp1 * temp2 * f;
+        c__ = f - (temp1 + temp2) * df + temp1 * temp2 * ddf;
 /* Computing MAX */
-	d__1 = abs(a), d__2 = abs(b), d__1 = max(d__1,d__2), d__2 = abs(c__);
-	temp = max(d__1,d__2);
-	a /= temp;
-	b /= temp;
-	c__ /= temp;
-	if (c__ == 0.) {
-	    eta = b / a;
-	} else if (a <= 0.) {
-	    eta = (a - sqrt((d__1 = a * a - b * 4. * c__, abs(d__1)))) / (c__ 
-		    * 2.);
-	} else {
-	    eta = b * 2. / (a + sqrt((d__1 = a * a - b * 4. * c__, abs(d__1)))
-		    );
-	}
-	if (f * eta >= 0.) {
-	    eta = -f / df;
-	}
+        d__1 = abs(a), d__2 = abs(b), d__1 = max(d__1,d__2), d__2 = abs(c__);
+        temp = max(d__1,d__2);
+        a /= temp;
+        b /= temp;
+        c__ /= temp;
+        if (c__ == 0.) {
+            eta = b / a;
+        } else if (a <= 0.) {
+            eta = (a - sqrt((d__1 = a * a - b * 4. * c__, abs(d__1)))) / (c__
+                    * 2.);
+        } else {
+            eta = b * 2. / (a + sqrt((d__1 = a * a - b * 4. * c__, abs(d__1)))
+                    );
+        }
+        if (f * eta >= 0.) {
+            eta = -f / df;
+        }
 
-	*tau += eta;
-	if (*tau < lbd || *tau > ubd) {
-	    *tau = (lbd + ubd) / 2.;
-	}
+        *tau += eta;
+        if (*tau < lbd || *tau > ubd) {
+            *tau = (lbd + ubd) / 2.;
+        }
 
-	fc = 0.;
-	erretm = 0.;
-	df = 0.;
-	ddf = 0.;
-	for (i__ = 1; i__ <= 3; ++i__) {
-	    if (dscale[i__ - 1] - *tau != 0.) {
-		temp = 1. / (dscale[i__ - 1] - *tau);
-		temp1 = zscale[i__ - 1] * temp;
-		temp2 = temp1 * temp;
-		temp3 = temp2 * temp;
-		temp4 = temp1 / dscale[i__ - 1];
-		fc += temp4;
-		erretm += abs(temp4);
-		df += temp2;
-		ddf += temp3;
-	    } else {
-		goto L60;
-	    }
+        fc = 0.;
+        erretm = 0.;
+        df = 0.;
+        ddf = 0.;
+        for (i__ = 1; i__ <= 3; ++i__) {
+            if (dscale[i__ - 1] - *tau != 0.) {
+                temp = 1. / (dscale[i__ - 1] - *tau);
+                temp1 = zscale[i__ - 1] * temp;
+                temp2 = temp1 * temp;
+                temp3 = temp2 * temp;
+                temp4 = temp1 / dscale[i__ - 1];
+                fc += temp4;
+                erretm += abs(temp4);
+                df += temp2;
+                ddf += temp3;
+            } else {
+                goto L60;
+            }
 /* L40: */
-	}
-	f = *finit + *tau * fc;
-	erretm = (abs(*finit) + abs(*tau) * erretm) * 8. + abs(*tau) * df;
-	if (abs(f) <= eps * 4. * erretm || ubd - lbd <= eps * 4. * abs(*tau)) 
-		{
-	    goto L60;
-	}
-	if (f <= 0.) {
-	    lbd = *tau;
-	} else {
-	    ubd = *tau;
-	}
+        }
+        f = *finit + *tau * fc;
+        erretm = (abs(*finit) + abs(*tau) * erretm) * 8. + abs(*tau) * df;
+        if (abs(f) <= eps * 4. * erretm || ubd - lbd <= eps * 4. * abs(*tau))
+                {
+            goto L60;
+        }
+        if (f <= 0.) {
+            lbd = *tau;
+        } else {
+            ubd = *tau;
+        }
 /* L50: */
     }
     *info = 1;
@@ -450,7 +450,7 @@ L60:
 /*     Undo scaling */
 
     if (scale) {
-	*tau *= sclinv;
+        *tau *= sclinv;
     }
     return 0;
 
@@ -459,5 +459,5 @@ L60:
 } /* dlaed6_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

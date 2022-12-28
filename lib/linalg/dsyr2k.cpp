@@ -1,13 +1,13 @@
 /* fortran/dsyr2k.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -205,14 +205,14 @@ extern "C" {
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int dsyr2k_(char *uplo, char *trans, integer *n, integer *k, 
-	doublereal *alpha, doublereal *a, integer *lda, doublereal *b, 
-	integer *ldb, doublereal *beta, doublereal *c__, integer *ldc, ftnlen 
-	uplo_len, ftnlen trans_len)
+/* Subroutine */ int dsyr2k_(char *uplo, char *trans, integer *n, integer *k,
+        doublereal *alpha, doublereal *a, integer *lda, doublereal *b,
+        integer *ldb, doublereal *beta, doublereal *c__, integer *ldc, ftnlen
+        uplo_len, ftnlen trans_len)
 {
     /* System generated locals */
-    integer a_dim1, a_offset, b_dim1, b_offset, c_dim1, c_offset, i__1, i__2, 
-	    i__3;
+    integer a_dim1, a_offset, b_dim1, b_offset, c_dim1, c_offset, i__1, i__2,
+            i__3;
 
     /* Local variables */
     integer i__, j, l, info;
@@ -260,90 +260,90 @@ extern "C" {
 
     /* Function Body */
     if (lsame_(trans, (char *)"N", (ftnlen)1, (ftnlen)1)) {
-	nrowa = *n;
+        nrowa = *n;
     } else {
-	nrowa = *k;
+        nrowa = *k;
     }
     upper = lsame_(uplo, (char *)"U", (ftnlen)1, (ftnlen)1);
 
     info = 0;
     if (! upper && ! lsame_(uplo, (char *)"L", (ftnlen)1, (ftnlen)1)) {
-	info = 1;
-    } else if (! lsame_(trans, (char *)"N", (ftnlen)1, (ftnlen)1) && ! lsame_(trans, 
-	    (char *)"T", (ftnlen)1, (ftnlen)1) && ! lsame_(trans, (char *)"C", (ftnlen)1, (
-	    ftnlen)1)) {
-	info = 2;
+        info = 1;
+    } else if (! lsame_(trans, (char *)"N", (ftnlen)1, (ftnlen)1) && ! lsame_(trans,
+            (char *)"T", (ftnlen)1, (ftnlen)1) && ! lsame_(trans, (char *)"C", (ftnlen)1, (
+            ftnlen)1)) {
+        info = 2;
     } else if (*n < 0) {
-	info = 3;
+        info = 3;
     } else if (*k < 0) {
-	info = 4;
+        info = 4;
     } else if (*lda < max(1,nrowa)) {
-	info = 7;
+        info = 7;
     } else if (*ldb < max(1,nrowa)) {
-	info = 9;
+        info = 9;
     } else if (*ldc < max(1,*n)) {
-	info = 12;
+        info = 12;
     }
     if (info != 0) {
-	xerbla_((char *)"DSYR2K", &info, (ftnlen)6);
-	return 0;
+        xerbla_((char *)"DSYR2K", &info, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible. */
 
     if (*n == 0 || (*alpha == 0. || *k == 0) && *beta == 1.) {
-	return 0;
+        return 0;
     }
 
 /*     And when  alpha.eq.zero. */
 
     if (*alpha == 0.) {
-	if (upper) {
-	    if (*beta == 0.) {
-		i__1 = *n;
-		for (j = 1; j <= i__1; ++j) {
-		    i__2 = j;
-		    for (i__ = 1; i__ <= i__2; ++i__) {
-			c__[i__ + j * c_dim1] = 0.;
+        if (upper) {
+            if (*beta == 0.) {
+                i__1 = *n;
+                for (j = 1; j <= i__1; ++j) {
+                    i__2 = j;
+                    for (i__ = 1; i__ <= i__2; ++i__) {
+                        c__[i__ + j * c_dim1] = 0.;
 /* L10: */
-		    }
+                    }
 /* L20: */
-		}
-	    } else {
-		i__1 = *n;
-		for (j = 1; j <= i__1; ++j) {
-		    i__2 = j;
-		    for (i__ = 1; i__ <= i__2; ++i__) {
-			c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1];
+                }
+            } else {
+                i__1 = *n;
+                for (j = 1; j <= i__1; ++j) {
+                    i__2 = j;
+                    for (i__ = 1; i__ <= i__2; ++i__) {
+                        c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1];
 /* L30: */
-		    }
+                    }
 /* L40: */
-		}
-	    }
-	} else {
-	    if (*beta == 0.) {
-		i__1 = *n;
-		for (j = 1; j <= i__1; ++j) {
-		    i__2 = *n;
-		    for (i__ = j; i__ <= i__2; ++i__) {
-			c__[i__ + j * c_dim1] = 0.;
+                }
+            }
+        } else {
+            if (*beta == 0.) {
+                i__1 = *n;
+                for (j = 1; j <= i__1; ++j) {
+                    i__2 = *n;
+                    for (i__ = j; i__ <= i__2; ++i__) {
+                        c__[i__ + j * c_dim1] = 0.;
 /* L50: */
-		    }
+                    }
 /* L60: */
-		}
-	    } else {
-		i__1 = *n;
-		for (j = 1; j <= i__1; ++j) {
-		    i__2 = *n;
-		    for (i__ = j; i__ <= i__2; ++i__) {
-			c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1];
+                }
+            } else {
+                i__1 = *n;
+                for (j = 1; j <= i__1; ++j) {
+                    i__2 = *n;
+                    for (i__ = j; i__ <= i__2; ++i__) {
+                        c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1];
 /* L70: */
-		    }
+                    }
 /* L80: */
-		}
-	    }
-	}
-	return 0;
+                }
+            }
+        }
+        return 0;
     }
 
 /*     Start the operations. */
@@ -352,126 +352,126 @@ extern "C" {
 
 /*        Form  C := alpha*A*B**T + alpha*B*A**T + C. */
 
-	if (upper) {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		if (*beta == 0.) {
-		    i__2 = j;
-		    for (i__ = 1; i__ <= i__2; ++i__) {
-			c__[i__ + j * c_dim1] = 0.;
+        if (upper) {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                if (*beta == 0.) {
+                    i__2 = j;
+                    for (i__ = 1; i__ <= i__2; ++i__) {
+                        c__[i__ + j * c_dim1] = 0.;
 /* L90: */
-		    }
-		} else if (*beta != 1.) {
-		    i__2 = j;
-		    for (i__ = 1; i__ <= i__2; ++i__) {
-			c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1];
+                    }
+                } else if (*beta != 1.) {
+                    i__2 = j;
+                    for (i__ = 1; i__ <= i__2; ++i__) {
+                        c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1];
 /* L100: */
-		    }
-		}
-		i__2 = *k;
-		for (l = 1; l <= i__2; ++l) {
-		    if (a[j + l * a_dim1] != 0. || b[j + l * b_dim1] != 0.) {
-			temp1 = *alpha * b[j + l * b_dim1];
-			temp2 = *alpha * a[j + l * a_dim1];
-			i__3 = j;
-			for (i__ = 1; i__ <= i__3; ++i__) {
-			    c__[i__ + j * c_dim1] = c__[i__ + j * c_dim1] + a[
-				    i__ + l * a_dim1] * temp1 + b[i__ + l * 
-				    b_dim1] * temp2;
+                    }
+                }
+                i__2 = *k;
+                for (l = 1; l <= i__2; ++l) {
+                    if (a[j + l * a_dim1] != 0. || b[j + l * b_dim1] != 0.) {
+                        temp1 = *alpha * b[j + l * b_dim1];
+                        temp2 = *alpha * a[j + l * a_dim1];
+                        i__3 = j;
+                        for (i__ = 1; i__ <= i__3; ++i__) {
+                            c__[i__ + j * c_dim1] = c__[i__ + j * c_dim1] + a[
+                                    i__ + l * a_dim1] * temp1 + b[i__ + l *
+                                    b_dim1] * temp2;
 /* L110: */
-			}
-		    }
+                        }
+                    }
 /* L120: */
-		}
+                }
 /* L130: */
-	    }
-	} else {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		if (*beta == 0.) {
-		    i__2 = *n;
-		    for (i__ = j; i__ <= i__2; ++i__) {
-			c__[i__ + j * c_dim1] = 0.;
+            }
+        } else {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                if (*beta == 0.) {
+                    i__2 = *n;
+                    for (i__ = j; i__ <= i__2; ++i__) {
+                        c__[i__ + j * c_dim1] = 0.;
 /* L140: */
-		    }
-		} else if (*beta != 1.) {
-		    i__2 = *n;
-		    for (i__ = j; i__ <= i__2; ++i__) {
-			c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1];
+                    }
+                } else if (*beta != 1.) {
+                    i__2 = *n;
+                    for (i__ = j; i__ <= i__2; ++i__) {
+                        c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1];
 /* L150: */
-		    }
-		}
-		i__2 = *k;
-		for (l = 1; l <= i__2; ++l) {
-		    if (a[j + l * a_dim1] != 0. || b[j + l * b_dim1] != 0.) {
-			temp1 = *alpha * b[j + l * b_dim1];
-			temp2 = *alpha * a[j + l * a_dim1];
-			i__3 = *n;
-			for (i__ = j; i__ <= i__3; ++i__) {
-			    c__[i__ + j * c_dim1] = c__[i__ + j * c_dim1] + a[
-				    i__ + l * a_dim1] * temp1 + b[i__ + l * 
-				    b_dim1] * temp2;
+                    }
+                }
+                i__2 = *k;
+                for (l = 1; l <= i__2; ++l) {
+                    if (a[j + l * a_dim1] != 0. || b[j + l * b_dim1] != 0.) {
+                        temp1 = *alpha * b[j + l * b_dim1];
+                        temp2 = *alpha * a[j + l * a_dim1];
+                        i__3 = *n;
+                        for (i__ = j; i__ <= i__3; ++i__) {
+                            c__[i__ + j * c_dim1] = c__[i__ + j * c_dim1] + a[
+                                    i__ + l * a_dim1] * temp1 + b[i__ + l *
+                                    b_dim1] * temp2;
 /* L160: */
-			}
-		    }
+                        }
+                    }
 /* L170: */
-		}
+                }
 /* L180: */
-	    }
-	}
+            }
+        }
     } else {
 
 /*        Form  C := alpha*A**T*B + alpha*B**T*A + C. */
 
-	if (upper) {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		i__2 = j;
-		for (i__ = 1; i__ <= i__2; ++i__) {
-		    temp1 = 0.;
-		    temp2 = 0.;
-		    i__3 = *k;
-		    for (l = 1; l <= i__3; ++l) {
-			temp1 += a[l + i__ * a_dim1] * b[l + j * b_dim1];
-			temp2 += b[l + i__ * b_dim1] * a[l + j * a_dim1];
+        if (upper) {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                i__2 = j;
+                for (i__ = 1; i__ <= i__2; ++i__) {
+                    temp1 = 0.;
+                    temp2 = 0.;
+                    i__3 = *k;
+                    for (l = 1; l <= i__3; ++l) {
+                        temp1 += a[l + i__ * a_dim1] * b[l + j * b_dim1];
+                        temp2 += b[l + i__ * b_dim1] * a[l + j * a_dim1];
 /* L190: */
-		    }
-		    if (*beta == 0.) {
-			c__[i__ + j * c_dim1] = *alpha * temp1 + *alpha * 
-				temp2;
-		    } else {
-			c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1] 
-				+ *alpha * temp1 + *alpha * temp2;
-		    }
+                    }
+                    if (*beta == 0.) {
+                        c__[i__ + j * c_dim1] = *alpha * temp1 + *alpha *
+                                temp2;
+                    } else {
+                        c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1]
+                                + *alpha * temp1 + *alpha * temp2;
+                    }
 /* L200: */
-		}
+                }
 /* L210: */
-	    }
-	} else {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		i__2 = *n;
-		for (i__ = j; i__ <= i__2; ++i__) {
-		    temp1 = 0.;
-		    temp2 = 0.;
-		    i__3 = *k;
-		    for (l = 1; l <= i__3; ++l) {
-			temp1 += a[l + i__ * a_dim1] * b[l + j * b_dim1];
-			temp2 += b[l + i__ * b_dim1] * a[l + j * a_dim1];
+            }
+        } else {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                i__2 = *n;
+                for (i__ = j; i__ <= i__2; ++i__) {
+                    temp1 = 0.;
+                    temp2 = 0.;
+                    i__3 = *k;
+                    for (l = 1; l <= i__3; ++l) {
+                        temp1 += a[l + i__ * a_dim1] * b[l + j * b_dim1];
+                        temp2 += b[l + i__ * b_dim1] * a[l + j * a_dim1];
 /* L220: */
-		    }
-		    if (*beta == 0.) {
-			c__[i__ + j * c_dim1] = *alpha * temp1 + *alpha * 
-				temp2;
-		    } else {
-			c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1] 
-				+ *alpha * temp1 + *alpha * temp2;
-		    }
+                    }
+                    if (*beta == 0.) {
+                        c__[i__ + j * c_dim1] = *alpha * temp1 + *alpha *
+                                temp2;
+                    } else {
+                        c__[i__ + j * c_dim1] = *beta * c__[i__ + j * c_dim1]
+                                + *alpha * temp1 + *alpha * temp2;
+                    }
 /* L230: */
-		}
+                }
 /* L240: */
-	    }
-	}
+            }
+        }
     }
 
     return 0;
@@ -481,5 +481,5 @@ extern "C" {
 } /* dsyr2k_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

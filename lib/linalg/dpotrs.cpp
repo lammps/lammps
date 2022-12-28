@@ -1,13 +1,13 @@
 /* fortran/dpotrs.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -130,18 +130,18 @@ f"> */
 /* > \ingroup doublePOcomputational */
 
 /*  ===================================================================== */
-/* Subroutine */ int dpotrs_(char *uplo, integer *n, integer *nrhs, 
-	doublereal *a, integer *lda, doublereal *b, integer *ldb, integer *
-	info, ftnlen uplo_len)
+/* Subroutine */ int dpotrs_(char *uplo, integer *n, integer *nrhs,
+        doublereal *a, integer *lda, doublereal *b, integer *ldb, integer *
+        info, ftnlen uplo_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, b_dim1, b_offset, i__1;
 
     /* Local variables */
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *, 
-	    integer *, integer *, doublereal *, doublereal *, integer *, 
-	    doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
+    extern /* Subroutine */ int dtrsm_(char *, char *, char *, char *,
+            integer *, integer *, doublereal *, doublereal *, integer *,
+            doublereal *, integer *, ftnlen, ftnlen, ftnlen, ftnlen);
     logical upper;
     extern /* Subroutine */ int xerbla_(char *, integer *, ftnlen);
 
@@ -183,26 +183,26 @@ f"> */
     *info = 0;
     upper = lsame_(uplo, (char *)"U", (ftnlen)1, (ftnlen)1);
     if (! upper && ! lsame_(uplo, (char *)"L", (ftnlen)1, (ftnlen)1)) {
-	*info = -1;
+        *info = -1;
     } else if (*n < 0) {
-	*info = -2;
+        *info = -2;
     } else if (*nrhs < 0) {
-	*info = -3;
+        *info = -3;
     } else if (*lda < max(1,*n)) {
-	*info = -5;
+        *info = -5;
     } else if (*ldb < max(1,*n)) {
-	*info = -7;
+        *info = -7;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DPOTRS", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DPOTRS", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0 || *nrhs == 0) {
-	return 0;
+        return 0;
     }
 
     if (upper) {
@@ -211,30 +211,30 @@ f"> */
 
 /*        Solve U**T *X = B, overwriting B with X. */
 
-	dtrsm_((char *)"Left", (char *)"Upper", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &c_b9, &a[
-		a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
-		ftnlen)9, (ftnlen)8);
+        dtrsm_((char *)"Left", (char *)"Upper", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &c_b9, &a[
+                a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
+                ftnlen)9, (ftnlen)8);
 
 /*        Solve U*X = B, overwriting B with X. */
 
-	dtrsm_((char *)"Left", (char *)"Upper", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &c_b9, &
-		a[a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
-		ftnlen)12, (ftnlen)8);
+        dtrsm_((char *)"Left", (char *)"Upper", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &c_b9, &
+                a[a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
+                ftnlen)12, (ftnlen)8);
     } else {
 
 /*        Solve A*X = B where A = L*L**T. */
 
 /*        Solve L*X = B, overwriting B with X. */
 
-	dtrsm_((char *)"Left", (char *)"Lower", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &c_b9, &
-		a[a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
-		ftnlen)12, (ftnlen)8);
+        dtrsm_((char *)"Left", (char *)"Lower", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &c_b9, &
+                a[a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
+                ftnlen)12, (ftnlen)8);
 
 /*        Solve L**T *X = B, overwriting B with X. */
 
-	dtrsm_((char *)"Left", (char *)"Lower", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &c_b9, &a[
-		a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
-		ftnlen)9, (ftnlen)8);
+        dtrsm_((char *)"Left", (char *)"Lower", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &c_b9, &a[
+                a_offset], lda, &b[b_offset], ldb, (ftnlen)4, (ftnlen)5, (
+                ftnlen)9, (ftnlen)8);
     }
 
     return 0;
@@ -244,5 +244,5 @@ f"> */
 } /* dpotrs_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

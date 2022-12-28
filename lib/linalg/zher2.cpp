@@ -1,13 +1,13 @@
 /* fortran/zher2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -163,9 +163,9 @@ extern "C" {
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int zher2_(char *uplo, integer *n, doublecomplex *alpha, 
-	doublecomplex *x, integer *incx, doublecomplex *y, integer *incy, 
-	doublecomplex *a, integer *lda, ftnlen uplo_len)
+/* Subroutine */ int zher2_(char *uplo, integer *n, doublecomplex *alpha,
+        doublecomplex *x, integer *incx, doublecomplex *y, integer *incy,
+        doublecomplex *a, integer *lda, ftnlen uplo_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2, i__3, i__4, i__5, i__6;
@@ -216,44 +216,44 @@ extern "C" {
     /* Function Body */
     info = 0;
     if (! lsame_(uplo, (char *)"U", (ftnlen)1, (ftnlen)1) && ! lsame_(uplo, (char *)"L", (
-	    ftnlen)1, (ftnlen)1)) {
-	info = 1;
+            ftnlen)1, (ftnlen)1)) {
+        info = 1;
     } else if (*n < 0) {
-	info = 2;
+        info = 2;
     } else if (*incx == 0) {
-	info = 5;
+        info = 5;
     } else if (*incy == 0) {
-	info = 7;
+        info = 7;
     } else if (*lda < max(1,*n)) {
-	info = 9;
+        info = 9;
     }
     if (info != 0) {
-	xerbla_((char *)"ZHER2 ", &info, (ftnlen)6);
-	return 0;
+        xerbla_((char *)"ZHER2 ", &info, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible. */
 
     if (*n == 0 || alpha->r == 0. && alpha->i == 0.) {
-	return 0;
+        return 0;
     }
 
 /*     Set up the start points in X and Y if the increments are not both */
 /*     unity. */
 
     if (*incx != 1 || *incy != 1) {
-	if (*incx > 0) {
-	    kx = 1;
-	} else {
-	    kx = 1 - (*n - 1) * *incx;
-	}
-	if (*incy > 0) {
-	    ky = 1;
-	} else {
-	    ky = 1 - (*n - 1) * *incy;
-	}
-	jx = kx;
-	jy = ky;
+        if (*incx > 0) {
+            kx = 1;
+        } else {
+            kx = 1 - (*n - 1) * *incx;
+        }
+        if (*incy > 0) {
+            ky = 1;
+        } else {
+            ky = 1 - (*n - 1) * *incy;
+        }
+        jx = kx;
+        jy = ky;
     }
 
 /*     Start the operations. In this version the elements of A are */
@@ -264,248 +264,248 @@ extern "C" {
 
 /*        Form  A  when A is stored in the upper triangle. */
 
-	if (*incx == 1 && *incy == 1) {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		i__2 = j;
-		i__3 = j;
-		if (x[i__2].r != 0. || x[i__2].i != 0. || (y[i__3].r != 0. || 
-			y[i__3].i != 0.)) {
-		    d_cnjg(&z__2, &y[j]);
-		    z__1.r = alpha->r * z__2.r - alpha->i * z__2.i, z__1.i = 
-			    alpha->r * z__2.i + alpha->i * z__2.r;
-		    temp1.r = z__1.r, temp1.i = z__1.i;
-		    i__2 = j;
-		    z__2.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i, 
-			    z__2.i = alpha->r * x[i__2].i + alpha->i * x[i__2]
-			    .r;
-		    d_cnjg(&z__1, &z__2);
-		    temp2.r = z__1.r, temp2.i = z__1.i;
-		    i__2 = j - 1;
-		    for (i__ = 1; i__ <= i__2; ++i__) {
-			i__3 = i__ + j * a_dim1;
-			i__4 = i__ + j * a_dim1;
-			i__5 = i__;
-			z__3.r = x[i__5].r * temp1.r - x[i__5].i * temp1.i, 
-				z__3.i = x[i__5].r * temp1.i + x[i__5].i * 
-				temp1.r;
-			z__2.r = a[i__4].r + z__3.r, z__2.i = a[i__4].i + 
-				z__3.i;
-			i__6 = i__;
-			z__4.r = y[i__6].r * temp2.r - y[i__6].i * temp2.i, 
-				z__4.i = y[i__6].r * temp2.i + y[i__6].i * 
-				temp2.r;
-			z__1.r = z__2.r + z__4.r, z__1.i = z__2.i + z__4.i;
-			a[i__3].r = z__1.r, a[i__3].i = z__1.i;
+        if (*incx == 1 && *incy == 1) {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                i__2 = j;
+                i__3 = j;
+                if (x[i__2].r != 0. || x[i__2].i != 0. || (y[i__3].r != 0. ||
+                        y[i__3].i != 0.)) {
+                    d_cnjg(&z__2, &y[j]);
+                    z__1.r = alpha->r * z__2.r - alpha->i * z__2.i, z__1.i =
+                            alpha->r * z__2.i + alpha->i * z__2.r;
+                    temp1.r = z__1.r, temp1.i = z__1.i;
+                    i__2 = j;
+                    z__2.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i,
+                            z__2.i = alpha->r * x[i__2].i + alpha->i * x[i__2]
+                            .r;
+                    d_cnjg(&z__1, &z__2);
+                    temp2.r = z__1.r, temp2.i = z__1.i;
+                    i__2 = j - 1;
+                    for (i__ = 1; i__ <= i__2; ++i__) {
+                        i__3 = i__ + j * a_dim1;
+                        i__4 = i__ + j * a_dim1;
+                        i__5 = i__;
+                        z__3.r = x[i__5].r * temp1.r - x[i__5].i * temp1.i,
+                                z__3.i = x[i__5].r * temp1.i + x[i__5].i *
+                                temp1.r;
+                        z__2.r = a[i__4].r + z__3.r, z__2.i = a[i__4].i +
+                                z__3.i;
+                        i__6 = i__;
+                        z__4.r = y[i__6].r * temp2.r - y[i__6].i * temp2.i,
+                                z__4.i = y[i__6].r * temp2.i + y[i__6].i *
+                                temp2.r;
+                        z__1.r = z__2.r + z__4.r, z__1.i = z__2.i + z__4.i;
+                        a[i__3].r = z__1.r, a[i__3].i = z__1.i;
 /* L10: */
-		    }
-		    i__2 = j + j * a_dim1;
-		    i__3 = j + j * a_dim1;
-		    i__4 = j;
-		    z__2.r = x[i__4].r * temp1.r - x[i__4].i * temp1.i, 
-			    z__2.i = x[i__4].r * temp1.i + x[i__4].i * 
-			    temp1.r;
-		    i__5 = j;
-		    z__3.r = y[i__5].r * temp2.r - y[i__5].i * temp2.i, 
-			    z__3.i = y[i__5].r * temp2.i + y[i__5].i * 
-			    temp2.r;
-		    z__1.r = z__2.r + z__3.r, z__1.i = z__2.i + z__3.i;
-		    d__1 = a[i__3].r + z__1.r;
-		    a[i__2].r = d__1, a[i__2].i = 0.;
-		} else {
-		    i__2 = j + j * a_dim1;
-		    i__3 = j + j * a_dim1;
-		    d__1 = a[i__3].r;
-		    a[i__2].r = d__1, a[i__2].i = 0.;
-		}
+                    }
+                    i__2 = j + j * a_dim1;
+                    i__3 = j + j * a_dim1;
+                    i__4 = j;
+                    z__2.r = x[i__4].r * temp1.r - x[i__4].i * temp1.i,
+                            z__2.i = x[i__4].r * temp1.i + x[i__4].i *
+                            temp1.r;
+                    i__5 = j;
+                    z__3.r = y[i__5].r * temp2.r - y[i__5].i * temp2.i,
+                            z__3.i = y[i__5].r * temp2.i + y[i__5].i *
+                            temp2.r;
+                    z__1.r = z__2.r + z__3.r, z__1.i = z__2.i + z__3.i;
+                    d__1 = a[i__3].r + z__1.r;
+                    a[i__2].r = d__1, a[i__2].i = 0.;
+                } else {
+                    i__2 = j + j * a_dim1;
+                    i__3 = j + j * a_dim1;
+                    d__1 = a[i__3].r;
+                    a[i__2].r = d__1, a[i__2].i = 0.;
+                }
 /* L20: */
-	    }
-	} else {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		i__2 = jx;
-		i__3 = jy;
-		if (x[i__2].r != 0. || x[i__2].i != 0. || (y[i__3].r != 0. || 
-			y[i__3].i != 0.)) {
-		    d_cnjg(&z__2, &y[jy]);
-		    z__1.r = alpha->r * z__2.r - alpha->i * z__2.i, z__1.i = 
-			    alpha->r * z__2.i + alpha->i * z__2.r;
-		    temp1.r = z__1.r, temp1.i = z__1.i;
-		    i__2 = jx;
-		    z__2.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i, 
-			    z__2.i = alpha->r * x[i__2].i + alpha->i * x[i__2]
-			    .r;
-		    d_cnjg(&z__1, &z__2);
-		    temp2.r = z__1.r, temp2.i = z__1.i;
-		    ix = kx;
-		    iy = ky;
-		    i__2 = j - 1;
-		    for (i__ = 1; i__ <= i__2; ++i__) {
-			i__3 = i__ + j * a_dim1;
-			i__4 = i__ + j * a_dim1;
-			i__5 = ix;
-			z__3.r = x[i__5].r * temp1.r - x[i__5].i * temp1.i, 
-				z__3.i = x[i__5].r * temp1.i + x[i__5].i * 
-				temp1.r;
-			z__2.r = a[i__4].r + z__3.r, z__2.i = a[i__4].i + 
-				z__3.i;
-			i__6 = iy;
-			z__4.r = y[i__6].r * temp2.r - y[i__6].i * temp2.i, 
-				z__4.i = y[i__6].r * temp2.i + y[i__6].i * 
-				temp2.r;
-			z__1.r = z__2.r + z__4.r, z__1.i = z__2.i + z__4.i;
-			a[i__3].r = z__1.r, a[i__3].i = z__1.i;
-			ix += *incx;
-			iy += *incy;
+            }
+        } else {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                i__2 = jx;
+                i__3 = jy;
+                if (x[i__2].r != 0. || x[i__2].i != 0. || (y[i__3].r != 0. ||
+                        y[i__3].i != 0.)) {
+                    d_cnjg(&z__2, &y[jy]);
+                    z__1.r = alpha->r * z__2.r - alpha->i * z__2.i, z__1.i =
+                            alpha->r * z__2.i + alpha->i * z__2.r;
+                    temp1.r = z__1.r, temp1.i = z__1.i;
+                    i__2 = jx;
+                    z__2.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i,
+                            z__2.i = alpha->r * x[i__2].i + alpha->i * x[i__2]
+                            .r;
+                    d_cnjg(&z__1, &z__2);
+                    temp2.r = z__1.r, temp2.i = z__1.i;
+                    ix = kx;
+                    iy = ky;
+                    i__2 = j - 1;
+                    for (i__ = 1; i__ <= i__2; ++i__) {
+                        i__3 = i__ + j * a_dim1;
+                        i__4 = i__ + j * a_dim1;
+                        i__5 = ix;
+                        z__3.r = x[i__5].r * temp1.r - x[i__5].i * temp1.i,
+                                z__3.i = x[i__5].r * temp1.i + x[i__5].i *
+                                temp1.r;
+                        z__2.r = a[i__4].r + z__3.r, z__2.i = a[i__4].i +
+                                z__3.i;
+                        i__6 = iy;
+                        z__4.r = y[i__6].r * temp2.r - y[i__6].i * temp2.i,
+                                z__4.i = y[i__6].r * temp2.i + y[i__6].i *
+                                temp2.r;
+                        z__1.r = z__2.r + z__4.r, z__1.i = z__2.i + z__4.i;
+                        a[i__3].r = z__1.r, a[i__3].i = z__1.i;
+                        ix += *incx;
+                        iy += *incy;
 /* L30: */
-		    }
-		    i__2 = j + j * a_dim1;
-		    i__3 = j + j * a_dim1;
-		    i__4 = jx;
-		    z__2.r = x[i__4].r * temp1.r - x[i__4].i * temp1.i, 
-			    z__2.i = x[i__4].r * temp1.i + x[i__4].i * 
-			    temp1.r;
-		    i__5 = jy;
-		    z__3.r = y[i__5].r * temp2.r - y[i__5].i * temp2.i, 
-			    z__3.i = y[i__5].r * temp2.i + y[i__5].i * 
-			    temp2.r;
-		    z__1.r = z__2.r + z__3.r, z__1.i = z__2.i + z__3.i;
-		    d__1 = a[i__3].r + z__1.r;
-		    a[i__2].r = d__1, a[i__2].i = 0.;
-		} else {
-		    i__2 = j + j * a_dim1;
-		    i__3 = j + j * a_dim1;
-		    d__1 = a[i__3].r;
-		    a[i__2].r = d__1, a[i__2].i = 0.;
-		}
-		jx += *incx;
-		jy += *incy;
+                    }
+                    i__2 = j + j * a_dim1;
+                    i__3 = j + j * a_dim1;
+                    i__4 = jx;
+                    z__2.r = x[i__4].r * temp1.r - x[i__4].i * temp1.i,
+                            z__2.i = x[i__4].r * temp1.i + x[i__4].i *
+                            temp1.r;
+                    i__5 = jy;
+                    z__3.r = y[i__5].r * temp2.r - y[i__5].i * temp2.i,
+                            z__3.i = y[i__5].r * temp2.i + y[i__5].i *
+                            temp2.r;
+                    z__1.r = z__2.r + z__3.r, z__1.i = z__2.i + z__3.i;
+                    d__1 = a[i__3].r + z__1.r;
+                    a[i__2].r = d__1, a[i__2].i = 0.;
+                } else {
+                    i__2 = j + j * a_dim1;
+                    i__3 = j + j * a_dim1;
+                    d__1 = a[i__3].r;
+                    a[i__2].r = d__1, a[i__2].i = 0.;
+                }
+                jx += *incx;
+                jy += *incy;
 /* L40: */
-	    }
-	}
+            }
+        }
     } else {
 
 /*        Form  A  when A is stored in the lower triangle. */
 
-	if (*incx == 1 && *incy == 1) {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		i__2 = j;
-		i__3 = j;
-		if (x[i__2].r != 0. || x[i__2].i != 0. || (y[i__3].r != 0. || 
-			y[i__3].i != 0.)) {
-		    d_cnjg(&z__2, &y[j]);
-		    z__1.r = alpha->r * z__2.r - alpha->i * z__2.i, z__1.i = 
-			    alpha->r * z__2.i + alpha->i * z__2.r;
-		    temp1.r = z__1.r, temp1.i = z__1.i;
-		    i__2 = j;
-		    z__2.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i, 
-			    z__2.i = alpha->r * x[i__2].i + alpha->i * x[i__2]
-			    .r;
-		    d_cnjg(&z__1, &z__2);
-		    temp2.r = z__1.r, temp2.i = z__1.i;
-		    i__2 = j + j * a_dim1;
-		    i__3 = j + j * a_dim1;
-		    i__4 = j;
-		    z__2.r = x[i__4].r * temp1.r - x[i__4].i * temp1.i, 
-			    z__2.i = x[i__4].r * temp1.i + x[i__4].i * 
-			    temp1.r;
-		    i__5 = j;
-		    z__3.r = y[i__5].r * temp2.r - y[i__5].i * temp2.i, 
-			    z__3.i = y[i__5].r * temp2.i + y[i__5].i * 
-			    temp2.r;
-		    z__1.r = z__2.r + z__3.r, z__1.i = z__2.i + z__3.i;
-		    d__1 = a[i__3].r + z__1.r;
-		    a[i__2].r = d__1, a[i__2].i = 0.;
-		    i__2 = *n;
-		    for (i__ = j + 1; i__ <= i__2; ++i__) {
-			i__3 = i__ + j * a_dim1;
-			i__4 = i__ + j * a_dim1;
-			i__5 = i__;
-			z__3.r = x[i__5].r * temp1.r - x[i__5].i * temp1.i, 
-				z__3.i = x[i__5].r * temp1.i + x[i__5].i * 
-				temp1.r;
-			z__2.r = a[i__4].r + z__3.r, z__2.i = a[i__4].i + 
-				z__3.i;
-			i__6 = i__;
-			z__4.r = y[i__6].r * temp2.r - y[i__6].i * temp2.i, 
-				z__4.i = y[i__6].r * temp2.i + y[i__6].i * 
-				temp2.r;
-			z__1.r = z__2.r + z__4.r, z__1.i = z__2.i + z__4.i;
-			a[i__3].r = z__1.r, a[i__3].i = z__1.i;
+        if (*incx == 1 && *incy == 1) {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                i__2 = j;
+                i__3 = j;
+                if (x[i__2].r != 0. || x[i__2].i != 0. || (y[i__3].r != 0. ||
+                        y[i__3].i != 0.)) {
+                    d_cnjg(&z__2, &y[j]);
+                    z__1.r = alpha->r * z__2.r - alpha->i * z__2.i, z__1.i =
+                            alpha->r * z__2.i + alpha->i * z__2.r;
+                    temp1.r = z__1.r, temp1.i = z__1.i;
+                    i__2 = j;
+                    z__2.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i,
+                            z__2.i = alpha->r * x[i__2].i + alpha->i * x[i__2]
+                            .r;
+                    d_cnjg(&z__1, &z__2);
+                    temp2.r = z__1.r, temp2.i = z__1.i;
+                    i__2 = j + j * a_dim1;
+                    i__3 = j + j * a_dim1;
+                    i__4 = j;
+                    z__2.r = x[i__4].r * temp1.r - x[i__4].i * temp1.i,
+                            z__2.i = x[i__4].r * temp1.i + x[i__4].i *
+                            temp1.r;
+                    i__5 = j;
+                    z__3.r = y[i__5].r * temp2.r - y[i__5].i * temp2.i,
+                            z__3.i = y[i__5].r * temp2.i + y[i__5].i *
+                            temp2.r;
+                    z__1.r = z__2.r + z__3.r, z__1.i = z__2.i + z__3.i;
+                    d__1 = a[i__3].r + z__1.r;
+                    a[i__2].r = d__1, a[i__2].i = 0.;
+                    i__2 = *n;
+                    for (i__ = j + 1; i__ <= i__2; ++i__) {
+                        i__3 = i__ + j * a_dim1;
+                        i__4 = i__ + j * a_dim1;
+                        i__5 = i__;
+                        z__3.r = x[i__5].r * temp1.r - x[i__5].i * temp1.i,
+                                z__3.i = x[i__5].r * temp1.i + x[i__5].i *
+                                temp1.r;
+                        z__2.r = a[i__4].r + z__3.r, z__2.i = a[i__4].i +
+                                z__3.i;
+                        i__6 = i__;
+                        z__4.r = y[i__6].r * temp2.r - y[i__6].i * temp2.i,
+                                z__4.i = y[i__6].r * temp2.i + y[i__6].i *
+                                temp2.r;
+                        z__1.r = z__2.r + z__4.r, z__1.i = z__2.i + z__4.i;
+                        a[i__3].r = z__1.r, a[i__3].i = z__1.i;
 /* L50: */
-		    }
-		} else {
-		    i__2 = j + j * a_dim1;
-		    i__3 = j + j * a_dim1;
-		    d__1 = a[i__3].r;
-		    a[i__2].r = d__1, a[i__2].i = 0.;
-		}
+                    }
+                } else {
+                    i__2 = j + j * a_dim1;
+                    i__3 = j + j * a_dim1;
+                    d__1 = a[i__3].r;
+                    a[i__2].r = d__1, a[i__2].i = 0.;
+                }
 /* L60: */
-	    }
-	} else {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		i__2 = jx;
-		i__3 = jy;
-		if (x[i__2].r != 0. || x[i__2].i != 0. || (y[i__3].r != 0. || 
-			y[i__3].i != 0.)) {
-		    d_cnjg(&z__2, &y[jy]);
-		    z__1.r = alpha->r * z__2.r - alpha->i * z__2.i, z__1.i = 
-			    alpha->r * z__2.i + alpha->i * z__2.r;
-		    temp1.r = z__1.r, temp1.i = z__1.i;
-		    i__2 = jx;
-		    z__2.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i, 
-			    z__2.i = alpha->r * x[i__2].i + alpha->i * x[i__2]
-			    .r;
-		    d_cnjg(&z__1, &z__2);
-		    temp2.r = z__1.r, temp2.i = z__1.i;
-		    i__2 = j + j * a_dim1;
-		    i__3 = j + j * a_dim1;
-		    i__4 = jx;
-		    z__2.r = x[i__4].r * temp1.r - x[i__4].i * temp1.i, 
-			    z__2.i = x[i__4].r * temp1.i + x[i__4].i * 
-			    temp1.r;
-		    i__5 = jy;
-		    z__3.r = y[i__5].r * temp2.r - y[i__5].i * temp2.i, 
-			    z__3.i = y[i__5].r * temp2.i + y[i__5].i * 
-			    temp2.r;
-		    z__1.r = z__2.r + z__3.r, z__1.i = z__2.i + z__3.i;
-		    d__1 = a[i__3].r + z__1.r;
-		    a[i__2].r = d__1, a[i__2].i = 0.;
-		    ix = jx;
-		    iy = jy;
-		    i__2 = *n;
-		    for (i__ = j + 1; i__ <= i__2; ++i__) {
-			ix += *incx;
-			iy += *incy;
-			i__3 = i__ + j * a_dim1;
-			i__4 = i__ + j * a_dim1;
-			i__5 = ix;
-			z__3.r = x[i__5].r * temp1.r - x[i__5].i * temp1.i, 
-				z__3.i = x[i__5].r * temp1.i + x[i__5].i * 
-				temp1.r;
-			z__2.r = a[i__4].r + z__3.r, z__2.i = a[i__4].i + 
-				z__3.i;
-			i__6 = iy;
-			z__4.r = y[i__6].r * temp2.r - y[i__6].i * temp2.i, 
-				z__4.i = y[i__6].r * temp2.i + y[i__6].i * 
-				temp2.r;
-			z__1.r = z__2.r + z__4.r, z__1.i = z__2.i + z__4.i;
-			a[i__3].r = z__1.r, a[i__3].i = z__1.i;
+            }
+        } else {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                i__2 = jx;
+                i__3 = jy;
+                if (x[i__2].r != 0. || x[i__2].i != 0. || (y[i__3].r != 0. ||
+                        y[i__3].i != 0.)) {
+                    d_cnjg(&z__2, &y[jy]);
+                    z__1.r = alpha->r * z__2.r - alpha->i * z__2.i, z__1.i =
+                            alpha->r * z__2.i + alpha->i * z__2.r;
+                    temp1.r = z__1.r, temp1.i = z__1.i;
+                    i__2 = jx;
+                    z__2.r = alpha->r * x[i__2].r - alpha->i * x[i__2].i,
+                            z__2.i = alpha->r * x[i__2].i + alpha->i * x[i__2]
+                            .r;
+                    d_cnjg(&z__1, &z__2);
+                    temp2.r = z__1.r, temp2.i = z__1.i;
+                    i__2 = j + j * a_dim1;
+                    i__3 = j + j * a_dim1;
+                    i__4 = jx;
+                    z__2.r = x[i__4].r * temp1.r - x[i__4].i * temp1.i,
+                            z__2.i = x[i__4].r * temp1.i + x[i__4].i *
+                            temp1.r;
+                    i__5 = jy;
+                    z__3.r = y[i__5].r * temp2.r - y[i__5].i * temp2.i,
+                            z__3.i = y[i__5].r * temp2.i + y[i__5].i *
+                            temp2.r;
+                    z__1.r = z__2.r + z__3.r, z__1.i = z__2.i + z__3.i;
+                    d__1 = a[i__3].r + z__1.r;
+                    a[i__2].r = d__1, a[i__2].i = 0.;
+                    ix = jx;
+                    iy = jy;
+                    i__2 = *n;
+                    for (i__ = j + 1; i__ <= i__2; ++i__) {
+                        ix += *incx;
+                        iy += *incy;
+                        i__3 = i__ + j * a_dim1;
+                        i__4 = i__ + j * a_dim1;
+                        i__5 = ix;
+                        z__3.r = x[i__5].r * temp1.r - x[i__5].i * temp1.i,
+                                z__3.i = x[i__5].r * temp1.i + x[i__5].i *
+                                temp1.r;
+                        z__2.r = a[i__4].r + z__3.r, z__2.i = a[i__4].i +
+                                z__3.i;
+                        i__6 = iy;
+                        z__4.r = y[i__6].r * temp2.r - y[i__6].i * temp2.i,
+                                z__4.i = y[i__6].r * temp2.i + y[i__6].i *
+                                temp2.r;
+                        z__1.r = z__2.r + z__4.r, z__1.i = z__2.i + z__4.i;
+                        a[i__3].r = z__1.r, a[i__3].i = z__1.i;
 /* L70: */
-		    }
-		} else {
-		    i__2 = j + j * a_dim1;
-		    i__3 = j + j * a_dim1;
-		    d__1 = a[i__3].r;
-		    a[i__2].r = d__1, a[i__2].i = 0.;
-		}
-		jx += *incx;
-		jy += *incy;
+                    }
+                } else {
+                    i__2 = j + j * a_dim1;
+                    i__3 = j + j * a_dim1;
+                    d__1 = a[i__3].r;
+                    a[i__2].r = d__1, a[i__2].i = 0.;
+                }
+                jx += *incx;
+                jy += *incy;
 /* L80: */
-	    }
-	}
+            }
+        }
     }
 
     return 0;
@@ -515,5 +515,5 @@ extern "C" {
 } /* zher2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

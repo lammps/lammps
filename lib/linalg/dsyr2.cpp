@@ -1,13 +1,13 @@
 /* fortran/dsyr2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -160,9 +160,9 @@ extern "C" {
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int dsyr2_(char *uplo, integer *n, doublereal *alpha, 
-	doublereal *x, integer *incx, doublereal *y, integer *incy, 
-	doublereal *a, integer *lda, ftnlen uplo_len)
+/* Subroutine */ int dsyr2_(char *uplo, integer *n, doublereal *alpha,
+        doublereal *x, integer *incx, doublereal *y, integer *incy,
+        doublereal *a, integer *lda, ftnlen uplo_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2;
@@ -208,44 +208,44 @@ extern "C" {
     /* Function Body */
     info = 0;
     if (! lsame_(uplo, (char *)"U", (ftnlen)1, (ftnlen)1) && ! lsame_(uplo, (char *)"L", (
-	    ftnlen)1, (ftnlen)1)) {
-	info = 1;
+            ftnlen)1, (ftnlen)1)) {
+        info = 1;
     } else if (*n < 0) {
-	info = 2;
+        info = 2;
     } else if (*incx == 0) {
-	info = 5;
+        info = 5;
     } else if (*incy == 0) {
-	info = 7;
+        info = 7;
     } else if (*lda < max(1,*n)) {
-	info = 9;
+        info = 9;
     }
     if (info != 0) {
-	xerbla_((char *)"DSYR2 ", &info, (ftnlen)6);
-	return 0;
+        xerbla_((char *)"DSYR2 ", &info, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible. */
 
     if (*n == 0 || *alpha == 0.) {
-	return 0;
+        return 0;
     }
 
 /*     Set up the start points in X and Y if the increments are not both */
 /*     unity. */
 
     if (*incx != 1 || *incy != 1) {
-	if (*incx > 0) {
-	    kx = 1;
-	} else {
-	    kx = 1 - (*n - 1) * *incx;
-	}
-	if (*incy > 0) {
-	    ky = 1;
-	} else {
-	    ky = 1 - (*n - 1) * *incy;
-	}
-	jx = kx;
-	jy = ky;
+        if (*incx > 0) {
+            kx = 1;
+        } else {
+            kx = 1 - (*n - 1) * *incx;
+        }
+        if (*incy > 0) {
+            ky = 1;
+        } else {
+            ky = 1 - (*n - 1) * *incy;
+        }
+        jx = kx;
+        jy = ky;
     }
 
 /*     Start the operations. In this version the elements of A are */
@@ -256,84 +256,84 @@ extern "C" {
 
 /*        Form  A  when A is stored in the upper triangle. */
 
-	if (*incx == 1 && *incy == 1) {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		if (x[j] != 0. || y[j] != 0.) {
-		    temp1 = *alpha * y[j];
-		    temp2 = *alpha * x[j];
-		    i__2 = j;
-		    for (i__ = 1; i__ <= i__2; ++i__) {
-			a[i__ + j * a_dim1] = a[i__ + j * a_dim1] + x[i__] * 
-				temp1 + y[i__] * temp2;
+        if (*incx == 1 && *incy == 1) {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                if (x[j] != 0. || y[j] != 0.) {
+                    temp1 = *alpha * y[j];
+                    temp2 = *alpha * x[j];
+                    i__2 = j;
+                    for (i__ = 1; i__ <= i__2; ++i__) {
+                        a[i__ + j * a_dim1] = a[i__ + j * a_dim1] + x[i__] *
+                                temp1 + y[i__] * temp2;
 /* L10: */
-		    }
-		}
+                    }
+                }
 /* L20: */
-	    }
-	} else {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		if (x[jx] != 0. || y[jy] != 0.) {
-		    temp1 = *alpha * y[jy];
-		    temp2 = *alpha * x[jx];
-		    ix = kx;
-		    iy = ky;
-		    i__2 = j;
-		    for (i__ = 1; i__ <= i__2; ++i__) {
-			a[i__ + j * a_dim1] = a[i__ + j * a_dim1] + x[ix] * 
-				temp1 + y[iy] * temp2;
-			ix += *incx;
-			iy += *incy;
+            }
+        } else {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                if (x[jx] != 0. || y[jy] != 0.) {
+                    temp1 = *alpha * y[jy];
+                    temp2 = *alpha * x[jx];
+                    ix = kx;
+                    iy = ky;
+                    i__2 = j;
+                    for (i__ = 1; i__ <= i__2; ++i__) {
+                        a[i__ + j * a_dim1] = a[i__ + j * a_dim1] + x[ix] *
+                                temp1 + y[iy] * temp2;
+                        ix += *incx;
+                        iy += *incy;
 /* L30: */
-		    }
-		}
-		jx += *incx;
-		jy += *incy;
+                    }
+                }
+                jx += *incx;
+                jy += *incy;
 /* L40: */
-	    }
-	}
+            }
+        }
     } else {
 
 /*        Form  A  when A is stored in the lower triangle. */
 
-	if (*incx == 1 && *incy == 1) {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		if (x[j] != 0. || y[j] != 0.) {
-		    temp1 = *alpha * y[j];
-		    temp2 = *alpha * x[j];
-		    i__2 = *n;
-		    for (i__ = j; i__ <= i__2; ++i__) {
-			a[i__ + j * a_dim1] = a[i__ + j * a_dim1] + x[i__] * 
-				temp1 + y[i__] * temp2;
+        if (*incx == 1 && *incy == 1) {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                if (x[j] != 0. || y[j] != 0.) {
+                    temp1 = *alpha * y[j];
+                    temp2 = *alpha * x[j];
+                    i__2 = *n;
+                    for (i__ = j; i__ <= i__2; ++i__) {
+                        a[i__ + j * a_dim1] = a[i__ + j * a_dim1] + x[i__] *
+                                temp1 + y[i__] * temp2;
 /* L50: */
-		    }
-		}
+                    }
+                }
 /* L60: */
-	    }
-	} else {
-	    i__1 = *n;
-	    for (j = 1; j <= i__1; ++j) {
-		if (x[jx] != 0. || y[jy] != 0.) {
-		    temp1 = *alpha * y[jy];
-		    temp2 = *alpha * x[jx];
-		    ix = jx;
-		    iy = jy;
-		    i__2 = *n;
-		    for (i__ = j; i__ <= i__2; ++i__) {
-			a[i__ + j * a_dim1] = a[i__ + j * a_dim1] + x[ix] * 
-				temp1 + y[iy] * temp2;
-			ix += *incx;
-			iy += *incy;
+            }
+        } else {
+            i__1 = *n;
+            for (j = 1; j <= i__1; ++j) {
+                if (x[jx] != 0. || y[jy] != 0.) {
+                    temp1 = *alpha * y[jy];
+                    temp2 = *alpha * x[jx];
+                    ix = jx;
+                    iy = jy;
+                    i__2 = *n;
+                    for (i__ = j; i__ <= i__2; ++i__) {
+                        a[i__ + j * a_dim1] = a[i__ + j * a_dim1] + x[ix] *
+                                temp1 + y[iy] * temp2;
+                        ix += *incx;
+                        iy += *incy;
 /* L70: */
-		    }
-		}
-		jx += *incx;
-		jy += *incy;
+                    }
+                }
+                jx += *incx;
+                jy += *incy;
 /* L80: */
-	    }
-	}
+            }
+        }
     }
 
     return 0;
@@ -343,5 +343,5 @@ extern "C" {
 } /* dsyr2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

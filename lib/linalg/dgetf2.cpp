@@ -1,13 +1,13 @@
 /* fortran/dgetf2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -131,7 +131,7 @@ f"> */
 
 /*  ===================================================================== */
 /* Subroutine */ int dgetf2_(integer *m, integer *n, doublereal *a, integer *
-	lda, integer *ipiv, integer *info)
+        lda, integer *ipiv, integer *info)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2, i__3;
@@ -139,13 +139,13 @@ f"> */
 
     /* Local variables */
     integer i__, j, jp;
-    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *, 
-	    doublereal *, integer *, doublereal *, integer *, doublereal *, 
-	    integer *), dscal_(integer *, doublereal *, doublereal *, integer 
-	    *);
+    extern /* Subroutine */ int dger_(integer *, integer *, doublereal *,
+            doublereal *, integer *, doublereal *, integer *, doublereal *,
+            integer *), dscal_(integer *, doublereal *, doublereal *, integer
+            *);
     doublereal sfmin;
-    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *, 
-	    doublereal *, integer *);
+    extern /* Subroutine */ int dswap_(integer *, doublereal *, integer *,
+            doublereal *, integer *);
     extern doublereal dlamch_(char *, ftnlen);
     extern integer idamax_(integer *, doublereal *, integer *);
     extern /* Subroutine */ int xerbla_(char *, integer *, ftnlen);
@@ -185,22 +185,22 @@ f"> */
     /* Function Body */
     *info = 0;
     if (*m < 0) {
-	*info = -1;
+        *info = -1;
     } else if (*n < 0) {
-	*info = -2;
+        *info = -2;
     } else if (*lda < max(1,*m)) {
-	*info = -4;
+        *info = -4;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DGETF2", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DGETF2", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*m == 0 || *n == 0) {
-	return 0;
+        return 0;
     }
 
 /*     Compute machine safe minimum */
@@ -212,47 +212,47 @@ f"> */
 
 /*        Find pivot and test for singularity. */
 
-	i__2 = *m - j + 1;
-	jp = j - 1 + idamax_(&i__2, &a[j + j * a_dim1], &c__1);
-	ipiv[j] = jp;
-	if (a[jp + j * a_dim1] != 0.) {
+        i__2 = *m - j + 1;
+        jp = j - 1 + idamax_(&i__2, &a[j + j * a_dim1], &c__1);
+        ipiv[j] = jp;
+        if (a[jp + j * a_dim1] != 0.) {
 
 /*           Apply the interchange to columns 1:N. */
 
-	    if (jp != j) {
-		dswap_(n, &a[j + a_dim1], lda, &a[jp + a_dim1], lda);
-	    }
+            if (jp != j) {
+                dswap_(n, &a[j + a_dim1], lda, &a[jp + a_dim1], lda);
+            }
 
 /*           Compute elements J+1:M of J-th column. */
 
-	    if (j < *m) {
-		if ((d__1 = a[j + j * a_dim1], abs(d__1)) >= sfmin) {
-		    i__2 = *m - j;
-		    d__1 = 1. / a[j + j * a_dim1];
-		    dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
-		} else {
-		    i__2 = *m - j;
-		    for (i__ = 1; i__ <= i__2; ++i__) {
-			a[j + i__ + j * a_dim1] /= a[j + j * a_dim1];
+            if (j < *m) {
+                if ((d__1 = a[j + j * a_dim1], abs(d__1)) >= sfmin) {
+                    i__2 = *m - j;
+                    d__1 = 1. / a[j + j * a_dim1];
+                    dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
+                } else {
+                    i__2 = *m - j;
+                    for (i__ = 1; i__ <= i__2; ++i__) {
+                        a[j + i__ + j * a_dim1] /= a[j + j * a_dim1];
 /* L20: */
-		    }
-		}
-	    }
+                    }
+                }
+            }
 
-	} else if (*info == 0) {
+        } else if (*info == 0) {
 
-	    *info = j;
-	}
+            *info = j;
+        }
 
-	if (j < min(*m,*n)) {
+        if (j < min(*m,*n)) {
 
 /*           Update trailing submatrix. */
 
-	    i__2 = *m - j;
-	    i__3 = *n - j;
-	    dger_(&i__2, &i__3, &c_b8, &a[j + 1 + j * a_dim1], &c__1, &a[j + (
-		    j + 1) * a_dim1], lda, &a[j + 1 + (j + 1) * a_dim1], lda);
-	}
+            i__2 = *m - j;
+            i__3 = *n - j;
+            dger_(&i__2, &i__3, &c_b8, &a[j + 1 + j * a_dim1], &c__1, &a[j + (
+                    j + 1) * a_dim1], lda, &a[j + 1 + (j + 1) * a_dim1], lda);
+        }
 /* L10: */
     }
     return 0;
@@ -262,5 +262,5 @@ f"> */
 } /* dgetf2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

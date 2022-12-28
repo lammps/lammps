@@ -1,13 +1,13 @@
 /* fortran/zunm2l.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -19,7 +19,7 @@ extern "C" {
 
 static integer c__1 = 1;
 
-/* > \brief \b ZUNM2L multiplies a general matrix by the unitary matrix from a QL factorization determined by 
+/* > \brief \b ZUNM2L multiplies a general matrix by the unitary matrix from a QL factorization determined by
 cgeqlf (unblocked algorithm). */
 
 /*  =========== DOCUMENTATION =========== */
@@ -179,10 +179,10 @@ f"> */
 /* > \ingroup complex16OTHERcomputational */
 
 /*  ===================================================================== */
-/* Subroutine */ int zunm2l_(char *side, char *trans, integer *m, integer *n, 
-	integer *k, doublecomplex *a, integer *lda, doublecomplex *tau, 
-	doublecomplex *c__, integer *ldc, doublecomplex *work, integer *info, 
-	ftnlen side_len, ftnlen trans_len)
+/* Subroutine */ int zunm2l_(char *side, char *trans, integer *m, integer *n,
+        integer *k, doublecomplex *a, integer *lda, doublecomplex *tau,
+        doublecomplex *c__, integer *ldc, doublecomplex *work, integer *info,
+        ftnlen side_len, ftnlen trans_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, c_dim1, c_offset, i__1, i__2, i__3;
@@ -197,10 +197,10 @@ f"> */
     logical left;
     doublecomplex taui;
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern /* Subroutine */ int zlarf_(char *, integer *, integer *, 
-	    doublecomplex *, integer *, doublecomplex *, doublecomplex *, 
-	    integer *, doublecomplex *, ftnlen), xerbla_(char *, integer *, 
-	    ftnlen);
+    extern /* Subroutine */ int zlarf_(char *, integer *, integer *,
+            doublecomplex *, integer *, doublecomplex *, doublecomplex *,
+            integer *, doublecomplex *, ftnlen), xerbla_(char *, integer *,
+            ftnlen);
     logical notran;
 
 
@@ -247,85 +247,85 @@ f"> */
 /*     NQ is the order of Q */
 
     if (left) {
-	nq = *m;
+        nq = *m;
     } else {
-	nq = *n;
+        nq = *n;
     }
     if (! left && ! lsame_(side, (char *)"R", (ftnlen)1, (ftnlen)1)) {
-	*info = -1;
+        *info = -1;
     } else if (! notran && ! lsame_(trans, (char *)"C", (ftnlen)1, (ftnlen)1)) {
-	*info = -2;
+        *info = -2;
     } else if (*m < 0) {
-	*info = -3;
+        *info = -3;
     } else if (*n < 0) {
-	*info = -4;
+        *info = -4;
     } else if (*k < 0 || *k > nq) {
-	*info = -5;
+        *info = -5;
     } else if (*lda < max(1,nq)) {
-	*info = -7;
+        *info = -7;
     } else if (*ldc < max(1,*m)) {
-	*info = -10;
+        *info = -10;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"ZUNM2L", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"ZUNM2L", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*m == 0 || *n == 0 || *k == 0) {
-	return 0;
+        return 0;
     }
 
     if (left && notran || ! left && ! notran) {
-	i1 = 1;
-	i2 = *k;
-	i3 = 1;
+        i1 = 1;
+        i2 = *k;
+        i3 = 1;
     } else {
-	i1 = *k;
-	i2 = 1;
-	i3 = -1;
+        i1 = *k;
+        i2 = 1;
+        i3 = -1;
     }
 
     if (left) {
-	ni = *n;
+        ni = *n;
     } else {
-	mi = *m;
+        mi = *m;
     }
 
     i__1 = i2;
     i__2 = i3;
     for (i__ = i1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
-	if (left) {
+        if (left) {
 
 /*           H(i) or H(i)**H is applied to C(1:m-k+i,1:n) */
 
-	    mi = *m - *k + i__;
-	} else {
+            mi = *m - *k + i__;
+        } else {
 
 /*           H(i) or H(i)**H is applied to C(1:m,1:n-k+i) */
 
-	    ni = *n - *k + i__;
-	}
+            ni = *n - *k + i__;
+        }
 
 /*        Apply H(i) or H(i)**H */
 
-	if (notran) {
-	    i__3 = i__;
-	    taui.r = tau[i__3].r, taui.i = tau[i__3].i;
-	} else {
-	    d_cnjg(&z__1, &tau[i__]);
-	    taui.r = z__1.r, taui.i = z__1.i;
-	}
-	i__3 = nq - *k + i__ + i__ * a_dim1;
-	aii.r = a[i__3].r, aii.i = a[i__3].i;
-	i__3 = nq - *k + i__ + i__ * a_dim1;
-	a[i__3].r = 1., a[i__3].i = 0.;
-	zlarf_(side, &mi, &ni, &a[i__ * a_dim1 + 1], &c__1, &taui, &c__[
-		c_offset], ldc, &work[1], (ftnlen)1);
-	i__3 = nq - *k + i__ + i__ * a_dim1;
-	a[i__3].r = aii.r, a[i__3].i = aii.i;
+        if (notran) {
+            i__3 = i__;
+            taui.r = tau[i__3].r, taui.i = tau[i__3].i;
+        } else {
+            d_cnjg(&z__1, &tau[i__]);
+            taui.r = z__1.r, taui.i = z__1.i;
+        }
+        i__3 = nq - *k + i__ + i__ * a_dim1;
+        aii.r = a[i__3].r, aii.i = a[i__3].i;
+        i__3 = nq - *k + i__ + i__ * a_dim1;
+        a[i__3].r = 1., a[i__3].i = 0.;
+        zlarf_(side, &mi, &ni, &a[i__ * a_dim1 + 1], &c__1, &taui, &c__[
+                c_offset], ldc, &work[1], (ftnlen)1);
+        i__3 = nq - *k + i__ + i__ * a_dim1;
+        a[i__3].r = aii.r, a[i__3].i = aii.i;
 /* L10: */
     }
     return 0;
@@ -335,5 +335,5 @@ f"> */
 } /* zunm2l_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

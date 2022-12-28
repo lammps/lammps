@@ -1,13 +1,13 @@
 /* fortran/zlaed7.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -269,12 +269,12 @@ f"> */
 /* > \ingroup complex16OTHERcomputational */
 
 /*  ===================================================================== */
-/* Subroutine */ int zlaed7_(integer *n, integer *cutpnt, integer *qsiz, 
-	integer *tlvls, integer *curlvl, integer *curpbm, doublereal *d__, 
-	doublecomplex *q, integer *ldq, doublereal *rho, integer *indxq, 
-	doublereal *qstore, integer *qptr, integer *prmptr, integer *perm, 
-	integer *givptr, integer *givcol, doublereal *givnum, doublecomplex *
-	work, doublereal *rwork, integer *iwork, integer *info)
+/* Subroutine */ int zlaed7_(integer *n, integer *cutpnt, integer *qsiz,
+        integer *tlvls, integer *curlvl, integer *curpbm, doublereal *d__,
+        doublecomplex *q, integer *ldq, doublereal *rho, integer *indxq,
+        doublereal *qstore, integer *qptr, integer *prmptr, integer *perm,
+        integer *givptr, integer *givcol, doublereal *givnum, doublecomplex *
+        work, doublereal *rwork, integer *iwork, integer *info)
 {
     /* System generated locals */
     integer q_dim1, q_offset, i__1, i__2;
@@ -284,23 +284,23 @@ f"> */
 
     /* Local variables */
     integer i__, k, n1, n2, iq, iw, iz, ptr, indx, curr, indxc, indxp;
-    extern /* Subroutine */ int dlaed9_(integer *, integer *, integer *, 
-	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, integer *, integer *), 
-	    zlaed8_(integer *, integer *, integer *, doublecomplex *, integer 
-	    *, doublereal *, doublereal *, integer *, doublereal *, 
-	    doublereal *, doublecomplex *, integer *, doublereal *, integer *,
-	     integer *, integer *, integer *, integer *, integer *, 
-	    doublereal *, integer *), dlaeda_(integer *, integer *, integer *,
-	     integer *, integer *, integer *, integer *, integer *, 
-	    doublereal *, doublereal *, integer *, doublereal *, doublereal *,
-	     integer *);
+    extern /* Subroutine */ int dlaed9_(integer *, integer *, integer *,
+            integer *, doublereal *, doublereal *, integer *, doublereal *,
+            doublereal *, doublereal *, doublereal *, integer *, integer *),
+            zlaed8_(integer *, integer *, integer *, doublecomplex *, integer
+            *, doublereal *, doublereal *, integer *, doublereal *,
+            doublereal *, doublecomplex *, integer *, doublereal *, integer *,
+             integer *, integer *, integer *, integer *, integer *,
+            doublereal *, integer *), dlaeda_(integer *, integer *, integer *,
+             integer *, integer *, integer *, integer *, integer *,
+            doublereal *, doublereal *, integer *, doublereal *, doublereal *,
+             integer *);
     integer idlmda;
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *, 
-	    ftnlen), zlacrm_(integer *, integer *, doublecomplex *, integer *,
-	     doublereal *, integer *, doublecomplex *, integer *, doublereal *
-	    );
+    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *,
+            integer *, integer *, integer *), xerbla_(char *, integer *,
+            ftnlen), zlacrm_(integer *, integer *, doublecomplex *, integer *,
+             doublereal *, integer *, doublecomplex *, integer *, doublereal *
+            );
     integer coltyp;
 
 
@@ -349,24 +349,24 @@ f"> */
 /*        INFO = -1 */
 /*     ELSE IF( N.LT.0 ) THEN */
     if (*n < 0) {
-	*info = -1;
+        *info = -1;
     } else if (min(1,*n) > *cutpnt || *n < *cutpnt) {
-	*info = -2;
+        *info = -2;
     } else if (*qsiz < *n) {
-	*info = -3;
+        *info = -3;
     } else if (*ldq < max(1,*n)) {
-	*info = -9;
+        *info = -9;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"ZLAED7", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"ZLAED7", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0) {
-	return 0;
+        return 0;
     }
 
 /*     The following values are for bookkeeping purposes only.  They are */
@@ -389,60 +389,60 @@ f"> */
     ptr = pow_ii(&c__2, tlvls) + 1;
     i__1 = *curlvl - 1;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	i__2 = *tlvls - i__;
-	ptr += pow_ii(&c__2, &i__2);
+        i__2 = *tlvls - i__;
+        ptr += pow_ii(&c__2, &i__2);
 /* L10: */
     }
     curr = ptr + *curpbm;
     dlaeda_(n, tlvls, curlvl, curpbm, &prmptr[1], &perm[1], &givptr[1], &
-	    givcol[3], &givnum[3], &qstore[1], &qptr[1], &rwork[iz], &rwork[
-	    iz + *n], info);
+            givcol[3], &givnum[3], &qstore[1], &qptr[1], &rwork[iz], &rwork[
+            iz + *n], info);
 
 /*     When solving the final problem, we no longer need the stored data, */
 /*     so we will overwrite the data from this level onto the previously */
 /*     used storage space. */
 
     if (*curlvl == *tlvls) {
-	qptr[curr] = 1;
-	prmptr[curr] = 1;
-	givptr[curr] = 1;
+        qptr[curr] = 1;
+        prmptr[curr] = 1;
+        givptr[curr] = 1;
     }
 
 /*     Sort and Deflate eigenvalues. */
 
-    zlaed8_(&k, n, qsiz, &q[q_offset], ldq, &d__[1], rho, cutpnt, &rwork[iz], 
-	    &rwork[idlmda], &work[1], qsiz, &rwork[iw], &iwork[indxp], &iwork[
-	    indx], &indxq[1], &perm[prmptr[curr]], &givptr[curr + 1], &givcol[
-	    (givptr[curr] << 1) + 1], &givnum[(givptr[curr] << 1) + 1], info);
+    zlaed8_(&k, n, qsiz, &q[q_offset], ldq, &d__[1], rho, cutpnt, &rwork[iz],
+            &rwork[idlmda], &work[1], qsiz, &rwork[iw], &iwork[indxp], &iwork[
+            indx], &indxq[1], &perm[prmptr[curr]], &givptr[curr + 1], &givcol[
+            (givptr[curr] << 1) + 1], &givnum[(givptr[curr] << 1) + 1], info);
     prmptr[curr + 1] = prmptr[curr] + *n;
     givptr[curr + 1] += givptr[curr];
 
 /*     Solve Secular Equation. */
 
     if (k != 0) {
-	dlaed9_(&k, &c__1, &k, n, &d__[1], &rwork[iq], &k, rho, &rwork[idlmda]
-		, &rwork[iw], &qstore[qptr[curr]], &k, info);
-	zlacrm_(qsiz, &k, &work[1], qsiz, &qstore[qptr[curr]], &k, &q[
-		q_offset], ldq, &rwork[iq]);
+        dlaed9_(&k, &c__1, &k, n, &d__[1], &rwork[iq], &k, rho, &rwork[idlmda]
+                , &rwork[iw], &qstore[qptr[curr]], &k, info);
+        zlacrm_(qsiz, &k, &work[1], qsiz, &qstore[qptr[curr]], &k, &q[
+                q_offset], ldq, &rwork[iq]);
 /* Computing 2nd power */
-	i__1 = k;
-	qptr[curr + 1] = qptr[curr] + i__1 * i__1;
-	if (*info != 0) {
-	    return 0;
-	}
+        i__1 = k;
+        qptr[curr + 1] = qptr[curr] + i__1 * i__1;
+        if (*info != 0) {
+            return 0;
+        }
 
 /*     Prepare the INDXQ sorting premutation. */
 
-	n1 = k;
-	n2 = *n - k;
-	dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
+        n1 = k;
+        n2 = *n - k;
+        dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
     } else {
-	qptr[curr + 1] = qptr[curr];
-	i__1 = *n;
-	for (i__ = 1; i__ <= i__1; ++i__) {
-	    indxq[i__] = i__;
+        qptr[curr + 1] = qptr[curr];
+        i__1 = *n;
+        for (i__ = 1; i__ <= i__1; ++i__) {
+            indxq[i__] = i__;
 /* L20: */
-	}
+        }
     }
 
     return 0;
@@ -452,5 +452,5 @@ f"> */
 } /* zlaed7_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

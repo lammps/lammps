@@ -1,13 +1,13 @@
 /* fortran/dlae2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -118,8 +118,8 @@ extern "C" {
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int dlae2_(doublereal *a, doublereal *b, doublereal *c__, 
-	doublereal *rt1, doublereal *rt2)
+/* Subroutine */ int dlae2_(doublereal *a, doublereal *b, doublereal *c__,
+        doublereal *rt1, doublereal *rt2)
 {
     /* System generated locals */
     doublereal d__1;
@@ -156,48 +156,48 @@ extern "C" {
     tb = *b + *b;
     ab = abs(tb);
     if (abs(*a) > abs(*c__)) {
-	acmx = *a;
-	acmn = *c__;
+        acmx = *a;
+        acmn = *c__;
     } else {
-	acmx = *c__;
-	acmn = *a;
+        acmx = *c__;
+        acmn = *a;
     }
     if (adf > ab) {
 /* Computing 2nd power */
-	d__1 = ab / adf;
-	rt = adf * sqrt(d__1 * d__1 + 1.);
+        d__1 = ab / adf;
+        rt = adf * sqrt(d__1 * d__1 + 1.);
     } else if (adf < ab) {
 /* Computing 2nd power */
-	d__1 = adf / ab;
-	rt = ab * sqrt(d__1 * d__1 + 1.);
+        d__1 = adf / ab;
+        rt = ab * sqrt(d__1 * d__1 + 1.);
     } else {
 
 /*        Includes case AB=ADF=0 */
 
-	rt = ab * sqrt(2.);
+        rt = ab * sqrt(2.);
     }
     if (sm < 0.) {
-	*rt1 = (sm - rt) * .5;
+        *rt1 = (sm - rt) * .5;
 
 /*        Order of execution important. */
 /*        To get fully accurate smaller eigenvalue, */
 /*        next line needs to be executed in higher precision. */
 
-	*rt2 = acmx / *rt1 * acmn - *b / *rt1 * *b;
+        *rt2 = acmx / *rt1 * acmn - *b / *rt1 * *b;
     } else if (sm > 0.) {
-	*rt1 = (sm + rt) * .5;
+        *rt1 = (sm + rt) * .5;
 
 /*        Order of execution important. */
 /*        To get fully accurate smaller eigenvalue, */
 /*        next line needs to be executed in higher precision. */
 
-	*rt2 = acmx / *rt1 * acmn - *b / *rt1 * *b;
+        *rt2 = acmx / *rt1 * acmn - *b / *rt1 * *b;
     } else {
 
 /*        Includes case RT1 = RT2 = 0 */
 
-	*rt1 = rt * .5;
-	*rt2 = rt * -.5;
+        *rt1 = rt * .5;
+        *rt2 = rt * -.5;
     }
     return 0;
 
@@ -206,5 +206,5 @@ extern "C" {
 } /* dlae2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

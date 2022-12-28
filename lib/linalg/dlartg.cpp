@@ -1,13 +1,13 @@
 /* fortran/dlartg.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -115,8 +115,8 @@ f"> */
 /* > \ingroup OTHERauxiliary */
 
 /*  ===================================================================== */
-/* Subroutine */ int dlartg_(doublereal *f, doublereal *g, doublereal *cs, 
-	doublereal *sn, doublereal *r__)
+/* Subroutine */ int dlartg_(doublereal *f, doublereal *g, doublereal *cs,
+        doublereal *sn, doublereal *r__)
 {
     /* System generated locals */
     integer i__1;
@@ -171,81 +171,81 @@ f"> */
 /*        FIRST = .FALSE. */
 /*     END IF */
     if (*g == 0.) {
-	*cs = 1.;
-	*sn = 0.;
-	*r__ = *f;
+        *cs = 1.;
+        *sn = 0.;
+        *r__ = *f;
     } else if (*f == 0.) {
-	*cs = 0.;
-	*sn = 1.;
-	*r__ = *g;
+        *cs = 0.;
+        *sn = 1.;
+        *r__ = *g;
     } else {
-	f1 = *f;
-	g1 = *g;
+        f1 = *f;
+        g1 = *g;
 /* Computing MAX */
-	d__1 = abs(f1), d__2 = abs(g1);
-	scale = max(d__1,d__2);
-	if (scale >= safmx2) {
-	    count = 0;
+        d__1 = abs(f1), d__2 = abs(g1);
+        scale = max(d__1,d__2);
+        if (scale >= safmx2) {
+            count = 0;
 L10:
-	    ++count;
-	    f1 *= safmn2;
-	    g1 *= safmn2;
+            ++count;
+            f1 *= safmn2;
+            g1 *= safmn2;
 /* Computing MAX */
-	    d__1 = abs(f1), d__2 = abs(g1);
-	    scale = max(d__1,d__2);
-	    if (scale >= safmx2) {
-		goto L10;
-	    }
+            d__1 = abs(f1), d__2 = abs(g1);
+            scale = max(d__1,d__2);
+            if (scale >= safmx2) {
+                goto L10;
+            }
 /* Computing 2nd power */
-	    d__1 = f1;
+            d__1 = f1;
 /* Computing 2nd power */
-	    d__2 = g1;
-	    *r__ = sqrt(d__1 * d__1 + d__2 * d__2);
-	    *cs = f1 / *r__;
-	    *sn = g1 / *r__;
-	    i__1 = count;
-	    for (i__ = 1; i__ <= i__1; ++i__) {
-		*r__ *= safmx2;
+            d__2 = g1;
+            *r__ = sqrt(d__1 * d__1 + d__2 * d__2);
+            *cs = f1 / *r__;
+            *sn = g1 / *r__;
+            i__1 = count;
+            for (i__ = 1; i__ <= i__1; ++i__) {
+                *r__ *= safmx2;
 /* L20: */
-	    }
-	} else if (scale <= safmn2) {
-	    count = 0;
+            }
+        } else if (scale <= safmn2) {
+            count = 0;
 L30:
-	    ++count;
-	    f1 *= safmx2;
-	    g1 *= safmx2;
+            ++count;
+            f1 *= safmx2;
+            g1 *= safmx2;
 /* Computing MAX */
-	    d__1 = abs(f1), d__2 = abs(g1);
-	    scale = max(d__1,d__2);
-	    if (scale <= safmn2) {
-		goto L30;
-	    }
+            d__1 = abs(f1), d__2 = abs(g1);
+            scale = max(d__1,d__2);
+            if (scale <= safmn2) {
+                goto L30;
+            }
 /* Computing 2nd power */
-	    d__1 = f1;
+            d__1 = f1;
 /* Computing 2nd power */
-	    d__2 = g1;
-	    *r__ = sqrt(d__1 * d__1 + d__2 * d__2);
-	    *cs = f1 / *r__;
-	    *sn = g1 / *r__;
-	    i__1 = count;
-	    for (i__ = 1; i__ <= i__1; ++i__) {
-		*r__ *= safmn2;
+            d__2 = g1;
+            *r__ = sqrt(d__1 * d__1 + d__2 * d__2);
+            *cs = f1 / *r__;
+            *sn = g1 / *r__;
+            i__1 = count;
+            for (i__ = 1; i__ <= i__1; ++i__) {
+                *r__ *= safmn2;
 /* L40: */
-	    }
-	} else {
+            }
+        } else {
 /* Computing 2nd power */
-	    d__1 = f1;
+            d__1 = f1;
 /* Computing 2nd power */
-	    d__2 = g1;
-	    *r__ = sqrt(d__1 * d__1 + d__2 * d__2);
-	    *cs = f1 / *r__;
-	    *sn = g1 / *r__;
-	}
-	if (abs(*f) > abs(*g) && *cs < 0.) {
-	    *cs = -(*cs);
-	    *sn = -(*sn);
-	    *r__ = -(*r__);
-	}
+            d__2 = g1;
+            *r__ = sqrt(d__1 * d__1 + d__2 * d__2);
+            *cs = f1 / *r__;
+            *sn = g1 / *r__;
+        }
+        if (abs(*f) > abs(*g) && *cs < 0.) {
+            *cs = -(*cs);
+            *sn = -(*sn);
+            *r__ = -(*r__);
+        }
     }
     return 0;
 
@@ -254,5 +254,5 @@ L30:
 } /* dlartg_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

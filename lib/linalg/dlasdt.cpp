@@ -1,13 +1,13 @@
 /* fortran/dlasdt.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -122,7 +122,7 @@ f"> */
 /* > */
 /*  ===================================================================== */
 /* Subroutine */ int dlasdt_(integer *n, integer *lvl, integer *nd, integer *
-	inode, integer *ndiml, integer *ndimr, integer *msub)
+        inode, integer *ndiml, integer *ndimr, integer *msub)
 {
     /* System generated locals */
     integer i__1, i__2;
@@ -180,20 +180,20 @@ f"> */
 /*        Constructing the tree at (NLVL+1)-st level. The number of */
 /*        nodes created on this level is LLST * 2. */
 
-	i__2 = llst - 1;
-	for (i__ = 0; i__ <= i__2; ++i__) {
-	    il += 2;
-	    ir += 2;
-	    ncrnt = llst + i__;
-	    ndiml[il] = ndiml[ncrnt] / 2;
-	    ndimr[il] = ndiml[ncrnt] - ndiml[il] - 1;
-	    inode[il] = inode[ncrnt] - ndimr[il] - 1;
-	    ndiml[ir] = ndimr[ncrnt] / 2;
-	    ndimr[ir] = ndimr[ncrnt] - ndiml[ir] - 1;
-	    inode[ir] = inode[ncrnt] + ndiml[ir] + 1;
+        i__2 = llst - 1;
+        for (i__ = 0; i__ <= i__2; ++i__) {
+            il += 2;
+            ir += 2;
+            ncrnt = llst + i__;
+            ndiml[il] = ndiml[ncrnt] / 2;
+            ndimr[il] = ndiml[ncrnt] - ndiml[il] - 1;
+            inode[il] = inode[ncrnt] - ndimr[il] - 1;
+            ndiml[ir] = ndimr[ncrnt] / 2;
+            ndimr[ir] = ndimr[ncrnt] - ndiml[ir] - 1;
+            inode[ir] = inode[ncrnt] + ndiml[ir] + 1;
 /* L10: */
-	}
-	llst <<= 1;
+        }
+        llst <<= 1;
 /* L20: */
     }
     *nd = (llst << 1) - 1;
@@ -205,5 +205,5 @@ f"> */
 } /* dlasdt_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

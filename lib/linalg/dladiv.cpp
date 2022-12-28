@@ -1,13 +1,13 @@
 /* fortran/dladiv.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -107,8 +107,8 @@ f"> */
 /* > \ingroup doubleOTHERauxiliary */
 
 /*  ===================================================================== */
-/* Subroutine */ int dladiv_(doublereal *a, doublereal *b, doublereal *c__, 
-	doublereal *d__, doublereal *p, doublereal *q)
+/* Subroutine */ int dladiv_(doublereal *a, doublereal *b, doublereal *c__,
+        doublereal *d__, doublereal *p, doublereal *q)
 {
     /* System generated locals */
     doublereal d__1, d__2;
@@ -116,8 +116,8 @@ f"> */
     /* Local variables */
     doublereal s, aa, ab, bb, cc, cd, dd, be, un, ov, eps;
     extern doublereal dlamch_(char *, ftnlen);
-    extern /* Subroutine */ int dladiv1_(doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *);
+    extern /* Subroutine */ int dladiv1_(doublereal *, doublereal *,
+            doublereal *, doublereal *, doublereal *, doublereal *);
 
 
 /*  -- LAPACK auxiliary routine -- */
@@ -157,30 +157,30 @@ f"> */
     eps = dlamch_((char *)"Epsilon", (ftnlen)7);
     be = 2. / (eps * eps);
     if (ab >= ov * .5) {
-	aa *= .5;
-	bb *= .5;
-	s *= 2.;
+        aa *= .5;
+        bb *= .5;
+        s *= 2.;
     }
     if (cd >= ov * .5) {
-	cc *= .5;
-	dd *= .5;
-	s *= .5;
+        cc *= .5;
+        dd *= .5;
+        s *= .5;
     }
     if (ab <= un * 2. / eps) {
-	aa *= be;
-	bb *= be;
-	s /= be;
+        aa *= be;
+        bb *= be;
+        s /= be;
     }
     if (cd <= un * 2. / eps) {
-	cc *= be;
-	dd *= be;
-	s *= be;
+        cc *= be;
+        dd *= be;
+        s *= be;
     }
     if (abs(*d__) <= abs(*c__)) {
-	dladiv1_(&aa, &bb, &cc, &dd, p, q);
+        dladiv1_(&aa, &bb, &cc, &dd, p, q);
     } else {
-	dladiv1_(&bb, &aa, &dd, &cc, p, q);
-	*q = -(*q);
+        dladiv1_(&bb, &aa, &dd, &cc, p, q);
+        *q = -(*q);
     }
     *p *= s;
     *q *= s;
@@ -192,12 +192,12 @@ f"> */
 } /* dladiv_ */
 
 /* > \ingroup doubleOTHERauxiliary */
-/* Subroutine */ int dladiv1_(doublereal *a, doublereal *b, doublereal *c__, 
-	doublereal *d__, doublereal *p, doublereal *q)
+/* Subroutine */ int dladiv1_(doublereal *a, doublereal *b, doublereal *c__,
+        doublereal *d__, doublereal *p, doublereal *q)
 {
     doublereal r__, t;
-    extern doublereal dladiv2_(doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *);
+    extern doublereal dladiv2_(doublereal *, doublereal *, doublereal *,
+            doublereal *, doublereal *, doublereal *);
 
 
 /*  -- LAPACK auxiliary routine -- */
@@ -230,8 +230,8 @@ f"> */
 } /* dladiv1_ */
 
 /* > \ingroup doubleOTHERauxiliary */
-doublereal dladiv2_(doublereal *a, doublereal *b, doublereal *c__, doublereal 
-	*d__, doublereal *r__, doublereal *t)
+doublereal dladiv2_(doublereal *a, doublereal *b, doublereal *c__, doublereal
+        *d__, doublereal *r__, doublereal *t)
 {
     /* System generated locals */
     doublereal ret_val;
@@ -256,14 +256,14 @@ doublereal dladiv2_(doublereal *a, doublereal *b, doublereal *c__, doublereal
 /*     .. Executable Statements .. */
 
     if (*r__ != 0.) {
-	br = *b * *r__;
-	if (br != 0.) {
-	    ret_val = (*a + br) * *t;
-	} else {
-	    ret_val = *a * *t + *b * *t * *r__;
-	}
+        br = *b * *r__;
+        if (br != 0.) {
+            ret_val = (*a + br) * *t;
+        } else {
+            ret_val = *a * *t + *b * *t * *r__;
+        }
     } else {
-	ret_val = (*a + *d__ * (*b / *c__)) * *t;
+        ret_val = (*a + *d__ * (*b / *c__)) * *t;
     }
 
     return ret_val;
@@ -273,5 +273,5 @@ doublereal dladiv2_(doublereal *a, doublereal *b, doublereal *c__, doublereal
 } /* dladiv2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

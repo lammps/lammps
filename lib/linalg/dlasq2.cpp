@@ -1,13 +1,13 @@
 /* fortran/dlasq2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -168,20 +168,20 @@ f"> */
     integer iinfo;
     doublereal tempe, tempq;
     integer ttype;
-    extern /* Subroutine */ int dlasq3_(integer *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
-	     integer *, integer *, integer *, logical *, integer *, 
-	    doublereal *, doublereal *, doublereal *, doublereal *, 
-	    doublereal *, doublereal *, doublereal *);
+    extern /* Subroutine */ int dlasq3_(integer *, integer *, doublereal *,
+            integer *, doublereal *, doublereal *, doublereal *, doublereal *,
+             integer *, integer *, integer *, logical *, integer *,
+            doublereal *, doublereal *, doublereal *, doublereal *,
+            doublereal *, doublereal *, doublereal *);
     extern doublereal dlamch_(char *, ftnlen);
     doublereal deemin;
     integer iwhila, iwhilb;
     doublereal oldemn, safmin;
     extern /* Subroutine */ int xerbla_(char *, integer *, ftnlen);
-    extern integer ilaenv_(integer *, char *, char *, integer *, integer *, 
-	    integer *, integer *, ftnlen, ftnlen);
-    extern /* Subroutine */ int dlasrt_(char *, integer *, doublereal *, 
-	    integer *, ftnlen);
+    extern integer ilaenv_(integer *, char *, char *, integer *, integer *,
+            integer *, integer *, ftnlen, ftnlen);
+    extern /* Subroutine */ int dlasrt_(char *, integer *, doublereal *,
+            integer *, ftnlen);
 
 
 /*  -- LAPACK computational routine -- */
@@ -223,57 +223,57 @@ f"> */
     tol2 = d__1 * d__1;
 
     if (*n < 0) {
-	*info = -1;
-	xerbla_((char *)"DLASQ2", &c__1, (ftnlen)6);
-	return 0;
+        *info = -1;
+        xerbla_((char *)"DLASQ2", &c__1, (ftnlen)6);
+        return 0;
     } else if (*n == 0) {
-	return 0;
+        return 0;
     } else if (*n == 1) {
 
 /*        1-by-1 case. */
 
-	if (z__[1] < 0.) {
-	    *info = -201;
-	    xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
-	}
-	return 0;
+        if (z__[1] < 0.) {
+            *info = -201;
+            xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
+        }
+        return 0;
     } else if (*n == 2) {
 
 /*        2-by-2 case. */
 
-	if (z__[1] < 0.) {
-	    *info = -201;
-	    xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
-	    return 0;
-	} else if (z__[2] < 0.) {
-	    *info = -202;
-	    xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
-	    return 0;
-	} else if (z__[3] < 0.) {
-	    *info = -203;
-	    xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
-	    return 0;
-	} else if (z__[3] > z__[1]) {
-	    d__ = z__[3];
-	    z__[3] = z__[1];
-	    z__[1] = d__;
-	}
-	z__[5] = z__[1] + z__[2] + z__[3];
-	if (z__[2] > z__[3] * tol2) {
-	    t = (z__[1] - z__[3] + z__[2]) * .5;
-	    s = z__[3] * (z__[2] / t);
-	    if (s <= t) {
-		s = z__[3] * (z__[2] / (t * (sqrt(s / t + 1.) + 1.)));
-	    } else {
-		s = z__[3] * (z__[2] / (t + sqrt(t) * sqrt(t + s)));
-	    }
-	    t = z__[1] + (s + z__[2]);
-	    z__[3] *= z__[1] / t;
-	    z__[1] = t;
-	}
-	z__[2] = z__[3];
-	z__[6] = z__[2] + z__[1];
-	return 0;
+        if (z__[1] < 0.) {
+            *info = -201;
+            xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
+            return 0;
+        } else if (z__[2] < 0.) {
+            *info = -202;
+            xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
+            return 0;
+        } else if (z__[3] < 0.) {
+            *info = -203;
+            xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
+            return 0;
+        } else if (z__[3] > z__[1]) {
+            d__ = z__[3];
+            z__[3] = z__[1];
+            z__[1] = d__;
+        }
+        z__[5] = z__[1] + z__[2] + z__[3];
+        if (z__[2] > z__[3] * tol2) {
+            t = (z__[1] - z__[3] + z__[2]) * .5;
+            s = z__[3] * (z__[2] / t);
+            if (s <= t) {
+                s = z__[3] * (z__[2] / (t * (sqrt(s / t + 1.) + 1.)));
+            } else {
+                s = z__[3] * (z__[2] / (t + sqrt(t) * sqrt(t + s)));
+            }
+            t = z__[1] + (s + z__[2]);
+            z__[3] *= z__[1] / t;
+            z__[1] = t;
+        }
+        z__[2] = z__[3];
+        z__[6] = z__[2] + z__[1];
+        return 0;
     }
 
 /*     Check for negative data and compute sums of q's and e's. */
@@ -287,32 +287,32 @@ f"> */
 
     i__1 = *n - 1 << 1;
     for (k = 1; k <= i__1; k += 2) {
-	if (z__[k] < 0.) {
-	    *info = -(k + 200);
-	    xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
-	    return 0;
-	} else if (z__[k + 1] < 0.) {
-	    *info = -(k + 201);
-	    xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
-	    return 0;
-	}
-	d__ += z__[k];
-	e += z__[k + 1];
+        if (z__[k] < 0.) {
+            *info = -(k + 200);
+            xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
+            return 0;
+        } else if (z__[k + 1] < 0.) {
+            *info = -(k + 201);
+            xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
+            return 0;
+        }
+        d__ += z__[k];
+        e += z__[k + 1];
 /* Computing MAX */
-	d__1 = qmax, d__2 = z__[k];
-	qmax = max(d__1,d__2);
+        d__1 = qmax, d__2 = z__[k];
+        qmax = max(d__1,d__2);
 /* Computing MIN */
-	d__1 = emin, d__2 = z__[k + 1];
-	emin = min(d__1,d__2);
+        d__1 = emin, d__2 = z__[k + 1];
+        emin = min(d__1,d__2);
 /* Computing MAX */
-	d__1 = max(qmax,zmax), d__2 = z__[k + 1];
-	zmax = max(d__1,d__2);
+        d__1 = max(qmax,zmax), d__2 = z__[k + 1];
+        zmax = max(d__1,d__2);
 /* L10: */
     }
     if (z__[(*n << 1) - 1] < 0.) {
-	*info = -((*n << 1) + 199);
-	xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
-	return 0;
+        *info = -((*n << 1) + 199);
+        xerbla_((char *)"DLASQ2", &c__2, (ftnlen)6);
+        return 0;
     }
     d__ += z__[(*n << 1) - 1];
 /* Computing MAX */
@@ -323,14 +323,14 @@ f"> */
 /*     Check for diagonality. */
 
     if (e == 0.) {
-	i__1 = *n;
-	for (k = 2; k <= i__1; ++k) {
-	    z__[k] = z__[(k << 1) - 1];
+        i__1 = *n;
+        for (k = 2; k <= i__1; ++k) {
+            z__[k] = z__[(k << 1) - 1];
 /* L20: */
-	}
-	dlasrt_((char *)"D", n, &z__[1], &iinfo, (ftnlen)1);
-	z__[(*n << 1) - 1] = d__;
-	return 0;
+        }
+        dlasrt_((char *)"D", n, &z__[1], &iinfo, (ftnlen)1);
+        z__[(*n << 1) - 1] = d__;
+        return 0;
     }
 
     trace = d__ + e;
@@ -338,22 +338,22 @@ f"> */
 /*     Check for zero data. */
 
     if (trace == 0.) {
-	z__[(*n << 1) - 1] = 0.;
-	return 0;
+        z__[(*n << 1) - 1] = 0.;
+        return 0;
     }
 
 /*     Check whether the machine is IEEE conformable. */
 
     ieee = ilaenv_(&c__10, (char *)"DLASQ2", (char *)"N", &c__1, &c__2, &c__3, &c__4, (ftnlen)
-	    6, (ftnlen)1) == 1;
+            6, (ftnlen)1) == 1;
 
 /*     Rearrange data for locality: Z=(q1,qq1,e1,ee1,q2,qq2,e2,ee2,...). */
 
     for (k = *n << 1; k >= 2; k += -2) {
-	z__[k * 2] = 0.;
-	z__[(k << 1) - 1] = z__[k];
-	z__[(k << 1) - 2] = 0.;
-	z__[(k << 1) - 3] = z__[k - 1];
+        z__[k * 2] = 0.;
+        z__[(k << 1) - 1] = z__[k];
+        z__[(k << 1) - 2] = 0.;
+        z__[(k << 1) - 3] = z__[k - 1];
 /* L30: */
     }
 
@@ -363,17 +363,17 @@ f"> */
 /*     Reverse the qd-array, if warranted. */
 
     if (z__[(i0 << 2) - 3] * 1.5 < z__[(n0 << 2) - 3]) {
-	ipn4 = i0 + n0 << 2;
-	i__1 = i0 + n0 - 1 << 1;
-	for (i4 = i0 << 2; i4 <= i__1; i4 += 4) {
-	    temp = z__[i4 - 3];
-	    z__[i4 - 3] = z__[ipn4 - i4 - 3];
-	    z__[ipn4 - i4 - 3] = temp;
-	    temp = z__[i4 - 1];
-	    z__[i4 - 1] = z__[ipn4 - i4 - 5];
-	    z__[ipn4 - i4 - 5] = temp;
+        ipn4 = i0 + n0 << 2;
+        i__1 = i0 + n0 - 1 << 1;
+        for (i4 = i0 << 2; i4 <= i__1; i4 += 4) {
+            temp = z__[i4 - 3];
+            z__[i4 - 3] = z__[ipn4 - i4 - 3];
+            z__[ipn4 - i4 - 3] = temp;
+            temp = z__[i4 - 1];
+            z__[i4 - 1] = z__[ipn4 - i4 - 5];
+            z__[ipn4 - i4 - 5] = temp;
 /* L40: */
-	}
+        }
     }
 
 /*     Initial split checking via dqd and Li's test. */
@@ -382,61 +382,61 @@ f"> */
 
     for (k = 1; k <= 2; ++k) {
 
-	d__ = z__[(n0 << 2) + pp - 3];
-	i__1 = (i0 << 2) + pp;
-	for (i4 = (n0 - 1 << 2) + pp; i4 >= i__1; i4 += -4) {
-	    if (z__[i4 - 1] <= tol2 * d__) {
-		z__[i4 - 1] = -0.;
-		d__ = z__[i4 - 3];
-	    } else {
-		d__ = z__[i4 - 3] * (d__ / (d__ + z__[i4 - 1]));
-	    }
+        d__ = z__[(n0 << 2) + pp - 3];
+        i__1 = (i0 << 2) + pp;
+        for (i4 = (n0 - 1 << 2) + pp; i4 >= i__1; i4 += -4) {
+            if (z__[i4 - 1] <= tol2 * d__) {
+                z__[i4 - 1] = -0.;
+                d__ = z__[i4 - 3];
+            } else {
+                d__ = z__[i4 - 3] * (d__ / (d__ + z__[i4 - 1]));
+            }
 /* L50: */
-	}
+        }
 
 /*        dqd maps Z to ZZ plus Li's test. */
 
-	emin = z__[(i0 << 2) + pp + 1];
-	d__ = z__[(i0 << 2) + pp - 3];
-	i__1 = (n0 - 1 << 2) + pp;
-	for (i4 = (i0 << 2) + pp; i4 <= i__1; i4 += 4) {
-	    z__[i4 - (pp << 1) - 2] = d__ + z__[i4 - 1];
-	    if (z__[i4 - 1] <= tol2 * d__) {
-		z__[i4 - 1] = -0.;
-		z__[i4 - (pp << 1) - 2] = d__;
-		z__[i4 - (pp << 1)] = 0.;
-		d__ = z__[i4 + 1];
-	    } else if (safmin * z__[i4 + 1] < z__[i4 - (pp << 1) - 2] && 
-		    safmin * z__[i4 - (pp << 1) - 2] < z__[i4 + 1]) {
-		temp = z__[i4 + 1] / z__[i4 - (pp << 1) - 2];
-		z__[i4 - (pp << 1)] = z__[i4 - 1] * temp;
-		d__ *= temp;
-	    } else {
-		z__[i4 - (pp << 1)] = z__[i4 + 1] * (z__[i4 - 1] / z__[i4 - (
-			pp << 1) - 2]);
-		d__ = z__[i4 + 1] * (d__ / z__[i4 - (pp << 1) - 2]);
-	    }
+        emin = z__[(i0 << 2) + pp + 1];
+        d__ = z__[(i0 << 2) + pp - 3];
+        i__1 = (n0 - 1 << 2) + pp;
+        for (i4 = (i0 << 2) + pp; i4 <= i__1; i4 += 4) {
+            z__[i4 - (pp << 1) - 2] = d__ + z__[i4 - 1];
+            if (z__[i4 - 1] <= tol2 * d__) {
+                z__[i4 - 1] = -0.;
+                z__[i4 - (pp << 1) - 2] = d__;
+                z__[i4 - (pp << 1)] = 0.;
+                d__ = z__[i4 + 1];
+            } else if (safmin * z__[i4 + 1] < z__[i4 - (pp << 1) - 2] &&
+                    safmin * z__[i4 - (pp << 1) - 2] < z__[i4 + 1]) {
+                temp = z__[i4 + 1] / z__[i4 - (pp << 1) - 2];
+                z__[i4 - (pp << 1)] = z__[i4 - 1] * temp;
+                d__ *= temp;
+            } else {
+                z__[i4 - (pp << 1)] = z__[i4 + 1] * (z__[i4 - 1] / z__[i4 - (
+                        pp << 1) - 2]);
+                d__ = z__[i4 + 1] * (d__ / z__[i4 - (pp << 1) - 2]);
+            }
 /* Computing MIN */
-	    d__1 = emin, d__2 = z__[i4 - (pp << 1)];
-	    emin = min(d__1,d__2);
+            d__1 = emin, d__2 = z__[i4 - (pp << 1)];
+            emin = min(d__1,d__2);
 /* L60: */
-	}
-	z__[(n0 << 2) - pp - 2] = d__;
+        }
+        z__[(n0 << 2) - pp - 2] = d__;
 
 /*        Now find qmax. */
 
-	qmax = z__[(i0 << 2) - pp - 2];
-	i__1 = (n0 << 2) - pp - 2;
-	for (i4 = (i0 << 2) - pp + 2; i4 <= i__1; i4 += 4) {
+        qmax = z__[(i0 << 2) - pp - 2];
+        i__1 = (n0 << 2) - pp - 2;
+        for (i4 = (i0 << 2) - pp + 2; i4 <= i__1; i4 += 4) {
 /* Computing MAX */
-	    d__1 = qmax, d__2 = z__[i4];
-	    qmax = max(d__1,d__2);
+            d__1 = qmax, d__2 = z__[i4];
+            qmax = max(d__1,d__2);
 /* L70: */
-	}
+        }
 
 /*        Prepare for the next iteration on K. */
 
-	pp = 1 - pp;
+        pp = 1 - pp;
 /* L80: */
     }
 
@@ -457,104 +457,104 @@ f"> */
 
     i__1 = *n + 1;
     for (iwhila = 1; iwhila <= i__1; ++iwhila) {
-	if (n0 < 1) {
-	    goto L170;
-	}
+        if (n0 < 1) {
+            goto L170;
+        }
 
 /*        While array unfinished do */
 
 /*        E(N0) holds the value of SIGMA when submatrix in I0:N0 */
 /*        splits from the rest of the array, but is negated. */
 
-	desig = 0.;
-	if (n0 == *n) {
-	    sigma = 0.;
-	} else {
-	    sigma = -z__[(n0 << 2) - 1];
-	}
-	if (sigma < 0.) {
-	    *info = 1;
-	    return 0;
-	}
+        desig = 0.;
+        if (n0 == *n) {
+            sigma = 0.;
+        } else {
+            sigma = -z__[(n0 << 2) - 1];
+        }
+        if (sigma < 0.) {
+            *info = 1;
+            return 0;
+        }
 
 /*        Find last unreduced submatrix's top index I0, find QMAX and */
 /*        EMIN. Find Gershgorin-type bound if Q's much greater than E's. */
 
-	emax = 0.;
-	if (n0 > i0) {
-	    emin = (d__1 = z__[(n0 << 2) - 5], abs(d__1));
-	} else {
-	    emin = 0.;
-	}
-	qmin = z__[(n0 << 2) - 3];
-	qmax = qmin;
-	for (i4 = n0 << 2; i4 >= 8; i4 += -4) {
-	    if (z__[i4 - 5] <= 0.) {
-		goto L100;
-	    }
-	    if (qmin >= emax * 4.) {
+        emax = 0.;
+        if (n0 > i0) {
+            emin = (d__1 = z__[(n0 << 2) - 5], abs(d__1));
+        } else {
+            emin = 0.;
+        }
+        qmin = z__[(n0 << 2) - 3];
+        qmax = qmin;
+        for (i4 = n0 << 2; i4 >= 8; i4 += -4) {
+            if (z__[i4 - 5] <= 0.) {
+                goto L100;
+            }
+            if (qmin >= emax * 4.) {
 /* Computing MIN */
-		d__1 = qmin, d__2 = z__[i4 - 3];
-		qmin = min(d__1,d__2);
+                d__1 = qmin, d__2 = z__[i4 - 3];
+                qmin = min(d__1,d__2);
 /* Computing MAX */
-		d__1 = emax, d__2 = z__[i4 - 5];
-		emax = max(d__1,d__2);
-	    }
+                d__1 = emax, d__2 = z__[i4 - 5];
+                emax = max(d__1,d__2);
+            }
 /* Computing MAX */
-	    d__1 = qmax, d__2 = z__[i4 - 7] + z__[i4 - 5];
-	    qmax = max(d__1,d__2);
+            d__1 = qmax, d__2 = z__[i4 - 7] + z__[i4 - 5];
+            qmax = max(d__1,d__2);
 /* Computing MIN */
-	    d__1 = emin, d__2 = z__[i4 - 5];
-	    emin = min(d__1,d__2);
+            d__1 = emin, d__2 = z__[i4 - 5];
+            emin = min(d__1,d__2);
 /* L90: */
-	}
-	i4 = 4;
+        }
+        i4 = 4;
 
 L100:
-	i0 = i4 / 4;
-	pp = 0;
+        i0 = i4 / 4;
+        pp = 0;
 
-	if (n0 - i0 > 1) {
-	    dee = z__[(i0 << 2) - 3];
-	    deemin = dee;
-	    kmin = i0;
-	    i__2 = (n0 << 2) - 3;
-	    for (i4 = (i0 << 2) + 1; i4 <= i__2; i4 += 4) {
-		dee = z__[i4] * (dee / (dee + z__[i4 - 2]));
-		if (dee <= deemin) {
-		    deemin = dee;
-		    kmin = (i4 + 3) / 4;
-		}
+        if (n0 - i0 > 1) {
+            dee = z__[(i0 << 2) - 3];
+            deemin = dee;
+            kmin = i0;
+            i__2 = (n0 << 2) - 3;
+            for (i4 = (i0 << 2) + 1; i4 <= i__2; i4 += 4) {
+                dee = z__[i4] * (dee / (dee + z__[i4 - 2]));
+                if (dee <= deemin) {
+                    deemin = dee;
+                    kmin = (i4 + 3) / 4;
+                }
 /* L110: */
-	    }
-	    if (kmin - i0 << 1 < n0 - kmin && deemin <= z__[(n0 << 2) - 3] * 
-		    .5) {
-		ipn4 = i0 + n0 << 2;
-		pp = 2;
-		i__2 = i0 + n0 - 1 << 1;
-		for (i4 = i0 << 2; i4 <= i__2; i4 += 4) {
-		    temp = z__[i4 - 3];
-		    z__[i4 - 3] = z__[ipn4 - i4 - 3];
-		    z__[ipn4 - i4 - 3] = temp;
-		    temp = z__[i4 - 2];
-		    z__[i4 - 2] = z__[ipn4 - i4 - 2];
-		    z__[ipn4 - i4 - 2] = temp;
-		    temp = z__[i4 - 1];
-		    z__[i4 - 1] = z__[ipn4 - i4 - 5];
-		    z__[ipn4 - i4 - 5] = temp;
-		    temp = z__[i4];
-		    z__[i4] = z__[ipn4 - i4 - 4];
-		    z__[ipn4 - i4 - 4] = temp;
+            }
+            if (kmin - i0 << 1 < n0 - kmin && deemin <= z__[(n0 << 2) - 3] *
+                    .5) {
+                ipn4 = i0 + n0 << 2;
+                pp = 2;
+                i__2 = i0 + n0 - 1 << 1;
+                for (i4 = i0 << 2; i4 <= i__2; i4 += 4) {
+                    temp = z__[i4 - 3];
+                    z__[i4 - 3] = z__[ipn4 - i4 - 3];
+                    z__[ipn4 - i4 - 3] = temp;
+                    temp = z__[i4 - 2];
+                    z__[i4 - 2] = z__[ipn4 - i4 - 2];
+                    z__[ipn4 - i4 - 2] = temp;
+                    temp = z__[i4 - 1];
+                    z__[i4 - 1] = z__[ipn4 - i4 - 5];
+                    z__[ipn4 - i4 - 5] = temp;
+                    temp = z__[i4];
+                    z__[i4] = z__[ipn4 - i4 - 4];
+                    z__[ipn4 - i4 - 4] = temp;
 /* L120: */
-		}
-	    }
-	}
+                }
+            }
+        }
 
 /*        Put -(initial shift) into DMIN. */
 
 /* Computing MAX */
-	d__1 = 0., d__2 = qmin - sqrt(qmin) * 2. * sqrt(emax);
-	dmin__ = -max(d__1,d__2);
+        d__1 = 0., d__2 = qmin - sqrt(qmin) * 2. * sqrt(emax);
+        dmin__ = -max(d__1,d__2);
 
 /*        Now I0:N0 is unreduced. */
 /*        PP = 0 for ping, PP = 1 for pong. */
@@ -562,113 +562,113 @@ L100:
 /*               and that the tests for deflation upon entry in DLASQ3 */
 /*               should not be performed. */
 
-	nbig = (n0 - i0 + 1) * 100;
-	i__2 = nbig;
-	for (iwhilb = 1; iwhilb <= i__2; ++iwhilb) {
-	    if (i0 > n0) {
-		goto L150;
-	    }
+        nbig = (n0 - i0 + 1) * 100;
+        i__2 = nbig;
+        for (iwhilb = 1; iwhilb <= i__2; ++iwhilb) {
+            if (i0 > n0) {
+                goto L150;
+            }
 
 /*           While submatrix unfinished take a good dqds step. */
 
-	    dlasq3_(&i0, &n0, &z__[1], &pp, &dmin__, &sigma, &desig, &qmax, &
-		    nfail, &iter, &ndiv, &ieee, &ttype, &dmin1, &dmin2, &dn, &
-		    dn1, &dn2, &g, &tau);
+            dlasq3_(&i0, &n0, &z__[1], &pp, &dmin__, &sigma, &desig, &qmax, &
+                    nfail, &iter, &ndiv, &ieee, &ttype, &dmin1, &dmin2, &dn, &
+                    dn1, &dn2, &g, &tau);
 
-	    pp = 1 - pp;
+            pp = 1 - pp;
 
 /*           When EMIN is very small check for splits. */
 
-	    if (pp == 0 && n0 - i0 >= 3) {
-		if (z__[n0 * 4] <= tol2 * qmax || z__[(n0 << 2) - 1] <= tol2 *
-			 sigma) {
-		    splt = i0 - 1;
-		    qmax = z__[(i0 << 2) - 3];
-		    emin = z__[(i0 << 2) - 1];
-		    oldemn = z__[i0 * 4];
-		    i__3 = n0 - 3 << 2;
-		    for (i4 = i0 << 2; i4 <= i__3; i4 += 4) {
-			if (z__[i4] <= tol2 * z__[i4 - 3] || z__[i4 - 1] <= 
-				tol2 * sigma) {
-			    z__[i4 - 1] = -sigma;
-			    splt = i4 / 4;
-			    qmax = 0.;
-			    emin = z__[i4 + 3];
-			    oldemn = z__[i4 + 4];
-			} else {
+            if (pp == 0 && n0 - i0 >= 3) {
+                if (z__[n0 * 4] <= tol2 * qmax || z__[(n0 << 2) - 1] <= tol2 *
+                         sigma) {
+                    splt = i0 - 1;
+                    qmax = z__[(i0 << 2) - 3];
+                    emin = z__[(i0 << 2) - 1];
+                    oldemn = z__[i0 * 4];
+                    i__3 = n0 - 3 << 2;
+                    for (i4 = i0 << 2; i4 <= i__3; i4 += 4) {
+                        if (z__[i4] <= tol2 * z__[i4 - 3] || z__[i4 - 1] <=
+                                tol2 * sigma) {
+                            z__[i4 - 1] = -sigma;
+                            splt = i4 / 4;
+                            qmax = 0.;
+                            emin = z__[i4 + 3];
+                            oldemn = z__[i4 + 4];
+                        } else {
 /* Computing MAX */
-			    d__1 = qmax, d__2 = z__[i4 + 1];
-			    qmax = max(d__1,d__2);
+                            d__1 = qmax, d__2 = z__[i4 + 1];
+                            qmax = max(d__1,d__2);
 /* Computing MIN */
-			    d__1 = emin, d__2 = z__[i4 - 1];
-			    emin = min(d__1,d__2);
+                            d__1 = emin, d__2 = z__[i4 - 1];
+                            emin = min(d__1,d__2);
 /* Computing MIN */
-			    d__1 = oldemn, d__2 = z__[i4];
-			    oldemn = min(d__1,d__2);
-			}
+                            d__1 = oldemn, d__2 = z__[i4];
+                            oldemn = min(d__1,d__2);
+                        }
 /* L130: */
-		    }
-		    z__[(n0 << 2) - 1] = emin;
-		    z__[n0 * 4] = oldemn;
-		    i0 = splt + 1;
-		}
-	    }
+                    }
+                    z__[(n0 << 2) - 1] = emin;
+                    z__[n0 * 4] = oldemn;
+                    i0 = splt + 1;
+                }
+            }
 
 /* L140: */
-	}
+        }
 
-	*info = 2;
+        *info = 2;
 
 /*        Maximum number of iterations exceeded, restore the shift */
 /*        SIGMA and place the new d's and e's in a qd array. */
 /*        This might need to be done for several blocks */
 
-	i1 = i0;
-	n1 = n0;
+        i1 = i0;
+        n1 = n0;
 L145:
-	tempq = z__[(i0 << 2) - 3];
-	z__[(i0 << 2) - 3] += sigma;
-	i__2 = n0;
-	for (k = i0 + 1; k <= i__2; ++k) {
-	    tempe = z__[(k << 2) - 5];
-	    z__[(k << 2) - 5] *= tempq / z__[(k << 2) - 7];
-	    tempq = z__[(k << 2) - 3];
-	    z__[(k << 2) - 3] = z__[(k << 2) - 3] + sigma + tempe - z__[(k << 
-		    2) - 5];
-	}
+        tempq = z__[(i0 << 2) - 3];
+        z__[(i0 << 2) - 3] += sigma;
+        i__2 = n0;
+        for (k = i0 + 1; k <= i__2; ++k) {
+            tempe = z__[(k << 2) - 5];
+            z__[(k << 2) - 5] *= tempq / z__[(k << 2) - 7];
+            tempq = z__[(k << 2) - 3];
+            z__[(k << 2) - 3] = z__[(k << 2) - 3] + sigma + tempe - z__[(k <<
+                    2) - 5];
+        }
 
 /*        Prepare to do this on the previous block if there is one */
 
-	if (i1 > 1) {
-	    n1 = i1 - 1;
-	    while(i1 >= 2 && z__[(i1 << 2) - 5] >= 0.) {
-		--i1;
-	    }
-	    sigma = -z__[(n1 << 2) - 1];
-	    goto L145;
-	}
-	i__2 = *n;
-	for (k = 1; k <= i__2; ++k) {
-	    z__[(k << 1) - 1] = z__[(k << 2) - 3];
+        if (i1 > 1) {
+            n1 = i1 - 1;
+            while(i1 >= 2 && z__[(i1 << 2) - 5] >= 0.) {
+                --i1;
+            }
+            sigma = -z__[(n1 << 2) - 1];
+            goto L145;
+        }
+        i__2 = *n;
+        for (k = 1; k <= i__2; ++k) {
+            z__[(k << 1) - 1] = z__[(k << 2) - 3];
 
 /*        Only the block 1..N0 is unfinished.  The rest of the e's */
 /*        must be essentially zero, although sometimes other data */
 /*        has been stored in them. */
 
-	    if (k < n0) {
-		z__[k * 2] = z__[(k << 2) - 1];
-	    } else {
-		z__[k * 2] = 0.;
-	    }
-	}
-	return 0;
+            if (k < n0) {
+                z__[k * 2] = z__[(k << 2) - 1];
+            } else {
+                z__[k * 2] = 0.;
+            }
+        }
+        return 0;
 
 /*        end IWHILB */
 
 L150:
 
 /* L160: */
-	;
+        ;
     }
 
     *info = 3;
@@ -682,7 +682,7 @@ L170:
 
     i__1 = *n;
     for (k = 2; k <= i__1; ++k) {
-	z__[k] = z__[(k << 2) - 3];
+        z__[k] = z__[(k << 2) - 3];
 /* L180: */
     }
 
@@ -692,7 +692,7 @@ L170:
 
     e = 0.;
     for (k = *n; k >= 1; --k) {
-	e += z__[k];
+        e += z__[k];
 /* L190: */
     }
 
@@ -712,5 +712,5 @@ L170:
 } /* dlasq2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

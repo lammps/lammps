@@ -1,13 +1,13 @@
 /* fortran/dlaed7.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -282,12 +282,12 @@ f"> */
 /* > at Berkeley, USA */
 
 /*  ===================================================================== */
-/* Subroutine */ int dlaed7_(integer *icompq, integer *n, integer *qsiz, 
-	integer *tlvls, integer *curlvl, integer *curpbm, doublereal *d__, 
-	doublereal *q, integer *ldq, integer *indxq, doublereal *rho, integer 
-	*cutpnt, doublereal *qstore, integer *qptr, integer *prmptr, integer *
-	perm, integer *givptr, integer *givcol, doublereal *givnum, 
-	doublereal *work, integer *iwork, integer *info)
+/* Subroutine */ int dlaed7_(integer *icompq, integer *n, integer *qsiz,
+        integer *tlvls, integer *curlvl, integer *curpbm, doublereal *d__,
+        doublereal *q, integer *ldq, integer *indxq, doublereal *rho, integer
+        *cutpnt, doublereal *qstore, integer *qptr, integer *prmptr, integer *
+        perm, integer *givptr, integer *givcol, doublereal *givnum,
+        doublereal *work, integer *iwork, integer *info)
 {
     /* System generated locals */
     integer q_dim1, q_offset, i__1, i__2;
@@ -297,25 +297,25 @@ f"> */
 
     /* Local variables */
     integer i__, k, n1, n2, is, iw, iz, iq2, ptr, ldq2, indx, curr;
-    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *, 
-	    integer *, doublereal *, doublereal *, integer *, doublereal *, 
-	    integer *, doublereal *, doublereal *, integer *, ftnlen, ftnlen);
+    extern /* Subroutine */ int dgemm_(char *, char *, integer *, integer *,
+            integer *, doublereal *, doublereal *, integer *, doublereal *,
+            integer *, doublereal *, doublereal *, integer *, ftnlen, ftnlen);
     integer indxc, indxp;
-    extern /* Subroutine */ int dlaed8_(integer *, integer *, integer *, 
-	    integer *, doublereal *, doublereal *, integer *, integer *, 
-	    doublereal *, integer *, doublereal *, doublereal *, doublereal *,
-	     integer *, doublereal *, integer *, integer *, integer *, 
-	    doublereal *, integer *, integer *, integer *), dlaed9_(integer *,
-	     integer *, integer *, integer *, doublereal *, doublereal *, 
-	    integer *, doublereal *, doublereal *, doublereal *, doublereal *,
-	     integer *, integer *), dlaeda_(integer *, integer *, integer *, 
-	    integer *, integer *, integer *, integer *, integer *, doublereal 
-	    *, doublereal *, integer *, doublereal *, doublereal *, integer *)
-	    ;
+    extern /* Subroutine */ int dlaed8_(integer *, integer *, integer *,
+            integer *, doublereal *, doublereal *, integer *, integer *,
+            doublereal *, integer *, doublereal *, doublereal *, doublereal *,
+             integer *, doublereal *, integer *, integer *, integer *,
+            doublereal *, integer *, integer *, integer *), dlaed9_(integer *,
+             integer *, integer *, integer *, doublereal *, doublereal *,
+            integer *, doublereal *, doublereal *, doublereal *, doublereal *,
+             integer *, integer *), dlaeda_(integer *, integer *, integer *,
+            integer *, integer *, integer *, integer *, integer *, doublereal
+            *, doublereal *, integer *, doublereal *, doublereal *, integer *)
+            ;
     integer idlmda;
-    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *, 
-	    integer *, integer *, integer *), xerbla_(char *, integer *, 
-	    ftnlen);
+    extern /* Subroutine */ int dlamrg_(integer *, integer *, doublereal *,
+            integer *, integer *, integer *), xerbla_(char *, integer *,
+            ftnlen);
     integer coltyp;
 
 
@@ -362,26 +362,26 @@ f"> */
     *info = 0;
 
     if (*icompq < 0 || *icompq > 1) {
-	*info = -1;
+        *info = -1;
     } else if (*n < 0) {
-	*info = -2;
+        *info = -2;
     } else if (*icompq == 1 && *qsiz < *n) {
-	*info = -3;
+        *info = -3;
     } else if (*ldq < max(1,*n)) {
-	*info = -9;
+        *info = -9;
     } else if (min(1,*n) > *cutpnt || *n < *cutpnt) {
-	*info = -12;
+        *info = -12;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DLAED7", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DLAED7", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0) {
-	return 0;
+        return 0;
     }
 
 /*     The following values are for bookkeeping purposes only.  They are */
@@ -389,9 +389,9 @@ f"> */
 /*     used by a particular array in DLAED8 and DLAED9. */
 
     if (*icompq == 1) {
-	ldq2 = *qsiz;
+        ldq2 = *qsiz;
     } else {
-	ldq2 = *n;
+        ldq2 = *n;
     }
 
     iz = 1;
@@ -411,64 +411,64 @@ f"> */
     ptr = pow_ii(&c__2, tlvls) + 1;
     i__1 = *curlvl - 1;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	i__2 = *tlvls - i__;
-	ptr += pow_ii(&c__2, &i__2);
+        i__2 = *tlvls - i__;
+        ptr += pow_ii(&c__2, &i__2);
 /* L10: */
     }
     curr = ptr + *curpbm;
     dlaeda_(n, tlvls, curlvl, curpbm, &prmptr[1], &perm[1], &givptr[1], &
-	    givcol[3], &givnum[3], &qstore[1], &qptr[1], &work[iz], &work[iz 
-	    + *n], info);
+            givcol[3], &givnum[3], &qstore[1], &qptr[1], &work[iz], &work[iz
+            + *n], info);
 
 /*     When solving the final problem, we no longer need the stored data, */
 /*     so we will overwrite the data from this level onto the previously */
 /*     used storage space. */
 
     if (*curlvl == *tlvls) {
-	qptr[curr] = 1;
-	prmptr[curr] = 1;
-	givptr[curr] = 1;
+        qptr[curr] = 1;
+        prmptr[curr] = 1;
+        givptr[curr] = 1;
     }
 
 /*     Sort and Deflate eigenvalues. */
 
-    dlaed8_(icompq, &k, n, qsiz, &d__[1], &q[q_offset], ldq, &indxq[1], rho, 
-	    cutpnt, &work[iz], &work[idlmda], &work[iq2], &ldq2, &work[iw], &
-	    perm[prmptr[curr]], &givptr[curr + 1], &givcol[(givptr[curr] << 1)
-	     + 1], &givnum[(givptr[curr] << 1) + 1], &iwork[indxp], &iwork[
-	    indx], info);
+    dlaed8_(icompq, &k, n, qsiz, &d__[1], &q[q_offset], ldq, &indxq[1], rho,
+            cutpnt, &work[iz], &work[idlmda], &work[iq2], &ldq2, &work[iw], &
+            perm[prmptr[curr]], &givptr[curr + 1], &givcol[(givptr[curr] << 1)
+             + 1], &givnum[(givptr[curr] << 1) + 1], &iwork[indxp], &iwork[
+            indx], info);
     prmptr[curr + 1] = prmptr[curr] + *n;
     givptr[curr + 1] += givptr[curr];
 
 /*     Solve Secular Equation. */
 
     if (k != 0) {
-	dlaed9_(&k, &c__1, &k, n, &d__[1], &work[is], &k, rho, &work[idlmda], 
-		&work[iw], &qstore[qptr[curr]], &k, info);
-	if (*info != 0) {
-	    goto L30;
-	}
-	if (*icompq == 1) {
-	    dgemm_((char *)"N", (char *)"N", qsiz, &k, &k, &c_b10, &work[iq2], &ldq2, &qstore[
-		    qptr[curr]], &k, &c_b11, &q[q_offset], ldq, (ftnlen)1, (
-		    ftnlen)1);
-	}
+        dlaed9_(&k, &c__1, &k, n, &d__[1], &work[is], &k, rho, &work[idlmda],
+                &work[iw], &qstore[qptr[curr]], &k, info);
+        if (*info != 0) {
+            goto L30;
+        }
+        if (*icompq == 1) {
+            dgemm_((char *)"N", (char *)"N", qsiz, &k, &k, &c_b10, &work[iq2], &ldq2, &qstore[
+                    qptr[curr]], &k, &c_b11, &q[q_offset], ldq, (ftnlen)1, (
+                    ftnlen)1);
+        }
 /* Computing 2nd power */
-	i__1 = k;
-	qptr[curr + 1] = qptr[curr] + i__1 * i__1;
+        i__1 = k;
+        qptr[curr + 1] = qptr[curr] + i__1 * i__1;
 
 /*     Prepare the INDXQ sorting permutation. */
 
-	n1 = k;
-	n2 = *n - k;
-	dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
+        n1 = k;
+        n2 = *n - k;
+        dlamrg_(&n1, &n2, &d__[1], &c__1, &c_n1, &indxq[1]);
     } else {
-	qptr[curr + 1] = qptr[curr];
-	i__1 = *n;
-	for (i__ = 1; i__ <= i__1; ++i__) {
-	    indxq[i__] = i__;
+        qptr[curr + 1] = qptr[curr];
+        i__1 = *n;
+        for (i__ = 1; i__ <= i__1; ++i__) {
+            indxq[i__] = i__;
 /* L20: */
-	}
+        }
     }
 
 L30:
@@ -479,5 +479,5 @@ L30:
 } /* dlaed7_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

@@ -1,13 +1,13 @@
 /* fortran/zpptrf.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -140,8 +140,8 @@ f"> */
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int zpptrf_(char *uplo, integer *n, doublecomplex *ap, 
-	integer *info, ftnlen uplo_len)
+/* Subroutine */ int zpptrf_(char *uplo, integer *n, doublecomplex *ap,
+        integer *info, ftnlen uplo_len)
 {
     /* System generated locals */
     integer i__1, i__2, i__3;
@@ -154,16 +154,16 @@ f"> */
     /* Local variables */
     integer j, jc, jj;
     doublereal ajj;
-    extern /* Subroutine */ int zhpr_(char *, integer *, doublereal *, 
-	    doublecomplex *, integer *, doublecomplex *, ftnlen);
+    extern /* Subroutine */ int zhpr_(char *, integer *, doublereal *,
+            doublecomplex *, integer *, doublecomplex *, ftnlen);
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern /* Double Complex */ VOID zdotc_(doublecomplex *, integer *, 
-	    doublecomplex *, integer *, doublecomplex *, integer *);
+    extern /* Double Complex */ VOID zdotc_(doublecomplex *, integer *,
+            doublecomplex *, integer *, doublecomplex *, integer *);
     logical upper;
-    extern /* Subroutine */ int ztpsv_(char *, char *, char *, integer *, 
-	    doublecomplex *, doublecomplex *, integer *, ftnlen, ftnlen, 
-	    ftnlen), xerbla_(char *, integer *, ftnlen), zdscal_(integer *, 
-	    doublereal *, doublecomplex *, integer *);
+    extern /* Subroutine */ int ztpsv_(char *, char *, char *, integer *,
+            doublecomplex *, doublecomplex *, integer *, ftnlen, ftnlen,
+            ftnlen), xerbla_(char *, integer *, ftnlen), zdscal_(integer *,
+            doublereal *, doublecomplex *, integer *);
 
 
 /*  -- LAPACK computational routine -- */
@@ -198,91 +198,91 @@ f"> */
     *info = 0;
     upper = lsame_(uplo, (char *)"U", (ftnlen)1, (ftnlen)1);
     if (! upper && ! lsame_(uplo, (char *)"L", (ftnlen)1, (ftnlen)1)) {
-	*info = -1;
+        *info = -1;
     } else if (*n < 0) {
-	*info = -2;
+        *info = -2;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"ZPPTRF", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"ZPPTRF", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0) {
-	return 0;
+        return 0;
     }
 
     if (upper) {
 
 /*        Compute the Cholesky factorization A = U**H * U. */
 
-	jj = 0;
-	i__1 = *n;
-	for (j = 1; j <= i__1; ++j) {
-	    jc = jj + 1;
-	    jj += j;
+        jj = 0;
+        i__1 = *n;
+        for (j = 1; j <= i__1; ++j) {
+            jc = jj + 1;
+            jj += j;
 
 /*           Compute elements 1:J-1 of column J. */
 
-	    if (j > 1) {
-		i__2 = j - 1;
-		ztpsv_((char *)"Upper", (char *)"Conjugate transpose", (char *)"Non-unit", &i__2, &ap[
-			1], &ap[jc], &c__1, (ftnlen)5, (ftnlen)19, (ftnlen)8);
-	    }
+            if (j > 1) {
+                i__2 = j - 1;
+                ztpsv_((char *)"Upper", (char *)"Conjugate transpose", (char *)"Non-unit", &i__2, &ap[
+                        1], &ap[jc], &c__1, (ftnlen)5, (ftnlen)19, (ftnlen)8);
+            }
 
 /*           Compute U(J,J) and test for non-positive-definiteness. */
 
-	    i__2 = jj;
-	    i__3 = j - 1;
-	    zdotc_(&z__1, &i__3, &ap[jc], &c__1, &ap[jc], &c__1);
-	    ajj = ap[i__2].r - z__1.r;
-	    if (ajj <= 0.) {
-		i__2 = jj;
-		ap[i__2].r = ajj, ap[i__2].i = 0.;
-		goto L30;
-	    }
-	    i__2 = jj;
-	    d__1 = sqrt(ajj);
-	    ap[i__2].r = d__1, ap[i__2].i = 0.;
+            i__2 = jj;
+            i__3 = j - 1;
+            zdotc_(&z__1, &i__3, &ap[jc], &c__1, &ap[jc], &c__1);
+            ajj = ap[i__2].r - z__1.r;
+            if (ajj <= 0.) {
+                i__2 = jj;
+                ap[i__2].r = ajj, ap[i__2].i = 0.;
+                goto L30;
+            }
+            i__2 = jj;
+            d__1 = sqrt(ajj);
+            ap[i__2].r = d__1, ap[i__2].i = 0.;
 /* L10: */
-	}
+        }
     } else {
 
 /*        Compute the Cholesky factorization A = L * L**H. */
 
-	jj = 1;
-	i__1 = *n;
-	for (j = 1; j <= i__1; ++j) {
+        jj = 1;
+        i__1 = *n;
+        for (j = 1; j <= i__1; ++j) {
 
 /*           Compute L(J,J) and test for non-positive-definiteness. */
 
-	    i__2 = jj;
-	    ajj = ap[i__2].r;
-	    if (ajj <= 0.) {
-		i__2 = jj;
-		ap[i__2].r = ajj, ap[i__2].i = 0.;
-		goto L30;
-	    }
-	    ajj = sqrt(ajj);
-	    i__2 = jj;
-	    ap[i__2].r = ajj, ap[i__2].i = 0.;
+            i__2 = jj;
+            ajj = ap[i__2].r;
+            if (ajj <= 0.) {
+                i__2 = jj;
+                ap[i__2].r = ajj, ap[i__2].i = 0.;
+                goto L30;
+            }
+            ajj = sqrt(ajj);
+            i__2 = jj;
+            ap[i__2].r = ajj, ap[i__2].i = 0.;
 
 /*           Compute elements J+1:N of column J and update the trailing */
 /*           submatrix. */
 
-	    if (j < *n) {
-		i__2 = *n - j;
-		d__1 = 1. / ajj;
-		zdscal_(&i__2, &d__1, &ap[jj + 1], &c__1);
-		i__2 = *n - j;
-		zhpr_((char *)"Lower", &i__2, &c_b16, &ap[jj + 1], &c__1, &ap[jj + *n 
-			- j + 1], (ftnlen)5);
-		jj = jj + *n - j + 1;
-	    }
+            if (j < *n) {
+                i__2 = *n - j;
+                d__1 = 1. / ajj;
+                zdscal_(&i__2, &d__1, &ap[jj + 1], &c__1);
+                i__2 = *n - j;
+                zhpr_((char *)"Lower", &i__2, &c_b16, &ap[jj + 1], &c__1, &ap[jj + *n
+                        - j + 1], (ftnlen)5);
+                jj = jj + *n - j + 1;
+            }
 /* L20: */
-	}
+        }
     }
     goto L40;
 
@@ -297,5 +297,5 @@ L40:
 } /* zpptrf_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

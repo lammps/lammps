@@ -1,13 +1,13 @@
 /* fortran/iparmq.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -246,8 +246,8 @@ f"> */
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer 
-	*ilo, integer *ihi, integer *lwork, ftnlen name_len, ftnlen opts_len)
+integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
+        *ilo, integer *ihi, integer *lwork, ftnlen name_len, ftnlen opts_len)
 {
     /* System generated locals */
     integer ret_val, i__1, i__2;
@@ -282,32 +282,32 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
 
 /*        ==== Set the number simultaneous shifts ==== */
 
-	nh = *ihi - *ilo + 1;
-	ns = 2;
-	if (nh >= 30) {
-	    ns = 4;
-	}
-	if (nh >= 60) {
-	    ns = 10;
-	}
-	if (nh >= 150) {
+        nh = *ihi - *ilo + 1;
+        ns = 2;
+        if (nh >= 30) {
+            ns = 4;
+        }
+        if (nh >= 60) {
+            ns = 10;
+        }
+        if (nh >= 150) {
 /* Computing MAX */
-	    r__1 = log((real) nh) / log((float)2.);
-	    i__1 = 10, i__2 = nh / i_nint(&r__1);
-	    ns = max(i__1,i__2);
-	}
-	if (nh >= 590) {
-	    ns = 64;
-	}
-	if (nh >= 3000) {
-	    ns = 128;
-	}
-	if (nh >= 6000) {
-	    ns = 256;
-	}
+            r__1 = log((real) nh) / log((float)2.);
+            i__1 = 10, i__2 = nh / i_nint(&r__1);
+            ns = max(i__1,i__2);
+        }
+        if (nh >= 590) {
+            ns = 64;
+        }
+        if (nh >= 3000) {
+            ns = 128;
+        }
+        if (nh >= 6000) {
+            ns = 256;
+        }
 /* Computing MAX */
-	i__1 = 2, i__2 = ns - ns % 2;
-	ns = max(i__1,i__2);
+        i__1 = 2, i__2 = ns - ns % 2;
+        ns = max(i__1,i__2);
     }
 
     if (*ispec == 12) {
@@ -317,7 +317,7 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
 /*        .     to xLAHQR, the classic double shift algorithm. */
 /*        .     This must be at least 11. ==== */
 
-	ret_val = 75;
+        ret_val = 75;
 
     } else if (*ispec == 14) {
 
@@ -325,23 +325,23 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
 /*        .    whenever aggressive early deflation finds */
 /*        .    at least (NIBBLE*(window size)/100) deflations. ==== */
 
-	ret_val = 14;
+        ret_val = 14;
 
     } else if (*ispec == 15) {
 
 /*        ==== NSHFTS: The number of simultaneous shifts ===== */
 
-	ret_val = ns;
+        ret_val = ns;
 
     } else if (*ispec == 13) {
 
 /*        ==== NW: deflation window size.  ==== */
 
-	if (nh <= 500) {
-	    ret_val = ns;
-	} else {
-	    ret_val = ns * 3 / 2;
-	}
+        if (nh <= 500) {
+            ret_val = ns;
+        } else {
+            ret_val = ns * 3 / 2;
+        }
 
     } else if (*ispec == 16) {
 
@@ -355,87 +355,87 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
 
 /*        Convert NAME to upper case if the first character is lower case. */
 
-	ret_val = 0;
-	s_copy(subnam, name__, (ftnlen)6, name_len);
-	ic = *(unsigned char *)subnam;
-	iz = 'Z';
-	if (iz == 90 || iz == 122) {
+        ret_val = 0;
+        s_copy(subnam, name__, (ftnlen)6, name_len);
+        ic = *(unsigned char *)subnam;
+        iz = 'Z';
+        if (iz == 90 || iz == 122) {
 
 /*           ASCII character set */
 
-	    if (ic >= 97 && ic <= 122) {
-		*(unsigned char *)subnam = (char) (ic - 32);
-		for (i__ = 2; i__ <= 6; ++i__) {
-		    ic = *(unsigned char *)&subnam[i__ - 1];
-		    if (ic >= 97 && ic <= 122) {
-			*(unsigned char *)&subnam[i__ - 1] = (char) (ic - 32);
-		    }
-		}
-	    }
+            if (ic >= 97 && ic <= 122) {
+                *(unsigned char *)subnam = (char) (ic - 32);
+                for (i__ = 2; i__ <= 6; ++i__) {
+                    ic = *(unsigned char *)&subnam[i__ - 1];
+                    if (ic >= 97 && ic <= 122) {
+                        *(unsigned char *)&subnam[i__ - 1] = (char) (ic - 32);
+                    }
+                }
+            }
 
-	} else if (iz == 233 || iz == 169) {
+        } else if (iz == 233 || iz == 169) {
 
 /*           EBCDIC character set */
 
-	    if (ic >= 129 && ic <= 137 || ic >= 145 && ic <= 153 || ic >= 162 
-		    && ic <= 169) {
-		*(unsigned char *)subnam = (char) (ic + 64);
-		for (i__ = 2; i__ <= 6; ++i__) {
-		    ic = *(unsigned char *)&subnam[i__ - 1];
-		    if (ic >= 129 && ic <= 137 || ic >= 145 && ic <= 153 || 
-			    ic >= 162 && ic <= 169) {
-			*(unsigned char *)&subnam[i__ - 1] = (char) (ic + 64);
-		    }
-		}
-	    }
+            if (ic >= 129 && ic <= 137 || ic >= 145 && ic <= 153 || ic >= 162
+                    && ic <= 169) {
+                *(unsigned char *)subnam = (char) (ic + 64);
+                for (i__ = 2; i__ <= 6; ++i__) {
+                    ic = *(unsigned char *)&subnam[i__ - 1];
+                    if (ic >= 129 && ic <= 137 || ic >= 145 && ic <= 153 ||
+                            ic >= 162 && ic <= 169) {
+                        *(unsigned char *)&subnam[i__ - 1] = (char) (ic + 64);
+                    }
+                }
+            }
 
-	} else if (iz == 218 || iz == 250) {
+        } else if (iz == 218 || iz == 250) {
 
 /*           Prime machines:  ASCII+128 */
 
-	    if (ic >= 225 && ic <= 250) {
-		*(unsigned char *)subnam = (char) (ic - 32);
-		for (i__ = 2; i__ <= 6; ++i__) {
-		    ic = *(unsigned char *)&subnam[i__ - 1];
-		    if (ic >= 225 && ic <= 250) {
-			*(unsigned char *)&subnam[i__ - 1] = (char) (ic - 32);
-		    }
-		}
-	    }
-	}
+            if (ic >= 225 && ic <= 250) {
+                *(unsigned char *)subnam = (char) (ic - 32);
+                for (i__ = 2; i__ <= 6; ++i__) {
+                    ic = *(unsigned char *)&subnam[i__ - 1];
+                    if (ic >= 225 && ic <= 250) {
+                        *(unsigned char *)&subnam[i__ - 1] = (char) (ic - 32);
+                    }
+                }
+            }
+        }
 
-	if (s_cmp(subnam + 1, (char *)"GGHRD", (ftnlen)5, (ftnlen)5) == 0 || s_cmp(
-		subnam + 1, (char *)"GGHD3", (ftnlen)5, (ftnlen)5) == 0) {
-	    ret_val = 1;
-	    if (nh >= 14) {
-		ret_val = 2;
-	    }
-	} else if (s_cmp(subnam + 3, (char *)"EXC", (ftnlen)3, (ftnlen)3) == 0) {
-	    if (nh >= 14) {
-		ret_val = 1;
-	    }
-	    if (nh >= 14) {
-		ret_val = 2;
-	    }
-	} else if (s_cmp(subnam + 1, (char *)"HSEQR", (ftnlen)5, (ftnlen)5) == 0 || 
-		s_cmp(subnam + 1, (char *)"LAQR", (ftnlen)4, (ftnlen)4) == 0) {
-	    if (ns >= 14) {
-		ret_val = 1;
-	    }
-	    if (ns >= 14) {
-		ret_val = 2;
-	    }
-	}
+        if (s_cmp(subnam + 1, (char *)"GGHRD", (ftnlen)5, (ftnlen)5) == 0 || s_cmp(
+                subnam + 1, (char *)"GGHD3", (ftnlen)5, (ftnlen)5) == 0) {
+            ret_val = 1;
+            if (nh >= 14) {
+                ret_val = 2;
+            }
+        } else if (s_cmp(subnam + 3, (char *)"EXC", (ftnlen)3, (ftnlen)3) == 0) {
+            if (nh >= 14) {
+                ret_val = 1;
+            }
+            if (nh >= 14) {
+                ret_val = 2;
+            }
+        } else if (s_cmp(subnam + 1, (char *)"HSEQR", (ftnlen)5, (ftnlen)5) == 0 ||
+                s_cmp(subnam + 1, (char *)"LAQR", (ftnlen)4, (ftnlen)4) == 0) {
+            if (ns >= 14) {
+                ret_val = 1;
+            }
+            if (ns >= 14) {
+                ret_val = 2;
+            }
+        }
 
     } else if (*ispec == 17) {
 
 /*        === Relative cost of near-the-diagonal chase vs */
 /*            BLAS updates === */
 
-	ret_val = 10;
+        ret_val = 10;
     } else {
 /*        ===== invalid value of ispec ===== */
-	ret_val = -1;
+        ret_val = -1;
 
     }
 
@@ -445,5 +445,5 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer
 } /* iparmq_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

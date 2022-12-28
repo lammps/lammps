@@ -1,13 +1,13 @@
 /* fortran/zung2l.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -135,9 +135,9 @@ f"> */
 /* > \ingroup complex16OTHERcomputational */
 
 /*  ===================================================================== */
-/* Subroutine */ int zung2l_(integer *m, integer *n, integer *k, 
-	doublecomplex *a, integer *lda, doublecomplex *tau, doublecomplex *
-	work, integer *info)
+/* Subroutine */ int zung2l_(integer *m, integer *n, integer *k,
+        doublecomplex *a, integer *lda, doublecomplex *tau, doublecomplex *
+        work, integer *info)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2, i__3;
@@ -145,11 +145,11 @@ f"> */
 
     /* Local variables */
     integer i__, j, l, ii;
-    extern /* Subroutine */ int zscal_(integer *, doublecomplex *, 
-	    doublecomplex *, integer *), zlarf_(char *, integer *, integer *, 
-	    doublecomplex *, integer *, doublecomplex *, doublecomplex *, 
-	    integer *, doublecomplex *, ftnlen), xerbla_(char *, integer *, 
-	    ftnlen);
+    extern /* Subroutine */ int zscal_(integer *, doublecomplex *,
+            doublecomplex *, integer *), zlarf_(char *, integer *, integer *,
+            doublecomplex *, integer *, doublecomplex *, doublecomplex *,
+            integer *, doublecomplex *, ftnlen), xerbla_(char *, integer *,
+            ftnlen);
 
 
 /*  -- LAPACK computational routine -- */
@@ -185,70 +185,70 @@ f"> */
     /* Function Body */
     *info = 0;
     if (*m < 0) {
-	*info = -1;
+        *info = -1;
     } else if (*n < 0 || *n > *m) {
-	*info = -2;
+        *info = -2;
     } else if (*k < 0 || *k > *n) {
-	*info = -3;
+        *info = -3;
     } else if (*lda < max(1,*m)) {
-	*info = -5;
+        *info = -5;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"ZUNG2L", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"ZUNG2L", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n <= 0) {
-	return 0;
+        return 0;
     }
 
 /*     Initialise columns 1:n-k to columns of the unit matrix */
 
     i__1 = *n - *k;
     for (j = 1; j <= i__1; ++j) {
-	i__2 = *m;
-	for (l = 1; l <= i__2; ++l) {
-	    i__3 = l + j * a_dim1;
-	    a[i__3].r = 0., a[i__3].i = 0.;
+        i__2 = *m;
+        for (l = 1; l <= i__2; ++l) {
+            i__3 = l + j * a_dim1;
+            a[i__3].r = 0., a[i__3].i = 0.;
 /* L10: */
-	}
-	i__2 = *m - *n + j + j * a_dim1;
-	a[i__2].r = 1., a[i__2].i = 0.;
+        }
+        i__2 = *m - *n + j + j * a_dim1;
+        a[i__2].r = 1., a[i__2].i = 0.;
 /* L20: */
     }
 
     i__1 = *k;
     for (i__ = 1; i__ <= i__1; ++i__) {
-	ii = *n - *k + i__;
+        ii = *n - *k + i__;
 
 /*        Apply H(i) to A(1:m-k+i,1:n-k+i) from the left */
 
-	i__2 = *m - *n + ii + ii * a_dim1;
-	a[i__2].r = 1., a[i__2].i = 0.;
-	i__2 = *m - *n + ii;
-	i__3 = ii - 1;
-	zlarf_((char *)"Left", &i__2, &i__3, &a[ii * a_dim1 + 1], &c__1, &tau[i__], &
-		a[a_offset], lda, &work[1], (ftnlen)4);
-	i__2 = *m - *n + ii - 1;
-	i__3 = i__;
-	z__1.r = -tau[i__3].r, z__1.i = -tau[i__3].i;
-	zscal_(&i__2, &z__1, &a[ii * a_dim1 + 1], &c__1);
-	i__2 = *m - *n + ii + ii * a_dim1;
-	i__3 = i__;
-	z__1.r = 1. - tau[i__3].r, z__1.i = 0. - tau[i__3].i;
-	a[i__2].r = z__1.r, a[i__2].i = z__1.i;
+        i__2 = *m - *n + ii + ii * a_dim1;
+        a[i__2].r = 1., a[i__2].i = 0.;
+        i__2 = *m - *n + ii;
+        i__3 = ii - 1;
+        zlarf_((char *)"Left", &i__2, &i__3, &a[ii * a_dim1 + 1], &c__1, &tau[i__], &
+                a[a_offset], lda, &work[1], (ftnlen)4);
+        i__2 = *m - *n + ii - 1;
+        i__3 = i__;
+        z__1.r = -tau[i__3].r, z__1.i = -tau[i__3].i;
+        zscal_(&i__2, &z__1, &a[ii * a_dim1 + 1], &c__1);
+        i__2 = *m - *n + ii + ii * a_dim1;
+        i__3 = i__;
+        z__1.r = 1. - tau[i__3].r, z__1.i = 0. - tau[i__3].i;
+        a[i__2].r = z__1.r, a[i__2].i = z__1.i;
 
 /*        Set A(m-k+i+1:m,n-k+i) to zero */
 
-	i__2 = *m;
-	for (l = *m - *n + ii + 1; l <= i__2; ++l) {
-	    i__3 = l + ii * a_dim1;
-	    a[i__3].r = 0., a[i__3].i = 0.;
+        i__2 = *m;
+        for (l = *m - *n + ii + 1; l <= i__2; ++l) {
+            i__3 = l + ii * a_dim1;
+            a[i__3].r = 0., a[i__3].i = 0.;
 /* L30: */
-	}
+        }
 /* L40: */
     }
     return 0;
@@ -258,5 +258,5 @@ f"> */
 } /* zung2l_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

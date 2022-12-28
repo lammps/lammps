@@ -1,13 +1,13 @@
 /* fortran/ieeeck.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -123,50 +123,50 @@ integer ieeeck_(integer *ispec, real *zero, real *one)
 
     posinf = *one / *zero;
     if (posinf <= *one) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     neginf = -(*one) / *zero;
     if (neginf >= *zero) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     negzro = *one / (neginf + *one);
     if (negzro != *zero) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     neginf = *one / negzro;
     if (neginf >= *zero) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     newzro = negzro + *zero;
     if (newzro != *zero) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     posinf = *one / newzro;
     if (posinf <= *one) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     neginf *= posinf;
     if (neginf >= *zero) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     posinf *= posinf;
     if (posinf <= *one) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
 
@@ -175,7 +175,7 @@ integer ieeeck_(integer *ispec, real *zero, real *one)
 /*     Return if we were only asked to check infinity arithmetic */
 
     if (*ispec == 0) {
-	return ret_val;
+        return ret_val;
     }
 
     nan1 = posinf + neginf;
@@ -191,38 +191,38 @@ integer ieeeck_(integer *ispec, real *zero, real *one)
     nan6 = nan5 * *zero;
 
     if (nan1 == nan1) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     if (nan2 == nan2) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     if (nan3 == nan3) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     if (nan4 == nan4) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     if (nan5 == nan5) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     if (nan6 == nan6) {
-	ret_val = 0;
-	return ret_val;
+        ret_val = 0;
+        return ret_val;
     }
 
     return ret_val;
 } /* ieeeck_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

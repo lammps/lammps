@@ -1,13 +1,13 @@
 /* fortran/dlapy2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -119,25 +119,25 @@ doublereal dlapy2_(doublereal *x, doublereal *y)
     x_is_nan__ = disnan_(x);
     y_is_nan__ = disnan_(y);
     if (x_is_nan__) {
-	ret_val = *x;
+        ret_val = *x;
     }
     if (y_is_nan__) {
-	ret_val = *y;
+        ret_val = *y;
     }
     hugeval = dlamch_((char *)"Overflow", (ftnlen)8);
 
     if (! (x_is_nan__ || y_is_nan__)) {
-	xabs = abs(*x);
-	yabs = abs(*y);
-	w = max(xabs,yabs);
-	z__ = min(xabs,yabs);
-	if (z__ == 0. || w > hugeval) {
-	    ret_val = w;
-	} else {
+        xabs = abs(*x);
+        yabs = abs(*y);
+        w = max(xabs,yabs);
+        z__ = min(xabs,yabs);
+        if (z__ == 0. || w > hugeval) {
+            ret_val = w;
+        } else {
 /* Computing 2nd power */
-	    d__1 = z__ / w;
-	    ret_val = w * sqrt(d__1 * d__1 + 1.);
-	}
+            d__1 = z__ / w;
+            ret_val = w * sqrt(d__1 * d__1 + 1.);
+        }
     }
     return ret_val;
 
@@ -146,5 +146,5 @@ doublereal dlapy2_(doublereal *x, doublereal *y)
 } /* dlapy2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

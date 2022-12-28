@@ -1,13 +1,13 @@
 /* fortran/dpotf2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -133,7 +133,7 @@ f"> */
 
 /*  ===================================================================== */
 /* Subroutine */ int dpotf2_(char *uplo, integer *n, doublereal *a, integer *
-	lda, integer *info, ftnlen uplo_len)
+        lda, integer *info, ftnlen uplo_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2, i__3;
@@ -145,14 +145,14 @@ f"> */
     /* Local variables */
     integer j;
     doublereal ajj;
-    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *, 
-	    integer *);
-    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *, 
-	    integer *);
+    extern doublereal ddot_(integer *, doublereal *, integer *, doublereal *,
+            integer *);
+    extern /* Subroutine */ int dscal_(integer *, doublereal *, doublereal *,
+            integer *);
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern /* Subroutine */ int dgemv_(char *, integer *, integer *, 
-	    doublereal *, doublereal *, integer *, doublereal *, integer *, 
-	    doublereal *, doublereal *, integer *, ftnlen);
+    extern /* Subroutine */ int dgemv_(char *, integer *, integer *,
+            doublereal *, doublereal *, integer *, doublereal *, integer *,
+            doublereal *, doublereal *, integer *, ftnlen);
     logical upper;
     extern logical disnan_(doublereal *);
     extern /* Subroutine */ int xerbla_(char *, integer *, ftnlen);
@@ -192,90 +192,90 @@ f"> */
     *info = 0;
     upper = lsame_(uplo, (char *)"U", (ftnlen)1, (ftnlen)1);
     if (! upper && ! lsame_(uplo, (char *)"L", (ftnlen)1, (ftnlen)1)) {
-	*info = -1;
+        *info = -1;
     } else if (*n < 0) {
-	*info = -2;
+        *info = -2;
     } else if (*lda < max(1,*n)) {
-	*info = -4;
+        *info = -4;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"DPOTF2", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"DPOTF2", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n == 0) {
-	return 0;
+        return 0;
     }
 
     if (upper) {
 
 /*        Compute the Cholesky factorization A = U**T *U. */
 
-	i__1 = *n;
-	for (j = 1; j <= i__1; ++j) {
+        i__1 = *n;
+        for (j = 1; j <= i__1; ++j) {
 
 /*           Compute U(J,J) and test for non-positive-definiteness. */
 
-	    i__2 = j - 1;
-	    ajj = a[j + j * a_dim1] - ddot_(&i__2, &a[j * a_dim1 + 1], &c__1, 
-		    &a[j * a_dim1 + 1], &c__1);
-	    if (ajj <= 0. || disnan_(&ajj)) {
-		a[j + j * a_dim1] = ajj;
-		goto L30;
-	    }
-	    ajj = sqrt(ajj);
-	    a[j + j * a_dim1] = ajj;
+            i__2 = j - 1;
+            ajj = a[j + j * a_dim1] - ddot_(&i__2, &a[j * a_dim1 + 1], &c__1,
+                    &a[j * a_dim1 + 1], &c__1);
+            if (ajj <= 0. || disnan_(&ajj)) {
+                a[j + j * a_dim1] = ajj;
+                goto L30;
+            }
+            ajj = sqrt(ajj);
+            a[j + j * a_dim1] = ajj;
 
 /*           Compute elements J+1:N of row J. */
 
-	    if (j < *n) {
-		i__2 = j - 1;
-		i__3 = *n - j;
-		dgemv_((char *)"Transpose", &i__2, &i__3, &c_b10, &a[(j + 1) * a_dim1 
-			+ 1], lda, &a[j * a_dim1 + 1], &c__1, &c_b12, &a[j + (
-			j + 1) * a_dim1], lda, (ftnlen)9);
-		i__2 = *n - j;
-		d__1 = 1. / ajj;
-		dscal_(&i__2, &d__1, &a[j + (j + 1) * a_dim1], lda);
-	    }
+            if (j < *n) {
+                i__2 = j - 1;
+                i__3 = *n - j;
+                dgemv_((char *)"Transpose", &i__2, &i__3, &c_b10, &a[(j + 1) * a_dim1
+                        + 1], lda, &a[j * a_dim1 + 1], &c__1, &c_b12, &a[j + (
+                        j + 1) * a_dim1], lda, (ftnlen)9);
+                i__2 = *n - j;
+                d__1 = 1. / ajj;
+                dscal_(&i__2, &d__1, &a[j + (j + 1) * a_dim1], lda);
+            }
 /* L10: */
-	}
+        }
     } else {
 
 /*        Compute the Cholesky factorization A = L*L**T. */
 
-	i__1 = *n;
-	for (j = 1; j <= i__1; ++j) {
+        i__1 = *n;
+        for (j = 1; j <= i__1; ++j) {
 
 /*           Compute L(J,J) and test for non-positive-definiteness. */
 
-	    i__2 = j - 1;
-	    ajj = a[j + j * a_dim1] - ddot_(&i__2, &a[j + a_dim1], lda, &a[j 
-		    + a_dim1], lda);
-	    if (ajj <= 0. || disnan_(&ajj)) {
-		a[j + j * a_dim1] = ajj;
-		goto L30;
-	    }
-	    ajj = sqrt(ajj);
-	    a[j + j * a_dim1] = ajj;
+            i__2 = j - 1;
+            ajj = a[j + j * a_dim1] - ddot_(&i__2, &a[j + a_dim1], lda, &a[j
+                    + a_dim1], lda);
+            if (ajj <= 0. || disnan_(&ajj)) {
+                a[j + j * a_dim1] = ajj;
+                goto L30;
+            }
+            ajj = sqrt(ajj);
+            a[j + j * a_dim1] = ajj;
 
 /*           Compute elements J+1:N of column J. */
 
-	    if (j < *n) {
-		i__2 = *n - j;
-		i__3 = j - 1;
-		dgemv_((char *)"No transpose", &i__2, &i__3, &c_b10, &a[j + 1 + 
-			a_dim1], lda, &a[j + a_dim1], lda, &c_b12, &a[j + 1 + 
-			j * a_dim1], &c__1, (ftnlen)12);
-		i__2 = *n - j;
-		d__1 = 1. / ajj;
-		dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
-	    }
+            if (j < *n) {
+                i__2 = *n - j;
+                i__3 = j - 1;
+                dgemv_((char *)"No transpose", &i__2, &i__3, &c_b10, &a[j + 1 +
+                        a_dim1], lda, &a[j + a_dim1], lda, &c_b12, &a[j + 1 +
+                        j * a_dim1], &c__1, (ftnlen)12);
+                i__2 = *n - j;
+                d__1 = 1. / ajj;
+                dscal_(&i__2, &d__1, &a[j + 1 + j * a_dim1], &c__1);
+            }
 /* L20: */
-	}
+        }
     }
     goto L40;
 
@@ -290,5 +290,5 @@ L40:
 } /* dpotf2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

@@ -1,13 +1,13 @@
 /* fortran/zhetd2.f -- translated by f2c (version 20200916).
    You must link the resulting object file with libf2c:
-	on Microsoft Windows system, link with libf2c.lib;
-	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
-	or, if you install libf2c.a in a standard place, with -lf2c -lm
-	-- in that order, at the end of the command line, as in
-		cc *.o -lf2c -lm
-	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+        on Microsoft Windows system, link with libf2c.lib;
+        on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+        or, if you install libf2c.a in a standard place, with -lf2c -lm
+        -- in that order, at the end of the command line, as in
+                cc *.o -lf2c -lm
+        Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
 
-		http://www.netlib.org/f2c/libf2c.zip
+                http://www.netlib.org/f2c/libf2c.zip
 */
 
 #ifdef __cplusplus
@@ -197,9 +197,9 @@ f"> */
 /* > \endverbatim */
 /* > */
 /*  ===================================================================== */
-/* Subroutine */ int zhetd2_(char *uplo, integer *n, doublecomplex *a, 
-	integer *lda, doublereal *d__, doublereal *e, doublecomplex *tau, 
-	integer *info, ftnlen uplo_len)
+/* Subroutine */ int zhetd2_(char *uplo, integer *n, doublecomplex *a,
+        integer *lda, doublereal *d__, doublereal *e, doublecomplex *tau,
+        integer *info, ftnlen uplo_len)
 {
     /* System generated locals */
     integer a_dim1, a_offset, i__1, i__2, i__3;
@@ -209,21 +209,21 @@ f"> */
     /* Local variables */
     integer i__;
     doublecomplex taui;
-    extern /* Subroutine */ int zher2_(char *, integer *, doublecomplex *, 
-	    doublecomplex *, integer *, doublecomplex *, integer *, 
-	    doublecomplex *, integer *, ftnlen);
+    extern /* Subroutine */ int zher2_(char *, integer *, doublecomplex *,
+            doublecomplex *, integer *, doublecomplex *, integer *,
+            doublecomplex *, integer *, ftnlen);
     doublecomplex alpha;
     extern logical lsame_(char *, char *, ftnlen, ftnlen);
-    extern /* Double Complex */ VOID zdotc_(doublecomplex *, integer *, 
-	    doublecomplex *, integer *, doublecomplex *, integer *);
-    extern /* Subroutine */ int zhemv_(char *, integer *, doublecomplex *, 
-	    doublecomplex *, integer *, doublecomplex *, integer *, 
-	    doublecomplex *, doublecomplex *, integer *, ftnlen);
+    extern /* Double Complex */ VOID zdotc_(doublecomplex *, integer *,
+            doublecomplex *, integer *, doublecomplex *, integer *);
+    extern /* Subroutine */ int zhemv_(char *, integer *, doublecomplex *,
+            doublecomplex *, integer *, doublecomplex *, integer *,
+            doublecomplex *, doublecomplex *, integer *, ftnlen);
     logical upper;
-    extern /* Subroutine */ int zaxpy_(integer *, doublecomplex *, 
-	    doublecomplex *, integer *, doublecomplex *, integer *), xerbla_(
-	    char *, integer *, ftnlen), zlarfg_(integer *, doublecomplex *, 
-	    doublecomplex *, integer *, doublecomplex *);
+    extern /* Subroutine */ int zaxpy_(integer *, doublecomplex *,
+            doublecomplex *, integer *, doublecomplex *, integer *), xerbla_(
+            char *, integer *, ftnlen), zlarfg_(integer *, doublecomplex *,
+            doublecomplex *, integer *, doublecomplex *);
 
 
 /*  -- LAPACK computational routine -- */
@@ -263,169 +263,169 @@ f"> */
     *info = 0;
     upper = lsame_(uplo, (char *)"U", (ftnlen)1, (ftnlen)1);
     if (! upper && ! lsame_(uplo, (char *)"L", (ftnlen)1, (ftnlen)1)) {
-	*info = -1;
+        *info = -1;
     } else if (*n < 0) {
-	*info = -2;
+        *info = -2;
     } else if (*lda < max(1,*n)) {
-	*info = -4;
+        *info = -4;
     }
     if (*info != 0) {
-	i__1 = -(*info);
-	xerbla_((char *)"ZHETD2", &i__1, (ftnlen)6);
-	return 0;
+        i__1 = -(*info);
+        xerbla_((char *)"ZHETD2", &i__1, (ftnlen)6);
+        return 0;
     }
 
 /*     Quick return if possible */
 
     if (*n <= 0) {
-	return 0;
+        return 0;
     }
 
     if (upper) {
 
 /*        Reduce the upper triangle of A */
 
-	i__1 = *n + *n * a_dim1;
-	i__2 = *n + *n * a_dim1;
-	d__1 = a[i__2].r;
-	a[i__1].r = d__1, a[i__1].i = 0.;
-	for (i__ = *n - 1; i__ >= 1; --i__) {
+        i__1 = *n + *n * a_dim1;
+        i__2 = *n + *n * a_dim1;
+        d__1 = a[i__2].r;
+        a[i__1].r = d__1, a[i__1].i = 0.;
+        for (i__ = *n - 1; i__ >= 1; --i__) {
 
 /*           Generate elementary reflector H(i) = I - tau * v * v**H */
 /*           to annihilate A(1:i-1,i+1) */
 
-	    i__1 = i__ + (i__ + 1) * a_dim1;
-	    alpha.r = a[i__1].r, alpha.i = a[i__1].i;
-	    zlarfg_(&i__, &alpha, &a[(i__ + 1) * a_dim1 + 1], &c__1, &taui);
-	    e[i__] = alpha.r;
+            i__1 = i__ + (i__ + 1) * a_dim1;
+            alpha.r = a[i__1].r, alpha.i = a[i__1].i;
+            zlarfg_(&i__, &alpha, &a[(i__ + 1) * a_dim1 + 1], &c__1, &taui);
+            e[i__] = alpha.r;
 
-	    if (taui.r != 0. || taui.i != 0.) {
+            if (taui.r != 0. || taui.i != 0.) {
 
 /*              Apply H(i) from both sides to A(1:i,1:i) */
 
-		i__1 = i__ + (i__ + 1) * a_dim1;
-		a[i__1].r = 1., a[i__1].i = 0.;
+                i__1 = i__ + (i__ + 1) * a_dim1;
+                a[i__1].r = 1., a[i__1].i = 0.;
 
 /*              Compute  x := tau * A * v  storing x in TAU(1:i) */
 
-		zhemv_(uplo, &i__, &taui, &a[a_offset], lda, &a[(i__ + 1) * 
-			a_dim1 + 1], &c__1, &c_b2, &tau[1], &c__1, (ftnlen)1);
+                zhemv_(uplo, &i__, &taui, &a[a_offset], lda, &a[(i__ + 1) *
+                        a_dim1 + 1], &c__1, &c_b2, &tau[1], &c__1, (ftnlen)1);
 
 /*              Compute  w := x - 1/2 * tau * (x**H * v) * v */
 
-		z__3.r = -.5, z__3.i = -0.;
-		z__2.r = z__3.r * taui.r - z__3.i * taui.i, z__2.i = z__3.r * 
-			taui.i + z__3.i * taui.r;
-		zdotc_(&z__4, &i__, &tau[1], &c__1, &a[(i__ + 1) * a_dim1 + 1]
-			, &c__1);
-		z__1.r = z__2.r * z__4.r - z__2.i * z__4.i, z__1.i = z__2.r * 
-			z__4.i + z__2.i * z__4.r;
-		alpha.r = z__1.r, alpha.i = z__1.i;
-		zaxpy_(&i__, &alpha, &a[(i__ + 1) * a_dim1 + 1], &c__1, &tau[
-			1], &c__1);
+                z__3.r = -.5, z__3.i = -0.;
+                z__2.r = z__3.r * taui.r - z__3.i * taui.i, z__2.i = z__3.r *
+                        taui.i + z__3.i * taui.r;
+                zdotc_(&z__4, &i__, &tau[1], &c__1, &a[(i__ + 1) * a_dim1 + 1]
+                        , &c__1);
+                z__1.r = z__2.r * z__4.r - z__2.i * z__4.i, z__1.i = z__2.r *
+                        z__4.i + z__2.i * z__4.r;
+                alpha.r = z__1.r, alpha.i = z__1.i;
+                zaxpy_(&i__, &alpha, &a[(i__ + 1) * a_dim1 + 1], &c__1, &tau[
+                        1], &c__1);
 
 /*              Apply the transformation as a rank-2 update: */
 /*                 A := A - v * w**H - w * v**H */
 
-		z__1.r = -1., z__1.i = -0.;
-		zher2_(uplo, &i__, &z__1, &a[(i__ + 1) * a_dim1 + 1], &c__1, &
-			tau[1], &c__1, &a[a_offset], lda, (ftnlen)1);
+                z__1.r = -1., z__1.i = -0.;
+                zher2_(uplo, &i__, &z__1, &a[(i__ + 1) * a_dim1 + 1], &c__1, &
+                        tau[1], &c__1, &a[a_offset], lda, (ftnlen)1);
 
-	    } else {
-		i__1 = i__ + i__ * a_dim1;
-		i__2 = i__ + i__ * a_dim1;
-		d__1 = a[i__2].r;
-		a[i__1].r = d__1, a[i__1].i = 0.;
-	    }
-	    i__1 = i__ + (i__ + 1) * a_dim1;
-	    i__2 = i__;
-	    a[i__1].r = e[i__2], a[i__1].i = 0.;
-	    i__1 = i__ + 1 + (i__ + 1) * a_dim1;
-	    d__[i__ + 1] = a[i__1].r;
-	    i__1 = i__;
-	    tau[i__1].r = taui.r, tau[i__1].i = taui.i;
+            } else {
+                i__1 = i__ + i__ * a_dim1;
+                i__2 = i__ + i__ * a_dim1;
+                d__1 = a[i__2].r;
+                a[i__1].r = d__1, a[i__1].i = 0.;
+            }
+            i__1 = i__ + (i__ + 1) * a_dim1;
+            i__2 = i__;
+            a[i__1].r = e[i__2], a[i__1].i = 0.;
+            i__1 = i__ + 1 + (i__ + 1) * a_dim1;
+            d__[i__ + 1] = a[i__1].r;
+            i__1 = i__;
+            tau[i__1].r = taui.r, tau[i__1].i = taui.i;
 /* L10: */
-	}
-	i__1 = a_dim1 + 1;
-	d__[1] = a[i__1].r;
+        }
+        i__1 = a_dim1 + 1;
+        d__[1] = a[i__1].r;
     } else {
 
 /*        Reduce the lower triangle of A */
 
-	i__1 = a_dim1 + 1;
-	i__2 = a_dim1 + 1;
-	d__1 = a[i__2].r;
-	a[i__1].r = d__1, a[i__1].i = 0.;
-	i__1 = *n - 1;
-	for (i__ = 1; i__ <= i__1; ++i__) {
+        i__1 = a_dim1 + 1;
+        i__2 = a_dim1 + 1;
+        d__1 = a[i__2].r;
+        a[i__1].r = d__1, a[i__1].i = 0.;
+        i__1 = *n - 1;
+        for (i__ = 1; i__ <= i__1; ++i__) {
 
 /*           Generate elementary reflector H(i) = I - tau * v * v**H */
 /*           to annihilate A(i+2:n,i) */
 
-	    i__2 = i__ + 1 + i__ * a_dim1;
-	    alpha.r = a[i__2].r, alpha.i = a[i__2].i;
-	    i__2 = *n - i__;
+            i__2 = i__ + 1 + i__ * a_dim1;
+            alpha.r = a[i__2].r, alpha.i = a[i__2].i;
+            i__2 = *n - i__;
 /* Computing MIN */
-	    i__3 = i__ + 2;
-	    zlarfg_(&i__2, &alpha, &a[min(i__3,*n) + i__ * a_dim1], &c__1, &
-		    taui);
-	    e[i__] = alpha.r;
+            i__3 = i__ + 2;
+            zlarfg_(&i__2, &alpha, &a[min(i__3,*n) + i__ * a_dim1], &c__1, &
+                    taui);
+            e[i__] = alpha.r;
 
-	    if (taui.r != 0. || taui.i != 0.) {
+            if (taui.r != 0. || taui.i != 0.) {
 
 /*              Apply H(i) from both sides to A(i+1:n,i+1:n) */
 
-		i__2 = i__ + 1 + i__ * a_dim1;
-		a[i__2].r = 1., a[i__2].i = 0.;
+                i__2 = i__ + 1 + i__ * a_dim1;
+                a[i__2].r = 1., a[i__2].i = 0.;
 
 /*              Compute  x := tau * A * v  storing y in TAU(i:n-1) */
 
-		i__2 = *n - i__;
-		zhemv_(uplo, &i__2, &taui, &a[i__ + 1 + (i__ + 1) * a_dim1], 
-			lda, &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b2, &tau[
-			i__], &c__1, (ftnlen)1);
+                i__2 = *n - i__;
+                zhemv_(uplo, &i__2, &taui, &a[i__ + 1 + (i__ + 1) * a_dim1],
+                        lda, &a[i__ + 1 + i__ * a_dim1], &c__1, &c_b2, &tau[
+                        i__], &c__1, (ftnlen)1);
 
 /*              Compute  w := x - 1/2 * tau * (x**H * v) * v */
 
-		z__3.r = -.5, z__3.i = -0.;
-		z__2.r = z__3.r * taui.r - z__3.i * taui.i, z__2.i = z__3.r * 
-			taui.i + z__3.i * taui.r;
-		i__2 = *n - i__;
-		zdotc_(&z__4, &i__2, &tau[i__], &c__1, &a[i__ + 1 + i__ * 
-			a_dim1], &c__1);
-		z__1.r = z__2.r * z__4.r - z__2.i * z__4.i, z__1.i = z__2.r * 
-			z__4.i + z__2.i * z__4.r;
-		alpha.r = z__1.r, alpha.i = z__1.i;
-		i__2 = *n - i__;
-		zaxpy_(&i__2, &alpha, &a[i__ + 1 + i__ * a_dim1], &c__1, &tau[
-			i__], &c__1);
+                z__3.r = -.5, z__3.i = -0.;
+                z__2.r = z__3.r * taui.r - z__3.i * taui.i, z__2.i = z__3.r *
+                        taui.i + z__3.i * taui.r;
+                i__2 = *n - i__;
+                zdotc_(&z__4, &i__2, &tau[i__], &c__1, &a[i__ + 1 + i__ *
+                        a_dim1], &c__1);
+                z__1.r = z__2.r * z__4.r - z__2.i * z__4.i, z__1.i = z__2.r *
+                        z__4.i + z__2.i * z__4.r;
+                alpha.r = z__1.r, alpha.i = z__1.i;
+                i__2 = *n - i__;
+                zaxpy_(&i__2, &alpha, &a[i__ + 1 + i__ * a_dim1], &c__1, &tau[
+                        i__], &c__1);
 
 /*              Apply the transformation as a rank-2 update: */
 /*                 A := A - v * w**H - w * v**H */
 
-		i__2 = *n - i__;
-		z__1.r = -1., z__1.i = -0.;
-		zher2_(uplo, &i__2, &z__1, &a[i__ + 1 + i__ * a_dim1], &c__1, 
-			&tau[i__], &c__1, &a[i__ + 1 + (i__ + 1) * a_dim1], 
-			lda, (ftnlen)1);
+                i__2 = *n - i__;
+                z__1.r = -1., z__1.i = -0.;
+                zher2_(uplo, &i__2, &z__1, &a[i__ + 1 + i__ * a_dim1], &c__1,
+                        &tau[i__], &c__1, &a[i__ + 1 + (i__ + 1) * a_dim1],
+                        lda, (ftnlen)1);
 
-	    } else {
-		i__2 = i__ + 1 + (i__ + 1) * a_dim1;
-		i__3 = i__ + 1 + (i__ + 1) * a_dim1;
-		d__1 = a[i__3].r;
-		a[i__2].r = d__1, a[i__2].i = 0.;
-	    }
-	    i__2 = i__ + 1 + i__ * a_dim1;
-	    i__3 = i__;
-	    a[i__2].r = e[i__3], a[i__2].i = 0.;
-	    i__2 = i__ + i__ * a_dim1;
-	    d__[i__] = a[i__2].r;
-	    i__2 = i__;
-	    tau[i__2].r = taui.r, tau[i__2].i = taui.i;
+            } else {
+                i__2 = i__ + 1 + (i__ + 1) * a_dim1;
+                i__3 = i__ + 1 + (i__ + 1) * a_dim1;
+                d__1 = a[i__3].r;
+                a[i__2].r = d__1, a[i__2].i = 0.;
+            }
+            i__2 = i__ + 1 + i__ * a_dim1;
+            i__3 = i__;
+            a[i__2].r = e[i__3], a[i__2].i = 0.;
+            i__2 = i__ + i__ * a_dim1;
+            d__[i__] = a[i__2].r;
+            i__2 = i__;
+            tau[i__2].r = taui.r, tau[i__2].i = taui.i;
 /* L20: */
-	}
-	i__1 = *n + *n * a_dim1;
-	d__[*n] = a[i__1].r;
+        }
+        i__1 = *n + *n * a_dim1;
+        d__[*n] = a[i__1].r;
     }
 
     return 0;
@@ -435,5 +435,5 @@ f"> */
 } /* zhetd2_ */
 
 #ifdef __cplusplus
-	}
+        }
 #endif

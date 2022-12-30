@@ -1149,7 +1149,7 @@ For illustration purposes below is a part of the Tcl example script.
    lammps_command $lmp "region box block -5 5 -5 5 -5 5"
    lammps_command $lmp "create_box 1 box"
    lammps_command $lmp "create_atoms 1 box"
-   
+
    set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
    puts "LAMMPS version $ver"
    puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]

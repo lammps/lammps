@@ -98,7 +98,7 @@ or
 .. code-block:: bash
 
    #!/usr/bin/env python
-   
+
 where the path in the first case needs to point to where you have Python
 installed (the second option is workaround for when this may change),
 and that you have made the script file executable:

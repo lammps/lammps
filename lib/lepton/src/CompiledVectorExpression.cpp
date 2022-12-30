@@ -33,7 +33,6 @@
 #include "lepton/Operation.h"
 #include "lepton/ParsedExpression.h"
 #include <algorithm>
-#include <cstring>
 #include <utility>
 
 using namespace Lepton;
@@ -574,6 +573,12 @@ void CompiledVectorExpression::generateTwoArgCall(a64::Compiler& c, arm::Vec& de
 }
 #else
 
+union int_to_float {
+  int_to_float(const int &_i) { i = _i; }
+  int i;
+  float  f;
+};
+
 void CompiledVectorExpression::generateJitCode() {
     const CpuInfo& cpu = CpuInfo::host();
     if (!cpu.hasFeature(CpuFeatures::X86::kAVX))
@@ -611,7 +616,7 @@ void CompiledVectorExpression::generateJitCode() {
         // Find the constant value (if any) used by this operation.
 
         Operation& op = *operation[step];
-        double value = 0.0;
+        double value;
         if (op.getId() == Operation::CONSTANT)
             value = dynamic_cast<Operation::Constant&> (op).getValue();
         else if (op.getId() == Operation::ADD_CONSTANT)
@@ -624,10 +629,8 @@ void CompiledVectorExpression::generateJitCode() {
             value = 1.0;
         else if (op.getId() == Operation::DELTA)
             value = 1.0;
-        else if (op.getId() == Operation::ABS) {
-            int mask = 0x7FFFFFFF;
-            memcpy(&value, &mask, sizeof(mask));
-        }
+        else if (op.getId() == Operation::ABS)
+            value = int_to_float(0x7FFFFFFF).f;
         else if (op.getId() == Operation::POWER_CONSTANT) {
             if (stepGroup[step] == -1)
                 value = dynamic_cast<Operation::PowerConstant&> (op).getValue();

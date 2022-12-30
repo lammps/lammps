@@ -28,6 +28,7 @@ You may need to tell LAMMPS where it is found on your system.
 
 This is the list of packages that may require additional steps.
 
+.. this list must be kept in sync with its counterpart in Build_package.rst
 .. table_from_list::
    :columns: 6
 

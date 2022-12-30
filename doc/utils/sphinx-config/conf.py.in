@@ -251,7 +251,13 @@ htmlhelp_basename = 'LAMMPSdoc'
 
 html_permalinks = True
 
-html_baseurl = os.environ.get('LAMMPS_WEBSITE_BASEURL', '')
+# 2022-12-30:
+# "Canonical" is always the "current" version of the LAMMPS online manual.
+# Changing this depending on whether this is for the development or stable
+# version is confusing search engines. So this is the URL to point to.
+# This fixed setting should reduce the number of URLs that Google complains
+# about as having a canonical URLs where it chooses a different one.
+html_baseurl = 'https://docs.lammps.org/'
 
 if 'epub' in sys.argv:
   html_math_renderer = 'imgmath'

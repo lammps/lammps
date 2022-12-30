@@ -41,7 +41,7 @@ create a local copy of the LAMMPS repository with a command like:
 
 .. code-block:: bash
 
-   $ git clone -b release https://github.com/lammps/lammps.git mylammps
+   git clone -b release https://github.com/lammps/lammps.git mylammps
 
 where "mylammps" is the name of the directory you wish to create on
 your machine and "release" is one of the 3 branches listed above.
@@ -78,10 +78,10 @@ from within the "mylammps" directory:
 
 .. code-block:: bash
 
-   $ git checkout release      # not needed if you always stay in this branch
-   $ git checkout stable       # use one of these 3 checkout commands
-   $ git checkout develop      # to choose the branch to follow
-   $ git pull
+   git checkout release      # not needed if you always stay in this branch
+   git checkout stable       # use one of these 3 checkout commands
+   git checkout develop      # to choose the branch to follow
+   git pull
 
 Doing a "pull" will not change any files you have added to the LAMMPS
 directory structure.  It will also not change any existing LAMMPS
@@ -97,7 +97,7 @@ this is as follows.
 
 .. code-block:: bash
 
-   $ git checkout tagID
+   git checkout tagID
 
 Stable versions and what tagID to use for a particular stable version
 are discussed on `this page <https://www.lammps.org/bug.html#version>`_.
@@ -138,13 +138,13 @@ changed.  How to do this depends on the build system you are using.
 
       .. code-block:: bash
 
-         $ make purge             # remove any deprecated src files
-         $ make package-update    # sync package files with src files
-         $ make foo               # re-build for your machine (mpi, serial, etc)
+         make purge             # remove any deprecated src files
+         make package-update    # sync package files with src files
+         make foo               # re-build for your machine (mpi, serial, etc)
 
       to enforce consistency of the source between the src folder
       and package directories.  This is OK to do even if you don't
-      use any packages. The "make purge" command removes any deprecated
+      use any packages. The ``make purge`` command removes any deprecated
       src files if they were removed by the patch from a package
       sub-directory.
 
@@ -160,9 +160,9 @@ changed.  How to do this depends on the build system you are using.
    :class: note
 
    The servers at github.com support the "https://" access protocol for
-   anonymous, read-only access.  If you have a suitably configured GitHub
-   account, you may also use SSH protocol with the
-   URL "git@github.com:lammps/lammps.git".
+   anonymous, read-only access.  If you have a suitably configured
+   GitHub account, you may also use SSH protocol with the URL
+   "git@github.com:lammps/lammps.git".
 
 The LAMMPS GitHub project is currently managed by Axel Kohlmeyer
 (Temple U, akohlmey at gmail.com).

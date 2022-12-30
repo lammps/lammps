@@ -214,7 +214,7 @@ folder that the dynamic loader searches or inside of the installed
 
       .. code-block:: bash
 
-         $ python install.py -p <python package> -l <shared library> [-n]
+         python install.py -p <python package> -l <shared library> [-n]
 
       * The ``-p`` flag points to the ``lammps`` Python package folder to be installed,
       * the ``-l`` flag points to the LAMMPS shared library file to be installed,
@@ -343,7 +343,7 @@ Python interpreter, load the ``lammps`` Python module and create a
 LAMMPS instance.  This should not generate an error message and produce
 output similar to the following:
 
-   .. code-block:: bash
+   .. code-block:: console
 
       $ python
       Python 3.8.5 (default, Sep  5 2020, 10:50:12)
@@ -403,7 +403,7 @@ follows:
 
 - Via ``pip`` into a virtual environment (see above):
 
-  .. code-block:: bash
+  .. code-block:: console
 
      $ source $HOME/myenv/activate
      (myenv)$ pip install mpi4py
@@ -449,7 +449,7 @@ on a simple test script
 
 .. code-block:: bash
 
-   $ mpirun -np 4 python3 test.py
+   mpirun -np 4 python3 test.py
 
 where ``test.py`` contains the lines
 
@@ -459,11 +459,11 @@ where ``test.py`` contains the lines
    comm = MPI.COMM_WORLD
    print("Proc %d out of %d procs" % (comm.Get_rank(),comm.Get_size()))
 
-and see one line of output for each processor you run on.
+and see one line of output for each processor you run on.  Please note
+that the order of the lines is not deterministic
 
-.. code-block:: bash
+.. code-block:: console
 
-   # NOTE: the line order is not deterministic
    $ mpirun -np 4 python3 test.py
    Proc 0 out of 4 procs
    Proc 1 out of 4 procs

@@ -56,7 +56,7 @@ You should change into the top level directory of the LAMMPS source tree all
 paths mentioned in the tutorial are relative to that.  Immediately after downloading
 it should look like this:
 
-.. code-block:: bash
+.. code-block:: console
 
     $ ls
     bench  doc       lib      potentials  README  tools
@@ -104,7 +104,7 @@ the progress of the configuration printed to the screen followed by a
 summary of the enabled features, options and compiler settings. A typical
 summary screen will look like this:
 
-.. code-block::
+.. code-block:: console
 
    $ cmake ../cmake/
    -- The CXX compiler identification is GNU 8.2.0

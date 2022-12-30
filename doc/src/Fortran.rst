@@ -2391,7 +2391,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    mode. The function should have Fortran language bindings with the following
    interface, which depends on how LAMMPS was compiled:
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       ABSTRACT INTERFACE
         SUBROUTINE external_callback(caller, timestep, ids, x, fexternal)
@@ -2450,7 +2450,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       with ``-DLAMMPS_SMALLBIG``) that applies something akin to Hooke's Law
       (with each atom having a different *k* value) is shown below.
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          MODULE stuff
            USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double, c_int64_t

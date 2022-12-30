@@ -12,11 +12,11 @@ in addition to
      - Traditional make
    * - .. code-block:: bash
 
-          $ cmake -D PKG_NAME=yes
+          cmake -D PKG_NAME=yes
 
-     - .. code-block:: bash
+     - .. code-block:: console
 
-          $ make yes-name
+          make yes-name
 
 as described on the :doc:`Build_package <Build_package>` page.
 
@@ -242,10 +242,10 @@ script with the specified args:
 
 .. code-block:: bash
 
-  $ make lib-gpu               # print help message
-  $ make lib-gpu args="-b"     # build GPU library with default Makefile.linux
-  $ make lib-gpu args="-m xk7 -p single -o xk7.single"  # create new Makefile.xk7.single, altered for single-precision
-  $ make lib-gpu args="-m mpi -a sm_60 -p mixed -b" # build GPU library with mixed precision and P100 using other settings in Makefile.mpi
+  make lib-gpu               # print help message
+  make lib-gpu args="-b"     # build GPU library with default Makefile.linux
+  make lib-gpu args="-m xk7 -p single -o xk7.single"  # create new Makefile.xk7.single, altered for single-precision
+  make lib-gpu args="-m mpi -a sm_60 -p mixed -b" # build GPU library with mixed precision and P100 using other settings in Makefile.mpi
 
 Note that this procedure starts with a Makefile.machine in lib/gpu, as
 specified by the "-m" switch.  For your convenience, machine makefiles
@@ -358,13 +358,13 @@ minutes to hours) to build.  Of course you only need to do that once.)
 
       .. code-block:: bash
 
-         $ make lib-kim              # print help message
-         $ make lib-kim args="-b "   # (re-)install KIM API lib with only example models
-         $ make lib-kim args="-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # ditto plus one model
-         $ make lib-kim args="-b -a everything"     # install KIM API lib with all models
-         $ make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"       # add one model or model driver
-         $ make lib-kim args="-p /usr/local" # use an existing KIM API installation at the provided location
-         $ make lib-kim args="-p /usr/local -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver
+         make lib-kim              # print help message
+         make lib-kim args="-b "   # (re-)install KIM API lib with only example models
+         make lib-kim args="-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_001"  # ditto plus one model
+         make lib-kim args="-b -a everything"     # install KIM API lib with all models
+         make lib-kim args="-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002"       # add one model or model driver
+         make lib-kim args="-p /usr/local" # use an existing KIM API installation at the provided location
+         make lib-kim args="-p /usr/local -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver
 
       When using the "-b " option, the KIM library is built using its native
       cmake build system.  The ``lib/kim/Install.py`` script supports a
@@ -376,7 +376,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
 
       .. code-block:: bash
 
-         $ CMAKE=cmake3 CXX=g++-11 CC=gcc-11 FC=gfortran-11 make lib-kim args="-b "  # (re-)install KIM API lib using cmake3 and gnu v11 compilers with only example models
+         CMAKE=cmake3 CXX=g++-11 CC=gcc-11 FC=gfortran-11 make lib-kim args="-b "  # (re-)install KIM API lib using cmake3 and gnu v11 compilers with only example models
 
       Settings for debugging OpenKIM web queries discussed below need to
       be applied by adding them to the ``LMP_INC`` variable through
@@ -859,10 +859,10 @@ library.
 
       .. code-block:: bash
 
-         $ make lib-latte                          # print help message
-         $ make lib-latte args="-b"                # download and build in lib/latte/LATTE-master
-         $ make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
-         $ make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
+         make lib-latte                          # print help message
+         make lib-latte args="-b"                # download and build in lib/latte/LATTE-master
+         make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
+         make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
                                                    #   copy Makefile.lammps.gfortran to Makefile.lammps
 
       Note that 3 symbolic (soft) links, ``includelink`` and ``liblink``
@@ -962,12 +962,12 @@ more details.
 
       .. code-block:: bash
 
-         $ make lib-mscg             # print help message
-         $ make lib-mscg args="-b -m serial"   # download and build in lib/mscg/MSCG-release-master
-                                               # with the settings compatible with "make serial"
-         $ make lib-mscg args="-b -m mpi"      # download and build in lib/mscg/MSCG-release-master
-                                               # with the settings compatible with "make mpi"
-         $ make lib-mscg args="-p /usr/local/mscg-release" # use the existing MS-CG installation in /usr/local/mscg-release
+         make lib-mscg             # print help message
+         make lib-mscg args="-b -m serial"   # download and build in lib/mscg/MSCG-release-master
+                                             # with the settings compatible with "make serial"
+         make lib-mscg args="-b -m mpi"      # download and build in lib/mscg/MSCG-release-master
+                                             # with the settings compatible with "make mpi"
+         make lib-mscg args="-p /usr/local/mscg-release" # use the existing MS-CG installation in /usr/local/mscg-release
 
       Note that 2 symbolic (soft) links, ``includelink`` and ``liblink``,
       will be created in ``lib/mscg`` to point to the MS-CG
@@ -1019,10 +1019,10 @@ POEMS package
 
       .. code-block:: bash
 
-         $ make lib-poems                   # print help message
-         $ make lib-poems args="-m serial"  # build with GNU g++ compiler (settings as with "make serial")
-         $ make lib-poems args="-m mpi"     # build with default MPI C++ compiler (settings as with "make mpi")
-         $ make lib-poems args="-m icc"     # build with Intel icc compiler
+         make lib-poems                   # print help message
+         make lib-poems args="-m serial"  # build with GNU g++ compiler (settings as with "make serial")
+         make lib-poems args="-m mpi"     # build with default MPI C++ compiler (settings as with "make mpi")
+         make lib-poems args="-m icc"     # build with Intel icc compiler
 
       The build should produce two files: ``lib/poems/libpoems.a`` and
       ``lib/poems/Makefile.lammps``.  The latter is copied from an
@@ -1108,10 +1108,10 @@ binary package provided by your operating system.
 
       .. code-block:: bash
 
-         $ make lib-voronoi                          # print help message
-         $ make lib-voronoi args="-b"                # download and build the default version in lib/voronoi/voro++-<version>
-         $ make lib-voronoi args="-p $HOME/voro++"   # use existing Voro++ installation in $HOME/voro++
-         $ make lib-voronoi args="-b -v voro++0.4.6" # download and build the 0.4.6 version in lib/voronoi/voro++-0.4.6
+         make lib-voronoi                          # print help message
+         make lib-voronoi args="-b"                # download and build the default version in lib/voronoi/voro++-<version>
+         make lib-voronoi args="-p $HOME/voro++"   # use existing Voro++ installation in $HOME/voro++
+         make lib-voronoi args="-b -v voro++0.4.6" # download and build the 0.4.6 version in lib/voronoi/voro++-0.4.6
 
       Note that 2 symbolic (soft) links, ``includelink`` and
       ``liblink``, are created in lib/voronoi to point to the Voro++
@@ -1152,13 +1152,13 @@ systems.
 
       .. code-block:: bash
 
-         $ make yes-adios
+         make yes-adios
 
       otherwise, set ADIOS2_DIR environment variable when turning on the package:
 
       .. code-block:: bash
 
-         $ ADIOS2_DIR=path make yes-adios   # path is where ADIOS 2.x is installed
+         ADIOS2_DIR=path make yes-adios   # path is where ADIOS 2.x is installed
 
 ----------
 
@@ -1187,10 +1187,10 @@ The ATC package requires the MANYBODY package also be installed.
 
       .. code-block:: bash
 
-         $ make lib-atc                      # print help message
-         $ make lib-atc args="-m serial"     # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
-         $ make lib-atc args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
-         $ make lib-atc args="-m icc"        # build with Intel icc compiler
+         make lib-atc                      # print help message
+         make lib-atc args="-m serial"     # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
+         make lib-atc args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+         make lib-atc args="-m icc"        # build with Intel icc compiler
 
       The build should produce two files: ``lib/atc/libatc.a`` and
       ``lib/atc/Makefile.lammps``.  The latter is copied from an
@@ -1209,10 +1209,10 @@ The ATC package requires the MANYBODY package also be installed.
 
       .. code-block:: bash
 
-         $ make lib-linalg                     # print help message
-         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+         make lib-linalg                     # print help message
+         make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+         make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+         make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
 
 ----------
 
@@ -1238,10 +1238,10 @@ AWPMD package
 
       .. code-block:: bash
 
-         $ make lib-awpmd                   # print help message
-         $ make lib-awpmd args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
-         $ make lib-awpmd args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
-         $ make lib-awpmd args="-m icc"     # build with Intel icc compiler
+         make lib-awpmd                   # print help message
+         make lib-awpmd args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
+         make lib-awpmd args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
+         make lib-awpmd args="-m icc"     # build with Intel icc compiler
 
       The build should produce two files: ``lib/awpmd/libawpmd.a`` and
       ``lib/awpmd/Makefile.lammps``.  The latter is copied from an
@@ -1260,10 +1260,10 @@ AWPMD package
 
       .. code-block:: bash
 
-         $ make lib-linalg                     # print help message
-         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+         make lib-linalg                     # print help message
+         make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+         make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+         make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
 
 ----------
 
@@ -1301,10 +1301,10 @@ be built for the most part with all major versions of the C++ language.
 
       .. code-block:: bash
 
-         $ make lib-colvars                      # print help message
-         $ make lib-colvars args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
-         $ make lib-colvars args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
-         $ make lib-colvars args="-m g++-debug"  # build with GNU g++ compiler and colvars debugging enabled
+         make lib-colvars                      # print help message
+         make lib-colvars args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
+         make lib-colvars args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+         make lib-colvars args="-m g++-debug"  # build with GNU g++ compiler and colvars debugging enabled
 
       The "machine" argument of the "-m" flag is used to find a
       Makefile.machine to use as build recipe.  If it does not already
@@ -1316,8 +1316,8 @@ be built for the most part with all major versions of the C++ language.
 
       .. code-block:: bash
 
-         $ COLVARS_DEBUG=yes make lib-colvars args="-m machine"  # Build with debug code (much slower)
-         $ COLVARS_LEPTON=no make lib-colvars args="-m machine"  # Build without Lepton (included otherwise)
+         COLVARS_DEBUG=yes make lib-colvars args="-m machine"  # Build with debug code (much slower)
+         COLVARS_LEPTON=no make lib-colvars args="-m machine"  # Build without Lepton (included otherwise)
 
       The build should produce two files: the library ``lib/colvars/libcolvars.a``
       (which also includes Lepton objects if enabled) and the specification file
@@ -1351,9 +1351,9 @@ This package depends on the KSPACE package.
 
       .. code-block:: bash
 
-         $ make lib-electrode                   # print help message
-         $ make lib-electrode args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
-         $ make lib-electrode args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
+         make lib-electrode                   # print help message
+         make lib-electrode args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
+         make lib-electrode args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
 
 
       Note that the ``Makefile.lammps`` file has settings for the BLAS
@@ -1364,10 +1364,10 @@ This package depends on the KSPACE package.
 
       .. code-block:: bash
 
-         $ make lib-linalg                     # print help message
-         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+         make lib-linalg                     # print help message
+         make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+         make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+         make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
 
       The package itself is activated with ``make yes-KSPACE`` and
       ``make yes-ELECTRODE``
@@ -1407,8 +1407,8 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
       .. code-block:: bash
 
-         $ make lib-pace                          # print help message
-         $ make lib-pace args="-b"                # download and build the default version in lib/pace
+         make lib-pace                          # print help message
+         make lib-pace args="-b"                # download and build the default version in lib/pace
 
       You should not need to edit the ``lib/pace/Makefile.lammps`` file.
 
@@ -1435,10 +1435,10 @@ ML-POD package
 
       .. code-block:: bash
 
-         $ make lib-mlpod                   # print help message
-         $ make lib-mlpod args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
-         $ make lib-mlpod args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
-         $ make lib-mlpod args="-m mpi -e linalg"   # same as above but use the bundled linalg lib
+         make lib-mlpod                   # print help message
+         make lib-mlpod args="-m serial"  # build with GNU g++ compiler and MPI STUBS (settings as with "make serial")
+         make lib-mlpod args="-m mpi"     # build with default MPI compiler (settings as with "make mpi")
+         make lib-mlpod args="-m mpi -e linalg"   # same as above but use the bundled linalg lib
 
       Note that the ``Makefile.lammps`` file has settings to use the BLAS
       and LAPACK linear algebra libraries.  These can either exist on
@@ -1448,10 +1448,10 @@ ML-POD package
 
       .. code-block:: bash
 
-         $ make lib-linalg                     # print help message
-         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+         make lib-linalg                     # print help message
+         make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+         make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+         make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
 
       The package itself is activated with ``make yes-ML-POD``.
 
@@ -1550,10 +1550,10 @@ LAMMPS build.
 
       .. code-block:: bash
 
-         $ make lib-plumed                         # print help message
-         $ make lib-plumed args="-b"               # download and build PLUMED in lib/plumed/plumed2
-         $ make lib-plumed args="-p $HOME/.local"  # use existing PLUMED installation in $HOME/.local
-         $ make lib-plumed args="-p /usr/local -m shared"  # use existing PLUMED installation in
+         make lib-plumed                         # print help message
+         make lib-plumed args="-b"               # download and build PLUMED in lib/plumed/plumed2
+         make lib-plumed args="-p $HOME/.local"  # use existing PLUMED installation in $HOME/.local
+         make lib-plumed args="-p /usr/local -m shared"  # use existing PLUMED installation in
                                                            # /usr/local and use shared linkage mode
 
       Note that 2 symbolic (soft) links, ``includelink`` and ``liblink``
@@ -1566,8 +1566,8 @@ LAMMPS build.
 
       .. code-block:: bash
 
-         $ make yes-plumed
-         $ make machine
+         make yes-plumed
+         make machine
 
       Once this compilation completes you should be able to run LAMMPS
       in the usual way.  For shared linkage mode, libplumed.so must be
@@ -1619,8 +1619,8 @@ the HDF5 library.
 
       .. code-block:: bash
 
-         $ make lib-h5md                     # print help message
-         $ make lib-h5md args="-m h5cc"      # build with h5cc compiler
+         make lib-h5md                     # print help message
+         make lib-h5md args="-m h5cc"      # build with h5cc compiler
 
       The build should produce two files: ``lib/h5md/libch5md.a`` and
       ``lib/h5md/Makefile.lammps``.  The latter is copied from an
@@ -1674,10 +1674,10 @@ details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
 
       .. code-block:: bash
 
-         $ make lib-hdnnp             # print help message
-         $ make lib-hdnnp args="-b"   # download and build in lib/hdnnp/n2p2-...
-         $ make lib-hdnnp args="-b -v 2.1.4" # download and build specific version
-         $ make lib-hdnnp args="-p /usr/local/n2p2" # use the existing n2p2 installation in /usr/local/n2p2
+         make lib-hdnnp             # print help message
+         make lib-hdnnp args="-b"   # download and build in lib/hdnnp/n2p2-...
+         make lib-hdnnp args="-b -v 2.1.4" # download and build specific version
+         make lib-hdnnp args="-p /usr/local/n2p2" # use the existing n2p2 installation in /usr/local/n2p2
 
       Note that 3 symbolic (soft) links, ``includelink``, ``liblink`` and
       ``Makefile.lammps``, will be created in ``lib/hdnnp`` to point to
@@ -1777,8 +1777,8 @@ MDI package
 
       .. code-block:: bash
 
-         $ python Install.py -m gcc       # build using gcc compiler
-         $ python Install.py -m icc       # build using icc compiler
+         python Install.py -m gcc       # build using gcc compiler
+         python Install.py -m icc       # build using icc compiler
 
       The build should produce two files: ``lib/mdi/includelink/mdi.h``
       and ``lib/mdi/liblink/libmdi.so``\ .
@@ -1812,9 +1812,9 @@ they will be downloaded the first time this package is installed.
 
       .. code-block:: bash
 
-         $ make lib-mesont                    # print help message
-         $ make lib-mesont args="-m gfortran" # build with GNU g++ compiler (settings as with "make serial")
-         $ make lib-mesont args="-m ifort"    # build with Intel icc compiler
+         make lib-mesont                    # print help message
+         make lib-mesont args="-m gfortran" # build with GNU g++ compiler (settings as with "make serial")
+         make lib-mesont args="-m ifort"    # build with Intel icc compiler
 
       The build should produce two files: ``lib/mesont/libmesont.a`` and
       ``lib/mesont/Makefile.lammps``\ .  The latter is copied from an
@@ -1981,10 +1981,10 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
       .. code-block:: bash
 
-         $ make lib-qmmm                      # print help message
-         $ make lib-qmmm args="-m serial"     # build with GNU Fortran compiler (settings as in "make serial")
-         $ make lib-qmmm args="-m mpi"        # build with default MPI compiler (settings as in "make mpi")
-         $ make lib-qmmm args="-m gfortran"   # build with GNU Fortran compiler
+         make lib-qmmm                      # print help message
+         make lib-qmmm args="-m serial"     # build with GNU Fortran compiler (settings as in "make serial")
+         make lib-qmmm args="-m mpi"        # build with default MPI compiler (settings as in "make mpi")
+         make lib-qmmm args="-m gfortran"   # build with GNU Fortran compiler
 
       The build should produce two files: ``lib/qmmm/libqmmm.a`` and
       ``lib/qmmm/Makefile.lammps``.  The latter is copied from an
@@ -2133,9 +2133,9 @@ Eigen3 is a template library, so you do not need to build it.
 
       .. code-block:: bash
 
-         $ make lib-smd                         # print help message
-         $ make lib-smd args="-b"               # download to lib/smd/eigen3
-         $ make lib-smd args="-p /usr/include/eigen3"    # use existing Eigen installation in /usr/include/eigen3
+         make lib-smd                         # print help message
+         make lib-smd args="-b"               # download to lib/smd/eigen3
+         make lib-smd args="-p /usr/include/eigen3"    # use existing Eigen installation in /usr/include/eigen3
 
       Note that a symbolic (soft) link named ``includelink`` is created
       in ``lib/smd`` to point to the Eigen dir.  When LAMMPS builds it

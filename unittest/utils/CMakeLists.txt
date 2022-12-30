@@ -20,7 +20,7 @@ target_link_libraries(test_platform PRIVATE lammps GTest::GMockMain)
 add_test(NAME Platform COMMAND test_platform)
 
 if(PKG_LEPTON)
-  get_target_property(LEPTON_DEF lepton COMPILE_DEFINITONS)
+  get_target_property(LEPTON_DEF lepton COMPILE_DEFINITIONS)
   get_target_property(LEPTON_INC lepton INCLUDE_DIRECTORIES)
   add_executable(test_lepton test_lepton.cpp)
   target_link_libraries(test_lepton PRIVATE lammps GTest::GMockMain)

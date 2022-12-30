@@ -39,8 +39,10 @@ protected:
         testbinary = "LeptonUtilsTest";
         args       = {"-log", "none", "-echo", "screen", "-nocite", "-v", "num", "1"};
         LAMMPSTest::SetUp();
+        BEGIN_HIDE_OUTPUT();
         command("region box block 0 1 0 1 0 1");
         command("create_box 1 box");
+        END_HIDE_OUTPUT();
         variable = lmp->input->variable;
     }
 };
@@ -68,7 +70,7 @@ TEST_F(LeptonUtilsTest, substitute)
     ASSERT_THAT(LeptonUtils::substitute("v_num", lmp), StrEq("1"));
     ASSERT_THAT(LeptonUtils::substitute("eps*v_val1*k", lmp), StrEq("eps*100.0*k"));
     ASSERT_THAT(LeptonUtils::substitute("(2.5/v_pre)", lmp), StrEq("(2.5/0)"));
-    lmp->update->reset_timestep(100, false);
+    lmp->update->reset_timestep(100LL, false);
     ASSERT_THAT(LeptonUtils::substitute("(2.5/v_pre)", lmp), StrEq("(2.5/0.1)"));
 
     if (LAMMPS_NS::Info::has_exceptions()) {
@@ -240,7 +242,7 @@ void verifyInvalidExpression(const std::string &expression)
     if (verbose) std::cout << "Checking invalid expression: " << expression << "\n";
     try {
         Lepton::Parser::parse(expression);
-    } catch (const std::exception &ex) {
+    } catch (const std::exception &) {
         return;
     }
     throw std::exception();

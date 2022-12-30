@@ -44,6 +44,7 @@ packages:
    * :ref:`KIM <kim>`
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LATTE <latte>`
+   * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`ML-PACE <ml-pace>`

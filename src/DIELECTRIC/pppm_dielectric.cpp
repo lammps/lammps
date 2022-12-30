@@ -188,6 +188,7 @@ void PPPMDielectric::compute(int eflag, int vflag)
     energy = energy_before_poisson;
 
     // switch to unscaled charges to find charge density
+
     use_qscaled = false;
     
     // redo the charge density
@@ -201,7 +202,9 @@ void PPPMDielectric::compute(int eflag, int vflag)
 
     brick2fft();
 
-    poisson(); // poisson computes elong with unscaled charges
+    // compute electrostatic energy with the unscaled charges and average epsilon
+
+    poisson();
 
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
@@ -381,137 +384,6 @@ void PPPMDielectric::make_rho()
       }
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-   FFT-based Poisson solver for ik
-------------------------------------------------------------------------- */
-
-void PPPMDielectric::poisson_ik()
-{
-  int i,j,k,n;
-  double eng;
-
-  // transform charge density (r -> k)
-
-  n = 0;
-  for (i = 0; i < nfft; i++) {
-    work1[n++] = density_fft[i];
-    work1[n++] = ZEROF;
-  }
-
-  fft1->compute(work1,work1,FFT3d::FORWARD);
-
-  // global energy and virial contribution
-
-  double scaleinv = 1.0/(nx_pppm*ny_pppm*nz_pppm);
-  double s2 = scaleinv*scaleinv;
-
-  if (eflag_global || vflag_global) {
-    if (vflag_global) {
-      n = 0;
-      for (i = 0; i < nfft; i++) {
-        eng = s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
-        for (j = 0; j < 6; j++) virial[j] += eng*vg[i][j];
-        if (eflag_global) energy += eng;
-        n += 2;
-      }
-    } else {
-      n = 0;
-      for (i = 0; i < nfft; i++) {
-        energy +=
-          s2 * greensfn[i] * (work1[n]*work1[n] + work1[n+1]*work1[n+1]);
-        n += 2;
-      }
-    }
-  }
-
-  // scale by 1/total-grid-pts to get rho(k)
-  // multiply by Green's function to get V(k)
-
-  n = 0;
-  for (i = 0; i < nfft; i++) {
-    work1[n++] *= scaleinv * greensfn[i];
-    work1[n++] *= scaleinv * greensfn[i];
-  }
-
-  // extra FFTs for per-atom energy/virial
-
-  if (evflag_atom) poisson_peratom();
-
-  // triclinic system
-
-  if (triclinic) {
-    poisson_ik_triclinic();
-    return;
-  }
-
-  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
-  // FFT leaves data in 3d brick decomposition
-  // copy it into inner portion of vdx,vdy,vdz arrays
-
-  // x direction gradient
-
-  n = 0;
-  for (k = nzlo_fft; k <= nzhi_fft; k++)
-    for (j = nylo_fft; j <= nyhi_fft; j++)
-      for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = -fkx[i]*work1[n+1];
-        work2[n+1] = fkx[i]*work1[n];
-        n += 2;
-      }
-
-  fft2->compute(work2,work2,FFT3d::BACKWARD);
-
-  n = 0;
-  for (k = nzlo_in; k <= nzhi_in; k++)
-    for (j = nylo_in; j <= nyhi_in; j++)
-      for (i = nxlo_in; i <= nxhi_in; i++) {
-        vdx_brick[k][j][i] = work2[n];
-        n += 2;
-      }
-
-  // y direction gradient
-
-  n = 0;
-  for (k = nzlo_fft; k <= nzhi_fft; k++)
-    for (j = nylo_fft; j <= nyhi_fft; j++)
-      for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = -fky[j]*work1[n+1];
-        work2[n+1] = fky[j]*work1[n];
-        n += 2;
-      }
-
-  fft2->compute(work2,work2,FFT3d::BACKWARD);
-
-  n = 0;
-  for (k = nzlo_in; k <= nzhi_in; k++)
-    for (j = nylo_in; j <= nyhi_in; j++)
-      for (i = nxlo_in; i <= nxhi_in; i++) {
-        vdy_brick[k][j][i] = work2[n];
-        n += 2;
-      }
-
-  // z direction gradient
-
-  n = 0;
-  for (k = nzlo_fft; k <= nzhi_fft; k++)
-    for (j = nylo_fft; j <= nyhi_fft; j++)
-      for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = -fkz[k]*work1[n+1];
-        work2[n+1] = fkz[k]*work1[n];
-        n += 2;
-      }
-
-  fft2->compute(work2,work2,FFT3d::BACKWARD);
-
-  n = 0;
-  for (k = nzlo_in; k <= nzhi_in; k++)
-    for (j = nylo_in; j <= nyhi_in; j++)
-      for (i = nxlo_in; i <= nxhi_in; i++) {
-        vdz_brick[k][j][i] = work2[n];
-        n += 2;
-      }
 }
 
 /* ----------------------------------------------------------------------

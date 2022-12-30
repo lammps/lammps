@@ -39,7 +39,6 @@ class PPPMDielectric : public PPPM {
   void make_rho() override;
   void fieldforce_ik() override;
   void fieldforce_ad() override;
-  void poisson_ik() override;
   void qsum_qsq(int warning_flag = 1) override;
 
   class AtomVecDielectric *avec;

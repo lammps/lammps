@@ -44,6 +44,10 @@ class PPPMDispDielectric : public PPPMDisp {
   void qsum_qsq(int warning_flag = 1) override;
 
   class AtomVecDielectric *avec;
+  bool use_qscaled;
+
+  void compute_ave_epsilon();
+  double epsilon_ave;
   int mu_flag;
 };
 

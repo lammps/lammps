@@ -416,11 +416,56 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
     natoms_original = atom->natoms;
   }
 
+  // recompute the average epsilon of all the atoms
+
+  compute_ave_epsilon();
+
   // sum energy across procs and add in volume-dependent term
 
   const double qscale = force->qqrd2e * scale;
 
   if (eflag_global) {
+
+    if (function[0]) {
+
+      // switch to unscaled charges to find charge density
+
+      use_qscaled = false;
+
+      make_rho_c();
+
+      gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+
+      brick2fft(nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
+                density_brick,density_fft,work1,remap);
+
+      // compute electrostatic energy with the unscaled charges and average epsilon
+
+      if (differentiation_flag == 1) {
+        poisson_ad(work1,work2,density_fft,fft1,fft2,
+                  nx_pppm,ny_pppm,nz_pppm,nfft,
+                  nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft,
+                  nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
+                  energy_1,greensfn,
+                  virial_1,vg,vg2,
+                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
+
+      } else {
+        poisson_ik(work1,work2,density_fft,fft1,fft2,
+                  nx_pppm,ny_pppm,nz_pppm,nfft,
+                  nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft,
+                  nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
+                  energy_1,greensfn,
+                  fkx,fky,fkz,fkx2,fky2,fkz2,
+                  vdx_brick,vdy_brick,vdz_brick,virial_1,vg,vg2,
+                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
+
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
+                        gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      }
+    }
+
     double energy_all;
     MPI_Allreduce(&energy_1,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy_1 = energy_all;
@@ -435,6 +480,10 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
     energy_6 += - MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij +
       1.0/12.0*pow(g_ewald_6,6)*csum;
     energy_1 *= qscale;
+
+    // revert to qscaled charges (for force in the next time step)
+
+    use_qscaled = true;
   }
 
   // sum virial across procs
@@ -493,6 +542,28 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
   // convert atoms back from lamda to box coords
 
   if (triclinic) domain->lamda2x(atom->nlocal);
+}
+
+/* ----------------------------------------------------------------------
+   compute the average dielectric constant of all the atoms
+   NOTE: for dielectric use cases
+------------------------------------------------------------------------- */
+
+void PPPMDispDielectric::compute_ave_epsilon()
+{
+  const double * const epsilon = atom->epsilon;
+  const int nlocal = atom->nlocal;
+  double epsilon_local(0.0);
+
+#if defined(_OPENMP)
+#pragma omp parallel for default(shared) reduction(+:epsilon_local)
+#endif
+  for (int i = 0; i < nlocal; i++) {
+    epsilon_local += epsilon[i];
+  }
+
+  MPI_Allreduce(&epsilon_local,&epsilon_ave,1,MPI_DOUBLE,MPI_SUM,world);
+  epsilon_ave /= (double)atom->natoms;
 }
 
 /* ----------------------------------------------------------------------
@@ -564,6 +635,7 @@ void PPPMDispDielectric::make_rho_c()
   // (mx,my,mz) = global coords of moving stencil pt
 
   double *q = atom->q_scaled;
+  if (use_qscaled == false) q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 

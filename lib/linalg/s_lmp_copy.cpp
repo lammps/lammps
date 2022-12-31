@@ -5,9 +5,9 @@ extern "C" {
 
 /* assign strings:  a = b */
 
-void s_lmp_copy(register char *a, register char *b, ftnlen la, ftnlen lb)
+void s_lmp_copy(char *a, char *b, ftnlen la, ftnlen lb)
 {
-    register char *aend, *bend;
+    char *aend, *bend;
 
     aend = a + la;
 

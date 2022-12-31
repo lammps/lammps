@@ -1816,7 +1816,7 @@ fitting the potentials natively in LAMMPS.
 
 Ngoc Cuong Nguyen (MIT), Andrew Rohskopf (Sandia)
 
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 **Install:**
 

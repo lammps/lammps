@@ -18,14 +18,14 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * nvt/sllod = style name of this fix command
 * zero or more keyword/value pairs may be appended
-* keyword = *psllod*
 
   .. parsed-literal::
 
     keyword = *psllod*
       *psllod* value = *no* or *yes* = use SLLOD or p-SLLOD variant, respectively
 
-* additional thermostat related keyword/value pairs from the :doc:`fix nvt <fix_nh>` command can be appended
+* additional thermostat related keyword/value pairs from the :doc:`fix nvt <fix_nh>`
+  command can be appended
 
 Examples
 """"""""
@@ -69,19 +69,20 @@ large x velocity.  These velocities do not contribute to the thermal
    consistent.
 
 The SLLOD equations of motion, originally proposed by Hoover and Ladd
-(see :ref:`(Evans and Morriss) <Evans3>`), were proven to be
-equivalent to Newton's equations of motion for shear flow by
-:ref:`(Evans and Morriss) <Evans3>`. They were later shown to generate
-the desired velocity gradient and the correct production of work by
-stresses for all forms of homogeneous flow by :ref:`(Daivis and Todd)
-<Daivis>`.
-For the default *psllod* = *no*,
-the LAMMPS implementation adheres to the standard SLLOD equations
-of motion, as defined by :ref:`(Evans and Morriss) <Evans3>`.
-The option *psllod* = *yes* invokes the
-slightly different SLLOD variant first introduced by :ref:`(Tuckerman et al.) <Tuckerman>` as
-g-SLLOD and later by :ref:`(Edwards) <Edwards>` as p-SLLOD.
-In all cases, the equations of motion are coupled to a
+(see :ref:`(Evans and Morriss) <Evans3>`), were proven to be equivalent
+to Newton's equations of motion for shear flow by :ref:`(Evans and
+Morriss) <Evans3>`. They were later shown to generate the desired
+velocity gradient and the correct production of work by stresses for all
+forms of homogeneous flow by :ref:`(Daivis and Todd) <Daivis>`.
+
+.. versionchanged:: TBD
+
+For the default (*psllod* = *no*), the LAMMPS implementation adheres to
+the standard SLLOD equations of motion, as defined by :ref:`(Evans and
+Morriss) <Evans3>`.  The option *psllod* = *yes* invokes the slightly
+different SLLOD variant first introduced by :ref:`(Tuckerman et al.)
+<Tuckerman>` as g-SLLOD and later by :ref:`(Edwards) <Edwards>` as
+p-SLLOD.  In all cases, the equations of motion are coupled to a
 Nose/Hoover chain thermostat in a velocity Verlet formulation, closely
 following the implementation used for the :doc:`fix nvt <fix_nh>`
 command.

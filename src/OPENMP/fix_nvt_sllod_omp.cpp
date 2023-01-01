@@ -87,15 +87,14 @@ void FixNVTSllodOMP::init()
 
   // check fix deform remap settings
 
-  int i;
-  for (i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^deform")) {
-      if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag != Domain::V_REMAP)
-        error->all(FLERR,"Using fix nvt/sllod/omp with inconsistent fix deform remap option");
-      break;
-    }
-  if (i == modify->nfix)
-    error->all(FLERR,"Using fix nvt/sllod/omp with no fix deform defined");
+  auto deform = modify->get_fix_by_style("^deform");
+  if (deform.size() < 1) error->all(FLERR,"Using fix nvt/sllod/omp with no fix deform defined");
+
+  for (auto ifix : deform) {
+    auto f = dynamic_cast<FixDeform *>(ifix);
+    if (f && (f->remapflag != Domain::V_REMAP))
+      error->all(FLERR,"Using fix nvt/sllod/omp with inconsistent fix deform remap option");
+  }
 }
 
 /* ----------------------------------------------------------------------

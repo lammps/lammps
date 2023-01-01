@@ -80,22 +80,22 @@ void FixNVTSllodKokkos<DeviceType>::init()
   FixNHKokkos<DeviceType>::init();
 
   if (!this->temperature->tempbias)
-    this->error->all(FLERR,"Temperature for fix nvt/sllod does not have a bias");
+    this->error->all(FLERR,"Temperature for fix nvt/sllod/kk does not have a bias");
 
   nondeformbias = 0;
   if (utils::strmatch(this->temperature->style,"^temp/deform")) nondeformbias = 1;
 
   // check fix deform remap settings
 
-  int i;
-  for (i = 0; i < this->modify->nfix; i++)
-    if (utils::strmatch(this->modify->fix[i]->style,"^deform")) {
-      if (((FixDeform *) this->modify->fix[i])->remapflag != Domain::V_REMAP)
-        this->error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform remap option");
-      break;
-    }
-  if (i == this->modify->nfix)
-    this->error->all(FLERR,"Using fix nvt/sllod with no fix deform defined");
+  auto deform = this->modify->get_fix_by_style("^deform");
+  if (deform.size() < 1)
+    this->error->all(FLERR,"Using fix nvt/sllod/kk with no fix deform defined");
+
+  for (auto ifix : deform) {
+    auto f = dynamic_cast<FixDeform *>(ifix);
+    if (f && (f->remapflag != Domain::V_REMAP))
+      this->error->all(FLERR,"Using fix ntv/sllod/kk with inconsistent fix deform remap option");
+  }
 }
 
 /* ----------------------------------------------------------------------

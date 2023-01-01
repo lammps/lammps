@@ -117,11 +117,13 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
   if (vdelu.extent(0) < atomKK->nmax)
     vdelu = typename AT::t_v_array(Kokkos::NoInit("nvt/sllod/kk:vdelu"), atomKK->nmax);
 
+  if (!this->psllod_flag) this->temperature->remove_bias_all();
+
   this->copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNVTSllod_temp1>(0,nlocal),*this);
   this->copymode = 0;
 
-  this->temperature->remove_bias_all();
+  if (this->psllod_flag) this->temperature->remove_bias_all();
 
   this->copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNVTSllod_temp2>(0,nlocal),*this);

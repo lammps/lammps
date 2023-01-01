@@ -108,10 +108,11 @@ void FixNVTSllodEff::nh_v_temp()
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      temperature->remove_bias(i,v[i]);
+      if (!psllod_flag) temperature->remove_bias(i,v[i]);
       vdelu[0] = h_two[0]*v[i][0] + h_two[5]*v[i][1] + h_two[4]*v[i][2];
       vdelu[1] = h_two[1]*v[i][1] + h_two[3]*v[i][2];
       vdelu[2] = h_two[2]*v[i][2];
+      if (psllod_flag) temperature->remove_bias(i,v[i]);
       v[i][0] = v[i][0]*factor_eta - dthalf*vdelu[0];
       v[i][1] = v[i][1]*factor_eta - dthalf*vdelu[1];
       v[i][2] = v[i][2]*factor_eta - dthalf*vdelu[2];

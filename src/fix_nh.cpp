@@ -363,7 +363,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"psllod") == 0) {
       iarg += 2;
-      
+
     } else error->all(FLERR,"Unknown fix nvt/npt/nph keyword: {}", arg[iarg]);
   }
 

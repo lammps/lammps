@@ -35,14 +35,26 @@ FixNVTSllodIntel::FixNVTSllodIntel(LAMMPS *lmp, int narg, char **arg) :
   FixNHIntel(lmp, narg, arg)
 {
   if (!tstat_flag)
-    error->all(FLERR,"Temperature control must be used with fix nvt/sllod");
+    error->all(FLERR,"Temperature control must be used with fix nvt/sllod/intel");
   if (pstat_flag)
-    error->all(FLERR,"Pressure control can not be used with fix nvt/sllod");
+    error->all(FLERR,"Pressure control can not be used with fix nvt/sllod/intel");
 
   // default values
 
+  psllod_flag = 0;
   if (mtchain_default_flag) mtchain = 1;
 
+  // select SLLOD/p-SLLOD/g-SLLOD variant
+
+  int iarg = 3;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"psllod") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nvt/sllod/intel psllod", error);
+      psllod_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else iarg++;
+  }
 
   // create a new compute temp style
   // id = fix-ID + temp

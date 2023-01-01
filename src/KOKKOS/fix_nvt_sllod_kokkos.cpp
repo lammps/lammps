@@ -47,11 +47,24 @@ FixNVTSllodKokkos<DeviceType>::FixNVTSllodKokkos(LAMMPS *lmp, int narg, char **a
   this->domainKK = (DomainKokkos *) this->domain;
 
   if (!this->tstat_flag)
-    this->error->all(FLERR,"Temperature control must be used with fix nvt/kk");
+    this->error->all(FLERR,"Temperature control must be used with fix nvt/sllod/kk");
   if (this->pstat_flag)
-    this->error->all(FLERR,"Pressure control can not be used with fix nvt/kk");
+    this->error->all(FLERR,"Pressure control can not be used with fix nvt/sllod/kk");
 
+  this->psllod_flag = 0;
   if (this->mtchain_default_flag) this->mtchain = 1;
+
+  // select SLLOD/p-SLLOD/g-SLLOD variant
+
+  int iarg = 3;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"psllod") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nvt/sllod/kk psllod", this->error);
+      this->psllod_flag = utils::logical(FLERR,arg[iarg+1],false,this->lmp);
+      iarg += 2;
+    } else iarg++;
+  }
 
   this->id_temp = utils::strdup(std::string(this->id)+"_temp");
   this->modify->add_compute(fmt::format("{} all temp/deform/kk",this->id_temp));

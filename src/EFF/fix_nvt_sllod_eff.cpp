@@ -42,7 +42,20 @@ FixNVTSllodEff::FixNVTSllodEff(LAMMPS *lmp, int narg, char **arg) :
 
   // default values
 
+  psllod_flag = 0;
   if (mtchain_default_flag) mtchain = 1;
+
+  // select SLLOD/p-SLLOD/g-SLLOD variant
+
+  int iarg = 3;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"psllod") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nvt/sllod/eff psllod", error);
+      psllod_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else iarg++;
+  }
 
   // create a new compute temp style
   // id = fix-ID + temp

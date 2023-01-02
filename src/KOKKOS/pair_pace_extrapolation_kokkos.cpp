@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Stan Moore (SNL)
+   Contributing author: Yury Lysogorskiy (ICAMS)
 ------------------------------------------------------------------------- */
 
 #include "pair_pace_extrapolation_kokkos.h"
@@ -29,9 +29,9 @@
 #include "neighbor_kokkos.h"
 #include "neigh_request.h"
 
-#include "ace-evaluator/ace_c_basis.h"
-#include "ace-evaluator/ace_evaluator.h"
-#include "ace-evaluator/ace_recursive.h"
+//#include "ace-evaluator/ace_c_basis.h"
+//#include "ace-evaluator/ace_evaluator.h"
+//#include "ace-evaluator/ace_recursive.h"
 #include "ace-evaluator/ace_version.h"
 #include "ace-evaluator/ace_radial.h"
 
@@ -42,21 +42,16 @@
 
 namespace LAMMPS_NS {
     struct ACEALImpl {
-        ACEALImpl() : basis_set(nullptr), ace(nullptr), ctilde_basis_set(nullptr), rec_ace(nullptr) {}
+        ACEALImpl() : basis_set(nullptr), ace(nullptr) {}
 
         ~ACEALImpl()
         {
             delete basis_set;
             delete ace;
-
-            delete ctilde_basis_set;
-            delete rec_ace;
         }
 
         ACEBBasisSet *basis_set;
         ACEBEvaluator *ace;
-        ACECTildeBasisSet *ctilde_basis_set;
-        ACERecursiveEvaluator *rec_ace;
     };
 }    // namespace LAMMPS_NS
 
@@ -132,7 +127,12 @@ void PairPACEExtrapolationKokkos<DeviceType>::grow(int natom, int maxneigh)
     // hard-core repulsion
     MemKK::realloc_kokkos(rho_core, "pace:rho_core", natom);
     MemKK::realloc_kokkos(dF_drho_core, "pace:dF_drho_core", natom);
+
     MemKK::realloc_kokkos(dB_flatten, "pace:dB_flatten", natom, idx_ms_combs_max, basis_set->rankmax);
+
+    //B-projections
+    MemKK::realloc_kokkos(projections, "pace:projections", natom, total_num_functions_max); // per-atom B-projections
+    MemKK::realloc_kokkos(gamma, "pace:gamma", natom); // per-atom gamma
   }
 
   if (((int)ylm.extent(0) < natom) || ((int)ylm.extent(1) < maxneigh)) {
@@ -271,14 +271,17 @@ template<class DeviceType>
 void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
 {
   auto basis_set = aceimpl->basis_set;
+  auto b_evaluator = aceimpl->ace;
 
   // flatten loops, get per-element count and max
 
   idx_ms_combs_max = 0;
-  int total_basis_size_max = 0;
+  total_num_functions_max = 0;
 
   MemKK::realloc_kokkos(d_idx_ms_combs_count, "pace:idx_ms_combs_count", nelements);
+  MemKK::realloc_kokkos(d_total_basis_size, "pace:total_basis_size", nelements);
   auto h_idx_ms_combs_count = Kokkos::create_mirror_view(d_idx_ms_combs_count);
+  auto h_total_basis_size = Kokkos::create_mirror_view(d_total_basis_size);
 
   for (int mu = 0; mu < nelements; mu++) {
     int idx_ms_combs = 0;
@@ -301,21 +304,25 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
     }
     h_idx_ms_combs_count(mu) = idx_ms_combs;
     idx_ms_combs_max = MAX(idx_ms_combs_max, idx_ms_combs);
-    total_basis_size_max = MAX(total_basis_size_max, total_basis_size_rank1 + total_basis_size);
+    total_num_functions_max = MAX(total_num_functions_max, total_basis_size_rank1 + total_basis_size);
+    h_total_basis_size(mu) = total_basis_size_rank1 + total_basis_size;
   }
 
   Kokkos::deep_copy(d_idx_ms_combs_count, h_idx_ms_combs_count);
+  Kokkos::deep_copy(d_total_basis_size, h_total_basis_size);
 
-  MemKK::realloc_kokkos(d_rank, "pace:rank", nelements, total_basis_size_max);
-  MemKK::realloc_kokkos(d_num_ms_combs, "pace:num_ms_combs", nelements, total_basis_size_max);
+  MemKK::realloc_kokkos(d_rank, "pace:rank", nelements, total_num_functions_max);
+  MemKK::realloc_kokkos(d_num_ms_combs, "pace:num_ms_combs", nelements, total_num_functions_max);
   MemKK::realloc_kokkos(d_func_inds, "pace:func_inds", nelements, idx_ms_combs_max);
-  MemKK::realloc_kokkos(d_mus, "pace:mus", nelements, total_basis_size_max, basis_set->rankmax);
-  MemKK::realloc_kokkos(d_ns, "pace:ns", nelements, total_basis_size_max, basis_set->rankmax);
-  MemKK::realloc_kokkos(d_ls, "pace:ls", nelements, total_basis_size_max, basis_set->rankmax);
+  MemKK::realloc_kokkos(d_mus, "pace:mus", nelements, total_num_functions_max, basis_set->rankmax);
+  MemKK::realloc_kokkos(d_ns, "pace:ns", nelements, total_num_functions_max, basis_set->rankmax);
+  MemKK::realloc_kokkos(d_ls, "pace:ls", nelements, total_num_functions_max, basis_set->rankmax);
   MemKK::realloc_kokkos(d_ms_combs, "pace:ms_combs", nelements, idx_ms_combs_max, basis_set->rankmax);
-  //MemKK::realloc_kokkos(d_ctildes, "pace:ctildes", nelements, idx_ms_combs_max, basis_set->ndensitymax);
   MemKK::realloc_kokkos(d_gen_cgs, "pace:gen_cgs", nelements, idx_ms_combs_max);
-  MemKK::realloc_kokkos(d_coeffs, "pace:coeffs", nelements, total_basis_size_max, basis_set->ndensitymax);
+  MemKK::realloc_kokkos(d_coeffs, "pace:coeffs", nelements, total_num_functions_max, basis_set->ndensitymax);
+  // active set inverted
+  MemKK::realloc_kokkos(d_ASI, "pace:ASI", nelements, total_num_functions_max, total_num_functions_max);
+
 
   auto h_rank = Kokkos::create_mirror_view(d_rank);
   auto h_num_ms_combs = Kokkos::create_mirror_view(d_num_ms_combs);
@@ -327,6 +334,8 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
 //  auto h_ctildes = Kokkos::create_mirror_view(d_ctildes);
   auto h_gen_cgs = Kokkos::create_mirror_view(d_gen_cgs);
   auto h_coeffs = Kokkos::create_mirror_view(d_coeffs);
+// asi
+  auto h_ASI = Kokkos::create_mirror_view(d_ASI);
 
   // copy values on host
 
@@ -390,6 +399,14 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
         idx_ms_comb++;
       }
     }
+
+    // ASI
+    const auto &A_as_inv = b_evaluator->A_active_set_inv.at(mu);
+    for(int i = 0; i < total_basis_size_rank1 + total_basis_size; i++)
+        for(int j = 0; j < total_basis_size_rank1 + total_basis_size; j++){
+            h_ASI(mu,i,j)=A_as_inv(i,j);
+    }
+
   }
 
   Kokkos::deep_copy(d_rank, h_rank);
@@ -402,6 +419,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
 //  Kokkos::deep_copy(d_ctildes, h_ctildes);
   Kokkos::deep_copy(d_gen_cgs, h_gen_cgs);
   Kokkos::deep_copy(d_coeffs, h_coeffs);
+  Kokkos::deep_copy(d_ASI, h_ASI);
 }
 
 /* ----------------------------------------------------------------------
@@ -591,6 +609,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
 
   chunk_size = MIN(chunksize,inum); // "chunksize" variable is set by user
   chunk_offset = 0;
+  gamma_flag = 1;
 
   grow(chunk_size, maxneigh);
 
@@ -603,6 +622,9 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     Kokkos::deep_copy(A, 0.0);
     Kokkos::deep_copy(A_rank1, 0.0);
     Kokkos::deep_copy(rhos, 0.0);
+
+    Kokkos::deep_copy(projections, 0.0);
+    Kokkos::deep_copy(gamma, 0.0);
 
     EV_FLOAT ev_tmp;
 
@@ -663,6 +685,12 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     {
       typename Kokkos::RangePolicy<DeviceType,TagPairPACEComputeFS> policy_fs(0,chunk_size);
       Kokkos::parallel_for("ComputeFS",policy_fs,*this);
+    }
+
+    //ComputeGamma
+    if (gamma_flag) {
+      typename Kokkos::RangePolicy<DeviceType,TagPairPACEComputeGamma> policy_gamma(0,chunk_size);
+      Kokkos::parallel_for("ComputeGamma",policy_gamma,*this);
     }
 
     //ComputeWeights
@@ -952,6 +980,12 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRho,
       //for rank=1 (r=0) only 1 ms-combination exists (ms_ind=0), so index of func.ctildes is 0..ndensity-1
       Kokkos::atomic_add(&rhos(ii, p), d_coeffs(mu_i, func_ind, p) * d_gen_cgs(mu_i, idx_ms_comb) * A_cur);
     }
+
+
+    //gamma_i
+    if(gamma_flag)
+        Kokkos::atomic_add(&projections(ii, func_ind),  d_gen_cgs(mu_i, idx_ms_comb) * A_cur);
+
   } else { // rank > 1
     // loop over {ms} combinations in sum
 
@@ -987,6 +1021,9 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRho,
       // real-part only multiplication
       Kokkos::atomic_add(&rhos(ii, p), B.real_part_product(d_coeffs(mu_i, func_ind, p) * d_gen_cgs(mu_i, idx_ms_comb)));
     }
+    //gamma_i
+    if(gamma_flag)
+        Kokkos::atomic_add(&projections(ii, func_ind),  B.real_part_product(d_gen_cgs(mu_i, idx_ms_comb)));
   }
 }
 
@@ -1024,6 +1061,35 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeFS, 
   }
 }
 
+
+/* ---------------------------------------------------------------------- */
+
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeGamma, const int& ii) const
+{
+    const int i = d_ilist[ii + chunk_offset];
+    const int mu_i = d_map(type(i));
+    const int basis_size = d_total_basis_size(mu_i);
+
+
+    double gamma_max = 0;
+    for (int j = 0; j <basis_size; j++) {
+        double current_gamma = 0;
+
+        // compute row-matrix-multiplication asi_vector * A_as_inv (transposed matrix)
+        for (int k = 0; k < basis_size; k++)
+            current_gamma += projections(ii,k) * d_ASI(mu_i, j, k); //correct d_ASI(mu_i, j, k)
+
+        if (abs(current_gamma) > gamma_max)
+            gamma_max = abs(current_gamma);
+    }
+
+    // tally energy contribution
+    gamma(ii) = gamma_max;
+
+}
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1714,13 +1780,16 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
   bytes += MemKK::memory_usage(d_ns);
   bytes += MemKK::memory_usage(d_ls);
   bytes += MemKK::memory_usage(d_ms_combs);
-//  bytes += MemKK::memory_usage(d_ctildes);
   bytes += MemKK::memory_usage(d_gen_cgs);
   bytes += MemKK::memory_usage(d_coeffs);
   bytes += MemKK::memory_usage(alm);
   bytes += MemKK::memory_usage(blm);
   bytes += MemKK::memory_usage(cl);
   bytes += MemKK::memory_usage(dl);
+  bytes += MemKK::memory_usage(d_total_basis_size);
+  bytes += MemKK::memory_usage(d_ASI);
+  bytes += MemKK::memory_usage(projections);
+  bytes += MemKK::memory_usage(gamma);
 
   if (k_splines_gk.h_view.data()) {
     for (int i = 0; i < nelements; i++) {

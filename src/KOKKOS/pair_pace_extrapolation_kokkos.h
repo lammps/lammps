@@ -40,6 +40,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   struct TagPairPACEConjugateAi{};
   struct TagPairPACEComputeRho{};
   struct TagPairPACEComputeFS{};
+  struct TagPairPACEComputeGamma{};
   struct TagPairPACEComputeWeights{};
   struct TagPairPACEComputeDerivative{};
 
@@ -81,6 +82,9 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   void operator() (TagPairPACEComputeFS,const int& ii) const;
 
   KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairPACEComputeGamma, const int& ii) const;
+
+  KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeWeights,const int& iter) const;
 
   KOKKOS_INLINE_FUNCTION
@@ -95,8 +99,9 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
  protected:
-  int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max;
+  int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max;
   int host_flag;
+  int gamma_flag;
 
   int eflag, vflag;
 
@@ -236,6 +241,10 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   t_ace_3d d_values;
   t_ace_3d d_derivatives;
 
+  // inverted active set
+  t_ace_3d d_ASI;
+  t_ace_2d projections;
+  t_ace_1d gamma;
   // Spherical Harmonics
 
   void pre_compute_harmonics(int);
@@ -275,6 +284,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
 
   // tilde
   t_ace_1i d_idx_ms_combs_count;
+  t_ace_1i d_total_basis_size;
   t_ace_2i d_rank;
   t_ace_2i d_num_ms_combs;
   t_ace_2i d_func_inds;

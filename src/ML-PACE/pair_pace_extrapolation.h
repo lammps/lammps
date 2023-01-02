@@ -49,13 +49,15 @@ class PairPACEExtrapolation : public Pair {
   struct ACEALImpl *aceimpl;
   int nmax;
 
-  void allocate();
+  virtual void allocate();
   std::vector<std::string> element_names;    // list of elements (used by dump pace/extrapolation)
   double *extrapolation_grade_gamma;         //per-atom gamma value
 
   int flag_compute_extrapolation_grade;
 
   double **scale;
+
+  int chunksize;
 };
 
 }    // namespace LAMMPS_NS

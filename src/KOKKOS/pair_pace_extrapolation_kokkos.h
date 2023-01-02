@@ -23,7 +23,7 @@ PairStyle(pace/extrapolation/kk/host,PairPACEExtrapolationKokkos<LMPHostType>);
 #ifndef LMP_PAIR_PACE_EXTRAPOLATION_KOKKOS_H
 #define LMP_PAIR_PACE_EXTRAPOLATION_KOKKOS_H
 
-#include "pair_pace.h"
+#include "pair_pace_extrapolation.h"
 #include "ace-evaluator/ace_radial.h"
 #include "kokkos_type.h"
 #include "pair_kokkos.h"
@@ -31,7 +31,7 @@ PairStyle(pace/extrapolation/kk/host,PairPACEExtrapolationKokkos<LMPHostType>);
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class PairPACEExtrapolationKokkos : public PairPACE {
+class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
  public:
   struct TagPairPACEComputeNeigh{};
   struct TagPairPACEComputeRadial{};
@@ -95,7 +95,7 @@ class PairPACEExtrapolationKokkos : public PairPACE {
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
  protected:
-  int inum, maxneigh, chunk_size, chunk_offset, idx_rho_max;
+  int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max;
   int host_flag;
 
   int eflag, vflag;
@@ -274,15 +274,17 @@ class PairPACEExtrapolationKokkos : public PairPACE {
   t_ace_2d d_mexp;
 
   // tilde
-  t_ace_1i d_idx_rho_count;
+  t_ace_1i d_idx_ms_combs_count;
   t_ace_2i d_rank;
   t_ace_2i d_num_ms_combs;
-  t_ace_2i d_offsets;
+  t_ace_2i d_func_inds;
   t_ace_3i d_mus;
   t_ace_3i d_ns;
   t_ace_3i d_ls;
   t_ace_3i d_ms_combs;
-  t_ace_3d d_ctildes;
+//  t_ace_3d d_ctildes;
+  t_ace_2d d_gen_cgs;
+  t_ace_3d d_coeffs;
 
   t_ace_3d3 f_ij;
 

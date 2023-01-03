@@ -53,8 +53,8 @@ ComputeEfieldWolfAtom::ComputeEfieldWolfAtom(LAMMPS *lmp, int narg, char **arg) 
 
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "limit") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute efield/atom/wolf limit", error);
+    if (strcmp(arg[iarg], "group") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute efield/atom/wolf group", error);
       delete[] group2;
       group2 = utils::strdup(arg[iarg + 1]);
       iarg += 2;

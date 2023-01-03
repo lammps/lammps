@@ -98,6 +98,10 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
+
+  void *extract(const char *str, int &dim);
+  void *extract_peratom(const char *str, int &ncol);
+
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max;
   int host_flag;
@@ -203,6 +207,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   typedef Kokkos::View<double**, DeviceType> t_ace_2d;
   typedef Kokkos::View<double*[3], DeviceType> t_ace_2d3;
   typedef Kokkos::View<double***, DeviceType> t_ace_3d;
+  typedef Kokkos::View<const double***, DeviceType> tc_ace_3d;
   typedef Kokkos::View<double**[3], DeviceType> t_ace_3d3;
   typedef Kokkos::View<double**[4], DeviceType> t_ace_3d4;
   typedef Kokkos::View<double****, DeviceType> t_ace_4d;
@@ -212,6 +217,8 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   typedef Kokkos::View<complex**[3], DeviceType> t_ace_3c3;
   typedef Kokkos::View<complex****, DeviceType> t_ace_4c;
   typedef Kokkos::View<complex***[3], DeviceType> t_ace_4c3;
+
+  typedef Kokkos::View<double*>::HostMirror th_ace_1d;
 
   t_ace_3d A_rank1;
   t_ace_4c A;
@@ -242,11 +249,12 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   t_ace_3d d_derivatives;
 
   // inverted active set
-  t_ace_3d d_ASI;
+  tc_ace_3d d_ASI;
   t_ace_2d projections;
-  t_ace_1d gamma;
-  // Spherical Harmonics
+  t_ace_1d d_gamma;
+  th_ace_1d h_gamma;
 
+  // Spherical Harmonics
   void pre_compute_harmonics(int);
 
   KOKKOS_INLINE_FUNCTION

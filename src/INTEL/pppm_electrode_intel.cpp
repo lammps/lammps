@@ -338,7 +338,7 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
   // electrolyte density (without writing an additional function)
   FFT_SCALAR ***density_brick_real = density_brick;
   FFT_SCALAR *density_fft_real = density_fft;
-  pack_buffers(1); // update positions if called before pair_compute
+  if (neighbor->ago != 0) pack_buffers(); // since midstep positions may be outdated
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:
       make_rho_in_brick<float, double>(fix->get_mixed_buffers(), source_grpbit,
@@ -1195,4 +1195,32 @@ void PPPMElectrodeIntel::deallocate()
   delete gc;
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
+}
+
+/* ----------------------------------------------------------------------
+  Pack charge data into intel package buffers after updates
+------------------------------------------------------------------------- */
+
+void PPPMElectrodeIntel::pack_buffers_q()
+{
+  fix->start_watch(TIME_PACK);
+  int packthreads;
+  if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;
+  else packthreads = 1;
+  #if defined(_OPENMP)
+  #pragma omp parallel if (packthreads > 1)
+  #endif
+  {
+    int ifrom, ito, tid;
+    IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal+atom->nghost,
+                              packthreads,
+                              sizeof(IntelBuffers<float,double>::atom_t));
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+      fix->get_mixed_buffers()->thr_pack_q(ifrom,ito);
+    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+      fix->get_double_buffers()->thr_pack_q(ifrom,ito);
+    else
+      fix->get_single_buffers()->thr_pack_q(ifrom,ito);
+  }
+  fix->stop_watch(TIME_PACK);
 }

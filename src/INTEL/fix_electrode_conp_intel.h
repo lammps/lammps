@@ -27,7 +27,7 @@ FixStyle(electrode/conp/intel, FixElectrodeConpIntel)
 #define LMP_FIX_ELECTRODE_CONP_INTEL_H
 
 #include "fix_electrode_conp.h"
-#include "pppm_intel.h"
+#include "pppm_electrode_intel.h"
 
 namespace LAMMPS_NS {
 
@@ -35,18 +35,18 @@ class FixElectrodeConpIntel : public FixElectrodeConp {
  public:
   FixElectrodeConpIntel(class LAMMPS *lmp, int narg, char **arg) : FixElectrodeConp(lmp, narg, arg) {}
   inline void init() final override {
-    _intel_kspace = dynamic_cast<PPPMIntel*>(force->kspace_match("pppm/electrode/intel", 0));
+    _intel_kspace = dynamic_cast<PPPMElectrodeIntel*>(force->kspace_match("pppm/electrode/intel", 0));
     if (_intel_kspace == nullptr) error->all(FLERR, "pppm/electrode/intel is required by fix electrode/conp/intel");
 
     intelflag = true;
     FixElectrodeConp::init();
   }
   inline void intel_pack_buffers() final override {
-    _intel_kspace->pack_buffers(0);
+    _intel_kspace->pack_buffers_q();
   }
 
  private:
-  PPPMIntel * _intel_kspace;
+  PPPMElectrodeIntel * _intel_kspace;
 };
 
 }    // namespace LAMMPS_NS

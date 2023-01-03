@@ -1052,8 +1052,7 @@ double PPPMIntel::memory_usage()
   Pack data into intel package buffers if using LRT mode
 ------------------------------------------------------------------------- */
 
-void PPPMIntel::pack_buffers(int ago)
-  // VerletLRTIntel uses ago 1, fix electrode/*/intel uses ago 0
+void PPPMIntel::pack_buffers()
 {
   fix->start_watch(TIME_PACK);
   int packthreads;
@@ -1068,11 +1067,11 @@ void PPPMIntel::pack_buffers(int ago)
                               packthreads,
                               sizeof(IntelBuffers<float,double>::atom_t));
     if (fix->precision() == FixIntel::PREC_MODE_MIXED)
-      fix->get_mixed_buffers()->thr_pack(ifrom,ito,ago);
+      fix->get_mixed_buffers()->thr_pack(ifrom,ito,1);
     else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      fix->get_double_buffers()->thr_pack(ifrom,ito,ago);
+      fix->get_double_buffers()->thr_pack(ifrom,ito,1);
     else
-      fix->get_single_buffers()->thr_pack(ifrom,ito,ago);
+      fix->get_single_buffers()->thr_pack(ifrom,ito,1);
   }
   fix->stop_watch(TIME_PACK);
 }

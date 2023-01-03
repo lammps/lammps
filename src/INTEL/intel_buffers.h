@@ -231,6 +231,16 @@ class IntelBuffers {
     }
   }
 
+  inline void thr_pack_q(const int ifrom, const int ito) {
+    if (lmp->atom->q != nullptr)
+      #if defined(LMP_SIMD_COMPILER)
+      #pragma vector aligned
+      #pragma ivdep
+      #endif
+      for (int i = ifrom; i < ito; i++)
+        _q[i] = lmp->atom->q[i];
+  }
+
   #ifndef _LMP_INTEL_OFFLOAD
   void fdotr_reduce_l5(const int lf, const int lt, const int nthreads,
                        const int f_stride, acc_t &ov0, acc_t &ov1,

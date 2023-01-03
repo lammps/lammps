@@ -42,7 +42,7 @@ class PPPMIntel : public PPPM {
   double memory_usage() override;
   void compute_first(int, int);
   void compute_second(int, int);
-  void pack_buffers(int);
+  void pack_buffers();
 
 #ifdef _LMP_INTEL_OFFLOAD
   int use_base();

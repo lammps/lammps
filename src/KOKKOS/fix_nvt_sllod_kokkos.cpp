@@ -117,6 +117,7 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
     this->temperature->compute_scalar();
     atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
   }
+
   v = atomKK->k_v.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   int nlocal = atomKK->nlocal;
@@ -130,19 +131,36 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
   if (vdelu.extent(0) < atomKK->nmax)
     vdelu = typename AT::t_v_array(Kokkos::NoInit("nvt/sllod/kk:vdelu"), atomKK->nmax);
 
-  if (!this->psllod_flag) this->temperature->remove_bias_all();
+  if (!this->psllod_flag) {
+    atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
+    this->temperature->remove_bias_all();
+    atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
+    atomKK->sync(this->execution_space,this->temperature->datamask_modify);
+  }
+
+  atomKK->sync(execution_space,V_MASK | MASK_MASK);
 
   this->copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNVTSllod_temp1>(0,nlocal),*this);
   this->copymode = 0;
 
-  if (this->psllod_flag) this->temperature->remove_bias_all();
+  if (this->psllod_flag) {
+    atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
+    this->temperature->remove_bias_all(); 
+    atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
+  }
+
+  atomKK->sync(execution_space,V_MASK | MASK_MASK);
 
   this->copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNVTSllod_temp2>(0,nlocal),*this);
   this->copymode = 0;
 
-  this->temperature->restore_bias_all();
+  atomKK->modified(execution_space,V_MASK);
+
+  atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
+  this->temperature->restore_bias_all(); 
+  atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
 }
 
 template<class DeviceType>
@@ -171,5 +189,4 @@ template class FixNVTSllodKokkos<LMPDeviceType>;
 template class FixNVTSllodKokkos<LMPHostType>;
 #endif
 }
-
 

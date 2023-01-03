@@ -18,10 +18,8 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "fft3d_wrap.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
 #include "neigh_list.h"
 
 #include <cmath>

@@ -23,6 +23,9 @@
 #include "modify.h"
 #include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
+
 #define EPSILON 1e-10
 
 using namespace LAMMPS_NS;

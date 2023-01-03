@@ -47,6 +47,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <stdexcept>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

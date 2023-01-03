@@ -18,6 +18,7 @@
 #include "fmt/chrono.h"
 
 #include <cstring>
+#include <ctime>
 
 using namespace LAMMPS_NS;
 

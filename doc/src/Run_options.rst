@@ -444,7 +444,7 @@ the LAMMPS simulation domain.
 
 .. _restart2data:
 
-**-restart2data restartfile [remap] datafile keyword value ...**
+**-restart2data restartfile datafile keyword value ...**
 
 Convert the restart file into a data file and immediately exit.  This
 is the same operation as if the following 2-line input script were
@@ -452,7 +452,7 @@ run:
 
 .. code-block:: LAMMPS
 
-   read_restart restartfile [remap]
+   read_restart restartfile
    write_data datafile keyword value ...
 
 The specified restartfile and/or datafile name may contain the wild-card
@@ -464,28 +464,21 @@ Note that a filename such as file.\* may need to be enclosed in quotes or
 the "\*" character prefixed with a backslash ("\") to avoid shell
 expansion of the "\*" character.
 
-Following restartfile argument, the optional word "remap" may be used.
-This has the same effect like adding it to a
-:doc:`read_restart <read_restart>` command, and operates as explained on
-its doc page.  This is useful if reading the restart file triggers an
-error that atoms have been lost.  In that case, use of the remap flag
-should allow the data file to still be produced.
-
-The syntax following restartfile (or remap), namely
+The syntax following restartfile, namely
 
 .. parsed-literal::
 
    datafile keyword value ...
 
 is identical to the arguments of the :doc:`write_data <write_data>`
-command.  See its page for details.  This includes its
+command.  See its documentation page for details.  This includes its
 optional keyword/value settings.
 
 ----------
 
 .. _restart2dump:
 
-**-restart2dump restartfile [remap] group-ID dumpstyle dumpfile arg1 arg2 ...**
+**-restart2dump restartfile group-ID dumpstyle dumpfile arg1 arg2 ...**
 
 Convert the restart file into a dump file and immediately exit.  This
 is the same operation as if the following 2-line input script were
@@ -493,7 +486,7 @@ run:
 
 .. code-block:: LAMMPS
 
-   read_restart restartfile [remap]
+   read_restart restartfile
    write_dump group-ID dumpstyle dumpfile arg1 arg2 ...
 
 Note that the specified restartfile and dumpfile names may contain
@@ -505,24 +498,17 @@ such as file.\* may need to be enclosed in quotes or the "\*" character
 prefixed with a backslash ("\") to avoid shell expansion of the "\*"
 character.
 
-Note that following the restartfile argument, the optional word "remap"
-can be used.  This has the effect as adding it to the
-:doc:`read_restart <read_restart>` command, as explained on its doc page.
-This is useful if reading the restart file triggers an error that atoms
-have been lost.  In that case, use of the remap flag should allow the
-dump file to still be produced.
-
-The syntax following restartfile (or remap), namely
+The syntax following restartfile, namely
 
 .. code-block:: LAMMPS
 
    group-ID dumpstyle dumpfile arg1 arg2 ...
 
 is identical to the arguments of the :doc:`write_dump <write_dump>`
-command.  See its page for details.  This includes what per-atom
-fields are written to the dump file and optional dump_modify settings,
-including ones that affect how parallel dump files are written, e.g.
-the *nfile* and *fileper* keywords.  See the
+command.  See its documentation page for details.  This includes what
+per-atom fields are written to the dump file and optional dump_modify
+settings, including ones that affect how parallel dump files are written,
+e.g. the *nfile* and *fileper* keywords.  See the
 :doc:`dump_modify <dump_modify>` page for details.
 
 ----------

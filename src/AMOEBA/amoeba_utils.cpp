@@ -15,7 +15,6 @@
 #include "pair_amoeba.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_store_peratom.h"

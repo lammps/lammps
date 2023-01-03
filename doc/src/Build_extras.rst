@@ -36,6 +36,7 @@ This is the list of packages that may require additional steps.
    * :ref:`AWPMD <awpmd>`
    * :ref:`COLVARS <colvars>`
    * :ref:`COMPRESS <compress>`
+   * :ref:`ELECTRODE <electrode>`
    * :ref:`GPU <gpu>`
    * :ref:`H5MD <h5md>`
    * :ref:`INTEL <intel>`

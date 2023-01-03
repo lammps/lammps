@@ -25,7 +25,8 @@
 #include "modify.h"
 #include "update.h"
 
-#include <vector>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

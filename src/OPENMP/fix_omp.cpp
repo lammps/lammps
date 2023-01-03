@@ -25,7 +25,6 @@
 #include "error.h"
 #include "force.h"
 #include "neighbor.h"
-#include "neigh_request.h"
 #include "universe.h"
 #include "update.h"
 

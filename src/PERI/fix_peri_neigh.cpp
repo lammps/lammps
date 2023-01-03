@@ -27,7 +27,6 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "pair.h"
 #include "lattice.h"
 #include "memory.h"

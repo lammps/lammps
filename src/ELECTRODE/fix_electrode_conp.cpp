@@ -20,7 +20,6 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
-#include "compute.h"
 #include "domain.h"
 #include "electrode_accel_interface.h"
 #include "electrode_math.h"
@@ -37,12 +36,15 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "pointers.h"
 #include "text_file_reader.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cassert>
-#include <numeric>
+#include <cmath>
+#include <cstring>
+#include <exception>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -867,7 +869,7 @@ void FixElectrodeConp::update_charges()
   accel_interface->intel_pack_buffers();
 }
 
-std::vector<double> FixElectrodeConp::ele_ele_interaction(std::vector<double> q_local)
+std::vector<double> FixElectrodeConp::ele_ele_interaction(const std::vector<double>& q_local)
 {
   assert(q_local.size() == nlocalele);
   assert(algo == Algo::CG || algo == Algo::MATRIX_CG);
@@ -1415,14 +1417,13 @@ void FixElectrodeConp::gather_list_iele()
   }
   taglist_local.clear();
   iele_to_group_local.clear();
-  for (int i = 0, iele = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       tagint const t = tag[i];
       if (matrix_algo) list_iele.push_back(tag_to_iele[t]);
       taglist_local.push_back(t);
       for (int g = 0; g < num_of_groups; g++)
         if (mask[i] & group_bits[g]) iele_to_group_local.push_back(g);
-      iele++;
     }
   }
   nlocalele = static_cast<int>(taglist_local.size());    // just for safety

@@ -120,7 +120,7 @@ The *pstyle* argument is the name of the pair style.  If
 :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is used,
 *pstyle* should be a sub-style name.  If there are multiple
 sub-styles using the same pair style, then *pstyle* should be specified
-as "style:N", where :math:`N` is which instance of the pair style you wish to
+as "style:N", where *N* is which instance of the pair style you wish to
 adapt (e.g., the first or second).  For example, *pstyle* could be
 specified as "soft" or "lubricate" or "lj/cut:1" or "lj/cut:2".  The
 *pparam* argument is the name of the parameter to change.  This is the

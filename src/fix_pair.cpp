@@ -36,11 +36,20 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   if (nevery < 1) error->all(FLERR,"Illegal fix pair every value: {}", nevery);
 
   pairname = utils::strdup(arg[4]);
-  if(lmp->suffix) {
-      strcat(pairname,"/");
-      strcat(pairname,lmp->suffix);
+  char *cptr;
+  int nsub = 0;
+  if ((cptr = strchr(pairname,':'))) {
+    *cptr = '\0';
+    nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
   }
-  pstyle = force->pair_match(pairname,1,0);
+
+  if (lmp->suffix_enable) {
+    if (lmp->suffix)
+      pstyle = force->pair_match(fmt::format("{}/{}",pairname,lmp->suffix),1,nsub);
+    if ((pstyle == nullptr) && lmp->suffix2)
+      pstyle = force->pair_match(fmt::format("{}/{}",pairname,lmp->suffix2),1,nsub);
+  }
+  if (pstyle == nullptr) pstyle = force->pair_match(pairname,1,nsub);
   if (pstyle == nullptr) error->all(FLERR,"Pair style {} for fix pair not found", pairname);
 
   nfield = (narg-5) / 2;

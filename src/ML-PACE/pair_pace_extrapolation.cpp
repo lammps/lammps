@@ -135,15 +135,11 @@ void PairPACEExtrapolation::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-//  tagint *tag = atom->tag;
   int *type = atom->type;
   // number of atoms in cell
   int nlocal = atom->nlocal;
 
   int newton_pair = force->newton_pair;
-
-  // number of atoms including ghost atoms
-//  int nall = nlocal + atom->nghost;
 
   // inum: length of the neighborlists list
   inum = list->inum;

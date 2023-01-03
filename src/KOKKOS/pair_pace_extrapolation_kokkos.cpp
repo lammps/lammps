@@ -38,19 +38,18 @@
 #include <cstring>
 
 namespace LAMMPS_NS {
-    struct ACEALImpl {
-        ACEALImpl() : basis_set(nullptr), ace(nullptr) {}
+  struct ACEALImpl {
+    ACEALImpl() : basis_set(nullptr), ace(nullptr) {}
 
-        ~ACEALImpl()
-        {
-            delete basis_set;
-            delete ace;
-        }
+    ~ACEALImpl() {
+      delete basis_set;
+      delete ace;
+    }
 
-        ACEBBasisSet *basis_set;
-        ACEBEvaluator *ace;
-    };
-}    // namespace LAMMPS_NS
+    ACEBBasisSet *basis_set;
+    ACEBEvaluator *ace;
+  };
+} // namespace LAMMPS_NS
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -187,7 +186,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_pertype()
     h_rho_core_cutoff[n] = basis_set->map_embedding_specifications.at(n).rho_core_cutoff;
     h_drho_core_cutoff[n] = basis_set->map_embedding_specifications.at(n).drho_core_cutoff;
 
-    h_E0vals(n)= basis_set->E0vals(n);
+    h_E0vals(n) = basis_set->E0vals(n);
 
     h_ndensity(n) = basis_set->map_embedding_specifications.at(n).ndensity;
 
@@ -321,8 +320,6 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
   t_ace_3d d_ASI_temp;
   MemKK::realloc_kokkos(d_ASI_temp, "pace:ASI_temp", nelements, total_num_functions_max, total_num_functions_max);
 
-
-
   auto h_rank = Kokkos::create_mirror_view(d_rank);
   auto h_num_ms_combs = Kokkos::create_mirror_view(d_num_ms_combs);
   auto h_func_inds = Kokkos::create_mirror_view(d_func_inds);
@@ -332,7 +329,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
   auto h_ms_combs = Kokkos::create_mirror_view(d_ms_combs);
   auto h_gen_cgs = Kokkos::create_mirror_view(d_gen_cgs);
   auto h_coeffs = Kokkos::create_mirror_view(d_coeffs);
-// asi
+  // asi
   auto h_ASI = Kokkos::create_mirror_view(d_ASI_temp);
 
   // copy values on host
@@ -380,7 +377,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
       }
 
       for (int p = 0; p < ndensity; ++p)
-            h_coeffs(mu, func_ind_through, p) = func->coeff[p];
+        h_coeffs(mu, func_ind_through, p) = func->coeff[p];
 
 
       // loop over {ms} combinations in sum
@@ -400,11 +397,10 @@ void PairPACEExtrapolationKokkos<DeviceType>::copy_tilde()
 
     // ASI
     const auto &A_as_inv = b_evaluator->A_active_set_inv.at(mu);
-    for(int i = 0; i < total_basis_size_rank1 + total_basis_size; i++)
-        for(int j = 0; j < total_basis_size_rank1 + total_basis_size; j++){
-            h_ASI(mu,i,j)=A_as_inv(j,i); // transpose back for better performance on GPU
+    for (int i = 0; i < total_basis_size_rank1 + total_basis_size; i++)
+      for (int j = 0; j < total_basis_size_rank1 + total_basis_size; j++){
+        h_ASI(mu,i,j) = A_as_inv(j,i); // transpose back for better performance on GPU
     }
-
   }
 
   Kokkos::deep_copy(d_rank, h_rank);
@@ -565,6 +561,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
   ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
+
   if (eflag_atom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
@@ -742,7 +739,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     ev += ev_tmp;
 
     //if gamma_flag - copy current d_gamma to extrapolation_grade_gamma
-    if(gamma_flag){
+    if (gamma_flag){
         h_gamma = Kokkos::create_mirror_view(d_gamma);
         Kokkos:deep_copy(h_gamma, d_gamma);
         memcpy(extrapolation_grade_gamma+chunk_offset, (void *) h_gamma.data(), sizeof(double)*chunk_size);
@@ -1001,7 +998,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRho,
 
 
     //gamma_i
-    if(gamma_flag)
+    if (gamma_flag)
         Kokkos::atomic_add(&projections(ii, func_ind),  d_gen_cgs(mu_i, idx_ms_comb) * A_cur);
 
   } else { // rank > 1
@@ -1040,13 +1037,12 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRho,
       Kokkos::atomic_add(&rhos(ii, p), B.real_part_product(d_coeffs(mu_i, func_ind, p) * d_gen_cgs(mu_i, idx_ms_comb)));
     }
     //gamma_i
-    if(gamma_flag)
-        Kokkos::atomic_add(&projections(ii, func_ind),  B.real_part_product(d_gen_cgs(mu_i, idx_ms_comb)));
+    if (gamma_flag)
+      Kokkos::atomic_add(&projections(ii, func_ind),  B.real_part_product(d_gen_cgs(mu_i, idx_ms_comb)));
   }
 }
 
 /* ---------------------------------------------------------------------- */
-
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -1079,37 +1075,34 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeFS, 
   }
 }
 
-
 /* ---------------------------------------------------------------------- */
-
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeGamma, const int& ii) const
 {
-    const int i = d_ilist[ii + chunk_offset];
-    const int mu_i = d_map(type(i));
-    const int basis_size = d_total_basis_size(mu_i);
+  const int i = d_ilist[ii + chunk_offset];
+  const int mu_i = d_map(type(i));
+  const int basis_size = d_total_basis_size(mu_i);
 
+  double gamma_max = 0;
+  double current_gamma;
+  for (int j = 0; j <basis_size; j++) {
+    current_gamma = 0;
 
-    double gamma_max = 0;
-    double current_gamma;
-    for (int j = 0; j <basis_size; j++) { //
-        current_gamma = 0;
+    // compute row-matrix-multiplication asi_vector * A_as_inv (transposed matrix)
+    for (int k = 0; k < basis_size; k++)
+      current_gamma += projections(ii,k) * d_ASI(mu_i, k, j); //correct d_ASI(mu_i, j, k), but it is transposed during initialization
 
-        // compute row-matrix-multiplication asi_vector * A_as_inv (transposed matrix)
-        for (int k = 0; k < basis_size; k++)
-            current_gamma += projections(ii,k) * d_ASI(mu_i, k, j); //correct d_ASI(mu_i, j, k), but it is transposed during initialization
+    current_gamma = fabs(current_gamma);
+    if (current_gamma > gamma_max)
+      gamma_max = current_gamma;
+  }
 
-        current_gamma = fabs(current_gamma);
-        if (current_gamma > gamma_max)
-            gamma_max = current_gamma;
-    }
-
-    // tally energy contribution
-    d_gamma(ii) = gamma_max;
-
+  // tally energy contribution
+  d_gamma(ii) = gamma_max;
 }
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1824,29 +1817,20 @@ double PairPACEExtrapolationKokkos<DeviceType>::memory_usage()
   return bytes;
 }
 
-/* ---------------------------------------------------------------------- */
-
-namespace LAMMPS_NS {
-template class PairPACEExtrapolationKokkos<LMPDeviceType>;
-#ifdef LMP_KOKKOS_GPU
-template class PairPACEExtrapolationKokkos<LMPHostType>;
-#endif
-}
-
-/* ---------------------------------------------------------------------- */
 /* ----------------------------------------------------------------------
     extract method for extracting value of scale variable
  ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void *PairPACEExtrapolationKokkos<DeviceType>::extract(const char *str, int &dim)
 {
-    //check if str=="gamma_flag" then compute extrapolation grades on this iteration
-    dim = 0;
-    if (strcmp(str, "gamma_flag") == 0) return (void *) &gamma_flag;
+  //check if str=="gamma_flag" then compute extrapolation grades on this iteration
+  dim = 0;
+  if (strcmp(str, "gamma_flag") == 0) return (void *) &gamma_flag;
 
-    dim = 2;
-    if (strcmp(str, "scale") == 0) return (void *) scale;
-    return nullptr;
+  dim = 2;
+  if (strcmp(str, "scale") == 0) return (void *) scale;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1857,13 +1841,24 @@ void *PairPACEExtrapolationKokkos<DeviceType>::extract(const char *str, int &dim
      1 or more = # of columns in per-atom array
    return NULL if str is not recognized
 ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void *PairPACEExtrapolationKokkos<DeviceType>::extract_peratom(const char *str, int &ncol)
 {
-    if (strcmp(str, "gamma") == 0) {
-        ncol = 0;
-        return (void *) extrapolation_grade_gamma;
-    }
+  if (strcmp(str, "gamma") == 0) {
+    ncol = 0;
+    return (void *) extrapolation_grade_gamma;
+  }
 
-    return nullptr;
+  return nullptr;
 }
+
+/* ---------------------------------------------------------------------- */
+
+namespace LAMMPS_NS {
+template class PairPACEExtrapolationKokkos<LMPDeviceType>;
+#ifdef LMP_KOKKOS_GPU
+template class PairPACEExtrapolationKokkos<LMPHostType>;
+#endif
+}
+

@@ -112,9 +112,5 @@ if(PKG_KSPACE)
   RegisterIntegrateStyle(${INTEL_SOURCES_DIR}/verlet_lrt_intel.h)
 endif()
 
-if(PKG_ELECTRODE)
-  list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/electrode_accel_intel.cpp)
-endif()
-
 target_sources(lammps PRIVATE ${INTEL_SOURCES})
 target_include_directories(lammps PRIVATE ${INTEL_SOURCES_DIR})

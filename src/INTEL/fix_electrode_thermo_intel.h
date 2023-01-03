@@ -26,19 +26,27 @@ FixStyle(electrode/thermo/intel, FixElectrodeThermoIntel)
 #ifndef LMP_FIX_ELECTRODE_THERMO_INTEL_H
 #define LMP_FIX_ELECTRODE_THERMO_INTEL_H
 
-#include "electrode_accel_intel.h"
 #include "fix_electrode_thermo.h"
+#include "pppm_intel.h"
 
 namespace LAMMPS_NS {
 
 class FixElectrodeThermoIntel : public FixElectrodeThermo {
  public:
-  FixElectrodeThermoIntel(class LAMMPS *lmp, int narg, char **arg) :
-      FixElectrodeThermo(lmp, narg, arg)
-  {
+  FixElectrodeThermoIntel(class LAMMPS *lmp, int narg, char **arg) : FixElectrodeThermo(lmp, narg, arg) {}
+  inline void init() final override {
+    _intel_kspace = dynamic_cast<PPPMIntel*>(force->kspace_match("pppm/electrode/intel", 0));
+    if (_intel_kspace == nullptr) error->all(FLERR, "pppm/electrode/intel is required by fix electrode/thermo/intel");
+
     intelflag = true;
-    accel_interface = std::unique_ptr<ElectrodeAccelInterface>(new ElectrodeAccelIntel(lmp));
+    FixElectrodeThermo::init();
   }
+  inline void intel_pack_buffers() final override {
+    _intel_kspace->pack_buffers(0);
+  }
+
+ private:
+  PPPMIntel * _intel_kspace;
 };
 
 }    // namespace LAMMPS_NS

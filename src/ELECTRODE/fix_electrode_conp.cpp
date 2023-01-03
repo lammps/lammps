@@ -21,7 +21,6 @@
 #include "citeme.h"
 #include "comm.h"
 #include "domain.h"
-#include "electrode_accel_interface.h"
 #include "electrode_math.h"
 #include "electrode_matrix.h"
 #include "electrode_vector.h"
@@ -272,8 +271,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   groupbit = group->bitmask[igroup];
   ngroup = group->count(igroup);
 
-  accel_interface = std::unique_ptr<ElectrodeAccelInterface>(new ElectrodeAccelInterface(lmp));
-
   if (matrix_algo) {
     memory->create(iele_gathered, ngroup, "FixElectrode:iele_gathered");
     memory->create(buf_gathered, ngroup, "FixElectrode:buf_gathered");
@@ -381,7 +378,6 @@ void FixElectrodeConp::init()
   if (count > 1) error->all(FLERR, "More than one fix electrode");
 
   // check for package intel
-  accel_interface->intel_find_fix();
   if (etypes_neighlists)
     request_etypes_neighlists();
   else {
@@ -795,7 +791,6 @@ void FixElectrodeConp::update_charges()
   double *q = atom->q;
   gather_list_iele();
   pre_update();
-  accel_interface->intel_pack_buffers();    // update buffers for pppmintel to compute potential
   auto q_local = std::vector<double>(nlocalele, 0.);
   if (algo == Algo::MATRIX_INV) {
     std::fill(sb_charges.begin(), sb_charges.end(), 0.);
@@ -866,7 +861,6 @@ void FixElectrodeConp::update_charges()
   }
   set_charges(q_local);
   update_time += MPI_Wtime() - start;
-  accel_interface->intel_pack_buffers();
 }
 
 std::vector<double> FixElectrodeConp::ele_ele_interaction(const std::vector<double>& q_local)
@@ -889,7 +883,7 @@ void FixElectrodeConp::set_charges(std::vector<double> q_local)
   double *q = atom->q;
   for (int i = 0; i < nlocalele; i++) q[atom->map(taglist_local[i])] = q_local[i];
   comm->forward_comm(this);
-  accel_interface->intel_pack_buffers();
+  intel_pack_buffers();
 }
 
 /* ---------------------------------------------------------------------- */

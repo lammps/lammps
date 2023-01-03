@@ -429,7 +429,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::init_style()
 {
   if (host_flag) {
     if (lmp->kokkos->nthreads > 1)
-      error->all(FLERR,"Pair style pace/kk can currently only run on a single "
+      error->all(FLERR,"Pair style pace/extrapolation/kk can currently only run on a single "
                          "CPU thread");
 
     PairPACEExtrapolation::init_style();
@@ -497,6 +497,10 @@ void PairPACEExtrapolationKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   PairPACEExtrapolation::coeff(narg,arg);
 
+  auto b_evaluator = aceimpl->ace;
+  if (!b_evaluator->get_is_linear_extrapolation_grade()) {
+        error->all(FLERR,"Must use LINEAR ASI with pair pace/extrapolation/kk");
+  }
   // Set up element lists
 
   auto h_map = Kokkos::create_mirror_view(d_map);

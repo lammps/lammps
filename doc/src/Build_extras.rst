@@ -151,7 +151,9 @@ CMake build
 * sm_60 or sm_61 for Pascal (supported since CUDA 8)
 * sm_70 for Volta (supported since CUDA 9)
 * sm_75 for Turing (supported since CUDA 10)
-* sm_80 for Ampere (supported since CUDA 11)
+* sm_80 or sm_86 for Ampere (supported since CUDA 11, sm_86 since CUDA 11.1)
+* sm_89 for Lovelace (supported since CUDA 11.8)
+* sm_90 for Hopper (supported since CUDA 12.0)
 
 A more detailed list can be found, for example,
 at `Wikipedia's CUDA article <https://en.wikipedia.org/wiki/CUDA#GPUs_supported>`_

@@ -135,10 +135,9 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
     atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
     this->temperature->remove_bias_all();
     atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
-    atomKK->sync(this->execution_space,this->temperature->datamask_modify);
   }
 
-  atomKK->sync(execution_space,V_MASK | MASK_MASK);
+  atomKK->sync(this->execution_space,V_MASK | MASK_MASK);
 
   this->copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNVTSllod_temp1>(0,nlocal),*this);
@@ -150,13 +149,13 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
     atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
   }
 
-  atomKK->sync(execution_space,V_MASK | MASK_MASK);
+  atomKK->sync(this->execution_space,V_MASK | MASK_MASK);
 
   this->copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNVTSllod_temp2>(0,nlocal),*this);
   this->copymode = 0;
 
-  atomKK->modified(execution_space,V_MASK);
+  atomKK->modified(this->execution_space,V_MASK);
 
   atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
   this->temperature->restore_bias_all(); 

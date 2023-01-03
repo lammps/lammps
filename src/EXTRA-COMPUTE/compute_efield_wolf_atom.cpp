@@ -41,7 +41,7 @@ ComputeEfieldWolfAtom::ComputeEfieldWolfAtom(LAMMPS *lmp, int narg, char **arg) 
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute efield/atom/wolf", error);
 
   peratom_flag = 1;
-  size_peratom_cols = 4;
+  size_peratom_cols = 3;
 
   nmax = -1;
   group2 = utils::strdup("all");
@@ -121,10 +121,10 @@ void ComputeEfieldWolfAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(efield);
     nmax = atom->nmax;
-    memory->create(efield,nmax,4,"efield/atom/wolf:efield");
+    memory->create(efield,nmax,3,"efield/atom/wolf:efield");
     array_atom = efield;
   }
-  memset(&efield[0][0], 0, sizeof(double)*nmax*4);
+  memset(&efield[0][0], 0, sizeof(double)*nmax*3);
 
   // invoke neighbor list build (will copy or build if necessary)
 
@@ -169,7 +169,7 @@ void ComputeEfieldWolfAtom::compute_peratom()
           const double dely = ytmp - x[j][1];
           const double delz = ztmp - x[j][2];
           const double rsq = delx*delx + dely*dely + delz*delz;
-          if (rsq < cutsq) {
+          if ((rsq > 0.0) && (rsq < cutsq)) {
             const double r = sqrt(rsq);
             double prefactor = qqrd2e * q[j] / r;
             double erfcc = erfc(alpha * r);
@@ -185,8 +185,6 @@ void ComputeEfieldWolfAtom::compute_peratom()
           }
         }
       }
-      efield[i][3] = sqrt(efield[i][0]*efield[i][0] + efield[i][1]*efield[i][1] +
-                          efield[i][2]*efield[i][2]);
     }
   }
 }
@@ -197,6 +195,6 @@ void ComputeEfieldWolfAtom::compute_peratom()
 
 double ComputeEfieldWolfAtom::memory_usage()
 {
-  double bytes = 4.0 * nmax * sizeof(double);
+  double bytes = 3.0 * nmax * sizeof(double);
   return bytes;
 }

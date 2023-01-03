@@ -97,9 +97,8 @@ any command that uses per-atom values from a compute as input.  See
 the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
-The vector contains 4 values per atom. The first 3 per-atom vector
-values will be the x-, y-, and z-direction electric field components
-in force units the 4th per-atom vector value is the field magnitude.
+The vector contains 3 values per atom which are the x-, y-, and
+z-direction electric field components in force units.
 
 Restrictions
 """"""""""""

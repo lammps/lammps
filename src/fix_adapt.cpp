@@ -357,12 +357,14 @@ void FixAdapt::init()
         nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
-      if (lmp->suffix_enable)
-        ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
-
+      if (lmp->suffix_enable) {
+        if (lmp->suffix)
+          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
+        if ((ad->pair == nullptr) && lmp->suffix2)
+          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix2),1,nsub);
+      }
       if (ad->pair == nullptr) ad->pair = force->pair_match(pstyle,1,nsub);
-      if (ad->pair == nullptr)
-        error->all(FLERR,"Fix adapt pair style does not exist");
+      if (ad->pair == nullptr) error->all(FLERR,"Fix adapt pair style {} not found", pstyle);
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
       if (ptr == nullptr)

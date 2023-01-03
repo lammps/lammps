@@ -44,7 +44,7 @@ template<class DeviceType>
 PairDPDTstatKokkos<DeviceType>::PairDPDTstatKokkos(class LAMMPS *_lmp) :
   PairDPDTstat(_lmp) ,
 #ifdef DPD_USE_RAN_MARS
-  rand_pool(0 /* unused */, lmp)
+  rand_pool(0 /* unused */, _lmp)
 #else
   rand_pool()
 #endif

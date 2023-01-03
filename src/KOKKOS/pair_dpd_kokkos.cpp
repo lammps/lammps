@@ -44,7 +44,7 @@ template<class DeviceType>
 PairDPDKokkos<DeviceType>::PairDPDKokkos(class LAMMPS *_lmp) :
   PairDPD(_lmp) ,
 #ifdef DPD_USE_RAN_MARS
-  rand_pool(0 /* unused */, lmp)
+  rand_pool(0 /* unused */, _lmp)
 #else
   rand_pool()
 #endif

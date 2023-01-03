@@ -36,6 +36,10 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   if (nevery < 1) error->all(FLERR,"Illegal fix pair every value: {}", nevery);
 
   pairname = utils::strdup(arg[4]);
+  if(lmp->suffix) {
+      strcat(pairname,"/");
+      strcat(pairname,lmp->suffix);
+  }
   pstyle = force->pair_match(pairname,1,0);
   if (pstyle == nullptr) error->all(FLERR,"Pair style {} for fix pair not found", pairname);
 

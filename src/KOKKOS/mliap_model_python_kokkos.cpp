@@ -175,7 +175,4 @@ template class MLIAPModelPythonKokkos<LMPHostType>;
 #endif
 }
 
-
-
-
 #endif

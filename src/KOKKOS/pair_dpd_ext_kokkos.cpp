@@ -41,10 +41,10 @@ using namespace LAMMPS_NS;
 
 
 template<class DeviceType>
-PairDPDExtKokkos<DeviceType>::PairDPDExtKokkos(class LAMMPS *lmp) :
-  PairDPDExt(lmp) ,
+PairDPDExtKokkos<DeviceType>::PairDPDExtKokkos(class LAMMPS *_lmp) :
+  PairDPDExt(_lmp) ,
 #ifdef DPD_USE_RAN_MARS
-  rand_pool(0 /* unused */, lmp)
+  rand_pool(0 /* unused */, _lmp)
 #else
   rand_pool()
 #endif
@@ -134,6 +134,10 @@ void PairDPDExtKokkos<DeviceType>::compute(int eflagin, int vflagin)
   special_lj[1] = force->special_lj[1];
   special_lj[2] = force->special_lj[2];
   special_lj[3] = force->special_lj[3];
+  special_rf[0] = sqrt(force->special_lj[0]);
+  special_rf[1] = sqrt(force->special_lj[1]);
+  special_rf[2] = sqrt(force->special_lj[2]);
+  special_rf[3] = sqrt(force->special_lj[3]);
 
   nlocal = atom->nlocal;
   dtinvsqrt = 1.0/sqrt(update->dt);
@@ -232,7 +236,8 @@ void PairDPDExtKokkos<DeviceType>::operator() (TagDPDExtKokkos<NEIGHFLAG,EVFLAG>
   int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpairx,fpairy,fpairz,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,wdPar,wdPerp,randnum,randnumx,randnumy,randnumz,factor_dpd;
+  double rsq,r,rinv,dot,wd,wdPar,wdPerp,randnum,randnumx,randnumy,randnumz;
+  double prefactor_g,prefactor_s,factor_dpd,factor_sqrt;
   double fx = 0,fy = 0,fz = 0;
   double evdwl = 0;
   i = d_ilist[ii];
@@ -249,6 +254,7 @@ void PairDPDExtKokkos<DeviceType>::operator() (TagDPDExtKokkos<NEIGHFLAG,EVFLAG>
     double P[3][3];
     j = d_neighbors(i,jj);
     factor_dpd = special_lj[sbmask(j)];
+    factor_sqrt = special_rf[sbmask(j)];
     j &= NEIGHMASK;
 
     delx = xtmp - x(j,0);
@@ -291,33 +297,26 @@ void PairDPDExtKokkos<DeviceType>::operator() (TagDPDExtKokkos<NEIGHFLAG,EVFLAG>
 
       // drag force - parallel
       fpair -= params(itype,jtype).gamma*wdPar*wdPar*dot*rinv;
+      fpair *= factor_dpd;
 
       // random force - parallel
-      fpair += params(itype,jtype).sigma*wdPar*randnum*dtinvsqrt;
+      fpair += factor_sqrt*params(itype,jtype).sigma*wdPar*randnum*dtinvsqrt;
 
       fpairx = fpair*rinv*delx;
       fpairy = fpair*rinv*dely;
       fpairz = fpair*rinv*delz;
 
       // drag force - perpendicular
-      fpairx -= params(itype,jtype).gammaT*wdPerp*wdPerp*
-                (P[0][0]*delvx + P[0][1]*delvy + P[0][2]*delvz);
-      fpairy -= params(itype,jtype).gammaT*wdPerp*wdPerp*
-                (P[1][0]*delvx + P[1][1]*delvy + P[1][2]*delvz);
-      fpairz -= params(itype,jtype).gammaT*wdPerp*wdPerp*
-                (P[2][0]*delvx + P[2][1]*delvy + P[2][2]*delvz);
+      prefactor_g = factor_dpd*params(itype,jtype).gammaT*wdPerp*wdPerp;
+      fpairx -= prefactor_g * (P[0][0]*delvx + P[0][1]*delvy + P[0][2]*delvz);
+      fpairy -= prefactor_g * (P[1][0]*delvx + P[1][1]*delvy + P[1][2]*delvz);
+      fpairz -= prefactor_g * (P[2][0]*delvx + P[2][1]*delvy + P[2][2]*delvz);
 
       // random force - perpendicular
-      fpairx += params(itype,jtype).sigmaT*wdPerp*
-                (P[0][0]*randnumx + P[0][1]*randnumy + P[0][2]*randnumz)*dtinvsqrt;
-      fpairy += params(itype,jtype).sigmaT*wdPerp*
-                (P[1][0]*randnumx + P[1][1]*randnumy + P[1][2]*randnumz)*dtinvsqrt;
-      fpairz += params(itype,jtype).sigmaT*wdPerp*
-                (P[2][0]*randnumx + P[2][1]*randnumy + P[2][2]*randnumz)*dtinvsqrt;
-
-      fpairx *= factor_dpd;
-      fpairy *= factor_dpd;
-      fpairz *= factor_dpd;
+      prefactor_s = factor_sqrt*params(itype,jtype).sigmaT*wdPerp;
+      fpairx += prefactor_s * (P[0][0]*randnumx + P[0][1]*randnumy + P[0][2]*randnumz)*dtinvsqrt;
+      fpairy += prefactor_s * (P[1][0]*randnumx + P[1][1]*randnumy + P[1][2]*randnumz)*dtinvsqrt;
+      fpairz += prefactor_s * (P[2][0]*randnumx + P[2][1]*randnumy + P[2][2]*randnumz)*dtinvsqrt;
 
       fx += fpairx;
       fy += fpairy;

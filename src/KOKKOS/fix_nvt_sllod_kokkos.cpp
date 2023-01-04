@@ -145,7 +145,7 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
 
   if (this->psllod_flag) {
     atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
-    this->temperature->remove_bias_all(); 
+    this->temperature->remove_bias_all();
     atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
   }
 
@@ -158,7 +158,7 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
   atomKK->modified(this->execution_space,V_MASK);
 
   atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
-  this->temperature->restore_bias_all(); 
+  this->temperature->restore_bias_all();
   atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
 }
 

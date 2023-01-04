@@ -131,7 +131,7 @@ the parameter *window_moves* (see Sect. III.B in :ref:`Sadigh1
 ------------
 
 Restart, fix_modify, output, run start/stop, minimize info
-==========================================================
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to restart files.
 
@@ -149,7 +149,7 @@ components of the vector represent the following quantities:
 * N+2: The current global concentration of species *X* (= number of atoms of type *N* / total number of atoms)
 
 Restrictions
-============
+""""""""""""
 
 This fix is part of the MC package. It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
@@ -169,7 +169,7 @@ execution i.e. it only works with a single MPI process.
 ------------
 
 Default
-=======
+"""""""
 
 The optional parameters default to the following values:
 

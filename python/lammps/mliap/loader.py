@@ -56,7 +56,6 @@ class DynamicLoader(importlib.abc.Loader):
 
 def activate_mliappy(lmp):
     try:
-        print("activate_mliappy")
         library = lmp.lib
         module_names = ["mliap_model_python_couple", "mliap_unified_couple"]
         api_version = library.lammps_python_api_version()
@@ -75,7 +74,6 @@ def activate_mliappy(lmp):
 
 def activate_mliappy_kokkos(lmp):
     try:
-        print("activate_mliappy_kokkos")
         library = lmp.lib
         module_names = ["mliap_model_python_couple_kokkos"]
         api_version = library.lammps_python_api_version()
@@ -94,7 +92,6 @@ def activate_mliappy_kokkos(lmp):
 
 def load_model(model):
     try:
-        print("load_model")
         import mliap_model_python_couple
     except ImportError as ie:
         raise ImportError("ML-IAP python module must be activated before loading\n"
@@ -104,7 +101,6 @@ def load_model(model):
 
 def load_model_kokkos(model):
     try:
-        print("load_model_kokkos")
         import mliap_model_python_couple_kokkos
     except ImportError as ie:
         raise ImportError("ML-IAP python module must be activated before loading\n"

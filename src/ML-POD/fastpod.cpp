@@ -1842,6 +1842,15 @@ void FASTPOD::eigenvaluedecomposition(double *Phi, double *Lambda, int N)
       Phi[i + ns*m] = Phi[i + ns*m]/sqrt(area);
   }
 
+  // enforce consistent signs for the eigenvectors
+  
+  for (int m=0; m<ns; m++) {    
+    if (Phi[m + ns*m] < 0.0) {
+      for (int i=0; i<ns; i++)
+        Phi[i + ns*m] = -Phi[i + ns*m];      
+    }
+  }
+  
   free(xij); free(S); free(A); free(b); free(Q);
 }
 

@@ -443,9 +443,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
 
     } else {
-      std::string errmsg("Invalid command-line argument");
-      errmsg += arg[iarg];
-      error->universe_all(FLERR,errmsg.c_str());
+      error->universe_all(FLERR, fmt::format("Unknown pair style mliap argument: {}", arg[iarg]) );
     }
   }
 

@@ -4,58 +4,6 @@ if(CMAKE_CXX_STANDARD LESS 14)
   message(FATAL_ERROR "The KOKKOS package requires the C++ standard to be set to at least C++14")
 endif()
 
-# if PYTHON package is included we may also include Python support in ML-IAP
-set(MLIAP_ENABLE_PYTHON_DEFAULT_KOKKOS OFF)
-if(PKG_PYTHON)
-  find_package(Cythonize QUIET)
-  if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-    find_package(Python COMPONENTS NumPy QUIET)
-  else()
-    # assume we have NumPy
-    set(Python_NumPy_FOUND ON)
-  endif()
-  if(Cythonize_FOUND AND Python_NumPy_FOUND)
-    set(MLIAP_ENABLE_PYTHON_DEFAULT_KOKKOS ON)
-  endif()
-endif()
-
-option(MLIAP_ENABLE_PYTHON "Build ML-IAP package with Python support" ${MLIAP_ENABLE_PYTHON_DEFAULT_KOKKOS})
-
-if(MLIAP_ENABLE_PYTHON)
-  find_package(Cythonize REQUIRED)
-  if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.14)
-    find_package(Python COMPONENTS NumPy REQUIRED)
-  endif()
-  if(NOT PKG_PYTHON)
-    message(FATAL_ERROR "Must enable PYTHON package for including Python support in ML-IAP")
-  endif()
-  if(CMAKE_VERSION VERSION_LESS 3.12)
-    if(PYTHONLIBS_VERSION_STRING VERSION_LESS 3.6)
-      message(FATAL_ERROR "Python support in ML-IAP requires Python 3.6 or later")
-    endif()
-  else()
-    if(Python_VERSION VERSION_LESS 3.6)
-      message(FATAL_ERROR "Python support in ML-IAP requires Python 3.6 or later")
-    endif()
-  endif()
-
-  set(MLIAP_BINARY_DIR ${CMAKE_BINARY_DIR}/cython)
-  file(GLOB MLIAP_CYTHON_SRC ${LAMMPS_SOURCE_DIR}/KOKKOS/*.pyx)
-  file(MAKE_DIRECTORY ${MLIAP_BINARY_DIR})
-  foreach(MLIAP_CYTHON_FILE ${MLIAP_CYTHON_SRC})
-    get_filename_component(MLIAP_CYTHON_BASE ${MLIAP_CYTHON_FILE} NAME_WE)
-    add_custom_command(OUTPUT  ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.h
-            COMMAND            ${CMAKE_COMMAND} -E copy_if_different ${MLIAP_CYTHON_FILE} ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
-            COMMAND            ${Cythonize_EXECUTABLE} -3 ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
-            WORKING_DIRECTORY  ${MLIAP_BINARY_DIR}
-            MAIN_DEPENDENCY    ${MLIAP_CYTHON_FILE}
-            COMMENT "Generating C++ sources with cythonize...")
-    target_sources(lammps PRIVATE ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp)
-  endforeach()
-  target_compile_definitions(lammps PRIVATE -DMLIAP_PYTHON)
-  target_include_directories(lammps PRIVATE ${MLIAP_BINARY_DIR})
-endif()
-
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_CUDA)
@@ -142,7 +90,6 @@ else()
   endif()
   add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
 
-
   set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
                           ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
                           ${LAMMPS_LIB_KOKKOS_SRC_DIR}/algorithms/src
@@ -198,6 +145,21 @@ if(PKG_ML-IAP)
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_linear_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_python_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_so3_kokkos.cpp)
+
+  # Add KOKKOS version of ML-IAP Python coupling if non-KOKKOS version is included
+  if(MLIAP_ENABLE_PYTHON AND Cythonize_EXECUTABLE)
+    file(GLOB MLIAP_KOKKOS_CYTHON_SRC ${LAMMPS_SOURCE_DIR}/KOKKOS/*.pyx)
+    foreach(MLIAP_CYTHON_FILE ${MLIAP_KOKKOS_CYTHON_SRC})
+      get_filename_component(MLIAP_CYTHON_BASE ${MLIAP_CYTHON_FILE} NAME_WE)
+      add_custom_command(OUTPUT  ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.h
+              COMMAND            ${CMAKE_COMMAND} -E copy_if_different ${MLIAP_CYTHON_FILE} ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
+              COMMAND            ${Cythonize_EXECUTABLE} -3 ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
+              WORKING_DIRECTORY  ${MLIAP_BINARY_DIR}
+              MAIN_DEPENDENCY    ${MLIAP_CYTHON_FILE}
+              COMMENT "Generating C++ sources with cythonize...")
+      list(APPEND KOKKOS_PKG_SOURCES ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp)
+    endforeach()
+  endif()
 endif()
 
 if(PKG_PHONON)

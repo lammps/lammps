@@ -24,9 +24,10 @@ PairStyle(pace/extrapolation/kk/host,PairPACEExtrapolationKokkos<LMPHostType>);
 #define LMP_PAIR_PACE_EXTRAPOLATION_KOKKOS_H
 
 #include "pair_pace_extrapolation.h"
-#include "ace-evaluator/ace_radial.h"
 #include "kokkos_type.h"
 #include "pair_kokkos.h"
+
+class SplineInterpolator;
 
 namespace LAMMPS_NS {
 
@@ -313,23 +314,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
 
     t_ace_3d4 lookupTable;
 
-    void operator=(const SplineInterpolator &spline) {
-      cutoff = spline.cutoff;
-      deltaSplineBins = spline.deltaSplineBins;
-      ntot = spline.ntot;
-      nlut = spline.nlut;
-      invrscalelookup = spline.invrscalelookup;
-      rscalelookup = spline.rscalelookup;
-      num_of_functions = spline.num_of_functions;
-
-      lookupTable = t_ace_3d4("lookupTable", ntot+1, num_of_functions);
-      auto h_lookupTable = Kokkos::create_mirror_view(lookupTable);
-      for (int i = 0; i < ntot+1; i++)
-        for (int j = 0; j < num_of_functions; j++)
-          for (int k = 0; k < 4; k++)
-            h_lookupTable(i, j, k) = spline.lookupTable(i, j, k);
-      Kokkos::deep_copy(lookupTable, h_lookupTable);
-    }
+    void operator=(const SplineInterpolator &spline);
 
     void deallocate() {
       lookupTable = t_ace_3d4();

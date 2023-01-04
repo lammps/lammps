@@ -79,9 +79,9 @@ MLIAPModelPython::MLIAPModelPython(LAMMPS *lmp, char *coefffilename, bool is_chi
 
 MLIAPModelPython::~MLIAPModelPython()
 {
-  if (model_loaded)
+  if (model_loaded!=0)
     MLIAPPY_unload_model(this);
-  model_loaded=false;
+  model_loaded=0;
 }
 
 /* ----------------------------------------------------------------------

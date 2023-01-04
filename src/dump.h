@@ -90,6 +90,7 @@ class Dump : protected Pointers {
   int unit_count;           // # of times the unit information was written
   int delay_flag;           // 1 if delay output until delaystep
   int write_header_flag;    // 1 if write header, 0 if not
+  int has_id;               // 1 if output contains Atom-IDs
 
   bigint delaystep;
 

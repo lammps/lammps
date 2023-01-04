@@ -117,6 +117,8 @@ public:
   int inversedegree;
   int pdegree[2];
   int nbesselpars;
+  int timing;
+  double comptime[20];
   double besselparams[3];
   double *Phi ;    // eigenvectors
   double *Lambda ; // eigenvalues
@@ -129,7 +131,7 @@ public:
   int ns;      // number of snapshots for radial basis functions
   int nd1, nd2, nd3, nd4, nd5, nd6, nd7, nd;   // number of global descriptors
   int nl1, nl2, nl3, nl4, nl5, nl6, nl7, nl;   // number of local descriptors
-  int nrbf2, nrbf3, nrbf4;                     // number of radial basis functions
+  int nrbf2, nrbf3, nrbf4, nrbfmax;            // number of radial basis functions
   int nabf3, nabf4;                            // number of angular basis functions
   int P3, P4;                                  // angular polynomial degrees
   int K3, K4, Q4;                              // number of monomials

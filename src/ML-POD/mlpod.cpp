@@ -3708,3 +3708,354 @@ void MLPOD::calculate_force(double **force, double *effectivecoeff, double *rij,
     if (pod.snaptwojmax > 0)
         pod4body_force(force, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
 }
+
+
+double MLPOD::pod2body_force(double *fij, double *e2ij, double *f2ij, double *energycoeff2, 
+                           double *forcecoeff2, int *ai, int *aj, int *ti, int *tj, 
+                           int *elemindex, int nelements, int nbf, int /*natom*/, int N)
+{
+    int nelements2 = nelements*(nelements+1)/2;
+    double e2 = 0.0;
+    for (int n=0; n<N; n++) {
+        int i1 = ai[n];
+        int j1 = aj[n];
+        int typei = ti[n]-1;
+        int typej = tj[n]-1;
+        for (int m=0; m<nbf; m++) {
+            int nm = n + N*m;            
+            int km = (elemindex[typei + typej*nelements] - 1) + nelements2*m;
+            e2 += e2ij[nm]*energycoeff2[km];            
+            double ce = forcecoeff2[km];
+            fij[0+3*n] += f2ij[0 + 3*nm]*ce;
+            fij[1+3*n] += f2ij[1 + 3*nm]*ce;
+            fij[2+3*n] += f2ij[2 + 3*nm]*ce;            
+//             force[i1][0] += f2ij[0 + 3*nm]*ce;
+//             force[i1][1] += f2ij[1 + 3*nm]*ce;
+//             force[i1][2] += f2ij[2 + 3*nm]*ce;
+//             force[j1][0] -= f2ij[0 + 3*nm]*ce;
+//             force[j1][1] -= f2ij[1 + 3*nm]*ce;
+//             force[j1][2] -= f2ij[2 + 3*nm]*ce;
+        }
+    }
+    
+    return e2;
+}
+
+double MLPOD::pod3body_force(double *fij, double *yij, double *e2ij, double *f2ij, 
+             double *energycoeff3, double *coeff3, double *tmpmem, int *elemindex, 
+             int *pairnumsum, int *ai, int *aj, int *ti, int *tj, int nrbf, int nabf,
+             int nelements, int natom, int Nij)
+{
+    int dim = 3, nabf1 = nabf + 1;
+    int nelements2 = nelements*(nelements+1)/2;
+    int n, c, nijk3, typei, typej, typek, ij, ik, i, j, k;
+
+    double xij1, xij2, xij3, xik1, xik2, xik3;
+    double xdot, rijsq, riksq, rij, rik;
+    double costhe, sinthe, theta, dtheta;
+    double tm, tm1, tm2, dct1, dct2, dct3, dct4, dct5, dct6;
+
+    double *abf = &tmpmem[0];
+    double *dabf1 = &tmpmem[nabf1];
+    double *dabf2 = &tmpmem[2*nabf1];
+    double *dabf3 = &tmpmem[3*nabf1];
+    double *dabf4 = &tmpmem[4*nabf1];
+    double *dabf5 = &tmpmem[5*nabf1];
+    double *dabf6 = &tmpmem[6*nabf1];
+
+    double e3 = 0.0;
+    for (int ii=0; ii<natom; ii++) {
+        int numneigh = pairnumsum[ii+1] - pairnumsum[ii];      // number of pairs (i,j) around i
+        int s = pairnumsum[ii];
+        for (int lj=0; lj<numneigh ; lj++) {   // loop over each atom j around atom i
+            ij = lj + s;
+            i = ai[ij];  // atom i
+            j = aj[ij];  // atom j
+            typei = ti[ij] - 1;
+            typej = tj[ij] - 1;
+            xij1 = yij[0+dim*ij];  // xj - xi
+            xij2 = yij[1+dim*ij];  // xj - xi
+            xij3 = yij[2+dim*ij];  // xj - xi
+            rijsq = xij1*xij1 + xij2*xij2 + xij3*xij3;
+            rij = sqrt(rijsq);
+
+            //double fixtmp,fiytmp,fiztmp;
+            //fixtmp = fiytmp = fiztmp = 0.0;
+            double fjxtmp,fjytmp,fjztmp;
+            fjxtmp = fjytmp = fjztmp = 0.0;
+            for (int lk=lj+1; lk<numneigh; lk++) { // loop over each atom k around atom i (k > j)
+                ik = lk + s;
+                k = aj[ik];  // atom k
+                typek = tj[ik] - 1;
+                xik1 = yij[0+dim*ik];  // xk - xi
+                xik2 = yij[1+dim*ik];  // xk - xi
+                xik3 = yij[2+dim*ik];  // xk - xi           s
+                riksq = xik1*xik1 + xik2*xik2 + xik3*xik3;
+                rik = sqrt(riksq);
+
+                xdot  = xij1*xik1 + xij2*xik2 + xij3*xik3;
+                costhe = xdot/(rij*rik);
+                costhe = costhe > 1.0 ? 1.0 : costhe;
+                costhe = costhe < -1.0 ? -1.0 : costhe;
+                xdot = costhe*(rij*rik);
+
+                sinthe = pow(1.0 - costhe*costhe, 0.5);
+                sinthe = sinthe > 1e-12 ? sinthe : 1e-12;
+                theta = acos(costhe);
+                dtheta = -1.0/sinthe;
+
+                tm1 = 1.0/(rij*rijsq*rik);
+                tm2 = 1.0/(rij*riksq*rik);
+                dct1 = (xik1*rijsq - xij1*xdot)*tm1;
+                dct2 = (xik2*rijsq - xij2*xdot)*tm1;
+                dct3 = (xik3*rijsq - xij3*xdot)*tm1;
+                dct4 = (xij1*riksq - xik1*xdot)*tm2;
+                dct5 = (xij2*riksq - xik2*xdot)*tm2;
+                dct6 = (xij3*riksq - xik3*xdot)*tm2;
+
+                for (int p=0; p <nabf1; p++) {
+                    abf[p] = cos(p*theta);
+                    tm = -p*sin(p*theta)*dtheta;
+                    dabf1[p] = tm*dct1;
+                    dabf2[p] = tm*dct2;
+                    dabf3[p] = tm*dct3;
+                    dabf4[p] = tm*dct4;
+                    dabf5[p] = tm*dct5;
+                    dabf6[p] = tm*dct6;
+                }
+
+                double fjx = 0.0, fjy = 0.0, fjz = 0.0;
+                double fkx = 0.0, fky = 0.0, fkz = 0.0;
+
+                for (int m=0; m<nrbf; m++) {
+                    double uj = e2ij[lj + s + Nij*m];
+                    double uk = e2ij[lk + s + Nij*m];
+                    double rbf = uj*uk;
+                    double drbf1 = f2ij[0 + dim*(lj + s) + dim*Nij*m]*uk;
+                    double drbf2 = f2ij[1 + dim*(lj + s) + dim*Nij*m]*uk;
+                    double drbf3 = f2ij[2 + dim*(lj + s) + dim*Nij*m]*uk;
+                    double drbf4 = f2ij[0 + dim*(lk + s) + dim*Nij*m]*uj;
+                    double drbf5 = f2ij[1 + dim*(lk + s) + dim*Nij*m]*uj;
+                    double drbf6 = f2ij[2 + dim*(lk + s) + dim*Nij*m]*uj;
+
+                    for (int p=0; p <nabf1; p++) {
+                        tm = abf[p];
+                        double fj1 = drbf1*tm + rbf*dabf1[p];
+                        double fj2 = drbf2*tm + rbf*dabf2[p];
+                        double fj3 = drbf3*tm + rbf*dabf3[p];
+                        double fk1 = drbf4*tm + rbf*dabf4[p];
+                        double fk2 = drbf5*tm + rbf*dabf5[p];
+                        double fk3 = drbf6*tm + rbf*dabf6[p];
+
+                        n = p + (nabf1)*m;
+                        c = (elemindex[typej + typek*nelements] - 1) + nelements2*typei + nelements2*nelements*n;
+                        e3 += rbf*tm*energycoeff3[c];
+                        
+                        tm = coeff3[c];                        
+                        fjx += fj1*tm;
+                        fjy += fj2*tm;
+                        fjz += fj3*tm;
+                        fkx += fk1*tm;
+                        fky += fk2*tm;
+                        fkz += fk3*tm;
+                    }
+                }
+//                 nijk3 = k;
+//                 force[nijk3][0] -= fkx;
+//                 force[nijk3][1] -= fky;
+//                 force[nijk3][2] -= fkz;
+                fjxtmp += fjx;
+                fjytmp += fjy;
+                fjztmp += fjz;
+//                 fixtmp += fjx+fkx;
+//                 fiytmp += fjy+fky;
+//                 fiztmp += fjz+fkz;
+                fij[0+3*lk] += fkx; 
+                fij[1+3*lk] += fky;
+                fij[2+3*lk] += fkz;
+            }
+//             nijk3 = j;
+//             force[nijk3][0] -= fjxtmp;
+//             force[nijk3][1] -= fjytmp;
+//             force[nijk3][2] -= fjztmp;
+//             nijk3 = i;
+//             force[nijk3][0] += fixtmp;
+//             force[nijk3][1] += fiytmp;
+//             force[nijk3][2] += fiztmp;
+            fij[0+3*lj] += fjxtmp; 
+            fij[1+3*lj] += fjytmp;
+            fij[2+3*lj] += fjztmp;
+        }
+    }
+    
+    return e3;
+}
+
+void snapTallyForceIJ(double *fij, double *dbdr, double *coeff4,
+        int *ai, int *aj, int *ti, int ijnum, int ncoeff, int ntype)
+{
+    int N2 = ijnum*ncoeff;
+    for (int idx=0; idx<N2; idx++) {
+        int ij = idx%ijnum;
+        int icoeff = (idx-ij)/ijnum;
+        int i = ai[ij]; // index of atom i
+        int j = aj[ij]; // index of atom i
+        int itype = ti[ij]; // element type of atom i
+        int n = ncoeff*(itype-1);
+        int nij = ijnum*3*icoeff;
+
+        double bix = dbdr[ij + ijnum*0 + nij];
+        double biy = dbdr[ij + ijnum*1 + nij];
+        double biz = dbdr[ij + ijnum*2 + nij];
+        double ce = coeff4[icoeff + n];
+
+        fij[0+3*ijnum] += bix*ce;
+        fij[1+3*ijnum] += biy*ce;
+        fij[2+3*ijnum] += biz*ce;
+        
+//         force[i][0] += bix*ce;
+//         force[i][1] += biy*ce;
+//         force[i][2] += biz*ce;
+//         force[j][0] -= bix*ce;
+//         force[j][1] -= biy*ce;
+//         force[j][2] -= biz*ce;
+    }
+}
+
+double MLPOD::pod4body_energyforce(double *fij, double *rij, double *coeff4, double *tmpmem, int *atomtype,
+        int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij)
+{
+    int dim = 3;
+    int idxu_max = sna.idxu_max;
+    int idxb_max = sna.idxb_max;
+    int idxz_max = sna.idxz_max;
+    int twojmax = sna.twojmax;
+    int ncoeff = sna.ncoeff;
+    int ntypes = sna.ntypes;
+    int nelements = sna.nelements;
+    int ndoubles = sna.ndoubles;
+    int bnormflag = sna.bnormflag;
+    int chemflag = sna.chemflag;
+    int switchflag = sna.switchflag;
+    int wselfallflag = sna.wselfallflag;
+    int nelem = (chemflag) ? nelements : 1;
+
+    int *map = sna.map;
+    int *idxz = sna.idxz;
+    int *idxz_block = sna.idxz_block;
+    int *idxb = sna.idxb;
+    int *idxu_block = sna.idxu_block;
+    int *idxcg_block = sna.idxcg_block;
+
+    double wself = sna.wself;
+    double rmin0 = sna.rmin0;
+    double rfac0 = sna.rfac0;
+    double rcutfac = sna.rcutfac;
+    double *rootpqarray = sna.rootpqarray;
+    double *cglist = sna.cglist;
+    double *radelem = sna.radelem;
+    double *wjelem = sna.wjelem;
+
+    int ne = 0;
+    double *Ur = &tmpmem[ne];
+    double *Zr = &tmpmem[ne];
+    ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+    double *Ui = &tmpmem[ne];
+    double *Zi = &tmpmem[ne];
+    ne += MAX(idxu_max*Nij, idxz_max*ndoubles*natom);
+    double *dUr = &tmpmem[ne];
+    ne += idxu_max*dim*Nij;
+    double *dUi = &tmpmem[ne];
+    ne += idxu_max*dim*Nij;
+    double *dblist = &tmpmem[ne]; // idxb_max*ntriples*dim*Nij
+    double *Utotr = &tmpmem[ne];
+    ne += idxu_max*nelements*natom;
+    double *Utoti = &tmpmem[ne];
+    ne += idxu_max*nelements*natom;
+    double *blist = &tmpmem[ne];
+    
+    snapComputeUlist(Ur, Ui, dUr, dUi, rootpqarray, rij, wjelem, radelem, rmin0,
+         rfac0, rcutfac, idxu_block, ti, tj, twojmax, idxu_max, Nij, switchflag);
+
+    snapZeroUarraytot2(Utotr, Utoti, wself, idxu_block, atomtype, map, idxi, wselfallflag,
+            chemflag, idxu_max, nelem, twojmax, natom);
+
+    snapAddUarraytot(Utotr, Utoti, Ur, Ui, map, idxi, tj, idxu_max, natom, Nij, chemflag);
+
+    snapComputeZi2(Zr, Zi, Utotr, Utoti, cglist, idxz, idxu_block,
+          idxcg_block, twojmax, idxu_max, idxz_max, nelem, bnormflag, natom);
+
+    snapComputeBi1(blist, Zr, Zi, Utotr, Utoti, idxb, idxu_block, idxz_block, twojmax, idxb_max,
+      idxu_max, idxz_max, nelem, natom);
+    
+    double e4 = 0.0;
+    for (int i=0; i<ncoeff; i++)
+      e4 += blist[i] * coeff4[i + ncoeff*(ti[0]-1)];
+    
+    snapComputeDbidrj(dblist, Zr, Zi, dUr, dUi, idxb, idxu_block, idxz_block, map, idxi, tj,
+            twojmax, idxb_max, idxu_max, idxz_max, nelements, bnormflag, chemflag, natom, Nij);
+
+    snapTallyForceIJ(fij, dblist, coeff4, ai, aj, ti, Nij, ncoeff, ntypes);
+    
+    return e4;
+}
+
+double MLPOD::calculate_energyforce(double *fij, double *energycoeff, double *forcecoeff, double *rij, double *tmpmem, int *pairnumsum,
+        int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij)
+{
+    int nelements = pod.nelements;
+    int nbesselpars = pod.nbesselpars;
+    int nrbf2 = pod.nbf2;
+    int nabf3 = pod.nabf3;
+    int nrbf3 = pod.nrbf3;
+    int nd1 = pod.nd1;
+    int nd2 = pod.nd2;
+    int nd3 = pod.nd3;
+    int *pdegree = pod.twobody;
+    int *elemindex = pod.elemindex;
+    double rin = pod.rin;
+    double rcut = pod.rcut;
+    double *Phi = pod.Phi2;
+    double *besselparams = pod.besselparams;
+
+    // effective POD coefficients for calculating energy
+    double *ecoeff1 = &energycoeff[0];
+    double *ecoeff2 = &energycoeff[nd1];
+    double *ecoeff3 = &energycoeff[nd1+nd2];
+    double *ecoeff4 = &energycoeff[nd1+nd2+nd3];
+    
+    // effective POD coefficients for calculating force
+
+    double *coeff2 = &forcecoeff[nd1];
+    double *coeff3 = &forcecoeff[nd1+nd2];
+    double *coeff4 = &forcecoeff[nd1+nd2+nd3];
+
+    int nrbf = MAX(nrbf2, nrbf3);
+    int ns = pdegree[0]*nbesselpars + pdegree[1];
+    double *e2ij = &tmpmem[0]; // Nij*nrbf
+    double *f2ij = &tmpmem[Nij*nrbf]; // dim*Nij*nrbf
+    double *e2ijt = &tmpmem[4*Nij*nrbf]; // Nij*ns
+    double *f2ijt = &tmpmem[4*Nij*nrbf+Nij*ns]; // dim*Nij*ns
+
+    // orthogonal radial basis functions
+
+    podradialbasis(e2ijt, f2ijt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nij);
+    podMatMul(e2ij, e2ijt, Phi, Nij, ns, nrbf);
+    podMatMul(f2ij, f2ijt, Phi, 3*Nij, ns, nrbf);
+    
+    for (int j=0; j<3*Nij; j++) fij[j] = 0.0;
+    
+    double ei = ecoeff1[ti[0]-1];
+    ei += pod2body_force(fij, e2ij, f2ij, ecoeff2, coeff2, ai, aj, ti, tj, elemindex, nelements, nrbf2, natom, Nij);
+
+    ei += pod3body_force(fij, rij, e2ij, f2ij, ecoeff3, coeff3, &tmpmem[4*Nij*nrbf], elemindex, 
+            pairnumsum, ai, aj, ti, tj, nrbf3, nabf3, nelements, natom, Nij);
+
+    if (pod.snaptwojmax > 0)
+        ei += pod4body_energyforce(fij, rij, coeff4, tmpmem, atomtype, idxi, ai, aj, ti, tj, natom, Nij);
+    
+    return ei;
+}
+
+
+

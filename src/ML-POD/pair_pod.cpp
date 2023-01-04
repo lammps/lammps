@@ -100,10 +100,12 @@ void PairPOD::compute(int eflag, int vflag)
   int *type = atom->type;
   int *ilist = list->ilist;
   int inum = list->inum;
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
 
   // initialize global descriptors to zero
 
-  if (descriptormethod == 0) {
+  if (descriptormethod == 0) {    
     int nd1234 = podptr->pod.nd1234;
     podptr->podArraySetValue(gd, 0.0, nd1234);
 
@@ -149,8 +151,11 @@ void PairPOD::compute(int eflag, int vflag)
       newpodcoeff[j] = podcoeff[j] / (natom * natom);
 
     // compute energy and effective coefficients
-    eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
-
+    //eng_vdwl = podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
+    podptr->calculate_energy(energycoeff, forcecoeff, gd, gdall, newpodcoeff);
+    
+    double evdwl = 0.0;
+    
     for (int ii = 0; ii < inum; ii++) {
       int i = ilist[ii];
 
@@ -160,8 +165,31 @@ void PairPOD::compute(int eflag, int vflag)
 
       // compute atomic force for atom i
 
-      podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum, typeai, idxi,
+//       podptr->calculate_force(f, forcecoeff, rij, tmpmem, numneighsum, typeai, idxi,
+//               ai, aj, ti, tj, 1, nij);
+      
+      evdwl = podptr->calculate_energyforce(fij, energycoeff, forcecoeff, rij, tmpmem, numneighsum, typeai, idxi,
               ai, aj, ti, tj, 1, nij);
+      
+      // tally atomic energy to global energy
+
+      ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
+      
+      // tally atomic force to global force
+
+      tallyforce(f, fij, ai, aj, nij);
+      
+      // tally atomic stress 
+      
+      if (vflag) {
+        for (int jj = 0; jj < nij; jj++) {
+          int j = aj[jj];
+          ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
+                     fij[0 + 3*jj],fij[1 + 3*jj],fij[2 + 3*jj],
+                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);      
+        }
+      }
+      
     }
   }
   else if (descriptormethod == 1) {
@@ -169,6 +197,10 @@ void PairPOD::compute(int eflag, int vflag)
     double rcutsq = fastpodptr->rcut*fastpodptr->rcut;
     double evdwl = 0.0;
 
+//     fastpodptr->timing = 1;
+//     if (fastpodptr->timing == 1)
+//       for (int i=0; i<20; i++) fastpodptr->comptime[i] = 0;
+              
     for (int ii = 0; ii < inum; ii++) {
       int i = ilist[ii];
       int jnum = numneigh[i];
@@ -197,10 +229,26 @@ void PairPOD::compute(int eflag, int vflag)
 
       // tally atomic force to global force
 
-      fastpodptr->tallyforce(f, fij, ai, aj, nij);
+      tallyforce(f, fij, ai, aj, nij);
+      
+      // tally atomic stress 
+      
+      if (vflag) {
+        for (int jj = 0; jj < nij; jj++) {
+          int j = aj[jj];
+          ev_tally_xyz(i,j,nlocal,newton_pair,0.0,0.0,
+                     fij[0 + 3*jj],fij[1 + 3*jj],fij[2 + 3*jj],
+                     -rij[0 + 3*jj], -rij[1 + 3*jj], -rij[2 + 3*jj]);      
+        }
+      }
     }
   }
 
+//   if (fastpodptr->timing == 1) {
+//     for (int i=0; i<20; i++) printf("%g  ", fastpodptr->comptime[i]);
+//     printf("\n");
+//   }
+  
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -330,6 +378,7 @@ void PairPOD::free_tempmemory()
 void PairPOD::allocate_tempmemory()
 {
   memory->create(rij, dim * nijmax, "pair:rij");
+  memory->create(fij, dim * nijmax, "pair:fij");
   memory->create(idxi, nijmax, "pair:idxi");
   memory->create(ai, nijmax, "pair:ai");
   memory->create(aj, nijmax, "pair:aj");
@@ -348,7 +397,7 @@ void PairPOD::estimate_tempmemory()
   int ns2 = podptr->pod.ns2;
   int ns3 = podptr->pod.ns3;
 
-  szd = dim * nijmax + (1 + dim) * nijmax * MAX(nrbf2 + ns2, nrbf3 + ns3) + (nabf3 + 1) * 7;
+  szd = 2 * dim * nijmax + (1 + dim) * nijmax * MAX(nrbf2 + ns2, nrbf3 + ns3) + (nabf3 + 1) * 7;
   int szsnap = 0;
   if (podptr->sna.twojmax > 0) {
     szsnap += nijmax * dim;
@@ -379,7 +428,7 @@ void PairPOD::free_tempmemory_fastpod()
 void PairPOD::allocate_tempmemory_fastpod(int nmem)
 {
   memory->create(rij, dim * nijmax, "pair:rij");
-  memory->create(fij, dim * nijmax, "pair:rij");
+  memory->create(fij, dim * nijmax, "pair:fij");
   memory->create(ai, nijmax, "pair:ai");
   memory->create(aj, nijmax, "pair:aj");
   memory->create(ti, nijmax, "pair:ti");
@@ -439,6 +488,21 @@ void PairPOD::lammpsNeighborList(double **x, int **firstneigh, int *atomtypes, i
       tj[nij] = map[atomtypes[gj]] + 1;
       nij++;
     }
+  }
+}
+
+void PairPOD::tallyforce(double **force, double *fij,  int *ai, int *aj, int N)
+{
+  for (int n=0; n<N; n++) {
+    int im =  ai[n];
+    int jm =  aj[n];
+    int nm = 3*n;
+    force[im][0] += fij[0 + nm];
+    force[im][1] += fij[1 + nm];
+    force[im][2] += fij[2 + nm];
+    force[jm][0] -= fij[0 + nm];
+    force[jm][1] -= fij[1 + nm];
+    force[jm][2] -= fij[2 + nm];
   }
 }
 

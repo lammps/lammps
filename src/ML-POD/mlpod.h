@@ -142,6 +142,16 @@ class MLPOD : protected Pointers {
   void pod4body_force(double **force, double *rij, double *coeff4, double *tmpmem, int *atomtype,
                       int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);
 
+  double pod2body_force(double *fij, double *e2ij, double *f2ij, double *energycoeff2, 
+                     double *forcecoeff2, int *ai, int *aj, int *ti, int *tj, 
+                     int *elemindex, int nelements, int nbf, int natom, int N);
+  double pod3body_force(double *fij, double *yij, double *e2ij, double *f2ij, 
+                     double *energycoeff3, double *coeff3, double *tmpmem, int *elemindex, 
+                     int *pairnumsum, int *ai, int *aj, int *ti, int *tj, int nrbf, int nabf,
+                     int nelements, int natom, int Nij);
+  double pod4body_energyforce(double *fij, double *rij, double *coeff4, double *tmpmem, int *atomtype,
+        int *idxi, int *ai, int *aj, int *ti, int *tj, int natom, int Nij);
+  
   // eigenproblem functions
 
   void podeigenvaluedecomposition(double *Phi, double *Lambda, double *besselparams, double rin,
@@ -302,6 +312,10 @@ class MLPOD : protected Pointers {
                                  double *gd, double *rij, double *tmpmem, int *pairnumsum,
                                  int *atomtype, int *idxi, int *ai, int *aj, int *ti, int *tj,
                                  int natom, int Nij);
+  
+  double calculate_energyforce(double *fij, double *energycoeff, double *forcecoeff, double *rij, 
+          double *tmpmem, int *pairnumsum, int *atomtype, int *idxi, int *ai, int *aj, int *ti, 
+          int *tj, int natom, int Nij);  
 
 };
 

@@ -1553,6 +1553,19 @@ double FitPOD::energyforce_calculation(double *force, double *coeff, const datas
   return energy;
 }
 
+double latticevolume(double *lattice)
+{
+  double *v1 = &lattice[0];
+  double *v2 = &lattice[3];
+  double *v3 = &lattice[6];
+  
+  double b0 = v1[1] * v2[2] - v1[2] * v2[1];
+  double b1 = v1[2] * v2[0] - v1[0] * v2[2];
+  double b2 = v1[0] * v2[1] - v1[1] * v2[0];    
+  
+  return (b0*v3[0] + b1*v3[1] + b2*v3[2]);
+}
+
 double FitPOD::energyforce_calculation_fastpod(double *force, const datastruct &data, int ci)
 {
   int dim = 3;
@@ -1609,14 +1622,18 @@ void FitPOD::print_analysis(const datastruct &data, double *outarray, double *er
   int ci=0, m=8, nc=0, nf=0;
   for (int file = 0; file < nfiles; file++) {
     fmt::print(fp_analysis, "# {}\n", data.filenames[file]);
-    fmt::print(fp_analysis, "  config   # atoms      energy        DFT energy     energy error   "
+    fmt::print(fp_analysis, "  config   # atoms       volume        energy        DFT energy     energy error   "
                "  force          DFT force       force error\n");
 
     int nforceall = 0;
     int nconfigs = data.num_config[file];
     nc += nconfigs;
-    for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file
+    for (int ii=0; ii < nconfigs; ii++) { // loop over each configuration in a file            
       fmt::print(fp_analysis, "{:6}   {:8}    ", outarray[m*ci], outarray[1 + m*ci]);
+      
+      double vol = latticevolume(&data.lattice[9*ci]);
+      fmt::print(fp_analysis, "{:<15.10} ", vol);
+      
       for(int count = 2; count < m; count ++)
         fmt::print(fp_analysis, "{:<15.10} ", outarray[count + m*ci]);
       fmt::print(fp_analysis, "\n");

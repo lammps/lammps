@@ -361,8 +361,8 @@ action transpose_helper_kokkos.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 
-# Install cython pyx file only if also Python is available
-action mliap_model_python_couple_kokkos.pyx python_impl_kokkos.cpp
+# Install cython pyx file only if non-KOKKOS version is present
+action mliap_model_python_couple_kokkos.pyx mliap_model_python_couple.pyx
 
 # edit 2 Makefile.package files to include/exclude package info
 
@@ -415,54 +415,21 @@ elif (test $1 = 0) then
 
 fi
 
-
-#Python cython stuff
+# Python cython stuff. Only need to convert/remove sources.
+# Package settings were already done in ML-IAP package Install.sh script.
      
-# edit 2 Makefile.package files to include/exclude package info
-
 if (test $1 = 1) then
   if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
-    if (test -e ../Makefile.package) then
-      sed -i -e 's|^PKG_INC =[ \t]*|&-DMLIAP_PYTHON |' ../Makefile.package
-    fi
-    if (test -e ../Makefile.package.settings) then
-      sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
-      # multiline form needed for BSD sed on Macs
-      sed -i -e '4 i \
-include ..\/..\/lib\/python\/Makefile.mliap_python
-' ../Makefile.package.settings
-    fi
     cythonize -3 ../mliap_model_python_couple_kokkos.pyx
   fi
 
 elif (test $1 = 0) then
-
-  if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*-DMLIAP_PYTHON[^ \t]* //g' ../Makefile.package
-  fi
   rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
-  sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
 
 elif (test $1 = 2) then
   if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
-    if (test -e ../Makefile.package) then
-      sed -i -e 's/[^ \t]*-DMLIAP_PYTHON[^ \t]* //g' ../Makefile.package
-    fi
-    rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
-    sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
-    if (test -e ../Makefile.package) then
-      sed -i -e 's|^PKG_INC =[ \t]*|&-DMLIAP_PYTHON |' ../Makefile.package
-    fi
-    if (test -e ../Makefile.package.settings) then
-      sed -i -e '/^include.*python.*mliap_python.*$/d' ../Makefile.package.settings
-      # multiline form needed for BSD sed on Macs
-      sed -i -e '4 i \
-include ..\/..\/lib\/python\/Makefile.mliap_python
-' ../Makefile.package.settings
-    fi
     cythonize -3 ../mliap_model_python_couple_kokkos.pyx 
   else
-    rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h \
-       ../mliap_model_python_couple_kokkos.cpp 
+    rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
   fi
 fi

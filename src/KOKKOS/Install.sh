@@ -417,7 +417,7 @@ fi
 
 # Python cython stuff. Only need to convert/remove sources.
 # Package settings were already done in ML-IAP package Install.sh script.
-     
+
 if (test $1 = 1) then
   if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
     cythonize -3 ../mliap_model_python_couple_kokkos.pyx
@@ -428,7 +428,7 @@ elif (test $1 = 0) then
 
 elif (test $1 = 2) then
   if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
-    cythonize -3 ../mliap_model_python_couple_kokkos.pyx 
+    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
   else
     rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
   fi

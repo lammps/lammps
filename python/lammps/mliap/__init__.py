@@ -33,6 +33,6 @@ else:
     from .loader import load_model, load_unified, activate_mliappy
     try:
          from .loader import  load_model_kokkos,  activate_mliappy_kokkos
-    except: 
+    except:
         pass
 del sysconfig, ctypes, library, pylib

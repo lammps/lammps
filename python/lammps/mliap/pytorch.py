@@ -135,7 +135,7 @@ class TorchWrapper(torch.nn.Module):
         with torch.autograd.enable_grad():
 
             if (use_gpu_data):
-                energy_nn = torch.as_tensor(energy,dtype=self.dtype, device=self.device)        
+                energy_nn = torch.as_tensor(energy,dtype=self.dtype, device=self.device)
                 energy_nn[:] = self.model(descriptors, elems).flatten()
             else:
                 energy_nn = self.model(descriptors, elems).flatten()
@@ -144,12 +144,12 @@ class TorchWrapper(torch.nn.Module):
             #    energy_nn = energy_nn.flatten()
 
         if (use_gpu_data):
-            beta_nn = torch.as_tensor(beta,dtype=self.dtype, device=self.device)        
+            beta_nn = torch.as_tensor(beta,dtype=self.dtype, device=self.device)
             beta_nn[:] = torch.autograd.grad(energy_nn.sum(), descriptors)[0]
         else:
             beta_nn = torch.autograd.grad(energy_nn.sum(), descriptors)[0]
             beta[:] = beta_nn.detach().cpu().numpy().astype(np.float64)
-            
+
         elems=elems+1
 
 

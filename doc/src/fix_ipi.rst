@@ -90,6 +90,12 @@ coordinates are transferred. However, one could use this strategy to
 define an external potential acting on the atoms that are moved by
 i-PI.
 
+Since the i-PI code uses atomic units internally, this fix needs to
+convert LAMMPS data to and from its :doc:`specified units <units>`
+accordingly when communicating with i-PI.  This is not possible for
+reduced units ("units lj") and thus *fix ipi* will stop with an error in
+this case.
+
 This fix is part of the MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.

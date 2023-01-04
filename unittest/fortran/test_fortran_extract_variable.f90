@@ -10,13 +10,6 @@ MODULE keepvar
       TYPE(c_ptr) :: c_path_join
     END FUNCTION c_path_join
 
-    FUNCTION c_strlen(str) BIND(C,name='strlen')
-      IMPORT :: c_ptr, c_size_t
-      IMPLICIT NONE
-      TYPE(c_ptr), INTENT(IN), VALUE :: str
-      INTEGER(c_size_t) :: c_strlen
-    END FUNCTION c_strlen
-
     SUBROUTINE c_free(ptr) BIND(C,name='free')
       IMPORT :: c_ptr
       TYPE(c_ptr), VALUE :: ptr
@@ -27,7 +20,7 @@ CONTAINS
 
   FUNCTION absolute_path(filename)
     USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr, c_size_t, c_char, C_F_POINTER
-    USE keepstuff, ONLY : lmp
+    USE keepstuff, ONLY : lmp, f2c_string, c_strlen
     CHARACTER(LEN=:), ALLOCATABLE :: absolute_path
     CHARACTER(LEN=*), INTENT(IN) :: filename
     CHARACTER(LEN=256) :: test_input_directory
@@ -50,38 +43,12 @@ CONTAINS
     CALL c_free(c_absolute_path)
   END FUNCTION absolute_path
 
-  FUNCTION f2c_string(f_string) RESULT(ptr)
-    USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_char, c_ptr, c_size_t, &
-      c_null_char, C_F_POINTER
-    CHARACTER(LEN=*), INTENT(IN)           :: f_string
-    CHARACTER(LEN=1, KIND=c_char), POINTER :: c_string(:)
-    TYPE(c_ptr) :: ptr
-    INTEGER(c_size_t) :: i, n
-
-    INTERFACE
-      FUNCTION lammps_malloc(size) BIND(C, name='malloc')
-        IMPORT :: c_ptr, c_size_t
-        IMPLICIT NONE
-        INTEGER(c_size_t), VALUE :: size
-        TYPE(c_ptr) :: lammps_malloc
-      END FUNCTION lammps_malloc
-    END INTERFACE
-
-    n = LEN_TRIM(f_string)
-    ptr = lammps_malloc(n+1)
-    CALL C_F_POINTER(ptr, c_string, [1])
-    DO i=1, n
-        c_string(i) = f_string(i:i)
-    END DO
-    c_string(n+1) = c_null_char
-  END FUNCTION f2c_string
-
 END MODULE keepvar
 
 FUNCTION f_lammps_with_C_args(argc, argv) BIND(C)
   USE ISO_C_BINDING, ONLY: c_ptr, c_char, c_int, c_size_t, C_F_POINTER
   USE liblammps
-  USE keepstuff, ONLY: lmp
+  USE keepstuff, ONLY: lmp, c_strlen
   IMPLICIT NONE
   INTEGER(c_int), INTENT(IN), VALUE :: argc
   TYPE(c_ptr), VALUE :: argv
@@ -91,15 +58,6 @@ FUNCTION f_lammps_with_C_args(argc, argv) BIND(C)
   CHARACTER(LEN=ARG_LENGTH), DIMENSION(argc) :: args
   CHARACTER(LEN=1,KIND=c_char), DIMENSION(:), POINTER :: Cstr
   INTEGER(c_size_t):: i, length, j
-
-  INTERFACE
-    FUNCTION c_strlen(str) BIND(C,name='strlen')
-      IMPORT :: c_ptr, c_size_t
-      IMPLICIT NONE
-      TYPE(c_ptr), INTENT(IN), VALUE :: str
-      INTEGER(c_size_t) :: c_strlen
-    END FUNCTION c_strlen
-  END INTERFACE
 
   CALL C_F_POINTER(argv, Fargv, [argc])
   DO i = 1, argc
@@ -219,8 +177,7 @@ END FUNCTION f_lammps_extract_variable_loop
 FUNCTION f_lammps_extract_variable_loop_pad() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp
-  USE keepvar, ONLY : f2c_string
+  USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_loop_pad
   CHARACTER(LEN=20) :: loop
@@ -232,8 +189,7 @@ END FUNCTION f_lammps_extract_variable_loop_pad
 FUNCTION f_lammps_extract_variable_world() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp
-  USE keepvar, ONLY : f2c_string
+  USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_world
   CHARACTER(LEN=20) :: world
@@ -245,8 +201,7 @@ END FUNCTION f_lammps_extract_variable_world
 FUNCTION f_lammps_extract_variable_universe() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp
-  USE keepvar, ONLY : f2c_string
+  USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_universe
   CHARACTER(LEN=20) :: universe
@@ -270,8 +225,7 @@ END FUNCTION f_lammps_extract_variable_uloop
 FUNCTION f_lammps_extract_variable_string() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp
-  USE keepvar, ONLY : f2c_string
+  USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_string
   CHARACTER(LEN=256) :: string
@@ -283,8 +237,7 @@ END FUNCTION f_lammps_extract_variable_string
 FUNCTION f_lammps_extract_variable_format() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp
-  USE keepvar, ONLY : f2c_string
+  USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_format
   CHARACTER(LEN=20) :: form
@@ -296,8 +249,7 @@ END FUNCTION f_lammps_extract_variable_format
 FUNCTION f_lammps_extract_variable_format_pad() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp
-  USE keepvar, ONLY : f2c_string
+  USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_format_pad
   CHARACTER(LEN=20) :: form
@@ -309,8 +261,7 @@ END FUNCTION f_lammps_extract_variable_format_pad
 FUNCTION f_lammps_extract_variable_getenv() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp
-  USE keepvar, ONLY : f2c_string
+  USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_getenv
   CHARACTER(LEN=40) :: string
@@ -322,8 +273,7 @@ END FUNCTION f_lammps_extract_variable_getenv
 FUNCTION f_lammps_extract_variable_file() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_ptr
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp
-  USE keepvar, ONLY : f2c_string
+  USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   TYPE(c_ptr) :: f_lammps_extract_variable_file
   CHARACTER(LEN=40) :: string
@@ -414,8 +364,7 @@ END FUNCTION f_lammps_extract_variable_vector
 SUBROUTINE f_lammps_set_variable_string() BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_double, c_int
   USE LIBLAMMPS
-  USE keepstuff, ONLY : lmp
-  USE keepvar, ONLY : f2c_string
+  USE keepstuff, ONLY : lmp, f2c_string
   IMPLICIT NONE
   CHARACTER(LEN=40) :: string
 

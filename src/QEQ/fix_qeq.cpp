@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -60,7 +60,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   b_t(nullptr), p(nullptr), q(nullptr), r(nullptr), d(nullptr),
   qf(nullptr), q1(nullptr), q2(nullptr), qv(nullptr)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
+  if (narg < 8) utils::missing_cmd_args(FLERR, "fix " + std::string(style), error);
 
   scalar_flag = 1;
   extscalar = 0;

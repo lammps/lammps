@@ -291,8 +291,9 @@
 #endif
 
 // Enable minimal optimizations for more compact code in debug mode.
+// LAMMPS customization: exclude __NVCC__ in addition to __NVCOMPILER for nvcc from CUDA toolkit
 FMT_GCC_PRAGMA("GCC push_options")
-#if !defined(__OPTIMIZE__) && !defined(__NVCOMPILER)
+#if !defined(__OPTIMIZE__) && !defined(__NVCOMPILER) && !defined(__NVCC__)
 FMT_GCC_PRAGMA("GCC optimize(\"Og\")")
 #endif
 

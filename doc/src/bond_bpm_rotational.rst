@@ -45,6 +45,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 4May2022
+
 The *bpm/rotational* bond style computes forces and torques based on
 deviations from the initial reference state of the two atoms.  The
 reference state is stored by each bond when it is first computed in
@@ -67,7 +69,7 @@ which is proportional to the tangential shear displacement with a
 stiffness of :math:`k_s`. This tangential force also induces a torque.
 In addition, bending and twisting torques are also applied to
 particles which are proportional to angular bending and twisting
-displacements with stiffnesses of :math`k_b` and :math:`k_t',
+displacements with stiffnesses of :math:`k_b` and :math:`k_t`,
 respectively.  Details on the calculations of shear displacements and
 angular displacements can be found in :ref:`(Wang) <Wang2009>` and
 :ref:`(Wang and Mora) <Wang2009b>`.
@@ -211,9 +213,9 @@ command, as *b1*, *b2*, ..., *b7*\ .
 Restrictions
 """"""""""""
 
-This bond style can only be used if LAMMPS was built with the BPM
-package. See the :doc:`Build package <Build_package>` doc page for
-more info.
+This bond style is part of the BPM package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 By default if pair interactions are to be disabled, this bond style
 requires setting

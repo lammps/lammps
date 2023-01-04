@@ -26,6 +26,13 @@ Syntax
 * zero or more keywords may be appended
 * keyword = *any* or *undo* or *remove* or *special*
 
+  .. parsed-literal::
+
+       *any* arg = none = turn off interactions if any atoms are in the group (or on if *undo* is also used)
+       *undo* arg = none = turn specified bonds on instead of off
+       *remove* arg = permanently remove bonds that have been turned off
+       *special* arg = recompute pairwise 1-2, 1-3, and 1-4 lists
+
 Examples
 """"""""
 
@@ -101,13 +108,13 @@ Several keywords can be appended to the argument list to alter the
 default behaviors.
 
 The *any* keyword changes the requirement that all atoms in the bond
-(angle, etc) must be in the specified group in order to turn off the
+(angle, etc.) must be in the specified group in order to turn off the
 interaction.  Instead, if any of the atoms in the interaction are in
 the specified group, it will be turned off (or on if the *undo*
 keyword is used).
 
 The *undo* keyword inverts the delete_bonds command so that the
-specified bonds, angles, etc are turned on if they are currently
+specified bonds, angles, etc. are turned on if they are currently
 turned off.  This means a negative value is toggled to positive.  For
 example, for style *angle*, if *type* is specified as 2, then all
 angles with current type = :math:`-2` are reset to type = :math:`2`.

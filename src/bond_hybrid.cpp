@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,7 +20,6 @@
 #include "memory.h"
 #include "neighbor.h"
 
-#include <cctype>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -257,10 +256,9 @@ void BondHybrid::flags()
   // set comm_forward, comm_reverse, comm_reverse_off to max of any sub-style
 
   for (m = 0; m < nstyles; m++) {
-    if (styles[m]) comm_forward = MAX(comm_forward,styles[m]->comm_forward);
-    if (styles[m]) comm_reverse = MAX(comm_reverse,styles[m]->comm_reverse);
-    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off,
-                                          styles[m]->comm_reverse_off);
+    if (styles[m]) comm_forward = MAX(comm_forward, styles[m]->comm_forward);
+    if (styles[m]) comm_reverse = MAX(comm_reverse, styles[m]->comm_reverse);
+    if (styles[m]) comm_reverse_off = MAX(comm_reverse_off, styles[m]->comm_reverse_off);
   }
 
   init_svector();
@@ -276,8 +274,7 @@ void BondHybrid::init_svector()
   // allocate svector
 
   single_extra = 0;
-  for (int m = 0; m < nstyles; m++)
-    single_extra = MAX(single_extra,styles[m]->single_extra);
+  for (int m = 0; m < nstyles; m++) single_extra = MAX(single_extra, styles[m]->single_extra);
 
   if (single_extra) {
     delete[] svector;
@@ -336,6 +333,16 @@ void BondHybrid::coeff(int narg, char **arg)
 
 void BondHybrid::init_style()
 {
+  // error if sub-style is not used
+
+  int used;
+  for (int istyle = 0; istyle < nstyles; ++istyle) {
+    used = 0;
+    for (int itype = 1; itype <= atom->nbondtypes; ++itype)
+      if (map[itype] == istyle) used = 1;
+    if (used == 0) error->all(FLERR, "Bond hybrid sub-style {} is not used", keywords[istyle]);
+  }
+
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) styles[m]->init_style();
 
@@ -415,14 +422,12 @@ double BondHybrid::single(int type, double rsq, int i, int j, double &fforce)
 
 void BondHybrid::copy_svector(int type)
 {
-  memset(svector,0,single_extra*sizeof(double));
+  memset(svector, 0, single_extra * sizeof(double));
 
   // there is only one style in bond style hybrid for a bond type
   Bond *this_style = styles[map[type]];
 
-  for (int l = 0; this_style->single_extra; ++l) {
-    svector[l] = this_style->svector[l];
-  }
+  for (int l = 0; this_style->single_extra; ++l) { svector[l] = this_style->svector[l]; }
 }
 
 /* ----------------------------------------------------------------------

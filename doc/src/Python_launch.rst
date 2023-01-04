@@ -56,7 +56,7 @@ and you should see the same output as if you had typed
 
 Note that without the mpi4py specific lines from ``test.py``
 
-.. code-block:: Python
+.. code-block:: python
 
    from lammps import lammps
    lmp = lammps()

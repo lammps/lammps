@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,11 +15,11 @@
 
 #include "atom.h"
 #include "atom_vec.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 #include "pair.h"
 
 #include <utility>
@@ -35,6 +35,8 @@ FixUpdateSpecialBonds::FixUpdateSpecialBonds(LAMMPS *lmp, int narg, char **arg) 
     Fix(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR, "Illegal fix update/special/bonds command");
+
+  restart_global = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,7 +56,7 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
   // error if more than one fix update/special/bonds
 
   if (modify->get_fix_by_style("UPDATE_SPECIAL_BONDS").size() > 1)
-    error->all(FLERR,"More than one fix update/special/bonds");
+    error->all(FLERR, "More than one fix update/special/bonds");
 
   // Require atoms know about all of their bonds and if they break
   if (force->newton_bond) error->all(FLERR, "Fix update/special/bonds requires Newton bond off");
@@ -70,12 +72,6 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
       force->special_coul[3] != 1.0)
     error->all(FLERR, "Fix update/special/bonds requires special Coulomb weights = 1,1,1");
   // Implies neighbor->special_flag = [X, 2, 1, 1]
-
-  new_broken_pairs.clear();
-  broken_pairs.clear();
-
-  new_created_pairs.clear();
-  created_pairs.clear();
 }
 
 /* ----------------------------------------------------------------------
@@ -131,14 +127,14 @@ void FixUpdateSpecialBonds::pre_exchange()
     // ignore n2, n3 since 1-3, 1-4 special factors required to be 1.0
     n1 = nspecial[i][0];
     if (n1 >= atom->maxspecial)
-      error->one(FLERR,"Special list size exceeded in fix update/special/bond");
+      error->one(FLERR, "Special list size exceeded in fix update/special/bond");
     special[i][n1] = tagj;
     nspecial[i][0] += 1;
     nspecial[i][1] = nspecial[i][2] = nspecial[i][0];
 
     n1 = nspecial[j][0];
     if (n1 >= atom->maxspecial)
-      error->one(FLERR,"Special list size exceeded in fix update/special/bond");
+      error->one(FLERR, "Special list size exceeded in fix update/special/bond");
     special[j][n1] = tagi;
     nspecial[j][0] += 1;
     nspecial[j][1] = nspecial[j][2] = nspecial[j][0];
@@ -210,8 +206,8 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       jnum = numneigh[i1];
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        if (((j >> SBBITS) & 3) != 0) continue;              // Skip bonded pairs
-        if (tag[j] == tag2) jlist[jj] = j ^ (1 << SBBITS);   // Add 1-2 special bond bits
+        if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
+        if (tag[j] == tag2) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
       }
     }
 
@@ -220,8 +216,8 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       jnum = numneigh[i2];
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
-        if (((j >> SBBITS) & 3) != 0) continue;              // Skip bonded pairs
-        if (tag[j] == tag1) jlist[jj] = j ^ (1 << SBBITS);   // Add 1-2 special bond bits
+        if (((j >> SBBITS) & 3) != 0) continue;               // Skip bonded pairs
+        if (tag[j] == tag1) jlist[jj] = j ^ (1 << SBBITS);    // Add 1-2 special bond bits
       }
     }
   }
@@ -246,4 +242,19 @@ void FixUpdateSpecialBonds::add_created_bond(int i, int j)
   auto tag_pair = std::make_pair(atom->tag[i], atom->tag[j]);
   new_created_pairs.push_back(tag_pair);
   created_pairs.push_back(tag_pair);
+}
+
+/* ----------------------------------------------------------------------
+   Use write_restart to invoke pre_exchange
+------------------------------------------------------------------------- */
+
+void FixUpdateSpecialBonds::write_restart(FILE *fp)
+{
+  // Call pre-exchange to process any broken/created bonds
+
+  pre_exchange();
+  if (comm->me == 0) {
+    int size = 0;
+    fwrite(&size,sizeof(int),1,fp);
+  }
 }

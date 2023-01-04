@@ -6,7 +6,7 @@
 #          log.lammps = LAMMPS log file
 #          X,Y = plot Y versus X where X,Y are thermo keywords
 #          once plot appears, you are in Python interpreter, type C-D to exit
-# Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
+# Author:  Steve Plimpton (Sandia), sjplimp at gmail.com
 
 import sys,os,code
 path = os.environ["LAMMPS_PYTHON_TOOLS"]

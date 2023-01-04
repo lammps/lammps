@@ -3,8 +3,7 @@ post-processing tasks.
 
 If you have suggestions or contributions for additional scripts or
 functionality that could be added, built on the Pizza.py modules (as
-explained below), send email to Steve Plimpton (sjplimp at
-sandia.gov).
+explained below), send email to Steve Plimpton (sjplimp at gmail.com)
 
 log2txt.py      convert thermo info in a LAMMPS log file to columns of numbers
 logplot.py      plot 2 columns of thermo info from a LAMMPS log file

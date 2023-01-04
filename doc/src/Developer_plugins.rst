@@ -95,7 +95,7 @@ a class ``PairMorse2`` in the files ``pair_morse2.h`` and
 ``pair_morse2.cpp`` with the factory function and initialization
 function would look like this:
 
-.. code-block:: C++
+.. code-block:: c++
 
   #include "lammpsplugin.h"
   #include "version.h"
@@ -141,7 +141,7 @@ list of argument strings), then the pointer type is ``lammpsplugin_factory2``
 and it must be assigned to the *creator.v2* member of the plugin struct.
 Below is an example for that:
 
-.. code-block:: C++
+.. code-block:: c++
 
   #include "lammpsplugin.h"
   #include "version.h"
@@ -176,7 +176,7 @@ demonstrated in the following example, which also shows that the
 implementation of the plugin class may be within the same source
 file as the plugin interface code:
 
-.. code-block:: C++
+.. code-block:: c++
 
    #include "lammpsplugin.h"
 

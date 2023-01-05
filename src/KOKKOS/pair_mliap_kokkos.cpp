@@ -41,6 +41,7 @@ PairMLIAPKokkos<DeviceType>::PairMLIAPKokkos(class LAMMPS* l) : PairMLIAP(l)
   kokkosable = 1;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_modify = 0;
+  is_child=true;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,6 +54,10 @@ PairMLIAPKokkos<DeviceType>::~PairMLIAPKokkos()
   memoryKK->destroy_kokkos(k_setflag, setflag);
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
+  delete model;
+  delete descriptor;
+  model=nullptr;
+  descriptor=nullptr;
   allocated = 0;
 }
 
@@ -146,6 +151,7 @@ void PairMLIAPKokkos<DeviceType>::allocate()
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
 {
+  std::vector<char*> new_args;
   int iarg=0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
@@ -163,8 +169,10 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
 #else
         error->all(FLERR,"Using pair_style mliap model mliappy requires ML-IAP with python support");
 #endif
-      } else
-        iarg += 2;
+      } else {
+        new_args.push_back(arg[iarg++]);
+        new_args.push_back(arg[iarg++]);
+      }
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (strcmp(arg[iarg+1],"so3") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
@@ -172,11 +180,11 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
         descriptor = new MLIAPDescriptorSO3Kokkos<DeviceType>(lmp,arg[iarg+2]);
         iarg += 3;
       } else
-        iarg ++;
+        new_args.push_back(arg[iarg++]);
     } else
-      iarg++;
+      new_args.push_back(arg[iarg++]);
   }
-  PairMLIAP::settings(narg, arg);
+  PairMLIAP::settings(new_args.size(), new_args.data());
 
 }
 

@@ -49,7 +49,10 @@ PairMLIAP::PairMLIAP(LAMMPS *lmp) :
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  is_child = false;
   centroidstressflag = CENTROID_NOTAVAIL;
+  model=nullptr;
+  descriptor=nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,7 +64,9 @@ PairMLIAP::~PairMLIAP()
   delete model;
   delete descriptor;
   delete data;
-
+  model=nullptr;
+  descriptor=nullptr;
+  data=nullptr;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -131,53 +136,51 @@ void PairMLIAP::settings(int narg, char ** arg)
 {
   if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style mliap", error);
 
+  // This is needed because the unit test calls settings twice
+  if (!is_child) { 
+    delete model;
+    model = nullptr;
+    delete descriptor;
+    descriptor = nullptr;
+  }
+
   // process keywords
-
   int iarg = 0;
-
-  //Check to see if there are more than one model or descriptor
-  bool has_model=(model!=nullptr), has_descriptor=(descriptor!=nullptr);
-  int nmodel=0,ndescriptor=0;
-  for (int iarg=0;iarg<narg;++iarg)
-    if (strcmp(arg[iarg],"model") == 0)
-      nmodel++;
-    else if (strcmp(arg[iarg],"descriptor") == 0)
-      ndescriptor++;
-  if (nmodel != 1 || ndescriptor != 1 )
-    error->all(FLERR,"One can only specify one model and one descriptor");
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model", error);
+      if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definition");
       if (strcmp(arg[iarg+1],"linear") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model linear", error);
-        if (!has_model) model = new MLIAPModelLinear(lmp,arg[iarg+2]);
+        model = new MLIAPModelLinear(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model quadratic", error);
-        if (!has_model) model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
+        model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"nn") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap model nn", error);
-        if (!has_model) model = new MLIAPModelNN(lmp,arg[iarg+2]);
+        model = new MLIAPModelNN(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
 #ifdef MLIAP_PYTHON
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap mliappy", error);
-        if (!has_model) model = new MLIAPModelPython(lmp,arg[iarg+2]);
+        model = new MLIAPModelPython(lmp,arg[iarg+2]);
         iarg += 3;
 #else
         error->all(FLERR,"Using pair_style mliap model mliappy requires ML-IAP with python support");
 #endif
       } else error->all(FLERR,"Unknown pair_style mliap model keyword: {}", arg[iarg]);
-    } else if (strcmp(arg[iarg],"descriptor") == 0 && (descriptor==nullptr || has_descriptor)) {
+    } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor", error);
+      if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definition");
       if (strcmp(arg[iarg+1],"sna") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor sna", error);
-        if (!has_descriptor) descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
+        descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"so3") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap descriptor so3", error);
-        if (!has_descriptor) descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
+        descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
         iarg += 3;
 
       } else error->all(FLERR,"Illegal pair_style mliap command");

@@ -46,7 +46,7 @@ This tutorial assumes that you are operating in a command-line environment
 using a shell like Bash.
 
 - Linux: any Terminal window will work
-- MacOS X: launch the Terminal application.
+- macOS: launch the Terminal application.
 - Windows 10: install and run the :doc:`Windows Subsystem for Linux <Howto_wsl>`
 
 We also assume that you have downloaded and unpacked a recent LAMMPS source code package

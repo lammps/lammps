@@ -679,7 +679,7 @@ Play the movie:
 
      a = animate("foo*.jpg")
 
-* d) QuickTime and other Windows- or MacOS-based media players can
+* d) QuickTime and other Windows- or macOS-based media players can
   obviously play movie files directly. Similarly for corresponding tools
   bundled with Linux desktop environments.  However, due to licensing
   issues with some file formats, the formats may require installing

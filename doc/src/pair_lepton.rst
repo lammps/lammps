@@ -37,12 +37,15 @@ Description
 
 .. versionadded:: TBD
 
-Pair style *lepton* computes spherical pairwise interactions based on
-evaluating strings between neighboring atoms within the given cutoff.
-The potential function must be provided as an expression string using
-"r" as the distance variable. For example `"200.0*(r-1.5)^2"` represents
-a harmonic potential around the distance :math:`r_0` of 1.5 distance
-units and a force constant *K* of 200.0 energy units:
+Pair style *lepton* computes pairwise interactions between particles
+which depend solely on the distance and have a cutoff.  The potential
+function must be provided as an expression string using "r" as the
+distance variable. Note that additional constants in the expression can
+be defined in the same string as additional expressions separated by
+semi-colons as shown in the examples above.  The expression
+`"200.0*(r-1.5)^2"`, for instance, represents a harmonic potential
+around the pairwise distance :math:`r_0` of 1.5 distance units and a
+force constant *K* of 200.0 energy units:
 
 .. math::
 
@@ -50,10 +53,10 @@ units and a force constant *K* of 200.0 energy units:
 
 The `Lepton library <https://simtk.org/projects/lepton>`_, that the
 *lepton* pair style interfaces with, evaluates this expression string at
-run time to compute the pairwise energy.  It also creates an
-analytical representation of the first derivative of this expression with
-respect to "r" and then uses that to compute the force between the pairs
-of particles within the given cutoff.
+run time to compute the pairwise energy.  It also creates an analytical
+representation of the first derivative of this expression with respect
+to "r" and then uses that to compute the force between the pairs of
+particles within the given cutoff.
 
 The following coefficients must be defined for each pair of atoms types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,

@@ -388,8 +388,13 @@ void PairLepton::read_restart_settings(FILE *fp)
 
 void PairLepton::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp, "%d %s %g\n", i, expressions[type2expression[i][i]].c_str(), cut[i][i]);
+  if (pppmflag || ewaldflag || msmflag || dispersionflag || tip4pflag) {
+    for (int i = 1; i <= atom->ntypes; i++)
+      fprintf(fp, "%d %s\n", i, expressions[type2expression[i][i]].c_str());
+  } else {
+    for (int i = 1; i <= atom->ntypes; i++)
+      fprintf(fp, "%d %s %g\n", i, expressions[type2expression[i][i]].c_str(), cut[i][i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -398,9 +403,15 @@ void PairLepton::write_data(FILE *fp)
 
 void PairLepton::write_data_all(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp, "%d %d %s %g\n", i, j, expressions[type2expression[i][j]].c_str(), cut[i][j]);
+  if (pppmflag || ewaldflag || msmflag || dispersionflag || tip4pflag) {
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = i; j <= atom->ntypes; j++)
+        fprintf(fp, "%d %d %s\n", i, j, expressions[type2expression[i][j]].c_str());
+  } else {
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = i; j <= atom->ntypes; j++)
+        fprintf(fp, "%d %d %s %g\n", i, j, expressions[type2expression[i][j]].c_str(), cut[i][j]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -202,7 +202,7 @@ void PairTable::allocate()
 
 void PairTable::settings(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style table", error);
 
   // new settings
 
@@ -218,7 +218,7 @@ void PairTable::settings(int narg, char **arg)
     error->all(FLERR, "Unknown table style in pair_style command: {}", arg[0]);
 
   tablength = utils::inumeric(FLERR, arg[1], false, lmp);
-  if (tablength < 2) error->all(FLERR, "Illegal number of pair table entries");
+  if (tablength < 2) error->all(FLERR, "Illegal number of pair table entries: {}", tablength);
 
   // optional keywords
   // assert the tabulation is compatible with a specific long-range solver
@@ -236,7 +236,7 @@ void PairTable::settings(int narg, char **arg)
     else if (strcmp(arg[iarg], "tip4p") == 0)
       tip4pflag = 1;
     else
-      error->all(FLERR, "Illegal pair_style command");
+      error->all(FLERR, "Unknown pair_style table keyword: {}", arg[iarg]);
     iarg++;
   }
 

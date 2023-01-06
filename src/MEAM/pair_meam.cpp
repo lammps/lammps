@@ -201,6 +201,7 @@ void PairMEAM::settings(int narg, char **arg)
     if (strcmp("ms", arg[0]) == 0){
         msmeamflag = 1;
         meam_inst->msmeamflag = 1;
+        printf("^^^^^ msmeam flag on!\n");
     } else
       error->all(FLERR, "Unknown pair style zero option {}", arg[0]);
   }
@@ -369,6 +370,7 @@ void PairMEAM::read_files(const std::string &globalfile,
 void PairMEAM::read_global_meam_file(const std::string &globalfile)
 {
   // allocate parameter arrays
+
   std::vector<lattice_t> lat(nlibelements);
   std::vector<int> ielement(nlibelements);
   std::vector<int> ibar(nlibelements);
@@ -388,6 +390,15 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
   std::vector<double> t3(nlibelements);
   std::vector<double> rozero(nlibelements);
   std::vector<bool> found(nlibelements, false);
+
+  // allocate 6 extra arrays for msmeam
+
+  std::vector<double> b1m(nlibelements);
+  std::vector<double> b2m(nlibelements);
+  std::vector<double> b3m(nlibelements);
+  std::vector<double> t1m(nlibelements);
+  std::vector<double> t2m(nlibelements);
+  std::vector<double> t3m(nlibelements);
 
   // open global meamf file on proc 0
 
@@ -423,6 +434,8 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         // map lat string to an integer
         std::string lattice_type = values.next_string();
 
+        //error->one(FLERR,"lattice_type {}", lattice_type);
+
         if (!MEAM::str_to_lat(lattice_type, true, lat[index]))
           error->one(FLERR,"Unrecognized lattice type in MEAM "
                                        "library file: {}", lattice_type);
@@ -437,6 +450,11 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         b1[index] = values.next_double();
         b2[index] = values.next_double();
         b3[index] = values.next_double();
+        if (this->msmeamflag){
+          b1m[index] = values.next_double();
+          b2m[index] = values.next_double();
+          b3m[index] = values.next_double();
+        }
         alat[index] = values.next_double();
         esub[index] = values.next_double();
         asub[index] = values.next_double();
@@ -444,9 +462,15 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         t1[index] = values.next_double();
         t2[index] = values.next_double();
         t3[index] = values.next_double();
+        if (this->msmeamflag){
+          t1m[index] = values.next_double();
+          t2m[index] = values.next_double();
+          t3m[index] = values.next_double();
+        }
         rozero[index] = values.next_double();
-        printf("ibar:\n");
         ibar[index] = values.next_int();
+
+        //error->one(FLERR,"^^^^ DEBUG");
 
         if (!isone(t0[index]))
           error->one(FLERR,"Unsupported parameter in MEAM library file: t0!=1");

@@ -1026,6 +1026,7 @@ ev
 eV
 eval
 evals
+evaluator
 evalue
 Evanseck
 evdwl

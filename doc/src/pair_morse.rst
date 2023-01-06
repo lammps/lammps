@@ -107,7 +107,7 @@ I,J pairs must be specified explicitly.
 All of these pair styles support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction.
 
-The :doc:`pair_modify <pair_modify>` table options is not relevant for
+The :doc:`pair_modify <pair_modify>` table options are not relevant for
 the Morse pair styles.
 
 None of these pair styles support the :doc:`pair_modify <pair_modify>`

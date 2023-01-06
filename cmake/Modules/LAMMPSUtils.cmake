@@ -100,7 +100,7 @@ endfunction()
 
 macro(pkg_depends PKG1 PKG2)
   if(PKG_${PKG1} AND NOT (PKG_${PKG2} OR BUILD_${PKG2}))
-    message(FATAL_ERROR "The ${PKG1} package needs LAMMPS to be build with the ${PKG2} package")
+    message(FATAL_ERROR "The ${PKG1} package needs LAMMPS to be built with the ${PKG2} package")
   endif()
 endmacro()
 

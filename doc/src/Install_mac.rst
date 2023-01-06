@@ -12,7 +12,7 @@ the following commands:
 
 .. code-block:: bash
 
-   % brew install lammps
+   brew install lammps
 
 This will install the executables "lammps_serial" and "lammps_mpi", as well as
 the LAMMPS "doc", "potentials", "tools", "bench", and "examples" directories.
@@ -22,7 +22,7 @@ Lennard-Jones benchmark file:
 
 .. code-block:: bash
 
-   % brew test lammps -v
+   brew test lammps -v
 
 The LAMMPS binary is built with the :ref:`KIM package <kim>` which
 results in Homebrew also installing the `kim-api` binaries when LAMMPS is
@@ -31,7 +31,7 @@ install the `openkim-models` package
 
 .. code-block:: bash
 
-   % brew install openkim-models
+   brew install openkim-models
 
 If you have problems with the installation you can post issues to
 `this link <https://github.com/Homebrew/homebrew-core/issues>`_.

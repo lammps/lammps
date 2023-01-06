@@ -10,8 +10,8 @@
 {%- set sphinx_writer = 'writer-html5' if html5_doctype else 'writer-html4' -%}
 
 {# Build sphinx_version_info tuple from sphinx_version string in pure Jinja #}
-{%- set (_ver_major, _ver_minor, _ver_bugfix) = sphinx_version.split('.') | map('int') -%}
-{%- set sphinx_version_info = (_ver_major, _ver_minor, _ver_bugfix) -%}
+{%- set (_ver_major, _ver_minor) = (sphinx_version.split('.') | list)[:2] | map('int') -%}
+{%- set sphinx_version_info = (_ver_major, _ver_minor, -1) -%}
 
 <!DOCTYPE html>
 <html class="{{ sphinx_writer }}" lang="{{ lang_attr }}" >
@@ -64,10 +64,6 @@
   <!--[if lt IE 9]>
     <script src="{{ pathto('_static/js/html5shiv.min.js', 1) }}"></script>
   <![endif]-->
-
-  {# Keep modernizr in head - http://modernizr.com/docs/#installing #}
-  <script src="{{ pathto('_static/js/modernizr.min.js', 1) }}"></script>
-
   {%- if not embedded %}
   {# XXX Sphinx 1.8.0 made this an external js-file, quick fix until we refactor the template to inherert more blocks directly from sphinx #}
     {%- if sphinx_version_info >= (1, 8) -%}

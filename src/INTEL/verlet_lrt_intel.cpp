@@ -67,7 +67,8 @@ void VerletLRTIntel::init()
 {
   Verlet::init();
 
-  _intel_kspace = dynamic_cast<PPPMIntel*>(force->kspace_match("^pppm/intel", 0));
+  _intel_kspace = dynamic_cast<PPPMIntel*>(force->kspace_match("^pppm\\..*intel$", 0));
+  // include pppm/electrode/intel
 
   #ifndef LMP_INTEL_USELRT
   error->all(FLERR,

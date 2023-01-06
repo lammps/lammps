@@ -3,9 +3,9 @@ Parallel algorithms
 
 LAMMPS is designed to enable running simulations in parallel using the
 MPI parallel communication standard with distributed data via domain
-decomposition.  The parallelization aims to be efficient result in good
-strong scaling (= good speedup for the same system) and good weak
-scaling (= the computational cost of enlarging the system is
+decomposition.  The parallelization aims to be efficient, and resulting
+in good strong scaling (= good speedup for the same system) and good
+weak scaling (= the computational cost of enlarging the system is
 proportional to the system size).  Additional parallelization using GPUs
 or OpenMP can also be applied within the sub-domain assigned to an MPI
 process.  For clarity, most of the following illustrations show the 2d

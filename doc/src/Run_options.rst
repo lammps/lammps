@@ -31,8 +31,8 @@ For example, the lmp_mpi executable might be launched as follows:
 
 .. code-block:: bash
 
-   $ mpirun -np 16 lmp_mpi -v f tmp.out -l my.log -sc none -i in.alloy
-   $ mpirun -np 16 lmp_mpi -var f tmp.out -log my.log -screen none -in in.alloy
+   mpirun -np 16 lmp_mpi -v f tmp.out -l my.log -sc none -i in.alloy
+   mpirun -np 16 lmp_mpi -var f tmp.out -log my.log -screen none -in in.alloy
 
 ----------
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Axel Kohlmeyer (Temple U)
+   Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "pair_lepton.h"
@@ -105,6 +105,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLepton::eval()
     for (const auto &expr : expressions) {
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
+      pairforce.back().getVariableReference("r");
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {

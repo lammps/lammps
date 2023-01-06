@@ -14,7 +14,7 @@
 #include <algorithm>
 
 // used to set the absolute path of a replica file
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
 #include <direct.h>
 #define CHDIR ::_chdir
 #define GETCWD ::_getcwd

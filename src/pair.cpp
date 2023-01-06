@@ -1806,6 +1806,8 @@ void Pair::write_file(int narg, char **arg)
   else if (strcmp(arg[3],"bitmap") == 0) style = BMP;
   else error->all(FLERR,"Invalid style in pair_write command");
 
+  if (n < 2) error->all(FLERR, "Must have at least 2 table values");
+
   double inner = utils::numeric(FLERR,arg[4],false,lmp);
   double outer = utils::numeric(FLERR,arg[5],false,lmp);
   if (inner <= 0.0 || inner >= outer)

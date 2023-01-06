@@ -901,6 +901,7 @@ feature_summary(DESCRIPTION "The following tools and libraries have been found a
 message(STATUS "<<< Build configuration >>>
    LAMMPS Version:   ${PROJECT_VERSION}
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
+   CMake Version:    ${CMAKE_VERSION}
    Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")

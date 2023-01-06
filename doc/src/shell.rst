@@ -105,7 +105,7 @@ would be the same as invoking
 
 .. code-block:: bash
 
-   % my_setup file1 10 file2
+   my_setup file1 10 file2
 
 from a command-line prompt.  The executable program "my_setup" is run
 with 3 arguments: file1 10 file2.

@@ -137,7 +137,7 @@ void PairMLIAP::settings(int narg, char ** arg)
   if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style mliap", error);
 
   // This is needed because the unit test calls settings twice
-  if (!is_child) { 
+  if (!is_child) {
     delete model;
     model = nullptr;
     delete descriptor;

@@ -858,11 +858,11 @@ library.
 
       .. code-block:: bash
 
-         $ make lib-latte                          # print help message
-         $ make lib-latte args="-b"                # download and build in lib/latte/LATTE-master
-         $ make lib-latte args="-p $HOME/latte"    # use existing LATTE installation in $HOME/latte
-         $ make lib-latte args="-b -m gfortran"    # download and build in lib/latte and
-                                                   #   copy Makefile.lammps.gfortran to Makefile.lammps
+         $ make lib-latte                        # print help message
+         $ make lib-latte args="-b"              # download and build in lib/latte/LATTE-master
+         $ make lib-latte args="-p $HOME/latte"  # use existing LATTE installation in $HOME/latte
+         $ make lib-latte args="-b -m gfortran"  # download and build in lib/latte and
+                                                 #   copy Makefile.lammps.gfortran to Makefile.lammps
 
       Note that 3 symbolic (soft) links, ``includelink`` and ``liblink``
       and ``filelink.o``, are created in ``lib/latte`` to point to
@@ -1208,10 +1208,10 @@ The ATC package requires the MANYBODY package also be installed.
 
       .. code-block:: bash
 
-         $ make lib-linalg                     # print help message
-         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+         $ make lib-linalg                   # print help message
+         $ make lib-linalg args="-m serial"  # build with GNU C++ compiler (settings as with "make serial")
+         $ make lib-linalg args="-m mpi"     # build with default MPI C++ compiler (settings as with "make mpi")
+         $ make lib-linalg args="-m g++"     # build with GNU C++ compiler
 
 ----------
 
@@ -1259,10 +1259,10 @@ AWPMD package
 
       .. code-block:: bash
 
-         $ make lib-linalg                     # print help message
-         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+         $ make lib-linalg                   # print help message
+         $ make lib-linalg args="-m serial"  # build with GNU C++ compiler (settings as with "make serial")
+         $ make lib-linalg args="-m mpi"     # build with default MPI C++ compiler (settings as with "make mpi")
+         $ make lib-linalg args="-m g++"     # build with GNU C++ compiler
 
 ----------
 
@@ -1363,10 +1363,10 @@ This package depends on the KSPACE package.
 
       .. code-block:: bash
 
-         $ make lib-linalg                     # print help message
-         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+         $ make lib-linalg                   # print help message
+         $ make lib-linalg args="-m serial"  # build with GNU C++ compiler (settings as with "make serial")
+         $ make lib-linalg args="-m mpi"     # build with default MPI C++ compiler (settings as with "make mpi")
+         $ make lib-linalg args="-m g++"     # build with GNU C++ compiler
 
       The package itself is activated with ``make yes-KSPACE`` and
       ``make yes-ELECTRODE``
@@ -1447,10 +1447,10 @@ ML-POD package
 
       .. code-block:: bash
 
-         $ make lib-linalg                     # print help message
-         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
-         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
-         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+         $ make lib-linalg                   # print help message
+         $ make lib-linalg args="-m serial"  # build with GNU C++ compiler (settings as with "make serial")
+         $ make lib-linalg args="-m mpi"     # build with default MPI C++ compiler (settings as with "make mpi")
+         $ make lib-linalg args="-m g++"     # build with GNU C++ compiler
 
       The package itself is activated with ``make yes-ML-POD``.
 

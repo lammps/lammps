@@ -210,7 +210,13 @@ void PairLepton::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = utils::numeric(FLERR, arg[3], false, lmp);
+  if (narg == 4) {
+    if (pppmflag || ewaldflag || msmflag || dispersionflag || tip4pflag) {
+      error->all(FLERR, "Only a global cutoff is allowed with Kspace compatibility enabled");
+    } else {
+      cut_one = utils::numeric(FLERR, arg[3], false, lmp);
+    }
+  }
 
   // remove whitespace and quotes from expression string and then
   // check if the expression can be parsed and evaluated without error

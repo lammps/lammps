@@ -42,6 +42,9 @@ Examples
    pair_coeff 1 1 "qi*qj/r" 4.0
    pair_coeff 1 2 "lj+coul; lj=4.0*eps*((sig/r)^12 - (sig/r)^6); eps=1.0; sig=1.0; coul=qi*qj/r"
 
+   pair_style lepton/coul 2.5 pppm
+   kspace_style pppm 1.0e-4
+   pair_coeff 1 1 "qi*qj/r*erfc(alpha*r); alpha=1.067"
 
 Description
 """""""""""

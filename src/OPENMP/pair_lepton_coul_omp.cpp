@@ -166,17 +166,17 @@ void PairLeptonCoulOMP::eval(int iifrom, int iito, ThrData *const thr)
           f[j].z -= delz * fpair;
         }
 
-        double evdwl = 0.0;
+        double ecoul = 0.0;
         if (EFLAG) {
           pairpot[idx].getVariableReference("r") = r;
           if (have_q[idx].first) pairpot[idx].getVariableReference("qi") = q2e * q[i];
           if (have_q[idx].second) pairpot[idx].getVariableReference("qj") = q2e * q[j];
-          evdwl = pairpot[idx].evaluate();
-          evdwl *= factor_coul;
+          ecoul = pairpot[idx].evaluate();
+          ecoul *= factor_coul;
         }
 
         if (EVFLAG)
-          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz, thr);
+          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, 0.0, ecoul, fpair, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

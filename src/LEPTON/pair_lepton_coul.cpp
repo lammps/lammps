@@ -144,16 +144,16 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLeptonCoul::eval()
           f[j][2] -= delz * fpair;
         }
 
-        double evdwl = 0.0;
+        double ecoul = 0.0;
         if (EFLAG) {
           pairpot[idx].getVariableReference("r") = r;
           if (have_q[idx].first) pairpot[idx].getVariableReference("qi") = q2e * q[i];
           if (have_q[idx].second) pairpot[idx].getVariableReference("qj") = q2e * q[j];
-          evdwl = pairpot[idx].evaluate();
-          evdwl *= factor_coul;
+          ecoul = pairpot[idx].evaluate();
+          ecoul *= factor_coul;
         }
 
-        if (EVFLAG) ev_tally(i, j, nlocal, NEWTON_PAIR, 0.0, evdwl, fpair, delx, dely, delz);
+        if (EVFLAG) ev_tally(i, j, nlocal, NEWTON_PAIR, 0.0, ecoul, fpair, delx, dely, delz);
       }
     }
     f[i][0] += fxtmp;

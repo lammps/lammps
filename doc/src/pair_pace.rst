@@ -1,6 +1,7 @@
 .. index:: pair_style pace
 .. index:: pair_style pace/kk
 .. index:: pair_style pace/extrapolation
+.. index:: pair_style pace/extrapolation/kk
 
 pair_style pace command
 =======================
@@ -127,6 +128,9 @@ but not more often than every 20 steps.
 
 On all other steps `pair_style pace recursive` will be used.
 
+When using the pair style *pace/extrapolation* with the KOKKOS package on GPUs
+product B-basis evaluator is always used and only *linear* ASI is supported.
+
 ----------
 
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
@@ -186,4 +190,4 @@ recursive, chunksize = 4096,
 
 .. _Lysogorskiy2022:
 
-**(Lysogorskiy2022)** Lysogorskiy, Bochkarev, Mrovec, Drautz, TBS (2022).
+**(Lysogorskiy2022)** Lysogorskiy, Bochkarev, Mrovec, Drautz, arXiv:2212.08716 (2022).

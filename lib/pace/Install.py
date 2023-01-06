@@ -18,11 +18,11 @@ from install_helpers import fullpath, geturl, checkmd5sum
 # settings
 
 thisdir = fullpath('.')
-version ='v.2022.10.15'
+version ='v.2023.01.3'
 
 # known checksums for different PACE versions. used to validate the download.
 checksums = { \
-    'v.2022.10.15': '848ad6a6cc79fa82745927001fb1c9b5'
+    'v.2023.01.3': 'f418d32b60e531063ac4285bf702b468'
 }
 
 parser = ArgumentParser(prog='Install.py', description="LAMMPS library build wrapper script")

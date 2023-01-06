@@ -267,3 +267,21 @@ double PairLeptonCoul::single(int i, int j, int itype, int jtype, double rsq, do
   fforce = -pairforce.evaluate() / r * factor_coul;
   return pairpot.evaluate() * factor_coul;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLeptonCoul::extract(const char *str, int &dim)
+{
+  if (pppmflag || ewaldflag || msmflag || dispersionflag || tip4pflag) {
+    if (strcmp(str, "cut_coul") == 0) {
+      dim = 0;
+      return (void *) &cut_global;
+    }
+  } else {
+    if (strcmp(str, "cut_coul") == 0) {
+      dim = 2;
+      return (void *) &cut;
+    }
+  }
+  return nullptr;
+}

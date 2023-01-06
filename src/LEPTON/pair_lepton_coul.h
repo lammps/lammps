@@ -35,6 +35,7 @@ class PairLeptonCoul : public PairLepton {
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();

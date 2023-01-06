@@ -155,7 +155,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           rhoa3j = ro0j * MathSpecial::fm_exp(-this->beta3_meam[eltj] * aj);
           drhoa3j = -this->beta3_meam[eltj] * invrej * rhoa3j;
 
-
+          printf("^^^^^ check\n");
           if (this->msmeamflag) {
             rhoa1mj = ro0j * t1m_meam[eltj] * MathSpecial::fm_exp(-this->beta1m_meam[eltj] * aj);
             drhoa1mj = -this->beta1m_meam[eltj] * invrej * rhoa1mj;
@@ -255,10 +255,11 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           for (n = 0; n < 3; n++) {
             for (p = n; p < 3; p++) {
               for (q = p; q < 3; q++) {
-          arg = delij[n] * delij[p] * delij[q] * this->v3D[nv3];
-          arg1i3m = arg1i3m + arho3m[i][nv3] * arg;
-          arg1j3m = arg1j3m - arho3m[j][nv3] * arg;
-          nv3 = nv3 + 1;
+                arg = delij[n] * delij[p] * delij[q] * this->v3D[nv3];
+                printf("segfault here n p q: %d %d %d\n", n, p, q);
+                arg1i3m = arg1i3m + arho3m[i][nv3] * arg;
+                arg1j3m = arg1j3m - arho3m[j][nv3] * arg;
+                nv3 = nv3 + 1;
               }
               arg = delij[n] * delij[p] * this->v2D[nv2];
               arg1i2m = arg1i2m + arho2m[i][nv2] * arg;
@@ -271,7 +272,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
             arg3j3m = arg3j3m - arho3mb[j][n] * delij[n];
           }
         }
-	
+
         //     rho0 terms
         drho0dr1 = drhoa0j * sij;
         drho0dr2 = drhoa0i * sij;
@@ -304,7 +305,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           drho2drm1[m] = a2 * rhoa2j * drho2drm1[m];
           drho2drm2[m] = -a2 * rhoa2i * drho2drm2[m];
         }
-
+        printf("^^^^^ check 4\n");
         //     rho3 terms
         rij3 = rij * rij2;
         a3 = 2 * sij / rij3;

@@ -159,9 +159,10 @@ void PairMEAM::compute(int eflag, int vflag)
 
   double **vptr = nullptr;
   if (vflag_atom) vptr = vatom;
-
+  printf("^^^^^ before force loop\n");
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
+    printf("^^^^^ i: %d\n", i);
     meam_inst->meam_force(i,eflag_global,eflag_atom,vflag_global,
                           vflag_atom,&eng_vdwl,eatom,ntype,type,map,scale,x,
                           numneigh_half[i],firstneigh_half[i],
@@ -169,7 +170,7 @@ void PairMEAM::compute(int eflag, int vflag)
                           offset,f,vptr,virial);
     offset += numneigh_half[i];
   }
-
+  printf("^^^^^ after force loop\n");
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -541,7 +542,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
                                nullptr, nullptr, nullptr, nullptr, nullptr);
   }
 
-  error->one(FLERR,"^^^^ DEBUG");
+  //error->one(FLERR,"^^^^ DEBUG");
 
   // set element masses
 

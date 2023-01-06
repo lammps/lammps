@@ -33,6 +33,8 @@ MEAM::MEAM(Memory* mem)
   rho = rho0 = rho1 = rho2 = rho3 = frhop = nullptr;
   gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = nullptr;
   arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = nullptr;
+  // msmeam arrays
+  //arho1m = arho2m = arho2mb = arho3m = arho3mb = nullptr;
 
   maxneigh = 0;
   scrfcn = dscrfcn = fcpair = nullptr;
@@ -43,7 +45,9 @@ MEAM::MEAM(Memory* mem)
     A_meam[i] = rho0_meam[i] = beta0_meam[i] =
       beta1_meam[i]= beta2_meam[i] = beta3_meam[i] =
       t0_meam[i] = t1_meam[i] = t2_meam[i] = t3_meam[i] =
-      rho_ref_meam[i] = ibar_meam[i] = ielt_meam[i] = 0.0;
+      rho_ref_meam[i] = ibar_meam[i] = ielt_meam[i] = 
+      t1m_meam[i] = t2m_meam[i] = t3m_meam[i] = 
+      beta1m_meam[i] = beta2m_meam[i] = beta3m_meam[i] = 0.0;
     for (int j = 0; j < maxelt; j++) {
       lattce_meam[i][j] = FCC;
       Ec_meam[i][j] = re_meam[i][j] = alpha_meam[i][j] = delta_meam[i][j] = ebound_meam[i][j] = attrac_meam[i][j] = repuls_meam[i][j] = 0.0;

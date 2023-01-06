@@ -101,14 +101,26 @@ void PairLeptonCoulOMP::eval(int iifrom, int iito, ThrData *const thr)
 
   std::vector<Lepton::CompiledExpression> pairforce;
   std::vector<Lepton::CompiledExpression> pairpot;
+  std::vector<std::pair<bool, bool>> have_q;
   try {
     for (const auto &expr : expressions) {
       auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
       pairforce.back().getVariableReference("r");
-      pairforce.back().getVariableReference("qi");
-      pairforce.back().getVariableReference("qj");
+      have_q.emplace_back(std::make_pair(true, true));
+
+      // check if there are references to charges
+      try {
+        pairforce.back().getVariableReference("qi");
+      } catch (std::exception &) {
+        have_q.back().first = false;
+      }
+      try {
+        pairforce.back().getVariableReference("qj");
+      } catch (std::exception &) {
+        have_q.back().second = false;
+      }
     }
   } catch (std::exception &e) {
     error->all(FLERR, e.what());
@@ -141,8 +153,8 @@ void PairLeptonCoulOMP::eval(int iifrom, int iito, ThrData *const thr)
         const double r = sqrt(rsq);
         const int idx = type2expression[itype][jtype];
         pairforce[idx].getVariableReference("r") = r;
-        pairforce[idx].getVariableReference("qi") = q2e * q[i];
-        pairforce[idx].getVariableReference("qj") = q2e * q[j];
+        if (have_q[idx].first) pairforce[idx].getVariableReference("qi") = q2e * q[i];
+        if (have_q[idx].second) pairforce[idx].getVariableReference("qj") = q2e * q[j];
         const double fpair = -pairforce[idx].evaluate() / r * factor_coul;
 
         fxtmp += delx * fpair;
@@ -157,8 +169,8 @@ void PairLeptonCoulOMP::eval(int iifrom, int iito, ThrData *const thr)
         double evdwl = 0.0;
         if (EFLAG) {
           pairpot[idx].getVariableReference("r") = r;
-          pairpot[idx].getVariableReference("qi") = q2e * q[i];
-          pairpot[idx].getVariableReference("qj") = q2e * q[j];
+          if (have_q[idx].first) pairpot[idx].getVariableReference("qi") = q2e * q[i];
+          if (have_q[idx].second) pairpot[idx].getVariableReference("qj") = q2e * q[j];
           evdwl = pairpot[idx].evaluate();
           evdwl *= factor_coul;
         }

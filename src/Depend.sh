@@ -118,6 +118,10 @@ if (test $1 = "KSPACE") then
   depend FEP
 fi
 
+if (test $1 = "LEPTON") then
+  depend OPENMP
+fi
+
 if (test $1 = "MANYBODY") then
   depend ATC
   depend GPU

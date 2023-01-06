@@ -37,7 +37,7 @@ packages:
    * :ref:`ADIOS <adios>`
    * :ref:`ATC <atc>`
    * :ref:`AWPMD <awpmd>`
-   * :ref:`COLVARS <colvars>`
+   * :ref:`COLVARS <colvar>`
    * :ref:`COMPRESS <compress>`
    * :ref:`ELECTRODE <electrode>`
    * :ref:`GPU <gpu>`
@@ -46,6 +46,7 @@ packages:
    * :ref:`KIM <kim>`
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LATTE <latte>`
+   * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
    * :ref:`MESONT <mesont>`

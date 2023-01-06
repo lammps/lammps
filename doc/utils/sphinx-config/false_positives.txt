@@ -554,6 +554,7 @@ corotate
 corotation
 corotational
 correlator
+Cosecant
 cosineshifted
 cossq
 costheta
@@ -586,6 +587,7 @@ Crozier
 Cryst
 Crystallogr
 Csanyi
+csc
 csg
 csh
 cshrc
@@ -2236,7 +2238,7 @@ msm
 msmflag
 msse
 msst
-Mtchell
+MtD
 Mth
 mtk
 Mtotal
@@ -3277,6 +3279,7 @@ Simul
 simulations
 Sinkovits
 Sinnott
+sinh
 sinusoid
 sinusoidally
 SiO

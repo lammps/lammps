@@ -621,8 +621,8 @@ MPEG or other movie file you can use:
 
   .. code-block:: bash
 
-     % convert *.jpg foo.gif
-     % convert -loop 1 *.ppm foo.mpg
+     convert *.jpg foo.gif
+     convert -loop 1 *.ppm foo.mpg
 
   Animated GIF files from ImageMagick are not optimized. You can use
   a program like gifsicle to optimize and thus massively shrink them.
@@ -668,8 +668,8 @@ Play the movie:
 
   .. code-block:: bash
 
-     % mplayer foo.mpg
-     % ffplay bar.avi
+     mplayer foo.mpg
+     ffplay bar.avi
 
 * c) Use the `Pizza.py <https://lammps.github.io/pizza>`_
   `animate tool <https://lammps.github.io/pizza/doc/animate.html>`_,

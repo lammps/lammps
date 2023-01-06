@@ -197,7 +197,7 @@ typing:
 
 .. code-block:: bash
 
-   % emerge --ask lammps
+   emerge --ask lammps
 
 Note that in Gentoo the LAMMPS source is downloaded and the package is
 built on the your machine.
@@ -206,7 +206,7 @@ Certain LAMMPS packages can be enable via USE flags, type
 
 .. code-block:: bash
 
-   % equery uses lammps
+   equery uses lammps
 
 for details.
 

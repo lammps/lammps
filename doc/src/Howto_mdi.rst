@@ -134,18 +134,18 @@ used in stand-alone mode:
 
 .. code-block:: bash
 
-   % git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git <base_path>/q-e
-   % build the executable pw.x, following the `QE build guide <https://gitlab.com/QEF/q-e/-/wikis/Developers/CMake-build-system>`_
+   git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git <base_path>/q-e
+   build the executable pw.x, following the `QE build guide <https://gitlab.com/QEF/q-e/-/wikis/Developers/CMake-build-system>`_
 
 Here is how to build QE as a shared library which can be used in plugin mode,
 which results in a libqemdi.so file in <base_path>/q-e/MDI/src:
 
 .. code-block:: bash
 
-   % git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git <base_path>/q-e
-   % cd <base_path>/q-e
-   % ./configure --enable-parallel --enable-openmp --enable-shared FFLAGS="-fPIC" FCFLAGS="-fPIC" CFLAGS="-fPIC" foxflags="-fPIC" try_foxflags="-fPIC"
-   % make -j 4 mdi
+   git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git <base_path>/q-e
+   cd <base_path>/q-e
+   ./configure --enable-parallel --enable-openmp --enable-shared FFLAGS="-fPIC" FCFLAGS="-fPIC" CFLAGS="-fPIC" foxflags="-fPIC" try_foxflags="-fPIC"
+   make -j 4 mdi
 
 INQ cannot be built as a stand-alone code; it is by design a library.
 Here is how to build INQ as a shared library which can be used in
@@ -154,10 +154,10 @@ plugin mode, which results in a libinqmdi.so file in
 
 .. code-block:: bash
 
-   % git clone --branch mdi --recurse-submodules https://gitlab.com/taylor-a-barnes/inq.git <base_path>/inq
-   % cd <base_path>/inq
-   % mkdir -p build
-   % cd build
-   % ../configure --prefix=<install_path>/install
-   % make -j 4
-   % make install
+   git clone --branch mdi --recurse-submodules https://gitlab.com/taylor-a-barnes/inq.git <base_path>/inq
+   cd <base_path>/inq
+   mkdir -p build
+   cd build
+   ../configure --prefix=<install_path>/install
+   make -j 4
+   make install

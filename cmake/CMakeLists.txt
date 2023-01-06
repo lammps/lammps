@@ -3,6 +3,7 @@
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.10)
+########################################
 # set policy to silence warnings about ignoring <PackageName>_ROOT but use it
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
@@ -20,7 +21,13 @@ endif()
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 OLD)
 endif()
-
+########################################
+# Use CONFIGURE_DEPENDS as option for file(GLOB...) when available
+if(CMAKE_VERSION VERSION_LESS 3.12)
+  unset(CONFIGURE_DEPENDS)
+else()
+  set(CONFIGURE_DEPENDS CONFIGURE_DEPENDS)
+endif()
 ########################################
 
 project(lammps CXX)
@@ -195,8 +202,8 @@ else()
 endif()
 
 include(GNUInstallDirs)
-file(GLOB ALL_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
-file(GLOB MAIN_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
+file(GLOB ALL_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
+file(GLOB MAIN_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM ALL_SOURCES ${MAIN_SOURCES})
 add_library(lammps ${ALL_SOURCES})
 
@@ -441,7 +448,7 @@ if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_LATTE OR
     find_package(BLAS)
   endif()
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND OR USE_INTERNAL_LINALG)
-    file(GLOB LINALG_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.cpp)
+    file(GLOB LINALG_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.cpp)
     add_library(linalg STATIC ${LINALG_SOURCES})
     set_target_properties(linalg PROPERTIES OUTPUT_NAME lammps_linalg${LAMMPS_MACHINE})
     set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
@@ -571,8 +578,8 @@ endforeach()
 foreach(PKG ${STANDARD_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
-  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/[^.]*.h)
+  file(GLOB ${PKG}_SOURCES ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -599,8 +606,8 @@ endforeach()
 foreach(PKG ${SUFFIX_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
-  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/[^.]*.h)
+  file(GLOB ${PKG}_SOURCES ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -616,10 +623,10 @@ foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
     if(PKG_LIB STREQUAL "mesont")
       enable_language(Fortran)
-      file(GLOB_RECURSE ${PKG_LIB}_SOURCES
+      file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${CONFIGURE_DEPENDS}
         ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.f90)
     else()
-      file(GLOB_RECURSE ${PKG_LIB}_SOURCES
+      file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${CONFIGURE_DEPENDS}
         ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
         ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     endif()

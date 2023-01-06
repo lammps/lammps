@@ -65,7 +65,7 @@ endfunction(validate_option)
 
 # helper function for getting the most recently modified file or folder from a glob pattern
 function(get_newest_file path variable)
-  file(GLOB _dirs ${path})
+  file(GLOB _dirs ${CONFIGURE_DEPENDS} ${path})
   set(_besttime 2000-01-01T00:00:00)
   set(_bestfile "<unknown>")
   foreach(_dir ${_dirs})

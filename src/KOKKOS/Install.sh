@@ -201,6 +201,8 @@ action mliap_descriptor_so3_kokkos.cpp mliap_descriptor_so3.cpp
 action mliap_descriptor_so3_kokkos.h mliap_descriptor_so3.h
 action mliap_model_linear_kokkos.cpp mliap_model_linear.cpp
 action mliap_model_linear_kokkos.h mliap_model_linear.h
+action mliap_model_python_kokkos.cpp mliap_model_linear.cpp
+action mliap_model_python_kokkos.h mliap_model_linear.h
 action mliap_model_kokkos.h mliap_model.h
 action mliap_so3_kokkos.cpp mliap_so3.cpp
 action mliap_so3_kokkos.h mliap_so3.h
@@ -361,6 +363,9 @@ action transpose_helper_kokkos.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 
+# Install cython pyx file only if non-KOKKOS version is present
+action mliap_model_python_couple_kokkos.pyx mliap_model_python_couple.pyx
+
 # edit 2 Makefile.package files to include/exclude package info
 
 if (test $1 = 1) then
@@ -410,4 +415,23 @@ elif (test $1 = 0) then
     sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
   fi
 
+fi
+
+# Python cython stuff. Only need to convert/remove sources.
+# Package settings were already done in ML-IAP package Install.sh script.
+
+if (test $1 = 1) then
+  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
+    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
+  fi
+
+elif (test $1 = 0) then
+  rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
+
+elif (test $1 = 2) then
+  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
+    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
+  else
+    rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
+  fi
 fi

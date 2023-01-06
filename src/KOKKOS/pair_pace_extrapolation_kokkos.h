@@ -13,17 +13,17 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(pace/kk,PairPACEKokkos<LMPDeviceType>);
-PairStyle(pace/kk/device,PairPACEKokkos<LMPDeviceType>);
-PairStyle(pace/kk/host,PairPACEKokkos<LMPHostType>);
+PairStyle(pace/extrapolation/kk,PairPACEExtrapolationKokkos<LMPDeviceType>);
+PairStyle(pace/extrapolation/kk/device,PairPACEExtrapolationKokkos<LMPDeviceType>);
+PairStyle(pace/extrapolation/kk/host,PairPACEExtrapolationKokkos<LMPHostType>);
 // clang-format on
 #else
 
 // clang-format off
-#ifndef LMP_PAIR_PACE_KOKKOS_H
-#define LMP_PAIR_PACE_KOKKOS_H
+#ifndef LMP_PAIR_PACE_EXTRAPOLATION_KOKKOS_H
+#define LMP_PAIR_PACE_EXTRAPOLATION_KOKKOS_H
 
-#include "pair_pace.h"
+#include "pair_pace_extrapolation.h"
 #include "kokkos_type.h"
 #include "pair_kokkos.h"
 
@@ -32,7 +32,7 @@ class SplineInterpolator;
 namespace LAMMPS_NS {
 
 template<class DeviceType>
-class PairPACEKokkos : public PairPACE {
+class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
  public:
   struct TagPairPACEComputeNeigh{};
   struct TagPairPACEComputeRadial{};
@@ -41,6 +41,7 @@ class PairPACEKokkos : public PairPACE {
   struct TagPairPACEConjugateAi{};
   struct TagPairPACEComputeRho{};
   struct TagPairPACEComputeFS{};
+  struct TagPairPACEComputeGamma{};
   struct TagPairPACEComputeWeights{};
   struct TagPairPACEComputeDerivative{};
 
@@ -52,8 +53,8 @@ class PairPACEKokkos : public PairPACE {
   typedef EV_FLOAT value_type;
   using complex = SNAComplex<double>;
 
-  PairPACEKokkos(class LAMMPS *);
-  ~PairPACEKokkos() override;
+  PairPACEExtrapolationKokkos(class LAMMPS *);
+  ~PairPACEExtrapolationKokkos() override;
 
   void compute(int, int) override;
   void coeff(int, char **) override;
@@ -82,6 +83,9 @@ class PairPACEKokkos : public PairPACE {
   void operator() (TagPairPACEComputeFS,const int& ii) const;
 
   KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairPACEComputeGamma, const int& ii) const;
+
+  KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeWeights,const int& iter) const;
 
   KOKKOS_INLINE_FUNCTION
@@ -95,9 +99,14 @@ class PairPACEKokkos : public PairPACE {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
+
+  void *extract(const char *str, int &dim);
+  void *extract_peratom(const char *str, int &ncol);
+
  protected:
-  int inum, maxneigh, chunk_size, chunk_offset, idx_rho_max;
+  int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max;
   int host_flag;
+  int gamma_flag;
 
   int eflag, vflag;
 
@@ -140,7 +149,7 @@ class PairPACEKokkos : public PairPACE {
   NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
   NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
 
-  friend void pair_virial_fdotr_compute<PairPACEKokkos>(PairPACEKokkos*);
+  friend void pair_virial_fdotr_compute<PairPACEExtrapolationKokkos>(PairPACEExtrapolationKokkos*);
 
   void grow(int, int);
   void copy_pertype();
@@ -199,6 +208,7 @@ class PairPACEKokkos : public PairPACE {
   typedef Kokkos::View<double**, DeviceType> t_ace_2d;
   typedef Kokkos::View<double*[3], DeviceType> t_ace_2d3;
   typedef Kokkos::View<double***, DeviceType> t_ace_3d;
+  typedef Kokkos::View<const double***, DeviceType> tc_ace_3d;
   typedef Kokkos::View<double**[3], DeviceType> t_ace_3d3;
   typedef Kokkos::View<double**[4], DeviceType> t_ace_3d4;
   typedef Kokkos::View<double****, DeviceType> t_ace_4d;
@@ -208,6 +218,8 @@ class PairPACEKokkos : public PairPACE {
   typedef Kokkos::View<complex**[3], DeviceType> t_ace_3c3;
   typedef Kokkos::View<complex****, DeviceType> t_ace_4c;
   typedef Kokkos::View<complex***[3], DeviceType> t_ace_4c3;
+
+  typedef Kokkos::View<double*>::HostMirror th_ace_1d;
 
   t_ace_3d A_rank1;
   t_ace_4c A;
@@ -237,8 +249,13 @@ class PairPACEKokkos : public PairPACE {
   t_ace_3d d_values;
   t_ace_3d d_derivatives;
 
-  // Spherical Harmonics
+  // inverted active set
+  tc_ace_3d d_ASI;
+  t_ace_2d projections;
+  t_ace_1d d_gamma;
+  th_ace_1d h_gamma;
 
+  // Spherical Harmonics
   void pre_compute_harmonics(int);
 
   KOKKOS_INLINE_FUNCTION
@@ -275,15 +292,18 @@ class PairPACEKokkos : public PairPACE {
   t_ace_2d d_mexp;
 
   // tilde
-  t_ace_1i d_idx_rho_count;
+  t_ace_1i d_idx_ms_combs_count;
+  t_ace_1i d_total_basis_size;
   t_ace_2i d_rank;
   t_ace_2i d_num_ms_combs;
-  t_ace_2i d_offsets;
+  t_ace_2i d_func_inds;
   t_ace_3i d_mus;
   t_ace_3i d_ns;
   t_ace_3i d_ls;
   t_ace_3i d_ms_combs;
-  t_ace_3d d_ctildes;
+//  t_ace_3d d_ctildes;
+  t_ace_2d d_gen_cgs;
+  t_ace_3d d_coeffs;
 
   t_ace_3d3 f_ij;
 

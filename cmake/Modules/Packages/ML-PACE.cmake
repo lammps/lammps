@@ -1,6 +1,6 @@
-set(PACELIB_URL "https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2022.10.15.tar.gz" CACHE STRING "URL for PACE evaluator library sources")
+set(PACELIB_URL "https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2023.01.3.tar.gz" CACHE STRING "URL for PACE evaluator library sources")
 
-set(PACELIB_MD5 "848ad6a6cc79fa82745927001fb1c9b5" CACHE STRING "MD5 checksum of PACE evaluator library tarball")
+set(PACELIB_MD5 "f418d32b60e531063ac4285bf702b468" CACHE STRING "MD5 checksum of PACE evaluator library tarball")
 mark_as_advanced(PACELIB_URL)
 mark_as_advanced(PACELIB_MD5)
 

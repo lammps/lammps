@@ -36,8 +36,14 @@ void
 MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*/, double* alpha,
                         double* b0, double* b1, double* b2, double* b3, double* alat, double* esub,
                         double* asub, double* t0, double* t1, double* t2, double* t3, double* rozero,
-                        int* ibar)
+                        int* ibar, double* b1m, double *b2m, double *b3m, double *t1m, double *t2m,
+                        double *t3m)
 {
+
+  printf("^^^^^ meam setup global msmeamflag: %d\n", this->msmeamflag);
+  if (this->msmeamflag){
+    printf("b1m[0]: %f\n", b1m[0]);
+  }
 
   int i;
   double tmplat[maxelt];
@@ -53,6 +59,12 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*
     this->beta1_meam[i] = b1[i];
     this->beta2_meam[i] = b2[i];
     this->beta3_meam[i] = b3[i];
+    if (this->msmeamflag){
+      printf("^^^^^ Filling betam\n");
+      this->beta1m_meam[i] = b1m[i];
+      this->beta2m_meam[i] = b2m[i];
+      this->beta3m_meam[i] = b3m[i];
+    }
     tmplat[i] = alat[i];
     this->Ec_meam[i][i] = esub[i];
     this->A_meam[i] = asub[i];
@@ -60,6 +72,12 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*
     this->t1_meam[i] = t1[i];
     this->t2_meam[i] = t2[i];
     this->t3_meam[i] = t3[i];
+    if (this->msmeamflag){
+      printf("^^^^^ Filling tm\n");
+      this->t1m_meam[i] = t1m[i];
+      this->t2m_meam[i] = t2m[i];
+      this->t3m_meam[i] = t3m[i];
+    }
     this->rho0_meam[i] = rozero[i];
     this->ibar_meam[i] = ibar[i];
 

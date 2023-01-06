@@ -136,6 +136,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         }
         if (eflag_atom != 0) {
           eatom[i] = eatom[i] + Fl;
+          
         }
       }
     }

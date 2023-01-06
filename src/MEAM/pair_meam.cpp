@@ -517,13 +517,31 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
   MPI_Bcast(t2.data(), nlibelements, MPI_DOUBLE, 0, world);
   MPI_Bcast(t3.data(), nlibelements, MPI_DOUBLE, 0, world);
   MPI_Bcast(rozero.data(), nlibelements, MPI_DOUBLE, 0, world);
+  // distribute msmeam parameter sets
+  MPI_Bcast(b1m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b2m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b3m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t1m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t2m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t3m.data(), nlibelements, MPI_DOUBLE, 0, world);
 
   // pass element parameters to MEAM package
 
+  if (this->msmeamflag){
   meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
                                alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
                                alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
-                               t2.data(), t3.data(), rozero.data(), ibar.data());
+                               t2.data(), t3.data(), rozero.data(), ibar.data(), b1m.data(),
+                               b2m.data(), b3m.data(), t1m.data(), t2m.data(), t3m.data());
+  } else{
+  meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
+                               alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
+                               alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
+                               t2.data(), t3.data(), rozero.data(), ibar.data(), nullptr,
+                               nullptr, nullptr, nullptr, nullptr, nullptr);
+  }
+
+  error->one(FLERR,"^^^^ DEBUG");
 
   // set element masses
 

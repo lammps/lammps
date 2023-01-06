@@ -298,10 +298,12 @@ class MEAM {
   }
   // clang-format on
   static int get_Zij(const lattice_t latt);
+  // last 6 args are msmeam parameters
   void meam_setup_global(int nelt, lattice_t *lat, int *ielement, double *atwt, double *alpha,
                          double *b0, double *b1, double *b2, double *b3, double *alat, double *esub,
                          double *asub, double *t0, double *t1, double *t2, double *t3,
-                         double *rozero, int *ibar);
+                         double *rozero, int *ibar, double *b1m, double *b2m, double *b3m,
+                         double *t1m, double *t2m, double *t3m);
   void meam_setup_param(int which, double value, int nindex, int *index /*index(3)*/,
                         int *errorflag);
   virtual void meam_setup_done(double *cutmax);

@@ -66,6 +66,7 @@ void AngleWrite::command(int narg, char **arg)
   int n = utils::inumeric(FLERR, arg[1], false, lmp);
   std::string table_file = arg[2];
   std::string keyword = arg[3];
+  if (n < 2) error->all(FLERR, "Must have at least 2 table values");
 
   // make sure system is initialized before calling any functions
 

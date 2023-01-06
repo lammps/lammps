@@ -233,8 +233,8 @@ void Dump::init()
     index = proclist = nullptr;
     irregular = nullptr;
     if ((has_id == 0) && (me == 0))
-      error->warning(FLERR,"Dump {} is without Atom-IDs and not sorted by id. This may lead to data "
-                     "changing order and prevent tracking individual atoms", id);
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
+                     "post-processing tasks or visualization", id);
   }
 
   if (sort_flag) {
@@ -246,8 +246,8 @@ void Dump::init()
     if (sortcol && sortcol > size_one)
       error->all(FLERR,"Dump sort column is invalid");
     if ((sortcol != 0) && (has_id == 0) && (me == 0))
-      error->warning(FLERR,"Dump {} is without Atom-IDs and not sorted by id. This may lead to data "
-                     "changing order and prevent tracking individual atoms", id);
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
+                     "post-processing tasks or visualization", id);
     if (nprocs > 1 && irregular == nullptr)
       irregular = new Irregular(lmp);
 

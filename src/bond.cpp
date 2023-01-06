@@ -362,6 +362,7 @@ void Bond::write_file(int narg, char **arg)
   if ((inner <= 0.0) || (inner >= outer))
     error->all(FLERR, "Invalid rlo={} / rhi={} values in bond_write command.", inner, outer);
 
+  if (n < 2) error->all(FLERR, "Must have at least 2 table values");
   double r0 = equilibrium_distance(btype);
 
   // open file in append mode if exists

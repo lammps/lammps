@@ -678,8 +678,9 @@ std::vector<int> FitPOD::shuffle(int start_in, int end_in, int num_in)
   for (int i = 0; i<sz; i++)
     myvector[i] = start_in + i;
 
-  unsigned seed = (unsigned) platform::walltime()*1.0e9;
-  std::shuffle (myvector.begin(), myvector.end(), std::default_random_engine(seed));
+  //unsigned seed = (unsigned) platform::walltime()*1.0e9;
+  //std::shuffle (myvector.begin(), myvector.end(), std::default_random_engine(seed));
+  std::shuffle (myvector.begin(), myvector.end(), std::random_device());
 
   std::vector<int> shuffle_vec(num_in);
   for (int i = 0; i<num_in; i++)

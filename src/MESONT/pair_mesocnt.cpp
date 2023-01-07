@@ -1130,7 +1130,7 @@ void PairMesoCNT::bond_neigh_topo()
           try {
             curr_reduced = reduced_map.at(curr_local);
             next_reduced = reduced_map.at(next_local);
-          } catch (const std::out_of_range &e) {
+          } catch (const std::out_of_range &) {
             break;
           }
 

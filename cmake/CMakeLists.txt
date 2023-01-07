@@ -621,6 +621,8 @@ endforeach()
 foreach(PKG_LIB POEMS ATC AWPMD H5MD)
   if(PKG_${PKG_LIB})
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
+    file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${CONFIGURE_DEPENDS}
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     set_target_properties(${PKG_LIB} PROPERTIES OUTPUT_NAME lammps_${PKG_LIB}${LAMMPS_MACHINE})
     target_link_libraries(lammps PRIVATE ${PKG_LIB})

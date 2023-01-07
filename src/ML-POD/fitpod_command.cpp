@@ -107,21 +107,36 @@ void FitPOD::command(int narg, char **arg)
   if ((traindata.training_analysis) && ((int) traindata.data_path.size() > 1) )
     error_analysis(traindata, desc.c);
 
-  // calculate errors for the test data set
-
-  if ((testdata.test_analysis) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path))
-    error_analysis(testdata, desc.c);
-
   // calculate energy and force for the training data set
 
   if ((traindata.training_calculation) && ((int) traindata.data_path.size() > 1) )
-    energyforce_calculation(traindata, desc.c);
+    energyforce_calculation(traindata, desc.c);  
 
-  // calculate energy and force for the test data set
+  if (!((testdata.data_path == traindata.data_path) && (testdata.fraction == 1.0) && (traindata.fraction == 1.0)))
+  {  
+    // calculate errors for the test data set
+    
+    if ((testdata.test_analysis) && ((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) ) {
+      error_analysis(testdata, desc.c);
+    }
 
-  if ((testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path) )
-    energyforce_calculation(testdata, desc.c);
+    // calculate energy and force for the test data set
 
+    if ((testdata.test_analysis) && (testdata.test_calculation) && ((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) )
+      energyforce_calculation(testdata, desc.c);
+    
+    // deallocate testing data
+
+    if ((int) testdata.data_path.size() > 1 && (testdata.test_analysis) && (testdata.fraction > 0) ){
+      memory->destroy(testdata.lattice);
+      memory->destroy(testdata.energy);
+      memory->destroy(testdata.stress);
+      memory->destroy(testdata.position);
+      memory->destroy(testdata.force);
+      memory->destroy(testdata.atomtype);
+    }    
+  }
+  
   // deallocate training data
 
   if ((int) traindata.data_path.size() > 1){
@@ -131,17 +146,6 @@ void FitPOD::command(int narg, char **arg)
     memory->destroy(traindata.position);
     memory->destroy(traindata.force);
     memory->destroy(traindata.atomtype);
-  }
-
-  // deallocate testing data
-
-  if ((int) testdata.data_path.size() > 1 && (testdata.data_path != traindata.data_path)){
-    memory->destroy(testdata.lattice);
-    memory->destroy(testdata.energy);
-    memory->destroy(testdata.stress);
-    memory->destroy(testdata.position);
-    memory->destroy(testdata.force);
-    memory->destroy(testdata.atomtype);
   }
 
   // deallocate descriptors
@@ -858,26 +862,56 @@ void FitPOD::read_data_files(std::string data_file, std::vector<std::string> spe
     memory->destroy(data.force);
     memory->destroy(data.atomtype);
   }
-
-  if (((int) testdata.data_path.size() > 1) && (testdata.data_path != traindata.data_path)) {
+  
+  testdata.fraction = traindata.fitting_weights[8];
+  testdata.test_analysis = traindata.test_analysis;
+  
+  if ((testdata.data_path == traindata.data_path) && (testdata.fraction == 1.0) && (traindata.fraction == 1.0)) {
+    testdata.data_path = traindata.data_path;
+  }
+  else if (((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) && (testdata.test_analysis)) {    
     testdata.training = 0;
     testdata.file_format = traindata.file_format;
     testdata.file_extension = traindata.file_extension;
-    testdata.training_analysis = traindata.training_analysis;
-    testdata.test_analysis = traindata.test_analysis;
+    testdata.training_analysis = traindata.training_analysis;    
     testdata.training_calculation = traindata.training_calculation;
-    testdata.test_calculation = traindata.test_calculation;
-    testdata.fraction = traindata.fitting_weights[8];
+    testdata.test_calculation = traindata.test_calculation;    
     testdata.randomize = (int) traindata.fitting_weights[10];
-    if (comm->me == 0)
-      utils::logmesg(lmp, "**************** Begin of Test Data Set ****************\n");
-    get_data(testdata, species);
-    if (comm->me == 0)
-      utils::logmesg(lmp, "**************** End of Test Data Set ****************\n");
+    
+    if (testdata.fraction >= 1.0) {
+      if (comm->me == 0)
+        utils::logmesg(lmp, "**************** Begin of Test Data Set ****************\n");
+      get_data(testdata, species);
+      if (comm->me == 0)
+        utils::logmesg(lmp, "**************** End of Test Data Set ****************\n");
+    }
+    else {
+      datastruct datatm;
+      testdata.copydatainfo(datatm);
+      
+      if (comm->me == 0)
+        utils::logmesg(lmp, "**************** Begin of Test Data Set ****************\n");
+      get_data(datatm, species);
+      if (comm->me == 0)
+        utils::logmesg(lmp, "**************** End of Test Data Set ****************\n");
+      
+      if (comm->me == 0)
+        utils::logmesg(lmp, "**************** Begin of Select Test Data Set ****************\n");
+      select_data(testdata, datatm);
+      if (comm->me == 0)
+        utils::logmesg(lmp, "**************** End of Select Test Data Set ****************\n");      
+      
+      memory->destroy(datatm.lattice);
+      memory->destroy(datatm.energy);
+      memory->destroy(datatm.stress);
+      memory->destroy(datatm.position);
+      memory->destroy(datatm.force);
+      memory->destroy(datatm.atomtype);      
+    }      
   }
   else {
     testdata.data_path = traindata.data_path;
-  }
+  }    
 }
 
 int FitPOD::latticecoords(double *y, int *alist, double *x, double *a1, double *a2, double *a3, double rcut, int *pbc, int nx)

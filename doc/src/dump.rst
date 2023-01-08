@@ -242,6 +242,14 @@ all the processors or multiple smaller files.
    data for a single snapshot is collected from multiple processors,
    each of which owns a subset of the atoms.
 
+.. warning::
+
+   Without either including atom IDs or using the :doc:`dump_modify sort
+   <dump_modify>` option, it is impossible for visualization programs
+   (e.g. OVITO or VMD) or analysis tools to assign data in different
+   frames consistently to the same atom.  This can lead to incorrect
+   visualizations or results.  LAMMPS will print a warning in such cases.
+
 For the *atom*, *custom*, *cfg*, *grid*, and *local* styles, sorting
 is off by default.  For the *dcd*, *grid/vtk*, *xtc*, *xyz*, and
 *molfile* styles, sorting by atom ID or grid ID is on by default. See

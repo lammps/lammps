@@ -297,6 +297,8 @@ in file tmp.times:
 
 ----------
 
+.. versionadded:: 7Jan2022
+
 The *every/time* keyword can be used with any dump style except the
 *dcd* and *xtc* styles.  It changes the frequency of dump snapshots
 from being based on the current timestep to being determined by

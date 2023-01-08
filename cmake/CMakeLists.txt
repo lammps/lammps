@@ -251,6 +251,7 @@ set(STANDARD_PACKAGES
   KSPACE
   LATBOLTZ
   LATTE
+  LEPTON
   MACHDYN
   MANIFOLD
   MANYBODY
@@ -440,16 +441,12 @@ if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_LATTE OR
     find_package(BLAS)
   endif()
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND OR USE_INTERNAL_LINALG)
-    include(CheckGeneratorSupport)
-    if(NOT CMAKE_GENERATOR_SUPPORT_FORTRAN)
-      status(FATAL_ERROR "Cannot build internal linear algebra library as CMake build tool lacks Fortran support")
-    endif()
-    enable_language(Fortran)
-    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
-    add_library(linalg STATIC ${LAPACK_SOURCES})
+    file(GLOB LINALG_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.cpp)
+    add_library(linalg STATIC ${LINALG_SOURCES})
     set_target_properties(linalg PROPERTIES OUTPUT_NAME lammps_linalg${LAMMPS_MACHINE})
     set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
     set(LAPACK_LIBRARIES "$<TARGET_FILE:linalg>")
+    target_link_libraries(lammps PRIVATE linalg)
   else()
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
@@ -517,7 +514,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MSCG COMPRESS ML-PACE)
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MSCG COMPRESS ML-PACE LEPTON)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -905,6 +902,7 @@ feature_summary(DESCRIPTION "The following tools and libraries have been found a
 message(STATUS "<<< Build configuration >>>
    LAMMPS Version:   ${PROJECT_VERSION}
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
+   CMake Version:    ${CMAKE_VERSION}
    Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")

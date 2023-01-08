@@ -58,6 +58,7 @@ PPPMDielectric::PPPMDielectric(LAMMPS *_lmp) : PPPM(_lmp)
   efield = nullptr;
   phi = nullptr;
   potflag = 0;
+  use_qscaled = true;
 
   // no warnings about non-neutral systems from qsum_qsq()
   warn_nonneutral = 2;

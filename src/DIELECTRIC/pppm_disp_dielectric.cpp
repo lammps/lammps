@@ -64,6 +64,7 @@ PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp)
   group_group_enable = 0;
 
   mu_flag = 0;
+  use_qscaled = true;
 
   // no warnings about non-neutral systems from qsum_qsq()
   warn_nonneutral = 2;

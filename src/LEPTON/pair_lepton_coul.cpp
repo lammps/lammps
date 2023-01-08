@@ -82,7 +82,7 @@ template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void PairLeptonCoul::eval()
   std::vector<std::pair<bool, bool>> have_q;
   try {
     for (const auto &expr : expressions) {
-      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp), functions);
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
       pairforce.back().getVariableReference("r");
@@ -243,7 +243,7 @@ double PairLeptonCoul::single(int i, int j, int itype, int jtype, double rsq, do
                               double /* factor_lj */, double &fforce)
 {
   auto expr = expressions[type2expression[itype][jtype]];
-  auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp));
+  auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, lmp), functions);
   auto pairpot = parsed.createCompiledExpression();
   auto pairforce = parsed.differentiate("r").createCompiledExpression();
 

@@ -37,6 +37,8 @@ Examples
    pair_coeff  * *  "k*((r-r0)^2*step(r0-r)); k=200; r0=1.5" 2.0
    pair_coeff  1 2  "4.0*eps*((sig/r)^12 - (sig/r)^6);eps=1.0;sig=1.0" 1.12246204830937
    pair_coeff  2 2  "eps*(2.0*(sig/r)^9 - 3.0*(sig/r)^6);eps=1.0;sig=1.0"
+   pair_coeff  1 3  "zbl(13,6,r)"
+   pair_coeff  3 3  "(1.0-switch)*zbl(6,6,r)-switch*4.0*eps*((sig/r)^6);switch=0.5*(tanh(10.0*(r-sig))+1.0);eps=0.05;sig=3.20723"
 
    pair_style lepton/coul 2.5
    pair_coeff 1 1 "qi*qj/r" 4.0
@@ -102,6 +104,15 @@ The potential energy will *only* be added to the "evdwl" property.
 For pair style *lepton/coul* only the "coul" value of the :doc:`special_bonds <special_bonds>`
 settings apply in case the interacting pair is also connected with a bond.
 The potential energy will *only* be added to the "ecoul" property.
+
+In addition to the functions listed below, both pair styles support in
+addition a custom "zbl(zi,zj,r)" function which computes the
+Ziegler-Biersack-Littmark (ZBL) screened nuclear repulsion for
+describing high-energy collisions between atoms.  For details of the
+function please see the documentation for :doc:`pair style zbl
+<pair_zbl>`. The arguments of the function are the atomic numbers of
+atom i (zi), atom j (zj) and the distance r.  Please see the examples
+above.
 
 ----------
 

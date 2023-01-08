@@ -98,7 +98,7 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
   std::vector<Lepton::CompiledExpression> pairpot;
   try {
     for (const auto &expr : expressions) {
-      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp));
+      auto parsed = Lepton::Parser::parse(LeptonUtils::substitute(expr, Pointers::lmp), functions);
       pairforce.emplace_back(parsed.differentiate("r").createCompiledExpression());
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
     }

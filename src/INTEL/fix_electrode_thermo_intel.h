@@ -33,20 +33,24 @@ namespace LAMMPS_NS {
 
 class FixElectrodeThermoIntel : public FixElectrodeThermo {
  public:
-  FixElectrodeThermoIntel(class LAMMPS *lmp, int narg, char **arg) : FixElectrodeThermo(lmp, narg, arg) {}
-  inline void init() final override {
-    _intel_kspace = dynamic_cast<PPPMElectrodeIntel*>(force->kspace_match("pppm/electrode/intel", 0));
-    if (_intel_kspace == nullptr) error->all(FLERR, "pppm/electrode/intel is required by fix electrode/thermo/intel");
+  FixElectrodeThermoIntel(class LAMMPS *lmp, int narg, char **arg) :
+      FixElectrodeThermo(lmp, narg, arg), _intel_kspace(nullptr)
+  {
+  }
+  inline void init() final override
+  {
+    _intel_kspace =
+        dynamic_cast<PPPMElectrodeIntel *>(force->kspace_match("pppm/electrode/intel", 0));
+    if (_intel_kspace == nullptr)
+      error->all(FLERR, "pppm/electrode/intel is required by fix electrode/thermo/intel");
 
     intelflag = true;
     FixElectrodeThermo::init();
   }
-  inline void intel_pack_buffers() final override {
-    _intel_kspace->pack_buffers_q();
-  }
+  inline void intel_pack_buffers() final override { _intel_kspace->pack_buffers_q(); }
 
  private:
-  PPPMElectrodeIntel * _intel_kspace;
+  PPPMElectrodeIntel *_intel_kspace;
 };
 
 }    // namespace LAMMPS_NS

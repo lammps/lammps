@@ -168,7 +168,7 @@ void PairLJCutCoulCutDielectric::compute(int eflag, int vflag)
           } else
             evdwl = 0.0;
         }
-        
+
         if (evflag) ev_tally_full(i, evdwl, ecoul, fpair_i, delx, dely, delz);
       }
     }

@@ -454,7 +454,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
 
     double q_bound = q_scaled[i] - q[i];
     tmp += q_bound;
-    q[i] = q_scaled[i];    
+    q[i] = q_scaled[i];
   }
 
   if (first) first = 0;

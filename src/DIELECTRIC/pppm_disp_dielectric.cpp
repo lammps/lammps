@@ -599,7 +599,7 @@ void PPPMDispDielectric::qsum_qsq(int warning_flag)
 
   // q2 is used to compute the mesh spacing, here using qsqsume to match with regular pppm
   q2 = qsqsume * force->qqrd2e; //q2 = qsqsum * force->qqrd2e;
-  
+
   // not yet sure of the correction needed for non-neutral systems
   // so issue warning or error
 

@@ -142,7 +142,7 @@ void PPPMDielectric::compute(int eflag, int vflag)
   //   portion of e_long on this proc's FFT grid
   // return gradients (electric fields) in 3d brick decomposition
   // also performs per-atom calculations via poisson_peratom()
- 
+
   double energy_before_poisson = energy;
   poisson();
 
@@ -184,13 +184,13 @@ void PPPMDielectric::compute(int eflag, int vflag)
   const double qscale = qqrd2e * scale;
 
   if (eflag_global) {
-   
+
     energy = energy_before_poisson;
 
     // switch to unscaled charges to find charge density
 
     use_qscaled = false;
-    
+
     // redo the charge density
 
     make_rho();

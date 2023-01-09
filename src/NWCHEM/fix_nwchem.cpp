@@ -475,6 +475,10 @@ void FixNWChem::pre_force_qmmm(int vflag)
     if (ilocal >= 0) {
       if (q[ilocal] == 0.0) qpotential_mine[i] = 0.0;
       else qpotential_mine[i] = 2.0 * ecoul[ilocal] / q[ilocal];
+
+      if (i == 0) printf("Ecoul: step %ld proc %d ecoul %g chg %g qpot %g\n",
+                         update->ntimestep,comm->me,
+                         ecoul[ilocal],q[ilocal],qpotential_mine[i]);
     }
   }
 
@@ -504,6 +508,9 @@ void FixNWChem::pre_force_qmmm(int vflag)
     qpotential[i] *= lmp2qm_energy;
   }
 
+  if (comm->me == 0) printf("UION step %ld me %d uionC %g\n",
+                            update->ntimestep,comm->me,qpotential[0]);
+  
   // call to NWChem with only QM atom info
   // QM atoms must be in order of ascending atom ID
   // inputs:

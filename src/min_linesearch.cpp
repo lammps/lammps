@@ -63,11 +63,11 @@ MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp)
 
 MinLineSearch::~MinLineSearch()
 {
-  delete [] gextra;
-  delete [] hextra;
-  delete [] x0extra_atom;
-  delete [] gextra_atom;
-  delete [] hextra_atom;
+  delete[] gextra;
+  delete[] hextra;
+  delete[] x0extra_atom;
+  delete[] gextra_atom;
+  delete[] hextra_atom;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,17 +76,17 @@ void MinLineSearch::init()
 {
   Min::init();
 
-  if (linestyle == 0) linemin = &MinLineSearch::linemin_backtrack;
-  else if (linestyle == 1) linemin = &MinLineSearch::linemin_quadratic;
-  else if (linestyle == 2) linemin = &MinLineSearch::linemin_forcezero;
+  if (linestyle == BACKTRACK) linemin = &MinLineSearch::linemin_backtrack;
+  else if (linestyle == QUADRATIC) linemin = &MinLineSearch::linemin_quadratic;
+  else if (linestyle == FORCEZERO) linemin = &MinLineSearch::linemin_forcezero;
 
-  delete [] gextra;
-  delete [] hextra;
+  delete[] gextra;
+  delete[] hextra;
   gextra = hextra = nullptr;
 
-  delete [] x0extra_atom;
-  delete [] gextra_atom;
-  delete [] hextra_atom;
+  delete[] x0extra_atom;
+  delete[] gextra_atom;
+  delete[] hextra_atom;
   x0extra_atom = gextra_atom = hextra_atom = nullptr;
 }
 

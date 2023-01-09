@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -48,9 +47,9 @@ void MinFire::init()
 
   // simple parameters validation
 
-  if (tmax < tmin) error->all(FLERR,"tmax has to be larger than tmin");
-  if (dtgrow < 1.0) error->all(FLERR,"dtgrow has to be larger than 1.0");
-  if (dtshrink > 1.0) error->all(FLERR,"dtshrink has to be smaller than 1.0");
+  if (tmax < tmin) error->all(FLERR, "tmax has to be larger than tmin");
+  if (dtgrow < 1.0) error->all(FLERR, "dtgrow has to be larger than 1.0");
+  if (dtshrink > 1.0) error->all(FLERR, "dtshrink has to be smaller than 1.0");
 
   dt = update->dt;
   dtmax = tmax * dt;
@@ -69,22 +68,22 @@ void MinFire::setup_style()
 
   // print the parameters used within fire into the log
 
-  const char *s1[] = {"eulerimplicit","verlet","leapfrog","eulerexplicit"};
-  const char *s2[] = {"no","yes"};
+  const char *integrator_names[] = {"eulerimplicit", "verlet", "leapfrog", "eulerexplicit"};
+  const char *yesno[] = {"yes", "no"};
 
-  if (comm->me == 0 && logfile) {
-      fprintf(logfile,"  Parameters for fire: \n"
-      "    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin "
-      "   integrator halfstepback \n"
-      "    %4g %9i %6g %8g %6g %11g %4g %4g %13s %12s \n",
-      dmax, delaystep, dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin,
-      s1[integrator], s2[halfstepback_flag]);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,
+                   "  Parameters for {}:\n"
+                   "    {:^5} {:^9} {:^6} {:^8} {:^6} {:^11} {:^4} {:^4} {:^14} {:^12} \n"
+                   "    {:^5} {:^9} {:^6} {:^8} {:^6} {:^11} {:^4} {:^4} {:^14} {:^12} \n",
+                   update->minimize_style, "dmax", "delaystep", "dtgrow", "dtshrink", "alpha0",
+                   "alphashrink", "tmax", "tmin", "integrator", "halfstepback", dmax, delaystep,
+                   dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin, integrator_names[integrator],
+                   yesno[halfstepback_flag]);
 
   // initialize the velocities
 
-  for (int i = 0; i < nlocal; i++)
-    v[i][0] = v[i][1] = v[i][2] = 0.0;
+  for (int i = 0; i < nlocal; i++) v[i][0] = v[i][1] = v[i][2] = 0.0;
   flagv0 = 1;
 }
 
@@ -102,6 +101,7 @@ void MinFire::reset_vectors()
   if (nvec) fvec = atom->f[0];
 }
 
+// clang-format off
 /* ---------------------------------------------------------------------- */
 
 int MinFire::iterate(int maxiter)
@@ -116,7 +116,7 @@ int MinFire::iterate(int maxiter)
 
   // Leap Frog integration initialization
 
-  if (integrator == 2) {
+  if (integrator == LEAPFROG) {
 
     double **f = atom->f;
     double **v = atom->v;
@@ -321,15 +321,9 @@ int MinFire::iterate(int maxiter)
       MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,universe->uworld);
     }
 
-    // Dynamic integration scheme:
-    // 0: semi-implicit Euler
-    // 1: velocity Verlet
-    // 2: leapfrog (initial half step before the iteration loop)
-    // 3: explicit Euler
+    // Adapt to requested integration style for dynamics
 
-    // Semi-implicit Euler OR Leap Frog integration
-
-    if (integrator == 0 || integrator == 2) {
+    if (integrator == EULERIMPLICIT || integrator == LEAPFROG) {
 
       dtf = dtv * force->ftm2v;
 
@@ -371,7 +365,7 @@ int MinFire::iterate(int maxiter)
 
     // Velocity Verlet integration
 
-    } else if (integrator == 1) {
+    } else if (integrator == VERLET) {
 
       dtf = 0.5 * dtv * force->ftm2v;
 
@@ -429,7 +423,7 @@ int MinFire::iterate(int maxiter)
 
     // Standard Euler integration
 
-    } else if (integrator == 3) {
+    } else if (integrator == EULEREXPLICIT) {
 
       dtf = dtv * force->ftm2v;
 

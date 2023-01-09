@@ -22,6 +22,12 @@ PairStyle(lepton,PairLepton);
 
 #include "pair.h"
 
+#include <map>
+
+namespace Lepton {
+class CustomFunction;
+}
+
 namespace LAMMPS_NS {
 
 class PairLepton : public Pair {
@@ -42,6 +48,8 @@ class PairLepton : public Pair {
 
  protected:
   std::vector<std::string> expressions;
+  std::map<std::string, Lepton::CustomFunction *> functions;
+
   double **cut;
   int **type2expression;
   double **offset;

@@ -20,13 +20,72 @@
 #include "error.h"
 #include "input.h"
 #include "lammps.h"
+#include "pair_zbl_const.h"
 #include "variable.h"
 
 #include "fmt/args.h"
 
 #include <cctype>
+#include <cmath>
 #include <exception>
 #include <unordered_set>
+
+using namespace LAMMPS_NS;
+using namespace PairZBLConstants;
+
+namespace Lepton {
+class DerivativeException : public std::exception {
+  std::string message;
+
+ public:
+  // remove unused default constructor
+  DerivativeException() = delete;
+
+  explicit DerivativeException(int deg, const std::string &fn, const std::string &vn)
+  {
+    message = fmt::format("Order {} derivative of function {} in {} is not supported", deg, fn, vn);
+  }
+  const char *what() const noexcept override { return message.c_str(); }
+};
+}    // namespace Lepton
+
+double Lepton::ZBLFunction::evaluate(const double *args) const
+{
+  const double zi = args[0];
+  const double zj = args[1];
+  const double r = args[2];
+
+  const double rbya = r * (pow(zi, pzbl) + pow(zj, pzbl)) / (a0 * angstrom);
+  return zi * zj * qqr2e * qelectron * qelectron / r *
+      (c4 * exp(-d4 * rbya) + c3 * exp(-d3 * rbya) + c2 * exp(-d2 * rbya) + c1 * exp(-d1 * rbya));
+}
+
+double Lepton::ZBLFunction::evaluateDerivative(const double *args, const int *order) const
+{
+  if (order[0] > 0)
+    throw DerivativeException(order[0], "zbl()", "'zi'");
+  if (order[1] > 0)
+    throw DerivativeException(order[0], "zbl()", "'zj'");
+  if (order[2] > 1)
+    throw DerivativeException(order[0], "zbl()", "'r'");
+
+  if (order[2] == 1) {
+    const double zi = args[0];
+    const double zj = args[1];
+    const double r = args[2];
+
+    const double ainv = (pow(zi, pzbl) + pow(zj, pzbl)) / (a0 * angstrom);
+    const double e1 = exp(-d1 * ainv * r);
+    const double e2 = exp(-d2 * ainv * r);
+    const double e3 = exp(-d3 * ainv * r);
+    const double e4 = exp(-d4 * ainv * r);
+
+    const double sum1 = c1 * e1 + c2 * e2 + c3 * e3 + c4 * e4;
+    const double sum2 = ainv * (-c1 * d1 * e1 - c2 * d2 * e2 - c3 * d3 * e3 - c4 * d4 * e4);
+    return (zi * zj * qqr2e * qelectron * qelectron) * (sum2 - sum1 / r) / r;
+  }
+  return 0.0;
+}
 
 namespace LeptonUtils {
 class VariableException : public std::exception {

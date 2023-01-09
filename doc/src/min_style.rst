@@ -18,6 +18,9 @@ min_style fire command
 min_style fire/old command
 ==========================
 
+min_style abcfire command
+======================
+
 :doc:`min_style spin <min_spin>` command
 ========================================
 
@@ -34,7 +37,7 @@ Syntax
 
    min_style style
 
-* style = *cg* or *hftn* or *sd* or *quickmin* or *fire* or *fire/old* or *spin* or *spin/cg* or *spin/lbfgs*
+* style = *cg* or *hftn* or *sd* or *quickmin* or *fire* or *fire/old* or *abcfire* or *spin* or *spin/cg* or *spin/lbfgs*
 
   .. parsed-literal::
 
@@ -109,6 +112,14 @@ in LAMMPS is called *fire2.0*). By using an appropriate set of
 parameters, *fire* can behave similar to *fire/old*, as described
 in the :doc:`min_modify <min_modify>` command.
 
+Style *abcfire* (Accelerated Bias-Corrected *fire*) introduces an 
+additional factor to *fire* that modifies the bias and the scaling of
+the velocities of the atoms during the ‘‘mixing’’ step. This factor 
+accelerates convergence by decreasing the bias towards null velocities 
+every time that *fire* freezes the system during a minimisation. It 
+also works as a scaling parameter that makes the velocities evolve 
+faster. More details can be found in :ref:`(Echeverri Restrepo) <EcheverriRestrepo>`.
+
 Style *spin* is a damped spin dynamics with an adaptive timestep.
 
 Style *spin/cg* uses an orthogonal spin optimization (OSO) combined to
@@ -140,7 +151,7 @@ calculations via the :doc:`neb/spin <neb_spin>` command.
 
 .. note::
 
-   The *quickmin*, *fire*, *fire/old*, *hftn*, and *cg/kk* styles do not yet
+   The *quickmin*, *fire*, *fire/old*, *abcfire*, *hftn*, and *cg/kk* styles do not yet
    support the use of the :doc:`fix box/relax <fix_box_relax>` command
    or minimizations involving the electron radius in :doc:`eFF
    <pair_eff>` models.
@@ -187,3 +198,9 @@ Jonsson, Mills, Jacobsen.
 
 **(Guenole)** Guenole, Noehring, Vaid, Houlle, Xie, Prakash, Bitzek,
 Comput Mater Sci, 175, 109584 (2020).
+
+.. _EcheverriRestrepo:
+
+**(EcheverriRestrepo)** Echeverri Restrepo, Andric, Comput Mater Sci, 
+218, 111978 (2023).
+

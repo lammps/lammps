@@ -28,9 +28,9 @@ Syntax
        *discrete_factor* value = factor
          factor = discretization factor for adaptive spin timestep (adim)
        *integrator* value = *eulerimplicit* or *verlet*
-         time integration scheme for fire minimization
+         time integration scheme for fire or abcfire minimization
        *tmax* value = factor
-         factor = maximum adaptive timestep for fire minimization (adim)
+         factor = maximum adaptive timestep for fire or abcfire minimization (adim)
 
 Examples
 """"""""
@@ -53,7 +53,7 @@ The *cg* and *sd* minimization styles have an outer iteration and an
 inner iteration which is steps along a one-dimensional line search in
 a particular search direction.  The *dmax* parameter is how far any
 atom can move in a single line search in any dimension (x, y, or z).
-For the *quickmin* and *fire* minimization styles, the *dmax* setting
+For the *quickmin*, *fire* and *abcfire* minimization styles, the *dmax* setting
 is how far any atom can move in a single iteration (timestep).  Thus a
 value of 0.1 in real :doc:`units <units>` means no atom will move
 further than 0.1 Angstroms in a single outer iteration.  This prevents
@@ -82,7 +82,7 @@ even if atoms could move in the gradient direction to reduce forces
 further.
 
 The choice of a norm can be modified for the min styles *cg*, *sd*\
-, *quickmin*, *fire*, *fire/old*, *spin*, *spin/cg* and
+, *quickmin*, *fire*, *fire/old*, *abcfire*, *spin*, *spin/cg* and
 *spin/lbfgs* using the *norm* keyword.  The default *two* norm computes
 the 2-norm (Euclidean length) of the global force vector:
 
@@ -127,22 +127,22 @@ procedure.  The *spin_none* is a default value for *line* keyword for
 both *spin/lbfgs* and *spin/cg*\ . Convergence of *spin/lbfgs* can be
 more robust if *spin_cubic* line search is used.
 
-The Newton *integrator* used for *fire* minimization can be selected
+The Newton *integrator* used for *fire* or *abcfire* minimization can be selected
 to be either the symplectic Euler (\ *eulerimplicit*\ ) or velocity
 Verlet (\ *verlet*\ ).  *tmax* defines the maximum value for the
-adaptive timestep during a *fire* minimization. It is a multiplication
+adaptive timestep during a *fire* or *abcfire* minimization. It is a multiplication
 factor applied to the current :doc:`timestep <timestep>` (not in time
 unit). For example, *tmax* = 4.0 with a :doc:`timestep <timestep>` of
-2fs, means that the maximum value the timestep can reach during a *fire*
+2fs, means that the maximum value the timestep can reach during a *fire* or *abcfire*
 minimization is 4fs.
 Note that parameter defaults has been chosen to be reliable in most cases,
 but one should consider adjusting :doc:`timestep <timestep>` and *tmax* to
 optimize the minimization for large or complex systems.  Other
-parameters of the *fire* minimization can be tuned (\ *tmin*,
+parameters of the *fire* or *abcfire* minimization can be tuned (\ *tmin*,
 *delaystep*, *dtgrow*, *dtshrink*, *alpha0*, and
 *alphashrink*\ ). Please refer to the references describing the
 :doc:`min_style <min_style>` *fire*.
-An additional stopping criteria *vdfmax* is used by *fire* in order to avoid
+An additional stopping criteria *vdfmax* is used by *fire* and *abcfire* in order to avoid
 unnecessary looping when it is reasonable to think the system will not
 be relaxed further.  Note that in this case the system will NOT have
 reached your minimization criteria. This could happen when the system
@@ -180,7 +180,7 @@ For the *spin*, *spin/cg* and *spin/lbfgs* styles, the option
 defaults are alpha_damp = 1.0, discrete_factor = 10.0, line =
 spin_none, and norm = euclidean.
 
-For the *fire* style, the option defaults are integrator =
+For the *fire* and *abcfire* styles, the option defaults are integrator =
 eulerimplicit, tmax = 10.0, tmin = 0.02, delaystep = 20, dtgrow = 1.1,
 dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99, vdfmax = 2000,
 halfstepback = yes and initialdelay = yes.

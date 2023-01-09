@@ -116,7 +116,7 @@ Style *abcfire* (Accelerated Bias-Corrected *fire*) introduces an
 additional factor to *fire* that modifies the bias and the scaling of
 the velocities of the atoms during the ‘‘mixing’’ step. This factor 
 accelerates convergence by decreasing the bias towards null velocities 
-every time that *fire* freezes the system during a minimisation. It 
+every time that *fire* freezes the system during a minimization. It 
 also works as a scaling parameter that makes the velocities evolve 
 faster. More details can be found in :ref:`(Echeverri Restrepo) <EcheverriRestrepo>`.
 

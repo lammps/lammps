@@ -33,6 +33,22 @@
 using namespace LAMMPS_NS;
 using namespace PairZBLConstants;
 
+namespace Lepton {
+class DerivativeException : public std::exception {
+  std::string message;
+
+ public:
+  // remove unused default constructor
+  DerivativeException() = delete;
+
+  explicit DerivativeException(int deg, const std::string &fn, const std::string &vn)
+  {
+    message = fmt::format("Order {} derivative of function {} in {} is not supported", deg, fn, vn);
+  }
+  const char *what() const noexcept override { return message.c_str(); }
+};
+}    // namespace Lepton
+
 double Lepton::ZBLFunction::evaluate(const double *args) const
 {
   const double zi = args[0];
@@ -46,12 +62,19 @@ double Lepton::ZBLFunction::evaluate(const double *args) const
 
 double Lepton::ZBLFunction::evaluateDerivative(const double *args, const int *order) const
 {
-  const double zi = args[0];
-  const double zj = args[1];
-  const double r = args[2];
+  if (order[0] > 0)
+    throw DerivativeException(order[0], "zbl()", "'zi'");
+  if (order[1] > 0)
+    throw DerivativeException(order[0], "zbl()", "'zj'");
+  if (order[2] > 1)
+    throw DerivativeException(order[0], "zbl()", "'r'");
 
-  const double ainv = (pow(zi, pzbl) + pow(zj, pzbl)) / (a0 * angstrom);
   if (order[2] == 1) {
+    const double zi = args[0];
+    const double zj = args[1];
+    const double r = args[2];
+
+    const double ainv = (pow(zi, pzbl) + pow(zj, pzbl)) / (a0 * angstrom);
     const double e1 = exp(-d1 * ainv * r);
     const double e2 = exp(-d2 * ainv * r);
     const double e3 = exp(-d3 * ainv * r);

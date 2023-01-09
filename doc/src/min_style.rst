@@ -19,7 +19,7 @@ min_style fire/old command
 ==========================
 
 min_style abcfire command
-======================
+=========================
 
 :doc:`min_style spin <min_spin>` command
 ========================================

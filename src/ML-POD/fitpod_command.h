@@ -63,7 +63,7 @@ private:
     int training_calculation = 0;
     int test_calculation = 0;
     int randomize = 1;
-    int precision = 8;
+    int precision = 8;    
     double fraction = 1.0;
 
     double fitting_weights[12] = {100.0, 1.0, 0.0, 1, 1, 0, 0, 1, 1, 1, 1, 1e-10};
@@ -118,6 +118,7 @@ private:
     int method;
   };
 
+  int save_descriptors = 0;
   datastruct traindata;
   datastruct testdata;
   descriptorstruct desc;

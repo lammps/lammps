@@ -44,6 +44,14 @@ MLPOD::podstruct::podstruct() :
     besselparams(nullptr), coeff(nullptr), Phi2(nullptr), Phi3(nullptr), Phi4(nullptr),
     Lambda2(nullptr), Lambda3(nullptr), Lambda4(nullptr)
 {
+  snaptwojmax = 0;
+  snapchemflag = 0;
+  snaprfac0 = 0.99363;
+  
+  for (int i=0; i<10; i++) {
+    snapelementradius[i] = 0.5;
+    snapelementweight[i] = 1.0;
+  }        
 }
 
 MLPOD::podstruct::~podstruct()

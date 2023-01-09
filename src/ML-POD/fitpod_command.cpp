@@ -297,6 +297,7 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
     if (keywd == "randomize_test_data_set") fitting_weights[10] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "fitting_regularization_parameter") fitting_weights[11] = utils::numeric(FLERR,words[1],false,lmp);
     if (keywd == "precision_for_pod_coefficients") precision = utils::inumeric(FLERR,words[1],false,lmp);
+    if (keywd == "save_pod_descriptors") save_descriptors = utils::inumeric(FLERR,words[1],false,lmp);
 
     // other settings
 
@@ -1226,7 +1227,17 @@ void FitPOD::linear_descriptors(const datastruct &data, int ci)
   double *tmpmem = &desc.gdd[dim*natom*nd1234+natom*nd1234];
   podptr->linear_descriptors(desc.gd, desc.gdd, nb.y, tmpmem, atomtype, nb.alist,
       nb.pairlist, nb.pairnum, nb.pairnum_cumsum, tmpint, natom, Nij);
+  
+  if (save_descriptors == 1) {
+    std::string filename = "descriptors_config" + std::to_string(ci+1) + ".bin";
 
+    FILE *fp = fopen(filename.c_str(), "wb");
+
+    fwrite( reinterpret_cast<char*>( desc.gd ), sizeof(double) * (nd1234), 1, fp);
+    fwrite( reinterpret_cast<char*>( desc.gdd ), sizeof(double) * (4*natom*nd1234), 1, fp);
+  
+    fclose(fp);    
+  }
 }
 
 void FitPOD::linear_descriptors_fastpod(const datastruct &data, int ci)

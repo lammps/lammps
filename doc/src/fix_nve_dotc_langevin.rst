@@ -73,11 +73,11 @@ the particle's velocity.  The proportionality constant for each atom is
 computed as :math:`\frac{m}{\mathrm{damp}}`, where *m* is the mass of
 the particle and damp is the damping factor specified by the user.
 
-:math:`F_r` is a force due to solvent atoms at a temperature *T*
+:math:`F_r` is a force due to solvent atoms at a temperature :math:`T`
 randomly bumping into the particle.  As derived from the
 fluctuation/dissipation theorem, its magnitude as shown above is
 proportional to :math:`\sqrt{\frac{k_B T m}{dt~\mathrm{damp}}}`, where
-:math:`k_B` is the Boltzmann constant, *T* is the desired temperature,
+:math:`k_B` is the Boltzmann constant, :math:`T` is the desired temperature,
 *m* is the mass of the particle, *dt* is the timestep size, and damp is
 the damping factor.  Random numbers are used to randomize the direction
 and magnitude of this force as described in :ref:`(Dunweg) <Dunweg5>`,

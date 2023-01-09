@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,17 +36,15 @@
 
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
-#define GOLD 1.618034
+static constexpr double GOLD = 1.618034;
 
-using namespace std;
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
 FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  acc_str(""), kspace_style(""), pair_style(""), base_pair_style("")
+  Fix(lmp, narg, arg)
 {
   if (narg < 3) error->all(FLERR,"Illegal fix tune/kspace command");
 
@@ -245,7 +243,7 @@ void FixTuneKspace::update_pair_style(const std::string &new_pair_style,
     utils::logmesg(lmp,"Creating new pair style: {}\n",new_pair_style);
 
   // delete old pair style and create new one
-  force->create_pair(new_pair_style.c_str(),1);
+  force->create_pair(new_pair_style,1);
 
   // restore current pair settings from temporary file
   force->pair->read_restart(p_pair_settings_file);
@@ -269,7 +267,7 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
   // delete old kspace style and create new one
 
   auto tmp_acc_str = (char *)new_acc_str.c_str();
-  force->create_kspace(new_kspace_style.c_str(),1);
+  force->create_kspace(new_kspace_style,1);
   force->kspace->settings(1,&tmp_acc_str);
   force->kspace->differentiation_flag = old_differentiation_flag;
   force->kspace->slabflag = old_slabflag;
@@ -280,9 +278,13 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
   force->init();
 
   // set up grid
-  force->kspace->setup_grid();
 
-  // Re-init neighbor list. Probably only needed when redefining the pair style. Should happen after pair->init() to get pair style neighbor list request registered
+  force->kspace->reset_grid();
+
+  // re-init neighbor list
+  // probably only needed when redefining the pair style
+  // should happen after pair->init() to get pair style
+  //   neighbor list request registered
 
   neighbor->init();
 
@@ -475,8 +477,8 @@ void FixTuneKspace::brent0()
 
 void FixTuneKspace::brent1()
 {
-  const double CGOLD=0.3819660;
-  const double ZEPS=numeric_limits<double>::epsilon()*1.0e-3;
+  constexpr double CGOLD=0.3819660;
+  const double ZEPS=std::numeric_limits<double>::epsilon()*1.0e-3;
   double d=0.0,etemp;
   double p,q,r,tol1,tol2,xm;
   double e=0.0;
@@ -512,8 +514,6 @@ void FixTuneKspace::brent1()
   dx_brent=(fabs(d) >= tol1 ? x_brent+d : x_brent+SIGN(tol1,d));
 
   first_brent_pass = false;
-
-  return;
 }
 
 /* ----------------------------------------------------------------------

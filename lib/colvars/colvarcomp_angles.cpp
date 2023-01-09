@@ -15,7 +15,7 @@
 colvar::angle::angle(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "angle";
+  set_function_type("angle");
   init_as_angle();
 
   provide(f_cvc_inv_gradient);
@@ -34,7 +34,7 @@ colvar::angle::angle(cvm::atom const &a1,
                      cvm::atom const &a2,
                      cvm::atom const &a3)
 {
-  function_type = "angle";
+  set_function_type("angle");
   init_as_angle();
 
   provide(f_cvc_inv_gradient);
@@ -140,7 +140,7 @@ simple_scalar_dist_functions(angle)
 colvar::dipole_angle::dipole_angle(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "dipole_angle";
+  set_function_type("dipoleAngle");
   init_as_angle();
 
   group1 = parse_group(conf, "group1");
@@ -155,7 +155,8 @@ colvar::dipole_angle::dipole_angle(cvm::atom const &a1,
                       cvm::atom const &a2,
                       cvm::atom const &a3)
 {
-  function_type = "dipole_angle";
+  set_function_type("dipoleAngle");
+  init_as_angle();
 
   group1 = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
   group2 = new cvm::atom_group(std::vector<cvm::atom>(1, a2));
@@ -163,16 +164,13 @@ colvar::dipole_angle::dipole_angle(cvm::atom const &a1,
   register_atom_group(group1);
   register_atom_group(group2);
   register_atom_group(group3);
-
-  x.type(colvarvalue::type_scalar);
 }
 
 
 colvar::dipole_angle::dipole_angle()
 {
-  function_type = "dipole_angle";
+  set_function_type("dipoleAngle");
   init_as_angle();
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -251,9 +249,8 @@ simple_scalar_dist_functions(dipole_angle)
 colvar::dihedral::dihedral(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "dihedral";
-  period = 360.0;
-  enable(f_cvc_periodic);
+  set_function_type("dihedral");
+  init_as_periodic_angle();
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -264,8 +261,6 @@ colvar::dihedral::dihedral(std::string const &conf)
   group4 = parse_group(conf, "group4");
 
   init_total_force_params(conf);
-
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -274,12 +269,8 @@ colvar::dihedral::dihedral(cvm::atom const &a1,
                            cvm::atom const &a3,
                            cvm::atom const &a4)
 {
-  if (cvm::debug())
-    cvm::log("Initializing dihedral object from atom groups.\n");
-
-  function_type = "dihedral";
-  period = 360.0;
-  enable(f_cvc_periodic);
+  set_function_type("dihedral");
+  init_as_periodic_angle();
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -294,22 +285,16 @@ colvar::dihedral::dihedral(cvm::atom const &a1,
   register_atom_group(group2);
   register_atom_group(group3);
   register_atom_group(group4);
-
-  x.type(colvarvalue::type_scalar);
-
-  if (cvm::debug())
-    cvm::log("Done initializing dihedral object from atom groups.\n");
 }
 
 
 colvar::dihedral::dihedral()
 {
-  function_type = "dihedral";
-  period = 360.0;
+  set_function_type("dihedral");
+  init_as_periodic_angle();
   enable(f_cvc_periodic);
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
-  x.type(colvarvalue::type_scalar);
 }
 
 
@@ -516,7 +501,7 @@ void colvar::dihedral::wrap(colvarvalue &x_unwrapped) const
 colvar::polar_theta::polar_theta(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "polar_theta";
+  set_function_type("polarTheta");
   enable(f_cvc_com_based);
 
   atoms = parse_group(conf, "atoms");
@@ -527,7 +512,7 @@ colvar::polar_theta::polar_theta(std::string const &conf)
 
 colvar::polar_theta::polar_theta()
 {
-  function_type = "polar_theta";
+  set_function_type("polarTheta");
   x.type(colvarvalue::type_scalar);
 }
 
@@ -568,21 +553,19 @@ simple_scalar_dist_functions(polar_theta)
 colvar::polar_phi::polar_phi(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "polar_phi";
-  period = 360.0;
+  set_function_type("polarPhi");
+  init_as_periodic_angle();
   enable(f_cvc_com_based);
 
   atoms = parse_group(conf, "atoms");
   init_total_force_params(conf);
-  x.type(colvarvalue::type_scalar);
 }
 
 
 colvar::polar_phi::polar_phi()
 {
-  function_type = "polar_phi";
-  period = 360.0;
-  x.type(colvarvalue::type_scalar);
+  set_function_type("polarPhi");
+  init_as_periodic_angle();
 }
 
 

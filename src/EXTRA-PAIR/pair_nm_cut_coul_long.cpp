@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -277,7 +277,7 @@ void PairNMCutCoulLong::coeff(int narg, char **arg)
   double mm_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 7) cut_lj_one = utils::numeric(FLERR,arg[4],false,lmp);
+  if (narg == 7) cut_lj_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

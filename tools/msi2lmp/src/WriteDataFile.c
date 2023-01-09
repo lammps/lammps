@@ -207,7 +207,7 @@ void WriteDataFile(char *nameroot)
         for ( j = 0; j < 6; j++)
           fprintf(DatF, " %10.4f",dihedraltypes[i].params[j]);
 
-        if (hintflag) fprintf(DatF,"# %s-%s-%s-%s\n",
+        if (hintflag) fprintf(DatF," # %s-%s-%s-%s\n",
                               atomtypes[dihedraltypes[i].types[0]].potential,
                               atomtypes[dihedraltypes[i].types[1]].potential,
                               atomtypes[dihedraltypes[i].types[2]].potential,

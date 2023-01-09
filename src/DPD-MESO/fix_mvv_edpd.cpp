@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,8 +17,8 @@
    v and edpd_T) using the modified velocity-Verlet (MVV) algorithm.
    Setting verlet = 0.5 recovers the standard velocity-Verlet algorithm.
 
-   Contributing author: Zhen Li (Brown University)
-   Email: zhen_li@brown.edu
+   Contributing author: Zhen Li (Clemson University)
+   Email: zli7@clemson.edu
 
    Please cite the related publication:
    Z. Li, Y.-H. Tang, H. Lei, B. Caswell and G.E. Karniadakis. "Energy-

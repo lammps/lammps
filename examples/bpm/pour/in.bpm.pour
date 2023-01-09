@@ -19,6 +19,9 @@ bond_coeff      1 1.0 0.2 0.01 0.01 2.0 0.4 0.02 0.02 0.2 0.04 0.002 0.002
 
 compute         nbond all nbond/atom
 compute         tbond all reduce sum c_nbond
+compute         bond_ids all property/local batom1 batom2
+compute         bond_properties all bond/local dist b1
+
 compute_modify  thermo_temp dynamic/dof yes
 
 fix             1 all wall/gran hertz/history 1.0 NULL 0.5 NULL 0.1 1 zplane 0.0 NULL
@@ -31,5 +34,7 @@ timestep        0.05
 thermo_style    custom step ke pe pxx pyy pzz c_tbond
 thermo          100
 #dump            1 all custom 500 atomDump id radius x y z c_nbond mol
+#dump            2 all local 500 bondDump c_bond_ids[*] c_bond_properties[*]
+#dump_modify     2 colname 1 "id1" colname 2 "id2" colname 3 "r" colname 4 "r0"
 
 run             100000

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -121,7 +121,7 @@ void ReadDump::command(int narg, char **arg)
 
   // reset timestep to nstep
 
-  update->reset_timestep(nstep, true);
+  if (timestepflag) update->reset_timestep(nstep, true);
 
   // counters
 
@@ -286,7 +286,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
       if (multiproc) {
         std::string multiname = files[ifile];
         multiname.replace(multiname.find('%'),1,"0");
-        readers[0]->open_file(multiname.c_str());
+        readers[0]->open_file(multiname);
       } else readers[0]->open_file(files[ifile]);
 
       while (true) {
@@ -330,7 +330,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
       if (me == 0 && i == 0) continue;    // proc 0, reader 0 already found it
       std::string multiname = files[currentfile];
       multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
-      readers[i]->open_file(multiname.c_str());
+      readers[i]->open_file(multiname);
 
       bigint step;
       while (true) {
@@ -378,7 +378,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
         if (multiproc) {
           std::string multiname = files[ifile];
           multiname.replace(multiname.find('%'),1,"0");
-          readers[0]->open_file(multiname.c_str());
+          readers[0]->open_file(multiname);
         } else readers[0]->open_file(files[ifile]);
       }
 
@@ -432,7 +432,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
       if (me == 0 && i == 0) continue;
       std::string multiname = files[currentfile];
       multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
-      readers[i]->open_file(multiname.c_str());
+      readers[i]->open_file(multiname);
 
       bigint step;
       while (true) {
@@ -1202,6 +1202,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
 
   multiproc_nfile = 0;
   boxflag = 1;
+  timestepflag = 1;
   replaceflag = 1;
   purgeflag = 0;
   trimflag = 0;
@@ -1218,6 +1219,10 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
     } else if (strcmp(arg[iarg],"box") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
       boxflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"timestep") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
+      timestepflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"replace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");

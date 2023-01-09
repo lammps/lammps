@@ -24,20 +24,22 @@ By default, Spack doesn't 'see' anything on your system - including things like 
 This can be limited by adding a `packages.yaml` to your `$HOME/.spack` folder that includes CMake (and CUDA, if applicable).  For example, your `packages.yaml` file could be:
 ````yaml
 packages:
- cuda:
-  modules:
-   cuda@10.1.243: [cuda/10.1.243]
-  paths:
-   cuda@10.1.243:
-    /opt/local/ppc64le-pwr8-nvidia/cuda/10.1.243
-  buildable: false
- cmake:
-  modules:
-   cmake: [cmake/3.16.8]
-  paths:
-   cmake:
-    /opt/local/ppc64le/cmake/3.16.8
-  buildable: false
+  cuda:
+    buildable: false
+    externals:
+    - prefix: /opt/local/ppc64le-pwr8-nvidia/cuda/10.1.243
+      spec: cuda@10.1.243
+    - modules:
+      - cuda/10.1.243
+      spec: cuda@10.1.243
+  cmake:
+    buildable: false
+    externals:
+    - prefix: /opt/local/ppc64le/cmake/3.16.8
+      spec: cmake@3.16.8
+    - modules:
+      - cmake/3.16.8
+      spec: cmake@3.16.8
 ````
 The `modules` entry is only necessary on systems that require loading Modules (i.e. most DOE systems).
 The `buildable` flag is useful to make sure Spack crashes if there is a path error,

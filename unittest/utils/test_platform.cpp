@@ -108,7 +108,7 @@ TEST(Platform, sharedload)
     double (*doublefunc)(double, int);
 
     for (const auto &obj : objs) {
-        handle = platform::dlopen(obj.c_str());
+        handle = platform::dlopen(obj);
         EXPECT_NE(handle, nullptr);
         intvar = (int *)platform::dlsym(handle, "some_int_val");
         EXPECT_NE(intvar, nullptr);
@@ -325,10 +325,10 @@ TEST(Platform, path_and_directory)
     ASSERT_FALSE(platform::path_is_directory("path_is_directory"));
 
 #if defined(_WIN32)
-    ASSERT_EQ(platform::mkdir("path_is_directory\\path_is_directory"),0);
+    ASSERT_EQ(platform::mkdir("path_is_directory\\path_is_directory"), 0);
     ASSERT_TRUE(platform::path_is_directory("path_is_directory\\path_is_directory"));
 #else
-    ASSERT_EQ(platform::mkdir("path_is_directory/path_is_directory"),0);
+    ASSERT_EQ(platform::mkdir("path_is_directory/path_is_directory"), 0);
     ASSERT_TRUE(platform::path_is_directory("path_is_directory/path_is_directory"));
 #endif
     platform::rmdir("path_is_directory");

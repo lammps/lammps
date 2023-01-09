@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_UNIQUE_TOKEN_HPP
 #define KOKKOS_UNIQUE_TOKEN_HPP
 
@@ -59,8 +68,8 @@ enum class UniqueTokenScope : int { Instance, Global };
 ///
 /// This object should behave like a ref-counted object, so that when the last
 /// instance is destroy resources are free if needed
-template <typename ExecutionSpace,
-          UniqueTokenScope = UniqueTokenScope::Instance>
+template <typename ExecutionSpace = Kokkos::DefaultExecutionSpace,
+          UniqueTokenScope        = UniqueTokenScope::Instance>
 class UniqueToken {
  public:
   using execution_space = ExecutionSpace;

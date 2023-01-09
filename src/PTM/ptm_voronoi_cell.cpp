@@ -500,7 +500,7 @@ bool voronoicell_base::nplane(vc_class &vc,double x,double y,double z,double rsq
                                 break;
                         }
                 }
-                if (qp==p) return qw==-1?true:false;
+                if (qp==p) return qw==-1;
         }
 
         // We're about to add the first point of the new facet. In either

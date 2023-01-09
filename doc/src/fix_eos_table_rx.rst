@@ -45,14 +45,14 @@ computed according to the following relation:
 
 .. math::
 
-   U_{i} = \displaystyle\sum_{j=1}^{m} c_{i,j}(u_{j} + \Delta H_{f,j}) + \frac{3k_{b}T}{2} + Nk_{b}T \\
+   U_{i} = \displaystyle\sum_{j=1}^{m} c_{i,j}(u_{j} + \Delta H_{f,j}) + \frac{3k_{B}T}{2} + Nk_{B}T \\
 
 where *m* is the number of species, :math:`c_{i,j}` is the
 concentration of species *j* in particle *i*, :math:`u_j` is the
 internal energy of species j, :math:`\Delta H_{f,j} is the heat of
 formation of species *j*, N is the number of molecules represented
-by the coarse-grained particle, :math:`k_b` is the Boltzmann constant,
-and *T* is the temperature of the system.  Additionally, it is
+by the coarse-grained particle, :math:`k_B` is the Boltzmann constant,
+and :math:`T` is the temperature of the system.  Additionally, it is
 possible to modify the concentration-dependent particle internal
 energy relation by adding an energy correction, temperature-dependent
 correction, and/or a molecule-dependent correction.  An energy

@@ -50,6 +50,7 @@ namespace Kokkos {
 namespace Experimental {
 class HIPSpace;            ///< Memory space on HIP GPU
 class HIPHostPinnedSpace;  ///< Memory space on Host accessible to HIP GPU
+class HIPManagedSpace;     ///< Memory migratable between Host and HIP GPU
 class HIP;                 ///< Execution space for HIP GPU
 }  // namespace Experimental
 }  // namespace Kokkos

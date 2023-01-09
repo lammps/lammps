@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -104,23 +104,23 @@ AtomKokkos::~AtomKokkos()
 
 void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 {
-  if (space == Device && lmp->kokkos->auto_sync) ((AtomVecKokkos *) avec)->modified(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) avecKK->modified(Host, mask);
 
-  ((AtomVecKokkos *) avec)->sync(space, mask);
+  avecKK->sync(space, mask);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 {
-  ((AtomVecKokkos *) avec)->modified(space, mask);
+  avecKK->modified(space, mask);
 
-  if (space == Device && lmp->kokkos->auto_sync) ((AtomVecKokkos *) avec)->sync(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) avecKK->sync(Host, mask);
 }
 
 void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
 {
-  ((AtomVecKokkos *) avec)->sync_overlapping_device(space, mask);
+  avecKK->sync_overlapping_device(space, mask);
 }
 /* ---------------------------------------------------------------------- */
 
@@ -315,26 +315,26 @@ void AtomKokkos::remove_custom(int index, int flag, int cols)
 {
   if (flag == 0 && cols == 0) {
     memory->destroy(ivector[index]);
-    ivector[index] = NULL;
+    ivector[index] = nullptr;
     delete[] ivname[index];
-    ivname[index] = NULL;
+    ivname[index] = nullptr;
 
   } else if (flag == 1 && cols == 0) {
-    dvector[index] = NULL;
+    dvector[index] = nullptr;
     delete[] dvname[index];
-    dvname[index] = NULL;
+    dvname[index] = nullptr;
 
   } else if (flag == 0 && cols) {
     memory->destroy(iarray[index]);
-    iarray[index] = NULL;
+    iarray[index] = nullptr;
     delete[] ianame[index];
-    ianame[index] = NULL;
+    ianame[index] = nullptr;
 
   } else if (flag == 1 && cols) {
     memory->destroy(darray[index]);
-    darray[index] = NULL;
+    darray[index] = nullptr;
     delete[] daname[index];
-    daname[index] = NULL;
+    daname[index] = nullptr;
   }
 }
 
@@ -380,5 +380,8 @@ AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sfla
 {
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
   if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
+
+  avecKK = dynamic_cast<AtomVecKokkos*>(avec);
+
   return avec;
 }

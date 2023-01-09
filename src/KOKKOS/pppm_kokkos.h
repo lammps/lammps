@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,7 +23,7 @@ KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>);
 #ifndef LMP_PPPM_KOKKOS_H
 #define LMP_PPPM_KOKKOS_H
 
-#include "gridcomm_kokkos.h"
+#include "grid3d_kokkos.h"
 #include "remap_kokkos.h"
 #include "fft3d_kokkos.h"
 #include "kokkos_base_fft.h"
@@ -124,7 +124,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   ~PPPMKokkos() override;
   void init() override;
   void setup() override;
-  void setup_grid() override;
+  void reset_grid() override;
   void settings(int, char **) override;
   void compute(int, int) override;
   int timing_1d(int, double &) override;
@@ -353,8 +353,6 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
 
-  int factors[3];
-
   typename FFT_AT::t_FFT_SCALAR_3d d_density_brick;
   typename FFT_AT::t_FFT_SCALAR_3d d_vdx_brick,d_vdy_brick,d_vdz_brick;
   typename FFT_AT::t_FFT_SCALAR_3d d_u_brick;
@@ -387,7 +385,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
 
   FFT3dKokkos<DeviceType> *fft1,*fft2;
   RemapKokkos<DeviceType> *remap;
-  GridCommKokkos<DeviceType> *gc;
+  Grid3dKokkos<DeviceType> *gc;
 
   FFT_DAT::tdual_FFT_SCALAR_1d k_gc_buf1,k_gc_buf2;
   int ngc_buf1,ngc_buf2,npergrid;
@@ -399,7 +397,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   double boxlo[3];
 
   void set_grid_global() override;
-  void set_grid_local();
+  void set_grid_local() override;
   void adjust_gewald();
   double newton_raphson_f() override;
   double derivf();
@@ -410,7 +408,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   void deallocate() override;
   void deallocate_peratom() override;
   int factorable(int);
-  double compute_df_kspace();
+  double compute_df_kspace() override;
   double estimate_ik_error(double, double, bigint);
   void compute_gf_denom() override;
   void compute_gf_ik() override;

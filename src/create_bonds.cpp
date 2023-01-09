@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,7 +26,6 @@
 #include "force.h"
 #include "group.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "special.h"
 
@@ -73,7 +72,6 @@ void CreateBonds::command(int narg, char **arg)
     iarg = 6;
   } else if (strcmp(arg[0], "single/bond") == 0) {
     style = SBOND;
-    if (narg < 4) error->all(FLERR, "Illegal create_bonds command");
     btype = utils::inumeric(FLERR, arg[1], false, lmp);
     batom1 = utils::tnumeric(FLERR, arg[2], false, lmp);
     batom2 = utils::tnumeric(FLERR, arg[3], false, lmp);
@@ -299,6 +297,7 @@ void CreateBonds::many()
       }
     }
   }
+  neighbor->init();
 
   // recount bonds
 

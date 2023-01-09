@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -101,22 +101,21 @@ void Group::assign(int narg, char **arg)
   // clear mask of each atom assigned to this group
 
   if (strcmp(arg[1],"delete") == 0) {
-    if (narg != 2) error->all(FLERR,"Illegal group command");
+    if (narg != 2) error->all(FLERR,"Illegal group command: too many arguments");
     int igroup = find(arg[0]);
-    if (igroup == -1) error->all(FLERR,"Could not find group delete group ID");
+    if (igroup == -1) error->all(FLERR,"Could not find group delete group ID {}",arg[0]);
     if (igroup == 0) error->all(FLERR,"Cannot delete group all");
-    for (const auto &fix : modify->get_fix_list())
-      if (fix->igroup == igroup)
-        error->all(FLERR,"Cannot delete group currently used by a fix");
-    for (i = 0; i < modify->ncompute; i++)
-      if (modify->compute[i]->igroup == igroup)
-        error->all(FLERR,"Cannot delete group currently used by a compute");
-    for (i = 0; i < output->ndump; i++)
-      if (output->dump[i]->igroup == igroup)
-        error->all(FLERR,"Cannot delete group currently used by a dump");
+    for (const auto &i : modify->get_fix_list())
+      if (i->igroup == igroup)
+        error->all(FLERR,"Cannot delete group {} currently used by fix ID {}",arg[0],i->id);
+    for (const auto &i : modify->get_compute_list())
+      if (i->igroup == igroup)
+        error->all(FLERR,"Cannot delete group {} currently used by compute ID {}",arg[0],i->id);
+    for (const auto &i : output->get_dump_list())
+      if (i->igroup == igroup)
+        error->all(FLERR,"Cannot delete group {} currently used by dump ID {}",arg[0],i->id);
     if (atom->firstgroupname && strcmp(arg[0],atom->firstgroupname) == 0)
-      error->all(FLERR,
-                 "Cannot delete group currently used by atom_modify first");
+      error->all(FLERR,"Cannot delete group {} currently used by atom_modify first",arg[0]);
 
     int *mask = atom->mask;
     int nlocal = atom->nlocal;

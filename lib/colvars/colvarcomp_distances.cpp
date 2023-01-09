@@ -20,7 +20,7 @@
 colvar::distance::distance(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "distance";
+  set_function_type("distance");
   init_as_distance();
 
   provide(f_cvc_inv_gradient);
@@ -37,7 +37,7 @@ colvar::distance::distance(std::string const &conf)
 colvar::distance::distance()
   : cvc()
 {
-  function_type = "distance";
+  set_function_type("distance");
   init_as_distance();
 
   provide(f_cvc_inv_gradient);
@@ -101,7 +101,7 @@ simple_scalar_dist_functions(distance)
 colvar::distance_vec::distance_vec(std::string const &conf)
   : distance(conf)
 {
-  function_type = "distance_vec";
+  set_function_type("distanceVec");
   enable(f_cvc_com_based);
   disable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_3vector);
@@ -111,7 +111,7 @@ colvar::distance_vec::distance_vec(std::string const &conf)
 colvar::distance_vec::distance_vec()
   : distance()
 {
-  function_type = "distance_vec";
+  set_function_type("distanceVec");
   enable(f_cvc_com_based);
   disable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_3vector);
@@ -171,7 +171,7 @@ colvarvalue colvar::distance_vec::dist2_rgrad(colvarvalue const &x1,
 colvar::distance_z::distance_z(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "distance_z";
+  set_function_type("distanceZ");
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -179,10 +179,11 @@ colvar::distance_z::distance_z(std::string const &conf)
 
   // TODO detect PBC from MD engine (in simple cases)
   // and then update period in real time
-  if (period != 0.0)
+  if (period != 0.0) {
     enable(f_cvc_periodic);
+  }
 
-  if ((wrap_center != 0.0) && (period == 0.0)) {
+  if ((wrap_center != 0.0) && !is_enabled(f_cvc_periodic)) {
     cvm::error("Error: wrapAround was defined in a distanceZ component,"
                 " but its period has not been set.\n");
     return;
@@ -219,7 +220,7 @@ colvar::distance_z::distance_z(std::string const &conf)
 
 colvar::distance_z::distance_z()
 {
-  function_type = "distance_z";
+  set_function_type("distanceZ");
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
   enable(f_cvc_com_based);
@@ -368,7 +369,7 @@ void colvar::distance_z::wrap(colvarvalue &x_unwrapped) const
 colvar::distance_xy::distance_xy(std::string const &conf)
   : distance_z(conf)
 {
-  function_type = "distance_xy";
+  set_function_type("distanceXY");
   init_as_distance();
 
   provide(f_cvc_inv_gradient);
@@ -380,7 +381,7 @@ colvar::distance_xy::distance_xy(std::string const &conf)
 colvar::distance_xy::distance_xy()
   : distance_z()
 {
-  function_type = "distance_xy";
+  set_function_type("distanceXY");
   init_as_distance();
 
   provide(f_cvc_inv_gradient);
@@ -481,7 +482,7 @@ simple_scalar_dist_functions(distance_xy)
 colvar::distance_dir::distance_dir(std::string const &conf)
   : distance(conf)
 {
-  function_type = "distance_dir";
+  set_function_type("distanceDir");
   enable(f_cvc_com_based);
   disable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_unit3vector);
@@ -491,7 +492,7 @@ colvar::distance_dir::distance_dir(std::string const &conf)
 colvar::distance_dir::distance_dir()
   : distance()
 {
-  function_type = "distance_dir";
+  set_function_type("distanceDir");
   enable(f_cvc_com_based);
   disable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_unit3vector);
@@ -559,7 +560,7 @@ colvarvalue colvar::distance_dir::dist2_rgrad(colvarvalue const &x1,
 colvar::distance_inv::distance_inv(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "distance_inv";
+  set_function_type("distanceInv");
   init_as_distance();
 
   group1 = parse_group(conf, "group1");
@@ -658,7 +659,7 @@ simple_scalar_dist_functions(distance_inv)
 colvar::distance_pairs::distance_pairs(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "distance_pairs";
+  set_function_type("distancePairs");
 
   group1 = parse_group(conf, "group1");
   group2 = parse_group(conf, "group2");
@@ -671,7 +672,7 @@ colvar::distance_pairs::distance_pairs(std::string const &conf)
 
 colvar::distance_pairs::distance_pairs()
 {
-  function_type = "distance_pairs";
+  set_function_type("distancePairs");
   disable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_vector);
 }
@@ -743,7 +744,7 @@ void colvar::distance_pairs::apply_force(colvarvalue const &force)
 colvar::dipole_magnitude::dipole_magnitude(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "dipole_magnitude";
+  set_function_type("dipoleMagnitude");
   atoms = parse_group(conf, "atoms");
   init_total_force_params(conf);
   x.type(colvarvalue::type_scalar);
@@ -752,6 +753,7 @@ colvar::dipole_magnitude::dipole_magnitude(std::string const &conf)
 
 colvar::dipole_magnitude::dipole_magnitude(cvm::atom const &a1)
 {
+  set_function_type("dipoleMagnitude");
   atoms = new cvm::atom_group(std::vector<cvm::atom>(1, a1));
   register_atom_group(atoms);
   x.type(colvarvalue::type_scalar);
@@ -760,7 +762,7 @@ colvar::dipole_magnitude::dipole_magnitude(cvm::atom const &a1)
 
 colvar::dipole_magnitude::dipole_magnitude()
 {
-  function_type = "dipole_magnitude";
+  set_function_type("dipoleMagnitude");
   x.type(colvarvalue::type_scalar);
 }
 
@@ -800,7 +802,7 @@ simple_scalar_dist_functions(dipole_magnitude)
 colvar::gyration::gyration(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "gyration";
+  set_function_type("gyration");
   init_as_distance();
 
   provide(f_cvc_inv_gradient);
@@ -869,7 +871,7 @@ simple_scalar_dist_functions(gyration)
 colvar::inertia::inertia(std::string const &conf)
   : gyration(conf)
 {
-  function_type = "inertia";
+  set_function_type("inertia");
   init_as_distance();
 }
 
@@ -905,11 +907,11 @@ simple_scalar_dist_functions(inertia_z)
 colvar::inertia_z::inertia_z(std::string const &conf)
   : inertia(conf)
 {
-  function_type = "inertia_z";
+  set_function_type("inertiaZ");
   init_as_distance();
   if (get_keyval(conf, "axis", axis, cvm::rvector(0.0, 0.0, 1.0))) {
     if (axis.norm2() == 0.0) {
-      cvm::error("Axis vector is zero!", INPUT_ERROR);
+      cvm::error("Axis vector is zero!", COLVARS_INPUT_ERROR);
       return;
     }
     if (axis.norm2() != 1.0) {
@@ -953,7 +955,7 @@ simple_scalar_dist_functions(inertia)
 colvar::rmsd::rmsd(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "rmsd";
+  set_function_type("rmsd");
   init_as_distance();
 
   provide(f_cvc_inv_gradient);
@@ -1217,9 +1219,9 @@ simple_scalar_dist_functions(rmsd)
 colvar::eigenvector::eigenvector(std::string const &conf)
   : cvc(conf)
 {
+  set_function_type("eigenvector");
   provide(f_cvc_inv_gradient);
   provide(f_cvc_Jacobian);
-  function_type = "eigenvector";
   x.type(colvarvalue::type_scalar);
 
   atoms = parse_group(conf, "atoms");
@@ -1263,13 +1265,13 @@ colvar::eigenvector::eigenvector(std::string const &conf)
   }
 
   if (ref_pos.size() == 0) {
-    cvm::error("Error: reference positions were not provided.\n", INPUT_ERROR);
+    cvm::error("Error: reference positions were not provided.\n", COLVARS_INPUT_ERROR);
     return;
   }
 
   if (ref_pos.size() != atoms->size()) {
     cvm::error("Error: reference positions do not "
-               "match the number of requested atoms.\n", INPUT_ERROR);
+               "match the number of requested atoms.\n", COLVARS_INPUT_ERROR);
     return;
   }
 
@@ -1368,7 +1370,7 @@ colvar::eigenvector::eigenvector(std::string const &conf)
         eigenvec[i] = atoms->rot.rotate(eigenvec[i]);
       }
     }
-    cvm::log("\"differenceVector\" is on: subtracting the reference positions from the provided vector: v = v - x0.\n");
+    cvm::log("\"differenceVector\" is on: subtracting the reference positions from the provided vector: v = x_vec - x_ref.\n");
     for (size_t i = 0; i < atoms->size(); i++) {
       eigenvec[i] -= ref_pos[i];
     }
@@ -1386,22 +1388,32 @@ colvar::eigenvector::eigenvector(std::string const &conf)
     }
   }
 
-  // cvm::log("The first three components(v1x, v1y, v1z) of the resulting vector are: "+cvm::to_str (eigenvec[0])+".\n");
-
-  // for inverse gradients
+  // eigenvec_invnorm2 is used when computing inverse gradients
   eigenvec_invnorm2 = 0.0;
   for (size_t ein = 0; ein < atoms->size(); ein++) {
     eigenvec_invnorm2 += eigenvec[ein].norm2();
   }
   eigenvec_invnorm2 = 1.0 / eigenvec_invnorm2;
 
-  if (b_difference_vector) {
-    cvm::log("\"differenceVector\" is on: normalizing the vector.\n");
+  // Vector normalization overrides the default normalization for differenceVector
+  bool normalize = false;
+  get_keyval(conf, "normalizeVector", normalize, normalize);
+
+  if (normalize) {
+    cvm::log("Normalizing the vector so that |v| = 1.\n");
+    for (size_t i = 0; i < atoms->size(); i++) {
+      eigenvec[i] *= cvm::sqrt(eigenvec_invnorm2);
+    }
+    eigenvec_invnorm2 = 1.0;
+  } else if (b_difference_vector) {
+    cvm::log("Normalizing the vector so that the norm of the projection |v ⋅ (x_vec - x_ref)| = 1.\n");
     for (size_t i = 0; i < atoms->size(); i++) {
       eigenvec[i] *= eigenvec_invnorm2;
     }
+    eigenvec_invnorm2 = 1.0/eigenvec_invnorm2;
   } else {
-    cvm::log("The norm of the vector is |v| = "+cvm::to_str(eigenvec_invnorm2)+".\n");
+    cvm::log("The norm of the vector is |v| = "+
+             cvm::to_str(1.0/cvm::sqrt(eigenvec_invnorm2))+".\n");
   }
 }
 
@@ -1500,7 +1512,7 @@ simple_scalar_dist_functions(eigenvector)
 colvar::cartesian::cartesian(std::string const &conf)
   : cvc(conf)
 {
-  function_type = "cartesian";
+  set_function_type("cartesian");
 
   atoms = parse_group(conf, "atoms");
 
@@ -1560,4 +1572,3 @@ void colvar::cartesian::apply_force(colvarvalue const &force)
     }
   }
 }
-

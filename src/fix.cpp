@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -81,8 +81,8 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   stores_ids = 0;
 
   scalar_flag = vector_flag = array_flag = 0;
-  peratom_flag = local_flag = 0;
-  global_freq = local_freq = peratom_freq = -1;
+  peratom_flag = local_flag = pergrid_flag = 0;
+  global_freq = local_freq = peratom_freq = pergrid_freq = -1;
   size_vector_variable = size_array_rows_variable = 0;
 
   comm_forward = comm_reverse = comm_border = 0;

@@ -1,7 +1,10 @@
 .. index:: pair_style meam
+.. index:: pair_style meam/kk
 
 pair_style meam command
 =========================
+
+Accelerator Variants: *meam/kk*
 
 Syntax
 """"""
@@ -235,6 +238,7 @@ The recognized keywords for the parameter file are as follows:
                    lin = linear structure (180 degree angle)
                    zig = zigzag structure with a uniform angle
                    tri = H2O-like structure that has an angle
+                   sc  = simple cubic
    nn2(I,J)    = turn on second-nearest neighbor MEAM formulation for
                  I-J pair (see for example :ref:`(Lee) <Lee>`).
                    0 = second-nearest neighbor formulation off
@@ -307,9 +311,9 @@ formulation of the partial electron density function.  In recent
 literature, an extra term is included in the expression for the
 third-order density in order to make the densities orthogonal (see for
 example :ref:`(Wang) <Wang2>`, equation 3d); this term is included in the
-MEAM implementation in lammps.  However, in earlier published work
+MEAM implementation in LAMMPS.  However, in earlier published work
 this term was not included when deriving parameters, including most of
-those provided in the ``library.meam`` file included with lammps, and to
+those provided in the ``library.meam`` file included with LAMMPS, and to
 account for this difference the parameter *t1* must be augmented by
 3/5\**t3*.  If *augt1* = 1, the default, this augmentation is done
 automatically.  When parameter values are fit using the modified
@@ -317,16 +321,16 @@ density function, as in more recent literature, augt1 should be set to
 0.
 
 The *mixture_ref_t* parameter is available to match results with those
-of previous versions of lammps (before January 2011).  Newer versions
-of lammps, by default, use the single-element values of the *t*
+of previous versions of LAMMPS (before January 2011).  Newer versions
+of LAMMPS, by default, use the single-element values of the *t*
 parameters to compute the background reference density.  This is the
-proper way to compute these parameters.  Earlier versions of lammps
+proper way to compute these parameters.  Earlier versions of LAMMPS
 used an alloy mixture averaged value of *t* to compute the background
 reference density.  Setting *mixture_ref_t* = 1 gives the old behavior.
 WARNING: using *mixture_ref_t* = 1 will give results that are demonstrably
 incorrect for second-neighbor MEAM, and non-standard for
 first-neighbor MEAM; this option is included only for matching with
-previous versions of lammps and should be avoided if possible.
+previous versions of LAMMPS and should be avoided if possible.
 
 The parameters *attrac* and *repuls*, along with the integer selection
 parameter *erose_form*, can be used to modify the Rose energy function
@@ -347,11 +351,17 @@ Most published MEAM parameter sets use the default values *attrac* = *repulse* =
 Setting *repuls* = *attrac* = *delta* corresponds to the form used in several
 recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 .. note::
 
    The default form of the *erose* expression in LAMMPS was corrected
    in March 2009.  The current version is correct, but may show different
-   behavior compared with earlier versions of lammps with the attrac
+   behavior compared with earlier versions of LAMMPS with the attrac
    and/or repuls parameters are non-zero.  To obtain the previous default
    form, use *erose_form* = 1 (this form does not seem to appear in the
    literature).  An alternative form (see e.g. :ref:`(Lee2) <Lee2>`) is
@@ -413,10 +423,8 @@ none
 
 .. _Gullet:
 
-**(Gullet)** Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003).
-This report may be accessed on-line via `this link <sandreport_>`_.
-
-.. _sandreport: http://infoserve.sandia.gov/sand_doc/2003/038782.pdf
+**(Gullet)** Gullet, Wagner, Slepoy, SANDIA Report 2003-8782 (2003). DOI:10.2172/918395
+This report may be accessed on-line via `this link <https://download.lammps.org/pdfs/MEAM_report_2003.pdf>`_.
 
 .. _Lee:
 

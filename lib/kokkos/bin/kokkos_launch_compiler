@@ -83,9 +83,9 @@ shift
 # results in this command being executed:
 #       ${KOKKOS_COMPILER} -c file.cpp -o file.o
 if [[ "${KOKKOS_DEPENDENCE}" -eq "0" || "${CXX_COMPILER}" != "${1}" ]]; then
-    debug-message $@
+    debug-message "$@"
     # the command does not depend on Kokkos so just execute the command w/o re-directing to ${KOKKOS_COMPILER}
-    eval $@
+    exec "$@"
 else
     # the executable is the C++ compiler, so we need to re-direct to ${KOKKOS_COMPILER}
     if [ ! -f "${KOKKOS_COMPILER}" ]; then
@@ -115,7 +115,7 @@ else
     # discard the compiler from the command
     shift
 
-    debug-message ${KOKKOS_COMPILER} $@
+    debug-message ${KOKKOS_COMPILER} "$@"
     # execute ${KOKKOS_COMPILER} (again, usually nvcc_wrapper)
-    ${KOKKOS_COMPILER} $@
+    ${KOKKOS_COMPILER} "$@"
 fi

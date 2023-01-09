@@ -43,6 +43,7 @@ if(DOWNLOAD_QUIP)
   file(WRITE ${CMAKE_BINARY_DIR}/quip.config "${temp}")
 
   message(STATUS "QUIP download via git requested - we will build our own")
+  set(CMAKE_EP_GIT_REMOTE_UPDATE_STRATEGY CHECKOUT)
   # QUIP has no releases (except for a tag marking the end of Python 2 support). We use the current "public" branch
   # The LAMMPS interface wrapper has a compatibility constant that is being checked at runtime.
   include(ExternalProject)
@@ -57,12 +58,12 @@ if(DOWNLOAD_QUIP)
     BUILD_COMMAND env QUIP_ARCH=lammps make libquip
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE YES
-    BUILD_BYPRODUCTS <SOURCE_DIR>/build/lammps/libquip.a
+    BUILD_BYPRODUCTS <SOURCE_DIR>/build/lammps/${CMAKE_STATIC_LIBRARY_PREFIX}quip${CMAKE_STATIC_LIBRARY_SUFFIX}
   )
   ExternalProject_get_property(quip_build SOURCE_DIR)
   add_library(LAMMPS::QUIP UNKNOWN IMPORTED)
   set_target_properties(LAMMPS::QUIP PROPERTIES
-    IMPORTED_LOCATION "${SOURCE_DIR}/build/lammps/libquip.a"
+    IMPORTED_LOCATION "${SOURCE_DIR}/build/lammps/${CMAKE_STATIC_LIBRARY_PREFIX}quip${CMAKE_STATIC_LIBRARY_SUFFIX}"
     INTERFACE_LINK_LIBRARIES "${LAPACK_LIBRARIES}")
   target_link_libraries(lammps PRIVATE LAMMPS::QUIP)
   add_dependencies(LAMMPS::QUIP quip_build)

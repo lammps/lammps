@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -81,8 +81,8 @@ class MSM : public KSpace {
   int myloc[3];               // which proc I am in each dim
   int ***procneigh_levels;    // my 6 neighboring procs, 0/1 = left/right
 
-  class GridComm *gcall;    // GridComm class for finest level grid
-  class GridComm **gc;      // GridComm classes for each hierarchical level
+  class Grid3d *gcall;        // GridComm class for finest level grid
+  class Grid3d **gc;          // GridComm classes for each hierarchical level
 
   double *gcall_buf1, *gcall_buf2;
   double **gc_buf1, **gc_buf2;
@@ -100,7 +100,7 @@ class MSM : public KSpace {
   void set_grid_global();
   void set_proc_grid(int);
   void set_grid_local();
-  void setup_grid() override;
+  void reset_grid() override;
   double estimate_1d_error(double, double);
   double estimate_3d_error();
   double estimate_total_error();

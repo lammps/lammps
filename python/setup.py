@@ -3,7 +3,7 @@
 from setuptools import setup
 from setuptools.dist import Distribution
 from sys import version_info
-import os,time,shutil
+import os,time
 LAMMPS_PYTHON_DIR = os.path.dirname(os.path.realpath(__file__))
 LAMMPS_DIR = os.path.dirname(LAMMPS_PYTHON_DIR)
 LAMMPS_SOURCE_DIR = os.path.join(LAMMPS_DIR, 'src')
@@ -24,7 +24,7 @@ def get_lammps_version():
 
 class BinaryDistribution(Distribution):
     """Wrapper to enforce creating a binary package"""
-    def has_ext_modules(foo):
+    def has_ext_modules(self):
         return True
 
 if version_info.major >= 3:
@@ -46,8 +46,8 @@ else:
 setup(
     name = "lammps",
     version = get_lammps_version(),
-    author = "Steve Plimpton",
-    author_email = "sjplimp@sandia.gov",
+    author = "The LAMMPS Developers",
+    author_email = "developers@lammps.org",
     url = "https://www.lammps.org",
     project_urls = {
         "Bug Tracker": "https://github.com/lammps/lammps/issues",

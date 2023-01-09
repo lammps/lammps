@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,7 +43,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   xstr(nullptr), ystr(nullptr), zstr(nullptr), rstr(nullptr), pstr(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix indent command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "fix indent", error);
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -83,7 +83,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
     if (cdim == 0 && !pstr) pvalue *= xscale;
     else if (cdim == 1 && !pstr) pvalue *= yscale;
     else if (cdim == 2 && !pstr) pvalue *= zscale;
-  } else error->all(FLERR,"Illegal fix indent command");
+  } else error->all(FLERR,"Unknown fix indent keyword: {}", istyle);
 
   varflag = 0;
   if (xstr || ystr || zstr || rstr || pstr) varflag = 1;
@@ -121,41 +121,41 @@ void FixIndent::init()
   if (xstr) {
     xvar = input->variable->find(xstr);
     if (xvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", xstr);
     if (!input->variable->equalstyle(xvar))
-      error->all(FLERR,"Variable for fix indent is invalid style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", xstr);
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
     if (yvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", ystr);
     if (!input->variable->equalstyle(yvar))
-      error->all(FLERR,"Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", ystr);
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
     if (zvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", zstr);
     if (!input->variable->equalstyle(zvar))
-      error->all(FLERR,"Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", zstr);
   }
   if (rstr) {
     rvar = input->variable->find(rstr);
     if (rvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", rstr);
     if (!input->variable->equalstyle(rvar))
-      error->all(FLERR,"Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", rstr);
   }
   if (pstr) {
     pvar = input->variable->find(pstr);
     if (pvar < 0)
-      error->all(FLERR,"Variable name for fix indent does not exist");
+      error->all(FLERR,"Variable {} for fix indent does not exist", pstr);
     if (!input->variable->equalstyle(pvar))
-      error->all(FLERR,"Variable for fix indent is not equal style");
+      error->all(FLERR,"Variable {} for fix indent is invalid style", pstr);
   }
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 }
@@ -167,9 +167,9 @@ void FixIndent::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -405,7 +405,7 @@ double FixIndent::compute_vector(int n)
 
 void FixIndent::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR,"Illegal fix indent command");
+  if (narg < 0) utils::missing_cmd_args(FLERR, "fix indent", error);
 
   istyle = NONE;
   xstr = ystr = zstr = rstr = pstr = nullptr;
@@ -416,7 +416,7 @@ void FixIndent::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"sphere") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR, "fix indent sphere", error);
 
       if (utils::strmatch(arg[iarg+1],"^v_")) {
         xstr = utils::strdup(arg[iarg+1]+2);
@@ -435,7 +435,7 @@ void FixIndent::options(int narg, char **arg)
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"cylinder") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR, "fix indent cylinder", error);
 
       if (strcmp(arg[iarg+1],"x") == 0) {
         cdim = 0;
@@ -461,7 +461,7 @@ void FixIndent::options(int narg, char **arg)
         if (utils::strmatch(arg[iarg+3],"^v_")) {
           ystr = utils::strdup(arg[iarg+3]+2);
         } else yvalue = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      } else error->all(FLERR,"Illegal fix indent command");
+      } else error->all(FLERR,"Unknown fix indent cylinder argument: {}", arg[iarg+1]);
 
       if (utils::strmatch(arg[iarg+4],"^v_")) {
         rstr = utils::strdup(arg[iarg+4]+2);
@@ -471,11 +471,11 @@ void FixIndent::options(int narg, char **arg)
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"plane") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "fix indent plane", error);
       if (strcmp(arg[iarg+1],"x") == 0) cdim = 0;
       else if (strcmp(arg[iarg+1],"y") == 0) cdim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) cdim = 2;
-      else error->all(FLERR,"Illegal fix indent command");
+      else error->all(FLERR,"Unknown fix indent plane argument: {}", arg[iarg+1]);
 
       if (utils::strmatch(arg[iarg+2],"^v_")) {
         pstr = utils::strdup(arg[iarg+2]+2);
@@ -483,23 +483,23 @@ void FixIndent::options(int narg, char **arg)
 
       if (strcmp(arg[iarg+3],"lo") == 0) planeside = -1;
       else if (strcmp(arg[iarg+3],"hi") == 0) planeside = 1;
-      else error->all(FLERR,"Illegal fix indent command");
+      else error->all(FLERR,"Unknown fix indent plane argument: {}", arg[iarg+3]);
       istyle = PLANE;
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix indent units", error);
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix indent command");
+      else error->all(FLERR,"Unknown fix indent units argument: {}", arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"side") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix indent command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix indent side", error);
       if (strcmp(arg[iarg+1],"in") == 0) side = INSIDE;
       else if (strcmp(arg[iarg+1],"out") == 0) side = OUTSIDE;
-      else error->all(FLERR,"Illegal fix indent command");
+      else error->all(FLERR,"Unknown fix indent side argument: {}", arg[iarg+1]);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix indent command");
+    } else error->all(FLERR,"Unknown fix indent argument: {}", arg[iarg]);
   }
 }

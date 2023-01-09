@@ -82,6 +82,7 @@ if(GPU_API STREQUAL "CUDA")
 
   # apply the following to build "fat" CUDA binaries only for known CUDA toolkits since version 8.0
   # only the Kepler achitecture and beyond is supported
+  # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
   if(CUDA_VERSION VERSION_LESS 8.0)
     message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
   elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
@@ -120,14 +121,14 @@ if(GPU_API STREQUAL "CUDA")
     if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
       string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
     endif()
-    # Hopper (GPU Arch 9.0) is supported by CUDA 12.0? and later
+    # Lovelace (GPU Arch 8.9) is supported by CUDA 11.8 and later
+    if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
+      string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+    endif()
+    # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
     if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
       string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
     endif()
-    #    # Lovelace (GPU Arch 9.x) is supported by CUDA 12.0? and later
-    #if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-    #  string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_9x,code=[sm_9x,compute_9x]")
-    #endif()
   endif()
 
   cuda_compile_fatbin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS ${CUDA_REQUEST_PIC}
@@ -233,7 +234,8 @@ elseif(GPU_API STREQUAL "OPENCL")
 elseif(GPU_API STREQUAL "HIP")
   if(NOT DEFINED HIP_PATH)
       if(NOT DEFINED ENV{HIP_PATH})
-          set(HIP_PATH "/opt/rocm/hip" CACHE PATH "Path to HIP installation")
+          message(FATAL_ERROR "GPU_API=HIP requires HIP_PATH to be defined.\n"
+          "Either pass the HIP_PATH as a CMake option via -DHIP_PATH=... or set the HIP_PATH environment variable.")
       else()
           set(HIP_PATH $ENV{HIP_PATH} CACHE PATH "Path to HIP installation")
       endif()
@@ -261,6 +263,8 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "amd")
     set(HIP_ARCH "gfx906" CACHE STRING "HIP target architecture")
+  elseif(HIP_PLATFORM STREQUAL "spirv")
+    set(HIP_ARCH "spirv" CACHE STRING "HIP target architecture")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
     find_package(CUDA REQUIRED)
     set(HIP_ARCH "sm_50" CACHE STRING "HIP primary CUDA architecture (e.g. sm_60)")
@@ -273,6 +277,7 @@ elseif(GPU_API STREQUAL "HIP")
     else()
       # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
       # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
+      # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
       set(HIP_CUDA_GENCODE "-arch=${HIP_ARCH}")
       # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
       if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
@@ -302,9 +307,17 @@ elseif(GPU_API STREQUAL "HIP")
       if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
       endif()
-      # Hopper (GPU Arch 9.0) is supported by CUDA 12.0? and later
+      # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
+      endif()
+      # Lovelace (GPU Arch 8.9) is supported by CUDA 11.8 and later
+      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+      endif()
+      # Hopper (GPU Arch 9.0) is supported by CUDA 12.0 and later
       if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
+        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
       endif()
     endif()
   endif()
@@ -340,7 +353,14 @@ elseif(GPU_API STREQUAL "HIP")
           VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}
           DEPENDS ${CU_FILE}
           COMMENT "Generating ${CU_NAME}.cubin")
-    endif()
+    elseif(HIP_PLATFORM STREQUAL "spirv")
+      configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
+
+      add_custom_command(OUTPUT ${CUBIN_FILE}
+        VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} -c -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
+        DEPENDS ${CU_CPP_FILE}
+        COMMENT "Gerating ${CU_NAME}.cubin")
+      endif()
 
     add_custom_command(OUTPUT ${CUBIN_H_FILE}
       COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILE=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -32,6 +32,7 @@ class PairSW : public Pair {
   void coeff(int, char **) override;
   double init_one(int, int) override;
   void init_style() override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
   static constexpr int NPARAMS_PER_LINE = 14;
 
@@ -48,14 +49,16 @@ class PairSW : public Pair {
   };
 
  protected:
-  double cutmax;      // max cutoff for all elements
-  Param *params;      // parameter set for an I-J-K interaction
-  int maxshort;       // size of short neighbor list array
-  int *neighshort;    // short neighbor list array
+  double cutmax;              // max cutoff for all elements
+  Param *params;              // parameter set for an I-J-K interaction
+  int maxshort;               // size of short neighbor list array
+  int *neighshort;            // short neighbor list array
+  int skip_threebody_flag;    // whether to run threebody loop
+  int params_mapped;          // whether parameters have been read and mapped to elements
 
   void settings(int, char **) override;
   virtual void allocate();
-  void read_file(char *);
+  virtual void read_file(char *);
   virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
   virtual void threebody(Param *, Param *, Param *, double, double, double *, double *, double *,

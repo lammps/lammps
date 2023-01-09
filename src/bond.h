@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,6 +42,9 @@ class Bond : protected Pointers {
   int reinitflag;    // 0 if not compatible with fix adapt
                      // extract() method may still need to be added
 
+  int single_extra;    // number of extra single values calculated
+  double *svector;     // vector of extra single quantities
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;
@@ -53,7 +56,7 @@ class Bond : protected Pointers {
   virtual void init();
   virtual void init_style() {}
   virtual void compute(int, int) = 0;
-  virtual void settings(int, char **) {}
+  virtual void settings(int, char **);
   virtual void coeff(int, char **) = 0;
   virtual double equilibrium_distance(int) = 0;
   virtual void write_restart(FILE *) = 0;
@@ -99,6 +102,7 @@ class Bond : protected Pointers {
   }
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, double, double, double, double, double);
+  void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double);
 };
 
 }    // namespace LAMMPS_NS

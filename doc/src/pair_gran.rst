@@ -144,7 +144,7 @@ two particles, and is thus a non-linear function of overlap distance.
 Thus Kn has units of force per area and is thus specified in units of
 (pressure).  The effects of absolute particle size (monodispersity)
 and relative size (polydispersity) are captured in the radii-dependent
-pre-factors.  When these pre-factors are carried through to the other
+prefactors.  When these prefactors are carried through to the other
 terms in the force equation it means that the specified :math:`\gamma_n` is in
 units of (1/(time\*distance)), :math:`K_t` is in units of (pressure), and
 :math:`\gamma_t` is in units of (1/(time\*distance)).

@@ -63,15 +63,15 @@ namespace UIestimator {
             temp.resize(dimension);
         }
 
-        int inline get_value(const std::vector<double> & x, const std::vector<double> & y) {
+        int get_value(const std::vector<double> & x, const std::vector<double> & y) {
             return matrix[convert_x(x)][convert_y(x, y)];
         }
 
-        void inline set_value(const std::vector<double> & x, const std::vector<double> & y, const int value) {
+        void set_value(const std::vector<double> & x, const std::vector<double> & y, const int value) {
             matrix[convert_x(x)][convert_y(x,y)] = value;
         }
 
-        void inline increase_value(const std::vector<double> & x, const std::vector<double> & y, const int value) {
+        void increase_value(const std::vector<double> & x, const std::vector<double> & y, const int value) {
             matrix[convert_x(x)][convert_y(x,y)] += value;
         }
 
@@ -164,17 +164,18 @@ namespace UIestimator {
             temp.resize(dimension);
         }
 
-        const T inline get_value(const std::vector<double> & x) {
+        T & get_value(const std::vector<double> & x) {
             return vector[convert_x(x)];
         }
 
-        void inline set_value(const std::vector<double> & x, const T value) {
+        void set_value(const std::vector<double> & x, const T value) {
             vector[convert_x(x)] = value;
         }
 
-        void inline increase_value(const std::vector<double> & x, const T value) {
+        void increase_value(const std::vector<double> & x, const T value) {
             vector[convert_x(x)] += value;
         }
+
     private:
         std::vector<double> lowerboundary;
         std::vector<double> upperboundary;
@@ -301,7 +302,8 @@ namespace UIestimator {
         ~UIestimator() {}
 
         // called from MD engine every step
-        bool update(cvm::step_number step, std::vector<double> x, std::vector<double> y) {
+        bool update(cvm::step_number /* step */,
+                    std::vector<double> x, std::vector<double> y) {
 
             int i;
 

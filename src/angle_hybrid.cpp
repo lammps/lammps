@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,7 +20,6 @@
 #include "memory.h"
 #include "neighbor.h"
 
-#include <cctype>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -159,11 +158,11 @@ void AngleHybrid::compute(int eflag, int vflag)
 void AngleHybrid::allocate()
 {
   allocated = 1;
-  int n = atom->nangletypes;
+  int np1 = atom->nangletypes + 1;
 
-  memory->create(map, n + 1, "angle:map");
-  memory->create(setflag, n + 1, "angle:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(map, np1, "angle:map");
+  memory->create(setflag, np1, "angle:setflag");
+  for (int i = 1; i < np1; i++) setflag[i] = 0;
 
   nanglelist = new int[nstyles];
   maxangle = new int[nstyles];
@@ -178,9 +177,9 @@ void AngleHybrid::allocate()
 
 void AngleHybrid::settings(int narg, char **arg)
 {
-  int i, m, istyle;
+  int i, m;
 
-  if (narg < 1) error->all(FLERR, "Illegal angle_style command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "angle_style hybrid", error);
 
   // delete old lists, since cannot just change settings
 
@@ -201,52 +200,42 @@ void AngleHybrid::settings(int narg, char **arg)
   }
   allocated = 0;
 
-  // count sub-styles by skipping numeric args
-  // one exception is 1st arg of style "table", which is non-numeric word
-  // need a better way to skip these exceptions
-
-  nstyles = 0;
-  i = 0;
-  while (i < narg) {
-    if (strcmp(arg[i], "table") == 0) i++;
-    i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
-    nstyles++;
-  }
-
   // allocate list of sub-styles
 
-  styles = new Angle *[nstyles];
-  keywords = new char *[nstyles];
+  styles = new Angle *[narg];
+  keywords = new char *[narg];
 
   // allocate each sub-style and call its settings() with subset of args
   // allocate uses suffix, but don't store suffix version in keywords,
   //   else syntax in coeff() will not match
-  // define subset of args for a sub-style by skipping numeric args
-  // one exception is 1st arg of style "table", which is non-numeric
-  // need a better way to skip these exceptions
 
   int dummy;
   nstyles = 0;
   i = 0;
-
   while (i < narg) {
+    if (strcmp(arg[i], "hybrid") == 0)
+      error->all(FLERR, "Angle style hybrid cannot have hybrid as an argument");
+
+    if (strcmp(arg[i], "none") == 0)
+      error->all(FLERR, "Angle style hybrid cannot have none as an argument");
+
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[i], keywords[m]) == 0)
         error->all(FLERR, "Angle style hybrid cannot use same angle style twice");
-    if (strcmp(arg[i], "hybrid") == 0)
-      error->all(FLERR, "Angle style hybrid cannot have hybrid as an argument");
-    if (strcmp(arg[i], "none") == 0)
-      error->all(FLERR, "Angle style hybrid cannot have none as an argument");
 
     styles[nstyles] = force->new_angle(arg[i], 1, dummy);
     keywords[nstyles] = force->store_style(arg[i], 0);
 
-    istyle = i;
-    if (strcmp(arg[i], "table") == 0) i++;
-    i++;
-    while (i < narg && !isalpha(arg[i][0])) i++;
-    styles[nstyles]->settings(i - istyle - 1, &arg[istyle + 1]);
+    // determine list of arguments for angle style settings
+    // by looking for the next known angle style name.
+
+    int jarg = i + 1;
+    while ((jarg < narg) && !force->angle_map->count(arg[jarg]) &&
+           !lmp->match_style("angle", arg[jarg]))
+      jarg++;
+
+    styles[nstyles]->settings(jarg - i - 1, &arg[i + 1]);
+    i = jarg;
     nstyles++;
   }
 }
@@ -316,6 +305,16 @@ void AngleHybrid::coeff(int narg, char **arg)
 
 void AngleHybrid::init_style()
 {
+  // error if sub-style is not used
+
+  int used;
+  for (int istyle = 0; istyle < nstyles; ++istyle) {
+    used = 0;
+    for (int itype = 1; itype <= atom->nangletypes; ++itype)
+      if (map[itype] == istyle) used = 1;
+    if (used == 0) error->all(FLERR, "Angle hybrid sub-style {} is not used", keywords[istyle]);
+  }
+
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) styles[m]->init_style();
 }

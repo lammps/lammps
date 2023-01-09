@@ -75,7 +75,7 @@ doc page.  This description of LHD builds on the GHD description.
 
 The definition of bonds and :math:`E_{ij}` are the same for GHD and LHD.
 The formulas for :math:`V^{max}_{ij}` and :math:`F^{max}_{ij}` are also
-the same except for a pre-factor :math:`C_{ij}`, explained below.
+the same except for a prefactor :math:`C_{ij}`, explained below.
 
 The bias energy :math:`V_{ij}` applied to a bond *ij* with maximum strain is
 
@@ -256,7 +256,7 @@ Note that this fix does not know the *cutevent* parameter, but uses
 half the *cutbond* parameter as an estimate to warn if the ghost
 cutoff is not long enough.
 
-As described above the *alpha* argument is a pre-factor in the
+As described above the *alpha* argument is a prefactor in the
 boostostat update equation for each bond's :math:`C_{ij}` prefactor.
 *Alpha* is specified in time units, similar to other thermostat or barostat
 damping parameters.  It is roughly the physical time it will take the

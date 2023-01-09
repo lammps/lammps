@@ -42,11 +42,11 @@
 //@HEADER
 */
 
-#include <iostream>
+#include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
 
-namespace Test {
+namespace {
 
 template <class Space, Kokkos::Experimental::UniqueTokenScope Scope>
 class TestUniqueToken {
@@ -152,14 +152,12 @@ class TestUniqueToken {
     }
 #endif
 
-    std::cout << "TestUniqueToken max reuse = " << max << std::endl;
-
     typename view_type::HostMirror host_errors =
         Kokkos::create_mirror_view(self.errors);
 
     Kokkos::deep_copy(host_errors, self.errors);
 
-    ASSERT_EQ(host_errors(0), 0);
+    ASSERT_EQ(host_errors(0), 0) << "max reuse was " << max;
   }
 };
 
@@ -268,22 +266,24 @@ class TestAcquireTeamUniqueToken {
       }
     }
 
-    std::cout << "TestAcquireTeamUniqueToken max reuse = " << max << std::endl;
-
     typename view_type::HostMirror host_errors =
         Kokkos::create_mirror_view(self.errors);
 
     Kokkos::deep_copy(host_errors, self.errors);
 
-    ASSERT_EQ(host_errors(0), 0);
+    ASSERT_EQ(host_errors(0), 0) << "max reuse was " << max;
   }
 };
 
-TEST(TEST_CATEGORY, acquire_team_unique_token) {
-  // FIXME_OPENMPTARGET - Not yet implemented.
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
-  TestAcquireTeamUniqueToken<TEST_EXECSPACE>::run();
+TEST(TEST_CATEGORY, unique_token_team_acquire) {
+#ifdef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
+  if constexpr (std::is_same<TEST_EXECSPACE,
+                             Kokkos::Experimental::OpenMPTarget>::value) {
+    GTEST_SKIP() << "skipping because OpenMPTarget does not implement yet a "
+                    "specialization of AcquireTeamUniqueToken";
+  } else
 #endif
+    TestAcquireTeamUniqueToken<TEST_EXECSPACE>::run();
 }
 
-}  // namespace Test
+}  // namespace

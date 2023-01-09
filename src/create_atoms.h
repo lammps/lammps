@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -41,6 +41,7 @@ class CreateAtoms : public Command {
   double subsetfrac;
   int *basistype;
   double xone[3], quatone[4];
+  double radthresh, radscale, mesh_density;
 
   int varflag, vvar, xvar, yvar, zvar;
   char *vstr, *xstr, *ystr, *zstr;
@@ -53,6 +54,7 @@ class CreateAtoms : public Command {
 
   int *flag;    // flag subset of particles to insert on lattice
   int *next;
+  int mesh_style;
 
   class Region *region;
   class Molecule *onemol;
@@ -64,6 +66,9 @@ class CreateAtoms : public Command {
 
   void add_single();
   void add_random();
+  void add_mesh(const char *);
+  int add_bisection(const double[3][3], tagint);
+  int add_quasirandom(const double[3][3], tagint);
   void add_lattice();
   void loop_lattice(int);
   void add_molecule(double *);

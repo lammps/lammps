@@ -60,7 +60,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	TEST_TARGETS += test-cuda
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
+ifeq ($(KOKKOS_INTERNAL_USE_THREADS), 1)
 	OBJ_THREADS = UnitTestMain.o gtest-all.o
 	OBJ_THREADS += TestThreads_Bitset.o
 	OBJ_THREADS += TestThreads_DualView.o

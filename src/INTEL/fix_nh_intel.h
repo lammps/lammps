@@ -1,8 +1,7 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,7 +25,6 @@ namespace LAMMPS_NS {
 class FixNHIntel : public FixNH {
  public:
   FixNHIntel(class LAMMPS *, int, char **);
-  ~FixNHIntel() override;
   void setup(int vflag) override;
   void reset_dt() override;
   double memory_usage() override;
@@ -42,7 +40,6 @@ class FixNHIntel : public FixNH {
   void nh_v_temp() override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
-

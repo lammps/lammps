@@ -79,21 +79,19 @@ struct EBOBaseImpl;
 
 template <class T, template <class...> class CtorNotOnDevice>
 struct EBOBaseImpl<T, true, CtorNotOnDevice> {
-  template <
-      class... Args, class _ignored = void,
-      typename std::enable_if<std::is_void<_ignored>::value &&
-                                  std::is_constructible<T, Args...>::value &&
-                                  !CtorNotOnDevice<Args...>::value,
-                              int>::type = 0>
+  template <class... Args, class _ignored = void,
+            std::enable_if_t<std::is_void<_ignored>::value &&
+                                 std::is_constructible<T, Args...>::value &&
+                                 !CtorNotOnDevice<Args...>::value,
+                             int> = 0>
   KOKKOS_FORCEINLINE_FUNCTION constexpr explicit EBOBaseImpl(
       Args&&...) noexcept {}
 
-  template <
-      class... Args, class _ignored = void,
-      typename std::enable_if<std::is_void<_ignored>::value &&
-                                  std::is_constructible<T, Args...>::value &&
-                                  CtorNotOnDevice<Args...>::value,
-                              long>::type = 0>
+  template <class... Args, class _ignored = void,
+            std::enable_if_t<std::is_void<_ignored>::value &&
+                                 std::is_constructible<T, Args...>::value &&
+                                 CtorNotOnDevice<Args...>::value,
+                             long> = 0>
   inline constexpr explicit EBOBaseImpl(Args&&...) noexcept {}
 
   KOKKOS_DEFAULTED_FUNCTION
@@ -139,22 +137,20 @@ template <class T, template <class...> class CTorsNotOnDevice>
 struct EBOBaseImpl<T, false, CTorsNotOnDevice> {
   T m_ebo_object;
 
-  template <
-      class... Args, class _ignored = void,
-      typename std::enable_if<std::is_void<_ignored>::value &&
-                                  !CTorsNotOnDevice<Args...>::value &&
-                                  std::is_constructible<T, Args...>::value,
-                              int>::type = 0>
+  template <class... Args, class _ignored = void,
+            std::enable_if_t<std::is_void<_ignored>::value &&
+                                 !CTorsNotOnDevice<Args...>::value &&
+                                 std::is_constructible<T, Args...>::value,
+                             int> = 0>
   KOKKOS_FORCEINLINE_FUNCTION constexpr explicit EBOBaseImpl(
       Args&&... args) noexcept(noexcept(T(std::forward<Args>(args)...)))
       : m_ebo_object(std::forward<Args>(args)...) {}
 
-  template <
-      class... Args, class _ignored = void,
-      typename std::enable_if<std::is_void<_ignored>::value &&
-                                  CTorsNotOnDevice<Args...>::value &&
-                                  std::is_constructible<T, Args...>::value,
-                              long>::type = 0>
+  template <class... Args, class _ignored = void,
+            std::enable_if_t<std::is_void<_ignored>::value &&
+                                 CTorsNotOnDevice<Args...>::value &&
+                                 std::is_constructible<T, Args...>::value,
+                             long> = 0>
   inline constexpr explicit EBOBaseImpl(Args&&... args) noexcept(
       noexcept(T(std::forward<Args>(args)...)))
       : m_ebo_object(std::forward<Args>(args)...) {}

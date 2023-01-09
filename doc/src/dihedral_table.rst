@@ -80,10 +80,10 @@ For dihedral style *table/cut* the following coefficients must be
 defined for each dihedral type via the :doc:`dihedral_coeff
 <dihedral_coeff>` command as in the example above.
 
-* style (aat)
-* cutoff prefactor
-* cutoff angle1
-* cutoff angle2
+* style (= aat)
+* cutoff prefactor (unitless)
+* cutoff angle1 (degrees)
+* cutoff angle2 (degrees)
 * filename
 * keyword
 
@@ -95,9 +95,9 @@ cutoff function:
    f(\theta) & = K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\
    f(\theta) & = K \left(1-\frac{(\theta - \theta_1)^2}{(\theta_2 - \theta_1)^2}\right) \qquad \theta_1 < \theta < \theta_2
 
-The cutoff specifies an prefactor to the cutoff function.  While this
-value would ordinarily equal 1 there may be situations where the value
-should change.
+The cutoff includes a prefactor *K* to the cutoff function :math:`f(\theta)`.
+While this value would ordinarily be 1, there may be situations where the value
+could be different.
 
 The cutoff :math:`\theta_1` specifies the angle (in degrees) below which
 the dihedral interaction is unmodified, i.e. the cutoff function is 1.
@@ -113,6 +113,10 @@ format of this file is the same for both dihedral styles and described
 below.
 
 ----------
+
+Suitable tables for use with this dihedral style can be created using
+the Python code in the ``tools/tabulate`` folder of the LAMMPS source
+code distribution.
 
 The format of a tabulated file is as follows (without the
 parenthesized comments).  It can begin with one or more comment

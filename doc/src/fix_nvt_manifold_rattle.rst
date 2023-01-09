@@ -82,4 +82,4 @@ Related commands
 .. _Paquay3:
 
 **(Paquay)** Paquay and Kusters, Biophys. J., 110, 6, (2016).
-preprint available at `arXiv:1411.3019 <http://arxiv.org/abs/1411.3019/>`_.
+preprint available at `arXiv:1411.3019 <https://arxiv.org/abs/1411.3019/>`_.

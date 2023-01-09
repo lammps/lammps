@@ -47,6 +47,8 @@
 
 #if defined(KOKKOS_ENABLE_SYCL)
 #include <Kokkos_SYCL.hpp>
+#include <SYCL/Kokkos_SYCL_Half_Impl_Type.hpp>
+#include <SYCL/Kokkos_SYCL_Half_Conversion.hpp>
 #include <SYCL/Kokkos_SYCL_DeepCopy.hpp>
 #include <SYCL/Kokkos_SYCL_MDRangePolicy.hpp>
 #include <SYCL/Kokkos_SYCL_Parallel_Range.hpp>

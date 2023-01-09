@@ -6,9 +6,9 @@ include settings.mod # styles, groups, computes and fixes
 kspace_modify slab 3.0
 
 unfix nvt # remove NVT thermostat included from "settings.mod"
-fix conpthermo bot electrode/thermo -1.0 1.979 couple top 1.0 etypes 5 temp 500 100 7 # temp tau rng
+fix conpthermo bot electrode/thermo -1.0 1.979 couple top 1.0 etypes on temp 500 100 7 symm on # temp tau rng
 # to compare to regular constant potential, switch previous line to this:
-#fix conp bot electrode/conp -1.0 1.979 couple top 1.0 etypes 5 symm on
+#fix conp bot electrode/conp -1.0 1.979 couple top 1.0 etypes on symm on
 fix nve electrolyte nve
 
 # note ionic liquid does not reach 500K immediately

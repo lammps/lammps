@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -523,7 +523,7 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
   for (ifix = 0; ifix < modify->nfix; ifix++)
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
   if (ifix == modify->nfix) error->all(FLERR, "fix tgnh/drude requires fix drude");
-  fix_drude = dynamic_cast<FixDrude *>( modify->fix[ifix]);
+  fix_drude = dynamic_cast<FixDrude *>(modify->fix[ifix]);
 
   // make sure ghost atoms have velocity
   if (!comm->ghost_velocity)
@@ -595,7 +595,7 @@ void FixTGNHDrude::init()
   if (pstat_flag)
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = (dynamic_cast<FixDeform *>( modify->fix[i]))->dimflag;
+        int *dimflag = (dynamic_cast<FixDeform *>(modify->fix[i]))->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
@@ -664,8 +664,8 @@ void FixTGNHDrude::init()
   else kspace_flag = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
     dto = 0.5*step_respa[0];
   }
 

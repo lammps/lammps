@@ -31,8 +31,6 @@
 
 #include <cmath>
 
-#define MIN_SINE 1e-10
-
 namespace ReaxFF {
   double Calculate_Omega(rvec dvec_ij, double r_ij, rvec dvec_jk, double r_jk,
                          rvec dvec_kl, double r_kl, rvec dvec_li, double r_li,
@@ -51,6 +49,11 @@ namespace ReaxFF {
     cos_ijk = cos(p_ijk->theta);
     sin_jkl = sin(p_jkl->theta);
     cos_jkl = cos(p_jkl->theta);
+
+    if (sin_ijk >= 0 && sin_ijk <= MIN_SINE) sin_ijk = MIN_SINE;
+    else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE) sin_ijk = -MIN_SINE;
+    if (sin_jkl >= 0 && sin_jkl <= MIN_SINE) sin_jkl = MIN_SINE;
+    else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE) sin_jkl = -MIN_SINE;
 
     /* omega */
     unnorm_cos_omega = -rvec_Dot(dvec_ij, dvec_jk) * rvec_Dot(dvec_jk, dvec_kl) +
@@ -71,21 +74,15 @@ namespace ReaxFF {
     hnhd = r_ij * r_kl * cos_ijk * sin_jkl;
     hnhe = r_ij * r_kl * sin_ijk * cos_jkl;
 
-    poem = 2.0 * r_ij * r_kl * sin_ijk * sin_jkl;
-    if (poem < 1e-20) poem = 1e-20;
-
     tel  = SQR(r_ij) + SQR(r_jk) + SQR(r_kl) - SQR(r_li) -
       2.0 * (r_ij * r_jk * cos_ijk - r_ij * r_kl * cos_ijk * cos_jkl +
               r_jk * r_kl * cos_jkl);
 
+    poem = 2.0 * r_ij * r_kl * sin_ijk * sin_jkl;
+
     arg  = tel / poem;
     if (arg >  1.0) arg =  1.0;
     if (arg < -1.0) arg = -1.0;
-
-    if (sin_ijk >= 0 && sin_ijk <= MIN_SINE) sin_ijk = MIN_SINE;
-    else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE) sin_ijk = -MIN_SINE;
-    if (sin_jkl >= 0 && sin_jkl <= MIN_SINE) sin_jkl = MIN_SINE;
-    else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE) sin_jkl = -MIN_SINE;
 
     // dcos_omega_di
     rvec_ScaledSum(dcos_omega_di, (htra-arg*hnra)/r_ij, dvec_ij, -1., dvec_li);
@@ -122,7 +119,6 @@ namespace ReaxFF {
     int type_i, type_j, type_k, type_l;
     int start_j, end_j;
     int start_pj, end_pj, start_pk, end_pk;
-    int num_frb_intrs = 0;
 
     double Delta_j, Delta_k;
     double r_ij, r_jk, r_kl, r_li;
@@ -245,7 +241,6 @@ namespace ReaxFF {
                   if (i != l && fbh->cnt &&
                        bo_kl->BO > control->thb_cut/*0*/ &&
                        bo_ij->BO * bo_jk->BO * bo_kl->BO > control->thb_cut/*0*/) {
-                    ++num_frb_intrs;
                     r_kl = pbond_kl->d;
                     BOA_kl = bo_kl->BO - control->thb_cut;
 

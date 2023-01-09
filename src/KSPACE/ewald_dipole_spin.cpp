@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -76,7 +76,7 @@ void EwaldDipoleSpin::init()
 
   if (!atom->sp) error->all(FLERR,"Kspace style requires atom attribute sp");
 
-  if ((spinflag && strcmp(update->unit_style,"metal")) != 0)
+  if ((spinflag && strcmp(update->unit_style,"metal") != 0) != 0)
     error->all(FLERR,"'metal' units have to be used with spins");
 
   if (slabflag == 0 && domain->nonperiodic > 0)

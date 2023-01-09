@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -46,13 +46,14 @@ using namespace LAMMPS_NS;
 using namespace ReaxFF;
 
 static const char cite_pair_reax_c[] =
-  "pair reaxff command:\n\n"
+  "pair reaxff command: doi:10.1016/j.parco.2011.08.005\n\n"
   "@Article{Aktulga12,\n"
-  " author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},\n"
-  " title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},\n"
+  " author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},\n"
+  " title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},\n"
   " journal = {Parallel Computing},\n"
   " year =    2012,\n"
   " volume =  38,\n"
+  " number =  {4--5},\n"
   " pages =   {245--259}\n"
   "}\n\n";
 
@@ -373,7 +374,7 @@ void PairReaxFF::init_style()
                    "increased neighbor list skin.");
 
   if (fix_reaxff == nullptr)
-    fix_reaxff = dynamic_cast<FixReaxFF *>( modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
+    fix_reaxff = dynamic_cast<FixReaxFF *>(modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -467,7 +468,7 @@ void PairReaxFF::compute(int eflag, int vflag)
 
   if (api->system->acks2_flag) {
     auto ifix = modify->get_fix_by_style("^acks2/reax").front();
-    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>( ifix))->get_s();
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>(ifix))->get_s();
   }
 
   // setup data structures
@@ -586,8 +587,8 @@ void PairReaxFF::set_far_nbr(far_neighbor_data *fdest,
 int PairReaxFF::estimate_reax_lists()
 {
   int itr_i, itr_j, i, j;
-  int num_nbrs, num_marked;
-  int *ilist, *jlist, *numneigh, **firstneigh, *marked;
+  int num_nbrs;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   double d_sqr;
   rvec dvec;
   double **x;
@@ -601,15 +602,11 @@ int PairReaxFF::estimate_reax_lists()
   firstneigh = list->firstneigh;
 
   num_nbrs = 0;
-  num_marked = 0;
-  marked = (int*) calloc(api->system->N, sizeof(int));
 
   int numall = list->inum + list->gnum;
 
   for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
-    marked[i] = 1;
-    ++num_marked;
     jlist = firstneigh[i];
 
     for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
@@ -621,8 +618,6 @@ int PairReaxFF::estimate_reax_lists()
         ++num_nbrs;
     }
   }
-
-  free(marked);
 
   return static_cast<int> (MAX(num_nbrs*safezone, mincap*REAX_MIN_NBRS));
 }

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -76,7 +76,6 @@ class ComputeTempDeformKokkos: public ComputeTempDeform {
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeTempDeformKokkos(class LAMMPS *, int, char **);
-  ~ComputeTempDeformKokkos() override;
   double compute_scalar() override;
   void compute_vector() override;
   void remove_bias_all() override;

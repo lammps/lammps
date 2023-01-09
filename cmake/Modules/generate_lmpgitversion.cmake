@@ -31,5 +31,7 @@ set(temp "${temp}const char *LAMMPS_NS::LAMMPS::git_descriptor() { return \"${te
 set(temp "${temp}#endif\n\n")
 
 message(STATUS "Generating lmpgitversion.h...")
-file(WRITE "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${temp}" )
-execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h.tmp" "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")
+
+string(REPLACE "\\ " " " LAMMPS_GIT_HEADER "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")
+file(WRITE "${LAMMPS_GIT_HEADER}.tmp" "${temp}" )
+execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_GIT_HEADER}.tmp" "${LAMMPS_GIT_HEADER}")

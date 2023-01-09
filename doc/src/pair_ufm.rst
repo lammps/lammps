@@ -43,7 +43,7 @@ Style *ufm* computes pairwise interactions using the Uhlenbeck-Ford model (UFM) 
 
 where :math:`r_c` is the cutoff, :math:`\sigma` is a distance-scale and
 :math:`\epsilon` is an energy-scale, i.e., a product of Boltzmann constant
-:math:`k_B`, temperature *T* and the Uhlenbeck-Ford p-parameter which
+:math:`k_B`, temperature :math:`T` and the Uhlenbeck-Ford p-parameter which
 is responsible
 to control the softness of the interactions :ref:`(Paula Leite2017) <PL1>`.
 This model is useful as a reference system for fluid-phase free-energy calculations :ref:`(Paula Leite2016) <PL2>`.

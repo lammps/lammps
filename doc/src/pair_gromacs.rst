@@ -53,7 +53,7 @@ Description
 The *lj/gromacs* styles compute shifted LJ and Coulombic interactions
 with an additional switching function S(r) that ramps the energy and force
 smoothly to zero between an inner and outer cutoff.  It is a commonly
-used potential in the `GROMACS <http://www.gromacs.org>`_ MD code and for
+used potential in the `GROMACS <https://www.gromacs.org>`_ MD code and for
 the coarse-grained models of :ref:`(Marrink) <Marrink>`.
 
 .. math::

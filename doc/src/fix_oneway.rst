@@ -21,9 +21,9 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix ions oneway 10 semi -x
-   fix all oneway 1 left -z
-   fix all oneway 1 right z
+   fix 1 ions oneway 10 semi -x
+   fix 2 all oneway 1 left -z
+   fix 3 all oneway 1 right z
 
 Description
 """""""""""

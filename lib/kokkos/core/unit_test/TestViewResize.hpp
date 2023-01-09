@@ -46,12 +46,18 @@
 
 #include <gtest/gtest.h>
 #include "TestResize.hpp"
+#include "TestRealloc.hpp"
 
 namespace Test {
 
 TEST(TEST_CATEGORY, view_resize) {
   using ExecSpace = TEST_EXECSPACE;
   TestViewResize::testResize<ExecSpace>();
+}
+
+TEST(TEST_CATEGORY, view_realloc) {
+  using ExecSpace = TEST_EXECSPACE;
+  TestViewRealloc::testRealloc<ExecSpace>();
 }
 
 }  // namespace Test

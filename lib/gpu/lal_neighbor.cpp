@@ -64,10 +64,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
     // Not yet implemented
     assert(0==1);
 
-  if (pre_cut || gpu_nbor==0)
-    _alloc_packed=true;
-  else
-    _alloc_packed=false;
+  _alloc_packed = pre_cut || gpu_nbor==0;
 
   if (pre_cut)
     _packed_permissions=UCL_READ_WRITE;
@@ -635,7 +632,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
       subgroup_count += cell_subgroup_counts[i];
       cell_subgroup_counts[i] += cell_subgroup_counts[i-1];
     }
-    if (subgroup_count > subgroup2cell.numel()) {
+    if (subgroup_count > (int)subgroup2cell.numel()) {
       subgroup2cell.clear();
       success = success && (subgroup2cell.alloc(1.1*subgroup_count,*dev,
                                 UCL_READ_WRITE,UCL_READ_ONLY) == UCL_SUCCESS);
@@ -705,7 +702,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
       _old_ncellz = ncellz;
       const int bin_stencil_stride = cells_in_cutoff * 2 + 1;
       const int bin_stencil_size = bin_stencil_stride * bin_stencil_stride;
-      if (bin_stencil_size > _host_bin_stencil.numel())
+      if (bin_stencil_size > (int)_host_bin_stencil.numel())
         _host_bin_stencil.alloc(bin_stencil_size,*dev);
       for (int s = 0; s<bin_stencil_size; s++) {
         const int nbory = s % bin_stencil_stride - cells_in_cutoff;

@@ -3,6 +3,9 @@ if(BUILD_TOOLS)
   target_compile_definitions(binary2txt PRIVATE -DLAMMPS_${LAMMPS_SIZES})
   install(TARGETS binary2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+  add_executable(stl_bin2txt ${LAMMPS_TOOLS_DIR}/stl_bin2txt.cpp)
+  install(TARGETS stl_bin2txt DESTINATION ${CMAKE_INSTALL_BINDIR})
+
   include(CheckGeneratorSupport)
   if(CMAKE_GENERATOR_SUPPORT_FORTRAN)
     include(CheckLanguage)

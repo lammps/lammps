@@ -95,7 +95,7 @@ namespace Kokkos {
 #endif
 
 // 32-bit version
-template <class T, typename std::enable_if<sizeof(T) == 4, int>::type = 0>
+template <class T, std::enable_if_t<sizeof(T) == 4, int> = 0>
 __inline__ __device__ bool atomic_compare_exchange_weak(
     T volatile* const dest, T* const expected, T const desired,
     std::memory_order success_order = std::memory_order_seq_cst,
@@ -168,7 +168,7 @@ __inline__ __device__ bool atomic_compare_exchange_weak(
 }
 
 // 64-bit version
-template <class T, typename std::enable_if<sizeof(T) == 8, int>::type = 0>
+template <class T, std::enable_if_t<sizeof(T) == 8, int> = 0>
 bool atomic_compare_exchange_weak(
     T volatile* const dest, T* const expected, T const desired,
     std::memory_order success_order = std::memory_order_seq_cst,
@@ -268,7 +268,7 @@ inline unsigned long long atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename std::enable_if<sizeof(T) == sizeof(int), const T&>::type val) {
+    std::enable_if_t<sizeof(T) == sizeof(int), const T&> val) {
   union U {
     int i;
     T t;
@@ -287,9 +287,9 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename std::enable_if<sizeof(T) != sizeof(int) &&
-                                sizeof(T) == sizeof(long),
-                            const T&>::type val) {
+    std::enable_if_t<sizeof(T) != sizeof(int) && sizeof(T) == sizeof(long),
+                     const T&>
+        val) {
   union U {
     long i;
     T t;
@@ -309,10 +309,10 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename std::enable_if<sizeof(T) != sizeof(int) &&
-                                sizeof(T) != sizeof(long) &&
-                                sizeof(T) == sizeof(Impl::cas128_t),
-                            const T&>::type val) {
+    std::enable_if_t<sizeof(T) != sizeof(int) && sizeof(T) != sizeof(long) &&
+                         sizeof(T) == sizeof(Impl::cas128_t),
+                     const T&>
+        val) {
   union U {
     Impl::cas128_t i;
     T t;
@@ -332,12 +332,12 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T compare,
-    typename std::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8)
+    std::enable_if_t<(sizeof(T) != 4) && (sizeof(T) != 8)
 #if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64)
-                                && (sizeof(T) != 16)
+                         && (sizeof(T) != 16)
 #endif
-                                ,
-                            const T>::type& val) {
+                         ,
+                     const T>& val) {
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif

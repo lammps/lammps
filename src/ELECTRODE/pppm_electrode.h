@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -27,27 +27,6 @@ KSpaceStyle(pppm/electrode, PPPMElectrode);
 #include "electrode_kspace.h"
 #include "pppm.h"
 
-#if defined(FFT_FFTW3)
-#define LMP_FFT_LIB "FFTW3"
-#elif defined(FFT_MKL)
-#define LMP_FFT_LIB "MKL FFT"
-#elif defined(FFT_CUFFT)
-#define LMP_FFT_LIB "cuFFT"
-#else
-#define LMP_FFT_LIB "KISS FFT"
-#endif
-
-#ifdef FFT_SINGLE
-typedef float FFT_SCALAR;
-#define LMP_FFT_PREC "single"
-#define MPI_FFT_SCALAR MPI_FLOAT
-#else
-
-typedef double FFT_SCALAR;
-#define LMP_FFT_PREC "double"
-#define MPI_FFT_SCALAR MPI_DOUBLE
-#endif
-
 namespace LAMMPS_NS {
 
 class PPPMElectrode : public PPPM, public ElectrodeKSpace {
@@ -56,7 +35,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   ~PPPMElectrode() override;
   void init() override;
   void setup() override;
-  void setup_grid() override;
+  void reset_grid() override;
   void compute(int, int) override;
 
   void compute_vector(double *, int, int, bool) override;
@@ -114,10 +93,9 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void start_compute();
   void make_rho_in_brick(int, FFT_SCALAR ***, bool);
   void project_psi(double *, int);
-  void one_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
-                               int const, bool);
-  void two_step_multiplication(bigint *, const std::vector<double> &, double **, double **,
-                               int const, bool);
+  void one_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void two_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void build_amesh(int, int, int, double *, double *);
   bool compute_vector_called;
 };
 

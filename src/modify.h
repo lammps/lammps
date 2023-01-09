@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -17,7 +17,6 @@
 #include "pointers.h"
 
 #include <map>
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -101,6 +100,8 @@ class Modify : protected Pointers {
   virtual int min_dof();
   virtual int min_reset_ref();
 
+  void reset_grid();
+
   Fix *add_fix(int, char **, int trysuffix = 1);
   Fix *add_fix(const std::string &, int trysuffix = 1);
   Fix *replace_fix(const char *, int, char **, int trysuffix = 1);
@@ -113,7 +114,7 @@ class Modify : protected Pointers {
   int find_fix(const std::string &);
   // new API
   Fix *get_fix_by_id(const std::string &) const;
-  Fix *get_fix_by_index(int idx) const { return fix[idx]; }
+  Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
   const std::vector<Fix *> get_fix_by_style(const std::string &) const;
   const std::vector<Fix *> &get_fix_list();
 
@@ -127,7 +128,10 @@ class Modify : protected Pointers {
   int find_compute(const std::string &);
   // new API
   Compute *get_compute_by_id(const std::string &) const;
-  Compute *get_compute_by_index(int idx) const { return compute[idx]; }
+  Compute *get_compute_by_index(int idx) const
+  {
+    return ((idx >= 0) && (idx < ncompute)) ? compute[idx] : nullptr;
+  }
   const std::vector<Compute *> get_compute_by_style(const std::string &) const;
   const std::vector<Compute *> &get_compute_list();
 

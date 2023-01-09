@@ -61,7 +61,7 @@ static bool weinberg_coloured(int num_nodes, int num_edges, int8_t common[PTM_MA
 
                         c = common[a][b];
                 }
-                else if (m[b][a] == false)
+                else if (!m[b][a])
                 {
                         //When an old vertex is reached on a new path, go back
                         //in the opposite direction.
@@ -75,7 +75,7 @@ static bool weinberg_coloured(int num_nodes, int num_edges, int8_t common[PTM_MA
                         //been traversed in that direction.
 
                         c = common[a][b];
-                        while (m[b][c] == true)
+                        while (m[b][c])
                                 c = common[c][b];
                 }
 

@@ -42,8 +42,11 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <Kokkos_Macros.hpp>
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
 
 #include <Kokkos_Atomic.hpp>
 #include <impl/Kokkos_Spinwait.hpp>
@@ -65,7 +68,7 @@ void host_thread_yield(const uint32_t i, const WaitMode mode) {
   static constexpr uint32_t sleep_limit = 1 << 13;
   static constexpr uint32_t yield_limit = 1 << 12;
 
-  const int c = Kokkos::log2(i);
+  const int c = int_log2(i);
 
   if (WaitMode::ROOT != mode) {
     if (sleep_limit < i) {
@@ -135,7 +138,3 @@ void host_thread_yield(const uint32_t i, const WaitMode mode) {
 
 }  // namespace Impl
 }  // namespace Kokkos
-
-#else
-void KOKKOS_CORE_SRC_IMPL_SPINWAIT_PREVENT_LINK_ERROR() {}
-#endif

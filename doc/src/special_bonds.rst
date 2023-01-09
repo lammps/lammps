@@ -11,7 +11,7 @@ Syntax
    special_bonds keyword values ...
 
 * one or more keyword/value pairs may be appended
-* keyword = *amber* or *charmm* or *dreiding* or *fene* or *lj/coul* or *lj* or *coul* or *angle* or *dihedral*
+* keyword = *amber* or *charmm* or *dreiding* or *fene* or *lj/coul* or *lj* or *coul* or *angle* or *dihedral* or *one/five*
 
   .. parsed-literal::
 
@@ -27,6 +27,7 @@ Syntax
          w1,w2,w3 = weights (0.0 to 1.0) on pairwise Coulombic interactions
        *angle* value = *yes* or *no*
        *dihedral* value = *yes* or *no*
+       *one/five* value = *yes* or *no*
 
 Examples
 """"""""
@@ -45,10 +46,10 @@ Description
 Set weighting coefficients for pairwise energy and force contributions
 between pairs of atoms that are also permanently bonded to each other,
 either directly or via one or two intermediate bonds.  These weighting
-factors are used by nearly all :doc:`pair styles <pair_style>` in LAMMPS
-that compute simple pairwise interactions.  Permanent bonds between
-atoms are specified by defining the bond topology in the data file
-read by the :doc:`read_data <read_data>` command.  Typically a
+factors are used by nearly all :doc:`pair styles <pair_style>` in
+LAMMPS that compute simple pairwise interactions.  Permanent bonds
+between atoms are specified by defining the bond topology in the data
+file read by the :doc:`read_data <read_data>` command.  Typically a
 :doc:`bond_style <bond_style>` command is also used to define a bond
 potential.  The rationale for using these weighting factors is that
 the interaction between a pair of bonded atoms is all (or mostly)
@@ -58,50 +59,53 @@ atoms should be excluded (or reduced by a weighting factor).
 
 .. note::
 
-   These weighting factors are NOT used by :doc:`pair styles <pair_style>` that compute many-body interactions, since the
-   "bonds" that result from such interactions are not permanent, but are
-   created and broken dynamically as atom conformations change.  Examples
-   of pair styles in this category are EAM, MEAM, Stillinger-Weber,
-   Tersoff, COMB, AIREBO, and ReaxFF.  In fact, it generally makes no
-   sense to define permanent bonds between atoms that interact via these
-   potentials, though such bonds may exist elsewhere in your system,
-   e.g. when using the :doc:`pair_style hybrid <pair_hybrid>` command.
-   Thus LAMMPS ignores special_bonds settings when many-body potentials
-   are calculated.  Please note, that the existence of explicit bonds
-   for atoms that are described by a many-body potential will alter the
-   neighbor list and thus can render the computation of those interactions
-   invalid, since those pairs are not only used to determine direct
-   pairwise interactions but also neighbors of neighbors and more.
-   The recommended course of action is to remove such bonds, or - if
-   that is not possible - use a special bonds setting of 1.0 1.0 1.0.
+   These weighting factors are NOT used by :doc:`pair styles
+   <pair_style>` that compute many-body interactions, since the
+   "bonds" that result from such interactions are not permanent, but
+   are created and broken dynamically as atom conformations change.
+   Examples of pair styles in this category are EAM, MEAM,
+   Stillinger-Weber, Tersoff, COMB, AIREBO, and ReaxFF.  In fact, it
+   generally makes no sense to define permanent bonds between atoms
+   that interact via these potentials, though such bonds may exist
+   elsewhere in your system, e.g. when using the :doc:`pair_style
+   hybrid <pair_hybrid>` command.  Thus LAMMPS ignores special_bonds
+   settings when many-body potentials are calculated.  Please note,
+   that the existence of explicit bonds for atoms that are described
+   by a many-body potential will alter the neighbor list and thus can
+   render the computation of those interactions invalid, since those
+   pairs are not only used to determine direct pairwise interactions
+   but also neighbors of neighbors and more.  The recommended course
+   of action is to remove such bonds, or - if that is not possible -
+   use a special bonds setting of 1.0 1.0 1.0.
 
 .. note::
 
    Unlike some commands in LAMMPS, you cannot use this command
    multiple times in an incremental fashion: e.g. to first set the LJ
-   settings and then the Coulombic ones.  Each time you use this command
-   it sets all the coefficients to default values and only overrides the
-   one you specify, so you should set all the options you need each time
-   you use it.  See more details at the bottom of this page.
+   settings and then the Coulombic ones.  Each time you use this
+   command it sets all the coefficients to default values and only
+   overrides the one you specify, so you should set all the options
+   you need each time you use it.  See more details at the bottom of
+   this page.
 
 The Coulomb factors are applied to any Coulomb (charge interaction)
 term that the potential calculates.  The LJ factors are applied to the
 remaining terms that the potential calculates, whether they represent
 LJ interactions or not.  The weighting factors are a scaling
-pre-factor on the energy and force between the pair of atoms.  A value
+prefactor on the energy and force between the pair of atoms.  A value
 of 1.0 means include the full interaction; a value of 0.0 means
 exclude it completely.
 
 The first of the 3 coefficients (LJ or Coulombic) is the weighting
 factor on 1-2 atom pairs, which are pairs of atoms directly bonded to
-each other.  The second coefficient is the weighting factor on 1-3 atom
-pairs which are those separated by 2 bonds (e.g. the two H atoms in a
-water molecule).  The third coefficient is the weighting factor on 1-4
-atom pairs which are those separated by 3 bonds (e.g. the first and fourth
-atoms in a dihedral interaction).  Thus if the 1-2 coefficient is set
-to 0.0, then the pairwise interaction is effectively turned off for
-all pairs of atoms bonded to each other.  If it is set to 1.0, then
-that interaction will be at full strength.
+each other.  The second coefficient is the weighting factor on 1-3
+atom pairs which are those separated by 2 bonds (e.g. the two H atoms
+in a water molecule).  The third coefficient is the weighting factor
+on 1-4 atom pairs which are those separated by 3 bonds (e.g. the first
+and fourth atoms in a dihedral interaction).  Thus if the 1-2
+coefficient is set to 0.0, then the pairwise interaction is
+effectively turned off for all pairs of atoms bonded to each other.
+If it is set to 1.0, then that interaction will be at full strength.
 
 .. note::
 
@@ -184,21 +188,27 @@ interaction between atoms 2 and 5 will be unaffected (full weighting
 of 1.0).  If the *dihedral* keyword is specified as *no* which is the
 default, then the 2,5 interaction will also be weighted by 0.5.
 
+The *one/five* keyword enable calculation and storage of a list of 1-5
+neighbors in the molecular topology for each atom.  It is required by
+some pair styles, such as :doc:`pair_style amoeba <pair_style>` and
+:doc:`pair_style hippo <pair_style>`.
+
 ----------
 
 .. note::
 
    LAMMPS stores and maintains a data structure with a list of the
-   first, second, and third neighbors of each atom (within the bond topology of
-   the system).  If new bonds are created (or molecules added containing
-   atoms with more special neighbors), the size of this list needs to
-   grow.  Note that adding a single bond always adds a new first neighbor
-   but may also induce \*many\* new second and third neighbors, depending on the
-   molecular topology of your system.  Using the *extra/special/per/atom*
-   keyword to either :doc:`read_data <read_data>` or :doc:`create_box <create_box>`
-   reserves empty space in the list for this N additional first, second, or third
-   neighbors to be added.  If you do not do this, you may get an error
-   when bonds (or molecules) are added.
+   first, second, and third neighbors of each atom (within the bond
+   topology of the system).  If new bonds are created (or molecules
+   added containing atoms with more special neighbors), the size of
+   this list needs to grow.  Note that adding a single bond always
+   adds a new first neighbor but may also induce \*many\* new second
+   and third neighbors, depending on the molecular topology of your
+   system.  Using the *extra/special/per/atom* keyword to either
+   :doc:`read_data <read_data>` or :doc:`create_box <create_box>`
+   reserves empty space in the list for this N additional first,
+   second, or third neighbors to be added.  If you do not do this, you
+   may get an error when bonds (or molecules) are added.
 
 ----------
 
@@ -226,16 +236,16 @@ In the first case you end up with (after the second command):
    LJ: 0.0 0.0 0.0
    Coul: 0.0 0.0 1.0
 
-while only in the second case, you get the desired settings of:
+while only in the second case do you get the desired settings of:
 
 .. parsed-literal::
 
    LJ: 0.0 1.0 1.0
    Coul: 0.0 0.0 1.0
 
-This happens because the LJ (and Coul) settings are reset to
-their default values before modifying them, each time the
-*special_bonds* command is issued.
+This happens because the LJ (and Coul) settings are reset to their
+default values before modifying them, each time the *special_bonds*
+command is issued.
 
 Restrictions
 """"""""""""

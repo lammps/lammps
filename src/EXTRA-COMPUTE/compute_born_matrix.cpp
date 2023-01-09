@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -33,10 +33,8 @@
 #include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "universe.h"
 #include "update.h"
 
 #include <cmath>
@@ -119,8 +117,6 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), id_virial(nullptr), temp_x(nullptr), temp_f(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal compute born/matrix command");
-
-  MPI_Comm_rank(world, &me);
 
   nvalues = 21;
 
@@ -288,8 +284,6 @@ ComputeBornMatrix::~ComputeBornMatrix()
 
 void ComputeBornMatrix::init()
 {
-  dt = update->dt;
-
   if (!numflag) {
 
     // need an occasional half neighbor list

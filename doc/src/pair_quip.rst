@@ -49,11 +49,12 @@ A QUIP potential is fully specified by the filename which contains the
 parameters of the potential in XML format, the initialization string,
 and the map of atomic numbers.
 
-GAP potentials can be obtained from the Data repository section of
-`http://www.libatoms.org <http://www.libatoms.org>`_, where the
-appropriate initialization strings are also advised. The list of
-atomic numbers must be matched to the LAMMPS atom types specified in
-the LAMMPS data file or elsewhere.
+GAP potentials can be obtained from the `GAP models and databases page
+on the libAtoms homepage `https://libatoms.github.io
+<https://libatoms.github.io/GAP/data.html>`_, where the appropriate
+initialization strings are also advised. The list of atomic numbers must
+be matched to the LAMMPS atom types specified in the LAMMPS data file or
+elsewhere.
 
 Two examples input scripts are provided in the examples/PACKAGES/quip
 directory.

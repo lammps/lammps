@@ -6,12 +6,19 @@ compute efield/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   compute ID group-ID efield/atom
+   compute ID group-ID efield/atom keyword val
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * efield/atom = style name of this compute command
+* zero or more keyword/value pairs may be appended
+* keyword = *pair* or *kspace*
+
+  .. parsed-literal::
+
+     *pair* args = *yes* or *no*
+     *kspace* args = *yes* or *no*
 
 Examples
 """"""""
@@ -23,10 +30,10 @@ Examples
 
 Used in input scripts:
 
-   .. parsed-literal::
+.. parsed-literal::
 
-      examples/PACKAGES/dielectric/in.confined
-      examples/PACKAGES/dielectric/in.nopbc
+   examples/PACKAGES/dielectric/in.confined
+   examples/PACKAGES/dielectric/in.nopbc
 
 Description
 """""""""""

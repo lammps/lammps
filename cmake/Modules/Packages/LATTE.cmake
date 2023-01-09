@@ -23,8 +23,9 @@ if(DOWNLOAD_LATTE)
   # CMake cannot pass BLAS or LAPACK library variable to external project if they are a list
   list(LENGTH BLAS_LIBRARIES} NUM_BLAS)
   list(LENGTH LAPACK_LIBRARIES NUM_LAPACK)
-  if((NUM_BLAS GREATER 1) OR (NUM_LAPACK GREATER 1))
-    message(FATAL_ERROR "Cannot compile downloaded LATTE library due to a technical limitation")
+  if((NUM_BLAS GREATER 1) OR (NUM_LAPACK GREATER 1) AND NOT USE_INTERNAL_LINALG)
+    message(FATAL_ERROR "Cannot compile downloaded LATTE library due to a technical limitation. "
+                        "Try to configure LAMMPS with '-D USE_INTERNAL_LINALG=on' added as a workaround.")
   endif()
 
   include(ExternalProject)

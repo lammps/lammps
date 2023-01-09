@@ -96,6 +96,7 @@ struct OccupancyControlTrait : TraitSpecificationBase<OccupancyControlTrait> {
     static constexpr occupancy_control impl_get_occupancy_control() {
       return occupancy_control{};
     }
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class OccControl, class AnalyzeNextTrait>
   using mixin_matching_trait =

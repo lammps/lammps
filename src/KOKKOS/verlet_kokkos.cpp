@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -282,8 +282,6 @@ void VerletKokkos::run(int n)
   f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.extent(0));
 
   atomKK->sync(Device,ALL_MASK);
-  //static double time = 0.0;
-  //Kokkos::Timer ktimer;
 
   timer->init_timeout();
   for (int i = 0; i < n; i++) {
@@ -297,10 +295,8 @@ void VerletKokkos::run(int n)
 
     // initial time integration
 
-    //ktimer.reset();
     timer->stamp();
     modify->initial_integrate(vflag);
-    //time += ktimer.seconds();
     if (n_post_integrate) modify->post_integrate();
     timer->stamp(Timer::MODIFY);
 
@@ -445,7 +441,6 @@ void VerletKokkos::run(int n)
     if (pair_compute_flag) {
       atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-      Kokkos::Timer ktimer;
       force->pair->compute(eflag,vflag);
       atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
       atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));

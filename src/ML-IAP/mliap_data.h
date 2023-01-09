@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,8 +26,8 @@ class MLIAPData : protected Pointers {
   ~MLIAPData() override;
 
   void init();
-  void generate_neighdata(class NeighList *, int = 0, int = 0);
-  void grow_neigharrays();
+  virtual void generate_neighdata(class NeighList *, int = 0, int = 0);
+  virtual void grow_neigharrays();
   double memory_usage();
 
   int size_array_rows, size_array_cols;
@@ -35,6 +35,7 @@ class MLIAPData : protected Pointers {
   int size_gradforce;
   int yoffset, zoffset;
   int ndims_force, ndims_virial;
+  double **f;
   double **gradforce;
   double **betas;          // betas for all atoms in list
   double **descriptors;    // descriptors for all atoms in list
@@ -56,22 +57,27 @@ class MLIAPData : protected Pointers {
   // data structures for mliap neighbor list
   // only neighbors strictly inside descriptor cutoff
 
-  int nlistatoms;                // current number of atoms in neighborlist
+  int ntotal;                    // total number of owned and ghost atoms on this proc
+  int nlistatoms;                // current number of atoms in local atom lists
   int nlistatoms_max;            // allocated size of descriptor array
+  int natomneigh;                // current number of atoms and ghosts in atom neighbor arrays
   int natomneigh_max;            // allocated size of atom neighbor arrays
   int *numneighs;                // neighbors count for each atom
   int *iatoms;                   // index of each atom
   int *ielems;                   // element of each atom
   int nneigh_max;                // number of ij neighbors allocated
+  int npairs;                    // number of ij neighbor pairs
+  int *pair_i;                   // index of each i atom for each ij pair
   int *jatoms;                   // index of each neighbor
   int *jelems;                   // element of each neighbor
+  int *elems;                    // element of each atom in or not in the neighborlist
   double **rij;                  // distance vector of each neighbor
   double ***graddesc;            // descriptor gradient w.r.t. each neighbor
   int eflag;                     // indicates if energy is needed
   int vflag;                     // indicates if virial is needed
   class PairMLIAP *pairmliap;    // access to pair tally functions
 
- private:
+ protected:
   class MLIAPModel *model;
   class MLIAPDescriptor *descriptor;
 

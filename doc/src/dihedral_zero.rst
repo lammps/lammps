@@ -8,7 +8,10 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   dihedral_style zero [nocoeff]
+   dihedral_style zero keyword
+
+* zero or more keywords may be appended
+* keyword = *nocoeff*
 
 Examples
 """"""""

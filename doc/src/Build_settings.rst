@@ -111,26 +111,25 @@ LAMMPS can use them if they are available on your system.
       files in its default search path.  You must specify ``FFT_LIB``
       with the appropriate FFT libraries to include in the link.
 
-The `KISS FFT library <http://kissfft.sf.net>`_ is included in the LAMMPS
-distribution.  It is portable across all platforms.  Depending on the size
-of the FFTs and the number of processors used, the other libraries listed
-here can be faster.
+The `KISS FFT library <https://github.com/mborgerding/kissfft>`_ is
+included in the LAMMPS distribution.  It is portable across all
+platforms.  Depending on the size of the FFTs and the number of
+processors used, the other libraries listed here can be faster.
 
 However, note that long-range Coulombics are only a portion of the
-per-timestep CPU cost, FFTs are only a portion of long-range
-Coulombics, and 1d FFTs are only a portion of the FFT cost (parallel
-communication can be costly).  A breakdown of these timings is printed
-to the screen at the end of a run when using the
-:doc:`kspace_style pppm <kspace_style>` command. The
-:doc:`Screen and logfile output <Run_output>`
-page gives more details.  A more detailed (and time consuming)
-report of the FFT performance is generated with the
+per-timestep CPU cost, FFTs are only a portion of long-range Coulombics,
+and 1d FFTs are only a portion of the FFT cost (parallel communication
+can be costly).  A breakdown of these timings is printed to the screen
+at the end of a run when using the :doc:`kspace_style pppm
+<kspace_style>` command. The :doc:`Screen and logfile output
+<Run_output>` page gives more details.  A more detailed (and time
+consuming) report of the FFT performance is generated with the
 :doc:`kspace_modify fftbench yes <kspace_modify>` command.
 
 FFTW is a fast, portable FFT library that should also work on any
-platform and can be faster than the KISS FFT library.  You can
-download it from `www.fftw.org <http://www.fftw.org>`_.  LAMMPS requires
-version 3.X; the legacy version 2.1.X is no longer supported.
+platform and can be faster than the KISS FFT library.  You can download
+it from `www.fftw.org <https://www.fftw.org>`_.  LAMMPS requires version
+3.X; the legacy version 2.1.X is no longer supported.
 
 Building FFTW for your box should be as simple as ``./configure; make;
 make install``.  The install command typically requires root privileges
@@ -287,8 +286,8 @@ Output of JPG, PNG, and movie files
 
 The :doc:`dump image <dump_image>` command has options to output JPEG or
 PNG image files.  Likewise the :doc:`dump movie <dump_image>` command
-outputs movie files in MPEG format.  Using these options requires the
-following settings:
+outputs movie files in a variety of movie formats.  Using these options
+requires the following settings:
 
 .. tabs::
 
@@ -328,11 +327,12 @@ following settings:
          JPG_LIB = -ljpeg -lpng -lz       # library names
 
       As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
-      if make can find the graphics header and library files.  You must
-      specify ``JPG_LIB`` with a list of graphics libraries to include
-      in the link.  You must insure ffmpeg is in a directory where
-      LAMMPS can find it at runtime, that is a directory in your PATH
-      environment variable.
+      if make can find the graphics header and library files in their
+      default system locations.  You must specify ``JPG_LIB`` with a
+      list of graphics libraries to include in the link.  You must make
+      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
+      in a directory where LAMMPS can find it at runtime; that is
+      usually a directory list in your ``PATH`` environment variable.
 
 Using ``ffmpeg`` to output movie files requires that your machine
 supports the "popen" function in the standard runtime library.

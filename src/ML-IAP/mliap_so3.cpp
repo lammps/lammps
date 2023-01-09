@@ -1,18 +1,18 @@
 /* ----------------------------------------------------------------------
- LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- https://www.lammps.org/, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
 
- Copyright (2003) Sandia Corporation.  Under the terms of Contract
- DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
- certain rights in this software.  This software is distributed under
- the GNU General Public License.
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
 
- See the README file in the top-level LAMMPS directory.
+   See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
- Contributing authors: Byungkyun Kang (University of Nevada, Las Vegas)
+   Contributing authors: Byungkyun Kang (University of Nevada, Las Vegas)
  ------------------------------------------------------------------------- */
 
 #include "mliap_so3.h"
@@ -84,7 +84,6 @@ MLIAP_SO3::MLIAP_SO3(LAMMPS *lmp, double vrcut, int vlmax, int vnmax, double val
   m_dYlm_i = nullptr;
 
   m_dplist_r = nullptr;
-  m_dplist_i = nullptr;
 
   m_dclist_r = nullptr;
   m_dclist_i = nullptr;
@@ -145,7 +144,6 @@ MLIAP_SO3::~MLIAP_SO3()
   memory->destroy(m_dYlm_i);
 
   memory->destroy(m_dplist_r);
-  memory->destroy(m_dplist_i);
 
   memory->destroy(m_dclist_r);
   memory->destroy(m_dclist_i);
@@ -756,8 +754,6 @@ void MLIAP_SO3::get_sbes_array(int nlocal, int *numneighs, double **rij, int lma
       }
     }
   }
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -806,8 +802,6 @@ void MLIAP_SO3::get_rip_array(int nlocal, int *numneighs, double **rij, int nmax
               integrald * expfac;
         }
     }
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -850,8 +844,6 @@ void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem
   totali = totaln * ncoefs * 3;
   memory->destroy(m_dplist_r);
   memory->create(m_dplist_r, totali, "MLIAP_SO3:m_dplist_r");
-  memory->destroy(m_dplist_i);
-  memory->create(m_dplist_i, totali, "MLIAP_SO3:m_dplist_i");
   alloc_arrays += 2.0 * totali * sizeof(double);
 
   get_sbes_array(nlocal, numneighs, rij, lmax, rcut, alpha);
@@ -928,8 +920,6 @@ void MLIAP_SO3::spectrum(int nlocal, int *numneighs, int *jelems, double *wjelem
     }
     compute_pi(nmax, lmax, m_clisttot_r, m_clisttot_i, m_numYlms, m_plist_r, m_plist_i, ncoefs, ii);
   }
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -983,14 +973,11 @@ void MLIAP_SO3::spectrum_dxdr(int nlocal, int *numneighs, int *jelems, double *w
   totali = totaln * ncoefs * 3;
   memory->destroy(m_dplist_r);
   memory->create(m_dplist_r, totali, "MLIAP_SO3:m_dplist_r");
-  memory->destroy(m_dplist_i);
-  memory->create(m_dplist_i, totali, "MLIAP_SO3:m_dplist_i");
 
   totali = npairs * ncoefs * 3;
 
   for (int i = 0; i < totali; i++) {
     m_dplist_r[i] = 0.0;
-    m_dplist_i[i] = 0.0;
   }
 
   numps = nmax * (nmax + 1) * (lmax + 1) / 2;

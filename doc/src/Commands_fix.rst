@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 Fix commands
 ============
@@ -28,6 +29,8 @@ OPT.
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
    * :doc:`addtorque <fix_addtorque>`
+   * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
+   * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>`
    * :doc:`append/atoms <fix_append_atoms>`
    * :doc:`atc <fix_atc>`
    * :doc:`atom/swap <fix_atom_swap>`
@@ -35,6 +38,7 @@ OPT.
    * :doc:`ave/chunk <fix_ave_chunk>`
    * :doc:`ave/correlate <fix_ave_correlate>`
    * :doc:`ave/correlate/long <fix_ave_correlate_long>`
+   * :doc:`ave/grid <fix_ave_grid>`
    * :doc:`ave/histo <fix_ave_histo>`
    * :doc:`ave/histo/weight <fix_ave_histo>`
    * :doc:`ave/time <fix_ave_time>`
@@ -62,13 +66,13 @@ OPT.
    * :doc:`drude <fix_drude>`
    * :doc:`drude/transform/direct <fix_drude_transform>`
    * :doc:`drude/transform/inverse <fix_drude_transform>`
-   * :doc:`dt/reset <fix_dt_reset>`
+   * :doc:`dt/reset (k) <fix_dt_reset>`
    * :doc:`edpd/source <fix_dpd_source>`
    * :doc:`efield <fix_efield>`
    * :doc:`ehex <fix_ehex>`
-   * :doc:`electrode/conp (i) <fix_electrode_conp>`
-   * :doc:`electrode/conq (i) <fix_electrode_conp>`
-   * :doc:`electrode/thermo (i) <fix_electrode_conp>`
+   * :doc:`electrode/conp (i) <fix_electrode>`
+   * :doc:`electrode/conq (i) <fix_electrode>`
+   * :doc:`electrode/thermo (i) <fix_electrode>`
    * :doc:`electron/stopping <fix_electron_stopping>`
    * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
@@ -103,7 +107,7 @@ OPT.
    * :doc:`lb/viscous <fix_lb_viscous>`
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
-   * :doc:`mdi/aimd <fix_mdi_aimd>`
+   * :doc:`mdi/qm <fix_mdi_qm>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`
@@ -162,6 +166,7 @@ OPT.
    * :doc:`orient/fcc <fix_orient>`
    * :doc:`orient/eco <fix_orient_eco>`
    * :doc:`pafi <fix_pafi>`
+   * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
@@ -209,6 +214,7 @@ OPT.
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
+   * :doc:`sgcmc <fix_sgcmc>`
    * :doc:`shake (k) <fix_shake>`
    * :doc:`shardlow (k) <fix_shardlow>`
    * :doc:`smd <fix_smd>`
@@ -245,7 +251,7 @@ OPT.
    * :doc:`tune/kspace <fix_tune_kspace>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
-   * :doc:`viscous <fix_viscous>`
+   * :doc:`viscous (k) <fix_viscous>`
    * :doc:`viscous/sphere <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`

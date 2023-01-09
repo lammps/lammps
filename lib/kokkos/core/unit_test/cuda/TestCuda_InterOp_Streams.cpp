@@ -50,8 +50,7 @@ namespace Test {
 TEST(cuda, raw_cuda_streams) {
   cudaStream_t stream;
   cudaStreamCreate(&stream);
-  Kokkos::InitArguments arguments{-1, -1, -1, false};
-  Kokkos::initialize(arguments);
+  Kokkos::initialize();
   int* p;
   cudaMalloc(&p, sizeof(int) * 100);
   using MemorySpace = typename TEST_EXECSPACE::memory_space;

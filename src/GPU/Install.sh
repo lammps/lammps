@@ -121,10 +121,10 @@ action pair_lj_expand_coul_long_gpu.cpp pair_lj_expand_coul_long.cpp
 action pair_lj_expand_coul_long_gpu.h pair_lj_expand_coul_long.cpp
 action pair_lj_gromacs_gpu.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_gpu.h pair_lj_gromacs.h
-action pair_lj_sdk_coul_long_gpu.cpp pair_lj_sdk_coul_long.cpp
-action pair_lj_sdk_coul_long_gpu.h pair_lj_sdk_coul_long.cpp
-action pair_lj_sdk_gpu.cpp pair_lj_sdk.cpp
-action pair_lj_sdk_gpu.h pair_lj_sdk.cpp
+action pair_lj_spica_coul_long_gpu.cpp pair_lj_spica_coul_long.cpp
+action pair_lj_spica_coul_long_gpu.h pair_lj_spica_coul_long.cpp
+action pair_lj_spica_gpu.cpp pair_lj_spica.cpp
+action pair_lj_spica_gpu.h pair_lj_spica.cpp
 action pair_mie_cut_gpu.cpp pair_mie_cut.cpp
 action pair_mie_cut_gpu.h pair_mie_cut.h
 action pair_morse_gpu.cpp
@@ -176,7 +176,7 @@ if (test $1 = 1) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*gpu.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
 include ..\/..\/lib\/gpu\/Makefile.lammps
@@ -191,7 +191,7 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*gpu.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*gpu.*$/d' ../Makefile.package.settings
   fi
 
 fi

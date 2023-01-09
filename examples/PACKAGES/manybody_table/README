@@ -1,0 +1,56 @@
+Three examples inputs for pair styles threebody/table (in.spce and
+in.spce2) and sw/angle/table (in.spce_sw).  All inputs are for the
+simulation of coarse-grained SPC/E water.
+
+A water molecule is represented by one coarse-grained (CG) bead.
+
+For the two threebody/table examples the three-body (force) tables are
+in the files 1-1-1.table and 1-1-2.table. These have been parametrized
+with the kernel-based machine learning (ML) with the VOTCA package
+(https://gitlab.mpcdf.mpg.de/votca/votca).  For a example on the
+parametrization, have a look at
+https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/guide
+and
+https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/ml.
+
+In both cases, the parametrization is done according to a sample system,
+using the three-body forces of a Stillinger-Weber potential with
+tabulated angular forces (sw/angle/table) (see in.spce_sw). These then
+are learned with the covariant meshing technique with the settings files
+used in
+https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-examples/ml/3body/with_binning.
+
+The first example, in.spce uses the LAMMPS data file (data.spce) with
+the starting configuration of 1000 CG water molecules, and a threebody
+file (spce.3b) which loads the 1-1-1.table file.
+
+A hybrid/overlay pair style is used to sum a tabulated pairwise
+interaction (table_CG_CG.txt) with the tabulated threebody interactions.
+The tabulated pair interaction is the effectively the same as in the
+what is used by the in.spce_sw input using sw/angle/table pair style.
+
+IMPORTANT NOTE: The threebody tables are parameterized without storing
+energies (the last column of the threebody table files is zero).  This
+is due to a current limitation of the paramerization procedure.
+
+This in.spce2 example uses the data.spce2 file and the threebody input
+spce2.3b.  This is essentially the same simulation as in in.spce only
+the atom type of the first 100 CG water molecules has been changed from
+1 to 2.  This is done to demonstrate how to run a simulation with
+different atom types.
+
+For this (artificial) two-element simulation, the threebody file now
+contain 8 entries for: type1 type1 type1, type1 type1 type2, type1 type2
+type1, type1 type2 type2, type2 type1 type1, type2 type1 type2, type2
+type2 type1, type2 type2 type2.  Each entry has the same structure as
+above. However, entries where the second and the third element are
+different require a different force table (1-1-2.table) instead of
+(1-1-1.table).  1-1-2.table contains exactly the force constants as
+1-1-1.table.  However it has to have the asymmetric structure where both
+interparticle distances (r_ij and r_ik) are varied from rmin to rmax and
+therefore contains "M = 2 * N * N * N" (2 * 12 * 12 * 12 = 3456)
+entries.
+
+The third example, in.spce_sw, contains the analytical twobody interactions
+and replaces the threebody term of the Stillinger-Weber potential with an
+angle/table style potential  which is stored in the table_CG_CG_CG.txt file.

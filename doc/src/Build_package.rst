@@ -30,23 +30,30 @@ steps, as explained on the :doc:`Build extras <Build_extras>` page.
 These links take you to the extra instructions for those select
 packages:
 
+.. this list must be kept in sync with its counterpart in Build_extras.rst
 .. table_from_list::
    :columns: 6
 
    * :ref:`ADIOS <adios>`
    * :ref:`ATC <atc>`
    * :ref:`AWPMD <awpmd>`
-   * :ref:`COLVARS <colvars>`
+   * :ref:`COLVARS <colvar>`
    * :ref:`COMPRESS <compress>`
+   * :ref:`ELECTRODE <electrode>`
    * :ref:`GPU <gpu>`
    * :ref:`H5MD <h5md>`
    * :ref:`INTEL <intel>`
    * :ref:`KIM <kim>`
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LATTE <latte>`
+   * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
+   * :ref:`MDI <mdi>`
+   * :ref:`MESONT <mesont>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
+   * :ref:`ML-IAP <mliap>`
    * :ref:`ML-PACE <ml-pace>`
+   * :ref:`ML-POD <ml-pod>`
    * :ref:`ML-QUIP <ml-quip>`
    * :ref:`MOLFILE <molfile>`
    * :ref:`MSCG <mscg>`
@@ -150,7 +157,7 @@ other files dependent on that package are also excluded.
 .. _cmake_presets:
 
 CMake presets for installing many packages
-""""""""""""""""""""""""""""""""""""""""""
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Instead of specifying all the CMake options via the command-line,
 CMake allows initializing its settings cache using script files.
@@ -177,6 +184,11 @@ one of them as a starting point and customize it to your needs.
     cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
     mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers
+
+Presets that have names starting with "windows" are specifically for
+compiling LAMMPS :doc:`natively on Windows <Build_windows>` and
+presets that have names starting with "kokkos" are specifically for
+selecting configurations for compiling LAMMPS with :ref:`KOKKOS <kokkos>`.
 
 .. note::
 
@@ -220,7 +232,8 @@ These commands install/un-install sets of packages:
 .. code-block:: bash
 
     make yes-all                        # install all packages
-    make no-all                         # uninstall all packages
+    make no-all                         # check for changes and uninstall all packages
+    make no-installed                   # only check and uninstall installed packages
     make yes-basic                      # install a few commonly used packages'
     make no-basic                       # remove a few commonly used packages'
     make yes-most                       # install most packages w/o libs'

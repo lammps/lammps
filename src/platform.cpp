@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,6 +16,8 @@
  * the "utils" namespace with convenience and utility functions. */
 
 #include "platform.h"
+
+#include "fmt/format.h"
 #include "text_file_reader.h"
 #include "utils.h"
 
@@ -186,13 +188,65 @@ std::string platform::os_info()
   char value[1024];
   DWORD value_length = 1024;
   const char *subkey = "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion";
-  const char *entry = "ProductName";
+  const char *entry = "CurrentBuild";
   RegGetValue(HKEY_LOCAL_MACHINE, subkey, entry, RRF_RT_REG_SZ, nullptr, &value,
               (LPDWORD) &value_length);
   // enforce zero termination
   value[1023] = '\0';
-  buf = value;
+  auto build = std::string(value);
 
+  if (build == "6002") {
+    buf = "Windows Vista";
+  } else if (build == "6003") {
+    buf = "Windows Server 2008";
+  } else if (build == "7601") {
+    buf = "Windows 7";
+  } else if (build == "9200") {
+    buf = "Windows 8";
+  } else if (build == "9600") {
+    buf = "Windows 8.1";
+  } else if (build == "10240") {
+    buf = "Windows 10 1507";
+  } else if (build == "10586") {
+    buf = "Windows 10 1511";
+  } else if (build == "14393") {
+    buf = "Windows 10 1607";
+  } else if (build == "15063") {
+    buf = "Windows 10 1703";
+  } else if (build == "16299") {
+    buf = "Windows 10 1709";
+  } else if (build == "17134") {
+    buf = "Windows 10 1803";
+  } else if (build == "17763") {
+    buf = "Windows 10 1809";
+  } else if (build == "18362") {
+    buf = "Windows 10 1903";
+  } else if (build == "18363") {
+    buf = "Windows 10 1909";
+  } else if (build == "19041") {
+    buf = "Windows 10 2004";
+  } else if (build == "19042") {
+    buf = "Windows 10 20H2";
+  } else if (build == "19043") {
+    buf = "Windows 10 21H1";
+  } else if (build == "19044") {
+    buf = "Windows 10 21H2";
+  } else if (build == "19045") {
+    buf = "Windows 10 22H2";
+  } else if (build == "20348") {
+    buf = "Windows Server 2022";
+  } else if (build == "22000") {
+    buf = "Windows 11 21H2";
+  } else if (build == "22621") {
+    buf = "Windows 11 22H2";
+  } else {
+    const char *entry = "ProductName";
+    RegGetValue(HKEY_LOCAL_MACHINE, subkey, entry, RRF_RT_REG_SZ, nullptr, &value,
+                (LPDWORD) &value_length);
+    // enforce zero termination
+    value[1023] = '\0';
+    buf = value;
+  }
   DWORD fullversion, majorv, minorv, buildv = 0;
   fullversion = GetVersion();
   majorv = (DWORD) (LOBYTE(LOWORD(fullversion)));
@@ -303,11 +357,18 @@ std::string platform::compiler_info()
                     __MINGW32_MINOR_VERSION, __VERSION__);
 #elif defined(__GNUC__)
   buf = fmt::format("GNU C++ {}", __VERSION__);
-#elif defined(_MSC_VER) && (_MSC_VER > 1920) && (_MSC_VER < 2000)
+#elif defined(_MSC_VER) && (_MSC_VER >= 1920) && (_MSC_VER < 1930)
   constexpr int major = _MSC_VER / 100;
   constexpr int minor = _MSC_VER - major * 100;
-  buf = "Microsoft Visual Studio 20" + std::to_string(major) + ", C/C++ " +
-      std::to_string(major - 5) + "." + std::to_string(minor);
+  constexpr int patch = minor - 20;
+  buf = fmt::format("Microsoft Visual Studio 2019 Version 16.{}, C/C++ {}.{}", patch, major - 5,
+                    minor);
+#elif defined(_MSC_VER) && (_MSC_VER >= 1930) && (_MSC_VER < 2000)
+  constexpr int major = _MSC_VER / 100;
+  constexpr int minor = _MSC_VER - major * 100;
+  constexpr int patch = minor - 30;
+  buf = fmt::format("Microsoft Visual Studio 2022 Version 17.{}, C/C++ {}.{}", patch, major - 5,
+                    minor);
 #else
   buf = "(Unknown)";
 #endif
@@ -673,7 +734,7 @@ bool platform::is_console(FILE *fp)
 
 std::string platform::current_directory()
 {
-  std::string cwd = "";
+  std::string cwd;
 
 #if defined(_WIN32)
   char *buf = new char[MAX_PATH];

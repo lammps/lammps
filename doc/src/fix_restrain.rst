@@ -59,7 +59,7 @@ of a bond or angle or dihedral interaction whose strength can vary
 over time during a simulation.  This is functionally similar to
 creating a bond or angle or dihedral for the same atoms in a data
 file, as specified by the :doc:`read_data <read_data>` command, albeit
-with a time-varying pre-factor coefficient, and except for exclusion
+with a time-varying prefactor coefficient, and except for exclusion
 rules, as explained below.
 
 For the purpose of force field parameter-fitting or mapping a molecular

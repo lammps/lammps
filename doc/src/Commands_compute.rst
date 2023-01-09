@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 Compute commands
 ================
@@ -56,6 +57,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`dpd/atom <compute_dpd_atom>`
    * :doc:`edpd/temp/atom <compute_edpd_temp_atom>`
    * :doc:`efield/atom <compute_efield_atom>`
+   * :doc:`efield/wolf/atom <compute_efield_wolf_atom>`
    * :doc:`entropy/atom <compute_entropy_atom>`
    * :doc:`erotate/asphere <compute_erotate_asphere>`
    * :doc:`erotate/rigid <compute_erotate_rigid>`
@@ -106,6 +108,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pressure/uef <compute_pressure_uef>`
    * :doc:`property/atom <compute_property_atom>`
    * :doc:`property/chunk <compute_property_chunk>`
+   * :doc:`property/grid <compute_property_grid>`
    * :doc:`property/local <compute_property_local>`
    * :doc:`ptm/atom <compute_ptm_atom>`
    * :doc:`rdf <compute_rdf>`
@@ -138,6 +141,8 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`smd/vol <compute_smd_vol>`
    * :doc:`snap <compute_sna_atom>`
    * :doc:`sna/atom <compute_sna_atom>`
+   * :doc:`sna/grid <compute_sna_atom>`
+   * :doc:`sna/grid/local <compute_sna_atom>`
    * :doc:`snad/atom <compute_sna_atom>`
    * :doc:`snav/atom <compute_sna_atom>`
    * :doc:`sph/e/atom <compute_sph_e_atom>`

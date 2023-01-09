@@ -135,13 +135,41 @@ public:
   /// Get value of alchemical lambda parameter from back-end (if available)
   virtual int get_alch_lambda(cvm::real* lambda);
 
-  /// Set value of alchemical lambda parameter in back-end (if available)
-  virtual int set_alch_lambda(cvm::real* lambda);
+  /// Set value of alchemical lambda parameter to be sent to back-end at end of timestep
+  void set_alch_lambda(cvm::real lambda);
+
+  /// Send cached value of alchemical lambda parameter to back-end (if available)
+  virtual int send_alch_lambda();
 
   /// Get energy derivative with respect to lambda (if available)
-  virtual int get_dE_dLambda(cvm::real* force);
+  virtual int get_dE_dlambda(cvm::real* dE_dlambda);
+
+  /// Apply a scalar force on dE_dlambda (back-end distributes it onto atoms)
+  virtual int apply_force_dE_dlambda(cvm::real* force);
+
+  /// Get energy second derivative with respect to lambda (if available)
+  virtual int get_d2E_dlambda2(cvm::real* d2E_dlambda2);
+
+  /// Force to be applied onto alch. lambda, propagated from biasing forces on dE_dlambda
+  cvm::real indirect_lambda_biasing_force;
+
+  /// Get weight factor from accelMD
+  virtual cvm::real get_accelMD_factor() const {
+    cvm::error("Error: accessing the reweighting factor of accelerated MD  "
+               "is not yet implemented in the MD engine.\n",
+               COLVARS_NOT_IMPLEMENTED);
+    return 1.0;
+  }
+  virtual bool accelMD_enabled() const {
+    return false;
+  }
 
 protected:
+  /// Next value of lambda to be sent to back-end
+  cvm::real cached_alch_lambda;
+
+  /// Whether lambda has been set and needs to be updated in backend
+  bool cached_alch_lambda_changed;
 
   /// Whether the total forces have been requested
   bool total_force_requested;
@@ -652,9 +680,6 @@ public:
   /// (does not need to be allocated in a new interface)
   colvarscript *script;
 
-  /// is a user force script defined?
-  bool force_script_defined;
-
   /// Do we have a scripting interface?
   bool have_scripts;
 
@@ -702,7 +727,7 @@ public:
   }
 
   /// Remove the given file (on Windows only, rename to filename.old)
-  int remove_file(char const *filename);
+  virtual int remove_file(char const *filename);
 
   /// Remove the given file (on Windows only, rename to filename.old)
   inline int remove_file(std::string const &filename)
@@ -711,7 +736,7 @@ public:
   }
 
   /// Rename the given file
-  int rename_file(char const *filename, char const *newfilename);
+  virtual int rename_file(char const *filename, char const *newfilename);
 
   /// Rename the given file
   inline int rename_file(std::string const &filename,
@@ -779,7 +804,6 @@ protected:
 /// \brief Interface between the collective variables module and
 /// the simulation or analysis program (NAMD, VMD, LAMMPS...).
 /// This is the base class: each interfaced program is supported by a derived class.
-/// Only pure virtual functions ("= 0") must be reimplemented to ensure baseline functionality.
 class colvarproxy
   : public colvarproxy_system,
     public colvarproxy_atoms,
@@ -864,6 +888,12 @@ public:
   /// Called at the end of a simulation segment (i.e. "run" command)
   int post_run();
 
+  /// Print a full list of all input atomic arrays for debug purposes
+  void print_input_atomic_data();
+
+  /// Print a full list of all applied forces for debug purposes
+  void print_output_atomic_data();
+
   /// Convert a version string "YYYY-MM-DD" into an integer
   int get_version_from_string(char const *version_string);
 
@@ -909,6 +939,9 @@ protected:
 
   /// Integer representing the version string (allows comparisons)
   int version_int;
+
+  /// Track which features have been acknowledged during the last run
+  size_t features_hash;
 
   /// Raise when the output stream functions are used on threads other than 0
   void smp_stream_error();

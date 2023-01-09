@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -79,13 +79,6 @@ struct Zero {
 ThirdOrderKokkos::ThirdOrderKokkos(LAMMPS *lmp) : ThirdOrder(lmp)
 {
   atomKK = (AtomKokkos *) atom;
-}
-
-/* ---------------------------------------------------------------------- */
-
-ThirdOrderKokkos::~ThirdOrderKokkos()
-{
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,7 +165,7 @@ void ThirdOrderKokkos::update_force()
   force_clear();
 
   neighbor->ago = 0;
-  if ((modify->get_fix_by_id("package_intel")) ? true : false)
+  if ((modify->get_fix_by_id("package_intel")) != nullptr)
     neighbor->decide();
 
   if (n_pre_force) {

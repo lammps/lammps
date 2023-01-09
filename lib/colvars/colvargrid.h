@@ -62,7 +62,7 @@ protected:
       addr += ix[i]*static_cast<size_t>(nxc[i]);
       if (cvm::debug()) {
         if (ix[i] >= nx[i]) {
-          cvm::error("Error: exceeding bounds in colvar_grid.\n", BUG_ERROR);
+          cvm::error("Error: exceeding bounds in colvar_grid.\n", COLVARS_BUG_ERROR);
           return 0;
         }
       }
@@ -170,7 +170,7 @@ public:
     for (int i = nd-1; i >= 0; i--) {
       if (nx[i] <= 0) {
         cvm::error("Error: providing an invalid number of grid points, "+
-                   cvm::to_str(nx[i])+".\n", BUG_ERROR);
+                   cvm::to_str(nx[i])+".\n", COLVARS_BUG_ERROR);
         return COLVARS_ERROR;
       }
       nxc[i] = nt;
@@ -254,11 +254,11 @@ public:
               bool add_extra_bin = false)
     : has_parent_data(false), has_data(false)
   {
-    this->init_from_colvars(colvars, t, mult_i, add_extra_bin);
+    (void) t;
+    this->init_from_colvars(colvars, mult_i, add_extra_bin);
   }
 
   int init_from_colvars(std::vector<colvar *> const &colvars,
-                        T const &t = T(),
                         size_t mult_i = 1,
                         bool add_extra_bin = false)
   {
@@ -283,13 +283,13 @@ public:
         cvm::error("Colvar grids can only be automatically "
                    "constructed for scalar variables.  "
                    "ABF and histogram can not be used; metadynamics "
-                   "can be used with useGrids disabled.\n", INPUT_ERROR);
+                   "can be used with useGrids disabled.\n", COLVARS_INPUT_ERROR);
         return COLVARS_ERROR;
       }
 
       if (cv[i]->width <= 0.0) {
         cvm::error("Tried to initialize a grid on a "
-                   "variable with negative or zero width.\n", INPUT_ERROR);
+                   "variable with negative or zero width.\n", COLVARS_INPUT_ERROR);
         return COLVARS_ERROR;
       }
 
@@ -340,6 +340,9 @@ public:
     nt = 0;
 
     for (size_t i =  0; i < lower_boundaries.size(); i++) {
+      // Re-compute periodicity using current grid boundaries
+      periodic[i] = cv[i]->periodic_boundaries(lower_boundaries[i].real_value,
+                                               upper_boundaries[i].real_value);
 
       cvm::real nbins = ( upper_boundaries[i].real_value -
                           lower_boundaries[i].real_value ) / widths[i];
@@ -375,7 +378,7 @@ public:
       } else {
         if (ix[i] < 0 || ix[i] >= nx[i]) {
           cvm::error("Trying to wrap illegal index vector (non-PBC) for a grid point: "
-                     + cvm::to_str(ix), BUG_ERROR);
+                     + cvm::to_str(ix), COLVARS_BUG_ERROR);
           return;
         }
       }
@@ -542,10 +545,19 @@ public:
   {
     for (size_t i = 0; i < data.size(); i++) out_data[i] = data[i];
   }
+  void raw_data_out(std::vector<T>& out_data) const
+  {
+    out_data = data;
+  }
   /// \brief Input the data as they are represented in memory.
   void raw_data_in(const T* in_data)
   {
     for (size_t i = 0; i < data.size(); i++) data[i] = in_data[i];
+    has_data = true;
+  }
+  void raw_data_in(const std::vector<T>& in_data)
+  {
+    data = in_data;
     has_data = true;
   }
   /// \brief Size of the data as they are represented in memory.
@@ -1245,6 +1257,7 @@ public:
                                   size_t const &imult = 0,
                                   bool add = false)
   {
+    (void) imult;
     if (add) {
       data[address(ix)] += t;
       if (this->has_parent_data) {
@@ -1262,7 +1275,7 @@ public:
   inline cvm::real log_gradient_finite_diff(const std::vector<int> &ix0,
                                             int n = 0)
   {
-    int A0, A1, A2;
+    cvm::real A0, A1, A2;
     std::vector<int> ix = ix0;
 
     // TODO this can be rewritten more concisely with wrap_edge()
@@ -1275,7 +1288,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return (cvm::logn((cvm::real)A1) - cvm::logn((cvm::real)A0))
+        return (cvm::logn(A1) - cvm::logn(A0))
           / (widths[n] * 2.);
       }
     } else if (ix[n] > 0 && ix[n] < nx[n]-1) { // not an edge
@@ -1287,7 +1300,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return (cvm::logn((cvm::real)A1) - cvm::logn((cvm::real)A0))
+        return (cvm::logn(A1) - cvm::logn(A0))
           / (widths[n] * 2.);
       }
     } else {
@@ -1300,8 +1313,8 @@ public:
       if (A0 * A1 * A2 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return (-1.5 * cvm::logn((cvm::real)A0) + 2. * cvm::logn((cvm::real)A1)
-          - 0.5 * cvm::logn((cvm::real)A2)) * increment / widths[n];
+        return (-1.5 * cvm::logn(A0) + 2. * cvm::logn(A1)
+          - 0.5 * cvm::logn(A2)) * increment / widths[n];
       }
     }
   }
@@ -1311,7 +1324,7 @@ public:
   inline cvm::real gradient_finite_diff(const std::vector<int> &ix0,
                                             int n = 0)
   {
-    int A0, A1, A2;
+    cvm::real A0, A1, A2;
     std::vector<int> ix = ix0;
 
     // FIXME this can be rewritten more concisely with wrap_edge()
@@ -1324,7 +1337,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return cvm::real(A1 - A0) / (widths[n] * 2.);
+        return (A1 - A0) / (widths[n] * 2.);
       }
     } else if (ix[n] > 0 && ix[n] < nx[n]-1) { // not an edge
       ix[n]--;
@@ -1335,7 +1348,7 @@ public:
       if (A0 * A1 == 0) {
         return 0.; // can't handle empty bins
       } else {
-        return cvm::real(A1 - A0) / (widths[n] * 2.);
+        return (A1 - A0) / (widths[n] * 2.);
       }
     } else {
       // edge: use 2nd order derivative
@@ -1344,8 +1357,8 @@ public:
       A0 = value(ix);
       ix[n] += increment; A1 = value(ix);
       ix[n] += increment; A2 = value(ix);
-      return (-1.5 * cvm::real(A0) + 2. * cvm::real(A1)
-          - 0.5 * cvm::real(A2)) * increment / widths[n];
+      return (-1.5 * A0 + 2. * A1
+          - 0.5 * A2) * increment / widths[n];
     }
   }
 };
@@ -1381,6 +1394,7 @@ public:
                         cvm::real const &new_value,
                         size_t const &imult = 0)
   {
+    (void) imult;
     // only legal value of imult here is 0
     data[address(ix)] += new_value;
     if (samples)
@@ -1438,6 +1452,49 @@ public:
       grad[2] = 0.25 * ((p[1] + p[3] + p[5] + p[7]) - (p[0] + p[2] + p[4] + p[6])) / widths[2];
     } else {
       cvm::error("Finite differences available in dimension 2 and 3 only.");
+    }
+  }
+
+  /// \brief Return the gradient of discrete count from finite differences
+  /// on the *same* grid for dimension n
+  inline cvm::real gradient_finite_diff(const std::vector<int> &ix0,
+                                            int n = 0)
+  {
+    cvm::real A0, A1, A2;
+    std::vector<int> ix = ix0;
+
+    // FIXME this can be rewritten more concisely with wrap_edge()
+    if (periodic[n]) {
+      ix[n]--; wrap(ix);
+      A0 = value(ix);
+      ix = ix0;
+      ix[n]++; wrap(ix);
+      A1 = value(ix);
+      if (A0 * A1 == 0) {
+        return 0.; // can't handle empty bins
+      } else {
+        return (A1 - A0) / (widths[n] * 2.);
+      }
+    } else if (ix[n] > 0 && ix[n] < nx[n]-1) { // not an edge
+      ix[n]--;
+      A0 = value(ix);
+      ix = ix0;
+      ix[n]++;
+      A1 = value(ix);
+      if (A0 * A1 == 0) {
+        return 0.; // can't handle empty bins
+      } else {
+        return (A1 - A0) / (widths[n] * 2.);
+      }
+    } else {
+      // edge: use 2nd order derivative
+      int increment = (ix[n] == 0 ? 1 : -1);
+      // move right from left edge, or the other way around
+      A0 = value(ix);
+      ix[n] += increment; A1 = value(ix);
+      ix[n] += increment; A2 = value(ix);
+      return (-1.5 * A0 + 2. * A1
+          - 0.5 * A2) * increment / widths[n];
     }
   }
 

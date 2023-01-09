@@ -1,3 +1,11 @@
+.math {
+        text-align: left;
+}
+
+.eqno {
+        float: right;
+}
+
 .wy-nav-content {
     max-width: 100% !important;
 }
@@ -36,6 +44,18 @@ hr {
 }
 
 #command-reference.section h2 {
+     display: none;
+}
+
+#userdoc.toctree-wrapper.compound p {
+     display: none;
+}
+
+#progdoc.toctree-wrapper.compound p {
+     display: none;
+}
+
+#reference.toctree-wrapper.compound p {
      display: none;
 }
 

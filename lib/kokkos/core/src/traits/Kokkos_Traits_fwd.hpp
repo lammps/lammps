@@ -45,6 +45,15 @@
 #ifndef KOKKOS_KOKKOS_TRAITS_FWD_HPP
 #define KOKKOS_KOKKOS_TRAITS_FWD_HPP
 
+// Without this the CUDA side does proper EBO while MSVC doesn't
+// leading to mismatched sizes of the driver objects (CudaParallel)
+// leading to illegal memory accesses etc on device
+#if defined(_WIN32) && defined(KOKKOS_ENABLE_CUDA)
+#define KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND char dummy;
+#else
+#define KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
+#endif
+
 namespace Kokkos {
 namespace Impl {
 

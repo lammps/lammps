@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -577,8 +577,8 @@ void inertia_triangle(double *idiag, double *quat, double /*mass*/,
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the X axis
- ------------------------------------------------------------------------- */
+   build rotation matrix for a small angle rotation around the X axis
+------------------------------------------------------------------------- */
 
 void BuildRxMatrix(double R[3][3], const double angle)
 {
@@ -592,8 +592,8 @@ void BuildRxMatrix(double R[3][3], const double angle)
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the Y axis
- ------------------------------------------------------------------------- */
+   build rotation matrix for a small angle rotation around the Y axis
+------------------------------------------------------------------------- */
 
 void BuildRyMatrix(double R[3][3], const double angle)
 {
@@ -607,8 +607,8 @@ void BuildRyMatrix(double R[3][3], const double angle)
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the Z axis
- ------------------------------------------------------------------------- */
+   build rotation matrix for a small angle rotation around the Z axis
+------------------------------------------------------------------------- */
 
 void BuildRzMatrix(double R[3][3], const double angle)
 {
@@ -621,6 +621,31 @@ void BuildRzMatrix(double R[3][3], const double angle)
   R[2][0] = 0.0;       R[2][1] = 0.0;        R[2][2] = 1.0;
 }
 
+/* ----------------------------------------------------------------------
+   convert a sphere in box coords to an ellipsoid in triclinic lamda (0-1) coords
+   h[6] = domain->h for size and shape of triclinic box
+   radius = radius of sphere in box coords
+   return dist[3] = tight (axis-aligned) bounding box in triclinic lamda coords
+   see: http://www.loria.fr/~shornus/ellipsoid-bbox.html (no longer online)
+        https://yiningkarlli.blogspot.com/2013/02/bounding-boxes-for-ellipsoidsfigure.html
+------------------------------------------------------------------------- */
+
+void tribbox(double *h, double radius, double *dist)
+{
+  double lx = h[0];
+  double ly = h[1];
+  double lz = h[2];
+  double yz = h[3];
+  double xz = h[4];
+  double xy = h[5];
+
+  dist[0] = radius * sqrt(ly*ly*lz*lz + ly*ly*xz*xz - 2.0*ly*xy*xz*yz +
+                          lz*lz*xy*xy + xy*xy*yz*yz) / (lx*ly*lz);
+  dist[1] = radius * sqrt(lz*lz + yz*yz) / (ly*lz);
+  dist[2] = radius / lz;
+}
+
 /* ---------------------------------------------------------------------- */
+
 
 }

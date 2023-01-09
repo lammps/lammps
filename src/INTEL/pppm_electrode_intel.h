@@ -1,7 +1,7 @@
 /* *- c++ -*- -----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,25 +42,27 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
  public:
   PPPMElectrodeIntel(class LAMMPS *);
   ~PPPMElectrodeIntel();
-  void init();
-  void setup();
-  void compute(int, int);
+  void init() override;
+  void setup() override;
+  void compute(int, int) override;
 
   void compute_vector(double *, int, int, bool) override;
   void compute_vector_corr(double *, int, int, bool) override;
   void compute_matrix(bigint *, double **, bool) override;
   void compute_matrix_corr(bigint *, double **) override;
 
-  void compute_group_group(int, int, int);
+  void compute_group_group(int, int, int) override;
+
+  void pack_buffers_q();
 
  protected:
   FFT_SCALAR ***electrolyte_density_brick;
   FFT_SCALAR *electrolyte_density_fft;
   class BoundaryCorrection *boundcorr;
 
-  void allocate();
-  void deallocate();
-  void allocate_peratom();
+  void allocate() override;
+  void deallocate() override;
+  void allocate_peratom() override;
 
  private:
   int compute_step;
@@ -89,10 +91,9 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
       project_psi<flt_t, acc_t, 0>(buffers, vec, sensor_grpbit);
   }
 
-  void one_step_multiplication(bigint *, std::vector<double>, double **, double **, int const,
-                               bool);
-  void two_step_multiplication(bigint *, std::vector<double>, double **, double **, int const,
-                               bool);
+  void one_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void two_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void build_amesh(int, int, int, double *, double *);
   bool compute_vector_called;
 };
 

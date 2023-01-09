@@ -98,7 +98,7 @@ to track the grain boundary motion throughout the simulation.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc: `binary restart
+No information about this fix is written to :doc:`binary restart
 files <restart>`.
 
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -23,7 +23,7 @@ CommandStyle(read_data,ReadData);
 #include "command.h"
 
 namespace LAMMPS_NS {
-
+class Fix;
 class ReadData : public Command {
  public:
   ReadData(class LAMMPS *);
@@ -44,8 +44,7 @@ class ReadData : public Command {
   int nlocal_previous;
   bigint natoms;
   bigint nbonds, nangles, ndihedrals, nimpropers;
-  int ntypes;
-  int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
+  int ntypes, nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
 
   bigint nellipsoids;
   class AtomVecEllipsoid *avec_ellipsoid;
@@ -56,6 +55,10 @@ class ReadData : public Command {
   bigint nbodies;
   class AtomVecBody *avec_body;
 
+  // type labels
+
+  class LabelMap *lmap;
+
   // box info
 
   double boxlo[3], boxhi[3];
@@ -64,7 +67,8 @@ class ReadData : public Command {
 
   // optional args
 
-  int addflag, offsetflag, shiftflag, coeffflag;
+  int addflag, offsetflag, shiftflag, coeffflag, settypeflag;
+  int tlabelflag, blabelflag, alabelflag, dlabelflag, ilabelflag;
   tagint addvalue;
   int toffset, boffset, aoffset, doffset, ioffset;
   double shift[3];
@@ -73,7 +77,7 @@ class ReadData : public Command {
   int groupbit;
 
   int nfix;
-  int *fix_index;
+  Fix **fix_index;
   char **fix_header;
   char **fix_section;
 
@@ -85,7 +89,7 @@ class ReadData : public Command {
   void header(int);
   void parse_keyword(int);
   void skip_lines(bigint);
-  void parse_coeffs(char *, const char *, int, int, int);
+  void parse_coeffs(char *, const char *, int, int, int, int, int *);
   int style_match(const char *, const char *);
 
   void atoms();
@@ -107,8 +111,9 @@ class ReadData : public Command {
   void anglecoeffs(int);
   void dihedralcoeffs(int);
   void impropercoeffs(int);
+  void typelabels(int);
 
-  void fix(int, char *);
+  void fix(Fix *, char *);
 };
 
 }    // namespace LAMMPS_NS

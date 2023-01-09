@@ -540,8 +540,9 @@ struct CudaParallelLaunchKernelInvoker<
                             dim3 const& block, int shmem,
                             CudaInternal const* cuda_instance) {
     // Wait until the previous kernel that uses the constant buffer is done
+    std::lock_guard<std::mutex> lock(CudaInternal::constantMemMutex);
     KOKKOS_IMPL_CUDA_SAFE_CALL(
-        cudaEventSynchronize(cuda_instance->constantMemReusable));
+        cudaEventSynchronize(CudaInternal::constantMemReusable));
 
     // Copy functor (synchronously) to staging buffer in pinned host memory
     unsigned long* staging = cuda_instance->constantMemHostStaging;
@@ -558,7 +559,7 @@ struct CudaParallelLaunchKernelInvoker<
 
     // Record an event that says when the constant buffer can be reused
     KOKKOS_IMPL_CUDA_SAFE_CALL(
-        cudaEventRecord(cuda_instance->constantMemReusable,
+        cudaEventRecord(CudaInternal::constantMemReusable,
                         cudaStream_t(cuda_instance->m_stream)));
   }
 
@@ -635,7 +636,7 @@ struct CudaParallelLaunchImpl<
           DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>>(
           base_t::get_kernel_func(), prefer_shmem);
 
-      KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE();
+      ensure_cuda_lock_arrays_on_device();
 
       // Invoke the driver function on the device
       base_t::invoke_kernel(driver, grid, block, shmem, cuda_instance);

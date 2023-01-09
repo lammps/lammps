@@ -170,7 +170,7 @@ colvar_grid_gradient::colvar_grid_gradient(std::string &filename)
   if (nd > 50) {
     cvm::error("Error: excessive number of dimensions in file \""+
                filename+"\".  Please ensure that the file is not corrupt.\n",
-               INPUT_ERROR);
+               COLVARS_INPUT_ERROR);
     return;
   }
 
@@ -271,6 +271,7 @@ integrate_potential::integrate_potential(std::vector<colvar *> &colvars, colvar_
   // hence PMF grid is wider than gradient grid if non-PBC
 
   if (nd > 1) {
+    cvm::main()->cite_feature("Poisson integration of 2D/3D free energy surfaces");
     divergence.resize(nt);
 
     // Compute inverse of Laplacian diagonal for Jacobi preconditioning
@@ -425,7 +426,7 @@ void integrate_potential::get_grad(cvm::real * g, std::vector<int> &ix)
 
 void integrate_potential::update_div_local(const std::vector<int> &ix0)
 {
-  const int linear_index = address(ix0);
+  const size_t linear_index = address(ix0);
   int i, j, k;
   std::vector<int> ix = ix0;
 

@@ -13,7 +13,7 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
  https://www.lammps.org/, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
+ LAMMPS development team: developers@lammps.org
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
  DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -345,7 +345,7 @@ void PairTriSurf::coeff(int narg, char **arg) {
         utils::bounds(FLERR,arg[0], 1,atom->ntypes, ilo, ihi, error);
         utils::bounds(FLERR,arg[1], 1,atom->ntypes, jlo, jhi, error);
 
-        double bulkmodulus_one = atof(arg[2]);
+        double bulkmodulus_one = utils::numeric(FLERR,arg[2],false,lmp);
 
         // set short-range force constant
         double kn_one = 0.0;
@@ -734,8 +734,8 @@ double PairTriSurf::memory_usage() {
  % https://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
  */
 
-void PairTriSurf::PointTriangleDistance(const Vector3d sourcePosition, const Vector3d TRI0, const Vector3d TRI1,
-                const Vector3d TRI2, Vector3d &CP, double &dist) {
+void PairTriSurf::PointTriangleDistance(const Vector3d& sourcePosition, const Vector3d& TRI0, const Vector3d& TRI1,
+                const Vector3d& TRI2, Vector3d &CP, double &dist) {
 
         Vector3d edge0 = TRI1 - TRI0;
         Vector3d edge1 = TRI2 - TRI0;

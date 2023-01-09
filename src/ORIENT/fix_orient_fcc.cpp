@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,7 +38,7 @@ using namespace MathConst;
 #define BIG 1000000000
 
 static const char cite_fix_orient_fcc[] =
-  "fix orient/fcc command:\n\n"
+  "fix orient/fcc command: doi:10.1038/nmat1559\n\n"
   "@Article{Janssens06,\n"
   " author = {K. G. F. Janssens, D. Olmsted, E.A. Holm, S. M. Foiles, S. J. Plimpton, and P. M. Derlet},\n"
   " title = {Computing the Mobility of Grain Boundaries},\n"
@@ -199,7 +199,7 @@ int FixOrientFCC::setmask()
 void FixOrientFCC::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 
@@ -222,9 +222,9 @@ void FixOrientFCC::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 

@@ -67,7 +67,7 @@ form.
 
 An interpolation table is used to evaluate the density-dependent energy
 (:math:`\int A(\rho') d \rho'`) and force (:math:`A(\rho')`).  Note that
-the pre-factor to the energy is computed after the interpolation, thus
+the prefactor to the energy is computed after the interpolation, thus
 the :math:`\int A(\rho') d\rho'` will have units of energy / length\^4.
 
 The interpolation table is created as a pre-computation by fitting

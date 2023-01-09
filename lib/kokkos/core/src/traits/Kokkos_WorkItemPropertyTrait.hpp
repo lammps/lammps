@@ -59,6 +59,7 @@ namespace Impl {
 struct WorkItemPropertyTrait : TraitSpecificationBase<WorkItemPropertyTrait> {
   struct base_traits {
     using work_item_property = Kokkos::Experimental::WorkItemProperty::None_t;
+    KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class WorkItemProp, class AnalyzeNextTrait>
   struct mixin_matching_trait : AnalyzeNextTrait {

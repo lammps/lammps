@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -158,9 +158,9 @@ class PairRANN : public Pair {
   void read_mass(const std::vector<std::string> &, const std::vector<std::string> &, const char *,
                  int);
   bool check_potential();    //after finishing reading potential file
-  void propagateforward(double *, double **, int,
+  void propagateforward(double &, double **, int,
                         int);    //called by compute to get force and energy
-  void propagateforwardspin(double *, double **, double **, int,
+  void propagateforwardspin(double &, double **, double **, int,
                             int);    //called by compute to get force and energy
   void screening(int, int, int);
   void cull_neighbor_list(int *, int, int);

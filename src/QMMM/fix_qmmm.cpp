@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -121,8 +121,6 @@ static void rebuild_table_tagint(taginthash_t *tptr) {
 
   /* free memory used by old table */
   free(old_bucket);
-
-  return;
 }
 
 /*
@@ -152,8 +150,6 @@ void taginthash_init(taginthash_t *tptr, tagint buckets) {
 
   /* allocate memory for table */
   tptr->bucket=(taginthash_node_t **) calloc(tptr->size, sizeof(taginthash_node_t *));
-
-  return;
 }
 
 /*
@@ -520,8 +516,6 @@ void FixQMMM::exchange_positions()
       }
     }
   }
-
-  return;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -632,7 +626,6 @@ void FixQMMM::exchange_forces()
     // use qm_coord array as a communication buffer
     MPI_Send(reduced_mm_force_on_qm_atoms, 3*num_qm, MPI_DOUBLE, 0, QMMM_TAG_FORCE, mm_comm);
   }
-  return;
 }
 
 /* ---------------------------------------------------------------------- */

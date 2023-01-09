@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_MEMORYPOOL_HPP
 #define KOKKOS_MEMORYPOOL_HPP
 
@@ -192,6 +201,9 @@ class MemoryPool {
     if (!accessible) {
       Kokkos::Impl::DeepCopy<Kokkos::HostSpace, base_memory_space>(
           sb_state_array, m_sb_state_array, alloc_size);
+      Kokkos::fence(
+          "MemoryPool::get_usage_statistics(): fence after copying state "
+          "array to HostSpace");
     }
 
     stats.superblock_bytes     = (1LU << m_sb_size_lg2);
@@ -240,6 +252,9 @@ class MemoryPool {
     if (!accessible) {
       Kokkos::Impl::DeepCopy<Kokkos::HostSpace, base_memory_space>(
           sb_state_array, m_sb_state_array, alloc_size);
+      Kokkos::fence(
+          "MemoryPool::print_state(): fence after copying state array to "
+          "HostSpace");
     }
 
     Impl::_print_memory_pool_state(s, sb_state_array, m_sb_count, m_sb_size_lg2,
@@ -449,6 +464,9 @@ class MemoryPool {
     if (!accessible) {
       Kokkos::Impl::DeepCopy<base_memory_space, Kokkos::HostSpace>(
           m_sb_state_array, sb_state_array, header_size);
+      Kokkos::fence(
+          "MemoryPool::MemoryPool(): fence after copying state array from "
+          "HostSpace");
 
       host.deallocate(sb_state_array, header_size);
     } else {
@@ -529,7 +547,7 @@ class MemoryPool {
 #else
     const uint32_t block_id_hint =
         (uint32_t)(Kokkos::Impl::clock_tic()
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
+#ifdef __CUDA_ARCH__  // FIXME_CUDA
                    // Spread out potentially concurrent access
                    // by threads within a warp or thread block.
                    + (threadIdx.x + blockDim.x * threadIdx.y)
@@ -780,9 +798,16 @@ class MemoryPool {
     block_count_capacity = 0;
     block_count_used     = 0;
 
-    if (Kokkos::Impl::MemorySpaceAccess<
-            Kokkos::Impl::ActiveExecutionMemorySpace,
-            base_memory_space>::accessible) {
+    bool can_access_state_array = []() {
+      KOKKOS_IF_ON_HOST(
+          (return SpaceAccessibility<DefaultHostExecutionSpace,
+                                     base_memory_space>::accessible;))
+      KOKKOS_IF_ON_DEVICE(
+          (return SpaceAccessibility<DefaultExecutionSpace,
+                                     base_memory_space>::accessible;))
+    }();
+
+    if (can_access_state_array) {
       // Can access the state array
 
       const uint32_t state =

@@ -32,6 +32,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 17Feb2022
+
 The *ilp/tmd* style computes the registry-dependent interlayer
 potential (ILP) potential for transition metal dichalcogenides (TMD)
 as described in :ref:`(Ouyang7) <Ouyang7>`.

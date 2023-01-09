@@ -1,7 +1,7 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
 #   https://www.lammps.org/ Sandia National Laboratories
-#   Steve Plimpton, sjplimp@sandia.gov
+#   LAMMPS Development team: developers@lammps.org
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 #   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -165,13 +165,20 @@ class numpy_wrapper:
     """
     value = self.lmp.extract_compute(cid, cstyle, ctype)
 
-    if cstyle in (LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL):
+    if cstyle == LMP_STYLE_GLOBAL:
       if ctype == LMP_TYPE_VECTOR:
         nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_VECTOR)
         return self.darray(value, nrows)
       elif ctype == LMP_TYPE_ARRAY:
         nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_ROWS)
         ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
+        return self.darray(value, nrows, ncols)
+    elif cstyle == LMP_STYLE_LOCAL:
+      nrows = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_ROWS)
+      ncols = self.lmp.extract_compute(cid, cstyle, LMP_SIZE_COLS)
+      if ncols == 0:
+        return self.darray(value, nrows)
+      else:
         return self.darray(value, nrows, ncols)
     elif cstyle == LMP_STYLE_ATOM:
       if ctype == LMP_TYPE_VECTOR:

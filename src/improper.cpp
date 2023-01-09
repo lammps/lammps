@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -71,6 +71,16 @@ void Improper::init()
     if (setflag[i] == 0) error->all(FLERR, "All improper coeffs are not set");
 
   init_style();
+}
+
+/* ----------------------------------------------------------------------
+   check that there are no arguments
+------------------------------------------------------------------------- */
+
+void Improper::settings(int narg, char **args)
+{
+  if (narg > 0)
+    error->all(FLERR, "Illegal improper_style {} argument: {}", force->improper_style, args[0]);
 }
 
 /* ----------------------------------------------------------------------

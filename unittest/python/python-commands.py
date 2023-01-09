@@ -1,6 +1,8 @@
 
 import sys,os,unittest,ctypes
-from lammps import lammps, LMP_VAR_ATOM, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, LAMMPS_DOUBLE_2D, LAMMPS_AUTODETECT
+from lammps import lammps, LMP_VAR_ATOM, LMP_STYLE_GLOBAL, LMP_STYLE_LOCAL
+from lammps import LMP_TYPE_VECTOR, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS
+from lammps import LAMMPS_DOUBLE_2D, LAMMPS_AUTODETECT
 
 has_manybody=False
 try:
@@ -207,6 +209,75 @@ create_atoms 1 single &
             self.assertEqual(idx,i)
             self.assertEqual(num,nlocal-1)
 
+    def testNeighborListZeroHalf(self):
+        self.lmp.commands_string("""
+        boundary f f f
+        units real
+        region box block -5 5 -5 5 -5 5
+        create_box 1 box
+        mass 1 1.0
+        pair_style zero 4.0
+        pair_coeff 1 1
+        """)
+        x = [ 0.0,  0.0,  0.0,  -1.1,  0.0,  0.0,  1.0,  0.0,  0.0,
+              0.0, -1.1,  0.0,   0.0,  1.0,  0.0,  0.0,  0.0, -1.1,
+              0.0,  0.0,  1.0 ]
+        tags = [1, 2, 3, 4, 5, 6, 7]
+        types = [1, 1, 1, 1, 1, 1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.assertEqual(nlocal, 7)
+
+        self.lmp.command("run 0 post no")
+
+        self.assertEqual(self.lmp.find_pair_neighlist("zero"),0)
+        nlist = self.lmp.get_neighlist(0)
+        self.assertEqual(nlist.size, 7)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(idx,i)
+            self.assertEqual(num,nlocal-1-i)
+
+        # look up neighbor list by atom index
+        num, neighs = nlist.find(2)
+        self.assertEqual(num,4)
+        self.assertIsNotNone(neighs,None)
+        # this one will fail
+        num, neighs = nlist.find(10)
+        self.assertEqual(num,-1)
+        self.assertIsNone(neighs,None)
+
+    def testNeighborListZeroFull(self):
+        self.lmp.commands_string("""
+        boundary f f f
+        units metal
+        region box block -5 5 -5 5 -5 5
+        create_box 1 box
+        mass 1 1.0
+        pair_style zero 4.0 full
+        pair_coeff * *
+        """)
+        x = [ 0.0,  0.0,  0.0,  -1.1,  0.0,  0.0,  1.0,  0.0,  0.0,
+              0.0, -1.1,  0.0,   0.0,  1.0,  0.0,  0.0,  0.0, -1.1,
+              0.0,  0.0,  1.0 ]
+        tags = [1, 2, 3, 4, 5, 6, 7]
+        types = [1, 1, 1, 1, 1, 1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.assertEqual(nlocal, 7)
+
+        self.lmp.command("run 0 post no")
+
+        self.assertEqual(self.lmp.find_pair_neighlist("zero"),0)
+        nlist = self.lmp.get_neighlist(0)
+        self.assertEqual(nlist.size, 7)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(idx,i)
+            self.assertEqual(num,nlocal-1)
+
     @unittest.skipIf(not has_manybody,"Hybrid neighbor list test for manybody potential")
     def testNeighborListHybrid(self):
         self.lmp.commands_string("""
@@ -310,6 +381,14 @@ create_atoms 1 single &
         self.assertEqual(nskip,0)
         self.assertEqual(minval,1.0)
         self.assertEqual(maxval,2.1)
+
+        ndist1 = self.lmp.extract_compute("dist",LMP_STYLE_LOCAL,LMP_SIZE_VECTOR)
+        ndist2 = self.lmp.extract_compute("dist",LMP_STYLE_LOCAL,LMP_SIZE_ROWS)
+        ndist3 = self.lmp.extract_compute("dist",LMP_STYLE_LOCAL,LMP_SIZE_COLS)
+
+        self.assertEqual(ndist1,21)
+        self.assertEqual(ndist2,21)
+        self.assertEqual(ndist3,0)
 
         self.assertNotEqual(self.lmp.find_pair_neighlist("lj/cut"),-1)
         self.assertNotEqual(self.lmp.find_compute_neighlist("dist"),-1)

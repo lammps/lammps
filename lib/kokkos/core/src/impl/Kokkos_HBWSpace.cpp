@@ -42,6 +42,10 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <Kokkos_Macros.hpp>
 
 #include <cstddef>
@@ -222,7 +226,7 @@ SharedAllocationRecord<Kokkos::Experimental::HBWSpace,
 #endif
 {
 
-  m_space.deallocate(RecordBase::m_alloc_ptr->m_label,
+  m_space.deallocate(m_label.c_str(),
                      SharedAllocationRecord<void, void>::m_alloc_ptr,
                      SharedAllocationRecord<void, void>::m_alloc_size,
                      (SharedAllocationRecord<void, void>::m_alloc_size -
@@ -243,7 +247,8 @@ SharedAllocationRecord<Kokkos::Experimental::HBWSpace, void>::
 #endif
           Impl::checked_allocation_with_header(arg_space, arg_label,
                                                arg_alloc_size),
-          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
+          sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc,
+          arg_label),
       m_space(arg_space) {
   // Fill in the Header information
   RecordBase::m_alloc_ptr->m_record =
@@ -291,6 +296,9 @@ void *SharedAllocationRecord<Kokkos::Experimental::HBWSpace, void>::
   Kokkos::Impl::DeepCopy<Kokkos::Experimental::HBWSpace,
                          Kokkos::Experimental::HBWSpace>(
       r_new->data(), r_old->data(), std::min(r_old->size(), r_new->size()));
+  Kokkos::fence(
+      "SharedAllocationRecord<Kokkos::Experimental::HBWSpace, "
+      "void>::reallocate_tracked(): fence after copying data");
 
   RecordBase::increment(r_new);
   RecordBase::decrement(r_old);

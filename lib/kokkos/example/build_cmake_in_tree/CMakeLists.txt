@@ -1,6 +1,6 @@
-# Kokkos minimally requires 3.10 right now,
+# Kokkos minimally requires 3.16 right now,
 # but your project can set it higher
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 # Project can mix languages - must have C++ support
 # Kokkos flags are only applied to C++ files

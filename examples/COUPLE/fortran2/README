@@ -1,3 +1,12 @@
+!! NOTE -------------------------------------------------------------------
+!  This interface is obsolete and may be removed in a future release of
+!  LAMMPS. The interface in fortran/lammps.f90 replaces this one. That API
+!  is maintained by the LAMMPS developers and has documentation written for
+!  it; it is based loosely on this one, but binds all procedures to a lammps
+!  derived type. That interface was written in large
+!  part by the same author, but is also supported by other developers.
+!--------------------------------------------------------------------------
+
 LAMMPS.F90 defines a Fortran 2003 module, LAMMPS, which wraps all functions in
 src/library.h so they can be used directly from Fortran-encoded programs.
 
@@ -11,9 +20,8 @@ This interface was created by Karl Hammond who you can contact with
 questions:
 
 Karl D. Hammond
-University of Tennessee, Knoxville
-karlh at ugcs.caltech.edu
-karlh at utk.edu
+University of Missouri
+hammondkd at missouri.edu
 
 -------------------------------------
 
@@ -41,7 +49,7 @@ the dynamically-linkable library (liblammps_fortran.so).
  (2) Copy said library to your Fortran program's source directory or replace
      ${LAMMPS_LIB} with its full path in the instructions below.
  (3) Compile (but don't link!) LAMMPS.F90.  Example:
-        mpif90 -c LAMMPS.f90
+        mpifort -c LAMMPS.f90
      OR
         gfortran -c LAMMPS.F90
      NOTE:  you may get a warning such as,
@@ -73,8 +81,8 @@ the dynamically-linkable library (liblammps_fortran.so).
      were part of the usual LAMMPS library interface (if you have the module
      file visible to the compiler, that is).
  (6) Compile (but don't link) your Fortran program.  Example:
-        mpif90 -c myfreeformatfile.f90
-        mpif90 -c myfixedformatfile.f
+        mpifort -c myfreeformatfile.f90
+        mpifort -c myfixedformatfile.f
      OR
         gfortran -c myfreeformatfile.f90
         gfortran -c myfixedformatfile.f
@@ -84,12 +92,12 @@ the dynamically-linkable library (liblammps_fortran.so).
      IMPORTANT:  If the Fortran module from part (3) is not in the current
      directory or in one searched by the compiler for module files, you will
      need to include that location via the -I flag to the compiler, like so:
-        mpif90 -I${LAMMPS_SRC}/examples/COUPLE/fortran2 -c myfreeformatfile.f90
+        mpifort -I${LAMMPS_SRC}/examples/COUPLE/fortran2 -c myfreeformatfile.f90
 
  (7) Link everything together, including any libraries needed by LAMMPS (such
      as the C++ standard library, the C math library, the JPEG library, fftw,
      etc.)  For example,
-        mpif90 LAMMPS.o LAMMPS-wrapper.o ${my_object_files} \
+        mpifort LAMMPS.o LAMMPS-wrapper.o ${my_object_files} \
             ${LAMMPS_LIB} -lmpi_cxx -lstdc++ -lm
      OR
         gfortran LAMMPS.o LAMMPS-wrapper.o ${my_object_files} \
@@ -106,17 +114,17 @@ You should now have a working executable.
  (1) Compile LAMMPS as a dynamic library
      (make makeshlib && make -f Makefile.shlib [targetname]).
  (2) Compile, but don't link, LAMMPS.F90 using the -fPIC flag, such as
-        mpif90 -fPIC -c LAMMPS.f90
+        mpifort -fPIC -c LAMMPS.f90
  (3) Compile, but don't link, LAMMPS-wrapper.cpp in the same manner, e.g.
         mpicxx -fPIC -c LAMMPS-wrapper.cpp
  (4) Make the dynamic library, like so:
-        mpif90 -fPIC -shared -o liblammps_fortran.so LAMMPS.o LAMMPS-wrapper.o
+        mpifort -fPIC -shared -o liblammps_fortran.so LAMMPS.o LAMMPS-wrapper.o
  (5) Compile your program, such as,
-        mpif90 -I${LAMMPS_SRC}/examples/COUPLE/fortran2 -c myfreeformatfile.f90
+        mpifort -I${LAMMPS_SRC}/examples/COUPLE/fortran2 -c myfreeformatfile.f90
      where ${LAMMPS_SRC}/examples/COUPLE/fortran2 contains the .mod file from
      step (3)
  (6) Link everything together, such as
-        mpif90 ${my_object_files} -L${LAMMPS_SRC} \
+        mpifort ${my_object_files} -L${LAMMPS_SRC} \
             -L${LAMMPS_SRC}/examples/COUPLE/fortran2 -llammps_fortran \
             -llammps_openmpi -lmpi_cxx -lstdc++ -lm
 

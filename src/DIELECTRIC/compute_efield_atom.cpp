@@ -93,15 +93,15 @@ void ComputeEfieldAtom::setup()
   if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
     efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
     efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
     efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
+    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric/omp") == 0)
     efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)

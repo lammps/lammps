@@ -47,10 +47,13 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
   double drho0dr1, drho0dr2, drho0ds1, drho0ds2;
   double drho1dr1, drho1dr2, drho1ds1, drho1ds2;
   double drho1drm1[3], drho1drm2[3];
+  //double drho1mdrm1[3], drho1mdrm2[3]; // msmeam params
   double drho2dr1, drho2dr2, drho2ds1, drho2ds2;
   double drho2drm1[3], drho2drm2[3];
+  //double drho2mdrm1[3], drho2mdrm2[3]; // msmeam params
   double drho3dr1, drho3dr2, drho3ds1, drho3ds2;
   double drho3drm1[3], drho3drm2[3];
+  //double drho3mdrm1[3], drho3mdrm2[3]; // msmeam params
   double dt1dr1, dt1dr2, dt1ds1, dt1ds2;
   double dt2dr1, dt2dr2, dt2ds1, dt2ds2;
   double dt3dr1, dt3dr2, dt3ds1, dt3ds2;
@@ -128,6 +131,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         //     write(1,*) "force_meamf: phip: ",phip
 
         //     Compute pair densities and derivatives
+
         invrei = 1.0 / this->re_meam[elti][elti];
         ai = rij * invrei - 1.0;
         ro0i = this->rho0_meam[elti];
@@ -140,7 +144,14 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         rhoa3i = ro0i * MathSpecial::fm_exp(-this->beta3_meam[elti] * ai);
         drhoa3i = -this->beta3_meam[elti] * invrei * rhoa3i;
 
-        //printf("%f %f %f %f %f\n", ro0i, drhoa0i, drhoa1i, drhoa2i, drhoa3i);
+        if (this->msmeamflag){
+          rhoa1mi = ro0i * MathSpecial::fm_exp(-this->beta1m_meam[elti] * ai) * t1m_meam[elti];
+          drhoa1mi = -this->beta1m_meam[elti] * invrei * rhoa1mi;
+          rhoa2mi = ro0i * MathSpecial::fm_exp(-this->beta2m_meam[elti] * ai) * t2m_meam[elti];
+          drhoa2mi = -this->beta2m_meam[elti] * invrei * rhoa2mi;
+          rhoa3mi = ro0i * MathSpecial::fm_exp(-this->beta3m_meam[elti] * ai) * t3m_meam[elti];
+          drhoa3mi = -this->beta3m_meam[elti] * invrei * rhoa3mi;
+        }
 
         if (elti != eltj) {
           invrej = 1.0 / this->re_meam[eltj][eltj];
@@ -155,7 +166,6 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           rhoa3j = ro0j * MathSpecial::fm_exp(-this->beta3_meam[eltj] * aj);
           drhoa3j = -this->beta3_meam[eltj] * invrej * rhoa3j;
 
-          printf("^^^^^ check\n");
           if (this->msmeamflag) {
             rhoa1mj = ro0j * t1m_meam[eltj] * MathSpecial::fm_exp(-this->beta1m_meam[eltj] * aj);
             drhoa1mj = -this->beta1m_meam[eltj] * invrej * rhoa1mj;
@@ -185,17 +195,12 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
             }
 	      }
 
-        //printf("%f %f %f %f %f\n", ro0i, drhoa0j, drhoa1j, drhoa2j, drhoa3j);
-        //printf("%f %f %f\n", drhoa1mj, drhoa2mj, drhoa3mj);
-
         const double t1mi = this->t1_meam[elti];
         const double t2mi = this->t2_meam[elti];
         const double t3mi = this->t3_meam[elti];
         const double t1mj = this->t1_meam[eltj];
         const double t2mj = this->t2_meam[eltj];
         const double t3mj = this->t3_meam[eltj];
-
-        //printf("%f %f %f %f %f %f\n", t1mi, t2mi, t3mi, t1mj, t2mj, t3mj);
 
         if (this->ialloy == 1) {
           rhoa1j  *= t1mj;
@@ -241,7 +246,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           arg3j3 = arg3j3 - arho3b[j][n] * delij[n];
         }
 
-        // arhom args (msmeam)
+        // msmeam arhom args
 
         arg1i1m = 0.0;
         arg1j1m = 0.0;
@@ -256,7 +261,6 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
             for (p = n; p < 3; p++) {
               for (q = p; q < 3; q++) {
                 arg = delij[n] * delij[p] * delij[q] * this->v3D[nv3];
-                printf("segfault here n p q: %d %d %d\n", n, p, q);
                 arg1i3m = arg1i3m + arho3m[i][nv3] * arg;
                 arg1j3m = arg1j3m - arho3m[j][nv3] * arg;
                 nv3 = nv3 + 1;
@@ -277,8 +281,6 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         drho0dr1 = drhoa0j * sij;
         drho0dr2 = drhoa0i * sij;
 
-        //printf("%f %f\n", drho0dr1, drho0dr2);
-
         //     rho1 terms
         a1 = 2 * sij / rij;
         drho1dr1 = a1 * (drhoa1j - rhoa1j / rij) * arg1i1;
@@ -287,7 +289,6 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         for (m = 0; m < 3; m++) {
           drho1drm1[m] = a1 * rhoa1j * arho1[i][m];
           drho1drm2[m] = -a1 * rhoa1i * arho1[j][m];
-          //printf("%f %f\n", drho1drm1[m], drho1drm2[m]);
         }
 
         //     rho2 terms
@@ -305,7 +306,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           drho2drm1[m] = a2 * rhoa2j * drho2drm1[m];
           drho2drm2[m] = -a2 * rhoa2i * drho2drm2[m];
         }
-        printf("^^^^^ check 4\n");
+
         //     rho3 terms
         rij3 = rij * rij2;
         a3 = 2 * sij / rij3;
@@ -464,8 +465,6 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           
         }
 
-        //printf("%f %f %f %f %f %f\n", dt1dr1, dt1dr2, dt2dr1, dt2dr2, dt3dr1, dt3dr2);
-
         //     Compute derivatives of total density wrt rij, sij and rij(3)
         get_shpfcn(this->lattce_meam[elti][elti], this->stheta_meam[elti][elti], this->ctheta_meam[elti][elti], shpi);
         get_shpfcn(this->lattce_meam[eltj][eltj], this->stheta_meam[elti][elti], this->ctheta_meam[elti][elti], shpj);
@@ -473,23 +472,23 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         if (this->msmeamflag){
           drhodr1 = dgamma1[i] * drho0dr1 +
             dgamma2[i] * (dt1dr1 * rho1[i] + t1i * (drho1dr1 - drho1mdr1) +
-        dt2dr1 * rho2[i] + t2i * (drho2dr1 - drho2mdr1) +
-                          dt3dr1 * rho3[i] + t3i * (drho3dr1 - drho3mdr1)) -
+            dt2dr1 * rho2[i] + t2i * (drho2dr1 - drho2mdr1) +
+            dt3dr1 * rho3[i] + t3i * (drho3dr1 - drho3mdr1)) -
             dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
           drhodr2 = dgamma1[j] * drho0dr2 +
             dgamma2[j] * (dt1dr2 * rho1[j] + t1j * (drho1dr2 - drho1mdr2) +
-        dt2dr2 * rho2[j] + t2j * (drho2dr2 - drho2mdr2) +
-                          dt3dr2 * rho3[j] + t3j * (drho3dr2 - drho3mdr2)) -
+            dt2dr2 * rho2[j] + t2j * (drho2dr2 - drho2mdr2) +
+            dt3dr2 * rho3[j] + t3j * (drho3dr2 - drho3mdr2)) -
             dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
           for (m = 0; m < 3; m++) {
             drhodrm1[m] = 0.0;
             drhodrm2[m] = 0.0;
             drhodrm1[m] = dgamma2[i] * (t1i * (drho1drm1[m] - drho1mdrm1[m]) +
-                t2i * (drho2drm1[m] - drho2mdrm1[m]) +
-                t3i * (drho3drm1[m] - drho3mdrm1[m]) );
+              t2i * (drho2drm1[m] - drho2mdrm1[m]) +
+              t3i * (drho3drm1[m] - drho3mdrm1[m]) );
             drhodrm2[m] = dgamma2[j] * (t1j * (drho1drm2[m] - drho1mdrm2[m]) +
-                t2j * (drho2drm2[m] - drho2mdrm2[m]) +
-                t3j * (drho3drm2[m] - drho3mdrm2[m]) );
+              t2j * (drho2drm2[m] - drho2mdrm2[m]) +
+              t3j * (drho3drm2[m] - drho3mdrm2[m]) );
           }
         } else{
 
@@ -508,7 +507,6 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
             drhodrm2[m] = dgamma2[j] * (t1j * drho1drm2[m] + t2j * drho2drm2[m] + t3j * drho3drm2[m]);
           }
         }
-        //printf("%f %f %f %f %f %f %f %f\n", drhodr1, drhodr2, drhodrm1[0], drhodrm1[1], drhodrm1[2], drhodrm2[0], drhodrm2[1], drhodrm2[2]);
 
         //     Compute derivatives wrt sij, but only if necessary
         if (!iszero(dscrfcn[fnoffset + jn])) {
@@ -586,16 +584,16 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           }
 
           if (this->msmeamflag){
-          drhods1 = dgamma1[i] * drho0ds1 +
-            dgamma2[i] * (dt1ds1 * rho1[i] + t1i * (drho1ds1 - drho1mds1) +
-			  dt2ds1 * rho2[i] + t2i * (drho2ds1 - drho2mds1) +
-                          dt3ds1 * rho3[i] + t3i * (drho3ds1 - drho3mds1)) -
-            dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
-          drhods2 = dgamma1[j] * drho0ds2 +
-            dgamma2[j] * (dt1ds2 * rho1[j] + t1j * (drho1ds2 - drho1mds2) +
-			  dt2ds2 * rho2[j] + t2j * (drho2ds2 - drho2mds2) +
-			  dt3ds2 * rho3[j] + t3j * (drho3ds2 - drho3mds2)) -
-            dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
+            drhods1 = dgamma1[i] * drho0ds1 +
+              dgamma2[i] * (dt1ds1 * rho1[i] + t1i * (drho1ds1 - drho1mds1) +
+                            dt2ds1 * rho2[i] + t2i * (drho2ds1 - drho2mds1) +
+                            dt3ds1 * rho3[i] + t3i * (drho3ds1 - drho3mds1)) -
+              dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
+            drhods2 = dgamma1[j] * drho0ds2 +
+              dgamma2[j] * (dt1ds2 * rho1[j] + t1j * (drho1ds2 - drho1mds2) +
+                            dt2ds2 * rho2[j] + t2j * (drho2ds2 - drho2mds2) +
+                            dt3ds2 * rho3[j] + t3j * (drho3ds2 - drho3mds2)) -
+              dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
           }
           else{
             drhods1 = dgamma1[i] * drho0ds1 +
@@ -607,11 +605,11 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
                             dt3ds2 * rho3[j] + t3j * drho3ds2) -
               dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
           }
-
-          //printf("%f %f\n", drhods1, drhods2);
         } 
 
-        //     Compute derivatives of energy wrt rij, sij and rij[3]
+        // Compute derivatives of energy wrt rij, sij and rij[3]
+        // From this point on, MS-MEAM should not affect the code
+
         dUdrij = phip * sij + frhop[i] * drhodr1 + frhop[j] * drhodr2;
         dUdsij = 0.0;
         if (!iszero(dscrfcn[fnoffset + jn])) {

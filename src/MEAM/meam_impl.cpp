@@ -34,7 +34,8 @@ MEAM::MEAM(Memory* mem)
   gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = nullptr;
   arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = nullptr;
   // msmeam arrays
-  //arho1m = arho2m = arho2mb = arho3m = arho3mb = nullptr;
+  arho2mb = nullptr;
+  arho1m = arho2m = arho3m = arho3mb = nullptr;
 
   maxneigh = 0;
   scrfcn = dscrfcn = fcpair = nullptr;

@@ -13,37 +13,21 @@
 
 #ifdef MINIMIZE_CLASS
 // clang-format off
-MinimizeStyle(fire,MinFire);
+MinimizeStyle(abcfire,MinABCFire);
 // clang-format on
 #else
 
-#ifndef LMP_MIN_FIRE_H
-#define LMP_MIN_FIRE_H
+#ifndef LMP_MIN_ABCFIRE_H
+#define LMP_MIN_ABCFIRE_H
 
-#include "min.h"
+#include "min_fire.h"
 
 namespace LAMMPS_NS {
 
-class MinFire : public Min {
+class MinABCFire : public MinFire {
  public:
-  MinFire(class LAMMPS *);
-
-  void init() override;
-  void setup_style() override;
-  void reset_vectors() override;
-  int iterate(int) override;
-
- private:
-  double dt, dtmax, dtmin;
-  double alpha;
-  bigint last_negative, ntimestep_start;
-  int vdotf_negatif, flagv0;
-  template <int INTEGRATOR, bool ABCFLAG> int run_iterate(int);
-
- protected:
-  bool abcflag;
+  MinABCFire(class LAMMPS *_lmp) : MinFire(_lmp) { abcflag = true; }
 };
-
 }    // namespace LAMMPS_NS
 
 #endif

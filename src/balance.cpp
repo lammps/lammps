@@ -496,8 +496,8 @@ void Balance::weight_storage(char *prefix)
   if (prefix) cmd = prefix;
   cmd += "IMBALANCE_WEIGHTS";
 
-  fixstore = dynamic_cast<FixStore *>( modify->get_fix_by_id(cmd));
-  if (!fixstore) fixstore = dynamic_cast<FixStore *>( modify->add_fix(cmd + " all STORE peratom 0 1"));
+  fixstore = dynamic_cast<FixStore *>(modify->get_fix_by_id(cmd));
+  if (!fixstore) fixstore = dynamic_cast<FixStore *>(modify->add_fix(cmd + " all STORE peratom 0 1"));
 
   // do not carry weights with atoms during normal atom migration
 

@@ -61,7 +61,7 @@ PPPMDielectric::PPPMDielectric(LAMMPS *_lmp) : PPPM(_lmp)
   // no warnings about non-neutral systems from qsum_qsq()
   warn_nonneutral = 2;
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"pppm/dielectric requires atom style dielectric");
 }
 

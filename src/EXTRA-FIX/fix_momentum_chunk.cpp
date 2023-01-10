@@ -110,7 +110,7 @@ void FixMomentumChunk::init()
   int icompute = modify->find_compute(id_chunk);
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for fix momentum/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Fix momentum/chunk does not use chunk/atom compute");
 
@@ -122,7 +122,7 @@ void FixMomentumChunk::init()
   auto cmd = fmt::format("{} {} com/chunk {}",id_com,group->names[igroup],id_chunk);
   modify->add_compute(cmd);
   icompute = modify->find_compute(id_com);
-  ccom = dynamic_cast<ComputeCOMChunk *>( modify->compute[icompute]);
+  ccom = dynamic_cast<ComputeCOMChunk *>(modify->compute[icompute]);
 
   id_vcm = id + id_chunk + "_vcm";
   icompute = modify->find_compute(id_vcm);

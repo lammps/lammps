@@ -112,11 +112,11 @@ void ComputeSpin::init()
   int count = 0;
   if (npairspin == 1) {
     count = 1;
-    spin_pairs[0] = dynamic_cast<PairSpin *>( force->pair_match("^spin",0,0));
+    spin_pairs[0] = dynamic_cast<PairSpin *>(force->pair_match("^spin",0,0));
   } else if (npairspin > 1) {
     for (int i = 0; i<npairs; i++) {
       if (force->pair_match("^spin",0,i)) {
-        spin_pairs[count] = dynamic_cast<PairSpin *>( force->pair_match("^spin",0,i));
+        spin_pairs[count] = dynamic_cast<PairSpin *>(force->pair_match("^spin",0,i));
         count++;
       }
     }
@@ -141,7 +141,7 @@ void ComputeSpin::init()
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
       precession_spin_flag = 1;
-      lockprecessionspin = dynamic_cast<FixPrecessionSpin *>( modify->fix[iforce]);
+      lockprecessionspin = dynamic_cast<FixPrecessionSpin *>(modify->fix[iforce]);
     }
   }
 }

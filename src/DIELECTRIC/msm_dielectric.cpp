@@ -58,7 +58,7 @@ void MSMDielectric::init()
 {
   MSM::init();
 
-  avec = dynamic_cast<AtomVecDielectric *>( atom->style_match("dielectric"));
+  avec = dynamic_cast<AtomVecDielectric *>(atom->style_match("dielectric"));
   if (!avec) error->all(FLERR,"msm/dielectric requires atom style dielectric");
 }
 

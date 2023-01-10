@@ -67,7 +67,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute ID for fix saed/vtk does not exist");
 
   // Check that specified compute is for SAED
-  compute_saed = dynamic_cast<ComputeSAED *>( modify->compute[icompute]);
+  compute_saed = dynamic_cast<ComputeSAED *>(modify->compute[icompute]);
   if (strcmp(compute_saed->style,"saed") != 0)
     error->all(FLERR,"Fix saed/vtk has invalid compute assigned");
 

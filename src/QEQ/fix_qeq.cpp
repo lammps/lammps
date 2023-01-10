@@ -308,7 +308,7 @@ void FixQEq::init()
     error->warning(FLERR,"Fix efield is ignored during charge equilibration");
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
   // compute net charge and print warning if too large
 

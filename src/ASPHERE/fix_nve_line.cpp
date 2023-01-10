@@ -56,7 +56,7 @@ void FixNVELine::init()
 {
   // error checks
 
-  avec = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+  avec = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
   if (!avec) error->all(FLERR,"Fix nve/line requires atom style line");
 
   if (domain->dimension != 2)

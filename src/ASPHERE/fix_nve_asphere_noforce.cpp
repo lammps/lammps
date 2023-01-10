@@ -37,7 +37,7 @@ void FixNVEAsphereNoforce::init()
 {
   // error check
 
-  avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!atom->ellipsoid_flag)
     error->all(FLERR,"Fix nve/asphere/noforce requires atom style ellipsoid");
 

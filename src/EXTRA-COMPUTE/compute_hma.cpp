@@ -198,7 +198,7 @@ void ComputeHMA::setup()
 
   int ifix2 = modify->find_fix(id_fix);
   if (ifix2 < 0) error->all(FLERR,"Could not find hma store fix ID");
-  fix = dynamic_cast<FixStore *>( modify->fix[ifix2]);
+  fix = dynamic_cast<FixStore *>(modify->fix[ifix2]);
 }
 
 /* ---------------------------------------------------------------------- */

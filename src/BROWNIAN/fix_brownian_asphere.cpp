@@ -27,6 +27,8 @@
 #include "math_extra.h"
 #include "random_mars.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -157,7 +159,7 @@ void FixBrownianAsphere::initial_integrate(int /*vflag */)
       }
     }
   }
-  }
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -296,5 +298,4 @@ void FixBrownianAsphere::initial_integrate_templated()
       }
     }
   }
-
-  }
+}

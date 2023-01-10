@@ -364,7 +364,7 @@ void PairLJCutTholeLong::init_style()
     if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
   if (ifix == modify->nfix)
       error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");
-  fix_drude = dynamic_cast<FixDrude *>( modify->fix[ifix]);
+  fix_drude = dynamic_cast<FixDrude *>(modify->fix[ifix]);
 
   neighbor->add_request(this);
 

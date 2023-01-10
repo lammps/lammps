@@ -202,7 +202,7 @@ void ComputePressure::init()
     vptr = new double*[nvirial];
     nvirial = 0;
     if (pairhybridflag && force->pair) {
-      auto ph = dynamic_cast<PairHybrid *>( force->pair);
+      auto ph = dynamic_cast<PairHybrid *>(force->pair);
       ph->no_virial_fdotr_compute = 1;
       vptr[nvirial++] = pairhybrid->virial;
     }

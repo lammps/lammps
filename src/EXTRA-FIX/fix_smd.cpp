@@ -161,7 +161,7 @@ void FixSMD::init()
   }
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels-1;
+    ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
 }
@@ -173,9 +173,9 @@ void FixSMD::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel_respa);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel_respa);
   }
 }
 
@@ -194,7 +194,7 @@ void FixSMD::post_force(int vflag)
     if (utils::strmatch(update->integrate_style,"^verlet"))
       r_old += v_smd * update->dt;
     else
-      r_old += v_smd * (dynamic_cast<Respa *>( update->integrate))->step[ilevel_respa];
+      r_old += v_smd * (dynamic_cast<Respa *>(update->integrate))->step[ilevel_respa];
   }
 }
 
@@ -207,7 +207,7 @@ void FixSMD::smd_tether()
 
   double dt = update->dt;
   if (utils::strmatch(update->integrate_style,"^respa"))
-    dt = (dynamic_cast<Respa *>( update->integrate))->step[ilevel_respa];
+    dt = (dynamic_cast<Respa *>(update->integrate))->step[ilevel_respa];
 
   // fx,fy,fz = components of k * (r-r0)
 
@@ -313,7 +313,7 @@ void FixSMD::smd_couple()
 
   double dt = update->dt;
   if (utils::strmatch(update->integrate_style,"^respa"))
-    dt = (dynamic_cast<Respa *>( update->integrate))->step[ilevel_respa];
+    dt = (dynamic_cast<Respa *>(update->integrate))->step[ilevel_respa];
 
   // renormalize direction of spring
   double dx,dy,dz,r,dr;

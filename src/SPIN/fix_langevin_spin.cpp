@@ -119,9 +119,9 @@ void FixLangevinSpin::init()
 void FixLangevinSpin::setup(int vflag)
 {
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa-1);
   } else post_force(vflag);
 }
 

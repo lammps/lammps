@@ -149,7 +149,7 @@ int FixBondBreak::setmask()
 void FixBondBreak::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
   // enable angle/dihedral/improper breaking if any defined
 

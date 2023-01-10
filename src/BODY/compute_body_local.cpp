@@ -53,7 +53,7 @@ ComputeBodyLocal::ComputeBodyLocal(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  avec = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+  avec = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
   if (!avec) error->all(FLERR,"Compute body/local requires atom style body");
   bptr = avec->bptr;
 

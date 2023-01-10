@@ -85,7 +85,7 @@ void FixBrownianSphere::initial_integrate(int /*vflag */)
       initial_integrate_templated<1, 0, 0, 0>();
     }
   }
-  }
+}
 
 /* ---------------------------------------------------------------------- */
 

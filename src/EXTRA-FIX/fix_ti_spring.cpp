@@ -143,7 +143,7 @@ int FixTISpring::setmask()
 void FixTISpring::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,9 +153,9 @@ void FixTISpring::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
 }
 

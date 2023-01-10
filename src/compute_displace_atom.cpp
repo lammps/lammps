@@ -120,7 +120,7 @@ void ComputeDisplaceAtom::init()
 {
   // set fix which stores original atom coords
 
-  fix = dynamic_cast<FixStore *>( modify->get_fix_by_id(id_fix));
+  fix = dynamic_cast<FixStore *>(modify->get_fix_by_id(id_fix));
   if (!fix) error->all(FLERR,"Could not find compute displace/atom fix with ID {}", id_fix);
 
   if (refreshflag) {

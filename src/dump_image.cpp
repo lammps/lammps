@@ -332,17 +332,17 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   // error checks and setup for lineflag, triflag, bodyflag, fixflag
 
   if (lineflag) {
-    avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
+    avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
     if (!avec_line)
       error->all(FLERR,"Dump image line requires atom style line");
   }
   if (triflag) {
-    avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+    avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
     if (!avec_tri)
       error->all(FLERR,"Dump image tri requires atom style tri");
   }
   if (bodyflag) {
-    avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+    avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
     if (!avec_body)
       error->all(FLERR,"Dump image body yes requires atom style body");
   }

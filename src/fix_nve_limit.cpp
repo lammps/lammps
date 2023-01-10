@@ -67,7 +67,7 @@ void FixNVELimit::init()
   ncount = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
 
   // warn if using fix shake, which will lead to invalid constraint forces
 

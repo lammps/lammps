@@ -139,7 +139,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   int *alist,*blist,*numneigh,**firstneigh;
 
-  auto avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+  auto avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
 

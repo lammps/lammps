@@ -55,7 +55,7 @@ void FixNVE::init()
   dtf = 0.5 * update->dt * force->ftm2v;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
 }
 
 /* ----------------------------------------------------------------------

@@ -94,7 +94,7 @@ void ComputeDipoleChunk::init()
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for "
                "compute dipole/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute dipole/chunk does not use chunk/atom compute");
 
@@ -232,7 +232,7 @@ void ComputeDipoleChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+    cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
     cchunk->lockcount--;
   }
 }

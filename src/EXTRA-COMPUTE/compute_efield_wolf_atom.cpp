@@ -35,8 +35,7 @@ using MathConst::MY_PIS;
 /* ---------------------------------------------------------------------- */
 
 ComputeEfieldWolfAtom::ComputeEfieldWolfAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), group2(nullptr), efield(nullptr)
-
+    Compute(lmp, narg, arg), list(nullptr), group2(nullptr), efield(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute efield/atom/wolf", error);
 
@@ -81,6 +80,7 @@ ComputeEfieldWolfAtom::ComputeEfieldWolfAtom(LAMMPS *lmp, int narg, char **arg) 
 
 ComputeEfieldWolfAtom::~ComputeEfieldWolfAtom()
 {
+  delete[] group2;
   memory->destroy(efield);
 }
 
@@ -88,10 +88,9 @@ ComputeEfieldWolfAtom::~ComputeEfieldWolfAtom()
 
 void ComputeEfieldWolfAtom::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Compute efield/wolf/atom requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "Compute efield/wolf/atom requires atom attribute q");
   if (atom->mu_flag && (comm->me == 0))
-    error->warning(FLERR,"Compute efield/wolf/atom does not support per-atom dipoles");
+    error->warning(FLERR, "Compute efield/wolf/atom does not support per-atom dipoles");
 
   // need an occasional full neighbor list
   auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);

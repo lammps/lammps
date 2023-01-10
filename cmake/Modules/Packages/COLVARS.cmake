@@ -1,6 +1,6 @@
 set(COLVARS_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 
-file(GLOB COLVARS_SOURCES ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
+file(GLOB COLVARS_SOURCES ${CONFIGURE_DEPENDS} ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
 
 option(COLVARS_DEBUG "Enable debugging messages for Colvars (quite verbose)" OFF)
 
@@ -25,11 +25,11 @@ target_include_directories(colvars PRIVATE ${LAMMPS_SOURCE_DIR})
 target_link_libraries(lammps PRIVATE colvars)
 
 if(COLVARS_DEBUG)
-  # Need to export the macro publicly to be valid in interface code
+  # Need to export the define publicly to be valid in interface code
   target_compile_definitions(colvars PUBLIC -DCOLVARS_DEBUG)
 endif()
 
 if(COLVARS_LEPTON)
   target_compile_definitions(colvars PRIVATE -DLEPTON)
-  target_link_libraries(colvars PRIVATE lepton)
+  target_link_libraries(colvars PUBLIC lepton)
 endif()

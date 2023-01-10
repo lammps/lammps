@@ -51,7 +51,7 @@ C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
 
 .. note::
 
-   A contributed Fortran interface interface is available in the
+   A contributed Fortran interface is available in the
    ``examples/COUPLE/fortran2`` folder.  However, since the completion
    of the :f:mod:`LIBLAMMPS` module, this interface is now deprecated,
    no longer actively maintained and will likely be removed in the

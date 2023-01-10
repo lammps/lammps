@@ -490,10 +490,10 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
       h_ssa_gitemLen(ssa_gphaseCt-1,h_ssa_gphaseLen(ssa_gphaseCt-1)-1) - data.neigh_list.inum;
     firstTry = false;
 
-    deep_copy(data.h_resize, data.resize);
+    Kokkos::deep_copy(data.h_resize, data.resize);
 
     if (data.h_resize()) {
-      deep_copy(data.h_new_maxneighs, data.new_maxneighs);
+      Kokkos::deep_copy(data.h_new_maxneighs, data.new_maxneighs);
       list->maxneighs = data.h_new_maxneighs() * 1.2;
       list->d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d("neighbors", list->d_neighbors.extent(0), list->maxneighs);
       data.neigh_list.d_neighbors = list->d_neighbors;

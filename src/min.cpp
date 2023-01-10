@@ -205,8 +205,7 @@ void Min::init()
 void Min::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fmt::print(screen,"Setting up {} style minimization ...\n",
-               update->minimize_style);
+    fmt::print(screen,"Setting up {} style minimization ...\n", update->minimize_style);
     if (flag) {
       fmt::print(screen,"  Unit style    : {}\n", update->unit_style);
       fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
@@ -221,9 +220,9 @@ void Min::setup(int flag)
   nextra_global = modify->min_dof();
   if (nextra_global) {
     fextra = new double[nextra_global];
-    if (comm->me == 0 && screen)
-      fprintf(screen,"WARNING: Energy due to %d extra global DOFs will"
-              " be included in minimizer energies\n",nextra_global);
+    if (comm->me == 0)
+      error->warning(FLERR, "Energy due to {} extra global DOFs will"
+                     " be included in minimizer energies\n",nextra_global);
   }
 
   // compute for potential energy
@@ -714,10 +713,10 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"integrator") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"eulerimplicit") == 0) integrator = 0;
-      else if (strcmp(arg[iarg+1],"verlet") == 0) integrator = 1;
-      else if (strcmp(arg[iarg+1],"leapfrog") == 0) integrator = 2;
-      else if (strcmp(arg[iarg+1],"eulerexplicit") == 0) integrator = 3;
+      if (strcmp(arg[iarg+1],"eulerimplicit") == 0) integrator = EULERIMPLICIT;
+      else if (strcmp(arg[iarg+1],"verlet") == 0) integrator = VERLET;
+      else if (strcmp(arg[iarg+1],"leapfrog") == 0) integrator = LEAPFROG;
+      else if (strcmp(arg[iarg+1],"eulerexplicit") == 0) integrator = EULEREXPLICIT;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"line") == 0) {

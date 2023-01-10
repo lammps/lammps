@@ -72,6 +72,12 @@ class Min : protected Pointers {
     MAXVDOTF
   };
 
+  // integrator styles
+  enum { EULERIMPLICIT, VERLET, LEAPFROG, EULEREXPLICIT };
+
+  // line search styles
+  enum { BACKTRACK, QUADRATIC, FORCEZERO, SPIN_CUBIC, SPIN_NONE };
+
  protected:
   int eflag, vflag;            // flags for energy/virial computation
   int virial_style;            // compute virial explicitly or implicitly

@@ -741,7 +741,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
     //if gamma_flag - copy current d_gamma to extrapolation_grade_gamma
     if (gamma_flag){
         h_gamma = Kokkos::create_mirror_view(d_gamma);
-        Kokkos:deep_copy(h_gamma, d_gamma);
+        Kokkos::deep_copy(h_gamma, d_gamma);
         memcpy(extrapolation_grade_gamma+chunk_offset, (void *) h_gamma.data(), sizeof(double)*chunk_size);
     }
 

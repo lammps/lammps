@@ -1,7 +1,8 @@
 Download an executable for Linux or Mac via Conda
 -------------------------------------------------
 
-Binaries are available for MacOS or Linux via `Conda <conda_>`_.
+Pre-compiled LAMMPS binaries are available for macOS or Linux via the
+`Conda <conda_>`_ package management system.
 
 First, one must setup the Conda package manager on your system.  Follow the
 instructions to install `Miniconda <mini_conda_install_>`_, then create a conda
@@ -10,15 +11,15 @@ install:
 
 .. code-block:: bash
 
-   % conda config --add channels conda-forge
-   % conda create -n my-lammps-env
+   conda config --add channels conda-forge
+   conda create -n my-lammps-env
 
 Then, you can install LAMMPS on your system with the following command:
 
 .. code-block:: bash
 
-   % conda activate my-lammps-env
-   % conda install lammps
+   conda activate my-lammps-env
+   conda install lammps
 
 The LAMMPS binary is built with the :ref:`KIM package <kim>` which
 results in Conda also installing the `kim-api` binaries when LAMMPS is
@@ -27,7 +28,7 @@ install the `openkim-models` package
 
 .. code-block:: bash
 
-   % conda install openkim-models
+   conda install openkim-models
 
 If you have problems with the installation you can post issues to
 `this link <conda_forge_lammps_>`_.

@@ -44,6 +44,7 @@ class PairMLIAP : public Pair {
   class MLIAPModel *model;
   class MLIAPDescriptor *descriptor;
   class MLIAPData *data;
+  bool is_child;
 };
 
 }    // namespace LAMMPS_NS

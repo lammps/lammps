@@ -821,7 +821,7 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
   // elements = list of element names
 
   if (narg != ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Number of element to type mappings does not match number of atom types");
 
   if (elements) {
     for (i = 0; i < nelements; i++) delete[] elements[i];
@@ -1806,6 +1806,8 @@ void Pair::write_file(int narg, char **arg)
   else if (strcmp(arg[3],"bitmap") == 0) style = BMP;
   else error->all(FLERR,"Invalid style in pair_write command");
 
+  if (n < 2) error->all(FLERR, "Must have at least 2 table values");
+
   double inner = utils::numeric(FLERR,arg[4],false,lmp);
   double outer = utils::numeric(FLERR,arg[5],false,lmp);
   if (inner <= 0.0 || inner >= outer)
@@ -1921,7 +1923,7 @@ void Pair::write_file(int narg, char **arg)
       e = single(0,1,itype,jtype,rsq,1.0,1.0,f);
       f *= r;
     } else e = f = 0.0;
-    if (comm->me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
+    if (comm->me == 0) fprintf(fp,"%8d %- 22.15g %- 22.15g %- 22.15g\n",i+1,r,e,f);
   }
 
   // restore original vecs that were swapped in for

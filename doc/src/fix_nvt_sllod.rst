@@ -17,7 +17,15 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * nvt/sllod = style name of this fix command
-* additional thermostat related keyword/value pairs from the :doc:`fix nvt <fix_nh>` command can be appended
+* zero or more keyword/value pairs may be appended
+
+  .. parsed-literal::
+
+    keyword = *psllod*
+      *psllod* value = *no* or *yes* = use SLLOD or p-SLLOD variant, respectively
+
+* additional thermostat related keyword/value pairs from the :doc:`fix nvt <fix_nh>`
+  command can be appended
 
 Examples
 """"""""
@@ -61,22 +69,27 @@ large x velocity.  These velocities do not contribute to the thermal
    consistent.
 
 The SLLOD equations of motion, originally proposed by Hoover and Ladd
-(see :ref:`(Evans and Morriss) <Evans3>`), were proven to be
-equivalent to Newton's equations of motion for shear flow by
-:ref:`(Evans and Morriss) <Evans3>`. They were later shown to generate
-the desired velocity gradient and the correct production of work by
-stresses for all forms of homogeneous flow by :ref:`(Daivis and Todd)
-<Daivis>`.
-The LAMMPS implementation corresponds to the p-SLLOD variant
-of SLLOD. :ref:`(Edwards) <Edwards>`.
-The equations of motion are coupled to a
+(see :ref:`(Evans and Morriss) <Evans3>`), were proven to be equivalent
+to Newton's equations of motion for shear flow by :ref:`(Evans and
+Morriss) <Evans3>`. They were later shown to generate the desired
+velocity gradient and the correct production of work by stresses for all
+forms of homogeneous flow by :ref:`(Daivis and Todd) <Daivis>`.
+
+.. versionchanged:: TBD
+
+For the default (*psllod* = *no*), the LAMMPS implementation adheres to
+the standard SLLOD equations of motion, as defined by :ref:`(Evans and
+Morriss) <Evans3>`.  The option *psllod* = *yes* invokes the slightly
+different SLLOD variant first introduced by :ref:`(Tuckerman et al.)
+<Tuckerman>` as g-SLLOD and later by :ref:`(Edwards) <Edwards>` as
+p-SLLOD.  In all cases, the equations of motion are coupled to a
 Nose/Hoover chain thermostat in a velocity Verlet formulation, closely
 following the implementation used for the :doc:`fix nvt <fix_nh>`
 command.
 
 .. note::
 
-   A recent (2017) book by :ref:`(Daivis and Todd) <Daivis-sllod>`
+   A recent (2017) book by :ref:`(Todd and Daivis) <Todd-sllod>`
    discusses use of the SLLOD method and non-equilibrium MD (NEMD)
    thermostatting generally, for both simple and complex fluids,
    e.g. molecular systems.  The latter can be tricky to do correctly.
@@ -159,7 +172,7 @@ Restrictions
 """"""""""""
 
 This fix works best without Nose-Hoover chain thermostats, i.e. using
-tchain = 1.  Setting tchain to larger values can result in poor
+*tchain* = 1.  Setting *tchain* to larger values can result in poor
 equilibration.
 
 Related commands
@@ -171,7 +184,7 @@ Related commands
 Default
 """""""
 
-Same as :doc:`fix nvt <fix_nh>`, except tchain = 1.
+Same as :doc:`fix nvt <fix_nh>`, except *tchain* = 1, psllod = *no*.
 
 ----------
 
@@ -183,11 +196,16 @@ Same as :doc:`fix nvt <fix_nh>`, except tchain = 1.
 
 **(Daivis and Todd)** Daivis and Todd, J Chem Phys, 124, 194103 (2006).
 
+.. _Todd-sllod:
+
+**(Todd and Daivis)** Todd and Daivis, Nonequilibrium Molecular Dynamics (book),
+Cambridge University Press, (2017) https://doi.org/10.1017/9781139017848.
+
+.. _Tuckerman:
+
+**(Tuckerman et al.)** Tuckerman, Mundy, Balasubramanian, and Klein, J Chem Phys 106, 5615 (1997).
+
 .. _Edwards:
 
 **(Edwards)** Edwards, Baig, and Keffer, J Chem Phys 124, 194104 (2006).
 
-.. _Daivis-sllod:
-
-**(Daivis and Todd)** Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
-Cambridge University Press, https://doi.org/10.1017/9781139017848, (2017).

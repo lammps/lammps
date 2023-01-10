@@ -27,8 +27,8 @@
 #include "neighbor.h"
 #include "tokenizer.h"
 #include "update.h"
-#include "utils.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

@@ -6,6 +6,7 @@ Commands
 
    angle_coeff
    angle_style
+   angle_write
    atom_modify
    atom_style
    balance
@@ -27,6 +28,7 @@ Commands
    dielectric
    dihedral_coeff
    dihedral_style
+   dihedral_write
    dimension
    displace_atoms
    dump
@@ -42,6 +44,7 @@ Commands
    echo
    fix
    fix_modify
+   fitpod_command
    group
    group2ndx
    hyper

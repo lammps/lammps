@@ -20,9 +20,7 @@ angle_coeff: ! |
   * ub 0.0 0.0
   4 ub -7.6 1.5537
 equilibrium: 4 1.9320794819577227 1.9687313962496038 2.1676989309769574 1.8936822384138474
-extract: ! |
-  k 1
-  theta0 1
+extract: ! ""
 natoms: 29
 init_energy: 22.644137017730763
 init_stress: ! |2-

@@ -69,7 +69,7 @@ which is proportional to the tangential shear displacement with a
 stiffness of :math:`k_s`. This tangential force also induces a torque.
 In addition, bending and twisting torques are also applied to
 particles which are proportional to angular bending and twisting
-displacements with stiffnesses of :math`k_b` and :math:`k_t',
+displacements with stiffnesses of :math:`k_b` and :math:`k_t`,
 respectively.  Details on the calculations of shear displacements and
 angular displacements can be found in :ref:`(Wang) <Wang2009>` and
 :ref:`(Wang and Mora) <Wang2009b>`.

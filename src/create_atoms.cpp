@@ -38,7 +38,9 @@
 #include "text_file_reader.h"
 #include "variable.h"
 
+#include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_2PI;
@@ -439,10 +441,12 @@ void CreateAtoms::command(int narg, char **arg)
   MPI_Barrier(world);
   double time1 = platform::walltime();
 
+  // clear global->local map for owned and ghost atoms
   // clear ghost count and any ghost bonus data internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c creating atoms will overwrite ghost atoms
 
+  if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 

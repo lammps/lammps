@@ -545,11 +545,9 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
       // if delta is too small to reach next timestep, use multiple of delta
 
       if (nextdump == ntimestep) {
-        double tnext = update->atime +
-          (ntimestep+1 - update->atimestep) * update->dt;
-        int multiple = static_cast<int>
-          ((tnext - nexttime) / every_time_dump[idump]);
-        nexttime = nexttime + (multiple+1)*every_time_dump[idump];
+        double tnext = update->atime + (ntimestep + 1 - update->atimestep) * update->dt;
+        int multiple = static_cast<int>((tnext - nexttime) / every_time_dump[idump]);
+        nexttime = nexttime + (multiple + 1) * every_time_dump[idump];
         nextdump = ntimestep +
           static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
       }

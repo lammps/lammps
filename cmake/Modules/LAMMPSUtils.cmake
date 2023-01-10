@@ -41,7 +41,7 @@ endfunction()
 
 # helper function for getting the most recently modified file or folder from a glob pattern
 function(get_newest_file path variable)
-  file(GLOB _dirs ${path})
+  file(GLOB _dirs ${CONFIGURE_DEPENDS} ${path})
   set(_besttime 2000-01-01T00:00:00)
   set(_bestfile "<unknown>")
   foreach(_dir ${_dirs})
@@ -80,8 +80,8 @@ endfunction()
 
 function(check_for_autogen_files source_dir)
     message(STATUS "Running check for auto-generated files from make-based build system")
-    file(GLOB SRC_AUTOGEN_FILES ${source_dir}/style_*.h)
-    file(GLOB SRC_AUTOGEN_PACKAGES ${source_dir}/packages_*.h)
+    file(GLOB SRC_AUTOGEN_FILES ${CONFIGURE_DEPENDS} ${source_dir}/style_*.h)
+    file(GLOB SRC_AUTOGEN_PACKAGES ${CONFIGURE_DEPENDS} ${source_dir}/packages_*.h)
     list(APPEND SRC_AUTOGEN_FILES ${SRC_AUTOGEN_PACKAGES} ${source_dir}/lmpinstalledpkgs.h ${source_dir}/lmpgitversion.h)
     list(APPEND SRC_AUTOGEN_FILES ${SRC_AUTOGEN_PACKAGES} ${source_dir}/mliap_model_python_couple.h ${source_dir}/mliap_model_python_couple.cpp)
     foreach(_SRC ${SRC_AUTOGEN_FILES})
@@ -100,7 +100,7 @@ endfunction()
 
 macro(pkg_depends PKG1 PKG2)
   if(PKG_${PKG1} AND NOT (PKG_${PKG2} OR BUILD_${PKG2}))
-    message(FATAL_ERROR "The ${PKG1} package needs LAMMPS to be build with the ${PKG2} package")
+    message(FATAL_ERROR "The ${PKG1} package needs LAMMPS to be built with the ${PKG2} package")
   endif()
 endmacro()
 

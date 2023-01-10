@@ -26,7 +26,7 @@ constructor with the signature: ``FixPrintVel(class LAMMPS *, int, char **)``.
 Every fix must be registered in LAMMPS by writing the following lines
 of code in the header before include guards:
 
-.. code-block:: c
+.. code-block:: c++
 
    #ifdef FIX_CLASS
    // clang-format off
@@ -47,7 +47,7 @@ keyword when it parses the input script.
 Let's write a simple fix which will print the average velocity at the end
 of each timestep. First of all, implement a constructor:
 
-.. code-block:: C++
+.. code-block:: c++
 
    FixPrintVel::FixPrintVel(LAMMPS *lmp, int narg, char **arg)
    : Fix(lmp, narg, arg)
@@ -72,7 +72,7 @@ in the Fix class called ``nevery`` which specifies how often the method
 
 The next method we need to implement is ``setmask()``:
 
-.. code-block:: C++
+.. code-block:: c++
 
    int FixPrintVel::setmask()
    {
@@ -87,7 +87,7 @@ during execution. The constant ``END_OF_STEP`` corresponds to the
 are called during a timestep and the order in which they are called
 are shown in the previous section.
 
-.. code-block:: C++
+.. code-block:: c++
 
    void FixPrintVel::end_of_step()
    {
@@ -143,7 +143,7 @@ The group membership information of an atom is contained in the *mask*
 property of and atom and the bit corresponding to a given group is
 stored in the groupbit variable which is defined in Fix base class:
 
-.. code-block:: C++
+.. code-block:: c++
 
    for (int i = 0; i < nlocal; ++i) {
      if (atom->mask[i] & groupbit) {
@@ -174,7 +174,7 @@ to store positions of atoms from previous timestep, we need to add
 ``double** xold`` to the header file. Than add allocation code
 to the constructor:
 
-.. code-block:: C++
+.. code-block:: c++
 
    FixSavePos::FixSavePos(LAMMPS *lmp, int narg, char **arg), xold(nullptr)
    {
@@ -190,7 +190,7 @@ to the constructor:
 
 Implement the aforementioned methods:
 
-.. code-block:: C++
+.. code-block:: c++
 
    double FixSavePos::memory_usage()
    {

@@ -24,7 +24,7 @@ AtomStyle(mdpd,AtomVecMDPD);
 
 namespace LAMMPS_NS {
 
-class AtomVecMDPD : public AtomVec {
+class AtomVecMDPD : virtual public AtomVec {
  public:
   AtomVecMDPD(class LAMMPS *);
   void init() override;

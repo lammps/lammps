@@ -1,0 +1,114 @@
+LAMMPS (22 Dec 2022)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate fitpod for POD potential
+
+units metal
+fitpod Ta_param.pod Ta_data.pod
+Reading potential file Ta_param.pod with DATE: 2022-11-30
+**************** Begin of POD Potentials ****************
+species: Ta 
+periodic boundary conditions: 1 1 1
+inner cut-off radius: 1
+outer cut-off radius: 5
+bessel polynomial degree: 3
+inverse polynomial degree: 6
+one-body potential: 1
+two-body potential: 3 6 6
+three-body potential: 3 6 5 5
+four-body SNAP potential: 0 0
+quadratic POD potential: 0
+number of basis functions for one-body potential: 1
+number of basis functions for two-body potential: 6
+number of basis functions for three-body potential: 25
+number of basis functions for four-body potential: 0
+number of descriptors for one-body potential: 1
+number of descriptors for two-body potential: 6
+number of descriptors for three-body potential: 25
+number of descriptors for four-body potential: 0
+number of descriptors for quadratic POD potential: 0
+total number of descriptors for all potentials: 32
+**************** End of POD Potentials ****************
+
+**************** Begin of Data File ****************
+file format: extxyz
+file extension: xyz
+path to training data set: XYZ
+path to test data set: XYZ
+training fraction: 1
+test fraction: 1
+randomize training data set: 1
+randomize test data set: 1
+error analysis for training data set: 1
+error analysis for test data set: 0
+energy/force calculation for training data set: 0
+energy/force calculation for test data set: 0
+fitting weight for energy: 100
+fitting weight for force: 1
+fitting weight for stress: 0
+fitting regularization parameter: 1e-10
+**************** End of Data File ****************
+**************** Begin of Training Data Set ****************
+---------------------------------------------------------------
+     data file     | number of configurations | number of atoms
+---------------------------------------------------------------
+ Displaced_A15.xyz |                 9        |         576
+ Displaced_BCC.xyz |                 9        |         486
+ Displaced_FCC.xyz |                 9        |         432
+ Elastic_BCC.xyz   |               100        |         200
+ Elastic_FCC.xyz   |               100        |         400
+ GSF_110.xyz       |                22        |         528
+ GSF_112.xyz       |                22        |         660
+ Liquid.xyz        |                 3        |         300
+ Surface.xyz       |                 7        |         236
+ Volume_A15.xyz    |                30        |         240
+ Volume_BCC.xyz    |                21        |          42
+ Volume_FCC.xyz    |                31        |         124
+---------------------------------------------------------------
+number of files: 12
+number of configurations in all files: 363
+number of atoms in all files: 4224
+minimum number of atoms: 2
+maximum number of atoms: 100
+**************** End of Training Data Set ****************
+**************** Begin of Memory Allocation ****************
+maximum number of atoms in periodic domain: 100
+maximum number of atoms in extended domain: 2700
+maximum number of neighbors in extended domain: 270000
+size of double memory: 223201
+size of int memory: 14709
+size of descriptor matrix: 32 x 32
+**************** End of Memory Allocation ****************
+**************** Begin of Least-Squares Fitting ****************
+Configuration: # 1
+Configuration: # 101
+Configuration: # 201
+Configuration: # 301
+**************** End of Least-Squares Fitting ****************
+**************** Begin of Error Calculation ****************
+Configuration: # 1
+Configuration: # 101
+Configuration: # 201
+Configuration: # 301
+**************** End of Error Calculation ****************
+**************** Begin of Error Analysis for the Training Data Set ****************
+---------------------------------------------------------------------------------------------------
+        File         | # configs |  # atoms  | MAE energy  | RMSE energy | MAE force  | RMSE force
+---------------------------------------------------------------------------------------------------
+Displaced_A15.xyz            9         576     0.011286      0.011334      0.113353      0.141650  
+Displaced_BCC.xyz            9         486     0.012178      0.014005      0.240613      0.312191  
+Displaced_FCC.xyz            9         432     0.001445      0.001591      0.082688      0.103800  
+Elastic_BCC.xyz            100         200     0.004452      0.004783      0.000010      0.000013  
+Elastic_FCC.xyz            100         400     0.002865      0.002923      0.000146      0.000207  
+GSF_110.xyz                 22         528     0.005804      0.006853      0.047276      0.097819  
+GSF_112.xyz                 22         660     0.010588      0.011555      0.123342      0.191090  
+Liquid.xyz                   3         300     0.013161      0.015355      0.567536      0.757847  
+Surface.xyz                  7         236     0.025400      0.037555      0.096121      0.295623  
+Volume_A15.xyz              30         240     0.039281      0.048678      0.000000      0.000000  
+Volume_BCC.xyz              21          42     0.049766      0.067554      0.000000      0.000000  
+Volume_FCC.xyz              31         124     0.030056      0.041738      0.000000      0.000000  
+---------------------------------------------------------------------------------------------------
+All files                  363        4224     0.012917      0.025797      0.122473      0.260052  
+---------------------------------------------------------------------------------------------------
+**************** End of Error Analysis for the Training Data Set ****************
+
+Total wall time: 0:00:01

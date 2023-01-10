@@ -24,6 +24,7 @@ table above.
 
    * :doc:`angle_coeff <angle_coeff>`
    * :doc:`angle_style <angle_style>`
+   * :doc:`angle_write <angle_write>`
    * :doc:`atom_modify <atom_modify>`
    * :doc:`atom_style <atom_style>`
    * :doc:`balance <balance>`
@@ -45,6 +46,7 @@ table above.
    * :doc:`dielectric <dielectric>`
    * :doc:`dihedral_coeff <dihedral_coeff>`
    * :doc:`dihedral_style <dihedral_style>`
+   * :doc:`dihedral_write <dihedral_write>`
    * :doc:`dimension <dimension>`
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`
@@ -125,6 +127,7 @@ additional letter in parenthesis: k = KOKKOS.
    * :doc:`group2ndx <group2ndx>`
    * :doc:`hyper <hyper>`
    * :doc:`kim <kim_commands>`
+   * :doc:`fitpod <fitpod_command>`
    * :doc:`mdi <mdi>`
    * :doc:`ndx2group <group2ndx>`
    * :doc:`neb <neb>`

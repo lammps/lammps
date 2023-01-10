@@ -1,13 +1,22 @@
-This directory has BLAS and LAPACK files needed by the ATC and
-AWPMD packages, and possibly by other packages in the future.
+This directory has generic BLAS and LAPACK source files needed by the
+ATC, AWPMD, ELECTRODE, LATTE, and ML-POD packages (and possibly by other
+packages) in the future that can be used instead of platform or vendor
+optimized BLAS/LAPACK library.  To simplify installation, these files
+have been translated from the Fortran versions of the BLAS and LAPACK
+references source files at https://netlib.org/lapack/ to C++ with f2c.
+The package with the tools to do the translation and the matching
+original Fortran sources are at https://github.com/lammps/linalg.
+Please note that even through the files are C++ source code the
+resulting library will follow the Fortran binary conventions.
 
 Note that this is an *incomplete* subset of full BLAS/LAPACK.
 
+The files correspond to LAPACK version 3.11.0.
+
 You should only need to build and use the library in this directory if
-you want to build LAMMPS with the ATC and/or AWPMD packages
-AND you do not have any other suitable BLAS and LAPACK libraries
-installed on your system.  E.g. ATLAS, GOTO-BLAS, OpenBLAS, ACML, or
-MKL.
+you want to build LAMMPS with one of the listed packages AND you do not
+have any other suitable BLAS and LAPACK libraries installed on your
+system (like ATLAS, GOTO-BLAS, OpenBLAS, ACML, MKL and so on).
 
 You can type "make lib-linalg" from the src directory to see help on
 how to build this library via make commands, or you can do the same
@@ -17,7 +26,7 @@ can do it manually by following the instructions below.
 Build the library using one of the provided Makefile.* files or create
 your own, specific to your compiler and system.  For example:
 
-make -f Makefile.gfortran
+make -f Makefile.g++
 
 When you are done building this library, one file should exist in this
 directory:
@@ -27,3 +36,4 @@ liblinalg.a		the library LAMMPS will link against
 You can then include this library and its path in the Makefile.lammps
 file of any packages that need it.  As an example, see the
 lib/atc/Makefile.lammps.linalg file.
+

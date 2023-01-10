@@ -102,6 +102,9 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       error->universe_all(FLERR, fmt::format("Unknown keyword {} for fix pimd", arg[i]));
   }
 
+  if (strcmp(update->unit_style, "lj") == 0)
+    error->all(FLERR, "Fix pimd does not support lj units");
+
   /* Initiation */
 
   size_peratom_cols = 12 * nhc_nchain + 3;

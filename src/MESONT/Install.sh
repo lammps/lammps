@@ -26,11 +26,23 @@ action () {
   fi
 }
 
-# all package files with no dependencies
+# list of files with optional dependencies
+action angle_mesocnt.cpp
+action angle_mesocnt.h
+action bond_mesocnt.cpp bond_harmonic.cpp
+action bond_mesocnt.h bond_harmonic.h
+action compute_mesont.cpp
+action compute_mesont.h
+action pair_mesocnt.cpp
+action pair_mesocnt.h
+action pair_mesocnt_viscous.cpp
+action pair_mesocnt_viscous.h
 
-for file in *.cpp *.h; do
-  test -f ${file} && action $file
-done
+action export_mesont.h
+action atom_vec_mesont.cpp
+action atom_vec_mesont.h
+action pair_mesont_tpm.cpp
+action pair_mesont_tpm.h
 
 # edit 2 Makefile.package files to include/exclude package info
 
@@ -47,7 +59,7 @@ if (test $1 = 1) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*mesont.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*mesont.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
 include ..\/..\/lib\/mesont\/Makefile.lammps
@@ -61,7 +73,7 @@ elif (test $1 = 0) then
   fi
 
   if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^include.*mesont.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*mesont.*$/d' ../Makefile.package.settings
   fi
 
 fi

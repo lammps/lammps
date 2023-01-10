@@ -334,13 +334,15 @@ namespace utils {
   /*! Expand list of arguments when containing fix/compute wildcards
    *
    *  This function searches the list of arguments in *arg* for strings
-   *  of the kind c_ID[*] or f_ID[*] referring to computes or fixes.
+   *  of the kind c_ID[*], f_ID[*], v_ID[*], i2_ID[*], d2_ID[*], or
+   *  c_ID:gname:dname[*] referring to computes, fixes, vector style
+   *  variables, custom per-atom arrays, or grids, respectively.
    *  Any such strings are replaced by one or more strings with the
    *  '*' character replaced by the corresponding possible numbers as
-   *  determined from the fix or compute instance.  Other strings are
-   *  just copied. If the *mode* parameter is set to 0, expand global
-   *  vectors, but not global arrays; if it is set to 1, expand global
-   *  arrays (by column) but not global vectors.
+   *  determined from the fix, compute, variable, property, or grid instance.
+   *  Unrecognized strings are just copied. If the *mode* parameter
+   *  is set to 0, expand global vectors, but not global arrays; if it is
+   *  set to 1, expand global arrays (by column) but not global vectors.
    *
    *  If any expansion happens, the earg list and all its
    *  strings are new allocations and must be freed explicitly by the
@@ -376,6 +378,40 @@ namespace utils {
    * \return      pointer to expanded string or null pointer */
 
   char *expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
+
+  /*! Check grid reference for valid Compute or Fix which produces per-grid data
+   *
+   *  This function checks if a command argument in the input script
+   *  is a valid reference to per-grid data produced by a Compute or Fix.
+   *  If it is, the ID of the compute/fix is returned which the caller must
+   *  free with delete [].  It also returns igrid/idata/index integers
+   *  which allow the caller to access the per-grid data.
+   *  A flag is also returned to indicate compute vs fix vs error.
+   *
+   * \param errstr  name of calling command, e.g. "Fix ave/grid"
+   * \param ref     per-grid reference from input script, e.g. "c_10:grid:data[2]"
+   * \param nevery  frequency at which caller will access fix for per-grid info,
+   *                ignored when reference is to a compute
+   * \param lmp     pointer to top-level LAMMPS class instance
+   * \return id     ID of Compute or Fix
+   * \return igrid  which grid is referenced (0 to N-1)
+   * \return idata  which data on grid is referenced (0 to N-1)
+   * \return index  which column of data is referenced (0 for vec, 1-N for array)
+   * \return        ArgINFO::COMPUTE or FIX or UNKNOWN or NONE */
+
+  int check_grid_reference(char *errstr, char *ref, int nevery,
+                           char *&id, int &igrid, int &idata, int &index, LAMMPS *lmp);
+
+  /*! Parse grid reference into 3 sub-strings
+   *
+   * Format of grid ID reference = id:gname:dname
+   * Return vector with the 3 sub-strings
+   *
+   * \param name = complete grid ID
+   * \return std::vector<std::string> containing the 3 sub-strings  */
+
+  std::vector<std::string> parse_grid_id(const char *file, int line, const std::string &name,
+                                         Error *error);
 
   /*! Make C-style copy of string in new storage
    *
@@ -430,7 +466,23 @@ namespace utils {
 
   std::string star_subst(const std::string &name, bigint step, int pad);
 
-  /*! Check if a string will likely have UTF-8 encoded characters
+  /*! Remove style suffix from string if suffix flag is active
+   *
+   *
+\verbatim embed:rst
+
+This will try to undo the effect from using the :doc:`suffix command <suffix>`
+or the *-suffix/-sf* command line flag and return correspondingly modified string.
+
+\endverbatim
+   *
+   * \param style  string of style name
+   * \param lmp    pointer to the LAMMPS class (has suffix_flag and suffix strings)
+   * \return  processed string */
+
+  std::string strip_style_suffix(const std::string &style, LAMMPS *lmp);
+
+/*! Check if a string will likely have UTF-8 encoded characters
    *
    * UTF-8 uses the 7-bit standard ASCII table for the first 127 characters and
    * all other characters are encoded as multiple bytes.  For the multi-byte

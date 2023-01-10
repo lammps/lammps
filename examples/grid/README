@@ -1,0 +1,23 @@
+These input scripts illustrate the use of several commands that
+overlay grids on the simulation domain.
+
+fix ave/grid
+compute property/grid
+dump grid
+dump grid/vtk
+
+The in.grid.2d and in.grid.3d scripts model simple Lennard Jones
+liquids.  The in.sph script models SPH water flowing over a dam.  All
+the scripts use dynamic load balancing to illustrate that the grid
+cells can be dynamically partitioned across processors similar to how
+particles are.
+
+To produce output dump files and image files, you will need to
+uncomment the various "dump" commands that produce them.  The images
+show processor subdomains as well as the background grid, colored by
+particle counts in each grid cell.
+
+
+
+
+

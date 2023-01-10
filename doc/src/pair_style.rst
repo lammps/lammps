@@ -212,6 +212,8 @@ accelerated styles exist.
 * :doc:`lcbop <pair_lcbop>` - long-range bond-order potential (LCBOP)
 * :doc:`lebedeva/z <pair_lebedeva_z>` - Lebedeva interlayer potential for graphene with normals along z-axis
 * :doc:`lennard/mdf <pair_mdf>` - LJ potential in A/B form with a taper function
+* :doc:`lepton <pair_lepton>` - pair potential from evaluating a string
+* :doc:`lepton/coul <pair_lepton>` - pair potential from evaluating a string with support for charges
 * :doc:`line/lj <pair_line_lj>` - LJ potential between line segments
 * :doc:`list <pair_list>` - potential between pairs of atoms explicitly listed in an input file
 * :doc:`lj/charmm/coul/charmm <pair_charmm>` - CHARMM potential with cutoff Coulomb
@@ -314,6 +316,7 @@ accelerated styles exist.
 * :doc:`oxrna2/xstk <pair_oxrna2>` -
 * :doc:`pace <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential
 * :doc:`pace/extrapolation <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential with extrapolation grades
+* :doc:`pod <pair_pod>` - Proper orthogonal decomposition (POD) machine-learning potential
 * :doc:`peri/eps <pair_peri>` - peridynamic EPS potential
 * :doc:`peri/lps <pair_peri>` - peridynamic LPS potential
 * :doc:`peri/pmb <pair_peri>` - peridynamic PMB potential

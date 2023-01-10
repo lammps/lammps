@@ -20,7 +20,6 @@
 #include "fix_adapt.h"
 #include "math_const.h"
 #include "modify.h"
-#include "utils.h"
 
 #include <cstring>
 

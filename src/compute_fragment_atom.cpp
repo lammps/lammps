@@ -148,11 +148,7 @@ void ComputeFragmentAtom::compute_peratom()
 
   commflag = 1;
 
-  int iteration = 0;
-
   while (true) {
-    iteration++;
-
     comm->forward_comm(this);
     done = 1;
 

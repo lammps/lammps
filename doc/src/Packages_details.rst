@@ -68,6 +68,7 @@ page gives those details.
    * :ref:`KSPACE <PKG-KSPACE>`
    * :ref:`LATBOLTZ <PKG-LATBOLTZ>`
    * :ref:`LATTE <PKG-LATTE>`
+   * :ref:`LEPTON <PKG-LEPTON>`
    * :ref:`MACHDYN <PKG-MACHDYN>`
    * :ref:`MANIFOLD <PKG-MANIFOLD>`
    * :ref:`MANYBODY <PKG-MANYBODY>`
@@ -80,6 +81,7 @@ page gives those details.
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
    * :ref:`ML-IAP <PKG-ML-IAP>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
+   * :ref:`ML-POD <PKG-ML-POD>`
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
    * :ref:`ML-RANN <PKG-ML-RANN>`
    * :ref:`ML-SNAP <PKG-ML-SNAP>`
@@ -491,22 +493,21 @@ COLVARS package
 
 **Contents:**
 
-COLVARS stands for collective variables, which can be used to
-implement various enhanced sampling methods, including Adaptive
-Biasing Force, Metadynamics, Steered MD, Umbrella Sampling and
-Restraints.  A :doc:`fix colvars <fix_colvars>` command is implemented
-which wraps a COLVARS library, which implements these methods.
-simulations.
+Colvars stands for collective variables, which can be used to implement
+various enhanced sampling methods, including Adaptive Biasing Force,
+Metadynamics, Steered MD, Umbrella Sampling and Restraints.  A :doc:`fix
+colvars <fix_colvars>` command is implemented which wraps a COLVARS
+library, which implements these methods.  simulations.
 
-**Authors:** The COLVARS library is written and maintained by
-Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA)
-and Jerome Henin (LISM, CNRS, Marseille, France), originally for
-the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
-(Temple U) provided the interface to LAMMPS.
+**Authors:** The COLVARS library is written and maintained by Giacomo
+Fiorin (NIH, Bethesda, MD, USA) and Jerome Henin (CNRS, Paris, France),
+originally for the NAMD MD code, but with portability in mind.  Axel
+Kohlmeyer (Temple U) provided the interface to LAMMPS.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <colvars>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <colvar>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -515,6 +516,8 @@ This package has :ref:`specific installation instructions <colvars>` on the :doc
 * src/COLVARS/README
 * lib/colvars/README
 * :doc:`fix colvars <fix_colvars>`
+* :doc:`group2ndx <group2ndx>`
+* :doc:`ndx2group <group2ndx>`
 * examples/PACKAGES/colvars
 
 ----------
@@ -559,9 +562,10 @@ CORESHELL package
 
 Compute and pair styles that implement the adiabatic core/shell model
 for polarizability.  The pair styles augment Born, Buckingham, and
-Lennard-Jones styles with core/shell capabilities.  The :doc:`compute temp/cs <compute_temp_cs>` command calculates the temperature of a
-system with core/shell particles.  See the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of how to use
-this package.
+Lennard-Jones styles with core/shell capabilities.  The :doc:`compute
+temp/cs <compute_temp_cs>` command calculates the temperature of a
+system with core/shell particles.  See the :doc:`Howto coreshell
+<Howto_coreshell>` page for an overview of how to use this package.
 
 **Author:** Hendrik Heenen (Technical U of Munich).
 
@@ -865,7 +869,7 @@ ELECTRODE package
 The ELECTRODE package allows the user to enforce a constant potential method for
 groups of atoms that interact with the remaining atoms as electrolyte.
 
-**Authors:** The ELECTRODE library is written and maintained by Ludwig
+**Authors:** The ELECTRODE package is written and maintained by Ludwig
 Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
 Robert Meissner (TUHH, Hamburg, Germany).
 
@@ -878,7 +882,7 @@ This package has :ref:`specific installation instructions <electrode>` on the
 
 **Supporting info:**
 
-* :doc:`fix electrode/conp <fix_electrode_conp>`
+* :doc:`fix electrode/conp <fix_electrode>`
 
 ----------
 
@@ -973,10 +977,11 @@ FEP package
 
 **Contents:**
 
-FEP stands for free energy perturbation.  This package provides
-methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt_fep>` command with soft-core pair potentials,
-which have a "soft" in their style name.  There are auxiliary tools
-for using this package in tools/fep; see its README file.
+FEP stands for free energy perturbation.  This package provides methods
+for performing FEP simulations by using a :doc:`fix adapt/fep
+<fix_adapt_fep>` command with soft-core pair potentials, which have a
+"soft" in their style name.  There are auxiliary tools for using this
+package in tools/fep; see its README file.
 
 **Author:** Agilio Padua (ENS de Lyon)
 
@@ -1017,7 +1022,8 @@ Kuznetsov, Vladimir Stegailov, and Vsevolod Nikolskiy (HSE University).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <gpu>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <gpu>` on the
+:doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1370,7 +1376,8 @@ Cawkwell, Anders Niklasson, and Christian Negre.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <latte>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <latte>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1380,6 +1387,46 @@ This package has :ref:`specific installation instructions <latte>` on the :doc:`
 * :doc:`fix latte <fix_latte>`
 * examples/latte
 * `LAMMPS-LATTE tutorial <https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS>`_
+
+----------
+
+.. _PKG-LEPTON:
+
+LEPTON package
+--------------
+
+**Contents:**
+
+Styles for pair, bond, and angle forces that evaluate the potential
+function from a string using the `Lepton mathematical expression parser
+<https://simtk.org/projects/lepton>`_.  Lepton is a C++ library that is
+bundled with `OpenMM <https://openmm.org/>`_ and can be used for
+parsing, evaluating, differentiating, and analyzing mathematical
+expressions.  This is a more lightweight and efficient alternative for
+evaluating custom potential function to an embedded Python interpreter
+as used in the :ref:`PYTHON package <PKG-PYTHON>`.  On the other hand,
+since the potentials are evaluated form analytical expressions, they are
+more precise than what can be done with :ref:`tabulated potentials
+<tabulate>`.
+
+**Authors:** Axel Kohlmeyer (Temple U).  Lepton itself is developed
+by Peter Eastman at Stanford University.
+
+.. versionadded:: TBD
+
+**Install:**
+
+This package has :ref:`specific installation instructions <lepton>` on
+the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/LEPTON: filenames -> commands
+* lib/lepton/README.md
+* :doc:`pair_style lepton <pair_lepton>`
+* :doc:`bond_style lepton <bond_lepton>`
+* :doc:`angle_style lepton <angle_lepton>`
+* :doc:`dihedral_style lepton <dihedral_lepton>`
 
 ----------
 
@@ -1485,8 +1532,9 @@ MC package
 
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
-bonds, for performing atomic swaps, and performing grand-canonical MC
-(GCMC) or similar processes in conjunction with dynamics.
+bonds, for performing atomic swaps, and performing grand canonical
+MC (GCMC), semi-grand canonical MC (SGCMC), or similar processes in
+conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
@@ -1498,6 +1546,7 @@ bonds, for performing atomic swaps, and performing grand-canonical MC
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`
 * :doc:`pair_style dsmc <pair_dsmc>`
@@ -1793,6 +1842,39 @@ This package has :ref:`specific installation instructions <ml-pace>` on the
 * src/ML-PACE: filenames -> commands
 * :doc:`pair_style pace <pair_pace>`
 * examples/PACKAGES/pace
+
+----------
+
+.. _PKG-ML-POD:
+
+ML-POD package
+-------------------
+
+**Contents:**
+
+A pair style and fitpod style for Proper Orthogonal Descriptors
+(POD). POD is a methodology for deriving descriptors based on the proper
+orthogonal decomposition. The ML-POD package provides an efficient
+implementation for running simulations with POD potentials, along with
+fitting the potentials natively in LAMMPS.
+
+**Authors:**
+
+Ngoc Cuong Nguyen (MIT), Andrew Rohskopf (Sandia)
+
+.. versionadded:: 22Dec2022
+
+**Install:**
+
+This package has :ref:`specific installation instructions <ml-pod>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/ML-POD: filenames -> commands
+* :doc:`pair_style pod <pair_pod>`
+* :doc:`command_style fitpod <fitpod_command>`
+* examples/PACKAGES/pod
 
 ----------
 
@@ -2508,17 +2590,18 @@ REACTION package
 
 **Contents:**
 
-This package allows for complex bond topology changes (reactions)
-during a running MD simulation, when using classical force fields.
-Topology changes are defined in pre- and post-reaction molecule
-templates and can include creation and deletion of bonds, angles,
-dihedrals, impropers, atom types, bond types, angle types, dihedral
-types, improper types, and/or atomic charges. Other options currently
-available include reaction constraints (e.g. angle and Arrhenius
-constraints), deletion of reaction byproducts or other small
-molecules, and chiral-sensitive reactions.
+This package implements the REACTER protocol, which allows for complex
+bond topology changes (reactions) during a running MD simulation when
+using classical force fields. Topology changes are defined in pre- and
+post-reaction molecule templates and can include creation and deletion
+of bonds, angles, dihedrals, impropers, atom types, bond types, angle
+types, dihedral types, improper types, and/or atomic charges. Other
+options currently available include reaction constraints (e.g., angle
+and Arrhenius constraints), deletion of reaction byproducts or other
+small molecules, creation of new atoms or molecules bonded to existing
+atoms, and using LAMMPS variables for input parameters.
 
-**Author:** Jacob R. Gissinger (CU Boulder) while at NASA Langley Research Center.
+**Author:** Jacob R. Gissinger (NASA Langley Research Center).
 
 **Supporting info:**
 
@@ -2528,7 +2611,8 @@ molecules, and chiral-sensitive reactions.
 * examples/PACKAGES/reaction
 * `2017 LAMMPS Workshop <https://www.lammps.org/workshops/Aug17/pdf/gissinger.pdf>`_
 * `2019 LAMMPS Workshop <https://www.lammps.org/workshops/Aug19/talk_gissinger.pdf>`_
-* reacter.org
+* `2021 LAMMPS Workshop <https://www.lammps.org/workshops/Aug21/talk/jacob-gissinger/>`_
+* `REACTER website (reacter.org) <https://www.reacter.org/>`_
 
 ----------
 

@@ -11,6 +11,8 @@ with the direct alternative (if available) and print a warning.
 Fix ave/spatial and fix ave/spatial/sphere
 ------------------------------------------
 
+.. deprecated:: 11Dec2015
+
 The fixes ave/spatial and ave/spatial/sphere have been removed from LAMMPS
 since they were superseded by the more general and extensible "chunk
 infrastructure".  Here the system is partitioned in one of many possible
@@ -21,7 +23,7 @@ Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 Box command
 -----------
 
-.. deprecated:: TBD
+.. deprecated:: 22Dec2022
 
 The *box* command has been removed and the LAMMPS code changed so it won't
 be needed.  If present, LAMMPS will ignore the command and print a warning.
@@ -29,7 +31,7 @@ be needed.  If present, LAMMPS will ignore the command and print a warning.
 Reset_ids, reset_atom_ids, reset_mol_ids commands
 -------------------------------------------------
 
-.. deprecated:: TBD
+.. deprecated:: 22Dec2022
 
 The *reset_ids*, *reset_atom_ids*, and *reset_mol_ids* commands have
 been folded into the :doc:`reset_atoms <reset_atoms>` command.  If

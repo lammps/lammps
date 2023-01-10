@@ -491,14 +491,28 @@ void PairHybrid::coeff(int narg, char **arg)
   int multflag = 0;
   int m;
 
+  // first loop to determine multflag
   for (m = 0; m < nstyles; m++) {
-    multflag = 0;
-    if (strcmp(arg[2],keywords[m]) == 0) {
+    if (strcmp(arg[2], keywords[m]) == 0) {
+      if (multiple[m]) multflag = MAX(multflag, multiple[m]);
+    }
+  }
+
+  for (m = 0; m < nstyles; m++) {
+    if (strcmp(arg[2], keywords[m]) == 0) {
       if (multiple[m]) {
-        multflag = 1;
-        if (narg < 4) utils::missing_cmd_args(FLERR, "pair_coeff", error);
-        if (multiple[m] == utils::inumeric(FLERR,arg[3],false,lmp)) break;
-        else continue;
+        if (utils::is_integer(arg[3])) {
+          if (narg < 4) utils::missing_cmd_args(FLERR, "pair_coeff", error);
+          int mult = utils::inumeric(FLERR, arg[3], false, lmp);
+          if ((mult < 1) || (mult > multflag))
+            error->all(FLERR, "Pair style {} was listed multiple times but its pair_coeff index "
+                       "of {} is out of range (1-{})", arg[2], mult, multflag);
+          if (multiple[m] == mult) break;
+          else continue;
+        } else {
+          error->all(FLERR, "Pair style {} was listed multiple times, but there is no index in the"
+                     " pair_coeff command (expected 1-{} but found {})", arg[2], multflag, arg[3]);
+        }
       } else break;
     }
   }
@@ -513,6 +527,7 @@ void PairHybrid::coeff(int narg, char **arg)
   // if multflag: move 1st/2nd args to 3rd/4th args
   // just copy ptrs, since arg[] points into original input line
 
+  if (multflag > 0) multflag = 1;
   arg[2+multflag] = arg[1];
   arg[1+multflag] = arg[0];
 

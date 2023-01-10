@@ -91,12 +91,12 @@ by this style, at the beginning of a minimization.
 Style *fire* is a damped dynamics method described in :ref:`(Bitzek)
 <Bitzek>`, which is similar to *quickmin* but adds a variable timestep
 and alters the projection operation to maintain components of the
-velocity non-parallel to the current force vector.  The velocity of
-each atom is initialized to 0.0 by this style, at the beginning of a
-minimization. This style correspond to an optimized version described
+velocity non-parallel to the current force vector.  The velocity of each
+atom is initialized to 0.0 by this style, at the beginning of a
+minimization.  This style correspond to an optimized version described
 in :ref:`(Guenole) <Guenole>` that include different time integration
-schemes and defaults parameters. The default parameters can be
-modified with the command :doc:`min_modify <min_modify>`.
+schemes and default parameters.  The default parameters can be modified
+with the command :doc:`min_modify <min_modify>`.
 
 Style *fire/old* is the original implementation of *fire* in Lammps,
 conserved for backward compatibility. The main differences regarding

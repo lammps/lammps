@@ -42,10 +42,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MinFire::MinFire(LAMMPS *lmp) : Min(lmp)
-{
-  abcflag = false;
-}
+MinFire::MinFire(LAMMPS *lmp) : Min(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -77,17 +74,17 @@ void MinFire::setup_style()
   // print the parameters used within fire/abcfire into the log
 
   const char *integrator_names[] = {"eulerimplicit", "verlet", "leapfrog", "eulerexplicit"};
-  const char *yesno[] = {"yes", "no"};
+  const char *yesno[] = {"no", "yes"};
 
   if (comm->me == 0)
     utils::logmesg(lmp,
                    "  Parameters for {}:\n"
-                   "    {:^5} {:^9} {:^6} {:^8} {:^6} {:^11} {:^4} {:^4} {:^14} {:^12} \n"
-                   "    {:^5} {:^9} {:^6} {:^8} {:^6} {:^11} {:^4} {:^4} {:^14} {:^12} \n",
+                   "    {:^5} {:^9} {:^6} {:^8} {:^6} {:^11} {:^4} {:^4} {:^14} {:^12} {:^11}\n"
+                   "    {:^5} {:^9} {:^6} {:^8} {:^6} {:^11} {:^4} {:^4} {:^14} {:^12} {:^11}\n",
                    update->minimize_style, "dmax", "delaystep", "dtgrow", "dtshrink", "alpha0",
-                   "alphashrink", "tmax", "tmin", "integrator", "halfstepback", dmax, delaystep,
-                   dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin, integrator_names[integrator],
-                   yesno[halfstepback_flag]);
+                   "alphashrink", "tmax", "tmin", "integrator", "halfstepback", "abcfire", dmax,
+                   delaystep, dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin,
+                   integrator_names[integrator], yesno[halfstepback_flag], yesno[abcflag]);
 
   // initialize the velocities
 
@@ -140,8 +137,8 @@ int MinFire::iterate(int maxiter)
       break;
 
     default:
-      error->all(FLERR, "Unexpected integrator style {}; expected 1-{}",
-                 integrator, (int)EULEREXPLICIT);
+      error->all(FLERR, "Unexpected integrator style {}; expected 1-{}", integrator,
+                 (int) EULEREXPLICIT);
       return MAXITER;
   }
 }
@@ -267,7 +264,7 @@ template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
         // limit the value of alpha to avoid divergence of abcfire
         if (alpha < 1e-10) {
           alpha=1e-10;
-        }	
+        }
 
         // calculate the factor abc, used for abcfire
         abc = (1-pow(1-alpha, (ntimestep-last_negative)));
@@ -355,7 +352,7 @@ template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
         }
       }
     }
-  
+
     // limit timestep so no particle moves further than dmax
 
     dtvone = dt;
@@ -367,7 +364,7 @@ template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
         if (dtvone*vmax > dmax) dtvone = dmax/vmax;
       }
     }
-    
+
     MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
 
     // reset velocities when necessary

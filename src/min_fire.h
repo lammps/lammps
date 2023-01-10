@@ -39,9 +39,6 @@ class MinFire : public Min {
   bigint last_negative, ntimestep_start;
   int vdotf_negatif, flagv0;
   template <int INTEGRATOR, bool ABCFLAG> int run_iterate(int);
-
- protected:
-  bool abcflag;
 };
 
 }    // namespace LAMMPS_NS

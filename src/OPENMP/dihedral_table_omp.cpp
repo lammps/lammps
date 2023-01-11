@@ -380,7 +380,7 @@ void DihedralTableOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     if (EVFLAG)
       ev_tally_thr(this,i1,i2,i3,i4,nlocal,NEWTON_BOND,edihedral,f1,f3,f4,
-                   vb12[0],vb12[1],vb12[2],vb23[0],vb23[1],vb23[2],vb34[0],
+                   -vb12[0],-vb12[1],-vb12[2],vb23[0],vb23[1],vb23[2],vb34[0],
                    vb34[1],vb34[2],thr);
   }
 }

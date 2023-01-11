@@ -695,7 +695,7 @@ void DihedralTable::compute(int eflag, int vflag)
       ev_tally(i1,i2,i3,i4,
                nlocal,newton_bond,edihedral,
                f1,f3,f4,
-               vb12[0],vb12[1],vb12[2],
+               -vb12[0],-vb12[1],-vb12[2],
                vb23[0],vb23[1],vb23[2],
                vb34[0],vb34[1],vb34[2]);
   }

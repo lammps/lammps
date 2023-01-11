@@ -329,7 +329,7 @@ void PairDPDTstatGPU::cpu_compute(int start, int inum, int /* eflag */, int /* v
   int i, j, ii, jj, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, fpair;
   double vxtmp, vytmp, vztmp, delvx, delvy, delvz;
-  double rsq, r, rinv, dot, wd, randnum, factor_dpd;
+  double rsq, r, rinv, dot, wd, randnum, factor_dpd, factor_sqrt;
   int *jlist;
   tagint itag, jtag;
 
@@ -360,6 +360,7 @@ void PairDPDTstatGPU::cpu_compute(int start, int inum, int /* eflag */, int /* v
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_dpd = special_lj[sbmask(j)];
+      factor_sqrt = special_sqrt[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -392,9 +393,9 @@ void PairDPDTstatGPU::cpu_compute(int start, int inum, int /* eflag */, int /* v
         // drag force = -gamma * wd^2 * (delx dot delv) / r
         // random force = sigma * wd * rnd * dtinvsqrt;
 
-        fpair = -gamma[itype][jtype] * wd * wd * dot * rinv;
-        fpair += sigma[itype][jtype] * wd * randnum * dtinvsqrt;
-        fpair *= factor_dpd * rinv;
+        fpair = -factor_dpd * gamma[itype][jtype] * wd * wd * dot * rinv;
+        fpair += factor_sqrt * sigma[itype][jtype] * wd * randnum * dtinvsqrt;
+        fpair *= rinv;
 
         f[i][0] += delx * fpair;
         f[i][1] += dely * fpair;

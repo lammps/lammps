@@ -79,7 +79,7 @@ class PairDPDExtTstatKokkos : public PairDPDExtTstat {
       const F_FLOAT &fx,const F_FLOAT &fy, const F_FLOAT &fz,
       const F_FLOAT &delx,const F_FLOAT &dely, const F_FLOAT &delz) const;
  private:
-  double special_lj[4];
+  double special_lj[4], special_rf[4];
   int eflag,vflag;
   int neighflag,nlocal;
   double dtinvsqrt;

@@ -43,13 +43,13 @@ class PairDPDExt : public Pair {
 
  protected:
   double cut_global, temperature;
+  double special_sqrt[4];
   int seed;
   double **cut;
   double **a0, **gamma, **gammaT;
   double **sigma, **sigmaT;
   double **ws, **wsT;
   class RanMars *random;
-
   virtual void allocate();
 };
 

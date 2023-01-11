@@ -91,7 +91,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
 
   while (h_resize() > 0) {
     h_resize() = 0;
-    deep_copy(d_resize, h_resize);
+    Kokkos::deep_copy(d_resize, h_resize);
 
     MemsetZeroFunctor<DeviceType> f_zero;
     f_zero.ptr = (void*) k_bincount.view<DeviceType>().data();
@@ -107,7 +107,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
 
     Kokkos::parallel_for(atom->nlocal+atom->nghost, f);
 
-    deep_copy(h_resize, d_resize);
+    Kokkos::deep_copy(h_resize, d_resize);
     if (h_resize()) {
 
       atoms_per_bin += 16;

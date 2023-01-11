@@ -1238,7 +1238,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
   rnorm = sqrt(norm_sqr);
 
   if (bnorm == 0.0 ) bnorm = 1.0;
-  deep_copy(d_r_hat,d_r);
+  Kokkos::deep_copy(d_r_hat,d_r);
   omega = 1.0;
   rho = 1.0;
 

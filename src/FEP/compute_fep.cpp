@@ -212,7 +212,7 @@ void ComputeFEP::init()
 
       void *ptr = pair->extract(pert->pparam, pert->pdim);
       if (ptr == nullptr)
-        error->all(FLERR, "Compute fep pair style param {} not supported", pert->pparam);
+        error->all(FLERR, "Compute fep pair style {} param {} not supported", pert->pstyle, pert->pparam);
 
       pert->array = (double **) ptr;
 

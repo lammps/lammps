@@ -347,16 +347,12 @@ void FixShake::init()
   if (update->whichflag == 2)
     error->all(FLERR,"Fix shake cannot be used with minimization");
 
-  // error if npt,nph fix comes before shake fix
-
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"npt") == 0) break;
-    if (strcmp(modify->fix[i]->style,"nph") == 0) break;
-  }
-  if (i < modify->nfix) {
-    for (int j = i; j < modify->nfix; j++)
-      if (strcmp(modify->fix[j]->style,"shake") == 0)
-        error->all(FLERR,"Shake fix must come before NPT/NPH fix");
+  // error if a fix changing the box comes before shake fix
+  bool boxflag = false;
+  for (auto &ifix : modify->get_fix_list()) {
+   if (boxflag && utils::strmatch(ifix->style,pattern))
+     error->all(FLERR,"Fix {} must come before any box changing fix", style);
+    if (ifix->box_change) boxflag = true;
   }
 
   // if rRESPA, find associated fix that must exist

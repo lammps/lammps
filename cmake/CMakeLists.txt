@@ -168,8 +168,8 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-# set path to python interpreter and thus enforcing python version if
-# when in a virtual environment and PYTHON_EXECUTABLE is not set on command line
+# set path to python interpreter and thus enforcing python version when
+# in a virtual environment and PYTHON_EXECUTABLE is not set on command line
 if(DEFINED ENV{VIRTUAL_ENV} AND NOT PYTHON_EXECUTABLE)
   if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")

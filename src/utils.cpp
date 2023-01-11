@@ -380,7 +380,7 @@ double utils::numeric(const char *file, int line, const std::string &str, bool d
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+.eE") != std::string::npos) {
+  if (!is_double(buf)) {
     std::string msg("Expected floating point parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -424,7 +424,7 @@ int utils::inumeric(const char *file, int line, const std::string &str, bool do_
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+  if (!is_integer(buf)) {
     std::string msg("Expected integer parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -469,7 +469,7 @@ bigint utils::bnumeric(const char *file, int line, const std::string &str, bool 
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+  if (!is_integer(buf)) {
     std::string msg("Expected integer parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -514,7 +514,7 @@ tagint utils::tnumeric(const char *file, int line, const std::string &str, bool 
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+  if (!is_integer(buf)) {
     std::string msg("Expected integer parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -759,10 +759,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     }
   }
 
-  //printf("NEWARG %d\n",newarg);
-  //for (int i = 0; i < newarg; i++)
-  //  printf("  arg %d: %s\n",i,earg[i]);
-
+  // printf("NEWARG %d\n",newarg); for (int i = 0; i < newarg; i++) printf("  arg %d: %s\n",i,earg[i]);
   return newarg;
 }
 
@@ -1074,6 +1071,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
 /* ----------------------------------------------------------------------
    Convert multi-line string into lines
 ------------------------------------------------------------------------- */
+
 std::vector<std::string> utils::split_lines(const std::string &text)
 {
   return Tokenizer(text, "\r\n").as_vector();
@@ -1087,11 +1085,7 @@ bool utils::is_integer(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (const auto &c : str) {
-    if (isdigit(c) || c == '-' || c == '+') continue;
-    return false;
-  }
-  return true;
+  return strmatch(str, "^[+-]?\\d+$");
 }
 
 /* ----------------------------------------------------------------------
@@ -1102,13 +1096,11 @@ bool utils::is_double(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (const auto &c : str) {
-    if (isdigit(c)) continue;
-    if (c == '-' || c == '+' || c == '.') continue;
-    if (c == 'e' || c == 'E') continue;
+  if (strmatch(str, "^[+-]?\\d+\\.?\\d*$") || strmatch(str, "^[+-]?\\d+\\.?\\d*[eE][+-]?\\d+$") ||
+      strmatch(str, "^[+-]?\\d*\\.?\\d+$") || strmatch(str, "^[+-]?\\d*\\.?\\d+[eE][+-]?\\d+$"))
+    return true;
+  else
     return false;
-  }
-  return true;
 }
 
 /* ----------------------------------------------------------------------
@@ -1191,6 +1183,7 @@ std::string utils::get_potential_units(const std::string &path, const std::strin
 /* ----------------------------------------------------------------------
    return bitmask of supported conversions for a given property
 ------------------------------------------------------------------------- */
+
 int utils::get_supported_conversions(const int property)
 {
   if (property == ENERGY)
@@ -1743,7 +1736,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
 /* Private functions: */
 static int matchdigit(char c)
 {
-  return ((c >= '0') && (c <= '9'));
+  return isdigit(c);
 }
 
 static int matchint(char c)
@@ -1758,12 +1751,12 @@ static int matchfloat(char c)
 
 static int matchalpha(char c)
 {
-  return ((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z'));
+  return isalpha(c);
 }
 
 static int matchwhitespace(char c)
 {
-  return ((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r') || (c == '\f') || (c == '\v'));
+  return isspace(c);
 }
 
 static int matchalphanum(char c)

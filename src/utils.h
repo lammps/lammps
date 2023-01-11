@@ -73,9 +73,9 @@ namespace utils {
    *  \param format format string of message to be printed
    *  \param args   arguments to format string */
 
-  template <typename S, typename... Args> void logmesg(LAMMPS *lmp, const S &format, Args &&...args)
+  template <typename... Args> void logmesg(LAMMPS *lmp, const std::string &format, Args &&...args)
   {
-    fmtargs_logmesg(lmp, format, fmt::make_args_checked<Args...>(format, args...));
+    fmtargs_logmesg(lmp, format, fmt::make_format_args(args...));
   }
 
   /*! \overload

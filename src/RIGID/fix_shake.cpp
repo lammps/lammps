@@ -335,6 +335,7 @@ void FixShake::init()
   double rsq,angle;
 
   // error if more than one shake fix
+  auto pattern = fmt::format("^{}",style);
 
   int count = 0;
   for (i = 0; i < modify->nfix; i++)

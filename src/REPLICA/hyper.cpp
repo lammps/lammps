@@ -180,7 +180,9 @@ void Hyper::command(int narg, char **arg)
 
   fix_event->store_state_quench();
   quench(1);
-  if (dumpflag) for (auto &idump : dumplist) idump->write();
+  if (dumpflag)
+    for (int idump = 0; idump < ndump; idump++)
+      output->dump[dumplist[idump]]->write();
   fix_event->store_event();
   if (hyperenable) fix_hyper->build_bond_list(0);
   fix_event->restore_state_quench();
@@ -209,7 +211,9 @@ void Hyper::command(int narg, char **arg)
       nevent++;
       nevent_atoms += ecount;
 
-      if (dumpflag) for (auto &idump : dumplist) idump->write();
+      if (dumpflag)
+        for (int idump = 0; idump < ndump; idump++)
+          output->dump[dumplist[idump]]->write();
       fix_event->store_event();
       if (hyperenable) fix_hyper->build_bond_list(ecount);
 

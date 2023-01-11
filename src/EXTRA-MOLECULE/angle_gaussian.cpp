@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 #define SMAL 0.001
-#define SMALL 1.0e-8
+#define SMALL 2.0e-308
 
 /* ---------------------------------------------------------------------- */
 
@@ -123,13 +123,15 @@ void AngleGaussian::compute(int eflag, int vflag)
     for (int i = 0; i < nterms[type]; i++) {
       dtheta = theta - theta0[type][i];
       prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
-      exponent = -2 * dtheta * dtheta / (width[type][i] * width[type][i]);
+      exponent = -2.0 * dtheta * dtheta / (width[type][i] * width[type][i]);
       g_i = prefactor * exp(exponent);
       sum_g_i += g_i;
       sum_numerator += g_i * dtheta / (width[type][i] * width[type][i]);
     }
 
-    if (sum_g_i < SMALL) sum_g_i = SMALL;
+    // avoid overflow
+    if (sum_g_i < sum_numerator * SMALL) sum_g_i = sum_numerator * SMALL;
+
     if (eflag) eangle = -(force->boltz * angle_temperature[type]) * log(sum_g_i);
 
     // I should check about the sign of this expression

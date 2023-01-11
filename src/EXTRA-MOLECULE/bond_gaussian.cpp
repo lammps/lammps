@@ -27,7 +27,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define SMALL 1.0e-10
+#define SMALL 2.0e-308
 
 /* ---------------------------------------------------------------------- */
 
@@ -92,15 +92,16 @@ void BondGaussian::compute(int eflag, int vflag)
     for (int i = 0; i < nterms[type]; i++) {
       dr = r - r0[type][i];
       prefactor = (alpha[type][i] / (width[type][i] * sqrt(MY_PI2)));
-      exponent = -2 * dr * dr / (width[type][i] * width[type][i]);
+      exponent = -2.0 * dr * dr / (width[type][i] * width[type][i]);
       g_i = prefactor * exp(exponent);
       sum_g_i += g_i;
       sum_numerator += g_i * dr / (width[type][i] * width[type][i]);
     }
 
-    // force & energy
-    if (sum_g_i < SMALL) sum_g_i = SMALL;
+    // avoid overflow
+    if (sum_g_i < sum_numerator * SMALL) sum_g_i = sum_numerator * SMALL;
 
+    // force & energy
     if (r > 0.0)
       fbond = -4.0 * (force->boltz * bond_temperature[type]) * (sum_numerator / sum_g_i) / r;
     else

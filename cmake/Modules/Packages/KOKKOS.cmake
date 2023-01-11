@@ -3,6 +3,7 @@
 if(CMAKE_CXX_STANDARD LESS 14)
   message(FATAL_ERROR "The KOKKOS package requires the C++ standard to be set to at least C++14")
 endif()
+
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_CUDA)

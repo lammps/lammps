@@ -22,8 +22,8 @@ set(YAML_CPP_BUILD_TOOLS OFF)
 add_subdirectory(${lib-pace}/yaml-cpp build-yaml-cpp)
 set(YAML_CPP_INCLUDE_DIR ${lib-pace}/yaml-cpp/include)
 
-file(GLOB PACE_EVALUATOR_INCLUDE_DIR ${lib-pace}/ML-PACE)
-file(GLOB PACE_EVALUATOR_SOURCES ${lib-pace}/ML-PACE/*.cpp)
+file(GLOB PACE_EVALUATOR_INCLUDE_DIR ${CONFIGURE_DEPENDS} ${lib-pace}/ML-PACE)
+file(GLOB PACE_EVALUATOR_SOURCES ${CONFIGURE_DEPENDS} ${lib-pace}/ML-PACE/*.cpp)
 list(FILTER PACE_EVALUATOR_SOURCES EXCLUDE REGEX pair_pace.cpp)
 
 add_library(pace STATIC ${PACE_EVALUATOR_SOURCES})

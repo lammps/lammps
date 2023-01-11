@@ -27,7 +27,7 @@ namely https://www.lammps.org.
 The original publication describing the parallel algorithms used in the
 initial versions of LAMMPS is:
 
-  `S. Plimpton, Fast Parallel Algorithms for Short-Range Molecular Dynamics, J Comp Phys, 117, 1-19 (1995). <http://www.sandia.gov/~sjplimp/papers/jcompphys95.pdf>`_
+  `S. Plimpton, Fast Parallel Algorithms for Short-Range Molecular Dynamics, J Comp Phys, 117, 1-19 (1995). <https://doi.org/10.1006/jcph.1995.1039>`_
 
 
 DOI for the LAMMPS source code

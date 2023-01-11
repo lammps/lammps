@@ -276,7 +276,7 @@ LAMMPS.
 
       Parallel build (see ``src/MAKE/Makefile.mpi``):
 
-      .. code-block:: bash
+      .. code-block:: make
 
          CC =            mpicxx
          CCFLAGS =       -g -O3
@@ -296,7 +296,7 @@ LAMMPS.
 
          If compilation stops with a message like the following:
 
-         .. code-block::
+         .. code-block:: output
 
             g++ -g -O3  -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64    -I../STUBS     -c ../main.cpp
             In file included from ../pointers.h:24:0,

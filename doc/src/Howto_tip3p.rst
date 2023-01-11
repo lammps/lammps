@@ -49,7 +49,7 @@ details:
 | :math:`\theta` of HOH angle = 104.52\ :math:`^{\circ}`
 |
 
-Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
+Wikipedia also has a nice article on `water models <https://en.wikipedia.org/wiki/Water_model>`_.
 
 ----------
 

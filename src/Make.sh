@@ -12,8 +12,6 @@ LC_ALL=C
 export LC_ALL GREP_OPTIONS
 
 # function to create one style_*.h file
-# must whack *.d files that depend on style_*.h file,
-# else Make will not recreate them
 
 style () {
   list=`grep -sl $1 $2*.h`

@@ -142,8 +142,9 @@ void PairMEAM::compute(int eflag, int vflag)
                     offset);
     offset += numneigh_half[i];
   }
-
+  printf("before revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   comm->reverse_comm(this);
+  printf("after revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag)
@@ -748,6 +749,7 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  //printf("pack revcomm last %d\n", last);
   for (i = first; i < last; i++) {
     buf[m++] = meam_inst->rho0[i];
     buf[m++] = meam_inst->arho2b[i];
@@ -801,6 +803,7 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
   int i,j,k,m;
 
   m = 0;
+  //printf("unpack revcomm n %d\n", n);
   for (i = 0; i < n; i++) {
     j = list[i];
     meam_inst->rho0[j] += buf[m++];
@@ -824,7 +827,26 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
     meam_inst->tsq_ave[j][0] += buf[m++];
     meam_inst->tsq_ave[j][1] += buf[m++];
     meam_inst->tsq_ave[j][2] += buf[m++];
+
+    if (this->msmeamflag){
+      meam_inst->arho2mb[j] += buf[m++];
+      meam_inst->arho1m[j][0] += buf[m++];
+      meam_inst->arho1m[j][1] += buf[m++];
+      meam_inst->arho1m[j][2] += buf[m++];
+      meam_inst->arho2m[j][0] += buf[m++];
+      meam_inst->arho2m[j][1] += buf[m++];
+      meam_inst->arho2m[j][2] += buf[m++];
+      meam_inst->arho2m[j][3] += buf[m++];
+      meam_inst->arho2m[j][4] += buf[m++];
+      meam_inst->arho2m[j][5] += buf[m++];
+      for (k = 0; k < 10; k++) meam_inst->arho3m[j][k] += buf[m++];
+      meam_inst->arho3mb[j][0] += buf[m++];
+      meam_inst->arho3mb[j][1] += buf[m++];
+      meam_inst->arho3mb[j][2] += buf[m++];
+    }
   }
+
+  
 }
 
 /* ----------------------------------------------------------------------

@@ -213,15 +213,20 @@ void MEAM::compute_pair_meam()
   memory->create(this->phirar5, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar5");
   memory->create(this->phirar6, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar6");
 
+  printf("--- compute_pair_meam ---\n");
   // loop over pairs of element types
   nv2 = 0;
   for (a = 0; a < this->neltypes; a++) {
     for (b = a; b < this->neltypes; b++) {
+
+      printf("%u\n", this->lattce_meam[a][b]);
+      printf("%f %f %f\n", this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b], this->stheta_meam[a][b]);
       // loop over r values and compute
       for (j = 0; j < this->nr; j++) {
         r = j * this->dr;
 
         this->phir[nv2][j] = phi_meam(r, a, b);
+        printf("%f\n", this->phir[nv2][j]);
 
         // if using second-nearest neighbor, solve recursive problem
         // (see Lee and Baskes, PRB 62(13):8564 eqn.(21))
@@ -333,6 +338,12 @@ double MEAM::phi_meam(double r, int a, int b)
   lattice_t latta /*unused:,lattb*/;
   double rho_bkgd1, rho_bkgd2;
   double b11s, b22s;
+  // msmeam params
+  double t1m1av, t2m1av, t3m1av, t1m2av, t2m2av, t3m2av;
+  double rhoa1m1, rhoa2m1, rhoa3m1;
+  double rhoa1m2, rhoa2m2, rhoa3m2;
+  double rho1m1, rho2m1, rho3m1;
+  double rho1m2, rho2m2, rho3m2;
 
   double phi_m = 0.0;
 
@@ -345,7 +356,16 @@ double MEAM::phi_meam(double r, int a, int b)
   Z2 = get_Zij(this->lattce_meam[b][b]);
   Z12 = get_Zij(this->lattce_meam[a][b]);
 
-  get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32);
+  // this function has extra args for msmeam
+  if (this->msmeamflag){
+    get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
+                &rho1m1, &rho2m1, &rho3m1,
+                &rho1m2, &rho2m2, &rho3m2);
+  } else{
+    get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
+                nullptr, nullptr, nullptr,
+                nullptr, nullptr, nullptr);
+  }
 
   // if densities are too small, numerical problems may result; just return zero
   if (rho01 <= 1e-14 && rho02 <= 1e-14)
@@ -653,7 +673,9 @@ void MEAM::get_sijk(double C, int i, int j, int k, double* sijk)
 //------------------------------------------------------------------------------c
 // Calculate density functions, assuming reference configuration
 void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* rho21, double* rho31,
-                       double* rho02, double* rho12, double* rho22, double* rho32)
+                       double* rho02, double* rho12, double* rho22, double* rho32, 
+                       double* rho1m1, double* rho2m1, double* rho3m1, 
+                       double* rho1m2, double* rho2m2, double* rho3m2)
 {
   double a1, a2;
   double s[3];
@@ -861,7 +883,12 @@ void MEAM::interpolate_meam(int ind)
   this->rdrar = 1.0 / drar;
 
   // phir interp
+  printf("--- phir interp ---\n");
+
+  printf("nrar %d\n", this->nrar);
+  //printf("phir:\n");
   for (j = 0; j < this->nrar; j++) {
+    //printf("%f\n", phir[ind][j]);
     this->phirar[ind][j] = this->phir[ind][j];
   }
   this->phirar1[ind][0] = this->phirar[ind][1] - this->phirar[ind][0];
@@ -889,4 +916,5 @@ void MEAM::interpolate_meam(int ind)
     this->phirar5[ind][j] = 2.0 * this->phirar2[ind][j] / drar;
     this->phirar6[ind][j] = 3.0 * this->phirar3[ind][j] / drar;
   }
+  printf("-----\n");
 }

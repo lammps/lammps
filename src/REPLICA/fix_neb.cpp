@@ -188,7 +188,7 @@ FixNEB::~FixNEB()
   memory->destroy(counts);
   memory->destroy(displacements);
 
-  if (neb_mode==IDEAL or neb_mode==EQUAL) {
+  if (neb_mode==IDEAL || neb_mode==EQUAL) {
     if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
     memory->destroy(nlenall);
   }
@@ -905,7 +905,7 @@ void FixNEB::reallocate()
     memory->create(tagrecv,maxlocal,"neb:tagrecv");
   }
 
-  if (neb_mode==IDEAL or neb_mode==EQUAL) {
+  if (neb_mode==IDEAL || neb_mode==EQUAL) {
     memory->destroy(nlenall);
     memory->create(nlenall,nreplica,"neb:nlenall");
   }

@@ -26,15 +26,18 @@ FixStyle(electrode/conp, FixElectrodeConp);
 #ifndef LMP_FIX_ELECTRODE_CONP_H
 #define LMP_FIX_ELECTRODE_CONP_H
 
-#include "electrode_accel_interface.h"
 #include "fix.h"
 
-#include <algorithm>
 #include <map>
 #include <memory>
 #include <unordered_map>
 
 namespace LAMMPS_NS {
+// forward decls
+
+class ElectrodeVector;
+class NeighList;
+class Pair;
 
 class FixElectrodeConp : public Fix {
 
@@ -52,7 +55,7 @@ class FixElectrodeConp : public Fix {
   double compute_array(int, int) override;
   int modify_param(int, char **) override;
   int modify_param(const std::string &);
-  void init() override;
+  virtual void init() override;
   void init_list(int, NeighList *) override;
   void post_constructor() override;    // used by ffield to set up fix efield
   double memory_usage() override;
@@ -75,7 +78,7 @@ class FixElectrodeConp : public Fix {
   virtual std::vector<double> constraint_projection(std::vector<double>);
   virtual std::vector<double> constraint_correction(std::vector<double>);
   virtual void compute_macro_matrices();
-  std::vector<double> ele_ele_interaction(std::vector<double>);
+  std::vector<double> ele_ele_interaction(const std::vector<double> &);
   std::vector<double> group_psi;
   std::vector<int> group_bits;
   std::vector<int> groups;
@@ -97,12 +100,12 @@ class FixElectrodeConp : public Fix {
   bool ffield;                                           // possibly tweak electrode/conq's version
   std::string fixname;    // used by electrode/ffield to set up internal efield
   bool intelflag;
-  std::unique_ptr<ElectrodeAccelInterface> accel_interface;    // used by /intel
+  inline virtual void intel_pack_buffers() {}
 
  private:
   std::string output_file_inv, output_file_mat, output_file_vec;
   std::string input_file_inv, input_file_mat;
-  class ElectrodeVector *elyt_vector, *elec_vector;
+  ElectrodeVector *elyt_vector, *elec_vector;
   double **capacitance, **elastance;
   bool read_inv, read_mat, write_inv, write_mat, write_vec;
   bool matrix_algo, need_array_compute, need_elec_vector;
@@ -121,8 +124,8 @@ class FixElectrodeConp : public Fix {
   void compute_sd_vectors();
   void compute_sd_vectors_ffield();
   int groupnum_from_name(char *);
-  class Pair *pair;
-  class NeighList *mat_neighlist, *vec_neighlist;
+  Pair *pair;
+  NeighList *mat_neighlist, *vec_neighlist;
   std::vector<int> etypes;
   int mat_request, vec_request;
   void request_etypes_neighlists();

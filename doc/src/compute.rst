@@ -43,29 +43,38 @@ underscores.
 
 ----------
 
-Computes calculate one of three styles of quantities: global,
-per-atom, or local.  A global quantity is one or more system-wide
-values (e.g., the temperature of the system).  A per-atom quantity is
-one or more values per atom (e.g., the kinetic energy of each atom).
-Per-atom values are set to 0.0 for atoms not in the specified compute
-group.  Local quantities are calculated by each processor based on the
-atoms it owns, but there may be zero or more per atom (e.g., a list of
-bond distances).  Computes that produce per-atom quantities have the
-word "atom" in their style (e.g., *ke/atom*\ ).  Computes that produce
-local quantities have the word "local" in their style
-(e.g., *bond/local*\ ).  Styles with neither "atom" or "local" in their
-style produce global quantities.
+Computes calculate one or more of four styles of quantities: global,
+per-atom, local, or per-atom.  A global quantity is one or more
+system-wide values, e.g. the temperature of the system.  A per-atom
+quantity is one or more values per atom, e.g. the kinetic energy of
+each atom.  Per-atom values are set to 0.0 for atoms not in the
+specified compute group.  Local quantities are calculated by each
+processor based on the atoms it owns, but there may be zero or more
+per atom, e.g. a list of bond distances.  Per-grid quantities are
+calculated on a regular 2d or 3d grid which overlays a 2d or 3d
+simulation domain.  The grid points and the data they store are
+distributed across processors; each processor owns the grid points
+which fall within its sub-domain.
 
-Note that a single compute can produce either global or per-atom or
-local quantities, but not both global and per-atom.  It can produce
-local quantities in tandem with global or per-atom quantities.  The
-compute page will explain.
+Computes that produce per-atom quantities have the word "atom" at the
+end of their style, e.g. *ke/atom*\ .  Computes that produce local
+quantities have the word "local" at the end of their style,
+e.g. *bond/local*\ .  Computes that produce per-grid quantities have
+the word "grid" at the end of their style, e.g. *property/grid*\ .
+Styles with neither "atom" or "local" or "grid" at the end of their
+style name produce global quantities.
 
-Global, per-atom, and local quantities each come in three kinds: a
-single scalar value, a vector of values, or a 2d array of values.  The
-doc page for each compute describes the style and kind of values it
-produces (e.g., a per-atom vector).  Some computes produce more than one
-kind of a single style (e.g., a global scalar and a global vector).
+Note that a single compute typically produces either global or
+per-atom or local or per-grid values.  It does not compute both global
+and per-atom values.  It can produce local values or per-grid values
+in tandem with global or per-atom quantities.  The compute doc page
+will explain the details.
+
+Global, per-atom, local, and per-grid quantities come in three kinds:
+a single scalar value, a vector of values, or a 2d array of values.
+The doc page for each compute describes the style and kind of values
+it produces, e.g. a per-atom vector.  Some computes produce more than
+one kind of a single style, e.g. a global scalar and a global vector.
 
 When a compute quantity is accessed, as in many of the output commands
 discussed below, it can be referenced via the following bracket
@@ -202,6 +211,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`dpd/atom <compute_dpd_atom>` - per-particle values of internal conductive energy, internal mechanical energy, chemical energy, and internal temperature
 * :doc:`edpd/temp/atom <compute_edpd_temp_atom>` - per-atom temperature for each eDPD particle in a group
 * :doc:`efield/atom <compute_efield_atom>` - electric field at each atom
+* :doc:`efield/wolf/atom <compute_efield_wolf_atom>` - electric field at each atom
 * :doc:`entropy/atom <compute_entropy_atom>` - pair entropy fingerprint of each atom
 * :doc:`erotate/asphere <compute_erotate_asphere>` - rotational energy of aspherical particles
 * :doc:`erotate/rigid <compute_erotate_rigid>` - rotational energy of rigid bodies
@@ -252,7 +262,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`pressure/uef <compute_pressure_uef>` - pressure tensor in the reference frame of an applied flow field
 * :doc:`property/atom <compute_property_atom>` - convert atom attributes to per-atom vectors/arrays
 * :doc:`property/chunk <compute_property_chunk>` - extract various per-chunk attributes
-* :doc:`property/local <compute_property_local>` - convert local attributes to localvectors/arrays
+* :doc:`property/grid <compute_property_grid>` - convert per-grid attributes to per-grid vectors/arrays
+* :doc:`property/local <compute_property_local>` - convert local attributes to local vectors/arrays
 * :doc:`ptm/atom <compute_ptm_atom>` - determines the local lattice structure based on the Polyhedral Template Matching method
 * :doc:`rdf <compute_rdf>` - radial distribution function :math:`g(r)` histogram of group of atoms
 * :doc:`reduce <compute_reduce>` - combine per-atom quantities into a single global value

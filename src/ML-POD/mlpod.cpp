@@ -218,7 +218,7 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
 
   int lwork = ns * ns;  // the length of the array work, lwork >= max(1,3*N-1)
   int info = 1;     // = 0:  successful exit
-  std::vector<double> work(ns*ns);
+  std::vector<double> work(lwork);
   DSYEV(&chv, &chu, &ns, A, &ns, b, work.data(), &lwork, &info);
 
   // order eigenvalues and eigenvectors from largest to smallest
@@ -240,6 +240,15 @@ void MLPOD::podeigenvaluedecomposition(double *Phi, double *Lambda, double *bess
       area += 0.5*xij[i]*(Q[i + N*m]*Q[i + N*m] + Q[i+1 + N*m]*Q[i+1 + N*m]);
     for (int i=0; i<ns; i++)
       Phi[i + ns*m] = Phi[i + ns*m]/sqrt(area);
+  }
+
+ // enforce consistent signs for the eigenvectors
+
+  for (int m=0; m<ns; m++) {
+    if (Phi[m + ns*m] < 0.0) {
+      for (int i=0; i<ns; i++)
+        Phi[i + ns*m] = -Phi[i + ns*m];
+    }
   }
 
   memory->destroy(xij);

@@ -69,7 +69,7 @@ void MinLineSearchKokkos::init()
 {
   MinKokkos::init();
 
-  if (linestyle == 1) linemin = &MinLineSearchKokkos::linemin_quadratic;
+  if (linestyle == QUADRATIC) linemin = &MinLineSearchKokkos::linemin_quadratic;
   else error->all(FLERR,"Kokkos minimize only supports the 'min_modify line "
    "quadratic' option");
 }
@@ -376,10 +376,14 @@ double MinLineSearchKokkos::alpha_step(double alpha, int resetflag)
     });
   }
 
+  atomKK->modified(Device,X_MASK);
+
   // step forward along h
 
   if (alpha > 0.0) {
     if (nextra_global) modify->min_step(alpha,hextra);
+
+  atomKK->sync(Device,X_MASK); // positions can be modified by fix box/relax
 
     // local variables for lambda capture
 

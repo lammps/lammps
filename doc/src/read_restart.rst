@@ -8,7 +8,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   read_restart file flag
+   read_restart file
 
 * file = name of binary restart file to read in
 
@@ -36,6 +36,13 @@ processors in the current simulation and the settings of the
 :doc:`processors <processors>` command.  The partitioning can later be
 changed by the :doc:`balance <balance>` or :doc:`fix balance
 <fix_balance>` commands.
+
+.. deprecated:: 23Jun2022
+
+Atom coordinates that are found to be outside the simulation box when
+reading the restart will be remapped back into the box and their image
+flags updated accordingly.  This previously required specifying the
+*remap* option, but that is no longer required.
 
 Restart files are saved in binary format to enable exact restarts,
 meaning that the trajectories of a restarted run will precisely match

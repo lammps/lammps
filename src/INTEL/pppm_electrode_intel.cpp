@@ -29,7 +29,7 @@
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "force.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -223,7 +223,7 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
         make_rho_in_brick<float, float>(fix->get_single_buffers(), last_source_grpbit,
                                         density_brick, !last_invert_source);
     }
-    gc->reverse_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
+    gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
     for (int nz = nzlo_out; nz <= nzhi_out; nz++)
       for (int ny = nylo_out; ny <= nyhi_out; ny++)
@@ -245,7 +245,7 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
     //   to fully sum contribution in their 3d bricks
     // remap from 3d decomposition to FFT decomposition
 
-    gc->reverse_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
+    gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
   }
 
@@ -265,20 +265,20 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
+    gc->forward_comm(Grid3d::KSPACE, this, FORWARD_AD, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
   else
-    gc->forward_comm(GridComm::KSPACE, this, 3, sizeof(FFT_SCALAR), FORWARD_IK, gc_buf1, gc_buf2,
+    gc->forward_comm(Grid3d::KSPACE, this, FORWARD_IK, 3, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm(GridComm::KSPACE, this, 6, sizeof(FFT_SCALAR), FORWARD_AD_PERATOM, gc_buf1,
+      gc->forward_comm(Grid3d::KSPACE, this, FORWARD_AD_PERATOM, 6, sizeof(FFT_SCALAR), gc_buf1,
                        gc_buf2, MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm(GridComm::KSPACE, this, 7, sizeof(FFT_SCALAR), FORWARD_IK_PERATOM, gc_buf1,
+      gc->forward_comm(Grid3d::KSPACE, this, FORWARD_IK_PERATOM, 7, sizeof(FFT_SCALAR), gc_buf1,
                        gc_buf2, MPI_FFT_SCALAR);
   }
   int tempslabflag = slabflag;
@@ -338,6 +338,7 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
   // electrolyte density (without writing an additional function)
   FFT_SCALAR ***density_brick_real = density_brick;
   FFT_SCALAR *density_fft_real = density_fft;
+  if (neighbor->ago != 0) pack_buffers(); // since midstep positions may be outdated
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:
       make_rho_in_brick<float, double>(fix->get_mixed_buffers(), source_grpbit,
@@ -353,7 +354,7 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
   }
   density_brick = electrolyte_density_brick;
   density_fft = electrolyte_density_fft;
-  gc->reverse_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), REVERSE_RHO, gc_buf1, gc_buf2,
+  gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                    MPI_FFT_SCALAR);
   brick2fft();
   // switch back pointers
@@ -383,7 +384,7 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
         n += 2;
       }
 
-  gc->forward_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
+  gc->forward_comm(Grid3d::KSPACE, this, FORWARD_AD, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                    MPI_FFT_SCALAR);
 
   switch (fix->precision()) {
@@ -1194,4 +1195,32 @@ void PPPMElectrodeIntel::deallocate()
   delete gc;
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
+}
+
+/* ----------------------------------------------------------------------
+  Pack charge data into intel package buffers after updates
+------------------------------------------------------------------------- */
+
+void PPPMElectrodeIntel::pack_buffers_q()
+{
+  fix->start_watch(TIME_PACK);
+  int packthreads;
+  if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;
+  else packthreads = 1;
+  #if defined(_OPENMP)
+  #pragma omp parallel if (packthreads > 1)
+  #endif
+  {
+    int ifrom, ito, tid;
+    IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal+atom->nghost,
+                              packthreads,
+                              sizeof(IntelBuffers<float,double>::atom_t));
+    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+      fix->get_mixed_buffers()->thr_pack_q(ifrom,ito);
+    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+      fix->get_double_buffers()->thr_pack_q(ifrom,ito);
+    else
+      fix->get_single_buffers()->thr_pack_q(ifrom,ito);
+  }
+  fix->stop_watch(TIME_PACK);
 }

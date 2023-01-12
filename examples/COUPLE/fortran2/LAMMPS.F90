@@ -1,7 +1,7 @@
 !! -----------------------------------------------------------------------
 !   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-!   www.cs.sandia.gov/~sjplimp/lammps.html
-!   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+!   https://www.lammps.org/ Sandia National Laboratories
+!   LAMMPS Development team: developers@lammps.org
 !
 !   Copyright (2003) Sandia Corporation.  Under the terms of Contract
 !   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -15,6 +15,15 @@
 !   Contributing author:  Karl D. Hammond <hammondkd@missouri.edu>
 !                         University of Tennessee, Knoxville (USA), 2012
 !   Updated October 2020 by the author (now at the University of Missouri).
+!--------------------------------------------------------------------------
+
+!! NOTE -------------------------------------------------------------------
+!  This interface is obsolete and may be removed in a future release of
+!  LAMMPS. The interface in fortran/lammps.f90 replaces this one. That API
+!  is maintained by the LAMMPS developers and has documentation written for
+!  it; it is based loosely on this one, but binds all procedures to a lammps
+!  derived type. That interface was written in large
+!  part by the same author, but is also supported by other developers.
 !--------------------------------------------------------------------------
 
 !! LAMMPS, a Fortran 2003 module containing an interface between Fortran

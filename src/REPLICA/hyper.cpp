@@ -22,7 +22,6 @@
 #include "fix_event_hyper.h"
 #include "fix_hyper.h"
 #include "integrate.h"
-#include "memory.h"
 #include "min.h"
 #include "modify.h"
 #include "neighbor.h"

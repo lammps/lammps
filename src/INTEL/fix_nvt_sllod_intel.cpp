@@ -35,14 +35,26 @@ FixNVTSllodIntel::FixNVTSllodIntel(LAMMPS *lmp, int narg, char **arg) :
   FixNHIntel(lmp, narg, arg)
 {
   if (!tstat_flag)
-    error->all(FLERR,"Temperature control must be used with fix nvt/sllod");
+    error->all(FLERR,"Temperature control must be used with fix nvt/sllod/intel");
   if (pstat_flag)
-    error->all(FLERR,"Pressure control can not be used with fix nvt/sllod");
+    error->all(FLERR,"Pressure control can not be used with fix nvt/sllod/intel");
 
   // default values
 
+  psllod_flag = 0;
   if (mtchain_default_flag) mtchain = 1;
 
+  // select SLLOD/p-SLLOD/g-SLLOD variant
+
+  int iarg = 3;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"psllod") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nvt/sllod/intel psllod", error);
+      psllod_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else iarg++;
+  }
 
   // create a new compute temp style
   // id = fix-ID + temp
@@ -61,23 +73,21 @@ void FixNVTSllodIntel::init()
   FixNHIntel::init();
 
   if (!temperature->tempbias)
-    error->all(FLERR,"Temperature for fix nvt/sllod does not have a bias");
+    error->all(FLERR,"Temperature for fix nvt/sllod/intel does not have a bias");
 
   nondeformbias = 0;
   if (strcmp(temperature->style,"temp/deform") != 0) nondeformbias = 1;
 
   // check fix deform remap settings
 
-  int i;
-  for (i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"deform",6) == 0) {
-      if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag != Domain::V_REMAP)
-        error->all(FLERR,"Using fix nvt/sllod with inconsistent fix deform "
-                   "remap option");
-      break;
-    }
-  if (i == modify->nfix)
-    error->all(FLERR,"Using fix nvt/sllod with no fix deform defined");
+  auto deform = modify->get_fix_by_style("^deform");
+  if (deform.size() < 1) error->all(FLERR,"Using fix nvt/sllod/intel with no fix deform defined");
+
+  for (auto ifix : deform) {
+    auto f = dynamic_cast<FixDeform *>(ifix);
+    if (f && (f->remapflag != Domain::V_REMAP))
+      error->all(FLERR,"Using fix nvt/sllod/intel with inconsistent fix deform remap option");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -105,10 +115,11 @@ void FixNVTSllodIntel::nh_v_temp()
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
+      if (!psllod_flag) temperature->remove_bias(i,v[i]);
       vdelu[0] = h_two[0]*v[i][0] + h_two[5]*v[i][1] + h_two[4]*v[i][2];
       vdelu[1] = h_two[1]*v[i][1] + h_two[3]*v[i][2];
       vdelu[2] = h_two[2]*v[i][2];
-      temperature->remove_bias(i,v[i]);
+      if (psllod_flag) temperature->remove_bias(i,v[i]);
       v[i][0] = v[i][0]*factor_eta - dthalf*vdelu[0];
       v[i][1] = v[i][1]*factor_eta - dthalf*vdelu[1];
       v[i][2] = v[i][2]*factor_eta - dthalf*vdelu[2];

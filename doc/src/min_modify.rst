@@ -27,7 +27,7 @@ Syntax
          damping = fictitious magnetic damping for spin minimization (adim)
        *discrete_factor* value = factor
          factor = discretization factor for adaptive spin timestep (adim)
-       *integrator* value = *eulerimplicit* or *verlet*
+       *integrator* value = *eulerimplicit* or *verlet* or *leapfrog* or *eulerexplicit*
          time integration scheme for fire minimization
        *tmax* value = factor
          factor = maximum adaptive timestep for fire minimization (adim)
@@ -127,27 +127,27 @@ procedure.  The *spin_none* is a default value for *line* keyword for
 both *spin/lbfgs* and *spin/cg*\ . Convergence of *spin/lbfgs* can be
 more robust if *spin_cubic* line search is used.
 
-The Newton *integrator* used for *fire* minimization can be selected
-to be either the symplectic Euler (\ *eulerimplicit*\ ) or velocity
-Verlet (\ *verlet*\ ).  *tmax* defines the maximum value for the
-adaptive timestep during a *fire* minimization. It is a multiplication
-factor applied to the current :doc:`timestep <timestep>` (not in time
-unit). For example, *tmax* = 4.0 with a :doc:`timestep <timestep>` of
-2fs, means that the maximum value the timestep can reach during a *fire*
-minimization is 4fs.
-Note that parameter defaults has been chosen to be reliable in most cases,
-but one should consider adjusting :doc:`timestep <timestep>` and *tmax* to
-optimize the minimization for large or complex systems.  Other
-parameters of the *fire* minimization can be tuned (\ *tmin*,
-*delaystep*, *dtgrow*, *dtshrink*, *alpha0*, and
-*alphashrink*\ ). Please refer to the references describing the
-:doc:`min_style <min_style>` *fire*.
-An additional stopping criteria *vdfmax* is used by *fire* in order to avoid
-unnecessary looping when it is reasonable to think the system will not
-be relaxed further.  Note that in this case the system will NOT have
+The Newton *integrator* used for *fire* minimization can be selected to
+be either the symplectic Euler (\ *eulerimplicit*\ ), velocity Verlet (\
+*verlet*\ ), Leapfrog (\ *leapfrog*\ ) or non-symplectic forward Euler
+(\ *eulerexplicit* \). The keyword *tmax* defines the maximum value for
+the adaptive timestep during a *fire* minimization. It is a
+multiplication factor applied to the current :doc:`timestep <timestep>`
+(not in time unit). For example, *tmax* = 4.0 with a :doc:`timestep
+<timestep>` of 2fs, means that the maximum value the timestep can reach
+during a *fire* minimization is 4fs.  Note that parameter defaults has
+been chosen to be reliable in most cases, but one should consider
+adjusting :doc:`timestep <timestep>` and *tmax* to optimize the
+minimization for large or complex systems.  Other parameters of the
+*fire* minimization can be tuned (\ *tmin*, *delaystep*, *dtgrow*,
+*dtshrink*, *alpha0*, and *alphashrink*\ ). Please refer to the
+references describing the :doc:`min_style <min_style>` *fire*.  An
+additional stopping criteria *vdfmax* is used by *fire* in order to
+avoid unnecessary looping when it is reasonable to think the system will
+not be relaxed further.  Note that in this case the system will NOT have
 reached your minimization criteria. This could happen when the system
-comes to be stuck in a local basin of the phase space.  *vdfmax* is
-the maximum number of consecutive iterations with P(t) < 0.
+comes to be stuck in a local basin of the phase space.  *vdfmax* is the
+maximum number of consecutive iterations with P(t) < 0.
 
 The :doc:`min_style <min_style>` *fire* is an optimized implementation of
 :doc:`min_style <min_style>` *fire/old*. It can however behave similarly

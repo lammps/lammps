@@ -34,14 +34,11 @@ There is an example script for this package in examples/PACKAGES/srp_react/.
 #include "error.h"
 #include "fix_srp_react.h"
 #include "force.h"
-#include "memory.h"
 #include "modify.h"
-#include "neigh_list.h"
 #include "neighbor.h"
 #include "output.h"
 #include "thermo.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

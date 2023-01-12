@@ -47,7 +47,8 @@ void PairDPDExtTstat::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpairx,fpairy,fpairz,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,wdPar,wdPerp,randnum,randnumx,randnumy,randnumz,factor_dpd;
+  double rsq,r,rinv,dot,wd,wdPar,wdPerp,randnum,randnumx,randnumy,randnumz;
+  double prefactor_g,prefactor_s,factor_dpd,factor_sqrt;
   double P[3][3];
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -99,6 +100,7 @@ void PairDPDExtTstat::compute(int eflag, int vflag)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_dpd = special_lj[sbmask(j)];
+      factor_sqrt = special_sqrt[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
@@ -138,34 +140,26 @@ void PairDPDExtTstat::compute(int eflag, int vflag)
         randnumz = random->gaussian();
 
         // drag force - parallel
-        fpair = -gamma[itype][jtype]*wdPar*wdPar*dot*rinv;
+        fpair = -factor_dpd * gamma[itype][jtype]*wdPar*wdPar*dot*rinv;
 
         // random force - parallel
-        fpair += sigma[itype][jtype]*wdPar*randnum*dtinvsqrt;
+        fpair += factor_sqrt*sigma[itype][jtype]*wdPar*randnum*dtinvsqrt;
 
         fpairx = fpair*rinv*delx;
         fpairy = fpair*rinv*dely;
         fpairz = fpair*rinv*delz;
 
         // drag force - perpendicular
-        fpairx -= gammaT[itype][jtype]*wdPerp*wdPerp*
-                  (P[0][0]*delvx + P[0][1]*delvy + P[0][2]*delvz);
-        fpairy -= gammaT[itype][jtype]*wdPerp*wdPerp*
-                  (P[1][0]*delvx + P[1][1]*delvy + P[1][2]*delvz);
-        fpairz -= gammaT[itype][jtype]*wdPerp*wdPerp*
-                  (P[2][0]*delvx + P[2][1]*delvy + P[2][2]*delvz);
+        prefactor_g = factor_dpd*gammaT[itype][jtype]*wdPerp*wdPerp;
+        fpairx -= prefactor_g * (P[0][0]*delvx + P[0][1]*delvy + P[0][2]*delvz);
+        fpairy -= prefactor_g * (P[1][0]*delvx + P[1][1]*delvy + P[1][2]*delvz);
+        fpairz -= prefactor_g * (P[2][0]*delvx + P[2][1]*delvy + P[2][2]*delvz);
 
         // random force - perpendicular
-        fpairx += sigmaT[itype][jtype]*wdPerp*
-                  (P[0][0]*randnumx + P[0][1]*randnumy + P[0][2]*randnumz)*dtinvsqrt;
-        fpairy += sigmaT[itype][jtype]*wdPerp*
-                  (P[1][0]*randnumx + P[1][1]*randnumy + P[1][2]*randnumz)*dtinvsqrt;
-        fpairz += sigmaT[itype][jtype]*wdPerp*
-                  (P[2][0]*randnumx + P[2][1]*randnumy + P[2][2]*randnumz)*dtinvsqrt;
-
-        fpairx *= factor_dpd;
-        fpairy *= factor_dpd;
-        fpairz *= factor_dpd;
+        prefactor_s = factor_sqrt * sigmaT[itype][jtype]*wdPerp * dtinvsqrt;
+        fpairx += prefactor_s * (P[0][0]*randnumx + P[0][1]*randnumy + P[0][2]*randnumz);
+        fpairy += prefactor_s * (P[1][0]*randnumx + P[1][1]*randnumy + P[1][2]*randnumz);
+        fpairz += prefactor_s * (P[2][0]*randnumx + P[2][1]*randnumy + P[2][2]*randnumz);
 
         f[i][0] += fpairx;
         f[i][1] += fpairy;

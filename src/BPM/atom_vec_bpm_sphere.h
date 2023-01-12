@@ -24,7 +24,7 @@ AtomStyle(bpm/sphere,AtomVecBPMSphere);
 
 namespace LAMMPS_NS {
 
-class AtomVecBPMSphere : public AtomVec {
+class AtomVecBPMSphere : virtual public AtomVec {
  public:
   AtomVecBPMSphere(class LAMMPS *);
   void process_args(int, char **) override;

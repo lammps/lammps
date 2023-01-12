@@ -17,7 +17,6 @@
 #include "pointers.h"
 
 #include <map>
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -100,6 +99,8 @@ class Modify : protected Pointers {
   virtual double max_alpha(double *);
   virtual int min_dof();
   virtual int min_reset_ref();
+
+  void reset_grid();
 
   Fix *add_fix(int, char **, int trysuffix = 1);
   Fix *add_fix(const std::string &, int trysuffix = 1);

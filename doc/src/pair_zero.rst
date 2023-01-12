@@ -46,6 +46,8 @@ section for any pair style. Similarly, any pair_coeff commands
 will only be checked for the atom type numbers and the rest ignored.
 In this case, only the global cutoff will be used.
 
+.. versionadded:: 3Nov2022
+
 The optional *full* flag builds a full neighbor list instead of the default
 half neighbor list.
 

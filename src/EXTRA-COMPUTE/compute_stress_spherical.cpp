@@ -19,19 +19,15 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "lattice.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

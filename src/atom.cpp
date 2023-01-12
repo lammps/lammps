@@ -214,7 +214,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
 
   // DIELECTRIC package
 
-  area = ed = em = epsilon = curvature = q_unscaled = nullptr;
+  area = ed = em = epsilon = curvature = q_scaled = nullptr;
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -563,7 +563,7 @@ void Atom::peratom_create()
   add_peratom("em",&em,DOUBLE,0);
   add_peratom("epsilon",&epsilon,DOUBLE,0);
   add_peratom("curvature",&curvature,DOUBLE,0);
-  add_peratom("q_unscaled",&q_unscaled,DOUBLE,0);
+  add_peratom("q_scaled",&q_scaled,DOUBLE,0);
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -2951,7 +2951,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"em") == 0) return (void *) em;
   if (strcmp(name,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(name,"curvature") == 0) return (void *) curvature;
-  if (strcmp(name,"q_unscaled") == 0) return (void *) q_unscaled;
+  if (strcmp(name,"q_scaled") == 0) return (void *) q_scaled;
 
   // end of customization section
   // --------------------------------------------------------------------

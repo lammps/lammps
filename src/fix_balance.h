@@ -43,16 +43,15 @@ class FixBalance : public Fix {
   int nevery, lbstyle, nitermax;
   double thresh, stopthresh;
   char bstr[4];
-  int wtflag;    // 1 for weighted balancing
+  int wtflag;               // 1 for weighted balancing
 
   double imbnow;            // current imbalance factor
   double imbprev;           // imbalance factor before last rebalancing
   double imbfinal;          // imbalance factor after last rebalancing
   double maxloadperproc;    // max load on any processor
   int itercount;            // iteration count of last call to Balance
-  int kspace_flag;          // 1 if KSpace solver defined
   int pending;
-  bigint lastbalance;    // last timestep balancing was attempted
+  bigint lastbalance;       // last timestep balancing was attempted
 
   class Balance *balance;
   class Irregular *irregular;

@@ -57,6 +57,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`dpd/atom <compute_dpd_atom>`
    * :doc:`edpd/temp/atom <compute_edpd_temp_atom>`
    * :doc:`efield/atom <compute_efield_atom>`
+   * :doc:`efield/wolf/atom <compute_efield_wolf_atom>`
    * :doc:`entropy/atom <compute_entropy_atom>`
    * :doc:`erotate/asphere <compute_erotate_asphere>`
    * :doc:`erotate/rigid <compute_erotate_rigid>`
@@ -107,6 +108,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pressure/uef <compute_pressure_uef>`
    * :doc:`property/atom <compute_property_atom>`
    * :doc:`property/chunk <compute_property_chunk>`
+   * :doc:`property/grid <compute_property_grid>`
    * :doc:`property/local <compute_property_local>`
    * :doc:`ptm/atom <compute_ptm_atom>`
    * :doc:`rdf <compute_rdf>`

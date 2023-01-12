@@ -79,16 +79,29 @@ class DumpImage : public DumpCustom {
   double *diamtype, *diamelement, *bdiamtype;          // per-type diameters
   double **colortype, **colorelement, **bcolortype;    // per-type colors
 
+  int gridflag;         // 0/1 for draw grid cells
+  class Grid2d *grid2d;
+  class Grid3d *grid3d;
+  char *id_grid_compute,*id_grid_fix;
+  class Compute *grid_compute;
+  class Fix *grid_fix;
+  int grid_igrid,grid_idata,grid_index;
+  int nxgrid,nygrid,nzgrid;
+  int nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in;
+  double *gbuf;
+  int ngrid,maxgrid;
+  double gcorners[8][3];
+
   class AtomVecLine *avec_line;    // ptrs to atom style (sub)classes
   class AtomVecTri *avec_tri;
   class AtomVecBody *avec_body;
 
   class Fix *fixptr;    // ptr to Fix that provides image data
 
-  class Image *image;    // class that renders each image
+  class Image *image;   // class that renders each image
 
-  int *chooseghost;    // extended choose array for comm
-  double **bufcopy;    // buffer for communicating bond/atom info
+  int *chooseghost;     // extended choose array for comm
+  double **bufcopy;     // buffer for communicating bond/atom info
   int maxbufcopy;
 
   void init_style() override;
@@ -100,6 +113,8 @@ class DumpImage : public DumpCustom {
   void box_bounds();
 
   void create_image();
+  void grid_cell_corners_2d(int, int);
+  void grid_cell_corners_3d(int, int, int);
 };
 
 }    // namespace LAMMPS_NS

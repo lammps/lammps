@@ -29,6 +29,7 @@
 #include "variable.h"
 
 #include <cstring>
+#include <stdexcept>
 
 using namespace LAMMPS_NS;
 
@@ -88,6 +89,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   unit_count = 0;
   delay_flag = 0;
   write_header_flag = 1;
+  has_id = 1;
 
   skipflag = 0;
   skipvar = nullptr;
@@ -230,16 +232,22 @@ void Dump::init()
     ids = idsort = nullptr;
     index = proclist = nullptr;
     irregular = nullptr;
+    if ((has_id == 0) && (me == 0))
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
+                     "post-processing tasks or visualization", id);
   }
 
   if (sort_flag) {
     if (multiproc > 1)
       error->all(FLERR,
-                 "Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values");
+                 "Cannot sort dump when 'nfile' or 'fileper' keywords are set to non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
-      error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
+      error->all(FLERR,"Cannot sort dump on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)
       error->all(FLERR,"Dump sort column is invalid");
+    if ((sortcol != 0) && (has_id == 0) && (me == 0))
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
+                     "post-processing tasks or visualization", id);
     if (nprocs > 1 && irregular == nullptr)
       irregular = new Irregular(lmp);
 

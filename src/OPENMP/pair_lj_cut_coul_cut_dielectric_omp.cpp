@@ -101,7 +101,7 @@ void PairLJCutCoulCutDielectricOMP::eval(int iifrom, int iito, ThrData *const th
 
   const auto *_noalias const x = (dbl3_t *) atom->x[0];
   auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
-  const double *_noalias const q = atom->q;
+  const double *_noalias const q = atom->q_scaled;
   const double *_noalias const eps = atom->epsilon;
   const auto *_noalias const norm = (dbl3_t *) atom->mu[0];
   const double *_noalias const curvature = atom->curvature;

@@ -161,7 +161,7 @@ snapshot was written on for the *native* or *adios* formats.
 The list of timestamps available in an adios .bp file is stored in the
 variable *ntimestep*:
 
-.. parsed-literal::
+.. parsed-literal:: console
 
   $ bpls dump.bp -d ntimestep
     uint64_t  ntimestep  5*scalar
@@ -253,7 +253,7 @@ except for the *q* charge field.
 The list of fields stored in an adios .bp file is recorded in the attributes
 *columns* (array of short strings) and *columnstr* (space-separated single string).
 
-.. parsed-literal::
+.. parsed-literal:: console
 
   $ bpls -la dump.bp column*
     string    columns            attr   = {"id", "type", "x", "y", "z", "vx", "vy", "vz"}

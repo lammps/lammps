@@ -188,8 +188,6 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   lmp->has_error = NULL;
   lmp->get_last_error_message = NULL;
 #endif
-
-  ADDSYM(python_api_version);
   return lmp;
 }
 

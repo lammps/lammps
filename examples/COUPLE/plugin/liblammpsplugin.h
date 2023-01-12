@@ -33,7 +33,7 @@
 #endif
 
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
-#include <stdint.h>  /* for int64_t */
+#include <stdint.h> /* for int64_t */
 #endif
 
 /* The following enums must be kept in sync with the equivalent enums
@@ -71,27 +71,7 @@ enum _LMP_TYPE_CONST {
   LMP_SIZE_COLS = 5    /*!< return number of columns */
 };
 
-/* Error codes to select the suitable function in the Error class */
-
-enum _LMP_ERROR_CONST {
-  LMP_ERROR_WARNING = 0, /*!< call Error::warning() */
-  LMP_ERROR_ONE = 1,     /*!< called from one MPI rank */
-  LMP_ERROR_ALL = 2,     /*!< called from all MPI ranks */
-  LMP_ERROR_WORLD = 4,   /*!< error on Comm::world */
-  LMP_ERROR_UNIVERSE = 8 /*!< error on Comm::universe */
-};
-
-/** Variable style constants for extracting data from variables.
- *
- * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, and tools/swig/lammps.i */
-
-enum _LMP_VAR_CONST {
-  LMP_VAR_EQUAL = 0,  /*!< compatible with equal-style variables */
-  LMP_VAR_ATOM = 1,   /*!< compatible with atom-style variables */
-  LMP_VAR_VECTOR = 2, /*!< compatible with vector-style variables */
-  LMP_VAR_STRING = 3  /*!< return value will be a string (catch-all) */
-};
+/* Ifdefs to allow this file to be included in C and C++ programs */
 
 #ifdef __cplusplus
 extern "C" {
@@ -238,8 +218,6 @@ struct _liblammpsplugin {
 
   int (*has_error)(void *);
   int (*get_last_error_message)(void *, char *, int);
-
-  int (*python_api_version)();
 };
 
 typedef struct _liblammpsplugin liblammpsplugin_t;

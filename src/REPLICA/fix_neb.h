@@ -37,9 +37,10 @@ class FixNEB : public Fix {
   void min_post_force(int) override;
 
  private:
-  int me, nprocs, nprocs_universe;
+  enum {NEIGHBOR=0, IDEAL=1, EQUAL=2};
+  int me, nprocs, nprocs_universe, neb_mode;
   double kspring, kspringIni, kspringFinal, kspringPerp, EIniIni, EFinalIni, idealPos, actualPos;
-  bool StandardNEB, NEBLongRange, EqualForceNEB, PerpSpring, FreeEndIni, FreeEndFinal;
+  bool PerpSpring, FreeEndIni, FreeEndFinal;
   bool FreeEndFinalWithRespToEIni, FinalAndInterWithRespToEIni;
   int ireplica, nreplica;
   int procnext, procprev;

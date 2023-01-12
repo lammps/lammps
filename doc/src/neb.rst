@@ -29,7 +29,7 @@ Syntax
        *none* arg = no argument all replicas assumed to already have
            their initial coords
 
-keyword = *verbose*
+keyword = *verbose* or *terse*
 
 Examples
 """"""""
@@ -346,6 +346,11 @@ defined for the final replica and reads nan.  gradV is the norm of the
 energy gradient of image i.  ReplicaForce is the two-norm of the
 3N-length force vector (including nudging forces) for replica i.
 MaxAtomForce is the maximum force component of any atom in replica i.
+
+Alternatively, a restricted print out can be obtained by adding the 
+terse keyword, which omits per-replica information. This typically
+fits on one line of a command terminal, aiding visual inspection of 
+an ongoing NEB calculation.
 
 When a NEB calculation does not converge properly, the supplementary
 information can help understanding what is going wrong. For instance

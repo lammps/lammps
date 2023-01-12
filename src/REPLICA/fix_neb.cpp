@@ -61,10 +61,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   // optional params
 
-  NEBLongRange = false;
-  EqualForceNEB = false;
-  StandardNEB = true;
-  
+  neb_mode = 0;
   PerpSpring = FreeEndIni = FreeEndFinal = false;
   FreeEndFinalWithRespToEIni = FinalAndInterWithRespToEIni = false;
   kspringPerp = 0.0;
@@ -75,17 +72,11 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"parallel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix neb command");
       if (strcmp(arg[iarg+1],"ideal") == 0) {
-        NEBLongRange = true;
-        EqualForceNEB = false;
-        StandardNEB = false;
+        neb_mode = IDEAL;
       } else if (strcmp(arg[iarg+1],"equal") == 0) {
-        NEBLongRange = false;
-        EqualForceNEB = true;
-        StandardNEB = false;
+        neb_mode = EQUAL;
       } else if (strcmp(arg[iarg+1],"neigh") == 0) {
-        NEBLongRange = false;
-        EqualForceNEB = false;
-        StandardNEB = true;
+        neb_mode = NEIGHBOR;
       } else error->all(FLERR,"Illegal fix neb command");
       iarg += 2;
 
@@ -143,7 +134,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   uworld = universe->uworld;
 
-  if (NEBLongRange or EqualForceNEB) {
+  if (neb_mode==IDEAL || neb_mode==EQUAL) {
     int *iroots = new int[nreplica];
     MPI_Group uworldgroup,rootgroup;
 
@@ -197,11 +188,11 @@ FixNEB::~FixNEB()
   memory->destroy(counts);
   memory->destroy(displacements);
 
-  if (NEBLongRange or EqualForceNEB) {
+  if (neb_mode==IDEAL or neb_mode==EQUAL) {
     if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
     memory->destroy(nlenall);
   }
-  if(EqualForceNEB) memory->destroy(vengall);
+  if(neb_mode==EQUAL) memory->destroy(vengall);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -574,9 +565,9 @@ void FixNEB::min_post_force(int /*vflag*/)
 
   if (ireplica == rclimber) prefactor = -2.0*dot;
   else {
-    if (NEBLongRange or EqualForceNEB) {
+    if (neb_mode==IDEAL||neb_mode==EQUAL) {
       prefactor = -dot - kspring*(actualPos-idealPos)/2;
-    } else if (StandardNEB) {
+    } else {
       prefactor = -dot + kspring*(nlen-plen);
     }
 
@@ -824,12 +815,12 @@ Calculate ideal positions for parallel "ideal" or "equal"
 void FixNEB::calculate_ideal_positions()
 {
   // Skip unless "ideal" or "equal"
-  if (not (EqualForceNEB or NEBLongRange)) return;
+  if (!(neb_mode==IDEAL||neb_mode==EQUAL)) return;
 
   double Elentot,lentot,lenuntilClimber;
   double meanDist,meanDistBeforeClimber,meanDistAfterClimber;
 
-  if (EqualForceNEB and rclimber>0.) {
+  if (neb_mode==EQUAL and rclimber>0.) {
     if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       MPI_Allgather(&veng,1,MPI_DOUBLE,&vengall[0],1,MPI_DOUBLE,uworld);
     } else {
@@ -842,7 +833,7 @@ void FixNEB::calculate_ideal_positions()
       nlenall[i] = std::abs(vengall[i+1]-vengall[i]);
     nlenall[nreplica-1] = 0.0;
 
-  } else if(NEBLongRange or EqualForceNEB) {
+  } else if(neb_mode==IDEAL || neb_mode==EQUAL) {
     if (cmode == SINGLE_PROC_DIRECT || cmode == SINGLE_PROC_MAP) {
       MPI_Allgather(&nlen,1,MPI_DOUBLE,&nlenall[0],1,MPI_DOUBLE,uworld);
     } else {
@@ -914,11 +905,11 @@ void FixNEB::reallocate()
     memory->create(tagrecv,maxlocal,"neb:tagrecv");
   }
 
-  if (NEBLongRange or EqualForceNEB) {
+  if (neb_mode==IDEAL or neb_mode==EQUAL) {
     memory->destroy(nlenall);
     memory->create(nlenall,nreplica,"neb:nlenall");
   }
-  if (EqualForceNEB) {
+  if (neb_mode==EQUAL) {
     memory->destroy(vengall);
     memory->create(vengall,nreplica,"neb:vengall");
   }

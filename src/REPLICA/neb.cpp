@@ -60,8 +60,6 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
   n1steps = n1steps_in;
   n2steps = n2steps_in;
   nevery = nevery_in;
-  verbose = false;
-  terse = false;
 
   // replica info
 
@@ -147,8 +145,7 @@ void NEB::command(int narg, char **arg)
   // process file-style setting to setup initial configs for all replicas
   int iarg = 5;
   int filecmd = 0;
-  verbose=false;
-  terse=false;
+  print_mode = 0; // normal
   while (iarg < narg) {
     if (strcmp(arg[iarg],"final") == 0) {
       if (iarg + 2 > narg) error->universe_all(FLERR,"Illegal NEB command: missing arguments");
@@ -166,14 +163,13 @@ void NEB::command(int narg, char **arg)
       filecmd = 1;
       ++iarg;
     } else if (strcmp(arg[iarg],"verbose") == 0) {
-      verbose=true;
+      print_mode = VERBOSE;
       ++iarg;
     } else if (strcmp(arg[iarg],"terse") == 0) {
-      terse=true;
+      print_mode = TERSE;
       ++iarg;
     } else error->universe_all(FLERR,fmt::format("Unknown NEB command keyword: {}", arg[iarg]));
   }
-  if(terse and verbose) terse = false; // verbose overrides terse....
 
   if (!filecmd) error->universe_all(FLERR, "NEB is missing 'final', 'each', or 'none' keyword");
 
@@ -200,7 +196,7 @@ void NEB::run()
     error->universe_all(FLERR,"NEB requires use of exactly one fix neb instance");
 
   fneb = dynamic_cast<FixNEB *>(fixes[0]);
-  if (verbose) numall =7;
+  if (print_mode==VERBOSE) numall =7;
   else  numall = 4;
   memory->create(all,nreplica,numall,"neb:all");
   rdist = new double[nreplica];
@@ -237,12 +233,12 @@ void NEB::run()
       fmt::print(uscreen,"    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0","GradV1","GradVc","EBF", "EBR", "RDT");
       
-      if (not terse) {
+      if (print_mode!=TERSE) {
         for (int i = 1; i <= nreplica; ++i)
           fmt::print(uscreen, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
       }
 
-      if (verbose) {
+      if (print_mode==VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
           fmt::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ",
@@ -257,12 +253,12 @@ void NEB::run()
       fmt::print(ulogfile,"    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0","GradV1","GradVc","EBF", "EBR", "RDT");
       
-      if (not terse) {
+      if (print_mode!=TERSE) {
         for (int i = 1; i <= nreplica; ++i)
           fmt::print(ulogfile, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
       }
 
-      if (verbose) {
+      if (print_mode==VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
           fmt::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ",
@@ -337,12 +333,12 @@ void NEB::run()
       fmt::print(uscreen,"    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0","GradV1","GradVc","EBF", "EBR", "RDT");
       
-      if (not terse) {
+      if (print_mode!=TERSE) {
         for (int i = 1; i <= nreplica; ++i)
           fmt::print(uscreen, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
       }
       
-      if (verbose) {
+      if (print_mode==VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
           fmt::print(uscreen, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ",
@@ -357,12 +353,12 @@ void NEB::run()
       fmt::print(ulogfile,"    Step     {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} {:^14} ",
                  "MaxReplicaForce", "MaxAtomForce", "GradV0","GradV1","GradVc","EBF", "EBR", "RDT");
       
-      if (not terse) {
+      if (print_mode!=TERSE) {
         for (int i = 1; i <= nreplica; ++i)
           fmt::print(ulogfile, "{:^14} {:^14} ", "RD"+std::to_string(i), "PE"+std::to_string(i));
       }
 
-      if (verbose) {
+      if (print_mode==VERBOSE) {
         for (int i = 1; i <= nreplica; ++i) {
           auto idx = std::to_string(i);
           fmt::print(ulogfile, "{:^12}{:^12}{:^12} {:^12} {:^12}{:^12} ",
@@ -605,7 +601,7 @@ void NEB::print_status()
   double fmaxatom;
   MPI_Allreduce(&fnorminf,&fmaxatom,1,MPI_DOUBLE,MPI_MAX,roots);
 
-  if (verbose) {
+  if (print_mode==VERBOSE) {
     freplica = new double[nreplica];
     MPI_Allgather(&fnorm2,1,MPI_DOUBLE,&freplica[0],1,MPI_DOUBLE,roots);
     fmaxatomInRepl = new double[nreplica];
@@ -618,7 +614,7 @@ void NEB::print_status()
   one[2] = fneb->nlen;
   one[3] = fneb->gradlen;
 
-  if (verbose) {
+  if (print_mode==VERBOSE) {
     one[4] = fneb->dotpath;
     one[5] = fneb->dottangrad;
     one[6] = fneb->dotgrad;
@@ -671,10 +667,10 @@ void NEB::print_status()
     std::string mesg = fmt::format("{:10}   {:<14.8g}   {:<14.8g} ",update->ntimestep,fmaxreplica,fmaxatom);
     mesg += fmt::format("{:<14.8g} {:<14.8g} {:<14.8g} ",gradvnorm0,gradvnorm1,gradvnormc);
     mesg += fmt::format("{:<14.8g} {:<14.8g} {:<14.8g} ",ebf,ebr,endpt);
-    if (not terse) {
+    if (print_mode!=TERSE) {
       for (int i = 0; i < nreplica; i++) mesg += fmt::format("{:<14.8g} {:<14.8g} ",rdist[i],all[i][0]);
     }
-    if (verbose) {
+    if (print_mode==VERBOSE) {
       mesg += fmt::format("{:<12.5g} {:<12.5g} {:<12.5g} {:<12.5g} {:<12.5g} {:<12.5g}",
                           NAN,180-acos(all[0][5])*todeg,180-acos(all[0][6])*todeg,
                           all[0][3],freplica[0],fmaxatomInRepl[0]);
@@ -694,7 +690,7 @@ void NEB::print_status()
       fflush(universe->ulogfile);
     }
   }
-  if (verbose) {
+  if (print_mode==VERBOSE) {
     delete[] freplica;
     delete[] fmaxatomInRepl;
   }

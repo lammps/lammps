@@ -41,6 +41,7 @@ using namespace MathConst;
 #define CHUNK 1024
 #define ATTRIBUTE_PERLINE 4
 
+enum { NORMAL, TERSE, VERBOSE };
 /* ---------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}

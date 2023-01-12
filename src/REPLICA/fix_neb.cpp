@@ -38,7 +38,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
+enum { SINGLE_PROC_DIRECT, SINGLE_PROC_MAP, MULTI_PROC };
+enum { NEIGHBOR, IDEAL, EQUAL };
 
 #define BUFSIZE 8
 

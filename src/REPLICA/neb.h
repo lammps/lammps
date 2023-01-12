@@ -35,8 +35,7 @@ class NEB : public Command {
   double ebf, ebr;    // forward and reverse energy barriers
 
  private:
-  enum {NORMAL=0,TERSE=1,VERBOSE=2};
-  int print_mode; // output verbosity
+  int print_mode;         // output verbosity
   int me, me_universe;    // my proc ID in world and universe
   int ireplica, nreplica;
   MPI_Comm uworld;

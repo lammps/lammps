@@ -37,13 +37,17 @@ CUDA_ARCH = -arch=sm_50
 #CUDA_ARCH = -arch=sm_80
 #CUDA_ARCH = -arch=sm_86
 
+# Lovelace hardware
+#CUDA_ARCH = -arch=sm_89
+
 # Hopper hardware
 #CUDA_ARCH = -arch=sm_90
 
 CUDA_CODE = -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] \
 	    -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] \
 	    -gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_75,code=[sm_75,compute_75] \
-	    -gencode arch=compute_80,code=[sm_80,compute_80] -gencode arch=compute_86,code=[sm_86,compute_86]
+	    -gencode arch=compute_80,code=[sm_80,compute_80] -gencode arch=compute_86,code=[sm_86,compute_86] \
+	  # -gencode arch=compute_89,code=[sm_89,compute_89] -gencode arch=compute_90,code=[sm_90,compute_90]
 
 CUDA_ARCH += $(CUDA_CODE)
 

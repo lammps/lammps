@@ -145,7 +145,7 @@ void NEB::command(int narg, char **arg)
   // process file-style setting to setup initial configs for all replicas
   int iarg = 5;
   int filecmd = 0;
-  print_mode = 0; // normal
+  print_mode = NORMAL; // normal
   while (iarg < narg) {
     if (strcmp(arg[iarg],"final") == 0) {
       if (iarg + 2 > narg) error->universe_all(FLERR,"Illegal NEB command: missing arguments");

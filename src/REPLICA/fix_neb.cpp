@@ -61,7 +61,7 @@ FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
 
   // optional params
 
-  neb_mode = 0;
+  neb_mode = NEIGHBOR; // default setting
   PerpSpring = FreeEndIni = FreeEndFinal = false;
   FreeEndFinalWithRespToEIni = FinalAndInterWithRespToEIni = false;
   kspringPerp = 0.0;

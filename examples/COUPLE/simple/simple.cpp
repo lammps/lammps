@@ -41,7 +41,7 @@ int main(int narg, char **arg)
   MPI_Init(&narg,&arg);
 
   if (narg != 3) {
-    printf("Syntax: simpleCC P in.lammps\n");
+    printf("Syntax: %s P in.lammps\n", arg[0]);
     exit(1);
   }
 

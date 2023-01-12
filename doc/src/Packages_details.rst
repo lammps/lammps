@@ -133,6 +133,8 @@ commands to write and read data using the ADIOS library.
 
 **Authors:** Norbert Podhorszki (ORNL) from the ADIOS developer team.
 
+.. versionadded:: 28Feb2019
+
 **Install:**
 
 This package has :ref:`specific installation instructions <adios>` on the :doc:`Build extras <Build_extras>` page.
@@ -181,9 +183,10 @@ ATC package
 
 **Contents:**
 
-ATC stands for atoms-to-continuum.  This package implements a :doc:`fix atc <fix_atc>` command to either couple molecular dynamics with
-continuum finite element equations or perform on-the-fly conversion of
-atomic information to continuum fields.
+ATC stands for atoms-to-continuum.  This package implements a
+:doc:`fix atc <fix_atc>` command to either couple molecular dynamics
+with continuum finite element equations or perform on-the-fly
+conversion of atomic information to continuum fields.
 
 **Authors:** Reese Jones, Jeremy Templeton, Jon Zimmerman (Sandia).
 
@@ -242,7 +245,7 @@ the barostat as outlined in:
 
 N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
-molecular liquids," J. Chem. Phys. 143, 243148 (2015).
+molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
 **Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
 Pennsylvania State University)
@@ -298,6 +301,8 @@ models for mesoscale simulations of solids and fracture.  See the
 
 **Authors:** Joel T. Clemmer (Sandia National Labs)
 
+.. versionadded:: 4May2022
+
 **Supporting info:**
 
 * src/BPM filenames -> commands
@@ -327,6 +332,8 @@ and also support self-propelled particles.
 
 **Authors:** Sam Cameron (University of Bristol),
 Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
+
+.. versionadded:: 14May2021
 
 Example inputs are in the examples/PACKAGES/brownian folder.
 
@@ -387,6 +394,7 @@ acids.
 * :doc:`angle_style sdk <angle_sdk>`
 * examples/PACKAGES/cgsdk
 * https://www.lammps.org/pictures.html#cg
+* https://www.spica-ff.org/
 
 ----------
 
@@ -448,22 +456,21 @@ COLVARS package
 
 **Contents:**
 
-COLVARS stands for collective variables, which can be used to
-implement various enhanced sampling methods, including Adaptive
-Biasing Force, Metadynamics, Steered MD, Umbrella Sampling and
-Restraints.  A :doc:`fix colvars <fix_colvars>` command is implemented
-which wraps a COLVARS library, which implements these methods.
-simulations.
+Colvars stands for collective variables, which can be used to implement
+various enhanced sampling methods, including Adaptive Biasing Force,
+Metadynamics, Steered MD, Umbrella Sampling and Restraints.  A :doc:`fix
+colvars <fix_colvars>` command is implemented which wraps a COLVARS
+library, which implements these methods.  simulations.
 
-**Authors:** The COLVARS library is written and maintained by
-Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA)
-and Jerome Henin (LISM, CNRS, Marseille, France), originally for
-the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
-(Temple U) provided the interface to LAMMPS.
+**Authors:** The COLVARS library is written and maintained by Giacomo
+Fiorin (NIH, Bethesda, MD, USA) and Jerome Henin (CNRS, Paris, France),
+originally for the NAMD MD code, but with portability in mind.  Axel
+Kohlmeyer (Temple U) provided the interface to LAMMPS.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <colvars>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <colvar>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -472,6 +479,8 @@ This package has :ref:`specific installation instructions <colvars>` on the :doc
 * src/COLVARS/README
 * lib/colvars/README
 * :doc:`fix colvars <fix_colvars>`
+* :doc:`group2ndx <group2ndx>`
+* :doc:`ndx2group <group2ndx>`
 * examples/PACKAGES/colvars
 
 ----------
@@ -516,9 +525,10 @@ CORESHELL package
 
 Compute and pair styles that implement the adiabatic core/shell model
 for polarizability.  The pair styles augment Born, Buckingham, and
-Lennard-Jones styles with core/shell capabilities.  The :doc:`compute temp/cs <compute_temp_cs>` command calculates the temperature of a
-system with core/shell particles.  See the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of how to use
-this package.
+Lennard-Jones styles with core/shell capabilities.  The :doc:`compute
+temp/cs <compute_temp_cs>` command calculates the temperature of a
+system with core/shell particles.  See the :doc:`Howto coreshell
+<Howto_coreshell>` page for an overview of how to use this package.
 
 **Author:** Hendrik Heenen (Technical U of Munich).
 
@@ -553,6 +563,8 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>` packages need to be installed.
 
 **Author:** Trung Nguyen and Monica Olvera de la Cruz (Northwestern U)
+
+.. versionadded:: 2Jul2021
 
 **Supporting info:**
 
@@ -614,7 +626,7 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
-* :doc: `angle_style dipole <angle_dipole>`
+* :doc:`angle_style dipole <angle_dipole>`
 * examples/dipole
 
 ----------
@@ -820,9 +832,11 @@ ELECTRODE package
 The ELECTRODE package allows the user to enforce a constant potential method for
 groups of atoms that interact with the remaining atoms as electrolyte.
 
-**Authors:** The ELECTRODE library is written and maintained by Ludwig
+**Authors:** The ELECTRODE package is written and maintained by Ludwig
 Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
 Robert Meissner (TUHH, Hamburg, Germany).
+
+.. versionadded:: 4May2022
 
 **Install:**
 
@@ -832,6 +846,8 @@ This package has :ref:`specific installation instructions <electrode>` on the
 **Supporting info:**
 
 * :doc:`fix electrode/conp <fix_electrode_conp>`
+* :doc:`fix electrode/conq <fix_electrode_conp>`
+* :doc:`fix electrode/thermo <fix_electrode_conp>`
 
 ----------
 
@@ -892,6 +908,10 @@ EXTRA-MOLECULE package
 
 Additional bond, angle, dihedral, and improper styles that are less commonly used.
 
+**Install:**
+
+To use this package, also the :ref:`MOLECULE <PKG-MOLECULE>` package needs to be installed.
+
 **Supporting info:**
 
 * src/EXTRA-MOLECULE: filenames -> commands
@@ -922,10 +942,11 @@ FEP package
 
 **Contents:**
 
-FEP stands for free energy perturbation.  This package provides
-methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt_fep>` command with soft-core pair potentials,
-which have a "soft" in their style name.  There are auxiliary tools
-for using this package in tools/fep; see its README file.
+FEP stands for free energy perturbation.  This package provides methods
+for performing FEP simulations by using a :doc:`fix adapt/fep
+<fix_adapt_fep>` command with soft-core pair potentials, which have a
+"soft" in their style name.  There are auxiliary tools for using this
+package in tools/fep; see its README file.
 
 **Author:** Agilio Padua (ENS de Lyon)
 
@@ -966,7 +987,8 @@ Kuznetsov, Vladimir Stegailov, and Vsevolod Nikolskiy (HSE University).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <gpu>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <gpu>` on the
+:doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1027,7 +1049,7 @@ H5MD is a format for molecular simulations, built on top of HDF5.
 This package implements a :doc:`dump h5md <dump_h5md>` command to output
 LAMMPS snapshots in this format.
 
-.. _HDF5: http://www.hdfgroup.org/HDF5
+.. _HDF5: https://www.hdfgroup.org/solutions/hdf5
 
 To use this package you must have the HDF5 library available on your
 system.
@@ -1319,7 +1341,8 @@ Cawkwell, Anders Niklasson, and Christian Negre.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <latte>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <latte>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1364,7 +1387,7 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 
 * src/MACHDYN: filenames -> commands
 * src/MACHDYN/README
-* doc/PDF/MACHDYN_LAMMPS_userguide.pdf
+* `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/machdyn
 * https://www.lammps.org/movies.html#smd
 
@@ -1468,6 +1491,8 @@ workflows via the `MolSSI Driver Interface
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
 
+.. versionadded:: 14May2021
+
 **Install:**
 
 This package has :ref:`specific installation instructions <mdi>` on
@@ -1542,6 +1567,8 @@ Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University of Alaba
 
 **Author of the *mesocnt* pair style:**
 Philipp Kloza (U Cambridge)
+
+.. versionadded:: 15Jun2020
 
 **Supporting info:**
 
@@ -1633,6 +1660,8 @@ compiled on your system.
 
 **Author:** Andreas Singraber
 
+.. versionadded:: 27May2021
+
 **Install:**
 
 This package has :ref:`specific installation instructions <ml-hdnnp>` on the
@@ -1666,6 +1695,8 @@ of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
 must be installed.
 
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
+
+.. versionadded:: 30Jun2020
 
 **Supporting info:**
 
@@ -1710,6 +1741,8 @@ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
  ^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
 
  ^4: University of British Columbia, Vancouver, BC, Canada
+
+.. versionadded:: 14May2021
 
 **Install:**
 
@@ -1773,6 +1806,8 @@ of a neural network.
 
 This package was written by Christopher Barrett
 with contributions by Doyl Dickel, Mississippi State University.
+
+.. versionadded:: 27May2021
 
 **Supporting info:**
 
@@ -1897,7 +1932,7 @@ support for new file formats can be added to LAMMPS (or VMD or other
 programs that use them) without having to re-compile the application
 itself.  More information about the VMD molfile plugins can be found
 at
-`http://www.ks.uiuc.edu/Research/vmd/plugins/molfile <http://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
+`https://www.ks.uiuc.edu/Research/vmd/plugins/molfile <https://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
 
 **Author:** Axel Kohlmeyer (Temple U).
 
@@ -1988,7 +2023,7 @@ NETCDF package
 Dump styles for writing NetCDF formatted dump files.  NetCDF is a
 portable, binary, self-describing file format developed on top of
 HDF5. The file contents follow the AMBER NetCDF trajectory conventions
-(http://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
+(https://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
 
 To use this package you must have the NetCDF library available on your
 system.
@@ -1999,7 +2034,7 @@ tools:
 * `Ovito <ovito_>`_ (Ovito supports the AMBER convention and the extensions mentioned above)
 * `VMD <vmd-home_>`_
 
-.. _ovito: http://www.ovito.org
+.. _ovito: https://www.ovito.org
 
 .. _vmd-home: https://www.ks.uiuc.edu/Research/vmd/
 
@@ -2143,6 +2178,7 @@ Foster (UTSA).
 **Supporting info:**
 
 * src/PERI: filenames -> commands
+* :doc:`Peridynamics Howto <Howto_peri>`
 * `doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_
 * `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
 * `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_
@@ -2206,6 +2242,8 @@ with names that end in ``plugin.so`` (e.g. ``helloplugin.so``) and will
 try to load the contained plugins automatically at start-up.
 
 **Authors:** Axel Kohlmeyer (Temple U)
+
+.. versionadded:: 8Apr2021
 
 **Supporting info:**
 
@@ -2360,7 +2398,7 @@ A :doc:`fix qmmm <fix_qmmm>` command which allows LAMMPS to be used as
 the MM code in a QM/MM simulation.  This is currently only available
 in combination with the `Quantum ESPRESSO <espresso_>`_ package.
 
-.. _espresso: http://www.quantum-espresso.org
+.. _espresso: https://www.quantum-espresso.org
 
 To use this package you must have Quantum ESPRESSO (QE) available on
 your system and include its coupling library in the compilation and
@@ -2429,17 +2467,18 @@ REACTION package
 
 **Contents:**
 
-This package allows for complex bond topology changes (reactions)
-during a running MD simulation, when using classical force fields.
-Topology changes are defined in pre- and post-reaction molecule
-templates and can include creation and deletion of bonds, angles,
-dihedrals, impropers, atom types, bond types, angle types, dihedral
-types, improper types, and/or atomic charges. Other options currently
-available include reaction constraints (e.g. angle and Arrhenius
-constraints), deletion of reaction byproducts or other small
-molecules, and chiral-sensitive reactions.
+This package implements the REACTER protocol, which allows for complex
+bond topology changes (reactions) during a running MD simulation when
+using classical force fields. Topology changes are defined in pre- and
+post-reaction molecule templates and can include creation and deletion
+of bonds, angles, dihedrals, impropers, atom types, bond types, angle
+types, dihedral types, improper types, and/or atomic charges. Other
+options currently available include reaction constraints (e.g., angle
+and Arrhenius constraints), deletion of reaction byproducts or other
+small molecules, creation of new atoms or molecules bonded to existing
+atoms, and using LAMMPS variables for input parameters.
 
-**Author:** Jacob R. Gissinger (CU Boulder) while at NASA Langley Research Center.
+**Author:** Jacob R. Gissinger (NASA Langley Research Center).
 
 **Supporting info:**
 
@@ -2449,7 +2488,8 @@ molecules, and chiral-sensitive reactions.
 * examples/PACKAGES/reaction
 * `2017 LAMMPS Workshop <https://www.lammps.org/workshops/Aug17/pdf/gissinger.pdf>`_
 * `2019 LAMMPS Workshop <https://www.lammps.org/workshops/Aug19/talk_gissinger.pdf>`_
-* reacter.org
+* `2021 LAMMPS Workshop <https://www.lammps.org/workshops/Aug21/talk/jacob-gissinger/>`_
+* `REACTER website (reacter.org) <https://www.reacter.org/>`_
 
 ----------
 
@@ -2650,7 +2690,7 @@ Dynamics, Ernst Mach Institute, Germany).
 
 * src/SPH: filenames -> commands
 * src/SPH/README
-* doc/PDF/SPH_LAMMPS_userguide.pdf
+* `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
 * examples/PACKAGES/sph
 * https://www.lammps.org/movies.html#sph
 
@@ -2772,7 +2812,7 @@ collection of atoms by wrapping the `Voro++ library <voro-home_>`_.  This
 can be used to calculate the local volume or each atoms or its near
 neighbors.
 
-.. _voro-home: http://math.lbl.gov/voro++
+.. _voro-home: https://math.lbl.gov/voro++
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -2806,9 +2846,9 @@ A :doc:`dump vtk <dump_vtk>` command which outputs snapshot info in the
 `VTK format <vtk_>`_, enabling visualization by `Paraview <paraview_>`_ or
 other visualization packages.
 
-.. _vtk: http://www.vtk.org
+.. _vtk: https://www.vtk.org
 
-.. _paraview: http://www.paraview.org
+.. _paraview: https://www.paraview.org
 
 To use this package you must have VTK library available on your
 system.
@@ -2845,10 +2885,12 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 
 .. _vanduyfhuys2015: https://doi.org/10.1002/jcc.23877
 .. _vanduyfhuys2018: https://doi.org/10.1002/jcc.25173
-.. _quickff: http://molmod.github.io/QuickFF
+.. _quickff: https://molmod.github.io/QuickFF
 .. _yaff: https://github.com/molmod/yaff
 
 **Author:** Steven Vandenbrande.
+
+.. versionadded:: 1Feb2019
 
 **Supporting info:**
 

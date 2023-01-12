@@ -39,7 +39,7 @@ toolkit software on your system (this is only tested on Linux
 and unsupported on Windows):
 
 * Check if you have an NVIDIA GPU: cat /proc/driver/nvidia/gpus/\*/information
-* Go to http://www.nvidia.com/object/cuda_get.html
+* Go to https://developer.nvidia.com/cuda-downloads
 * Install a driver and toolkit appropriate for your system (SDK is not necessary)
 * Run lammps/lib/gpu/nvc_get_devices (after building the GPU library, see below) to
   list supported devices and properties
@@ -76,10 +76,11 @@ instructions.
 
 **Run with the GPU package from the command line:**
 
-The mpirun or mpiexec command sets the total number of MPI tasks used
-by LAMMPS (one or multiple per compute node) and the number of MPI
-tasks used per node.  E.g. the mpirun command in MPICH does this via
-its -np and -ppn switches.  Ditto for OpenMPI via -np and -npernode.
+The ``mpirun`` or ``mpiexec`` command sets the total number of MPI tasks
+used by LAMMPS (one or multiple per compute node) and the number of MPI
+tasks used per node.  E.g. the ``mpirun`` command in MPICH does this via
+its ``-np`` and ``-ppn`` switches.  Ditto for OpenMPI via ``-np`` and
+``-npernode``.
 
 When using the GPU package, you cannot assign more than one GPU to a
 single MPI task.  However multiple MPI tasks can share the same GPU,
@@ -129,8 +130,8 @@ GPU package pair styles.
 
 **Or run with the GPU package by editing an input script:**
 
-The discussion above for the mpirun/mpiexec command, MPI tasks/node,
-and use of multiple MPI tasks/GPU is the same.
+The discussion above for the ``mpirun`` or ``mpiexec`` command, MPI
+tasks/node, and use of multiple MPI tasks/GPU is the same.
 
 Use the :doc:`suffix gpu <suffix>` command, or you can explicitly add an
 "gpu" suffix to individual styles in your input script, e.g.

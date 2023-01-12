@@ -12,15 +12,15 @@ build LAMMPS:
 
 .. code-block:: bash
 
-   $ lmp_serial -in in.file
-   $ lmp_serial < in.file
-   $ lmp -in in.file
-   $ lmp < in.file
-   $ /path/to/lammps/src/lmp_serial -i in.file
-   $ mpirun -np 4 lmp_mpi -in in.file
-   $ mpiexec -np 4 lmp -in in.file
-   $ mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
-   $ mpiexec -n 6 /usr/local/bin/lmp -in in.file
+   lmp_serial -in in.file
+   lmp_serial < in.file
+   lmp -in in.file
+   lmp < in.file
+   /path/to/lammps/src/lmp_serial -i in.file
+   mpirun -np 4 lmp_mpi -in in.file
+   mpiexec -np 4 lmp -in in.file
+   mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
+   mpiexec -n 6 /usr/local/bin/lmp -in in.file
 
 You normally run the LAMMPS command in the directory where your input
 script is located.  That is also where output files are produced by
@@ -30,12 +30,13 @@ executable itself can be placed elsewhere.
 
 .. note::
 
-   The redirection operator "<" will not always work when running
-   in parallel with mpirun or mpiexec; for those systems the -in form is required.
+   The redirection operator "<" will not always work when running in
+   parallel with ``mpirun`` or ``mpiexec``; for those systems the -in
+   form is required.
 
 As LAMMPS runs it prints info to the screen and a logfile named
-*log.lammps*\ .  More info about output is given on the
-:doc:`screen and logfile output <Run_output>` page.
+*log.lammps*\ .  More info about output is given on the :doc:`screen and
+logfile output <Run_output>` page.
 
 If LAMMPS encounters errors in the input script or while running a
 simulation it will print an ERROR message and stop or a WARNING
@@ -77,8 +78,8 @@ variable OMP_NUM_THREADS, before you launch LAMMPS:
 
 .. code-block:: bash
 
-   $ export OMP_NUM_THREADS=2     # bash
-   $ setenv OMP_NUM_THREADS 2     # csh or tcsh
+   export OMP_NUM_THREADS=2     # bash
+   setenv OMP_NUM_THREADS 2     # csh or tcsh
 
 This can also be done via the :doc:`package <package>` command or via
 the :doc:`-pk command-line switch <Run_options>` which invokes the

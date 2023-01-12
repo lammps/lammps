@@ -42,7 +42,7 @@ descriptions of all commands included in the LAMMPS code.
 .. only:: html
 
    Once you are familiar with LAMMPS, you may want to bookmark
-   :doc:`this page <Commands_all>` since it gives quick access
+   :doc:`this page <Commands_all>` since it gives quick access to
    the documentation for all LAMMPS commands.
 
 .. _lws: https://www.lammps.org

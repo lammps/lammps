@@ -30,9 +30,9 @@ for unicode characters and only all-ASCII source code is accepted.
 
 # Version Updates
 
-LAMMPS follows continuous release development model.  We aim to keep to
-keep the development version (develop branch) always fully functional
-and employ a variety of automatic testing procedures to detect failures
+LAMMPS follows a continuous release development model.  We aim to keep
+the development version (develop branch) always fully functional and
+employ a variety of automatic testing procedures to detect failures
 of existing functionality from adding or modifying features.  Most of
 those tests are run on pull requests *before* merging to the development
 branch.  The develop branch is protected, so all changes *must* be

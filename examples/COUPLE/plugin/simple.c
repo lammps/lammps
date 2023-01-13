@@ -148,6 +148,7 @@ int main(int narg, char **arg)
 
     double *fx = (double *) plugin->extract_variable(lmp,"fx",(char *)"all");
     printf("Force on 1 atom via extract_variable: %g\n",fx[0]);
+    plugin->free(fx);
   }
 
   /* use commands_string() and commands_list() to invoke more commands */

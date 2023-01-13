@@ -40,9 +40,9 @@ submitted as a pull request and thus cannot avoid the automated tests.
 
 Additional tests are run *after* merging.  Before releases are made
 *all* tests must have cleared.  Then a release tag is applied and the
-`release` branch is fast-forwarded to that tag.  This is often referred 
+`release` branch is fast-forwarded to that tag.  This is often referred
 to as a patch release. Bug fixes and updates are
 applied first to the `develop` branch.  Later, they appear in the `release`
-branch when the next patch release occurs. 
+branch when the next patch release occurs.
 For stable releases, selected bug fixes, updates, and new functionality
 are pushed to the `stable` branch and a new stable tag is applied.

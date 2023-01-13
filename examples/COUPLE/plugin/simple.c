@@ -92,6 +92,12 @@ int main(int narg, char **arg)
       if (me == 0) printf("ERROR: Could not load shared LAMMPS library\n");
       MPI_Abort(MPI_COMM_WORLD,1);
     }
+    /* must match the plugin ABI version */
+    if (plugin->abiversion != LAMMPSPLUGIN_ABI_VERSION) {
+      if (me == 0) printf("ERROR: Plugin abi version does not match: %d vs %d\n",
+                          plugin->abiversion, LAMMPSPLUGIN_ABI_VERSION);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
   }
   if (lammps == 1) {
     if (plugin->open == NULL) {

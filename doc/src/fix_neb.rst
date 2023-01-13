@@ -126,7 +126,7 @@ Note that the *ideal* form of nudging can often be more effective at
 keeping the replicas equally spaced.
 
 With a value of *equal* the spring force is computed as for *ideal*
-before the climbing stage, then is computed to promote equidistant 
+before the climbing stage, then is computed to promote equidistant
 spacing in energy rather than distance:
 
 .. math::

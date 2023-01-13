@@ -104,7 +104,6 @@ void AtomVecChargeKokkos::grow_pointers()
   q = atomKK->q;
   d_q = atomKK->k_q.d_view;
   h_q = atomKK->k_q.h_view;
-
 }
 
 /* ---------------------------------------------------------------------- */

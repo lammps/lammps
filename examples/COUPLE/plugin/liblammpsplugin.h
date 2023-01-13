@@ -172,9 +172,9 @@ struct _liblammpsplugin {
  * caller must match to how LAMMPS library is built */
 
 #ifndef LAMMPS_BIGBIG
- void (*create_atoms)(void *, int, int *, int *, double *, double *, int *, int);
+ int (*create_atoms)(void *, int, int *, int *, double *, double *, int *, int);
 #else
-  void (*create_atoms)(void *, int, int64_t *, int *, double *, double *, int64_t *, int);
+  int (*create_atoms)(void *, int, int64_t *, int *, double *, double *, int64_t *, int);
 #endif
 
   int (*find_pair_neighlist)(void *, const char *, int, int, int);

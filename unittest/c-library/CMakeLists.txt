@@ -87,6 +87,16 @@ if(BUILD_MPI)
     COMMAND $<TARGET_FILE:simpleC> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
   add_test(NAME RunCoupleSimpleCC
     COMMAND $<TARGET_FILE:simpleCC> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
+
+  find_package(MPI QUIET)
+  if(CMAKE_Fortran_COMPILER AND MPI_Fortran_FOUND AND MPI_Fortran_HAVE_F90_MODULE)
+    add_test(NAME RunCoupleSimpleF90
+      COMMAND $<TARGET_FILE:simpleF90> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
+    set_tests_properties(RunCoupleSimpleF90 PROPERTIES
+      ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
+      PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
+  endif()
+
   set_tests_properties(RunCoupleSimpleC RunCoupleSimpleCC PROPERTIES
     ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
     PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")

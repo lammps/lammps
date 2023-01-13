@@ -29,7 +29,7 @@ Syntax
        *none* arg = no argument all replicas assumed to already have
            their initial coords
 
-keyword = *verbose* or *terse*
+* keyword = *verbose* or *terse*
 
 Examples
 """"""""
@@ -47,19 +47,21 @@ Perform a nudged elastic band (NEB) calculation using multiple
 replicas of a system.  Two or more replicas must be used; the first
 and last are the end points of the transition path.
 
-NEB is a method for finding both the atomic configurations and height
-of the energy barrier associated with a transition state, e.g. for an
-atom to perform a diffusive hop from one energy basin to another in a
+NEB is a method for finding both the atomic configurations and height of
+the energy barrier associated with a transition state, e.g. for an atom
+to perform a diffusive hop from one energy basin to another in a
 coordinated fashion with its neighbors.  The implementation in LAMMPS
-follows the discussion in these 4 papers: :ref:`(HenkelmanA) <HenkelmanA>`,
-:ref:`(HenkelmanB) <HenkelmanB>`, :ref:`(Nakano) <Nakano3>` and :ref:`(Maras) <Maras2>`.
+follows the discussion in these 4 papers: :ref:`(HenkelmanA)
+<HenkelmanA>`, :ref:`(HenkelmanB) <HenkelmanB>`, :ref:`(Nakano)
+<Nakano3>` and :ref:`(Maras) <Maras2>`.
 
 Each replica runs on a partition of one or more processors.  Processor
-partitions are defined at run-time using the :doc:`-partition command-line switch <Run_options>`.  Note that if you have MPI installed, you
-can run a multi-replica simulation with more replicas (partitions)
-than you have physical processors, e.g you can run a 10-replica
-simulation on just one or two processors.  You will simply not get the
-performance speed-up you would see with one or more physical
+partitions are defined at run-time using the :doc:`-partition
+command-line switch <Run_options>`.  Note that if you have MPI
+installed, you can run a multi-replica simulation with more replicas
+(partitions) than you have physical processors, e.g you can run a
+10-replica simulation on just one or two processors.  You will simply
+not get the performance speed-up you would see with one or more physical
 processors per replica.  See the :doc:`Howto replica <Howto_replica>`
 doc page for further discussion.
 
@@ -330,25 +332,26 @@ the fix neb command.
 The forward (reverse) energy barrier is the potential energy of the
 highest replica minus the energy of the first (last) replica.
 
-Supplementary information for all replicas can be printed out to the
-screen and master log.lammps file by adding the verbose keyword. This
-information include the following.  The "path angle" (pathangle) for
-the replica i which is the angle between the 3N-length vectors (Ri-1 -
-Ri) and (Ri+1 - Ri) (where Ri is the atomic coordinates of replica
-i). A "path angle" of 180 indicates that replicas i-1, i and i+1 are
+Supplementary information for all replicas can be printed out by adding
+the *verbose* keyword. This information include the following.  The
+"path angle" (pathangle) for the replica i which is the angle between
+the 3N-length vectors :math:`(R_{i-1} - R_i)` and :math:`(R_{i+1} -
+R_i)` (where :math:`R_i` is the atomic coordinates of replica *i*). A
+"path angle" of 180 indicates that replicas *i*-1, *i* and *i*+1 are
 aligned.  "angletangrad" is the angle between the 3N-length tangent
-vector and the 3N-length force vector at image i. The tangent vector
-is calculated as in :ref:`(HenkelmanA) <HenkelmanA>` for all intermediate
-replicas and at R2 - R1 and RM - RM-1 for the first and last replica,
-respectively.  "anglegrad" is the angle between the 3N-length energy
-gradient vector of replica i and that of replica i+1. It is not
-defined for the final replica and reads nan.  gradV is the norm of the
-energy gradient of image i.  ReplicaForce is the two-norm of the
-3N-length force vector (including nudging forces) for replica i.
-MaxAtomForce is the maximum force component of any atom in replica i.
+vector and the 3N-length force vector at image *i*. The tangent vector
+is calculated as in :ref:`(HenkelmanA) <HenkelmanA>` for all
+intermediate replicas and at R2 - R1 and RM - RM-1 for the first and
+last replica, respectively.  "anglegrad" is the angle between the
+3N-length energy gradient vector of replica *i* and that of replica
+*i*+1. It is not defined for the final replica and reads nan.  gradV is
+the norm of the energy gradient of image *i* (:math:`\nabla V`).
+ReplicaForce is the two-norm of the 3N-length force vector (including
+nudging forces) for replica *i*.  MaxAtomForce is the maximum force
+component of any atom in replica *i*.
 
 Alternatively, a restricted print out can be obtained by adding the 
-terse keyword, which omits per-replica information. This typically
+*terse* keyword, which omits per-replica information. This typically
 fits on one line of a command terminal, aiding visual inspection of 
 an ongoing NEB calculation.
 

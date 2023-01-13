@@ -88,8 +88,7 @@ if(BUILD_MPI)
   add_test(NAME RunCoupleSimpleCC
     COMMAND $<TARGET_FILE:simpleCC> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
 
-  find_package(MPI QUIET)
-  if(CMAKE_Fortran_COMPILER AND MPI_Fortran_FOUND AND MPI_Fortran_HAVE_F90_MODULE)
+  if($<TARGET_EXISTS:simpleF90>)
     add_test(NAME RunCoupleSimpleF90
       COMMAND $<TARGET_FILE:simpleF90> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
     set_tests_properties(RunCoupleSimpleF90 PROPERTIES

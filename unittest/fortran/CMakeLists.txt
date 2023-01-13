@@ -14,10 +14,12 @@ if(CMAKE_Fortran_COMPILER)
     message(STATUS "Skipping Tests for the LAMMPS Fortran Module: cannot identify Fortran compiler")
     return()
   endif()
-  # GNU Fortran 4.8.x on RHEL/CentOS 7.x is not sufficient to compile the Fortran module. Work around flang being detected as GNU
+  # GNU Fortran 4.8.x on RHEL/CentOS 7.x is not sufficient to compile the Fortran module.
+  # Also GNU Fortran 7.x on Ubuntu18.04LTS is not sufficient. Work around flang being detected as GNU
   get_filename_component(_tmp_fc ${CMAKE_Fortran_COMPILER} NAME)
-  if((CMAKE_Fortran_COMPILER_ID STREQUAL "GNU") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 6.0) AND NOT (_tmp_fc STREQUAL "flang"))
-    message(FATAL_ERROR "Need GNU Fortran compiler version 6.x or later for unit testing")
+  if((CMAKE_Fortran_COMPILER_ID STREQUAL "GNU") AND (CMAKE_Fortran_COMPILER_VERSION VERSION_LESS 9.0) AND NOT (_tmp_fc STREQUAL "flang"))
+    message(STATUS "Need GNU Fortran compiler version 9.x or later for Fortran unit testing. Skipping...")
+    return()
   endif()
 
   get_filename_component(LAMMPS_FORTRAN_MODULE ${LAMMPS_SOURCE_DIR}/../fortran/lammps.f90 ABSOLUTE)

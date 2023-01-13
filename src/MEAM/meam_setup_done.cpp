@@ -213,20 +213,20 @@ void MEAM::compute_pair_meam()
   memory->create(this->phirar5, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar5");
   memory->create(this->phirar6, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar6");
 
-  printf("--- compute_pair_meam ---\n");
+  //printf("--- compute_pair_meam ---\n");
   // loop over pairs of element types
   nv2 = 0;
   for (a = 0; a < this->neltypes; a++) {
     for (b = a; b < this->neltypes; b++) {
 
-      printf("%u\n", this->lattce_meam[a][b]);
-      printf("%f %f %f\n", this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b], this->stheta_meam[a][b]);
+      //printf("%u\n", this->lattce_meam[a][b]);
+      //printf("%f %f %f\n", this->Cmin_meam[a][a][b], this->Cmax_meam[a][a][b], this->stheta_meam[a][b]);
       // loop over r values and compute
       for (j = 0; j < this->nr; j++) {
         r = j * this->dr;
 
         this->phir[nv2][j] = phi_meam(r, a, b);
-        printf("%f\n", this->phir[nv2][j]);
+        //printf("%f\n", this->phir[nv2][j]);
 
         // if using second-nearest neighbor, solve recursive problem
         // (see Lee and Baskes, PRB 62(13):8564 eqn.(21))
@@ -367,12 +367,17 @@ double MEAM::phi_meam(double r, int a, int b)
                 nullptr, nullptr, nullptr);
   }
 
+  //printf("--- phi_meam after densref ---\n");
+  //printf("rhoim1 %f %f %f\n", rho1m1, rho2m1, rho3m1);
+  //printf("rhoim2 %f %f %f\n", rho1m2, rho2m2, rho3m2);
+
   // if densities are too small, numerical problems may result; just return zero
   if (rho01 <= 1e-14 && rho02 <= 1e-14)
     return 0.0;
 
   // calculate average weighting factors for the reference structure
   if (this->lattce_meam[a][b] == C11) {
+    // note ialloy and t_ave not used in MS-MEAM
     if (this->ialloy == 2) {
       t11av = this->t1_meam[a];
       t12av = this->t1_meam[b];
@@ -394,6 +399,12 @@ double MEAM::phi_meam(double r, int a, int b)
     get_tavref(&t11av, &t21av, &t31av, &t12av, &t22av, &t32av, this->t1_meam[a], this->t2_meam[a],
                this->t3_meam[a], this->t1_meam[b], this->t2_meam[b], this->t3_meam[b], r, a, b,
                this->lattce_meam[a][b]);
+    // msmeam - call twice with different sets of variables 
+    if (this->msmeamflag){
+      get_tavref(&t1m1av, &t2m1av, &t3m1av, &t1m2av, &t2m2av, &t3m2av, this->t1m_meam[a], this->t2m_meam[a],
+                this->t3m_meam[a], this->t1m_meam[b], this->t2m_meam[b], this->t3m_meam[b], r, a, b,
+                this->lattce_meam[a][b]);
+    }
   }
 
   // for c11b structure, calculate background electron densities
@@ -440,17 +451,34 @@ double MEAM::phi_meam(double r, int a, int b)
       rho0_1 = this->rho0_meam[a] * Z1 * G1;
       rho0_2 = this->rho0_meam[b] * Z2 * G2;
     }
-    Gam1 = (t11av * rho11 + t21av * rho21 + t31av * rho31);
-    if (rho01 < 1.0e-14)
-      Gam1 = 0.0;
-    else
-      Gam1 = Gam1 / (rho01 * rho01);
+    // msmeam modified: no additional use of t's here. All included in definitions of rho's (in fortran)
 
-    Gam2 = (t12av * rho12 + t22av * rho22 + t32av * rho32);
-    if (rho02 < 1.0e-14)
-      Gam2 = 0.0;
-    else
-      Gam2 = Gam2 / (rho02 * rho02);
+    if (this->msmeamflag){
+      Gam1 = rho11 + rho21 + rho31 - (rho1m1 + rho2m1 + rho3m1);
+      Gam1 = Gam1/(rho01 * rho01);
+      Gam2 = rho12 + rho22 + rho32 - (rho1m2 + rho2m2 + rho3m2);
+      Gam2 = Gam2/(rho02 * rho02);
+      /*
+      printf("Gam %f %f\n", Gam1, Gam2);
+      printf("rhoim1 %f %f %f\n", rho1m1, rho2m1, rho3m1);
+      printf("rhoim2 %f %f %f\n", rho1m2, rho2m2, rho3m2);
+      printf("rho1 %f %f %f\n", rho11, rho21, rho31);
+      printf("rho2 %f %f %f\n", rho12, rho22, rho32);
+      printf("rho0 %f %f\n", rho01, rho02);
+      */
+    } else{
+      Gam1 = (t11av * rho11 + t21av * rho21 + t31av * rho31);
+      if (rho01 < 1.0e-14)
+        Gam1 = 0.0;
+      else
+        Gam1 = Gam1 / (rho01 * rho01);
+
+      Gam2 = (t12av * rho12 + t22av * rho22 + t32av * rho32);
+      if (rho02 < 1.0e-14)
+        Gam2 = 0.0;
+      else
+        Gam2 = Gam2 / (rho02 * rho02);
+    }
 
     G1 = G_gam(Gam1, this->ibar_meam[a], errorflag);
     G2 = G_gam(Gam2, this->ibar_meam[b], errorflag);
@@ -686,11 +714,15 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   double rhoa02, rhoa12, rhoa22, rhoa32;
   double arat, scrn, denom;
   double C, s111, s112, s221, S11, S22;
+  // msmeam params
+  double rhoa1m1, rhoa2m1, rhoa3m1, rhoa1m2, rhoa2m2, rhoa3m2;
 
   a1 = r / this->re_meam[a][a] - 1.0;
   a2 = r / this->re_meam[b][b] - 1.0;
 
   rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
+  /*
+  // Modified: ialloy=1 not used in MSMEAM
   rhoa11 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
   rhoa21 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
   rhoa31 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta3_meam[a] * a1);
@@ -698,6 +730,25 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   rhoa12 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta1_meam[b] * a2);
   rhoa22 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta2_meam[b] * a2);
   rhoa32 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta3_meam[b] * a2);
+  */
+  rhoa11 = this->rho0_meam[a] * this->t1_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
+  rhoa21 = this->rho0_meam[a] * this->t2_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
+  rhoa31 = this->rho0_meam[a] * this->t3_meam[a] * MathSpecial::fm_exp(-this->beta3_meam[a] * a1);
+  rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
+  rhoa12 = this->rho0_meam[b] * this->t1_meam[b] * MathSpecial::fm_exp(-this->beta1_meam[b] * a2);
+  rhoa22 = this->rho0_meam[b] * this->t2_meam[b] * MathSpecial::fm_exp(-this->beta2_meam[b] * a2);
+  rhoa32 = this->rho0_meam[b] * this->t3_meam[b] * MathSpecial::fm_exp(-this->beta3_meam[b] * a2);
+  if (this->msmeamflag){
+    rhoa1m1 = this->rho0_meam[a] * this->t1m_meam[a] * MathSpecial::fm_exp(-this->beta1m_meam[a] * a1);
+    rhoa2m1 = this->rho0_meam[a] * this->t2m_meam[a] * MathSpecial::fm_exp(-this->beta2m_meam[a] * a1);
+    rhoa3m1 = this->rho0_meam[a] * this->t3m_meam[a] * MathSpecial::fm_exp(-this->beta3m_meam[a] * a1);
+    rhoa1m2 = this->rho0_meam[b] * this->t1m_meam[b] * MathSpecial::fm_exp(-this->beta1m_meam[b] * a2);
+    rhoa2m2 = this->rho0_meam[b] * this->t2m_meam[b] * MathSpecial::fm_exp(-this->beta2m_meam[b] * a2);
+    rhoa3m2 = this->rho0_meam[b] * this->t3m_meam[b] * MathSpecial::fm_exp(-this->beta3m_meam[b] * a2);
+  }
+  //printf("rhoa0 %f %f\n", rhoa01, rhoa02);
+  //printf("rhoai1 %f %f %f\n", rhoa11, rhoa21, rhoa31);
+  //printf("rhoai2 %f %f %f\n", rhoa12, rhoa22, rhoa32);
 
   lat = this->lattce_meam[a][b];
 
@@ -709,7 +760,14 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   *rho12 = 0.0;
   *rho22 = 0.0;
   *rho32 = 0.0;
+  *rho1m1 = 0.0;
+  *rho2m1 = 0.0;
+  *rho3m1 = 0.0;
+  *rho1m2 = 0.0;
+  *rho2m2 = 0.0;
+  *rho3m2 = 0.0;
 
+  // keep track of density components separately; combine in the calling subroutine
   switch (lat) {
     case FCC:
       *rho01 = 12.0 * rhoa02;
@@ -729,12 +787,20 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho02 = 4.0 * rhoa01;
       *rho31 = 32.0 / 9.0 * rhoa32 * rhoa32;
       *rho32 = 32.0 / 9.0 * rhoa31 * rhoa31;
+      if (this->msmeamflag){
+        *rho3m1 = 32.0 / 9.0 * rhoa3m2 * rhoa3m2;
+        *rho3m2 = 32.0 / 9.0 * rhoa3m1 * rhoa3m1;
+      }
       break;
     case HCP:
       *rho01 = 12 * rhoa02;
       *rho02 = 12 * rhoa01;
       *rho31 = 1.0 / 3.0 * rhoa32 * rhoa32;
       *rho32 = 1.0 / 3.0 * rhoa31 * rhoa31;
+      if (this->msmeamflag){
+        *rho3m1 = 1.0 / 3.0 * rhoa3m2 * rhoa3m2;
+        *rho3m2 = 1.0 / 3.0 * rhoa3m1 * rhoa3m1;
+      }
       break;
     case DIM:
       get_shpfcn(DIM, 0, 0, s);
@@ -746,6 +812,14 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho22 = s[1] * rhoa21 * rhoa21;
       *rho31 = s[2] * rhoa32 * rhoa32;
       *rho32 = s[2] * rhoa31 * rhoa31;
+      if (this->msmeamflag){
+        *rho1m1 = s[0] * rhoa1m2 * rhoa1m2;
+        *rho1m2 = s[0] * rhoa1m1 * rhoa1m1;
+        *rho2m1 = s[1] * rhoa2m2 * rhoa2m2;
+        *rho2m2 = s[1] * rhoa2m1 * rhoa2m1;
+        *rho3m1 = s[2] * rhoa3m2 * rhoa3m2;
+        *rho3m2 = s[2] * rhoa3m1 * rhoa3m1;
+      }
       break;
     case C11:
       *rho01 = rhoa01;
@@ -756,17 +830,30 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho22 = rhoa22;
       *rho31 = rhoa31;
       *rho32 = rhoa32;
+      if (this->msmeamflag){
+        *rho1m1 = rhoa1m1;
+        *rho1m2 = rhoa1m2;
+        *rho2m1 = rhoa2m1;
+        *rho2m2 = rhoa2m2;
+        *rho3m1 = rhoa3m1;
+        *rho3m2 = rhoa3m2;
+      }
       break;
     case L12:
       *rho01 = 8 * rhoa01 + 4 * rhoa02;
       *rho02 = 12 * rhoa01;
-      if (this->ialloy == 1) {
+      // not modified by choice with msmeam; use of t's inconsistent with above
+      if (this->ialloy == 1 && !this->msmeamflag) {
+        printf("^^^ ialloy=1 in getdensref\n");
         *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b]);
         denom = 8 * rhoa01 * MathSpecial::square(this->t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(this->t2_meam[b]);
         if (denom > 0.)
           *rho21 = *rho21 / denom * *rho01;
       } else
         *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
+        if (this->msmeamflag){
+          *rho2m1 = 8. / 3. * (rhoa2m1 - rhoa2m2) * (rhoa2m1 - rhoa2m2);
+        }
       break;
     case B2:
       *rho01 = 8.0 * rhoa02;
@@ -883,9 +970,9 @@ void MEAM::interpolate_meam(int ind)
   this->rdrar = 1.0 / drar;
 
   // phir interp
-  printf("--- phir interp ---\n");
+  //printf("--- phir interp ---\n");
 
-  printf("nrar %d\n", this->nrar);
+  //printf("nrar %d\n", this->nrar);
   //printf("phir:\n");
   for (j = 0; j < this->nrar; j++) {
     //printf("%f\n", phir[ind][j]);
@@ -916,5 +1003,5 @@ void MEAM::interpolate_meam(int ind)
     this->phirar5[ind][j] = 2.0 * this->phirar2[ind][j] / drar;
     this->phirar6[ind][j] = 3.0 * this->phirar3[ind][j] / drar;
   }
-  printf("-----\n");
+  //printf("-----\n");
 }

@@ -90,27 +90,36 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
   }
 
   // zero out local arrays
-
+  printf("^^^ zero out local arrays in mean_dens_init\n");
   for (i = 0; i < nall; i++) {
     rho0[i] = 0.0;
     arho2b[i] = 0.0;
     arho1[i][0] = arho1[i][1] = arho1[i][2] = 0.0;
-    if (this->msmeamflag)
+    if (this->msmeamflag){
+      arho2mb[i] = 0.0;
       arho1m[i][0] = arho1m[i][1] = arho1m[i][2] = 0.0;
-    for (j = 0; j < 6; j++)
+    }
+    for (j = 0; j < 6; j++){
       arho2[i][j] = 0.0;
-      if (this->msmeamflag)
+      if (this->msmeamflag){ 
         arho2m[i][j] = 0.0;
-    for (j = 0; j < 10; j++)
+      }
+    }
+    for (j = 0; j < 10; j++){
       arho3[i][j] = 0.0;
-      if (this->msmeamflag)
+      if (this->msmeamflag){
         arho3m[i][j] = 0.0;
+      }
+    }
     arho3b[i][0] = arho3b[i][1] = arho3b[i][2] = 0.0;
-    if (this->msmeamflag)
+    if (this->msmeamflag){
       arho3mb[i][0] = arho3mb[i][1] = arho3mb[i][2] = 0.0;
+    }
     t_ave[i][0] = t_ave[i][1] = t_ave[i][2] = 0.0;
     tsq_ave[i][0] = tsq_ave[i][1] = tsq_ave[i][2] = 0.0;
   }
+
+  printf("^^^ arho3m %f\n", arho3m[0][0]);
 }
 
 void

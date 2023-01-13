@@ -75,6 +75,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
   double drho3mdr1, drho3mdr2, drho3mds1, drho3mds2;
   double drho3mdrm1[3], drho3mdrm2[3];
 
+  printf("----- begin meam_force -----\n");
   printf("forces f %d %f\n", i, f[0][0]);
 
   third = 1.0 / 3.0;
@@ -662,7 +663,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         } 
 
         // Compute derivatives of energy wrt rij, sij and rij[3]
-        // From this point on, MS-MEAM should not affect the code
+        // MS-MEAM affects phip
 
         dUdrij = phip * sij + frhop[i] * drhodr1 + frhop[j] * drhodr2;
         dUdsij = 0.0;

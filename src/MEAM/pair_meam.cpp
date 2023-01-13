@@ -63,8 +63,8 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 
   // set comm size needed by this Pair
 
-  comm_forward = 38;
-  comm_reverse = 30;
+  comm_forward = 38+23; // plus 23 for msmeam
+  comm_reverse = 30+23; // plus 23 for msmeam
 }
 
 /* ----------------------------------------------------------------------
@@ -134,6 +134,8 @@ void PairMEAM::compute(int eflag, int vflag)
   int offset = 0;
   errorflag = 0;
 
+  printf("before meam_dens_init %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
+
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     meam_inst->meam_dens_init(i,ntype,type,map,x,
@@ -142,6 +144,7 @@ void PairMEAM::compute(int eflag, int vflag)
                     offset);
     offset += numneigh_half[i];
   }
+  printf("after meam_dens_init %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   printf("before revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   comm->reverse_comm(this);
   printf("after revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
@@ -150,7 +153,9 @@ void PairMEAM::compute(int eflag, int vflag)
   if (errorflag)
     error->one(FLERR,"MEAM library error {}",errorflag);
 
+  printf("before forcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   comm->forward_comm(this);
+  printf("after forcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
 
   offset = 0;
 
@@ -658,7 +663,7 @@ int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
     buf[m++] = meam_inst->tsq_ave[j][1];
     buf[m++] = meam_inst->tsq_ave[j][2];
 
-    // msmeam params
+    // msmeam params - increases buffer by 23
     if (this->msmeamflag){
       buf[m++] = meam_inst->arho2mb[j];
       buf[m++] = meam_inst->arho1m[j][0];
@@ -720,7 +725,7 @@ void PairMEAM::unpack_forward_comm(int n, int first, double *buf)
     meam_inst->tsq_ave[i][1] = buf[m++];
     meam_inst->tsq_ave[i][2] = buf[m++];
 
-    // msmeam params
+    // msmeam params - increases buffer size by 23
 
     if (this->msmeamflag){
       meam_inst->arho2mb[i] = buf[m++];
@@ -773,7 +778,7 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = meam_inst->tsq_ave[i][1];
     buf[m++] = meam_inst->tsq_ave[i][2];
 
-    // msmeam params
+    // msmeam params - increases buffer size by 23
 
     if (this->msmeamflag){
       buf[m++] = meam_inst->arho2mb[i];
@@ -827,6 +832,8 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
     meam_inst->tsq_ave[j][0] += buf[m++];
     meam_inst->tsq_ave[j][1] += buf[m++];
     meam_inst->tsq_ave[j][2] += buf[m++];
+
+    // msmeam params - increases buffer size by 23
 
     if (this->msmeamflag){
       meam_inst->arho2mb[j] += buf[m++];

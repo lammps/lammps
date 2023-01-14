@@ -168,8 +168,8 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-# set path to python interpreter and thus enforcing python version if
-# when in a virtual environment and PYTHON_EXECUTABLE is not set on command line
+# set path to python interpreter and thus enforcing python version when
+# in a virtual environment and PYTHON_EXECUTABLE is not set on command line
 if(DEFINED ENV{VIRTUAL_ENV} AND NOT PYTHON_EXECUTABLE)
   if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
@@ -891,6 +891,23 @@ if(ClangFormat_FOUND)
     WORKING_DIRECTORY ${LAMMPS_SOURCE_DIR})
 endif()
 
+# extract Kokkos compilation settings
+get_cmake_property(_allvars VARIABLES)
+foreach(_var ${_allvars})
+  if(${_var})
+    string(REGEX MATCH "Kokkos_ENABLE_(SERIAL|THREADS|OPENMP|CUDA|HIP|SYCL|OPENMPTARGET|HPX)" _match ${_var})
+    if(_match)
+      string(REGEX REPLACE "Kokkos_ENABLE_(OPENMP|SERIAL|CUDA|HIP|SYCL)" "\\1" _match ${_var})
+      list(APPEND KOKKOS_DEVICE ${_match})
+    endif()
+    string(REGEX MATCH "Kokkos_ARCH" _match ${_var})
+    if(_match)
+      string(REGEX REPLACE "Kokkos_ARCH_(.*)" "\\1" _match ${_var})
+      list(APPEND KOKKOS_ARCH ${_match})
+    endif()
+  endif()
+endforeach()
+
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 if(BUILD_IS_MULTI_CONFIG)
   set(LAMMPS_BUILD_TYPE "Multi-Config")
@@ -987,6 +1004,12 @@ if(PKG_GPU)
     endif()
   endif()
   message(STATUS "GPU precision:            ${GPU_PREC}")
+endif()
+if(PKG_KOKKOS)
+  message(STATUS "Kokkos Devices: ${KOKKOS_DEVICE}")
+  if(KOKKOS_ARCH)
+    message(STATUS "Kokkos Architecture: ${KOKKOS_ARCH}")
+  endif()
 endif()
 if(PKG_KSPACE)
   message(STATUS "<<< FFT settings >>>

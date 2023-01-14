@@ -97,6 +97,7 @@ amu
 Amzallag
 analytical
 Anders
+Andric
 Andrienko
 Andzelm
 Ang
@@ -873,6 +874,7 @@ ebook
 ebt
 ec
 Ec
+Echeverri
 eco
 ecoul
 ecp
@@ -3042,6 +3044,7 @@ resquared
 REsquared
 restartfile
 restartinfo
+Restrepo
 rethrowing
 Revenga
 rewrap
@@ -4025,6 +4028,7 @@ Zi
 ziegenhain
 Ziegenhain
 zincblende
+zj
 Zj
 zlim
 zlo

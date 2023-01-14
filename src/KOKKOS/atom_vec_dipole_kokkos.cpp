@@ -108,7 +108,6 @@ void AtomVecDipoleKokkos::grow_pointers()
   mu = atomKK->mu;
   d_mu = atomKK->k_mu.d_view;
   h_mu = atomKK->k_mu.h_view;
-
 }
 
 /* ---------------------------------------------------------------------- */

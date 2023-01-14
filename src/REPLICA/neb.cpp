@@ -40,7 +40,7 @@ using namespace MathConst;
 #define CHUNK 1024
 #define ATTRIBUTE_PERLINE 4
 
-enum { NORMAL, TERSE, VERBOSE };
+enum { DEFAULT, TERSE, VERBOSE };
 
 /* ---------------------------------------------------------------------- */
 
@@ -149,16 +149,18 @@ void NEB::command(int narg, char **arg)
   // process file-style setting to setup initial configs for all replicas
   int iarg = 5;
   int filecmd = 0;
-  print_mode = NORMAL;    // normal
+  print_mode = DEFAULT;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "final") == 0) {
-      if (iarg + 2 > narg) error->universe_all(FLERR, "Illegal NEB command: missing arguments");
+      if (iarg + 2 > narg)
+        error->universe_all(FLERR, "Illegal NEB final command: missing arguments");
       inpfile = arg[iarg + 1];
       readfile(inpfile, 0);
       filecmd = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "each") == 0) {
-      if (iarg + 2 > narg) error->universe_all(FLERR, "Illegal NEB command: missing arguments");
+      if (iarg + 2 > narg)
+        error->universe_all(FLERR, "Illegal NEB each command: missing arguments");
       inpfile = arg[iarg + 1];
       readfile(inpfile, 1);
       filecmd = 1;
@@ -166,12 +168,18 @@ void NEB::command(int narg, char **arg)
     } else if (strcmp(arg[iarg], "none") == 0) {
       filecmd = 1;
       ++iarg;
-    } else if (strcmp(arg[iarg], "verbose") == 0) {
-      print_mode = VERBOSE;
-      ++iarg;
-    } else if (strcmp(arg[iarg], "terse") == 0) {
-      print_mode = TERSE;
-      ++iarg;
+    } else if (strcmp(arg[iarg], "verbosity") == 0) {
+      if (iarg + 2 > narg)
+        error->universe_all(FLERR, "Illegal NEB verbosity command: missing arguments");
+      if (strcmp(arg[iarg+1], "verbose") == 0)
+        print_mode = VERBOSE;
+      else if (strcmp(arg[iarg+1], "default") == 0)
+        print_mode = DEFAULT;
+      else if (strcmp(arg[iarg+1], "terse") == 0)
+        print_mode = TERSE;
+      else
+        error->universe_all(FLERR, fmt::format("Unknown NEB verbosity option {}", arg[iarg+1]));
+      iarg += 2;
     } else
       error->universe_all(FLERR, fmt::format("Unknown NEB command keyword: {}", arg[iarg]));
   }

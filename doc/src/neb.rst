@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   neb etol ftol N1 N2 Nevery file-style arg keyword
+   neb etol ftol N1 N2 Nevery file-style arg keyword values
 
 * etol = stopping tolerance for energy (energy units)
 * ftol = stopping tolerance for force (force units)
@@ -29,7 +29,15 @@ Syntax
        *none* arg = no argument all replicas assumed to already have
            their initial coords
 
-* keyword = *verbose* or *terse*
+* zero or more keyword/value pairs may be appended
+* keyword = *verbosity*
+
+  .. parsed-literal::
+
+     *verbosity* value = *verbose* or *default* or *terse*
+       *verbose* = very detailed per-replica output
+       *default* = some per-replica output
+       *terse* = only global state output
 
 Examples
 """"""""
@@ -304,12 +312,26 @@ and restart files.
 
 When running with multiple partitions (each of which is a replica in
 this case), the print-out to the screen and master log.lammps file
-contains a line of output, printed once every *Nevery* timesteps.  It
-contains the timestep, the maximum force per replica, the maximum
-force per atom (in any replica), potential gradients in the initial,
-final, and climbing replicas, the forward and backward energy
-barriers, the total reaction coordinate (RDT), and the normalized
-reaction coordinate and potential energy of each replica.
+contains a line of output, printed once every *Nevery* timesteps.  The
+amount of information printed in this line can be selected with the
+*verbosity* keyword.  Available options are *terse*, *default*, and
+*verbose*.
+
+With the *terse* setting, it contains the timestep, the maximum force of
+a replica, the maximum force per atom (in any replica), potential
+gradients in the initial, final, and climbing replicas, the forward and
+backward energy barriers, the total reaction coordinate (RDT).
+
+With the *default* setting, additionally the normalized
+reaction coordinate and potential energy of each replica are printed.
+
+With the *verbose* setting, additional per-replica properties are
+printed: the "path angle" (pathangle), the angle between the 3N-length
+tangent vector and the 3N-length force vector at image *i*
+(angletangrad), the angle between the 3N-length energy gradient vector
+of replica *i* and that of replica *i*\ +1 (anglegrad), the norm of the
+energy gradient (gradV), the the two-norm of the 3N-length force vector
+(RepForce), and the maximum force component of any atom (MaxAtomForce).
 
 The "maximum force per replica" is the two-norm of the 3N-length force
 vector for the atoms in each replica, maximized across replicas, which
@@ -332,28 +354,21 @@ the fix neb command.
 The forward (reverse) energy barrier is the potential energy of the
 highest replica minus the energy of the first (last) replica.
 
-Supplementary information for all replicas can be printed out by adding
-the *verbose* keyword. This information include the following.  The
-"path angle" (pathangle) for the replica i which is the angle between
-the 3N-length vectors :math:`(R_{i-1} - R_i)` and :math:`(R_{i+1} -
-R_i)` (where :math:`R_i` is the atomic coordinates of replica *i*). A
-"path angle" of 180 indicates that replicas *i*-1, *i* and *i*+1 are
-aligned.  "angletangrad" is the angle between the 3N-length tangent
-vector and the 3N-length force vector at image *i*. The tangent vector
-is calculated as in :ref:`(HenkelmanA) <HenkelmanA>` for all
-intermediate replicas and at R2 - R1 and RM - RM-1 for the first and
-last replica, respectively.  "anglegrad" is the angle between the
-3N-length energy gradient vector of replica *i* and that of replica
-*i*+1. It is not defined for the final replica and reads nan.  gradV is
-the norm of the energy gradient of image *i* (:math:`\nabla V`).
-ReplicaForce is the two-norm of the 3N-length force vector (including
-nudging forces) for replica *i*.  MaxAtomForce is the maximum force
-component of any atom in replica *i*.
-
-Alternatively, a restricted print out can be obtained by adding the
-*terse* keyword, which omits per-replica information. This typically
-fits on one line of a command terminal, aiding visual inspection of
-an ongoing NEB calculation.
+The "path angle" (pathangle) for the replica i which is the angle
+between the 3N-length vectors :math:`(R_{i-1} - R_i)` and
+:math:`(R_{i+1} - R_i)` (where :math:`R_i` is the atomic coordinates of
+replica *i*). A "path angle" of 180 indicates that replicas *i*\ -1, *i*
+and *i*\ +1 are aligned.  "angletangrad" is the angle between the
+3N-length tangent vector and the 3N-length force vector at image
+*i*. The tangent vector is calculated as in :ref:`(HenkelmanA)
+<HenkelmanA>` for all intermediate replicas and at R2 - R1 and RM - RM-1
+for the first and last replica, respectively.  "anglegrad" is the angle
+between the 3N-length energy gradient vector of replica *i* and that of
+replica *i*\ +1. It is not defined for the final replica and reads nan.
+gradV is the norm of the energy gradient of image *i* (:math:`\nabla
+V`).  ReplicaForce is the two-norm of the 3N-length force vector
+(including nudging forces) for replica *i*.  MaxAtomForce is the maximum
+force component of any atom in replica *i*.
 
 When a NEB calculation does not converge properly, the supplementary
 information can help understanding what is going wrong. For instance
@@ -435,7 +450,7 @@ Related commands
 Default
 """""""
 
-none
+*verbosity* = *default*
 
 ----------
 

@@ -915,9 +915,9 @@ included in the LAMMPS source distribution in the ``lib/lepton`` folder.
 
       .. code-block:: bash
 
-         $ make lib-lepton                      # print help message
-         $ make lib-lepton args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
-         $ make lib-lepton args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+         make lib-lepton                      # print help message
+         make lib-lepton args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
+         make lib-lepton args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
 
       The "machine" argument of the "-m" flag is used to find a
       Makefile.machine to use as build recipe.
@@ -1391,8 +1391,21 @@ This package depends on the KSPACE package.
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_KSPACE=yes`` and
-      ``-D PKG_ELECTRODE=yes``.
+      .. code-block:: bash
+
+         -D PKG_ELECTRODE=yes          # enable the package itself
+         -D PKG_KSPACE=yes             # the ELECTRODE package requires KSPACE
+         -D USE_INTERNAL_LINALG=value  #
+
+      Features in the ELECTRODE package are dependent on code in the
+      KSPACE package so the latter one *must* be enabled.
+
+      The ELECTRODE package also requires LAPACK (and BLAS) and CMake
+      can identify their locations and pass that info to the LATTE build
+      script.  But on some systems this may cause problems when linking
+      or the dependency is not desired.  Try enabling
+      ``USE_INTERNAL_LINALG`` in those cases to use the bundled linear
+      algebra library and work around the limitation.
 
    .. tab:: Traditional make
 

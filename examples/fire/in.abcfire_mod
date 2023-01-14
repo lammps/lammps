@@ -42,5 +42,5 @@ neigh_modify    delay 0 every 1 check yes
 
 thermo          50
 min_style       fire
-min_modify      alpha0 0.10 integrator verlet
+min_modify      alpha0 0.10 integrator verlet abcfire yes
 minimize        0.0 1.0e-6 10000 10000

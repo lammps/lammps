@@ -47,6 +47,7 @@ AtomVecHybridKokkos::~AtomVecHybridKokkos()
 void AtomVecHybridKokkos::grow(int n)
 {
   for (int k = 0; k < nstyles; k++) styles[k]->grow(n);
+  nmax = atomKK->k_x.h_view.extent(0);
 
   tag = atom->tag;
   type = atom->type;

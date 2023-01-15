@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Trung Nguyen (Northwestern)
+   Contributing author: Trung Nguyen (Northwestern/UChicago)
 ------------------------------------------------------------------------- */
 
 #include "pair_amoeba_gpu.h"
@@ -486,8 +486,6 @@ void PairAmoebaGPU::induce()
       comm->reverse_comm(this);
     }
 
-    //error->all(FLERR,"STOP GPU");
-
     // set initial conjugate gradient residual and conjugate vector
 
     for (i = 0; i < nlocal; i++) {
@@ -546,8 +544,6 @@ void PairAmoebaGPU::induce()
         crstyle = FIELD;
         comm->reverse_comm(this);
       }
-
-      //error->all(FLERR,"STOP");
 
       for (i = 0; i < nlocal; i++) {
         for (j = 0; j < 3; j++) {
@@ -1751,166 +1747,6 @@ void PairAmoebaGPU::polar_kspace()
     }
   }
 
-  // account for dipole response terms in the TCG method
-
-  /*
-  if (poltyp == TCG) {
-
-    for (m = 0; m < tcgnab; m++) {
-      for (i = 0; i < nlocal; i++) {
-        for (j = 0; j < 3; j++) {
-          fuind[i][j] = a[0][j]*uad[i][m][0] + a[1][j]*uad[i][m][1] +
-            a[2][j]*uad[i][m][2];
-          fuinp[i][j] = a[0][j]*ubp[i][m][0] + a[1][j]*ubp[i][m][1] +
-            a[2][j]*ubp[i][m][2];
-        }
-      }
-
-      grid_uind(fuind,fuinp);
-      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
-
-      for (k = 0; k < nfft3; k++) {
-        for (j = 0; j < nfft2; j++) {
-          for (i = 0; i < nfft1; i++) {
-            term = qfac[k][j][i];
-            qgrid[k][j][i][0] *= term;
-            qgrid[k][j][i][1] *= term;
-          }
-        }
-      }
-
-      efft->compute(qgrid[0][0][0],qgrid[0][0][0],-1);
-      fphi_uind(fphid,fphip,fphidp);
-
-      for (i = 0; i < nlocal; i++) {
-        for (j = 1; j < 10; j++) {
-          fphid[i][j] *= felec;
-          fphip[i][j] *= felec;
-        }
-      }
-
-      for (i = 0; i < nlocal; i++) {
-        f1 = 0.0;
-        f2 = 0.0;
-        f3 = 0.0;
-        for (k = 0; k < 3; k++) {
-          j1 = deriv1[k+1];
-          j2 = deriv2[k+1];
-          j3 = deriv3[k+1];
-          f1 += fuind[i][k]*fphip[i][j1]+fuinp[i][k]*fphid[i][j1];
-          f2 += fuind[i][k]*fphip[i][j2]+fuinp[i][k]*fphid[i][j2];
-          f3 += fuind[i][k]*fphip[i][j3]+fuinp[i][k]*fphid[i][j3];
-        }
-
-        f1 *= 0.5 * nfft1;
-        f2 *= 0.5 * nfft2;
-        f3 *= 0.5 * nfft3;
-        h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;
-        h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
-        h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-        f[i][0] -= h1;
-        f[i][1] -= h2;
-        f[i][2] -= h3;
-
-        for (j = 1; j < 4; j++) {
-          cphid[j] = 0.0;
-          cphip[j] = 0.0;
-          for (k = 1; k < 4; k++) {
-            cphid[j] += ftc[j][k]*fphid[i][k];
-            cphip[j] += ftc[j][k]*fphip[i][k];
-          }
-        }
-
-        vxx -= 0.5*(cphid[1]*ubp[i][m][0] + cphip[1]*uad[i][m][0]);
-        vyy -= 0.5*(cphid[2]*ubp[i][m][1] + cphip[2]*uad[i][m][1]);
-        vzz -= 0.5*(cphid[3]*ubp[i][m][2] + cphip[3]*uad[i][m][2]);
-
-        vxy -= 0.25*(cphid[1]*ubp[i][m][1] + cphip[1]*uad[i][m][1] +
-                        cphid[2]*ubp[i][m][0] + cphip[2]*uad[i][m][0]);
-        vyz -= 0.25*(cphid[1]*ubp[i][m][2] + cphip[1]*uad[i][m][2] +
-                        cphid[3]*ubp[i][m][0] + cphip[3]*uad[i][m][0]);
-        vxz -= 0.25*(cphid[2]*ubp[i][m][2] + cphip[2]*uad[i][m][2] +
-                        cphid[3]*ubp[i][m][1] + cphip[3]*uad[i][m][1]);
-      }
-
-      for (i = 0; i < nlocal; i++) {
-        for (j = 0; j < 3; j++) {
-          fuind[i][j] = a[0][j]*ubd[i][m][0] + a[1][j]*ubd[i][m][1] +
-            a[2][j]*ubd[i][m][2];
-          fuinp[i][j] = a[0][j]*uap[i][m][0] + a[1][j]*uap[i][m][1] +
-            a[2][j]*uap[i][m][2];
-        }
-      }
-
-      grid_uind(fuind,fuinp);
-      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
-
-      for (k = 0; k < nfft3; k++) {
-        for (j = 0; j < nfft2; j++) {
-          for (i = 0; i < nfft1; i++) {
-            term = qfac[k][j][i];
-            qgrid[k][j][i][0] *= term;
-            qgrid[k][j][i][1] *= term;
-          }
-        }
-      }
-
-      efft->compute(qgrid[0][0][0],qgrid[0][0][0],-1);
-      fphi_uind(fphid,fphip,fphidp);
-
-      for (i = 0; i < nlocal; i++) {
-        for (j = 1; j < 10; j++) {
-          fphid[i][j] *= felec;
-          fphip[i][j] *= felec;
-        }
-      }
-
-      for (i = 0; i < nlocal; i++) {
-        f1 = 0.0;
-        f2 = 0.0;
-        f3 = 0.0;
-        for (k = 0; k < 3; k++) {
-          j1 = deriv1[k+1];
-          j2 = deriv2[k+1];
-          j3 = deriv3[k+1];
-          f1 += fuind[i][k]*fphip[i][j1]+fuinp[i][k]*fphid[i][j1];
-          f2 += fuind[i][k]*fphip[i][j2]+fuinp[i][k]*fphid[i][j2];
-          f3 += fuind[i][k]*fphip[i][j3]+fuinp[i][k]*fphid[i][j3];
-        }
-
-        f1 *= 0.5 * nfft1;
-        f2 *= 0.5 * nfft2;
-        f3 *= 0.5 * nfft3;
-        h1 = recip[0][0]*f1 + recip[0][1]*f2 + recip[0][2]*f3;  // matvec
-        h2 = recip[1][0]*f1 + recip[1][1]*f2 + recip[1][2]*f3;
-        h3 = recip[2][0]*f1 + recip[2][1]*f2 + recip[2][2]*f3;
-        f[i][0] -= h1;
-        f[i][1] -= h2;
-        f[i][2] -= h3;
-
-        for (j = 1; j < 4; j++) {
-          cphid[j] = 0.0;
-          cphip[j] = 0.0;
-          for (k = 1; k < 4; k++) {
-            cphid[j] += ftc[j][k]*fphid[i][k];
-            cphip[j] += ftc[j][k]*fphip[i][k];
-          }
-        }
-
-        vxx -= 0.5*(cphid[1]*uap[i][m][0] + cphip[1]*ubd[i][m][0]);
-        vyy -= 0.5*(cphid[2]*uap[i][m][1] + cphip[2]*ubd[i][m][1]);
-        vzz -= 0.5*(cphid[3]*uap[i][m][2] + cphip[3]*ubd[i][m][2]);
-        vxy -= 0.25*(cphid[1]*uap[i][m][1] + cphip[1]*ubd[i][m][1] +
-                     cphid[2]*uap[i][m][0] + cphip[2]*ubd[i][m][0]);
-        vxz -= 0.25*(cphid[1]*uap[i][m][2] + cphip[1]*ubd[i][m][2] +
-                     cphid[3]*uap[i][m][0] + cphip[3]*ubd[i][m][0]);
-        vyz -= 0.25*(cphid[2]*uap[i][m][2] + cphip[2]*ubd[i][m][2] +
-                     cphid[3]*uap[i][m][1] + cphip[3]*ubd[i][m][1]);
-      }
-    }
-  }
-  */
-
   // assign permanent and induced multipoles to the PME grid
 
   for (i = 0; i < nlocal; i++) {
@@ -2096,142 +1932,6 @@ void PairAmoebaGPU::polar_kspace()
       }
     }
   }
-
-  // add back missing terms for the TCG polarization method;
-  // first do the term for "UAD" dotted with "UBP"
-
-  /*
-  if (poltyp == TCG) {
-
-    for (m = 0; m < tcgnab; m++) {
-      for (i = 0; i < nlocal; i++) {
-        for (j = 0; j < 10; j++)
-          cmp[i][j] = 0.0;
-        for (j = 1; j < 4; j++)
-          cmp[i][j] = ubp[i][m][j-1];
-      }
-
-      cmp_to_fmp(cmp,fmp);
-      grid_mpole(fmp);
-      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
-
-      for (k = 0; k < nfft3; k++) {
-        for (j = 0; j < nfft2; j++) {
-          for (i = 0; i < nfft1; i++) {
-            qgrip[k][j][i][0] = qgrid[k][j][i][0];
-            qgrip[k][j][i][1] = qgrid[k][j][i][1];
-          }
-        }
-      }
-
-      for (i = 0; i < nlocal; i++) {
-        for (j = 1; j < 4; j++)
-          cmp[i][j] = uad[i][m][j-1];
-      }
-
-      cmp_to_fmp(cmp,fmp);
-      grid_mpole(fmp);
-      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
-
-      // make the scalar summation over reciprocal lattice
-      // NOTE: this loop has to be distributed for parallel
-      // NOTE: why does this one include m = 0 ?
-
-      for (m = 1; m < ntot; m++) {
-        k1 = m % nfft1;
-        k2 = (m % nff) / nfft1;
-        k3 = m/nff;
-        r1 = (k1 >= nf1) ? k1-nfft1 : k1;
-        r2 = (k2 >= nf2) ? k2-nfft2 : k2;
-        r3 = (k3 >= nf3) ? k3-nfft3 : k3;
-        h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;
-        h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
-        h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
-        hsq = h1*h1 + h2*h2 + h3*h3;
-        term = -pterm * hsq;
-        expterm = 0.0;
-        if (term > -50.0 && hsq != 0.0) {
-          denom = volterm*hsq*bsmod1[k1]*bsmod2[k2]*bsmod3[k3];
-          expterm = exp(term) / denom;
-          struc2 = qgrid[k3][k2][k1][0]*qgrip[k3][k2][k1][0] +
-            qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
-          eterm = 0.5 * felec * expterm * struc2;
-          vterm = (2.0/hsq) * (1.0-term) * eterm;
-          virpolar[0] -= h1*h1*vterm - eterm;
-          virpolar[1] -= h2*h2*vterm - eterm;
-          virpolar[2] -= h3*h3*vterm - eterm;
-          virpolar[3] -= h1*h2*vterm;
-          virpolar[4] -= h1*h3*vterm;
-          virpolar[5] -= h2*h3*vterm;
-        }
-      }
-
-      // now do the TCG terms with "UBD" dotted with "UAP"
-
-      for (i = 0; i < nlocal; i++) {
-        for (j = 0; j < 10; j++)
-          cmp[i][j] = 0.0;
-        for (j = 1; j < 4; j++)
-          cmp[i][j] = uap[i][m][j-1];
-      }
-
-      cmp_to_fmp(cmp,fmp);
-      grid_mpole(fmp);
-      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
-
-      for (k = 0; k < nfft3; k++) {
-        for (j = 0; j < nfft2; j++) {
-          for (i = 0; i < nfft1; i++) {
-            qgrip[k][j][i][0] = qgrid[k][j][i][0];
-            qgrip[k][j][i][1] = qgrid[k][j][i][1];
-          }
-        }
-      }
-
-      for (i = 0; i < nlocal; i++) {
-        for (j = 1; j < 4; j++)
-          cmp[i][j] = ubd[i][m][j-1];
-      }
-
-      cmp_to_fmp(cmp,fmp);
-      grid_mpole(fmp);
-      efft->compute(qgrid[0][0][0],qgrid[0][0][0],1);
-
-      // make the scalar summation over reciprocal lattice
-      // NOTE: this loop has to be distributed for parallel
-      // NOTE: why does this one include m = 0 ?
-
-      for (m = 1; m < ntot; m++) {
-        k1 = m % nfft1;
-        k2 = (m % nff) / nfft1;
-        k3 = m/nff;
-        r1 = (k1 >= nf1) ? k1-nfft1 : k1;
-        r2 = (k2 >= nf2) ? k2-nfft2 : k2;
-        r3 = (k3 >= nf3) ? k3-nfft3 : k3;
-        h1 = recip[0][0]*r1 + recip[0][1]*r2 + recip[0][2]*r3;
-        h2 = recip[1][0]*r1 + recip[1][1]*r2 + recip[1][2]*r3;
-        h3 = recip[2][0]*r1 + recip[2][1]*r2 + recip[2][2]*r3;
-        hsq = h1*h1 + h2*h2 + h3*h3;
-        term = -pterm * hsq;
-        expterm = 0.0;
-        if (term > -50.0 && hsq != 0.0) {
-          denom = volterm*hsq*bsmod1[k1]*bsmod2[k2]*bsmod3[k3];
-          expterm = exp(term) / denom;
-          struc2 = qgrid[k3][k2][k1][0]*qgrip[k3][k2][k1][0] +
-            qgrid[k3][k2][k1][1]*qgrip[k3][k2][k1][1];
-          eterm = 0.5 * felec * expterm * struc2;
-          vterm = (2.0/hsq) * (1.0-term) * eterm;
-          virpolar[0] -= h1*h1*vterm - eterm;
-          virpolar[1] -= h2*h2*vterm - eterm;
-          virpolar[2] -= h3*h3*vterm - eterm;
-          virpolar[3] -= h1*h2*vterm;
-          virpolar[4] -= h1*h3*vterm;
-          virpolar[5] -= h2*h3*vterm;
-        }
-      }
-    }
-  }
-  */
 
   // increment the total internal virial tensor components
 

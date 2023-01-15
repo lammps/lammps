@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Trung Nguyen (Northwestern)
+   Contributing author: Trung Nguyen (Northwestern/UChicago)
 ------------------------------------------------------------------------- */
 
 #include "pair_hippo_gpu.h"
@@ -208,14 +208,14 @@ void PairHippoGPU::init_style()
   int tq_size;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = hippo_gpu_init(atom->ntypes+1, max_amtype, max_amclass,
-                                pdamp, thole, dirdamp, amtype2class,
-                                special_repel, special_disp, special_mpole,
-                                special_polar_wscale, special_polar_piscale,
-                                special_polar_pscale, sizpr, dmppr, elepr,
-                                csix, adisp, pcore, palpha,
-                                atom->nlocal, atom->nlocal+atom->nghost, mnf,
-                                maxspecial, maxspecial15, cell_size, gpu_mode,
-                                screen, polar_dscale, polar_uscale, tq_size);
+                               pdamp, thole, dirdamp, amtype2class,
+                               special_repel, special_disp, special_mpole,
+                               special_polar_wscale, special_polar_piscale,
+                               special_polar_pscale, sizpr, dmppr, elepr,
+                               csix, adisp, pcore, palpha,
+                               atom->nlocal, atom->nlocal+atom->nghost, mnf,
+                               maxspecial, maxspecial15, cell_size, gpu_mode,
+                               screen, polar_dscale, polar_uscale, tq_size);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE)
@@ -271,14 +271,14 @@ void PairHippoGPU::repulsion()
   inum = atom->nlocal;
 
   firstneigh = hippo_gpu_precompute(neighbor->ago, inum, nall, atom->x,
-                                     atom->type, amtype, amgroup, rpole,
-                                     nullptr, nullptr, nullptr,
-                                     sublo, subhi, atom->tag,
-                                     atom->nspecial, atom->special,
-                                     atom->nspecial15, atom->special15,
-                                     eflag, vflag, eflag_atom, vflag_atom,
-                                     host_start, &ilist, &numneigh, cpu_time,
-                                     success, atom->q, domain->boxlo, domain->prd);
+                                    atom->type, amtype, amgroup, rpole,
+                                    nullptr, nullptr, nullptr,
+                                    sublo, subhi, atom->tag,
+                                    atom->nspecial, atom->special,
+                                    atom->nspecial15, atom->special15,
+                                    eflag, vflag, eflag_atom, vflag_atom,
+                                    host_start, &ilist, &numneigh, cpu_time,
+                                    success, atom->q, domain->boxlo, domain->prd);
 
   // select the correct cutoff for the term
 
@@ -480,14 +480,6 @@ void PairHippoGPU::induce()
       }
     }
   }
-/*
-  printf("GPU: cutghost = %f\n", comm->cutghost[0]);
-  for (i = 0; i < 10; i++) {
-    printf("i = %d: udir = %f %f %f; udirp = %f %f %f\n",
-      i, udir[i][0], udir[i][1], udir[i][2],
-      udirp[i][0], udirp[i][1], udirp[i][2]);
-  }
-*/
 
   // allocate memory and make early host-device transfers
   // must be done before the first ufield0c
@@ -610,8 +602,6 @@ void PairHippoGPU::induce()
       crstyle = FIELD;
       comm->reverse_comm(this);
     }
-
-    //error->all(FLERR,"STOP GPU");
 
     // set initial conjugate gradient residual and conjugate vector
 
@@ -1022,7 +1012,7 @@ void PairHippoGPU::udirect2b_cpu()
         tdipdip[ndip++] = bcn[1]*yr*zr;
         tdipdip[ndip++] = -bcn[0] + bcn[1]*zr*zr;
       } else {
-        if (comm->me == 0) printf("i = %d: j = %d: poltyp == DIRECT\n", i, j);
+
       }
 
     } // jj
@@ -1055,16 +1045,7 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
 
   memset(&field[0][0], 0, 3*nall *sizeof(double));
   memset(&fieldp[0][0], 0, 3*nall *sizeof(double));
-
-/*  
-  for (int i = 0; i < nall; i++) {
-    for (int j = 0; j < 3; j++) {
-      field[i][j] = 0.0;
-      fieldp[i][j] = 0.0;
-    }
-  }
-*/
-  
+ 
   // get the real space portion of the mutual field first
 
   MPI_Barrier(world);
@@ -1086,19 +1067,13 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
     field[i][1] += term*uind[i][1];
     field[i][2] += term*uind[i][2];
   }
+
   for (int i = 0; i < nlocal; i++) {
     fieldp[i][0] += term*uinp[i][0];
     fieldp[i][1] += term*uinp[i][1];
     fieldp[i][2] += term*uinp[i][2];
   }
-/*  
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      field[i][j] += term*uind[i][j];
-      fieldp[i][j] += term*uinp[i][j];
-    }
-  }
-*/
+
   // accumulate the field and fieldp values from the real-space portion from umutual2b() on the GPU
   //   field and fieldp may already have some nonzero values from kspace (umutual1 and self)
 
@@ -1271,25 +1246,6 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
     fieldp[i][1] -= dfy;
     fieldp[i][2] -= dfz;
   }
-/*
-  for (int i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      dipfield1[i][j] = a[j][0]*fdip_phi1[i][1] +
-        a[j][1]*fdip_phi1[i][2] + a[j][2]*fdip_phi1[i][3];
-      dipfield2[i][j] = a[j][0]*fdip_phi2[i][1] +
-        a[j][1]*fdip_phi2[i][2] + a[j][2]*fdip_phi2[i][3];
-    }
-  }
-
-  // increment the field at each multipole site
-
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      field[i][j] -= dipfield1[i][j];
-      fieldp[i][j] -= dipfield2[i][j];
-    }
-  }
-*/
 }
 
 /* ----------------------------------------------------------------------

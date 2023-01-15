@@ -134,6 +134,10 @@ version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
 implementation of HIPPO in LAMMPS matches the version discussed in
 :ref:`(Rackers) <amoeba-Rackers>`.
 
+.. versionadded:: TBD
+
+Accelerator support via the GPU package is available.
+
 ----------
 
 Only a single pair_coeff command is used with either the *amoeba* and

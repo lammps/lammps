@@ -1055,13 +1055,6 @@ void PairAmoeba::init_style()
 
   // request standard neighbor list
 
-
-//  int irequest = neighbor->request(this,instance_me);
-
-  // for DEBUGGING with GPU
-  //neighbor->requests[irequest]->half = 0;
-  //neighbor->requests[irequest]->full = 1;
-
   neighbor->add_request(this);
 }
 

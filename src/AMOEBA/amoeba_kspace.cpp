@@ -68,8 +68,6 @@ void PairAmoeba::moduli()
   int maxfft = MAX(nfft1,nfft2);
   maxfft = MAX(maxfft,nfft3);
 
-  //double *array = new double[bsorder];
-  //double *bsarray = new double[maxfft];
   if (maxfft > _nfft_max) {
     memory->destroy(_moduli_bsarray);
     _nfft_max = maxfft;
@@ -79,7 +77,6 @@ void PairAmoeba::moduli()
   // compute and load the moduli values
 
   double x = 0.0;
-  //bspline(x,bsorder,array);
   bspline(x,bsorder,_moduli_array);
 
   for (i = 0; i < maxfft; i++) _moduli_bsarray[i] = 0.0;
@@ -88,11 +85,6 @@ void PairAmoeba::moduli()
   dftmod(bsmod1,_moduli_bsarray,nfft1,bsorder);
   dftmod(bsmod2,_moduli_bsarray,nfft2,bsorder);
   dftmod(bsmod3,_moduli_bsarray,nfft3,bsorder);
-
-  // perform deallocation of local arrays
-
-  //delete[] array;
-  //delete[] bsarray;
 }
 
 /* ----------------------------------------------------------------------

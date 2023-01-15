@@ -285,10 +285,9 @@ void ImproperAmoeba::init_style()
   // check if PairAmoeba disabled improper terms
 
   Pair *pair = nullptr;
-  pair = force->pair_match("amoeba",1,0);
-  if (!pair) pair = force->pair_match("amoeba/gpu",1,0);
-  if (!pair) pair = force->pair_match("hippo",1,0);
-  if (!pair) pair = force->pair_match("hippo/gpu",1,0);
+  pair = force->pair_match("^amoeba",0,0);
+  if (!pair) pair = force->pair_match("^hippo",0,0);
+
   if (!pair) error->all(FLERR,"Improper amoeba could not find pair amoeba/hippo");
 
   int tmp;

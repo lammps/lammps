@@ -86,17 +86,6 @@ void PairAmoeba::induce()
   crstyle = FIELD;
   comm->reverse_comm(this);
 
-  // DEBUG statements
-
-  /*
-  for (i = 0; i < nlocal; i++)
-    if (atom->tag[i] == 1)
-      printf("AAA FIELD atom %d: field %g %g %g: fieldp %g %g %g\n",
-             atom->tag[i],
-             field[i][0],field[i][1],field[i][2],
-             fieldp[i][0],fieldp[i][1],fieldp[i][2]);
-  */
-
   // set induced dipoles to polarizability times direct field
 
   for (i = 0; i < nlocal; i++) {
@@ -213,16 +202,7 @@ void PairAmoeba::induce()
 
     cfstyle = INDUCE;
     comm->forward_comm(this);
-/*
-    if (comm->me == 0) {
-      printf("CPU: cutghost = %f\n", comm->cutghost[0]);
-      for (i = 0; i < 20; i++) {
-        printf("i = %d: uind = %f %f %f; udirp = %f %f %f\n",
-          i, uind[i][0], uind[i][1], uind[i][2],
-          uinp[i][0], uinp[i][1], uinp[i][2]); 
-      }
-    }
-*/
+
     ufield0c(field,fieldp);
 
     crstyle = FIELD;
@@ -284,18 +264,6 @@ void PairAmoeba::induce()
 
       crstyle = FIELD;
       comm->reverse_comm(this);
-      
-      //error->all(FLERR,"STOP");
-/*
-      if (comm->me == 0) {
-        printf("CPU: iter = %d\n", iter);
-        for (i = 0; i < 10; i++) {
-          printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
-            i, field[i][0], field[i][1], field[i][2],
-            fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
-        }    
-      }
-*/
 
       for (i = 0; i < nlocal; i++) {
         for (j = 0; j < 3; j++) {
@@ -412,8 +380,6 @@ void PairAmoeba::induce()
         }
       }
     }
-
-    // if (comm->me == 0) printf("CG iteration count = %d\n",iter);
 
     // terminate the calculation if dipoles failed to converge
     // NOTE: could make this an error
@@ -1033,9 +999,7 @@ void PairAmoeba::umutual2b(double **field, double **fieldp)
       j = jlist[jj];
       uindj = uind[j];
       uinpj = uinp[j];
-      //if (i==0 && j == 10) 
-      //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
-      //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);
+
       fid[0] = tdipdip[0]*uindj[0] + tdipdip[1]*uindj[1] + tdipdip[2]*uindj[2];
       fid[1] = tdipdip[1]*uindj[0] + tdipdip[3]*uindj[1] + tdipdip[4]*uindj[2];
       fid[2] = tdipdip[2]*uindj[0] + tdipdip[4]*uindj[1] + tdipdip[5]*uindj[2];

@@ -227,11 +227,7 @@ class XYZfile(object):
       print(i+1,label[i],x[i],y[i],z[i],type[i], end=' ', file=fp)
       for j in bonds[i]: print(j, end=' ', file=fp)
       print(file=fp)
-<<<<<<< HEAD
-    
-=======
 
->>>>>>> develop
     fp.close()
 
   # triplet of atoms in an angle = atom 1,2,3
@@ -1098,16 +1094,6 @@ for i,one in enumerate(alist):
 
     elif len(params[3]) == 2:
       nbonds,hcount = xyz.angle_hbond_count(atom1,atom2,atom3,lmptype,lmpmass)
-<<<<<<< HEAD
-      
-      if nbonds != 3: 
-        print("Center angle atom has wrong bond count")
-        print("  angle atom IDs:",atom1,atom2,atom3)
-        print("  angle atom classes:",c1,c2,c3)
-        print("  Tinker FF file param options:",len(params[3]))
-        print("  Nbonds and hydrogen count:",nbonds,hcount)
-        #sys.exit()      NOTE: allow this for now
-=======
 
       #if nbonds != 3:
         #print("Center angle atom has wrong bond count")
@@ -1117,33 +1103,12 @@ for i,one in enumerate(alist):
         #print("  Nbonds and hydrogen count:",nbonds,hcount)
         # NOTE: allow this for now
         #sys.exit()
->>>>>>> develop
 
       if hcount == 0: which = 1
       elif hcount == 1:
         which = 2
         m += 1
 
-<<<<<<< HEAD
-      print("3-bond angle")
-      print("  angle atom IDs:",atom1,atom2,atom3)
-      print("  angle atom classes:",c1,c2,c3)
-      print("  Tinker FF file param options:",len(params[3]))
-      print("  Nbonds and hydrogen count:",nbonds,hcount)
-      print("  which:",which,m)
-
-    elif len(params[3]) == 3:
-      nbonds,hcount = xyz.angle_hbond_count(atom1,atom2,atom3,lmptype,lmpmass)
-      
-      if nbonds != 4: 
-        print("Center angle atom has wrong bond count")
-        print("  angle atom IDs:",atom1,atom2,atom3)
-        print("  angle atom classes:",c1,c2,c3)
-        print("  Tinker FF file param options:",len(params[3]))
-        print("  Nbonds and hydrogen count:",nbonds,hcount)
-        #sys.exit()     NOTE: allow this for now
-        
-=======
       #print("3-bond angle")
       #print("  angle atom IDs:",atom1,atom2,atom3)
       #print("  angle atom classes:",c1,c2,c3)
@@ -1163,7 +1128,6 @@ for i,one in enumerate(alist):
         # NOTE: allow this for now
         #sys.exit()
 
->>>>>>> develop
       if hcount == 0: which = 1
       elif hcount == 1:
         which = 2
@@ -1207,12 +1171,8 @@ for itype in range(len(aparams)):
   elif (c3,c2,c1) in badict:
     n1,n2,r1,r2 = badict[(c3,c2,c1)]
   else:
-<<<<<<< HEAD
-    print("Bond-stretch angle triplet not found: %d %d %d" % (c1,c2,c3))
-=======
     # NOTE: just for debugging
     #print("Bond-stretch angle triplet not found: %d %d %d" % (c1,c2,c3))
->>>>>>> develop
     n1,n2,r1,r2 = 4*[0.0]
 
   baparams.append((n1,n2,r1,r2))
@@ -1670,11 +1630,7 @@ print("Natoms =",natoms)
 print("Ntypes =",ntypes)
 print("Tinker XYZ types =",len(tink2lmp))
 print("Tinker PRM types =",prm.ntypes)
-<<<<<<< HEAD
-#print "Tinker groups =",ngroups
-=======
 #print("Tinker groups =",ngroups)
->>>>>>> develop
 print("Nmol =",nmol)
 print("Nbonds =",nbonds)
 print("Nangles =",nangles)

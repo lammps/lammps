@@ -2358,16 +2358,13 @@ void Atom::setup_sort_bins()
   }
 
 #ifdef LMP_GPU
-  if (userbinsize == 0.0) {   
-    int ifix = modify->find_fix("package_gpu");
-    if (ifix >= 0) {
+  if (userbinsize == 0.0) {
+    auto ifix = dynamic_cast<FixGPU *>(modify->get_fix_by_id("package_gpu"));
+    if (ifix) {
       const double subx = domain->subhi[0] - domain->sublo[0];
       const double suby = domain->subhi[1] - domain->sublo[1];
       const double subz = domain->subhi[2] - domain->sublo[2];
-
-      FixGPU *fix = static_cast<FixGPU *>(modify->fix[ifix]);
-      binsize = fix->binsize(subx, suby, subz, atom->nlocal,
-                             0.5 * neighbor->cutneighmax);
+      binsize = ifix->binsize(subx, suby, subz, atom->nlocal, 0.5 * neighbor->cutneighmax);
     }
   }
 #endif

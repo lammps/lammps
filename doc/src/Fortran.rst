@@ -47,7 +47,8 @@ Fortran code in order to uses the Fortran interface.
 A working example can be found together with equivalent examples in C and
 C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
 
-.. admonitions:: Fortran compiler compatibility
+.. admonition:: Fortran compiler compatibility
+   :class: note
 
    A fully Fortran 2003 compatible Fortran compiler is required.
    This means that currently only GNU Fortran 9 and later are

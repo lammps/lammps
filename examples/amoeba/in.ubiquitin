@@ -34,13 +34,6 @@ pair_coeff      * * amoeba_ubiquitin.prm amoeba_ubiquitin.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 
-fix             fhal all store/state 0 fx fy fz
-fix             frepulse all store/state 0 fx fy fz
-fix             fdisp all store/state 0 fx fy fz
-fix             fpolar all store/state 0 fx fy fz
-fix             fmpole all store/state 0 fx fy fz
-fix             fqxfer all store/state 0 fx fy fz
-
 # thermo output
 
 compute         virial all pressure NULL virial

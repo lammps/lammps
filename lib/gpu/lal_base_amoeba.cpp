@@ -42,7 +42,7 @@ BaseAmoebaT::~BaseAmoeba() {
   k_polar.clear();
   k_special15.clear();
   k_short_nbor.clear();
-  
+
   #if 0 // !defined(USE_OPENCL) && !defined(USE_HIP)
   if (fft_plan_created) cufftDestroy(plan);
   #endif
@@ -365,7 +365,7 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 // ---------------------------------------------------------------------------
 // Compute multipole real-space part
 //   precompute() should be already invoked before mem (re)allocation
-//   this is the first part in a time step done on the GPU for AMOEBA for now 
+//   this is the first part in a time step done on the GPU for AMOEBA for now
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
@@ -418,7 +418,7 @@ void BaseAmoebaT::compute_udirect2b(int *host_amtype, int *host_amgroup, double 
 
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();
- 
+
   *fieldp_ptr=_fieldp.host.begin();
 
   // specify the correct cutoff and alpha values
@@ -443,7 +443,7 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
   // only copy the necessary data arrays that are updated over the iterations
   // use nullptr for the other arrays that are already copied from host to device
   cast_extra_data(host_amtype, host_amgroup, nullptr, host_uind, host_uinp, nullptr);
-  atom->add_extra_data();                          
+  atom->add_extra_data();
 
   // set the correct cutoff and alpha
   _off2_polar = off2_polar;
@@ -648,7 +648,7 @@ int BaseAmoebaT::fphi_uind() {
   int ngridxy = _ngridx * _ngridy;
   k_fphi_uind.set_size(GX,BX);
   k_fphi_uind.run(&_thetai1, &_thetai2, &_thetai3, &_igrid, &_cgrid_brick,
-                  &_fdip_phi1, &_fdip_phi2, &_fdip_sum_phi, &_bsorder, &ainum, 
+                  &_fdip_phi1, &_fdip_phi2, &_fdip_sum_phi, &_bsorder, &ainum,
                   &_nzlo_out, &_nylo_out, &_nxlo_out, &ngridxy, &_ngridx);
   time_pair.stop();
 
@@ -738,7 +738,7 @@ void BaseAmoebaT::compute_polar_real(int *host_amtype, int *host_amgroup,
   // cast necessary data arrays from host to device
 
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
-  atom->add_extra_data();                    
+  atom->add_extra_data();
 
   *tep_ptr=_tep.host.begin();
 
@@ -784,7 +784,7 @@ template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_fft1d(void* in, void* out, const int numel, const int mode)
 {
   // TODO: setting up FFT plan based on the backend (cuFFT or hipFFT)
-  #if 0 // !defined(USE_OPENCL) && !defined(USE_HIP)    
+  #if 0 // !defined(USE_OPENCL) && !defined(USE_HIP)
   if (fft_plan_created == false) {
     int m = numel/2;
     cufftPlan1d(&plan, m, CUFFT_Z2Z, 1);
@@ -793,7 +793,7 @@ void BaseAmoebaT::compute_fft1d(void* in, void* out, const int numel, const int 
 
   // n = number of double complex
   int n = numel/2;
-  
+
   // copy the host array to the device (data)
   UCL_Vector<cufftDoubleComplex,cufftDoubleComplex> data;
   data.alloc(n, *(this->ucl_device), UCL_READ_WRITE, UCL_READ_WRITE);
@@ -807,7 +807,7 @@ void BaseAmoebaT::compute_fft1d(void* in, void* out, const int numel, const int 
   data.update_device(false);
 
   // perform the in-place forward FFT
-  
+
   cufftResult result = cufftExecZ2Z(plan, (cufftDoubleComplex*)&data.device,
     (cufftDoubleComplex*)&data.device, CUFFT_FORWARD);
   if (result != CUFFT_SUCCESS) printf("failed cufft %d\n", result);

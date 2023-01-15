@@ -684,7 +684,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     if (_cutoff < _cell_size) vadjust*=1.46;
     mn=std::max(mn,static_cast<int>(ceil(_max_neighbor_factor*vadjust*mn)));
     if (mn<33) mn+=3;
-    
+
     resize_max_neighbors<numtyp,acctyp>(mn,success);
     set_nbor_block_size(mn/2);
     if (!success)
@@ -837,7 +837,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   time_nbor.stop();
 }
 
-void Neighbor::transpose(UCL_D_Vec<tagint> &out, const UCL_D_Vec<tagint> &in, 
+void Neighbor::transpose(UCL_D_Vec<tagint> &out, const UCL_D_Vec<tagint> &in,
     const int columns_in, const int rows_in)
 {
   const int b2x=_block_cell_2d;

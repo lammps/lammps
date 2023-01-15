@@ -173,7 +173,7 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
   dmpik[4] = pre * (s*d2s + ds*ds);
   dmpik[6] = pre * (s*d3s + (numtyp)3.0*ds*d2s);
   dmpik[8] = pre * (s*d4s + (numtyp)4.0*ds*d3s + (numtyp)3.0*d2s*d2s);
-  
+
   if (rorder >= 11) dmpik[10] = pre * (s*d5s + (numtyp)5.0*ds*d4s + (numtyp)10.0*d2s*d3s);
 }
 

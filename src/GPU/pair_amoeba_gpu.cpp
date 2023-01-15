@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -283,7 +283,7 @@ void PairAmoebaGPU::multipole_real()
                                     success, aewald, felec, off2, atom->q,
                                     domain->boxlo, domain->prd, &tq_pinned);
 
-  
+
 
   // reference to the tep array from GPU lib
 
@@ -400,7 +400,7 @@ void PairAmoebaGPU::induce()
       }
 
       for (i = 0; i < nlocal; i++) {
-	      itype = amtype[i];
+              itype = amtype[i];
         for (j = 0; j < 3; j++) {
           uopt[i][m][j] = polarity[itype] * field[i][j];
           uoptp[i][m][j] = polarity[itype] * fieldp[i][j];
@@ -666,7 +666,7 @@ void PairAmoebaGPU::induce()
 
     if (iter >= maxiter || eps > epsold)
       if (comm->me == 0)
-	      error->warning(FLERR,"AMOEBA induced dipoles did not converge");
+              error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }
 
   // update the lists of previous induced dipole values
@@ -958,7 +958,7 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
   //   field and fieldp may already have some nonzero values from kspace (umutual1 and self)
 
   amoeba_gpu_update_fieldp(&fieldp_pinned);
-  
+
   int inum = atom->nlocal;
   double *field_ptr = (double *)fieldp_pinned;
 
@@ -1015,8 +1015,8 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
     fuind[i][1] = a[1][0]*uind[i][0] + a[1][1]*uind[i][1] + a[1][2]*uind[i][2];
     fuind[i][2] = a[2][0]*uind[i][0] + a[2][1]*uind[i][1] + a[2][2]*uind[i][2];
   }
-    
-  for (int i = 0; i < nlocal; i++) {      
+
+  for (int i = 0; i < nlocal; i++) {
     fuinp[i][0] = a[0][0]*uinp[i][0] + a[0][1]*uinp[i][1] + a[0][2]*uinp[i][2];
     fuinp[i][1] = a[1][0]*uinp[i][0] + a[1][1]*uinp[i][1] + a[1][2]*uinp[i][2];
     fuinp[i][2] = a[2][0]*uinp[i][0] + a[2][1]*uinp[i][1] + a[2][2]*uinp[i][2];
@@ -1037,7 +1037,7 @@ void PairAmoebaGPU::umutual1(double **field, double **fieldp)
 
   time1 = MPI_Wtime();
   time_grid_uind += (time1 - time0);
- 
+
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomposition
 
@@ -1137,7 +1137,7 @@ void PairAmoebaGPU::fphi_uind(double ****grid, double **fdip_phi1,
   void* fdip_sum_phi_pinned = nullptr;
   amoeba_gpu_fphi_uind(grid, &fdip_phi1_pinned, &fdip_phi2_pinned,
                        &fdip_sum_phi_pinned);
-  
+
   int nlocal = atom->nlocal;
   double *_fdip_phi1_ptr = (double *)fdip_phi1_pinned;
   for (int i = 0; i < nlocal; i++) {
@@ -1356,7 +1356,7 @@ void PairAmoebaGPU::polar_kspace()
     bspline_fill();
 
     // allocate memory and make early host-device transfers
-  
+
     // NOTE: this is for p_kspace, and igrid and thetai[1-3] are filled by bpsline_fill
     if (gpu_fphi_mpole_ready) {
        amoeba_gpu_precompute_kspace(atom->nlocal, bsorder,
@@ -1365,7 +1365,7 @@ void PairAmoebaGPU::polar_kspace()
                                     p_kspace->nylo_out, p_kspace->nyhi_out,
                                     p_kspace->nxlo_out, p_kspace->nxhi_out);
     }
-      
+
 
     // convert Cartesian multipoles to fractional coordinates
 
@@ -1435,7 +1435,7 @@ void PairAmoebaGPU::polar_kspace()
     double ***gridpost = (double ***) p_kspace->post_convolution();
 
     // get potential
-    
+
     if (!gpu_fphi_mpole_ready) {
       fphi_mpole(gridpost,fphi);
 
@@ -1447,7 +1447,7 @@ void PairAmoebaGPU::polar_kspace()
     } else {
       void* fphi_pinned = nullptr;
       amoeba_gpu_fphi_mpole(gridpost, &fphi_pinned, felec);
-    
+
       double *_fphi_ptr = (double *)fphi_pinned;
       for (int i = 0; i < nlocal; i++) {
         int idx = i;
@@ -1457,7 +1457,7 @@ void PairAmoebaGPU::polar_kspace()
         }
       }
 
-    }   
+    }
 
     // convert field from fractional to Cartesian
 

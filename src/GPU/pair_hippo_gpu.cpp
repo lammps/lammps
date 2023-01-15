@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -517,7 +517,7 @@ void PairHippoGPU::induce()
       }
 
       for (i = 0; i < nlocal; i++) {
-	      itype = amtype[i];
+              itype = amtype[i];
         for (j = 0; j < 3; j++) {
           uopt[i][m][j] = polarity[itype] * field[i][j];
           uoptp[i][m][j] = polarity[itype] * fieldp[i][j];
@@ -785,7 +785,7 @@ void PairHippoGPU::induce()
 
     if (iter >= maxiter || eps > epsold)
       if (comm->me == 0)
-	      error->warning(FLERR,"HIPPO induced dipoles did not converge");
+              error->warning(FLERR,"HIPPO induced dipoles did not converge");
   }
 
   // update the lists of previous induced dipole values
@@ -1045,7 +1045,7 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
 
   memset(&field[0][0], 0, 3*nall *sizeof(double));
   memset(&fieldp[0][0], 0, 3*nall *sizeof(double));
- 
+
   // get the real space portion of the mutual field first
 
   MPI_Barrier(world);
@@ -1078,7 +1078,7 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
   //   field and fieldp may already have some nonzero values from kspace (umutual1 and self)
 
   hippo_gpu_update_fieldp(&fieldp_pinned);
-  
+
   int inum = atom->nlocal;
   double *field_ptr = (double *)fieldp_pinned;
 
@@ -1136,8 +1136,8 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
     fuind[i][1] = a[1][0]*uind[i][0] + a[1][1]*uind[i][1] + a[1][2]*uind[i][2];
     fuind[i][2] = a[2][0]*uind[i][0] + a[2][1]*uind[i][1] + a[2][2]*uind[i][2];
   }
-    
-  for (int i = 0; i < nlocal; i++) {      
+
+  for (int i = 0; i < nlocal; i++) {
     fuinp[i][0] = a[0][0]*uinp[i][0] + a[0][1]*uinp[i][1] + a[0][2]*uinp[i][2];
     fuinp[i][1] = a[1][0]*uinp[i][0] + a[1][1]*uinp[i][1] + a[1][2]*uinp[i][2];
     fuinp[i][2] = a[2][0]*uinp[i][0] + a[2][1]*uinp[i][1] + a[2][2]*uinp[i][2];
@@ -1266,7 +1266,7 @@ void PairHippoGPU::fphi_uind(double ****grid, double **fdip_phi1,
   void* fdip_sum_phi_pinned = nullptr;
   hippo_gpu_fphi_uind(grid, &fdip_phi1_pinned, &fdip_phi2_pinned,
                       &fdip_sum_phi_pinned);
-  
+
   int nlocal = atom->nlocal;
   double *_fdip_phi1_ptr = (double *)fdip_phi1_pinned;
   for (int i = 0; i < nlocal; i++) {

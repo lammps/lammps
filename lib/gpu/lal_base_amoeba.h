@@ -256,7 +256,7 @@ class BaseAmoeba {
   int _ngridx, _ngridy, _ngridz, _num_grid_points;
 
   int _end_command_queue;
-  
+
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
   Answer<numtyp,acctyp> *ans;
@@ -312,7 +312,7 @@ class BaseAmoeba {
   virtual int fphi_uind();
   virtual int fphi_mpole();
   virtual int polar_real(const int eflag, const int vflag) = 0;
-  
+
 
   #if !defined(USE_OPENCL) && !defined(USE_HIP)
   cufftHandle plan;

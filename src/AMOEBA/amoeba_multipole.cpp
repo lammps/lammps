@@ -419,7 +419,7 @@ void PairAmoeba::multipole_real()
           term2i*rr3i + term2k*rr3k + term2ik*rr3ik +
           term3i*rr5i + term3k*rr5k + term3ik*rr5ik;
 
-        
+
 
         // find damped multipole intermediates for force and torque
 
@@ -465,7 +465,7 @@ void PairAmoeba::multipole_real()
         term4 = 2.0 * (-ck*rr5+dkr*rr7-qkr*rr9);
         term5 = 2.0 * (-ci*rr5-dir*rr7-qir*rr9);
         term6 = 4.0 * rr7;
-        
+
       }
 
       empole += e;

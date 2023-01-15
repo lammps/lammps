@@ -347,8 +347,8 @@ class PairAmoeba : public Pair {
 
   class AmoebaConvolution *m_kspace;   // multipole KSpace
   class AmoebaConvolution *p_kspace;   // polar KSpace
-  class AmoebaConvolution *pc_kspace;  
-  class AmoebaConvolution *d_kspace;   // dispersion KSpace 
+  class AmoebaConvolution *pc_kspace;
+  class AmoebaConvolution *d_kspace;   // dispersion KSpace
   class AmoebaConvolution *i_kspace;   // induce KSpace
   class AmoebaConvolution *ic_kspace;
 

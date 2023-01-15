@@ -260,7 +260,7 @@ class Neighbor {
   }
 
   /// Helper function
-  void transpose(UCL_D_Vec<tagint> &out, const UCL_D_Vec<tagint> &in, 
+  void transpose(UCL_D_Vec<tagint> &out, const UCL_D_Vec<tagint> &in,
     const int columns_in, const int rows_in);
 
  private:

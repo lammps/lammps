@@ -124,7 +124,7 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> coeff_amtype;
   /// csix = coeff_amclass.x; adisp = coeff_amclass.y;
   UCL_D_Vec<numtyp4> coeff_amclass;
-  /// sizpr = coeff_rep.x; dmppr = coeff_rep.y; elepr = coeff_rep.z; 
+  /// sizpr = coeff_rep.x; dmppr = coeff_rep.y; elepr = coeff_rep.z;
   UCL_D_Vec<numtyp4> coeff_rep;
   /// Special polar values [0-4]:
   ///   sp_polar.x = special_polar_wscale

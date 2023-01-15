@@ -73,7 +73,7 @@ void PairAmoeba::moduli()
     _nfft_max = maxfft;
     memory->create(_moduli_bsarray,_nfft_max,"amoeba:_moduli_bsarray");
   }
-  
+
   // compute and load the moduli values
 
   double x = 0.0;

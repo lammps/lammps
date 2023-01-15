@@ -651,9 +651,7 @@ void AmoebaConvolution::debug_file(int array, const char *label)
 
   // open file
 
-  char fname[128];
-  sprintf(fname,"tmp.%s.%s",labels[which],label);
-  if (me == 0) fp = fopen(fname,"w");
+  if (me == 0) fp = fopen(fmt::format("tmp.{}.{}", labels[which], label).c_str(), "w");
 
   // file header
   // ncol = # of columns, including grid cell ID

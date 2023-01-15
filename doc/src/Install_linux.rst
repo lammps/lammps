@@ -34,7 +34,7 @@ To install LAMMPS do the following once:
 
 .. code-block:: bash
 
-   $ sudo apt-get install lammps
+   sudo apt-get install lammps
 
 This downloads an executable named ``lmp`` to your box and multiple
 packages with supporting data, examples and libraries as well as any
@@ -43,13 +43,13 @@ to run input scripts:
 
 .. code-block:: bash
 
-   $ lmp -in in.lj
+   lmp -in in.lj
 
 To update LAMMPS to the latest packaged version, do the following:
 
 .. code-block:: bash
 
-   $ sudo apt-get update
+   sudo apt-get update
 
 which will also update other packages on your system.
 
@@ -61,14 +61,14 @@ package
 
 .. code-block:: bash
 
-   $ sudo apt-get install openkim-models
+   sudo apt-get install openkim-models
 
 Or use the KIM-API commands to download and install individual models.
 To un-install LAMMPS, do the following:
 
 .. code-block:: bash
 
-   $ sudo apt-get remove lammps
+   sudo apt-get remove lammps
 
 Please use ``lmp -help`` to see which compilation options, packages,
 and styles are included in the binary.
@@ -103,9 +103,9 @@ To install LAMMPS with OpenMPI and run an input ``in.lj`` with 2 CPUs do:
 
 .. code-block:: bash
 
-   $ dnf install lammps-openmpi
-   $ module load mpi/openmpi-x86_64
-   $ mpirun -np 2 lmp -in in.lj
+   dnf install lammps-openmpi
+   module load mpi/openmpi-x86_64
+   mpirun -np 2 lmp -in in.lj
 
 The ``dnf install`` command is needed only once. In case of a new LAMMPS
 stable release, ``dnf update`` will automatically update to the newer
@@ -121,7 +121,7 @@ can install the `openkim-models` package
 
 .. code-block:: bash
 
-   $ dnf install openkim-models
+   dnf install openkim-models
 
 Please use ``lmp -help`` to see which compilation options, packages,
 and styles are included in the binary.
@@ -162,14 +162,14 @@ in OpenSuse as of Leap 15.0. You can install the package with:
 
 .. code-block:: bash
 
-   $ zypper install lammps
+   zypper install lammps
 
 This includes support for OpenMPI. The name of the LAMMPS executable
 is ``lmp``. Thus to run an input in parallel on 2 CPUs you would do:
 
 .. code-block:: bash
 
-   $ mpirun -np 2 lmp -in in.lj
+   mpirun -np 2 lmp -in in.lj
 
 Please use ``lmp -help`` to see which compilation options, packages,
 and styles are included in the binary.
@@ -181,7 +181,7 @@ can install the `openkim-models` package
 
 .. code-block:: bash
 
-   $ zypper install openkim-models
+   zypper install openkim-models
 
 Thanks to Christoph Junghans (LANL) for making LAMMPS available in OpenSuse.
 
@@ -197,7 +197,7 @@ typing:
 
 .. code-block:: bash
 
-   % emerge --ask lammps
+   emerge --ask lammps
 
 Note that in Gentoo the LAMMPS source is downloaded and the package is
 built on the your machine.
@@ -206,7 +206,7 @@ Certain LAMMPS packages can be enable via USE flags, type
 
 .. code-block:: bash
 
-   % equery uses lammps
+   equery uses lammps
 
 for details.
 
@@ -229,10 +229,10 @@ any of the above names in-place of lammps.
 
 .. code-block:: bash
 
-   $ git clone https://aur.archlinux.org/lammps.git
-   $ cd lammps
-   $ makepkg -s
-   $ makepkg -i
+   git clone https://aur.archlinux.org/lammps.git
+   cd lammps
+   makepkg -s
+   makepkg -i
 
 To update, you may repeat the above, or change into the cloned directory,
 and execute the following, after which, if there are any changes, you may
@@ -240,7 +240,7 @@ use makepkg as above.
 
 .. code-block:: bash
 
-   $ git pull
+   git pull
 
 Alternatively, you may use an AUR helper to install these packages.
 

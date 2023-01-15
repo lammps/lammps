@@ -3,6 +3,7 @@
 # This file is part of LAMMPS
 # Created by Christoph Junghans and Richard Berger
 cmake_minimum_required(VERSION 3.10)
+########################################
 # set policy to silence warnings about ignoring <PackageName>_ROOT but use it
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
@@ -20,7 +21,13 @@ endif()
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 OLD)
 endif()
-
+########################################
+# Use CONFIGURE_DEPENDS as option for file(GLOB...) when available
+if(CMAKE_VERSION VERSION_LESS 3.12)
+  unset(CONFIGURE_DEPENDS)
+else()
+  set(CONFIGURE_DEPENDS CONFIGURE_DEPENDS)
+endif()
 ########################################
 
 project(lammps CXX)
@@ -161,8 +168,8 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-# set path to python interpreter and thus enforcing python version if
-# when in a virtual environment and PYTHON_EXECUTABLE is not set on command line
+# set path to python interpreter and thus enforcing python version when
+# in a virtual environment and PYTHON_EXECUTABLE is not set on command line
 if(DEFINED ENV{VIRTUAL_ENV} AND NOT PYTHON_EXECUTABLE)
   if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
@@ -195,8 +202,8 @@ else()
 endif()
 
 include(GNUInstallDirs)
-file(GLOB ALL_SOURCES ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
-file(GLOB MAIN_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
+file(GLOB ALL_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_SOURCE_DIR}/[^.]*.cpp)
+file(GLOB MAIN_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM ALL_SOURCES ${MAIN_SOURCES})
 add_library(lammps ${ALL_SOURCES})
 
@@ -251,13 +258,13 @@ set(STANDARD_PACKAGES
   KSPACE
   LATBOLTZ
   LATTE
+  LEPTON
   MACHDYN
   MANIFOLD
   MANYBODY
   MC
   MDI
   MEAM
-  MESONT
   MGPT
   MISC
   ML-HDNNP
@@ -301,8 +308,9 @@ set(STANDARD_PACKAGES
   YAFF)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
+set(EXTRA_PACKAGES MESONT)
 
-foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
 
@@ -441,16 +449,12 @@ if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_LATTE OR
     find_package(BLAS)
   endif()
   if(NOT LAPACK_FOUND OR NOT BLAS_FOUND OR USE_INTERNAL_LINALG)
-    include(CheckGeneratorSupport)
-    if(NOT CMAKE_GENERATOR_SUPPORT_FORTRAN)
-      status(FATAL_ERROR "Cannot build internal linear algebra library as CMake build tool lacks Fortran support")
-    endif()
-    enable_language(Fortran)
-    file(GLOB LAPACK_SOURCES ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.[fF])
-    add_library(linalg STATIC ${LAPACK_SOURCES})
+    file(GLOB LINALG_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.cpp)
+    add_library(linalg STATIC ${LINALG_SOURCES})
     set_target_properties(linalg PROPERTIES OUTPUT_NAME lammps_linalg${LAMMPS_MACHINE})
     set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
     set(LAPACK_LIBRARIES "$<TARGET_FILE:linalg>")
+    target_link_libraries(lammps PRIVATE linalg)
   else()
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
@@ -517,8 +521,8 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
-foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MSCG COMPRESS ML-PACE)
+foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE MESONT NETCDF
+        PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MSCG COMPRESS ML-PACE LEPTON)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -563,7 +567,7 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 ########################################################
 # Fetch missing external files and archives for packages
 ########################################################
-foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     FetchPotentials(${LAMMPS_SOURCE_DIR}/${PKG} ${LAMMPS_POTENTIALS_DIR})
   endif()
@@ -575,8 +579,8 @@ endforeach()
 foreach(PKG ${STANDARD_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
-  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/[^.]*.h)
+  file(GLOB ${PKG}_SOURCES ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -603,8 +607,8 @@ endforeach()
 foreach(PKG ${SUFFIX_PACKAGES})
   set(${PKG}_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/${PKG})
 
-  file(GLOB ${PKG}_SOURCES ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
-  file(GLOB ${PKG}_HEADERS ${${PKG}_SOURCES_DIR}/[^.]*.h)
+  file(GLOB ${PKG}_SOURCES ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.cpp)
+  file(GLOB ${PKG}_HEADERS ${CONFIGURE_DEPENDS} ${${PKG}_SOURCES_DIR}/[^.]*.h)
 
   # check for package files in src directory due to old make system
   DetectBuildSystemConflict(${LAMMPS_SOURCE_DIR} ${${PKG}_SOURCES} ${${PKG}_HEADERS})
@@ -615,18 +619,11 @@ endforeach()
 ##############################################
 # add lib sources of (simple) enabled packages
 ############################################
-foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
+foreach(PKG_LIB POEMS ATC AWPMD H5MD)
   if(PKG_${PKG_LIB})
     string(TOLOWER "${PKG_LIB}" PKG_LIB)
-    if(PKG_LIB STREQUAL "mesont")
-      enable_language(Fortran)
-      file(GLOB_RECURSE ${PKG_LIB}_SOURCES
-        ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.f90)
-    else()
-      file(GLOB_RECURSE ${PKG_LIB}_SOURCES
-        ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c
-        ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
-    endif()
+    file(GLOB_RECURSE ${PKG_LIB}_SOURCES ${CONFIGURE_DEPENDS}
+      ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.c ${LAMMPS_LIB_SOURCE_DIR}/${PKG_LIB}/[^.]*.cpp)
     add_library(${PKG_LIB} STATIC ${${PKG_LIB}_SOURCES})
     set_target_properties(${PKG_LIB} PROPERTIES OUTPUT_NAME lammps_${PKG_LIB}${LAMMPS_MACHINE})
     target_link_libraries(lammps PRIVATE ${PKG_LIB})
@@ -710,7 +707,7 @@ target_include_directories(lammps PRIVATE ${LAMMPS_STYLE_HEADERS_DIR})
 ######################################
 set(temp "#ifndef LMP_INSTALLED_PKGS_H\n#define LMP_INSTALLED_PKGS_H\n")
 set(temp "${temp}const char * LAMMPS_NS::LAMMPS::installed_packages[] =  {\n")
-set(temp_PKG_LIST ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
+set(temp_PKG_LIST ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
 list(SORT temp_PKG_LIST)
 foreach(PKG ${temp_PKG_LIST})
     if(PKG_${PKG})
@@ -895,6 +892,23 @@ if(ClangFormat_FOUND)
     WORKING_DIRECTORY ${LAMMPS_SOURCE_DIR})
 endif()
 
+# extract Kokkos compilation settings
+get_cmake_property(_allvars VARIABLES)
+foreach(_var ${_allvars})
+  if(${_var})
+    string(REGEX MATCH "Kokkos_ENABLE_(SERIAL|THREADS|OPENMP|CUDA|HIP|SYCL|OPENMPTARGET|HPX)" _match ${_var})
+    if(_match)
+      string(REGEX REPLACE "Kokkos_ENABLE_(OPENMP|SERIAL|CUDA|HIP|SYCL)" "\\1" _match ${_var})
+      list(APPEND KOKKOS_DEVICE ${_match})
+    endif()
+    string(REGEX MATCH "Kokkos_ARCH" _match ${_var})
+    if(_match)
+      string(REGEX REPLACE "Kokkos_ARCH_(.*)" "\\1" _match ${_var})
+      list(APPEND KOKKOS_ARCH ${_match})
+    endif()
+  endif()
+endforeach()
+
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 if(BUILD_IS_MULTI_CONFIG)
   set(LAMMPS_BUILD_TYPE "Multi-Config")
@@ -906,6 +920,7 @@ feature_summary(DESCRIPTION "The following tools and libraries have been found a
 message(STATUS "<<< Build configuration >>>
    LAMMPS Version:   ${PROJECT_VERSION}
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
+   CMake Version:    ${CMAKE_VERSION}
    Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")
@@ -913,7 +928,7 @@ message(STATUS "<<< Build configuration >>>
 # Print package summary
 ###############################################################################
 set(ENABLED_PACKAGES)
-foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     list(APPEND ENABLED_PACKAGES ${PKG})
   endif()
@@ -990,6 +1005,12 @@ if(PKG_GPU)
     endif()
   endif()
   message(STATUS "GPU precision:            ${GPU_PREC}")
+endif()
+if(PKG_KOKKOS)
+  message(STATUS "Kokkos Devices: ${KOKKOS_DEVICE}")
+  if(KOKKOS_ARCH)
+    message(STATUS "Kokkos Architecture: ${KOKKOS_ARCH}")
+  endif()
 endif()
 if(PKG_KSPACE)
   message(STATUS "<<< FFT settings >>>

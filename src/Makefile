@@ -88,6 +88,7 @@ PACKAGE = \
 	kspace \
 	latboltz \
 	latte \
+	lepton \
 	machdyn \
 	manifold \
 	manybody \
@@ -212,6 +213,7 @@ PACKLIB = \
 	kim \
 	kokkos \
 	latte \
+	lepton \
 	mpiio \
 	mscg \
 	poems \
@@ -224,6 +226,7 @@ PACKLIB = \
 	h5md \
 	ml-hdnnp \
 	latboltz \
+	lepton \
 	mdi \
 	mesont \
 	molfile \
@@ -240,7 +243,7 @@ PACKLIB = \
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars electrode gpu kokkos mesont ml-pod poems
+PACKINT = atc awpmd colvars electrode gpu kokkos lepton mesont ml-pod poems
 
 PACKEXT = \
 	adios \
@@ -635,6 +638,8 @@ lib-%:
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
 	fi; touch main.cpp
+
+lib-colvars: lib-lepton
 
 # status = list src files that differ from package files
 # installed = list of installed packages

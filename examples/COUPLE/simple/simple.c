@@ -35,7 +35,7 @@ int main(int narg, char **arg)
   MPI_Init(&narg,&arg);
 
   if (narg != 3) {
-    printf("Syntax: simpleC P in.lammps\n");
+    printf("Syntax: %s P in.lammps\n", arg[0]);
     exit(1);
   }
 
@@ -121,6 +121,7 @@ int main(int narg, char **arg)
 
     double *fx = (double *) lammps_extract_variable(lmp,"fx","all");
     printf("Force on 1 atom via extract_variable: %g\n",fx[0]);
+    lammps_free(fx);
   }
 
   /* use commands_string() and commands_list() to invoke more commands */

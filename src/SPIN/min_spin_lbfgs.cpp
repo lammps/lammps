@@ -104,12 +104,12 @@ void MinSpinLBFGS::init()
 
   // warning if line_search combined to gneb
 
-  if ((nreplica >= 1) && (linestyle != 4) && (comm->me == 0))
-    error->warning(FLERR,"Line search incompatible gneb");
+  if ((nreplica >= 1) && (linestyle != SPIN_NONE) && (comm->me == 0))
+    error->warning(FLERR,"Line search incompatible with gneb");
 
   // set back use_line_search to 0 if more than one replica
 
-  if (linestyle == 3 && nreplica == 1) {
+  if (linestyle == SPIN_CUBIC && nreplica == 1) {
     use_line_search = 1;
   }
   else{

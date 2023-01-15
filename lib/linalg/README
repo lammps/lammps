@@ -1,7 +1,13 @@
 This directory has generic BLAS and LAPACK source files needed by the
 ATC, AWPMD, ELECTRODE, LATTE, and ML-POD packages (and possibly by other
 packages) in the future that can be used instead of platform or vendor
-optimized BLAS/LAPACK library.
+optimized BLAS/LAPACK library.  To simplify installation, these files
+have been translated from the Fortran versions of the BLAS and LAPACK
+references source files at https://netlib.org/lapack/ to C++ with f2c.
+The package with the tools to do the translation and the matching
+original Fortran sources are at https://github.com/lammps/linalg.
+Please note that even through the files are C++ source code the
+resulting library will follow the Fortran binary conventions.
 
 Note that this is an *incomplete* subset of full BLAS/LAPACK.
 
@@ -20,7 +26,7 @@ can do it manually by following the instructions below.
 Build the library using one of the provided Makefile.* files or create
 your own, specific to your compiler and system.  For example:
 
-make -f Makefile.gfortran
+make -f Makefile.g++
 
 When you are done building this library, one file should exist in this
 directory:

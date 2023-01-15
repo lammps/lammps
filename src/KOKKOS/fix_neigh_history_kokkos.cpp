@@ -97,12 +97,12 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
     Kokkos::parallel_for(nlocal_neigh,zero);
 
     h_resize() = 0;
-    deep_copy(d_resize, h_resize);
+    Kokkos::deep_copy(d_resize, h_resize);
 
     FixNeighHistoryKokkosPreExchangeFunctor<DeviceType> f(this);
     Kokkos::parallel_for(nlocal_neigh,f);
 
-    deep_copy(h_resize, d_resize);
+    Kokkos::deep_copy(h_resize, d_resize);
     if (h_resize() > 0) {
       maxpartner += 8;
       memoryKK->grow_kokkos(k_partner,partner,atom->nmax,maxpartner,"neighbor_history:partner");

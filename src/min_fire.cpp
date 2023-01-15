@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -15,6 +14,11 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Julien Guénolé, CNRS and
                          Erik Bitzek, FAU Erlangen-Nuernberg
+
+                         Support for ABC-FIRE:
+                         Sebastian Echeverri Restrepo, SKF, King's College London
+                         Predrag Andric, SKF
+
 ------------------------------------------------------------------------- */
 
 #include "min_fire.h"
@@ -48,9 +52,9 @@ void MinFire::init()
 
   // simple parameters validation
 
-  if (tmax < tmin) error->all(FLERR,"tmax has to be larger than tmin");
-  if (dtgrow < 1.0) error->all(FLERR,"dtgrow has to be larger than 1.0");
-  if (dtshrink > 1.0) error->all(FLERR,"dtshrink has to be smaller than 1.0");
+  if (tmax < tmin) error->all(FLERR, "tmax has to be larger than tmin");
+  if (dtgrow < 1.0) error->all(FLERR, "dtgrow has to be larger than 1.0");
+  if (dtshrink > 1.0) error->all(FLERR, "dtshrink has to be smaller than 1.0");
 
   dt = update->dt;
   dtmax = tmax * dt;
@@ -67,24 +71,24 @@ void MinFire::setup_style()
   double **v = atom->v;
   int nlocal = atom->nlocal;
 
-  // print the parameters used within fire into the log
+  // print the parameters used within fire/abcfire into the log
 
-  const char *s1[] = {"eulerimplicit","verlet","leapfrog","eulerexplicit"};
-  const char *s2[] = {"no","yes"};
+  const char *integrator_names[] = {"eulerimplicit", "verlet", "leapfrog", "eulerexplicit"};
+  const char *yesno[] = {"no", "yes"};
 
-  if (comm->me == 0 && logfile) {
-      fprintf(logfile,"  Parameters for fire: \n"
-      "    dmax delaystep dtgrow dtshrink alpha0 alphashrink tmax tmin "
-      "   integrator halfstepback \n"
-      "    %4g %9i %6g %8g %6g %11g %4g %4g %13s %12s \n",
-      dmax, delaystep, dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin,
-      s1[integrator], s2[halfstepback_flag]);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,
+                   "  Parameters for {}:\n"
+                   "    {:^5} {:^9} {:^6} {:^8} {:^6} {:^11} {:^4} {:^4} {:^14} {:^12} {:^11}\n"
+                   "    {:^5} {:^9} {:^6} {:^8} {:^6} {:^11} {:^4} {:^4} {:^14} {:^12} {:^11}\n",
+                   update->minimize_style, "dmax", "delaystep", "dtgrow", "dtshrink", "alpha0",
+                   "alphashrink", "tmax", "tmin", "integrator", "halfstepback", "abcfire", dmax,
+                   delaystep, dtgrow, dtshrink, alpha0, alphashrink, tmax, tmin,
+                   integrator_names[integrator], yesno[halfstepback_flag], yesno[abcflag]);
 
   // initialize the velocities
 
-  for (int i = 0; i < nlocal; i++)
-    v[i][0] = v[i][1] = v[i][2] = 0.0;
+  for (int i = 0; i < nlocal; i++) v[i][0] = v[i][1] = v[i][2] = 0.0;
   flagv0 = 1;
 }
 
@@ -106,17 +110,57 @@ void MinFire::reset_vectors()
 
 int MinFire::iterate(int maxiter)
 {
+  switch (integrator) {
+    case EULERIMPLICIT:
+      if (abcflag)
+        return run_iterate<EULERIMPLICIT, true>(maxiter);
+      else
+        return run_iterate<EULERIMPLICIT, false>(maxiter);
+      break;
+    case VERLET:
+      if (abcflag)
+        return run_iterate<VERLET, true>(maxiter);
+      else
+        return run_iterate<VERLET, false>(maxiter);
+      break;
+    case LEAPFROG:
+      if (abcflag)
+        return run_iterate<LEAPFROG, true>(maxiter);
+      else
+        return run_iterate<LEAPFROG, false>(maxiter);
+      break;
+    case EULEREXPLICIT:
+      if (abcflag)
+        return run_iterate<EULEREXPLICIT, true>(maxiter);
+      else
+        return run_iterate<EULEREXPLICIT, false>(maxiter);
+      break;
+
+    default:
+      error->all(FLERR, "Unexpected integrator style {}; expected 1-{}", integrator,
+                 (int) EULEREXPLICIT);
+      return MAXITER;
+  }
+}
+
+// clang-format off
+
+/* ---------------------------------------------------------------------- */
+
+template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
+{
   bigint ntimestep;
   double vmax,vdotf,vdotfall,vdotv,vdotvall,fdotf,fdotfall;
   double scale1,scale2;
   double dtvone,dtv,dtf,dtfm;
+  double abc;
   int flag,flagall;
 
   alpha_final = 0.0;
 
   // Leap Frog integration initialization
 
-  if (integrator == 2) {
+  if (INTEGRATOR == LEAPFROG) {
 
     double **f = atom->f;
     double **v = atom->v;
@@ -165,7 +209,7 @@ int MinFire::iterate(int maxiter)
     double *mass = atom->mass;
     int *type = atom->type;
 
-   // vdotfall = v dot f
+    // vdotfall = v dot f
 
     vdotf = 0.0;
     for (int i = 0; i < nlocal; i++)
@@ -216,9 +260,22 @@ int MinFire::iterate(int maxiter)
         MPI_Allreduce(&fdotf,&fdotfall,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
       }
 
-      scale1 = 1.0 - alpha;
-      if (fdotfall <= 1e-20) scale2 = 0.0;
-      else scale2 = alpha * sqrt(vdotvall/fdotfall);
+      if (ABCFLAG) {
+        // limit the value of alpha to avoid divergence of abcfire
+        if (alpha < 1e-10) {
+          alpha=1e-10;
+        }
+
+        // calculate the factor abc, used for abcfire
+        abc = (1-pow(1-alpha, (ntimestep-last_negative)));
+        scale1 = (1.0 - alpha) / abc ;
+        if (fdotfall <= 1e-20) scale2 = 0.0;
+        else scale2 = (alpha * sqrt(vdotvall/fdotfall)) / abc;
+      } else {
+        scale1 = 1.0 - alpha;
+        if (fdotfall <= 1e-20) scale2 = 0.0;
+        else scale2 = alpha * sqrt(vdotvall/fdotfall);
+      }
 
       if (ntimestep - last_negative > delaystep) {
         dt = MIN(dt*dtgrow,dtmax);
@@ -226,14 +283,14 @@ int MinFire::iterate(int maxiter)
         alpha *= alphashrink;
       }
 
-    // else (v dot f) <= 0
-    // if more than delaystep since starting the relaxation:
-    // reset alpha
-    //    if dt*dtshrink > dtmin:
-    //    decrease timestep
-    //    update global timestep (for thermo output)
-    // half step back within the dynamics: x(t) = x(t-0.5*dt)
-    // reset velocities: v = 0
+      // else (v dot f) <= 0
+      // if more than delaystep since starting the relaxation:
+      // reset alpha
+      //    if dt*dtshrink > dtmin:
+      //    decrease timestep
+      //    update global timestep (for thermo output)
+      // half step back within the dynamics: x(t) = x(t-0.5*dt)
+      // reset velocities: v = 0
 
     } else {
       last_negative = ntimestep;
@@ -269,27 +326,29 @@ int MinFire::iterate(int maxiter)
       flagv0 = 1;
     }
 
-    // evaluates velocties to estimate wether dtv has to be limited
-    // required when v have been reset
+    if (!ABCFLAG) {
+      // evaluates velocties to estimate wether dtv has to be limited
+      // required when v have been reset
 
-    if (flagv0) {
-      dtf = dt * force->ftm2v;
-      energy_force(0);
-      neval++;
+      if (flagv0) {
+        dtf = dt * force->ftm2v;
+        energy_force(0);
+        neval++;
 
-      if (rmass) {
-        for (int i = 0; i < nlocal; i++) {
-          dtfm = dtf / rmass[i];
-          v[i][0] = dtfm * f[i][0];
-          v[i][1] = dtfm * f[i][1];
-          v[i][2] = dtfm * f[i][2];
-        }
-      } else {
-        for (int i = 0; i < nlocal; i++) {
-          dtfm = dtf / mass[type[i]];
-          v[i][0] = dtfm * f[i][0];
-          v[i][1] = dtfm * f[i][1];
-          v[i][2] = dtfm * f[i][2];
+        if (rmass) {
+          for (int i = 0; i < nlocal; i++) {
+            dtfm = dtf / rmass[i];
+            v[i][0] = dtfm * f[i][0];
+            v[i][1] = dtfm * f[i][1];
+            v[i][2] = dtfm * f[i][2];
+          }
+        } else {
+          for (int i = 0; i < nlocal; i++) {
+            dtfm = dtf / mass[type[i]];
+            v[i][0] = dtfm * f[i][0];
+            v[i][1] = dtfm * f[i][1];
+            v[i][2] = dtfm * f[i][2];
+          }
         }
       }
     }
@@ -298,10 +357,12 @@ int MinFire::iterate(int maxiter)
 
     dtvone = dt;
 
-    for (int i = 0; i < nlocal; i++) {
-      vmax = MAX(fabs(v[i][0]),fabs(v[i][1]));
-      vmax = MAX(vmax,fabs(v[i][2]));
-      if (dtvone*vmax > dmax) dtvone = dmax/vmax;
+    if (!ABCFLAG) {
+      for (int i = 0; i < nlocal; i++) {
+        vmax = MAX(fabs(v[i][0]),fabs(v[i][1]));
+        vmax = MAX(vmax,fabs(v[i][2]));
+        if (dtvone*vmax > dmax) dtvone = dmax/vmax;
+      }
     }
 
     MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
@@ -321,15 +382,9 @@ int MinFire::iterate(int maxiter)
       MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,universe->uworld);
     }
 
-    // Dynamic integration scheme:
-    // 0: semi-implicit Euler
-    // 1: velocity Verlet
-    // 2: leapfrog (initial half step before the iteration loop)
-    // 3: explicit Euler
+    // Adapt to requested integration style for dynamics
 
-    // Semi-implicit Euler OR Leap Frog integration
-
-    if (integrator == 0 || integrator == 2) {
+    if ((INTEGRATOR == EULERIMPLICIT) || (INTEGRATOR == LEAPFROG)) {
 
       dtf = dtv * force->ftm2v;
 
@@ -343,6 +398,12 @@ int MinFire::iterate(int maxiter)
             v[i][0] = scale1*v[i][0] + scale2*f[i][0];
             v[i][1] = scale1*v[i][1] + scale2*f[i][1];
             v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+            if (ABCFLAG) {
+              // make sure that the displacement is not larger than dmax
+              if (fabs(v[i][0]*dtv)>dmax){v[i][0]=dmax/dtv*v[i][0]/fabs(v[i][0]);}
+              if (fabs(v[i][1]*dtv)>dmax){v[i][1]=dmax/dtv*v[i][1]/fabs(v[i][1]);}
+              if (fabs(v[i][2]*dtv)>dmax){v[i][2]=dmax/dtv*v[i][2]/fabs(v[i][2]);}
+            }
           }
           x[i][0] += dtv * v[i][0];
           x[i][1] += dtv * v[i][1];
@@ -358,6 +419,12 @@ int MinFire::iterate(int maxiter)
             v[i][0] = scale1*v[i][0] + scale2*f[i][0];
             v[i][1] = scale1*v[i][1] + scale2*f[i][1];
             v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+            if (ABCFLAG) {
+              // make sure that the displacement is not larger than dmax
+              if (fabs(v[i][0]*dtv)>dmax){v[i][0]=dmax/dtv*v[i][0]/fabs(v[i][0]);}
+              if (fabs(v[i][1]*dtv)>dmax){v[i][1]=dmax/dtv*v[i][1]/fabs(v[i][1]);}
+              if (fabs(v[i][2]*dtv)>dmax){v[i][2]=dmax/dtv*v[i][2]/fabs(v[i][2]);}
+            }
           }
           x[i][0] += dtv * v[i][0];
           x[i][1] += dtv * v[i][1];
@@ -369,9 +436,9 @@ int MinFire::iterate(int maxiter)
       ecurrent = energy_force(0);
       neval++;
 
-    // Velocity Verlet integration
+      // Velocity Verlet integration
 
-    } else if (integrator == 1) {
+    } else if (INTEGRATOR == VERLET) {
 
       dtf = 0.5 * dtv * force->ftm2v;
 
@@ -385,6 +452,12 @@ int MinFire::iterate(int maxiter)
             v[i][0] = scale1*v[i][0] + scale2*f[i][0];
             v[i][1] = scale1*v[i][1] + scale2*f[i][1];
             v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+            if (ABCFLAG) {
+              // make sure that the displacement is not larger than dmax
+              if (fabs(v[i][0]*dtv)>dmax){v[i][0]=dmax/dtv*v[i][0]/fabs(v[i][0]);}
+              if (fabs(v[i][1]*dtv)>dmax){v[i][1]=dmax/dtv*v[i][1]/fabs(v[i][1]);}
+              if (fabs(v[i][2]*dtv)>dmax){v[i][2]=dmax/dtv*v[i][2]/fabs(v[i][2]);}
+            }
           }
           x[i][0] += dtv * v[i][0];
           x[i][1] += dtv * v[i][1];
@@ -400,6 +473,12 @@ int MinFire::iterate(int maxiter)
             v[i][0] = scale1*v[i][0] + scale2*f[i][0];
             v[i][1] = scale1*v[i][1] + scale2*f[i][1];
             v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+            if (ABCFLAG) {
+              // make sure that the displacement is not larger than dmax
+              if (fabs(v[i][0]*dtv)>dmax){v[i][0]=dmax/dtv*v[i][0]/fabs(v[i][0]);}
+              if (fabs(v[i][1]*dtv)>dmax){v[i][1]=dmax/dtv*v[i][1]/fabs(v[i][1]);}
+              if (fabs(v[i][2]*dtv)>dmax){v[i][2]=dmax/dtv*v[i][2]/fabs(v[i][2]);}
+            }
           }
           x[i][0] += dtv * v[i][0];
           x[i][1] += dtv * v[i][1];
@@ -417,7 +496,7 @@ int MinFire::iterate(int maxiter)
           v[i][0] += dtfm * f[i][0];
           v[i][1] += dtfm * f[i][1];
           v[i][2] += dtfm * f[i][2];
-          }
+        }
       } else {
         for (int i = 0; i < nlocal; i++) {
           dtfm = dtf / mass[type[i]];
@@ -427,9 +506,9 @@ int MinFire::iterate(int maxiter)
         }
       }
 
-    // Standard Euler integration
+      // Standard Euler integration
 
-    } else if (integrator == 3) {
+    } else if (INTEGRATOR == EULEREXPLICIT) {
 
       dtf = dtv * force->ftm2v;
 
@@ -440,6 +519,12 @@ int MinFire::iterate(int maxiter)
             v[i][0] = scale1*v[i][0] + scale2*f[i][0];
             v[i][1] = scale1*v[i][1] + scale2*f[i][1];
             v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+            if (ABCFLAG) {
+              // make sure that the displacement is not larger than dmax
+              if (fabs(v[i][0]*dtv)>dmax){v[i][0]=dmax/dtv*v[i][0]/fabs(v[i][0]);}
+              if (fabs(v[i][1]*dtv)>dmax){v[i][1]=dmax/dtv*v[i][1]/fabs(v[i][1]);}
+              if (fabs(v[i][2]*dtv)>dmax){v[i][2]=dmax/dtv*v[i][2]/fabs(v[i][2]);}
+            }
           }
           x[i][0] += dtv * v[i][0];
           x[i][1] += dtv * v[i][1];
@@ -455,6 +540,12 @@ int MinFire::iterate(int maxiter)
             v[i][0] = scale1*v[i][0] + scale2*f[i][0];
             v[i][1] = scale1*v[i][1] + scale2*f[i][1];
             v[i][2] = scale1*v[i][2] + scale2*f[i][2];
+            if (ABCFLAG) {
+              // make sure that the displacement is not larger than dmax
+              if (fabs(v[i][0]*dtv)>dmax){v[i][0]=dmax/dtv*v[i][0]/fabs(v[i][0]);}
+              if (fabs(v[i][1]*dtv)>dmax){v[i][1]=dmax/dtv*v[i][1]/fabs(v[i][1]);}
+              if (fabs(v[i][2]*dtv)>dmax){v[i][2]=dmax/dtv*v[i][2]/fabs(v[i][2]);}
+            }
           }
           x[i][0] += dtv * v[i][0];
           x[i][1] += dtv * v[i][1];

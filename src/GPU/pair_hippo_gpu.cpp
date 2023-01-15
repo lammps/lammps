@@ -440,11 +440,8 @@ void PairHippoGPU::induce()
   // set cutoffs, taper coeffs, and PME params
   // create qfac here, free at end of polar()
 
-  if (use_ewald) {
-    choose(POLAR_LONG);
-    int nmine = p_kspace->nfft_owned;
-    memory->create(qfac,nmine,"ameoba/induce:qfac");
-  } else choose(POLAR);
+  if (use_ewald) choose(POLAR_LONG);
+  else choose(POLAR);
 
   // owned atoms
 

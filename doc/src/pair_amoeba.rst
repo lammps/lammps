@@ -1,11 +1,18 @@
 .. index:: pair_style amoeba
+.. index:: pair_style amoeba/gpu
 .. index:: pair_style hippo
+.. index:: pair_style hippo/gpu
 
 pair_style amoeba command
 =========================
 
+Accelerator Variants: *amoeba/gpu*
+
 pair_style hippo command
 ========================
+
+Accelerator Variants: *hippo/gpu*
+
 Syntax
 """"""
 
@@ -184,6 +191,10 @@ an input script that reads a restart file.
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

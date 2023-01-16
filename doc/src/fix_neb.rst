@@ -120,17 +120,17 @@ and :math:`RD_{ideal}` is the ideal *RD* for which all the images are
 equally spaced.  I.e. :math:`RD_{ideal} = (i-1) \cdot meanDist` when the
 climbing replica is off, where *i* is the replica number).  The
 *meanDist* is the average distance between replicas.  Note that in this
-case the specified *Kspring* is in force units. When the climbing replica 
+case the specified *Kspring* is in force units. When the climbing replica
 is on, :math:`RD_{ideal}` and :math:`meanDist` are calculated separately
-each side of the climbing image. Note that the *ideal* form of nudging 
+each side of the climbing image. Note that the *ideal* form of nudging
 can often be more effective at keeping the replicas equally spaced before
-climbing, then equally spaced either side of the climbing image whilst 
-climbing. 
+climbing, then equally spaced either side of the climbing image whilst
+climbing.
 
 With a value of *equal* the spring force is computed as for *ideal*
-when the climbing replica is off, promoting equidistance. When the climbing 
-replica is on, the spring force is computed to promote equidistant 
-absolute differences in energy, rather than distance, each side of 
+when the climbing replica is off, promoting equidistance. When the climbing
+replica is on, the spring force is computed to promote equidistant
+absolute differences in energy, rather than distance, each side of
 the climbing image:
 
 .. math::
@@ -141,15 +141,15 @@ where *ED* is the cumulative sum of absolute energy differences:
 
 .. math::
 
-   ED = \sum_{i<N} \left|E(R_{i+1}) - E(R_i)\right|, 
+   ED = \sum_{i<N} \left|E(R_{i+1}) - E(R_i)\right|,
 
 *meanEdist* is the average absolute energy difference between
-replicas up to the climbing image or from the climbing image 
-to the final image, for images before or after the climbing 
-image respectively. :math:`ED_{ideal}` is the corresponding 
-cumulative sum of average absolute energy differences in 
-each case, in close analogy to *ideal*. This form of nudging 
-is to aid schemes which integrate forces along, or near to, 
+replicas up to the climbing image or from the climbing image
+to the final image, for images before or after the climbing
+image respectively. :math:`ED_{ideal}` is the corresponding
+cumulative sum of average absolute energy differences in
+each case, in close analogy to *ideal*. This form of nudging
+is to aid schemes which integrate forces along, or near to,
 NEB pathways such as :doc:`fix_pafi <fix_pafi>`.
 
 ----------

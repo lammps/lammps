@@ -773,7 +773,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
       fieldp[i][2] += fieldp_ptr[idx+2];
     }
   }
-  
+
 
 }
 
@@ -1015,7 +1015,7 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
       fieldp[i][2] += fieldp_ptr[idx+2];
     }
   }
-  
+
 
   // accumulate timing information
 
@@ -1234,7 +1234,7 @@ void PairAmoebaGPU::fphi_uind(double ****grid, double **fdip_phi1,
       }
     }
   }
-  
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1525,7 +1525,7 @@ void PairAmoebaGPU::polar_kspace()
             fphi[i][m] = _fphi_ptr[idx];
             idx += nlocal;
           }
-        }  
+        }
       } else {
         auto _fphi_ptr = (double *)fphi_pinned;
         for (int i = 0; i < nlocal; i++) {
@@ -1536,8 +1536,6 @@ void PairAmoebaGPU::polar_kspace()
           }
         }
       }
-      
-
     }
 
     // convert field from fractional to Cartesian

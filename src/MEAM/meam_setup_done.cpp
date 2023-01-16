@@ -377,7 +377,7 @@ double MEAM::phi_meam(double r, int a, int b)
 
   // calculate average weighting factors for the reference structure
   if (this->lattce_meam[a][b] == C11) {
-    // note ialloy and t_ave not used in MS-MEAM
+    // note ialloy and t_ave not used in msmeam
     if (this->ialloy == 2) {
       t11av = this->t1_meam[a];
       t12av = this->t1_meam[b];
@@ -399,7 +399,7 @@ double MEAM::phi_meam(double r, int a, int b)
     get_tavref(&t11av, &t21av, &t31av, &t12av, &t22av, &t32av, this->t1_meam[a], this->t2_meam[a],
                this->t3_meam[a], this->t1_meam[b], this->t2_meam[b], this->t3_meam[b], r, a, b,
                this->lattce_meam[a][b]);
-    // msmeam - call twice with different sets of variables 
+    // with msmeam call twice with different sets of variables 
     if (this->msmeamflag){
       get_tavref(&t1m1av, &t2m1av, &t3m1av, &t1m2av, &t2m2av, &t3m2av, this->t1m_meam[a], this->t2m_meam[a],
                 this->t3m_meam[a], this->t1m_meam[b], this->t2m_meam[b], this->t3m_meam[b], r, a, b,
@@ -731,6 +731,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   rhoa22 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta2_meam[b] * a2);
   rhoa32 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta3_meam[b] * a2);
   */
+  /*
   rhoa11 = this->rho0_meam[a] * this->t1_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
   rhoa21 = this->rho0_meam[a] * this->t2_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
   rhoa31 = this->rho0_meam[a] * this->t3_meam[a] * MathSpecial::fm_exp(-this->beta3_meam[a] * a1);
@@ -738,13 +739,32 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   rhoa12 = this->rho0_meam[b] * this->t1_meam[b] * MathSpecial::fm_exp(-this->beta1_meam[b] * a2);
   rhoa22 = this->rho0_meam[b] * this->t2_meam[b] * MathSpecial::fm_exp(-this->beta2_meam[b] * a2);
   rhoa32 = this->rho0_meam[b] * this->t3_meam[b] * MathSpecial::fm_exp(-this->beta3_meam[b] * a2);
+  */
   if (this->msmeamflag){
+    // in msmeam, the rho variables are multiplied by t here since we don't use ialloy
+    rhoa11 = this->rho0_meam[a] * this->t1_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
+    rhoa21 = this->rho0_meam[a] * this->t2_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
+    rhoa31 = this->rho0_meam[a] * this->t3_meam[a] * MathSpecial::fm_exp(-this->beta3_meam[a] * a1);
+    rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
+    rhoa12 = this->rho0_meam[b] * this->t1_meam[b] * MathSpecial::fm_exp(-this->beta1_meam[b] * a2);
+    rhoa22 = this->rho0_meam[b] * this->t2_meam[b] * MathSpecial::fm_exp(-this->beta2_meam[b] * a2);
+    rhoa32 = this->rho0_meam[b] * this->t3_meam[b] * MathSpecial::fm_exp(-this->beta3_meam[b] * a2);
+    // msmeam specific rho vars
     rhoa1m1 = this->rho0_meam[a] * this->t1m_meam[a] * MathSpecial::fm_exp(-this->beta1m_meam[a] * a1);
     rhoa2m1 = this->rho0_meam[a] * this->t2m_meam[a] * MathSpecial::fm_exp(-this->beta2m_meam[a] * a1);
     rhoa3m1 = this->rho0_meam[a] * this->t3m_meam[a] * MathSpecial::fm_exp(-this->beta3m_meam[a] * a1);
     rhoa1m2 = this->rho0_meam[b] * this->t1m_meam[b] * MathSpecial::fm_exp(-this->beta1m_meam[b] * a2);
     rhoa2m2 = this->rho0_meam[b] * this->t2m_meam[b] * MathSpecial::fm_exp(-this->beta2m_meam[b] * a2);
     rhoa3m2 = this->rho0_meam[b] * this->t3m_meam[b] * MathSpecial::fm_exp(-this->beta3m_meam[b] * a2);
+  }
+  else{
+    rhoa11 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
+    rhoa21 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
+    rhoa31 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta3_meam[a] * a1);
+    rhoa02 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta0_meam[b] * a2);
+    rhoa12 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta1_meam[b] * a2);
+    rhoa22 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta2_meam[b] * a2);
+    rhoa32 = this->rho0_meam[b] * MathSpecial::fm_exp(-this->beta3_meam[b] * a2);
   }
   //printf("rhoa0 %f %f\n", rhoa01, rhoa02);
   //printf("rhoai1 %f %f %f\n", rhoa11, rhoa21, rhoa31);
@@ -842,9 +862,11 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     case L12:
       *rho01 = 8 * rhoa01 + 4 * rhoa02;
       *rho02 = 12 * rhoa01;
-      // not modified by choice with msmeam; use of t's inconsistent with above
+      // don't use with msmeam; use of t's inconsistent with above
+      // also we should not use ialloy with msmeam
+      // possibly make ialloy not an option when using msmeam
       if (this->ialloy == 1 && !this->msmeamflag) {
-        printf("^^^ ialloy=1 in getdensref\n");
+        //printf("^^^ ialloy=1 in getdensref\n");
         *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b]);
         denom = 8 * rhoa01 * MathSpecial::square(this->t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(this->t2_meam[b]);
         if (denom > 0.)

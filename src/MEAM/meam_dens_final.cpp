@@ -25,8 +25,8 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
   double denom, rho_bkgd, Fl;
   double scaleii;
 
-  printf("meam_dens_final arho3m\n");
-  printf("%f\n", arho3m[0][0]);
+  //printf("meam_dens_final arho3m\n");
+  //printf("%f\n", arho3m[0][0]);
 
   //     Complete the calculation of density
 
@@ -52,14 +52,14 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         for (m = 0; m < 10; m++) {
           rho3[i] = rho3[i] + this->v3D[m] * (arho3[i][m] * arho3[i][m]
                                             - arho3m[i][m] * arho3m[i][m]);
-          printf("arho loop %f %f\n", arho3[i][m], arho3m[i][m]);
+          //printf("arho loop %f %f\n", arho3[i][m], arho3m[i][m]);
         }
 
         // Compared to Greg's original, all of the t weightings are already accounted for. 
         // Code block for t_ave removed.
-        printf("gam rho %f %f %f\n", rho1[i], rho2[i], rho3[i]);
+        //printf("gam rho %f %f %f\n", rho1[i], rho2[i], rho3[i]);
         gamma[i] = rho1[i] + rho2[i] + rho3[i];
-        printf("gam check 0 %f\n", gamma[i]);
+        //printf("gam check 0 %f\n", gamma[i]);
 
         /*
         if (rho0[i] > 0.0) {
@@ -80,11 +80,11 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
 
         gamma[i] = t_ave[i][0] * rho1[i] + t_ave[i][1] * rho2[i] + t_ave[i][2] * rho3[i];
         */
-        printf("rho0 %f\n", rho0[i]);
+        //printf("rho0 %f\n", rho0[i]);
         if (rho0[i] > 0.0) {
           gamma[i] = gamma[i] / (rho0[i] * rho0[i]);
         }
-        printf("gam check1 %f\n", gamma[i]);
+        //printf("gam check1 %f\n", gamma[i]);
 
         Z = get_Zij(this->lattce_meam[elti][elti]);
 
@@ -97,7 +97,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         if (this->ibar_meam[elti] <= 0) {
           Gbar = 1.0;
           dGbar = 0.0;
-          printf("ibar meam <= 0\n");
+          //printf("ibar meam <= 0\n");
         } else {
           if (this->mix_ref_t == 1) {
             gam = (t_ave[i][0] * shp[0] + t_ave[i][1] * shp[1] + t_ave[i][2] * shp[2]) / (Z * Z);
@@ -106,7 +106,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
                   (Z * Z);
           }
           Gbar = G_gam(gam, this->ibar_meam[elti], errorflag);
-          printf("ibar meam > 0\n");
+          //printf("ibar meam > 0\n");
         }
         rho[i] = rho0[i] * G;
 
@@ -130,7 +130,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         rhob = rho[i] / rho_bkgd;
         denom = 1.0 / rho_bkgd;
 
-        printf("dgam rhob denom %f %f\n", rhob, denom);
+        //printf("dgam rhob denom %f %f\n", rhob, denom);
 
         G = dG_gam(gamma[i], this->ibar_meam[elti], dG);
 

@@ -14,9 +14,10 @@ neighbor	0.3 bin
 neigh_modify	delay 10
 
 fix		1 all nve
-thermo		10
+thermo		1
 timestep	0.001
 
+dump 1 all xyz 100 dump.xyz
 #dump		1 all atom 50 dump.meam
 
 #dump		2 all image 10 image.*.jpg element element &
@@ -27,4 +28,4 @@ timestep	0.001
 #		axes yes 0.8 0.02 view 60 -30
 #dump_modify	3 pad 3 element Si C
 
-run		100
+run		10

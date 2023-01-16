@@ -134,7 +134,7 @@ void PairMEAM::compute(int eflag, int vflag)
   int offset = 0;
   errorflag = 0;
 
-  printf("before meam_dens_init %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
+  //printf("before meam_dens_init %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
 
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
@@ -144,18 +144,18 @@ void PairMEAM::compute(int eflag, int vflag)
                     offset);
     offset += numneigh_half[i];
   }
-  printf("after meam_dens_init %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
-  printf("before revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
+  //printf("after meam_dens_init %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
+  //printf("before revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   comm->reverse_comm(this);
-  printf("after revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
+  //printf("after revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag)
     error->one(FLERR,"MEAM library error {}",errorflag);
 
-  printf("before forcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
+  //printf("before forcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   comm->forward_comm(this);
-  printf("after forcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
+  //printf("after forcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
 
   offset = 0;
 

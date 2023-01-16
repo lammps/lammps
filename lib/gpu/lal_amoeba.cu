@@ -1631,9 +1631,9 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
                           const __global numtyp4 *restrict thetai3,
                           const __global int *restrict igrid,
                           const __global numtyp2 *restrict grid,
-                          __global numtyp *restrict fdip_phi1,
-                          __global numtyp *restrict fdip_phi2,
-                          __global numtyp *restrict fdip_sum_phi,
+                          __global acctyp *restrict fdip_phi1,
+                          __global acctyp *restrict fdip_phi2,
+                          __global acctyp *restrict fdip_sum_phi,
                           const int bsorder, const int inum,
                           const int nzlo_out, const int nylo_out,
                           const int nxlo_out, const int ngridxy,
@@ -1843,7 +1843,7 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
     }
 
     int idx;
-    numtyp fdip_buf[20];
+    acctyp fdip_buf[20];
 
     fdip_buf[0] = (numtyp)0.0;
     fdip_buf[1] = tuv100_1;
@@ -1917,7 +1917,7 @@ __kernel void k_amoeba_fphi_mpole(const __global numtyp4 *restrict thetai1,
                           const __global numtyp4 *restrict thetai3,
                           const __global int *restrict igrid,
                           const __global numtyp2 *restrict grid,
-                          __global numtyp *restrict fphi,
+                          __global acctyp *restrict fphi,
                           const int bsorder, const int inum, const numtyp felec,
                           const int nzlo_out, const int nylo_out,
                           const int nxlo_out, const int ngridxy,

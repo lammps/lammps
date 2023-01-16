@@ -250,7 +250,7 @@ class BaseAmoeba {
   UCL_Vector<numtyp4,numtyp4> _thetai1, _thetai2, _thetai3;
   UCL_Vector<int,int> _igrid;
   UCL_Vector<numtyp2,numtyp2> _cgrid_brick;
-  UCL_Vector<numtyp,numtyp> _fdip_phi1, _fdip_phi2, _fdip_sum_phi;
+  UCL_Vector<acctyp,acctyp> _fdip_phi1, _fdip_phi2, _fdip_sum_phi;
   int _max_thetai_size;
   int _nzlo_out, _nzhi_out, _nylo_out, _nyhi_out, _nxlo_out, _nxhi_out;
   int _ngridx, _ngridy, _ngridz, _num_grid_points;

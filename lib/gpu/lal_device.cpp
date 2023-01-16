@@ -386,6 +386,9 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
   }
 
   _ocl_compile_string="-cl-mad-enable ";
+  #ifdef CL_VERSION_2_0
+  _ocl_compile_string+="-cl-std=CL2.0 ";
+  #endif
   if (params[4]!="0") _ocl_compile_string+="-cl-fast-relaxed-math ";
   _ocl_compile_string+=std::string(OCL_INT_TYPE)+" "+
     std::string(OCL_PRECISION_COMPILE);

@@ -128,9 +128,10 @@ climbing, then equally spaced either side of the climbing image whilst
 climbing. 
 
 With a value of *equal* the spring force is computed as for *ideal*
-before the climbing stage, then during the climbing stage is modified 
-to promote equidistant absolute differnces in energy, rather than 
-distance, each side of the climbing image:
+when the climbing replica is off, promoting equidistance. When the climbing 
+replica is on, the spring force is computed to promote equidistant 
+absolute differences in energy, rather than distance, each side of 
+the climbing image:
 
 .. math::
 
@@ -147,8 +148,8 @@ replicas up to the climbing image or from the climbing image
 to the final image, for images before or after the climbing 
 image respectively. :math:`ED_{ideal}` is the corresponding 
 cumulative sum of average absolute energy differences in 
-each case, just as for *ideal*. This form of nudging is 
-to aid schemes which integrate forces along, or near to, 
+each case, in close analogy to *ideal*. This form of nudging 
+is to aid schemes which integrate forces along, or near to, 
 NEB pathways such as :doc:`fix_pafi <fix_pafi>`.
 
 ----------

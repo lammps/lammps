@@ -364,11 +364,12 @@ void PairAmoebaGPU::induce()
   // must be done before the first ufield0c
   // NOTE: this is for ic_kspace, and thetai[1-3]
 
-  amoeba_gpu_precompute_kspace(atom->nlocal, bsorder, thetai1, thetai2,
-                               thetai3, igrid,
-                               ic_kspace->nzlo_out, ic_kspace->nzhi_out,
-                               ic_kspace->nylo_out, ic_kspace->nyhi_out,
-                               ic_kspace->nxlo_out, ic_kspace->nxhi_out);
+  if (ic_kspace)
+    amoeba_gpu_precompute_kspace(atom->nlocal, bsorder, thetai1, thetai2,
+                                 thetai3, igrid,
+                                 ic_kspace->nzlo_out, ic_kspace->nzhi_out,
+                                 ic_kspace->nylo_out, ic_kspace->nyhi_out,
+                                 ic_kspace->nxlo_out, ic_kspace->nxhi_out);
 
   // get induced dipoles via the OPT extrapolation method
   // NOTE: any way to rewrite these loops to avoid allocating

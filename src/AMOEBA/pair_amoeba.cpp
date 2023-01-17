@@ -567,7 +567,8 @@ void PairAmoeba::finish()
   MPI_Allreduce(&time_fphi_uind,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_fphi_uind = ave/comm->nprocs;
 
-  double time_mutual_fft = ic_kspace->time_fft;
+  double time_mutual_fft = 0;
+  if (ic_kspace) time_mutual_fft = ic_kspace->time_fft;
   MPI_Allreduce(&time_mutual_fft,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_mutual_fft = ave/comm->nprocs;
 

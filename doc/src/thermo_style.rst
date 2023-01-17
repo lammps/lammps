@@ -315,9 +315,9 @@ explanation of why this sign choice makes sense.
 The *econserve* keyword is the sum of the potential and kinetic energy
 of the system as well as the energy that has been transferred by
 thermostatting or barostatting to their coupling reservoirs -- that is,
-*econserve* = *pe* + *ke* + *ecouple*\ .  Ideally, for a simulation in the NVT,
-NPH, or NPT ensembles, the *econserve* quantity should remain constant
-over time even though *etotal* changes.
+*econserve* = *pe* + *ke* + *ecouple*\ .  Ideally, for a simulation in
+the NVT, NPH, or NPT ensembles, the *econserve* quantity should remain
+constant over time even though *etotal* may change.
 
 The *fmax* and *fnorm* keywords are useful for monitoring the progress
 of an :doc:`energy minimization <minimize>`.  The *fmax* keyword

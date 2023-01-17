@@ -255,7 +255,7 @@ void PairHippoGPU::repulsion()
   int inum, host_start;
 
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;
+  int *ilist, *numneigh;
 
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
@@ -270,15 +270,15 @@ void PairHippoGPU::repulsion()
   }
   inum = atom->nlocal;
 
-  firstneigh = hippo_gpu_precompute(neighbor->ago, inum, nall, atom->x,
-                                    atom->type, amtype, amgroup, rpole,
-                                    nullptr, nullptr, nullptr,
-                                    sublo, subhi, atom->tag,
-                                    atom->nspecial, atom->special,
-                                    atom->nspecial15, atom->special15,
-                                    eflag, vflag, eflag_atom, vflag_atom,
-                                    host_start, &ilist, &numneigh, cpu_time,
-                                    success, atom->q, domain->boxlo, domain->prd);
+  hippo_gpu_precompute(neighbor->ago, inum, nall, atom->x,
+                       atom->type, amtype, amgroup, rpole,
+                       nullptr, nullptr, nullptr,
+                       sublo, subhi, atom->tag,
+                       atom->nspecial, atom->special,
+                       atom->nspecial15, atom->special15,
+                       eflag, vflag, eflag_atom, vflag_atom,
+                       host_start, &ilist, &numneigh, cpu_time,
+                       success, atom->q, domain->boxlo, domain->prd);
 
   // select the correct cutoff for the term
 
@@ -321,13 +321,8 @@ void PairHippoGPU::dispersion_real()
     return;
   }
 
-  int eflag=1, vflag=1;
-  int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
-
-  int *ilist, *numneigh, **firstneigh;
-
   double sublo[3],subhi[3];
+
   if (domain->triclinic == 0) {
     sublo[0] = domain->sublo[0];
     sublo[1] = domain->sublo[1];
@@ -338,7 +333,6 @@ void PairHippoGPU::dispersion_real()
   } else {
     domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
   }
-  inum = atom->nlocal;
 
   // select the correct cutoff for the term
 
@@ -366,7 +360,7 @@ void PairHippoGPU::multipole_real()
   int inum, host_start;
 
   bool success = true;
-  int *ilist, *numneigh, **firstneigh;
+  int *ilist, *numneigh;
 
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
@@ -425,7 +419,7 @@ void PairHippoGPU::multipole_real()
 void PairHippoGPU::induce()
 {
   bool done;
-  int i,j,m,ii,itype;
+  int i,j,m,itype;
   int iter,maxiter;
   double polmin;
   double eps,epsold;
@@ -434,8 +428,6 @@ void PairHippoGPU::induce()
   double a,ap,b,bp;
   double sum,sump,term;
   double reduce[4],allreduce[4];
-
-  int debug = 1;
 
   // set cutoffs, taper coeffs, and PME params
   // create qfac here, free at end of polar()
@@ -823,11 +815,9 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
     return;
   }
 
-  int eflag=1, vflag=1;
-  int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
-
+  int inum;
   double sublo[3],subhi[3];
+
   if (domain->triclinic == 0) {
     sublo[0] = domain->sublo[0];
     sublo[1] = domain->sublo[1];
@@ -887,19 +877,18 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
 
 void PairHippoGPU::udirect2b_cpu()
 {
-  int i,j,k,m,n,ii,jj,kk,kkk,jextra,ndip,itype,jtype,igroup,jgroup;
+  int i,j,m,n,ii,jj,jextra,ndip,itype,jtype,igroup,jgroup;
   double xr,yr,zr,r,r2;
   double rr1,rr2,rr3,rr5;
   double bfac,exp2a;
   double ralpha,aefac;
   double aesq2,aesq2n;
-  double pdi,pti,ddi;
+  double pdi,pti;
   double pgamma;
   double damp,expdamp;
-  double scale3,scale5;
-  double scale7,scalek;
+  double scale3,scale5,scalek;
   double bn[4],bcn[3];
-  double factor_dscale,factor_pscale,factor_uscale,factor_wscale;
+  double factor_uscale;
 
   int inum,jnum;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -940,7 +929,6 @@ void PairHippoGPU::udirect2b_cpu()
 
     pdi = pdamp[itype];
     pti = thole[itype];
-    ddi = dirdamp[itype];
 
     // evaluate all sites within the cutoff distance
 
@@ -957,15 +945,8 @@ void PairHippoGPU::udirect2b_cpu()
       jtype = amtype[j];
       jgroup = amgroup[j];
 
-      factor_wscale = special_polar_wscale[sbmask15(jextra)];
-      if (igroup == jgroup) {
-        factor_pscale = special_polar_piscale[sbmask15(jextra)];
-        factor_dscale = polar_dscale;
-        factor_uscale = polar_uscale;
-      } else {
-        factor_pscale = special_polar_pscale[sbmask15(jextra)];
-        factor_dscale = factor_uscale = 1.0;
-      }
+      if (igroup == jgroup) factor_uscale = polar_uscale;
+      else factor_uscale = 1.0;
 
       r = sqrt(r2);
       rr1 = 1.0 / r;
@@ -1033,7 +1014,6 @@ void PairHippoGPU::udirect2b_cpu()
 
 void PairHippoGPU::ufield0c(double **field, double **fieldp)
 {
-  int i,j;
   double term;
 
   double time0,time1,time2;
@@ -1309,10 +1289,6 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
     return;
   }
 
-  int eflag=1, vflag=1;
-  int nall = atom->nlocal + atom->nghost;
-  int inum;
-
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
     sublo[0] = domain->sublo[0];
@@ -1324,7 +1300,6 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
   } else {
     domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
   }
-  inum = atom->nlocal;
 
   // select the correct cutoff (off2) for the term
 
@@ -1350,10 +1325,8 @@ void PairHippoGPU::polar_real()
 
   int eflag=1, vflag=1;
   double **f = atom->f;
-  int nall = atom->nlocal + atom->nghost;
-  int inum;
-
   double sublo[3],subhi[3];
+
   if (domain->triclinic == 0) {
     sublo[0] = domain->sublo[0];
     sublo[1] = domain->sublo[1];
@@ -1364,7 +1337,6 @@ void PairHippoGPU::polar_real()
   } else {
     domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
   }
-  inum = atom->nlocal;
 
   // select the correct cutoff and aewald for the term
 

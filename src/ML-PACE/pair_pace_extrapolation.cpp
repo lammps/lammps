@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -382,10 +382,10 @@ void PairPACEExtrapolation::coeff(int narg, char **arg)
   aceimpl->ace->load_active_set(active_set_inv_filename);
   bool is_linear_extrapolation_grade = aceimpl->ace->get_is_linear_extrapolation_grade();
   if (comm->me == 0) {
-        if (is_linear_extrapolation_grade)
-            utils::logmesg(lmp, "LINEAR ASI is loaded\n");
-        else
-            utils::logmesg(lmp, "FULL ASI is loaded\n");
+    if (is_linear_extrapolation_grade)
+      utils::logmesg(lmp, "LINEAR ASI is loaded\n");
+    else
+      utils::logmesg(lmp, "FULL ASI is loaded\n");
   }
 
   // clear setflag since coeff() called once with I,J = * *

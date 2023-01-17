@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -830,6 +830,18 @@ void Variable::set_arrays(int /*i*/)
   for (int i = 0; i < nvar; i++)
     if (reader[i] && style[i] == ATOMFILE)
       reader[i]->fixstore->vstore[i] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   delete all atomfile style variables.
+   must scan list in reverse since remove() will compact list.
+   called from LAMMPS::destroy()
+------------------------------------------------------------------------- */
+
+void Variable::purge_atomfile()
+{
+  for (int i = nvar-1; i >= 0; --i)
+    if (style[i] == ATOMFILE) remove(i);
 }
 
 /* ----------------------------------------------------------------------

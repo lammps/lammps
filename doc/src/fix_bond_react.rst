@@ -404,6 +404,12 @@ atoms are present. The velocity of each created atom is initialized in
 a random direction with a magnitude calculated from the instantaneous
 temperature of the reaction site.
 
+.. note::
+
+   The 'Coords' section must be included in the post-reaction template
+   when creating atoms because these coordinates are used to determine
+   where new atoms are inserted.
+
 The handedness of atoms that are chiral centers can be enforced by
 listing their IDs in the ChiralIDs section. A chiral atom must be
 bonded to four atoms with mutually different atom types. This feature

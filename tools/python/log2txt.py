@@ -8,7 +8,7 @@
 #          data.txt = text file to create
 #          X Y ... = columns to include (optional), X,Y are thermo keywords
 #                    if no columns listed, all columns are included
-# Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
+# Author:  Steve Plimpton (Sandia), sjplimp at gmail.com
 
 from __future__ import print_function
 

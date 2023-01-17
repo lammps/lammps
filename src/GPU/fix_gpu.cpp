@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -136,7 +136,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   double binsize = 0.0;
   char *opencl_args = nullptr;
   int block_pair = -1;
-  int pair_only_flag = 0;
   int ocl_platform = -1;
   char *device_type_flags = nullptr;
 
@@ -194,7 +193,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      lmp->pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ocl_args") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -223,16 +222,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   if (force->newton_pair == 1 && _particle_split < 1)
     error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
-
-  if (pair_only_flag) {
-    lmp->suffixp = lmp->suffix;
-    lmp->suffix = nullptr;
-  } else {
-    if (lmp->suffixp) {
-      lmp->suffix = lmp->suffixp;
-      lmp->suffixp = nullptr;
-    }
-  }
 
   // pass params to GPU library
   // change binsize default (0.0) to -1.0 used by GPU lib

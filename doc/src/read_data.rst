@@ -71,8 +71,14 @@ Also see the explanation of the :doc:`-restart command-line switch
 
 This command can be used multiple times to add new atoms and their
 properties to an existing system by using the *add*, *offset*, and
-*shift* keywords.  See more details below, which includes the use case
-for the *extra* keywords.
+*shift* keywords.  However, it is important to understand that several
+system parameters, like the number of types of different kinds and per
+atom settings are **locked in** after the first *read_data* command,
+which means that no type ID (including its offset) may have a larger
+value when processing additional data files than what is set by the
+first data file and the corresponding *read_data* command options.  See
+more details on this situation below, which includes the use case for
+the *extra* keywords.
 
 The *group* keyword adds all the atoms in the data file to the
 specified group-ID.  The group will be created if it does not already

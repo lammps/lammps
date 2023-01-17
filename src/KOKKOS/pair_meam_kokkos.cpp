@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -408,7 +408,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackForwardComm, const 
 
 template<class DeviceType>
 int PairMEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   meam_inst_kk->k_rho0.sync_host();
   meam_inst_kk->k_rho1.sync_host();

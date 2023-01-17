@@ -7,7 +7,7 @@ source files provided as a supplement to a publication) that are written
 for an older version of LAMMPS and thus need to be updated to be
 compatible with the current version of LAMMPS.  Due to the active
 development of LAMMPS it is likely to always be incomplete.  Please
-contact developer@lammps.org in case you run across an issue that is not
+contact developers@lammps.org in case you run across an issue that is not
 (yet) listed here.  Please also review the latest information about the
 LAMMPS :doc:`programming style conventions <Modify_style>`, especially
 if you are considering to submit the updated version for inclusion into

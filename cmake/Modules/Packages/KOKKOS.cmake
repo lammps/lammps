@@ -15,8 +15,9 @@ if(Kokkos_ENABLE_OPENMP)
   if(NOT BUILD_OMP)
     message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
   else()
-    if(LAMMPS_OMP_COMPAT_LEVEL LESS 4)
-      message(FATAL_ERROR "Compiler must support OpenMP 4.0 or later with Kokkos_ENABLE_OPENMP")
+    # NVHPC does not seem to provide a detectable OpenMP version, but is far beyond version 3.1
+    if((OpenMP_CXX_VERSION VERSION_LESS 3.1) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC"))
+      message(FATAL_ERROR "Compiler must support OpenMP 3.1 or later with Kokkos_ENABLE_OPENMP")
     endif()
   endif()
 endif()
@@ -138,6 +139,12 @@ if(PKG_KSPACE)
   endif()
 endif()
 
+if(PKG_ML-IAP)
+  list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/mliap_data_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/mliap_descriptor_so3_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_linear_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/mliap_so3_kokkos.cpp)
+endif()
 
 if(PKG_PHONON)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/dynamical_matrix_kokkos.cpp)

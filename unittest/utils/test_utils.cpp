@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -629,6 +629,18 @@ TEST(Utils, strmatch_float_nonfloat)
 TEST(Utils, strmatch_whitespace_nonwhitespace)
 {
     ASSERT_TRUE(utils::strmatch(" 5.0  angles\n", "^\\s*\\S+\\s+\\S+\\s"));
+}
+
+TEST(Utils, strmatch_range)
+{
+    ASSERT_TRUE(utils::strmatch("*11", "^\\d*\\*\\d*$"));
+    ASSERT_TRUE(utils::strmatch("2*11", "^\\d*\\*\\d*$"));
+    ASSERT_TRUE(utils::strmatch("5*", "^\\d*\\*\\d*$"));
+    ASSERT_TRUE(utils::strmatch("*", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("x5*", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("x*", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("*a", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("1*2d", "^\\d*\\*\\d*$"));
 }
 
 TEST(Utils, strfind_beg)

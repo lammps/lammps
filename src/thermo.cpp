@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -678,6 +678,19 @@ void Thermo::modify_params(int narg, char **arg)
             format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
         format_float_user = arg[iarg + 2];
+      } else if (utils::strmatch(arg[iarg + 1], "^\\d*\\*\\d*$")) {
+        // handles cases such as 2*6; currently doesn't allow negatives
+        int nlo, nhi;
+        utils::bounds(FLERR, arg[iarg + 1], 1, nfield_initial, nlo, nhi, error);
+        int icol = -1;
+        for (int i = nlo - 1; i < nhi; i++) {
+          if (i < 0) icol = nfield_initial + i + 1; // doesn't happen currently
+          else icol = i;
+          if (icol < 0 || (icol >= nfield_initial))
+            error->all(FLERR, "Invalid thermo_modify format argument: {}",
+              arg[iarg + 1]);
+          format_column_user[icol] = arg[iarg + 2];
+        }
       } else {
         int icol = -1;
         if (utils::is_integer(arg[iarg + 1])) {
@@ -691,7 +704,7 @@ void Thermo::modify_params(int narg, char **arg)
             icol = -1;
           }
         }
-        if (icol < 0 || icol >= nfield_initial + 1)
+        if ((icol < 0) || (icol >= nfield_initial))
           error->all(FLERR, "Invalid thermo_modify format argument: {}", arg[iarg + 1]);
         format_column_user[icol] = arg[iarg + 2];
       }

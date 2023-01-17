@@ -86,7 +86,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   #ifdef LAL_OCL_EXTRA_ARGS
   extra_args+=":" LAL_PRE_STRINGIFY(LAL_OCL_EXTRA_ARGS);
   #endif
-  for (int i=0; i<extra_args.length(); i++)
+  for (int i=0; i < (int)extra_args.length(); i++)
     if (extra_args[i]==':') extra_args[i]=' ';
 
   // --------------------------- MPI setup -------------------------------
@@ -301,7 +301,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   #ifdef USE_OPENCL
   if (device_type_flags==nullptr) {
     std::string pname = gpu->platform_name();
-    for (int i=0; i<pname.length(); i++)
+    for (int i=0; i < (int)pname.length(); i++)
       if (pname[i]<='z' && pname[i]>='a')
         pname[i]=toupper(pname[i]);
     if (pname.find("NVIDIA")!=std::string::npos)
@@ -741,6 +741,7 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
   }
   gpu_overhead/=10.0;
   gpu_driver_overhead/=10.0;
+  gpu->sync();
 
   if (_data_in_estimate>0) {
     delete [] host_data_in;
@@ -793,6 +794,7 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
   #ifdef USE_OPENCL
   // Workaround for timing issue on Intel OpenCL
   if (times[0] > 80e6) times[0]=0.0;
+  if (times[1] > 80e6) times[1]=0.0;
   if (times[3] > 80e6) times[3]=0.0;
   if (times[5] > 80e6) times[5]=0.0;
   #endif
@@ -806,9 +808,8 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
       fprintf(screen,"--------------------------------\n");
 
       if (time_device() && (times[3] > 0.0)) {
-        if (times[0] > 0.0)
-          fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
-        fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
+        if (times[0] > 0.0) fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/_replica_size);
+        if (times[1] > 0.0) fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/_replica_size);
         if (nbor.gpu_nbor() > 0.0)
           fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/_replica_size);
         else
@@ -862,32 +863,34 @@ void DeviceT::output_kspace_times(UCL_Timer &time_in,
   double max_mb=mpi_max_bytes/(1024.0*1024.0);
   #ifdef USE_OPENCL
   // Workaround for timing issue on Intel OpenCL
+  if (times[0] > 80e6) times[0]=0.0;
+  if (times[1] > 80e6) times[1]=0.0;
   if (times[3] > 80e6) times[3]=0.0;
+  if (times[5] > 80e6) times[5]=0.0;
   #endif
 
 
   if (replica_me()==0)
-    if (screen && times[6]>0.0) {
+    if (screen && (times[6] > 0.0)) {
       fprintf(screen,"\n\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
       fprintf(screen,"    Device Time Info (average) for kspace: ");
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (time_device() && times[3]>0) {
-        fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
-        fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
+      if (time_device() && (times[3] > 0.0)) {
+        if (times[0] > 0.0) fprintf(screen,"Data Out:        %.4f s.\n",times[0]/_replica_size);
+        if (times[1] > 0.0) fprintf(screen,"Data In:         %.4f s.\n",times[1]/_replica_size);
         fprintf(screen,"Kernel (map):    %.4f s.\n",times[2]/_replica_size);
         fprintf(screen,"Kernel (rho):    %.4f s.\n",times[3]/_replica_size);
         fprintf(screen,"Force interp:    %.4f s.\n",times[4]/_replica_size);
-        fprintf(screen,"Total rho:       %.4f s.\n",
-                (times[0]+times[2]+times[3])/_replica_size);
-        fprintf(screen,"Total interp:    %.4f s.\n",
-                (times[1]+times[4])/_replica_size);
-        fprintf(screen,"Force copy:      %.4f s.\n",times[5]/_replica_size);
+        if (times[0] > 0.0)
+          fprintf(screen,"Total rho:       %.4f s.\n", (times[0]+times[2]+times[3])/_replica_size);
+        if (times[1] > 0.0)
+          fprintf(screen,"Total interp:    %.4f s.\n", (times[1]+times[4])/_replica_size);
+        if (times[5] > 0.0) fprintf(screen,"Force copy:      %.4f s.\n",times[5]/_replica_size);
         fprintf(screen,"Total:           %.4f s.\n",
-                (times[0]+times[1]+times[2]+times[3]+times[4]+times[5])/
-                _replica_size);
+                (times[0]+times[1]+times[2]+times[3]+times[4]+times[5])/_replica_size);
       }
       fprintf(screen,"CPU Poisson:     %.4f s.\n",times[6]/_replica_size);
       fprintf(screen,"CPU Data Cast:   %.4f s.\n",times[8]/_replica_size);

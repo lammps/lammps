@@ -23,7 +23,12 @@ int f_lammps_gather_atoms_subset_mask(int);
 double f_lammps_gather_atoms_subset_position(int, int);
 void f_lammps_scatter_atoms_masks();
 void f_lammps_scatter_atoms_positions();
+void f_lammps_setup_gather_bonds();
+int f_lammps_test_gather_bonds_small();
+int f_lammps_test_gather_bonds_big();
 }
+
+using namespace LAMMPS_NS;
 
 class LAMMPS_gather_scatter : public ::testing::Test {
 protected:
@@ -199,4 +204,15 @@ TEST_F(LAMMPS_gather_scatter, scatter_atoms_subset_mask)
     f_lammps_scatter_atoms_masks();
     EXPECT_EQ(f_lammps_gather_atoms_mask(1), 9);
     EXPECT_EQ(f_lammps_gather_atoms_mask(3), 3);
+};
+
+TEST_F(LAMMPS_gather_scatter, gather_bonds)
+{
+  f_lammps_setup_gather_bonds();
+#ifdef LAMMPS_BIGBIG
+  EXPECT_EQ(f_lammps_test_gather_bonds_big(), 1);
+#else
+  EXPECT_EQ(f_lammps_test_gather_bonds_small(), 1);
+#endif
+
 };

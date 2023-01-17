@@ -108,7 +108,7 @@ class Atom {
   bool velocity() { return _vel; }
 
   /// Returns true if GPU is using extra fields
-  bool using_extra() { return _extra_fields; }
+  bool using_extra() { return (_extra_fields>0); }
 
   /// Only free matrices of length inum or nall for resizing
   void clear_resize();
@@ -131,6 +131,8 @@ class Atom {
       time_quat.add_to_total();
     if (_vel)
       time_vel.add_to_total();
+    if (_extra_fields>0)
+      time_extra.add_to_total();
   }
 
   /// Add copy times to timers
@@ -142,6 +144,8 @@ class Atom {
       time_quat.zero();
     if (_vel)
       time_vel.zero();
+    if (_extra_fields>0)
+      time_extra.zero();
   }
 
   /// Return the total time for host/device data transfer
@@ -160,6 +164,10 @@ class Atom {
     if (_vel) {
       total+=time_vel.total_seconds();
       time_vel.zero_total();
+    }
+    if (_extra_fields>0) {
+      total+=time_extra.total_seconds();
+      time_extra.zero_total();
     }
 
     return total+_time_transfer/1000.0;

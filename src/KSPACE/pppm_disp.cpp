@@ -502,8 +502,8 @@ void PPPMDisp::init()
       gc6->set_shift_atom(shiftatom_lo_6,shiftatom_hi_6);
       gc6->set_zfactor(slab_volfactor);
 
-      gc->setup_grid(nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                     nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
+      gc6->setup_grid(nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                      nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
       int tmp1,tmp2;
       gc6->setup_comm(tmp1,tmp2);

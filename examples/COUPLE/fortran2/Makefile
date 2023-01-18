@@ -17,6 +17,10 @@ CXXFLAGS = -O2 -fPIC
 CPPFLAGS = -DOMPI_SKIP_MPICXX=1 -DMPICH_SKIP_MPICXX
 
 all : liblammps_fortran.a liblammps_fortran.so
+	@echo "WARNING: this Fortran interface is obsolete and is no longer
+maintained. See $(LAMMPS_ROOT)/fortran for the new, maintained interface
+(largely written by the same author). You may continue to use this interface if
+desired, but it may eventually be removed from LAMMPS."
 
 liblammps_fortran.so : LAMMPS.o LAMMPS-wrapper.o
 	$(FC) $(FFLAGS) -shared -o $@ $^ $(CXXLIB)

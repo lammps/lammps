@@ -173,7 +173,7 @@ the :doc:`run <run>` command.
 
 Restrictions
 """"""""""""
-The *diskfree* attribute is currently only supported on Linux, MacOSX, and BSD.
+The *diskfree* attribute is currently only supported on Linux, macOS, and \*BSD.
 
 Related commands
 """"""""""""""""

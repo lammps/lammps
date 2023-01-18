@@ -325,8 +325,11 @@ void PairDPDIntel::eval(const int offload, const int vflag,
           const flt_t rinv = (flt_t)1.0/sqrt(rsq);
 
           if (rinv > icut) {
-            flt_t factor_dpd;
-            if (!ONETYPE) factor_dpd = special_lj[sbindex];
+            flt_t factor_dpd, factor_sqrt;
+            if (!ONETYPE) {
+              factor_dpd = special_lj[sbindex];
+              factor_sqrt = special_lj[sbindex];
+            }
 
             flt_t delvx = vxtmp - v[j].x;
             flt_t delvy = vytmp - v[j].y;
@@ -342,8 +345,11 @@ void PairDPDIntel::eval(const int offload, const int vflag,
               gamma = parami[jtype].gamma;
               sigma = parami[jtype].sigma;
             }
-            flt_t fpair = a0 - iwd * gamma * dot + sigma * randnum * dtinvsqrt;
-            if (!ONETYPE) fpair *= factor_dpd;
+            flt_t fpair = a0 - iwd * gamma * dot;
+            if (!ONETYPE) {
+              fpair *= factor_dpd;
+              fpair += factor_sqrt * sigma * randnum * dtinvsqrt;
+            } else fpair += sigma * randnum * dtinvsqrt;
             fpair *= iwd;
 
             const flt_t fpx = fpair * delx;
@@ -493,8 +499,7 @@ void PairDPDIntel::init_style()
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD
   if (fix->offload_balance() != 0.0)
-    error->all(FLERR,
-          "Offload for dpd/intel is not yet available. Set balance to 0.");
+    error->all(FLERR, "Offload for dpd/intel is not yet available. Set balance to 0.");
   #endif
 
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)

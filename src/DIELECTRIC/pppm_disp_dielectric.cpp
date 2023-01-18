@@ -20,6 +20,7 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -63,6 +64,7 @@ PPPMDispDielectric::PPPMDispDielectric(LAMMPS *_lmp) : PPPMDisp(_lmp)
   group_group_enable = 0;
 
   mu_flag = 0;
+  use_qscaled = true;
 
   // no warnings about non-neutral systems from qsum_qsq()
   warn_nonneutral = 2;
@@ -415,11 +417,56 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
     natoms_original = atom->natoms;
   }
 
+  // recompute the average epsilon of all the atoms
+
+  compute_ave_epsilon();
+
   // sum energy across procs and add in volume-dependent term
 
   const double qscale = force->qqrd2e * scale;
 
   if (eflag_global) {
+
+    if (function[0]) {
+
+      // switch to unscaled charges to find charge density
+
+      use_qscaled = false;
+
+      make_rho_c();
+
+      gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+
+      brick2fft(nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
+                density_brick,density_fft,work1,remap);
+
+      // compute electrostatic energy with the unscaled charges and average epsilon
+
+      if (differentiation_flag == 1) {
+        poisson_ad(work1,work2,density_fft,fft1,fft2,
+                  nx_pppm,ny_pppm,nz_pppm,nfft,
+                  nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft,
+                  nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
+                  energy_1,greensfn,
+                  virial_1,vg,vg2,
+                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
+
+      } else {
+        poisson_ik(work1,work2,density_fft,fft1,fft2,
+                  nx_pppm,ny_pppm,nz_pppm,nfft,
+                  nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft,
+                  nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
+                  energy_1,greensfn,
+                  fkx,fky,fkz,fkx2,fky2,fkz2,
+                  vdx_brick,vdy_brick,vdz_brick,virial_1,vg,vg2,
+                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
+
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
+                        gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      }
+    }
+
     double energy_all;
     MPI_Allreduce(&energy_1,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     energy_1 = energy_all;
@@ -434,6 +481,10 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
     energy_6 += - MY_PI*MY_PIS/(6*volume)*pow(g_ewald_6,3)*csumij +
       1.0/12.0*pow(g_ewald_6,6)*csum;
     energy_1 *= qscale;
+
+    // revert to qscaled charges (for force in the next time step)
+
+    use_qscaled = true;
   }
 
   // sum virial across procs
@@ -492,6 +543,127 @@ void PPPMDispDielectric::compute(int eflag, int vflag)
   // convert atoms back from lamda to box coords
 
   if (triclinic) domain->lamda2x(atom->nlocal);
+}
+
+/* ----------------------------------------------------------------------
+   compute the average dielectric constant of all the atoms
+   NOTE: for dielectric use cases
+------------------------------------------------------------------------- */
+
+void PPPMDispDielectric::compute_ave_epsilon()
+{
+  const double * const epsilon = atom->epsilon;
+  const int nlocal = atom->nlocal;
+  double epsilon_local(0.0);
+
+#if defined(_OPENMP)
+#pragma omp parallel for default(shared) reduction(+:epsilon_local)
+#endif
+  for (int i = 0; i < nlocal; i++) {
+    epsilon_local += epsilon[i];
+  }
+
+  MPI_Allreduce(&epsilon_local,&epsilon_ave,1,MPI_DOUBLE,MPI_SUM,world);
+  epsilon_ave /= (double)atom->natoms;
+}
+
+/* ----------------------------------------------------------------------
+   compute qsum,qsqsum,q2 and give error/warning if not charge neutral
+   called initially, when particle count changes, when charges are changed
+------------------------------------------------------------------------- */
+
+void PPPMDispDielectric::qsum_qsq(int warning_flag)
+{
+  const double * const q = atom->q;
+  const double * const epsilon = atom->epsilon;
+  const int nlocal = atom->nlocal;
+  double qsum_local(0.0), qsqsum_local(0.0), qsqsume_local(0.0);
+  double qsqsume;
+
+#if defined(_OPENMP)
+#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
+#endif
+  for (int i = 0; i < nlocal; i++) {
+    qsum_local += q[i];
+    qsqsum_local += q[i]*q[i];
+    qsqsume_local += q[i]*q[i]/epsilon[i];
+  }
+
+  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&qsqsum_local,&qsqsum,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&qsqsume_local,&qsqsume,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if ((qsqsum == 0.0) && (comm->me == 0) && warn_nocharge && warning_flag) {
+    error->warning(FLERR,"Using kspace solver on system with no charge");
+    warn_nocharge = 0;
+  }
+
+  // q2 is used to compute the mesh spacing, here using qsqsume to match with regular pppm
+  q2 = qsqsume * force->qqrd2e; //q2 = qsqsum * force->qqrd2e;
+
+  // not yet sure of the correction needed for non-neutral systems
+  // so issue warning or error
+
+  if (fabs(qsum) > SMALL) {
+    std::string message = fmt::format("System is not charge neutral, net "
+                                      "charge = {:.8}",qsum);
+    if (!warn_nonneutral) error->all(FLERR,message);
+    if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message);
+    warn_nonneutral = 2;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   create discretized "density" on section of global grid due to my particles
+   density(x,y,z) = charge "density" at grid points of my 3d brick
+   (nxlo:nxhi,nylo:nyhi,nzlo:nzhi) is extent of my brick (including ghosts)
+   in global grid
+------------------------------------------------------------------------- */
+
+void PPPMDispDielectric::make_rho_c()
+{
+  int l,m,n,nx,ny,nz,mx,my,mz;
+  FFT_SCALAR dx,dy,dz,x0,y0,z0;
+
+  // clear 3d density array
+
+  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,
+         ngrid*sizeof(FFT_SCALAR));
+
+  // loop over my charges, add their contribution to nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+
+  double *q = atom->q_scaled;
+  if (use_qscaled == false) q = atom->q;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+    dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
+    dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
+    dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+
+    compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
+
+    z0 = delvolinv * q[i];
+    for (n = nlower; n <= nupper; n++) {
+      mz = n+nz;
+      y0 = z0*rho1d[2][n];
+      for (m = nlower; m <= nupper; m++) {
+        my = m+ny;
+        x0 = y0*rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l+nx;
+          density_brick[mz][my][mx] += x0*rho1d[0][l];
+        }
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

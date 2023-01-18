@@ -89,7 +89,6 @@ class TorchWrapper(torch.nn.Module):
         """
 
         super().__init__()
-
         self.model = model
         self.device = device
         self.dtype = dtype
@@ -105,7 +104,7 @@ class TorchWrapper(torch.nn.Module):
         self.n_descriptors = n_descriptors
         self.n_elements = n_elements
 
-    def forward(self, elems, descriptors, beta, energy):
+    def forward(self, elems, descriptors, beta, energy,use_gpu_data=False):
         """
         Takes element types and descriptors calculated via lammps and
         calculates the per atom energies and forces.
@@ -130,21 +129,24 @@ class TorchWrapper(torch.nn.Module):
         -------
         None
         """
-
-        descriptors = torch.from_numpy(descriptors).to(dtype=self.dtype, device=self.device).requires_grad_(True)
-        elems = torch.from_numpy(elems).to(dtype=torch.long, device=self.device) - 1
-
+        descriptors = torch.as_tensor(descriptors,dtype=self.dtype, device=self.device).requires_grad_(True)
+        elems = torch.as_tensor(elems,dtype=torch.int32, device=self.device)
+        elems=elems-1
         with torch.autograd.enable_grad():
 
-            energy_nn = self.model(descriptors, elems)
-            if energy_nn.ndim > 1:
-                energy_nn = energy_nn.flatten()
+            if (use_gpu_data):
+                energy_nn = torch.as_tensor(energy,dtype=self.dtype, device=self.device)
+                energy_nn[:] = self.model(descriptors, elems).flatten()
+            else:
+                energy_nn = self.model(descriptors, elems).flatten()
+                energy[:] = energy_nn.detach().cpu().numpy().astype(np.float64)
 
+        if (use_gpu_data):
+            beta_nn = torch.as_tensor(beta,dtype=self.dtype, device=self.device)
+            beta_nn[:] = torch.autograd.grad(energy_nn.sum(), descriptors)[0]
+        else:
             beta_nn = torch.autograd.grad(energy_nn.sum(), descriptors)[0]
-
-        beta[:] = beta_nn.detach().cpu().numpy().astype(np.float64)
-        energy[:] = energy_nn.detach().cpu().numpy().astype(np.float64)
-
+            beta[:] = beta_nn.detach().cpu().numpy().astype(np.float64)
 
 class IgnoreElems(torch.nn.Module):
     """

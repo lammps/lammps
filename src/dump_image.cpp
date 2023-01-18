@@ -71,6 +71,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   binary = 1;
   multifile_override = 0;
 
+  // flag has_id as true to avoid bogus warnings about atom IDs for dump styles derived from DumpCustom
+
+  has_id = true;
+
   // set filetype based on filename suffix
 
   int n = strlen(filename);

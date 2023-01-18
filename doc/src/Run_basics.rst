@@ -12,15 +12,15 @@ build LAMMPS:
 
 .. code-block:: bash
 
-   $ lmp_serial -in in.file
-   $ lmp_serial < in.file
-   $ lmp -in in.file
-   $ lmp < in.file
-   $ /path/to/lammps/src/lmp_serial -i in.file
-   $ mpirun -np 4 lmp_mpi -in in.file
-   $ mpiexec -np 4 lmp -in in.file
-   $ mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
-   $ mpiexec -n 6 /usr/local/bin/lmp -in in.file
+   lmp_serial -in in.file
+   lmp_serial < in.file
+   lmp -in in.file
+   lmp < in.file
+   /path/to/lammps/src/lmp_serial -i in.file
+   mpirun -np 4 lmp_mpi -in in.file
+   mpiexec -np 4 lmp -in in.file
+   mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
+   mpiexec -n 6 /usr/local/bin/lmp -in in.file
 
 You normally run the LAMMPS command in the directory where your input
 script is located.  That is also where output files are produced by
@@ -78,8 +78,8 @@ variable OMP_NUM_THREADS, before you launch LAMMPS:
 
 .. code-block:: bash
 
-   $ export OMP_NUM_THREADS=2     # bash
-   $ setenv OMP_NUM_THREADS 2     # csh or tcsh
+   export OMP_NUM_THREADS=2     # bash
+   setenv OMP_NUM_THREADS 2     # csh or tcsh
 
 This can also be done via the :doc:`package <package>` command or via
 the :doc:`-pk command-line switch <Run_options>` which invokes the

@@ -41,10 +41,10 @@ using namespace LAMMPS_NS;
 
 
 template<class DeviceType>
-PairDPDKokkos<DeviceType>::PairDPDKokkos(class LAMMPS *lmp) :
-  PairDPD(lmp) ,
+PairDPDKokkos<DeviceType>::PairDPDKokkos(class LAMMPS *_lmp) :
+  PairDPD(_lmp) ,
 #ifdef DPD_USE_RAN_MARS
-  rand_pool(0 /* unused */, lmp)
+  rand_pool(0 /* unused */, _lmp)
 #else
   rand_pool()
 #endif
@@ -134,6 +134,10 @@ void PairDPDKokkos<DeviceType>::compute(int eflagin, int vflagin)
   special_lj[1] = force->special_lj[1];
   special_lj[2] = force->special_lj[2];
   special_lj[3] = force->special_lj[3];
+  special_rf[0] = sqrt(force->special_lj[0]);
+  special_rf[1] = sqrt(force->special_lj[1]);
+  special_rf[2] = sqrt(force->special_lj[2]);
+  special_rf[3] = sqrt(force->special_lj[3]);
 
   nlocal = atom->nlocal;
   dtinvsqrt = 1.0/sqrt(update->dt);
@@ -232,7 +236,7 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,EVFLAG>, cons
   int i,j,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,randnum,factor_dpd;
+  double rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
   double fx = 0,fy = 0,fz = 0;
   double evdwl = 0;
   i = d_ilist[ii];
@@ -248,6 +252,7 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,EVFLAG>, cons
   for (jj = 0; jj < jnum; jj++) {
     j = d_neighbors(i,jj);
     factor_dpd = special_lj[sbmask(j)];
+    factor_sqrt = special_rf[sbmask(j)];
     j &= NEIGHMASK;
 
     delx = xtmp - x(j,0);
@@ -273,10 +278,11 @@ void PairDPDKokkos<DeviceType>::operator() (TagDPDKokkos<NEIGHFLAG,EVFLAG>, cons
 
       // drag force - parallel
       fpair -= params(itype,jtype).gamma*wd*wd*dot*rinv;
+      fpair *= factor_dpd;
 
       // random force - parallel
-      fpair += params(itype,jtype).sigma*wd*randnum*dtinvsqrt;
-      fpair *= factor_dpd*rinv;
+      fpair += factor_sqrt*params(itype,jtype).sigma*wd*randnum*dtinvsqrt;
+      fpair *= rinv;
 
       fx += fpair*delx;
       fy += fpair*dely;

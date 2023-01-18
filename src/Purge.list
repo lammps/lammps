@@ -51,6 +51,9 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# removed on 11 January 2022
+min_fire_old.cpp
+min_fire_old.h
 # renamed on 11 July 2022
 lj_sdk_common.h
 angle_sdk.cpp
@@ -75,6 +78,9 @@ pair_lj_sdk_omp.cpp
 pair_lj_sdk_coul_msm_omp.h
 pair_lj_sdk_coul_long_omp.cpp
 angle_sdk_omp.h
+# renamed on 13 Jun 2022
+fix_mdi_aimd.cpp
+fix_mdi_aimd.h
 # removed on 8 April 2022
 fix_client_md.cpp
 fix_client_md.h

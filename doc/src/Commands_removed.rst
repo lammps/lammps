@@ -23,7 +23,7 @@ Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 Box command
 -----------
 
-.. deprecated:: TBD
+.. deprecated:: 22Dec2022
 
 The *box* command has been removed and the LAMMPS code changed so it won't
 be needed.  If present, LAMMPS will ignore the command and print a warning.
@@ -31,7 +31,7 @@ be needed.  If present, LAMMPS will ignore the command and print a warning.
 Reset_ids, reset_atom_ids, reset_mol_ids commands
 -------------------------------------------------
 
-.. deprecated:: TBD
+.. deprecated:: 22Dec2022
 
 The *reset_ids*, *reset_atom_ids*, and *reset_mol_ids* commands have
 been folded into the :doc:`reset_atoms <reset_atoms>` command.  If
@@ -49,6 +49,16 @@ for some optimizations leading to better performance.  The pair style
 :doc:`meam <pair_meam>` has the exact same syntax.  For a transition
 period the C++ version of MEAM was called USER-MEAMC so it could
 coexist with the Fortran version.
+
+Minimize style fire/old
+-----------------------
+
+.. deprecated:: TBD
+
+Minimize style *fire/old* has been removed. Its functionality can be
+reproduced with *fire* with specific options. Please see the
+:doc:`min_modify command <min_modify>` documentation for details.
+
 
 REAX package
 ------------

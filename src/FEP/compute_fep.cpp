@@ -201,23 +201,18 @@ void ComputeFEP::init()
       pairflag = 1;
       Pair *pair = nullptr;
       if (lmp->suffix_enable) {
-        if (lmp->suffix) {
-          auto pstyle = fmt::format("{}/{}", pert->pstyle, lmp->suffix);
-          pair = force->pair_match(pstyle, 1);
-        }
-        if ((pair == nullptr) && lmp->suffix2) {
-          auto pstyle = fmt::format("{}/{}", pert->pstyle, lmp->suffix2);
-          pair = force->pair_match(pstyle, 1);
-        }
+        if (lmp->suffix)
+          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix), 1);
+        if ((pair == nullptr) && lmp->suffix2)
+          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix2), 1);
       }
 
       if (pair == nullptr) pair = force->pair_match(pert->pstyle, 1);
-      if (pair == nullptr)
-        error->all(FLERR, "compute fep pair style {} does not exist", pert->pstyle);
+      if (pair == nullptr) error->all(FLERR, "Compute fep pair style {} not found", pert->pstyle);
 
       void *ptr = pair->extract(pert->pparam, pert->pdim);
       if (ptr == nullptr)
-        error->all(FLERR, "compute fep pair style param {} not supported", pert->pparam);
+        error->all(FLERR, "Compute fep pair style {} param {} not supported", pert->pstyle, pert->pparam);
 
       pert->array = (double **) ptr;
 

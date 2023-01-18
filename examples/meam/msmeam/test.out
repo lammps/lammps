@@ -80,8 +80,6 @@ Tokenizer::next_double() current = 0.0
 Tokenizer::next_double() current = 2.0
 Tokenizer::next_double() current = 0.70
 Tokenizer::next_int() current = 0
-^^^^^ Filling tm
-^^^^^ Filling tm
 Tokenizer::next_double() current = 1
 Tokenizer::next_double() current = 1
 Tokenizer::next_double() current = 0
@@ -214,64 +212,24 @@ Setting up Verlet run ...
   Unit style    : metal
   Current step  : 0
   Time step     : 0.001
---- compute derivatives of energy wrt ...
-phip sij -116.571511 1.000000
-drhodr -1.327736 -0.011564
-fp 4.976162 -13.618158
-dUdrij -123.021058
---- compute derivatives of energy wrt ...
-phip sij -86.757953 1.000000
-drhodr -0.821855 -0.007170
-fp 4.976162 -14.961215
-dUdrij -90.740359
---- compute derivatives of energy wrt ...
-phip sij 0.129370 1.000000
-drhodr -0.000000 -0.002189
-fp -13.618158 4.976162
-dUdrij 0.118475
---- compute derivatives of energy wrt ...
-phip sij 0.140206 1.000000
-drhodr -0.000000 -0.002956
-fp -14.961215 4.976162
-dUdrij 0.125499
-Per MPI rank memory allocation (min/avg/max) = 10.71 | 10.71 | 10.71 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 10.69 | 10.69 | 10.69 Mbytes
    Step          Temp          TotEng         Press           Pxx            Pyy            Pzz            Pxy            Pxz            Pyz             Lx             Ly             Lz           Volume        c_eatoms   
-         0   0              15.438614      491542.52      839006.02      635621.55      0              80225.587      0              0              8              8              8              512            15.438614    
---- compute derivatives of energy wrt ...
-phip sij -116.571511 1.000000
-drhodr -1.327736 -0.011564
-fp 4.976162 -13.618158
-dUdrij -123.021058
---- compute derivatives of energy wrt ...
-phip sij -86.757953 1.000000
-drhodr -0.821855 -0.007170
-fp 4.976162 -14.961215
-dUdrij -90.740359
---- compute derivatives of energy wrt ...
-phip sij 0.129370 1.000000
-drhodr -0.000000 -0.002189
-fp -13.618158 4.976162
-dUdrij 0.118475
---- compute derivatives of energy wrt ...
-phip sij 0.140206 1.000000
-drhodr -0.000000 -0.002956
-fp -14.961215 4.976162
-dUdrij 0.125499
-         1   0              15.438614      491542.52      839006.02      635621.55      0              80225.587      0              0              8              8              8              512            15.438614    
-Loop time of 6.7095e-05 on 1 procs for 1 steps with 3 atoms
+         0   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
+         1   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
+Loop time of 8.3795e-05 on 1 procs for 1 steps with 3 atoms
 
-Performance: 1287.726 ns/day, 0.019 hours/ns, 14904.240 timesteps/s
-77.5% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1031.088 ns/day, 0.023 hours/ns, 11933.886 timesteps/s
+57.3% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.7954e-05 | 2.7954e-05 | 2.7954e-05 |   0.0 | 41.66
+Pair    | 2.1835e-05 | 2.1835e-05 | 2.1835e-05 |   0.0 | 26.06
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 3.164e-06  | 3.164e-06  | 3.164e-06  |   0.0 |  4.72
-Output  | 3.1658e-05 | 3.1658e-05 | 3.1658e-05 |   0.0 | 47.18
-Modify  | 1.712e-06  | 1.712e-06  | 1.712e-06  |   0.0 |  2.55
-Other   |            | 2.607e-06  |            |       |  3.89
+Comm    | 3.128e-06  | 3.128e-06  | 3.128e-06  |   0.0 |  3.73
+Output  | 5.4931e-05 | 5.4931e-05 | 5.4931e-05 |   0.0 | 65.55
+Modify  | 1.601e-06  | 1.601e-06  | 1.601e-06  |   0.0 |  1.91
+Other   |            | 2.3e-06    |            |       |  2.74
 
 Nlocal:              3 ave           3 max           3 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

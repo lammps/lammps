@@ -87,15 +87,12 @@ void MEAM::meam_setup_done(double* cutmax)
   }
 
   //     Compute background densities for reference structure
-  printf("--- msd 1\n");
   compute_reference_density();
 
   //     Compute pair potentials and setup arrays for interpolation
   this->nr = 1000;
   this->dr = 1.1 * this->rc_meam / this->nr;
-  printf("--- msd 2\n");
   compute_pair_meam();
-  printf("--- computed pair meam\n");
 }
 
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -216,16 +213,13 @@ void MEAM::compute_pair_meam()
   memory->create(this->phirar5, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar5");
   memory->create(this->phirar6, (this->neltypes * (this->neltypes + 1)) / 2, this->nr, "pair:phirar6");
 
-  printf("--- looping over pairs\n");
   // loop over pairs of element types
   nv2 = 0;
   for (a = 0; a < this->neltypes; a++) {
     for (b = a; b < this->neltypes; b++) {
-      printf("--- a b %d %d\n", a, b);
       // loop over r values and compute
       for (j = 0; j < this->nr; j++) {
         r = j * this->dr;
-        printf("j %d\n", j);
         this->phir[nv2][j] = phi_meam(r, a, b);
 
         // if using second-nearest neighbor, solve recursive problem
@@ -348,7 +342,6 @@ double MEAM::phi_meam(double r, int a, int b)
   double rho1m2, rho2m2, rho3m2;
 
   double phi_m = 0.0;
-  printf("--- inside phi_meam\n");
   // Equation numbers below refer to:
   //   I. Huang et.al., Modelling simul. Mater. Sci. Eng. 3:615
 
@@ -368,7 +361,6 @@ double MEAM::phi_meam(double r, int a, int b)
                 nullptr, nullptr, nullptr,
                 nullptr, nullptr, nullptr);
   }
-  printf("--- got densref\n");
   // if densities are too small, numerical problems may result; just return zero
   if (rho01 <= 1e-14 && rho02 <= 1e-14)
     return 0.0;
@@ -758,7 +750,6 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   *rho12 = 0.0;
   *rho22 = 0.0;
   *rho32 = 0.0;
-  printf("--- about to segfault!\n");
   if (this->msmeamflag){
     *rho1m1 = 0.0;
     *rho2m1 = 0.0;
@@ -768,7 +759,6 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     *rho3m2 = 0.0;
   }
 
-  printf("--- keeping tracking density components\n");
   // keep track of density components separately; combine in the calling subroutine
   switch (lat) {
     case FCC:

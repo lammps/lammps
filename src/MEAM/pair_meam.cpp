@@ -98,7 +98,6 @@ void PairMEAM::compute(int eflag, int vflag)
   int i,ii,n,inum_half,errorflag;
   int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
-
   ev_init(eflag,vflag);
 
   // neighbor list info
@@ -277,12 +276,9 @@ void PairMEAM::coeff(int narg, char **arg)
   // read MEAM library and parameter files
   // pass all parameters to MEAM package
   // tell MEAM package that setup is done
-  printf("--- Here 1\n");
-  read_files(lib_file,par_file);
-  printf("--- Here 1.5\n");
-  meam_inst->meam_setup_done(&cutmax);
 
-  printf("--- Here 2\n");
+  read_files(lib_file,par_file);
+  meam_inst->meam_setup_done(&cutmax);
 
   // read args that map atom types to MEAM elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
@@ -365,7 +361,6 @@ void PairMEAM::read_files(const std::string &globalfile,
                            const std::string &userfile)
 {
   read_global_meam_file(globalfile);
-  printf("--- global meam is read\n");
   read_user_meam_file(userfile);
 }
 

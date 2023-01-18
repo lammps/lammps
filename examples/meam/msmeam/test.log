@@ -83,24 +83,24 @@ Neighbor list info ...
       pair build: halffull/newton
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 10.71 | 10.71 | 10.71 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 10.69 | 10.69 | 10.69 Mbytes
    Step          Temp          TotEng         Press           Pxx            Pyy            Pzz            Pxy            Pxz            Pyz             Lx             Ly             Lz           Volume        c_eatoms   
-         0   0              15.438614      491542.52      839006.02      635621.55      0              80225.587      0              0              8              8              8              512            15.438614    
-         1   0              15.438614      491542.52      839006.02      635621.55      0              80225.587      0              0              8              8              8              512            15.438614    
-Loop time of 6.7095e-05 on 1 procs for 1 steps with 3 atoms
+         0   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
+         1   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
+Loop time of 8.6099e-05 on 1 procs for 1 steps with 3 atoms
 
-Performance: 1287.726 ns/day, 0.019 hours/ns, 14904.240 timesteps/s
-77.5% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 1003.496 ns/day, 0.024 hours/ns, 11614.537 timesteps/s
+65.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.7954e-05 | 2.7954e-05 | 2.7954e-05 |   0.0 | 41.66
+Pair    | 2.6205e-05 | 2.6205e-05 | 2.6205e-05 |   0.0 | 30.44
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 3.164e-06  | 3.164e-06  | 3.164e-06  |   0.0 |  4.72
-Output  | 3.1658e-05 | 3.1658e-05 | 3.1658e-05 |   0.0 | 47.18
-Modify  | 1.712e-06  | 1.712e-06  | 1.712e-06  |   0.0 |  2.55
-Other   |            | 2.607e-06  |            |       |  3.89
+Comm    | 4.272e-06  | 4.272e-06  | 4.272e-06  |   0.0 |  4.96
+Output  | 5.2102e-05 | 5.2102e-05 | 5.2102e-05 |   0.0 | 60.51
+Modify  | 3.79e-07   | 3.79e-07   | 3.79e-07   |   0.0 |  0.44
+Other   |            | 3.141e-06  |            |       |  3.65
 
 Nlocal:              3 ave           3 max           3 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

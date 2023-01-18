@@ -63,8 +63,13 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
 
   // set comm size needed by this Pair
 
-  comm_forward = 38+23; // plus 23 for msmeam
-  comm_reverse = 30+23; // plus 23 for msmeam
+  if (this->msmeamflag){
+    comm_forward = 38+23; // plus 23 for msmeam
+    comm_reverse = 30+23; // plus 23 for msmeam
+  } else{
+    comm_forward = 38;
+    comm_reverse = 30;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -134,8 +139,6 @@ void PairMEAM::compute(int eflag, int vflag)
   int offset = 0;
   errorflag = 0;
 
-  //printf("before meam_dens_init %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
-
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     meam_inst->meam_dens_init(i,ntype,type,map,x,
@@ -144,18 +147,13 @@ void PairMEAM::compute(int eflag, int vflag)
                     offset);
     offset += numneigh_half[i];
   }
-  //printf("after meam_dens_init %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
-  //printf("before revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   comm->reverse_comm(this);
-  //printf("after revcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag)
     error->one(FLERR,"MEAM library error {}",errorflag);
 
-  //printf("before forcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
   comm->forward_comm(this);
-  //printf("after forcomm %f %f\n", meam_inst->arho2m[0][0], meam_inst->arho3m[0][0]);
 
   offset = 0;
 
@@ -279,9 +277,12 @@ void PairMEAM::coeff(int narg, char **arg)
   // read MEAM library and parameter files
   // pass all parameters to MEAM package
   // tell MEAM package that setup is done
-
+  printf("--- Here 1\n");
   read_files(lib_file,par_file);
+  printf("--- Here 1.5\n");
   meam_inst->meam_setup_done(&cutmax);
+
+  printf("--- Here 2\n");
 
   // read args that map atom types to MEAM elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
@@ -364,6 +365,7 @@ void PairMEAM::read_files(const std::string &globalfile,
                            const std::string &userfile)
 {
   read_global_meam_file(globalfile);
+  printf("--- global meam is read\n");
   read_user_meam_file(userfile);
 }
 
@@ -754,7 +756,6 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  //printf("pack revcomm last %d\n", last);
   for (i = first; i < last; i++) {
     buf[m++] = meam_inst->rho0[i];
     buf[m++] = meam_inst->arho2b[i];
@@ -808,7 +809,6 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
   int i,j,k,m;
 
   m = 0;
-  //printf("unpack revcomm n %d\n", n);
   for (i = 0; i < n; i++) {
     j = list[i];
     meam_inst->rho0[j] += buf[m++];

@@ -68,7 +68,7 @@ MEAM::meam_setup_global(int nelt, lattice_t* lat, int* ielement, double* /*atwt*
     this->t2_meam[i] = t2[i];
     this->t3_meam[i] = t3[i];
     if (this->msmeamflag){
-      printf("^^^^^ Filling tm\n");
+      //printf("^^^^^ Filling tm\n");
       this->t1m_meam[i] = t1m[i];
       this->t2m_meam[i] = t2m[i];
       this->t3m_meam[i] = t3m[i];

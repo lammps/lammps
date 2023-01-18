@@ -90,7 +90,7 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
   }
 
   // zero out local arrays
-  //printf("^^^ zero out local arrays in mean_dens_init\n");
+
   for (i = 0; i < nall; i++) {
     rho0[i] = 0.0;
     arho2b[i] = 0.0;
@@ -119,7 +119,6 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     tsq_ave[i][0] = tsq_ave[i][1] = tsq_ave[i][2] = 0.0;
   }
 
-  //printf("^^^ arho3m %f\n", arho3m[0][0]);
 }
 
 void
@@ -361,11 +360,6 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
           rhoa2i = rhoa2i * this->t2_meam[elti];
           rhoa3i = rhoa3i * this->t3_meam[elti];
         }
-        /*
-        printf("rhos1 %d %d %f %f %f %f\n", i, j, rhoa1i, rhoa1j, rhoa1mi, rhoa1mj);
-        printf("rhos2 %d %d %f %f %f %f\n", i, j, rhoa2i, rhoa2j, rhoa2mi, rhoa2mj);
-        printf("rhos3 %d %d %f %f %f %f\n", i, j, rhoa3i, rhoa3j, rhoa3mi, rhoa3mj);
-        */
         rho0[i] = rho0[i] + rhoa0j;
         rho0[j] = rho0[j] + rhoa0i;
         // For ialloy = 2, use single-element value (not average)
@@ -407,7 +401,6 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
           A2mi = rhoa2mi/rij2;
           A3mi = rhoa3mi/(rij2*rij);
         }
-        //printf("arho2mb i j %d %d %f %f\n", i, j, arho2mb[i], arho2mb[j]);
         for (m = 0; m < 3; m++) {
           arho1[i][m] = arho1[i][m] + A1j * delij[m];
           arho1[j][m] = arho1[j][m] - A1i * delij[m];
@@ -419,8 +412,6 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
             arho3mb[i][m] = arho3mb[i][m] + rhoa3mj*delij[m] / rij;
             arho3mb[j][m] = arho3mb[j][m] - rhoa3mi*delij[m] / rij;
           }
-          //printf("arho1m %f %f\n", arho1m[i][m], arho1m[j][m]);
-          //printf("arho3mb %f %f\n", arho3mb[i][m], arho3mb[j][m]);
           for (n = m; n < 3; n++) {
             arho2[i][nv2] = arho2[i][nv2] + A2j * delij[m] * delij[n];
             arho2[j][nv2] = arho2[j][nv2] + A2i * delij[m] * delij[n];
@@ -428,8 +419,6 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
               arho2m[i][nv2] = arho2m[i][nv2] + A2mj*delij[m] * delij[n];
               arho2m[j][nv2] = arho2m[j][nv2] + A2mi*delij[m] * delij[n];
             }
-            //printf("delij %f %f\n", delij[m], delij[n]);
-            //printf("arho2m %d %d %f %f\n", nv2, m, arho2m[i][nv2], arho2m[j][nv2]);
             nv2 = nv2 + 1;
             for (p = n; p < 3; p++) {
               arho3[i][nv3] = arho3[i][nv3] + A3j * delij[m] * delij[n] * delij[p];
@@ -438,8 +427,6 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
                 arho3m[i][nv3] = arho3m[i][nv3] + A3mj*delij[m]*delij[n]*delij[p];
                 arho3m[j][nv3] = arho3m[j][nv3] - A3mi*delij[m]*delij[n]*delij[p];
               }
-              //arho3m[0][0]=500.0;
-              //printf("arho3m %d %f %f\n", p, arho3m[i][nv3], arho3m[j][nv3]);
               nv3 = nv3 + 1;
             }
           }

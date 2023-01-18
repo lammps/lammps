@@ -66,8 +66,8 @@ enum class WaitMode : int {
 void host_thread_yield(const uint32_t i, const WaitMode mode);
 
 template <typename T>
-typename std::enable_if<std::is_integral<T>::value, void>::type
-root_spinwait_while_equal(T const volatile& flag, const T value) {
+std::enable_if_t<std::is_integral<T>::value, void> root_spinwait_while_equal(
+    T const volatile& flag, const T value) {
   Kokkos::store_fence();
   uint32_t i = 0;
   while (value == flag) {
@@ -77,8 +77,8 @@ root_spinwait_while_equal(T const volatile& flag, const T value) {
 }
 
 template <typename T>
-typename std::enable_if<std::is_integral<T>::value, void>::type
-root_spinwait_until_equal(T const volatile& flag, const T value) {
+std::enable_if_t<std::is_integral<T>::value, void> root_spinwait_until_equal(
+    T const volatile& flag, const T value) {
   Kokkos::store_fence();
   uint32_t i = 0;
   while (value != flag) {
@@ -88,8 +88,8 @@ root_spinwait_until_equal(T const volatile& flag, const T value) {
 }
 
 template <typename T>
-typename std::enable_if<std::is_integral<T>::value, void>::type
-spinwait_while_equal(T const volatile& flag, const T value) {
+std::enable_if_t<std::is_integral<T>::value, void> spinwait_while_equal(
+    T const volatile& flag, const T value) {
   Kokkos::store_fence();
   uint32_t i = 0;
   while (value == flag) {
@@ -99,8 +99,8 @@ spinwait_while_equal(T const volatile& flag, const T value) {
 }
 
 template <typename T>
-typename std::enable_if<std::is_integral<T>::value, void>::type
-yield_while_equal(T const volatile& flag, const T value) {
+std::enable_if_t<std::is_integral<T>::value, void> yield_while_equal(
+    T const volatile& flag, const T value) {
   Kokkos::store_fence();
   uint32_t i = 0;
   while (value == flag) {
@@ -110,8 +110,8 @@ yield_while_equal(T const volatile& flag, const T value) {
 }
 
 template <typename T>
-typename std::enable_if<std::is_integral<T>::value, void>::type
-spinwait_until_equal(T const volatile& flag, const T value) {
+std::enable_if_t<std::is_integral<T>::value, void> spinwait_until_equal(
+    T const volatile& flag, const T value) {
   Kokkos::store_fence();
   uint32_t i = 0;
   while (value != flag) {
@@ -121,8 +121,8 @@ spinwait_until_equal(T const volatile& flag, const T value) {
 }
 
 template <typename T>
-typename std::enable_if<std::is_integral<T>::value, void>::type
-yield_until_equal(T const volatile& flag, const T value) {
+std::enable_if_t<std::is_integral<T>::value, void> yield_until_equal(
+    T const volatile& flag, const T value) {
   Kokkos::store_fence();
   uint32_t i = 0;
   while (value != flag) {

@@ -1,0 +1,112 @@
+LAMMPS (3 Aug 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# simple water model with LATTE
+
+units           metal
+atom_style      full
+atom_modify     sort 0 0.0    # turn off sorting of the coordinates
+
+read_data       data.water
+Reading data file ...
+  orthogonal box = (0 0 0) to (6.267 6.267 6.267)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  24 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.001 seconds
+
+# replicate system if requested
+
+variable        x index 1
+variable        y index 1
+variable        z index 1
+
+variable        nrep equal v_x*v_y*v_z
+if              "${nrep} > 1" then "replicate $x $y $z"
+
+# initialize system
+
+velocity        all create 0.0 87287 loop geom
+
+pair_style      zero 1.0
+pair_coeff      * *
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.00025
+
+fix             1 all nve
+
+fix             2 all latte
+fix_modify      2 energy yes
+
+thermo_style    custom step temp pe etotal press
+
+# dynamics
+
+thermo          10
+run             100
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2
+  binsize = 1, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.88 | 5.88 | 5.88 Mbytes
+   Step          Temp          PotEng         TotEng         Press     
+         0   0             -104.95596     -104.95596      48235.442    
+        10   336.53107     -105.96027     -104.95977      97996.851    
+        20   529.06408     -106.53023     -104.95733      131519.85    
+        30   753.62603     -107.19952     -104.959        49296.66     
+        40   716.65648     -107.08803     -104.95742      28307.121    
+        50   824.04392     -107.40823     -104.95836      102167.59    
+        60   933.56146     -107.73479     -104.95933      92508.517    
+        70   851.18489     -107.48767     -104.95711      13993.262    
+        80   999.8028      -107.93147     -104.95907      36700.736    
+        90   998.77488     -107.9257      -104.95636      107233.54    
+       100   1281.4438     -108.76963     -104.95992      49702.386    
+Loop time of 3.14578 on 1 procs for 100 steps with 24 atoms
+
+Performance: 0.687 ns/day, 34.953 hours/ns, 31.789 timesteps/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.0818e-05 | 3.0818e-05 | 3.0818e-05 |   0.0 |  0.00
+Bond    | 4.704e-06  | 4.704e-06  | 4.704e-06  |   0.0 |  0.00
+Neigh   | 1.8668e-05 | 1.8668e-05 | 1.8668e-05 |   0.0 |  0.00
+Comm    | 0.00010831 | 0.00010831 | 0.00010831 |   0.0 |  0.00
+Output  | 0.00021087 | 0.00021087 | 0.00021087 |   0.0 |  0.01
+Modify  | 3.1452     | 3.1452     | 3.1452     |   0.0 | 99.98
+Other   |            | 0.0002339  |            |       |  0.01
+
+Nlocal:             24 ave          24 max          24 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             77 ave          77 max          77 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             31 ave          31 max          31 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 31
+Ave neighs/atom = 1.2916667
+Ave special neighs/atom = 0
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:03

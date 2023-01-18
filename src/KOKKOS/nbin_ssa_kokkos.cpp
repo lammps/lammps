@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -82,12 +82,12 @@ void NBinSSAKokkos<DeviceType>::bin_atoms_setup(int /*nall*/)
   h_lbinxhi() = 0; // Safe to = mbinx - stencil->sx - 1
   h_lbinyhi() = 0; // Safe to = mbiny - stencil->sy - 1
   h_lbinzhi() = 0; // Safe to = mbinz - stencil->sz - 1
-  deep_copy(d_lbinxlo, h_lbinxlo);
-  deep_copy(d_lbinylo, h_lbinylo);
-  deep_copy(d_lbinzlo, h_lbinzlo);
-  deep_copy(d_lbinxhi, h_lbinxhi);
-  deep_copy(d_lbinyhi, h_lbinyhi);
-  deep_copy(d_lbinzhi, h_lbinzhi);
+  Kokkos::deep_copy(d_lbinxlo, h_lbinxlo);
+  Kokkos::deep_copy(d_lbinylo, h_lbinylo);
+  Kokkos::deep_copy(d_lbinzlo, h_lbinzlo);
+  Kokkos::deep_copy(d_lbinxhi, h_lbinxhi);
+  Kokkos::deep_copy(d_lbinyhi, h_lbinyhi);
+  Kokkos::deep_copy(d_lbinzhi, h_lbinzhi);
 }
 
 /* ----------------------------------------------------------------------
@@ -128,12 +128,12 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     NPairSSAKokkosBinIDAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_reduce(nlocal, f, atoms_per_bin);
   }
-  deep_copy(h_lbinxlo, d_lbinxlo);
-  deep_copy(h_lbinylo, d_lbinylo);
-  deep_copy(h_lbinzlo, d_lbinzlo);
-  deep_copy(h_lbinxhi, d_lbinxhi);
-  deep_copy(h_lbinyhi, d_lbinyhi);
-  deep_copy(h_lbinzhi, d_lbinzhi);
+  Kokkos::deep_copy(h_lbinxlo, d_lbinxlo);
+  Kokkos::deep_copy(h_lbinylo, d_lbinylo);
+  Kokkos::deep_copy(h_lbinzlo, d_lbinzlo);
+  Kokkos::deep_copy(h_lbinxhi, d_lbinxhi);
+  Kokkos::deep_copy(h_lbinyhi, d_lbinyhi);
+  Kokkos::deep_copy(h_lbinzhi, d_lbinzhi);
 
   // find each ghost's binID (AIR number)
   {

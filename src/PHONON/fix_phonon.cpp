@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -50,11 +50,11 @@ using namespace FixConst;
 enum{FORWARD=-1,BACKWARD=1};
 
 static const char cite_fix_phonon[] =
-  "fix phonon command:\n\n"
+  "fix phonon command: doi:10.1016/j.cpc.2011.04.019\n\n"
   "@Article{Kong11,\n"
   " author = {L. T. Kong},\n"
-  " title = {Phonon dispersion measured directly from molecular dynamics simulations},\n"
-  " journal = {Comp.~Phys.~Comm.},\n"
+  " title = {Phonon Dispersion Measured Directly from Molecular Dynamics Simulations},\n"
+  " journal = {Comput.\\ Phys.\\ Commun.},\n"
   " year =    2011,\n"
   " volume =  182,\n"
   " pages =   {2201--2207}\n"
@@ -215,11 +215,10 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
 
   // default temperature is from thermo
   TempSum = new double[sysdim];
-  id_temp = new char[12];
-  strcpy(id_temp,"thermo_temp");
+  id_temp = utils::strdup("thermo_temp");
   int icompute = modify->find_compute(id_temp);
   temperature = modify->compute[icompute];
-  inv_nTemp = 1./group->count(temperature->igroup);
+  inv_nTemp = 1.0/group->count(temperature->igroup);
 
 } // end of constructor
 

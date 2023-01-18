@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_TIMER_HPP
 #define KOKKOS_TIMER_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_TIMER
+#endif
 
 #include <Kokkos_Macros.hpp>
 // gcc 10.3.0 with CUDA doesn't support std::chrono,
@@ -111,4 +115,8 @@ class Timer {
 
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_TIMER
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_TIMER
+#endif
 #endif /* #ifndef KOKKOS_TIMER_HPP */

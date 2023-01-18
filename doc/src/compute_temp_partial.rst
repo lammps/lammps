@@ -6,7 +6,7 @@ compute temp/partial command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID temp/partial xflag yflag zflag
 
@@ -26,23 +26,31 @@ Description
 
 Define a computation that calculates the temperature of a group of
 atoms, after excluding one or more velocity components.  A compute of
-this style can be used by any command that computes a temperature,
-e.g. :doc:`thermo_modify <thermo_modify>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`, etc.
+this style can be used by any command that computes a temperature
+(e.g. :doc:`thermo_modify <thermo_modify>`,
+:doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix npt <fix_nh>`).
 
-The temperature is calculated by the formula KE = dim/2 N k T, where
-KE = total kinetic energy of the group of atoms (sum of 1/2 m v\^2),
-dim = dimensionality of the simulation, N = number of atoms in the
-group, k = Boltzmann constant, and T = temperature.  The calculation
-of KE excludes the x, y, or z dimensions if xflag, yflag, or zflag =
-0.  The dim parameter is adjusted to give the correct number of
+The temperature is calculated by the formula
+
+.. math::
+
+   \text{KE} = \frac{\text{dim}}{2} N k_B T,
+
+where KE is the total kinetic energy of the group of atoms (sum of
+:math:`\frac12 m v^2`), dim = 2 or 3 is the dimensionality of the simulation,
+:math:`N` is the number of atoms in the group, :math:`k_B` is the Boltzmann
+constant, and :math:`T` = temperature.  The calculation of KE excludes the
+:math:`x`, :math:`y`, or :math:`z` dimensions if *xflag*, *yflag*, or *zflag*
+is 0.  The dim parameter is adjusted to give the correct number of
 degrees of freedom.
 
-A kinetic energy tensor, stored as a 6-element vector, is also
+A kinetic energy tensor, stored as a six-element vector, is also
 calculated by this compute for use in the calculation of a pressure
 tensor.  The formula for the components of the tensor is the same as
-the above formula, except that v\^2 is replaced by vx\*vy for the xy
-component, etc.  The 6 components of the vector are ordered xx, yy,
-zz, xy, xz, yz.
+the above formula, except that :math:`v^2` is replaced by :math:`v_x v_y` for
+the :math:`xy` component, and so on. The six components of the vector are
+ordered :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`, :math:`xz`,
+:math:`yz`.
 
 The number of atoms contributing to the temperature is assumed to be
 constant for the duration of the run; use the *dynamic* option of the
@@ -54,7 +62,10 @@ velocity of the atoms.  If this compute is used with a fix command
 that performs thermostatting then this bias will be subtracted from
 each atom, thermostatting of the remaining thermal velocity will be
 performed, and the bias will be added back in.  Thermostatting fixes
-that work in this way include :doc:`fix nvt <fix_nh>`, :doc:`fix temp/rescale <fix_temp_rescale>`, :doc:`fix temp/berendsen <fix_temp_berendsen>`, and :doc:`fix langevin <fix_langevin>`.
+that work in this way include :doc:`fix nvt <fix_nh>`,
+:doc:`fix temp/rescale <fix_temp_rescale>`,
+:doc:`fix temp/berendsen <fix_temp_berendsen>`, and
+:doc:`fix langevin <fix_langevin>`.
 
 This compute subtracts out degrees-of-freedom due to fixes that
 constrain molecular motion, such as :doc:`fix shake <fix_shake>` and
@@ -77,10 +88,11 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+vector of length 6 (KE tensor), which can be accessed by indices 1--6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options.
+vector values from a compute as input.
+See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+output options.
 
 The scalar value calculated by this compute is "intensive".  The
 vector values are "extensive".

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -38,10 +38,10 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static const char cite_compute_xrd_c[] =
-  "compute_xrd command: doi:10.1088/0965-0393/21/5/055020\n\n"
+  "compute xrd command: doi:10.1088/0965-0393/21/5/055020\n\n"
   "@Article{Coleman13,\n"
-  " author = {S. P. Coleman, D. E. Spearot, L. Capolungo},\n"
-  " title = {Virtual diffraction analysis of Ni [010] symmetric tilt grain boundaries},\n"
+  " author = {S. P. Coleman and D. E. Spearot and L. Capolungo},\n"
+  " title = {Virtual Diffraction Analysis of {Ni} [010] Symmetric Tilt Grain Boundaries},\n"
   " journal = {Modelling and Simulation in Materials Science and Engineering},\n"
   " year =    2013,\n"
   " volume =  21,\n"

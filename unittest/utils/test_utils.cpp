@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -137,6 +137,24 @@ TEST(Utils, trim_and_count_words)
 TEST(Utils, count_words_with_extra_spaces)
 {
     ASSERT_EQ(utils::count_words("   some text # comment   "), 4);
+}
+
+TEST(Utils, join_words)
+{
+    std::vector<std::string> words = {"one", "two", "three"};
+    auto combined                  = utils::join_words(words, " ");
+    ASSERT_THAT(combined, StrEq("one two three"));
+    combined = utils::join_words(words, "");
+    ASSERT_THAT(combined, StrEq("onetwothree"));
+    words[1] = "two ";
+    combined = utils::join_words(words, "__");
+    ASSERT_THAT(combined, StrEq("one__two __three"));
+    words.resize(1);
+    combined = utils::join_words(words, "/");
+    ASSERT_THAT(combined, StrEq("one"));
+    words.emplace_back("");
+    combined = utils::join_words(words, "1");
+    ASSERT_THAT(combined, StrEq("one1"));
 }
 
 TEST(Utils, split_words_simple)
@@ -282,6 +300,26 @@ TEST(Utils, valid_double9)
     ASSERT_TRUE(utils::is_double("+.0"));
 }
 
+TEST(Utils, valid_double10)
+{
+    ASSERT_TRUE(utils::is_double("-0.15"));
+}
+
+TEST(Utils, valid_double11)
+{
+    ASSERT_TRUE(utils::is_double("-27.5"));
+}
+
+TEST(Utils, valid_double12)
+{
+    ASSERT_TRUE(utils::is_double("+0.15"));
+}
+
+TEST(Utils, valid_double13)
+{
+    ASSERT_TRUE(utils::is_double("+27.5"));
+}
+
 TEST(Utils, empty_not_an_integer)
 {
     ASSERT_FALSE(utils::is_integer(""));
@@ -295,6 +333,66 @@ TEST(Utils, empty_not_a_double)
 TEST(Utils, text_not_an_integer)
 {
     ASSERT_FALSE(utils::is_integer("one"));
+}
+
+TEST(Utils, minus_not_an_integer1)
+{
+    ASSERT_FALSE(utils::is_integer("1-"));
+}
+
+TEST(Utils, plus_not_an_integer1)
+{
+    ASSERT_FALSE(utils::is_integer("1+"));
+}
+
+TEST(Utils, minus_not_an_integer2)
+{
+    ASSERT_FALSE(utils::is_integer("--1"));
+}
+
+TEST(Utils, plus_not_an_integer2)
+{
+    ASSERT_FALSE(utils::is_integer("++1"));
+}
+
+TEST(Utils, plusminus_not_an_integer1)
+{
+    ASSERT_FALSE(utils::is_integer("-+1"));
+}
+
+TEST(Utils, plusminus_not_an_integer2)
+{
+    ASSERT_FALSE(utils::is_integer("+-1"));
+}
+
+TEST(Utils, minus_not_a_double1)
+{
+    ASSERT_FALSE(utils::is_double("1-"));
+}
+
+TEST(Utils, plus_not_a_double1)
+{
+    ASSERT_FALSE(utils::is_double("1+"));
+}
+
+TEST(Utils, minus_not_a_double2)
+{
+    ASSERT_FALSE(utils::is_double("--1"));
+}
+
+TEST(Utils, plus_not_a_double2)
+{
+    ASSERT_FALSE(utils::is_double("++1"));
+}
+
+TEST(Utils, plusminus_not_a_double1)
+{
+    ASSERT_FALSE(utils::is_double("+-1"));
+}
+
+TEST(Utils, plusminus_not_a_double2)
+{
+    ASSERT_FALSE(utils::is_double("-+1"));
 }
 
 TEST(Utils, text_not_a_double)
@@ -345,6 +443,11 @@ TEST(Utils, is_double_with_pos_exponential)
 TEST(Utils, signed_double_and_exponential)
 {
     ASSERT_TRUE(utils::is_double("-10E-22"));
+}
+
+TEST(Utils, signed_double_and_broken_exponential)
+{
+    ASSERT_FALSE(utils::is_double("-10e10-2"));
 }
 
 TEST(Utils, is_double_with_d_exponential)
@@ -420,6 +523,53 @@ TEST(Utils, invalid_id3)
 TEST(Utils, invalid_id4)
 {
     ASSERT_FALSE(utils::is_id("a$12"));
+}
+
+TEST(Utils, valid_numeric)
+{
+    ASSERT_EQ(utils::is_type("1"), 0);
+    ASSERT_EQ(utils::is_type("21"), 0);
+    ASSERT_EQ(utils::is_type("05"), 0);
+    ASSERT_EQ(utils::is_type("1*"), 0);
+    ASSERT_EQ(utils::is_type("*2"), 0);
+    ASSERT_EQ(utils::is_type("1*4"), 0);
+}
+
+TEST(Utils, invalid_numeric)
+{
+    ASSERT_EQ(utils::is_type("1*2*"), -1);
+    ASSERT_EQ(utils::is_type("**2"), -1);
+    ASSERT_EQ(utils::is_type("*4*"), -1);
+    ASSERT_EQ(utils::is_type("30**"), -1);
+}
+
+TEST(Utils, valid_label)
+{
+    ASSERT_EQ(utils::is_type("A"), 1);
+    ASSERT_EQ(utils::is_type("c1"), 1);
+    ASSERT_EQ(utils::is_type("o1_"), 1);
+    ASSERT_EQ(utils::is_type("C1'"), 1);
+    ASSERT_EQ(utils::is_type("N2\"-C1'"), 1);
+    ASSERT_EQ(utils::is_type("[N2\"][C1']"), 1);
+    ASSERT_EQ(utils::is_type("@X2=&X1"), 1);
+    ASSERT_EQ(utils::is_type("|Na|Cl|H2O|"), 1);
+    ASSERT_EQ(utils::is_type("CA(1)/CB(1)"), 1);
+    ASSERT_EQ(utils::is_type("A-B"), 1); // ASCII
+    ASSERT_EQ(utils::is_type("A−B"), 1); // UTF-8
+}
+
+TEST(Utils, invalid_label)
+{
+    ASSERT_EQ(utils::is_type("1A"), -1);
+    ASSERT_EQ(utils::is_type("#c"), -1);
+    ASSERT_EQ(utils::is_type("*B"), -1);
+    ASSERT_EQ(utils::is_type(" B"), -1);
+    ASSERT_EQ(utils::is_type("A "), -1);
+    ASSERT_EQ(utils::is_type("A B"), -1);
+    ASSERT_EQ(utils::is_type("\tB"), -1);
+    ASSERT_EQ(utils::is_type("C\n"), -1);
+    ASSERT_EQ(utils::is_type("d\r"), -1);
+    ASSERT_EQ(utils::is_type(""), -1);
 }
 
 TEST(Utils, strmatch_beg)
@@ -564,6 +714,18 @@ TEST(Utils, strmatch_float_nonfloat)
 TEST(Utils, strmatch_whitespace_nonwhitespace)
 {
     ASSERT_TRUE(utils::strmatch(" 5.0  angles\n", "^\\s*\\S+\\s+\\S+\\s"));
+}
+
+TEST(Utils, strmatch_range)
+{
+    ASSERT_TRUE(utils::strmatch("*11", "^\\d*\\*\\d*$"));
+    ASSERT_TRUE(utils::strmatch("2*11", "^\\d*\\*\\d*$"));
+    ASSERT_TRUE(utils::strmatch("5*", "^\\d*\\*\\d*$"));
+    ASSERT_TRUE(utils::strmatch("*", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("x5*", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("x*", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("*a", "^\\d*\\*\\d*$"));
+    ASSERT_FALSE(utils::strmatch("1*2d", "^\\d*\\*\\d*$"));
 }
 
 TEST(Utils, strfind_beg)
@@ -765,6 +927,44 @@ TEST(Utils, boundsbig_case3)
     utils::bounds(FLERR, "3*:2", -10, 5, nlo, nhi, nullptr);
     ASSERT_EQ(nlo, -1);
     ASSERT_EQ(nhi, -1);
+}
+
+TEST(Utils, parse_grid_id)
+{
+    auto words = utils::parse_grid_id(FLERR, "c_1:full:density", nullptr);
+    ASSERT_THAT(words[0], StrEq("c_1"));
+    ASSERT_THAT(words[1], StrEq("full"));
+    ASSERT_THAT(words[2], StrEq("density"));
+
+    words = utils::parse_grid_id(FLERR, "c_1:full:density[1]", nullptr);
+    ASSERT_THAT(words[0], StrEq("c_1"));
+    ASSERT_THAT(words[1], StrEq("full"));
+    ASSERT_THAT(words[2], StrEq("density[1]"));
+
+    words = utils::parse_grid_id(FLERR, "c_1:full:density[*]", nullptr);
+    ASSERT_THAT(words[0], StrEq("c_1"));
+    ASSERT_THAT(words[1], StrEq("full"));
+    ASSERT_THAT(words[2], StrEq("density[*]"));
+
+    words = utils::parse_grid_id(FLERR, "c_1_full_density", nullptr);
+    ASSERT_THAT(words[0], StrEq(""));
+    ASSERT_THAT(words[1], StrEq(""));
+    ASSERT_THAT(words[0], StrEq(""));
+
+    words = utils::parse_grid_id(FLERR, "c_1:full:", nullptr);
+    ASSERT_THAT(words[0], StrEq(""));
+    ASSERT_THAT(words[1], StrEq(""));
+    ASSERT_THAT(words[0], StrEq(""));
+
+    words = utils::parse_grid_id(FLERR, ":full:density", nullptr);
+    ASSERT_THAT(words[0], StrEq(""));
+    ASSERT_THAT(words[1], StrEq(""));
+    ASSERT_THAT(words[0], StrEq(""));
+
+    words = utils::parse_grid_id(FLERR, "c_1:full", nullptr);
+    ASSERT_THAT(words[0], StrEq(""));
+    ASSERT_THAT(words[1], StrEq(""));
+    ASSERT_THAT(words[0], StrEq(""));
 }
 
 TEST(Utils, errorurl)

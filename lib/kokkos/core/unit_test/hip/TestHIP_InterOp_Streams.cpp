@@ -52,8 +52,7 @@ namespace Test {
 TEST(hip, raw_hip_streams) {
   hipStream_t stream;
   KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamCreate(&stream));
-  Kokkos::InitArguments arguments{-1, -1, -1, false};
-  Kokkos::initialize(arguments);
+  Kokkos::initialize();
   int* p;
   KOKKOS_IMPL_HIP_SAFE_CALL(hipMalloc(&p, sizeof(int) * 100));
   using MemorySpace = typename TEST_EXECSPACE::memory_space;

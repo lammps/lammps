@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_EXECPOLICY_HPP
 #define KOKKOS_EXECPOLICY_HPP
 
@@ -199,11 +208,10 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
   inline member_type chunk_size() const { return m_granularity; }
 
   /** \brief set chunk_size to a discrete value*/
-  inline RangePolicy set_chunk_size(int chunk_size_) const {
-    RangePolicy p        = *this;
-    p.m_granularity      = chunk_size_;
-    p.m_granularity_mask = p.m_granularity - 1;
-    return p;
+  inline RangePolicy& set_chunk_size(int chunk_size) {
+    m_granularity      = chunk_size;
+    m_granularity_mask = m_granularity - 1;
+    return *this;
   }
 
  private:
@@ -431,53 +439,49 @@ class TeamPolicyInternal : public Impl::PolicyTraits<Properties...> {
 };
 
 struct PerTeamValue {
-  int value;
-  PerTeamValue(int arg);
+  size_t value;
+  PerTeamValue(size_t arg);
 };
 
 struct PerThreadValue {
-  int value;
-  PerThreadValue(int arg);
+  size_t value;
+  PerThreadValue(size_t arg);
 };
 
 template <class iType, class... Args>
 struct ExtractVectorLength {
   static inline iType value(
-      typename std::enable_if<std::is_integral<iType>::value, iType>::type val,
-      Args...) {
+      std::enable_if_t<std::is_integral<iType>::value, iType> val, Args...) {
     return val;
   }
-  static inline
-      typename std::enable_if<!std::is_integral<iType>::value, int>::type
-      value(
-          typename std::enable_if<!std::is_integral<iType>::value, iType>::type,
-          Args...) {
+  static inline std::enable_if_t<!std::is_integral<iType>::value, int> value(
+      std::enable_if_t<!std::is_integral<iType>::value, iType>, Args...) {
     return 1;
   }
 };
 
 template <class iType, class... Args>
-inline typename std::enable_if<std::is_integral<iType>::value, iType>::type
+inline std::enable_if_t<std::is_integral<iType>::value, iType>
 extract_vector_length(iType val, Args...) {
   return val;
 }
 
 template <class iType, class... Args>
-inline typename std::enable_if<!std::is_integral<iType>::value, int>::type
+inline std::enable_if_t<!std::is_integral<iType>::value, int>
 extract_vector_length(iType, Args...) {
   return 1;
 }
 
 }  // namespace Impl
 
-Impl::PerTeamValue PerTeam(const int& arg);
-Impl::PerThreadValue PerThread(const int& arg);
+Impl::PerTeamValue PerTeam(const size_t& arg);
+Impl::PerThreadValue PerThread(const size_t& arg);
 
 struct ScratchRequest {
   int level;
 
-  int per_team;
-  int per_thread;
+  size_t per_team;
+  size_t per_thread;
 
   inline ScratchRequest(const int& level_,
                         const Impl::PerTeamValue& team_value) {
@@ -813,7 +817,7 @@ KOKKOS_INLINE_FUNCTION_DELETED
 template <typename iType1, typename iType2, class TeamMemberType,
           class _never_use_this_overload>
 KOKKOS_INLINE_FUNCTION_DELETED Impl::TeamThreadRangeBoundariesStruct<
-    typename std::common_type<iType1, iType2>::type, TeamMemberType>
+    std::common_type_t<iType1, iType2>, TeamMemberType>
 TeamThreadRange(const TeamMemberType&, const iType1& begin,
                 const iType2& end) = delete;
 
@@ -839,7 +843,7 @@ KOKKOS_INLINE_FUNCTION_DELETED
 template <typename iType1, typename iType2, class TeamMemberType,
           class _never_use_this_overload>
 KOKKOS_INLINE_FUNCTION_DELETED Impl::TeamThreadRangeBoundariesStruct<
-    typename std::common_type<iType1, iType2>::type, TeamMemberType>
+    std::common_type_t<iType1, iType2>, TeamMemberType>
 TeamVectorRange(const TeamMemberType&, const iType1& begin,
                 const iType2& end) = delete;
 
@@ -858,14 +862,14 @@ KOKKOS_INLINE_FUNCTION_DELETED
 template <typename iType1, typename iType2, class TeamMemberType,
           class _never_use_this_overload>
 KOKKOS_INLINE_FUNCTION_DELETED Impl::ThreadVectorRangeBoundariesStruct<
-    typename std::common_type<iType1, iType2>::type, TeamMemberType>
+    std::common_type_t<iType1, iType2>, TeamMemberType>
 ThreadVectorRange(const TeamMemberType&, const iType1& arg_begin,
                   const iType2& arg_end) = delete;
 
 namespace Impl {
 
 template <typename FunctorType, typename TagType,
-          bool HasTag = !std::is_same<TagType, void>::value>
+          bool HasTag = !std::is_void<TagType>::value>
 struct ParallelConstructName;
 
 template <typename FunctorType, typename TagType>

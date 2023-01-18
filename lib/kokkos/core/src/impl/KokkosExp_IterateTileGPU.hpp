@@ -884,9 +884,6 @@ struct DeviceIterateTile<6, PolicyType, Functor, Tag> {
 namespace Reduce {
 
 template <typename T>
-using is_void = std::is_same<T, void>;
-
-template <typename T>
 struct is_array_type : std::false_type {
   using value_type = T;
 };

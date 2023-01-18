@@ -42,6 +42,10 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
 #include <cstring>
 #include <cstdlib>
 
@@ -138,6 +142,9 @@ void Experimental::RawMemoryAllocationFailure::print_error_message(
     case AllocationMechanism::CudaHostAlloc: o << "cudaHostAlloc()."; break;
     case AllocationMechanism::HIPMalloc: o << "hipMalloc()."; break;
     case AllocationMechanism::HIPHostMalloc: o << "hipHostMalloc()."; break;
+    case AllocationMechanism::HIPMallocManaged:
+      o << "hipMallocManaged().";
+      break;
     case AllocationMechanism::SYCLMallocDevice:
       o << "sycl::malloc_device().";
       break;

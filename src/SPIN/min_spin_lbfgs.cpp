@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,10 +43,10 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static const char cite_minstyle_spin_lbfgs[] =
-  "min_style spin/lbfgs command:\n\n"
+  "min_style spin/lbfgs command: doi:10.48550/arXiv.1904.02669\n\n"
   "@article{ivanov2019fast,\n"
-  "title={Fast and Robust Algorithm for the Minimisation of the Energy of "
-  "Spin Systems},\n"
+  "title={Fast and Robust Algorithm for the Minimisation of the Energy of\n"
+  "    Spin Systems},\n"
   "author={Ivanov, A. V and Uzdin, V. M. and J{\'o}nsson, H.},\n"
   "journal={arXiv preprint arXiv:1904.02669},\n"
   "year={2019}\n"
@@ -104,12 +104,12 @@ void MinSpinLBFGS::init()
 
   // warning if line_search combined to gneb
 
-  if ((nreplica >= 1) && (linestyle != 4) && (comm->me == 0))
-    error->warning(FLERR,"Line search incompatible gneb");
+  if ((nreplica >= 1) && (linestyle != SPIN_NONE) && (comm->me == 0))
+    error->warning(FLERR,"Line search incompatible with gneb");
 
   // set back use_line_search to 0 if more than one replica
 
-  if (linestyle == 3 && nreplica == 1) {
+  if (linestyle == SPIN_CUBIC && nreplica == 1) {
     use_line_search = 1;
   }
   else{

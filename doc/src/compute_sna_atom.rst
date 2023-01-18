@@ -45,7 +45,7 @@ Syntax
 * w_1, w_2,... = list of neighbor weights, one for each type
 * nx, ny, nz = number of grid points in x, y, and z directions (positive integer)
 * zero or more keyword/value pairs may be appended
-* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag* or *sinner* or *dinner*
+* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag* or *switchinnerflag* or *sinner* or *dinner* or *dgradflag*
 
   .. parsed-literal::
 
@@ -68,9 +68,6 @@ Syntax
        *wselfallflag* value = *0* or *1*
           *0* = self-contribution only for element of central atom
           *1* = self-contribution for all elements
-       *bikflag* value = *0* or *1* (only implemented for compute snap)
-          *0* = per-atom bispectrum descriptors are summed over atoms
-          *1* = per-atom bispectrum descriptors are not summed over atoms
        *switchinnerflag* value = *0* or *1*
           *0* = do not use inner switching function
           *1* = use inner switching function
@@ -78,6 +75,12 @@ Syntax
           *sinnerlist* = *ntypes* values of *Sinner* (distance units)
        *dinner* values = *dinnerlist*
           *dinnerlist* = *ntypes* values of *Dinner* (distance units)
+       *bikflag* value = *0* or *1* (only implemented for compute snap)
+          *0* = descriptors are summed over atoms of each type
+          *1* = descriptors are listed separately for each atom
+       *dgradflag* value = *0* or *1* (only implemented for compute snap)
+          *0* = descriptor gradients are summed over atoms of each type
+          *1* = descriptor gradients are listed separately for each atom pair
 
 Examples
 """"""""
@@ -225,18 +228,20 @@ command:
 See section below on output for a detailed explanation of the data
 layout in the global array.
 
+.. versionadded:: 3Aug2022
+
 The compute *sna/grid* and *sna/grid/local* commands calculate
-bispectrum components for a regular grid of points.
-These are calculated from the local density of nearby atoms *i'*
-around each grid point, as if there was a central atom *i*
-at the grid point. This is useful for characterizing fine-scale
-structure in a configuration of atoms, and it is used
-in the `MALA package <https://github.com/casus/mala>`_
-to build machine-learning surrogates for finite-temperature Kohn-Sham
-density functional theory (:ref:`Ellis et al. <Ellis2021>`)
-Neighbor atoms not in the group do not contribute to the
-bispectrum components of the grid points. The distance cutoff :math:`R_{ii'}`
-assumes that *i* has the same type as the neighbor atom *i'*.
+bispectrum components for a regular grid of points.  These are
+calculated from the local density of nearby atoms *i'* around each grid
+point, as if there was a central atom *i* at the grid point. This is
+useful for characterizing fine-scale structure in a configuration of
+atoms, and it is used in the `MALA package
+<https://github.com/casus/mala>`_ to build machine-learning surrogates
+for finite-temperature Kohn-Sham density functional theory (:ref:`Ellis
+et al. <Ellis2021>`) Neighbor atoms not in the group do not contribute
+to the bispectrum components of the grid points. The distance cutoff
+:math:`R_{ii'}` assumes that *i* has the same type as the neighbor atom
+*i'*.
 
 Compute *sna/grid* calculates a global array containing bispectrum
 components for a regular grid of points.
@@ -360,15 +365,6 @@ This option is typically used in conjunction with the *chem* keyword,
 and LAMMPS will generate a warning if both *chem* and *bnormflag*
 are not both set or not both unset.
 
-The keyword *bikflag* determines whether or not to expand the bispectrum
-rows of the global array returned by compute snap. If *bikflag* is set
-to *1* then the bispectrum row, which is typically the per-atom bispectrum
-descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
-:math:`B_k`, becomes bispectrum rows equal to the number of atoms. Thus,
-the resulting bispectrum rows are :math:`B_{i,k}` instead of just
-:math:`B_k`. In this case, the entries in the final column for these rows
-are set to zero.
-
 The keyword *switchinnerflag* with value 1
 activates an additional radial switching
 function similar to :math:`f_c(r)` above, but acting to switch off
@@ -392,6 +388,36 @@ values for :math:`S_{inner}` and :math:`D_{inner}`, respectively.
 When the central atom and the neighbor atom have different types,
 the values of :math:`S_{inner}` and :math:`D_{inner}` are
 the arithmetic means of the values for both types.
+
+The keywords *bikflag* and *dgradflag* are only used by compute *snap*.
+The keyword *bikflag* determines whether or not to list the descriptors
+of each atom separately, or sum them together and list in a single row.
+If *bikflag* is set
+to *0* then a single bispectrum row is used, which contains the per-atom bispectrum
+descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
+:math:`B_k`.  If *bikflag* is set
+to *1* this is replaced by a separate per-atom bispectrum row for each atom.
+In this case, the entries in the final column for these rows
+are set to zero.
+
+The keyword *dgradflag* determines whether to sum atom gradients or list
+them separately. If *dgradflag* is set to 0, the bispectrum
+descriptor gradients w.r.t. atom *j* are summed over all atoms *i'*
+of type *I* (similar to *snad/atom* above).
+If *dgradflag* is set to 1, gradients are listed separately for each pair of atoms.
+Each row corresponds
+to a single term :math:`\frac{\partial {B_{i,k}  }}{\partial {r}^a_j}`
+where :math:`{r}^a_j` is the *a-th* position coordinate of the atom with global
+index *j*. This also changes
+the number of columns to be equal to the number of bispectrum components, with 3
+additional columns representing the indices :math:`i`, :math:`j`, and :math:`a`,
+as explained more in the Output info section below. The option *dgradflag=1*
+requires that *bikflag=1*.
+
+.. note::
+
+   Using *dgradflag* = 1 produces a global array with :math:`N + 3N^2 + 1` rows
+   which becomes expensive for systems with more than 1000 atoms.
 
 .. note::
 
@@ -502,6 +528,42 @@ label changing fastest.  Each sub-block contains *K* bispectrum
 components. For the purposes of handling contributions to force, virial,
 and quadratic combinations, these :math:`N_{elem}^3` sub-blocks are
 treated as a single block of :math:`K N_{elem}^3` columns.
+
+If the *bik* keyword is set to 1, the structure of the snap array is expanded.
+The first :math:`N` rows of the snap array
+correspond to :math:`B_{i,k}` instead of a single row summed over atoms :math:`i`.
+In this case, the entries in the final column for these rows
+are set to zero. Also, each row contains only non-zero entries for the
+columns corresponding to the type of that atom. This is not true in the case
+of *dgradflag* keyword = 1 (see below).
+
+If the *dgradflag* keyword is set to 1, this changes the structure of the
+global array completely.
+Here the *snad/atom* quantities are replaced with rows corresponding to
+descriptor gradient components on single atoms:
+
+.. math::
+
+  \frac{\partial {B_{i,k}  }}{\partial {r}^a_j}
+
+where :math:`{r}^a_j` is the *a-th* position coordinate of the atom with global
+index *j*. The rows are
+organized in chunks, where each chunk corresponds to an atom with global index
+:math:`j`. The rows in an atom :math:`j` chunk correspond to
+atoms with global index :math:`i`. The total number of rows for
+these descriptor gradients is therefore :math:`3N^2`.
+The number of columns is equal to the number of bispectrum components,
+plus 3 additional left-most columns representing the global atom indices
+:math:`i`, :math:`j`,
+and Cartesian direction :math:`a`  (0, 1, 2, for x, y, z).
+The first 3 columns of the first :math:`N` rows belong to the reference
+potential force components. The remaining K columns contain the
+:math:`B_{i,k}` per-atom descriptors corresponding to the non-zero entries
+obtained when *bikflag* = 1.
+The first column of the last row, after the first
+:math:`N + 3N^2` rows, contains the reference potential
+energy. The virial components are not used with this option. The total number of
+rows is therefore :math:`N + 3N^2 + 1` and the number of columns is :math:`K + 3`.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc

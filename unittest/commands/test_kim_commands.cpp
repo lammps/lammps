@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -307,17 +307,17 @@ TEST_F(KimCommandsTest, kim_param)
 
     ASSERT_THAT(variable->retrieve("shift"), StrEq("2"));
 
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'list' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 list"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'list' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 list"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'split' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 split"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'split' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 split"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'explicit' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 explicit"););
-    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+    TEST_FAILURE(".*ERROR: Illegal variable name 'explicit' in 'kim param get'.*",
                  command("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 explicit"););
     TEST_FAILURE(".*ERROR: Wrong number of arguments in 'kim param get' "
                  "command.\nThe LAMMPS '3' variable names or 'cutoffs "
@@ -683,13 +683,12 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
-        std::cout << "Warning: using OpenMPI without exceptions. "
-                     "Death tests will be skipped\n";
+    if (LAMMPS_NS::platform::mpi_vendor() == "Open MPI" && !Info::has_exceptions())
+        std::cout << "Warning: using OpenMPI without exceptions. Death tests will be skipped\n";
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

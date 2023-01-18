@@ -51,7 +51,6 @@
 #include <utility>
 
 #include <Kokkos_Parallel.hpp>
-#include <impl/Kokkos_FunctorAdapter.hpp>
 #include <impl/Kokkos_Error.hpp>
 #include <Cuda/Kokkos_Cuda_Vectorization.hpp>
 
@@ -69,11 +68,10 @@ namespace Impl {
  *   (c) blockDim.z == 1
  */
 
-template <class ValueType, class JoinOp>
-__device__ inline
-    typename std::enable_if<!Kokkos::is_reducer<ValueType>::value>::type
-    cuda_intra_warp_reduction(ValueType& result, const JoinOp& join,
-                              const uint32_t max_active_thread = blockDim.y) {
+template <class ValueType, class ReducerType>
+__device__ inline void cuda_intra_warp_reduction(
+    ValueType& result, const ReducerType& reducer,
+    const uint32_t max_active_thread = blockDim.y) {
   unsigned int shift = 1;
 
   // Reduce over values from threads with different threadIdx.y
@@ -81,18 +79,17 @@ __device__ inline
     const ValueType tmp = shfl_down(result, blockDim.x * shift, 32u);
     // Only join if upper thread is active (this allows non power of two for
     // blockDim.y
-    if (threadIdx.y + shift < max_active_thread) join(result, tmp);
+    if (threadIdx.y + shift < max_active_thread) reducer.join(&result, &tmp);
     shift *= 2;
   }
 
   result = shfl(result, 0, 32);
 }
 
-template <class ValueType, class JoinOp>
-__device__ inline
-    typename std::enable_if<!Kokkos::is_reducer<ValueType>::value>::type
-    cuda_inter_warp_reduction(ValueType& value, const JoinOp& join,
-                              const int max_active_thread = blockDim.y) {
+template <class ValueType, class ReducerType>
+__device__ inline void cuda_inter_warp_reduction(
+    ValueType& value, const ReducerType& reducer,
+    const int max_active_thread = blockDim.y) {
 #define STEP_WIDTH 4
   // Depending on the ValueType _shared__ memory must be aligned up to 8byte
   // boundaries The reason not to use ValueType directly is that for types with
@@ -110,7 +107,7 @@ __device__ inline
   __syncthreads();
   while (shift <= max_active_thread / step) {
     if (shift <= id && shift + STEP_WIDTH > id && threadIdx.x == 0) {
-      join(result[id % STEP_WIDTH], value);
+      reducer.join(&result[id % STEP_WIDTH], &value);
     }
     __syncthreads();
     shift += STEP_WIDTH;
@@ -118,35 +115,30 @@ __device__ inline
 
   value = result[0];
   for (int i = 1; (i * step < max_active_thread) && i < STEP_WIDTH; i++)
-    join(value, result[i]);
+    reducer.join(&value, &result[i]);
 }
 
-template <class ValueType, class JoinOp>
-__device__ inline
-    typename std::enable_if<!Kokkos::is_reducer<ValueType>::value>::type
-    cuda_intra_block_reduction(ValueType& value, const JoinOp& join,
-                               const int max_active_thread = blockDim.y) {
-  cuda_intra_warp_reduction(value, join, max_active_thread);
-  cuda_inter_warp_reduction(value, join, max_active_thread);
+template <class ValueType, class ReducerType>
+__device__ inline void cuda_intra_block_reduction(
+    ValueType& value, const ReducerType& reducer,
+    const int max_active_thread = blockDim.y) {
+  cuda_intra_warp_reduction(value, reducer, max_active_thread);
+  cuda_inter_warp_reduction(value, reducer, max_active_thread);
 }
 
-template <class FunctorType, class JoinOp, class ArgTag = void>
+template <class FunctorType>
 __device__ bool cuda_inter_block_reduction(
-    typename FunctorValueTraits<FunctorType, ArgTag>::reference_type value,
-    typename FunctorValueTraits<FunctorType, ArgTag>::reference_type neutral,
-    const JoinOp& join, Cuda::size_type* const m_scratch_space,
-    typename FunctorValueTraits<FunctorType,
-                                ArgTag>::pointer_type const /*result*/,
+    typename FunctorType::reference_type value,
+    typename FunctorType::reference_type neutral, const FunctorType& reducer,
+    Cuda::size_type* const m_scratch_space,
+    typename FunctorType::pointer_type const /*result*/,
     Cuda::size_type* const m_scratch_flags,
     const int max_active_thread = blockDim.y) {
-#ifdef __CUDA_ARCH__
-  using pointer_type =
-      typename FunctorValueTraits<FunctorType, ArgTag>::pointer_type;
-  using value_type =
-      typename FunctorValueTraits<FunctorType, ArgTag>::value_type;
+  using pointer_type = typename FunctorType::pointer_type;
+  using value_type   = typename FunctorType::value_type;
 
   // Do the intra-block reduction with shfl operations and static shared memory
-  cuda_intra_block_reduction(value, join, max_active_thread);
+  cuda_intra_block_reduction(value, reducer, max_active_thread);
 
   const int id = threadIdx.y * blockDim.x + threadIdx.x;
 
@@ -182,35 +174,35 @@ __device__ bool cuda_inter_block_reduction(
           blockDim.x * blockDim.y < 32 ? blockDim.x * blockDim.y : 32;
       for (int i = id; i < (int)gridDim.x; i += step_size) {
         value_type tmp = global[i];
-        join(value, tmp);
+        reducer.join(&value, &tmp);
       }
 
       // Perform shfl reductions within the warp only join if contribution is
       // valid (allows gridDim.x non power of two and <32)
       if (int(blockDim.x * blockDim.y) > 1) {
         value_type tmp = Kokkos::shfl_down(value, 1, 32);
-        if (id + 1 < int(gridDim.x)) join(value, tmp);
+        if (id + 1 < int(gridDim.x)) reducer.join(&value, &tmp);
       }
       unsigned int mask = __activemask();
       __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 2) {
         value_type tmp = Kokkos::shfl_down(value, 2, 32);
-        if (id + 2 < int(gridDim.x)) join(value, tmp);
+        if (id + 2 < int(gridDim.x)) reducer.join(&value, &tmp);
       }
       __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 4) {
         value_type tmp = Kokkos::shfl_down(value, 4, 32);
-        if (id + 4 < int(gridDim.x)) join(value, tmp);
+        if (id + 4 < int(gridDim.x)) reducer.join(&value, &tmp);
       }
       __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 8) {
         value_type tmp = Kokkos::shfl_down(value, 8, 32);
-        if (id + 8 < int(gridDim.x)) join(value, tmp);
+        if (id + 8 < int(gridDim.x)) reducer.join(&value, &tmp);
       }
       __syncwarp(mask);
       if (int(blockDim.x * blockDim.y) > 16) {
         value_type tmp = Kokkos::shfl_down(value, 16, 32);
-        if (id + 16 < int(gridDim.x)) join(value, tmp);
+        if (id + 16 < int(gridDim.x)) reducer.join(&value, &tmp);
       }
       __syncwarp(mask);
     }
@@ -218,204 +210,15 @@ __device__ bool cuda_inter_block_reduction(
   // The last block has in its thread=0 the global reduction value through
   // "value"
   return last_block;
-#else
-  (void)value;
-  (void)neutral;
-  (void)join;
-  (void)m_scratch_space;
-  (void)m_scratch_flags;
-  (void)max_active_thread;
-  return true;
-#endif
 }
 
-template <class ReducerType>
-__device__ inline
-    typename std::enable_if<Kokkos::is_reducer<ReducerType>::value>::type
-    cuda_intra_warp_reduction(const ReducerType& reducer,
-                              typename ReducerType::value_type& result,
-                              const uint32_t max_active_thread = blockDim.y) {
-  using ValueType = typename ReducerType::value_type;
-
-  unsigned int shift = 1;
-
-  // Reduce over values from threads with different threadIdx.y
-  while (blockDim.x * shift < 32) {
-    const ValueType tmp = shfl_down(result, blockDim.x * shift, 32u);
-    // Only join if upper thread is active (this allows non power of two for
-    // blockDim.y
-    if (threadIdx.y + shift < max_active_thread) reducer.join(result, tmp);
-    shift *= 2;
-  }
-
-  result              = shfl(result, 0, 32);
-  reducer.reference() = result;
-}
-
-template <class ReducerType>
-__device__ inline
-    typename std::enable_if<Kokkos::is_reducer<ReducerType>::value>::type
-    cuda_inter_warp_reduction(const ReducerType& reducer,
-                              typename ReducerType::value_type value,
-                              const int max_active_thread = blockDim.y) {
-  using ValueType = typename ReducerType::value_type;
-
-#define STEP_WIDTH 4
-  // Depending on the ValueType _shared__ memory must be aligned up to 8byte
-  // boundaries The reason not to use ValueType directly is that for types with
-  // constructors it could lead to race conditions
-  alignas(alignof(ValueType) > alignof(double) ? alignof(ValueType)
-                                               : alignof(double))
-      __shared__ double sh_result[(sizeof(ValueType) + 7) / 8 * STEP_WIDTH];
-  ValueType* result = (ValueType*)&sh_result;
-  const int step    = 32 / blockDim.x;
-  int shift         = STEP_WIDTH;
-  const int id      = threadIdx.y % step == 0 ? threadIdx.y / step : 65000;
-  if (id < STEP_WIDTH) {
-    result[id] = value;
-  }
-  __syncthreads();
-  while (shift <= max_active_thread / step) {
-    if (shift <= id && shift + STEP_WIDTH > id && threadIdx.x == 0) {
-      reducer.join(result[id % STEP_WIDTH], value);
-    }
-    __syncthreads();
-    shift += STEP_WIDTH;
-  }
-
-  value = result[0];
-  for (int i = 1; (i * step < max_active_thread) && i < STEP_WIDTH; i++)
-    reducer.join(value, result[i]);
-
-  reducer.reference() = value;
-}
-
-template <class ReducerType>
-__device__ inline
-    typename std::enable_if<Kokkos::is_reducer<ReducerType>::value>::type
-    cuda_intra_block_reduction(const ReducerType& reducer,
-                               typename ReducerType::value_type value,
-                               const int max_active_thread = blockDim.y) {
-  cuda_intra_warp_reduction(reducer, value, max_active_thread);
-  cuda_inter_warp_reduction(reducer, value, max_active_thread);
-}
-
-template <class ReducerType>
-__device__ inline
-    typename std::enable_if<Kokkos::is_reducer<ReducerType>::value>::type
-    cuda_intra_block_reduction(const ReducerType& reducer,
-                               const int max_active_thread = blockDim.y) {
-  cuda_intra_block_reduction(reducer, reducer.reference(), max_active_thread);
-}
-
-template <class ReducerType>
-__device__ inline
-    typename std::enable_if<Kokkos::is_reducer<ReducerType>::value, bool>::type
-    cuda_inter_block_reduction(const ReducerType& reducer,
-                               Cuda::size_type* const m_scratch_space,
-                               Cuda::size_type* const m_scratch_flags,
-                               const int max_active_thread = blockDim.y) {
-#ifdef __CUDA_ARCH__
-  using pointer_type = typename ReducerType::value_type*;
-  using value_type   = typename ReducerType::value_type;
-
-  // Do the intra-block reduction with shfl operations and static shared memory
-  cuda_intra_block_reduction(reducer, max_active_thread);
-
-  value_type value = reducer.reference();
-
-  const int id = threadIdx.y * blockDim.x + threadIdx.x;
-
-  // One thread in the block writes block result to global scratch_memory
-  if (id == 0) {
-    pointer_type global = ((pointer_type)m_scratch_space) + blockIdx.x;
-    *global             = value;
-  }
-
-  // One warp of last block performs inter block reduction through loading the
-  // block values from global scratch_memory
-  bool last_block = false;
-
-  __threadfence();
-  __syncthreads();
-  if (id < 32) {
-    Cuda::size_type count;
-
-    // Figure out whether this is the last block
-    if (id == 0) count = Kokkos::atomic_fetch_add(m_scratch_flags, 1);
-    count = Kokkos::shfl(count, 0, 32);
-
-    // Last block does the inter block reduction
-    if (count == gridDim.x - 1) {
-      // set flag back to zero
-      if (id == 0) *m_scratch_flags = 0;
-      last_block = true;
-      reducer.init(value);
-
-      pointer_type const volatile global = (pointer_type)m_scratch_space;
-
-      // Reduce all global values with splitting work over threads in one warp
-      const int step_size =
-          blockDim.x * blockDim.y < 32 ? blockDim.x * blockDim.y : 32;
-      for (int i = id; i < (int)gridDim.x; i += step_size) {
-        value_type tmp = global[i];
-        reducer.join(value, tmp);
-      }
-
-      // Perform shfl reductions within the warp only join if contribution is
-      // valid (allows gridDim.x non power of two and <32)
-      if (int(blockDim.x * blockDim.y) > 1) {
-        value_type tmp = Kokkos::shfl_down(value, 1, 32);
-        if (id + 1 < int(gridDim.x)) reducer.join(value, tmp);
-      }
-      unsigned int mask = __activemask();
-      __syncwarp(mask);
-      if (int(blockDim.x * blockDim.y) > 2) {
-        value_type tmp = Kokkos::shfl_down(value, 2, 32);
-        if (id + 2 < int(gridDim.x)) reducer.join(value, tmp);
-      }
-      __syncwarp(mask);
-      if (int(blockDim.x * blockDim.y) > 4) {
-        value_type tmp = Kokkos::shfl_down(value, 4, 32);
-        if (id + 4 < int(gridDim.x)) reducer.join(value, tmp);
-      }
-      __syncwarp(mask);
-      if (int(blockDim.x * blockDim.y) > 8) {
-        value_type tmp = Kokkos::shfl_down(value, 8, 32);
-        if (id + 8 < int(gridDim.x)) reducer.join(value, tmp);
-      }
-      __syncwarp(mask);
-      if (int(blockDim.x * blockDim.y) > 16) {
-        value_type tmp = Kokkos::shfl_down(value, 16, 32);
-        if (id + 16 < int(gridDim.x)) reducer.join(value, tmp);
-      }
-      __syncwarp(mask);
-    }
-  }
-
-  // The last block has in its thread=0 the global reduction value through
-  // "value"
-  return last_block;
-#else
-  (void)reducer;
-  (void)m_scratch_space;
-  (void)m_scratch_flags;
-  (void)max_active_thread;
-  return true;
-#endif
-}
-
-template <class FunctorType, class ArgTag, bool DoScan, bool UseShfl>
+template <class FunctorType, bool DoScan, bool UseShfl>
 struct CudaReductionsFunctor;
 
-template <class FunctorType, class ArgTag>
-struct CudaReductionsFunctor<FunctorType, ArgTag, false, true> {
-  using ValueTraits  = FunctorValueTraits<FunctorType, ArgTag>;
-  using ValueJoin    = FunctorValueJoin<FunctorType, ArgTag>;
-  using ValueInit    = FunctorValueInit<FunctorType, ArgTag>;
-  using ValueOps     = FunctorValueOps<FunctorType, ArgTag>;
-  using pointer_type = typename ValueTraits::pointer_type;
-  using Scalar       = typename ValueTraits::value_type;
+template <class FunctorType>
+struct CudaReductionsFunctor<FunctorType, false, true> {
+  using pointer_type = typename FunctorType::pointer_type;
+  using Scalar       = typename FunctorType::value_type;
 
   __device__ static inline void scalar_intra_warp_reduction(
       const FunctorType& functor,
@@ -431,7 +234,7 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, true> {
                   << ((threadIdx.y * blockDim.x + threadIdx.x) / width) * width;
     for (int delta = skip_vector ? blockDim.x : 1; delta < width; delta *= 2) {
       Scalar tmp = Kokkos::shfl_down(value, delta, width, mask);
-      ValueJoin::join(functor, &value, &tmp);
+      functor.join(&value, &tmp);
     }
 
     Impl::in_place_shfl(result, value, 0, width, mask);
@@ -459,16 +262,16 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, true> {
     for (int w = shared_elements; w < num_warps; w += shared_elements) {
       if (warp_id >= w && warp_id < w + shared_elements) {
         if ((threadIdx.y * blockDim.x + threadIdx.x) % 32 == 0)
-          ValueJoin::join(functor, my_shared_team_buffer_element, &value);
+          functor.join(my_shared_team_buffer_element, &value);
       }
       __syncthreads();
     }
 
     if (warp_id == 0) {
-      ValueInit::init(functor, &value);
+      functor.init(&value);
       for (unsigned int i = threadIdx.y * blockDim.x + threadIdx.x;
            i < blockDim.y * blockDim.x / 32; i += 32)
-        ValueJoin::join(functor, &value, &shared_team_buffer_element[i]);
+        functor.join(&value, &shared_team_buffer_element[i]);
       scalar_intra_warp_reduction(functor, value, false, 32,
                                   *my_global_team_buffer_element);
     }
@@ -504,10 +307,10 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, true> {
     if (__syncthreads_or(num_teams_done == gridDim.x)) {
       is_last_block = true;
       *global_flags = 0;
-      ValueInit::init(functor, &value);
+      functor.init(&value);
       for (int i = threadIdx.y * blockDim.x + threadIdx.x; i < global_elements;
            i += blockDim.x * blockDim.y) {
-        ValueJoin::join(functor, &value, &global_team_buffer_element[i]);
+        functor.join(&value, &global_team_buffer_element[i]);
       }
       scalar_intra_block_reduction(
           functor, value, false, shared_team_buffer_elements + (blockDim.y - 1),
@@ -517,14 +320,10 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, true> {
   }
 };
 
-template <class FunctorType, class ArgTag>
-struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
-  using ValueTraits  = FunctorValueTraits<FunctorType, ArgTag>;
-  using ValueJoin    = FunctorValueJoin<FunctorType, ArgTag>;
-  using ValueInit    = FunctorValueInit<FunctorType, ArgTag>;
-  using ValueOps     = FunctorValueOps<FunctorType, ArgTag>;
-  using pointer_type = typename ValueTraits::pointer_type;
-  using Scalar       = typename ValueTraits::value_type;
+template <class FunctorType>
+struct CudaReductionsFunctor<FunctorType, false, false> {
+  using pointer_type = typename FunctorType::pointer_type;
+  using Scalar       = typename FunctorType::value_type;
 
   __device__ static inline void scalar_intra_warp_reduction(
       const FunctorType& functor,
@@ -539,13 +338,18 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
             : ((1 << width) - 1)
                   << ((threadIdx.y * blockDim.x + threadIdx.x) / width) * width;
     const int lane_id = (threadIdx.y * blockDim.x + threadIdx.x) % 32;
+
+    __syncwarp(mask);
+
     for (int delta = skip_vector ? blockDim.x : 1; delta < width; delta *= 2) {
       if (lane_id + delta < 32) {
-        ValueJoin::join(functor, value, value + delta);
+        functor.join(value, value + delta);
       }
       __syncwarp(mask);
     }
-    *value = *(value - lane_id);
+    if (lane_id != 0) {
+      *value = *(value - lane_id);
+    }
   }
 
   __device__ static inline void scalar_intra_block_reduction(
@@ -605,10 +409,10 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
     if (__syncthreads_or(num_teams_done == gridDim.x)) {
       is_last_block = true;
       *global_flags = 0;
-      ValueInit::init(functor, &value);
+      functor.init(&value);
       for (int i = threadIdx.y * blockDim.x + threadIdx.x; i < global_elements;
            i += blockDim.x * blockDim.y) {
-        ValueJoin::join(functor, &value, &global_team_buffer_element[i]);
+        functor.join(&value, &global_team_buffer_element[i]);
       }
       scalar_intra_block_reduction(
           functor, value, false, shared_team_buffer_elements + (blockDim.y - 1),
@@ -630,108 +434,127 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
 //----------------------------------------------------------------------------
 /*
  *  Algorithmic constraints:
- *   (a) blockDim.y is a power of two
- *   (b) blockDim.y <= 1024
- *   (c) blockDim.x == blockDim.z == 1
+ *   (a) blockDim.y <= 1024
+ *   (b) blockDim.x == blockDim.z == 1
  */
 
-template <bool DoScan, class FunctorType, class ArgTag>
+template <bool DoScan, class FunctorType>
 __device__ void cuda_intra_block_reduce_scan(
     const FunctorType& functor,
-    const typename FunctorValueTraits<FunctorType, ArgTag>::pointer_type
-        base_data) {
-  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
-  using ValueJoin   = FunctorValueJoin<FunctorType, ArgTag>;
+    const typename FunctorType::pointer_type base_data) {
+  using pointer_type = typename FunctorType::pointer_type;
 
-  using pointer_type = typename ValueTraits::pointer_type;
+  const unsigned value_count = functor.length();
+  const unsigned not_less_power_of_two =
+      (1 << (Impl::int_log2(blockDim.y - 1) + 1));
+  const unsigned BlockSizeMask = not_less_power_of_two - 1;
+  // There is at most one warp that is neither completely full or empty.
+  // For that warp, we shift all indices logically to the end and ignore join
+  // operations with unassigned indices in the warp when performing the intra
+  // warp reduction/scan.
+  const bool is_full_warp = (((threadIdx.y >> CudaTraits::WarpIndexShift) + 1)
+                             << CudaTraits::WarpIndexShift) <= blockDim.y;
 
-  const unsigned value_count   = ValueTraits::value_count(functor);
-  const unsigned BlockSizeMask = blockDim.y - 1;
-
-  // Must have power of two thread count
-
-  if (BlockSizeMask & blockDim.y) {
-    Kokkos::abort("Cuda::cuda_intra_block_scan requires power-of-two blockDim");
-  }
-
-#define BLOCK_REDUCE_STEP(R, TD, S)                          \
-  if (!(R & ((1 << (S + 1)) - 1))) {                         \
-    ValueJoin::join(functor, TD, (TD - (value_count << S))); \
-  }
-
-#define BLOCK_SCAN_STEP(TD, N, S)                            \
-  if (N == (1 << S)) {                                       \
-    ValueJoin::join(functor, TD, (TD - (value_count << S))); \
-  }
-
-  const unsigned rtid_intra      = threadIdx.y ^ BlockSizeMask;
+  const unsigned mapped_idx =
+      threadIdx.y + (is_full_warp ? 0
+                                  : (not_less_power_of_two - blockDim.y) &
+                                        (CudaTraits::WarpSize - 1));
   const pointer_type tdata_intra = base_data + value_count * threadIdx.y;
+  const pointer_type warp_start =
+      base_data + value_count * ((threadIdx.y >> CudaTraits::WarpIndexShift)
+                                 << CudaTraits::WarpIndexShift);
+
+  auto block_reduce_step = [&functor, value_count](
+                               int const R, pointer_type const TD, int const S,
+                               pointer_type memory_start, int index_shift) {
+    const auto join_ptr = TD - (value_count << S) + value_count * index_shift;
+    if (((R + 1) & ((1 << (S + 1)) - 1)) == 0 && join_ptr >= memory_start) {
+      functor.join(TD, join_ptr);
+    }
+  };
+
+  auto block_scan_step = [&functor, value_count](
+                             int const R, pointer_type const TD, int const S,
+                             pointer_type memory_start, int index_shift) {
+    const auto N        = (1 << (S + 1));
+    const auto join_ptr = TD - (value_count << S) + value_count * index_shift;
+    if (R >= N && ((R + 1) & (N - 1)) == (N >> 1) && join_ptr >= memory_start) {
+      functor.join(TD, join_ptr);
+    }
+  };
 
   {  // Intra-warp reduction:
     __syncwarp(0xffffffff);
-    BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 0)
+    block_reduce_step(mapped_idx, tdata_intra, 0, warp_start, 0);
     __syncwarp(0xffffffff);
-    BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 1)
+    block_reduce_step(mapped_idx, tdata_intra, 1, warp_start, 0);
     __syncwarp(0xffffffff);
-    BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 2)
+    block_reduce_step(mapped_idx, tdata_intra, 2, warp_start, 0);
     __syncwarp(0xffffffff);
-    BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 3)
+    block_reduce_step(mapped_idx, tdata_intra, 3, warp_start, 0);
     __syncwarp(0xffffffff);
-    BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 4)
+    block_reduce_step(mapped_idx, tdata_intra, 4, warp_start, 0);
     __syncwarp(0xffffffff);
   }
 
   __syncthreads();  // Wait for all warps to reduce
 
-  {  // Inter-warp reduce-scan by a single warp to avoid extra synchronizations
-    const unsigned rtid_inter = (threadIdx.y ^ BlockSizeMask)
-                                << CudaTraits::WarpIndexShift;
-
-    unsigned inner_mask = __ballot_sync(0xffffffff, (rtid_inter < blockDim.y));
-    if (rtid_inter < blockDim.y) {
+  // Inter-warp reduce-scan by a single warp to avoid extra synchronizations.
+  {
+    // There is at most one warp where the memory address to be used is not
+    // (CudaTraits::WarpSize - 1) away from the warp start adress. For the
+    // following reduction, we shift all indices logically to the end of the
+    // next power-of-two to the number of warps.
+    const unsigned n_active_warps =
+        ((blockDim.y - 1) >> CudaTraits::WarpIndexShift) + 1;
+    const unsigned inner_mask =
+        __ballot_sync(0xffffffff, (threadIdx.y < n_active_warps));
+    if (threadIdx.y < n_active_warps) {
+      const bool is_full_warp_inter =
+          threadIdx.y < (blockDim.y >> CudaTraits::WarpIndexShift);
       const pointer_type tdata_inter =
-          base_data + value_count * (rtid_inter ^ BlockSizeMask);
+          base_data +
+          value_count * (is_full_warp_inter
+                             ? (threadIdx.y << CudaTraits::WarpIndexShift) +
+                                   (CudaTraits::WarpSize - 1)
+                             : blockDim.y - 1);
+      const unsigned index_shift =
+          is_full_warp_inter
+              ? 0
+              : blockDim.y - (threadIdx.y << CudaTraits::WarpIndexShift);
+      const int rtid_inter = (threadIdx.y << CudaTraits::WarpIndexShift) +
+                             (CudaTraits::WarpSize - 1) - index_shift;
 
       if ((1 << 5) < BlockSizeMask) {
         __syncwarp(inner_mask);
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 5)
+        block_reduce_step(rtid_inter, tdata_inter, 5, base_data, index_shift);
       }
       if ((1 << 6) < BlockSizeMask) {
         __syncwarp(inner_mask);
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 6)
+        block_reduce_step(rtid_inter, tdata_inter, 6, base_data, index_shift);
       }
       if ((1 << 7) < BlockSizeMask) {
         __syncwarp(inner_mask);
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 7)
+        block_reduce_step(rtid_inter, tdata_inter, 7, base_data, index_shift);
       }
       if ((1 << 8) < BlockSizeMask) {
         __syncwarp(inner_mask);
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 8)
+        block_reduce_step(rtid_inter, tdata_inter, 8, base_data, index_shift);
       }
       if ((1 << 9) < BlockSizeMask) {
         __syncwarp(inner_mask);
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 9)
+        block_reduce_step(rtid_inter, tdata_inter, 9, base_data, index_shift);
       }
 
       if (DoScan) {
-        int n =
-            (rtid_inter & 32)
-                ? 32
-                : ((rtid_inter & 64)
-                       ? 64
-                       : ((rtid_inter & 128) ? 128
-                                             : ((rtid_inter & 256) ? 256 : 0)));
-
-        if (!(rtid_inter + n < blockDim.y)) n = 0;
-
         __syncwarp(inner_mask);
-        BLOCK_SCAN_STEP(tdata_inter, n, 8)
+        block_scan_step(rtid_inter, tdata_inter, 8, base_data, index_shift);
         __syncwarp(inner_mask);
-        BLOCK_SCAN_STEP(tdata_inter, n, 7)
+        block_scan_step(rtid_inter, tdata_inter, 7, base_data, index_shift);
         __syncwarp(inner_mask);
-        BLOCK_SCAN_STEP(tdata_inter, n, 6)
+        block_scan_step(rtid_inter, tdata_inter, 6, base_data, index_shift);
         __syncwarp(inner_mask);
-        BLOCK_SCAN_STEP(tdata_inter, n, 5)
+        block_scan_step(rtid_inter, tdata_inter, 5, base_data, index_shift);
       }
     }
   }
@@ -739,32 +562,27 @@ __device__ void cuda_intra_block_reduce_scan(
   __syncthreads();  // Wait for inter-warp reduce-scan to complete
 
   if (DoScan) {
-    int n =
-        (rtid_intra & 1)
-            ? 1
-            : ((rtid_intra & 2)
-                   ? 2
-                   : ((rtid_intra & 4)
-                          ? 4
-                          : ((rtid_intra & 8) ? 8
-                                              : ((rtid_intra & 16) ? 16 : 0))));
-
-    if (!(rtid_intra + n < blockDim.y)) n = 0;
+    block_scan_step(mapped_idx, tdata_intra, 4, warp_start, 0);
+    __threadfence_block();
     __syncwarp(0xffffffff);
-    BLOCK_SCAN_STEP(tdata_intra, n, 4) __threadfence_block();
+    block_scan_step(mapped_idx, tdata_intra, 3, warp_start, 0);
+    __threadfence_block();
     __syncwarp(0xffffffff);
-    BLOCK_SCAN_STEP(tdata_intra, n, 3) __threadfence_block();
+    block_scan_step(mapped_idx, tdata_intra, 2, warp_start, 0);
+    __threadfence_block();
     __syncwarp(0xffffffff);
-    BLOCK_SCAN_STEP(tdata_intra, n, 2) __threadfence_block();
+    block_scan_step(mapped_idx, tdata_intra, 1, warp_start, 0);
+    __threadfence_block();
     __syncwarp(0xffffffff);
-    BLOCK_SCAN_STEP(tdata_intra, n, 1) __threadfence_block();
+    block_scan_step(mapped_idx, tdata_intra, 0, warp_start, 0);
+    __threadfence_block();
     __syncwarp(0xffffffff);
-    BLOCK_SCAN_STEP(tdata_intra, n, 0) __threadfence_block();
+    // Update with total from previous warps
+    if (mapped_idx >= CudaTraits::WarpSize &&
+        (mapped_idx & (CudaTraits::WarpSize - 1)) != (CudaTraits::WarpSize - 1))
+      functor.join(tdata_intra, warp_start - value_count);
     __syncwarp(0xffffffff);
   }
-
-#undef BLOCK_SCAN_STEP
-#undef BLOCK_REDUCE_STEP
 }
 
 //----------------------------------------------------------------------------
@@ -776,19 +594,14 @@ __device__ void cuda_intra_block_reduce_scan(
  *  Global reduce result is in the last threads' 'shared_data' location.
  */
 
-template <bool DoScan, class FunctorType, class ArgTag,
-          class SizeType = Cuda::size_type>
+template <bool DoScan, class FunctorType, class SizeType = Cuda::size_type>
 __device__ bool cuda_single_inter_block_reduce_scan2(
     const FunctorType& functor, const Cuda::size_type block_id,
     const Cuda::size_type block_count, SizeType* const shared_data,
     SizeType* const global_data, Cuda::size_type* const global_flags) {
-  using size_type   = SizeType;
-  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
-  using ValueJoin   = FunctorValueJoin<FunctorType, ArgTag>;
-  using ValueInit   = FunctorValueInit<FunctorType, ArgTag>;
-  using ValueOps    = FunctorValueOps<FunctorType, ArgTag>;
-
-  using pointer_type = typename ValueTraits::pointer_type;
+  using size_type    = SizeType;
+  using value_type   = typename FunctorType::value_type;
+  using pointer_type = typename FunctorType::pointer_type;
 
   // '__ffs' = position of the least significant bit set to 1.
   // 'blockDim.y' is guaranteed to be a power of two so this
@@ -803,14 +616,14 @@ __device__ bool cuda_single_inter_block_reduce_scan2(
         "blockDim");
   }
 
-  const integral_nonzero_constant<size_type, ValueTraits::StaticValueSize /
-                                                 sizeof(size_type)>
-      word_count(ValueTraits::value_size(functor) / sizeof(size_type));
+  const integral_nonzero_constant<
+      size_type, std::is_pointer<typename FunctorType::reference_type>::value
+                     ? 0
+                     : sizeof(value_type) / sizeof(size_type)>
+      word_count((sizeof(value_type) * functor.length()) / sizeof(size_type));
 
   // Reduce the accumulation for the entire block.
-  cuda_intra_block_reduce_scan<false, FunctorType, ArgTag>(
-      functor, pointer_type(shared_data));
-
+  cuda_intra_block_reduce_scan<false>(functor, pointer_type(shared_data));
   {
     // Write accumulation total to global scratch space.
     // Accumulation total is the last thread's data.
@@ -840,31 +653,34 @@ __device__ bool cuda_single_inter_block_reduce_scan2(
 
     {
       void* const shared_ptr = shared_data + word_count.value * threadIdx.y;
-      /* reference_type shared_value = */ ValueInit::init(functor, shared_ptr);
+      /* reference_type shared_value = */ functor.init(
+          static_cast<pointer_type>(shared_ptr));
 
       for (size_type i = b; i < e; ++i) {
-        ValueJoin::join(functor, shared_ptr,
-                        global_data + word_count.value * i);
+        functor.join(
+            static_cast<pointer_type>(shared_ptr),
+            reinterpret_cast<pointer_type>(global_data + word_count.value * i));
       }
     }
 
-    cuda_intra_block_reduce_scan<DoScan, FunctorType, ArgTag>(
-        functor, pointer_type(shared_data));
+    cuda_intra_block_reduce_scan<DoScan>(functor, pointer_type(shared_data));
 
     if (DoScan) {
-      size_type* const shared_value =
+      pointer_type const shared_value = reinterpret_cast<pointer_type>(
           shared_data +
-          word_count.value * (threadIdx.y ? threadIdx.y - 1 : blockDim.y);
+          word_count.value * (threadIdx.y ? threadIdx.y - 1 : blockDim.y));
 
       if (!threadIdx.y) {
-        ValueInit::init(functor, shared_value);
+        functor.init(shared_value);
       }
 
       // Join previous inclusive scan value to each member
       for (size_type i = b; i < e; ++i) {
         size_type* const global_value = global_data + word_count.value * i;
-        ValueJoin::join(functor, shared_value, global_value);
-        ValueOps ::copy(functor, global_value, shared_value);
+        functor.join(shared_value,
+                     reinterpret_cast<pointer_type>(global_value));
+        functor.copy(reinterpret_cast<pointer_type>(global_value),
+                     reinterpret_cast<pointer_type>(shared_value));
       }
     }
   }
@@ -872,29 +688,42 @@ __device__ bool cuda_single_inter_block_reduce_scan2(
   return is_last_block;
 }
 
-template <bool DoScan, class FunctorType, class ArgTag,
-          class SizeType = Cuda::size_type>
+template <bool DoScan, class FunctorType, class SizeType = Cuda::size_type>
 __device__ bool cuda_single_inter_block_reduce_scan(
     const FunctorType& functor, const Cuda::size_type block_id,
     const Cuda::size_type block_count, SizeType* const shared_data,
     SizeType* const global_data, Cuda::size_type* const global_flags) {
-  using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
-  if (!DoScan && ValueTraits::StaticValueSize > 0)
+  if (!DoScan && !std::is_pointer<typename FunctorType::reference_type>::value)
     return Kokkos::Impl::CudaReductionsFunctor<
-        FunctorType, ArgTag, false, (ValueTraits::StaticValueSize > 16)>::
+        FunctorType, false, (sizeof(typename FunctorType::value_type) > 16)>::
         scalar_inter_block_reduction(functor, block_id, block_count,
                                      shared_data, global_data, global_flags);
   else
-    return cuda_single_inter_block_reduce_scan2<DoScan, FunctorType, ArgTag>(
+    return cuda_single_inter_block_reduce_scan2<DoScan>(
         functor, block_id, block_count, shared_data, global_data, global_flags);
 }
 
 // Size in bytes required for inter block reduce or scan
 template <bool DoScan, class FunctorType, class ArgTag>
-inline unsigned cuda_single_inter_block_reduce_scan_shmem(
-    const FunctorType& functor, const unsigned BlockSize) {
-  return (BlockSize + 2) *
-         Impl::FunctorValueTraits<FunctorType, ArgTag>::value_size(functor);
+inline std::enable_if_t<DoScan, unsigned>
+cuda_single_inter_block_reduce_scan_shmem(const FunctorType& functor,
+                                          const unsigned BlockSize) {
+  using Analysis =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::SCAN,
+                            RangePolicy<Cuda, ArgTag>, FunctorType>;
+
+  return (BlockSize + 2) * Analysis::value_size(functor);
+}
+
+template <bool DoScan, class FunctorType, class ArgTag>
+inline std::enable_if_t<!DoScan, unsigned>
+cuda_single_inter_block_reduce_scan_shmem(const FunctorType& functor,
+                                          const unsigned BlockSize) {
+  using Analysis =
+      Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                            RangePolicy<Cuda, ArgTag>, FunctorType>;
+
+  return (BlockSize + 2) * Analysis::value_size(functor);
 }
 
 template <typename WorkTag, typename Policy, typename FunctorType>

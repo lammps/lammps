@@ -4,13 +4,13 @@ Authors of LAMMPS
 The primary LAMMPS developers are at Sandia National Labs and Temple
 University:
 
-* `Steve Plimpton <sjp_>`_, sjplimp at sandia.gov
+* `Steve Plimpton <sjp_>`_, sjplimp at gmail.com
 * Aidan Thompson, athomps at sandia.gov
 * Stan Moore, stamoor at sandia.gov
 * Axel Kohlmeyer, akohlmey at gmail.com
 * Richard Berger, richard.berger at outlook.com
 
-.. _sjp: http://www.cs.sandia.gov/~sjplimp
+.. _sjp: https://sjplimp.github.io
 .. _lws: https://www.lammps.org
 
 Past developers include Paul Crozier and Mark Stevens, both at Sandia,

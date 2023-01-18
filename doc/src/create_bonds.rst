@@ -10,7 +10,7 @@ Syntax
 
    create_bonds style args ... keyword value ...
 
-* style = *many* or *single/bond* or *single/angle* or *single/dihedral*
+* style = *many* or *single/bond* or *single/angle* or *single/dihedral* or *single/improper*
 
 .. parsed-literal::
 
@@ -67,20 +67,20 @@ the :doc:`bond_style <bond_style>`, :doc:`bond_coeff <bond_coeff>`,
 :doc:`dihedral_coeff <dihedral_coeff>`, :doc:`improper_style <improper_style>`,
 :doc:`improper_coeff <improper_coeff>` commands.
 
-The *many* style is useful for adding bonds to a system, e.g. between
-nearest neighbors in a lattice of atoms, without having to enumerate
+The *many* style is useful for adding bonds to a system (e.g., between
+nearest neighbors in a lattice of atoms) without having to enumerate
 all the bonds in the data file read by the :doc:`read_data <read_data>`
 command.
 
-The *single* styles are useful for adding bonds, angles, dihedrals, impropers
-to a system incrementally, then continuing a simulation.
+The *single* styles are useful for adding bonds, angles, dihedrals, and
+impropers to a system incrementally, then continuing a simulation.
 
-Note that this command does not auto-create any angle, dihedral or improper
-interactions when a bond is added.  Nor does it auto-create any bonds
-when an angle, dihedral or improper is added.  Or auto-create any angles when a
-dihedral or improper is added.  Thus the flexibility of this command is limited.
-It can be used several times to create different types of bond at
-different distances.  But it cannot typically auto-create all the
+Note that this command does not auto-create any angle, dihedral, or improper
+interactions when a bond is added, nor does it auto-create any bonds
+when an angle, dihedral, or improper is added.  It also will not auto-create
+any angles when a dihedral or improper is added.  Thus, the flexibility of this
+command is limited.  It can be used several times to create different types of
+bond at different distances, but it cannot typically auto-create all the
 bonds or angles or dihedrals or impropers that would normally be defined in a
 data file for a complex system of molecules.
 
@@ -88,36 +88,37 @@ data file for a complex system of molecules.
 
    If the system has no bonds (angles, dihedrals, impropers) to begin with,
    or if more bonds per atom are being added than currently exist, then you
-   must insure that the number of bond types and the maximum number of
-   bonds per atom are set to large enough values.  And similarly for
-   angles, dihedrals and impropers.  Otherwise an error may occur when too many
+   must ensure that the number of bond types and the maximum number of
+   bonds per atom are set to large enough values, and similarly for
+   angles, dihedrals, and impropers, otherwise an error may occur when too many
    bonds (angles, dihedrals, impropers) are added to an atom.  If the
    :doc:`read_data <read_data>` command is used to define the system, these
    parameters can be set via the "bond types" and "extra bond per atom"
    fields in the header section of the data file.  If the
    :doc:`create_box <create_box>` command is used to define the system,
-   these 2 parameters can be set via its optional "bond/types" and
-   "extra/bond/per/atom" arguments.  And similarly for angles, dihedrals and
-   impropers.  See the doc pages for these 2 commands for details.
+   these two parameters can be set via its optional *bond/types* and
+   *extra/bond/per/atom* arguments, and similarly for angles, dihedrals, and
+   impropers.  See the doc pages for these two commands for details.
 
 ----------
 
-The *many* style will create bonds between pairs of atoms I,J where I
-is in one of the two specified groups, and J is in the other.  The two
-groups can be the same, e.g. group "all".  The created bonds will be
-of bond type *btype*, where *btype* must be a value between 1 and the
+The *many* style will create bonds between pairs of atoms :math:`I,J`,
+where :math:`I` is in one of the two specified groups and :math:`J` is in the
+other.  The two groups can be the same (e.g., group "all").  The created bonds
+will be of bond type *btype*, where *btype* must be a value between 1 and the
 number of bond types defined.
 
-For a bond to be created, an I,J pair of atoms must be a distance D
-apart such that *rmin* <= D <= *rmax*\ .
+For a bond to be created, an :math:`I,J` pair of atoms must be a distance
+:math:`D` apart such that :math:`r_\text{min} \le D \le r_\text{max}`.
 
 The following settings must have been made in an input script before
 this style is used:
 
-* special_bonds weight for 1-2 interactions must be 0.0
+* special_bonds weight for 1--2 interactions must be 0.0
 * a :doc:`pair_style <pair_style>` must be defined
 * no :doc:`kspace_style <kspace_style>` defined
-* minimum :doc:`pair_style <pair_style>` cutoff + :doc:`neighbor <neighbor>` skin >= *rmax*
+* minimum :doc:`pair_style <pair_style>` cutoff + :doc:`neighbor <neighbor>`
+  skin :math:`\ge r_\text{max}`
 
 These settings are required so that a neighbor list can be created to
 search for nearby atoms.  Pairs of atoms that are already bonded
@@ -127,12 +128,12 @@ a distance that encompasses the *rmax* for new bonds to create.
 
 .. note::
 
-   If you want to create bonds between pairs of 1-3 or 1-4 atoms in
+   If you want to create bonds between pairs of 1--3 or 1--4 atoms in
    the current bond topology, then you need to use :doc:`special_bonds
    lj 0 1 1 <special_bonds>` to insure those pairs appear in the
    neighbor list.  They will not appear with the default special_bonds
-   settings which are zero for 1-2, 1-3, and 1-4 atoms.  1-3 or 1-4
-   atoms are those which are 2 hops or 3 hops apart in the bond
+   settings, which are zero for 1--2, 1--3, and 1--4 atoms.  1--3 or 1--4
+   atoms are those which are two hops or three hops apart in the bond
    topology.
 
 An additional requirement for this style is that your system must be
@@ -145,7 +146,7 @@ neighbor list requires initialization and setup of a simulation,
 similar to what a :doc:`run <run>` command would require.
 
 Note that you can change any of these settings after this command
-executes, e.g. if you wish to use long-range Coulombic interactions
+executes (e.g., if you wish to use long-range Coulombic interactions)
 via the :doc:`kspace_style <kspace_style>` command for your subsequent
 simulation.
 
@@ -158,8 +159,8 @@ between 1 and the number of bond types defined.
 The *single/angle* style creates a single angle of type *atype*
 between three atoms with IDs *aatom1*, *aatom2*, and *aatom3*\ .  The
 ordering of the atoms is the same as in the *Angles* section of a data
-file read by the :doc:`read_data <read_data>` command.  I.e. the 3 atoms are
-ordered linearly within the angle; the central atom is *aatom2*\ .
+file read by the :doc:`read_data <read_data>` command (i.e., the three atoms
+are ordered linearly within the angle; the central atom is *aatom2*).
 *Atype* must be a value between 1 and the number of angle types
 defined.
 
@@ -180,14 +181,14 @@ the number of improper types defined.
 ----------
 
 The keyword *special* controls whether an internal list of special
-bonds is created after one or more bonds, or a single angle, dihedral or
+bonds is created after one or more bonds, or a single angle, dihedral, or
 improper is added to the system.
 
 The default value is *yes*\ .  A value of *no* cannot be used
 with the *many* style.
 
 This is an expensive operation since the bond topology for the system
-must be walked to find all 1-2, 1-3, 1-4 interactions to store in an
+must be walked to find all 1--2, 1--3, and 1--4 interactions to store in an
 internal list, which is used when pairwise interactions are weighted;
 see the :doc:`special_bonds <special_bonds>` command for details.
 
@@ -204,10 +205,10 @@ bond (or angle, or dihedral, or improper) is added:
    create_bonds single/bond 5 17 386 special no
    create_bonds single/bond 4 112 183 special yes
 
-Note that you MUST insure the internal list is re-built after the last
-bond (angle, dihedral, improper) is added, before performing a simulation.
-Otherwise pairwise interactions will not be properly excluded or
-weighted.  LAMMPS does NOT check that you have done this correctly.
+Note that you **must** ensure the internal list is rebuilt after the last
+bond (angle, dihedral, improper) is added, *before* performing a simulation.
+Otherwise, pairwise interactions will not be properly excluded or
+weighted.  LAMMPS does **not** check that you have done this correctly.
 
 ----------
 

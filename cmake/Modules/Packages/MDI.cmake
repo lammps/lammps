@@ -8,8 +8,8 @@ option(DOWNLOAD_MDI "Download and compile the MDI library instead of using an al
 
 if(DOWNLOAD_MDI)
   message(STATUS "MDI download requested - we will build our own")
-  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.1.tar.gz" CACHE STRING "URL for MDI tarball")
-  set(MDI_MD5 "f9505fccd4c79301a619f6452dad4ad9" CACHE STRING "MD5 checksum for MDI tarball")
+  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.12.tar.gz" CACHE STRING "URL for MDI tarball")
+  set(MDI_MD5 "7a222353ae8e03961d5365e6cd48baee" CACHE STRING "MD5 checksum for MDI tarball")
   mark_as_advanced(MDI_URL)
   mark_as_advanced(MDI_MD5)
   enable_language(C)
@@ -26,14 +26,35 @@ if(DOWNLOAD_MDI)
   # detect if we have python development support and thus can enable python plugins
   set(MDI_USE_PYTHON_PLUGINS OFF)
   if(CMAKE_VERSION VERSION_LESS 3.12)
+    if(NOT PYTHON_VERSION_STRING)
+      set(Python_ADDITIONAL_VERSIONS 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
+      # search for interpreter first, so we have a consistent library
+      find_package(PythonInterp) # Deprecated since version 3.12
+      if(PYTHONINTERP_FOUND)
+        set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+      endif()
+    endif()
+    # search for the library matching the selected interpreter
+    set(Python_ADDITIONAL_VERSIONS ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR})
     find_package(PythonLibs QUIET) # Deprecated since version 3.12
     if(PYTHONLIBS_FOUND)
+      if(NOT (PYTHON_VERSION_STRING STREQUAL PYTHONLIBS_VERSION_STRING))
+        message(FATAL_ERROR "Python Library version ${PYTHONLIBS_VERSION_STRING} does not match Interpreter version ${PYTHON_VERSION_STRING}")
+      endif()
       set(MDI_USE_PYTHON_PLUGINS ON)
     endif()
   else()
     find_package(Python QUIET COMPONENTS Development)
     if(Python_Development_FOUND)
       set(MDI_USE_PYTHON_PLUGINS ON)
+    endif()
+  endif()
+  # python plugins are not supported and thus must be always off on Windows
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    unset(Python_Development_FOUND)
+    set(MDI_USE_PYTHON_PLUGINS OFF)
+    if(CMAKE_CROSSCOMPILING)
+      set(CMAKE_INSTALL_LIBDIR lib)
     endif()
   endif()
 
@@ -44,8 +65,9 @@ if(DOWNLOAD_MDI)
   ExternalProject_Add(mdi_build
     URL     ${MDI_URL}
     URL_MD5 ${MDI_MD5}
+    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext
     CMAKE_ARGS
-    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
@@ -57,23 +79,23 @@ if(DOWNLOAD_MDI)
     -Dplugins=ON
     -Dpython_plugins=${MDI_USE_PYTHON_PLUGINS}
     UPDATE_COMMAND ""
-    INSTALL_COMMAND ""
-    BUILD_BYPRODUCTS "<BINARY_DIR>/MDI_Library/libmdi.a"
+    INSTALL_COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext/src/mdi_build-build --target install
+    BUILD_BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext/${CMAKE_INSTALL_LIBDIR}/mdi/${CMAKE_STATIC_LIBRARY_PREFIX}mdi${CMAKE_STATIC_LIBRARY_SUFFIX}"
     )
 
   # where is the compiled library?
-  ExternalProject_get_property(mdi_build BINARY_DIR)
-  set(MDI_BINARY_DIR "${BINARY_DIR}/MDI_Library")
+  ExternalProject_get_property(mdi_build PREFIX)
   # workaround for older CMake versions
-  file(MAKE_DIRECTORY ${MDI_BINARY_DIR})
+  file(MAKE_DIRECTORY ${PREFIX}/${CMAKE_INSTALL_LIBDIR}/mdi)
+  file(MAKE_DIRECTORY ${PREFIX}/include/mdi)
 
   # create imported target for the MDI library
   add_library(LAMMPS::MDI UNKNOWN IMPORTED)
   add_dependencies(LAMMPS::MDI mdi_build)
   set_target_properties(LAMMPS::MDI PROPERTIES
-    IMPORTED_LOCATION "${MDI_BINARY_DIR}/libmdi.a"
-    INTERFACE_INCLUDE_DIRECTORIES ${MDI_BINARY_DIR}
-    )
+    IMPORTED_LOCATION "${PREFIX}/${CMAKE_INSTALL_LIBDIR}/mdi/${CMAKE_STATIC_LIBRARY_PREFIX}mdi${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    INTERFACE_INCLUDE_DIRECTORIES ${PREFIX}/include/mdi
+  )
 
   set(MDI_DEP_LIBS "")
   # if compiling with python plugins we need

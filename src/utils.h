@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -73,9 +73,9 @@ namespace utils {
    *  \param format format string of message to be printed
    *  \param args   arguments to format string */
 
-  template <typename S, typename... Args> void logmesg(LAMMPS *lmp, const S &format, Args &&...args)
+  template <typename... Args> void logmesg(LAMMPS *lmp, const std::string &format, Args &&...args)
   {
-    fmtargs_logmesg(lmp, format, fmt::make_args_checked<Args...>(format, args...));
+    fmtargs_logmesg(lmp, format, fmt::make_format_args(args...));
   }
 
   /*! \overload
@@ -334,13 +334,15 @@ namespace utils {
   /*! Expand list of arguments when containing fix/compute wildcards
    *
    *  This function searches the list of arguments in *arg* for strings
-   *  of the kind c_ID[*] or f_ID[*] referring to computes or fixes.
+   *  of the kind c_ID[*], f_ID[*], v_ID[*], i2_ID[*], d2_ID[*], or
+   *  c_ID:gname:dname[*] referring to computes, fixes, vector style
+   *  variables, custom per-atom arrays, or grids, respectively.
    *  Any such strings are replaced by one or more strings with the
    *  '*' character replaced by the corresponding possible numbers as
-   *  determined from the fix or compute instance.  Other strings are
-   *  just copied. If the *mode* parameter is set to 0, expand global
-   *  vectors, but not global arrays; if it is set to 1, expand global
-   *  arrays (by column) but not global vectors.
+   *  determined from the fix, compute, variable, property, or grid instance.
+   *  Unrecognized strings are just copied. If the *mode* parameter
+   *  is set to 0, expand global vectors, but not global arrays; if it is
+   *  set to 1, expand global arrays (by column) but not global vectors.
    *
    *  If any expansion happens, the earg list and all its
    *  strings are new allocations and must be freed explicitly by the
@@ -358,6 +360,58 @@ namespace utils {
 
   int expand_args(const char *file, int line, int narg, char **arg, int mode, char **&earg,
                   LAMMPS *lmp);
+
+  /*! Expand type label string into its equivalent numeric type
+   *
+   *  This function checks if a given string may be a type label and
+   *  then searches the labelmap type indicated by the *mode* argument
+   *  for the corresponding numeric type.  If this is found a copy of
+   *  the numeric type string is made and returned. Otherwise a null
+   *  pointer is returned.
+   *  If a string is returned, the calling code must free it with delete[].
+   *
+   * \param file  name of source file for error message
+   * \param line  line number in source file for error message
+   * \param str   type string to be expanded
+   * \param mode  select labelmap using constants from Atom class
+   * \param lmp   pointer to top-level LAMMPS class instance
+   * \return      pointer to expanded string or null pointer */
+
+  char *expand_type(const char *file, int line, const std::string &str, int mode, LAMMPS *lmp);
+
+  /*! Check grid reference for valid Compute or Fix which produces per-grid data
+   *
+   *  This function checks if a command argument in the input script
+   *  is a valid reference to per-grid data produced by a Compute or Fix.
+   *  If it is, the ID of the compute/fix is returned which the caller must
+   *  free with delete [].  It also returns igrid/idata/index integers
+   *  which allow the caller to access the per-grid data.
+   *  A flag is also returned to indicate compute vs fix vs error.
+   *
+   * \param errstr  name of calling command, e.g. "Fix ave/grid"
+   * \param ref     per-grid reference from input script, e.g. "c_10:grid:data[2]"
+   * \param nevery  frequency at which caller will access fix for per-grid info,
+   *                ignored when reference is to a compute
+   * \param lmp     pointer to top-level LAMMPS class instance
+   * \return id     ID of Compute or Fix
+   * \return igrid  which grid is referenced (0 to N-1)
+   * \return idata  which data on grid is referenced (0 to N-1)
+   * \return index  which column of data is referenced (0 for vec, 1-N for array)
+   * \return        ArgINFO::COMPUTE or FIX or UNKNOWN or NONE */
+
+  int check_grid_reference(char *errstr, char *ref, int nevery,
+                           char *&id, int &igrid, int &idata, int &index, LAMMPS *lmp);
+
+  /*! Parse grid reference into 3 sub-strings
+   *
+   * Format of grid ID reference = id:gname:dname
+   * Return vector with the 3 sub-strings
+   *
+   * \param name = complete grid ID
+   * \return std::vector<std::string> containing the 3 sub-strings  */
+
+  std::vector<std::string> parse_grid_id(const char *file, int line, const std::string &name,
+                                         Error *error);
 
   /*! Make C-style copy of string in new storage
    *
@@ -412,7 +466,23 @@ namespace utils {
 
   std::string star_subst(const std::string &name, bigint step, int pad);
 
-  /*! Check if a string will likely have UTF-8 encoded characters
+  /*! Remove style suffix from string if suffix flag is active
+   *
+   *
+\verbatim embed:rst
+
+This will try to undo the effect from using the :doc:`suffix command <suffix>`
+or the *-suffix/-sf* command line flag and return correspondingly modified string.
+
+\endverbatim
+   *
+   * \param style  string of style name
+   * \param lmp    pointer to the LAMMPS class (has suffix_flag and suffix strings)
+   * \return  processed string */
+
+  std::string strip_style_suffix(const std::string &style, LAMMPS *lmp);
+
+/*! Check if a string will likely have UTF-8 encoded characters
    *
    * UTF-8 uses the 7-bit standard ASCII table for the first 127 characters and
    * all other characters are encoded as multiple bytes.  For the multi-byte
@@ -486,6 +556,17 @@ namespace utils {
 
   size_t trim_and_count_words(const std::string &text, const std::string &separators = " \t\r\n\f");
 
+  /*! Take list of words and join them with a given separator text.
+   *
+   * This is the inverse operation of what the split_words() function
+   * Tokenizer classes do.
+   *
+   * \param words  STL vector with strings
+   * \param sep    separator string (may be empty)
+   * \return  string with the concatenated words and separators */
+
+  std::string join_words(const std::vector<std::string> &words, const std::string &sep);
+
   /*! Take text and split into non-whitespace words.
    *
    * This can handle strings with single and double quotes, escaped quotes,
@@ -532,6 +613,19 @@ namespace utils {
    * \return true, if string contains valid id, false otherwise */
 
   bool is_id(const std::string &str);
+
+  /*! Check if string is a valid type label, or numeric type, or numeric type range.
+   * Numeric type or type range may only contain digits or the '*' character.
+   * Type label strings may not contain a digit, or a '*', or a '#' character as the
+   * first character to distinguish them from comments and numeric types or type ranges.
+   * They also may not contain any whitespace. If the string is a valid numeric type
+   * or type range the function returns 0, if it is a valid type label the function
+   * returns 1, otherwise it returns -1.
+   *
+   * \param str string that should be checked
+   * \return 0, 1, or -1, depending on whether the string is valid numeric type, valid type label or neither, respectively */
+
+  int is_type(const std::string &str);
 
   /*! Determine full path of potential file. If file is not found in current directory,
    *  search directories listed in LAMMPS_POTENTIALS environment variable

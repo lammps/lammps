@@ -6,7 +6,7 @@ Windows system can be downloaded from this site:
 
 .. parsed-literal::
 
-  `http://packages.lammps.org/windows.html <http://packages.lammps.org/windows.html>`_
+  `https://packages.lammps.org/windows.html <https://packages.lammps.org/windows.html>`_
 
 Note that each installer package has a date in its name, which
 corresponds to the LAMMPS version of the same date.  Installers for

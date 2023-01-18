@@ -45,7 +45,6 @@
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-#include <stdexcept>
 #include <sstream>
 #include <iostream>
 
@@ -269,6 +268,43 @@ TEST(TEST_CATEGORY, view_allocation_large_rank) {
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, v_single);
   ASSERT_EQ(result(0, 0, 0, 0, 0, 0, 0, 0), 42);
 }
+
+template <typename ExecSpace, typename ViewType>
+struct TestViewShmemSizeOnDevice {
+  using ViewTestType = Kokkos::View<size_t, ExecSpace>;
+
+  TestViewShmemSizeOnDevice(size_t d1_, size_t d2_, size_t d3_)
+      : d1(d1_), d2(d2_), d3(d3_), shmemSize("shmemSize") {}
+
+  KOKKOS_FUNCTION void operator()(const int&) const {
+    auto shmem  = ViewType::shmem_size(d1, d2, d3);
+    shmemSize() = shmem;
+  }
+
+  size_t d1, d2, d3;
+  ViewTestType shmemSize;
+};
+
+TEST(TEST_CATEGORY, view_shmem_size_on_device) {
+  using ExecSpace = typename TEST_EXECSPACE::execution_space;
+  using ViewType  = Kokkos::View<int64_t***, ExecSpace>;
+
+  constexpr size_t d1 = 5;
+  constexpr size_t d2 = 7;
+  constexpr size_t d3 = 11;
+
+  TestViewShmemSizeOnDevice<ExecSpace, ViewType> testShmemSize(d1, d2, d3);
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace>(0, 1), testShmemSize);
+
+  auto size = ViewType::shmem_size(d1, d2, d3);
+
+  auto shmemSizeHost = Kokkos::create_mirror_view_and_copy(
+      Kokkos::HostSpace(), testShmemSize.shmemSize);
+
+  ASSERT_EQ(size, shmemSizeHost());
+}
+
 }  // namespace Test
 
 #include <TestViewIsAssignable.hpp>

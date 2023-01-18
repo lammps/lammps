@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -79,7 +79,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (radius < 0.0) error->all(FLERR,"Illegal region sphere command");
+  if (radius < 0.0) error->all(FLERR,"Illegal region sphere radius: {}", radius);
 
   // extent of sphere
   // for variable radius, uses initial radius and origin for variable center

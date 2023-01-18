@@ -77,6 +77,7 @@ more of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`zero <improper_zero>` - topology but no interactions
 * :doc:`hybrid <improper_hybrid>` - define multiple styles of improper interactions
 
+* :doc:`amoeba <improper_amoeba>` - AMOEBA out-of-plane improper
 * :doc:`class2 <improper_class2>` - COMPASS (class 2) improper
 * :doc:`cossq <improper_cossq>` - improper with a cosine squared term
 * :doc:`cvff <improper_cvff>` - CVFF improper

@@ -476,65 +476,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Bonds defined but no bond types*
    The data file header lists bonds but no bond types.
 
-*Bond/react: Cannot use fix bond/react with non-molecular systems*
-   Only systems with bonds that can be changed can be used. Atom_style
-   template does not qualify.
-
-*Bond/react: Invalid template atom ID in map file*
-   Atom IDs in molecule templates range from 1 to the number of atoms in the template.
-
-*Bond/react: Rmax cutoff is longer than pairwise cutoff*
-   This is not allowed because bond creation is done using the pairwise
-   neighbor list.
-
-*Bond/react: Molecule template ID for fix bond/react does not exist*
-   A valid molecule template must have been created with the molecule
-   command.
-
-*Bond/react: Reaction templates must contain the same number of atoms*
-   There should be a one-to-one correspondence between atoms in the
-   pre-reacted and post-reacted templates, as specified by the map file.
-
-*Bond/react: Unknown section in map file*
-   Please ensure reaction map files are properly formatted.
-
-*Bond/react: Atom/Bond type affected by reaction too close to template edge*
-   This means an atom which changes type or connectivity during the
-   reaction is too close to an 'edge' atom defined in the map
-   file.  This could cause incorrect assignment of bonds, angle, etc.
-   Generally, this means you must include more atoms in your templates,
-   such that there are at least two atoms between each atom involved in
-   the reaction and an edge atom.
-
-*Bond/react: Fix bond/react needs ghost atoms from farther away*
-   This is because a processor needs to map the entire unreacted
-   molecule template onto simulation atoms it knows about. The
-   comm_modify cutoff command can be used to extend the communication
-   range.
-
-*Bond/react: A deleted atom cannot remain bonded to an atom that is not deleted*
-   Self-explanatory.
-
-*Bond/react: First neighbors of chiral atoms must be of mutually different types*
-   Self-explanatory.
-
-*Bond/react: Chiral atoms must have exactly four first neighbors*
-   Self-explanatory.
-
-*Bond/react: Molecule template 'Coords' section required for chiralIDs keyword*
-   The coordinates of atoms in the pre-reacted template are used to determine
-   chirality.
-
-*Bond/react special bond generation overflow*
-   The number of special bonds per-atom created by a reaction exceeds the
-   system setting. See the read_data or create_box command for how to
-   specify this value.
-
-*Bond/react topology/atom exceed system topology/atom*
-   The number of bonds, angles etc per-atom created by a reaction exceeds
-   the system setting. See the read_data or create_box command for how to
-   specify this value.
-
 *Both restart files must use % or neither*
    Self-explanatory.
 
@@ -1291,7 +1232,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use chosen neighbor list style with lj/gromacs/kk*
    Self-explanatory.
 
-*Cannot use chosen neighbor list style with lj/sdk/kk*
+*Cannot use chosen neighbor list style with lj/spica/kk*
    That style is not supported by Kokkos.
 
 *Cannot use chosen neighbor list style with pair eam/kk*
@@ -1659,10 +1600,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Cannot use newton pair with lj/gromacs/gpu pair style*
    Self-explanatory.
 
-*Cannot use newton pair with lj/sdk/coul/long/gpu pair style*
+*Cannot use newton pair with lj/spica/coul/long/gpu pair style*
    Self-explanatory.
 
-*Cannot use newton pair with lj/sdk/gpu pair style*
+*Cannot use newton pair with lj/spica/gpu pair style*
    Self-explanatory.
 
 *Cannot use newton pair with lj96/cut/gpu pair style*
@@ -3520,6 +3461,65 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This is because the fix needs to walk bonds to a certain distance to
    acquire needed info, The comm_modify cutoff command can be used to
    extend the communication range.
+
+*Fix bond/react: Cannot use fix bond/react with non-molecular systems*
+   Only systems with bonds that can be changed can be used. Atom_style
+   template does not qualify.
+
+*Fix bond/react: Invalid template atom ID in map file*
+   Atom IDs in molecule templates range from 1 to the number of atoms in the template.
+
+*Fix bond/react: Rmax cutoff is longer than pairwise cutoff*
+   This is not allowed because bond creation is done using the pairwise
+   neighbor list.
+
+*Fix bond/react: Molecule template ID for fix bond/react does not exist*
+   A valid molecule template must have been created with the molecule
+   command.
+
+*Fix bond/react: Reaction templates must contain the same number of atoms*
+   There should be a one-to-one correspondence between atoms in the
+   pre-reacted and post-reacted templates, as specified by the map file.
+
+*Fix bond/react: Unknown section in map file*
+   Please ensure reaction map files are properly formatted.
+
+*Fix bond/react: Atom/Bond type affected by reaction too close to template edge*
+   This means an atom which changes type or connectivity during the
+   reaction is too close to an 'edge' atom defined in the map
+   file.  This could cause incorrect assignment of bonds, angle, etc.
+   Generally, this means you must include more atoms in your templates,
+   such that there are at least two atoms between each atom involved in
+   the reaction and an edge atom.
+
+*Fix bond/react: Fix bond/react needs ghost atoms from farther away*
+   This is because a processor needs to map the entire unreacted
+   molecule template onto simulation atoms it knows about. The
+   comm_modify cutoff command can be used to extend the communication
+   range.
+
+*Fix bond/react: A deleted atom cannot remain bonded to an atom that is not deleted*
+   Self-explanatory.
+
+*Fix bond/react: First neighbors of chiral atoms must be of mutually different types*
+   Self-explanatory.
+
+*Fix bond/react: Chiral atoms must have exactly four first neighbors*
+   Self-explanatory.
+
+*Fix bond/react: Molecule template 'Coords' section required for chiralIDs keyword*
+   The coordinates of atoms in the pre-reacted template are used to determine
+   chirality.
+
+*Fix bond/react special bond generation overflow*
+   The number of special bonds per-atom created by a reaction exceeds the
+   system setting. See the read_data or create_box command for how to
+   specify this value.
+
+*Fix bond/react topology/atom exceed system topology/atom*
+   The number of bonds, angles etc per-atom created by a reaction exceeds
+   the system setting. See the read_data or create_box command for how to
+   specify this value.
 
 *Fix bond/swap cannot use dihedral or improper styles*
    These styles cannot be defined when using this fix.
@@ -5453,6 +5453,11 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Mass command must set a type from 1-N where N is the number of atom
    types.
 
+*Invalid label2type() function syntax in variable formula*
+   The first argument must be a label map kind (atom, bond, angle,
+   dihedral, or improper) and the second argument must be a valid type
+   label that has been assigned to a numeric type.
+
 *Invalid use of library file() function*
    This function is called through the library interface.  This
    error should not occur.  Contact the developers if it does.
@@ -5585,8 +5590,17 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *LJ6 off not supported in pair_style buck/long/coul/long*
    Self-explanatory.
 
+*Label map is incomplete: all types must be assigned a unique type label*
+   For a given type-kind (atom types, bond types, etc.) to be written to
+   the data file, all associated types must be assigned a type label, and
+   each type label can be assigned to only one numeric type.
+
 *Label wasn't found in input script*
    Self-explanatory.
+
+*Labelmap command before simulation box is defined*
+   The labelmap command cannot be used before a read_data,
+   read_restart, or create_box command.
 
 *Lattice orient vectors are not orthogonal*
    The three specified lattice orientation vectors must be mutually
@@ -5863,6 +5877,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Must not have multiple fixes change box parameter ...*
    Self-explanatory.
 
+*Must read Angle Type Labels before Angles*
+   An Angle Type Labels section of a data file must come before the Angles section.
+
+*Must read Atom Type Labels before Atoms*
+   An Atom Type Labels section of a data file must come before the Atoms section.
+
 *Must read Atoms before Angles*
    The Atoms section of a data file must come before an Angles section.
 
@@ -5892,6 +5912,15 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Must read Atoms before Velocities*
    The Atoms section of a data file must come before a Velocities
    section.
+
+*Must read Bond Type Labels before Bonds*
+   A Bond Type Labels section of a data file must come before the Bonds section.
+
+*Must read Dihedral Type Labels before Dihedrals*
+   An Dihedral Type Labels section of a data file must come before the Dihedrals section.
+
+*Must read Improper Type Labels before Impropers*
+   An Improper Type Labels section of a data file must come before the Impropers section.
 
 *Must re-specify non-restarted pair style (xxx) after read_restart*
    For pair styles, that do not store their settings in a restart file,
@@ -6782,7 +6811,7 @@ keyword to allow for additional bonds to be formed
    This is because the computation of constraint forces within a water
    molecule adds forces to atoms owned by other processors.
 
-*Pair style lj/sdk/coul/long/gpu requires atom attribute q*
+*Pair style lj/spica/coul/long/gpu requires atom attribute q*
    The atom style defined does not have this attribute.
 
 *Pair style nb3b/harmonic requires atom IDs*
@@ -7849,6 +7878,10 @@ keyword to allow for additional bonds to be formed
    Number of local atoms times number of columns must fit in a 32-bit
    integer for dump.
 
+*Topology type exceeds system topology type*
+   The number of bond, angle, etc types exceeds the system setting. See
+   the create_box or read_data command for how to specify these values.
+
 *Tree structure in joint connections*
    Fix poems cannot (yet) work with coupled bodies whose joints connect
    the bodies in a tree structure.
@@ -7872,6 +7905,13 @@ keyword to allow for additional bonds to be formed
 
 *Two groups cannot be the same in fix spring couple*
    Self-explanatory.
+
+*The %s type label %s is already in use for type %s*
+   For a given type-kind (atom types, bond types, etc.), a given type
+   label can be assigned to only one numeric type.
+
+*Type label string %s for %s type %s is invalid*
+   See the labelmap command documentation for valid type labels.
 
 *Unable to initialize accelerator for use*
    There was a problem initializing an accelerator for the gpu package

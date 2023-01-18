@@ -1,0 +1,126 @@
+LAMMPS (3 Aug 2022)
+# initialisation
+
+units             metal
+dimension         3
+boundary          p p s
+atom_style        full
+special_bonds     lj 1 1 1
+neigh_modify      every 5 delay 0 check yes
+newton            on
+
+read_data         data.film_mesocnt
+Reading data file ...
+  orthogonal box = (-2500 -2500 -300) to (2500 2500 402.42)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  79596 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  79200 bonds
+  reading angles ...
+  78804 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.012 seconds
+  read_data CPU = 0.160 seconds
+
+# force field
+
+bond_style        mesocnt
+bond_coeff        1 C 10 10 10
+
+angle_style       mesocnt
+angle_coeff       1 buckling C 10 10 10
+
+pair_style        mesocnt 40 chain
+pair_coeff        * * C_10_10.mesocnt 1
+Reading mesocnt potential file C_10_10.mesocnt with DATE: 2022-07-12
+
+# output
+
+compute         epair all pe pair
+compute         ebond all pe bond
+compute         eangle all pe angle
+
+compute         epair_atom all pe/atom pair
+compute         ebond_atom all pe/atom bond
+compute         eangle_atom all pe/atom angle
+
+fix             angle_mesocnt_buckled all property/atom i_buckled ghost yes
+
+thermo_style    custom step temp etotal ke pe c_ebond c_eangle c_epair
+thermo 10
+#dump            custom all custom 100 film_mesocnt.lmp id mol type x y z c_ebond_atom c_eangle_atom c_epair_atom i_buckled
+
+# simulation setup
+
+velocity        all create 600.0 2022 loop geom
+timestep        0.01
+fix             nvt all nvt temp 300.0 300.0 1
+
+run             100
+Neighbor list info ...
+  update: every = 5 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 42
+  ghost atom cutoff = 42
+  binsize = 21, bins = 239 239 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair mesocnt, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 49.89 | 49.89 | 49.89 Mbytes
+   Step          Temp          TotEng         KinEng         PotEng        c_ebond        c_eangle       c_epair    
+         0   600            1355.8735      6173.0767     -4817.2032      28.668731      21.29199      -4867.1639    
+        10   389.92732      1373.1839      4011.7521     -2638.5683      848.77485      1387.6166     -4874.9597    
+        20   311.7468       1388.0161      3207.3949     -1819.3788      1211.534       1868.6817     -4899.5945    
+        30   291.75586      1385.2114      3001.7189     -1616.5075      1184.1423      2133.2088     -4933.8586    
+        40   320.42607      1364.2644      3296.6912     -1932.4267      951.62534      2088.33       -4972.382     
+        50   341.37701      1346.0547      3512.2441     -2166.1894      956.59158      1891.9196     -5014.7005    
+        60   333.15461      1337.5518      3427.6483     -2090.0965      1137.7331      1825.9946     -5053.8242    
+        70   324.47061      1328.7153      3338.3033     -2009.588       1133.3639      1953.8288     -5096.7807    
+        80   324.39487      1315.4948      3337.5241     -2022.0293      979.16213      2141.4697     -5142.6611    
+        90   323.39973      1302.3471      3327.2856     -2024.9385      972.70286      2185.7686     -5183.41      
+       100   322.73067      1289.0538      3320.402      -2031.3482      1100.1024      2088.3804     -5219.831     
+Loop time of 4.1637 on 1 procs for 100 steps with 79596 atoms
+
+Performance: 20.751 ns/day, 1.157 hours/ns, 24.017 timesteps/s
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.705      | 3.705      | 3.705      |   0.0 | 88.98
+Bond    | 0.29317    | 0.29317    | 0.29317    |   0.0 |  7.04
+Neigh   | 0.078491   | 0.078491   | 0.078491   |   0.0 |  1.89
+Comm    | 0.0019462  | 0.0019462  | 0.0019462  |   0.0 |  0.05
+Output  | 0.00099817 | 0.00099817 | 0.00099817 |   0.0 |  0.02
+Modify  | 0.079874   | 0.079874   | 0.079874   |   0.0 |  1.92
+Other   |            | 0.004224   |            |       |  0.10
+
+Nlocal:          79596 ave       79596 max       79596 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2567 ave        2567 max        2567 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:   1.1337e+06 ave  1.1337e+06 max  1.1337e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1133696
+Ave neighs/atom = 14.243128
+Ave special neighs/atom = 5.9402985
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:05

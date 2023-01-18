@@ -26,13 +26,13 @@ Examples
 Description
 """""""""""
 
-This command enables CMAP cross-terms to be added to simulations which
-use the CHARMM force field.  These are relevant for any CHARMM model
-of a peptide or protein sequences that is 3 or more amino-acid
-residues long; see :ref:`(Buck) <Buck>` and :ref:`(Brooks) <Brooks2>`
-for details, including the analytic energy expressions for CMAP
-interactions.  The CMAP cross-terms add additional potential energy
-contributions to pairs of overlapping phi-psi dihedrals of
+This command enables CMAP 5-body interactions to be added to
+simulations which use the CHARMM force field.  These are relevant for
+any CHARMM model of a peptide or protein sequences that is 3 or more
+amino-acid residues long; see :ref:`(Buck) <Buck>` and :ref:`(Brooks)
+<Brooks2>` for details, including the analytic energy expressions for
+CMAP interactions.  The CMAP 5-body terms add additional potential
+energy contributions to pairs of overlapping phi-psi dihedrals of
 amino-acids, which are important to properly represent their
 conformational behavior.
 
@@ -47,15 +47,15 @@ lammps/potentials directory: charmm22.cmap and charmm36.cmap.
 
 The data file read by the "read_data" must contain the topology of all
 the CMAP interactions, similar to the topology data for bonds, angles,
-dihedrals, etc.  Specially it should have a line like this
-in its header section:
+dihedrals, etc.  Specially it should have a line like this in its
+header section:
 
 .. parsed-literal::
 
    N crossterms
 
-where N is the number of CMAP cross-terms.  It should also have a section
-in the body of the data file like this with N lines:
+where N is the number of CMAP 5-body interactions.  It should also
+have a section in the body of the data file like this with N lines:
 
 .. parsed-literal::
 
@@ -66,28 +66,29 @@ in the body of the data file like this with N lines:
           [...]
           N       3     314     315     317      318    330
 
-The first column is an index from 1 to N to enumerate the CMAP terms;
-it is ignored by LAMMPS.  The second column is the "type" of the
-interaction; it is an index into the CMAP force field file.  The
+The first column is an index from 1 to N to enumerate the CMAP 5-atom
+tuples; it is ignored by LAMMPS.  The second column is the "type" of
+the interaction; it is an index into the CMAP force field file.  The
 remaining 5 columns are the atom IDs of the atoms in the two 4-atom
-dihedrals that overlap to create the CMAP 5-body interaction.  Note
-that the "crossterm" and "CMAP" keywords for the header and body
-sections match those specified in the read_data command following the
-data file name; see the :doc:`read_data <read_data>` page for
-more details.
+dihedrals that overlap to create the CMAP interaction.  Note that the
+"crossterm" and "CMAP" keywords for the header and body sections match
+those specified in the read_data command following the data file name;
+see the :doc:`read_data <read_data>` page for more details.
 
-A data file containing CMAP cross-terms can be generated from a PDB
-file using the charmm2lammps.pl script in the tools/ch2lmp directory
-of the LAMMPS distribution.  The script must be invoked with the
-optional "-cmap" flag to do this; see the tools/ch2lmp/README file for
-more information.
+A data file containing CMAP 5-body interactions can be generated from
+a PDB file using the charmm2lammps.pl script in the tools/ch2lmp
+directory of the LAMMPS distribution.  The script must be invoked with
+the optional "-cmap" flag to do this; see the tools/ch2lmp/README file
+for more information.  The same conversion script also creates the
+file of CMAP coefficient data which is read by this command.
 
 The potential energy associated with CMAP interactions can be output
 as described below.  It can also be included in the total potential
-energy of the system, as output by the
-:doc:`thermo_style <thermo_style>` command, if the :doc:`fix_modify energy <fix_modify>` command is used, as in the example above.  See
-the note below about how to include the CMAP energy when performing an
-:doc:`energy minimization <minimize>`.
+energy of the system, as output by the :doc:`thermo_style
+<thermo_style>` command, if the :doc:`fix_modify energy <fix_modify>`
+command is used, as in the example above.  See the note below about
+how to include the CMAP energy when performing an :doc:`energy
+minimization <minimize>`.
 
 ----------
 
@@ -134,10 +135,11 @@ outermost level.
 
 .. note::
 
-   If you want the potential energy associated with the CMAP terms
-   forces to be included in the total potential energy of the system
-   (the quantity being minimized), you MUST not disable the
-   :doc:`fix_modify <fix_modify>` *energy* option for this fix.
+   For energy minimization, if you want the potential energy
+   associated with the CMAP terms forces to be included in the total
+   potential energy of the system (the quantity being minimized), you
+   MUST not disable the :doc:`fix_modify <fix_modify>` *energy* option
+   for this fix.
 
 Restrictions
 """"""""""""

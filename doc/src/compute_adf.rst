@@ -6,7 +6,7 @@ compute adf command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID adf Nbin itype1 jtype1 ktype1 Rjinner1 Rjouter1 Rkinner1 Rkouter1 ...
 
@@ -16,10 +16,10 @@ Syntax
 * itypeN = central atom type for Nth ADF histogram (see asterisk form below)
 * jtypeN = J atom type for Nth ADF histogram (see asterisk form below)
 * ktypeN = K atom type for Nth ADF histogram (see asterisk form below)
-* RjinnerN =  inner radius of J atom shell for Nth ADF histogram (distance units)
-* RjouterN =  outer radius of J atom shell for Nth ADF histogram (distance units)
+* RjinnerN = inner radius of J atom shell for Nth ADF histogram (distance units)
+* RjouterN = outer radius of J atom shell for Nth ADF histogram (distance units)
 * RkinnerN = inner radius of K atom shell for Nth ADF histogram (distance units)
-* RkouterN =  outer radius of K atom shell for Nth ADF histogram (distance units)
+* RkouterN = outer radius of K atom shell for Nth ADF histogram (distance units)
 * zero or one keyword/value pairs may be appended
 * keyword = *ordinate*
 
@@ -177,8 +177,8 @@ Output info
 """""""""""
 
 This compute calculates a global array with the number of rows =
-*Nbins*, and the number of columns = 1 + 2\*Ntriples, where Ntriples is the
-number of I,J,K triples specified.  The first column has the bin
+*Nbins* and the number of columns = :math:`1 + 2 \times` *Ntriples*, where *Ntriples*
+is the number of I,J,K triples specified.  The first column has the bin
 coordinate (angle-related ordinate at midpoint of bin). Each subsequent column has
 the two ADF values for a specific set of (\ *itypeN*,\ *jtypeN*,\ *ktypeN*\ )
 interactions, as described above.  These values can be used
@@ -192,10 +192,10 @@ The first column of array values is the angle-related ordinate, either
 the angle in degrees or radians, or the cosine of the angle.  Each
 subsequent pair of columns gives the first and second kinds of ADF
 for a specific set of (\ *itypeN*,\ *jtypeN*,\ *ktypeN*\ ). The values
-in the first ADF column are normalized numbers >= 0.0,
+in the first ADF column are normalized numbers :math:`\ge 0.0`,
 whose integral w.r.t. the ordinate is 1,
 i.e. the first ADF is a normalized probability distribution.
-The values in the second ADF column are also numbers >= 0.0.
+The values in the second ADF column are also numbers :math:`\ge 0.0`.
 They are the cumulative density distribution of angles per atom.
 By definition, this ADF is monotonically increasing from zero to
 a maximum value equal to the average total number of

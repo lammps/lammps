@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -37,7 +37,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), idregion(nullptr),
     region(nullptr), sforce(nullptr)
 {
-  if (narg < 6) error->all(FLERR, "Illegal fix setforce command");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "fix setforce", error);
 
   dynamic_group_allow = 1;
   vector_flag = 1;
@@ -77,13 +77,13 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "region") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix setforce command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix setforce region", error);
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix setforce does not exist", arg[iarg + 1]);
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal fix setforce command");
+      error->all(FLERR, "Unknown fix setforce keyword: {}", arg[iarg]);
   }
 
   force_flag = 0;

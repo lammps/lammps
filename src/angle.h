@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -89,6 +89,8 @@ class Angle : protected Pointers {
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, int, double, double *, double *, double, double, double, double,
                 double, double);
+  void ev_tally4(int, int, int, int, int, int, double, double *, double *, double *, double *);
+  void ev_tally2(int, int, int, int, double, double, double, double, double);
 };
 
 }    // namespace LAMMPS_NS

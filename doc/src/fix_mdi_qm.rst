@@ -43,6 +43,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 3Aug2022
+
 This command enables LAMMPS to act as a client with another server
 code that will compute the total energy, per-atom forces, and total
 virial for atom conformations and simulation box size/shapes that
@@ -125,13 +127,14 @@ LAMMPS atom type corresponds to.  This is specified by the atomic
 number of the element, e.g. 13 for Al.  An atomic number must be
 specified for each of the ntypes LAMMPS atom types.  Ntypes is
 typically specified via the create_box command or in the data file
-read by the read_data command.  If this keyword is not specified, then
-this fix will send the LAMMPS atom type for each atom to the MDI
-engine.  If both the LAMMPS driver and the MDI engine are initialized
-so that atom type values are consistent in both codes, then the
-*elements* keyword is not needed.  Otherwise the keyword can be used
-to insure the two codes are consistent in their definition of atomic
-species.
+read by the read_data command.
+
+If this keyword is specified, then this fix will send the MDI
+">ELEMENTS" command to the engine, to insure the two codes are
+consistent in their definition of atomic species.  If this keyword is
+not specified, then this fix will send the MDI >TYPES command to the
+engine.  This is fine if both the LAMMPS driver and the MDI engine are
+initialized so that the atom type values are consistent in both codes.
 
 ----------
 

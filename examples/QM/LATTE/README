@@ -1,0 +1,161 @@
+LATTE is a semi-empirical tight-binding quantum code, developed
+primarily at Los Alamos National Labs.
+
+See these links:
+
+  https://www.osti.gov/biblio/1526907-los-alamos-transferable-tight-binding-energetics-latte-version
+  https://github.com/lanl/LATTE
+
+LAMMPS has 2 ways of working with LATTE:
+
+(1) Via its LATTE package and the fix latte command
+    must run LAMMPS on a single processor, it calls LATTE as a library
+
+(2) Via its MDI package and the code-coupling MDI library
+    (a) can run LAMMPS and LATTE as stand-alone codes
+        LAMMPS can be run on any number of procs
+        LATTE must run on a single proc, but can use OpenMP
+    (b) can run LAMMPS with LATTE as a plug-in library
+        must run LAMMPS on a single processor
+
+Examples for use case (1) are in the examples/latte dir.  Use case (2)
+is illustrated in this dir.
+
+NOTE: If you compare MDI runs in this dir to similar fix latte runs in
+examples/latte, the answers for energy and virial will be differnt.
+This is b/c the version of LATTE used by the fix latte command within
+the LATTE package is older than the version of LATTE used here.
+
+------------------
+Building 3 codes needed to run these examples
+
+(1) Download and build MDI
+
+% git clone git@github.com:MolSSI-MDI/MDI_Library.git mdi
+% cd mdi
+% mkdir build; cd build
+% cmake ..           # includes support for all langauges (incl Fortran, Python)
+% make
+
+(2) Download and build LATTE with MDI support
+
+% git clone git@github.com:lanl/LATTE.git latte
+% cd latte
+% git checkout skimLATTE-progress    # goto branch with MDI support
+% cp makefiles/makefile.CHOICES.mdi makefile.CHOICES    # so can now edit
+% edit makefile.CHOICES settings to have these settings:
+  MAKELIB = OFF, SHARED = ON, MDI = ON
+  MDI_PATH must point to CMake build of MDI in (1), 
+    e.g. /home/sjplimp/mdi/build/MDI_Library
+  comment out 2 LIB lines with CUDA-CUDART_LIBRARY
+% make clean
+% make        # creates liblatte.so and LATTE_DOUBLE with support for MDI
+
+(3) Build LAMMPS with its MDI package
+    also with the MOLECULE package for these example scripts
+
+Build with traditional make
+
+% cd lammps/lib/mdi
+% python Install.py -m mpi     # downloads and builds MDI
+% cd ../../src
+% make yes-mdi yes-molecule
+$ make mpi                     # creates lmp_mpi
+
+% mkdir build; cd build
+% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes ../cmake
+% make                         # creates lmp
+
+Build with CMake
+
+% cd lammps
+% mkdir build; cd build
+% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes ../cmake
+% make                         # creates lmp
+
+(4) Copy LAMMPS and LATTE executables into this dir
+
+Copy the LAMMPS executable (lmp_mpi or lmp) into this dir as lmp_mpi.
+Copy the LATTE executable LATTE_DOUBLE into this dir.
+The run commands below assume you have done this.
+
+(5) Insure LD_LIBRARY_PATH includes the dir where MDI was built in (1)
+with its libmdi.so file, e.g. mdi/build/MDI_Library.  This is needed
+so when LATTE_DOUBLE runs as an executable it will able to find
+libmdi.so.
+
+------------------
+Notes on LATTE usage
+
+You must run this version of LATTE on a single MPI processor.
+However, you can use OpenMP with LATTE.  To do this you need to build
+LATTE with OpenMP support by editing the makefile.CHOICES file to
+include -fopenmp with FFLAGS and LINKFLAGS.  Also -lapack and -lblas
+need to be added to LIB, and those libraries must be available on your
+system.  For best performance you should also build LATTE with its
+PROGRESS and BML libraries.  Building those libs is more complex,
+see details here:
+
+https://github.com/lanl/LATTE_SUPER/tree/allMachines/Laptop
+
+At run time, you need to also first set an environment variable for
+the number of OpenMP threads to use, e.g.
+
+% export OMP_NUM_THREADS=12 
+
+By default LATTE reads the latte.in file for its parameters.  That
+file specifies other files LATTE will read.  With MDI, the driver code
+(e.g. LAMMPS) can use the >FNAME command to specify an alternate
+filename to use instead of latte.in.
+
+By default LATTE writes out a log.latte file with info about its
+calculations.  An "OUTFILE= logfile" setting in latte.in can rename
+this file.
+
+---------
+Run example #1: AIMD
+
+* Run with MPI: 1 proc each
+
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
+  -in in.aimd -log log.aimd.lammps.mpi : \
+  -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
+
+* Run with MPI: 2 procs for LAMMPS, 1 for LATTE
+
+mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
+  -in in.aimd -log log.aimd.lammps.mpi : \
+  -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
+
+* Run in plugin mode: 1 proc
+
+lmp_mpi -mdi \
+  "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
+  -in in.aimd.plugin -log log.aimd.lammps.plugin
+
+NOTE: The -plugin_path needs to point to where LATTE was built in step
+(2).
+
+---------
+Run example #2: sequence of configurations
+
+* Run with MPI: 1 proc each
+
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
+  -in in.series -log log.series.lammps.mpi : \
+  -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
+
+* Run with MPI: 2 procs for LAMMPS, 1 for LATTE
+
+mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
+  -in in.series -log log.series.lammps.mpi : \
+  -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
+
+* Run in plugin mode: 1 proc
+
+lmp_mpi -mdi \
+  "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
+   -in in.series.plugin -log log.series.lammps.plugin
+
+NOTE: The -plugin_path needs to point to where LATTE was built in step
+(2).

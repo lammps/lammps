@@ -174,11 +174,11 @@ shifted force model described in :ref:`Fennell <Fennell1>`, given by:
    E = q_iq_j \left[ \frac{\mbox{erfc} (\alpha r)}{r} -  \frac{\mbox{erfc} (\alpha r_c)}{r_c} +
    \left( \frac{\mbox{erfc} (\alpha r_c)}{r_c^2} +  \frac{2\alpha}{\sqrt{\pi}}\frac{\exp (-\alpha^2    r^2_c)}{r_c} \right)(r-r_c) \right] \qquad r < r_c
 
-where :math:`\alpha` is the damping parameter and erfc() is the
-complementary error-function. The potential corrects issues in the
-Wolf model (described below) to provide consistent forces and energies
-(the Wolf potential is not differentiable at the cutoff) and smooth
-decay to zero.
+where :math:`\alpha` is the damping parameter and *erfc()* is the
+complementary error-function. The potential corrects issues in the Wolf
+model (described below) to provide consistent forces and energies (the
+Wolf potential is not differentiable at the cutoff) and smooth decay to
+zero.
 
 ----------
 
@@ -192,30 +192,32 @@ summation method, described in :ref:`Wolf <Wolf1>`, given by:
    \frac{1}{2} \sum_{j \neq i}
    \frac{q_i q_j {\rm erf}(\alpha r_{ij})}{r_{ij}} \qquad r < r_c
 
-where :math:`\alpha` is the damping parameter, and erc() and erfc() are
-error-function and complementary error-function terms.  This potential
-is essentially a short-range, spherically-truncated,
+where :math:`\alpha` is the damping parameter, and *erf()* and *erfc()*
+are error-function and complementary error-function terms.  This
+potential is essentially a short-range, spherically-truncated,
 charge-neutralized, shifted, pairwise *1/r* summation.  With a
 manipulation of adding and subtracting a self term (for i = j) to the
-first and second term on the right-hand-side, respectively, and a
-small enough :math:`\alpha` damping parameter, the second term shrinks and
-the potential becomes a rapidly-converging real-space summation.  With
-a long enough cutoff and small enough :math:`\alpha` parameter, the energy and
-forces calculated by the Wolf summation method approach those of the
+first and second term on the right-hand-side, respectively, and a small
+enough :math:`\alpha` damping parameter, the second term shrinks and the
+potential becomes a rapidly-converging real-space summation.  With a
+long enough cutoff and small enough :math:`\alpha` parameter, the energy
+and forces calculated by the Wolf summation method approach those of the
 Ewald sum.  So it is a means of getting effective long-range
 interactions with a short-range potential.
 
 ----------
 
-Style *coul/streitz* is the Coulomb pair interaction defined as part
-of the Streitz-Mintmire potential, as described in :ref:`this paper <Streitz2>`, in which charge distribution about an atom is modeled
-as a Slater 1\ *s* orbital.  More details can be found in the referenced
+Style *coul/streitz* is the Coulomb pair interaction defined as part of
+the Streitz-Mintmire potential, as described in :ref:`this paper
+<Streitz2>`, in which charge distribution about an atom is modeled as a
+Slater 1\ *s* orbital.  More details can be found in the referenced
 paper.  To fully reproduce the published Streitz-Mintmire potential,
-which is a variable charge potential, style *coul/streitz* must be
-used with :doc:`pair_style eam/alloy <pair_eam>` (or some other
-short-range potential that has been parameterized appropriately) via
-the :doc:`pair_style hybrid/overlay <pair_hybrid>` command.  Likewise,
-charge equilibration must be performed via the :doc:`fix qeq/slater <fix_qeq>` command. For example:
+which is a variable charge potential, style *coul/streitz* must be used
+with :doc:`pair_style eam/alloy <pair_eam>` (or some other short-range
+potential that has been parameterized appropriately) via the
+:doc:`pair_style hybrid/overlay <pair_hybrid>` command.  Likewise,
+charge equilibration must be performed via the :doc:`fix qeq/slater
+<fix_qeq>` command. For example:
 
 .. code-block:: LAMMPS
 

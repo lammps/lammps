@@ -78,7 +78,7 @@ example of how this is done.  This sample application performs
 classical MD using quantum forces computed by a density functional
 code `Quest <quest_>`_.
 
-.. _quest: http://dft.sandia.gov/Quest
+.. _quest: https://dft.sandia.gov/Quest
 
 ----------
 

@@ -18,7 +18,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   compute 1 all smd/triangle/mesh/vertices
+   compute 1 all smd/triangle/vertices
 
 Description
 """""""""""

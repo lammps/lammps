@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -42,13 +42,15 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_user_bocs_package[] =
-  "BOCS package:\n\n"
+  "BOCS package: doi:10.1021/acs.jpcb.7b09993\n\n"
   "@Article{Dunn2018,\n"
-  " author = {NJH Dunn, KM Lebold, MR DeLyser, JF Rudzinski, WG Noid},\n"
-  " title = {BOCS: Bottom-Up Open-Source Coarse-Graining Software},\n"
-  " journal = {J. Phys. Chem. B},\n"
+  " author = {N. J. H. Dunn and K. M. Lebold and M. R. {DeLyser} and\n"
+  "    J. F. Rudzinski and W. G. Noid},\n"
+  " title = {{BOCS}: Bottom-Up Open-Source Coarse-Graining Software},\n"
+  " journal = {J.~Phys.\\ Chem.~B},\n"
   " year =    2018,\n"
   " volume =  122,\n"
+  " number =  13,\n"
   " pages =   {3363--3377}\n"
   "}\n\n";
 
@@ -489,7 +491,7 @@ void FixBocs::init()
   {
     for (int i = 0; i < modify->nfix; i++)
       if (strcmp(modify->fix[i]->style,"deform") == 0) {
-        int *dimflag = (dynamic_cast<FixDeform *>( modify->fix[i]))->dimflag;
+        int *dimflag = (dynamic_cast<FixDeform *>(modify->fix[i]))->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
             (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
             (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
@@ -589,8 +591,8 @@ void FixBocs::init()
   else kspace_flag = 0;
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
     dto = 0.5*step_respa[0];
   }
 

@@ -28,11 +28,18 @@ The *quartic* bond style uses the potential
 
 .. math::
 
-   E = K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 + 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right] + \epsilon
+   E      & = E_q + E_{LJ} \\
+   E_q    & = K (r - R_c)^ 2 (r - R_c - B_1) (r - R_c - B_2) + U_0 \\
+   E_{LJ} & = \left\{ \begin{array} {l@{\quad:\quad}l}
+   4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} - \left(\frac{\sigma}{r}\right)^6 \right] + \epsilon & r < 2^{\frac{1}{6}}, \epsilon = 1, \sigma = 1 \\
+                                                  0 & r >= 2^{\frac{1}{6}}
+                         \end{array} \right.
 
 to define a bond that can be broken as the simulation proceeds (e.g.
-due to a polymer being stretched).  The :math:`\sigma` and :math:`\epsilon` used in the
-LJ portion of the formula are both set equal to 1.0 by LAMMPS.
+due to a polymer being stretched).  The :math:`\sigma` and
+:math:`\epsilon` used in the LJ portion of the formula are both set
+equal to 1.0 by LAMMPS and the LJ portion is cut off at its minimum,
+i.e. at :math:`r_c = 2^{\frac{1}{6}}`.
 
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in
@@ -46,9 +53,9 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`U_0` (energy)
 
 This potential was constructed to mimic the FENE bond potential for
-coarse-grained polymer chains.  When monomers with :math:`\sigma = \epsilon = 1.0`
-are used, the following choice of parameters gives a quartic potential that
-looks nearly like the FENE potential:
+coarse-grained polymer chains.  When monomers with :math:`\sigma =
+\epsilon = 1.0` are used, the following choice of parameters gives a
+quartic potential that looks nearly like the FENE potential:
 
 .. math::
 

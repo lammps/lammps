@@ -68,8 +68,8 @@ struct in_place_shfl_op {
   // sizeof(Scalar) < sizeof(int) case
   template <class Scalar>
   // requires _assignable_from_bits<Scalar>
-  __device__ inline typename std::enable_if<sizeof(Scalar) < sizeof(int)>::type
-  operator()(Scalar& out, Scalar const& in, int lane_or_delta, int width) const
+  __device__ inline std::enable_if_t<sizeof(Scalar) < sizeof(int)> operator()(
+      Scalar& out, Scalar const& in, int lane_or_delta, int width) const
       noexcept {
     using shfl_type = int;
     union conv_type {
@@ -93,28 +93,26 @@ struct in_place_shfl_op {
   // sizeof(Scalar) == sizeof(int) case
   template <class Scalar>
   // requires _assignable_from_bits<Scalar>
-  __device__ inline typename std::enable_if<sizeof(Scalar) == sizeof(int)>::type
-  operator()(Scalar& out, Scalar const& in, int lane_or_delta, int width) const
+  __device__ inline std::enable_if_t<sizeof(Scalar) == sizeof(int)> operator()(
+      Scalar& out, Scalar const& in, int lane_or_delta, int width) const
       noexcept {
     reinterpret_cast<int&>(out) = self().do_shfl_op(
         reinterpret_cast<int const&>(in), lane_or_delta, width);
   }
 
   template <class Scalar>
-  __device__ inline
-      typename std::enable_if<sizeof(Scalar) == sizeof(double)>::type
-      operator()(Scalar& out, Scalar const& in, int lane_or_delta,
-                 int width) const noexcept {
+  __device__ inline std::enable_if_t<sizeof(Scalar) == sizeof(double)>
+  operator()(Scalar& out, Scalar const& in, int lane_or_delta, int width) const
+      noexcept {
     reinterpret_cast<double&>(out) = self().do_shfl_op(
         *reinterpret_cast<double const*>(&in), lane_or_delta, width);
   }
 
   // sizeof(Scalar) > sizeof(double) case
   template <typename Scalar>
-  __device__ inline
-      typename std::enable_if<(sizeof(Scalar) > sizeof(double))>::type
-      operator()(Scalar& out, const Scalar& val, int lane_or_delta,
-                 int width) const noexcept {
+  __device__ inline std::enable_if_t<(sizeof(Scalar) > sizeof(double))>
+  operator()(Scalar& out, const Scalar& val, int lane_or_delta, int width) const
+      noexcept {
     using shuffle_as_t = int;
     int constexpr N    = sizeof(Scalar) / sizeof(shuffle_as_t);
 

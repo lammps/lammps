@@ -6,7 +6,7 @@ fix atc command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix <fixID> <group> atc <type> <parameter_file>
 
@@ -40,8 +40,8 @@ This fix is the beginning to creating a coupled FE/MD simulation and/or
 an on-the-fly estimation of continuum fields. The coupled versions of
 this fix do Verlet integration and the post-processing does not. After
 instantiating this fix, several other fix_modify commands will be
-needed to set up the problem, e.g. define the finite element mesh and
-prescribe initial and boundary conditions.
+needed to set up the problem (i.e., define the finite element mesh and
+prescribe initial and boundary conditions).
 
 .. image:: JPG/atc_nanotube.jpg
    :align: center
@@ -147,7 +147,7 @@ Restrictions
 Thermal and two_temperature (coupling) types use a Verlet
 time-integration algorithm. The hardy type does not contain its own
 time-integrator and must be used with a separate fix that does contain
-one, e.g. nve, nvt, etc. In addition, currently:
+one (e.g., nve, nvt). In addition, currently:
 
 * the coupling is restricted to thermal physics
 * the FE computations are done in serial on each processor.
@@ -159,8 +159,8 @@ Related commands
 
 After specifying this fix in your input script, several
 :doc:`fix_modify AtC <fix_modify>` commands are used to setup the
-problem, e.g. define the finite element mesh and prescribe initial and
-boundary conditions.  Each of these options has its own doc page.
+problem (e.g., define the finite element mesh and prescribe initial and
+boundary conditions).  Each of these options has its own doc page.
 
 *fix_modify* commands for setup:
 
@@ -311,6 +311,6 @@ and Computation (2011), 7:1736.
 as a field variable from molecular dynamics simulations." Journal of
 Chemical Physics (2013), 139:054115.
 
-Please refer to the standard finite element (FE) texts, e.g. T.J.R
-Hughes " The finite element method ", Dover 2003, for the basics of FE
-simulation.
+Please refer to the standard finite element (FE) texts (e.g., T.J.R.
+Hughes, *The Finite Element Method,* Dover 2003) for the basics of FE
+simulations.

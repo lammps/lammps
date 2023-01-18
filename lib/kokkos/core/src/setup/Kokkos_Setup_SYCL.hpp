@@ -45,6 +45,15 @@
 #ifndef KOKKOS_SETUP_SYCL_HPP_
 #define KOKKOS_SETUP_SYCL_HPP_
 
+// FIXME_SYCL the fallback assert is temporarily disabled by default in the
+// compiler so we need to force it
+#ifndef SYCL_ENABLE_FALLBACK_ASSERT
+#define SYCL_ENABLE_FALLBACK_ASSERT
+#endif
+#ifndef SYCL_FALLBACK_ASSERT
+#define SYCL_FALLBACK_ASSERT 1
+#endif
+
 #include <CL/sycl.hpp>
 
 #ifdef __SYCL_DEVICE_ONLY__

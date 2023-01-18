@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -19,7 +19,7 @@
 #include "bond.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -225,29 +225,29 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
 FixAdapt::~FixAdapt()
 {
   for (int m = 0; m < nadapt; m++) {
-    delete [] adapt[m].var;
+    delete[] adapt[m].var;
     if (adapt[m].which == PAIR) {
-      delete [] adapt[m].pstyle;
-      delete [] adapt[m].pparam;
+      delete[] adapt[m].pstyle;
+      delete[] adapt[m].pparam;
       memory->destroy(adapt[m].array_orig);
     } else if (adapt[m].which == BOND) {
-      delete [] adapt[m].bstyle;
-      delete [] adapt[m].bparam;
+      delete[] adapt[m].bstyle;
+      delete[] adapt[m].bparam;
       memory->destroy(adapt[m].vector_orig);
     } else if (adapt[m].which == ANGLE) {
-      delete [] adapt[m].astyle;
-      delete [] adapt[m].aparam;
+      delete[] adapt[m].astyle;
+      delete[] adapt[m].aparam;
       memory->destroy(adapt[m].vector_orig);
     }
   }
-  delete [] adapt;
+  delete[] adapt;
 
   // check nfix in case all fixes have already been deleted
 
   if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
   if (id_fix_chg && modify->nfix) modify->delete_fix(id_fix_chg);
-  delete [] id_fix_diam;
-  delete [] id_fix_chg;
+  delete[] id_fix_diam;
+  delete[] id_fix_chg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -278,8 +278,8 @@ void FixAdapt::post_constructor()
 
   if (diamflag && atom->radius_flag) {
     id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
-    fix_diam = dynamic_cast<FixStore *>( modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
-                                                        id_fix_diam,group->names[igroup])));
+    fix_diam = dynamic_cast<FixStorePeratom *>(
+      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 1", id_fix_diam,group->names[igroup])));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -296,8 +296,8 @@ void FixAdapt::post_constructor()
 
   if (chgflag && atom->q_flag) {
     id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
-    fix_chg = dynamic_cast<FixStore *>( modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
-                                                       id_fix_chg,group->names[igroup])));
+    fix_chg = dynamic_cast<FixStorePeratom *>(
+      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 1",id_fix_chg,group->names[igroup])));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;
@@ -357,12 +357,14 @@ void FixAdapt::init()
         nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
-      if (lmp->suffix_enable)
-        ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
-
+      if (lmp->suffix_enable) {
+        if (lmp->suffix)
+          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
+        if ((ad->pair == nullptr) && lmp->suffix2)
+          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix2),1,nsub);
+      }
       if (ad->pair == nullptr) ad->pair = force->pair_match(pstyle,1,nsub);
-      if (ad->pair == nullptr)
-        error->all(FLERR,"Fix adapt pair style does not exist");
+      if (ad->pair == nullptr) error->all(FLERR,"Fix adapt pair style {} not found", pstyle);
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
       if (ptr == nullptr)
@@ -380,15 +382,15 @@ void FixAdapt::init()
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
       if (utils::strmatch(force->pair_style,"^hybrid")) {
-        auto pair = dynamic_cast<PairHybrid *>( force->pair);
+        auto pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
             if (!pair->check_ijtype(i,j,pstyle))
-              error->all(FLERR,"Fix adapt type pair range is not valid for "
-                         "pair hybrid sub-style");
+              error->all(FLERR,"Fix adapt type pair range is not valid "
+                         "for pair hybrid sub-style {}", pstyle);
       }
 
-      delete [] pstyle;
+      delete[] pstyle;
 
     } else if (ad->which == BOND) {
       ad->bond = nullptr;
@@ -414,7 +416,7 @@ void FixAdapt::init()
       if (utils::strmatch(force->bond_style,"^hybrid"))
         error->all(FLERR,"Fix adapt does not support bond_style hybrid");
 
-      delete [] bstyle;
+      delete[] bstyle;
 
     } else if (ad->which == ANGLE) {
       ad->angle = nullptr;
@@ -440,7 +442,7 @@ void FixAdapt::init()
       if (utils::strmatch(force->angle_style,"^hybrid"))
         error->all(FLERR,"Fix adapt does not support angle_style hybrid");
 
-      delete [] astyle;
+      delete[] astyle;
 
     } else if (ad->which == KSPACE) {
       if (force->kspace == nullptr)
@@ -492,18 +494,16 @@ void FixAdapt::init()
   // fixes that store initial per-atom values
 
   if (id_fix_diam) {
-    int ifix = modify->find_fix(id_fix_diam);
-    if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
-    fix_diam = dynamic_cast<FixStore *>( modify->fix[ifix]);
+    fix_diam = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(id_fix_diam));
+    if (!fix_diam) error->all(FLERR,"Could not find fix adapt storage fix ID {}", id_fix_diam);
   }
   if (id_fix_chg) {
-    int ifix = modify->find_fix(id_fix_chg);
-    if (ifix < 0) error->all(FLERR,"Could not find fix adapt storage fix ID");
-    fix_chg = dynamic_cast<FixStore *>( modify->fix[ifix]);
+    fix_chg = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(id_fix_chg));
+    if (!fix_chg) error->all(FLERR,"Could not find fix adapt storage fix ID {}", id_fix_chg);
   }
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */

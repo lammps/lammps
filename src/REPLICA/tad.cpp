@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,7 +24,7 @@
 #include "error.h"
 #include "finish.h"
 #include "fix_event_tad.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "integrate.h"
 #include "memory.h"
@@ -54,9 +54,9 @@ TAD::TAD(LAMMPS *lmp) : Command(lmp)
 TAD::~TAD()
 {
   memory->sfree(fix_event_list);
-  if (neb_logfilename != nullptr) delete [] neb_logfilename;
-  delete [] min_style;
-  delete [] min_style_neb;
+  if (neb_logfilename != nullptr) delete[] neb_logfilename;
+  delete[] min_style;
+  delete[] min_style_neb;
 }
 
 /* ----------------------------------------------------------------------
@@ -131,11 +131,11 @@ void TAD::command(int narg, char **arg)
 
   // create FixEventTAD object to store last event
 
-  fix_event = dynamic_cast<FixEventTAD *>( modify->add_fix("tad_event all EVENT/TAD"));
+  fix_event = dynamic_cast<FixEventTAD *>(modify->add_fix("tad_event all EVENT/TAD"));
 
-  // create FixStore object to store revert state
+  // create FixStorePeratom object to store revert state
 
-  fix_revert = dynamic_cast<FixStore *>( modify->add_fix("tad_revert all STORE peratom 0 7"));
+  fix_revert = dynamic_cast<FixStorePeratom *>(modify->add_fix("tad_revert all STORE/PERATOM 0 7"));
 
   // create Finish for timing output
 
@@ -388,7 +388,7 @@ void TAD::command(int narg, char **arg)
   neighbor->dist_check = neigh_dist_check;
 
 
-  delete [] id_compute;
+  delete[] id_compute;
   delete finish;
   modify->delete_fix("tad_event");
   modify->delete_fix("tad_revert");
@@ -578,7 +578,7 @@ void TAD::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"neb_style") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      delete [] min_style_neb;
+      delete[] min_style_neb;
       min_style_neb = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
@@ -589,7 +589,7 @@ void TAD::options(int narg, char **arg)
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"neb_log") == 0) {
-      delete [] neb_logfilename;
+      delete[] neb_logfilename;
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
       if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = nullptr;
       else {
@@ -844,7 +844,7 @@ void TAD::add_event()
 
   int ievent = n_event_list++;
   fix_event_list[ievent]
-    = dynamic_cast<FixEventTAD *>( modify->add_fix(fmt::format("tad_event_{} all EVENT/TAD", ievent)));
+    = dynamic_cast<FixEventTAD *>(modify->add_fix(fmt::format("tad_event_{} all EVENT/TAD", ievent)));
 
   // store quenched state for new event
 

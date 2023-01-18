@@ -6,14 +6,14 @@ compute temp/chunk command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID temp/chunk chunkID value1 value2 ... keyword value ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
-* zero or more values can be listed as value1,value2,etc
+* zero or more values can be listed as value1,value2,etc.
 * value = *temp* or *kecom* or *internal*
 
   .. parsed-literal::
@@ -55,31 +55,43 @@ center-of-mass velocity of each chunk.  By specifying optional values,
 it can also calculate the per-chunk temperature or energies of the
 multiple chunks of atoms.
 
-In LAMMPS, chunks are collections of atoms defined by a :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
+In LAMMPS, chunks are collections of atoms defined by a
+:doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
 to a single chunk (or no chunk).  The ID for this command is specified
 as chunkID.  For example, a single chunk could be the atoms in a
-molecule or atoms in a spatial bin.  See the :doc:`compute chunk/atom <compute_chunk_atom>` and :doc:`Howto chunk <Howto_chunk>`
+molecule or atoms in a spatial bin.  See the
+:doc:`compute chunk/atom <compute_chunk_atom>` and
+:doc:`Howto chunk <Howto_chunk>`
 doc pages for details of how chunks can be defined and examples of how
 they can be used to measure properties of a system.
 
-The temperature is calculated by the formula KE = DOF/2 k T, where KE =
-total kinetic energy of all atoms assigned to chunks (sum of 1/2 m
-v\^2), DOF = the total number of degrees of freedom for those atoms, k
-= Boltzmann constant, and T = temperature.
+The temperature is calculated by the formula
 
-The DOF is calculated as N\*adof + Nchunk\*cdof, where N = number of
-atoms contributing to the KE, adof = degrees of freedom per atom, and
-cdof = degrees of freedom per chunk.  By default adof = 2 or 3 =
-dimensionality of system, as set via the :doc:`dimension <dimension>`
-command, and cdof = 0.0.  This gives the usual formula for
-temperature.
+.. math::
 
-A kinetic energy tensor, stored as a 6-element vector, is also
+  \text{KE} = \frac{\text{DOF}}{2} k_B T,
+
+where KE is the total kinetic energy of all atoms assigned to chunks
+(sum of :math:`\frac12 m v^2`), DOF is the the total number of degrees of
+freedom for those atoms, :math:`k_B` is Boltzmann constant, and :math:`T` is the
+absolute temperature.
+
+The DOF is calculated as :math:`N\times`\ *adof*
++ :math:`N_\text{chunk}\times`\ *cdof*,
+where :math:`N` is the number of atoms contributing to the kinetic energy,
+*adof* is the number of degrees of freedom per atom, and
+*cdof* is the number of degrees of freedom per chunk.
+By default, *adof* = 2 or 3 = dimensionality of system, as set via the
+:doc:`dimension <dimension>` command, and *cdof* = 0.0.
+This gives the usual formula for temperature.
+
+A kinetic energy tensor, stored as a six-element vector, is also
 calculated by this compute for use in the computation of a pressure
 tensor.  The formula for the components of the tensor is the same as
-the above formula, except that v\^2 is replaced by vx\*vy for the xy
-component, etc.  The 6 components of the vector are ordered xx, yy,
-zz, xy, xz, yz.
+the above formula, except that :math:`v^2` is replaced by
+:math:`v_x v_y` for the :math:`xy` component, and so on.
+The six components of the vector are ordered :math:`xx`, :math:`yy`,
+:math:`zz`, :math:`xy`, :math:`xz`, :math:`yz`.
 
 Note that the number of atoms contributing to the temperature is
 calculated each time the temperature is evaluated since it is assumed
@@ -91,17 +103,24 @@ If any optional values are specified, then per-chunk quantities are
 also calculated and stored in a global array, as described below.
 
 The *temp* value calculates the temperature for each chunk by the
-formula KE = DOF/2 k T, where KE = total kinetic energy of the chunk
-of atoms (sum of 1/2 m v\^2), DOF = the total number of degrees of
-freedom for all atoms in the chunk, k = Boltzmann constant, and T =
-temperature.
+formula
 
-The DOF in this case is calculated as N\*adof + cdof, where N = number
-of atoms in the chunk, adof = degrees of freedom per atom, and cdof =
-degrees of freedom per chunk.  By default adof = 2 or 3 =
-dimensionality of system, as set via the :doc:`dimension <dimension>`
-command, and cdof = 0.0.  This gives the usual formula for
-temperature.
+.. math::
+
+  \text{KE} = \frac{\text{DOF}}{2} k_B T,
+
+where KE is the total kinetic energy of the chunk of atoms (sum of
+:math:`\frac12 m v^2`), DOF is the total number of degrees of freedom for all
+atoms in the chunk, :math:`k_B` is the Boltzmann constant, and :math:`T` is the
+absolute temperature.
+
+The number of degrees of freedom (DOF) in this case is calculated as
+:math:`N\times`\ *adof* + *cdof*, where :math:`N` is the number
+of atoms in the chunk, *adof* is the number of degrees of freedom
+per atom, and *cdof* is the number of degrees of freedom per
+chunk.  By default, *cdof* = 2 or 3 = dimensionality of system, as set
+via the :doc:`dimension <dimension>` command, and *cdof* = 0.0.
+This gives the usual formula for temperature.
 
 The *kecom* value calculates the kinetic energy of each chunk as if
 all its atoms were moving with the velocity of the center-of-mass of
@@ -118,9 +137,11 @@ Note that currently the global and per-chunk temperatures calculated
 by this compute only include translational degrees of freedom for each
 atom.  No rotational degrees of freedom are included for finite-size
 particles.  Also no degrees of freedom are subtracted for any velocity
-bias or constraints that are applied, such as :doc:`compute temp/partial <compute_temp_partial>`, or :doc:`fix shake <fix_shake>`
-or :doc:`fix rigid <fix_rigid>`.  This is because those degrees of
-freedom (e.g. a constrained bond) could apply to sets of atoms that
+bias or constraints that are applied, such as
+:doc:`compute temp/partial <compute_temp_partial>`, or
+:doc:`fix shake <fix_shake>` or :doc:`fix rigid <fix_rigid>`.
+This is because those degrees of
+freedom (e.g., a constrained bond) could apply to sets of atoms that
 are both included and excluded from a specific chunk, and hence the
 concept is somewhat ill-defined.  In some cases, you can use the
 *adof* and *cdof* keywords to adjust the calculated degrees of freedom
@@ -138,16 +159,17 @@ calculating the temperature; fix ave/chunk does not.
 
 .. note::
 
-   Only atoms in the specified group contribute to the calculations
-   performed by this compute.  The :doc:`compute chunk/atom <compute_chunk_atom>` command defines its own group;
-   atoms will have a chunk ID = 0 if they are not in that group,
-   signifying they are not assigned to a chunk, and will thus also not
-   contribute to this calculation.  You can specify the "all" group for
-   this command if you simply want to include atoms with non-zero chunk
-   IDs.
+   Only atoms in the specified group contribute to the calculations performed
+   by this compute.  The :doc:`compute chunk/atom <compute_chunk_atom>`
+   command defines its own group; atoms will have a chunk ID = 0 if they are
+   not in that group, signifying they are not assigned to a chunk, and will
+   thus also not contribute to this calculation.  You can specify the "all"
+   group for this command if you simply want to include atoms with non-zero
+   chunk IDs.
 
 The simplest way to output the per-chunk results of the compute
-temp/chunk calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>` command, for example:
+temp/chunk calculation to a file is to use the
+:doc:`fix ave/time <fix_ave_time>` command, for example:
 
 .. code-block:: LAMMPS
 
@@ -170,8 +192,8 @@ For the *bias* keyword, *bias-ID* refers to the ID of a temperature
 compute that removes a "bias" velocity from each atom.  This also
 allows calculation of the global or per-chunk temperature using only
 the thermal temperature of atoms in each chunk after the translational
-kinetic energy components have been altered in a prescribed way,
-e.g. to remove a velocity profile.  It also applies to the calculation
+kinetic energy components have been altered in a prescribed way
+(e.g., to remove a velocity profile).  It also applies to the calculation
 of the other per-chunk values, such as *kecom* or *internal*, which
 involve the center-of-mass velocity of each chunk, which is calculated
 after the velocity bias is removed from each atom.  Note that the
@@ -181,12 +203,12 @@ not on a per-chunk basis.
 The *adof* and *cdof* keywords define the values used in the degree of
 freedom (DOF) formulas used for the global or per-chunk temperature,
 as described above.  They can be used to calculate a more appropriate
-temperature for some kinds of chunks.  Here are 3 examples:
+temperature for some kinds of chunks.  Here are three examples:
 
 If spatially binned chunks contain some number of water molecules and
 :doc:`fix shake <fix_shake>` is used to make each molecule rigid, then
-you could calculate a temperature with 6 degrees of freedom (DOF) (3
-translational, 3 rotational) per molecule by setting *adof* to 2.0.
+you could calculate a temperature with six degrees of freedom (DOF) (three
+translational, three rotational) per molecule by setting *adof* to 2.0.
 
 If :doc:`compute temp/partial <compute_temp_partial>` is used with the
 *bias* keyword to only allow the x component of velocity to contribute
@@ -196,8 +218,8 @@ If each chunk consists of a large molecule, with some number of its
 bonds constrained by :doc:`fix shake <fix_shake>` or the entire molecule
 by :doc:`fix rigid/small <fix_rigid>`, *adof* = 0.0 and *cdof* could be
 set to the remaining degrees of freedom for the entire molecule
-(entire chunk in this case), e.g. 6 for 3d, or 3 for 2d, for a rigid
-molecule.
+(entire chunk in this case; i.e., 6 for 3d, or 3 for 2d, for a rigid
+molecule).
 
 ----------
 
@@ -205,14 +227,15 @@ Output info
 """""""""""
 
 This compute calculates a global scalar (the temperature) and a global
-vector of length 6 (KE tensor), which can be accessed by indices 1-6.
+vector of length 6 (KE tensor), which can be accessed by indices 1--6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
-options.
+vector values from a compute as input.
+See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+output options.
 
 This compute also optionally calculates a global array, if one or more
 of the optional values are specified.  The number of rows in the array
-= the number of chunks *Nchunk* as calculated by the specified
+is the number of chunks *Nchunk* as calculated by the specified
 :doc:`compute chunk/atom <compute_chunk_atom>` command.  The number of
 columns is the number of specified values (1 or more).  These values
 can be accessed by any command that uses global array values from a

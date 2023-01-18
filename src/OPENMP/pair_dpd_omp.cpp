@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    This software is distributed under the GNU General Public License.
 
@@ -122,7 +122,7 @@ void PairDPDOMP::eval(int iifrom, int iito, ThrData * const thr)
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double vxtmp,vytmp,vztmp,delvx,delvy,delvz;
-  double rsq,r,rinv,dot,wd,randnum,factor_dpd;
+  double rsq,r,rinv,dot,wd,randnum,factor_dpd,factor_sqrt;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -160,6 +160,7 @@ void PairDPDOMP::eval(int iifrom, int iito, ThrData * const thr)
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_dpd = special_lj[sbmask(j)];
+      factor_sqrt = special_sqrt[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -185,8 +186,9 @@ void PairDPDOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         fpair = a0[itype][jtype]*wd;
         fpair -= gamma[itype][jtype]*wd*wd*dot*rinv;
-        fpair += sigma[itype][jtype]*wd*randnum*dtinvsqrt;
-        fpair *= factor_dpd*rinv;
+        fpair *= factor_dpd;
+        fpair += factor_sqrt*sigma[itype][jtype]*wd*randnum*dtinvsqrt;
+        fpair *= rinv;
 
         fxtmp += delx*fpair;
         fytmp += dely*fpair;

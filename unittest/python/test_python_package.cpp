@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -276,7 +276,7 @@ TEST_F(PythonPackageTest, RunSource)
 {
     // execute python script from file
     auto output = CAPTURE_OUTPUT([&] {
-        command("python xyz source ${input_dir}/run.py");
+        command("python source ${input_dir}/run.py");
     });
 
     ASSERT_THAT(output, HasSubstr(LOREM_IPSUM));
@@ -286,7 +286,7 @@ TEST_F(PythonPackageTest, RunSourceInline)
 {
     // execute inline python script
     auto output = CAPTURE_OUTPUT([&] {
-        command("python xyz source \"\"\"\n"
+        command("python source here \"\"\"\n"
                 "from __future__ import print_function\n"
                 "print(2+2)\n"
                 "\"\"\"");

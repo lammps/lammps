@@ -43,9 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_RandomAccessIterator.hpp>
-#include <std_algorithms/Kokkos_Distance.hpp>
 
 namespace KE = Kokkos::Experimental;
 
@@ -206,28 +203,28 @@ TEST_F(random_access_iterator_test, operatorsSet4) {
   auto it4 = KE::Impl::RandomAccessIterator<static_view_t>(m_static_view, 4);
   auto it5 = KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view, 4);
   auto it6 = KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view, 4);
-  EXPECT_TRUE(it1 != it4);
-  EXPECT_TRUE(it2 != it5);
-  EXPECT_TRUE(it3 != it6);
-  EXPECT_TRUE(it1 < it4);
-  EXPECT_TRUE(it2 < it5);
-  EXPECT_TRUE(it3 < it6);
-  EXPECT_TRUE(it1 <= it4);
-  EXPECT_TRUE(it2 <= it5);
-  EXPECT_TRUE(it3 <= it6);
+  EXPECT_NE(it1, it4);
+  EXPECT_NE(it2, it5);
+  EXPECT_NE(it3, it6);
+  EXPECT_LT(it1, it4);
+  EXPECT_LT(it2, it5);
+  EXPECT_LT(it3, it6);
+  EXPECT_LE(it1, it4);
+  EXPECT_LE(it2, it5);
+  EXPECT_LE(it3, it6);
 
   auto it7 = KE::Impl::RandomAccessIterator<static_view_t>(m_static_view, 3);
   auto it8 = KE::Impl::RandomAccessIterator<dyn_view_t>(m_dynamic_view, 3);
   auto it9 = KE::Impl::RandomAccessIterator<strided_view_t>(m_strided_view, 3);
-  EXPECT_TRUE(it1 == it7);
-  EXPECT_TRUE(it2 == it8);
-  EXPECT_TRUE(it3 == it9);
-  EXPECT_TRUE(it1 >= it7);
-  EXPECT_TRUE(it2 >= it8);
-  EXPECT_TRUE(it3 >= it9);
-  EXPECT_TRUE(it4 > it7);
-  EXPECT_TRUE(it5 > it8);
-  EXPECT_TRUE(it6 > it9);
+  EXPECT_EQ(it1, it7);
+  EXPECT_EQ(it2, it8);
+  EXPECT_EQ(it3, it9);
+  EXPECT_GE(it1, it7);
+  EXPECT_GE(it2, it8);
+  EXPECT_GE(it3, it9);
+  EXPECT_GT(it4, it7);
+  EXPECT_GT(it5, it8);
+  EXPECT_GT(it6, it9);
 }
 
 TEST_F(random_access_iterator_test, assignment_operator) {

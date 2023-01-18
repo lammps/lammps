@@ -12,7 +12,7 @@ Syntax
    restart N root keyword value ...
    restart N file1 file2 keyword value ...
 
-* N = write a restart file every this many timesteps
+* N = write a restart file on timesteps which are multiples of N
 * N can be a variable (see below)
 * root = filename to which timestep # is appended
 * file1,file2 = two full filenames, toggle between them when writing file
@@ -42,13 +42,14 @@ Description
 """""""""""
 
 Write out a binary restart file with the current state of the
-simulation every so many timesteps, in either or both of two modes, as
-a run proceeds.  A value of 0 means do not write out any restart
-files.  The two modes are as follows.  If one filename is specified, a
-series of filenames will be created which include the timestep in the
-filename.  If two filenames are specified, only 2 restart files will
-be created, with those names.  LAMMPS will toggle between the 2 names
-as it writes successive restart files.
+simulation on timesteps which are a multiple of N.  A value of N = 0
+means do not write out any restart files, which is the default.
+Restart files are written in one (or both) of two modes as a run
+proceeds.  If one filename is specified, a series of filenames will be
+created which include the timestep in the filename.  If two filenames
+are specified, only 2 restart files will be created, with those names.
+LAMMPS will toggle between the 2 names as it writes successive restart
+files.
 
 Note that you can specify the restart command twice, once with a
 single filename and once with two filenames.  This would allow you,

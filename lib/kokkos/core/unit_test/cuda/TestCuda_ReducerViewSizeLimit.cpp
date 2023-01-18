@@ -77,14 +77,6 @@ struct ArrayReduceFunctor {
     }
   }
 
-  KOKKOS_INLINE_FUNCTION void join(volatile value_type update,
-                                   const volatile value_type source) const {
-    const int numVecs = value_count;
-    for (int j = 0; j < numVecs; ++j) {
-      update[j] += source[j];
-    }
-  }
-
   KOKKOS_INLINE_FUNCTION void join(value_type update,
                                    const value_type source) const {
     const int numVecs = value_count;

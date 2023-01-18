@@ -6,14 +6,14 @@ compute ti command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group ti keyword args ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * ti = style name of this compute command
 * one or more attribute/arg pairs may be appended
-* keyword = pair style (lj/cut, gauss, born, etc) or *tail* or *kspace*
+* keyword = pair style (lj/cut, gauss, born, etc.) or *tail* or *kspace*
 
   .. parsed-literal::
 
@@ -47,76 +47,80 @@ thermodynamic integration.  This derivative can be used to infer a
 free energy difference resulting from an alchemical simulation, as
 described in :ref:`Eike <Eike>`.
 
-Typically this compute will be used in conjunction with the :doc:`fix adapt <fix_adapt>` command which can perform alchemical
+Typically this compute will be used in conjunction with the
+:doc:`fix adapt <fix_adapt>` command which can perform alchemical
 transformations by adjusting the strength of an interaction potential
 as a simulation runs, as defined by one or more
 :doc:`pair_style <pair_style>` or :doc:`kspace_style <kspace_style>`
 commands.  This scaling is done via a prefactor on the energy, forces,
-virial calculated by the pair or K-Space style.  The prefactor is
-often a function of a *lambda* parameter which may be adjusted from 0
-to 1 (or vice versa) over the course of a :doc:`run <run>`.  The
-time-dependent adjustment is what the :doc:`fix adapt <fix_adapt>`
+virial calculated by the pair or :math:`k`-space style.  The prefactor is
+often a function of a *lambda* parameter which may be adjusted from 0 to 1
+(or vice versa) over the course of a :doc:`run <run>`.
+The time-dependent adjustment is what the :doc:`fix adapt <fix_adapt>`
 command does.
 
 Assume that the unscaled energy of a pair_style or kspace_style is
-given by U.  Then the scaled energy is
+given by :math:`U`.  Then the scaled energy is
 
-.. parsed-literal::
+.. math::
 
-   Us = f(lambda) U
+   U_s = f(\lambda) U
 
-where f() is some function of lambda.  What this compute calculates is
+where :math:`f` is some function of :math:`\lambda`.  What this compute
+calculates is
 
-.. parsed-literal::
+.. math::
 
-   dUs / d(lambda) = U df(lambda)/dlambda = Us / f(lambda) df(lambda)/dlambda
+   \frac{dU_s}{d\lambda} = U \frac{df(\lambda)}{d\lambda}
+     = \frac{U_s}{f(\lambda)} \frac{df(\lambda)}{d\lambda},
 
-which is the derivative of the system's scaled potential energy Us
-with respect to *lambda*\ .
+which is the derivative of the system's scaled potential energy :math:`U_s`
+with respect to :math:`\lambda`.
 
 To perform this calculation, you provide one or more atom types as
-*atype*\ .  *Atype* can be specified in one of two ways.  An explicit
-numeric values can be used, as in the first example above.  Or a
+*atype*\ .  The variable *atype* can be specified in one of two ways.
+An explicit numeric value can be used, as in the first example above, or a
 wildcard asterisk can be used in place of or in conjunction with the
 *atype* argument to select multiple atom types.  This takes the form
-"\*" or "\*n" or "n\*" or "m\*n".  If N = the number of atom types, then
-an asterisk with no numeric values means all types from 1 to N.  A
-leading asterisk means all types from 1 to n (inclusive).  A trailing
-asterisk means all types from n to N (inclusive).  A middle asterisk
+"\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is the number of atom types,
+then an asterisk with no numeric values means all types from 1 to :math:`N`.
+A leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from m to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).
 
-You also specify two functions, as :doc:`equal-style variables <variable>`.  The first is specified as *v_name1*, where
-*name1* is the name of the variable, and is f(lambda) in the notation
-above.  The second is specified as *v_name2*, where *name2* is the
-name of the variable, and is df(lambda) / dlambda in the notation
-above.  I.e. it is the analytic derivative of f() with respect to
-lambda.  Note that the *name1* variable is also typically given as an
+You also specify two functions, as :doc:`equal-style variables <variable>`.
+The first is specified as *v_name1*, where *name1* is the name of the
+variable, and is :math:`f(\lambda)` in the notation above.  The second is
+specified as *v_name2*, where *name2* is the name of the variable, and is
+:math:`df(\lambda)/d\lambda` in the notation above (i.e., it is the analytic
+derivative of :math:`f` with respect to :math:`\lambda`).
+Note that the *name1* variable is also typically given as an
 argument to the :doc:`fix adapt <fix_adapt>` command.
 
 An alchemical simulation may use several pair potentials together,
 invoked via the :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>`
-command.  The total dUs/dlambda for the overall system is calculated
+command.  The total :math:`dU_s/d\lambda` for the overall system is calculated
 as the sum of each contributing term as listed by the keywords in the
-compute ti command.  Individual pair potentials can be listed, which
-will be sub-styles in the hybrid case.  You can also include a K-space
-term via the *kspace* keyword.  You can also include a pairwise
+:doc:`compute ti <compute_ti>` command.  Individual pair potentials can be
+listed, which will be sub-styles in the hybrid case.  You can also include a
+:math:`k`-space term via the *kspace* keyword.  You can also include a pairwise
 long-range tail correction to the energy via the *tail* keyword.
 
-For each term you can specify a different (or the same) scale factor
+For each term, you can specify a different (or the same) scale factor
 by the two variables that you list.  Again, these will typically
 correspond toe the scale factors applied to these various potentials
-and the K-Space contribution via the :doc:`fix adapt <fix_adapt>`
+and the :math:`k`-space contribution via the :doc:`fix adapt <fix_adapt>`
 command.
 
 More details about the exact functional forms for the computation of
-du/dl can be found in the paper by :ref:`Eike <Eike>`.
+:math:`du/dl` can be found in the paper by :ref:`Eike <Eike>`.
 
 ----------
 
 Output info
 """""""""""
 
-This compute calculates a global scalar, namely dUs/dlambda.  This
+This compute calculates a global scalar, namely :math:`dU_s/d\lambda`.  This
 value can be used by any command that uses a global scalar value from
 a compute as input.  See the :doc:`Howto output <Howto_output>` doc page
 for an overview of LAMMPS output options.
@@ -129,7 +133,8 @@ Restrictions
 """"""""""""
 
 This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

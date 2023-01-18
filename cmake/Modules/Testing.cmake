@@ -6,7 +6,7 @@ if(ENABLE_TESTING)
   find_program(VALGRIND_BINARY NAMES valgrind)
   # generate custom suppression file
   file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/lammps.supp "\n")
-  file(GLOB VALGRIND_SUPPRESSION_FILES ${LAMMPS_TOOLS_DIR}/valgrind/[^.]*.supp)
+  file(GLOB VALGRIND_SUPPRESSION_FILES ${CONFIGURE_DEPENDS} ${LAMMPS_TOOLS_DIR}/valgrind/[^.]*.supp)
   foreach(SUPP ${VALGRIND_SUPPRESSION_FILES})
     file(READ ${SUPP} SUPPRESSIONS)
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/lammps.supp "${SUPPRESSIONS}")

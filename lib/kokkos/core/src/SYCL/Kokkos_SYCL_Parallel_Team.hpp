@@ -70,8 +70,8 @@ class TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>
   int m_league_size;
   int m_team_size;
   int m_vector_length;
-  int m_team_scratch_size[2];
-  int m_thread_scratch_size[2];
+  size_t m_team_scratch_size[2];
+  size_t m_thread_scratch_size[2];
   int m_chunk_size;
   bool m_tune_team_size;
   bool m_tune_vector_length;
@@ -172,15 +172,17 @@ class TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>
 
   int league_size() const { return m_league_size; }
 
-  int scratch_size(int level, int team_size_ = -1) const {
+  size_t scratch_size(int level, int team_size_ = -1) const {
     if (team_size_ < 0) team_size_ = m_team_size;
     return m_team_scratch_size[level] +
            team_size_ * m_thread_scratch_size[level];
   }
 
-  int team_scratch_size(int level) const { return m_team_scratch_size[level]; }
+  size_t team_scratch_size(int level) const {
+    return m_team_scratch_size[level];
+  }
 
-  int thread_scratch_size(int level) const {
+  size_t thread_scratch_size(int level) const {
     return m_thread_scratch_size[level];
   }
 
@@ -408,8 +410,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   size_type const m_vector_size;
   int m_shmem_begin;
   int m_shmem_size;
-  char* m_scratch_ptr[2];
-  int m_scratch_size[2];
+  sycl::device_ptr<char> m_global_scratch_ptr;
+  size_t m_scratch_size[2];
   // Only let one ParallelFor/Reduce modify the team scratch memory. The
   // constructor acquires the mutex which is released in the destructor.
   std::scoped_lock<std::mutex> m_scratch_lock;
@@ -420,9 +422,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
                                  const sycl::event& memcpy_events) const {
     // Convenience references
     const Kokkos::Experimental::SYCL& space = policy.space();
-    Kokkos::Experimental::Impl::SYCLInternal& instance =
-        *space.impl_internal_space_instance();
-    sycl::queue& q = *instance.m_queue;
+    sycl::queue& q                          = space.sycl_queue();
 
     auto parallel_for_event = q.submit([&](sycl::handler& cgh) {
       // FIXME_SYCL accessors seem to need a size greater than zero at least for
@@ -430,20 +430,21 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
       sycl::accessor<char, 1, sycl::access::mode::read_write,
                      sycl::access::target::local>
           team_scratch_memory_L0(
-              sycl::range<1>(std::max(m_scratch_size[0] + m_shmem_begin, 1)),
+              sycl::range<1>(
+                  std::max(m_scratch_size[0] + m_shmem_begin, size_t(1))),
               cgh);
 
       // Avoid capturing *this since it might not be trivially copyable
-      const auto shmem_begin     = m_shmem_begin;
-      const int scratch_size[2]  = {m_scratch_size[0], m_scratch_size[1]};
-      char* const scratch_ptr[2] = {m_scratch_ptr[0], m_scratch_ptr[1]};
+      const auto shmem_begin       = m_shmem_begin;
+      const size_t scratch_size[2] = {m_scratch_size[0], m_scratch_size[1]};
+      sycl::device_ptr<char> const global_scratch_ptr = m_global_scratch_ptr;
 
       auto lambda = [=](sycl::nd_item<2> item) {
         const member_type team_member(
             team_scratch_memory_L0.get_pointer(), shmem_begin, scratch_size[0],
-            scratch_ptr[1] + item.get_group(1) * scratch_size[1],
+            global_scratch_ptr + item.get_group(1) * scratch_size[1],
             scratch_size[1], item);
-        if constexpr (std::is_same<work_tag, void>::value)
+        if constexpr (std::is_void<work_tag>::value)
           functor_wrapper.get_functor()(team_member);
         else
           functor_wrapper.get_functor()(work_tag(), team_member);
@@ -516,13 +517,12 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     m_scratch_size[0] = m_shmem_size;
     m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
 
-    // FIXME_SYCL so far accessors used instead of these pointers
     // Functor's reduce memory, team scan memory, and team shared memory depend
     // upon team size.
-    auto& space      = *m_policy.space().impl_internal_space_instance();
-    m_scratch_ptr[0] = nullptr;
-    m_scratch_ptr[1] = static_cast<char*>(space.resize_team_scratch_space(
-        static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
+    auto& space = *m_policy.space().impl_internal_space_instance();
+    m_global_scratch_ptr =
+        static_cast<sycl::device_ptr<char>>(space.resize_team_scratch_space(
+            static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
 
     if (static_cast<int>(space.m_maxShmemPerBlock) <
         m_shmem_size - m_shmem_begin) {
@@ -554,8 +554,12 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   using Policy = TeamPolicyInternal<Kokkos::Experimental::SYCL, Properties...>;
 
  private:
+  using ReducerConditional =
+      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
+                         FunctorType, ReducerType>;
+  using ReducerTypeFwd = typename ReducerConditional::type;
   using Analysis =
-      FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, FunctorType>;
+      FunctorAnalysis<FunctorPatternInterface::REDUCE, Policy, ReducerTypeFwd>;
   using member_type   = typename Policy::member_type;
   using WorkTag       = typename Policy::work_tag;
   using launch_bounds = typename Policy::launch_bounds;
@@ -574,14 +578,10 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   const ReducerType m_reducer;
   const pointer_type m_result_ptr;
   const bool m_result_ptr_device_accessible;
-  // FIXME_SYCL avoid reallocating memory for reductions
-  /*  size_type* m_scratch_space;
-    size_type* m_scratch_flags;
-    size_type m_team_begin;*/
   size_type m_shmem_begin;
   size_type m_shmem_size;
-  char* m_scratch_ptr[2];
-  int m_scratch_size[2];
+  sycl::device_ptr<char> m_global_scratch_ptr;
+  size_t m_scratch_size[2];
   const size_type m_league_size;
   int m_team_size;
   const size_type m_vector_size;
@@ -595,28 +595,14 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       const PolicyType& policy, const FunctorWrapper& functor_wrapper,
       const ReducerWrapper& reducer_wrapper,
       const std::vector<sycl::event>& memcpy_events) const {
-    using ReducerConditional =
-        Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                           FunctorType, ReducerType>;
-    using ReducerTypeFwd = typename ReducerConditional::type;
-    using WorkTagFwd =
-        std::conditional_t<std::is_same<InvalidType, ReducerType>::value,
-                           WorkTag, void>;
-    using ValueInit =
-        Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
-    using ValueJoin =
-        Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd>;
-    using ValueOps = Kokkos::Impl::FunctorValueOps<FunctorType, WorkTag>;
-
     // Convenience references
     const Kokkos::Experimental::SYCL& space = policy.space();
     Kokkos::Experimental::Impl::SYCLInternal& instance =
         *space.impl_internal_space_instance();
-    sycl::queue& q = *instance.m_queue;
+    sycl::queue& q = space.sycl_queue();
 
     const unsigned int value_count =
-        FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>::value_count(
-            ReducerConditional::select(m_functor, m_reducer));
+        Analysis::value_count(ReducerConditional::select(m_functor, m_reducer));
     std::size_t size = std::size_t(m_league_size) * m_team_size * m_vector_size;
     value_type* results_ptr = nullptr;
 
@@ -626,9 +612,10 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
     // working with the global scratch memory but don't copy back to
     // m_result_ptr yet.
     if (size <= 1) {
-      results_ptr = static_cast<pointer_type>(instance.scratch_space(
-          sizeof(value_type) * std::max(value_count, 1u)));
-      value_type* device_accessible_result_ptr =
+      results_ptr =
+          static_cast<sycl::device_ptr<value_type>>(instance.scratch_space(
+              sizeof(value_type) * std::max(value_count, 1u)));
+      sycl::global_ptr<value_type> device_accessible_result_ptr =
           m_result_ptr_device_accessible ? m_result_ptr : nullptr;
 
       auto parallel_reduce_event = q.submit([&](sycl::handler& cgh) {
@@ -637,13 +624,14 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         sycl::accessor<char, 1, sycl::access::mode::read_write,
                        sycl::access::target::local>
             team_scratch_memory_L0(
-                sycl::range<1>(std::max(m_scratch_size[0] + m_shmem_begin, 1)),
+                sycl::range<1>(
+                    std::max(m_scratch_size[0] + m_shmem_begin, size_t(1))),
                 cgh);
 
         // Avoid capturing *this since it might not be trivially copyable
-        const auto shmem_begin     = m_shmem_begin;
-        const int scratch_size[2]  = {m_scratch_size[0], m_scratch_size[1]};
-        char* const scratch_ptr[2] = {m_scratch_ptr[0], m_scratch_ptr[1]};
+        const auto shmem_begin       = m_shmem_begin;
+        const size_t scratch_size[2] = {m_scratch_size[0], m_scratch_size[1]};
+        sycl::device_ptr<char> const global_scratch_ptr = m_global_scratch_ptr;
 
         cgh.depends_on(memcpy_events);
         cgh.parallel_for(
@@ -654,23 +642,22 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
                   static_cast<const FunctorType&>(functor),
                   static_cast<const ReducerType&>(
                       reducer_wrapper.get_functor()));
-              reference_type update =
-                  ValueInit::init(selected_reducer, results_ptr);
+              typename Analysis::Reducer final_reducer(&selected_reducer);
+
+              reference_type update = final_reducer.init(results_ptr);
               if (size == 1) {
                 const member_type team_member(
                     team_scratch_memory_L0.get_pointer(), shmem_begin,
-                    scratch_size[0], scratch_ptr[1], scratch_size[1], item);
-                if constexpr (std::is_same<WorkTag, void>::value)
+                    scratch_size[0], global_scratch_ptr, scratch_size[1], item);
+                if constexpr (std::is_void<WorkTag>::value)
                   functor(team_member, update);
                 else
                   functor(WorkTag(), team_member, update);
               }
-              if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
-                FunctorFinal<FunctorType, WorkTag>::final(
-                    static_cast<const FunctorType&>(functor), results_ptr);
+              final_reducer.final(results_ptr);
               if (device_accessible_result_ptr)
-                ValueOps::copy(functor, device_accessible_result_ptr,
-                               &results_ptr[0]);
+                final_reducer.copy(device_accessible_result_ptr,
+                                   &results_ptr[0]);
             });
       });
       q.ext_oneapi_submit_barrier(
@@ -682,7 +669,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       // workgroup results back to global memory and recurse until only one
       // workgroup does the reduction and thus gets the final value.
       auto parallel_reduce_event = q.submit([&](sycl::handler& cgh) {
-        auto scratch_flags = static_cast<unsigned int*>(
+        auto scratch_flags = static_cast<sycl::device_ptr<unsigned int>>(
             instance.scratch_flags(sizeof(unsigned int)));
 
         // FIXME_SYCL accessors seem to need a size greater than zero at least
@@ -690,145 +677,138 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         sycl::accessor<char, 1, sycl::access::mode::read_write,
                        sycl::access::target::local>
             team_scratch_memory_L0(
-                sycl::range<1>(std::max(m_scratch_size[0] + m_shmem_begin, 1)),
+                sycl::range<1>(
+                    std::max(m_scratch_size[0] + m_shmem_begin, size_t(1))),
                 cgh);
 
         // Avoid capturing *this since it might not be trivially copyable
-        const auto shmem_begin     = m_shmem_begin;
-        const int scratch_size[2]  = {m_scratch_size[0], m_scratch_size[1]};
-        char* const scratch_ptr[2] = {m_scratch_ptr[0], m_scratch_ptr[1]};
+        const auto shmem_begin       = m_shmem_begin;
+        const size_t scratch_size[2] = {m_scratch_size[0], m_scratch_size[1]};
+        sycl::device_ptr<char> const global_scratch_ptr = m_global_scratch_ptr;
 
-        auto team_reduction_factory = [&](sycl::accessor<
-                                              value_type, 1,
-                                              sycl::access::mode::read_write,
-                                              sycl::access::target::local>
-                                              local_mem,
-                                          value_type* results_ptr) mutable {
-          value_type* device_accessible_result_ptr =
-              m_result_ptr_device_accessible ? m_result_ptr : nullptr;
-          auto lambda = [=](sycl::nd_item<2> item) {
-            auto n_wgroups =
-                item.get_group_range()[0] * item.get_group_range()[1];
-            auto wgroup_size =
-                item.get_local_range()[0] * item.get_local_range()[1];
-            auto size = n_wgroups * wgroup_size;
+        auto team_reduction_factory =
+            [&](sycl::accessor<value_type, 1, sycl::access::mode::read_write,
+                               sycl::access::target::local>
+                    local_mem,
+                sycl::device_ptr<value_type> results_ptr) mutable {
+              sycl::global_ptr<value_type> device_accessible_result_ptr =
+                  m_result_ptr_device_accessible ? m_result_ptr : nullptr;
+              auto lambda = [=](sycl::nd_item<2> item) {
+                auto n_wgroups =
+                    item.get_group_range()[0] * item.get_group_range()[1];
+                auto wgroup_size =
+                    item.get_local_range()[0] * item.get_local_range()[1];
+                auto size = n_wgroups * wgroup_size;
 
-            auto& num_teams_done = reinterpret_cast<unsigned int&>(
-                local_mem[wgroup_size * std::max(value_count, 1u)]);
-            const auto local_id          = item.get_local_linear_id();
-            const auto& functor          = functor_wrapper.get_functor();
-            const auto& selected_reducer = ReducerConditional::select(
-                static_cast<const FunctorType&>(functor),
-                static_cast<const ReducerType&>(reducer_wrapper.get_functor()));
+                auto& num_teams_done = reinterpret_cast<unsigned int&>(
+                    local_mem[wgroup_size * std::max(value_count, 1u)]);
+                const auto local_id          = item.get_local_linear_id();
+                const auto& functor          = functor_wrapper.get_functor();
+                const auto& selected_reducer = ReducerConditional::select(
+                    static_cast<const FunctorType&>(functor),
+                    static_cast<const ReducerType&>(
+                        reducer_wrapper.get_functor()));
+                typename Analysis::Reducer final_reducer(&selected_reducer);
 
-            if constexpr (FunctorValueTraits<ReducerTypeFwd,
-                                             WorkTagFwd>::StaticValueSize ==
-                          0) {
-              reference_type update = ValueInit::init(
-                  selected_reducer, &local_mem[local_id * value_count]);
-              const member_type team_member(
-                  team_scratch_memory_L0.get_pointer(), shmem_begin,
-                  scratch_size[0],
-                  scratch_ptr[1] + item.get_group(1) * scratch_size[1],
-                  scratch_size[1], item);
-              if constexpr (std::is_same<WorkTag, void>::value)
-                functor(team_member, update);
-              else
-                functor(WorkTag(), team_member, update);
-              item.barrier(sycl::access::fence_space::local_space);
+                if constexpr (Analysis::StaticValueSize == 0) {
+                  reference_type update =
+                      final_reducer.init(&local_mem[local_id * value_count]);
+                  const member_type team_member(
+                      team_scratch_memory_L0.get_pointer(), shmem_begin,
+                      scratch_size[0],
+                      global_scratch_ptr + item.get_group(1) * scratch_size[1],
+                      scratch_size[1], item);
+                  if constexpr (std::is_void<WorkTag>::value)
+                    functor(team_member, update);
+                  else
+                    functor(WorkTag(), team_member, update);
+                  item.barrier(sycl::access::fence_space::local_space);
 
-              SYCLReduction::workgroup_reduction<ValueJoin, ValueOps, WorkTag>(
-                  item, local_mem.get_pointer(), results_ptr,
-                  device_accessible_result_ptr, value_count, selected_reducer,
-                  static_cast<const FunctorType&>(functor), false,
-                  std::min<std::size_t>(size, item.get_local_range()[0] *
-                                                  item.get_local_range()[1]));
+                  SYCLReduction::workgroup_reduction<>(
+                      item, local_mem.get_pointer(), results_ptr,
+                      device_accessible_result_ptr, value_count,
+                      selected_reducer, false,
+                      std::min<std::size_t>(size,
+                                            item.get_local_range()[0] *
+                                                item.get_local_range()[1]));
 
-              if (local_id == 0) {
-                sycl::ext::oneapi::atomic_ref<
-                    unsigned, sycl::ext::oneapi::memory_order::relaxed,
-                    sycl::ext::oneapi::memory_scope::device,
-                    sycl::access::address_space::global_space>
-                    scratch_flags_ref(*scratch_flags);
-                num_teams_done = ++scratch_flags_ref;
-              }
-              sycl::group_barrier(item.get_group());
-              if (num_teams_done == n_wgroups) {
-                if (local_id >= n_wgroups)
-                  ValueInit::init(selected_reducer,
-                                  &local_mem[local_id * value_count]);
-                else {
-                  ValueOps::copy(functor, &local_mem[local_id * value_count],
-                                 &results_ptr[local_id * value_count]);
-                  for (unsigned int id = local_id + wgroup_size; id < n_wgroups;
-                       id += wgroup_size) {
-                    ValueJoin::join(selected_reducer,
-                                    &local_mem[local_id * value_count],
-                                    &results_ptr[id * value_count]);
+                  if (local_id == 0) {
+                    sycl::atomic_ref<unsigned, sycl::memory_order::relaxed,
+                                     sycl::memory_scope::device,
+                                     sycl::access::address_space::global_space>
+                        scratch_flags_ref(*scratch_flags);
+                    num_teams_done = ++scratch_flags_ref;
+                  }
+                  sycl::group_barrier(item.get_group());
+                  if (num_teams_done == n_wgroups) {
+                    if (local_id >= n_wgroups)
+                      final_reducer.init(&local_mem[local_id * value_count]);
+                    else {
+                      final_reducer.copy(&local_mem[local_id * value_count],
+                                         &results_ptr[local_id * value_count]);
+                      for (unsigned int id = local_id + wgroup_size;
+                           id < n_wgroups; id += wgroup_size) {
+                        final_reducer.join(&local_mem[local_id * value_count],
+                                           &results_ptr[id * value_count]);
+                      }
+                    }
+
+                    SYCLReduction::workgroup_reduction<>(
+                        item, local_mem.get_pointer(), results_ptr,
+                        device_accessible_result_ptr, value_count,
+                        selected_reducer, true,
+                        std::min(n_wgroups, item.get_local_range()[0] *
+                                                item.get_local_range()[1]));
+                  }
+                } else {
+                  value_type local_value;
+                  reference_type update = final_reducer.init(&local_value);
+                  const member_type team_member(
+                      team_scratch_memory_L0.get_pointer(), shmem_begin,
+                      scratch_size[0],
+                      global_scratch_ptr + item.get_group(1) * scratch_size[1],
+                      scratch_size[1], item);
+                  if constexpr (std::is_void<WorkTag>::value)
+                    functor(team_member, update);
+                  else
+                    functor(WorkTag(), team_member, update);
+
+                  SYCLReduction::workgroup_reduction<>(
+                      item, local_mem.get_pointer(), local_value, results_ptr,
+                      device_accessible_result_ptr, final_reducer, false,
+                      std::min<std::size_t>(size,
+                                            item.get_local_range()[0] *
+                                                item.get_local_range()[1]));
+
+                  if (local_id == 0) {
+                    sycl::atomic_ref<unsigned, sycl::memory_order::relaxed,
+                                     sycl::memory_scope::device,
+                                     sycl::access::address_space::global_space>
+                        scratch_flags_ref(*scratch_flags);
+                    num_teams_done = ++scratch_flags_ref;
+                  }
+                  item.barrier(sycl::access::fence_space::local_space);
+                  if (num_teams_done == n_wgroups) {
+                    if (local_id >= n_wgroups)
+                      final_reducer.init(&local_value);
+                    else {
+                      local_value = results_ptr[local_id];
+                      for (unsigned int id = local_id + wgroup_size;
+                           id < n_wgroups; id += wgroup_size) {
+                        final_reducer.join(&local_value, &results_ptr[id]);
+                      }
+                    }
+
+                    SYCLReduction::workgroup_reduction<>(
+                        item, local_mem.get_pointer(), local_value, results_ptr,
+                        device_accessible_result_ptr, final_reducer, true,
+                        std::min(n_wgroups, item.get_local_range()[0] *
+                                                item.get_local_range()[1]));
                   }
                 }
-
-                SYCLReduction::workgroup_reduction<ValueJoin, ValueOps,
-                                                   WorkTag>(
-                    item, local_mem.get_pointer(), results_ptr,
-                    device_accessible_result_ptr, value_count, selected_reducer,
-                    static_cast<const FunctorType&>(functor), true,
-                    std::min(n_wgroups, item.get_local_range()[0] *
-                                            item.get_local_range()[1]));
-              }
-            } else {
-              value_type local_value;
-              reference_type update =
-                  ValueInit::init(selected_reducer, &local_value);
-              const member_type team_member(
-                  team_scratch_memory_L0.get_pointer(), shmem_begin,
-                  scratch_size[0],
-                  scratch_ptr[1] + item.get_group(1) * scratch_size[1],
-                  scratch_size[1], item);
-              if constexpr (std::is_same<WorkTag, void>::value)
-                functor(team_member, update);
-              else
-                functor(WorkTag(), team_member, update);
-
-              SYCLReduction::workgroup_reduction<ValueJoin, WorkTag>(
-                  item, local_mem.get_pointer(), local_value, results_ptr,
-                  device_accessible_result_ptr, selected_reducer,
-                  static_cast<const FunctorType&>(functor), false,
-                  std::min<std::size_t>(size, item.get_local_range()[0] *
-                                                  item.get_local_range()[1]));
-
-              if (local_id == 0) {
-                sycl::ext::oneapi::atomic_ref<
-                    unsigned, sycl::ext::oneapi::memory_order::relaxed,
-                    sycl::ext::oneapi::memory_scope::device,
-                    sycl::access::address_space::global_space>
-                    scratch_flags_ref(*scratch_flags);
-                num_teams_done = ++scratch_flags_ref;
-              }
-              item.barrier(sycl::access::fence_space::local_space);
-              if (num_teams_done == n_wgroups) {
-                if (local_id >= n_wgroups)
-                  ValueInit::init(selected_reducer, &local_value);
-                else {
-                  local_value = results_ptr[local_id];
-                  for (unsigned int id = local_id + wgroup_size; id < n_wgroups;
-                       id += wgroup_size) {
-                    ValueJoin::join(selected_reducer, &local_value,
-                                    &results_ptr[id]);
-                  }
-                }
-
-                SYCLReduction::workgroup_reduction<ValueJoin, WorkTag>(
-                    item, local_mem.get_pointer(), local_value, results_ptr,
-                    device_accessible_result_ptr, selected_reducer,
-                    static_cast<const FunctorType&>(functor), true,
-                    std::min(n_wgroups, item.get_local_range()[0] *
-                                            item.get_local_range()[1]));
-              }
-            }
-          };
-          return lambda;
-        };
+              };
+              return lambda;
+            };
 
         auto dummy_reduction_lambda = team_reduction_factory({1, cgh}, nullptr);
 
@@ -860,8 +840,9 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
         const auto init_size =
             std::max<std::size_t>((size + wgroup_size - 1) / wgroup_size, 1);
-        results_ptr = static_cast<pointer_type>(instance.scratch_space(
-            sizeof(value_type) * std::max(value_count, 1u) * init_size));
+        results_ptr =
+            static_cast<sycl::device_ptr<value_type>>(instance.scratch_space(
+                sizeof(value_type) * std::max(value_count, 1u) * init_size));
 
         auto reduction_lambda = team_reduction_factory(local_mem, results_ptr);
 
@@ -885,9 +866,6 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
                              Kokkos::Experimental::SYCLDeviceUSMSpace>(
           space, m_result_ptr, results_ptr,
           sizeof(*m_result_ptr) * value_count);
-      space.fence(
-          "Kokkos::Impl::ParallelReduce<TeamPolicy,SYCL>: fence because "
-          "reduction can't access result storage location");
     }
 
     return last_reduction_event;
@@ -935,13 +913,12 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
     m_scratch_size[0] = m_shmem_size;
     m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
 
-    // FIXME_SYCL so far accessors used instead of these pointers
     // Functor's reduce memory, team scan memory, and team shared memory depend
     // upon team size.
-    auto& space      = *m_policy.space().impl_internal_space_instance();
-    m_scratch_ptr[0] = nullptr;
-    m_scratch_ptr[1] = static_cast<char*>(space.resize_team_scratch_space(
-        static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
+    auto& space = *m_policy.space().impl_internal_space_instance();
+    m_global_scratch_ptr =
+        static_cast<sycl::device_ptr<char>>(space.resize_team_scratch_space(
+            static_cast<ptrdiff_t>(m_scratch_size[1]) * m_league_size));
 
     if (static_cast<int>(space.m_maxShmemPerBlock) <
         m_shmem_size - m_shmem_begin) {
@@ -960,10 +937,10 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
  public:
   template <class ViewType>
-  ParallelReduce(FunctorType const& arg_functor, Policy const& arg_policy,
-                 ViewType const& arg_result,
-                 typename std::enable_if<Kokkos::is_view<ViewType>::value,
-                                         void*>::type = nullptr)
+  ParallelReduce(
+      FunctorType const& arg_functor, Policy const& arg_policy,
+      ViewType const& arg_result,
+      std::enable_if_t<Kokkos::is_view<ViewType>::value, void*> = nullptr)
       : m_functor(arg_functor),
         m_policy(arg_policy),
         m_reducer(InvalidType()),

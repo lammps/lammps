@@ -120,6 +120,14 @@ best effect:
 
 ----------
 
+Suitable tables in the correct format for use with these pair styles can
+be created by LAMMPS itself using the :doc:`pair_write <pair_write>`
+command.  In combination with the pair styles :doc:`python <pair_python>`,
+:doc:`lepton, or lepton/coul <pair_lepton>` this can be a powerful
+mechanism to implement and test tables for use with LAMMPS.  Another
+option to generate tables is the Python code in the ``tools/tabulate``
+folder of the LAMMPS source code distribution.
+
 The format of a tabulated file has an (optional) header followed by a
 series of one or more sections, defined as follows (without the
 parenthesized comments). The header must start with a `#` character

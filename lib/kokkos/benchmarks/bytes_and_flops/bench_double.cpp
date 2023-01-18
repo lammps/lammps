@@ -45,4 +45,4 @@
 #include <bench.hpp>
 
 template void run_stride_unroll<double>(int N, int K, int R, int D, int U,
-                                        int F, int T, int S);
+                                        int F, int T, int S, int B, int I);

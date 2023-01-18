@@ -8,10 +8,11 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID mdi/qm keyword value(s) keyword value(s) ...
+   fix ID group-ID mdi/qmmm mode keyword value(s) keyword value(s) ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * mdi/qm = style name of this fix command
+* mode = *direct* or *potential*
 * zero or more keyword/value pairs may be appended
 * keyword = *virial* or *add* or *every* or *connect* or *elements*
 
@@ -20,11 +21,6 @@ Syntax
        *virial* args = *yes* or *no*
          yes = request virial tensor from server code
          no = do not request virial tensor from server code
-       *add* args = *yes* or *no*
-         yes = add returned value from server code to LAMMPS quantities
-         no = do not add returned values to LAMMPS quantities
-       *every* args = Nevery
-         Nevery = request values from server code once every Nevery steps
        *connect* args = *yes* or *no*
          yes = perform a one-time connection to the MDI engine code
          no = do not perform the connection operation
@@ -36,41 +32,34 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all mdi/qm
-   fix 1 all mdi/qm virial yes
-   fix 1 all mdi/qm add no every 100 elements 13 29
+   fix 1 all mdi/qmmm direct
+   fix 1 all mdi/qmmm potential virial yes
+   fix 1 all mdi/qmmm potential virial yes elements 13 29
 
 Description
 """""""""""
 
-.. versionadded:: 3Aug2022
-
 This command enables LAMMPS to act as a client with another server
-code that will compute the total energy, per-atom forces, and total
-virial for atom conformations and simulation box size/shapes that
-LAMMPS sends it.
-
-Typically the server code will be a quantum mechanics (QM) code, hence
-the name of the fix.  However this is not required, the server code
-could be another classical molecular dynamics code or LAMMPS itself.
-The server code must support use of the `MDI Library
+code to perform a couple QMMM (quantum-mechanics molecular-mechanics)
+simulation.  LAMMPS will perform classical MD (molecular-mechnanics)
+for the (typically larger) MM portion of the system.  A quantum
+mechanics code will calculate quantum effects for the QM portion of
+the system.  The QM server code must support use of the `MDI Library
 <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_ as
 explained below.
-
-These are example use cases for this fix, discussed further below:
-
-* perform an ab initio MD (AIMD) simulation with quantum forces
-* perform an energy minimization with quantum forces
-* perform a nudged elastic band (NEB) calculation with quantum forces
-* perform a QM calculation for a series of independent systems which LAMMPS reads or generates
 
 The code coupling performed by this command is done via the `MDI
 Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 LAMMPS runs as an MDI driver (client), and sends MDI commands to an
-external MDI engine code (server), e.g. a QM code which has support
-for MDI.  See the :doc:`Howto mdi <Howto_mdi>` page for more
+external MDI engine code (server), in this case a QM code which has
+support for MDI.  See the :doc:`Howto mdi <Howto_mdi>` page for more
 information about how LAMMPS can operate as either an MDI driver or
 engine.
+
+
+
+Q: provide an example where LAMMPS is also the QM code ?
+   similar to fix mdi/qm ?
 
 The examples/mdi directory contains input scripts using this fix in
 the various use cases discussed below.  In each case, two instances of
@@ -93,23 +82,6 @@ explains how to launch the two codes in either mode.
 The *virial* keyword setting of yes or no determines whether
 LAMMPS will request the QM code to also compute and return
 a 6-element symmetric virial tensor for the system.
-
-The *add* keyword setting of *yes* or *no* determines whether the
-energy and forces and virial returned by the QM code will be added to
-the LAMMPS internal energy and forces and virial or not.  If the
-setting is *no* then the default :doc:`fix_modify energy <fix_modify>`
-and :doc:`fix_modify virial <fix_modify>` settings are also set to
-*no* and your input scripts should not set them to yes.  See more
-details on these fix_modify settings below.
-
-Whatever the setting for the *add* keyword, the QM energy, forces, and
-virial will be stored by the fix, so they can be accessed by other
-commands.  See details below.
-
-The *every* keyword determines how often the QM code will be invoked
-during a dynamics run with the current LAMMPS simulation box and
-configuration of atoms.  The QM code will be called once every
-*Nevery* timesteps.
 
 The *connect* keyword determines whether this fix performs a one-time
 connection to the QM code.  The default is *yes*.  The only time a
@@ -270,11 +242,11 @@ supports, e.g. *lj*, but then no unit conversion is performed.
 Related commands
 """"""""""""""""
 
-:doc:`mdi plugin <mdi>`, :doc:`mdi engine <mdi>`, :doc:`fix mdi/qmmm
-     <fix_mdi_qmmm>`
+:doc:`mdi plugin <mdi>`, :doc:`mdi engine <mdi>`, :doc:`fix mdi/qm
+     <fix_mdi_qm>`
 
 Default
 """""""
 
-The default for the optional keywords are virial = no, add = yes,
-every = 1, connect = yes.
+The default for the optional keywords are virial = no and connect =
+yes.

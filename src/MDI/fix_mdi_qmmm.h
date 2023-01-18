@@ -114,6 +114,8 @@ class FixMDIQMMM : public Fix {
   void send_box();
   void unit_conversions();
 
+  void post_force_direct(int);
+  void post_force_potential(int);
   void post_force_aimd(int);
 };
 

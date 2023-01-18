@@ -29,6 +29,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum { NATIVE, REAL, METAL };    // LAMMPS units which MDI supports
+enum { DIRECT, POTENTIAL };      // mode of QMMM coupling
 
 #define MAXELEMENT 103    // used elsewhere in MDI package
 
@@ -61,13 +62,19 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (role != MDI_DRIVER)
     error->all(FLERR, "Must invoke LAMMPS as an MDI driver to use fix mdi/qmmm");
 
+  // mode arg
+
+  if (strcmp(arg[3]),"direct" == 0) mode = DIRECT;
+  else if (strcmp(arg[3],"potential") == 0) mode = POTENTIAL;
+  error->all(FLERR,"Illegal fix mdi/qmmm command");
+  
   // optional args
 
   virialflag = 0;
   connectflag = 1;
   elements = nullptr;
 
-  int iarg = 3;
+  int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "virial") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix mdi/qmmm command");
@@ -290,8 +297,10 @@ int FixMDIQMMM::setmask()
   int mask = 0;
   mask |= POST_NEIGHBOR;
   mask |= MIN_POST_NEIGHBOR;
-  mask |= PRE_FORCE;
-  mask |= MIN_PRE_FORCE;
+  if (mode == POTENTIAL) {
+    mask |= PRE_FORCE;
+    mask |= MIN_PRE_FORCE;
+  }
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -389,13 +398,14 @@ void FixMDIQMMM::init()
                      platform::walltime() - tstart);
   }
 
-
+  // initial one-time MDI communication with engine
   
   // send natoms, atom types or elements, and simulation box to engine
   // confirm engine count of NATOMS is correct
   // this will trigger setup of a new system
   // subsequent calls in post_force() will be for same system until new init()
 
+  // NOTE: why is this done here
   reallocate();
 
   int natoms_exists;
@@ -422,6 +432,13 @@ void FixMDIQMMM::init()
       error->all(FLERR, "MDI: Engine has wrong atom count and does not support >NATOMS command");
   }
 
+  if (mode == DIRECT) {
+    ierr = MDI_Send_command(">NLATTICE", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >NLATTICE command");
+    ierr = MDI_Send(&nmm, 1, MDI_INT, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >NLATTICE data");
+  }
+  
   int elements_exists;
   int types_exists;
   ierr = MDI_Check_command_exists("@DEFAULT", ">ELEMENTS", mdicomm, &elements_exists);
@@ -467,11 +484,15 @@ void FixMDIQMMM::post_neighbor()
   set_qm2owned();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   only invoked in POTENTIAL mode
+   calculates Coulomb potential for each QM atom
+   invokes the QM code
+---------------------------------------------------------------------- */
 
 void FixMDIQMMM::pre_force(int vflag)
 {
-    int ilocal,jlocal;
+  int ilocal,jlocal;
   double rsq;
   double delta[3];
 
@@ -656,9 +677,79 @@ void FixMDIQMMM::pre_force(int vflag)
     update->minimize->force_clear();  
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   different methods invoked for DIRECT vs POTENTIAL mode
+---------------------------------------------------------------------- */
 
 void FixMDIQMMM::post_force(int vflag)
+{
+  if (mode == DIRECT) post_force_direct(vflag);
+  else if (mode = POTENTIAL post_force_potential(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIQMMM::post_force_direct(int vflag)
+{
+  if (comm->me == 0) utils::logmesg(lmp, "Calling QM code ...\n");
+
+  MPI_Barrier(world);
+  double tstart = platform::walltime();
+
+  // MDI calls
+  
+  // send current coords of QM atoms to MDI engine
+  
+  int ierr = MDI_Send_command(">COORDS", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >COORDS command");
+  ierr = MDI_Send(&xqm[0][0], 3 * nqm, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >COORDS data");
+
+  // send current coords of MM atoms to MDI engine
+  
+  int ierr = MDI_Send_command(">CLATTICE", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >CLATTICE command");
+  ierr = MDI_Send(&xmm[0][0], 3 * nmm, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >CLATTICE data");
+
+  // send charges on MM atoms to MDI engine
+  
+  int ierr = MDI_Send_command(">LATTICE", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >LATTICE command");
+  ierr = MDI_Send(&qmm[0][0], nmm, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >LATTICE data");
+
+  // request QM potential energy from MDI engine
+  // this triggers engine to perform QM calculation
+  // qm_energy = fix output for global QM energy
+
+  ierr = MDI_Send_command("<PE", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: <PE command");
+  ierr = MDI_Recv(&qm_energy, 1, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: <PE data");
+  MPI_Bcast(&qm_energy, 1, MPI_DOUBLE, 0, world);
+
+  // request forces on QM atoms from MDI engine
+  // NOTE: will this be forces on all atoms in DIRECT mode ?
+  
+  ierr = MDI_Send_command("<FORCES", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: <FORCES command");
+  ierr = MDI_Recv(&fqm[0][0], 3 * nqm, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: <FORCES data");
+  MPI_Bcast(&fqm[0][0], 3 * nqm, MPI_DOUBLE, 0, world);
+
+  // end of MDI calls
+  
+  MPI_Barrier(world);
+  if (comm->me == 0) 
+    utils::logmesg(lmp, "  time = {:.3f} seconds\n",
+                   platform::walltime() - tstart);
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIQMMM::post_force_potential(int vflag)
 {
   // int ilocal,jlocal;
   // double rsq,r2inv,rinv,fpair;
@@ -757,7 +848,10 @@ void FixMDIQMMM::post_force(int vflag)
   //c_pe->addstep(update->ntimestep+1);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   NOTE: remove this method, do it via fix mdi/qm ?
+         or is it here for debugging ?
+---------------------------------------------------------------------- */
 
 void FixMDIQMMM::post_force_aimd(int vflag)
 {

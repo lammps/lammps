@@ -288,7 +288,7 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
                               const bool eflag_in, const bool vflag_in,
                               const bool eatom, const bool vatom, int &host_start,
                               int **&ilist, int **&jnum, const double cpu_time,
-                              bool &success, double *host_q, double *boxlo, double *prd) {
+                              bool &success, double *host_q, double * /*boxlo*/, double * /*prd*/) {
   acc_timers();
   if (eatom) _eflag=2;
   else if (eflag_in) _eflag=1;
@@ -368,20 +368,21 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 //   this is the first part in a time step done on the GPU for AMOEBA for now
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
-                                          const int nall, double **host_x,
-                                          int *host_type, int *host_amtype,
-                                          int *host_amgroup, double **host_rpole, double *host_pval,
-                                          double *sublo, double *subhi, tagint *tag,
-                                          int **nspecial, tagint **special,
-                                          int *nspecial15, tagint **special15,
-                                          const bool eflag_in, const bool vflag_in,
-                                          const bool eatom, const bool vatom,
-                                          int &host_start, int **ilist, int **jnum,
-                                          const double cpu_time, bool &success,
-                                          const double aewald, const double felec,
-                                          const double off2_mpole, double *host_q,
-                                          double *boxlo, double *prd, void **tep_ptr) {
+void BaseAmoebaT::compute_multipole_real(const int /*ago*/, const int inum_full,
+                                         const int /*nall*/, double ** /*host_x*/,
+                                         int * /*host_type*/, int * /*host_amtype*/,
+                                         int * /*host_amgroup*/, double ** /*host_rpole*/,
+                                         double */*host_pval*/, double * /*sublo*/,
+                                         double * /*subhi*/, tagint * /*tag*/,
+                                         int ** /*nspecial*/, tagint ** /*special*/,
+                                         int * /*nspecial15*/, tagint ** /*special15*/,
+                                         const bool /*eflag_in*/, const bool /*vflag_in*/,
+                                         const bool /*eatom*/, const bool /*vatom*/,
+                                         int & /*host_start*/, int ** /*ilist*/, int ** /*jnum*/,
+                                         const double /*cpu_time*/, bool & /*success*/,
+                                         const double aewald, const double felec,
+                                         const double off2_mpole, double * /*host_q*/,
+                                         double * /*boxlo*/, double * /*prd*/, void **tep_ptr) {
   // ------------------- Resize _tep array ------------------------
 
   if (inum_full>_max_tep_size) {
@@ -393,7 +394,7 @@ void BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
   _off2_mpole = off2_mpole;
   _felec = felec;
   _aewald = aewald;
-  const int red_blocks=multipole_real(_eflag,_vflag);
+  multipole_real(_eflag,_vflag);
 
   // leave the answers (forces, energies and virial) on the device,
   //   only copy them back in the last kernel (polar_real)
@@ -424,7 +425,7 @@ void BaseAmoebaT::compute_udirect2b(int *host_amtype, int *host_amgroup, double 
   // specify the correct cutoff and alpha values
   _off2_polar = off2_polar;
   _aewald = aewald;
-  const int red_blocks=udirect2b(_eflag,_vflag);
+  udirect2b(_eflag,_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
@@ -436,10 +437,10 @@ void BaseAmoebaT::compute_udirect2b(int *host_amtype, int *host_amgroup, double 
 //    of the induced field
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **host_rpole,
-                                     double **host_uind, double **host_uinp, double *host_pval,
-                                     const double aewald, const double off2_polar,
-                                     void** fieldp_ptr) {
+void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double ** /*host_rpole*/,
+                                    double **host_uind, double **host_uinp, double * /*host_pval*/,
+                                    const double aewald, const double off2_polar,
+                                    void** /*fieldp_ptr*/) {
   // only copy the necessary data arrays that are updated over the iterations
   // use nullptr for the other arrays that are already copied from host to device
   cast_extra_data(host_amtype, host_amgroup, nullptr, host_uind, host_uinp, nullptr);
@@ -449,7 +450,7 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
   _off2_polar = off2_polar;
   _aewald = aewald;
   // launch the kernel
-  const int red_blocks=umutual2b(_eflag,_vflag);
+  umutual2b(_eflag,_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
   // NOTE: move this step to update_fieldp() to delay device-host transfer
@@ -492,7 +493,7 @@ void BaseAmoebaT::precompute_kspace(const int inum_full, const int bsorder,
     _fdip_phi2.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);
     _fdip_sum_phi.alloc(_max_thetai_size*20,*(this->ucl_device),UCL_READ_WRITE);
   } else {
-    if (_thetai1.cols()<_max_thetai_size*bsorder) {
+    if ((int)_thetai1.cols()<_max_thetai_size*bsorder) {
       _max_thetai_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
       _thetai1.resize(_max_thetai_size*bsorder);
       _thetai2.resize(_max_thetai_size*bsorder);
@@ -573,7 +574,7 @@ void BaseAmoebaT::precompute_kspace(const int inum_full, const int bsorder,
   int numel = _num_grid_points;
   if (_cgrid_brick.cols() == 0) {
     _cgrid_brick.alloc(numel, *(this->ucl_device), UCL_READ_WRITE, UCL_READ_ONLY);
-  } else if (numel > _cgrid_brick.cols()) {
+  } else if (numel > (int)_cgrid_brick.cols()) {
     _cgrid_brick.resize(numel);
   }
 }
@@ -611,7 +612,7 @@ void BaseAmoebaT::compute_fphi_uind(double ****host_grid_brick,
   #endif
 
   // launch the kernel with its execution configuration (see below)
-  const int red_blocks = fphi_uind();
+  fphi_uind();
 
   // copy data from device to host asynchronously
   _fdip_phi1.update_host(_max_thetai_size*10, true);
@@ -682,7 +683,7 @@ void BaseAmoebaT::compute_fphi_mpole(double ***host_grid_brick, void **host_fphi
   _cgrid_brick.update_device(_num_grid_points, false);
 
   _felec = felec;
-  const int red_blocks = fphi_mpole();
+  fphi_mpole();
 
   _fdip_sum_phi.update_host(_max_thetai_size*20);
 
@@ -697,9 +698,6 @@ int BaseAmoebaT::fphi_mpole() {
   int ainum=ans->inum();
   if (ainum == 0)
     return 0;
-
-  int _nall=atom->nall();
-  int nbor_pitch=nbor->nbor_pitch();
 
   // Compute the block size and grid size to keep all cores busy
 
@@ -771,7 +769,7 @@ double BaseAmoebaT::host_memory_usage_atomic() const {
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void BaseAmoebaT::setup_fft(const int numel, const int element_type)
+void BaseAmoebaT::setup_fft(const int /*numel*/, const int /*element_type*/)
 {
   // TODO: setting up FFT plan based on the backend (cuFFT or hipFFT)
 }
@@ -781,7 +779,8 @@ void BaseAmoebaT::setup_fft(const int numel, const int element_type)
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_fft1d(void* in, void* out, const int numel, const int mode)
+void BaseAmoebaT::compute_fft1d(void * /*in*/, void * /*out*/,
+                                const int /*numel*/, const int /*mode*/)
 {
   // TODO: setting up FFT plan based on the backend (cuFFT or hipFFT)
   #if 0 // !defined(USE_OPENCL) && !defined(USE_HIP)
@@ -940,7 +939,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
 
   #if defined(USE_OPENCL) && (defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0))
   if (dev.has_subgroup_support()) {
-    size_t mx_subgroup_sz = k_polar.max_subgroup_size(_block_size);
+    int mx_subgroup_sz = k_polar.max_subgroup_size(_block_size);
     if (_threads_per_atom > mx_subgroup_sz)
       _threads_per_atom = mx_subgroup_sz;
     device->set_simd_size(mx_subgroup_sz);

@@ -48,10 +48,10 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
                   const double *host_pdamp, const double *host_thole,
                   const double *host_dirdamp, const int *host_amtype2class,
                   const double *host_special_hal,
-                  const double *host_special_repel,
-                  const double *host_special_disp,
+                  const double * /*host_special_repel*/,
+                  const double * /*host_special_disp*/,
                   const double *host_special_mpole,
-                  const double *host_special_polar_wscale,
+                  const double * /*host_special_polar_wscale*/,
                   const double *host_special_polar_piscale,
                   const double *host_special_polar_pscale,
                   const double *host_csix, const double *host_adisp,
@@ -188,7 +188,7 @@ int AmoebaT::multipole_real(const int eflag, const int vflag) {
 // Launch the real-space permanent field kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int AmoebaT::udirect2b(const int eflag, const int vflag) {
+int AmoebaT::udirect2b(const int /*eflag*/, const int /*vflag*/) {
   int ainum=this->ans->inum();
   if (ainum == 0)
     return 0;
@@ -230,7 +230,7 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
 // Launch the real-space induced field kernel, returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int AmoebaT::umutual2b(const int eflag, const int vflag) {
+int AmoebaT::umutual2b(const int /*eflag*/, const int /*vflag*/) {
   int ainum=this->ans->inum();
   if (ainum == 0)
     return 0;

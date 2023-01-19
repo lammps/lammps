@@ -123,7 +123,7 @@ void hippo_gpu_clear() {
 int** hippo_gpu_precompute(const int ago, const int inum_full, const int nall,
                            double **host_x, int *host_type, int *host_amtype,
                            int *host_amgroup, double **host_rpole,
-                           double **host_uind, double **host_uinp, double *host_pval,
+                           double ** /*host_uind*/, double ** /*host_uinp*/, double * /*host_pval*/,
                            double *sublo, double *subhi, tagint *tag,
                            int **nspecial, tagint **special,
                            int *nspecial15, tagint **special15,

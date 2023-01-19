@@ -403,9 +403,14 @@ double AtomT::host_memory_usage() const {
   return _max_atoms*atom_bytes*sizeof(numtyp)+sizeof(Atom<numtyp,acctyp>);
 }
 
+#ifdef USE_CUDPP
+#define USE_CUDPP_ARG(arg) arg
+#else
+#define USE_CUDPP_ARG(arg)
+#endif
 // Sort arrays for neighbor list calculation
 template <class numtyp, class acctyp>
-void AtomT::sort_neighbor(const int num_atoms) {
+void AtomT::sort_neighbor(const int USE_CUDPP_ARG(num_atoms)) {
   #ifdef USE_CUDPP
   CUDPPResult result = cudppSort(sort_plan, (unsigned *)dev_cell_id.begin(),
                                  (int *)dev_particle_id.begin(),

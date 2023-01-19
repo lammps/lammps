@@ -327,7 +327,7 @@ class Atom {
 
   /// Copy positions and types to device asynchronously
   /** Copies nall() elements **/
-  inline void add_x_data(double **host_ptr, int *host_type) {
+  inline void add_x_data(double ** /*host_ptr*/, int * /*host_type*/) {
     time_pos.start();
     if (_x_avail==false) {
       #ifdef GPU_CAST
@@ -441,7 +441,7 @@ class Atom {
 
   /// Copy velocities and tags to device asynchronously
   /** Copies nall() elements **/
-  inline void add_v_data(double **host_ptr, tagint *host_tag) {
+  inline void add_v_data(double ** /*host_ptr*/, tagint * /*host_tag*/) {
     time_vel.start();
     if (_v_avail==false) {
       #ifdef GPU_CAST

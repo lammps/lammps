@@ -280,7 +280,7 @@ class BaseAmoeba {
   UCL_Kernel k_fphi_uind, k_fphi_mpole;
   UCL_Kernel k_special15, k_short_nbor;
   inline int block_size() { return _block_size; }
-  inline void set_kernel(const int eflag, const int vflag) {}
+  inline void set_kernel(const int /*eflag*/, const int /*vflag*/) {}
 
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture pos_tex;

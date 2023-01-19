@@ -176,19 +176,19 @@ double HippoT::host_memory_usage() const {
 // Compute the repulsion term, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void HippoT::compute_repulsion(const int ago, const int inum_full,
-                               const int nall, double **host_x,
-                               int *host_type, int *host_amtype,
-                               int *host_amgroup, double **host_rpole,
-                               double *sublo, double *subhi, tagint *tag,
-                               int **nspecial, tagint **special,
-                               int *nspecial15, tagint **special15,
+void HippoT::compute_repulsion(const int /*ago*/, const int inum_full,
+                               const int /*nall*/, double ** /*host_x*/,
+                               int * /*host_type*/, int * /*host_amtype*/,
+                               int * /*host_amgroup*/, double ** /*host_rpole*/,
+                               double * /*sublo*/, double * /*subhi*/, tagint * /*tag*/,
+                               int ** /*nspecial*/, tagint ** /*special*/,
+                               int * /*nspecial15*/, tagint ** /*special15*/,
                                const bool eflag_in, const bool vflag_in,
                                const bool eatom, const bool vatom,
-                               int &host_start, int **ilist, int **jnum,
-                               const double cpu_time, bool &success,
-                               const double aewald, const double off2_repulse,
-                               double *host_q, double *boxlo, double *prd,
+                               int & /*host_start*/, int ** /*ilist*/, int ** /*jnum*/,
+                               const double /*cpu_time*/, bool & /*success*/,
+                               const double /*aewald*/, const double off2_repulse,
+                               double * /*host_q*/, double * /*boxlo*/, double * /*prd*/,
                                double cut2, double c0, double c1, double c2,
                                double c3, double c4, double c5, void **tep_ptr) {
   this->acc_timers();
@@ -223,7 +223,7 @@ void HippoT::compute_repulsion(const int ago, const int inum_full,
   _c3 = c3;
   _c4 = c4;
   _c5 = c5;
-  const int red_blocks=repulsion(this->_eflag,this->_vflag);
+  repulsion(this->_eflag,this->_vflag);
 
   // copy tep from device to host
   this->_tep.update_host(this->_max_tep_size*4,false);
@@ -287,7 +287,7 @@ void HippoT::compute_dispersion_real(int *host_amtype, int *host_amgroup,
 
   this->_off2_disp = off2_disp;
   this->_aewald = aewald;
-  const int red_blocks=dispersion_real(this->_eflag,this->_vflag);
+  dispersion_real(this->_eflag,this->_vflag);
 
   // only copy them back if this is the last kernel
   //   otherwise, commenting out these two lines to leave the answers
@@ -341,21 +341,21 @@ int HippoT::dispersion_real(const int eflag, const int vflag) {
 // Compute the multipole real-space term, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void HippoT::compute_multipole_real(const int ago, const int inum_full,
-                                     const int nall, double **host_x,
-                                     int *host_type, int *host_amtype,
-                                     int *host_amgroup, double **host_rpole,
-                                     double* host_pval, double *sublo,
-                                     double *subhi, tagint *tag,
-                                     int **nspecial, tagint **special,
-                                     int *nspecial15, tagint **special15,
-                                     const bool eflag_in, const bool vflag_in,
-                                     const bool eatom, const bool vatom,
-                                     int &host_start, int **ilist, int **jnum,
-                                     const double cpu_time, bool &success,
+void HippoT::compute_multipole_real(const int /*ago*/, const int inum_full,
+                                    const int /*nall*/, double ** /*host_x*/,
+                                    int * /*host_type*/, int * /*host_amtype*/,
+                                    int * /*host_amgroup*/, double ** /*host_rpole*/,
+                                    double* host_pval, double * /*sublo*/,
+                                    double * /*subhi*/, tagint * /*tag*/,
+                                    int ** /*nspecial*/, tagint ** /*special*/,
+                                    int * /*nspecial15*/, tagint ** /*special15*/,
+                                    const bool /*eflag_in*/, const bool /*vflag_in*/,
+                                    const bool /*eatom*/, const bool /*vatom*/,
+                                    int & /*host_start*/, int ** /*ilist*/, int ** /*jnum*/,
+                                    const double /*cpu_time*/, bool & /*success*/,
                                      const double aewald, const double felec,
-                                     const double off2_mpole, double *host_q,
-                                     double *boxlo, double *prd, void **tep_ptr) {
+                                    const double off2_mpole, double * /*host_q*/,
+                                    double * /*boxlo*/, double * /*prd*/, void **tep_ptr) {
 
   // cast necessary data arrays from host to device
 
@@ -373,7 +373,7 @@ void HippoT::compute_multipole_real(const int ago, const int inum_full,
   this->_off2_mpole = off2_mpole;
   this->_felec = felec;
   this->_aewald = aewald;
-  const int red_blocks=multipole_real(this->_eflag,this->_vflag);
+  multipole_real(this->_eflag,this->_vflag);
 
   // copy tep from device to host
   this->_tep.update_host(this->_max_tep_size*4,false);
@@ -424,7 +424,7 @@ int HippoT::multipole_real(const int eflag, const int vflag) {
 //   returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void HippoT::compute_udirect2b(int *host_amtype, int *host_amgroup, double **host_rpole,
+void HippoT::compute_udirect2b(int * /*host_amtype*/, int * /*host_amgroup*/, double ** /*host_rpole*/,
                                 double **host_uind, double **host_uinp, double* host_pval,
                                 const double aewald, const double off2_polar,
                                 void** fieldp_ptr) {
@@ -438,7 +438,7 @@ void HippoT::compute_udirect2b(int *host_amtype, int *host_amgroup, double **hos
 
   this->_off2_polar = off2_polar;
   this->_aewald = aewald;
-  const int red_blocks=udirect2b(this->_eflag,this->_vflag);
+  udirect2b(this->_eflag,this->_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
@@ -449,7 +449,7 @@ void HippoT::compute_udirect2b(int *host_amtype, int *host_amgroup, double **hos
 // Launch the real-space permanent field kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int HippoT::udirect2b(const int eflag, const int vflag) {
+int HippoT::udirect2b(const int /*eflag*/, const int /*vflag*/) {
   int ainum=this->ans->inum();
   if (ainum == 0)
     return 0;
@@ -493,10 +493,9 @@ int HippoT::udirect2b(const int eflag, const int vflag) {
 //   returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void HippoT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **host_rpole,
-                                double **host_uind, double **host_uinp, double *host_pval,
-                                const double aewald, const double off2_polar,
-                                void** fieldp_ptr) {
+void HippoT::compute_umutual2b(int * /*host_amtype*/, int * /*host_amgroup*/, double ** /*host_rpole*/,
+                               double **host_uind, double **host_uinp, double * /*host_pval*/,
+                               const double aewald, const double off2_polar, void ** /*fieldp_ptr*/) {
 
   // cast necessary data arrays from host to device
 
@@ -505,7 +504,7 @@ void HippoT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **hos
 
   this->_off2_polar = off2_polar;
   this->_aewald = aewald;
-  const int red_blocks=umutual2b(this->_eflag,this->_vflag);
+  umutual2b(this->_eflag,this->_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
   // NOTE: move this step to update_fieldp() to delay device-host transfer
@@ -517,7 +516,7 @@ void HippoT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **hos
 // Launch the real-space induced field kernel
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int HippoT::umutual2b(const int eflag, const int vflag) {
+int HippoT::umutual2b(const int /*eflag*/, const int /*vflag*/) {
   int ainum=this->ans->inum();
   if (ainum == 0)
     return 0;
@@ -557,8 +556,8 @@ int HippoT::umutual2b(const int eflag, const int vflag) {
 // Reneighbor on GPU if necessary, and then compute polar real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void HippoT::compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
-                                double **host_uind, double **host_uinp, double *host_pval,
+void HippoT::compute_polar_real(int * /*host_amtype*/, int * /*host_amgroup*/, double ** /*host_rpole*/,
+                                double **host_uind, double **host_uinp, double * /*host_pval*/,
                                 const bool eflag_in, const bool vflag_in,
                                 const bool eatom, const bool vatom,
                                 const double aewald, const double felec,

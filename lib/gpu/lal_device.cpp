@@ -52,7 +52,7 @@ DeviceT::~Device() {
 }
 
 template <class numtyp, class acctyp>
-int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
+int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
                          const int first_gpu_id, const int gpu_mode,
                          const double p_split, const int t_per_atom,
                          const double user_cell_size, char *ocl_args,
@@ -528,7 +528,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const int nlocal,
 
 template <class numtyp, class acctyp>
 int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
-                       const int host_nlocal, const int nall,
+                       const int host_nlocal, const int /*nall*/,
                        const int maxspecial, const int gpu_host,
                        const int max_nbors, const double cutoff,
                        const bool pre_cut, const int threads_per_atom,

@@ -293,15 +293,17 @@ class Neighbor {
   #endif
 
   int _simd_size;
+  #ifdef LAL_USE_OLD_NEIGHBOR
   inline void set_nbor_block_size(const int mn) {
-    #ifdef LAL_USE_OLD_NEIGHBOR
     int desired=mn/(2*_simd_size);
     desired*=_simd_size;
     if (desired<_simd_size) desired=_simd_size;
     else if (desired>_max_block_nbor_build) desired=_max_block_nbor_build;
     _block_nbor_build=desired;
-    #endif
   }
+  #else
+  inline void set_nbor_block_size(const int) {}
+  #endif
 };
 
 }

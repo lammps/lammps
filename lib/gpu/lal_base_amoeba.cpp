@@ -591,10 +591,6 @@ void BaseAmoebaT::compute_fphi_uind(double ****host_grid_brick,
                                     void **host_fdip_phi2,
                                     void **host_fdip_sum_phi)
 {
-  // TODO: find out why this (dummy) host alloc helps the cgrid_brick update_device() work correcly
-  UCL_H_Vec<numtyp> hdummy;
-  hdummy.alloc(1, *(this->ucl_device), UCL_READ_ONLY);
-
   int n = 0;
   for (int iz = _nzlo_out; iz <= _nzhi_out; iz++)
     for (int iy = _nylo_out; iy <= _nyhi_out; iy++)
@@ -605,7 +601,7 @@ void BaseAmoebaT::compute_fphi_uind(double ****host_grid_brick,
         _cgrid_brick[n] = v;
         n++;
       }
-  _cgrid_brick.update_device(_num_grid_points, true);
+  _cgrid_brick.update_device(_num_grid_points, false);
 
   #ifdef ASYNC_DEVICE_COPY
   ucl_device->sync();
@@ -614,10 +610,10 @@ void BaseAmoebaT::compute_fphi_uind(double ****host_grid_brick,
   // launch the kernel with its execution configuration (see below)
   fphi_uind();
 
-  // copy data from device to host asynchronously
-  _fdip_phi1.update_host(_max_thetai_size*10, true);
-  _fdip_phi2.update_host(_max_thetai_size*10, true);
-  _fdip_sum_phi.update_host(_max_thetai_size*20, true);
+  // copy data from device to host
+  _fdip_phi1.update_host(_max_thetai_size*10, false);
+  _fdip_phi2.update_host(_max_thetai_size*10, false);
+  _fdip_sum_phi.update_host(_max_thetai_size*20, false);
 
   // return the pointers to the host-side arrays
   *host_fdip_phi1 = _fdip_phi1.host.begin();
@@ -638,13 +634,7 @@ int BaseAmoebaT::fphi_uind() {
 
   const int BX=block_size();
   const int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
-  /*
-  const int cus = this->device->gpu->cus();
-  while (GX < cus && GX > 1) {
-    BX /= 2;
-    GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
-  }
-  */
+
   time_pair.start();
   int ngridxy = _ngridx * _ngridy;
   k_fphi_uind.set_size(GX,BX);
@@ -666,10 +656,6 @@ int BaseAmoebaT::fphi_uind() {
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_fphi_mpole(double ***host_grid_brick, void **host_fphi, const double felec)
 {
-  // TODO: grid brick[k][j][i] is a scalar
-  UCL_H_Vec<numtyp> hdummy;
-  hdummy.alloc(1, *(this->ucl_device), UCL_READ_ONLY);
-
   int n = 0;
   for (int iz = _nzlo_out; iz <= _nzhi_out; iz++)
     for (int iy = _nylo_out; iy <= _nyhi_out; iy++)

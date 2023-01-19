@@ -490,7 +490,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
       _data_in_estimate++;
     if (!atom.velocity() && vel)
       _data_in_estimate++;
-      if (atom.using_extra()==false && extra_fields>0)
+    if (atom.using_extra() && extra_fields>0)
       _data_in_estimate++;
     if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor>0 && maxspecial,vel,extra_fields))
       return -3;

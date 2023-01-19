@@ -124,7 +124,7 @@ bool AtomT::alloc(const int nall) {
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=v.device.row_bytes();
   }
-  if (_extra_fields>0 && !_host_view) {
+  if (_extra_fields>0) {
     success=success && (extra.alloc(_max_atoms*_extra_fields,*dev,UCL_WRITE_ONLY,
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=extra.device.row_bytes();

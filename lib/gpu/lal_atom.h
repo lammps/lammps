@@ -470,18 +470,13 @@ class Atom {
   inline void cast_extra_data(cpytyp *host_ptr) {
     if (_extra_avail==false) {
       double t=MPI_Wtime();
-      if (_host_view) {
-        extra.host.view((numtyp*)host_ptr,_nall*_extra_fields,*dev);
-        extra.device.view(extra.host);
-      } else if (sizeof(numtyp)==sizeof(double))
-        memcpy(extra.host.begin(),host_ptr,_nall*_extra_fields*sizeof(numtyp));
-      else
-        #if (LAL_USE_OMP == 1) && (LAL_USE_OMP_SIMD == 1)
-        #pragma omp parallel for simd schedule(static)
-        #elif (LAL_USE_OMP_SIMD == 1)
-        #pragma omp simd
-        #endif
-        for (int i=0; i<_nall*_extra_fields; i++) extra[i]=host_ptr[i];
+      #if (LAL_USE_OMP == 1) && (LAL_USE_OMP_SIMD == 1)
+      #pragma omp parallel for simd schedule(static)
+      #elif (LAL_USE_OMP_SIMD == 1)
+      #pragma omp simd
+      #endif
+      for (int i=0; i<_nall*_extra_fields; i++)
+        extra[i]=host_ptr[i];
       _time_cast+=MPI_Wtime()-t;
     }
   }

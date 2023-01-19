@@ -215,7 +215,7 @@ void FixPIMD::init()
   double beta = 1.0 / (Boltzmann * nhc_temp);
   double _fbond = 1.0 * np / (beta * beta * hbar * hbar);
 
-  omega_np = sqrt(np) / (hbar * beta) * sqrt(force->mvv2e);
+  omega_np = sqrt((double)np) / (hbar * beta) * sqrt(force->mvv2e);
   fbond = -_fbond * force->mvv2e;
 
   if (universe->me == 0)

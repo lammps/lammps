@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 #include <cmath>
 
-constexpr double ptm_template_hcp_alt1[PTM_NUM_POINTS_HCP][3] = {
+const double ptm_template_hcp_alt1[PTM_NUM_POINTS_HCP][3] = {
                                                                 {          0,          0,          0 },
                                                                 {          1,          0,          0 },
                                                                 {       -0.5, -sqrt(3.0)/2,          0 },
@@ -32,7 +32,7 @@ constexpr double ptm_template_hcp_alt1[PTM_NUM_POINTS_HCP][3] = {
                                                                 {       -0.5, -sqrt(3.0)/6,  sqrt(6.0)/3 },
 };
 
-constexpr double ptm_template_dcub_alt1[PTM_NUM_POINTS_DCUB][3] = {
+const double ptm_template_dcub_alt1[PTM_NUM_POINTS_DCUB][3] = {
                                                                 {                      0,                      0,                      0 },
                                                                 {  4/(sqrt(3.0)+6*sqrt(2.0)), -4/(sqrt(3.0)+6*sqrt(2.0)),  4/(sqrt(3.0)+6*sqrt(2.0)) },
                                                                 {  4/(sqrt(3.0)+6*sqrt(2.0)),  4/(sqrt(3.0)+6*sqrt(2.0)), -4/(sqrt(3.0)+6*sqrt(2.0)) },
@@ -52,7 +52,7 @@ constexpr double ptm_template_dcub_alt1[PTM_NUM_POINTS_DCUB][3] = {
                                                                 {                      0,  8/(sqrt(3.0)+6*sqrt(2.0)),  8/(sqrt(3.0)+6*sqrt(2.0)) },
 };
 
-constexpr double ptm_template_dhex_alt1[PTM_NUM_POINTS_DHEX][3] = {
+const double ptm_template_dhex_alt1[PTM_NUM_POINTS_DHEX][3] = {
         {                                   0,                                   0,                                   0 },
         {      -4*sqrt(2.0)/(sqrt(3.0)+6*sqrt(2.0)),  -4*sqrt(6.0)/(3*(sqrt(3.0)+6*sqrt(2.0))),   -4*sqrt(3.0)/(3*sqrt(3.0)+18*sqrt(2.0)) },
         {       4*sqrt(2.0)/(sqrt(3.0)+6*sqrt(2.0)),  -4*sqrt(6.0)/(3*(sqrt(3.0)+6*sqrt(2.0))),   -4*sqrt(3.0)/(3*sqrt(3.0)+18*sqrt(2.0)) },
@@ -72,7 +72,7 @@ constexpr double ptm_template_dhex_alt1[PTM_NUM_POINTS_DHEX][3] = {
         {      -4*sqrt(2.0)/(sqrt(3.0)+6*sqrt(2.0)),  -4*sqrt(6.0)/(3*(sqrt(3.0)+6*sqrt(2.0))),  16*sqrt(3.0)/(3*(sqrt(3.0)+6*sqrt(2.0))) },
 };
 
-constexpr double ptm_template_dhex_alt2[PTM_NUM_POINTS_DHEX][3] = {
+const double ptm_template_dhex_alt2[PTM_NUM_POINTS_DHEX][3] = {
         {                                   0,                                   0,                                   0 },
         {                                   0,   -8*sqrt(6.0)/(3*sqrt(3.0)+18*sqrt(2.0)),    4*sqrt(3.0)/(3*sqrt(3.0)+18*sqrt(2.0)) },
         {      -4*sqrt(2.0)/(sqrt(3.0)+6*sqrt(2.0)),   4*sqrt(6.0)/(3*(sqrt(3.0)+6*sqrt(2.0))),    4*sqrt(3.0)/(3*sqrt(3.0)+18*sqrt(2.0)) },
@@ -92,7 +92,7 @@ constexpr double ptm_template_dhex_alt2[PTM_NUM_POINTS_DHEX][3] = {
         {                                   0,   -8*sqrt(6.0)/(3*sqrt(3.0)+18*sqrt(2.0)), -16*sqrt(3.0)/(3*(sqrt(3.0)+6*sqrt(2.0))) },
 };
 
-constexpr double ptm_template_dhex_alt3[PTM_NUM_POINTS_DHEX][3] = {
+const double ptm_template_dhex_alt3[PTM_NUM_POINTS_DHEX][3] = {
         {                                   0,                                   0,                                   0 },
         {       4*sqrt(2.0)/(sqrt(3.0)+6*sqrt(2.0)),  -4*sqrt(6.0)/(3*(sqrt(3.0)+6*sqrt(2.0))),    4*sqrt(3.0)/(3*sqrt(3.0)+18*sqrt(2.0)) },
         {      -4*sqrt(2.0)/(sqrt(3.0)+6*sqrt(2.0)),  -4*sqrt(6.0)/(3*(sqrt(3.0)+6*sqrt(2.0))),    4*sqrt(3.0)/(3*sqrt(3.0)+18*sqrt(2.0)) },
@@ -113,7 +113,7 @@ constexpr double ptm_template_dhex_alt3[PTM_NUM_POINTS_DHEX][3] = {
 };
 
 
-constexpr double ptm_template_graphene_alt1[PTM_NUM_POINTS_GRAPHENE][3] = {
+const double ptm_template_graphene_alt1[PTM_NUM_POINTS_GRAPHENE][3] = {
                                                                         {                    0,                    0,                    0 },
                                                                         {   3*sqrt(3.0)/22-9./11,  -3./22+3*sqrt(3.0)/11,                    0 },
                                                                         {   9./11-3*sqrt(3.0)/22,  -3./22+3*sqrt(3.0)/11,                    0 },

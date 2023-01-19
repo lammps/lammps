@@ -685,7 +685,7 @@ void BaseAmoebaT::compute_fphi_mpole(double ***host_grid_brick, void **host_fphi
   _felec = felec;
   fphi_mpole();
 
-  _fdip_sum_phi.update_host(_max_thetai_size*20);
+  _fdip_sum_phi.update_host(_max_thetai_size*20, false);
 
   *host_fphi = _fdip_sum_phi.host.begin();
 }

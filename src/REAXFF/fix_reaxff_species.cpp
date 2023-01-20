@@ -906,11 +906,14 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   std::minstd_rand park_rng(rnd());
   int *molrange;
   memory->create(molrange,Nmole,"reaxff/species:molrange");
-  for (m = 0; m < Nmole; m++)
-    molrange[m] = m + 1;
-  // shuffle index when using rate_limit, in case order is biased
-  if (delete_Nlimit > 0)
-    std::shuffle(&molrange[0],&molrange[Nmole], park_rng);
+  if (comm->me == 0) {
+    for (m = 0; m < Nmole; m++)
+      molrange[m] = m + 1;
+    // shuffle index when using rate_limit, in case order is biased
+    if (delete_Nlimit > 0)
+      std::shuffle(&molrange[0],&molrange[Nmole], park_rng);
+  }
+  MPI_Bcast(&molrange[0], Nmole, MPI_INT, 0, world);
 
   int this_delete_Tcount = 0;
   for (int mm = 0; mm < Nmole; mm++) {

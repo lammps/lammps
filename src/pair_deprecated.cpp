@@ -48,6 +48,11 @@ void PairDeprecated::settings(int, char **)
       utils::logmesg(lmp,
                      "\nPair style 'reax' has been removed from LAMMPS "
                      "after the 12 December 2018 version\n\n");
+  } else if (my_style == "mesont/tpm") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,
+                     "\nPair style 'mesont/tpm' has been removed from LAMMPS. "
+                     "Please use pair style 'mesocnt' instead\n\n");
   }
   error->all(FLERR, "This pair style is no longer available");
 }

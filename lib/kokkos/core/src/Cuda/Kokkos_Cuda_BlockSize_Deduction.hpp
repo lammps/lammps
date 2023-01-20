@@ -80,7 +80,7 @@ inline int cuda_max_warps_per_sm_registers(
       cuda_warp_per_sm_allocation_granularity(properties);
   // The granularity of register allocation is chunks of 256 registers per warp,
   // which implies a need to over-allocate, so we round up
-  int const allocated_regs_per_warp = (regs_per_warp + 256 - 1) / 256;
+  int const allocated_regs_per_warp = 256 * ((regs_per_warp + 256 - 1) / 256);
 
   // The maximum number of warps per SM is constrained from above by register
   // allocation. To satisfy the constraint that warps per SM is allocated at a

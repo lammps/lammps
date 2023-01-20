@@ -11,6 +11,53 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+
+QMMM with LAMMPS as MDI driver for MM and a quantum code as MDI engine for QM
+specified group = QM atoms, remaining atoms are MM atoms
+two modes for QMMM coupling: DIRECT and POTENTIAL
+
+-- DIRECT mode:
+
+charge on all QM atoms must be zero
+QM atoms have no bonds between them
+
+post_force:
+  MDI send QM coords via >COORDS
+  MDI send MM coords, MM charges via >CLATTICE, >LATTICE
+  invoke the QM code
+  MDI recv QM energy via <PE
+  MDI recv QM forces via <FORCES ?
+  MDI recv MM forces via <FORCES ?
+  total force on all atoms = MM forces + received QM/MM forces
+  total energy = MM energy + received QM energy
+
+-- POTENTIAL mode:
+
+charge on QM atoms is set by QM code each timestep
+QM atoms have no bonds between them
+
+pre_force:
+  compute Coulombic portion of FF, pair_style and optional kspace
+  ecoul[] = per-atom Coulomb energy for each atom
+    may require comm from ghost atoms for pairwise terms
+  calculate Coulomb potential for each QM atom
+    qpotential[i] = ecoul[i] - double sum over QM atoms (qI qJ / rij)
+    divide by Q of QM atom
+  MDI send QM coords, QM Coulomb pnential via >COORDS, >POTENTIAL_AT_NUCLEI
+  invoke the QM code
+  MDI recv QM energy, forces, charges via <PE, <FORCES, <CHARGES
+  reset charges on QM atoms, comm to ghost atoms
+  store QM energy and forces
+
+post_force:
+  QM engine should subtract QM/QM contributions to energy and forces
+    else LAMMPS will need to do it
+  total force on all atoms = MM forces + stored QM forces
+  total energy = MM energy + stored QM energy
+
+------------------------------------------------------------------------- */
+
 #include "fix_mdi_qmmm.h"
 #include "atom.h"
 #include "comm.h"
@@ -64,7 +111,7 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // mode arg
 
-  if (strcmp(arg[3]),"direct" == 0) mode = DIRECT;
+  if (strcmp(arg[3],"direct") == 0) mode = DIRECT;
   else if (strcmp(arg[3],"potential") == 0) mode = POTENTIAL;
   error->all(FLERR,"Illegal fix mdi/qmmm command");
   
@@ -432,13 +479,16 @@ void FixMDIQMMM::init()
       error->all(FLERR, "MDI: Engine has wrong atom count and does not support >NATOMS command");
   }
 
+  /*
   if (mode == DIRECT) {
     ierr = MDI_Send_command(">NLATTICE", mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NLATTICE command");
     ierr = MDI_Send(&nmm, 1, MDI_INT, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NLATTICE data");
   }
-  
+  */
+
+  /*
   int elements_exists;
   int types_exists;
   ierr = MDI_Check_command_exists("@DEFAULT", ">ELEMENTS", mdicomm, &elements_exists);
@@ -454,6 +504,7 @@ void FixMDIQMMM::init()
   else if (types_exists)
     send_types();
   send_box();
+  */
 }
 
 /* ---------------------------------------------------------------------- */
@@ -609,11 +660,12 @@ void FixMDIQMMM::pre_force(int vflag)
 
   // send Coulomb potential of QM atoms to MDI engine
 
-  ierr = MDI_Send_command(">QPOT", mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >QPOT command");
+  ierr = MDI_Send_command(">POTENTIAL_AT_NUCLEI", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >POTENTIAL_AT_NUCLEI command");
   ierr = MDI_Send(qpotential, nqm, MDI_DOUBLE, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >QPOT data");
+  if (ierr) error->all(FLERR, "MDI: >POTENTIAL_AT_NUCLEI data");
 
+  /*
   // request QM potential energy from MDI engine
   // this triggers engine to perform QM calculation
   // qm_energy = fix output for global QM energy
@@ -631,7 +683,7 @@ void FixMDIQMMM::pre_force(int vflag)
   ierr = MDI_Recv(&fqm[0][0], 3 * nqm, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <FORCES data");
   MPI_Bcast(&fqm[0][0], 3 * nqm, MPI_DOUBLE, 0, world);
-
+  */
   // request charges on QM atoms from MDI engine
 
   ierr = MDI_Send_command("<CHARGES", mdicomm);
@@ -684,7 +736,7 @@ void FixMDIQMMM::pre_force(int vflag)
 void FixMDIQMMM::post_force(int vflag)
 {
   if (mode == DIRECT) post_force_direct(vflag);
-  else if (mode = POTENTIAL post_force_potential(vflag);
+  else if (mode == POTENTIAL) post_force_potential(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -707,16 +759,16 @@ void FixMDIQMMM::post_force_direct(int vflag)
 
   // send current coords of MM atoms to MDI engine
   
-  int ierr = MDI_Send_command(">CLATTICE", mdicomm);
+  ierr = MDI_Send_command(">CLATTICE", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CLATTICE command");
   ierr = MDI_Send(&xmm[0][0], 3 * nmm, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CLATTICE data");
 
   // send charges on MM atoms to MDI engine
   
-  int ierr = MDI_Send_command(">LATTICE", mdicomm);
+  ierr = MDI_Send_command(">LATTICE", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >LATTICE command");
-  ierr = MDI_Send(&qmm[0][0], nmm, MDI_DOUBLE, mdicomm);
+  ierr = MDI_Send(qmm, nmm, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >LATTICE data");
 
   // request QM potential energy from MDI engine

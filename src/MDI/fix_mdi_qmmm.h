@@ -58,6 +58,7 @@ class FixMDIQMMM : public Fix {
   int maxlocal;
   int sumflag;
   int *elements;
+  int mode;            // DIRECT or POTENTIAL
 
   int qflag;           // 1 if per-atom charge defined, 0 if not
   int qm_init;         // 1 if QM code and qqm are initialized, 0 if not
@@ -69,8 +70,8 @@ class FixMDIQMMM : public Fix {
   MDI_Comm mdicomm;
 
   class Pair *pair_coul;    // ptr to instance of pair coul variant
-
-  // data for QMMM
+  
+  // data for QM portion
 
   int nqm;                   // # of QM atoms
   tagint *qmIDs;             // IDs of QM atoms in ascending order
@@ -87,6 +88,12 @@ class FixMDIQMMM : public Fix {
   
   double *ecoul;             // peratom Coulombic energy from LAMMPS
   int ncoulmax;              // length of ecoul
+
+  // data for MM portion
+
+  int nmm;                  // # of MM atoms
+  double **xmm;             // MM coords
+  double *qmm;              // MM charges
 
   // unit conversion factors
 

@@ -50,7 +50,7 @@ FASTPOD::FASTPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &c
   onebody = 1;
   besseldegree = 4;
   inversedegree = 8;
-  nbesselpars = 3;
+  nbesselpars = 1;
   ns = nbesselpars*besseldegree + inversedegree;
   Njmax = 100;
   nrbf2 = 6;
@@ -509,13 +509,21 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
   //begin = std::chrono::high_resolution_clock::now(); 
   
   radialbasis(rbft, rbfxt, rbfyt, rbfzt, rij, besselparams, rin, rcut-rin, pdegree[0], pdegree[1], nbesselpars, Nj);
-  MatMul(rbf, rbft, Phi, Nj, ns, nrbfmax);
-  MatMul(rbfx, rbfxt, Phi, Nj, ns, nrbfmax);
-  MatMul(rbfy, rbfyt, Phi, Nj, ns, nrbfmax);
-  MatMul(rbfz, rbfzt, Phi, Nj, ns, nrbfmax);
-  
+
   //end = std::chrono::high_resolution_clock::now();   
   //comptime[0] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
+  
+  //begin = std::chrono::high_resolution_clock::now();
+      
+  char chn = 'N';
+  double alpha = 1.0, beta = 0.0;
+  DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbft, &Nj, Phi, &ns, &beta, rbf, &Nj);
+  DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfxt, &Nj, Phi, &ns, &beta, rbfx, &Nj);
+  DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfyt, &Nj, Phi, &ns, &beta, rbfy, &Nj);
+  DGEMM(&chn, &chn, &Nj, &nrbfmax, &ns, &alpha, rbfzt, &Nj, Phi, &ns, &beta, rbfz, &Nj);    
+  
+  //end = std::chrono::high_resolution_clock::now();   
+  //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
   
   for (int j=0; j<3*Nj; j++) fij[j] = 0.0;
 
@@ -545,17 +553,19 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
     
     //begin = std::chrono::high_resolution_clock::now(); 
     
-    radialangularbasis(U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, Nj, K3, nrbf3);
-
+    //radialangularbasis(U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz, Nj, K3, nrbf3);
+    radialangularbasis(sumU, U, Ux, Uy, Uz, rbf, rbfx, rbfy, rbfz, 
+            abf, abfx, abfy, abfz, tm, tj, Nj, K3, nrbf3, nelements);
+    
     //end = std::chrono::high_resolution_clock::now();   
     //comptime[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
     
-    //begin = std::chrono::high_resolution_clock::now();
-    
-    sumradialangularfunctions(sumU, U, tj, Nj, K3, nrbf3, nelements);
-
-    //end = std::chrono::high_resolution_clock::now();   
-    //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
+//     //begin = std::chrono::high_resolution_clock::now();
+//     
+//     sumradialangularfunctions(sumU, U, tj, Nj, K3, nrbf3, nelements);
+// 
+//     //end = std::chrono::high_resolution_clock::now();   
+//     //comptime[4] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
     
     double *d2 =  &temp[4*n1 + n5 + 4*n2]; // nl2
     double *dd2 = &temp[4*n1 + n5 + 4*n2 + nl2]; // 3*Nj*nl2
@@ -569,8 +579,13 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
     }
 
     if ((nd23>0) || (nd33>0) || (nd34>0)) {
+      //begin = std::chrono::high_resolution_clock::now();
+      
       threebodydesc(d3, sumU, Nj);
       threebodydescderiv(dd3, sumU, Ux, Uy, Uz, tj, Nj);
+      
+      //end = std::chrono::high_resolution_clock::now();   
+      //comptime[9] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
     }
 
     //begin = std::chrono::high_resolution_clock::now();
@@ -595,11 +610,16 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
       fourbodyfij23(fij, temp, &coeff23[nl23*t0], d2, d3, dd2, dd3, 3*Nj);
     }
 
-    if (nd33>0) {
+    if (nd33>0) {      
+      //begin = std::chrono::high_resolution_clock::now();
+      
       double *d33 = &temp[0];
       fivebodydesc33(d33, d3);
       e33 = dotproduct(&coeff33[nl33*t0], d33, nl33);
       fivebodyfij33(fij, temp, &coeff33[nl33*t0], d3, dd3, 3*Nj);
+      
+      //end = std::chrono::high_resolution_clock::now();   
+      //comptime[10] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;        
     }
 
     if (nd4 > 0) {      
@@ -1040,56 +1060,96 @@ void FASTPOD::fourbodydescderiv(double *d4, double *dd4, double *sumU, double *U
     dd4[m] = 0.0;
 
   int Q = pa4[nabf4];
-  for (int m=0; m<nrbf4; m++)
-    for (int p=0; p<nabf4; p++) {
-      int n1 = pa4[p];
-      int n2 = pa4[p+1];
-      int nn = n2 - n1;
-      for (int q=0; q<nn; q++) {
-        int c = pc4[n1+q];
-        int j1 = pb4[n1+q];
-        int j2 = pb4[n1+q + Q];
-        int j3 = pb4[n1+q + 2*Q];
-        int k = 0;
-        for (int i1=0; i1<nelements; i1++) {
-          double c1 = c*sumU[i1 + nelements*j1 + nelements*K4*m];
-          for (int i2=i1; i2<nelements; i2++) {
-            double c2 = c*sumU[i2 + nelements*j2 + nelements*K4*m];
-            double t12 = c1*sumU[i2 + nelements*j2 + nelements*K4*m];
-            for (int i3=i2; i3<nelements; i3++) {
-              double c3 = sumU[i3 + nelements*j3 + nelements*K4*m];
-              double t13 = c1*c3;
-              double t23 = c2*c3;
-              int kk = p + nabf4*m + nabf4*nrbf4*k;
-              int ii = 3*N*(p + nabf4*m + nabf4*nrbf4*k);
-              d4[kk] += t12*c3;
-              for (int j=0; j<N; j++) {
-                int tj = atomtype[j]-1;
-                if (tj==i3) {
-                  int jj = j + N*j3 + N*K4*m;
-                  dd4[0 + 3*j + ii] += t12*Ux[jj];
-                  dd4[1 + 3*j + ii] += t12*Uy[jj];
-                  dd4[2 + 3*j + ii] += t12*Uz[jj];
+  
+  if (nelements==1) {
+    for (int m=0; m<nrbf4; m++)
+      for (int p=0; p<nabf4; p++) {
+        int n1 = pa4[p];
+        int n2 = pa4[p+1];
+        int nn = n2 - n1;
+        for (int q=0; q<nn; q++) {
+          int c = pc4[n1+q];
+          int j1 = pb4[n1+q];
+          int j2 = pb4[n1+q + Q];
+          int j3 = pb4[n1+q + 2*Q];
+          double c1 = c*sumU[j1 + K4*m];
+          double c2 = c*sumU[j2 + K4*m];
+          double t12 = c1*sumU[j2 + K4*m];
+          double c3 = sumU[j3 + K4*m];
+          double t13 = c1*c3;
+          double t23 = c2*c3;
+          int kk = p + nabf4*m;
+          int ii = 3*N*(p + nabf4*m);
+          d4[kk] += t12*c3;
+          for (int j=0; j<N; j++) {
+            int jj = j + N*j3 + N*K4*m;
+            dd4[0 + 3*j + ii] += t12*Ux[jj];
+            dd4[1 + 3*j + ii] += t12*Uy[jj];
+            dd4[2 + 3*j + ii] += t12*Uz[jj];            
+            jj = j + N*j2 + N*K4*m;
+            dd4[0 + 3*j + ii] += t13*Ux[jj];
+            dd4[1 + 3*j + ii] += t13*Uy[jj];
+            dd4[2 + 3*j + ii] += t13*Uz[jj];
+            jj = j + N*j1 + N*K4*m;
+            dd4[0 + 3*j + ii] += t23*Ux[jj];
+            dd4[1 + 3*j + ii] += t23*Uy[jj];
+            dd4[2 + 3*j + ii] += t23*Uz[jj];            
+          }
+        }
+      }    
+  }
+  else {
+    for (int m=0; m<nrbf4; m++)
+      for (int p=0; p<nabf4; p++) {
+        int n1 = pa4[p];
+        int n2 = pa4[p+1];
+        int nn = n2 - n1;
+        for (int q=0; q<nn; q++) {
+          int c = pc4[n1+q];
+          int j1 = pb4[n1+q];
+          int j2 = pb4[n1+q + Q];
+          int j3 = pb4[n1+q + 2*Q];
+          int k = 0;
+          for (int i1=0; i1<nelements; i1++) {
+            double c1 = c*sumU[i1 + nelements*j1 + nelements*K4*m];
+            for (int i2=i1; i2<nelements; i2++) {
+              double c2 = c*sumU[i2 + nelements*j2 + nelements*K4*m];
+              double t12 = c1*sumU[i2 + nelements*j2 + nelements*K4*m];
+              for (int i3=i2; i3<nelements; i3++) {
+                double c3 = sumU[i3 + nelements*j3 + nelements*K4*m];
+                double t13 = c1*c3;
+                double t23 = c2*c3;
+                int kk = p + nabf4*m + nabf4*nrbf4*k;
+                int ii = 3*N*(p + nabf4*m + nabf4*nrbf4*k);
+                d4[kk] += t12*c3;
+                for (int j=0; j<N; j++) {
+                  int tj = atomtype[j]-1;
+                  if (tj==i3) {
+                    int jj = j + N*j3 + N*K4*m;
+                    dd4[0 + 3*j + ii] += t12*Ux[jj];
+                    dd4[1 + 3*j + ii] += t12*Uy[jj];
+                    dd4[2 + 3*j + ii] += t12*Uz[jj];
+                  }
+                  if (tj==i2) {
+                    int jj = j + N*j2 + N*K4*m;
+                    dd4[0 + 3*j + ii] += t13*Ux[jj];
+                    dd4[1 + 3*j + ii] += t13*Uy[jj];
+                    dd4[2 + 3*j + ii] += t13*Uz[jj];
+                  }
+                  if (tj==i1) {
+                    int jj = j + N*j1 + N*K4*m;
+                    dd4[0 + 3*j + ii] += t23*Ux[jj];
+                    dd4[1 + 3*j + ii] += t23*Uy[jj];
+                    dd4[2 + 3*j + ii] += t23*Uz[jj];
+                  }
                 }
-                if (tj==i2) {
-                  int jj = j + N*j2 + N*K4*m;
-                  dd4[0 + 3*j + ii] += t13*Ux[jj];
-                  dd4[1 + 3*j + ii] += t13*Uy[jj];
-                  dd4[2 + 3*j + ii] += t13*Uz[jj];
-                }
-                if (tj==i1) {
-                  int jj = j + N*j1 + N*K4*m;
-                  dd4[0 + 3*j + ii] += t23*Ux[jj];
-                  dd4[1 + 3*j + ii] += t23*Uy[jj];
-                  dd4[2 + 3*j + ii] += t23*Uz[jj];
-                }
+                k += 1;
               }
-              k += 1;
             }
           }
         }
       }
-    }
+  }
 }
 
 void FASTPOD::fourbodydescriptors(double *gd4, double *gdd4, double *d4, double *dd4, double *rij,
@@ -1139,36 +1199,62 @@ double FASTPOD::fourbodycoeff(double *cU, double *sumU, double *coeff4, int N)
   int Q = pa4[nabf4];
   double e = 0.0;
 
-  for (int m=0; m<nrbf4; m++)
-    for (int p=0; p<nabf4; p++) {
-      int n1 = pa4[p];
-      int n2 = pa4[p+1];
-      int nn = n2 - n1;
-      for (int q=0; q<nn; q++) {
-        int c = pc4[n1+q];
-        int j1 = pb4[n1+q];
-        int j2 = pb4[n1+q + Q];
-        int j3 = pb4[n1+q + 2*Q];
-        int k = 0;
-        for (int i1=0; i1<nelements; i1++) {
-          double c1 = c*sumU[i1 + nelements*j1 + nelements*K4*m];
-          for (int i2=i1; i2<nelements; i2++) {
-            double c0 = sumU[i2 + nelements*j2 + nelements*K4*m];
-            double c2 = c*c0;
-            double c4 = c1*c0;
-            for (int i3=i2; i3<nelements; i3++) {
-              double c5 = coeff4[p + nabf4*m + nabf4*nrbf4*k];
-              double c6 = c5*sumU[i3 + nelements*j3 + nelements*K4*m];
-              e += c4*c6;
-              cU[i3 + nelements*j3 + nelements*K4*m] += c5*c4;
-              cU[i2 + nelements*j2 + nelements*K4*m] += c6*c1;
-              cU[i1 + nelements*j1 + nelements*K4*m] += c6*c2;
-              k += 1;
+  if (nelements==1) {
+    for (int m=0; m<nrbf4; m++)
+      for (int p=0; p<nabf4; p++) {
+        int n1 = pa4[p];
+        int n2 = pa4[p+1];
+        int nn = n2 - n1;
+        for (int q=0; q<nn; q++) {
+          int c = pc4[n1+q];
+          int j1 = pb4[n1+q];
+          int j2 = pb4[n1+q + Q];
+          int j3 = pb4[n1+q + 2*Q];
+          double c1 = c*sumU[j1 + K4*m];
+          double c0 = sumU[j2 + K4*m];
+          double c2 = c*c0;
+          double c4 = c1*c0;
+          double c5 = coeff4[p + nabf4*m];
+          double c6 = c5*sumU[j3 + K4*m];
+          e += c4*c6;
+          cU[j3 + K4*m] += c5*c4;
+          cU[j2 + K4*m] += c6*c1;
+          cU[j1 + K4*m] += c6*c2;
+        }
+      }    
+  }
+  else {
+    for (int m=0; m<nrbf4; m++)
+      for (int p=0; p<nabf4; p++) {
+        int n1 = pa4[p];
+        int n2 = pa4[p+1];
+        int nn = n2 - n1;
+        for (int q=0; q<nn; q++) {
+          int c = pc4[n1+q];
+          int j1 = pb4[n1+q];
+          int j2 = pb4[n1+q + Q];
+          int j3 = pb4[n1+q + 2*Q];
+          int k = 0;
+          for (int i1=0; i1<nelements; i1++) {
+            double c1 = c*sumU[i1 + nelements*j1 + nelements*K4*m];
+            for (int i2=i1; i2<nelements; i2++) {
+              double c0 = sumU[i2 + nelements*j2 + nelements*K4*m];
+              double c2 = c*c0;
+              double c4 = c1*c0;
+              for (int i3=i2; i3<nelements; i3++) {
+                double c5 = coeff4[p + nabf4*m + nabf4*nrbf4*k];
+                double c6 = c5*sumU[i3 + nelements*j3 + nelements*K4*m];
+                e += c4*c6;
+                cU[i3 + nelements*j3 + nelements*K4*m] += c5*c4;
+                cU[i2 + nelements*j2 + nelements*K4*m] += c6*c1;
+                cU[i1 + nelements*j1 + nelements*K4*m] += c6*c2;
+                k += 1;
+              }
             }
           }
         }
       }
-    }
+  }
 
   return e;
 }
@@ -1179,22 +1265,36 @@ void FASTPOD::threebodydesc(double *d3, double *sumU, int N)
   for (int m=0; m<nabf3*nrbf3*Me; m++)
     d3[m] = 0.0;
 
-  for (int m=0; m<nrbf3; m++)
-    for (int p=0; p<nabf3; p++) {
-      int n1 = pn3[p];
-      int n2 = pn3[p+1];
-      int nn = n2 - n1;
-      for (int q=0; q<nn; q++) {
-        int k = 0;
-        for (int i1=0; i1<nelements; i1++) {
-          double t1 = pc3[n1+q]*sumU[i1 + nelements*(n1+q) + nelements*K3*m];
-          for (int i2=i1; i2<nelements; i2++) {
-            d3[p + nabf3*m + nabf3*nrbf3*k] += t1*sumU[i2 + nelements*(n1+q) + nelements*K3*m];
-            k += 1;
+  if (nelements==1) {
+    for (int m=0; m<nrbf3; m++)
+      for (int p=0; p<nabf3; p++) {
+        int n1 = pn3[p];
+        int n2 = pn3[p+1];
+        int nn = n2 - n1;
+        for (int q=0; q<nn; q++) {
+          double t1 = pc3[n1+q]*sumU[(n1+q) + K3*m];
+          d3[p + nabf3*m] += t1*sumU[(n1+q) + K3*m];                      
+        }
+      }    
+  }
+  else {
+    for (int m=0; m<nrbf3; m++)
+      for (int p=0; p<nabf3; p++) {
+        int n1 = pn3[p];
+        int n2 = pn3[p+1];
+        int nn = n2 - n1;
+        for (int q=0; q<nn; q++) {
+          int k = 0;
+          for (int i1=0; i1<nelements; i1++) {
+            double t1 = pc3[n1+q]*sumU[i1 + nelements*(n1+q) + nelements*K3*m];
+            for (int i2=i1; i2<nelements; i2++) {
+              d3[p + nabf3*m + nabf3*nrbf3*k] += t1*sumU[i2 + nelements*(n1+q) + nelements*K3*m];
+              k += 1;
+            }
           }
         }
       }
-    }
+  }
 }
 
 void FASTPOD::threebodydescderiv(double *dd3, double *sumU, double *Ux, double *Uy, double *Uz,
@@ -1204,27 +1304,48 @@ void FASTPOD::threebodydescderiv(double *dd3, double *sumU, double *Ux, double *
   for (int m=0; m<3*N*nabf3*nrbf3*Me; m++)
     dd3[m] = 0.0;
 
-  for (int m=0; m<nrbf3; m++)
-    for (int p=0; p<nabf3; p++) {
-      int n1 = pn3[p];
-      int n2 = pn3[p+1];
-      int nn = n2 - n1;
-      for (int q=0; q<nn; q++) {
-        for (int i1=0; i1<nelements; i1++) {
-          double t1 = pc3[n1+q]*sumU[i1 + nelements*(n1+q) + nelements*K3*m];
+  if (nelements==1) {
+    for (int m=0; m<nrbf3; m++)
+      for (int p=0; p<nabf3; p++) {
+        int n1 = pn3[p];
+        int n2 = pn3[p+1];
+        int nn = n2 - n1;
+        for (int q=0; q<nn; q++) {
+          double t1 = pc3[n1+q]*sumU[(n1+q) + K3*m];
           for (int j=0; j<N; j++) {
-            int i2 = atomtype[j]-1;
-            int k = elemindex[i2 + nelements*i1];
-            double f = (i1==i2) ? 2.0*t1 : t1;
-            int ii = 3*j + 3*N*(p + nabf3*m + nabf3*nrbf3*k);
+            double f = 2.0*t1;
+            int ii = 3*j + 3*N*(p + nabf3*m);
             int jj = j + N*(n1+q) + N*K3*m;
             dd3[0 + ii] += f*Ux[jj];
             dd3[1 + ii] += f*Uy[jj];
             dd3[2 + ii] += f*Uz[jj];
+          }          
+        }
+      }    
+  }
+  else {
+    for (int m=0; m<nrbf3; m++)
+      for (int p=0; p<nabf3; p++) {
+        int n1 = pn3[p];
+        int n2 = pn3[p+1];
+        int nn = n2 - n1;
+        for (int q=0; q<nn; q++) {
+          for (int i1=0; i1<nelements; i1++) {
+            double t1 = pc3[n1+q]*sumU[i1 + nelements*(n1+q) + nelements*K3*m];
+            for (int j=0; j<N; j++) {
+              int i2 = atomtype[j]-1;
+              int k = elemindex[i2 + nelements*i1];
+              double f = (i1==i2) ? 2.0*t1 : t1;
+              int ii = 3*j + 3*N*(p + nabf3*m + nabf3*nrbf3*k);
+              int jj = j + N*(n1+q) + N*K3*m;
+              dd3[0 + ii] += f*Ux[jj];
+              dd3[1 + ii] += f*Uy[jj];
+              dd3[2 + ii] += f*Uz[jj];
+            }
           }
         }
       }
-    }
+  }
 }
 
 void FASTPOD::threebodydescriptors(double *d3, double *dd3, double *rij, double *temp, int *tj, int Nj)
@@ -1400,56 +1521,90 @@ void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz,
         double rmax, int besseldegree, int inversedegree, int nbesselpars, int N)
 {
   for (int n=0; n<N; n++) {
-    double rij1 = rij[0+3*n];
-    double rij2 = rij[1+3*n];
-    double rij3 = rij[2+3*n];
+    double xij1 = rij[0+3*n];
+    double xij2 = rij[1+3*n];
+    double xij3 = rij[2+3*n];
 
-    double dij = pow(rij1*rij1 + rij2*rij2 + rij3*rij3, 0.5);
-    double dr1 = rij1/dij;
-    double dr2 = rij2/dij;
-    double dr3 = rij3/dij;
+    double dij = sqrt(xij1*xij1 + xij2*xij2 + xij3*xij3);
+    double dr1 = xij1/dij;
+    double dr2 = xij2/dij;
+    double dr3 = xij3/dij;
 
     double r = dij - rin;
     double y = r/rmax;
     double y2 = y*y;
     double y3 = 1.0 - y2*y;
     double y4 = y3*y3 + 1e-6;
-    double y5 = pow(y4, 0.5);
+    double y5 = sqrt(y4);
     double y6 = exp(-1.0/y5);
-    double y7 = pow(y4, 1.5);
+    double y7 = y4*sqrt(y4);
     double fcut = y6/exp(-1.0);
     double dfcut = ((3.0/(rmax*exp(-1.0)))*(y2)*y6*(y*y2 - 1.0))/y7;
+    double f1 = fcut/r;
+    double f2 = f1/r;
+    double df1 = dfcut/r;
+    
+    double alpha = besselparams[0];
+    double t1 = (1.0-exp(-alpha));
+    double t2 = exp(-alpha*r/rmax);
+    double x0 =  (1.0 - t2)/t1;
+    double dx0 = (alpha/rmax)*t2/t1;
 
-    for (int j=0; j<nbesselpars; j++) {
-      double alpha = besselparams[j];
-      if (fabs(alpha) <= 1.0e-6) alpha = 1e-3;
-      double x =  (1.0 - exp(-alpha*r/rmax))/(1.0-exp(-alpha));
-      double dx = (alpha/rmax)*exp(-(alpha*r/rmax))/(1.0 - exp(-alpha));
-
-      for (int i=0; i<besseldegree; i++) {
-        double a = (i+1)*M_PI;
-        double b = (sqrt(2.0/(rmax))/(i+1));
-        int nij = n + N*i + N*besseldegree*j;
-        rbf[nij] = b*fcut*sin(a*x)/r;
-        double drbfdr = b*(dfcut*sin(a*x)/r - fcut*sin(a*x)/(r*r) + a*cos(a*x)*fcut*dx/r);
-        rbfx[nij] = drbfdr*dr1;
-        rbfy[nij] = drbfdr*dr2;
-        rbfz[nij] = drbfdr*dr3;
-      }
+//     alpha = besselparams[1];
+//     t1 = (1.0-exp(-alpha));
+//     t2 = exp(-alpha*r/rmax);
+//     double x1 =  (1.0 - t2)/t1;
+//     double dx1 = (alpha/rmax)*t2/t1;
+    
+//     alpha = besselparams[2];
+//     t1 = (1.0-exp(-alpha));
+//     t2 = exp(-alpha*r/rmax);
+//     double x2 =  (1.0 - t2)/t1;
+//     double dx2 = (alpha/rmax)*t2/t1;
+    
+    for (int i=0; i<besseldegree; i++) {      
+      double a = (i+1)*MY_PI;
+      double b = (sqrt(2.0/(rmax))/(i+1));
+      double af1 = a*f1;
+      
+      double sinax = sin(a*x0);
+      int nij = n + N*i;        
+      rbf[nij] = b*f1*sinax;
+      double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
+      rbfx[nij] = drbfdr*dr1;
+      rbfy[nij] = drbfdr*dr2;
+      rbfz[nij] = drbfdr*dr3;        
+      
+//       sinax = sin(a*x1);
+//       nij = n + N*i + N*besseldegree*1;        
+//       rbf[nij] = b*f1*sinax;
+//       drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
+//       rbfx[nij] = drbfdr*dr1;
+//       rbfy[nij] = drbfdr*dr2;
+//       rbfz[nij] = drbfdr*dr3;        
+      
+//       sinax = sin(a*x2);
+//       nij = n + N*i + N*besseldegree*2;        
+//       rbf[nij] = b*f1*sinax;
+//       drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x2)*dx2);
+//       rbfx[nij] = drbfdr*dr1;
+//       rbfy[nij] = drbfdr*dr2;
+//       rbfz[nij] = drbfdr*dr3;        
     }
-
+    
+    f1 = fcut/dij;
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;
       int nij = n + N*p;
-      double a = pow(dij, (double) (i+1.0));
+      double a = powint(dij, i+1);
       rbf[nij] = fcut/a;
-      double drbfdr = dfcut/a - (i+1.0)*fcut/(a*dij);
+      double drbfdr = (dfcut - (i+1.0)*f1)/a;
       rbfx[nij] = drbfdr*dr1;
       rbfy[nij] = drbfdr*dr2;
       rbfz[nij] = drbfdr*dr3;
     }
   }
-}
+}  
 
 void FASTPOD::orthogonalradialbasis(double *orthorbf, double *rij, double *Phi, double *besselparams,
         double rin, double rmax, int besseldegree, int inversedegree, int nbesselpars, int nrbf2, int N)
@@ -1639,6 +1794,52 @@ void FASTPOD::sumradialangularfunctions(double *sumU, double *U, int *atomtype, 
 
 }
 
+void FASTPOD::radialangularbasis(double *sumU, double *U, double *Ux, double *Uy, double *Uz,
+        double *rbf, double *rbfx, double *rbfy, double *rbfz, double *abf, double *abfx, 
+        double *abfy, double *abfz, double *tm, int *atomtype, int N, int K, int M, int Ne)
+{
+  for (int m=0; m<Ne*K*M; m++)
+    sumU[m] = 0.0;
+  
+  if (Ne==1) {
+    for (int m=0; m<M; m++)
+      for (int k=0; k<K; k++) {
+        double sum = 0.0;
+        for (int n=0; n<N; n++) {
+          int ia = n + N*k;
+          int ib = n + N*m;
+          int ii = ia + N*K*m;
+          double c1 = rbf[ib];
+          double c2 = abf[ia];
+          U[ii] = c1*c2;
+          Ux[ii] = abfx[ia]*c1 + c2*rbfx[ib];
+          Uy[ii] = abfy[ia]*c1 + c2*rbfy[ib];
+          Uz[ii] = abfz[ia]*c1 + c2*rbfz[ib];          
+          sum += c1*c2;
+        }
+        sumU[k + K*m] += sum;
+      }    
+  }
+  else {
+    for (int m=0; m<M; m++)
+      for (int k=0; k<K; k++) {
+        for (int n=0; n<N; n++) {
+          int ia = n + N*k;
+          int ib = n + N*m;
+          int ii = ia + N*K*m;
+          double c1 = rbf[ib];
+          double c2 = abf[ia];
+          U[ii] = c1*c2;
+          Ux[ii] = abfx[ia]*c1 + c2*rbfx[ib];
+          Uy[ii] = abfy[ia]*c1 + c2*rbfy[ib];
+          Uz[ii] = abfz[ia]*c1 + c2*rbfz[ib];
+          int in = atomtype[n]-1;
+          sumU[in + Ne*k + Ne*K*m] += c1*c2;
+        }
+      }
+  }
+}
+
 void FASTPOD::unifiedbasis(double *U, double *Ux, double *Uy, double *Uz, double *sumU, double *rij,
         double *Phi, double *besselparams, double *tmpmem, double rin, double rcut, int *pdegree,
         int *tj, int *pq, int nbesselpars, int nrbf, int K, int nelements, int Nj)
@@ -1752,17 +1953,33 @@ double FASTPOD::tallytwobodylocalforce(double *fij, double *coeff2,  double *rbf
 void FASTPOD::tallylocalforce(double *fij, double *cU, double *Ux, double *Uy, double *Uz,
         int *atomtype, int N, int K, int M, int Ne)
 {
-  for (int m=0; m<M; m++)
-    for (int k=0; k<K; k++)
-      for (int j=0; j<N; j++) {
-        int i2 = atomtype[j]-1;
-        int ii = 3*j;
-        int jj = j + N*k + N*K*m;
-        double c = cU[i2 + Ne*k + Ne*K*m];
-        fij[0 + ii] += c*Ux[jj];
-        fij[1 + ii] += c*Uy[jj];
-        fij[2 + ii] += c*Uz[jj];
+  if (Ne==1) {
+    for (int m=0; m<M; m++)
+      for (int k=0; k<K; k++) {
+        int kk = k + K*m;
+        double c = cU[kk];
+        for (int j=0; j<N; j++) {          
+          int ii = 3*j;
+          int jj = j + N*k + N*K*m;          
+          fij[0 + ii] += c*Ux[jj];
+          fij[1 + ii] += c*Uy[jj];
+          fij[2 + ii] += c*Uz[jj];
+        }
       }
+  }
+  else { 
+    for (int m=0; m<M; m++)
+      for (int k=0; k<K; k++)
+        for (int j=0; j<N; j++) {
+          int i2 = atomtype[j]-1;
+          int ii = 3*j;
+          int jj = j + N*k + N*K*m;
+          double c = cU[i2 + Ne*k + Ne*K*m];
+          fij[0 + ii] += c*Ux[jj];
+          fij[1 + ii] += c*Uy[jj];
+          fij[2 + ii] += c*Uz[jj];
+        }
+  }
 }
 
 void FASTPOD::tallyforce(double *force, double *fij,  int *ai, int *aj, int N)

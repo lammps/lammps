@@ -3,7 +3,7 @@
 # Initialize simulation
 
 variable nsteps index 100
-variable nrep equal 4
+variable nrep equal 20
 variable a equal 3.316
 units           metal
 

@@ -73,6 +73,10 @@ private:
         double *rbf, double *rbfx, double *rbfy, double *rbfz, double *abf,
         double *abfx, double *abfy, double *abfz, int N, int K, int M);
 
+  void radialangularbasis(double *sumU, double *U, double *Ux, double *Uy, double *Uz,
+        double *rbf, double *rbfx, double *rbfy, double *rbfz, double *abf,
+        double *abfx, double *abfy, double *abfz, double *tm, int *atomtype, int N, int K, int M, int Ne);
+
   void sumradialangularfunctions(double *sumU, double *U, int *atomtype, int N, int K, int M, int Ne);
 
   void unifiedbasis(double *U, double *Ux, double *Uy, double *Uz, double *sumU, double *rij,

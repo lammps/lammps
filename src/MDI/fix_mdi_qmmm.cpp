@@ -113,7 +113,7 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   if (strcmp(arg[3],"direct") == 0) mode = DIRECT;
   else if (strcmp(arg[3],"potential") == 0) mode = POTENTIAL;
-  error->all(FLERR,"Illegal fix mdi/qmmm command");
+  else error->all(FLERR,"Illegal fix mdi/qmmm command");
   
   // optional args
 
@@ -452,7 +452,7 @@ void FixMDIQMMM::init()
   // this will trigger setup of a new system
   // subsequent calls in post_force() will be for same system until new init()
 
-  // NOTE: why is this done here
+  // NOTE: why is reallocate done here
   reallocate();
 
   int natoms_exists;
@@ -463,8 +463,7 @@ void FixMDIQMMM::init()
   if (natoms_exists) {
     ierr = MDI_Send_command(">NATOMS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS command");
-    int n = static_cast<int>(atom->natoms);
-    ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
+    ierr = MDI_Send(&nqm, 1, MDI_INT, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS data");
 
   } else {
@@ -475,7 +474,7 @@ void FixMDIQMMM::init()
     if (ierr) error->all(FLERR, "MDI: <NATOMS data");
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
 
-    if (n != atom->natoms)
+    if (n != nqm)
       error->all(FLERR, "MDI: Engine has wrong atom count and does not support >NATOMS command");
   }
 
@@ -650,14 +649,18 @@ void FixMDIQMMM::pre_force(int vflag)
   double tstart = platform::walltime();
 
   // MDI calls
+
+  int ierr;
   
   // send current coords of QM atoms to MDI engine
 
-  int ierr = MDI_Send_command(">COORDS", mdicomm);
+  /*
+  ierr = MDI_Send_command(">COORDS", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >COORDS command");
   ierr = MDI_Send(&xqm[0][0], 3 * nqm, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >COORDS data");
-
+  */
+  
   // send Coulomb potential of QM atoms to MDI engine
 
   ierr = MDI_Send_command(">POTENTIAL_AT_NUCLEI", mdicomm);

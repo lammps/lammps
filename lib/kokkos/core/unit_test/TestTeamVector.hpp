@@ -1031,8 +1031,8 @@ TEST(TEST_CATEGORY, parallel_scan_with_reducers) {
   using T = double;
   using namespace VectorScanReducer;
 
-  static constexpr int n              = 1000000;
-  static constexpr int n_vector_range = 100;
+  constexpr int n              = 1000000;
+  constexpr int n_vector_range = 100;
 
   checkScan<TEST_EXECSPACE, ScanType::Exclusive, n, n_vector_range,
             Kokkos::Prod<T, TEST_EXECSPACE>>()
@@ -1054,6 +1054,9 @@ TEST(TEST_CATEGORY, parallel_scan_with_reducers) {
   checkScan<TEST_EXECSPACE, ScanType::Inclusive, n, n_vector_range,
             Kokkos::Min<T, TEST_EXECSPACE>>()
       .run();
+
+  (void)n;
+  (void)n_vector_range;
 }
 
 }  // namespace Test

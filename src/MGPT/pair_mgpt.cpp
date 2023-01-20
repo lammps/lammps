@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -256,7 +256,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
   t_make_b += t1-t0;
 
   t0 = gettime();
-  if (bij != nullptr && bij != nullptr) {
+  if (bij != nullptr && bik != nullptr) {
     tptr = twork;
     make_triplet(bij,bik,tptr);
     *dvir_ij_p = bij->fl_deriv_sum;

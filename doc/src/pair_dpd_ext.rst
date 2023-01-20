@@ -1,17 +1,19 @@
 .. index:: pair_style dpd/ext
 .. index:: pair_style dpd/ext/kk
+.. index:: pair_style dpd/ext/omp
 .. index:: pair_style dpd/ext/tstat
 .. index:: pair_style dpd/ext/tstat/kk
+.. index:: pair_style dpd/ext/tstat/omp
 
 pair_style dpd/ext command
 ==========================
 
-Accelerator Variants: dpd/ext/kk
+Accelerator Variants: dpd/ext/kk dpd/ext/omp
 
 pair_style dpd/ext/tstat command
 ================================
 
-Accelerator Variants: dpd/ext/tstat/kk
+Accelerator Variants: dpd/ext/tstat/kk dpd/ext/tstat/omp
 
 Syntax
 """"""
@@ -80,8 +82,8 @@ the corresponding cutoff, :math:`w_{\alpha} ( r ) = ( 1 - r / \bar{r}_c
 )^{s_{\alpha}}`, :math:`\alpha \equiv ( \parallel, \perp )`, are weight
 functions with coefficients :math:`s_\alpha` that vary between 0 and 1,
 :math:`\bar{r}_c` is the corresponding cutoff, :math:`\mathbf{I}` is the
-unit matrix, :math:`\sigma_{\alpha} = \sqrt{2 k T \gamma_{\alpha}}`,
-where :math:`k` is the Boltzmann constant and :math:`T` is the
+unit matrix, :math:`\sigma_{\alpha} = \sqrt{2 k_B T \gamma_{\alpha}}`,
+where :math:`k_B` is the Boltzmann constant and :math:`T` is the
 temperature in the pair\_style command.
 
 For the style *dpd/ext/tstat*, the force on atom I due to atom J is
@@ -113,15 +115,15 @@ each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the examples above:
 
 * A (force units)
-* :math:`\gamma_{\perp}` (force/velocity units)
 * :math:`\gamma_{\parallel}` (force/velocity units)
-* :math:`s_{\perp}` (unitless)
+* :math:`\gamma_{\perp}` (force/velocity units)
 * :math:`s_{\parallel}` (unitless)
+* :math:`s_{\perp}` (unitless)
 * :math:`r_c` (distance units)
 
 The last coefficient is optional. If not specified, the global DPD
 cutoff is used. Note that :math:`\sigma`'s are set equal to
-:math:`\sqrt{2 k T \gamma}`, where :math:`T` is the temperature set by
+:math:`\sqrt{2 k_B T \gamma}`, where :math:`T` is the temperature set by
 the :doc:`pair_style <pair_style>` command so it does not need to be
 specified.
 

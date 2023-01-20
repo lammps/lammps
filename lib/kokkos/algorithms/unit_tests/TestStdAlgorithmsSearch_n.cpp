@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
 #include <utility>
 
 namespace Test {
@@ -233,26 +231,26 @@ void run_single_scenario(const InfoType& scenario_info, std::size_t count,
     auto myrit = KE::search_n(exespace(), KE::cbegin(view), KE::cend(view),
                               count, value, args...);
     const auto mydiff = myrit - KE::cbegin(view);
-    EXPECT_TRUE(mydiff == stddiff);
+    EXPECT_EQ(mydiff, stddiff);
   }
 
   {
     auto myrit        = KE::search_n("label", exespace(), KE::cbegin(view),
                               KE::cend(view), count, value, args...);
     const auto mydiff = myrit - KE::cbegin(view);
-    EXPECT_TRUE(mydiff == stddiff);
+    EXPECT_EQ(mydiff, stddiff);
   }
 
   {
     auto myrit = KE::search_n("label", exespace(), view, count, value, args...);
     const auto mydiff = myrit - KE::begin(view);
-    EXPECT_TRUE(mydiff == stddiff);
+    EXPECT_EQ(mydiff, stddiff);
   }
 
   {
     auto myrit        = KE::search_n(exespace(), view, count, value, args...);
     const auto mydiff = myrit - KE::begin(view);
-    EXPECT_TRUE(mydiff == stddiff);
+    EXPECT_EQ(mydiff, stddiff);
   }
 
   Kokkos::fence();

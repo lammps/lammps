@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,7 +20,6 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -37,10 +36,10 @@ using namespace LAMMPS_NS;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_stress_cartesian[] =
-    "compute stress/cartesian:\n\n"
+    "compute stress/cartesian: doi:10.3390/nano11010165\n\n"
     "@article{galteland2021nanothermodynamic,\n"
-    "title={Nanothermodynamic description and molecular simulation of a single-phase fluid in a "
-    "slit pore},\n"
+    "title={Nanothermodynamic Description and Molecular Simulation of a\n"
+    "   Single-Phase Fluid in a Slit Pore},\n"
     "author={Galteland, Olav and Bedeaux, Dick and Kjelstrup, Signe},\n"
     "journal={Nanomaterials},\n"
     "volume={11},\n"

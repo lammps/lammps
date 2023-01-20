@@ -6,7 +6,7 @@ compute tdpd/cc/atom command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID tdpd/cc/atom index
 

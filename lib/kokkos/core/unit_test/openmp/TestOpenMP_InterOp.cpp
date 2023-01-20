@@ -62,8 +62,7 @@ TEST(openmp, raw_openmp_interop) {
 
   ASSERT_EQ(count, num_threads);
 
-  Kokkos::InitArguments arguments{-1, -1, -1, false};
-  Kokkos::initialize(arguments);
+  Kokkos::initialize();
 
   count = 0;
 #pragma omp parallel

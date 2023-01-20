@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -185,11 +185,8 @@ void ComputeAngmomChunk::lock_enable()
 
 void ComputeAngmomChunk::lock_disable()
 {
-  int icompute = modify->find_compute(idchunk);
-  if (icompute >= 0) {
-    cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
-    cchunk->lockcount--;
-  }
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
+  if (cchunk) cchunk->lockcount--;
 }
 
 /* ----------------------------------------------------------------------

@@ -125,8 +125,6 @@
 #else
 #define KOKKOS_DEFAULTED_FUNCTION inline
 #endif
-#define KOKKOS_IMPL_HOST_FUNCTION __host__
-#define KOKKOS_IMPL_DEVICE_FUNCTION __device__
 
 #if (CUDA_VERSION >= 10000)
 #define KOKKOS_CUDA_ENABLE_GRAPHS

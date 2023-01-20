@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -119,6 +119,11 @@ void inertia_ellipsoid(double *shape, double *quat, double mass, double *inertia
 void inertia_line(double length, double theta, double mass, double *inertia);
 void inertia_triangle(double *v0, double *v1, double *v2, double mass, double *inertia);
 void inertia_triangle(double *idiag, double *quat, double mass, double *inertia);
+
+// triclinic bounding box of a spher
+
+void tribbox(double *, double, double *);
+
 }    // namespace MathExtra
 
 /* ----------------------------------------------------------------------

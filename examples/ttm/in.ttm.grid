@@ -40,4 +40,22 @@ thermo          100
 thermo_style    custom step temp etotal f_twotemp[1] f_twotemp[2]
                 thermo_modify format float "%20.16g"
 
+# dump output
+
+#compute         1 all property/grid 10 10 10 id ix iy iz
+#dump            1 all grid 100 tmp.dump c_1:grid:data[*] f_twotemp:grid:data
+#dump_modify     1 sort 1
+
+#compute         10 all property/grid 10 10 10 id xc yc zc
+#fix             ave all ave/grid 10 10 100 10 10 10 f_twotemp:grid:data
+
+#dump            ave all grid 100 tmp.dump.ave &
+#                c_10:grid:data[*] f_ave:grid:data
+#dump_modify     ave sort id
+
+#dump            vtk all grid/vtk 100 tmp.dump.*.vtk f_ave:grid:data
+#dump_modify     vtk sort id buffer no
+
+# run simulation
+
 run             1000

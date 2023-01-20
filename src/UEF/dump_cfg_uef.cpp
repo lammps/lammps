@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -68,8 +68,8 @@ void DumpCFGUef::write_header(bigint n)
   //   so molecules are not split across periodic box boundaries
 
   double box[3][3],rot[3][3];
-  (dynamic_cast<FixNHUef*>( modify->fix[ifix_uef]))->get_box(box);
-  (dynamic_cast<FixNHUef*>( modify->fix[ifix_uef]))->get_rot(rot);
+  (dynamic_cast<FixNHUef*>(modify->fix[ifix_uef]))->get_box(box);
+  (dynamic_cast<FixNHUef*>(modify->fix[ifix_uef]))->get_rot(rot);
   // rot goes from "lab frame" to "upper triangular frame"
   // it's transpose takes the simulation box to the flow frame
   for (int i=0;i<3;i++)

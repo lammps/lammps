@@ -89,7 +89,7 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
           host_special_coul, qqrd2e,
           g_ewald, map_size, max_same);
 
-    LJTIP4PLMF.device->gpu_barrier();
+    LJTIP4PLMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }

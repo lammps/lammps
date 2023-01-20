@@ -57,7 +57,7 @@ Pre-processing tools
    * :ref:`msi2lmp <msi>`
    * :ref:`polybond <polybond>`
    * :ref:`stl_bin2txt <stlconvert>`
-
+   * :ref:`tabulate <tabulate>`
 
 Post-processing tools
 =====================
@@ -205,6 +205,7 @@ scripts are available:
    whitespace.py    # detects TAB characters and trailing whitespace
    homepage.py      # detects outdated LAMMPS homepage URLs (pointing to sandia.gov instead of lammps.org)
    errordocs.py     # detects deprecated error docs in header files
+   versiontags.py   # detects .. versionadded:: or .. versionchanged:: with pending version date
 
 The tools need to be given the main folder of the LAMMPS distribution
 or individual file names as argument and will by default check them
@@ -397,7 +398,7 @@ ipp tool
 ------------------
 
 The tools/ipp directory contains a Perl script ipp which can be used
-to facilitate the creation of a complicated file (say, a lammps input
+to facilitate the creation of a complicated file (say, a LAMMPS input
 script or tools/createatoms input file) using a template file.
 
 ipp was created and is maintained by Reese Jones (Sandia), rjones at
@@ -512,8 +513,8 @@ with an ``.inputrc`` file in the home directory.  For application
 specific customization, the LAMMPS shell uses the name "lammps-shell".
 For more information about using and customizing an application using
 readline, please see the available documentation at:
-`http://www.gnu.org/s/readline/#Documentation
-<http://www.gnu.org/s/readline/#Documentation>`_
+https://www.gnu.org/software/readline/
+
 
 Additional commands
 ^^^^^^^^^^^^^^^^^^^
@@ -682,7 +683,7 @@ or (as administrator) to ``/etc/magic`` (for a system-wide
 installation).  Afterwards the ``file`` command should be able to
 detect most LAMMPS restarts, dump, data and log files. Examples:
 
-.. code-block:: bash
+.. code-block:: console
 
    $ file *.*
    dihedral-quadratic.restart:   LAMMPS binary restart file (rev 2), Version 10 Mar 2021, Little Endian
@@ -715,7 +716,7 @@ See the README.pdf file for more information.
 These scripts were written by Arun Subramaniyan at Purdue Univ
 (asubrama at purdue.edu).
 
-.. _matlabhome: http://www.mathworks.com
+.. _matlabhome: https://www.mathworks.com
 
 ----------
 
@@ -1046,7 +1047,7 @@ the binary file.  This usually is a so-called little endian hardware
 SWIG interface
 --------------
 
-The `SWIG tool <http://swig.org>`_ offers a mostly automated way to
+The `SWIG tool <https://swig.org>`_ offers a mostly automated way to
 incorporate compiled code modules into scripting languages.  It
 processes the function prototypes in C and generates wrappers for a wide
 variety of scripting languages from it.  Thus it can also be applied to
@@ -1099,18 +1100,18 @@ for Tcl with:
 
 .. code-block:: bash
 
-   $ swig -tcl -module tcllammps lammps.i
-   $ gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
+   swig -tcl -module tcllammps lammps.i
+   gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
                lammps_wrap.c -L ../src/ -llammps
-   $ tclsh
+   tclsh
 
 Or one can build an extended Tcl shell command with the wrapped
 functions included with:
 
 .. code-block:: bash
 
-   $ swig -tcl -module tcllmps lammps_shell.i
-   $ gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
+   swig -tcl -module tcllmps lammps_shell.i
+   gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
             -DHAVE_CONFIG_H $(pkgconf --cflags tcl) \
             $(pkgconf --libs tcl) -L ../src -llammps
 
@@ -1126,7 +1127,7 @@ data passed or returned as pointers are included in the ``lammps.i``
 file.  So most of the functionality of the library interface should be
 accessible.  What works and what does not depends a bit on the
 individual language for which the wrappers are built and how well SWIG
-supports those.  The `SWIG documentation <http://swig.org/doc.html>`_
+supports those.  The `SWIG documentation <https://swig.org/doc.html>`_
 has very detailed instructions and recommendations.
 
 Usage examples
@@ -1141,20 +1142,34 @@ For illustration purposes below is a part of the Tcl example script.
 
 .. code-block:: tcl
 
-   % load ./tcllammps.so
-   % set lmp [lammps_open_no_mpi 0 NULL NULL]
-   % lammps_command $lmp "units real"
-   % lammps_command $lmp "lattice fcc 2.5"
-   % lammps_command $lmp "region box block -5 5 -5 5 -5 5"
-   % lammps_command $lmp "create_box 1 box"
-   % lammps_command $lmp "create_atoms 1 box"
-   %
-   % set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
-   % puts "LAMMPS version $ver"
-   % puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]
-   % puts "Current size of timestep: $dt"
-   % puts "LAMMPS version: [lammps_version $lmp]"
-   % lammps_close $lmp
+   load ./tcllammps.so
+   set lmp [lammps_open_no_mpi 0 NULL NULL]
+   lammps_command $lmp "units real"
+   lammps_command $lmp "lattice fcc 2.5"
+   lammps_command $lmp "region box block -5 5 -5 5 -5 5"
+   lammps_command $lmp "create_box 1 box"
+   lammps_command $lmp "create_atoms 1 box"
+
+   set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
+   puts "LAMMPS version $ver"
+   puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]
+   puts "Current size of timestep: $dt"
+   puts "LAMMPS version: [lammps_version $lmp]"
+   lammps_close $lmp
+
+----------
+
+.. _tabulate:
+
+tabulate tool
+--------------
+
+.. versionadded:: 22Dec2022
+
+The ``tabulate`` folder contains Python scripts scripts to generate tabulated
+potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module
+in the ``tabulate.py`` file.  Some example files demonstrating its use are
+included.  See the README file for more information.
 
 ----------
 
@@ -1163,8 +1178,8 @@ For illustration purposes below is a part of the Tcl example script.
 vim tool
 ------------------
 
-The files in the tools/vim directory are add-ons to the VIM editor
-that allow easier editing of LAMMPS input scripts.  See the README.txt
+The files in the ``tools/vim`` directory are add-ons to the VIM editor
+that allow easier editing of LAMMPS input scripts.  See the ``README.txt``
 file for details.
 
 These files were provided by Gerolf Ziegenhain (gerolf at

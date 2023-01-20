@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -18,9 +18,12 @@
 #include "slab_dipole.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
+#include "force.h"
+#include "kspace.h"
 #include "math_const.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -41,9 +44,10 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
                               double *eatom)
 {
   // compute local contribution to global dipole moment
+  double const volume = get_volume();
   double *q = atom->q;
   double **x = atom->x;
-  double zprd = domain->zprd;
+  double zprd_slab = domain->zprd * force->kspace->slab_volfactor;
   int nlocal = atom->nlocal;
   double dipole = 0.0;
   for (int i = 0; i < nlocal; i++) dipole += q[i] * x[i][2];
@@ -65,8 +69,10 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
 
   // compute corrections
   double const e_slabcorr = MY_2PI *
-      (dipole_all * dipole_all - qsum * dipole_r2 - qsum * qsum * zprd * zprd / 12.0) / volume;
-  double const qscale = qqrd2e * scale;
+      (dipole_all * dipole_all - qsum * dipole_r2 - qsum * qsum * zprd_slab * zprd_slab / 12.0) /
+      volume;
+  double const scale = 1.0;
+  double const qscale = force->qqrd2e * scale;
   if (eflag_global) energy += qscale * e_slabcorr;
 
   // per-atom energy
@@ -75,7 +81,7 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
     for (int i = 0; i < nlocal; i++)
       eatom[i] += efact * q[i] *
           (x[i][2] * dipole_all - 0.5 * (dipole_r2 + qsum * x[i][2] * x[i][2]) -
-           qsum * zprd * zprd / 12.0);
+           qsum * zprd_slab * zprd_slab / 12.0);
   }
 
   // add on force corrections
@@ -86,6 +92,7 @@ void SlabDipole::compute_corr(double qsum, int eflag_atom, int eflag_global, dou
 
 void SlabDipole::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, bool invert_source)
 {
+  double const volume = get_volume();
   int const nlocal = atom->nlocal;
   double **x = atom->x;
   double *q = atom->q;
@@ -103,6 +110,7 @@ void SlabDipole::vector_corr(double *vec, int sensor_grpbit, int source_grpbit, 
 
 void SlabDipole::matrix_corr(bigint *imat, double **matrix)
 {
+  double const volume = get_volume();
   int nlocal = atom->nlocal;
   double **x = atom->x;
 
@@ -137,5 +145,4 @@ void SlabDipole::matrix_corr(bigint *imat, double **matrix)
       if (imat[i] != jmat[j]) matrix[jmat[j]][imat[i]] += aij;
     }
   }
-  // TODO add ELC corrections, needs sum over all kpoints but not (0,0)
 }

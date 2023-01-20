@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -58,10 +58,7 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   lambda = utils::numeric(FLERR,arg[3],false,lmp);
   eta = utils::numeric(FLERR,arg[4],false,lmp);
   h0 = utils::numeric(FLERR,arg[5],false,lmp);
-
-  int n = strlen(arg[6])+1;
-  id_nh = new char[n];
-  strcpy(id_nh,arg[6]);
+  id_nh = utils::strdup(arg[6]);
 
   // create a new compute temp style
   // id = fix-ID + temp

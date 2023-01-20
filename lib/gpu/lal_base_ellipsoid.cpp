@@ -569,8 +569,7 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
     if (e_s)
       mx_subgroup_sz = std::min(mx_subgroup_sz, k_ellipsoid_sphere_noev.max_subgroup_size(_block_size));
     #endif
-    if (_threads_per_atom > mx_subgroup_sz)
-      _threads_per_atom = mx_subgroup_sz;
+    if (_threads_per_atom > (int)mx_subgroup_sz) _threads_per_atom = mx_subgroup_sz;
     device->set_simd_size(mx_subgroup_sz);
   }
   #endif

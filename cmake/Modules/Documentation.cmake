@@ -17,7 +17,7 @@ if(BUILD_DOC)
   endif()
   find_package(Doxygen 1.8.10 REQUIRED)
 
-  file(GLOB DOC_SOURCES ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
+  file(GLOB DOC_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_DOC_DIR}/src/[^.]*.rst)
 
 
   add_custom_command(
@@ -65,7 +65,7 @@ if(BUILD_DOC)
       "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz"
       EXPECTED_MD5 ${MATHJAX_MD5})
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
+    file(GLOB MATHJAX_VERSION_DIR ${CONFIGURE_DEPENDS} ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
     execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${DOC_BUILD_STATIC_DIR}/mathjax)
   endif()
 

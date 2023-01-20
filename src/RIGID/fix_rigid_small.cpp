@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -432,9 +432,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // atom style pointers to particles that store extra info
 
-  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
-  avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
-  avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
 
   // compute per body forces and torques inside final_integrate() by default
 
@@ -529,13 +529,13 @@ void FixRigidSmall::init()
   // if earlyflag, warn if any post-force fixes come after a rigid fix
 
   int count = 0;
-  for (auto ifix : modify->get_fix_list())
+  for (auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) count++;
   if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
 
   if (earlyflag) {
     bool rflag = false;
-    for (auto ifix : modify->get_fix_list()) {
+    for (auto &ifix : modify->get_fix_list()) {
       if (ifix->rigid_flag) rflag = true;
       if ((comm->me == 0) && rflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         error->warning(FLERR,"Fix {} with ID {} alters forces after fix rigid/small",
@@ -558,7 +558,7 @@ void FixRigidSmall::init()
   // error if a fix changing the box comes before rigid fix
 
   bool boxflag = false;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
     if (boxflag && utils::strmatch(ifix->style,"^rigid"))
         error->all(FLERR,"Rigid fixes must come before any box changing fix");
     if (ifix->box_change) boxflag = true;
@@ -582,7 +582,7 @@ void FixRigidSmall::init()
   dtq = 0.5 * update->dt;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step;
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
 }
 
 /* ----------------------------------------------------------------------

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -47,7 +47,7 @@ using namespace InterLayer;
 static const char cite_kc[] =
     "kolmogorov/crespi/full potential doi:10.1021/acs.nanolett.8b02848\n"
     "@Article{Ouyang2018\n"
-    " author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},\n"
+    " author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},\n"
     " title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},\n"
     " journal = {Nano Letters},\n"
     " volume =  18,\n"
@@ -289,11 +289,15 @@ void PairKolmogorovCrespiFull::read_file(char *filename)
       int n = -1;
       for (int m = 0; m < nparams; m++) {
         if (i == params[m].ielement && j == params[m].jelement) {
-          if (n >= 0) error->all(FLERR, "KC potential file has duplicate entry");
+          if (n >= 0)
+            error->all(FLERR, "KC potential file has a duplicate entry for: {} {}", elements[i],
+                       elements[j]);
           n = m;
         }
       }
-      if (n < 0) error->all(FLERR, "Potential file is missing an entry");
+      if (n < 0)
+        error->all(FLERR, "Potential file is missing an entry for: {} {}", elements[i],
+                   elements[j]);
       elem2param[i][j] = n;
       cutKCsq[i][j] = params[n].rcut * params[n].rcut;
     }

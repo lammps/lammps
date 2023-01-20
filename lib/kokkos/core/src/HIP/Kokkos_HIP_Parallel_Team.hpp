@@ -75,8 +75,8 @@ class TeamPolicyInternal<Kokkos::Experimental::HIP, Properties...>
   int m_league_size;
   int m_team_size;
   int m_vector_length;
-  int m_team_scratch_size[2];
-  int m_thread_scratch_size[2];
+  size_t m_team_scratch_size[2];
+  size_t m_thread_scratch_size[2];
   int m_chunk_size;
   bool m_tune_team_size;
   bool m_tune_vector_length;
@@ -206,15 +206,17 @@ class TeamPolicyInternal<Kokkos::Experimental::HIP, Properties...>
 
   int league_size() const { return m_league_size; }
 
-  int scratch_size(int level, int team_size_ = -1) const {
+  size_t scratch_size(int level, int team_size_ = -1) const {
     if (team_size_ < 0) team_size_ = m_team_size;
     return m_team_scratch_size[level] +
            team_size_ * m_thread_scratch_size[level];
   }
 
-  int team_scratch_size(int level) const { return m_team_scratch_size[level]; }
+  size_t team_scratch_size(int level) const {
+    return m_team_scratch_size[level];
+  }
 
-  int thread_scratch_size(int level) const {
+  size_t thread_scratch_size(int level) const {
     return m_thread_scratch_size[level];
   }
 
@@ -359,7 +361,7 @@ class TeamPolicyInternal<Kokkos::Experimental::HIP, Properties...>
     // internal_team_size_common_reduce
     //            once we can turn c++17 constexpr on by default.
     //            The problem right now is that we can't turn off the evaluation
-    //            of the functor_value_traits's valuesize / StaticValueSize
+    //            of the Analysis' valuesize / StaticValueSize
 
     const unsigned shmem_block  = team_scratch_size(0) + 2 * sizeof(double);
     const unsigned shmem_thread = thread_scratch_size(0) + sizeof(double);
@@ -395,14 +397,16 @@ class TeamPolicyInternal<Kokkos::Experimental::HIP, Properties...>
 
   template <BlockType BlockSize, class ClosureType, class FunctorType>
   int internal_team_size_common_reduce(const FunctorType& f) const {
-    using functor_value_traits =
-        Impl::FunctorValueTraits<FunctorType, typename traits::work_tag>;
+    using Interface =
+        typename Impl::DeduceFunctorPatternInterface<ClosureType>::type;
+    using Analysis =
+        Impl::FunctorAnalysis<Interface, typename ClosureType::Policy,
+                              FunctorType>;
 
-    const unsigned shmem_block  = team_scratch_size(0) + 2 * sizeof(double);
-    const unsigned shmem_thread = thread_scratch_size(0) + sizeof(double) +
-                                  ((functor_value_traits::StaticValueSize != 0)
-                                       ? 0
-                                       : functor_value_traits::value_size(f));
+    const unsigned shmem_block = team_scratch_size(0) + 2 * sizeof(double);
+    const unsigned shmem_thread =
+        thread_scratch_size(0) + sizeof(double) +
+        ((Analysis::StaticValueSize != 0) ? 0 : Analysis::value_size(f));
     const int vector_length = impl_vector_length();
 
     const auto functor = [&f, shmem_block, shmem_thread, vector_length](
@@ -455,10 +459,10 @@ __device__ inline int64_t hip_get_scratch_index(
   int64_t threadid = 0;
   __shared__ int64_t base_thread_id;
   if (threadIdx.x == 0 && threadIdx.y == 0) {
-    int64_t const wraparound_len = Kokkos::Experimental::min(
-        int64_t(league_size),
-        (int64_t(Kokkos::Impl::g_device_hip_lock_arrays.n)) /
-            (blockDim.x * blockDim.y));
+    int64_t const wraparound_len =
+        Kokkos::min(int64_t(league_size),
+                    (int64_t(Kokkos::Impl::g_device_hip_lock_arrays.n)) /
+                        (blockDim.x * blockDim.y));
     threadid = (blockIdx.x * blockDim.z + threadIdx.z) % wraparound_len;
     threadid *= blockDim.x * blockDim.y;
     int done = 0;
@@ -513,23 +517,21 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
   int m_shmem_begin;
   int m_shmem_size;
   void* m_scratch_ptr[2];
-  int m_scratch_size[2];
+  size_t m_scratch_size[2];
   int32_t* m_scratch_locks;
   // Only let one ParallelFor/Reduce modify the team scratch memory. The
   // constructor acquires the mutex which is released in the destructor.
   std::lock_guard<std::mutex> m_scratch_lock_guard;
 
   template <typename TagType>
-  __device__ inline
-      typename std::enable_if<std::is_same<TagType, void>::value>::type
-      exec_team(const member_type& member) const {
+  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_team(
+      const member_type& member) const {
     m_functor(member);
   }
 
   template <typename TagType>
-  __device__ inline
-      typename std::enable_if<!std::is_same<TagType, void>::value>::type
-      exec_team(const member_type& member) const {
+  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_team(
+      const member_type& member) const {
     m_functor(TagType(), member);
   }
 
@@ -647,22 +649,18 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
                                   work_tag, void>::type;
 
-  using value_traits =
-      Kokkos::Impl::FunctorValueTraits<reducer_type_fwd, work_tag_fwd>;
-  using value_init =
-      Kokkos::Impl::FunctorValueInit<reducer_type_fwd, work_tag_fwd>;
-  using value_join =
-      Kokkos::Impl::FunctorValueJoin<reducer_type_fwd, work_tag_fwd>;
+  using analysis = Impl::FunctorAnalysis<Impl::FunctorPatternInterface::REDUCE,
+                                         Policy, reducer_type_fwd>;
 
-  using pointer_type   = typename value_traits::pointer_type;
-  using reference_type = typename value_traits::reference_type;
-  using value_type     = typename value_traits::value_type;
+  using pointer_type   = typename analysis::pointer_type;
+  using reference_type = typename analysis::reference_type;
+  using value_type     = typename analysis::value_type;
 
  public:
   using functor_type = FunctorType;
   using size_type    = Kokkos::Experimental::HIP::size_type;
 
-  static int constexpr UseShflReduction = (value_traits::StaticValueSize != 0);
+  static int constexpr UseShflReduction = (analysis::StaticValueSize != 0);
 
  private:
   struct ShflReductionTag {};
@@ -688,7 +686,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   size_type m_shmem_begin;
   size_type m_shmem_size;
   void* m_scratch_ptr[2];
-  int m_scratch_size[2];
+  size_t m_scratch_size[2];
   int32_t* m_scratch_locks;
   const size_type m_league_size;
   int m_team_size;
@@ -698,16 +696,14 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   std::lock_guard<std::mutex> m_scratch_lock_guard;
 
   template <class TagType>
-  __device__ inline
-      typename std::enable_if<std::is_same<TagType, void>::value>::type
-      exec_team(member_type const& member, reference_type update) const {
+  __device__ inline std::enable_if_t<std::is_void<TagType>::value> exec_team(
+      member_type const& member, reference_type update) const {
     m_functor(member, update);
   }
 
   template <class TagType>
-  __device__ inline
-      typename std::enable_if<!std::is_same<TagType, void>::value>::type
-      exec_team(member_type const& member, reference_type update) const {
+  __device__ inline std::enable_if_t<!std::is_void<TagType>::value> exec_team(
+      member_type const& member, reference_type update) const {
     m_functor(TagType(), member, update);
   }
 
@@ -747,16 +743,18 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   }
 
   __device__ inline void run(SHMEMReductionTag, int const threadid) const {
-    integral_nonzero_constant<size_type, value_traits::StaticValueSize /
+    typename analysis::Reducer final_reducer(
+        &reducer_conditional::select(m_functor, m_reducer));
+
+    integral_nonzero_constant<size_type, analysis::StaticValueSize /
                                              sizeof(size_type)> const
-        word_count(value_traits::value_size(
+        word_count(analysis::value_size(
                        reducer_conditional::select(m_functor, m_reducer)) /
                    sizeof(size_type));
 
-    reference_type value = value_init::init(
-        reducer_conditional::select(m_functor, m_reducer),
+    reference_type value = final_reducer.init(
         Kokkos::Experimental::kokkos_impl_hip_shared_memory<size_type>() +
-            threadIdx.y * word_count.value);
+        threadIdx.y * word_count.value);
 
     // Iterate this block through the league
     iterate_through_league(threadid, value);
@@ -782,8 +780,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
                                     : m_scratch_space;
 
       if (threadIdx.y == 0) {
-        Kokkos::Impl::FunctorFinal<reducer_type_fwd, work_tag_fwd>::final(
-            reducer_conditional::select(m_functor, m_reducer), shared);
+        final_reducer.final(reinterpret_cast<value_type*>(shared));
       }
 
       if (Kokkos::Experimental::Impl::HIPTraits::WarpSize < word_count.value) {
@@ -797,8 +794,11 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
   }
 
   __device__ inline void run(ShflReductionTag, int const threadid) const {
+    typename analysis::Reducer final_reducer(
+        &reducer_conditional::select(m_functor, m_reducer));
+
     value_type value;
-    value_init::init(reducer_conditional::select(m_functor, m_reducer), &value);
+    final_reducer.init(&value);
 
     // Iterate this block through the league
     iterate_through_league(threadid, value);
@@ -809,32 +809,28 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
             : reinterpret_cast<pointer_type>(m_scratch_space);
 
     value_type init;
-    value_init::init(reducer_conditional::select(m_functor, m_reducer), &init);
+    final_reducer.init(&init);
     if (m_league_size == 0) {
-      Kokkos::Impl::FunctorFinal<reducer_type_fwd, work_tag_fwd>::final(
-          reducer_conditional::select(m_functor, m_reducer),
-          reinterpret_cast<void*>(&value));
+      final_reducer.final(&value);
       *result = value;
-    } else if (Impl::hip_inter_block_shuffle_reduction<FunctorType, value_join,
-                                                       work_tag>(
-                   value, init,
-                   value_join(
-                       reducer_conditional::select(m_functor, m_reducer)),
-                   m_scratch_space, result, m_scratch_flags, blockDim.y)) {
+    } else if (Impl::hip_inter_block_shuffle_reduction(
+                   value, init, final_reducer, m_scratch_space, result,
+                   m_scratch_flags, blockDim.y)) {
       unsigned int const id = threadIdx.y * blockDim.x + threadIdx.x;
       if (id == 0) {
-        Kokkos::Impl::FunctorFinal<reducer_type_fwd, work_tag_fwd>::final(
-            reducer_conditional::select(m_functor, m_reducer),
-            reinterpret_cast<void*>(&value));
+        final_reducer.final(&value);
         *result = value;
       }
     }
   }
 
   inline void execute() {
+    typename analysis::Reducer final_reducer(
+        &reducer_conditional::select(m_functor, m_reducer));
+
     const bool is_empty_range  = m_league_size == 0 || m_team_size == 0;
-    const bool need_device_set = ReduceFunctorHasInit<FunctorType>::value ||
-                                 ReduceFunctorHasFinal<FunctorType>::value ||
+    const bool need_device_set = analysis::has_init_member_function ||
+                                 analysis::has_final_member_function ||
                                  !m_result_ptr_host_accessible ||
                                  !std::is_same<ReducerType, InvalidType>::value;
     if (!is_empty_range || need_device_set) {
@@ -847,10 +843,9 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
               : std::min(static_cast<int>(m_league_size), m_team_size);
 
       m_scratch_space = Kokkos::Experimental::Impl::hip_internal_scratch_space(
-          m_policy.space(),
-          value_traits::value_size(
-              reducer_conditional::select(m_functor, m_reducer)) *
-              block_count);
+          m_policy.space(), analysis::value_size(reducer_conditional::select(
+                                m_functor, m_reducer)) *
+                                block_count);
       m_scratch_flags = Kokkos::Experimental::Impl::hip_internal_scratch_flags(
           m_policy.space(), sizeof(size_type));
 
@@ -875,7 +870,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_policy.space().impl_internal_space_instance()->fence();
 
         if (m_result_ptr) {
-          const int size = value_traits::value_size(
+          const int size = analysis::value_size(
               reducer_conditional::select(m_functor, m_reducer));
           DeepCopy<HostSpace, Kokkos::Experimental::HIPSpace>(
               m_result_ptr, m_scratch_space, size);
@@ -883,17 +878,16 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       }
     } else {
       if (m_result_ptr) {
-        value_init::init(reducer_conditional::select(m_functor, m_reducer),
-                         m_result_ptr);
+        final_reducer.init(m_result_ptr);
       }
     }
   }
 
   template <class ViewType>
-  ParallelReduce(FunctorType const& arg_functor, Policy const& arg_policy,
-                 ViewType const& arg_result,
-                 typename std::enable_if<Kokkos::is_view<ViewType>::value,
-                                         void*>::type = nullptr)
+  ParallelReduce(
+      FunctorType const& arg_functor, Policy const& arg_policy,
+      ViewType const& arg_result,
+      std::enable_if_t<Kokkos::is_view<ViewType>::value, void*> = nullptr)
       : m_functor(arg_functor),
         m_policy(arg_policy),
         m_reducer(InvalidType()),

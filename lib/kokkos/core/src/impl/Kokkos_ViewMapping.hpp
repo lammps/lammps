@@ -59,6 +59,7 @@
 #include <impl/Kokkos_ViewCtor.hpp>
 #include <impl/Kokkos_Atomic_View.hpp>
 #include <impl/Kokkos_Tools.hpp>
+#include <impl/Kokkos_StringManipulation.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -111,7 +112,7 @@ struct rank_dynamic<Val, Args...> {
   template <unsigned RD>                                                    \
   struct ViewDimension##R<0u, RD> {                                         \
     static constexpr size_t ArgN##R = 0;                                    \
-    typename std::conditional<(RD < 3), size_t, unsigned>::type N##R;       \
+    std::conditional_t<(RD < 3), size_t, unsigned> N##R;                    \
     ViewDimension##R()                        = default;                    \
     ViewDimension##R(const ViewDimension##R&) = default;                    \
     ViewDimension##R& operator=(const ViewDimension##R&) = default;         \
@@ -196,7 +197,14 @@ struct KOKKOS_IMPL_ENFORCE_EMPTY_BASE_OPTIMIZATION ViewDimension
   KOKKOS_INLINE_FUNCTION
   constexpr ViewDimension(size_t n0, size_t n1, size_t n2, size_t n3, size_t n4,
                           size_t n5, size_t n6, size_t n7)
-      : D0(n0), D1(n1), D2(n2), D3(n3), D4(n4), D5(n5), D6(n6), D7(n7) {}
+      : D0(n0 == KOKKOS_INVALID_INDEX ? 1 : n0),
+        D1(n1 == KOKKOS_INVALID_INDEX ? 1 : n1),
+        D2(n2 == KOKKOS_INVALID_INDEX ? 1 : n2),
+        D3(n3 == KOKKOS_INVALID_INDEX ? 1 : n3),
+        D4(n4 == KOKKOS_INVALID_INDEX ? 1 : n4),
+        D5(n5 == KOKKOS_INVALID_INDEX ? 1 : n5),
+        D6(n6 == KOKKOS_INVALID_INDEX ? 1 : n6),
+        D7(n7 == KOKKOS_INVALID_INDEX ? 1 : n7) {}
 
   KOKKOS_INLINE_FUNCTION
   constexpr size_t extent(const unsigned r) const noexcept {
@@ -346,13 +354,13 @@ struct is_integral_extent_type<std::initializer_list<iType>> {
 template <unsigned I, class... Args>
 struct is_integral_extent {
   // get_type is void when sizeof...(Args) <= I
-  using type = typename std::remove_cv<typename std::remove_reference<
-      typename Kokkos::Impl::get_type<I, Args...>::type>::type>::type;
+  using type = std::remove_cv_t<std::remove_reference_t<
+      typename Kokkos::Impl::get_type<I, Args...>::type>>;
 
   enum : bool { value = is_integral_extent_type<type>::value };
 
   static_assert(value || std::is_integral<type>::value ||
-                    std::is_same<type, void>::value,
+                    std::is_void<type>::value,
                 "subview argument must be either integral or integral extent");
 };
 
@@ -753,8 +761,8 @@ struct ViewDataType<T, ViewDimension<N, Args...>> {
 template <class T>
 struct ViewArrayAnalysis {
   using value_type           = T;
-  using const_value_type     = typename std::add_const<T>::type;
-  using non_const_value_type = typename std::remove_const<T>::type;
+  using const_value_type     = std::add_const_t<T>;
+  using non_const_value_type = std::remove_const_t<T>;
   using static_dimension     = ViewDimension<>;
   using dynamic_dimension    = ViewDimension<>;
   using dimension            = ViewDimension<>;
@@ -869,8 +877,7 @@ struct ViewOffset {
 template <class Dimension>
 struct ViewOffset<
     Dimension, Kokkos::LayoutLeft,
-    typename std::enable_if<(1 >= Dimension::rank ||
-                             0 == Dimension::rank_dynamic)>::type> {
+    std::enable_if_t<(1 >= Dimension::rank || 0 == Dimension::rank_dynamic)>> {
   using is_mapping_plugin = std::true_type;
   using is_regular        = std::true_type;
 
@@ -973,8 +980,15 @@ struct ViewOffset<
 
   KOKKOS_INLINE_FUNCTION
   constexpr array_layout layout() const {
-    return array_layout(m_dim.N0, m_dim.N1, m_dim.N2, m_dim.N3, m_dim.N4,
-                        m_dim.N5, m_dim.N6, m_dim.N7);
+    constexpr auto r = dimension_type::rank;
+    return array_layout((r > 0 ? m_dim.N0 : KOKKOS_INVALID_INDEX),
+                        (r > 1 ? m_dim.N1 : KOKKOS_INVALID_INDEX),
+                        (r > 2 ? m_dim.N2 : KOKKOS_INVALID_INDEX),
+                        (r > 3 ? m_dim.N3 : KOKKOS_INVALID_INDEX),
+                        (r > 4 ? m_dim.N4 : KOKKOS_INVALID_INDEX),
+                        (r > 5 ? m_dim.N5 : KOKKOS_INVALID_INDEX),
+                        (r > 6 ? m_dim.N6 : KOKKOS_INVALID_INDEX),
+                        (r > 7 ? m_dim.N7 : KOKKOS_INVALID_INDEX));
   }
 
   KOKKOS_INLINE_FUNCTION constexpr size_type dimension_0() const {
@@ -1152,8 +1166,7 @@ struct ViewOffset<
 template <class Dimension>
 struct ViewOffset<
     Dimension, Kokkos::LayoutLeft,
-    typename std::enable_if<(1 < Dimension::rank &&
-                             0 < Dimension::rank_dynamic)>::type> {
+    std::enable_if_t<(1 < Dimension::rank && 0 < Dimension::rank_dynamic)>> {
   using is_mapping_plugin = std::true_type;
   using is_regular        = std::true_type;
 
@@ -1257,8 +1270,15 @@ struct ViewOffset<
 
   KOKKOS_INLINE_FUNCTION
   constexpr array_layout layout() const {
-    return array_layout(m_dim.N0, m_dim.N1, m_dim.N2, m_dim.N3, m_dim.N4,
-                        m_dim.N5, m_dim.N6, m_dim.N7);
+    constexpr auto r = dimension_type::rank;
+    return array_layout((r > 0 ? m_dim.N0 : KOKKOS_INVALID_INDEX),
+                        (r > 1 ? m_dim.N1 : KOKKOS_INVALID_INDEX),
+                        (r > 2 ? m_dim.N2 : KOKKOS_INVALID_INDEX),
+                        (r > 3 ? m_dim.N3 : KOKKOS_INVALID_INDEX),
+                        (r > 4 ? m_dim.N4 : KOKKOS_INVALID_INDEX),
+                        (r > 5 ? m_dim.N5 : KOKKOS_INVALID_INDEX),
+                        (r > 6 ? m_dim.N6 : KOKKOS_INVALID_INDEX),
+                        (r > 7 ? m_dim.N7 : KOKKOS_INVALID_INDEX));
   }
 
   KOKKOS_INLINE_FUNCTION constexpr size_type dimension_0() const {
@@ -1496,8 +1516,7 @@ struct ViewOffset<
 template <class Dimension>
 struct ViewOffset<
     Dimension, Kokkos::LayoutRight,
-    typename std::enable_if<(1 >= Dimension::rank ||
-                             0 == Dimension::rank_dynamic)>::type> {
+    std::enable_if_t<(1 >= Dimension::rank || 0 == Dimension::rank_dynamic)>> {
   using is_mapping_plugin = std::true_type;
   using is_regular        = std::true_type;
 
@@ -1602,8 +1621,15 @@ struct ViewOffset<
 
   KOKKOS_INLINE_FUNCTION
   constexpr array_layout layout() const {
-    return array_layout(m_dim.N0, m_dim.N1, m_dim.N2, m_dim.N3, m_dim.N4,
-                        m_dim.N5, m_dim.N6, m_dim.N7);
+    constexpr auto r = dimension_type::rank;
+    return array_layout((r > 0 ? m_dim.N0 : KOKKOS_INVALID_INDEX),
+                        (r > 1 ? m_dim.N1 : KOKKOS_INVALID_INDEX),
+                        (r > 2 ? m_dim.N2 : KOKKOS_INVALID_INDEX),
+                        (r > 3 ? m_dim.N3 : KOKKOS_INVALID_INDEX),
+                        (r > 4 ? m_dim.N4 : KOKKOS_INVALID_INDEX),
+                        (r > 5 ? m_dim.N5 : KOKKOS_INVALID_INDEX),
+                        (r > 6 ? m_dim.N6 : KOKKOS_INVALID_INDEX),
+                        (r > 7 ? m_dim.N7 : KOKKOS_INVALID_INDEX));
   }
 
   KOKKOS_INLINE_FUNCTION constexpr size_type dimension_0() const {
@@ -1783,8 +1809,7 @@ struct ViewOffset<
 template <class Dimension>
 struct ViewOffset<
     Dimension, Kokkos::LayoutRight,
-    typename std::enable_if<(1 < Dimension::rank &&
-                             0 < Dimension::rank_dynamic)>::type> {
+    std::enable_if_t<(1 < Dimension::rank && 0 < Dimension::rank_dynamic)>> {
   using is_mapping_plugin = std::true_type;
   using is_regular        = std::true_type;
 
@@ -1885,8 +1910,15 @@ struct ViewOffset<
 
   KOKKOS_INLINE_FUNCTION
   constexpr array_layout layout() const {
-    return array_layout(m_dim.N0, m_dim.N1, m_dim.N2, m_dim.N3, m_dim.N4,
-                        m_dim.N5, m_dim.N6, m_dim.N7);
+    constexpr auto r = dimension_type::rank;
+    return array_layout((r > 0 ? m_dim.N0 : KOKKOS_INVALID_INDEX),
+                        (r > 1 ? m_dim.N1 : KOKKOS_INVALID_INDEX),
+                        (r > 2 ? m_dim.N2 : KOKKOS_INVALID_INDEX),
+                        (r > 3 ? m_dim.N3 : KOKKOS_INVALID_INDEX),
+                        (r > 4 ? m_dim.N4 : KOKKOS_INVALID_INDEX),
+                        (r > 5 ? m_dim.N5 : KOKKOS_INVALID_INDEX),
+                        (r > 6 ? m_dim.N6 : KOKKOS_INVALID_INDEX),
+                        (r > 7 ? m_dim.N7 : KOKKOS_INVALID_INDEX));
   }
 
   KOKKOS_INLINE_FUNCTION constexpr size_type dimension_0() const {
@@ -2414,10 +2446,15 @@ struct ViewOffset<Dimension, Kokkos::LayoutStride, void> {
 
   KOKKOS_INLINE_FUNCTION
   constexpr array_layout layout() const {
-    return array_layout(m_dim.N0, m_stride.S0, m_dim.N1, m_stride.S1, m_dim.N2,
-                        m_stride.S2, m_dim.N3, m_stride.S3, m_dim.N4,
-                        m_stride.S4, m_dim.N5, m_stride.S5, m_dim.N6,
-                        m_stride.S6, m_dim.N7, m_stride.S7);
+    constexpr auto r = dimension_type::rank;
+    return array_layout((r > 0 ? m_dim.N0 : KOKKOS_INVALID_INDEX), m_stride.S0,
+                        (r > 1 ? m_dim.N1 : KOKKOS_INVALID_INDEX), m_stride.S1,
+                        (r > 2 ? m_dim.N2 : KOKKOS_INVALID_INDEX), m_stride.S2,
+                        (r > 3 ? m_dim.N3 : KOKKOS_INVALID_INDEX), m_stride.S3,
+                        (r > 4 ? m_dim.N4 : KOKKOS_INVALID_INDEX), m_stride.S4,
+                        (r > 5 ? m_dim.N5 : KOKKOS_INVALID_INDEX), m_stride.S5,
+                        (r > 6 ? m_dim.N6 : KOKKOS_INVALID_INDEX), m_stride.S6,
+                        (r > 7 ? m_dim.N7 : KOKKOS_INVALID_INDEX), m_stride.S7);
   }
 
   KOKKOS_INLINE_FUNCTION constexpr size_type dimension_0() const {
@@ -2672,11 +2709,11 @@ struct ViewDataHandle {
 
 template <class Traits>
 struct ViewDataHandle<
-    Traits, typename std::enable_if<(
-                std::is_same<typename Traits::non_const_value_type,
-                             typename Traits::value_type>::value &&
-                std::is_same<typename Traits::specialize, void>::value &&
-                Traits::memory_traits::is_atomic)>::type> {
+    Traits,
+    std::enable_if_t<(std::is_same<typename Traits::non_const_value_type,
+                                   typename Traits::value_type>::value &&
+                      std::is_void<typename Traits::specialize>::value &&
+                      Traits::memory_traits::is_atomic)>> {
   using value_type  = typename Traits::value_type;
   using handle_type = typename Kokkos::Impl::AtomicViewDataHandle<Traits>;
   using return_type = typename Kokkos::Impl::AtomicDataElement<Traits>;
@@ -2697,17 +2734,17 @@ struct ViewDataHandle<
 
 template <class Traits>
 struct ViewDataHandle<
-    Traits, typename std::enable_if<(
-                std::is_same<typename Traits::specialize, void>::value &&
-                (!Traits::memory_traits::is_aligned) &&
-                Traits::memory_traits::is_restrict
+    Traits,
+    std::enable_if_t<(std::is_void<typename Traits::specialize>::value &&
+                      (!Traits::memory_traits::is_aligned) &&
+                      Traits::memory_traits::is_restrict
 #ifdef KOKKOS_ENABLE_CUDA
-                && (!(std::is_same<typename Traits::memory_space,
-                                   Kokkos::CudaSpace>::value ||
-                      std::is_same<typename Traits::memory_space,
-                                   Kokkos::CudaUVMSpace>::value))
+                      && (!(std::is_same<typename Traits::memory_space,
+                                         Kokkos::CudaSpace>::value ||
+                            std::is_same<typename Traits::memory_space,
+                                         Kokkos::CudaUVMSpace>::value))
 #endif
-                && (!Traits::memory_traits::is_atomic))>::type> {
+                      && (!Traits::memory_traits::is_atomic))>> {
   using value_type  = typename Traits::value_type;
   using handle_type = typename Traits::value_type* KOKKOS_RESTRICT;
   using return_type = typename Traits::value_type& KOKKOS_RESTRICT;
@@ -2727,17 +2764,17 @@ struct ViewDataHandle<
 
 template <class Traits>
 struct ViewDataHandle<
-    Traits, typename std::enable_if<(
-                std::is_same<typename Traits::specialize, void>::value &&
-                Traits::memory_traits::is_aligned &&
-                (!Traits::memory_traits::is_restrict)
+    Traits,
+    std::enable_if_t<(std::is_void<typename Traits::specialize>::value &&
+                      Traits::memory_traits::is_aligned &&
+                      (!Traits::memory_traits::is_restrict)
 #ifdef KOKKOS_ENABLE_CUDA
-                && (!(std::is_same<typename Traits::memory_space,
-                                   Kokkos::CudaSpace>::value ||
-                      std::is_same<typename Traits::memory_space,
-                                   Kokkos::CudaUVMSpace>::value))
+                      && (!(std::is_same<typename Traits::memory_space,
+                                         Kokkos::CudaSpace>::value ||
+                            std::is_same<typename Traits::memory_space,
+                                         Kokkos::CudaUVMSpace>::value))
 #endif
-                && (!Traits::memory_traits::is_atomic))>::type> {
+                      && (!Traits::memory_traits::is_atomic))>> {
   using value_type = typename Traits::value_type;
   // typedef work-around for intel compilers error #3186: expected typedef
   // declaration
@@ -2773,16 +2810,16 @@ struct ViewDataHandle<
 template <class Traits>
 struct ViewDataHandle<
     Traits,
-    typename std::enable_if<(
-        std::is_same<typename Traits::specialize, void>::value &&
-        Traits::memory_traits::is_aligned && Traits::memory_traits::is_restrict
+    std::enable_if_t<(std::is_void<typename Traits::specialize>::value &&
+                      Traits::memory_traits::is_aligned &&
+                      Traits::memory_traits::is_restrict
 #ifdef KOKKOS_ENABLE_CUDA
-        && (!(std::is_same<typename Traits::memory_space,
-                           Kokkos::CudaSpace>::value ||
-              std::is_same<typename Traits::memory_space,
-                           Kokkos::CudaUVMSpace>::value))
+                      && (!(std::is_same<typename Traits::memory_space,
+                                         Kokkos::CudaSpace>::value ||
+                            std::is_same<typename Traits::memory_space,
+                                         Kokkos::CudaUVMSpace>::value))
 #endif
-        && (!Traits::memory_traits::is_atomic))>::type> {
+                      && (!Traits::memory_traits::is_atomic))>> {
   using value_type = typename Traits::value_type;
   // typedef work-around for intel compilers error #3186: expected typedef
   // declaration
@@ -2863,6 +2900,7 @@ struct ViewValueFunctor<DeviceType, ValueType, false /* is_scalar */> {
   size_t n;
   bool destroy;
   std::string name;
+  bool default_exec_space;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const size_t i) const {
@@ -2885,13 +2923,26 @@ struct ViewValueFunctor<DeviceType, ValueType, false /* is_scalar */> {
         ptr(arg_ptr),
         n(arg_n),
         destroy(false),
-        name(std::move(arg_name)) {}
+        name(std::move(arg_name)),
+        default_exec_space(false) {}
+
+  ViewValueFunctor(ValueType* const arg_ptr, size_t const arg_n,
+                   std::string arg_name)
+      : space(ExecSpace{}),
+        ptr(arg_ptr),
+        n(arg_n),
+        destroy(false),
+        name(std::move(arg_name)),
+        default_exec_space(true) {}
 
   template <typename Dummy = ValueType>
   std::enable_if_t<std::is_trivial<Dummy>::value &&
                    std::is_trivially_copy_assignable<ValueType>::value>
   construct_dispatch() {
     ValueType value{};
+// On A64FX memset seems to do the wrong thing with regards to first touch
+// leading to the significant performance issues
+#ifndef KOKKOS_ARCH_A64FX
     if (Impl::is_zero_byte(value)) {
       uint64_t kpID = 0;
       if (Kokkos::Profiling::profileLibraryLoaded()) {
@@ -2903,7 +2954,6 @@ struct ViewValueFunctor<DeviceType, ValueType, false /* is_scalar */> {
             "Kokkos::View::initialization [" + name + "] via memset",
             Kokkos::Profiling::Experimental::device_id(space), &kpID);
       }
-
       (void)ZeroMemset<ExecSpace, ValueType*, typename DeviceType::memory_space,
                        Kokkos::MemoryTraits<Kokkos::Unmanaged>>(
           space,
@@ -2914,9 +2964,14 @@ struct ViewValueFunctor<DeviceType, ValueType, false /* is_scalar */> {
       if (Kokkos::Profiling::profileLibraryLoaded()) {
         Kokkos::Profiling::endParallelFor(kpID);
       }
+      if (default_exec_space)
+        space.fence("Kokkos::Impl::ViewValueFunctor: View init/destroy fence");
     } else {
+#endif
       parallel_for_implementation(false);
+#ifndef KOKKOS_ARCH_A64FX
     }
+#endif
   }
 
   template <typename Dummy = ValueType>
@@ -2950,7 +3005,8 @@ struct ViewValueFunctor<DeviceType, ValueType, false /* is_scalar */> {
       const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
           *this, policy);
       closure.execute();
-      space.fence("Kokkos::Impl::ViewValueFunctor: View init/destroy fence");
+      if (default_exec_space || destroy)
+        space.fence("Kokkos::Impl::ViewValueFunctor: View init/destroy fence");
       if (Kokkos::Profiling::profileLibraryLoaded()) {
         Kokkos::Profiling::endParallelFor(kpID);
       }
@@ -2973,6 +3029,7 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
   ValueType* ptr;
   size_t n;
   std::string name;
+  bool default_exec_space;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const size_t i) const { ptr[i] = ValueType(); }
@@ -2983,7 +3040,19 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
 
   ViewValueFunctor(ExecSpace const& arg_space, ValueType* const arg_ptr,
                    size_t const arg_n, std::string arg_name)
-      : space(arg_space), ptr(arg_ptr), n(arg_n), name(std::move(arg_name)) {}
+      : space(arg_space),
+        ptr(arg_ptr),
+        n(arg_n),
+        name(std::move(arg_name)),
+        default_exec_space(false) {}
+
+  ViewValueFunctor(ValueType* const arg_ptr, size_t const arg_n,
+                   std::string arg_name)
+      : space(ExecSpace{}),
+        ptr(arg_ptr),
+        n(arg_n),
+        name(std::move(arg_name)),
+        default_exec_space(true) {}
 
   template <typename Dummy = ValueType>
   std::enable_if_t<std::is_trivial<Dummy>::value &&
@@ -2991,6 +3060,9 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
   construct_shared_allocation() {
     // Shortcut for zero initialization
     ValueType value{};
+// On A64FX memset seems to do the wrong thing with regards to first touch
+// leading to the significant performance issues
+#ifndef KOKKOS_ARCH_A64FX
     if (Impl::is_zero_byte(value)) {
       uint64_t kpID = 0;
       if (Kokkos::Profiling::profileLibraryLoaded()) {
@@ -3013,9 +3085,14 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
       if (Kokkos::Profiling::profileLibraryLoaded()) {
         Kokkos::Profiling::endParallelFor(kpID);
       }
+      if (default_exec_space)
+        space.fence("Kokkos::Impl::ViewValueFunctor: View init/destroy fence");
     } else {
+#endif
       parallel_for_implementation();
+#ifndef KOKKOS_ARCH_A64FX
     }
+#endif
   }
 
   template <typename Dummy = ValueType>
@@ -3044,8 +3121,10 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
       const Kokkos::Impl::ParallelFor<ViewValueFunctor, PolicyType> closure(
           *this, PolicyType(0, n));
       closure.execute();
-      space.fence(
-          "Kokkos::Impl::ViewValueFunctor: Fence after setting values in view");
+      if (default_exec_space)
+        space.fence(
+            "Kokkos::Impl::ViewValueFunctor: Fence after setting values in "
+            "view");
       if (Kokkos::Profiling::profileLibraryLoaded()) {
         Kokkos::Profiling::endParallelFor(kpID);
       }
@@ -3062,10 +3141,10 @@ struct ViewValueFunctor<DeviceType, ValueType, true /* is_scalar */> {
 template <class Traits>
 class ViewMapping<
     Traits,
-    typename std::enable_if<(
-        std::is_same<typename Traits::specialize, void>::value &&
+    std::enable_if_t<(
+        std::is_void<typename Traits::specialize>::value &&
         ViewOffset<typename Traits::dimension, typename Traits::array_layout,
-                   void>::is_mapping_plugin::value)>::type> {
+                   void>::is_mapping_plugin::value)>> {
  public:
   using offset_type = ViewOffset<typename Traits::dimension,
                                  typename Traits::array_layout, void>;
@@ -3196,26 +3275,26 @@ class ViewMapping<
 
   template <typename I0>
   KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<(std::is_integral<I0>::value &&
-                               // if layout is neither stride nor irregular,
-                               // then just use the handle directly
-                               !(std::is_same<typename Traits::array_layout,
-                                              Kokkos::LayoutStride>::value ||
-                                 !is_regular::value)),
-                              reference_type>::type
+      std::enable_if_t<(std::is_integral<I0>::value &&
+                        // if layout is neither stride nor irregular,
+                        // then just use the handle directly
+                        !(std::is_same<typename Traits::array_layout,
+                                       Kokkos::LayoutStride>::value ||
+                          !is_regular::value)),
+                       reference_type>
       reference(const I0& i0) const {
     return m_impl_handle[i0];
   }
 
   template <typename I0>
   KOKKOS_FORCEINLINE_FUNCTION
-      typename std::enable_if<(std::is_integral<I0>::value &&
-                               // if the layout is strided or irregular, then
-                               // we have to use the offset
-                               (std::is_same<typename Traits::array_layout,
-                                             Kokkos::LayoutStride>::value ||
-                                !is_regular::value)),
-                              reference_type>::type
+      std::enable_if_t<(std::is_integral<I0>::value &&
+                        // if the layout is strided or irregular, then
+                        // we have to use the offset
+                        (std::is_same<typename Traits::array_layout,
+                                      Kokkos::LayoutStride>::value ||
+                         !is_regular::value)),
+                       reference_type>
       reference(const I0& i0) const {
     return m_impl_handle[m_impl_offset(i0)];
   }
@@ -3334,7 +3413,8 @@ class ViewMapping<
   template <class... P>
   Kokkos::Impl::SharedAllocationRecord<>* allocate_shared(
       Kokkos::Impl::ViewCtorProp<P...> const& arg_prop,
-      typename Traits::array_layout const& arg_layout) {
+      typename Traits::array_layout const& arg_layout,
+      bool execution_space_specified) {
     using alloc_prop = Kokkos::Impl::ViewCtorProp<P...>;
 
     using execution_space = typename alloc_prop::execution_space;
@@ -3361,13 +3441,22 @@ class ViewMapping<
         static_cast<Kokkos::Impl::ViewCtorProp<void, std::string> const&>(
             arg_prop)
             .value;
-    // Create shared memory tracking record with allocate memory from the memory
-    // space
-    record_type* const record = record_type::allocate(
+    const execution_space& exec_space =
+        static_cast<Kokkos::Impl::ViewCtorProp<void, execution_space> const&>(
+            arg_prop)
+            .value;
+    const memory_space& mem_space =
         static_cast<Kokkos::Impl::ViewCtorProp<void, memory_space> const&>(
             arg_prop)
-            .value,
-        alloc_name, alloc_size);
+            .value;
+
+    // Create shared memory tracking record with allocate memory from the memory
+    // space
+    record_type* const record =
+        execution_space_specified
+            ? record_type::allocate(exec_space, mem_space, alloc_name,
+                                    alloc_size)
+            : record_type::allocate(mem_space, alloc_name, alloc_size);
 
     m_impl_handle = handle_type(reinterpret_cast<pointer_type>(record->data()));
 
@@ -3377,11 +3466,12 @@ class ViewMapping<
       // Assume destruction is only required when construction is requested.
       // The ViewValueFunctor has both value construction and destruction
       // operators.
-      record->m_destroy = functor_type(
-          static_cast<Kokkos::Impl::ViewCtorProp<void, execution_space> const&>(
-              arg_prop)
-              .value,
-          (value_type*)m_impl_handle, m_impl_offset.span(), alloc_name);
+      record->m_destroy =
+          execution_space_specified
+              ? functor_type(exec_space, (value_type*)m_impl_handle,
+                             m_impl_offset.span(), alloc_name)
+              : functor_type((value_type*)m_impl_handle, m_impl_offset.span(),
+                             alloc_name);
 
       // Construct values
       record->m_destroy.construct_shared_allocation();
@@ -3398,13 +3488,13 @@ class ViewMapping<
 template <class DstTraits, class SrcTraits>
 class ViewMapping<
     DstTraits, SrcTraits,
-    typename std::enable_if<(
+    std::enable_if_t<(
         !(std::is_same<typename SrcTraits::array_layout, LayoutStride>::
               value) &&  // Added to have a new specialization for SrcType of
                          // LayoutStride
         // default mappings
-        std::is_same<typename DstTraits::specialize, void>::value &&
-        std::is_same<typename SrcTraits::specialize, void>::value &&
+        std::is_void<typename DstTraits::specialize>::value &&
+        std::is_void<typename SrcTraits::specialize>::value &&
         (
             // same layout
             std::is_same<typename DstTraits::array_layout,
@@ -3421,7 +3511,7 @@ class ViewMapping<
               std::is_same<typename SrcTraits::array_layout,
                            Kokkos::LayoutRight>::value ||
               std::is_same<typename SrcTraits::array_layout,
-                           Kokkos::LayoutStride>::value))))>::type> {
+                           Kokkos::LayoutStride>::value))))>> {
  private:
   enum {
     is_assignable_space = Kokkos::Impl::MemorySpaceAccess<
@@ -3539,11 +3629,11 @@ class ViewMapping<
 template <class DstTraits, class SrcTraits>
 class ViewMapping<
     DstTraits, SrcTraits,
-    typename std::enable_if<(
+    std::enable_if_t<(
         std::is_same<typename SrcTraits::array_layout,
                      Kokkos::LayoutStride>::value &&
-        std::is_same<typename DstTraits::specialize, void>::value &&
-        std::is_same<typename SrcTraits::specialize, void>::value &&
+        std::is_void<typename DstTraits::specialize>::value &&
+        std::is_void<typename SrcTraits::specialize>::value &&
         (
             // same layout
             std::is_same<typename DstTraits::array_layout,
@@ -3554,7 +3644,7 @@ class ViewMapping<
              std::is_same<typename DstTraits::array_layout,
                           Kokkos::LayoutRight>::value ||
              std::is_same<typename DstTraits::array_layout,
-                          Kokkos::LayoutStride>::value)))>::type> {
+                          Kokkos::LayoutStride>::value)))>> {
  private:
   enum {
     is_assignable_space = Kokkos::Impl::MemorySpaceAccess<
@@ -3704,8 +3794,7 @@ struct SubViewDataTypeImpl<void, ValueType, Kokkos::Experimental::Extents<>> {
 template <class ValueType, ptrdiff_t Ext, ptrdiff_t... Exts, class Integral,
           class... Args>
 struct SubViewDataTypeImpl<
-    typename std::enable_if<
-        std::is_integral<typename std::decay<Integral>::type>::value>::type,
+    std::enable_if_t<std::is_integral<std::decay_t<Integral>>::value>,
     ValueType, Kokkos::Experimental::Extents<Ext, Exts...>, Integral, Args...>
     : SubViewDataTypeImpl<void, ValueType,
                           Kokkos::Experimental::Extents<Exts...>, Args...> {};
@@ -3725,7 +3814,7 @@ struct SubViewDataTypeImpl<void, ValueType,
 template <class ValueType, ptrdiff_t Ext, ptrdiff_t... Exts, class PairLike,
           class... Args>
 struct SubViewDataTypeImpl<
-    typename std::enable_if<is_pair_like<PairLike>::value>::type, ValueType,
+    std::enable_if_t<is_pair_like<PairLike>::value>, ValueType,
     Kokkos::Experimental::Extents<Ext, Exts...>, PairLike, Args...>
     : SubViewDataTypeImpl<
           void, typename make_all_extents_into_pointers<ValueType>::type*,
@@ -3738,14 +3827,13 @@ struct SubViewDataType : SubViewDataTypeImpl<void, ValueType, Exts, Args...> {};
 
 template <class SrcTraits, class... Args>
 class ViewMapping<
-    typename std::enable_if<(
-        std::is_same<typename SrcTraits::specialize, void>::value &&
-        (std::is_same<typename SrcTraits::array_layout,
-                      Kokkos::LayoutLeft>::value ||
-         std::is_same<typename SrcTraits::array_layout,
-                      Kokkos::LayoutRight>::value ||
-         std::is_same<typename SrcTraits::array_layout,
-                      Kokkos::LayoutStride>::value))>::type,
+    std::enable_if_t<(std::is_void<typename SrcTraits::specialize>::value &&
+                      (std::is_same<typename SrcTraits::array_layout,
+                                    Kokkos::LayoutLeft>::value ||
+                       std::is_same<typename SrcTraits::array_layout,
+                                    Kokkos::LayoutRight>::value ||
+                       std::is_same<typename SrcTraits::array_layout,
+                                    Kokkos::LayoutStride>::value))>,
     SrcTraits, Args...> {
  private:
   static_assert(SrcTraits::rank == sizeof...(Args),
@@ -3792,7 +3880,7 @@ class ViewMapping<
   };
 
   // Subview's layout
-  using array_layout = typename std::conditional<
+  using array_layout = std::conditional_t<
       (            /* Same array layout IF */
        (rank == 0) /* output rank zero */
        || SubviewLegalArgsCompileTime<typename SrcTraits::array_layout,
@@ -3810,7 +3898,7 @@ class ViewMapping<
         std::is_same<typename SrcTraits::array_layout,
                      Kokkos::LayoutRight>::value)  // replace input rank
        ),
-      typename SrcTraits::array_layout, Kokkos::LayoutStride>::type;
+      typename SrcTraits::array_layout, Kokkos::LayoutStride>;
 
   using value_type = typename SrcTraits::value_type;
 
@@ -3920,7 +4008,8 @@ struct OperatorBoundsErrorOnDevice<MapType, true> {
   KOKKOS_INLINE_FUNCTION
   static void run(MapType const& map) {
     SharedAllocationHeader const* const header =
-        SharedAllocationHeader::get_header((void*)(map.data()));
+        SharedAllocationHeader::get_header(
+            static_cast<void const*>(map.data()));
     char const* const label = header->label();
     enum { LEN = 128 };
     char msg[LEN];
@@ -3984,6 +4073,62 @@ KOKKOS_INLINE_FUNCTION void view_verify_operator_bounds(
           operator_bounds_error_on_device(map);
         } else { Kokkos::abort("View bounds error"); }))
   }
+}
+
+// primary template: memory space is accessible, do nothing.
+template <class MemorySpace, class AccessSpace,
+          bool = SpaceAccessibility<AccessSpace, MemorySpace>::accessible>
+struct RuntimeCheckViewMemoryAccessViolation {
+  template <class Track, class Map>
+  KOKKOS_FUNCTION RuntimeCheckViewMemoryAccessViolation(char const* const,
+                                                        Track const&,
+                                                        Map const&) {}
+};
+
+// explicit specialization: memory access violation will occur, call abort with
+// the specified error message.
+template <class MemorySpace, class AccessSpace>
+struct RuntimeCheckViewMemoryAccessViolation<MemorySpace, AccessSpace, false> {
+  template <class Track, class Map>
+  KOKKOS_FUNCTION RuntimeCheckViewMemoryAccessViolation(char const* const msg,
+                                                        Track const& track,
+                                                        Map const&) {
+    char err[256] = "";
+    strncat(err, msg, 64);
+    strcat(err, " (label=\"");
+
+    KOKKOS_IF_ON_HOST(({
+      auto const tracker = track.m_tracker;
+
+      if (tracker.has_record()) {
+        strncat(err, tracker.template get_label<void>().c_str(), 128);
+      } else {
+        strcat(err, "**UNMANAGED**");
+      }
+    }))
+
+    KOKKOS_IF_ON_DEVICE(({
+      strcat(err, "**UNAVAILABLE**");
+      (void)track;
+    }))
+
+    strcat(err, "\")");
+
+    Kokkos::abort(err);
+  }
+};
+
+template <class MemorySpace, class Track, class Map, class... Ignore>
+KOKKOS_FUNCTION void runtime_check_memory_access_violation(
+    char const* const msg, Track const& track, Map const& map, Ignore...) {
+  KOKKOS_IF_ON_HOST(
+      ((void)RuntimeCheckViewMemoryAccessViolation<MemorySpace,
+                                                   DefaultHostExecutionSpace>(
+           msg, track, map);))
+  KOKKOS_IF_ON_DEVICE(
+      ((void)RuntimeCheckViewMemoryAccessViolation<MemorySpace,
+                                                   DefaultExecutionSpace>(
+           msg, track, map);))
 }
 
 } /* namespace Impl */

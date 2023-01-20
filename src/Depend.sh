@@ -106,7 +106,7 @@ if (test $1 = "INTERLAYER") then
 fi
 
 if (test $1 = "KSPACE") then
-  depend CG-SDK
+  depend CG-SPICA
   depend CORESHELL
   depend DIELECTRIC
   depend GPU
@@ -118,13 +118,22 @@ if (test $1 = "KSPACE") then
   depend FEP
 fi
 
+if (test $1 = "LEPTON") then
+  depend OPENMP
+fi
+
 if (test $1 = "MANYBODY") then
   depend ATC
   depend GPU
+  depend INTEL
   depend KOKKOS
   depend OPT
   depend QEQ
   depend OPENMP
+fi
+
+if (test $1 = "MC") then
+  depend MISC
 fi
 
 if (test $1 = "MEAM") then
@@ -146,6 +155,7 @@ fi
 
 if (test $1 = "PYTHON") then
   depend ML-IAP
+  depend KOKKOS
 fi
 
 if (test $1 = "PHONON") then
@@ -158,16 +168,20 @@ if (test $1 = "RIGID") then
   depend DPD-SMOOTH
 fi
 
+if (test $1 = "ML-IAP") then
+  depend KOKKOS
+fi
+
 if (test $1 = "ML-PACE") then
   depend KOKKOS
 fi
 
 if (test $1 = "ML-SNAP") then
-  depend KOKKOS
   depend ML-IAP
+  depend KOKKOS
 fi
 
-if (test $1 = "CG-SDK") then
+if (test $1 = "CG-SPICA") then
   depend GPU
   depend KOKKOS
   depend OPENMP

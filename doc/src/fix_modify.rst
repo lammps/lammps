@@ -12,7 +12,7 @@ Syntax
 
 * fix-ID = ID of the fix to modify
 * one or more keyword/value pairs may be appended
-* keyword =  *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial*
+* keyword = *bodyforces* or *colname* or *dynamic/dof* or *energy* or *press* or *respa* or *temp* or *virial*
 
   .. parsed-literal::
 

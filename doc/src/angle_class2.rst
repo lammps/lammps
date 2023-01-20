@@ -24,7 +24,7 @@ Examples
 .. code-block:: LAMMPS
 
    angle_style class2
-   angle_coeff * 75.0
+   angle_coeff * 75.0 25.0 0.3 0.002
    angle_coeff 1 bb 10.5872 1.0119 1.5228
    angle_coeff * ba 3.6551 24.895 1.0119 1.5228
 

@@ -636,7 +636,7 @@ struct CudaParallelLaunchImpl<
           DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>>(
           base_t::get_kernel_func(), prefer_shmem);
 
-      KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE();
+      ensure_cuda_lock_arrays_on_device();
 
       // Invoke the driver function on the device
       base_t::invoke_kernel(driver, grid, block, shmem, cuda_instance);

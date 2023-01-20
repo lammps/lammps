@@ -34,7 +34,7 @@ Dump a snapshot of atom coordinates and selected additional quantities
 to one or more files every N timesteps in one of several formats.
 Only information for atoms in the specified group is dumped.  This
 specific dump style uses molfile plugins that are bundled with the
-`VMD <http://www.ks.uiuc.edu/Research/vmd>`_ molecular visualization and
+`VMD <https://www.ks.uiuc.edu/Research/vmd>`_ molecular visualization and
 analysis program.
 
 Unless the filename contains a \* character, the output will be written

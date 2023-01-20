@@ -77,7 +77,7 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                        host_a, host_c, offset, special_lj, inum, nall, max_nbors,
                        maxspecial, cell_size, gpu_split, screen);
 
-    BUCKMF.device->gpu_barrier();
+    BUCKMF.device->serialize_init();
     if (message)
       fprintf(screen,"Done.\n");
   }
@@ -110,7 +110,7 @@ void buck_gpu_reinit(const int ntypes, double **cutsq, double **host_rhoinv,
       BUCKMF.reinit(ntypes, cutsq, host_rhoinv, host_buck1, host_buck2,
                     host_a, host_c, offset);
 
-    BUCKMF.device->gpu_barrier();
+    BUCKMF.device->serialize_init();
   }
 }
 

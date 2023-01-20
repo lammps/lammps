@@ -102,7 +102,7 @@ a few fitted spline values are slightly different.  For most cases the
 statistical averages as the original REBO potential from which it was
 derived.  The :math:`E^{\text{REBO}}` term in the AIREBO potential gives the model its
 reactive capabilities and only describes short-ranged C-C, C-H and H-H
-interactions (:math:`r < 2` Angstroms). These interactions have strong
+interactions (:math:`r < 2 \AA`). These interactions have strong
 coordination-dependence through a bond order parameter, which adjusts
 the attraction between the I,J atoms based on the position of other
 nearby atoms and thus has 3- and 4-body dependence.
@@ -116,9 +116,9 @@ interactions is determined by the *cutoff* argument to the pair_style
 command which is a scale factor.  For each type pair (C-C, C-H, H-H)
 the cutoff is obtained by multiplying the scale factor by the sigma
 value defined in the potential file for that type pair.  In the
-standard AIREBO potential, :math:`\sigma_{CC} = 3.4` Angstroms, so with a scale
+standard AIREBO potential, :math:`\sigma_{CC} = 3.4 \AA`, so with a scale
 factor of 3.0 (the argument in pair_style), the resulting :math:`E^{\text{LJ}}` cutoff
-would be 10.2 Angstroms.
+would be :math:`10.2 \AA`.
 
 By default, the longer-ranged interaction is smoothly switched off
 between 2.16 and 3.0 :math:`\sigma`. By specifying *cutoff_min* in addition

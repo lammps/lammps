@@ -86,9 +86,7 @@ struct BitsetCount {
   void init(value_type& count) const { count = 0u; }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile value_type& count, const volatile size_type& incr) const {
-    count += incr;
-  }
+  void join(value_type& count, const size_type& incr) const { count += incr; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(size_type i, value_type& count) const {

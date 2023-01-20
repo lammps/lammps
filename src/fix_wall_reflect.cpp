@@ -2,7 +2,7 @@
  /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -35,7 +35,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   nwall(0)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix wall/reflect command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "fix wall/reflect", error);
 
   // let child class process all args
 
@@ -53,7 +53,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
         (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
         (strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall/reflect command");
+      if (iarg+2 > narg) error->all(FLERR, "Illegal fix wall/reflect {} command: missing argument(s)", arg[iarg]);
 
       int newwall;
       if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
@@ -86,26 +86,26 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal wall/reflect command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix wall/reflect units", error);
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;
       else if (strcmp(arg[iarg+1],"lattice") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix wall/reflect command");
+      else error->all(FLERR,"Unknown fix wall/reflect units argument: {}", arg[iarg+1]);
       iarg += 2;
 
-    } else error->all(FLERR,"Illegal fix wall/reflect command");
+    } else error->all(FLERR,"Unknown fix wall/reflect keyword: {}", arg[iarg]);
   }
 
   // error check
 
-  if (nwall == 0) error->all(FLERR,"Illegal fix wall command");
+  if (nwall == 0) utils::missing_cmd_args(FLERR, "fix wall/reflect", error);
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension x");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension y");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension");
+      error->all(FLERR,"Cannot use fix wall/reflect in periodic dimension z");
   }
 
   for (int m = 0; m < nwall; m++)
@@ -170,9 +170,9 @@ void FixWallReflect::init()
     if (wallstyle[m] != VARIABLE) continue;
     varindex[m] = input->variable->find(varstr[m]);
     if (varindex[m] < 0)
-      error->all(FLERR,"Variable name for fix wall/reflect does not exist");
+      error->all(FLERR,"Variable {} for fix wall/reflect does not exist", varstr[m]);
     if (!input->variable->equalstyle(varindex[m]))
-      error->all(FLERR,"Variable for fix wall/reflect is invalid style");
+      error->all(FLERR,"Variable {} for fix wall/reflect is invalid style", varstr[m]);
   }
 
   int nrigid = 0;

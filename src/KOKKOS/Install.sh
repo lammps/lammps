@@ -64,8 +64,8 @@ action atom_vec_bond_kokkos.cpp atom_vec_bond.cpp
 action atom_vec_bond_kokkos.h atom_vec_bond.h
 action atom_vec_charge_kokkos.cpp
 action atom_vec_charge_kokkos.h
-action atom_vec_spin_kokkos.cpp
-action atom_vec_spin_kokkos.h
+action atom_vec_spin_kokkos.cpp atom_vec_spin.cpp
+action atom_vec_spin_kokkos.h atom_vec_spin.h
 action atom_vec_dpd_kokkos.cpp atom_vec_dpd.cpp
 action atom_vec_dpd_kokkos.h atom_vec_dpd.h
 action atom_vec_full_kokkos.cpp atom_vec_full.cpp
@@ -117,6 +117,8 @@ action fix_acks2_reaxff_kokkos.cpp fix_acks2_reaxff.cpp
 action fix_acks2_reaxff_kokkos.h fix_acks2_reaxff.h
 action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
+action fix_dt_reset_kokkos.cpp
+action fix_dt_reset_kokkos.h
 action fix_enforce2d_kokkos.cpp
 action fix_enforce2d_kokkos.h
 action fix_eos_table_rx_kokkos.cpp fix_eos_table_rx.cpp
@@ -165,12 +167,14 @@ action fix_wall_lj93_kokkos.cpp
 action fix_wall_lj93_kokkos.h
 action fix_wall_reflect_kokkos.cpp
 action fix_wall_reflect_kokkos.h
+action fix_viscous_kokkos.cpp
+action fix_viscous_kokkos.h
 action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp
 action fix_dpd_energy_kokkos.h fix_dpd_energy.h
 action fix_rx_kokkos.cpp fix_rx.cpp
 action fix_rx_kokkos.h fix_rx.h
-action gridcomm_kokkos.cpp fft3d.h
-action gridcomm_kokkos.h fft3d.h
+action grid3d_kokkos.cpp fft3d.h
+action grid3d_kokkos.h fft3d.h
 action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp
@@ -190,6 +194,18 @@ action meam_funcs_kokkos.h meam_funcs.cpp
 action meam_impl_kokkos.h meam_impl.cpp
 action meam_setup_done_kokkos.h meam_setup_done.cpp
 action memory_kokkos.h
+action mliap_data_kokkos.cpp mliap_data.cpp
+action mliap_data_kokkos.h mliap_data.h
+action mliap_descriptor_kokkos.h mliap_descriptor.h
+action mliap_descriptor_so3_kokkos.cpp mliap_descriptor_so3.cpp
+action mliap_descriptor_so3_kokkos.h mliap_descriptor_so3.h
+action mliap_model_linear_kokkos.cpp mliap_model_linear.cpp
+action mliap_model_linear_kokkos.h mliap_model_linear.h
+action mliap_model_python_kokkos.cpp mliap_model_linear.cpp
+action mliap_model_python_kokkos.h mliap_model_linear.h
+action mliap_model_kokkos.h mliap_model.h
+action mliap_so3_kokkos.cpp mliap_so3.cpp
+action mliap_so3_kokkos.h mliap_so3.h
 action modify_kokkos.cpp
 action modify_kokkos.h
 action neigh_bond_kokkos.cpp
@@ -204,6 +220,8 @@ action npair_halffull_kokkos.cpp
 action npair_halffull_kokkos.h
 action npair_skip_kokkos.cpp
 action npair_skip_kokkos.h
+action npair_trim_kokkos.cpp
+action npair_trim_kokkos.h
 action npair_kokkos.cpp
 action npair_kokkos.h
 action npair_ssa_kokkos.cpp npair_half_bin_newton_ssa.cpp
@@ -292,16 +310,20 @@ action pair_lj_gromacs_coul_gromacs_kokkos.cpp pair_lj_gromacs_coul_gromacs.cpp
 action pair_lj_gromacs_coul_gromacs_kokkos.h pair_lj_gromacs_coul_gromacs.h
 action pair_lj_gromacs_kokkos.cpp pair_lj_gromacs.cpp
 action pair_lj_gromacs_kokkos.h pair_lj_gromacs.h
-action pair_lj_sdk_kokkos.cpp pair_lj_sdk.cpp
-action pair_lj_sdk_kokkos.h pair_lj_sdk.h
+action pair_lj_spica_kokkos.cpp pair_lj_spica.cpp
+action pair_lj_spica_kokkos.h pair_lj_spica.h
 action pair_meam_kokkos.cpp pair_meam.cpp
 action pair_meam_kokkos.h pair_meam.h
+action pair_mliap_kokkos.cpp pair_mliap.cpp
+action pair_mliap_kokkos.h pair_mliap.h
 action pair_morse_kokkos.cpp
 action pair_morse_kokkos.h
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp
 action pair_multi_lucy_rx_kokkos.h pair_multi_lucy_rx.h
 action pair_pace_kokkos.cpp pair_pace.cpp
 action pair_pace_kokkos.h pair_pace.h
+action pair_pace_extrapolation_kokkos.cpp pair_pace_extrapolation.cpp
+action pair_pace_extrapolation_kokkos.h pair_pace_extrapolation.h
 action pair_reaxff_kokkos.cpp pair_reaxff.cpp
 action pair_reaxff_kokkos.h pair_reaxff.h
 action pair_snap_kokkos.cpp pair_snap.cpp
@@ -341,6 +363,9 @@ action transpose_helper_kokkos.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 
+# Install cython pyx file only if non-KOKKOS version is present
+action mliap_model_python_couple_kokkos.pyx mliap_model_python_couple.pyx
+
 # edit 2 Makefile.package files to include/exclude package info
 
 if (test $1 = 1) then
@@ -360,7 +385,7 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
-    sed -i -e '/^include.*kokkos.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
 CXX = $(CC)
@@ -387,7 +412,26 @@ elif (test $1 = 0) then
 
   if (test -e ../Makefile.package.settings) then
     sed -i -e '/CXX\ =\ \$(CC)/d' ../Makefile.package.settings
-    sed -i -e '/^include.*kokkos.*$/d' ../Makefile.package.settings
+    sed -i -e '/^[ \t]*include.*kokkos.*$/d' ../Makefile.package.settings
   fi
 
+fi
+
+# Python cython stuff. Only need to convert/remove sources.
+# Package settings were already done in ML-IAP package Install.sh script.
+
+if (test $1 = 1) then
+  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
+    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
+  fi
+
+elif (test $1 = 0) then
+  rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
+
+elif (test $1 = 2) then
+  if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
+    cythonize -3 ../mliap_model_python_couple_kokkos.pyx
+  else
+    rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
+  fi
 fi

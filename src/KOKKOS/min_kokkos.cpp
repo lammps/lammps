@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -87,9 +87,9 @@ void MinKokkos::setup(int flag)
   nextra_global = modify->min_dof();
   if (nextra_global) {
     fextra = new double[nextra_global];
-    if (comm->me == 0 && screen)
-      fprintf(screen,"WARNING: Energy due to %d extra global DOFs will"
-              " be included in minimizer energies\n",nextra_global);
+    if (comm->me == 0)
+      error->warning(FLERR, "Energy due to {} extra global DOFs will"
+                     " be included in minimizer energies\n", nextra_global);
   }
 
   // compute for potential energy

@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,9 +24,10 @@ PairStyle(pace/kk/host,PairPACEKokkos<LMPHostType>);
 #define LMP_PAIR_PACE_KOKKOS_H
 
 #include "pair_pace.h"
-#include "ace_radial.h"
 #include "kokkos_type.h"
 #include "pair_kokkos.h"
+
+class SplineInterpolator;
 
 namespace LAMMPS_NS {
 
@@ -293,23 +294,7 @@ class PairPACEKokkos : public PairPACE {
 
     t_ace_3d4 lookupTable;
 
-    void operator=(const SplineInterpolator &spline) {
-      cutoff = spline.cutoff;
-      deltaSplineBins = spline.deltaSplineBins;
-      ntot = spline.ntot;
-      nlut = spline.nlut;
-      invrscalelookup = spline.invrscalelookup;
-      rscalelookup = spline.rscalelookup;
-      num_of_functions = spline.num_of_functions;
-
-      lookupTable = t_ace_3d4("lookupTable", ntot+1, num_of_functions);
-      auto h_lookupTable = Kokkos::create_mirror_view(lookupTable);
-      for (int i = 0; i < ntot+1; i++)
-        for (int j = 0; j < num_of_functions; j++)
-          for (int k = 0; k < 4; k++)
-            h_lookupTable(i, j, k) = spline.lookupTable(i, j, k);
-      Kokkos::deep_copy(lookupTable, h_lookupTable);
-    }
+    void operator=(const SplineInterpolator &spline);
 
     void deallocate() {
       lookupTable = t_ace_3d4();

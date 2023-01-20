@@ -6,13 +6,13 @@ compute dipole command
 Syntax
 """"""
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
-   compute ID group-ID dipole charge-correction
+   compute ID group-ID dipole arg
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * dipole = style name of this compute command
-* charge-correction = *mass* or *geometry*, use COM or geometric center for charged chunk correction (optional)
+* arg = *mass* or *geometry* = use COM or geometric center for charged chunk correction (optional)
 
 Examples
 """"""""
@@ -43,7 +43,7 @@ and per-atom dipole moments, if present, contribute to the computed dipole.
    :doc:`dump custom <dump>` command for a discussion of "unwrapped"
    coordinates.  See the Atoms section of the :doc:`read_data
    <read_data>` command for a discussion of image flags and how they are
-   set for each atom.  You can reset the image flags (e.g. to 0) before
+   set for each atom.  You can reset the image flags (e.g., to 0) before
    invoking this compute by using the :doc:`set image <set>` command.
 
 Output info
@@ -55,7 +55,8 @@ dipole vector.  See the :doc:`Howto output <Howto_output>` page for
 an overview of LAMMPS output options.
 
 The computed values are "intensive".  The array values will be in
-dipole units, i.e. charge units times distance :doc:`units <units>`.
+dipole units (i.e., charge :doc:`units <units>` times distance
+:doc:`units <units>`).
 
 Restrictions
 """"""""""""

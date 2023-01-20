@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -131,7 +131,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
       if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
         error->all(FLERR, "Fix pour molecule template ID must be same as atom style template ID");
-      onemols[i]->check_attributes(0);
+      onemols[i]->check_attributes();
 
       // fix pour uses geoemetric center of molecule for insertion
 

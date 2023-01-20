@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_EXPERIMENTAL_ERROR_REPORTER_HPP
 #define KOKKOS_EXPERIMENTAL_ERROR_REPORTER_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
+#endif
 
 #include <vector>
 #include <Kokkos_Core.hpp>
@@ -192,4 +196,8 @@ void ErrorReporter<ReportType, DeviceType>::resize(const size_t new_size) {
 }  // namespace Experimental
 }  // namespace Kokkos
 
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
+#endif
 #endif

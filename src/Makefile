@@ -50,14 +50,15 @@ endif
 
 PACKAGE = \
 	adios \
+	amoeba \
 	asphere \
 	awpmd \
 	bocs \
 	body \
-        bpm \
+	bpm \
 	brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	colvars \
@@ -87,6 +88,7 @@ PACKAGE = \
 	kspace \
 	latboltz \
 	latte \
+	lepton \
 	machdyn \
 	manifold \
 	manybody \
@@ -98,6 +100,7 @@ PACKAGE = \
 	misc \
 	ml-hdnnp \
 	ml-pace \
+	ml-pod \
 	ml-quip \
 	ml-rann \
 	ml-snap \
@@ -146,13 +149,14 @@ PACKAGE = \
 PACKBASIC = kspace manybody molecule rigid
 
 PACKMOST = \
+	amoeba \
 	asphere \
 	bocs \
 	body \
 	bpm \
         brownian \
 	cg-dna \
-	cg-sdk \
+	cg-spica \
 	class2 \
 	colloid \
 	coreshell \
@@ -209,6 +213,7 @@ PACKLIB = \
 	kim \
 	kokkos \
 	latte \
+	lepton \
 	mpiio \
 	mscg \
 	poems \
@@ -221,11 +226,13 @@ PACKLIB = \
 	h5md \
 	ml-hdnnp \
 	latboltz \
+	lepton \
 	mdi \
 	mesont \
 	molfile \
 	netcdf \
 	ml-pace \
+	ml-pod \
 	plumed \
 	qmmm \
 	ml-quip \
@@ -236,7 +243,7 @@ PACKLIB = \
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars electrode gpu kokkos mesont poems
+PACKINT = atc awpmd colvars electrode gpu kokkos lepton mesont ml-pod poems
 
 PACKEXT = \
 	adios \
@@ -475,7 +482,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs
+check: check-whitespace check-permissions check-homepage check-errordocs check-version
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -500,6 +507,9 @@ check-errordocs:
 
 fix-errordocs:
 	$(PYTHON) ../tools/coding_standard/errordocs.py .. -f
+
+check-version:
+	$(PYTHON) ../tools/coding_standard/versiontags.py ..
 
 format-src:
 	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h
@@ -628,6 +638,8 @@ lib-%:
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
 	fi; touch main.cpp
+
+lib-colvars: lib-lepton
 
 # status = list src files that differ from package files
 # installed = list of installed packages

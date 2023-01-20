@@ -17,7 +17,7 @@ struct TestExponentialIntergral1Function {
   HostViewType h_ref;
 
   void testit() {
-    using Kokkos::Experimental::fabs;
+    using Kokkos::fabs;
     using Kokkos::Experimental::infinity;
 
     d_x      = ViewType("d_x", 15);
@@ -1641,27 +1641,17 @@ struct TestComplexBesselH1Function {
         Kokkos::complex<double>(-5.430453818237824e-02, -1.530182458039000e-02);
 
     EXPECT_EQ(h_ref_ch10(0), h_ch10(0));
-    std::cout << "h_ch10(0): " << h_ch10(0)
-              << ", h_ref_ch10(0): " << h_ref_ch10(0) << std::endl;
     for (int i = 1; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_ch10(i) - h_ref_ch10(i)),
-                Kokkos::abs(h_ref_ch10(i)) * 1e-13);
-      std::cout << i
-                << ", actual diff: " << Kokkos::abs(h_ch10(i) - h_ref_ch10(i))
-                << ", expected diff: " << Kokkos::abs(h_ref_ch10(i)) * 1e-13
-                << std::endl;
+                Kokkos::abs(h_ref_ch10(i)) * 1e-13)
+          << "at index " << i;
     }
 
     EXPECT_EQ(h_ref_ch11(0), h_ch11(0));
-    std::cout << "h_ch11(0): " << h_ch11(0)
-              << ", h_ref_ch11(0): " << h_ref_ch11(0) << std::endl;
     for (int i = 1; i < N; i++) {
       EXPECT_LE(Kokkos::abs(h_ch11(i) - h_ref_ch11(i)),
-                Kokkos::abs(h_ref_ch11(i)) * 1e-13);
-      std::cout << i
-                << ", actual diff: " << Kokkos::abs(h_ch11(i) - h_ref_ch11(i))
-                << ", expected diff: " << Kokkos::abs(h_ref_ch11(i)) * 1e-13
-                << std::endl;
+                Kokkos::abs(h_ref_ch11(i)) * 1e-13)
+          << "at index " << i;
     }
   }
 

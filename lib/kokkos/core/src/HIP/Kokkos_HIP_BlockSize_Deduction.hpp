@@ -249,12 +249,11 @@ unsigned hip_get_preferred_team_blocksize(HIPInternal const *hip_instance,
       get_hip_func_attributes_impl<DriverType, LaunchBounds,
                                    BlockType::Preferred>();
   // get preferred blocksize limited by register usage
-  using namespace std::placeholders;
   const unsigned tperb_reg =
       hip_get_preferred_blocksize<DriverType, LaunchBounds>();
   return hip_internal_get_block_size<BlockType::Preferred, DriverType,
                                      LaunchBounds>(
-      hip_instance, std::bind(f, attr, _1), tperb_reg);
+      hip_instance, std::bind(f, attr, std::placeholders::_1), tperb_reg);
 }
 
 // Standardized blocksize deduction for non-teams parallel constructs with LDS
@@ -291,10 +290,9 @@ unsigned hip_get_max_team_blocksize(HIPInternal const *hip_instance,
   hipFuncAttributes attr =
       get_hip_func_attributes_impl<DriverType, LaunchBounds, BlockType::Max>();
   // get max blocksize
-  using namespace std::placeholders;
   const unsigned tperb_reg = hip_get_max_blocksize<DriverType, LaunchBounds>();
   return hip_internal_get_block_size<BlockType::Max, DriverType, LaunchBounds>(
-      hip_instance, std::bind(f, attr, _1), tperb_reg);
+      hip_instance, std::bind(f, attr, std::placeholders::_1), tperb_reg);
 }
 
 }  // namespace Impl

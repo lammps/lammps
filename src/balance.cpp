@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,7 +26,8 @@
 #include "neighbor.h"
 #include "comm.h"
 #include "domain.h"
-#include "fix_store.h"
+#include "fix_store_peratom.h"
+#include "force.h"
 #include "imbalance.h"
 #include "imbalance_group.h"
 #include "imbalance_neigh.h"
@@ -36,6 +37,7 @@
 #include "irregular.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair.h"
 #include "rcb.h"
 #include "error.h"
 
@@ -78,26 +80,26 @@ Balance::~Balance()
   memory->destroy(proccost);
   memory->destroy(allproccost);
 
-  delete [] user_xsplit;
-  delete [] user_ysplit;
-  delete [] user_zsplit;
+  delete[] user_xsplit;
+  delete[] user_ysplit;
+  delete[] user_zsplit;
 
   if (shift_allocate) {
-    delete [] bdim;
-    delete [] onecost;
-    delete [] allcost;
-    delete [] sum;
-    delete [] target;
-    delete [] lo;
-    delete [] hi;
-    delete [] losum;
-    delete [] hisum;
+    delete[] bdim;
+    delete[] onecost;
+    delete[] allcost;
+    delete[] sum;
+    delete[] target;
+    delete[] lo;
+    delete[] hi;
+    delete[] losum;
+    delete[] hisum;
   }
 
   delete rcb;
 
   for (int i = 0; i < nimbalance; i++) delete imbalances[i];
-  delete [] imbalances;
+  delete[] imbalances;
 
   // check nfix in case all fixes have already been deleted
 
@@ -143,7 +145,7 @@ void Balance::command(int narg, char **arg)
         if (1 + procgrid[0]-1 > narg)
           error->all(FLERR,"Illegal balance command");
         xflag = USER;
-        delete [] user_xsplit;
+        delete[] user_xsplit;
         user_xsplit = new double[procgrid[0]+1];
         user_xsplit[0] = 0.0;
         iarg++;
@@ -163,7 +165,7 @@ void Balance::command(int narg, char **arg)
         if (1 + procgrid[1]-1 > narg)
           error->all(FLERR,"Illegal balance command");
         yflag = USER;
-        delete [] user_ysplit;
+        delete[] user_ysplit;
         user_ysplit = new double[procgrid[1]+1];
         user_ysplit[0] = 0.0;
         iarg++;
@@ -183,7 +185,7 @@ void Balance::command(int narg, char **arg)
         if (1 + procgrid[2]-1 > narg)
           error->all(FLERR,"Illegal balance command");
         zflag = USER;
-        delete [] user_zsplit;
+        delete[] user_zsplit;
         user_zsplit = new double[procgrid[2]+1];
         user_zsplit[0] = 0.0;
         iarg++;
@@ -245,7 +247,7 @@ void Balance::command(int narg, char **arg)
     }
   }
 
-  if (style == BISECTION && comm->style == 0)
+  if (style == BISECTION && comm->style == Comm::BRICK)
     error->all(FLERR,"Balance rcb cannot be used with comm_style brick");
 
   // process remaining optional args
@@ -365,6 +367,13 @@ void Balance::command(int narg, char **arg)
   // output of final result
 
   if (outflag) dumpout(update->ntimestep);
+
+  // notify all classes that store distributed grids
+  // so they can adjust to new proc sub-domains
+  // no need to invoke kspace->reset_grid() b/c it does this in its init()
+
+  modify->reset_grid();
+  if (force->pair) force->pair->reset_grid();
 
   // check if any particles were lost
 
@@ -496,8 +505,9 @@ void Balance::weight_storage(char *prefix)
   if (prefix) cmd = prefix;
   cmd += "IMBALANCE_WEIGHTS";
 
-  fixstore = dynamic_cast<FixStore *>( modify->get_fix_by_id(cmd));
-  if (!fixstore) fixstore = dynamic_cast<FixStore *>( modify->add_fix(cmd + " all STORE peratom 0 1"));
+  fixstore = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(cmd));
+  if (!fixstore)
+    fixstore = dynamic_cast<FixStorePeratom *>(modify->add_fix(cmd + " all STORE/PERATOM 0 1"));
 
   // do not carry weights with atoms during normal atom migration
 

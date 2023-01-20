@@ -1,9 +1,9 @@
-# Pizza.py toolkit, www.cs.sandia.gov/~sjplimp/pizza.html
-# Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+# Pizza.py toolkit, https://lammps.github.io/pizza
+# LAMMPS Development team: developers@lammps.org, Sandia National Laboratories
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-# certain rights in this software.  This software is distributed under 
+# certain rights in this software.  This software is distributed under
 # the GNU General Public License.
 
 # for python3 compatibility
@@ -19,8 +19,8 @@ g = gl(d)                   create OpenGL display for data in d
   d = atom snapshot object (dump, data)
 
 g.bg("black")               set background color (def = "black")
-g.size(N)		    set image size to NxN
-g.size(N,M)		    set image size to NxM
+g.size(N)                   set image size to NxN
+g.size(N,M)                 set image size to NxM
 g.rotate(60,135)            view from z theta and azimuthal phi (def = 60,30)
 g.shift(x,y)                translate by x,y pixels in view window (def = 0,0)
 g.zoom(0.5)                 scale image by factor (def = 1)
@@ -30,7 +30,7 @@ g.box(0/1/2,"red",4)        set box edge thickness
 g.file = "image"            file prefix for created images (def = "image")
 
 g.show(N)                   show image of snapshot at timestep N
-  
+
 g.all()                     make images of all selected snapshots
 g.all(P)                    images of all, start file label at P
 g.all(N,M,P)                make M images of snapshot N, start label at P
@@ -43,12 +43,12 @@ g.pan()                         no pan during all() (default)
 
 g.select = "$x > %g*3.0"    string to pass to d.aselect.test() during all()
 g.select = ""               no extra aselect (default)
-				
+
   %g varies from 0.0 to 1.0 from beginning to end of all()
-  
-g.acol(2,"green")		   set atom colors by atom type (1-N)
-g.acol([2,4],["red","blue"])	   1st arg = one type or list of types
-g.acol(0,"blue")	           2nd arg = one color or list of colors
+
+g.acol(2,"green")                  set atom colors by atom type (1-N)
+g.acol([2,4],["red","blue"])       1st arg = one type or list of types
+g.acol(0,"blue")                   2nd arg = one color or list of colors
 g.acol(range(20),["red","blue"])   if list lengths unequal, interpolate
 g.acol(range(10),"loop")           assign colors in loop, randomly ordered
 
@@ -58,23 +58,23 @@ g.acol(range(10),"loop")           assign colors in loop, randomly ordered
 
 g.arad([1,2],[0.5,0.3])            set atom radii, same rules as acol()
 
-g.bcol()			   set bond color, same args as acol()
-g.brad()			   set bond thickness, same args as arad()
+g.bcol()                           set bond color, same args as acol()
+g.brad()                           set bond thickness, same args as arad()
 
-g.tcol()			   set triangle color, same args as acol()
-g.tfill()			   set triangle fill, 0 fill, 1 line, 2 both
+g.tcol()                           set triangle color, same args as acol()
+g.tfill()                          set triangle fill, 0 fill, 1 line, 2 both
 
 g.lcol()                           set line color, same args as acol()
 g.lrad()                           set line thickness, same args as arad()
 
 g.adef()                           set atom/bond/tri/line properties to default
-g.bdef()			   default = "loop" for colors, 0.45 for radii
-g.tdef()  			   default = 0.25 for bond/line thickness
-g.ldef()  			   default = 0 fill
+g.bdef()                           default = "loop" for colors, 0.45 for radii
+g.tdef()                           default = 0.25 for bond/line thickness
+g.ldef()                           default = 0 fill
 
   by default 100 types are assigned
   if atom/bond/tri/line has type > # defined properties, is an error
-  
+
 from vizinfo import colors         access color list
 print(colors)                      list defined color names and RGB values
 colors["nickname"] = [R,G,B]       set new RGB values from 0 to 255
@@ -148,7 +148,7 @@ class gl:
     self.azphi = 30
     self.scale = 1.0
     self.xshift = self.yshift = 0
-    
+
     self.file = "image"
     self.boxflag = 0
     self.bxcol = [1,1,0]
@@ -165,7 +165,7 @@ class gl:
     self.nsides = 10
     self.theta_amplify = 2
     self.shiny = 2
-    
+
     self.clipflag = 0
     self.clipxlo = self.clipylo = self.clipzlo = 0.0
     self.clipxhi = self.clipyhi = self.clipzhi = 1.0
@@ -189,7 +189,7 @@ class gl:
     self.bdef()
     self.tdef()
     self.ldef()
-    
+
     self.center = 3*[0]
     self.view = 3*[0]
     self.up = 3*[0]
@@ -211,7 +211,7 @@ class gl:
     if not ynew: self.ypixels = self.xpixels
     else: self.ypixels = ynew
     self.create_window()
-    
+
   # --------------------------------------------------------------------
 
   def axis(self,value):
@@ -223,7 +223,7 @@ class gl:
 
   def create_window(self):
     if self.root: self.root.destroy()
-    
+
     from __main__ import tkroot
     self.root = Toplevel(tkroot)
     self.root.title('Pizza.py gl tool')
@@ -232,7 +232,7 @@ class gl:
                       double=1,depth=1)
     self.w.pack(expand=YES)
 #    self.w.pack(expand=YES,fill=BOTH)
-    
+
     glViewport(0,0,self.xpixels,self.ypixels)
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
@@ -247,7 +247,7 @@ class gl:
     self.w.parent = self
     self.w.tkRedraw()
     tkroot.update_idletasks()              # force window to appear
-    
+
   # --------------------------------------------------------------------
 
   def clip(self,which,value):
@@ -314,7 +314,7 @@ class gl:
       self.up[1] = sin(pi*self.azphi/180)
       self.up[2] = 0.0
     else:
-      dot = self.view[2]		   # dot = (0,0,1) . view
+      dot = self.view[2]                   # dot = (0,0,1) . view
       self.up[0] = -dot*self.view[0]       # up projected onto v = dot * v
       self.up[1] = -dot*self.view[1]       # up perp to v = up - dot * v
       self.up[2] = 1.0 - dot*self.view[2]
@@ -325,7 +325,7 @@ class gl:
   # --------------------------------------------------------------------
   # reset ztheta,azphi and thus view,up.right
   # called as function from Pizza.py
-  
+
   def rotate(self,ztheta,azphi):
     self.ztheta = ztheta
     self.azphi = azphi
@@ -366,11 +366,11 @@ class gl:
   # rotate view,up around axis of rotation = old x new
   # right = up x view
   # reset ztheta,azphi from view
-  
+
   def mouse_rotate(self,xnew,ynew,xold,yold):
 
     # change y pixels to measure from bottom of window instead of top
-    
+
     yold = self.ypixels - yold
     ynew = self.ypixels - ynew
 
@@ -407,7 +407,7 @@ class gl:
     axis[1] = rot[0]*self.right[1] + rot[1]*self.up[1] + rot[2]*self.view[1]
     axis[2] = rot[0]*self.right[2] + rot[1]*self.up[2] + rot[2]*self.view[2]
     axis = vecnorm(axis)
-    
+
     # view is changed by (axis x view) scaled by theta
     # up is changed by (axis x up) scaled by theta
     # force up to be perp to view via up_perp = up - (up . view) view
@@ -468,14 +468,14 @@ class gl:
   # output: eye = distance to view scene from
   #         xto,yto,zto = point to look to
   #         xfrom,yfrom,zfrom = point to look from
-  
+
   def setview(self):
     if not self.ready: return                  # no distance since no scene yet
-    
+
     self.eye = 3 * self.distance / self.scale
     xfactor = 0.5*self.eye*self.xshift/self.xpixels
     yfactor = 0.5*self.eye*self.yshift/self.ypixels
-    
+
     self.xto = self.center[0] - xfactor*self.right[0] - yfactor*self.up[0]
     self.yto = self.center[1] - xfactor*self.right[1] - yfactor*self.up[1]
     self.zto = self.center[2] - xfactor*self.right[2] - yfactor*self.up[2]
@@ -486,7 +486,7 @@ class gl:
 
   # --------------------------------------------------------------------
   # box attributes, also used for triangle lines
-  
+
   def box(self,*args):
     self.boxflag = args[0]
     if len(args) > 1:
@@ -500,7 +500,7 @@ class gl:
   # --------------------------------------------------------------------
   # grab all selected snapshots from data object
   # add GL-specific info to each bond
-  
+
   def reload(self):
     print("Loading data into gl tool ...")
     data = self.data
@@ -529,7 +529,7 @@ class gl:
       self.bondframes.append(bonds)
       self.triframes.append(tris)
       self.lineframes.append(lines)
-      
+
       print(time,end='')
       sys.stdout.flush()
     print()
@@ -545,11 +545,11 @@ class gl:
   def nolabel(self):
     self.cachelist = -self.cachelist
     self.labels = []
-  
+
   # --------------------------------------------------------------------
   # show a single snapshot
   # distance from snapshot box or max box for all selected steps
-  
+
   def show(self,ntime):
     data = self.data
     which = data.findtime(ntime)
@@ -571,7 +571,7 @@ class gl:
     self.cachelist = -self.cachelist
     self.w.tkRedraw()
     self.save()
-    
+
   # --------------------------------------------------------------------
 
   def pan(self,*list):
@@ -584,7 +584,7 @@ class gl:
       self.ztheta_stop = list[3]
       self.azphi_stop = list[4]
       self.scale_stop = list[5]
-      
+
   # --------------------------------------------------------------------
 
   def all(self,*list):
@@ -615,7 +615,7 @@ class gl:
         if flag == -1: break
 
         fraction = float(i) / (ncount-1)
-        
+
         if self.select != "":
           newstr = self.select % fraction
           data.aselect.test(newstr,time)
@@ -653,7 +653,7 @@ class gl:
         self.cachelist = -self.cachelist
         self.w.tkRedraw()
         self.save(file)
-        
+
         print(time,end='')
         sys.stdout.flush()
         i += 1
@@ -731,19 +731,19 @@ class gl:
 
   # --------------------------------------------------------------------
   # draw the GL scene
-  
+
   def redraw(self,o):
     # clear window to background color
-    
+
     glClearColor(self.bgcol[0],self.bgcol[1],self.bgcol[2],0)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     # not ready if no scene yet
-    
+
     if not self.ready: return
 
     # set view from eye, distance, 3 lookat vectors (from,to,up)
-    
+
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
     if self.orthoflag:
@@ -759,14 +759,14 @@ class gl:
 
     # draw scene from display list if caching allowed and list hasn't changed
     # else redraw and store as new display list if caching allowed
-    
+
     if self.cache and self.cachelist > 0: glCallList(self.cachelist);
     else:
       if self.cache:
         if self.cachelist < 0: glDeleteLists(-self.cachelist,1)
         self.cachelist = glGenLists(1)
         glNewList(self.cachelist,GL_COMPILE_AND_EXECUTE)
-        
+
       # draw box, clip-box, xyz axes, lines
 
       glDisable(GL_LIGHTING)
@@ -842,7 +842,7 @@ class gl:
 
         if self.tridraw:
           fillflag = self.vizinfo.tfill[int(self.tridraw[0][1])]
-    
+
           if fillflag != 1:
             if fillflag:
               glEnable(GL_POLYGON_OFFSET_FILL)
@@ -921,7 +921,7 @@ class gl:
               gluCylinder(obj,rad,rad,bond[10],self.nsides,self.nsides)
               glPopMatrix()
 
-        if self.tridraw:  
+        if self.tridraw:
           fillflag = self.vizinfo.tfill[int(self.tridraw[0][1])]
 
           if fillflag != 1:
@@ -975,7 +975,7 @@ class gl:
             glEnd()
             glEnable(GL_LIGHTING)
             glPolygonMode(GL_FRONT_AND_BACK,GL_FILL)
-      
+
       if self.cache: glEndList()
 
     glFlush()
@@ -983,16 +983,16 @@ class gl:
   # --------------------------------------------------------------------
   # make new call list for each atom type
   # called when atom color/rad/quality is changed
-  
+
   def make_atom_calllist(self):
     # extend calllist array if necessary
-    
+
     if self.vizinfo.nacolor > self.nclist:
       for i in range(self.vizinfo.nacolor-self.nclist): self.calllist.append(0)
       self.nclist = self.vizinfo.nacolor
 
     # create new calllist for each atom type
-    
+
     for itype in xrange(1,self.vizinfo.nacolor+1):
       if self.calllist[itype]: glDeleteLists(self.calllist[itype],1)
       ilist = glGenLists(1)
@@ -1001,12 +1001,12 @@ class gl:
       red,green,blue = self.vizinfo.acolor[itype]
       rad = self.vizinfo.arad[itype]
       glColor3f(red,green,blue);
-      
+
 #      glPointSize(10.0*rad)
 #      glBegin(GL_POINTS)
 #      glVertex3f(0.0,0.0,0.0)
 #      glEnd()
-      
+
       glMaterialfv(GL_FRONT,GL_EMISSION,[red,green,blue,1.0]);
       glMaterialf(GL_FRONT,GL_SHININESS,self.shiny);
       glutSolidSphere(rad,self.nslices,self.nstacks)
@@ -1015,7 +1015,7 @@ class gl:
   # --------------------------------------------------------------------
   # augment bond info returned by viz() with info needed for GL draw
   # info = length, theta, -dy, dx for bond orientation
-  
+
   def bonds_augment(self,bonds):
     for bond in bonds:
       dx = bond[5] - bond[2]
@@ -1046,7 +1046,7 @@ class gl:
 
     glLineWidth(self.bxthick)
     glColor3f(self.bxcol[0],self.bxcol[1],self.bxcol[2])
-    
+
     glBegin(GL_LINE_LOOP)
     glVertex3f(xlo,ylo,zlo)
     glVertex3f(xhi,ylo,zlo)
@@ -1081,7 +1081,7 @@ class gl:
     if yhi-ylo > delta: delta = yhi-ylo
     if zhi-zlo > delta: delta = zhi-zlo
     delta *= 0.1
-      
+
     glLineWidth(self.bxthick)
 
     glBegin(GL_LINES)
@@ -1100,7 +1100,7 @@ class gl:
 
   def save(self,file=None):
     self.w.update()      # force image on screen to be current before saving it
-        
+
     pstring = glReadPixels(0,0,self.xpixels,self.ypixels,
                            GL_RGBA,GL_UNSIGNED_BYTE)
     snapshot = Image.fromstring("RGBA",(self.xpixels,self.ypixels),pstring)
@@ -1110,14 +1110,14 @@ class gl:
     snapshot.save(file + ".png")
 
   # --------------------------------------------------------------------
-  
+
   def adef(self):
     self.vizinfo.setcolors("atom",range(100),"loop")
     self.vizinfo.setradii("atom",range(100),0.45)
     self.make_atom_calllist()
     self.cachelist = -self.cachelist
     self.w.tkRedraw()
-    
+
   # --------------------------------------------------------------------
 
   def bdef(self):
@@ -1130,14 +1130,14 @@ class gl:
 
   def tdef(self):
     self.vizinfo.setcolors("tri",range(100),"loop")
-    self.vizinfo.setfills("tri",range(100),0)  
+    self.vizinfo.setfills("tri",range(100),0)
     self.cachelist = -self.cachelist
     self.w.tkRedraw()
 
   # --------------------------------------------------------------------
 
   def ldef(self):
-    self.vizinfo.setcolors("line",range(100),"loop")  
+    self.vizinfo.setcolors("line",range(100),"loop")
     self.vizinfo.setradii("line",range(100),0.25)
     self.cachelist = -self.cachelist
     self.w.tkRedraw()
@@ -1149,29 +1149,29 @@ class gl:
     self.make_atom_calllist()
     self.cachelist = -self.cachelist
     self.w.tkRedraw()
-    
+
   # --------------------------------------------------------------------
 
   def arad(self,atypes,radii):
-    self.vizinfo.setradii("atom",atypes,radii)  
+    self.vizinfo.setradii("atom",atypes,radii)
     self.make_atom_calllist()
     self.cachelist = -self.cachelist
     self.w.tkRedraw()
-    
+
   # --------------------------------------------------------------------
 
   def bcol(self,btypes,colors):
     self.vizinfo.setcolors("bond",btypes,colors)
     self.cachelist = -self.cachelist
     self.w.tkRedraw()
-  
+
   # --------------------------------------------------------------------
 
   def brad(self,btypes,radii):
     self.vizinfo.setradii("bond",btypes,radii)
     self.cachelist = -self.cachelist
     self.w.tkRedraw()
-  
+
   # --------------------------------------------------------------------
 
   def tcol(self,ttypes,colors):
@@ -1210,10 +1210,10 @@ class MyOpengl(Opengl):
     args = (self,master,cnf)
     Opengl.__init__(*args,**kw)
     Opengl.autospin_allowed = 0
-    
+
   # redraw Opengl scene
   # call parent redraw() method
-  
+
   def tkRedraw(self,*dummy):
     if not self.initialised: return
     self.tk.call(self._w,'makecurrent')
@@ -1222,7 +1222,7 @@ class MyOpengl(Opengl):
 
   # left button translate
   # access parent xshift/yshift and call parent trans() method
-  
+
   def tkTranslate(self,event):
     dx = event.x - self.xmouse
     dy = event.y - self.ymouse
@@ -1242,7 +1242,7 @@ class MyOpengl(Opengl):
 
   # right button zoom
   # access parent scale and call parent zoom() method
-  
+
   def tkScale(self,event):
     scale = 1 - 0.01 * (event.y - self.ymouse)
     if scale < 0.001: scale = 0.001

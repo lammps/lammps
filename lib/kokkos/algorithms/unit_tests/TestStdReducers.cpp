@@ -115,9 +115,9 @@ auto run_min_or_max_test(ViewType view, StdReducersTestEnumOrder enValue) {
             << "\n";
 
   using view_value_type = typename ViewType::value_type;
-  using reducer_type    = typename std::conditional<
+  using reducer_type    = std::conditional_t<
       (flag == 0), Kokkos::MaxFirstLoc<view_value_type, IndexType, ExeSpace>,
-      Kokkos::MinFirstLoc<view_value_type, IndexType, ExeSpace> >::type;
+      Kokkos::MinFirstLoc<view_value_type, IndexType, ExeSpace> >;
   using reduction_value_type = typename reducer_type::value_type;
 
   reduction_value_type red_result;

@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`Dump styles <Commands_dump>`
 
 Pair_style potentials
 ======================
@@ -38,6 +39,7 @@ OPT.
    * :doc:`agni (o) <pair_agni>`
    * :doc:`airebo (io) <pair_airebo>`
    * :doc:`airebo/morse (io) <pair_airebo>`
+   * :doc:`amoeba <pair_amoeba>`
    * :doc:`atm <pair_atm>`
    * :doc:`awpmd/cut <pair_awpmd>`
    * :doc:`beck (go) <pair_beck>`
@@ -91,8 +93,8 @@ OPT.
    * :doc:`coul/wolf/cs <pair_cs>`
    * :doc:`dpd (giko) <pair_dpd>`
    * :doc:`dpd/fdt <pair_dpd_fdt>`
-   * :doc:`dpd/ext (k) <pair_dpd_ext>`
-   * :doc:`dpd/ext/tstat (k) <pair_dpd_ext>`
+   * :doc:`dpd/ext (ko) <pair_dpd_ext>`
+   * :doc:`dpd/ext/tstat (ko) <pair_dpd_ext>`
    * :doc:`dpd/fdt/energy (k) <pair_dpd_fdt>`
    * :doc:`dpd/tstat (gko) <pair_dpd>`
    * :doc:`dsmc <pair_dsmc>`
@@ -124,6 +126,7 @@ OPT.
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
+   * :doc:`hippo <pair_amoeba>`
    * :doc:`ilp/graphene/hbn (t) <pair_ilp_graphene_hbn>`
    * :doc:`ilp/tmd (t) <pair_ilp_tmd>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
@@ -131,6 +134,8 @@ OPT.
    * :doc:`lcbop <pair_lcbop>`
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf <pair_mdf>`
+   * :doc:`lepton (o) <pair_lepton>`
+   * :doc:`lepton/coul (o) <pair_lepton>`
    * :doc:`line/lj <pair_line_lj>`
    * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
@@ -179,9 +184,9 @@ OPT.
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
    * :doc:`lj/relres (o) <pair_lj_relres>`
-   * :doc:`lj/sdk (gko) <pair_sdk>`
-   * :doc:`lj/sdk/coul/long (go) <pair_sdk>`
-   * :doc:`lj/sdk/coul/msm (o) <pair_sdk>`
+   * :doc:`lj/spica (gko) <pair_spica>`
+   * :doc:`lj/spica/coul/long (go) <pair_spica>`
+   * :doc:`lj/spica/coul/msm (o) <pair_spica>`
    * :doc:`lj/sf/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/smooth (go) <pair_lj_smooth>`
    * :doc:`lj/smooth/linear (o) <pair_lj_smooth_linear>`
@@ -198,10 +203,11 @@ OPT.
    * :doc:`meam/spline (o) <pair_meam_spline>`
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
    * :doc:`mesocnt <pair_mesocnt>`
+   * :doc:`mesocnt/viscous <pair_mesocnt>`
    * :doc:`mesont/tpm <pair_mesont_tpm>`
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
-   * :doc:`mliap <pair_mliap>`
+   * :doc:`mliap (k) <pair_mliap>`
    * :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
    * :doc:`momb <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
@@ -232,6 +238,8 @@ OPT.
    * :doc:`oxrna2/xstk <pair_oxrna2>`
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
    * :doc:`pace (k) <pair_pace>`
+   * :doc:`pace/extrapolation (k) <pair_pace>`
+   * :doc:`pod <pair_pod>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`
    * :doc:`peri/pmb (o) <pair_peri>`
@@ -268,6 +276,7 @@ OPT.
    * :doc:`spin/magelec <pair_spin_magelec>`
    * :doc:`spin/neel <pair_spin_neel>`
    * :doc:`srp <pair_srp>`
+   * :doc:`srp/react <pair_srp>`
    * :doc:`sw (giko) <pair_sw>`
    * :doc:`sw/angle/table <pair_sw_angle_table>`
    * :doc:`sw/mod (o) <pair_sw>`
@@ -289,6 +298,7 @@ OPT.
    * :doc:`vashishta (gko) <pair_vashishta>`
    * :doc:`vashishta/table (o) <pair_vashishta>`
    * :doc:`wf/cut <pair_wf_cut>`
+   * :doc:`ylz <pair_ylz>`
    * :doc:`yukawa (gko) <pair_yukawa>`
    * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`

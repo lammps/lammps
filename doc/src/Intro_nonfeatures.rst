@@ -33,7 +33,7 @@ Here are suggestions on how to perform these tasks:
   linear bead-spring polymer chains.  The moltemplate program is a true
   molecular builder that will generate complex molecular models.  See
   the :doc:`Tools <Tools>` page for details on tools packaged with
-  LAMMPS.  The `Pre/post processing page <http:/www.lammps.org/prepost.html>`_ of the LAMMPS website
+  LAMMPS.  The `Pre/post processing page <https:/www.lammps.org/prepost.html>`_ of the LAMMPS website
   describes a variety of third party tools for this task.  Furthermore,
   some LAMMPS internal commands allow to reconstruct, or selectively add
   topology information, as well as provide the option to insert molecule
@@ -80,5 +80,5 @@ Here are suggestions on how to perform these tasks:
   `Pizza.py <https://lammps.github.io/pizza>`_ which can do certain kinds of
   setup, analysis, plotting, and visualization (via OpenGL) for LAMMPS
   simulations.  It thus provides some functionality for several of the
-  above bullets.  Pizza.py is written in `Python <http://www.python.org>`_
-  and is available for download from `this page <http://www.cs.sandia.gov/~sjplimp/download.html>`_.
+  above bullets.  Pizza.py is written in `Python <https://www.python.org>`_
+  and is available for download from `this page <https://sjplimp.github.io/download.html>`_.

@@ -157,9 +157,9 @@ class TaskQueueSpecialization<
 
 template <class Scheduler>
 class TaskQueueSpecializationConstrained<
-    Scheduler, typename std::enable_if<
-                   std::is_same<typename Scheduler::execution_space,
-                                Kokkos::Experimental::HPX>::value>::type> {
+    Scheduler,
+    std::enable_if_t<std::is_same<typename Scheduler::execution_space,
+                                  Kokkos::Experimental::HPX>::value>> {
  public:
   using execution_space = Kokkos::Experimental::HPX;
   using scheduler_type  = Scheduler;

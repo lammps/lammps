@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -115,7 +115,7 @@ void ComputePropertyChunk::init()
   if (icompute < 0)
     error->all(FLERR,"Chunk/atom compute does not exist for "
                "compute property/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Compute property/chunk does not use chunk/atom compute");
 }
@@ -196,7 +196,7 @@ void ComputePropertyChunk::lock_disable()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute >= 0) {
-    cchunk = dynamic_cast<ComputeChunkAtom *>( modify->compute[icompute]);
+    cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
     cchunk->lockcount--;
   }
 }

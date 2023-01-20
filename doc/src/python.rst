@@ -8,14 +8,25 @@ Syntax
 
 .. parsed-literal::
 
-   python func keyword args ...
+   python mode keyword args ...
 
-* func = name of Python function
-* one or more keyword/args pairs must be appended
+* mode = *source* or name of Python function
+
+  if mode is *source*:
 
   .. parsed-literal::
 
-     keyword = *invoke* or *input* or *return* or *format* or *length* or *file* or *here* or *exists* or *source*
+     keyword = *here* or name of a *Python file*
+       *here* arg = inline
+         inline = one or more lines of Python code which defines func
+                  must be a single argument, typically enclosed between triple quotes
+       *Python file* = name of a file with Python code which will be executed immediately
+
+* if *mode* is the name of a Python function, one or more keywords with/without arguments must be appended
+
+  .. parsed-literal::
+
+     keyword = *invoke* or *input* or *return* or *format* or *length* or *file* or *here* or *exists*
        *invoke* arg = none = invoke the previously defined Python function
        *input* args = N i1 i2 ... iN
          N = # of inputs to function
@@ -24,7 +35,7 @@ Syntax
            SELF = reference to LAMMPS itself which can be accessed by Python function
            variable = v_name, where name = name of LAMMPS variable, e.g. v_abc
        *return* arg = varReturn
-         varReturn = v_name  = LAMMPS variable name which return value of function will be assigned to
+         varReturn = v_name  = LAMMPS variable name which the return value of the Python function will be assigned to
        *format* arg = fstring with M characters
          M = N if no return value, where N = # of inputs
          M = N+1 if there is a return value
@@ -38,10 +49,6 @@ Syntax
          inline = one or more lines of Python code which defines func
                   must be a single argument, typically enclosed between triple quotes
        *exists* arg = none = Python code has been loaded by previous python command
-       *source* arg = *filename* or *inline*
-         filename = file of Python code which will be executed immediately
-         inline = one or more lines of Python code which will be executed immediately
-                  must be a single argument, typically enclosed between triple quotes
 
 Examples
 """"""""
@@ -70,80 +77,105 @@ Examples
        lmp.command("pair_style lj/cut ${cut}")   # LAMMPS commands
        lmp.command("pair_coeff * * 1.0 1.0")
        lmp.command("run 100")
-    """
+   """
+
+   python source funcdef.py
+
+   python source here "from lammps import lammps"
+
 
 Description
 """""""""""
 
-Define a Python function or execute a previously defined function or
-execute some arbitrary python code.
+The *python* command allows interfacing LAMMPS with an embedded Python
+interpreter and enables either executing arbitrary python code in that
+interpreter, registering a Python function for future execution (as a
+python style variable, from a fix interfaced with python, or for direct
+invocation), or invoking such a previously registered function.
+
 Arguments, including LAMMPS variables, can be passed to the function
-from the LAMMPS input script and a value returned by the Python
-function to a LAMMPS variable.  The Python code for the function can
-be included directly in the input script or in a separate Python file.
-The function can be standard Python code or it can make "callbacks" to
-LAMMPS through its library interface to query or set internal values
-within LAMMPS.  This is a powerful mechanism for performing complex
-operations in a LAMMPS input script that are not possible with the
-simple input script and variable syntax which LAMMPS defines.  Thus
-your input script can operate more like a true programming language.
+from the LAMMPS input script and a value returned by the Python function
+assigned to a LAMMPS variable.  The Python code for the function can be included
+directly in the input script or in a separate Python file.  The function
+can be standard Python code or it can make "callbacks" to LAMMPS through
+its library interface to query or set internal values within LAMMPS.
+This is a powerful mechanism for performing complex operations in a
+LAMMPS input script that are not possible with the simple input script
+and variable syntax which LAMMPS defines.  Thus your input script can
+operate more like a true programming language.
 
 Use of this command requires building LAMMPS with the PYTHON package
 which links to the Python library so that the Python interpreter is
 embedded in LAMMPS.  More details about this process are given below.
 
 There are two ways to invoke a Python function once it has been
-defined.  One is using the *invoke* keyword.  The other is to assign
+registered.  One is using the *invoke* keyword.  The other is to assign
 the function to a :doc:`python-style variable <variable>` defined in
-your input script.  Whenever the variable is evaluated, it will
-execute the Python function to assign a value to the variable.  Note
-that variables can be evaluated in many different ways within LAMMPS.
-They can be substituted for directly in an input script.  Or they can
-be passed to various commands as arguments, so that the variable is
-evaluated during a simulation run.
+your input script.  Whenever the variable is evaluated, it will execute
+the Python function to assign a value to the variable.  Note that
+variables can be evaluated in many different ways within LAMMPS.  They
+can be substituted with their result directly in an input script, or
+they can be passed to various commands as arguments, so that the
+variable is evaluated during a simulation run.
 
-A broader overview of how Python can be used with LAMMPS is given on
-the :doc:`Python <Python_head>` doc page.  There is an examples/python
-directory which illustrates use of the python command.
+A broader overview of how Python can be used with LAMMPS is given in the
+:doc:`Use Python with LAMMPS <Python_head>` section of the
+documentation.  There also is an ``examples/python`` directory which
+illustrates use of the python command.
 
 ----------
 
-The *func* setting specifies the name of the Python function.  The
-code for the function is defined using the *file* or *here* keywords
-as explained below. In case of the *source* keyword, the name of
-the function is ignored.
+The first argument of the *python* command is either the *source*
+keyword or the name of a Python function.  This defines the mode
+of the python command.
+
+.. versionchanged:: 22Dec2022
+
+If the *source* keyword is used, it is followed by either a file name or
+the *here* keyword.  No other keywords can be used.  The *here* keyword
+is followed by a string with python commands, either on a single line
+enclosed in quotes, or as multiple lines enclosed in triple quotes.
+These Python commands will be passed to the python interpreter and
+executed immediately without registering a Python function for future
+execution.  The code will be loaded into and run in the "main" module of
+the Python interpreter.  This allows running arbitrary Python code at
+any time while processing the LAMMPS input file.  This can be used to
+pre-load Python modules, initialize global variables, define functions
+or classes, or perform operations using the python programming language.
+The Python code will be executed in parallel on all MPI processes.  No
+arguments can be passed.
+
+In all other cases, the first argument is the name of a Python function
+that will be registered with LAMMPS for future execution.  The function
+may already be defined (see *exists* keyword) or must be defined using
+the *file* or *here* keywords as explained below.
 
 If the *invoke* keyword is used, no other keywords can be used, and a
-previous python command must have defined the Python function
+previous *python* command must have registered the Python function
 referenced by this command.  This invokes the Python function with the
-previously defined arguments and return value processed as explained
-below.  You can invoke the function as many times as you wish in your
-input script.
-
-If the *source* keyword is used, no other keywords can be used.
-The argument can be a filename or a string with python commands,
-either on a single line enclosed in quotes, or as multiple lines
-enclosed in triple quotes. These python commands will be passed
-to the python interpreter and executed immediately without registering
-a python function for future execution.
+previously defined arguments and the return value is processed as
+explained below.  You can invoke the function as many times as you wish
+in your input script.
 
 The *input* keyword defines how many arguments *N* the Python function
-expects.  If it takes no arguments, then the *input* keyword should
-not be used.  Each argument can be specified directly as a value,
-e.g. 6 or 3.14159 or abc (a string of characters).  The type of each
+expects.  If it takes no arguments, then the *input* keyword should not
+be used.  Each argument can be specified directly as a value, e.g. '6'
+or '3.14159' or 'abc' (a string of characters).  The type of each
 argument is specified by the *format* keyword as explained below, so
 that Python will know how to interpret the value.  If the word SELF is
 used for an argument it has a special meaning.  A pointer is passed to
-the Python function which it converts into a reference to LAMMPS
-itself.  This enables the function to call back to LAMMPS through its
-library interface as explained below.  This allows the Python function
-to query or set values internal to LAMMPS which can affect the
-subsequent execution of the input script.  A LAMMPS variable can also
-be used as an argument, specified as v_name, where "name" is the name
-of the variable.  Any style of LAMMPS variable can be used, as defined
-by the :doc:`variable <variable>` command.  Each time the Python
-function is invoked, the LAMMPS variable is evaluated and its value is
-passed to the Python function.
+the Python function which it can convert into a reference to LAMMPS
+itself using the :doc:`LAMMPS Python module <Python_module>`.  This
+enables the function to call back to LAMMPS through its library
+interface as explained below.  This allows the Python function to query
+or set values internal to LAMMPS which can affect the subsequent
+execution of the input script.  A LAMMPS variable can also be used as an
+argument, specified as v_name, where "name" is the name of the variable.
+Any style of LAMMPS variable returning a scalar or a string can be used,
+as defined by the :doc:`variable <variable>` command.  The *format*
+keyword must be used to set the type of data that is passed to Python.
+Each time the Python function is invoked, the LAMMPS variable is
+evaluated and its value is passed to the Python function.
 
 The *return* keyword is only needed if the Python function returns a
 value.  The specified *varReturn* must be of the form v_name, where
@@ -153,8 +185,9 @@ numeric or string value, as specified by the *format* keyword.
 
 As explained on the :doc:`variable <variable>` doc page, the definition
 of a python-style variable associates a Python function name with the
-variable.  This must match the *func* setting for this command.  For
-example these two commands would be self-consistent:
+variable.  This must match the *Python function name* first argument of
+the *python* command.  For example these two commands would be
+consistent:
 
 .. code-block:: LAMMPS
 
@@ -163,21 +196,22 @@ example these two commands would be self-consistent:
 
 The two commands can appear in either order in the input script so
 long as both are specified before the Python function is invoked for
-the first time.
+the first time.  Afterwards, the variable 'foo' is associated with
+the Python function 'myMultiply'.
 
-The *format* keyword must be used if the *input* or *return* keyword
-is used.  It defines an *fstring* with M characters, where M = sum of
+The *format* keyword must be used if the *input* or *return* keywords
+are used.  It defines an *fstring* with M characters, where M = sum of
 number of inputs and outputs.  The order of characters corresponds to
 the N inputs, followed by the return value (if it exists).  Each
 character must be one of the following: "i" for integer, "f" for
-floating point, "s" for string, or "p" for SELF.  Each character
-defines the type of the corresponding input or output value of the
-Python function and affects the type conversion that is performed
-internally as data is passed back and forth between LAMMPS and Python.
-Note that it is permissible to use a :doc:`python-style variable <variable>` in a LAMMPS command that allows for an
-equal-style variable as an argument, but only if the output of the
-Python function is flagged as a numeric value ("i" or "f") via the
-*format* keyword.
+floating point, "s" for string, or "p" for SELF.  Each character defines
+the type of the corresponding input or output value of the Python
+function and affects the type conversion that is performed internally as
+data is passed back and forth between LAMMPS and Python.  Note that it
+is permissible to use a :doc:`python-style variable <variable>` in a
+LAMMPS command that allows for an equal-style variable as an argument,
+but only if the output of the Python function is flagged as a numeric
+value ("i" or "f") via the *format* keyword.
 
 If the *return* keyword is used and the *format* keyword specifies the
 output as a string, then the default maximum length of that string is
@@ -192,12 +226,13 @@ truncated.
 
 Either the *file*, *here*, or *exists* keyword must be used, but only
 one of them.  These keywords specify what Python code to load into the
-Python interpreter.  The *file* keyword gives the name of a file,
-which should end with a ".py" suffix, which contains Python code.  The
-code will be immediately loaded into and run in the "main" module of
-the Python interpreter.  Note that Python code which contains a
-function definition does not "execute" the function when it is run; it
-simply defines the function so that it can be invoked later.
+Python interpreter.  The *file* keyword gives the name of a file
+containing Python code, which should end with a ".py" suffix.  The code
+will be immediately loaded into and run in the "main" module of the
+Python interpreter.  The Python code will be executed in parallel on all
+MPI processes.  Note that Python code which contains a function
+definition does not "execute" the function when it is run; it simply
+defines the function so that it can be invoked later.
 
 The *here* keyword does the same thing, except that the Python code
 follows as a single argument to the *here* keyword.  This can be done
@@ -208,14 +243,15 @@ proper indentation, blank lines, and comments, as desired.  See the
 how triple quotes can be used as part of input script syntax.
 
 The *exists* keyword takes no argument.  It means that Python code
-containing the required Python function defined by the *func* setting,
-is assumed to have been previously loaded by another python command.
+containing the required Python function with the given name has already
+been executed, for example by a *python source* command or in the same
+file that was used previously with the *file* keyword.
 
-Note that the Python code that is loaded and run must contain a
-function with the specified *func* name.  To operate properly when
-later invoked, the function code must match the *input* and
-*return* and *format* keywords specified by the python command.
-Otherwise Python will generate an error.
+Note that the Python code that is loaded and run must contain a function
+with the specified function name.  To operate properly when later
+invoked, the function code must match the *input* and *return* and
+*format* keywords specified by the python command.  Otherwise Python
+will generate an error.
 
 ----------
 
@@ -225,19 +261,19 @@ LAMMPS.
 Whether you load Python code from a file or directly from your input
 script, via the *file* and *here* keywords, the code can be identical.
 It must be indented properly as Python requires.  It can contain
-comments or blank lines.  If the code is in your input script, it
-cannot however contain triple-quoted Python strings, since that will
-conflict with the triple-quote parsing that the LAMMPS input script
-performs.
+comments or blank lines.  If the code is in your input script, it cannot
+however contain triple-quoted Python strings, since that will conflict
+with the triple-quote parsing that the LAMMPS input script performs.
 
 All the Python code you specify via one or more python commands is
-loaded into the Python "main" module, i.e. __main__.  The code can
-define global variables or statements that are outside of function
-definitions.  It can contain multiple functions, only one of which
-matches the *func* setting in the python command.  This means you can
-use the *file* keyword once to load several functions, and the
-*exists* keyword thereafter in subsequent python commands to access
-the other functions previously loaded.
+loaded into the Python "main" module, i.e. ``__name__ == '__main__'``.
+The code can define global variables, define global functions, define
+classes or execute statements that are outside of function definitions.
+It can contain multiple functions, only one of which matches the *func*
+setting in the python command.  This means you can use the *file*
+keyword once to load several functions, and the *exists* keyword
+thereafter in subsequent python commands to register the other functions
+that were previously loaded with LAMMPS.
 
 A Python function you define (or more generally, the code you load)
 can import other Python modules or classes, it can make calls to other
@@ -264,12 +300,13 @@ outside the function:
      nvaluelast = nvalue
      return nvalue
 
-Nsteplast stores the previous timestep the function was invoked
-(passed as an argument to the function).  Nvaluelast stores the return
-value computed on the last function invocation.  If the function is
-invoked again on the same timestep, the previous value is simply
-returned, without re-computing it.  The "global" statement inside the
-Python function allows it to overwrite the global variables.
+The variable 'nsteplast' stores the previous timestep the function was
+invoked (passed as an argument to the function).  The variable
+'nvaluelast' stores the return value computed on the last function
+invocation.  If the function is invoked again on the same timestep, the
+previous value is simply returned, without re-computing it.  The
+"global" statement inside the Python function allows it to overwrite the
+global variables from within the local context of the function.
 
 Note that if you load Python code multiple times (via multiple python
 commands), you can overwrite previously loaded variables and functions
@@ -285,19 +322,39 @@ copy of the Python function(s) you define.  There is no connection
 between the Python interpreters running on different processors.
 This implies three important things.
 
-First, if you put a print statement in your Python function, you will
-see P copies of the output, when running on P processors.  If the
-prints occur at (nearly) the same time, the P copies of the output may
-be mixed together.  Welcome to the world of parallel programming and
-debugging.
+First, if you put a print or other statement creating output to the
+screen in your Python function, you will see P copies of the output,
+when running on P processors.  If the prints occur at (nearly) the same
+time, the P copies of the output may be mixed together.  When loading
+the LAMMPS Python module into the embedded Python interpreter, it is
+possible to pass the pointer to the current LAMMPS class instance and
+via the Python interface to the LAMMPS library interface, it is possible
+to determine the MPI rank of the current process and thus adapt the
+Python code so that output will only appear on MPI rank 0.  The
+following LAMMPS input demonstrates how this could be done. The text
+'Hello, LAMMPS!' should be printed only once, even when running LAMMPS
+in parallel.
 
-Second, if your Python code loads modules that are not pre-loaded by
-the Python library, then it will load the module from disk.  This may
-be a bottleneck if 1000s of processors try to load a module at the
-same time.  On some large supercomputers, loading of modules from disk
-by Python may be disabled.  In this case you would need to pre-build a
-Python library that has the required modules pre-loaded and link
-LAMMPS with that library.
+.. code-block:: LAMMPS
+
+   python python_hello input 1 SELF format p here """
+   def python_hello(handle):
+       from lammps import lammps
+       lmp = lammps(ptr=handle)
+       me = lmp.extract_setting('world_rank')
+       if me == 0:
+           print('Hello, LAMMPS!')
+   """
+
+   python python_hello invoke
+
+If your Python code loads Python modules that are not pre-loaded by the
+Python library, then it will load the module from disk.  This may be a
+bottleneck if 1000s of processors try to load a module at the same time.
+On some large supercomputers, loading of modules from disk by Python may
+be disabled.  In this case you would need to pre-build a Python library
+that has the required modules pre-loaded and link LAMMPS with that
+library.
 
 Third, if your Python code calls back to LAMMPS (discussed in the
 next section) and causes LAMMPS to perform an MPI operation requires
@@ -315,22 +372,21 @@ Python function is as follows:
 
 .. code-block:: python
 
-   def foo(lmpptr,...):
+   def foo(handle,...):
      from lammps import lammps
-     lmp = lammps(ptr=lmpptr)
+     lmp = lammps(ptr=handle)
      lmp.command('print "Hello from inside Python"')
      ...
 
-The function definition must include a variable (lmpptr in this case)
-which corresponds to SELF in the python command.  The first line of the
-function imports the :doc:`"lammps" Python module <Python_module>`.
-The second line creates a Python object ``lmp`` which
-wraps the instance of LAMMPS that called the function.  The "ptr=lmpptr"
-argument is what makes that happen.  The third line invokes the
-command() function in the LAMMPS library interface.  It takes a single
-string argument which is a LAMMPS input script command for LAMMPS to
-execute, the same as if it appeared in your input script.  In this case,
-LAMMPS should output
+The function definition must include a variable ('handle' in this case)
+which corresponds to SELF in the *python* command.  The first line of
+the function imports the :doc:`"lammps" Python module <Python_module>`.
+The second line creates a Python object ``lmp`` which wraps the instance
+of LAMMPS that called the function.  The 'ptr=handle' argument is what
+makes that happen.  The third line invokes the command() function in the
+LAMMPS library interface.  It takes a single string argument which is a
+LAMMPS input script command for LAMMPS to execute, the same as if it
+appeared in your input script.  In this case, LAMMPS should output
 
 .. parsed-literal::
 
@@ -344,8 +400,8 @@ The :doc:`Python_head` page describes the syntax
 for how Python wraps the various functions included in the LAMMPS
 library interface.
 
-A more interesting example is in the examples/python/in.python script
-which loads and runs the following function from examples/python/funcs.py:
+A more interesting example is in the ``examples/python/in.python`` script
+which loads and runs the following function from ``examples/python/funcs.py``:
 
 .. code-block:: python
 
@@ -495,23 +551,34 @@ Restrictions
 """"""""""""
 
 This command is part of the PYTHON package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-Building LAMMPS with the PYTHON package will link LAMMPS with the
-Python library on your system.  Settings to enable this are in the
+Building LAMMPS with the PYTHON package will link LAMMPS with the Python
+library on your system.  Settings to enable this are in the
 lib/python/Makefile.lammps file.  See the lib/python/README file for
 information on those settings.
 
-If you use Python code which calls back to LAMMPS, via the SELF input argument
-explained above, there is an extra step required when building LAMMPS.  LAMMPS
-must also be built as a shared library and your Python function must be able to
-load the :doc:`"lammps" Python module <Python_module>` that wraps the LAMMPS
-library interface.  These are the same steps required to use Python by itself
-to wrap LAMMPS.  Details on these steps are explained on the :doc:`Python
-<Python_head>` doc page.  Note that it is important that the stand-alone LAMMPS
-executable and the LAMMPS shared library be consistent (built from the same
-source code files) in order for this to work.  If the two have been built at
+If you use Python code which calls back to LAMMPS, via the SELF input
+argument explained above, there is an extra step required when building
+LAMMPS.  LAMMPS must also be built as a shared library and your Python
+function must be able to load the :doc:`"lammps" Python module
+<Python_module>` that wraps the LAMMPS library interface.  These are the
+same steps required to use Python by itself to wrap LAMMPS.  Details on
+these steps are explained on the :doc:`Python <Python_head>` doc page.
+Note that it is important that the stand-alone LAMMPS executable and the
+LAMMPS shared library be consistent (built from the same source code
+files) in order for this to work.  If the two have been built at
 different times using different source files, problems may occur.
+
+Another limitation of calling back to Python from the LAMMPS module
+using the *python* command in a LAMMPS input is that both, the Python
+interpreter and LAMMPS, must be linked to the same Python runtime as a
+shared library.  If the Python interpreter is linked to Python
+statically (which seems to happen with Conda) then loading the shared
+LAMMPS library will create a second python "main" module that hides the
+one from the Python interpreter and all previous defined function and
+global variables will become invisible.
 
 Related commands
 """"""""""""""""

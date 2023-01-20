@@ -61,16 +61,6 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
   nlibelements = 0;
   meam_inst = new MEAM(memory);
   scale = nullptr;
-
-  // set comm size needed by this Pair
-
-  if (this->msmeamflag){
-    comm_forward = 38+23; // plus 23 for msmeam
-    comm_reverse = 30+23; // plus 23 for msmeam
-  } else{
-    comm_forward = 38;
-    comm_reverse = 30;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -138,7 +128,6 @@ void PairMEAM::compute(int eflag, int vflag)
 
   int offset = 0;
   errorflag = 0;
-
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     meam_inst->meam_dens_init(i,ntype,type,map,x,
@@ -206,6 +195,15 @@ void PairMEAM::settings(int narg, char **arg)
       error->all(FLERR, "Unknown pair style zero option {}", arg[0]);
   }
 
+  // set comm size needed by this Pair
+
+  if (this->msmeamflag){
+    comm_forward = 38+23; // plus 23 for msmeam
+    comm_reverse = 30+23; // plus 23 for msmeam
+  } else{
+    comm_forward = 38;
+    comm_reverse = 30;
+  }
 }
 
 /* ----------------------------------------------------------------------

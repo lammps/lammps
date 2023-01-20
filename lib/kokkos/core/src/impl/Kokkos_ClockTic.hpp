@@ -110,10 +110,9 @@ KOKKOS_IMPL_HOST_FUNCTION inline uint64_t clock_tic_host() noexcept {
 
   return ((uint64_t)a) | (((uint64_t)d) << 32);
 
-#elif defined(__powerpc) || defined(__powerpc__) || defined(__powerpc64__) || \
-    defined(__POWERPC__) || defined(__ppc__) || defined(__ppc64__)
+#elif defined(__powerpc64__) || defined(__ppc64__)
 
-  unsigned int cycles = 0;
+  unsigned long cycles = 0;
 
   asm volatile("mftb %0" : "=r"(cycles));
 

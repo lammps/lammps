@@ -45,20 +45,23 @@
 #include <Kokkos_Core.hpp>
 #include <cstdio>
 
-namespace Test {
+namespace {
 
-template <class Device>
+template <class Device, class T, T ImbalanceSz>
 struct TestScan {
   using execution_space = Device;
-  using value_type      = int64_t;
+  using value_type      = T;
 
   Kokkos::View<int, Device, Kokkos::MemoryTraits<Kokkos::Atomic> > errors;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int iwork, value_type& update,
                   const bool final_pass) const {
-    const value_type n         = iwork + 1;
-    const value_type imbalance = ((1000 <= n) && (0 == n % 1000)) ? 1000 : 0;
+    const value_type n = iwork + 1;
+    const value_type imbalance =
+        ((ImbalanceSz <= n) && (value_type(0) == n % ImbalanceSz))
+            ? ImbalanceSz
+            : value_type(0);
 
     // Insert an artificial load imbalance
 
@@ -133,12 +136,29 @@ struct TestScan {
     }
   }
 };
+}  // namespace
 
 TEST(TEST_CATEGORY, scan) {
-  TestScan<TEST_EXECSPACE>::test_range(1, 1000);
-  TestScan<TEST_EXECSPACE>(0);
-  TestScan<TEST_EXECSPACE>(100000);
-  TestScan<TEST_EXECSPACE>(10000000);
-  TEST_EXECSPACE().fence();
+  constexpr auto imbalance_size = 1000;
+  TestScan<TEST_EXECSPACE, int64_t, imbalance_size>::test_range(1, 1000);
+  TestScan<TEST_EXECSPACE, int64_t, imbalance_size>(0);
+  TestScan<TEST_EXECSPACE, int64_t, imbalance_size>(100000);
+  TestScan<TEST_EXECSPACE, int64_t, imbalance_size>(10000000);
 }
-}  // namespace Test
+
+TEST(TEST_CATEGORY, small_size_scan) {
+  constexpr auto imbalance_size = 10;  // Pick to not overflow...
+  TestScan<TEST_EXECSPACE, std::int8_t, imbalance_size>(0);
+  TestScan<TEST_EXECSPACE, std::int8_t, imbalance_size>(5);
+  TestScan<TEST_EXECSPACE, std::int8_t, imbalance_size>(10);
+  TestScan<TEST_EXECSPACE, std::int8_t, imbalance_size>(
+      static_cast<std::size_t>(
+          std::sqrt(std::numeric_limits<std::int8_t>::max())));
+  constexpr auto short_imbalance_size = 100;  // Pick to not overflow...
+  TestScan<TEST_EXECSPACE, std::int16_t, short_imbalance_size>(0);
+  TestScan<TEST_EXECSPACE, std::int16_t, short_imbalance_size>(5);
+  TestScan<TEST_EXECSPACE, std::int16_t, short_imbalance_size>(100);
+  TestScan<TEST_EXECSPACE, std::int16_t, short_imbalance_size>(
+      static_cast<std::size_t>(
+          std::sqrt(std::numeric_limits<std::int16_t>::max())));
+}

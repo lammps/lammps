@@ -46,3 +46,13 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
     KOKKOS_ADD_EXECUTABLE_AND_TEST(UnitTest_${Tag} SOURCES ${UnitTestSources})
   endif()
 endforeach()
+
+SET(COMPILE_ONLY_SOURCES
+  TestCreateMirror.cpp
+)
+KOKKOS_ADD_EXECUTABLE(
+  TestCompileOnly
+  SOURCES
+  TestCompileMain.cpp
+  ${COMPILE_ONLY_SOURCES}
+)

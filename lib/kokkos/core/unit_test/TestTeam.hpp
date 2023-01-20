@@ -1616,6 +1616,73 @@ struct TestTeamPolicyHandleByValue {
 
 }  // namespace
 
+namespace {
+template <typename ExecutionSpace>
+struct TestRepeatedTeamReduce {
+  static constexpr int ncol = 1500;  // nothing special, just some work
+
+  KOKKOS_FUNCTION void operator()(
+      const typename Kokkos::TeamPolicy<ExecutionSpace>::member_type &team)
+      const {
+    // non-divisible by power of two to make triggering problems easier
+    constexpr int nlev = 129;
+    constexpr auto pi  = Kokkos::Experimental::pi_v<double>;
+    double b           = 0.;
+    for (int ri = 0; ri < 10; ++ri) {
+      // The contributions here must be sufficiently complex, simply adding ones
+      // wasn't enough to trigger the bug.
+      const auto g1 = [&](const int k, double &acc) {
+        acc += Kokkos::cos(pi * double(k) / nlev);
+      };
+      const auto g2 = [&](const int k, double &acc) {
+        acc += Kokkos::sin(pi * double(k) / nlev);
+      };
+      double a1, a2;
+      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, nlev), g1, a1);
+      Kokkos::parallel_reduce(Kokkos::TeamThreadRange(team, nlev), g2, a2);
+      b += a1;
+      b += a2;
+    }
+    const auto h = [&]() {
+      const auto col = team.league_rank();
+      v(col)         = b + col;
+    };
+    Kokkos::single(Kokkos::PerTeam(team), h);
+  }
+
+  KOKKOS_FUNCTION void operator()(const int i, int &bad) const {
+    if (v(i) != v(0) + i) {
+      ++bad;
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("Failing at %d!\n", i);
+    }
+  }
+
+  TestRepeatedTeamReduce() : v("v", ncol) { test(); }
+
+  void test() {
+    int team_size_recommended =
+        Kokkos::TeamPolicy<ExecutionSpace>(1, 1).team_size_recommended(
+            *this, Kokkos::ParallelForTag());
+    // Choose a non-recommened (non-power of two for GPUs) team size
+    int team_size = team_size_recommended > 1 ? team_size_recommended - 1 : 1;
+
+    // The failure was non-deterministic so run the test a bunch of times
+    for (int it = 0; it < 100; ++it) {
+      Kokkos::parallel_for(
+          Kokkos::TeamPolicy<ExecutionSpace>(ncol, team_size, 1), *this);
+
+      int bad = 0;
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(0, ncol),
+                              *this, bad);
+      ASSERT_EQ(bad, 0) << " Failing in iteration " << it;
+    }
+  }
+
+  Kokkos::View<double *, ExecutionSpace> v;
+};
+
+}  // namespace
+
 }  // namespace Test
 
 /*--------------------------------------------------------------------------*/

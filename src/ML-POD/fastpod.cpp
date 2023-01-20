@@ -1550,48 +1550,92 @@ void FASTPOD::radialbasis(double *rbf, double *rbfx, double *rbfy, double *rbfz,
     double x0 =  (1.0 - t2)/t1;
     double dx0 = (alpha/rmax)*t2/t1;
 
-//     alpha = besselparams[1];
-//     t1 = (1.0-exp(-alpha));
-//     t2 = exp(-alpha*r/rmax);
-//     double x1 =  (1.0 - t2)/t1;
-//     double dx1 = (alpha/rmax)*t2/t1;
-    
-//     alpha = besselparams[2];
-//     t1 = (1.0-exp(-alpha));
-//     t2 = exp(-alpha*r/rmax);
-//     double x2 =  (1.0 - t2)/t1;
-//     double dx2 = (alpha/rmax)*t2/t1;
-    
-    for (int i=0; i<besseldegree; i++) {      
-      double a = (i+1)*MY_PI;
-      double b = (sqrt(2.0/(rmax))/(i+1));
-      double af1 = a*f1;
-      
-      double sinax = sin(a*x0);
-      int nij = n + N*i;        
-      rbf[nij] = b*f1*sinax;
-      double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
-      rbfx[nij] = drbfdr*dr1;
-      rbfy[nij] = drbfdr*dr2;
-      rbfz[nij] = drbfdr*dr3;        
-      
-//       sinax = sin(a*x1);
-//       nij = n + N*i + N*besseldegree*1;        
-//       rbf[nij] = b*f1*sinax;
-//       drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
-//       rbfx[nij] = drbfdr*dr1;
-//       rbfy[nij] = drbfdr*dr2;
-//       rbfz[nij] = drbfdr*dr3;        
-      
-//       sinax = sin(a*x2);
-//       nij = n + N*i + N*besseldegree*2;        
-//       rbf[nij] = b*f1*sinax;
-//       drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x2)*dx2);
-//       rbfx[nij] = drbfdr*dr1;
-//       rbfy[nij] = drbfdr*dr2;
-//       rbfz[nij] = drbfdr*dr3;        
+    if (nbesselpars==1) {
+      for (int i=0; i<besseldegree; i++) {      
+        double a = (i+1)*MY_PI;
+        double b = (sqrt(2.0/(rmax))/(i+1));
+        double af1 = a*f1;
+
+        double sinax = sin(a*x0);
+        int nij = n + N*i;        
+        rbf[nij] = b*f1*sinax;
+        double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;              
+      }      
     }
-    
+    else if (nbesselpars==2) {
+      alpha = besselparams[1];
+      t1 = (1.0-exp(-alpha));
+      t2 = exp(-alpha*r/rmax);
+      double x1 =  (1.0 - t2)/t1;
+      double dx1 = (alpha/rmax)*t2/t1;      
+      for (int i=0; i<besseldegree; i++) {      
+        double a = (i+1)*MY_PI;
+        double b = (sqrt(2.0/(rmax))/(i+1));
+        double af1 = a*f1;
+
+        double sinax = sin(a*x0);
+        int nij = n + N*i;        
+        rbf[nij] = b*f1*sinax;
+        double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;        
+
+        sinax = sin(a*x1);
+        nij = n + N*i + N*besseldegree*1;        
+        rbf[nij] = b*f1*sinax;
+        drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;        
+      }      
+    }
+    else if (nbesselpars==3) {
+      alpha = besselparams[1];
+      t1 = (1.0-exp(-alpha));
+      t2 = exp(-alpha*r/rmax);
+      double x1 =  (1.0 - t2)/t1;
+      double dx1 = (alpha/rmax)*t2/t1;      
+      
+      alpha = besselparams[2];
+      t1 = (1.0-exp(-alpha));
+      t2 = exp(-alpha*r/rmax);
+      double x2 =  (1.0 - t2)/t1;
+      double dx2 = (alpha/rmax)*t2/t1;      
+      for (int i=0; i<besseldegree; i++) {      
+        double a = (i+1)*MY_PI;
+        double b = (sqrt(2.0/(rmax))/(i+1));
+        double af1 = a*f1;
+
+        double sinax = sin(a*x0);
+        int nij = n + N*i;        
+        rbf[nij] = b*f1*sinax;
+        double drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x0)*dx0);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;        
+
+        sinax = sin(a*x1);
+        nij = n + N*i + N*besseldegree*1;        
+        rbf[nij] = b*f1*sinax;
+        drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x1)*dx1);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;        
+
+        sinax = sin(a*x2);
+        nij = n + N*i + N*besseldegree*2;        
+        rbf[nij] = b*f1*sinax;
+        drbfdr = b*(df1*sinax - f2*sinax + af1*cos(a*x2)*dx2);
+        rbfx[nij] = drbfdr*dr1;
+        rbfy[nij] = drbfdr*dr2;
+        rbfz[nij] = drbfdr*dr3;        
+      }         
+    }
+            
     f1 = fcut/dij;
     for (int i=0; i<inversedegree; i++) {
       int p = besseldegree*nbesselpars + i;

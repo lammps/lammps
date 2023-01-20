@@ -156,8 +156,8 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   memory->create(qnormfac2, nqlist, "orientorder/atom:qnormfac2");
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-    qnormfac[il] = sqrt(MY_4PI / (2 * l + 1));
-    qnormfac2[il] = sqrt(2 * l + 1);
+    qnormfac[il] = sqrt(MY_4PI / (2.0 * l + 1.0));
+    qnormfac2[il] = sqrt(2.0 * l + 1.0);
   }
 }
 

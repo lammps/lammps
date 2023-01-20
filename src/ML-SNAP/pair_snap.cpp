@@ -399,7 +399,7 @@ void PairSNAP::coeff(int narg, char **arg)
     // ncoeffall should be (ncoeff+2)*(ncoeff+1)/2
     // so, ncoeff = floor(sqrt(2*ncoeffall))-1
 
-    ncoeff = sqrt(2*ncoeffall)-1;
+    ncoeff = sqrt(2.0*ncoeffall)-1;
     ncoeffq = (ncoeff*(ncoeff+1))/2;
     int ntmp = 1+ncoeff+ncoeffq;
     if (ntmp != ncoeffall) {

@@ -600,7 +600,7 @@ void PairExTeP::read_file(char *file)
         error->one(FLERR,"Illegal ExTeP parameter");
 
       nparams++;
-      if (nparams >= pow(nelements,3)) break;
+      if (nparams >= pow((double)nelements,3)) break;
     }
 
     /* F_IJ (3) */

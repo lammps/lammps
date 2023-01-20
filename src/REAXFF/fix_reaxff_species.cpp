@@ -21,6 +21,7 @@
 
 #include "atom.h"
 #include "atom_vec.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -44,6 +45,17 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+static const char cite_reaxff_species_delete[] =
+  "fix reaxff/species, 'delete' keyword: https://doi.org/10.1016/j.carbon.2022.11.002\n\n"
+  "@Article{Gissinger23,\n"
+  " author = {J. R. Gissinger, S. R. Zavada, J. G. Smith, J. Kemppainen, I. Gallegos, G. M. Odegard, E. J. Siochi, K. E. Wise},\n"
+  " title = {Predicting char yield of high-temperature resins},\n"
+  " journal = {Carbon},\n"
+  " year =    2023,\n"
+  " volume =  202,\n"
+  " pages =   {336-347}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
@@ -52,6 +64,8 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     x0(nullptr), BOCut(nullptr), fp(nullptr), pos(nullptr), fdel(nullptr), ele(nullptr),
     eletype(nullptr), filepos(nullptr), filedel(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_reaxff_species_delete);
+
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix reaxff/species", error);
 
   force_reneighbor = 1;

@@ -86,7 +86,6 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
   xitmp = x[i][0];
   yitmp = x[i][1];
   zitmp = x[i][2];
-  //printf("%f %f %f\n", xitmp, yitmp, zitmp);
 
   //     Treat each pair
 
@@ -102,11 +101,9 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
       delij[1] = x[j][1] - yitmp;
       delij[2] = x[j][2] - zitmp;
       rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
-      //printf("rij2: %f\n", rij2);
       if (rij2 < this->cutforcesq) {
         rij = sqrt(rij2);
         recip = 1.0 / rij;
-
         //     Compute phi and phip
         ind = this->eltind[elti][eltj];
         pp = rij * this->rdrar;
@@ -116,7 +113,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         pp = std::min(pp, 1.0);
         phi = ((this->phirar3[ind][kk] * pp + this->phirar2[ind][kk]) * pp + this->phirar1[ind][kk]) * pp + this->phirar[ind][kk];
         phip = (this->phirar6[ind][kk] * pp + this->phirar5[ind][kk]) * pp + this->phirar4[ind][kk];
-
+        
         if (eflag_either != 0) {
           double phi_sc = phi * scaleij;
           if (eflag_global != 0)
@@ -202,7 +199,11 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         const double t2mj = this->t2_meam[eltj];
         const double t3mj = this->t3_meam[eltj];
 
-        if (this->ialloy == 1) {
+        // ialloy mod not needed in msmeam, but similarity here is that we need to multiply rhos by t
+        // msmeam fortran code accomplishes this by multiplying rho's with t's above, like we did 
+        // with rhoa1mj, rhoa2mj, etc
+
+        if (this->ialloy == 1 || this->msmeamflag) {
           rhoa1j  *= t1mj;
           rhoa2j  *= t2mj;
           rhoa3j  *= t3mj;
@@ -248,6 +249,8 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
 
         // msmeam arhom args
 
+        nv2 = 0;
+        nv3 = 0;
         arg1i1m = 0.0;
         arg1j1m = 0.0;
         arg1i2m = 0.0;
@@ -261,8 +264,8 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
             for (p = n; p < 3; p++) {
               for (q = p; q < 3; q++) {
                 arg = delij[n] * delij[p] * delij[q] * this->v3D[nv3];
-                arg1i3m = arg1i3m + arho3m[i][nv3] * arg;
-                arg1j3m = arg1j3m - arho3m[j][nv3] * arg;
+                arg1i3m = arg1i3m - arho3m[i][nv3] * arg;
+                arg1j3m = arg1j3m + arho3m[j][nv3] * arg;
                 nv3 = nv3 + 1;
               }
               arg = delij[n] * delij[p] * this->v2D[nv2];
@@ -270,10 +273,10 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
               arg1j2m = arg1j2m + arho2m[j][nv2] * arg;
               nv2 = nv2 + 1;
             }
-            arg1i1m = arg1i1m + arho1m[i][n] * delij[n];
-            arg1j1m = arg1j1m - arho1m[j][n] * delij[n];
-            arg3i3m = arg3i3m + arho3mb[i][n] * delij[n];
-            arg3j3m = arg3j3m - arho3mb[j][n] * delij[n];
+            arg1i1m = arg1i1m - arho1m[i][n] * delij[n];
+            arg1j1m = arg1j1m + arho1m[j][n] * delij[n];
+            arg3i3m = arg3i3m - arho3mb[i][n] * delij[n];
+            arg3j3m = arg3j3m + arho3mb[j][n] * delij[n];
           }
         }
 
@@ -368,6 +371,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           drho3mdr2 = a3 * (drhoa3mi - 3 * rhoa3mi / rij) * arg1j3m - a3a * (drhoa3mi - rhoa3mi / rij) * arg3j3m;
           drho3mdr1 *= -1.0;
           drho3mdr2 *= -1.0;
+
           a3 = 6 * sij / rij3;
           a3a = 6 * sij / (5 * rij);
           for (m = 0; m < 3; m++) {
@@ -393,7 +397,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           drho3mdrm1[m] = 0.0;
           drho3mdrm2[m] = 0.0;
         }
-	
+
         // compute derivatives of weighting functions t wrt rij
         // weighting functions t set to unity for MS-MEAM
           
@@ -471,24 +475,24 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
 
         if (this->msmeamflag){
           drhodr1 = dgamma1[i] * drho0dr1 +
-            dgamma2[i] * (dt1dr1 * rho1[i] + t1i * (drho1dr1 - drho1mdr1) +
-            dt2dr1 * rho2[i] + t2i * (drho2dr1 - drho2mdr1) +
-            dt3dr1 * rho3[i] + t3i * (drho3dr1 - drho3mdr1)) -
-            dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
+                    dgamma2[i] * (dt1dr1 * rho1[i] + t1i * (drho1dr1 - drho1mdr1) +
+                                  dt2dr1 * rho2[i] + t2i * (drho2dr1 - drho2mdr1) +
+                                  dt3dr1 * rho3[i] + t3i * (drho3dr1 - drho3mdr1)) -
+                    dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
           drhodr2 = dgamma1[j] * drho0dr2 +
-            dgamma2[j] * (dt1dr2 * rho1[j] + t1j * (drho1dr2 - drho1mdr2) +
-            dt2dr2 * rho2[j] + t2j * (drho2dr2 - drho2mdr2) +
-            dt3dr2 * rho3[j] + t3j * (drho3dr2 - drho3mdr2)) -
-            dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
+                    dgamma2[j] * (dt1dr2 * rho1[j] + t1j * (drho1dr2 - drho1mdr2) +
+                                  dt2dr2 * rho2[j] + t2j * (drho2dr2 - drho2mdr2) +
+                                  dt3dr2 * rho3[j] + t3j * (drho3dr2 - drho3mdr2)) -
+                    dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
           for (m = 0; m < 3; m++) {
             drhodrm1[m] = 0.0;
             drhodrm2[m] = 0.0;
             drhodrm1[m] = dgamma2[i] * (t1i * (drho1drm1[m] - drho1mdrm1[m]) +
-              t2i * (drho2drm1[m] - drho2mdrm1[m]) +
-              t3i * (drho3drm1[m] - drho3mdrm1[m]) );
+                                        t2i * (drho2drm1[m] - drho2mdrm1[m]) +
+                                        t3i * (drho3drm1[m] - drho3mdrm1[m]) );
             drhodrm2[m] = dgamma2[j] * (t1j * (drho1drm2[m] - drho1mdrm2[m]) +
-              t2j * (drho2drm2[m] - drho2mdrm2[m]) +
-              t3j * (drho3drm2[m] - drho3mdrm2[m]) );
+                                        t2j * (drho2drm2[m] - drho2mdrm2[m]) +
+                                        t3j * (drho3drm2[m] - drho3mdrm2[m]) );
           }
         } else{
 
@@ -543,6 +547,7 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
           }
 	  
           if (this->ialloy == 1) {
+
             a1i = fdiv_zero(rhoa0j, tsq_ave[i][0]);
             a1j = fdiv_zero(rhoa0i, tsq_ave[j][0]);
             a2i = fdiv_zero(rhoa0j, tsq_ave[i][1]);
@@ -608,10 +613,11 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         } 
 
         // Compute derivatives of energy wrt rij, sij and rij[3]
-        // From this point on, MS-MEAM should not affect the code
+        // MS-MEAM affects phip
 
         dUdrij = phip * sij + frhop[i] * drhodr1 + frhop[j] * drhodr2;
         dUdsij = 0.0;
+        
         if (!iszero(dscrfcn[fnoffset + jn])) {
           dUdsij = phi + frhop[i] * drhods1 + frhop[j] * drhods2;
         }

@@ -68,7 +68,7 @@ dump 1 all custom 1 test.dump id x y z fx fy fz c_pot_energy c_stress[1] c_stres
 run	1
 WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
 Neighbor list info ...
-  update every 1 steps, delay 0 steps, check yes
+  update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 6.9
   ghost atom cutoff = 6.9
@@ -85,22 +85,22 @@ Neighbor list info ...
       bin: none
 Per MPI rank memory allocation (min/avg/max) = 10.69 | 10.69 | 10.69 Mbytes
    Step          Temp          TotEng         Press           Pxx            Pyy            Pzz            Pxy            Pxz            Pyz             Lx             Ly             Lz           Volume        c_eatoms   
-         0   0              15.389692      492946.21      840939         637899.63      0              80663.676      0              0              8              8              8              512            15.389692    
-         1   0              15.389692      492946.21      840939         637899.63      0              80663.676      0              0              8              8              8              512            15.389692    
-Loop time of 7.9076e-05 on 1 procs for 1 steps with 3 atoms
+         0   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
+         1   0              15.433079      491354.7       838670.96      635393.15      0              80195.797      0              0              8              8              8              512            15.433079    
+Loop time of 0.000110387 on 1 procs for 1 steps with 3 atoms
 
-Performance: 1092.620 ns/day, 0.022 hours/ns, 12646.062 timesteps/s
-67.0% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 782.701 ns/day, 0.031 hours/ns, 9059.038 timesteps/s, 27.177 katom-step/s
+56.2% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.4076e-05 | 2.4076e-05 | 2.4076e-05 |   0.0 | 30.45
+Pair    | 2.6411e-05 | 2.6411e-05 | 2.6411e-05 |   0.0 | 23.93
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 3.204e-06  | 3.204e-06  | 3.204e-06  |   0.0 |  4.05
-Output  | 4.726e-05  | 4.726e-05  | 4.726e-05  |   0.0 | 59.77
-Modify  | 5.97e-07   | 5.97e-07   | 5.97e-07   |   0.0 |  0.75
-Other   |            | 3.939e-06  |            |       |  4.98
+Comm    | 4.455e-06  | 4.455e-06  | 4.455e-06  |   0.0 |  4.04
+Output  | 7.4411e-05 | 7.4411e-05 | 7.4411e-05 |   0.0 | 67.41
+Modify  | 7.54e-07   | 7.54e-07   | 7.54e-07   |   0.0 |  0.68
+Other   |            | 4.356e-06  |            |       |  3.95
 
 Nlocal:              3 ave           3 max           3 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

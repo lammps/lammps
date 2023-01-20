@@ -259,7 +259,7 @@ class MEAM {
                   double, double, double, double, double, int, int, lattice_t);
   void get_sijk(double, int, int, int, double *);
   void get_densref(double, int, int, double *, double *, double *, double *, double *, double *,
-                   double *, double *);
+                   double *, double *, double *, double *, double *, double *, double *, double *); // last 6 args for msmeam
   void interpolate_meam(int);
 
  public:

@@ -155,7 +155,7 @@ void Group::assign(int narg, char **arg)
   bool created = false;
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups (max. {})", MAX_GROUP);
+    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups (max {})", MAX_GROUP);
     igroup = find_unused();
     names[igroup] = utils::strdup(arg[0]);
     ngroup++;
@@ -566,7 +566,7 @@ void Group::create(const std::string &name, int *flag)
   int igroup = find(name);
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups (max. {})", MAX_GROUP);
+    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups (max {})", MAX_GROUP);
     igroup = find_unused();
     names[igroup] = utils::strdup(name);
     ngroup++;
@@ -603,7 +603,7 @@ int Group::find_or_create(const char *name)
   int igroup = find(name);
   if (igroup >= 0) return igroup;
 
-  if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups (max. {})", MAX_GROUP);
+  if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups (max {})", MAX_GROUP);
   igroup = find_unused();
   names[igroup] = utils::strdup(name);
   ngroup++;

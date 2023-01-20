@@ -38,6 +38,7 @@
 
 #include <cstring>
 #include <exception>
+#include <random>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -145,6 +146,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   ele = filepos = filedel = nullptr;
   eleflag = posflag = padflag = 0;
   delflag = specieslistflag = masslimitflag = 0;
+  delete_Nlimit = delete_Nsteps = 0;
 
   singlepos_opened = multipos_opened = del_opened = 0;
   multipos = 0;
@@ -221,7 +223,12 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
 
       } else
         error->all(FLERR, "Unknown fix reaxff/species delete option: {}", arg[iarg]);
-
+      // rate limit when deleting molecules
+    } else if (strcmp(arg[iarg], "delete_rate_limit") == 0) {
+      if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species delete_rate_limit", error);
+      delete_Nlimit = utils::numeric(FLERR, arg[iarg+1], false, lmp);
+      delete_Nsteps = utils::numeric(FLERR, arg[iarg+2], false, lmp);
+      iarg += 3;
       // position of molecules
     } else if (strcmp(arg[iarg], "position") == 0) {
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species position", error);
@@ -260,6 +267,14 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   if (delflag && specieslistflag && masslimitflag)
     error->all(FLERR, "Incompatible combination fix reaxff/species command options");
 
+  if (delete_Nlimit > 0) {
+    memory->create(delete_Tcount,delete_Nsteps,"reaxff/species:delete_Tcount");
+
+    for (int i = 0; i < delete_Nsteps; i++)
+      delete_Tcount[i] = -1;
+    delete_Tcount[0] = 0;
+  }
+
   vector_nmole = 0;
   vector_nspec = 0;
 }
@@ -279,6 +294,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   memory->destroy(Mol2Spec);
   memory->destroy(MolType);
   memory->destroy(MolName);
+  memory->destroy(delete_Tcount);
 
   delete[] filepos;
   delete[] filedel;
@@ -374,6 +390,11 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
 
   // point to fix_ave_atom
   f_SPECBOND->end_of_step();
+
+  // push back delete_Tcount on every step
+  if (delete_Nlimit > 0)
+    for (int i = delete_Nsteps-1; i > 0; i--)
+      delete_Tcount[i] = delete_Tcount[i-1];
 
   if (ntimestep != nvalid) return;
 
@@ -826,6 +847,15 @@ void FixReaxFFSpecies::WritePos(int Nmole, int Nspec)
 
 void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 {
+  int ndeletions;
+  int headroom = -1;
+  if (delete_Nlimit > 0) {
+    if (delete_Tcount[delete_Nsteps-1] == -1) return;
+    ndeletions = delete_Tcount[0] - delete_Tcount[delete_Nsteps-1];
+    headroom = MAX(0, delete_Nlimit - ndeletions);
+    if (headroom == 0) return;
+  }
+
   int i, j, m, n, itype, cid;
   int ndel, ndelone, count, count_tmp;
   int *Nameall;
@@ -856,7 +886,20 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   int *marklist;
   memory->create(marklist, nlocal, "reaxff/species:marklist");
 
-  for (m = 1; m <= Nmole; m++) {
+  std::random_device rnd;
+  std::minstd_rand park_rng(rnd());
+  int *molrange;
+  memory->create(molrange,Nmole,"reaxff/species:molrange");
+  for (m = 0; m < Nmole; m++)
+    molrange[m] = m + 1;
+  // shuffle index when using rate_limit, in case order is biased
+  if (delete_Nlimit > 0)
+    std::shuffle(&molrange[0],&molrange[Nmole], park_rng);
+
+  int this_delete_Tcount = 0;
+  for (int mm = 0; mm < Nmole; mm++) {
+    if (this_delete_Tcount == headroom) break;
+    m = molrange[mm];
     localmass = totalmass = count = nmarklist = 0;
     for (n = 0; n < ntypes; n++) Name[n] = 0;
 
@@ -896,6 +939,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       // find corresponding moltype
 
       if (totalmass > massmin && totalmass < massmax) {
+        this_delete_Tcount++;
         for (j = 0; j < nmarklist; j++) {
           mark[marklist[j]] = 1;
           deletecount[Mol2Spec[m - 1]] += 1.0 / (double) count;
@@ -905,6 +949,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
       if (count > 0) {
         for (i = 0; i < ndelspec; i++) {
           if (del_species[i] == species_str) {
+            this_delete_Tcount++;
             for (j = 0; j < nmarklist; j++) {
               mark[marklist[j]] = 1;
               deletecount[i] += 1.0 / (double) count;
@@ -976,6 +1021,9 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     }
   }
 
+  if (delete_Nlimit)
+    delete_Tcount[0] += this_delete_Tcount;
+
   if (ndel && (atom->map_style != Atom::MAP_NONE)) {
     atom->nghost = 0;
     atom->map_init();
@@ -988,6 +1036,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   memory->destroy(marklist);
   memory->destroy(mark);
   memory->destroy(deletecount);
+  memory->destroy(molrange);
 }
 
 /* ---------------------------------------------------------------------- */

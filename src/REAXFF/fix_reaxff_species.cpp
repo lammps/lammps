@@ -36,6 +36,7 @@
 #include "pair_reaxff.h"
 #include "reaxff_defs.h"
 
+#include <algorithm>
 #include <cstring>
 #include <exception>
 #include <random>

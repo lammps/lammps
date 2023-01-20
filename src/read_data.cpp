@@ -2437,13 +2437,13 @@ void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag, int nof
   if (noffset) {
     int value = utils::inumeric(FLERR, coeffarg[0], false, lmp);
     if (labelmode) value = ilabel[value - 1];
-    sprintf(argoffset1, "%d", value + offset);
-    coeffarg[0] = argoffset1;
+    argoffset1 = std::to_string(value + offset);
+    coeffarg[0] = (char *)argoffset1.c_str();
     if (noffset == 2) {
       value = utils::inumeric(FLERR, coeffarg[1], false, lmp);
       if (labelmode) value = ilabel[value - 1];
-      sprintf(argoffset2, "%d", value + offset);
-      coeffarg[1] = argoffset2;
+      argoffset2 = std::to_string(value + offset);
+      coeffarg[1] = (char *)argoffset2.c_str();
     }
   }
 }

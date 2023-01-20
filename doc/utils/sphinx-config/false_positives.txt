@@ -97,6 +97,7 @@ amu
 Amzallag
 analytical
 Anders
+Andric
 Andrienko
 Andzelm
 Ang
@@ -174,6 +175,7 @@ attrac
 Atw
 Atwater
 atwt
+atype
 augt
 AuO
 automagically
@@ -553,6 +555,7 @@ corotate
 corotation
 corotational
 correlator
+Cosecant
 cosineshifted
 cossq
 costheta
@@ -585,6 +588,7 @@ Crozier
 Cryst
 Crystallogr
 Csanyi
+csc
 csg
 csh
 cshrc
@@ -828,6 +832,7 @@ dtemp
 dtgrow
 dtheta
 dtshrink
+dtype
 du
 dU
 Ducastelle
@@ -869,6 +874,7 @@ ebook
 ebt
 ec
 Ec
+Echeverri
 eco
 ecoul
 ecp
@@ -1024,6 +1030,7 @@ ev
 eV
 eval
 evals
+evaluator
 evalue
 Evanseck
 evdwl
@@ -1962,7 +1969,7 @@ machdyn
 MACHDYN
 Mackay
 Mackrodt
-MacOS
+macOS
 Macromolecules
 macroparticle
 Maday
@@ -2233,7 +2240,7 @@ msm
 msmflag
 msse
 msst
-Mtchell
+MtD
 Mth
 mtk
 Mtotal
@@ -2849,6 +2856,7 @@ pscrozi
 Pseudocode
 pseudodynamics
 pseudopotential
+psllod
 pSp
 pSPICA
 Pstart
@@ -3036,6 +3044,7 @@ resquared
 REsquared
 restartfile
 restartinfo
+Restrepo
 rethrowing
 Revenga
 rewrap
@@ -3274,6 +3283,7 @@ Simul
 simulations
 Sinkovits
 Sinnott
+sinh
 sinusoid
 sinusoidally
 SiO
@@ -4018,6 +4028,7 @@ Zi
 ziegenhain
 Ziegenhain
 zincblende
+zj
 Zj
 zlim
 zlo

@@ -8,10 +8,10 @@
 // Colvars repository at GitHub.
 
 // Using access() to check if a file exists (until we can assume C++14/17)
-#if !defined(WIN32) || defined(__CYGWIN__)
+#if !defined(_WIN32) || defined(__CYGWIN__)
 #include <unistd.h>
 #endif
-#if defined(WIN32)
+#if defined(_WIN32)
 #include <io.h>
 #endif
 
@@ -678,7 +678,7 @@ int colvarproxy_io::backup_file(char const *filename)
   // Simplified version of NAMD_file_exists()
   int exit_code;
   do {
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
     // We could use _access_s here, but it is probably too new
     exit_code = _access(filename, 00);
 #else
@@ -708,7 +708,7 @@ int colvarproxy_io::backup_file(char const *filename)
 int colvarproxy_io::remove_file(char const *filename)
 {
   int error_code = COLVARS_OK;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
   // Because the file may be open by other processes, rename it to filename.old
   std::string const renamed_file(std::string(filename)+".old");
   // It may still be there from an interrupted run, so remove it to be safe
@@ -741,7 +741,7 @@ int colvarproxy_io::remove_file(char const *filename)
 int colvarproxy_io::rename_file(char const *filename, char const *newfilename)
 {
   int error_code = COLVARS_OK;
-#if defined(WIN32) && !defined(__CYGWIN__)
+#if defined(_WIN32) && !defined(__CYGWIN__)
   // On straight Windows, must remove the destination before renaming it
   error_code |= remove_file(newfilename);
 #endif

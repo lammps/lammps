@@ -54,6 +54,17 @@
 /pair_kim.cpp
 /pair_kim.h
 
+/pair_lepton.cpp
+/pair_lepton.h
+/bond_lepton.cpp
+/bond_lepton.h
+/angle_lepton.cpp
+/angle_lepton.h
+/dihedral_lepton.cpp
+/dihedral_lepton.h
+/lepton_utils.cpp
+/lepton_utils.h
+
 /pair_pace.cpp
 /pair_pace.h
 /pair_pace_extrapolation.cpp
@@ -523,6 +534,8 @@
 /compute_dpd.h
 /compute_dpd_atom.cpp
 /compute_dpd_atom.h
+/compute_efield_wolf_atom.cpp
+/compute_efield_wolf_atom.h
 /compute_entropy_atom.cpp
 /compute_entropy_atom.h
 /compute_erotate_asphere.cpp

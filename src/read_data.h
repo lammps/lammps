@@ -37,7 +37,7 @@ class ReadData : public Command {
   FILE *fp;
   char **coeffarg;
   int ncoeffarg, maxcoeffarg;
-  char argoffset1[8], argoffset2[8];
+  std::string argoffset1, argoffset2;
 
   bigint id_offset, mol_offset;
 

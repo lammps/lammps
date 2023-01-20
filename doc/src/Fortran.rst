@@ -47,11 +47,20 @@ Fortran code in order to uses the Fortran interface.
 A working example can be found together with equivalent examples in C and
 C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
 
+.. admonition:: Fortran compiler compatibility
+   :class: note
+
+   A fully Fortran 2003 compatible Fortran compiler is required.
+   This means that currently only GNU Fortran 9 and later are
+   compatible and thus the default compilers of Red Hat or CentOS 7
+   and Ubuntu 18.04 LTS and not compatible.  Either newer compilers
+   need to be installed or the Linux updated.
+
 .. versionchanged:: TBD
 
 .. note::
 
-   A contributed Fortran interface interface is available in the
+   A contributed Fortran interface is available in the
    ``examples/COUPLE/fortran2`` folder.  However, since the completion
    of the :f:mod:`LIBLAMMPS` module, this interface is now deprecated,
    no longer actively maintained and will likely be removed in the
@@ -2403,7 +2412,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    mode. The function should have Fortran language bindings with the following
    interface, which depends on how LAMMPS was compiled:
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       ABSTRACT INTERFACE
         SUBROUTINE external_callback(caller, timestep, ids, x, fexternal)
@@ -2462,7 +2471,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       with ``-DLAMMPS_SMALLBIG``) that applies something akin to Hooke's Law
       (with each atom having a different *k* value) is shown below.
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          MODULE stuff
            USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double, c_int64_t

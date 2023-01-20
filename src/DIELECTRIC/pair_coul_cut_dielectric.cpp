@@ -69,7 +69,7 @@ void PairCoulCutDielectric::compute(int eflag, int vflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
   double **norm = atom->mu;
   double *curvature = atom->curvature;
@@ -165,10 +165,11 @@ double PairCoulCutDielectric::single(int i, int j, int /*itype*/, int /*jtype*/,
                                      double factor_coul, double /*factor_lj*/, double &fforce)
 {
   double r2inv, phicoul, ei, ej;
+  double *q = atom->q_scaled;
   double *eps = atom->epsilon;
 
   r2inv = 1.0 / rsq;
-  fforce = force->qqrd2e * atom->q[i] * atom->q[j] * sqrt(r2inv) * eps[i];
+  fforce = force->qqrd2e * q[i] * q[j] * sqrt(r2inv) * eps[i];
 
   double eng = 0.0;
   if (eps[i] == 1)
@@ -179,7 +180,7 @@ double PairCoulCutDielectric::single(int i, int j, int /*itype*/, int /*jtype*/,
     ej = 0;
   else
     ej = eps[j];
-  phicoul = force->qqrd2e * atom->q[i] * atom->q[j] * sqrt(r2inv);
+  phicoul = force->qqrd2e * q[i] * q[j] * sqrt(r2inv);
   phicoul *= 0.5 * (ei + ej);
   eng += factor_coul * phicoul;
 

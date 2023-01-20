@@ -50,6 +50,16 @@ for some optimizations leading to better performance.  The pair style
 period the C++ version of MEAM was called USER-MEAMC so it could
 coexist with the Fortran version.
 
+Minimize style fire/old
+-----------------------
+
+.. deprecated:: TBD
+
+Minimize style *fire/old* has been removed. Its functionality can be
+reproduced with *fire* with specific options. Please see the
+:doc:`min_modify command <min_modify>` documentation for details.
+
+
 REAX package
 ------------
 

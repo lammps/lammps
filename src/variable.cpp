@@ -266,11 +266,8 @@ void Variable::set(int narg, char **arg)
       num[nvar] = utils::inumeric(FLERR,arg[2],false,lmp);
       data[nvar] = new char*[1];
       data[nvar][0] = nullptr;
-      if (narg == 4) {
-        char digits[12];
-        sprintf(digits,"%d",num[nvar]);
-        pad[nvar] = strlen(digits);
-      } else pad[nvar] = 0;
+      if (narg == 4) pad[nvar] = std::to_string(num[nvar]).size();
+      else pad[nvar] = 0;
     }
 
     if (num[nvar] < universe->nworlds)
@@ -955,18 +952,15 @@ char *Variable::retrieve(const char *name)
       style[ivar] == SCALARFILE) {
     str = data[ivar][which[ivar]];
   } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
-    char result[16];
-    if (pad[ivar] == 0) sprintf(result,"%d",which[ivar]+1);
-    else {
-      char padstr[16];
-      sprintf(padstr,"%%0%dd",pad[ivar]);
-      sprintf(result,padstr,which[ivar]+1);
-    }
+    std::string result;
+    if (pad[ivar] == 0) result = std::to_string(which[ivar]+1);
+    else result = fmt::format("{:0>{}d}",which[ivar]+1, pad[ivar]);
     delete[] data[ivar][0];
     str = data[ivar][0] = utils::strdup(result);
   } else if (style[ivar] == EQUAL) {
     double answer = evaluate(data[ivar][0],nullptr,ivar);
-    sprintf(data[ivar][1],"%.15g",answer);
+    delete[] data[ivar][1];
+    data[ivar][1] = utils::strdup(fmt::format("{:.15g}",answer));
     str = data[ivar][1];
   } else if (style[ivar] == FORMAT) {
     int jvar = find(data[ivar][0]);
@@ -1007,7 +1001,8 @@ char *Variable::retrieve(const char *name)
     char *strlong = python->long_string(ifunc);
     if (strlong) str = strlong;
   } else if (style[ivar] == TIMER || style[ivar] == INTERNAL) {
-    sprintf(data[ivar][0],"%.15g",dvalue[ivar]);
+    delete[] data[ivar][0];
+    data[ivar][0] = utils::strdup(fmt::format("{:.15g}",dvalue[ivar]));
     str = data[ivar][0];
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
              style[ivar] == VECTOR) return nullptr;

@@ -63,6 +63,7 @@ src/MANYBODY/pair_vashishta_table.* @andeplane
 src/MANYBODY/pair_atm.*             @sergeylishchuk
 src/REPLICA/*_grem.*                @dstelter92
 src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
+src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
 src/MISC/*_tracker.*                @jtclemm
 src/MC/fix_gcmc.*                   @athomps
 src/MC/fix_sgcmc.*                  @athomps

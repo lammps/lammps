@@ -428,11 +428,6 @@ struct CudaReductionsFunctor<FunctorType, false, false> {
 //   __launch_bounds__(maxThreadsPerBlock,minBlocksPerMultiprocessor)
 // function qualifier which could be used to improve performance.
 //----------------------------------------------------------------------------
-// Maximize shared memory and minimize L1 cache:
-//   cudaFuncSetCacheConfig(MyKernel, cudaFuncCachePreferShared );
-// For 2.0 capability: 48 KB shared and 16 KB L1
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
 /*
  *  Algorithmic constraints:
  *   (a) blockDim.y <= 1024

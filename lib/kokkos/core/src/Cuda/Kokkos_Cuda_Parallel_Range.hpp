@@ -135,8 +135,7 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
 #endif
 
     CudaParallelLaunch<ParallelFor, LaunchBounds>(
-        *this, grid, block, 0, m_policy.space().impl_internal_space_instance(),
-        false);
+        *this, grid, block, 0, m_policy.space().impl_internal_space_instance());
   }
 
   ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
@@ -375,8 +374,8 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
 
       CudaParallelLaunch<ParallelReduce, LaunchBounds>(
           *this, grid, block, shmem,
-          m_policy.space().impl_internal_space_instance(),
-          false);  // copy to device and execute
+          m_policy.space()
+	      .impl_internal_space_instance());  // copy to device and execute
 
       if (!m_result_ptr_device_accessible) {
         if (m_result_ptr) {
@@ -726,16 +725,16 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
         m_final = false;
         CudaParallelLaunch<ParallelScan, LaunchBounds>(
             *this, grid, block, shmem,
-            m_policy.space().impl_internal_space_instance(),
-            false);  // copy to device and execute
+            m_policy.space()
+	        .impl_internal_space_instance());  // copy to device and execute
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_SERIAL_EXECUTION
       }
 #endif
       m_final = true;
       CudaParallelLaunch<ParallelScan, LaunchBounds>(
           *this, grid, block, shmem,
-          m_policy.space().impl_internal_space_instance(),
-          false);  // copy to device and execute
+          m_policy.space()
+	      .impl_internal_space_instance());  // copy to device and execute
     }
   }
 
@@ -1038,16 +1037,16 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
         m_final = false;
         CudaParallelLaunch<ParallelScanWithTotal, LaunchBounds>(
             *this, grid, block, shmem,
-            m_policy.space().impl_internal_space_instance(),
-            false);  // copy to device and execute
+            m_policy.space()
+	        .impl_internal_space_instance());  // copy to device and execute
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_SERIAL_EXECUTION
       }
 #endif
       m_final = true;
       CudaParallelLaunch<ParallelScanWithTotal, LaunchBounds>(
           *this, grid, block, shmem,
-          m_policy.space().impl_internal_space_instance(),
-          false);  // copy to device and execute
+          m_policy.space()
+              .impl_internal_space_instance());  // copy to device and execute
 
       const int size = Analysis::value_size(m_functor);
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_SERIAL_EXECUTION

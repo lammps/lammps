@@ -115,8 +115,9 @@ void OpenMPTargetInternal::impl_initialize() {
 
   // FIXME_OPENMPTARGET:  Only fix the number of teams for NVIDIA architectures
   // from Pascal and upwards.
-#if defined(KOKKOS_ARCH_PASCAL) || defined(KOKKOS_ARCH_VOLTA) || \
-    defined(KOKKOS_ARCH_TURING75) || defined(KOKKOS_ARCH_AMPERE)
+#if defined(KOKKOS_ARCH_PASCAL) || defined(KOKKOS_ARCH_VOLTA) ||    \
+    defined(KOKKOS_ARCH_TURING75) || defined(KOKKOS_ARCH_AMPERE) || \
+    defined(KOKKOS_ARCH_HOPPER)
 #if defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300)
   omp_set_num_teams(512);
 #endif

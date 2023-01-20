@@ -391,12 +391,13 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
   // point to fix_ave_atom
   f_SPECBOND->end_of_step();
 
-  // push back delete_Tcount on every step
-  if (delete_Nlimit > 0)
-    for (int i = delete_Nsteps-1; i > 0; i--)
-      delete_Tcount[i] = delete_Tcount[i-1];
-
-  if (ntimestep != nvalid) return;
+  if (ntimestep != nvalid) {
+    // push back delete_Tcount on every step
+    if (delete_Nlimit > 0)
+      for (int i = delete_Nsteps-1; i > 0; i--)
+        delete_Tcount[i] = delete_Tcount[i-1];
+    return;
+  }
 
   nlocal = atom->nlocal;
 
@@ -1021,8 +1022,13 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
     }
   }
 
-  if (delete_Nlimit)
+
+  // push back delete_Tcount on every step
+  if (delete_Nlimit > 0) {
+    for (i = delete_Nsteps-1; i > 0; i--)
+      delete_Tcount[i] = delete_Tcount[i-1];
     delete_Tcount[0] += this_delete_Tcount;
+  }
 
   if (ndel && (atom->map_style != Atom::MAP_NONE)) {
     atom->nghost = 0;

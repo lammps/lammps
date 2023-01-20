@@ -532,8 +532,6 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
   int i,j;
   double term;
 
-  double time0,time1,time2;
-
   // zero field,fieldp for owned and ghost atoms
 
   int nlocal = atom->nlocal;
@@ -546,18 +544,19 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
     }
   }
 
+  double time0, time1, time2;
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   // get the real space portion of the mutual field
 
   if (polar_rspace_flag) umutual2b(field,fieldp);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   // get the reciprocal space part of the mutual field
 
   if (polar_kspace_flag) umutual1(field,fieldp);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
 
   // add the self-energy portion of the mutual field
 
@@ -781,8 +780,6 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
   int i,j;
   double term;
 
-  double time0,time1,time2;
-
   // zero out field,fieldp for owned and ghost atoms
 
   int nlocal = atom->nlocal;
@@ -797,11 +794,12 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
 
   // get the reciprocal space part of the permanent field
 
+  double time0, time1, time2;
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   if (polar_kspace_flag) udirect1(field);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   for (i = 0; i < nlocal; i++) {
     for (j = 0; j < 3; j++) {
@@ -812,7 +810,7 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
   // get the real space portion of the permanent field
 
   if (polar_rspace_flag) udirect2b(field,fieldp);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
 
   // get the self-energy portion of the permanent field
 
@@ -873,11 +871,11 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
   // map 2 values to grid
 
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   grid_uind(fuind,fuinp,gridpre);
 
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
   time_grid_uind += (time1 - time0);
 
   // pre-convolution operations including forward FFT
@@ -918,11 +916,11 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
   // get potential
 
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);
 
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
   time_fphi_uind += (time1 - time0);
 
   // store fractional reciprocal potentials for OPT method

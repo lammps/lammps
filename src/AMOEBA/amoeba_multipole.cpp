@@ -81,17 +81,17 @@ void PairAmoeba::multipole()
   felec = electric / am_dielectric;
 
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   // compute the real space part of the Ewald summation
 
   if (mpole_rspace_flag) multipole_real();
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   // compute the reciprocal space part of the Ewald summation
 
   if (mpole_kspace_flag) multipole_kspace();
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
 
   // compute the Ewald self-energy term over all the atoms
 

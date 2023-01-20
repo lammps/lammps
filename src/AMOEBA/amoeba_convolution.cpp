@@ -329,12 +329,12 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
   double time0,time1;
 
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (SCALE) {
     double scale = 1.0/nfft_global;
@@ -394,12 +394,12 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
   double time0,time1;
 
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (SCALE) {
     double scale = 1.0/nfft_global;
@@ -444,10 +444,10 @@ void *AmoebaConvolution::post_convolution_3d()
   double time0,time1;
 
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   time_fft += time1 - time0;
 
@@ -495,11 +495,11 @@ void *AmoebaConvolution::post_convolution_4d()
   double time0,time1;
 
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
 
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   time_fft += time1 - time0;
 

@@ -79,15 +79,15 @@ void PairAmoeba::polar()
   // compute the real space part of the dipole interactions
 
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   if (polar_rspace_flag) polar_real();
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   // compute the reciprocal space part of dipole interactions
 
   if (polar_kspace_flag) polar_kspace();
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
 
   // compute the Ewald self-energy torque and virial terms
 

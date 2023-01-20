@@ -1016,8 +1016,6 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
 {
   double term;
 
-  double time0,time1,time2;
-
   // zero field,fieldp for owned and ghost atoms
 
   int nlocal = atom->nlocal;
@@ -1028,16 +1026,17 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
 
   // get the real space portion of the mutual field first
 
+  double time0, time1, time2;
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   if (polar_rspace_flag) umutual2b(field,fieldp);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   // get the reciprocal space part of the mutual field
 
   if (polar_kspace_flag) umutual1(field,fieldp);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
 
   // add the self-energy portion of the mutual field
 
@@ -1123,21 +1122,19 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
     fuinp[i][2] = a[2][0]*uinp[i][0] + a[2][1]*uinp[i][1] + a[2][2]*uinp[i][2];
   }
 
-  double time0, time1;
-
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
   double ****gridpre = (double ****) ic_kspace->zero();
 
   // map 2 values to grid
 
-
+  double time0, time1;
   MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  time0 = platform::walltime();
 
   grid_uind(fuind,fuinp,gridpre);
 
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
   time_grid_uind += (time1 - time0);
 
   // pre-convolution operations including forward FFT
@@ -1177,11 +1174,12 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
 
   // get potential
 
-  time0 = MPI_Wtime();
+  MPI_Barrier(world);
+  time0 = platform::walltime();
 
   fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);
 
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
   time_fphi_uind += (time1 - time0);
 
   // store fractional reciprocal potentials for OPT method

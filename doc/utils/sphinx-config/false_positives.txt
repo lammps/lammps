@@ -980,6 +980,7 @@ Eqp
 Eqq
 Eqs
 equi
+equidistance
 equil
 equilibrate
 equilibrated

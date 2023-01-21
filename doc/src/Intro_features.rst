@@ -74,10 +74,11 @@ Interatomic potentials (force fields)
 :doc:`improper style <improper_style>`, :doc:`kspace style <kspace_style>`
 commands)
 
-* pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, Yukawa, soft, class 2 (COMPASS), hydrogen bond, harmonic, gaussian, tabulated, scripted
+* pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, Yukawa, soft, Class II (COMPASS), hydrogen bond, harmonic, gaussian, tabulated, scripted
 * charged pairwise potentials: Coulombic, point-dipole
-* many-body potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB, Streitz-Mintmire, 3-body polymorphic, BOP, Vashishta
-* machine learning potentials: SNAP, GAP, ACE, N2P2, ACE, RANN, POD, AGNI
+* many-body potentials: EAM, Finnis/Sinclair, MEAM, MEAM+SW, EIM, EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB, Streitz-Mintmire, 3-body polymorphic, BOP, Vashishta
+* machine learning potentials: ACE, AGNI, GAP, Behler-Parrinello (N2P2), POD, RANN
+* interfaces to ML potentials distributed by external groups: ANI, ChIMES, DeepPot, HIPNN, MTP 
 * long-range interactions for charge, point-dipoles, and LJ dispersion:  Ewald, Wolf, PPPM (similar to particle-mesh Ewald), MSM
 * polarization models: :doc:`QEq <fix_qeq>`,     :doc:`core/shell model <Howto_coreshell>`,     :doc:`Drude dipole model <Howto_drude>`
 * charge equilibration (QEq via dynamic, point, shielded, Slater methods)
@@ -85,16 +86,16 @@ commands)
 * mesoscopic potentials: granular, Peridynamics, SPH, mesoscopic tubular potential (MESONT)
 * semi-empirical potentials: multi-ion generalized pseudopotential theory (MGPT), second moment tight binding + QEq (SMTB-Q), density functional tight-binding (LATTE)
 * electron force field (eFF, AWPMD)
-* bond potentials: harmonic, FENE, Morse, nonlinear, class 2, quartic (breakable), tabulated, scripted
-* angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, class 2 (COMPASS), tabulated, scripted
-* dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, class 2 (COMPASS), OPLS, tabulated, scripted
-* improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS), tabulated
+* bond potentials: harmonic, FENE, Morse, nonlinear, Class II (COMPASS), quartic (breakable), tabulated, scripted
+* angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, Class II (COMPASS), tabulated, scripted
+* dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, Class II (COMPASS), OPLS, tabulated, scripted
+* improper potentials: harmonic, cvff, umbrella, Class II (COMPASS), tabulated
 * polymer potentials: all-atom, united-atom, bead-spring, breakable
 * water potentials: TIP3P, TIP4P, SPC, SPC/E and variants
 * interlayer potentials for graphene and analogues
 * metal-organic framework potentials (QuickFF, MO-FF)
 * implicit solvent potentials: hydrodynamic lubrication, Debye
-* force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
+* force-field compatibility with CHARMM, AMBER, DREIDING, OPLS, GROMACS, Class II (COMPASS), UFF, ClayFF, DREIDING, INTERFACE
 * access to the `OpenKIM Repository <https://openkim.org>`_ of potentials via the :doc:`kim command <kim_commands>`
 * hybrid potentials: multiple pair, bond, angle, dihedral, improper potentials can be used in one simulation
 * overlaid potentials: superposition of multiple pair potentials (including many-body) with optional scale factor

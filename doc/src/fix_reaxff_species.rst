@@ -118,6 +118,8 @@ character appears in *filepos*, then one file per snapshot is written
 at *posfreq* and the "\*" character is replaced with the timestep
 value.  For example, AuO.pos.\* becomes AuO.pos.0, AuO.pos.1000, etc.
 
+.. versionadded:: 3Aug2022
+
 The optional keyword *delete* enables the periodic removal of
 molecules from the system.  Criteria for deletion can be either a list
 of specific chemical formulae or a range of molecular weights.

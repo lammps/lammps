@@ -10,15 +10,129 @@ this is LAMMPS data file containing two nylon monomers
 36 dihedral types
 44 impropers
 13 improper types
-5 extra bond per atom
-15 extra angle per atom
-15 extra dihedral per atom
-25 extra improper per atom
-25 extra special per atom
 
 -25 25 xlo xhi
 -25 25 ylo yhi
 -25 25 zlo zhi
+
+Atom Type Labels
+
+1  c2
+2  c_1
+3  o
+4  hc
+5  ho
+6  o_1
+7  na
+8  hn
+9  n
+10 hw
+11 o*
+
+Bond Type Labels
+
+1  c2-hc
+2  c2-c2
+3  c_1-o
+4  c2-c_1
+5  c_1-o_1
+6  o-ho
+7  c2-c2-repeat
+8  c2-hc-repeat
+9  na-c2
+10 na-hn
+11 n-c2
+12 n-hn
+13 n-c_1
+14 c2-na
+15 hw-o*
+
+Angle Type Labels
+
+1  hc-c2-hc
+2  c2-c2-hc
+3  c2-c2-c2
+4  c2-c_1-o_1
+5  o-c_1-o_1
+6  c2-c_1-o
+7  c_1-o-ho
+8  c2-c2-c_1
+9  c_1-c2-hc
+10 c2-c2-hc-repeat
+11 c2-c2-c2-repeat
+12 hc-c2-hc-repeat
+13 c2-c2-na
+14 na-c2-hc
+15 c2-na-hn
+16 hn-na-hn
+17 c2-n-hn
+18 c2-n-c_1
+19 hn-n-hn
+20 hn-n-c_1
+21 n-c2-c2
+22 n-c2-hc
+23 hc-c2-c_1
+24 n-c_1-c2
+25 o_1-c_1-o
+26 n-c_1-o_1
+27 n-c_1-o
+28 na-c2-c2
+29 hw-o*-hw
+
+Dihedral Type Labels
+
+1  c_1-c2-c2-hc
+2  hc-c2-c2-hc
+3  c2-c2-c2-c_1
+4  c2-c2-c2-hc
+5  c2-c2-c2-c2
+6  c2-c_1-o-ho
+7  o_1-c_1-o-ho
+8  c2-c2-c_1-o
+9  hc-c2-c_1-o
+10 c2-c2-c_1-o_1
+11 hc-c2-c_1-o_1
+12 na-c2-c2-hc
+13 hc-c2-c2-hc-repeat
+14 c2-c2-c2-na
+15 c2-c2-c2-hc-repeat
+16 c2-c2-c2-c2-repeat
+17 c2-c2-na-hn
+18 hn-na-c2-hc
+19 hn-n-c2-c2
+20 hn-n-c2-hc
+21 c_1-n-c2-c2
+22 c_1-n-c2-hc
+23 c2-n-c_1-c2
+24 c2-n-c_1-o_1
+25 c2-n-c_1-o
+26 hn-n-c_1-c2
+27 hn-n-c_1-o_1
+28 hn-n-c_1-o
+29 n-c2-c2-c2
+30 n-c2-c2-hc
+31 c2-c2-c_1-n
+32 hc-c2-c_1-n
+33 n-c_1-o-ho
+34 hn-na-c2-c2
+35 hc-c2-na-hn
+36 na-c2-c2-c2
+
+Improper Type Labels
+
+1  c2-c_1-o-o_1
+2  c2-na-hn-hn
+3  c2-c_1-o_1-o
+4  c2-n-hn-c_1
+5  zero5
+6  zero6
+7  zero7
+8  zero8
+9  zero9
+10 zero10
+11 zero11
+12 zero12
+13 n-c_1-c2-o_1
 
 Masses
 
@@ -94,7 +208,7 @@ Angle Coeffs # class2
 24 116.926 39.4193 -10.9945 -8.7733
 25 118.986 98.6813 -22.2485 10.3673
 26 125.542 92.572 -34.48 -11.1871
-27 0 0 0 0
+27 125.542 92.572 -34.48 -11.1871
 28 111.91 60.7147 -13.3366 -13.0785
 29 103.7 49.84 -11.6 -8
 

@@ -72,6 +72,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   delaystep_start_flag = 1;
   max_vdotf_negatif = 2000;
   alpha_final = 0.0;
+  abcflag = 0;
 
   elist_global = elist_atom = nullptr;
   vlist_global = vlist_atom = cvlist_atom = nullptr;
@@ -205,8 +206,7 @@ void Min::init()
 void Min::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fmt::print(screen,"Setting up {} style minimization ...\n",
-               update->minimize_style);
+    fmt::print(screen,"Setting up {} style minimization ...\n", update->minimize_style);
     if (flag) {
       fmt::print(screen,"  Unit style    : {}\n", update->unit_style);
       fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
@@ -221,9 +221,9 @@ void Min::setup(int flag)
   nextra_global = modify->min_dof();
   if (nextra_global) {
     fextra = new double[nextra_global];
-    if (comm->me == 0 && screen)
-      fprintf(screen,"WARNING: Energy due to %d extra global DOFs will"
-              " be included in minimizer energies\n",nextra_global);
+    if (comm->me == 0)
+      error->warning(FLERR, "Energy due to {} extra global DOFs will"
+                     " be included in minimizer energies\n",nextra_global);
   }
 
   // compute for potential energy
@@ -714,19 +714,23 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"integrator") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"eulerimplicit") == 0) integrator = 0;
-      else if (strcmp(arg[iarg+1],"verlet") == 0) integrator = 1;
-      else if (strcmp(arg[iarg+1],"leapfrog") == 0) integrator = 2;
-      else if (strcmp(arg[iarg+1],"eulerexplicit") == 0) integrator = 3;
+      if (strcmp(arg[iarg+1],"eulerimplicit") == 0) integrator = EULERIMPLICIT;
+      else if (strcmp(arg[iarg+1],"verlet") == 0) integrator = VERLET;
+      else if (strcmp(arg[iarg+1],"leapfrog") == 0) integrator = LEAPFROG;
+      else if (strcmp(arg[iarg+1],"eulerexplicit") == 0) integrator = EULEREXPLICIT;
       else error->all(FLERR,"Illegal min_modify command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"abcfire") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      abcflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"line") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = 0;
-      else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = 1;
-      else if (strcmp(arg[iarg+1],"forcezero") == 0) linestyle = 2;
-      else if (strcmp(arg[iarg+1],"spin_cubic") == 0) linestyle = 3;
-      else if (strcmp(arg[iarg+1],"spin_none") == 0) linestyle = 4;
+      if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = BACKTRACK;
+      else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = QUADRATIC;
+      else if (strcmp(arg[iarg+1],"forcezero") == 0) linestyle = FORCEZERO;
+      else if (strcmp(arg[iarg+1],"spin_cubic") == 0) linestyle = SPIN_CUBIC;
+      else if (strcmp(arg[iarg+1],"spin_none") == 0) linestyle = SPIN_NONE;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"norm") == 0) {

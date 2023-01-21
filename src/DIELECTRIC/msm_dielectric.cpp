@@ -245,7 +245,7 @@ void MSMDielectric::compute(int eflag, int vflag)
   // energy includes self-energy correction
 
   if (evflag_atom) {
-    double *q = atom->q;
+    double *q = atom->q_scaled;
     int nlocal = atom->nlocal;
 
     if (eflag_atom) {
@@ -287,7 +287,7 @@ void MSMDielectric::fieldforce()
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double **x = atom->x;
   double **f = atom->f;
   double *eps = atom->epsilon;

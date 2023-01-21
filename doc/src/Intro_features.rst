@@ -74,10 +74,10 @@ Interatomic potentials (force fields)
 :doc:`improper style <improper_style>`, :doc:`kspace style <kspace_style>`
 commands)
 
-* pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
+* pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, Yukawa, soft, class 2 (COMPASS), hydrogen bond, harmonic, gaussian, tabulated, scripted
 * charged pairwise potentials: Coulombic, point-dipole
 * many-body potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB, Streitz-Mintmire, 3-body polymorphic, BOP, Vashishta
-* machine learning potentials: SNAP, GAP, ACE, N2P2, RANN, AGNI
+* machine learning potentials: SNAP, GAP, ACE, N2P2, ACE, RANN, POD, AGNI
 * long-range interactions for charge, point-dipoles, and LJ dispersion:  Ewald, Wolf, PPPM (similar to particle-mesh Ewald), MSM
 * polarization models: :doc:`QEq <fix_qeq>`,     :doc:`core/shell model <Howto_coreshell>`,     :doc:`Drude dipole model <Howto_drude>`
 * charge equilibration (QEq via dynamic, point, shielded, Slater methods)
@@ -85,9 +85,9 @@ commands)
 * mesoscopic potentials: granular, Peridynamics, SPH, mesoscopic tubular potential (MESONT)
 * semi-empirical potentials: multi-ion generalized pseudopotential theory (MGPT), second moment tight binding + QEq (SMTB-Q), density functional tight-binding (LATTE)
 * electron force field (eFF, AWPMD)
-* bond potentials: harmonic, FENE, Morse, nonlinear, class 2, quartic (breakable), tabulated
-* angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, class 2 (COMPASS), tabulated
-* dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, class 2 (COMPASS), OPLS, tabulated
+* bond potentials: harmonic, FENE, Morse, nonlinear, class 2, quartic (breakable), tabulated, scripted
+* angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, class 2 (COMPASS), tabulated, scripted
+* dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, class 2 (COMPASS), OPLS, tabulated, scripted
 * improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS), tabulated
 * polymer potentials: all-atom, united-atom, bead-spring, breakable
 * water potentials: TIP3P, TIP4P, SPC, SPC/E and variants

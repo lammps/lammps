@@ -2687,7 +2687,7 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (comm->me == 0) {
-    const int width = log10((MAX(MAX(1,nb),na)))+2;
+    const int width = log10((double)(MAX(MAX(1,nb),na)))+2;
     auto mesg = fmt::format("{} stats (type/ave/delta/count) on step {}\n",
                             utils::uppercase(style), update->ntimestep);
     for (int i = 1; i < nb; i++) {

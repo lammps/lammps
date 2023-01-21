@@ -31,8 +31,8 @@ For example, the lmp_mpi executable might be launched as follows:
 
 .. code-block:: bash
 
-   $ mpirun -np 16 lmp_mpi -v f tmp.out -l my.log -sc none -i in.alloy
-   $ mpirun -np 16 lmp_mpi -var f tmp.out -log my.log -screen none -in in.alloy
+   mpirun -np 16 lmp_mpi -v f tmp.out -l my.log -sc none -i in.alloy
+   mpirun -np 16 lmp_mpi -var f tmp.out -log my.log -screen none -in in.alloy
 
 ----------
 
@@ -105,13 +105,12 @@ Either the full word or an abbreviation can be used for the keywords.
 Note that the keywords do not use a leading minus sign.  I.e. the
 keyword is "t", not "-t".  Also note that each of the keywords has a
 default setting.  Examples of when to use these options and what
-settings to use on different platforms is given on the :doc:`KOKKOS package <Speed_kokkos>`
-doc page.
+settings to use on different platforms is given on the :doc:`KOKKOS
+package <Speed_kokkos>` doc page.
 
 * d or device
 * g or gpus
 * t or threads
-* n or numa
 
 .. parsed-literal::
 
@@ -164,19 +163,10 @@ the number of physical cores per node, to use your available hardware
 optimally.  This also sets the number of threads used by the host when
 LAMMPS is compiled with CUDA=yes.
 
-.. parsed-literal::
+.. deprecated:: 22Dec2022
 
-   numa Nm
-
-This option is only relevant when using pthreads with hwloc support.
-In this case Nm defines the number of NUMA regions (typically sockets)
-on a node which will be utilized by a single MPI rank.  By default Nm
-= 1.  If this option is used the total number of worker-threads per
-MPI rank is threads\*numa.  Currently it is always almost better to
-assign at least one MPI rank per NUMA region, and leave numa set to
-its default value of 1. This is because letting a single process span
-multiple NUMA regions induces a significant amount of cross NUMA data
-traffic which is slow.
+Support for the "numa" or "n" option was removed as its functionality
+was ignored in Kokkos for some time already.
 
 ----------
 

@@ -5,7 +5,7 @@ units           metal
 atom_style      atomic
 atom_modify     map array
 boundary        p p p
-atom_modify	sort 0 0.0
+atom_modify     sort 0 0.0
 
 # coordination number cutoff
 
@@ -53,7 +53,7 @@ pair_coeff * * Si.sw Si
 
 # set up neb run
 
-variable	u uloop 20
+variable        u uloop 20
 
 # only output atoms near vacancy
 
@@ -62,17 +62,17 @@ variable	u uloop 20
 # initial minimization to relax vacancy
 
 displace_atoms all random 0.1 0.1 0.1 123456
-minimize	1.0e-6 1.0e-4 1000 10000
+minimize        1.0e-6 1.0e-4 1000 10000
 
-reset_timestep	0
+reset_timestep  0
 
-fix		1 all neb 1.0 
+fix             1 all neb 1.0 
 
-thermo		100
+thermo          100
 
 # run NEB for 2000 steps or to force tolerance
 
 timestep        0.01
-min_style	quickmin
+min_style       quickmin
 
-neb		0.0 0.01 100 100 10 final final.sivac
+neb             0.0 0.01 100 100 10 final final.sivac

@@ -33,7 +33,7 @@ enum{NOBIAS,BIAS};
 FixNHEff::FixNHEff(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg)
 {
   if (!atom->electron_flag)
-    error->all(FLERR,"Fix nvt/nph/npt/eff requires atom style electron");
+    error->all(FLERR,"Fix {} requires atom style electron", style);
 }
 
 /* ----------------------------------------------------------------------

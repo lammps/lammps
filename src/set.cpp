@@ -855,8 +855,11 @@ void Set::set(int keyword)
     else if (keyword == VX) atom->v[i][0] = dvalue;
     else if (keyword == VY) atom->v[i][1] = dvalue;
     else if (keyword == VZ) atom->v[i][2] = dvalue;
-    else if (keyword == CHARGE) atom->q[i] = dvalue;
-    else if (keyword == MASS) {
+    else if (keyword == CHARGE) {
+      atom->q[i] = dvalue;
+      // ensure that scaled charges are consistent the new charge value
+      if (atom->epsilon) atom->q_scaled[i] = dvalue / atom->epsilon[i];
+    } else if (keyword == MASS) {
       if (dvalue <= 0.0) error->one(FLERR,"Invalid mass in set command");
       atom->rmass[i] = dvalue;
     }
@@ -1087,14 +1090,11 @@ void Set::set(int keyword)
     else if (keyword == EPSILON) {
       if (dvalue >= 0.0) {
 
-        // compute the unscaled charge value (i.e. atom->q_unscaled)
         // assign the new local dielectric constant
-        // update both the scaled and unscaled charge values
+        // update both the scaled charge value
 
-        double q_unscaled = atom->q[i] * atom->epsilon[i];
         atom->epsilon[i] = dvalue;
-        atom->q[i] = q_unscaled / dvalue;
-        atom->q_unscaled[i] = q_unscaled;
+        atom->q_scaled[i] = atom->q[i] / dvalue;
       }
     }
 

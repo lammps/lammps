@@ -131,21 +131,21 @@ for
 
 csh, tcsh:
 
-.. parsed-literal::
+.. code-block:: tcsh
 
-   % setenv LAMMPS_POTENTIALS /path/to/lammps/potentials
+   setenv LAMMPS_POTENTIALS /path/to/lammps/potentials
 
 bash:
 
-.. parsed-literal::
+.. code-block:: bash
 
-   % export LAMMPS_POTENTIALS=/path/to/lammps/potentials
+   export LAMMPS_POTENTIALS=/path/to/lammps/potentials
 
 Windows:
 
-.. parsed-literal::
+.. code-block:: console
 
-   % set LAMMPS_POTENTIALS="C:\\Path to LAMMPS\\Potentials"
+   set LAMMPS_POTENTIALS="C:\\Path to LAMMPS\\Potentials"
 
 The ``LAMMPS_POTENTIALS`` environment variable may contain paths
 to multiple folders, if they are separated by ";" on Windows and

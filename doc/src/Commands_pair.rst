@@ -134,6 +134,8 @@ OPT.
    * :doc:`lcbop <pair_lcbop>`
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf <pair_mdf>`
+   * :doc:`lepton (o) <pair_lepton>`
+   * :doc:`lepton/coul (o) <pair_lepton>`
    * :doc:`line/lj <pair_line_lj>`
    * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
@@ -236,7 +238,7 @@ OPT.
    * :doc:`oxrna2/xstk <pair_oxrna2>`
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
    * :doc:`pace (k) <pair_pace>`
-   * :doc:`pace/extrapolation <pair_pace>`
+   * :doc:`pace/extrapolation (k) <pair_pace>`
    * :doc:`pod <pair_pod>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`

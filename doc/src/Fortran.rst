@@ -5,46 +5,67 @@ The :f:mod:`LIBLAMMPS` module provides an interface to call LAMMPS from
 Fortran.  It is based on the LAMMPS C library interface and requires a
 fully Fortran 2003-compatible compiler to be compiled.  It is designed
 to be self-contained and not require any support functions written in C,
-C++, or Fortran other than those in the C library interface and the module
-itself.
+C++, or Fortran other than those in the C library interface and the
+LAMMPS Fortran module itself.
 
 While C libraries have a defined binary interface (ABI) and can thus be
-used from multiple compiler versions from different vendors as long
-as they are compatible with the hosting operating system, the same is
-not true for Fortran programs.  Thus, the LAMMPS Fortran module needs to be
+used from multiple compiler versions from different vendors as long as
+they are compatible with the hosting operating system, the same is not
+true for Fortran programs.  Thus, the LAMMPS Fortran module needs to be
 compiled alongside the code using it from the source code in
-``fortran/lammps.f90``.  When linking, you also need to
-:doc:`link to the LAMMPS library <Build_link>`.  A typical command line
-for a simple program using the Fortran interface would be:
+``fortran/lammps.f90`` *and* with the same compiler used to build the
+rest of the Fortran code that interfaces to LAMMPS.  When linking, you
+also need to :doc:`link to the LAMMPS library <Build_link>`.  A typical
+command line for a simple program using the Fortran interface would be:
 
 .. code-block:: bash
 
    mpifort -o testlib.x lammps.f90 testlib.f90 -L. -llammps
 
 Please note that the MPI compiler wrapper is only required when the
-calling the library from an MPI-parallelized program.  Otherwise, using
-the plain Fortran compiler (gfortran, ifort, flang, etc.) will suffice.
-It may be necessary to link to additional libraries, depending on how
-LAMMPS was configured and whether the LAMMPS library :doc:`was compiled
-as a static or dynamic library <Build_link>`.
+calling the library *from* an MPI-parallelized program.  Otherwise,
+using the plain Fortran compiler (gfortran, ifort, flang, etc.) will
+suffice, since there are no direct references to MPI library features,
+definitions and subroutine calls; MPI communicators are referred to by
+their integer index representation as required by the Fortran MPI
+interface.  It may be necessary to link to additional libraries,
+depending on how LAMMPS was configured and whether the LAMMPS library
+:doc:`was compiled as a static or dynamic library <Build_link>`.
 
 If the LAMMPS library itself has been compiled with MPI support, the
-resulting executable will still be able to run LAMMPS in parallel with
-``mpirun``, ``mpiexec``, or equivalent.  Please also note that the order
-of the source files matters: the ``lammps.f90`` file needs to be
-compiled first, since it provides the :f:mod:`LIBLAMMPS` module that is
-imported by the Fortran code that uses the interface.  A working example
-can be found together with equivalent examples in C and C++ in the
-``examples/COUPLE/simple`` folder of the LAMMPS distribution.
+resulting executable will be able to run LAMMPS in parallel with
+``mpirun``, ``mpiexec``, or equivalent.  This may be either on the
+"world" communicator or a sub-communicator created by the calling
+Fortran code.  If, on the other hand, the LAMMPS library has been
+compiled **without** MPI support, each LAMMPS instance will run
+independently using just one processor.
 
-.. versionadded:: 9Oct2020
+Please also note that the order of the source files matters: the
+``lammps.f90`` file needs to be compiled first, since it provides the
+:f:mod:`LIBLAMMPS` module that would need to be imported by the calling
+Fortran code in order to uses the Fortran interface.
+A working example can be found together with equivalent examples in C and
+C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
+
+.. admonition:: Fortran compiler compatibility
+   :class: note
+
+   A fully Fortran 2003 compatible Fortran compiler is required.
+   This means that currently only GNU Fortran 9 and later are
+   compatible and thus the default compilers of Red Hat or CentOS 7
+   and Ubuntu 18.04 LTS and not compatible.  Either newer compilers
+   need to be installed or the Linux updated.
+
+.. versionchanged:: TBD
 
 .. note::
 
-   A contributed Fortran interface that more closely resembles the C library
-   interface is available in the ``examples/COUPLE/fortran2`` folder.  Please
-   see the ``README`` file in that folder for more information about it and how
-   to contact its author and maintainer.
+   A contributed Fortran interface is available in the
+   ``examples/COUPLE/fortran2`` folder.  However, since the completion
+   of the :f:mod:`LIBLAMMPS` module, this interface is now deprecated,
+   no longer actively maintained and will likely be removed in the
+   future.  Please see the ``README`` file in that folder for more
+   information about it and how to contact its author and maintainer.
 
 ----------
 
@@ -1525,7 +1546,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
    property/atom-based entities from all processes, in order by atom ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine gathers data from all processes and stores them in a
    one-dimensional allocatable array. The array *data* will be
@@ -1567,7 +1588,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
    property/atom-based entities from all processes, unordered.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine gathers data for all atoms and stores them in a
    one-dimensional allocatable array. The data will be a
@@ -1613,7 +1634,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
    property/atom-based entities from all processes for a subset of atoms.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine gathers data for the requested atom IDs and stores them in a
    one-dimensional allocatable array. The data will be ordered by atom ID, but
@@ -1661,7 +1682,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    per-atom, per-atom fix, per-atom compute, or fix property/atom-based entity
    in *data* to all processes.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to all atoms on all processes. The data must be
@@ -1694,7 +1715,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    per-atom, per-atom fix, per-atom compute, or fix property/atom-based
    entities in *data* from a subset of atoms to all processes.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This subroutine takes data stored in a one-dimensional array supplied by the
    user and scatters them to a subset of atoms on all processes. The array
@@ -2381,7 +2402,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the callback function for a :doc:`fix external <fix_external>` instance
    with the given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    Fix :doc:`external <fix_external>` allows programs that are running LAMMPS
    through its library interface to modify certain LAMMPS properties on
@@ -2391,7 +2412,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    mode. The function should have Fortran language bindings with the following
    interface, which depends on how LAMMPS was compiled:
 
-   .. code-block:: Fortran
+   .. code-block:: fortran
 
       ABSTRACT INTERFACE
         SUBROUTINE external_callback(caller, timestep, ids, x, fexternal)
@@ -2450,7 +2471,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
       with ``-DLAMMPS_SMALLBIG``) that applies something akin to Hooke's Law
       (with each atom having a different *k* value) is shown below.
 
-      .. code-block:: Fortran
+      .. code-block:: fortran
 
          MODULE stuff
            USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double, c_int64_t
@@ -2497,7 +2518,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Get pointer to the force array storage in a fix external instance with the
    given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    Fix :doc:`external <fix_external>` allows programs that are running LAMMPS
    through its library interfaces to add or modify certain LAMMPS properties on
@@ -2541,7 +2562,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the global energy contribution for a :doc:`fix external <fix_external>`
    instance with the given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:func:`set_fix_external_callback`
    and :f:func:`fix_external_get_force` that also sets the contribution to the
@@ -2569,7 +2590,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the global virial contribution for a fix external instance with the
    given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:subr:`set_fix_external_callback`
    and :f:func:`fix_external_get_force` to set the contribution to the global
@@ -2601,7 +2622,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the per-atom energy contribution for a fix external instance with the
    given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:subr:`set_fix_external_callback` to set
    the per-atom energy contribution due to the fix from the external program as
@@ -2636,7 +2657,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    part of the callback function.  For this to work, the LAMMPS object must be
    passed as the *caller* argument when registering the callback function.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    .. note::
 
@@ -2666,7 +2687,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    Set the vector length for a global vector stored with fix external for
    analysis.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:subr:`set_fix_external_callback` and
    :f:func:`fix_external_get_force` to set the length of a global vector of
@@ -2693,7 +2714,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Store a global vector value for a fix external instance with the given ID.
 
-   .. versionadded:: TBD
+   .. versionadded:: 22Dec2022
 
    This is a companion function to :f:subr:`set_fix_external_callback` and
    :f:func:`fix_external_get_force` to set the values of a global vector of

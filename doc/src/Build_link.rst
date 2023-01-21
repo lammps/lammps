@@ -209,7 +209,7 @@ You can verify whether all required shared libraries are found with the
 
 .. code-block:: bash
 
-   $ LD_LIBRARY_PATH=/home/user/lammps/src ldd caller
+   LD_LIBRARY_PATH=/home/user/lammps/src ldd caller
         linux-vdso.so.1 (0x00007ffe729e0000)
         liblammps.so => /home/user/lammps/src/liblammps.so (0x00007fc91bb9e000)
         libstdc++.so.6 => /lib64/libstdc++.so.6 (0x00007fc91b984000)
@@ -222,7 +222,7 @@ If a required library is missing, you would get a 'not found' entry:
 
 .. code-block:: bash
 
-   $  ldd caller
+   ldd caller
         linux-vdso.so.1 (0x00007ffd672fe000)
         liblammps.so => not found
         libstdc++.so.6 => /usr/lib64/libstdc++.so.6 (0x00007fb7c7e86000)

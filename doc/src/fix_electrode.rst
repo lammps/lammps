@@ -125,7 +125,7 @@ usually modelled as a Gaussian distribution to make the charge-charge
 interaction matrix invertible (:ref:`Gingrich <Gingrich>`).  The keyword
 *eta* specifies the distribution's width in units of inverse length.
 
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 Three algorithms are available to minimize the energy, varying in how
 matrices are pre-calculated before a run to provide computational
@@ -234,7 +234,7 @@ issue an error with any other number of electrodes. This keyword
 requires electroneutrality to be imposed (*symm on*) and will issue an
 error otherwise.
 
-.. versionchanged:: TBD
+.. versionchanged:: 22Dec2022
 
 For all versions of the fix, the keyword-value *etypes on* enables
 type-based optimized neighbor lists. With this feature enabled, LAMMPS

@@ -3,6 +3,7 @@
 if(CMAKE_CXX_STANDARD LESS 14)
   message(FATAL_ERROR "The KOKKOS package requires the C++ standard to be set to at least C++14")
 endif()
+
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_CUDA)
@@ -48,8 +49,8 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.7.00.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_MD5 "84991eca9f066383abe119a5bc7a11c4" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.7.01.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_MD5 "f140e02b826223b1045207d9bc10d404" CACHE STRING "MD5 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
   mark_as_advanced(KOKKOS_MD5)
   ExternalProject_Add(kokkos_build
@@ -73,7 +74,7 @@ if(DOWNLOAD_KOKKOS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 3.7.00 REQUIRED CONFIG)
+  find_package(Kokkos 3.7.01 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
   target_link_libraries(lmp PRIVATE Kokkos::kokkos)
 else()
@@ -88,7 +89,6 @@ else()
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
   endif()
   add_subdirectory(${LAMMPS_LIB_KOKKOS_SRC_DIR} ${LAMMPS_LIB_KOKKOS_BIN_DIR})
-
 
   set(Kokkos_INCLUDE_DIRS ${LAMMPS_LIB_KOKKOS_SRC_DIR}/core/src
                           ${LAMMPS_LIB_KOKKOS_SRC_DIR}/containers/src
@@ -143,7 +143,23 @@ if(PKG_ML-IAP)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/mliap_data_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_descriptor_so3_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_linear_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_python_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_so3_kokkos.cpp)
+
+  # Add KOKKOS version of ML-IAP Python coupling if non-KOKKOS version is included
+  if(MLIAP_ENABLE_PYTHON AND Cythonize_EXECUTABLE)
+    file(GLOB MLIAP_KOKKOS_CYTHON_SRC ${CONFIGURE_DEPENDS} ${LAMMPS_SOURCE_DIR}/KOKKOS/*.pyx)
+    foreach(MLIAP_CYTHON_FILE ${MLIAP_KOKKOS_CYTHON_SRC})
+      get_filename_component(MLIAP_CYTHON_BASE ${MLIAP_CYTHON_FILE} NAME_WE)
+      add_custom_command(OUTPUT  ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.h
+              COMMAND            ${CMAKE_COMMAND} -E copy_if_different ${MLIAP_CYTHON_FILE} ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
+              COMMAND            ${Cythonize_EXECUTABLE} -3 ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.pyx
+              WORKING_DIRECTORY  ${MLIAP_BINARY_DIR}
+              MAIN_DEPENDENCY    ${MLIAP_CYTHON_FILE}
+              COMMENT "Generating C++ sources with cythonize...")
+      list(APPEND KOKKOS_PKG_SOURCES ${MLIAP_BINARY_DIR}/${MLIAP_CYTHON_BASE}.cpp)
+    endforeach()
+  endif()
 endif()
 
 if(PKG_PHONON)

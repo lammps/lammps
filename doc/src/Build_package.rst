@@ -30,23 +30,30 @@ steps, as explained on the :doc:`Build extras <Build_extras>` page.
 These links take you to the extra instructions for those select
 packages:
 
+.. this list must be kept in sync with its counterpart in Build_extras.rst
 .. table_from_list::
    :columns: 6
 
    * :ref:`ADIOS <adios>`
    * :ref:`ATC <atc>`
    * :ref:`AWPMD <awpmd>`
-   * :ref:`COLVARS <colvars>`
+   * :ref:`COLVARS <colvar>`
    * :ref:`COMPRESS <compress>`
+   * :ref:`ELECTRODE <electrode>`
    * :ref:`GPU <gpu>`
    * :ref:`H5MD <h5md>`
    * :ref:`INTEL <intel>`
    * :ref:`KIM <kim>`
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LATTE <latte>`
+   * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
+   * :ref:`MDI <mdi>`
+   * :ref:`MESONT <mesont>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
+   * :ref:`ML-IAP <mliap>`
    * :ref:`ML-PACE <ml-pace>`
+   * :ref:`ML-POD <ml-pod>`
    * :ref:`ML-QUIP <ml-quip>`
    * :ref:`MOLFILE <molfile>`
    * :ref:`MSCG <mscg>`

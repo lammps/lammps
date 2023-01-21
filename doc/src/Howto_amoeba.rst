@@ -261,11 +261,11 @@ all the options available to use with the tinker2lmp.py script:
 
 .. code-block:: bash
 
-   % python tinker2lmp.py -xyz water_dimer.xyz -amoeba amoeba_water.prm -data data.water_dimer.amoeba                # AMOEBA non-periodic system
-   % python tinker2lmp.py -xyz water_dimer.xyz -hippo hippo_water.prm -data data.water_dimer.hippo                   # HIPPO non-periodic system
-   % python tinker2lmp.py -xyz water_box.xyz -amoeba amoeba_water.prm -data data.water_box.amoeba -pbc 18.643 18.643 18.643    # AMOEBA periodic system
-   % python tinker2lmp.py -xyz water_box.xyz -hippo hippo_water.prm -data data.water_box.hippo -pbc 18.643 18.643 18.643       # HIPPO periodic system
-   % python tinker2lmp.py -xyz ubiquitin.xyz -amoeba amoeba_ubiquitin.prm -data data.ubiquitin.new -pbc 54.99 41.91 41.91 -bitorsion bitorsion.ubiquitin.data.new   # system with bitorsions
+   python tinker2lmp.py -xyz water_dimer.xyz -amoeba amoeba_water.prm -data data.water_dimer.amoeba                # AMOEBA non-periodic system
+   python tinker2lmp.py -xyz water_dimer.xyz -hippo hippo_water.prm -data data.water_dimer.hippo                   # HIPPO non-periodic system
+   python tinker2lmp.py -xyz water_box.xyz -amoeba amoeba_water.prm -data data.water_box.amoeba -pbc 18.643 18.643 18.643    # AMOEBA periodic system
+   python tinker2lmp.py -xyz water_box.xyz -hippo hippo_water.prm -data data.water_box.hippo -pbc 18.643 18.643 18.643       # HIPPO periodic system
+   python tinker2lmp.py -xyz ubiquitin.xyz -amoeba amoeba_ubiquitin.prm -data data.ubiquitin.new -pbc 54.99 41.91 41.91 -bitorsion bitorsion.ubiquitin.data.new   # system with bitorsions
 
 Switches and their arguments may be specified in any order.
 

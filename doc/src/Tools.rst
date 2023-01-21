@@ -683,7 +683,7 @@ or (as administrator) to ``/etc/magic`` (for a system-wide
 installation).  Afterwards the ``file`` command should be able to
 detect most LAMMPS restarts, dump, data and log files. Examples:
 
-.. code-block:: bash
+.. code-block:: console
 
    $ file *.*
    dihedral-quadratic.restart:   LAMMPS binary restart file (rev 2), Version 10 Mar 2021, Little Endian
@@ -1100,18 +1100,18 @@ for Tcl with:
 
 .. code-block:: bash
 
-   $ swig -tcl -module tcllammps lammps.i
-   $ gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
+   swig -tcl -module tcllammps lammps.i
+   gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
                lammps_wrap.c -L ../src/ -llammps
-   $ tclsh
+   tclsh
 
 Or one can build an extended Tcl shell command with the wrapped
 functions included with:
 
 .. code-block:: bash
 
-   $ swig -tcl -module tcllmps lammps_shell.i
-   $ gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
+   swig -tcl -module tcllmps lammps_shell.i
+   gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
             -DHAVE_CONFIG_H $(pkgconf --cflags tcl) \
             $(pkgconf --libs tcl) -L ../src -llammps
 
@@ -1142,20 +1142,20 @@ For illustration purposes below is a part of the Tcl example script.
 
 .. code-block:: tcl
 
-   % load ./tcllammps.so
-   % set lmp [lammps_open_no_mpi 0 NULL NULL]
-   % lammps_command $lmp "units real"
-   % lammps_command $lmp "lattice fcc 2.5"
-   % lammps_command $lmp "region box block -5 5 -5 5 -5 5"
-   % lammps_command $lmp "create_box 1 box"
-   % lammps_command $lmp "create_atoms 1 box"
-   %
-   % set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
-   % puts "LAMMPS version $ver"
-   % puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]
-   % puts "Current size of timestep: $dt"
-   % puts "LAMMPS version: [lammps_version $lmp]"
-   % lammps_close $lmp
+   load ./tcllammps.so
+   set lmp [lammps_open_no_mpi 0 NULL NULL]
+   lammps_command $lmp "units real"
+   lammps_command $lmp "lattice fcc 2.5"
+   lammps_command $lmp "region box block -5 5 -5 5 -5 5"
+   lammps_command $lmp "create_box 1 box"
+   lammps_command $lmp "create_atoms 1 box"
+
+   set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
+   puts "LAMMPS version $ver"
+   puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]
+   puts "Current size of timestep: $dt"
+   puts "LAMMPS version: [lammps_version $lmp]"
+   lammps_close $lmp
 
 ----------
 
@@ -1164,7 +1164,7 @@ For illustration purposes below is a part of the Tcl example script.
 tabulate tool
 --------------
 
-.. versionadded:: TBD
+.. versionadded:: 22Dec2022
 
 The ``tabulate`` folder contains Python scripts scripts to generate tabulated
 potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module

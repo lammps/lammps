@@ -225,29 +225,29 @@ FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) :
 FixAdapt::~FixAdapt()
 {
   for (int m = 0; m < nadapt; m++) {
-    delete [] adapt[m].var;
+    delete[] adapt[m].var;
     if (adapt[m].which == PAIR) {
-      delete [] adapt[m].pstyle;
-      delete [] adapt[m].pparam;
+      delete[] adapt[m].pstyle;
+      delete[] adapt[m].pparam;
       memory->destroy(adapt[m].array_orig);
     } else if (adapt[m].which == BOND) {
-      delete [] adapt[m].bstyle;
-      delete [] adapt[m].bparam;
+      delete[] adapt[m].bstyle;
+      delete[] adapt[m].bparam;
       memory->destroy(adapt[m].vector_orig);
     } else if (adapt[m].which == ANGLE) {
-      delete [] adapt[m].astyle;
-      delete [] adapt[m].aparam;
+      delete[] adapt[m].astyle;
+      delete[] adapt[m].aparam;
       memory->destroy(adapt[m].vector_orig);
     }
   }
-  delete [] adapt;
+  delete[] adapt;
 
   // check nfix in case all fixes have already been deleted
 
   if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
   if (id_fix_chg && modify->nfix) modify->delete_fix(id_fix_chg);
-  delete [] id_fix_diam;
-  delete [] id_fix_chg;
+  delete[] id_fix_diam;
+  delete[] id_fix_chg;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -357,12 +357,14 @@ void FixAdapt::init()
         nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
-      if (lmp->suffix_enable)
-        ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
-
+      if (lmp->suffix_enable) {
+        if (lmp->suffix)
+          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
+        if ((ad->pair == nullptr) && lmp->suffix2)
+          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix2),1,nsub);
+      }
       if (ad->pair == nullptr) ad->pair = force->pair_match(pstyle,1,nsub);
-      if (ad->pair == nullptr)
-        error->all(FLERR,"Fix adapt pair style does not exist");
+      if (ad->pair == nullptr) error->all(FLERR,"Fix adapt pair style {} not found", pstyle);
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
       if (ptr == nullptr)
@@ -384,11 +386,11 @@ void FixAdapt::init()
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
             if (!pair->check_ijtype(i,j,pstyle))
-              error->all(FLERR,"Fix adapt type pair range is not valid for "
-                         "pair hybrid sub-style");
+              error->all(FLERR,"Fix adapt type pair range is not valid "
+                         "for pair hybrid sub-style {}", pstyle);
       }
 
-      delete [] pstyle;
+      delete[] pstyle;
 
     } else if (ad->which == BOND) {
       ad->bond = nullptr;
@@ -414,7 +416,7 @@ void FixAdapt::init()
       if (utils::strmatch(force->bond_style,"^hybrid"))
         error->all(FLERR,"Fix adapt does not support bond_style hybrid");
 
-      delete [] bstyle;
+      delete[] bstyle;
 
     } else if (ad->which == ANGLE) {
       ad->angle = nullptr;
@@ -440,7 +442,7 @@ void FixAdapt::init()
       if (utils::strmatch(force->angle_style,"^hybrid"))
         error->all(FLERR,"Fix adapt does not support angle_style hybrid");
 
-      delete [] astyle;
+      delete[] astyle;
 
     } else if (ad->which == KSPACE) {
       if (force->kspace == nullptr)

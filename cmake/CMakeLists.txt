@@ -566,6 +566,8 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 ########################################################
 # Fetch missing external files and archives for packages
 ########################################################
+option(DOWNLOAD_POTENTIALS "Automatically download large potential files" ON)
+mark_as_advanced(DOWNLOAD_POTENTIALS)
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     FetchPotentials(${LAMMPS_SOURCE_DIR}/${PKG} ${LAMMPS_POTENTIALS_DIR})

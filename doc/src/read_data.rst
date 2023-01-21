@@ -710,8 +710,6 @@ of analysis.
      - atom-ID molecule-ID atom-type lineflag density x y z
    * - mdpd
      - atom-ID atom-type rho x y z
-   * - mesont
-     - atom-ID molecule-ID atom-type bond_nt mass mradius mlength buckling x y z
    * - molecular
      - atom-ID molecule-ID atom-type x y z
    * - peri
@@ -742,8 +740,6 @@ The per-atom values have these meanings and units, listed alphabetically:
 * atom-ID = integer ID of atom
 * atom-type = type of atom (1-Ntype, or type label)
 * bodyflag = 1 for body particles, 0 for point particles
-* bond_nt = bond NT factor for MESONT particles (?? units)
-* buckling = buckling factor for MESONT particles (?? units)
 * ccN = chemical concentration for tDPD particles for each species (mole/volume units)
 * cradius = contact radius for SMD particles (distance units)
 * cs_re,cs_im = real/imaginary parts of wave packet coefficients
@@ -760,9 +756,7 @@ The per-atom values have these meanings and units, listed alphabetically:
 * kradius = kernel radius for SMD particles (distance units)
 * lineflag = 1 for line segment particles, 0 for point or spherical particles
 * mass = mass of particle (mass units)
-* mlength = ?? length for MESONT particles (distance units)
 * molecule-ID = integer ID of molecule the atom belongs to
-* mradius = ?? radius for MESONT particles (distance units)
 * mux,muy,muz = components of dipole moment of atom (dipole units)
 * q = charge on atom (charge units)
 * rho = density (need units) for SPH particles

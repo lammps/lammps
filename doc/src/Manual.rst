@@ -23,27 +23,33 @@ coordinated.
 ----------
 
 The content for this manual is part of the LAMMPS distribution.  The
-online version always corresponds to the latest development version.
-If needed, you can download or build a local copy of the manual as
-HTML pages or a PDF file by following the steps on the
-:doc:`Build_manual` page. If you have difficulties viewing the pages
-please :ref:`see this note <webbrowser>`.
+online version always corresponds to the latest feature release version.
+If needed, you can build a local copy of the manual as HTML pages or a
+PDF file by following the steps on the :doc:`Build_manual` page.  If you
+have difficulties viewing the pages please :ref:`see this note
+<webbrowser>`.
 
 -----------
 
 The manual is organized in three parts:
-1) the :ref:`User Guide <user_documentation>` for how to install
-and use LAMMPS, 2) the :ref:`Programmer Guide <programmer_documentation>`
-for how to write programs using the LAMMPS library from different
-programming languages and how to modify and extend LAMMPS, and 3) the
-:ref:`Command Reference <command_reference>` which includes detailed
-descriptions of all commands included in the LAMMPS code.
+
+1. the :ref:`User Guide <user_documentation>` with information about how
+   to obtain, configure, compile, install, and use LAMMPS,
+2. the :ref:`Programmer Guide <programmer_documentation>` with
+   information about how to use the LAMMPS library interface from
+   different programming languages, how to modify and extend LAMMPS,
+   the program design, internal programming interfaces, and code
+   design conventions,
+3. the :ref:`Command Reference <command_reference>` with detailed
+   descriptions of all input script commands available in LAMMPS.
+
+----------
 
 .. only:: html
 
    Once you are familiar with LAMMPS, you may want to bookmark
-   :doc:`this page <Commands_all>` since it gives quick access to
-   the documentation for all LAMMPS commands.
+   :doc:`this page <Commands_all>`, since it gives quick access to
+   tables with links to the documentation for all LAMMPS commands.
 
 .. _lws: https://www.lammps.org
 

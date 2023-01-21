@@ -14,17 +14,20 @@ few weeks.  The *release* branch of the git repository is updated with
 every such release.  Info on patch releases are on `this website page
 <https://www.lammps.org/bug.html>`_.
 
-Once or twice a year, we apply only bug fixes and small, non-intrusive
-changes to the *develop* branch and the code is subjected to more detailed
-and thorough testing than the default automated testing.  The latest
-patch release after such a period is then also labeled as a *stable* version
-and the *stable* branch is updated with it.  Between stable releases
-we occasionally release some updates to the stable release containing
-only bug fixes and updates back-ported from *develop* but no new features
-and update the *stable* branch accordingly.
+Once or twice a year, we have a period where we apply only bug fixes and
+small, non-intrusive changes to the *develop* branch and the code is at
+the same time subjected to more detailed and thorough manual testing
+than the default automated testing.  The latest patch release after such
+a period is then also labeled as a *stable* version and the *stable*
+branch is updated with it.  Between stable releases we occasionally
+release some updates to the stable release containing only bug fixes and
+updates back-ported from *develop* but no new features and update the
+*stable* branch accordingly.
 
 Each version of LAMMPS contains all the documented features up to and
-including its version date.
+including its version date.  For recently added features we add markers
+to the documentation at which specific LAMMPS version a feature was
+added or significantly changed.
 
 The version date is printed to the screen and logfile every time you
 run LAMMPS. It is also in the file src/version.h and in the LAMMPS

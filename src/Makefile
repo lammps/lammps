@@ -154,7 +154,7 @@ PACKMOST = \
 	bocs \
 	body \
 	bpm \
-        brownian \
+	brownian \
 	cg-dna \
 	cg-spica \
 	class2 \
@@ -180,6 +180,7 @@ PACKMOST = \
 	manybody \
 	mc \
 	meam \
+	mesont \
 	misc \
 	ml-snap \
 	mofff \

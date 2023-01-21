@@ -243,6 +243,7 @@ bdiam
 bdw
 Beckman
 Becton
+Behler
 Belak
 Bellott
 bem
@@ -1247,6 +1248,7 @@ gfortran
 ghostneigh
 ghostwhite
 Giacomo
+GiB
 gif
 gifsicle
 Gillan

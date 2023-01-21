@@ -3330,6 +3330,7 @@ snav
 Snodin
 Sodani
 Soderlind
+Solaris
 Solida
 solvated
 solvation

@@ -1,5 +1,5 @@
-Portability and compatibility of LAMMPS
----------------------------------------
+LAMMPS portability and compatibility
+------------------------------------
 
 The primary form of distributing LAMMPS is through highly portable
 source code.  But also several ways of obtaining LAMMPS as `precompiled
@@ -71,5 +71,3 @@ process, however, all contributions are automatically tested to compile,
 link, and pass some runtime tests on a selection of Linux flavors,
 macOS, and Windows with different compilers.  Other platforms may be
 checked occasionally or when portability bug are reported.
-
-

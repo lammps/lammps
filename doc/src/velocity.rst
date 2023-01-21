@@ -20,7 +20,7 @@ Syntax
          seed = random # seed (positive integer)
        *set* args = vx vy vz
          vx,vy,vz = velocity value or NULL (velocity units)
-         any of vx,vy,vz van be a variable (see below)
+         any of vx,vy,vz can be a variable (see below)
        *scale* arg = temp
          temp = temperature value (temperature units)
        *ramp* args = vdim vlo vhi dim clo chi

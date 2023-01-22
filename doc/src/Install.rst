@@ -33,7 +33,7 @@ you **must** build LAMMPS from the source code.
 
 ----
 
-These are the files and sub-directories in the LAMMPS distribution:
+These are the files and subdirectories in the LAMMPS distribution:
 
 +------------+---------------------------------------------+
 | README     | Short description of the LAMMPS package     |

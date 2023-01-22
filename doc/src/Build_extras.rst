@@ -288,7 +288,7 @@ your machine are not correct, the LAMMPS build will fail, and
 .. note::
 
    If you re-build the GPU library in ``lib/gpu``, you should always
-   un-install the GPU package in ``lammps/src``, then re-install it and
+   uninstall the GPU package in ``lammps/src``, then re-install it and
    re-build LAMMPS.  This is because the compilation of files in the GPU
    package uses the library settings from the ``lib/gpu/Makefile.machine``
    used to build the GPU library.

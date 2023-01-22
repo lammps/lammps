@@ -60,7 +60,7 @@ standard. A more detailed discussion of that is below.
 
       Any ``make machine`` command will look up the make settings from a
       file ``Makefile.machine`` in the folder ``src/MAKE`` or one of its
-      sub-directories ``MINE``, ``MACHINES``, or ``OPTIONS``, create a
+      subdirectories ``MINE``, ``MACHINES``, or ``OPTIONS``, create a
       folder ``Obj_machine`` with all objects and generated files and an
       executable called ``lmp_machine``\ .  The standard parallel build
       with ``make mpi`` assumes a standard MPI installation with MPI

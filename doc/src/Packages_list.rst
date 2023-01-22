@@ -8,7 +8,7 @@ Packages are supported by either the LAMMPS developers or the
 contributing authors and written in a syntax and style consistent with
 the rest of LAMMPS.
 
-The "Examples" column is a sub-directory in the examples directory of the
+The "Examples" column is a subdirectory in the examples directory of the
 distribution which has one or more input scripts that use the package.
 E.g. "peptide" refers to the examples/peptide directory; PACKAGES/atc refers
 to the examples/PACKAGES/atc directory.  The "Lib" column indicates

@@ -3432,6 +3432,8 @@ Subclassed
 subcutoff
 subcycle
 subcycling
+subdirectory
+subdirectories
 subdomain
 subdomains
 subhi
@@ -3710,6 +3712,7 @@ undump
 uniaxial
 uniaxially
 unimodal
+uninstall
 unitarg
 unitless
 Universite

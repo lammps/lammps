@@ -16,7 +16,7 @@ nx,ny,nz = replication factors in each dimension
 
   .. parsed-literal::
 
-       *bbox* = only check atoms in replicas that overlap with a processor's sub-domain
+       *bbox* = only check atoms in replicas that overlap with a processor's subdomain
 
 Examples
 """"""""
@@ -52,7 +52,7 @@ image flags that differ by 1.  This will allow the bond to be
 unwrapped appropriately.
 
 The optional keyword *bbox* uses a bounding box to only check atoms in
-replicas that overlap with a processor's sub-domain when assigning
+replicas that overlap with a processor's subdomain when assigning
 atoms to processors.  It typically results in a substantial speedup
 when using the replicate command on a large number of processors.  It
 does require temporary use of more memory, specifically that each

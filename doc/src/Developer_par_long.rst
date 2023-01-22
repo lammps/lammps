@@ -20,7 +20,7 @@ e) electric field values from grid points near each atom are interpolated to com
 
 For any of the spatial-decomposition partitioning schemes each processor
 owns the brick-shaped portion of FFT grid points contained within its
-sub-domain.  The two interpolation operations use a stencil of grid
+subdomain.  The two interpolation operations use a stencil of grid
 points surrounding each atom.  To accommodate the stencil size, each
 processor also stores a few layers of ghost grid points surrounding its
 brick.  Forward and reverse communication of grid point values is
@@ -64,7 +64,7 @@ direction of the 1d FFTs it has to perform. LAMMPS uses the
 pencil-decomposition algorithm as shown in the :ref:`fft-parallel` figure.
 
 Initially (far left), each processor owns a brick of same-color grid
-cells (actually grid points) contained within in its sub-domain.  A
+cells (actually grid points) contained within in its subdomain.  A
 brick-to-pencil communication operation converts this layout to 1d
 pencils in the *x*-dimension (center left).  Again, cells of the same
 color are owned by the same processor.  Each processor can then compute
@@ -161,8 +161,8 @@ grid/particle operations that LAMMPS supports:
   <partition>` calculation and then use the :doc:`verlet/split
   integrator <run_style>` to perform the PPPM computation on a
   dedicated, separate partition of MPI processes.  This uses an integer
-  "1:*p*" mapping of *p* sub-domains of the atom decomposition to one
-  sub-domain of the FFT grid decomposition and where pairwise non-bonded
+  "1:*p*" mapping of *p* subdomains of the atom decomposition to one
+  subdomain of the FFT grid decomposition and where pairwise non-bonded
   and bonded forces and energies are computed on the larger partition
   and the PPPM kspace computation concurrently on the smaller partition.
 
@@ -172,7 +172,7 @@ grid/particle operations that LAMMPS supports:
 
 - LAMMPS implements a ``GridComm`` class which overlays the simulation
   domain with a regular grid, partitions it across processors in a
-  manner consistent with processor sub-domains, and provides methods for
+  manner consistent with processor subdomains, and provides methods for
   forward and reverse communication of owned and ghost grid point
   values.  It is used for PPPM as an FFT grid (as outlined above) and
   also for the MSM algorithm which uses a cascade of grid sizes from

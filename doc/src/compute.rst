@@ -54,7 +54,7 @@ per atom, e.g. a list of bond distances.  Per-grid quantities are
 calculated on a regular 2d or 3d grid which overlays a 2d or 3d
 simulation domain.  The grid points and the data they store are
 distributed across processors; each processor owns the grid points
-which fall within its sub-domain.
+which fall within its subdomain.
 
 Computes that produce per-atom quantities have the word "atom" at the
 end of their style, e.g. *ke/atom*\ .  Computes that produce local

@@ -64,7 +64,7 @@ The *lost* keyword determines whether LAMMPS checks for lost atoms each
 time it computes thermodynamics and what it does if atoms are lost.  An
 atom can be "lost" if it moves across a non-periodic simulation box
 :doc:`boundary <boundary>` or if it moves more than a box length outside
-the simulation domain (or more than a processor sub-domain length)
+the simulation domain (or more than a processor subdomain length)
 before reneighboring occurs.  The latter case is typically due to bad
 dynamics (e.g., too large a time step and/or huge forces and velocities).  If
 the value is *ignore*, LAMMPS does not check for lost atoms.  If the

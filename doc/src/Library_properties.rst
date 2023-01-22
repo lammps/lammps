@@ -30,7 +30,7 @@ course, changing values should be done with care.  When accessing per-atom
 data, please note that these data are the per-processor **local** data and are
 indexed accordingly. Per-atom data can change sizes and ordering at
 every neighbor list rebuild or atom sort event as atoms migrate between
-sub-domains and processors.
+subdomains and processors.
 
 .. code-block:: c
 

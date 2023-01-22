@@ -30,17 +30,17 @@ can be created using CMake.  CMake must be at least version 3.10.
 Operating systems
 ^^^^^^^^^^^^^^^^^
 
-The primary development platform for LAMMPS is Linux.  Thus the chances
+The primary development platform for LAMMPS is Linux.  Thus, the chances
 for LAMMPS to compile without problems on Linux machines are the best.
-Also compilation and correct execution on macOS and Windows (using
+Also, compilation and correct execution on macOS and Windows (using
 Microsoft Visual C++) is checked automatically for largest part of the
 source code.  Some (optional) features are not compatible with all
-operating systems either through limitations of the source code or
-source code compatibility or the build system requirements of required
-libraries.
+operating systems, either through limitations of the corresponding
+LAMMPS source code or through source code or build system
+incompatibilities of required libraries.
 
-Executables for Windows may be created using either Cygwin or Visual
-Studio or a Linux to Windows MinGW cross-compiler.
+Executables for Windows may be created natively using either Cygwin or
+Visual Studio or with a Linux to Windows MinGW cross-compiler.
 
 Additionally, FreeBSD and Solaris have been tested successfully.
 
@@ -49,7 +49,7 @@ Compilers
 
 The most commonly used compilers are the GNU compilers, but also Clang
 and the Intel compilers have been successfully used on Linux, macOS, and
-Windows.  Also the Nvidia HPC SDK (formerly PGI compilers) will compile
+Windows.  Also, the Nvidia HPC SDK (formerly PGI compilers) will compile
 LAMMPS (tested on Linux).
 
 CPU architectures
@@ -62,12 +62,14 @@ regularly tested.
 Portability compliance
 ^^^^^^^^^^^^^^^^^^^^^^
 
-Not all of the LAMMPS source code is fully compliant to all of the above
-mentioned standards.  This is rather typical for projects like LAMMPS
-that largely depend on contributions of features from the community.
+Only a subset of the LAMMPS source code is fully compliant to all of the
+above mentioned standards.  This is rather typical for projects like
+LAMMPS that largely depend on contributions from the user community.
 Not all contributors are trained as programmers and not all of them have
-access to a variety of platforms.  As part of the continuous integration
-process, however, all contributions are automatically tested to compile,
-link, and pass some runtime tests on a selection of Linux flavors,
-macOS, and Windows with different compilers.  Other platforms may be
-checked occasionally or when portability bug are reported.
+access to multiple platforms for testing.  As part of the continuous
+integration process, however, all contributions are automatically tested
+to compile, link, and pass some runtime tests on a selection of Linux
+flavors, macOS, and Windows, and on Linux with different compilers.
+Thus portability issues are often found before a pull request is merged.
+Other platforms may be checked occasionally or when portability bugs are
+reported.

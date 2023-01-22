@@ -27,7 +27,7 @@ General features
 * distributed memory message-passing parallelism (MPI)
 * shared memory multi-threading parallelism (OpenMP)
 * spatial decomposition of simulation domain for MPI parallelism
-* particle decomposition inside of spatial decomposition for OpenMP and GPU parallelism
+* particle decomposition inside spatial decomposition for OpenMP and GPU parallelism
 * GPLv2 licensed open-source distribution
 * highly portable C++-11
 * modular code with most functionality in optional packages
@@ -113,7 +113,7 @@ Atom creation
 :doc:`create_atoms <create_atoms>`, :doc:`delete_atoms <delete_atoms>`,
 :doc:`displace_atoms <displace_atoms>`, :doc:`replicate <replicate>` commands)
 
-* read in atom coords from files
+* read in atom coordinates from files
 * create atoms on one or more lattices (e.g. grain boundaries)
 * delete geometric or logical groups of atoms (e.g. voids)
 * replicate existing atoms multiple times
@@ -173,11 +173,11 @@ Output
 (:doc:`dump <dump>`, :doc:`restart <restart>` commands)
 
 * log file of thermodynamic info
-* text dump files of atom coords, velocities, other per-atom quantities
+* text dump files of atom coordinates, velocities, other per-atom quantities
 * dump output on fixed and variable intervals, based timestep or simulated time
 * binary restart files
 * parallel I/O of dump and restart files
-* per-atom quantities (energy, stress, centro-symmetry parameter, CNA, etc)
+* per-atom quantities (energy, stress, centro-symmetry parameter, CNA, etc.)
 * user-defined system-wide (log file) or per-atom (dump file) calculations
 * custom partitioning (chunks) for binning, and static or dynamic grouping of atoms for analysis
 * spatial, time, and per-chunk averaging of per-atom quantities

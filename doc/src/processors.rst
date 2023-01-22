@@ -66,7 +66,7 @@ parameters can be specified with an asterisk "\*", which means LAMMPS
 will choose the number of processors in that dimension of the grid.
 It will do this based on the size and shape of the global simulation
 box so as to minimize the surface-to-volume ratio of each processor's
-sub-domain.
+subdomain.
 
 Choosing explicit values for Px or Py or Pz can be used to override
 the default manner in which LAMMPS will create the regular 3d grid of
@@ -81,7 +81,7 @@ equal 1.
 Note that if you run on a prime number of processors P, then a grid
 such as 1 x P x 1 will be required, which may incur extra
 communication costs due to the high surface area of each processor's
-sub-domain.
+subdomain.
 
 Also note that if multiple partitions are being used then P is the
 number of processors in this partition; see the :doc:`-partition command-line switch <Run_options>` page for details.  Also note
@@ -113,10 +113,10 @@ will persist for all simulations.  If balancing is performed, some of
 the methods invoked by those commands retain the logical topology of
 the initial 3d grid, and the mapping of processors to the grid
 specified by the processors command.  However the grid spacings in
-different dimensions may change, so that processors own sub-domains of
+different dimensions may change, so that processors own subdomains of
 different sizes.  If the :doc:`comm_style tiled <comm_style>` command is
 used, methods invoked by the balancing commands may discard the 3d
-grid of processors and tile the simulation domain with sub-domains of
+grid of processors and tile the simulation domain with subdomains of
 different sizes and shapes which no longer have a logical 3d
 connectivity.  If that occurs, all the information specified by the
 processors command is ignored.
@@ -129,7 +129,7 @@ processors.
 
 The *onelevel* style creates a 3d grid that is compatible with the
 Px,Py,Pz settings, and which minimizes the surface-to-volume ratio of
-each processor's sub-domain, as described above.  The mapping of
+each processor's subdomain, as described above.  The mapping of
 processors to the grid is determined by the *map* keyword setting.
 
 The *twolevel* style can be used on machines with multicore nodes to
@@ -145,7 +145,7 @@ parameters can be specified with an asterisk "\*", which means LAMMPS
 will choose the number of cores in that dimension of the node's
 sub-grid.  As with Px,Py,Pz, it will do this based on the size and
 shape of the global simulation box so as to minimize the
-surface-to-volume ratio of each processor's sub-domain.
+surface-to-volume ratio of each processor's subdomain.
 
 .. note::
 

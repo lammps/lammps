@@ -14,7 +14,7 @@
 // ***************************************************************************
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
-#include <stdio.h>
+
 #include "lal_hippo_extra.h"
 #ifdef LAMMPS_SMALLBIG
 #define tagint int
@@ -455,8 +455,6 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    //numtyp qtmp; fetch(qtmp,i,q_tex);
-    //int itype=ix.w;
 
     // recalculate numj and nbor_end for use of the short nbor list
     if (dev_packed==dev_nbor) {
@@ -467,7 +465,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
     }
 
     const numtyp4 pol1i = polar1[i];
-    //numtyp ci  = pol1i.x;    // rpole[i][0];
+    //numtyp ci  = pol1i.x;  // rpole[i][0];
     numtyp dix = pol1i.y;    // rpole[i][1];
     numtyp diy = pol1i.z;    // rpole[i][2];
     numtyp diz = pol1i.w;    // rpole[i][3];
@@ -490,7 +488,6 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       int j = jextra & NEIGHMASK15;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      //int jtype=jx.w;
 
       // Compute r12
       numtyp xr = jx.x - ix.x;
@@ -502,18 +499,18 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
 
       const numtyp4 pol1j = polar1[j];
       //numtyp ck  = pol1j.x;  // rpole[j][0];
-      numtyp dkx = pol1j.y;  // rpole[j][1];
-      numtyp dky = pol1j.z;  // rpole[j][2];
-      numtyp dkz = pol1j.w;  // rpole[j][3];
+      numtyp dkx = pol1j.y;    // rpole[j][1];
+      numtyp dky = pol1j.z;    // rpole[j][2];
+      numtyp dkz = pol1j.w;    // rpole[j][3];
       const numtyp4 pol2j = polar2[j];
-      numtyp qkxx = pol2j.x; // rpole[j][4];
-      numtyp qkxy = pol2j.y; // rpole[j][5];
-      numtyp qkxz = pol2j.z; // rpole[j][6];
-      numtyp qkyy = pol2j.w; // rpole[j][8];
+      numtyp qkxx = pol2j.x;   // rpole[j][4];
+      numtyp qkxy = pol2j.y;   // rpole[j][5];
+      numtyp qkxz = pol2j.z;   // rpole[j][6];
+      numtyp qkyy = pol2j.w;   // rpole[j][8];
       const numtyp4 pol3j = polar3[j];
-      numtyp qkyz = pol3j.x; // rpole[j][9];
-      numtyp qkzz = pol3j.y; // rpole[j][12];
-      int jtype = pol3j.z; // amtype[j];
+      numtyp qkyz = pol3j.x;   // rpole[j][9];
+      numtyp qkzz = pol3j.y;   // rpole[j][12];
+      int jtype = pol3j.z;     // amtype[j];
 
       numtyp sizk = coeff_rep[jtype].x; // sizpr[jtype];
       numtyp dmpk = coeff_rep[jtype].y; // dmppr[jtype];
@@ -776,15 +773,12 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       int j = jextra & NEIGHMASK15;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      //int jtype=jx.w;
 
       // Compute r12
       numtyp xr = ix.x - jx.x;
       numtyp yr = ix.y - jx.y;
       numtyp zr = ix.z - jx.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
-
-      //if (r2>off2) continue;
 
       int jtype =   polar3[j].z; // amtype[j];
       int jclass = coeff_amtype[jtype].w;  // amtype2class[jtype];
@@ -886,9 +880,6 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
 
   } // ii<inum
 
-  // accumate force, energy and virial: use _acc if not the first kernel
-  //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-  //   offset,eflag,vflag,ans,engv);
   store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
@@ -982,15 +973,12 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       int j = jextra & NEIGHMASK15;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      //int jtype=jx.w;
 
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
-
-      //if (r2>off2) continue;
 
       numtyp r = ucl_sqrt(r2);
       const numtyp4 pol1j = polar1[j];
@@ -1090,11 +1078,6 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[6];
-      /*
-      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
-      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      bn[0] = _erfc * rinv;
-      */
       bn[0] = ucl_erfc(ralpha) * rinv;
 
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
@@ -1213,9 +1196,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
   // accumulate tq
   store_answers_hippo_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
 
-  // accumate force, energy and virial: use _acc if not the first kernel
-  //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-  //   offset,eflag,vflag,ans,engv);
+  // accumate force, energy and virial
   store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
@@ -1294,8 +1275,6 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
-      //if (r2>off2) continue;
-
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_recip(r);
       numtyp r2inv = rinv*rinv;
@@ -1345,11 +1324,6 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[4];
-      /*
-      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
-      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      bn[0] = _erfc * rinv;
-      */
       bn[0] = ucl_erfc(ralpha) * rinv;
 
       numtyp aefac = aesq2n;
@@ -1439,9 +1413,6 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
   numtyp4* polar4 = (numtyp4*)(&extra[12*nall]);
   numtyp4* polar5 = (numtyp4*)(&extra[16*nall]);
-  //numtyp4* polar6 = (numtyp4*)(&extra[20*nall]);
-
-  //numtyp4 xi__;
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -1461,8 +1432,6 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
 
     int itype;
     itype  = polar3[i].z; // amtype[i];
-    //igroup = polar3[i].w; // amgroup[i];
-
     int iclass = coeff_amtype[itype].w;  // amtype2class[itype];
     numtyp alphai = coeff_amclass[iclass].w; // palpha[iclass];
 
@@ -1483,8 +1452,6 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
-      //if (r2>off2) continue;
-
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_rsqrt(r2);
       numtyp r2inv = rinv*rinv;
@@ -1494,7 +1461,6 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
 
       const numtyp4 pol3j = polar3[j];
       int jtype = pol3j.z; // amtype[j];
-      //int jgroup =  pol3j.w; // amgroup[j];
       const numtyp4 pol4j = polar4[j];
       numtyp ukx = pol4j.x;  // uind[j][0];
       numtyp uky = pol4j.y;  // uind[j][1];
@@ -1516,11 +1482,6 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[4];
-      /*
-      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
-      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      bn[0] = _erfc * rinv;
-      */
       bn[0] = ucl_erfc(ralpha) * rinv;
 
       numtyp aefac = aesq2n;
@@ -1546,9 +1507,6 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       tdipdip[3] = -rr3ik + rr5ik*yr*yr;
       tdipdip[4] = rr5ik*yr*zr;
       tdipdip[5] = -rr3ik + rr5ik*zr*zr;
-      //if (i==0 && j == 10)
-      //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
-      //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);
 
       numtyp fid[3];
       fid[0] = tdipdip[0]*ukx + tdipdip[1]*uky + tdipdip[2]*ukz;
@@ -1638,8 +1596,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    //numtyp qtmp; fetch(qtmp,i,q_tex);
-    //int itype=ix.w;
 
     // recalculate numj and nbor_end for use of the short nbor list
     if (dev_packed==dev_nbor) {
@@ -1672,9 +1628,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
     uiyp = pol5i.y;   // uinp[i][1];
     uizp = pol5i.z;   // uinp[i][2];
 
-    // debug:
-    // xi__ = ix; xi__.w = itype;
-
     numtyp corei = coeff_amclass[itype].z;  // pcore[iclass];
     numtyp alphai = coeff_amclass[itype].w; // palpha[iclass];
     numtyp vali = polar6[i].x;
@@ -1691,8 +1644,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp yr = jx.y - ix.y;
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
-
-      //if (r2>off2) continue;
 
       numtyp r = ucl_sqrt(r2);
 
@@ -1759,11 +1710,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[5];
-      /*
-      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
-      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      bn[0] = _erfc * rinv;
-      */
       bn[0] = ucl_erfc(ralpha) * rinv;
 
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
@@ -1823,7 +1769,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       dufld[3] += xr*tiz5 + zr*tix5 + (numtyp)2.0*xr*zr*tuir;
       dufld[4] += yr*tiz5 + zr*tiy5 + (numtyp)2.0*yr*zr*tuir;
       dufld[5] += zr*tiz5 + zr*zr*tuir;
-
 
       // get the field gradient for direct polarization force
 
@@ -1962,7 +1907,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp frcz = (numtyp)-2.0 * depz;
 
       numtyp term1,term2,term3;
-      //numtyp term4,term5,term6,term7;
 
       // get the dEp/dR terms used for direct polarization force
       // poltyp == MUTUAL && hippo
@@ -2039,8 +1983,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
   store_answers_tep(ufld,dufld,ii,inum,tid,t_per_atom,offset,i,tep);
 
   // accumate force, energy and virial
-  //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-  //     offset,eflag,vflag,ans,engv);
   store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
@@ -2063,10 +2005,6 @@ __kernel void k_hippo_fphi_uind(const __global numtyp4 *restrict thetai1,
                           const int nxlo_out, const int ngridxy,
                           const int ngridx)
 {
-  //int tid, ii, offset, i, n_stride;
-  //atom_info(t_per_atom,ii,tid,offset);
-  
-
   int tid=THREAD_ID_X;
   int ii=tid+BLOCK_ID_X*BLOCK_SIZE_X;
 
@@ -2125,12 +2063,6 @@ __kernel void k_hippo_fphi_uind(const __global numtyp4 *restrict thetai1,
 
     int k = (igridz - nzlo_out) - nlpts;
     for (int kb = 0; kb < bsorder; kb++) {
-      /*
-      v0 = thetai3[m][kb][0];
-      v1 = thetai3[m][kb][1];
-      v2 = thetai3[m][kb][2];
-      v3 = thetai3[m][kb][3];
-      */
       int i3 = istart + kb;
       numtyp4 tha3 = thetai3[i3];
       numtyp v0 = tha3.x;
@@ -2162,12 +2094,6 @@ __kernel void k_hippo_fphi_uind(const __global numtyp4 *restrict thetai1,
 
       int j = (igridy - nylo_out) - nlpts;
       for (int jb = 0; jb < bsorder; jb++) {
-        /*
-        u0 = thetai2[m][jb][0];
-        u1 = thetai2[m][jb][1];
-        u2 = thetai2[m][jb][2];
-        u3 = thetai2[m][jb][3];
-        */
         int i2 = istart + jb;
         numtyp4 tha2 = thetai2[i2];
         numtyp u0 = tha2.x;
@@ -2184,17 +2110,6 @@ __kernel void k_hippo_fphi_uind(const __global numtyp4 *restrict thetai1,
 
         int i = (igridx - nxlo_out) - nlpts;
         for (int ib = 0; ib < bsorder; ib++) {
-          /*
-          tq_1 = grid[k][j][i][0];
-          tq_2 = grid[k][j][i][1];
-          t0_1 += tq_1*thetai1[m][ib][0];
-          t1_1 += tq_1*thetai1[m][ib][1];
-          t2_1 += tq_1*thetai1[m][ib][2];
-          t0_2 += tq_2*thetai1[m][ib][0];
-          t1_2 += tq_2*thetai1[m][ib][1];
-          t2_2 += tq_2*thetai1[m][ib][2];
-          t3 += (tq_1+tq_2)*thetai1[m][ib][3];
-          */
           int i1 = istart + ib;
           numtyp4 tha1 = thetai1[i1];
           numtyp w0 = tha1.x;
@@ -2403,12 +2318,6 @@ __kernel void k_hippo_fphi_mpole(const __global numtyp4 *restrict thetai1,
 
     int k = (igridz - nzlo_out) - nlpts;
     for (int kb = 0; kb < bsorder; kb++) {
-      /*
-      v0 = thetai3[m][kb][0];
-      v1 = thetai3[m][kb][1];
-      v2 = thetai3[m][kb][2];
-      v3 = thetai3[m][kb][3];
-      */
       int i3 = istart + kb;
       numtyp4 tha3 = thetai3[i3];
       numtyp v0 = tha3.x;
@@ -2428,12 +2337,6 @@ __kernel void k_hippo_fphi_mpole(const __global numtyp4 *restrict thetai1,
 
       int j = (igridy - nylo_out) - nlpts;
       for (int jb = 0; jb < bsorder; jb++) {
-        /*
-        u0 = thetai2[m][jb][0];
-        u1 = thetai2[m][jb][1];
-        u2 = thetai2[m][jb][2];
-        u3 = thetai2[m][jb][3];
-        */
         int i2 = istart + jb;
         numtyp4 tha2 = thetai2[i2];
         numtyp u0 = tha2.x;

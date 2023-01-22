@@ -14,7 +14,7 @@
 // ***************************************************************************
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
-//#include <stdio.h>
+
 #include "lal_aux_fun1.h"
 #ifdef LAMMPS_SMALLBIG
 #define tagint int
@@ -448,20 +448,12 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
 
   if (ii<inum) {
-    //int m;
-    //numtyp bfac;
-    //numtyp term1,term2,term3;
-    //numtyp term4,term5,term6;
-    //numtyp bn[6];
-
     int numj, nbor, nbor_end;
     const __global int* nbor_mem=dev_packed;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    //numtyp qtmp; fetch(qtmp,i,q_tex);
-    //int itype=ix.w;
 
     // recalculate numj and nbor_end for use of the short nbor list
     if (dev_packed==dev_nbor) {
@@ -491,7 +483,6 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       int j = jextra & NEIGHMASK15;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      //int jtype=jx.w;
 
       // Compute r12
       numtyp xr = jx.x - ix.x;
@@ -596,11 +587,6 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[6];
-      /*
-      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
-      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      bn[0] = _erfc * rinv;
-      */
       bn[0] = ucl_erfc(ralpha) * rinv;
       
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
@@ -696,8 +682,6 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
   // accumate force, energy and virial: use _acc if not the first kernel
   store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv);
-  //store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-  //   offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
 
 /* ----------------------------------------------------------------------
@@ -752,9 +736,6 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
     int itype  = pol3i.z;    // amtype[i];
     int igroup = pol3i.w;    // amgroup[i];
 
-    // debug:
-    // xi__ = ix; xi__.w = itype;
-
     numtyp pdi = coeff[itype].x;
     numtyp pti = coeff[itype].y;
     numtyp ddi = coeff[itype].z;
@@ -769,15 +750,12 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       int j = jextra & NEIGHMASK15;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      //int jtype=jx.w;
 
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
-
-      //if (r2>off2) continue;
 
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_rsqrt(r2);
@@ -825,12 +803,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
-      numtyp bn[4],bcn[3];
-      /*
-      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
-      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      bn[0] = _erfc * rinv;
-      */
+      numtyp bn[4], bcn[3];
       bn[0] = ucl_erfc(ralpha) * rinv;
 
       numtyp aefac = aesq2n;
@@ -849,7 +822,6 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       if (damp != (numtyp)0.0) {
         numtyp pgamma = MIN(ddi,coeff[jtype].z); // dirdamp[jtype]
         if (pgamma != (numtyp)0.0) {
-          //damp = pgamma * ucl_powr(r/damp,(numtyp)1.5);
           numtyp tmp = r*ucl_recip(damp);
           damp = pgamma * ucl_sqrt(tmp*tmp*tmp);
           if (damp < (numtyp)50.0) {
@@ -860,7 +832,6 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
           }
         } else {
           pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
-          //damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
           numtyp tmp = r*ucl_recip(damp);
           damp = pgamma * (tmp*tmp*tmp);
           if (damp < (numtyp)50.0) {
@@ -930,7 +901,6 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
-  //local_allocate_store_charge();
 
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
@@ -938,8 +908,6 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
   numtyp4* polar4 = (numtyp4*)(&extra[12*nall]);
   numtyp4* polar5 = (numtyp4*)(&extra[16*nall]);
-
-  //numtyp4 xi__;
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -1011,11 +979,6 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[4];
-      /*
-      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
-      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      bn[0] = _erfc * rinv;
-      */
       bn[0] = ucl_erfc(ralpha) * rinv;
 
       numtyp aefac = aesq2n;
@@ -1054,9 +1017,6 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       tdipdip[3] = -bcn[0] + bcn[1]*yr*yr;
       tdipdip[4] = bcn[1]*yr*zr;
       tdipdip[5] = -bcn[0] + bcn[1]*zr*zr;
-      //if (i==0 && j == 10)
-      //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
-      //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);
 
       numtyp fid[3];
       fid[0] = tdipdip[0]*ukx + tdipdip[1]*uky + tdipdip[2]*ukz;
@@ -1132,8 +1092,6 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   numtyp4* polar4 = (numtyp4*)(&extra[12*nall]);
   numtyp4* polar5 = (numtyp4*)(&extra[16*nall]);
 
-  //numtyp4 xi__;
-
   if (ii<inum) {
     int itype,igroup;
     numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
@@ -1177,9 +1135,6 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
     uiyp = pol5i.y;   // uinp[i][1];
     uizp = pol5i.z;   // uinp[i][2];
 
-    // debug:
-    // xi__ = ix; xi__.w = itype;
-
     numtyp pdi = coeff[itype].x;
     numtyp pti = coeff[itype].y;
 
@@ -1189,16 +1144,12 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       int j = jextra & NEIGHMASK15;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      //int jtype=jx.w;
 
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
-
-      //if (r2>off2) continue;
-
       numtyp r = ucl_sqrt(r2);
 
       const numtyp4 pol1j = polar1[j];
@@ -1249,7 +1200,6 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp qkz = qkxz*xr + qkyz*yr + qkzz*zr;
       numtyp qkr = qkx*xr + qky*yr + qkz*zr;
       numtyp uir = uix*xr + uiy*yr + uiz*zr;
-      //numtyp uirp = uixp*xr + uiyp*yr + uizp*zr;
       numtyp ukr = ukx*xr + uky*yr + ukz*zr;
       numtyp ukrp = ukxp*xr + ukyp*yr + ukzp*zr;
 
@@ -1280,15 +1230,9 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp drc3[3],drc5[3],drc7[3];
       numtyp urc3[3],urc5[3];
     
-
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[5];
-      /*
-      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
-      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
-      bn[0] = _erfc * rinv;
-      */
       bn[0] = ucl_erfc(ralpha) * rinv;
 
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
@@ -1318,7 +1262,6 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
       if (damp != (numtyp)0.0) {
         numtyp pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
-        //damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
         numtyp tmp = r*ucl_recip(damp);
         damp = pgamma * (tmp*tmp*tmp);
         if (damp < (numtyp)50.0) {
@@ -1614,9 +1557,6 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   // accumulate ufld and dufld to compute tep
   store_answers_tep(ufld,dufld,ii,inum,tid,t_per_atom,offset,i,tep);
 
-  // accumate force, energy and virial
-  //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-  //     offset,eflag,vflag,ans,engv);
   store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
@@ -1746,17 +1686,6 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
 
         int i = (igridx - nxlo_out) - nlpts;
         for (int ib = 0; ib < bsorder; ib++) {
-          /*
-          tq_1 = grid[k][j][i][0];
-          tq_2 = grid[k][j][i][1];
-          t0_1 += tq_1*thetai1[m][ib][0];
-          t1_1 += tq_1*thetai1[m][ib][1];
-          t2_1 += tq_1*thetai1[m][ib][2];
-          t0_2 += tq_2*thetai1[m][ib][0];
-          t1_2 += tq_2*thetai1[m][ib][1];
-          t2_2 += tq_2*thetai1[m][ib][2];
-          t3 += (tq_1+tq_2)*thetai1[m][ib][3];
-          */
           const int i1 = istart + ib;
           const numtyp4 tha1 = thetai1[i1];
           const int gidx = my + i; // k*ngridxy + j*ngridx + i;
@@ -1963,12 +1892,6 @@ __kernel void k_amoeba_fphi_mpole(const __global numtyp4 *restrict thetai1,
 
     int k = (igridz - nzlo_out) - nlpts;
     for (int kb = 0; kb < bsorder; kb++) {
-      /*
-      v0 = thetai3[m][kb][0];
-      v1 = thetai3[m][kb][1];
-      v2 = thetai3[m][kb][2];
-      v3 = thetai3[m][kb][3];
-      */
       int i3 = istart + kb;
       numtyp4 tha3 = thetai3[i3];
       numtyp v0 = tha3.x;
@@ -1988,12 +1911,6 @@ __kernel void k_amoeba_fphi_mpole(const __global numtyp4 *restrict thetai1,
 
       int j = (igridy - nylo_out) - nlpts;
       for (int jb = 0; jb < bsorder; jb++) {
-        /*
-        u0 = thetai2[m][jb][0];
-        u1 = thetai2[m][jb][1];
-        u2 = thetai2[m][jb][2];
-        u3 = thetai2[m][jb][3];
-        */
         int i2 = istart + jb;
         numtyp4 tha2 = thetai2[i2];
         numtyp u0 = tha2.x;

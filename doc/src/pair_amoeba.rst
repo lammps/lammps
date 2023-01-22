@@ -200,6 +200,11 @@ These pair styles can only be used via the *pair* keyword of the
 
 .. include:: accel_styles.rst
 
+.. note::
+
+  There is a unresolved issue with the `amoeba/gpu` and `hippo/gpu`
+  pair styles with the OpenCL build when running on integrated GPUs.
+
 ----------
 
 Restrictions

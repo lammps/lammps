@@ -361,7 +361,7 @@ void PPPMDisp::init()
   if (function[0]) qsum_qsq();
 
   // if kspace is TIP4P, extract TIP4P params from pair style
-  // bond/angle are not yet init(), so insure equilibrium request is valid
+  // bond/angle are not yet init(), so ensure equilibrium request is valid
 
   qdist = 0.0;
 

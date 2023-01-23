@@ -118,7 +118,7 @@ molecule (header keyword = inertia).
    so you do not overflow those pre-allocated data structures when adding
    molecules later.  Both the :doc:`create_box <create_box>` command and
    the :doc:`read_data <read_data>` command have "extra" options which
-   insure space is allocated for storing topology info for molecules that
+   ensure space is allocated for storing topology info for molecules that
    are added later.
 
 The format of an individual molecule file is similar but

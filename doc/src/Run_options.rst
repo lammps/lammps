@@ -362,10 +362,10 @@ Reorder the processors in the MPI communicator used to instantiate
 LAMMPS, in one of several ways.  The original MPI communicator ranks
 all P processors from 0 to P-1.  The mapping of these ranks to
 physical processors is done by MPI before LAMMPS begins.  It may be
-useful in some cases to alter the rank order.  E.g. to insure that
+useful in some cases to alter the rank order.  E.g. to ensure that
 cores within each node are ranked in a desired order.  Or when using
 the :doc:`run_style verlet/split <run_style>` command with 2 partitions
-to insure that a specific Kspace processor (in the second partition) is
+to ensure that a specific Kspace processor (in the second partition) is
 matched up with a specific set of processors in the first partition.
 See the :doc:`General tips <Speed_tips>` page for more details.
 
@@ -398,7 +398,7 @@ so that the processors in each partition will be
    0 1 2 4 5 6 8 9 10
    3 7 11
 
-See the "processors" command for how to insure processors from each
+See the "processors" command for how to ensure processors from each
 partition could then be grouped optimally for quad-core nodes.
 
 If the keyword is *custom*, then a file that specifies a permutation

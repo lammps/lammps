@@ -179,7 +179,7 @@ void FixBalance::setup_pre_exchange()
   if (update->ntimestep == lastbalance) return;
   lastbalance = update->ntimestep;
 
-  // insure atoms are in current box & update box via shrink-wrap
+  // ensure atoms are in current box & update box via shrink-wrap
   // has to be be done before rebalance() invokes Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
   //   even though pbc() will be done again in Verlet::run()
@@ -217,7 +217,7 @@ void FixBalance::pre_exchange()
   if (update->ntimestep == lastbalance) return;
   lastbalance = update->ntimestep;
 
-  // insure atoms are in current box & update box via shrink-wrap
+  // ensure atoms are in current box & update box via shrink-wrap
   // no exchange() since doesn't matter if atoms are assigned to correct procs
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);

@@ -655,7 +655,7 @@ void DumpImage::write()
       ngrid = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) * (nzhi_in-nzlo_in+1);
     }
 
-    // insure gbuf is large enough
+    // ensure gbuf is large enough
 
     if (ngrid > maxgrid) {
       memory->destroy(gbuf);

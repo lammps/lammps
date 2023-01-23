@@ -163,7 +163,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
 
   copymode = 1;
 
-  // insure distsq and nearest arrays are long enough
+  // ensure distsq and nearest arrays are long enough
 
   maxneigh = 0;
   Kokkos::parallel_reduce("ComputeOrientOrderAtomKokkos::find_max_neighs",inum, FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Max<int>(maxneigh));

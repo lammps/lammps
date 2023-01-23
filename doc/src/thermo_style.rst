@@ -334,7 +334,7 @@ the number of re-builds that LAMMPS considered potentially
 the :doc:`neigh_modify <neigh_modify>` command), then dangerous
 reneighborings are those that were triggered on the first timestep
 atom movement was checked for.  If this count is non-zero you may wish
-to reduce the delay factor to insure no force interactions are missed
+to reduce the delay factor to ensure no force interactions are missed
 by atoms moving beyond the neighbor skin distance before a rebuild
 takes place.
 

@@ -372,9 +372,9 @@ void CreateAtoms::command(int narg, char **arg)
   //   should create exactly 1 atom when 2 images are both "on" the boundary
   //   either image may be slightly inside/outside true box due to round-off
   //   if I am lo proc, decrement lower bound by EPSILON
-  //     this will insure lo image is created
+  //     this will ensure lo image is created
   //   if I am hi proc, decrement upper bound by 2.0*EPSILON
-  //     this will insure hi image is not created
+  //     this will ensure hi image is not created
   //   thus insertion box is EPSILON smaller than true box
   //     and is shifted away from true boundary
   //     which is where atoms are likely to be generated

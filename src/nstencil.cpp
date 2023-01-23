@@ -206,8 +206,8 @@ void NStencil::copy_bin_info_multi()
 }
 
 /* ----------------------------------------------------------------------
-   insure NBin data is current
-   insure stencils are allocated large enough
+   ensure NBin data is current
+   ensure stencils are allocated large enough
 ------------------------------------------------------------------------- */
 
 void NStencil::create_setup()

@@ -38,7 +38,7 @@ pairwise forces are not otherwise needed.  Examples are the :doc:`fix bond/creat
 :doc:`compute voronoi/atom <compute_voronoi_atom>` commands.
 
 Note that the :doc:`comm_modify cutoff <comm_modify>` command can be
-used to insure communication of ghost atoms even when a pair style is
+used to ensure communication of ghost atoms even when a pair style is
 not defined, but it will not trigger neighbor list generation.
 
 The optional *nocoeff* flag allows to read data files with a PairCoeff

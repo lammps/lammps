@@ -689,7 +689,7 @@ double PairGranHookeHistory::single(int i, int j, int /*itype*/, int /*jtype*/, 
   mi = rmass[i];
   mj = rmass[j];
   if (fix_rigid) {
-    // NOTE: insure mass_rigid is current for owned+ghost atoms?
+    // NOTE: ensure mass_rigid is current for owned+ghost atoms?
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
     if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }

@@ -299,7 +299,7 @@ void Output::setup(int memflag)
   if (memflag) memory_usage();
 
    // set next_thermo to multiple of every or variable eval if var defined
-   // insure thermo output on last step of run
+   // ensure thermo output on last step of run
    // thermo may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
@@ -431,7 +431,7 @@ void Output::write(bigint ntimestep)
     next_restart = MIN(next_restart_single,next_restart_double);
   }
 
-  // insure next_thermo forces output on last step of run
+  // ensure next_thermo forces output on last step of run
   // thermo may invoke computes so wrap with clear/add
 
   if (next_thermo == ntimestep) {

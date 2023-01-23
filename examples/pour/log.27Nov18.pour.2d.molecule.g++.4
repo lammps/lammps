@@ -44,7 +44,7 @@ fix             3 all rigid/small molecule mol object
 0 rigid bodies with 0 atoms
   2.23607 = max distance from body owner to body atom
 
-# insure region size + molecule size does not overlap wall
+# ensure region size + molecule size does not overlap wall
 
 region          slab block 3.0 97.0 30 34.5 -0.5 0.5 units box
 fix             ins all pour 500 0 4767548 vol 0.8 10 	        region slab mol object rigid 3

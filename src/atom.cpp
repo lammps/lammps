@@ -1065,7 +1065,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   *next = '\n';
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
-  // insures all data atoms will be owned even with round-off
+  // ensures all data atoms will be owned even with round-off
 
   int triclinic = domain->triclinic;
 
@@ -2201,7 +2201,7 @@ void Atom::add_label_map()
 
 void Atom::first_reorder()
 {
-  // insure there is one extra atom location at end of arrays for swaps
+  // ensure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 
@@ -2252,7 +2252,7 @@ void Atom::sort()
     memory->create(permute,maxnext,"atom:permute");
   }
 
-  // insure there is one extra atom location at end of arrays for swaps
+  // ensure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 

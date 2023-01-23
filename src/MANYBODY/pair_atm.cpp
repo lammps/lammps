@@ -105,7 +105,7 @@ void PairATM::compute(int eflag, int vflag)
   // must compute each IJK triplet interaction exactly once
   // by proc that owns the triplet atom with smallest x coord
   //   special logic to break ties if multiple atoms have same x or y coords
-  // inner two loops for jj=1,Jnum and kk=jj+1,Jnum insure
+  // inner two loops for jj=1,Jnum and kk=jj+1,Jnum ensure
   //   the pair of other 2 non-minimum-x atoms is only considered once
   // triplet geometry criteria for calculation:
   //   each pair distance <= cutoff

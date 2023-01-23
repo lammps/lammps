@@ -316,7 +316,7 @@ to be part of rigid bodies.
 
    To compute the initial center-of-mass position and other
    properties of each rigid body, the image flags for each atom in the
-   body are used to "unwrap" the atom coordinates.  Thus you must insure
+   body are used to "unwrap" the atom coordinates.  Thus you must ensure
    that these image flags are consistent so that the unwrapping creates a
    valid rigid body (one where the atoms are close together),
    particularly if the atoms in a single rigid body straddle a periodic
@@ -337,7 +337,7 @@ This may be useful if you wish a body to rotate but not translate, or
 vice versa, or if you wish it to rotate or translate continuously
 unaffected by interactions with other particles.  Note that if you
 expect a rigid body not to move or rotate by using these keywords, you
-must insure its initial center-of-mass translational or angular
+must ensure its initial center-of-mass translational or angular
 velocity is 0.0.  Otherwise the initial translational or angular
 momentum the body has will persist.
 
@@ -868,7 +868,7 @@ possible to compute the target temperature correctly.  Second, the
 assigned velocities may be partially canceled when constraints are
 first enforced, leading to a different temperature than desired.  A
 workaround for this is to perform a :doc:`run 0 <run>` command, which
-insures all DOFs are accounted for properly, and then rescale the
+ensures all DOFs are accounted for properly, and then rescale the
 temperature to the desired value before performing a simulation.  For
 example:
 

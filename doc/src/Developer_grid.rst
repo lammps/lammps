@@ -533,7 +533,7 @@ processor's ghost cells extend further than nearest neighbor
 processors.
 
 This can be checked by callers who have the option to change the
-global grid size to insure more efficient nearest-neighbor-only
+global grid size to ensure more efficient nearest-neighbor-only
 communication if they wish.  In this case, they instantiate a grid of
 a given size (resolution), then invoke *setup_comm()* followed by
 *ghost_adjacent()*.  If the ghost cells are not adjacent, they destroy
@@ -784,7 +784,7 @@ The *get_grid_by_index()* method is called after the
 *get_grid_by_name()* method, using the grid index it returned as its
 argument.  This method will return a pointer to the Grid2d or Grid3d
 class.  The caller can use this to query grid attributes, such as the
-global size of the grid.  The :doc:`dump grid <dump>` to insure each
+global size of the grid.  The :doc:`dump grid <dump>` to ensure each
 its grid reference arguments are for grids of the same size.
 
 The *get_griddata_by_name()* method takes a grid index *igrid* and a

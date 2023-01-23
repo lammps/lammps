@@ -140,14 +140,14 @@ molecules to the system (see the :doc:`fix pour <fix_pour>`, :doc:`fix
 deposit <fix_deposit>`, and :doc:`fix gcmc <fix_gcmc>` commands) or
 expect atoms or molecules to be lost (e.g. due to exiting the
 simulation box or via :doc:`fix evaporate <fix_evaporate>`), then this
-option should be used to insure the temperature is correctly
+option should be used to ensure the temperature is correctly
 normalized.
 
 .. note::
 
    Other thermostatting fixes, such as :doc:`fix nvt <fix_nh>`, do
    not use the *dynamic/dof* keyword because they use a temperature
-   compute to calculate temperature.  See the :doc:`compute_modify dynamic/dof <compute_modify>` command for a similar way to insure
+   compute to calculate temperature.  See the :doc:`compute_modify dynamic/dof <compute_modify>` command for a similar way to ensure
    correct temperature normalization for those thermostats.
 
 The *bodyforces* keyword determines whether the forces and torques

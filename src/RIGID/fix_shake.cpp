@@ -426,7 +426,7 @@ void FixShake::init()
     MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_MAX,world);
     if (flag_all) error->all(FLERR,"Fix {} angles have different bond types", style);
 
-    // insure all procs have bond types
+    // ensure all procs have bond types
 
     MPI_Allreduce(&bond1_type,&flag_all,1,MPI_INT,MPI_MAX,world);
     bond1_type = flag_all;

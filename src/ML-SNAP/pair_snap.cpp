@@ -126,7 +126,7 @@ void PairSNAP::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     snaptr->grow_rij(jnum);
 
@@ -299,7 +299,7 @@ void PairSNAP::compute_bispectrum()
     jlist = list->firstneigh[i];
     jnum = list->numneigh[i];
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     snaptr->grow_rij(jnum);
 

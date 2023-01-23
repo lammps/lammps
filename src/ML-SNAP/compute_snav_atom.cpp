@@ -289,7 +289,7 @@ void ComputeSNAVAtom::compute_peratom()
 
       const int typeoffset = 6*nvalues*(atom->type[i]-1);
 
-      // insure rij, inside, and typej  are of size jnum
+      // ensure rij, inside, and typej  are of size jnum
 
       snaptr->grow_rij(jnum);
 

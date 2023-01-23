@@ -165,7 +165,7 @@ void PairLJSPICACoulLongGPU::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr) error->all(FLERR, "Pair style is incompatible with KSpace style");
   g_ewald = force->kspace->g_ewald;

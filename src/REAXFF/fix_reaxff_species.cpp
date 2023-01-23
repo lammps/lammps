@@ -64,8 +64,6 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     x0(nullptr), BOCut(nullptr), fp(nullptr), pos(nullptr), fdel(nullptr), ele(nullptr),
     eletype(nullptr), filepos(nullptr), filedel(nullptr)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_reaxff_species_delete);
-
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix reaxff/species", error);
 
   force_reneighbor = 1;
@@ -283,6 +281,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "Incompatible combination fix reaxff/species command options");
 
   if (delete_Nlimit > 0) {
+    if (lmp->citeme) lmp->citeme->add(cite_reaxff_species_delete);
     memory->create(delete_Tcount,delete_Nsteps,"reaxff/species:delete_Tcount");
 
     for (int i = 0; i < delete_Nsteps; i++)

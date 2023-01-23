@@ -2206,7 +2206,7 @@ packages, which have styles optimized for CPUs.
    See src/MAKE/OPTIONS/Makefile.omp for an example.
 
 Once you have an appropriate Makefile.machine, you can
-install/un-install the package and build LAMMPS in the usual manner:
+install/uninstall the package and build LAMMPS in the usual manner:
 
 **Install:**
 

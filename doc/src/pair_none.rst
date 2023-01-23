@@ -31,7 +31,7 @@ and the neighbor skin distance (see the documentation of the
 <comm_modify>` command).  When you have bonds, angles, dihedrals, or
 impropers defined at the same time, you must set the communication
 cutoff so that communication cutoff distance is large enough to acquire
-and communicate sufficient ghost atoms from neighboring sub-domains as
+and communicate sufficient ghost atoms from neighboring subdomains as
 needed for computing bonds, angles, etc.
 
 A pair style of *none* will also not request a pairwise neighbor list.

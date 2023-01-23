@@ -27,7 +27,7 @@ General features
 * distributed memory message-passing parallelism (MPI)
 * shared memory multi-threading parallelism (OpenMP)
 * spatial decomposition of simulation domain for MPI parallelism
-* particle decomposition inside of spatial decomposition for OpenMP and GPU parallelism
+* particle decomposition inside spatial decomposition for OpenMP and GPU parallelism
 * GPLv2 licensed open-source distribution
 * highly portable C++-11
 * modular code with most functionality in optional packages
@@ -39,8 +39,11 @@ General features
 * syntax for defining and using variables and formulas
 * syntax for looping over runs and breaking out of loops
 * run one or multiple simulations simultaneously (in parallel) from one script
-* build as library, invoke LAMMPS through library interface or provided Python wrapper or SWIG based wrappers
-* couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both
+* build as library, invoke LAMMPS through library interface (from C, C++, Fortran) or provided Python wrapper or SWIG based wrappers
+* couple with other codes: LAMMPS calls other code, other code calls LAMMPS, umbrella code calls both, MDI coupling interface
+* call out to Python for computing forces, time integration, or other tasks
+* plugin interface for loading external features at runtime
+* large integrated collection of tests
 
 .. _particle:
 
@@ -54,6 +57,7 @@ Particle and model types
 * united-atom polymers or organic molecules
 * all-atom polymers, organic molecules, proteins, DNA
 * metals
+* metal oxides
 * granular materials
 * coarse-grained mesoscale models
 * finite-size spherical and ellipsoidal particles
@@ -74,27 +78,28 @@ Interatomic potentials (force fields)
 :doc:`improper style <improper_style>`, :doc:`kspace style <kspace_style>`
 commands)
 
-* pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, Yukawa, soft, class 2 (COMPASS), hydrogen bond, tabulated
+* pairwise potentials: Lennard-Jones, Buckingham, Morse, Born-Mayer-Huggins, Yukawa, soft, Class II (COMPASS), hydrogen bond, harmonic, gaussian, tabulated, scripted
 * charged pairwise potentials: Coulombic, point-dipole
-* many-body potentials: EAM, Finnis/Sinclair EAM, modified EAM (MEAM), embedded ion method (EIM), EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB, Streitz-Mintmire, 3-body polymorphic, BOP, Vashishta
-* machine learning potentials: SNAP, GAP, ACE, N2P2, RANN, AGNI
-* long-range interactions for charge, point-dipoles, and LJ dispersion:  Ewald, Wolf, PPPM (similar to particle-mesh Ewald), MSM
-* polarization models: :doc:`QEq <fix_qeq>`,     :doc:`core/shell model <Howto_coreshell>`,     :doc:`Drude dipole model <Howto_drude>`
+* many-body potentials: EAM, Finnis/Sinclair, MEAM, MEAM+SW, EIM, EDIP, ADP, Stillinger-Weber, Tersoff, REBO, AIREBO, ReaxFF, COMB, Streitz-Mintmire, 3-body polymorphic, BOP, Vashishta
+* machine learning potentials: ACE, AGNI, GAP, Behler-Parrinello (N2P2), POD, RANN
+* interfaces to ML potentials distributed by external groups: ANI, ChIMES, DeepPot, HIPNN, MTP
+* long-range interactions for charge, point-dipoles, and LJ dispersion:  Ewald, Wolf, PPPM (similar to particle-mesh Ewald), MSM, ScaFaCoS
+* polarization models: :doc:`QEq <fix_qeq>`, :doc:`core/shell model <Howto_coreshell>`, :doc:`Drude dipole model <Howto_drude>`
 * charge equilibration (QEq via dynamic, point, shielded, Slater methods)
-* coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO
+* coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO, oxDNA / oxRNA, SPICA
 * mesoscopic potentials: granular, Peridynamics, SPH, mesoscopic tubular potential (MESONT)
 * semi-empirical potentials: multi-ion generalized pseudopotential theory (MGPT), second moment tight binding + QEq (SMTB-Q), density functional tight-binding (LATTE)
 * electron force field (eFF, AWPMD)
-* bond potentials: harmonic, FENE, Morse, nonlinear, class 2, quartic (breakable), tabulated
-* angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, class 2 (COMPASS), tabulated
-* dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, class 2 (COMPASS), OPLS, tabulated
-* improper potentials: harmonic, cvff, umbrella, class 2 (COMPASS), tabulated
+* bond potentials: harmonic, FENE, Morse, nonlinear, Class II (COMPASS), quartic (breakable), tabulated, scripted
+* angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, Class II (COMPASS), tabulated, scripted
+* dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, Class II (COMPASS), OPLS, tabulated, scripted
+* improper potentials: harmonic, cvff, umbrella, Class II (COMPASS), tabulated
 * polymer potentials: all-atom, united-atom, bead-spring, breakable
 * water potentials: TIP3P, TIP4P, SPC, SPC/E and variants
-* interlayer potentials for graphene and analogues
+* interlayer potentials for graphene and analogues, hetero-junctions
 * metal-organic framework potentials (QuickFF, MO-FF)
 * implicit solvent potentials: hydrodynamic lubrication, Debye
-* force-field compatibility with common CHARMM, AMBER, DREIDING, OPLS, GROMACS, COMPASS options
+* force-field compatibility with CHARMM, AMBER, DREIDING, OPLS, GROMACS, Class II (COMPASS), UFF, ClayFF, DREIDING, AMOEBA, INTERFACE
 * access to the `OpenKIM Repository <https://openkim.org>`_ of potentials via the :doc:`kim command <kim_commands>`
 * hybrid potentials: multiple pair, bond, angle, dihedral, improper potentials can be used in one simulation
 * overlaid potentials: superposition of multiple pair potentials (including many-body) with optional scale factor
@@ -108,7 +113,7 @@ Atom creation
 :doc:`create_atoms <create_atoms>`, :doc:`delete_atoms <delete_atoms>`,
 :doc:`displace_atoms <displace_atoms>`, :doc:`replicate <replicate>` commands)
 
-* read in atom coords from files
+* read in atom coordinates from files
 * create atoms on one or more lattices (e.g. grain boundaries)
 * delete geometric or logical groups of atoms (e.g. voids)
 * replicate existing atoms multiple times
@@ -129,7 +134,7 @@ Ensembles, constraints, and boundary conditions
 * simulation box deformation (tensile and shear)
 * harmonic (umbrella) constraint forces
 * rigid body constraints
-* SHAKE bond and angle constraints
+* SHAKE / RATTLE bond and angle constraints
 * motion constraints to manifold surfaces
 * Monte Carlo bond breaking, formation, swapping, template based reaction modeling
 * atom/molecule insertion and deletion
@@ -147,8 +152,9 @@ Integrators
 * velocity-Verlet integrator
 * Brownian dynamics
 * rigid body integration
-* energy minimization via conjugate gradient or steepest descent relaxation
+* energy minimization via conjugate gradient, steepest descent relaxation, or damped dynamics (FIRE, Quickmin)
 * rRESPA hierarchical timestepping
+* fixed or adaptive time step
 * rerun command for post-processing of dump files
 
 .. _diag:
@@ -167,15 +173,17 @@ Output
 (:doc:`dump <dump>`, :doc:`restart <restart>` commands)
 
 * log file of thermodynamic info
-* text dump files of atom coords, velocities, other per-atom quantities
+* text dump files of atom coordinates, velocities, other per-atom quantities
+* dump output on fixed and variable intervals, based timestep or simulated time
 * binary restart files
 * parallel I/O of dump and restart files
-* per-atom quantities (energy, stress, centro-symmetry parameter, CNA, etc)
+* per-atom quantities (energy, stress, centro-symmetry parameter, CNA, etc.)
 * user-defined system-wide (log file) or per-atom (dump file) calculations
 * custom partitioning (chunks) for binning, and static or dynamic grouping of atoms for analysis
 * spatial, time, and per-chunk averaging of per-atom quantities
 * time averaging and histogramming of system-wide quantities
-* atom snapshots in native, XYZ, XTC, DCD, CFG formats
+* atom snapshots in native, XYZ, XTC, DCD, CFG, NetCDF, HDF5, ADIOS2, YAML formats
+* on-the-fly compression of output and decompression of read in files
 
 .. _replica1:
 
@@ -212,8 +220,8 @@ Pre- and post-processing
 Specialized features
 ^^^^^^^^^^^^^^^^^^^^
 
-LAMMPS can be built with optional packages which implement a variety
-of additional capabilities.  See the :doc:`Optional Packages <Packages>`
+LAMMPS can be built with optional packages which implement a variety of
+additional capabilities.  See the :doc:`Optional Packages <Packages>`
 page for details.
 
 These are LAMMPS capabilities which you may not think of as typical

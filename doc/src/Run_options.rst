@@ -324,7 +324,7 @@ writes log information to file.N. If file is none, then no partition
 log files are created.  This overrides the filename specified in the
 -log command-line option.  This option is useful when working with
 large numbers of partitions, allowing the partition log files to be
-suppressed (-plog none) or placed in a sub-directory (-plog
+suppressed (-plog none) or placed in a subdirectory (-plog
 replica_files/log.lammps) If this option is not used the log file for
 partition N is log.lammps.N or whatever is specified by the -log
 command-line option.
@@ -341,7 +341,7 @@ partition screen files are created.  This overrides the filename
 specified in the -screen command-line option.  This option is useful
 when working with large numbers of partitions, allowing the partition
 screen files to be suppressed (-pscreen none) or placed in a
-sub-directory (-pscreen replica_files/screen).  If this option is not
+subdirectory (-pscreen replica_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
 specified by the -screen command-line option.
 

@@ -11,7 +11,7 @@ more values (data).
 
 The grid cells and data they store are distributed across processors.
 Each processor owns the grid cells (and data) whose center points lie
-within the spatial sub-domain of the processor.  If needed for its
+within the spatial subdomain of the processor.  If needed for its
 computations, a processor may also store ghost grid cells with their
 data.
 
@@ -28,7 +28,7 @@ box size, as set by the :doc:`boundary <boundary>` command for fixed
 or shrink-wrapped boundaries.
 
 If load-balancing is invoked by the :doc:`balance <balance>` or
-:doc:`fix balance <fix_balance>` commands, then the sub-domain owned
+:doc:`fix balance <fix_balance>` commands, then the subdomain owned
 by a processor can change which may also change which grid cells they
 own.
 

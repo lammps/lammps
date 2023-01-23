@@ -139,7 +139,7 @@ Periodic boundary conditions are then applied by the Domain class via
 its ``pbc()`` method to remap particles that have moved outside the
 simulation box back into the box.  Note that this is not done every
 timestep, but only when neighbor lists are rebuilt.  This is so that
-each processor's sub-domain will have consistent (nearby) atom
+each processor's subdomain will have consistent (nearby) atom
 coordinates for its owned and ghost atoms.  It is also why dumped atom
 coordinates may be slightly outside the simulation box if not dumped
 on a step where the neighbor lists are rebuilt.
@@ -153,10 +153,10 @@ method of the Comm class and ``setup_bins()`` method of the Neighbor
 class perform the update.
 
 The code is now ready to migrate atoms that have left a processor's
-geometric sub-domain to new processors.  The ``exchange()`` method of
+geometric subdomain to new processors.  The ``exchange()`` method of
 the Comm class performs this operation.  The ``borders()`` method of the
 Comm class then identifies ghost atoms surrounding each processor's
-sub-domain and communicates ghost atom information to neighboring
+subdomain and communicates ghost atom information to neighboring
 processors.  It does this by looping over all the atoms owned by a
 processor to make lists of those to send to each neighbor processor.  On
 subsequent timesteps, the lists are used by the ``Comm::forward_comm()``

@@ -23,7 +23,7 @@ against invalid accesses.
    When accessing per-atom data,
    please note that this data is the per-processor local data and indexed
    accordingly. These arrays can change sizes and order at every neighbor list
-   rebuild and atom sort event as atoms are migrating between sub-domains.
+   rebuild and atom sort event as atoms are migrating between subdomains.
 
 .. tabs::
 

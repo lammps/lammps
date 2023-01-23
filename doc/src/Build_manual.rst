@@ -2,7 +2,7 @@ Build the LAMMPS documentation
 ==============================
 
 Depending on how you obtained LAMMPS and whether you have built the
-manual yourself, this directory has a number of sub-directories and
+manual yourself, this directory has a number of subdirectories and
 files. Here is a list with descriptions:
 
 .. code-block:: bash

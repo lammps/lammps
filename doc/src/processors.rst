@@ -134,8 +134,8 @@ processors to the grid is determined by the *map* keyword setting.
 
 The *twolevel* style can be used on machines with multicore nodes to
 minimize off-node communication.  It insures that contiguous
-sub-sections of the 3d grid are assigned to all the cores of a node.
-For example if *Nc* is 4, then 2x2x1 or 2x1x2 or 1x2x2 sub-sections of
+subsections of the 3d grid are assigned to all the cores of a node.
+For example if *Nc* is 4, then 2x2x1 or 2x1x2 or 1x2x2 subsections of
 the 3d grid will correspond to the cores of each node.  This affects
 both the factorization and mapping steps.
 

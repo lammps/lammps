@@ -350,7 +350,7 @@ particles in that sub-box.
 
 .. _weighted_balance:
 
-This sub-section describes how to perform weighted load balancing
+This subsection describes how to perform weighted load balancing
 using the *weight* keyword.
 
 By default, all particles have a weight of 1.0, which means each

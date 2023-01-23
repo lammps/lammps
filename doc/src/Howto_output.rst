@@ -26,7 +26,7 @@ discussion, note that users can also :doc:`add their own computes and
 fixes to LAMMPS <Modify>` which can then generate values that can then
 be output with these commands.
 
-The following sub-sections discuss different LAMMPS commands related
+The following subsections discuss different LAMMPS commands related
 to output and the kind of data they operate on and produce:
 
 * :ref:`Global/per-atom/local/per-grid data <global>`

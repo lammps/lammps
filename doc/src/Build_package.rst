@@ -7,10 +7,11 @@ rigid-body constraints are in packages.  In the src directory, each
 package is a subdirectory with the package name in capital letters.
 
 An overview of packages is given on the :doc:`Packages <Packages>` doc
-page.  Brief overviews of each package are on the :doc:`Packages details <Packages_details>` page.
+page.  Brief overviews of each package are on the :doc:`Packages details
+<Packages_details>` page.
 
 When building LAMMPS, you can choose to include or exclude each
-package.  In general there is no need to include a package if you
+package.  Generally, there is no need to include a package if you
 never plan to use its features.
 
 If you get a run-time error that a LAMMPS command or style is
@@ -167,9 +168,9 @@ control flow constructs for more complex operations.
 
 LAMMPS includes several of these files to define configuration
 "presets", similar to the options that exist for the Make based
-system. Using these files you can enable/disable portions of the
-available packages in LAMMPS. If you need a custom preset you can take
-one of them as a starting point and customize it to your needs.
+system. Using these files, you can enable/disable portions of the
+available packages in LAMMPS. If you need a custom preset, you can
+make a copy of one of them and modify it to suit your needs.
 
 .. code-block:: bash
 
@@ -183,7 +184,7 @@ one of them as a starting point and customize it to your needs.
     cmake -C ../cmake/presets/pgi.cmake      [OPTIONS] ../cmake  # change settings to use the PGI compilers by default
     cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
-    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers
+    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross-compilers
 
 Presets that have names starting with "windows" are specifically for
 compiling LAMMPS :doc:`natively on Windows <Build_windows>` and
@@ -272,7 +273,7 @@ not installed.
 Type ``make package-update`` or ``make pu`` to overwrite src files with
 files from the package subdirectories if the package is installed.  It
 should be used after the checkout has been :doc:`updated or changed
-withy git <Install_git>`, this will only update the files in the package
+with git <Install_git>`, this will only update the files in the package
 subdirectories, but not the copies in the src folder.
 
 Type ``make package-overwrite`` to overwrite files in the package

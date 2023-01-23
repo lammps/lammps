@@ -63,9 +63,9 @@ software or for people that want to modify or extend LAMMPS.
 Getting started
 ^^^^^^^^^^^^^^^
 
-Building LAMMPS with CMake is a two-step process.  In the first step you
-use CMake to generate a build environment in a new directory.  For that
-purpose you can use either the command-line utility ``cmake`` (or
+Building LAMMPS with CMake is a two-step process.  In the first step,
+you use CMake to generate a build environment in a new directory.  For
+that purpose you can use either the command-line utility ``cmake`` (or
 ``cmake3``), the text-mode UI utility ``ccmake`` (or ``ccmake3``) or the
 graphical utility ``cmake-gui``, or use them interchangeably.  The
 second step is then the compilation and linking of all objects,

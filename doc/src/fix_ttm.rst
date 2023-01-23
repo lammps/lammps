@@ -86,7 +86,7 @@ Matter papers: :ref:`(Duffy) <Duffy>` and :ref:`(Rutherford)
 a primary knock-on atom (PKA) was initialized with a high velocity to
 simulate a radiation event.
 
-The description in this sub-section applies to all 3 fix styles:
+The description in this subsection applies to all 3 fix styles:
 *ttm*, *ttm/grid*, and *ttm/mod*.
 
 Fix *ttm/grid* distributes the regular grid across processors consistent

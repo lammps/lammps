@@ -93,7 +93,7 @@ With multiple threads/task, the optimal choice of number of MPI
 tasks/node and OpenMP threads/task can vary a lot and should always be
 tested via benchmark runs for a specific simulation running on a
 specific machine, paying attention to guidelines discussed in the next
-sub-section.
+subsection.
 
 A description of the multi-threading strategy used in the OPENMP
 package and some performance examples are

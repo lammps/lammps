@@ -73,12 +73,12 @@ clean-<machine>``.
 .. note::
 
    Before the actual compilation starts, LAMMPS will perform several
-   steps to collect information from the configuration and setup that
-   is then embedded into the executable.  When you build LAMMPS for
-   the first time, it will also compile a tool to quickly assemble
-   a list of dependencies, that are required for the make program to
-   correctly detect which parts need to be recompiled after changes
-   were made to the sources.
+   steps to collect information from the configuration and setup that is
+   then embedded into the executable.  When you build LAMMPS for the
+   first time, it will also compile a tool to quickly determine a list
+   of dependencies.  Those are required for the make program to
+   correctly detect, which files need to be recompiled or relinked
+   after changes were made to the sources.
 
 Customized builds and alternate makefiles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

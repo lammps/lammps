@@ -160,7 +160,7 @@ cells (the entire allocated grid).
 Grid class constructors
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The following sub-sections describe the public methods of the Grid3d
+The following subsections describe the public methods of the Grid3d
 class which a style command can invoke.  The Grid2d methods are
 similar; simply remove arguments which refer to the z-dimension.
 

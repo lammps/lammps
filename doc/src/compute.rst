@@ -254,7 +254,6 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`pair/local <compute_pair_local>` - distance/energy/force of each pairwise interaction
 * :doc:`pe <compute_pe>` - potential energy
 * :doc:`pe/atom <compute_pe_atom>` - potential energy for each atom
-* :doc:`mesont <compute_mesont>` - Nanotube bending,stretching, and intertube energies
 * :doc:`pe/mol/tally <compute_tally>` - potential energy between two groups of atoms separated into intermolecular and intramolecular components via the tally callback mechanism
 * :doc:`pe/tally <compute_tally>` - potential energy between two groups of atoms via the tally callback mechanism
 * :doc:`plasticity/atom <compute_plasticity_atom>` - Peridynamic plasticity for each atom

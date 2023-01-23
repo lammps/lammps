@@ -1371,7 +1371,7 @@ void PairMesoCNT::chain_split(int *redlist, int numred, int *nchain, int **chain
 
   tagint *tag = atom->tag;
   tagint *mol = atom->molecule;
-  tagint *type = atom->type;
+  int *type = atom->type;
   int clen = 0;
   int cid = 0;
 

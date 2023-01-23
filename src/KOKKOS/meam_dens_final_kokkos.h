@@ -36,6 +36,7 @@ MEAMKokkos<DeviceType>::meam_dens_final(int nlocal, int eflag_either, int eflag_
 
   Kokkos::deep_copy(d_errorflag,0);
 
+  printf("- inside meam_dens_final\n");
   // Complete the calculation of density
 
   copymode = 1;
@@ -57,11 +58,20 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
   F_FLOAT denom, rho_bkgd, Fl;
   double scaleii;
 
+  printf("- inside TagMEAMDensFinal msmeamflag=%d i=%d\n", msmeamflag, i);
+
   int elti = d_map[type[i]];
   if (elti >= 0) {
     scaleii = d_scale(type[i],type[i]);
     d_rho1[i] = 0.0;
-    d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
+    //printf("%f\n", arho1m[i][0]);
+    //printf("%f\n", arho2mb[i]);
+    //if (msmeamflag){
+    //  d_rho2[i] = -1.0 / 3.0 * (arho2b[i] * arho2b[i]
+    //                          - arho2mb[i] * arho2mb[i]);
+    //} else{
+      d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
+    //}
     d_rho3[i] = 0.0;
     for (int m = 0; m < 3; m++) {
       d_rho1[i] += d_arho1(i,m) * d_arho1(i,m);

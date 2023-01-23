@@ -1557,6 +1557,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   // accumulate ufld and dufld to compute tep
   store_answers_tep(ufld,dufld,ii,inum,tid,t_per_atom,offset,i,tep);
 
+  // accumate force, energy and virial
   store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
@@ -1833,7 +1834,6 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
     }
   }
 }
-
 
 /* ----------------------------------------------------------------------
    fphi_mpole = multipole potential from grid

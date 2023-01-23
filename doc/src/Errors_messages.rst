@@ -7231,7 +7231,7 @@ keyword to allow for additional bonds to be formed
 
 *Replacing a fix, but new style != old style*
    A fix ID can be used a second time, but only if the style matches the
-   previous fix.  In this case it is assumed you with to reset a fix's
+   previous fix.  In this case it is assumed you want to reset a fix's
    parameters.  This error may mean you are mistakenly re-using a fix ID
    when you do not intend to.
 

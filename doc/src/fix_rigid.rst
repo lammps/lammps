@@ -702,9 +702,10 @@ also accounted for by this fix.
 
 ----------
 
-If your simulation is a hybrid model with a mixture of rigid bodies
-and non-rigid particles (e.g. solvent) there are several ways these
-rigid fixes can be used in tandem with :doc:`fix nve <fix_nve>`, :doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, and :doc:`fix nph <fix_nh>`.
+If your simulation is a hybrid model with a mixture of rigid bodies and
+non-rigid particles (e.g. solvent) there are several ways these rigid
+fixes can be used in tandem with :doc:`fix nve <fix_nve>`, :doc:`fix nvt
+<fix_nh>`, :doc:`fix npt <fix_nh>`, and :doc:`fix nph <fix_nh>`.
 
 If you wish to perform NVE dynamics (no thermostatting or
 barostatting), use one of 4 NVE rigid styles to integrate the rigid
@@ -713,13 +714,17 @@ particles.
 
 If you wish to perform NVT dynamics (thermostatting, but no
 barostatting), you can use one of the 2 NVT rigid styles for the rigid
-bodies, and any thermostatting fix for the non-rigid particles (:doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`fix temp/berendsen <fix_temp_berendsen>`).  You can also use one of the
-4 NVE rigid styles for the rigid bodies and thermostat them using :doc:`fix langevin <fix_langevin>` on the group that contains all the
-particles in the rigid bodies.  The net force added by :doc:`fix langevin <fix_langevin>` to each rigid body effectively thermostats
-its translational center-of-mass motion.  Not sure how well it does at
+bodies, and any thermostatting fix for the non-rigid particles
+(:doc:`fix nvt <fix_nh>`, :doc:`fix langevin <fix_langevin>`, :doc:`fix
+temp/berendsen <fix_temp_berendsen>`).  You can also use one of the 4
+NVE rigid styles for the rigid bodies and thermostat them using
+:doc:`fix langevin <fix_langevin>` on the group that contains all the
+particles in the rigid bodies.  The net force added by :doc:`fix
+langevin <fix_langevin>` to each rigid body effectively thermostats its
+translational center-of-mass motion.  Not sure how well it does at
 thermostatting its rotational motion.
 
-If you with to perform NPT or NPH dynamics (barostatting), you cannot
+If you wish to perform NPT or NPH dynamics (barostatting), you cannot
 use both :doc:`fix npt <fix_nh>` and the NPT or NPH rigid styles.  This
 is because there can only be one fix which monitors the global
 pressure and changes the simulation box dimensions.  So you have 3
@@ -727,27 +732,28 @@ choices:
 
 * Use one of the 4 NPT or NPH styles for the rigid bodies.  Use the
   *dilate* all option so that it will dilate the positions of the
-  non-rigid particles as well.  Use :doc:`fix nvt <fix_nh>` (or any other
-  thermostat) for the non-rigid particles.
+  *non-rigid particles as well.  Use :doc:`fix nvt <fix_nh>` (or any
+  *other thermostat) for the non-rigid particles.
 * Use :doc:`fix npt <fix_nh>` for the group of non-rigid particles.  Use
   the *dilate* all option so that it will dilate the center-of-mass
   positions of the rigid bodies as well.  Use one of the 4 NVE or 2 NVT
   rigid styles for the rigid bodies.
 * Use :doc:`fix press/berendsen <fix_press_berendsen>` to compute the
   pressure and change the box dimensions.  Use one of the 4 NVE or 2 NVT
-  rigid styles for the rigid bodies.  Use :doc:`fix nvt <fix_nh>` (or any
-  other thermostat) for the non-rigid particles.
+  rigid styles for the rigid bodies.  Use :doc:`fix nvt <fix_nh>` (or
+  any other thermostat) for the non-rigid particles.
 
 In all case, the rigid bodies and non-rigid particles both contribute
 to the global pressure and the box is scaled the same by any of the
 barostatting fixes.
 
-You could even use the second and third options for a non-hybrid simulation
-consisting of only rigid bodies, assuming you give :doc:`fix npt <fix_nh>` an empty group, though it's an odd thing to do.  The
-barostatting fixes (:doc:`fix npt <fix_nh>` and :doc:`fix press/berensen <fix_press_berendsen>`) will monitor the pressure
-and change the box dimensions, but not time integrate any particles.
-The integration of the rigid bodies will be performed by fix
-rigid/nvt.
+You could even use the second and third options for a non-hybrid
+simulation consisting of only rigid bodies, assuming you give :doc:`fix
+npt <fix_nh>` an empty group, though it's an odd thing to do.  The
+barostatting fixes (:doc:`fix npt <fix_nh>` and :doc:`fix press/berensen
+<fix_press_berendsen>`) will monitor the pressure and change the box
+dimensions, but not time integrate any particles.  The integration of
+the rigid bodies will be performed by fix rigid/nvt.
 
 ----------
 

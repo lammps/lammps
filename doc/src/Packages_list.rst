@@ -275,9 +275,9 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`MESONT <PKG-MESONT>`
      - mesoscopic tubular potential model
-     - pair styles :doc:`mesont/tpm <pair_mesont_tpm>`, :doc:`mesocnt <pair_mesocnt>`
+     - pair styles :doc:`mesocnt <pair_mesocnt>`
      - PACKAGES/mesont
-     - int
+     - no
    * - :ref:`MGPT <PKG-MGPT>`
      - fast MGPT multi-ion potentials
      - :doc:`pair_style mgpt <pair_mgpt>`

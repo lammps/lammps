@@ -299,7 +299,7 @@ class MEAM {
   }
   // clang-format on
   static int get_Zij(const lattice_t latt);
-  // last 6 args are msmeam parameters
+  // last 6 args are optional msmeam parameters
   void meam_setup_global(int nelt, lattice_t *lat, int *ielement, double *atwt, double *alpha,
                          double *b0, double *b1, double *b2, double *b3, double *alat, double *esub,
                          double *asub, double *t0, double *t1, double *t2, double *t3,

@@ -174,7 +174,6 @@ void MEAM::alloyparams()
 
 void MEAM::compute_pair_meam()
 {
-  printf("- inside compute_pair_meam\n");
   double r;
   int j, a, b, nv2;
   double astar, frac, phizbl;

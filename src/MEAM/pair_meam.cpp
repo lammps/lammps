@@ -197,7 +197,7 @@ void PairMEAM::settings(int narg, char **arg)
 
   // set comm size needed by this Pair
 
-  if (this->msmeamflag){
+  if (msmeamflag){
     comm_forward = 38+23; // plus 23 for msmeam
     comm_reverse = 30+23; // plus 23 for msmeam
   } else{
@@ -371,8 +371,6 @@ void PairMEAM::read_files(const std::string &globalfile,
 void PairMEAM::read_global_meam_file(const std::string &globalfile)
 {
 
-  printf("--- Reading global meam file\n");
-
   // allocate parameter arrays
 
   std::vector<lattice_t> lat(nlibelements);
@@ -454,7 +452,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         b1[index] = values.next_double();
         b2[index] = values.next_double();
         b3[index] = values.next_double();
-        if (this->msmeamflag){
+        if (msmeamflag){
           b1m[index] = values.next_double();
           b2m[index] = values.next_double();
           b3m[index] = values.next_double();
@@ -466,7 +464,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         t1[index] = values.next_double();
         t2[index] = values.next_double();
         t3[index] = values.next_double();
-        if (this->msmeamflag){
+        if (msmeamflag){
           t1m[index] = values.next_double();
           t2m[index] = values.next_double();
           t3m[index] = values.next_double();
@@ -529,7 +527,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
 
   // pass element parameters to MEAM package
 
-  if (this->msmeamflag){
+  if (msmeamflag){
   meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
                                alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
                                alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
@@ -666,7 +664,7 @@ int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
     buf[m++] = meam_inst->tsq_ave[j][2];
 
     // msmeam params - increases buffer by 23
-    if (this->msmeamflag){
+    if (msmeamflag){
       buf[m++] = meam_inst->arho2mb[j];
       buf[m++] = meam_inst->arho1m[j][0];
       buf[m++] = meam_inst->arho1m[j][1];
@@ -729,7 +727,7 @@ void PairMEAM::unpack_forward_comm(int n, int first, double *buf)
 
     // msmeam params - increases buffer size by 23
 
-    if (this->msmeamflag){
+    if (msmeamflag){
       meam_inst->arho2mb[i] = buf[m++];
       meam_inst->arho1m[i][0] = buf[m++];
       meam_inst->arho1m[i][1] = buf[m++];
@@ -781,7 +779,7 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
 
     // msmeam params - increases buffer size by 23
 
-    if (this->msmeamflag){
+    if (msmeamflag){
       buf[m++] = meam_inst->arho2mb[i];
       buf[m++] = meam_inst->arho1m[i][0];
       buf[m++] = meam_inst->arho1m[i][1];
@@ -835,7 +833,7 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
 
     // msmeam params - increases buffer size by 23
 
-    if (this->msmeamflag){
+    if (msmeamflag){
       meam_inst->arho2mb[j] += buf[m++];
       meam_inst->arho1m[j][0] += buf[m++];
       meam_inst->arho1m[j][1] += buf[m++];

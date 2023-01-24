@@ -46,6 +46,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
           rho2[i] = rho2[i] + this->v2D[m] * (arho2[i][m] * arho2[i][m]
                                             - arho2m[i][m] * arho2m[i][m]);
         }
+
         for (m = 0; m < 10; m++) {
           rho3[i] = rho3[i] + this->v3D[m] * (arho3[i][m] * arho3[i][m]
                                             - arho3m[i][m] * arho3m[i][m]);
@@ -140,7 +141,6 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         }
 
         Fl = embedding(this->A_meam[elti], this->Ec_meam[elti][elti], rhob, frhop[i]);
-
         if (eflag_either != 0) {
           Fl *= scaleii;
           if (eflag_global != 0) {
@@ -148,7 +148,6 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
           }
           if (eflag_atom != 0) {
             eatom[i] = eatom[i] + Fl;
-            
           }
         }
       }

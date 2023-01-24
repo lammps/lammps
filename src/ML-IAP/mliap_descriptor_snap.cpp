@@ -73,7 +73,7 @@ void MLIAPDescriptorSNAP::compute_descriptors(class MLIAPData *data)
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     const int jnum = data->numneighs[ii];
     snaptr->grow_rij(jnum);
@@ -129,7 +129,7 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData *data)
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     const int jnum = data->numneighs[ii];
     snaptr->grow_rij(jnum);
@@ -200,7 +200,7 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData *data)
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     const int jnum = data->numneighs[ii];
     snaptr->grow_rij(jnum);
@@ -270,7 +270,7 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData *data)
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     const int jnum = data->numneighs[ii];
     snaptr->grow_rij(jnum);

@@ -113,7 +113,7 @@ your input script.  LAMMPS does not use the group until a simulation
 is run.
 
 The *sort* keyword turns on a spatial sorting or reordering of atoms
-within each processor's sub-domain every *Nfreq* timesteps.  If
+within each processor's subdomain every *Nfreq* timesteps.  If
 *Nfreq* is set to 0, then sorting is turned off.  Sorting can improve
 cache performance and thus speed-up a LAMMPS simulation, as discussed
 in a paper by :ref:`(Meloni) <Meloni>`.  Its efficacy depends on the problem

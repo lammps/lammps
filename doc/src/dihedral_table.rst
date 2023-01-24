@@ -193,7 +193,7 @@ are then used as described above, when computing energy and force for
 individual dihedral angles and their atoms.  This means that if you
 want the interpolation tables of length *Ntable* to match exactly what
 is in the tabulated file (with effectively nopreliminary
-interpolation), you should set *Ntable* = *Nfile*\ .  To insure the
+interpolation), you should set *Ntable* = *Nfile*\ .  To ensure the
 nodal points in the user's file are aligned with the interpolated
 table entries, the angles in the table should be integer multiples of
 360/\ *Ntable* degrees, or 2\*PI/\ *Ntable* radians (depending on your

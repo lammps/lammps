@@ -89,7 +89,7 @@ different options (``build-parallel``, ``build-serial``) or with
 different compilers (``build-gnu``, ``build-clang``, ``build-intel``)
 and so on.  All the auxiliary files created by one build process
 (executable, object files, log files, etc) are stored in this directory
-or sub-directories within it that CMake creates.
+or subdirectories within it that CMake creates.
 
 
 Running CMake

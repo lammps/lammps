@@ -329,7 +329,7 @@ void Domain::set_lamda_box()
    assumes global box is defined and proc assignment has been made
    uses comm->xyz_split or comm->mysplit
      to define subbox boundaries in consistent manner
-   insure subhi[max] = boxhi
+   ensure subhi[max] = boxhi
 ------------------------------------------------------------------------- */
 
 void Domain::set_local_box()

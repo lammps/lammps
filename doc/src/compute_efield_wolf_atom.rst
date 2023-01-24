@@ -81,7 +81,7 @@ cutoff of any pair style force computation.
    :class: note
 
    This compute will loop over a full neighbor list just like a pair
-   style does when computing forces, thus it can be quite time consuming
+   style does when computing forces, thus it can be quite time-consuming
    and slow down a calculation significantly when its data is used in
    every time step.  The :doc:`compute efield/atom
    <compute_efield_atom>` command of the DIELECTRIC package is more

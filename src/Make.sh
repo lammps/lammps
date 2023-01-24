@@ -28,26 +28,11 @@ style () {
     elif (test "`cat style_$3.h`" != "") then
       rm -f style_$3.h
       touch style_$3.h
-      rm -f Obj_*/$4.d
-      if (test $5) then
-        rm -f Obj_*/$5.d
-      fi
-      rm -f Obj_*/lammps.d
     fi
   elif (test ! -e style_$3.h) then
     mv style_$3.tmp style_$3.h
-    rm -f Obj_*/$4.d
-    if (test $5) then
-      rm -f Obj_*/$5.d
-    fi
-    rm -f Obj_*/lammps.d
   elif (test "`diff --brief style_$3.h style_$3.tmp`" != "") then
     mv style_$3.tmp style_$3.h
-    rm -f Obj_*/$4.d
-    if (test $5) then
-      rm -f Obj_*/$5.d
-    fi
-    rm -f Obj_*/lammps.d
   else
     rm -f style_$3.tmp
   fi

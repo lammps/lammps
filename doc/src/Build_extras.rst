@@ -47,7 +47,6 @@ This is the list of packages that may require additional steps.
    * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
-   * :ref:`MESONT <mesont>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`ML-IAP <mliap>`
    * :ref:`ML-PACE <ml-pace>`
@@ -288,7 +287,7 @@ your machine are not correct, the LAMMPS build will fail, and
 .. note::
 
    If you re-build the GPU library in ``lib/gpu``, you should always
-   un-install the GPU package in ``lammps/src``, then re-install it and
+   uninstall the GPU package in ``lammps/src``, then re-install it and
    re-build LAMMPS.  This is because the compilation of files in the GPU
    package uses the library settings from the ``lib/gpu/Makefile.machine``
    used to build the GPU library.
@@ -915,9 +914,9 @@ included in the LAMMPS source distribution in the ``lib/lepton`` folder.
 
       .. code-block:: bash
 
-         $ make lib-lepton                      # print help message
-         $ make lib-lepton args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
-         $ make lib-lepton args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+         make lib-lepton                      # print help message
+         make lib-lepton args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
+         make lib-lepton args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
 
       The "machine" argument of the "-m" flag is used to find a
       Makefile.machine to use as build recipe.
@@ -1391,8 +1390,21 @@ This package depends on the KSPACE package.
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_KSPACE=yes`` and
-      ``-D PKG_ELECTRODE=yes``.
+      .. code-block:: bash
+
+         -D PKG_ELECTRODE=yes          # enable the package itself
+         -D PKG_KSPACE=yes             # the ELECTRODE package requires KSPACE
+         -D USE_INTERNAL_LINALG=value  #
+
+      Features in the ELECTRODE package are dependent on code in the
+      KSPACE package so the latter one *must* be enabled.
+
+      The ELECTRODE package also requires LAPACK (and BLAS) and CMake
+      can identify their locations and pass that info to the LATTE build
+      script.  But on some systems this may cause problems when linking
+      or the dependency is not desired.  Try enabling
+      ``USE_INTERNAL_LINALG`` in those cases to use the bundled linear
+      algebra library and work around the limitation.
 
    .. tab:: Traditional make
 
@@ -1836,48 +1848,6 @@ MDI package
 
       The build should produce two files: ``lib/mdi/includelink/mdi.h``
       and ``lib/mdi/liblink/libmdi.so``\ .
-
-----------
-
-.. _mesont:
-
-MESONT package
--------------------------
-
-This package includes a library written in Fortran 90 in the
-``lib/mesont`` folder, so a working Fortran 90 compiler is required to
-compile it.  Also, the files with the force field data for running the
-bundled examples are not included in the source distribution. Instead
-they will be downloaded the first time this package is installed.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_MESONT=yes``
-
-   .. tab:: Traditional make
-
-      Before building LAMMPS, you must build the *mesont* library in
-      ``lib/mesont``\ .  You can also do it in one step from the
-      ``lammps/src`` dir, using a command like these, which simply
-      invokes the ``lib/mesont/Install.py`` script with the specified
-      args:
-
-      .. code-block:: bash
-
-         make lib-mesont                    # print help message
-         make lib-mesont args="-m gfortran" # build with GNU g++ compiler (settings as with "make serial")
-         make lib-mesont args="-m ifort"    # build with Intel icc compiler
-
-      The build should produce two files: ``lib/mesont/libmesont.a`` and
-      ``lib/mesont/Makefile.lammps``\ .  The latter is copied from an
-      existing ``Makefile.lammps.\*`` and has settings needed to build
-      LAMMPS with the *mesont* library (though typically the settings
-      contain only the Fortran runtime library).  If necessary, you can
-      edit/create a new ``lib/mesont/Makefile.machine`` file for your
-      system, which should define an ``EXTRAMAKE`` variable to specify a
-      corresponding ``Makefile.lammps.machine`` file.
 
 ----------
 

@@ -72,6 +72,7 @@ Min::Min(LAMMPS *lmp) : Pointers(lmp)
   delaystep_start_flag = 1;
   max_vdotf_negatif = 2000;
   alpha_final = 0.0;
+  abcflag = 0;
 
   elist_global = elist_atom = nullptr;
   vlist_global = vlist_atom = cvlist_atom = nullptr;
@@ -432,7 +433,7 @@ void Min::run(int n)
   // if early exit from iterate loop:
   // set update->nsteps to niter for Finish stats to print
   // set output->next values to this timestep
-  // call energy_force() to insure vflag is set when forces computed
+  // call energy_force() to ensure vflag is set when forces computed
   // output->write does final output for thermo, dump, restart files
   // add ntimestep to all computes that store invocation times
   //   since are hardwiring call to thermo/dumps and computes may not be ready
@@ -719,13 +720,17 @@ void Min::modify_params(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"eulerexplicit") == 0) integrator = EULEREXPLICIT;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
+    } else if (strcmp(arg[iarg],"abcfire") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
+      abcflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"line") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = 0;
-      else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = 1;
-      else if (strcmp(arg[iarg+1],"forcezero") == 0) linestyle = 2;
-      else if (strcmp(arg[iarg+1],"spin_cubic") == 0) linestyle = 3;
-      else if (strcmp(arg[iarg+1],"spin_none") == 0) linestyle = 4;
+      if (strcmp(arg[iarg+1],"backtrack") == 0) linestyle = BACKTRACK;
+      else if (strcmp(arg[iarg+1],"quadratic") == 0) linestyle = QUADRATIC;
+      else if (strcmp(arg[iarg+1],"forcezero") == 0) linestyle = FORCEZERO;
+      else if (strcmp(arg[iarg+1],"spin_cubic") == 0) linestyle = SPIN_CUBIC;
+      else if (strcmp(arg[iarg+1],"spin_none") == 0) linestyle = SPIN_NONE;
       else error->all(FLERR,"Illegal min_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"norm") == 0) {

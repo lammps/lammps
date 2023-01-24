@@ -488,7 +488,7 @@ void Grid3d::initialize()
      hi grid index = last grid pt < frachi*bound
      if proc owns no grid cells in a dim, then inlo > inhi
    special case: 2 procs share boundary which a grid point is exactly on
-     2 if test equalties insure a consistent decision as to which proc owns it
+     2 if test equalties ensure a consistent decision as to which proc owns it
 ------------------------------------------------------------------------- */
 
 void Grid3d::partition_grid(int ngrid, double fraclo, double frachi,
@@ -574,7 +574,7 @@ void Grid3d::ghost_grid()
   //   want grid data forward communicated from +z proc to -z proc, but not vice versa
   //   want grid data reverse communicated from -z proc to +z proc, but not vice versa
   // this is accomplished by inzhi = outzhi on +z end (no ghost cells)
-  // also insure no other procs use ghost cells beyond +z limit
+  // also ensure no other procs use ghost cells beyond +z limit
 
   if (zextra) {
     if (layout != Comm::LAYOUT_TILED) {

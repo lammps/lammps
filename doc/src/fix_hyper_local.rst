@@ -240,7 +240,7 @@ well for many solid-state systems.
 
 .. note::
 
-   You should insure that ghost atom communication is performed for
+   You should ensure that ghost atom communication is performed for
    a distance of at least *Dcut* + *cutevent* = the distance one or more
    atoms move (between quenched states) to be considered an "event".  It
    is an argument to the "compute event/displace" command used to detect

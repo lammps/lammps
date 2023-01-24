@@ -1651,7 +1651,7 @@ int utils::binary_search(const double needle, const int n, const double *haystac
   if (needle < haystack[lo]) return lo;
   if (needle >= haystack[hi]) return hi;
 
-  // insure haystack[lo] <= needle < haystack[hi] at every iteration
+  // ensure haystack[lo] <= needle < haystack[hi] at every iteration
   // done when lo,hi are adjacent
 
   int index = (lo + hi) / 2;

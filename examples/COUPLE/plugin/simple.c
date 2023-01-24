@@ -53,7 +53,7 @@ int main(int narg, char **arg)
   MPI_Init(&narg,&arg);
 
   if (narg != 4) {
-    printf("Syntax: simpleC P in.lammps /path/to/liblammps.so\n");
+    printf("Syntax: %s P in.lammps /path/to/liblammps.so\n", arg[0]);
     exit(1);
   }
 
@@ -90,6 +90,12 @@ int main(int narg, char **arg)
     plugin = liblammpsplugin_load(arg[3]);
     if (plugin == NULL) {
       if (me == 0) printf("ERROR: Could not load shared LAMMPS library\n");
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+    /* must match the plugin ABI version */
+    if (plugin->abiversion != LAMMPSPLUGIN_ABI_VERSION) {
+      if (me == 0) printf("ERROR: Plugin abi version does not match: %d vs %d\n",
+                          plugin->abiversion, LAMMPSPLUGIN_ABI_VERSION);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
   }
@@ -142,6 +148,7 @@ int main(int narg, char **arg)
 
     double *fx = (double *) plugin->extract_variable(lmp,"fx",(char *)"all");
     printf("Force on 1 atom via extract_variable: %g\n",fx[0]);
+    plugin->free(fx);
   }
 
   /* use commands_string() and commands_list() to invoke more commands */

@@ -204,7 +204,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_force_gradients(class MLIAPDa
   Kokkos::parallel_for (data->nlistatoms, KOKKOS_LAMBDA (int ii) {
     const int i = d_iatoms(ii);
 
-    // insure rij, inside, wj, and rcutij are of size jnum
+    // ensure rij, inside, wj, and rcutij are of size jnum
 
     const int jnum = d_numneighs(ii);
     int ij = d_ij(ii);

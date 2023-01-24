@@ -283,7 +283,6 @@ accelerated styles exist.
 * :doc:`mesocnt <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes
 * :doc:`mesocnt/viscous <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes with friction
 * :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
-* :doc:`mesont/tpm <pair_mesont_tpm>` - nanotubes mesoscopic force field
 * :doc:`mie/cut <pair_mie>` - Mie potential
 * :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field

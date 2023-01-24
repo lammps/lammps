@@ -422,9 +422,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->edpd_temp, false);
     ASSERT_ARRAY_ALLOCATED(atom->edpd_flux, false);
     ASSERT_ARRAY_ALLOCATED(atom->edpd_cv, false);
-    ASSERT_ARRAY_ALLOCATED(atom->length, false);
-    ASSERT_ARRAY_ALLOCATED(atom->buckling, false);
-    ASSERT_ARRAY_ALLOCATED(atom->bond_nt, false);
     ASSERT_ARRAY_ALLOCATED(atom->contact_radius, false);
     ASSERT_ARRAY_ALLOCATED(atom->smd_data_9, false);
     ASSERT_ARRAY_ALLOCATED(atom->smd_stress, false);

@@ -173,15 +173,15 @@ Note that these lines
    thermo_style    custom step temp pe c_2
    run             0
 
-are necessary to insure that the "eatom" variable is current when the
+are necessary to ensure that the "eatom" variable is current when the
 group command invokes it.  Because the eatom variable computes the
 per-atom energy via the pe/atom compute, it will only be current if a
 run has been performed which evaluated pairwise energies, and the
 pe/atom compute was actually invoked during the run.  Printing the
-thermodynamic info for compute 2 insures that this is the case, since
+thermodynamic info for compute 2 ensures that this is the case, since
 it sums the pe/atom compute values (in the reduce compute) to output
 them to the screen.  See the "Variable Accuracy" section of the
-:doc:`variable <variable>` page for more details on insuring that
+:doc:`variable <variable>` page for more details on ensuring that
 variables are current when they are evaluated between runs.
 
 The *include* style with its arg *molecule* adds atoms to a group that

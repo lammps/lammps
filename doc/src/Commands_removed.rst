@@ -50,6 +50,27 @@ for some optimizations leading to better performance.  The pair style
 period the C++ version of MEAM was called USER-MEAMC so it could
 coexist with the Fortran version.
 
+Minimize style fire/old
+-----------------------
+
+.. deprecated:: TBD
+
+Minimize style *fire/old* has been removed. Its functionality can be
+reproduced with *fire* with specific options. Please see the
+:doc:`min_modify command <min_modify>` documentation for details.
+
+Pair style mesont/tpm, compute style mesont, atom style mesont
+--------------------------------------------------------------
+
+.. deprecated:: TBD
+
+Pair style *mesont/tpm*, compute style *mesont*, and atom style
+*mesont* have been removed from the :ref:`MESONT package <PKG-MESONT>`.
+The same functionality is available through
+:doc:`pair style mesocnt <pair_mesocnt>`,
+:doc:`bond style mesocnt <bond_mesocnt>` and
+:doc:`angle style mesocnt <angle_mesocnt>`.
+
 REAX package
 ------------
 

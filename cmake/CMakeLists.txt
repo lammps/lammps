@@ -168,8 +168,8 @@ endif()
 ########################################################################
 # User input options                                                   #
 ########################################################################
-# set path to python interpreter and thus enforcing python version if
-# when in a virtual environment and PYTHON_EXECUTABLE is not set on command line
+# set path to python interpreter and thus enforcing python version when
+# in a virtual environment and PYTHON_EXECUTABLE is not set on command line
 if(DEFINED ENV{VIRTUAL_ENV} AND NOT PYTHON_EXECUTABLE)
   if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     set(PYTHON_EXECUTABLE "$ENV{VIRTUAL_ENV}/Scripts/python.exe")
@@ -265,6 +265,7 @@ set(STANDARD_PACKAGES
   MC
   MDI
   MEAM
+  MESONT
   MGPT
   MISC
   ML-HDNNP
@@ -308,9 +309,8 @@ set(STANDARD_PACKAGES
   YAFF)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
-set(EXTRA_PACKAGES MESONT)
 
-foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
 
@@ -520,7 +520,7 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
-foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE MESONT NETCDF
+foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
         PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MSCG COMPRESS ML-PACE LEPTON)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
@@ -568,7 +568,7 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 ########################################################
 option(DOWNLOAD_POTENTIALS "Automatically download large potential files" ON)
 mark_as_advanced(DOWNLOAD_POTENTIALS)
-foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     FetchPotentials(${LAMMPS_SOURCE_DIR}/${PKG} ${LAMMPS_POTENTIALS_DIR})
   endif()
@@ -708,7 +708,7 @@ target_include_directories(lammps PRIVATE ${LAMMPS_STYLE_HEADERS_DIR})
 ######################################
 set(temp "#ifndef LMP_INSTALLED_PKGS_H\n#define LMP_INSTALLED_PKGS_H\n")
 set(temp "${temp}const char * LAMMPS_NS::LAMMPS::installed_packages[] =  {\n")
-set(temp_PKG_LIST ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
+set(temp_PKG_LIST ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
 list(SORT temp_PKG_LIST)
 foreach(PKG ${temp_PKG_LIST})
     if(PKG_${PKG})
@@ -893,6 +893,23 @@ if(ClangFormat_FOUND)
     WORKING_DIRECTORY ${LAMMPS_SOURCE_DIR})
 endif()
 
+# extract Kokkos compilation settings
+get_cmake_property(_allvars VARIABLES)
+foreach(_var ${_allvars})
+  if(${_var})
+    string(REGEX MATCH "Kokkos_ENABLE_(SERIAL|THREADS|OPENMP|CUDA|HIP|SYCL|OPENMPTARGET|HPX)" _match ${_var})
+    if(_match)
+      string(REGEX REPLACE "Kokkos_ENABLE_(OPENMP|SERIAL|CUDA|HIP|SYCL)" "\\1" _match ${_var})
+      list(APPEND KOKKOS_DEVICE ${_match})
+    endif()
+    string(REGEX MATCH "Kokkos_ARCH" _match ${_var})
+    if(_match)
+      string(REGEX REPLACE "Kokkos_ARCH_(.*)" "\\1" _match ${_var})
+      list(APPEND KOKKOS_ARCH ${_match})
+    endif()
+  endif()
+endforeach()
+
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 if(BUILD_IS_MULTI_CONFIG)
   set(LAMMPS_BUILD_TYPE "Multi-Config")
@@ -912,7 +929,7 @@ message(STATUS "<<< Build configuration >>>
 # Print package summary
 ###############################################################################
 set(ENABLED_PACKAGES)
-foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     list(APPEND ENABLED_PACKAGES ${PKG})
   endif()
@@ -989,6 +1006,12 @@ if(PKG_GPU)
     endif()
   endif()
   message(STATUS "GPU precision:            ${GPU_PREC}")
+endif()
+if(PKG_KOKKOS)
+  message(STATUS "Kokkos Devices: ${KOKKOS_DEVICE}")
+  if(KOKKOS_ARCH)
+    message(STATUS "Kokkos Architecture: ${KOKKOS_ARCH}")
+  endif()
 endif()
 if(PKG_KSPACE)
   message(STATUS "<<< FFT settings >>>

@@ -15,8 +15,8 @@ distributed-memory parallelism is set with the :doc:`comm_style command
    for MPI parallelization: "brick" on the left with an orthogonal
    (left) and a triclinic (middle) simulation domain, and a "tiled"
    decomposition (right).  The black lines show the division into
-   sub-domains and the contained atoms are "owned" by the corresponding
-   MPI process. The green dashed lines indicate how sub-domains are
+   subdomains and the contained atoms are "owned" by the corresponding
+   MPI process. The green dashed lines indicate how subdomains are
    extended with "ghost" atoms up to the communication cutoff distance.
 
 The LAMMPS simulation box is a 3d or 2d volume, which can be orthogonal
@@ -32,14 +32,14 @@ means the position of the box face adjusts continuously to enclose all
 the atoms.
 
 For distributed-memory MPI parallelism, the simulation box is spatially
-decomposed (partitioned) into non-overlapping sub-domains which fill the
+decomposed (partitioned) into non-overlapping subdomains which fill the
 box. The default partitioning, "brick", is most suitable when atom
 density is roughly uniform, as shown in the left-side images of the
-:ref:`domain-decomposition` figure.  The sub-domains comprise a regular
-grid and all sub-domains are identical in size and shape.  Both the
+:ref:`domain-decomposition` figure.  The subdomains comprise a regular
+grid and all subdomains are identical in size and shape.  Both the
 orthogonal and triclinic boxes can deform continuously during a
 simulation, e.g. to compress a solid or shear a liquid, in which case
-the processor sub-domains likewise deform.
+the processor subdomains likewise deform.
 
 
 For models with non-uniform density, the number of particles per
@@ -50,14 +50,14 @@ load.  For such models, LAMMPS supports multiple strategies to reduce
 the load imbalance:
 
 - The processor grid decomposition is by default based on the simulation
-  cell volume and tries to optimize the volume to surface ratio for the sub-domains.
+  cell volume and tries to optimize the volume to surface ratio for the subdomains.
   This can be changed with the :doc:`processors command <processors>`.
-- The parallel planes defining the size of the sub-domains can be shifted
+- The parallel planes defining the size of the subdomains can be shifted
   with the :doc:`balance command <balance>`. Which can be done in addition
   to choosing a more optimal processor grid.
 - The recursive bisectioning algorithm in combination with the "tiled"
   communication style can produce a partitioning with equal numbers of
-  particles in each sub-domain.
+  particles in each subdomain.
 
 
 .. |decomp1| image:: img/decomp-regular.png
@@ -76,14 +76,14 @@ the load imbalance:
 
 The pictures above demonstrate different decompositions for a 2d system
 with 12 MPI ranks.  The atom colors indicate the load imbalance of each
-sub-domain with green being optimal and red the least optimal.
+subdomain with green being optimal and red the least optimal.
 
 Due to the vacuum in the system, the default decomposition is unbalanced
 with several MPI ranks without atoms (left). By forcing a 1x12x1
 processor grid, every MPI rank does computations now, but number of
-atoms per sub-domain is still uneven and the thin slice shape increases
-the amount of communication between sub-domains (center left). With a
-2x6x1 processor grid and shifting the sub-domain divisions, the load
+atoms per subdomain is still uneven and the thin slice shape increases
+the amount of communication between subdomains (center left). With a
+2x6x1 processor grid and shifting the subdomain divisions, the load
 imbalance is further reduced and the amount of communication required
-between sub-domains is less (center right).  And using the recursive
+between subdomains is less (center right).  And using the recursive
 bisectioning leads to further improved decomposition (right).

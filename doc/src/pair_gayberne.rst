@@ -118,7 +118,7 @@ atom type J.  If all three epsilon_j values are zero, they are ignored.
 Thus the typical way to define the :math:`\epsilon_i` and
 :math:`\epsilon_j` coefficients is to list their values in "pair_coeff
 I J" commands when I = J, but set them to 0.0 when I != J.  If you do
-list them when I != J, you should insure they are consistent with their
+list them when I != J, you should ensure they are consistent with their
 values in other pair_coeff commands, since only the last setting will
 be in effect.
 
@@ -126,7 +126,7 @@ Note that if this potential is being used as a sub-style of
 :doc:`pair_style hybrid <pair_hybrid>`, and there is no "pair_coeff I I"
 setting made for Gay-Berne for a particular type I (because I-I
 interactions are computed by another hybrid pair potential), then you
-still need to insure the :math:`\epsilon` a,b,c coefficients are assigned to
+still need to ensure the :math:`\epsilon` a,b,c coefficients are assigned to
 that type. e.g. in a "pair_coeff I J" command.
 
 .. note::

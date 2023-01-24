@@ -265,8 +265,8 @@ class BinSort {
   //----------------------------------------
   // Create the permutation vector, the bin_offset array and the bin_count
   // array. Can be called again if keys changed
-  template <class ExecutionSpace = exec_space>
-  void create_permute_vector(const ExecutionSpace& exec = exec_space{}) {
+  template <class ExecutionSpace>
+  void create_permute_vector(const ExecutionSpace& exec) {
     static_assert(
         Kokkos::SpaceAccessibility<ExecutionSpace,
                                    typename Space::memory_space>::accessible,
@@ -295,6 +295,15 @@ class BinSort {
           Kokkos::RangePolicy<ExecutionSpace, bin_sort_bins_tag>(
               exec, 0, bin_op.max_bins()),
           *this);
+  }
+
+  // Create the permutation vector, the bin_offset array and the bin_count
+  // array. Can be called again if keys changed
+  void create_permute_vector() {
+    Kokkos::fence("Kokkos::Binsort::create_permute_vector: before");
+    exec_space e{};
+    create_permute_vector(e);
+    e.fence("Kokkos::Binsort::create_permute_vector: after");
   }
 
   // Sort a subset of a view with respect to the first dimension using the
@@ -372,9 +381,10 @@ class BinSort {
   template <class ValuesViewType>
   void sort(ValuesViewType const& values, int values_range_begin,
             int values_range_end) const {
+    Kokkos::fence("Kokkos::Binsort::sort: before");
     exec_space exec;
     sort(exec, values, values_range_begin, values_range_end);
-    exec.fence("Kokkos::Sort: fence after sorting");
+    exec.fence("Kokkos::BinSort:sort: after");
   }
 
   template <class ExecutionSpace, class ValuesViewType>
@@ -641,9 +651,10 @@ std::enable_if_t<Kokkos::is_execution_space<ExecutionSpace>::value> sort(
 
 template <class ViewType>
 void sort(ViewType const& view) {
+  Kokkos::fence("Kokkos::sort: before");
   typename ViewType::execution_space exec;
   sort(exec, view);
-  exec.fence("Kokkos::Sort: fence after sorting");
+  exec.fence("Kokkos::sort: fence after sorting");
 }
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
@@ -682,6 +693,7 @@ std::enable_if_t<Kokkos::is_execution_space<ExecutionSpace>::value> sort(
 
 template <class ViewType>
 void sort(ViewType view, size_t const begin, size_t const end) {
+  Kokkos::fence("Kokkos::sort: before");
   typename ViewType::execution_space exec;
   sort(exec, view, begin, end);
   exec.fence("Kokkos::Sort: fence after sorting");

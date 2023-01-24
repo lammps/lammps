@@ -119,7 +119,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
   double dsij1, dsij2, force1, force2;
   double t1i, t2i, t3i, t1j, t2j, t3j;
   int fnoffset;
-  // msmeam params
+  // msmeam
   double rhoa1mj,drhoa1mj,rhoa1mi,drhoa1mi;
   double rhoa2mj,drhoa2mj,rhoa2mi,drhoa2mi;
   double rhoa3mj, drhoa3mj, rhoa3mi, drhoa3mi;
@@ -215,7 +215,6 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           drhoa2mi = -beta2m_meam[elti] * invrei * rhoa2mi;
           rhoa3mi = ro0i * MathSpecialKokkos::fm_exp(-beta3m_meam[elti] * ai) * t3m_meam[elti];
           drhoa3mi = -beta3m_meam[elti] * invrei * rhoa3mi;
-          printf("- %d %f %f %f %f %f %f\n", i, rhoa1mi, drhoa1mi, rhoa2mi, drhoa2mi, rhoa3mi, drhoa3mi);
         }
 
         if (elti != eltj) {
@@ -536,26 +535,8 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         get_shpfcn(lattce_meam[elti][elti], stheta_meam[elti][elti], ctheta_meam[elti][elti], shpi);
         get_shpfcn(lattce_meam[eltj][eltj], stheta_meam[elti][elti], ctheta_meam[elti][elti], shpj);
 
-        if (!msmeamflag){
-          drhodr1 = d_dgamma1[i] * drho0dr1 +
-              d_dgamma2[i] *
-                  (dt1dr1 * d_rho1[i] + t1i * drho1dr1 + dt2dr1 * d_rho2[i] + t2i * drho2dr1 +
-                   dt3dr1 * d_rho3[i] + t3i * drho3dr1) -
-              d_dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
-          drhodr2 = d_dgamma1[j] * drho0dr2 +
-              d_dgamma2[j] *
-                  (dt1dr2 * d_rho1[j] + t1j * drho1dr2 + dt2dr2 * d_rho2[j] + t2j * drho2dr2 +
-                   dt3dr2 * d_rho3[j] + t3j * drho3dr2) -
-              d_dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
-          for (m = 0; m < 3; m++) {
-            drhodrm1[m] = 0.0;
-            drhodrm2[m] = 0.0;
-            drhodrm1[m] =
-                d_dgamma2[i] * (t1i * drho1drm1[m] + t2i * drho2drm1[m] + t3i * drho3drm1[m]);
-            drhodrm2[m] =
-                d_dgamma2[j] * (t1j * drho1drm2[m] + t2j * drho2drm2[m] + t3j * drho3drm2[m]);
-          }
-        } else{
+
+        if (msmeamflag){
           drhodr1 = d_dgamma1[i] * drho0dr1 +
                     d_dgamma2[i] * (dt1dr1 * d_rho1[i] + t1i * (drho1dr1 - drho1mdr1) +
                                     dt2dr1 * d_rho2[i] + t2i * (drho2dr1 - drho2mdr1) +
@@ -576,6 +557,25 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
                                           t2j * (drho2drm2[m] - drho2mdrm2[m]) +
                                           t3j * (drho3drm2[m] - drho3mdrm2[m]) );
           }
+        } else{
+          drhodr1 = d_dgamma1[i] * drho0dr1 +
+              d_dgamma2[i] *
+                  (dt1dr1 * d_rho1[i] + t1i * drho1dr1 + dt2dr1 * d_rho2[i] + t2i * drho2dr1 +
+                   dt3dr1 * d_rho3[i] + t3i * drho3dr1) -
+              d_dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
+          drhodr2 = d_dgamma1[j] * drho0dr2 +
+              d_dgamma2[j] *
+                  (dt1dr2 * d_rho1[j] + t1j * drho1dr2 + dt2dr2 * d_rho2[j] + t2j * drho2dr2 +
+                   dt3dr2 * d_rho3[j] + t3j * drho3dr2) -
+              d_dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
+          for (m = 0; m < 3; m++) {
+            drhodrm1[m] = 0.0;
+            drhodrm2[m] = 0.0;
+            drhodrm1[m] =
+                d_dgamma2[i] * (t1i * drho1drm1[m] + t2i * drho2drm1[m] + t3i * drho3drm1[m]);
+            drhodrm2[m] =
+                d_dgamma2[j] * (t1j * drho1drm2[m] + t2j * drho2drm2[m] + t3j * drho3drm2[m]);
+          }
         }
 
         // Compute derivatives wrt sij, but only if necessary
@@ -593,14 +593,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           drho3ds1 = a3 * rhoa3j * arg1i3 - a3a * rhoa3j * arg3i3;
           drho3ds2 = a3 * rhoa3i * arg1j3 - a3a * rhoa3i * arg3j3;
 
-          if (!msmeamflag){
-            drho1mds1 = 0.0;
-            drho1mds2 = 0.0;
-            drho2mds1 = 0.0;
-            drho2mds2 = 0.0;
-            drho3mds1 = 0.0;
-            drho3mds2 = 0.0;
-          } else{
+          if (msmeamflag){
             drho1mds1 = a1 * rhoa1mj * arg1i1m;
             drho1mds2 = a1 * rhoa1mi * arg1j1m;
             drho2mds1 = a2 * rhoa2mj * arg1i2m - 2.0 / 3.0 * d_arho2mb[i] * rhoa2mj;
@@ -609,6 +602,13 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             drho3mds2 = a3 * rhoa3mi * arg1j3m - a3a * rhoa3mi * arg3j3m;
             drho3mds1 *= -1;
             drho3mds2 *= -1;
+          } else{
+            drho1mds1 = 0.0;
+            drho1mds2 = 0.0;
+            drho2mds1 = 0.0;
+            drho2mds2 = 0.0;
+            drho3mds1 = 0.0;
+            drho3mds2 = 0.0;
           }
 
           if (ialloy == 1) {
@@ -650,18 +650,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             dt3ds2 = aj * (t3mi - t3j);
           }
 
-          if (!msmeamflag){
-            drhods1 = d_dgamma1[i] * drho0ds1 +
-                d_dgamma2[i] *
-                    (dt1ds1 * d_rho1[i] + t1i * drho1ds1 + dt2ds1 * d_rho2[i] + t2i * drho2ds1 +
-                     dt3ds1 * d_rho3[i] + t3i * drho3ds1) -
-                d_dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
-            drhods2 = d_dgamma1[j] * drho0ds2 +
-                d_dgamma2[j] *
-                    (dt1ds2 * d_rho1[j] + t1j * drho1ds2 + dt2ds2 * d_rho2[j] + t2j * drho2ds2 +
-                     dt3ds2 * d_rho3[j] + t3j * drho3ds2) -
-                d_dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
-          } else{
+          if (msmeamflag){
             drhods1 = d_dgamma1[i] * drho0ds1 +
               d_dgamma2[i] * (dt1ds1 * d_rho1[i] + t1i * (drho1ds1 - drho1mds1) +
                               dt2ds1 * d_rho2[i] + t2i * (drho2ds1 - drho2mds1) +
@@ -672,7 +661,17 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
                               dt2ds2 * d_rho2[j] + t2j * (drho2ds2 - drho2mds2) +
                               dt3ds2 * d_rho3[j] + t3j * (drho3ds2 - drho3mds2)) -
               d_dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
-
+          } else{
+            drhods1 = d_dgamma1[i] * drho0ds1 +
+                d_dgamma2[i] *
+                    (dt1ds1 * d_rho1[i] + t1i * drho1ds1 + dt2ds1 * d_rho2[i] + t2i * drho2ds1 +
+                     dt3ds1 * d_rho3[i] + t3i * drho3ds1) -
+                d_dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
+            drhods2 = d_dgamma1[j] * drho0ds2 +
+                d_dgamma2[j] *
+                    (dt1ds2 * d_rho1[j] + t1j * drho1ds2 + dt2ds2 * d_rho2[j] + t2j * drho2ds2 +
+                     dt3ds2 * d_rho3[j] + t3j * drho3ds2) -
+                d_dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
           }
         }
 

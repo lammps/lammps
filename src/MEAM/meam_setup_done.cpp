@@ -174,6 +174,7 @@ void MEAM::alloyparams()
 
 void MEAM::compute_pair_meam()
 {
+  printf("- inside compute_pair_meam\n");
   double r;
   int j, a, b, nv2;
   double astar, frac, phizbl;
@@ -336,8 +337,6 @@ double MEAM::phi_meam(double r, int a, int b)
   double b11s, b22s;
   // msmeam params
   double t1m1av, t2m1av, t3m1av, t1m2av, t2m2av, t3m2av;
-  double rhoa1m1, rhoa2m1, rhoa3m1;
-  double rhoa1m2, rhoa2m2, rhoa3m2;
   double rho1m1, rho2m1, rho3m1;
   double rho1m2, rho2m2, rho3m2;
 
@@ -389,7 +388,7 @@ double MEAM::phi_meam(double r, int a, int b)
     get_tavref(&t11av, &t21av, &t31av, &t12av, &t22av, &t32av, this->t1_meam[a], this->t2_meam[a],
                this->t3_meam[a], this->t1_meam[b], this->t2_meam[b], this->t3_meam[b], r, a, b,
                this->lattce_meam[a][b]);
-    // with msmeam call twice with different sets of variables 
+    // with msmeam call twice with different sets of variables
     if (this->msmeamflag){
       get_tavref(&t1m1av, &t2m1av, &t3m1av, &t1m2av, &t2m2av, &t3m2av, this->t1m_meam[a], this->t2m_meam[a],
                 this->t3m_meam[a], this->t1m_meam[b], this->t2m_meam[b], this->t3m_meam[b], r, a, b,
@@ -456,7 +455,7 @@ double MEAM::phi_meam(double r, int a, int b)
         Gam2 = 0.0;
       else
         Gam2 = Gam2 / (rho02 * rho02);
-      
+
     } else{
       Gam1 = (t11av * rho11 + t21av * rho21 + t31av * rho31);
       if (rho01 < 1.0e-14)
@@ -694,8 +693,8 @@ void MEAM::get_sijk(double C, int i, int j, int k, double* sijk)
 //------------------------------------------------------------------------------c
 // Calculate density functions, assuming reference configuration
 void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* rho21, double* rho31,
-                       double* rho02, double* rho12, double* rho22, double* rho32, 
-                       double* rho1m1, double* rho2m1, double* rho3m1, 
+                       double* rho02, double* rho12, double* rho22, double* rho32,
+                       double* rho1m1, double* rho2m1, double* rho3m1,
                        double* rho1m2, double* rho2m2, double* rho3m2)
 {
   double a1, a2;

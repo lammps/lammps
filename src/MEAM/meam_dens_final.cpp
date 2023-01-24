@@ -33,11 +33,11 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
       if (elti >= 0) {
         scaleii = scale[type[i]][type[i]];
         rho1[i] = 0.0;
-        rho2[i] = -1.0 / 3.0 * (arho2b[i] * arho2b[i] 
+        rho2[i] = -1.0 / 3.0 * (arho2b[i] * arho2b[i]
                               - arho2mb[i] * arho2mb[i]);
         rho3[i] = 0.0;
         for (m = 0; m < 3; m++) {
-          rho1[i] = rho1[i] + arho1[i][m] * arho1[i][m] 
+          rho1[i] = rho1[i] + arho1[i][m] * arho1[i][m]
                             - arho1m[i][m] * arho1m[i][m];
           rho3[i] = rho3[i] - 3.0 / 5.0 * (arho3b[i][m] * arho3b[i][m]
                                          - arho3mb[i][m] * arho3mb[i][m]);
@@ -148,7 +148,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
           }
           if (eflag_atom != 0) {
             eatom[i] = eatom[i] + Fl;
-            
+
           }
         }
       }
@@ -263,7 +263,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
           }
           if (eflag_atom != 0) {
             eatom[i] = eatom[i] + Fl;
-            
+
           }
         }
       }

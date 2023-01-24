@@ -24,7 +24,6 @@ template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void MEAMKokkos<DeviceType>::operator()(TagMEAMDensInit<NEIGHFLAG>, const int &i) const {
-  printf("- inside TagMEAMDensInit i=%d\n", i);
   int ii, offsetval;
   ii = d_ilist_half[i];
   offsetval = d_offset[i];
@@ -50,20 +49,17 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMZero, const int &i) const {
   }
   for (int j = 0; j < 6; j++){
     d_arho2(i,j) = 0.0;
-    if (msmeamflag){
+    if (msmeamflag)
       d_arho2m(i,j) = 0.0;
-    }
   }
   for (int j = 0; j < 10; j++){
     d_arho3(i,j) = 0.0;
-    if (msmeamflag){
+    if (msmeamflag)
       d_arho3m(i,j) = 0.0;
-    }
   }
   d_arho3b(i,0) = d_arho3b(i,1) = d_arho3b(i,2) = 0.0;
-  if (msmeamflag){
+  if (msmeamflag)
     d_arho3mb(i,0) = d_arho3mb(i,1) = d_arho3mb(i,2) = 0.0;
-  }
   d_t_ave(i,0) = d_t_ave(i,1) = d_t_ave(i,2) = 0.0;
   d_tsq_ave(i,0) = d_tsq_ave(i,1) = d_tsq_ave(i,2) = 0.0;
 }
@@ -74,8 +70,6 @@ template<class DeviceType>
 void
 MEAMKokkos<DeviceType>::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 {
-
-  printf("- inside meam_dens_setup\n");
   MemoryKokkos *memoryKK = (MemoryKokkos *)memory;
 
   // grow local arrays if necessary
@@ -98,11 +92,11 @@ MEAMKokkos<DeviceType>::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memoryKK->destroy_kokkos(k_arho3b,arho3b);
     memoryKK->destroy_kokkos(k_t_ave,t_ave);
     memoryKK->destroy_kokkos(k_tsq_ave,tsq_ave);
-    // msmeam params
+    // msmeam
+    memoryKK->destroy_kokkos(k_arho2mb, arho2mb);
     memoryKK->destroy_kokkos(k_arho1m, arho1m);
     memoryKK->destroy_kokkos(k_arho2m, arho2m);
     memoryKK->destroy_kokkos(k_arho3m, arho3m);
-    memoryKK->destroy_kokkos(k_arho2mb, arho2mb);
     memoryKK->destroy_kokkos(k_arho3mb, arho3mb);
 
     nmax = atom_nmax;
@@ -176,10 +170,8 @@ MEAMKokkos<DeviceType>::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     d_tsq_ave = k_tsq_ave.template view<DeviceType>();
     h_tsq_ave = k_tsq_ave.h_view;
 
-    // msmeam params
-
-    printf("- making msmeam params in meam_dens_setup\n");
-     //memory->create(arho2mb, nmax, "pair:arho2mb");
+    // msmeam
+    //memory->create(arho2mb, nmax, "pair:arho2mb");
     k_arho2mb = DAT::tdual_ffloat_1d("pair:arho2mb",nmax);
     d_arho2mb = k_arho2mb.template view<DeviceType>();
     h_arho2mb = k_arho2mb.h_view;
@@ -195,10 +187,6 @@ MEAMKokkos<DeviceType>::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     k_arho3m = DAT::tdual_ffloat_2d("pair:arho3m", nmax, 10);
     d_arho3m = k_arho3m.template view<DeviceType>();
     h_arho3m = k_arho3m.h_view;
-    //memory->create(arho2mb, nmax, "pair:arho2mb");
-    //k_arho2mb = DAT::tdual_ffloat_1d("pair:arho2mb", nmax);
-    //d_arho2mb = k_arho2mb.template view<DeviceType>();
-    //h_arho2mb = k_arho2mb.h_view;
     //memory->create(arho3mb, nmax, 3, "pair:arho3mb");
     k_arho3mb = DAT::tdual_ffloat_2d("pair:arho3mb", nmax, 3);
     d_arho3mb = k_arho3mb.template view<DeviceType>();
@@ -250,10 +238,7 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
   this->d_offset = d_offset;
   this->nlocal = nlocal;
 
-  printf("- inside meam_dens_init()\n");
-
   if (need_dup) {
-    printf("- need dup\n");
     dup_rho0 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_rho0);
     dup_arho2b = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_arho2b);
     dup_arho1 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_arho1);
@@ -262,14 +247,13 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
     dup_arho3b = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_arho3b);
     dup_t_ave = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_t_ave);
     dup_tsq_ave = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_tsq_ave);
-    // msmeam params
+    // msmeam
     dup_arho2mb = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_arho2mb);
     dup_arho1m = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_arho1m);
     dup_arho2m = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_arho2m);
     dup_arho3m = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_arho3m);
     dup_arho3mb = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_arho3mb);
   } else {
-    printf("- no dup\n");
     ndup_rho0 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_rho0);
     ndup_arho2b = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_arho2b);
     ndup_arho1 = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_arho1);
@@ -278,7 +262,7 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
     ndup_arho3b = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_arho3b);
     ndup_t_ave = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_t_ave);
     ndup_tsq_ave = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_tsq_ave);
-    // msmeam params
+    // msmeam
     ndup_arho2mb = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_arho2mb);
     ndup_arho1m = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_arho1m);
     ndup_arho2m = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_arho2m);
@@ -302,7 +286,7 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
     Kokkos::Experimental::contribute(d_arho3b, dup_arho3b);
     Kokkos::Experimental::contribute(d_t_ave, dup_t_ave);
     Kokkos::Experimental::contribute(d_tsq_ave, dup_tsq_ave);
-    // msmeam params
+    // msmeam
     Kokkos::Experimental::contribute(d_arho2mb, dup_arho2mb);
     Kokkos::Experimental::contribute(d_arho1m, dup_arho1m);
     Kokkos::Experimental::contribute(d_arho2m, dup_arho2m);
@@ -318,7 +302,7 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
     dup_arho3b = decltype(dup_arho3b)();
     dup_t_ave = decltype(dup_t_ave)();
     dup_tsq_ave = decltype(dup_tsq_ave)();
-    // msmeam params
+    // msmeam
     dup_arho2mb = decltype(dup_arho2mb)();
     dup_arho1m = decltype(dup_arho1m)();
     dup_arho2m = decltype(dup_arho2m)();
@@ -498,7 +482,6 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
                 int offset) const
 {
   // The rho0, etc. arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  printf("- inside calc_rho1 i=%d\n", i);
   auto v_rho0 = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_rho0),decltype(ndup_rho0)>::get(dup_rho0,ndup_rho0);
   auto a_rho0 = v_rho0.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   auto v_arho2b = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho2b),decltype(ndup_arho2b)>::get(dup_arho2b,ndup_arho2b);
@@ -515,24 +498,22 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
   auto a_t_ave = v_t_ave.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   auto v_tsq_ave = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_tsq_ave),decltype(ndup_tsq_ave)>::get(dup_tsq_ave,ndup_tsq_ave);
   auto a_tsq_ave = v_tsq_ave.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  //if (msmeamflag){
-    auto v_arho2mb = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho2mb),decltype(ndup_arho2mb)>::get(dup_arho2mb,ndup_arho2mb);
-    auto a_arho2mb = v_arho2mb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-    auto v_arho1m = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho1m),decltype(ndup_arho1m)>::get(dup_arho1m,ndup_arho1m);
-    auto a_arho1m = v_arho1m.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-    auto v_arho2m = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho2m),decltype(ndup_arho2m)>::get(dup_arho2m,ndup_arho2m);
-    auto a_arho2m = v_arho2m.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-    auto v_arho3m = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho3m),decltype(ndup_arho3m)>::get(dup_arho3m,ndup_arho3m);
-    auto a_arho3m = v_arho3m.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-    auto v_arho3mb = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho3mb),decltype(ndup_arho3mb)>::get(dup_arho3mb,ndup_arho3mb);
-    auto a_arho3mb = v_arho3mb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-  //}
+  // msmeam
+  auto v_arho2mb = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho2mb),decltype(ndup_arho2mb)>::get(dup_arho2mb,ndup_arho2mb);
+  auto a_arho2mb = v_arho2mb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+  auto v_arho1m = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho1m),decltype(ndup_arho1m)>::get(dup_arho1m,ndup_arho1m);
+  auto a_arho1m = v_arho1m.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+  auto v_arho2m = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho2m),decltype(ndup_arho2m)>::get(dup_arho2m,ndup_arho2m);
+  auto a_arho2m = v_arho2m.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+  auto v_arho3m = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho3m),decltype(ndup_arho3m)>::get(dup_arho3m,ndup_arho3m);
+  auto a_arho3m = v_arho3m.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+  auto v_arho3mb = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_arho3mb),decltype(ndup_arho3mb)>::get(dup_arho3mb,ndup_arho3mb);
+  auto a_arho3mb = v_arho3mb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int elti = d_map[type[i]];
   const double xtmp = x(i,0);
   const double ytmp = x(i,1);
   const double ztmp = x(i,2);
-  printf("- begin loop over neigh i=%d\n", i);
   for (int jn = 0; jn < d_numneigh[i]; jn++) {
     if (!iszero_kk(d_scrfcn[offset+jn])) {
       const int j = d_neighbors_half(i,jn);
@@ -557,7 +538,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         double rhoa1i = ro0i * MathSpecialKokkos::fm_exp(-beta1_meam[elti] * ai) * sij;
         double rhoa2i = ro0i * MathSpecialKokkos::fm_exp(-beta2_meam[elti] * ai) * sij;
         double rhoa3i = ro0i * MathSpecialKokkos::fm_exp(-beta3_meam[elti] * ai) * sij;
-        // msmeam params
+        // msmeam
         double rhoa1mj, rhoa2mj, rhoa3mj, rhoa1mi, rhoa2mi, rhoa3mi;
         if (msmeamflag){
           rhoa1mj = ro0j * t1m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta1m_meam[eltj] * aj) * sij;
@@ -566,13 +547,6 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
           rhoa1mi = ro0i * t1m_meam[elti] * MathSpecialKokkos::fm_exp(-beta1m_meam[elti] * ai) * sij;
           rhoa2mi = ro0i * t2m_meam[elti] * MathSpecialKokkos::fm_exp(-beta2m_meam[elti] * ai) * sij;
           rhoa3mi = ro0i * t3m_meam[elti] * MathSpecialKokkos::fm_exp(-beta3m_meam[elti] * ai) * sij;
-          //printf("- rhoam params:\n");
-          //printf(" %f %f %f\n", rhoa1mj, rhoa2mj, rhoa3mj);
-          //printf(" %f %f %f\n", rhoa1mi, rhoa2mi, rhoa3mi);
-          //printf(" %f %f %f\n", this->t1m_meam[elti], this->t2m_meam[elti], this->t3m_meam[elti]);
-          //printf(" %f %f %f\n", this->beta1m_meam[elti], this->beta2m_meam[elti], this->beta3m_meam[elti]);
-          //printf(" - rhoam params %f %f %f\n", ro0i, ai, sij);
-          //printf(" - rhoam %f %f %f %f %f %f\n", rhoa1mi, rhoa2mi, rhoa3mi, rhoa1mj, rhoa2mj, rhoa3mj);
         }
         if (ialloy == 1) {
           rhoa1j *= t1_meam[eltj];
@@ -603,7 +577,6 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         }
         a_arho2b[i] += rhoa2j;
         a_arho2b[j] += rhoa2i;
-        //printf("- %f %f\n", a_arho2b[i], a_arho2b[j]);
 
         const double A1j = rhoa1j / rij;
         const double A2j = rhoa2j / rij2;
@@ -611,21 +584,19 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         const double A1i = rhoa1i / rij;
         const double A2i = rhoa2i / rij2;
         const double A3i = rhoa3i / (rij2 * rij);
+        double A1mj, A2mj, A3mj, A1mi, A2mi, A3mi;
         if (msmeamflag){
           a_arho2mb[i] += rhoa2mj;
           a_arho2mb[j] += rhoa2mi;
-          //printf("- %f %f\n", a_arho2mb[i], a_arho2mb[j]);
+          A1mj = rhoa1mj / rij;
+          A2mj = rhoa2mj / rij2;
+          A3mj = rhoa3mj / (rij2 * rij);
+          A1mi = rhoa1mi / rij;
+          A2mi = rhoa2mi / rij2;
+          A3mi = rhoa3mi / (rij2 * rij);
         }
-        const double A1mj = rhoa1mj / rij;
-        const double A2mj = rhoa2mj / rij2;
-        const double A3mj = rhoa3mj / (rij2 * rij);
-        const double A1mi = rhoa1mi / rij;
-        const double A2mi = rhoa2mi / rij2;
-        const double A3mi = rhoa3mi / (rij2 * rij);
-        //printf("A %d %d %f %f %f %f %f %f\n", i, j, A1mj, A2mj, A3mj, A1mi, A2mi, A3mi);
         int nv2 = 0;
         int nv3 = 0;
-        printf("- about to loop over m\n");
         for (int m = 0; m < 3; m++) {
           a_arho1(i,m) +=  A1j * delij[m];
           a_arho1(j,m) += -A1i * delij[m];

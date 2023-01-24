@@ -136,7 +136,7 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
   DAT::tdual_ffloat_1d k_scrfcn, k_dscrfcn, k_fcpair;
   typename ArrayTypes<DeviceType>::t_ffloat_1d d_scrfcn, d_dscrfcn, d_fcpair;
   HAT::t_ffloat_1d h_scrfcn, h_dscrfcn, h_fcpair;
-  // msmeam params
+  // msmeam
   DAT::tdual_ffloat_2d k_arho1m, k_arho2m, k_arho3m, k_arho3mb;
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_arho1m, d_arho2m, d_arho3m, d_arho3mb;
   HAT::t_ffloat_2d h_arho1m, h_arho2m, h_arho3m, h_arho3mb;
@@ -203,7 +203,7 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
   NonDupScatterView<typename decltype(d_vatom)::data_type, typename decltype(d_vatom)::array_layout>
       ndup_vatom;
 
-  // msmeam params
+  // msmeam
 
   DupScatterView<typename decltype(d_arho1m)::data_type, typename decltype(d_arho1m)::array_layout>
       dup_arho1m;

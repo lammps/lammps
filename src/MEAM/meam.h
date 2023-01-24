@@ -80,7 +80,7 @@ class MEAM {
   // msmeamflag = flag to activate MS-MEAM
   // betam[1-3]_meam = MS-MEAM electron density constants
   // tm[1-3]_meam = MS-MEAM coefficients on densities in Gamma computation
-  
+
   // nr,dr = pair function discretization parameters
   // nrar,rdrar = spline coeff array parameters
 
@@ -123,11 +123,11 @@ class MEAM {
   double dr, rdrar;
 
   // MS-MEAM parameters
-  
+
   double t1m_meam[maxelt], t2m_meam[maxelt], t3m_meam[maxelt];
   double beta1m_meam[maxelt], beta2m_meam[maxelt], beta3m_meam[maxelt];
   //int msmeamflag; // made public for pair style settings
-  
+
  public:
   int nmax;
   double *rho, *rho0, *rho1, *rho2, *rho3, *frhop;
@@ -137,7 +137,7 @@ class MEAM {
   // MS-MEAM arrays
 
   double **arho1m, **arho2m, *arho2mb, **arho3m, **arho3mb;
-  
+
   int maxneigh;
   double *scrfcn, *dscrfcn, *fcpair;
 

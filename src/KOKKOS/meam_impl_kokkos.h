@@ -59,7 +59,7 @@ MEAMKokkos<DeviceType>::~MEAMKokkos()
   memoryKK->destroy_kokkos(k_dscrfcn,dscrfcn);
   memoryKK->destroy_kokkos(k_fcpair,fcpair);
 
-  // msmeam params
+  // msmeam
 
   memoryKK->destroy_kokkos(k_arho2mb, arho2mb);
   memoryKK->destroy_kokkos(k_arho1m, arho1m);

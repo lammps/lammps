@@ -36,7 +36,6 @@ MEAMKokkos<DeviceType>::meam_dens_final(int nlocal, int eflag_either, int eflag_
 
   Kokkos::deep_copy(d_errorflag,0);
 
-  printf("- inside meam_dens_final\n");
   // Complete the calculation of density
 
   copymode = 1;
@@ -58,8 +57,6 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
   F_FLOAT denom, rho_bkgd, Fl;
   double scaleii;
 
-  printf("- inside TagMEAMDensFinal msmeamflag=%d i=%d\n", msmeamflag, i);
-
   int elti = d_map[type[i]];
   if (elti >= 0) {
     scaleii = d_scale(type[i],type[i]);
@@ -70,9 +67,11 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     } else{
       d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
     }
-    //printf("rho2 %d %f\n", i, d_rho2[i]);
+    if (!msmeamflag)
+      d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
+    else
+      d_rho2[i] = -1.0 / 3.0 * (d_arho2b[i] * d_arho2b[i] - d_arho2mb[i] * d_arho2mb[i]);
     d_rho3[i] = 0.0;
-
     for (int m = 0; m < 3; m++) {
       if (msmeamflag){
         d_rho1[i] = d_rho1[i] + d_arho1(i, m) * d_arho1(i, m)
@@ -84,7 +83,6 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
         d_rho3[i] -= 3.0 / 5.0 * d_arho3b(i,m) * d_arho3b(i,m);
       }
     }
-    //printf("rho1 rho3 %d %f %f\n", i, d_rho1[i], d_rho3[i]);
     for (int m = 0; m < 6; m++){
       if (msmeamflag){
         d_rho2[i] = d_rho2[i] + v2D[m] * (d_arho2(i, m) * d_arho2(i, m)
@@ -102,9 +100,8 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       }
 
     if (msmeamflag){
-      // with msmeam all t weights are already accounted for
+      // with msmeam all t weights are already accounted for in rho
       d_gamma[i] = d_rho1[i] + d_rho2[i] + d_rho3[i];
-
     } else{
       if (d_rho0[i] > 0.0) {
         if (ialloy == 1) {
@@ -127,8 +124,6 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     if (d_rho0[i] > 0.0)
       d_gamma[i] /= (d_rho0[i] * d_rho0[i]);
 
-    //printf("gamma %d %f\n", i, d_gamma[i]);
-
     Z = get_Zij(lattce_meam[elti][elti]);
 
     G = G_gam(d_gamma[i], ibar_meam[elti], d_errorflag());
@@ -140,7 +135,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       Gbar = 1.0;
       dGbar = 0.0;
     } else {
-      if (mix_ref_t == 1) // should not be used with msmeam
+      if (mix_ref_t == 1) // mix_ref_t not used with msmeam
         gam = (d_t_ave(i,0) * shp[0] + d_t_ave(i,1) * shp[1] + d_t_ave(i,2) * shp[2]) / (Z * Z);
       else
         gam = (t1_meam[elti] * shp[0] + t2_meam[elti] * shp[1] + t3_meam[elti] * shp[2]) /
@@ -185,8 +180,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       d_dgamma3[i] = 0.0;
 
     Fl = embedding(A_meam[elti], Ec_meam[elti][elti], rhob, d_frhop[i]);
-    //printf("dgamma %d %f %f %f\n", i, d_dgamma1[i], d_dgamma2[i], d_dgamma3[i]);
-    //printf("Fl %d %f\n", i, Fl);
+
     if (eflag_either) {
       Fl *= scaleii;
       if (eflag_global) {
@@ -194,7 +188,6 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       }
       if (eflag_atom) {
         d_eatom[i] += Fl;
-        printf("eatom %d %f\n", i, d_eatom[i]);
       }
     }
   }

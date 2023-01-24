@@ -370,6 +370,9 @@ void PairMEAM::read_files(const std::string &globalfile,
 
 void PairMEAM::read_global_meam_file(const std::string &globalfile)
 {
+
+  printf("--- Reading global meam file\n");
+
   // allocate parameter arrays
 
   std::vector<lattice_t> lat(nlibelements);
@@ -850,7 +853,7 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
     }
   }
 
-  
+
 }
 
 /* ----------------------------------------------------------------------

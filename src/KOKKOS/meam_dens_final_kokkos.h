@@ -67,10 +67,6 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     } else{
       d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
     }
-    if (msmeamflag)
-      d_rho2[i] = -1.0 / 3.0 * (d_arho2b[i] * d_arho2b[i] - d_arho2mb[i] * d_arho2mb[i]);
-    else
-      d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
     d_rho3[i] = 0.0;
     for (int m = 0; m < 3; m++) {
       if (msmeamflag){
@@ -135,7 +131,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       Gbar = 1.0;
       dGbar = 0.0;
     } else {
-      if (mix_ref_t == 1) // mix_ref_t not used with msmeam
+      if (mix_ref_t == 1)
         gam = (d_t_ave(i,0) * shp[0] + d_t_ave(i,1) * shp[1] + d_t_ave(i,2) * shp[2]) / (Z * Z);
       else
         gam = (t1_meam[elti] * shp[0] + t2_meam[elti] * shp[1] + t3_meam[elti] * shp[2]) /

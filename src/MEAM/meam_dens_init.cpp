@@ -23,7 +23,6 @@ using namespace LAMMPS_NS;
 void
 MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 {
-
   int i, j;
 
   // grow local arrays if necessary
@@ -353,7 +352,6 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
           rhoa3mi = ro0i * this->t3m_meam[elti] * MathSpecial::fm_exp(-this->beta3m_meam[elti] * ai) * sij;
         }
         if (this->ialloy == 1) {
-          // this is used in Baske's test since they put t's in rhoa definitions
           rhoa1j = rhoa1j * this->t1_meam[eltj];
           rhoa2j = rhoa2j * this->t2_meam[eltj];
           rhoa3j = rhoa3j * this->t3_meam[eltj];
@@ -364,7 +362,7 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
         rho0[i] = rho0[i] + rhoa0j;
         rho0[j] = rho0[j] + rhoa0i;
         // For ialloy = 2, use single-element value (not average)
-        // Not used in MS-MEAM: For ialloy = 2, use single-element value (not average)
+        // For ialloy = 2, use single-element value (not average)
         if (this->ialloy != 2) {
           t_ave[i][0] = t_ave[i][0] + this->t1_meam[eltj] * rhoa0j;
           t_ave[i][1] = t_ave[i][1] + this->t2_meam[eltj] * rhoa0j;

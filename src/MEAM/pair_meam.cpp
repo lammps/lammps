@@ -436,8 +436,6 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         // map lat string to an integer
         std::string lattice_type = values.next_string();
 
-        //error->one(FLERR,"lattice_type {}", lattice_type);
-
         if (!MEAM::str_to_lat(lattice_type, true, lat[index]))
           error->one(FLERR,"Unrecognized lattice type in MEAM "
                                        "library file: {}", lattice_type);
@@ -528,17 +526,17 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
   // pass element parameters to MEAM package
 
   if (msmeamflag){
-  meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
-                               alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
-                               alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
-                               t2.data(), t3.data(), rozero.data(), ibar.data(), b1m.data(),
-                               b2m.data(), b3m.data(), t1m.data(), t2m.data(), t3m.data());
+    meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
+                                alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
+                                alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
+                                t2.data(), t3.data(), rozero.data(), ibar.data(), b1m.data(),
+                                b2m.data(), b3m.data(), t1m.data(), t2m.data(), t3m.data());
   } else{
-  meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
-                               alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
-                               alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
-                               t2.data(), t3.data(), rozero.data(), ibar.data(), nullptr,
-                               nullptr, nullptr, nullptr, nullptr, nullptr);
+    meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
+                                alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
+                                alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
+                                t2.data(), t3.data(), rozero.data(), ibar.data(), nullptr,
+                                nullptr, nullptr, nullptr, nullptr, nullptr);
   }
 
   // set element masses
@@ -662,8 +660,6 @@ int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
     buf[m++] = meam_inst->tsq_ave[j][0];
     buf[m++] = meam_inst->tsq_ave[j][1];
     buf[m++] = meam_inst->tsq_ave[j][2];
-
-    // msmeam params - increases buffer by 23
     if (msmeamflag){
       buf[m++] = meam_inst->arho2mb[j];
       buf[m++] = meam_inst->arho1m[j][0];
@@ -724,9 +720,6 @@ void PairMEAM::unpack_forward_comm(int n, int first, double *buf)
     meam_inst->tsq_ave[i][0] = buf[m++];
     meam_inst->tsq_ave[i][1] = buf[m++];
     meam_inst->tsq_ave[i][2] = buf[m++];
-
-    // msmeam params - increases buffer size by 23
-
     if (msmeamflag){
       meam_inst->arho2mb[i] = buf[m++];
       meam_inst->arho1m[i][0] = buf[m++];
@@ -776,9 +769,6 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = meam_inst->tsq_ave[i][0];
     buf[m++] = meam_inst->tsq_ave[i][1];
     buf[m++] = meam_inst->tsq_ave[i][2];
-
-    // msmeam params - increases buffer size by 23
-
     if (msmeamflag){
       buf[m++] = meam_inst->arho2mb[i];
       buf[m++] = meam_inst->arho1m[i][0];
@@ -830,9 +820,6 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
     meam_inst->tsq_ave[j][0] += buf[m++];
     meam_inst->tsq_ave[j][1] += buf[m++];
     meam_inst->tsq_ave[j][2] += buf[m++];
-
-    // msmeam params - increases buffer size by 23
-
     if (msmeamflag){
       meam_inst->arho2mb[j] += buf[m++];
       meam_inst->arho1m[j][0] += buf[m++];

@@ -28,3 +28,4 @@ timestep	0.001
 #dump_modify	3 pad 3 element Si C
 
 run		100
+

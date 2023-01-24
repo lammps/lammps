@@ -235,7 +235,6 @@ void MEAM::compute_pair_meam()
           //     well.
           if (this->lattce_meam[a][b] == B1 || this->lattce_meam[a][b] == B2 ||
               this->lattce_meam[a][b] == L12 || this->lattce_meam[a][b] == DIA) {
-
             rarat = r * arat;
 
             //               phi_aa
@@ -295,9 +294,8 @@ void MEAM::compute_pair_meam()
         // endif
         if (this->zbl_meam[a][b] == 1) {
           astar = this->alpha_meam[a][b] * (r / this->re_meam[a][b] - 1.0);
-          if (astar <= -3.0){
+          if (astar <= -3.0)
             this->phir[nv2][j] = zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
-          }
           else if (astar > -3.0 && astar < -1.0) {
             frac = fcut(1 - (astar + 1.0) / (-3.0 + 1.0));
             phizbl = zbl(r, this->ielt_meam[a], this->ielt_meam[b]);
@@ -334,7 +332,7 @@ double MEAM::phi_meam(double r, int a, int b)
   lattice_t latta /*unused:,lattb*/;
   double rho_bkgd1, rho_bkgd2;
   double b11s, b22s;
-  // msmeam params
+  // msmeam
   double t1m1av, t2m1av, t3m1av, t1m2av, t2m2av, t3m2av;
   double rho1m1, rho2m1, rho3m1;
   double rho1m2, rho2m2, rho3m2;
@@ -365,7 +363,6 @@ double MEAM::phi_meam(double r, int a, int b)
 
   // calculate average weighting factors for the reference structure
   if (this->lattce_meam[a][b] == C11) {
-    // note ialloy and t_ave not used in msmeam
     if (this->ialloy == 2) {
       t11av = this->t1_meam[a];
       t12av = this->t1_meam[b];
@@ -439,17 +436,15 @@ double MEAM::phi_meam(double r, int a, int b)
       rho0_1 = this->rho0_meam[a] * Z1 * G1;
       rho0_2 = this->rho0_meam[b] * Z2 * G2;
     }
-    // msmeam modified: no additional use of t's here. All included in definitions of rho's (in fortran)
 
     if (this->msmeamflag){
+      // no additional use of t's here; all included in definitions of rho's for msmeam
       Gam1 = rho11 + rho21 + rho31 - (rho1m1 + rho2m1 + rho3m1);
-      //Gam1 = Gam1/(rho01 * rho01);
       if (rho01 < 1.0e-14)
         Gam1 = 0.0;
       else
         Gam1 = Gam1 / (rho01 * rho01);
       Gam2 = rho12 + rho22 + rho32 - (rho1m2 + rho2m2 + rho3m2);
-      //Gam2 = Gam2/(rho02 * rho02);
       if (rho02 < 1.0e-14)
         Gam2 = 0.0;
       else
@@ -705,7 +700,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   double rhoa02, rhoa12, rhoa22, rhoa32;
   double arat, scrn, denom;
   double C, s111, s112, s221, S11, S22;
-  // msmeam params
+  // msmeam
   double rhoa1m1, rhoa2m1, rhoa3m1, rhoa1m2, rhoa2m2, rhoa3m2;
 
   a1 = r / this->re_meam[a][a] - 1.0;
@@ -714,7 +709,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
 
   if (this->msmeamflag){
-    // in msmeam, the rho variables are multiplied by t here since we don't use ialloy
+    // the rho variables are multiplied by t here since ialloy not needed in msmeam
     rhoa11 = this->rho0_meam[a] * this->t1_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
     rhoa21 = this->rho0_meam[a] * this->t2_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
     rhoa31 = this->rho0_meam[a] * this->t3_meam[a] * MathSpecial::fm_exp(-this->beta3_meam[a] * a1);
@@ -835,7 +830,6 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     case L12:
       *rho01 = 8 * rhoa01 + 4 * rhoa02;
       *rho02 = 12 * rhoa01;
-      // possibly inconsistent use of t's when using msmeam
       if (this->ialloy ==1){
         *rho21 = 8. / 3. * MathSpecial::square(rhoa21 * this->t2_meam[a] - rhoa22 * this->t2_meam[b]);
         denom = 8 * rhoa01 * MathSpecial::square(this->t2_meam[a]) + 4 * rhoa02 * MathSpecial::square(this->t2_meam[b]);

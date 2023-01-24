@@ -263,9 +263,8 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         const double t2mj = t2_meam[eltj];
         const double t3mj = t3_meam[eltj];
 
-        // ialloy mod not needed in msmeam, but similarity here is that we multply rhos by t.
-        // msmeam fortran code accomplishes this by multiplying rhos with t's above, like we did
-        // with rhoa1mj, rhoa2mj, etc.
+        // ialloy mod not needed in MS-MEAM, but similarity here is that we multply rhos by t.
+        // We did this above with rhoa1mj, rhoa2mj, etc.
 
         if (ialloy == 1 || msmeamflag) {
           rhoa1j *= t1mj;

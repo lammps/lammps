@@ -196,9 +196,8 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
         const double t2mj = this->t2_meam[eltj];
         const double t3mj = this->t3_meam[eltj];
 
-        // ialloy mod not needed in msmeam, but similarity here is that we need to multiply rhos by t
-        // msmeam fortran code accomplishes this by multiplying rho's with t's above, like we did
-        // with rhoa1mj, rhoa2mj, etc
+        // ialloy mod not needed in MS-MEAM, but similarity here is that we multply rhos by t.
+        // We did this above with rhoa1mj, rhoa2mj, etc.
 
         if (this->ialloy == 1 || this->msmeamflag) {
           rhoa1j  *= t1mj;

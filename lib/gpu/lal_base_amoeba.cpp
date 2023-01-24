@@ -573,7 +573,8 @@ void BaseAmoebaT::precompute_kspace(const int inum_full, const int bsorder,
 
   int numel = _num_grid_points;
   if (_cgrid_brick.cols() == 0) {
-    _cgrid_brick.alloc(numel, *(this->ucl_device), UCL_READ_WRITE, UCL_READ_ONLY);
+    int nsize=(int)(((double)numel)*1.1);
+    _cgrid_brick.alloc(nsize, *(this->ucl_device), UCL_READ_WRITE, UCL_READ_ONLY);
   } else if (numel > (int)_cgrid_brick.cols()) {
     _cgrid_brick.resize(numel);
   }
@@ -689,13 +690,7 @@ int BaseAmoebaT::fphi_mpole() {
 
   const int BX=block_size();
   const int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
-  /*
-  const int cus = device->gpu->cus();
-  while (GX < cus && GX > 1) {
-    BX /= 2;
-    GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
-  }
-  */
+
   time_pair.start();
   int ngridxy = _ngridx * _ngridy;
   k_fphi_mpole.set_size(GX,BX);

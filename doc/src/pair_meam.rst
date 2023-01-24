@@ -11,7 +11,9 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style meam
+   pair_style meam [ms]
+
+* ms = use multi-state MEAM (optional)
 
 Examples
 """"""""
@@ -351,6 +353,14 @@ Most published MEAM parameter sets use the default values *attrac* = *repulse* =
 Setting *repuls* = *attrac* = *delta* corresponds to the form used in several
 recent published MEAM parameter sets, such as :ref:`(Valone) <Valone>`
 
+The optional *ms* flag activates multi-state MEAM (MS-MEAM) according to :ref:`(Baskes2) <Baskes2>`.
+This requires 6 extra parameters in the MEAM library file, resulting in 25 parameters ordered like:
+
+elt, lat, z, ielement, atwt, alpha, b0, b1, b2, b3, b1m, b2m, b3m, alat, esub, asub,
+t0, t1, t2, t3, t1m, t2m, t3m, rozero, ibar
+
+The 6 extra MS-MEAM parameters are *b1m, b2m, b3m, t1m, t2m, t3m*.
+
 ----------
 
 .. include:: accel_styles.rst
@@ -420,6 +430,10 @@ none
 .. _Baskes:
 
 **(Baskes)** Baskes, Phys Rev B, 46, 2727-2742 (1992).
+
+.. _Baskes2:
+
+**(Baskes2)** Baskes, Phys Rev B, 75, 094113 (2007).
 
 .. _Gullet:
 

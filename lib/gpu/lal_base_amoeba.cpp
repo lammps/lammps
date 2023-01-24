@@ -484,9 +484,9 @@ void BaseAmoebaT::precompute_kspace(const int inum_full, const int bsorder,
 
   if (_max_thetai_size == 0) {
     _max_thetai_size = static_cast<int>(static_cast<double>(inum_full)*1.10);
-    _thetai1.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_READ_ONLY);
-    _thetai2.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_READ_ONLY);
-    _thetai3.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_READ_ONLY);
+    _thetai1.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_WRITE_ONLY,UCL_READ_ONLY);
+    _thetai2.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_WRITE_ONLY,UCL_READ_ONLY);
+    _thetai3.alloc(_max_thetai_size*bsorder,*(this->ucl_device),UCL_WRITE_ONLY,UCL_READ_ONLY);
     _igrid.alloc(_max_thetai_size*4,*(this->ucl_device),UCL_WRITE_ONLY,UCL_READ_ONLY);
 
     _fdip_phi1.alloc(_max_thetai_size*10,*(this->ucl_device),UCL_READ_WRITE);

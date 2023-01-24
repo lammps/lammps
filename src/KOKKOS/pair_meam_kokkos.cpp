@@ -258,6 +258,7 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     meam_inst_kk->k_arho3mb.template sync<DeviceType>();
   }
 
+  printf("--- starting meam_force\n");
   meam_inst_kk->meam_force(inum_half,eflag_global,eflag_atom,vflag_global,
                            vflag_atom,d_eatom,ntype,type,d_map,x,
                            d_numneigh_half, d_numneigh_full,f,d_vatom,

@@ -560,12 +560,19 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         // msmeam params
         double rhoa1mj, rhoa2mj, rhoa3mj, rhoa1mi, rhoa2mi, rhoa3mi;
         if (msmeamflag){
-          rhoa1mj = ro0j * t1_meam[eltj] * MathSpecialKokkos::fm_exp(-beta1m_meam[eltj] * aj) * sij;
-          rhoa2mj = ro0j * t2_meam[eltj] * MathSpecialKokkos::fm_exp(-beta2m_meam[eltj] * aj) * sij;
-          rhoa3mj = ro0j * t3_meam[eltj] * MathSpecialKokkos::fm_exp(-beta3m_meam[eltj] * aj) * sij;
-          rhoa1mi = ro0i * t1_meam[elti] * MathSpecialKokkos::fm_exp(-beta1m_meam[elti] * ai) * sij;
-          rhoa2mi = ro0i * t2_meam[elti] * MathSpecialKokkos::fm_exp(-beta2m_meam[elti] * ai) * sij;
-          rhoa3mi = ro0i * t3_meam[elti] * MathSpecialKokkos::fm_exp(-beta3m_meam[elti] * ai) * sij;
+          rhoa1mj = ro0j * t1m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta1m_meam[eltj] * aj) * sij;
+          rhoa2mj = ro0j * t2m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta2m_meam[eltj] * aj) * sij;
+          rhoa3mj = ro0j * t3m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta3m_meam[eltj] * aj) * sij;
+          rhoa1mi = ro0i * t1m_meam[elti] * MathSpecialKokkos::fm_exp(-beta1m_meam[elti] * ai) * sij;
+          rhoa2mi = ro0i * t2m_meam[elti] * MathSpecialKokkos::fm_exp(-beta2m_meam[elti] * ai) * sij;
+          rhoa3mi = ro0i * t3m_meam[elti] * MathSpecialKokkos::fm_exp(-beta3m_meam[elti] * ai) * sij;
+          //printf("- rhoam params:\n");
+          //printf(" %f %f %f\n", rhoa1mj, rhoa2mj, rhoa3mj);
+          //printf(" %f %f %f\n", rhoa1mi, rhoa2mi, rhoa3mi);
+          //printf(" %f %f %f\n", this->t1m_meam[elti], this->t2m_meam[elti], this->t3m_meam[elti]);
+          //printf(" %f %f %f\n", this->beta1m_meam[elti], this->beta2m_meam[elti], this->beta3m_meam[elti]);
+          //printf(" - rhoam params %f %f %f\n", ro0i, ai, sij);
+          //printf(" - rhoam %f %f %f %f %f %f\n", rhoa1mi, rhoa2mi, rhoa3mi, rhoa1mj, rhoa2mj, rhoa3mj);
         }
         if (ialloy == 1) {
           rhoa1j *= t1_meam[eltj];
@@ -596,6 +603,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         }
         a_arho2b[i] += rhoa2j;
         a_arho2b[j] += rhoa2i;
+        //printf("- %f %f\n", a_arho2b[i], a_arho2b[j]);
 
         const double A1j = rhoa1j / rij;
         const double A2j = rhoa2j / rij2;
@@ -606,6 +614,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         if (msmeamflag){
           a_arho2mb[i] += rhoa2mj;
           a_arho2mb[j] += rhoa2mi;
+          //printf("- %f %f\n", a_arho2mb[i], a_arho2mb[j]);
         }
         const double A1mj = rhoa1mj / rij;
         const double A2mj = rhoa2mj / rij2;
@@ -613,6 +622,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         const double A1mi = rhoa1mi / rij;
         const double A2mi = rhoa2mi / rij2;
         const double A3mi = rhoa3mi / (rij2 * rij);
+        //printf("A %d %d %f %f %f %f %f %f\n", i, j, A1mj, A2mj, A3mj, A1mi, A2mi, A3mi);
         int nv2 = 0;
         int nv3 = 0;
         printf("- about to loop over m\n");

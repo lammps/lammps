@@ -141,7 +141,7 @@ You can always include a divide by the number of atoms in the variable
 formula if this is not the case.
 
 The *flush* keyword invokes a flush operation after thermodynamic info
-is written to the screen and log file.  This insures the output is
+is written to the screen and log file.  This ensures the output is
 updated and not buffered (by the application) even if LAMMPS halts
 before the simulation completes.  Please note that this does not affect
 buffering by the OS or devices, so you may still lose data in case the

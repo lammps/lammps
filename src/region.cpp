@@ -104,8 +104,8 @@ int Region::dynamic_check()
 
 /* ----------------------------------------------------------------------
    called before looping over atoms with match() or surface()
-   this insures any variables used by region are invoked once per timestep
-     also insures variables are invoked by all procs even those w/out atoms
+   this ensures any variables used by region are invoked once per timestep
+     also ensures variables are invoked by all procs even those w/out atoms
      necessary if equal-style variable invokes global operation
    with MPI_Allreduce, e.g. xcm() or count()
 ------------------------------------------------------------------------- */

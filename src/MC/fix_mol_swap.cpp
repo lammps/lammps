@@ -238,7 +238,7 @@ void FixMolSwap::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
-  // insure current system is ready to compute energy
+  // ensure current system is ready to compute energy
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();

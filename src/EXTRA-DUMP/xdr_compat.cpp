@@ -653,7 +653,7 @@ static xdr_int32_t *
 xdrstdio_inline (XDR * /*xdrs*/, int /*len*/)
 {
   /*
-   * Must do some work to implement this: must insure
+   * Must do some work to implement this: must ensure
    * enough data in the underlying stdio buffer,
    * that the buffer is aligned so that we can indirect through a
    * long *, and stuff this pointer in xdrs->x_buf.  Doing

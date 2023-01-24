@@ -213,7 +213,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // depends on specified volume fraction
   // volume = volume of insertion region
   // volume_one = volume of inserted particle (with max possible radius)
-  // in 3d, insure dy >= 1, for quasi-2d simulations
+  // in 3d, ensure dy >= 1, for quasi-2d simulations
 
   double volume, volume_one = 1.0;
 
@@ -296,7 +296,7 @@ void FixPour::init()
   region = domain->get_region_by_id(idregion);
   if (!region) error->all(FLERR, "Fix pour region {} does not exist", idregion);
 
-  // insure gravity fix (still) exists
+  // ensure gravity fix (still) exists
   // for 3d must point in -z, for 2d must point in -y
   // else insertion cannot work
 

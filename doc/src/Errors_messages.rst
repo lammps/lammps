@@ -6092,7 +6092,7 @@ keyword to allow for additional bonds to be formed
    after a read_data, read_restart, or create_box command.
 
 *Next command must list all universe and uloop variables*
-   This is to insure they stay in sync.
+   This is to ensure they stay in sync.
 
 *No Kspace style defined for compute group/group*
    Self-explanatory.
@@ -7231,7 +7231,7 @@ keyword to allow for additional bonds to be formed
 
 *Replacing a fix, but new style != old style*
    A fix ID can be used a second time, but only if the style matches the
-   previous fix.  In this case it is assumed you with to reset a fix's
+   previous fix.  In this case it is assumed you want to reset a fix's
    parameters.  This error may mean you are mistakenly re-using a fix ID
    when you do not intend to.
 
@@ -7337,7 +7337,7 @@ keyword to allow for additional bonds to be formed
 *Rigid body atoms %d %d missing on proc %d at step %ld*
    This means that an atom cannot find the atom that owns the rigid body
    it is part of, or vice versa.  The solution is to use the communicate
-   cutoff command to insure ghost atoms are acquired from far enough away
+   cutoff command to ensure ghost atoms are acquired from far enough away
    to encompass the max distance printed when the fix rigid/small command
    was invoked.
 

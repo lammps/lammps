@@ -246,7 +246,7 @@ freedom (DOFs) is known.  Thus it is not possible to compute the
 target temperature correctly.  Second, the assigned velocities may be
 partially canceled when constraints are first enforced, leading to a
 different temperature than desired.  A workaround for this is to
-perform a :doc:`run 0 <run>` command, which insures all DOFs are
+perform a :doc:`run 0 <run>` command, which ensures all DOFs are
 accounted for properly, and then rescale the temperature to the
 desired value before performing a simulation.  For example:
 

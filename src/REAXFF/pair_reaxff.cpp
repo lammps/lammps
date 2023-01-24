@@ -282,7 +282,7 @@ void PairReaxFF::coeff(int nargs, char **args)
   if (nargs != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // insure I,J args are * *
+  // ensure I,J args are * *
 
   if (strcmp(args[0],"*") != 0 || strcmp(args[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");

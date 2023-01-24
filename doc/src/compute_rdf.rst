@@ -82,7 +82,7 @@ distance specified.
    every timestep this command is invoked (or every reneighboring
    timestep, whichever is less frequent), which is inefficient.  LAMMPS
    will warn you if this is the case.  If you specify a *Rcut* > force
-   cutoff, you must insure ghost atom information out to *Rcut* + *skin*
+   cutoff, you must ensure ghost atom information out to *Rcut* + *skin*
    is communicated, via the :doc:`comm_modify cutoff <comm_modify>`
    command, else the RDF computation cannot be performed, and LAMMPS will
    give an error message.  The *skin* value is what is specified with the

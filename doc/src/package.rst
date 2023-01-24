@@ -629,7 +629,7 @@ too.
    packages, be aware these packages all allow setting of the *Nthreads*
    value via their package commands, but there is only a single global
    *Nthreads* value used by OpenMP.  Thus if multiple package commands are
-   invoked, you should insure the values are consistent.  If they are
+   invoked, you should ensure the values are consistent.  If they are
    not, the last one invoked will take precedence, for all packages.
    Also note that if the :doc:`-sf hybrid intel omp command-line switch <Run_options>` is used, it invokes a "package intel" command, followed by a
    "package omp" command, both with a setting of *Nthreads* = 0. Likewise

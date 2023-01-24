@@ -282,7 +282,7 @@ showing the use of the *template* atom style versus *molecular*.
 .. note::
 
    When using the *template* style with a :doc:`molecule template
-   <molecule>` that contains multiple molecules, you should insure the
+   <molecule>` that contains multiple molecules, you should ensure the
    atom types, bond types, angle_types, etc in all the molecules are
    consistent.  E.g. if one molecule represents H2O and another CO2,
    then you probably do not want each molecule file to define 2 atom

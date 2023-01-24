@@ -149,9 +149,9 @@ is required representing the equivalent offset for molecule IDs.
 If *merge* is specified, the data file atoms
 are added to the current system without changing their IDs.  They are
 assumed to merge (without duplication) with the currently defined
-atoms.  It is up to you to insure there are no multiply defined atom
+atoms.  It is up to you to ensure there are no multiply defined atom
 IDs, as LAMMPS only performs an incomplete check that this is the case
-by insuring the resulting max atom-ID >= the number of atoms. For
+by ensuring the resulting max atom-ID >= the number of atoms. For
 molecule IDs, there is no check done at all.
 
 The *offset* and *shift* keywords can only be used if the *add*
@@ -180,7 +180,7 @@ The *shift* keyword can be used to specify an (Sx, Sy, Sz)
 displacement applied to the coordinates of each atom.  Sz must be 0.0
 for a 2d simulation.  This is a mechanism for adding structured
 collections of atoms at different locations within the simulation box,
-to build up a complex geometry.  It is up to you to insure atoms do
+to build up a complex geometry.  It is up to you to ensure atoms do
 not end up overlapping unphysically which would lead to bad dynamics.
 Note that the :doc:`displace_atoms <displace_atoms>` command can be used
 to move a subset of atoms after they have been read from a data file.

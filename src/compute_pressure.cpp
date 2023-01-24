@@ -50,7 +50,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   timeflag = 1;
 
   // store temperature ID used by pressure computation
-  // insure it is valid for temperature computation
+  // ensure it is valid for temperature computation
 
   if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {

@@ -927,8 +927,8 @@ void DumpVTK::write()
 
   if (filewriter) write_header(nheader);
 
-  // insure buf is sized for packing and communicating
-  // use nmax to insure filewriter proc can receive info from others
+  // ensure buf is sized for packing and communicating
+  // use nmax to ensure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
 
   if (nmax > maxbuf) {
@@ -939,7 +939,7 @@ void DumpVTK::write()
     memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
-  // insure ids buffer is sized for sorting
+  // ensure ids buffer is sized for sorting
 
   if (sort_flag && sortcol == 0 && nmax > maxids) {
     maxids = nmax;

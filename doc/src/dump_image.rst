@@ -255,7 +255,7 @@ one image file per snapshot is written.  The "\*" character is replaced
 with the timestep value.  For example, tmp.dump.\*.jpg becomes
 tmp.dump.0.jpg, tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note
 that the :doc:`dump_modify pad <dump_modify>` command can be used to
-insure all timestep numbers are the same length (e.g., 00010), which
+ensure all timestep numbers are the same length (e.g., 00010), which
 can make it easier to convert a series of images into a movie in the
 correct ordering.
 

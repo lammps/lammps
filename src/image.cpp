@@ -186,7 +186,7 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
 
   // adjust camDir by epsilon if camDir and up are parallel
   // do this by tweaking view direction, not up direction
-  // try to insure continuous images as changing view passes thru up
+  // try to ensure continuous images as changing view passes thru up
   // sufficient to handle common cases where theta = 0 or 180 is degenerate?
 
   double dot = MathExtra::dot3(up,camDir);

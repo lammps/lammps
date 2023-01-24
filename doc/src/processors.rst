@@ -133,7 +133,7 @@ each processor's subdomain, as described above.  The mapping of
 processors to the grid is determined by the *map* keyword setting.
 
 The *twolevel* style can be used on machines with multicore nodes to
-minimize off-node communication.  It insures that contiguous
+minimize off-node communication.  It ensures that contiguous
 subsections of the 3d grid are assigned to all the cores of a node.
 For example if *Nc* is 4, then 2x2x1 or 2x1x2 or 1x2x2 subsections of
 the 3d grid will correspond to the cores of each node.  This affects
@@ -289,7 +289,7 @@ processors, it could create a 4x2x10 grid, but it will not create a
 
    If you use the :doc:`partition <partition>` command to invoke
    different "processors" commands on different partitions, and you also
-   use the *part* keyword, then you must insure that both the sending and
+   use the *part* keyword, then you must ensure that both the sending and
    receiving partitions invoke the "processors" command that connects the
    2 partitions via the *part* keyword.  LAMMPS cannot easily check for
    this, but your simulation will likely hang in its setup phase if this
@@ -306,7 +306,7 @@ machine or when the processor ranks were reordered by use of the
 :doc:`-reorder command-line switch <Run_options>` or due to use of
 MPI-specific launch options such as a config file.
 
-If you have multiple partitions you should insure that each one writes
+If you have multiple partitions you should ensure that each one writes
 to a different file, e.g. using a :doc:`world-style variable <variable>`
 for the filename.  The file has a self-explanatory header, followed by
 one-line per processor in this format:

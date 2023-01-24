@@ -766,7 +766,7 @@ void FixRigid::init()
 }
 
 /* ----------------------------------------------------------------------
-   invoke pre_neighbor() to insure body xcmimage flags are reset
+   invoke pre_neighbor() to ensure body xcmimage flags are reset
      needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
 ------------------------------------------------------------------------- */
 

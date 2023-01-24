@@ -148,7 +148,7 @@ In the last scenario, a :doc:`fix <fix>` or :doc:`compute <compute>` or
 :doc:`pairwise potential <pair_style>` needs to calculate with ghost
 atoms beyond the normal pairwise cutoff for some computation it
 performs (e.g. locate neighbors of ghost atoms in a manybody pair
-potential).  Setting the ghost cutoff appropriately can insure it will
+potential).  Setting the ghost cutoff appropriately can ensure it will
 find the needed atoms.
 
 .. note::

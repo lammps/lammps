@@ -351,7 +351,7 @@ This will most likely cause errors in kinetic fluctuations.
    Self-explanatory.
 
 *Kspace_modify slab param < 2.0 may cause unphysical behavior*
-   The kspace_modify slab parameter should be larger to insure periodic
+   The kspace_modify slab parameter should be larger to ensure periodic
    grids padded with empty space do not overlap.
 
 *Less insertions than requested*
@@ -491,7 +491,7 @@ This will most likely cause errors in kinetic fluctuations.
 *Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies*
    This is because excluding specific pair interactions also excludes
    them from long-range interactions which may not be the desired effect.
-   The special_bonds command handles this consistently by insuring
+   The special_bonds command handles this consistently by ensuring
    excluded (or weighted) 1-2, 1-3, 1-4 interactions are treated
    consistently by both the short-range pair style and the long-range
    solver.  This is not done for exclusions of charged atom pairs via the
@@ -545,7 +545,7 @@ This will most likely cause errors in kinetic fluctuations.
    If there are other fixes that act immediately after the initial stage
    of time integration within a timestep (i.e. after atoms move), then
    the command that sets up the dynamic group should appear after those
-   fixes.  This will insure that dynamic group assignments are made
+   fixes.  This will ensure that dynamic group assignments are made
    after all atoms have moved.
 
 *One or more respa levels compute no forces*

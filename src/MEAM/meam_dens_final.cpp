@@ -52,28 +52,8 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
                                             - arho3m[i][m] * arho3m[i][m]);
         }
 
-        if (this->msmeamflag){
-          // with msmeam, all the t weights are already accounted for
-          gamma[i] = rho1[i] + rho2[i] + rho3[i];
-        } else {
-          if (rho0[i] > 0.0) {
-            if (this->ialloy == 1) {
-              t_ave[i][0] = fdiv_zero(t_ave[i][0], tsq_ave[i][0]);
-              t_ave[i][1] = fdiv_zero(t_ave[i][1], tsq_ave[i][1]);
-              t_ave[i][2] = fdiv_zero(t_ave[i][2], tsq_ave[i][2]);
-            } else if (this->ialloy == 2) {
-              t_ave[i][0] = this->t1_meam[elti];
-              t_ave[i][1] = this->t2_meam[elti];
-              t_ave[i][2] = this->t3_meam[elti];
-            } else {
-              t_ave[i][0] = t_ave[i][0] / rho0[i];
-              t_ave[i][1] = t_ave[i][1] / rho0[i];
-              t_ave[i][2] = t_ave[i][2] / rho0[i];
-            }
-          }
-
-          gamma[i] = t_ave[i][0] * rho1[i] + t_ave[i][1] * rho2[i] + t_ave[i][2] * rho3[i];
-        }
+        // all the t weights are already accounted for with msmeam
+        gamma[i] = rho1[i] + rho2[i] + rho3[i];
 
         if (rho0[i] > 0.0) {
           gamma[i] = gamma[i] / (rho0[i] * rho0[i]);
@@ -101,7 +81,6 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         }
         rho[i] = rho0[i] * G;
 
-        // mix_ref_t == 1 should not be used with msmeam
         if (this->mix_ref_t == 1) {
           if (this->ibar_meam[elti] <= 0) {
             Gbar = 1.0;

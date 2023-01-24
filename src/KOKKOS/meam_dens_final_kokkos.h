@@ -67,10 +67,10 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     } else{
       d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
     }
-    if (!msmeamflag)
-      d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
-    else
+    if (msmeamflag)
       d_rho2[i] = -1.0 / 3.0 * (d_arho2b[i] * d_arho2b[i] - d_arho2mb[i] * d_arho2mb[i]);
+    else
+      d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
     d_rho3[i] = 0.0;
     for (int m = 0; m < 3; m++) {
       if (msmeamflag){

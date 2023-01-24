@@ -23,6 +23,7 @@ using namespace LAMMPS_NS;
 void
 MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
 {
+
   int i, j;
 
   // grow local arrays if necessary
@@ -101,7 +102,7 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     }
     for (j = 0; j < 6; j++){
       arho2[i][j] = 0.0;
-      if (this->msmeamflag){ 
+      if (this->msmeamflag){
         arho2m[i][j] = 0.0;
       }
     }

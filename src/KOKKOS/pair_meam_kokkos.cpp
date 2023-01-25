@@ -167,7 +167,7 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   meam_inst_kk->k_arho3b.template modify<DeviceType>();
   meam_inst_kk->k_t_ave.template modify<DeviceType>();
   meam_inst_kk->k_tsq_ave.template modify<DeviceType>();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.template modify<DeviceType>();
     meam_inst_kk->k_arho1m.template modify<DeviceType>();
     meam_inst_kk->k_arho2m.template modify<DeviceType>();
@@ -185,7 +185,7 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   meam_inst_kk->k_arho3b.template sync<DeviceType>();
   meam_inst_kk->k_t_ave.template sync<DeviceType>();
   meam_inst_kk->k_tsq_ave.template sync<DeviceType>();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.template sync<DeviceType>();
     meam_inst_kk->k_arho1m.template sync<DeviceType>();
     meam_inst_kk->k_arho2m.template sync<DeviceType>();
@@ -215,7 +215,7 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   meam_inst_kk->k_arho3b.template modify<DeviceType>();
   meam_inst_kk->k_t_ave.template modify<DeviceType>();
   meam_inst_kk->k_tsq_ave.template modify<DeviceType>();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.template modify<DeviceType>();
     meam_inst_kk->k_arho1m.template modify<DeviceType>();
     meam_inst_kk->k_arho2m.template modify<DeviceType>();
@@ -241,7 +241,7 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   meam_inst_kk->k_arho3b.template sync<DeviceType>();
   meam_inst_kk->k_t_ave.template sync<DeviceType>();
   meam_inst_kk->k_tsq_ave.template sync<DeviceType>();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.template sync<DeviceType>();
     meam_inst_kk->k_arho1m.template sync<DeviceType>();
     meam_inst_kk->k_arho2m.template sync<DeviceType>();
@@ -383,7 +383,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackForwardComm, const in
   v_buf[m++] = d_tsq_ave(j,0);
   v_buf[m++] = d_tsq_ave(j,1);
   v_buf[m++] = d_tsq_ave(j,2);
-  if (msmeamflag){
+  if (msmeamflag) {
     v_buf[m++] = d_arho2mb[j];
     v_buf[m++] = d_arho1m(j,0);
     v_buf[m++] = d_arho1m(j,1);
@@ -448,7 +448,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackForwardComm, const 
     d_tsq_ave(i+first,0) = v_buf[m++];
     d_tsq_ave(i+first,1) = v_buf[m++];
     d_tsq_ave(i+first,2) = v_buf[m++];
-    if (msmeamflag){
+    if (msmeamflag) {
       d_arho2mb[i+first] = v_buf[m++];
       d_arho1m(i+first,0) = v_buf[m++];
       d_arho1m(i+first,1) = v_buf[m++];
@@ -488,7 +488,7 @@ int PairMEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
   meam_inst_kk->k_arho3b.sync_host();
   meam_inst_kk->k_t_ave.sync_host();
   meam_inst_kk->k_tsq_ave.sync_host();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.sync_host();
     meam_inst_kk->k_arho1m.sync_host();
     meam_inst_kk->k_arho2m.sync_host();
@@ -528,7 +528,7 @@ int PairMEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
     buf[m++] = meam_inst_kk->h_tsq_ave(j,0);
     buf[m++] = meam_inst_kk->h_tsq_ave(j,1);
     buf[m++] = meam_inst_kk->h_tsq_ave(j,2);
-    if (msmeamflag){
+    if (msmeamflag) {
       buf[m++] = meam_inst_kk->h_arho2mb[j];
       buf[m++] = meam_inst_kk->h_arho1m(j,0);
       buf[m++] = meam_inst_kk->h_arho1m(j,1);
@@ -570,7 +570,7 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *b
   meam_inst_kk->k_arho3b.sync_host();
   meam_inst_kk->k_t_ave.sync_host();
   meam_inst_kk->k_tsq_ave.sync_host();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.sync_host();
     meam_inst_kk->k_arho1m.sync_host();
     meam_inst_kk->k_arho2m.sync_host();
@@ -610,7 +610,7 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *b
     meam_inst_kk->h_tsq_ave(i,0) = buf[m++];
     meam_inst_kk->h_tsq_ave(i,1) = buf[m++];
     meam_inst_kk->h_tsq_ave(i,2) = buf[m++];
-    if (msmeamflag){
+    if (msmeamflag) {
       meam_inst_kk->h_arho2mb[i] = buf[m++];
       meam_inst_kk->h_arho1m(i,0) = buf[m++];
       meam_inst_kk->h_arho1m(i,1) = buf[m++];
@@ -644,7 +644,7 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *b
   meam_inst_kk->k_arho3b.modify_host();
   meam_inst_kk->k_t_ave.modify_host();
   meam_inst_kk->k_tsq_ave.modify_host();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.modify_host();
     meam_inst_kk->k_arho1m.modify_host();
     meam_inst_kk->k_arho2m.modify_host();
@@ -694,7 +694,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackReverseComm, const in
   v_buf[m++] = d_tsq_ave(i+first,0);
   v_buf[m++] = d_tsq_ave(i+first,1);
   v_buf[m++] = d_tsq_ave(i+first,2);
-  if (msmeamflag){
+  if (msmeamflag) {
     v_buf[m++] = d_arho2mb[i+first];
     v_buf[m++] = d_arho1m(i+first,0);
     v_buf[m++] = d_arho1m(i+first,1);
@@ -725,7 +725,7 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
   meam_inst_kk->k_arho3b.sync_host();
   meam_inst_kk->k_t_ave.sync_host();
   meam_inst_kk->k_tsq_ave.sync_host();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.sync_host();
     meam_inst_kk->k_arho1m.sync_host();
     meam_inst_kk->k_arho2m.sync_host();
@@ -757,7 +757,7 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = meam_inst_kk->h_tsq_ave(i,0);
     buf[m++] = meam_inst_kk->h_tsq_ave(i,1);
     buf[m++] = meam_inst_kk->h_tsq_ave(i,2);
-    if (msmeamflag){
+    if (msmeamflag) {
       buf[m++] = meam_inst_kk->h_arho2mb[i];
       buf[m++] = meam_inst_kk->h_arho1m(i,0);
       buf[m++] = meam_inst_kk->h_arho1m(i,1);
@@ -819,7 +819,7 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackReverseComm, const 
   d_tsq_ave(j,0) += v_buf[m++];
   d_tsq_ave(j,1) += v_buf[m++];
   d_tsq_ave(j,2) += v_buf[m++];
-  if (msmeamflag){
+  if (msmeamflag) {
     d_arho2mb[j] += v_buf[m++];
     d_arho1m(j,0) += v_buf[m++];
     d_arho1m(j,1) += v_buf[m++];
@@ -850,7 +850,7 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *b
   meam_inst_kk->k_arho3b.sync_host();
   meam_inst_kk->k_t_ave.sync_host();
   meam_inst_kk->k_tsq_ave.sync_host();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.sync_host();
     meam_inst_kk->k_arho1m.sync_host();
     meam_inst_kk->k_arho2m.sync_host();
@@ -882,7 +882,7 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *b
     meam_inst_kk->h_tsq_ave(j,0) += buf[m++];
     meam_inst_kk->h_tsq_ave(j,1) += buf[m++];
     meam_inst_kk->h_tsq_ave(j,2) += buf[m++];
-    if (msmeamflag){
+    if (msmeamflag) {
       meam_inst_kk->h_arho2mb[j] += buf[m++];
       meam_inst_kk->h_arho1m(j,0) += buf[m++];
       meam_inst_kk->h_arho1m(j,1) += buf[m++];
@@ -908,7 +908,7 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *b
   meam_inst_kk->k_arho3b.modify_host();
   meam_inst_kk->k_t_ave.modify_host();
   meam_inst_kk->k_tsq_ave.modify_host();
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst_kk->k_arho2mb.modify_host();
     meam_inst_kk->k_arho1m.modify_host();
     meam_inst_kk->k_arho2m.modify_host();

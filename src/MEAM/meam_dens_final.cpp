@@ -27,7 +27,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
 
   //     Complete the calculation of density
 
-  if (this->msmeamflag){
+  if (this->msmeamflag) {
     for (i = 0; i < nlocal; i++) {
       elti = fmap[type[i]];
       if (elti >= 0) {
@@ -131,7 +131,7 @@ MEAM::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_
         }
       }
     }
-  } else{
+  } else {
     for (i = 0; i < nlocal; i++) {
       elti = fmap[type[i]];
       if (elti >= 0) {

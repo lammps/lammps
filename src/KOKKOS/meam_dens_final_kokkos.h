@@ -61,7 +61,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
   if (elti >= 0) {
     scaleii = d_scale(type[i],type[i]);
     d_rho1[i] = 0.0;
-    if (msmeamflag){
+    if (msmeamflag) {
       d_rho2[i] = -1.0 / 3.0 * (d_arho2b[i] * d_arho2b[i]
                               - d_arho2mb[i] * d_arho2mb[i]);
     } else{
@@ -69,7 +69,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     }
     d_rho3[i] = 0.0;
     for (int m = 0; m < 3; m++) {
-      if (msmeamflag){
+      if (msmeamflag) {
         d_rho1[i] = d_rho1[i] + d_arho1(i, m) * d_arho1(i, m)
                              - d_arho1m(i, m) * d_arho1m(i, m);
         d_rho3[i] = d_rho3[i] - 3.0 / 5.0 * (d_arho3b(i, m) * d_arho3b(i, m)
@@ -80,7 +80,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       }
     }
     for (int m = 0; m < 6; m++){
-      if (msmeamflag){
+      if (msmeamflag) {
         d_rho2[i] = d_rho2[i] + v2D[m] * (d_arho2(i, m) * d_arho2(i, m)
                                          - d_arho2m(i, m) * d_arho2m(i, m));
       } else{
@@ -88,14 +88,14 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       }
     }
     for (int m = 0; m < 10; m++)
-      if (msmeamflag){
+      if (msmeamflag) {
         d_rho3[i] = d_rho3[i] + v3D[m] * (d_arho3(i, m) * d_arho3(i, m)
                                         - d_arho3m(i, m) * d_arho3m(i, m));
       } else{
         d_rho3[i] += v3D[m] * d_arho3(i,m) * d_arho3(i,m);
       }
 
-    if (msmeamflag){
+    if (msmeamflag) {
       // with msmeam all t weights are already accounted for in rho
       d_gamma[i] = d_rho1[i] + d_rho2[i] + d_rho3[i];
     } else{

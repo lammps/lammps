@@ -196,10 +196,10 @@ void PairMEAM::settings(int narg, char **arg)
 
   // set comm size needed by this Pair
 
-  if (msmeamflag){
+  if (msmeamflag) {
     comm_forward = 38+23; // plus 23 for msmeam
     comm_reverse = 30+23; // plus 23 for msmeam
-  } else{
+  } else {
     comm_forward = 38;
     comm_reverse = 30;
   }
@@ -449,7 +449,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         b1[index] = values.next_double();
         b2[index] = values.next_double();
         b3[index] = values.next_double();
-        if (msmeamflag){
+        if (msmeamflag) {
           b1m[index] = values.next_double();
           b2m[index] = values.next_double();
           b3m[index] = values.next_double();
@@ -461,7 +461,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         t1[index] = values.next_double();
         t2[index] = values.next_double();
         t3[index] = values.next_double();
-        if (msmeamflag){
+        if (msmeamflag) {
           t1m[index] = values.next_double();
           t2m[index] = values.next_double();
           t3m[index] = values.next_double();
@@ -524,13 +524,13 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
 
   // pass element parameters to MEAM package
 
-  if (msmeamflag){
+  if (msmeamflag) {
     meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
                                 alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
                                 alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
                                 t2.data(), t3.data(), rozero.data(), ibar.data(), b1m.data(),
                                 b2m.data(), b3m.data(), t1m.data(), t2m.data(), t3m.data());
-  } else{
+  } else {
     meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
                                 alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
                                 alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
@@ -659,7 +659,7 @@ int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
     buf[m++] = meam_inst->tsq_ave[j][0];
     buf[m++] = meam_inst->tsq_ave[j][1];
     buf[m++] = meam_inst->tsq_ave[j][2];
-    if (msmeamflag){
+    if (msmeamflag) {
       buf[m++] = meam_inst->arho2mb[j];
       buf[m++] = meam_inst->arho1m[j][0];
       buf[m++] = meam_inst->arho1m[j][1];
@@ -719,7 +719,7 @@ void PairMEAM::unpack_forward_comm(int n, int first, double *buf)
     meam_inst->tsq_ave[i][0] = buf[m++];
     meam_inst->tsq_ave[i][1] = buf[m++];
     meam_inst->tsq_ave[i][2] = buf[m++];
-    if (msmeamflag){
+    if (msmeamflag) {
       meam_inst->arho2mb[i] = buf[m++];
       meam_inst->arho1m[i][0] = buf[m++];
       meam_inst->arho1m[i][1] = buf[m++];
@@ -768,7 +768,7 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = meam_inst->tsq_ave[i][0];
     buf[m++] = meam_inst->tsq_ave[i][1];
     buf[m++] = meam_inst->tsq_ave[i][2];
-    if (msmeamflag){
+    if (msmeamflag) {
       buf[m++] = meam_inst->arho2mb[i];
       buf[m++] = meam_inst->arho1m[i][0];
       buf[m++] = meam_inst->arho1m[i][1];
@@ -819,7 +819,7 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
     meam_inst->tsq_ave[j][0] += buf[m++];
     meam_inst->tsq_ave[j][1] += buf[m++];
     meam_inst->tsq_ave[j][2] += buf[m++];
-    if (msmeamflag){
+    if (msmeamflag) {
       meam_inst->arho2mb[j] += buf[m++];
       meam_inst->arho1m[j][0] += buf[m++];
       meam_inst->arho1m[j][1] += buf[m++];

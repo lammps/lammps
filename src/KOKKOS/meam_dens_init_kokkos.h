@@ -43,16 +43,16 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMZero, const int &i) const {
   d_rho0[i] = 0.0;
   d_arho2b[i] = 0.0;
   d_arho1(i,0) = d_arho1(i,1) = d_arho1(i,2) = 0.0;
-  if (this->msmeamflag){
+  if (this->msmeamflag) {
     d_arho2mb[i] = 0.0;
     d_arho1m(i,0) = d_arho1m(i,1) = d_arho1m(i,2) = 0.0;
   }
-  for (int j = 0; j < 6; j++){
+  for (int j = 0; j < 6; j++) {
     d_arho2(i,j) = 0.0;
     if (msmeamflag)
       d_arho2m(i,j) = 0.0;
   }
-  for (int j = 0; j < 10; j++){
+  for (int j = 0; j < 10; j++) {
     d_arho3(i,j) = 0.0;
     if (msmeamflag)
       d_arho3m(i,j) = 0.0;
@@ -540,7 +540,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         double rhoa3i = ro0i * MathSpecialKokkos::fm_exp(-beta3_meam[elti] * ai) * sij;
         // msmeam
         double rhoa1mj, rhoa2mj, rhoa3mj, rhoa1mi, rhoa2mi, rhoa3mi;
-        if (msmeamflag){
+        if (msmeamflag) {
           rhoa1mj = ro0j * t1m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta1m_meam[eltj] * aj) * sij;
           rhoa2mj = ro0j * t2m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta2m_meam[eltj] * aj) * sij;
           rhoa3mj = ro0j * t3m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta3m_meam[eltj] * aj) * sij;
@@ -585,7 +585,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         const double A2i = rhoa2i / rij2;
         const double A3i = rhoa3i / (rij2 * rij);
         double A1mj, A2mj, A3mj, A1mi, A2mi, A3mi;
-        if (msmeamflag){
+        if (msmeamflag) {
           a_arho2mb[i] += rhoa2mj;
           a_arho2mb[j] += rhoa2mi;
           A1mj = rhoa1mj / rij;
@@ -602,7 +602,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
           a_arho1(j,m) += -A1i * delij[m];
           a_arho3b(i,m) +=  rhoa3j * delij[m] / rij;
           a_arho3b(j,m) += -rhoa3i * delij[m] / rij;
-          if (msmeamflag){
+          if (msmeamflag) {
             a_arho1m(i,m) +=  A1mj * delij[m];
             a_arho1m(j,m) += -A1mi * delij[m];
             a_arho3mb(i,m) +=  rhoa3mj * delij[m] / rij;
@@ -611,7 +611,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
           for (int n = m; n < 3; n++) {
             a_arho2(i,nv2) += A2j * delij[m] * delij[n];
             a_arho2(j,nv2) += A2i * delij[m] * delij[n];
-            if (msmeamflag){
+            if (msmeamflag) {
               a_arho2m(i,nv2) += A2mj * delij[m] * delij[n];
               a_arho2m(j,nv2) += A2mi * delij[m] * delij[n];
             }
@@ -619,7 +619,7 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
             for (int p = n; p < 3; p++) {
               a_arho3(i,nv3) +=  A3j * delij[m] * delij[n] * delij[p];
               a_arho3(j,nv3) += -A3i * delij[m] * delij[n] * delij[p];
-              if (msmeamflag){
+              if (msmeamflag) {
                 a_arho3m(i,nv3) +=  A3mj * delij[m] * delij[n] * delij[p];
                 a_arho3m(j,nv3) += -A3mi * delij[m] * delij[n] * delij[p];
               }

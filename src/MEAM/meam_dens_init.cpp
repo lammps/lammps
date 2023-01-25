@@ -46,7 +46,7 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memory->destroy(t_ave);
     memory->destroy(tsq_ave);
     // msmeam params
-    if (this->msmeamflag){
+    if (this->msmeamflag) {
       memory->destroy(arho1m);
       memory->destroy(arho2m);
       memory->destroy(arho3m);
@@ -74,7 +74,7 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memory->create(t_ave, nmax, 3, "pair:t_ave");
     memory->create(tsq_ave, nmax, 3, "pair:tsq_ave");
     // msmeam params
-    if (this->msmeamflag){
+    if (this->msmeamflag) {
       memory->create(arho1m, nmax, 3, "pair:arho1m");
       memory->create(arho2m, nmax, 6, "pair:arho2m");
       memory->create(arho3m, nmax, 10, "pair:arho3m");
@@ -99,24 +99,24 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     rho0[i] = 0.0;
     arho2b[i] = 0.0;
     arho1[i][0] = arho1[i][1] = arho1[i][2] = 0.0;
-    if (this->msmeamflag){
+    if (this->msmeamflag) {
       arho2mb[i] = 0.0;
       arho1m[i][0] = arho1m[i][1] = arho1m[i][2] = 0.0;
     }
-    for (j = 0; j < 6; j++){
+    for (j = 0; j < 6; j++) {
       arho2[i][j] = 0.0;
-      if (this->msmeamflag){
+      if (this->msmeamflag) {
         arho2m[i][j] = 0.0;
       }
     }
-    for (j = 0; j < 10; j++){
+    for (j = 0; j < 10; j++) {
       arho3[i][j] = 0.0;
-      if (this->msmeamflag){
+      if (this->msmeamflag) {
         arho3m[i][j] = 0.0;
       }
     }
     arho3b[i][0] = arho3b[i][1] = arho3b[i][2] = 0.0;
-    if (this->msmeamflag){
+    if (this->msmeamflag) {
       arho3mb[i][0] = arho3mb[i][1] = arho3mb[i][2] = 0.0;
     }
     t_ave[i][0] = t_ave[i][1] = t_ave[i][2] = 0.0;
@@ -394,7 +394,7 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
         A3i = rhoa3i / (rij2 * rij);
         nv2 = 0;
         nv3 = 0;
-        if (this->msmeamflag){
+        if (this->msmeamflag) {
           arho2mb[i] = arho2mb[i] + rhoa2mj;
           arho2mb[j] = arho2mb[j] + rhoa2mi;
           A1mj = rhoa1mj/rij;
@@ -409,7 +409,7 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
           arho1[j][m] = arho1[j][m] - A1i * delij[m];
           arho3b[i][m] = arho3b[i][m] + rhoa3j * delij[m] / rij;
           arho3b[j][m] = arho3b[j][m] - rhoa3i * delij[m] / rij;
-          if (this->msmeamflag){
+          if (this->msmeamflag) {
             arho1m[i][m] = arho1m[i][m] + A1mj*delij[m];
             arho1m[j][m] = arho1m[j][m] - A1mi*delij[m];
             arho3mb[i][m] = arho3mb[i][m] + rhoa3mj*delij[m] / rij;
@@ -418,7 +418,7 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
           for (n = m; n < 3; n++) {
             arho2[i][nv2] = arho2[i][nv2] + A2j * delij[m] * delij[n];
             arho2[j][nv2] = arho2[j][nv2] + A2i * delij[m] * delij[n];
-            if (this->msmeamflag){
+            if (this->msmeamflag) {
               arho2m[i][nv2] = arho2m[i][nv2] + A2mj*delij[m] * delij[n];
               arho2m[j][nv2] = arho2m[j][nv2] + A2mi*delij[m] * delij[n];
             }
@@ -426,7 +426,7 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
             for (p = n; p < 3; p++) {
               arho3[i][nv3] = arho3[i][nv3] + A3j * delij[m] * delij[n] * delij[p];
               arho3[j][nv3] = arho3[j][nv3] - A3i * delij[m] * delij[n] * delij[p];
-              if (this->msmeamflag){
+              if (this->msmeamflag) {
                 arho3m[i][nv3] = arho3m[i][nv3] + A3mj*delij[m]*delij[n]*delij[p];
                 arho3m[j][nv3] = arho3m[j][nv3] - A3mi*delij[m]*delij[n]*delij[p];
               }

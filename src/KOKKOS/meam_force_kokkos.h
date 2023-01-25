@@ -208,7 +208,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         drhoa2i = -beta2_meam[elti] * invrei * rhoa2i;
         rhoa3i = ro0i * MathSpecialKokkos::fm_exp(-beta3_meam[elti] * ai);
         drhoa3i = -beta3_meam[elti] * invrei * rhoa3i;
-        if (msmeamflag){
+        if (msmeamflag) {
           rhoa1mi = ro0i * MathSpecialKokkos::fm_exp(-beta1m_meam[elti] * ai) * t1m_meam[elti];
           drhoa1mi = -beta1m_meam[elti] * invrei * rhoa1mi;
           rhoa2mi = ro0i * MathSpecialKokkos::fm_exp(-beta2m_meam[elti] * ai) * t2m_meam[elti];
@@ -229,7 +229,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           drhoa2j = -beta2_meam[eltj] * invrej * rhoa2j;
           rhoa3j = ro0j * MathSpecialKokkos::fm_exp(-beta3_meam[eltj] * aj);
           drhoa3j = -beta3_meam[eltj] * invrej * rhoa3j;
-          if (msmeamflag){
+          if (msmeamflag) {
             rhoa1mj = ro0j * MathSpecialKokkos::fm_exp(-beta1m_meam[eltj] * aj) * t1m_meam[eltj];
             drhoa1mj = -beta1m_meam[eltj] * invrej * rhoa1mj;
             rhoa2mj = ro0j * MathSpecialKokkos::fm_exp(-beta2m_meam[eltj] * aj) * t2m_meam[eltj];
@@ -246,7 +246,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           drhoa2j = drhoa2i;
           rhoa3j = rhoa3i;
           drhoa3j = drhoa3i;
-          if (msmeamflag){
+          if (msmeamflag) {
             rhoa1mj = rhoa1mi;
             drhoa1mj = drhoa1mi;
             rhoa2mj = rhoa2mi;
@@ -400,7 +400,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           drho3drm2[m] = (-a3 * drho3drm2[m] + a3a * d_arho3b(j, m)) * rhoa3i;
         }
 
-        if (msmeamflag){
+        if (msmeamflag) {
           //     rho1m terms
           a1 = 2 * sij / rij;
           drho1mdr1 = a1 * (drhoa1mj - rhoa1mj / rij) * arg1i1m;
@@ -455,9 +455,8 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             drho3mdrm1[m] = (a3 * drho3mdrm1[m] - a3a * d_arho3mb(i, m)) * rhoa3mj;
             drho3mdrm2[m] = (-a3 * drho3mdrm2[m] + a3a * d_arho3mb(j, m)) * rhoa3mi;
           }
-        } else{
-
-          for (m = 0; m < 3; m++){
+        } else {
+          for (m = 0; m < 3; m++) {
             drho1mdrm1[m] = 0.0;
             drho1mdrm2[m] = 0.0;
             drho2mdrm1[m] = 0.0;
@@ -470,7 +469,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         // Compute derivatives of weighting functions t wrt rij
         // Weighting functions t set to unity for msmeam
 
-        if (msmeamflag){
+        if (msmeamflag) {
           t1i = 1.0;
           t2i = 1.0;
           t3i = 1.0;
@@ -483,7 +482,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           dt2dr2 = 0.0;
           dt3dr1 = 0.0;
           dt3dr2 = 0.0;
-        } else{
+        } else {
 
           t1i = d_t_ave(i, 0);
           t2i = d_t_ave(i, 1);
@@ -538,7 +537,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         get_shpfcn(lattce_meam[eltj][eltj], stheta_meam[elti][elti], ctheta_meam[elti][elti], shpj);
 
 
-        if (msmeamflag){
+        if (msmeamflag) {
           drhodr1 = d_dgamma1[i] * drho0dr1 +
                     d_dgamma2[i] * (dt1dr1 * d_rho1[i] + t1i * (drho1dr1 - drho1mdr1) +
                                     dt2dr1 * d_rho2[i] + t2i * (drho2dr1 - drho2mdr1) +
@@ -559,7 +558,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
                                           t2j * (drho2drm2[m] - drho2mdrm2[m]) +
                                           t3j * (drho3drm2[m] - drho3mdrm2[m]) );
           }
-        } else{
+        } else {
           drhodr1 = d_dgamma1[i] * drho0dr1 +
               d_dgamma2[i] *
                   (dt1dr1 * d_rho1[i] + t1i * drho1dr1 + dt2dr1 * d_rho2[i] + t2i * drho2dr1 +
@@ -595,7 +594,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           drho3ds1 = a3 * rhoa3j * arg1i3 - a3a * rhoa3j * arg3i3;
           drho3ds2 = a3 * rhoa3i * arg1j3 - a3a * rhoa3i * arg3j3;
 
-          if (msmeamflag){
+          if (msmeamflag) {
             drho1mds1 = a1 * rhoa1mj * arg1i1m;
             drho1mds2 = a1 * rhoa1mi * arg1j1m;
             drho2mds1 = a2 * rhoa2mj * arg1i2m - 2.0 / 3.0 * d_arho2mb[i] * rhoa2mj;
@@ -604,7 +603,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             drho3mds2 = a3 * rhoa3mi * arg1j3m - a3a * rhoa3mi * arg3j3m;
             drho3mds1 *= -1;
             drho3mds2 *= -1;
-          } else{
+          } else {
             drho1mds1 = 0.0;
             drho1mds2 = 0.0;
             drho2mds1 = 0.0;
@@ -652,7 +651,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             dt3ds2 = aj * (t3mi - t3j);
           }
 
-          if (msmeamflag){
+          if (msmeamflag) {
             drhods1 = d_dgamma1[i] * drho0ds1 +
               d_dgamma2[i] * (dt1ds1 * d_rho1[i] + t1i * (drho1ds1 - drho1mds1) +
                               dt2ds1 * d_rho2[i] + t2i * (drho2ds1 - drho2mds1) +
@@ -663,7 +662,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
                               dt2ds2 * d_rho2[j] + t2j * (drho2ds2 - drho2mds2) +
                               dt3ds2 * d_rho3[j] + t3j * (drho3ds2 - drho3mds2)) -
               d_dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
-          } else{
+          } else {
             drhods1 = d_dgamma1[i] * drho0ds1 +
                 d_dgamma2[i] *
                     (dt1ds1 * d_rho1[i] + t1i * drho1ds1 + dt2ds1 * d_rho2[i] + t2i * drho2ds1 +

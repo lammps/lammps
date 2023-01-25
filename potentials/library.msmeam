@@ -1,4 +1,4 @@
-# DATE: 2018-09-22  MB DATE: 2016-09-21 CONTRIBUTOR: Steve Valone, smv@lanl.gov CITATION: Baskes, PRB 1992; smv, sr, mib, JNM 2010
+# DATE: 2018-09-22 UNITS: metal CONTRIBUTOR: Steve Valone, smv@lanl.gov CITATION: Baskes, PRB 1992; smv, sr, mib, JNM 2010
 # ms-meam data format May 2010
 #  elt   lat    z     ielement      atwt
 #  alpha b0     b1    b2     b3     b1m     b2m   b3m      alat   esub   asub

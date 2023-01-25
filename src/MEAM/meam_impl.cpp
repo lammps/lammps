@@ -96,7 +96,7 @@ MEAM::~MEAM()
   memory->destroy(this->fcpair);
 
   // msmeam
-  if (this->msmeamflag){ 
+  if (this->msmeamflag){
     memory->destroy(this->arho1m);
     memory->destroy(this->arho2m);
     memory->destroy(this->arho3m);

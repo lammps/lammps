@@ -348,11 +348,11 @@ double MEAM::phi_meam(double r, int a, int b)
   Z12 = get_Zij(this->lattce_meam[a][b]);
 
   // this function has extra args for msmeam
-  if (this->msmeamflag){
+  if (this->msmeamflag) {
     get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
                 &rho1m1, &rho2m1, &rho3m1,
                 &rho1m2, &rho2m2, &rho3m2);
-  } else{
+  } else {
     get_densref(r, a, b, &rho01, &rho11, &rho21, &rho31, &rho02, &rho12, &rho22, &rho32,
                 nullptr, nullptr, nullptr,
                 nullptr, nullptr, nullptr);
@@ -385,7 +385,7 @@ double MEAM::phi_meam(double r, int a, int b)
                this->t3_meam[a], this->t1_meam[b], this->t2_meam[b], this->t3_meam[b], r, a, b,
                this->lattce_meam[a][b]);
     // with msmeam call twice with different sets of variables
-    if (this->msmeamflag){
+    if (this->msmeamflag) {
       get_tavref(&t1m1av, &t2m1av, &t3m1av, &t1m2av, &t2m2av, &t3m2av, this->t1m_meam[a], this->t2m_meam[a],
                 this->t3m_meam[a], this->t1m_meam[b], this->t2m_meam[b], this->t3m_meam[b], r, a, b,
                 this->lattce_meam[a][b]);
@@ -437,7 +437,7 @@ double MEAM::phi_meam(double r, int a, int b)
       rho0_2 = this->rho0_meam[b] * Z2 * G2;
     }
 
-    if (this->msmeamflag){
+    if (this->msmeamflag) {
       // no additional use of t's here; all included in definitions of rho's for msmeam
       Gam1 = rho11 + rho21 + rho31 - (rho1m1 + rho2m1 + rho3m1);
       if (rho01 < 1.0e-14)
@@ -450,7 +450,7 @@ double MEAM::phi_meam(double r, int a, int b)
       else
         Gam2 = Gam2 / (rho02 * rho02);
 
-    } else{
+    } else {
       Gam1 = (t11av * rho11 + t21av * rho21 + t31av * rho31);
       if (rho01 < 1.0e-14)
         Gam1 = 0.0;
@@ -708,7 +708,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
 
   rhoa01 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta0_meam[a] * a1);
 
-  if (this->msmeamflag){
+  if (this->msmeamflag) {
     // the rho variables are multiplied by t here since ialloy not needed in msmeam
     rhoa11 = this->rho0_meam[a] * this->t1_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
     rhoa21 = this->rho0_meam[a] * this->t2_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
@@ -724,8 +724,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
     rhoa1m2 = this->rho0_meam[b] * this->t1m_meam[b] * MathSpecial::fm_exp(-this->beta1m_meam[b] * a2);
     rhoa2m2 = this->rho0_meam[b] * this->t2m_meam[b] * MathSpecial::fm_exp(-this->beta2m_meam[b] * a2);
     rhoa3m2 = this->rho0_meam[b] * this->t3m_meam[b] * MathSpecial::fm_exp(-this->beta3m_meam[b] * a2);
-  }
-  else{
+  } else {
     rhoa11 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta1_meam[a] * a1);
     rhoa21 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta2_meam[a] * a1);
     rhoa31 = this->rho0_meam[a] * MathSpecial::fm_exp(-this->beta3_meam[a] * a1);
@@ -745,7 +744,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
   *rho12 = 0.0;
   *rho22 = 0.0;
   *rho32 = 0.0;
-  if (this->msmeamflag){
+  if (this->msmeamflag) {
     *rho1m1 = 0.0;
     *rho2m1 = 0.0;
     *rho3m1 = 0.0;
@@ -775,7 +774,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho02 = 4.0 * rhoa01;
       *rho31 = 32.0 / 9.0 * rhoa32 * rhoa32;
       *rho32 = 32.0 / 9.0 * rhoa31 * rhoa31;
-      if (this->msmeamflag){
+      if (this->msmeamflag) {
         *rho3m1 = 32.0 / 9.0 * rhoa3m2 * rhoa3m2;
         *rho3m2 = 32.0 / 9.0 * rhoa3m1 * rhoa3m1;
       }
@@ -785,7 +784,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho02 = 12 * rhoa01;
       *rho31 = 1.0 / 3.0 * rhoa32 * rhoa32;
       *rho32 = 1.0 / 3.0 * rhoa31 * rhoa31;
-      if (this->msmeamflag){
+      if (this->msmeamflag) {
         *rho3m1 = 1.0 / 3.0 * rhoa3m2 * rhoa3m2;
         *rho3m2 = 1.0 / 3.0 * rhoa3m1 * rhoa3m1;
       }
@@ -800,7 +799,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho22 = s[1] * rhoa21 * rhoa21;
       *rho31 = s[2] * rhoa32 * rhoa32;
       *rho32 = s[2] * rhoa31 * rhoa31;
-      if (this->msmeamflag){
+      if (this->msmeamflag) {
         *rho1m1 = s[0] * rhoa1m2 * rhoa1m2;
         *rho1m2 = s[0] * rhoa1m1 * rhoa1m1;
         *rho2m1 = s[1] * rhoa2m2 * rhoa2m2;
@@ -818,7 +817,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
       *rho22 = rhoa22;
       *rho31 = rhoa31;
       *rho32 = rhoa32;
-      if (this->msmeamflag){
+      if (this->msmeamflag) {
         *rho1m1 = rhoa1m1;
         *rho1m2 = rhoa1m2;
         *rho2m1 = rhoa2m1;
@@ -837,7 +836,7 @@ void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, dou
           *rho21 = *rho21 / denom * *rho01;
       } else
         *rho21 = 8. / 3. * (rhoa21 - rhoa22) * (rhoa21 - rhoa22);
-        if (this->msmeamflag){
+        if (this->msmeamflag) {
           *rho2m1 = 8. / 3. * (rhoa2m1 - rhoa2m2) * (rhoa2m1 - rhoa2m2);
         }
       break;

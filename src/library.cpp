@@ -3159,6 +3159,114 @@ void lammps_gather_bonds(void *handle, void *data)
   END_CAPTURE
 }
 
+// Gather function for angles
+void lammps_gather_angles(void *handle, void *data)
+{
+  auto lmp = (LAMMPS *) handle;
+  BEGIN_CAPTURE {
+    void *val = lammps_extract_global(handle,"nangles");
+    bigint nangles = *(bigint *)val;
+
+    // no angles
+    if (nangles == 0) return;
+
+    // count per MPI rank angles, determine offsets and allocate local buffers
+    int localangles = lmp->atom->avec->pack_angle(nullptr);
+    int nprocs = lmp->comm->nprocs;
+    int *bufsizes = new int[nprocs];
+    int *bufoffsets = new int[nprocs];
+    MPI_Allgather(&localangles, 1, MPI_INT, bufsizes, 1, MPI_INT, lmp->world);
+    bufoffsets[0] = 0;
+    bufsizes[0] *= 4;           // 4 items per angle: type, atom1, atom2, atom3
+    for (int i = 1; i < nprocs; ++i) {
+      bufoffsets[i] = bufoffsets[i-1] + bufsizes[i-1];
+      bufsizes[i] *= 4;         // 4 items per angle: type, atom1, atom2, atom3
+    }
+
+    tagint **angles;
+    lmp->memory->create(angles, localangles, 4, "library:gather_angles:localangles");
+    lmp->atom->avec->pack_angle(angles);
+    MPI_Allgatherv(&angles[0][0], 4*localangles, MPI_LMP_TAGINT, data, bufsizes,
+                   bufoffsets, MPI_LMP_TAGINT, lmp->world);
+    lmp->memory->destroy(angles);
+    delete[] bufsizes;
+    delete[] bufoffsets;
+  }
+  END_CAPTURE
+}
+
+// Gather function for dihedrals
+void lammps_gather_dihedrals(void *handle, void *data)
+{
+  auto lmp = (LAMMPS *) handle;
+  BEGIN_CAPTURE {
+    void *val = lammps_extract_global(handle,"ndihedrals");
+    bigint ndihedrals = *(bigint *)val;
+
+    // no dihedrals
+    if (ndihedrals == 0) return;
+
+    // count per MPI rank dihedrals, determine offsets and allocate local buffers
+    int localdihedrals = lmp->atom->avec->pack_dihedral(nullptr);
+    int nprocs = lmp->comm->nprocs;
+    int *bufsizes = new int[nprocs];
+    int *bufoffsets = new int[nprocs];
+    MPI_Allgather(&localdihedrals, 1, MPI_INT, bufsizes, 1, MPI_INT, lmp->world);
+    bufoffsets[0] = 0;
+    bufsizes[0] *= 5;           // 5 items per dihedral: type, atom1, atom2, atom3, atom4
+    for (int i = 1; i < nprocs; ++i) {
+      bufoffsets[i] = bufoffsets[i-1] + bufsizes[i-1];
+      bufsizes[i] *= 5;         // 5 items per dihedral: type, atom1, atom2, atom3, atom4
+    }
+
+    tagint **dihedrals;
+    lmp->memory->create(dihedrals, localdihedrals, 5, "library:gather_dihedrals:localdihedrals");
+    lmp->atom->avec->pack_dihedral(dihedrals);
+    MPI_Allgatherv(&dihedrals[0][0], 5*localdihedrals, MPI_LMP_TAGINT, data, bufsizes,
+                   bufoffsets, MPI_LMP_TAGINT, lmp->world);
+    lmp->memory->destroy(dihedrals);
+    delete[] bufsizes;
+    delete[] bufoffsets;
+  }
+  END_CAPTURE
+}
+
+// Gather function for impropers
+void lammps_gather_impropers(void *handle, void *data)
+{
+  auto lmp = (LAMMPS *) handle;
+  BEGIN_CAPTURE {
+    void *val = lammps_extract_global(handle,"nimpropers");
+    bigint nimpropers = *(bigint *)val;
+
+    // no impropers
+    if (nimpropers == 0) return;
+
+    // count per MPI rank impropers, determine offsets and allocate local buffers
+    int localimpropers = lmp->atom->avec->pack_improper(nullptr);
+    int nprocs = lmp->comm->nprocs;
+    int *bufsizes = new int[nprocs];
+    int *bufoffsets = new int[nprocs];
+    MPI_Allgather(&localimpropers, 1, MPI_INT, bufsizes, 1, MPI_INT, lmp->world);
+    bufoffsets[0] = 0;
+    bufsizes[0] *= 5;           // 5 items per improper: type, atom1, atom2, atom3, atom4
+    for (int i = 1; i < nprocs; ++i) {
+      bufoffsets[i] = bufoffsets[i-1] + bufsizes[i-1];
+      bufsizes[i] *= 5;         // 5 items per improper: type, atom1, atom2, atom3, atom4
+    }
+
+    tagint **impropers;
+    lmp->memory->create(impropers, localimpropers, 5, "library:gather_impropers:localimpropers");
+    lmp->atom->avec->pack_improper(impropers);
+    MPI_Allgatherv(&impropers[0][0], 5*localimpropers, MPI_LMP_TAGINT, data, bufsizes,
+                   bufoffsets, MPI_LMP_TAGINT, lmp->world);
+    lmp->memory->destroy(impropers);
+    delete[] bufsizes;
+    delete[] bufoffsets;
+  }
+  END_CAPTURE
+}
+
 /** Gather the named per-atom, per-atom fix, per-atom compute, or fix property/atom-based entities
  *  from all processes, in order by atom ID.
  *

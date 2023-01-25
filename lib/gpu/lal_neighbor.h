@@ -33,7 +33,7 @@
 #endif
 #endif
 
-#if defined(USE_HIP)
+#if defined(USE_HIP) || defined(__APPLE__)
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 

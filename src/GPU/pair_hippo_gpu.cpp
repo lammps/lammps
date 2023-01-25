@@ -26,7 +26,6 @@
 #include "fix_store_peratom.h"
 #include "force.h"
 #include "gpu_extra.h"
-#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "my_page.h"
@@ -219,13 +218,9 @@ void PairHippoGPU::init_style()
                                screen, polar_dscale, polar_uscale, tq_size);
   GPU_EXTRA::check_flag(success,error,world);
 
-  if (gpu_mode == GPU_FORCE)
-    error->all(FLERR,"Pair style hippo/gpu does not support neigh no for now");
+  if (gpu_mode == GPU_FORCE) error->all(FLERR,"Pair style hippo/gpu does not support neigh no for now");
 
-  if (tq_size == sizeof(double))
-    tq_single = false;
-  else
-    tq_single = true;
+  tq_single = (tq_size == sizeof(float));
 
   // replace with the gpu counterpart
 
@@ -302,10 +297,10 @@ void PairHippoGPU::repulsion()
   // reference to the tep array from GPU lib
 
   if (tq_single) {
-    float *tq_ptr = (float *)tq_pinned;
+    auto *tq_ptr = (float *)tq_pinned;
     compute_force_from_torque<float>(tq_ptr, f, virrepulse); // frepulse
   } else {
-    double *tq_ptr = (double *)tq_pinned;
+    auto *tq_ptr = (double *)tq_pinned;
     compute_force_from_torque<double>(tq_ptr, f, virrepulse); // frepulse
   }
 }
@@ -402,10 +397,10 @@ void PairHippoGPU::multipole_real()
   // reference to the tep array from GPU lib
 
   if (tq_single) {
-    float *tq_ptr = (float *)tq_pinned;
+    auto *tq_ptr = (float *)tq_pinned;
     compute_force_from_torque<float>(tq_ptr, f, virmpole); // fmpole
   } else {
-    double *tq_ptr = (double *)tq_pinned;
+    auto *tq_ptr = (double *)tq_pinned;
     compute_force_from_torque<double>(tq_ptr, f, virmpole); // fmpole
   }
 }
@@ -860,13 +855,12 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
       field[i][2] += field_ptr[idx+2];
     }
 
-    auto fieldp_ptr = (float *)fieldp_pinned;
-    fieldp_ptr += 4*inum;
+    field_ptr += 4*inum;
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
-      fieldp[i][0] += fieldp_ptr[idx];
-      fieldp[i][1] += fieldp_ptr[idx+1];
-      fieldp[i][2] += fieldp_ptr[idx+2];
+      fieldp[i][0] += field_ptr[idx];
+      fieldp[i][1] += field_ptr[idx+1];
+      fieldp[i][2] += field_ptr[idx+2];
     }
 
   } else {
@@ -879,13 +873,12 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
       field[i][2] += field_ptr[idx+2];
     }
 
-    auto fieldp_ptr = (double *)fieldp_pinned;
-    fieldp_ptr += 4*inum;
+    field_ptr += 4*inum;
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
-      fieldp[i][0] += fieldp_ptr[idx];
-      fieldp[i][1] += fieldp_ptr[idx+1];
-      fieldp[i][2] += fieldp_ptr[idx+2];
+      fieldp[i][0] += field_ptr[idx];
+      fieldp[i][1] += field_ptr[idx+1];
+      fieldp[i][2] += field_ptr[idx+2];
     }
   }
 }
@@ -1080,8 +1073,8 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
   hippo_gpu_update_fieldp(&fieldp_pinned);
   int inum = atom->nlocal;
 
-  if (Info::has_accelerator_feature("GPU", "precision", "single")) {
-    float *field_ptr = (float *)fieldp_pinned;
+  if (tq_single) {
+    auto *field_ptr = (float *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
@@ -1090,17 +1083,16 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
       field[i][2] += field_ptr[idx+2];
     }
 
-    float* fieldp_ptr = (float *)fieldp_pinned;
-    fieldp_ptr += 4*inum;
+    field_ptr += 4*inum;
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
-      fieldp[i][0] += fieldp_ptr[idx];
-      fieldp[i][1] += fieldp_ptr[idx+1];
-      fieldp[i][2] += fieldp_ptr[idx+2];
+      fieldp[i][0] += field_ptr[idx];
+      fieldp[i][1] += field_ptr[idx+1];
+      fieldp[i][2] += field_ptr[idx+2];
     }
 
   } else {
-    double *field_ptr = (double *)fieldp_pinned;
+    auto *field_ptr = (double *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
@@ -1109,13 +1101,12 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
       field[i][2] += field_ptr[idx+2];
     }
 
-    double* fieldp_ptr = (double *)fieldp_pinned;
-    fieldp_ptr += 4*inum;
+    field_ptr += 4*inum;
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
-      fieldp[i][0] += fieldp_ptr[idx];
-      fieldp[i][1] += fieldp_ptr[idx+1];
-      fieldp[i][2] += fieldp_ptr[idx+2];
+      fieldp[i][0] += field_ptr[idx];
+      fieldp[i][1] += field_ptr[idx+1];
+      fieldp[i][2] += field_ptr[idx+2];
     }
   }
 
@@ -1426,10 +1417,10 @@ void PairHippoGPU::polar_real()
   // reference to the tep array from GPU lib
 
   if (tq_single) {
-    float *tep_ptr = (float *)tq_pinned;
+    auto *tep_ptr = (float *)tq_pinned;
     compute_force_from_torque<float>(tep_ptr, f, virpolar); // fpolar
   } else {
-    double *tep_ptr = (double *)tq_pinned;
+    auto *tep_ptr = (double *)tq_pinned;
     compute_force_from_torque<double>(tep_ptr, f, virpolar); // fpolar
   }
 }

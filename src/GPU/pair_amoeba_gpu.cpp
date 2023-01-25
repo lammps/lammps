@@ -203,7 +203,7 @@ void PairAmoebaGPU::init_style()
   if (gpu_mode == GPU_FORCE)
     error->all(FLERR,"Pair style amoeba/gpu does not support neigh no for now");
 
-  tq_single = tq_size != sizeof(double);
+  tq_single = (tq_size == sizeof(float));
 
   // replace with the gpu counterpart
 
@@ -285,10 +285,10 @@ void PairAmoebaGPU::multipole_real()
   // reference to the tep array from GPU lib
 
   if (tq_single) {
-    float *tq_ptr = (float *)tq_pinned;
+    auto *tq_ptr = (float *)tq_pinned;
     compute_force_from_torque<float>(tq_ptr, f, virmpole); // fmpole
   } else {
-    double *tq_ptr = (double *)tq_pinned;
+    auto *tq_ptr = (double *)tq_pinned;
     compute_force_from_torque<double>(tq_ptr, f, virmpole); // fmpole
   }
 }
@@ -742,13 +742,12 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
       field[i][2] += field_ptr[idx+2];
     }
 
-    auto fieldp_ptr = (float *)fieldp_pinned;
-    fieldp_ptr += 4*inum;
+    field_ptr += 4*inum;
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
-      fieldp[i][0] += fieldp_ptr[idx];
-      fieldp[i][1] += fieldp_ptr[idx+1];
-      fieldp[i][2] += fieldp_ptr[idx+2];
+      fieldp[i][0] += field_ptr[idx];
+      fieldp[i][1] += field_ptr[idx+1];
+      fieldp[i][2] += field_ptr[idx+2];
     }
   } else {
     auto field_ptr = (double *)fieldp_pinned;
@@ -760,13 +759,12 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
       field[i][2] += field_ptr[idx+2];
     }
 
-    auto fieldp_ptr = (double *)fieldp_pinned;
-    fieldp_ptr += 4*inum;
+    field_ptr += 4*inum;
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
-      fieldp[i][0] += fieldp_ptr[idx];
-      fieldp[i][1] += fieldp_ptr[idx+1];
-      fieldp[i][2] += fieldp_ptr[idx+2];
+      fieldp[i][0] += field_ptr[idx];
+      fieldp[i][1] += field_ptr[idx+1];
+      fieldp[i][2] += field_ptr[idx+2];
     }
   }
 
@@ -975,13 +973,12 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
       field[i][2] += field_ptr[idx+2];
     }
 
-    auto fieldp_ptr = (float *)fieldp_pinned;
-    fieldp_ptr += 4*inum;
+    field_ptr += 4*inum;
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
-      fieldp[i][0] += fieldp_ptr[idx];
-      fieldp[i][1] += fieldp_ptr[idx+1];
-      fieldp[i][2] += fieldp_ptr[idx+2];
+      fieldp[i][0] += field_ptr[idx];
+      fieldp[i][1] += field_ptr[idx+1];
+      fieldp[i][2] += field_ptr[idx+2];
     }
   } else {
     auto field_ptr = (double *)fieldp_pinned;
@@ -993,13 +990,12 @@ void PairAmoebaGPU::ufield0c(double **field, double **fieldp)
       field[i][2] += field_ptr[idx+2];
     }
 
-    auto fieldp_ptr = (double *)fieldp_pinned;
-    fieldp_ptr += 4*inum;
+    field_ptr += 4*inum;
     for (int i = 0; i < nlocal; i++) {
       int idx = 4*i;
-      fieldp[i][0] += fieldp_ptr[idx];
-      fieldp[i][1] += fieldp_ptr[idx+1];
-      fieldp[i][2] += fieldp_ptr[idx+2];
+      fieldp[i][0] += field_ptr[idx];
+      fieldp[i][1] += field_ptr[idx+1];
+      fieldp[i][2] += field_ptr[idx+2];
     }
   }
 
@@ -1301,10 +1297,10 @@ void PairAmoebaGPU::polar_real()
   // reference to the tep array from GPU lib
 
   if (tq_single) {
-    float *tep_ptr = (float *)tq_pinned;
+    auto *tep_ptr = (float *)tq_pinned;
     compute_force_from_torque<float>(tep_ptr, f, virpolar); // fpolar
   } else {
-    double *tep_ptr = (double *)tq_pinned;
+    auto *tep_ptr = (double *)tq_pinned;
     compute_force_from_torque<double>(tep_ptr, f, virpolar); // fpolar
   }
 }

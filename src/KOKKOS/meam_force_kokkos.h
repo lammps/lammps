@@ -456,12 +456,15 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             drho3mdrm2[m] = (-a3 * drho3mdrm2[m] + a3a * d_arho3mb(j, m)) * rhoa3mi;
           }
         } else{
-          drho1mdrm1[m] = 0.0;
-          drho1mdrm2[m] = 0.0;
-          drho2mdrm1[m] = 0.0;
-          drho2mdrm2[m] = 0.0;
-          drho3mdrm1[m] = 0.0;
-          drho3mdrm2[m] = 0.0;
+
+          for (m = 0; m < 3; m++){
+            drho1mdrm1[m] = 0.0;
+            drho1mdrm2[m] = 0.0;
+            drho2mdrm1[m] = 0.0;
+            drho2mdrm2[m] = 0.0;
+            drho3mdrm1[m] = 0.0;
+            drho3mdrm2[m] = 0.0;
+          }
         }
 
         // Compute derivatives of weighting functions t wrt rij

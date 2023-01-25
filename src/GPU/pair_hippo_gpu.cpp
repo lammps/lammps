@@ -849,24 +849,44 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
   //   field and fieldp may already have some nonzero values from kspace (udirect1)
 
   int nlocal = atom->nlocal;
-  double *field_ptr = (double *)fieldp_pinned;
+  if (tq_single) {
+    auto field_ptr = (float *)fieldp_pinned;
 
-  for (int i = 0; i < nlocal; i++) {
-    int idx = 4*i;
-    field[i][0] += field_ptr[idx];
-    field[i][1] += field_ptr[idx+1];
-    field[i][2] += field_ptr[idx+2];
-  }
+    for (int i = 0; i < nlocal; i++) {
+      int idx = 4*i;
+      field[i][0] += field_ptr[idx];
+      field[i][1] += field_ptr[idx+1];
+      field[i][2] += field_ptr[idx+2];
+    }
 
-  double* fieldp_ptr = (double *)fieldp_pinned;
-  fieldp_ptr += 4*inum;
-  for (int i = 0; i < nlocal; i++) {
-    int idx = 4*i;
-    fieldp[i][0] += fieldp_ptr[idx];
-    fieldp[i][1] += fieldp_ptr[idx+1];
-    fieldp[i][2] += fieldp_ptr[idx+2];
-  }
+    auto fieldp_ptr = (float *)fieldp_pinned;
+    fieldp_ptr += 4*inum;
+    for (int i = 0; i < nlocal; i++) {
+      int idx = 4*i;
+      fieldp[i][0] += fieldp_ptr[idx];
+      fieldp[i][1] += fieldp_ptr[idx+1];
+      fieldp[i][2] += fieldp_ptr[idx+2];
+    }
 
+  } else {
+
+    auto field_ptr = (double *)fieldp_pinned;
+    for (int i = 0; i < nlocal; i++) {
+      int idx = 4*i;
+      field[i][0] += field_ptr[idx];
+      field[i][1] += field_ptr[idx+1];
+      field[i][2] += field_ptr[idx+2];
+    }
+
+    auto fieldp_ptr = (double *)fieldp_pinned;
+    fieldp_ptr += 4*inum;
+    for (int i = 0; i < nlocal; i++) {
+      int idx = 4*i;
+      fieldp[i][0] += fieldp_ptr[idx];
+      fieldp[i][1] += fieldp_ptr[idx+1];
+      fieldp[i][2] += fieldp_ptr[idx+2];
+    }
+  }  
 }
 
 /* ----------------------------------------------------------------------
@@ -1246,30 +1266,61 @@ void PairHippoGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
                       &fdip_sum_phi_pinned);
 
   int nlocal = atom->nlocal;
-  double *_fdip_phi1_ptr = (double *)fdip_phi1_pinned;
-  for (int i = 0; i < nlocal; i++) {
-    int n = i;
-    for (int m = 0; m < 10; m++) {
-      fdip_phi1[i][m] = _fdip_phi1_ptr[n];
-      n += nlocal;
+  if (tq_single) {
+    auto _fdip_phi1_ptr = (float *)fdip_phi1_pinned;
+    for (int i = 0; i < nlocal; i++) {
+      int n = i;
+      for (int m = 0; m < 10; m++) {
+        fdip_phi1[i][m] = _fdip_phi1_ptr[n];
+        n += nlocal;
+      }
     }
-  }
 
-  double *_fdip_phi2_ptr = (double *)fdip_phi2_pinned;
-  for (int i = 0; i < nlocal; i++) {
-    int n = i;
-    for (int m = 0; m < 10; m++) {
-      fdip_phi2[i][m] = _fdip_phi2_ptr[n];
-      n += nlocal;
+    auto _fdip_phi2_ptr = (float *)fdip_phi2_pinned;
+    for (int i = 0; i < nlocal; i++) {
+      int n = i;
+      for (int m = 0; m < 10; m++) {
+        fdip_phi2[i][m] = _fdip_phi2_ptr[n];
+        n += nlocal;
+      }
     }
-  }
 
-  double *_fdip_sum_phi_ptr = (double *)fdip_sum_phi_pinned;
-  for (int i = 0; i < nlocal; i++) {
-    int n = i;
-    for (int m = 0; m < 20; m++) {
-      fdip_sum_phi[i][m] = _fdip_sum_phi_ptr[n];
-      n += nlocal;
+    auto _fdip_sum_phi_ptr = (float *)fdip_sum_phi_pinned;
+    for (int i = 0; i < nlocal; i++) {
+      int n = i;
+      for (int m = 0; m < 20; m++) {
+        fdip_sum_phi[i][m] = _fdip_sum_phi_ptr[n];
+        n += nlocal;
+      }
+    }
+
+  } else {
+
+    auto _fdip_phi1_ptr = (double *)fdip_phi1_pinned;
+    for (int i = 0; i < nlocal; i++) {
+      int n = i;
+      for (int m = 0; m < 10; m++) {
+        fdip_phi1[i][m] = _fdip_phi1_ptr[n];
+        n += nlocal;
+      }
+    }
+
+    auto _fdip_phi2_ptr = (double *)fdip_phi2_pinned;
+    for (int i = 0; i < nlocal; i++) {
+      int n = i;
+      for (int m = 0; m < 10; m++) {
+        fdip_phi2[i][m] = _fdip_phi2_ptr[n];
+        n += nlocal;
+      }
+    }
+
+    auto _fdip_sum_phi_ptr = (double *)fdip_sum_phi_pinned;
+    for (int i = 0; i < nlocal; i++) {
+      int n = i;
+      for (int m = 0; m < 20; m++) {
+        fdip_sum_phi[i][m] = _fdip_sum_phi_ptr[n];
+        n += nlocal;
+      }
     }
   }
 }

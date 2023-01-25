@@ -99,6 +99,7 @@ template<class DeviceType>
 void ComputeTempKokkos<DeviceType>::compute_vector()
 {
   atomKK->sync(execution_space,datamask_read);
+  atomKK->k_mass.sync<DeviceType>();
 
   int i;
 

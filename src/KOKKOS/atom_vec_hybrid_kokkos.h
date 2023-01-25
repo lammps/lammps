@@ -14,6 +14,8 @@
 #ifdef ATOM_CLASS
 // clang-format off
 AtomStyle(hybrid/kk,AtomVecHybridKokkos);
+AtomStyle(hybrid/kk/device,AtomVecHybridKokkos);
+AtomStyle(hybrid/kk/host,AtomVecHybridKokkos);
 // clang-format on
 #else
 
@@ -29,12 +31,10 @@ namespace LAMMPS_NS {
 
 class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
  public:
-  int nstyles;
-  class AtomVec **styles;
-  char **keywords;
-
   AtomVecHybridKokkos(class LAMMPS *);
   ~AtomVecHybridKokkos() override;
+
+  void grow(int) override;
 
   int pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
                        const int & iswap,
@@ -65,8 +65,6 @@ class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  private:
-  double **omega,**angmom;
-
   DAT::t_tagint_1d d_tag;
   DAT::t_int_1d d_type, d_mask;
   HAT::t_tagint_1d h_tag;
@@ -84,15 +82,9 @@ class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
 
   DAT::t_v_array d_omega, d_angmom;
   HAT::t_v_array h_omega, h_angmom;
-
-  int nallstyles;
-  char **allstyles;
-
-  void build_styles();
-  int known_style(char *);
 };
 
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS
 
 #endif
 #endif

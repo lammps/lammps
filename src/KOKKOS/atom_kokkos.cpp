@@ -30,6 +30,7 @@ using namespace LAMMPS_NS;
 AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
 {
   k_error_flag = DAT::tdual_int_scalar("atom:error_flag");
+  avecKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -378,10 +379,15 @@ void AtomKokkos::sync_modify(ExecutionSpace execution_space, unsigned int datama
 
 AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sflag)
 {
+  // check if avec already exists, if so this is a hybrid substyle
+
+  int hybrid_substyle_flag = (avec != nullptr);
+
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
   if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
 
-  avecKK = dynamic_cast<AtomVecKokkos*>(avec);
+  if (!hybrid_substyle_flag)
+    avecKK = dynamic_cast<AtomVecKokkos*>(avec);
 
   return avec;
 }

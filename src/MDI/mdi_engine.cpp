@@ -1233,7 +1233,7 @@ void MDIEngine::receive_elements()
   MPI_Bcast(sys_types, sys_natoms, MPI_INT, 0, world);
 
   // convert from element atomic numbers to LAMMPS atom types
-  // use maping provided by mdi engine command
+  // use mapping provided by mdi engine command
 
   int ntypes = atom->ntypes;
   int itype;

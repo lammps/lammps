@@ -120,7 +120,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   global_freq = 1;
   vector_flag = 1;
-  size_vector = 2;
+  size_vector = 3;
   extvector = 1;
   comm_forward = 3;
 
@@ -538,6 +538,8 @@ void FixPIMD::spring_force()
   double *xlast = buf_beads[x_last];
   double *xnext = buf_beads[x_next];
 
+  virial = 0.0;
+
   for (int i = 0; i < nlocal; i++) {
     double delx1 = xlast[0] - x[i][0];
     double dely1 = xlast[1] - x[i][1];
@@ -556,6 +558,8 @@ void FixPIMD::spring_force()
     double dx = delx1 + delx2;
     double dy = dely1 + dely2;
     double dz = delz1 + delz2;
+
+    virial += -0.5 * (x[i][0] * f[i][0] + x[i][1] * f[i][1] + x[i][2] * f[i][2]);
 
     f[i][0] -= (dx) *ff;
     f[i][1] -= (dy) *ff;
@@ -875,5 +879,6 @@ double FixPIMD::compute_vector(int n)
 {
   if (n == 0) { return spring_energy; }
   if (n == 1) { return t_sys; }
+  if (n == 2) { return virial; }
   return 0.0;
 }

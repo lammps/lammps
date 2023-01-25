@@ -183,16 +183,15 @@ void PairMEAM::allocate()
 
 void PairMEAM::settings(int narg, char **arg)
 {
-  if (narg > 1) error->all(FLERR,"Illegal pair_style command");
+  if (narg > 1) error->all(FLERR,"Illegal pair_style meam command");
 
   meam_inst->msmeamflag = 0;
 
-  if (narg == 1){
-    if (strcmp("ms", arg[0]) == 0){
-        msmeamflag = 1;
-        meam_inst->msmeamflag = 1;
+  if (narg == 1) {
+    if (strcmp("ms", arg[0]) == 0) {
+        msmeamflag = meam_inst->msmeamflag = 1;
     } else
-      error->all(FLERR, "Unknown pair style zero option {}", arg[0]);
+      error->all(FLERR, "Unknown pair style meam option {}", arg[0]);
   }
 
   // set comm size needed by this Pair

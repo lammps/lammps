@@ -54,7 +54,7 @@ FixNVTSllodKokkos<DeviceType>::FixNVTSllodKokkos(LAMMPS *lmp, int narg, char **a
   if (this->mtchain_default_flag) this->mtchain = 1;
 
   this->id_temp = utils::strdup(std::string(this->id)+"_temp");
-  this->modify->add_compute(fmt::format("{} all temp/deform/kk",this->id_temp));
+  this->modify->add_compute(fmt::format("{} {} temp/deform/kk",id_temp,group->names[igroup]));
   this->tcomputeflag = 1;
   this->nondeformbias = 0;
 }

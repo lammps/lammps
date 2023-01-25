@@ -386,12 +386,14 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
             drho3mdrm2[m] = (-a3 * drho3mdrm2[m] + a3a * arho3mb[j][m]) * rhoa3mi;
           }
         } else {
-          drho1mdrm1[m] = 0.0;
-          drho1mdrm2[m] = 0.0;
-          drho2mdrm1[m] = 0.0;
-          drho2mdrm2[m] = 0.0;
-          drho3mdrm1[m] = 0.0;
-          drho3mdrm2[m] = 0.0;
+          for (m = 0; m < 3; m++) {
+            drho1mdrm1[m] = 0.0;
+            drho1mdrm2[m] = 0.0;
+            drho2mdrm1[m] = 0.0;
+            drho2mdrm2[m] = 0.0;
+            drho3mdrm1[m] = 0.0;
+            drho3mdrm2[m] = 0.0;
+          }
         }
 
         // compute derivatives of weighting functions t wrt rij

@@ -126,10 +126,11 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
-   -D HIP_PATH                  # path to HIP installation. Must be set if GPU_API=HIP
    -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
-                                # value = sm_XX, see below
-                                # default is sm_50
+                                # value = sm_XX (see below, default is sm_50)
+   -D GPU_DEBUG=value           # enable debug code in the GPU package library, mostly useful for developers
+                                # value = yes or no (default)
+   -D HIP_PATH=value            # value = path to HIP installation. Must be set if GPU_API=HIP
    -D HIP_ARCH=value            # primary GPU hardware choice for GPU_API=hip
                                 # value depends on selected HIP_PLATFORM
                                 # default is 'gfx906' for HIP_PLATFORM=amd and 'sm_50' for HIP_PLATFORM=nvcc

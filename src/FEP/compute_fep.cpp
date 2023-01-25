@@ -190,22 +190,29 @@ void ComputeFEP::init()
     Perturb *pert = &perturb[m];
 
     pert->ivar = input->variable->find(pert->var);
-    if (pert->ivar < 0) error->all(FLERR, "Variable name for compute fep does not exist");
+    if (pert->ivar < 0)
+      error->all(FLERR, "Variable name {} for compute fep does not exist", pert->var);
     if (!input->variable->equalstyle(pert->ivar))
-      error->all(FLERR, "Variable for compute fep is of invalid style");
+      error->all(FLERR, "Variable {} for compute fep is of invalid style", pert->var);
 
     if (force->pair == nullptr) error->all(FLERR, "compute fep pair requires pair interactions");
 
     if (pert->which == PAIR) {
       pairflag = 1;
+      Pair *pair = nullptr;
+      if (lmp->suffix_enable) {
+        if (lmp->suffix)
+          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix), 1);
+        if ((pair == nullptr) && lmp->suffix2)
+          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix2), 1);
+      }
 
-      Pair *pair = force->pair_match(pert->pstyle, 1);
-      if (pair == nullptr)
-        error->all(FLERR,
-                   "compute fep pair style "
-                   "does not exist");
+      if (pair == nullptr) pair = force->pair_match(pert->pstyle, 1);
+      if (pair == nullptr) error->all(FLERR, "Compute fep pair style {} not found", pert->pstyle);
+
       void *ptr = pair->extract(pert->pparam, pert->pdim);
-      if (ptr == nullptr) error->all(FLERR, "compute fep pair style param not supported");
+      if (ptr == nullptr)
+        error->all(FLERR, "Compute fep pair style {} param {} not supported", pert->pstyle, pert->pparam);
 
       pert->array = (double **) ptr;
 

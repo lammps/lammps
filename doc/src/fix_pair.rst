@@ -1,7 +1,7 @@
 .. index:: fix pair
 
 fix pair command
-=======================
+================
 
 Syntax
 """"""
@@ -47,7 +47,12 @@ These are example use cases:
 The *N* argument determines how often the fix is invoked.
 
 The *pstyle* argument is the name of the pair style.  It can be a
-sub-style used in a :doc:`pair_style hybrid <pair_hybrid>` command.
+sub-style used in a :doc:`pair_style hybrid <pair_hybrid>` command.  If
+there are multiple sub-styles using the same pair style, then *pstyle*
+should be specified as "style:N", where *N* is the number of the
+instance of the pair style you wish monitor (e.g., the first or second).
+For example, *pstyle* could be specified as "pace/extrapolation" or
+"amoeba" or "eam:1" or "eam:2".
 
 One or more *name/flag* pairs of arguments follow.  Each *name* is a
 per-atom quantity which the pair style must recognize as an extraction

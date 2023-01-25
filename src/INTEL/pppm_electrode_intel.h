@@ -53,6 +53,8 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
 
   void compute_group_group(int, int, int) override;
 
+  void pack_buffers_q();
+
  protected:
   FFT_SCALAR ***electrolyte_density_brick;
   FFT_SCALAR *electrolyte_density_fft;
@@ -89,10 +91,9 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
       project_psi<flt_t, acc_t, 0>(buffers, vec, sensor_grpbit);
   }
 
-  void one_step_multiplication(bigint *, std::vector<double>, double **, double **, int const,
-                               bool);
-  void two_step_multiplication(bigint *, std::vector<double>, double **, double **, int const,
-                               bool);
+  void one_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void two_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void build_amesh(int, int, int, double *, double *);
   bool compute_vector_called;
 };
 

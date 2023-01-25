@@ -22,6 +22,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include "atom_vec.h"
 #include "citeme.h"
 #include "comm.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_bond_history.h"
@@ -34,11 +35,10 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "random_mars.h"
-#include "reset_mol_ids.h"
+#include "reset_atoms_mol.h"
 #include "respa.h"
 #include "update.h"
 #include "variable.h"
@@ -51,6 +51,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 
 #include <algorithm>
 #include <random>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -80,7 +81,7 @@ static const char cite_fix_bond_react[] =
 #define DELTA 16
 #define MAXGUESS 20 // max # of guesses allowed by superimpose algorithm
 #define MAXCONARGS 14 // max # of arguments for any type of constraint + rxnID
-#define NUMVARVALS 4 // max # of keyword values that have variables as input
+#define NUMVARVALS 5 // max # of keyword values that have variables as input
 
 // various statuses of superimpose algorithm:
 // ACCEPT: site successfully matched to pre-reacted template
@@ -98,7 +99,7 @@ enum{DISTANCE,ANGLE,DIHEDRAL,ARRHENIUS,RMSD,CUSTOM};
 enum{ATOM,FRAG};
 
 // keyword values that accept variables as input
-enum{NEVERY,RMIN,RMAX,PROB};
+enum{NEVERY,RMIN,RMAX,PROB,NRATE};
 
 // flag for one-proc vs shared reaction sites
 enum{LOCAL,GLOBAL};
@@ -118,11 +119,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   fix3 = nullptr;
   reset_mol_ids = nullptr;
 
-  if (narg < 8) error->all(FLERR,"Illegal fix bond/react command: "
-                           "too few arguments");
+  if (narg < 8) utils::missing_cmd_args(FLERR,"fix bond/react", error);
 
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
   newton_bond = force->newton_bond;
 
   restart_global = 1;
@@ -138,10 +136,15 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   status = PROCEED;
 
   // reaction functions used by 'custom' constraint
-  nrxnfunction = 2;
+  nrxnfunction = 3;
   rxnfunclist.resize(nrxnfunction);
+  peratomflag.resize(nrxnfunction);
   rxnfunclist[0] = "rxnsum";
+  peratomflag[0] = 1;
   rxnfunclist[1] = "rxnave";
+  peratomflag[1] = 1;
+  rxnfunclist[2] = "rxnbond";
+  peratomflag[2] = 0;
   nvvec = 0;
   ncustomvars = 0;
   vvec = nullptr;
@@ -204,7 +207,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   if (reset_mol_ids_flag) {
     delete reset_mol_ids;
-    reset_mol_ids = new ResetMolIDs(lmp);
+    reset_mol_ids = new ResetAtomsMol(lmp);
     reset_mol_ids->create_computes(id,group->names[igroup]);
   }
 
@@ -224,8 +227,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(nghostlyskips,nreacts,"bond/react:nghostlyskips");
   memory->create(seed,nreacts,"bond/react:seed");
   memory->create(limit_duration,nreacts,"bond/react:limit_duration");
+  memory->create(rate_limit,3,nreacts,"bond/react:rate_limit");
   memory->create(stabilize_steps_flag,nreacts,"bond/react:stabilize_steps_flag");
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
+  memory->create(rescale_charges_flag,nreacts,"bond/react:rescale_charges_flag");
   memory->create(create_atoms_flag,nreacts,"bond/react:create_atoms_flag");
   memory->create(modify_create_fragid,nreacts,"bond/react:modify_create_fragid");
   memory->create(overlapsq,nreacts,"bond/react:overlapsq");
@@ -249,8 +254,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     fraction[i] = 1;
     seed[i] = 12345;
     max_rxn[i] = INT_MAX;
+    for (int j = 0; j < 3; j++)
+      rate_limit[j][i] = 0;
     stabilize_steps_flag[i] = 0;
     custom_charges_fragid[i] = -1;
+    rescale_charges_flag[i] = 0;
     create_atoms_flag[i] = 0;
     modify_create_fragid[i] = -1;
     overlapsq[i] = 0;
@@ -286,55 +294,31 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (groupid == -1) error->all(FLERR,"Could not find fix group ID");
     groupbits[rxn] = group->bitmask[groupid];
 
-    if (strncmp(arg[iarg],"v_",2) == 0) {
-      const char *str = &arg[iarg][2];
-      var_id[NEVERY][rxn] = input->variable->find(str);
-      if (var_id[NEVERY][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
-      if (!input->variable->equalstyle(var_id[NEVERY][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
-      var_flag[NEVERY][rxn] = 1;
-    } else {
+    if (strncmp(arg[iarg],"v_",2) == 0) read_variable_keyword(&arg[iarg][2],NEVERY,rxn);
+    else {
       nevery[rxn] = utils::inumeric(FLERR,arg[iarg],false,lmp);
       if (nevery[rxn] <= 0) error->all(FLERR,"Illegal fix bond/react command: "
                                        "'Nevery' must be a positive integer");
     }
     iarg++;
 
+    double cutoff;
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      const char *str = &arg[iarg][2];
-      var_id[RMIN][rxn] = input->variable->find(str);
-      if (var_id[RMIN][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
-      if (!input->variable->equalstyle(var_id[RMIN][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
-      double cutoff = input->variable->compute_equal(var_id[RMIN][rxn]);
-      cutsq[rxn][0] = cutoff*cutoff;
-      var_flag[RMIN][rxn] = 1;
-    } else {
-      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
+      read_variable_keyword(&arg[iarg][2],RMIN,rxn);
+      cutoff = input->variable->compute_equal(var_id[RMIN][rxn]);
+    } else cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command: "
                                    "'Rmin' cannot be negative");
       cutsq[rxn][0] = cutoff*cutoff;
-    }
     iarg++;
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      const char *str = &arg[iarg][2];
-      var_id[RMAX][rxn] = input->variable->find(str);
-      if (var_id[RMAX][rxn] < 0)
-        error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
-      if (!input->variable->equalstyle(var_id[RMAX][rxn]))
-        error->all(FLERR,"Fix bond/react: Variable is {} not equal-style", str);
-      double cutoff = input->variable->compute_equal(var_id[RMAX][rxn]);
-      cutsq[rxn][1] = cutoff*cutoff;
-      var_flag[RMAX][rxn] = 1;
-    } else {
-      double cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
+      read_variable_keyword(&arg[iarg][2],RMAX,rxn);
+      cutoff = input->variable->compute_equal(var_id[RMAX][rxn]);
+    } else cutoff = utils::numeric(FLERR,arg[iarg],false,lmp);
       if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/react command:"
                                    "'Rmax' cannot be negative");
       cutsq[rxn][1] = cutoff*cutoff;
-    }
     iarg++;
 
     unreacted_mol[rxn] = atom->find_molecule(arg[iarg++]);
@@ -344,7 +328,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (reacted_mol[rxn] == -1) error->all(FLERR,"Reacted molecule template ID for "
                                            "fix bond/react does not exist");
 
-    // read superimpose file
+    //read map file
     files[rxn] = utils::strdup(arg[iarg]);
     iarg++;
 
@@ -354,14 +338,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'prob' keyword has too few arguments");
         // check if probability is a variable
         if (strncmp(arg[iarg+1],"v_",2) == 0) {
-          const char *str = &arg[iarg+1][2];
-          var_id[PROB][rxn] = input->variable->find(str);
-          if (var_id[PROB][rxn] < 0)
-            error->all(FLERR,"Fix bond/react: Variable name {} does not exist", str);
-          if (!input->variable->equalstyle(var_id[PROB][rxn]))
-            error->all(FLERR,"Fix bond/react: Variable {} is not equal-style", str);
+          read_variable_keyword(&arg[iarg+1][2],PROB,rxn);
           fraction[rxn] = input->variable->compute_equal(var_id[PROB][rxn]);
-          var_flag[PROB][rxn] = 1;
         } else {
           // otherwise probability should be a number
           fraction[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
@@ -380,6 +358,14 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         if (max_rxn[rxn] < 0) error->all(FLERR,"Illegal fix bond/react command: "
                                          "'max_rxn' cannot be negative");
         iarg += 2;
+      } else if (strcmp(arg[iarg],"rate_limit") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                      "'rate_limit' has too few arguments");
+        rate_limit[0][rxn] = 1; // serves as flag for rate_limit keyword
+        if (strncmp(arg[iarg+1],"v_",2) == 0) read_variable_keyword(&arg[iarg+1][2],NRATE,rxn);
+        else rate_limit[1][rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        rate_limit[2][rxn] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        iarg += 3;
       } else if (strcmp(arg[iarg],"stabilize_steps") == 0) {
         if (stabilization_flag == 0) error->all(FLERR,"Stabilize_steps keyword "
                                                 "used without stabilization keyword");
@@ -397,6 +383,13 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
           if (custom_charges_fragid[rxn] < 0) error->one(FLERR,"Fix bond/react: Molecule fragment for "
                                                          "'custom_charges' keyword does not exist");
         }
+        iarg += 2;
+      } else if (strcmp(arg[iarg],"rescale_charges") == 0) {
+        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                      "'rescale_charges' has too few arguments");
+        if (strcmp(arg[iarg+1],"no") == 0) rescale_charges_flag[rxn] = 0; //default
+        else if (strcmp(arg[iarg+1],"yes") == 0) rescale_charges_flag[rxn] = 1;
+        else error->one(FLERR,"Bond/react: Illegal option for 'rescale_charges' keyword");
         iarg += 2;
       } else if (strcmp(arg[iarg],"molecule") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
@@ -433,21 +426,24 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   }
 
   max_natoms = 0; // the number of atoms in largest molecule template
+  max_rate_limit_steps = 0;
   for (int myrxn = 0; myrxn < nreacts; myrxn++) {
     twomol = atom->molecules[reacted_mol[myrxn]];
     max_natoms = MAX(max_natoms,twomol->natoms);
+    max_rate_limit_steps = MAX(max_rate_limit_steps,rate_limit[2][myrxn]);
   }
 
   memory->create(equivalences,max_natoms,2,nreacts,"bond/react:equivalences");
   memory->create(reverse_equiv,max_natoms,2,nreacts,"bond/react:reverse_equiv");
   memory->create(edge,max_natoms,nreacts,"bond/react:edge");
   memory->create(landlocked_atoms,max_natoms,nreacts,"bond/react:landlocked_atoms");
+  memory->create(store_rxn_count,max_rate_limit_steps,nreacts,"bond/react:store_rxn_count");
   memory->create(custom_charges,max_natoms,nreacts,"bond/react:custom_charges");
   memory->create(delete_atoms,max_natoms,nreacts,"bond/react:delete_atoms");
   memory->create(create_atoms,max_natoms,nreacts,"bond/react:create_atoms");
   memory->create(chiral_atoms,max_natoms,6,nreacts,"bond/react:chiral_atoms");
 
-  for (int j = 0; j < nreacts; j++)
+  for (int j = 0; j < nreacts; j++) {
     for (int i = 0; i < max_natoms; i++) {
       edge[i][j] = 0;
       custom_charges[i][j] = 1; // update all partial charges by default
@@ -462,6 +458,10 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
         equivalences[i][m][j] = i+1;
       }
     }
+    for (int i = 0; i < max_rate_limit_steps; i++) {
+      store_rxn_count[i][j] = -1;
+    }
+  }
 
   // read all map files afterward
   for (int i = 0; i < nreacts; i++) {
@@ -471,7 +471,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     onemol->check_attributes();
     twomol->check_attributes();
     get_molxspecials();
-    read(i);
+    read_map_file(i);
     fclose(fp);
     if (ncreate == 0 && onemol->natoms != twomol->natoms)
       error->all(FLERR,"Fix bond/react: Reaction templates must contain the same number of atoms");
@@ -493,7 +493,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nreacts; i++) {
     for (int j = 0; j < nconstraints[i]; j++) {
       if (constraints[j][i].type == ARRHENIUS) {
-        rrhandom[tmp++] = new RanMars(lmp,(int) constraints[j][i].par[4] + me);
+        rrhandom[tmp++] = new RanMars(lmp,(int) constraints[j][i].par[4] + comm->me);
       }
     }
   }
@@ -528,7 +528,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   random = new RanMars*[nreacts];
   for (int i = 0; i < nreacts; i++) {
-    random[i] = new RanMars(lmp,seed[i] + me);
+    random[i] = new RanMars(lmp,seed[i] + comm->me);
   }
 
   // set comm sizes needed by this fix
@@ -598,6 +598,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(equivalences);
   memory->destroy(reverse_equiv);
   memory->destroy(landlocked_atoms);
+  memory->destroy(store_rxn_count);
   memory->destroy(custom_charges);
   memory->destroy(delete_atoms);
   memory->destroy(create_atoms);
@@ -617,8 +618,10 @@ FixBondReact::~FixBondReact()
   memory->destroy(limit_duration);
   memory->destroy(var_flag);
   memory->destroy(var_id);
+  memory->destroy(rate_limit);
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
+  memory->destroy(rescale_charges_flag);
   memory->destroy(molecule_keyword);
   memory->destroy(nconstraints);
   memory->destroy(constraintstr);
@@ -819,6 +822,16 @@ void FixBondReact::init_list(int /*id*/, NeighList *ptr)
 
 void FixBondReact::post_integrate()
 {
+  // update store_rxn_count on every step
+  for (int myrxn = 0; myrxn < nreacts; myrxn++) {
+    if (rate_limit[0][myrxn] == 1) {
+      for (int i = rate_limit[2][myrxn]-1; i > 0; i--) {
+        store_rxn_count[i][myrxn] = store_rxn_count[i-1][myrxn];
+      }
+      store_rxn_count[0][myrxn] = reaction_count_total[myrxn];
+    }
+  }
+
   // check if any reactions could occur on this timestep
   int nevery_check = 1;
   for (int i = 0; i < nreacts; i++) {
@@ -873,6 +886,8 @@ void FixBondReact::post_integrate()
   for (int i = 0; i < nreacts; i++) {
     nattempt[i] = 0;
   }
+  // reset per-bond compute map flag
+  atoms2bondflag = 0;
 
   int nlocal = atom->nlocal;
   int nall = atom->nlocal + atom->nghost;
@@ -911,8 +926,22 @@ void FixBondReact::post_integrate()
 
   int j;
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
+    int rate_limit_flag = 1;
+    if (rate_limit[0][rxnID] == 1) {
+      int myrxn_count = store_rxn_count[rate_limit[2][rxnID]-1][rxnID];
+      if (myrxn_count == -1) rate_limit_flag = 0;
+      else {
+        int nrxns_delta = reaction_count_total[rxnID] - myrxn_count;
+        int my_nrate;
+        if (var_flag[NRATE][rxnID] == 1) {
+          my_nrate = input->variable->compute_equal(var_id[NRATE][rxnID]);
+        } else my_nrate = rate_limit[1][rxnID];
+        if (nrxns_delta > my_nrate) rate_limit_flag = 0;
+      }
+    }
     if ((update->ntimestep % nevery[rxnID]) ||
-        (max_rxn[rxnID] <= reaction_count_total[rxnID])) continue;
+        (max_rxn[rxnID] <= reaction_count_total[rxnID]) ||
+        (rate_limit_flag == 0)) continue;
     for (int ii = 0; ii < nall; ii++) {
       partner[ii] = 0;
       finalpartner[ii] = 0;
@@ -1221,6 +1250,7 @@ void FixBondReact::close_partner()
 
 void FixBondReact::superimpose_algorithm()
 {
+  const int nprocs = comm->nprocs;
   local_num_mega = 0;
   ghostly_num_mega = 0;
 
@@ -1370,7 +1400,7 @@ void FixBondReact::superimpose_algorithm()
   MPI_Allreduce(&local_rxn_count[0],&reaction_count[0],nreacts,MPI_INT,MPI_SUM,world);
 
   int rxnflag = 0;
-  if (me == 0)
+  if (comm->me == 0)
     for (int i = 0; i < nreacts; i++) {
       reaction_count_total[i] += reaction_count[i] + ghostly_rxn_count[i];
       rxnflag += reaction_count[i] + ghostly_rxn_count[i];
@@ -1385,18 +1415,37 @@ void FixBondReact::superimpose_algorithm()
   std::random_device rnd;
   std::minstd_rand park_rng(rnd());
 
-  // check if we overstepped our reaction limit
+  // check if we overstepped our reaction limit, via either max_rxn or rate_limit
   for (int i = 0; i < nreacts; i++) {
-    if (reaction_count_total[i] > max_rxn[i]) {
+    int overstep = 0;
+    int max_rxn_overstep = reaction_count_total[i] - max_rxn[i];
+    overstep = MAX(overstep,max_rxn_overstep);
+    if (rate_limit[0][i] == 1) {
+      int myrxn_count = store_rxn_count[rate_limit[2][i]-1][i];
+      if (myrxn_count != -1) {
+        int nrxn_delta = reaction_count_total[i] - myrxn_count;
+        int my_nrate;
+        if (var_flag[NRATE][i] == 1) {
+          my_nrate = input->variable->compute_equal(var_id[NRATE][i]);
+        } else my_nrate = rate_limit[1][i];
+        int rate_limit_overstep = nrxn_delta - my_nrate;
+        overstep = MAX(overstep,rate_limit_overstep);
+      }
+    }
+
+    if (overstep > 0) {
       // let's randomly choose rxns to skip, unbiasedly from local and ghostly
       int *local_rxncounts;
       int *all_localskips;
       memory->create(local_rxncounts,nprocs,"bond/react:local_rxncounts");
       memory->create(all_localskips,nprocs,"bond/react:all_localskips");
       MPI_Gather(&local_rxn_count[i],1,MPI_INT,local_rxncounts,1,MPI_INT,0,world);
-      if (me == 0) {
-        int overstep = reaction_count_total[i] - max_rxn[i];
+      if (comm->me == 0) {
         int delta_rxn = reaction_count[i] + ghostly_rxn_count[i];
+        // when using variable input for rate_limit, rate_limit_overstep could be > delta_rxn (below)
+        // we need to limit overstep to the number of reactions on this timestep
+        // essentially skipping all reactions, would be more efficient to use a skip_all flag
+        if (overstep > delta_rxn) overstep = delta_rxn;
         int *rxn_by_proc;
         memory->create(rxn_by_proc,delta_rxn,"bond/react:rxn_by_proc");
         for (int j = 0; j < delta_rxn; j++)
@@ -1414,21 +1463,19 @@ void FixBondReact::superimpose_algorithm()
           else all_localskips[rxn_by_proc[j]]++;
         }
         memory->destroy(rxn_by_proc);
+        reaction_count_total[i] -= overstep;
       }
-      reaction_count_total[i] = max_rxn[i];
       MPI_Scatter(&all_localskips[0],1,MPI_INT,&nlocalskips[i],1,MPI_INT,0,world);
       MPI_Bcast(&nghostlyskips[i],1,MPI_INT,0,world);
       memory->destroy(local_rxncounts);
       memory->destroy(all_localskips);
     }
   }
+  MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
 
   // this updates topology next step
   next_reneighbor = update->ntimestep;
 
-  // call limit_bond in 'global_mega_glove mode.' oh, and local mode
-  limit_bond(LOCAL); // add reacting atoms to nve/limit
-  limit_bond(GLOBAL);
   update_everything(); // change topology
 }
 
@@ -2118,7 +2165,7 @@ double FixBondReact::get_temperature(tagint **myglove, int row_offset, int col)
 }
 
 /* ----------------------------------------------------------------------
-get per-atom variable names used by  custom constraint
+get per-atom variable names used by custom constraint
 ------------------------------------------------------------------------- */
 
 void FixBondReact::customvarnames()
@@ -2140,6 +2187,7 @@ void FixBondReact::customvarnames()
           // find next reaction special function occurrence
           pos1 = std::string::npos;
           for (int i = 0; i < nrxnfunction; i++) {
+            if (peratomflag[i] == 0) continue;
             pos = varstr.find(rxnfunclist[i],prev3+1);
             if (pos == std::string::npos) continue;
             if (pos < pos1) pos1 = pos;
@@ -2257,16 +2305,71 @@ double FixBondReact::custom_constraint(const std::string& varstr)
   evlstr.push_back(varstr.substr(prev3+1));
 
   for (auto & evl : evlstr) evlcat += evl;
-  return input->variable->compute_equal(evlcat.c_str());
+  return input->variable->compute_equal(evlcat);
 }
 
 /* ----------------------------------------------------------------------
-currently two 'rxn' functions: rxnsum and rxnave
+currently three 'rxn' functions: rxnsum, rxnave, and rxnbond
 ------------------------------------------------------------------------- */
 
 double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& varid,
                                  const std::string& fragid)
 {
+  int ifrag = -1;
+  if (fragid != "all") {
+    ifrag = onemol->findfragment(fragid.c_str());
+    if (ifrag < 0) error->one(FLERR,"Bond/react: Molecule fragment "
+                              "in reaction special function does not exist");
+  }
+
+  // start with 'rxnbond' per-bond function
+  // for 'rxnbond', varid corresponds to 'compute bond/local' name,
+  //                and fragid is a pre-reaction fragment containing the two atoms in the bond
+  if (rxnfunc == "rxnbond") {
+    int icompute,ibond,nsum;
+    double perbondval;
+    std::set<tagint> aset;
+    std::string computeid = varid;
+    std::map<std::set<tagint>,int>::iterator it;
+
+    if (computeid.substr(0,2) != "c_") error->one(FLERR,"Bond/react: Reaction special function compute "
+                                         "name should begin with 'c_'");
+    computeid = computeid.substr(2);
+    icompute = modify->find_compute(computeid);
+    if (icompute < 0) error->one(FLERR,"Bond/react: Reaction special function compute name does not exist");
+    cperbond = modify->compute[icompute];
+    std::string compute_style = cperbond->style;
+    if (compute_style != "bond/local") error->one(FLERR,"Bond/react: Compute used by reaction "
+                                         "special function 'rxnbond' must be of style 'bond/local'");
+    if (cperbond->size_local_cols > 0) error->one(FLERR,"Bond/react: 'Compute bond/local' used by reaction "
+                                         "special function 'rxnbond' must compute one value");
+
+    if (atoms2bondflag == 0) {
+      atoms2bondflag = 1;
+      get_atoms2bond(cperbond->groupbit);
+    }
+
+    nsum = 0;
+    for (int i = 0; i < onemol->natoms; i++) {
+      if (onemol->fragmentmask[ifrag][i]) {
+        aset.insert(glove[i][1]);
+        nsum++;
+      }
+    }
+    if (nsum != 2) error->one(FLERR,"Bond/react: Molecule fragment of reaction special function 'rxnbond' "
+                     "must contain exactly two atoms");
+
+    if (cperbond->invoked_local != lmp->update->ntimestep)
+      cperbond->compute_local();
+
+    it = atoms2bond.find(aset);
+    if (it == atoms2bond.end()) error->one(FLERR,"Bond/react: Unable to locate bond referenced by "
+                                            "reaction special function 'rxnbond'");
+    ibond = it->second;
+    perbondval = cperbond->vector_local[ibond];
+    return perbondval;
+  }
+
   int ivar = -1;
   for (int i = 0; i < ncustomvars; i++) {
     if (varid == customvarstrs[i]) {
@@ -2279,13 +2382,6 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
   if (ivar < 0)
     error->one(FLERR,"Fix bond/react: Reaction special function variable "
                                  "name does not exist");
-
-  int ifrag = -1;
-  if (fragid != "all") {
-    ifrag = onemol->findfragment(fragid.c_str());
-    if (ifrag < 0) error->one(FLERR,"Fix bond/react: Molecule fragment "
-                              "in reaction special function does not exist");
-  }
 
   int iatom;
   int nsum = 0;
@@ -2311,6 +2407,39 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
   if (rxnfunc == "rxnsum") return sumvvec;
   if (rxnfunc == "rxnave") return sumvvec/nsum;
   return 0.0;
+}
+
+/* ----------------------------------------------------------------------
+populate map to get bond index from atom IDs
+------------------------------------------------------------------------- */
+
+void FixBondReact::get_atoms2bond(int cgroupbit)
+{
+  int i,m,atom1,atom2,btype,nb;
+  std::set<tagint> aset;
+
+  int nlocal = atom->nlocal;
+  tagint *tag = atom->tag;
+  int *num_bond = atom->num_bond;
+  tagint **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+  int *mask = atom->mask;
+
+  m = 0;
+  atoms2bond.clear();
+  for (atom1 = 0; atom1 < nlocal; atom1++) {
+    if (!(mask[atom1] & cgroupbit)) continue;
+    nb = num_bond[atom1];
+    for (i = 0; i < nb; i++) {
+      btype = bond_type[atom1][i];
+      atom2 = atom->map(bond_atom[atom1][i]);
+      if (atom2 < 0 || !(mask[atom2] & cgroupbit)) continue;
+      if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
+      if (btype == 0) continue;
+      aset = {tag[atom1], tag[atom2]};
+      atoms2bond.insert(std::make_pair(aset,m++));
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -2483,7 +2612,7 @@ void FixBondReact::find_landlocked_atoms(int myrxn)
   }
 
   // also, if atoms change number of bonds, but aren't landlocked, that could be bad
-  if (me == 0)
+  if (comm->me == 0)
     for (int i = 0; i < twomol->natoms; i++) {
       if ((create_atoms[i][myrxn] == 0) &&
           (twomol_nxspecial[i][0] != onemol_nxspecial[equivalences[i][1][myrxn]-1][0]) &&
@@ -2648,80 +2777,6 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
 }
 
 /* ----------------------------------------------------------------------
-let's limit movement of newly bonded atoms
-and exclude them from other thermostats via exclude_group
-------------------------------------------------------------------------- */
-
-void FixBondReact::limit_bond(int limit_bond_mode)
-{
-  //two types of passes: 1) while superimpose algorithm is iterating (only local atoms)
-  //                     2) once more for global_mega_glove [after de-duplicating rxn instances]
-  //in second case, only add local atoms to group
-  //as with update_everything, we can pre-prepare these arrays, then run generic limit_bond code
-
-  //create local, generic variables for onemol->natoms and glove
-  //to be filled differently on respective passes
-
-  int nlocal = atom->nlocal;
-  int temp_limit_num = 0;
-  tagint *temp_limit_glove;
-  if (limit_bond_mode == LOCAL) {
-    int max_temp = local_num_mega * (max_natoms + 1);
-    temp_limit_glove = new tagint[max_temp];
-    for (int j = 0; j < local_num_mega; j++) {
-      rxnID = local_mega_glove[0][j];
-      onemol = atom->molecules[unreacted_mol[rxnID]];
-      for (int i = 0; i < onemol->natoms; i++) {
-        temp_limit_glove[temp_limit_num++] = local_mega_glove[i+1][j];
-      }
-    }
-
-  } else if (limit_bond_mode == GLOBAL) {
-    int max_temp = global_megasize * (max_natoms + 1);
-    temp_limit_glove = new tagint[max_temp];
-    for (int j = 0; j < global_megasize; j++) {
-      rxnID = global_mega_glove[0][j];
-      onemol = atom->molecules[unreacted_mol[rxnID]];
-      for (int i = 0; i < onemol->natoms; i++) {
-        if (atom->map(global_mega_glove[i+1][j]) >= 0 &&
-            atom->map(global_mega_glove[i+1][j]) < nlocal)
-          temp_limit_glove[temp_limit_num++] = global_mega_glove[i+1][j];
-      }
-    }
-  }
-
-  if (temp_limit_num == 0) {
-    delete [] temp_limit_glove;
-    return;
-  }
-
-  // we must keep our own list of limited atoms
-  // this will be a new per-atom property!
-
-  int flag,cols;
-  int index1 = atom->find_custom("limit_tags",flag,cols);
-  int *i_limit_tags = atom->ivector[index1];
-
-  int *i_statted_tags;
-  if (stabilization_flag == 1) {
-    int index2 = atom->find_custom(statted_id,flag,cols);
-    i_statted_tags = atom->ivector[index2];
-  }
-
-  int index3 = atom->find_custom("react_tags",flag,cols);
-  int *i_react_tags = atom->ivector[index3];
-
-  for (int i = 0; i < temp_limit_num; i++) {
-    // update->ntimestep could be 0. so add 1 throughout
-    i_limit_tags[atom->map(temp_limit_glove[i])] = update->ntimestep + 1;
-    if (stabilization_flag == 1) i_statted_tags[atom->map(temp_limit_glove[i])] = 0;
-    i_react_tags[atom->map(temp_limit_glove[i])] = rxnID;
-  }
-
-  delete [] temp_limit_glove;
-}
-
-/* ----------------------------------------------------------------------
 let's unlimit movement of newly bonded atoms after n timesteps.
 we give them back to the system thermostat
 ------------------------------------------------------------------------- */
@@ -2815,6 +2870,7 @@ broadcast entries of mega_glove which contain nonlocal atoms for perusal by all 
 void FixBondReact::ghost_glovecast()
 {
 #if !defined(MPI_STUBS)
+  const int nprocs = comm->nprocs;
 
   global_megasize = 0;
 
@@ -2833,7 +2889,7 @@ void FixBondReact::ghost_glovecast()
   int *allstarts = new int[nprocs];
 
   int start = 0;
-  for (int i = 0; i < me; i++) {
+  for (int i = 0; i < comm->me; i++) {
     start += allncols[i];
   }
   MPI_Allgather(&start, 1, MPI_INT, allstarts, 1, MPI_INT, world);
@@ -2861,7 +2917,7 @@ void FixBondReact::ghost_glovecast()
     }
   }
   // let's send to root, dedup, then broadcast
-  if (me == 0) {
+  if (comm->me == 0) {
     MPI_Gatherv(MPI_IN_PLACE, ghostly_num_mega, column, // Note: some values ignored for MPI_IN_PLACE
                 &(global_mega_glove[0][0]), allncols, allstarts,
                 column, 0, world);
@@ -2871,7 +2927,7 @@ void FixBondReact::ghost_glovecast()
                 column, 0, world);
   }
 
-  if (me == 0) dedup_mega_gloves(GLOBAL); // global_mega_glove mode
+  if (comm->me == 0) dedup_mega_gloves(GLOBAL); // global_mega_glove mode
   MPI_Bcast(&global_megasize,1,MPI_INT,0,world);
   MPI_Bcast(&(global_mega_glove[0][0]), global_megasize, column, 0, world);
 
@@ -2921,6 +2977,21 @@ void FixBondReact::update_everything()
   int delta_angle = 0;
   int delta_dihed = 0;
   int delta_imprp = 0;
+
+  // use the following per-atom arrays to keep track of reacting atoms
+
+  int flag,cols;
+  int index1 = atom->find_custom("limit_tags",flag,cols);
+  int *i_limit_tags = atom->ivector[index1];
+
+  int *i_statted_tags;
+  if (stabilization_flag == 1) {
+    int index2 = atom->find_custom(statted_id,flag,cols);
+    i_statted_tags = atom->ivector[index2];
+  }
+
+  int index3 = atom->find_custom("react_tags",flag,cols);
+  int *i_react_tags = atom->ivector[index3];
 
   // pass through twice
   // redefining 'update_num_mega' and 'update_mega_glove' each time
@@ -2985,6 +3056,8 @@ void FixBondReact::update_everything()
     }
     delete [] iskip;
 
+    if (update_num_mega == 0) continue;
+
     // if inserted atoms and global map exists, reset map now instead
     //   of waiting for comm since other pre-exchange fixes may use it
     // invoke map_init() b/c atom count has grown
@@ -3012,19 +3085,53 @@ void FixBondReact::update_everything()
       }
     }
 
+    // get charge rescale delta
+    double charge_rescale_addend = 0;
+    if (rescale_charges_flag[rxnID] == 1) {
+      double sim_total_charge = 0;
+      double mol_total_charge = 0;
+      int n_custom_charge = 0;
+      for (int i = 0; i < update_num_mega; i++) {
+        rxnID = update_mega_glove[0][i];
+        twomol = atom->molecules[reacted_mol[rxnID]];
+        for (int j = 0; j < twomol->natoms; j++) {
+          int jj = equivalences[j][1][rxnID]-1;
+          if (atom->map(update_mega_glove[jj+1][i]) >= 0 &&
+              atom->map(update_mega_glove[jj+1][i]) < nlocal) {
+            if (landlocked_atoms[j][rxnID] == 1)
+              type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
+            if (twomol->qflag && atom->q_flag && custom_charges[jj][rxnID] == 1) {
+              double *q = atom->q;
+              sim_total_charge += q[atom->map(update_mega_glove[jj+1][i])];
+              mol_total_charge += twomol->q[j];
+              n_custom_charge++;
+            }
+          }
+        }
+      }
+      charge_rescale_addend = (sim_total_charge-mol_total_charge)/n_custom_charge;
+    }
+
     // update charges and types of landlocked atoms
+    // also keep track of 'stabilization' groups here
     for (int i = 0; i < update_num_mega; i++) {
       rxnID = update_mega_glove[0][i];
       twomol = atom->molecules[reacted_mol[rxnID]];
       for (int j = 0; j < twomol->natoms; j++) {
         int jj = equivalences[j][1][rxnID]-1;
-        if (atom->map(update_mega_glove[jj+1][i]) >= 0 &&
-            atom->map(update_mega_glove[jj+1][i]) < nlocal) {
+        int ilocal = atom->map(update_mega_glove[jj+1][i]);
+        if (ilocal >= 0 && ilocal < nlocal) {
+
+          // update->ntimestep could be 0. so add 1 throughout
+          i_limit_tags[ilocal] = update->ntimestep + 1;
+          if (stabilization_flag == 1) i_statted_tags[ilocal] = 0;
+          i_react_tags[ilocal] = rxnID;
+
           if (landlocked_atoms[j][rxnID] == 1)
-            type[atom->map(update_mega_glove[jj+1][i])] = twomol->type[j];
+            type[ilocal] = twomol->type[j];
           if (twomol->qflag && atom->q_flag && custom_charges[jj][rxnID] == 1) {
             double *q = atom->q;
-            q[atom->map(update_mega_glove[jj+1][i])] = twomol->q[j];
+            q[ilocal] = twomol->q[j]+charge_rescale_addend;
           }
         }
       }
@@ -3584,7 +3691,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
   Superpose3D<double, double **> superposer(n2superpose);
   int fitroot = 0;
   if (ifit >= 0 && ifit < atom->nlocal) {
-    fitroot = me;
+    fitroot = comm->me;
 
     // get 'temperatere' averaged over site, used for created atoms' vels
     t = get_temperature(my_mega_glove,1,iupdate);
@@ -3602,7 +3709,8 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
       int ipre = equivalences[j][1][rxnID]-1; // equiv pre-reaction template index
       if (!create_atoms[j][rxnID] && !delete_atoms[ipre][rxnID]) {
         if (atom->map(my_mega_glove[ipre+1][iupdate]) < 0) {
-          error->warning(FLERR," eligible atoms skipped for created-atoms fit on rank {}\n",me);
+          error->warning(FLERR," eligible atoms skipped for created-atoms fit on rank {}\n",
+                         comm->me);
           continue;
         }
         iatom = atom->map(my_mega_glove[ipre+1][iupdate]);
@@ -3630,7 +3738,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
     if (create_atoms[m][rxnID] == 1) {
       // apply optimal rotation/translation for created atom coords
       // also map coords back into simulation box
-      if (fitroot == me) {
+      if (fitroot == comm->me) {
         MathExtra::matvec(rotmat,twomol->x[m],coords[m]);
         for (int i = 0; i < 3; i++) coords[m][i] += superposer.T[i];
         imageflags[m] = atom->image[ifit];
@@ -3718,7 +3826,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 
       int root = 0;
       if (flag) {
-        root = me;
+        root = comm->me;
 
         atom->avec->create_atom(twomol->type[m],coords[m]);
         int n = atom->nlocal - 1;
@@ -3750,25 +3858,6 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
         v[n][1] = v[n][1]/vnorm*vtnorm;
         v[n][2] = v[n][2]/vnorm*vtnorm;
         modify->create_attribute(n);
-
-        // initialize group statuses
-        // why aren't these more global...
-        int flag,cols;
-        int index1 = atom->find_custom("limit_tags",flag,cols);
-        int *i_limit_tags = atom->ivector[index1];
-
-        int *i_statted_tags;
-        if (stabilization_flag == 1) {
-          int index2 = atom->find_custom(statted_id,flag,cols);
-          i_statted_tags = atom->ivector[index2];
-        }
-
-        int index3 = atom->find_custom("react_tags",flag,cols);
-        int *i_react_tags = atom->ivector[index3];
-
-        i_limit_tags[n] = update->ntimestep + 1;
-        if (stabilization_flag == 1) i_statted_tags[n] = 0;
-        i_react_tags[n] = rxnID;
       }
       // globally update mega_glove and equivalences
       MPI_Allreduce(MPI_IN_PLACE,&root,1,MPI_INT,MPI_SUM,world);
@@ -3795,10 +3884,24 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 }
 
 /* ----------------------------------------------------------------------
-read superimpose file
+add equal-style variable to keyword argument list
 ------------------------------------------------------------------------- */
 
-void FixBondReact::read(int myrxn)
+void FixBondReact::read_variable_keyword(const char *myarg, int keyword, int myrxn)
+{
+  var_id[keyword][myrxn] = input->variable->find(myarg);
+  if (var_id[keyword][myrxn] < 0)
+    error->all(FLERR,"Fix bond/react: Variable name {} does not exist",myarg);
+  if (!input->variable->equalstyle(var_id[keyword][myrxn]))
+    error->all(FLERR,"Fix bond/react: Variable {} is not equal-style",myarg);
+  var_flag[keyword][myrxn] = 1;
+}
+
+/* ----------------------------------------------------------------------
+read map file
+------------------------------------------------------------------------- */
+
+void FixBondReact::read_map_file(int myrxn)
 {
   char line[MAXLINE],keyword[MAXLINE];
   char *eof,*ptr;
@@ -3850,7 +3953,7 @@ void FixBondReact::read(int myrxn)
   while (strlen(keyword)) {
     if (strcmp(keyword,"InitiatorIDs") == 0 || strcmp(keyword,"BondingIDs") == 0) {
       if (strcmp(keyword,"BondingIDs") == 0)
-        if (me == 0) error->warning(FLERR,"Fix bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
+        if (comm->me == 0) error->warning(FLERR,"Fix bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
       bondflag = 1;
       readline(line);
       sscanf(line,"%d",&ibonding[myrxn]);
@@ -4097,12 +4200,14 @@ void FixBondReact::readID(char *strarg, int iconstr, int myrxn, int i)
   if (isalpha(strarg[0])) {
     constraints[iconstr][myrxn].idtype[i] = FRAG; // fragment vs. atom ID flag
     int ifragment = onemol->findfragment(strarg);
-    if (ifragment < 0) error->one(FLERR,"Fix bond/react: Molecule fragment does not exist");
+    if (ifragment < 0)
+      error->one(FLERR,"Fix bond/react: Molecule fragment {} does not exist", strarg);
     constraints[iconstr][myrxn].id[i] = ifragment;
   } else {
     constraints[iconstr][myrxn].idtype[i] = ATOM; // fragment vs. atom ID flag
-    int iatom = atoi(strarg);
-    if (iatom > onemol->natoms) error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
+    int iatom = utils::inumeric(FLERR, strarg, true, lmp);
+    if (iatom > onemol->natoms)
+      error->one(FLERR,"Fix bond/react: Invalid template atom ID {} in map file", strarg);
     constraints[iconstr][myrxn].id[i] = iatom;
   }
 }
@@ -4110,13 +4215,13 @@ void FixBondReact::readID(char *strarg, int iconstr, int myrxn, int i)
 void FixBondReact::open(char *file)
 {
   fp = fopen(file,"r");
-  if (fp == nullptr) error->one(FLERR, "Fix bond/react: Cannot open map file {}",file);
+  if (fp == nullptr) error->one(FLERR, "Fix bond/react: Cannot open map file {}", file);
 }
 
 void FixBondReact::readline(char *line)
 {
   int n;
-  if (me == 0) {
+  if (comm->me == 0) {
     if (fgets(line,MAXLINE,fp) == nullptr) n = 0;
     else n = strlen(line) + 1;
   }
@@ -4133,7 +4238,7 @@ void FixBondReact::parse_keyword(int flag, char *line, char *keyword)
     // eof is set to 1 if any read hits end-of-file
 
     int eof = 0;
-    if (me == 0) {
+    if (comm->me == 0) {
       if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
       while (eof == 0 && strspn(line," \t\n\r") == strlen(line)) {
         if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
@@ -4152,7 +4257,7 @@ void FixBondReact::parse_keyword(int flag, char *line, char *keyword)
     // bcast keyword line to all procs
 
     int n;
-    if (me == 0) n = strlen(line) + 1;
+    if (comm->me == 0) n = strlen(line) + 1;
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
   }
@@ -4299,34 +4404,71 @@ void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
 
 void FixBondReact::write_restart(FILE *fp)
 {
+  int revision = 1;
   set[0].nreacts = nreacts;
+  set[0].max_rate_limit_steps = max_rate_limit_steps;
+
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
+
     strncpy(set[i].rxn_name,rxn_name[i],MAXLINE-1);
     set[i].rxn_name[MAXLINE-1] = '\0';
   }
 
-  if (me == 0) {
-    int size = nreacts*sizeof(Set);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(set,sizeof(Set),nreacts,fp);
+  int rbufcount = max_rate_limit_steps*nreacts;
+  int *rbuf;
+  if (rbufcount) {
+    memory->create(rbuf,rbufcount,"bond/react:rbuf");
+    memcpy(rbuf,&store_rxn_count[0][0],sizeof(int)*rbufcount);
   }
+
+  if (comm->me == 0) {
+    int size = nreacts*sizeof(Set)+(rbufcount+1)*sizeof(int);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(&revision,sizeof(int),1,fp);
+    fwrite(set,sizeof(Set),nreacts,fp);
+    if (rbufcount) fwrite(rbuf,sizeof(int),rbufcount,fp);
+  }
+  if (rbufcount) memory->destroy(rbuf);
 }
 
 /* ----------------------------------------------------------------------
    use selected state info from restart file to restart the Fix
+   bond/react restart revisions numbers added after LAMMPS version 3 Nov 2022
 ------------------------------------------------------------------------- */
 
 void FixBondReact::restart(char *buf)
 {
-  Set *set_restart = (Set *) buf;
-  for (int i = 0; i < set_restart[0].nreacts; i++) {
+  int n,revision,r_nreacts,r_max_rate_limit_steps,ibufcount,n2cpy;
+  int **ibuf;
+
+  n = 0;
+  if (lmp->restart_ver > utils::date2num("3 Nov 2022")) revision = buf[n++];
+  else revision = 0;
+
+  Set *set_restart = (Set *) &buf[n*sizeof(int)];
+  r_nreacts = set_restart[0].nreacts;
+
+  if (revision > 0) {
+    r_max_rate_limit_steps = set_restart[0].max_rate_limit_steps;
+    ibufcount = r_max_rate_limit_steps*r_nreacts;
+    memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
+    memcpy(&ibuf[0][0],&buf[sizeof(int)+r_nreacts*sizeof(Set)],sizeof(int)*ibufcount);
+    n2cpy = r_max_rate_limit_steps;
+  } else n2cpy = 0;
+
+  if (max_rate_limit_steps < n2cpy) n2cpy = max_rate_limit_steps;
+  for (int i = 0; i < r_nreacts; i++) {
     for (int j = 0; j < nreacts; j++) {
       if (strcmp(set_restart[i].rxn_name,rxn_name[j]) == 0) {
         reaction_count_total[j] = set_restart[i].reaction_count_total;
+        // read rate_limit restart information
+        for (int k = 0; k < n2cpy; k++)
+          store_rxn_count[k][j] = ibuf[k][i];
       }
     }
   }
+  if (revision > 0) memory->destroy(ibuf);
 }
 
 /* ----------------------------------------------------------------------

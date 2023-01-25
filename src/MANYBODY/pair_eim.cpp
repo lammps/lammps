@@ -349,7 +349,7 @@ void PairEIM::coeff(int narg, char **arg)
 
   if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // insure I,J args are * *
+  // ensure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");

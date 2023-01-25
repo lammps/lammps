@@ -20,12 +20,8 @@
 #include "fix.h"
 #include "force.h"
 #include "label_map.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "tokenizer.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 

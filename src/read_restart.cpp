@@ -599,6 +599,8 @@ void ReadRestart::header()
 
     if (flag == VERSION) {
       char *version = read_string();
+      lmp->restart_ver = utils::date2num(version);
+
       if (me == 0)
         utils::logmesg(lmp,"  restart file = {}, LAMMPS = {}\n", version, lmp->version);
       delete[] version;
@@ -767,7 +769,7 @@ void ReadRestart::header()
         argcopy[i] = read_string();
       atom->create_avec(style,nargcopy,argcopy,1);
       if (comm->me ==0)
-        utils::logmesg(lmp,"  restoring atom style {} from restart\n",style);
+        utils::logmesg(lmp,"  restoring atom style {} from restart\n",atom->atom_style);
       for (int i = 0; i < nargcopy; i++) delete[] argcopy[i];
       delete[] argcopy;
       delete[] style;

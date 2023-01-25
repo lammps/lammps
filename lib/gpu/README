@@ -128,12 +128,12 @@ Makefile.lammps is created by the make command, by copying one of the
 Makefile.lammps.* files.  See the EXTRAMAKE setting at the top of the
 Makefile.* files.
 
-IMPORTANT: You should examine the final Makefile.lammps to insure it is
+IMPORTANT: You should examine the final Makefile.lammps to ensure it is
 correct for your system, else the LAMMPS build can fail.
 
 IMPORTANT: If you re-build the library, e.g. for a different precision
 (see below), you should do a "make clean" first, e.g. make -f
-Makefile.linux clean, to insure all previous derived files are removed
+Makefile.linux clean, to ensure all previous derived files are removed
 before the new build is done.
 
 NOTE: The system-specific setting LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG,

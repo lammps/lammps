@@ -14,8 +14,8 @@ Owned and ghost atoms
 As described on the :doc:`parallel partitioning algorithms
 <Developer_par_part>` page, LAMMPS spatially decomposes the simulation
 domain, either in a *brick* or *tiled* manner.  Each processor (MPI
-task) owns atoms within its sub-domain and additionally stores ghost
-atoms within a cutoff distance of its sub-domain.
+task) owns atoms within its subdomain and additionally stores ghost
+atoms within a cutoff distance of its subdomain.
 
 Forward and reverse communication
 =================================

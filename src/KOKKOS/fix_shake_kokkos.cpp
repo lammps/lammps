@@ -60,6 +60,8 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
+  memory->destroy(xshake);
+
   shake_flag_tmp = shake_flag;
   shake_atom_tmp = shake_atom;
   shake_type_tmp = shake_type;

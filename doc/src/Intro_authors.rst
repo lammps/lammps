@@ -7,7 +7,7 @@ University:
 * `Steve Plimpton <sjp_>`_, sjplimp at gmail.com
 * Aidan Thompson, athomps at sandia.gov
 * Stan Moore, stamoor at sandia.gov
-* Axel Kohlmeyer, akohlmey at gmail.com
+* `Axel Kohlmeyer <https://sites.google.com/site/akohlmey/>`_, akohlmey at gmail.com
 * Richard Berger, richard.berger at outlook.com
 
 .. _sjp: https://sjplimp.github.io
@@ -37,10 +37,10 @@ general-purpose as it is without their expertise and efforts.
 * Reese Jones (Sandia) and colleagues, ATC package for atom/continuum coupling
 * Christoph Kloss (DCS Computing), LIGGGHTS code for granular materials, built on top of LAMMPS
 * Rudra Mukherjee (JPL), POEMS package for articulated rigid body motion
-* Trung Ngyuen (Northwestern U), GPU, RIGID, BODY, and DIELECTRIC packages
+* Trung Ngyuen (U Chicago), GPU, RIGID, BODY, and DIELECTRIC packages
 * Mike Parks (Sandia), PERI package for Peridynamics
 * Roy Pollock (LLNL), Ewald and PPPM solvers
-* Julien Tranchida (Sandia), SPIN package
+* Julien Tranchida (CEA Cadarache), SPIN package
 * Christian Trott (Sandia), CUDA and KOKKOS packages
 * Ilya Valuev (JIHT), AWPMD package for wave packet MD
 * Greg Wagner (Northwestern U), MEAM package for MEAM potential

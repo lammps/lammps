@@ -116,6 +116,7 @@ __device__ inline void cuda_inter_warp_reduction(
   value = result[0];
   for (int i = 1; (i * step < max_active_thread) && i < STEP_WIDTH; i++)
     reducer.join(&value, &result[i]);
+  __syncthreads();
 }
 
 template <class ValueType, class ReducerType>
@@ -426,11 +427,6 @@ struct CudaReductionsFunctor<FunctorType, false, false> {
 // for discussion of
 //   __launch_bounds__(maxThreadsPerBlock,minBlocksPerMultiprocessor)
 // function qualifier which could be used to improve performance.
-//----------------------------------------------------------------------------
-// Maximize shared memory and minimize L1 cache:
-//   cudaFuncSetCacheConfig(MyKernel, cudaFuncCachePreferShared );
-// For 2.0 capability: 48 KB shared and 16 KB L1
-//----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 /*
  *  Algorithmic constraints:

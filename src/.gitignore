@@ -37,8 +37,8 @@
 /library_mdi.h
 /mdi_engine.cpp
 /mdi_engine.h
-/fix_mdi_aimd.cpp
-/fix_mdi_aimd.h
+/fix_mdi_qm.cpp
+/fix_mdi_qm.h
 /mdi_command.cpp
 /mdi_command.h
 /mdi_plugin.cpp
@@ -54,8 +54,28 @@
 /pair_kim.cpp
 /pair_kim.h
 
+/pair_lepton.cpp
+/pair_lepton.h
+/bond_lepton.cpp
+/bond_lepton.h
+/angle_lepton.cpp
+/angle_lepton.h
+/dihedral_lepton.cpp
+/dihedral_lepton.h
+/lepton_utils.cpp
+/lepton_utils.h
+
 /pair_pace.cpp
 /pair_pace.h
+/pair_pace_extrapolation.cpp
+/pair_pace_extrapolation.h
+
+/pair_pod.cpp
+/pair_pod.h
+/fitpod_command.cpp
+/fitpod_command.h
+/mlpod.cpp
+/mlpod.h
 
 /fix_polarize*.cpp
 /fix_polarize*.h
@@ -87,7 +107,7 @@
 /compute_mliap.h
 /mliap_*.cpp
 /mliap_*.h
-/mliap_model_python_couple.pyx
+/mliap_*.pyx
 /pair_mliap.cpp
 /pair_mliap.h
 
@@ -514,6 +534,8 @@
 /compute_dpd.h
 /compute_dpd_atom.cpp
 /compute_dpd_atom.h
+/compute_efield_wolf_atom.cpp
+/compute_efield_wolf_atom.h
 /compute_entropy_atom.cpp
 /compute_entropy_atom.h
 /compute_erotate_asphere.cpp
@@ -913,6 +935,8 @@
 /fix_rigid_nvt_small.h
 /fix_rigid_small.cpp
 /fix_rigid_small.h
+/fix_sgcmc.cpp
+/fix_sgcmc.h
 /fix_shake.cpp
 /fix_shake.h
 /fix_shardlow.cpp

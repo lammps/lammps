@@ -16,7 +16,6 @@
 #include "domain.h"
 #include "error.h"
 #include "input.h"
-#include "update.h"
 #include "variable.h"
 
 #include <cmath>
@@ -198,39 +197,29 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
 
     if (r_r > rc_r) {
       // sort the values
-      int sorting[3] = {0, 1, 2};
-      double axes[3] = {c, b, a};
-      double coords[3] = {fabs(x[2] - zc), fabs(x[1] - yc), fabs(x[0] - xc)};
+      double axes[3] = {a, b, c};
+      double coords[3] = {fabs(x[0] - xc), fabs(x[1] - yc), fabs(x[2] - zc)};
 
-      if (axes[1] < axes[0]) {
-        sorting[0] = 1;
-        sorting[1] = 0;
-        axes[0] = b;
-        axes[1] = c;
+      int min, max;
+      if (axes[0] < axes[1]) {
+        min = 0;
+        max = 1;
+      } else {
+        min = 1;
+        max = 0;
       }
-
-      if (axes[2] < axes[1]) {
-        int ti = sorting[2];
-        sorting[2] = sorting[1];
-        sorting[1] = ti;
-        double td = axes[2];
-        axes[2] = axes[1];
-        axes[1] = td;
-        if (axes[1] < axes[0]) ti = sorting[1];
-        sorting[1] = sorting[0];
-        sorting[0] = ti;
-        td = axes[1];
-        axes[1] = axes[0];
-        axes[0] = td;
-      }
+      if (axes[min] > axes[2]) { min = 2; }
+      if (axes[max] < axes[2]) { max = 2; }
+      int mid = 3 - min - max;
+      int sorting[3] = {min, mid, max};
 
       double x0[3];
-      contact[0].r =
-          DistancePointEllipsoid(axes[2], axes[1], axes[0], coords[sorting[2]], coords[sorting[1]],
-                                 coords[sorting[0]], x0[2], x0[1], x0[0]);
-      contact[0].delx = copysign(x0[sorting[2]], x[0] - xc) + xc;
-      contact[0].dely = copysign(x0[sorting[1]], x[1] - yc) + yc;
-      contact[0].delz = copysign(x0[sorting[0]], x[2] - zc) + zc;
+      contact[0].r = DistancePointEllipsoid(
+          axes[sorting[2]], axes[sorting[1]], axes[sorting[0]], coords[sorting[2]],
+          coords[sorting[1]], coords[sorting[0]], x0[sorting[2]], x0[sorting[1]], x0[sorting[0]]);
+      contact[0].delx = x[0] - (copysign(x0[sorting[2]], x[0] - xc) + xc);
+      contact[0].dely = x[1] - (copysign(x0[sorting[1]], x[1] - yc) + yc);
+      contact[0].delz = x[2] - (copysign(x0[sorting[0]], x[2] - zc) + zc);
       //      contact[0].radius = -radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
@@ -255,12 +244,12 @@ int RegEllipsoid::surface_interior(double *x, double cutoff)
       double x0, x1;
       if (a >= b) {
         contact[0].r = DistancePointEllipse(a, b, fabs(x[0] - xc), fabs(x[1] - yc), x0, x1);
-        contact[0].delx = copysign(x0, x[0] - xc) + xc;
-        contact[0].dely = copysign(x1, x[1] - yc) + yc;
+        contact[0].delx = x[0] - (copysign(x0, x[0] - xc) + xc);
+        contact[0].dely = x[1] - (copysign(x1, x[1] - yc) + yc);
       } else {
         contact[0].r = DistancePointEllipse(b, a, fabs(x[1] - yc), fabs(x[0] - xc), x0, x1);
-        contact[0].delx = copysign(x1, x[0] - xc) + xc;
-        contact[0].dely = copysign(x0, x[1] - yc) + yc;
+        contact[0].delx = x[0] - (copysign(x1, x[0] - xc) + xc);
+        contact[0].dely = x[1] - (copysign(x0, x[1] - yc) + yc);
       }
       contact[0].delz = 0;
       //     contact[0].radius = -radius;
@@ -299,39 +288,29 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
 
     if (r_r < rc_r) {
       // sort the values
-      int sorting[3] = {0, 1, 2};
-      double axes[3] = {c, b, a};
-      double coords[3] = {fabs(x[2] - zc), fabs(x[1] - yc), fabs(x[0] - xc)};
+      double axes[3] = {a, b, c};
+      double coords[3] = {fabs(x[0] - xc), fabs(x[1] - yc), fabs(x[2] - zc)};
 
-      if (axes[1] < axes[0]) {
-        sorting[0] = 1;
-        sorting[1] = 0;
-        axes[0] = b;
-        axes[1] = c;
+      int min, max;
+      if (axes[0] < axes[1]) {
+        min = 0;
+        max = 1;
+      } else {
+        min = 1;
+        max = 0;
       }
-
-      if (axes[2] < axes[1]) {
-        int ti = sorting[2];
-        sorting[2] = sorting[1];
-        sorting[1] = ti;
-        double td = axes[2];
-        axes[2] = axes[1];
-        axes[1] = td;
-        if (axes[1] < axes[0]) ti = sorting[1];
-        sorting[1] = sorting[0];
-        sorting[0] = ti;
-        td = axes[1];
-        axes[1] = axes[0];
-        axes[0] = td;
-      }
+      if (axes[min] > axes[2]) { min = 2; }
+      if (axes[max] < axes[2]) { max = 2; }
+      int mid = 3 - min - max;
+      int sorting[3] = {min, mid, max};
 
       double x0[3];
-      contact[0].r =
-          DistancePointEllipsoid(axes[2], axes[1], axes[0], coords[sorting[2]], coords[sorting[1]],
-                                 coords[sorting[0]], x0[2], x0[1], x0[0]);
-      contact[0].delx = copysign(x0[sorting[2]], x[0] - xc) + xc;
-      contact[0].dely = copysign(x0[sorting[1]], x[1] - yc) + yc;
-      contact[0].delz = copysign(x0[sorting[0]], x[2] - zc) + zc;
+      contact[0].r = DistancePointEllipsoid(
+          axes[sorting[2]], axes[sorting[1]], axes[sorting[0]], coords[sorting[2]],
+          coords[sorting[1]], coords[sorting[0]], x0[sorting[2]], x0[sorting[1]], x0[sorting[0]]);
+      contact[0].delx = x[0] - (copysign(x0[sorting[2]], x[0] - xc) + xc);
+      contact[0].dely = x[1] - (copysign(x0[sorting[1]], x[1] - yc) + yc);
+      contact[0].delz = x[2] - (copysign(x0[sorting[0]], x[2] - zc) + zc);
       //      contact[0].radius = radius;
       contact[0].iwall = 0;
       contact[0].varflag = 1;
@@ -356,12 +335,12 @@ int RegEllipsoid::surface_exterior(double *x, double cutoff)
       double x0, x1;
       if (a >= b) {
         contact[0].r = DistancePointEllipse(a, b, fabs(x[0] - xc), fabs(x[1] - yc), x0, x1);
-        contact[0].delx = copysign(x0, x[0] - xc) + xc;
-        contact[0].dely = copysign(x1, x[1] - yc) + yc;
+        contact[0].delx = x[0] - (copysign(x0, x[0] - xc) + xc);
+        contact[0].dely = x[1] - (copysign(x1, x[1] - yc) + yc);
       } else {
         contact[0].r = DistancePointEllipse(b, a, fabs(x[1] - yc), fabs(x[0] - xc), x0, x1);
-        contact[0].delx = copysign(x1, x[0] - xc) + xc;
-        contact[0].dely = copysign(x0, x[1] - yc) + yc;
+        contact[0].delx = x[0] - (copysign(x1, x[0] - xc) + xc);
+        contact[0].dely = x[1] - (copysign(x0, x[1] - yc) + yc);
       }
       contact[0].delz = 0;
       //    contact[0].radius = radius;
@@ -405,44 +384,44 @@ void RegEllipsoid::variable_check()
 {
   if (xstyle == VARIABLE) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR, "Variable name for region ellipsoid does not exist");
+    if (xvar < 0) error->all(FLERR, "Variable name {} for region ellipsoid does not exist", xstr);
     if (!input->variable->equalstyle(xvar))
-      error->all(FLERR, "Variable for region ellipsoid is invalid style");
+      error->all(FLERR, "Variable {} for region ellipsoid is invalid style", xstr);
   }
 
   if (ystyle == VARIABLE) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR, "Variable name for region ellipsoid does not exist");
+    if (yvar < 0) error->all(FLERR, "Variable name {} for region ellipsoid does not exist", ystr);
     if (!input->variable->equalstyle(yvar))
-      error->all(FLERR, "Variable for region ellipsoid is invalid style");
+      error->all(FLERR, "Variable {} for region ellipsoid is invalid style", ystr);
   }
 
   if (zstyle == VARIABLE) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR, "Variable name for region ellipsoid does not exist");
+    if (zvar < 0) error->all(FLERR, "Variable name {} for region ellipsoid does not exist", zstr);
     if (!input->variable->equalstyle(zvar))
-      error->all(FLERR, "Variable for region ellipsoid is invalid style");
+      error->all(FLERR, "Variable {} for region ellipsoid is invalid style", zstr);
   }
 
   if (astyle == VARIABLE) {
     avar = input->variable->find(astr);
-    if (avar < 0) error->all(FLERR, "Variable name for region ellipsoid does not exist");
+    if (avar < 0) error->all(FLERR, "Variable name {} for region ellipsoid does not exist", astr);
     if (!input->variable->equalstyle(avar))
-      error->all(FLERR, "Variable for region ellipsoid is invalid style");
+      error->all(FLERR, "Variable {} for region ellipsoid is invalid style", astr);
   }
 
   if (bstyle == VARIABLE) {
     bvar = input->variable->find(bstr);
-    if (bvar < 0) error->all(FLERR, "Variable name for region ellipsoid does not exist");
+    if (bvar < 0) error->all(FLERR, "Variable name {} for region ellipsoid does not exist", bstr);
     if (!input->variable->equalstyle(bvar))
-      error->all(FLERR, "Variable for region ellipsoid is invalid style");
+      error->all(FLERR, "Variable {} for region ellipsoid is invalid style", bstr);
   }
 
   if (cstyle == VARIABLE) {
     cvar = input->variable->find(cstr);
-    if (cvar < 0) error->all(FLERR, "Variable name for region ellipsoid does not exist");
+    if (cvar < 0) error->all(FLERR, "Variable name {} for region ellipsoid does not exist", cstr);
     if (!input->variable->equalstyle(cvar))
-      error->all(FLERR, "Variable for region ellipsoid is invalid style");
+      error->all(FLERR, "Variable {} for region ellipsoid is invalid style", cstr);
   }
 }
 

@@ -38,14 +38,12 @@ OPT.
    * :doc:`ave/chunk <fix_ave_chunk>`
    * :doc:`ave/correlate <fix_ave_correlate>`
    * :doc:`ave/correlate/long <fix_ave_correlate_long>`
+   * :doc:`ave/grid <fix_ave_grid>`
    * :doc:`ave/histo <fix_ave_histo>`
    * :doc:`ave/histo/weight <fix_ave_histo>`
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`
-   * :doc:`brownian <fix_brownian>`
-   * :doc:`brownian/asphere <fix_brownian>`
-   * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`
@@ -53,6 +51,9 @@ OPT.
    * :doc:`bond/react <fix_bond_react>`
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
+   * :doc:`brownian <fix_brownian>`
+   * :doc:`brownian/asphere <fix_brownian>`
+   * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`charge/regulation <fix_charge_regulation>`
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
@@ -65,13 +66,13 @@ OPT.
    * :doc:`drude <fix_drude>`
    * :doc:`drude/transform/direct <fix_drude_transform>`
    * :doc:`drude/transform/inverse <fix_drude_transform>`
-   * :doc:`dt/reset <fix_dt_reset>`
+   * :doc:`dt/reset (k) <fix_dt_reset>`
    * :doc:`edpd/source <fix_dpd_source>`
    * :doc:`efield <fix_efield>`
    * :doc:`ehex <fix_ehex>`
-   * :doc:`electrode/conp (i) <fix_electrode_conp>`
-   * :doc:`electrode/conq (i) <fix_electrode_conp>`
-   * :doc:`electrode/thermo (i) <fix_electrode_conp>`
+   * :doc:`electrode/conp (i) <fix_electrode>`
+   * :doc:`electrode/conq (i) <fix_electrode>`
+   * :doc:`electrode/thermo (i) <fix_electrode>`
    * :doc:`electron/stopping <fix_electron_stopping>`
    * :doc:`electron/stopping/fit <fix_electron_stopping>`
    * :doc:`enforce2d (k) <fix_enforce2d>`
@@ -213,6 +214,7 @@ OPT.
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`setforce (k) <fix_setforce>`
    * :doc:`setforce/spin <fix_setforce>`
+   * :doc:`sgcmc <fix_sgcmc>`
    * :doc:`shake (k) <fix_shake>`
    * :doc:`shardlow (k) <fix_shardlow>`
    * :doc:`smd <fix_smd>`
@@ -249,7 +251,7 @@ OPT.
    * :doc:`tune/kspace <fix_tune_kspace>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
-   * :doc:`viscous <fix_viscous>`
+   * :doc:`viscous (k) <fix_viscous>`
    * :doc:`viscous/sphere <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`

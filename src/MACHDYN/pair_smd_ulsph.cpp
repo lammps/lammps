@@ -934,15 +934,11 @@ void PairULSPH::settings(int narg, char **arg) {
 
 void PairULSPH::coeff(int narg, char **arg) {
         int ioffset, iarg, iNextKwd, itype, jtype;
-        char str[128];
         std::string s, t;
 
-        if (narg < 3) {
-                sprintf(str, "number of arguments for pair ulsph is too small!");
-                error->all(FLERR, str);
-        }
-        if (!allocated)
-                allocate();
+        if (narg < 3) utils::missing_cmd_args(FLERR, "pair ulsph", error);
+
+        if (!allocated) allocate();
 
         /*
          * if parameters are give in i,i form, i.e., no a cross interaction, set material parameters
@@ -963,11 +959,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                  */
 
                 ioffset = 2;
-                if (strcmp(arg[ioffset], "*COMMON") != 0) {
-                        sprintf(str, "common keyword missing!");
-                        error->all(FLERR, str);
-                } else {
-                }
+                if (strcmp(arg[ioffset], "*COMMON") != 0) error->all(FLERR, "common keyword missing!");
 
                 t = string("*");
                 iNextKwd = -1;
@@ -979,17 +971,10 @@ void PairULSPH::coeff(int narg, char **arg) {
                         }
                 }
 
-                //printf("keyword following *COMMON is %s\n", arg[iNextKwd]);
+                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *COMMON");
 
-                if (iNextKwd < 0) {
-                        sprintf(str, "no *KEYWORD terminates *COMMON");
-                        error->all(FLERR, str);
-                }
-
-                if (iNextKwd - ioffset != 5 + 1) {
-                        sprintf(str, "expected 5 arguments following *COMMON but got %d\n", iNextKwd - ioffset - 1);
-                        error->all(FLERR, str);
-                }
+                if (iNextKwd - ioffset != 5 + 1)
+                  error->all(FLERR, "expected 5 arguments following *COMMON but got {}\n", iNextKwd - ioffset - 1);
 
                 Lookup[REFERENCE_DENSITY][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
                 Lookup[REFERENCE_SOUNDSPEED][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
@@ -1014,15 +999,8 @@ void PairULSPH::coeff(int narg, char **arg) {
                  * read following material cards
                  */
 
-//              if (comm->me == 0) {
-//                      printf("next kwd is %s\n", arg[iNextKwd]);
-//              }
                 while (true) {
                         if (strcmp(arg[iNextKwd], "*END") == 0) {
-//                              if (comm->me == 0) {
-//                                      sprintf(str, "found *END");
-//                                      error->message(FLERR, str);
-//                              }
                                 break;
                         }
 
@@ -1034,7 +1012,6 @@ void PairULSPH::coeff(int narg, char **arg) {
                                  */
 
                                 eos[itype] = EOS_TAIT;
-                                //printf("reading *EOS_TAIT\n");
 
                                 t = string("*");
                                 iNextKwd = -1;
@@ -1046,15 +1023,10 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         }
                                 }
 
-                                if (iNextKwd < 0) {
-                                        sprintf(str, "no *KEYWORD terminates *EOS_TAIT");
-                                        error->all(FLERR, str);
-                                }
+                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *EOS_TAIT");
 
-                                if (iNextKwd - ioffset != 1 + 1) {
-                                        sprintf(str, "expected 1 arguments following *EOS_TAIT but got %d\n", iNextKwd - ioffset - 1);
-                                        error->all(FLERR, str);
-                                }
+                                if (iNextKwd - ioffset != 1 + 1)
+                                        error->all(FLERR, "expected 1 arguments following *EOS_TAIT but got {}\n", iNextKwd - ioffset - 1);
 
                                 Lookup[EOS_TAIT_EXPONENT][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
@@ -1071,7 +1043,6 @@ void PairULSPH::coeff(int narg, char **arg) {
                                  */
 
                                 eos[itype] = EOS_PERFECT_GAS;
-                                //printf("reading *EOS_PERFECT_GAS\n");
 
                                 t = string("*");
                                 iNextKwd = -1;
@@ -1083,15 +1054,9 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         }
                                 }
 
-                                if (iNextKwd < 0) {
-                                        sprintf(str, "no *KEYWORD terminates *EOS_PERFECT_GAS");
-                                        error->all(FLERR, str);
-                                }
-
-                                if (iNextKwd - ioffset != 1 + 1) {
-                                        sprintf(str, "expected 1 arguments following *EOS_PERFECT_GAS but got %d\n", iNextKwd - ioffset - 1);
-                                        error->all(FLERR, str);
-                                }
+                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *EOS_PERFECT_GAS");
+                                if (iNextKwd - ioffset != 1 + 1)
+                                  error->all(FLERR, "expected 1 arguments following *EOS_PERFECT_GAS but got {}\n", iNextKwd - ioffset - 1);
 
                                 Lookup[EOS_PERFECT_GAS_GAMMA][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
@@ -1118,15 +1083,9 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         }
                                 }
 
-                                if (iNextKwd < 0) {
-                                        sprintf(str, "no *KEYWORD terminates *EOS_LINEAR");
-                                        error->all(FLERR, str);
-                                }
-
-                                if (iNextKwd - ioffset != 0 + 1) {
-                                        sprintf(str, "expected 0 arguments following *EOS_LINEAR but got %d\n", iNextKwd - ioffset - 1);
-                                        error->all(FLERR, str);
-                                }
+                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *EOS_LINEAR");
+                                if (iNextKwd - ioffset != 0 + 1)
+                                        error->all(FLERR, "expected 0 arguments following *EOS_LINEAR but got {}\n", iNextKwd - ioffset - 1);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Linear EOS");
@@ -1145,7 +1104,6 @@ void PairULSPH::coeff(int narg, char **arg) {
 
                                 strength[itype] = STRENGTH_LINEAR_PLASTIC;
                                 velocity_gradient_required = true;
-                                //printf("reading *LINEAR_PLASTIC\n");
 
                                 t = string("*");
                                 iNextKwd = -1;
@@ -1157,15 +1115,9 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         }
                                 }
 
-                                if (iNextKwd < 0) {
-                                        sprintf(str, "no *KEYWORD terminates *STRENGTH_LINEAR_PLASTIC");
-                                        error->all(FLERR, str);
-                                }
-
-                                if (iNextKwd - ioffset != 3 + 1) {
-                                        sprintf(str, "expected 3 arguments following *STRENGTH_LINEAR_PLASTIC but got %d\n", iNextKwd - ioffset - 1);
-                                        error->all(FLERR, str);
-                                }
+                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *STRENGTH_LINEAR_PLASTIC");
+                                if (iNextKwd - ioffset != 3 + 1)
+                                        error->all(FLERR, "expected 3 arguments following *STRENGTH_LINEAR_PLASTIC but got {}\n", iNextKwd - ioffset - 1);
 
                                 Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
                                 Lookup[YIELD_STRENGTH][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
@@ -1199,15 +1151,9 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         }
                                 }
 
-                                if (iNextKwd < 0) {
-                                        sprintf(str, "no *KEYWORD terminates *STRENGTH_LINEAR");
-                                        error->all(FLERR, str);
-                                }
-
-                                if (iNextKwd - ioffset != 1 + 1) {
-                                        sprintf(str, "expected 1 arguments following *STRENGTH_LINEAR but got %d\n", iNextKwd - ioffset - 1);
-                                        error->all(FLERR, str);
-                                }
+                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *STRENGTH_LINEAR");
+                                if (iNextKwd - ioffset != 1 + 1)
+                                        error->all(FLERR, "expected 1 arguments following *STRENGTH_LINEAR but got {}\n", iNextKwd - ioffset - 1);
 
                                 Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
@@ -1237,15 +1183,9 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         }
                                 }
 
-                                if (iNextKwd < 0) {
-                                        sprintf(str, "no *KEYWORD terminates *VISCOSITY_NEWTON");
-                                        error->all(FLERR, str);
-                                }
-
-                                if (iNextKwd - ioffset != 1 + 1) {
-                                        sprintf(str, "expected 1 arguments following *VISCOSITY_NEWTON but got %d\n", iNextKwd - ioffset - 1);
-                                        error->all(FLERR, str);
-                                }
+                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *VISCOSITY_NEWTON");
+                                if (iNextKwd - ioffset != 1 + 1)
+                                        error->all(FLERR, "expected 1 arguments following *VISCOSITY_NEWTON but got {}\n", iNextKwd - ioffset - 1);
 
                                 Lookup[VISCOSITY_MU][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
@@ -1271,15 +1211,9 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         }
                                 }
 
-                                if (iNextKwd < 0) {
-                                        sprintf(str, "no *KEYWORD terminates *ARTIFICIAL_PRESSURE");
-                                        error->all(FLERR, str);
-                                }
-
-                                if (iNextKwd - ioffset != 1 + 1) {
-                                        sprintf(str, "expected 1 arguments following *ARTIFICIAL_PRESSURE but got %d\n", iNextKwd - ioffset - 1);
-                                        error->all(FLERR, str);
-                                }
+                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *ARTIFICIAL_PRESSURE");
+                                if (iNextKwd - ioffset != 1 + 1)
+                                        error->all(FLERR, "expected 1 arguments following *ARTIFICIAL_PRESSURE but got {}\n", iNextKwd - ioffset - 1);
 
                                 artificial_pressure[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
@@ -1305,15 +1239,9 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         }
                                 }
 
-                                if (iNextKwd < 0) {
-                                        sprintf(str, "no *KEYWORD terminates *ARTIFICIAL_STRESS");
-                                        error->all(FLERR, str);
-                                }
-
-                                if (iNextKwd - ioffset != 1 + 1) {
-                                        sprintf(str, "expected 1 arguments following *ARTIFICIAL_STRESS but got %d\n", iNextKwd - ioffset - 1);
-                                        error->all(FLERR, str);
-                                }
+                                if (iNextKwd < 0) error->all(FLERR, "no *KEYWORD terminates *ARTIFICIAL_STRESS");
+                                if (iNextKwd - ioffset != 1 + 1)
+                                        error->all(FLERR, "expected 1 arguments following *ARTIFICIAL_STRESS but got {}\n", iNextKwd - ioffset - 1);
 
                                 artificial_stress[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
@@ -1323,11 +1251,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                 }
                         } // end *ARTIFICIAL_STRESS
 
-                        else {
-                          snprintf(str,128, "unknown *KEYWORD: %s", arg[ioffset]);
-                          error->all(FLERR, str);
-                        }
-
+                        else error->all(FLERR, "unknown *KEYWORD: {}", arg[ioffset]);
                 }
 
                 /*
@@ -1342,15 +1266,11 @@ void PairULSPH::coeff(int narg, char **arg) {
                  * error checks
                  */
 
-                if ((viscosity[itype] != NONE) && (strength[itype] != NONE)) {
-                        sprintf(str, "cannot have both a strength and viscosity model for particle type %d", itype);
-                        error->all(FLERR, str);
-                }
+                if ((viscosity[itype] != NONE) && (strength[itype] != NONE))
+                  error->all(FLERR, "cannot have both a strength and viscosity model for particle type {}", itype);
 
-                if (eos[itype] == NONE) {
-                        sprintf(str, "must specify an EOS for particle type %d", itype);
-                        error->all(FLERR, str);
-                }
+                if (eos[itype] == NONE)
+                  error->all(FLERR, "must specify an EOS for particle type {}", itype);
 
         } else {
                 /*
@@ -1360,25 +1280,15 @@ void PairULSPH::coeff(int narg, char **arg) {
                 itype = utils::inumeric(FLERR, arg[0],false,lmp);
                 jtype = utils::inumeric(FLERR, arg[1],false,lmp);
 
-                if (strcmp(arg[2], "*CROSS") != 0) {
-                        sprintf(str, "ulsph cross interaction between particle type %d and %d requested, however, *CROSS keyword is missing",
+                if (strcmp(arg[2], "*CROSS") != 0)
+                        error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, *CROSS keyword is missing",
                                         itype, jtype);
-                        error->all(FLERR, str);
-                }
 
-                if (setflag[itype][itype] != 1) {
-                        sprintf(str,
-                                        "ulsph cross interaction between particle type %d and %d requested, however, properties of type %d  have not yet been specified",
-                                        itype, jtype, itype);
-                        error->all(FLERR, str);
-                }
+                if (setflag[itype][itype] != 1)
+                        error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, properties of type {}  have not yet been specified", itype, jtype, itype);
 
-                if (setflag[jtype][jtype] != 1) {
-                        sprintf(str,
-                                        "ulsph cross interaction between particle type %d and %d requested, however, properties of type %d  have not yet been specified",
-                                        itype, jtype, jtype);
-                        error->all(FLERR, str);
-                }
+                if (setflag[jtype][jtype] != 1)
+                        error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, properties of type {}  have not yet been specified", itype, jtype, jtype);
 
                 setflag[itype][jtype] = 1;
                 setflag[jtype][itype] = 1;
@@ -1410,11 +1320,9 @@ void PairULSPH::coeff(int narg, char **arg) {
 
 double PairULSPH::init_one(int i, int j) {
 
-        if (!allocated)
-                allocate();
+        if (!allocated) allocate();
 
-        if (setflag[i][j] == 0)
-                error->all(FLERR, "All pair coeffs are not set");
+        if (setflag[i][j] == 0) error->all(FLERR, "All pair coeffs are not set");
 
 // cutoff = sum of max I,J radii for
 // dynamic/dynamic & dynamic/frozen interactions, but not frozen/frozen
@@ -1422,7 +1330,6 @@ double PairULSPH::init_one(int i, int j) {
         double cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
         cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j]);
         cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j]);
-//printf("cutoff for pair sph/fluid = %f\n", cutoff);
         return cutoff;
 }
 
@@ -1469,11 +1376,7 @@ void PairULSPH::init_list(int id, NeighList *ptr) {
  ------------------------------------------------------------------------- */
 
 double PairULSPH::memory_usage() {
-
-//printf("in memory usage\n");
-
         return 11 * nmax * sizeof(double);
-
 }
 
 /* ---------------------------------------------------------------------- */

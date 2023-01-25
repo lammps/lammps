@@ -468,7 +468,7 @@ Restrictions
 When using a long-range Coulombic solver (via the
 :doc:`kspace_style <kspace_style>` command) with a hybrid pair_style,
 one or more sub-styles will be of the "long" variety,
-e.g. *lj/cut/coul/long* or *buck/coul/long*\ .  You must insure that the
+e.g. *lj/cut/coul/long* or *buck/coul/long*\ .  You must ensure that the
 short-range Coulombic cutoff used by each of these long pair styles is
 the same or else LAMMPS will generate an error.
 

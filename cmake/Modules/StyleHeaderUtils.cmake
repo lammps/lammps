@@ -1,5 +1,5 @@
 function(FindStyleHeaders path style_class file_pattern headers)
-    file(GLOB files "${path}/${file_pattern}*.h")
+    file(GLOB files ${CONFIGURE_DEPENDS} "${path}/${file_pattern}*.h")
     get_property(hlist GLOBAL PROPERTY ${headers})
 
     foreach(file_name ${files})
@@ -184,7 +184,7 @@ endfunction(DetectBuildSystemConflict)
 
 
 function(FindPackagesHeaders path style_class file_pattern headers)
-    file(GLOB files "${path}/${file_pattern}*.h")
+    file(GLOB files ${CONFIGURE_DEPENDS} "${path}/${file_pattern}*.h")
     get_property(plist GLOBAL PROPERTY ${headers})
 
     foreach(file_name ${files})

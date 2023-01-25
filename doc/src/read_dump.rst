@@ -161,7 +161,7 @@ snapshot was written on for the *native* or *adios* formats.
 The list of timestamps available in an adios .bp file is stored in the
 variable *ntimestep*:
 
-.. parsed-literal::
+.. parsed-literal:: console
 
   $ bpls dump.bp -d ntimestep
     uint64_t  ntimestep  5*scalar
@@ -233,7 +233,7 @@ labels for fields *id* and *type*\ .
 For dump files in *xyz* format, only the *x*, *y*, and *z* fields are
 supported.  The dump file does not store atom IDs, so these are
 assigned consecutively to the atoms as they appear in the dump file,
-starting from 1.  Thus you should insure that order of atoms is
+starting from 1.  Thus you should ensure that order of atoms is
 consistent from snapshot to snapshot in the XYZ dump file.  See
 the :doc:`dump_modify sort <dump_modify>` command if the XYZ dump file
 was written by LAMMPS.
@@ -243,7 +243,7 @@ For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 velocities, or their respective plugins may not support reading of
 velocities.  The molfile dump files do not store atom IDs, so these
 are assigned consecutively to the atoms as they appear in the dump
-file, starting from 1.  Thus you should insure that order of atoms are
+file, starting from 1.  Thus you should ensure that order of atoms are
 consistent from snapshot to snapshot in the molfile dump file.
 See the :doc:`dump_modify sort <dump_modify>` command if the dump file
 was written by LAMMPS.
@@ -253,7 +253,7 @@ except for the *q* charge field.
 The list of fields stored in an adios .bp file is recorded in the attributes
 *columns* (array of short strings) and *columnstr* (space-separated single string).
 
-.. parsed-literal::
+.. parsed-literal:: console
 
   $ bpls -la dump.bp column*
     string    columns            attr   = {"id", "type", "x", "y", "z", "vx", "vy", "vz"}

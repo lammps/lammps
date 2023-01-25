@@ -198,7 +198,7 @@ dt}{\rho dx^2}` is approximately equal to 1.
    and a simulation domain size.  This fix uses the same subdivision of
    the simulation domain among processors as the main LAMMPS program.  In
    order to uniformly cover the simulation domain with lattice sites, the
-   lengths of the individual LAMMPS sub-domains must all be evenly
+   lengths of the individual LAMMPS subdomains must all be evenly
    divisible by :math:`dx_{LB}`.  If the simulation domain size is cubic,
    with equal lengths in all dimensions, and the default value for
    :math:`dx_{LB}` is used, this will automatically be satisfied.

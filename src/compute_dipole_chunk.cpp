@@ -211,7 +211,7 @@ void ComputeDipoleChunk::compute_array()
 
 /* ----------------------------------------------------------------------
    lock methods: called by fix ave/time
-   these methods insure vector/array size is locked for Nfreq epoch
+   these methods ensure vector/array size is locked for Nfreq epoch
      by passing lock info along to compute chunk/atom
 ------------------------------------------------------------------------- */
 

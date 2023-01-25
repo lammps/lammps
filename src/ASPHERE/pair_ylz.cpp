@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Mehdi Baghaee (SUSTech)
+   Contributing author: Hongyan Yuan (SUSTech)
 ------------------------------------------------------------------------- */
 
 #include "pair_ylz.h"
@@ -256,7 +256,7 @@ void PairYLZ::coeff(int narg, char **arg)
 
 void PairYLZ::init_style()
 {
-  avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
+  avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec) error->all(FLERR, "Pair style ylz requires atom style ellipsoid");
 
   neighbor->request(this, instance_me);

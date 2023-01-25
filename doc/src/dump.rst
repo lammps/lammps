@@ -3,6 +3,8 @@
 .. index:: dump cfg
 .. index:: dump custom
 .. index:: dump dcd
+.. index:: dump grid
+.. index:: dump grid/vtk
 .. index:: dump local
 .. index:: dump xtc
 .. index:: dump yaml
@@ -57,46 +59,48 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   dump ID group-ID style N file args
+   dump ID group-ID style N file attribute1 attribute2 ...
 
 * ID = user-assigned name for the dump
 * group-ID = ID of the group of atoms to be dumped
-* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *custom/adios* or *dcd* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
+* style = *atom* or *atom/adios* or *atom/gz* or *atom/zstd* or *atom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *custom/adios* or *dcd* or *grid* or *grid/vtk* or *h5md* or *image* or *local* or *local/gz* or *local/zstd* or *molfile* or *movie* or *netcdf* or *netcdf/mpiio* or *vtk* or *xtc* or *xyz* or *xyz/gz* or *xyz/zstd* or *xyz/mpiio* or *yaml*
 * N = dump on timesteps which are multiples of N
 * file = name of file to write dump info to
-* args = list of arguments for a particular style
+* attribute1,attribute2,... = list of attributes for a particular style
 
   .. parsed-literal::
 
-       *atom* args = none
-       *atom/adios* args = none,  discussed on :doc:`dump atom/adios <dump_adios>` page
-       *atom/gz* args = none
-       *atom/zstd* args = none
-       *atom/mpiio* args = none
-       *cfg* args = same as *custom* args, see below
-       *cfg/gz* args = same as *custom* args, see below
-       *cfg/zstd* args = same as *custom* args, see below
-       *cfg/mpiio* args = same as *custom* args, see below
-       *cfg/uef* args = same as *custom* args, discussed on :doc:`dump cfg/uef <dump_cfg_uef>` page
-       *custom*, *custom/gz*, *custom/zstd*, *custom/mpiio* args = see below
-       *custom/adios* args = same as *custom* args, discussed on :doc:`dump custom/adios <dump_adios>` page
-       *dcd* args = none
-       *h5md* args = discussed on :doc:`dump h5md <dump_h5md>` page
-       *image* args = discussed on :doc:`dump image <dump_image>` page
-       *local*, *local/gz*, *local/zstd* args = see below
-       *molfile* args = discussed on :doc:`dump molfile <dump_molfile>` page
-       *movie* args = discussed on :doc:`dump image <dump_image>` page
-       *netcdf* args = discussed on :doc:`dump netcdf <dump_netcdf>` page
-       *netcdf/mpiio* args = discussed on :doc:`dump netcdf <dump_netcdf>` page
-       *vtk* args = same as *custom* args, see below, also :doc:`dump vtk <dump_vtk>` page
-       *xtc* args = none
-       *xyz* args = none
-       *xyz/gz* args = none
-       *xyz/zstd* args = none
-       *xyz/mpiio* args = none
-       *yaml* args = same as *custom* args, see below
+       *atom* attributes = none
+       *atom/adios* attributes = none,  discussed on :doc:`dump atom/adios <dump_adios>` page
+       *atom/gz* attributes = none
+       *atom/zstd* attributes = none
+       *atom/mpiio* attributes = none
+       *cfg* attributes = same as *custom* attributes, see below
+       *cfg/gz* attributes = same as *custom* attributes, see below
+       *cfg/zstd* attributes = same as *custom* attributes, see below
+       *cfg/mpiio* attributes = same as *custom* attributes, see below
+       *cfg/uef* attributes = same as *custom* attributes, discussed on :doc:`dump cfg/uef <dump_cfg_uef>` page
+       *custom*, *custom/gz*, *custom/zstd*, *custom/mpiio* attributes = see below
+       *custom/adios* attributes = same as *custom* attributes, discussed on :doc:`dump custom/adios <dump_adios>` page
+       *dcd* attributes = none
+       *h5md* attributes = discussed on :doc:`dump h5md <dump_h5md>` page
+       *grid* attributes = see below
+       *grid/vtk* attributes = see below
+       *image* attributes = discussed on :doc:`dump image <dump_image>` page
+       *local*, *local/gz*, *local/zstd* attributes = see below
+       *molfile* attributes = discussed on :doc:`dump molfile <dump_molfile>` page
+       *movie* attributes = discussed on :doc:`dump image <dump_image>` page
+       *netcdf* attributes = discussed on :doc:`dump netcdf <dump_netcdf>` page
+       *netcdf/mpiio* attributes = discussed on :doc:`dump netcdf <dump_netcdf>` page
+       *vtk* attributes = same as *custom* attributes, see below, also :doc:`dump vtk <dump_vtk>` page
+       *xtc* attributes = none
+       *xyz* attributes = none
+       *xyz/gz* attributes = none
+       *xyz/zstd* attributes = none
+       *xyz/mpiio* attributes = none
+       *yaml* attributes = same as *custom* attributes, see below
 
-* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *netcdf* or *netcdf/mpiio* or *yaml* args = list of atom attributes
+* *custom* or *custom/gz* or *custom/zstd* or *custom/mpiio* or *cfg* or *cfg/gz* or *cfg/zstd* or *cfg/mpiio* or *cfg/uef* or *netcdf* or *netcdf/mpiio* or *yaml* attributes:
 
   .. parsed-literal::
 
@@ -143,7 +147,7 @@ Syntax
            i2_name[I] = Ith column of custom integer array with name, I can include wildcard (see below)
            d2_name[I] = Ith column of custom floating point vector with name, I can include wildcard (see below)
 
-* *local* or *local/gz* or *local/zstd* args = list of local attributes
+* *local* or *local/gz* or *local/zstd* attributes:
 
   .. parsed-literal::
 
@@ -153,6 +157,18 @@ Syntax
            c_ID[I] = Ith column of local array calculated by a compute with ID, I can include wildcard (see below)
            f_ID = local vector calculated by a fix with ID
            f_ID[I] = Ith column of local array calculated by a fix with ID, I can include wildcard (see below)
+
+* *grid* or *grid/vtk* attributes:
+
+  .. parsed-literal::
+
+         possible attributes = c_ID:gname:dname, c_ID:gname:dname[I], f_ID:gname:dname, f_ID:gname:dname[I]
+           gname = name of grid defined by compute or fix
+           dname = name of data field defined by compute or fix
+           c_ID = per-grid vector calculated by a compute with ID
+           c_ID[I] = Ith column of per-grid array calculated by a compute with ID, I can include wildcard (see below)
+           f_ID = per-grid vector calculated by a fix with ID
+           f_ID[I] = Ith column of per-grid array calculated by a fix with ID, I can include wildcard (see below)
 
 Examples
 """"""""
@@ -176,24 +192,32 @@ Examples
 Description
 """""""""""
 
-Dump a snapshot of atom quantities to one or more files once every
-:math:`N` timesteps in one of several styles.  The *image* and *movie*
-styles are the exception: the *image* style renders a JPG, PNG, or PPM
-image file of the atom configuration every :math:`N` timesteps while
-the *movie* style combines and compresses them into a movie file; both
-are discussed in detail on the :doc:`dump image <dump_image>` page.
-The timesteps on which dump output is written can also be controlled
-by a variable.  See the :doc:`dump_modify every <dump_modify>`
-command.
+Dump a snapshot of quantities to one or more files once every
+:math:`N` timesteps in one of several styles.  The timesteps on which
+dump output is written can also be controlled by a variable.  See the
+:doc:`dump_modify every <dump_modify>` command.
+
+Almost all the styles output per-atom data, i.e. one or more values
+per atom.  The exceptions are as follows.  The *local* styles output
+one or more values per bond (angle, dihedral, improper) or per pair of
+interacting atoms (force or neighbor interactions).  The *grid* styles
+output one or more values per grid cell, which are produced by other
+commands which overlay the simulation domain with a regular grid.  See
+the :doc:`Howto grid <Howto_grid>` doc page for details.  The *image*
+style renders a JPG, PNG, or PPM image file of the system for each
+snapshot, while the *movie* style combines and compresses the series
+of images into a movie file; both styles are discussed in detail on
+the :doc:`dump image <dump_image>` page.
 
 Only information for atoms in the specified group is dumped.  The
-:doc:`dump_modify thresh and region and refresh <dump_modify>` commands
-can also alter what atoms are included.  Not all styles support
-these options; see details on the :doc:`dump_modify <dump_modify>` doc page.
+:doc:`dump_modify thresh and region and refresh <dump_modify>`
+commands can also alter what atoms are included.  Not all styles
+support these options; see details on the :doc:`dump_modify
+<dump_modify>` doc page.
 
-As described below, the filename determines the kind of output (text
-or binary or gzipped, one big file or one per timestep, one big file
-or multiple smaller files).
+As described below, the filename determines the kind of output: text
+or binary or gzipped, one big file or one per timestep, one file for
+all the processors or multiple smaller files.
 
 .. note::
 
@@ -207,74 +231,69 @@ or multiple smaller files).
 
 .. note::
 
-   Unless the :doc:`dump_modify sort <dump_modify>` option is
-   invoked, the lines of atom information written to dump files
-   (typically one line per atom) will be in an indeterminate order for
-   each snapshot.  This is even true when running on a single processor,
-   if the :doc:`atom_modify sort <atom_modify>` option is on, which it is
-   by default.  In this case atoms are re-ordered periodically during a
-   simulation, due to spatial sorting.  It is also true when running in
-   parallel, because data for a single snapshot is collected from
-   multiple processors, each of which owns a subset of the atoms.
-
-For the *atom*, *custom*, *cfg*, and *local* styles, sorting is off by
-default.  For the *dcd*, *xtc*, *xyz*, and *molfile* styles, sorting
-by atom ID is on by default. See the :doc:`dump_modify <dump_modify>`
-page for details.
-
-The *atom/gz*, *cfg/gz*, *custom/gz*, *local/gz*, and *xyz/gz* styles
-are identical in command syntax to the corresponding styles without
-"gz", however, they generate compressed files using the zlib
-library. Thus the filename suffix ".gz" is mandatory. This is an
-alternative approach to writing compressed files via a pipe, as done by
-the regular dump styles, which may be required on clusters where the
-interface to the high-speed network disallows using the fork() library
-call (which is needed for a pipe).  For the remainder of this page, you
-should thus consider the *atom* and *atom/gz* styles (etc.) to be
-inter-changeable, with the exception of the required filename suffix.
-
-Similarly, the *atom/zstd*, *cfg/zstd*, *custom/zstd*, *local/zstd*, and
-*xyz/zstd* styles are identical to the gz styles, but use the Zstd
-compression library instead and require the ".zst" suffix. See the
-:doc:`dump_modify <dump_modify>` page for details on how to control the
-compression level in both variants.
-
-As explained below, the *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and
-*xyz/mpiio* styles are identical in command syntax and in the format of
-the dump files they create, to the corresponding styles without "mpiio",
-except the single dump file they produce is written in parallel via the
-MPI-IO library.  For the remainder of this page, you should thus
-consider the *atom* and *atom/mpiio* styles (etc.) to be
-inter-changeable.  The one exception is how the filename is specified
-for the MPI-IO styles, as explained below.
+   Unless the :doc:`dump_modify sort <dump_modify>` option is invoked,
+   the lines of atom or grid information written to dump files
+   (typically one line per atom or grid cell) will be in an
+   indeterminate order for each snapshot.  This is even true when
+   running on a single processor, if the :doc:`atom_modify sort
+   <atom_modify>` option is on, which it is by default.  In this case
+   atoms are re-ordered periodically during a simulation, due to
+   spatial sorting.  It is also true when running in parallel, because
+   data for a single snapshot is collected from multiple processors,
+   each of which owns a subset of the atoms.
 
 .. warning::
 
-   The MPIIO package is currently unmaintained and has become
-   unreliable. Use with caution.
+   Without either including atom IDs or using the :doc:`dump_modify sort
+   <dump_modify>` option, it is impossible for visualization programs
+   (e.g. OVITO or VMD) or analysis tools to assign data in different
+   frames consistently to the same atom.  This can lead to incorrect
+   visualizations or results.  LAMMPS will print a warning in such cases.
 
-The precision of values output to text-based dump files can be
-controlled by the :doc:`dump_modify format <dump_modify>` command and
-its options.
+For the *atom*, *custom*, *cfg*, *grid*, and *local* styles, sorting
+is off by default.  For the *dcd*, *grid/vtk*, *xtc*, *xyz*, and
+*molfile* styles, sorting by atom ID or grid ID is on by default. See
+the :doc:`dump_modify <dump_modify>` page for details.
+
+The *style* keyword determines what kind of data is written to the
+dump file(s) and in what format.
+
+Note that *atom*, *custom*, *dcd*, *xtc*, *xyz*, and *yaml* style dump
+files can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_,
+a popular tool for visualizing and analyzing trajectories from atomic
+and molecular systems.  For reading *netcdf* style dump files, the
+netcdf plugin needs to be recompiled from source using a NetCDF version
+compatible with the one used by LAMMPS.  The bundled plugin binary
+uses a very old version of NetCDF that is not compatible with LAMMPS.
+
+Likewise the `OVITO visualization package <https://www.ovito.org>`_,
+popular for materials modeling, can read the *atom*, *custom*,
+*local*, *xtc*, *cfg*, *netcdf*, and *xyz* style atom dump files
+directly.  With version 3.8 and above, OVITO can also read and
+visualize *grid* style dump files with grid cell data, including
+iso-surface images of the grid cell values.
+
+Note that settings made via the :doc:`dump_modify <dump_modify>`
+command can also alter the format of individual values and content of
+the dump file itself.  This includes the precision of values output to
+text-based dump files which is controlled by the :doc:`dump_modify
+format <dump_modify>` command and its options.
 
 ----------
 
-The *style* keyword determines what atom quantities are written to the
-file and in what format.  Settings made via the
-:doc:`dump_modify <dump_modify>` command can also alter the format of
-individual values and the file itself.
+Format of native LAMMPS format dump files:
 
-The *atom*, *local*, and *custom* styles create files in a simple text
-format that is self-explanatory when viewing a dump file.  Some of the
-LAMMPS post-processing tools described on the :doc:`Tools <Tools>` doc
-page, including `Pizza.py <https://lammps.github.io/pizza>`_,
-work with this format, as does the :doc:`rerun <rerun>` command.
+The *atom*, *custom*, *grid*, and *local* styles create files in a
+simple LAMMPS-specific text format that is self-explanatory when
+viewing a dump file.  Many post-processing tools either included with
+LAMMPS or third-party tools can read this format, as does the
+:doc:`rerun <rerun>` command.  See tools described on the :doc:`Tools
+<Tools>` doc page for examples, including `Pizza.py
+<https://lammps.github.io/pizza>`_.
 
-For post-processing purposes the *atom*, *local*, and *custom* text
-files are self-describing in the following sense.
-
-The dimensions of the simulation box are included in each snapshot.
-For an orthogonal simulation box this information is formatted as:
+For all these styles, the dimensions of the simulation box are
+included in each snapshot.  For an orthogonal simulation box this
+information is formatted as:
 
 .. parsed-literal::
 
@@ -316,10 +335,13 @@ bounding box extents (xlo_bound, xhi_bound, etc.) are calculated from the
 triclinic parameters, and how to transform those parameters to and
 from other commonly used triclinic representations.
 
-The "ITEM: ATOMS" line in each snapshot lists column descriptors for
-the per-atom lines that follow.  For example, the descriptors would be
-"id type xs ys zs" for the default *atom* style, and would be the atom
-attributes you specify in the dump command for the *custom* style.
+The *atom* and *custom* styles output a "ITEM: NUMBER OF ATOMS" line
+with the count of atoms in the snapshot.  Likewise they output an
+"ITEM: ATOMS" line which includes column descriptors for the per-atom
+lines that follow.  For example, the descriptors would be "id type xs
+ys zs" for the default *atom* style, and would be the atom attributes
+you specify in the dump command for the *custom* style.  Each
+subsequent line will list the data for a single atom.
 
 For style *atom*, atom coordinates are written to the file, along with
 the atom ID and atom type.  By default, atom coords are written in a
@@ -332,12 +354,41 @@ added for each atom via dump_modify.
 Style *custom* allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  Possible attributes are
 listed above and will appear in the order specified.  You cannot
-specify a quantity that is not defined for a particular simulation---such as
-*q* for atom style *bond*, since that atom style does not
-assign charges.  Dumps occur at the very end of a timestep, so atom
-attributes will include effects due to fixes that are applied during
-the timestep.  An explanation of the possible dump custom attributes
-is given below.
+specify a quantity that is not defined for a particular
+simulation---such as *q* for atom style *bond*, since that atom style
+does not assign charges.  Dumps occur at the very end of a timestep,
+so atom attributes will include effects due to fixes that are applied
+during the timestep.  An explanation of the possible dump custom
+attributes is given below.
+
+.. versionadded:: 22Dec2022
+
+For style *grid* the dimension of the simulation domain and size of
+the Nx by Ny by Nz grid that overlays the simulation domain are also
+output with each snapshot:
+
+.. parsed-literal::
+
+   ITEM: DIMENSION
+   dim
+   ITEM: GRID SIZE
+   nx ny nz
+
+The value dim will be 2 or 3 for 2d or 3d simulations.  It is included
+so that post-processing tools like `OVITO <https://www.ovito.org>`,
+which can visualize grid-based quantities know how to draw each grid
+cell.  The grid size will match the input script parameters for
+grid(s) created by the computes or fixes which are referenced by the
+the dump command.  For 2d simulations (and grids), nz will always
+be 1.
+
+There will also be an "ITEM: GRID DATA" line which includes column
+descriptors for the per grid cell data.  Each subsequent line (Nx *
+Ny * Nz lines) will list the data for a single grid cell.  If grid
+cell IDs are included in the output via the :doc:`compute
+property/grid <compute_property_grid>` command, then the IDs will
+range from 1 to N = Nx*Ny*Nz.  The ordering of IDs is with the x index
+varying fastest, then the y index, and the z index varying slowest.
 
 For style *local*, local output generated by :doc:`computes <compute>`
 and :doc:`fixes <fix>` is used to generate lines of output that is
@@ -350,6 +401,17 @@ using input from the :doc:`compute property/local
 generate information on bonds, angles, etc. that can be cut and pasted
 directly into a data file read by the :doc:`read_data <read_data>`
 command.
+
+----------
+
+Dump files in other popular formats:
+
+
+.. note::
+
+   This section only discusses file formats relevant to this doc page.
+   The top of this page has links to other dump commands (with their
+   own pages) which write files in additional popular formats.
 
 Style *cfg* has the same command syntax as style *custom* and writes
 extended CFG format files, as used by the `AtomEye
@@ -387,15 +449,15 @@ periodic box.  Note that these coordinates may thus be far outside
 the box size stored with the snapshot.
 
 The *xtc* style writes XTC files, a compressed trajectory format used
-by the GROMACS molecular dynamics package, and described
-`here <https://manual.gromacs.org/current/reference-manual/file-formats.html#xtc>`_.
+by the GROMACS molecular dynamics package, and described `here
+<https://manual.gromacs.org/current/reference-manual/file-formats.html#xtc>`_.
 The precision used in XTC files can be adjusted via the
 :doc:`dump_modify <dump_modify>` command.  The default value of 1000
 means that coordinates are stored to 1/1000 nanometer accuracy.  XTC
-files are portable binary files written in the NFS XDR data format,
-so that any machine which supports XDR should be able to read them.
-The number of atoms per snapshot cannot change with the *xtc* style.
-The *unwrap* option of the :doc:`dump_modify <dump_modify>` command allows
+files are portable binary files written in the NFS XDR data format, so
+that any machine which supports XDR should be able to read them.  The
+number of atoms per snapshot cannot change with the *xtc* style.  The
+*unwrap* option of the :doc:`dump_modify <dump_modify>` command allows
 XTC coordinates to be written "unwrapped" by the image flags for each
 atom.  Unwrapped means that if the atom has passed through a periodic
 boundary one or more times, the value is printed for what the
@@ -404,27 +466,41 @@ box.  Note that these coordinates may thus be far outside the box size
 stored with the snapshot.
 
 The *xyz* style writes XYZ files, which is a simple text-based
-coordinate format that many codes can read. Specifically it has
-a line with the number of atoms, then a comment line that is
-usually ignored followed by one line per atom with the atom type
-and the :math:`x`-, :math:`y`-, and :math:`z`-coordinate of that atom.
-You can use the :doc:`dump_modify element <dump_modify>` option to change the
-output from using the (numerical) atom type to an element name (or some other
-label). This will help many visualization programs to guess bonds and colors.
+coordinate format that many codes can read. Specifically it has a line
+with the number of atoms, then a comment line that is usually ignored
+followed by one line per atom with the atom type and the :math:`x`-,
+:math:`y`-, and :math:`z`-coordinate of that atom.  You can use the
+:doc:`dump_modify element <dump_modify>` option to change the output
+from using the (numerical) atom type to an element name (or some other
+label). This will help many visualization programs to guess bonds and
+colors.
+
+.. versionadded:: 22Dec2022
+
+The *grid/vtk* style writes VTK files for grid data on a regular
+rectilinear grid.  Its content is conceptually similar to that of the
+text file produced by the *grid* style, except that it in an XML-based
+format which visualization programs which support the VTK format can
+read, e.g. the `ParaView tool <https://www.paraview.org>`_.  For this
+style, there can only be 1 or 3 per grid cell attributes specified.
+If it is a single value, it is a scalar quantity.  If 3 values are
+specified it is encoded in the VTK file as a vector quantity (for each
+grid cell).  The filename for this style must include a "\*" wildcard
+character to produce one file per snapshot; see details below.
 
 .. versionadded:: 4May2022
 
 Dump style *yaml* has the same command syntax as style *custom* and
-writes YAML format files that can be easily parsed by a variety of data
-processing tools and programming languages.  Each timestep will be
-written as a YAML "document" (i.e., starts with "---" and ends with
+writes YAML format files that can be easily parsed by a variety of
+data processing tools and programming languages.  Each timestep will
+be written as a YAML "document" (i.e., starts with "---" and ends with
 "...").  The style supports writing one file per timestep through the
-"\*" wildcard but not multi-processor outputs with the "%" token in the
-filename.  In addition to per-atom data, :doc:`thermo <thermo>` data can
-be included in the *yaml* style dump file using the :doc:`dump_modify
-thermo yes <dump_modify>`. The data included in the dump file uses the
-"thermo" tag and is otherwise identical to data specified by the
-:doc:`thermo_style <thermo_style>` command.
+"\*" wildcard but not multi-processor outputs with the "%" token in
+the filename.  In addition to per-atom data, :doc:`thermo <thermo>`
+data can be included in the *yaml* style dump file using the
+:doc:`dump_modify thermo yes <dump_modify>`. The data included in the
+dump file uses the "thermo" tag and is otherwise identical to data
+specified by the :doc:`thermo_style <thermo_style>` command.
 
 Below is an example for a YAML format dump created by the following commands.
 
@@ -435,13 +511,13 @@ Below is an example for a YAML format dump created by the following commands.
 
 The tags "time", "units", and "thermo" are optional and enabled by the
 dump_modify command. The list under the "box" tag has three lines for
-orthogonal boxes and four lines for triclinic boxes, where the first three are
-the box boundaries and the fourth the three tilt factors (:math:`xy`,
-:math:`xz`, :math:`yz`).  The "thermo" data follows the format of the *yaml*
-thermo style.  The "keywords" tag lists the per-atom properties contained in
-the "data" columns, which contain a list with one line per atom.  The keywords
-may be renamed using the dump_modify command same as for the *custom* dump
-style.
+orthogonal boxes and four lines for triclinic boxes, where the first
+three are the box boundaries and the fourth the three tilt factors
+(:math:`xy`, :math:`xz`, :math:`yz`).  The "thermo" data follows the
+format of the *yaml* thermo style.  The "keywords" tag lists the
+per-atom properties contained in the "data" columns, which contain a
+list with one line per atom.  The keywords may be renamed using the
+dump_modify command same as for the *custom* dump style.
 
 .. code-block:: yaml
 
@@ -479,11 +555,7 @@ style.
 
 ----------
 
-Note that *atom*, *custom*, *dcd*, *xtc*, and *xyz* style dump files
-can be read directly by `VMD <https://www.ks.uiuc.edu/Research/vmd>`_, a
-popular molecular viewing program.
-
-----------
+Frequency of dump output:
 
 Dumps are performed on timesteps that are a multiple of :math:`N`
 (including timestep 0) and on the last timestep of a minimization if
@@ -508,29 +580,35 @@ every/time <dump_modify>` command can be used.  This can be useful
 when the timestep size varies during a simulation run, e.g. by use of
 the :doc:`fix dt/reset <fix_dt_reset>` command.
 
-The specified filename determines how the dump file(s) is written.
-The default is to write one large text file, which is opened when the
-dump command is invoked and closed when an :doc:`undump <undump>`
-command is used or when LAMMPS exits.  For the *dcd* and *xtc* styles,
-this is a single large binary file.
+----------
 
-Dump filenames can contain two wildcard characters.  If a "\*"
-character appears in the filename, then one file per snapshot is
-written and the "\*" character is replaced with the timestep value.
-For example, tmp.dump.\* becomes tmp.dump.0, tmp.dump.10000,
-tmp.dump.20000, etc.  This option is not available for the *dcd* and
-*xtc* styles.  Note that the :doc:`dump_modify pad <dump_modify>`
-command can be used to insure all timestep numbers are the same length
-(e.g., 00010), which can make it easier to read a series of dump files
-in order with some post-processing tools.
+Dump filenames:
+
+The specified dump filename determines how the dump file(s) is
+written.  The default is to write one large text file, which is opened
+when the dump command is invoked and closed when an :doc:`undump
+<undump>` command is used or when LAMMPS exits.  For the *dcd* and
+*xtc* styles, this is a single large binary file.
+
+Many of the styles allow dump filenames to contain either or both of
+two wildcard characters.  If a "\*" character appears in the filename,
+then one file per snapshot is written and the "\*" character is
+replaced with the timestep value.  For example, tmp.dump.\* becomes
+tmp.dump.0, tmp.dump.10000, tmp.dump.20000, etc.  This option is not
+available for the *dcd* and *xtc* styles.  Note that the
+:doc:`dump_modify pad <dump_modify>` command can be used to ensure all
+timestep numbers are the same length (e.g., 00010), which can make it
+easier to read a series of dump files in order with some
+post-processing tools.
 
 If a "%" character appears in the filename, then each of P processors
 writes a portion of the dump file, and the "%" character is replaced
-with the processor ID from :math:`0` to :math:`P-1`.  For example, tmp.dump.%
-becomes tmp.dump.0, tmp.dump.1, ... tmp.dump.:math:`P-1`, etc.  This creates
-smaller files and can be a fast mode of output on parallel machines that
-support parallel I/O for output. This option is **not** available for the
-*dcd*, *xtc*, *xyz*, and *yaml* styles.
+with the processor ID from :math:`0` to :math:`P-1`.  For example,
+tmp.dump.% becomes tmp.dump.0, tmp.dump.1, ... tmp.dump.:math:`P-1`,
+etc.  This creates smaller files and can be a fast mode of output on
+parallel machines that support parallel I/O for output. This option is
+**not** available for the *dcd*, *xtc*, *xyz*, *grid/vtk*, and *yaml*
+styles.
 
 By default, :math:`P` is the the number of processors, meaning one file per
 processor, but :math:`P` can be set to a smaller value via the *nfile* or
@@ -541,47 +619,41 @@ when running on large numbers of processors.
 Note that using the "\*" and "%" characters together can produce a
 large number of small dump files!
 
-For the *atom/mpiio*, *cfg/mpiio*, *custom/mpiio*, and *xyz/mpiio*
-styles, a single dump file is written in parallel via the MPI-IO
-library, which is part of the MPI standard for versions 2.0 and above.
-Using MPI-IO requires two steps.  First, build LAMMPS with its MPIIO
-package installed, viz.,
-
-.. code-block:: bash
-
-   make yes-mpiio    # installs the MPIIO package
-   make mpi          # build LAMMPS for your platform
-
-Second, use a dump filename which contains ".mpiio".  Note that it does
-not have to end in ".mpiio", just contain those characters.  Unlike
-MPI-IO restart files, which must be both written and read using MPI-IO,
-the dump files produced by these MPI-IO styles are identical in format
-to the files produced by their non-MPI-IO style counterparts.  This
-means you can write a dump file using MPI-IO and use the :doc:`read_dump
+For styles that end with *mpiio* an ".mpiio" must appear somewhere in
+the specified filename.  These styles write their dump file in
+parallel via the MPI-IO library, which is part of the MPI standard for
+versions 2.0 and above.  Note these styles are identical in command
+syntax to the corresponding styles without "mpiio".  Likewise, the
+dump files produced by these MPI-IO styles are identical in format to
+the files produced by their non-MPI-IO style counterparts.  This means
+you can write a dump file using MPI-IO and use the :doc:`read_dump
 <read_dump>` command or perform other post-processing, just as if the
 dump file was not written using MPI-IO.
 
+Because MPI-IO dump files are one large file which all processors
+write to, you cannot use the "%" wildcard character described above in
+the filename.  However you can use the ".bin" or ".lammpsbin" suffix
+described below.  Again, this file will be written in parallel and
+have the same binary format as if it were written without MPI-IO.
+
 .. warning::
 
-   The MPIIO package is currently unmaintained and has become
-   unreliable. Use with caution.
+   The MPIIO package within LAMMPS is currently unmaintained and has
+   become unreliable. Use with caution.
 
-Note that MPI-IO dump files are one large file which all processors
-write to.  You thus cannot use the "%" wildcard character described
-above in the filename since that specifies generation of multiple files.
-You can use the ".bin" or ".lammpsbin" suffix described below in an
-MPI-IO dump file; again this file will be written in parallel and have
-the same binary format as if it were written without MPI-IO.
+----------
 
-If the filename ends with ".bin" or ".lammpsbin", the dump file (or
-files, if "\*" or "%" is also used) is written in binary format.  A
-binary dump file will be about the same size as a text version, but will
-typically write out much faster.  Of course, when post-processing, you
-will need to convert it back to text format (see the :ref:`binary2txt
-tool <binary>`) or write your own code to read the binary file.  The
-format of the binary file can be understood by looking at the
-:file:`tools/binary2txt.cpp` file.  This option is only available for
-the *atom* and *custom* styles.
+Compression of dump file data:
+
+If the specified filename ends with ".bin" or ".lammpsbin", the dump
+file (or files, if "\*" or "%" is also used) is written in binary
+format.  A binary dump file will be about the same size as a text
+version, but will typically write out much faster.  Of course, when
+post-processing, you will need to convert it back to text format (see
+the :ref:`binary2txt tool <binary>`) or write your own code to read
+the binary file.  The format of the binary file can be understood by
+looking at the :file:`tools/binary2txt.cpp` file.  This option is only
+available for the *atom* and *custom* styles.
 
 If the filename ends with ".gz", the dump file (or files, if "\*" or "%"
 is also used) is written in gzipped format.  A gzipped dump file will be
@@ -589,19 +661,40 @@ about :math:`3\times` smaller than the text version, but will also take
 longer to write.  This option is not available for the *dcd* and *xtc*
 styles.
 
+Note that styles that end with *gz* are identical in command syntax to
+the corresponding styles without "gz", however, they generate
+compressed files using the zlib library. Thus the filename suffix
+".gz" is mandatory. This is an alternative approach to writing
+compressed files via a pipe, as done by the regular dump styles, which
+may be required on clusters where the interface to the high-speed
+network disallows using the fork() library call (which is needed for a
+pipe).  For the remainder of this page, you should thus consider the
+*atom* and *atom/gz* styles (etc.) to be inter-changeable, with the
+exception of the required filename suffix.
+
+Similarly, styles that end with *zstd* are identical to the gz styles,
+but use the Zstd compression library instead and require a ".zst"
+suffix. See the :doc:`dump_modify <dump_modify>` page for details on
+how to control the compression level in both variants.
+
 ----------
 
-Note that in the discussion which follows, for styles which can
-reference values from a compute or fix or custom atom property, like the
-*custom*\ , *cfg*\ , or *local* styles, the bracketed index :math:`i`
-can be specified using a wildcard asterisk with the index to effectively
-specify multiple values.  This takes the form "\*" or "\*n" or "m\*" or
-"m\*n".  If :math:`N` is the number of columns in the array, then an
-asterisk with no numeric values means all column indices from 1 to
-:math:`N`.  A leading asterisk means all indices from 1 to n
-(inclusive).  A trailing asterisk means all indices from m to :math:`N`
-(inclusive).  A middle asterisk means all indices from m to n
-(inclusive).
+Arguments for different styles:
+
+The sections below describe per-atom, local, and per grid cell
+attributes which can be used as arguments to the various styles.
+
+Note that in the discussion below, for styles which can reference
+values from a compute or fix or custom atom property, like the
+*custom*\ , *cfg*\ , *grid* or *local* styles, the bracketed index
+:math:`i` can be specified using a wildcard asterisk with the index to
+effectively specify multiple values.  This takes the form "\*" or
+"\*n" or "m\*" or "m\*n".  If :math:`N` is the number of columns in
+the array, then an asterisk with no numeric values means all column
+indices from 1 to :math:`N`.  A leading asterisk means all indices
+from 1 to n (inclusive).  A trailing asterisk means all indices from m
+to :math:`N` (inclusive).  A middle asterisk means all indices from m
+to n (inclusive).
 
 Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  For example, these two dump commands are
@@ -617,63 +710,7 @@ command creates a per-atom array with six columns:
 
 ----------
 
-This section explains the local attributes that can be specified as
-part of the *local* style.
-
-The *index* attribute can be used to generate an index number from 1
-to :math:`N` for each line written into the dump file, where :math:`N` is the
-total number of local datums from all processors, or lines of output that
-will appear in the snapshot.  Note that because data from different
-processors depend on what atoms they currently own, and atoms migrate
-between processor, there is no guarantee that the same index will be
-used for the same info (e.g., a particular bond) in successive snapshots.
-
-The *c_ID* and *c_ID[I]* attributes allow local vectors or arrays
-calculated by a :doc:`compute <compute>` to be output.  The ID in the
-attribute should be replaced by the actual ID of the compute that has
-been defined previously in the input script.  See the
-:doc:`compute <compute>` command for details.  There are computes for
-calculating local information such as indices, types, and energies for
-bonds and angles.
-
-Note that computes which calculate global or per-atom quantities, as
-opposed to local quantities, cannot be output in a dump local command.
-Instead, global quantities can be output by the :doc:`thermo_style
-custom <thermo_style>` command, and per-atom quantities can be output
-by the dump custom command.
-
-If *c_ID* is used as a attribute, then the local vector calculated by
-the compute is printed.  If *c_ID[i]* is used, then :math:`i` must be in the
-range from :math:`1-M`, which will print the Ith column of the local array
-with :math:`M` columns calculated by the compute.  See the discussion above
-for how :math:`i` can be specified with a wildcard asterisk to effectively
-specify multiple values.
-
-The *f_ID* and *f_ID[I]* attributes allow local vectors or arrays
-calculated by a :doc:`fix <fix>` to be output.  The ID in the attribute
-should be replaced by the actual ID of the fix that has been defined
-previously in the input script.
-
-If *f_ID* is used as a attribute, then the local vector calculated by
-the fix is printed.  If *f_ID[i]* is used, then :math:`i` must be in the
-range :math:`1`--:math:`M`, which will print the :math:`i`\ th column of the
-local with :math:`M` columns calculated by the fix.  See the discussion above
-for how :math:`i` can be specified with a wildcard asterisk to effectively
-specify multiple values.
-
-Here is an example of how to dump bond info for a system, including
-the distance and energy of each bond:
-
-.. code-block:: LAMMPS
-
-   compute 1 all property/local batom1 batom2 btype
-   compute 2 all bond/local dist eng
-   dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
-
-----------
-
-This section explains the atom attributes that can be specified as
-part of the *custom* and *cfg* styles.
+Per-atom attributes used as arguments to the *custom* and *cfg* styles:
 
 The *id*, *mol*, *proc*, *procp1*, *type*, *element*, *mass*, *vx*,
 *vy*, *vz*, *fx*, *fy*, *fz*, *q* attributes are self-explanatory.
@@ -808,6 +845,97 @@ which could then be output into dump files.
 
 ----------
 
+Attributes used as arguments to the *local* style:
+
+The *index* attribute can be used to generate an index number from 1
+to N for each line written into the dump file, where N is the total
+number of local datums from all processors, or lines of output that
+will appear in the snapshot.  Note that because data from different
+processors depend on what atoms they currently own, and atoms migrate
+between processor, there is no guarantee that the same index will be
+used for the same info (e.g. a particular bond) in successive
+snapshots.
+
+The *c_ID* and *c_ID[I]* attributes allow local vectors or arrays
+calculated by a :doc:`compute <compute>` to be output.  The ID in the
+attribute should be replaced by the actual ID of the compute that has
+been defined previously in the input script.  See the
+:doc:`compute <compute>` command for details.  There are computes for
+calculating local information such as indices, types, and energies for
+bonds and angles.
+
+Note that computes which calculate global or per-atom quantities, as
+opposed to local quantities, cannot be output in a dump local command.
+Instead, global quantities can be output by the :doc:`thermo_style
+custom <thermo_style>` command, and per-atom quantities can be output
+by the dump custom command.
+
+If *c_ID* is used as a attribute, then the local vector calculated by
+the compute is printed.  If *c_ID[I]* is used, then I must be in the
+range from 1-M, which will print the Ith column of the local array
+with M columns calculated by the compute.  See the discussion above
+for how I can be specified with a wildcard asterisk to effectively
+specify multiple values.
+
+The *f_ID* and *f_ID[I]* attributes allow local vectors or arrays
+calculated by a :doc:`fix <fix>` to be output.  The ID in the attribute
+should be replaced by the actual ID of the fix that has been defined
+previously in the input script.
+
+If *f_ID* is used as a attribute, then the local vector calculated by
+the fix is printed.  If *f_ID[I]* is used, then I must be in the
+range from 1-M, which will print the Ith column of the local with M
+columns calculated by the fix.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.
+
+Here is an example of how to dump bond info for a system, including
+the distance and energy of each bond:
+
+.. code-block:: LAMMPS
+
+   compute 1 all property/local batom1 batom2 btype
+   compute 2 all bond/local dist eng
+   dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2]
+
+----------
+
+Attributes used as arguments to the *grid* and *grid/vtk* styles:
+
+The attributes that begin with *c_ID* and *f_ID* both take
+colon-separated fields *gname* and *dname*.  These refer to a grid
+name and data field name which is defined by the compute or fix.  Note
+that a compute or fix can define one or more grids (of different
+sizes) and one or more data fields for each of those grids.  The sizes
+of all grids output in a single dump grid command must be the same.
+
+The *c_ID:gname:dname* and *c_ID:gname:dname[I]* attributes allow
+per-grid vectors or arrays calculated by a :doc:`compute <compute>` to
+be output.  The ID in the attribute should be replaced by the actual
+ID of the compute that has been defined previously in the input
+script.
+
+If *c_ID:gname:dname* is used as a attribute, then the per-grid vector
+calculated by the compute is printed.  If *c_ID:gname:dname[I]* is
+used, then I must be in the range from 1-M, which will print the Ith
+column of the per-grid array with M columns calculated by the compute.
+See the discussion above for how I can be specified with a wildcard
+asterisk to effectively specify multiple values.
+
+The *f_ID:gname:dname* and *f_ID:gname:dname[I]* attributes allow
+per-grid vectors or arrays calculated by a :doc:`fix <fix>` to be
+output.  The ID in the attribute should be replaced by the actual ID
+of the fix that has been defined previously in the input script.
+
+If *f_ID:gname:dname* is used as a attribute, then the per-grid vector
+calculated by the fix is printed.  If *f_ID:gname:dname[I]* is used,
+then I must be in the range from 1-M, which will print the Ith column
+of the per-grid with M columns calculated by the fix.  See the
+discussion above for how I can be specified with a wildcard asterisk
+to effectively specify multiple values.
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -816,9 +944,9 @@ To write gzipped dump files, you must either compile LAMMPS with the
 See the :doc:`Build settings <Build_settings>` page for details.
 
 While a dump command is active (i.e., has not been stopped by using
-the :doc:`undump command <undump>`), no commands may be used that will change
-the timestep (e.g., :doc:`reset_timestep <reset_timestep>`).  LAMMPS
-will terminate with an error otherwise.
+the :doc:`undump command <undump>`), no commands may be used that will
+change the timestep (e.g., :doc:`reset_timestep <reset_timestep>`).
+LAMMPS will terminate with an error otherwise.
 
 The *atom/gz*, *cfg/gz*, *custom/gz*, and *xyz/gz* styles are part of
 the COMPRESS package.  They are only enabled if LAMMPS was built with

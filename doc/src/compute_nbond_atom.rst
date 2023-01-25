@@ -23,6 +23,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 4May2022
+
 Define a computation that computes the number of bonds each atom is
 part of.  Bonds which are broken are not counted in the tally.  See
 the :doc:`Howto broken bonds <Howto_bpm>` page for more information.
@@ -40,8 +42,9 @@ LAMMPS output options.
 Restrictions
 """"""""""""
 
-This fix can only be used if LAMMPS was built with the BPM package.
-See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the BPM package.  It is only enabled if LAMMPS was
+built with that package.  See the :doc:`Build package <Build_package>`
+page for more info.
 
 Related commands
 """"""""""""""""

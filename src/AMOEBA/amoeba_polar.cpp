@@ -18,10 +18,8 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "fft3d_wrap.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
 #include "neigh_list.h"
 
 #include <cmath>
@@ -250,10 +248,12 @@ void PairAmoeba::polar_real()
   double drc3[3],drc5[3],drc7[3];
   double urc3[3],urc5[3],tep[3];
   double fix[3],fiy[3],fiz[3];
+#if 0  // for poltyp TCG which is currently not supported
   double uax[3],uay[3],uaz[3];
   double ubx[3],uby[3],ubz[3];
   double uaxp[3],uayp[3],uazp[3];
   double ubxp[3],ubyp[3],ubzp[3];
+#endif
   double dmpi[9],dmpk[9];
   double dmpik[9];
   double bn[5];
@@ -320,6 +320,7 @@ void PairAmoeba::polar_real()
     uixp = uinp[i][0];
     uiyp = uinp[i][1];
     uizp = uinp[i][2];
+#if 0  // for poltyp TCG which is currently not supported
     for (m = 0; m < tcgnab; m++) {
       uax[m] = uad[m][i][0];
       uay[m] = uad[m][i][1];
@@ -334,7 +335,7 @@ void PairAmoeba::polar_real()
       ubyp[m] = ubp[m][i][1];
       ubzp[m] = ubp[m][i][2];
     }
-
+#endif
     if (amoeba) {
       pdi = pdamp[itype];
       pti = thole[itype];
@@ -1030,7 +1031,8 @@ void PairAmoeba::polar_real()
       // get the dtau/dr terms used for TCG polarization force
 
       } else if (poltyp == TCG) {
-        /*
+#if 0
+        // poltyp TCG not yet supported for AMOEBA/HIPPO
         for (m = 0; m < tcgnab; m++) {
           ukx = ubd[m][j][0];
           uky = ubd[m][j][1];
@@ -1131,8 +1133,7 @@ void PairAmoeba::polar_real()
           frcx += depx;
           frcy += depy;
           frcz += depz;
-        }
-        */
+#endif
       }
 
       // increment force-based gradient on the interaction sites

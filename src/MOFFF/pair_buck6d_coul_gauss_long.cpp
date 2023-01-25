@@ -331,7 +331,7 @@ void PairBuck6dCoulGaussLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style buck6d/coul/dsf requires atom attribute q");
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");

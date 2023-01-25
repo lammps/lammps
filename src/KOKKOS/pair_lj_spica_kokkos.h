@@ -80,7 +80,6 @@ class PairLJSPICAKokkos : public PairLJSPICA {
   typename AT::t_x_array c_x;
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_tagint_1d tag;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;

@@ -783,19 +783,19 @@ Pitfalls
 **Parallel Scalability**
 
 LAMMPS operates in parallel in a :doc:`spatial-decomposition mode
-<Developer_par_part>`, where each processor owns a spatial sub-domain of
+<Developer_par_part>`, where each processor owns a spatial subdomain of
 the overall simulation domain and communicates with its neighboring
 processors via distributed-memory message passing (MPI) to acquire ghost
 atom information to allow forces on the atoms it owns to be
 computed. LAMMPS also uses Verlet neighbor lists which are recomputed
 every few timesteps as particles move. On these timesteps, particles
 also migrate to new processors as needed. LAMMPS decomposes the overall
-simulation domain so that spatial sub-domains of nearly equal volume are
-assigned to each processor. When each sub-domain contains nearly the
+simulation domain so that spatial subdomains of nearly equal volume are
+assigned to each processor. When each subdomain contains nearly the
 same number of particles, this results in a reasonable load balance
 among all processors. As is more typical with some peridynamic
-simulations, some sub-domains may contain many particles while other
-sub-domains contain few particles, resulting in a load imbalance that
+simulations, some subdomains may contain many particles while other
+subdomains contain few particles, resulting in a load imbalance that
 impacts parallel scalability.
 
 **Setting the "skin" distance**

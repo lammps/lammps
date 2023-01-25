@@ -401,6 +401,9 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
   delete[] minimize_style;
   delete minimize;
 
+  // temporarily assign the style name without suffix (for error messages during creation)
+  minimize_style = arg[0];
+
   int sflag;
   new_minimize(arg[0], narg - 1, &arg[1], trysuffix, sflag);
 

@@ -1968,7 +1968,7 @@ void ref_frebo_single_interaction(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i,
   flt_t Aij = ka->params.A[itype][jtype];
   flt_t alphaij = ka->params.alpha[itype][jtype];
 
-  flt_t exp_alphar = exp(-alphaij * rij);
+  flt_t exp_alphar = overloaded::exp(-alphaij * rij);
   flt_t VR_by_wij = (1.0 + (Qij / rij)) * Aij * exp_alphar;
   flt_t VR = wij * VR_by_wij;
   flt_t pre = wij * Aij * exp_alphar;
@@ -2108,7 +2108,7 @@ void ref_lennard_jones_single_interaction(KernelArgsAIREBOT<flt_t,acc_t> * ka,
 
   flt_t vdw, dvdw;
   if (morseflag) {
-    const flt_t exr = exp(-rij * ka->params.lj4[itype][jtype]);
+    const flt_t exr = overloaded::exp(-rij * ka->params.lj4[itype][jtype]);
     vdw = ka->params.lj1[itype][jtype] * exr *
       (ka->params.lj2[itype][jtype]*exr - 2);
     dvdw = ka->params.lj3[itype][jtype] * exr *

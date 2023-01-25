@@ -483,15 +483,13 @@ void PairKIM::coeff(int narg, char **arg)
           nlbound = atoi(words[0].c_str());
           nubound = atoi(words[1].c_str());
 
-          if (nubound < 1 || nubound > extent ||
-              nlbound < 1 || nlbound > nubound)
-            error->all(FLERR,"Illegal index_range '{}-{}' for '{}' "
-                       "parameter with the extent of '{}'",
+          if ((nubound < 1) || (nubound > extent) || (nlbound < 1) || (nlbound > nubound))
+            error->all(FLERR,"Illegal index_range '{}-{}' for '{}' parameter with the extent of '{}'",
                        nlbound, nubound, paramname, extent);
         } else {
           nlbound = atoi(argtostr.c_str());
 
-          if (nlbound < 1 || nlbound > extent)
+          if ((nlbound < 1) || (nlbound > extent))
             error->all(FLERR,"Illegal index '{}' for '{}' parameter with the extent of '{}'",
                        nlbound, paramname, extent);
 
@@ -1081,8 +1079,7 @@ void PairKIM::set_kim_model_has_flags()
     KIM_ComputeArguments_GetArgumentSupportStatus(
       pargs, computeArgumentName, &supportStatus);
 
-    if (KIM_ComputeArgumentName_Equal(computeArgumentName,
-                                      KIM_COMPUTE_ARGUMENT_NAME_partialEnergy))
+    if (KIM_ComputeArgumentName_Equal(computeArgumentName, KIM_COMPUTE_ARGUMENT_NAME_partialEnergy))
       kim_model_support_for_energy = supportStatus;
     else if (KIM_ComputeArgumentName_Equal(
                computeArgumentName, KIM_COMPUTE_ARGUMENT_NAME_partialForces))
@@ -1095,17 +1092,14 @@ void PairKIM::set_kim_model_has_flags()
                computeArgumentName,
                KIM_COMPUTE_ARGUMENT_NAME_partialParticleVirial))
       kim_model_support_for_particleVirial = supportStatus;
-    else if (KIM_SupportStatus_Equal(supportStatus,
-                                     KIM_SUPPORT_STATUS_required)) {
-      std::string msg("KIM Model requires unsupported compute argument: ");
-      msg += KIM_ComputeArgumentName_ToString(computeArgumentName);
-      error->all(FLERR,msg);
+    else if (KIM_SupportStatus_Equal(supportStatus, KIM_SUPPORT_STATUS_required)) {
+      error->all(FLERR, "KIM Model requires unsupported compute argument: {}",
+                 KIM_ComputeArgumentName_ToString(computeArgumentName));
     }
   }
 
   if (comm->me == 0) {
-    if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
-                                KIM_SUPPORT_STATUS_notSupported))
+    if (KIM_SupportStatus_Equal(kim_model_support_for_energy, KIM_SUPPORT_STATUS_notSupported))
       error->warning(FLERR,"KIM Model does not provide 'partialEnergy'; Potential energy will be zero");
 
     if (KIM_SupportStatus_Equal(kim_model_support_for_forces,

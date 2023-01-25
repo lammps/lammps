@@ -15,12 +15,8 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "update.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -29,7 +25,7 @@ using namespace LAMMPS_NS;
 ComputeNBondAtom::ComputeNBondAtom(LAMMPS *_lmp, int narg, char **arg) :
     Compute(_lmp, narg, arg), nbond(nullptr)
 {
-  if (narg < 3) error->all(FLERR, "Illegal compute nbond/atom command");
+  if (narg < 3) utils::missing_cmd_args(FLERR, "compute nbond/atom", error);
 
   peratom_flag = 1;
   size_peratom_cols = 0;

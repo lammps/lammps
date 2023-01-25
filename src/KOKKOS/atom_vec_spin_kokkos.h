@@ -24,39 +24,15 @@ AtomStyle(spin/kk/host,AtomVecSpinKokkos);
 #define LMP_ATOM_VEC_SPIN_KOKKOS_H
 
 #include "atom_vec_kokkos.h"
+#include "atom_vec_spin.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecSpinKokkos : public AtomVecKokkos {
+class AtomVecSpinKokkos : public AtomVecKokkos, public AtomVecSpin {
  public:
   AtomVecSpinKokkos(class LAMMPS *);
   void grow(int) override;
-  void copy(int, int, int) override;
-  int pack_border(int, int *, double *, int, int *) override;
-  int pack_border_vel(int, int *, double *, int, int *) override;
-  int pack_border_hybrid(int, int *, double *) override;
-  void unpack_border(int, int, double *) override;
-  void unpack_border_vel(int, int, double *) override;
-  int unpack_border_hybrid(int, int, double *) override;
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(double *) override;
-  int size_restart() override;
-  int pack_restart(int, double *) override;
-  int unpack_restart(double *) override;
-  void create_atom(int, double *) override;
-  void data_atom(double *, imageint, const std::vector<std::string> &, std::string &) override;
-  int data_atom_hybrid(int, const std::vector<std::string> &, int) override;
-  void pack_data(double **) override;
-  int pack_data_hybrid(int, double *) override;
-  void write_data(FILE *, int, double **) override;
-  int write_data_hybrid(FILE *, double *) override;
-  double memory_usage() override;
-
-  // clear magnetic and mechanic forces
-
-  void force_clear(int, size_t) override;
-
   void grow_pointers() override;
   // input lists to be checked
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
@@ -79,17 +55,6 @@ class AtomVecSpinKokkos : public AtomVecKokkos {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;           // lattice quantities
-
-                                // spin quantities
-  double **sp;                  // sp[i][0-2] direction of the spin i
-                                // sp[i][3] atomic magnetic moment of the spin i
-  double **fm;                  // fm[i][0-2] direction of magnetic precession
-  double **fm_long;             // storage of long-range spin prec. components
-
   DAT::t_tagint_1d d_tag;
   HAT::t_tagint_1d h_tag;
 
@@ -110,12 +75,9 @@ class AtomVecSpinKokkos : public AtomVecKokkos {
   HAT::t_sp_array h_sp;
   HAT::t_fm_array h_fm;
   HAT::t_fm_long_array h_fm_long;
-
-  DAT::tdual_int_1d k_count;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

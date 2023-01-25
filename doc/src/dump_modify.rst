@@ -297,6 +297,8 @@ in file tmp.times:
 
 ----------
 
+.. versionadded:: 7Jan2022
+
 The *every/time* keyword can be used with any dump style except the
 *dcd* and *xtc* styles.  It changes the frequency of dump snapshots
 from being based on the current timestep to being determined by
@@ -408,7 +410,7 @@ command is invoked.
 ----------
 
 The *flush* keyword determines whether a flush operation is invoked
-after a dump snapshot is written to the dump file.  A flush insures
+after a dump snapshot is written to the dump file.  A flush ensures
 the output in that file is current (no buffering by the OS), even if
 LAMMPS halts before the simulation completes.  Flushes cannot be
 performed with dump style *xtc*\ .

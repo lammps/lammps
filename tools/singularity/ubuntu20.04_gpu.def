@@ -39,7 +39,7 @@ From: ubuntu:20.04
     # Common Software
     ###########################################################################
     apt-get install --no-install-recommends -y software-properties-common
-    add-apt-repository ppa:openkim/latest
+    add-apt-repository ppa:openkim/latest -y
     apt-get update
     apt-get install --no-install-recommends -y \
         bc \

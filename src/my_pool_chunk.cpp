@@ -66,7 +66,7 @@ MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,
   if (!freehead || !chunksize) errorflag = 1;
   if (errorflag) return;
 
-  // insure nbin*binsize spans minchunk to maxchunk inclusive
+  // ensure nbin*binsize spans minchunk to maxchunk inclusive
 
   binsize = (maxchunk - minchunk + 1) / nbin;
   if (minchunk + nbin * binsize <= maxchunk) binsize++;

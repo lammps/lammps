@@ -1204,7 +1204,7 @@ class lammps(object):
   # dtype = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
   def gather_atoms(self,name,dtype,count):
@@ -1258,7 +1258,7 @@ class lammps(object):
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # assume data is of correct type and length, as created by gather_atoms()
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
   def scatter_atoms(self,name,dtype,count,data):
@@ -1305,7 +1305,7 @@ class lammps(object):
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
   def gather(self,name,dtype,count):
     if name: name = name.encode()
@@ -1354,7 +1354,7 @@ class lammps(object):
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # assume data is of correct type and length, as created by gather_atoms()
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
   def scatter(self,name,dtype,count,data):
@@ -1414,7 +1414,7 @@ class lammps(object):
   # type = type of each atom (1 to Ntypes) (required)
   # x = coords of each atom as (N,3) array (required)
   # v = velocity of each atom as (N,3) array (optional, can be None)
-  # NOTE: how could we insure are passing correct type to LAMMPS
+  # NOTE: how could we ensure are passing correct type to LAMMPS
   #   e.g. for Python list or NumPy, etc
   #   ditto for gather_atoms() above
 

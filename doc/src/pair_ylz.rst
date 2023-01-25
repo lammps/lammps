@@ -82,7 +82,7 @@ mixing as described below:
 
 * :math:`\epsilon` = well depth (energy units)
 * :math:`\sigma` = minimum effective particle radii (distance units)
-* :math:`\zeta` = tune parameter for the slope of the attractive branch
+* :math:`\zeta` = tuning parameter for the slope of the attractive branch
 * :math:`\mu` = parameter related to bending rigidity
 * :math:`\beta` = parameter related to the spontaneous curvature
 * cutoff (distance units)

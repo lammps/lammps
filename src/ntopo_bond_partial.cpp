@@ -57,10 +57,8 @@ void NTopoBondPartial::build()
       if (atom1 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,
-                     "Bond atoms {} {} missing on "
-                     "proc {} at step {}",
-                     tag[i], bond_atom[i][m], me, update->ntimestep);
+          error->one(FLERR, "Bond atoms {} {} missing on proc {} at step {}", tag[i],
+                     bond_atom[i][m], me, update->ntimestep);
         continue;
       }
       atom1 = domain->closest_image(i, atom1);

@@ -452,10 +452,6 @@ void PairAmoeba::multipole_real()
         rr9 = bn[4] - scalek*rr9;
         rr11 = bn[5] - scalek*rr11;
         e = term1*rr1 + term2*rr3 + term3*rr5 + term4*rr7 + term5*rr9;
-        if (i == 0  && j < 10) {
-          //printf("j = %d: scalek = %f; rr11 = %f; terms: %f %f %f %f %f\n", j, scalek, rr11, term1, term2, term3, term4, term5);
-          //printf("j = %d: felec = %f; rr1 = %f; bn0 = %f\n", j, felec, rr1, bn[0]);
-        }
 
         // find standard multipole intermediates for force and torque
 
@@ -662,7 +658,7 @@ void PairAmoeba::multipole_kspace()
 
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
 
-  double ***gridpre = (double ***) m_kspace->zero();
+  FFT_SCALAR ***gridpre = (FFT_SCALAR ***) m_kspace->zero();
 
   // map atoms to grid
 
@@ -671,7 +667,7 @@ void PairAmoeba::multipole_kspace()
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
 
-  double *gridfft = m_kspace->pre_convolution();
+  FFT_SCALAR *gridfft = m_kspace->pre_convolution();
 
   // ---------------------
   // convolution operation
@@ -742,7 +738,7 @@ void PairAmoeba::multipole_kspace()
   // post-convolution operations including backward FFT
   // gridppost = my portion of 3d grid in brick decomp w/ ghost values
 
-  double ***gridpost = (double ***) m_kspace->post_convolution();
+  FFT_SCALAR ***gridpost = (FFT_SCALAR ***) m_kspace->post_convolution();
 
   // get potential
 

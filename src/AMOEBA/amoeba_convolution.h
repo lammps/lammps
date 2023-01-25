@@ -38,7 +38,7 @@ class AmoebaConvolution : protected Pointers {
   int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
   int nxlo_fft, nxhi_fft, nylo_fft, nyhi_fft, nzlo_fft, nzhi_fft;
   bigint nfft_global;          // nx * ny * nz
-  double *grid_brick_start;    // lower left corner of (c)grid_brick data
+  FFT_SCALAR *grid_brick_start;    // lower left corner of (c)grid_brick data
 
   AmoebaConvolution(class LAMMPS *, class Pair *, int, int, int, int, int);
   ~AmoebaConvolution();
@@ -61,14 +61,14 @@ class AmoebaConvolution : protected Pointers {
   class Grid3d *gc;
   class Remap *remap;
 
-  double ***grid_brick;      // 3d real brick grid with ghosts
-  double ****cgrid_brick;    // 4d complex brick grid with ghosts
+  FFT_SCALAR ***grid_brick;      // 3d real brick grid with ghosts
+  FFT_SCALAR ****cgrid_brick;    // 4d complex brick grid with ghosts
 
   FFT_SCALAR *grid_fft;    // 3d FFT grid as 1d vector
   FFT_SCALAR *cfft;        // 3d complex FFT grid as 1d vector
 
-  double *gc_buf1, *gc_buf2;    // buffers for GridComm
-  double *remap_buf;            // buffer for Remap
+  FFT_SCALAR *gc_buf1, *gc_buf2;    // buffers for GridComm
+  FFT_SCALAR *remap_buf;            // buffer for Remap
 
   void allocate_grid();
   void deallocate_grid();

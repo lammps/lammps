@@ -338,7 +338,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
   time1 = platform::walltime();
 
   if (SCALE) {
-    double scale = 1.0/nfft_global;
+    FFT_SCALAR scale = 1.0/nfft_global;
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
 
@@ -403,7 +403,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
   time1 = platform::walltime();
 
   if (SCALE) {
-    double scale = 1.0/nfft_global;
+    FFT_SCALAR scale = 1.0/nfft_global;
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
 

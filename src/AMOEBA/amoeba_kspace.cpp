@@ -523,7 +523,7 @@ void PairAmoeba::frac_to_cart()
    grid_mpole maps fractional atomic multipoles to PME grid
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::grid_mpole(double **fmp, double ***grid)
+void PairAmoeba::grid_mpole(double **fmp, FFT_SCALAR ***grid)
 {
   int i,j,k,m,ib,jb,kb;
   double v0,u0,t0;
@@ -596,7 +596,7 @@ void PairAmoeba::grid_mpole(double **fmp, double ***grid)
    the particle mesh Ewald grid
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::fphi_mpole(double ***grid, double **fphi)
+void PairAmoeba::fphi_mpole(FFT_SCALAR ***grid, double **fphi)
 {
   int i,j,k,m,ib,jb,kb;
   double v0,v1,v2,v3;
@@ -740,7 +740,7 @@ void PairAmoeba::fphi_mpole(double ***grid, double **fphi)
    grid_uind maps fractional induced dipoles to the PME grid
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::grid_uind(double **fuind, double **fuinp, double ****grid)
+void PairAmoeba::grid_uind(double **fuind, double **fuinp, FFT_SCALAR ****grid)
 {
   int i,j,k,m,ib,jb,kb;
   double v0,u0,t0;
@@ -791,7 +791,7 @@ void PairAmoeba::grid_uind(double **fuind, double **fuinp, double ****grid)
    fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::fphi_uind(double ****grid, double **fdip_phi1,
+void PairAmoeba::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
                            double **fdip_phi2, double **fdip_sum_phi)
 {
   int i,j,k,m,ib,jb,kb;
@@ -1040,7 +1040,7 @@ void PairAmoeba::fphi_uind(double ****grid, double **fdip_phi1,
    grid_disp maps dispersion coefficients to PME grid
 ------------------------------------------------------------------------- */
 
-void PairAmoeba::grid_disp(double ***grid)
+void PairAmoeba::grid_disp(FFT_SCALAR ***grid)
 {
   int i,j,k,m,ib,jb,kb,itype,iclass;
   double v0,u0,t0;

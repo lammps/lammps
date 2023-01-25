@@ -1124,7 +1124,7 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
 
   // gridpre = my portion of 4d grid in brick decomp w/ ghost values
 
-  double ****gridpre = (double ****) ic_kspace->zero();
+  FFT_SCALAR ****gridpre = (FFT_SCALAR ****) ic_kspace->zero();
 
   // map 2 values to grid
 
@@ -1140,7 +1140,7 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomposition
 
-  double *gridfft = ic_kspace->pre_convolution();
+  FFT_SCALAR *gridfft = ic_kspace->pre_convolution();
 
   // ---------------------
   // convolution operation
@@ -1170,7 +1170,7 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
   // post-convolution operations including backward FFT
   // gridppost = my portion of 4d grid in brick decomp w/ ghost values
 
-  double ****gridpost = (double ****) ic_kspace->post_convolution();
+  FFT_SCALAR ****gridpost = (FFT_SCALAR ****) ic_kspace->post_convolution();
 
   // get potential
 
@@ -1231,8 +1231,8 @@ void PairHippoGPU::umutual1(double **field, double **fieldp)
    fphi_uind extracts the induced dipole potential from the particle mesh Ewald grid
 ------------------------------------------------------------------------- */
 
-void PairHippoGPU::fphi_uind(double ****grid, double **fdip_phi1,
-                              double **fdip_phi2, double **fdip_sum_phi)
+void PairHippoGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
+                             double **fdip_phi2, double **fdip_sum_phi)
 {
   if (!gpu_fphi_uind_ready) {
     PairAmoeba::fphi_uind(grid, fdip_phi1, fdip_phi2, fdip_sum_phi);

@@ -1340,7 +1340,7 @@ void PairAmoeba::polar_kspace()
 
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
 
-    double ***gridpre = (double ***) p_kspace->zero();
+    FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 
@@ -1349,7 +1349,7 @@ void PairAmoeba::polar_kspace()
     // pre-convolution operations including forward FFT
     // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
 
-    double *gridfft = p_kspace->pre_convolution();
+    FFT_SCALAR *gridfft = p_kspace->pre_convolution();
 
     // ---------------------
     // convolution operation
@@ -1399,7 +1399,7 @@ void PairAmoeba::polar_kspace()
     // post-convolution operations including backward FFT
     // gridppost = my portion of 3d grid in brick decomp w/ ghost values
 
-    double ***gridpost = (double ***) p_kspace->post_convolution();
+    FFT_SCALAR ***gridpost = (FFT_SCALAR ***) p_kspace->post_convolution();
 
     // get potential
 
@@ -1432,7 +1432,7 @@ void PairAmoeba::polar_kspace()
 
   // gridpre2 = my portion of 4d grid in brick decomp w/ ghost values
 
-  double ****gridpre2 = (double ****) pc_kspace->zero();
+  FFT_SCALAR ****gridpre2 = (FFT_SCALAR ****) pc_kspace->zero();
 
   // map 2 values to grid
 
@@ -1441,7 +1441,7 @@ void PairAmoeba::polar_kspace()
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomposition
 
-  double *gridfft = pc_kspace->pre_convolution();
+  FFT_SCALAR *gridfft = pc_kspace->pre_convolution();
 
   // ---------------------
   // convolution operation
@@ -1464,7 +1464,7 @@ void PairAmoeba::polar_kspace()
   // post-convolution operations including backward FFT
   // gridppost = my portion of 4d grid in brick decomp w/ ghost values
 
-  double ****gridpost = (double ****) pc_kspace->post_convolution();
+  FFT_SCALAR ****gridpost = (FFT_SCALAR ****) pc_kspace->post_convolution();
 
   // get potential
 
@@ -1870,7 +1870,7 @@ void PairAmoeba::polar_kspace()
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by zero()
 
-  double ***gridpre = (double ***) p_kspace->zero();
+  FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
   // map atoms to grid
 
@@ -1900,7 +1900,7 @@ void PairAmoeba::polar_kspace()
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by zero()
 
-  gridpre = (double ***) p_kspace->zero();
+  gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
   // map atoms to grid
 
@@ -1909,7 +1909,7 @@ void PairAmoeba::polar_kspace()
   // pre-convolution operations including forward FFT
   // gridfft1/2 = my portions of complex 3d grid in FFT decomp as 1d vectors
 
-  double *gridfft2 = p_kspace->pre_convolution();
+  FFT_SCALAR *gridfft2 = p_kspace->pre_convolution();
 
   // ---------------------
   // convolution operation
@@ -1966,7 +1966,7 @@ void PairAmoeba::polar_kspace()
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
     // zeroed by zero()
 
-    double ***gridpre = (double ***) p_kspace->zero();
+    FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 
@@ -1975,12 +1975,12 @@ void PairAmoeba::polar_kspace()
     // pre-convolution operations including forward FFT
     // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
 
-    double *gridfft = p_kspace->pre_convolution();
+    FFT_SCALAR *gridfft = p_kspace->pre_convolution();
 
     // gridfft1 = copy of first FFT
 
     int nfft_owned = p_kspace->nfft_owned;
-    memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(double));
+    memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(FFT_SCALAR));
 
     // assign ??? to the PME grid
 
@@ -1995,7 +1995,7 @@ void PairAmoeba::polar_kspace()
 
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
 
-    gridpre = (double ***) p_kspace->zero();
+    gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 
@@ -2004,7 +2004,7 @@ void PairAmoeba::polar_kspace()
     // pre-convolution operations including forward FFT
     // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
 
-    double *gridfft2 = p_kspace->pre_convolution();
+    FFT_SCALAR *gridfft2 = p_kspace->pre_convolution();
 
     // ---------------------
     // convolution operation

@@ -381,7 +381,7 @@ class PairAmoeba : public Pair {
 
   virtual void induce();
   void ulspred();
-  void ufield0c(double **, double **);
+  virtual void ufield0c(double **, double **);
   void uscale0b(int, double **, double **, double **, double **);
   void dfield0c(double **, double **);
   virtual void umutual1(double **, double **);
@@ -407,11 +407,11 @@ class PairAmoeba : public Pair {
   void fphi_to_cphi(double **, double **);
   void frac_to_cart();
 
-  void grid_mpole(double **, double ***);
-  void fphi_mpole(double ***, double **);
-  void grid_uind(double **, double **, double ****);
-  virtual void fphi_uind(double ****, double **, double **, double **);
-  void grid_disp(double ***);
+  void grid_mpole(double **, FFT_SCALAR ***);
+  void fphi_mpole(FFT_SCALAR ***, double **);
+  void grid_uind(double **, double **, FFT_SCALAR ****);
+  virtual void fphi_uind(FFT_SCALAR ****, double **, double **, double **);
+  void grid_disp(FFT_SCALAR ***);
 
   void kewald();
   void kewald_parallel(int, int, int, int, int &, int &, int &, int &, int &, int &, int &, int &,

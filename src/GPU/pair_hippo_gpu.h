@@ -27,23 +27,23 @@ namespace LAMMPS_NS {
 class PairHippoGPU : public PairAmoeba {
  public:
   PairHippoGPU(LAMMPS *lmp);
-  ~PairHippoGPU();
-  void init_style();
-  double memory_usage();
+  ~PairHippoGPU() override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
-  virtual void induce();
+  void induce() override;
 
-  virtual void repulsion();
-  virtual void dispersion_real();
-  virtual void multipole_real();
-  virtual void udirect2b(double **, double **);
-  virtual void umutual1(double **, double **);
-  virtual void fphi_uind(double ****, double **, double **, double **);
-  virtual void umutual2b(double **, double **);
-  virtual void ufield0c(double **, double **);
-  virtual void polar_real();
+  void repulsion() override;
+  void dispersion_real() override;
+  void multipole_real() override;
+  void udirect2b(double **, double **) override;
+  void umutual1(double **, double **) override;
+  void fphi_uind(FFT_SCALAR ****, double **, double **, double **) override;
+  void umutual2b(double **, double **) override;
+  void ufield0c(double **, double **) override;
+  void polar_real() override;
 
  private:
   int gpu_mode;

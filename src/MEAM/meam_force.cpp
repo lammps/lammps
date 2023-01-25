@@ -169,25 +169,25 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
             drhoa3mj = -this->beta3m_meam[eltj] * invrej * rhoa3mj;
           }
 
-          } else {
-            rhoa0j = rhoa0i;
-            drhoa0j = drhoa0i;
-            rhoa1j = rhoa1i;
-            drhoa1j = drhoa1i;
-            rhoa2j = rhoa2i;
-            drhoa2j = drhoa2i;
-            rhoa3j = rhoa3i;
-            drhoa3j = drhoa3i;
+        } else {
+          rhoa0j = rhoa0i;
+          drhoa0j = drhoa0i;
+          rhoa1j = rhoa1i;
+          drhoa1j = drhoa1i;
+          rhoa2j = rhoa2i;
+          drhoa2j = drhoa2i;
+          rhoa3j = rhoa3i;
+          drhoa3j = drhoa3i;
 
-            if (this->msmeamflag) {
-              rhoa1mj = rhoa1mi;
-              drhoa1mj = drhoa1mi;
-              rhoa2mj = rhoa2mi;
-              drhoa2mj = drhoa2mi;
-              rhoa3mj = rhoa3mi;
-              drhoa3mj = drhoa3mi;
-            }
-              }
+          if (this->msmeamflag) {
+            rhoa1mj = rhoa1mi;
+            drhoa1mj = drhoa1mi;
+            rhoa2mj = rhoa2mi;
+            drhoa2mj = drhoa2mi;
+            rhoa3mj = rhoa3mi;
+            drhoa3mj = drhoa3mi;
+          }
+        }
 
         const double t1mi = this->t1_meam[elti];
         const double t2mi = this->t2_meam[elti];
@@ -352,8 +352,8 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
             drho2mdrm1[m] = 0.0;
             drho2mdrm2[m] = 0.0;
             for (n = 0; n < 3; n++) {
-              drho2mdrm1[m] = drho2mdrm1[m] + arho2m[i][this->vind2D[m][n]] * delij[n];
-              drho2mdrm2[m] = drho2mdrm2[m] - arho2m[j][this->vind2D[m][n]] * delij[n];
+              drho2mdrm1[m] += arho2m[i][this->vind2D[m][n]] * delij[n];
+              drho2mdrm2[m] -= arho2m[j][this->vind2D[m][n]] * delij[n];
             }
             drho2mdrm1[m] = a2 * rhoa2mj * drho2mdrm1[m];
             drho2mdrm2[m] = -a2 * rhoa2mi * drho2mdrm2[m];
@@ -376,10 +376,10 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
             nv2 = 0;
             for (n = 0; n < 3; n++) {
               for (p = n; p < 3; p++) {
-          arg = delij[n] * delij[p] * this->v2D[nv2];
-          drho3mdrm1[m] = drho3mdrm1[m] + arho3m[i][this->vind3D[m][n][p]] * arg;
-          drho3mdrm2[m] = drho3mdrm2[m] + arho3m[j][this->vind3D[m][n][p]] * arg;
-          nv2 = nv2 + 1;
+                arg = delij[n] * delij[p] * this->v2D[nv2];
+                drho3mdrm1[m] += arho3m[i][this->vind3D[m][n][p]] * arg;
+                drho3mdrm2[m] += arho3m[j][this->vind3D[m][n][p]] * arg;
+                nv2 = nv2 + 1;
               }
             }
             drho3mdrm1[m] = (a3 * drho3mdrm1[m] - a3a * arho3mb[i][m]) * rhoa3mj;
@@ -473,15 +473,15 @@ MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global, int 
 
         if (this->msmeamflag){
           drhodr1 = dgamma1[i] * drho0dr1 +
-                    dgamma2[i] * (dt1dr1 * rho1[i] + t1i * (drho1dr1 - drho1mdr1) +
-                                  dt2dr1 * rho2[i] + t2i * (drho2dr1 - drho2mdr1) +
-                                  dt3dr1 * rho3[i] + t3i * (drho3dr1 - drho3mdr1)) -
-                    dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
+            dgamma2[i] * (dt1dr1 * rho1[i] + t1i * (drho1dr1 - drho1mdr1) +
+                          dt2dr1 * rho2[i] + t2i * (drho2dr1 - drho2mdr1) +
+                          dt3dr1 * rho3[i] + t3i * (drho3dr1 - drho3mdr1)) -
+            dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
           drhodr2 = dgamma1[j] * drho0dr2 +
-                    dgamma2[j] * (dt1dr2 * rho1[j] + t1j * (drho1dr2 - drho1mdr2) +
-                                  dt2dr2 * rho2[j] + t2j * (drho2dr2 - drho2mdr2) +
-                                  dt3dr2 * rho3[j] + t3j * (drho3dr2 - drho3mdr2)) -
-                    dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
+            dgamma2[j] * (dt1dr2 * rho1[j] + t1j * (drho1dr2 - drho1mdr2) +
+                          dt2dr2 * rho2[j] + t2j * (drho2dr2 - drho2mdr2) +
+                          dt3dr2 * rho3[j] + t3j * (drho3dr2 - drho3mdr2)) -
+            dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
           for (m = 0; m < 3; m++) {
             drhodrm1[m] = 0.0;
             drhodrm2[m] = 0.0;

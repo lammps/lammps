@@ -31,6 +31,10 @@ endif()
 option(GPU_DEBUG "Enable debugging code of the GPU package" OFF)
 mark_as_advanced(GPU_DEBUG)
 
+if(PKG_AMOEBA AND FFT_SINGLE)
+  message(FATAL_ERROR "GPU acceleration of AMOEBA is not (yet) compatible with single precision FFT")
+endif()
+
 file(GLOB GPU_LIB_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cpp)
 file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 

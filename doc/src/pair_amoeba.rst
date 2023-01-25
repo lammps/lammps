@@ -206,6 +206,9 @@ These pair styles can only be used via the *pair* keyword of the
   when compiling the GPU package for OpenCL has a few known issues
   when running on integrated GPUs and the calculation may crash.
 
+  The GPU accelerated pair styles are also not (yet) compatible
+  with single precision FFTs.
+
 ----------
 
 Restrictions

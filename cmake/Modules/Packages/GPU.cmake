@@ -3,9 +3,7 @@ set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                 ${GPU_SOURCES_DIR}/fix_gpu.h
                 ${GPU_SOURCES_DIR}/fix_gpu.cpp
                 ${GPU_SOURCES_DIR}/fix_nh_gpu.h
-                ${GPU_SOURCES_DIR}/fix_nh_gpu.cpp
-                ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.h
-                ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.cpp)
+                ${GPU_SOURCES_DIR}/fix_nh_gpu.cpp)
 target_compile_definitions(lammps PRIVATE -DLMP_GPU)
 
 set(GPU_API "opencl" CACHE STRING "API used by GPU package")
@@ -33,6 +31,12 @@ mark_as_advanced(GPU_DEBUG)
 
 if(PKG_AMOEBA AND FFT_SINGLE)
   message(FATAL_ERROR "GPU acceleration of AMOEBA is not (yet) compatible with single precision FFT")
+endif()
+
+if (PKG_AMOEBA)
+  list(APPEND GPU_SOURCES
+              ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.h
+              ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.cpp)
 endif()
 
 file(GLOB GPU_LIB_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cpp)

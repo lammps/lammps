@@ -49,7 +49,7 @@ int AtomT::bytes_per_atom() const {
   if (_vel)
     bytes+=4*sizeof(numtyp);
   if (_extra_fields>0)
-    bytes+=_extra_fields*sizeof(numtyp);
+    bytes+=_extra_fields*sizeof(numtyp4);
   return bytes;
 }
 

@@ -410,7 +410,7 @@ _texture( q_tex,int2);
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
-                                const __global numtyp *restrict extra,
+                                const __global numtyp4 *restrict extra,
                                 const __global numtyp4 *restrict coeff_rep,
                                 const __global numtyp4 *restrict sp_nonpolar,
                                 const __global int *dev_nbor,
@@ -444,9 +444,9 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
   acctyp4 tq;
   tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0;
 
-  numtyp4* polar1 = (numtyp4*)(&extra[0]);
-  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+  const __global numtyp4* polar1 = &extra[0];
+  const __global numtyp4* polar2 = &extra[nall];
+  const __global numtyp4* polar3 = &extra[2*nall];
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -494,8 +494,6 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       numtyp yr = jx.y - ix.y;
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
-
-      if (r2>off2) continue;
 
       const numtyp4 pol1j = polar1[j];
       //numtyp ck  = pol1j.x;  // rpole[j][0];
@@ -712,7 +710,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
-                                 const __global numtyp *restrict extra,
+                                 const __global numtyp4 *restrict extra,
                                  const __global numtyp4 *restrict coeff_amtype,
                                  const __global numtyp4 *restrict coeff_amclass,
                                  const __global numtyp4 *restrict sp_nonpolar,
@@ -741,7 +739,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
     for (int l=0; l<6; l++) virial[l]=(acctyp)0;
   }
 
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+  const __global numtyp4* polar3 = &extra[2*nall];
 
   if (ii<inum) {
     int itype,iclass;
@@ -890,7 +888,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
-                                const __global numtyp *restrict extra,
+                                const __global numtyp4 *restrict extra,
                                 const __global numtyp4 *restrict coeff_amtype,
                                 const __global numtyp4 *restrict coeff_amclass,
                                 const __global numtyp4 *restrict sp_polar,
@@ -924,15 +922,12 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
   acctyp4 tq;
   tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0;
 
-  numtyp4* polar1 = (numtyp4*)(&extra[0]);
-  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
-  numtyp4* polar6 = (numtyp4*)(&extra[20*nall]);
+  const __global numtyp4* polar1 = &extra[0];
+  const __global numtyp4* polar2 = &extra[nall];
+  const __global numtyp4* polar3 = &extra[2*nall];
+  const __global numtyp4* polar6 = &extra[5*nall];
 
   if (ii<inum) {
-    int m;
-    int itype,iclass;
-
     int numj, nbor, nbor_end;
     const __global int* nbor_mem=dev_packed;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
@@ -960,9 +955,8 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
     const numtyp4 pol3i = polar3[i];
     numtyp qiyz = pol3i.x;   // rpole[i][9];
     numtyp qizz = pol3i.y;   // rpole[i][12];
-    itype  = pol3i.z;        // amtype[i];
-
-    iclass = coeff_amtype[itype].w;  // amtype2class[itype];
+    int itype  = pol3i.z;        // amtype[i];
+    int iclass = coeff_amtype[itype].w;  // amtype2class[itype];
     numtyp corei = coeff_amclass[iclass].z;  // pcore[iclass];
     numtyp alphai = coeff_amclass[iclass].w; // palpha[iclass];
     numtyp vali = polar6[i].x;
@@ -1084,6 +1078,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp alsq2n = (numtyp)0.0;
       if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);
 
+      int m;
       for (m = 1; m < 6; m++) {
         numtyp bfac = (numtyp) (m+m-1);
         alsq2n = alsq2 * alsq2n;
@@ -1208,32 +1203,32 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
-                                const __global numtyp *restrict extra,
+                                const __global numtyp4 *restrict extra,
                                 const __global numtyp4 *restrict coeff_amtype,
                                 const __global numtyp4 *restrict coeff_amclass,
                                 const __global numtyp4 *restrict sp_polar,
                                 const __global int *dev_nbor,
-                                 const __global int *dev_packed,
-                                 const __global int *dev_short_nbor,
-                                 __global acctyp4 *restrict fieldp,
-                                 const int inum,  const int nall,
-                                 const int nbor_pitch, const int t_per_atom,
-                                 const numtyp aewald, const numtyp off2,
-                                 const numtyp polar_dscale, const numtyp polar_uscale)
+                                const __global int *dev_packed,
+                                const __global int *dev_short_nbor,
+                                __global acctyp4 *restrict fieldp,
+                                const int inum,  const int nall,
+                                const int nbor_pitch, const int t_per_atom,
+                                const numtyp aewald, const numtyp off2,
+                                const numtyp polar_dscale, const numtyp polar_uscale)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
-  //local_allocate_store_charge();
+  local_allocate_store_charge();
 
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
 
-  numtyp4* polar1 = (numtyp4*)(&extra[0]);
-  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
-  numtyp4* polar6 = (numtyp4*)(&extra[20*nall]);
+  const __global numtyp4* polar1 = &extra[0];
+  const __global numtyp4* polar2 = &extra[nall];
+  const __global numtyp4* polar3 = &extra[2*nall];
+  const __global numtyp4* polar6 = &extra[5*nall];
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -1388,7 +1383,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
-                                const __global numtyp *restrict extra,
+                                const __global numtyp4 *restrict extra,
                                 const __global numtyp4 *restrict coeff_amtype,
                                 const __global numtyp4 *restrict coeff_amclass,
                                 const __global numtyp4 *restrict sp_polar,
@@ -1405,14 +1400,14 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
-  //local_allocate_store_charge();
+  local_allocate_store_charge();
 
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
 
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
-  numtyp4* polar4 = (numtyp4*)(&extra[12*nall]);
-  numtyp4* polar5 = (numtyp4*)(&extra[16*nall]);
+  const __global numtyp4* polar3 = &extra[2*nall];
+  const __global numtyp4* polar4 = &extra[3*nall];
+  const __global numtyp4* polar5 = &extra[4*nall];
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -1539,27 +1534,26 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
-                             const __global numtyp *restrict extra,
-                             const __global numtyp4 *restrict coeff_amtype,
-                             const __global numtyp4 *restrict coeff_amclass,
-                             const __global numtyp4 *restrict sp_polar,
-                             const __global int *dev_nbor,
-                             const __global int *dev_packed,
-                             const __global int *dev_short_nbor,
-                             __global acctyp4 *restrict ans,
-                             __global acctyp *restrict engv,
-                             __global acctyp4 *restrict tep,
-                             const int eflag, const int vflag, const int inum,
-                             const int nall, const int nbor_pitch, const int t_per_atom,
-                             const numtyp aewald, const numtyp felec,
-                             const numtyp off2, const numtyp polar_dscale,
-                             const numtyp polar_uscale)
+                            const __global numtyp4 *restrict extra,
+                            const __global numtyp4 *restrict coeff_amtype,
+                            const __global numtyp4 *restrict coeff_amclass,
+                            const __global numtyp4 *restrict sp_polar,
+                            const __global int *dev_nbor,
+                            const __global int *dev_packed,
+                            const __global int *dev_short_nbor,
+                            __global acctyp4 *restrict ans,
+                            __global acctyp *restrict engv,
+                            __global acctyp4 *restrict tep,
+                            const int eflag, const int vflag, const int inum,
+                            const int nall, const int nbor_pitch, const int t_per_atom,
+                            const numtyp aewald, const numtyp felec,
+                            const numtyp off2, const numtyp polar_dscale,
+                            const numtyp polar_uscale)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
-  local_allocate_store_ufld();
   local_allocate_store_charge();
 
   acctyp4 f;
@@ -1577,14 +1571,13 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
   for (int l=0; l<6; l++) dufld[l]=(acctyp)0;
 
   numtyp dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
-  numtyp4* polar1 = (numtyp4*)(&extra[0]);
-  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
-  numtyp4* polar4 = (numtyp4*)(&extra[12*nall]);
-  numtyp4* polar5 = (numtyp4*)(&extra[16*nall]);
-  numtyp4* polar6 = (numtyp4*)(&extra[20*nall]);
 
-  //numtyp4 xi__;
+  const __global numtyp4* polar1 = &extra[0];
+  const __global numtyp4* polar2 = &extra[nall];
+  const __global numtyp4* polar3 = &extra[2*nall];
+  const __global numtyp4* polar4 = &extra[3*nall];
+  const __global numtyp4* polar5 = &extra[4*nall];
+  const __global numtyp4* polar6 = &extra[5*nall];
 
   if (ii<inum) {
     int itype,igroup;
@@ -1644,7 +1637,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp yr = jx.y - ix.y;
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
-
       numtyp r = ucl_sqrt(r2);
 
       const numtyp4 pol1j = polar1[j];

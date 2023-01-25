@@ -516,7 +516,7 @@ class Atom {
   /// Velocities
   UCL_Vector<numtyp,numtyp> v;
   /// Extras
-  UCL_Vector<numtyp,numtyp> extra;
+  UCL_Vector<numtyp4,numtyp4> extra;
 
   #ifdef GPU_CAST
   UCL_Vector<numtyp,numtyp> x_cast;

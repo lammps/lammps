@@ -90,7 +90,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   bool vel = false;
   _extra_fields = 24; // round up to accomodate quadruples of numtyp values
                       // rpole 13; uind 3; uinp 3; amtype, amgroup; pval
-  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial,vel,_extra_fields);
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial,vel,_extra_fields/4);
   if (success!=0)
     return success;
 
@@ -820,35 +820,35 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
   atom->extra_data_unavail();
 
   int _nall=atom->nall();
-  numtyp *pextra=reinterpret_cast<numtyp*>(&(atom->extra[0]));
+  numtyp4 *pextra=reinterpret_cast<numtyp4*>(&(atom->extra[0]));
 
   int n = 0;
-  int nstride = 4;
+  int nstride = 1; //4;
   if (rpole) {
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
-      pextra[idx]   = rpole[i][0];
-      pextra[idx+1] = rpole[i][1];
-      pextra[idx+2] = rpole[i][2];
-      pextra[idx+3] = rpole[i][3];
+      pextra[idx].x = rpole[i][0];
+      pextra[idx].y = rpole[i][1];
+      pextra[idx].z = rpole[i][2];
+      pextra[idx].w = rpole[i][3];
     }
 
     n += nstride*_nall;
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
-      pextra[idx]   = rpole[i][4];
-      pextra[idx+1] = rpole[i][5];
-      pextra[idx+2] = rpole[i][6];
-      pextra[idx+3] = rpole[i][8];
+      pextra[idx].x = rpole[i][4];
+      pextra[idx].y = rpole[i][5];
+      pextra[idx].z = rpole[i][6];
+      pextra[idx].w = rpole[i][8];
     }
 
     n += nstride*_nall;
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
-      pextra[idx]   = rpole[i][9];
-      pextra[idx+1] = rpole[i][12];
-      pextra[idx+2] = (numtyp)amtype[i];
-      pextra[idx+3] = (numtyp)amgroup[i];
+      pextra[idx].x = rpole[i][9];
+      pextra[idx].y = rpole[i][12];
+      pextra[idx].z = (numtyp)amtype[i];
+      pextra[idx].w = (numtyp)amgroup[i];
     }
   } else {
     n += 2*nstride*_nall;
@@ -858,9 +858,10 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
   if (uind) {
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
-      pextra[idx]   = uind[i][0];
-      pextra[idx+1] = uind[i][1];
-      pextra[idx+2] = uind[i][2];
+      pextra[idx].x = uind[i][0];
+      pextra[idx].y = uind[i][1];
+      pextra[idx].z = uind[i][2];
+      pextra[idx].w = 0;
     }
   }
 
@@ -868,9 +869,10 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
   if (uinp) {
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
-      pextra[idx]   = uinp[i][0];
-      pextra[idx+1] = uinp[i][1];
-      pextra[idx+2] = uinp[i][2];
+      pextra[idx].x = uinp[i][0];
+      pextra[idx].y = uinp[i][1];
+      pextra[idx].z = uinp[i][2];
+      pextra[idx].w = 0;
     }
   }
 
@@ -878,7 +880,10 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
   if (pval) {
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
-      pextra[idx]   = pval[i];
+      pextra[idx].x = pval[i];
+      pextra[idx].y = 0;
+      pextra[idx].z = 0;
+      pextra[idx].w = 0;
     }
   }
 }

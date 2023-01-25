@@ -410,7 +410,7 @@ _texture( q_tex,int2);
 ------------------------------------------------------------------------- */
 
 __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
-                                 const __global numtyp *restrict extra,
+                                 const __global numtyp4 *restrict extra,
                                  const __global numtyp4 *restrict coeff,
                                  const __global numtyp4 *restrict sp_amoeba,
                                  const __global int *dev_nbor,
@@ -442,10 +442,10 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 
   acctyp4 tq;
   tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0;
-
-  numtyp4* polar1 = (numtyp4*)(&extra[0]);
-  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+  
+  const __global numtyp4* polar1 = &extra[0];
+  const __global numtyp4* polar2 = &extra[nall];
+  const __global numtyp4* polar3 = &extra[2*nall];
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -489,8 +489,6 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp yr = jx.y - ix.y;
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
-
-      //if (r2>off2) continue;
 
       numtyp r = ucl_sqrt(r2);
       const numtyp4 pol1j = polar1[j];
@@ -583,12 +581,12 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp rr11 = (numtyp)9.0 * rr9 * r2inv;
 
       // calculate the real space Ewald error function terms
-      
+
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[6];
       bn[0] = ucl_erfc(ralpha) * rinv;
-      
+
       numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
       numtyp alsq2n = (numtyp)0.0;
       if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);
@@ -691,7 +689,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
-                                 const __global numtyp *restrict extra,
+                                 const __global numtyp4 *restrict extra,
                                  const __global numtyp4 *restrict coeff,
                                  const __global numtyp4 *restrict sp_amoeba,
                                  const __global int *dev_nbor,
@@ -707,14 +705,14 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
-  //local_allocate_store_charge();
+  local_allocate_store_ufld();
 
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
 
-  numtyp4* polar1 = (numtyp4*)(&extra[0]);
-  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+  const __global numtyp4* polar1 = &extra[0];
+  const __global numtyp4* polar2 = &extra[nall];
+  const __global numtyp4* polar3 = &extra[2*nall];
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -885,7 +883,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
-                                 const __global numtyp *restrict extra,
+                                 const __global numtyp4 *restrict extra,
                                  const __global numtyp4 *restrict coeff,
                                  const __global numtyp4 *restrict sp_amoeba,
                                  const __global int *dev_nbor,
@@ -901,13 +899,14 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
+  local_allocate_store_ufld();
 
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
 
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
-  numtyp4* polar4 = (numtyp4*)(&extra[12*nall]);
-  numtyp4* polar5 = (numtyp4*)(&extra[16*nall]);
+  const __global numtyp4* polar3 = &extra[2*nall];
+  const __global numtyp4* polar4 = &extra[3*nall];
+  const __global numtyp4* polar5 = &extra[4*nall];
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -948,8 +947,6 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp yr = jx.y - ix.y;
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
-
-      //if (r2>off2) continue;
 
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_rsqrt(r2);
@@ -1049,7 +1046,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
-                             const __global numtyp *restrict extra,
+                             const __global numtyp4 *restrict extra,
                              const __global numtyp4 *restrict coeff,
                              const __global numtyp4 *restrict sp_amoeba,
                              const __global int *dev_nbor,
@@ -1068,7 +1065,6 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
-  local_allocate_store_ufld();
   local_allocate_store_charge();
 
   acctyp4 f;
@@ -1086,11 +1082,12 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   for (int l=0; l<6; l++) dufld[l]=(acctyp)0;
 
   numtyp dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
-  numtyp4* polar1 = (numtyp4*)(&extra[0]);
-  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
-  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
-  numtyp4* polar4 = (numtyp4*)(&extra[12*nall]);
-  numtyp4* polar5 = (numtyp4*)(&extra[16*nall]);
+  
+  const __global numtyp4* polar1 = &extra[0];
+  const __global numtyp4* polar2 = &extra[nall];
+  const __global numtyp4* polar3 = &extra[2*nall];
+  const __global numtyp4* polar4 = &extra[3*nall];
+  const __global numtyp4* polar5 = &extra[4*nall];
 
   if (ii<inum) {
     int itype,igroup;

@@ -92,4 +92,13 @@ MEAM::~MEAM()
   memory->destroy(this->scrfcn);
   memory->destroy(this->dscrfcn);
   memory->destroy(this->fcpair);
+
+  // msmeam
+  if (this->msmeamflag){ 
+    memory->destroy(this->arho1m);
+    memory->destroy(this->arho2m);
+    memory->destroy(this->arho3m);
+    memory->destroy(this->arho2mb);
+    memory->destroy(this->arho3mb);
+  }
 }

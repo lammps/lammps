@@ -46,11 +46,13 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memory->destroy(t_ave);
     memory->destroy(tsq_ave);
     // msmeam params
-    memory->destroy(arho1m);
-    memory->destroy(arho2m);
-    memory->destroy(arho3m);
-    memory->destroy(arho2mb);
-    memory->destroy(arho3mb);
+    if (this->msmeamflag){
+      memory->destroy(arho1m);
+      memory->destroy(arho2m);
+      memory->destroy(arho3m);
+      memory->destroy(arho2mb);
+      memory->destroy(arho3mb);
+    }
 
     nmax = atom_nmax;
 
@@ -72,11 +74,13 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memory->create(t_ave, nmax, 3, "pair:t_ave");
     memory->create(tsq_ave, nmax, 3, "pair:tsq_ave");
     // msmeam params
-    memory->create(arho1m, nmax, 3, "pair:arho1m");
-    memory->create(arho2m, nmax, 6, "pair:arho2m");
-    memory->create(arho3m, nmax, 10, "pair:arho3m");
-    memory->create(arho2mb, nmax, "pair:arho2mb");
-    memory->create(arho3mb, nmax, 3, "pair:arho3mb");
+    if (this->msmeamflag){
+      memory->create(arho1m, nmax, 3, "pair:arho1m");
+      memory->create(arho2m, nmax, 6, "pair:arho2m");
+      memory->create(arho3m, nmax, 10, "pair:arho3m");
+      memory->create(arho2mb, nmax, "pair:arho2mb");
+      memory->create(arho3mb, nmax, 3, "pair:arho3mb");
+    }
   }
 
   if (n_neigh > maxneigh) {

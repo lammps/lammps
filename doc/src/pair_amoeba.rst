@@ -202,8 +202,9 @@ These pair styles can only be used via the *pair* keyword of the
 
 .. note::
 
-  There is a unresolved issue with the `amoeba/gpu` and `hippo/gpu`
-  pair styles with the OpenCL build when running on integrated GPUs.
+  Using the GPU accelerated pair styles 'amoeba/gpu' or 'hippo/gpu'
+  when compiling the GPU package for OpenCL has a few known issues
+  when running on integrated GPUs and the calculation may crash.
 
 ----------
 

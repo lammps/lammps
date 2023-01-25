@@ -42,8 +42,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
-                    const double polar_dscale, const double polar_uscale,
-                    int& tep_size) {
+                   const double polar_dscale, const double polar_uscale) {
   HIPPOMF.clear();
   gpu_mode=HIPPOMF.device->gpu_mode();
   double gpu_split=HIPPOMF.device->particle_split();
@@ -52,8 +51,6 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
   int world_me=HIPPOMF.device->world_me();
   int gpu_rank=HIPPOMF.device->gpu_rank();
   int procs_per_gpu=HIPPOMF.device->procs_per_gpu();
-
-  tep_size=sizeof(ACC_PRECISION); // tep_size=sizeof(PRECISION);
 
   HIPPOMF.device->init_message(screen,"HIPPO",first_gpu,last_gpu);
 

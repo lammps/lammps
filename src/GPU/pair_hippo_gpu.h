@@ -50,7 +50,7 @@ class PairHippoGPU : public PairAmoeba {
   double cpu_time;
   void *tq_pinned;
   void *fieldp_pinned;
-  bool tq_single;
+  bool acc_float;
 
   bool gpu_hal_ready;
   bool gpu_repulsion_ready;

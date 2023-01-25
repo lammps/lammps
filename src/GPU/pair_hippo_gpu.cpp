@@ -26,6 +26,7 @@
 #include "fix_store_peratom.h"
 #include "force.h"
 #include "gpu_extra.h"
+#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "my_page.h"
@@ -67,7 +68,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
-                    const double polar_dscale, const double polar_uscale, int& tq_size);
+                    const double polar_dscale, const double polar_uscale);
 void hippo_gpu_clear();
 
 int** hippo_gpu_precompute(const int ago, const int inum_full, const int nall,
@@ -205,7 +206,6 @@ void PairHippoGPU::init_style()
     maxspecial15=atom->maxspecial15;
   }
 
-  int tq_size;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = hippo_gpu_init(atom->ntypes+1, max_amtype, max_amclass,
                                pdamp, thole, dirdamp, amtype2class,
@@ -215,12 +215,13 @@ void PairHippoGPU::init_style()
                                csix, adisp, pcore, palpha,
                                atom->nlocal, atom->nlocal+atom->nghost, mnf,
                                maxspecial, maxspecial15, cell_size, gpu_mode,
-                               screen, polar_dscale, polar_uscale, tq_size);
+                               screen, polar_dscale, polar_uscale);
   GPU_EXTRA::check_flag(success,error,world);
 
-  if (gpu_mode == GPU_FORCE) error->all(FLERR,"Pair style hippo/gpu does not support neigh no for now");
+  if (gpu_mode == GPU_FORCE)
+    error->all(FLERR,"Pair style hippo/gpu does not support neigh no for now");
 
-  tq_single = (tq_size == sizeof(float));
+  acc_float = Info::has_accelerator_feature("GPU", "precision", "single");
 
   // replace with the gpu counterpart
 
@@ -296,7 +297,7 @@ void PairHippoGPU::repulsion()
 
   // reference to the tep array from GPU lib
 
-  if (tq_single) {
+  if (acc_float) {
     auto *tq_ptr = (float *)tq_pinned;
     compute_force_from_torque<float>(tq_ptr, f, virrepulse); // frepulse
   } else {
@@ -396,7 +397,7 @@ void PairHippoGPU::multipole_real()
 
   // reference to the tep array from GPU lib
 
-  if (tq_single) {
+  if (acc_float) {
     auto *tq_ptr = (float *)tq_pinned;
     compute_force_from_torque<float>(tq_ptr, f, virmpole); // fmpole
   } else {
@@ -845,7 +846,7 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
   //   field and fieldp may already have some nonzero values from kspace (udirect1)
 
   int nlocal = atom->nlocal;
-  if (tq_single) {
+  if (acc_float) {
     auto field_ptr = (float *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
@@ -1073,7 +1074,7 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
   hippo_gpu_update_fieldp(&fieldp_pinned);
   int inum = atom->nlocal;
 
-  if (tq_single) {
+  if (acc_float) {
     auto *field_ptr = (float *)fieldp_pinned;
 
     for (int i = 0; i < nlocal; i++) {
@@ -1279,7 +1280,7 @@ void PairHippoGPU::fphi_uind(FFT_SCALAR ****grid, double **fdip_phi1,
                       &fdip_sum_phi_pinned);
 
   int nlocal = atom->nlocal;
-  if (tq_single) {
+  if (acc_float) {
     auto _fdip_phi1_ptr = (float *)fdip_phi1_pinned;
     for (int i = 0; i < nlocal; i++) {
       int n = i;
@@ -1416,7 +1417,7 @@ void PairHippoGPU::polar_real()
 
   // reference to the tep array from GPU lib
 
-  if (tq_single) {
+  if (acc_float) {
     auto *tep_ptr = (float *)tq_pinned;
     compute_force_from_torque<float>(tep_ptr, f, virpolar); // fpolar
   } else {

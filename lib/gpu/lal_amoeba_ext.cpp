@@ -41,8 +41,7 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclas
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
-                    const double polar_dscale, const double polar_uscale,
-                    int& tep_size) {
+                    const double polar_dscale, const double polar_uscale) {
   AMOEBAMF.clear();
   gpu_mode=AMOEBAMF.device->gpu_mode();
   double gpu_split=AMOEBAMF.device->particle_split();
@@ -51,8 +50,6 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclas
   int world_me=AMOEBAMF.device->world_me();
   int gpu_rank=AMOEBAMF.device->gpu_rank();
   int procs_per_gpu=AMOEBAMF.device->procs_per_gpu();
-
-  tep_size=sizeof(ACC_PRECISION); // tep_size=sizeof(PRECISION);
 
   AMOEBAMF.device->init_message(screen,"amoeba",first_gpu,last_gpu);
 

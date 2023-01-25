@@ -33,7 +33,9 @@ MEAM::MEAM(Memory* mem)
   rho = rho0 = rho1 = rho2 = rho3 = frhop = nullptr;
   gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = nullptr;
   arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = nullptr;
+
   // msmeam arrays
+  msmeamflag = 0;
   arho2mb = nullptr;
   arho1m = arho2m = arho3m = arho3mb = nullptr;
 

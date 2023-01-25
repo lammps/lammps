@@ -126,7 +126,7 @@ class UCL_H_Vec : public UCL_BaseMat {
     *   allocating container when using CUDA APIs
     * - Viewing a device container on the host is not supported **/
   template <class ucl_type>
-  inline void view(ucl_type &input, const size_t rows, const size_t cols) {
+  inline void view(ucl_type &input, const size_t UCL_DEBUG_ARG(rows), const size_t cols) {
     #ifdef UCL_DEBUG
     assert(rows==1);
     #endif
@@ -188,7 +188,7 @@ class UCL_H_Vec : public UCL_BaseMat {
     *   allocating container when using CUDA APIs
     * - Viewing a device pointer on the host is not supported **/
   template <class ptr_type>
-  inline void view(ptr_type *input, const size_t rows, const size_t cols,
+  inline void view(ptr_type *input, const size_t UCL_DEBUG_ARG(rows), const size_t cols,
                    UCL_Device &dev) {
     #ifdef UCL_DEBUG
     assert(rows==1);
@@ -233,7 +233,7 @@ class UCL_H_Vec : public UCL_BaseMat {
     *   allocating container when using CUDA APIs
     * - Viewing a device container on the host is not supported **/
   template <class ucl_type>
-  inline void view_offset(const size_t offset,ucl_type &input,const size_t rows,
+  inline void view_offset(const size_t offset,ucl_type &input,const size_t UCL_DEBUG_ARG(rows),
                           const size_t cols) {
     #ifdef UCL_DEBUG
     assert(rows==1);

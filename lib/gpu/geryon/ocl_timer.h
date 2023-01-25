@@ -71,7 +71,7 @@ class UCL_Timer {
   inline void init(UCL_Device &dev) { init(dev,dev.cq()); }
 
   /// Initialize command queue for timing
-  inline void init(UCL_Device &dev, command_queue &cq) {
+  inline void init(UCL_Device & /*dev*/, command_queue &cq) {
     clear();
     _cq=cq;
     clRetainCommandQueue(_cq);

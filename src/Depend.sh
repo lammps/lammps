@@ -45,6 +45,10 @@ depend () {
 # add one if statement per parent package
 # add one depend() call per child package that depends on that parent
 
+if (test $1 = "AMOEBA") then
+  depend GPU
+fi
+
 if (test $1 = "ASPHERE") then
   depend GPU
   depend OPENMP

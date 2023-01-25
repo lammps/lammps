@@ -27,7 +27,7 @@ template <int st> struct _ucl_s_obj_help;
 // -- Can potentially use same memory if shared by accelerator
 template <> struct _ucl_s_obj_help<1> {
   template <class t1, class t2, class t3>
-  static inline int alloc(t1 &host, t2 &device, t3 &_buffer,
+    static inline int alloc(t1 &host, t2 &device, t3 & /*_buffer*/,
                           const int cols, UCL_Device &acc,
                           const enum UCL_MEMOPT kind1,
                           const enum UCL_MEMOPT kind2) {
@@ -131,41 +131,37 @@ template <> struct _ucl_s_obj_help<1> {
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, t3 &buffer, const bool async) {
+    static inline void copy(t1 &dst, t2 &src, t3 & /*buffer*/, const bool async) {
     ucl_copy(dst,src,async);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, t3 &buffer, command_queue &cq) {
+    static inline void copy(t1 &dst, t2 &src, t3 & /*buffer*/, command_queue &cq) {
     ucl_copy(dst,src,cq);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer,
-                          const bool async) {
+    static inline void copy(t1 &dst, t2 &src, const int cols, t3 & /*buffer*/, const bool async) {
     ucl_copy(dst,src,cols,async);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int cols, t3 &buffer,
-                          command_queue &cq) {
+    static inline void copy(t1 &dst, t2 &src, const int cols, t3 & /*buffer*/, command_queue &cq) {
     ucl_copy(dst,src,cols,cq);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols,
-                          t3 &buffer, const bool async) {
+    static inline void copy(t1 &dst, t2 &src, const int rows, const int cols, t3 & /*buffer*/, const bool async) {
     ucl_copy(dst,src,rows,cols,async);
   }
 
   template <class t1, class t2, class t3>
-  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols,
-                          t3 &buffer, command_queue &cq) {
+  static inline void copy(t1 &dst, t2 &src, const int rows, const int cols, t3 & /*buffer*/, command_queue &cq) {
     ucl_copy(dst,src,rows,cols,cq);
   }
 
   template <class t1, class t2, class t3>
-  static inline int dev_resize(t1 &device, t2 &host, t3 &buff,const int cols) {
+    static inline int dev_resize(t1 &device, t2 &host, t3 & /*buff*/,const int cols) {
     if (device.kind()==UCL_VIEW) {
       device.view(host);
       return UCL_SUCCESS;
@@ -353,7 +349,7 @@ template <int st> struct _ucl_s_obj_help {
   }
 
   template <class t1, class t2, class t3>
-  static inline int dev_resize(t1 &device, t2 &host, t3 &buff,const int cols) {
+  static inline int dev_resize(t1 &device, t2 & /*host*/, t3 &buff,const int cols) {
     int err=buff.resize(cols);
     if (err!=UCL_SUCCESS)
       return err;

@@ -24,6 +24,7 @@
 #include "math_special.h"
 #include "my_page.h"
 #include "neigh_list.h"
+#include "timer.h"
 
 #include <cmath>
 
@@ -545,7 +546,7 @@ void PairAmoeba::ufield0c(double **field, double **fieldp)
   }
 
   double time0, time1, time2;
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   // get the real space portion of the mutual field
@@ -795,7 +796,7 @@ void PairAmoeba::dfield0c(double **field, double **fieldp)
   // get the reciprocal space part of the permanent field
 
   double time0, time1, time2;
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   if (polar_kspace_flag) udirect1(field);
@@ -870,7 +871,7 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
 
   // map 2 values to grid
 
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   grid_uind(fuind,fuinp,gridpre);
@@ -915,7 +916,7 @@ void PairAmoeba::umutual1(double **field, double **fieldp)
 
   // get potential
 
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   fphi_uind(gridpost,fdip_phi1,fdip_phi2,fdip_sum_phi);

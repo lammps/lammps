@@ -21,6 +21,7 @@
 #include "math_const.h"
 #include "math_special.h"
 #include "neigh_list.h"
+#include "timer.h"
 
 #include <cmath>
 #include <cstring>
@@ -78,7 +79,7 @@ void PairAmoeba::polar()
 
   // compute the real space part of the dipole interactions
 
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   if (polar_rspace_flag) polar_real();

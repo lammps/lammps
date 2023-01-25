@@ -29,6 +29,7 @@
 #include "my_page.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "timer.h"
 #include "update.h"
 
 #include <cmath>
@@ -371,7 +372,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   double time0,time1,time2,time3,time4,time5,time6,time7,time8;
 
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   // if reneighboring step:

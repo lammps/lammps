@@ -21,6 +21,7 @@
 #include "math_const.h"
 #include "math_special.h"
 #include "neigh_list.h"
+#include "timer.h"
 
 #include <cmath>
 
@@ -80,7 +81,7 @@ void PairAmoeba::multipole()
 
   felec = electric / am_dielectric;
 
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   // compute the real space part of the Ewald summation

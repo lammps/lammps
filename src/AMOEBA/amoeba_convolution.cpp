@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "remap_wrap.h"
+#include "timer.h"
 
 #include <cmath>
 #include <cstring>
@@ -328,7 +329,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
 
   double time0,time1;
 
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   // perform forward FFT
@@ -393,7 +394,7 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
 
   double time0,time1;
 
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   // perform forward FFT
@@ -443,7 +444,7 @@ void *AmoebaConvolution::post_convolution_3d()
 
   double time0,time1;
 
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
@@ -494,7 +495,7 @@ void *AmoebaConvolution::post_convolution_4d()
 
   double time0,time1;
 
-  MPI_Barrier(world);
+  if (timer->has_sync()) MPI_Barrier(world);
   time0 = platform::walltime();
 
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);

@@ -667,7 +667,7 @@ int Variable::next(int narg, char **arg)
       istyle == TIMER || istyle == INTERNAL)
     error->all(FLERR,"Invalid variable style with next command");
 
-  // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
+  // if istyle = UNIVERSE or ULOOP, ensure all such variables are incremented
 
   if (istyle == UNIVERSE || istyle == ULOOP)
     for (int i = 0; i < nvar; i++) {

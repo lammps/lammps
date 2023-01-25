@@ -20,7 +20,7 @@ Syntax
          seed = random # seed (positive integer)
        *set* args = vx vy vz
          vx,vy,vz = velocity value or NULL (velocity units)
-         any of vx,vy,vz van be a variable (see below)
+         any of vx,vy,vz can be a variable (see below)
        *scale* arg = temp
          temp = temperature value (temperature units)
        *ramp* args = vdim vlo vhi dim clo chi
@@ -246,7 +246,7 @@ freedom (DOFs) is known.  Thus it is not possible to compute the
 target temperature correctly.  Second, the assigned velocities may be
 partially canceled when constraints are first enforced, leading to a
 different temperature than desired.  A workaround for this is to
-perform a :doc:`run 0 <run>` command, which insures all DOFs are
+perform a :doc:`run 0 <run>` command, which ensures all DOFs are
 accounted for properly, and then rescale the temperature to the
 desired value before performing a simulation.  For example:
 

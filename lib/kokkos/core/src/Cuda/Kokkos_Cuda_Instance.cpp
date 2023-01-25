@@ -569,12 +569,6 @@ Kokkos::Cuda::initialize WARNING: Cuda is allocating into UVMSpace by default
   }
 #endif
 
-#ifdef KOKKOS_ENABLE_PRE_CUDA_10_DEPRECATION_API
-  cudaThreadSetCacheConfig(cudaFuncCachePreferShared);
-#else
-  cudaDeviceSetCacheConfig(cudaFuncCachePreferShared);
-#endif
-
   // Init the array for used for arbitrarily sized atomics
   if (stream == nullptr) Impl::initialize_host_cuda_lock_arrays();
 

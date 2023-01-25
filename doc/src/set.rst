@@ -254,7 +254,7 @@ fraction of the selected atoms.  The actual number of atoms changed
 will be exactly the requested number.  For *type/ratio* the specified
 fraction (0 <= *fraction* <= 1) determines the number.  For
 *type/subset*, the specified *Nsubset* is the number.  An iterative
-algorithm is used which insures the correct number of atoms are
+algorithm is used which ensures the correct number of atoms are
 selected, in a perfectly random fashion.  Which atoms are selected
 will change with the number of processors used.  These keywords do not
 allow use of an atom-style variable.

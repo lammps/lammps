@@ -152,7 +152,7 @@ void PPPMElectrode::init()
   cutoff = *p_cutoff;
 
   // if kspace is TIP4P, extract TIP4P params from pair style
-  // bond/angle are not yet init(), so insure equilibrium request is valid
+  // bond/angle are not yet init(), so ensure equilibrium request is valid
 
   qdist = 0.0;
 
@@ -1539,7 +1539,7 @@ void PPPMElectrode::set_grid_local()
   //   but not vice versa, also want field data communicated from +z proc
   //   to -z proc, but not vice versa
   // this is accomplished by nzhi_in = nzhi_out on +z end (no ghost cells)
-  // also insure no other procs use ghost cells beyond +z limit
+  // also ensure no other procs use ghost cells beyond +z limit
   // differnet logic for non-tiled vs tiled decomposition
 
   if (slabflag == 1) {

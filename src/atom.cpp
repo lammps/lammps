@@ -186,12 +186,6 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
   cc = cc_flux = nullptr;
   edpd_temp = edpd_flux = edpd_cv = nullptr;
 
-  // MESONT package
-
-  length = nullptr;
-  buckling = nullptr;
-  bond_nt = nullptr;
-
   // MACHDYN package
 
   contact_radius = nullptr;
@@ -526,12 +520,6 @@ void Atom::peratom_create()
   add_peratom("edpd_flux",&edpd_flux,DOUBLE,0,1);     // set per-thread flag
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
-
-  // MESONT package
-
-  add_peratom("length",&length,DOUBLE,0);
-  add_peratom("buckling",&buckling,INT,0);
-  add_peratom("bond_nt",&bond_nt,tagintsize,2);
 
   // SPH package
 
@@ -1077,7 +1065,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   *next = '\n';
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
-  // insures all data atoms will be owned even with round-off
+  // ensures all data atoms will be owned even with round-off
 
   int triclinic = domain->triclinic;
 
@@ -2213,7 +2201,7 @@ void Atom::add_label_map()
 
 void Atom::first_reorder()
 {
-  // insure there is one extra atom location at end of arrays for swaps
+  // ensure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 
@@ -2264,7 +2252,7 @@ void Atom::sort()
     memory->create(permute,maxnext,"atom:permute");
   }
 
-  // insure there is one extra atom location at end of arrays for swaps
+  // ensure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 
@@ -2931,12 +2919,6 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
 
-  // MESONT package
-
-  if (strcmp(name,"length") == 0) return (void *) length;
-  if (strcmp(name,"buckling") == 0) return (void *) buckling;
-  if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
-
   // MACHDYN package
 
   if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
@@ -3054,12 +3036,6 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"desph") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"cv") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"vest") == 0) return LAMMPS_DOUBLE_2D;
-
-  // MESONT package
-
-  if (strcmp(name,"length") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"buckling") == 0) return LAMMPS_INT;
-  if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT_2D;
 
   // MACHDYN package
 

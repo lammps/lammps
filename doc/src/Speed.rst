@@ -9,7 +9,7 @@ There are two thrusts to the discussion that follows.  The first is
 using code options that implement alternate algorithms that can
 speed-up a simulation.  The second is to use one of the several
 accelerator packages provided with LAMMPS that contain code optimized
-for certain kinds of hardware, including multi-core CPUs, GPUs, and
+for certain kinds of hardware, including multicore CPUs, GPUs, and
 Intel Xeon Phi co-processors.
 
 The `Benchmark page <https://www.lammps.org/bench.html>`_ of the LAMMPS

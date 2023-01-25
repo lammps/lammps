@@ -110,7 +110,7 @@ control variable.  The format of the control file is described below.
    not agree.
 
 Examples using *pair_style reaxff* are provided in the examples/reax
-sub-directory.
+subdirectory.
 
 Use of this pair style requires that a charge be defined for every
 atom.  See the :doc:`atom_style <atom_style>` and

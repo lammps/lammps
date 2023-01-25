@@ -160,7 +160,7 @@ void AtomKokkos::sort()
     memory->create(permute, maxnext, "atom:permute");
   }
 
-  // insure there is one extra atom location at end of arrays for swaps
+  // ensure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 

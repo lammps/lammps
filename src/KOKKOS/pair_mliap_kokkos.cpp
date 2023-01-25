@@ -202,7 +202,7 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   char* type2 = arg[1];
   char** elemtypes = &arg[2];
 
-  // insure I,J args are * *
+  // ensure I,J args are * *
 
   if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");

@@ -265,6 +265,7 @@ set(STANDARD_PACKAGES
   MC
   MDI
   MEAM
+  MESONT
   MGPT
   MISC
   ML-HDNNP
@@ -308,9 +309,8 @@ set(STANDARD_PACKAGES
   YAFF)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
-set(EXTRA_PACKAGES MESONT)
 
-foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
 
@@ -520,7 +520,7 @@ else()
   set(CUDA_REQUEST_PIC)
 endif()
 
-foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE MESONT NETCDF
+foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
         PLUMED QMMM ML-QUIP SCAFACOS MACHDYN VTK KIM LATTE MSCG COMPRESS ML-PACE LEPTON)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
@@ -566,7 +566,9 @@ RegisterStyles(${LAMMPS_SOURCE_DIR})
 ########################################################
 # Fetch missing external files and archives for packages
 ########################################################
-foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
+option(DOWNLOAD_POTENTIALS "Automatically download large potential files" ON)
+mark_as_advanced(DOWNLOAD_POTENTIALS)
+foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     FetchPotentials(${LAMMPS_SOURCE_DIR}/${PKG} ${LAMMPS_POTENTIALS_DIR})
   endif()
@@ -706,7 +708,7 @@ target_include_directories(lammps PRIVATE ${LAMMPS_STYLE_HEADERS_DIR})
 ######################################
 set(temp "#ifndef LMP_INSTALLED_PKGS_H\n#define LMP_INSTALLED_PKGS_H\n")
 set(temp "${temp}const char * LAMMPS_NS::LAMMPS::installed_packages[] =  {\n")
-set(temp_PKG_LIST ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
+set(temp_PKG_LIST ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
 list(SORT temp_PKG_LIST)
 foreach(PKG ${temp_PKG_LIST})
     if(PKG_${PKG})
@@ -927,7 +929,7 @@ message(STATUS "<<< Build configuration >>>
 # Print package summary
 ###############################################################################
 set(ENABLED_PACKAGES)
-foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     list(APPEND ENABLED_PACKAGES ${PKG})
   endif()

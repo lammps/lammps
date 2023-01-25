@@ -123,7 +123,7 @@ that will be used with other potentials.
    filenames can appear in any order, e.g. "Si C" or "C Si" in the
    example above.  However, if the second filename is **not** NULL (as in the
    example above), it contains settings that are indexed **by numbers**
-   for the elements that precede it.  Thus you need to insure that you list
+   for the elements that precede it.  Thus you need to ensure that you list
    the elements between the filenames in an order consistent with how the
    values in the second filename are indexed.  See details below on the
    syntax for settings in the second file.

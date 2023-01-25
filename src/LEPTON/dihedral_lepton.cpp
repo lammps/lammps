@@ -509,7 +509,7 @@ double DihedralLepton::get_phi(double const *x1,    //array holding x,y,z coords
 
   if (dot3(n123, vb34) > 0.0) {
     phi = -phi;       //(Note: Negative dihedral angles are possible only in 3-D.)
-    phi += MY_2PI;    //<- This insures phi is always in the range 0 to 2*PI
+    phi += MY_2PI;    //<- This ensures phi is always in the range 0 to 2*PI
   }
   return phi;
 }

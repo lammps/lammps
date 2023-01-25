@@ -1,16 +1,16 @@
 Download the LAMMPS source with git
 -----------------------------------
 
-All LAMMPS development is coordinated through the "LAMMPS GitHub
-site".  If you clone the LAMMPS repository onto your local machine, it
-has several advantages:
+LAMMPS development is coordinated through the "LAMMPS GitHub site".
+If you clone the LAMMPS repository onto your local machine, it has
+several advantages:
 
 * You can stay current with changes to LAMMPS with a single git
   command.
 * You can create your own development branches to add code to LAMMPS.
 * You can submit your new features back to GitHub for inclusion in
-  LAMMPS.  For that you should first create your own :doc:`fork on
-  GitHub <Howto_github>`.
+  LAMMPS.  For that, you should first create your own :doc:`fork on
+  GitHub <Howto_github>`, though.
 
 You must have `git <git_>`_ installed on your system to use the
 commands explained below to communicate with the git servers on
@@ -31,8 +31,8 @@ You can follow the LAMMPS development on 3 different git branches:
 * **stable**   :  this branch is updated from the *release* branch with
   every stable release version and also has selected bug fixes and updates
   back-ported from the *develop* branch
-* **release**  :  this branch is updated with every patch release;
-  updates are always "fast forward" merges from *develop*
+* **release**  :  this branch is updated with every patch or feature release;
+  updates are always "fast-forward" merges from *develop*
 * **develop**  :  this branch follows the ongoing development and
   is updated with every merge commit of a pull request
 
@@ -58,12 +58,12 @@ between them at any time using "git checkout <branch name>".)
    commit history (most people don't), you can speed up the "cloning"
    process and reduce local disk space requirements by using the
    *--depth* git command line flag.  That will create a "shallow clone"
-   of the repository containing only a subset of the git history.  Using
-   a depth of 1000 is usually sufficient to include the head commits of
-   the *develop* and the *release* branches.  To include the head commit
-   of the *stable* branch you may need a depth of up to 10000.  If you
-   later need more of the git history, you can always convert the
-   shallow clone into a "full clone".
+   of the repository, which contains only a subset of the git history.
+   Using a depth of 1000 is usually sufficient to include the head
+   commits of the *develop* and the *release* branches.  To include the
+   head commit of the *stable* branch you may need a depth of up
+   to 10000.  If you later need more of the git history, you can always
+   convert the shallow clone into a "full clone".
 
 Once the command completes, your directory will contain the same files
 as if you unpacked a current LAMMPS tarball, with the exception, that
@@ -84,11 +84,11 @@ from within the "mylammps" directory:
    git pull
 
 Doing a "pull" will not change any files you have added to the LAMMPS
-directory structure.  It will also not change any existing LAMMPS
-files you have edited, unless those files have changed in the
-repository.  In that case, git will attempt to merge the new
-repository file with your version of the file and tell you if there
-are any conflicts.  See the git documentation for details.
+directory structure.  It will also not change any existing LAMMPS files
+you have edited, unless those files have changed in the repository.  In
+that case, git will attempt to merge the changes from the repository
+file with your version of the file and tell you if there are any
+conflicts.  See the git documentation for details.
 
 If you want to access a particular previous release version of LAMMPS,
 you can instead "check out" any version with a published tag. See the
@@ -146,13 +146,13 @@ changed.  How to do this depends on the build system you are using.
       and package directories.  This is OK to do even if you don't
       use any packages. The ``make purge`` command removes any deprecated
       src files if they were removed by the patch from a package
-      sub-directory.
+      subdirectory.
 
       .. warning::
 
          If you wish to edit/change a src file that is from a package,
          you should edit the version of the file inside the package
-         sub-directory with src, then re-install the package.  The
+         subdirectory with src, then re-install the package.  The
          version in the source directory is merely a copy and will be
          wiped out if you type "make package-update".
 
@@ -164,5 +164,5 @@ changed.  How to do this depends on the build system you are using.
    GitHub account, you may also use SSH protocol with the URL
    "git@github.com:lammps/lammps.git".
 
-The LAMMPS GitHub project is currently managed by Axel Kohlmeyer
+The LAMMPS GitHub project is currently overseen by Axel Kohlmeyer
 (Temple U, akohlmey at gmail.com).

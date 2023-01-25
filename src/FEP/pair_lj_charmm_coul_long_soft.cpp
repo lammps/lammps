@@ -722,7 +722,7 @@ void PairLJCharmmCoulLongSoft::init_style()
       error->all(FLERR,"Pair inner cutoff < Respa interior cutoff");
   } else cut_respa = nullptr;
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");

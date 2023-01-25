@@ -298,7 +298,7 @@ void Respa::init()
   if (atom->torque_flag) cmd += " torque";
   fix_respa = dynamic_cast<FixRespa *>(modify->add_fix(cmd));
 
-  // insure respa inner/middle/outer is using Pair class that supports it
+  // ensure respa inner/middle/outer is using Pair class that supports it
 
   if (level_inner >= 0)
     if (force->pair && force->pair->respa_enable == 0)

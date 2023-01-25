@@ -231,7 +231,7 @@ void ComputeStressSpherical::compute_array()
   // loop over neighbors of my atoms
   // skip if I or J are not in group
   // for newton = 0 and J = ghost atom,
-  //   need to insure I,J pair is only output by one proc
+  //   need to ensure I,J pair is only output by one proc
   //   use same itag,jtag logic as in Neighbor::neigh_half_nsq()
   // for flag = 0, just count pair interactions within force cutoff
   // for flag = 1, calculate requested output fields

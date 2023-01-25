@@ -38,7 +38,7 @@ void FixWallColloid::init()
   if (!atom->sphere_flag)
     error->all(FLERR,"Fix wall/colloid requires atom style sphere");
 
-  // insure all particles in group are extended particles
+  // ensure all particles in group are extended particles
 
   double *radius = atom->radius;
   int *mask = atom->mask;

@@ -1293,6 +1293,9 @@ void Info::get_memory_info(double *meminfo)
   meminfo[2] = (double)pmc.PeakWorkingSetSize/1048576.0;
 #else
 #if defined(__linux__)
+// __GLIBC_MINOR__ is only defined on real glibc (i.e. not on musl)
+#if defined(__GLIBC_MINOR__)
+// newer glibc versions have mallinfo2
 #if defined(__GLIBC__) && __GLIBC_PREREQ(2, 33)
   struct mallinfo2 mi;
   mi = mallinfo2();
@@ -1301,6 +1304,10 @@ void Info::get_memory_info(double *meminfo)
   mi = mallinfo();
 #endif
   meminfo[1] = (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0;
+#endif
+// not glibc => may not have mallinfo/mallinfo2
+#else
+  meminfo[1] = 0.0;
 #endif
   struct rusage ru;
   if (getrusage(RUSAGE_SELF, &ru) == 0)

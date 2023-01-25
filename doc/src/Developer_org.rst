@@ -7,7 +7,7 @@ but there are small a number of files in several other languages like C,
 Fortran, Shell script, or Python.
 
 The core of the code is located in the ``src`` folder and its
-sub-directories.  A sizable number of these files are in the ``src``
+subdirectories.  A sizable number of these files are in the ``src``
 directory itself, but there are plenty of :doc:`packages <Packages>`,
 which can be included or excluded when LAMMPS is built.  See the
 :doc:`Include packages in build <Build_package>` section of the manual
@@ -16,11 +16,11 @@ currently supports building with :doc:`conventional makefiles
 <Build_make>` and through :doc:`CMake <Build_cmake>`.  Those procedures
 differ in how packages are enabled or disabled for inclusion into a
 LAMMPS binary so they cannot be mixed.  The source files for each
-package are in all-uppercase sub-directories of the ``src`` folder, for
+package are in all-uppercase subdirectories of the ``src`` folder, for
 example ``src/MOLECULE`` or ``src/EXTRA-MOLECULE``.  The ``src/STUBS``
-sub-directory is not a package but contains a dummy MPI library, that is
+subdirectory is not a package but contains a dummy MPI library, that is
 used when building a serial version of the code. The ``src/MAKE``
-directory and its sub-directories contain makefiles with settings and
+directory and its subdirectories contain makefiles with settings and
 flags for a variety of configuration and machines for the build process
 with traditional makefiles.
 
@@ -28,7 +28,7 @@ The ``lib`` directory contains the source code for several supporting
 libraries or files with configuration settings to use globally installed
 libraries, that are required by some of the optional packages.  They may
 include python scripts that can transparently download additional source
-code on request.  Each sub-directory, like ``lib/poems`` or ``lib/gpu``,
+code on request.  Each subdirectory, like ``lib/poems`` or ``lib/gpu``,
 contains the source files, some of which are in different languages such
 as Fortran or CUDA. These libraries included in the LAMMPS build,
 if the corresponding package is installed.

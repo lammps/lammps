@@ -552,8 +552,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
     CudaParallelLaunch<ParallelFor, LaunchBounds>(
         *this, grid, block, shmem_size_total,
-        m_policy.space().impl_internal_space_instance(),
-        true);  // copy to device and execute
+        m_policy.space()
+	    .impl_internal_space_instance());  // copy to device and execute
   }
 
   ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
@@ -878,8 +878,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
       CudaParallelLaunch<ParallelReduce, LaunchBounds>(
           *this, grid, block, shmem_size_total,
-          m_policy.space().impl_internal_space_instance(),
-          true);  // copy to device and execute
+          m_policy.space()
+	      .impl_internal_space_instance());  // copy to device and execute
 
       if (!m_result_ptr_device_accessible) {
         m_policy.space().fence(

@@ -11,7 +11,7 @@ export LC_ALL
 
 # update child packages that depend on the parent,
 #   but only if the child package is already installed
-# this is necessary to insure the child package installs
+# this is necessary to ensure the child package installs
 #   only child files whose parent package files are now installed
 # decisions on (un)installing individual child files are made by
 #   the Install.sh script in the child package

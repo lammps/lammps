@@ -86,11 +86,11 @@ Matter papers: :ref:`(Duffy) <Duffy>` and :ref:`(Rutherford)
 a primary knock-on atom (PKA) was initialized with a high velocity to
 simulate a radiation event.
 
-The description in this sub-section applies to all 3 fix styles:
+The description in this subsection applies to all 3 fix styles:
 *ttm*, *ttm/grid*, and *ttm/mod*.
 
 Fix *ttm/grid* distributes the regular grid across processors consistent
-with the sub-domains of atoms owned by each processor, but is otherwise
+with the subdomains of atoms owned by each processor, but is otherwise
 identical to fix ttm.  Note that fix *ttm* stores a copy of the grid on
 each processor, which is acceptable when the overall grid is reasonably
 small.  For larger grids you should use fix *ttm/grid* instead.
@@ -170,11 +170,11 @@ ttm/mod.
   periodic boundary conditions in all dimensions.  They also require
   that the size and shape of the simulation box do not vary
   dynamically, e.g. due to use of the :doc:`fix npt <fix_nh>` command.
-  Likewise, the size/shape of processor sub-domains cannot vary due to
+  Likewise, the size/shape of processor subdomains cannot vary due to
   dynamic load-balancing via use of the :doc:`fix balance
   <fix_balance>` command.  It is possible however to load balance
   before the simulation starts using the :doc:`balance <balance>`
-  command, so that each processor has a different size sub-domain.
+  command, so that each processor has a different size subdomain.
 
 Periodic boundary conditions are also used in the heat equation solve
 for the electronic subsystem.  This varies from the approach of

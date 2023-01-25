@@ -527,6 +527,11 @@ foreach(PKG_WITH_INCL KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE 
   endif()
 endforeach()
 
+# AMOEBA is not compatible with single precision FFTs
+if(PKG_AMOEBA AND FFT_SINGLE)
+  message(FATAL_ERROR "Package AMOEBA is not compatible with single precision FFTs")
+endif()
+
 # optionally enable building script wrappers using swig
 option(WITH_SWIG "Build scripting language wrappers with SWIG" OFF)
 if(WITH_SWIG)

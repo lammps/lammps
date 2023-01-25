@@ -26,7 +26,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 25Jan2023
 
 Write energy and force values to a file as a function of angle for the
 currently defined angle potential.  Force in this context means the

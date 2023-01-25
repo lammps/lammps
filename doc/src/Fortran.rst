@@ -56,7 +56,7 @@ C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
    and Ubuntu 18.04 LTS and not compatible.  Either newer compilers
    need to be installed or the Linux updated.
 
-.. versionchanged:: TBD
+.. versionchanged:: 25Jan2023
 
 .. note::
 

@@ -190,6 +190,9 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int type, int c
                                  int *ids, void *data);
 
 void lammps_gather_bonds(void *handle, void *data);
+void lammps_gather_angles(void *handle, void *data);
+void lammps_gather_dihedrals(void *handle, void *data);
+void lammps_gather_impropers(void *handle, void *data);
 
 void lammps_gather(void *handle, const char *name, int type, int count, void *data);
 void lammps_gather_concat(void *handle, const char *name, int type, int count, void *data);

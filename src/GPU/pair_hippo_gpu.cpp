@@ -26,6 +26,7 @@
 #include "fix_store_peratom.h"
 #include "force.h"
 #include "gpu_extra.h"
+#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "my_page.h"
@@ -886,7 +887,7 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
       fieldp[i][1] += fieldp_ptr[idx+1];
       fieldp[i][2] += fieldp_ptr[idx+2];
     }
-  }  
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1077,24 +1078,45 @@ void PairHippoGPU::ufield0c(double **field, double **fieldp)
   //   field and fieldp may already have some nonzero values from kspace (umutual1 and self)
 
   hippo_gpu_update_fieldp(&fieldp_pinned);
-
   int inum = atom->nlocal;
-  double *field_ptr = (double *)fieldp_pinned;
 
-  for (int i = 0; i < nlocal; i++) {
-    int idx = 4*i;
-    field[i][0] += field_ptr[idx];
-    field[i][1] += field_ptr[idx+1];
-    field[i][2] += field_ptr[idx+2];
-  }
+  if (Info::has_accelerator_feature("GPU", "precision", "single")) {
+    float *field_ptr = (float *)fieldp_pinned;
 
-  double* fieldp_ptr = (double *)fieldp_pinned;
-  fieldp_ptr += 4*inum;
-  for (int i = 0; i < nlocal; i++) {
-    int idx = 4*i;
-    fieldp[i][0] += fieldp_ptr[idx];
-    fieldp[i][1] += fieldp_ptr[idx+1];
-    fieldp[i][2] += fieldp_ptr[idx+2];
+    for (int i = 0; i < nlocal; i++) {
+      int idx = 4*i;
+      field[i][0] += field_ptr[idx];
+      field[i][1] += field_ptr[idx+1];
+      field[i][2] += field_ptr[idx+2];
+    }
+
+    float* fieldp_ptr = (float *)fieldp_pinned;
+    fieldp_ptr += 4*inum;
+    for (int i = 0; i < nlocal; i++) {
+      int idx = 4*i;
+      fieldp[i][0] += fieldp_ptr[idx];
+      fieldp[i][1] += fieldp_ptr[idx+1];
+      fieldp[i][2] += fieldp_ptr[idx+2];
+    }
+
+  } else {
+    double *field_ptr = (double *)fieldp_pinned;
+
+    for (int i = 0; i < nlocal; i++) {
+      int idx = 4*i;
+      field[i][0] += field_ptr[idx];
+      field[i][1] += field_ptr[idx+1];
+      field[i][2] += field_ptr[idx+2];
+    }
+
+    double* fieldp_ptr = (double *)fieldp_pinned;
+    fieldp_ptr += 4*inum;
+    for (int i = 0; i < nlocal; i++) {
+      int idx = 4*i;
+      fieldp[i][0] += fieldp_ptr[idx];
+      fieldp[i][1] += fieldp_ptr[idx+1];
+      fieldp[i][2] += fieldp_ptr[idx+2];
+    }
   }
 
   // accumulate timing information

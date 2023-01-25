@@ -1,5 +1,27 @@
 # Change Log
 
+## [3.7.01](https://github.com/kokkos/kokkos/tree/3.7.01) (2022-12-01)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.7.00...3.7.01)
+
+### Bug Fixes:
+- Add fences to all sorting routines not taking an execution space instance argument [\#5547](https://github.com/kokkos/kokkos/pull/5547)
+- Fix repeated `team_reduce` without barrier [\#5552](https://github.com/kokkos/kokkos/pull/5552)
+- Fix memory spaces in `create_mirror_view` overloads using `view_alloc` [\#5521](https://github.com/kokkos/kokkos/pull/5521)
+- Allow `as_view_of_rank_n()` to be overloaded for "special" scalar types [\#5553](https://github.com/kokkos/kokkos/pull/5553)
+- Fix warning calling a `__host__` function from a `__host__ __device__` from `View:: as_view_of_rank_n` [\#5591](https://github.com/kokkos/kokkos/pull/5591)
+- OpenMPTarget: adding implementation to set device id. [\#5557](https://github.com/kokkos/kokkos/pull/5557)
+- Use `Kokkos::atomic_load` to Correct Race Condition Giving Rise to Seg Faulting Error in OpenMP tests [\#5559](https://github.com/kokkos/kokkos/pull/5559)
+- cmake: define `KOKKOS_ARCH_A64FX` [\#5561](https://github.com/kokkos/kokkos/pull/5561)
+- Only link against libatomic in gnu-make OpenMPTarget build [\#5565](https://github.com/kokkos/kokkos/pull/5565)
+- Fix static extents assignment for LayoutLeft/LayoutRight assignment [\#5566](https://github.com/kokkos/kokkos/pull/5566)
+- Do not add -cuda to the link line with NVHPC compiler when the CUDA backend is not actually enabled [\#5569](https://github.com/kokkos/kokkos/pull/5569)
+- Export the flags in `KOKKOS_AMDGPU_OPTIONS` when using Trilinos [\#5571](https://github.com/kokkos/kokkos/pull/5571)
+- Add support for detecting MPI local rank with MPICH and PMI [\#5570](https://github.com/kokkos/kokkos/pull/5570) [\#5582](https://github.com/kokkos/kokkos/pull/5582)
+- Remove listing of undefined TPL dependencies [\#5573](https://github.com/kokkos/kokkos/pull/5573)
+- ClockTic changed to 64 bit to fix overflow on Power [\#5592](https://github.com/kokkos/kokkos/pull/5592)
+- Fix incorrect offset in CUDA and HIP parallel scan for < 4 byte types [\#5607](https://github.com/kokkos/kokkos/pull/5607)
+- Fix initialization of Cuda lock arrays [\#5622](https://github.com/kokkos/kokkos/pull/5622)
+
 ## [3.7.00](https://github.com/kokkos/kokkos/tree/3.7.00) (2022-08-22)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/3.6.01...3.7.00)
 
@@ -102,7 +124,6 @@
 - Deprecate command line arguments (other than `--help`) that are not prefixed with `kokkos-*` [\#5120](https://github.com/kokkos/kokkos/pull/5120)
 - Deprecate `--[kokkos-]numa` cmdline arg and `KOKKOS_NUMA` env var [\#5117](https://github.com/kokkos/kokkos/pull/5117)
 - Deprecate `--[kokkos-]threads` command line argument in favor of `--[kokkos-]num-threads` [\#5111](https://github.com/kokkos/kokkos/pull/5111)
-- Deprecate `Kokkos::common_view_alloc_prop` [\#5059](https://github.com/kokkos/kokkos/pull/5059)
 - Deprecate `Kokkos::is_reducer_type` [\#4957](https://github.com/kokkos/kokkos/pull/4957)
 - Deprecate `OffsetView` constructors taking `index_list_type` [\#4810](https://github.com/kokkos/kokkos/pull/4810)
 - Deprecate overloads of `Kokkos::sort` taking a parameter `bool always_use_kokkos_sort` [\#5382](https://github.com/kokkos/kokkos/issues/5382)

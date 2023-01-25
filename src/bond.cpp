@@ -400,7 +400,7 @@ void Bond::write_file(int narg, char **arg)
   }
 
   // initialize potentials before evaluating bond potential
-  // insures all bond coeffs are set and force constants
+  // ensures all bond coeffs are set and force constants
   // also initialize neighbor so that neighbor requests are processed
   // NOTE: might be safest to just do lmp->init()
 

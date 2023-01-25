@@ -5,16 +5,17 @@ LAMMPS Documentation (|version| version)
 LAMMPS stands for **L**\ arge-scale **A**\ tomic/**M**\ olecular
 **M**\ assively **P**\ arallel **S**\ imulator.
 
-LAMMPS is a classical molecular dynamics simulation code with a focus
-on materials modeling.  It was designed to run efficiently on parallel
-computers.  It was developed originally at Sandia National
-Laboratories, a US Department of Energy facility.  The majority of
-funding for LAMMPS has come from the US Department of Energy (DOE).
-LAMMPS is an open-source code, distributed freely under the terms of
-the GNU Public License Version 2 (GPLv2).
+LAMMPS is a classical molecular dynamics simulation code focusing on
+materials modeling.  It was designed to run efficiently on parallel
+computers and to be easy to extend and modify.  Originally developed at
+Sandia National Laboratories, a US Department of Energy facility, LAMMPS
+now includes contributions from many research groups and individuals
+from many institutions.  Most of the funding for LAMMPS has come from
+the US Department of Energy (DOE).  LAMMPS is open-source software
+distributed under the terms of the GNU Public License Version 2 (GPLv2).
 
 The `LAMMPS website <lws_>`_ has a variety of information about the
-code.  It includes links to an on-line version of this manual, an
+code.  It includes links to an online version of this manual, an
 `online forum <https://www.lammps.org/forum.html>`_ where users can post
 questions and discuss LAMMPS, and a `GitHub site
 <https://github.com/lammps/lammps>`_ where all LAMMPS development is
@@ -23,27 +24,33 @@ coordinated.
 ----------
 
 The content for this manual is part of the LAMMPS distribution.  The
-online version always corresponds to the latest development version.
-If needed, you can download or build a local copy of the manual as
-HTML pages or a PDF file by following the steps on the
-:doc:`Build_manual` page. If you have difficulties viewing the pages
-please :ref:`see this note <webbrowser>`.
+online version always corresponds to the latest feature release version.
+If needed, you can build a local copy of the manual as HTML pages or a
+PDF file by following the steps on the :doc:`Build_manual` page.  If you
+have difficulties viewing the pages, please :ref:`see this note
+<webbrowser>`.
 
 -----------
 
-The manual is organized in three parts:
-1) the :ref:`User Guide <user_documentation>` for how to install
-and use LAMMPS, 2) the :ref:`Programmer Guide <programmer_documentation>`
-for how to write programs using the LAMMPS library from different
-programming languages and how to modify and extend LAMMPS, and 3) the
-:ref:`Command Reference <command_reference>` which includes detailed
-descriptions of all commands included in the LAMMPS code.
+The manual is organized into three parts:
+
+1. The :ref:`User Guide <user_documentation>` with information about how
+   to obtain, configure, compile, install, and use LAMMPS,
+2. the :ref:`Programmer Guide <programmer_documentation>` with
+   information about how to use the LAMMPS library interface from
+   different programming languages, how to modify and extend LAMMPS,
+   the program design, internal programming interfaces, and code
+   design conventions,
+3. the :ref:`Command Reference <command_reference>` with detailed
+   descriptions of all input script commands available in LAMMPS.
+
+----------
 
 .. only:: html
 
-   Once you are familiar with LAMMPS, you may want to bookmark
-   :doc:`this page <Commands_all>` since it gives quick access to
-   the documentation for all LAMMPS commands.
+   After becoming familiar with LAMMPS, consider bookmarking
+   :doc:`this page <Commands_all>`, since it gives quick access to
+   tables with links to the documentation for all LAMMPS commands.
 
 .. _lws: https://www.lammps.org
 

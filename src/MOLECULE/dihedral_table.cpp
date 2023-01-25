@@ -403,8 +403,8 @@ static double Phi(double const *x1, //array holding x,y,z coords atom 1
   double phi = acos(cos_phi);
 
   if (dot3(n123, vb34) > 0.0) {
-    phi = -phi;   //(Note: Negative dihedral angles are possible only in 3-D.)
-    phi += MY_2PI; //<- This insure phi is always in the range 0 to 2*PI
+    phi = -phi;    // negative dihedral angles are possible only in 3-D
+    phi += MY_2PI; // ensure phi is always in the range 0 to 2*PI
   }
   return phi;
 } // DihedralTable::Phi()
@@ -806,7 +806,7 @@ void DihedralTable::coeff(int narg, char **arg)
       ffile_tmp[i] = tb->ffile[i];
       if ((i>0) && (phifile_tmp[i] < phifile_tmp[i-1])) {
         //There should only be at most one discontinuity, because we have
-        //insured that the data was sorted before imaging, and because the
+        //ensured that the data was sorted before imaging, and because the
         //range of angle values does not exceed 2*PI.
         i_discontinuity = i;
       }

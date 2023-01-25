@@ -130,7 +130,7 @@ a distance that encompasses the *rmax* for new bonds to create.
 
    If you want to create bonds between pairs of 1--3 or 1--4 atoms in
    the current bond topology, then you need to use :doc:`special_bonds
-   lj 0 1 1 <special_bonds>` to insure those pairs appear in the
+   lj 0 1 1 <special_bonds>` to ensure those pairs appear in the
    neighbor list.  They will not appear with the default special_bonds
    settings, which are zero for 1--2, 1--3, and 1--4 atoms.  1--3 or 1--4
    atoms are those which are two hops or three hops apart in the bond

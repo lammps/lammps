@@ -1621,25 +1621,23 @@ MESONT package
 **Contents:**
 
 MESONT is a LAMMPS package for simulation of nanomechanics of nanotubes
-(NTs). The model is based on a coarse-grained representation of NTs as
+(NTs).  The model is based on a coarse-grained representation of NTs as
 "flexible cylinders" consisting of a variable number of
 segments. Internal interactions within a NT and the van der Waals
 interaction between the tubes are described by a mesoscopic force field
 designed and parameterized based on the results of atomic-level
 molecular dynamics simulations. The description of the force field is
-provided in the papers listed below.
+provided in the papers listed in ``src/MESONT/README``.
 
-This package contains two independent implementations of this model:
-:doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original
-implementation of the model based on a Fortran library in the
-``lib/mesont`` folder. The second implementation is provided by the
-mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`,
-:doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt
-<pair_mesocnt>`).  The mesocnt implementation has the same features as
-the original implementation with the addition of friction, but is
-directly implemented in C++, interfaces more cleanly with general LAMMPS
-functionality, and is typically faster. It also does not require its own
-atom style and can be installed without any external libraries.
+This package used to have two independent implementations of this model:
+the original implementation using a Fortran library written by the
+developers of the model and a second implementation written in C++ by
+Philipp Kloza (U Cambridge).  Since the C++ implementation offers the
+same features as the original implementation with the addition of
+friction, is typically faster, and easier to compile/install, the
+Fortran library based implementation has since been obsoleted and
+removed from the distribution. You have to download and compile
+an older version of LAMMPS if you want to use those.
 
 **Download of potential files:**
 
@@ -1648,12 +1646,14 @@ not included in the regular downloaded packages of LAMMPS or the git
 repositories.  Instead, they will be automatically downloaded from a web
 server when the package is installed for the first time.
 
-**Authors of the *mesont* styles:**
+**Authors of the obsoleted *mesont* styles:**
 
 Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
 of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-**Author of the *mesocnt* styles:**
+.. deprecated:: TBD
+
+**Author of the C++ styles:**
 Philipp Kloza (U Cambridge)
 
 .. versionadded:: 15Jun2020
@@ -1662,14 +1662,10 @@ Philipp Kloza (U Cambridge)
 
 * src/MESONT: filenames -> commands
 * src/MESONT/README
-* :doc:`atom_style mesont <atom_style>`
-* :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
-* :doc:`compute mesont <compute_mesont>`
 * :doc:`bond_style mesocnt <bond_mesocnt>`
 * :doc:`angle_style mesocnt <angle_mesocnt>`
 * :doc:`pair_style mesocnt <pair_mesocnt>`
 * examples/PACKAGES/mesont
-* tools/mesont
 
 ----------
 
@@ -2210,7 +2206,7 @@ packages, which have styles optimized for CPUs.
    See src/MAKE/OPTIONS/Makefile.omp for an example.
 
 Once you have an appropriate Makefile.machine, you can
-install/un-install the package and build LAMMPS in the usual manner:
+install/uninstall the package and build LAMMPS in the usual manner:
 
 **Install:**
 

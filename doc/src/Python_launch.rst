@@ -70,7 +70,7 @@ single processor outputs, mpi4py is not working correctly.
 Also note that once you import the mpi4py module, mpi4py initializes MPI
 for you, and you can use MPI calls directly in your Python script, as
 described in the mpi4py documentation.  The last line of your Python
-script should be ``MPI.finalize()``, to insure MPI is shut down
+script should be ``MPI.finalize()``, to ensure MPI is shut down
 correctly.
 
 

@@ -449,7 +449,7 @@ void PairBrownian::init_style()
 
   neighbor->add_request(this);
 
-  // insure all particles are finite-size
+  // ensure all particles are finite-size
   // for pair hybrid, should limit test to types using the pair style
 
   double *radius = atom->radius;

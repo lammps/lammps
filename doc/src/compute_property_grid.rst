@@ -39,7 +39,7 @@ Description
 Define a computation that stores the specified attributes of a
 distributed grid.  In LAMMPS, distributed grids are regular 2d or 3d
 grids which overlay a 2d or 3d simulation domain.  Each processor owns
-the grid cells whose center points lie within its sub-domain.  See the
+the grid cells whose center points lie within its subdomain.  See the
 :doc:`Howto grid <Howto_grid>` doc page for details of how distributed
 grids can be defined by various commands and referenced.
 

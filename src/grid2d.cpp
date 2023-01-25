@@ -438,7 +438,7 @@ void Grid2d::initialize()
      hi grid index = last grid pt < frachi*bound
      if proc owns no grid cells in a dim, then inlo > inhi
    special case: 2 procs share boundary which a grid point is exactly on
-     2 if test equalties insure a consistent decision as to which proc owns it
+     2 if test equalties ensure a consistent decision as to which proc owns it
 ------------------------------------------------------------------------- */
 
 void Grid2d::partition_grid(int ngrid, double fraclo, double frachi, double shift, int extra,
@@ -519,7 +519,7 @@ void Grid2d::ghost_grid()
   //   want grid data forward communicated from +y proc to -y proc, but not vice versa
   //   want grid data reverse communicated from -y proc to +y proc, but not vice versa
   // this is accomplished by inyhi = outyhi on +y end (no ghost cells)
-  // also insure no other procs use ghost cells beyond +y limit
+  // also ensure no other procs use ghost cells beyond +y limit
 
   if (yextra) {
     if (layout != Comm::LAYOUT_TILED) {

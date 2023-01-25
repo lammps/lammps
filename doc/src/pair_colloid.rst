@@ -136,7 +136,7 @@ larger, then the pair interacts via the colloid-solvent formula.
 
 Note that the diameter of a particular particle type may appear in
 multiple pair_coeff commands, as it interacts with other particle
-types.  You should insure the particle diameter is specified
+types.  You should ensure the particle diameter is specified
 consistently each time it appears.
 
 The last coefficient is optional.  If not specified, the global cutoff
@@ -201,7 +201,7 @@ Normally, this pair style should be used with finite-size particles
 which have a diameter, e.g. see the :doc:`atom_style sphere <atom_style>` command.  However, this is not a requirement,
 since the only definition of particle size is via the pair_coeff
 parameters for each type.  In other words, the physical radius of the
-particle is ignored.  Thus you should insure that the d1,d2 parameters
+particle is ignored.  Thus you should ensure that the d1,d2 parameters
 you specify are consistent with the physical size of the particles of
 that type.
 

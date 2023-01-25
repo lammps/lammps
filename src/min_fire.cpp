@@ -267,7 +267,7 @@ template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
         }
 
         // calculate the factor abc, used for abcfire
-        abc = (1-pow(1-alpha, (ntimestep-last_negative)));
+        abc = (1.0-pow(1.0-alpha, (double)(ntimestep-last_negative)));
         scale1 = (1.0 - alpha) / abc ;
         if (fdotfall <= 1e-20) scale2 = 0.0;
         else scale2 = (alpha * sqrt(vdotvall/fdotfall)) / abc;

@@ -59,14 +59,6 @@ the executable and can be invoked with a pair_style command like the
 example above.  Arguments like 0.1 and 3.5 can be defined and
 processed by your new class.
 
-.. note::
-
-   With the traditional make process, simply adding the new files to the
-   src folder and compiling LAMMPS again for the desired configuration
-   with "make machine" is sufficient.  When using CMake, you need to
-   re-run CMake with "cmake ." in the build folder to have it recognize
-   the added files and include them into the build system.
-
 As illustrated by this example pair style, many kinds of options are
 referred to in the LAMMPS documentation as the "style" of a particular
 command.

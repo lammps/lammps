@@ -154,7 +154,7 @@ PACKMOST = \
 	bocs \
 	body \
 	bpm \
-        brownian \
+	brownian \
 	cg-dna \
 	cg-spica \
 	class2 \
@@ -180,6 +180,7 @@ PACKMOST = \
 	manybody \
 	mc \
 	meam \
+	mesont \
 	misc \
 	ml-snap \
 	mofff \
@@ -228,7 +229,6 @@ PACKLIB = \
 	latboltz \
 	lepton \
 	mdi \
-	mesont \
 	molfile \
 	netcdf \
 	ml-pace \
@@ -243,7 +243,7 @@ PACKLIB = \
 
 PACKSYS = compress latboltz mpiio python
 
-PACKINT = atc awpmd colvars electrode gpu kokkos lepton mesont ml-pod poems
+PACKINT = atc awpmd colvars electrode gpu kokkos lepton ml-pod poems
 
 PACKEXT = \
 	adios \

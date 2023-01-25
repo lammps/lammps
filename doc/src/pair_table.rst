@@ -92,9 +92,9 @@ short-range part of one of the long-range solvers specified by the
 :doc:`kspace_style <kspace_style>` command, then you must use one or
 more of the optional keywords listed above for the pair_style command.
 These are *ewald* or *pppm* or *msm* or *dispersion* or *tip4p*\ .  This
-is so LAMMPS can insure the short-range potential and long-range
+is so LAMMPS can ensure the short-range potential and long-range
 solver are compatible with each other, as it does for other
-short-range pair styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`.  Note that it is up to you to insure
+short-range pair styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`.  Note that it is up to you to ensure
 the tabulated values for each pair of atom types has the correct
 functional form to be compatible with the matching long-range solver.
 

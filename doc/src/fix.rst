@@ -89,7 +89,7 @@ owns, but there may be zero or more per atoms.  Per-grid quantities
 are calculated on a regular 2d or 3d grid which overlays a 2d or 3d
 simulation domain.  The grid points and the data they store are
 distributed across processors; each processor owns the grid points
-which fall within its sub-domain.
+which fall within its subdomain.
 
 Note that a single fix typically produces either global or per-atom or
 local or per-grid values (or none at all).  It does not produce both

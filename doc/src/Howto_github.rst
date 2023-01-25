@@ -315,7 +315,7 @@ add changes. Please watch the comments to the pull requests. The two
 "test" labels are used to trigger extended tests before the code is
 merged. This is sometimes done by LAMMPS developers, if they suspect
 that there may be some subtle side effects from your changes. It is not
-done by default, because those tests are very time consuming.  The
+done by default, because those tests are very time-consuming.  The
 *ready_for_merge* label is usually attached when the LAMMPS developer
 assigned to the pull request considers this request complete and to
 trigger a final full test evaluation.

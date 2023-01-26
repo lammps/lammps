@@ -41,8 +41,8 @@ using namespace MathConst;
 
 #define RVOUS 1   // 0 for irregular, 1 for all2all
 
-#define BIG 1.0e20
-#define MASSDELTA 0.1
+static constexpr double BIG = 1.0e20;
+static constexpr double MASSDELTA = 0.1;
 
 /* ---------------------------------------------------------------------- */
 
@@ -2556,7 +2556,7 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (me == 0) {
-    const int width = log10((MAX(MAX(1,nb),na)))+2;
+    const int width = log10((double)(MAX(MAX(1,nb),na)))+2;
     auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n", update->ntimestep);
     for (i = 1; i < nb; i++) {
       const auto bcnt = b_count_all[i];

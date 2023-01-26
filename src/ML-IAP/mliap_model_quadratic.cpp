@@ -30,7 +30,7 @@ MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) :
   MLIAPModelSimple(lmp, coefffilename)
 {
   if (coefffilename) read_coeffs(coefffilename);
-  if (nparams > 0) ndescriptors = sqrt(2*nparams)-1;
+  if (nparams > 0) ndescriptors = sqrt(2.0*nparams)-1;
   nonlinearflag = 1;
 }
 

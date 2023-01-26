@@ -62,6 +62,10 @@ public:
      * This enumeration lists all Operation subclasses.  This is provided so that switch statements
      * can be used when processing or analyzing parsed expressions.
      */
+// required on Solaris/OpenIndiana
+#if defined(SEC)
+#undef SEC
+#endif
     enum Id {CONSTANT, VARIABLE, CUSTOM, ADD, SUBTRACT, MULTIPLY, DIVIDE, POWER, NEGATE, SQRT, EXP, LOG,
              SIN, COS, SEC, CSC, TAN, COT, ASIN, ACOS, ATAN, ATAN2, SINH, COSH, TANH, ERF, ERFC, STEP, DELTA, SQUARE, CUBE, RECIPROCAL,
              ADD_CONSTANT, MULTIPLY_CONSTANT, POWER_CONSTANT, MIN, MAX, ABS, FLOOR, CEIL, SELECT};

@@ -87,11 +87,11 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         error->universe_all(FLERR, "Unknown method parameter for fix pimd");
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (fmass < 0.0 || fmass > 1.0)
+      if (fmass < 0.0 || fmass > np)
         error->universe_all(FLERR, "Invalid fmass value for fix pimd");
     } else if (strcmp(arg[i], "sp") == 0) {
       sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (fmass < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd");
+      if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd");
     } else if (strcmp(arg[i], "temp") == 0) {
       nhc_temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (nhc_temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd");

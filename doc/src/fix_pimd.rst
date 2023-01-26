@@ -149,6 +149,31 @@ related tasks for each of the partitions, e.g.
    restart 1000 system_${ibead}.restart1 system_${ibead}.restart2
    read_restart system_${ibead}.restart2
 
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+This fix writes the state of the Nose/Hoover thermostat over all quasi-beads to
+:doc:`binary restart files <restart>`.  See the :doc:`read_restart
+<read_restart>` command for info on how to re-specify a fix in an
+input script that reads a restart file, so that the operation of the
+fix continues in an uninterrupted fashion.
+
+None of the :doc:`fix_modify <fix_modify>` options
+are relevant to this fix.
+
+This fix computes a global 3-vector, which can be
+accessed by various :doc:`output commands <Howto_output>`. 
+The three quantities in the global vector are
+
+  (1) the total potential energy from the springs connecting every quasi-bead to its neighbors,
+  (2) the current temperature of the classical system,
+  (3) the current value of the virial estimator for the kinetic energy of the quantum system :ref:`(HBB) <HBB>`.
+
+The vector values calculated by this fix are "intensive", except for the spring energy, which is "extensive".
+
+No parameter of this fix can be used with the *start/stop* keywords of
+the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+
 Restrictions
 """"""""""""
 
@@ -204,3 +229,8 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 **(Calhoun)** A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
 415 (1996).
+
+.. _HBB:
+
+**(HBB)** M. F. Herman, E. J. Bruskin, B. J. Berne, J Chem Phys, 76, 5150 (1982).
+

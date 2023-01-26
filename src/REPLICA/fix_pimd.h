@@ -57,7 +57,7 @@ class FixPIMD : public Fix {
 
   /* ring-polymer model */
 
-  double omega_np, fbond, spring_energy, sp;
+  double omega_np, fbond, spring_energy, sp, virial;
   int x_last, x_next;
 
   void spring_force();

@@ -1,9 +1,9 @@
 To run Baske's test, do
 
-    lmp -in test.in
+    lmp -in in.msmeam
 
 Then 
 
-    diff test.dump test.dump.bu
+    diff dump.msmeam dump.msmeam.bu
 
 

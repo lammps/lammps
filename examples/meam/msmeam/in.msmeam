@@ -1,5 +1,5 @@
 echo	both
-log	test.log
+log	log.msmeam
 # Test of MEAM potential for HGa
 
 # ------------------------ INITIALIZATION ----------------------------
@@ -24,8 +24,8 @@ create_atoms    2 single 0.3 2.3 0  units box
 variable	teng equal "c_eatoms"
 compute pot_energy all pe/atom
 compute stress all stress/atom NULL
-dump 1 all custom 1 test.dump id x y z fx fy fz c_pot_energy c_stress[1] c_stress[2] c_stress[3] c_stress[4] c_stress[5] c_stress[6]
+dump 1 all custom 1 dump.msmeam id x y z fx fy fz c_pot_energy c_stress[1] c_stress[2] c_stress[3] c_stress[4] c_stress[5] c_stress[6]
 run	1
-write_data	test.data
+write_data	data.msmeam
 
 print "All done!"

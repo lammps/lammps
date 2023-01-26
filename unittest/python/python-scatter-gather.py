@@ -38,6 +38,36 @@ class PythonGather(unittest.TestCase):
         else:
             return 0
 
+    # angle data comparison
+    def checkAngle(self, vals, atype, aatom1, aatom2, aatom3):
+        set1 = {aatom1, aatom2, aatom3}
+        set2 = {vals[1], vals[2], vals[3]}
+        if len(set1.intersection(set2)) == 3:
+            self.assertEqual(vals[0], atype)
+            return 1
+        else:
+            return 0
+
+    # dihedral data comparison
+    def checkDihedral(self, vals, dtype, datom1, datom2, datom3, datom4):
+        set1 = {datom1, datom2, datom3, datom4}
+        set2 = {vals[1], vals[2], vals[3], vals[4]}
+        if len(set1.intersection(set2)) == 4:
+            self.assertEqual(vals[0], dtype)
+            return 1
+        else:
+            return 0
+
+    # improper data comparison
+    def checkImproper(self, vals, itype, iatom1, iatom2, iatom3, iatom4):
+        set1 = {iatom1, iatom2, iatom3, iatom4}
+        set2 = {vals[1], vals[2], vals[3], vals[4]}
+        if len(set1.intersection(set2)) == 4:
+            self.assertEqual(vals[0], itype)
+            return 1
+        else:
+            return 0
+
     ##############################
     @unittest.skipIf(not has_full, "Gather_bonds test")
     def testGatherBond_newton_on(self):

@@ -84,11 +84,12 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else if (strcmp(arg[i + 1], "cmd") == 0)
         method = CMD;
       else
-        error->universe_all(FLERR, "Unknown method parameter {} for fix pimd", arg[i + 1]);
+        error->universe_all(FLERR, fmt::format("Unknown method parameter {} for fix pimd",
+                                               arg[i + 1]));
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if ((fmass < 0.0) || (fmass > np))
-        error->universe_all(FLERR, "Invalid fmass value {} for fix pimd", fmass);
+        error->universe_all(FLERR, fmt::format("Invalid fmass value {} for fix pimd", fmass));
     } else if (strcmp(arg[i], "sp") == 0) {
       sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd");

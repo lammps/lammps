@@ -284,7 +284,7 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
-    .. versionadded:: 28Jan2023
+    .. versionadded:: TBD
 
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(nangles,4)
@@ -302,7 +302,7 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
-    .. versionadded:: 28Jan2023
+    .. versionadded:: TBD
 
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(ndihedrals,5)
@@ -320,7 +320,7 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
-    .. versionadded:: 28Jan2023
+    .. versionadded:: TBD
 
     :return: the requested data as a 2d-integer numpy array
     :rtype: numpy.array(nimpropers,5)

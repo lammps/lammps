@@ -72,7 +72,9 @@ int BaseChargeT::init_atomic(const int nlocal, const int nall,
 
   _threads_per_atom=device->threads_per_charge();
 
-  int success=device->init(*ans,true,false,nlocal,nall,maxspecial);
+  bool charge = true;
+  bool rot = false;
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
 

@@ -194,8 +194,8 @@ void FixAmoebaBiTorsion::init()
   // error check that PairAmoeba or PairHiippo exist
 
   pair = nullptr;
-  pair = force->pair_match("amoeba",1,0);
-  if (!pair) pair = force->pair_match("hippo",1,0);
+  pair = force->pair_match("^amoeba",0,0);
+  if (!pair) pair = force->pair_match("^hippo",0,0);
 
   if (!pair)
     error->all(FLERR,"Cannot use fix amoeba/bitorsion w/out pair amoeba/hippo");

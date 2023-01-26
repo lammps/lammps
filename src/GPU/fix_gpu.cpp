@@ -131,7 +131,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   _gpu_mode = GPU_NEIGH;
   _particle_split = 1.0;
   int nthreads = 0;
-  int newtonflag = 0;
+  int newtonflag = force->newton_pair;
   int threads_per_atom = -1;
   double binsize = 0.0;
   char *opencl_args = nullptr;
@@ -359,6 +359,8 @@ double FixGPU::memory_usage()
   // memory usage currently returned by pair routine
   return bytes;
 }
+
+/* ---------------------------------------------------------------------- */
 
 double FixGPU::binsize(const double subx, const double suby,
                        const double subz, const int nlocal,

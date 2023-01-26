@@ -43,7 +43,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMZero, const int &i) const {
   d_rho0[i] = 0.0;
   d_arho2b[i] = 0.0;
   d_arho1(i,0) = d_arho1(i,1) = d_arho1(i,2) = 0.0;
-  if (this->msmeamflag) {
+  if (msmeamflag) {
     d_arho2mb[i] = 0.0;
     d_arho1m(i,0) = d_arho1m(i,1) = d_arho1m(i,2) = 0.0;
   }

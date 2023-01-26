@@ -121,6 +121,7 @@ int main(int narg, char **arg)
 
     double *fx = (double *) lammps_extract_variable(lmp,"fx","all");
     printf("Force on 1 atom via extract_variable: %g\n",fx[0]);
+    lammps_free(fx);
   }
 
   /* use commands_string() and commands_list() to invoke more commands */

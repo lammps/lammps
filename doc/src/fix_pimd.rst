@@ -165,11 +165,11 @@ This fix computes a global 3-vector, which can be
 accessed by various :doc:`output commands <Howto_output>`. 
 The three quantities in the global vector are
 
-  (1) the total potential energy from the springs connecting every quasi-bead to its neighbors,
-  (2) the current temperature of the classical system,
-  (3) the current value of the virial estimator for the kinetic energy of the quantum system :ref:`(HBB) <HBB>`.
+  (1) the total spring energy of the quasi-beads,
+  (2) the current temperature of the classical system of ring polymers,
+  (3) the current value of the virial estimator for the kinetic energy of the quantum system :ref:`(Herman) <Herman>`.
 
-The vector values calculated by this fix are "intensive", except for the spring energy, which is "extensive".
+The vector values calculated by this fix are "extensive", except for the temperature, which is "intensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
@@ -230,7 +230,7 @@ Path Integrals, McGraw-Hill, New York (1965).
 **(Calhoun)** A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
 415 (1996).
 
-.. _HBB:
+.. _Herman:
 
-**(HBB)** M. F. Herman, E. J. Bruskin, B. J. Berne, J Chem Phys, 76, 5150 (1982).
+**(Herman)** M. F. Herman, E. J. Bruskin, B. J. Berne, J Chem Phys, 76, 5150 (1982).
 

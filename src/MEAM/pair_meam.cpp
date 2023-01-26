@@ -54,12 +54,15 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
-  msmeamflag = 0;
 
   allocated = 0;
 
   nlibelements = 0;
+
   meam_inst = new MEAM(memory);
+  meam_inst->msmeamflag = msmeamflag = 0;
+  myname = "meam";
+
   scale = nullptr;
 }
 
@@ -181,18 +184,9 @@ void PairMEAM::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairMEAM::settings(int narg, char **arg)
+void PairMEAM::settings(int narg, char ** /*arg*/)
 {
-  if (narg > 1) error->all(FLERR,"Illegal pair_style meam command");
-
-  meam_inst->msmeamflag = 0;
-
-  if (narg == 1) {
-    if (strcmp("ms", arg[0]) == 0) {
-        msmeamflag = meam_inst->msmeamflag = 1;
-    } else
-      error->all(FLERR, "Unknown pair style meam option {}", arg[0]);
-  }
+  if (narg != 0) error->all(FLERR,"Illegal pair_style {} command", myname);
 
   // set comm size needed by this Pair
 
@@ -215,12 +209,7 @@ void PairMEAM::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg < 6) error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 6) error->all(FLERR,"Incorrect args for pair style {} coefficients", myname);
 
   // check for presence of first meam file
 
@@ -248,7 +237,7 @@ void PairMEAM::coeff(int narg, char **arg)
   }
   if (paridx < 0) error->all(FLERR,"No MEAM parameter file in pair coefficients");
   if ((narg - paridx - 1) != atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair style {} coefficients", myname);
 
   // MEAM element names between 2 filenames
   // nlibelements = # of MEAM elements
@@ -291,7 +280,7 @@ void PairMEAM::coeff(int narg, char **arg)
       if (libelements[j] == arg[i]) break;
     if (j < nlibelements) map[m] = j;
     else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
-    else error->all(FLERR,"Incorrect args for pair coefficients");
+    else error->all(FLERR,"Incorrect args for pair style {} coefficients", myname);
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -316,7 +305,7 @@ void PairMEAM::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair style {} coefficients", myname);
 }
 
 /* ----------------------------------------------------------------------
@@ -326,7 +315,7 @@ void PairMEAM::coeff(int narg, char **arg)
 void PairMEAM::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style MEAM requires newton pair on");
+    error->all(FLERR,"Pair style {} requires newton pair on", myname);
 
   // need a full and a half neighbor list
 
@@ -436,8 +425,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         std::string lattice_type = values.next_string();
 
         if (!MEAM::str_to_lat(lattice_type, true, lat[index]))
-          error->one(FLERR,"Unrecognized lattice type in MEAM "
-                                       "library file: {}", lattice_type);
+          error->one(FLERR,"Unrecognized lattice type in MEAM library file: {}", lattice_type);
 
         // store parameters
 
@@ -470,11 +458,11 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         ibar[index] = values.next_int();
 
         if (!isone(t0[index]))
-          error->one(FLERR,"Unsupported parameter in MEAM library file: t0!=1");
+          error->one(FLERR,"Unsupported parameter in MEAM library file: t0 != 1");
 
         // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
         if (z[index] != MEAM::get_Zij(lat[index]))
-          error->one(FLERR,"Mismatched parameter in MEAM library file: z!=lat");
+          error->one(FLERR,"Mismatched parameter in MEAM library file: z != lat");
 
         nset++;
       } catch (TokenizerException &e) {

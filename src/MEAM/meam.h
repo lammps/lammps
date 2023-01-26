@@ -17,7 +17,7 @@
 #include <cmath>
 #include <string>
 
-#define maxelt 5
+constexpr int maxelt = 5;
 
 namespace LAMMPS_NS {
 class Memory;

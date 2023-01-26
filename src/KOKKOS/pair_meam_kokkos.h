@@ -13,12 +13,12 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(meam/c/kk,PairMEAMKokkos<LMPDeviceType>)
-PairStyle(meam/c/kk/device,PairMEAMKokkos<LMPDeviceType>)
-PairStyle(meam/c/kk/host,PairMEAMKokkos<LMPHostType>)
-PairStyle(meam/kk,PairMEAMKokkos<LMPDeviceType>)
-PairStyle(meam/kk/device,PairMEAMKokkos<LMPDeviceType>)
-PairStyle(meam/kk/host,PairMEAMKokkos<LMPHostType>)
+PairStyle(meam/c/kk,PairMEAMKokkos<LMPDeviceType>);
+PairStyle(meam/c/kk/device,PairMEAMKokkos<LMPDeviceType>);
+PairStyle(meam/c/kk/host,PairMEAMKokkos<LMPHostType>);
+PairStyle(meam/kk,PairMEAMKokkos<LMPDeviceType>);
+PairStyle(meam/kk/device,PairMEAMKokkos<LMPDeviceType>);
+PairStyle(meam/kk/host,PairMEAMKokkos<LMPHostType>);
 // clang-format on
 #else
 

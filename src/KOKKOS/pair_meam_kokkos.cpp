@@ -51,6 +51,7 @@ PairMEAMKokkos<DeviceType>::PairMEAMKokkos(LAMMPS *lmp) : PairMEAM(lmp)
   delete meam_inst;
   meam_inst_kk = new MEAMKokkos<DeviceType>(memory);
   meam_inst = meam_inst_kk;
+  myname = "meam/kk";
 }
 
 /* ---------------------------------------------------------------------- */

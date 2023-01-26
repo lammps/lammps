@@ -3159,7 +3159,81 @@ void lammps_gather_bonds(void *handle, void *data)
   END_CAPTURE
 }
 
-// Gather function for angles
+/** Gather type and constituent atom info for all angles
+ *
+\verbatim embed:rst
+
+This function copies the list of all angles into a buffer provided by
+the calling code. The buffer will be filled with angle type, angle atom 1,
+angle atom 2, angle atom 3 for each angle. Thus the buffer has to be allocated to the
+dimension of 4 times the **total** number of angles times the size of
+the LAMMPS "tagint" type, which is either 4 or 8 bytes depending on
+whether they are stored in 32-bit or 64-bit integers, respectively.
+This size depends on the compile time settings used when compiling
+the LAMMPS library and can be queried by calling
+:cpp:func:`lammps_extract_setting()` with the keyword "tagint".
+
+When running in parallel, the data buffer must be allocated on **all**
+MPI ranks and will be filled with the information for **all** angles
+in the system.
+
+.. versionadded:: TBD
+
+Below is a brief C code demonstrating accessing this collected angle information.
+
+.. code-block:: c
+
+   #include "library.h"
+
+   #include <stdint.h>
+   #include <stdio.h>
+   #include <stdlib.h>
+
+   int main(int argc, char **argv)
+   {
+       int tagintsize;
+       int64_t i, nangles;
+       void *handle, *angles;
+
+       handle = lammps_open_no_mpi(0, NULL, NULL);
+       lammps_file(handle, "in.some_input");
+
+       tagintsize = lammps_extract_setting(handle, "tagint");
+       if (tagintsize == 4)
+           nangles = *(int32_t *)lammps_extract_global(handle, "nangles");
+        else
+           nangles = *(int64_t *)lammps_extract_global(handle, "nangles");
+       angles = malloc(nangles * 4 * tagintsize);
+
+       lammps_gather_angles(handle, angles);
+
+       if (lammps_extract_setting(handle, "world_rank") == 0) {
+           if (tagintsize == 4) {
+               int32_t *angles_real = (int32_t *)angles;
+               for (i = 0; i < nangles; ++i) {
+                   printf("angle % 4ld: type = %d, atoms: % 4d  % 4d  % 4d\n",i,
+                          angles_real[4*i], angles_real[4*i+1], angles_real[4*i+2], angles_real[4*i+3]);
+               }
+           } else {
+               int64_t *angles_real = (int64_t *)angles;
+               for (i = 0; i < nangles; ++i) {
+                   printf("angle % 4ld: type = %ld, atoms: % 4ld  % 4ld  % 4ld\n",i,
+                          angles_real[4*i], angles_real[4*i+1], angles_real[4*i+2], angles_real[4*i+3]);
+               }
+           }
+       }
+
+       lammps_close(handle);
+       lammps_mpi_finalize();
+       free(angles);
+       return 0;
+   }
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  data    pointer to data to copy the result to */
+
 void lammps_gather_angles(void *handle, void *data)
 {
   auto lmp = (LAMMPS *) handle;
@@ -3195,7 +3269,82 @@ void lammps_gather_angles(void *handle, void *data)
   END_CAPTURE
 }
 
-// Gather function for dihedrals
+/** Gather type and constituent atom info for all dihedrals
+ *
+\verbatim embed:rst
+
+This function copies the list of all dihedrals into a buffer provided by
+the calling code. The buffer will be filled with dihedral type, dihedral atom 1,
+dihedral atom 2, dihedral atom 3, dihedral atom 4 for each dihedral. 
+Thus the buffer has to be allocated to the
+dimension of 5 times the **total** number of dihedrals times the size of
+the LAMMPS "tagint" type, which is either 4 or 8 bytes depending on
+whether they are stored in 32-bit or 64-bit integers, respectively.
+This size depends on the compile time settings used when compiling
+the LAMMPS library and can be queried by calling
+:cpp:func:`lammps_extract_setting()` with the keyword "tagint".
+
+When running in parallel, the data buffer must be allocated on **all**
+MPI ranks and will be filled with the information for **all** dihedrals
+in the system.
+
+.. versionadded:: TBD
+
+Below is a brief C code demonstrating accessing this collected dihedral information.
+
+.. code-block:: c
+
+   #include "library.h"
+
+   #include <stdint.h>
+   #include <stdio.h>
+   #include <stdlib.h>
+
+   int main(int argc, char **argv)
+   {
+       int tagintsize;
+       int64_t i, ndihedrals;
+       void *handle, *dihedrals;
+
+       handle = lammps_open_no_mpi(0, NULL, NULL);
+       lammps_file(handle, "in.some_input");
+
+       tagintsize = lammps_extract_setting(handle, "tagint");
+       if (tagintsize == 4)
+           ndihedrals = *(int32_t *)lammps_extract_global(handle, "ndihedrals");
+        else
+           ndihedrals = *(int64_t *)lammps_extract_global(handle, "ndihedrals");
+       dihedrals = malloc(ndihedrals * 5 * tagintsize);
+
+       lammps_gather_dihedrals(handle, dihedrals);
+
+       if (lammps_extract_setting(handle, "world_rank") == 0) {
+           if (tagintsize == 4) {
+               int32_t *dihedrals_real = (int32_t *)dihedrals;
+               for (i = 0; i < ndihedrals; ++i) {
+                   printf("dihedral % 4ld: type = %d, atoms: % 4d  % 4d  % 4d  % 4d\n",i,
+                          dihedrals_real[5*i], dihedrals_real[5*i+1], dihedrals_real[5*i+2], dihedrals_real[5*i+3], dihedrals_real[5*i+4]);
+               }
+           } else {
+               int64_t *dihedrals_real = (int64_t *)dihedrals;
+               for (i = 0; i < ndihedrals; ++i) {
+                   printf("dihedral % 4ld: type = %ld, atoms: % 4ld  % 4ld  % 4ld  % 4ld\n",i,
+                          dihedrals_real[5*i], dihedrals_real[5*i+1], dihedrals_real[5*i+2], dihedrals_real[5*i+3], dihedrals_real[5*i+4]);
+               }
+           }
+       }
+
+       lammps_close(handle);
+       lammps_mpi_finalize();
+       free(dihedrals);
+       return 0;
+   }
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  data    pointer to data to copy the result to */
+
 void lammps_gather_dihedrals(void *handle, void *data)
 {
   auto lmp = (LAMMPS *) handle;
@@ -3231,7 +3380,82 @@ void lammps_gather_dihedrals(void *handle, void *data)
   END_CAPTURE
 }
 
-// Gather function for impropers
+/** Gather type and constituent atom info for all impropers
+ *
+\verbatim embed:rst
+
+This function copies the list of all impropers into a buffer provided by
+the calling code. The buffer will be filled with improper type, improper atom 1,
+improper atom 2, improper atom 3, improper atom 4 for each improper. 
+Thus the buffer has to be allocated to the
+dimension of 5 times the **total** number of impropers times the size of
+the LAMMPS "tagint" type, which is either 4 or 8 bytes depending on
+whether they are stored in 32-bit or 64-bit integers, respectively.
+This size depends on the compile time settings used when compiling
+the LAMMPS library and can be queried by calling
+:cpp:func:`lammps_extract_setting()` with the keyword "tagint".
+
+When running in parallel, the data buffer must be allocated on **all**
+MPI ranks and will be filled with the information for **all** impropers
+in the system.
+
+.. versionadded:: TBD
+
+Below is a brief C code demonstrating accessing this collected improper information.
+
+.. code-block:: c
+
+   #include "library.h"
+
+   #include <stdint.h>
+   #include <stdio.h>
+   #include <stdlib.h>
+
+   int main(int argc, char **argv)
+   {
+       int tagintsize;
+       int64_t i, nimpropers;
+       void *handle, *impropers;
+
+       handle = lammps_open_no_mpi(0, NULL, NULL);
+       lammps_file(handle, "in.some_input");
+
+       tagintsize = lammps_extract_setting(handle, "tagint");
+       if (tagintsize == 4)
+           nimpropers = *(int32_t *)lammps_extract_global(handle, "nimpropers");
+        else
+           nimpropers = *(int64_t *)lammps_extract_global(handle, "nimpropers");
+       impropers = malloc(nimpropers * 5 * tagintsize);
+
+       lammps_gather_impropers(handle, impropers);
+
+       if (lammps_extract_setting(handle, "world_rank") == 0) {
+           if (tagintsize == 4) {
+               int32_t *impropers_real = (int32_t *)impropers;
+               for (i = 0; i < nimpropers; ++i) {
+                   printf("improper % 4ld: type = %d, atoms: % 4d  % 4d  % 4d  % 4d\n",i,
+                          impropers_real[5*i], impropers_real[5*i+1], impropers_real[5*i+2], impropers_real[5*i+3], impropers_real[5*i+4]);
+               }
+           } else {
+               int64_t *impropers_real = (int64_t *)impropers;
+               for (i = 0; i < nimpropers; ++i) {
+                   printf("improper % 4ld: type = %ld, atoms: % 4ld  % 4ld  % 4ld  % 4ld\n",i,
+                          impropers_real[5*i], impropers_real[5*i+1], impropers_real[5*i+2], impropers_real[5*i+3], impropers_real[5*i+4]);
+               }
+           }
+       }
+
+       lammps_close(handle);
+       lammps_mpi_finalize();
+       free(impropers);
+       return 0;
+   }
+
+\endverbatim
+ *
+ * \param  handle  pointer to a previously created LAMMPS instance
+ * \param  data    pointer to data to copy the result to */
+
 void lammps_gather_impropers(void *handle, void *data)
 {
   auto lmp = (LAMMPS *) handle;

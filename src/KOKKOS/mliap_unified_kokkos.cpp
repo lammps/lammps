@@ -130,7 +130,6 @@ void MLIAPDummyDescriptorKokkos<DeviceType>::set_elements(char **elems, int nele
   for (int i = 0; i < nelems; i++) { elements[i] = utils::strdup(elems[i]); }
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
@@ -263,8 +262,6 @@ MLIAPBuildUnifiedKokkos_t<DeviceType> LAMMPS_NS::build_unified(char *unified_fna
   MLIAPBuildUnifiedKokkos_t<DeviceType> build = {data, descriptor, model};
   return build;
 }
-
-/* ---------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
    set energy for ij atom pairs

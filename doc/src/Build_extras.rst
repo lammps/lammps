@@ -1929,7 +1929,7 @@ within CMake will download the non-commercial use version.
 
          -D DOWNLOAD_QUIP=value       # download QUIP library for build, value = no (default) or yes
          -D QUIP_LIBRARY=path         # path to libquip.a (only needed if a custom location)
- 
+
       CMake will try to download and build the QUIP library from GitHub, if it is not
       found on the local machine. This requires to have git installed. It will use the same compilers
       and flags as used for compiling LAMMPS.  Currently this is only supported for the GNU and the

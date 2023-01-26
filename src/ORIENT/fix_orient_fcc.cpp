@@ -255,7 +255,7 @@ void FixOrientFCC::post_force(int /*vflag*/)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // insure nbr and order data structures are adequate size
+  // ensure nbr and order data structures are adequate size
 
   if (nall > nmax) {
     nmax = nall;

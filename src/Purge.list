@@ -51,7 +51,15 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
-# removed on 11 January 2022
+# removed on 20 January 2023
+atom_vec_mesont.cpp
+atom_vec_mesont.h
+compute_mesont.cpp
+compute_mesont.h
+export_mesont.h
+pair_mesont_tpm.cpp
+pair_mesont_tpm.h
+# removed on 11 January 2023
 min_fire_old.cpp
 min_fire_old.h
 # renamed on 11 July 2022

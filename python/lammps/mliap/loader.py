@@ -75,7 +75,7 @@ def activate_mliappy(lmp):
 def activate_mliappy_kokkos(lmp):
     try:
         library = lmp.lib
-        module_names = ["mliap_model_python_couple_kokkos"]
+        module_names = ["mliap_model_python_couple_kokkos", "mliap_unified_couple_kokkos"]
         api_version = library.lammps_python_api_version()
 
         for module_name in module_names:
@@ -117,4 +117,13 @@ def load_unified(model):
                           "the pair style. Call lammps.mliap.activate_mliappy(lmp)."
                           ) from ie
     mliap_unified_couple.load_from_python(model)
+
+def load_unified_kokkos(model):
+    try:
+        import mliap_unified_couple_kokkos
+    except ImportError as ie:
+        raise ImportError("ML-IAP python module must be activated before loading\n"
+                          "the pair style. Call lammps.mliap.activate_mliappy(lmp)."
+                          ) from ie
+    mliap_unified_couple_kokkos.load_from_python(model)
 

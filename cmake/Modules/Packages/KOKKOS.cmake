@@ -49,8 +49,8 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.7.00.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_MD5 "84991eca9f066383abe119a5bc7a11c4" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.7.01.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_MD5 "f140e02b826223b1045207d9bc10d404" CACHE STRING "MD5 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
   mark_as_advanced(KOKKOS_MD5)
   ExternalProject_Add(kokkos_build
@@ -74,7 +74,7 @@ if(DOWNLOAD_KOKKOS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 3.7.00 REQUIRED CONFIG)
+  find_package(Kokkos 3.7.01 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
   target_link_libraries(lmp PRIVATE Kokkos::kokkos)
 else()
@@ -144,6 +144,7 @@ if(PKG_ML-IAP)
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_descriptor_so3_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_linear_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_python_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/mliap_unified_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_so3_kokkos.cpp)
 
   # Add KOKKOS version of ML-IAP Python coupling if non-KOKKOS version is included

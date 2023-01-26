@@ -397,7 +397,7 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   else tb->cut = tb->rfile[tb->ninput-1];
 
   // error check on table parameters
-  // insure cutoff is within table
+  // ensure cutoff is within table
 
   if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");
   if (tb->rflag == 0) {

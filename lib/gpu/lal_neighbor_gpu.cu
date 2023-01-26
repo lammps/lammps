@@ -48,6 +48,19 @@ _texture_2d( pos_tex,int4);
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 
+/*
+  compute the id of the cell where the atoms belong to
+x: atom coordinates
+cell_id: cell ids
+particle_id: 
+boxlo[0-2]: the lower left corner of the local box
+ncell[xyz]: the number of cells in xyz dims
+i_cell_size is the inverse cell size
+inum = the number of the local atoms that are ported to the device
+nall = the number of the local+ghost atoms that are ported to the device
+cells_in_cutoff = the number of cells that are within the cutoff
+*/
+
 __kernel void calc_cell_id(const numtyp4 *restrict x_,
                            unsigned *restrict cell_id,
                            int *restrict particle_id,
@@ -89,6 +102,8 @@ __kernel void calc_cell_id(const numtyp4 *restrict x_,
     particle_id[i] = i;
   }
 }
+
+// compute the number of atoms in each cell
 
 __kernel void kernel_calc_cell_counts(const unsigned *restrict cell_id,
                                       int *restrict cell_counts,

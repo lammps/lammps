@@ -1213,7 +1213,7 @@ int imdsock_listen(void * v) {
 void *imdsock_accept(void * v) {
   int rc;
   imdsocket *new_s = nullptr, *s = (imdsocket *) v;
-#if defined(ARCH_AIX5) || defined(ARCH_AIX5_64) || defined(ARCH_AIX6_64)
+#if defined(ARCH_AIX5) || defined(ARCH_AIX5_64) || defined(ARCH_AIX6_64) || defined(__sun)
   unsigned int len;
 #define _SOCKLEN_TYPE unsigned int
 #elif defined(SOCKLEN_T)

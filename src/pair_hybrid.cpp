@@ -1118,7 +1118,7 @@ void PairHybrid::restore_special(double *saved)
    extract a ptr to a particular quantity stored by pair
    pass request thru to sub-styles
    return first non-nullptr result except for cut_coul request
-   for cut_coul, insure all non-nullptr results are equal since required by Kspace
+   for cut_coul, ensure all non-nullptr results are equal since required by Kspace
 ------------------------------------------------------------------------- */
 
 void *PairHybrid::extract(const char *str, int &dim)

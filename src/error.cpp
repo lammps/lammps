@@ -49,7 +49,7 @@ Error::Error(LAMMPS *lmp)
 /* ----------------------------------------------------------------------
    called by all procs in universe
    close all output, screen, and log files in world and universe
-   no abort, so insure all procs in universe call, else will hang
+   no abort, so ensure all procs in universe call, else will hang
 ------------------------------------------------------------------------- */
 
 void Error::universe_all(const std::string &file, int line, const std::string &str)
@@ -131,7 +131,7 @@ void Error::universe_warn(const std::string &file, int line, const std::string &
 /* ----------------------------------------------------------------------
    called by all procs in one world
    close all output, screen, and log files in world
-   insure all procs in world call, else will hang
+   ensure all procs in world call, else will hang
    force MPI_Abort if running in multi-partition mode
 ------------------------------------------------------------------------- */
 
@@ -306,7 +306,7 @@ void Error::_message(const std::string &file, int line, fmt::string_view format,
    shutdown LAMMPS
    called by all procs in one world
    close all output, screen, and log files in world
-   no abort, so insure all procs in world call, else will hang
+   no abort, so ensure all procs in world call, else will hang
 ------------------------------------------------------------------------- */
 
 void Error::done(int status)

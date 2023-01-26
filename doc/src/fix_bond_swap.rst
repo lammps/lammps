@@ -100,7 +100,7 @@ be met:
 1. All 4 monomers must be in the fix group.
 
 2. All 4 monomers must be owned by the processor (not ghost atoms).
-   This insures that another processor does not attempt to swap bonds
+   This ensures that another processor does not attempt to swap bonds
    involving the same atoms on the same timestep.  Note that this also
    means that bond pairs which straddle processor boundaries are not
    eligible for swapping on this step.

@@ -204,6 +204,8 @@ action mliap_model_linear_kokkos.h mliap_model_linear.h
 action mliap_model_python_kokkos.cpp mliap_model_linear.cpp
 action mliap_model_python_kokkos.h mliap_model_linear.h
 action mliap_model_kokkos.h mliap_model.h
+action mliap_unified_kokkos.cpp mliap_unified.cpp
+action mliap_unified_kokkos.h mliap_unified.h
 action mliap_so3_kokkos.cpp mliap_so3.cpp
 action mliap_so3_kokkos.h mliap_so3.h
 action modify_kokkos.cpp
@@ -365,6 +367,7 @@ action verlet_kokkos.h
 
 # Install cython pyx file only if non-KOKKOS version is present
 action mliap_model_python_couple_kokkos.pyx mliap_model_python_couple.pyx
+action mliap_unified_couple_kokkos.pyx mliap_unified_couple.pyx
 
 # edit 2 Makefile.package files to include/exclude package info
 
@@ -423,15 +426,19 @@ fi
 if (test $1 = 1) then
   if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
     cythonize -3 ../mliap_model_python_couple_kokkos.pyx
+    cythonize -3 ../mliap_unified_couple_kokkos.pyx
   fi
 
 elif (test $1 = 0) then
   rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
+  rm -f ../mliap_unified_couple_kokkos.cpp ../mliap_unified_couple_kokkos.h
 
 elif (test $1 = 2) then
   if (type cythonize > /dev/null 2>&1 && test -e ../python_impl.cpp) then
     cythonize -3 ../mliap_model_python_couple_kokkos.pyx
+    cythonize -3 ../mliap_unified_couple_kokkos.pyx
   else
     rm -f ../mliap_model_python_couple_kokkos.cpp ../mliap_model_python_couple_kokkos.h
+    rm -f ../mliap_unified_couple_kokkos.cpp ../mliap_unified_couple_kokkos.h
   fi
 fi

@@ -203,7 +203,7 @@ operates on pair style computations, it is mutually exclusive with
 either the *pair* or the *inner*\ /\ *middle*\ /\ *outer* keywords.
 
 When using rRESPA (or for any MD simulation) care must be taken to
-choose a timestep size(s) that insures the Hamiltonian for the chosen
+choose a timestep size(s) that ensures the Hamiltonian for the chosen
 ensemble is conserved.  For the constant NVE ensemble, total energy
 must be conserved.  Unfortunately, it is difficult to know *a priori*
 how well energy will be conserved, and a fairly long test simulation

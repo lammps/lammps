@@ -177,7 +177,7 @@ void PairAIREBO::coeff(int narg, char **arg)
   if (narg != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // insure I,J args are * *
+  // ensure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -278,7 +278,7 @@ double PairAIREBO::init_one(int i, int j)
   // cutljrebosq = furthest distance from an owned atom a ghost atom can be
   //               to need its REBO neighs computed
   // interaction = M-K-I-J-L-N with I = owned and J = ghost
-  //   this insures N is in the REBO neigh list of L
+  //   this ensures N is in the REBO neigh list of L
   //   since I-J < rcLJmax and J-L < rmax
 
   double cutljrebo = rcLJmax[0][0] + rcmax[0][0];

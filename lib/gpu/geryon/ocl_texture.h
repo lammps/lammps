@@ -35,19 +35,19 @@ class UCL_Texture {
   UCL_Texture() {}
   ~UCL_Texture() {}
   /// Construct with a specified texture reference
-  inline UCL_Texture(UCL_Program &prog, const char *texture_name) { }
+  inline UCL_Texture(UCL_Program & /*prog*/, const char * /*texture_name*/) { }
   /// Set the texture reference for this object
-  inline void get_texture(UCL_Program &prog, const char *texture_name) { }
+  inline void get_texture(UCL_Program & /*prog*/, const char * /*texture_name*/) { }
 
   /// Bind a float array where each fetch grabs a vector of length numel
   template<class mat_typ>
-  inline void bind_float(mat_typ &vec, const unsigned numel) { }
+    inline void bind_float(mat_typ & /*vec*/, const unsigned /*numel*/) { }
 
   /// Unbind the texture reference from the memory allocation
   inline void unbind() { }
 
   /// Make a texture reference available to kernel
-  inline void allow(UCL_Kernel &kernel) { }
+  inline void allow(UCL_Kernel & /*kernel*/) { }
 
  private:
   friend class UCL_Kernel;
@@ -62,7 +62,7 @@ class UCL_Const {
   inline UCL_Const(UCL_Program &prog, const char *global_name)
     { get_global(prog,global_name); }
   /// Set the global reference for this object
-  inline void get_global(UCL_Program &prog, const char *global_name) {
+  inline void get_global(UCL_Program &prog, const char * /*global_name*/) {
     if (_active) {
       CL_DESTRUCT_CALL(clReleaseContext(_context));
       CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));

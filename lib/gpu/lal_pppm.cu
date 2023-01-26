@@ -273,19 +273,19 @@ __kernel void interp(const __global numtyp4 *restrict x_,
         int my=mz+fast_mul(ny,npts_x);
         for (int m=0; m<order; m++) {
           grdtyp y0=z0*rho1d_1[m][tid];
-                for (int l=0; l<order; l++) {
-                  grdtyp x0=y0*rho1d_0[l][tid];
-                  grdtyp4 el=brick[my+l];
-                  ek.x-=x0*el.x;
-                  ek.y-=x0*el.y;
-                  ek.z-=x0*el.z;
-                }
+          for (int l=0; l<order; l++) {
+            grdtyp x0=y0*rho1d_0[l][tid];
+            grdtyp4 el=brick[my+l];
+            ek.x-=x0*el.x;
+            ek.y-=x0*el.y;
+            ek.z-=x0*el.z;
+          }
           my+=npts_x;
         }
         mz+=npts_yx;
-            }
+      }
     }
     ans[ii]=ek;
-        }
+  }
 }
 

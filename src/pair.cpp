@@ -987,7 +987,7 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
 /* ----------------------------------------------------------------------
    set all flags to zero for energy, virial computation
    called by some complicated many-body potentials that use individual flags
-   to insure no holdover of flags from previous timestep
+   to ensure no holdover of flags from previous timestep
 ------------------------------------------------------------------------- */
 
 void Pair::ev_unset()
@@ -1854,7 +1854,7 @@ void Pair::write_file(int narg, char **arg)
   }
 
   // initialize potentials before evaluating pair potential
-  // insures all pair coeffs are set and force constants
+  // ensures all pair coeffs are set and force constants
   // also initialize neighbor so that neighbor requests are processed
   // NOTE: might be safest to just do lmp->init()
 

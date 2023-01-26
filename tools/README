@@ -33,7 +33,6 @@ lmp2arc                convert LAMMPS output to Accelrys Insight format
 lmp2cfg                convert LAMMPS output to CFG files for AtomEye viz
 magic                  patterns to detect LAMMPS files with the file(1) command
 matlab                 MatLab scripts for post-processing LAMMPS output
-mesont                 Tools for use with the MESONT package
 micelle2d              create a data file of small lipid chains in solvent
 moltemplate            Instructions for installing the Moltemplate builder program
 msi2lmp                use Accelrys Insight code to setup LAMMPS input

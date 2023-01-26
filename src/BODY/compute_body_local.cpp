@@ -85,7 +85,7 @@ ComputeBodyLocal::~ComputeBodyLocal()
 
 void ComputeBodyLocal::init()
 {
-  // if non-body particles in group insure only indices 1,2,3 are used
+  // if non-body particles in group ensure only indices 1,2,3 are used
 
   int nonbody = 0;
   int *mask = atom->mask;

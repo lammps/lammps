@@ -118,7 +118,7 @@ displaced by the same amount, different on each iteration.
    all.  Also note that if the box shape tilts to an extreme shape,
    LAMMPS will run less efficiently, due to the large volume of
    communication needed to acquire ghost atoms around a processor's
-   irregular-shaped sub-domain.  For extreme values of tilt, LAMMPS may
+   irregular-shaped subdomain.  For extreme values of tilt, LAMMPS may
    also lose atoms and generate an error.
 
 .. note::

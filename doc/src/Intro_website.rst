@@ -7,20 +7,15 @@ available online are listed below.
 
 .. _lws: https://www.lammps.org
 
-* `Brief intro and recently added significant features <lws_>`_
-* `List of features <https://docs.lammps.org/Intro_features.html>`_
-* `List of non-features <https://docs.lammps.org/Intro_nonfeatures.html>`_
-* `Recent bug fixes and new features <https://www.lammps.org/bug.html>`_
+* `LAMMPS source code repository on GitHub <https://github.com/lammps/lammps>`_
+* `LAMMPS forum on matsci.org <https://matsci.org/lammps/>`_
 
+* `Recent bug fixes and new features <https://www.lammps.org/bug.html>`_
 * `Download info <https://www.lammps.org/download.html>`_
-* `GitHub site <https://github.com/lammps/lammps>`_
-* `SourceForge site <https://sourceforge.net/projects/lammps>`_
-* `LAMMPS open-source license <https://docs.lammps.org/Intro_opensource.html>`_
 
 * `Glossary of terms relevant to LAMMPS <https://www.lammps.org/glossary.html>`_
 * `LAMMPS highlights with images <https://www.lammps.org/pictures.html>`_
 * `LAMMPS highlights with movies <https://www.lammps.org/movies.html>`_
-* `LAMMPS forum <https://www.lammps.org/forum.html>`_
 * `Workshops <https://www.lammps.org/workshops.html>`_
 * `Tutorials <https://www.lammps.org/tutorials.html>`_
 

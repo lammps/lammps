@@ -112,7 +112,7 @@ The new atom properties encode values that migrate with atoms to new
 processors and are written to restart files.  If you want the new
 properties to also be defined for ghost atoms, then use the *ghost*
 keyword with a value of *yes*\ .  This will invoke extra communication
-when ghost atoms are created (at every re-neighboring) to insure the
+when ghost atoms are created (at every re-neighboring) to ensure the
 new properties are also defined for the ghost atoms.
 
 .. admonition:: Properties on ghost atoms

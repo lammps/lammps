@@ -44,6 +44,22 @@ AtomVecHybridKokkos::~AtomVecHybridKokkos()
 
 /* ---------------------------------------------------------------------- */
 
+void AtomVecHybridKokkos::grow(int n)
+{
+  for (int k = 0; k < nstyles; k++) styles[k]->grow(n);
+  nmax = atomKK->k_x.h_view.extent(0);
+
+  tag = atom->tag;
+  type = atom->type;
+  mask = atom->mask;
+  image = atom->image;
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int AtomVecHybridKokkos::pack_comm_kokkos(const int &/*n*/, const DAT::tdual_int_2d &/*k_sendlist*/,
                                           const int & /*iswap*/,
                                           const DAT::tdual_xfloat_2d &/*buf*/,

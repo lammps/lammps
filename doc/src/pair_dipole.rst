@@ -308,7 +308,7 @@ one of these options:
 * :doc:`fix nvt/sphere update dipole <fix_nvt_sphere>`
 * :doc:`fix npt/sphere update dipole <fix_npt_sphere>`
 
-In all cases the "update dipole" setting insures the dipole moments
+In all cases the "update dipole" setting ensures the dipole moments
 are also rotated when the finite-size spheres rotate.  The 2nd and 3rd
 bullets perform thermostatting; in the case of a Langevin thermostat
 the "omega yes" option also thermostats the rotational degrees of

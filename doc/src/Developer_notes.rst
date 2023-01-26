@@ -102,7 +102,7 @@ build is then :doc:`processed in parallel <Developer_par_neigh>`.
 The most commonly required neighbor list is a so-called "half" neighbor
 list, where each pair of atoms is listed only once (except when the
 :doc:`newton command setting <newton>` for pair is off; in that case
-pairs straddling sub-domains or periodic boundaries will be listed twice).
+pairs straddling subdomains or periodic boundaries will be listed twice).
 Thus these are the default settings when a neighbor list request is created in:
 
 .. code-block:: c++
@@ -361,7 +361,7 @@ allocated as a 1d vector or 3d array.  Either way, the ordering of
 values within contiguous memory x fastest, then y, z slowest.
 
 For the ``3d decomposition`` of the grid, the global grid is
-partitioned into bricks that correspond to the sub-domains of the
+partitioned into bricks that correspond to the subdomains of the
 simulation box that each processor owns.  Often, this is a regular 3d
 array (Px by Py by Pz) of bricks, where P = number of processors =
 Px * Py * Pz.  More generally it can be a tiled decomposition, where

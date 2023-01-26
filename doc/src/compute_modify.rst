@@ -58,7 +58,7 @@ are adding atoms or molecules to the system (see the :doc:`fix pour
 <fix_pour>`, :doc:`fix deposit <fix_deposit>`, and :doc:`fix gcmc
 <fix_gcmc>` commands) or expect atoms or molecules to be lost
 (e.g. due to exiting the simulation box or via :doc:`fix evaporate
-<fix_evaporate>`), then this option should be used to insure the
+<fix_evaporate>`), then this option should be used to ensure the
 temperature is correctly normalized.
 
 .. note::

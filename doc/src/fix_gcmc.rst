@@ -353,7 +353,7 @@ about simulating non-neutral systems with kspace on.
 
 Use of this fix typically will cause the number of atoms to fluctuate,
 therefore, you will want to use the
-:doc:`compute_modify dynamic/dof <compute_modify>` command to insure that the
+:doc:`compute_modify dynamic/dof <compute_modify>` command to ensure that the
 current number of atoms is used as a normalizing factor each time
 temperature is computed. A simple example of this is:
 

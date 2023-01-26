@@ -596,7 +596,7 @@ then one file per snapshot is written and the "\*" character is
 replaced with the timestep value.  For example, tmp.dump.\* becomes
 tmp.dump.0, tmp.dump.10000, tmp.dump.20000, etc.  This option is not
 available for the *dcd* and *xtc* styles.  Note that the
-:doc:`dump_modify pad <dump_modify>` command can be used to insure all
+:doc:`dump_modify pad <dump_modify>` command can be used to ensure all
 timestep numbers are the same length (e.g., 00010), which can make it
 easier to read a series of dump files in order with some
 post-processing tools.

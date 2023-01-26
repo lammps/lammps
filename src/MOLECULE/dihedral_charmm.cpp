@@ -76,7 +76,7 @@ void DihedralCharmm::compute(int eflag, int vflag)
   edihedral = evdwl = ecoul = 0.0;
   ev_init(eflag, vflag);
 
-  // insure pair->ev_tally() will use 1-4 virial contribution
+  // ensure pair->ev_tally() will use 1-4 virial contribution
 
   if (weightflag && vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
@@ -357,7 +357,7 @@ void DihedralCharmm::init_style()
       error->all(FLERR, "Dihedral style charmm must be set to same r-RESPA level as 'outer'");
   }
 
-  // insure use of CHARMM pair_style if any weight factors are non-zero
+  // ensure use of CHARMM pair_style if any weight factors are non-zero
   // set local ptrs to LJ 14 arrays setup by Pair
   // also verify that the correct 1-4 scaling is set
 

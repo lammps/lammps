@@ -84,7 +84,7 @@ produced by other computes or fixes.  This fix operates in either
 per-grid inputs in the same command.
 
 The grid created by this command is distributed; each processor owns
-the grid points that are within its sub-domain.  This is similar to
+the grid points that are within its subdomain.  This is similar to
 the :doc:`fix ave/chunk <fix_ave_chunk>` command when it uses chunks
 from the :doc:`compute chunk/atom <compute_chunk_atom>` command which
 are 2d or 3d regular bins.  However, the per-bin outputs in that case

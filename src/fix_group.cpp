@@ -236,7 +236,7 @@ void FixGroup::set_group()
 
   if (varflag) memory->destroy(var);
 
-  // insure ghost atom masks are also updated
+  // ensure ghost atom masks are also updated
 
   comm->forward_comm(this);
 }

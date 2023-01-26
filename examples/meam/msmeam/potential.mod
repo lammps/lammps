@@ -4,7 +4,7 @@
 variable Pu string H
 print "potential chosen ${Pu}"
 # Choose potential
-pair_style meam ms # the `ms` flag turns on MS-MEAM
+pair_style meam/ms
 print		"we just executed"
 
 pair_coeff      * * library.msmeam ${Pu} Ga4  HGa.meam ${Pu} Ga4

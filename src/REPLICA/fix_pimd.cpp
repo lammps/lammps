@@ -84,11 +84,11 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else if (strcmp(arg[i + 1], "cmd") == 0)
         method = CMD;
       else
-        error->universe_all(FLERR, "Unknown method parameter for fix pimd");
+        error->universe_all(FLERR, "Unknown method parameter {} for fix pimd", arg[i + 1]);
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (fmass < 0.0 || fmass > np)
-        error->universe_all(FLERR, "Invalid fmass value for fix pimd");
+      if ((fmass < 0.0) || (fmass > np))
+        error->universe_all(FLERR, "Invalid fmass value {} for fix pimd", fmass);
     } else if (strcmp(arg[i], "sp") == 0) {
       sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd");
@@ -135,6 +135,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 }
 
 /* ---------------------------------------------------------------------- */
+
 FixPIMD::~FixPIMD()
 {
   delete[] mass;
@@ -166,6 +167,7 @@ FixPIMD::~FixPIMD()
 }
 
 /* ---------------------------------------------------------------------- */
+
 int FixPIMD::setmask()
 {
   int mask = 0;
@@ -215,7 +217,7 @@ void FixPIMD::init()
   double beta = 1.0 / (Boltzmann * nhc_temp);
   double _fbond = 1.0 * np / (beta * beta * hbar * hbar);
 
-  omega_np = sqrt((double)np) / (hbar * beta) * sqrt(force->mvv2e);
+  omega_np = sqrt((double) np) / (hbar * beta) * sqrt(force->mvv2e);
   fbond = -_fbond * force->mvv2e;
 
   if (universe->me == 0)
@@ -306,7 +308,7 @@ void FixPIMD::nhc_init()
       nhc_eta_dotdot[i][ichain] = 0.0;
       nhc_eta_mass[i][ichain] = mass0;
       if ((method == CMD || method == NMPIMD) && universe->iworld == 0)
-        ;
+        ; // do nothing
       else
         nhc_eta_mass[i][ichain] *= fmass;
     }
@@ -565,7 +567,7 @@ void FixPIMD::spring_force()
     f[i][1] -= (dy) *ff;
     f[i][2] -= (dz) *ff;
 
-    spring_energy += -0.5*ff*(delx2*delx2+dely2*dely2+delz2*delz2);
+    spring_energy += -0.5 * ff * (delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
   }
 }
 

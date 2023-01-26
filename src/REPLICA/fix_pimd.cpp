@@ -74,6 +74,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nhc_temp = 298.15;
   nhc_nchain = 2;
   sp = 1.0;
+  np = universe->nworlds;
 
   for (int i = 3; i < narg - 1; i += 2) {
     if (strcmp(arg[i], "method") == 0) {
@@ -190,7 +191,6 @@ void FixPIMD::init()
 
   // prepare the constants
 
-  np = universe->nworlds;
   inverse_np = 1.0 / np;
 
   /* The first solution for the force constant, using SI units

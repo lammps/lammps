@@ -1318,7 +1318,7 @@ class lammps(object):
     flat list of ctypes integer values with the angle type, angle atom1,
     angle atom2, angle atom3 for each angle.
 
-    .. versionadded:: 28Jan2023
+    .. versionadded:: TBD
 
     :return: a tuple with the number of angles and a list of c_int or c_long
     :rtype: (int, 4*nangles*c_tagint)
@@ -1341,7 +1341,7 @@ class lammps(object):
     flat list of ctypes integer values with the dihedral type, dihedral atom1,
     dihedral atom2, dihedral atom3, dihedral atom4 for each dihedral.
 
-    .. versionadded:: 28Jan2023
+    .. versionadded:: TBD
 
     :return: a tuple with the number of dihedrals and a list of c_int or c_long
     :rtype: (int, 5*ndihedrals*c_tagint)
@@ -1364,7 +1364,7 @@ class lammps(object):
     flat list of ctypes integer values with the improper type, improper atom1,
     improper atom2, improper atom3, improper atom4 for each improper.
 
-    .. versionadded:: 28Jan2023
+    .. versionadded:: TBD
 
     :return: a tuple with the number of impropers and a list of c_int or c_long
     :rtype: (int, 5*nimpropers*c_tagint)

@@ -47,7 +47,6 @@ PairSWKokkos<DeviceType>::PairSWKokkos(LAMMPS *lmp) : PairSW(lmp)
 {
   respa_enable = 0;
 
-
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -138,6 +137,7 @@ void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if ((int)d_numneigh_short.extent(0) < ignum)
     d_numneigh_short = Kokkos::View<int*,DeviceType>("SW::numneighs_short",ignum*1.2);
+
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagPairSWComputeShortNeigh>(0,inum), *this);
 
   // loop over neighbor list of my atoms

@@ -128,6 +128,8 @@ void PairLJExpandCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
   EV_FLOAT ev;
   if (ncoultablebits)
     ev = pair_compute<PairLJExpandCoulLongKokkos<DeviceType>,CoulLongTable<1> >
@@ -162,6 +164,7 @@ void PairLJExpandCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
+  copymode = 0;
 }
 
 /* ----------------------------------------------------------------------

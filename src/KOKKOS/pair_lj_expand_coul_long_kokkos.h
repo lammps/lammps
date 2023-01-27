@@ -37,14 +37,14 @@ class PairLJExpandCoulLongKokkos : public PairLJExpandCoulLong {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJExpandCoulLongKokkos(class LAMMPS *);
-  ~PairLJExpandCoulLongKokkos();
+  ~PairLJExpandCoulLongKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_tables(double cut_coul, double *cut_respa);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_tables(double cut_coul, double *cut_respa) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_lj_coul{
     KOKKOS_INLINE_FUNCTION
@@ -89,7 +89,6 @@ class PairLJExpandCoulLongKokkos : public PairLJExpandCoulLong {
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_float_1d_randomread q;
-  typename AT::t_tagint_1d tag;
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
@@ -115,7 +114,7 @@ class PairLJExpandCoulLongKokkos : public PairLJExpandCoulLong {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairLJExpandCoulLongKokkos,FULL,true,CoulLongTable<1> >;
   friend struct PairComputeFunctor<PairLJExpandCoulLongKokkos,HALF,true,CoulLongTable<1> >;
   friend struct PairComputeFunctor<PairLJExpandCoulLongKokkos,HALFTHREAD,true,CoulLongTable<1> >;
@@ -146,3 +145,4 @@ class PairLJExpandCoulLongKokkos : public PairLJExpandCoulLong {
 
 #endif
 #endif
+

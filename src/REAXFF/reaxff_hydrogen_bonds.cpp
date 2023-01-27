@@ -60,7 +60,7 @@ namespace ReaxFF {
     hbond_list = hbonds->select.hbond_list;
 
     for (j = 0; j < system->n; ++j)
-      if (system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1) {
+      if ((system->my_atoms[j].type >= 0) && (system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1)) {
         type_j     = system->my_atoms[j].type;
         start_j    = Start_Index(j, bonds);
         end_j      = End_Index(j, bonds);

@@ -37,13 +37,6 @@ AtomVecKokkos(lmp), AtomVecHybrid(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecHybridKokkos::~AtomVecHybridKokkos()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 void AtomVecHybridKokkos::grow(int n)
 {
   for (int k = 0; k < nstyles; k++) styles[k]->grow(n);

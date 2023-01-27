@@ -47,13 +47,6 @@ MLIAPDescriptorSO3Kokkos<DeviceType>::MLIAPDescriptorSO3Kokkos(LAMMPS *lmp, char
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-MLIAPDescriptorSO3Kokkos<DeviceType>::~MLIAPDescriptorSO3Kokkos()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
-template <class DeviceType>
 void MLIAPDescriptorSO3Kokkos<DeviceType>::compute_descriptors(class MLIAPData *data_)
 {
   auto data = static_cast<MLIAPDataKokkos<DeviceType>*>(data_);

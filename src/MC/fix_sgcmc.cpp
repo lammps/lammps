@@ -406,7 +406,7 @@ void FixSemiGrandCanonicalMC::doMC()
         }
       }
 
-      if (kappa != 0.0 && serialMode == false) {
+      if (kappa != 0.0 && !serialMode) {
 
         // What follows is the second rejection test for the variance-constrained
         // semi-grandcanonical method.
@@ -472,7 +472,7 @@ void FixSemiGrandCanonicalMC::doMC()
 
   // For (parallelized) semi-grandcanonical MC we have to determine the current concentrations now.
   // For the serial version and variance-constrained MC it has already been done in the loop.
-  if (kappa == 0.0 && serialMode == false) {
+  if (kappa == 0.0 && !serialMode) {
     const int *type = atom->type;
     std::vector<int> localSpeciesCounts(atom->ntypes+1, 0);
     for (int i = 0; i < atom->nlocal; i++, ++type) {

@@ -202,14 +202,14 @@ bool AtomT::add_fields(const bool charge, const bool rot,
   if (extra_fields > 0 && _extra_fields==0) {
     _extra_fields=extra_fields;
     _other=true;
-    if (_host_view==false) {
+    if (!_host_view) {
       success=success && (extra.alloc(_max_atoms*_extra_fields,*dev,UCL_WRITE_ONLY,
                                      UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=extra.device.row_bytes();
     }
   }
 
-  if (bonds && _bonds==false) {
+  if (bonds && !_bonds) {
     _bonds=true;
     if (_bonds && _gpu_nbor>0) {
       success=success && (dev_tag.alloc(_max_atoms,*dev,

@@ -381,12 +381,12 @@ AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sfla
 {
   // check if avec already exists, if so this is a hybrid substyle
 
-  bool hybrid_substyle_flag = (avec != nullptr);
+  int hybrid_substyle_flag = (avec != nullptr);
 
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
   if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
 
-  if (!hybrid_substyle_flag) // for hybrid
+  if (!hybrid_substyle_flag)
     avecKK = dynamic_cast<AtomVecKokkos*>(avec);
 
   return avec;

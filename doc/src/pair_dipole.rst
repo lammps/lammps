@@ -11,7 +11,7 @@
 pair_style lj/cut/dipole/cut command
 ====================================
 
-Accelerator Variants: *lj/cut/dipole/cut/gpu*, *lj/cut/dipole/cut/omp*
+Accelerator Variants: *lj/cut/dipole/cut/gpu*, *lj/cut/dipole/cut/kk*, *lj/cut/dipole/cut/omp*
 
 pair_style lj/sf/dipole/sf command
 ==================================

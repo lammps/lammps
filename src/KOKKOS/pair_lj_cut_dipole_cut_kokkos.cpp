@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -10,6 +10,10 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Trung Nguyen (U Chicago)
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_dipole_cut_kokkos.h"
@@ -213,7 +217,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   copymode = 0;
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
   needs torque as with AtomVecSphereKokkos
   needs energy calculation as well
   ---------------------------------------------------------------------- */
@@ -258,7 +262,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
     X_FLOAT cutsq_ij = STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype);
 
-    if (rsq < cutsq_ij) {    
+    if (rsq < cutsq_ij) {
       const F_FLOAT r2inv = 1.0/rsq;
       const F_FLOAT r6inv = r2inv*r2inv*r2inv;
       F_FLOAT forcelj = 0;
@@ -278,12 +282,12 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
       F_FLOAT fz = 0;
 
       // lj term
-      
+
       X_FLOAT cut_ljsq_ij = STACKPARAMS?m_cut_ljsq[itype][jtype]:d_cut_ljsq(itype,jtype);
       if (rsq < cut_ljsq_ij) {
         forcelj = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
                            (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
-        forcelj *= r2inv; 
+        forcelj *= r2inv;
         if (eflag) {
           evdwl = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
                           (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
@@ -298,7 +302,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
       X_FLOAT cut_coulsq_ij = STACKPARAMS?m_cut_coulsq[itype][jtype]:d_cut_coulsq(itype,jtype);
 
       if (rsq < cut_coulsq_ij) {
-        
+
         const F_FLOAT r2inv = 1.0/rsq;
         const F_FLOAT rinv = sqrt(r2inv);
         const F_FLOAT qj = q[j];
@@ -319,7 +323,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         F_FLOAT r5inv = r3inv*r2inv;
 
        if (mui > 0.0 && muj > 0.0) {
-          
+
           F_FLOAT r7inv = r5inv*r2inv;
 
           pdotp = mu(i,0)*mu(j,0) + mu(i,1)*mu(j,1) + mu(i,2)*mu(j,2);
@@ -346,7 +350,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           tjycoul += -crossy + pre3 * (mu(j,2)*delx - mu(j,0)*delz);
           tjzcoul += -crossz + pre3 * (mu(j,0)*dely - mu(j,1)*delx);
         }
-        
+
         // dipole-charge
 
         if (mui > 0 && qj != 0) {
@@ -376,7 +380,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           tjycoul += -pre2 * (mu(j,2)*delx - mu(j,0)*delz);
           tjzcoul += -pre2 * (mu(j,0)*dely - mu(j,1)*delx);
         }
-        
+
         F_FLOAT fq = factor_coul*qqrd2e;
         fx = fq*forcecoulx + delx*forcelj;
         fy = fq*forcecouly + dely*forcelj;
@@ -483,9 +487,9 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int
         ev.v[3] += 0.5*v[3];
         ev.v[4] += 0.5*v[4];
         ev.v[5] += 0.5*v[5];
-      } 
+      }
     }
-    
+
   } else { // NEIGHFLAG == FULL
     ev.v[0] += 0.5*v[0];
     ev.v[1] += 0.5*v[1];
@@ -493,7 +497,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int
     ev.v[3] += 0.5*v[3];
     ev.v[4] += 0.5*v[4];
     ev.v[5] += 0.5*v[5];
-  }  
+  }
 
 }
 

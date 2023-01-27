@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -13,10 +13,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Trung Nguyen
+   Contributing author: Trung Nguyen (U Chicago)
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_expand_coul_long_kokkos.h"
+
 #include <cmath>
 #include <cstring>
 #include "kokkos.h"

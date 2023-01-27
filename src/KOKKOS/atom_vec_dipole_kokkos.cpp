@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS Development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -334,7 +334,7 @@ struct AtomVecDipoleKokkos_UnpackBorder {
 
 void AtomVecDipoleKokkos::unpack_border_kokkos(const int &n, const int &first,
                      const DAT::tdual_xfloat_2d &buf,ExecutionSpace space) {
-  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MU_MASK);  
+  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MU_MASK);
   while (first+n >= nmax) grow(0);
   atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MU_MASK);
   if (space==Host) {
@@ -661,6 +661,6 @@ void AtomVecDipoleKokkos::sync_overlapping_device(ExecutionSpace space, unsigned
     if ((mask & Q_MASK) && atomKK->k_q.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_float_1d>(atomKK->k_q,space);
     if ((mask & MU_MASK) && atomKK->k_mu.need_sync<LMPHostType>())
-      perform_async_copy<DAT::tdual_float_1d_4>(atomKK->k_mu,space);      
+      perform_async_copy<DAT::tdual_float_1d_4>(atomKK->k_mu,space);
   }
 }

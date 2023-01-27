@@ -200,6 +200,7 @@ OPT.
    * :doc:`mdpd <pair_mesodpd>`
    * :doc:`mdpd/rhosum <pair_mesodpd>`
    * :doc:`meam (k) <pair_meam>`
+   * :doc:`meam/ms (k) <pair_meam>`
    * :doc:`meam/spline (o) <pair_meam_spline>`
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
    * :doc:`mesocnt <pair_mesocnt>`

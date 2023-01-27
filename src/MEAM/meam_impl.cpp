@@ -34,6 +34,11 @@ MEAM::MEAM(Memory* mem)
   gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = nullptr;
   arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = nullptr;
 
+  // msmeam arrays
+  msmeamflag = 0;
+  arho2mb = nullptr;
+  arho1m = arho2m = arho3m = arho3mb = nullptr;
+
   maxneigh = 0;
   scrfcn = dscrfcn = fcpair = nullptr;
   copymode = 0;
@@ -43,7 +48,9 @@ MEAM::MEAM(Memory* mem)
     A_meam[i] = rho0_meam[i] = beta0_meam[i] =
       beta1_meam[i]= beta2_meam[i] = beta3_meam[i] =
       t0_meam[i] = t1_meam[i] = t2_meam[i] = t3_meam[i] =
-      rho_ref_meam[i] = ibar_meam[i] = ielt_meam[i] = 0.0;
+      rho_ref_meam[i] = ibar_meam[i] = ielt_meam[i] =
+      t1m_meam[i] = t2m_meam[i] = t3m_meam[i] =
+      beta1m_meam[i] = beta2m_meam[i] = beta3m_meam[i] = 0.0;
     for (int j = 0; j < maxelt; j++) {
       lattce_meam[i][j] = FCC;
       Ec_meam[i][j] = re_meam[i][j] = alpha_meam[i][j] = delta_meam[i][j] = ebound_meam[i][j] = attrac_meam[i][j] = repuls_meam[i][j] = 0.0;
@@ -87,4 +94,13 @@ MEAM::~MEAM()
   memory->destroy(this->scrfcn);
   memory->destroy(this->dscrfcn);
   memory->destroy(this->fcpair);
+
+  // msmeam
+  if (this->msmeamflag){
+    memory->destroy(this->arho1m);
+    memory->destroy(this->arho2m);
+    memory->destroy(this->arho3m);
+    memory->destroy(this->arho2mb);
+    memory->destroy(this->arho3mb);
+  }
 }

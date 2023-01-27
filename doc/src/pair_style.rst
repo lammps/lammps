@@ -277,7 +277,8 @@ accelerated styles exist.
 * :doc:`lubricateU/poly <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
 * :doc:`mdpd <pair_mesodpd>` - mDPD particle interactions
 * :doc:`mdpd/rhosum <pair_mesodpd>` - mDPD particle interactions for mass density
-* :doc:`meam <pair_meam>` - modified embedded atom method (MEAM) in C
+* :doc:`meam <pair_meam>` - modified embedded atom method (MEAM)
+* :doc:`meam/ms <pair_meam>` - multi-state modified embedded atom method (MS-MEAM)
 * :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
 * :doc:`mesocnt <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes

@@ -399,7 +399,7 @@ void FixMDIQMMM::init()
     if (mode == DIRECT) {
       ierr = MDI_Send_command(">NLATTICE", mdicomm);
       if (ierr) error->all(FLERR, "MDI: >NLATTICE command");
-      ierr = MDI_Send(&nmm, 1, MDI_DOUBLE, mdicomm);
+      ierr = MDI_Send(&nmm, 1, MDI_INT, mdicomm);
       if (ierr) error->all(FLERR, "MDI: >NLATTICE data");
 
       set_mm2owned();
@@ -407,13 +407,14 @@ void FixMDIQMMM::init()
       
       ierr = MDI_Send_command(">LATTICE_ELEMENTS", mdicomm);
       if (ierr) error->all(FLERR, "MDI: >LATTICE_ELEMENTS command");
-      ierr = MDI_Send(&emm, nmm, MDI_INT, mdicomm);
+      ierr = MDI_Send(emm, nmm, MDI_INT, mdicomm);
       if (ierr) error->all(FLERR, "MDI: >LATTICE_ELEMENTS data");
 
       set_qmm();
       ierr = MDI_Send_command(">LATTICE", mdicomm);
       if (ierr) error->all(FLERR, "MDI: >LATTICE command");
-      ierr = MDI_Send(&qmm, nmm, MDI_DOUBLE, mdicomm);
+      printf("SEND LATTICE nmm %d qmm %g %g %g\n",nmm,qmm[0],qmm[1],qmm[2]);
+      ierr = MDI_Send(qmm, nmm, MDI_DOUBLE, mdicomm);
       if (ierr) error->all(FLERR, "MDI: >LATTICE data");
     }
   }
@@ -673,6 +674,20 @@ void FixMDIQMMM::post_force_direct(int vflag)
   set_xqm();
   set_xmm();
   set_qmm();
+
+  // unit conversion from LAMMPS to MDI
+
+  for (int i = 0; i < nqm; i++) {
+    xqm[i][0] *= lmp2mdi_length;
+    xqm[i][1] *= lmp2mdi_length;
+    xqm[i][2] *= lmp2mdi_length;
+  }
+
+  for (int i = 0; i < nmm; i++) {
+    xmm[i][0] *= lmp2mdi_length;
+    xmm[i][1] *= lmp2mdi_length;
+    xmm[i][2] *= lmp2mdi_length;
+  }
 
   // send info to MDI engine with QM and MM atom info
   // first request for results triggers QM calculation
@@ -1263,7 +1278,7 @@ void FixMDIQMMM::set_qmm()
   int ilocal;
 
   for (int i = 0; i < nmm; i++) {
-    ilocal = qm2owned[i];
+    ilocal = mm2owned[i];
     if (ilocal >= 0) qmm_mine[i] = q[ilocal];
   }
   

@@ -142,7 +142,7 @@ extern void Reset_Workspace(reax_system *, storage *);
 
 extern void *scalloc(LAMMPS_NS::Error *, rc_bigint, rc_bigint, const std::string &);
 extern void *smalloc(LAMMPS_NS::Error *, rc_bigint, const std::string &);
-extern void sfree(void *, const std::string &);
+extern void sfree(void *);
 
 // torsion angles
 

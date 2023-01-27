@@ -96,7 +96,7 @@ void *scalloc(LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const st
 }
 
 /* safe free */
-void sfree(void *ptr, const std::string &name)
+void sfree(void *ptr)
 {
   if (ptr == nullptr) return;
 

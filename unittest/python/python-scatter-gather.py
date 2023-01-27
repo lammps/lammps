@@ -220,7 +220,7 @@ class PythonGather(unittest.TestCase):
         for i in range(0,nimpropers):
             count += self.checkImproper(impropers[5*i:5*i+5], 1, 6, 3, 8, 7)
             count += self.checkImproper(impropers[5*i:5*i+5], 2, 8, 6, 10, 9)
-        self.assertEqual(count,10)
+        self.assertEqual(count,2)
 
     @unittest.skipIf(not has_full, "Gather_impropers test")
     def testGatherImproper_newton_off(self):
@@ -235,7 +235,7 @@ class PythonGather(unittest.TestCase):
         for i in range(0,nimpropers):
             count += self.checkImproper(impropers[5*i:5*i+5], 1, 6, 3, 8, 7)
             count += self.checkImproper(impropers[5*i:5*i+5], 2, 8, 6, 10, 9)
-        self.assertEqual(count,10)
+        self.assertEqual(count,2)
 
 ##############################
 if __name__ == "__main__":

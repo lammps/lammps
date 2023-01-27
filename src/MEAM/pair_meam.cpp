@@ -58,13 +58,12 @@ PairMEAM::PairMEAM(LAMMPS *lmp) : Pair(lmp)
   allocated = 0;
 
   nlibelements = 0;
+
   meam_inst = new MEAM(memory);
+  meam_inst->msmeamflag = msmeamflag = 0;
+  myname = "meam";
+
   scale = nullptr;
-
-  // set comm size needed by this Pair
-
-  comm_forward = 38;
-  comm_reverse = 30;
 }
 
 /* ----------------------------------------------------------------------
@@ -93,7 +92,6 @@ void PairMEAM::compute(int eflag, int vflag)
   int i,ii,n,inum_half,errorflag;
   int *ilist_half,*numneigh_half,**firstneigh_half;
   int *numneigh_full,**firstneigh_full;
-
   ev_init(eflag,vflag);
 
   // neighbor list info
@@ -133,7 +131,6 @@ void PairMEAM::compute(int eflag, int vflag)
 
   int offset = 0;
   errorflag = 0;
-
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     meam_inst->meam_dens_init(i,ntype,type,map,x,
@@ -142,9 +139,7 @@ void PairMEAM::compute(int eflag, int vflag)
                     offset);
     offset += numneigh_half[i];
   }
-
   comm->reverse_comm(this);
-
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag)
@@ -159,7 +154,6 @@ void PairMEAM::compute(int eflag, int vflag)
 
   double **vptr = nullptr;
   if (vflag_atom) vptr = vatom;
-
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
     meam_inst->meam_force(i,eflag_global,eflag_atom,vflag_global,
@@ -169,7 +163,6 @@ void PairMEAM::compute(int eflag, int vflag)
                           offset,f,vptr,virial);
     offset += numneigh_half[i];
   }
-
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -193,7 +186,17 @@ void PairMEAM::allocate()
 
 void PairMEAM::settings(int narg, char ** /*arg*/)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR,"Illegal pair_style {} command", myname);
+
+  // set comm size needed by this Pair
+
+  if (msmeamflag) {
+    comm_forward = 38+23; // plus 23 for msmeam
+    comm_reverse = 30+23; // plus 23 for msmeam
+  } else {
+    comm_forward = 38;
+    comm_reverse = 30;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -206,12 +209,7 @@ void PairMEAM::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg < 6) error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // ensure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 6) error->all(FLERR,"Incorrect args for pair style {} coefficients", myname);
 
   // check for presence of first meam file
 
@@ -239,7 +237,7 @@ void PairMEAM::coeff(int narg, char **arg)
   }
   if (paridx < 0) error->all(FLERR,"No MEAM parameter file in pair coefficients");
   if ((narg - paridx - 1) != atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR,"Incorrect args for pair style {} coefficients", myname);
 
   // MEAM element names between 2 filenames
   // nlibelements = # of MEAM elements
@@ -282,7 +280,7 @@ void PairMEAM::coeff(int narg, char **arg)
       if (libelements[j] == arg[i]) break;
     if (j < nlibelements) map[m] = j;
     else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
-    else error->all(FLERR,"Incorrect args for pair coefficients");
+    else error->all(FLERR,"Incorrect args for pair style {} coefficients", myname);
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -307,7 +305,7 @@ void PairMEAM::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair style {} coefficients", myname);
 }
 
 /* ----------------------------------------------------------------------
@@ -317,7 +315,7 @@ void PairMEAM::coeff(int narg, char **arg)
 void PairMEAM::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style MEAM requires newton pair on");
+    error->all(FLERR,"Pair style {} requires newton pair on", myname);
 
   // need a full and a half neighbor list
 
@@ -360,7 +358,9 @@ void PairMEAM::read_files(const std::string &globalfile,
 
 void PairMEAM::read_global_meam_file(const std::string &globalfile)
 {
+
   // allocate parameter arrays
+
   std::vector<lattice_t> lat(nlibelements);
   std::vector<int> ielement(nlibelements);
   std::vector<int> ibar(nlibelements);
@@ -380,6 +380,15 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
   std::vector<double> t3(nlibelements);
   std::vector<double> rozero(nlibelements);
   std::vector<bool> found(nlibelements, false);
+
+  // allocate 6 extra arrays for msmeam
+
+  std::vector<double> b1m(nlibelements);
+  std::vector<double> b2m(nlibelements);
+  std::vector<double> b3m(nlibelements);
+  std::vector<double> t1m(nlibelements);
+  std::vector<double> t2m(nlibelements);
+  std::vector<double> t3m(nlibelements);
 
   // open global meamf file on proc 0
 
@@ -416,8 +425,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         std::string lattice_type = values.next_string();
 
         if (!MEAM::str_to_lat(lattice_type, true, lat[index]))
-          error->one(FLERR,"Unrecognized lattice type in MEAM "
-                                       "library file: {}", lattice_type);
+          error->one(FLERR,"Unrecognized lattice type in MEAM library file: {}", lattice_type);
 
         // store parameters
 
@@ -429,6 +437,11 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         b1[index] = values.next_double();
         b2[index] = values.next_double();
         b3[index] = values.next_double();
+        if (msmeamflag) {
+          b1m[index] = values.next_double();
+          b2m[index] = values.next_double();
+          b3m[index] = values.next_double();
+        }
         alat[index] = values.next_double();
         esub[index] = values.next_double();
         asub[index] = values.next_double();
@@ -436,15 +449,20 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         t1[index] = values.next_double();
         t2[index] = values.next_double();
         t3[index] = values.next_double();
+        if (msmeamflag) {
+          t1m[index] = values.next_double();
+          t2m[index] = values.next_double();
+          t3m[index] = values.next_double();
+        }
         rozero[index] = values.next_double();
         ibar[index] = values.next_int();
 
         if (!isone(t0[index]))
-          error->one(FLERR,"Unsupported parameter in MEAM library file: t0!=1");
+          error->one(FLERR,"Unsupported parameter in MEAM library file: t0 != 1");
 
         // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
         if (z[index] != MEAM::get_Zij(lat[index]))
-          error->one(FLERR,"Mismatched parameter in MEAM library file: z!=lat");
+          error->one(FLERR,"Mismatched parameter in MEAM library file: z != lat");
 
         nset++;
       } catch (TokenizerException &e) {
@@ -484,13 +502,29 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
   MPI_Bcast(t2.data(), nlibelements, MPI_DOUBLE, 0, world);
   MPI_Bcast(t3.data(), nlibelements, MPI_DOUBLE, 0, world);
   MPI_Bcast(rozero.data(), nlibelements, MPI_DOUBLE, 0, world);
+  // distribute msmeam parameter sets
+  MPI_Bcast(b1m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b2m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b3m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t1m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t2m.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t3m.data(), nlibelements, MPI_DOUBLE, 0, world);
 
   // pass element parameters to MEAM package
 
-  meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
-                               alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
-                               alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
-                               t2.data(), t3.data(), rozero.data(), ibar.data());
+  if (msmeamflag) {
+    meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
+                                alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
+                                alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
+                                t2.data(), t3.data(), rozero.data(), ibar.data(), b1m.data(),
+                                b2m.data(), b3m.data(), t1m.data(), t2m.data(), t3m.data());
+  } else {
+    meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
+                                alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
+                                alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
+                                t2.data(), t3.data(), rozero.data(), ibar.data(), nullptr,
+                                nullptr, nullptr, nullptr, nullptr, nullptr);
+  }
 
   // set element masses
 
@@ -613,6 +647,23 @@ int PairMEAM::pack_forward_comm(int n, int *list, double *buf,
     buf[m++] = meam_inst->tsq_ave[j][0];
     buf[m++] = meam_inst->tsq_ave[j][1];
     buf[m++] = meam_inst->tsq_ave[j][2];
+    if (msmeamflag) {
+      buf[m++] = meam_inst->arho2mb[j];
+      buf[m++] = meam_inst->arho1m[j][0];
+      buf[m++] = meam_inst->arho1m[j][1];
+      buf[m++] = meam_inst->arho1m[j][2];
+      buf[m++] = meam_inst->arho2m[j][0];
+      buf[m++] = meam_inst->arho2m[j][1];
+      buf[m++] = meam_inst->arho2m[j][2];
+      buf[m++] = meam_inst->arho2m[j][3];
+      buf[m++] = meam_inst->arho2m[j][4];
+      buf[m++] = meam_inst->arho2m[j][5];
+      for (k = 0; k < 10; k++) buf[m++] = meam_inst->arho3m[j][k];
+      buf[m++] = meam_inst->arho3mb[j][0];
+      buf[m++] = meam_inst->arho3mb[j][1];
+      buf[m++] = meam_inst->arho3mb[j][2];
+    }
+
   }
 
   return m;
@@ -656,6 +707,22 @@ void PairMEAM::unpack_forward_comm(int n, int first, double *buf)
     meam_inst->tsq_ave[i][0] = buf[m++];
     meam_inst->tsq_ave[i][1] = buf[m++];
     meam_inst->tsq_ave[i][2] = buf[m++];
+    if (msmeamflag) {
+      meam_inst->arho2mb[i] = buf[m++];
+      meam_inst->arho1m[i][0] = buf[m++];
+      meam_inst->arho1m[i][1] = buf[m++];
+      meam_inst->arho1m[i][2] = buf[m++];
+      meam_inst->arho2m[i][0] = buf[m++];
+      meam_inst->arho2m[i][1] = buf[m++];
+      meam_inst->arho2m[i][2] = buf[m++];
+      meam_inst->arho2m[i][3] = buf[m++];
+      meam_inst->arho2m[i][4] = buf[m++];
+      meam_inst->arho2m[i][5] = buf[m++];
+      for (k = 0; k < 10; k++) meam_inst->arho3m[i][k] = buf[m++];
+      meam_inst->arho3mb[i][0] = buf[m++];
+      meam_inst->arho3mb[i][1] = buf[m++];
+      meam_inst->arho3mb[i][2] = buf[m++];
+    }
   }
 }
 
@@ -689,6 +756,22 @@ int PairMEAM::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = meam_inst->tsq_ave[i][0];
     buf[m++] = meam_inst->tsq_ave[i][1];
     buf[m++] = meam_inst->tsq_ave[i][2];
+    if (msmeamflag) {
+      buf[m++] = meam_inst->arho2mb[i];
+      buf[m++] = meam_inst->arho1m[i][0];
+      buf[m++] = meam_inst->arho1m[i][1];
+      buf[m++] = meam_inst->arho1m[i][2];
+      buf[m++] = meam_inst->arho2m[i][0];
+      buf[m++] = meam_inst->arho2m[i][1];
+      buf[m++] = meam_inst->arho2m[i][2];
+      buf[m++] = meam_inst->arho2m[i][3];
+      buf[m++] = meam_inst->arho2m[i][4];
+      buf[m++] = meam_inst->arho2m[i][5];
+      for (k = 0; k < 10; k++) buf[m++] = meam_inst->arho3m[i][k];
+      buf[m++] = meam_inst->arho3mb[i][0];
+      buf[m++] = meam_inst->arho3mb[i][1];
+      buf[m++] = meam_inst->arho3mb[i][2];
+    }
   }
 
   return m;
@@ -724,7 +807,25 @@ void PairMEAM::unpack_reverse_comm(int n, int *list, double *buf)
     meam_inst->tsq_ave[j][0] += buf[m++];
     meam_inst->tsq_ave[j][1] += buf[m++];
     meam_inst->tsq_ave[j][2] += buf[m++];
+    if (msmeamflag) {
+      meam_inst->arho2mb[j] += buf[m++];
+      meam_inst->arho1m[j][0] += buf[m++];
+      meam_inst->arho1m[j][1] += buf[m++];
+      meam_inst->arho1m[j][2] += buf[m++];
+      meam_inst->arho2m[j][0] += buf[m++];
+      meam_inst->arho2m[j][1] += buf[m++];
+      meam_inst->arho2m[j][2] += buf[m++];
+      meam_inst->arho2m[j][3] += buf[m++];
+      meam_inst->arho2m[j][4] += buf[m++];
+      meam_inst->arho2m[j][5] += buf[m++];
+      for (k = 0; k < 10; k++) meam_inst->arho3m[j][k] += buf[m++];
+      meam_inst->arho3mb[j][0] += buf[m++];
+      meam_inst->arho3mb[j][1] += buf[m++];
+      meam_inst->arho3mb[j][2] += buf[m++];
+    }
   }
+
+
 }
 
 /* ----------------------------------------------------------------------

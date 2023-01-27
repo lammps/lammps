@@ -45,6 +45,14 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memory->destroy(arho3b);
     memory->destroy(t_ave);
     memory->destroy(tsq_ave);
+    // msmeam params
+    if (this->msmeamflag) {
+      memory->destroy(arho1m);
+      memory->destroy(arho2m);
+      memory->destroy(arho3m);
+      memory->destroy(arho2mb);
+      memory->destroy(arho3mb);
+    }
 
     nmax = atom_nmax;
 
@@ -65,6 +73,14 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     memory->create(arho3b, nmax, 3, "pair:arho3b");
     memory->create(t_ave, nmax, 3, "pair:t_ave");
     memory->create(tsq_ave, nmax, 3, "pair:tsq_ave");
+    // msmeam params
+    if (this->msmeamflag) {
+      memory->create(arho1m, nmax, 3, "pair:arho1m");
+      memory->create(arho2m, nmax, 6, "pair:arho2m");
+      memory->create(arho3m, nmax, 10, "pair:arho3m");
+      memory->create(arho2mb, nmax, "pair:arho2mb");
+      memory->create(arho3mb, nmax, 3, "pair:arho3mb");
+    }
   }
 
   if (n_neigh > maxneigh) {
@@ -83,14 +99,30 @@ MEAM::meam_dens_setup(int atom_nmax, int nall, int n_neigh)
     rho0[i] = 0.0;
     arho2b[i] = 0.0;
     arho1[i][0] = arho1[i][1] = arho1[i][2] = 0.0;
-    for (j = 0; j < 6; j++)
+    if (this->msmeamflag) {
+      arho2mb[i] = 0.0;
+      arho1m[i][0] = arho1m[i][1] = arho1m[i][2] = 0.0;
+    }
+    for (j = 0; j < 6; j++) {
       arho2[i][j] = 0.0;
-    for (j = 0; j < 10; j++)
+      if (this->msmeamflag) {
+        arho2m[i][j] = 0.0;
+      }
+    }
+    for (j = 0; j < 10; j++) {
       arho3[i][j] = 0.0;
+      if (this->msmeamflag) {
+        arho3m[i][j] = 0.0;
+      }
+    }
     arho3b[i][0] = arho3b[i][1] = arho3b[i][2] = 0.0;
+    if (this->msmeamflag) {
+      arho3mb[i][0] = arho3mb[i][1] = arho3mb[i][2] = 0.0;
+    }
     t_ave[i][0] = t_ave[i][1] = t_ave[i][2] = 0.0;
     tsq_ave[i][0] = tsq_ave[i][1] = tsq_ave[i][2] = 0.0;
   }
+
 }
 
 void
@@ -282,6 +314,9 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
   // double G,Gbar,gam,shp[3+1];
   double ro0i, ro0j;
   double rhoa0i, rhoa1i, rhoa2i, rhoa3i, A1i, A2i, A3i;
+  // msmeam params
+  double rhoa1mj, rhoa2mj, rhoa3mj, A1mj, A2mj, A3mj;
+  double rhoa1mi, rhoa2mi, rhoa3mi, A1mi, A2mi, A3mi;
 
   elti = fmap[type[i]];
   xtmp = x[i][0];
@@ -306,10 +341,20 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
         rhoa1j = ro0j * MathSpecial::fm_exp(-this->beta1_meam[eltj] * aj) * sij;
         rhoa2j = ro0j * MathSpecial::fm_exp(-this->beta2_meam[eltj] * aj) * sij;
         rhoa3j = ro0j * MathSpecial::fm_exp(-this->beta3_meam[eltj] * aj) * sij;
+        if (this->msmeamflag){
+          rhoa1mj = ro0j * this->t1m_meam[eltj] * MathSpecial::fm_exp(-this->beta1m_meam[eltj] * aj) * sij;
+          rhoa2mj = ro0j * this->t2m_meam[eltj] * MathSpecial::fm_exp(-this->beta2m_meam[eltj] * aj) * sij;
+          rhoa3mj = ro0j * this->t3m_meam[eltj] * MathSpecial::fm_exp(-this->beta3m_meam[eltj] * aj) * sij;
+        }
         rhoa0i = ro0i * MathSpecial::fm_exp(-this->beta0_meam[elti] * ai) * sij;
         rhoa1i = ro0i * MathSpecial::fm_exp(-this->beta1_meam[elti] * ai) * sij;
         rhoa2i = ro0i * MathSpecial::fm_exp(-this->beta2_meam[elti] * ai) * sij;
         rhoa3i = ro0i * MathSpecial::fm_exp(-this->beta3_meam[elti] * ai) * sij;
+        if (this->msmeamflag){
+          rhoa1mi = ro0i * this->t1m_meam[elti] * MathSpecial::fm_exp(-this->beta1m_meam[elti] * ai) * sij;
+          rhoa2mi = ro0i * this->t2m_meam[elti] * MathSpecial::fm_exp(-this->beta2m_meam[elti] * ai) * sij;
+          rhoa3mi = ro0i * this->t3m_meam[elti] * MathSpecial::fm_exp(-this->beta3m_meam[elti] * ai) * sij;
+        }
         if (this->ialloy == 1) {
           rhoa1j = rhoa1j * this->t1_meam[eltj];
           rhoa2j = rhoa2j * this->t2_meam[eltj];
@@ -320,6 +365,7 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
         }
         rho0[i] = rho0[i] + rhoa0j;
         rho0[j] = rho0[j] + rhoa0i;
+        // For ialloy = 2, use single-element value (not average)
         // For ialloy = 2, use single-element value (not average)
         if (this->ialloy != 2) {
           t_ave[i][0] = t_ave[i][0] + this->t1_meam[eltj] * rhoa0j;
@@ -348,18 +394,42 @@ MEAM::calc_rho1(int i, int /*ntype*/, int* type, int* fmap, double** x, int numn
         A3i = rhoa3i / (rij2 * rij);
         nv2 = 0;
         nv3 = 0;
+        if (this->msmeamflag) {
+          arho2mb[i] = arho2mb[i] + rhoa2mj;
+          arho2mb[j] = arho2mb[j] + rhoa2mi;
+          A1mj = rhoa1mj/rij;
+          A2mj = rhoa2mj/rij2;
+          A3mj = rhoa3mj/(rij2*rij);
+          A1mi = rhoa1mi/rij;
+          A2mi = rhoa2mi/rij2;
+          A3mi = rhoa3mi/(rij2*rij);
+        }
         for (m = 0; m < 3; m++) {
           arho1[i][m] = arho1[i][m] + A1j * delij[m];
           arho1[j][m] = arho1[j][m] - A1i * delij[m];
           arho3b[i][m] = arho3b[i][m] + rhoa3j * delij[m] / rij;
           arho3b[j][m] = arho3b[j][m] - rhoa3i * delij[m] / rij;
+          if (this->msmeamflag) {
+            arho1m[i][m] = arho1m[i][m] + A1mj*delij[m];
+            arho1m[j][m] = arho1m[j][m] - A1mi*delij[m];
+            arho3mb[i][m] = arho3mb[i][m] + rhoa3mj*delij[m] / rij;
+            arho3mb[j][m] = arho3mb[j][m] - rhoa3mi*delij[m] / rij;
+          }
           for (n = m; n < 3; n++) {
             arho2[i][nv2] = arho2[i][nv2] + A2j * delij[m] * delij[n];
             arho2[j][nv2] = arho2[j][nv2] + A2i * delij[m] * delij[n];
+            if (this->msmeamflag) {
+              arho2m[i][nv2] = arho2m[i][nv2] + A2mj*delij[m] * delij[n];
+              arho2m[j][nv2] = arho2m[j][nv2] + A2mi*delij[m] * delij[n];
+            }
             nv2 = nv2 + 1;
             for (p = n; p < 3; p++) {
               arho3[i][nv3] = arho3[i][nv3] + A3j * delij[m] * delij[n] * delij[p];
               arho3[j][nv3] = arho3[j][nv3] - A3i * delij[m] * delij[n] * delij[p];
+              if (this->msmeamflag) {
+                arho3m[i][nv3] = arho3m[i][nv3] + A3mj*delij[m]*delij[n]*delij[p];
+                arho3m[j][nv3] = arho3m[j][nv3] - A3mi*delij[m]*delij[n]*delij[p];
+              }
               nv3 = nv3 + 1;
             }
           }

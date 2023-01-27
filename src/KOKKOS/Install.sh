@@ -316,6 +316,8 @@ action pair_lj_spica_kokkos.cpp pair_lj_spica.cpp
 action pair_lj_spica_kokkos.h pair_lj_spica.h
 action pair_meam_kokkos.cpp pair_meam.cpp
 action pair_meam_kokkos.h pair_meam.h
+action pair_meam_ms_kokkos.cpp pair_meam_ms.cpp
+action pair_meam_ms_kokkos.h pair_meam_ms.h
 action pair_mliap_kokkos.cpp pair_mliap.cpp
 action pair_mliap_kokkos.h pair_mliap.h
 action pair_morse_kokkos.cpp

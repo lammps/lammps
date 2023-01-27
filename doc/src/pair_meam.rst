@@ -58,7 +58,7 @@ been removed from LAMMPS after the 12 December 2018 release.
 
 Pair style *meam/ms* uses the multi-state MEAM (MS-MEAM) method
 according to :ref:`(Baskes2) <Baskes2>`, which is an extension to MEAM.
-This pair style is mostly equivalent to *meam* and is use differs only
+This pair style is mostly equivalent to *meam* and differs only
 where noted in the documentation below.
 
 In the MEAM formulation, the total energy E of a system of atoms is

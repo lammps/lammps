@@ -282,11 +282,6 @@ void PairReaxFF::coeff(int nargs, char **args)
   if (nargs != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // ensure I,J args are * *
-
-  if (strcmp(args[0],"*") != 0 || strcmp(args[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
   // read ffield file
 
   Read_Force_Field(args[2], &(api->system->reax_param), api->control, world);

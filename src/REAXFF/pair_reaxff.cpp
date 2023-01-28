@@ -136,7 +136,7 @@ PairReaxFF::~PairReaxFF()
     Delete_List(api->lists+THREE_BODIES);
     Delete_List(api->lists+FAR_NBRS);
 
-    DeAllocate_Workspace(api->control, api->workspace);
+    DeAllocate_Workspace(api->workspace);
     DeAllocate_System(api->system);
   }
 

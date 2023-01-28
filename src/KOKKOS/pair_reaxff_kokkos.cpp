@@ -199,8 +199,6 @@ void PairReaxFFKokkos<DeviceType>::setup()
   int i,j,k,m;
   int n = atom->ntypes;
 
-  setup_flag = 1;
-
   // general parameters
   for (i = 0; i < 39; i ++)
     gp[i] = api->system->reax_param.gp.l[i];

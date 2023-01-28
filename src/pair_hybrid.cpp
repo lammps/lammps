@@ -345,8 +345,9 @@ void PairHybrid::settings(int narg, char **arg)
     nstyles++;
   }
 
+  delete[] cutmax_style;
   cutmax_style = new double[nstyles];
-  memset(cutmax_style, 0.0, nstyles*sizeof(double));
+  memset(cutmax_style, 0, nstyles*sizeof(double));
 
   // multiple[i] = 1 to M if sub-style used multiple times, else 0
 
@@ -583,7 +584,7 @@ void PairHybrid::init_style()
 {
   int i,m,itype,jtype,used,istyle,skip;
 
-  memset(cutmax_style, 0.0, nstyles*sizeof(double));
+  memset(cutmax_style, 0, nstyles*sizeof(double));
 
   // error if a sub-style is not used
 
@@ -822,8 +823,9 @@ void PairHybrid::read_restart(FILE *fp)
   delete[] compute_tally;
 
   styles = new Pair*[nstyles];
+  delete[] cutmax_style;
   cutmax_style = new double[nstyles];
-  memset(cutmax_style, 0.0, nstyles*sizeof(double));
+  memset(cutmax_style, 0, nstyles*sizeof(double));
   keywords = new char*[nstyles];
   multiple = new int[nstyles];
 

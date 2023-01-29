@@ -144,6 +144,7 @@ if(PKG_ML-IAP)
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_descriptor_so3_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_linear_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_model_python_kokkos.cpp
+                                 ${KOKKOS_PKG_SOURCES_DIR}/mliap_unified_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/mliap_so3_kokkos.cpp)
 
   # Add KOKKOS version of ML-IAP Python coupling if non-KOKKOS version is included

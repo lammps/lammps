@@ -36,51 +36,11 @@ class MLIAPModelPythonKokkos : public MLIAPModelPython, public MLIAPModelKokkos<
   void compute_force_gradients(class MLIAPData *) override;
   void connect_param_counts();
 };
-}    // namespace LAMMPS_NS
 
-
-
-
-#include "mliap_data_kokkos.h"
-
-namespace LAMMPS_NS {
 class  MLIAPModelPythonKokkosDevice: public MLIAPModelPythonKokkos<LMPDeviceType> {
 };
 
-class MLIAPDataKokkosDevice {
-public:
+}    // namespace LAMMPS_NS
 
-  MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPDeviceType> &base) :
-    ndescriptors(base.ndescriptors),
-    nlistatoms(base.nlistatoms),
-    ielems(base.k_ielems.d_view.data()),
-    descriptors(base.k_descriptors.d_view.data()),
-    betas(base.k_betas.d_view.data()),
-    eatoms(base.k_eatoms.d_view.data()),
-    energy(&base.energy),
-#if defined(KOKKOS_ENABLE_CUDA)
-    dev(1)
-#else
-    dev(0)
-#endif
-    {  }
-
-  const int ndescriptors;
-  const int nlistatoms;
-  int *ielems;
-  double *descriptors;
-  double *betas;
-  double *eatoms;
-  double *energy;
-  int dev;
-
-#ifdef LMP_KOKKOS_GPU
-  MLIAPDataKokkosDevice(MLIAPDataKokkos<LMPHostType> &base) : ndescriptors(-1),nlistatoms(-1)
-  {
-    // It cannot get here, but needed for compilation
-  }
-#endif
-};
-}
 
 #endif

@@ -166,6 +166,7 @@
 #define ucl_cbrt cbrt
 #define ucl_ceil ceil
 #define ucl_abs fabs
+#define ucl_erfc erfc
 
 #if defined(FAST_MATH) && !defined(_DOUBLE_DOUBLE)
 
@@ -329,6 +330,10 @@
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
 ucl_inline int sbmask(int j) { return j >> SBBITS & 3; };
+
+#define SBBITS15 29
+#define NEIGHMASK15 0x1FFFFFFF
+ucl_inline int sbmask15(int j) { return j >> SBBITS15 & 7; };
 
 // default to 32-bit smallint and other ints, 64-bit bigint:
 // same as defined in src/lmptype.h

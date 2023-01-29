@@ -217,8 +217,8 @@ class lammps(object):
     self.lib.lammps_gather_dihedrals.restype = None
 
     self.lib.lammps_gather_impropers.argtypes = [c_void_p,c_void_p]
-    self.lib.lammps_gather_impropers.restype = None    
-    
+    self.lib.lammps_gather_impropers.restype = None
+
     self.lib.lammps_gather.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather.restype = None
 
@@ -1330,7 +1330,7 @@ class lammps(object):
         return nangles,data
 
   # -------------------------------------------------------------------------
-  
+
   def gather_dihedrals(self):
     """Retrieve global list of dihedrals
 
@@ -1375,8 +1375,8 @@ class lammps(object):
         self.lib.lammps_gather_impropers(self.lmp,data)
         return nimpropers,data
 
-  # -------------------------------------------------------------------------  
-  
+  # -------------------------------------------------------------------------
+
   # return vector of atom/compute/fix properties gathered across procs
   # 3 variants to match src/library.cpp
   # name = atom property recognized by LAMMPS in atom->extract()

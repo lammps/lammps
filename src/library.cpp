@@ -3275,7 +3275,7 @@ void lammps_gather_angles(void *handle, void *data)
 
 This function copies the list of all dihedrals into a buffer provided by
 the calling code. The buffer will be filled with dihedral type, dihedral atom 1,
-dihedral atom 2, dihedral atom 3, dihedral atom 4 for each dihedral. 
+dihedral atom 2, dihedral atom 3, dihedral atom 4 for each dihedral.
 Thus the buffer has to be allocated to the
 dimension of 5 times the **total** number of dihedrals times the size of
 the LAMMPS "tagint" type, which is either 4 or 8 bytes depending on
@@ -3386,7 +3386,7 @@ void lammps_gather_dihedrals(void *handle, void *data)
 
 This function copies the list of all impropers into a buffer provided by
 the calling code. The buffer will be filled with improper type, improper atom 1,
-improper atom 2, improper atom 3, improper atom 4 for each improper. 
+improper atom 2, improper atom 3, improper atom 4 for each improper.
 Thus the buffer has to be allocated to the
 dimension of 5 times the **total** number of impropers times the size of
 the LAMMPS "tagint" type, which is either 4 or 8 bytes depending on

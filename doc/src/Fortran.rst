@@ -1641,9 +1641,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    .. versionadded:: TBD
 
    This function copies the list of all dihedrals into an allocatable array.
-   The array will be filled with (dihedral type, dihedral atom 1, dihedral atom 2, 
-   dihedral atom 3, dihedral atom 4) for each dihedral. The array is allocated to 
-   the right length (i.e., five times the number of dihedrals). 
+   The array will be filled with (dihedral type, dihedral atom 1, dihedral atom 2,
+   dihedral atom 3, dihedral atom 4) for each dihedral. The array is allocated to
+   the right length (i.e., five times the number of dihedrals).
    The array *data* must be of the same type as the LAMMPS
    ``tagint`` type, which is equivalent to either ``INTEGER(c_int)`` or
    ``INTEGER(c_int64_t)``, depending on whether ``-DLAMMPS_BIGBIG`` was used
@@ -1687,9 +1687,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    .. versionadded:: TBD
 
    This function copies the list of all impropers into an allocatable array.
-   The array will be filled with (improper type, improper atom 1, improper atom 2, 
-   improper atom 3, improper atom 4) for each improper. The array is allocated to 
-   the right length (i.e., five times the number of impropers). 
+   The array will be filled with (improper type, improper atom 1, improper atom 2,
+   improper atom 3, improper atom 4) for each improper. The array is allocated to
+   the right length (i.e., five times the number of impropers).
    The array *data* must be of the same type as the LAMMPS
    ``tagint`` type, which is equivalent to either ``INTEGER(c_int)`` or
    ``INTEGER(c_int64_t)``, depending on whether ``-DLAMMPS_BIGBIG`` was used

@@ -72,7 +72,9 @@ int BaseAtomicT::init_atomic(const int nlocal, const int nall,
 
   _threads_per_atom=device->threads_per_atom();
 
-  int success=device->init(*ans,false,false,nlocal,nall,maxspecial);
+  bool charge = false;
+  bool rot = false;
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
 

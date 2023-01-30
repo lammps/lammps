@@ -52,7 +52,7 @@ DeviceT::~Device() {
 }
 
 template <class numtyp, class acctyp>
-int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
+int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
                          const int first_gpu_id, const int gpu_mode,
                          const double p_split, const int t_per_atom,
                          const double user_cell_size, char *ocl_args,
@@ -386,6 +386,9 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
   }
 
   _ocl_compile_string="-cl-mad-enable ";
+  #ifdef CL_VERSION_2_0
+  _ocl_compile_string+="-cl-std=CL2.0 ";
+  #endif
   if (params[4]!="0") _ocl_compile_string+="-cl-fast-relaxed-math ";
   _ocl_compile_string+=std::string(OCL_INT_TYPE)+" "+
     std::string(OCL_PRECISION_COMPILE);
@@ -438,7 +441,7 @@ template <class numtyp, class acctyp>
 int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
                   const bool rot, const int nlocal,
                   const int nall, const int maxspecial,
-                  const bool vel) {
+                  const bool vel, const int extra_fields) {
   if (!_device_init)
     return -1;
   if (sizeof(acctyp)==sizeof(double) && !gpu->double_precision())
@@ -467,7 +470,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
 
   if (_init_count==0) {
     // Initialize atom and nbor data
-    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor>0 && maxspecial>0,vel))
+    if (!atom.init(nall,charge,rot,*gpu,gpu_nbor,gpu_nbor>0 && maxspecial>0,vel,extra_fields))
       return -3;
 
     _data_in_estimate++;
@@ -477,6 +480,9 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
       _data_in_estimate++;
     if (vel)
       _data_in_estimate++;
+    if (extra_fields>0)
+      _data_in_estimate++;
+
   } else {
     if (!atom.charge() && charge)
       _data_in_estimate++;
@@ -484,7 +490,9 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
       _data_in_estimate++;
     if (!atom.velocity() && vel)
       _data_in_estimate++;
-    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor>0 && maxspecial,vel))
+    if (atom.using_extra() && extra_fields>0)
+      _data_in_estimate++;
+    if (!atom.add_fields(charge,rot,gpu_nbor,gpu_nbor>0 && maxspecial,vel,extra_fields))
       return -3;
   }
 
@@ -520,7 +528,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const int nlocal,
 
 template <class numtyp, class acctyp>
 int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
-                       const int host_nlocal, const int nall,
+                       const int host_nlocal, const int /*nall*/,
                        const int maxspecial, const int gpu_host,
                        const int max_nbors, const double cutoff,
                        const bool pre_cut, const int threads_per_atom,

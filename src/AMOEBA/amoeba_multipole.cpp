@@ -21,6 +21,7 @@
 #include "math_const.h"
 #include "math_special.h"
 #include "neigh_list.h"
+#include "timer.h"
 
 #include <cmath>
 
@@ -55,6 +56,8 @@ void PairAmoeba::multipole()
   double qixx,qixy,qixz,qiyy,qiyz,qizz;
   double cii,dii,qii;
 
+  double time0,time1,time2;
+
   // set cutoffs, taper coeffs, and PME params
 
   if (use_ewald) choose(MPOLE_LONG);
@@ -78,13 +81,18 @@ void PairAmoeba::multipole()
 
   felec = electric / am_dielectric;
 
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   // compute the real space part of the Ewald summation
 
   if (mpole_rspace_flag) multipole_real();
+  time1 = platform::walltime();
 
   // compute the reciprocal space part of the Ewald summation
 
   if (mpole_kspace_flag) multipole_kspace();
+  time2 = platform::walltime();
 
   // compute the Ewald self-energy term over all the atoms
 
@@ -109,6 +117,11 @@ void PairAmoeba::multipole()
     e = fterm * (cii + term*(dii/3.0+2.0*term*qii/5.0));
     empole += e;
   }
+
+  // accumulate timing information
+
+  time_mpole_rspace += time1 - time0;
+  time_mpole_kspace += time2 - time1;
 }
 
 /* ----------------------------------------------------------------------
@@ -361,6 +374,9 @@ void PairAmoeba::multipole_real()
         bn[k] = (bfac*bn[k-1]+alsq2n*exp2a) / r2;
       }
       for (k = 0; k < 6; k++) bn[k] *= felec;
+      //if (i == 0 && j < 10) {
+      //  printf("j = %d: aewald = %f; rr1 = %f; bn: %f %f %f %f %f %f\n", j, aewald, rr1, bn[0], bn[1], bn[2], bn[3], bn[4], bn[5]);
+      //}
 
       // find damped multipole intermediates and energy value
 
@@ -404,6 +420,8 @@ void PairAmoeba::multipole_real()
           term2i*rr3i + term2k*rr3k + term2ik*rr3ik +
           term3i*rr5i + term3k*rr5k + term3ik*rr5ik;
 
+
+
         // find damped multipole intermediates for force and torque
 
         de = term1*rr3 + term4ik*rr9ik + term5ik*rr11ik +
@@ -444,6 +462,7 @@ void PairAmoeba::multipole_real()
         term4 = 2.0 * (-ck*rr5+dkr*rr7-qkr*rr9);
         term5 = 2.0 * (-ci*rr5-dir*rr7-qir*rr9);
         term6 = 4.0 * rr7;
+
       }
 
       empole += e;
@@ -482,6 +501,7 @@ void PairAmoeba::multipole_real()
       tq[i][2] += ttmi[2];
 
       // increment force-based gradient and torque on second site
+      // commenting out j parts for DEBUGGING
 
       f[j][0] += frcx;
       f[j][1] += frcy;
@@ -638,7 +658,7 @@ void PairAmoeba::multipole_kspace()
 
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
 
-  double ***gridpre = (double ***) m_kspace->zero();
+  FFT_SCALAR ***gridpre = (FFT_SCALAR ***) m_kspace->zero();
 
   // map atoms to grid
 
@@ -647,7 +667,7 @@ void PairAmoeba::multipole_kspace()
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
 
-  double *gridfft = m_kspace->pre_convolution();
+  FFT_SCALAR *gridfft = m_kspace->pre_convolution();
 
   // ---------------------
   // convolution operation
@@ -718,7 +738,7 @@ void PairAmoeba::multipole_kspace()
   // post-convolution operations including backward FFT
   // gridppost = my portion of 3d grid in brick decomp w/ ghost values
 
-  double ***gridpost = (double ***) m_kspace->post_convolution();
+  FFT_SCALAR ***gridpost = (FFT_SCALAR ***) m_kspace->post_convolution();
 
   // get potential
 

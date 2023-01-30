@@ -309,15 +309,14 @@ class UCL_Device {
   /// Return the maximum memory pitch in bytes for current device
   inline size_t max_pitch() { return max_pitch(_device); }
   /// Return the maximum memory pitch in bytes
-  inline size_t max_pitch(const int i) { return 0; }
+  inline size_t max_pitch(const int) { return 0; }
 
   /// Returns false if accelerator cannot be shared by multiple processes
   /** If it cannot be determined, true is returned **/
   inline bool sharing_supported() { return sharing_supported(_device); }
   /// Returns false if accelerator cannot be shared by multiple processes
   /** If it cannot be determined, true is returned **/
-  inline bool sharing_supported(const int i)
-    { return true; }
+  inline bool sharing_supported(const int) { return true; }
 
   /// True if the device is a sub-device
   inline bool is_subdevice()

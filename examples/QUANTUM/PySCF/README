@@ -1,0 +1,103 @@
+# Test runs of QMMM with LAMMPS and PySCF
+
+Step 1: build LAMMPS
+Step 2: download/build the MDI code coupling package
+Step 3: download/build or install PySCF
+Step 4: run 2-water QMMM problem for a few steps
+
+---------------------------------
+---------------------------------
+
+Step 1: build LAMMPS
+
+Traditional make:
+
+% cd ~/lammps/src
+% make yes-mdi yes-molecule yes-kspace
+% make -j mpi
+% cp lmp_mpi ~/lammps/examples/QUANTUM/PySCF
+
+CMake:
+
+% cd ~/lammps
+% mkdir build_test; cd build_test
+% cmake ../cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes -D PKG_KSPACE=yes
+% make -j
+% cp lmp_mpi ~/lammps/examples/QUANTUM/PySCF
+
+Note: the molecule and kspace packages are needed for the water test
+problem.
+ 
+---------------------------------
+---------------------------------
+
+Step 2: download/build the MDI code coupling package
+
+(a) grab the MDI Git repo
+
+% mkdir git; cd mdi
+% git clone git@github.com:MolSSI-MDI/MDI_Library.git git
+
+(b) build MDI
+
+% cd mdi/git
+% mkdir build; cd build
+% cmake ..             # include support for all langauges
+% make -j
+
+(c) install mdi.py into your Python:
+
+% cd mdi/git
+% pip3 install .
+
+---------------------------------
+---------------------------------
+
+Step 3: download/build or install PySCF
+
+(a) install PySCF on your box
+
+NOTE: add instructions here
+
+(b) Add something similar to the following to your .bashrc or .cshrc
+file so that Python can find PySCF:
+
+For bash:
+
+% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/pyscf/git"
+% hash -r
+
+For (t)csh:
+
+% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/pyscf/git
+% rehash
+
+(c) Check that you can import the 4 Python modules which the script
+that wraps PySCF will need:
+
+% python
+>>> import numpy as np
+>>> from mpi4py import MPI
+>>> import MDI_Library as mdi
+>>> import pyscf
+
+---------------------------------
+---------------------------------
+
+Step 4: run 2-water QMMM problem for a few steps
+
+% cd ~/lammps/examples/QUANTUM/PySCF
+
+# Run with TCP: 1 proc each
+
+% lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.pyscf.qmmm.tcp.1 -in in.water.pyscf.qmmm &
+
+% python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method TCP -port 8021 -hostname localhost"
+
+# Run with MPI: 1 proc each
+
+% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.pyscf.qmmm.mpi.1 -in in.water.pyscf.qmmm : -np 1 python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method MPI" -pbc yes
+
+# Run in plugin mode: 1 proc
+
+% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/work_qm" -log log.water.pyscf.qmmm.plugin.1 -in in.water.pyscf.qmmm.plugin

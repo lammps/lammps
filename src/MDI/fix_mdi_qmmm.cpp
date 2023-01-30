@@ -11,53 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-
-QMMM with LAMMPS as MDI driver for MM and a quantum code as MDI engine for QM
-specified group = QM atoms, remaining atoms are MM atoms
-two modes for QMMM coupling: DIRECT and POTENTIAL
-
--- DIRECT mode:
-
-charge on all QM atoms must be zero
-QM atoms have no bonds between them
-
-post_force:
-  MDI send QM coords via >COORDS
-  MDI send MM coords, MM charges via >CLATTICE, >LATTICE
-  invoke the QM code
-  MDI recv QM energy via <PE
-  MDI recv QM forces via <FORCES ?
-  MDI recv MM forces via <FORCES ?
-  total force on all atoms = MM forces + received QM/MM forces
-  total energy = MM energy + received QM energy
-
--- POTENTIAL mode:
-
-charge on QM atoms is set by QM code each timestep
-QM atoms have no bonds between them
-
-pre_force:
-  compute Coulombic portion of FF, pair_style and optional kspace
-  ecoul[] = per-atom Coulomb energy for each atom
-    may require comm from ghost atoms for pairwise terms
-  calculate Coulomb potential for each QM atom
-    qpotential[i] = ecoul[i] - double sum over QM atoms (qI qJ / rij)
-    divide by Q of QM atom
-  MDI send QM coords, QM Coulomb pnential via >COORDS, >POTENTIAL_AT_NUCLEI
-  invoke the QM code
-  MDI recv QM energy, forces, charges via <PE, <FORCES, <CHARGES
-  reset charges on QM atoms, comm to ghost atoms
-  store QM energy and forces
-
-post_force:
-  QM engine should subtract QM/QM contributions to energy and forces
-    else LAMMPS will need to do it
-  total force on all atoms = MM forces + stored QM forces
-  total energy = MM energy + stored QM energy
-
-------------------------------------------------------------------------- */
-
 #include "fix_mdi_qmmm.h"
 #include "atom.h"
 #include "comm.h"
@@ -185,7 +138,7 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (3*ngroup > MAXSMALLINT) 
     error->all(FLERR,"Fix mdi/qmmm quantum group has too many atoms");
   nqm = ngroup;
-  nmm = atom->natoms = nqm;
+  nmm = atom->natoms - nqm;
   
   // QM atom memory
   
@@ -413,7 +366,6 @@ void FixMDIQMMM::init()
       set_qmm();
       ierr = MDI_Send_command(">LATTICE", mdicomm);
       if (ierr) error->all(FLERR, "MDI: >LATTICE command");
-      printf("SEND LATTICE nmm %d qmm %g %g %g\n",nmm,qmm[0],qmm[1],qmm[2]);
       ierr = MDI_Send(qmm, nmm, MDI_DOUBLE, mdicomm);
       if (ierr) error->all(FLERR, "MDI: >LATTICE data");
     }
@@ -511,6 +463,7 @@ void FixMDIQMMM::pre_force(int vflag)
   //   use xqm_mine and qqm_mine for all QM atoms
 
   set_xqm();
+  set_qqm();
 
   for (int i = 0; i < nqm; i++) qpotential_mine[i] = 0.0;
 

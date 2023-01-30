@@ -95,6 +95,8 @@ PairReaxFFKokkos<DeviceType>::~PairReaxFFKokkos()
 {
   if (copymode) return;
 
+  DeAllocate_System(api->system);
+
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
 

@@ -698,10 +698,10 @@ void FixMDIQMMM::post_force_direct(int vflag)
 
   // request forces on MM atoms from MDI engine
   
-  ierr = MDI_Send_command("<FORCES_LATTICE", mdicomm);
-  if (ierr) error->all(FLERR, "MDI: <FORCES_LATTICE command");
+  ierr = MDI_Send_command("<LATTICE_FORCES", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: <LATTICE_FORCES command");
   ierr = MDI_Recv(&fmm[0][0], 3 * nmm, MDI_DOUBLE, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: <FORCES_LATTICE data");
+  if (ierr) error->all(FLERR, "MDI: <LATTICE_FORCES data");
   MPI_Bcast(&fmm[0][0], 3 * nmm, MPI_DOUBLE, 0, world);
 
   // end of MDI calls

@@ -1,9 +1,10 @@
 // unit tests for gathering and scattering data from a LAMMPS instance through
 // the Fortran wrapper
 
+#include "atom.h"
+#include "input.h"
 #include "lammps.h"
 #include "library.h"
-#include "atom.h"
 #include <cstdint>
 #include <cstdlib>
 #include <mpi.h>
@@ -11,7 +12,11 @@
 
 #include "gtest/gtest.h"
 
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+
 // prototypes for Fortran reverse wrapper functions
+
 extern "C" {
 void *f_lammps_with_args();
 void f_lammps_close();
@@ -45,7 +50,8 @@ protected:
     void SetUp() override
     {
         ::testing::internal::CaptureStdout();
-        lmp                = (LAMMPS_NS::LAMMPS *)f_lammps_with_args();
+        lmp = (LAMMPS_NS::LAMMPS *)f_lammps_with_args();
+        lmp->input->one("variable index input_dir " STRINGIFY(TEST_INPUT_FOLDER));
         std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_STREQ(output.substr(0, 8).c_str(), "LAMMPS (");
     }

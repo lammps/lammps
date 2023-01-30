@@ -73,6 +73,7 @@ if(CMAKE_Fortran_COMPILER)
   add_test(NAME FortranExtractVariable COMMAND test_fortran_extract_variable)
 
   add_executable(test_fortran_gather_scatter wrap_gather_scatter.cpp test_fortran_gather_scatter.f90)
+  target_compile_definitions(test_fortran_gather_scatter PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
   target_link_libraries(test_fortran_gather_scatter PRIVATE flammps lammps GTest::GTestMain)
   add_test(NAME FortranGatherScatter COMMAND test_fortran_gather_scatter)
 

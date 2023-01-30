@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::NPairKokkos(LAMMPS *lmp) : NPair(lmp) {
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::NPairKokkos(LAMMPS *lmp) : NPair(lmp) {
 
   last_stencil_old = -1;
 
@@ -49,8 +49,8 @@ NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::NPairKokkos(LAMMPS *lmp) : NP
    copy needed info from Neighbor class to this build class
    ------------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_neighbor_info()
 {
   NPair::copy_neighbor_info();
 
@@ -58,7 +58,6 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
 
   // general params
 
-  newton_pair = force->newton_pair;
   k_cutneighsq = neighborKK->k_cutneighsq;
 
   // overwrite per-type Neighbor cutoffs with custom value set by requestor
@@ -93,8 +92,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
  copy per-atom and per-bin vectors from NBin class to this build class
  ------------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_bin_info()
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_bin_info()
 {
   NPair::copy_bin_info();
 
@@ -110,8 +109,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_bin_info()
  copy needed info from NStencil class to this build class
  ------------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_stencil_info()
 {
   NPair::copy_stencil_info();
   nstencil = ns->nstencil;
@@ -145,8 +144,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_stencil_info()
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
-void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
+template<class DeviceType, int HALF, int NEWTON, int GHOST, int TRI, int SIZE>
+void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
 {
   NeighListKokkos<DeviceType>* list = (NeighListKokkos<DeviceType>*) list_;
   const int nlocal = includegroup?atom->nfirst:atom->nlocal;
@@ -244,7 +243,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
 
     if (GHOST) {
-      NPairKokkosBuildFunctorGhost<DeviceType,HALF_NEIGH> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+      NPairKokkosBuildFunctorGhost<DeviceType,HALF> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 #ifdef LMP_KOKKOS_GPU
       if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
         int team_size = atoms_per_bin*factor;
@@ -262,82 +261,42 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
       Kokkos::parallel_for(nall, f);
 #endif
     } else {
-      if (newton_pair) {
-        if (SIZE) {
-          NPairKokkosBuildFunctorSize<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 6 * sizeof(X_FLOAT) * factor);
+      if (SIZE) {
+        NPairKokkosBuildFunctorSize<DeviceType,TRI?0:HALF,NEWTON,TRI> f(data,atoms_per_bin * 6 * sizeof(X_FLOAT) * factor);
 #ifdef LMP_KOKKOS_GPU
-          if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-            int team_size = atoms_per_bin*factor;
-            int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-            if (team_size <= team_size_max) {
-              Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-              Kokkos::parallel_for(config, f);
-            } else { // fall back to flat method
-              f.sharedsize = 0;
-              Kokkos::parallel_for(nall, f);
-            }
-          } else
+        if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
+          int team_size = atoms_per_bin*factor;
+          int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
+          if (team_size <= team_size_max) {
+            Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
+            Kokkos::parallel_for(config, f);
+          } else { // fall back to flat method
+            f.sharedsize = 0;
             Kokkos::parallel_for(nall, f);
-#else
+          }
+        } else
           Kokkos::parallel_for(nall, f);
-#endif
-        } else {
-          NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef LMP_KOKKOS_GPU
-          if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-            int team_size = atoms_per_bin*factor;
-            int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-            if (team_size <= team_size_max) {
-              Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-              Kokkos::parallel_for(config, f);
-            } else { // fall back to flat method
-              f.sharedsize = 0;
-              Kokkos::parallel_for(nall, f);
-            }
-          } else
-            Kokkos::parallel_for(nall, f);
 #else
-          Kokkos::parallel_for(nall, f);
+        Kokkos::parallel_for(nall, f);
 #endif
-        }
       } else {
-        if (SIZE) {
-          NPairKokkosBuildFunctorSize<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
+        NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF,NEWTON,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
 #ifdef LMP_KOKKOS_GPU
-          if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-            int team_size = atoms_per_bin*factor;
-            int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-            if (team_size <= team_size_max) {
-              Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-              Kokkos::parallel_for(config, f);
-            } else { // fall back to flat method
-              f.sharedsize = 0;
-              Kokkos::parallel_for(nall, f);
-            }
-          } else
+        if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
+          int team_size = atoms_per_bin*factor;
+          int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
+          if (team_size <= team_size_max) {
+            Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
+            Kokkos::parallel_for(config, f);
+          } else { // fall back to flat method
+            f.sharedsize = 0;
             Kokkos::parallel_for(nall, f);
-#else
+          }
+        } else
           Kokkos::parallel_for(nall, f);
-#endif
-        } else {
-          NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#ifdef LMP_KOKKOS_GPU
-          if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-            int team_size = atoms_per_bin*factor;
-            int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-            if (team_size <= team_size_max) {
-              Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-              Kokkos::parallel_for(config, f);
-            } else { // fall back to flat method
-              f.sharedsize = 0;
-              Kokkos::parallel_for(nall, f);
-            }
-          } else
-            Kokkos::parallel_for(nall, f);
 #else
-          Kokkos::parallel_for(nall, f);
+        Kokkos::parallel_for(nall, f);
 #endif
-        }
       }
     }
     Kokkos::deep_copy(h_scalars, d_scalars);
@@ -1402,20 +1361,30 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 }
 
 namespace LAMMPS_NS {
-template class NPairKokkos<LMPDeviceType,0,0,0,0>;
-template class NPairKokkos<LMPDeviceType,0,1,0,0>;
-template class NPairKokkos<LMPDeviceType,1,0,0,0>;
-template class NPairKokkos<LMPDeviceType,1,1,0,0>;
-template class NPairKokkos<LMPDeviceType,1,0,1,0>;
-template class NPairKokkos<LMPDeviceType,1,0,0,1>;
-template class NPairKokkos<LMPDeviceType,1,0,1,1>;
+template class NPairKokkos<LMPDeviceType,0,0,0,0,0>;
+template class NPairKokkos<LMPDeviceType,0,0,1,0,0>;
+template class NPairKokkos<LMPDeviceType,1,1,0,0,0>;
+template class NPairKokkos<LMPDeviceType,1,0,0,0,0>;
+template class NPairKokkos<LMPDeviceType,1,1,1,0,0>;
+template class NPairKokkos<LMPDeviceType,1,0,1,0,0>;
+template class NPairKokkos<LMPDeviceType,1,1,0,1,0>;
+template class NPairKokkos<LMPDeviceType,1,0,0,1,0>;
+template class NPairKokkos<LMPDeviceType,1,1,0,0,1>;
+template class NPairKokkos<LMPDeviceType,1,0,0,0,1>;
+template class NPairKokkos<LMPDeviceType,1,1,0,1,1>;
+template class NPairKokkos<LMPDeviceType,1,0,0,1,1>;
 #ifdef LMP_KOKKOS_GPU
-template class NPairKokkos<LMPHostType,0,0,0,0>;
-template class NPairKokkos<LMPHostType,0,1,0,0>;
-template class NPairKokkos<LMPHostType,1,0,0,0>;
-template class NPairKokkos<LMPHostType,1,1,0,0>;
-template class NPairKokkos<LMPHostType,1,0,1,0>;
-template class NPairKokkos<LMPHostType,1,0,0,1>;
-template class NPairKokkos<LMPHostType,1,0,1,1>;
+template class NPairKokkos<LMPHostType,0,0,0,0,0>;
+template class NPairKokkos<LMPHostType,0,0,1,0,0>;
+template class NPairKokkos<LMPHostType,1,1,0,0,0>;
+template class NPairKokkos<LMPHostType,1,0,0,0,0>;
+template class NPairKokkos<LMPHostType,1,1,1,0,0>;
+template class NPairKokkos<LMPHostType,1,0,1,0,0>;
+template class NPairKokkos<LMPHostType,1,1,0,1,0>;
+template class NPairKokkos<LMPHostType,1,0,0,1,0>;
+template class NPairKokkos<LMPHostType,1,1,0,0,1>;
+template class NPairKokkos<LMPHostType,1,0,0,0,1>;
+template class NPairKokkos<LMPHostType,1,1,0,1,1>;
+template class NPairKokkos<LMPHostType,1,0,0,1,1>;
 #endif
 }

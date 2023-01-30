@@ -23,9 +23,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairHybridOverlay::PairHybridOverlay(LAMMPS *lmp) : PairHybrid(lmp) {
-  trim_flag = 1;
-}
+PairHybridOverlay::PairHybridOverlay(LAMMPS *lmp) : PairHybrid(lmp) {}
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs

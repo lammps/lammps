@@ -127,9 +127,8 @@ before mixing, and converted back after mixing
 This way, if either particle is repulsive (if Ai<0 or Aj<0),
 then the default interaction between both particles will be repulsive.
 
-The *gauss* style does not support the :doc:`pair_modify <pair_modify>`
-shift option. There is no effect due to the Gaussian well beyond the
-cutoff; hence reasonable cutoffs need to be specified.
+For the *gauss* style there is no effect due to the Gaussian well
+beyond the cutoff; hence reasonable cutoffs need to be specified.
 
 The *gauss/cut* style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Gauss-potential portion of the pair

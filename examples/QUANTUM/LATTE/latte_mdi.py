@@ -1,15 +1,4 @@
-# MDI wrapper on NWChem PWDFT code
-
-# NOTE: Qs or issues to still address
-#   test if works for both AIMD and QMMM
-#   can series of problem be run via lib interface input_filename() ?
-#   how does PBC vs non-PBC work, just box size in NWC input file
-#     or maybe other settings in that file?
-#   can NWChem return stress?
-#   can NWChem do DIRECT mode?
-#   any options for 2d or 1d periodic?
-#   allow for box size changes, e.g. every step for NPT
-#   check NWC func call error returns ?
+# MDI wrapper on LATTE code
 
 import sys,time
 from ctypes import *
@@ -18,28 +7,9 @@ import numpy as np
 from mpi4py import MPI
 import MDI_Library as mdi
 
-# --------------------------------------------
+# conversions of atomic number to element symbol
 
-ELEMENTS = [
-  'H' , 'He', 'Li', 'Be', 'B' , 'C' , 'N' , 'O' , 'F' , 'Ne',
-  'Na', 'Mg', 'Al', 'Si', 'P' , 'S' , 'Cl', 'Ar', 'K' , 'Ca',
-  'Sc', 'Ti', 'V' , 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn',
-  'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y' , 'Zr',
-  'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn',
-  'Sb', 'Te', 'I' , 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd',
-  'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb',
-  'Lu', 'Hf', 'Ta', 'W' , 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg',
-  'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th',
-  'Pa', 'U' , 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm',
-  'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds',
-  'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og',
-]
-
-# atomic_number_to_symbol converts atomic number to element symbol
-
-atomic_number_to_symbol = {}
-for i,symbol in enumerate(ELEMENTS):
-  atomic_number_to_symbol[i+1] = symbol
+atomic_number_to_symbol = {1: 'H', 6: 'C', 7: 'N', 8: 'O', 17: 'Cl'}
 
 # --------------------------------------------
 # global data
@@ -48,31 +18,22 @@ for i,symbol in enumerate(ELEMENTS):
 world = 0
 me = nprocs = 0
 
-if MPI._sizeof(MPI.Comm) == sizeof(c_int):
-  MPI_Comm = c_int
-else:
-  MPI_Comm = c_void_p
-
 exitflag = False
 
 AIMD = 0
 QMMM = 1
 mode = AIMD
 
-# NWChem PWDFT library
+# LATTE library
 
-libname = "libpwdft.so"
-libpwdft = None
+libname = "liblatte.so"
+liblatte = None
 
 # QM inputs
 
-nw_template = ""
-nw_infile = ""
-nw_outfile = ""
-
 flag_qm_natoms = flag_mm_natoms = 0
 flag_box = flag_box_displ = 0
-flag_qm_elements = 0
+flag_qm_elements = flag_qm_types = 0
 flag_qm_coords = flag_qm_potential = 0
 flag_mm_elements = 0
 flag_mm_coords = flag_mm_charges = 0
@@ -108,27 +69,19 @@ def error(txt):
   world.Abort()
   
 # --------------------------------------------
-# process non-MDI options to PWDFT
-# if this script is executed independently:
-#   args = command-line args
-# if this script is invoked as a plugin library:
-#   args = passed via MDI
+# process non-MDI command-line options to LATTE
 # --------------------------------------------
 
 def options(other_options):
-  global nw_template,nw_infile,nw_outfile
-  if len(other_options) != 3:
-    error("Invalid args to NWChem wrapper: template_file infile outfile")
-  nw_template = other_options[0]
-  nw_infile = other_options[1]
-  nw_outfile = other_options[2]
+  if len(other_options) != 0:
+    error("No args currently used by LATTE wrapper")
 
 # --------------------------------------------
 # operate as an engine
 # --------------------------------------------
 
 def mdi_engine(other_options):
-  global world,MPI_Comm,libpwdft
+  global world
 
   # get the MPI intra-communicator for this engine
 
@@ -140,11 +93,11 @@ def mdi_engine(other_options):
 
   options(other_options)
 
-  # confirm PWDFT is being run as an engine
+  # confirm LATTE is being run as an engine
     
   role = mdi.MDI_Get_Role()
   if not role == mdi.MDI_ENGINE:
-    error("Must run NWChem as an MDI engine")
+    error("Must run LATTE as an MDI engine")
 
   # supported MDI commands
 
@@ -157,6 +110,7 @@ def mdi_engine(other_options):
   mdi.MDI_Register_Command("@DEFAULT",">CELL")
   mdi.MDI_Register_Command("@DEFAULT",">CELL_DISPL")
   mdi.MDI_Register_Command("@DEFAULT",">ELEMENTS")
+  mdi.MDI_Register_Command("@DEFAULT",">TYPES")
   mdi.MDI_Register_Command("@DEFAULT",">COORDS")
   mdi.MDI_Register_Command("@DEFAULT",">POTENTIAL_AT_NUCLEI")
   mdi.MDI_Register_Command("@DEFAULT",">NLATTICE")
@@ -172,10 +126,10 @@ def mdi_engine(other_options):
   mdi.MDI_Register_Command("@DEFAULT","<STRESS")
   mdi.MDI_Register_Command("@DEFAULT","<CHARGES")
 
-  # load PWDFT lib and set ctypes signatures for function calls
+  # load LATTE lib and set ctypes signatures for function calls
 
-  pwdft_load()
-  
+  latte_load()
+
   # one-time operation to establish a connection with the driver
 
   mdicomm = mdi.MDI_Accept_Communicator()
@@ -191,12 +145,13 @@ def mdi_engine(other_options):
     command = mdi.MDI_Recv_Command(mdicomm)
     command = world.bcast(command,root=0)
     execute_command(command,mdicomm,None)
-
+    
 # --------------------------------------------
 # called in loop by mdi_engine()
-# called internally from MDI_Recv_command() until EXIT received
-# command = name of MDI command
+# called internally from MDI_Recv_command() until an EXIT command is received
+# command = command name
 # mdicomm = MDI communicator for all MDI commands
+#           can also use world for MPI commands
 # object_ptr = ptr to data if necessary
 # --------------------------------------------
 
@@ -209,6 +164,7 @@ def execute_command(command,mdicomm,object_ptr):
     exitflag = True
 
   # MDI commands which setup quantum calculation
+  # NOTE: not sure if it makes sense for LATTE wrapper to support >TYPES
   
   elif command == ">NATOMS":
     receive_qm_natoms(mdicomm)
@@ -353,6 +309,20 @@ def receive_qm_elements(mdicomm):
   world.Bcast(qm_elements,root=0)
 
 # --------------------------------------------
+# receive QM atom types from driver
+# --------------------------------------------
+
+def receive_types(mdicomm):
+  global flag_qm_types
+  flag_qm_types = 1
+  
+  if not qm_natoms: error("Cannot MDI >TYPES if # of QM atoms = 0")
+
+  ierr = mdi.MDI_Recv(qm_natoms,mdi.MDI_INT,mdicomm,buf=qm_types)
+  if ierr: error("MDI: >TYPES data")
+  world.Bcast(qm_types,root=0)
+
+# --------------------------------------------
 # receive count of MM atoms from driver
 # --------------------------------------------
 
@@ -412,11 +382,12 @@ def receive_mm_charges(mdicomm):
 # --------------------------------------------
 
 def allocate(which):
-  global qm_elements,qm_coords,qm_potential,qm_forces,qm_charges
-  global mm_elements,mm_coords,mm_charges,mm_forces
+  global qm_types,qm_elements,qm_coords,qm_potential,qm_forces,qm_charges
+  global mm_coords,mm_charges,mm_forces
   
   if which == "qm":
     n = qm_natoms
+    qm_types = np.empty(n,dtype=np.int32)
     qm_elements = np.empty(n,dtype=np.int32)
     qm_coords = np.empty((n,3))
     qm_potential = np.empty(n)
@@ -431,14 +402,16 @@ def allocate(which):
     mm_forces = np.empty((n,3))
 
 # --------------------------------------------
-# perform a quantum calculation via NWChem PWDFT
+# perform a quantum calculation via LATTE
+# NOTE: ignore change of box size each step for now, e.g. MD NPT dynamics
+# NOTE: assume periodic for now, worry about non-periodic later
 # --------------------------------------------
   
 def evaluate():
   global mode
   global flag_qm_natoms,flag_mm_natoms
   global flag_box,flag_box_displ
-  global flag_qm_elements,flag_qm_coords,flag_qm_potential
+  global flag_qm_elements,flag_qm_types,flag_qm_coords,flag_qm_potential
   global flag_mm_elements,flag_mm_coords,flag_mm_charges
   global qm_pe,qm_stress,qm_forces,qm_charges
   global mm_forces
@@ -463,7 +436,7 @@ def evaluate():
     else: mode = AIMD
 
   # if new system, error check that all needed MDI calls have been made
-  
+
   if new_system:
     if not flag_qm_natoms: error("QM atom count not specified")
     if not flag_qm_elements or not flag_qm_coords:
@@ -471,44 +444,50 @@ def evaluate():
     if mode == QMMM and not flag_qm_potential:
       error("QM atom properties not fully specified")
 
-  # setup new system within PWDFT
+  # hardwire these unsupported flags for now
 
-  if new_system: pwdft_initialize()
+  coulombflag = 0
+  neighflag = 0
+  pbcflag = 1      # NOTE: pass this in as latte_mdi.py command-line arg
+  thermo_virial = 1
+  eflag_atom = 1
+  vflag_global = 1
+  vflag_atom = 0
+  
+  flags_latte = 7*[0]
+  flags_latte[0] = pbcflag;   # 1 for fully periodic, 0 for fully non-periodic
+  flags_latte[1] = coulombflag;  # 1 for LAMMPS computes Coulombics, 0 for LATTE
+  flags_latte[2] = eflag_atom;   # 1 to return per-atom energies, 0 for no
+  flags_latte[3] = vflag_global and thermo_virial; # 1 to return global/per-atom
+  flags_latte[4] = vflag_atom and thermo_virial;   #   virial, 0 for no
+  flags_latte[5] = neighflag;    # 1 to pass neighbor list to LATTE, 0 for no
+
+  boxlo = [0.0,0.0,0.0]         # NOTE: does this matter for LATTE ?
+  boxhi = [box[0],box[4],box[8]]
+  xy = box[3]
+  xz = box[6]
+  yz = box[7]
+  maxiter = -1
 
   # QMMM with QM and MM atoms
+  # NOTE: need qm_velocity and timestep and mass and types ?
+  # all of these are addresses of scalars for Fortran ?
 
-  world_ptr = MPI._addressof(world)
-  c_world = MPI_Comm.from_address(world_ptr)
-  c_qm_pe = c_double(qm_pe)
-  c_nw_outfile = nw_outfile.encode()
-  
   if mode == QMMM:
-    print("QMMM minimizer")
-    time1 = time.time()
-    nwerr = libpwdft.\
-      c_lammps_pspw_qmmm_minimizer_filename(c_world,qm_coords,qm_potential,
-                                            qm_forces,qm_charges,byref(c_qm_pe),
-                                            False,True,c_nw_outfile)
-    # NOTE: check nwerr return?
-    qm_pe = c_qm_pe.value
-    time2 = time.time()
-    print("DONE QMMM minimizer",nwerr,time2-time1)
-    print("PE",qm_pe)
-    print("FORCE",qm_forces)
-    print("CHARGES",qm_charges)
+    error("QMMM not yet supported with LATTE")
     
   # AIMD with only QM atoms
     
   elif mode == AIMD:
-    print("AIMD minimizer")
-    time1 = time.time()
-    nwerr = libpwdft.\
-      c_lammps_pspw_aimd_minimizer_filename(c_world,qm_coords,qm_forces,
-                                            byref(c_qm_pe),c_nw_outfile) 
-    # NOTE: check nwerr return?
-    qm_pe = c_qm_pe.value
-    time2 = time.time()
-    print("DONE AIMD minimizer",nwerr,time2-time1)
+    latte_error = 0
+    liblatte.\
+      latte(flags_latte,byref(qm_natoms),qm_coords,
+            qm_types,byref(qm_ntypes),qm_mass,
+            boxlo,boxhi,byref(xy),byref(xz),byref(yz),forces,
+            byref(maxiter),byref(qm_energy),
+            qm_velocity,byref(timestep),qm_stress,
+            byref(new_system),byref(latte_error))
+    # NOTE: check latte_error return?
 
   # clear flags for all MDI commands for next QM evaluation
 
@@ -518,90 +497,30 @@ def evaluate():
   flag_qm_coords = flag_qm_potential = 0
   flag_mm_elements = 0
   flag_mm_coords = flag_mm_charges = 0
-  
+
 # --------------------------------------------
-# load PWDFT library
-# set ctypes signatures for 3 function calls to PWDFT lib
+# load LATTE library
+# set ctypes signatures for single function calls to LATTE lib
 # --------------------------------------------
 
-def pwdft_load():
-  global libpwdft
-  
-  libpwdft = CDLL(libname,RTLD_GLOBAL)
+def latte_load():
+  global liblatte
 
-  libpwdft.c_lammps_pspw_input_filename.restype = None
-  libpwdft.c_lammps_pspw_input_filename.argtypes = \
-    [MPI_Comm, c_char_p, c_char_p]
+  liblatte = CDLL(libname,RTLD_GLOBAL)
 
   nparray = np.ctypeslib.ndpointer(dtype=np.float64,ndim=2,flags="C_CONTIGUOUS")
-  npvector = np.ctypeslib.ndpointer(dtype=np.float64,ndim=1,flags="C_CONTIGUOUS")
-  
-  libpwdft.c_lammps_pspw_qmmm_minimizer_filename.restype = c_int
-  libpwdft.c_lammps_pspw_qmmm_minimizer_filename.argtypes = \
-    [MPI_Comm, nparray, npvector, nparray, npvector, POINTER(c_double),
-     c_bool, c_bool, c_char_p]
+  npvector_double = np.ctypeslib.ndpointer(dtype=np.float64,ndim=1,flags="C_CONTIGUOUS")
+  npvector_int = np.ctypeslib.ndpointer(dtype=np.int8,ndim=1,flags="C_CONTIGUOUS")
 
-  libpwdft.c_lammps_pspw_aimd_minimizer_filename.restype = c_int
-  libpwdft.c_lammps_pspw_aimd_minimizer_filename.argtypes = \
-    [MPI_Comm, nparray, nparray, POINTER(c_double), c_char_p]
+  liblatte.latte_abiversion.restype = None
+  liblatte.latte_abiversion.argtypes = None
 
-# --------------------------------------------
-# create PWDFT input file with box and list of atoms
-# invoke PWDFT function to read it
-# --------------------------------------------
-
-def pwdft_initialize():
-
-  # box, qm_coords, mm_coords must be converted to Angstroms
-
-  angstrom_to_bohr = mdi.MDI_Conversion_factor("angstrom","bohr")
-  bohr_to_angstrom = 1.0 / angstrom_to_bohr
-
-  box_A = box * bohr_to_angstrom
-  qm_coords_A = qm_coords * bohr_to_angstrom
-
-  # proc 0 reads template file, writes PWDFT input file
-
-  if me == 0:
-    lines = open(nw_template,'r').readlines()
-
-    fp = open(nw_infile,'w')
-
-    for line in lines:
-      word = line.strip()
-      if word == "GEOMINSERT":
-        print("geometry noautosym noautoz nocenter",file=fp);
-        print("system crystal cartesian",file=fp)
-        print("lattice_vectors",file=fp)
-        print("%20.16g %20.16g %20.16g" % (box_A[0],box_A[1],box_A[2]),file=fp)
-        print("%20.16g %20.16g %20.16g" % (box_A[3],box_A[4],box_A[5]),file=fp)
-        print("%20.16g %20.16g %20.16g" % (box_A[6],box_A[7],box_A[8]),file=fp)
-        print("end\n",file=fp)
-
-        for i in range(qm_natoms):
-          symbol = atomic_number_to_symbol[qm_elements[i]]
-          print("%s %20.16g %20.16g %20.16g" %
-                (symbol,qm_coords_A[i][0],qm_coords_A[i][1],qm_coords_A[i][2]),
-                file=fp)
-        print("end\n",file=fp)
-
-      else: print(line,file=fp,end="")
-
-    fp.close()
-
-  # all procs call pspw_input_filename() which processes input file
-  # performs initial QM calculation within PWDFT
-
-  world_ptr = MPI._addressof(world)
-  c_world = MPI_Comm.from_address(world_ptr)
-  infile = nw_infile.encode()
-  outfile = nw_outfile.encode()
-
-  print("INPUT filename")
-  time1 = time.time()
-  nwerr = libpwdft.c_lammps_pspw_input_filename(c_world,infile,outfile)
-  time2 = time.time()
-  print("DONE INPUT filename",nwerr,time2-time1)
+  liblatte.latte.restype = None
+  liblatte.latte.argtypes = \
+    [POINTER(c_int), POINTER(c_int), nparray, npvector_int, POINTER(c_int),
+     POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), 
+     nparray, POINTER(c_int), POINTER(c_double), nparray,
+     POINTER(c_double), npvector_double, POINTER(c_int), POINTER(c_bool)]
 
 # --------------------------------------------
 # function called by MDI driver
@@ -648,12 +567,12 @@ if __name__== "__main__":
     arg = args[iarg]
     if arg == "-mdi" or arg == "--mdi":
       if narg > iarg+1: mdi_option = sys.argv[iarg+1]
-      else: error("NWChem -mdi argument not provided")
+      else: error("LATTE -mdi argument not provided")
       iarg += 1
     else: other_options.append(arg)
     iarg += 1
 
-  if not mdi_option: error("NWChem -mdi option not provided")
+  if not mdi_option: error("LATTE -mdi option not provided")
 
   # call MDI_Init with just -mdi option
   

@@ -1,0 +1,119 @@
+# Test runs of QMMM with LAMMPS and NWChem
+
+Step 1: build LAMMPS
+Step 2: download/build the MDI code coupling package
+Step 3: download/build NWChem PWDFT
+Step 4: run 2-water QMMM problem for a few steps
+
+---------------------------------
+---------------------------------
+
+Step 1: build LAMMPS
+
+The molecule package is needed for the 2-water test
+problem.  Copy the final LAMMPS executable into the
+examples/QUANTUM/NWChem directory.
+
+Traditional make:
+
+% cd ~/lammps/lib/mdi
+% python Install.py -m mpi
+% cd ~/lammps/src
+% make yes-mdi yes-molecule
+% make -j mpi
+% cp lmp_mpi ~/lammps/examples/QUANTUM/NWChem
+
+CMake:
+
+% cd ~/lammps
+% mkdir build; cd build
+% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes ../cmake
+% make -j
+% cp lmp ~/lammps/examples/QUANTUM/NWChem/lmp_mpi
+
+---------------------------------
+---------------------------------
+
+Step 2: install the MDI code coupling package
+
+(a) grab the MDI Git repo
+
+% mkdir mdi; cd mdi
+% git clone git@github.com:MolSSI-MDI/MDI_Library.git git
+
+(b) build MDI
+
+% cd mdi/git
+% mkdir build; cd build
+% cmake ..
+% make -j
+
+(c) Add something similar to the following to your .bashrc or .cshrc
+file so that Python can find MDI:
+
+For bash:
+
+% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git"
+% hash -r
+
+For (t)csh:
+
+% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git
+% rehash
+
+(d) Check that you can import the 3 Python modules which the script
+that wraps PySCF will need:
+
+% python
+>>> import numpy as np
+>>> from mpi4py import MPI
+>>> import MDI_Library as mdi
+
+---------------------------------
+---------------------------------
+
+Step 3: download/build NWChem PWDFT
+
+(a) grab the PWDFT Git repo
+
+% mkdir nwchem; cd nwchem
+% git clone git@github.com:ebylaska/PWDFT.git PWDFT
+
+(b) build PWDFT
+
+% cd nwchem/PWDFT
+% cd build_library; rm -r *
+% cmake ../Nwpw -DMAKE_LIBRARY=true -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+% make -j        # should produce libpwdft.so in build_library
+
+(c) Add something similar to the following to your .bashrc or .cshrc
+file so that the Python wrapper script can find libpwdft.so:
+
+For bash:
+
+% export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/home/sjplimp/nwchem/PWDFT/build_library"
+% hash -r
+
+For (t)csh:
+
+% setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/nwchem/PWDFT/build_library
+% rehash
+
+---------------------------------
+---------------------------------
+
+Step 4: run the 2-water QMMM problem for a few steps
+
+% cd ~/lammps/examples/QUANTUM/NWChem
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.nwchem.qmmm.tcp.1 -in in.water.nwchem.qmmm &
+
+python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method TCP -port 8021 -hostname localhost" template.water.nw water.dimer.nw log.water.pwdft.qmmm.tcp.1
+
+# Run with MPI: 1 proc each
+
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.nwchem.qmmm.mpi.1 -in in.water.nwchem.qmmm : -np 1 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method MPI" template.water.nw water.dimer.nw log.water.pwdft.qmmm.mpi.1
+
+# Run in plugin mode: 1 proc
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/work_qm" -log log.water.nwchem.qmmm.plugin.1 -in in.water.nwchem.qmmm.plugin

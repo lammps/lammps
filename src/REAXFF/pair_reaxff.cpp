@@ -649,7 +649,7 @@ int PairReaxFF::write_reax_lists()
     jlist = firstneigh[i];
     Set_Start_Index(i, num_nbrs, far_nbrs);
 
-    if (i < inum)
+    if (itr_i < inum)
       cutoff_sqr = SQR(api->control->nonb_cut);
     else
       cutoff_sqr = SQR(api->control->bond_cut);

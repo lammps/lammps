@@ -107,8 +107,8 @@ Step 4: run the 2-water QMMM problem for a few steps
 
 # Run with MPI: 1 proc each
 
-% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.pyscf.qmmm.mpi.1 -in in.water.pyscf.qmmm : -np 1 python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method MPI" -pbc yes
+% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.pyscf.qmmm.mpi.1 -in in.water.pyscf.qmmm : -np 1 python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method MPI" -pbc no
 
 # Run in plugin mode: 1 proc
 
-% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/work_qm" -log log.water.pyscf.qmmm.plugin.1 -in in.water.pyscf.qmmm.plugin
+% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/PySCF" -log log.water.pyscf.qmmm.plugin.1 -in in.water.pyscf.qmmm.plugin

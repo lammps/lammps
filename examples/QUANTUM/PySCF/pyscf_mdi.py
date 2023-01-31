@@ -1,9 +1,11 @@
 # MDI wrapper on PySCF quantum code
 
-# NOTE: Qs or issues to still address
-#   mm_radii is input to PySCF in Angstroms?
+# Todo:
+#   allow for changes in box size on driver side, e.g. NPT
+#     should just work for PySCF
+
+# NOTE: Qs or issues to still address for PySCF support
 #   add list of radii for all elements
-#   allow for changes in box size, e.g. every step for NPT
 #   PySCF can do DIRECT mode (LATTICE commands) for QMMM
 #     can it also do POTENTIAL mode (Coulomb potential at QM atoms)
 #     if so, add PySCF logic in evaluate()
@@ -12,8 +14,6 @@
 #   any other PySCF settings for users to set
 #     are the 3 below good default values
 #   is wiping out dm_previous sufficient to make it a new system
-#   should max_memory=10000 depend on # of MM or QM atoms
-#   doc what "mf" is in evaluate()
 #   add PySCF code for AIMD (no MM atoms)
 #   how to specify box for mixed BC, i.e. cell.dimension = 2 or 1
 #     also need command-line options for those cases ?
@@ -28,7 +28,8 @@ import MDI_Library as mdi
 from pyscf.gto import Mole
 from pyscf.pbc.gto import Cell
 from pyscf import qmmm
-from pyscf.dft import RKS
+from pyscf.dft import RKS as RKS_nonpbc
+from pyscf.pbc.dft import RKS as RKS_pbc
 
 # --------------------------------------------
 
@@ -529,9 +530,9 @@ def evaluate():
     box_str = "%s\n%s\n%s" % (edge_vec,edge_vec,edge_vec)
     box_str = box_str % \
       (box_A[0],box_A[1],box_A[2],box_A[3],box_A[4],box_A[5],box_A[6],box_A[7],box_A[8])
+    print("BOX STR:",box_str)
 
   print("ATOM STR:",atom_str)
-  print("BOX STR:",box_str)
   print("MM COORDS:",mm_coords)
   print("MM CHARGES:",mm_charges)
   print("MM RADII:",mm_radii)
@@ -543,18 +544,16 @@ def evaluate():
     cell = Cell()
     cell.atom = atom_str
     cell.a = box_str
-    cell.max_memory = 10000
     cell.basis = basis
     cell.build()
   else:
     mol = Mole()
     mol.atom = atom_str
-    mol.max_memory = 10000
     mol.basis = basis
     mol.build()
 
   # QMMM with QM and MM atoms
-  # mf = ???
+  # mf = mean-field object
   # qm_pe = QM energy + QM/MM energy
   #   QM energy = QM_nuclear/QM_nuclear + electron/QM_nuclear + electron/electron
   #   QM/MM energy = QM_nuclear/MM_charges + electron/MM_charges
@@ -563,8 +562,8 @@ def evaluate():
   # dm = molecular orbitals (wave functions) for system
   
   if mode == QMMM:
-    if periodic: mf = RKS(cell,xc=xcstr)
-    else: mf = RKS(mol,xc=xcstr)
+    if periodic: mf = RKS_pbc(cell,xc=xcstr)
+    else: mf = RKS_nonpbc(mol,xc=xcstr)
     mf = qmmm.mm_charge(mf,mm_coords,mm_charges,mm_radii)
     
     if dm_previous_exists:

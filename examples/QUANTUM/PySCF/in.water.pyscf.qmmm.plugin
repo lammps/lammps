@@ -46,4 +46,4 @@ thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
 thermo          1
 
 mdi             plugin pyscf_mdi mdi "-role ENGINE -name PySCF -method LINK" &
-                extra "-pbc yes" command "run 2"
+                extra "-pbc no" command "run 2"

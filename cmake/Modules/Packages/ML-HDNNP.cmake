@@ -7,7 +7,7 @@ endif()
 option(DOWNLOAD_N2P2 "Download n2p2 library instead of using an already installed one)" ${DOWNLOAD_N2P2_DEFAULT})
 if(DOWNLOAD_N2P2)
   set(N2P2_URL "https://github.com/CompPhysVienna/n2p2/archive/v2.2.0.tar.gz" CACHE STRING "URL for n2p2 tarball")
-  set(N2P2_MD5 "4f857e204693917d49dc5d0906b4c602" CACHE STRING "MD5 checksum of N2P2 tarball")
+  set(N2P2_MD5 "a2d9ab7f676b3a74a324fc1eda0a911d" CACHE STRING "MD5 checksum of N2P2 tarball")
   mark_as_advanced(N2P2_URL)
   mark_as_advanced(N2P2_MD5)
 

@@ -377,6 +377,30 @@ void FixElectrodeConp::init()
     if (strncmp(modify->fix[i]->style, "electrode", 9) == 0) count++;
   if (count > 1) error->all(FLERR, "More than one fix electrode");
 
+  // make sure electrode atoms are not integrated if a matrix is used for electrode-electrode interaction
+  int const nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  Fix **fix = modify->fix;
+  if (matrix_algo) {
+    std::vector<char *> integrate_ids = std::vector<char *>();
+    for (int i = 0; i < modify->nfix; i++) {
+      if (fix[i]->time_integrate == 0) continue;
+      int electrode_mover = 0;
+      int fix_groupbit = fix[i]->groupbit;
+      for (int j = 0; j < nlocal; j++)
+        if ((mask[j] & fix_groupbit) && (mask[j] & groupbit)) electrode_mover = 1;
+      MPI_Allreduce(MPI_IN_PLACE, &electrode_mover, 1, MPI_INT, MPI_SUM, world);
+      if (electrode_mover && comm->me == 0) integrate_ids.push_back(fix[i]->id);
+    }
+    if (comm->me == 0)
+      for (char *fix_id : integrate_ids)
+        error->warning(
+            FLERR,
+            "Electrode atoms are integrated by fix {}, but fix electrode is using a matrix method. For "
+            "mobile electrodes use the conjugate gradient algorithm without matrix ('algo cg').",
+            fix_id);
+  }
+
   // check for package intel
   if (etypes_neighlists)
     request_etypes_neighlists();
@@ -863,7 +887,7 @@ void FixElectrodeConp::update_charges()
   update_time += MPI_Wtime() - start;
 }
 
-std::vector<double> FixElectrodeConp::ele_ele_interaction(const std::vector<double>& q_local)
+std::vector<double> FixElectrodeConp::ele_ele_interaction(const std::vector<double> &q_local)
 {
   assert(q_local.size() == nlocalele);
   assert(algo == Algo::CG || algo == Algo::MATRIX_CG);

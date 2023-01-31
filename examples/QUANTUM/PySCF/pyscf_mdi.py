@@ -71,7 +71,7 @@ xcstr = "wb97x"
 basis = "6-31+G**"
 
 # --------------------------------------------
-# persistent data
+# global data
 # --------------------------------------------
 
 world = 0
@@ -114,7 +114,7 @@ qm_charges = None
 
 mm_forces = None
 
-# PySCF internal data
+# PySCF internal data to persist state from one step to next
 
 dm_previous_exists = 0
 dm_previous = None

@@ -10,8 +10,14 @@ Step 4: run 2-water QMMM problem for a few steps
 
 Step 1: build LAMMPS
 
+The molecule and kspace packages are needed for the 2-water test
+problem.  Copy the final LAMMPS executable into the
+examples/QUANTUM/PySCF directory.
+
 Traditional make:
 
+% cd ~/lammps/lib/mdi
+% python Install.py -m mpi
 % cd ~/lammps/src
 % make yes-mdi yes-molecule yes-kspace
 % make -j mpi
@@ -21,17 +27,14 @@ CMake:
 
 % cd ~/lammps
 % mkdir build_test; cd build_test
-% cmake ../cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes -D PKG_KSPACE=yes
+% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes -D PKG_KSPACE=yes ../cmake
 % make -j
-% cp lmp_mpi ~/lammps/examples/QUANTUM/PySCF
+% cp lmp ~/lammps/examples/QUANTUM/PySCF/lmp_mpi
 
-Note: the molecule and kspace packages are needed for the water test
-problem.
- 
 ---------------------------------
 ---------------------------------
 
-Step 2: download/build the MDI code coupling package
+Step 2: install the MDI code coupling package
 
 (a) grab the MDI Git repo
 
@@ -42,20 +45,28 @@ Step 2: download/build the MDI code coupling package
 
 % cd mdi/git
 % mkdir build; cd build
-% cmake ..             # include support for all langauges
+% cmake ..
 % make -j
 
-(c) install mdi.py into your Python:
+(c) Add something similar to the following to your .bashrc or .cshrc
+file so that Python can find MDI:
 
-% cd mdi/git
-% pip3 install .
+For bash:
+
+% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git"
+% hash -r
+
+For (t)csh:
+
+% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git
+% rehash
 
 ---------------------------------
 ---------------------------------
 
-Step 3: download/build or install PySCF
+Step 3: install PySCF
 
-(a) install PySCF on your box
+(a) download/build or install PySCF on your box
 
 NOTE: add instructions here
 
@@ -84,7 +95,7 @@ that wraps PySCF will need:
 ---------------------------------
 ---------------------------------
 
-Step 4: run 2-water QMMM problem for a few steps
+Step 4: run the 2-water QMMM problem for a few steps
 
 % cd ~/lammps/examples/QUANTUM/PySCF
 

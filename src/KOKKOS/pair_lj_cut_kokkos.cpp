@@ -130,6 +130,7 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
+  copymode = 0;
 }
 
 template<class DeviceType>

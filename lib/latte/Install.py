@@ -10,7 +10,7 @@ import sys, os, subprocess, shutil, tarfile
 from argparse import ArgumentParser
 
 sys.path.append('..')
-from install_helpers import fullpath, geturl, checkmd5sum
+from install_helpers import fullpath, geturl, checkmd5sum, getfallback
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
@@ -86,17 +86,25 @@ if buildflag:
   url = "https://github.com/lanl/LATTE/archive/v%s.tar.gz" % version
   lattepath = fullpath(homepath)
   lattedir = os.path.join(lattepath, homedir)
+  fallback = getfallback('latte', url)
+  filename = 'LATTE.tar.gz'
 
 # download and unpack LATTE tarball
 
 if buildflag:
   print("Downloading LATTE ...")
-  geturl(url, "LATTE.tar.gz")
+  try:
+    geturl(url, filename)
+  except:
+    geturl(fallback, filename)
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
-    if not checkmd5sum(checksums[version], 'LATTE.tar.gz'):
-      sys.exit("Checksum for LATTE library does not match")
+    if not checkmd5sum(checksums[version], filename):
+      print("Checksum did not match. Trying fallback URL", fallback)
+      geturl(fallback, filename)
+      if not checkmd5sum(checksums[version], filename):
+        sys.exit("Checksum for LATTE library does not match for fallback, too.")
 
   print("Unpacking LATTE ...")
   if os.path.exists(lattedir):

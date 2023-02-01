@@ -99,6 +99,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   memoryKK = (MemoryKokkos*) memory;
 
   auto_sync = 1;
+  allow_overlap = 1;
 
   int me = 0;
   MPI_Comm_rank(world,&me);

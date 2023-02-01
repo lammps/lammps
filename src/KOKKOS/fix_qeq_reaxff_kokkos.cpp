@@ -175,8 +175,6 @@ void FixQEqReaxFFKokkos<DeviceType>::init_hist()
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::setup_pre_force(int vflag)
 {
-  //neighbor->build_one(list);
-
   pre_force(vflag);
 }
 

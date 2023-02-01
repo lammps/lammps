@@ -115,7 +115,7 @@ void PairHybrid::compute(int eflag, int vflag)
   Respa *respa = nullptr;
   respaflag = 0;
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    respa = dynamic_cast<Respa *>( update->integrate);
+    respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
 
@@ -266,8 +266,7 @@ void PairHybrid::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
   if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
-    error->all(FLERR,"Must use pair_style {}/kk with Kokkos",
-                                 force->pair_style);
+    error->all(FLERR,"Must use pair_style {}/kk with Kokkos", force->pair_style);
 
   // delete old lists, since cannot just change settings
 
@@ -317,9 +316,9 @@ void PairHybrid::settings(int narg, char **arg)
   nstyles = 0;
   while (iarg < narg) {
     if (utils::strmatch(arg[iarg],"^hybrid"))
-      error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Pair style hybrid cannot have hybrid as a sub-style");
     if (strcmp(arg[iarg],"none") == 0)
-      error->all(FLERR,"Pair style hybrid cannot have none as an argument");
+      error->all(FLERR,"Pair style hybrid cannot have none as a sub-style");
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
     keywords[nstyles] = force->store_style(arg[iarg],0);
@@ -518,7 +517,7 @@ void PairHybrid::coeff(int narg, char **arg)
 
   if (!none && styles[m]->one_coeff) {
     if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
-      error->all(FLERR,"Incorrect args for pair coefficients");
+      error->all(FLERR,"Pair_coeff must start with * * for sub-style {}", keywords[m]);
     for (int i = 1; i <= atom->ntypes; i++)
       for (int j = i; j <= atom->ntypes; j++)
         if (nmap[i][j] && map[i][j][0] == m) {
@@ -569,7 +568,7 @@ void PairHybrid::init_style()
       for (jtype = itype; jtype <= ntypes; jtype++)
         for (m = 0; m < nmap[itype][jtype]; m++)
           if (map[itype][jtype][m] == istyle) used = 1;
-    if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
+    if (used == 0) error->all(FLERR,"Pair hybrid sub-style {} is not used", keywords[istyle]);
   }
 
   // The GPU library uses global data for each pair style, so the

@@ -4,7 +4,7 @@ units           metal
 atom_style      full
 atom_modify     sort 0 0.0    # turn off sorting of the coordinates
 
-read_data       data.water
+read_data       data.water.latte.aimd
 
 # replicate system if requested
 

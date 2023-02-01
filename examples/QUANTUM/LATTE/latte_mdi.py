@@ -454,7 +454,7 @@ def evaluate():
   vflag_global = 1
   vflag_atom = 0
   
-  flags_latte = 7*[0]
+  flags_latte = 6*[0]
   flags_latte[0] = pbcflag;   # 1 for fully periodic, 0 for fully non-periodic
   flags_latte[1] = coulombflag;  # 1 for LAMMPS computes Coulombics, 0 for LATTE
   flags_latte[2] = eflag_atom;   # 1 to return per-atom energies, 0 for no
@@ -479,15 +479,70 @@ def evaluate():
   # AIMD with only QM atoms
     
   elif mode == AIMD:
+
+    c_flags_latte = (c_int*6)(*flags_latte)
+    c_qm_natoms = c_int(qm_natoms)
+    qm_ntypes = 2
+    c_qm_ntypes = c_int(qm_ntypes)
+    c_xy = c_double(xy)
+    c_xz = c_double(xz)
+    c_yz = c_double(yz)
+    c_maxiter = c_int(maxiter)
+    c_qm_pe = c_double(qm_pe)
+    c_new_system = c_int(new_system)
+
+    qm_types = np.empty(qm_natoms,dtype=np.int32)
+    for i in range(0,qm_natoms,3): qm_types[i] = 1
+    for i in range(1,qm_natoms,3): qm_types[i] = 2
+    for i in range(2,qm_natoms,3): qm_types[i] = 2
+    qm_mass = [15.995, 1.008]
+    c_qm_mass = (c_double*qm_ntypes)(*qm_mass)
+
+    c_boxlo = (c_double*3)(*boxlo)
+    c_boxhi = (c_double*3)(*boxhi)
+    
+    qm_velocity = np.empty((qm_natoms,3))
+    qm_velocity.fill(0.0)
+
+    timestep = 0.00025
+    c_timestep = c_double(timestep)
+    
     latte_error = 0
+    c_latte_error = c_bool(latte_error)
+
+    print("Calling LATTE ...")
+    time1 = time.time()
+
+    print("flags_latte",c_flags_latte[0:6])
+    print("qm_natoms",c_qm_natoms.value)
+    print("qm_coords",qm_coords)  
+    print("qm_types",qm_types)
+    print("qm_ntypes",c_qm_ntypes.value)
+    print("qm_mass",c_qm_mass[0:2])
+    print("boxlo",c_boxlo[0:3])
+    print("boxhi",c_boxhi[0:3]) 
+    print("xy",c_xy.value)
+    print("xz",c_xz.value)
+    print("yz",c_yz.value)
+    print("maxiter",c_maxiter.value)
+    print("timestep",c_timestep.value)
+    print("new_system",c_new_system.value)
+ 
     liblatte.\
-      latte(flags_latte,byref(qm_natoms),qm_coords,
-            qm_types,byref(qm_ntypes),qm_mass,
-            boxlo,boxhi,byref(xy),byref(xz),byref(yz),forces,
-            byref(maxiter),byref(qm_energy),
-            qm_velocity,byref(timestep),qm_stress,
-            byref(new_system),byref(latte_error))
+      latte(c_flags_latte,byref(c_qm_natoms),qm_coords,
+            qm_types,byref(c_qm_ntypes),c_qm_mass,
+            c_boxlo,c_boxhi,byref(c_xy),byref(c_xz),byref(c_yz),qm_forces,
+            byref(c_maxiter),byref(c_qm_pe),
+            qm_velocity,byref(c_timestep),qm_stress,
+            byref(c_new_system),byref(c_latte_error))
     # NOTE: check latte_error return?
+    latte_error = c_latte_error.value
+    qm_pe = c_qm_pe.value
+
+    time2 = time.time()
+    print("DONE LATTE",latte_error,time2-time1)
+    print("PE",qm_pe)
+    print("FORCE",qm_forces)
 
   # clear flags for all MDI commands for next QM evaluation
 
@@ -510,15 +565,16 @@ def latte_load():
 
   nparray = np.ctypeslib.ndpointer(dtype=np.float64,ndim=2,flags="C_CONTIGUOUS")
   npvector_double = np.ctypeslib.ndpointer(dtype=np.float64,ndim=1,flags="C_CONTIGUOUS")
-  npvector_int = np.ctypeslib.ndpointer(dtype=np.int8,ndim=1,flags="C_CONTIGUOUS")
+  npvector_int = np.ctypeslib.ndpointer(dtype=np.int32,ndim=1,flags="C_CONTIGUOUS")
 
   liblatte.latte_abiversion.restype = None
   liblatte.latte_abiversion.argtypes = None
 
   liblatte.latte.restype = None
   liblatte.latte.argtypes = \
-    [POINTER(c_int), POINTER(c_int), nparray, npvector_int, POINTER(c_int),
-     POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double), 
+    [POINTER(c_int), POINTER(c_int), nparray, npvector_int, POINTER(c_int), POINTER(c_double),
+     POINTER(c_double), POINTER(c_double), POINTER(c_double),
+     POINTER(c_double), POINTER(c_double), 
      nparray, POINTER(c_int), POINTER(c_double), nparray,
      POINTER(c_double), npvector_double, POINTER(c_int), POINTER(c_bool)]
 
@@ -527,7 +583,7 @@ def latte_load():
 # only when it invokes pyscf_mdi.py as a plugin
 # --------------------------------------------
 
-def MDI_Plugin_init_nwchem_mdi(plugin_state):
+def MDI_Plugin_init_latte_mdi(plugin_state):
   
   # other_options = all non-MDI args
   # -mdi arg is processed and stripped internally by MDI

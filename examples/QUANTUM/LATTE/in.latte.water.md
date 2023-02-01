@@ -4,7 +4,7 @@ units           metal
 atom_style      full
 atom_modify     sort 0 0.0    # turn off sorting of the coordinates
 
-read_data       data.water.latte.aimd
+read_data       data.water
 
 # replicate system if requested
 
@@ -29,7 +29,7 @@ timestep        0.00025
 
 fix             1 all nve
 
-fix             2 all mdi/qm elements 8 1
+fix             2 all latte
 fix_modify      2 energy yes
 
 thermo_style    custom step temp pe etotal press
@@ -37,6 +37,4 @@ thermo_style    custom step temp pe etotal press
 # dynamics
 
 thermo          10
-
-mdi             plugin latte_mdi mdi "-role ENGINE -name LATTE -method LINK" &
-                command "run 100"
+run             100

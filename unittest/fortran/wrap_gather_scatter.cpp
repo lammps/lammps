@@ -51,7 +51,7 @@ protected:
     {
         ::testing::internal::CaptureStdout();
         lmp = (LAMMPS_NS::LAMMPS *)f_lammps_with_args();
-        lmp->input->one("variable index input_dir " STRINGIFY(TEST_INPUT_FOLDER));
+        lmp->input->one("variable input_dir index " STRINGIFY(TEST_INPUT_FOLDER));
         std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_STREQ(output.substr(0, 8).c_str(), "LAMMPS (");
     }

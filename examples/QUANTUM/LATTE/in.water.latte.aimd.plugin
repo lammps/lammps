@@ -36,7 +36,7 @@ thermo_style    custom step temp pe etotal press
 
 # dynamics
 
-thermo          10
+thermo          1
 
 mdi             plugin latte_mdi mdi "-role ENGINE -name LATTE -method LINK" &
-                command "run 100"
+                command "run 10"

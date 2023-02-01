@@ -513,20 +513,20 @@ def evaluate():
     print("Calling LATTE ...")
     time1 = time.time()
 
-    print("flags_latte",c_flags_latte[0:6])
-    print("qm_natoms",c_qm_natoms.value)
+    #print("flags_latte",c_flags_latte[0:6])
+    #print("qm_natoms",c_qm_natoms.value)
     print("qm_coords",qm_coords)  
-    print("qm_types",qm_types)
-    print("qm_ntypes",c_qm_ntypes.value)
-    print("qm_mass",c_qm_mass[0:2])
-    print("boxlo",c_boxlo[0:3])
-    print("boxhi",c_boxhi[0:3]) 
-    print("xy",c_xy.value)
-    print("xz",c_xz.value)
-    print("yz",c_yz.value)
-    print("maxiter",c_maxiter.value)
-    print("timestep",c_timestep.value)
-    print("new_system",c_new_system.value)
+    #print("qm_types",qm_types)
+    #print("qm_ntypes",c_qm_ntypes.value)
+    #print("qm_mass",c_qm_mass[0:2])
+    #print("boxlo",c_boxlo[0:3])
+    #print("boxhi",c_boxhi[0:3]) 
+    #print("xy",c_xy.value)
+    #print("xz",c_xz.value)
+    #print("yz",c_yz.value)
+    #print("maxiter",c_maxiter.value)
+    #print("timestep",c_timestep.value)
+    #print("new_system",c_new_system.value)
  
     liblatte.\
       latte(c_flags_latte,byref(c_qm_natoms),qm_coords,
@@ -542,7 +542,7 @@ def evaluate():
     time2 = time.time()
     print("DONE LATTE",latte_error,time2-time1)
     print("PE",qm_pe)
-    print("FORCE",qm_forces)
+    #print("FORCE",qm_forces)
 
   # clear flags for all MDI commands for next QM evaluation
 

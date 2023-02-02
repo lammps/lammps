@@ -428,15 +428,17 @@ elseif(GPU_API STREQUAL "HIP")
 
       if(DOWNLOAD_CUB)
         message(STATUS "CUB download requested")
-        set(CUB_URL "https://github.com/NVlabs/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
+        # TODO: test update to current version 1.17.2
+        set(CUB_URL "https://github.com/nvidia/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
         set(CUB_MD5 "1cf595beacafff104700921bac8519f3" CACHE STRING "MD5 checksum of CUB tarball")
         mark_as_advanced(CUB_URL)
         mark_as_advanced(CUB_MD5)
+        GetFallbackURL(CUB_URL CUB_FALLBACK)
 
         include(ExternalProject)
 
         ExternalProject_Add(CUB
-          URL     ${CUB_URL}
+          URL     ${CUB_URL} ${CUB_FALLBACK}
           URL_MD5 ${CUB_MD5}
           PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
           CONFIGURE_COMMAND ""

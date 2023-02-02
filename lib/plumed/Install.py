@@ -10,7 +10,7 @@ import sys, os, platform, subprocess, shutil
 from argparse import ArgumentParser
 
 sys.path.append('..')
-from install_helpers import get_cpus, fullpath, geturl, checkmd5sum
+from install_helpers import get_cpus, fullpath, geturl, checkmd5sum, getfallback
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
@@ -86,6 +86,7 @@ buildflag = args.build
 pathflag = args.path is not None
 plumedpath = args.path
 mode = args.mode
+version = args.version
 
 homepath = fullpath('.')
 homedir = "%s/plumed2" % (homepath)
@@ -101,14 +102,21 @@ if pathflag:
 
 if buildflag:
   url = "https://github.com/plumed/plumed2/releases/download/v%s/plumed-src-%s.tgz" % (version, version)
-  filename = "plumed-src-%s.tar.gz" %version
+  filename = "plumed-src-%s.tar.gz" % version
+  fallback = getfallback('plumed', url)
   print("Downloading plumed  ...")
-  geturl(url, filename)
+  try:
+    geturl(url, filename)
+  except:
+    geturl(fallback, filename)
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
     if not checkmd5sum(checksums[version], filename):
-      sys.exit("Checksum for plumed2 library does not match")
+      print("Checksum did not match. Trying fallback URL", fallback)
+      geturl(fallback, filename)
+      if not checkmd5sum(checksums[version], filename):
+        sys.exit("Checksum for plumed2 library does not match for fallback, too.")
 
   print("Unpacking plumed2 source tarball ...")
   if os.path.exists("%s/plumed-%s" % (homepath, version)):

@@ -38,7 +38,7 @@ class AmoebaConvolution : protected Pointers {
   int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
   int nxlo_fft, nxhi_fft, nylo_fft, nyhi_fft, nzlo_fft, nzhi_fft;
   bigint nfft_global;          // nx * ny * nz
-  double *grid_brick_start;    // lower left corner of (c)grid_brick data
+  FFT_SCALAR *grid_brick_start;    // lower left corner of (c)grid_brick data
 
   AmoebaConvolution(class LAMMPS *, class Pair *, int, int, int, int, int);
   ~AmoebaConvolution();
@@ -47,35 +47,37 @@ class AmoebaConvolution : protected Pointers {
   FFT_SCALAR *pre_convolution();
   void *post_convolution();
 
- private:
-  int which;            // caller name for convolution being performed
-  int flag3d;           // 1 if using 3d grid_brick, 0 for 4d cgrid_brick
-  int nbrick_owned;     // owned grid points in brick decomp
-  int nbrick_ghosts;    // owned + ghost brick grid points
-  int ngrid_either;     // max of nbrick_owned or nfft_owned
+  double time_fft;
+
+ protected:
+  int which;                   // caller name for convolution being performed
+  int flag3d;                  // 1 if using 3d grid_brick, 0 for 4d cgrid_brick
+  int nbrick_owned;            // owned grid points in brick decomp
+  int nbrick_ghosts;           // owned + ghost brick grid points
+  int ngrid_either;            // max of nbrick_owned or nfft_owned
 
   class Pair *amoeba;
   class FFT3d *fft1, *fft2;
   class Grid3d *gc;
   class Remap *remap;
 
-  double ***grid_brick;      // 3d real brick grid with ghosts
-  double ****cgrid_brick;    // 4d complex brick grid with ghosts
+  FFT_SCALAR ***grid_brick;      // 3d real brick grid with ghosts
+  FFT_SCALAR ****cgrid_brick;    // 4d complex brick grid with ghosts
 
   FFT_SCALAR *grid_fft;    // 3d FFT grid as 1d vector
   FFT_SCALAR *cfft;        // 3d complex FFT grid as 1d vector
 
-  double *gc_buf1, *gc_buf2;    // buffers for GridComm
-  double *remap_buf;            // buffer for Remap
+  FFT_SCALAR *gc_buf1, *gc_buf2;    // buffers for GridComm
+  FFT_SCALAR *remap_buf;            // buffer for Remap
 
   void allocate_grid();
   void deallocate_grid();
   void *zero_3d();
   void *zero_4d();
   FFT_SCALAR *pre_convolution_3d();
-  FFT_SCALAR *pre_convolution_4d();
+  virtual FFT_SCALAR *pre_convolution_4d();
   void *post_convolution_3d();
-  void *post_convolution_4d();
+  virtual void *post_convolution_4d();
   void procs2grid2d(int, int, int, int &, int &);
 
   // DEBUG

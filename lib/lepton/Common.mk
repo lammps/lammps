@@ -75,7 +75,7 @@ JITCORE= \
 
 JITOBJ=$(JITX86:asmjit/x86/%.cpp=build/x86.%.o) \
        $(JITARM:asmjit/arm/%.cpp=build/arm.%.o) \
-       $(JIXCORE:asmjit/core/%.cpp=build/core.%.o)
+       $(JITCORE:asmjit/core/%.cpp=build/core.%.o)
 
 LEPTON_DIR=.
 
@@ -110,7 +110,7 @@ build/core.%.o: asmjit/core/%.cpp build
 
 Makefile.lammps:
 	cp $(EXTRAMAKE) $@
-	sed -i -e 's,^.*lepton_SYSINC *=.*$$,lepton_SYSINC = $(DEF),' $@
+	sed -i -e 's,^.*lepton_SYSINC *=.*$$,lepton_SYSINC = $(LEPTON_DEF),' $@
 
 .PHONY: all lib clean
 

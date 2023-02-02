@@ -22,7 +22,7 @@ last reneighboring; this and other options of the neighbor list rebuild
 can be adjusted with the :doc:`neigh_modify <neigh_modify>` command.
 
 On steps when reneighboring is performed, atoms which have moved outside
-their owning processor's sub-domain are first migrated to new processors
+their owning processor's subdomain are first migrated to new processors
 via communication.  Periodic boundary conditions are also (only)
 enforced on these steps to ensure each atom is re-assigned to the
 correct processor.  After migration, the atoms owned by each processor
@@ -39,12 +39,12 @@ its settings modified with the :doc:`atom_modify <atom_modify>` command.
 
    neighbor list stencils
 
-   A 2d simulation sub-domain (thick black line) and the corresponding
+   A 2d simulation subdomain (thick black line) and the corresponding
    ghost atom cutoff region (dashed blue line) for both orthogonal
    (left) and triclinic (right) domains.  A regular grid of neighbor
    bins (thin lines) overlays the entire simulation domain and need not
-   align with sub-domain boundaries; only the portion overlapping the
-   augmented sub-domain is shown.  In the triclinic case it overlaps the
+   align with subdomain boundaries; only the portion overlapping the
+   augmented subdomain is shown.  In the triclinic case it overlaps the
    bounding box of the tilted rectangle.  The blue- and red-shaded bins
    represent a stencil of bins searched to find neighbors of a particular
    atom (black dot).
@@ -52,8 +52,8 @@ its settings modified with the :doc:`atom_modify <atom_modify>` command.
 To build a local neighbor list in linear time, the simulation domain is
 overlaid (conceptually) with a regular 3d (or 2d) grid of neighbor bins,
 as shown in the :ref:`neighbor-stencil` figure for 2d models and a
-single MPI processor's sub-domain.  Each processor stores a set of
-neighbor bins which overlap its sub-domain extended by the neighbor
+single MPI processor's subdomain.  Each processor stores a set of
+neighbor bins which overlap its subdomain extended by the neighbor
 cutoff distance :math:`R_n`.  As illustrated, the bins need not align
 with processor boundaries; an integer number in each dimension is fit to
 the size of the entire simulation box.
@@ -144,7 +144,7 @@ supports:
 
 - For small and sparse systems and as a fallback method, LAMMPS also
   supports neighbor list construction without binning by using a full
-  :math:`O(N^2)` loop over all *i,j* atom pairs in a sub-domain when
+  :math:`O(N^2)` loop over all *i,j* atom pairs in a subdomain when
   using the :doc:`neighbor nsq <neighbor>` command.
 
 - Dependent on the "pair" setting of the :doc:`newton <newton>` command,

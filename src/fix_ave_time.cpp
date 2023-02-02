@@ -534,7 +534,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
   for (auto &val : values) {
 
     // invoke compute if not previously invoked
-    // insure no out-of-range access to variable-length compute vector
+    // ensure no out-of-range access to variable-length compute vector
 
     if (val.which == ArgInfo::COMPUTE) {
 
@@ -562,7 +562,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
         scalar = val.val.f->compute_vector(val.argindex-1);
 
     // evaluate equal-style or vector-style variable
-    // insure no out-of-range access to vector-style variable
+    // ensure no out-of-range access to vector-style variable
 
     } else if (val.which == ArgInfo::VARIABLE) {
       if (val.argindex == 0)
@@ -630,7 +630,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
     else norm = iwindow;
   }
 
-  // insure any columns with offcol set are effectively set to last value
+  // ensure any columns with offcol set are effectively set to last value
 
   for (i = 0; i < nvalues; i++)
     if (values[i].offcol) vector_total[i] = norm*vector[i];
@@ -759,7 +759,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
       }
 
     // evaluate vector-style variable
-    // insure nvec = nrows, else error
+    // ensure nvec = nrows, else error
     // could be different on this timestep than when column_length(1) set nrows
 
     } else if (val.which == ArgInfo::VARIABLE) {
@@ -845,7 +845,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
     else norm = iwindow;
   }
 
-  // insure any columns with offcol set are effectively set to last value
+  // ensure any columns with offcol set are effectively set to last value
 
   for (int i = 0; i < nrows; i++)
     for (int j = 0; j < nvalues; j++)

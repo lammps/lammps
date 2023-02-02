@@ -43,7 +43,7 @@ compute group.  Note that normally a CNA calculation should only be
 performed on mono-component systems.
 
 The CNA calculation can be sensitive to the specified cutoff value.
-You should insure the appropriate nearest neighbors of an atom are
+You should ensure the appropriate nearest neighbors of an atom are
 found within the cutoff distance for the presumed crystal structure
 (e.g., 12 nearest neighbor for perfect FCC and HCP crystals, 14 nearest
 neighbors for perfect BCC crystals).  These formulas can be used to

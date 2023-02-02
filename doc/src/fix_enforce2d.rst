@@ -27,7 +27,7 @@ Description
 """""""""""
 
 Zero out the z-dimension velocity and force on each atom in the group.
-This is useful when running a 2d simulation to insure that atoms do
+This is useful when running a 2d simulation to ensure that atoms do
 not move from their initial z coordinate.
 
 ----------

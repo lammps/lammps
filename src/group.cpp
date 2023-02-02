@@ -95,13 +95,13 @@ void Group::assign(int narg, char **arg)
 
   if (domain->box_exist == 0)
     error->all(FLERR,"Group command before simulation box is defined");
-  if (narg < 2) error->all(FLERR,"Illegal group command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "group", error);
 
   // delete the group if not being used elsewhere
   // clear mask of each atom assigned to this group
 
   if (strcmp(arg[1],"delete") == 0) {
-    if (narg != 2) error->all(FLERR,"Illegal group command: too many arguments");
+    if (narg != 2) error->all(FLERR,"Illegal group delete command: too many arguments");
     int igroup = find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find group delete group ID {}",arg[0]);
     if (igroup == 0) error->all(FLERR,"Cannot delete group all");
@@ -137,7 +137,7 @@ void Group::assign(int narg, char **arg)
 
   if (strcmp(arg[1],"clear") == 0) {
     int igroup = find(arg[0]);
-    if (igroup == -1) error->all (FLERR,"Could not find group clear group ID");
+    if (igroup == -1) error->all (FLERR,"Could not find group clear group ID {}",arg[0]);
     if (igroup == 0) error->all (FLERR,"Cannot clear group all");
 
     int *mask = atom->mask;
@@ -155,7 +155,7 @@ void Group::assign(int narg, char **arg)
   bool created = false;
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
+    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups (max {})", MAX_GROUP);
     igroup = find_unused();
     names[igroup] = utils::strdup(arg[0]);
     ngroup++;
@@ -173,10 +173,10 @@ void Group::assign(int narg, char **arg)
 
     if (strcmp(arg[1],"region") == 0) {
 
-      if (narg != 3) error->all(FLERR,"Illegal group command");
+      if (narg != 3) error->all(FLERR,"Illegal group region command");
 
       auto region = domain->get_region_by_id(arg[2]);
-      if (!region) error->all(FLERR,"Group region {} does not exist", arg[2]);
+      if (!region) error->all(FLERR,"Region {} for group region does not exist", arg[2]);
       region->init();
       region->prematch();
 
@@ -188,7 +188,7 @@ void Group::assign(int narg, char **arg)
 
     } else if (strcmp(arg[1],"empty") == 0) {
 
-      if (narg != 2) error->all(FLERR,"Illegal group command");
+      if (narg != 2) error->all(FLERR,"Illegal group empty command");
       // nothing else to do here
 
     // style = type, molecule, id
@@ -197,7 +197,7 @@ void Group::assign(int narg, char **arg)
     } else if (strcmp(arg[1],"type") == 0 || strcmp(arg[1],"molecule") == 0 ||
                strcmp(arg[1],"id") == 0) {
 
-      if (narg < 3) error->all(FLERR,"Illegal group command");
+      if (narg < 3) utils::missing_cmd_args(FLERR, std::string("group ")+arg[1], error);
 
       int category=NONE;
       if (strcmp(arg[1],"type") == 0) category = TYPE;
@@ -205,10 +205,10 @@ void Group::assign(int narg, char **arg)
       else if (strcmp(arg[1],"id") == 0) category = ID;
 
       if ((category == MOLECULE) && (!atom->molecule_flag))
-        error->all(FLERR,"Group command requires atom attribute molecule");
+        error->all(FLERR,"Group molecule command requires atom attribute molecule");
 
       if ((category == ID) && (!atom->tag_enable))
-        error->all(FLERR,"Group command requires atom IDs");
+        error->all(FLERR,"Group id command requires atom IDs");
 
       // args = logical condition
 
@@ -320,8 +320,7 @@ void Group::assign(int narg, char **arg)
               delta = values.next_tagint();
             } else throw TokenizerException("Syntax error","");
           } catch (TokenizerException &e) {
-            error->all(FLERR,"Incorrect range string "
-                                         "'{}': {}",arg[iarg],e.what());
+            error->all(FLERR,"Incorrect range string '{}': {}",arg[iarg],e.what());
           }
           if (delta < 1)
             error->all(FLERR,"Illegal range increment value");
@@ -346,9 +345,9 @@ void Group::assign(int narg, char **arg)
     } else if (strcmp(arg[1],"variable") == 0) {
 
       int ivar = input->variable->find(arg[2]);
-      if (ivar < 0) error->all(FLERR,"Variable name for group does not exist");
+      if (ivar < 0) error->all(FLERR,"Variable name {} for group does not exist",arg[2]);
       if (!input->variable->atomstyle(ivar))
-        error->all(FLERR,"Variable for group is invalid style");
+        error->all(FLERR,"Variable {} for group is invalid style",arg[2]);
 
       double *aflag;
 
@@ -368,20 +367,20 @@ void Group::assign(int narg, char **arg)
 
     } else if (strcmp(arg[1],"include") == 0) {
 
-      if (narg != 3) error->all(FLERR,"Illegal group command");
+      if (narg != 3) error->all(FLERR,"Illegal group include command");
       if (strcmp(arg[2],"molecule") == 0) {
         if (!atom->molecule_flag)
-          error->all(FLERR,"Group command requires atom attribute molecule");
+          error->all(FLERR,"Group include molecule command requires atom attribute molecule");
 
         add_molecules(igroup,bit);
 
-      } else error->all(FLERR,"Illegal group command");
+      } else error->all(FLERR,"Unknown group include keyword {}",arg[2]);
 
     // style = subtract
 
     } else if (strcmp(arg[1],"subtract") == 0) {
 
-      if (narg < 4) error->all(FLERR,"Illegal group command");
+      if (narg < 4) utils::missing_cmd_args(FLERR, "group subtract", error);
 
       int length = narg-2;
       std::vector<int> list(length);
@@ -389,9 +388,8 @@ void Group::assign(int narg, char **arg)
       int jgroup;
       for (int iarg = 2; iarg < narg; iarg++) {
         jgroup = find(arg[iarg]);
-        if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
-        if (dynamic[jgroup])
-          error->all(FLERR,"Cannot subtract groups using a dynamic group");
+        if (jgroup == -1) error->all(FLERR,"Group ID {} does not exist", arg[iarg]);
+        if (dynamic[jgroup]) error->all(FLERR,"Cannot subtract dynamic groups");
         list[iarg-2] = jgroup;
       }
 
@@ -417,7 +415,7 @@ void Group::assign(int narg, char **arg)
 
     } else if (strcmp(arg[1],"union") == 0) {
 
-      if (narg < 3) error->all(FLERR,"Illegal group command");
+      if (narg < 3) utils::missing_cmd_args(FLERR, "group union", error);
 
       int length = narg-2;
       std::vector<int> list(length);
@@ -425,9 +423,8 @@ void Group::assign(int narg, char **arg)
       int jgroup;
       for (int iarg = 2; iarg < narg; iarg++) {
         jgroup = find(arg[iarg]);
-        if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
-        if (dynamic[jgroup])
-          error->all(FLERR,"Cannot union groups using a dynamic group");
+        if (jgroup == -1) error->all(FLERR,"Group ID {} does not exist",arg[iarg]);
+        if (dynamic[jgroup]) error->all(FLERR,"Cannot union groups from a dynamic group");
         list[iarg-2] = jgroup;
       }
 
@@ -445,7 +442,7 @@ void Group::assign(int narg, char **arg)
 
     } else if (strcmp(arg[1],"intersect") == 0) {
 
-      if (narg < 4) error->all(FLERR,"Illegal group command");
+      if (narg < 4) utils::missing_cmd_args(FLERR, "group intersect", error);
 
       int length = narg-2;
       std::vector<int> list(length);
@@ -453,7 +450,7 @@ void Group::assign(int narg, char **arg)
       int jgroup;
       for (int iarg = 2; iarg < narg; iarg++) {
         jgroup = find(arg[iarg]);
-        if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
+        if (jgroup == -1) error->all(FLERR,"Group ID {} does not exist",arg[iarg]);
         if (dynamic[jgroup])
           error->all(FLERR,"Cannot intersect groups using a dynamic group");
         list[iarg-2] = jgroup;
@@ -481,7 +478,7 @@ void Group::assign(int narg, char **arg)
       if (strcmp(arg[0],arg[2]) == 0)
         error->all(FLERR,"Group dynamic cannot reference itself");
       if (find(arg[2]) < 0)
-        error->all(FLERR,"Group dynamic parent group does not exist");
+        error->all(FLERR,"Group dynamic parent group {} does not exist", arg[2]);
       if (igroup == 0) error->all(FLERR,"Group all cannot be made dynamic");
 
       // if group is already dynamic, delete existing FixGroup
@@ -501,7 +498,7 @@ void Group::assign(int narg, char **arg)
 
     } else if (strcmp(arg[1],"static") == 0) {
 
-      if (narg != 2) error->all(FLERR,"Illegal group command");
+      if (narg != 2) error->all(FLERR,"Illegal group static command");
 
       if (dynamic[igroup])
         modify->delete_fix(std::string("GROUP_") + names[igroup]);
@@ -510,7 +507,7 @@ void Group::assign(int narg, char **arg)
 
     // not a valid group style
 
-    } else error->all(FLERR,"Illegal group command");
+    } else error->all(FLERR,"Unknown group command keyword: {}",arg[1]);
 
   } catch (LAMMPSException & e) {
     // undo created group in case of an error
@@ -569,7 +566,7 @@ void Group::create(const std::string &name, int *flag)
   int igroup = find(name);
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
+    if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups (max {})", MAX_GROUP);
     igroup = find_unused();
     names[igroup] = utils::strdup(name);
     ngroup++;
@@ -606,7 +603,7 @@ int Group::find_or_create(const char *name)
   int igroup = find(name);
   if (igroup >= 0) return igroup;
 
-  if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
+  if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups (max {})", MAX_GROUP);
   igroup = find_unused();
   names[igroup] = utils::strdup(name);
   ngroup++;
@@ -1725,8 +1722,7 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
 
   } else {
     int ierror = MathEigen::jacobi3(inertia, idiag, evectors);
-    if (ierror) error->all(FLERR,
-                           "Insufficient Jacobi rotations for group::omega");
+    if (ierror) error->all(FLERR, "Insufficient Jacobi rotations for group::omega");
 
     ex[0] = evectors[0][0];
     ex[1] = evectors[1][0];

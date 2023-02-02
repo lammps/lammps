@@ -511,7 +511,7 @@ void ReadData::command(int narg, char **arg)
     // problem setup using info from header
     // only done once, if firstpass and first data file
     // apply extra settings before grow(), even if no topology in file
-    // deallocate() insures new settings are used for topology arrays
+    // deallocate() ensures new settings are used for topology arrays
     // if per-atom topology is in file, another grow() is done below
 
     if (firstpass && addflag == NONE) {
@@ -1034,7 +1034,7 @@ void ReadData::command(int narg, char **arg)
   }
 
   // for atom style template systems
-  // insure nbondtypes,etc are still consistent with template molecules,
+  // ensure nbondtypes,etc are still consistent with template molecules,
   //   in case data file re-defined them
 
   if (atom->molecular == Atom::TEMPLATE) {

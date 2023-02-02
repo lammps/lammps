@@ -54,7 +54,7 @@ Syntax
            *store* name = store weight in custom atom property defined by :doc:`fix property/atom <fix_property_atom>` command
              name = atom property name (without d\_ prefix)
        *out* arg = filename
-         filename = write each processor's sub-domain to a file
+         filename = write each processor's subdomain to a file
 
 Examples
 """"""""
@@ -72,14 +72,14 @@ Examples
 Description
 """""""""""
 
-This command adjusts the size and shape of processor sub-domains
+This command adjusts the size and shape of processor subdomains
 within the simulation box, to attempt to balance the number of atoms
 or particles and thus indirectly the computational cost (load) more
 evenly across processors.  The load balancing is "static" in the sense
 that this command performs the balancing once, before or between
-simulations.  The processor sub-domains will then remain static during
+simulations.  The processor subdomains will then remain static during
 the subsequent run.  To perform "dynamic" balancing, see the :doc:`fix
-balance <fix_balance>` command, which can adjust processor sub-domain
+balance <fix_balance>` command, which can adjust processor subdomain
 sizes and shapes on-the-fly during a :doc:`run <run>`.
 
 Load-balancing is typically most useful if the particles in the
@@ -90,7 +90,7 @@ an irregular-shaped geometry containing void regions, or :doc:`hybrid
 pair style simulations <pair_hybrid>` which combine pair styles with
 different computational cost.  In these cases, the LAMMPS default of
 dividing the simulation box volume into a regular-spaced grid of 3d
-bricks, with one equal-volume sub-domain per processor, may assign
+bricks, with one equal-volume subdomain per processor, may assign
 numbers of particles per processor in a way that the computational
 effort varies significantly.  This can lead to poor performance when
 the simulation is run in parallel.
@@ -109,7 +109,7 @@ Specifically, for a Px by Py by Pz grid of processors, it allows
 choice of Px, Py, and Pz, subject to the constraint that Px \* Py \*
 Pz = P, the total number of processors.  This is sufficient to achieve
 good load-balance for some problems on some processor counts.
-However, all the processor sub-domains will still have the same shape
+However, all the processor subdomains will still have the same shape
 and same volume.
 
 The requested load-balancing operation is only performed if the
@@ -162,7 +162,7 @@ fractions of the box length) are also printed.
    simulation could run up to 20% faster if it were perfectly balanced,
    versus when imbalanced.  However, computational cost is not strictly
    proportional to particle count, and changing the relative size and
-   shape of processor sub-domains may lead to additional computational
+   shape of processor subdomains may lead to additional computational
    and communication overheads, e.g. in the PPPM solver used via the
    :doc:`kspace_style <kspace_style>` command.  Thus you should benchmark
    the run times of a simulation before and after balancing.
@@ -177,7 +177,7 @@ The *x*, *y*, *z*, and *shift* styles are "grid" methods which
 produce a logical 3d grid of processors.  They operate by changing the
 cutting planes (or lines) between processors in 3d (or 2d), to adjust
 the volume (area in 2d) assigned to each processor, as in the
-following 2d diagram where processor sub-domains are shown and
+following 2d diagram where processor subdomains are shown and
 particles are colored by the processor that owns them.
 
 .. |balance1| image:: img/balance_uniform.jpg
@@ -226,7 +226,7 @@ The *x*, *y*, and *z* styles invoke a "grid" method for balancing, as
 described above.  Note that any or all of these 3 styles can be
 specified together, one after the other, but they cannot be used with
 any other style.  This style adjusts the position of cutting planes
-between processor sub-domains in specific dimensions.  Only the
+between processor subdomains in specific dimensions.  Only the
 specified dimensions are altered.
 
 The *uniform* argument spaces the planes evenly, as in the left
@@ -245,8 +245,8 @@ the cutting place.  The left (or lower) edge of the box is 0.0, and
 the right (or upper) edge is 1.0.  Neither of these values is
 specified.  Only the interior Ps-1 positions are specified.  Thus is
 there are 2 processors in the x dimension, you specify a single value
-such as 0.75, which would make the left processor's sub-domain 3x
-larger than the right processor's sub-domain.
+such as 0.75, which would make the left processor's subdomain 3x
+larger than the right processor's subdomain.
 
 ----------
 
@@ -288,10 +288,10 @@ adjacent planes are closer together than the neighbor skin distance
 (as specified by the :doc:`neigh_modify <neigh_modify>` command), then
 the plane positions are shifted to separate them by at least this
 amount.  This is to prevent particles being lost when dynamics are run
-with processor sub-domains that are too narrow in one or more
+with processor subdomains that are too narrow in one or more
 dimensions.
 
-Once the re-balancing is complete and final processor sub-domains
+Once the re-balancing is complete and final processor subdomains
 assigned, particles are migrated to their new owning processor, and
 the balance procedure ends.
 
@@ -299,7 +299,7 @@ the balance procedure ends.
 
    At each re-balance operation, the bisectioning for each cutting
    plane (line in 2d) typically starts with low and high bounds separated
-   by the extent of a processor's sub-domain in one dimension.  The size
+   by the extent of a processor's subdomain in one dimension.  The size
    of this bracketing region shrinks by 1/2 every iteration.  Thus if
    *Niter* is specified as 10, the cutting plane will typically be
    positioned to 1 part in 1000 accuracy (relative to the perfect target
@@ -350,7 +350,7 @@ particles in that sub-box.
 
 .. _weighted_balance:
 
-This sub-section describes how to perform weighted load balancing
+This subsection describes how to perform weighted load balancing
 using the *weight* keyword.
 
 By default, all particles have a weight of 1.0, which means each
@@ -494,7 +494,7 @@ different kinds of custom atom vectors or arrays as arguments.
 
 The *out* keyword writes a text file to the specified *filename* with
 the results of the balancing operation.  The file contains the bounds
-of the sub-domain for each processor after the balancing operation
+of the subdomain for each processor after the balancing operation
 completes.  The format of the file is compatible with the
 `Pizza.py <pizza_>`_ *mdump* tool which has support for manipulating and
 visualizing mesh files.  An example is shown here for a balancing by 4
@@ -538,7 +538,7 @@ processors for a 2d problem:
    4 1 13 14 15 16
 
 The coordinates of all the vertices are listed in the NODES section, 5
-per processor.  Note that the 4 sub-domains share vertices, so there
+per processor.  Note that the 4 subdomains share vertices, so there
 will be duplicate nodes in the list.
 
 The "SQUARES" section lists the node IDs of the 4 vertices in a

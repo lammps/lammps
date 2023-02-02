@@ -119,6 +119,17 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
   double dsij1, dsij2, force1, force2;
   double t1i, t2i, t3i, t1j, t2j, t3j;
   int fnoffset;
+  // msmeam
+  double rhoa1mj,drhoa1mj,rhoa1mi,drhoa1mi;
+  double rhoa2mj,drhoa2mj,rhoa2mi,drhoa2mi;
+  double rhoa3mj, drhoa3mj, rhoa3mi, drhoa3mi;
+  double arg1i1m, arg1j1m, arg1i2m, arg1j2m, arg1i3m, arg1j3m, arg3i3m, arg3j3m;
+  double drho1mdr1, drho1mdr2, drho1mds1, drho1mds2;
+  double drho1mdrm1[3], drho1mdrm2[3];
+  double drho2mdr1, drho2mdr2, drho2mds1, drho2mds2;
+  double drho2mdrm1[3], drho2mdrm2[3];
+  double drho3mdr1, drho3mdr2, drho3mds1, drho3mds2;
+  double drho3mdrm1[3], drho3mdrm2[3];
 
   // The f, etc. arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
@@ -197,6 +208,14 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         drhoa2i = -beta2_meam[elti] * invrei * rhoa2i;
         rhoa3i = ro0i * MathSpecialKokkos::fm_exp(-beta3_meam[elti] * ai);
         drhoa3i = -beta3_meam[elti] * invrei * rhoa3i;
+        if (msmeamflag) {
+          rhoa1mi = ro0i * MathSpecialKokkos::fm_exp(-beta1m_meam[elti] * ai) * t1m_meam[elti];
+          drhoa1mi = -beta1m_meam[elti] * invrei * rhoa1mi;
+          rhoa2mi = ro0i * MathSpecialKokkos::fm_exp(-beta2m_meam[elti] * ai) * t2m_meam[elti];
+          drhoa2mi = -beta2m_meam[elti] * invrei * rhoa2mi;
+          rhoa3mi = ro0i * MathSpecialKokkos::fm_exp(-beta3m_meam[elti] * ai) * t3m_meam[elti];
+          drhoa3mi = -beta3m_meam[elti] * invrei * rhoa3mi;
+        }
 
         if (elti != eltj) {
           invrej = 1.0 / re_meam[eltj][eltj];
@@ -210,6 +229,14 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           drhoa2j = -beta2_meam[eltj] * invrej * rhoa2j;
           rhoa3j = ro0j * MathSpecialKokkos::fm_exp(-beta3_meam[eltj] * aj);
           drhoa3j = -beta3_meam[eltj] * invrej * rhoa3j;
+          if (msmeamflag) {
+            rhoa1mj = ro0j * MathSpecialKokkos::fm_exp(-beta1m_meam[eltj] * aj) * t1m_meam[eltj];
+            drhoa1mj = -beta1m_meam[eltj] * invrej * rhoa1mj;
+            rhoa2mj = ro0j * MathSpecialKokkos::fm_exp(-beta2m_meam[eltj] * aj) * t2m_meam[eltj];
+            drhoa2mj = -beta2m_meam[eltj] * invrej * rhoa2mj;
+            rhoa3mj = ro0j * MathSpecialKokkos::fm_exp(-beta3m_meam[eltj] * aj) * t3m_meam[eltj];
+            drhoa3mj = -beta3m_meam[eltj] * invrej * rhoa3mj;
+          }
         } else {
           rhoa0j = rhoa0i;
           drhoa0j = drhoa0i;
@@ -219,6 +246,14 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           drhoa2j = drhoa2i;
           rhoa3j = rhoa3i;
           drhoa3j = drhoa3i;
+          if (msmeamflag) {
+            rhoa1mj = rhoa1mi;
+            drhoa1mj = drhoa1mi;
+            rhoa2mj = rhoa2mi;
+            drhoa2mj = drhoa2mi;
+            rhoa3mj = rhoa3mi;
+            drhoa3mj = drhoa3mi;
+          }
         }
 
         const double t1mi = t1_meam[elti];
@@ -228,7 +263,10 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         const double t2mj = t2_meam[eltj];
         const double t3mj = t3_meam[eltj];
 
-        if (ialloy == 1) {
+        // ialloy mod not needed in MS-MEAM, but similarity here is that we multply rhos by t.
+        // We did this above with rhoa1mj, rhoa2mj, etc.
+
+        if (ialloy == 1 || msmeamflag) {
           rhoa1j *= t1mj;
           rhoa2j *= t2mj;
           rhoa3j *= t3mj;
@@ -270,6 +308,38 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           arg1j1 = arg1j1 - d_arho1(j, n) * delij[n];
           arg3i3 = arg3i3 + d_arho3b(i, n) * delij[n];
           arg3j3 = arg3j3 - d_arho3b(j, n) * delij[n];
+        }
+
+        // msmeam arhom args
+        nv2 = 0.0;
+        nv3 = 0.0;
+        arg1i1m = 0.0;
+        arg1j1m = 0.0;
+        arg1i2m = 0.0;
+        arg1j2m = 0.0;
+        arg1i3m = 0.0;
+        arg1j3m = 0.0;
+        arg3i3m = 0.0;
+        arg3j3m = 0.0;
+        if (msmeamflag) {
+          for (n = 0; n < 3; n++) {
+            for (p = n; p < 3; p++) {
+              for (q = p; q < 3; q++) {
+                arg = delij[n] * delij[p] * delij[q] * v3D[nv3];
+                arg1i3m = arg1i3m - d_arho3m(i, nv3) * arg;
+                arg1j3m = arg1j3m + d_arho3m(j, nv3) * arg;
+                nv3 = nv3 + 1;
+              }
+              arg = delij[n] * delij[p] * v2D[nv2];
+              arg1i2m = arg1i2m + d_arho2m(i, nv2) * arg;
+              arg1j2m = arg1j2m + d_arho2m(j, nv2) * arg;
+              nv2 = nv2 + 1;
+            }
+            arg1i1m = arg1i1m - d_arho1m(i, n) * delij[n];
+            arg1j1m = arg1j1m + d_arho1m(j, n) * delij[n];
+            arg3i3m = arg3i3m - d_arho3mb(i, n) * delij[n];
+            arg3j3m = arg3j3m + d_arho3mb(j, n) * delij[n];
+          }
         }
 
         // rho0 terms
@@ -330,75 +400,183 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           drho3drm2[m] = (-a3 * drho3drm2[m] + a3a * d_arho3b(j, m)) * rhoa3i;
         }
 
+        if (msmeamflag) {
+          //     rho1m terms
+          a1 = 2 * sij / rij;
+          drho1mdr1 = a1 * (drhoa1mj - rhoa1mj / rij) * arg1i1m;
+          drho1mdr2 = a1 * (drhoa1mi - rhoa1mi / rij) * arg1j1m;
+          drho1mdr1 *= -1.0;
+          drho1mdr2 *= -1.0;
+          a1 = 2.0 * sij / rij;
+          for (m = 0; m < 3; m++) {
+            drho1mdrm1[m] = a1 * rhoa1mj * d_arho1m(i, m);
+            drho1mdrm2[m] = -a1 * rhoa1mi * d_arho1m(j, m);
+          }
+
+          //     rho2m terms
+          a2 = 2 * sij / rij2;
+          drho2mdr1 = a2 * (drhoa2mj - 2 * rhoa2mj / rij) * arg1i2m - 2.0 / 3.0 * d_arho2mb[i] * drhoa2mj * sij;
+          drho2mdr2 = a2 * (drhoa2mi - 2 * rhoa2mi / rij) * arg1j2m - 2.0 / 3.0 * d_arho2mb[j] * drhoa2mi * sij;
+          a2 = 4 * sij / rij2;
+          for (m = 0; m < 3; m++) {
+            drho2mdrm1[m] = 0.0;
+            drho2mdrm2[m] = 0.0;
+            for (n = 0; n < 3; n++) {
+              drho2mdrm1[m] = drho2mdrm1[m] + d_arho2m(i, vind2D[m][n]) * delij[n];
+              drho2mdrm2[m] = drho2mdrm2[m] - d_arho2m(j, vind2D[m][n]) * delij[n];
+            }
+            drho2mdrm1[m] = a2 * rhoa2mj * drho2mdrm1[m];
+            drho2mdrm2[m] = -a2 * rhoa2mi * drho2mdrm2[m];
+          }
+
+          //     rho3m terms
+          rij3 = rij * rij2;
+          a3 = 2 * sij / rij3;
+          a3a = 6.0 / 5.0 * sij / rij;
+          drho3mdr1 = a3 * (drhoa3mj - 3 * rhoa3mj / rij) * arg1i3m - a3a * (drhoa3mj - rhoa3mj / rij) * arg3i3m;
+          drho3mdr2 = a3 * (drhoa3mi - 3 * rhoa3mi / rij) * arg1j3m - a3a * (drhoa3mi - rhoa3mi / rij) * arg3j3m;
+          drho3mdr1 *= -1.0;
+          drho3mdr2 *= -1.0;
+
+          a3 = 6 * sij / rij3;
+          a3a = 6 * sij / (5 * rij);
+          for (m = 0; m < 3; m++) {
+            drho3mdrm1[m] = 0.0;
+            drho3mdrm2[m] = 0.0;
+            nv2 = 0;
+            for (n = 0; n < 3; n++) {
+              for (p = n; p < 3; p++) {
+                arg = delij[n] * delij[p] * v2D[nv2];
+                drho3mdrm1[m] = drho3mdrm1[m] + d_arho3m(i, vind3D[m][n][p]) * arg;
+                drho3mdrm2[m] = drho3mdrm2[m] + d_arho3m(j, vind3D[m][n][p]) * arg;
+                nv2 = nv2 + 1;
+              }
+            }
+            drho3mdrm1[m] = (a3 * drho3mdrm1[m] - a3a * d_arho3mb(i, m)) * rhoa3mj;
+            drho3mdrm2[m] = (-a3 * drho3mdrm2[m] + a3a * d_arho3mb(j, m)) * rhoa3mi;
+          }
+        } else {
+          for (m = 0; m < 3; m++) {
+            drho1mdrm1[m] = 0.0;
+            drho1mdrm2[m] = 0.0;
+            drho2mdrm1[m] = 0.0;
+            drho2mdrm2[m] = 0.0;
+            drho3mdrm1[m] = 0.0;
+            drho3mdrm2[m] = 0.0;
+          }
+        }
+
         // Compute derivatives of weighting functions t wrt rij
-        t1i = d_t_ave(i, 0);
-        t2i = d_t_ave(i, 1);
-        t3i = d_t_ave(i, 2);
-        t1j = d_t_ave(j, 0);
-        t2j = d_t_ave(j, 1);
-        t3j = d_t_ave(j, 2);
+        // Weighting functions t set to unity for msmeam
 
-        if (ialloy == 1) {
-
-          a1i = fdiv_zero_kk(drhoa0j * sij, d_tsq_ave(i, 0));
-          a1j = fdiv_zero_kk(drhoa0i * sij, d_tsq_ave(j, 0));
-          a2i = fdiv_zero_kk(drhoa0j * sij, d_tsq_ave(i, 1));
-          a2j = fdiv_zero_kk(drhoa0i * sij, d_tsq_ave(j, 1));
-          a3i = fdiv_zero_kk(drhoa0j * sij, d_tsq_ave(i, 2));
-          a3j = fdiv_zero_kk(drhoa0i * sij, d_tsq_ave(j, 2));
-
-          dt1dr1 = a1i * (t1mj - t1i * MathSpecialKokkos::square(t1mj));
-          dt1dr2 = a1j * (t1mi - t1j * MathSpecialKokkos::square(t1mi));
-          dt2dr1 = a2i * (t2mj - t2i * MathSpecialKokkos::square(t2mj));
-          dt2dr2 = a2j * (t2mi - t2j * MathSpecialKokkos::square(t2mi));
-          dt3dr1 = a3i * (t3mj - t3i * MathSpecialKokkos::square(t3mj));
-          dt3dr2 = a3j * (t3mi - t3j * MathSpecialKokkos::square(t3mi));
-
-        } else if (ialloy == 2) {
-
+        if (msmeamflag) {
+          t1i = 1.0;
+          t2i = 1.0;
+          t3i = 1.0;
+          t1j = 1.0;
+          t2j = 1.0;
+          t3j = 1.0;
           dt1dr1 = 0.0;
           dt1dr2 = 0.0;
           dt2dr1 = 0.0;
           dt2dr2 = 0.0;
           dt3dr1 = 0.0;
           dt3dr2 = 0.0;
-
         } else {
 
-          ai = 0.0;
-          if (!iszero_kk(d_rho0[i])) ai = drhoa0j * sij / d_rho0[i];
-          aj = 0.0;
-          if (!iszero_kk(d_rho0[j])) aj = drhoa0i * sij / d_rho0[j];
+          t1i = d_t_ave(i, 0);
+          t2i = d_t_ave(i, 1);
+          t3i = d_t_ave(i, 2);
+          t1j = d_t_ave(j, 0);
+          t2j = d_t_ave(j, 1);
+          t3j = d_t_ave(j, 2);
 
-          dt1dr1 = ai * (t1mj - t1i);
-          dt1dr2 = aj * (t1mi - t1j);
-          dt2dr1 = ai * (t2mj - t2i);
-          dt2dr2 = aj * (t2mi - t2j);
-          dt3dr1 = ai * (t3mj - t3i);
-          dt3dr2 = aj * (t3mi - t3j);
+          if (ialloy == 1) {
+
+            a1i = fdiv_zero_kk(drhoa0j * sij, d_tsq_ave(i, 0));
+            a1j = fdiv_zero_kk(drhoa0i * sij, d_tsq_ave(j, 0));
+            a2i = fdiv_zero_kk(drhoa0j * sij, d_tsq_ave(i, 1));
+            a2j = fdiv_zero_kk(drhoa0i * sij, d_tsq_ave(j, 1));
+            a3i = fdiv_zero_kk(drhoa0j * sij, d_tsq_ave(i, 2));
+            a3j = fdiv_zero_kk(drhoa0i * sij, d_tsq_ave(j, 2));
+
+            dt1dr1 = a1i * (t1mj - t1i * MathSpecialKokkos::square(t1mj));
+            dt1dr2 = a1j * (t1mi - t1j * MathSpecialKokkos::square(t1mi));
+            dt2dr1 = a2i * (t2mj - t2i * MathSpecialKokkos::square(t2mj));
+            dt2dr2 = a2j * (t2mi - t2j * MathSpecialKokkos::square(t2mi));
+            dt3dr1 = a3i * (t3mj - t3i * MathSpecialKokkos::square(t3mj));
+            dt3dr2 = a3j * (t3mi - t3j * MathSpecialKokkos::square(t3mi));
+
+          } else if (ialloy == 2) {
+
+            dt1dr1 = 0.0;
+            dt1dr2 = 0.0;
+            dt2dr1 = 0.0;
+            dt2dr2 = 0.0;
+            dt3dr1 = 0.0;
+            dt3dr2 = 0.0;
+
+          } else {
+
+            ai = 0.0;
+            if (!iszero_kk(d_rho0[i])) ai = drhoa0j * sij / d_rho0[i];
+            aj = 0.0;
+            if (!iszero_kk(d_rho0[j])) aj = drhoa0i * sij / d_rho0[j];
+
+            dt1dr1 = ai * (t1mj - t1i);
+            dt1dr2 = aj * (t1mi - t1j);
+            dt2dr1 = ai * (t2mj - t2i);
+            dt2dr2 = aj * (t2mi - t2j);
+            dt3dr1 = ai * (t3mj - t3i);
+            dt3dr2 = aj * (t3mi - t3j);
+          }
         }
 
         // Compute derivatives of total density wrt rij, sij and rij(3)
         get_shpfcn(lattce_meam[elti][elti], stheta_meam[elti][elti], ctheta_meam[elti][elti], shpi);
         get_shpfcn(lattce_meam[eltj][eltj], stheta_meam[elti][elti], ctheta_meam[elti][elti], shpj);
 
-        drhodr1 = d_dgamma1[i] * drho0dr1 +
-            d_dgamma2[i] *
-                (dt1dr1 * d_rho1[i] + t1i * drho1dr1 + dt2dr1 * d_rho2[i] + t2i * drho2dr1 +
-                 dt3dr1 * d_rho3[i] + t3i * drho3dr1) -
-            d_dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
-        drhodr2 = d_dgamma1[j] * drho0dr2 +
-            d_dgamma2[j] *
-                (dt1dr2 * d_rho1[j] + t1j * drho1dr2 + dt2dr2 * d_rho2[j] + t2j * drho2dr2 +
-                 dt3dr2 * d_rho3[j] + t3j * drho3dr2) -
-            d_dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
-        for (m = 0; m < 3; m++) {
-          drhodrm1[m] = 0.0;
-          drhodrm2[m] = 0.0;
-          drhodrm1[m] =
-              d_dgamma2[i] * (t1i * drho1drm1[m] + t2i * drho2drm1[m] + t3i * drho3drm1[m]);
-          drhodrm2[m] =
-              d_dgamma2[j] * (t1j * drho1drm2[m] + t2j * drho2drm2[m] + t3j * drho3drm2[m]);
+
+        if (msmeamflag) {
+          drhodr1 = d_dgamma1[i] * drho0dr1 +
+                    d_dgamma2[i] * (dt1dr1 * d_rho1[i] + t1i * (drho1dr1 - drho1mdr1) +
+                                    dt2dr1 * d_rho2[i] + t2i * (drho2dr1 - drho2mdr1) +
+                                    dt3dr1 * d_rho3[i] + t3i * (drho3dr1 - drho3mdr1)) -
+                    d_dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
+          drhodr2 = d_dgamma1[j] * drho0dr2 +
+                    d_dgamma2[j] * (dt1dr2 * d_rho1[j] + t1j * (drho1dr2 - drho1mdr2) +
+                                    dt2dr2 * d_rho2[j] + t2j * (drho2dr2 - drho2mdr2) +
+                                    dt3dr2 * d_rho3[j] + t3j * (drho3dr2 - drho3mdr2)) -
+                    d_dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
+          for (m = 0; m < 3; m++) {
+            drhodrm1[m] = 0.0;
+            drhodrm2[m] = 0.0;
+            drhodrm1[m] = d_dgamma2[i] * (t1i * (drho1drm1[m] - drho1mdrm1[m]) +
+                                          t2i * (drho2drm1[m] - drho2mdrm1[m]) +
+                                          t3i * (drho3drm1[m] - drho3mdrm1[m]) );
+            drhodrm2[m] = d_dgamma2[j] * (t1j * (drho1drm2[m] - drho1mdrm2[m]) +
+                                          t2j * (drho2drm2[m] - drho2mdrm2[m]) +
+                                          t3j * (drho3drm2[m] - drho3mdrm2[m]) );
+          }
+        } else {
+          drhodr1 = d_dgamma1[i] * drho0dr1 +
+              d_dgamma2[i] *
+                  (dt1dr1 * d_rho1[i] + t1i * drho1dr1 + dt2dr1 * d_rho2[i] + t2i * drho2dr1 +
+                   dt3dr1 * d_rho3[i] + t3i * drho3dr1) -
+              d_dgamma3[i] * (shpi[0] * dt1dr1 + shpi[1] * dt2dr1 + shpi[2] * dt3dr1);
+          drhodr2 = d_dgamma1[j] * drho0dr2 +
+              d_dgamma2[j] *
+                  (dt1dr2 * d_rho1[j] + t1j * drho1dr2 + dt2dr2 * d_rho2[j] + t2j * drho2dr2 +
+                   dt3dr2 * d_rho3[j] + t3j * drho3dr2) -
+              d_dgamma3[j] * (shpj[0] * dt1dr2 + shpj[1] * dt2dr2 + shpj[2] * dt3dr2);
+          for (m = 0; m < 3; m++) {
+            drhodrm1[m] = 0.0;
+            drhodrm2[m] = 0.0;
+            drhodrm1[m] =
+                d_dgamma2[i] * (t1i * drho1drm1[m] + t2i * drho2drm1[m] + t3i * drho3drm1[m]);
+            drhodrm2[m] =
+                d_dgamma2[j] * (t1j * drho1drm2[m] + t2j * drho2drm2[m] + t3j * drho3drm2[m]);
+          }
         }
 
         // Compute derivatives wrt sij, but only if necessary
@@ -415,6 +593,24 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           a3a = 6.0 / (5.0 * rij);
           drho3ds1 = a3 * rhoa3j * arg1i3 - a3a * rhoa3j * arg3i3;
           drho3ds2 = a3 * rhoa3i * arg1j3 - a3a * rhoa3i * arg3j3;
+
+          if (msmeamflag) {
+            drho1mds1 = a1 * rhoa1mj * arg1i1m;
+            drho1mds2 = a1 * rhoa1mi * arg1j1m;
+            drho2mds1 = a2 * rhoa2mj * arg1i2m - 2.0 / 3.0 * d_arho2mb[i] * rhoa2mj;
+            drho2mds2 = a2 * rhoa2mi * arg1j2m - 2.0 / 3.0 * d_arho2mb[j] * rhoa2mi;
+            drho3mds1 = a3 * rhoa3mj * arg1i3m - a3a * rhoa3mj * arg3i3m;
+            drho3mds2 = a3 * rhoa3mi * arg1j3m - a3a * rhoa3mi * arg3j3m;
+            drho3mds1 *= -1;
+            drho3mds2 *= -1;
+          } else {
+            drho1mds1 = 0.0;
+            drho1mds2 = 0.0;
+            drho2mds1 = 0.0;
+            drho2mds2 = 0.0;
+            drho3mds1 = 0.0;
+            drho3mds2 = 0.0;
+          }
 
           if (ialloy == 1) {
             a1i = fdiv_zero_kk(rhoa0j, d_tsq_ave(i, 0));
@@ -455,19 +651,33 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             dt3ds2 = aj * (t3mi - t3j);
           }
 
-          drhods1 = d_dgamma1[i] * drho0ds1 +
-              d_dgamma2[i] *
-                  (dt1ds1 * d_rho1[i] + t1i * drho1ds1 + dt2ds1 * d_rho2[i] + t2i * drho2ds1 +
-                   dt3ds1 * d_rho3[i] + t3i * drho3ds1) -
+          if (msmeamflag) {
+            drhods1 = d_dgamma1[i] * drho0ds1 +
+              d_dgamma2[i] * (dt1ds1 * d_rho1[i] + t1i * (drho1ds1 - drho1mds1) +
+                              dt2ds1 * d_rho2[i] + t2i * (drho2ds1 - drho2mds1) +
+                              dt3ds1 * d_rho3[i] + t3i * (drho3ds1 - drho3mds1)) -
               d_dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
-          drhods2 = d_dgamma1[j] * drho0ds2 +
-              d_dgamma2[j] *
-                  (dt1ds2 * d_rho1[j] + t1j * drho1ds2 + dt2ds2 * d_rho2[j] + t2j * drho2ds2 +
-                   dt3ds2 * d_rho3[j] + t3j * drho3ds2) -
+            drhods2 = d_dgamma1[j] * drho0ds2 +
+              d_dgamma2[j] * (dt1ds2 * d_rho1[j] + t1j * (drho1ds2 - drho1mds2) +
+                              dt2ds2 * d_rho2[j] + t2j * (drho2ds2 - drho2mds2) +
+                              dt3ds2 * d_rho3[j] + t3j * (drho3ds2 - drho3mds2)) -
               d_dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
+          } else {
+            drhods1 = d_dgamma1[i] * drho0ds1 +
+                d_dgamma2[i] *
+                    (dt1ds1 * d_rho1[i] + t1i * drho1ds1 + dt2ds1 * d_rho2[i] + t2i * drho2ds1 +
+                     dt3ds1 * d_rho3[i] + t3i * drho3ds1) -
+                d_dgamma3[i] * (shpi[0] * dt1ds1 + shpi[1] * dt2ds1 + shpi[2] * dt3ds1);
+            drhods2 = d_dgamma1[j] * drho0ds2 +
+                d_dgamma2[j] *
+                    (dt1ds2 * d_rho1[j] + t1j * drho1ds2 + dt2ds2 * d_rho2[j] + t2j * drho2ds2 +
+                     dt3ds2 * d_rho3[j] + t3j * drho3ds2) -
+                d_dgamma3[j] * (shpj[0] * dt1ds2 + shpj[1] * dt2ds2 + shpj[2] * dt3ds2);
+          }
         }
 
         // Compute derivatives of energy wrt rij, sij and rij[3]
+
         dUdrij = phip * sij + d_frhop[i] * drhodr1 + d_frhop[j] * drhodr2;
         dUdsij = 0.0;
         if (!iszero_kk(d_dscrfcn[fnoffset + jn])) {

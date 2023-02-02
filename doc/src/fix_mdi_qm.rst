@@ -130,7 +130,7 @@ typically specified via the create_box command or in the data file
 read by the read_data command.
 
 If this keyword is specified, then this fix will send the MDI
-">ELEMENTS" command to the engine, to insure the two codes are
+">ELEMENTS" command to the engine, to ensure the two codes are
 consistent in their definition of atomic species.  If this keyword is
 not specified, then this fix will send the MDI >TYPES command to the
 engine.  This is fine if both the LAMMPS driver and the MDI engine are

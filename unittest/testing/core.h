@@ -54,7 +54,7 @@ extern bool verbose;
 
 class LAMMPSTest : public ::testing::Test {
 public:
-    void command(const std::string &line) { lmp->input->one(line.c_str()); }
+    void command(const std::string &line) { lmp->input->one(line); }
 
     void BEGIN_HIDE_OUTPUT()
     {

@@ -192,7 +192,7 @@ int FixPair::setmask()
 
 void FixPair::init()
 {
-  // insure pair style still exists
+  // ensure pair style still exists
 
   query_pstyle(lmp);
   if (pstyle == nullptr) error->all(FLERR,"Pair style {} for fix pair not found", pairname);

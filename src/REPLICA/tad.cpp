@@ -510,7 +510,7 @@ void TAD::log_event(int ievent)
 
   // dump snapshot of quenched coords
   // must reneighbor and compute forces before dumping
-  // addstep_compute_all insures eng/virial are calculated if needed
+  // addstep_compute_all ensures eng/virial are calculated if needed
 
   if (output->ndump && universe->iworld == 0) {
     timer->barrier_start();

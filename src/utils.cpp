@@ -1360,11 +1360,8 @@ bool utils::is_double(const std::string &str)
 {
   if (str.empty()) return false;
 
-  if (strmatch(str, "^[+-]?\\d+\\.?\\d*$") || strmatch(str, "^[+-]?\\d+\\.?\\d*[eE][+-]?\\d+$") ||
-      strmatch(str, "^[+-]?\\d*\\.?\\d+$") || strmatch(str, "^[+-]?\\d*\\.?\\d+[eE][+-]?\\d+$"))
-    return true;
-  else
-    return false;
+  return strmatch(str, "^[+-]?\\d+\\.?\\d*$") || strmatch(str, "^[+-]?\\d+\\.?\\d*[eE][+-]?\\d+$") ||
+      strmatch(str, "^[+-]?\\d*\\.?\\d+$") || strmatch(str, "^[+-]?\\d*\\.?\\d+[eE][+-]?\\d+$");
 }
 
 /* ----------------------------------------------------------------------
@@ -1651,7 +1648,7 @@ int utils::binary_search(const double needle, const int n, const double *haystac
   if (needle < haystack[lo]) return lo;
   if (needle >= haystack[hi]) return hi;
 
-  // insure haystack[lo] <= needle < haystack[hi] at every iteration
+  // ensure haystack[lo] <= needle < haystack[hi] at every iteration
   // done when lo,hi are adjacent
 
   int index = (lo + hi) / 2;

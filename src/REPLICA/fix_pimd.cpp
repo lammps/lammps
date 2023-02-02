@@ -74,6 +74,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nhc_temp = 298.15;
   nhc_nchain = 2;
   sp = 1.0;
+  np = universe->nworlds;
 
   for (int i = 3; i < narg - 1; i += 2) {
     if (strcmp(arg[i], "method") == 0) {
@@ -84,14 +85,15 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else if (strcmp(arg[i + 1], "cmd") == 0)
         method = CMD;
       else
-        error->universe_all(FLERR, "Unknown method parameter for fix pimd");
+        error->universe_all(FLERR, fmt::format("Unknown method parameter {} for fix pimd",
+                                               arg[i + 1]));
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (fmass < 0.0 || fmass > 1.0)
-        error->universe_all(FLERR, "Invalid fmass value for fix pimd");
+      if ((fmass < 0.0) || (fmass > np))
+        error->universe_all(FLERR, fmt::format("Invalid fmass value {} for fix pimd", fmass));
     } else if (strcmp(arg[i], "sp") == 0) {
       sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (fmass < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd");
+      if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd");
     } else if (strcmp(arg[i], "temp") == 0) {
       nhc_temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (nhc_temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd");
@@ -120,7 +122,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   global_freq = 1;
   vector_flag = 1;
-  size_vector = 2;
+  size_vector = 3;
   extvector = 1;
   comm_forward = 3;
 
@@ -135,6 +137,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 }
 
 /* ---------------------------------------------------------------------- */
+
 FixPIMD::~FixPIMD()
 {
   delete[] mass;
@@ -166,6 +169,7 @@ FixPIMD::~FixPIMD()
 }
 
 /* ---------------------------------------------------------------------- */
+
 int FixPIMD::setmask()
 {
   int mask = 0;
@@ -187,7 +191,6 @@ void FixPIMD::init()
 
   // prepare the constants
 
-  np = universe->nworlds;
   inverse_np = 1.0 / np;
 
   /* The first solution for the force constant, using SI units
@@ -215,7 +218,7 @@ void FixPIMD::init()
   double beta = 1.0 / (Boltzmann * nhc_temp);
   double _fbond = 1.0 * np / (beta * beta * hbar * hbar);
 
-  omega_np = sqrt(np) / (hbar * beta) * sqrt(force->mvv2e);
+  omega_np = sqrt((double) np) / (hbar * beta) * sqrt(force->mvv2e);
   fbond = -_fbond * force->mvv2e;
 
   if (universe->me == 0)
@@ -306,7 +309,7 @@ void FixPIMD::nhc_init()
       nhc_eta_dotdot[i][ichain] = 0.0;
       nhc_eta_mass[i][ichain] = mass0;
       if ((method == CMD || method == NMPIMD) && universe->iworld == 0)
-        ;
+        ; // do nothing
       else
         nhc_eta_mass[i][ichain] *= fmass;
     }
@@ -538,6 +541,8 @@ void FixPIMD::spring_force()
   double *xlast = buf_beads[x_last];
   double *xnext = buf_beads[x_next];
 
+  virial = 0.0;
+
   for (int i = 0; i < nlocal; i++) {
     double delx1 = xlast[0] - x[i][0];
     double dely1 = xlast[1] - x[i][1];
@@ -557,11 +562,13 @@ void FixPIMD::spring_force()
     double dy = dely1 + dely2;
     double dz = delz1 + delz2;
 
+    virial += -0.5 * (x[i][0] * f[i][0] + x[i][1] * f[i][1] + x[i][2] * f[i][2]);
+
     f[i][0] -= (dx) *ff;
     f[i][1] -= (dy) *ff;
     f[i][2] -= (dz) *ff;
 
-    spring_energy += (dx * dx + dy * dy + dz * dz);
+    spring_energy += -0.5 * ff * (delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
   }
 }
 
@@ -875,5 +882,6 @@ double FixPIMD::compute_vector(int n)
 {
   if (n == 0) { return spring_energy; }
   if (n == 1) { return t_sys; }
+  if (n == 2) { return virial; }
   return 0.0;
 }

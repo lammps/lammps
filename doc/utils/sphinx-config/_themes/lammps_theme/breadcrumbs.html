@@ -22,9 +22,9 @@
 <div role="navigation" aria-label="{{ _('Page navigation') }}">
   <ul class="wy-breadcrumbs">
     {%- block breadcrumbs %}
-      <li><a href="{{ pathto(master_doc) }}" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="{{ pathto(master_doc) }}" class="icon icon-home"></a></li>
         {%- for doc in parents %}
-          <li class="breadcrumb-item"><a href="{{ doc.link|e }}">{{ doc.title }}</a> &raquo;</li>
+          <li class="breadcrumb-item"><a href="{{ doc.link|e }}">{{ doc.title }}</a></li>
         {%- endfor %}
       <li class="breadcrumb-item active">{{ title }}</li>
     {%- endblock %}
@@ -57,8 +57,7 @@
           {%- elif show_source and has_source and sourcename %}
             <a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow"> {{ _('View page source') }}</a>
           {%- endif %}
-          <a href="https://www.lammps.org">Website</a>
-          <a href="Commands_all.html">Commands</a>
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
         {%- endif %}
       </li>
     {%- endblock %}

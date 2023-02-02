@@ -29,7 +29,6 @@ class MLIAPDescriptorSO3Kokkos :
     public MLIAPDescriptorKokkos<DeviceType> {
  public:
   MLIAPDescriptorSO3Kokkos(LAMMPS *, char *);
-  ~MLIAPDescriptorSO3Kokkos() override;
 
   void compute_descriptors(class MLIAPData *) override;
   void compute_forces(class MLIAPData *) override;

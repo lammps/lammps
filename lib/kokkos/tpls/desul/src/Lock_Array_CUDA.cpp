@@ -70,7 +70,7 @@ void init_lock_arrays_cuda() {
                              "init_lock_arrays_cuda: cudaMalloc host locks");
 
   auto error_sync1 = cudaDeviceSynchronize();
-  copy_cuda_lock_arrays_to_device();
+  DESUL_IMPL_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE();
   check_error_and_throw_cuda(error_sync1, "init_lock_arrays_cuda: post mallocs");
   init_lock_arrays_cuda_kernel<<<(CUDA_SPACE_ATOMIC_MASK + 1 + 255) / 256, 256>>>();
   auto error_sync2 = cudaDeviceSynchronize();
@@ -85,7 +85,7 @@ void finalize_lock_arrays_cuda() {
   CUDA_SPACE_ATOMIC_LOCKS_DEVICE_h = nullptr;
   CUDA_SPACE_ATOMIC_LOCKS_NODE_h = nullptr;
 #ifdef __CUDACC_RDC__
-  copy_cuda_lock_arrays_to_device();
+  DESUL_IMPL_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE();
 #endif
 }
 

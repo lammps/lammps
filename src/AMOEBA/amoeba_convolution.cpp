@@ -22,6 +22,7 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "remap_wrap.h"
+#include "timer.h"
 
 #include <cmath>
 #include <cstring>
@@ -326,14 +327,22 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_3d()
     cfft[n++] = ZEROF;
   }
 
+  double time0,time1;
+
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
+  time1 = platform::walltime();
 
   if (SCALE) {
-    double scale = 1.0/nfft_global;
+    FFT_SCALAR scale = 1.0/nfft_global;
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT1,"PRE Convo / POST FFT");
@@ -382,14 +391,23 @@ FFT_SCALAR *AmoebaConvolution::pre_convolution_4d()
   debug_scalar(FFT,"PRE Convo / POST Remap");
   debug_file(FFT,"pre.convo.post.remap");
 #endif
+
+  double time0,time1;
+
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   // perform forward FFT
 
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
+  time1 = platform::walltime();
 
   if (SCALE) {
-    double scale = 1.0/nfft_global;
+    FFT_SCALAR scale = 1.0/nfft_global;
     for (int i = 0; i < 2*nfft_owned; i++) cfft[i] *= scale;
   }
+
+  time_fft += time1  - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT1,"PRE Convo / POST FFT");
@@ -423,7 +441,16 @@ void *AmoebaConvolution::post_convolution_3d()
   debug_scalar(CFFT1,"POST Convo / PRE FFT");
   debug_file(CFFT1,"post.convo.pre.fft");
 #endif
+
+  double time0,time1;
+
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
+  time1 = platform::walltime();
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT2,"POST Convo / POST FFT");
@@ -465,7 +492,17 @@ void *AmoebaConvolution::post_convolution_4d()
   debug_scalar(CFFT1,"POST Convo / PRE FFT");
   debug_file(CFFT1,"post.convo.pre.fft");
 #endif
+
+  double time0,time1;
+
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   fft2->compute(cfft,cfft,FFT3d::BACKWARD);
+
+  time1 = platform::walltime();
+
+  time_fft += time1 - time0;
 
 #if DEBUG_AMOEBA
   debug_scalar(CFFT2,"POST Convo / POST FFT");

@@ -186,7 +186,7 @@ void ComputeGrid::set_grid_local()
   // ixyz lo/hi = inclusive lo/hi bounds of global grid sub-brick I own
   // if proc owns no grid cells in a dim, then ilo > ihi
   // if 2 procs share a boundary a grid point is exactly on,
-  //   the 2 equality if tests insure a consistent decision
+  //   the 2 equality if tests ensure a consistent decision
   //   as to which proc owns it
 
   double xfraclo, xfrachi, yfraclo, yfrachi, zfraclo, zfrachi;

@@ -546,7 +546,7 @@ flipping the box when it is exceeded.  If the *flip* value is set to
 you apply large deformations, this means the box shape can tilt
 dramatically LAMMPS will run less efficiently, due to the large volume
 of communication needed to acquire ghost atoms around a processor's
-irregular-shaped sub-domain.  For extreme values of tilt, LAMMPS may
+irregular-shaped subdomain.  For extreme values of tilt, LAMMPS may
 also lose atoms and generate an error.
 
 The *units* keyword determines the meaning of the distance units used

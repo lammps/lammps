@@ -93,7 +93,7 @@ PairReaxFFOMP::~PairReaxFFOMP()
   if (setup_flag) {
     reax_list * bonds = api->lists+BONDS;
     for (int i=0; i<bonds->num_intrs; ++i)
-      sfree(error, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
+      sfree(bonds->select.bond_list[i].bo_data.CdboReduction);
   }
   memory->destroy(num_nbrs_offset);
 }

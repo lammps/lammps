@@ -52,7 +52,6 @@ class KokkosLMP {
   int kokkos_exists;
   int nthreads;
   int ngpus;
-  int numa;
 
   KokkosLMP(class LAMMPS *, int, char **) { kokkos_exists = 0; }
   ~KokkosLMP() {}

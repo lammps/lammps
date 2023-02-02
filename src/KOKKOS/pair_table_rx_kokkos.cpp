@@ -1069,7 +1069,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   else tb->cut = tb->rfile[tb->ninput-1];
 
   // error check on table parameters
-  // insure cutoff is within table
+  // ensure cutoff is within table
   // for BITMAP tables, file values can be in non-ascending order
 
   if (tb->ninput <= 1) error->one(FLERR,"Invalid pair table length");

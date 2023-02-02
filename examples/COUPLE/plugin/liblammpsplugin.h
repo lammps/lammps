@@ -169,7 +169,7 @@ struct _liblammpsplugin {
   void (*scatter_subset)(void *, const char *, int, int, int, int *, void *);
 
 /* lammps_create_atoms() takes tagint and imageint as args
- * the ifdef insures they are compatible with rest of LAMMPS
+ * the ifdef ensures they are compatible with rest of LAMMPS
  * caller must match to how LAMMPS library is built */
 
 #ifndef LAMMPS_BIGBIG

@@ -105,7 +105,7 @@ atom as function of its position.  Like variables used for *ex*,
 is the variable name.
 
 Note that when the *energy* keyword is used during an energy
-minimization, you must insure that the formula defined for the
+minimization, you must ensure that the formula defined for the
 atom-style :doc:`variable <variable>` is consistent with the force
 variable formulas, i.e. that -Grad(E) = F.  For example, if the force
 due to the electric field were a spring-like F = kx, then the energy

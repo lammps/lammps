@@ -91,7 +91,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   nthreads = 1;
 #ifdef _OPENMP
   if (lmp->kokkos) {
-    nthreads = lmp->kokkos->nthreads * lmp->kokkos->numa;
+    nthreads = lmp->kokkos->nthreads;
   } else if (getenv("OMP_NUM_THREADS") == nullptr) {
     nthreads = 1;
     if (me == 0)

@@ -79,7 +79,8 @@ CudaLockArrays g_host_cuda_lock_arrays = {nullptr, 0};
 void initialize_host_cuda_lock_arrays() {
 #ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
   desul::Impl::init_lock_arrays();
-  desul::ensure_cuda_lock_arrays_on_device();
+
+  DESUL_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE();
 #endif
   if (g_host_cuda_lock_arrays.atomic != nullptr) return;
   KOKKOS_IMPL_CUDA_SAFE_CALL(
@@ -88,7 +89,7 @@ void initialize_host_cuda_lock_arrays() {
   Impl::cuda_device_synchronize(
       "Kokkos::Impl::initialize_host_cuda_lock_arrays: Pre Init Lock Arrays");
   g_host_cuda_lock_arrays.n = Cuda::concurrency();
-  copy_cuda_lock_arrays_to_device();
+  KOKKOS_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE();
   init_lock_array_kernel_atomic<<<(CUDA_SPACE_ATOMIC_MASK + 1 + 255) / 256,
                                   256>>>();
   Impl::cuda_device_synchronize(
@@ -105,7 +106,7 @@ void finalize_host_cuda_lock_arrays() {
   g_host_cuda_lock_arrays.atomic = nullptr;
   g_host_cuda_lock_arrays.n      = 0;
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
-  copy_cuda_lock_arrays_to_device();
+  KOKKOS_COPY_CUDA_LOCK_ARRAYS_TO_DEVICE();
 #endif
 }
 

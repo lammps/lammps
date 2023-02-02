@@ -1189,7 +1189,7 @@ void CommKokkos::borders_device() {
     }
   }
 
-  // insure send/recv buffers are long enough for all forward & reverse comm
+  // ensure send/recv buffers are long enough for all forward & reverse comm
 
   int max = MAX(maxforward*smax,maxreverse*rmax);
   if (max > maxsend) grow_send_kokkos(max,0);

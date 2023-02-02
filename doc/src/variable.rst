@@ -1420,7 +1420,7 @@ follows.  Also note that the 0-timestep run must actually use and
 invoke the compute in question (e.g. via :doc:`thermo <thermo_style>` or
 :doc:`dump <dump>` output) in order for it to enable the compute to be
 used in a variable after the run.  Thus if you are trying to print a
-variable that uses a compute you have defined, you can insure it is
+variable that uses a compute you have defined, you can ensure it is
 invoked on the last timestep of the preceding run by including it in
 thermodynamic output.
 
@@ -1460,7 +1460,7 @@ alter the state of the system between runs, causing a variable to
 evaluate incorrectly.
 
 The solution to this issue is the same as for case (2) above, namely
-perform a 0-timestep run before the variable is evaluated to insure
+perform a 0-timestep run before the variable is evaluated to ensure
 the system is up-to-date.  For example, this sequence of commands
 would print a potential energy that reflected the changed pairwise
 coefficient:

@@ -167,7 +167,7 @@ void FixWallRegionEES::post_force(int /*vflag*/)
 
   int onflag = 0;
 
-  // region->match() insures particle is in region or on surface, else error
+  // region->match() ensures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
   // in COLLOID case, r <= radius is an error
 

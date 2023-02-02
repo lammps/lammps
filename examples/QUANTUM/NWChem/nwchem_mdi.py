@@ -552,10 +552,10 @@ def pwdft_load():
 
 def pwdft_initialize():
 
-  # box, qm_coords, mm_coords must be converted to Angstroms
+  # PWDFT input file:
+  # box, qm_coords must be converted to Angstroms
 
-  angstrom_to_bohr = mdi.MDI_Conversion_factor("angstrom","bohr")
-  bohr_to_angstrom = 1.0 / angstrom_to_bohr
+  bohr_to_angstrom = mdi.MDI_Conversion_factor("bohr","angstrom")
 
   box_A = box * bohr_to_angstrom
   qm_coords_A = qm_coords * bohr_to_angstrom

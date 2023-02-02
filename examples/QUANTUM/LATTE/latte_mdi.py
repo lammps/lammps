@@ -216,7 +216,7 @@ def execute_command(command,mdicomm,object_ptr):
     
   elif command == "<STRESS":
     evaluate()
-    ierr = mdi.MDI_Send(qm_stress,1,mdi.MDI_DOUBLE,mdicomm)
+    ierr = mdi.MDI_Send(qm_stress,9,mdi.MDI_DOUBLE,mdicomm)
     if ierr: error("MDI: <STRESS data")
 
   elif command == "<CHARGES":
@@ -444,31 +444,84 @@ def evaluate():
     if mode == QMMM and not flag_qm_potential:
       error("QM atom properties not fully specified")
 
-  # hardwire these unsupported flags for now
+  # LATTE inputs
+  # box, qm_coords must be converted to Angstroms
 
-  coulombflag = 0
-  neighflag = 0
-  pbcflag = 1      # NOTE: pass this in as latte_mdi.py command-line arg
-  thermo_virial = 1
-  eflag_atom = 1
-  vflag_global = 1
-  vflag_atom = 0
+  bohr_to_angstrom = mdi.MDI_Conversion_factor("bohr","angstrom")
+
+  box_A = box * bohr_to_angstrom
+  qm_coords_A = qm_coords * bohr_to_angstrom
+
+  # unsupported LATTE flags for now
+
+  #coulombflag = 0
+  #neighflag = 0
+
+  #pbcflag = 1      # NOTE: could pass this in as latte_mdi.py command-line arg
   
+  #thermo_virial = 1
+  #eflag_atom = 1
+  #vflag_global = 1
+  #vflag_atom = 0
+  
+  #flags_latte[0] = pbcflag;   # 1 for fully periodic, 0 for fully non-periodic
+  #flags_latte[1] = coulombflag;  # 1 for LAMMPS computes Coulombics, 0 for LATTE
+  #flags_latte[2] = eflag_atom;   # 1 to return per-atom energies, 0 for no
+  #flags_latte[3] = vflag_global and thermo_virial; # 1 to return global/per-atom
+  #flags_latte[4] = vflag_atom and thermo_virial;   #   virial, 0 for no
+  #flags_latte[5] = neighflag;    # 1 to pass neighbor list to LATTE, 0 for no
+
+  # hard-wired values for 8-water problem
+
+  qm_types = np.empty(qm_natoms,dtype=np.int32)
+  for i in range(0,qm_natoms,3): qm_types[i] = 1
+  for i in range(1,qm_natoms,3): qm_types[i] = 2
+  for i in range(2,qm_natoms,3): qm_types[i] = 2
+  
+  qm_mass = [15.995, 1.008]
+
+  # setup ctypes args for liblatte.latte() function
+
   flags_latte = 6*[0]
-  flags_latte[0] = pbcflag;   # 1 for fully periodic, 0 for fully non-periodic
-  flags_latte[1] = coulombflag;  # 1 for LAMMPS computes Coulombics, 0 for LATTE
-  flags_latte[2] = eflag_atom;   # 1 to return per-atom energies, 0 for no
-  flags_latte[3] = vflag_global and thermo_virial; # 1 to return global/per-atom
-  flags_latte[4] = vflag_atom and thermo_virial;   #   virial, 0 for no
-  flags_latte[5] = neighflag;    # 1 to pass neighbor list to LATTE, 0 for no
+  c_flags_latte = (c_int*6)(*flags_latte)
 
-  boxlo = [0.0,0.0,0.0]         # NOTE: does this matter for LATTE ?
-  boxhi = [box[0],box[4],box[8]]
-  xy = box[3]
-  xz = box[6]
-  yz = box[7]
+  c_qm_natoms = c_int(qm_natoms)
+
+  qm_ntypes = 2
+  c_qm_ntypes = c_int(qm_ntypes)
+
+  c_qm_mass = (c_double*qm_ntypes)(*qm_mass)
+  
+  boxlo = [0.0,0.0,0.0]
+  boxhi = [box_A[0],box_A[4],box_A[8]]
+  xy = box_A[3]
+  xz = box_A[6]
+  yz = box_A[7]
+
+  c_boxlo = (c_double*3)(*boxlo)
+  c_boxhi = (c_double*3)(*boxhi)
+  c_xy = c_double(xy)
+  c_xz = c_double(xz)
+  c_yz = c_double(yz)
+
   maxiter = -1
+  c_maxiter = c_int(maxiter)
+  
+  c_qm_pe = c_double(qm_pe)
+  
+  qm_velocity = np.empty((qm_natoms,3))
+  qm_velocity.fill(0.0)
 
+  timestep = 0.00025
+  c_timestep = c_double(timestep)
+
+  latte_stress = np.empty(6)
+  c_new_system = c_int(new_system)
+
+  latte_error = 0
+  c_latte_error = c_bool(latte_error)
+
+  
   # QMMM with QM and MM atoms
   # NOTE: need qm_velocity and timestep and mass and types ?
   # all of these are addresses of scalars for Fortran ?
@@ -479,43 +532,12 @@ def evaluate():
   # AIMD with only QM atoms
     
   elif mode == AIMD:
-
-    c_flags_latte = (c_int*6)(*flags_latte)
-    c_qm_natoms = c_int(qm_natoms)
-    qm_ntypes = 2
-    c_qm_ntypes = c_int(qm_ntypes)
-    c_xy = c_double(xy)
-    c_xz = c_double(xz)
-    c_yz = c_double(yz)
-    c_maxiter = c_int(maxiter)
-    c_qm_pe = c_double(qm_pe)
-    c_new_system = c_int(new_system)
-
-    qm_types = np.empty(qm_natoms,dtype=np.int32)
-    for i in range(0,qm_natoms,3): qm_types[i] = 1
-    for i in range(1,qm_natoms,3): qm_types[i] = 2
-    for i in range(2,qm_natoms,3): qm_types[i] = 2
-    qm_mass = [15.995, 1.008]
-    c_qm_mass = (c_double*qm_ntypes)(*qm_mass)
-
-    c_boxlo = (c_double*3)(*boxlo)
-    c_boxhi = (c_double*3)(*boxhi)
-    
-    qm_velocity = np.empty((qm_natoms,3))
-    qm_velocity.fill(0.0)
-
-    timestep = 0.00025
-    c_timestep = c_double(timestep)
-    
-    latte_error = 0
-    c_latte_error = c_bool(latte_error)
-
-    print("Calling LATTE ...")
+    #print("Calling LATTE ...")
     time1 = time.time()
 
     #print("flags_latte",c_flags_latte[0:6])
     #print("qm_natoms",c_qm_natoms.value)
-    print("qm_coords",qm_coords)  
+    #print("qm_coords",qm_coords_A)  
     #print("qm_types",qm_types)
     #print("qm_ntypes",c_qm_ntypes.value)
     #print("qm_mass",c_qm_mass[0:2])
@@ -529,20 +551,51 @@ def evaluate():
     #print("new_system",c_new_system.value)
  
     liblatte.\
-      latte(c_flags_latte,byref(c_qm_natoms),qm_coords,
+      latte(c_flags_latte,byref(c_qm_natoms),qm_coords_A,
             qm_types,byref(c_qm_ntypes),c_qm_mass,
-            c_boxlo,c_boxhi,byref(c_xy),byref(c_xz),byref(c_yz),qm_forces,
-            byref(c_maxiter),byref(c_qm_pe),
-            qm_velocity,byref(c_timestep),qm_stress,
+            c_boxlo,c_boxhi,byref(c_xy),byref(c_xz),byref(c_yz),
+            qm_forces,byref(c_maxiter),byref(c_qm_pe),
+            qm_velocity,byref(c_timestep),latte_stress,
             byref(c_new_system),byref(c_latte_error))
     # NOTE: check latte_error return?
     latte_error = c_latte_error.value
     qm_pe = c_qm_pe.value
+    latte_stress /= box_A[0]*box_A[4]*box_A[8]
 
+    #print("LATTE STRESS:",latte_stress)
+    
     time2 = time.time()
-    print("DONE LATTE",latte_error,time2-time1)
-    print("PE",qm_pe)
+    #print("DONE LATTE",latte_error,time2-time1)
+
+    # conversion of LATTE outputs
+    # qm_pe from eV to Hartrees
+    # qm_forces from eV/A to Hartrees/Bohr
+    # latte_stress from eV/A^3 to Hartrees/Bohr^3
+
+    # also need to divide stress by box volume to make it intensive
+    # NOTE: why box volume in Angs ?  b/c that is what LATTE did ?
+    # did this above
+    
+    ev_to_hartree = mdi.MDI_Conversion_factor("electron_volt","hartree")
+    angstrom_to_bohr = mdi.MDI_Conversion_factor("angstrom","bohr")
+    
+    qm_pe *= ev_to_hartree
+    qm_forces *= ev_to_hartree / angstrom_to_bohr
+    latte_stress *= ev_to_hartree / (angstrom_to_bohr*angstrom_to_bohr*angstrom_to_bohr)
+
+    qm_stress[0] = latte_stress[0]
+    qm_stress[4] = latte_stress[1]
+    qm_stress[8] = latte_stress[2]
+    qm_stress[1] = qm_stress[3] = latte_stress[3]
+    qm_stress[2] = qm_stress[6] = latte_stress[4]
+    qm_stress[5] = qm_stress[7] = latte_stress[5]
+
+    #print("CONVERT:",ev_to_hartree / (angstrom_to_bohr*angstrom_to_bohr*angstrom_to_bohr))
+    #print("QM STRESS:",qm_stress)
+
+    #print("PE",qm_pe)
     #print("FORCE",qm_forces)
+    #print("STRESS",qm_stress)
 
   # clear flags for all MDI commands for next QM evaluation
 

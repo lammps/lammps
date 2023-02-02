@@ -36,5 +36,5 @@ thermo_style    custom step temp pe etotal press
 
 # dynamics
 
-thermo          1
-run             10
+thermo          10
+run             100

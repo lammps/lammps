@@ -2,7 +2,7 @@
 lammps_version: 22 Dec 2022
 date_generated: Sun Jan  8 01:13:49 2023
 epsilon: 5e-10
-skip_tests:
+skip_tests: intel
 prerequisites: ! |
   atom full
   pair lepton

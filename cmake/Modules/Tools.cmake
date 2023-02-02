@@ -50,12 +50,16 @@ if(BUILD_LAMMPS_SHELL)
 
   add_executable(lammps-shell ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.cpp ${ICON_RC_FILE})
   target_include_directories(lammps-shell PRIVATE ${LAMMPS_TOOLS_DIR}/lammps-shell)
+  target_link_libraries(lammps-shell PRIVATE lammps PkgConfig::READLINE)
 
   # workaround for broken readline pkg-config file on FreeBSD
   if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     target_include_directories(lammps-shell PRIVATE /usr/local/include)
   endif()
-  target_link_libraries(lammps-shell PRIVATE lammps PkgConfig::READLINE)
+  if(CMAKE_SYSTEM_NAME STREQUAL "LinuxMUSL")
+    pkg_check_modules(TERMCAP IMPORTED_TARGET REQUIRED termcap)
+    target_link_libraries(lammps-shell PRIVATE lammps PkgConfig::TERMCAP)
+  endif()
   install(TARGETS lammps-shell EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(DIRECTORY ${LAMMPS_TOOLS_DIR}/lammps-shell/icons DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/)
   install(FILES ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/)

@@ -356,7 +356,7 @@ void PPPMDielectric::make_rho()
   // (mx,my,mz) = global coords of moving stencil pt
 
   double *q = atom->q_scaled;
-  if (use_qscaled == false) q = atom->q;
+  if (!use_qscaled) q = atom->q;
   double **x = atom->x;
   int nlocal = atom->nlocal;
 

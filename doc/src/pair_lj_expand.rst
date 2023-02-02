@@ -3,6 +3,7 @@
 .. index:: pair_style lj/expand/kk
 .. index:: pair_style lj/expand/omp
 .. index:: pair_style lj/expand/coul/long
+.. index:: pair_style lj/expand/coul/long/kk
 .. index:: pair_style lj/expand/coul/long/gpu
 
 pair_style lj/expand command

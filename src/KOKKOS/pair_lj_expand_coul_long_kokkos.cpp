@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -87,7 +87,6 @@ void PairLJExpandCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   ev_init(eflag,vflag,0);
 
-
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
@@ -139,7 +138,7 @@ void PairLJExpandCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       (this,(NeighListKokkos<DeviceType>*)list);
 
 
-  if (eflag) {
+  if (eflag_global) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
   }

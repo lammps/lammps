@@ -310,7 +310,7 @@ action pair_lj_cut_dipole_cut_kokkos.cpp pair_lj_cut_dipole_cut.cpp
 action pair_lj_cut_dipole_cut_kokkos.h pair_lj_cut_dipole_cut.h
 action pair_lj_cut_kokkos.cpp
 action pair_lj_cut_kokkos.h
-action pair_lj_expand_coul_long_kokkos.cpp pair_lj_expand_coul_long.cpp 
+action pair_lj_expand_coul_long_kokkos.cpp pair_lj_expand_coul_long.cpp
 action pair_lj_expand_coul_long_kokkos.h pair_lj_expand_coul_long.h
 action pair_lj_expand_kokkos.cpp
 action pair_lj_expand_kokkos.h

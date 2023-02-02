@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -36,9 +36,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-#define KOKKOS_CUDA_MAX_THREADS 256
-#define KOKKOS_CUDA_MIN_BLOCKS 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -188,7 +185,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  if (eflag) {
+  if (eflag_global) {
     eng_vdwl += ev.evdwl;
     eng_coul += ev.ecoul;
   }
@@ -288,7 +285,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         forcelj = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
                            (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
         forcelj *= r2inv;
-        if (eflag) {
+        if (eflag_global) {
           evdwl = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
                           (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
                           (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
@@ -404,7 +401,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           a_torque(j,2) += fq*tjzcoul;
         }
 
-        if (eflag) {
+        if (eflag_global) {
           ecoul = qtmp*qj*rinv;
           if (mu(i,3) > 0.0 && mu(j,3) > 0.0)
             ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   LAMMPS Development team: developers@lammps.org
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -205,9 +205,9 @@ struct AtomVecDipoleKokkos_PackBorder {
       const typename ArrayTypes<DeviceType>::t_float_1d &q,
       const typename ArrayTypes<DeviceType>::t_mu_array_randomread &mu,
       const X_FLOAT &dx, const X_FLOAT &dy, const X_FLOAT &dz):
-  _buf(buf),_list(list),_iswap(iswap),
-    _x(x),_tag(tag),_type(type),_mask(mask),_q(q),_mu(mu),
-    _dx(dx),_dy(dy),_dz(dz) {}
+      _buf(buf),_list(list),_iswap(iswap),
+      _x(x),_tag(tag),_type(type),_mask(mask),_q(q),_mu(mu),
+      _dx(dx),_dy(dy),_dz(dz) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {

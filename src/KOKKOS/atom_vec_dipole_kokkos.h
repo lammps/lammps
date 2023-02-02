@@ -56,7 +56,6 @@ class AtomVecDipoleKokkos : public AtomVecKokkos, public AtomVecDipole {
 
  protected:
   double *q;
-  double **mu;
 
   DAT::t_tagint_1d d_tag;
   HAT::t_tagint_1d h_tag;

@@ -284,7 +284,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
       if (rsq < cut_ljsq_ij) {
         forcelj = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
                            (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
-        forcelj *= r2inv;
+        forcelj *= factor_lj*r2inv;
         if (eflag_global) {
           evdwl = r6inv * ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
                           (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -

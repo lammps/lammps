@@ -376,9 +376,9 @@ void VerletKokkos::run(int n)
     unsigned int datamask_exclude = 0;
     int allow_overlap = lmp->kokkos->allow_overlap;
 
-    if (allow_overlap) {
+    if (allow_overlap && atomKK->k_f.h_view.data() != atomKK->k_f.d_view.data()) {
 
-     datamask_exclude = (F_MASK | ENERGY_MASK | VIRIAL_MASK);
+      datamask_exclude = (F_MASK | ENERGY_MASK | VIRIAL_MASK);
 
       if (pair_compute_flag) {
         if (force->pair->execution_space == Host) {
@@ -467,10 +467,9 @@ void VerletKokkos::run(int n)
       timer->stamp(Timer::KSPACE);
     }
 
-    if (execute_on_host && atomKK->k_f.h_view.data() != atomKK->k_f.d_view.data()) {
-      if (f_merge_copy.extent(0) < atomKK->k_f.extent(0)) {
+    if (execute_on_host) {
+      if (f_merge_copy.extent(0) < atomKK->k_f.extent(0))
         f_merge_copy = DAT::t_f_array("VerletKokkos::f_merge_copy",atomKK->k_f.extent(0));
-      }
       f = atomKK->k_f.d_view;
       Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.h_view);
       Kokkos::parallel_for(atomKK->k_f.extent(0),

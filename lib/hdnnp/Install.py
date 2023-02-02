@@ -17,7 +17,7 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = "2.1.4"
+version = "2.2.0"
 
 # help message
 
@@ -38,6 +38,7 @@ make lib-hdnnp args="-p $HOME/n2p2" # use existing n2p2 installation in $HOME/n2
 
 # known checksums for different n2p2 versions. used to validate the download.
 checksums = { \
+        '2.2.0' : 'a2d9ab7f676b3a74a324fc1eda0a911d', \
         '2.1.4' : '9595b066636cd6b90b0fef93398297a5', \
         }
 

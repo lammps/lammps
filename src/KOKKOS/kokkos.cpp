@@ -343,7 +343,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-void KokkosLMP::initialize(Kokkos::InitializationSettings args, Error *error)
+void KokkosLMP::initialize(const Kokkos::InitializationSettings& args, Error *error)
 {
   if (!Kokkos::is_initialized()) {
     if (is_finalized)

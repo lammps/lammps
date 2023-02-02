@@ -57,7 +57,7 @@ class KokkosLMP : protected Pointers {
 
   KokkosLMP(class LAMMPS *, int, char **);
 
-  static void initialize(Kokkos::InitializationSettings, Error *);
+  static void initialize(const Kokkos::InitializationSettings&, Error *);
   static void finalize();
   void accelerator(int, char **);
   int neigh_count(int);

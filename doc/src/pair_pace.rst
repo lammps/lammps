@@ -6,7 +6,7 @@
 pair_style pace command
 =======================
 
-Accelerator Variants: *pace/kk*
+Accelerator Variants: *pace/kk*, *pace/extrapolation/kk*
 
 pair_style pace/extrapolation command
 =====================================

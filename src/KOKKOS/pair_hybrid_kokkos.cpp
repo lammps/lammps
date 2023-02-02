@@ -51,11 +51,9 @@ void PairHybridKokkos::init_style()
 {
   PairHybrid::init_style();
 
-#ifdef LMP_KOKKOS_GPU
   for (int m = 0; m < nstyles; m++)
     if (styles[m]->execution_space == Host)
       lmp->kokkos->allow_overlap = 0;
-#endif
 }
 
 /* ----------------------------------------------------------------------

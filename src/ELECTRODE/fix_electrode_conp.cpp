@@ -917,7 +917,7 @@ std::vector<double> FixElectrodeConp::gather_ngroup(std::vector<double> x_local)
 
 std::vector<double> FixElectrodeConp::constraint_correction(std::vector<double> x)
 {
-  return constraint_projection(x);
+  return constraint_projection(std::move(x));
 }
 
 /* ----------------------------------------------------------------------

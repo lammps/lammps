@@ -446,7 +446,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             nv2 = 0;
             for (n = 0; n < 3; n++) {
               for (p = n; p < 3; p++) {
-                arg = delij[n] * delij[p] * this->v2D[nv2];
+                arg = delij[n] * delij[p] * v2D[nv2];
                 drho3mdrm1[m] = drho3mdrm1[m] + d_arho3m(i, vind3D[m][n][p]) * arg;
                 drho3mdrm2[m] = drho3mdrm2[m] + d_arho3m(j, vind3D[m][n][p]) * arg;
                 nv2 = nv2 + 1;

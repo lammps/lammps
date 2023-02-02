@@ -32,7 +32,6 @@ namespace LAMMPS_NS {
 class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
  public:
   AtomVecHybridKokkos(class LAMMPS *);
-  ~AtomVecHybridKokkos() override;
 
   void grow(int) override;
 

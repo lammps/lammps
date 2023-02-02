@@ -14,18 +14,19 @@ pair_modify     mix arithmetic
 kspace_style    pppm 1e-4
 
 read_data system.data
-#read_restart    restart/system_${ibead}.rest1
+#read_restart    system_${ibead}.rest1
 special_bonds   charmm
 
 fix 1 all pimd method nmpimd fmass 1.0 temp 300.0 nhc 4 sp 2.0
 
 thermo          10
-thermo_style    custom step temp pe etotal
+thermo_style    custom step temp pe etotal f_1[1] f_1[2] f_1[3]
+thermo_modify   colname f_1[1] espring colname f_1[2] T_ring colname f_1[3] virial
 timestep        0.08
 
-restart         100 restart/system_${ibead}.rest1 restart/system_${ibead}.rest2
+# restart         100 system_${ibead}.rest1 system_${ibead}.rest2
 
 group prot id <= 256
-dump 1 prot dcd 100 dcd/prot_${ibead}.dcd
+# dump 1 prot dcd 100 prot_${ibead}.dcd
 
-run             2000000
+run             200

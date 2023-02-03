@@ -466,30 +466,39 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, in
     const F_FLOAT v5 = dely*fz;
 
     if (vflag_global) {
-      if (NEIGHFLAG == FULL || NEWTON_PAIR) { // neighf full or half, newton on
-        ev.v[0] += v0;
-        ev.v[1] += v1;
-        ev.v[2] += v2;
-        ev.v[3] += v3;
-        ev.v[4] += v4;
-        ev.v[5] += v5;
-      } else { // neigh half, newton off
-        if (i < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
+      if (NEIGHFLAG != FULL) {
+        if (NEWTON_PAIR) { // neigh half, newton on
+          ev.v[0] += v0;
+          ev.v[1] += v1;
+          ev.v[2] += v2;
+          ev.v[3] += v3;
+          ev.v[4] += v4;
+          ev.v[5] += v5;
+        } else { // neigh half, newton off
+          if (i < nlocal) {
+            ev.v[0] += 0.5*v0;
+            ev.v[1] += 0.5*v1;
+            ev.v[2] += 0.5*v2;
+            ev.v[3] += 0.5*v3;
+            ev.v[4] += 0.5*v4;
+            ev.v[5] += 0.5*v5;
+          }
+          if (j < nlocal) {
+            ev.v[0] += 0.5*v0;
+            ev.v[1] += 0.5*v1;
+            ev.v[2] += 0.5*v2;
+            ev.v[3] += 0.5*v3;
+            ev.v[4] += 0.5*v4;
+            ev.v[5] += 0.5*v5;
+          }
         }
-        if (j < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
-        }
+      } else { //neigh full
+        ev.v[0] += 0.5*v0;
+        ev.v[1] += 0.5*v1;
+        ev.v[2] += 0.5*v2;
+        ev.v[3] += 0.5*v3;
+        ev.v[4] += 0.5*v4;
+        ev.v[5] += 0.5*v5;
       }
     }
 

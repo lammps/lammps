@@ -58,14 +58,9 @@ class PairLJCutDipoleCutKokkos : public PairLJCutDipoleCut {
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
   KOKKOS_INLINE_FUNCTION
-  void ev_tally_xyz(EV_FLOAT &ev, int i, int j,
+  void ev_tally_xyz(EV_FLOAT &ev, int i, int j, const F_FLOAT &epair,
                     F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
                     X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
-  template<int NEIGHFLAG, int NEWTON_PAIR>
-  KOKKOS_INLINE_FUNCTION
-  void ev_tally_xyz_atom(EV_FLOAT &ev, int i, int j,
-                         F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
-                         X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const;
 
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;

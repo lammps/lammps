@@ -29,7 +29,7 @@ int f_lammps_gather_atoms_subset_mask(int);
 double f_lammps_gather_atoms_subset_position(int, int);
 void f_lammps_scatter_atoms_masks();
 void f_lammps_scatter_atoms_positions();
-void f_lammps_setup_gather_bonds();
+void f_lammps_setup_gather_topology();
 int f_lammps_test_gather_bonds_small();
 int f_lammps_test_gather_bonds_big();
 double f_lammps_gather_pe_atom(int);
@@ -221,11 +221,11 @@ TEST_F(LAMMPS_gather_scatter, scatter_atoms_subset_mask)
 TEST_F(LAMMPS_gather_scatter, gather_bonds)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
-    f_lammps_setup_gather_bonds();
+    f_lammps_setup_gather_topology();
 #ifdef LAMMPS_BIGBIG
-    EXPECT_EQ(f_lammps_test_gather_bonds_big(), 1);
+    EXPECT_EQ(f_lammps_test_gather_bonds_big(), 10);
 #else
-    EXPECT_EQ(f_lammps_test_gather_bonds_small(), 1);
+    EXPECT_EQ(f_lammps_test_gather_bonds_small(), 10);
 #endif
 };
 

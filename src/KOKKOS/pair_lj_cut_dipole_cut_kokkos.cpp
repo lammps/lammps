@@ -437,6 +437,8 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairLJCutDipoleCutKernel<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>(), ii, ev);
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
@@ -448,7 +450,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, in
   Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
   if (eflag_atom) {
-    const double epairhalf = 0.5 * epair;
+    const E_FLOAT epairhalf = 0.5 * epair;
     if (NEIGHFLAG == FULL || newton_pair || i < nlocal)
       v_eatom[i] += epairhalf;
     if (NEIGHFLAG != FULL && (newton_pair || j < nlocal))
@@ -456,12 +458,12 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, in
   }
 
   if (vflag_either) {
-    const E_FLOAT v0 = delx*fx;
-    const E_FLOAT v1 = dely*fy;
-    const E_FLOAT v2 = delz*fz;
-    const E_FLOAT v3 = delx*fy;
-    const E_FLOAT v4 = delx*fz;
-    const E_FLOAT v5 = dely*fz;
+    const F_FLOAT v0 = delx*fx;
+    const F_FLOAT v1 = dely*fy;
+    const F_FLOAT v2 = delz*fz;
+    const F_FLOAT v3 = delx*fy;
+    const F_FLOAT v4 = delx*fz;
+    const F_FLOAT v5 = dely*fz;
 
     if (vflag_global) {
       if (NEIGHFLAG == FULL || NEWTON_PAIR) { // neighf full or half, newton on

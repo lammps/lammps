@@ -103,7 +103,7 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       for (int i = 1; i <= ntypes; i++) {
         int anum;
         for (anum = 0; anum < MAXELEMENT; anum++)
-          if (strcmp(arg[iarg + 1],symbols[anum]) == 0) break;
+          if (strcmp(arg[iarg + i],symbols[anum]) == 0) break;
         if (anum == MAXELEMENT)
           error->all(FLERR,"Invalid chemical element in mdi engine command");
         elements[i] = anum + 1;

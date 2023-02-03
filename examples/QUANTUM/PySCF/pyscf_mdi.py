@@ -528,12 +528,14 @@ def evaluate():
     box_str = "%s\n%s\n%s" % (edge_vec,edge_vec,edge_vec)
     box_str = box_str % \
       (box_A[0],box_A[1],box_A[2],box_A[3],box_A[4],box_A[5],box_A[6],box_A[7],box_A[8])
-    print("BOX STR:",box_str)
+    #print("BOX STR:",box_str)
 
-  print("ATOM STR:",atom_str)
-  print("MM COORDS:",mm_coords)
-  print("MM CHARGES:",mm_charges)
-  print("MM RADII:",mm_radii)
+  #print("ATOM STR:",atom_str)
+  #print("QM SYMB:",qm_symbols)
+  #print("QM COORDS:",qm_coords)
+  #print("MM COORDS:",mm_coords)
+  #print("MM CHARGES:",mm_charges)
+  #print("MM RADII:",mm_radii)
   
   # build PySCF system
   # use Cell for periodic, Mole for non-periodic
@@ -577,6 +579,8 @@ def evaluate():
     dm_previous_exists = 1
     dm_previous = dm
 
+    #print("QM FORCES:",qm_forces)
+    
   # AIMD with only QM atoms
     
   elif mode == AIMD:
@@ -601,8 +605,6 @@ def MDI_Plugin_init_pyscf_mdi(plugin_state):
   # other_options = all non-MDI args
   # -mdi arg is processed and stripped internally by MDI
 
-  print("PLUGIN entry")
-  
   other_options = []
 
   mdi.MDI_Set_plugin_state(plugin_state)

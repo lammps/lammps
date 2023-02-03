@@ -51,13 +51,27 @@ if(FFT_HEFFTE)
   # if FFT_HEFFTE is enabled, switch the builtin FFT engine with Heffte
   if(FFT STREQUAL "FFTW3") # respect the backend choice, FFTW or MKL
     set(HEFFTE_COMPONENTS "FFTW")
+    set(Heffte_ENABLE_FFTW "ON" CACHE BOOL "Enables FFTW backend for heFFTe")
   elseif(FFT STREQUAL "MKL")
     set(HEFFTE_COMPONENTS "MKL")
+    set(Heffte_ENABLE_MKL "ON" CACHE BOOL "Enables MKL backend for heFFTe")
   else()
     message(FATAL_ERROR "Using -DFFT_HEFFTE=ON, requires FFT either FFTW or MKL")
   endif()
 
-  find_package(Heffte 2.3.0 REQUIRED ${HEFFTE_COMPONENTS})
+  find_package(Heffte 2.3.0 QUIET COMPONENTS ${HEFFTE_COMPONENTS})
+  if (NOT Heffte_FOUND) # download and build
+    include(FetchContent)
+    FetchContent_Declare(HEFFTE_PROJECT # using v2.3.0
+      URL  "https://bitbucket.org/icl/heffte/get/f49e25969bd7abbcb09e338db9a5e59550c8a05a.tar.gz"
+      URL_HASH SHA256=27c0a8da8f7bc91c8715ecb640721ab7e0454e22f6e3f521fe5acc45c28d60a9
+      )
+    FetchContent_Populate(HEFFTE_PROJECT)
+    add_subdirectory(${heffte_project_SOURCE_DIR} ${heffte_project_BINARY_DIR})
+    set_target_properties(lmp PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    set_target_properties(lammps PROPERTIES INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+  endif()
+
   target_compile_definitions(lammps PRIVATE -DHEFFTE)
   target_link_libraries(lammps PRIVATE Heffte::Heffte)
 endif()

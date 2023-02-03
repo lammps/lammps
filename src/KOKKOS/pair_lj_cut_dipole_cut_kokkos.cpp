@@ -401,7 +401,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           a_torque(j,2) += fq*tjzcoul;
         }
 
-        if (eflag_global) {
+        if (EVFLAG && eflag_global) {
           ecoul = qtmp*qj*rinv;
           if (mu(i,3) > 0.0 && mu(j,3) > 0.0)
             ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
@@ -414,9 +414,8 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         }
       } // cutsq_coulsq_ij
 
-      if (EVFLAG)
+      if (EVFLAG && (eflag_atom || vflag_either))
         ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, ecoul+evdwl, fx, fy, fz, delx, dely, delz);
-
     } // cutsq_ij
   }
 
@@ -438,85 +437,78 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairLJCutDipoleCutKernel<NEIGHFLAG,NEWTON_PAIR,EVFLAG,STACKPARAMS>(), ii, ev);
 }
 
-/* ---------------------------------------------------------------------- */
-
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
 KOKKOS_INLINE_FUNCTION
-void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int j, const F_FLOAT &epair,
+void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, int j, const F_FLOAT &epair,
                                                         F_FLOAT fx, F_FLOAT fy, F_FLOAT fz,
                                                         X_FLOAT delx, X_FLOAT dely, X_FLOAT delz) const
 {
   Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
   Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
 
-  const E_FLOAT v0 = delx*fx;
-  const E_FLOAT v1 = dely*fy;
-  const E_FLOAT v2 = delz*fz;
-  const E_FLOAT v3 = delx*fy;
-  const E_FLOAT v4 = delx*fz;
-  const E_FLOAT v5 = dely*fz;
-
-  if (NEIGHFLAG != FULL) {
-    if (NEWTON_PAIR) { // neigh half, newton on
-      ev.v[0] += v0;
-      ev.v[1] += v1;
-      ev.v[2] += v2;
-      ev.v[3] += v3;
-      ev.v[4] += v4;
-      ev.v[5] += v5;
-    } else { // neigh half, newton off
-      if (i < nlocal) {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
-      }
-      if (j < nlocal) {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
-      }
-    }
-
-  } else { // NEIGHFLAG == FULL
-    ev.v[0] += 0.5*v0;
-    ev.v[1] += 0.5*v1;
-    ev.v[2] += 0.5*v2;
-    ev.v[3] += 0.5*v3;
-    ev.v[4] += 0.5*v4;
-    ev.v[5] += 0.5*v5;
-  }
-
   if (eflag_atom) {
-    const E_FLOAT epairhalf = 0.5 * epair;
-    v_eatom[i] += epairhalf;
-    if (NEIGHFLAG != FULL)
+    const double epairhalf = 0.5 * epair;
+    if (NEIGHFLAG == FULL || newton_pair || i < nlocal)
+      v_eatom[i] += epairhalf;
+    if (NEIGHFLAG != FULL && (newton_pair || j < nlocal))
       v_eatom[j] += epairhalf;
   }
 
-  if (vflag_atom) {
-    if (NEWTON_PAIR || i < nlocal) {
-      v_vatom(i,0) += 0.5*v0;
-      v_vatom(i,1) += 0.5*v1;
-      v_vatom(i,2) += 0.5*v2;
-      v_vatom(i,3) += 0.5*v3;
-      v_vatom(i,4) += 0.5*v4;
-      v_vatom(i,5) += 0.5*v5;
+  if (vflag_either) {
+    const E_FLOAT v0 = delx*fx;
+    const E_FLOAT v1 = dely*fy;
+    const E_FLOAT v2 = delz*fz;
+    const E_FLOAT v3 = delx*fy;
+    const E_FLOAT v4 = delx*fz;
+    const E_FLOAT v5 = dely*fz;
+
+    if (vflag_global) {
+      if (NEIGHFLAG == FULL || NEWTON_PAIR) { // neighf full or half, newton on
+        ev.v[0] += v0;
+        ev.v[1] += v1;
+        ev.v[2] += v2;
+        ev.v[3] += v3;
+        ev.v[4] += v4;
+        ev.v[5] += v5;
+      } else { // neigh half, newton off
+        if (i < nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
+        }
+        if (j < nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
+        }
+      }
     }
 
-    if ((NEWTON_PAIR || j < nlocal) && NEIGHFLAG != FULL) {
-      v_vatom(j,0) += 0.5*v0;
-      v_vatom(j,1) += 0.5*v1;
-      v_vatom(j,2) += 0.5*v2;
-      v_vatom(j,3) += 0.5*v3;
-      v_vatom(j,4) += 0.5*v4;
-      v_vatom(j,5) += 0.5*v5;
+    if (vflag_atom) {
+
+      if (NEIGHFLAG == FULL || NEWTON_PAIR || i < nlocal) {
+        v_vatom(i,0) += 0.5*v0;
+        v_vatom(i,1) += 0.5*v1;
+        v_vatom(i,2) += 0.5*v2;
+        v_vatom(i,3) += 0.5*v3;
+        v_vatom(i,4) += 0.5*v4;
+        v_vatom(i,5) += 0.5*v5;
+      }
+      if (NEIGHFLAG != FULL && (NEWTON_PAIR || j < nlocal)) {
+        v_vatom(j,0) += 0.5*v0;
+        v_vatom(j,1) += 0.5*v1;
+        v_vatom(j,2) += 0.5*v2;
+        v_vatom(j,3) += 0.5*v3;
+        v_vatom(j,4) += 0.5*v4;
+        v_vatom(j,5) += 0.5*v5;
+      }
     }
   }
 }

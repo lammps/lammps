@@ -859,8 +859,8 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
   // rho = density at each atom
   // loop over neighbors of my atoms
   const int m_max = d_rhor_spline.extent_int(1);
-  const int j_max = d_rhor_spline.extent_int(2);
-  const int d_rhor_spline_cached = (m_max > MAX_CACHE_ROWS || j_max > t_ffloat_2d_n7::static_extent(2)) ? 0 : 1;
+  const int j_max = t_ffloat_2d_n7::static_extent(2);
+  const int d_rhor_spline_cached = (m_max > MAX_CACHE_ROWS) ? 0 : 1;
   Kokkos::View<double*[t_ffloat_2d_n7::static_extent(2)], typename DeviceType::scratch_memory_space,
 	       Kokkos::MemoryTraits<Kokkos::Unmanaged>> A(team_member.team_scratch(0), MAX_CACHE_ROWS);
 
@@ -959,8 +959,8 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int m_max = d_z2r_spline.extent_int(1);
-  const int j_max = d_z2r_spline.extent_int(2);
-  const int d_z2r_spline_cached = (m_max > MAX_CACHE_ROWS || j_max > t_ffloat_2d_n7::static_extent(2)) ? 0 : 1;
+  const int j_max = t_ffloat_2d_n7::static_extent(2);
+  const int d_z2r_spline_cached = (m_max > MAX_CACHE_ROWS) ? 0 : 1;
   Kokkos::View<double*[t_ffloat_2d_n7::static_extent(2)], typename DeviceType::scratch_memory_space,
 	       Kokkos::MemoryTraits<Kokkos::Unmanaged>> A(team_member.team_scratch(0), MAX_CACHE_ROWS);
 

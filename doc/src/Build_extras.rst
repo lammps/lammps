@@ -1359,7 +1359,7 @@ module included in the LAMMPS source distribution.
       auto-generated consistent with those used in the core LAMMPS makefiles.
 
 
-      .. versionchanged:: TBD
+      .. versionchanged:: 8Feb2023
 
       Please note that Colvars uses the Lepton library, which is now
       included with the LEPTON package; if you use anything other than

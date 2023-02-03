@@ -3177,7 +3177,7 @@ When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** angles
 in the system.
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 Below is a brief C code demonstrating accessing this collected angle information.
 
@@ -3288,7 +3288,7 @@ When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** dihedrals
 in the system.
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 Below is a brief C code demonstrating accessing this collected dihedral information.
 
@@ -3399,7 +3399,7 @@ When running in parallel, the data buffer must be allocated on **all**
 MPI ranks and will be filled with the information for **all** impropers
 in the system.
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 Below is a brief C code demonstrating accessing this collected improper information.
 

@@ -31,7 +31,7 @@ using namespace FixConst;
 enum { NATIVE, REAL, METAL };    // LAMMPS units which MDI supports
 enum { DIRECT, POTENTIAL };      // mode of QMMM coupling
 
-#define MAXELEMENT 103    // used elsewhere in MDI package
+#define MAXELEMENT 118
 
 // prototype for non-class compare function for sorting QM IDs
 
@@ -42,9 +42,6 @@ static int compare_IDs(const int, const int, void *);
 FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   // check requirements for LAMMPS to work with MDI for a QMMM engine
-
-  if (domain->dimension == 2)
-    error->all(FLERR,"Fix mdi/qmmm requires 3d simulation");
 
   if (!atom->tag_enable) 
     error->all(FLERR,"Fix mdi/qmmm requires atom IDs be defined");
@@ -95,14 +92,32 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         error->all(FLERR, "Illegal fix mdi/qmmm command");
       iarg += 2;
     } else if (strcmp(arg[iarg], "elements") == 0) {
+      const char *symbols[] = {
+        "H" , "He", "Li", "Be", "B" , "C" , "N" , "O" , "F" , "Ne",
+        "Na", "Mg", "Al", "Si", "P" , "S" , "Cl", "Ar", "K" , "Ca",
+        "Sc", "Ti", "V" , "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+        "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y" , "Zr",
+        "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
+        "Sb", "Te", "I" , "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd",
+        "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb",
+        "Lu", "Hf", "Ta", "W" , "Re", "Os", "Ir", "Pt", "Au", "Hg",
+        "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
+        "Pa", "U" , "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
+        "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds",
+        "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og",
+      };
+
       int ntypes = atom->ntypes;
       if (iarg + ntypes + 1 > narg) error->all(FLERR, "Illegal fix mdi/qmmm command");
       delete[] elements;
       elements = new int[ntypes + 1];
-      for (int i = 1; i <= ntypes; i++) {
-        elements[i] = utils::inumeric(FLERR, arg[iarg + i], false, lmp);
-        if (elements[i] < 1 || elements[i] > MAXELEMENT)
-          error->all(FLERR, "Illegal fix mdi/qmmm command");
+           for (int i = 1; i <= ntypes; i++) {
+        int anum;
+        for (anum = 0; anum < MAXELEMENT; anum++)
+          if (strcmp(arg[iarg + 1],symbols[anum]) == 0) break;
+        if (anum == MAXELEMENT)
+          error->all(FLERR,"Invalid chemical element in fix mdi/qmmm command");
+        elements[i] = anum + 1;
       }
       iarg += ntypes + 1;
     } else

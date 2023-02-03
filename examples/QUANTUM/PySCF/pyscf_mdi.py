@@ -38,8 +38,6 @@ from pyscf.pbc.dft import RKS as RKS_pbc
 
 atomic_number_to_radius = {1: 0.32, 6: 0.75, 7: 0.71, 8: 0.63, 17: 0.99}
 
-# ELEMENTS is from pyscf/pyscf/data/elements.py
-
 ELEMENTS = [
   'H' , 'He', 'Li', 'Be', 'B' , 'C' , 'N' , 'O' , 'F' , 'Ne',
   'Na', 'Mg', 'Al', 'Si', 'P' , 'S' , 'Cl', 'Ar', 'K' , 'Ca',

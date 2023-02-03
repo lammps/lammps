@@ -1,15 +1,30 @@
 # MDI wrapper on LATTE code
 
-import sys,time
+# native LATTE units are Angstroms and eV
+
+import sys,os,time
 from ctypes import *
 
 import numpy as np
 from mpi4py import MPI
 import MDI_Library as mdi
 
-# conversions of atomic number to element symbol
+# --------------------------------------------
 
-atomic_number_to_symbol = {1: 'H', 6: 'C', 7: 'N', 8: 'O', 17: 'Cl'}
+ELEMENTS = [
+  'H' , 'He', 'Li', 'Be', 'B' , 'C' , 'N' , 'O' , 'F' , 'Ne',
+  'Na', 'Mg', 'Al', 'Si', 'P' , 'S' , 'Cl', 'Ar', 'K' , 'Ca',
+  'Sc', 'Ti', 'V' , 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn',
+  'Ga', 'Ge', 'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y' , 'Zr',
+  'Nb', 'Mo', 'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn',
+  'Sb', 'Te', 'I' , 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd',
+  'Pm', 'Sm', 'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb',
+  'Lu', 'Hf', 'Ta', 'W' , 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg',
+  'Tl', 'Pb', 'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th',
+  'Pa', 'U' , 'Np', 'Pu', 'Am', 'Cm', 'Bk', 'Cf', 'Es', 'Fm',
+  'Md', 'No', 'Lr', 'Rf', 'Db', 'Sg', 'Bh', 'Hs', 'Mt', 'Ds',
+  'Rg', 'Cn', 'Nh', 'Fl', 'Mc', 'Lv', 'Ts', 'Og',
+]
 
 # --------------------------------------------
 # global data
@@ -28,6 +43,7 @@ mode = AIMD
 
 libname = "liblatte.so"
 liblatte = None
+infile = None
 
 # QM inputs
 
@@ -45,6 +61,10 @@ qm_natoms = 0
 qm_elements = None
 qm_coords = None
 qm_potential = None
+qm_velocity = None
+qm_ntypes = 0
+qm_types = None
+qm_mass = None
 
 mm_natoms = 0
 mm_coords = None
@@ -73,9 +93,16 @@ def error(txt):
 # --------------------------------------------
 
 def options(other_options):
-  if len(other_options) != 0:
-    error("No args currently used by LATTE wrapper")
+  global infile
+  
+  if len(other_options) != 1:
+    error("No filename provided to LATTE wrapper")
+  infile = other_options[0]
 
+  # copy infile to latte.in as required by LATTE
+
+  os.system("cp %s latte.in" % infile)
+    
 # --------------------------------------------
 # operate as an engine
 # --------------------------------------------
@@ -382,17 +409,21 @@ def receive_mm_charges(mdicomm):
 # --------------------------------------------
 
 def allocate(which):
-  global qm_types,qm_elements,qm_coords,qm_potential,qm_forces,qm_charges
+  global qm_elements,qm_coords,qm_potential,qm_forces,qm_charges
+  global qm_types,qm_mass,qm_velocity
   global mm_coords,mm_charges,mm_forces
   
   if which == "qm":
     n = qm_natoms
-    qm_types = np.empty(n,dtype=np.int32)
     qm_elements = np.empty(n,dtype=np.int32)
     qm_coords = np.empty((n,3))
     qm_potential = np.empty(n)
     qm_forces = np.empty((n,3))
     qm_charges = np.empty(n)
+    
+    qm_types = np.empty(n,dtype=np.int32)
+    qm_velocity = np.empty((n,3))
+    qm_velocity.fill(0.0)
 
   if which == "mm":
     n = mm_natoms
@@ -443,6 +474,7 @@ def evaluate():
       error("QM atom properties not fully specified")
     if mode == QMMM and not flag_qm_potential:
       error("QM atom properties not fully specified")
+    set_types_masses()
 
   # LATTE inputs
   # box, qm_coords must be converted to Angstroms
@@ -471,27 +503,14 @@ def evaluate():
   #flags_latte[4] = vflag_atom and thermo_virial;   #   virial, 0 for no
   #flags_latte[5] = neighflag;    # 1 to pass neighbor list to LATTE, 0 for no
 
-  # hard-wired values for 8-water problem
-
-  qm_types = np.empty(qm_natoms,dtype=np.int32)
-  for i in range(0,qm_natoms,3): qm_types[i] = 1
-  for i in range(1,qm_natoms,3): qm_types[i] = 2
-  for i in range(2,qm_natoms,3): qm_types[i] = 2
-  
-  qm_mass = [15.995, 1.008]
-
   # setup ctypes args for liblatte.latte() function
 
   flags_latte = 6*[0]
   c_flags_latte = (c_int*6)(*flags_latte)
 
   c_qm_natoms = c_int(qm_natoms)
-
-  qm_ntypes = 2
   c_qm_ntypes = c_int(qm_ntypes)
 
-  c_qm_mass = (c_double*qm_ntypes)(*qm_mass)
-  
   boxlo = [0.0,0.0,0.0]
   boxhi = [box_A[0],box_A[4],box_A[8]]
   xy = box_A[3]
@@ -509,10 +528,7 @@ def evaluate():
   
   c_qm_pe = c_double(qm_pe)
   
-  qm_velocity = np.empty((qm_natoms,3))
-  qm_velocity.fill(0.0)
-
-  timestep = 0.00025
+  timestep = 0.0
   c_timestep = c_double(timestep)
 
   latte_stress = np.empty(6)
@@ -520,11 +536,8 @@ def evaluate():
 
   latte_error = 0
   c_latte_error = c_bool(latte_error)
-
   
   # QMMM with QM and MM atoms
-  # NOTE: need qm_velocity and timestep and mass and types ?
-  # all of these are addresses of scalars for Fortran ?
 
   if mode == QMMM:
     error("QMMM not yet supported with LATTE")
@@ -535,53 +548,51 @@ def evaluate():
     #print("Calling LATTE ...")
     time1 = time.time()
 
-    #print("flags_latte",c_flags_latte[0:6])
-    #print("qm_natoms",c_qm_natoms.value)
-    #print("qm_coords",qm_coords_A)  
-    #print("qm_types",qm_types)
-    #print("qm_ntypes",c_qm_ntypes.value)
-    #print("qm_mass",c_qm_mass[0:2])
-    #print("boxlo",c_boxlo[0:3])
-    #print("boxhi",c_boxhi[0:3]) 
-    #print("xy",c_xy.value)
-    #print("xz",c_xz.value)
-    #print("yz",c_yz.value)
-    #print("maxiter",c_maxiter.value)
-    #print("timestep",c_timestep.value)
-    #print("new_system",c_new_system.value)
- 
+    #print("A",c_qm_natoms.value)
+    #print("B",qm_coords_A)
+    #print("C",qm_types)
+    #print("D",c_qm_ntypes.value)
+    #print("E",qm_mass)
+    #print("F",c_boxlo[0],c_boxlo[1],c_boxlo[2])
+    #print("G",c_boxhi[0],c_boxhi[1],c_boxhi[2])
+    #print("H",c_xy.value,c_xz.value,c_yz.value)
+    #print("I",c_maxiter.value)
+    #print("J",qm_velocity)
+    #print("K",c_timestep.value)
+    #print("L",c_new_system.value)
+    
     liblatte.\
       latte(c_flags_latte,byref(c_qm_natoms),qm_coords_A,
-            qm_types,byref(c_qm_ntypes),c_qm_mass,
+            qm_types,byref(c_qm_ntypes),qm_mass,
             c_boxlo,c_boxhi,byref(c_xy),byref(c_xz),byref(c_yz),
             qm_forces,byref(c_maxiter),byref(c_qm_pe),
             qm_velocity,byref(c_timestep),latte_stress,
             byref(c_new_system),byref(c_latte_error))
-    # NOTE: check latte_error return?
+
     latte_error = c_latte_error.value
+    time2 = time.time()
+    #print("LATTE time:",time2-time1,latte_error)
+
+    # LATTE computes extensive stress values
+    # MDI stress values are intensive
+    # so divide latte_stress by box volume in Angstroms
+    # more generally could use volume = (a x b) dot c for (a,b,c) edge vectors
+    
     qm_pe = c_qm_pe.value
     latte_stress /= box_A[0]*box_A[4]*box_A[8]
 
-    #print("LATTE STRESS:",latte_stress)
-    
-    time2 = time.time()
-    #print("DONE LATTE",latte_error,time2-time1)
-
-    # conversion of LATTE outputs
+    # conversion of LATTE outputs to MDI units
     # qm_pe from eV to Hartrees
     # qm_forces from eV/A to Hartrees/Bohr
     # latte_stress from eV/A^3 to Hartrees/Bohr^3
 
-    # also need to divide stress by box volume to make it intensive
-    # NOTE: why box volume in Angs ?  b/c that is what LATTE did ?
-    # did this above
-    
     ev_to_hartree = mdi.MDI_Conversion_factor("electron_volt","hartree")
     angstrom_to_bohr = mdi.MDI_Conversion_factor("angstrom","bohr")
     
     qm_pe *= ev_to_hartree
     qm_forces *= ev_to_hartree / angstrom_to_bohr
-    latte_stress *= ev_to_hartree / (angstrom_to_bohr*angstrom_to_bohr*angstrom_to_bohr)
+    latte_stress *= ev_to_hartree / \
+      (angstrom_to_bohr*angstrom_to_bohr*angstrom_to_bohr)
 
     qm_stress[0] = latte_stress[0]
     qm_stress[4] = latte_stress[1]
@@ -589,13 +600,6 @@ def evaluate():
     qm_stress[1] = qm_stress[3] = latte_stress[3]
     qm_stress[2] = qm_stress[6] = latte_stress[4]
     qm_stress[5] = qm_stress[7] = latte_stress[5]
-
-    #print("CONVERT:",ev_to_hartree / (angstrom_to_bohr*angstrom_to_bohr*angstrom_to_bohr))
-    #print("QM STRESS:",qm_stress)
-
-    #print("PE",qm_pe)
-    #print("FORCE",qm_forces)
-    #print("STRESS",qm_stress)
 
   # clear flags for all MDI commands for next QM evaluation
 
@@ -625,12 +629,68 @@ def latte_load():
 
   liblatte.latte.restype = None
   liblatte.latte.argtypes = \
-    [POINTER(c_int), POINTER(c_int), nparray, npvector_int, POINTER(c_int), POINTER(c_double),
+    [POINTER(c_int), POINTER(c_int), nparray, npvector_int, POINTER(c_int), npvector_double,
      POINTER(c_double), POINTER(c_double), POINTER(c_double),
      POINTER(c_double), POINTER(c_double), 
      nparray, POINTER(c_int), POINTER(c_double), nparray,
      POINTER(c_double), npvector_double, POINTER(c_int), POINTER(c_bool)]
 
+# --------------------------------------------
+# set ntypes, qm_types, qm_mass from qm_elements and electrons.dat file
+# required inputs for LATTE latte() function
+# --------------------------------------------
+
+def set_types_masses():
+  global qm_ntypes,qm_types,qm_mass
+
+  # read latte.in file for PARAMPATH to electrons.dat file
+
+  lines = open(infile,'r').readlines()
+  for line in lines:
+    if "PARAMPATH=" not in line: continue
+    words = line.split()
+    parampath = words[1][1:-1]
+
+  if parampath[-1] == '/': efile = parampath + "electrons.dat"
+  else: efile = parampath + "/electrons.dat"
+  
+  # extract symbol/mass pairings from electrons.dat file
+  # symbol2mass = dict for mass of each chemical symbol
+  
+  lines = open(efile,'r').readlines()
+
+  symbol2mass = {}
+  for line in lines[2:]:
+    line = line.strip()
+    if not line: continue
+    words = line.split()
+    if words[0] in symbol2mass: continue
+    else: symbol2mass[words[0]] = float(words[7])
+
+  # symbol_list = list of unique chemical symbols
+  # qm_ntypes = # of unique symbols
+
+  symbol_list = []
+  for i in range(qm_natoms):
+    symbol = ELEMENTS[qm_elements[i]-1]
+    if symbol not in symbol2mass:
+      error("Atom element symbol not in LATTE electrons.dat file")
+    if symbol in symbol_list: continue
+    symbol_list.append(symbol)
+
+  qm_ntypes = len(symbol_list)
+
+  # qm_types = chemcial type of each atom (1 to qm_types)
+  # qm_mass = mass of each atom type
+
+  qm_mass = np.empty(qm_ntypes)
+    
+  for i in range(qm_natoms):
+    symbol = ELEMENTS[qm_elements[i]-1]
+    itype = symbol_list.index(symbol)
+    qm_types[i] = itype + 1
+    qm_mass[itype] = symbol2mass[symbol]
+   
 # --------------------------------------------
 # function called by MDI driver
 # only when it invokes pyscf_mdi.py as a plugin

@@ -55,10 +55,14 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
+  template<class tag>
+  auto policyInstance(int inum);
+  
   PairEAMKokkos(class LAMMPS *);
   ~PairEAMKokkos() override;
   void compute(int, int) override;
   void init_style() override;
+  
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMPackForwardComm, const int&) const;
@@ -138,7 +142,8 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typename AT::t_virial_array d_vatom;
 
   int need_dup;
-
+  int inum;
+  
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
   template<typename DataType, typename Layout>

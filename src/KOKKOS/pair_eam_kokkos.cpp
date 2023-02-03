@@ -34,15 +34,18 @@
 using namespace LAMMPS_NS;
 
 #define MAX_CACHE_ROWS 500
-#define MAX_CACHE_COLS 7
 
 /* ---------------------------------------------------------------------- */
-template<class DeviceType, class tag>
-auto policyInstance(int inum){
+template<class DeviceType>
+template<class tag>
+auto PairEAMKokkos<DeviceType>::policyInstance(int inum){
   #ifdef KOKKOS_ENABLE_HIP
+    static_assert(t_ffloat_2d_n7::static_extent(2) == 7,
+		  "Breaking assumption of spline dim for KernelAB and KernelC scratch caching");
+
     auto policy = Kokkos::TeamPolicy<DeviceType,tag>((inum+1023)/1024, 1024)
 	                   .set_scratch_size(0,
-			        Kokkos::PerTeam(MAX_CACHE_ROWS*MAX_CACHE_COLS*sizeof(double)));
+			        Kokkos::PerTeam(MAX_CACHE_ROWS*t_ffloat_2d_n7::static_extent(2)*sizeof(double)));
     return policy;
   #else
     auto policy = Kokkos::RangePolicy<DeviceType, tag>(0,inum);
@@ -129,7 +132,7 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
-  int inum = list->inum;
+  inum = list->inum;
 
   need_dup = lmp->kokkos->need_dup<DeviceType>();
   if (need_dup) {
@@ -199,11 +202,11 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (eflag)
       Kokkos::parallel_reduce(
-		    policyInstance<DeviceType,TagPairEAMKernelAB<1>>(inum),
+		    policyInstance<TagPairEAMKernelAB<1>>(inum),
 		    *this,ev);
     else
       Kokkos::parallel_for(
-		    policyInstance<DeviceType,TagPairEAMKernelAB<0>>(inum),
+		    policyInstance<TagPairEAMKernelAB<0>>(inum),
 		    *this);
   }
 
@@ -224,31 +227,31 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (neighflag == HALF) {
       if (newton_pair) {
         Kokkos::parallel_reduce(
-	      policyInstance<DeviceType, TagPairEAMKernelC<HALF,1,1>>(inum),
+	      policyInstance<TagPairEAMKernelC<HALF,1,1>>(inum),
 	      *this,ev);
       } else {
         Kokkos::parallel_reduce(
-	      policyInstance<DeviceType, TagPairEAMKernelC<HALF,0,1>>(inum),
+	      policyInstance<TagPairEAMKernelC<HALF,0,1>>(inum),
 	      *this,ev);
       }
     } else if (neighflag == HALFTHREAD) {
       if (newton_pair) {
         Kokkos::parallel_reduce(
-	      policyInstance<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,1>>(inum),
+	      policyInstance<TagPairEAMKernelC<HALFTHREAD,1,1>>(inum),
 	      *this,ev);
       } else {
         Kokkos::parallel_reduce(
-              policyInstance<DeviceType, TagPairEAMKernelC<HALFTHREAD,0,1>>(inum),
+              policyInstance<TagPairEAMKernelC<HALFTHREAD,0,1>>(inum),
 	      *this,ev);
       }
     } else if (neighflag == FULL) {
       if (newton_pair) {
         Kokkos::parallel_reduce(
-	      policyInstance<DeviceType, TagPairEAMKernelC<FULL,1,1>>(inum),
+	      policyInstance<TagPairEAMKernelC<FULL,1,1>>(inum),
 	      *this,ev);
       } else {
         Kokkos::parallel_reduce(
-	      policyInstance<DeviceType, TagPairEAMKernelC<FULL,0,1>>(inum),
+	      policyInstance<TagPairEAMKernelC<FULL,0,1>>(inum),
 	      *this,ev);
       }
     }
@@ -256,31 +259,31 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (neighflag == HALF) {
       if (newton_pair) {
         Kokkos::parallel_for(
-	      policyInstance<DeviceType, TagPairEAMKernelC<HALF,1,0>>(inum),
+	      policyInstance<TagPairEAMKernelC<HALF,1,0>>(inum),
 	      *this);
       } else {
         Kokkos::parallel_for(
-	      policyInstance<DeviceType, TagPairEAMKernelC<HALF,0,0>>(inum),
+	      policyInstance<TagPairEAMKernelC<HALF,0,0>>(inum),
 	      *this);
       }
     } else if (neighflag == HALFTHREAD) {
       if (newton_pair) {
         Kokkos::parallel_for(
-	      policyInstance<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,0>>(inum),
+	      policyInstance<TagPairEAMKernelC<HALFTHREAD,1,0>>(inum),
 	      *this);
       } else {
         Kokkos::parallel_for(
-	      policyInstance<DeviceType, TagPairEAMKernelC<HALFTHREAD,0,0>>(inum),
+	      policyInstance<TagPairEAMKernelC<HALFTHREAD,0,0>>(inum),
 	      *this);
       }
     } else if (neighflag == FULL) {
       if (newton_pair) {
         Kokkos::parallel_for(
-	      policyInstance<DeviceType, TagPairEAMKernelC<FULL,1,0>>(inum),
+	      policyInstance<TagPairEAMKernelC<FULL,1,0>>(inum),
 	      *this);
       } else {
         Kokkos::parallel_for(
-	      policyInstance<DeviceType, TagPairEAMKernelC<FULL,0,0>>(inum),
+	      policyInstance<TagPairEAMKernelC<FULL,0,0>>(inum),
 	      *this);
       }
     }
@@ -857,8 +860,8 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
   // loop over neighbors of my atoms
   const int m_max = d_rhor_spline.extent_int(1);
   const int j_max = d_rhor_spline.extent_int(2);
-  const int d_rhor_spline_cached = (m_max > MAX_CACHE_ROWS || j_max > MAX_CACHE_COLS) ? 0 : 1;
-  Kokkos::View<double*[MAX_CACHE_COLS], typename DeviceType::scratch_memory_space,
+  const int d_rhor_spline_cached = (m_max > MAX_CACHE_ROWS || j_max > t_ffloat_2d_n7::static_extent(2)) ? 0 : 1;
+  Kokkos::View<double*[t_ffloat_2d_n7::static_extent(2)], typename DeviceType::scratch_memory_space,
 	       Kokkos::MemoryTraits<Kokkos::Unmanaged>> A(team_member.team_scratch(0), MAX_CACHE_ROWS);
 
   if(d_rhor_spline_cached){
@@ -869,65 +872,65 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
     }
     team_member.team_barrier();
   }
+  if (ii < inum){
+    const int i = d_ilist[ii];
+    const X_FLOAT xtmp = x(i,0);
+    const X_FLOAT ytmp = x(i,1);
+    const X_FLOAT ztmp = x(i,2);
+    const int itype = type(i);
 
-  const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
+    const int jnum = d_numneigh[i];
 
-  const int jnum = d_numneigh[i];
+    F_FLOAT rhotmp = 0.0;
 
-  F_FLOAT rhotmp = 0.0;
+    for (int jj = 0; jj < jnum; jj++) {
+      int j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
 
-  for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors(i,jj);
-    j &= NEIGHMASK;
+      const X_FLOAT delx = xtmp - x(j,0);
+      const X_FLOAT dely = ytmp - x(j,1);
+      const X_FLOAT delz = ztmp - x(j,2);
+      const int jtype = type(j);
+      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    const X_FLOAT delx = xtmp - x(j,0);
-    const X_FLOAT dely = ytmp - x(j,1);
-    const X_FLOAT delz = ztmp - x(j,2);
-    const int jtype = type(j);
-    const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < cutforcesq) {
+        F_FLOAT p = sqrt(rsq)*rdr + 1.0;
+        int m = static_cast<int> (p);
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,1.0);
+        const int d_type2rhor_ji = d_type2rhor(jtype,itype);
+        if(d_type2rhor_ji == 0 && d_rhor_spline_cached == 1) {
+          rhotmp += ((A(m,3)*p + A(m,4))*p +
+  	             A(m,5))*p + A(m,6);
+        } else
+          rhotmp += ((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
+                      d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
+      }
 
-    if (rsq < cutforcesq) {
-      F_FLOAT p = sqrt(rsq)*rdr + 1.0;
-      int m = static_cast<int> (p);
-      m = MIN(m,nr-1);
-      p -= m;
-      p = MIN(p,1.0);
-      const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-      if(d_type2rhor_ji == 0 && d_rhor_spline_cached == 1) {
-        rhotmp += ((A(m,3)*p + A(m,4))*p +
-	           A(m,5))*p + A(m,6);
-      } else
-        rhotmp += ((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
-                    d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
     }
+    d_rho[i] += rhotmp;
 
+    // fp = derivative of embedding energy at each atom
+    // phi = embedding energy at each atom
+    // if rho > rhomax (e.g. due to close approach of two atoms),
+    //   will exceed table, so add linear term to conserve energy
+
+    F_FLOAT p = d_rho[i]*rdrho + 1.0;
+    int m = static_cast<int> (p);
+    m = MAX(1,MIN(m,nrho-1));
+    p -= m;
+    p = MIN(p,1.0);
+    const int d_type2frho_i = d_type2frho[itype];
+    d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
+    if (EFLAG) {
+      F_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p +
+                      d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
+      if (d_rho[i] > rhomax) phi += d_fp[i] * (d_rho[i]-rhomax);
+      if (eflag_global) ev.evdwl += phi;
+      if (eflag_atom) d_eatom[i] += phi;
+    }
   }
-  d_rho[i] += rhotmp;
-
-  // fp = derivative of embedding energy at each atom
-  // phi = embedding energy at each atom
-  // if rho > rhomax (e.g. due to close approach of two atoms),
-  //   will exceed table, so add linear term to conserve energy
-
-  F_FLOAT p = d_rho[i]*rdrho + 1.0;
-  int m = static_cast<int> (p);
-  m = MAX(1,MIN(m,nrho-1));
-  p -= m;
-  p = MIN(p,1.0);
-  const int d_type2frho_i = d_type2frho[itype];
-  d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
-  if (EFLAG) {
-    F_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p +
-                    d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
-    if (d_rho[i] > rhomax) phi += d_fp[i] * (d_rho[i]-rhomax);
-    if (eflag_global) ev.evdwl += phi;
-    if (eflag_atom) d_eatom[i] += phi;
-  }
-
 }
 
 template<class DeviceType>
@@ -957,8 +960,8 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
 
   const int m_max = d_z2r_spline.extent_int(1);
   const int j_max = d_z2r_spline.extent_int(2);
-  const int d_z2r_spline_cached = (m_max > MAX_CACHE_ROWS || j_max > MAX_CACHE_COLS) ? 0 : 1;
-  Kokkos::View<double*[MAX_CACHE_COLS], typename DeviceType::scratch_memory_space,
+  const int d_z2r_spline_cached = (m_max > MAX_CACHE_ROWS || j_max > t_ffloat_2d_n7::static_extent(2)) ? 0 : 1;
+  Kokkos::View<double*[t_ffloat_2d_n7::static_extent(2)], typename DeviceType::scratch_memory_space,
 	       Kokkos::MemoryTraits<Kokkos::Unmanaged>> A(team_member.team_scratch(0), MAX_CACHE_ROWS);
 
   if(d_z2r_spline_cached){
@@ -969,95 +972,96 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
     }
     team_member.team_barrier();
   }
+  if (ii < inum){
+    const int i = d_ilist[ii];
+    const X_FLOAT xtmp = x(i,0);
+    const X_FLOAT ytmp = x(i,1);
+    const X_FLOAT ztmp = x(i,2);
+    const int itype = type(i);
 
-  const int i = d_ilist[ii];
-  const X_FLOAT xtmp = x(i,0);
-  const X_FLOAT ytmp = x(i,1);
-  const X_FLOAT ztmp = x(i,2);
-  const int itype = type(i);
+    const int jnum = d_numneigh[i];
 
-  const int jnum = d_numneigh[i];
+    F_FLOAT fxtmp = 0.0;
+    F_FLOAT fytmp = 0.0;
+    F_FLOAT fztmp = 0.0;
 
-  F_FLOAT fxtmp = 0.0;
-  F_FLOAT fytmp = 0.0;
-  F_FLOAT fztmp = 0.0;
+    for (int jj = 0; jj < jnum; jj++) {
+      int j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
+      const X_FLOAT delx = xtmp - x(j,0);
+      const X_FLOAT dely = ytmp - x(j,1);
+      const X_FLOAT delz = ztmp - x(j,2);
+      const int jtype = type(j);
+      const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-  for (int jj = 0; jj < jnum; jj++) {
-    int j = d_neighbors(i,jj);
-    j &= NEIGHMASK;
-    const X_FLOAT delx = xtmp - x(j,0);
-    const X_FLOAT dely = ytmp - x(j,1);
-    const X_FLOAT delz = ztmp - x(j,2);
-    const int jtype = type(j);
-    const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < cutforcesq) {
+        const F_FLOAT r = sqrt(rsq);
+        F_FLOAT p = r*rdr + 1.0;
+        int m = static_cast<int> (p);
+        m = MIN(m,nr-1);
+        p -= m;
+        p = MIN(p,1.0);
 
-    if (rsq < cutforcesq) {
-      const F_FLOAT r = sqrt(rsq);
-      F_FLOAT p = r*rdr + 1.0;
-      int m = static_cast<int> (p);
-      m = MIN(m,nr-1);
-      p -= m;
-      p = MIN(p,1.0);
+        // rhoip = derivative of (density at atom j due to atom i)
+        // rhojp = derivative of (density at atom i due to atom j)
+        // phi = pair potential energy
+        // phip = phi'
+        // z2 = phi * r
+        // z2p = (phi * r)' = (phi' r) + phi
+        // psip needs both fp[i] and fp[j] terms since r_ij appears in two
+        //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
+        //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
 
-      // rhoip = derivative of (density at atom j due to atom i)
-      // rhojp = derivative of (density at atom i due to atom j)
-      // phi = pair potential energy
-      // phip = phi'
-      // z2 = phi * r
-      // z2p = (phi * r)' = (phi' r) + phi
-      // psip needs both fp[i] and fp[j] terms since r_ij appears in two
-      //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
-      //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
-
-      const int d_type2rhor_ij = d_type2rhor(itype,jtype);
-      const F_FLOAT rhoip = (d_rhor_spline(d_type2rhor_ij,m,0)*p + d_rhor_spline(d_type2rhor_ij,m,1))*p +
+        const int d_type2rhor_ij = d_type2rhor(itype,jtype);
+        const F_FLOAT rhoip = (d_rhor_spline(d_type2rhor_ij,m,0)*p + d_rhor_spline(d_type2rhor_ij,m,1))*p +
                              d_rhor_spline(d_type2rhor_ij,m,2);
-      const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-      const F_FLOAT rhojp = (d_rhor_spline(d_type2rhor_ji,m,0)*p + d_rhor_spline(d_type2rhor_ji,m,1))*p +
-                             d_rhor_spline(d_type2rhor_ji,m,2);
-      const int d_type2z2r_ij = d_type2z2r(itype,jtype);
+        const int d_type2rhor_ji = d_type2rhor(jtype,itype);
+        const F_FLOAT rhojp = (d_rhor_spline(d_type2rhor_ji,m,0)*p + d_rhor_spline(d_type2rhor_ji,m,1))*p +
+                               d_rhor_spline(d_type2rhor_ji,m,2);
+        const int d_type2z2r_ij = d_type2z2r(itype,jtype);
 
-      const auto have_cache = (d_z2r_spline_cached == 1) && (0 == d_type2z2r_ij);
-      const auto z2r_spline_3 = (have_cache) ? A(m,3) : d_z2r_spline(d_type2z2r_ij,m,3);
-      const auto z2r_spline_4 = (have_cache) ? A(m,4) : d_z2r_spline(d_type2z2r_ij,m,4);
-      const auto z2r_spline_5 = (have_cache) ? A(m,5) : d_z2r_spline(d_type2z2r_ij,m,5);
-      const auto z2r_spline_6 = (have_cache) ? A(m,6) : d_z2r_spline(d_type2z2r_ij,m,6);
+        const auto have_cache = (d_z2r_spline_cached == 1) && (0 == d_type2z2r_ij);
+        const auto z2r_spline_3 = (have_cache) ? A(m,3) : d_z2r_spline(d_type2z2r_ij,m,3);
+        const auto z2r_spline_4 = (have_cache) ? A(m,4) : d_z2r_spline(d_type2z2r_ij,m,4);
+        const auto z2r_spline_5 = (have_cache) ? A(m,5) : d_z2r_spline(d_type2z2r_ij,m,5);
+        const auto z2r_spline_6 = (have_cache) ? A(m,6) : d_z2r_spline(d_type2z2r_ij,m,6);
 
-      const F_FLOAT z2p = (3.0*rdr*z2r_spline_3*p + 2.0*rdr*z2r_spline_4)*p +
-                           rdr*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
-      const F_FLOAT z2 = ((z2r_spline_3*p + z2r_spline_4)*p +
-                           z2r_spline_5)*p + z2r_spline_6;
+        const F_FLOAT z2p = (3.0*rdr*z2r_spline_3*p + 2.0*rdr*z2r_spline_4)*p +
+                             rdr*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
+        const F_FLOAT z2 = ((z2r_spline_3*p + z2r_spline_4)*p +
+                             z2r_spline_5)*p + z2r_spline_6;
 
-      const F_FLOAT recip = 1.0/r;
-      const F_FLOAT phi = z2*recip;
-      const F_FLOAT phip = z2p*recip - phi*recip;
-      const F_FLOAT psip = d_fp[i]*rhojp + d_fp[j]*rhoip + phip;
-      const F_FLOAT fpair = -psip*recip;
+        const F_FLOAT recip = 1.0/r;
+        const F_FLOAT phi = z2*recip;
+        const F_FLOAT phip = z2p*recip - phi*recip;
+        const F_FLOAT psip = d_fp[i]*rhojp + d_fp[j]*rhoip + phip;
+        const F_FLOAT fpair = -psip*recip;
 
-      fxtmp += delx*fpair;
-      fytmp += dely*fpair;
-      fztmp += delz*fpair;
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
 
-      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-        a_f(j,0) -= delx*fpair;
-        a_f(j,1) -= dely*fpair;
-        a_f(j,2) -= delz*fpair;
-      }
-
-      if (EVFLAG) {
-        if (eflag) {
-          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*phi;
+        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+          a_f(j,0) -= delx*fpair;
+          a_f(j,1) -= dely*fpair;
+          a_f(j,2) -= delz*fpair;
         }
 
-        if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,phi,fpair,delx,dely,delz);
+        if (EVFLAG) {
+          if (eflag) {
+            ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*phi;
+          }
+
+          if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,phi,fpair,delx,dely,delz);
+        }
+
       }
-
     }
-  }
 
-  a_f(i,0) += fxtmp;
-  a_f(i,1) += fytmp;
-  a_f(i,2) += fztmp;
+    a_f(i,0) += fxtmp;
+    a_f(i,1) += fytmp;
+    a_f(i,2) += fztmp;
+  }
 }
 
 template<class DeviceType>

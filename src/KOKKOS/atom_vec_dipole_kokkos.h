@@ -13,25 +13,25 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(atomic/kk,AtomVecAtomicKokkos);
-AtomStyle(atomic/kk/device,AtomVecAtomicKokkos);
-AtomStyle(atomic/kk/host,AtomVecAtomicKokkos);
+AtomStyle(dipole/kk,AtomVecDipoleKokkos);
+AtomStyle(dipole/kk/device,AtomVecDipoleKokkos);
+AtomStyle(dipole/kk/host,AtomVecDipoleKokkos);
 // clang-format on
 #else
 
 // clang-format off
-#ifndef LMP_ATOM_VEC_ATOMIC_KOKKOS_H
-#define LMP_ATOM_VEC_ATOMIC_KOKKOS_H
+#ifndef LMP_ATOM_VEC_DIPOLE_KOKKOS_H
+#define LMP_ATOM_VEC_DIPOLE_KOKKOS_H
 
 #include "atom_vec_kokkos.h"
-#include "atom_vec_atomic.h"
+#include "atom_vec_dipole.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecAtomicKokkos : public AtomVecKokkos, public AtomVecAtomic {
+class AtomVecDipoleKokkos : public AtomVecKokkos, public AtomVecDipole {
  public:
-  AtomVecAtomicKokkos(class LAMMPS *);
+  AtomVecDipoleKokkos(class LAMMPS *);
 
   void grow(int) override;
   void grow_pointers() override;
@@ -55,19 +55,28 @@ class AtomVecAtomicKokkos : public AtomVecKokkos, public AtomVecAtomic {
   void sync_overlapping_device(ExecutionSpace space, unsigned int mask) override;
 
  protected:
+  double *q;
+
   DAT::t_tagint_1d d_tag;
   HAT::t_tagint_1d h_tag;
-  DAT::t_imageint_1d d_image;
-  HAT::t_imageint_1d h_image;
+
   DAT::t_int_1d d_type, d_mask;
   HAT::t_int_1d h_type, h_mask;
+
+  DAT::t_imageint_1d d_image;
+  HAT::t_imageint_1d h_image;
 
   DAT::t_x_array d_x;
   DAT::t_v_array d_v;
   DAT::t_f_array d_f;
+
+  DAT::t_float_1d d_q;
+  HAT::t_float_1d h_q;
+  DAT::t_mu_array d_mu;
+  HAT::t_mu_array h_mu;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

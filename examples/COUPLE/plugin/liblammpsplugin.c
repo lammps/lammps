@@ -117,6 +117,9 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(scatter_atoms_subset);
 
   ADDSYM(gather_bonds);
+  ADDSYM(gather_angles);
+  ADDSYM(gather_dihedrals);
+  ADDSYM(gather_impropers);
 
   ADDSYM(gather);
   ADDSYM(gather_concat);

@@ -2,7 +2,7 @@ LAMMPS portability and compatibility
 ------------------------------------
 
 The primary form of distributing LAMMPS is through highly portable
-source code.  But also several ways of obtaining LAMMPS as `precompiled
+source code.  But also several ways of obtaining LAMMPS as :doc:`precompiled
 packages or through automated build mechanisms <Install>` exist.  Most
 of LAMMPS is written in C++, some support tools are written in Fortran
 or Python or MATLAB.

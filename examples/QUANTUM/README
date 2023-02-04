@@ -12,12 +12,12 @@ NWChem = computational chemistry code from PNNL
   focus here is on DFT portion of NWChem = PWDFT library
   https://www.nwchem-sw.org
 
------------------------------------------------------
-
-To be added later (as of Jan 2023):
-
 Quantum Espresso (QE) = DFT code for materials modeling
   https://www.quantum-espresso.org/
+
+-----------------------------------------------------
+
+To be added later (as of Feb 2023):
 
 DFT-FE = real-space DFT code from U Michigan
   https://github.com/dftfeDevelopers/dftfe

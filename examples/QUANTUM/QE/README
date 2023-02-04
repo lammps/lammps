@@ -1,0 +1,63 @@
+# Test runs of QMMM with LAMMPS and Quantum Espress (QE)
+
+Step 1: build LAMMPS
+Step 2: download/build QE with MDI support
+Step 3: run test problem
+
+---------------------------------
+---------------------------------
+
+Step 1: build LAMMPS
+
+The molecule and kspace packages are needed for the 2-water test
+problem.  Copy the final LAMMPS executable into the
+examples/QUANTUM/PySCF directory.
+
+Traditional make:
+
+% cd ~/lammps/lib/mdi
+% python Install.py -m mpi
+% cd ~/lammps/src
+% make yes-mdi yes-molecule yes-kspace
+% make -j mpi
+% cp lmp_mpi ~/lammps/examples/QUANTUM/QE
+
+CMake:
+
+% cd ~/lammps
+% mkdir build; cd build
+% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes -D PKG_KSPACE=yes ../cmake
+% make -j
+% cp lmp ~/lammps/examples/QUANTUM/QE/lmp_mpi
+
+---------------------------------
+---------------------------------
+
+Step 2: download/build QE with MDI support
+
+% git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git
+% cd qe/git
+% ./configure --enable-parallel --enable-openmp --enable-shared FFLAGS="-fPIC" FCFLAGS="-fPIC" CFLAGS="-fPIC" try_foxflags="-fPIC -cpp"
+% make mdi
+
+copy MDI/src/qemdi.x to QUANTUM/QE
+
+---------------------------------
+---------------------------------
+
+Step 3: run test problem
+
+% cd ~/lammps/examples/QUANTUM/QE
+
+# Run with TCP: 1 proc each
+
+% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.test.qe.aimd.tcp.1 -in in.water.qe.aimd &
+% qemdi.x -in in.qe.test -mdi "-name QE -role ENGINE -method TCP -port 8021 -hostname localhost"
+
+# Run with MPI: 1 proc each
+
+% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.test.qe.aimd.mpi.1 -in in.water.qe.aimd : -np 1 qemdi.x -in in.qe.test -mdi "-name QE -role ENGINE -method MPI"
+
+# Run in plugin mode: 1 proc
+
+% mpirun -np 1 lmp_mpi -mdi "-role DRIVER -name driver -method LINK -plugin_path /home/sjplimp/qe/git/MDI/src" -log log.test.qe.aimd.plugin.1 -in in.test.qe.aimd.plugin

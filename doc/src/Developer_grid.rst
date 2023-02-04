@@ -70,7 +70,7 @@ A command can define multiple grids, each of a different size.  Each
 grid is an instantiation of the Grid2d or Grid3d class.
 
 The command also defines what data it will store for each grid it
-creates and it allocates the multi-dimensional array(s) needed to
+creates and it allocates the multidimensional array(s) needed to
 store the data.  No grid cell data is stored within the Grid2d or
 Grid3d classes.
 
@@ -115,7 +115,7 @@ which stores *Nvalues* per grid cell.
                                 nyhi_out, nxlo_out, nxhi_out, nvalues,
                                 "data3d_multi");
 
-Note that these multi-dimensional arrays are allocated as contiguous
+Note that these multidimensional arrays are allocated as contiguous
 chunks of memory where the x-index of the grid varies fastest, then y,
 and the z-index slowest.  For multiple values per grid cell, the
 Nvalues are contiguous, so their index varies even faster than the
@@ -798,7 +798,7 @@ A value of -1 is returned if the data name is not recognized.
 The *get_griddata_by_index()* method is called after the
 *get_griddata_by_name()* method, using the data index it returned as
 its argument.  This method will return a pointer to the
-multi-dimensional array which stores the requested data.
+multidimensional array which stores the requested data.
 
 As in the discussion above of the Memory class *create_offset()*
 methods, the dimensionality of the array associated with the returned

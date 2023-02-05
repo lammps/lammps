@@ -1415,9 +1415,9 @@ void FixBondReact::superimpose_algorithm()
     }
   }
 
+  dedup_mega_gloves(LOCAL); // make sure atoms aren't added to more than one reaction
   glove_ghostcheck(); // split into 'local' and 'global'
   ghost_glovecast(); // consolidate all mega_gloves to all processors
-  dedup_mega_gloves(LOCAL); // make sure atoms aren't added to more than one reaction
 
   MPI_Allreduce(&local_rxn_count[0],&reaction_count[0],nreacts,MPI_INT,MPI_SUM,world);
 
@@ -2661,14 +2661,14 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
 {
   // dedup_mode == LOCAL for local_dedup
   // dedup_mode == GLOBAL for global_mega_glove
-  for (int i = 0; i < nreacts; i++) {
-    if (dedup_mode == LOCAL) local_rxn_count[i] = 0;
-    if (dedup_mode == GLOBAL) ghostly_rxn_count[i] = 0;
-  }
+
+  if (dedup_mode == GLOBAL)
+    for (int i = 0; i < nreacts; i++)
+      ghostly_rxn_count[i] = 0;
 
   int dedup_size = 0;
   if (dedup_mode == LOCAL) {
-    dedup_size = local_num_mega;
+    dedup_size = my_num_mega;
   } else if (dedup_mode == GLOBAL) {
     dedup_size = global_megasize;
   }
@@ -2679,7 +2679,7 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
   if (dedup_mode == LOCAL) {
     for (int i = 0; i < dedup_size; i++) {
       for (int j = 0; j < max_natoms+1; j++) {
-        dedup_glove[j][i] = local_mega_glove[j][i];
+        dedup_glove[j][i] = my_mega_glove[j][i];
       }
     }
   } else if (dedup_mode == GLOBAL) {
@@ -2742,17 +2742,16 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
   // we must update local_mega_glove and local_megasize
   // we can simply overwrite local_mega_glove column by column
   if (dedup_mode == LOCAL) {
-    int new_local_megasize = 0;
-    for (int i = 0; i < local_num_mega; i++) {
+    int my_new_megasize = 0;
+    for (int i = 0; i < my_num_mega; i++) {
       if (dedup_mask[i] == 0) {
-        local_rxn_count[(int) dedup_glove[0][i]]++;
         for (int j = 0; j < max_natoms+1; j++) {
-          local_mega_glove[j][new_local_megasize] = dedup_glove[j][i];
+          my_mega_glove[j][my_new_megasize] = dedup_glove[j][i];
         }
-        new_local_megasize++;
+        my_new_megasize++;
       }
     }
-    local_num_mega = new_local_megasize;
+    my_num_mega = my_new_megasize;
   }
 
   // we must update global_mega_glove and global_megasize
@@ -2827,6 +2826,9 @@ void FixBondReact::glove_ghostcheck()
   // 'ghosts of another' indication taken from comm->sendlist
   // also includes local gloves that overlap with ghostly gloves, to get dedup right
 
+  for (int i = 0; i < nreacts; i++)
+    local_rxn_count[i] = 0;
+
   for (int i = 0; i < my_num_mega; i++) {
     rxnID = my_mega_glove[0][i];
     onemol = atom->molecules[unreacted_mol[rxnID]];
@@ -2851,14 +2853,13 @@ void FixBondReact::glove_ghostcheck()
   
     if (ghostly == 1) {
       ghostly_mega_glove[0][ghostly_num_mega] = rxnID;
-      ghostly_rxn_count[rxnID]++; //for debuginng
       for (int j = 0; j < onemol->natoms+1; j++) {
         ghostly_mega_glove[j][ghostly_num_mega] = my_mega_glove[j][i];
       }
       ghostly_num_mega++;
     } else {
       local_mega_glove[0][local_num_mega] = rxnID;
-      local_rxn_count[rxnID]++; //for debuginng
+      local_rxn_count[rxnID]++;
       for (int j = 0; j < onemol->natoms+1; j++) {
         local_mega_glove[j][local_num_mega] = my_mega_glove[j][i];
       }

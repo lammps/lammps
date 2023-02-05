@@ -545,6 +545,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   attempt = nullptr;
   nattempt = nullptr;
   allnattempt = 0;
+  my_num_mega = 0;
   local_num_mega = 0;
   ghostly_num_mega = 0;
   restore =  nullptr;
@@ -555,6 +556,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   glove_counter = 0;
   guess_branch = new int[MAXGUESS]();
   pioneer_count = new int[max_natoms];
+  my_mega_glove = nullptr;
   local_mega_glove = nullptr;
   ghostly_mega_glove = nullptr;
   global_mega_glove = nullptr;
@@ -654,6 +656,7 @@ FixBondReact::~FixBondReact()
     memory->destroy(restore);
     memory->destroy(glove);
     memory->destroy(pioneers);
+    memory->destroy(my_mega_glove);
     memory->destroy(local_mega_glove);
     memory->destroy(ghostly_mega_glove);
   }
@@ -1251,6 +1254,7 @@ void FixBondReact::close_partner()
 void FixBondReact::superimpose_algorithm()
 {
   const int nprocs = comm->nprocs;
+  my_num_mega = 0;
   local_num_mega = 0;
   ghostly_num_mega = 0;
 
@@ -1269,6 +1273,7 @@ void FixBondReact::superimpose_algorithm()
     memory->destroy(restore);
     memory->destroy(glove);
     memory->destroy(pioneers);
+    memory->destroy(my_mega_glove);
     memory->destroy(local_mega_glove);
     memory->destroy(ghostly_mega_glove);
   }
@@ -1277,17 +1282,13 @@ void FixBondReact::superimpose_algorithm()
   memory->create(restore_pt,MAXGUESS,4,"bond/react:restore_pt");
   memory->create(pioneers,max_natoms,"bond/react:pioneers");
   memory->create(restore,max_natoms,MAXGUESS*4,"bond/react:restore");
-  memory->create(local_mega_glove,max_natoms+1,allnattempt,"bond/react:local_mega_glove");
-  memory->create(ghostly_mega_glove,max_natoms+1,allnattempt,"bond/react:ghostly_mega_glove");
+  memory->create(my_mega_glove,max_natoms+1,allnattempt,"bond/react:local_mega_glove");
+
+  for (int i = 0; i < max_natoms+1; i++)
+    for (int j = 0; j < allnattempt; j++)
+      my_mega_glove[i][j] = 0;
 
   attempted_rxn = 1;
-
-  for (int i = 0; i < max_natoms+1; i++) {
-    for (int j = 0; j < allnattempt; j++) {
-      local_mega_glove[i][j] = 0;
-      ghostly_mega_glove[i][j] = 0;
-    }
-  }
 
   // let's finally begin the superimpose loop
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
@@ -1335,7 +1336,11 @@ void FixBondReact::superimpose_algorithm()
             status = REJECT;
           } else {
             status = ACCEPT;
-            glove_ghostcheck();
+            my_mega_glove[0][my_num_mega] = rxnID;
+            for (int i = 0; i < onemol->natoms; i++) {
+              my_mega_glove[i+1][my_num_mega] = glove[i][1];
+            }
+            my_num_mega++;
           }
         } else status = REJECT;
       }
@@ -1378,7 +1383,13 @@ void FixBondReact::superimpose_algorithm()
         if (status == ACCEPT) {
           if (fraction[rxnID] < 1.0 &&
               random[rxnID]->uniform() >= fraction[rxnID]) status = REJECT;
-          else glove_ghostcheck();
+          else {
+            my_mega_glove[0][my_num_mega] = rxnID;
+            for (int i = 0; i < onemol->natoms; i++) {
+              my_mega_glove[i+1][my_num_mega] = glove[i][1];
+            }
+            my_num_mega++;
+          }
         }
         hang_catch++;
         // let's go ahead and catch the simplest of hangs
@@ -1394,6 +1405,17 @@ void FixBondReact::superimpose_algorithm()
 
   global_megasize = 0;
 
+  memory->create(local_mega_glove,max_natoms+1,my_num_mega,"bond/react:local_mega_glove");
+  memory->create(ghostly_mega_glove,max_natoms+1,my_num_mega,"bond/react:ghostly_mega_glove");
+
+  for (int i = 0; i < max_natoms+1; i++) {
+    for (int j = 0; j < my_num_mega; j++) {
+      local_mega_glove[i][j] = 0;
+      ghostly_mega_glove[i][j] = 0;
+    }
+  }
+
+  glove_ghostcheck(); // split into 'local' and 'global'
   ghost_glovecast(); // consolidate all mega_gloves to all processors
   dedup_mega_gloves(LOCAL); // make sure atoms aren't added to more than one reaction
 
@@ -2803,40 +2825,45 @@ void FixBondReact::glove_ghostcheck()
   // here we add glove to either local_mega_glove or ghostly_mega_glove
   // ghostly_mega_glove includes atoms that are ghosts, either of this proc or another
   // 'ghosts of another' indication taken from comm->sendlist
+  // also includes local gloves that overlap with ghostly gloves, to get dedup right
 
-  int ghostly = 0;
-#if !defined(MPI_STUBS)
-  if (comm->style == Comm::BRICK) {
-    if (create_atoms_flag[rxnID] == 1) {
-      ghostly = 1;
-    } else {
-      for (int i = 0; i < onemol->natoms; i++) {
-        int ilocal = atom->map(glove[i][1]);
-        if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
-          ghostly = 1;
-          break;
+  for (int i = 0; i < my_num_mega; i++) {
+    rxnID = my_mega_glove[0][i];
+    onemol = atom->molecules[unreacted_mol[rxnID]];
+    int ghostly = 0;
+  #if !defined(MPI_STUBS)
+    if (comm->style == Comm::BRICK) {
+      if (create_atoms_flag[rxnID] == 1) {
+        ghostly = 1;
+      } else {
+        for (int j = 0; j < onemol->natoms; j++) {
+          int ilocal = atom->map(my_mega_glove[j+1][i]);
+          if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
+            ghostly = 1;
+            break;
+          }
         }
       }
+    } else {
+      ghostly = 1;
     }
-  } else {
-    ghostly = 1;
-  }
-#endif
-
-  if (ghostly == 1) {
-    ghostly_mega_glove[0][ghostly_num_mega] = rxnID;
-    ghostly_rxn_count[rxnID]++; //for debuginng
-    for (int i = 0; i < onemol->natoms; i++) {
-      ghostly_mega_glove[i+1][ghostly_num_mega] = glove[i][1];
+  #endif
+  
+    if (ghostly == 1) {
+      ghostly_mega_glove[0][ghostly_num_mega] = rxnID;
+      ghostly_rxn_count[rxnID]++; //for debuginng
+      for (int j = 0; j < onemol->natoms+1; j++) {
+        ghostly_mega_glove[j][ghostly_num_mega] = my_mega_glove[j][i];
+      }
+      ghostly_num_mega++;
+    } else {
+      local_mega_glove[0][local_num_mega] = rxnID;
+      local_rxn_count[rxnID]++; //for debuginng
+      for (int j = 0; j < onemol->natoms+1; j++) {
+        local_mega_glove[j][local_num_mega] = my_mega_glove[j][i];
+      }
+      local_num_mega++;
     }
-    ghostly_num_mega++;
-  } else {
-    local_mega_glove[0][local_num_mega] = rxnID;
-    local_rxn_count[rxnID]++; //for debuginng
-    for (int i = 0; i < onemol->natoms; i++) {
-      local_mega_glove[i+1][local_num_mega] = glove[i][1];
-    }
-    local_num_mega++;
   }
 }
 

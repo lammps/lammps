@@ -2671,11 +2671,8 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
   // dedup_mask is size dedup_size and filters reactions that have been deleted
   // a value of 1 means this reaction instance has been deleted
   int *dedup_mask = new int[dedup_size];
-  int *dup_list = new int[dedup_size];
-
   for (int i = 0; i < dedup_size; i++) {
     dedup_mask[i] = 0;
-    dup_list[i] = 0;
   }
 
   // let's randomly mix up our reaction instances first
@@ -2699,40 +2696,22 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
 
   for (int i = 0; i < dedup_size; i++) {
     if (dedup_mask[i] == 0) {
-      int num_dups = 0;
       int myrxnid1 = dedup_glove[0][i];
       onemol = atom->molecules[unreacted_mol[myrxnid1]];
       for (int j = 0; j < onemol->natoms; j++) {
         int check1 = dedup_glove[j+1][i];
         for (int ii = i + 1; ii < dedup_size; ii++) {
-          int already_listed = 0;
-          for (int jj = 0; jj < num_dups; jj++) {
-            if (dup_list[jj] == ii) {
-              already_listed = 1;
-              break;
-            }
-          }
-          if (dedup_mask[ii] == 0 && already_listed == 0) {
+          if (dedup_mask[ii] == 0) {
             int myrxnid2 = dedup_glove[0][ii];
             twomol = atom->molecules[unreacted_mol[myrxnid2]];
             for (int jj = 0; jj < twomol->natoms; jj++) {
               int check2 = dedup_glove[jj+1][ii];
               if (check2 == check1) {
-                // add this rxn instance as well
-                if (num_dups == 0) dup_list[num_dups++] = i;
-                dup_list[num_dups++] = ii;
+                dedup_mask[ii] = 1;
                 break;
               }
             }
           }
-        }
-      }
-      // here we choose random number and therefore reaction instance
-      int myrand = 1;
-      if (num_dups > 0) {
-        myrand = floor(random[0]->uniform()*num_dups);
-        for (int iii = 0; iii < num_dups; iii++) {
-          if (iii != myrand) dedup_mask[dup_list[iii]] = 1;
         }
       }
     }
@@ -2751,7 +2730,6 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
         new_local_megasize++;
       }
     }
-
     local_num_mega = new_local_megasize;
   }
 
@@ -2773,7 +2751,6 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
 
   memory->destroy(dedup_glove);
   delete [] dedup_mask;
-  delete [] dup_list;
 }
 
 /* ----------------------------------------------------------------------

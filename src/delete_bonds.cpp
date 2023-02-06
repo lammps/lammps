@@ -122,7 +122,7 @@ void DeleteBonds::command(int narg, char **arg)
   auto histories = modify->get_fix_by_style("BOND_HISTORY");
   int n_histories = histories.size();
 
-  // border swap to insure type and mask is current for off-proc atoms
+  // border swap to ensure type and mask is current for off-proc atoms
   // enforce PBC before in case atoms are outside box
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);

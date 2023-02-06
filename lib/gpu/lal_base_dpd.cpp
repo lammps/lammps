@@ -72,7 +72,10 @@ int BaseDPDT::init_atomic(const int nlocal, const int nall,
 
   _threads_per_atom=device->threads_per_atom();
 
-  int success=device->init(*ans,false,false,nlocal,nall,maxspecial,true);
+  bool charge = false;
+  bool rot = false;
+  bool vel = true;
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial,vel);
   if (success!=0)
     return success;
 
@@ -193,7 +196,7 @@ void BaseDPDT::compute(const int f_ago, const int inum_full, const int nall,
                        const double cpu_time, bool &success, tagint *tag,
                        double **host_v, const double dtinvsqrt,
                        const int seed, const int timestep,
-                       const int nlocal, double *boxlo, double *prd) {
+                       const int /*nlocal*/, double * /*boxlo*/, double * /*prd*/) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -258,7 +261,7 @@ int** BaseDPDT::compute(const int ago, const int inum_full,
                         const double cpu_time, bool &success,
                         double **host_v, const double dtinvsqrt,
                         const int seed, const int timestep,
-                        double *boxlo, double *prd) {
+                        double * /*boxlo*/, double * /*prd*/) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;

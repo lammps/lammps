@@ -171,7 +171,7 @@ void DumpCFGMPIIO::write()
 
   bigint nheader = ntotal;
 
-  // insure filewriter proc can receive everyone's info
+  // ensure filewriter proc can receive everyone's info
   // limit nmax*size_one to int since used as arg in MPI_Rsend() below
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()

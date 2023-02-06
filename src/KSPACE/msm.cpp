@@ -1030,19 +1030,19 @@ void MSM::set_grid_global()
   int xlevels,ylevels,zlevels;
 
   while (!factorable(nx_max,flag,xlevels)) {
-    double k = log(nx_max)/log(2.0);
+    double k = log((double)nx_max)/log(2.0);
     double r = k - floor(k);
     if (r > 0.5) nx_max++;
     else nx_max--;
   }
   while (!factorable(ny_max,flag,ylevels)) {
-    double k = log(ny_max)/log(2.0);
+    double k = log((double)ny_max)/log(2.0);
     double r = k - floor(k);
     if (r > 0.5) ny_max++;
     else ny_max--;
   }
   while (!factorable(nz_max,flag,zlevels)) {
-    double k = log(nz_max)/log(2.0);
+    double k = log((double)nz_max)/log(2.0);
     double r = k - floor(k);
     if (r > 0.5) nz_max++;
     else nz_max--;

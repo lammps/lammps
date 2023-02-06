@@ -167,7 +167,7 @@ void CreateBox::command(int narg, char **arg)
   }
 
   // problem setup using info from header
-  // deallocate/grow insures any extra settings are used for topology arrays
+  // deallocate/grow ensures any extra settings are used for topology arrays
   // necessary in case no create_atoms is performed
 
   update->ntimestep = 0;

@@ -123,7 +123,7 @@ void ComputeTempCS::setup()
   if (firstflag) {
     firstflag = 0;
 
-    // insure # of core atoms = # of shell atoms
+    // ensure # of core atoms = # of shell atoms
 
     int ncores = group->count(cgroup);
     nshells = group->count(sgroup);
@@ -133,7 +133,7 @@ void ComputeTempCS::setup()
     // for each C/S pair:
     // set partner IDs of both atoms if this atom stores bond between them
     // will set partner IDs for ghost atoms if needed by another proc
-    // nall loop insures all ghost atom partner IDs are set before reverse comm
+    // nall loop ensures all ghost atom partner IDs are set before reverse comm
 
     int *num_bond = atom->num_bond;
     tagint **bond_atom = atom->bond_atom;

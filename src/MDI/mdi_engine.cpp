@@ -911,7 +911,7 @@ void MDIEngine::evaluate()
   //     incremental: timstepping an MD simulation
   //     non-incremental: e.g. processing snapshots from a dump file
   //   advance system by single step
-  //   insure potential energy and virial are tallied on new step
+  //   ensure potential energy and virial are tallied on new step
   //   check if reneighboing needed
   //   if no, just invoke setup_minimal(0)
   //   if yes, do an irregular->migrate_check() and migrate_atoms() if needed

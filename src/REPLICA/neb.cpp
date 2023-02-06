@@ -52,8 +52,7 @@ NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2steps_in, int nevery_in,
          double *buf_init, double *buf_final) :
-    Command(lmp),
-    fp(nullptr), all(nullptr), rdist(nullptr)
+    Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr)
 {
   double delx, dely, delz;
 
@@ -62,6 +61,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2step
   n1steps = n1steps_in;
   n2steps = n2steps_in;
   nevery = nevery_in;
+  print_mode = DEFAULT;
 
   // replica info
 
@@ -149,7 +149,6 @@ void NEB::command(int narg, char **arg)
   // process file-style setting to setup initial configs for all replicas
   int iarg = 5;
   int filecmd = 0;
-  print_mode = DEFAULT;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "final") == 0) {
       if (iarg + 2 > narg)
@@ -294,7 +293,7 @@ void NEB::run()
   // perform regular NEB for n1steps or until replicas converge
   // retrieve PE values from fix NEB and print every nevery iterations
   // break out of while loop early if converged
-  // damped dynamic min styles insure all replicas converge together
+  // damped dynamic min styles ensure all replicas converge together
 
   timer->init();
   timer->barrier_start();
@@ -392,7 +391,7 @@ void NEB::run()
   // perform climbing NEB for n2steps or until replicas converge
   // retrieve PE values from fix NEB and print every nevery iterations
   // break induced if converged
-  // damped dynamic min styles insure all replicas converge together
+  // damped dynamic min styles ensure all replicas converge together
 
   timer->init();
   timer->barrier_start();

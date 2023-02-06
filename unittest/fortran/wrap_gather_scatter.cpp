@@ -1,9 +1,10 @@
 // unit tests for gathering and scattering data from a LAMMPS instance through
 // the Fortran wrapper
 
+#include "atom.h"
+#include "input.h"
 #include "lammps.h"
 #include "library.h"
-#include "atom.h"
 #include <cstdint>
 #include <cstdlib>
 #include <mpi.h>
@@ -11,7 +12,11 @@
 
 #include "gtest/gtest.h"
 
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+
 // prototypes for Fortran reverse wrapper functions
+
 extern "C" {
 void *f_lammps_with_args();
 void f_lammps_close();
@@ -24,12 +29,18 @@ int f_lammps_gather_atoms_subset_mask(int);
 double f_lammps_gather_atoms_subset_position(int, int);
 void f_lammps_scatter_atoms_masks();
 void f_lammps_scatter_atoms_positions();
-void f_lammps_setup_gather_bonds();
+void f_lammps_setup_gather_topology();
 int f_lammps_test_gather_bonds_small();
 int f_lammps_test_gather_bonds_big();
+int f_lammps_test_gather_angles_small();
+int f_lammps_test_gather_angles_big();
+int f_lammps_test_gather_dihedrals_small();
+int f_lammps_test_gather_dihedrals_big();
+int f_lammps_test_gather_impropers_small();
+int f_lammps_test_gather_impropers_big();
 double f_lammps_gather_pe_atom(int);
 double f_lammps_gather_pe_atom_concat(int);
-void f_lammps_gather_pe_atom_subset(int*, double*);
+void f_lammps_gather_pe_atom_subset(int *, double *);
 void f_lammps_scatter_compute();
 void f_lammps_scatter_subset_compute();
 }
@@ -45,7 +56,8 @@ protected:
     void SetUp() override
     {
         ::testing::internal::CaptureStdout();
-        lmp                = (LAMMPS_NS::LAMMPS *)f_lammps_with_args();
+        lmp = (LAMMPS_NS::LAMMPS *)f_lammps_with_args();
+        lmp->input->one("variable input_dir index " STRINGIFY(TEST_INPUT_FOLDER));
         std::string output = ::testing::internal::GetCapturedStdout();
         EXPECT_STREQ(output.substr(0, 8).c_str(), "LAMMPS (");
     }
@@ -215,11 +227,44 @@ TEST_F(LAMMPS_gather_scatter, scatter_atoms_subset_mask)
 TEST_F(LAMMPS_gather_scatter, gather_bonds)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
-    f_lammps_setup_gather_bonds();
+    f_lammps_setup_gather_topology();
 #ifdef LAMMPS_BIGBIG
-    EXPECT_EQ(f_lammps_test_gather_bonds_big(), 1);
+    EXPECT_EQ(f_lammps_test_gather_bonds_big(), 10);
 #else
-    EXPECT_EQ(f_lammps_test_gather_bonds_small(), 1);
+    EXPECT_EQ(f_lammps_test_gather_bonds_small(), 10);
+#endif
+};
+
+TEST_F(LAMMPS_gather_scatter, gather_angles)
+{
+    if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
+    f_lammps_setup_gather_topology();
+#ifdef LAMMPS_BIGBIG
+    EXPECT_EQ(f_lammps_test_gather_angles_big(), 10);
+#else
+    EXPECT_EQ(f_lammps_test_gather_angles_small(), 10);
+#endif
+};
+
+TEST_F(LAMMPS_gather_scatter, gather_dihedrals)
+{
+    if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
+    f_lammps_setup_gather_topology();
+#ifdef LAMMPS_BIGBIG
+    EXPECT_EQ(f_lammps_test_gather_dihedrals_big(), 10);
+#else
+    EXPECT_EQ(f_lammps_test_gather_dihedrals_small(), 10);
+#endif
+};
+
+TEST_F(LAMMPS_gather_scatter, gather_impropers)
+{
+    if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
+    f_lammps_setup_gather_topology();
+#ifdef LAMMPS_BIGBIG
+    EXPECT_EQ(f_lammps_test_gather_impropers_big(), 2);
+#else
+    EXPECT_EQ(f_lammps_test_gather_impropers_small(), 2);
 #endif
 };
 
@@ -231,9 +276,8 @@ TEST_F(LAMMPS_gather_scatter, gather_compute)
     f_lammps_setup_gather_scatter();
     lammps_command(lmp, "run 0");
     int natoms = lmp->atom->natoms;
-    int *tag = lmp->atom->tag;
-    double *pe = (double*) lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM,
-        LMP_TYPE_VECTOR);
+    int *tag   = lmp->atom->tag;
+    double *pe = (double *)lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM, LMP_TYPE_VECTOR);
     for (int i = 0; i < natoms; i++)
         EXPECT_DOUBLE_EQ(f_lammps_gather_pe_atom(tag[i]), pe[i]);
 #endif
@@ -247,9 +291,8 @@ TEST_F(LAMMPS_gather_scatter, gather_compute_concat)
     f_lammps_setup_gather_scatter();
     lammps_command(lmp, "run 0");
     int natoms = lmp->atom->natoms;
-    int *tag = lmp->atom->tag;
-    double *pe = (double*) lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM,
-        LMP_TYPE_VECTOR);
+    int *tag   = lmp->atom->tag;
+    double *pe = (double *)lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM, LMP_TYPE_VECTOR);
     for (int i = 0; i < natoms; i++)
         EXPECT_DOUBLE_EQ(f_lammps_gather_pe_atom(tag[i]), pe[i]);
 #endif
@@ -262,16 +305,15 @@ TEST_F(LAMMPS_gather_scatter, gather_compute_subset)
 #else
     f_lammps_setup_gather_scatter();
     lammps_command(lmp, "run 0");
-    int ids[2] = {3, 1};
-    int *tag = lmp->atom->tag;
-    double pe[2] = {0.0, 0.0};
-    int nlocal = lammps_extract_setting(lmp, "nlocal");
-    double *pa_pe = (double*) lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM,
-      LMP_TYPE_VECTOR);
+    int ids[2]    = {3, 1};
+    int *tag      = lmp->atom->tag;
+    double pe[2]  = {0.0, 0.0};
+    int nlocal    = lammps_extract_setting(lmp, "nlocal");
+    double *pa_pe = (double *)lammps_extract_compute(lmp, "pe", LMP_STYLE_ATOM, LMP_TYPE_VECTOR);
 
     for (int i = 0; i < nlocal; i++) {
-      if(tag[i] == ids[0]) pe[0] = pa_pe[i];
-      if(tag[i] == ids[1]) pe[1] = pa_pe[i];
+        if (tag[i] == ids[0]) pe[0] = pa_pe[i];
+        if (tag[i] == ids[1]) pe[1] = pa_pe[i];
     }
 
     double ftn_pe[2];
@@ -293,7 +335,7 @@ TEST_F(LAMMPS_gather_scatter, scatter_compute)
     lammps_gather(lmp, "c_pe", 1, 1, pe);
     double *old_pe = new double[natoms];
     for (int i = 0; i < natoms; i++)
-      old_pe[i] = pe[i];
+        old_pe[i] = pe[i];
     EXPECT_DOUBLE_EQ(pe[0], old_pe[0]);
     EXPECT_DOUBLE_EQ(pe[1], old_pe[1]);
     EXPECT_DOUBLE_EQ(pe[2], old_pe[2]);
@@ -319,7 +361,7 @@ TEST_F(LAMMPS_gather_scatter, scatter_subset_compute)
     lammps_gather(lmp, "c_pe", 1, 1, pe);
     double *old_pe = new double[natoms];
     for (int i = 0; i < natoms; i++)
-      old_pe[i] = pe[i];
+        old_pe[i] = pe[i];
     EXPECT_DOUBLE_EQ(pe[0], old_pe[0]);
     EXPECT_DOUBLE_EQ(pe[1], old_pe[1]);
     EXPECT_DOUBLE_EQ(pe[2], old_pe[2]);

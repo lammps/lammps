@@ -39,6 +39,9 @@ Syntax
            *masslimit* value = massmin massmax
              massmin = minimum molecular weight of species to delete
              massmax = maximum molecular weight of species to delete
+       *delete_rate_limit* value = Nlimit Nsteps
+             Nlimit = maximum number of deletions allowed to occur within interval
+             Nsteps = the interval (number of timesteps) over which to count deletions
 
 Examples
 """"""""
@@ -118,6 +121,8 @@ character appears in *filepos*, then one file per snapshot is written
 at *posfreq* and the "\*" character is replaced with the timestep
 value.  For example, AuO.pos.\* becomes AuO.pos.0, AuO.pos.1000, etc.
 
+.. versionadded:: 3Aug2022
+
 The optional keyword *delete* enables the periodic removal of
 molecules from the system.  Criteria for deletion can be either a list
 of specific chemical formulae or a range of molecular weights.
@@ -140,7 +145,13 @@ When using the *masslimit* keyword, each line of the *filedel* file
 contains the timestep on which deletions occurs, followed by how many
 of each species are deleted (with quantities preceding chemical
 formulae).  The *specieslist* and *masslimit* keywords cannot both be
-used in the same *reaxff/species* fix.
+used in the same *reaxff/species* fix.  The *delete_rate_limit*
+keyword can enforce an upper limit on the overall rate of molecule
+deletion.  The number of deletion occurrences is limited to Nlimit
+within an interval of Nsteps timesteps.  When using the
+*delete_rate_limit* keyword, no deletions are permitted to occur
+within the first Nsteps timesteps of the first run (after reading a
+either a data or restart file).
 
 ----------
 

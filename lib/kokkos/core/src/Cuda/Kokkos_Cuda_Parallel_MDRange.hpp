@@ -67,6 +67,34 @@
 namespace Kokkos {
 namespace Impl {
 
+template <typename ParallelType, typename Policy, typename LaunchBounds>
+int max_tile_size_product_helper(const Policy& pol, const LaunchBounds&) {
+  cudaFuncAttributes attr =
+      CudaParallelLaunch<ParallelType,
+                         LaunchBounds>::get_cuda_func_attributes();
+  auto const& prop = pol.space().cuda_device_prop();
+
+  // Limits due to registers/SM, MDRange doesn't have
+  // shared memory constraints
+  int const optimal_block_size =
+      Kokkos::Impl::cuda_get_opt_block_size_no_shmem(attr, LaunchBounds{});
+
+  // Compute how many blocks of this size we can launch, based on warp
+  // constraints
+  int const max_warps_per_sm_registers =
+      Kokkos::Impl::cuda_max_warps_per_sm_registers(prop, attr);
+  int const max_num_threads_from_warps =
+      max_warps_per_sm_registers * prop.warpSize;
+  int const max_num_blocks = max_num_threads_from_warps / optimal_block_size;
+
+  // Compute the total number of threads
+  int const max_threads_per_sm = optimal_block_size * max_num_blocks;
+
+  return std::min(
+      max_threads_per_sm,
+      static_cast<int>(Kokkos::Impl::CudaTraits::MaxHierarchicalParallelism));
+}
+
 template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
  public:
@@ -85,18 +113,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
  public:
   template <typename Policy, typename Functor>
   static int max_tile_size_product(const Policy& pol, const Functor&) {
-    cudaFuncAttributes attr =
-        CudaParallelLaunch<ParallelFor,
-                           LaunchBounds>::get_cuda_func_attributes();
-    auto const& prop = pol.space().cuda_device_prop();
-    // Limits due to registers/SM, MDRange doesn't have
-    // shared memory constraints
-    int const regs_per_sm        = prop.regsPerMultiprocessor;
-    int const regs_per_thread    = attr.numRegs;
-    int const max_threads_per_sm = regs_per_sm / regs_per_thread;
-    return std::min(
-        max_threads_per_sm,
-        static_cast<int>(Kokkos::Impl::CudaTraits::MaxHierarchicalParallelism));
+    return max_tile_size_product_helper<ParallelFor>(pol, LaunchBounds{});
   }
   Policy const& get_policy() const { return m_rp; }
   inline __device__ void operator()() const {
@@ -121,8 +138,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
               maxblocks[1]),
           1);
       CudaParallelLaunch<ParallelFor, LaunchBounds>(
-          *this, grid, block, 0, m_rp.space().impl_internal_space_instance(),
-          false);
+          *this, grid, block, 0, m_rp.space().impl_internal_space_instance());
     } else if (RP::rank == 3) {
       const dim3 block(m_rp.m_tile[0], m_rp.m_tile[1], m_rp.m_tile[2]);
       KOKKOS_ASSERT(block.x > 0);
@@ -139,8 +155,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
               (m_rp.m_upper[2] - m_rp.m_lower[2] + block.z - 1) / block.z,
               maxblocks[2]));
       CudaParallelLaunch<ParallelFor, LaunchBounds>(
-          *this, grid, block, 0, m_rp.space().impl_internal_space_instance(),
-          false);
+          *this, grid, block, 0, m_rp.space().impl_internal_space_instance());
     } else if (RP::rank == 4) {
       // id0,id1 encoded within threadIdx.x; id2 to threadIdx.y; id3 to
       // threadIdx.z
@@ -158,8 +173,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
               (m_rp.m_upper[3] - m_rp.m_lower[3] + block.z - 1) / block.z,
               maxblocks[2]));
       CudaParallelLaunch<ParallelFor, LaunchBounds>(
-          *this, grid, block, 0, m_rp.space().impl_internal_space_instance(),
-          false);
+          *this, grid, block, 0, m_rp.space().impl_internal_space_instance());
     } else if (RP::rank == 5) {
       // id0,id1 encoded within threadIdx.x; id2,id3 to threadIdx.y; id4 to
       // threadIdx.z
@@ -175,8 +189,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
               (m_rp.m_upper[4] - m_rp.m_lower[4] + block.z - 1) / block.z,
               maxblocks[2]));
       CudaParallelLaunch<ParallelFor, LaunchBounds>(
-          *this, grid, block, 0, m_rp.space().impl_internal_space_instance(),
-          false);
+          *this, grid, block, 0, m_rp.space().impl_internal_space_instance());
     } else if (RP::rank == 6) {
       // id0,id1 encoded within threadIdx.x; id2,id3 to threadIdx.y; id4,id5 to
       // threadIdx.z
@@ -191,8 +204,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
           std::min<array_index_type>(m_rp.m_tile_end[4] * m_rp.m_tile_end[5],
                                      maxblocks[2]));
       CudaParallelLaunch<ParallelFor, LaunchBounds>(
-          *this, grid, block, 0, m_rp.space().impl_internal_space_instance(),
-          false);
+          *this, grid, block, 0, m_rp.space().impl_internal_space_instance());
     } else {
       Kokkos::abort("Kokkos::MDRange Error: Exceeded rank bounds with Cuda\n");
     }
@@ -263,17 +275,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
  public:
   template <typename Policy, typename Functor>
   static int max_tile_size_product(const Policy& pol, const Functor&) {
-    cudaFuncAttributes attr =
-        CudaParallelLaunch<ParallelReduce,
-                           LaunchBounds>::get_cuda_func_attributes();
-    auto const& prop = pol.space().cuda_device_prop();
-    // Limits due do registers/SM
-    int const regs_per_sm        = prop.regsPerMultiprocessor;
-    int const regs_per_thread    = attr.numRegs;
-    int const max_threads_per_sm = regs_per_sm / regs_per_thread;
-    return std::min(
-        max_threads_per_sm,
-        static_cast<int>(Kokkos::Impl::CudaTraits::MaxHierarchicalParallelism));
+    return max_tile_size_product_helper<ParallelReduce>(pol, LaunchBounds{});
   }
   Policy const& get_policy() const { return m_policy; }
   inline __device__ void exec_range(reference_type update) const {
@@ -405,8 +407,8 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
 
       CudaParallelLaunch<ParallelReduce, LaunchBounds>(
           *this, grid, block, shmem,
-          m_policy.space().impl_internal_space_instance(),
-          false);  // copy to device and execute
+          m_policy.space()
+	      .impl_internal_space_instance()); // copy to device and execute
 
       if (!m_result_ptr_device_accessible) {
         if (m_result_ptr) {

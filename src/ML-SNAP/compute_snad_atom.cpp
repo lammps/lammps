@@ -293,7 +293,7 @@ void ComputeSNADAtom::compute_peratom()
       //   threencoeffq*(atom->type[i]-1);
       const int typeoffset = 3*nvalues*(atom->type[i]-1);
 
-      // insure rij, inside, and typej  are of size jnum
+      // ensure rij, inside, and typej  are of size jnum
 
       snaptr->grow_rij(jnum);
 

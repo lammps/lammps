@@ -26,7 +26,7 @@ discussion, note that users can also :doc:`add their own computes and
 fixes to LAMMPS <Modify>` which can then generate values that can then
 be output with these commands.
 
-The following sub-sections discuss different LAMMPS commands related
+The following subsections discuss different LAMMPS commands related
 to output and the kind of data they operate on and produce:
 
 * :ref:`Global/per-atom/local/per-grid data <global>`
@@ -59,7 +59,7 @@ of bond distances.
 A per-grid datum is one or more values per grid cell, for a grid which
 overlays the simulation domain.  The grid cells and the data they
 store are distributed across processors; each processor owns the grid
-cells whose center point falls within its sub-domain.
+cells whose center point falls within its subdomain.
 
 .. _scalar:
 
@@ -322,7 +322,7 @@ The chief difference between the :doc:`fix ave/grid <fix_ave_grid>`
 and :doc:`fix ave/chunk <fix_ave_chunk>` commands when used in this
 context is that the former uses a distributed grid, while the latter
 uses a global grid.  Distributed means that each processor owns the
-subset of grid cells within its sub-domain.  Global means that each
+subset of grid cells within its subdomain.  Global means that each
 processor owns a copy of the entire grid.  The :doc:`fix ave/grid
 <fix_ave_grid>` command is thus more efficient for large grids.
 

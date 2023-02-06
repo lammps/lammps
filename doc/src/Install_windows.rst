@@ -33,7 +33,7 @@ Windows, once it is installed, in both serial and parallel.
 When you download the installer package, you run it on your Windows
 machine.  It will then prompt you with a dialog, where you can choose
 the installation directory, unpack and copy several executables,
-potential files, documentation pdfs, selected example files, etc.  It
+potential files, documentation PDFs, selected example files, etc.  It
 will then update a few system settings (e.g. PATH, LAMMPS_POTENTIALS)
 and add an entry into the Start Menu (with references to the
 documentation, LAMMPS homepage and more).  From that menu, there is
@@ -41,10 +41,10 @@ also a link to an uninstaller that removes the files and undoes the
 environment manipulations.
 
 Note that to update to a newer version of LAMMPS, you should typically
-uninstall the version you currently have, download a new installer,
-and go through the install procedure described above.  I.e. the same
+uninstall the version you currently have, download a new installer, and
+go through the installation procedure described above.  I.e. the same
 procedure for installing/updating most Windows programs.  You can
-install multiple versions of LAMMPS (in different directories), but
-only the executable for the last-installed package will be found
+install multiple versions of LAMMPS (in different directories), but only
+the executable for the last-installed package will be found
 automatically, so this should only be done for debugging purposes.
 

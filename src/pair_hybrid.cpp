@@ -304,8 +304,6 @@ void PairHybrid::settings(int narg, char **arg)
   // allocate list of sub-styles as big as possibly needed if no extra args
 
   styles = new Pair *[narg];
-  cutmax_style = new double[narg];
-  memset(cutmax_style, 0.0, narg*sizeof(double));
   keywords = new char *[narg];
   multiple = new int[narg];
 
@@ -346,6 +344,10 @@ void PairHybrid::settings(int narg, char **arg)
     iarg = jarg;
     nstyles++;
   }
+
+  delete[] cutmax_style;
+  cutmax_style = new double[nstyles];
+  memset(cutmax_style, 0, nstyles*sizeof(double));
 
   // multiple[i] = 1 to M if sub-style used multiple times, else 0
 
@@ -582,6 +584,8 @@ void PairHybrid::init_style()
 {
   int i,m,itype,jtype,used,istyle,skip;
 
+  memset(cutmax_style, 0, nstyles*sizeof(double));
+
   // error if a sub-style is not used
 
   int ntypes = atom->ntypes;
@@ -750,7 +754,7 @@ double PairHybrid::init_one(int i, int j)
         cutmax_style[istyle] = cut;
 
         for (auto &request : neighbor->get_pair_requests()) {
-          if (styles[istyle] == request->get_requestor() && styles[istyle]->trim_flag) {
+          if (styles[istyle] == request->get_requestor()) {
             request->set_cutoff(cutmax_style[istyle]);
             break;
           }
@@ -819,8 +823,9 @@ void PairHybrid::read_restart(FILE *fp)
   delete[] compute_tally;
 
   styles = new Pair*[nstyles];
+  delete[] cutmax_style;
   cutmax_style = new double[nstyles];
-  memset(cutmax_style, 0.0, nstyles*sizeof(double));
+  memset(cutmax_style, 0, nstyles*sizeof(double));
   keywords = new char*[nstyles];
   multiple = new int[nstyles];
 
@@ -1118,7 +1123,7 @@ void PairHybrid::restore_special(double *saved)
    extract a ptr to a particular quantity stored by pair
    pass request thru to sub-styles
    return first non-nullptr result except for cut_coul request
-   for cut_coul, insure all non-nullptr results are equal since required by Kspace
+   for cut_coul, ensure all non-nullptr results are equal since required by Kspace
 ------------------------------------------------------------------------- */
 
 void *PairHybrid::extract(const char *str, int &dim)

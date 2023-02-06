@@ -127,7 +127,7 @@ stress tensor components.  Eng is an extensive quantity,
 meaning it should be the sum over per-atom energies of all affected
 atoms.  It should also be provided in :doc:`energy units <units>`
 consistent with the simulation.  See the details below for how to
-insure this energy setting is used appropriately in a minimization.
+ensure this energy setting is used appropriately in a minimization.
 
 Additional public methods that the caller can use to update system
 properties are:

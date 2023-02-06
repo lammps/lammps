@@ -1,15 +1,15 @@
 Broken Bonds
 ============
 
-Typically, bond interactions persist for the duration of a simulation
-in LAMMPS. However, there are some exceptions that allow for bonds to
-break including the :doc:`quartic bond style <bond_quartic>` and the
+Typically, bond interactions persist for the duration of a simulation in
+LAMMPS. However, there are some exceptions that allow for bonds to
+break, including the :doc:`quartic bond style <bond_quartic>` and the
 bond styles in the :doc:`BPM package <Howto_bpm>` which contains the
-:doc:`bpm/spring <bond_bpm_spring>` and
-:doc:`bpm/rotational <bond_bpm_rotational>` bond styles. In these cases,
-a bond can be broken if it is stretched beyond a user-defined threshold.
-LAMMPS accomplishes this by setting the bond type to zero such that the
-bond force is no longer computed.
+:doc:`bpm/spring <bond_bpm_spring>` and :doc:`bpm/rotational
+<bond_bpm_rotational>` bond styles. In these cases, a bond can be broken
+if it is stretched beyond a user-defined threshold.  LAMMPS accomplishes
+this by setting the bond type to 0, such that the bond force is no
+longer computed.
 
 Users are normally able to weight the contribution of pair forces to atoms
 that are bonded using the :doc:`special_bonds command <special_bonds>`.

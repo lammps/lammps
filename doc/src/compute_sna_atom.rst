@@ -259,7 +259,7 @@ layout in the global array.
 Compute *sna/grid/local* calculates bispectrum components of a regular
 grid of points similarly to compute *sna/grid* described above.
 However, because the array is local, it contains only rows for grid points
-that are local to the processor sub-domain. The global grid
+that are local to the processor subdomain. The global grid
 of :math:`nx \times ny \times nz` points is still laid out in space the same as for *sna/grid*,
 but grid points are strictly partitioned, so that every grid point appears in
 one and only one local array.  The array contains one row for each of the

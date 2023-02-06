@@ -54,7 +54,7 @@ per atom, e.g. a list of bond distances.  Per-grid quantities are
 calculated on a regular 2d or 3d grid which overlays a 2d or 3d
 simulation domain.  The grid points and the data they store are
 distributed across processors; each processor owns the grid points
-which fall within its sub-domain.
+which fall within its subdomain.
 
 Computes that produce per-atom quantities have the word "atom" at the
 end of their style, e.g. *ke/atom*\ .  Computes that produce local
@@ -254,7 +254,6 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`pair/local <compute_pair_local>` - distance/energy/force of each pairwise interaction
 * :doc:`pe <compute_pe>` - potential energy
 * :doc:`pe/atom <compute_pe_atom>` - potential energy for each atom
-* :doc:`mesont <compute_mesont>` - Nanotube bending,stretching, and intertube energies
 * :doc:`pe/mol/tally <compute_tally>` - potential energy between two groups of atoms separated into intermolecular and intramolecular components via the tally callback mechanism
 * :doc:`pe/tally <compute_tally>` - potential energy between two groups of atoms via the tally callback mechanism
 * :doc:`plasticity/atom <compute_plasticity_atom>` - Peridynamic plasticity for each atom

@@ -74,7 +74,14 @@ hr {
 }
 
 .rst-breadcrumbs-buttons {
+    padding-top: 5px;
     margin: 0;
+}
+
+.breadcrumb-item:before {
+   content: "»";
+   color: black;
+   font-size: 16px;
 }
 
 p {

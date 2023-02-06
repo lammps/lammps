@@ -74,7 +74,7 @@ will use the new directory.  All processors execute this command.
 
 The *mkdir* command creates directories similar to the Unix ``mkdir -p``
 command.  That is, it will attempt to create the entire path of
-sub-directories if they do not exist yet.
+subdirectories if they do not exist yet.
 
 The *mv* command renames a file and/or moves it to a new directory.
 It cannot rename files across filesystem boundaries or between drives.

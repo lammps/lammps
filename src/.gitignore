@@ -102,6 +102,8 @@
 /meam*.cpp
 /pair_meam.cpp
 /pair_meam.h
+/pair_meam_ms.cpp
+/pair_meam_ms.h
 
 /compute_mliap.cpp
 /compute_mliap.h

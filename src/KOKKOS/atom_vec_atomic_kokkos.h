@@ -1,5 +1,5 @@
 /* -*- c++ -*- ----------------------------------------------------------
-   LAMMPS - Large-scale AtomicKokkos/Molecular Massively Parallel Simulator
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
 
@@ -71,4 +71,3 @@ class AtomVecAtomicKokkos : public AtomVecKokkos, public AtomVecAtomic {
 
 #endif
 #endif
-

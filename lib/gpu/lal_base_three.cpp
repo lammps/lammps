@@ -94,7 +94,9 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   else
     _threads_per_atom=device->threads_per_three();
 
-  int success=device->init(*ans,false,false,nlocal,nall,maxspecial);
+  bool charge = false;
+  bool rot = false;
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
 

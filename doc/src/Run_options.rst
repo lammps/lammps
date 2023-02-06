@@ -105,13 +105,12 @@ Either the full word or an abbreviation can be used for the keywords.
 Note that the keywords do not use a leading minus sign.  I.e. the
 keyword is "t", not "-t".  Also note that each of the keywords has a
 default setting.  Examples of when to use these options and what
-settings to use on different platforms is given on the :doc:`KOKKOS package <Speed_kokkos>`
-doc page.
+settings to use on different platforms is given on the :doc:`KOKKOS
+package <Speed_kokkos>` doc page.
 
 * d or device
 * g or gpus
 * t or threads
-* n or numa
 
 .. parsed-literal::
 
@@ -164,19 +163,10 @@ the number of physical cores per node, to use your available hardware
 optimally.  This also sets the number of threads used by the host when
 LAMMPS is compiled with CUDA=yes.
 
-.. parsed-literal::
+.. deprecated:: 22Dec2022
 
-   numa Nm
-
-This option is only relevant when using pthreads with hwloc support.
-In this case Nm defines the number of NUMA regions (typically sockets)
-on a node which will be utilized by a single MPI rank.  By default Nm
-= 1.  If this option is used the total number of worker-threads per
-MPI rank is threads\*numa.  Currently it is always almost better to
-assign at least one MPI rank per NUMA region, and leave numa set to
-its default value of 1. This is because letting a single process span
-multiple NUMA regions induces a significant amount of cross NUMA data
-traffic which is slow.
+Support for the "numa" or "n" option was removed as its functionality
+was ignored in Kokkos for some time already.
 
 ----------
 
@@ -334,7 +324,7 @@ writes log information to file.N. If file is none, then no partition
 log files are created.  This overrides the filename specified in the
 -log command-line option.  This option is useful when working with
 large numbers of partitions, allowing the partition log files to be
-suppressed (-plog none) or placed in a sub-directory (-plog
+suppressed (-plog none) or placed in a subdirectory (-plog
 replica_files/log.lammps) If this option is not used the log file for
 partition N is log.lammps.N or whatever is specified by the -log
 command-line option.
@@ -351,7 +341,7 @@ partition screen files are created.  This overrides the filename
 specified in the -screen command-line option.  This option is useful
 when working with large numbers of partitions, allowing the partition
 screen files to be suppressed (-pscreen none) or placed in a
-sub-directory (-pscreen replica_files/screen).  If this option is not
+subdirectory (-pscreen replica_files/screen).  If this option is not
 used the screen file for partition N is screen.N or whatever is
 specified by the -screen command-line option.
 
@@ -372,10 +362,10 @@ Reorder the processors in the MPI communicator used to instantiate
 LAMMPS, in one of several ways.  The original MPI communicator ranks
 all P processors from 0 to P-1.  The mapping of these ranks to
 physical processors is done by MPI before LAMMPS begins.  It may be
-useful in some cases to alter the rank order.  E.g. to insure that
+useful in some cases to alter the rank order.  E.g. to ensure that
 cores within each node are ranked in a desired order.  Or when using
 the :doc:`run_style verlet/split <run_style>` command with 2 partitions
-to insure that a specific Kspace processor (in the second partition) is
+to ensure that a specific Kspace processor (in the second partition) is
 matched up with a specific set of processors in the first partition.
 See the :doc:`General tips <Speed_tips>` page for more details.
 
@@ -408,7 +398,7 @@ so that the processors in each partition will be
    0 1 2 4 5 6 8 9 10
    3 7 11
 
-See the "processors" command for how to insure processors from each
+See the "processors" command for how to ensure processors from each
 partition could then be grouped optimally for quad-core nodes.
 
 If the keyword is *custom*, then a file that specifies a permutation

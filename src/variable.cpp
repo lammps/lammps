@@ -667,7 +667,7 @@ int Variable::next(int narg, char **arg)
       istyle == TIMER || istyle == INTERNAL)
     error->all(FLERR,"Invalid variable style with next command");
 
-  // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
+  // if istyle = UNIVERSE or ULOOP, ensure all such variables are incremented
 
   if (istyle == UNIVERSE || istyle == ULOOP)
     for (int i = 0; i < nvar; i++) {
@@ -1907,12 +1907,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           char *var = retrieve(word+2);
           if (var == nullptr)
             print_var_error(FLERR,"Invalid variable evaluation in variable formula",ivar);
-          if (tree) {
-            auto newtree = new Tree();
-            newtree->type = VALUE;
-            newtree->value = atof(var);
-            treestack[ntreestack++] = newtree;
-          } else argstack[nargstack++] = atof(var);
+          if (utils::is_double(var)) {
+            if (tree) {
+              auto newtree = new Tree();
+              newtree->type = VALUE;
+              newtree->value = atof(var);
+              treestack[ntreestack++] = newtree;
+            } else argstack[nargstack++] = atof(var);
+          } else print_var_error(FLERR,"Non-numeric variable value in variable formula",ivar);
 
         // v_name = per-atom vector from atom-style variable
         // evaluate the atom-style variable as newtree

@@ -6,7 +6,7 @@ atom_style	full
 bond_style      harmonic
 angle_style     harmonic
 
-read_data       data.water.nwchem
+read_data       data.water.nwchem.qmmm
 
 # QM atoms are 1st water
 # MM atoms are 2nd water

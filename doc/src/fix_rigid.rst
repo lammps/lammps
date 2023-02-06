@@ -730,18 +730,18 @@ is because there can only be one fix which monitors the global
 pressure and changes the simulation box dimensions.  So you have 3
 choices:
 
-* Use one of the 4 NPT or NPH styles for the rigid bodies.  Use the
-  *dilate* all option so that it will dilate the positions of the
-  non-rigid particles as well.  Use :doc:`fix nvt <fix_nh>` (or any
-  other thermostat) for the non-rigid particles.
-* Use :doc:`fix npt <fix_nh>` for the group of non-rigid particles.  Use
-  the *dilate* all option so that it will dilate the center-of-mass
-  positions of the rigid bodies as well.  Use one of the 4 NVE or 2 NVT
-  rigid styles for the rigid bodies.
-* Use :doc:`fix press/berendsen <fix_press_berendsen>` to compute the
-  pressure and change the box dimensions.  Use one of the 4 NVE or 2 NVT
-  rigid styles for the rigid bodies.  Use :doc:`fix nvt <fix_nh>` (or
-  any other thermostat) for the non-rigid particles.
+#. Use one of the 4 NPT or NPH styles for the rigid bodies.  Use the
+   *dilate* all option so that it will dilate the positions of the
+   non-rigid particles as well.  Use :doc:`fix nvt <fix_nh>` (or any
+   other thermostat) for the non-rigid particles.
+#. Use :doc:`fix npt <fix_nh>` for the group of non-rigid particles.  Use
+   the *dilate* all option so that it will dilate the center-of-mass
+   positions of the rigid bodies as well.  Use one of the 4 NVE or 2 NVT
+   rigid styles for the rigid bodies.
+#. Use :doc:`fix press/berendsen <fix_press_berendsen>` to compute the
+   pressure and change the box dimensions.  Use one of the 4 NVE or 2 NVT
+   rigid styles for the rigid bodies.  Use :doc:`fix nvt <fix_nh>` (or
+   any other thermostat) for the non-rigid particles.
 
 In all case, the rigid bodies and non-rigid particles both contribute
 to the global pressure and the box is scaled the same by any of the

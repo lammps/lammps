@@ -166,7 +166,7 @@ events, all the other replicas also run dynamics and event checking
 with the same schedule, but the final states are always overwritten by
 the state of the event replica.
 
-The outer loop of the pseudo-code above continues until *N* steps of
+The outer loop of the pseudocode above continues until *N* steps of
 dynamics have been performed.  Note that *N* only includes the
 dynamics of stages 2 and 3, not the steps taken during dephasing or
 the minimization iterations of quenching.  The specified *N* is

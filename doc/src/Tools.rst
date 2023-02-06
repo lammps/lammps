@@ -1071,7 +1071,7 @@ getting started, but not as a fully tested and supported feature of the
 LAMMPS distribution.  Any contributions to complete this are, of course,
 welcome.  Please also note, that for the case of creating a Python wrapper,
 a fully supported :doc:`Ctypes based lammps module <Python_module>`
-already exists.  That module is designed to be object oriented while
+already exists.  That module is designed to be object-oriented while
 SWIG will generate a 1:1 translation of the functions in the interface file.
 
 Building the wrapper

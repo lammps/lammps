@@ -421,6 +421,8 @@ non-overlapping criterion.
    above about systems with overlapped particles for alternate
    strategies that allow for overlapped insertions.
 
+.. versionadded:: 2Jun2022
+
 The *maxtry* keyword only applies to the *random* style.  It limits
 the number of attempts to generate valid coordinates for a single new
 particle that satisfy all requirements imposed by the *region*, *var*,

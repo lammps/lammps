@@ -107,8 +107,8 @@ Currently, 5 example use cases are provided:
 
 .. note::
 
-   In any of these example where LAMMPS is used as an engine, an actual
-   QM code (proivded it has support for MDI) could be used in its place,
+   In any of these examples where LAMMPS is used as an engine, an actual
+   QM code (provided it has support for MDI) could be used in its place,
    without modifying the input scripts or launch commands, except to
    specify the name of the QM code.
 

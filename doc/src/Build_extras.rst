@@ -606,6 +606,9 @@ They must be specified in uppercase.
    *  - AMPERE86
       - GPU
       - NVIDIA Ampere generation CC 8.6 GPU
+   *  - ADA89
+      - GPU
+      - NVIDIA Ada Lovelace generation CC 8.9 GPU
    *  - HOPPER90
       - GPU
       - NVIDIA Hopper generation CC 9.0 GPU

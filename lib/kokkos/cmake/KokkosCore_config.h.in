@@ -102,6 +102,7 @@
 #cmakedefine KOKKOS_ARCH_AMPERE
 #cmakedefine KOKKOS_ARCH_AMPERE80
 #cmakedefine KOKKOS_ARCH_AMPERE86
+#cmakedefine KOKKOS_ARCH_ADA89
 #cmakedefine KOKKOS_ARCH_HOPPER90
 #cmakedefine KOKKOS_ARCH_AMD_ZEN
 #cmakedefine KOKKOS_ARCH_AMD_ZEN2

@@ -1,161 +1,156 @@
-LATTE is a semi-empirical tight-binding quantum code, developed
-primarily at Los Alamos National Labs.
+# Test runs of AIMD with LAMMPS and LATTE
 
-See these links:
+Step 1: build LAMMPS
+Step 2: download/build the MDI code coupling package
+Step 3: download/build or install LATTE
+Step 4: run the water AIMD problem for a few steps
 
-  https://www.osti.gov/biblio/1526907-los-alamos-transferable-tight-binding-energetics-latte-version
-  https://github.com/lanl/LATTE
+---------------------------------
+---------------------------------
 
-LAMMPS has 2 ways of working with LATTE:
+Step 1: build LAMMPS
 
-(1) Via its LATTE package and the fix latte command
-    must run LAMMPS on a single processor, it calls LATTE as a library
+The molecule and kspace packages are needed for the 2-water test
+problem.  Copy the final LAMMPS executable into the
+examples/QUANTUM/PySCF directory.
 
-(2) Via its MDI package and the code-coupling MDI library
-    (a) can run LAMMPS and LATTE as stand-alone codes
-        LAMMPS can be run on any number of procs
-        LATTE must run on a single proc, but can use OpenMP
-    (b) can run LAMMPS with LATTE as a plug-in library
-        must run LAMMPS on a single processor
+Traditional make:
 
-Examples for use case (1) are in the examples/latte dir.  Use case (2)
-is illustrated in this dir.
+% cd ~/lammps/lib/mdi
+% python Install.py -m mpi
+% cd ~/lammps/src
+% make yes-mdi yes-molecule yes-kspace
+% make -j mpi
+% cp lmp_mpi ~/lammps/examples/QUANTUM/PySCF
 
-NOTE: If you compare MDI runs in this dir to similar fix latte runs in
-examples/latte, the answers for energy and virial will be differnt.
-This is b/c the version of LATTE used by the fix latte command within
-the LATTE package is older than the version of LATTE used here.
+CMake:
 
-------------------
-Building 3 codes needed to run these examples
-
-(1) Download and build MDI
-
-% git clone git@github.com:MolSSI-MDI/MDI_Library.git mdi
-% cd mdi
+% cd ~/lammps
 % mkdir build; cd build
-% cmake ..           # includes support for all langauges (incl Fortran, Python)
-% make
+% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes -D PKG_KSPACE=yes ../cmake
+% make -j
+% cp lmp ~/lammps/examples/QUANTUM/PySCF/lmp_mpi
 
-(2) Download and build LATTE with MDI support
+---------------------------------
+---------------------------------
 
-% git clone git@github.com:lanl/LATTE.git latte
-% cd latte
-% git checkout skimLATTE-progress    # goto branch with MDI support
-% cp makefiles/makefile.CHOICES.mdi makefile.CHOICES    # so can now edit
-% edit makefile.CHOICES settings to have these settings:
-  MAKELIB = OFF, SHARED = ON, MDI = ON
-  MDI_PATH must point to CMake build of MDI in (1), 
-    e.g. /home/sjplimp/mdi/build/MDI_Library
-  comment out 2 LIB lines with CUDA-CUDART_LIBRARY
-% make clean
-% make        # creates liblatte.so and LATTE_DOUBLE with support for MDI
+Step 2: install the MDI code coupling package
 
-(3) Build LAMMPS with its MDI package
-    also with the MOLECULE package for these example scripts
+(a) grab the MDI Git repo
 
-Build with traditional make
+% mkdir git; cd mdi
+% git clone git@github.com:MolSSI-MDI/MDI_Library.git git
 
-% cd lammps/lib/mdi
-% python Install.py -m mpi     # downloads and builds MDI
-% cd ../../src
-% make yes-mdi yes-molecule
-$ make mpi                     # creates lmp_mpi
+(b) build MDI
 
+% cd mdi/git
 % mkdir build; cd build
-% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes ../cmake
-% make                         # creates lmp
+% cmake ..
+% make -j
 
-Build with CMake
+(c) Add something similar to the following to your .bashrc or .cshrc
+file so that Python can find MDI:
 
-% cd lammps
-% mkdir build; cd build
-% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes ../cmake
-% make                         # creates lmp
+For bash:
 
-(4) Copy LAMMPS and LATTE executables into this dir
+% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git"
+% hash -r
 
-Copy the LAMMPS executable (lmp_mpi or lmp) into this dir as lmp_mpi.
-Copy the LATTE executable LATTE_DOUBLE into this dir.
-The run commands below assume you have done this.
+For (t)csh:
 
-(5) Ensure LD_LIBRARY_PATH includes the dir where MDI was built in (1)
-with its libmdi.so file, e.g. mdi/build/MDI_Library.  This is needed
-so when LATTE_DOUBLE runs as an executable it will able to find
-libmdi.so.
+% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git
+% rehash
 
-------------------
-Notes on LATTE usage
+---------------------------------
+---------------------------------
 
-You must run this version of LATTE on a single MPI processor.
-However, you can use OpenMP with LATTE.  To do this you need to build
-LATTE with OpenMP support by editing the makefile.CHOICES file to
-include -fopenmp with FFLAGS and LINKFLAGS.  Also -lapack and -lblas
-need to be added to LIB, and those libraries must be available on your
-system.  For best performance you should also build LATTE with its
-PROGRESS and BML libraries.  Building those libs is more complex,
-see details here:
+Step 3: download/build LATTE
 
-https://github.com/lanl/LATTE_SUPER/tree/allMachines/Laptop
+(a) download/build LATTE on your box
 
-At run time, you need to also first set an environment variable for
-the number of OpenMP threads to use, e.g.
+NOTE: add instructions here
 
-% export OMP_NUM_THREADS=12 
+(b) Add something similar to the following to your .bashrc or .cshrc
+file so that Python can find PySCF:
 
-By default LATTE reads the latte.in file for its parameters.  That
-file specifies other files LATTE will read.  With MDI, the driver code
-(e.g. LAMMPS) can use the >FNAME command to specify an alternate
-filename to use instead of latte.in.
+For bash:
 
-By default LATTE writes out a log.latte file with info about its
-calculations.  An "OUTFILE= logfile" setting in latte.in can rename
-this file.
+% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/pyscf/git"
+% hash -r
 
----------
-Run example #1: AIMD
+For (t)csh:
 
-* Run with MPI: 1 proc each
+% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/pyscf/git
+% rehash
 
-mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
-  -in in.aimd -log log.aimd.lammps.mpi : \
-  -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
+(c) Check that you can import the 4 Python modules which the script
+that wraps PySCF will need:
 
-* Run with MPI: 2 procs for LAMMPS, 1 for LATTE
+% python
+>>> import numpy as np
+>>> from mpi4py import MPI
+>>> import MDI_Library as mdi
+>>> import pyscf
 
-mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
-  -in in.aimd -log log.aimd.lammps.mpi : \
-  -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
+---------------------------------
+---------------------------------
 
-* Run in plugin mode: 1 proc
+Step 4: run the water AIMD problem for a few steps
 
-lmp_mpi -mdi \
-  "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
-  -in in.aimd.plugin -log log.aimd.lammps.plugin
+% cd ~/lammps/examples/QUANTUM/LATTE
 
-NOTE: The -plugin_path needs to point to where LATTE was built in step
-(2).
+# Run with TCP: 1 proc each
 
----------
-Run example #2: sequence of configurations
+% lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.tcp.1 -in in.water &
 
-* Run with MPI: 1 proc each
+% python latte_mdi.py -mdi "-name LATTE -role ENGINE -method TCP -port 8021 -hostname localhost" latte.in.water
 
-mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
-  -in in.series -log log.series.lammps.mpi : \
-  -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
+# Run with MPI: 1 proc each
 
-* Run with MPI: 2 procs for LAMMPS, 1 for LATTE
+% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.mpi.1 -in in.water : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.water
 
-mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" \
-  -in in.series -log log.series.lammps.mpi : \
-  -np 1 LATTE_DOUBLE -mdi "-name LATTE -role ENGINE -method MPI"
+# Run in plugin mode: 1 proc
 
-* Run in plugin mode: 1 proc
+% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.water.plugin.1 -in in.water.plugin
 
-lmp_mpi -mdi \
-  "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/latte/git" \
-   -in in.series.plugin -log log.series.lammps.plugin
+---------------------------------
+---------------------------------
 
-NOTE: The -plugin_path needs to point to where LATTE was built in step
-(2).
+Step 5: run the UO2 AIMD problem for a few steps
+
+% cd ~/lammps/examples/QUANTUM/LATTE
+
+# Run with TCP: 1 proc each
+
+% lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.uo2.tcp.1 -in in.uo2 &
+
+% python latte_mdi.py -mdi "-name LATTE -role ENGINE -method TCP -port 8021 -hostname localhost" latte.in.uo2
+
+# Run with MPI: 1 proc each
+
+% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.uo2.mpi.1 -in in.uo2 : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.uo2
+
+# Run in plugin mode: 1 proc
+
+% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.uo2.plugin.1 -in in.uo2.plugin
+
+---------------------------------
+---------------------------------
+
+Step 6: run the UO2 series problem
+
+% cd ~/lammps/examples/QUANTUM/LATTE
+
+# Run with TCP: 1 proc each
+
+% lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.series.tcp.1 -in in.series &
+
+% python latte_mdi.py -mdi "-name LATTE -role ENGINE -method TCP -port 8021 -hostname localhost" latte.in.uo2
+
+# Run with MPI: 1 proc each
+
+% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.series.mpi.1 -in in.series : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.uo2
+
+# Run in plugin mode: 1 proc
+
+% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.series.plugin.1 -in in.series.plugin

@@ -4,7 +4,7 @@ units           metal
 atom_style      full
 atom_modify     sort 0 0.0
 
-read_data       2uo2.lmp
+read_data       data.2uo2
 
 velocity        all create 300.0 87287 loop geom
 

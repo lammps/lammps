@@ -9,21 +9,22 @@ label LOOP
   atom_style      full
   atom_modify     sort 0 0.0
 
-  read_data       ${files}.lmp
+  read_data       data.${files}
 
   neighbor        0.3 bin
   neigh_modify    every 1 delay 0 check yes
 
-  fix             1 all mdi/qm virial yes elements 92 8
-
+  fix             1 all mdi/qm virial yes elements U O
+  fix_modify      1 energy yes
+  
   thermo_style    custom step temp pe etotal press
   thermo          1
 
   mdi             plugin latte_mdi mdi "-role ENGINE -name LATTE -method LINK" &
-                  command "run 0"
+                  extra latte.in.uo2 command "run 0"
 
-  write_dump      all custom dump.series.plugin.${files} &
-                  id type x y z fx fy fz modify sort id
+  #write_dump      all custom dump.series.plugin.${files} &
+  #                id type x y z fx fy fz modify sort id
 
   clear
 

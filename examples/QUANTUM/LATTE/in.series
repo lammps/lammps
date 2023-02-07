@@ -11,22 +11,22 @@ label LOOP
   atom_style      full
   atom_modify     sort 0 0.0
 
-  read_data       ${files}.lmp
+  read_data       data.${files}
 
   neighbor        0.3 bin
   neigh_modify    every 1 delay 0 check yes
 
   timestep        0.001
 
-  fix             1 all mdi/qm virial yes elements 92 8 connect no
+  fix             1 all mdi/qm virial yes elements U O connect no
 
   thermo_style    custom step temp pe etotal press
   thermo          1
 
   run             0
 
-  write_dump      all custom dump.series.mpi.${files} &
-                  id type x y z fx fy fz modify sort id
+  #write_dump      all custom dump.series.mpi.${files} &
+  #                id type x y z fx fy fz modify sort id
 
   clear
 

@@ -106,14 +106,52 @@ Step 4: run the 2-water QMMM problem for a few steps
 
 % cd ~/lammps/examples/QUANTUM/NWChem
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.nwchem.qmmm.tcp.1 -in in.water.nwchem.qmmm &
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water,qmmm.tcp.1 -in in.water.qmmm &
 
 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method TCP -port 8021 -hostname localhost" template.water.nw water.dimer.nw log.water.pwdft.qmmm.tcp.1
 
 # Run with MPI: 1 proc each
 
-mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.nwchem.qmmm.mpi.1 -in in.water.nwchem.qmmm : -np 1 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method MPI" template.water.nw water.dimer.nw log.water.pwdft.qmmm.mpi.1
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.qmmm.mpi.1 -in in.water.qmmm : -np 1 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method MPI" template.water.nw water.dimer.nw log.water.pwdft.qmmm.mpi.1
 
 # Run in plugin mode: 1 proc
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/work_qm" -log log.water.nwchem.qmmm.plugin.1 -in in.water.nwchem.qmmm.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/NWChem" -log log.water.qmmm.plugin.1 -in in.water.qmmm.plugin
+
+---------------------------------
+---------------------------------
+
+Step 5: run the zeolite/methane QMMM problem for a few steps
+
+% cd ~/lammps/examples/QUANTUM/NWChem
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.zeolite.qmmm.tcp.1 -in in.zeolite.qmmm &
+
+python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method TCP -port 8021 -hostname localhost" template.methane.nw methane.nw log.zeolite.pwdft.qmmm.tcp.1
+
+# Run with MPI: 1 proc each
+
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.zeolite.qmmm.mpi.1 -in in.zeolite.qmmm : -np 1 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method MPI" template.methane.nw methane.nw log.zeolite.pwdft.qmmm.mpi.1
+
+# Run in plugin mode: 1 proc
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/NWChem" -log log.zeolite.qmmm.plugin.1 -in in.zeolite.qmmm.plugin
+
+---------------------------------
+---------------------------------
+
+Step 6: run multiple W geometries
+
+% cd ~/lammps/examples/QUANTUM/NWChem
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.series.tcp.1 -in in.series &
+
+python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method TCP -port 8021 -hostname localhost" template.w.nw w.nw log.series.pwdft.tcp.1
+
+# Run with MPI: 1 proc each
+
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.series.mpi.1 -in in.series : -np 1 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method MPI" template.w.nw w.nw log.series.pwdft.mpi.1
+
+# Run in plugin mode: 1 proc
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/NWChem" -log log.series.plugin.1 -in in.series.plugin

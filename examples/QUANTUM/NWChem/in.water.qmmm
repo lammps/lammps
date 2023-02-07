@@ -6,7 +6,7 @@ atom_style	full
 bond_style      harmonic
 angle_style     harmonic
 
-read_data       data.water.nwchem.qmmm
+read_data       data.water.qmmm
 
 # QM atoms are 1st water
 # MM atoms are 2nd water
@@ -49,22 +49,11 @@ timestep        0.1
 
 fix		1 all nve
 
-fix             2 qm mdi/qmmm potential elements 8 1 8 1
-#fix             2 qm nwchem template.water.nw water.dimer2.nw &
-#                log.pwdft.water.dimer O H O H
+fix             2 qm mdi/qmmm potential elements O H O H
 fix_modify      2 energy yes
 
 thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
                 f_2 pe etotal press
-
-# convert dump file forces to Hartree/Bohr for comparison to NWChem
-
-variable        fx atom fx/1185.8
-variable        fy atom fy/1185.8
-variable        fz atom fz/1185.8
-
-dump            1 all custom 1 dump.water.nwchem.qmmm id x y z q v_fx v_fy v_fz
-dump_modify     1 sort id format float "%20.16g"
 
 thermo          1
 run		2

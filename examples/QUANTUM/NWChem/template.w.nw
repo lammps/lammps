@@ -1,0 +1,16 @@
+Title "LAMMPS wrapping of PWDFT"
+
+memory 1900 mb
+
+echo
+
+GEOMINSERT
+
+nwpw
+   2d-hcurve
+   initialize_wavefunction on
+   cutoff 10.0
+   xc pbe
+end
+
+task pspw gradient

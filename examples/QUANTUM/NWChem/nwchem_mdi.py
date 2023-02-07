@@ -493,9 +493,9 @@ def evaluate():
     qm_pe = c_qm_pe.value
     time2 = time.time()
     print("DONE QMMM minimizer",nwerr,time2-time1)
-    print("PE",qm_pe)
-    print("FORCE",qm_forces)
-    print("CHARGES",qm_charges)
+    #print("PE",qm_pe)
+    #print("FORCE",qm_forces)
+    #print("CHARGES",qm_charges)
     
   # AIMD with only QM atoms
     

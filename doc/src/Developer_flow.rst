@@ -45,9 +45,9 @@ other methods in the class.
   zero before each timestep, so that forces (torques, etc) can be
   accumulated.
 
-Now for the ``Verlet::run()`` method.  Its basic structure in hi-level pseudo
-code is shown below.  In the actual code in ``src/verlet.cpp`` some of
-these operations are conditionally invoked.
+Now for the ``Verlet::run()`` method.  Its basic structure in hi-level
+pseudocode is shown below.  In the actual code in ``src/verlet.cpp``
+some of these operations are conditionally invoked.
 
 .. code-block:: python
 
@@ -105,17 +105,17 @@ need it.  These flags are passed to the various methods that compute
 particle interactions, so that they either compute and tally the
 corresponding data or can skip the extra calculations if the energy and
 virial are not needed.  See the comments for the ``Integrate::ev_set()``
-method which document the flag values.
+method, which document the flag values.
 
 At various points of the timestep, fixes are invoked,
 e.g. ``fix->initial_integrate()``.  In the code, this is actually done
-via the Modify class which stores all the Fix objects and lists of which
+via the Modify class, which stores all the Fix objects and lists of which
 should be invoked at what point in the timestep.  Fixes are the LAMMPS
 mechanism for tailoring the operations of a timestep for a particular
 simulation.  As described elsewhere, each fix has one or more methods,
 each of which is invoked at a specific stage of the timestep, as show in
-the timestep pseudo-code.  All the active fixes defined in an input
-script, that are flagged to have an ``initial_integrate()`` method are
+the timestep pseudocode.  All the active fixes defined in an input
+script, that are flagged to have an ``initial_integrate()`` method, are
 invoked at the beginning of each timestep.  Examples are :doc:`fix nve
 <fix_nve>` or :doc:`fix nvt or fix npt <fix_nh>` which perform the
 start-of-timestep velocity-Verlet integration operations to update
@@ -131,9 +131,9 @@ can be changed using the :doc:`neigh_modify every/delay/check
 <neigh_modify>` command.  If not, coordinates of ghost atoms are
 acquired by each processor via the ``forward_comm()`` method of the Comm
 class.  If neighbor lists need to be built, several operations within
-the inner if clause of the pseudo-code are first invoked.  The
+the inner if clause of the pseudocode are first invoked.  The
 ``pre_exchange()`` method of any defined fixes is invoked first.
-Typically this inserts or deletes particles from the system.
+Typically, this inserts or deletes particles from the system.
 
 Periodic boundary conditions are then applied by the Domain class via
 its ``pbc()`` method to remap particles that have moved outside the
@@ -148,7 +148,7 @@ The box boundaries are then reset (if needed) via the ``reset_box()``
 method of the Domain class, e.g. if box boundaries are shrink-wrapped to
 current particle coordinates.  A change in the box size or shape
 requires internal information for communicating ghost atoms (Comm class)
-and neighbor list bins (Neighbor class) be updated.  The ``setup()``
+and neighbor list bins (Neighbor class) to be updated.  The ``setup()``
 method of the Comm class and ``setup_bins()`` method of the Neighbor
 class perform the update.
 
@@ -217,20 +217,21 @@ file, and restart files.  See the :doc:`thermo_style <thermo_style>`,
 :doc:`dump <dump>`, and :doc:`restart <restart>` commands for more
 details.
 
-The the flow of control during energy minimization iterations is
-similar to that of a molecular dynamics timestep.  Forces are computed,
-neighbor lists are built as needed, atoms migrate to new processors, and
-atom coordinates and forces are communicated to neighboring processors.
-The only difference is what Fix class operations are invoked when.  Only
-a subset of LAMMPS fixes are useful during energy minimization, as
+The flow of control during energy minimization iterations is similar to
+that of a molecular dynamics timestep.  Forces are computed, neighbor
+lists are built as needed, atoms migrate to new processors, and atom
+coordinates and forces are communicated to neighboring processors.  The
+only difference is what Fix class operations are invoked when.  Only a
+subset of LAMMPS fixes are useful during energy minimization, as
 explained in their individual doc pages.  The relevant Fix class methods
-are ``min_pre_exchange()``, ``min_pre_force()``, and ``min_post_force()``.
-Each fix is invoked at the appropriate place within the minimization
-iteration.  For example, the ``min_post_force()`` method is analogous to
-the ``post_force()`` method for dynamics; it is used to alter or constrain
-forces on each atom, which affects the minimization procedure.
+are ``min_pre_exchange()``, ``min_pre_force()``, and
+``min_post_force()``.  Each fix is invoked at the appropriate place
+within the minimization iteration.  For example, the
+``min_post_force()`` method is analogous to the ``post_force()`` method
+for dynamics; it is used to alter or constrain forces on each atom,
+which affects the minimization procedure.
 
-After all iterations are completed there is a ``cleanup`` step which
+After all iterations are completed, there is a ``cleanup`` step which
 calls the ``post_run()`` method of fixes to perform operations only required
-at the end of a calculations (like freeing temporary storage or creating
+at the end of a calculation (like freeing temporary storage or creating
 final outputs).

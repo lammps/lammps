@@ -36,14 +36,16 @@ ucl_inline void vec3_add(const numtyp x[3], const numtyp y[3], numtyp z[3])
   z[0] = x[0]+y[0]; z[1] = x[1]+y[1]; z[2] = x[2]+y[2];
 }
 
-ucl_inline void vec3_scale(const numtyp k, const numtyp x[3], numtyp y[3])
+ucl_inline void vec3_scale(const numtyp k, numtyp x[3], numtyp y[3])
 {
+  // return y = k * x  (y can be at the same address as x)
   y[0] = k*x[0]; y[1] = k*x[1]; y[2] = k*x[2];
 }
 
-ucl_inline void vec3_scaleadd(const numtyp k, const numtyp x[3],
+ucl_inline void vec3_scaleadd(const numtyp k, numtyp x[3],
                               const numtyp y[3], numtyp z[3])
 {
+ // return z = k * x + y  (z can be at the same address as x)
   z[0] = k*x[0]+y[0]; z[1] = k*x[1]+y[1]; z[2] = k*x[2]+y[2];
 }
 
@@ -83,9 +85,9 @@ ucl_inline void costheta_d(const numtyp cos_theta,
                            const numtyp rij,
                            const numtyp rik_hat[3],
                            const numtyp rik,
-                           numtyp *dri,
-                           numtyp *drj,
-                           numtyp *drk)
+                           numtyp dri[3],
+                           numtyp drj[3],
+                           numtyp drk[3])
 {
   // first element is derivative wrt Ri, second wrt Rj, third wrt Rk
   vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
@@ -167,13 +169,13 @@ ucl_inline numtyp ters_bij_d(const numtyp zeta,
 {
   const numtyp tmp = param_beta * zeta;
   if (tmp > param_c1) {
-    *ans_d = param_beta * (numtyp)-0.5*ucl_powr(tmp,(numtyp)-1.5);
+    *ans_d = param_beta * (numtyp)-0.5*ucl_pow(tmp,(numtyp)-1.5);
     return ucl_rsqrt(tmp);
   }
   if (tmp > param_c2) {
-    const numtyp ptmp = ucl_powr(tmp,-param_powern);
+    const numtyp ptmp = ucl_pow(tmp,-param_powern);
     const numtyp i2n = ucl_recip((numtyp)2.0 * param_powern);
-    *ans_d = param_beta * ((numtyp)-0.5*ucl_powr(tmp,(numtyp)-1.5) *
+    *ans_d = param_beta * ((numtyp)-0.5*ucl_pow(tmp,(numtyp)-1.5) *
                            ((numtyp)1.0 - ((numtyp)1.0 + (numtyp)1.0 * i2n) *
                             ptmp));
     return ((numtyp)1.0 - ptmp * i2n)*ucl_rsqrt(tmp);
@@ -183,14 +185,14 @@ ucl_inline numtyp ters_bij_d(const numtyp zeta,
     return (numtyp)1.0;
   }
   if (tmp < param_c3) {
-    *ans_d = (numtyp)-0.5*param_beta * ucl_powr(tmp,param_powern-(numtyp)1.0);
-    return (numtyp)1.0 - ucl_powr(tmp,param_powern)/((numtyp)2.0*param_powern);
+    *ans_d = (numtyp)-0.5*param_beta * ucl_pow(tmp,param_powern-(numtyp)1.0);
+    return (numtyp)1.0 - ucl_pow(tmp,param_powern)/((numtyp)2.0*param_powern);
   }
-  const numtyp tmp_n = (numtyp)1.0+ucl_powr(tmp,param_powern);
+  const numtyp tmp_n = (numtyp)1.0+ucl_pow(tmp,param_powern);
   const numtyp i2n = -ucl_recip((numtyp)2.0*param_powern);
-  *ans_d = (numtyp)-0.5*ucl_powr(tmp_n,(numtyp)-1.0+i2n)*(tmp_n-(numtyp)1.0)/
+  *ans_d = (numtyp)-0.5*ucl_pow(tmp_n,(numtyp)-1.0+i2n)*(tmp_n-(numtyp)1.0)/
     zeta;
-  return ucl_powr(tmp_n, i2n);
+  return ucl_pow(tmp_n, i2n);
 }
 
 /* ---------------------------------------------------------------------- */

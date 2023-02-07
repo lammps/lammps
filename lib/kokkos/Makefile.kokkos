@@ -401,6 +401,7 @@ KOKKOS_INTERNAL_USE_ARCH_VOLTA72 := $(call kokkos_has_string,$(KOKKOS_ARCH),Volt
 KOKKOS_INTERNAL_USE_ARCH_TURING75 := $(call kokkos_has_string,$(KOKKOS_ARCH),Turing75)
 KOKKOS_INTERNAL_USE_ARCH_AMPERE80 := $(call kokkos_has_string,$(KOKKOS_ARCH),Ampere80)
 KOKKOS_INTERNAL_USE_ARCH_AMPERE86 := $(call kokkos_has_string,$(KOKKOS_ARCH),Ampere86)
+KOKKOS_INTERNAL_USE_ARCH_ADA89 := $(call kokkos_has_string,$(KOKKOS_ARCH),Ada89)
 KOKKOS_INTERNAL_USE_ARCH_HOPPER90 := $(call kokkos_has_string,$(KOKKOS_ARCH),Hopper90)
 KOKKOS_INTERNAL_USE_ARCH_NVIDIA := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KEPLER30)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_KEPLER32)  \
@@ -416,6 +417,7 @@ KOKKOS_INTERNAL_USE_ARCH_NVIDIA := $(shell expr $(KOKKOS_INTERNAL_USE_ARCH_KEPLE
                                               + $(KOKKOS_INTERNAL_USE_ARCH_TURING75)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_AMPERE80)  \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_AMPERE86)  \
+                                              + $(KOKKOS_INTERNAL_USE_ARCH_ADA89)     \
                                               + $(KOKKOS_INTERNAL_USE_ARCH_HOPPER90))
 
 #SEK: This seems like a bug to me
@@ -1195,6 +1197,11 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA_ARCH), 1)
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMPERE")
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMPERE86")
     KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_86
+  endif
+  ifeq ($(KOKKOS_INTERNAL_USE_ARCH_ADA89), 1)
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_AMPERE")
+    tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_ADA89")
+    KOKKOS_INTERNAL_CUDA_ARCH_FLAG := $(KOKKOS_INTERNAL_CUDA_ARCH_FLAG)=sm_89
   endif
   ifeq ($(KOKKOS_INTERNAL_USE_ARCH_HOPPER90), 1)
     tmp := $(call kokkos_append_header,"$H""define KOKKOS_ARCH_HOPPER")

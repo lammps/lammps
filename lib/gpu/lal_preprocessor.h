@@ -171,6 +171,7 @@
 #if defined(FAST_MATH) && !defined(_DOUBLE_DOUBLE)
 
 #define ucl_exp native_exp
+#define ucl_pow native_pow
 #define ucl_powr native_powr
 #define ucl_rsqrt native_rsqrt
 #define ucl_sqrt native_sqrt
@@ -179,6 +180,7 @@
 #else
 
 #define ucl_exp exp
+#define ucl_pow pow
 #define ucl_powr powr
 #define ucl_rsqrt rsqrt
 #define ucl_sqrt sqrt

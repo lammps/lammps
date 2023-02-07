@@ -36,14 +36,16 @@ ucl_inline void vec3_add(const numtyp x[3], const numtyp y[3], numtyp z[3])
   z[0] = x[0]+y[0]; z[1] = x[1]+y[1]; z[2] = x[2]+y[2];
 }
 
-ucl_inline void vec3_scale(const numtyp k, const numtyp x[3], numtyp y[3])
+ucl_inline void vec3_scale(const numtyp k, numtyp x[3], numtyp y[3])
 {
+  // return y = k * x  (y can be x)
   y[0] = k*x[0]; y[1] = k*x[1]; y[2] = k*x[2];
 }
 
-ucl_inline void vec3_scaleadd(const numtyp k, const numtyp x[3],
+ucl_inline void vec3_scaleadd(const numtyp k, numtyp x[3],
                               const numtyp y[3], numtyp z[3])
 {
+  // return z = k * x + y  (z can be x)
   z[0] = k*x[0]+y[0]; z[1] = k*x[1]+y[1]; z[2] = k*x[2]+y[2];
 }
 
@@ -84,9 +86,9 @@ ucl_inline void costheta_d(const numtyp rij_hat[3],
                            const numtyp rij,
                            const numtyp rik_hat[3],
                            const numtyp rik,
-                           numtyp *dri,
-                           numtyp *drj,
-                           numtyp *drk)
+                           numtyp dri[3],
+                           numtyp drj[3],
+                           numtyp drk[3])
 {
   // first element is derivative wrt Ri, second wrt Rj, third wrt Rk
 
@@ -163,9 +165,9 @@ ucl_inline numtyp ters_bij(const numtyp zeta,
 {
   numtyp tmp = param_beta * zeta;
   if (tmp > param_ca1)
-    return ucl_powr(tmp, -param_powern/((numtyp)2.0*param_powern_del));
+    return ucl_pow(tmp, -param_powern/((numtyp)2.0*param_powern_del));
   if (tmp < param_ca4) return (numtyp)1.0;
-  return ucl_powr((numtyp)1.0 + ucl_powr(tmp,param_powern),
+  return ucl_pow((numtyp)1.0 + ucl_pow(tmp,param_powern),
     (numtyp)-1.0/((numtyp)2.0*param_powern_del));
 }
 
@@ -180,12 +182,12 @@ ucl_inline numtyp ters_bij_d(const numtyp zeta,
 {
   numtyp tmp = param_beta * zeta;
   if (tmp > param_ca1) return (numtyp)-0.5*(param_powern/param_powern_del) *
-          ucl_powr(tmp,(numtyp)-0.5*(param_powern/param_powern_del)) / zeta;
+          ucl_pow(tmp,(numtyp)-0.5*(param_powern/param_powern_del)) / zeta;
   if (tmp < param_ca4) return (numtyp)0.0;
 
-  numtyp tmp_n = ucl_powr(tmp,param_powern);
+  numtyp tmp_n = ucl_pow(tmp,param_powern);
   return (numtyp)-0.5 *(param_powern/param_powern_del) *
-          ucl_powr((numtyp)1.0+tmp_n, (numtyp)-1.0-((numtyp)1.0 /
+          ucl_pow((numtyp)1.0+tmp_n, (numtyp)-1.0-((numtyp)1.0 /
     ((numtyp)2.0*param_powern_del)))*tmp_n / zeta;
 }
 

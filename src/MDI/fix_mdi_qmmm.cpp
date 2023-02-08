@@ -530,10 +530,10 @@ void FixMDIQMMM::pre_force(int vflag)
   //   qqm = new charges on QM atoms
   //   qm_energy = QM contribution to energy of entire system
   
-  if (comm->me == 0) utils::logmesg(lmp, "Invoking QM code ...\n");
+  //if (comm->me == 0) utils::logmesg(lmp, "Invoking QM code ...\n");
 
-  MPI_Barrier(world);
-  double tstart = platform::walltime();
+  //MPI_Barrier(world);
+  //double tstart = platform::walltime();
 
   int ierr;
   
@@ -579,10 +579,11 @@ void FixMDIQMMM::pre_force(int vflag)
 
   // end of MDI calls
   
-  MPI_Barrier(world);
-  if (comm->me == 0) 
-    utils::logmesg(lmp, "  time = {:.3f} seconds\n",
-                   platform::walltime() - tstart);
+  //MPI_Barrier(world);
+  
+  //if (comm->me == 0) 
+  //  utils::logmesg(lmp, "  time = {:.3f} seconds\n",
+  //                 platform::walltime() - tstart);
 
   // unit conversion from MDI to LAMMPS
 

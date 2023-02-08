@@ -202,7 +202,7 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (eflag)
       Kokkos::parallel_reduce(
-		    policyInstance<TagPairEAMKernelAB<1>>(inum),
+		    Kokkos::RangePolicy<DeviceType,TagPairEAMKernelAB<1>>(0,inum),
 		    *this,ev);
     else
       Kokkos::parallel_for(
@@ -227,31 +227,31 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (neighflag == HALF) {
       if (newton_pair) {
         Kokkos::parallel_reduce(
-	      policyInstance<TagPairEAMKernelC<HALF,1,1>>(inum),
+	      Kokkos::RangePolicy<DeviceType,TagPairEAMKernelC<HALF,1,1>>(0,inum),
 	      *this,ev);
       } else {
         Kokkos::parallel_reduce(
-	      policyInstance<TagPairEAMKernelC<HALF,0,1>>(inum),
+	      Kokkos::RangePolicy<DeviceType,TagPairEAMKernelC<HALF,0,1>>(0,inum),
 	      *this,ev);
       }
     } else if (neighflag == HALFTHREAD) {
       if (newton_pair) {
         Kokkos::parallel_reduce(
-	      policyInstance<TagPairEAMKernelC<HALFTHREAD,1,1>>(inum),
+	      Kokkos::RangePolicy<DeviceType,TagPairEAMKernelC<HALFTHREAD,1,1>>(0,inum),
 	      *this,ev);
       } else {
         Kokkos::parallel_reduce(
-              policyInstance<TagPairEAMKernelC<HALFTHREAD,0,1>>(inum),
+              Kokkos::RangePolicy<DeviceType,TagPairEAMKernelC<HALFTHREAD,0,1>>(0,inum),
 	      *this,ev);
       }
     } else if (neighflag == FULL) {
       if (newton_pair) {
         Kokkos::parallel_reduce(
-	      policyInstance<TagPairEAMKernelC<FULL,1,1>>(inum),
+	      Kokkos::RangePolicy<DeviceType,TagPairEAMKernelC<FULL,1,1>>(0,inum),
 	      *this,ev);
       } else {
         Kokkos::parallel_reduce(
-	      policyInstance<TagPairEAMKernelC<FULL,0,1>>(inum),
+	      Kokkos::RangePolicy<DeviceType,TagPairEAMKernelC<FULL,0,1>>(0,inum),
 	      *this,ev);
       }
     }

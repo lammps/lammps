@@ -1,4 +1,4 @@
-# MDI wrapper on NWChem PWDFT code
+ # MDI wrapper on NWChem PWDFT code
 
 # NOTE: Qs or issues to still address
 #   test if works for both AIMD and QMMM
@@ -11,7 +11,7 @@
 #   allow for box size changes, e.g. every step for NPT
 #   check NWC func call error returns ?
 
-import sys,time
+import sys,os,time
 from ctypes import *
 
 import numpy as np
@@ -128,7 +128,7 @@ def options(other_options):
 # --------------------------------------------
 
 def mdi_engine(other_options):
-  global world,MPI_Comm,libpwdft
+  global world,me,nprocs,MPI_Comm,libpwdft
 
   # get the MPI intra-communicator for this engine
 
@@ -472,8 +472,12 @@ def evaluate():
       error("QM atom properties not fully specified")
 
   # setup new system within PWDFT
-
-  if new_system: pwdft_initialize()
+  # remove nwchemex.movecs file if it exists
+  
+  if new_system:
+    if me == 0:
+      if os.path.exists("nwchemex.movecs"): os.remove("nwchemex.movecs")
+    pwdft_initialize()
 
   # QMMM with QM and MM atoms
 
@@ -483,7 +487,7 @@ def evaluate():
   c_nw_outfile = nw_outfile.encode()
   
   if mode == QMMM:
-    print("QMMM minimizer")
+    #print("QMMM minimizer")
     time1 = time.time()
     nwerr = libpwdft.\
       c_lammps_pspw_qmmm_minimizer_filename(c_world,qm_coords,qm_potential,
@@ -492,7 +496,7 @@ def evaluate():
     # NOTE: check nwerr return?
     qm_pe = c_qm_pe.value
     time2 = time.time()
-    print("DONE QMMM minimizer",nwerr,time2-time1)
+    if me == 0: print("Time for PWDFT qmmm:",time2-time1)
     #print("PE",qm_pe)
     #print("FORCE",qm_forces)
     #print("CHARGES",qm_charges)
@@ -500,7 +504,7 @@ def evaluate():
   # AIMD with only QM atoms
     
   elif mode == AIMD:
-    print("AIMD minimizer")
+    #print("AIMD minimizer")
     time1 = time.time()
     nwerr = libpwdft.\
       c_lammps_pspw_aimd_minimizer_filename(c_world,qm_coords,qm_forces,
@@ -508,7 +512,7 @@ def evaluate():
     # NOTE: check nwerr return?
     qm_pe = c_qm_pe.value
     time2 = time.time()
-    print("DONE AIMD minimizer",nwerr,time2-time1)
+    if me == 0: print("Time for PWDFT aimd:",time2-time1)
 
   # clear flags for all MDI commands for next QM evaluation
 
@@ -597,11 +601,11 @@ def pwdft_initialize():
   infile = nw_infile.encode()
   outfile = nw_outfile.encode()
 
-  print("INPUT filename")
+  #print("INPUT filename")
   time1 = time.time()
   nwerr = libpwdft.c_lammps_pspw_input_filename(c_world,infile,outfile)
   time2 = time.time()
-  print("DONE INPUT filename",nwerr,time2-time1)
+  if me == 0: print("Time for PWDFT setup:",time2-time1)
 
 # --------------------------------------------
 # function called by MDI driver

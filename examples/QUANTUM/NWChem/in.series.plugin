@@ -1,6 +1,10 @@
 # multiple W conformations with NWChem
 
-variable        datafile index data.w.bcc data.w.diamond
+# NOTE: these files still need work with PWDFT
+# w.bcc_222, w.fcc_001, w.sc_001
+
+variable        datafile index w.bcc w.diamond
+variable        p equal extract_setting(world_size)
 
 label           loop
 
@@ -9,9 +13,9 @@ label           loop
   atom_modify     map yes
   comm_modify     cutoff 2.0
 
-  log             log.series.plugin.${datafile}
+  log             log.series.plugin.${datafile}.$p
 
-  read_data       ${datafile}
+  read_data       data.${datafile}
 
   mass		  1 183.84
 
@@ -21,10 +25,10 @@ label           loop
   fix             1 all mdi/qm elements W
   fix_modify      1 energy yes
 
-  dump            1 all custom 1 dump.series.plugin.${datafile} id x y z fx fy fz
+  #dump            1 all custom 1 dump.series.plugin.${datafile} id x y z fx fy fz
 
   mdi             plugin nwchem_mdi mdi "-role ENGINE -name LATTE -method LINK" &
-                  extra "template.w.nw w.nw log.series.pwdft.plugin.1" &
+                  extra "template.w.nw w.nw log.series.pwdft.plugin.$p" &
                   command "run 0"
 
   clear

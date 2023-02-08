@@ -1,3 +1,4 @@
+LAMMPS (22 Dec 2022)
 # multiple W conformations with NWChem
 
 # NOTE: these files still need work with PWDFT
@@ -16,25 +17,5 @@ label           loop
   comm_modify     cutoff 2.0
 
   log             log.series.${datafile}.$p
-
-  read_data       data.${datafile}
-
-  mass		  1 183.84
-
-  neighbor	  1.0 bin
-  neigh_modify	  delay 0 every 1 check yes
-
-  fix             1 all mdi/qm elements W connect no
-  fix_modify      1 energy yes
-
-  #dump            1 all custom 1 dump.series.${datafile}.$p id x y z fx fy fz
-
-  run		  0
-
-  clear
-
-next            datafile
-
-jump            SELF loop
-
-mdi             exit
+  log             log.series.w.bcc.$p
+  log             log.series.w.bcc.1

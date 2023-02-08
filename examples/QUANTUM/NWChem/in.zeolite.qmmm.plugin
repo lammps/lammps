@@ -67,6 +67,8 @@ thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
                 f_2 pe etotal press
 thermo          1
 
+variable        p equal extract_setting(world_size)
+
 mdi             plugin nwchem_mdi mdi "-role ENGINE -name NWChem -method LINK" &
-                extra "template.methane.nw methane.nw log.zeolite.pwdft.qmmm.plugin.1" &
+                extra "template.methane.nw methane.nw log.zeolite.pwdft.qmmm.plugin.$p" &
                 command "run 2"

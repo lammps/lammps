@@ -94,9 +94,9 @@ ucl_inline void costheta_d(const numtyp rij_hat[3],
 
   numtyp cos_theta = vec3_dot(rij_hat,rik_hat);
 
-  vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
+  vec3_scaleadd(-cos_theta,(numtyp *)rij_hat,(numtyp *)rik_hat,drj);
   vec3_scale(ucl_recip(rij),drj,drj);
-  vec3_scaleadd(-cos_theta,rik_hat,rij_hat,drk);
+  vec3_scaleadd(-cos_theta,(numtyp *)rik_hat,rij_hat,drk);
   vec3_scale(ucl_recip(rik),drk,drk);
   vec3_add(drj,drk,dri);
   vec3_scale((numtyp)-1.0,dri,dri);
@@ -240,10 +240,10 @@ ucl_inline void ters_zetaterm_d(const numtyp prefactor,
   // dri += fc*gijk_d*ex_delr*dcosdri;
   // dri += fc*gijk*ex_delr_d*(rik_hat - rij_hat);
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
+  vec3_scale(-dfc*gijk*ex_delr,(numtyp *)rik_hat,dri);
   vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  vec3_scaleadd(fc*gijk*ex_delr_d,(numtyp *)rik_hat,dri,dri);
+  vec3_scaleadd(-fc*gijk*ex_delr_d,(numtyp *)rij_hat,dri,dri);
   vec3_scale(prefactor,dri,dri);
 
   // compute the derivative wrt Rj
@@ -251,7 +251,7 @@ ucl_inline void ters_zetaterm_d(const numtyp prefactor,
   // drj += fc*gijk*ex_delr_d*rij_hat;
 
   vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  vec3_scaleadd(fc*gijk*ex_delr_d,(numtyp *)rij_hat,drj,drj);
   vec3_scale(prefactor,drj,drj);
 
   // compute the derivative wrt Rk
@@ -259,9 +259,9 @@ ucl_inline void ters_zetaterm_d(const numtyp prefactor,
   // drk += fc*gijk_d*ex_delr*dcosdrk;
   // drk += -fc*gijk*ex_delr_d*rik_hat;
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
+  vec3_scale(dfc*gijk*ex_delr,(numtyp *)rik_hat,drk);
   vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
+  vec3_scaleadd(-fc*gijk*ex_delr_d,(numtyp *)rik_hat,drk,drk);
   vec3_scale(prefactor,drk,drk);
 }
 
@@ -310,10 +310,10 @@ ucl_inline void ters_zetaterm_d_fi(const numtyp prefactor,
   // dri += fc*gijk_d*ex_delr*dcosdri;
   // dri += fc*gijk*ex_delr_d*(rik_hat - rij_hat);
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
+  vec3_scale(-dfc*gijk*ex_delr,(numtyp *)rik_hat,dri);
   vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  vec3_scaleadd(fc*gijk*ex_delr_d,(numtyp *)rik_hat,dri,dri);
+  vec3_scaleadd(-fc*gijk*ex_delr_d,(numtyp *)rij_hat,dri,dri);
   vec3_scale(prefactor,dri,dri);
 }
 
@@ -361,7 +361,7 @@ ucl_inline void ters_zetaterm_d_fj(const numtyp prefactor,
   // drj += fc*gijk*ex_delr_d*rij_hat;
 
   vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  vec3_scaleadd(fc*gijk*ex_delr_d,(numtyp *)rij_hat,drj,drj);
   vec3_scale(prefactor,drj,drj);
 }
 
@@ -410,9 +410,9 @@ ucl_inline void ters_zetaterm_d_fk(const numtyp prefactor,
   // drk += fc*gijk_d*ex_delr*dcosdrk;
   // drk += -fc*gijk*ex_delr_d*rik_hat;
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
+  vec3_scale(dfc*gijk*ex_delr,(numtyp *)rik_hat,drk);
   vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
+  vec3_scaleadd(-fc*gijk*ex_delr_d,(numtyp *)rik_hat,drk,drk);
   vec3_scale(prefactor,drk,drk);
 }
 
@@ -531,8 +531,8 @@ ucl_inline void attractive(const numtyp param_bigr,
                            numtyp fk[3])
 {
   numtyp rij_hat[3],rik_hat[3];
-  vec3_scale(rijinv,delrij,rij_hat);
-  vec3_scale(rikinv,delrik,rik_hat);
+  vec3_scale(rijinv,(numtyp *)delrij,rij_hat);
+  vec3_scale(rikinv,(numtyp *)delrik,rik_hat);
   ters_zetaterm_d(prefactor,rij_hat,rij,rik_hat,rik,
                   param_bigr, param_bigd, param_powermint, param_lam3,
                   param_h, param_c1, param_c2, param_c3, param_c4, param_c5,
@@ -559,8 +559,8 @@ ucl_inline void attractive_fi(const numtyp param_bigr,
                               numtyp fi[3])
 {
   numtyp rij_hat[3],rik_hat[3];
-  vec3_scale(rijinv,delrij,rij_hat);
-  vec3_scale(rikinv,delrik,rik_hat);
+  vec3_scale(rijinv,(numtyp *)delrij,rij_hat);
+  vec3_scale(rikinv,(numtyp *)delrik,rik_hat);
   ters_zetaterm_d_fi(prefactor,rij_hat,rij,rik_hat,rik,
                   param_bigr, param_bigd, param_powermint, param_lam3,
                   param_h, param_c1, param_c2, param_c3, param_c4, param_c5,
@@ -587,8 +587,8 @@ ucl_inline void attractive_fj(const numtyp param_bigr,
                               numtyp fj[3])
 {
   numtyp rij_hat[3],rik_hat[3];
-  vec3_scale(rijinv,delrij,rij_hat);
-  vec3_scale(rikinv,delrik,rik_hat);
+  vec3_scale(rijinv,(numtyp *)delrij,rij_hat);
+  vec3_scale(rikinv,(numtyp *)delrik,rik_hat);
   ters_zetaterm_d_fj(prefactor,rij_hat,rij,rik_hat,rik,
                      param_bigr, param_bigd, param_powermint, param_lam3,
                      param_h, param_c1, param_c2, param_c3, param_c4, param_c5,
@@ -615,8 +615,8 @@ ucl_inline void attractive_fk(const numtyp param_bigr,
                               numtyp fk[3])
 {
   numtyp rij_hat[3],rik_hat[3];
-  vec3_scale(rijinv,delrij,rij_hat);
-  vec3_scale(rikinv,delrik,rik_hat);
+  vec3_scale(rijinv,(numtyp *)delrij,rij_hat);
+  vec3_scale(rikinv,(numtyp *)delrik,rik_hat);
   ters_zetaterm_d_fk(prefactor,rij_hat,rij,rik_hat,rik,
                      param_bigr, param_bigd, param_powermint, param_lam3,
                      param_h, param_c1, param_c2, param_c3, param_c4, param_c5,

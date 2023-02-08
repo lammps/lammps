@@ -28,10 +28,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 AtomVecDipoleKokkos::AtomVecDipoleKokkos(LAMMPS *lmp) : AtomVec(lmp),
-AtomVecKokkos(lmp), AtomVecDipole(lmp)
-{
-
-}
+AtomVecKokkos(lmp), AtomVecDipole(lmp), q(nullptr) {}
 
 /* ----------------------------------------------------------------------
    grow atom arrays

@@ -101,6 +101,7 @@
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_pre_cuda_hip.h"
+#define ucl_pow pow
 #endif
 
 // -------------------------------------------------------------------------

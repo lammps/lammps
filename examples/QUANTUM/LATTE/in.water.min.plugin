@@ -1,4 +1,4 @@
-# simple water model with LATTE
+# minimize water model with LATTE and FIRE
 
 units           metal
 atom_style      full
@@ -24,8 +24,6 @@ pair_coeff      * *
 neighbor        1.0 bin
 neigh_modify    every 1 delay 0 check yes
 
-timestep        0.00025
-
 fix             1 all nve
 
 fix             2 all mdi/qm virial yes elements O H
@@ -33,9 +31,11 @@ fix_modify      2 energy yes
 
 thermo_style    custom step temp pe etotal press
 
-# dynamics
+# minimization
 
 thermo          10
 
+min_style       fire
+
 mdi             plugin latte_mdi mdi "-role ENGINE -name LATTE -method LINK" &
-                extra latte.in.water command "run 100"
+                extra latte.in.water command "minimize 1.0e-4 1.0e-4 500 500"

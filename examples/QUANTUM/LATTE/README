@@ -10,35 +10,34 @@ Step 4: run the water AIMD problem for a few steps
 
 Step 1: build LAMMPS
 
-The molecule and kspace packages are needed for the 2-water test
-problem.  Copy the final LAMMPS executable into the
-examples/QUANTUM/PySCF directory.
+The molecule package is needed.  Copy the final LAMMPS executable into
+the examples/QUANTUM/LATTE directory.
 
 Traditional make:
 
 % cd ~/lammps/lib/mdi
 % python Install.py -m mpi
 % cd ~/lammps/src
-% make yes-mdi yes-molecule yes-kspace
+% make yes-mdi yes-molecule
 % make -j mpi
-% cp lmp_mpi ~/lammps/examples/QUANTUM/PySCF
+% cp lmp_mpi ~/lammps/examples/QUANTUM/LATTE
 
 CMake:
 
 % cd ~/lammps
 % mkdir build; cd build
-% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes -D PKG_KSPACE=yes ../cmake
+% cmake -DPKG_MDI=yes -DPKG_MOLECULE=yes ../cmake
 % make -j
-% cp lmp ~/lammps/examples/QUANTUM/PySCF/lmp_mpi
+% cp lmp ~/lammps/examples/QUANTUM/LATTE/lmp_mpi
 
 ---------------------------------
 ---------------------------------
 
-Step 2: install the MDI code coupling package
+Step 2: download/build MDI code coupling package
 
-(a) grab the MDI Git repo
+(a) clone the MDI Git repo
 
-% mkdir git; cd mdi
+% mkdir mdi; cd mdi
 % git clone git@github.com:MolSSI-MDI/MDI_Library.git git
 
 (b) build MDI
@@ -48,8 +47,8 @@ Step 2: install the MDI code coupling package
 % cmake ..
 % make -j
 
-(c) Add something similar to the following to your .bashrc or .cshrc
-file so that Python can find MDI:
+(c) Add a line like this to your ~/.bashrc or ~/.cshrc file so that
+Python can find MDI:
 
 For bash:
 
@@ -66,91 +65,84 @@ For (t)csh:
 
 Step 3: download/build LATTE
 
-(a) download/build LATTE on your box
+(a) clone the skimLATTE repo
 
-NOTE: add instructions here
+% mkdir latte; cd latte
+% git clone git@github.com:lanl/LATTE.git git
 
-(b) Add something similar to the following to your .bashrc or .cshrc
-file so that Python can find PySCF:
+(b) build LATTE as a shared library
+
+% cd ~/latte/git
+% mkdir build; cd build
+% cmake -DBUILD_SHARED_LIBS=on ../cmake
+% make
+
+(c) Add a line like this to your ~/.bashrc or ~/.cshrc file so that
+the liblatte.so file can be found:
 
 For bash:
 
-% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/pyscf/git"
+% export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/home/sjplimp/latte/git/build"
 % hash -r
 
 For (t)csh:
 
-% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/pyscf/git
+% setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/latte/git/build
 % rehash
 
-(c) Check that you can import the 4 Python modules which the script
-that wraps PySCF will need:
-
-% python
->>> import numpy as np
->>> from mpi4py import MPI
->>> import MDI_Library as mdi
->>> import pyscf
-
 ---------------------------------
 ---------------------------------
 
-Step 4: run the water AIMD problem for a few steps
+Step 4: perform test runs in any of 3 modes
 
-% cd ~/lammps/examples/QUANTUM/LATTE
+These tests are in lammps/examples/QUANTUM/LATTE
 
-# Run with TCP: 1 proc each
+in.ch4 = AIMD with CH4 molecule
+in.graphene = AIMD with graphene
+in.series = series of 3 UO2 conformations
+in.sucrose = AIMD of sucrose molecule
+in.uo2 = two molecules of UO2
+in.water = eight water molecules
 
-% lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.tcp.1 -in in.water &
+** run 2 executables with TCP/IP, 1 proc each
 
-% python latte_mdi.py -mdi "-name LATTE -role ENGINE -method TCP -port 8021 -hostname localhost" latte.in.water
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.tcp.1 -in in.water &
+python latte_mdi.py -mdi "-name LATTE -role ENGINE -method TCP -port 8021 -hostname localhost" latte.in.water
 
-# Run with MPI: 1 proc each
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.uo2.tcp.1 -in in.uo2 &
+python latte_mdi.py -mdi "-name LATTE -role ENGINE -method TCP -port 8021 -hostname localhost" latte.in.uo2
 
-% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.mpi.1 -in in.water : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.water
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.series.tcp.1 -in in.series &
+python latte_mdi.py -mdi "-name LATTE -role ENGINE -method TCP -port 8021 -hostname localhost" latte.in.uo2
 
-# Run in plugin mode: 1 proc
+** run 2 executables with MPI, 1 proc each
 
-% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.water.plugin.1 -in in.water.plugin
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.mpi.1 -in in.water : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.water
 
----------------------------------
----------------------------------
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.min.mpi.1 -in in.water.min : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.generic
 
-Step 5: run the UO2 AIMD problem for a few steps
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.uo2.mpi.1 -in in.uo2 : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.uo2
 
-% cd ~/lammps/examples/QUANTUM/LATTE
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.ch4.mpi.1 -in in.ch4 : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.generic
 
-# Run with TCP: 1 proc each
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.sucrose.mpi.1 -in in.sucrose : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.generic
 
-% lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.uo2.tcp.1 -in in.uo2 &
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.graphene.mpi.1 -in in.graphene : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.generic
 
-% python latte_mdi.py -mdi "-name LATTE -role ENGINE -method TCP -port 8021 -hostname localhost" latte.in.uo2
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.series.mpi.1 -in in.series : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.uo2
 
-# Run with MPI: 1 proc each
+** run LATTE as plugin MDI engine, on 1 proc
 
-% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.uo2.mpi.1 -in in.uo2 : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.uo2
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.water.plugin.1 -in in.water.plugin
 
-# Run in plugin mode: 1 proc
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.water.min.plugin.1 -in in.water.min.plugin
 
-% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.uo2.plugin.1 -in in.uo2.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.uo2.plugin.1 -in in.uo2.plugin
 
----------------------------------
----------------------------------
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.ch4.plugin.1 -in in.ch4.plugin
 
-Step 6: run the UO2 series problem
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.sucrose.plugin.1 -in in.sucrose.plugin
 
-% cd ~/lammps/examples/QUANTUM/LATTE
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.graphene.plugin.1 -in in.graphene.plugin
 
-# Run with TCP: 1 proc each
-
-% lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.series.tcp.1 -in in.series &
-
-% python latte_mdi.py -mdi "-name LATTE -role ENGINE -method TCP -port 8021 -hostname localhost" latte.in.uo2
-
-# Run with MPI: 1 proc each
-
-% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.series.mpi.1 -in in.series : -np 1 python latte_mdi.py -mdi "-name LATTE -role ENGINE -method MPI" latte.in.uo2
-
-# Run in plugin mode: 1 proc
-
-% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.series.plugin.1 -in in.series.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.series.plugin.1 -in in.series.plugin

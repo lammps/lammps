@@ -1414,7 +1414,7 @@ more precise than what can be done with :ref:`tabulated potentials
 **Authors:** Axel Kohlmeyer (Temple U).  Lepton itself is developed
 by Peter Eastman at Stanford University.
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 **Install:**
 
@@ -1651,7 +1651,7 @@ server when the package is installed for the first time.
 Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
 of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-.. deprecated:: TBD
+.. deprecated:: 8Feb2023
 
 **Author of the C++ styles:**
 Philipp Kloza (U Cambridge)

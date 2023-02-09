@@ -56,7 +56,7 @@ C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
    and Ubuntu 18.04 LTS and not compatible.  Either newer compilers
    need to be installed or the Linux updated.
 
-.. versionchanged:: TBD
+.. versionchanged:: 8Feb2023
 
 .. note::
 
@@ -1551,7 +1551,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Gather type and constituent atom information for all angles.
 
-   .. versionadded:: TBD
+   .. versionadded:: 8Feb2023
 
    This function copies the list of all angles into an allocatable array.
    The array will be filled with (angle type, angle atom 1, angle atom 2, angle atom 3)
@@ -1638,7 +1638,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Gather type and constituent atom information for all dihedrals.
 
-   .. versionadded:: TBD
+   .. versionadded:: 8Feb2023
 
    This function copies the list of all dihedrals into an allocatable array.
    The array will be filled with (dihedral type, dihedral atom 1, dihedral atom 2,
@@ -1684,7 +1684,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    Gather type and constituent atom information for all impropers.
 
-   .. versionadded:: TBD
+   .. versionadded:: 8Feb2023
 
    This function copies the list of all impropers into an allocatable array.
    The array will be filled with (improper type, improper atom 1, improper atom 2,

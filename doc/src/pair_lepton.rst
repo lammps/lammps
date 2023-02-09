@@ -51,7 +51,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 Pair styles *lepton* and *lepton/coul* compute pairwise interactions
 between particles which depend solely on the distance and have a cutoff.

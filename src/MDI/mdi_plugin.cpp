@@ -76,7 +76,7 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       iarg += 2;
     } else if (strcmp(arg[iarg], "command") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal mdi plugin command");
-      lammps_command = utils::strdup(arg[iarg + 1]);
+      lammps_command = arg[iarg + 1];
 
       // do variable substitution in multiple word lammps_command
       

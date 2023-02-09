@@ -83,8 +83,8 @@ __kernel void k_mie(const __global numtyp4 *restrict x_,
       int mtype=itype*lj_types+jtype;
       if (rsq<mie3[mtype].w) {
         numtyp r2inv = ucl_recip(rsq);
-        numtyp rgamA = pow(r2inv,(mie1[mtype].z/(numtyp)2.0));
-        numtyp rgamR = pow(r2inv,(mie1[mtype].w/(numtyp)2.0));
+        numtyp rgamA = ucl_powr(r2inv,(mie1[mtype].z/(numtyp)2.0));
+        numtyp rgamR = ucl_powr(r2inv,(mie1[mtype].w/(numtyp)2.0));
         numtyp forcemie =  (mie1[mtype].x*rgamR - mie1[mtype].y*rgamA);
         numtyp force = factor_lj*forcemie*r2inv;
 
@@ -177,8 +177,8 @@ __kernel void k_mie_fast(const __global numtyp4 *restrict x_,
 
       if (rsq<mie3[mtype].w) {
         numtyp r2inv = ucl_recip(rsq);
-        numtyp rgamA = pow(r2inv,(mie1[mtype].z/(numtyp)2.0));
-        numtyp rgamR = pow(r2inv,(mie1[mtype].w/(numtyp)2.0));
+        numtyp rgamA = ucl_powr(r2inv,(mie1[mtype].z/(numtyp)2.0));
+        numtyp rgamR = ucl_powr(r2inv,(mie1[mtype].w/(numtyp)2.0));
         numtyp forcemie =  (mie1[mtype].x*rgamR - mie1[mtype].y*rgamA);
         numtyp force = factor_lj*forcemie*r2inv;
 

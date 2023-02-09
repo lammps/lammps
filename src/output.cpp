@@ -828,6 +828,8 @@ void Output::delete_dump(const std::string &id)
     ivar_dump[i-1] = ivar_dump[i];
   }
   ndump--;
+  dump[ndump] = nullptr;
+  var_dump[ndump] = nullptr;
   dump_list = std::vector<Dump *>(dump, dump + ndump);
 }
 

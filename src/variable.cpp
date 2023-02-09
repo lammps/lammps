@@ -771,10 +771,8 @@ int Variable::next(int narg, char **arg)
         error->one(FLERR,"Unexpected error while incrementing uloop style variable. "
                    "Please contact the LAMMPS developers.");
 
-      //printf("READ %d %d\n",universe->me,nextindex);
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
-      //printf("WRITE %d %d\n",universe->me,nextindex+1);
       fclose(fp);
       fp = nullptr;
       rename("tmp.lammps.variable.lock","tmp.lammps.variable");
@@ -1213,6 +1211,9 @@ void Variable::remove(int n)
     dvalue[i-1] = dvalue[i];
   }
   nvar--;
+  data[nvar] = nullptr;
+  reader[nvar] = nullptr;
+  names[nvar] = nullptr;
 }
 
 /* ----------------------------------------------------------------------

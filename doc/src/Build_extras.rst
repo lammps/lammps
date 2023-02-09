@@ -606,6 +606,12 @@ They must be specified in uppercase.
    *  - AMPERE86
       - GPU
       - NVIDIA Ampere generation CC 8.6 GPU
+   *  - ADA89
+      - GPU
+      - NVIDIA Ada Lovelace generation CC 8.9 GPU
+   *  - HOPPER90
+      - GPU
+      - NVIDIA Hopper generation CC 9.0 GPU
    *  - VEGA900
       - GPU
       - AMD GPU MI25 GFX900
@@ -640,7 +646,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 3.7.0 of the Kokkos library.
+This list was last updated for version 3.7.1 of the Kokkos library.
 
 .. tabs::
 

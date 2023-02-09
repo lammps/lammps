@@ -353,7 +353,7 @@ __kernel void k_vashishta(const __global numtyp4 *restrict x_,
         numtyp r4inv = rinvsq*rinvsq;
         numtyp r6inv = rinvsq*r4inv;
 
-        numtyp reta = pow(r,-param1_eta);
+        numtyp reta = ucl_powr(r,-param1_eta);
         numtyp lam1r = r*param1_lam1inv;
         numtyp lam4r = r*param1_lam4inv;
         numtyp vc2 = param1_zizj * ucl_exp(-lam1r)/r;

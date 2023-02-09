@@ -106,8 +106,8 @@ Step 4: perform test runs in any of 3 modes
 These tests are in lammps/examples/QUANTUM/NWChem
 
 in.series = series of several W conformations
-in.water.qmmm = QMMM of two-water system, one QM + 1 MM
-in.zeolite.qmmm = QMMM of zeolite (MM0 with a methane (QM) molecule
+in.water.qmmm = QMMM of two-water system, 1 QM + 1 MM
+in.zeolite.qmmm = QMMM of zeolite, MM zeolite + QM methane molecule
 
 ** run LAMMPS-only versions of water and zeolite problems
 

@@ -94,22 +94,10 @@ neigh_modify	delay 0 every 1 check yes
 fix		1 all nve
 #fix		1 qm nve
 
-compute         1 all pair/local dist
-compute         2 all reduce max c_1
-
-variable        fxabs atom abs(fx)
-variable        fyabs atom abs(fy)
-variable        fzabs atom abs(fz)
-variable        qabs atom abs(q)
-compute         3 all reduce max v_fxabs v_fyabs v_fzabs v_qabs
-
-dump            1 all custom 1 dump.zeolite.mm id x y z q fx fy fz
-dump_modify     1 sort id format float "%20.16g"
-
-timestep        0.001
+timestep        0.0001
 
 thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
-                pe etotal press c_2 c_3[*]
+                pe etotal press
 
 thermo          1
 

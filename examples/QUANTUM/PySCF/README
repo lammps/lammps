@@ -1,18 +1,17 @@
-# Test runs of QMMM with LAMMPS and PySCF
+# Test runs with copuling of LAMMPS and PySCF
 
 Step 1: build LAMMPS
-Step 2: download/build the MDI code coupling package
-Step 3: download/build or install PySCF
-Step 4: run 2-water QMMM problem for a few steps
+Step 2: download/build MDI code coupling package
+Step 3: download/build PySCF
+Step 4: perform test runs in any of 3 modes
 
 ---------------------------------
 ---------------------------------
 
 Step 1: build LAMMPS
 
-The molecule and kspace packages are needed for the 2-water test
-problem.  Copy the final LAMMPS executable into the
-examples/QUANTUM/PySCF directory.
+The MDI, molecule, and kspace packages are needed.  Copy the final
+LAMMPS executable into the examples/QUANTUM/PySCF directory.
 
 Traditional make:
 
@@ -27,18 +26,18 @@ CMake:
 
 % cd ~/lammps
 % mkdir build; cd build
-% cmake -D PKG_MDI=yes -D PKG_MOLECULE=yes -D PKG_KSPACE=yes ../cmake
+% cmake -DPKG_MDI=yes -DPKG_MOLECULE=yes -DPKG_KSPACE=yes ../cmake
 % make -j
 % cp lmp ~/lammps/examples/QUANTUM/PySCF/lmp_mpi
 
 ---------------------------------
 ---------------------------------
 
-Step 2: install the MDI code coupling package
+Step 2: download/build MDI code coupling package
 
-(a) grab the MDI Git repo
+(a) clone the MDI Git repo
 
-% mkdir git; cd mdi
+% mkdir mdi; cd mdi
 % git clone git@github.com:MolSSI-MDI/MDI_Library.git git
 
 (b) build MDI
@@ -48,8 +47,8 @@ Step 2: install the MDI code coupling package
 % cmake ..
 % make -j
 
-(c) Add something similar to the following to your .bashrc or .cshrc
-file so that Python can find MDI:
+(c) Add a line like this to your ~/.bashrc or ~/.cshrc file so that
+Python can find MDI:
 
 For bash:
 
@@ -61,17 +60,38 @@ For (t)csh:
 % setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git
 % rehash
 
+(d) Check import of 3 Python modules which the script that wraps LATTE
+will need:
+
+% python
+>>> import numpy as np
+>>> from mpi4py import MPI
+>>> import MDI_Library as mdi
+
 ---------------------------------
 ---------------------------------
 
-Step 3: install PySCF
+Step 3: download/build PySCF
 
-(a) download/build or install PySCF on your box
+See https://pyscf.org/install.html for install options.
+This describes building PySCF from source code.
 
-NOTE: add instructions here
+(a) clone the PySCI Git repo
 
-(b) Add something similar to the following to your .bashrc or .cshrc
-file so that Python can find PySCF:
+% mkdir pyscf; cd pyscf
+% git clone https://github.com/pyscf/pyscf.git git
+
+(b) build PySCF
+
+NOTE: you will also need numpy, scipy, h5py in your python
+
+% cd pyscf/git/lib
+% mkdir build; cd build
+% cmake ..
+% make -j
+
+(c) Add a line like this to your ~/.bashrc or ~/.cshrc file so that
+Python can find PySCF:
 
 For bash:
 
@@ -83,8 +103,8 @@ For (t)csh:
 % setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/pyscf/git
 % rehash
 
-(c) Check that you can import the 4 Python modules which the script
-that wraps PySCF will need:
+(d) Check import of 4 Python modules which the script that wraps PySCF
+will need:
 
 % python
 >>> import numpy as np
@@ -95,41 +115,33 @@ that wraps PySCF will need:
 ---------------------------------
 ---------------------------------
 
-Step 4: run the 2-water QMMM problem for a few steps
+Step 4: perform test runs in any of 3 modes
 
-% cd ~/lammps/examples/QUANTUM/PySCF
+These tests are in lammps/examples/QUANTUM/PySCF
 
-# Run with TCP: 1 proc each
+in.water = QMMM of two-water system, 1 QM + 1 MM
+in.mixture = QMMM of mixture, QM small molecule in MM water
 
-% lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.pyscf.qmmm.tcp.1 -in in.water.pyscf.qmmm &
+** run LAMMPS-only versions of mixture problem
 
-% python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method TCP -port 8021 -hostname localhost"
+lmp_mpi -log log.mixture.mm.1 < in.mixture.mm
 
-# Run with MPI: 1 proc each
+** run LAMMPS and LATTE with TCP/IP, 1 proc each
 
-% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.pyscf.qmmm.mpi.1 -in in.water.pyscf.qmmm : -np 1 python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method MPI" -pbc no
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.qmmm.tcp.1 -in in.water.qmmm &
+python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method TCP -port 8021 -hostname localhost"
 
-# Run in plugin mode: 1 proc
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.mixture.qmmm.tcp.1 -in in.mixture.qmmm &
+python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method TCP -port 8021 -hostname localhost"
 
-% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/PySCF" -log log.water.pyscf.qmmm.plugin.1 -in in.water.pyscf.qmmm.plugin
+** run LAMMPS and PySCF with MPI, 1 proc each
 
----------------------------------
----------------------------------
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.qmmm.mpi.1 -in in.water.qmmm : -np 1 python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method MPI" -pbc no
 
-Step 5: run the mixture QMMM problem for a few steps
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.mixture.qmmm.mpi.1 -in in.mixture.qmmm : -np 1 python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method MPI" -pbc no
 
-% cd ~/lammps/examples/QUANTUM/PySCF
+** run PySCF as plugin MDI engine, 1 proc
 
-# Run with TCP: 1 proc each
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/PySCF" -log log.water.qmmm.plugin.1 -in in.water.qmmm.plugin
 
-% lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.mixture.pyscf.qmmm.tcp.1 -in in.mixture.pyscf.qmmm &
-
-% python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method TCP -port 8021 -hostname localhost"
-
-# Run with MPI: 1 proc each
-
-% mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.mixture.pyscf.qmmm.mpi.1 -in in.mixture.pyscf.qmmm : -np 1 python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method MPI" -pbc no
-
-# Run in plugin mode: 1 proc
-
-% lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/PySCF" -log log.mixture.pyscf.qmmm.plugin.1 -in in.mixture.pyscf.qmmm.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/PySCF" -log log.mixture.qmmm.plugin.1 -in in.mixture.qmmm.plugin

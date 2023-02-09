@@ -1,15 +1,7 @@
- # MDI wrapper on NWChem PWDFT code
+# MDI wrapper on NWChem PWDFT code
 
-# NOTE: Qs or issues to still address
-#   test if works for both AIMD and QMMM
-#   can series of problem be run via lib interface input_filename() ?
-#   how does PBC vs non-PBC work, just box size in NWC input file
-#     or maybe other settings in that file?
-#   can NWChem return stress?
-#   can NWChem do DIRECT mode?
-#   any options for 2d or 1d periodic?
-#   allow for box size changes, e.g. every step for NPT
-#   check NWC func call error returns ?
+# native PWDFT units are Bohr and Hartree
+# but box and atom coord inputs in *.nw file are in Angstroms
 
 import sys,os,time
 from ctypes import *

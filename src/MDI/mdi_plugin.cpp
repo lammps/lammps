@@ -145,7 +145,6 @@ int MDIPlugin::plugin_wrapper(void * /*pmpicomm*/, MDI_Comm mdicomm, void *vptr)
   // that operation will issue MDI commands to the plugin engine
 
   lammps->input->one(lammps_command);
-  delete[] lammps_command;
 
   // send MDI exit to plugin, which unloads the plugin
 

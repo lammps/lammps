@@ -1,0 +1,113 @@
+LAMMPS (22 Dec 2022)
+# MM for water dimer
+
+units		real
+atom_style	full
+
+bond_style      harmonic
+angle_style     harmonic
+
+read_data       data.water.mm
+Reading data file ...
+  orthogonal box = (-6.879301 -6.879301 -6.879301) to (6.879301 6.879301 6.879301)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  6 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  4 bonds
+  reading angles ...
+  2 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.002 seconds
+
+group           mm molecule 1
+3 atoms in group mm
+group           qm molecule 2
+3 atoms in group qm
+
+# pair style must define stand-alone short-range Coulombics
+
+pair_style      lj/cut/coul/cut 6.0
+pair_coeff      1 1 0.13506 3.166
+pair_coeff      2 2 0.0 1.0
+
+velocity        all create 300.0 458732
+
+neighbor	1.0 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+
+timestep        1.0
+
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong                 pe etotal press
+
+thermo          1
+
+run		10
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7
+  ghost atom cutoff = 7
+  binsize = 3.5, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.563 | 6.563 | 6.563 Mbytes
+   Step          CPU            Temp          KinEng         E_vdwl         E_coul         E_pair         E_mol          E_long         PotEng         TotEng         Press     
+         0   0              300            4.4712151      0.85234387    -7.098978      -6.2466342      7.0772152      0              0.83058103     5.3017961      2175.106     
+         1   5.713e-06      225.99525      3.3682446      0.8007398     -7.3015666     -6.5008268      8.5760055      0              2.0751787      5.4434233      2118.0755    
+         2   1.3911e-05     469.03888      6.990579       0.76268142    -7.9866866     -7.2240051      5.1752925      0             -2.0487126      4.9418664      1120.4766    
+         3   2.0968e-05     612.19697      9.1242144      0.73936944    -8.8769967     -8.1376272      3.6503739      0             -4.4872533      4.636961      -512.84502    
+         4   2.7903e-05     403.86959      6.0192927      0.72702099    -9.5085408     -8.7815198      7.8103639      0             -0.97115599     5.0481367     -2105.3508    
+         5   3.4588e-05     188.60671      2.8110039      0.71855703    -9.4937724     -8.7752154      11.456673      0              2.6814579      5.4924617     -2759.3498    
+         6   4.1451e-05     335.57585      5.0014393      0.70667511    -8.8207473     -8.1140722      8.3295226      0              0.2154504      5.2168897     -2014.8891    
+         7   4.8086e-05     612.66738      9.1312254      0.68733606    -7.8404266     -7.1530905      2.6947578      0             -4.4583327      4.6728927     -320.45402    
+         8   5.4692e-05     564.8702       8.4188539      0.66167633    -6.986773      -6.3250967      2.6797166      0             -3.6453801      4.7734737      1333.6188    
+         9   6.2607e-05     274.91926      4.0974105      0.63494004    -6.5543479     -5.9194079      7.1781603      0              1.2587524      5.3561629      2192.6187    
+        10   6.9584e-05     227.65402      3.3929669      0.61324726    -6.6534611     -6.0402139      8.0914403      0              2.0512265      5.4441934      2041.4853    
+Loop time of 7.479e-05 on 1 procs for 10 steps with 6 atoms
+
+Performance: 11552.347 ns/day, 0.002 hours/ns, 133707.715 timesteps/s, 802.246 katom-step/s
+0.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.382e-06  | 5.382e-06  | 5.382e-06  |   0.0 |  7.20
+Bond    | 4.817e-06  | 4.817e-06  | 4.817e-06  |   0.0 |  6.44
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 4.71e-06   | 4.71e-06   | 4.71e-06   |   0.0 |  6.30
+Output  | 5.2372e-05 | 5.2372e-05 | 5.2372e-05 |   0.0 | 70.03
+Modify  | 2.931e-06  | 2.931e-06  | 2.931e-06  |   0.0 |  3.92
+Other   |            | 4.578e-06  |            |       |  6.12
+
+Nlocal:              6 ave           6 max           6 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             56 ave          56 max          56 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              9 ave           9 max           9 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 9
+Ave neighs/atom = 1.5
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

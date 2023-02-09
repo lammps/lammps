@@ -670,10 +670,10 @@ void FixMDIQMMM::post_force_direct(int vflag)
   //   fqm = forces on QM atoms
   //   fmm = forces on MM atoms
   
-  if (comm->me == 0) utils::logmesg(lmp, "Invoking QM code ...\n");
+  //if (comm->me == 0) utils::logmesg(lmp, "Invoking QM code ...\n");
 
-  MPI_Barrier(world);
-  double tstart = platform::walltime();
+  //MPI_Barrier(world);
+  //double tstart = platform::walltime();
 
   // MDI calls
   // NOTE: add send_box() call when needed for NPT
@@ -722,10 +722,10 @@ void FixMDIQMMM::post_force_direct(int vflag)
 
   // end of MDI calls
   
-  MPI_Barrier(world);
-  if (comm->me == 0) 
-    utils::logmesg(lmp, "  time = {:.3f} seconds\n",
-                   platform::walltime() - tstart);
+  //MPI_Barrier(world);
+  //if (comm->me == 0) 
+  //  utils::logmesg(lmp, "  time = {:.3f} seconds\n",
+  //                 platform::walltime() - tstart);
 
   // unit conversion from MDI to LAMMPS
 

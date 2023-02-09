@@ -1,23 +1,7 @@
 # MDI wrapper on PySCF quantum code
 
-# Todo:
-#   allow for changes in box size on driver side, e.g. NPT
-#     should just work for PySCF
-
-# NOTE: Qs or issues to still address for PySCF support
-#   add list of radii for all elements
-#   PySCF can do DIRECT mode (LATTICE commands) for QMMM
-#     can it also do POTENTIAL mode (Coulomb potential at QM atoms)
-#     if so, add PySCF logic in evaluate()
-#     if not, remove support for MDI POTENTIAL_AT_NUCLEI command
-#   can PySCF return stress
-#   any other PySCF settings for users to set
-#     are the 3 below good default values
-#   is wiping out dm_previous sufficient to make it a new system
-#   add PySCF code for AIMD (no MM atoms)
-#   how to specify box for mixed BC, i.e. cell.dimension = 2 or 1
-#     also need command-line options for those cases ?
-#   redirect PySCF output to a file ?
+# native PySCF units are Bohr and Hartree
+# but box and atom coord inputs are passed in Angstroms
 
 import sys,time
 
@@ -540,6 +524,7 @@ def evaluate():
   # build PySCF system
   # use Cell for periodic, Mole for non-periodic
 
+ 
   if periodic:
     cell = Cell()
     cell.atom = atom_str
@@ -550,6 +535,7 @@ def evaluate():
     mol = Mole()
     mol.atom = atom_str
     mol.basis = basis
+    #mol.max_memory = 10000 
     mol.build()
 
   # QMMM with QM and MM atoms
@@ -652,5 +638,5 @@ if __name__== "__main__":
   mdi.MDI_Init(mdi_option)
 
   # start running as an MDI engine
-  
+
   mdi_engine(other_options)

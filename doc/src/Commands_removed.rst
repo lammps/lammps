@@ -2,13 +2,16 @@ Removed commands and packages
 =============================
 
 This page lists LAMMPS commands and packages that have been removed from
-the distribution and provides suggestions for alternatives or replacements.
-LAMMPS has special dummy styles implemented, that will stop LAMMPS and
-print a suitable error message in most cases, when a style/command is used
-that has been removed.
+the distribution and provides suggestions for alternatives or
+replacements.  LAMMPS has special dummy styles implemented, that will
+stop LAMMPS and print a suitable error message in most cases, when a
+style/command is used that has been removed or will replace the command
+with the direct alternative (if available) and print a warning.
 
 Fix ave/spatial and fix ave/spatial/sphere
 ------------------------------------------
+
+.. deprecated:: 11Dec2015
 
 The fixes ave/spatial and ave/spatial/sphere have been removed from LAMMPS
 since they were superseded by the more general and extensible "chunk
@@ -30,18 +33,21 @@ The code in the :ref:`MEAM package <PKG-MEAM>` is a translation of the
 Fortran code of MEAM into C++, which removes several restrictions
 (e.g. there can be multiple instances in hybrid pair styles) and allows
 for some optimizations leading to better performance.  The pair style
-:doc:`meam <pair_meam>` has the exact same syntax.
+:doc:`meam <pair_meam>` has the exact same syntax.  For a transition
+period the C++ version of MEAM was called USER-MEAMC so it could
+coexist with the Fortran version.
 
 REAX package
 ------------
 
 The REAX package has been removed since it was superseded by the
-:ref:`REAXFF package <PKG-REAXFF>`.  The REAXFF
-package has been tested to yield equivalent results to the REAX package,
-offers better performance, supports OpenMP multi-threading via OPENMP,
-and GPU and threading parallelization through KOKKOS.  The new pair styles
-are not syntax compatible with the removed reax pair style, so input
-files will have to be adapted.
+:ref:`REAXFF package <PKG-REAXFF>`.  The REAXFF package has been tested
+to yield equivalent results to the REAX package, offers better
+performance, supports OpenMP multi-threading via OPENMP, and GPU and
+threading parallelization through KOKKOS.  The new pair styles are not
+syntax compatible with the removed reax pair style, so input files will
+have to be adapted.  The REAXFF package was originally called
+USER-REAXC.
 
 USER-CUDA package
 -----------------
@@ -60,5 +66,6 @@ restart2data tool
 The functionality of the restart2data tool has been folded into the
 LAMMPS executable directly instead of having a separate tool.  A
 combination of the commands :doc:`read_restart <read_restart>` and
-:doc:`write_data <write_data>` can be used to the same effect.  For added
-convenience this conversion can also be triggered by :doc:`command line flags <Run_options>`
+:doc:`write_data <write_data>` can be used to the same effect.  For
+added convenience this conversion can also be triggered by
+:doc:`command line flags <Run_options>`

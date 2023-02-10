@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -96,7 +96,7 @@ void PairSpin::init_style()
 
   auto fixes = modify->get_fix_by_style("^nve/spin");
   if (fixes.size() == 1)
-    lattice_flag = (dynamic_cast<FixNVESpin *>( fixes.front()))->lattice_flag;
+    lattice_flag = (dynamic_cast<FixNVESpin *>(fixes.front()))->lattice_flag;
   else if (fixes.size() > 1)
     error->warning(FLERR,"Using multiple instances of fix nve/spin or neb/spin");
 

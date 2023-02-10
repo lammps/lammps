@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -270,7 +270,7 @@ void FixLangevin::init()
   }
 
   if (ascale) {
-    avec = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
+    avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
     if (!avec)
       error->all(FLERR,"Fix langevin angmom requires atom style ellipsoid");
 
@@ -306,7 +306,7 @@ void FixLangevin::init()
   else tbiasflag = NOBIAS;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
   if (utils::strmatch(update->integrate_style,"^respa") && gjfflag)
     error->all(FLERR,"Fix langevin gjf and respa are not compatible");
@@ -365,9 +365,9 @@ void FixLangevin::setup(int vflag)
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
-    (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
-    (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(nlevels_respa-1);
+    (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(nlevels_respa-1);
   }
   if (gjfflag) {
     double dtfm;

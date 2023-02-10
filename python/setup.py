@@ -46,8 +46,8 @@ else:
 setup(
     name = "lammps",
     version = get_lammps_version(),
-    author = "Steve Plimpton",
-    author_email = "sjplimp@sandia.gov",
+    author = "The LAMMPS Developers",
+    author_email = "developers@lammps.org",
     url = "https://www.lammps.org",
     project_urls = {
         "Bug Tracker": "https://github.com/lammps/lammps/issues",

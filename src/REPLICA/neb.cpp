@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -178,7 +178,7 @@ void NEB::run()
   if (fixes.size() != 1)
     error->all(FLERR,"NEB requires use of exactly one fix neb instance");
 
-  fneb = dynamic_cast<FixNEB *>( fixes[0]);
+  fneb = dynamic_cast<FixNEB *>(fixes[0]);
   if (verbose) numall =7;
   else  numall = 4;
   memory->create(all,nreplica,numall,"neb:all");

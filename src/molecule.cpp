@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -477,7 +477,7 @@ void Molecule::read(int flag)
         itensor[5] *= scale5;
       } else if (values.contains("body")) {
         bodyflag = 1;
-        avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+        avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
         if (!avec_body)
           error->all(FLERR,"Molecule file requires atom style body");
         nibody = values.next_int();

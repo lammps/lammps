@@ -47,7 +47,6 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
 
   d_resize = typename ArrayTypes<DeviceType>::t_int_scalar("FixNeighHistoryKokkos::resize");
   h_resize = Kokkos::create_mirror_view(d_resize);
-  h_resize() = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,19 +91,25 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
   k_firstflag.sync<DeviceType>();
   k_firstvalue.sync<DeviceType>();
 
+  int inum = pair->list->inum;
+  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(pair->list);
+  d_numneigh = k_list->d_numneigh;
+  d_neighbors = k_list->d_neighbors;
+  d_ilist = k_list->d_ilist;
+  nlocal = atom->nlocal;
+
   h_resize() = 1;
+
   while (h_resize() > 0) {
-    FixNeighHistoryKokkosZeroPartnerCountFunctor<DeviceType> zero(this);
-    Kokkos::parallel_for(nlocal_neigh,zero);
 
-    h_resize() = 0;
-    Kokkos::deep_copy(d_resize, h_resize);
+    Kokkos::deep_copy(d_npartner,0);
+    Kokkos::deep_copy(d_resize, 0);
 
-    FixNeighHistoryKokkosPreExchangeFunctor<DeviceType> f(this);
-    Kokkos::parallel_for(nlocal_neigh,f);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryPreExchange>(0,inum),*this);
 
     Kokkos::deep_copy(h_resize, d_resize);
-    if (h_resize() > 0) {
+
+    if (h_resize()) {
       maxpartner += 8;
       memoryKK->grow_kokkos(k_partner,partner,atom->nmax,maxpartner,"neighbor_history:partner");
       memoryKK->grow_kokkos(k_valuepartner,valuepartner,atom->nmax,dnum*maxpartner,"neighbor_history:valuepartner");
@@ -116,18 +121,9 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
   maxexchange = (dnum+1)*maxpartner+1;
 }
 
-/* ---------------------------------------------------------------------- */
-
-template <class DeviceType>
+template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixNeighHistoryKokkos<DeviceType>::zero_partner_count_item(const int &i) const
-{
-  d_npartner[i] = 0;
-}
-
-template <class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void FixNeighHistoryKokkos<DeviceType>::pre_exchange_item(const int &ii) const
+void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPreExchange, const int &ii) const
 {
   const int i = d_ilist[ii];
   const int jnum = d_numneigh[i];
@@ -144,7 +140,7 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_item(const int &ii) const
       } else {
         d_resize() = 1;
       }
-      if (j < nlocal_neigh) {
+      if (j < nlocal) {
         m = Kokkos::atomic_fetch_add(&d_npartner[j],1);
         if (m < maxpartner) {
           d_partner(j,m) = tag[i];
@@ -156,14 +152,6 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_item(const int &ii) const
       }
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template <class DeviceType>
-void FixNeighHistoryKokkos<DeviceType>::setup_post_neighbor()
-{
-  post_neighbor();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,15 +173,13 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 
   // store atom counts used for new neighbor list which was just built
 
-  int nlocal = atom->nlocal;
+  nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  nlocal_neigh = nlocal;
-  nall_neigh = nall;
 
   // realloc firstflag and firstvalue if needed
 
   if (maxatom < nlocal || k_list->maxneighs > (int)d_firstflag.extent(1)) {
-    maxatom = nall;
+    maxatom = atom->nmax;
     k_firstflag = DAT::tdual_int_2d("neighbor_history:firstflag",maxatom,k_list->maxneighs);
     k_firstvalue = DAT::tdual_float_2d("neighbor_history:firstvalue",maxatom,k_list->maxneighs*dnum);
     d_firstflag = k_firstflag.view<DeviceType>();
@@ -205,8 +191,7 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
   Kokkos::deep_copy(d_firstflag,0);
   Kokkos::deep_copy(d_firstvalue,0);
 
-  FixNeighHistoryKokkosPostNeighborFunctor<DeviceType> f(this);
-  Kokkos::parallel_for(inum,f);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryPostNeighbor>(0,inum),*this);
 
   k_firstflag.modify<DeviceType>();
   k_firstvalue.modify<DeviceType>();
@@ -218,7 +203,7 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixNeighHistoryKokkos<DeviceType>::post_neighbor_item(const int &ii) const
+void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPostNeighbor, const int &ii) const
 {
   const int i = d_ilist[ii];
   const int jnum = d_numneigh[i];
@@ -245,30 +230,15 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor_item(const int &ii) const
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based arrays
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-double FixNeighHistoryKokkos<DeviceType>::memory_usage()
-{
-  double bytes = (double)d_firstflag.extent(0)*d_firstflag.extent(1)*sizeof(int);
-  bytes += (double)d_firstvalue.extent(0)*d_firstvalue.extent(1)*sizeof(double);
-  bytes += (double)2*k_npartner.extent(0)*sizeof(int);
-  bytes += (double)2*k_partner.extent(0)*k_partner.extent(1)*sizeof(int);
-  bytes += (double)2*k_valuepartner.extent(0)*k_valuepartner.extent(1)*sizeof(double);
-  return bytes;
-}
-
-/* ----------------------------------------------------------------------
-   allocate fictitious charge arrays
+   allocate local atom-based arrays
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  k_npartner.template sync<LMPHostType>(); // force reallocation on host
-  k_partner.template sync<LMPHostType>();
-  k_valuepartner.template sync<LMPHostType>();
+  k_npartner.sync_host(); // force reallocation on host
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
 
   memoryKK->grow_kokkos(k_npartner,npartner,nmax,"neighbor_history:npartner");
   memoryKK->grow_kokkos(k_partner,partner,nmax,maxpartner,"neighbor_history:partner");
@@ -278,31 +248,27 @@ void FixNeighHistoryKokkos<DeviceType>::grow_arrays(int nmax)
   d_partner = k_partner.template view<DeviceType>();
   d_valuepartner = k_valuepartner.template view<DeviceType>();
 
-  k_npartner.template modify<LMPHostType>();
-  k_partner.template modify<LMPHostType>();
-  k_valuepartner.template modify<LMPHostType>();
+  k_npartner.modify_host();
+  k_partner.modify_host();
+  k_valuepartner.modify_host();
 }
 
 /* ----------------------------------------------------------------------
-   copy values within fictitious charge arrays
+   copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
+void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 {
-  k_npartner.template sync<LMPHostType>();
-  k_partner.template sync<LMPHostType>();
-  k_valuepartner.template sync<LMPHostType>();
+  k_npartner.sync_host();
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
 
-  npartner[j] = npartner[i];
-  for (int m = 0; m < npartner[i]; m++) {
-    partner[j][m] = partner[i][m];
-    valuepartner[j][m] = valuepartner[i][m];
-  }
+  FixNeighHistory::copy_arrays(i,j,delflag);
 
-  k_npartner.template modify<LMPHostType>();
-  k_partner.template modify<LMPHostType>();
-  k_valuepartner.template modify<LMPHostType>();
+  k_npartner.modify_host();
+  k_partner.modify_host();
+  k_valuepartner.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -312,223 +278,130 @@ void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*
 template<class DeviceType>
 int FixNeighHistoryKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
-  k_npartner.template sync<LMPHostType>();
-  k_partner.template sync<LMPHostType>();
-  k_valuepartner.template sync<LMPHostType>();
+  k_npartner.sync_host();
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
 
-  int n = 0;
-  buf[n++] = npartner[i];
-  for (int m = 0; m < npartner[i]; m++) buf[n++] = partner[i][m];
-  for (int m = 0; m < dnum*npartner[i]; m++) buf[n++] = valuepartner[i][m];
-
-  return n;
+  return FixNeighHistory::pack_exchange(i,buf);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
-struct FixNeighHistoryKokkos_ExchangeFirstPartnerFunctor
-{
-  typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  typename AT::t_int_1d_const _sendlist;
-  typename AT::t_int_1d_const _npartner;
-  typename AT::t_xfloat_1d_um _firstpartner;
-  typename AT::t_int_scalar _count;
-  const int _nsend;
-  const int _dnum;
-
-  FixNeighHistoryKokkos_ExchangeFirstPartnerFunctor(
-    const typename AT::tdual_int_1d &sendlist,
-    const typename AT::tdual_int_1d &npartner,
-    const typename AT::t_xfloat_1d_um &firstpartner,
-    const typename AT::tdual_int_scalar &count,
-    const int &nsend,
-    const int &dnum):
-    _sendlist(sendlist.template view<DeviceType>()),
-    _npartner(npartner.template view<DeviceType>()),
-    _firstpartner(firstpartner),
-    _count(count.template view<DeviceType>()),
-    _nsend(nsend),
-    _dnum(dnum)
-  {}
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int &i, int &update, const bool &final) const {
-    const int n = 1+_npartner(_sendlist(i))*(_dnum+1);
-    if (final) {
-      _firstpartner(i) = d_ubuf(_nsend+update).d;
-      if (i == _nsend - 1)
-        _count() = _nsend+update+n;
-    }
-    update += n;
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryFirstNeigh, const int &i, int &update, const bool &final) const {
+  const int n = 1+d_npartner(d_sendlist(i))*(dnum+1);
+  if (final) {
+    d_firstpartner(i) = d_ubuf(nsend+update).d;
+    if (i == nsend - 1)
+      d_count() = nsend+update+n;
   }
-};
+  update += n;
+}
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
-struct FixNeighHistoryKokkos_PackExchangeFunctor
-{
-  typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  typename AT::t_int_1d_const _sendlist;
-  typename AT::t_int_1d_const _copylist;
-  typename AT::t_int_1d _npartner;
-  typename AT::t_tagint_2d _partner;
-  typename AT::t_float_2d _valuepartner;
-  typename AT::t_xfloat_1d_um _firstpartner;
-  typename AT::t_xfloat_1d_um _buf;
-  const int _dnum;
-
-  FixNeighHistoryKokkos_PackExchangeFunctor(
-    const typename AT::tdual_int_1d &sendlist,
-    const typename AT::tdual_int_1d &copylist,
-    const typename AT::tdual_int_1d &npartner,
-    const typename AT::tdual_tagint_2d &partner,
-    const typename AT::tdual_float_2d &valuepartner,
-    const typename AT::t_xfloat_1d_um &firstpartner,
-    const typename AT::t_xfloat_1d_um &buf,
-    const int &dnum):
-    _sendlist(sendlist.template view<DeviceType>()),
-    _copylist(copylist.template view<DeviceType>()),
-    _npartner(npartner.template view<DeviceType>()),
-    _partner(partner.template view<DeviceType>()),
-    _valuepartner(valuepartner.template view<DeviceType>()),
-    _firstpartner(firstpartner),
-    _buf(buf),
-    _dnum(dnum)
-  {}
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int &mysend) const {
-    const int i = _sendlist(mysend);
-    const int n = _npartner(i);
-    int m = (int) d_ubuf(_firstpartner(mysend)).i;
-    _buf(m++) = d_ubuf(n).d;
-    for (int p = 0; p < n; p++) {
-      _buf(m++) = d_ubuf(_partner(i,p)).d;
-      for (int v = 0; v < _dnum; v++) {
-        _buf(m++) = _valuepartner(i,_dnum*p+v);
-      }
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPackExchange, const int &mysend) const {
+  const int i = d_sendlist(mysend);
+  const int n = d_npartner(i);
+  int m = (int) d_ubuf(d_firstpartner(mysend)).i;
+  d_firstpartner(m++) = d_ubuf(n).d;
+  for (int p = 0; p < n; p++) {
+    d_firstpartner(m++) = d_ubuf(d_partner(i,p)).d;
+    for (int v = 0; v < dnum; v++) {
+      d_firstpartner(m++) = d_valuepartner(i,dnum*p+v);
     }
-    const int j = _copylist(mysend);
-    if (j > -1) {
-      const int nj = _npartner(j);
-      _npartner(i) = nj;
-      for (int p = 0; p < nj; p++) {
-        _partner(i,p) = _partner(j,p);
-        for (int v = 0; v < _dnum; v++) {
-          _valuepartner(i,_dnum*p+v) = _valuepartner(j,_dnum*p+v);
-        }
+  }
+  const int j = d_copylist(mysend);
+  if (j > -1) {
+    const int nj = d_npartner(j);
+    d_npartner(i) = nj;
+    for (int p = 0; p < nj; p++) {
+      d_partner(i,p) = d_partner(j,p);
+      for (int v = 0; v < dnum; v++) {
+	d_valuepartner(i,dnum*p+v) = d_valuepartner(j,dnum*p+v);
       }
     }
   }
-};
+}
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
-   const int &nsend,DAT::tdual_xfloat_2d &buf,
-   DAT::tdual_int_1d k_sendlist,
-   DAT::tdual_int_1d k_copylist,
-   ExecutionSpace space, int dim,
-   X_FLOAT lo, X_FLOAT hi)
+   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
+   ExecutionSpace space, int dim, X_FLOAT lo, X_FLOAT hi)
 {
   k_npartner.template sync<DeviceType>();
   k_partner.template sync<DeviceType>();
   k_valuepartner.template sync<DeviceType>();
 
+  k_buf.sync<DeviceType>();
+  k_copylist.sync<DeviceType>();
+
+  d_copylist = k_copylist.view<DeviceType>();
+  this->nsend = nsend; 
+
   typename ArrayTypes<DeviceType>::t_xfloat_1d_um d_firstpartner(
-    buf.template view<DeviceType>().data(),
-    buf.extent(0)*buf.extent(1));
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+
   typename ArrayTypes<DeviceType>::tdual_int_scalar k_count("neighbor_history:k_count");
 
   k_count.h_view() = 0;
-  if (space == Device) {
-    k_count.template modify<LMPHostType>();
-    k_count.template sync<LMPDeviceType>();
-  }
+  k_count.modify_host();
+  k_count.template sync<DeviceType>();
 
-  Kokkos::parallel_scan(
-    nsend,
-    FixNeighHistoryKokkos_ExchangeFirstPartnerFunctor<DeviceType>(
-      k_sendlist,k_npartner,d_firstpartner,k_count,nsend,dnum));
+  Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryFirstNeigh>(0,nsend),*this); 
 
-  if (space == Device) {
-    k_count.template modify<LMPDeviceType>();
-    k_count.template sync<LMPHostType>();
-  }
+  k_count.template modify<DeviceType>();
+  k_count.sync_host();
 
-  Kokkos::parallel_for(
-    nsend,
-    FixNeighHistoryKokkos_PackExchangeFunctor<DeviceType>(
-      k_sendlist,k_copylist,k_npartner,k_partner,k_valuepartner,
-      d_firstpartner,d_firstpartner,dnum));
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryPackExchange>(0,nsend),*this);   
 
   return k_count.h_view();
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
-struct FixNeighHistoryKokkos_UnpackExchangeFunctor
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExchange, const int &i) const 
 {
-  typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  typename AT::t_xfloat_1d_um _buf;
-  typename AT::t_int_1d _npartner;
-  typename AT::t_tagint_2d _partner;
-  typename AT::t_float_2d _valuepartner;
-  typename AT::t_int_1d _indices;
-  const int _dnum;
-
-  FixNeighHistoryKokkos_UnpackExchangeFunctor(
-    const typename AT::tdual_xfloat_2d buf,
-    const typename AT::tdual_int_1d &npartner,
-    const typename AT::tdual_tagint_2d &partner,
-    const typename AT::tdual_float_2d &valuepartner,
-    const typename AT::tdual_int_1d &indices,
-    const int &dnum):
-    _npartner(npartner.template view<DeviceType>()),
-    _partner(partner.template view<DeviceType>()),
-    _valuepartner(valuepartner.template view<DeviceType>()),
-    _indices(indices.template view<DeviceType>()),
-    _dnum(dnum)
-  {
-    _buf = typename AT::t_xfloat_1d_um(buf.template view<DeviceType>().data(),buf.extent(0)*buf.extent(1));
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int &i) const {
-    int index = _indices(i);
-    if (index > 0) {
-      int m = (int) d_ubuf(_buf(i)).i;
-      int n = (int) d_ubuf(_buf(m++)).i;
-      _npartner(index) = n;
-      for (int p = 0; p < n; p++) {
-        _partner(index,p) = (tagint) d_ubuf(_buf(m++)).i;
-        for (int v = 0; v < _dnum; v++) {
-          _valuepartner(index,_dnum*p+v) = _buf(m++);
-        }
+  int index = d_indices(i);
+  if (index > 0) {
+    int m = (int) d_ubuf(d_firstpartner(i)).i;
+    int n = (int) d_ubuf(d_firstpartner(m++)).i;
+    d_npartner(index) = n;
+    for (int p = 0; p < n; p++) {
+      d_partner(index,p) = (tagint) d_ubuf(d_firstpartner(m++)).i;
+      for (int v = 0; v < dnum; v++) {
+	d_valuepartner(index,dnum*p+v) = d_firstpartner(m++);
       }
     }
   }
-};
+}
 
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf,DAT::tdual_int_1d &indices,int nrecv,
-  int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
+  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
   ExecutionSpace space)
 {
-  Kokkos::parallel_for(
-    nrecv/(atom->avec->size_border + atom->avec->size_velocity + 2),
-    FixNeighHistoryKokkos_UnpackExchangeFunctor<DeviceType>(
-      k_buf,k_npartner,k_partner,k_valuepartner,indices,dnum));
+  d_firstpartner = typename AT::t_xfloat_1d_um(k_buf.template view<DeviceType>().data(),k_buf.extent(0)*k_buf.extent(1));
+  d_indices = k_indices.view<DeviceType>();
+
+  d_npartner = k_npartner.template view<DeviceType>();
+  d_partner = k_partner.template view<DeviceType>();
+  d_valuepartner = k_valuepartner.template view<DeviceType>();
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryUnpackExchange>(0,
+    nrecv/(atom->avec->size_border + atom->avec->size_velocity + 2)),*this);
 
   k_npartner.template modify<DeviceType>();
   k_partner.template modify<DeviceType>();
@@ -542,14 +415,11 @@ void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
 template<class DeviceType>
 int FixNeighHistoryKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
-  int n = 0;
-  npartner[nlocal] = static_cast<int>(buf[n++]);
-  for (int m = 0; m < npartner[nlocal]; m++) partner[nlocal][m] = static_cast<int>(buf[n++]);
-  for (int m = 0; m < dnum*npartner[nlocal]; m++) valuepartner[nlocal][m] = buf[n++];
+  int n = FixNeighHistory::unpack_exchange(nlocal,buf);
 
-  k_npartner.template modify<LMPHostType>();
-  k_partner.template modify<LMPHostType>();
-  k_valuepartner.template modify<LMPHostType>();
+  k_npartner.modify_host();
+  k_partner.modify_host();
+  k_valuepartner.modify_host();
 
   return n;
 }

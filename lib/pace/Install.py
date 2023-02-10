@@ -1,4 +1,4 @@
-# TODO#!/usr/bin/env python
+#!/usr/bin/env python
 
 """
 Install.py tool to download, compile, and setup the pace library
@@ -10,7 +10,7 @@ import sys, subprocess
 from argparse import ArgumentParser
 
 sys.path.append('..')
-from install_helpers import fullpath, geturl, checkmd5sum
+from install_helpers import fullpath, geturl, checkmd5sum, getfallback
 
 # settings
 
@@ -28,9 +28,7 @@ checksums = { \
         }
 
 
-parser = ArgumentParser(prog='Install.py',
-                        description="LAMMPS library build wrapper script")
-
+parser = ArgumentParser(prog='Install.py', description="LAMMPS library build wrapper script")
 
 # help message
 
@@ -81,14 +79,21 @@ if buildflag:
   print("Downloading pace tarball ...")
   archive_filename = "%s.%s" % (version, archive_extension)
   download_filename = "%s/%s" % (thisdir, archive_filename)
-  print("Downloading from ",url," to ",download_filename, end=" ")
-  geturl(url, download_filename)
+  fallback = getfallback('pacelib', url)
+  print("Downloading from ", url, " to ", download_filename, end=" ")
+  try:
+    geturl(url, download_filename)
+  except:
+    geturl(fallback, download_filename)
   print(" done")
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
-    if not checkmd5sum(checksums[version], archive_filename):
-      sys.exit("Checksum for pace library does not match")
+    if not checkmd5sum(checksums[version], download_filename):
+      print("Checksum did not match. Trying fallback URL", fallback)
+      geturl(fallback, download_filename)
+      if not checkmd5sum(checksums[version], download_filename):
+        sys.exit("Checksum for pace library does not match for fallback, too.")
 
   print("Unpacking pace tarball ...")
   src_folder = thisdir+"/src"

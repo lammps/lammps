@@ -149,12 +149,42 @@ related tasks for each of the partitions, e.g.
    restart 1000 system_${ibead}.restart1 system_${ibead}.restart2
    read_restart system_${ibead}.restart2
 
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+This fix writes the state of the Nose/Hoover thermostat over all
+quasi-beads to :doc:`binary restart files <restart>`.  See the
+:doc:`read_restart <read_restart>` command for info on how to re-specify
+a fix in an input script that reads a restart file, so that the
+operation of the fix continues in an uninterrupted fashion.
+
+None of the :doc:`fix_modify <fix_modify>` options
+are relevant to this fix.
+
+This fix computes a global 3-vector, which can be accessed by various
+:doc:`output commands <Howto_output>`.  The three quantities in the
+global vector are
+
+#. the total spring energy of the quasi-beads,
+#. the current temperature of the classical system of ring polymers,
+#. the current value of the scalar virial estimator for the kinetic
+   energy of the quantum system :ref:`(Herman) <Herman>`.
+
+The vector values calculated by this fix are "extensive", except for the
+temperature, which is "intensive".
+
+No parameter of this fix can be used with the *start/stop* keywords of
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
+
 Restrictions
 """"""""""""
 
 This fix is part of the REPLICA package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
+
+Fix pid cannot be used with :doc:`lj units <units>`.
 
 A PIMD simulation can be initialized with a single data file read via
 the :doc:`read_data <read_data>` command.  However, this means all
@@ -202,3 +232,8 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 **(Calhoun)** A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
 415 (1996).
+
+.. _Herman:
+
+**(Herman)** M. F. Herman, E. J. Bruskin, B. J. Berne, J Chem Phys, 76, 5150 (1982).
+

@@ -513,6 +513,7 @@ double MinKokkos::energy_force(int resetflag)
   if (modify->n_min_post_force) {
      timer->stamp();
      modify->min_post_force(vflag);
+     atomKK->sync(Device,F_MASK);
      timer->stamp(Timer::MODIFY);
   }
 

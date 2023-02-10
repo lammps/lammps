@@ -684,13 +684,13 @@ void FixRigid::init()
   // if earlyflag, warn if any post-force fixes come after a rigid fix
 
   int count = 0;
-  for (auto ifix : modify->get_fix_list())
+  for (auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) count++;
   if (count > 1 && me == 0) error->warning(FLERR,"More than one fix rigid");
 
   if (earlyflag) {
     bool rflag = false;
-    for (auto ifix : modify->get_fix_list()) {
+    for (auto &ifix : modify->get_fix_list()) {
       if (ifix->rigid_flag) rflag = true;
       if ((comm->me == 0) && rflag && (ifix->setmask() & POST_FORCE) && !ifix->rigid_flag)
         error->warning(FLERR,"Fix {} with ID {} alters forces after fix rigid",
@@ -713,7 +713,7 @@ void FixRigid::init()
   //  error if a fix changing the box comes before rigid fix
 
   bool boxflag = false;
-  for (auto ifix : modify->get_fix_list()) {
+  for (auto &ifix : modify->get_fix_list()) {
     if (boxflag && utils::strmatch(ifix->style,"^rigid"))
         error->all(FLERR,"Rigid fixes must come before any box changing fix");
     if (ifix->box_change) boxflag = true;

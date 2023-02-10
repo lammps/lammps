@@ -121,10 +121,15 @@ fi
 if (test $1 = "MANYBODY") then
   depend ATC
   depend GPU
+  depend INTEL
   depend KOKKOS
   depend OPT
   depend QEQ
   depend OPENMP
+fi
+
+if (test $1 = "MC") then
+  depend MISC
 fi
 
 if (test $1 = "MOLECULE") then
@@ -159,8 +164,8 @@ if (test $1 = "ML-PACE") then
 fi
 
 if (test $1 = "ML-SNAP") then
-  depend KOKKOS
   depend ML-IAP
+  depend KOKKOS
 fi
 
 if (test $1 = "CG-SDK") then

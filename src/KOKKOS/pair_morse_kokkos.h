@@ -80,7 +80,6 @@ class PairMorseKokkos : public PairMorse {
   DAT::tdual_virial_array k_vatom;
   typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
   typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
 
   int newton_pair;
   double special_lj[4];

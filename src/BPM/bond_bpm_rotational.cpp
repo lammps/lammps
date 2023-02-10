@@ -30,7 +30,7 @@
 #define EPSILON 1e-10
 
 using namespace LAMMPS_NS;
-
+using MathConst::MY_SQRT2;
 /* ---------------------------------------------------------------------- */
 
 BondBPMRotational::BondBPMRotational(LAMMPS *_lmp) : BondBPM(_lmp)
@@ -246,11 +246,11 @@ double BondBPMRotational::elastic_forces(int i1, int i2, int type, double &Fr, d
   // Use representation of X'Y'Z' rotations from Wang, Mora 2009
   temp = r_mag + rb[2];
   if (temp < 0.0) temp = 0.0;
-  mq[0] = sqrt(2) * 0.5 * sqrt(temp * r_mag_inv);
+  mq[0] = MY_SQRT2 * 0.5 * sqrt(temp * r_mag_inv);
 
   temp = sqrt(rb[0] * rb[0] + rb[1] * rb[1]);
   if (temp != 0.0) {
-    mq[1] = -sqrt(2) * 0.5 / temp;
+    mq[1] = -MY_SQRT2 * 0.5 / temp;
     temp = r_mag - rb[2];
     if (temp < 0.0) temp = 0.0;
     mq[1] *= sqrt(temp * r_mag_inv);

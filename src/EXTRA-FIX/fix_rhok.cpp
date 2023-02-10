@@ -109,7 +109,7 @@ void FixRhok::init()
   }
   MPI_Allreduce( &nThisLocal, &mNThis,
                  1, MPI_INT, MPI_SUM, world );
-  mSqrtNThis = sqrt( mNThis );
+  mSqrtNThis = sqrt( (double)mNThis );
 }
 
 /* ---------------------------------------------------------------------- */

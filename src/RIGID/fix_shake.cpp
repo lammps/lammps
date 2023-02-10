@@ -41,8 +41,8 @@ using namespace MathConst;
 
 #define RVOUS 1   // 0 for irregular, 1 for all2all
 
-#define BIG 1.0e20
-#define MASSDELTA 0.1
+static constexpr double BIG = 1.0e20;
+static constexpr double MASSDELTA = 0.1;
 
 /* ---------------------------------------------------------------------- */
 
@@ -335,6 +335,7 @@ void FixShake::init()
   double rsq,angle;
 
   // error if more than one shake fix
+  auto pattern = fmt::format("^{}",style);
 
   int count = 0;
   for (i = 0; i < modify->nfix; i++)
@@ -347,16 +348,12 @@ void FixShake::init()
   if (update->whichflag == 2)
     error->all(FLERR,"Fix shake cannot be used with minimization");
 
-  // error if npt,nph fix comes before shake fix
-
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"npt") == 0) break;
-    if (strcmp(modify->fix[i]->style,"nph") == 0) break;
-  }
-  if (i < modify->nfix) {
-    for (int j = i; j < modify->nfix; j++)
-      if (strcmp(modify->fix[j]->style,"shake") == 0)
-        error->all(FLERR,"Shake fix must come before NPT/NPH fix");
+  // error if a fix changing the box comes before shake fix
+  bool boxflag = false;
+  for (auto &ifix : modify->get_fix_list()) {
+   if (boxflag && utils::strmatch(ifix->style,pattern))
+     error->all(FLERR,"Fix {} must come before any box changing fix", style);
+    if (ifix->box_change) boxflag = true;
   }
 
   // if rRESPA, find associated fix that must exist
@@ -2559,7 +2556,7 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (me == 0) {
-    const int width = log10((MAX(MAX(1,nb),na)))+2;
+    const int width = log10((double)(MAX(MAX(1,nb),na)))+2;
     auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n", update->ntimestep);
     for (i = 1; i < nb; i++) {
       const auto bcnt = b_count_all[i];

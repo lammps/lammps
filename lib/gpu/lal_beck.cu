@@ -88,7 +88,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
         numtyp alphaij = beck1[mtype].y;
         numtyp betaij = beck1[mtype].z;
         numtyp term1 = aaij*aaij + rsq;
-        numtyp term2 = pow(term1,(numtyp)-5.0);
+        numtyp term2 = (numtyp)1.0/(term1*term1*term1*term1*term1); // ucl_powr(term1,(numtyp)-5.0);
         numtyp term3 = (numtyp)21.672 + (numtyp)30.0*aaij*aaij + (numtyp)6.0*rsq;
         numtyp term4 = alphaij + r5*betaij;
         numtyp term5 = alphaij + (numtyp)6.0*r5*betaij;
@@ -102,7 +102,7 @@ __kernel void k_beck(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp term6 = pow(term1,(numtyp)-3);
+          numtyp term6 = (numtyp)1.0/(term1*term1*term1); //ucl_powr(term1,(numtyp)-3);
           numtyp term1inv = ucl_recip(term1);
           numtyp e = beck2[mtype].x*ucl_exp((numtyp)-1.0*r*term4);
           e -= beck2[mtype].y*term6*((numtyp)1.0+((numtyp)2.709+(numtyp)3.0*aaij*aaij)*term1inv);
@@ -193,7 +193,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
         numtyp alphaij = beck1[mtype].y;
         numtyp betaij = beck1[mtype].z;
         numtyp term1 = aaij*aaij + rsq;
-        numtyp term2 = pow(term1,(numtyp)-5.0);
+        numtyp term2 = (numtyp)1.0/(term1*term1*term1*term1*term1); //ucl_powr(term1,(numtyp)-5.0);
         numtyp term3 = (numtyp)21.672 + (numtyp)30.0*aaij*aaij + (numtyp)6.0*rsq;
         numtyp term4 = alphaij + r5*betaij;
         numtyp term5 = alphaij + (numtyp)6.0*r5*betaij;
@@ -207,7 +207,7 @@ __kernel void k_beck_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp term6 = pow(term1,(numtyp)-3);
+          numtyp term6 = (numtyp)1.0/(term1*term1*term1); //ucl_powr(term1,(numtyp)-3);
           numtyp term1inv = ucl_recip(term1);
           numtyp e = beck2[mtype].x*ucl_exp((numtyp)-1.0*r*term4);
           e -= beck2[mtype].y*term6*((numtyp)1.0+((numtyp)2.709+(numtyp)3.0*aaij*aaij)*term1inv);

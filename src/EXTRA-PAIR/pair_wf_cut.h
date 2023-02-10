@@ -47,7 +47,7 @@ class PairWFCut : public Pair {
   double cut_global;
   double **cut;
   double **epsilon, **sigma;
-  double **nm, **e0nm, **rcmu, **sigma_mu, **offset;
+  double **nm, **e0nm, **rcmu, **sigma_mu;
 
   void allocate();
 };

@@ -70,7 +70,11 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) : DumpCustom
 
   internal = new DumpCustomADIOSInternal();
   try {
+#if defined(MPI_STUBS)
+    internal->ad = new adios2::ADIOS("adios2_config.xml", adios2::DebugON);
+#else
     internal->ad = new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+#endif
   } catch (std::ios_base::failure &e) {
     error->all(FLERR, "ADIOS initialization failed with error: {}", e.what());
   }
@@ -96,11 +100,19 @@ void DumpCustomADIOS::openfile()
   if (multifile) {
     // if one file per timestep, replace '*' with current timestep
     auto filecurrent = utils::star_subst(filename, update->ntimestep, padflag);
+#if defined(MPI_STUBS)
+    internal->fh = internal->io.Open(filecurrent, adios2::Mode::Write);
+#else
     internal->fh = internal->io.Open(filecurrent, adios2::Mode::Write, world);
+#endif
     if (!internal->fh) error->one(FLERR, "Cannot open dump file {}", filecurrent);
   } else {
     if (!singlefile_opened) {
+#if defined(MPI_STUBS)
+      internal->fh = internal->io.Open(filename, adios2::Mode::Write);
+#else
       internal->fh = internal->io.Open(filename, adios2::Mode::Write, world);
+#endif
       if (!internal->fh) error->one(FLERR, "Cannot open dump file {}", filename);
       singlefile_opened = 1;
     }
@@ -219,7 +231,7 @@ void DumpCustomADIOS::init_style()
   delete[] columns;
   std::string combined;
   int icol = 0;
-  for (auto item : utils::split_words(columns_default)) {
+  for (const auto &item : utils::split_words(columns_default)) {
     if (combined.size()) combined += " ";
     if (keyword_user[icol].size())
       combined += keyword_user[icol];

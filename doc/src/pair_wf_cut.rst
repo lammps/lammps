@@ -84,8 +84,8 @@ little to be gained by choosing other values of :math:`\nu` and
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mixing and table options.
 
-The :doc:`pair_modify <pair_modify>` tail option is not relevant
-for this pair style as it goes to zero at the cut-off radius.
+The :doc:`pair_modify <pair_modify>` tail and shift options are not
+relevant for this pair style as it goes to zero at the cut-off radius.
 
 This pair style writes its information to :doc:`binary restart files
 <restart>`, so pair_style and pair_coeff commands do not need to be

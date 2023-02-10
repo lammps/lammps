@@ -1,7 +1,9 @@
 .. index:: pair_style dpd/ext
 .. index:: pair_style dpd/ext/kk
+.. index:: pair_style dpd/ext/omp
 .. index:: pair_style dpd/ext/tstat
 .. index:: pair_style dpd/ext/tstat/kk
+.. index:: pair_style dpd/ext/tstat/omp
 
 pair_style dpd/ext command
 ==========================

@@ -1,6 +1,6 @@
 set(COLVARS_SOURCE_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars)
 
-file(GLOB COLVARS_SOURCES ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
+file(GLOB COLVARS_SOURCES ${CONFIGURE_DEPENDS} ${COLVARS_SOURCE_DIR}/[^.]*.cpp)
 
 option(COLVARS_DEBUG "Debugging messages for Colvars (quite verbose)" OFF)
 
@@ -9,7 +9,7 @@ option(COLVARS_LEPTON "Build and link the Lepton library" ON)
 
 if(COLVARS_LEPTON)
   set(LEPTON_DIR ${LAMMPS_LIB_SOURCE_DIR}/colvars/lepton)
-  file(GLOB LEPTON_SOURCES ${LEPTON_DIR}/src/[^.]*.cpp)
+  file(GLOB LEPTON_SOURCES ${CONFIGURE_DEPENDS} ${LEPTON_DIR}/src/[^.]*.cpp)
   add_library(lepton STATIC ${LEPTON_SOURCES})
   # Change the define below to LEPTON_BUILDING_SHARED_LIBRARY when linking Lepton as a DLL with MSVC
   target_compile_definitions(lepton PRIVATE -DLEPTON_BUILDING_STATIC_LIBRARY)

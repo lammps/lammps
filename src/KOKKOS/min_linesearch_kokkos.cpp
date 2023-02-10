@@ -376,10 +376,14 @@ double MinLineSearchKokkos::alpha_step(double alpha, int resetflag)
     });
   }
 
+  atomKK->modified(Device,X_MASK);
+
   // step forward along h
 
   if (alpha > 0.0) {
     if (nextra_global) modify->min_step(alpha,hextra);
+
+  atomKK->sync(Device,X_MASK); // positions can be modified by fix box/relax
 
     // local variables for lambda capture
 

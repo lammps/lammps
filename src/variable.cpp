@@ -1179,6 +1179,9 @@ void Variable::remove(int n)
     dvalue[i-1] = dvalue[i];
   }
   nvar--;
+  data[nvar] = nullptr;
+  reader[nvar] = nullptr;
+  names[nvar] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1873,12 +1876,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           char *var = retrieve(word+2);
           if (var == nullptr)
             print_var_error(FLERR,"Invalid variable evaluation in variable formula",ivar);
-          if (tree) {
-            auto newtree = new Tree();
-            newtree->type = VALUE;
-            newtree->value = atof(var);
-            treestack[ntreestack++] = newtree;
-          } else argstack[nargstack++] = atof(var);
+          if (utils::is_double(var)) {
+            if (tree) {
+              auto newtree = new Tree();
+              newtree->type = VALUE;
+              newtree->value = atof(var);
+              treestack[ntreestack++] = newtree;
+            } else argstack[nargstack++] = atof(var);
+          } else print_var_error(FLERR,"Non-numeric variable value in variable formula",ivar);
 
         // v_name = per-atom vector from atom-style variable
         // evaluate the atom-style variable as newtree

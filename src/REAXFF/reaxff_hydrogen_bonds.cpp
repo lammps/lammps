@@ -39,7 +39,6 @@ namespace ReaxFF {
     int  start_j, end_j, hb_start_j, hb_end_j;
     int  hblist[MAX_BONDS];
     int  itr, top;
-    int  num_hb_intrs = 0;
     double r_jk, theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
     double e_hb, exp_hb2, exp_hb3, CEhb1, CEhb2, CEhb3;
     rvec dcos_theta_di, dcos_theta_dj, dcos_theta_dk;
@@ -60,14 +59,14 @@ namespace ReaxFF {
     hbonds = (*lists) + HBONDS;
     hbond_list = hbonds->select.hbond_list;
 
-    for (j = 0; j < system->n; ++j)
-      if (system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1) {
-        type_j     = system->my_atoms[j].type;
+    for (j = 0; j < system->n; ++j) {
+      type_j = system->my_atoms[j].type;
+      if (type_j < 0) continue;
+      if (system->reax_param.sbp[type_j].p_hbond == 1) {
         start_j    = Start_Index(j, bonds);
         end_j      = End_Index(j, bonds);
         hb_start_j = Start_Index(system->my_atoms[j].Hindex, hbonds);
         hb_end_j   = End_Index(system->my_atoms[j].Hindex, hbonds);
-        if (type_j < 0) continue;
 
         top = 0;
         for (pi = start_j; pi < end_j; ++pi)  {
@@ -102,7 +101,6 @@ namespace ReaxFF {
               if (type_i < 0) continue;
               hbp = &(system->reax_param.hbp[type_i][type_j][type_k]);
               if (hbp->r0_hb <= 0.0) continue;
-              ++num_hb_intrs;
 
               Calculate_Theta(pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,
                                &theta, &cos_theta);
@@ -156,5 +154,6 @@ namespace ReaxFF {
           }
         }
       }
+    }
   }
 }

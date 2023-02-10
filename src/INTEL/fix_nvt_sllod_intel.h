@@ -36,6 +36,7 @@ class FixNVTSllodIntel : public FixNHIntel {
 
  private:
   int nondeformbias;
+  int psllod_flag;     // 0 for SLLOD, 1 for p-SLLOD
 
   void nh_v_temp() override;
 };

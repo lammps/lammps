@@ -22,6 +22,10 @@
 #include "mliap_data_kokkos.h"
 #include "mliap_descriptor_so3_kokkos.h"
 #include "mliap_model_linear_kokkos.h"
+#ifdef MLIAP_PYTHON
+#include "mliap_model_python_kokkos.h"
+#include "mliap_unified_kokkos.h"
+#endif
 #include "error.h"
 #include "neigh_request.h"
 #include "lammps.h"
@@ -38,6 +42,7 @@ PairMLIAPKokkos<DeviceType>::PairMLIAPKokkos(class LAMMPS* l) : PairMLIAP(l)
   kokkosable = 1;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_modify = 0;
+  is_child=true;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -50,6 +55,10 @@ PairMLIAPKokkos<DeviceType>::~PairMLIAPKokkos()
   memoryKK->destroy_kokkos(k_setflag, setflag);
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
+  delete model;
+  delete descriptor;
+  model=nullptr;
+  descriptor=nullptr;
   allocated = 0;
 }
 
@@ -58,7 +67,6 @@ PairMLIAPKokkos<DeviceType>::~PairMLIAPKokkos()
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
 {
-  atomKK->sync(Host,F_MASK | ENERGY_MASK | VIRIAL_MASK);
   atomKK->sync(execution_space,X_MASK | TYPE_MASK );
   MLIAPDataKokkos<DeviceType> *k_data = (MLIAPDataKokkos<DeviceType>*)(data);
 
@@ -89,7 +97,7 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
 
   // compute descriptors, if needed
   if (model->nonlinearflag || eflag)  {
-      k_data->sync(descriptor_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK );
+    k_data->sync(descriptor_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | ELEMS_MASK | JATOMS_MASK | PAIR_I_MASK | JELEMS_MASK | RIJ_MASK );
     descriptor->compute_descriptors(data);
     if (!is_kokkos_descriptor)
       k_data->modified(descriptor_space, DESCRIPTORS_MASK);
@@ -101,11 +109,13 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   k_data->modified(model_space, BETAS_MASK);
   if (eflag_atom)
     k_data->modified(model_space, EATOMS_MASK);
-  e_tally(data);
 
   // calculate force contributions beta_i*dB_i/dR_j
-  k_data->sync(descriptor_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | BETAS_MASK | JATOMS_MASK | JELEMS_MASK | RIJ_MASK );
+  atomKK->sync(descriptor_space,F_MASK);
+  k_data->sync(descriptor_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | ELEMS_MASK | BETAS_MASK | JATOMS_MASK | PAIR_I_MASK | JELEMS_MASK | RIJ_MASK );
   descriptor->compute_forces(data);
+
+  e_tally(data);
 
   if (evflag) {
     atomKK->modified(descriptor_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
@@ -143,7 +153,7 @@ void PairMLIAPKokkos<DeviceType>::allocate()
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
 {
-  PairMLIAP::settings(narg, arg);
+  std::vector<char*> new_args;
   int iarg=0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"model") == 0) {
@@ -152,8 +162,19 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
         delete model;
         model = new MLIAPModelLinearKokkos<DeviceType>(lmp,arg[iarg+2]);
         iarg += 3;
-      } else
-        iarg += 2;
+      } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+#ifdef MLIAP_PYTHON
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap mliappy", error);
+        delete model;
+        model = new MLIAPModelPythonKokkos<DeviceType>(lmp,arg[iarg+2]);
+        iarg += 3;
+#else
+        error->all(FLERR,"Using pair_style mliap model mliappy requires ML-IAP with python support");
+#endif
+      } else {
+        new_args.push_back(arg[iarg++]);
+        new_args.push_back(arg[iarg++]);
+      }
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (strcmp(arg[iarg+1],"so3") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
@@ -161,10 +182,31 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
         descriptor = new MLIAPDescriptorSO3Kokkos<DeviceType>(lmp,arg[iarg+2]);
         iarg += 3;
       } else
-        iarg ++;
+        new_args.push_back(arg[iarg++]);
+    } else if (strcmp(arg[iarg], "unified") == 0) {
+#ifdef MLIAP_PYTHON
+      printf("IN SETUP UNIFIED\n");
+      if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definitions");
+      if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definitions");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap unified", error);
+      MLIAPBuildUnifiedKokkos_t<DeviceType> build = build_unified(arg[iarg+1], dynamic_cast<MLIAPDataKokkos<DeviceType>*>(data), lmp);
+      if (iarg+3 > narg) {
+        ghostneigh = 0;
+      } else {
+        ghostneigh = utils::logical(FLERR, arg[iarg+2], false, lmp);
+      }
+
+      iarg += 3;
+      model = build.model;
+      descriptor = build.descriptor;
+#else
+      error->all(FLERR,"Using pair_style mliap unified requires ML-IAP with python support");
+#endif
     } else
-      iarg++;
+      new_args.push_back(arg[iarg++]);
   }
+  PairMLIAP::settings(new_args.size(), new_args.data());
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -181,7 +223,7 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   char* type2 = arg[1];
   char** elemtypes = &arg[2];
 
-  // insure I,J args are * *
+  // ensure I,J args are * *
 
   if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -204,13 +246,6 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   }
   k_map.modify<LMPHostType>();
   k_map.sync<LMPDeviceType>();
-
-  auto h_cutsq=k_cutsq.template view<LMPHostType>();
-  for (int itype=1; itype <= atom->ntypes; ++itype)
-    for (int jtype=1; jtype <= atom->ntypes; ++jtype)
-      h_cutsq(itype,jtype) = descriptor->cutsq[map[itype]][map[jtype]];
-  k_cutsq.modify<LMPHostType>();
-  k_cutsq.sync<DeviceType>();
 
   // clear setflag since coeff() called once with I,J = * *
 
@@ -236,6 +271,13 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
   // set up model, descriptor, and mliap data structures
   model->init();
   descriptor->init();
+
+  auto h_cutsq=k_cutsq.template view<LMPHostType>();
+  for (int itype=1; itype <= atom->ntypes; ++itype)
+    for (int jtype=1; jtype <= atom->ntypes; ++jtype)
+      h_cutsq(itype,jtype) = descriptor->cutsq[map[itype]][map[jtype]];
+  k_cutsq.modify<LMPHostType>();
+  k_cutsq.sync<DeviceType>();
   int gradgradflag = -1;
   delete data;
   data = new MLIAPDataKokkos<DeviceType>(lmp, gradgradflag, map, model, descriptor, this);

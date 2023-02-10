@@ -20,7 +20,7 @@ e) electric field values from grid points near each atom are interpolated to com
 
 For any of the spatial-decomposition partitioning schemes each processor
 owns the brick-shaped portion of FFT grid points contained within its
-sub-domain.  The two interpolation operations use a stencil of grid
+subdomain.  The two interpolation operations use a stencil of grid
 points surrounding each atom.  To accommodate the stencil size, each
 processor also stores a few layers of ghost grid points surrounding its
 brick.  Forward and reverse communication of grid point values is
@@ -40,31 +40,31 @@ orthogonal boxes.
 
 .. _fft-parallel:
 .. figure:: img/fft-decomp-parallel.png
-   :align: center
 
-   parallel FFT in PPPM
+   Parallel FFT in PPPM
 
-   Stages of a parallel FFT for a simulation domain overlaid
-   with an 8x8x8 3d FFT grid, partitioned across 64 processors.
-   Within each of the 4 diagrams, grid cells of the same color are
-   owned by a single processor; for simplicity only cells owned by 4
-   or 8 of the 64 processors are colored.  The two images on the left
-   illustrate brick-to-pencil communication.  The two images on the
-   right illustrate pencil-to-pencil communication, which in this
-   case transposes the *y* and *z* dimensions of the grid.
+      Stages of a parallel FFT for a simulation domain overlaid with an
+      8x8x8 3d FFT grid, partitioned across 64 processors.  Within each
+      of the 4 diagrams, grid cells of the same color are owned by a
+      single processor; for simplicity, only cells owned by 4 or 8 of
+      the 64 processors are colored.  The two images on the left
+      illustrate brick-to-pencil communication.  The two images on the
+      right illustrate pencil-to-pencil communication, which in this
+      case transposes the *y* and *z* dimensions of the grid.
 
 Parallel 3d FFTs require substantial communication relative to their
 computational cost.  A 3d FFT is implemented by a series of 1d FFTs
-along the *x-*, *y-*, and *z-*\ direction of the FFT grid.  Thus the FFT
-grid cannot be decomposed like atoms into 3 dimensions for parallel
+along the *x-*, *y-*, and *z-*\ direction of the FFT grid.  Thus, the
+FFT grid cannot be decomposed like atoms into 3 dimensions for parallel
 processing of the FFTs but only in 1 (as planes) or 2 (as pencils)
 dimensions and in between the steps the grid needs to be transposed to
 have the FFT grid portion "owned" by each MPI process complete in the
 direction of the 1d FFTs it has to perform. LAMMPS uses the
-pencil-decomposition algorithm as shown in the :ref:`fft-parallel` figure.
+pencil-decomposition algorithm as shown in the :ref:`fft-parallel`
+figure.
 
 Initially (far left), each processor owns a brick of same-color grid
-cells (actually grid points) contained within in its sub-domain.  A
+cells (actually grid points) contained within in its subdomain.  A
 brick-to-pencil communication operation converts this layout to 1d
 pencils in the *x*-dimension (center left).  Again, cells of the same
 color are owned by the same processor.  Each processor can then compute
@@ -97,7 +97,7 @@ across all $P$ processors with a single call to ``MPI_Alltoall()``, but
 this is typically much slower.  However, for the specialized brick and
 pencil tiling illustrated in :ref:`fft-parallel` figure, collective
 communication across the entire MPI communicator is not required.  In
-the example an :math:`8^3` grid with 512 grid cells is partitioned
+the example, an :math:`8^3` grid with 512 grid cells is partitioned
 across 64 processors; each processor owns a 2x2x2 3d brick of grid
 cells.  The initial brick-to-pencil communication (upper left to upper
 right) only requires collective communication within subgroups of 4
@@ -132,7 +132,7 @@ grid/particle operations that LAMMPS supports:
 - The fftMPI library allows each grid dimension to be a multiple of
   small prime factors (2,3,5), and allows any number of processors to
   perform the FFT.  The resulting brick and pencil decompositions are
-  thus not always as well-aligned but the size of subgroups of
+  thus not always as well-aligned, but the size of subgroups of
   processors for the two modes of communication (brick/pencil and
   pencil/pencil) still scale as :math:`O(P^{\frac{1}{3}})` and
   :math:`O(P^{\frac{1}{2}})`.
@@ -143,26 +143,28 @@ grid/particle operations that LAMMPS supports:
   in memory.  This reordering can be done during the packing or
   unpacking of buffers for MPI communication.
 
-- For large systems and particularly a large number of MPI processes,
-  the dominant cost for parallel FFTs is often the communication, not
-  the computation of 1d FFTs, even though the latter scales as :math:`N
-  \log(N)` in the number of grid points *N* per grid direction.  This is
-  due to the fact that only a 2d decomposition into pencils is possible
-  while atom data (and their corresponding short-range force and energy
-  computations) can be decomposed efficiently in 3d.
+- For large systems and particularly many MPI processes, the dominant
+  cost for parallel FFTs is often the communication, not the computation
+  of 1d FFTs, even though the latter scales as :math:`N \log(N)` in the
+  number of grid points *N* per grid direction.  This is due to the fact
+  that only a 2d decomposition into pencils is possible while atom data
+  (and their corresponding short-range force and energy computations)
+  can be decomposed efficiently in 3d.
 
-  This can be addressed by reducing the number of MPI processes involved
-  in the MPI communication by using :doc:`hybrid MPI + OpenMP
-  parallelization <Speed_omp>`.  This will use OpenMP parallelization
-  inside the MPI domains and while that may have a lower parallel
-  efficiency, it reduces the communication overhead.
+  Reducing the number of MPI processes involved in the MPI communication
+  will reduce this kind of overhead.  By using a :doc:`hybrid MPI +
+  OpenMP parallelization <Speed_omp>` it is still possible to use all
+  processes for parallel computation.  It will use OpenMP
+  parallelization inside the MPI domains. While that may have a lower
+  parallel efficiency for some part of the computation, that can be less
+  than the communication overhead in the 3d FFTs.
 
-  As an alternative it is also possible to start a :ref:`multi-partition
+  As an alternative, it is also possible to start a :ref:`multi-partition
   <partition>` calculation and then use the :doc:`verlet/split
   integrator <run_style>` to perform the PPPM computation on a
   dedicated, separate partition of MPI processes.  This uses an integer
-  "1:*p*" mapping of *p* sub-domains of the atom decomposition to one
-  sub-domain of the FFT grid decomposition and where pairwise non-bonded
+  "1:*p*" mapping of *p* subdomains of the atom decomposition to one
+  subdomain of the FFT grid decomposition and where pairwise non-bonded
   and bonded forces and energies are computed on the larger partition
   and the PPPM kspace computation concurrently on the smaller partition.
 
@@ -172,10 +174,10 @@ grid/particle operations that LAMMPS supports:
 
 - LAMMPS implements a ``GridComm`` class which overlays the simulation
   domain with a regular grid, partitions it across processors in a
-  manner consistent with processor sub-domains, and provides methods for
+  manner consistent with processor subdomains, and provides methods for
   forward and reverse communication of owned and ghost grid point
   values.  It is used for PPPM as an FFT grid (as outlined above) and
-  also for the MSM algorithm which uses a cascade of grid sizes from
+  also for the MSM algorithm, which uses a cascade of grid sizes from
   fine to coarse to compute long-range Coulombic forces.  The GridComm
   class is also useful for models where continuum fields interact with
   particles.  For example, the two-temperature model (TTM) defines heat

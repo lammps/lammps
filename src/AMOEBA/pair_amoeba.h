@@ -44,6 +44,8 @@ class PairAmoeba : public Pair {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
+  void reset_grid() override;
+
   void pack_forward_grid(int, void *, int, int *) override;
   void unpack_forward_grid(int, void *, int, int *) override;
   void pack_reverse_grid(int, void *, int, int *) override;
@@ -79,6 +81,12 @@ class PairAmoeba : public Pair {
 
   double time_init, time_hal, time_repulse, time_disp;
   double time_mpole, time_induce, time_polar, time_qxfer;
+
+  double time_mpole_rspace, time_mpole_kspace;
+  double time_direct_rspace, time_direct_kspace;
+  double time_mutual_rspace, time_mutual_kspace;
+  double time_polar_rspace, time_polar_kspace;
+  double time_grid_uind, time_fphi_uind;
 
   // energy/virial components
 
@@ -322,8 +330,12 @@ class PairAmoeba : public Pair {
   double *qfac;        // convoulution pre-factors
   double *gridfft1;    // copy of p_kspace FFT grid
 
-  double **cmp, **fmp;    // Cartesian and fractional multipoles
-  double **cphi, **fphi;
+  double **cmp,**fmp;              // Cartesian and fractional multipoles
+  double **cphi,**fphi;
+
+  double *_moduli_array;           // buffers for moduli
+  double *_moduli_bsarray;
+  int _nfft_max;
 
   // params for current KSpace solve and FFT being worked on
 
@@ -333,8 +345,12 @@ class PairAmoeba : public Pair {
   double ctf[10][10];         // indices NOT flipped vs Fortran
   double ftc[10][10];         // indices NOT flipped vs Fortran
 
-  class AmoebaConvolution *m_kspace, *p_kspace, *pc_kspace, *d_kspace;
-  class AmoebaConvolution *i_kspace, *ic_kspace;
+  class AmoebaConvolution *m_kspace;   // multipole KSpace
+  class AmoebaConvolution *p_kspace;   // polar KSpace
+  class AmoebaConvolution *pc_kspace;
+  class AmoebaConvolution *d_kspace;   // dispersion KSpace
+  class AmoebaConvolution *i_kspace;   // induce KSpace
+  class AmoebaConvolution *ic_kspace;
 
   // FFT grid size factors
 
@@ -345,33 +361,33 @@ class PairAmoeba : public Pair {
 
   void hal();
 
-  void repulsion();
-  void damprep(double, double, double, double, double, double, double, double, int, double, double,
-               double *);
+  virtual void repulsion();
+  void damprep(double, double, double, double, double, double, double, double,
+               int, double, double, double *);
 
   void dispersion();
-  void dispersion_real();
+  virtual void dispersion_real();
   void dispersion_kspace();
 
   void multipole();
-  void multipole_real();
+  virtual void multipole_real();
   void multipole_kspace();
 
   void polar();
   void polar_energy();
-  void polar_real();
-  void polar_kspace();
+  virtual void polar_real();
+  virtual void polar_kspace();
   void damppole(double, int, double, double, double *, double *, double *);
 
-  void induce();
+  virtual void induce();
   void ulspred();
-  void ufield0c(double **, double **);
+  virtual void ufield0c(double **, double **);
   void uscale0b(int, double **, double **, double **, double **);
   void dfield0c(double **, double **);
-  void umutual1(double **, double **);
-  void umutual2b(double **, double **);
+  virtual void umutual1(double **, double **);
+  virtual void umutual2b(double **, double **);
   void udirect1(double **);
-  void udirect2b(double **, double **);
+  virtual void udirect2b(double **, double **);
   void dampmut(double, double, double, double *);
   void dampdir(double, double, double, double *, double *);
   void cholesky(int, double *, double *);
@@ -391,11 +407,11 @@ class PairAmoeba : public Pair {
   void fphi_to_cphi(double **, double **);
   void frac_to_cart();
 
-  void grid_mpole(double **, double ***);
-  void fphi_mpole(double ***, double **);
-  void grid_uind(double **, double **, double ****);
-  void fphi_uind(double ****, double **, double **, double **);
-  void grid_disp(double ***);
+  void grid_mpole(double **, FFT_SCALAR ***);
+  void fphi_mpole(FFT_SCALAR ***, double **);
+  void grid_uind(double **, double **, FFT_SCALAR ****);
+  virtual void fphi_uind(FFT_SCALAR ****, double **, double **, double **);
+  void grid_disp(FFT_SCALAR ***);
 
   void kewald();
   void kewald_parallel(int, int, int, int, int &, int &, int &, int &, int &, int &, int &, int &,

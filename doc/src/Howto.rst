@@ -4,10 +4,10 @@ Howto discussions
 These doc pages describe how to perform various tasks with LAMMPS,
 both for users and developers.  The
 `glossary <https://www.lammps.org/glossary.html>`_ website page also lists MD
-terminology with links to corresponding LAMMPS manual pages.  The
-example input scripts included in the examples directory of the LAMMPS
-distribution and highlighted on the :doc:`Examples <Examples>` doc page
-also show how to setup and run various kinds of simulations.
+terminology, with links to corresponding LAMMPS manual pages.  The
+example input scripts included in the ``examples`` directory of the LAMMPS
+source code distribution and highlighted on the :doc:`Examples` page
+also show how to set up and run various kinds of simulations.
 
 General howto
 =============
@@ -51,6 +51,7 @@ Analysis howto
 
    Howto_output
    Howto_chunk
+   Howto_grid
    Howto_temperature
    Howto_elastic
    Howto_kappa

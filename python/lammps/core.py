@@ -210,6 +210,15 @@ class lammps(object):
     self.lib.lammps_gather_bonds.argtypes = [c_void_p,c_void_p]
     self.lib.lammps_gather_bonds.restype = None
 
+    self.lib.lammps_gather_angles.argtypes = [c_void_p,c_void_p]
+    self.lib.lammps_gather_angles.restype = None
+
+    self.lib.lammps_gather_dihedrals.argtypes = [c_void_p,c_void_p]
+    self.lib.lammps_gather_dihedrals.restype = None
+
+    self.lib.lammps_gather_impropers.argtypes = [c_void_p,c_void_p]
+    self.lib.lammps_gather_impropers.restype = None
+
     self.lib.lammps_gather.argtypes = [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather.restype = None
 
@@ -1204,7 +1213,7 @@ class lammps(object):
   # dtype = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
   def gather_atoms(self,name,dtype,count):
@@ -1258,7 +1267,7 @@ class lammps(object):
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # assume data is of correct type and length, as created by gather_atoms()
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
   def scatter_atoms(self,name,dtype,count,data):
@@ -1299,13 +1308,82 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  def gather_angles(self):
+    """Retrieve global list of angles
+
+    This is a wrapper around the :cpp:func:`lammps_gather_angles`
+    function of the C-library interface.
+
+    This function returns a tuple with the number of angles and a
+    flat list of ctypes integer values with the angle type, angle atom1,
+    angle atom2, angle atom3 for each angle.
+
+    .. versionadded:: TBD
+
+    :return: a tuple with the number of angles and a list of c_int or c_long
+    :rtype: (int, 4*nangles*c_tagint)
+    """
+    nangles = self.extract_global("nangles")
+    with ExceptionCheck(self):
+        data = ((4*nangles)*self.c_tagint)()
+        self.lib.lammps_gather_angles(self.lmp,data)
+        return nangles,data
+
+  # -------------------------------------------------------------------------
+
+  def gather_dihedrals(self):
+    """Retrieve global list of dihedrals
+
+    This is a wrapper around the :cpp:func:`lammps_gather_dihedrals`
+    function of the C-library interface.
+
+    This function returns a tuple with the number of dihedrals and a
+    flat list of ctypes integer values with the dihedral type, dihedral atom1,
+    dihedral atom2, dihedral atom3, dihedral atom4 for each dihedral.
+
+    .. versionadded:: TBD
+
+    :return: a tuple with the number of dihedrals and a list of c_int or c_long
+    :rtype: (int, 5*ndihedrals*c_tagint)
+    """
+    ndihedrals = self.extract_global("ndihedrals")
+    with ExceptionCheck(self):
+        data = ((5*ndihedrals)*self.c_tagint)()
+        self.lib.lammps_gather_dihedrals(self.lmp,data)
+        return ndihedrals,data
+
+  # -------------------------------------------------------------------------
+
+  def gather_impropers(self):
+    """Retrieve global list of impropers
+
+    This is a wrapper around the :cpp:func:`lammps_gather_impropers`
+    function of the C-library interface.
+
+    This function returns a tuple with the number of impropers and a
+    flat list of ctypes integer values with the improper type, improper atom1,
+    improper atom2, improper atom3, improper atom4 for each improper.
+
+    .. versionadded:: TBD
+
+    :return: a tuple with the number of impropers and a list of c_int or c_long
+    :rtype: (int, 5*nimpropers*c_tagint)
+    """
+    nimpropers = self.extract_global("nimpropers")
+    with ExceptionCheck(self):
+        data = ((5*nimpropers)*self.c_tagint)()
+        self.lib.lammps_gather_impropers(self.lmp,data)
+        return nimpropers,data
+
+  # -------------------------------------------------------------------------
+
   # return vector of atom/compute/fix properties gathered across procs
   # 3 variants to match src/library.cpp
   # name = atom property recognized by LAMMPS in atom->extract()
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # returned data is a 1d vector - doc how it is ordered?
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
   def gather(self,name,dtype,count):
     if name: name = name.encode()
@@ -1354,7 +1432,7 @@ class lammps(object):
   # type = 0 for integer values, 1 for double values
   # count = number of per-atom valus, 1 for type or charge, 3 for x or f
   # assume data is of correct type and length, as created by gather_atoms()
-  # NOTE: need to insure are converting to/from correct Python type
+  # NOTE: need to ensure are converting to/from correct Python type
   #   e.g. for Python list or NumPy or ctypes
 
   def scatter(self,name,dtype,count,data):
@@ -1414,7 +1492,7 @@ class lammps(object):
   # type = type of each atom (1 to Ntypes) (required)
   # x = coords of each atom as (N,3) array (required)
   # v = velocity of each atom as (N,3) array (optional, can be None)
-  # NOTE: how could we insure are passing correct type to LAMMPS
+  # NOTE: how could we ensure are passing correct type to LAMMPS
   #   e.g. for Python list or NumPy, etc
   #   ditto for gather_atoms() above
 

@@ -223,8 +223,7 @@ void PairNMCutCoulCut::settings(int narg, char **arg)
 
 void PairNMCutCoulCut::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 8)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 6 || narg > 8) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -238,8 +237,8 @@ void PairNMCutCoulCut::coeff(int narg, char **arg)
 
   double cut_lj_one = cut_lj_global;
   double cut_coul_one = cut_coul_global;
-  if (narg >= 7) cut_coul_one = cut_lj_one = utils::numeric(FLERR,arg[4],false,lmp);
-  if (narg == 8) cut_coul_one = utils::numeric(FLERR,arg[5],false,lmp);
+  if (narg >= 7) cut_coul_one = cut_lj_one = utils::numeric(FLERR,arg[6],false,lmp);
+  if (narg == 8) cut_coul_one = utils::numeric(FLERR,arg[7],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

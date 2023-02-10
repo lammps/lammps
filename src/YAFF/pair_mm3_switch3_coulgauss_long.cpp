@@ -337,7 +337,7 @@ void PairMM3Switch3CoulGaussLong::init_style()
   if (truncw>0.0) truncwi = 1.0/truncw;
   else truncwi = 0.0;
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");

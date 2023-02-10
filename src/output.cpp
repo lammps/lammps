@@ -299,7 +299,7 @@ void Output::setup(int memflag)
   if (memflag) memory_usage();
 
    // set next_thermo to multiple of every or variable eval if var defined
-   // insure thermo output on last step of run
+   // ensure thermo output on last step of run
    // thermo may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
@@ -431,7 +431,7 @@ void Output::write(bigint ntimestep)
     next_restart = MIN(next_restart_single,next_restart_double);
   }
 
-  // insure next_thermo forces output on last step of run
+  // ensure next_thermo forces output on last step of run
   // thermo may invoke computes so wrap with clear/add
 
   if (next_thermo == ntimestep) {
@@ -545,11 +545,9 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
       // if delta is too small to reach next timestep, use multiple of delta
 
       if (nextdump == ntimestep) {
-        double tnext = update->atime +
-          (ntimestep+1 - update->atimestep) * update->dt;
-        int multiple = static_cast<int>
-          ((tnext - nexttime) / every_time_dump[idump]);
-        nexttime = nexttime + (multiple+1)*every_time_dump[idump];
+        double tnext = update->atime + (ntimestep + 1 - update->atimestep) * update->dt;
+        int multiple = static_cast<int>((tnext - nexttime) / every_time_dump[idump]);
+        nexttime = nexttime + (multiple + 1) * every_time_dump[idump];
         nextdump = ntimestep +
           static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / update->dt) + 1;
       }
@@ -830,6 +828,8 @@ void Output::delete_dump(const std::string &id)
     ivar_dump[i-1] = ivar_dump[i];
   }
   ndump--;
+  dump[ndump] = nullptr;
+  var_dump[ndump] = nullptr;
   dump_list = std::vector<Dump *>(dump, dump + ndump);
 }
 

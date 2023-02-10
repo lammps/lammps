@@ -19,6 +19,7 @@
 #include "tokenizer.h"
 
 #include <cstring>
+#include <exception>
 #include <utility>
 
 using namespace LAMMPS_NS;

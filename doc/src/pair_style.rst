@@ -212,6 +212,8 @@ accelerated styles exist.
 * :doc:`lcbop <pair_lcbop>` - long-range bond-order potential (LCBOP)
 * :doc:`lebedeva/z <pair_lebedeva_z>` - Lebedeva interlayer potential for graphene with normals along z-axis
 * :doc:`lennard/mdf <pair_mdf>` - LJ potential in A/B form with a taper function
+* :doc:`lepton <pair_lepton>` - pair potential from evaluating a string
+* :doc:`lepton/coul <pair_lepton>` - pair potential from evaluating a string with support for charges
 * :doc:`line/lj <pair_line_lj>` - LJ potential between line segments
 * :doc:`list <pair_list>` - potential between pairs of atoms explicitly listed in an input file
 * :doc:`lj/charmm/coul/charmm <pair_charmm>` - CHARMM potential with cutoff Coulomb
@@ -275,13 +277,13 @@ accelerated styles exist.
 * :doc:`lubricateU/poly <pair_lubricateU>` - hydrodynamic lubrication forces for Fast Lubrication with polydispersity
 * :doc:`mdpd <pair_mesodpd>` - mDPD particle interactions
 * :doc:`mdpd/rhosum <pair_mesodpd>` - mDPD particle interactions for mass density
-* :doc:`meam <pair_meam>` - modified embedded atom method (MEAM) in C
+* :doc:`meam <pair_meam>` - modified embedded atom method (MEAM)
+* :doc:`meam/ms <pair_meam>` - multi-state modified embedded atom method (MS-MEAM)
 * :doc:`meam/spline <pair_meam_spline>` - splined version of MEAM
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - splined version of MEAM with a Stillinger-Weber term
 * :doc:`mesocnt <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes
 * :doc:`mesocnt/viscous <pair_mesocnt>` - mesoscopic vdW potential for (carbon) nanotubes with friction
 * :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
-* :doc:`mesont/tpm <pair_mesont_tpm>` - nanotubes mesoscopic force field
 * :doc:`mie/cut <pair_mie>` - Mie potential
 * :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field
@@ -314,6 +316,7 @@ accelerated styles exist.
 * :doc:`oxrna2/xstk <pair_oxrna2>` -
 * :doc:`pace <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential
 * :doc:`pace/extrapolation <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential with extrapolation grades
+* :doc:`pod <pair_pod>` - Proper orthogonal decomposition (POD) machine-learning potential
 * :doc:`peri/eps <pair_peri>` - peridynamic EPS potential
 * :doc:`peri/lps <pair_peri>` - peridynamic LPS potential
 * :doc:`peri/pmb <pair_peri>` - peridynamic PMB potential

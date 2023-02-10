@@ -55,43 +55,44 @@ FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "region") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal group command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "group dynamic region", error);
       if (!domain->get_region_by_id(arg[iarg + 1]))
-        error->all(FLERR, "Region {} for group dynamic does not exist", arg[iarg + 1]);
+        error->all(FLERR, "Region {} for dynamic group {} does not exist", arg[iarg + 1], dgroupid);
       regionflag = 1;
       delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "var") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal group command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "group dynamic var", error);
       if (input->variable->find(arg[iarg + 1]) < 0)
-        error->all(FLERR, "Variable name for group dynamic does not exist");
+        error->all(FLERR, "Variable '{}' for dynamic group {} does not exist", arg[iarg + 1],
+                   dgroupid);
       varflag = 1;
       delete[] idvar;
       idvar = utils::strdup(arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "property") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal group command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "group dynamic property", error);
       int flag, cols;
       iprop = atom->find_custom(arg[iarg + 1], flag, cols);
       if (iprop < 0 || cols)
-        error->all(FLERR,
-                   "Custom per-atom vector for group dynamic "
-                   "does not exist");
+        error->all(FLERR, "Custom per-atom vector {} for dynamic group {} does not exist",
+                   arg[iarg + 1], dgroupid);
       propflag = 1;
       delete[] idprop;
       idprop = utils::strdup(arg[iarg + 1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "every") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal group command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "group dynamic every", error);
       nevery = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (nevery <= 0) error->all(FLERR, "Illegal group command");
+      if (nevery <= 0)
+        error->all(FLERR, "Illegal every value {} for dynamic group {}", nevery, dgroupid);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal group command");
+      error->all(FLERR, "Unknown keyword {} in dynamic group command", arg[iarg]);
   }
 }
 
@@ -116,10 +117,12 @@ int FixGroup::setmask()
 
 void FixGroup::init()
 {
+  std::string dyngroup = group->names[igroup];
   // parent group cannot be dynamic
   // else order of FixGroup fixes would matter
 
-  if (group->dynamic[igroup]) error->all(FLERR, "Group dynamic parent group cannot be dynamic");
+  if (group->dynamic[igroup])
+    error->all(FLERR, "Dynamic group parent group {} cannot be dynamic", dyngroup);
 
   if (utils::strmatch(update->integrate_style, "^respa"))
     nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
@@ -128,21 +131,24 @@ void FixGroup::init()
 
   if (regionflag) {
     region = domain->get_region_by_id(idregion);
-    if (!region) error->all(FLERR, "Region {} for group dynamic does not exist", idregion);
+    if (!region)
+      error->all(FLERR, "Region {} for dynamic group {} does not exist", idregion, dyngroup);
   }
 
   if (varflag) {
     ivar = input->variable->find(idvar);
-    if (ivar < 0) error->all(FLERR, "Variable name for group dynamic does not exist");
+    if (ivar < 0)
+      error->all(FLERR, "Variable '{}' for dynamic group {} does not exist", idvar, dyngroup);
     if (!input->variable->atomstyle(ivar))
-      error->all(FLERR, "Variable for group dynamic is invalid style");
+      error->all(FLERR, "Variable '{}' for dynamic group is of incompatible style");
   }
 
   if (propflag) {
     int cols;
     iprop = atom->find_custom(idprop, proptype, cols);
     if (iprop < 0 || cols)
-      error->all(FLERR, "Group dynamic command custom property vector does not exist");
+      error->all(FLERR, "Custom per-atom property vector {} for dynamic group {} does not exist",
+                 idprop, dyngroup);
   }
 }
 
@@ -230,7 +236,7 @@ void FixGroup::set_group()
 
   if (varflag) memory->destroy(var);
 
-  // insure ghost atom masks are also updated
+  // ensure ghost atom masks are also updated
 
   comm->forward_comm(this);
 }

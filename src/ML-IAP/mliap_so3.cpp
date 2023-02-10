@@ -361,7 +361,7 @@ void MLIAP_SO3::compute_W(int nmax, double *arr)
     for (beta = 1; beta < alpha + 1; beta++) {
       temp2 = (2 * beta + 5) * (2 * beta + 6) * (2 * beta + 7);
       arr[(alpha - 1) * nmax + beta - 1] =
-          sqrt(temp1 * temp2) / (5 + alpha + beta) / (6 + alpha + beta) / (7 + alpha + beta);
+          sqrt((double)temp1 * temp2) / (5 + alpha + beta) / (6 + alpha + beta) / (7 + alpha + beta);
       arr[(beta - 1) * nmax + alpha - 1] = arr[(alpha - 1) * nmax + beta - 1];
     }
   }

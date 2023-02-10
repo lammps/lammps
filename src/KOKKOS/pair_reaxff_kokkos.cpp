@@ -63,7 +63,7 @@ PairReaxFFKokkos<DeviceType>::PairReaxFFKokkos(LAMMPS *lmp) : PairReaxFF(lmp)
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | Q_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | Q_MASK | F_MASK | TAG_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   k_resize_bo = DAT::tdual_int_scalar("pair:resize_bo");
@@ -94,6 +94,8 @@ template<class DeviceType>
 PairReaxFFKokkos<DeviceType>::~PairReaxFFKokkos()
 {
   if (copymode) return;
+
+  DeAllocate_System(api->system);
 
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
@@ -183,6 +185,8 @@ void PairReaxFFKokkos<DeviceType>::init_style()
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
   if (neighflag == FULL)
     error->all(FLERR,"Must use half neighbor list with pair style reaxff/kk");
+
+  need_dup = lmp->kokkos->need_dup<DeviceType>();
 
   allocate();
   setup();
@@ -577,17 +581,17 @@ void PairReaxFFKokkos<DeviceType>::Deallocate_Lookup_Tables()
     for (j = i; j <= ntypes; ++j) {
       if (map[i] == -1) continue;
       if (LR[i][j].n) {
-        sfree(api->control->error_ptr, LR[i][j].y, "LR[i,j].y");
-        sfree(api->control->error_ptr, LR[i][j].H, "LR[i,j].H");
-        sfree(api->control->error_ptr, LR[i][j].vdW, "LR[i,j].vdW");
-        sfree(api->control->error_ptr, LR[i][j].CEvd, "LR[i,j].CEvd");
-        sfree(api->control->error_ptr, LR[i][j].ele, "LR[i,j].ele");
-        sfree(api->control->error_ptr, LR[i][j].CEclmb, "LR[i,j].CEclmb");
+        sfree(LR[i][j].y);
+        sfree(LR[i][j].H);
+        sfree(LR[i][j].vdW);
+        sfree(LR[i][j].CEvd);
+        sfree(LR[i][j].ele);
+        sfree(LR[i][j].CEclmb);
       }
     }
-    sfree(api->control->error_ptr, LR[i], "LR[i]");
+    sfree(LR[i]);
   }
-  sfree(api->control->error_ptr, LR, "LR");
+  sfree(LR);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -737,8 +741,6 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       d_s = k_s.view<DeviceType>();
     }
   }
-
-  need_dup = lmp->kokkos->need_dup<DeviceType>();
 
   // allocate duplicated memory
   if (need_dup) {

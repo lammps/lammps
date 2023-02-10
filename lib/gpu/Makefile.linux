@@ -45,6 +45,12 @@ CUDA_ARCH = -arch=sm_60
 #CUDA_ARCH = -arch=sm_80
 #CUDA_ARCH = -arch=sm_86
 
+# Lovelace hardware
+#CUDA_ARCH = -arch=sm_89
+
+# Hopper hardware
+#CUDA_ARCH = -arch=sm_90
+
 # this setting should match LAMMPS Makefile
 # one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
 

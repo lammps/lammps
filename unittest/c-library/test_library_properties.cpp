@@ -209,6 +209,10 @@ TEST_F(LibraryProperties, setting)
     lammps_command(lmp, "dimension 3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_active"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);
+
     EXPECT_EQ(lammps_extract_setting(lmp, "world_size"), 1);
     EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "universe_size"), 1);
@@ -544,4 +548,28 @@ TEST_F(AtomProperties, position)
     EXPECT_DOUBLE_EQ(x[1][0], 0.2);
     EXPECT_DOUBLE_EQ(x[1][1], 0.1);
     EXPECT_DOUBLE_EQ(x[1][2], 0.1);
+}
+
+TEST(SystemSettings, kokkos)
+{
+    if (!lammps_config_has_package("KOKKOS")) GTEST_SKIP();
+    if (!lammps_config_accelerator("KOKKOS", "api", "openmp")) GTEST_SKIP();
+
+    // clang-format off
+    const char *args[] = {"SystemSettings", "-log", "none", "-echo", "screen", "-nocite",
+                          "-k", "on", "t", "4", "-sf", "kk"};
+    // clang-format on
+    char **argv = (char **)args;
+    int argc    = sizeof(args) / sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    void *lmp          = lammps_open_no_mpi(argc, argv, nullptr);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_active"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 4);
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);
+    lammps_close(lmp);
 }

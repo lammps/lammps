@@ -28,6 +28,7 @@
 #include <cstddef>      // IWYU pragme: export
 #include <cstdio>       // IWYU pragma: export
 #include <string>       // IWYU pragma: export
+#include <vector>       // IWYU pragma: export
 
 #include "fmt/format.h" // IWYU pragma: export
 #include "lammps.h"     // IWYU pragma: export
@@ -93,7 +94,7 @@ class Pointers {
     python(ptr->python) {}
   virtual ~Pointers() = default;
 
-  // remove default members execept for the copy constructor
+  // remove other default members
 
   Pointers() = delete;
   Pointers(const Pointers &) = default;

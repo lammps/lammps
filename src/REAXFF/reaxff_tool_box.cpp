@@ -96,16 +96,9 @@ void *scalloc(LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const st
 }
 
 /* safe free */
-void sfree(LAMMPS_NS::Error *error_ptr, void *ptr, const std::string &name)
+void sfree(void *ptr)
 {
-  if (ptr == nullptr) {
-    auto errmsg = std::string("Trying to free the already free()'d pointer: ") + name;
-    if (error_ptr)
-      error_ptr->one(FLERR, errmsg);
-    else
-      fputs(errmsg.c_str(), stderr);
-    return;
-  }
+  if (ptr == nullptr) return;
 
   free(ptr);
   ptr = nullptr;

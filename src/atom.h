@@ -21,9 +21,10 @@
 
 namespace LAMMPS_NS {
 
-// forward declaration
+// forward declarations
 
 class AtomVec;
+class Molecule;
 
 class Atom : protected Pointers {
  public:
@@ -144,12 +145,6 @@ class Atom : protected Pointers {
   double *edpd_cv;    // heat capacity
   int cc_species;
 
-  // MESONT package
-
-  double *length;
-  int *buckling;
-  tagint **bond_nt;
-
   // MACHDYN package
 
   double *contact_radius;
@@ -172,7 +167,7 @@ class Atom : protected Pointers {
 
   // DIELECTRIC package
 
-  double *area, *ed, *em, *epsilon, *curvature, *q_unscaled;
+  double *area, *ed, *em, *epsilon, *curvature, *q_scaled;
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -252,7 +247,7 @@ class Atom : protected Pointers {
   // 1st molecule in template stores nset = # in set
 
   int nmolecule;
-  class Molecule **molecules;
+  Molecule **molecules;
 
   // type label maps
 
@@ -354,7 +349,7 @@ class Atom : protected Pointers {
   void add_molecule(int, char **);
   int find_molecule(const char *);
   std::vector<Molecule *> get_molecule_by_id(const std::string &);
-  void add_molecule_atom(class Molecule *, int, int, tagint);
+  void add_molecule_atom(Molecule *, int, int, tagint);
 
   void add_label_map();
 

@@ -399,7 +399,7 @@ automatically throughout the run.  This typically give performance
 within 5 to 10 percent of the optimal fixed fraction.
 
 The *ghost* keyword determines whether or not ghost atoms, i.e. atoms
-at the boundaries of processor sub-domains, are offloaded for neighbor
+at the boundaries of processor subdomains, are offloaded for neighbor
 and force calculations.  When the value = "no", ghost atoms are not
 offloaded.  This option can reduce the amount of data transfer with
 the co-processor and can also overlap MPI communication of forces with
@@ -521,7 +521,7 @@ the comm keywords.
 The value options for the keywords are *no* or *host* or *device*\ . A
 value of *no* means to use the standard non-KOKKOS method of
 packing/unpacking data for the communication. A value of *host* means to
-use the host, typically a multi-core CPU, and perform the
+use the host, typically a multicore CPU, and perform the
 packing/unpacking in parallel with threads. A value of *device* means to
 use the device, typically a GPU, to perform the packing/unpacking
 operation.
@@ -629,7 +629,7 @@ too.
    packages, be aware these packages all allow setting of the *Nthreads*
    value via their package commands, but there is only a single global
    *Nthreads* value used by OpenMP.  Thus if multiple package commands are
-   invoked, you should insure the values are consistent.  If they are
+   invoked, you should ensure the values are consistent.  If they are
    not, the last one invoked will take precedence, for all packages.
    Also note that if the :doc:`-sf hybrid intel omp command-line switch <Run_options>` is used, it invokes a "package intel" command, followed by a
    "package omp" command, both with a setting of *Nthreads* = 0. Likewise

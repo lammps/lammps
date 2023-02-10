@@ -23,7 +23,7 @@ against invalid accesses.
    When accessing per-atom data,
    please note that this data is the per-processor local data and indexed
    accordingly. These arrays can change sizes and order at every neighbor list
-   rebuild and atom sort event as atoms are migrating between sub-domains.
+   rebuild and atom sort event as atoms are migrating between subdomains.
 
 .. tabs::
 
@@ -58,7 +58,7 @@ against invalid accesses.
       Each element of this list is a :py:class:`Atom <lammps.Atom>` or :py:class:`Atom2D <lammps.Atom2D>` object. The attributes of
       these objects provide access to their data (id, type, position, velocity, force, etc.):
 
-      .. code-block:: Python
+      .. code-block:: python
 
          # access first atom
          L.atoms[0].id
@@ -71,7 +71,7 @@ against invalid accesses.
 
       Some attributes can be changed:
 
-      .. code-block:: Python
+      .. code-block:: python
 
          # set position in 2D simulation
          L.atoms[0].position = (1.0, 0.0)

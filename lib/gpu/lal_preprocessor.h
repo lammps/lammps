@@ -101,6 +101,7 @@
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_pre_cuda_hip.h"
+#define ucl_pow pow
 #endif
 
 // -------------------------------------------------------------------------
@@ -166,10 +167,12 @@
 #define ucl_cbrt cbrt
 #define ucl_ceil ceil
 #define ucl_abs fabs
+#define ucl_erfc erfc
 
 #if defined(FAST_MATH) && !defined(_DOUBLE_DOUBLE)
 
 #define ucl_exp native_exp
+#define ucl_pow pow
 #define ucl_powr native_powr
 #define ucl_rsqrt native_rsqrt
 #define ucl_sqrt native_sqrt
@@ -178,6 +181,7 @@
 #else
 
 #define ucl_exp exp
+#define ucl_pow pow
 #define ucl_powr powr
 #define ucl_rsqrt rsqrt
 #define ucl_sqrt sqrt
@@ -329,6 +333,10 @@
 #define SBBITS 30
 #define NEIGHMASK 0x3FFFFFFF
 ucl_inline int sbmask(int j) { return j >> SBBITS & 3; };
+
+#define SBBITS15 29
+#define NEIGHMASK15 0x1FFFFFFF
+ucl_inline int sbmask15(int j) { return j >> SBBITS15 & 7; };
 
 // default to 32-bit smallint and other ints, 64-bit bigint:
 // same as defined in src/lmptype.h

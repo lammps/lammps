@@ -266,11 +266,8 @@ void Variable::set(int narg, char **arg)
       num[nvar] = utils::inumeric(FLERR,arg[2],false,lmp);
       data[nvar] = new char*[1];
       data[nvar][0] = nullptr;
-      if (narg == 4) {
-        char digits[12];
-        sprintf(digits,"%d",num[nvar]);
-        pad[nvar] = strlen(digits);
-      } else pad[nvar] = 0;
+      if (narg == 4) pad[nvar] = std::to_string(num[nvar]).size();
+      else pad[nvar] = 0;
     }
 
     if (num[nvar] < universe->nworlds)
@@ -670,7 +667,7 @@ int Variable::next(int narg, char **arg)
       istyle == TIMER || istyle == INTERNAL)
     error->all(FLERR,"Invalid variable style with next command");
 
-  // if istyle = UNIVERSE or ULOOP, insure all such variables are incremented
+  // if istyle = UNIVERSE or ULOOP, ensure all such variables are incremented
 
   if (istyle == UNIVERSE || istyle == ULOOP)
     for (int i = 0; i < nvar; i++) {
@@ -774,10 +771,8 @@ int Variable::next(int narg, char **arg)
         error->one(FLERR,"Unexpected error while incrementing uloop style variable. "
                    "Please contact the LAMMPS developers.");
 
-      //printf("READ %d %d\n",universe->me,nextindex);
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
-      //printf("WRITE %d %d\n",universe->me,nextindex+1);
       fclose(fp);
       fp = nullptr;
       rename("tmp.lammps.variable.lock","tmp.lammps.variable");
@@ -955,18 +950,15 @@ char *Variable::retrieve(const char *name)
       style[ivar] == SCALARFILE) {
     str = data[ivar][which[ivar]];
   } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
-    char result[16];
-    if (pad[ivar] == 0) sprintf(result,"%d",which[ivar]+1);
-    else {
-      char padstr[16];
-      sprintf(padstr,"%%0%dd",pad[ivar]);
-      sprintf(result,padstr,which[ivar]+1);
-    }
+    std::string result;
+    if (pad[ivar] == 0) result = std::to_string(which[ivar]+1);
+    else result = fmt::format("{:0>{}d}",which[ivar]+1, pad[ivar]);
     delete[] data[ivar][0];
     str = data[ivar][0] = utils::strdup(result);
   } else if (style[ivar] == EQUAL) {
     double answer = evaluate(data[ivar][0],nullptr,ivar);
-    sprintf(data[ivar][1],"%.15g",answer);
+    delete[] data[ivar][1];
+    data[ivar][1] = utils::strdup(fmt::format("{:.15g}",answer));
     str = data[ivar][1];
   } else if (style[ivar] == FORMAT) {
     int jvar = find(data[ivar][0]);
@@ -985,8 +977,21 @@ char *Variable::retrieve(const char *name)
     str = data[ivar][1] = utils::strdup(result);
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
-    if (ifunc < 0)
-      error->all(FLERR,"Python variable {} does not match Python function {}", name, data[ivar][0]);
+    if (ifunc < 0) {
+      if (ifunc == -1) {
+        error->all(FLERR, "Could not find Python function {} linked to variable {}",
+                   data[ivar][0], name);
+      } else if (ifunc == -2) {
+        error->all(FLERR, "Python function {} for variable {} does not have a return value",
+                   data[ivar][0], name);
+      } else if (ifunc == -3) {
+        error->all(FLERR,"Python variable {} does not match variable name registered with "
+                   "Python function {}", name, data[ivar][0]);
+      } else {
+        error->all(FLERR, "Unknown error verifying function {} linked to python style variable {}",
+                   data[ivar][0],name);
+      }
+    }
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
     // if Python func returns a string longer than VALUELENGTH
@@ -994,7 +999,8 @@ char *Variable::retrieve(const char *name)
     char *strlong = python->long_string(ifunc);
     if (strlong) str = strlong;
   } else if (style[ivar] == TIMER || style[ivar] == INTERNAL) {
-    sprintf(data[ivar][0],"%.15g",dvalue[ivar]);
+    delete[] data[ivar][0];
+    data[ivar][0] = utils::strdup(fmt::format("{:.15g}",dvalue[ivar]));
     str = data[ivar][0];
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
              style[ivar] == VECTOR) return nullptr;
@@ -1205,6 +1211,9 @@ void Variable::remove(int n)
     dvalue[i-1] = dvalue[i];
   }
   nvar--;
+  data[nvar] = nullptr;
+  reader[nvar] = nullptr;
+  names[nvar] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1899,12 +1908,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           char *var = retrieve(word+2);
           if (var == nullptr)
             print_var_error(FLERR,"Invalid variable evaluation in variable formula",ivar);
-          if (tree) {
-            auto newtree = new Tree();
-            newtree->type = VALUE;
-            newtree->value = atof(var);
-            treestack[ntreestack++] = newtree;
-          } else argstack[nargstack++] = atof(var);
+          if (utils::is_double(var)) {
+            if (tree) {
+              auto newtree = new Tree();
+              newtree->type = VALUE;
+              newtree->value = atof(var);
+              treestack[ntreestack++] = newtree;
+            } else argstack[nargstack++] = atof(var);
+          } else print_var_error(FLERR,"Non-numeric variable value in variable formula",ivar);
 
         // v_name = per-atom vector from atom-style variable
         // evaluate the atom-style variable as newtree
@@ -4516,7 +4527,7 @@ void Variable::peratom2global(int flag, char *word, double *vector, int nstride,
           error->one(FLERR,"Variable uses atom property that isn't allocated");
         mine = atom->q[index];
       }
-      else error->one(FLERR,"Invalid atom vector in variable formula");
+      else error->one(FLERR,"Invalid atom vector {} in variable formula", word);
 
     } else mine = vector[index*nstride];
 

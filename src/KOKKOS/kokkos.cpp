@@ -77,7 +77,6 @@ GPU_AWARE_UNKNOWN
 
 using namespace LAMMPS_NS;
 
-Kokkos::InitArguments KokkosLMP::args{-1, -1, -1, false};
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
 
@@ -100,6 +99,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   memoryKK = (MemoryKokkos*) memory;
 
   auto_sync = 1;
+  allow_overlap = 1;
 
   int me = 0;
   MPI_Comm_rank(world,&me);
@@ -110,7 +110,6 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   ngpus = 0;
   int device = 0;
   nthreads = 1;
-  numa = 1;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -189,30 +188,24 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"n") == 0 ||
-               strcmp(arg[iarg],"numa") == 0) {
-      numa = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
-      iarg += 2;
-
     } else error->all(FLERR,"Invalid Kokkos command-line arg: {}", arg[iarg]);
   }
 
   // Initialize Kokkos. However, we cannot change any
   // Kokkos library parameters after the first initalization
 
-  if (args.num_threads != -1) {
-    if ((args.num_threads != nthreads) || (args.num_numa != numa) || (args.device_id != device))
+  Kokkos::InitializationSettings args;
+
+  if (args.has_num_threads()) {
+    if ((args.get_num_threads() != nthreads) || (args.get_device_id() != device))
       if (me == 0)
-        error->warning(FLERR,"Kokkos package already initalized, "
-                       "cannot reinitialize with different parameters");
-    nthreads = args.num_threads;
-    numa = args.num_numa;
-    device = args.device_id;
+        error->warning(FLERR,"Kokkos package already initalized. Cannot change parameters");
+    nthreads = args.get_num_threads();
+    device = args.get_device_id();
     ngpus = init_ngpus;
   } else {
-    args.num_threads = nthreads;
-    args.num_numa = numa;
-    args.device_id = device;
+    args.set_num_threads(nthreads);
+    args.set_device_id(device);
     init_ngpus = ngpus;
   }
 
@@ -350,7 +343,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-void KokkosLMP::initialize(Kokkos::InitArguments args, Error *error)
+void KokkosLMP::initialize(const Kokkos::InitializationSettings& args, Error *error)
 {
   if (!Kokkos::is_initialized()) {
     if (is_finalized)

@@ -166,6 +166,8 @@ int get_device_count() {
 #elif defined(KOKKOS_ENABLE_OPENACC)
   return acc_get_num_devices(
       Kokkos::Experimental::Impl::OpenACC_Traits::dev_type);
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
+  return omp_get_num_devices();
 #else
   Kokkos::abort("implementation bug");
   return -1;
@@ -426,11 +428,17 @@ int Kokkos::Impl::get_gpu(const InitializationSettings& settings) {
     Kokkos::abort("implementation bug");
   }
 
-  auto const* local_rank_str =
-      std::getenv("OMPI_COMM_WORLD_LOCAL_RANK");  // OpenMPI
-  if (!local_rank_str)
-    local_rank_str = std::getenv("MV2_COMM_WORLD_LOCAL_RANK");  // MVAPICH2
-  if (!local_rank_str) local_rank_str = std::getenv("SLURM_LOCALID");  // SLURM
+  char const* local_rank_str = nullptr;
+  for (char const* env_var : {
+           "OMPI_COMM_WORLD_LOCAL_RANK",  // OpenMPI
+           "MV2_COMM_WORLD_LOCAL_RANK",   // MVAPICH2
+           "MPI_LOCALRANKID",             // MPICH
+           "SLURM_LOCALID",               // SLURM
+           "PMI_LOCAL_RANK"               // PMI
+       }) {
+    local_rank_str = std::getenv(env_var);
+    if (local_rank_str) break;
+  }
 
   // use first GPU available for execution if unable to detect local MPI rank
   if (!local_rank_str) {

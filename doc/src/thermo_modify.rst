@@ -64,7 +64,7 @@ The *lost* keyword determines whether LAMMPS checks for lost atoms each
 time it computes thermodynamics and what it does if atoms are lost.  An
 atom can be "lost" if it moves across a non-periodic simulation box
 :doc:`boundary <boundary>` or if it moves more than a box length outside
-the simulation domain (or more than a processor sub-domain length)
+the simulation domain (or more than a processor subdomain length)
 before reneighboring occurs.  The latter case is typically due to bad
 dynamics (e.g., too large a time step and/or huge forces and velocities).  If
 the value is *ignore*, LAMMPS does not check for lost atoms.  If the
@@ -141,7 +141,7 @@ You can always include a divide by the number of atoms in the variable
 formula if this is not the case.
 
 The *flush* keyword invokes a flush operation after thermodynamic info
-is written to the screen and log file.  This insures the output is
+is written to the screen and log file.  This ensures the output is
 updated and not buffered (by the application) even if LAMMPS halts
 before the simulation completes.  Please note that this does not affect
 buffering by the OS or devices, so you may still lose data in case the

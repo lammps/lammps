@@ -42,13 +42,16 @@ Syntax
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
 * map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *custom_charges* or *molecule* or *modify_create*
+* individual_keyword = *prob* or *rate_limit* or *max_rxn* or *stabilize_steps* or *custom_charges* or *rescale_charges* or *molecule* or *modify_create*
 
   .. parsed-literal::
 
          *prob* values = fraction seed
            fraction = initiate reaction with this probability if otherwise eligible
            seed = random number seed (positive integer)
+         *rate_limit* = Nlimit Nsteps
+           Nlimit = maximum number of reactions allowed to occur within interval
+           Nsteps = the interval (number of timesteps) over which to count reactions
          *max_rxn* value = N
            N = maximum number of reactions allowed to occur
          *stabilize_steps* value = timesteps
@@ -56,6 +59,9 @@ Syntax
          *custom_charges* value = *no* or fragment-ID
            *no* = update all atomic charges (default)
            fragment-ID = ID of molecule fragment whose charges are updated
+         *rescale_charges* value = *no* or *yes*
+           *no* = do not rescale atomic charges (default)
+           *yes* = rescale charges such that total charge does not change during reaction
          *molecule* value = *off* or *inter* or *intra*
            *off* = allow both inter- and intramolecular reactions (default)
            *inter* = search for reactions between molecules with different IDs
@@ -117,6 +123,17 @@ using this fix is
   (4) create a map that relates the template-atom-IDs of each atom between pre- and post-reaction molecule templates
   (5) fill a simulation box with molecules and run a simulation with fix bond/react.
 
+.. note::
+
+   .. versionadded:: 15Sep2022
+
+   :doc:`Type labels <Howto_type_labels>` allow for molecule templates
+   and data files to use alphanumeric atom types that match those of
+   a force field. Input files that use type labels are inherently
+   compatible with each other and portable between different
+   simulations. Therefore, it is highly recommended to use type labels
+   to specify atom, bond, etc. types when using fix bond/react.
+
 Only one 'fix bond/react' command can be used at a time. Multiple
 reactions can be simultaneously applied by specifying multiple *react*
 arguments to a single 'fix bond/react' command. This syntax is
@@ -171,12 +188,12 @@ due to the internal dynamic grouping performed by fix bond/react.
    If the group-ID is an existing static group, react-group-IDs
    should also be specified as this static group or a subset.
 
-The *reset_mol_ids* keyword invokes the :doc:`reset_mol_ids <reset_mol_ids>`
-command after a reaction occurs, to ensure that molecule IDs are
-consistent with the new bond topology. The group-ID used for
-:doc:`reset_mol_ids <reset_mol_ids>` is the group-ID for this fix.
-Resetting molecule IDs is necessarily a global operation, so it can
-be slow for very large systems.
+The *reset_mol_ids* keyword invokes the :doc:`reset_atoms mol
+<reset_atoms>` command after a reaction occurs, to ensure that
+molecule IDs are consistent with the new bond topology. The group-ID
+used for :doc:`reset_atoms mol <reset_atoms>` is the group-ID for this
+fix.  Resetting molecule IDs is necessarily a global operation, so it
+can be slow for very large systems.
 
 The following comments pertain to each *react* argument (in other
 words, they can be customized for each reaction, or reaction step):
@@ -222,18 +239,18 @@ pairs are identified within the cutoff distance:
       initiator partners, these two atoms are identified as the initiator atom
       pair of the reaction site.
 
-Note that it can be helpful to select
-unique atom types for the initiator atoms: if an initiator atom pair
-is identified, as described in the previous steps, but it does not
-correspond to the same pair specified in the pre-reaction template, an
-otherwise eligible reaction could be prevented from occurring. Once
-this unique initiator atom pair is identified for each reaction, there
-could be two or more reactions that involve the same atom on the same
-time step. If this is the case, only one such reaction is permitted to
-occur. This reaction is chosen randomly from all potential reactions
-involving the overlapping atom. This capability allows, for example,
-different reaction pathways to proceed from identical reaction sites
-with user-specified probabilities.
+Note that it can be helpful to select unique atom types for the
+initiator atoms: if an initiator atom pair is identified, as described
+in the previous steps, but it does not correspond to the same pair
+specified in the pre-reaction template, an otherwise eligible reaction
+could be prevented from occurring. Once this unique initiator atom
+pair is identified for each reaction, there could be two or more
+reactions that involve the same atom on the same time step. If this is
+the case, only one such reaction is permitted to occur. This reaction
+is chosen randomly from all potential reactions involving the
+overlapping atom. This capability allows, for example, different
+reaction pathways to proceed from identical reaction sites with
+user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its
@@ -274,7 +291,10 @@ for a given simulation. All atom types in the pre-reacted template
 must be the same as those of a potential reaction site in the
 simulation. A detailed discussion of matching molecule template atom
 types with the simulation is provided on the :doc:`molecule <molecule>`
-command page.
+command page. It is highly recommended to use :doc:`Type labels <Howto_type_labels>`
+(added in version 15Sep2022) in both molecule templates and data
+files, which automates the process of syncing atom types between
+different input files.
 
 The post-reacted molecule template contains a sample of the reaction
 site and its surrounding topology after the reaction has occurred. It
@@ -514,28 +534,40 @@ example, the molecule fragment could consist of only the backbone
 atoms of a polymer chain. This constraint can be used to enforce a
 specific relative position and orientation between reacting molecules.
 
+.. versionchanged:: 22Dec2022
+
 The constraint of type "custom" has the following syntax:
 
 .. parsed-literal::
 
    custom *varstring*
 
-where "custom" is the required keyword, and *varstring* is a
-variable expression. The expression must be a valid equal-style
-variable formula that can be read by the :doc:`variable <variable>` command,
+where 'custom' is the required keyword, and *varstring* is a variable
+expression. The expression must be a valid equal-style variable
+formula that can be read by the :doc:`variable <variable>` command,
 after any special reaction functions are evaluated. If the resulting
 expression is zero, the reaction is prevented from occurring;
-otherwise, it is permitted to occur. There are two special reaction
-functions available, "rxnsum" and "rxnave". These functions operate
-over the atoms in a given reaction site, and have one mandatory
-argument and one optional argument. The mandatory argument is the
-identifier for an atom-style variable. The second, optional argument
-is the name of a molecule fragment in the pre-reaction template, and
-can be used to operate over a subset of atoms in the reaction site.
-The "rxnsum" function sums the atom-style variable over the reaction
-site, while the "rxnave" returns the average value. For example, a
-constraint on the total potential energy of atoms involved in the
-reaction can be imposed as follows:
+otherwise, it is permitted to occur. There are three special reaction
+functions available, 'rxnbond', 'rxnsum', and 'rxnave'. The 'rxnbond'
+function allows per-bond values to be included in the variable strings
+of the custom constraint. The 'rxnbond' function has two mandatory
+arguments. The first argument is the ID of a previously defined
+'compute bond/local' command. This 'compute bond/local' must compute
+only one value, e.g. bond force. This value is returned by the
+'rxnbond' function. The second argument is the name of a molecule
+fragment in the pre-reaction template. The fragment must contain
+exactly two atoms, corresponding to the atoms involved in the bond
+whose value should be calculated. An example of a constraint that uses
+the force experienced by a bond is provided below. The 'rxnsum' and
+'rxnave' functions operate over the atoms in a given reaction site,
+and have one mandatory argument and one optional argument. The
+mandatory argument is the identifier for an atom-style variable. The
+second, optional argument is the name of a molecule fragment in the
+pre-reaction template, and can be used to operate over a subset of
+atoms in the reaction site. The 'rxnsum' function sums the atom-style
+variable over the reaction site, while the 'rxnave' returns the
+average value. For example, a constraint on the total potential energy
+of atoms involved in the reaction can be imposed as follows:
 
 .. code-block:: LAMMPS
 
@@ -547,11 +579,32 @@ reaction can be imposed as follows:
    custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
 
 The above example prevents the reaction from occurring unless the
-total potential energy of the reaction site is above 100. The variable
-expression can be interpreted as the probability of the reaction
-occurring by using an inequality and the :doc:`random(x,y,z) <variable>`
-function available for equal-style variables, similar to the 'arrhenius'
-constraint above.
+total potential energy of the reaction site is above 100. As a second
+example, this time using the 'rxnbond' function, consider a modified
+Arrhenius constraint that depends on the bond force of a specific bond:
+
+.. code-block:: LAMMPS
+
+   # in LAMMPS input script
+
+   compute bondforce all bond/local force
+
+   compute ke_atom all ke/atom
+   variable ke atom c_ke_atom
+
+   variable E_a equal 100.0 # activation energy
+   variable l0 equal 1.0 # characteristic length
+
+
+.. code-block:: LAMMPS
+
+   # in Constraints section of map file
+
+   custom "exp(-(v_E_a-rxnbond(c_bondforce,bond1frag)*v_l0)/(2/3*rxnave(v_ke))) < random(0,1,12345)"
+
+By using an inequality and the 'random(x,y,z)' function, the left-hand
+side can be interpreted as the probability of the reaction occurring,
+similar to the 'arrhenius' constraint above.
 
 By default, all constraints must be satisfied for the reaction to
 occur. In other words, constraints are evaluated as a series of
@@ -598,6 +651,15 @@ eligible reaction only occurs if the random number is less than the
 fraction. Up to :math:`N` reactions are permitted to occur, as optionally
 specified by the *max_rxn* keyword.
 
+.. versionadded:: 22Dec2022
+
+The *rate_limit* keyword can enforce an upper limit on the overall
+rate of the reaction. The number of reaction occurrences is limited to
+Nlimit within an interval of Nsteps timesteps. No reactions are
+permitted to occur within the first Nsteps timesteps of the first run
+after reading a data file. Nlimit can be specified with an equal-style
+:doc:`variable <variable>`.
+
 The *stabilize_steps* keyword allows for the specification of how many
 time steps a reaction site is stabilized before being returned to the
 overall system thermostat. In order to produce the most physical
@@ -615,6 +677,19 @@ charges are updated to those specified by the post-reaction template
 (default). Otherwise, the value should be the name of a molecule
 fragment defined in the pre-reaction molecule template. In this case,
 only the atomic charges of atoms in the molecule fragment are updated.
+
+.. versionadded:: 22Dec2022
+
+The *rescale_charges* keyword can be used to ensure the total charge
+of the system does not change as reactions occur. When the argument is
+set to *yes*\ , a fixed value is added to the charges of post-reaction
+atoms such that their total charge equals that of the pre-reaction
+site. If only a subset of atomic charges are updated via the
+*custom_charges* keyword, this rescaling is applied to the subset.
+This keyword could be useful for systems that contain different
+molecules with the same reactive site, if the partial charges on the
+reaction site vary from molecule to molecule, or when removing
+reaction by-products.
 
 The *molecule* keyword can be used to force the reaction to be
 intermolecular, intramolecular or either. When the value is set to

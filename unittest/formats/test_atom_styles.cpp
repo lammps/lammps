@@ -422,9 +422,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->edpd_temp, false);
     ASSERT_ARRAY_ALLOCATED(atom->edpd_flux, false);
     ASSERT_ARRAY_ALLOCATED(atom->edpd_cv, false);
-    ASSERT_ARRAY_ALLOCATED(atom->length, false);
-    ASSERT_ARRAY_ALLOCATED(atom->buckling, false);
-    ASSERT_ARRAY_ALLOCATED(atom->bond_nt, false);
     ASSERT_ARRAY_ALLOCATED(atom->contact_radius, false);
     ASSERT_ARRAY_ALLOCATED(atom->smd_data_9, false);
     ASSERT_ARRAY_ALLOCATED(atom->smd_stress, false);
@@ -1147,7 +1144,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     auto type      = lmp->atom->type;
     auto ellipsoid = lmp->atom->ellipsoid;
     auto rmass     = lmp->atom->rmass;
-    auto avec      = (AtomVecEllipsoid *)lmp->atom->avec;
+    auto avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
     auto bonus     = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -1258,7 +1255,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     type      = lmp->atom->type;
     ellipsoid = lmp->atom->ellipsoid;
     rmass     = lmp->atom->rmass;
-    avec      = (AtomVecEllipsoid *)lmp->atom->avec;
+    avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
     bonus     = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
@@ -1323,7 +1320,7 @@ TEST_F(AtomStyleTest, ellipsoid)
 
     ellipsoid = lmp->atom->ellipsoid;
     rmass     = lmp->atom->rmass;
-    avec      = (AtomVecEllipsoid *)lmp->atom->avec;
+    avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
     bonus     = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -1476,7 +1473,7 @@ TEST_F(AtomStyleTest, line)
     auto type  = lmp->atom->type;
     auto line  = lmp->atom->line;
     auto rmass = lmp->atom->rmass;
-    auto avec  = (AtomVecLine *)lmp->atom->avec;
+    auto avec  = dynamic_cast<AtomVecLine *>(lmp->atom->avec);
     auto bonus = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -1569,7 +1566,7 @@ TEST_F(AtomStyleTest, line)
     type  = lmp->atom->type;
     line  = lmp->atom->line;
     rmass = lmp->atom->rmass;
-    avec  = (AtomVecLine *)lmp->atom->avec;
+    avec  = dynamic_cast<AtomVecLine *>(lmp->atom->avec);
     bonus = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
@@ -1614,7 +1611,7 @@ TEST_F(AtomStyleTest, line)
 
     line  = lmp->atom->line;
     rmass = lmp->atom->rmass;
-    avec  = (AtomVecLine *)lmp->atom->avec;
+    avec  = dynamic_cast<AtomVecLine *>(lmp->atom->avec);
     bonus = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -1760,7 +1757,7 @@ TEST_F(AtomStyleTest, tri)
     auto tri    = lmp->atom->tri;
     auto rmass  = lmp->atom->rmass;
     auto radius = lmp->atom->radius;
-    auto avec   = (AtomVecTri *)lmp->atom->avec;
+    auto avec   = dynamic_cast<AtomVecTri *>(lmp->atom->avec);
     auto bonus  = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -1914,7 +1911,7 @@ TEST_F(AtomStyleTest, tri)
     tri    = lmp->atom->tri;
     rmass  = lmp->atom->rmass;
     radius = lmp->atom->radius;
-    avec   = (AtomVecTri *)lmp->atom->avec;
+    avec   = dynamic_cast<AtomVecTri *>(lmp->atom->avec);
     bonus  = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
@@ -2023,7 +2020,7 @@ TEST_F(AtomStyleTest, tri)
 
     tri   = lmp->atom->tri;
     rmass = lmp->atom->rmass;
-    avec  = (AtomVecTri *)lmp->atom->avec;
+    avec  = dynamic_cast<AtomVecTri *>(lmp->atom->avec);
     bonus = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -2081,7 +2078,7 @@ TEST_F(AtomStyleTest, body_nparticle)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto avec = (AtomVecBody *)lmp->atom->avec;
+    auto avec = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_NE(avec->bptr, nullptr);
     ASSERT_THAT(std::string(avec->bptr->style), Eq("nparticle"));
@@ -2344,7 +2341,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     rmass  = lmp->atom->rmass;
     radius = lmp->atom->radius;
     angmom = lmp->atom->angmom;
-    avec   = (AtomVecBody *)lmp->atom->avec;
+    avec   = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     bonus  = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -2484,7 +2481,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     command("replicate 1 1 2");
     END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
-    avec = (AtomVecBody *)lmp->atom->avec;
+    avec = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     ASSERT_THAT(std::string(avec->bptr->style), Eq("nparticle"));
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
@@ -2599,7 +2596,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     body   = lmp->atom->body;
     rmass  = lmp->atom->rmass;
     radius = lmp->atom->radius;
-    avec   = (AtomVecBody *)lmp->atom->avec;
+    avec   = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     bonus  = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -3048,7 +3045,7 @@ TEST_F(AtomStyleTest, template_charge)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    auto hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("template"));
@@ -3079,7 +3076,7 @@ TEST_F(AtomStyleTest, template_charge)
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
     ASSERT_NE(lmp->atom->avec, nullptr);
-    hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("template"));
@@ -4189,7 +4186,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    auto hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("full"));
@@ -4276,7 +4273,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
-    hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("full"));
     ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("ellipsoid"));
@@ -4306,7 +4303,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     auto ellipsoid = lmp->atom->ellipsoid;
     auto rmass     = lmp->atom->rmass;
 
-    auto avec  = (AtomVecEllipsoid *)hybrid->styles[1];
+    auto avec  = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
     auto bonus = avec->bonus;
     EXPECT_NEAR(x[GETIDX(1)][0], -2.0, EPSILON);
     EXPECT_NEAR(x[GETIDX(1)][1], 2.0, EPSILON);
@@ -4408,7 +4405,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     command("replicate 1 1 2 bbox");
     END_HIDE_OUTPUT();
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
-    hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("full"));
     ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("ellipsoid"));
@@ -4429,7 +4426,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     type      = lmp->atom->type;
     ellipsoid = lmp->atom->ellipsoid;
     rmass     = lmp->atom->rmass;
-    avec      = (AtomVecEllipsoid *)hybrid->styles[1];
+    avec      = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
     bonus     = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(3)], 2);
@@ -4494,8 +4491,8 @@ TEST_F(AtomStyleTest, full_ellipsoid)
 
     ellipsoid = lmp->atom->ellipsoid;
     rmass     = lmp->atom->rmass;
-    hybrid    = (AtomVecHybrid *)lmp->atom->avec;
-    avec      = (AtomVecEllipsoid *)hybrid->styles[1];
+    hybrid    = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
+    avec      = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
     bonus     = avec->bonus;
     ASSERT_EQ(type[GETIDX(1)], 1);
     ASSERT_EQ(type[GETIDX(2)], 3);
@@ -4839,7 +4836,7 @@ TEST_F(AtomStyleTest, oxdna)
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
-    auto hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    auto hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_EQ(hybrid->nstyles, 3);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("bond"));
@@ -5014,7 +5011,7 @@ TEST_F(AtomStyleTest, oxdna)
 
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
     ASSERT_NE(lmp->atom->avec, nullptr);
-    hybrid = (AtomVecHybrid *)lmp->atom->avec;
+    hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
 
     ASSERT_EQ(hybrid->nstyles, 3);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("bond"));
@@ -5058,7 +5055,7 @@ TEST_F(AtomStyleTest, oxdna)
     auto ellipsoid = lmp->atom->ellipsoid;
     auto rmass     = lmp->atom->rmass;
 
-    auto avec  = (AtomVecEllipsoid *)hybrid->styles[1];
+    auto avec  = dynamic_cast<AtomVecEllipsoid *>(hybrid->styles[1]);
     auto bonus = avec->bonus;
 
     EXPECT_NEAR(x[GETIDX(1)][0], -0.33741452300167507, EPSILON);

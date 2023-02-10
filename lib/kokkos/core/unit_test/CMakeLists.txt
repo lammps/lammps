@@ -73,6 +73,7 @@ KOKKOS_INCLUDE_DIRECTORIES(${KOKKOS_SOURCE_DIR}/core/unit_test/category_files)
 
 SET(COMPILE_ONLY_SOURCES
   TestArray.cpp
+  TestCreateMirror.cpp
   TestDetectionIdiom.cpp
   TestInterOp.cpp
   TestLegionInteroperability.cpp
@@ -86,6 +87,7 @@ ENDIF()
 KOKKOS_ADD_EXECUTABLE(
   TestCompileOnly
   SOURCES
+  TestCompileMain.cpp
   ${COMPILE_ONLY_SOURCES}
 )
 

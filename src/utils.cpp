@@ -13,6 +13,7 @@
 
 #include "utils.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
@@ -381,7 +382,7 @@ double utils::numeric(const char *file, int line, const std::string &str, bool d
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+.eE") != std::string::npos) {
+  if (!is_double(buf)) {
     std::string msg("Expected floating point parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -425,7 +426,7 @@ int utils::inumeric(const char *file, int line, const std::string &str, bool do_
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+  if (!is_integer(buf)) {
     std::string msg("Expected integer parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -470,7 +471,7 @@ bigint utils::bnumeric(const char *file, int line, const std::string &str, bool 
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+  if (!is_integer(buf)) {
     std::string msg("Expected integer parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -515,7 +516,7 @@ tagint utils::tnumeric(const char *file, int line, const std::string &str, bool 
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
-  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+  if (!is_integer(buf)) {
     std::string msg("Expected integer parameter instead of '");
     msg += buf + "' in input script or data file";
     if (do_abort)
@@ -629,11 +630,79 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     std::string word(arg[iarg]);
     expandflag = 0;
 
-    // match compute, fix, or custom property array reference with a '*' wildcard
-    // number range in the first pair of square brackets
+    // match grids
 
-    if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
-        strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
+    if (strmatch(word, "^[cf]_\\w+:\\w+:\\w+\\[\\d*\\*\\d*\\]")) {
+      auto gridid = utils::parse_grid_id(FLERR, word, lmp->error);
+
+      size_t first = gridid[2].find('[');
+      size_t second = gridid[2].find(']', first + 1);
+      id = gridid[2].substr(0, first);
+      wc = gridid[2].substr(first + 1, second - first - 1);
+      tail = gridid[2].substr(second + 1);
+
+      // grids from compute
+
+      if (gridid[0][0] == 'c') {
+
+        auto compute = lmp->modify->get_compute_by_id(gridid[0].substr(2));
+        if (compute && compute->pergrid_flag) {
+
+          int dim = 0;
+          int igrid = compute->get_grid_by_name(gridid[1], dim);
+
+          if (igrid >= 0) {
+
+            int ncol = 0;
+            compute->get_griddata_by_name(igrid, id, ncol);
+            nmax = ncol;
+
+            expandflag = 1;
+          }
+        }
+        // grids from fix
+
+      } else if (gridid[0][0] == 'f') {
+
+        auto fix = lmp->modify->get_fix_by_id(gridid[0].substr(2));
+        if (fix && fix->pergrid_flag) {
+
+          int dim = 0;
+          int igrid = fix->get_grid_by_name(gridid[1], dim);
+
+          if (igrid >= 0) {
+
+            int ncol = 0;
+            fix->get_griddata_by_name(igrid, id, ncol);
+            nmax = ncol;
+
+            expandflag = 1;
+          }
+        }
+      }
+
+      // expand wild card string to nlo/nhi numbers
+
+      if (expandflag) {
+        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+
+        if (newarg + nhi - nlo + 1 > maxarg) {
+          maxarg += nhi - nlo + 1;
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+        }
+
+        for (int index = nlo; index <= nhi; index++) {
+          earg[newarg] =
+              utils::strdup(fmt::format("{}:{}:{}[{}]{}", gridid[0], gridid[1], id, index, tail));
+          newarg++;
+        }
+      }
+
+      // match compute, fix, or custom property array reference with a '*' wildcard
+      // number range in the first pair of square brackets
+
+    } else if (strmatch(word, "^[cfv]_\\w+\\[\\d*\\*\\d*\\]") ||
+               strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
 
       // split off the compute/fix/property ID, the wildcard and trailing text
 
@@ -727,30 +796,33 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
           }
         }
       }
+
+      // expansion will take place
+
+      if (expandflag) {
+
+        // expand wild card string to nlo/nhi numbers
+
+        utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
+
+        if (newarg + nhi - nlo + 1 > maxarg) {
+          maxarg += nhi - nlo + 1;
+          earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
+        }
+
+        for (int index = nlo; index <= nhi; index++) {
+          if (word[1] == '2')
+            earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
+          else
+            earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
+          newarg++;
+        }
+      }
     }
 
-    // expansion will take place
+    // no expansion: duplicate original string
 
-    if (expandflag) {
-
-      // expand wild card string to nlo/nhi numbers
-
-      utils::bounds(file, line, wc, 1, nmax, nlo, nhi, lmp->error);
-
-      if (newarg + nhi - nlo + 1 > maxarg) {
-        maxarg += nhi - nlo + 1;
-        earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
-      }
-
-      for (int index = nlo; index <= nhi; index++) {
-        if (word[1] == '2')
-          earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
-        else
-          earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
-        newarg++;
-      }
-    } else {
-      // no expansion: duplicate original string
+    if (!expandflag) {
       if (newarg == maxarg) {
         maxarg++;
         earg = (char **) lmp->memory->srealloc(earg, maxarg * sizeof(char *), "input:earg");
@@ -760,10 +832,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     }
   }
 
-  //printf("NEWARG %d\n",newarg);
-  //for (int i = 0; i < newarg; i++)
-  //  printf("  arg %d: %s\n",i,earg[i]);
-
+  // printf("NEWARG %d\n",newarg); for (int i = 0; i < newarg; i++) printf("  arg %d: %s\n",i,earg[i]);
   return newarg;
 }
 
@@ -793,6 +862,133 @@ char *utils::expand_type(const char *file, int line, const std::string &str, int
     return utils::strdup(std::to_string(type));
   } else
     return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   Check grid reference for valid Compute or Fix which produces per-grid data
+   errstr = name of calling command used if error is generated
+   ref = grid reference as it appears in an input script
+     e.g. c_myCompute:grid:data[2], ditto for a fix
+   nevery = frequency at which caller will access fix, not used if a compute
+   return arguments:
+     id = ID of compute or fix
+     igrid = index of which grid in compute/fix (0 to N-1)
+     idata = index of which data field in igrid (0 to N-1)
+     index = index into data field (0 for vector, 1-N for column of array)
+   method return = ArgInfo::COMPUTE or ArgInfo::FIX or -1 for neither
+     caller decides what to do if arg is not a COMPUTE or FIX reference
+------------------------------------------------------------------------- */
+
+int utils::check_grid_reference(char *errstr, char *ref, int nevery,
+                                char *&id, int &igrid, int &idata, int &index, LAMMPS *lmp)
+{
+  ArgInfo argi(ref, ArgInfo::COMPUTE | ArgInfo::FIX);
+  index = argi.get_index1();
+  auto name = argi.get_name();
+
+  switch (argi.get_type()) {
+
+    case ArgInfo::UNKNOWN: {
+      lmp->error->all(FLERR,"%s grid reference %s is invalid",errstr,ref);
+    } break;
+
+    // compute value = c_ID
+
+    case ArgInfo::COMPUTE: {
+
+      // split name = idcompute:gname:dname into 3 strings
+
+      auto words = parse_grid_id(FLERR,name,lmp->error);
+      const auto &idcompute = words[0];
+      const auto &gname = words[1];
+      const auto &dname = words[2];
+
+      auto icompute = lmp->modify->get_compute_by_id(idcompute);
+      if (!icompute) lmp->error->all(FLERR,"{} compute ID {} not found",errstr,idcompute);
+      if (icompute->pergrid_flag == 0)
+        lmp->error->all(FLERR,"{} compute {} does not compute per-grid info",errstr,idcompute);
+
+      int dim;
+      igrid = icompute->get_grid_by_name(gname,dim);
+      if (igrid < 0)
+        lmp->error->all(FLERR,"{} compute {} does not recognize grid name {}",errstr,idcompute,gname);
+
+      int ncol;
+      idata = icompute->get_griddata_by_name(igrid,dname,ncol);
+      if (idata < 0)
+        lmp->error->all(FLERR,"{} compute {} does not recognize data name {}",errstr,idcompute,dname);
+
+      if (argi.get_dim() == 0 && ncol)
+        lmp->error->all(FLERR,"{} compute {} data {} is not per-grid vector",errstr,idcompute,dname);
+      if (argi.get_dim() && ncol == 0)
+        lmp->error->all(FLERR,"{} compute {} data {} is not per-grid array",errstr,idcompute,dname);
+      if (argi.get_dim() && argi.get_index1() > ncol)
+        lmp->error->all(FLERR,"{} compute {} array {} is accessed out-of-range",errstr,idcompute,dname);
+
+      id = utils::strdup(idcompute);
+      return ArgInfo::COMPUTE;
+    } break;
+
+    // fix value = f_ID
+
+    case ArgInfo::FIX: {
+
+      // split name = idfix:gname:dname into 3 strings
+
+      auto words = parse_grid_id(FLERR,name,lmp->error);
+      const auto &idfix = words[0];
+      const auto &gname = words[1];
+      const auto &dname = words[2];
+
+      auto ifix = lmp->modify->get_fix_by_id(idfix);
+      if (!ifix) lmp->error->all(FLERR,"{} fix ID {} not found",errstr,idfix);
+      if (ifix->pergrid_flag == 0)
+        lmp->error->all(FLERR,"{} fix {} does not compute per-grid info",errstr,idfix);
+      if (nevery % ifix->pergrid_freq)
+        lmp->error->all(FLERR,"{} fix {} not computed at compatible time",errstr,idfix);
+
+      int dim;
+      igrid = ifix->get_grid_by_name(gname,dim);
+      if (igrid < 0)
+        lmp->error->all(FLERR,"{} fix {} does not recognize grid name {}",errstr,idfix,gname);
+
+      int ncol;
+      idata = ifix->get_griddata_by_name(igrid,dname,ncol);
+      if (idata < 0)
+        lmp->error->all(FLERR,"{} fix {} does not recognize data name {}",errstr,idfix,dname);
+
+      if (argi.get_dim() == 0 && ncol)
+        lmp->error->all(FLERR,"{} fix {} data {} is not per-grid vector",errstr,idfix,dname);
+      if (argi.get_dim() > 0 && ncol == 0)
+        lmp->error->all(FLERR,"{} fix {} data {} is not per-grid array",errstr,idfix,dname);
+      if (argi.get_dim() > 0 && argi.get_index1() > ncol)
+        lmp->error->all(FLERR,"{} fix {} array {} is accessed out-of-range",errstr,idfix,dname);
+
+      id = utils::strdup(idfix);
+      return ArgInfo::FIX;
+    } break;
+  }
+
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   Parse grid reference into id:gridname:dataname
+   return vector of 3 substrings
+------------------------------------------------------------------------- */
+
+std::vector<std::string> utils::parse_grid_id(const char *file, int line, const std::string &name,
+                                              Error *error)
+{
+  auto words = Tokenizer(name, ":").as_vector();
+  if (words.size() != 3) {
+    if (error)
+      error->all(file, line, "Grid ID {} must be 3 strings separated by 2 ':'characters", name);
+    else
+      return {"", "", ""};
+  }
+
+  return words;
 }
 
 /* ----------------------------------------------------------------------
@@ -864,6 +1060,29 @@ std::string utils::star_subst(const std::string &name, bigint step, int pad)
   if (star == std::string::npos) return name;
 
   return fmt::format("{}{:0{}}{}", name.substr(0, star), step, pad, name.substr(star + 1));
+}
+
+/* ----------------------------------------------------------------------
+   Remove accelerator style suffix from string
+------------------------------------------------------------------------- */
+std::string utils::strip_style_suffix(const std::string &style, LAMMPS *lmp)
+{
+  std::string newstyle = style;
+  if (lmp->suffix_enable) {
+    if (lmp->suffix) {
+      if (utils::strmatch(style, fmt::format("/{}$", lmp->suffix))) {
+        newstyle.resize(style.size() - strlen(lmp->suffix) - 1);
+        return newstyle;
+      }
+    }
+    if (lmp->suffix2) {
+      if (utils::strmatch(style, fmt::format("/{}$", lmp->suffix2))) {
+        newstyle.resize(style.size() - strlen(lmp->suffix2) - 1);
+        return newstyle;
+      }
+    }
+  }
+  return newstyle;
 }
 
 /* ----------------------------------------------------------------------
@@ -1116,6 +1335,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
 /* ----------------------------------------------------------------------
    Convert multi-line string into lines
 ------------------------------------------------------------------------- */
+
 std::vector<std::string> utils::split_lines(const std::string &text)
 {
   return Tokenizer(text, "\r\n").as_vector();
@@ -1129,11 +1349,7 @@ bool utils::is_integer(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (const auto &c : str) {
-    if (isdigit(c) || c == '-' || c == '+') continue;
-    return false;
-  }
-  return true;
+  return strmatch(str, "^[+-]?\\d+$");
 }
 
 /* ----------------------------------------------------------------------
@@ -1144,13 +1360,8 @@ bool utils::is_double(const std::string &str)
 {
   if (str.empty()) return false;
 
-  for (const auto &c : str) {
-    if (isdigit(c)) continue;
-    if (c == '-' || c == '+' || c == '.') continue;
-    if (c == 'e' || c == 'E') continue;
-    return false;
-  }
-  return true;
+  return strmatch(str, "^[+-]?\\d+\\.?\\d*$") || strmatch(str, "^[+-]?\\d+\\.?\\d*[eE][+-]?\\d+$") ||
+      strmatch(str, "^[+-]?\\d*\\.?\\d+$") || strmatch(str, "^[+-]?\\d*\\.?\\d+[eE][+-]?\\d+$");
 }
 
 /* ----------------------------------------------------------------------
@@ -1263,6 +1474,7 @@ std::string utils::get_potential_units(const std::string &path, const std::strin
 /* ----------------------------------------------------------------------
    return bitmask of supported conversions for a given property
 ------------------------------------------------------------------------- */
+
 int utils::get_supported_conversions(const int property)
 {
   if (property == ENERGY)
@@ -1436,7 +1648,7 @@ int utils::binary_search(const double needle, const int n, const double *haystac
   if (needle < haystack[lo]) return lo;
   if (needle >= haystack[hi]) return hi;
 
-  // insure haystack[lo] <= needle < haystack[hi] at every iteration
+  // ensure haystack[lo] <= needle < haystack[hi] at every iteration
   // done when lo,hi are adjacent
 
   int index = (lo + hi) / 2;

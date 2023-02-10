@@ -192,7 +192,7 @@ void NBinStandard::setup_bins(int style)
     mbinzhi = static_cast<int> ((coord-bboxlo[2])*bininvz);
   }
 
-  // extend bins by 1 to insure stencil extent is included
+  // extend bins by 1 to ensure stencil extent is included
   // for 2d, only 1 bin in z
 
   mbinxlo = mbinxlo - 1;

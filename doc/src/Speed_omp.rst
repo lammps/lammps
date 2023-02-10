@@ -12,7 +12,7 @@ Required hardware/software
 """"""""""""""""""""""""""
 
 To enable multi-threading, your compiler must support the OpenMP interface.
-You should have one or more multi-core CPUs, as multiple threads can only be
+You should have one or more multicore CPUs, as multiple threads can only be
 launched by each MPI task on the local node (using shared memory).
 
 Building LAMMPS with the OPENMP package
@@ -93,7 +93,7 @@ With multiple threads/task, the optimal choice of number of MPI
 tasks/node and OpenMP threads/task can vary a lot and should always be
 tested via benchmark runs for a specific simulation running on a
 specific machine, paying attention to guidelines discussed in the next
-sub-section.
+subsection.
 
 A description of the multi-threading strategy used in the OPENMP
 package and some performance examples are
@@ -157,7 +157,7 @@ Additional performance tips are as follows:
   affinity setting that restricts each MPI task to a single CPU core.
   Using multi-threading in this mode will force all threads to share the
   one core and thus is likely to be counterproductive.  Instead, binding
-  MPI tasks to a (multi-core) socket, should solve this issue.
+  MPI tasks to a (multicore) socket, should solve this issue.
 
 Restrictions
 """"""""""""

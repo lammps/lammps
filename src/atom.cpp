@@ -186,12 +186,6 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
   cc = cc_flux = nullptr;
   edpd_temp = edpd_flux = edpd_cv = nullptr;
 
-  // MESONT package
-
-  length = nullptr;
-  buckling = nullptr;
-  bond_nt = nullptr;
-
   // MACHDYN package
 
   contact_radius = nullptr;
@@ -214,7 +208,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
 
   // DIELECTRIC package
 
-  area = ed = em = epsilon = curvature = q_unscaled = nullptr;
+  area = ed = em = epsilon = curvature = q_scaled = nullptr;
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -527,12 +521,6 @@ void Atom::peratom_create()
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
 
-  // MESONT package
-
-  add_peratom("length",&length,DOUBLE,0);
-  add_peratom("buckling",&buckling,INT,0);
-  add_peratom("bond_nt",&bond_nt,tagintsize,2);
-
   // SPH package
 
   add_peratom("rho",&rho,DOUBLE,0);
@@ -563,7 +551,7 @@ void Atom::peratom_create()
   add_peratom("em",&em,DOUBLE,0);
   add_peratom("epsilon",&epsilon,DOUBLE,0);
   add_peratom("curvature",&curvature,DOUBLE,0);
-  add_peratom("q_unscaled",&q_unscaled,DOUBLE,0);
+  add_peratom("q_scaled",&q_scaled,DOUBLE,0);
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -1077,7 +1065,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   *next = '\n';
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
-  // insures all data atoms will be owned even with round-off
+  // ensures all data atoms will be owned even with round-off
 
   int triclinic = domain->triclinic;
 
@@ -2213,7 +2201,7 @@ void Atom::add_label_map()
 
 void Atom::first_reorder()
 {
-  // insure there is one extra atom location at end of arrays for swaps
+  // ensure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 
@@ -2264,7 +2252,7 @@ void Atom::sort()
     memory->create(permute,maxnext,"atom:permute");
   }
 
-  // insure there is one extra atom location at end of arrays for swaps
+  // ensure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 
@@ -2356,6 +2344,18 @@ void Atom::setup_sort_bins()
       error->warning(FLERR,"No pairwise cutoff or binsize set. Atom sorting therefore disabled.");
     return;
   }
+
+#ifdef LMP_GPU
+  if (userbinsize == 0.0) {
+    auto ifix = dynamic_cast<FixGPU *>(modify->get_fix_by_id("package_gpu"));
+    if (ifix) {
+      const double subx = domain->subhi[0] - domain->sublo[0];
+      const double suby = domain->subhi[1] - domain->sublo[1];
+      const double subz = domain->subhi[2] - domain->sublo[2];
+      binsize = ifix->binsize(subx, suby, subz, atom->nlocal, 0.5 * neighbor->cutneighmax);
+    }
+  }
+#endif
 
   double bininv = 1.0/binsize;
 
@@ -2919,12 +2919,6 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"cv") == 0) return (void *) cv;
   if (strcmp(name,"vest") == 0) return (void *) vest;
 
-  // MESONT package
-
-  if (strcmp(name,"length") == 0) return (void *) length;
-  if (strcmp(name,"buckling") == 0) return (void *) buckling;
-  if (strcmp(name,"bond_nt") == 0) return (void *) bond_nt;
-
   // MACHDYN package
 
   if (strcmp(name, "contact_radius") == 0) return (void *) contact_radius;
@@ -2951,7 +2945,7 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"em") == 0) return (void *) em;
   if (strcmp(name,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(name,"curvature") == 0) return (void *) curvature;
-  if (strcmp(name,"q_unscaled") == 0) return (void *) q_unscaled;
+  if (strcmp(name,"q_scaled") == 0) return (void *) q_scaled;
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -3042,12 +3036,6 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"desph") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"cv") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"vest") == 0) return LAMMPS_DOUBLE_2D;
-
-  // MESONT package
-
-  if (strcmp(name,"length") == 0) return LAMMPS_DOUBLE;
-  if (strcmp(name,"buckling") == 0) return LAMMPS_INT;
-  if (strcmp(name,"bond_nt") == 0) return  LAMMPS_TAGINT_2D;
 
   // MACHDYN package
 

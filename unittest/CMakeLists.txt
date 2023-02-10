@@ -34,6 +34,14 @@ foreach(_FLAG ${CMAKE_TUNE_FLAGS})
   add_compile_options(${_FLAG})
 endforeach()
 
+# must repeat handling coverage for older CMake
+if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND ENABLE_COVERAGE)
+  if(CMAKE_VERSION VERSION_LESS 3.13)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_${CMAKE_BUILD_TYPE}_FLAGS} --coverage")
+  endif()
+endif()
 
 ########################################
 # General tests using the LAMMPS executable itself

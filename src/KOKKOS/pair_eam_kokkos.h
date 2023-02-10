@@ -138,9 +138,8 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typename AT::t_efloat_1d d_eatom;
   typename AT::t_virial_array d_vatom;
 
-  int need_dup;
-  int inum;
-  
+  int need_dup,inum;
+
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
   template<typename DataType, typename Layout>

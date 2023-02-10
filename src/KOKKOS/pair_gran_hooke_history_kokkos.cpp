@@ -292,7 +292,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   const LMP_FLOAT imass = rmass[i];
   const LMP_FLOAT irad = radius[i];
   const int jnum = d_numneigh[i];
-  const int mask_i = mask[i]; 
+  const int mask_i = mask[i];
 
   const V_FLOAT vx_i = v(i,0);
   const V_FLOAT vy_i = v(i,1);

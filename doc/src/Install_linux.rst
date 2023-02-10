@@ -3,6 +3,7 @@ Download an executable for Linux
 
 Binaries are available for different versions of Linux:
 
+- :ref:`Pre-built static Linux x86_64 executables <static>`
 - :ref:`Pre-built Ubuntu and Debian Linux executables <ubuntu>`
 - :ref:`Pre-built Fedora Linux executables <fedora>`
 - :ref:`Pre-built EPEL Linux executables (RHEL, CentOS) <epel>`
@@ -18,6 +19,33 @@ Binaries are available for different versions of Linux:
    packages and when they update them.  They may only provide packages
    for stable release versions and not always update the packages in a
    timely fashion after a new LAMMPS release is made.
+
+----------
+
+.. _static:
+
+Pre-built static Linux x86_64 executables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Pre-built LAMMPS executables for Linux, that are statically linked and
+compiled for 64-bit x86 CPUs (x86_64 or AMD64) are available for download
+at `https://download.lammps.org/static/ <https://download.lammps.org/static/>`_.
+Because of that static linkage (and unlike the Linux distribution specific
+packages listed below), they do not depend on any installed software and
+thus should run on *any* 64-bit x86 machine with *any* Linux version.
+
+These executable include most of the available packages and multi-thread
+parallelization (via INTEL, KOKKOS, or OPENMP package).  They are **not**
+compatible with MPI.  Several of the LAMMPS tools executables (e.g. ``msi2lmp``)
+and the ``lammps-shell`` program are included as well.  Because of the
+static linkage, there is no ``liblammps.so`` library file and thus also the
+LAMMPS python module, which depends on it, is not included.
+
+The compressed tar archives available for download have names following
+the pattern `lammps-linux-x86_64-<version>.tar.gz` and will all unpack
+into a ``lammps-static`` folder.  The executables are then in the
+``lammps-static/bin/`` folder.  Since they do not depend on any other
+software, they may be freely moved or copied around.
 
 ----------
 
@@ -232,7 +260,7 @@ There are three scripts available, named `lammps
 <https://aur.archlinux.org/packages/lammps>`_, `lammps-beta
 <https://aur.archlinux.org/packages/lammps>`_ and `lammps-git
 <https://aur.archlinux.org/packages/lammps>`_.  They respectively
-package the stable, patch and git releases.
+package the stable, feature, and git releases.
 
 To install, you will need to have the git package installed. You may use
 any of the above names in-place of lammps.

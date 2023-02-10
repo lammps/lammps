@@ -10,15 +10,15 @@ of the `LAMMPS website <lws_>`_.
 .. _lws: https://www.lammps.org
 
 You have two choices of tarballs, either the most recent stable release
-or the most current patch or feature release.  Stable releases occur a
-few times per year, and undergo more testing before release.  Feature
-releases occur every 4 to 8 weeks.  The new contents in all feature
-releases are listed on the `bug and feature page <bug_>`_ of the LAMMPS
-homepage.
+or the most recent feature release.  Stable releases occur a few times
+per year, and undergo more testing before release.  Also, between stable
+releases bug fixes from the feature releases are back-ported and the
+tarball occasionally updated.  Feature releases occur every 4 to 8
+weeks.  The new contents in all feature releases are listed on the `bug
+and feature page <bug_>`_ of the LAMMPS homepage.
 
 Both tarballs include LAMMPS documentation (HTML and PDF files)
-corresponding to that version.  The download page also has an option
-to download the current-version LAMMPS documentation by itself.
+corresponding to that version.
 
 Tarballs of older LAMMPS versions can also be downloaded from `this page
 <older_>`_.
@@ -44,7 +44,8 @@ with the following command, to create a lammps-<version> directory:
 
    unzip lammps*.zip
 
-This version corresponds to the selected LAMMPS patch or stable release.
+This version corresponds to the selected LAMMPS feature or stable
+release.
 
 .. _git: https://github.com/lammps/lammps/releases
 

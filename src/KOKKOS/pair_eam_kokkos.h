@@ -55,9 +55,6 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
-  template<class tag>
-  auto policyInstance(int inum);
-  
   PairEAMKokkos(class LAMMPS *);
   ~PairEAMKokkos() override;
   void compute(int, int) override;
@@ -182,6 +179,9 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   void interpolate(int, double, double *, t_host_ffloat_2d_n7, int);
   void file2array() override;
   void array2spline() override;
+
+  template<class tag>
+  auto policyInstance(int inum);
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;

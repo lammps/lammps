@@ -36,24 +36,6 @@ using namespace LAMMPS_NS;
 #define MAX_CACHE_ROWS 500
 
 /* ---------------------------------------------------------------------- */
-template<class DeviceType>
-template<class tag>
-auto PairEAMKokkos<DeviceType>::policyInstance(int inum){
-  #ifdef KOKKOS_ENABLE_HIP
-    static_assert(t_ffloat_2d_n7::static_extent(2) == 7,
-		  "Breaking assumption of spline dim for KernelAB and KernelC scratch caching");
-
-    auto policy = Kokkos::TeamPolicy<DeviceType,tag>((inum+1023)/1024, 1024)
-	                   .set_scratch_size(0,
-			        Kokkos::PerTeam(MAX_CACHE_ROWS*t_ffloat_2d_n7::static_extent(2)*sizeof(double)));
-    return policy;
-  #else
-    auto policy = Kokkos::RangePolicy<DeviceType, tag>(0,inum);
-    return policy;
-  #endif
-}
-
-/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 PairEAMKokkos<DeviceType>::PairEAMKokkos(LAMMPS *lmp) : PairEAM(lmp)
@@ -864,15 +846,15 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
   Kokkos::View<double*[t_ffloat_2d_n7::static_extent(2)], typename DeviceType::scratch_memory_space,
 	       Kokkos::MemoryTraits<Kokkos::Unmanaged>> A(team_member.team_scratch(0), MAX_CACHE_ROWS);
 
-  if(d_rhor_spline_cached){
-    for(int i = team_member.team_rank(); i < m_max*j_max; i+= team_member.team_size()){
+  if (d_rhor_spline_cached) {
+    for(int i = team_member.team_rank(); i < m_max*j_max; i+= team_member.team_size()) {
       int j = i%j_max;
       int m = i/j_max;
       A(m,j) = d_rhor_spline(0,m,j);
     }
     team_member.team_barrier();
   }
-  if (ii < inum){
+  if (ii < inum) {
     const int i = d_ilist[ii];
     const X_FLOAT xtmp = x(i,0);
     const X_FLOAT ytmp = x(i,1);
@@ -900,7 +882,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
         p -= m;
         p = MIN(p,1.0);
         const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-        if(d_type2rhor_ji == 0 && d_rhor_spline_cached == 1) {
+        if (d_type2rhor_ji == 0 && d_rhor_spline_cached == 1) {
           rhotmp += ((A(m,3)*p + A(m,4))*p +
   	             A(m,5))*p + A(m,6);
         } else
@@ -952,8 +934,9 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
 		                           const typename Kokkos::TeamPolicy<DeviceType>::member_type& team_member,
                                            EV_FLOAT& ev) const {
 
-  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
   int ii = team_member.league_rank()*team_member.team_size() + team_member.team_rank();
+
+  // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -964,15 +947,15 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
   Kokkos::View<double*[t_ffloat_2d_n7::static_extent(2)], typename DeviceType::scratch_memory_space,
 	       Kokkos::MemoryTraits<Kokkos::Unmanaged>> A(team_member.team_scratch(0), MAX_CACHE_ROWS);
 
-  if(d_z2r_spline_cached){
-    for(int i = team_member.team_rank(); i < m_max*j_max; i+= team_member.team_size()){
+  if (d_z2r_spline_cached) {
+    for(int i = team_member.team_rank(); i < m_max*j_max; i+= team_member.team_size()) {
       int j = i%j_max;
       int m = i/j_max;
       A(m,j) = d_z2r_spline(0,m,j);
     }
     team_member.team_barrier();
   }
-  if (ii < inum){
+  if (ii < inum) {
     const int i = d_ilist[ii];
     const X_FLOAT xtmp = x(i,0);
     const X_FLOAT ytmp = x(i,1);
@@ -1171,6 +1154,32 @@ void PairEAMKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<class tag>
+auto PairEAMKokkos<DeviceType>::policyInstance(int inum) {
+  #ifdef KOKKOS_ENABLE_HIP
+    if (execution_space != Host) {
+    static_assert(t_ffloat_2d_n7::static_extent(2) == 7,
+		  "Breaking assumption of spline dim for KernelAB and KernelC scratch caching");
+
+    auto policy = Kokkos::TeamPolicy<DeviceType,tag>((inum+1023)/1024, 1024)
+	                   .set_scratch_size(0,
+			        Kokkos::PerTeam(MAX_CACHE_ROWS*t_ffloat_2d_n7::static_extent(2)*sizeof(double)));
+    return policy;
+    } else {
+      auto policy = Kokkos::RangePolicy<DeviceType, tag>(0,inum);
+      return policy;
+    }
+  #else
+    auto policy = Kokkos::RangePolicy<DeviceType, tag>(0,inum);
+    return policy;
+  #endif
+}
+
+/* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class PairEAMKokkos<LMPDeviceType>;

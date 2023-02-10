@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,19 +17,16 @@
 
 #include "pair_gauss.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
-
-#define EPSILON 1.0e-10
 
 /* ---------------------------------------------------------------------- */
 
@@ -45,7 +41,7 @@ PairGauss::PairGauss(LAMMPS *lmp) : Pair(lmp)
 
 PairGauss::~PairGauss()
 {
-  delete [] pvector;
+  delete[] pvector;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -62,19 +58,19 @@ PairGauss::~PairGauss()
 
 void PairGauss::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, rsq, delx, dely, delz, evdwl, fpair, factor_lj;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
   int occ = 0;
 
   double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
   int nlocal = atom->nlocal;
+  double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -95,38 +91,39 @@ void PairGauss::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       // define a Gaussian well to be occupied if
       // the site it interacts with is within the force maximum
 
-      if (eflag_global && rsq < 0.5/b[itype][jtype]) occ++;
+      if (eflag_global && rsq < 0.5 / b[itype][jtype]) occ++;
 
       if (rsq < cutsq[itype][jtype]) {
-        fpair = -2.0*a[itype][jtype]*b[itype][jtype] *
-          exp(-b[itype][jtype]*rsq);
+        fpair = -2.0 * a[itype][jtype] * b[itype][jtype] * exp(-b[itype][jtype] * rsq);
+        fpair *= factor_lj;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        f[i][0] += delx * fpair;
+        f[i][1] += dely * fpair;
+        f[i][2] += delz * fpair;
         if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
+          f[j][0] -= delx * fpair;
+          f[j][1] -= dely * fpair;
+          f[j][2] -= delz * fpair;
         }
 
-        if (eflag)
-          evdwl = -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) -
-                    offset[itype][jtype]);
+        if (eflag) {
+          evdwl = -(a[itype][jtype] * exp(-b[itype][jtype] * rsq) - offset[itype][jtype]);
+          evdwl *= factor_lj;
+        }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
       }
     }
   }
@@ -142,19 +139,18 @@ void PairGauss::compute(int eflag, int vflag)
 void PairGauss::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = 1; j <= n; j++)
-      setflag[i][j] = 0;
+  memory->create(setflag, np1, np1, "pair:setflag");
+  for (int i = 1; i < np1; i++)
+    for (int j = 1; j < np1; j++) setflag[i][j] = 0;
 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
 
-  memory->create(cut,n+1,n+1,"pair:cut_gauss");
-  memory->create(a,n+1,n+1,"pair:a");
-  memory->create(b,n+1,n+1,"pair:b");
-  memory->create(offset,n+1,n+1,"pair:offset");
+  memory->create(cut, np1, np1, "pair:cut_gauss");
+  memory->create(a, np1, np1, "pair:a");
+  memory->create(b, np1, np1, "pair:b");
+  memory->create(offset, np1, np1, "pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -163,14 +159,14 @@ void PairGauss::allocate()
 
 void PairGauss::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 1) error->all(FLERR, "Illegal pair_style command");
 
-  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
-    int i,j;
+    int i, j;
     for (i = 1; i <= atom->ntypes; i++)
       for (j = i; j <= atom->ntypes; j++)
         if (setflag[i][j]) cut[i][j] = cut_global;
@@ -183,23 +179,22 @@ void PairGauss::settings(int narg, char **arg)
 
 void PairGauss::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
-  int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  int ilo, ihi, jlo, jhi;
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double a_one = utils::numeric(FLERR,arg[2],false,lmp);
-  double b_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double a_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double b_one = utils::numeric(FLERR, arg[3], false, lmp);
 
   double cut_one = cut_global;
-  if (narg == 5) cut_one = utils::numeric(FLERR,arg[4],false,lmp);
+  if (narg == 5) cut_one = utils::numeric(FLERR, arg[4], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo,i); j<=jhi; j++) {
+    for (int j = MAX(jlo, i); j <= jhi; j++) {
       a[i][j] = a_one;
       b[i][j] = b_one;
       cut[i][j] = cut_one;
@@ -208,7 +203,7 @@ void PairGauss::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -220,10 +215,10 @@ double PairGauss::init_one(int i, int j)
   if (setflag[i][j] == 0) {
     double sign_bi = (b[i][i] >= 0.0) ? 1.0 : -1.0;
     double sign_bj = (b[j][j] >= 0.0) ? 1.0 : -1.0;
-    double si = sqrt(0.5/fabs(b[i][i]));
-    double sj = sqrt(0.5/fabs(b[j][j]));
+    double si = sqrt(0.5 / fabs(b[i][i]));
+    double sj = sqrt(0.5 / fabs(b[j][j]));
     double sij = mix_distance(si, sj);
-    b[i][j] = 0.5 / (sij*sij);
+    b[i][j] = 0.5 / (sij * sij);
     b[i][j] *= MAX(sign_bi, sign_bj);
 
     // Negative "a" values are useful for simulating repulsive particles.
@@ -234,12 +229,14 @@ double PairGauss::init_one(int i, int j)
     a[i][j] = mix_energy(fabs(a[i][i]), fabs(a[j][j]), si, sj);
     a[i][j] *= MIN(sign_ai, sign_aj);
 
-    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+    cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
   }
 
   // cutoff correction to energy
-  if (offset_flag) offset[i][j] = a[i][j]*exp(-b[i][j]*cut[i][j]*cut[i][j]);
-  else offset[i][j] = 0.0;
+  if (offset_flag)
+    offset[i][j] = a[i][j] * exp(-b[i][j] * cut[i][j] * cut[i][j]);
+  else
+    offset[i][j] = 0.0;
 
   a[j][i] = a[i][j];
   b[j][i] = b[i][j];
@@ -256,14 +253,14 @@ void PairGauss::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
-  int i,j;
+  int i, j;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      fwrite(&setflag[i][j],sizeof(int),1,fp);
+      fwrite(&setflag[i][j], sizeof(int), 1, fp);
       if (setflag[i][j]) {
-        fwrite(&a[i][j],sizeof(double),1,fp);
-        fwrite(&b[i][j],sizeof(double),1,fp);
-        fwrite(&cut[i][j],sizeof(double),1,fp);
+        fwrite(&a[i][j], sizeof(double), 1, fp);
+        fwrite(&b[i][j], sizeof(double), 1, fp);
+        fwrite(&cut[i][j], sizeof(double), 1, fp);
       }
     }
 }
@@ -277,21 +274,21 @@ void PairGauss::read_restart(FILE *fp)
   read_restart_settings(fp);
   allocate();
 
-  int i,j;
+  int i, j;
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
-      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
+      if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
+      MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&a[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&b[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR, &a[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &b[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
         }
-        MPI_Bcast(&a[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&b[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&a[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&b[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&cut[i][j], 1, MPI_DOUBLE, 0, world);
       }
     }
 }
@@ -302,9 +299,9 @@ void PairGauss::read_restart(FILE *fp)
 
 void PairGauss::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_global,sizeof(double),1,fp);
-  fwrite(&offset_flag,sizeof(int),1,fp);
-  fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&cut_global, sizeof(double), 1, fp);
+  fwrite(&offset_flag, sizeof(int), 1, fp);
+  fwrite(&mix_flag, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -314,13 +311,13 @@ void PairGauss::write_restart_settings(FILE *fp)
 void PairGauss::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
   }
-  MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
-  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -329,8 +326,7 @@ void PairGauss::read_restart_settings(FILE *fp)
 
 void PairGauss::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g\n",i,a[i][i],b[i][i]);
+  for (int i = 1; i <= atom->ntypes; i++) fprintf(fp, "%d %g %g\n", i, a[i][i], b[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -341,18 +337,18 @@ void PairGauss::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g\n",i,j,a[i][j],b[i][j],cut[i][j]);
+      fprintf(fp, "%d %d %g %g %g\n", i, j, a[i][j], b[i][j], cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
 
 double PairGauss::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
-                         double /*factor_coul*/, double /*factor_lj*/,
-                         double &fforce)
+                         double /*factor_coul*/, double factor_lj, double &fforce)
 {
-  double philj =
-    -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) - offset[itype][jtype]);
-  fforce = -2.0*a[itype][jtype]*b[itype][jtype] * exp(-b[itype][jtype]*rsq);
+  double philj = -(a[itype][jtype] * exp(-b[itype][jtype] * rsq) - offset[itype][jtype]);
+  philj *= factor_lj;
+  fforce = -2.0 * a[itype][jtype] * b[itype][jtype] * exp(-b[itype][jtype] * rsq);
+  fforce *= factor_lj;
   return philj;
 }
 
@@ -361,6 +357,6 @@ double PairGauss::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
 void *PairGauss::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"a") == 0) return (void *) a;
+  if (strcmp(str, "a") == 0) return (void *) a;
   return nullptr;
 }

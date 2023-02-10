@@ -1,32 +1,51 @@
-The ``LIBLAMMPS`` Fortran Module
-********************************
+The :f:mod:`LIBLAMMPS` Fortran Module
+*************************************
 
-The ``LIBLAMMPS`` module provides an interface to call LAMMPS from a
-Fortran code.  It is based on the LAMMPS C-library interface and
-requires a Fortran 2003 compatible compiler to be compiled.
+The :f:mod:`LIBLAMMPS` module provides an interface to call LAMMPS from
+Fortran.  It is based on the LAMMPS C library interface and requires a
+fully Fortran 2003-compatible compiler to be compiled.  It is designed
+to be self-contained and not require any support functions written in C,
+C++, or Fortran other than those in the C library interface and the
+LAMMPS Fortran module itself.
 
 While C libraries have a defined binary interface (ABI) and can thus be
-used from multiple compiler versions from different vendors for as long
-as they are compatible with the hosting operating system, the same is
-not true for Fortran codes.  Thus the LAMMPS Fortran module needs to be
+used from multiple compiler versions from different vendors as long as
+they are compatible with the hosting operating system, the same is not
+true for Fortran programs.  Thus, the LAMMPS Fortran module needs to be
 compiled alongside the code using it from the source code in
-``fortran/lammps.f90``.  When linking, you also need to
-:doc:`link to the LAMMPS library <Build_link>`.  A typical command line
-for a simple program using the Fortran interface would be:
+``fortran/lammps.f90`` *and* with the same compiler used to build the
+rest of the Fortran code that interfaces to LAMMPS.  When linking, you
+also need to :doc:`link to the LAMMPS library <Build_link>`.  A typical
+command line for a simple program using the Fortran interface would be:
 
 .. code-block:: bash
 
-   mpifort -o testlib.x  lammps.f90 testlib.f90 -L. -llammps
+   mpifort -o testlib.x lammps.f90 testlib.f90 -L. -llammps
 
-Please note, that the MPI compiler wrapper is only required when the
-calling the library from an MPI parallel code.  Please also note the
-order of the source files: the ``lammps.f90`` file needs to be compiled
-first, since it provides the ``LIBLAMMPS`` module that is imported by
-the Fortran code using the interface.  A working example code can be
-found together with equivalent examples in C and C++ in the
-``examples/COUPLE/simple`` folder of the LAMMPS distribution.
+Please note that the MPI compiler wrapper is only required when the
+calling the library *from* an MPI-parallelized program.  Otherwise,
+using the plain Fortran compiler (gfortran, ifort, flang, etc.) will
+suffice, since there are no direct references to MPI library features,
+definitions and subroutine calls; MPI communicators are referred to by
+their integer index representation as required by the Fortran MPI
+interface.  It may be necessary to link to additional libraries,
+depending on how LAMMPS was configured and whether the LAMMPS library
+:doc:`was compiled as a static or dynamic library <Build_link>`.
 
-.. versionadded:: 9Oct2020
+If the LAMMPS library itself has been compiled with MPI support, the
+resulting executable will be able to run LAMMPS in parallel with
+``mpirun``, ``mpiexec``, or equivalent.  This may be either on the
+"world" communicator or a sub-communicator created by the calling
+Fortran code.  If, on the other hand, the LAMMPS library has been
+compiled **without** MPI support, each LAMMPS instance will run
+independently using just one processor.
+
+Please also note that the order of the source files matters: the
+``lammps.f90`` file needs to be compiled first, since it provides the
+:f:mod:`LIBLAMMPS` module that would need to be imported by the calling
+Fortran code in order to uses the Fortran interface.
+A working example can be found together with equivalent examples in C and
+C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
 
 .. admonition:: Work in Progress
    :class: note
@@ -49,61 +68,96 @@ found together with equivalent examples in C and C++ in the
 Creating or deleting a LAMMPS object
 ************************************
 
-With the Fortran interface the creation of a :cpp:class:`LAMMPS
+With the Fortran interface, the creation of a :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` instance is included in the constructor for
 creating the :f:func:`lammps` derived type.  To import the definition of
-that type and its type bound procedures you need to add a ``USE
-LIBLAMMPS`` statement.  Internally it will call either
+that type and its type-bound procedures, you need to add a ``USE LIBLAMMPS``
+statement.  Internally, it will call either
 :cpp:func:`lammps_open_fortran` or :cpp:func:`lammps_open_no_mpi` from
 the C library API to create the class instance.  All arguments are
-optional and :cpp:func:`lammps_mpi_init` will be called automatically,
-if it is needed.  Similarly, a possible call to :cpp:func:`lammps_finalize`
-is integrated into the :f:func:`close` function and triggered with
-the optional logical argument set to ``.true.``. Here is a simple example:
+optional and :cpp:func:`lammps_mpi_init` will be called automatically
+if it is needed.  Similarly, a possible call to
+:cpp:func:`lammps_mpi_finalize` is integrated into the :f:func:`close`
+function and triggered with the optional logical argument set to
+``.TRUE.``. Here is a simple example:
 
 .. code-block:: fortran
 
    PROGRAM testlib
      USE LIBLAMMPS                 ! include the LAMMPS library interface
-     TYPE(lammps)     :: lmp       ! derived type to hold LAMMPS instance
-     CHARACTER(len=*), DIMENSION(*), PARAMETER :: args = &
-         [ CHARACTER(len=12) :: 'liblammps', '-log', 'none' ]
+     IMPLICIT NONE
+     TYPE(lammps) :: lmp           ! derived type to hold LAMMPS instance
+     CHARACTER(LEN=12), PARAMETER :: args(3) = &
+         [ CHARACTER(LEN=12) :: 'liblammps', '-log', 'none' ]
 
      ! create a LAMMPS instance (and initialize MPI)
      lmp = lammps(args)
      ! get and print numerical version code
      PRINT*, 'LAMMPS Version: ', lmp%version()
-     ! delete LAMMPS instance (and shuts down MPI)
-     CALL lmp%close(.true.)
-
+     ! delete LAMMPS instance (and shutdown MPI)
+     CALL lmp%close(.TRUE.)
    END PROGRAM testlib
+
+It is also possible to pass command line flags from Fortran to C/C++ and
+thus make the resulting executable behave similarly to the standalone
+executable (it will ignore the `-in/-i` flag, though).  This allows
+using the command line to configure accelerator and suffix settings,
+configure screen and logfile output, or to set index style variables
+from the command line and more.  Here is a correspondingly adapted
+version of the previous example:
+
+.. code-block:: fortran
+
+   PROGRAM testlib2
+     USE LIBLAMMPS                 ! include the LAMMPS library interface
+     IMPLICIT NONE
+     TYPE(lammps) :: lmp           ! derived type to hold LAMMPS instance
+     CHARACTER(LEN=128), ALLOCATABLE :: command_args(:)
+     INTEGER :: i, argc
+
+     ! copy command line flags to `command_args()`
+     argc = COMMAND_ARGUMENT_COUNT()
+     ALLOCATE(command_args(0:argc))
+     DO i=0, argc
+       CALL GET_COMMAND_ARGUMENT(i, command_args(i))
+     END DO
+
+     ! create a LAMMPS instance (and initialize MPI)
+     lmp = lammps(command_args)
+     ! get and print numerical version code
+     PRINT*, 'Program name:   ', command_args(0)
+     PRINT*, 'LAMMPS Version: ', lmp%version()
+     ! delete LAMMPS instance (and shuts down MPI)
+     CALL lmp%close(.TRUE.)
+     DEALLOCATE(command_args)
+   END PROGRAM testlib2
 
 --------------------
 
 Executing LAMMPS commands
-=========================
+*************************
 
 Once a LAMMPS instance is created, it is possible to "drive" the LAMMPS
-simulation by telling LAMMPS to read commands from a file, or pass
+simulation by telling LAMMPS to read commands from a file or to pass
 individual or multiple commands from strings or lists of strings.  This
-is done similar to how it is implemented in the `C-library
-<pg_lib_execute>` interface. Before handing off the calls to the
-C-library interface, the corresponding Fortran versions of the calls
+is done similarly to how it is implemented in the :doc:`C library
+interface <Library_execute>`. Before handing off the calls to the
+C library interface, the corresponding Fortran versions of the calls
 (:f:func:`file`, :f:func:`command`, :f:func:`commands_list`, and
-:f:func:`commands_string`) have to make a copy of the strings passed as
+:f:func:`commands_string`) have to make copies of the strings passed as
 arguments so that they can be modified to be compatible with the
 requirements of strings in C without affecting the original strings.
 Those copies are automatically deleted after the functions return.
-Below is a small demonstration of the uses of the different functions:
+Below is a small demonstration of the uses of the different functions.
 
 .. code-block:: fortran
 
    PROGRAM testcmd
      USE LIBLAMMPS
-     TYPE(lammps)     :: lmp
-     CHARACTER(len=512) :: cmds
-     CHARACTER(len=40),ALLOCATABLE :: cmdlist(:)
-     CHARACTER(len=10) :: trimmed
+     TYPE(lammps) :: lmp
+     CHARACTER(LEN=512) :: cmds
+     CHARACTER(LEN=40), ALLOCATABLE :: cmdlist(:)
+     CHARACTER(LEN=10) :: trimmed
      INTEGER :: i
 
      lmp = lammps()
@@ -111,10 +165,10 @@ Below is a small demonstration of the uses of the different functions:
      CALL lmp%command('variable zpos index 1.0')
      ! define 10 groups of 10 atoms each
      ALLOCATE(cmdlist(10))
-     DO i=1,10
-         WRITE(trimmed,'(I10)') 10*i
-         WRITE(cmdlist(i),'(A,I1,A,I10,A,A)')       &
-             'group g',i-1,' id ',10*(i-1)+1,':',ADJUSTL(trimmed)
+     DO i=1, 10
+       WRITE(trimmed,'(I10)') 10*i
+       WRITE(cmdlist(i),'(A,I1,A,I10,A,A)')       &
+           'group g', i-1, ' id ', 10*(i-1)+1, ':', ADJUSTL(trimmed)
      END DO
      CALL lmp%commands_list(cmdlist)
      ! run multiple commands from multi-line string
@@ -123,8 +177,7 @@ Below is a small demonstration of the uses of the different functions:
          'create_box 1 box' // NEW_LINE('A') //               &
          'create_atoms 1 single 1.0 1.0 ${zpos}'
      CALL lmp%commands_string(cmds)
-     CALL lmp%close()
-
+     CALL lmp%close(.TRUE.)
    END PROGRAM testcmd
 
 ---------------

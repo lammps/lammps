@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -178,8 +178,8 @@ void FixPAFI::init()
 
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    step_respa = (dynamic_cast<Respa *>( update->integrate))->step; // nve
-    nlevels_respa = (dynamic_cast<Respa *>( update->integrate))->nlevels;
+    step_respa = (dynamic_cast<Respa *>(update->integrate))->step; // nve
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,nlevels_respa-1);
     else ilevel_respa = nlevels_respa-1;
   }
@@ -192,9 +192,9 @@ void FixPAFI::setup(int vflag)
     post_force(vflag);
   else
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {
-      (dynamic_cast<Respa *>( update->integrate))->copy_flevel_f(ilevel);
+      (dynamic_cast<Respa *>(update->integrate))->copy_flevel_f(ilevel);
       post_force_respa(vflag,ilevel,0);
-      (dynamic_cast<Respa *>( update->integrate))->copy_f_flevel(ilevel);
+      (dynamic_cast<Respa *>(update->integrate))->copy_f_flevel(ilevel);
     }
 }
 

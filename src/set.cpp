@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -780,10 +780,10 @@ void Set::set(int keyword)
 
   // loop over selected atoms
 
-  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
-  auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
-  auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
-  auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) {
@@ -1096,10 +1096,10 @@ void Set::setrandom(int keyword)
 {
   int i;
 
-  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>( atom->style_match("ellipsoid"));
-  auto avec_line = dynamic_cast<AtomVecLine *>( atom->style_match("line"));
-  auto avec_tri = dynamic_cast<AtomVecTri *>( atom->style_match("tri"));
-  auto avec_body = dynamic_cast<AtomVecBody *>( atom->style_match("body"));
+  auto avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
 
   double **x = atom->x;
   int seed = ivalue;

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -341,7 +341,7 @@ void Finish::end(int flag)
   }
 
 #ifdef LMP_OPENMP
-  FixOMP *fixomp = dynamic_cast<FixOMP *>( modify->get_fix_by_id("package_omp"));
+  FixOMP *fixomp = dynamic_cast<FixOMP *>(modify->get_fix_by_id("package_omp"));
 
   // print thread breakdown only with full timer detail
 

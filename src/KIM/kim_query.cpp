@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -158,7 +158,7 @@ void KimQuery::command(int narg, char **arg)
       // check if we had a kim init command by finding fix STORE/KIM
       const int ifix = modify->find_fix("KIM_MODEL_STORE");
       if (ifix >= 0) {
-        auto fix_store = dynamic_cast<FixStoreKIM *>( modify->fix[ifix]);
+        auto fix_store = dynamic_cast<FixStoreKIM *>(modify->fix[ifix]);
         char *model_name_c = (char *) fix_store->getptr("model_name");
         model_name = model_name_c;
       } else {

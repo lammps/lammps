@@ -48,7 +48,6 @@ class FixMDIQMMM : public Fix {
   void unpack_reverse_comm(int, int *, double *) override;
 
   double compute_scalar() override;
-  double compute_vector(int) override;
   double memory_usage() override;
   
  private:

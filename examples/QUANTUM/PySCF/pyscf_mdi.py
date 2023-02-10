@@ -153,6 +153,11 @@ def mdi_engine(other_options):
   me = world.Get_rank()
   nprocs = world.Get_size()
 
+  # PySCF can only be invoked on a single MPI task
+
+  if nprocs > 1:
+    error("PySCF can only run on a single MPI task")
+
   # process non-MDI command line args
 
   options(other_options)

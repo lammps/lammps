@@ -42,12 +42,10 @@ static int compare_IDs(const int, const int, void *);
 FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   // check requirements for LAMMPS to work with MDI for a QMMM engine
-
+  // atom IDs do not need to be consecutive
+  
   if (!atom->tag_enable) 
     error->all(FLERR,"Fix mdi/qmmm requires atom IDs be defined");
-
-  if (!atom->tag_consecutive()) 
-    error->all(FLERR,"Fix mdi/qmmm requires atom IDs be consecutive");
 
   if (atom->map_style == Atom::MAP_NONE) 
     error->all(FLERR,"Fix mdi/qmmm requires an atom map be defined");
@@ -74,6 +72,10 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "virial") == 0) {
+
+      // not supported for now
+      error->all(FLERR,"Fix mdi/qmmm command does not yet support virial option");
+      
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix mdi/qmmm command");
       if (strcmp(arg[iarg + 1], "yes") == 0)
         virialflag = 1;
@@ -130,10 +132,13 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   global_freq = 1;
   extscalar = 1;
 
+  /*
   if (virialflag) {
     vector_flag = 1;
     size_vector = 6;
   }
+  */
+  
 
   energy_global_flag = 1;
   thermo_energy = thermo_virial = 1;
@@ -338,11 +343,13 @@ void FixMDIQMMM::init()
     if (!pair_coul) error->all(FLERR,"Fix mdi/qmmm potential requires Coulomb-only pair sub-style");
   }
 
-  // send info to QM code which is (possibly) only needed once
+  // send info to QM code which is often only needed once
   // box size (can be resent)
+  // count of QM atoms
   // DIRECT and POTENTIAL: number of QM atoms, QM elements
   // DIRECT only: number of MM atoms, MM elements, MM charges
-  // NOTE: test if QM code alreads has NATOMS, which implies it set up itself ?
+  // NOTE: could test if QM code alreads has NATOMS, which implies it set up itself
+  //       similar to fix mdi/qm
   
   if (first_send) {
     first_send = 0;
@@ -424,7 +431,7 @@ void FixMDIQMMM::post_neighbor()
    (4) receive results from QM code
 ---------------------------------------------------------------------- */
 
-void FixMDIQMMM::pre_force(int vflag)
+void FixMDIQMMM::pre_force(int /*vflag*/)
 {
   int ilocal,jlocal;
   double rsq;
@@ -632,7 +639,7 @@ void FixMDIQMMM::post_force(int vflag)
    (3) receive results from QM code
 ---------------------------------------------------------------------- */
 
-void FixMDIQMMM::post_force_direct(int vflag)
+void FixMDIQMMM::post_force_direct(int /*vflag*/)
 {
   // setup QM inputs:
   //   xqm = atom coords
@@ -773,7 +780,7 @@ void FixMDIQMMM::post_force_direct(int vflag)
    called after LAMMPS re-computes all MM forces with new QM charges
 ---------------------------------------------------------------------- */
 
-void FixMDIQMMM::post_force_potential(int vflag)
+void FixMDIQMMM::post_force_potential(int /*vflag*/)
 {
   // int ilocal,jlocal;
   // double rsq,r2inv,rinv,fpair;
@@ -968,10 +975,12 @@ double FixMDIQMMM::compute_scalar()
    virial from MDI engine
 ------------------------------------------------------------------------- */
 
+/*
 double FixMDIQMMM::compute_vector(int n)
 {
   return qm_virial_symmetric[n];
 }
+*/
 
 /* ----------------------------------------------------------------------
    memory usage
@@ -988,8 +997,15 @@ double FixMDIQMMM::memory_usage()
 }
 
 // ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
 // private methods for this fix
 // ----------------------------------------------------------------------
+// ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   create sorted list of QM atom IDs
+   ignore excluded atoms if exclude flag if set
+------------------------------------------------------------------------- */
 
 void FixMDIQMMM::create_qm_list()
 {

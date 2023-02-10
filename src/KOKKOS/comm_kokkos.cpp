@@ -146,8 +146,6 @@ void CommKokkos::init()
   if (!comm_f_only) // not all Kokkos atom_vec styles have reverse pack/unpack routines yet
     reverse_comm_classic = true;
 
-  atomKK->avecKK = dynamic_cast<AtomVecKokkos*>(atom->avec);
-
   if (ghost_velocity && atomKK->avecKK->no_comm_vel_flag) // not all Kokkos atom_vec styles have comm vel pack/unpack routines yet
     forward_comm_classic = true;
 }
@@ -645,7 +643,6 @@ void CommKokkos::reverse_comm(Dump *dump)
 void CommKokkos::exchange()
 {
   if (atom->nextra_grow + atom->nextra_border) {
-    AtomVecKokkos *avec = (AtomVecKokkos *)atomKK->avec;
 
     // check if all fixes with atom-based arrays derive from KokkosBase so we can enable exchange on device
     // we are assuming that every fix with atom-based arrays need to send info during exchange
@@ -657,10 +654,10 @@ void CommKokkos::exchange()
       }
     }
 
-    if (!avec->unpack_exchange_indices_flag || !fix_flag) {
+    if (!atomKK->avecKK->unpack_exchange_indices_flag || !fix_flag) {
       static int print = 1;
       if (print && comm->me == 0) {
-        if (!avec->unpack_exchange_indices_flag)
+        if (!atomKK->avecKK->unpack_exchange_indices_flag)
           error->warning(FLERR,"Atom style not compatible with fix sending data in Kokkos communication, "
                          "switching to classic exchange/border communication");
         if (!fix_flag)
@@ -883,22 +880,16 @@ void CommKokkos::exchange_device()
         }
 
         if (nrecv) {
-<<<<<<< HEAD
           if (atom->nextra_grow) {
             indices.resize(nrecv/data_size);
-            atom->nlocal = avec->
+            atom->nlocal = atomKK->avecKK->
               unpack_exchange_kokkos(k_buf_recv,indices,nrecv,atom->nlocal,dim,lo,hi,
                                      ExecutionSpaceFromDevice<DeviceType>::space);
           } else {
-            atom->nlocal = avec->
+            atom->nlocal = atomKK->avecKK->
               unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,
                                      ExecutionSpaceFromDevice<DeviceType>::space);
           }
-=======
-          atom->nlocal = atomKK->avecKK->
-            unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,
-                                   ExecutionSpaceFromDevice<DeviceType>::space);
->>>>>>> b6354651540443457c38aa1c1c007e8b152938fc
           DeviceType().fence();
         }
       }

@@ -41,5 +41,6 @@ void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & e
 void EXPECT_FORCES(const std::string & name, LAMMPS_NS::Atom * atom, const std::vector<coord_t> & f_ref, double epsilon);
 void EXPECT_POSITIONS(const std::string & name, LAMMPS_NS::Atom * atom, const std::vector<coord_t> & x_ref, double epsilon);
 void EXPECT_VELOCITIES(const std::string & name, LAMMPS_NS::Atom * atom, const std::vector<coord_t> & v_ref, double epsilon);
+void EXPECT_ATOM_TYPES(const std::string & name, LAMMPS_NS::Atom * atom, const std::vector<int> & at_ref);
 
 #endif

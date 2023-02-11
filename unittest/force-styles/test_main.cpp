@@ -70,6 +70,7 @@ void EXPECT_FORCES(const std::string &name, Atom *atom, const std::vector<coord_
 void EXPECT_POSITIONS(const std::string &name, Atom *atom, const std::vector<coord_t> &x_ref,
                       double epsilon)
 {
+    if (x_ref.empty()) return;
     SCOPED_TRACE("EXPECT_POSITIONS: " + name);
     double **x       = atom->x;
     tagint *tag      = atom->tag;
@@ -87,6 +88,7 @@ void EXPECT_POSITIONS(const std::string &name, Atom *atom, const std::vector<coo
 void EXPECT_VELOCITIES(const std::string &name, Atom *atom, const std::vector<coord_t> &v_ref,
                        double epsilon)
 {
+    if (v_ref.empty()) return;
     SCOPED_TRACE("EXPECT_VELOCITIES: " + name);
     double **v       = atom->v;
     tagint *tag      = atom->tag;
@@ -97,6 +99,23 @@ void EXPECT_VELOCITIES(const std::string &name, Atom *atom, const std::vector<co
         EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
         EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
         EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+}
+
+void EXPECT_ATOM_TYPES(const std::string &name, Atom *atom, const std::vector<int> &at_ref)
+{
+    if (at_ref.empty()) return;
+    SCOPED_TRACE("EXPECT_ATOM_TYPES: " + name);
+    int *type = atom->type;
+    tagint *tag      = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, at_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_EQ(type[i], at_ref[tag[i]]);
+        EXPECT_EQ(type[i], at_ref[tag[i]]);
+        EXPECT_EQ(type[i], at_ref[tag[i]]);
     }
     if (print_stats) std::cerr << name << " stats" << stats << std::endl;
 }

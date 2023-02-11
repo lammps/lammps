@@ -284,6 +284,7 @@ TEST(FixTimestep, plain)
 
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    EXPECT_ATOM_TYPES("run_atom_types (normal run, verlet)", lmp->atom, test_config.run_atom_types);
 
     int ifix = lmp->modify->find_fix("test");
     if (ifix < 0) {
@@ -334,6 +335,7 @@ TEST(FixTimestep, plain)
 
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    EXPECT_ATOM_TYPES("run_atom_types (restart, verlet)", lmp->atom, test_config.run_atom_types);
 
     ifix = lmp->modify->find_fix("test");
     if (ifix < 0) {
@@ -373,6 +375,7 @@ TEST(FixTimestep, plain)
 
         EXPECT_POSITIONS("run_pos (rmass, verlet)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (rmass, verlet)", lmp->atom, test_config.run_vel, epsilon);
+        EXPECT_ATOM_TYPES("run_atom_types (rmass, verlet)", lmp->atom, test_config.run_atom_types);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -426,6 +429,7 @@ TEST(FixTimestep, plain)
 
         EXPECT_POSITIONS("run_pos (normal run, respa)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (normal run, respa)", lmp->atom, test_config.run_vel, epsilon);
+        EXPECT_ATOM_TYPES("run_atom_types (normal run, respa)", lmp->atom, test_config.run_atom_types);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -464,6 +468,7 @@ TEST(FixTimestep, plain)
 
         EXPECT_POSITIONS("run_pos (restart, respa)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (restart, respa)", lmp->atom, test_config.run_vel, epsilon);
+        EXPECT_ATOM_TYPES("run_atom_types (restart, respa)", lmp->atom, test_config.run_atom_types);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -503,6 +508,7 @@ TEST(FixTimestep, plain)
 
             EXPECT_POSITIONS("run_pos (rmass, respa)", lmp->atom, test_config.run_pos, epsilon);
             EXPECT_VELOCITIES("run_vel (rmass, respa)", lmp->atom, test_config.run_vel, epsilon);
+            EXPECT_ATOM_TYPES("run_atom_types (rmass, respa)", lmp->atom, test_config.run_atom_types);
 
             ifix = lmp->modify->find_fix("test");
             if (ifix < 0) {
@@ -584,6 +590,7 @@ TEST(FixTimestep, omp)
 
     EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    EXPECT_ATOM_TYPES("run_atom_types (normal run, verlet)", lmp->atom, test_config.run_atom_types);
 
     int ifix = lmp->modify->find_fix("test");
     if (ifix < 0) {
@@ -634,6 +641,7 @@ TEST(FixTimestep, omp)
 
     EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
     EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
+    EXPECT_ATOM_TYPES("run_atom_types (restart, verlet)", lmp->atom, test_config.run_atom_types);
 
     ifix = lmp->modify->find_fix("test");
     if (ifix < 0) {
@@ -673,6 +681,7 @@ TEST(FixTimestep, omp)
 
         EXPECT_POSITIONS("run_pos (rmass, verlet)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (rmass, verlet)", lmp->atom, test_config.run_vel, epsilon);
+        EXPECT_ATOM_TYPES("run_atom_types (rmass, verlet)", lmp->atom, test_config.run_atom_types);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -725,6 +734,7 @@ TEST(FixTimestep, omp)
 
         EXPECT_POSITIONS("run_pos (normal run, respa)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (normal run, respa)", lmp->atom, test_config.run_vel, epsilon);
+        EXPECT_ATOM_TYPES("run_atom_types (normal run, respa)", lmp->atom, test_config.run_atom_types);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -763,6 +773,7 @@ TEST(FixTimestep, omp)
 
         EXPECT_POSITIONS("run_pos (restart, respa)", lmp->atom, test_config.run_pos, epsilon);
         EXPECT_VELOCITIES("run_vel (restart, respa)", lmp->atom, test_config.run_vel, epsilon);
+        EXPECT_ATOM_TYPES("run_atom_types (restart, respa)", lmp->atom, test_config.run_atom_types);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -802,6 +813,7 @@ TEST(FixTimestep, omp)
 
             EXPECT_POSITIONS("run_pos (rmass, respa)", lmp->atom, test_config.run_pos, epsilon);
             EXPECT_VELOCITIES("run_vel (rmass, respa)", lmp->atom, test_config.run_vel, epsilon);
+            EXPECT_ATOM_TYPES("run_atom_types (rmass, respa)", lmp->atom, test_config.run_atom_types);
 
             ifix = lmp->modify->find_fix("test");
             if (ifix < 0) {

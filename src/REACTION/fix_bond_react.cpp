@@ -4454,13 +4454,16 @@ void FixBondReact::restart(char *buf)
   Set *set_restart = (Set *) &buf[n*sizeof(int)];
   r_nreacts = set_restart[0].nreacts;
 
+  n2cpy = 0;
   if (revision > 0) {
     r_max_rate_limit_steps = set_restart[0].max_rate_limit_steps;
-    ibufcount = r_max_rate_limit_steps*r_nreacts;
-    memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
-    memcpy(&ibuf[0][0],&buf[sizeof(int)+r_nreacts*sizeof(Set)],sizeof(int)*ibufcount);
-    n2cpy = r_max_rate_limit_steps;
-  } else n2cpy = 0;
+    if (r_max_rate_limit_steps > 0) {
+      ibufcount = r_max_rate_limit_steps*r_nreacts;
+      memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
+      memcpy(&ibuf[0][0],&buf[sizeof(int)+r_nreacts*sizeof(Set)],sizeof(int)*ibufcount);
+      n2cpy = r_max_rate_limit_steps;
+    }
+  }
 
   if (max_rate_limit_steps < n2cpy) n2cpy = max_rate_limit_steps;
   for (int i = 0; i < r_nreacts; i++) {
@@ -4473,7 +4476,7 @@ void FixBondReact::restart(char *buf)
       }
     }
   }
-  if (revision > 0) memory->destroy(ibuf);
+  if (revision > 0 && r_max_rate_limit_steps > 0) memory->destroy(ibuf);
 }
 
 /* ----------------------------------------------------------------------

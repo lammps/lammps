@@ -2850,7 +2850,7 @@ void FixBondReact::glove_ghostcheck()
       ghostly = 1;
     }
   #endif
-  
+
     if (ghostly == 1) {
       ghostly_mega_glove[0][ghostly_num_mega] = rxnID;
       for (int j = 0; j < onemol->natoms+1; j++) {
@@ -3908,6 +3908,7 @@ read map file
 
 void FixBondReact::read_map_file(int myrxn)
 {
+  int rv;
   char line[MAXLINE],keyword[MAXLINE];
   char *eof,*ptr;
 
@@ -3932,16 +3933,24 @@ void FixBondReact::read_map_file(int myrxn)
 
     if (strstr(line,"edgeIDs")) sscanf(line,"%d",&nedge);
     else if (strstr(line,"equivalences")) {
-      sscanf(line,"%d",&nequivalent);
+      rv = sscanf(line,"%d",&nequivalent);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
       if (nequivalent != onemol->natoms)
         error->one(FLERR,"Fix bond/react: Number of equivalences in map file must "
                    "equal number of atoms in reaction templates");
     }
-    else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
-    else if (strstr(line,"createIDs")) sscanf(line,"%d",&ncreate);
-    else if (strstr(line,"chiralIDs")) sscanf(line,"%d",&nchiral);
-    else if (strstr(line,"constraints")) {
-      sscanf(line,"%d",&nconstraints[myrxn]);
+    else if (strstr(line,"deleteIDs")) {
+      rv = sscanf(line,"%d",&ndelete);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+    } else if (strstr(line,"createIDs")) {
+      rv = sscanf(line,"%d",&ncreate);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+    } else if (strstr(line,"chiralIDs")) {
+      rv = sscanf(line,"%d",&nchiral);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+    } else if (strstr(line,"constraints")) {
+      rv = sscanf(line,"%d",&nconstraints[myrxn]);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
       if (maxnconstraints < nconstraints[myrxn]) maxnconstraints = nconstraints[myrxn];
       constraints.resize(maxnconstraints, std::vector<Constraint>(nreacts));
     } else break;
@@ -3961,11 +3970,13 @@ void FixBondReact::read_map_file(int myrxn)
         if (comm->me == 0) error->warning(FLERR,"Fix bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
       bondflag = 1;
       readline(line);
-      sscanf(line,"%d",&ibonding[myrxn]);
+      rv = sscanf(line,"%d",&ibonding[myrxn]);
+      if (rv != 1) error->one(FLERR, "InitiatorIDs section is incorrectly formatted");
       if (ibonding[myrxn] > onemol->natoms)
         error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
       readline(line);
-      sscanf(line,"%d",&jbonding[myrxn]);
+      rv = sscanf(line,"%d",&jbonding[myrxn]);
+      if (rv != 1) error->one(FLERR, "InitiatorIDs section is incorrectly formatted");
       if (jbonding[myrxn] > onemol->natoms)
         error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
@@ -3996,10 +4007,11 @@ void FixBondReact::EdgeIDs(char *line, int myrxn)
 {
   // puts a 1 at edge(edgeID)
 
-  int tmp;
+  int tmp,rv;
   for (int i = 0; i < nedge; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
+    rv = sscanf(line,"%d",&tmp);
+    if (rv != 1) error->one(FLERR, "EdgeIDs section is incorrectly formatted");
     if (tmp > onemol->natoms)
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     edge[tmp-1][myrxn] = 1;
@@ -4008,11 +4020,11 @@ void FixBondReact::EdgeIDs(char *line, int myrxn)
 
 void FixBondReact::Equivalences(char *line, int myrxn)
 {
-  int tmp1;
-  int tmp2;
+  int tmp1,tmp2,rv;
   for (int i = 0; i < nequivalent; i++) {
     readline(line);
-    sscanf(line,"%d %d",&tmp1,&tmp2);
+    rv = sscanf(line,"%d %d",&tmp1,&tmp2);
+    if (rv != 2) error->one(FLERR, "Equivalences section is incorrectly formatted");
     if (tmp1 > onemol->natoms || tmp2 > twomol->natoms)
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     //equivalences is-> clmn 1: post-reacted, clmn 2: pre-reacted
@@ -4026,10 +4038,11 @@ void FixBondReact::Equivalences(char *line, int myrxn)
 
 void FixBondReact::DeleteAtoms(char *line, int myrxn)
 {
-  int tmp;
+  int tmp,rv;
   for (int i = 0; i < ndelete; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
+    rv = sscanf(line,"%d",&tmp);
+    if (rv != 1) error->one(FLERR, "DeleteIDs section is incorrectly formatted");
     if (tmp > onemol->natoms)
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     delete_atoms[tmp-1][myrxn] = 1;
@@ -4039,10 +4052,11 @@ void FixBondReact::DeleteAtoms(char *line, int myrxn)
 void FixBondReact::CreateAtoms(char *line, int myrxn)
 {
   create_atoms_flag[myrxn] = 1;
-  int tmp;
+  int tmp,rv;
   for (int i = 0; i < ncreate; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
+    rv = sscanf(line,"%d",&tmp);
+    if (rv != 1) error->one(FLERR, "CreateIDs section is incorrectly formatted");
     create_atoms[tmp-1][myrxn] = 1;
   }
   if (twomol->xflag == 0)
@@ -4060,10 +4074,11 @@ void FixBondReact::CustomCharges(int ifragment, int myrxn)
 
 void FixBondReact::ChiralCenters(char *line, int myrxn)
 {
-  int tmp;
+  int tmp,rv;
   for (int i = 0; i < nchiral; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
+    rv = sscanf(line,"%d",&tmp);
+    if (rv != 1) error->one(FLERR, "ChiralIDs section is incorrectly formatted");
     if (tmp > onemol->natoms)
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     chiral_atoms[tmp-1][0][myrxn] = 1;
@@ -4093,6 +4108,7 @@ void FixBondReact::ChiralCenters(char *line, int myrxn)
 
 void FixBondReact::ReadConstraints(char *line, int myrxn)
 {
+  int rv;
   double tmp[MAXCONARGS];
   char **strargs,*ptr,*lptr;
   memory->create(strargs,MAXCONARGS,MAXLINE,"bond/react:strargs");
@@ -4134,10 +4150,12 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
     }
     if ((ptr = strchr(lptr,')')))
       *ptr = '\0';
-    sscanf(line,"%s",constraint_type);
+    rv = sscanf(line,"%s",constraint_type);
+    if (rv != 1) error->one(FLERR, "Constraints section is incorrectly formatted");
     if (strcmp(constraint_type,"distance") == 0) {
       constraints[i][myrxn].type = DISTANCE;
-      sscanf(line,"%*s %s %s %lg %lg",strargs[0],strargs[1],&tmp[0],&tmp[1]);
+      rv = sscanf(line,"%*s %s %s %lg %lg",strargs[0],strargs[1],&tmp[0],&tmp[1]);
+      if (rv != 4) error->one(FLERR, "Distance constraint is incorrectly formatted");
       readID(strargs[0], i, myrxn, 0);
       readID(strargs[1], i, myrxn, 1);
       // cutoffs
@@ -4145,7 +4163,8 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       constraints[i][myrxn].par[1] = tmp[1]*tmp[1];
     } else if (strcmp(constraint_type,"angle") == 0) {
       constraints[i][myrxn].type = ANGLE;
-      sscanf(line,"%*s %s %s %s %lg %lg",strargs[0],strargs[1],strargs[2],&tmp[0],&tmp[1]);
+      rv = sscanf(line,"%*s %s %s %s %lg %lg",strargs[0],strargs[1],strargs[2],&tmp[0],&tmp[1]);
+      if (rv != 5) error->one(FLERR, "Angle constraint is incorrectly formatted");
       readID(strargs[0], i, myrxn, 0);
       readID(strargs[1], i, myrxn, 1);
       readID(strargs[2], i, myrxn, 2);
@@ -4155,8 +4174,9 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       constraints[i][myrxn].type = DIHEDRAL;
       tmp[2] = 181.0; // impossible range
       tmp[3] = 182.0;
-      sscanf(line,"%*s %s %s %s %s %lg %lg %lg %lg",strargs[0],strargs[1],
+      rv = sscanf(line,"%*s %s %s %s %s %lg %lg %lg %lg",strargs[0],strargs[1],
              strargs[2],strargs[3],&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      if (!(rv == 6 || rv == 8)) error->one(FLERR, "Dihedral constraint is incorrectly formatted");
       readID(strargs[0], i, myrxn, 0);
       readID(strargs[1], i, myrxn, 1);
       readID(strargs[2], i, myrxn, 2);
@@ -4168,7 +4188,8 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
     } else if (strcmp(constraint_type,"arrhenius") == 0) {
       constraints[i][myrxn].type = ARRHENIUS;
       constraints[i][myrxn].par[0] = narrhenius++;
-      sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      rv = sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      if (rv != 4) error->one(FLERR, "Arrhenius constraint is incorrectly formatted");
       constraints[i][myrxn].par[1] = tmp[0];
       constraints[i][myrxn].par[2] = tmp[1];
       constraints[i][myrxn].par[3] = tmp[2];
@@ -4176,7 +4197,8 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
     } else if (strcmp(constraint_type,"rmsd") == 0) {
       constraints[i][myrxn].type = RMSD;
       strcpy(strargs[0],"0");
-      sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
+      rv = sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
+      if (!(rv == 1 || rv == 2)) error->one(FLERR, "RMSD constraint is incorrectly formatted");
       constraints[i][myrxn].par[0] = tmp[0]; // RMSDmax
       constraints[i][myrxn].id[0] = -1; // optional molecule fragment
       if (isalpha(strargs[0][0])) {

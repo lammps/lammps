@@ -1,0 +1,48 @@
+---
+lammps_version: 8 Feb 2023
+date_generated: Fri Feb 10 12:00:00 2023
+epsilon: 2e-14
+skip_tests: 
+prerequisites: ! |
+  atom full
+  fix bond/react
+pre_commands: ! ""
+post_commands: ! |
+  molecule mol1 ${input_dir}/fourmol.molecule_template
+  molecule mol2 ${input_dir}/fourmol_modified.molecule_template
+  fix test all bond/react react rxn1 all 1 0 5 mol1 mol2 ${input_dir}/fourmol.rxn_map
+input_file: in.fourmol
+natoms: 29
+global_vector: ! |-
+  1 1
+run_atom_types: ! |2
+    21  5
+    22  2
+    23  2
+    19  2
+    18  4
+    20  2
+    28  2
+    4   3
+    10  2
+    11  4
+    12  2
+    14  3
+    3   3
+    6   2
+    7   5
+    15  4
+    8   5
+    9   3
+    16  3
+    17  5
+    5   3
+    13  4
+    2   3
+    1   4
+    27  5
+    29  2
+    24  5
+    25  2
+    26  2
+...

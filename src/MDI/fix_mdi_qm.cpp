@@ -345,7 +345,7 @@ void FixMDIQM::init()
   
   int new_system = 0;
 
-  // check if quantum atom count has changed
+  // check if count of QM atoms has changed
   // on first run, old count is 0
   
   int nqm_old = nqm;
@@ -398,7 +398,7 @@ void FixMDIQM::init()
     }
   }
 
-  // new system, so send setup info to MDI engine
+  // if new system, send setup info to MDI engine
   // values that often won't change for AIMD simulations
   // if not sending elements or types, assume engine initialized itself
 

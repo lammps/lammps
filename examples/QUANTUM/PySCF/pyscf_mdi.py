@@ -638,6 +638,11 @@ if __name__== "__main__":
 
   if not mdi_option: error("PySCF -mdi option not provided")
 
+  # disable this mode of MDI coupling for now
+  # until issue on PySCF side is fixed
+
+  error("PySCF does not currently support running as independent executable")
+  
   # call MDI_Init with just -mdi option
   
   mdi.MDI_Init(mdi_option)

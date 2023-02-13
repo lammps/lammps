@@ -53,6 +53,8 @@ class FixAtomSwap : public Fix {
   class Region *region;                // swap region
   char *idregion;                      // swap region id
 
+  int mc_active;              // 1 during MC trials, otherwise 0
+
   int nswaptypes, nmutypes;
   int *type_list;
   double *mu;

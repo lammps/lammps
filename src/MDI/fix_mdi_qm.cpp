@@ -58,8 +58,8 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   addflag = 1;
   every = 1;
   connectflag = 1;
-  exclude = 0;
-  id_exclude = nullptr;
+  mcflag = 0;
+  id_mcfix = nullptr;
   elements = nullptr;
 
   int iarg = 3;
@@ -96,11 +96,11 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else
         error->all(FLERR, "Illegal fix mdi/qm command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"exclude") == 0) {
+    } else if (strcmp(arg[iarg],"mc") == 0) {
       if (iarg+2 > narg) error->all(FLERR, "Illegal fix mdi/qm command");
-      exclude = 1;
-      delete[] id_exclude;
-      id_exclude = utils::strdup(arg[iarg+1]);
+      mcflag = 1;
+      delete[] id_mcfix;
+      id_mcfix = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg], "elements") == 0) {
@@ -230,7 +230,7 @@ FixMDIQM::~FixMDIQM()
 
   // clean up
 
-  delete[] id_exclude;
+  delete[] id_mcfix;
   delete[] elements;
   
   memory->destroy(qmIDs);
@@ -324,48 +324,90 @@ void FixMDIQM::init()
     MPI_Bcast(&types_exists, 1, MPI_INT, 0, world);
   }
 
-  // extract pointer to exclusion_group variable from id_exclude
-  // exclusion_group = index of a group the Fix defines
-  // the group flags atoms to be excluded from QM calculation
+  // extract pointers to MC variables from id_mcfix
+  // mc_active = 1/0 for MC moves on/off (required)
+  // exclusion_group = index of a group the Fix defines to exclude atoms (optional)
 
-  if (exclude) {
-    Fix *f_exclude = modify->get_fix_by_id(id_exclude);
-    if (!f_exclude) error->all(FLERR,"Fix mdi/qm could not find exclude fix ID {}", id_exclude);
+  if (mcflag) {
+    Fix *f_mc = modify->get_fix_by_id(id_mcfix);
+    if (!f_mc) error->all(FLERR,"Fix mdi/qm could not find Monte Carlo fix ID {}", id_mcfix);
     int dim;
-    exclusion_group_ptr = (int *) f_exclude->extract("exclusion_group", dim);
-    if (!exclusion_group_ptr || dim != 0)
-      error->all(FLERR,"Fix mdi/qm could not query exclude_group of fix ID {}", id_exclude);
+    mc_active_ptr = (int *) f_mc->extract("mc_active", dim);
+    if (!mc_active_ptr || dim != 0)
+      error->all(FLERR,"Fix mdi/qm could not query mc_active from Monte Carlo fix ID {}", id_mcfix);
+    exclusion_group_ptr = (int *) f_mc->extract("exclusion_group", dim);
   }
 
-  // nqm = # of QM atoms
-  // if hasn't changed, then continuing previous simulation
-  // else setup new simulation with MDI engine
+  // determine whether a new vs incremental QM calc is needed
+  // new when first run or when
+  //   atom count or elements/types or box has changed between runs
+  // otherwise incremental = subsequent run of same system
+  
+  int new_system = 0;
 
+  // check if quantum atom count has changed
+  // on first run, old count is 0
+  
+  int nqm_old = nqm;
   nqm = set_nqm();
   
-  if (nqm != nqm_last) {
+  if (nqm != nqm_old) {
     if (nqm > max_nqm) reallocate();
-
-    // create list of QM atom IDs in sorted order
-    // set mapping of my local atoms into global list
-
     create_qm_list();
     set_qm2owned();
-
-    // initial send of info to MDI engine
-    // values that often won't change for AIMD simulations
-    // if not sending elements or types, assume engine initialized itself
-    
-    send_box();
-    send_natoms();
+    new_system = 1;
+  }
   
-    if (elements && elements_exists) {
+  // check if box has changed
+
+  if (new_system) set_box();
+  else {
+    double old_cell[9],old_cell_displ[3];
+    memcpy(old_cell,qm_cell,9*sizeof(double));
+    memcpy(old_cell_displ,qm_cell_displ,3*sizeof(double));
+    set_box();
+    for (int i = 0; i < 9; i++)
+      if (qm_cell[i] != old_cell[i]) new_system = 1;
+    for (int i = 0; i < 3; i++)
+      if (qm_cell_displ[i] != old_cell_displ[i]) new_system = 1;
+  }
+
+  // check if atom elements or types have changed
+
+  if (elements && elements_exists) {
+    if (new_system) set_eqm();
+    else {
+      int *eqm_old;
+      memory->create(eqm_old,nqm,"mdi/qm:eqm_old");
+      memcpy(eqm_old,eqm,nqm*sizeof(int));
       set_eqm();
-      send_elements();
-    } else if (types_exists) {
-      set_tqm();
-      send_types();
+      for (int i = 0; i < nqm; i++)
+        if (eqm[i] != eqm_old[i]) new_system = 1;
+      memory->destroy(eqm_old);
     }
+  } else if (types_exists) {
+    if (new_system) set_tqm();
+    else {
+      int *tqm_old;
+      memory->create(tqm_old,nqm,"mdi/qm:tqm_old");
+      memcpy(tqm_old,tqm,nqm*sizeof(int));
+      set_tqm();
+      for (int i = 0; i < nqm; i++)
+        if (tqm[i] != tqm_old[i]) new_system = 1;
+      memory->destroy(tqm_old);
+    }
+  }
+
+  // new system, so send setup info to MDI engine
+  // values that often won't change for AIMD simulations
+  // if not sending elements or types, assume engine initialized itself
+
+  if (new_system) {
+    send_natoms();
+    send_box();
+    if (elements && elements_exists) send_elements();
+    else if (types_exists) send_types();
+    nqm_last = nqm;
   }
 }
 
@@ -408,17 +450,27 @@ void FixMDIQM::post_force(int vflag)
     memory->create(array_atom,nmax,3,"mdi/qm:array_atom");
   }
 
-  // check count of QM atoms, could be different due to exclusions
-  // if so, need to reset QM data structures
+  // determine whether a new vs incremental QM calc is needed
+  // new when atom count has changed (deposit, evaporate)
+  //   or when MC fix is active (insertion, deletion, large moves)
+  // incremental when a system is slowly evolving (AIMD)
   
-  nqm = set_nqm();
+  int new_system = 0;
+  if (nqm != nqm_last) new_system = 1;
+  else if (mcflag && *mc_active_ptr) new_system = 1;
   
-  if (nqm != nqm_last) {
-    nqm_last = nqm;
+  // send new system info to MDI engine: atom count and elements/types
+  // reset QM data structures if atom count has changed
+  
+  if (new_system) {
+    nqm = set_nqm();
     if (nqm > max_nqm) reallocate();
     create_qm_list();
     set_qm2owned();
+
     send_natoms();
+    set_box();
+    send_box();
     if (elements && elements_exists) {
       set_eqm();
       send_elements();
@@ -426,11 +478,16 @@ void FixMDIQM::post_force(int vflag)
       set_tqm();
       send_types();
     }
-  }
 
+    nqm_last = nqm;
+
+  // incremental system
   // if simulation box dynamically changes, send current box to MDI engine
 
-  if (domain->box_change_size || domain->box_change_shape) send_box();
+  } else if (domain->box_change_size || domain->box_change_shape) {
+    set_box();
+    send_box();
+  }
 
   // send current coords of QM atoms to MDI engine
   
@@ -476,9 +533,9 @@ void FixMDIQM::post_force(int vflag)
   }
 
   // array_atom = fix output for peratom QM forces
-  // if exclude, some atoms may not be QM atoms, so zero array_atom first
+  // if nexclude, some atoms are not QM atoms, zero array_atom first
 
-  if (exclude) {
+  if (nexclude) {
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) {
       array_atom[i][0] = 0.0;
@@ -626,7 +683,7 @@ void FixMDIQM::reallocate()
 
 /* ----------------------------------------------------------------------
    ncount = # of QM atoms
-   can be less than all atoms if exclude flag is set   
+   can be less than all atoms if MC flag is set   
    return ncount to set nqm
 ------------------------------------------------------------------------- */
 
@@ -635,7 +692,7 @@ int FixMDIQM::set_nqm()
   int ncount = atom->natoms;
   nexclude = 0;
 
-  if (exclude) {
+  if (mcflag && exclusion_group_ptr) {
     int nexclude_mine = 0;
 
     int exclusion_group = *exclusion_group_ptr;
@@ -752,6 +809,29 @@ void FixMDIQM::set_qm2owned()
     if (index >= nlocal) qm2owned[i] = -1;
     else qm2owned[i] = index;
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIQM::set_box()
+{
+  qm_cell_displ[0] = domain->boxlo[0] * lmp2mdi_length;
+  qm_cell_displ[1] = domain->boxlo[1] * lmp2mdi_length;
+  qm_cell_displ[2] = domain->boxlo[2] * lmp2mdi_length;
+
+  qm_cell[0] = domain->boxhi[0] - domain->boxlo[0];
+  qm_cell[1] = 0.0;
+  qm_cell[2] = 0.0;
+  qm_cell[3] = domain->xy;
+  qm_cell[4] = domain->boxhi[1] - domain->boxlo[1];
+  qm_cell[5] = 0.0;
+  qm_cell[6] = domain->xz;
+  qm_cell[7] = domain->yz;
+  qm_cell[8] = domain->boxhi[2] - domain->boxlo[2];
+
+  // convert cell units to bohr
+
+  for (int icell = 0; icell < 9; icell++) qm_cell[icell] *= lmp2mdi_length;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -883,35 +963,17 @@ void FixMDIQM::send_elements()
 void FixMDIQM::send_box()
 {
   int ierr;
-  double cell[9];
 
   if (celldispl_exists) {
     ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
     if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command");
-    cell[0] = domain->boxlo[0] * lmp2mdi_length;
-    cell[1] = domain->boxlo[1] * lmp2mdi_length;
-    cell[2] = domain->boxlo[2] * lmp2mdi_length;
-    ierr = MDI_Send(cell, 3, MDI_DOUBLE, mdicomm);
+    ierr = MDI_Send(qm_cell_displ, 3, MDI_DOUBLE, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >CELL_DISPL data");
   }
 
   ierr = MDI_Send_command(">CELL", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CELL command");
-  cell[0] = domain->boxhi[0] - domain->boxlo[0];
-  cell[1] = 0.0;
-  cell[2] = 0.0;
-  cell[3] = domain->xy;
-  cell[4] = domain->boxhi[1] - domain->boxlo[1];
-  cell[5] = 0.0;
-  cell[6] = domain->xz;
-  cell[7] = domain->yz;
-  cell[8] = domain->boxhi[2] - domain->boxlo[2];
-
-  // convert cell units to bohr
-  
-  for (int icell = 0; icell < 9; icell++) cell[icell] *= lmp2mdi_length;
-
-  ierr = MDI_Send(cell, 9, MDI_DOUBLE, mdicomm);
+  ierr = MDI_Send(qm_cell, 9, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CELL data");
 }
 

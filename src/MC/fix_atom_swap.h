@@ -37,6 +37,7 @@ class FixAtomSwap : public Fix {
   double memory_usage() override;
   void write_restart(FILE *) override;
   void restart(char *) override;
+  void *extract(const char *, int &) override;
 
  private:
   int nevery, seed;

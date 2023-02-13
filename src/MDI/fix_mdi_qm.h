@@ -50,11 +50,13 @@ class FixMDIQM : public Fix {
   int nprocs;
   int every, virialflag, addflag, connectflag;
   int plugin;
-  int sumflag,exclude;
-  char *id_exclude;
-  int *exclusion_group_ptr;
+  int sumflag,mcflag;
+  char *id_mcfix;
+  int *mc_active_ptr,*exclusion_group_ptr;
   int *elements;
 
+  double qm_cell[9],qm_cell_displ[3];
+  
   double qm_energy;
   double qm_virial[9], qm_virial_symmetric[6];
 
@@ -92,6 +94,7 @@ class FixMDIQM : public Fix {
   int set_nqm();
   void create_qm_list();
   void set_qm2owned();
+  void set_box();
   void set_xqm();
   void set_eqm();
   void set_tqm();

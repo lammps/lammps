@@ -111,12 +111,16 @@ EwaldDisp::EwaldDisp(LAMMPS *lmp) : KSpace(lmp),
   M2 = 0;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void EwaldDisp::settings(int narg, char **arg)
 {
-  if (narg!=1) error->all(FLERR,"Illegal kspace_style ewald/n command");
+  if (narg!=1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
   accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
+  if (accuracy_relative > 1.0)
+    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
+               accuracy_relative, force->kspace_style);
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -1209,7 +1213,7 @@ void EwaldDisp::compute_virial_dipole()
   double *ke, c[EWALD_NFUNCS] = {
     8.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(12.0*volume),
     2.0*MY_PI*MY_PIS/(192.0*volume), 8.0*MY_PI*mumurd2e/volume};
-  int i, kx, ky, lbytes = (2*nbox+1)*sizeof(cvector), *type = atom->type;
+  int i, kx, ky, lbytes = (2*nbox+1)*sizeof(cvector);
   int func[EWALD_NFUNCS];
 
   memcpy(func, function, EWALD_NFUNCS*sizeof(int));
@@ -1273,7 +1277,6 @@ void EwaldDisp::compute_virial_dipole()
         vatomj[n] -= mysum[n];
 
     z = (cvector *) ((char *) z+lbytes);
-    ++type;
     if (vflag_atom) vatomj += 6;
   }
 

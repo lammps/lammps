@@ -120,7 +120,7 @@ void ComputeAggregateAtom::compute_peratom()
   else
     neighbor->build_one(list);
 
-  // if group is dynamic, insure ghost atom masks are current
+  // if group is dynamic, ensure ghost atom masks are current
 
   if (group->dynamic[igroup]) {
     commflag = 0;

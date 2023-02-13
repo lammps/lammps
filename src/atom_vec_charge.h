@@ -24,7 +24,7 @@ AtomStyle(charge,AtomVecCharge);
 
 namespace LAMMPS_NS {
 
-class AtomVecCharge : public AtomVec {
+class AtomVecCharge : virtual public AtomVec {
  public:
   AtomVecCharge(class LAMMPS *);
 };

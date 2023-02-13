@@ -24,7 +24,7 @@ AtomStyle(dpd,AtomVecDPD);
 
 namespace LAMMPS_NS {
 
-class AtomVecDPD : public AtomVec {
+class AtomVecDPD : virtual public AtomVec {
  public:
   AtomVecDPD(class LAMMPS *);
 
@@ -32,7 +32,7 @@ class AtomVecDPD : public AtomVec {
   void unpack_restart_init(int) override;
   void data_atom_post(int) override;
 
- private:
+ protected:
   double *rho, *dpdTheta;
   double *uCond, *uMech, *uChem;
   double *uCG, *uCGnew;

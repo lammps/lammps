@@ -215,8 +215,8 @@ void FixController::end_of_step()
     deltaerr = sumerr = 0.0;
   } else {
     deltaerr = err - olderr;
-    sumerr += err;
   }
+  sumerr += err;
 
   // 3 terms of PID equation
 

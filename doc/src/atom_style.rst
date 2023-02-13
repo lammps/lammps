@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *amoeba* or *angle* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *mesont* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *wavepacket* or *hybrid*
+* style = *amoeba* or *angle* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *wavepacket* or *hybrid*
 
   .. parsed-literal::
 
@@ -108,8 +108,6 @@ quantities.
 | *line*       | end points, angular velocity                        | rigid bodies                         |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *mdpd*       | density                                             | mDPD particles                       |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *mesont*     | mass, radius, length, buckling, connections, tube id| mesoscopic nanotubes                 |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -284,7 +282,7 @@ showing the use of the *template* atom style versus *molecular*.
 .. note::
 
    When using the *template* style with a :doc:`molecule template
-   <molecule>` that contains multiple molecules, you should insure the
+   <molecule>` that contains multiple molecules, you should ensure the
    atom types, bond types, angle_types, etc in all the molecules are
    consistent.  E.g. if one molecule represents H2O and another CO2,
    then you probably do not want each molecule file to define 2 atom
@@ -381,8 +379,6 @@ dynamics (tDPD), respectively.
 The *sph* style is part of the SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide
 <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
-
-The *mesont* style is part of the MESONT package.
 
 The *spin* style is part of the SPIN package.
 

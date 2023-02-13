@@ -31,5 +31,9 @@ if not pylib.Py_IsInitialized():
                   "in undefined behavior.")
 else:
     from .loader import load_model, load_unified, activate_mliappy
-
+    try:
+         from .loader import  load_model_kokkos, load_unified_kokkos,  activate_mliappy_kokkos
+    except Exception as ee:
+        # ignore import error, it means that the KOKKOS package was not included in LAMMPS
+        pass
 del sysconfig, ctypes, library, pylib

@@ -46,7 +46,7 @@ It can be enabled for all C++ code with the following CMake flag
 
 With this flag enabled all source files will be processed twice, first to
 be compiled and then to be analyzed. Please note that the analysis can be
-significantly more time consuming than the compilation itself.
+significantly more time-consuming than the compilation itself.
 
 ----------
 
@@ -154,32 +154,48 @@ for implementing the tests.
    framework are more strict than for the main part of LAMMPS.  For
    example the default GNU C++ and Fortran compilers of RHEL/CentOS 7.x
    (version 4.8.x) are not sufficient.  The CMake configuration will try
-   to detect compatible versions and either skip incompatible tests or
-   stop with an error.
+   to detect incompatible versions and either skip incompatible tests or
+   stop with an error.  Also the number of tests will depend on
+   installed LAMMPS packages, development environment, operating system,
+   and configuration settings.
 
 After compilation is complete, the unit testing is started in the build
 folder using the ``ctest`` command, which is part of the CMake software.
-The output of this command will be looking something like this::
+The output of this command will be looking something like this:
 
-   [...]$ ctest
-   Test project /home/akohlmey/compile/lammps/build-testing
-         Start  1: MolPairStyle:hybrid-overlay
-   1/109 Test  #1: MolPairStyle:hybrid-overlay .........   Passed    0.02 sec
-         Start  2: MolPairStyle:hybrid
-   2/109 Test  #2: MolPairStyle:hybrid .................   Passed    0.01 sec
-         Start  3: MolPairStyle:lj_class2
-    [...]
-         Start 107: PotentialFileReader
- 107/109 Test #107: PotentialFileReader ................   Passed    0.04 sec
-         Start 108: EIMPotentialFileReader
- 108/109 Test #108: EIMPotentialFileReader .............   Passed    0.03 sec
-         Start 109: TestSimpleCommands
- 109/109 Test #109: TestSimpleCommands .................   Passed    0.02 sec
+.. code-block:: console
 
-   100% tests passed, 0 tests failed out of 26
+    $ ctest
+    Test project /home/akohlmey/compile/lammps/build-testing
+         Start   1: RunLammps
+   1/563 Test   #1: RunLammps ..........................................   Passed    0.28 sec
+         Start   2: HelpMessage
+   2/563 Test   #2: HelpMessage ........................................   Passed    0.06 sec
+         Start   3: InvalidFlag
+   3/563 Test   #3: InvalidFlag ........................................   Passed    0.06 sec
+         Start   4: Tokenizer
+   4/563 Test   #4: Tokenizer ..........................................   Passed    0.05 sec
+         Start   5: MemPool
+   5/563 Test   #5: MemPool ............................................   Passed    0.05 sec
+         Start   6: ArgUtils
+   6/563 Test   #6: ArgUtils ...........................................   Passed    0.05 sec
+       [...]
+         Start 561: ImproperStyle:zero
+ 561/563 Test #561: ImproperStyle:zero .................................   Passed    0.07 sec
+         Start 562: TestMliapPyUnified
+ 562/563 Test #562: TestMliapPyUnified .................................   Passed    0.16 sec
+         Start 563: TestPairList
+ 563/563 Test #563: TestPairList .......................................   Passed    0.06 sec
 
-   Total Test time (real) =  25.57 sec
+ 100% tests passed, 0 tests failed out of 563
 
+ Label Time Summary:
+ generated    =   0.85 sec*proc (3 tests)
+ noWindows    =   4.16 sec*proc (2 tests)
+ slow         =  78.33 sec*proc (67 tests)
+ unstable     =  28.23 sec*proc (34 tests)
+
+ Total Test time (real) = 132.34 sec
 
 The ``ctest`` command has many options, the most important ones are:
 
@@ -210,11 +226,13 @@ Fortran) and testing different aspects of the LAMMPS software and its features.
 The tests will adapt to the compilation settings of LAMMPS, so that tests
 will be skipped if prerequisite features are not available in LAMMPS.
 
-.. note::
+.. admonition:: Work in Progress
+   :class: note
 
    The unit test framework was added in spring 2020 and is under active
    development.  The coverage is not complete and will be expanded over
-   time.
+   time.  Preference is given to parts of the code base that are easy to
+   test or commonly used.
 
 Tests for styles of the same kind of style (e.g. pair styles or bond
 styles) are performed with the same test executable using different
@@ -248,9 +266,9 @@ the CMake option ``-D BUILD_MPI=off`` can significantly speed up testing,
 since this will skip the MPI initialization for each test run.
 Below is an example command and output:
 
-.. parsed-literal::
+.. code-block:: console
 
-   [tests]$ test_pair_style mol-pair-lj_cut.yaml
+   $ test_pair_style mol-pair-lj_cut.yaml
    [==========] Running 6 tests from 1 test suite.
    [----------] Global test environment set-up.
    [----------] 6 tests from PairStyle
@@ -530,7 +548,7 @@ commands like the following:
 
 .. code-block:: bash
 
-   $ clang-format -i some_file.cpp
+   clang-format -i some_file.cpp
 
 
 The following target are available for both, GNU make and CMake:
@@ -539,3 +557,19 @@ The following target are available for both, GNU make and CMake:
 
    make format-src       # apply clang-format to all files in src and the package folders
    make format-tests     # apply clang-format to all files in the unittest tree
+
+----------
+
+.. _gh-cli:
+
+GitHub command line interface
+-----------------------------
+
+GitHub is developing a `tool for the command line
+<https://cli.github.com>`_ that interacts with the GitHub website via a
+command called ``gh``.  This can be extremely convenient when working
+with a Git repository hosted on GitHub (like LAMMPS).  It is thus highly
+recommended to install it when doing LAMMPS development.
+
+The capabilities of the ``gh`` command is continually expanding, so
+please see the documentation at https://cli.github.com/manual/

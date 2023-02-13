@@ -109,8 +109,7 @@ void PairGauss::compute(int eflag, int vflag)
       if (eflag_global && rsq < 0.5/b[itype][jtype]) occ++;
 
       if (rsq < cutsq[itype][jtype]) {
-        fpair = -2.0*a[itype][jtype]*b[itype][jtype] *
-          exp(-b[itype][jtype]*rsq);
+        fpair = -2.0*a[itype][jtype]*b[itype][jtype] * exp(-b[itype][jtype]*rsq);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -122,8 +121,7 @@ void PairGauss::compute(int eflag, int vflag)
         }
 
         if (eflag)
-          evdwl = -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) -
-                    offset[itype][jtype]);
+          evdwl = -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) - offset[itype][jtype]);
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              evdwl,0.0,fpair,delx,dely,delz);

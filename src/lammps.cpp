@@ -442,7 +442,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       iarg += 3;
       while (iarg < narg && arg[iarg][0] != '-') iarg++;
 
-    } else error->universe_all(FLERR,"Invalid command-line argument");
+    } else {
+      error->universe_all(FLERR, fmt::format("Invalid command-line argument: {}", arg[iarg]) );
+    }
   }
 
   // if no partition command-line switch, universe is one world with all procs
@@ -527,7 +529,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
      // warn against using I/O redirection in parallel runs
       if ((inflag == 0) && (universe->nprocs > 1))
         error->warning(FLERR, "Using I/O redirection is unreliable with parallel runs. "
-                       "Better use -in switch to read input file.");
+                       "Better to use the -in switch to read input files.");
       utils::flush_buffers(this);
     }
 

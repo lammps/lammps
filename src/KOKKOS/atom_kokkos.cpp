@@ -30,6 +30,7 @@ using namespace LAMMPS_NS;
 AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
 {
   k_error_flag = DAT::tdual_int_scalar("atom:error_flag");
+  avecKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,23 +105,23 @@ AtomKokkos::~AtomKokkos()
 
 void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 {
-  if (space == Device && lmp->kokkos->auto_sync) ((AtomVecKokkos *) avec)->modified(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) avecKK->modified(Host, mask);
 
-  ((AtomVecKokkos *) avec)->sync(space, mask);
+  avecKK->sync(space, mask);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::modified(const ExecutionSpace space, unsigned int mask)
 {
-  ((AtomVecKokkos *) avec)->modified(space, mask);
+  avecKK->modified(space, mask);
 
-  if (space == Device && lmp->kokkos->auto_sync) ((AtomVecKokkos *) avec)->sync(Host, mask);
+  if (space == Device && lmp->kokkos->auto_sync) avecKK->sync(Host, mask);
 }
 
 void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned int mask)
 {
-  ((AtomVecKokkos *) avec)->sync_overlapping_device(space, mask);
+  avecKK->sync_overlapping_device(space, mask);
 }
 /* ---------------------------------------------------------------------- */
 
@@ -160,7 +161,7 @@ void AtomKokkos::sort()
     memory->create(permute, maxnext, "atom:permute");
   }
 
-  // insure there is one extra atom location at end of arrays for swaps
+  // ensure there is one extra atom location at end of arrays for swaps
 
   if (nlocal == nmax) avec->grow(0);
 
@@ -378,7 +379,15 @@ void AtomKokkos::sync_modify(ExecutionSpace execution_space, unsigned int datama
 
 AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sflag)
 {
+  // check if avec already exists, if so this is a hybrid substyle
+
+  int hybrid_substyle_flag = (avec != nullptr);
+
   AtomVec *avec = Atom::new_avec(style, trysuffix, sflag);
   if (!avec->kokkosable) error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
+
+  if (!hybrid_substyle_flag)
+    avecKK = dynamic_cast<AtomVecKokkos*>(avec);
+
   return avec;
 }

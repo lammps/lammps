@@ -2,7 +2,7 @@ Build the LAMMPS documentation
 ==============================
 
 Depending on how you obtained LAMMPS and whether you have built the
-manual yourself, this directory has a number of sub-directories and
+manual yourself, this directory has a number of subdirectories and
 files. Here is a list with descriptions:
 
 .. code-block:: bash
@@ -33,7 +33,7 @@ various tools and files.  Some of them have to be installed (see below).  For
 the rest the build process will attempt to download and install them into
 a python virtual environment and local folders.
 
-A current version of the manual (latest patch release, that is the state
+A current version of the manual (latest feature release, that is the state
 of the *release* branch) is is available online at:
 `https://docs.lammps.org/ <https://docs.lammps.org/>`_.
 A version of the manual corresponding to the ongoing development (that is
@@ -125,37 +125,28 @@ common setups:
 
       .. code-block:: bash
 
-         sudo apt-get install python-virtualenv git doxygen
+         sudo apt-get install git doxygen
 
    .. tab:: RHEL or CentOS (Version 7.x)
 
       .. code-block:: bash
 
-         sudo yum install python3-virtualenv git doxygen
+         sudo yum install git doxygen
 
    .. tab:: Fedora or RHEL/CentOS (8.x or later)
 
       .. code-block:: bash
 
-         sudo dnf install python3-virtualenv git doxygen
+         sudo dnf install git doxygen
 
-   .. tab:: MacOS X
+   .. tab:: macOS
 
       *Python 3*
 
-      Download the latest Python 3 MacOS X package from
+      If Python 3 is not available on your macOS system, you can
+      download the latest Python 3 macOS package from
       `https://www.python.org <https://www.python.org>`_ and install it.
       This will install both Python 3 and pip3.
-
-      *virtualenv*
-
-      Once Python 3 is installed, open a Terminal and type
-
-      .. code-block:: bash
-
-         pip3 install virtualenv
-
-      This will install virtualenv from the Python Package Index.
 
 Prerequisites for PDF
 ---------------------

@@ -129,7 +129,7 @@ The first argument of the *python* command is either the *source*
 keyword or the name of a Python function.  This defines the mode
 of the python command.
 
-.. versionchanged:: TBD
+.. versionchanged:: 22Dec2022
 
 If the *source* keyword is used, it is followed by either a file name or
 the *here* keyword.  No other keywords can be used.  The *here* keyword
@@ -359,7 +359,7 @@ library.
 Third, if your Python code calls back to LAMMPS (discussed in the
 next section) and causes LAMMPS to perform an MPI operation requires
 global communication (e.g. via MPI_Allreduce), such as computing the
-global temperature of the system, then you must insure all your Python
+global temperature of the system, then you must ensure all your Python
 functions (running independently on different processors) call back to
 LAMMPS.  Otherwise the code may hang.
 

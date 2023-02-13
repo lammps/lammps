@@ -48,6 +48,8 @@ int AtomT::bytes_per_atom() const {
     bytes+=sizeof(numtyp);
   if (_vel)
     bytes+=4*sizeof(numtyp);
+  if (_extra_fields>0)
+    bytes+=_extra_fields*sizeof(numtyp4);
   return bytes;
 }
 
@@ -122,6 +124,11 @@ bool AtomT::alloc(const int nall) {
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=v.device.row_bytes();
   }
+  if (_extra_fields>0) {
+    success=success && (extra.alloc(_max_atoms*_extra_fields,*dev,UCL_WRITE_ONLY,
+                                   UCL_READ_ONLY)==UCL_SUCCESS);
+    gpu_bytes+=extra.device.row_bytes();
+  }
 
   if (_gpu_nbor>0) {
     if (_bonds) {
@@ -156,7 +163,8 @@ bool AtomT::alloc(const int nall) {
 
 template <class numtyp, class acctyp>
 bool AtomT::add_fields(const bool charge, const bool rot,
-                       const int gpu_nbor, const bool bonds, const bool vel) {
+                       const int gpu_nbor, const bool bonds, const bool vel,
+                       const int extra_fields) {
   bool success=true;
   // Ignore host/device transfers?
   int gpu_bytes=0;
@@ -188,6 +196,16 @@ bool AtomT::add_fields(const bool charge, const bool rot,
       success=success && (v.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                      UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=v.device.row_bytes();
+    }
+  }
+
+  if (extra_fields > 0 && _extra_fields==0) {
+    _extra_fields=extra_fields;
+    _other=true;
+    if (!_host_view) {
+      success=success && (extra.alloc(_max_atoms*_extra_fields,*dev,UCL_WRITE_ONLY,
+                                     UCL_READ_ONLY)==UCL_SUCCESS);
+      gpu_bytes+=extra.device.row_bytes();
     }
   }
 
@@ -254,7 +272,8 @@ bool AtomT::add_fields(const bool charge, const bool rot,
 
 template <class numtyp, class acctyp>
 bool AtomT::init(const int nall, const bool charge, const bool rot,
-                 UCL_Device &devi, const int gpu_nbor, const bool bonds, const bool vel) {
+                 UCL_Device &devi, const int gpu_nbor, const bool bonds, const bool vel,
+                 const int extra_fields) {
   clear();
 
   bool success=true;
@@ -262,13 +281,15 @@ bool AtomT::init(const int nall, const bool charge, const bool rot,
   _q_avail=false;
   _quat_avail=false;
   _v_avail=false;
+  _extra_avail=false;
   _resized=false;
   _gpu_nbor=gpu_nbor;
   _bonds=bonds;
   _charge=charge;
   _rot=rot;
   _vel=vel;
-  _other=_charge || _rot || _vel;
+  _extra_fields=extra_fields;
+  _other=_charge || _rot || _vel || (extra_fields>0);
   dev=&devi;
   _time_transfer=0;
 
@@ -282,10 +303,14 @@ bool AtomT::init(const int nall, const bool charge, const bool rot,
   time_q.init(*dev);
   time_quat.init(*dev);
   time_vel.init(*dev);
+  time_extra.init(*dev);
+
   time_pos.zero();
   time_q.zero();
   time_quat.zero();
   time_vel.zero();
+  time_extra.zero();
+
   _time_cast=0.0;
 
   #ifdef GPU_CAST
@@ -308,6 +333,8 @@ void AtomT::clear_resize() {
     quat.clear();
   if (_vel)
     v.clear();
+  if (_extra_fields>0)
+    extra.clear();
 
   dev_cell_id.clear();
   dev_particle_id.clear();
@@ -350,6 +377,7 @@ void AtomT::clear() {
   time_q.clear();
   time_quat.clear();
   time_vel.clear();
+  time_extra.clear();
   clear_resize();
 
   #ifdef GPU_CAST
@@ -370,12 +398,19 @@ double AtomT::host_memory_usage() const {
     atom_bytes+=4;
   if (_vel)
     atom_bytes+=4;
+  if (_extra_fields>0)
+    atom_bytes+=_extra_fields;
   return _max_atoms*atom_bytes*sizeof(numtyp)+sizeof(Atom<numtyp,acctyp>);
 }
 
+#ifdef USE_CUDPP
+#define USE_CUDPP_ARG(arg) arg
+#else
+#define USE_CUDPP_ARG(arg)
+#endif
 // Sort arrays for neighbor list calculation
 template <class numtyp, class acctyp>
-void AtomT::sort_neighbor(const int num_atoms) {
+void AtomT::sort_neighbor(const int USE_CUDPP_ARG(num_atoms)) {
   #ifdef USE_CUDPP
   CUDPPResult result = cudppSort(sort_plan, (unsigned *)dev_cell_id.begin(),
                                  (int *)dev_particle_id.begin(),

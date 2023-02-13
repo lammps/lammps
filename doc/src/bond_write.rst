@@ -10,7 +10,7 @@ Syntax
 
    bond_write btype N inner outer file keyword itype jtype
 
-* btype = bond types
+* btype = bond type
 * N = # of values
 * inner,outer = inner and outer bond length (distance units)
 * file = name of file to write values to
@@ -29,31 +29,34 @@ Description
 """""""""""
 
 Write energy and force values to a file as a function of distance for
-the currently defined bond potential.  This is useful for plotting the
-potential function or otherwise debugging its values.  If the file
-already exists, the table of values is appended to the end of the file
-to allow multiple tables of energy and force to be included in one
-file.
+the currently defined :doc:`bond style <bond_style>` for a selected bond
+type.  This is useful for plotting the potential function or otherwise
+debugging its values.  The resulting file can also be used as input for
+use with :doc:`bond style table <bond_table>`.
 
-The energy and force values are computed at distances from inner to
-outer for 2 interacting atoms forming a bond of type btype, using the
-appropriate :doc:`bond_coeff <bond_coeff>` coefficients. N evenly spaced
-distances are used.
+If the file already exists, the table of values is appended to the end
+of the file to allow multiple tables of energy and force to be included
+in one file.  The individual sections may be identified by the *keyword*.
+
+The energy and force values are computed at distances from *inner* to
+*outer* for 2 interacting atoms forming a bond of type *btype*, using
+the appropriate :doc:`bond_coeff <bond_coeff>` coefficients. N evenly
+spaced distances are used.
 
 For example, for N = 7, inner = 1.0, and outer = 4.0,
 values are computed at r = 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0.
 
-The file is written in the format used as input for the
-:doc:`bond_style <bond_style>` *table* option with *keyword* as the
-section name.  Each line written to the file lists an index number
-(1-N), a distance (in distance units), an energy (in energy units),
-and a force (in force units). In case a new file is created, the first
-line will be a comment with a "DATE:" and "UNITS:" tag with the current
-date and :doc:`units <units>` settings.  For subsequent invocations of
-the bond_write command for the same file, data will be appended and the
-current units settings will be compared to the data from the header, if
-present, and bond_write will refuse to add a table if the units are not
-the same.
+The file is written in the format used as input for the :doc:`bond_style
+table <bond_table>` option with *keyword* as the section name.  Each
+line written to the file lists an index number (1-N), a distance (in
+distance units), an energy (in energy units), and a force (in force
+units).  In case a new file is created, the first line will be a comment
+with a "DATE:" and "UNITS:" tag with the current date and :doc:`units
+<units>` settings.  For subsequent invocations of the *bond_write*
+command for the same file, data will be appended and the current units
+settings will be compared to the data from the header, if present.  The
+*bond_write* command will refuse to add a table to an existing file if
+the units are not the same.
 
 Restrictions
 """"""""""""
@@ -67,7 +70,7 @@ be specified even if the potential has a finite value at r = 0.0.
 Related commands
 """"""""""""""""
 
-:doc:`bond_style table <bond_table>`,
+:doc:`bond_style table <bond_table>`, `angle_write <angle_write>`,
 :doc:`bond_style <bond_style>`, :doc:`bond_coeff <bond_coeff>`
 
 Default

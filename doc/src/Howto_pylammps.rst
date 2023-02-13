@@ -392,7 +392,7 @@ IPyLammps Examples
 ------------------
 
 Examples of IPython notebooks can be found in the python/examples/pylammps
-sub-directory. To open these notebooks launch *jupyter notebook* inside this
+subdirectory. To open these notebooks launch *jupyter notebook* inside this
 directory and navigate to one of them. If you compiled and installed
 a LAMMPS shared library with exceptions, PNG, JPEG and FFMPEG support
 you should be able to rerun all of these notebooks.

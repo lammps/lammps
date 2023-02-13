@@ -150,7 +150,7 @@ option with either of the commands.
 
 Note that if a simulation box has a large tilt factor, LAMMPS will run
 less efficiently, due to the large volume of communication needed to
-acquire ghost atoms around a processor's irregular-shaped sub-domain.
+acquire ghost atoms around a processor's irregular-shaped subdomain.
 For extreme values of tilt, LAMMPS may also lose atoms and generate an
 error.
 

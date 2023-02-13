@@ -267,7 +267,7 @@ void FixPressBerendsen::init()
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix press/berendsen with triclinic box");
 
-  // insure no conflict with fix deform
+  // ensure no conflict with fix deform
 
   for (const auto &ifix : modify->get_fix_list())
     if (strcmp(ifix->style, "^deform") == 0) {

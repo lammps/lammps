@@ -18,6 +18,7 @@
 #include "ewald_electrode.h"
 
 #include "atom.h"
+#include "boundary_correction.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -32,7 +33,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <limits>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

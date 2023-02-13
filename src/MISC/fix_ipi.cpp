@@ -358,7 +358,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
     }
   }
 
-  // insure atoms are in current box & update box via shrink-wrap
+  // ensure atoms are in current box & update box via shrink-wrap
   // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
 
@@ -379,9 +379,9 @@ void FixIPI::initial_integrate(int /*vflag*/)
     //   kspace->setup() is in some cases not enough since, e.g., g_ewald needs
     //   to be reestimated due to changes in box dimensions.
     force->init();
-    // setup_grid() is necessary for pppm since init() is not calling
-    //   setup() nor setup_grid() upon calling init().
-    if (force->kspace->pppmflag) force->kspace->setup_grid();
+    // reset_grid() is necessary for pppm since init() is not calling
+    //   setup() nor reset_grid() upon calling init().
+    if (force->kspace->pppmflag) force->kspace->reset_grid();
     // other kspace styles might need too another setup()?
   } else if (!reset_flag && kspace_flag) {
     // original version

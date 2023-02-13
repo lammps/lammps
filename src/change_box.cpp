@@ -204,7 +204,7 @@ void ChangeBox::command(int narg, char **arg)
   else scale[0] = scale[1] = scale[2] = 1.0;
 
   // perform sequence of operations
-  // first insure atoms are in current box & update box via shrink-wrap
+  // first ensure atoms are in current box & update box via shrink-wrap
   // no exchange() since doesn't matter if atoms are assigned to correct procs
   // save current box state so can remap atoms from it, if requested
 

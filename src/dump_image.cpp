@@ -14,6 +14,7 @@
 
 #include "dump_image.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
@@ -21,10 +22,13 @@
 #include "atom_vec_tri.h"
 #include "body.h"
 #include "comm.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
+#include "grid2d.h"
+#include "grid3d.h"
 #include "image.h"
 #include "input.h"
 #include "math_const.h"
@@ -33,6 +37,7 @@
 #include "modify.h"
 #include "molecule.h"
 #include "tokenizer.h"
+#include "update.h"
 #include "variable.h"
 
 #include <cmath>
@@ -65,6 +70,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   binary = 1;
   multifile_override = 0;
+
+  // flag has_id as true to avoid bogus warnings about atom IDs for dump styles derived from DumpCustom
+
+  has_id = true;
 
   // set filetype based on filename suffix
 
@@ -104,10 +113,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[6],"type") == 0) adiam = TYPE;
   else if (strcmp(arg[6],"element") == 0) adiam = ELEMENT;
 
-  // create Image class with single colormap for atoms
+  // create Image class with two colormaps for atoms and grid cells
   // change defaults for 2d
 
-  image = new Image(lmp,1);
+  image = new Image(lmp,2);
 
   if (domain->dimension == 2) {
     image->theta = 0.0;
@@ -118,7 +127,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   // set defaults for optional args
 
   atomflag = YES;
+  gridflag = NO;
   lineflag = triflag = bodyflag = fixflag = NO;
+  id_grid_compute = id_grid_fix = nullptr;
+
   if (atom->nbondtypes == 0) bondflag = NO;
   else {
     bondflag = YES;
@@ -175,6 +187,25 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else error->all(FLERR,"Illegal dump image command");
       iarg += 3;
 
+    } else if (strcmp(arg[iarg],"grid") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
+      gridflag = YES;
+
+      char *id;
+      int igrid,idata,index;
+      int iflag =
+        utils::check_grid_reference((char *) "Dump image",
+                                    arg[iarg+1],nevery,id,
+                                    igrid,idata,index,lmp);
+      if (iflag < 0) error->all(FLERR,"Invalid grid reference in dump image command");
+
+      if (iflag == ArgInfo::COMPUTE) id_grid_compute = utils::strdup(id);
+      else if (iflag == ArgInfo::FIX) id_grid_fix = utils::strdup(id);
+      delete [] id;
+      grid_igrid = igrid;
+      grid_idata = idata;
+      grid_index = index;
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"line") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
@@ -413,9 +444,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   // local data
 
+  grid_compute = nullptr;
+  grid_fix = nullptr;
+
   maxbufcopy = 0;
   chooseghost = nullptr;
   bufcopy = nullptr;
+
+  maxgrid = 0;
+  gbuf = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -432,6 +469,10 @@ DumpImage::~DumpImage()
   delete [] bcolortype;
   memory->destroy(chooseghost);
   memory->destroy(bufcopy);
+  memory->destroy(gbuf);
+
+  delete [] id_grid_compute;
+  delete [] id_grid_fix;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -444,7 +485,23 @@ void DumpImage::init_style()
 
   DumpCustom::init_style();
 
-  // check variables
+  // for grid output, find current ptr for compute or fix
+  // check that fix frequency is acceptable
+
+  if (gridflag) {
+    if (id_grid_compute) {
+      grid_compute = modify->get_compute_by_id(id_grid_compute);
+      if (!grid_compute)
+        error->all(FLERR,"Could not find dump image grid compute ID {}",id_grid_compute);
+    } else if (id_grid_fix) {
+      grid_fix = modify->get_fix_by_id(id_grid_fix);
+      if (!grid_fix) error->all(FLERR,"Could not find dump image fix ID {}",id_grid_fix);
+      if (nevery % grid_fix->peratom_freq)
+        error->all(FLERR,"Dump image and grid fix not computed at compatible times");
+    }
+  }
+
+  // check image variables
 
   if (thetastr) {
     thetavar = input->variable->find(thetastr);
@@ -553,7 +610,7 @@ void DumpImage::write()
     memory->create(buf,maxbuf*size_one,"dump:buf");
   }
 
-  // pack buf with color & diameter
+  // pack atom buf with color & diameter
 
   pack(nullptr);
 
@@ -573,7 +630,135 @@ void DumpImage::write()
     two[1] = hi;
     MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
     int flag = image->map_minmax(0,-twoall[0],twoall[1]);
-    if (flag) error->all(FLERR,"Invalid color map min/max values");
+    if (flag) error->all(FLERR,"Invalid atom color map min/max values");
+  }
+
+  // pack grid gbuf with grid cell values
+  // ngrid = # of grid cells this proc owns
+
+  if (gridflag) {
+    if (domain->dimension == 2) {
+      if (grid_compute)
+        grid2d = (Grid2d *) grid_compute->get_grid_by_index(grid_igrid);
+      else if (grid_fix)
+        grid2d = (Grid2d *) grid_fix->get_grid_by_index(grid_igrid);
+      grid2d->get_size(nxgrid,nygrid);
+      grid2d->get_bounds_owned(nxlo_in,nxhi_in,nylo_in,nyhi_in);
+      ngrid = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1);
+    } else {
+      if (grid_compute)
+        grid3d = (Grid3d *) grid_compute->get_grid_by_index(grid_igrid);
+      else if (grid_fix)
+        grid3d = (Grid3d *) grid_fix->get_grid_by_index(grid_igrid);
+      grid3d->get_size(nxgrid,nygrid,nzgrid);
+      grid3d->get_bounds_owned(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
+      ngrid = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) * (nzhi_in-nzlo_in+1);
+    }
+
+    // ensure gbuf is large enough
+
+    if (ngrid > maxgrid) {
+      memory->destroy(gbuf);
+      maxgrid = ngrid;
+      memory->create(gbuf,maxgrid,"dump/image:gbuf");
+    }
+
+    // invoke Compute for per-grid quantities
+    // only if within a run or minimize
+    // else require the compute is current
+    // this prevents the compute from being invoked by the WriteDump class
+
+    if (grid_compute) {
+      if (update->whichflag == 0) {
+        if (grid_compute->invoked_pergrid != update->ntimestep)
+          error->all(FLERR,"Grid compute {} used in dump image between runs is not current",
+                     grid_compute->id);
+      } else {
+        if (!(grid_compute->invoked_flag & Compute::INVOKED_PERGRID)) {
+          grid_compute->compute_pergrid();
+          grid_compute->invoked_flag |= Compute::INVOKED_PERGRID;
+        }
+      }
+    }
+
+    // access grid data and load gbuf
+
+    if (domain->dimension == 2) {
+      if (grid_index == 0) {
+        double **vec2d;
+        if (grid_compute)
+          vec2d = (double **)
+            grid_compute->get_griddata_by_index(grid_idata);
+        else if (grid_fix)
+          vec2d = (double **)
+          grid_fix->get_griddata_by_index(grid_idata);
+        int n = 0;
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            gbuf[n++] = vec2d[iy][ix];
+      } else {
+        double ***array2d;
+        if (grid_compute)
+          array2d = (double ***)
+            grid_compute->get_griddata_by_index(grid_idata);
+        else if (grid_fix)
+          array2d = (double ***)
+            grid_fix->get_griddata_by_index(grid_idata);
+        int index = grid_index - 1;
+        int n = 0;
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            gbuf[n++] = array2d[iy][ix][index];
+      }
+
+    } else if (domain->dimension == 3) {
+      if (grid_index == 0) {
+        double ***vec3d;
+        if (grid_compute)
+          vec3d = (double ***)
+            grid_compute->get_griddata_by_index(grid_idata);
+        else if (grid_fix)
+          vec3d = (double ***)
+            grid_fix->get_griddata_by_index(grid_idata);
+        int n = 0;
+        for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+          for (int iy = nylo_in; iy <= nyhi_in; iy++)
+            for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+              gbuf[n++] = vec3d[iz][iy][ix];
+
+        }
+    } else {
+      double ****array3d;
+      if (grid_compute)
+        array3d = (double ****)
+          grid_compute->get_griddata_by_index(grid_idata);
+      else if (grid_fix)
+        array3d = (double ****)
+          grid_fix->get_griddata_by_index(grid_idata);
+      int index = grid_index - 1;
+      int n = 0;
+      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++)
+            gbuf[n++] = array3d[iz][iy][ix][index];
+      }
+  }
+
+  // set minmax color range if using dynamic grid color map
+
+  if (gridflag && image->map_dynamic(1)) {
+    double two[2],twoall[2];
+    double lo = BIG;
+    double hi = -BIG;
+    for (int i = 0; i < ngrid; i++) {
+      lo = MIN(lo,gbuf[i]);
+      hi = MAX(hi,gbuf[i]);
+    }
+    two[0] = -lo;
+    two[1] = hi;
+    MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
+    int flag = image->map_minmax(1,-twoall[0],twoall[1]);
+    if (flag) error->all(FLERR,"Invalid grid color map min/max values");
   }
 
   // create image on each proc, then merge them
@@ -674,8 +859,9 @@ void DumpImage::view_params()
 }
 
 /* ----------------------------------------------------------------------
-   create image for atoms on this proc
-   every pixel has depth
+   create image for all data this proc owns
+   all procs draw simulation box edges if requested
+   every drawn pixel has depth so merge can decide which to keep
 ------------------------------------------------------------------------- */
 
 void DumpImage::create_image()
@@ -737,6 +923,64 @@ void DumpImage::create_image()
 
       m += size_one;
     }
+  }
+
+  // render my grid cells
+  // 2 triangles for 2d rectangle, 12 triangles for 3d cube surface
+  // grid_cell_corners_2d/3d calculates orthogonal vs triclinic corner pts
+  // for 3d, outward normals on all 6 faces
+
+  if (gridflag) {
+
+    // reset lighting for flat surfaces to make them brighter
+
+    image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] = 0.9;
+    image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] = 0.3;
+    image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] = 0.3;
+    image->backLightColor[0] = image->backLightColor[1] = image->backLightColor[2] = 0.3;
+
+    int n = 0;
+    if (domain->dimension == 2) {
+      for (int iy = nylo_in; iy <= nyhi_in; iy++)
+        for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+          grid_cell_corners_2d(ix,iy);
+          color = image->map_value2color(1,gbuf[n++]);
+          image->draw_triangle(gcorners[0],gcorners[1],gcorners[3],color);
+          image->draw_triangle(gcorners[0],gcorners[3],gcorners[2],color);
+        }
+    } else {
+      for (int iz = nzlo_in; iz <= nzhi_in; iz++)
+        for (int iy = nylo_in; iy <= nyhi_in; iy++)
+          for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
+            grid_cell_corners_3d(ix,iy,iz);
+            color = image->map_value2color(1,gbuf[n++]);
+            // lower x face
+            image->draw_triangle(gcorners[0],gcorners[4],gcorners[6],color);
+            image->draw_triangle(gcorners[0],gcorners[6],gcorners[2],color);
+            // upper x face
+            image->draw_triangle(gcorners[1],gcorners[5],gcorners[7],color);
+            image->draw_triangle(gcorners[1],gcorners[7],gcorners[3],color);
+            // lower y face
+            image->draw_triangle(gcorners[0],gcorners[1],gcorners[5],color);
+            image->draw_triangle(gcorners[0],gcorners[5],gcorners[4],color);
+            // upper y face
+            image->draw_triangle(gcorners[2],gcorners[6],gcorners[7],color);
+            image->draw_triangle(gcorners[2],gcorners[7],gcorners[3],color);
+            // lower z face
+            image->draw_triangle(gcorners[0],gcorners[2],gcorners[3],color);
+            image->draw_triangle(gcorners[0],gcorners[3],gcorners[1],color);
+            // upper z face
+            image->draw_triangle(gcorners[4],gcorners[5],gcorners[7],color);
+            image->draw_triangle(gcorners[4],gcorners[7],gcorners[6],color);
+          }
+    }
+
+    // restore lighting for curved objects
+
+    image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] = 0.0;
+    image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] = 0.9;
+    image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] = 0.45;
+    image->backLightColor[0] = image->backLightColor[1] = image->backLightColor[2] = 0.9;
   }
 
   // render atoms that are lines
@@ -1135,6 +1379,86 @@ void DumpImage::create_image()
 
 /* ---------------------------------------------------------------------- */
 
+void DumpImage::grid_cell_corners_2d(int ix, int iy)
+{
+  double *boxlo = domain->boxlo;
+  double *prd = domain->prd;
+
+  if (!domain->triclinic) {
+    double xdelta = prd[0] / nxgrid;
+    double ydelta = prd[1] / nygrid;
+
+    int n = 0;
+    for (int y = 0; y < 2; y++)
+      for (int x = 0; x < 2; x++) {
+        gcorners[n][0] = boxlo[0] + (ix+x) * xdelta;
+        gcorners[n][1] = boxlo[1] + (iy+y) * ydelta;
+        gcorners[n][2] = 0.0;
+        n++;
+      }
+
+  } else {
+    double lamda[3];
+    lamda[2] = 0.0;
+
+    double dx = 1.0 / nxgrid;
+    double dy = 1.0 / nygrid;
+
+    int n = 0;
+    for (int y = 0; y < 2; y++)
+      for (int x = 0; x < 2; x++) {
+        lamda[0] = (ix+x) * dx;
+        lamda[1] = (iy+y) * dy;
+        domain->lamda2x(lamda,gcorners[n]);
+        n++;
+      }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpImage::grid_cell_corners_3d(int ix, int iy, int iz)
+{
+  double *boxlo = domain->boxlo;
+  double *prd = domain->prd;
+
+  if (!domain->triclinic) {
+    double xdelta = prd[0] / nxgrid;
+    double ydelta = prd[1] / nygrid;
+    double zdelta = prd[2] / nzgrid;
+
+    int n = 0;
+    for (int z = 0; z < 2; z++)
+      for (int y = 0; y < 2; y++)
+        for (int x = 0; x < 2; x++) {
+          gcorners[n][0] = boxlo[0] + (ix+x) * xdelta;
+          gcorners[n][1] = boxlo[1] + (iy+y) * ydelta;
+          gcorners[n][2] = boxlo[2] + (iz+z) * zdelta;
+          n++;
+        }
+
+  } else {
+    double lamda[3];
+
+    double dx = 1.0 / nxgrid;
+    double dy = 1.0 / nygrid;
+    double dz = 1.0 / nzgrid;
+
+    int n = 0;
+    for (int z = 0; z < 2; z++)
+      for (int y = 0; y < 2; y++)
+        for (int x = 0; x < 2; x++) {
+          lamda[0] = (ix+x) * dx;
+          lamda[1] = (iy+y) * dy;
+          lamda[2] = (iz+z) * dz;
+          domain->lamda2x(lamda,gcorners[n]);
+          n++;
+        }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 int DumpImage::pack_forward_comm(int n, int *list, double *buf,
                                  int /*pbc_flag*/, int * /*pbc*/)
 {
@@ -1217,7 +1541,7 @@ int DumpImage::modify_param(int narg, char **arg)
     return 3;
   }
 
-  if (strcmp(arg[0],"amap") == 0) {
+  if ((strcmp(arg[0],"amap") == 0) || (strcmp(arg[0],"gmap") == 0)) {
     if (narg < 6) error->all(FLERR,"Illegal dump_modify command");
     if (strlen(arg[3]) != 2) error->all(FLERR,"Illegal dump_modify command");
     int factor = 0;
@@ -1229,7 +1553,9 @@ int DumpImage::modify_param(int narg, char **arg)
     if (nentry < 1) error->all(FLERR,"Illegal dump_modify command");
     n = 6 + factor*nentry;
     if (narg < n) error->all(FLERR,"Illegal dump_modify command");
-    int flag = image->map_reset(0,n-1,&arg[1]);
+    int flag;
+    if (strcmp(arg[0],"amap") == 0) flag = image->map_reset(0,n-1,&arg[1]);
+    if (strcmp(arg[0],"gmap") == 0) flag = image->map_reset(1,n-1,&arg[1]);
     if (flag) error->all(FLERR,"Illegal dump_modify command");
     return n;
   }

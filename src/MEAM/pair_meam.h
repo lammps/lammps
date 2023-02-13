@@ -47,6 +47,8 @@ class PairMEAM : public Pair {
   class MEAM *meam_inst;
   double cutmax;                           // max cutoff for all elements
   int nlibelements;                        // # of library elements
+  int msmeamflag;                          // 0 (default) for normal MEAM, 1 for MS-MEAM
+  std::string myname;                      // name of the pair style
   std::vector<std::string> libelements;    // names of library elements
   std::vector<double> mass;                // mass of library element
 

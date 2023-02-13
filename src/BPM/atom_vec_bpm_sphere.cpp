@@ -20,7 +20,6 @@
 #include "fix_adapt.h"
 #include "math_const.h"
 #include "modify.h"
-#include "utils.h"
 
 #include <cstring>
 
@@ -149,7 +148,7 @@ void AtomVecBPMSphere::create_atom_post(int ilocal)
 
 void AtomVecBPMSphere::pack_restart_pre(int ilocal)
 {
-  // insure bond_negative vector is needed length
+  // ensure bond_negative vector is needed length
 
   if (bond_per_atom < atom->bond_per_atom) {
     delete[] bond_negative;

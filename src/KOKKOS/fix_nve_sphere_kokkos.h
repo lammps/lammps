@@ -47,6 +47,7 @@ class FixNVESphereKokkos : public FixNVESphere {
     typename ArrayTypes<DeviceType>::t_x_array x;
     typename ArrayTypes<DeviceType>::t_v_array v;
     typename ArrayTypes<DeviceType>::t_v_array omega;
+    typename ArrayTypes<DeviceType>::t_mu_array mu;
     typename ArrayTypes<DeviceType>::t_f_array f;
     typename ArrayTypes<DeviceType>::t_f_array torque;
     typename ArrayTypes<DeviceType>::t_float_1d rmass;

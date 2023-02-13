@@ -127,7 +127,7 @@ void NBin::copy_neighbor_info()
 /* ----------------------------------------------------------------------
    convert atom coords into local bin #
    for orthogonal, only ghost atoms will have coord >= bboxhi or coord < bboxlo
-     take special care to insure ghosts are in correct bins even w/ roundoff
+     take special care to ensure ghosts are in correct bins even w/ roundoff
      hi ghost atoms = nbin,nbin+1,etc
      owned atoms = 0 to nbin-1
      lo ghost atoms = -1,-2,etc

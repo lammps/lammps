@@ -96,7 +96,7 @@ specify a time-dependent wall position.
 .. note::
 
    Because the trajectory of the SRD particle is tracked as it
-   collides with the wall, you must insure that r = distance of the
+   collides with the wall, you must ensure that r = distance of the
    particle from the wall, is always > 0 for SRD particles, or LAMMPS
    will generate an error.  This means you cannot start your simulation
    with SRD particles at the wall position *coord* (r = 0) or with
@@ -117,7 +117,7 @@ specify a time-dependent wall position.
    a mixture containing other kinds of particles, then you should
    typically use :doc:`another wall command <fix_wall>` to act on the other
    particles.  Since SRD particles will be colliding both with the walls
-   and the other particles, it is important to insure that the other
+   and the other particles, it is important to ensure that the other
    particle's finite extent does not overlap an SRD wall.  If you do not
    do this, you may generate errors when SRD particles end up "inside"
    another particle or a wall at the beginning of a collision step.

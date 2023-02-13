@@ -120,8 +120,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   // If ngpu is 0, autoset ngpu to the number of devices per node matching
   // best device
-  int ngpu = atoi(arg[3]);
-  if (ngpu < 0) error->all(FLERR,"Illegal package gpu command");
+  int ngpu = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (ngpu < 0) error->all(FLERR,"Illegal number of GPUs ({}) in package gpu command", ngpu);
 
   // Negative value indicate GPU package should find the best device ID
   int first_gpu_id = -1;
@@ -131,7 +131,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   _gpu_mode = GPU_NEIGH;
   _particle_split = 1.0;
   int nthreads = 0;
-  int newtonflag = 0;
+  int newtonflag = force->newton_pair;
   int threads_per_atom = -1;
   double binsize = 0.0;
   char *opencl_args = nullptr;
@@ -359,6 +359,8 @@ double FixGPU::memory_usage()
   // memory usage currently returned by pair routine
   return bytes;
 }
+
+/* ---------------------------------------------------------------------- */
 
 double FixGPU::binsize(const double subx, const double suby,
                        const double subz, const int nlocal,

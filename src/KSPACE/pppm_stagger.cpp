@@ -17,17 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_stagger.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
-#include "atom.h"
-#include "gridcomm.h"
-#include "domain.h"
-#include "memory.h"
-#include "error.h"
 
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -145,7 +145,7 @@ void PPPMStagger::compute(int eflag, int vflag)
   nstagger = 2;
 
   stagger = 0.0;
-  for (int n=0; n<nstagger; n++) {
+  for (int n = 0; n < nstagger; n++) {
 
     // find grid points for all my particles
     // map my particle charge onto my local 3d density grid
@@ -157,8 +157,8 @@ void PPPMStagger::compute(int eflag, int vflag)
     //   to fully sum contribution in their 3d bricks
     // remap from 3d decomposition to FFT decomposition
 
-    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                     REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     brick2fft();
 
     // compute potential gradient on my FFT grid and
@@ -172,21 +172,21 @@ void PPPMStagger::compute(int eflag, int vflag)
     // to fill ghost cells surrounding their 3d bricks
 
     if (differentiation_flag == 1)
-      gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                       FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else
-      gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
-                       FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     // extra per-atom energy/virial communication
 
     if (evflag_atom) {
       if (differentiation_flag == 1 && vflag_atom)
-        gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
-                         FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+                         gc_buf1,gc_buf2,MPI_FFT_SCALAR);
       else if (differentiation_flag == 0)
-        gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
-                         FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                         gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
 
     // calculate the force on my particles
@@ -197,7 +197,7 @@ void PPPMStagger::compute(int eflag, int vflag)
 
     if (evflag_atom) fieldforce_peratom();
 
-    stagger += 1.0/float(nstagger);
+    stagger += 1.0/nstagger;
   }
 
   // update qsum and qsqsum, if atom count has changed and energy needed

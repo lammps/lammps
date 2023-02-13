@@ -329,7 +329,7 @@ void Domain::set_lamda_box()
    assumes global box is defined and proc assignment has been made
    uses comm->xyz_split or comm->mysplit
      to define subbox boundaries in consistent manner
-   insure subhi[max] = boxhi
+   ensure subhi[max] = boxhi
 ------------------------------------------------------------------------- */
 
 void Domain::set_local_box()
@@ -982,7 +982,7 @@ void Domain::subbox_too_small_check(double thresh)
 
 static constexpr double MAXIMGCOUNT = 16;
 
-void Domain::minimum_image(double &dx, double &dy, double &dz)
+void Domain::minimum_image(double &dx, double &dy, double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
@@ -1058,7 +1058,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz)
    this should not be used if multiple box shifts are required
 ------------------------------------------------------------------------- */
 
-void Domain::minimum_image_once(double *delta)
+void Domain::minimum_image_once(double *delta) const
 {
   if (triclinic == 0) {
     if (xperiodic) {

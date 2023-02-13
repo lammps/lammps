@@ -79,7 +79,7 @@ Copy the LAMMPS executable (lmp_mpi or lmp) into this dir as lmp_mpi.
 Copy the LATTE executable LATTE_DOUBLE into this dir.
 The run commands below assume you have done this.
 
-(5) Insure LD_LIBRARY_PATH includes the dir where MDI was built in (1)
+(5) Ensure LD_LIBRARY_PATH includes the dir where MDI was built in (1)
 with its libmdi.so file, e.g. mdi/build/MDI_Library.  This is needed
 so when LATTE_DOUBLE runs as an executable it will able to find
 libmdi.so.

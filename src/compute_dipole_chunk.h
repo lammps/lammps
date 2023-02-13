@@ -23,6 +23,7 @@ ComputeStyle(dipole/chunk,ComputeDipoleChunk);
 #include "compute.h"
 
 namespace LAMMPS_NS {
+class Fix;
 
 class ComputeDipoleChunk : public Compute {
  public:
@@ -34,8 +35,8 @@ class ComputeDipoleChunk : public Compute {
   void lock_enable() override;
   void lock_disable() override;
   int lock_length() override;
-  void lock(class Fix *, bigint, bigint) override;
-  void unlock(class Fix *) override;
+  void lock(Fix *, bigint, bigint) override;
+  void unlock(Fix *) override;
 
   double memory_usage() override;
 

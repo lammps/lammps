@@ -1,17 +1,19 @@
 .. index:: pair_style dpd/ext
 .. index:: pair_style dpd/ext/kk
+.. index:: pair_style dpd/ext/omp
 .. index:: pair_style dpd/ext/tstat
 .. index:: pair_style dpd/ext/tstat/kk
+.. index:: pair_style dpd/ext/tstat/omp
 
 pair_style dpd/ext command
 ==========================
 
-Accelerator Variants: dpd/ext/kk
+Accelerator Variants: dpd/ext/kk dpd/ext/omp
 
 pair_style dpd/ext/tstat command
 ================================
 
-Accelerator Variants: dpd/ext/tstat/kk
+Accelerator Variants: dpd/ext/tstat/kk dpd/ext/tstat/omp
 
 Syntax
 """"""
@@ -113,10 +115,10 @@ each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the examples above:
 
 * A (force units)
-* :math:`\gamma_{\perp}` (force/velocity units)
 * :math:`\gamma_{\parallel}` (force/velocity units)
-* :math:`s_{\perp}` (unitless)
+* :math:`\gamma_{\perp}` (force/velocity units)
 * :math:`s_{\parallel}` (unitless)
+* :math:`s_{\perp}` (unitless)
 * :math:`r_c` (distance units)
 
 The last coefficient is optional. If not specified, the global DPD

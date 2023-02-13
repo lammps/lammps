@@ -59,10 +59,11 @@ if(DOWNLOAD_PLUMED)
 
   mark_as_advanced(PLUMED_URL)
   mark_as_advanced(PLUMED_MD5)
+  GetFallbackURL(PLUMED_URL PLUMED_FALLBACK)
 
   include(ExternalProject)
   ExternalProject_Add(plumed_build
-    URL     ${PLUMED_URL}
+    URL     ${PLUMED_URL} ${PLUMED_FALLBACK}
     URL_MD5 ${PLUMED_MD5}
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>

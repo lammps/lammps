@@ -464,8 +464,6 @@
 /atom_vec_oxdna.h
 /atom_vec_peri.cpp
 /atom_vec_peri.h
-/atom_vec_sphere_temp.cpp
-/atom_vec_sphere_temp.h
 /atom_vec_template.cpp
 /atom_vec_template.h
 /body_nparticle.cpp
@@ -1557,8 +1555,8 @@
 /fix_srp.h
 /fix_srp_react.cpp
 /fix_srp_react.h
-/fix_heat_flow_sphere_temp.cpp
-/fix_heat_flow_sphere_temp.h
+/fix_heat_flow.cpp
+/fix_heat_flow.h
 /fix_tfmc.cpp
 /fix_tfmc.h
 /fix_ttm.cpp

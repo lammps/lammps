@@ -12,12 +12,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_heat_flow_sphere_temp.h"
+#include "fix_heat_flow.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "modify.h"
 #include "respa.h"
 #include "update.h"
 
@@ -28,12 +30,14 @@ enum {NONE, CONSTANT, TYPE};
 
 /* ---------------------------------------------------------------------- */
 
-FixHeatFlowSphereTemp::FixHeatFlowSphereTemp(LAMMPS *lmp, int narg, char **arg) :
+FixHeatFlow::FixHeatFlow(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
   cp_style = NONE;
+  comm_forward = 1;
+  comm_reverse = 1;
 
   int ntypes = atom->ntypes;
   if (strcmp(arg[3],"constant") == 0) {
@@ -60,7 +64,7 @@ FixHeatFlowSphereTemp::FixHeatFlowSphereTemp(LAMMPS *lmp, int narg, char **arg) 
 
 /* ---------------------------------------------------------------------- */
 
-int FixHeatFlowSphereTemp::setmask()
+int FixHeatFlow::setmask()
 {
   int mask = 0;
   mask |= FINAL_INTEGRATE;
@@ -70,7 +74,7 @@ int FixHeatFlowSphereTemp::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHeatFlowSphereTemp::init()
+void FixHeatFlow::init()
 {
   dt = update->dt;
 
@@ -82,7 +86,26 @@ void FixHeatFlowSphereTemp::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHeatFlowSphereTemp::final_integrate()
+void FixHeatFlow::setup(int /*vflag*/)
+{
+  // Identify whether this is the first/last instance of fix heat/flow
+  first_flag = 0;
+  last_flag = 0;
+
+  int i = 0;
+  auto fixlist = modify->get_fix_by_style("heat/flow");
+  for (const auto &ifix : fixlist) {
+    if (strcmp(ifix->id, id) == 0) break;
+    i++;
+  }
+
+  if (i == 0) first_flag = 1;
+  if ((i + 1) == fixlist.size()) last_flag = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixHeatFlow::final_integrate()
 {
   // update temperature of atoms in group
 
@@ -95,6 +118,10 @@ void FixHeatFlowSphereTemp::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
+  // add ghost contributions to heatflow if first instance of fix
+  if (first_flag)
+    comm->reverse_comm(this);
+
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
@@ -106,11 +133,18 @@ void FixHeatFlowSphereTemp::final_integrate()
         temperature[i] += dt * heatflow[i] / (calc_cp(i) * mass[type[i]]);
       }
   }
+
+  // send updated temperatures to ghosts if last instance of fix
+  // then clear heatflow for next force calculation
+  if (last_flag) {
+    comm->forward_comm(this);
+    for (int i = 0; i < atom->nmax; i++) heatflow[i] = 0.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixHeatFlowSphereTemp::final_integrate_respa(int ilevel, int /*iloop*/)
+void FixHeatFlow::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dt = update->dt;
   final_integrate();
@@ -118,18 +152,81 @@ void FixHeatFlowSphereTemp::final_integrate_respa(int ilevel, int /*iloop*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixHeatFlowSphereTemp::reset_dt()
+void FixHeatFlow::reset_dt()
 {
   dt = update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixHeatFlowSphereTemp::calc_cp(int i)
+double FixHeatFlow::calc_cp(int i)
 {
   if (cp_style == TYPE) {
     return cp_type[atom->type[i]];
   } else {
     return cp;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixHeatFlow::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+{
+  int i, j, m;
+
+  double *temperature = atom->temperature;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = temperature[j];
+  }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixHeatFlow::unpack_forward_comm(int n, int first, double *buf)
+{
+  int i, m, last;
+
+  m = 0;
+  last = first + n;
+
+  double *temperature = atom->temperature;
+
+  for (i = first; i < last; i++) temperature[i] = buf[m++];
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixHeatFlow::pack_reverse_comm(int n, int first, double *buf)
+{
+  int i,k,last;
+
+  int m = 0;
+  last = first + n;
+  double *heatflow = atom->heatflow;
+
+  for (i = first; i < last; i++) {
+    buf[m++] = heatflow[i];
+  }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixHeatFlow::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int i,j,k,kk,ncount;
+
+  int m = 0;
+  double *heatflow = atom->heatflow;
+
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    heatflow[j] += buf[m++];
   }
 }

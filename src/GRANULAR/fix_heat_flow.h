@@ -13,33 +13,37 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(heat/flow/sphere/temp,FixHeatFlowSphereTemp);
+FixStyle(heat/flow,FixHeatFlow);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_HEAT_FLOW_SPHERE_TEMP_H
-#define LMP_FIX_HEAT_FLOW_SPHERE_TEMP_H
+#ifndef LMP_FIX_HEAT_FLOW_H
+#define LMP_FIX_HEAT_FLOW_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixHeatFlowSphereTemp : public Fix {
+class FixHeatFlow : public Fix {
  public:
-  FixHeatFlowSphereTemp(class LAMMPS *, int, char **);
+  FixHeatFlow(class LAMMPS *, int, char **);
 
   int setmask() override;
   void init() override;
+  void setup(int) override;
   void final_integrate() override;
   void final_integrate_respa(int, int) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
   void reset_dt() override;
 
  protected:
   double dt;
   double cp, *cp_type;
   int cp_style;
-
-  int mass_require;
+  int first_flag, last_flag;
 
   double calc_cp(int);
 };

@@ -73,7 +73,14 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE};
 
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
+
+// INT64_MAX cannot be represented with a double. reduce to avoid overflow when casting back.
+#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
+static constexpr double MAXBIGINT_DOUBLE = (double) (MAXBIGINT-512);
+#else
+static constexpr double MAXBIGINT_DOUBLE = (double) MAXBIGINT;
+#endif
 
 // constants for variable expressions. customize by adding new items.
 // if needed (cf. 'version') initialize in Variable class constructor.

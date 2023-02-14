@@ -95,8 +95,6 @@ typedef int64_t bigint;
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT_MAX
 #define MAXBIGINT INT64_MAX
-// INT64_MAX cannot be represented with a double. reduce to avoid overflow when casting back.
-#define MAXBIGINT_DOUBLE (INT64_MAX-512)
 
 #define MPI_LMP_TAGINT MPI_INT
 #define MPI_LMP_IMAGEINT MPI_INT
@@ -134,8 +132,6 @@ typedef int64_t bigint;
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT64_MAX
 #define MAXBIGINT INT64_MAX
-// INT64_MAX cannot be represented with a double. reduce to avoid overflow when casting back.
-#define MAXBIGINT_DOUBLE (INT64_MAX-512)
 
 #define MPI_LMP_TAGINT MPI_LL
 #define MPI_LMP_IMAGEINT MPI_LL
@@ -172,7 +168,6 @@ typedef int bigint;
 #define MAXSMALLINT INT_MAX
 #define MAXTAGINT INT_MAX
 #define MAXBIGINT INT_MAX
-#define MAXBIGINT_DOUBLE INT_MAX
 
 #define MPI_LMP_TAGINT MPI_INT
 #define MPI_LMP_IMAGEINT MPI_INT

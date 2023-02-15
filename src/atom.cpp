@@ -195,6 +195,10 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
   eff_plastic_strain_rate = nullptr;
   damage = nullptr;
 
+  // RHEO package
+
+  status = nullptr;
+
   // SPH package
 
   rho = drho = esph = desph = cv = nullptr;
@@ -521,6 +525,10 @@ void Atom::peratom_create()
   add_peratom("cc",&cc,DOUBLE,1);
   add_peratom("cc_flux",&cc_flux,DOUBLE,1,1);         // set per-thread flag
 
+  // RHEO package
+
+  add_peratom("status",&status,INT,0);
+
   // SPH package
 
   add_peratom("rho",&rho,DOUBLE,0);
@@ -625,6 +633,7 @@ void Atom::set_atomflag_defaults()
   rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
   cs_flag = csforce_flag = vforce_flag = ervelforce_flag = etag_flag = 0;
+  status_flag = 0;
   rho_flag = esph_flag = cv_flag = vest_flag = 0;
   dpd_flag = edpd_flag = tdpd_flag = 0;
   sp_flag = 0;
@@ -2911,7 +2920,12 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"vforce") == 0) return (void *) vforce;
   if (strcmp(name,"etag") == 0) return (void *) etag;
 
+  // RHEO package
+
+  if (strcmp(name,"status") == 0) return (void *) status;
+
   // SPH package
+
   if (strcmp(name,"rho") == 0) return (void *) rho;
   if (strcmp(name,"drho") == 0) return (void *) drho;
   if (strcmp(name,"esph") == 0) return (void *) esph;
@@ -3029,6 +3043,12 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"csforce") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"vforce") == 0) return LAMMPS_DOUBLE_2D;
   if (strcmp(name,"etag") == 0) return LAMMPS_INT;
+
+  // RHEO package
+
+  if (strcmp(name,"status") == 0) return LAMMPS_INT;
+
+  // SPH package
 
   if (strcmp(name,"rho") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"drho") == 0) return LAMMPS_DOUBLE;

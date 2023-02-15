@@ -107,8 +107,9 @@ dm_previous = None
 # --------------------------------------------
 
 def error(txt):
-  if me == 0: print("ERROR:",txt)
-  world.Abort()
+  if me == 0: print("ERROR:",txt,mpiexists=1)
+  if mpiexists: world.abort()
+  sys.exit()
   
 # --------------------------------------------
 # process non-MDI options to PySCF
@@ -616,10 +617,12 @@ def MDI_Plugin_init_pyscf_mdi(plugin_state):
 # --------------------------------------------
 
 if __name__== "__main__":
-  
+
+  # mdi_index = index in sys.argv of -mdi
   # mdi_option = single arg in quotes that follows -mdi
   # other_options = all non-MDI args
 
+  mdi_index = -1
   mdi_option = ""
   other_options = []
 
@@ -630,19 +633,24 @@ if __name__== "__main__":
   while iarg < narg:
     arg = args[iarg]
     if arg == "-mdi" or arg == "--mdi":
+      mdi_index = iarg
       if narg > iarg+1: mdi_option = sys.argv[iarg+1]
-      else: error("PySCF -mdi argument not provided")
+      else: error("PySCF -mdi argument not provided",0)
       iarg += 1
     else: other_options.append(arg)
     iarg += 1
 
-  if not mdi_option: error("PySCF -mdi option not provided")
+  if not mdi_option: error("PySCF -mdi option not provided",0)
+
+  # remove -mdi and its string from sys.argv
+  # so that PySCF does not try to process it
+  
+  sys.argv.pop(mdi_index)
+  sys.argv.pop(mdi_index)
 
   # disable this mode of MDI coupling for now
   # until issue on PySCF side is fixed
 
-  error("PySCF does not currently support running as independent executable")
-  
   # call MDI_Init with just -mdi option
   
   mdi.MDI_Init(mdi_option)

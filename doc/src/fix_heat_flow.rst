@@ -1,6 +1,6 @@
-.. index:: fix heat/flow/sphere/temp
+.. index:: fix heat/flow
 
-fix heat/flow/sphere/temp command
+fix heat/flow command
 ==========================
 
 Syntax
@@ -8,10 +8,10 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID heat/flow/sphere/temp style values ...
+   fix ID group-ID heat/flow style values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* heat/flow/sphere/temp = style name of this fix command
+* heat/flow = style name of this fix command
 * one style with corresponding value(s) needs to be listed
 
   .. parsed-literal::
@@ -29,8 +29,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all heat/flow/sphere/temp constant 1.0
-   fix 1 all heat/flow/sphere/temp type 1.0 0.5
+   fix 1 all heat/flow constant 1.0
+   fix 1 all heat/flow type 1.0 0.5
 
 Description
 """""""""""
@@ -57,12 +57,12 @@ Restrictions
 """"""""""""
 
 This fix requires that atoms store temperature and heat flow
-as defined by the :doc:`atom_style sphere/temp <atom_style>` command.
+as defined by the :doc:`fix property/atom <fix_property_atom>` command.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair granular <pair_granular>`
+:doc:`pair granular <pair_granular>`, :doc:`fix property/atom <fix_property_atom>`
 
 Default
 """""""

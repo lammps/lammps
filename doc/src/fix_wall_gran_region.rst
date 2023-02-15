@@ -208,9 +208,10 @@ The following value can either be a numeric value or an equal-style
 specified as v_name, where name is the variable name.  In this case, the
 variable will be evaluated each timestep, and its value used to determine
 the temperature. This option must be used in conjunction with a heat
-conduction model defined in :doc:`pair_style granular <pair_granular>`
-and a compatible atom style which stores temperature and a heat flow
-as defined by the :doc:`atom_style sphere/temp <atom_style>` command.
+conduction model defined in :doc:`pair_style granular <pair_granular>`,
+:doc:`fix property/atom <fix_property_atom>` to store temperature and a
+heat flow, and :doc:`fix heat/flow <fix_heat_flow>` to integrate heat
+flow.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

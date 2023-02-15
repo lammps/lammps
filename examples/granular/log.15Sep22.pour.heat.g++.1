@@ -1,10 +1,10 @@
-LAMMPS (15 Sep 2022)
+LAMMPS (22 Dec 2022)
 # pour one types of particles into cylinder and oscillate
 # temperature of the bottom plate
 
 variable        name string heat_plate
 
-atom_style      sphere/temp
+atom_style      sphere
 units           lj
 
 ###############################################
@@ -76,9 +76,11 @@ region          insreg cylinder z 5 5 4.45 ${drum_height} ${boxz}
 region          insreg cylinder z 5 5 4.45 30 ${boxz}
 region          insreg cylinder z 5 5 4.45 30 50
 
-fix             0 all balance 100 1.0 shift xy 5 1.1
-fix             1 all nve/sphere
-fix             2 all heat/flow/sphere/temp constant 1.0
+fix             0 all property/atom temperature heatflow
+WARNING: Fix property/atom mol, charge, rmass, temperature, or heatflow w/out ghost communication (../fix_property_atom.cpp:196)
+fix             1 all balance 100 1.0 shift xy 5 1.1
+fix             2 all nve/sphere
+fix             3 all heat/flow constant 1.0
 fix             grav all gravity 10 vector 0 0 -1
 fix             ins1 all pour 1000 1 1234 region insreg diam range ${dlo} ${dhi} dens ${dens} ${dens}
 fix             ins1 all pour 1000 1 1234 region insreg diam range 0.5 ${dhi} dens ${dens} ${dens}
@@ -101,8 +103,8 @@ neigh_modify    delay 0 every 1 check yes
 
 variable        oscillate equal 1.0*sin(step*0.0001)
 
-fix             3 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji region curved_wall
-fix             4 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji heat area 5.0 region bottom_wall temperature v_oscillate
+fix             4 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji region curved_wall
+fix             5 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tangential mindlin NULL 1.0 0.5 damping tsuji heat area 5.0 region bottom_wall temperature v_oscillate
 
 thermo_style    custom step atoms ke pxx pyy pzz
 thermo_modify   lost warn
@@ -1142,20 +1144,20 @@ WARNING: Less insertions than requested (../fix_pour.cpp:681)
      99800        2000  -0              7.9486941      7.5271104      6.5519215    
      99900        2000  -0              7.9486942      7.5271152      6.5519136    
     100000        2000  -0              7.9486939      7.5271185      6.5519079    
-Loop time of 87.7116 on 1 procs for 100000 steps with 2000 atoms
+Loop time of 85.1866 on 1 procs for 100000 steps with 2000 atoms
 
-Performance: 98504.589 tau/day, 1140.099 timesteps/s, 2.280 Matom-step/s
-99.5% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 101424.442 tau/day, 1173.894 timesteps/s, 2.348 Matom-step/s
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 66.081     | 66.081     | 66.081     |   0.0 | 75.34
-Neigh   | 2.7411     | 2.7411     | 2.7411     |   0.0 |  3.13
-Comm    | 1.3393     | 1.3393     | 1.3393     |   0.0 |  1.53
-Output  | 0.029473   | 0.029473   | 0.029473   |   0.0 |  0.03
-Modify  | 16.598     | 16.598     | 16.598     |   0.0 | 18.92
-Other   |            | 0.9233     |            |       |  1.05
+Pair    | 63.448     | 63.448     | 63.448     |   0.0 | 74.48
+Neigh   | 2.7318     | 2.7318     | 2.7318     |   0.0 |  3.21
+Comm    | 1.2139     | 1.2139     | 1.2139     |   0.0 |  1.43
+Output  | 0.030165   | 0.030165   | 0.030165   |   0.0 |  0.04
+Modify  | 16.878     | 16.878     | 16.878     |   0.0 | 19.81
+Other   |            | 0.8845     |            |       |  1.04
 
 Nlocal:           2000 ave        2000 max        2000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -1169,4 +1171,4 @@ Ave neighs/atom = 4.8175
 Neighbor list builds = 3285
 Dangerous builds = 0
 
-Total wall time: 0:01:27
+Total wall time: 0:01:25

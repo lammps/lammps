@@ -431,10 +431,11 @@ assumed to be in mass/distance\^2 units).
 If none of these cases are valid, then the mass is set to the density
 value directly (the input density is assumed to be in mass units).
 
-Keyword *temperature* sets the temperature of a finite-size particle
-as defined by the GRANULAR package. Currently, only
-:doc:`atom_style sphere/temperature <atom_style>` defines particles
-with this attribute. The values for the temperature must be positive.
+Keyword *temperature* sets the temperature of a finite-size particle.
+Currently, only the GRANULAR package supports this attribute. The
+temperature must be added using an instance of
+:doc:`fix property/atom <fix_property_atom>` The values for the
+temperature must be positive.
 
 Keyword *volume* sets the volume of all selected particles.  Currently,
 only the :doc:`atom_style peri <atom_style>` command defines particles

@@ -67,6 +67,7 @@ FixHeatFlow::FixHeatFlow(LAMMPS *lmp, int narg, char **arg) :
 int FixHeatFlow::setmask()
 {
   int mask = 0;
+  mask |= PRE_FORCE;
   mask |= FINAL_INTEGRATE;
   mask |= FINAL_INTEGRATE_RESPA;
   return mask;
@@ -88,9 +89,8 @@ void FixHeatFlow::init()
 
 void FixHeatFlow::setup(int /*vflag*/)
 {
-  // Identify whether this is the first/last instance of fix heat/flow
+  // Identify whether this is the first instance of fix heat/flow
   first_flag = 0;
-  last_flag = 0;
 
   int i = 0;
   auto fixlist = modify->get_fix_by_style("heat/flow");
@@ -100,7 +100,26 @@ void FixHeatFlow::setup(int /*vflag*/)
   }
 
   if (i == 0) first_flag = 1;
-  if ((i + 1) == fixlist.size()) last_flag = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixHeatFlow::setup_pre_force(int /*vflag*/)
+{
+  pre_force(0);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixHeatFlow::pre_force(int /*vflag*/)
+{
+  // send updated temperatures to ghosts if first instance of fix
+  // then clear heatflow for next force calculation
+  double *heatflow = atom->heatflow;
+  if (first_flag) {
+    comm->forward_comm(this);
+    for (int i = 0; i < atom->nmax; i++) heatflow[i] = 0.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,13 +151,6 @@ void FixHeatFlow::final_integrate()
       if (mask[i] & groupbit) {
         temperature[i] += dt * heatflow[i] / (calc_cp(i) * mass[type[i]]);
       }
-  }
-
-  // send updated temperatures to ghosts if last instance of fix
-  // then clear heatflow for next force calculation
-  if (last_flag) {
-    comm->forward_comm(this);
-    for (int i = 0; i < atom->nmax; i++) heatflow[i] = 0.0;
   }
 }
 

@@ -31,6 +31,8 @@ class FixHeatFlow : public Fix {
   int setmask() override;
   void init() override;
   void setup(int) override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
   void final_integrate() override;
   void final_integrate_respa(int, int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -43,7 +45,7 @@ class FixHeatFlow : public Fix {
   double dt;
   double cp, *cp_type;
   int cp_style;
-  int first_flag, last_flag;
+  int first_flag;
 
   double calc_cp(int);
 };

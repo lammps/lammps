@@ -244,7 +244,7 @@ accelerated styles exist.
 * :doc:`grem <fix_grem>` - implements the generalized replica exchange method
 * :doc:`halt <fix_halt>` - terminate a dynamics run or minimization
 * :doc:`heat <fix_heat>` - add/subtract momentum-conserving heat
-* :doc:`heat/flow/sphere/temp <fix_heat_flow_sphere_temp>` - plain time integration of heat flow with per-atom temperature updates
+* :doc:`heat/flow <fix_heat_flow>` - plain time integration of heat flow with per-atom temperature updates
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol

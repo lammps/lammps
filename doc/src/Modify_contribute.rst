@@ -80,8 +80,8 @@ integrated via pull requests on GitHub and cannot be merged without
 passing the automated testing and an approving review by a LAMMPS core
 developer.  Thus before submitting your contribution, you should first
 make certain, that your added or modified code compiles and works
-correctly with the latest patch-level or development version of LAMMPS
-and contains all bug fixes from it.
+correctly with the latest development version of LAMMPS and contains all
+bug fixes from it.
 
 Once you have prepared everything, see the :doc:`LAMMPS GitHub Tutorial
 <Howto_github>` page for instructions on how to submit your changes or

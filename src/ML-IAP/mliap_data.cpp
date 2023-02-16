@@ -118,24 +118,27 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
+  int nall = atom->nlocal + atom->nghost;
+  ntotal = nall;
+
   // grow nmax gradforce, elems arrays if necessary
 
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
-    memory->grow(gradforce,nmax,size_gradforce,
-                 "MLIAPData:gradforce");
     memory->grow(elems,nmax,"MLIAPData:elems");
- }
+    if (gradgradflag == 1) memory->grow(gradforce,nmax,size_gradforce,
+                             "MLIAPData:gradforce");
+  }
 
   // clear gradforce, elems arrays
 
-  int nall = atom->nlocal + atom->nghost;
-  ntotal = nall;
   for (int i = 0; i < nall; i++) {
-    for (int j = 0; j < size_gradforce; j++) {
-      gradforce[i][j] = 0.0;
-    }
     elems[i] = 0;
+    if (gradgradflag == 1){
+      for (int j = 0; j < size_gradforce; j++) {
+        gradforce[i][j] = 0.0;
+      }
+    }
   }
 
   // grow arrays if necessary
@@ -160,7 +163,6 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
   }
 
   grow_neigharrays();
-
   npairs = 0;
   int ij = 0;
   for (int ii = 0; ii < natomneigh; ii++) {

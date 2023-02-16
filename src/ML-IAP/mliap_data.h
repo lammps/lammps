@@ -84,7 +84,7 @@ class MLIAPData : protected Pointers {
   int nmax;
   class NeighList *list;    // LAMMPS neighbor list
   int *map;                 // map LAMMPS types to [0,nelements)
-  int gradgradflag;         // 1 for graddesc, 0 for gamma
+  int gradgradflag;         // 1 for graddesc, 0 for gamma, -1 for pair style
 };
 
 }    // namespace LAMMPS_NS

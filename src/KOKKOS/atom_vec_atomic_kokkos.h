@@ -71,4 +71,3 @@ class AtomVecAtomicKokkos : public AtomVecKokkos, public AtomVecAtomic {
 
 #endif
 #endif
-

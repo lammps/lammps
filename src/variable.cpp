@@ -771,10 +771,8 @@ int Variable::next(int narg, char **arg)
         error->one(FLERR,"Unexpected error while incrementing uloop style variable. "
                    "Please contact the LAMMPS developers.");
 
-      //printf("READ %d %d\n",universe->me,nextindex);
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
-      //printf("WRITE %d %d\n",universe->me,nextindex+1);
       fclose(fp);
       fp = nullptr;
       rename("tmp.lammps.variable.lock","tmp.lammps.variable");
@@ -1213,6 +1211,9 @@ void Variable::remove(int n)
     dvalue[i-1] = dvalue[i];
   }
   nvar--;
+  data[nvar] = nullptr;
+  reader[nvar] = nullptr;
+  names[nvar] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1907,12 +1908,14 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           char *var = retrieve(word+2);
           if (var == nullptr)
             print_var_error(FLERR,"Invalid variable evaluation in variable formula",ivar);
-          if (tree) {
-            auto newtree = new Tree();
-            newtree->type = VALUE;
-            newtree->value = atof(var);
-            treestack[ntreestack++] = newtree;
-          } else argstack[nargstack++] = atof(var);
+          if (utils::is_double(var)) {
+            if (tree) {
+              auto newtree = new Tree();
+              newtree->type = VALUE;
+              newtree->value = atof(var);
+              treestack[ntreestack++] = newtree;
+            } else argstack[nargstack++] = atof(var);
+          } else print_var_error(FLERR,"Non-numeric variable value in variable formula",ivar);
 
         // v_name = per-atom vector from atom-style variable
         // evaluate the atom-style variable as newtree

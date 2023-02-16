@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -24,8 +23,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MEAM::MEAM(Memory* mem)
-  : memory(mem)
+MEAM::MEAM(Memory *mem) : memory(mem)
 {
   phir = phirar = phirar1 = phirar2 = phirar3 = phirar4 = phirar5 = phirar6 = nullptr;
 
@@ -45,15 +43,14 @@ MEAM::MEAM(Memory* mem)
 
   neltypes = 0;
   for (int i = 0; i < maxelt; i++) {
-    A_meam[i] = rho0_meam[i] = beta0_meam[i] =
-      beta1_meam[i]= beta2_meam[i] = beta3_meam[i] =
-      t0_meam[i] = t1_meam[i] = t2_meam[i] = t3_meam[i] =
-      rho_ref_meam[i] = ibar_meam[i] = ielt_meam[i] =
-      t1m_meam[i] = t2m_meam[i] = t3m_meam[i] =
-      beta1m_meam[i] = beta2m_meam[i] = beta3m_meam[i] = 0.0;
+    A_meam[i] = rho0_meam[i] = beta0_meam[i] = beta1_meam[i] = beta2_meam[i] = beta3_meam[i] =
+        t0_meam[i] = t1_meam[i] = t2_meam[i] = t3_meam[i] = rho_ref_meam[i] = ibar_meam[i] =
+            ielt_meam[i] = t1m_meam[i] = t2m_meam[i] = t3m_meam[i] = beta1m_meam[i] =
+                beta2m_meam[i] = beta3m_meam[i] = 0.0;
     for (int j = 0; j < maxelt; j++) {
       lattce_meam[i][j] = FCC;
-      Ec_meam[i][j] = re_meam[i][j] = alpha_meam[i][j] = delta_meam[i][j] = ebound_meam[i][j] = attrac_meam[i][j] = repuls_meam[i][j] = 0.0;
+      Ec_meam[i][j] = re_meam[i][j] = alpha_meam[i][j] = delta_meam[i][j] = ebound_meam[i][j] =
+          attrac_meam[i][j] = repuls_meam[i][j] = 0.0;
       nn2_meam[i][j] = zbl_meam[i][j] = eltind[i][j] = 0;
     }
   }
@@ -63,44 +60,44 @@ MEAM::~MEAM()
 {
   if (copymode) return;
 
-  memory->destroy(this->phirar6);
-  memory->destroy(this->phirar5);
-  memory->destroy(this->phirar4);
-  memory->destroy(this->phirar3);
-  memory->destroy(this->phirar2);
-  memory->destroy(this->phirar1);
-  memory->destroy(this->phirar);
-  memory->destroy(this->phir);
+  memory->destroy(phirar6);
+  memory->destroy(phirar5);
+  memory->destroy(phirar4);
+  memory->destroy(phirar3);
+  memory->destroy(phirar2);
+  memory->destroy(phirar1);
+  memory->destroy(phirar);
+  memory->destroy(phir);
 
-  memory->destroy(this->rho);
-  memory->destroy(this->rho0);
-  memory->destroy(this->rho1);
-  memory->destroy(this->rho2);
-  memory->destroy(this->rho3);
-  memory->destroy(this->frhop);
-  memory->destroy(this->gamma);
-  memory->destroy(this->dgamma1);
-  memory->destroy(this->dgamma2);
-  memory->destroy(this->dgamma3);
-  memory->destroy(this->arho2b);
+  memory->destroy(rho);
+  memory->destroy(rho0);
+  memory->destroy(rho1);
+  memory->destroy(rho2);
+  memory->destroy(rho3);
+  memory->destroy(frhop);
+  memory->destroy(gamma);
+  memory->destroy(dgamma1);
+  memory->destroy(dgamma2);
+  memory->destroy(dgamma3);
+  memory->destroy(arho2b);
 
-  memory->destroy(this->arho1);
-  memory->destroy(this->arho2);
-  memory->destroy(this->arho3);
-  memory->destroy(this->arho3b);
-  memory->destroy(this->t_ave);
-  memory->destroy(this->tsq_ave);
+  memory->destroy(arho1);
+  memory->destroy(arho2);
+  memory->destroy(arho3);
+  memory->destroy(arho3b);
+  memory->destroy(t_ave);
+  memory->destroy(tsq_ave);
 
-  memory->destroy(this->scrfcn);
-  memory->destroy(this->dscrfcn);
-  memory->destroy(this->fcpair);
+  memory->destroy(scrfcn);
+  memory->destroy(dscrfcn);
+  memory->destroy(fcpair);
 
   // msmeam
-  if (this->msmeamflag){
-    memory->destroy(this->arho1m);
-    memory->destroy(this->arho2m);
-    memory->destroy(this->arho3m);
-    memory->destroy(this->arho2mb);
-    memory->destroy(this->arho3mb);
+  if (msmeamflag) {
+    memory->destroy(arho1m);
+    memory->destroy(arho2m);
+    memory->destroy(arho3m);
+    memory->destroy(arho2mb);
+    memory->destroy(arho3mb);
   }
 }

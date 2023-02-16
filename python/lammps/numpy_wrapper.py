@@ -277,6 +277,60 @@ class numpy_wrapper:
 
     # -------------------------------------------------------------------------
 
+  def gather_angles(self):
+    """ Retrieve global list of angles as NumPy array
+
+    This is a wrapper around :py:meth:`lammps.gather_angles() <lammps.lammps.gather_angles()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    .. versionadded:: TBD
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(nangles,4)
+    """
+    import numpy as np
+    nangles, value = self.lmp.gather_angles()
+    return np.ctypeslib.as_array(value).reshape(nangles,4)
+
+    # -------------------------------------------------------------------------
+
+  def gather_dihedrals(self):
+    """ Retrieve global list of dihedrals as NumPy array
+
+    This is a wrapper around :py:meth:`lammps.gather_dihedrals() <lammps.lammps.gather_dihedrals()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    .. versionadded:: TBD
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(ndihedrals,5)
+    """
+    import numpy as np
+    ndihedrals, value = self.lmp.gather_dihedrals()
+    return np.ctypeslib.as_array(value).reshape(ndihedrals,5)
+
+    # -------------------------------------------------------------------------
+
+  def gather_impropers(self):
+    """ Retrieve global list of impropers as NumPy array
+
+    This is a wrapper around :py:meth:`lammps.gather_impropers() <lammps.lammps.gather_impropers()>`
+    It behaves the same as the original method, but returns a NumPy array instead
+    of a ``ctypes`` list.
+
+    .. versionadded:: TBD
+
+    :return: the requested data as a 2d-integer numpy array
+    :rtype: numpy.array(nimpropers,5)
+    """
+    import numpy as np
+    nimpropers, value = self.lmp.gather_impropers()
+    return np.ctypeslib.as_array(value).reshape(nimpropers,5)
+
+    # -------------------------------------------------------------------------
+
   def fix_external_get_force(self, fix_id):
     """Get access to the array with per-atom forces of a fix external instance with a given fix ID.
 

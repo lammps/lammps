@@ -27,7 +27,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 Angle style *lepton* computes angular interactions between three atoms
 with a custom potential function.  The potential function must be

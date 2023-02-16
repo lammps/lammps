@@ -49,6 +49,7 @@ class KokkosLMP : protected Pointers {
   int neigh_thread_set;
   int neigh_transpose;
   int newtonflag;
+  int allow_overlap;
   double binsize;
 
   static int is_finalized;
@@ -56,7 +57,7 @@ class KokkosLMP : protected Pointers {
 
   KokkosLMP(class LAMMPS *, int, char **);
 
-  static void initialize(Kokkos::InitializationSettings, Error *);
+  static void initialize(const Kokkos::InitializationSettings&, Error *);
   static void finalize();
   void accelerator(int, char **);
   int neigh_count(int);

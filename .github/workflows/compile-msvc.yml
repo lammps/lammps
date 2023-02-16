@@ -44,7 +44,7 @@ jobs:
               -D BUILD_SHARED_LIBS=on \
               -D LAMMPS_EXCEPTIONS=on \
               -D ENABLE_TESTING=on
-        cmake --build build --config Release
+        cmake --build build --config Release --parallel 2
 
     - name: Run LAMMPS executable
       shell: bash

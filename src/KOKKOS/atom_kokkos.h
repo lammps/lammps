@@ -34,6 +34,7 @@ class AtomKokkos : public Atom {
   DAT::tdual_float_1d k_q;
   DAT::tdual_float_1d k_radius;
   DAT::tdual_float_1d k_rmass;
+  DAT::tdual_float_1d_4 k_mu;
   DAT::tdual_v_array k_omega;
   DAT::tdual_v_array k_angmom;
   DAT::tdual_f_array k_torque;

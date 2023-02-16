@@ -4,7 +4,7 @@ Run multiple simulations from one input script
 This can be done in several ways.  See the documentation for
 individual commands for more details on how these examples work.
 
-If "multiple simulations" means continue a previous simulation for
+If "multiple simulations" means to continue a previous simulation for
 more timesteps, then you simply use the :doc:`run <run>` command
 multiple times.  For example, this script
 

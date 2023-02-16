@@ -53,8 +53,10 @@ if(DOWNLOAD_KOKKOS)
   set(KOKKOS_MD5 "f140e02b826223b1045207d9bc10d404" CACHE STRING "MD5 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
   mark_as_advanced(KOKKOS_MD5)
+  GetFallbackURL(KOKKOS_URL KOKKOS_FALLBACK)
+
   ExternalProject_Add(kokkos_build
-    URL     ${KOKKOS_URL}
+    URL     ${KOKKOS_URL} ${KOKKOS_FALLBACK}
     URL_MD5 ${KOKKOS_MD5}
     CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a <INSTALL_DIR>/lib/libkokkoscontainers.a

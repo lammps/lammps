@@ -363,6 +363,7 @@ Broglie
 brownian
 brownw
 Broyden
+Bruskin
 Brusselle
 Bryantsev
 Btarget
@@ -2241,6 +2242,7 @@ msd
 msi
 MSI
 msm
+msmeam
 msmflag
 msse
 msst
@@ -2857,6 +2859,7 @@ ps
 Ps
 pscreen
 pscrozi
+pseudocode
 Pseudocode
 pseudodynamics
 pseudopotential

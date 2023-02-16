@@ -27,7 +27,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 Bond style *lepton* computes bonded interactions between two atoms with
 a custom function.  The potential function must be provided as an

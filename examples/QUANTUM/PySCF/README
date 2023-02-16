@@ -52,21 +52,13 @@ Python can find MDI:
 
 For bash:
 
-% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git"
+% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git/build"
 % hash -r
 
 For (t)csh:
 
-% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git
+% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git/build
 % rehash
-
-(d) Check import of 3 Python modules which the script that wraps LATTE
-will need:
-
-% python
->>> import numpy as np
->>> from mpi4py import MPI
->>> import MDI_Library as mdi
 
 ---------------------------------
 ---------------------------------

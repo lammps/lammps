@@ -114,18 +114,6 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
     region_zlo = region->extent_zlo;
     region_zhi = region->extent_zhi;
 
-    if (triclinic) {
-      if ((region_xlo < domain->boxlo_bound[0]) || (region_xhi > domain->boxhi_bound[0]) ||
-          (region_ylo < domain->boxlo_bound[1]) || (region_yhi > domain->boxhi_bound[1]) ||
-          (region_zlo < domain->boxlo_bound[2]) || (region_zhi > domain->boxhi_bound[2]))
-        error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
-    } else {
-      if ((region_xlo < domain->boxlo[0]) || (region_xhi > domain->boxhi[0]) ||
-          (region_ylo < domain->boxlo[1]) || (region_yhi > domain->boxhi[1]) ||
-          (region_zlo < domain->boxlo[2]) || (region_zhi > domain->boxhi[2]))
-        error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
-    }
-
     // estimate region volume using MC trials
 
     double coord[3];
@@ -279,6 +267,17 @@ void FixWidom::init()
   }
 
   triclinic = domain->triclinic;
+  if (triclinic) {
+    if ((region_xlo < domain->boxlo_bound[0]) || (region_xhi > domain->boxhi_bound[0]) ||
+        (region_ylo < domain->boxlo_bound[1]) || (region_yhi > domain->boxhi_bound[1]) ||
+        (region_zlo < domain->boxlo_bound[2]) || (region_zhi > domain->boxhi_bound[2]))
+      error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
+  } else {
+    if ((region_xlo < domain->boxlo[0]) || (region_xhi > domain->boxhi[0]) ||
+        (region_ylo < domain->boxlo[1]) || (region_yhi > domain->boxhi[1]) ||
+        (region_zlo < domain->boxlo[2]) || (region_zhi > domain->boxhi[2]))
+      error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
+  }
 
   ave_widom_chemical_potential = 0.0;
 
@@ -406,7 +405,7 @@ void FixWidom::init()
   beta = 1.0/(force->boltz*insertion_temperature);
 
   imagezero = ((imageint) IMGMAX << IMG2BITS) |
-             ((imageint) IMGMAX << IMGBITS) | IMGMAX;
+    ((imageint) IMGMAX << IMGBITS) | IMGMAX;
 
   // Current implementation is broken using
   // full_flag on molecules on more than one processor.

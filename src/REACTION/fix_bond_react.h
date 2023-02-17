@@ -33,7 +33,7 @@ namespace LAMMPS_NS {
 
 class FixBondReact : public Fix {
  public:
-  enum { MAXLINE = 256 };    // max length of line read from files
+  enum { MAXLINE = 1024 };    // max length of line read from files
   enum { MAXCONIDS = 4 };    // max # of IDs used by any constraint
   enum { MAXCONPAR = 5 };    // max # of constraint parameters
 

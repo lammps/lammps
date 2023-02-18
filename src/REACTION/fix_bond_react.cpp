@@ -939,7 +939,7 @@ void FixBondReact::post_integrate()
         if (var_flag[NRATE][rxnID] == 1) {
           my_nrate = input->variable->compute_equal(var_id[NRATE][rxnID]);
         } else my_nrate = rate_limit[1][rxnID];
-        if (nrxns_delta > my_nrate) rate_limit_flag = 0;
+        if (nrxns_delta >= my_nrate) rate_limit_flag = 0;
       }
     }
     if ((update->ntimestep % nevery[rxnID]) ||

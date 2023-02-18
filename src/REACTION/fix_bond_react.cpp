@@ -216,7 +216,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   // this looks excessive
   // the price of vectorization (all reactions in one command)?
-  memory->create(rxn_name,nreacts,MAXLINE,"bond/react:rxn_name");
+  memory->create(rxn_name,nreacts,MAXNAME,"bond/react:rxn_name");
   memory->create(nevery,nreacts,"bond/react:nevery");
   memory->create(cutsq,nreacts,2,"bond/react:cutsq");
   memory->create(unreacted_mol,nreacts,"bond/react:unreacted_mol");
@@ -287,7 +287,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
 
     int n = strlen(arg[iarg]) + 1;
-    if (n > MAXLINE) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
+    if (n > MAXNAME) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
     strcpy(rxn_name[rxn],arg[iarg++]);
 
     int groupid = group->find(arg[iarg++]);
@@ -4438,8 +4438,8 @@ void FixBondReact::write_restart(FILE *fp)
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
 
-    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE-1);
-    set[i].rxn_name[MAXLINE-1] = '\0';
+    strncpy(set[i].rxn_name,rxn_name[i],MAXNAME-1);
+    set[i].rxn_name[MAXNAME-1] = '\0';
   }
 
   int rbufcount = max_rate_limit_steps*nreacts;

@@ -48,9 +48,9 @@ Build using GNU make
 
 The LAMMPS manual is written in `reStructuredText <rst_>`_ format which
 can be translated to different output format using the `Sphinx
-<https://sphinx-doc.org>`_ document generator tool.  It also
+<https://sphinx-doc.org/>`_ document generator tool.  It also
 incorporates programmer documentation extracted from the LAMMPS C++
-sources through the `Doxygen <https://doxygen.nl>`_ program.  Currently
+sources through the `Doxygen <https://doxygen.nl/>`_ program.  Currently
 the translation to HTML, PDF (via LaTeX), ePUB (for many e-book readers)
 and MOBI (for Amazon Kindle readers) are supported.  For that to work a
 Python 3 interpreter, the ``doxygen`` tools and internet access to

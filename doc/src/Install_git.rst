@@ -163,10 +163,10 @@ changed.  How to do this depends on the build system you are using.
 .. admonition:: Git protocols
    :class: note
 
-   The servers at github.com support the "https://" access protocol for
+   The servers at github.com support the "https" access protocol for
    anonymous, read-only access.  If you have a suitably configured
    GitHub account, you may also use SSH protocol with the URL
-   "git@github.com:lammps/lammps.git".
+   ``git@github.com:lammps/lammps.git``.
 
 The LAMMPS GitHub project is currently overseen by Axel Kohlmeyer
 (Temple U, akohlmey at gmail.com).

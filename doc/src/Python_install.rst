@@ -15,9 +15,6 @@ Two components are necessary for Python to be able to invoke LAMMPS code:
   ``liblammps.dll``) from the folder where you compiled LAMMPS.
 
 .. _ctypes: https://docs.python.org/3/library/ctypes.html
-.. _python_virtualenv: https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/#creating-a-virtual-environment
-.. _python_venv: https://docs.python.org/3/library/venv.html
-.. _python_pep405: https://www.python.org/dev/peps/pep-0405
 
 .. _python_install_guides:
 
@@ -232,11 +229,11 @@ folder that the dynamic loader searches or inside of the installed
       install (newer/different) versions of Python packages that would
       potentially conflict with already installed system packages.  It
       also does not requite any superuser privileges. See `PEP 405:
-      Python Virtual Environments <python_pep405>`_ for more
+      Python Virtual Environments <https://peps.python.org/pep-0405/>`_ for more
       information.
 
       To create a virtual environment in the folder ``$HOME/myenv``,
-      use the `venv <python_venv>`_ module as follows.
+      use the `venv <https://docs.python.org/3/library/venv.html>`_ module as follows.
 
       .. code-block:: bash
 
@@ -244,8 +241,9 @@ folder that the dynamic loader searches or inside of the installed
          python3 -m venv $HOME/myenv
 
       For Python versions prior 3.3 you can use `virtualenv
-      <python_virtualenv>`_ command instead of "python3 -m venv".  This
-      step has to be done only once.
+      <https://packaging.python.org/en/latest/key_projects/#virtualenv>`_
+      command instead of "python3 -m venv".  This step has to be done
+      only once.
 
       To activate the virtual environment type:
 
@@ -414,10 +412,8 @@ follows:
 
      sudo pip install mpi4py
 
-.. _mpi4py_install: https://mpi4py.readthedocs.io/en/stable/install.html
-
 For more detailed installation instructions and additional options,
-please see the `mpi4py installation <mpi4py_install>`_ page.
+please see the `mpi4py installation <https://mpi4py.readthedocs.io/en/stable/install.html>`_ page.
 
 
 To use ``mpi4py`` and LAMMPS in parallel from Python, you **must** make

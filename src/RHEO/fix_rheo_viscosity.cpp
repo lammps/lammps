@@ -39,6 +39,7 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
   viscosity_style = NONE;
 
   comm_forward = 1;
+  nmax = atom->nmax;
 
   int ntypes = atom->ntypes;
   int iarg = 3;
@@ -107,8 +108,10 @@ void FixRHEOViscosity::init()
 
 void FixRHEOViscosity::setup_pre_force(int /*vflag*/)
 {
-  // Identify whether this is the last instance of fix viscosity
-  // Will handle communication
+  // Identify whether this is the first/last instance of fix viscosity
+  // First will handle growing arrays
+  // Last will handle communication
+  first_flag = 0
   last_flag = 0;
 
   int i = 0;
@@ -118,6 +121,7 @@ void FixRHEOViscosity::setup_pre_force(int /*vflag*/)
     i++;
   }
 
+  if (i == 0) first_flag = 1;
   if ((i + 1) == fixlist.size()) last_flag = 1;
 
   pre_force(0);
@@ -137,6 +141,11 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
 
   int nlocal = atom->nlocal;
   int dim = domain->dimension;
+
+  if (first_flag & nmax < atom->nmax) {
+    nmax = atom->nmax;
+    fix_rheo->fix_store_visc->grow_arrays(nmax);
+  }
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {

@@ -38,7 +38,8 @@ class FixRHEOViscosity : public Fix {
   double *eta_type, eta;
   double  npow, K, gd0, tau0;
   int viscosity_style;
-  int last_flag;
+  int first_flag, last_flag;
+  int nmax;
   class FixRHEO *fix_rheo;
   class ComputeRHEOGrad *compute_grad;
 };

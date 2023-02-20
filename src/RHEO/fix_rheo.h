@@ -41,16 +41,24 @@ class FixRHEO : public Fix {
   int thermal_flag;
   int rhosum_flag;
   int shift_flag;
-  int solid_flag;
+  int interface_flag;
+  int surface_flag;
 
-  int thermal_fix_defined;
   int viscosity_fix_defined;
   int pressure_fix_defined;
+  int thermal_fix_defined;
+  int surface_fix_defined;
 
-  // Non-persistent per-atom arrays are initialized here
+  // Non-persistent per-atom arrays
   int *surface;
   double *conductivity, *viscosity, *pressure;
   double **f_pressure;
+
+  class FixStorePeratom *fix_store_visc;
+  class FixStorePeratom *fix_store_pres;
+  class FixStorePeratom *fix_store_cond;
+  class FixStorePeratom *fix_store_surf;
+  class FixStorePeratom *fix_store_fp;
 
   class ComputeRHEOGrad *compute_grad;
   class ComputeRHEOKernel *compute_kernel;

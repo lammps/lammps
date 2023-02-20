@@ -21,6 +21,7 @@
 #include "compute_rheo_vshift.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "modify.h"
 #include "update.h"
@@ -33,14 +34,29 @@ using namespace FixConst;
 
 FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), compute_grad(nullptr), compute_kernel(nullptr),
-  compute_interface(nullptr), compute_rhosum(nullptr), compute_vshift(nullptr)
+  compute_interface(nullptr), compute_rhosum(nullptr), compute_vshift(nullptr),
+  fix_store_visc(nullptr), fix_store_pres(nullptr), fix_store_cond(nullptr),
+  fix_store_surf(nullptr), fix_store_fp(nullptr), surface(nullptr), conductivity(nullptr),
+  viscosity(nullptr), pressure(nullptr), f_pressure(nullptr)
 {
+  time_integrate = 1;
+
+  viscosity_fix_defined = 0;
+  pressure_fix_defined = 0;
+  thermal_fix_defined = 0;
+  surface_fix_defined = 0;
+
   thermal_flag = 0;
   rhosum_flag = 0;
   shift_flag = 0;
-  solid_flag = 0;
+  interface_flag = 0;
+  surface_flag = 0;
+
   rho0 = 1.0;
   csq = 1.0;
+
+  if (igroup != 0)
+    error->all(FLERR,"fix rheo command requires group all");
 
   if (atom->rho_flag != 1)
     error->all(FLERR,"fix rheo command requires atom_style with density");
@@ -68,6 +84,10 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       shift_flag = 1;
     } else if (strcmp(arg[iarg],"thermal") == 0) {
       thermal_flag = 1;
+    } else if (strcmp(arg[iarg],"surface/detection") == 0) {
+      surface_flag = 1;
+    } else if (strcmp(arg[iarg],"interface/reconstruction") == 0) {
+      interface_flag = 1;
     } else if (strcmp(arg[iarg],"rhosum") == 0) {
       rhosum_flag = 1;
       if(iarg + 1 >= narg) error->all(FLERR,"Illegal rhosum option in fix rheo");
@@ -86,17 +106,18 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
     }
     iarg += 1;
   }
-
-  time_integrate = 1;
-  thermal_fix_defined = 0;
-  viscosity_fix_defined = 0;
-  pressure_fix_defined = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixRHEO::~FixRHEO()
 {
+  if (fix_store_visc) modify->delete_fix("rheo_store_visc");
+  if (fix_store_pres) modify->delete_fix("rheo_store_pres");
+  if (fix_store_surf) modify->delete_fix("rheo_store_surf");
+  if (fix_store_cond) modify->delete_fix("rheo_store_cond");
+  if (fix_store_fp) modify->delete_fix("rheo_store_fp");
+
   if (compute_kernel) modify->delete_compute("rheo_kernel");
   if (compute_grad) modify->delete_compute("rheo_grad");
   if (compute_interface) modify->delete_compute("rheo_interface");
@@ -110,13 +131,18 @@ void FixRHEO::post_constructor()
 {
   compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute(fmt::format("rheo_kernel all rheo/kernel {} {} {}", kernel_style, zmin_kernel, cut)));
 
-  if (thermal_flag)
-    compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(fmt::format("rheo_grad all rheo/grad {}  velocity rho viscosity temprature", cut)));
-  else
-    compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(fmt::format("rheo_grad all rheo/grad {}  velocity rho viscosity", cut)));
-  compute_grad->fix_rheo = this;
+  fix_store_visc = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_visc all STORE/PERATOM 0 1"))
+  fix_store_visc->disable = 1;
+  viscosity = fix_store_visc->vstore;
+  fix_store_pres = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_pres all STORE/PERATOM 0 1"))
+  pressure = fix_store_pres->vstore;
+  fix_store_pres->disable = 1;
 
-  compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all rheo/interface {}", cut)));
+
+  std::string cmd = "rheo_grad all rheo/grad {} velocity rho viscosity";
+  if (thermal_flag) cmd += "temperature";
+  compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(fmt::format(cmd, cut)));
+  compute_grad->fix_rheo = this;
 
   if (rhosum_flag)
     compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute(fmt::format("rheo_rhosum all rheo/rho/sum {} {}", cut, zmin_rhosum)));
@@ -124,11 +150,25 @@ void FixRHEO::post_constructor()
   if (shift_flag)
     compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute(fmt::format("rheo_vshift all rheo/vshift {}", cut)));
 
+  if (surface_flag) {
+    fix_store_surf = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_surf all STORE/PERATOM 0 1"))
+    surface = fix_store_surf->vstore;
+    fix_store_surf->disable = 1;
+  }
 
-  //todo here
-  //allocate memory for viscosity, pressure, etc
-  //don't want to save to restart/datafiles (could disable fix store/state)
-  //but do want it available for dupm files
+  if (thermal_flag) {
+    fix_store_cond = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_cond all STORE/PERATOM 0 1"))
+    conductivity = fix_store_cond->vstore;
+    fix_store_cond->disable = 1;
+  }
+
+  if (interface_flag) {
+    compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all rheo/interface {}", cut)));
+
+    fix_store_fp = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_fp all STORE/PERATOM 0 3"))
+    f_pressure = fix_store_fp->astore;
+    fix_store_fp->disable = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -158,19 +198,23 @@ void FixRHEO::init()
 void FixRHEO::setup_pre_force(int /*vflag*/)
 {
   // Check to confirm all accessory fixes are defined
-  if(!thermal_fix_defined && thermal_flag)
-    error->all(FLERR, "Missing fix rheo/thermal");
-
   if (!viscosity_fix_defined)
     error->all(FLERR, "Missing fix rheo/viscosity");
 
   if (!pressure_fix_defined)
     error->all(FLERR, "Missing fix rheo/pressure");
 
+  if(!thermal_fix_defined && thermal_flag)
+    error->all(FLERR, "Missing fix rheo/thermal");
+
+  if(!surface_fix_defined && surface_flag)
+    error->all(FLERR, "Missing fix rheo/surface");
+
   // Reset to zero for next run
   thermal_fix_defined = 0;
   viscosity_fix_defined = 0;
   pressure_fix_defined = 0;
+  surface_fix_defined = 0;
 
   pre_force(0);
 }

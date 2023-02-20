@@ -97,7 +97,7 @@ void FixBondHistory::post_constructor()
 
 void FixBondHistory::update_atom_value(int i, int m, int idata, double value)
 {
-  if (idata >= ndata || m > nbond) error->all(FLERR, "Index exceeded in fix bond history");
+  if (idata >= ndata || m > nbond) error->one(FLERR, "Index exceeded in fix bond history");
   atom->darray[index][i][m * ndata + idata] = value;
 }
 
@@ -105,7 +105,7 @@ void FixBondHistory::update_atom_value(int i, int m, int idata, double value)
 
 double FixBondHistory::get_atom_value(int i, int m, int idata)
 {
-  if (idata >= ndata || m > nbond) error->all(FLERR, "Index exceeded in fix bond history");
+  if (idata >= ndata || m > nbond) error->one(FLERR, "Index exceeded in fix bond history");
   return atom->darray[index][i][m * ndata + idata];
 }
 

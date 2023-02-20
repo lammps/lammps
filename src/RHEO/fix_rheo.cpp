@@ -114,6 +114,7 @@ void FixRHEO::post_constructor()
     compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(fmt::format("rheo_grad all rheo/grad {}  velocity rho viscosity temprature", cut)));
   else
     compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(fmt::format("rheo_grad all rheo/grad {}  velocity rho viscosity", cut)));
+  compute_grad->fix_rheo = this;
 
   compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all rheo/interface {}", cut)));
 

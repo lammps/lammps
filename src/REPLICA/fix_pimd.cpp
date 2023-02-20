@@ -112,6 +112,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
   removecomflag = 1;
   fmmode        = physical;
   pstyle        = ISO;
+  for (int i=0; i<6; i++) p_flag[i] = 0;
 
   for (int i = 3; i < narg - 1; i += 2) {
     if (strcmp(arg[i], "method") == 0) {

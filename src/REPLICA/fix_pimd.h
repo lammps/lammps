@@ -129,6 +129,7 @@ class FixPIMD : public Fix {
   int pstat_flag; // pstat_flag = 1 if barostat is used
   int pstyle; // pstyle = ISO or ANISO (will support TRICLINIC in the future)
   double W, tau_p, Pext, totenthalpy = 0.0, Vcoeff;
+  int p_flag[6];
   double vw[6]; // barostat velocity
   double ke_tensor[6]; // kinetic energy tensor
   double c_vir_tensor[6]; // centroid-virial tensor

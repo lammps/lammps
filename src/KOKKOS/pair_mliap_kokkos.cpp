@@ -278,7 +278,7 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
       h_cutsq(itype,jtype) = descriptor->cutsq[map[itype]][map[jtype]];
   k_cutsq.modify<LMPHostType>();
   k_cutsq.sync<DeviceType>();
-  int gradgradflag = -1;
+  constexpr int gradgradflag = -1;
   delete data;
   data = new MLIAPDataKokkos<DeviceType>(lmp, gradgradflag, map, model, descriptor, this);
   data->init();

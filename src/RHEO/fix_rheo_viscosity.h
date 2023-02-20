@@ -11,49 +11,36 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
+#ifdef FIX_CLASS
 // clang-format off
-ComputeStyle(rheo/grad,ComputeRHEOGrad)
+FixStyle(rheo/viscosity,FixRHEOViscosity)
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_RHEO_GRAD_H
-#define LMP_COMPUTE_RHEO_GRAD_H
+#ifndef LMP_FIX_RHEO_VISCOSITY_H
+#define LMP_FIX_RHEO_VISCOSITY_H
 
-#include "compute.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class ComputeRHEOGrad : public Compute {
+class FixRHEOViscosity : public Fix {
  public:
-  ComputeRHEOGrad(class LAMMPS *, int, char **);
-  ~ComputeRHEOGrad();
+  FixRHEOViscosity(class LAMMPS *, int, char **);
+  ~FixRHEOViscosity();
+  int setmask() override;
   void init() override;
-  void init_list(int, class NeighList *) override;
-  void compute_peratom() override;
+  virtual void setup_pre_force(int) override;
+  void pre_force(int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
-  int pack_reverse_comm(int, int, double *) override;
-  void unpack_reverse_comm(int, int *, double *) override;
-  void forward_gradients();
-  void forward_fields();
-  double **gradv;
-  double **gradr;
-  double **gradt;
-  double **gradn;
-  int stage;
-
  private:
-  int comm_stage;
-  int ncomm_grad, ncomm_field;
-  double cut, cutsq, rho0;
-  class NeighList *list;
-
+  double *eta_type, eta;
+  double  npow, K, gd0, tau0;
+  int viscosity_style;
+  int last_flag;
   class FixRHEO *fix_rheo;
-  class ComputeRHEOKernel *compute_kernel;
-  class ComputeRHEOInterface *compute_interface;
-
-  int velocity_flag, temperature_flag, rho_flag, eta_flag;
+  class ComputeRHEOGrad *compute_grad;
 };
 
 }    // namespace LAMMPS_NS

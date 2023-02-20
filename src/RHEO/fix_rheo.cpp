@@ -123,6 +123,12 @@ void FixRHEO::post_constructor()
 
   if (shift_flag)
     compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute(fmt::format("rheo_vshift all rheo/vshift {}", cut)));
+
+
+  //todo here
+  //allocate memory for viscosity, pressure, etc
+  //don't want to save to restart/datafiles (could disable fix store/state)
+  //but do want it available for dupm files
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,6 +148,9 @@ void FixRHEO::init()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
+
+  if (modify->get_fix_by_style("rheo").size() > 1)
+    error->all(FLERR,"Can only specify one instance of fix rheo");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -23,11 +23,8 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "pair.h"
-#include "memory.h"
 #include "modify.h"
 #include "update.h"
-#include "utils.h"
 
 #include <cmath>
 #include <string>
@@ -52,14 +49,13 @@ ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
     else error->all(FLERR, "Illegal compute rheo/grad command, {}", arg[iarg]);
   }
 
-  dim = domain->dimension;
-
   ncomm_grad = 0;
   ncomm_field = 0;
   comm_reverse = 0;
 
   std::string fix_cmd = "rheo_grad_property_atom all property/atom"
 
+  int dim = domain->dimension;
   if (velocity_flag) {
     ncomm_grad += dim * dim;
     ncomm_field += dim;
@@ -165,6 +161,7 @@ void ComputeRHEOGrad::compute_peratom()
   int *type = atom->type;
   double *mass = atom->mass;
   int newton = force->newton;
+  int dim = domain->dimension;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -310,6 +307,7 @@ int ComputeRHEOGrad::pack_forward_comm(int n, int *list, double *buf,
   double *temperature = atom->temperature;
   double *eta = atom->viscosity;
   double **v = atom->v;
+  int dim = domain->dimension;
 
   m = 0;
 
@@ -363,6 +361,7 @@ void ComputeRHEOGrad::unpack_forward_comm(int n, int first, double *buf)
   double * rho = atom->rho;
   double * temperature = atom->temperature;
   double ** v = atom->v;
+  int dim = domain->dimension;
 
   m = 0;
   last = first + n;
@@ -404,6 +403,7 @@ void ComputeRHEOGrad::unpack_forward_comm(int n, int first, double *buf)
 int ComputeRHEOGrad::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,k,m,last;
+  int dim = domain->dimension;
 
   m = 0;
   last = first + n;
@@ -433,6 +433,7 @@ int ComputeRHEOGrad::pack_reverse_comm(int n, int first, double *buf)
 void ComputeRHEOGrad::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,k,j,m;
+  int dim = domain->dimension;
 
   m = 0;
   for (i = 0; i < n; i++) {

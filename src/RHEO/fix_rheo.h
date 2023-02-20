@@ -47,7 +47,8 @@ class FixRHEO : public Fix {
   int viscosity_fix_defined;
   int pressure_fix_defined;
 
-  int *status, *surface;
+  // Non-persistent per-atom arrays are initialized here
+  int *surface;
   double *conductivity, *viscosity, *pressure;
   double **f_pressure;
 

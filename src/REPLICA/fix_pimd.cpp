@@ -165,6 +165,17 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), rando
       temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd");
     } 
+
+    else if (strcmp(arg[i], "lj") == 0) {
+      lj_epsilon = utils::numeric(FLERR, arg[i+1], false, lmp);
+      lj_sigma = utils::numeric(FLERR, arg[i+2], false, lmp);
+      lj_mass = utils::numeric(FLERR, arg[i+3], false, lmp);
+      other_planck = utils::numeric(FLERR, arg[i+4], false, lmp);
+      i++;
+      i++;
+      i++;
+    }
+
     else if(strcmp(arg[i], "thermostat")==0)
     {
       if(strcmp(arg[i+1],"PILE_L")==0) 
@@ -374,7 +385,13 @@ void FixPIMD::init()
   inverse_np = 1.0 / np;
 
   const double Boltzmann = force->boltz;
-  const double Planck = force->hplanck;
+  if (strcmp(update->unit_style,"lj") == 0) { 
+    double planck_star = sqrt(lj_epsilon)*sqrt(atom->mass[0])*lj_sigma;
+    planck = other_planck / planck_star;
+  }
+  else planck = force->hplanck;
+  const double Planck = planck;
+  printf("planck = %.6e\n", planck);
 
   if(force->boltz == 1.0) { hbar = Planck; }
   else { hbar = Planck / (2.0 * MY_PI); }

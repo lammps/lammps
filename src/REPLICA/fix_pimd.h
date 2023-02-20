@@ -47,7 +47,9 @@ class FixPIMD : public Fix {
   int np; // number of beads
   double inverse_np; // 1.0/np
   double temp; // temperature
-  double hbar; // Planck's constant
+  double planck, hbar; // Planck's constant
+  double lj_epsilon, lj_sigma, lj_mass; // LJ unit energy, length, and mass scales
+  double other_planck;
   double kBT; // k_B * temp
   double beta, beta_np; // beta = 1./kBT beta_np = 1./kBT/np
   int thermostat; // NHC or PILE_L

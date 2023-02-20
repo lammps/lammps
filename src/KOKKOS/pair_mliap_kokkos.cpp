@@ -185,7 +185,6 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
         new_args.push_back(arg[iarg++]);
     } else if (strcmp(arg[iarg], "unified") == 0) {
 #ifdef MLIAP_PYTHON
-      printf("IN SETUP UNIFIED\n");
       if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definitions");
       if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definitions");
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap unified", error);

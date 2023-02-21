@@ -88,6 +88,18 @@ function(get_lammps_version version_header variable)
     set(${variable} "${date}" PARENT_SCOPE)
 endfunction()
 
+# determine canonical URL for downloading backup copy from download.lammps.org/thirdparty
+function(GetFallbackURL input output)
+  string(REPLACE "_URL" "" _tmp ${input})
+  string(TOLOWER ${_tmp} libname)
+  string(REGEX REPLACE "^https://.*/([^/]+gz)" "${LAMMPS_THIRDPARTY_URL}/${libname}-\\1" newurl "${${input}}")
+  if ("${newurl}" STREQUAL "${${input}}")
+    set(${output} "" PARENT_SCOPE)
+  else()
+    set(${output} ${newurl} PARENT_SCOPE)
+  endif()
+endfunction(GetFallbackURL)
+
 #################################################################################
 # LAMMPS C++ interface. We only need the header related parts except on windows.
 add_library(lammps INTERFACE)

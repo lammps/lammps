@@ -27,7 +27,7 @@ Define a computation that outputs the time rate of the equivalent
 plastic strain.  This command is only meaningful if a material model
 with plasticity is defined.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth
 Mach Dynamics in LAMMPS.
 
 **Output Info:**

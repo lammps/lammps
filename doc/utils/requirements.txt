@@ -6,3 +6,4 @@ breathe
 Pygments
 six
 pyyaml
+linkchecker

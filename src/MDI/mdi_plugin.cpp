@@ -64,7 +64,7 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       extra_arg = arg[iarg + 1];
 
       // do variable substitution in multiple word extra_arg
-      
+
       int ncopy = strlen(extra_arg) + 1;
       char *copy = utils::strdup(extra_arg);
       char *work = new char[ncopy];
@@ -72,14 +72,14 @@ MDIPlugin::MDIPlugin(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
       input->substitute(copy,work,ncopy,nwork,0);
       delete[] work;
       extra_arg = copy;
-      
+
       iarg += 2;
     } else if (strcmp(arg[iarg], "command") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal mdi plugin command");
       lammps_command = arg[iarg + 1];
 
       // do variable substitution in multiple word lammps_command
-      
+
       int ncopy = strlen(lammps_command) + 1;
       char *copy = utils::strdup(lammps_command);
       char *work = new char[ncopy];

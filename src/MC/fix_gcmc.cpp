@@ -721,7 +721,7 @@ void FixGCMC::pre_exchange()
   if (next_reneighbor != update->ntimestep) return;
 
   mc_active = 1;
-  
+
   xlo = domain->boxlo[0];
   xhi = domain->boxhi[0];
   ylo = domain->boxlo[1];
@@ -799,7 +799,7 @@ void FixGCMC::pre_exchange()
       }
     }
   }
-  
+
   next_reneighbor = update->ntimestep + nevery;
 
   mc_active = 0;

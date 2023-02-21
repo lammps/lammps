@@ -49,7 +49,7 @@ class FixMDIQMMM : public Fix {
 
   double compute_scalar() override;
   double memory_usage() override;
-  
+
  private:
   int nprocs;
   int virialflag, connectflag;
@@ -61,14 +61,14 @@ class FixMDIQMMM : public Fix {
 
   int lmpunits;        // REAL, METAL, or NATIVE
   int first_send;      // 1 until initial info passed to MDI engine
-  
+
   double qm_energy;
   double qm_virial[9], qm_virial_symmetric[6];
 
   MDI_Comm mdicomm;
 
   class Pair *pair_coul;    // ptr to instance of pair coul variant
-  
+
   // data for QM portion
 
   int nqm;                   // # of QM atoms
@@ -83,7 +83,7 @@ class FixMDIQMMM : public Fix {
   int *eqm_mine;
   int *qm2owned;             // index of local atom for each QM atom
                              // index = -1 if this proc does not own
-  
+
   double *ecoul;             // peratom Coulombic energy from LAMMPS
   int ncoulmax;              // length of ecoul
 
@@ -114,10 +114,10 @@ class FixMDIQMMM : public Fix {
 
   void create_qm_list();
   void create_mm_list();
-  
+
   void set_qm2owned();
   void set_mm2owned();
-  
+
   void set_eqm();
   void set_tqm();
   void set_qqm();
@@ -126,7 +126,7 @@ class FixMDIQMMM : public Fix {
   void set_emm();
   void set_qmm();
   void set_xmm();
-  
+
   void send_box();
   void unit_conversions();
 

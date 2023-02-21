@@ -102,7 +102,6 @@ void FixRHEOViscosity::init()
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
-  fix_rheo->viscosity_fix_defined = 1;
   compute_grad = fix_rheo->compute_grad;
 }
 
@@ -110,6 +109,8 @@ void FixRHEOViscosity::init()
 
 void FixRHEOViscosity::setup_pre_force(int /*vflag*/)
 {
+  fix_rheo->viscosity_fix_defined = 1;
+
   // Identify whether this is the first/last instance of fix viscosity
   // First will handle growing arrays
   // Last will handle communication

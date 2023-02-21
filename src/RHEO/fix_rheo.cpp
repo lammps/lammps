@@ -197,8 +197,22 @@ void FixRHEO::init()
 
 void FixRHEO::setup_pre_force(int /*vflag*/)
 {
-  //Need to rethink and replan
+  // Check to confirm no accessory fixes are yet defined
+  // FixRHEO must be the first fix
+  // Note: these fixes set this flag in setup_pre_force()
+  if (viscosity_fix_defined || pressure_fix_defined || thermal_fix_defined || surface_fix_defined)
+    error->all(FLERR, "Fix RHEO must be defined before all other RHEO fixes");
+
+  pre_force(0);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRHEO::setup()
+{
   // Check to confirm all accessory fixes are defined
+  // Does not ensure fixes correctly cover all atoms (could be a subset group)
+  // Note: these fixes set this flag in setup_pre_force()
   if (!viscosity_fix_defined)
     error->all(FLERR, "Missing fix rheo/viscosity");
 
@@ -216,8 +230,6 @@ void FixRHEO::setup_pre_force(int /*vflag*/)
   viscosity_fix_defined = 0;
   pressure_fix_defined = 0;
   surface_fix_defined = 0;
-
-  pre_force(0);
 }
 
 /* ---------------------------------------------------------------------- */

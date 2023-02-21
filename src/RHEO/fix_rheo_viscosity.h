@@ -27,10 +27,11 @@ namespace LAMMPS_NS {
 class FixRHEOViscosity : public Fix {
  public:
   FixRHEOViscosity(class LAMMPS *, int, char **);
-  ~FixRHEOViscosity();
+  ~FixRHEOViscosity() override;
   int setmask() override;
   void init() override;
-  virtual void setup_pre_force(int) override;
+  void setup_pre_force(int) override;
+  void post_neighbor() override;
   void pre_force(int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;

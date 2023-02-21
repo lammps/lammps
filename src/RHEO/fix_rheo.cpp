@@ -197,6 +197,7 @@ void FixRHEO::init()
 
 void FixRHEO::setup_pre_force(int /*vflag*/)
 {
+  //Need to rethink and replan
   // Check to confirm all accessory fixes are defined
   if (!viscosity_fix_defined)
     error->all(FLERR, "Missing fix rheo/viscosity");

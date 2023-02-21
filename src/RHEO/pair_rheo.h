@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class PairRHEO : public Pair {
  public:
   PairRHEO(class LAMMPS *);
-  virtual ~PairRHEO();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void setup();
-  virtual double init_one(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
+  ~PairRHEO() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void setup() override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   int laplacian_order;          // From fix RHEO

@@ -38,35 +38,36 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
 
   viscosity_style = NONE;
 
-  comm_forward = 1;
+  comm_forward = 0;
   nmax = atom->nmax;
 
   int ntypes = atom->ntypes;
   int iarg = 3;
   if (strcmp(arg[iarg],"constant") == 0) {
-    if (iarg+1 >= narg) error->all(FLERR,"Insufficient arguments for fix rheo/viscosity");
+    if (iarg+1 >= narg) error->all(FLERR,"Insufficient arguments for viscosity option");
     viscosity_style = CONSTANT;
     eta = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
-    if (eta < 0.0) error->all(FLERR,"The viscosity must be positive in fix rheo/viscosity");
+    if (eta < 0.0) error->all(FLERR,"The viscosity must be positive");
     iarg += 1;
   } else if (strcmp(arg[iarg],"type") == 0) {
-    if(iarg+ntypes >= narg) error->all(FLERR,"Insufficient arguments for fix rheo/viscosity");
+    if(iarg+ntypes >= narg) error->all(FLERR,"Insufficient arguments for viscosity option");
     viscosity_style = TYPE;
     memory->create(eta_type, ntypes + 1, "rheo_thermal:eta_type");
     for (int i = 1; i <= ntypes; i++) {
       eta_type[i] = utils::numeric(FLERR,arg[iarg + 1 + i], false, lmp);
-      if (eta_type[i] < 0.0) error->all(FLERR,"The viscosity must be positive in fix rheo/viscosity");
+      if (eta_type[i] < 0.0) error->all(FLERR,"The viscosity must be positive");
     }
     iarg += ntypes;
   } else if (strcmp(arg[iarg],"power") == 0) {
-    if (iarg+4 >= narg) error->all(FLERR,"Insufficient arguments for fix rheo/viscosity");
+    if (iarg+4 >= narg) error->all(FLERR,"Insufficient arguments for viscosity option");
     viscosity_style = POWER;
+    comm_forward = 1;
     eta = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
     gd0 = utils::numeric(FLERR,arg[iarg + 2],false,lmp);
     K = utils::numeric(FLERR,arg[iarg + 3],false,lmp);
     npow = utils::numeric(FLERR,arg[iarg + 4],false,lmp);
     tau0 = eta * gd0 - K * pow(gd0, npow);
-    if (eta < 0.0) error->all(FLERR,"The viscosity must be positive in fix rheo/viscosity");
+    if (eta < 0.0) error->all(FLERR,"The viscosity must be positive");
     iarg += 5;
   } else {
     error->all(FLERR,"Illegal fix command, {}", arg[iarg]);
@@ -88,6 +89,7 @@ FixRHEOViscosity::~FixRHEOViscosity()
 int FixRHEOViscosity::setmask()
 {
   int mask = 0;
+  mask |= POST_NEIGHBOR;
   mask |= PRE_FORCE;
   return mask;
 }
@@ -124,7 +126,38 @@ void FixRHEOViscosity::setup_pre_force(int /*vflag*/)
   if (i == 0) first_flag = 1;
   if ((i + 1) == fixlist.size()) last_flag = 1;
 
+  post_neighbor();
   pre_force(0);
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void FixRHEOViscosity::post_neighbor()
+{
+  int i;
+
+  int *type = atom->type;
+  double *viscosity = fix_rheo->viscosity;
+  int *mask = atom->mask;
+
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+
+  if (first_flag & nmax < atom->nmax) {
+    nmax = atom->nmax;
+    fix_rheo->fix_store_visc->grow_arrays(nmax);
+  }
+
+  // Update non-evolving viscosity styles only after atoms can exchange
+  if (viscosity_style == CONSTANT) {
+    for (i = 0; i < nall; i++)
+      if (mask[i] & groupbit) viscosity[i] = eta;
+  } else if (viscosity_style == TYPE) {
+    for (i = 0; i < nall; i++)
+      if (mask[i] & groupbit) viscosity[i] = eta_type[type[i]];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,13 +180,10 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
     fix_rheo->fix_store_visc->grow_arrays(nmax);
   }
 
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      if (viscosity_style == CONSTANT) {
-        viscosity[i] = eta;
-      } else if (viscosity_style == TYPE) {
-        viscosity[i] = eta_type[type[i]];
-      } else if (viscosity_style == POWER) {
+  // Update viscosity styles that evolve in time every timestep
+  if (viscosity_style == POWER) {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
         gdot = 0.0;
         for (a = 0; a < dim; a++) {
           for (b = a; b < dim; b++) {
@@ -173,7 +203,7 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
     }
   }
 
-  if (last_flag) comm->forward_comm(this);
+  if (last_flag && comm_forward) comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class FixRHEO : public Fix {
  public:
   FixRHEO(class LAMMPS *, int, char **);
-  virtual ~FixRHEO();
-  int setmask();
-  virtual void post_constructor();
-  virtual void init();
-  virtual void setup_pre_force(int);
-  virtual void pre_force(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  void reset_dt();
+  ~FixRHEO() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void reset_dt() override;
 
   int kernel_style;
   int thermal_flag;
@@ -71,7 +71,7 @@ class FixRHEO : public Fix {
 
   enum {
     // Phase status
-    STATUS_FLUID = 1 << 0,
+    STATUS_FLUID = 1 << 0, //Need to turn off other options
     STATUS_REACTIVE = 1 << 1,
     STATUS_SOLID = 1 << 2,
     STATUS_FREEZING = 1 << 3
@@ -81,7 +81,7 @@ class FixRHEO : public Fix {
     STATUS_NO_FORCE = 1 << 5,
 
     // Surface status
-    STATUS_BULK = 1 << 6,
+    STATUS_BULK = 1 << 6, //Need to turn off other options
     STATUS_LAYER = 1 << 7,
     STATUS_SURFACE = 1 << 8,
     STATUS_SPLASH = 1 << 9,

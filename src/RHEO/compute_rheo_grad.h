@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class ComputeRHEOGrad : public Compute {
  public:
   ComputeRHEOGrad(class LAMMPS *, int, char **);
-  ~ComputeRHEOGrad();
+  ~ComputeRHEOGrad() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;

@@ -140,7 +140,7 @@ void BondTable::settings(int narg, char **arg)
   else if (strcmp(arg[0], "spline") == 0)
     tabstyle = SPLINE;
   else
-    error->all(FLERR, "Unknown table style in bond style table");
+    error->all(FLERR, "Unknown table style {} in bond style table", arg[0]);
 
   tablength = utils::inumeric(FLERR, arg[1], false, lmp);
   if (tablength < 2) error->all(FLERR, "Illegal number of bond table entries");
@@ -172,17 +172,15 @@ void BondTable::coeff(int narg, char **arg)
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
-  int me;
-  MPI_Comm_rank(world, &me);
   tables = (Table *) memory->srealloc(tables, (ntables + 1) * sizeof(Table), "bond:tables");
   Table *tb = &tables[ntables];
   null_table(tb);
-  if (me == 0) read_table(tb, arg[1], arg[2]);
+  if (comm->me == 0) read_table(tb, arg[1], arg[2]);
   bcast_table(tb);
 
   // error check on table parameters
 
-  if (tb->ninput <= 1) error->one(FLERR, "Invalid bond table length");
+  if (tb->ninput <= 1) error->all(FLERR, "Invalid bond table length");
 
   tb->lo = tb->rfile[0];
   tb->hi = tb->rfile[tb->ninput - 1];
@@ -507,9 +505,9 @@ void BondTable::bcast_table(Table *tb)
   int me;
   MPI_Comm_rank(world, &me);
   if (me > 0) {
-    memory->create(tb->rfile, tb->ninput, "angle:rfile");
-    memory->create(tb->efile, tb->ninput, "angle:efile");
-    memory->create(tb->ffile, tb->ninput, "angle:ffile");
+    memory->create(tb->rfile, tb->ninput, "bond:rfile");
+    memory->create(tb->efile, tb->ninput, "bond:efile");
+    memory->create(tb->ffile, tb->ninput, "bond:ffile");
   }
 
   MPI_Bcast(tb->rfile, tb->ninput, MPI_DOUBLE, 0, world);

@@ -814,8 +814,7 @@ void CommKokkos::exchange_device()
         nsend =
           atomKK->avecKK->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
                                      k_exchange_sendlist,k_exchange_copylist,
-                                     ExecutionSpaceFromDevice<DeviceType>::space,
-                                     dim,lo,hi);
+                                     ExecutionSpaceFromDevice<DeviceType>::space);
         DeviceType().fence();
       } else {
         while (i < nlocal) {
@@ -902,7 +901,7 @@ void CommKokkos::exchange_device()
           KokkosBase *kkbase = dynamic_cast<KokkosBase*>(modify->fix[atom->extra_grow[iextra]]);
           int nextrasend = kkbase->pack_exchange_kokkos(
             k_count.h_view(),k_buf_send,k_exchange_sendlist,k_exchange_copylist,
-            ExecutionSpaceFromDevice<DeviceType>::space,dim,lo,hi);
+            ExecutionSpaceFromDevice<DeviceType>::space);
           DeviceType().fence();
 
           int nextrarecv = 0;
@@ -910,7 +909,7 @@ void CommKokkos::exchange_device()
             nextrarecv = nextrasend;
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(
-                k_buf_send,indices,nrecv1,nlocal,dim,lo,hi,
+                k_buf_send,indices,nrecv1,
                 ExecutionSpaceFromDevice<DeviceType>::space);
               DeviceType().fence();
             }
@@ -930,7 +929,7 @@ void CommKokkos::exchange_device()
 
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(
-                k_buf_recv,indices,nrecv1,nlocal,dim,lo,hi,
+                k_buf_recv,indices,nrecv1,
                 ExecutionSpaceFromDevice<DeviceType>::space);
               DeviceType().fence();
             }
@@ -949,7 +948,7 @@ void CommKokkos::exchange_device()
 
               if (nextrarecv) {
                 kkbase->unpack_exchange_kokkos(
-                  k_buf_recv,indices,nrecv2,nlocal,dim,lo,hi,
+                  k_buf_recv,indices,nrecv2,
                   ExecutionSpaceFromDevice<DeviceType>::space);
                 DeviceType().fence();
               }

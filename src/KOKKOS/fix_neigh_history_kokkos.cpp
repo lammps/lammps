@@ -333,7 +333,7 @@ template<class DeviceType>
 int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_xfloat_2d &k_buf,
    DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
-   ExecutionSpace space, int dim, X_FLOAT lo, X_FLOAT hi)
+   ExecutionSpace space)
 {
   k_npartner.template sync<DeviceType>();
   k_partner.template sync<DeviceType>();
@@ -343,9 +343,9 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
   k_copylist.sync<DeviceType>();
 
   d_copylist = k_copylist.view<DeviceType>();
-  this->nsend = nsend; 
+  this->nsend = nsend;
 
-  typename ArrayTypes<DeviceType>::t_xfloat_1d_um d_firstpartner(
+  d_firstpartner = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
 
@@ -355,12 +355,12 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
   k_count.modify_host();
   k_count.template sync<DeviceType>();
 
-  Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryFirstNeigh>(0,nsend),*this); 
+  Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryFirstNeigh>(0,nsend),*this);
 
   k_count.template modify<DeviceType>();
   k_count.sync_host();
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryPackExchange>(0,nsend),*this);   
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryPackExchange>(0,nsend),*this);
 
   return k_count.h_view();
 }
@@ -369,7 +369,7 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExchange, const int &i) const 
+void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExchange, const int &i) const
 {
   int index = d_indices(i);
   if (index > 0) {
@@ -390,10 +390,11 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExcha
 template <class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
-  int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
   ExecutionSpace space)
 {
-  d_firstpartner = typename AT::t_xfloat_1d_um(k_buf.template view<DeviceType>().data(),k_buf.extent(0)*k_buf.extent(1));
+  d_firstpartner = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
 
   d_npartner = k_npartner.template view<DeviceType>();

@@ -334,15 +334,12 @@ struct AtomVecChargeKokkos_PackExchangeFunctor {
   typename AT::t_xfloat_2d_um _buf;
   typename AT::t_int_1d_const _sendlist;
   typename AT::t_int_1d_const _copylist;
-  int _nlocal,_dim;
-  X_FLOAT _lo,_hi;
 
   AtomVecChargeKokkos_PackExchangeFunctor(
       const AtomKokkos* atom,
       const typename AT::tdual_xfloat_2d buf,
       typename AT::tdual_int_1d sendlist,
-      typename AT::tdual_int_1d copylist,int nlocal, int dim,
-                X_FLOAT lo, X_FLOAT hi):
+      typename AT::tdual_int_1d copylist):
     _x(atom->k_x.view<DeviceType>()),
     _v(atom->k_v.view<DeviceType>()),
     _tag(atom->k_tag.view<DeviceType>()),
@@ -358,9 +355,7 @@ struct AtomVecChargeKokkos_PackExchangeFunctor {
     _imagew(atom->k_image.view<DeviceType>()),
     _qw(atom->k_q.view<DeviceType>()),
     _sendlist(sendlist.template view<DeviceType>()),
-    _copylist(copylist.template view<DeviceType>()),
-    _nlocal(nlocal),_dim(dim),
-    _lo(lo),_hi(hi) {
+    _copylist(copylist.template view<DeviceType>()) {
     const size_t elements = 12;
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
                              buf.template view<DeviceType>().extent(1))/elements;
@@ -406,8 +401,7 @@ struct AtomVecChargeKokkos_PackExchangeFunctor {
 int AtomVecChargeKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &k_buf,
                                               DAT::tdual_int_1d k_sendlist,
                                               DAT::tdual_int_1d k_copylist,
-                                              ExecutionSpace space,int dim,
-                                              X_FLOAT lo,X_FLOAT hi )
+                                              ExecutionSpace space)
 {
   if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/12) {
     int newsize = nsend*12/k_buf.view<LMPHostType>().extent(1)+1;
@@ -415,12 +409,12 @@ int AtomVecChargeKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat
   }
   if (space == Host) {
     AtomVecChargeKokkos_PackExchangeFunctor<LMPHostType>
-      f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
+      f(atomKK,k_buf,k_sendlist,k_copylist);
     Kokkos::parallel_for(nsend,f);
     return nsend*12;
   } else {
     AtomVecChargeKokkos_PackExchangeFunctor<LMPDeviceType>
-      f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
+      f(atomKK,k_buf,k_sendlist,k_copylist);
     Kokkos::parallel_for(nsend,f);
     return nsend*12;
   }

@@ -93,8 +93,7 @@ void FixWallLepton::wall_particle(int m, int which, double coord)
     ;    // do nothing
   }
 
-  double delta, fwall;
-  double vn;
+  double delta, fwall, vn;
 
   double **x = atom->x;
   double **f = atom->f;

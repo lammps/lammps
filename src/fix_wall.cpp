@@ -52,21 +52,20 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), nwall
   fldflag = 0;
   int pbcflag = 0;
 
-  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = lstr[i] = tstr[i] = nullptr;
+  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = lstr[i] = fstr[i] = kstr[i] = nullptr;
 
   int iarg = 3;
-  tabfile = nullptr;
-  if (utils::strmatch(style, "^wall/table")) {
-    if (iarg + 1 > narg) error->all(FLERR, "Missing argument for fix {} command", style);
-    tabfile = arg[iarg];
-    ++iarg;
-  }
+  if (utils::strmatch(style, "^wall/table")) iarg = 5;
 
   while (iarg < narg) {
+    int wantargs = 5;
+    if (utils::strmatch(style, "^wall/lepton")) wantargs = 4;
+    if (utils::strmatch(style, "^wall/morse")) wantargs = 6;
+
     if ((strcmp(arg[iarg], "xlo") == 0) || (strcmp(arg[iarg], "xhi") == 0) ||
         (strcmp(arg[iarg], "ylo") == 0) || (strcmp(arg[iarg], "yhi") == 0) ||
         (strcmp(arg[iarg], "zlo") == 0) || (strcmp(arg[iarg], "zhi") == 0)) {
-      if (iarg + 4 > narg) error->all(FLERR, "Missing argument for fix {} command", style);
+      if (iarg + wantargs > narg) error->all(FLERR, "Missing argument for fix {} command", style);
 
       int newwall;
       if (strcmp(arg[iarg], "xlo") == 0) {
@@ -108,13 +107,10 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), nwall
       if (utils::strmatch(style, "^wall/lepton")) {
         lstr[nwall] = utils::strdup(arg[iarg + 2]);
         cutoff[nwall] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        nwall++;
-        iarg += 4;
       } else if (utils::strmatch(style, "^wall/table")) {
-        tstr[nwall] = utils::strdup(arg[iarg + 2]);
-        cutoff[nwall] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        nwall++;
-        iarg += 4;
+        fstr[nwall] = utils::strdup(arg[iarg + 2]);
+        kstr[nwall] = utils::strdup(arg[iarg + 3]);
+        cutoff[nwall] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
       } else {
         if (iarg + 5 > narg) error->all(FLERR, "Missing argument for fix {} command", style);
 
@@ -134,7 +130,9 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), nwall
             alpha[nwall] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
             astyle[nwall] = CONSTANT;
           }
+          // adjust so we can share the regular code path
           ++iarg;
+          --wantargs;
         }
 
         if (utils::strmatch(arg[iarg + 3], "^v_")) {
@@ -145,9 +143,9 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), nwall
           sstyle[nwall] = CONSTANT;
         }
         cutoff[nwall] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
-        nwall++;
-        iarg += 5;
       }
+      nwall++;
+      iarg += wantargs;
     } else if (strcmp(arg[iarg], "units") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix {} command", style);
       if (strcmp(arg[iarg + 1], "box") == 0)
@@ -248,7 +246,8 @@ FixWall::~FixWall()
     delete[] estr[m];
     delete[] sstr[m];
     delete[] lstr[m];
-    delete[] tstr[m];
+    delete[] fstr[m];
+    delete[] kstr[m];
   }
 }
 

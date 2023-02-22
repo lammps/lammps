@@ -50,7 +50,7 @@ class FixWall : public Fix {
   double xscale, yscale, zscale;
   int estyle[6], sstyle[6], astyle[6], wstyle[6];
   int eindex[6], sindex[6];
-  char *estr[6], *sstr[6], *astr[6], *lstr[6], *tstr[6], *tabfile;
+  char *estr[6], *sstr[6], *astr[6], *lstr[6], *fstr[6], *kstr[6];
   int varflag;    // 1 if any wall position,epsilon,sigma is a variable
   int eflag;      // per-wall flag for energy summation
   int ilevel_respa;

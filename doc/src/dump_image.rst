@@ -218,13 +218,13 @@ is used.
 .. _png_format: https://en.wikipedia.org/wiki/Portable_Network_Graphics
 .. _ppm_format: https://en.wikipedia.org/wiki/Netpbm
 
-Similarly, the format of the resulting movie is chosen with the
-*movie* dump style. This is handled by the underlying FFmpeg converter
-and thus details have to be looked up in the `FFmpeg documentation
-<https://ffmpeg.org/ffmpeg.html>`_.  Typical examples are: .avi, .mpg,
-.m4v, .mp4, .mkv, .flv, .mov, .gif Additional settings of the movie
-compression like *bitrate* and *framerate* can be set using the
-dump_modify command as described below.
+Similarly, the format of the resulting movie is chosen with the *movie*
+dump style. This is handled by the underlying FFmpeg converter and thus
+details have to be looked up in the `FFmpeg documentation
+<https://ffmpeg.org/>`_.  Typical examples are: .avi, .mpg, .m4v, .mp4,
+.mkv, .flv, .mov, .gif Additional settings of the movie compression like
+*bitrate* and *framerate* can be set using the dump_modify command as
+described below.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library. To convert images
@@ -651,7 +651,7 @@ MPEG or other movie file you can use:
      cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 
   Front ends for FFmpeg exist for multiple platforms. For more
-  information see the `FFmpeg homepage <https://www.ffmpeg.org/>`_
+  information see the `FFmpeg homepage <https://ffmpeg.org/>`_
 
 ----------
 

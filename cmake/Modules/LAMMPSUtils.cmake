@@ -159,6 +159,7 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND (EXISTS /etc/os-release))
   set(CMAKE_DISTRO_VERSION ${disversion})
 endif()
 
+# determine canonical URL for downloading backup copy from download.lammps.org/thirdparty
 function(GetFallbackURL input output)
   string(REPLACE "_URL" "" _tmp ${input})
   string(TOLOWER ${_tmp} libname)

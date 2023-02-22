@@ -53,14 +53,21 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   fldflag = 0;
   int pbcflag = 0;
 
-  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = nullptr;
+  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = lstr[i] = tstr[i] = nullptr;
 
   int iarg = 3;
+  tabfile = nullptr;
+  if (utils::strmatch(style, "^wall/table")) {
+    if (iarg + 1 > narg) error->all(FLERR, "Missing argument for fix {} command", style);
+    tabfile = arg[iarg];
+    ++iarg;
+  }
+
   while (iarg < narg) {
     if ((strcmp(arg[iarg],"xlo") == 0) || (strcmp(arg[iarg],"xhi") == 0) ||
         (strcmp(arg[iarg],"ylo") == 0) || (strcmp(arg[iarg],"yhi") == 0) ||
         (strcmp(arg[iarg],"zlo") == 0) || (strcmp(arg[iarg],"zhi") == 0)) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix wall command");
+      if (iarg + 4 > narg) error->all(FLERR, "Missing argument for fix {} command", style);
 
       int newwall;
       if (strcmp(arg[iarg],"xlo") == 0) newwall = XLO;
@@ -89,37 +96,50 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
-      if (utils::strmatch(arg[iarg+2],"^v_")) {
-        estr[nwall] = utils::strdup(arg[iarg+2]+2);
-        estyle[nwall] = VARIABLE;
+      if (utils::strmatch(style, "^wall/lepton")) {
+        lstr[nwall] = utils::strdup(arg[iarg + 2]);
+        cutoff[nwall] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+        nwall++;
+        iarg += 4;
+      } else if (utils::strmatch(style, "^wall/table")) {
+        tstr[nwall] = utils::strdup(arg[iarg + 2]);
+        cutoff[nwall] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+        nwall++;
+        iarg += 4;
       } else {
-        epsilon[nwall] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-        estyle[nwall] = CONSTANT;
-      }
+        if (iarg + 5 > narg) error->all(FLERR, "Missing argument for fix {} command", style);
 
-      if (utils::strmatch(style,"^wall/morse")) {
-        if (utils::strmatch(arg[iarg+3],"^v_")) {
-          astr[nwall] = utils::strdup(arg[iarg+3]+2);
-          astyle[nwall] = VARIABLE;
+        if (utils::strmatch(arg[iarg + 2], "^v_")) {
+          estr[nwall] = utils::strdup(arg[iarg + 2] + 2);
+          estyle[nwall] = VARIABLE;
         } else {
-          alpha[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-          astyle[nwall] = CONSTANT;
+          epsilon[nwall] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+          estyle[nwall] = CONSTANT;
         }
-        ++iarg;
+
+        if (utils::strmatch(style, "^wall/morse")) {
+          if (utils::strmatch(arg[iarg + 3], "^v_")) {
+            astr[nwall] = utils::strdup(arg[iarg + 3] + 2);
+            astyle[nwall] = VARIABLE;
+          } else {
+            alpha[nwall] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+            astyle[nwall] = CONSTANT;
+          }
+          ++iarg;
+        }
+
+        if (utils::strmatch(arg[iarg + 3], "^v_")) {
+          sstr[nwall] = utils::strdup(arg[iarg + 3] + 2);
+          sstyle[nwall] = VARIABLE;
+        } else {
+          sigma[nwall] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+          sstyle[nwall] = CONSTANT;
+        }
+        cutoff[nwall] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);
+        nwall++;
+        iarg += 5;
       }
-
-      if (utils::strmatch(arg[iarg+3],"^v_")) {
-        sstr[nwall] = utils::strdup(arg[iarg+3]+2);
-        sstyle[nwall] = VARIABLE;
-      } else {
-        sigma[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-        sstyle[nwall] = CONSTANT;
-      }
-
-      cutoff[nwall] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
-      nwall++;
-      iarg += 5;
-
+    } else if (strcmp(arg[iarg], "units") == 0) {
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall command");
       if (strcmp(arg[iarg+1],"box") == 0) scaleflag = 0;

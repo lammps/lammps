@@ -37,7 +37,7 @@ class PairRHEO : public Pair {
  protected:
   double h, csq, rho0;        // From fix RHEO
 
-  double hsq, hinv, av, rho_damp;
+  double cs, hsq, hinv, av, rho_damp;
 
   int laplacian_order;
   int artificial_visc_flag;

@@ -32,12 +32,45 @@ class FixRHEO : public Fix {
   void post_constructor() override;
   void init() override;
   void setup_pre_force(int) override;
+  void setup() override;
   void pre_force(int) override;
   void initial_integrate(int) override;
   void final_integrate() override;
   void reset_dt() override;
 
+  // Model parameters
+  double h, rho0, csq;
+  int zmin_kernel, rhosum_zmin;
   int kernel_style;
+  enum {QUINTIC, CRK0, CRK1, CRK2};
+
+  // Non-persistent per-atom arrays
+  int *surface;
+  double *conductivity, *viscosity, *pressure;
+  double **f_pressure;
+
+  // Status variables
+  enum {
+    // Phase status
+    STATUS_FLUID = 1 << 0,
+    STATUS_REACTIVE = 1 << 1,
+    STATUS_SOLID = 1 << 2,
+    STATUS_FREEZING = 1 << 3
+
+    // Surface status
+    STATUS_BULK = 1 << 4,
+    STATUS_LAYER = 1 << 5,
+    STATUS_SURFACE = 1 << 6,
+    STATUS_SPLASH = 1 << 7,
+
+    // Temporary status options - reset in preforce
+    STATUS_SHIFT = 1 << 8,
+    STATUS_NO_FORCE = 1 << 9,
+  };
+  int phasemask = FFFFFFF0;
+  int surfacemask = FFFFFF0F;
+
+  // Accessory fixes/computes
   int thermal_flag;
   int rhosum_flag;
   int shift_flag;
@@ -47,12 +80,8 @@ class FixRHEO : public Fix {
   int viscosity_fix_defined;
   int pressure_fix_defined;
   int thermal_fix_defined;
+  int interface_fix_defined;
   int surface_fix_defined;
-
-  // Non-persistent per-atom arrays
-  int *surface;
-  double *conductivity, *viscosity, *pressure;
-  double **f_pressure;
 
   class FixStorePeratom *fix_store_visc;
   class FixStorePeratom *fix_store_pres;
@@ -66,31 +95,7 @@ class FixRHEO : public Fix {
   class ComputeRHEORhoSum *compute_rhosum;
   class ComputeRHEOVShift *compute_vshift;
 
-  enum {QUINTIC, CRK0, CRK1, CRK2};
-  enum {LINEAR, CUBIC, TAITWATER};
-
-  enum {
-    // Phase status
-    STATUS_FLUID = 1 << 0, //Need to turn off other options
-    STATUS_REACTIVE = 1 << 1,
-    STATUS_SOLID = 1 << 2,
-    STATUS_FREEZING = 1 << 3
-
-    // Temporary status options - reset in preforce
-    STATUS_SHIFT = 1 << 4,
-    STATUS_NO_FORCE = 1 << 5,
-
-    // Surface status
-    STATUS_BULK = 1 << 6, //Need to turn off other options
-    STATUS_LAYER = 1 << 7,
-    STATUS_SURFACE = 1 << 8,
-    STATUS_SPLASH = 1 << 9,
-  };
-
  protected:
-  double cut, rho0, csq;
-  int zmin_kernel, rhosum_zmin;
-
   double dtv, dtf;
 };
 

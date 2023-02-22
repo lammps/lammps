@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(rheo,PairRHEO)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_RHEO_H
@@ -33,14 +33,13 @@ class PairRHEO : public Pair {
   void coeff(int, char **) override;
   void setup() override;
   double init_one(int, int) override;
-  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
-  int laplacian_order;          // From fix RHEO
-  double h, csq*, rho0*;        // From fix RHEO
+  double h, csq, rho0;        // From fix RHEO
 
-  double hsq, hinv, rho0, av, rho_damp;
+  double hsq, hinv, av, rho_damp;
 
+  int laplacian_order;
   int artificial_visc_flag;
   int rho_damp_flag;
   int thermal_flag;
@@ -49,11 +48,11 @@ class PairRHEO : public Pair {
 
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOGrad *compute_grad;
-  class ComputeRHEOSolidInterpolation *compute_sinterpolation;
+  class ComputeRHEOInterface *compute_interface;
   class FixRHEO *fix_rheo;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

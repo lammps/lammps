@@ -240,9 +240,11 @@ void FixRHEOThermal::post_integrate()
           Tci = Tc_type[type[i]]);
         }
 
-        if (Ti > Tci) { //Need to untoggle other phase options
+        if (Ti > Tci) {
+          status[i] &= phasemask;
           status[i] |= FixRHEO::STATUS_FLUID;
         } else if (!(status[i] & FixRHEO::STATUS_SOLID))
+          status[i] &= phasemask;
           status[i] |= FixRHEO::STATUS_FREEZING;
         }
       }
@@ -250,31 +252,59 @@ void FixRHEOThermal::post_integrate()
   }
 }
 
+/* ----------------------------------------------------------------------
+  Only need to update non-evolving conductivity styles after atoms exchange
+------------------------------------------------------------------------- */
 
-add post neighbor then update preforce below
-/* ---------------------------------------------------------------------- */
+void FixRHEOThermal::post_neighbor()
+{
+  int i;
+  int *type = atom->type;
+  double *conductivity = fix_rheo->conductivity;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+
+  if (first_flag & nmax < atom->nmax) {
+    nmax = atom->nmax;
+    fix_rheo->fix_store_cond->grow_arrays(nmax);
+  }
+
+  if (conductivity_style == CONSTANT) {
+    for (i = 0; i < nall; i++)
+      if (mask[i] & groupbit) conductivity[i] = kappa;
+  } else if (conductivity_style == TYPE) {
+    for (i = 0; i < nall; i++)
+      if (mask[i] & groupbit) conductivity[i] = kappa_type[type[i]];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+  Update (and forward) evolving conductivity styles every timestep
+------------------------------------------------------------------------- */
 
 void FixRHEOThermal::pre_force(int /*vflag*/)
 {
-  double *conductivity = atom->conductivity;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  // So far, none exist
+  //int i;
+  //double *conductivity = fix_rheo->conductivity;
+  //int *mask = atom->mask;
+  //int nlocal = atom->nlocal;
 
-  // Calculate non-persistent quantities before pairstyles
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      conductivity[i] = calc_kappa(i);
-    }
-  }
+  //if (first_flag & nmax < atom->nmax) {
+  //  nmax = atom->nmax;
+  //  fix_rheo->fix_store_cond->grow_arrays(nmax);
+  //}
 
-    if (conductivity_style == CONSTANT) {
-    return kappa;
-  } else if (conductivity_style == TYPE) {
-    int itype = atom->type[i];
-    return(kappa_type[itype]);
-  } else {
-    error->all(FLERR, "Invalid style");
-  }
+  //if (conductivity_style == TBD) {
+  //  for (i = 0; i < nlocal; i++) {
+  //    if (mask[i] & groupbit) {
+  //    }
+  //  }
+  //}
+
+  //if (last_flag && comm_forward) comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */

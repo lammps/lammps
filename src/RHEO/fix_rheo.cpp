@@ -66,7 +66,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 5)
     error->all(FLERR,"Insufficient arguments for fix rheo command");
 
-  cut = utils::numeric(FLERR,arg[3],false,lmp);
+  h = utils::numeric(FLERR,arg[3],false,lmp);
   if (strcmp(arg[4],"Quintic") == 0) {
       kernel_style = QUINTIC;
   } else if (strcmp(arg[4],"CRK0") == 0) {
@@ -125,11 +125,14 @@ FixRHEO::~FixRHEO()
   if (compute_vshift) modify->delete_compute("rheo_vshift");
 }
 
-/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+  Create necessary internal computes
+------------------------------------------------------------------------- */
 
 void FixRHEO::post_constructor()
 {
-  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute(fmt::format("rheo_kernel all rheo/kernel {} {} {}", kernel_style, zmin_kernel, cut)));
+  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute(fmt::format("rheo_kernel all rheo/kernel {} {} {}", kernel_style, zmin_kernel, h)));
 
   fix_store_visc = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_visc all STORE/PERATOM 0 1"))
   fix_store_visc->disable = 1;
@@ -141,14 +144,14 @@ void FixRHEO::post_constructor()
 
   std::string cmd = "rheo_grad all rheo/grad {} velocity rho viscosity";
   if (thermal_flag) cmd += "temperature";
-  compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(fmt::format(cmd, cut)));
+  compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(fmt::format(cmd, h)));
   compute_grad->fix_rheo = this;
 
   if (rhosum_flag)
-    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute(fmt::format("rheo_rhosum all rheo/rho/sum {} {}", cut, zmin_rhosum)));
+    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute(fmt::format("rheo_rhosum all rheo/rho/sum {} {}", h, zmin_rhosum)));
 
   if (shift_flag)
-    compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute(fmt::format("rheo_vshift all rheo/vshift {}", cut)));
+    compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute(fmt::format("rheo_vshift all rheo/vshift {}", h)));
 
   if (surface_flag) {
     fix_store_surf = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_surf all STORE/PERATOM 0 1"))
@@ -163,7 +166,7 @@ void FixRHEO::post_constructor()
   }
 
   if (interface_flag) {
-    compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all rheo/interface {}", cut)));
+    compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all rheo/interface {}", h)));
 
     fix_store_fp = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_fp all STORE/PERATOM 0 3"))
     f_pressure = fix_store_fp->astore;
@@ -197,8 +200,7 @@ void FixRHEO::init()
 
 void FixRHEO::setup_pre_force(int /*vflag*/)
 {
-  // Check to confirm no accessory fixes are yet defined
-  // FixRHEO must be the first fix
+  // Check to confirm accessory fixes do not preceed FixRHEO
   // Note: these fixes set this flag in setup_pre_force()
   if (viscosity_fix_defined || pressure_fix_defined || thermal_fix_defined || surface_fix_defined)
     error->all(FLERR, "Fix RHEO must be defined before all other RHEO fixes");
@@ -210,8 +212,7 @@ void FixRHEO::setup_pre_force(int /*vflag*/)
 
 void FixRHEO::setup()
 {
-  // Check to confirm all accessory fixes are defined
-  // Does not ensure fixes correctly cover all atoms (could be a subset group)
+  // Confirm all accessory fixes are defined, may not cover group all
   // Note: these fixes set this flag in setup_pre_force()
   if (!viscosity_fix_defined)
     error->all(FLERR, "Missing fix rheo/viscosity");

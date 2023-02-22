@@ -394,23 +394,23 @@ void PairRHEO::allocate()
 
 void PairRHEO::settings(int narg, char **arg)
 {
-  if(narg < 1) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "rho/damp") == 0) {
-      if (iarg+1 >= narg) error->all(FLERR,"Illegal pair_style command");
+      if (iarg + 1 >= narg) error->all(FLERR,"Illegal pair_style command");
 
       rho_damp_flag = 1;
-      rho_damp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      iarg ++;
+      rho_damp = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
+      iarg++;
     } else if (strcmp(arg[iarg], "artificial/visc") == 0) {
-      if (iarg+1 >= narg) error->all(FLERR,"Illegal pair_style command");
+      if (iarg + 1 >= narg) error->all(FLERR,"Illegal pair_style command");
 
       artificial_visc_flag = 1;
       av = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      iarg ++;
-    } else error->all(FLERR,"Illegal pair_style command");
+      iarg++;
+    } else error->all(FLERR,"Illegal pair_style command, {}", arg[iarg]);
     iarg++;
   }
 }
@@ -421,8 +421,8 @@ void PairRHEO::settings(int narg, char **arg)
 
 void PairRHEO::coeff(int narg, char **arg)
 {
-  if (narg != 4)
-    error->all(FLERR,"Incorrect number of args for pair_style llns coefficients");
+  if (narg != 2)
+    error->all(FLERR,"Incorrect number of args for pair_style rheo coefficients");
   if (!allocated)
     allocate();
 
@@ -430,17 +430,8 @@ void PairRHEO::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1, atom->ntypes, ilo, ihi,error);
   utils::bounds(FLERR,arg[1],1, atom->ntypes, jlo, jhi,error);
 
-  double rho0_one = utils::numeric(FLERR,arg[2],false,lmp);
-  double c_one = utils::numeric(FLERR,arg[3],false,lmp);
-
-  if (c_one != 1.0) error->warning(FLERR, "Need c = 1 for assumption in compute rheo/solids");
-  if (rho0_one != 1.0) error->warning(FLERR, "Need rho0 = 1 for assumption in compute rheo/solids");
-
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
-    rho0[i] = rho0_one;
-    csq[i] = c_one*c_one;
-
     for (int j = 0; j <= atom->ntypes; j++) {
       setflag[i][j] = 1;
       count++;
@@ -448,7 +439,7 @@ void PairRHEO::coeff(int narg, char **arg)
   }
 
   if (count == 0)
-    error->all(FLERR,"Incorrect args for pair llns coefficients");
+    error->all(FLERR,"Incorrect args for pair rheo coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -457,25 +448,20 @@ void PairRHEO::coeff(int narg, char **arg)
 
 void PairRHEO::setup()
 {
-  int flag;
-  int ifix = modify->find_fix_by_style("rheo");
-  if (ifix == -1) error->all(FLERR, "Using pair RHEO without fix RHEO");
-  fix_rheo = ((FixRHEO *) modify->fix[ifix]);
+  auto fixes = modify->get_fix_by_style("rheo");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
+  fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
   compute_kernel = fix_rheo->compute_kernel;
   compute_grad = fix_rheo->compute_grad;
-  compute_sinterpolation = fix_rheo->compute_sinterpolation;
+  compute_interface = fix_rheo->compute_interface;
   thermal_flag = fix_rheo->thermal_flag;
+  h = fix_rheo->h;
+  csq = fix_rheo->csq;
+  rho0 = fix_rheo->rho0;
 
-
-
-
-  h = utils::numeric(FLERR,arg[0],false,lmp);
-  if (h <= 0.0) error->all(FLERR,"Illegal pair_style command");
   hinv = 1.0 / h;
-  hinv3 = 3.0 * hinv;
   laplacian_order = -1;
-
 
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair RHEO requires ghost atoms store velocity");
@@ -504,14 +490,4 @@ double PairRHEO::init_one(int i, int j)
   cut[j][i] = cut[i][j];
 
   return cut[i][j];
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairRHEO::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/,
-    double /*rsq*/, double /*factor_coul*/, double /*factor_lj*/, double &fforce)
-{
-  fforce = 0.0;
-
-  return 0.0;
 }

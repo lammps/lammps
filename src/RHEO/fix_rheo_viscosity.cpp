@@ -131,8 +131,9 @@ void FixRHEOViscosity::setup_pre_force(int /*vflag*/)
   pre_force(0);
 }
 
-
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+  Only need to update non-evolving viscosity styles after atoms exchange
+------------------------------------------------------------------------- */
 
 void FixRHEOViscosity::post_neighbor()
 {
@@ -150,7 +151,6 @@ void FixRHEOViscosity::post_neighbor()
     fix_rheo->fix_store_visc->grow_arrays(nmax);
   }
 
-  // Update non-evolving viscosity styles only after atoms can exchange
   if (viscosity_style == CONSTANT) {
     for (i = 0; i < nall; i++)
       if (mask[i] & groupbit) viscosity[i] = eta;
@@ -161,14 +161,15 @@ void FixRHEOViscosity::post_neighbor()
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+  Update (and forward) evolving viscosity styles every timestep
+------------------------------------------------------------------------- */
 
 void FixRHEOViscosity::pre_force(int /*vflag*/)
 {
   int i, a, b;
   double tmp, gdot;
 
-  int *type = atom->type;
   double *viscosity = fix_rheo->viscosity;
   int *mask = atom->mask;
   double **gradv = compute_grad->gradv;
@@ -181,7 +182,6 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
     fix_rheo->fix_store_visc->grow_arrays(nmax);
   }
 
-  // Update viscosity styles that evolve in time every timestep
   if (viscosity_style == POWER) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {

@@ -394,7 +394,7 @@ struct AtomVecDipoleKokkos_PackExchangeFunctor {
     _qw(atom->k_q.view<DeviceType>()),
     _muw(atom->k_mu.view<DeviceType>()),
     _sendlist(sendlist.template view<DeviceType>()),
-    _copylist(copylist.template view<DeviceType>()),
+    _copylist(copylist.template view<DeviceType>()) {
     const size_t elements = 16; // 1st = # of values, followed by 15 values (see below)
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
                              buf.template view<DeviceType>().extent(1))/elements;
@@ -448,7 +448,7 @@ struct AtomVecDipoleKokkos_PackExchangeFunctor {
 int AtomVecDipoleKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &k_buf,
                                               DAT::tdual_int_1d k_sendlist,
                                               DAT::tdual_int_1d k_copylist,
-                                              ExecutionSpace space);
+                                              ExecutionSpace space)
 {
   const size_t nelements = 16; // # of elements packed
   if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*k_buf.view<LMPHostType>().extent(1))/12) {

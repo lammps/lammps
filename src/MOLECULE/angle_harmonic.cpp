@@ -293,7 +293,7 @@ void AngleHarmonic::born_matrix(int type, int i1, int i2, int i3, double &du, do
 
   double dtheta = theta - theta0[type];
   du = -2 * k[type] * dtheta / sin(theta);
-  du2 = 2 * k[type] * (sin(theta) - dtheta * cos(theta)) / pow(sin(theta), 3)
+  du2 = 2 * k[type] * (sin(theta) - dtheta * cos(theta)) / pow(sin(theta), 3);
 }
 
 /* ----------------------------------------------------------------------

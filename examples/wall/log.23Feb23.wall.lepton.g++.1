@@ -1,5 +1,4 @@
 LAMMPS (8 Feb 2023)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 units real
 atom_style bond
@@ -72,7 +71,6 @@ variable name string wall-harmonic
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -137,14 +135,13 @@ Per MPI rank memory allocation (min/avg/max) = 4.429 | 4.429 | 4.429 Mbytes
          3     115302.7492    47133.32419    1031.086781    746.8819904    1777.968771              0
          4     165817.4572    67782.66799    1482.811029    285.5057515     1768.31678              0
          5     194283.6024    79419.02582    1737.367544    25.51012833    1762.877672              0
-Loop time of 5.837e-05 on 1 procs for 5 steps with 4 atoms
+Loop time of 7.6828e-05 on 1 procs for 5 steps with 4 atoms
 
 
 variable name string lepton-harmonic
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -209,14 +206,13 @@ Per MPI rank memory allocation (min/avg/max) = 4.429 | 4.429 | 4.429 Mbytes
          3     115302.7492    47133.32419    1031.086781    746.8819904    1777.968771              0
          4     165817.4572    67782.66799    1482.811029    285.5057515     1768.31678              0
          5     194283.6024    79419.02582    1737.367544    25.51012833    1762.877672              0
-Loop time of 0.00343046 on 1 procs for 5 steps with 4 atoms
+Loop time of 0.00134915 on 1 procs for 5 steps with 4 atoms
 
 
 variable name string bond-harmonic
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -282,14 +278,13 @@ Per MPI rank memory allocation (min/avg/max) = 4.429 | 4.429 | 4.429 Mbytes
          3     115302.7492    83661.44348    1031.086781    746.8819904    1777.968771    373.4409952
          4     165817.4572    98424.89283    1482.811029    285.5057515     1768.31678    142.7528758
          5     194283.6024    91313.53086    1737.367544    25.51012833    1762.877672    12.75506417
-Loop time of 6.3996e-05 on 1 procs for 5 steps with 4 atoms
+Loop time of 4.6572e-05 on 1 procs for 5 steps with 4 atoms
 
 
 variable name string pair-harmonic
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -354,7 +349,7 @@ Per MPI rank memory allocation (min/avg/max) = 4.43 | 4.43 | 4.43 Mbytes
          3     115302.7492    83661.44348    1031.086781    746.8819904    1777.968771    373.4409952
          4     165817.4572    98424.89283    1482.811029    285.5057515     1768.31678    142.7528758
          5     170540.4005    97560.47089    1525.045619    190.8165235    1715.862142    178.0614593
-Loop time of 5.4513e-05 on 1 procs for 5 steps with 4 atoms
+Loop time of 8.4058e-05 on 1 procs for 5 steps with 4 atoms
 
 
 variable eps index 0.02
@@ -363,7 +358,6 @@ variable name string wall-lj126
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -433,14 +427,13 @@ Per MPI rank memory allocation (min/avg/max) = 4.429 | 4.429 | 4.429 Mbytes
          4     178259.4975    72868.71081    1594.073105              0    1594.073105              0
          5     178259.4975    72868.71081    1594.073105              0    1594.073105              0
 WARNING: Bond/angle/dihedral extent > half of periodic box length (src/domain.cpp:936)
-Loop time of 5.3398e-05 on 1 procs for 5 steps with 4 atoms
+Loop time of 4.3942e-05 on 1 procs for 5 steps with 4 atoms
 
 
 variable name string lepton-lj126
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -506,14 +499,13 @@ Per MPI rank memory allocation (min/avg/max) = 4.429 | 4.429 | 4.429 Mbytes
          4     178259.4975    72868.71081    1594.073105              0    1594.073105              0
          5     178259.4975    72868.71081    1594.073105              0    1594.073105              0
 WARNING: Bond/angle/dihedral extent > half of periodic box length (src/domain.cpp:936)
-Loop time of 0.0051554 on 1 procs for 5 steps with 4 atoms
+Loop time of 0.00298781 on 1 procs for 5 steps with 4 atoms
 
 
 variable name string pair-lj126
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -582,7 +574,7 @@ Per MPI rank memory allocation (min/avg/max) = 4.43 | 4.43 | 4.43 Mbytes
          4     176007.6835    72778.53677    1573.936415    2.772305717    1576.708721    2.772305717
          5  1.132219912e+27 4.628275436e+26 1.012479748e+25 3.761972158e+12 1.012479748e+25 3.761972158e+12
 WARNING: Bond/angle/dihedral extent > half of periodic box length (src/domain.cpp:936)
-Loop time of 5.4716e-05 on 1 procs for 5 steps with 4 atoms
+Loop time of 4.4455e-05 on 1 procs for 5 steps with 4 atoms
 
 
 variable d0 index 20.0
@@ -593,7 +585,6 @@ variable name string wall-morse
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -659,19 +650,18 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 4.429 | 4.429 | 4.429 Mbytes
    Step          Temp          Press          KinEng         PotEng         TotEng          c_pe     
          0               0              0              0   -30.02905654   -30.02905654              0
-         1     144.4114716      59.032354    1.291389498   -31.40065042   -30.10926092              0
-         2     471.9742076    192.9330696    4.220596384   -34.53885647   -30.31826008              0
-         3     784.0772455    320.5141877       7.011556   -37.58109301   -30.56953701              0
-         4     961.8950756    393.2023542    8.601679525   -39.34691775   -30.74523823              0
-         5      996.609681    407.3929504     8.91211246   -39.66353245   -30.75141999              0
-Loop time of 4.8727e-05 on 1 procs for 5 steps with 4 atoms
+         1     146.0893547    59.71823711     1.30639385   -31.40065042   -30.09425657              0
+         2     485.8091411    198.5884977     4.34431431   -34.55987817   -30.21556386              0
+         3     822.0828974    336.0500941    7.351418888   -37.63613582   -30.28471693              0
+         4     1018.806679    416.4666136    9.110607565   -39.39265114   -30.28204357              0
+         5     1050.331347    429.3532307    9.392514704   -39.63687095   -30.24435625              0
+Loop time of 7.6505e-05 on 1 procs for 5 steps with 4 atoms
 
 
 variable name string lepton-morse
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -736,14 +726,13 @@ Per MPI rank memory allocation (min/avg/max) = 4.429 | 4.429 | 4.429 Mbytes
          3     822.0828974    336.0500941    7.351418888   -37.63613582   -30.28471693              0
          4     1018.806679    416.4666136    9.110607565   -39.39265114   -30.28204357              0
          5     1050.331347    429.3532307    9.392514704   -39.63687095   -30.24435625              0
-Loop time of 0.00478609 on 1 procs for 5 steps with 4 atoms
+Loop time of 0.00266357 on 1 procs for 5 steps with 4 atoms
 
 
 variable name string bond-morse
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -811,14 +800,13 @@ Per MPI rank memory allocation (min/avg/max) = 4.429 | 4.429 | 4.429 Mbytes
          3     822.0828974    1456.368913    7.351418888     2.06858205    9.420000938    1.034291025
          4     1018.806679    823.4383177    9.110607565   0.3120667313    9.422674297   0.1560333657
          5     1050.331347    253.0262957    9.392514704  0.06784692056    9.460361624  0.03392346028
-Loop time of 3.7914e-05 on 1 procs for 5 steps with 4 atoms
+Loop time of 0.000120428 on 1 procs for 5 steps with 4 atoms
 
 
 variable name string pair-morse
 include wall.inc
 
 clear
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
 read_restart walltest.restart
 Reading restart file ...
@@ -887,7 +875,7 @@ Per MPI rank memory allocation (min/avg/max) = 4.43 | 4.43 | 4.43 Mbytes
          3     822.0828974    1456.368913    7.351418888   -37.63613582   -30.28471693   -18.81806791
          4     1018.806679    823.4383177    9.110607565   -39.39265114   -30.28204357   -19.69632557
          5     1050.331347    253.0262957    9.392514704   -39.63687095   -30.24435625   -19.81843547
-Loop time of 4.2699e-05 on 1 procs for 5 steps with 4 atoms
+Loop time of 3.6356e-05 on 1 procs for 5 steps with 4 atoms
 
 
 shell rm -f walltest.restart

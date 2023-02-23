@@ -132,7 +132,7 @@ void BondTable::allocate()
 
 void BondTable::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR, "Illegal bond_style command");
+  if (narg != 2) error->all(FLERR, "Illegal bond_style command: must have 2 arguments");
 
   tabstyle = NONE;
   if (strcmp(arg[0], "linear") == 0)
@@ -143,7 +143,7 @@ void BondTable::settings(int narg, char **arg)
     error->all(FLERR, "Unknown table style {} in bond style table", arg[0]);
 
   tablength = utils::inumeric(FLERR, arg[1], false, lmp);
-  if (tablength < 2) error->all(FLERR, "Illegal number of bond table entries");
+  if (tablength < 2) error->all(FLERR, "Illegal number of bond table entries: {}", arg[1]);
 
   // delete old tables, since cannot just change settings
 
@@ -166,7 +166,7 @@ void BondTable::settings(int narg, char **arg)
 
 void BondTable::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Illegal bond_coeff command");
+  if (narg != 3) error->all(FLERR, "Illegal bond_coeff command: must have 3 arguments");
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -180,7 +180,7 @@ void BondTable::coeff(int narg, char **arg)
 
   // error check on table parameters
 
-  if (tb->ninput <= 1) error->all(FLERR, "Invalid bond table length");
+  if (tb->ninput <= 1) error->all(FLERR, "Invalid bond table length: {}", tb->ninput);
 
   tb->lo = tb->rfile[0];
   tb->hi = tb->rfile[tb->ninput - 1];
@@ -481,7 +481,7 @@ void BondTable::param_extract(Table *tb, char *line)
       } else if (word == "EQ") {
         tb->r0 = values.next_double();
       } else {
-        error->one(FLERR, "Invalid keyword in bond table parameters");
+        error->one(FLERR, "Unknown keyword {} in bond table parameters", word);
       }
     }
   } catch (TokenizerException &e) {

@@ -11,7 +11,7 @@ epsilon = 0.02
 sigma = 2.0
 depth = 20.0
 width = 2.0
-rzero = 1.2
+r0 = 1.2
 
 def harmonic_force(r):
     dr = r - rzero
@@ -32,12 +32,12 @@ def lj126_energy(r):
     return f
 
 def morse_energy(r):
-    ralpha = math.exp(-width*(r-rzero))
+    ralpha = math.exp(-width*(r-r0))
     f = depth * (-1.0 + (1.0 - ralpha) * (1.0 - ralpha))
     return f
 
 def morse_force(r):
-    ralpha = math.exp(-width*(r-rzero))
+    ralpha = math.exp(-width*(r-r0))
     f = -2.0 * depth * width * (1.0 -ralpha) * ralpha
     return f
 
@@ -51,9 +51,9 @@ if __name__ == "__main__":
     sys.argv.append('--filename')
     sys.argv.append(fname)
     sys.argv.append('--num-points')
-    sys.argv.append('1000')
+    sys.argv.append('100')
     sys.argv.append('--inner')
-    sys.argv.append('0.02')
+    sys.argv.append('0.04')
     sys.argv.append('--outer')
     sys.argv.append('4.0')
     wtable = WallTabulate(harmonic_energy, harmonic_force, units='real')

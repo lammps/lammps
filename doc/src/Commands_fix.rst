@@ -263,6 +263,7 @@ OPT.
    * :doc:`wall/lj1043 <fix_wall>`
    * :doc:`wall/lj126 <fix_wall>`
    * :doc:`wall/lj93 (k) <fix_wall>`
+   * :doc:`wall/lepton <fix_wall>`
    * :doc:`wall/morse <fix_wall>`
    * :doc:`wall/piston <fix_wall_piston>`
    * :doc:`wall/reflect (k) <fix_wall_reflect>`
@@ -270,4 +271,5 @@ OPT.
    * :doc:`wall/region <fix_wall_region>`
    * :doc:`wall/region/ees <fix_wall_ees>`
    * :doc:`wall/srd <fix_wall_srd>`
+   * :doc:`wall/table <fix_wall>`
    * :doc:`widom <fix_widom>`

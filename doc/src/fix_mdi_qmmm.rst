@@ -1,6 +1,6 @@
-.. index:: fix mdi/qm
+.. index:: fix mdi/qmmm
 
-fix mdi/qm command
+fix mdi/qmmm command
 ======================
 
 Syntax
@@ -11,7 +11,7 @@ Syntax
    fix ID group-ID mdi/qmmm mode keyword value(s) keyword value(s) ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* mdi/qm = style name of this fix command
+* mdi/qmmm = style name of this fix command
 * mode = *direct* or *potential*
 * zero or more keyword/value pairs may be appended
 * keyword = *virial* or *add* or *every* or *connect* or *elements*
@@ -25,7 +25,7 @@ Syntax
          yes = perform a one-time connection to the MDI engine code
          no = do not perform the connection operation
        *elements* args = N_1 N_2 ... N_ntypes
-         N_1,N_2,...N_ntypes = atomic number for each of ntypes LAMMPS atom types
+         N_1,N_2,...N_ntypes = chemical symbol for each of ntypes LAMMPS atom types
 
 Examples
 """"""""
@@ -40,13 +40,28 @@ Description
 """""""""""
 
 This command enables LAMMPS to act as a client with another server
-code to perform a couple QMMM (quantum-mechanics molecular-mechanics)
-simulation.  LAMMPS will perform classical MD (molecular-mechnanics)
-for the (typically larger) MM portion of the system.  A quantum
-mechanics code will calculate quantum effects for the QM portion of
-the system.  The QM server code must support use of the `MDI Library
+code to perform a coupled QMMM (quantum-mechanics/molecular-mechanics)
+simulation.  LAMMPS will perform classical MD (molecular-mechnanics
+or MM) for the (typically larger) MM portion of the system.  A quantum
+mechanics code will calculate quantum energy and forces for the QM
+portion of the system.  The two codes work together to calculate the
+energy and forces due to the cross interactions between QM and MM
+atoms.  The QM server code must support use of the `MDI Library
 <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_ as
 explained below.
+
+The partitioning of the system between QM and MM atoms is determined
+by the specified group.  Atoms in that group are QM atoms; the remaining
+atoms are MM atoms.  The input script should
+
+need to remove bonds/etc between QM atoms
+currently no bonds between QM/MM atoms are allowed
+need to be able to compute Coulomb only portion of the force
+  field in a pair style, use hybrid
+must be a charged system
+
+explain the 2 algs: DIRECT and POTENTIAL
+
 
 The code coupling performed by this command is done via the `MDI
 Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
@@ -55,11 +70,6 @@ external MDI engine code (server), in this case a QM code which has
 support for MDI.  See the :doc:`Howto mdi <Howto_mdi>` page for more
 information about how LAMMPS can operate as either an MDI driver or
 engine.
-
-
-
-Q: provide an example where LAMMPS is also the QM code ?
-   similar to fix mdi/qm ?
 
 The examples/mdi directory contains input scripts using this fix in
 the various use cases discussed below.  In each case, two instances of
@@ -79,6 +89,8 @@ explains how to launch the two codes in either mode.
 
 ----------
 
+----------
+
 The *virial* keyword setting of yes or no determines whether
 LAMMPS will request the QM code to also compute and return
 a 6-element symmetric virial tensor for the system.
@@ -87,19 +99,20 @@ The *connect* keyword determines whether this fix performs a one-time
 connection to the QM code.  The default is *yes*.  The only time a
 *no* is needed is if this command is used multiple times in an input
 script.  E.g. if it used inside a loop which also uses the :doc:`clear
-<clear>` command to destroy the system (including any defined fixes).
-See the examples/mdi/in.series.driver script as an example of this,
-where LAMMPS is using the QM code to compute energy and forces for a
-series of system configurations.  In this use case *connect no*
-is used along with the :doc:`mdi connect and exit <mdi>` command
-to one-time initiate/terminate the connection outside the loop.
+<clear>` command to destroy the system (including this fix).  As
+example would be a script which loop over a series of independent QMMM
+simulations, e.g. each with their own data file.  In this use case
+*connect no* could be used along with the :doc:`mdi connect and exit
+<mdi>` command to one-time initiate/terminate the connection outside
+the loop.
 
 The *elements* keyword allows specification of what element each
-LAMMPS atom type corresponds to.  This is specified by the atomic
-number of the element, e.g. 13 for Al.  An atomic number must be
-specified for each of the ntypes LAMMPS atom types.  Ntypes is
-typically specified via the create_box command or in the data file
-read by the read_data command.
+LAMMPS atom type corresponds to.  This is specified by the chemical
+symbol of the element, e.g. C or Al or Si.  A symbol must be specified
+for each of the ntypes LAMMPS atom types.  Multiple LAMMPS types can
+represent the same element.  Ntypes is typically specified via the
+:doc:`create_box <create_box>` command or in the data file read by the
+:doc:`read_data <read_data>` command.
 
 If this keyword is specified, then this fix will send the MDI
 ">ELEMENTS" command to the engine, to insure the two codes are
@@ -235,9 +248,6 @@ codes (MD or QM codes), the :doc:`units <units>` command should be
 used to specify *real* or *metal* units.  This will ensure the correct
 unit conversions between LAMMPS and MDI units.  The other code will
 also perform similar unit conversions into its preferred units.
-
-LAMMPS can also be used as an MDI driver in other unit choices it
-supports, e.g. *lj*, but then no unit conversion is performed.
 
 Related commands
 """"""""""""""""

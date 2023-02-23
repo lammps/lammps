@@ -60,4 +60,4 @@ variable        p equal extract_setting(world_size)
 
 mdi             plugin nwchem_mdi mdi "-role ENGINE -name NWChem -method LINK" &
                 extra "template.water.nw water.nw log.water.pwdft.qmmm.plugin.$p" &
-                command "run 1"
+                command "run 10"

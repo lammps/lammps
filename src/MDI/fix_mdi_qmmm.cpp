@@ -72,10 +72,6 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "virial") == 0) {
-
-      // not supported for now
-      error->all(FLERR,"Fix mdi/qmmm command does not yet support virial option");
-      
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix mdi/qmmm command");
       if (strcmp(arg[iarg + 1], "yes") == 0)
         virialflag = 1;
@@ -93,6 +89,7 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else
         error->all(FLERR, "Illegal fix mdi/qmmm command");
       iarg += 2;
+      
     } else if (strcmp(arg[iarg], "elements") == 0) {
       const char *symbols[] = {
         "H" , "He", "Li", "Be", "B" , "C" , "N" , "O" , "F" , "Ne",
@@ -132,75 +129,27 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   global_freq = 1;
   extscalar = 1;
 
-  /*
   if (virialflag) {
     vector_flag = 1;
     size_vector = 6;
+    extvector = 0;
   }
-  */
-  
+
+  peratom_flag = 1;
+  size_peratom_cols = 3;
+  peratom_freq = 1;
 
   energy_global_flag = 1;
+  virial_global_flag = 1;
   thermo_energy = thermo_virial = 1;
+  
   comm_forward = 1;
   comm_reverse = 1;
 
-  // nqm = size of fix group = total # of QM atoms
-  //   error if nqm == natoms, should use fix mdi/qm instead
-  //   require 3*nqm be a small INT, so can MPI_Allreduce xqm
-  // nmm = total # of MM atoms = all non-QM atoms
-
-  nprocs = comm->nprocs;
-  bigint ngroup = group->count(igroup);
-  
-  if (ngroup == 0) error->all(FLERR,"Fix mdi/qmmm has no atoms in quantum group");
-  if (ngroup == atom->natoms) error->all(FLERR,"Fix mdi/qmmm has all atoms in quantum group");
-  if (3*ngroup > MAXSMALLINT) 
-    error->all(FLERR,"Fix mdi/qmmm quantum group has too many atoms");
-  nqm = ngroup;
-  nmm = atom->natoms - nqm;
-  
-  // QM atom memory
-  
-  memory->create(qmIDs,nqm,"mdi/qmmm:qmIDs");
-  memory->create(xqm,nqm,3,"mdi/qmmm:xqm");
-  memory->create(fqm,nqm,3,"mdi/qmmm:fqm");
-  memory->create(qqm,nqm,"mdi/qmmm:qqm");
-  memory->create(eqm,nqm,"mdi/qmmm:eqm");
-  memory->create(qpotential,nqm,"mdi/qmmm:qpotential");
-  memory->create(xqm_mine,nqm,3,"mdi/qmmm:xqm_mine");
-  memory->create(qqm_mine,nqm,"mdi/qmmm:qqm_mine");
-  memory->create(eqm_mine,nqm,"mdi/qmmm:eqm_mine");
-  memory->create(qpotential_mine,nqm,"mdi/qmmm:qpotential_mine");
-  memory->create(qm2owned,nqm,"mdi/qmmm:qm2owned");
-
-  // MM atom memory
-
-  memory->create(mmIDs,nmm,"mdi/qmmm:mmIDs");
-  memory->create(xmm,nmm,3,"mdi/qmmm:xmm");
-  memory->create(fmm,nmm,3,"mdi/qmmm:fmm");
-  memory->create(qmm,nmm,"mdi/qmmm:qmm");
-  memory->create(emm,nmm,"mdi/qmmm:emm");
-  memory->create(xmm_mine,nmm,3,"mdi/qmmm:xmm_mine");
-  memory->create(qmm_mine,nmm,"mdi/qmmm:qmm_mine");
-  memory->create(emm_mine,nmm,"mdi/qmmm:emm_mine");
-  memory->create(mm2owned,nmm,"mdi/qmmm:mm2owned");
-  
-  // create ordered list of QM and MM atoms IDs
-
-  create_qm_list();
-  create_mm_list();
-  
-  // peratom Coulombic energy
-
-  ecoul = nullptr;
-  ncoulmax = 0;
-  
   // mdicomm will be initialized in init()
   // cannot do here for a plugin library, b/c mdi plugin command comes later
 
   mdicomm = MDI_COMM_NULL;
-  first_send = 1;
 
   // set MDI unit conversion factors
 
@@ -213,16 +162,68 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   unit_conversions();
 
+  nprocs = comm->nprocs;
+
+  // QM atom data
+
+  nqm = nqm_last = max_nqm = 0;
+  
+  qmIDs = nullptr;
+  qm2owned = nullptr;
+  
+  eqm = nullptr;
+  tqm = nullptr;
+  xqm = nullptr;
+  fqm = nullptr;
+  qqm = nullptr;
+  qpotential = nullptr;
+
+  eqm_mine = nullptr;
+  tqm_mine = nullptr;
+  xqm_mine = nullptr;
+  qqm_mine = nullptr;
+  qpotential_mine = nullptr;
+
+  // MM atom data
+  
+  nmm = nmm_last = max_nmm = 0;
+
+  mmIDs = nullptr;
+  mm2owned = nullptr;
+
+  emm = nullptr;
+  tmm = nullptr;
+  xmm = nullptr;
+  fmm = nullptr;
+  qmm = nullptr;
+
+  emm_mine = nullptr;
+  tmm_mine = nullptr;
+  xmm_mine = nullptr;
+  qmm_mine = nullptr;
+
+  // peratom Coulombic energy
+
+  ecoul = nullptr;
+  ncoulmax = 0;
+  
+  // per-atom data
+
+  nmax = atom->nmax;
+  memory->create(array_atom,nmax,3,"mdi/qmmm:array_atom");
+
   // initialize outputs
 
   qm_energy = 0.0;
-  if (virialflag) {
-    for (int i = 0; i < 6; i++) {
-      qm_virial[i] = 0.0;
-      virial[i] = 0.0;
-    }
-    sumflag = 0;
+  for (int i = 0; i < 6; i++) {
+    qm_virial[i] = 0.0;
+    virial[i] = 0.0;
   }
+  sumflag = 0;
+
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++)
+    array_atom[i][0] = array_atom[i][1] = array_atom[i][2] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -240,31 +241,40 @@ FixMDIQMMM::~FixMDIQMMM()
 
   // clean up
 
-  delete [] elements;
+  delete[] elements;
 
   memory->destroy(qmIDs);
+  memory->destroy(qm2owned);
+
+  memory->destroy(eqm);
+  memory->destroy(tqm);
   memory->destroy(xqm);
   memory->destroy(fqm);
   memory->destroy(qqm);
-  memory->destroy(eqm);
   memory->destroy(qpotential);
+  
+  memory->destroy(eqm_mine);
+  memory->destroy(tqm_mine);
   memory->destroy(xqm_mine);
   memory->destroy(qqm_mine);
-  memory->destroy(eqm_mine);
   memory->destroy(qpotential_mine);
-  memory->destroy(qm2owned);
 
   memory->destroy(mmIDs);
+  memory->destroy(mm2owned);
+
+  memory->destroy(emm);
+  memory->destroy(tmm);
   memory->destroy(xmm);
   memory->destroy(fmm);
   memory->destroy(qmm);
-  memory->destroy(emm);
+
+  memory->destroy(emm_mine);
+  memory->destroy(tmm_mine);
   memory->destroy(xmm_mine);
   memory->destroy(qmm_mine);
-  memory->destroy(emm_mine);
-  memory->destroy(mm2owned);
 
   memory->destroy(ecoul);
+  memory->destroy(array_atom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -327,11 +337,86 @@ void FixMDIQMMM::init()
       char *ptrcomm = (char *) lmp->mdicomm;
       memcpy(&mdicomm, ptrcomm, nbytes);
     }
+
+    // check which MDI commands engine supports
+    
+    int ierr = MDI_Check_command_exists("@DEFAULT", ">NATOMS", mdicomm, &natoms_exists);
+    if (ierr) error->all(FLERR, "MDI: >NATOMS command check");
+    MPI_Bcast(&natoms_exists, 1, MPI_INT, 0, world);
+
+    ierr = MDI_Check_command_exists("@DEFAULT", ">CELL_DISPL", mdicomm, &celldispl_exists);
+    if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command check");
+    MPI_Bcast(&celldispl_exists, 1, MPI_INT, 0, world);
+
+    ierr = MDI_Check_command_exists("@DEFAULT", ">ELEMENTS", mdicomm, &elements_exists);
+    if (ierr) error->all(FLERR, "MDI: >ELEMENTS command check");
+    MPI_Bcast(&elements_exists, 1, MPI_INT, 0, world);
+
+    ierr = MDI_Check_command_exists("@DEFAULT", ">TYPES", mdicomm, &types_exists);
+    if (ierr) error->all(FLERR, "MDI: >TYPES command check");
+    MPI_Bcast(&types_exists, 1, MPI_INT, 0, world);
+
+    ierr = MDI_Check_command_exists("@DEFAULT", "<STRESS", mdicomm, &stress_exists);
+    if (ierr) error->all(FLERR, "MDI: <STRESS command check");
+    MPI_Bcast(&stress_exists, 1, MPI_INT, 0, world);
+
+    // check if MDI engine supports commands that match QMMM mode
+
+    if (mode == POTENTIAL) {
+      int check1,check2;
+      
+      ierr = MDI_Check_command_exists("@DEFAULT", ">POTENTIAL_AT_NUCLEI", mdicomm, &check1);
+      if (ierr) error->all(FLERR, "MDI: >POTENTIAL_AT_NUCLEI command check");
+      MPI_Bcast(&check1, 1, MPI_INT, 0, world);
+
+      ierr = MDI_Check_command_exists("@DEFAULT", "<CHARGES", mdicomm, &check2);
+      if (ierr) error->all(FLERR, "MDI: <CHARGES command check");
+      MPI_Bcast(&check2, 1, MPI_INT, 0, world);
+
+      if (!check1 || !check2)
+        error->all(FLERR,"Fix mdi/qmmm potential mode not supported by MDI engine");
+    }
+
+    if (mode == DIRECT) {
+      int check1,check2,check3,check4;
+      
+      ierr = MDI_Check_command_exists("@DEFAULT", ">NLATTICE", mdicomm, &check1);
+      if (ierr) error->all(FLERR, "MDI: >NLATTICE command check");
+      MPI_Bcast(&check1, 1, MPI_INT, 0, world);
+
+      ierr = MDI_Check_command_exists("@DEFAULT", ">CLATTICE", mdicomm, &check2);
+      if (ierr) error->all(FLERR, "MDI: >CLATTICE command check");
+      MPI_Bcast(&check2, 1, MPI_INT, 0, world);
+
+      ierr = MDI_Check_command_exists("@DEFAULT", ">LATTICE", mdicomm, &check3);
+      if (ierr) error->all(FLERR, "MDI: >LATTICE command check");
+      MPI_Bcast(&check3, 1, MPI_INT, 0, world);
+
+      ierr = MDI_Check_command_exists("@DEFAULT", "<LATTICE_FORCES", mdicomm, &check4);
+      if (ierr) error->all(FLERR, "MDI: <LATTICE_FORCES command check");
+      MPI_Bcast(&check4, 1, MPI_INT, 0, world);
+
+      if (!check1 || !check2 || !check3 || !check4)
+        error->all(FLERR,"Fix mdi/qmmm direct mode not supported by MDI engine");
+
+      ierr = MDI_Check_command_exists("@DEFAULT", ">LATTICE_ELEMENTS", mdicomm, &check1);
+      if (ierr) error->all(FLERR, "MDI: >LATTICE_ELEMENTS command check");
+      MPI_Bcast(&check1, 1, MPI_INT, 0, world);
+      
+      ierr = MDI_Check_command_exists("@DEFAULT", ">LATTICE_TYPES", mdicomm, &check2);
+      if (ierr) error->all(FLERR, "MDI: >LATTICE_TYPES command check");
+      MPI_Bcast(&check2, 1, MPI_INT, 0, world);
+
+      if (elements_exists && !check1)
+        error->all(FLERR,"Fix mdi/qmmm direct mode elements not supported by MDI engine");
+      if (types_exists && !check2)
+        error->all(FLERR,"Fix mdi/qmmm direct mode types not supported by MDI engine");
+    }
   }
 
-  // require per-atom charge for mode = either DIRECT or POTENTIAL
-  // POTENTIAL mode requires a pair style that calculates only Coulombic interactions
-  //   can also be in conjunction with KSpace solver
+  // require per-atom charge
+  // POTENTIAL mode requires pair style to calculate only Coulombic interactions
+  //   can be in conjunction with KSpace solver
 
   if (!atom->q_flag) error->all(FLERR,"Fix mdi/qmmm requires per-atom charge");
 
@@ -343,53 +428,112 @@ void FixMDIQMMM::init()
     if (!pair_coul) error->all(FLERR,"Fix mdi/qmmm potential requires Coulomb-only pair sub-style");
   }
 
-  // send info to QM code which is often only needed once
-  // box size (can be resent)
-  // count of QM atoms
-  // DIRECT and POTENTIAL: number of QM atoms, QM elements
-  // DIRECT only: number of MM atoms, MM elements, MM charges
-  // NOTE: could test if QM code alreads has NATOMS, which implies it set up itself
-  //       similar to fix mdi/qm
+  // determine whether a new vs incremental QMMM calc is needed
+  // new if first run or if
+  //   QM/MM atom counts or QM/MM elements/types or box has changed between runs
+  // otherwise incremental = subsequent run of same system
   
-  if (first_send) {
-    first_send = 0;
+  int new_system = 0;
 
-    send_box();
-
-    int ierr;
-
-    ierr = MDI_Send_command(">NATOMS", mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >NATOMS command");
-    ierr = MDI_Send(&nqm, 1, MDI_INT, mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >NATOMS data");
-
+  // check if count of QM or MM atoms has changed
+  // on first run, old counts are 0
+  
+  int nqm_old = nqm;
+  nqm = set_nqm();
+  
+  if (nqm != nqm_old) {
+    if (nqm > max_nqm) reallocate_qm();
+    create_qm_list();
     set_qm2owned();
-    set_eqm();
+    new_system = 1;
+  }
+
+  int nmm_old = nmm;
+  nmm = set_nmm();
+  
+  if (nmm != nmm_old) {
+    if (nmm > max_nmm) reallocate_mm();
+    create_mm_list();
+    set_mm2owned();
+    new_system = 1;
+  }
+  
+  // check if box has changed
+
+  if (new_system) set_box();
+  else {
+    double old_cell[9],old_cell_displ[3];
+    memcpy(old_cell,qm_cell,9*sizeof(double));
+    memcpy(old_cell_displ,qm_cell_displ,3*sizeof(double));
+    set_box();
+    for (int i = 0; i < 9; i++)
+      if (qm_cell[i] != old_cell[i]) new_system = 1;
+    for (int i = 0; i < 3; i++)
+      if (qm_cell_displ[i] != old_cell_displ[i]) new_system = 1;
+  }
+
+  // check if QM or MM atom elements or types have changed
+
+  if (elements && elements_exists) {
+    if (new_system) {
+      set_eqm();
+      set_emm();
+    } else {
+      int *eqm_old;
+      memory->create(eqm_old,nqm,"mdi/qmmm:eqm_old");
+      memcpy(eqm_old,eqm,nqm*sizeof(int));
+      set_eqm();
+      for (int i = 0; i < nqm; i++)
+        if (eqm[i] != eqm_old[i]) new_system = 1;
+      memory->destroy(eqm_old);
+
+      int *emm_old;
+      memory->create(emm_old,nmm,"mdi/qmmm:emm_old");
+      memcpy(emm_old,emm,nmm*sizeof(int));
+      set_emm();
+      for (int i = 0; i < nmm; i++)
+        if (emm[i] != emm_old[i]) new_system = 1;
+      memory->destroy(emm_old);
+    }
     
-    ierr = MDI_Send_command(">ELEMENTS", mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >ELEMENTS command");
-    ierr = MDI_Send(eqm, nqm, MDI_INT, mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >ELEMENTS data");
+  } else if (types_exists) {
+    if (new_system) {
+      set_tqm();
+      set_tmm();
+    } else {
+      int *tqm_old;
+      memory->create(tqm_old,nqm,"mdi/qmmm:tqm_old");
+      memcpy(tqm_old,tqm,nqm*sizeof(int));
+      set_tqm();
+      for (int i = 0; i < nqm; i++)
+        if (tqm[i] != tqm_old[i]) new_system = 1;
+      memory->destroy(tqm_old);
+
+      int *tmm_old;
+      memory->create(tmm_old,nmm,"mdi/qmmm:tmm_old");
+      memcpy(tmm_old,tmm,nmm*sizeof(int));
+      set_tmm();
+      for (int i = 0; i < nmm; i++)
+        if (tmm[i] != tmm_old[i]) new_system = 1;
+      memory->destroy(tmm_old);
+    }
+  }
+  
+  // if new system, send setup info to MDI engine
+  // values that often won't change for QMMM simulations
+  // if not sending elements or types, assume engine initialized itself
+
+  if (new_system) {
+    send_natoms_qm();
+    send_box();
+    if (elements && elements_exists) send_elements_qm();
+    else if (types_exists) send_types_qm();
+    nqm_last = nqm;
 
     if (mode == DIRECT) {
-      ierr = MDI_Send_command(">NLATTICE", mdicomm);
-      if (ierr) error->all(FLERR, "MDI: >NLATTICE command");
-      ierr = MDI_Send(&nmm, 1, MDI_INT, mdicomm);
-      if (ierr) error->all(FLERR, "MDI: >NLATTICE data");
-
-      set_mm2owned();
-      set_emm();
-      
-      ierr = MDI_Send_command(">LATTICE_ELEMENTS", mdicomm);
-      if (ierr) error->all(FLERR, "MDI: >LATTICE_ELEMENTS command");
-      ierr = MDI_Send(emm, nmm, MDI_INT, mdicomm);
-      if (ierr) error->all(FLERR, "MDI: >LATTICE_ELEMENTS data");
-
-      set_qmm();
-      ierr = MDI_Send_command(">LATTICE", mdicomm);
-      if (ierr) error->all(FLERR, "MDI: >LATTICE command");
-      ierr = MDI_Send(qmm, nmm, MDI_DOUBLE, mdicomm);
-      if (ierr) error->all(FLERR, "MDI: >LATTICE data");
+      send_natoms_mm();
+      if (elements && elements_exists) send_elements_mm();
+      else if (types_exists) send_types_mm();
     }
   }
 }
@@ -431,7 +575,7 @@ void FixMDIQMMM::post_neighbor()
    (4) receive results from QM code
 ---------------------------------------------------------------------- */
 
-void FixMDIQMMM::pre_force(int /*vflag*/)
+void FixMDIQMMM::pre_force(int vflag)
 {
   int ilocal,jlocal;
   double rsq;
@@ -543,7 +687,14 @@ void FixMDIQMMM::pre_force(int /*vflag*/)
   //double tstart = platform::walltime();
 
   int ierr;
-  
+
+  // if simulation box dynamically changes, send current box to MDI engine
+
+  if (domain->box_change_size || domain->box_change_shape) {
+    set_box();
+    send_box();
+  }
+
   // send current coords of QM atoms to MDI engine
 
   ierr = MDI_Send_command(">COORDS", mdicomm);
@@ -567,6 +718,7 @@ void FixMDIQMMM::pre_force(int /*vflag*/)
   ierr = MDI_Recv(&qm_energy, 1, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <PE data");
   MPI_Bcast(&qm_energy, 1, MPI_DOUBLE, 0, world);
+  qm_energy *= mdi2lmp_energy;
 
   // request forces on QM atoms from MDI engine
 
@@ -584,23 +736,11 @@ void FixMDIQMMM::pre_force(int /*vflag*/)
   if (ierr) error->all(FLERR, "MDI: <CHARGES data");
   MPI_Bcast(qqm, nqm, MPI_DOUBLE, 0, world);
 
-  // end of MDI calls
-  
   //MPI_Barrier(world);
   
   //if (comm->me == 0) 
   //  utils::logmesg(lmp, "  time = {:.3f} seconds\n",
   //                 platform::walltime() - tstart);
-
-  // unit conversion from MDI to LAMMPS
-
-  qm_energy *= mdi2lmp_energy;
-
-  for (int i = 0; i < nqm; i++) {
-    fqm[i][0] *= mdi2lmp_force;
-    fqm[i][1] *= mdi2lmp_force;
-    fqm[i][2] *= mdi2lmp_force;
-  }
 
   // reset owned charges to QM values
   // communicate changes to ghost atoms
@@ -611,6 +751,56 @@ void FixMDIQMMM::pre_force(int /*vflag*/)
   }
 
   comm->forward_comm(this);
+
+  // array_atom = fix output for peratom QM forces
+  // zero array_atom first for MM atoms
+
+  for (int i = 0; i < nlocal; i++) {
+    array_atom[i][0] = 0.0;
+    array_atom[i][1] = 0.0;
+    array_atom[i][2] = 0.0;
+  }
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) {
+      array_atom[ilocal][0] = fqm[i][0] * mdi2lmp_force;
+      array_atom[ilocal][1] = fqm[i][1] * mdi2lmp_force;
+      array_atom[ilocal][2] = fqm[i][2] * mdi2lmp_force;
+    }
+  }
+
+  // optionally request stress tensor from MDI engine, convert to 6-value virial
+  // qm_virial_symmetric = fix output for global QM virial
+  // note MDI defines virial tensor as intensive (divided by volume), LAMMPS does not
+
+  if (vflag && virialflag && stress_exists) {
+    ierr = MDI_Send_command("<STRESS", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <STRESS command");
+    ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <STRESS data");
+    MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
+
+    qm_virial_symmetric[0] = qm_virial[0] * mdi2lmp_pressure;
+    qm_virial_symmetric[1] = qm_virial[4] * mdi2lmp_pressure;
+    qm_virial_symmetric[2] = qm_virial[8] * mdi2lmp_pressure;
+    qm_virial_symmetric[3] = 0.5 * (qm_virial[1] + qm_virial[3]) * mdi2lmp_pressure;
+    qm_virial_symmetric[4] = 0.5 * (qm_virial[2] + qm_virial[6]) * mdi2lmp_pressure;
+    qm_virial_symmetric[5] = 0.5 * (qm_virial[5] + qm_virial[7]) * mdi2lmp_pressure;
+
+    // optionally set fix->virial
+    //   multiply by volume to make it extensive
+    //   divide by nprocs so each proc stores a portion
+    // this is b/c ComputePressure expects this as input from a fix
+    //   it will do an MPI_Allreduce and divide by volume
+    
+    double volume;
+    if (domain->dimension == 2)
+      volume = domain->xprd * domain->yprd;
+    else if (domain->dimension == 3)
+      volume = domain->xprd * domain->yprd * domain->zprd;
+    for (int i = 0; i < 6; i++) virial[i] = qm_virial_symmetric[i] * volume / nprocs;
+  }
 
   // reset LAMMPS forces to zero
   // NOTE: what about check in force_clear() for external_force_clear = OPENMP ?
@@ -651,20 +841,6 @@ void FixMDIQMMM::post_force_direct(int /*vflag*/)
   set_xmm();
   set_qmm();
 
-  // unit conversion from LAMMPS to MDI
-
-  for (int i = 0; i < nqm; i++) {
-    xqm[i][0] *= lmp2mdi_length;
-    xqm[i][1] *= lmp2mdi_length;
-    xqm[i][2] *= lmp2mdi_length;
-  }
-
-  for (int i = 0; i < nmm; i++) {
-    xmm[i][0] *= lmp2mdi_length;
-    xmm[i][1] *= lmp2mdi_length;
-    xmm[i][2] *= lmp2mdi_length;
-  }
-
   // send info to MDI engine with QM and MM atom info
   // first request for results triggers QM calculation
   // QM and MM atoms must be in order of ascending atom ID
@@ -682,10 +858,14 @@ void FixMDIQMMM::post_force_direct(int /*vflag*/)
   //MPI_Barrier(world);
   //double tstart = platform::walltime();
 
-  // MDI calls
-  // NOTE: add send_box() call when needed for NPT
-
   int ierr;
+
+  // if simulation box dynamically changes, send current box to MDI engine
+
+  if (domain->box_change_size || domain->box_change_shape) {
+    set_box();
+    send_box();
+  }
   
   // send current coords of QM atoms to MDI engine
   
@@ -710,6 +890,7 @@ void FixMDIQMMM::post_force_direct(int /*vflag*/)
   ierr = MDI_Recv(&qm_energy, 1, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <PE data");
   MPI_Bcast(&qm_energy, 1, MPI_DOUBLE, 0, world);
+  qm_energy *= mdi2lmp_energy;
 
   // request forces on QM atoms from MDI engine
   
@@ -734,42 +915,46 @@ void FixMDIQMMM::post_force_direct(int /*vflag*/)
   //  utils::logmesg(lmp, "  time = {:.3f} seconds\n",
   //                 platform::walltime() - tstart);
 
-  // unit conversion from MDI to LAMMPS
+  // array_atom = fix output for peratom QM and MM forces
 
-  qm_energy *= mdi2lmp_energy;
-
-  for (int i = 0; i < nqm; i++) {
-    fqm[i][0] *= mdi2lmp_force;
-    fqm[i][1] *= mdi2lmp_force;
-    fqm[i][2] *= mdi2lmp_force;
-  }
-
-  for (int i = 0; i < nmm; i++) {
-    fmm[i][0] *= mdi2lmp_force;
-    fmm[i][1] *= mdi2lmp_force;
-    fmm[i][2] *= mdi2lmp_force;
-  }
-
-  // add fqm and fmm to LAMMPS forces on respective atoms
-
-  double **f = atom->f;
   int ilocal;
-
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2owned[i];
     if (ilocal >= 0) {
-      f[ilocal][0] += fqm[i][0];
-      f[ilocal][1] += fqm[i][1];
-      f[ilocal][2] += fqm[i][2];
+      array_atom[ilocal][0] = fqm[i][0] * mdi2lmp_force;
+      array_atom[ilocal][1] = fqm[i][1] * mdi2lmp_force;
+      array_atom[ilocal][2] = fqm[i][2] * mdi2lmp_force;
     }
   }
 
   for (int i = 0; i < nmm; i++) {
     ilocal = mm2owned[i];
     if (ilocal >= 0) {
-      f[ilocal][0] += fmm[i][0];
-      f[ilocal][1] += fmm[i][1];
-      f[ilocal][2] += fmm[i][2];
+      array_atom[ilocal][0] = fmm[i][0] * mdi2lmp_force;
+      array_atom[ilocal][1] = fmm[i][1] * mdi2lmp_force;
+      array_atom[ilocal][2] = fmm[i][2] * mdi2lmp_force;
+    }
+  }
+
+  // add fqm and fmm to LAMMPS forces on respective atoms
+
+  double **f = atom->f;
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) {
+      f[ilocal][0] += fqm[i][0] * mdi2lmp_force;
+      f[ilocal][1] += fqm[i][1] * mdi2lmp_force;
+      f[ilocal][2] += fqm[i][2] * mdi2lmp_force;
+    }
+  }
+
+  for (int i = 0; i < nmm; i++) {
+    ilocal = mm2owned[i];
+    if (ilocal >= 0) {
+      f[ilocal][0] += fmm[i][0] * mdi2lmp_force;
+      f[ilocal][1] += fmm[i][1] * mdi2lmp_force;
+      f[ilocal][2] += fmm[i][2] * mdi2lmp_force;
     }
   }
 }
@@ -864,9 +1049,9 @@ void FixMDIQMMM::post_force_potential(int /*vflag*/)
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2owned[i];
     if (ilocal >= 0) {
-      f[ilocal][0] += fqm[i][0];
-      f[ilocal][1] += fqm[i][1];
-      f[ilocal][2] += fqm[i][2];
+      f[ilocal][0] += fqm[i][0] * mdi2lmp_force;
+      f[ilocal][1] += fqm[i][1] * mdi2lmp_force;
+      f[ilocal][2] += fqm[i][2] * mdi2lmp_force;
     }
   }
 
@@ -975,12 +1160,10 @@ double FixMDIQMMM::compute_scalar()
    virial from MDI engine
 ------------------------------------------------------------------------- */
 
-/*
 double FixMDIQMMM::compute_vector(int n)
 {
   return qm_virial_symmetric[n];
 }
-*/
 
 /* ----------------------------------------------------------------------
    memory usage
@@ -1001,6 +1184,112 @@ double FixMDIQMMM::memory_usage()
 // private methods for this fix
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   reallocate storage for QM atoms
+------------------------------------------------------------------------- */
+
+void FixMDIQMMM::reallocate_qm()
+{
+  max_nqm = nqm;
+
+  memory->destroy(qmIDs);
+  memory->destroy(qm2owned);
+
+  memory->destroy(eqm);
+  memory->destroy(tqm);
+  memory->destroy(xqm);
+  memory->destroy(fqm);
+
+  memory->destroy(eqm_mine);
+  memory->destroy(tqm_mine);
+  memory->destroy(xqm_mine);
+
+  memory->create(qmIDs,max_nqm,"mdi/qm:qmIDs");
+  memory->create(qm2owned,max_nqm,"mdi/qm:qm2owned");
+
+  memory->create(eqm,max_nqm,"mdi/qm:eqm");
+  memory->create(tqm,max_nqm,"mdi/qm:tqm");
+  memory->create(xqm,max_nqm,3,"mdi/qm:xqm");
+  memory->create(fqm,max_nqm,3,"mdi/qm:fqm");
+
+  memory->create(eqm_mine,max_nqm,"mdi/qm:eqm_mine");
+  memory->create(tqm_mine,max_nqm,"mdi/qm:tqm_mine");
+  memory->create(xqm_mine,max_nqm,3,"mdi/qm:xqm_mine");
+}
+
+/* ----------------------------------------------------------------------
+   reallocate storage for MM atoms
+------------------------------------------------------------------------- */
+
+void FixMDIQMMM::reallocate_mm()
+{
+  max_nqm = nqm;
+
+  memory->destroy(qmIDs);
+  memory->destroy(qm2owned);
+
+  memory->destroy(eqm);
+  memory->destroy(tqm);
+  memory->destroy(xqm);
+  memory->destroy(fqm);
+
+  memory->destroy(eqm_mine);
+  memory->destroy(tqm_mine);
+  memory->destroy(xqm_mine);
+
+  memory->create(qmIDs,max_nqm,"mdi/qm:qmIDs");
+  memory->create(qm2owned,max_nqm,"mdi/qm:qm2owned");
+
+  memory->create(eqm,max_nqm,"mdi/qm:eqm");
+  memory->create(tqm,max_nqm,"mdi/qm:tqm");
+  memory->create(xqm,max_nqm,3,"mdi/qm:xqm");
+  memory->create(fqm,max_nqm,3,"mdi/qm:fqm");
+
+  memory->create(eqm_mine,max_nqm,"mdi/qm:eqm_mine");
+  memory->create(tqm_mine,max_nqm,"mdi/qm:tqm_mine");
+  memory->create(xqm_mine,max_nqm,3,"mdi/qm:xqm_mine");
+}
+
+/* ----------------------------------------------------------------------
+   ncount = # of QM atoms = # in fix group
+   return ncount to set nqm
+------------------------------------------------------------------------- */
+
+int FixMDIQMMM::set_nqm()
+{
+  bigint ngroup = group->count(igroup);
+
+  // require 3*nqm be a small INT, so can MPI_Allreduce QM values
+
+  if (3*ngroup > MAXSMALLINT) 
+    error->all(FLERR,"Fix mdi/qmmm has too many quantum atoms");
+
+  // error if nqm = 0
+  // error if nqm = natoms, should use fix mdi/qm instead
+
+  if (ngroup == 0) error->all(FLERR,"Fix mdi/qmmm has no atoms in quantum group");
+  if (ngroup == atom->natoms) error->all(FLERR,"Fix mdi/qmmm has all atoms in quantum group");
+
+  int ncount = ngroup;
+  return ncount;
+}
+
+/* ----------------------------------------------------------------------
+   ncount = # of MM atoms = all non-QM atoms
+   return ncount to set nmm
+------------------------------------------------------------------------- */
+
+int FixMDIQMMM::set_nmm()
+{
+  // require 3*nmm be a small INT, so can MPI_Allreduce xmm
+
+  if (3*(atom->natoms-nqm) > MAXSMALLINT) 
+    error->all(FLERR,"Fix mdi/qmmm has too many classical atoms");
+
+  int ncount = atom->natoms - nqm;
+  return ncount;
+}
 
 /* ----------------------------------------------------------------------
    create sorted list of QM atom IDs
@@ -1177,37 +1466,27 @@ void FixMDIQMMM::set_mm2owned()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIQMMM::set_qqm()
+void FixMDIQMMM::set_box()
 {
-  for (int i = 0; i < nqm; i++) qqm_mine[i] = 0.0;
+  qm_cell_displ[0] = domain->boxlo[0] * lmp2mdi_length;
+  qm_cell_displ[1] = domain->boxlo[1] * lmp2mdi_length;
+  qm_cell_displ[2] = domain->boxlo[2] * lmp2mdi_length;
 
-  double *q = atom->q;
-  int ilocal;
+  qm_cell[0] = domain->boxhi[0] - domain->boxlo[0];
+  qm_cell[1] = 0.0;
+  qm_cell[2] = 0.0;
+  qm_cell[3] = domain->xy;
+  qm_cell[4] = domain->boxhi[1] - domain->boxlo[1];
+  qm_cell[5] = 0.0;
+  qm_cell[6] = domain->xz;
+  qm_cell[7] = domain->yz;
+  qm_cell[8] = domain->boxhi[2] - domain->boxlo[2];
 
-  for (int i = 0; i < nqm; i++) {
-    ilocal = qm2owned[i];
-    if (ilocal >= 0) qqm_mine[i] = q[ilocal];
-  }
-  
-  MPI_Allreduce(qqm_mine,qqm,nqm,MPI_DOUBLE,MPI_SUM,world);
+  // convert cell units to bohr
+
+  for (int icell = 0; icell < 9; icell++) qm_cell[icell] *= lmp2mdi_length;
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixMDIQMMM::set_eqm()
-{
-  for (int i = 0; i < nqm; i++) eqm_mine[i] = 0;
-
-  int *type = atom->type;
-  int ilocal;
-  
-  for (int i = 0; i < nqm; i++) {
-    ilocal = qm2owned[i];
-    if (ilocal >= 0) eqm_mine[i] = elements[type[ilocal]];
-  }
-  
-  MPI_Allreduce(eqm_mine,eqm,nqm,MPI_INT,MPI_SUM,world);
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -1230,6 +1509,10 @@ void FixMDIQMMM::set_xqm()
       xqm_mine[i][2] = x[ilocal][2];
 
       domain->remap(xqm_mine[i]);
+
+      xqm_mine[i][0] *= lmp2mdi_length;
+      xqm_mine[i][1] *= lmp2mdi_length;
+      xqm_mine[i][2] *= lmp2mdi_length;
     }
   }
 
@@ -1238,36 +1521,53 @@ void FixMDIQMMM::set_xqm()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIQMMM::set_emm()
+void FixMDIQMMM::set_eqm()
 {
-  for (int i = 0; i < nmm; i++) emm_mine[i] = 0;
+  for (int i = 0; i < nqm; i++) eqm_mine[i] = 0;
 
   int *type = atom->type;
   int ilocal;
   
-  for (int i = 0; i < nmm; i++) {
-    ilocal = mm2owned[i];
-    if (ilocal >= 0) emm_mine[i] = elements[type[ilocal]];
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) eqm_mine[i] = elements[type[ilocal]];
   }
   
-  MPI_Allreduce(emm_mine,emm,nmm,MPI_INT,MPI_SUM,world);
+  MPI_Allreduce(eqm_mine,eqm,nqm,MPI_INT,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIQMMM::set_qmm()
+void FixMDIQMMM::set_tqm()
 {
-  for (int i = 0; i < nmm; i++) qmm_mine[i] = 0.0;
+  for (int i = 0; i < nqm; i++) tqm_mine[i] = 0.0;
+
+  int *type = atom->type;
+  int ilocal;
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) tqm_mine[i] = type[ilocal];
+  }
+  
+  MPI_Allreduce(tqm_mine,tqm,nqm,MPI_INT,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIQMMM::set_qqm()
+{
+  for (int i = 0; i < nqm; i++) qqm_mine[i] = 0.0;
 
   double *q = atom->q;
   int ilocal;
 
-  for (int i = 0; i < nmm; i++) {
-    ilocal = mm2owned[i];
-    if (ilocal >= 0) qmm_mine[i] = q[ilocal];
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) qqm_mine[i] = q[ilocal];
   }
   
-  MPI_Allreduce(qmm_mine,qmm,nmm,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(qqm_mine,qqm,nqm,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1291,53 +1591,190 @@ void FixMDIQMMM::set_xmm()
       xmm_mine[i][2] = x[ilocal][2];
 
       domain->remap(xmm_mine[i]);
+
+      xmm_mine[i][0] *= lmp2mdi_length;
+      xmm_mine[i][1] *= lmp2mdi_length;
+      xmm_mine[i][2] *= lmp2mdi_length;
     }
   }
 
   MPI_Allreduce(&xmm_mine[0][0],&xmm[0][0],3*nmm,MPI_DOUBLE,MPI_SUM,world);
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixMDIQMMM::set_emm()
+{
+  for (int i = 0; i < nmm; i++) emm_mine[i] = 0;
+
+  int *type = atom->type;
+  int ilocal;
+  
+  for (int i = 0; i < nmm; i++) {
+    ilocal = mm2owned[i];
+    if (ilocal >= 0) emm_mine[i] = elements[type[ilocal]];
+  }
+  
+  MPI_Allreduce(emm_mine,emm,nmm,MPI_INT,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIQMMM::set_tmm()
+{
+  for (int i = 0; i < nmm; i++) tmm_mine[i] = 0;
+
+  int *type = atom->type;
+  int ilocal;
+  
+  for (int i = 0; i < nmm; i++) {
+    ilocal = mm2owned[i];
+    if (ilocal >= 0) tmm_mine[i] = type[ilocal];
+  }
+  
+  MPI_Allreduce(tmm_mine,tmm,nmm,MPI_INT,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIQMMM::set_qmm()
+{
+  for (int i = 0; i < nmm; i++) qmm_mine[i] = 0.0;
+
+  double *q = atom->q;
+  int ilocal;
+
+  for (int i = 0; i < nmm; i++) {
+    ilocal = mm2owned[i];
+    if (ilocal >= 0) qmm_mine[i] = q[ilocal];
+  }
+  
+  MPI_Allreduce(qmm_mine,qmm,nmm,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ----------------------------------------------------------------------
+   send LAMMPS QM atom count to MDI engine
+------------------------------------------------------------------------- */
+
+void FixMDIQMMM::send_natoms_qm()
+{
+  int ierr;
+  
+  // if engine suppports >NATOMS, send it
+  // if not, require that engine be consistent with LAMMPS
+  
+  if (natoms_exists) {
+    ierr = MDI_Send_command(">NATOMS", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >NATOMS command");
+    ierr = MDI_Send(&nqm, 1, MDI_INT, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >NATOMS data");
+
+  
+  } else {
+    ierr = MDI_Send_command("<NATOMS", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <NATOMS command");
+    int n;
+    ierr = MDI_Recv(&n, 1, MDI_INT, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <NATOMS data");
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
+
+    if (n != nqm)
+      error->all(FLERR, "MDI: Engine has wrong atom count and does not support >NATOMS command");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   send QM atom types to MDI engine
+------------------------------------------------------------------------- */
+
+void FixMDIQMMM::send_types_qm()
+{
+  int ierr = MDI_Send_command(">TYPES", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >TYPES command");
+  ierr = MDI_Send(tqm, nqm, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >TYPES data");
+}
+
+/* ----------------------------------------------------------------------
+   send QM elements to MDI engine = atomic numbers for each type
+------------------------------------------------------------------------- */
+
+void FixMDIQMMM::send_elements_qm()
+{
+  int ierr = MDI_Send_command(">ELEMENTS", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >ELEMENTS command");
+  ierr = MDI_Send(eqm, nqm, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >ELEMENTS data");
+}
+
 /* ----------------------------------------------------------------------
    send simulation box size and shape to MDI engine
+   only send CELL_DISPL if engine supports it
 ------------------------------------------------------------------------- */
 
 void FixMDIQMMM::send_box()
 {
-  double cell[9];
+  int ierr;
 
-  int cell_displ_exists;
-  int ierr = MDI_Check_command_exists("@DEFAULT", ">CELL_DISPL", mdicomm, &cell_displ_exists);
-  if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command check");
-  MPI_Bcast(&cell_displ_exists, 1, MPI_INT, 0, world);
-
-  if (cell_displ_exists) {
+  if (celldispl_exists) {
     ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
     if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command");
-    cell[0] = domain->boxlo[0] * lmp2mdi_length;
-    cell[1] = domain->boxlo[1] * lmp2mdi_length;
-    cell[2] = domain->boxlo[2] * lmp2mdi_length;
-    ierr = MDI_Send(cell, 3, MDI_DOUBLE, mdicomm);
+    ierr = MDI_Send(qm_cell_displ, 3, MDI_DOUBLE, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >CELL_DISPL data");
   }
 
   ierr = MDI_Send_command(">CELL", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CELL command");
-  cell[0] = domain->boxhi[0] - domain->boxlo[0];
-  cell[1] = 0.0;
-  cell[2] = 0.0;
-  cell[3] = domain->xy;
-  cell[4] = domain->boxhi[1] - domain->boxlo[1];
-  cell[5] = 0.0;
-  cell[6] = domain->xz;
-  cell[7] = domain->yz;
-  cell[8] = domain->boxhi[2] - domain->boxlo[2];
-
-  // convert from LAMMPS to MDI units
-  
-  for (int icell = 0; icell < 9; icell++) cell[icell] *= lmp2mdi_length;
-
-  ierr = MDI_Send(cell, 9, MDI_DOUBLE, mdicomm);
+  ierr = MDI_Send(qm_cell, 9, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CELL data");
+}
+
+/* ----------------------------------------------------------------------
+   send LAMMPS MM atom count to MDI engine
+------------------------------------------------------------------------- */
+
+void FixMDIQMMM::send_natoms_mm()
+{
+  int ierr = MDI_Send_command(">NLATTICE", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >NLATTICE command");
+  ierr = MDI_Send(&nmm, 1, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >NLATTICE data");
+}
+
+/* ----------------------------------------------------------------------
+   send MM atom types to MDI engine
+------------------------------------------------------------------------- */
+
+void FixMDIQMMM::send_types_mm()
+{
+  int ierr = MDI_Send_command(">LATTICE_TYPES", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >LATTICE_TYPES command");
+  ierr = MDI_Send(tqm, nqm, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >LATTICE_TYPES data");
+}
+
+/* ----------------------------------------------------------------------
+   send MM elements to MDI engine = atomic numbers for each type
+------------------------------------------------------------------------- */
+
+void FixMDIQMMM::send_elements_mm()
+{
+  int ierr = MDI_Send_command(">LATTICE_ELEMENTS", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >LATTICE_ELEMENTS command");
+  ierr = MDI_Send(emm, nmm, MDI_INT, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >LATTICE_ELEMENTS data");
+}
+
+/* ----------------------------------------------------------------------
+   send MM charges to MDI engine
+------------------------------------------------------------------------- */
+
+void FixMDIQMMM::send_charges_mm()
+{
+  int ierr = MDI_Send_command(">LATTICE", mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >LATTICE command");
+  ierr = MDI_Send(qmm, nmm, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >LATTICE data");
 }
 
 /* ----------------------------------------------------------------------

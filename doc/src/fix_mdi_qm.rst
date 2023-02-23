@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * mdi/qm = style name of this fix command
 * zero or more keyword/value pairs may be appended
-* keyword = *virial* or *add* or *every* or *connect* or *elements*
+* keyword = *virial* or *add* or *every* or *connect* or *elements* or *mc*
 
   .. parsed-literal::
 
@@ -29,7 +29,9 @@ Syntax
          yes = perform a one-time connection to the MDI engine code
          no = do not perform the connection operation
        *elements* args = N_1 N_2 ... N_ntypes
-         N_1,N_2,...N_ntypes = atomic number for each of ntypes LAMMPS atom types
+         N_1,N_2,...N_ntypes = chemical symbol for each of ntypes LAMMPS atom types
+       *mc* args = mcfixID
+         mcfixID = ID of a Monte Carlo fix designed to work with this fix
 
 Examples
 """"""""
@@ -38,7 +40,7 @@ Examples
 
    fix 1 all mdi/qm
    fix 1 all mdi/qm virial yes
-   fix 1 all mdi/qm add no every 100 elements 13 29
+   fix 1 all mdi/qm add no every 100 elements C C H O
 
 Description
 """""""""""
@@ -57,12 +59,25 @@ The server code must support use of the `MDI Library
 <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_ as
 explained below.
 
+Typically, to use this fix, the input script should not define any
+other classical force field components, e.g. a pair style, bond style,
+etc.
+
 These are example use cases for this fix, discussed further below:
 
 * perform an ab initio MD (AIMD) simulation with quantum forces
 * perform an energy minimization with quantum forces
 * perform a nudged elastic band (NEB) calculation with quantum forces
-* perform a QM calculation for a series of independent systems which LAMMPS reads or generates
+* perform a QM calculation for a series of independent systems which LAMMPS reads or generates once
+* run a classical MD simulation and calculate QM energy/forces once every N steps on the current configuration
+
+More generally any command which calulates per-atom forces can instead
+use quantum forces be defining this fix.  Examples are the Monte Carlo
+commands :doc:`fix gcmc <fix_gcmc>` and :doc:`fix atom/swap
+<fix_atom_swap>`, as well as the :doc:`compute born <compute_born>`
+command.  The only requirement is that internally the commmand invokes
+the post_force() method of fixes such as this one, which will trigger
+the quantum calculation.
 
 The code coupling performed by this command is done via the `MDI
 Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
@@ -80,19 +95,23 @@ to launch two codes so that they communicate via the MDI library using
 either MPI or sockets.  Any QM code that supports MDI could be used in
 place of LAMMPS acting as a QM surrogate.  See the :doc:`Howto mdi
 <Howto_mdi>` page for a current list (March 2022) of such QM codes.
+The examples/QUANTUM directory has examples for coupling LAMMPS to 3
+QM codes either via this fix or the :doc:`fix mdi/qmmm <fix_mdi_qmmm>`
+command.
 
 Note that an engine code can support MDI in either or both of two
 modes.  It can be used as a stand-alone code, launched at the same
 time as LAMMPS.  Or it can be used as a plugin library, which LAMMPS
 loads.  See the :doc:`mdi plugin <mdi>` command for how to trigger
-LAMMPS to load a plugin library.  The examples/mdi/README file
-explains how to launch the two codes in either mode.
+LAMMPS to load a plugin library.  The examples/mdi/README file and
+examples/QUANTUM/QM-code/README files explain how to launch the two
+codes in either mode.
 
 ----------
 
-The *virial* keyword setting of yes or no determines whether
-LAMMPS will request the QM code to also compute and return
-a 6-element symmetric virial tensor for the system.
+The *virial* keyword setting of yes or no determines whether LAMMPS
+will request the QM code to also compute and return a symmetric virial
+tensor for the system.
 
 The *add* keyword setting of *yes* or *no* determines whether the
 energy and forces and virial returned by the QM code will be added to
@@ -109,25 +128,27 @@ commands.  See details below.
 The *every* keyword determines how often the QM code will be invoked
 during a dynamics run with the current LAMMPS simulation box and
 configuration of atoms.  The QM code will be called once every
-*Nevery* timesteps.
+*Nevery* timesteps.  By default *Nevery* = 1.
 
 The *connect* keyword determines whether this fix performs a one-time
 connection to the QM code.  The default is *yes*.  The only time a
 *no* is needed is if this command is used multiple times in an input
-script.  E.g. if it used inside a loop which also uses the :doc:`clear
-<clear>` command to destroy the system (including any defined fixes).
-See the examples/mdi/in.series.driver script as an example of this,
-where LAMMPS is using the QM code to compute energy and forces for a
-series of system configurations.  In this use case *connect no*
-is used along with the :doc:`mdi connect and exit <mdi>` command
-to one-time initiate/terminate the connection outside the loop.
+script and the MDI coupling is between two stand-alone codes (not
+plugin mode).  E.g. if it used inside a loop which also uses the
+:doc:`clear <clear>` command to destroy the system (including this
+fix).  See the examples/mdi/in.series.driver script as an example of
+this, where LAMMPS is using the QM code to compute energy and forces
+for a series of system configurations.  In this use case *connect no*
+is used along with the :doc:`mdi connect and exit <mdi>` command to
+one-time initiate/terminate the connection outside the loop.
 
 The *elements* keyword allows specification of what element each
-LAMMPS atom type corresponds to.  This is specified by the atomic
-number of the element, e.g. 13 for Al.  An atomic number must be
-specified for each of the ntypes LAMMPS atom types.  Ntypes is
-typically specified via the create_box command or in the data file
-read by the read_data command.
+LAMMPS atom type corresponds to.  This is specified by the chemical
+symbol of the element, e.g. C or Al or Si.  A symbol must be specified
+for each of the ntypes LAMMPS atom types.  Multiple LAMMPS types can
+represent the same element.  Ntypes is typically specified via the
+:doc:`create_box <create_box>` command or in the data file read by the
+:doc:`read_data <read_data>` command.
 
 If this keyword is specified, then this fix will send the MDI
 ">ELEMENTS" command to the engine, to ensure the two codes are
@@ -135,6 +156,14 @@ consistent in their definition of atomic species.  If this keyword is
 not specified, then this fix will send the MDI >TYPES command to the
 engine.  This is fine if both the LAMMPS driver and the MDI engine are
 initialized so that the atom type values are consistent in both codes.
+
+The *mc* keyword enables this fix to be used with a Monte Carlo (MC)
+fix to calculate before/after quantum energies as part of the MC
+accept/reject criterion.  The :doc:`fix gcmc <fix_gcmc>` and :doc:`fix
+atom/swap <fix_atom_swap>` commands can be used in this manner.
+Specify the ID of the MC fix following the *mc* keyword.  This allows
+the two fixes to coordinate when MC events are being calculated versus
+MD timesteps between the MC events.
 
 ----------
 
@@ -265,7 +294,8 @@ unit conversions between LAMMPS and MDI units.  The other code will
 also perform similar unit conversions into its preferred units.
 
 LAMMPS can also be used as an MDI driver in other unit choices it
-supports, e.g. *lj*, but then no unit conversion is performed.
+supports, e.g. *lj*, but then no unit conversion to MDI units is
+performed.
 
 Related commands
 """"""""""""""""

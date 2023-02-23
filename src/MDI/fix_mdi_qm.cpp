@@ -58,9 +58,9 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   addflag = 1;
   every = 1;
   connectflag = 1;
+  elements = nullptr;
   mcflag = 0;
   id_mcfix = nullptr;
-  elements = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -96,12 +96,6 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else
         error->all(FLERR, "Illegal fix mdi/qm command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"mc") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Illegal fix mdi/qm command");
-      mcflag = 1;
-      delete[] id_mcfix;
-      id_mcfix = utils::strdup(arg[iarg+1]);
-      iarg += 2;
 
     } else if (strcmp(arg[iarg], "elements") == 0) {
       const char *symbols[] = {
@@ -132,7 +126,14 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
         elements[i] = anum + 1;
       }
       iarg += ntypes + 1;
-      
+
+    } else if (strcmp(arg[iarg],"mc") == 0) {
+      if (iarg+2 > narg) error->all(FLERR, "Illegal fix mdi/qm command");
+      mcflag = 1;
+      delete[] id_mcfix;
+      id_mcfix = utils::strdup(arg[iarg+1]);
+      iarg += 2;
+
     } else
       error->all(FLERR, "Illegal fix mdi/qm command");
   }
@@ -143,15 +144,15 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   global_freq = every;
   extscalar = 1;
 
-  peratom_flag = 1;
-  size_peratom_cols = 3;
-  peratom_freq = every;
-  extvector = 0;
-
   if (virialflag) {
     vector_flag = 1;
     size_vector = 6;
+    extvector = 0;
   }
+
+  peratom_flag = 1;
+  size_peratom_cols = 3;
+  peratom_freq = every;
 
   if (addflag) {
     energy_global_flag = 1;
@@ -202,13 +203,11 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // initialize outputs
 
   qm_energy = 0.0;
-  if (virialflag) {
-    for (int i = 0; i < 6; i++) {
-      qm_virial[i] = 0.0;
-      virial[i] = 0.0;
-    }
-    sumflag = 0;
+  for (int i = 0; i < 6; i++) {
+    qm_virial[i] = 0.0;
+    virial[i] = 0.0;
   }
+  sumflag = 0;
 
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++)
@@ -311,7 +310,7 @@ void FixMDIQM::init()
     if (ierr) error->all(FLERR, "MDI: >NATOMS command check");
     MPI_Bcast(&natoms_exists, 1, MPI_INT, 0, world);
 
-    ierr = MDI_Check_command_exists("@DEFAULT", ">NATOMS", mdicomm, &celldispl_exists);
+    ierr = MDI_Check_command_exists("@DEFAULT", ">CELL_DISPL", mdicomm, &celldispl_exists);
     if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command check");
     MPI_Bcast(&celldispl_exists, 1, MPI_INT, 0, world);
 
@@ -322,6 +321,10 @@ void FixMDIQM::init()
     ierr = MDI_Check_command_exists("@DEFAULT", ">TYPES", mdicomm, &types_exists);
     if (ierr) error->all(FLERR, "MDI: >TYPES command check");
     MPI_Bcast(&types_exists, 1, MPI_INT, 0, world);
+
+    ierr = MDI_Check_command_exists("@DEFAULT", "<STRESS", mdicomm, &stress_exists);
+    if (ierr) error->all(FLERR, "MDI: <STRESS command check");
+    MPI_Bcast(&stress_exists, 1, MPI_INT, 0, world);
   }
 
   // extract pointers to MC variables from id_mcfix
@@ -339,7 +342,7 @@ void FixMDIQM::init()
   }
 
   // determine whether a new vs incremental QM calc is needed
-  // new when first run or when
+  // new if first run or if
   //   atom count or elements/types or box has changed between runs
   // otherwise incremental = subsequent run of same system
   
@@ -385,6 +388,7 @@ void FixMDIQM::init()
         if (eqm[i] != eqm_old[i]) new_system = 1;
       memory->destroy(eqm_old);
     }
+    
   } else if (types_exists) {
     if (new_system) set_tqm();
     else {
@@ -558,7 +562,7 @@ void FixMDIQM::post_force(int vflag)
   // qm_virial_symmetric = fix output for global QM virial
   // note MDI defines virial tensor as intensive (divided by volume), LAMMPS does not
 
-  if (vflag && virialflag) {
+  if (vflag && virialflag && stress_exists) {
     ierr = MDI_Send_command("<STRESS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <STRESS command");
     ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
@@ -689,6 +693,11 @@ void FixMDIQM::reallocate()
 
 int FixMDIQM::set_nqm()
 {
+  // require 3*nqm be a small INT, so can MPI_Allreduce xqm
+
+  if (3*atom->natoms > MAXSMALLINT) 
+    error->all(FLERR,"Fix mdi/qm has too many atoms");
+
   int ncount = atom->natoms;
   nexclude = 0;
 
@@ -913,10 +922,8 @@ void FixMDIQM::send_natoms()
   if (natoms_exists) {
     ierr = MDI_Send_command(">NATOMS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS command");
-    int n = static_cast<int>(atom->natoms);
-    ierr = MDI_Send(&n, 1, MDI_INT, mdicomm);
+    ierr = MDI_Send(&nqm, 1, MDI_INT, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS data");
-
   
   } else {
     ierr = MDI_Send_command("<NATOMS", mdicomm);
@@ -926,7 +933,7 @@ void FixMDIQM::send_natoms()
     if (ierr) error->all(FLERR, "MDI: <NATOMS data");
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
 
-    if (n != atom->natoms)
+    if (n != nqm)
       error->all(FLERR, "MDI: Engine has wrong atom count and does not support >NATOMS command");
   }
 }
@@ -952,7 +959,7 @@ void FixMDIQM::send_elements()
   int ierr = MDI_Send_command(">ELEMENTS", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >ELEMENTS command");
   ierr = MDI_Send(eqm, nqm, MDI_INT, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >ELEMETNS data");
+  if (ierr) error->all(FLERR, "MDI: >ELEMENTS data");
 }
 
 /* ----------------------------------------------------------------------

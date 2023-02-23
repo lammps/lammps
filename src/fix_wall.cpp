@@ -105,9 +105,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), nwall
       }
 
       if (utils::strmatch(style, "^wall/lepton")) {
+        estyle[nwall] = sstyle[nwall] = CONSTANT;
         lstr[nwall] = utils::strdup(arg[iarg + 2]);
         cutoff[nwall] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       } else if (utils::strmatch(style, "^wall/table")) {
+        estyle[nwall] = sstyle[nwall] = CONSTANT;
         fstr[nwall] = utils::strdup(arg[iarg + 2]);
         kstr[nwall] = utils::strdup(arg[iarg + 3]);
         cutoff[nwall] = utils::numeric(FLERR, arg[iarg + 4], false, lmp);

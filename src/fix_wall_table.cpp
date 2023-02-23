@@ -90,8 +90,13 @@ void FixWallTable::precompute(int m)
 {
   double u, mdu;
 
+  // always use linear interpolation to determine the offset, since we may be at the
+  // outer table cutoff and spline interpolation would cause out-of-bounds array accesses
+  int savedtabstyle = tabstyle;
+  tabstyle = LINEAR;
   uf_lookup(m, cutoff[m], u, mdu);
   offset[m] = u;
+  tabstyle = savedtabstyle;
 }
 
 /* ----------------------------------------------------------------------

@@ -1,9 +1,9 @@
 # multiple W conformations with NWChem
 
-# NOTE: these files still need work with PWDFT
-# w.bcc_222, w.fcc_001, w.sc_001
+#w.bcc_222
+# w.fcc_001
 
-variable        datafile index w.bcc w.diamond
+variable        datafile index w.bcc w.diamond #w.sc_001
 variable        p equal extract_setting(world_size)
 
 label           loop

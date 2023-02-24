@@ -477,7 +477,7 @@ void FixMDIQMMM::init()
   if (elements && elements_exists) {
     if (new_system) {
       set_eqm();
-      set_emm();
+      if (mode == DIRECT) set_emm();
     } else {
       int *eqm_old;
       memory->create(eqm_old,nqm,"mdi/qmmm:eqm_old");
@@ -487,19 +487,21 @@ void FixMDIQMMM::init()
         if (eqm[i] != eqm_old[i]) new_system = 1;
       memory->destroy(eqm_old);
 
-      int *emm_old;
-      memory->create(emm_old,nmm,"mdi/qmmm:emm_old");
-      memcpy(emm_old,emm,nmm*sizeof(int));
-      set_emm();
-      for (int i = 0; i < nmm; i++)
-        if (emm[i] != emm_old[i]) new_system = 1;
-      memory->destroy(emm_old);
+      if (mode == DIRECT) {
+        int *emm_old;
+        memory->create(emm_old,nmm,"mdi/qmmm:emm_old");
+        memcpy(emm_old,emm,nmm*sizeof(int));
+        set_emm();
+        for (int i = 0; i < nmm; i++)
+          if (emm[i] != emm_old[i]) new_system = 1;
+        memory->destroy(emm_old);
+      }
     }
     
   } else if (types_exists) {
     if (new_system) {
       set_tqm();
-      set_tmm();
+      if (mode == DIRECT) set_tmm();
     } else {
       int *tqm_old;
       memory->create(tqm_old,nqm,"mdi/qmmm:tqm_old");
@@ -509,13 +511,15 @@ void FixMDIQMMM::init()
         if (tqm[i] != tqm_old[i]) new_system = 1;
       memory->destroy(tqm_old);
 
-      int *tmm_old;
-      memory->create(tmm_old,nmm,"mdi/qmmm:tmm_old");
-      memcpy(tmm_old,tmm,nmm*sizeof(int));
-      set_tmm();
-      for (int i = 0; i < nmm; i++)
-        if (tmm[i] != tmm_old[i]) new_system = 1;
-      memory->destroy(tmm_old);
+      if (mode == DIRECT) {
+        int *tmm_old;
+        memory->create(tmm_old,nmm,"mdi/qmmm:tmm_old");
+        memcpy(tmm_old,tmm,nmm*sizeof(int));
+        set_tmm();
+        for (int i = 0; i < nmm; i++)
+          if (tmm[i] != tmm_old[i]) new_system = 1;
+        memory->destroy(tmm_old);
+      }
     }
   }
   
@@ -534,6 +538,8 @@ void FixMDIQMMM::init()
       send_natoms_mm();
       if (elements && elements_exists) send_elements_mm();
       else if (types_exists) send_types_mm();
+      set_qmm();
+      send_charges_mm();
     }
   }
 }
@@ -628,7 +634,7 @@ void FixMDIQMMM::pre_force(int vflag)
   // subtract Qj/Rij energy for QM I interacting with all other QM J atoms
   //   use xqm_mine and qqm_mine for all QM atoms
 
-  set_xqm();
+  set_xqm(0);
   set_qqm();
 
   for (int i = 0; i < nqm; i++) qpotential_mine[i] = 0.0;
@@ -662,7 +668,8 @@ void FixMDIQMMM::pre_force(int vflag)
   MPI_Allreduce(qpotential_mine,qpotential,nqm,MPI_DOUBLE,MPI_SUM,world);
 
   // unit conversion from LAMMPS to MDI
-
+  // must be done here, rather than in set_xqm()
+  
   for (int i = 0; i < nqm; i++) {
     xqm[i][0] *= lmp2mdi_length;
     xqm[i][1] *= lmp2mdi_length;
@@ -736,6 +743,16 @@ void FixMDIQMMM::pre_force(int vflag)
   if (ierr) error->all(FLERR, "MDI: <CHARGES data");
   MPI_Bcast(qqm, nqm, MPI_DOUBLE, 0, world);
 
+  // request stress if needed and supported
+  
+  if (vflag && virialflag && stress_exists) {
+    ierr = MDI_Send_command("<STRESS", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <STRESS command");
+    ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <STRESS data");
+    MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
+  }
+  
   //MPI_Barrier(world);
   
   //if (comm->me == 0) 
@@ -769,18 +786,11 @@ void FixMDIQMMM::pre_force(int vflag)
       array_atom[ilocal][2] = fqm[i][2] * mdi2lmp_force;
     }
   }
-
-  // optionally request stress tensor from MDI engine, convert to 6-value virial
+  
   // qm_virial_symmetric = fix output for global QM virial
-  // note MDI defines virial tensor as intensive (divided by volume), LAMMPS does not
+  // MDI defines virial tensor as intensive (divided by volume), LAMMPS does not
 
   if (vflag && virialflag && stress_exists) {
-    ierr = MDI_Send_command("<STRESS", mdicomm);
-    if (ierr) error->all(FLERR, "MDI: <STRESS command");
-    ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
-    if (ierr) error->all(FLERR, "MDI: <STRESS data");
-    MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
-
     qm_virial_symmetric[0] = qm_virial[0] * mdi2lmp_pressure;
     qm_virial_symmetric[1] = qm_virial[4] * mdi2lmp_pressure;
     qm_virial_symmetric[2] = qm_virial[8] * mdi2lmp_pressure;
@@ -788,8 +798,7 @@ void FixMDIQMMM::pre_force(int vflag)
     qm_virial_symmetric[4] = 0.5 * (qm_virial[2] + qm_virial[6]) * mdi2lmp_pressure;
     qm_virial_symmetric[5] = 0.5 * (qm_virial[5] + qm_virial[7]) * mdi2lmp_pressure;
 
-    // optionally set fix->virial
-    //   multiply by volume to make it extensive
+    // multiply by volume to make it extensive
     //   divide by nprocs so each proc stores a portion
     // this is b/c ComputePressure expects this as input from a fix
     //   it will do an MPI_Allreduce and divide by volume
@@ -829,29 +838,18 @@ void FixMDIQMMM::post_force(int vflag)
    (3) receive results from QM code
 ---------------------------------------------------------------------- */
 
-void FixMDIQMMM::post_force_direct(int /*vflag*/)
+void FixMDIQMMM::post_force_direct(int vflag)
 {
-  // setup QM inputs:
-  //   xqm = atom coords
-  // setup MM inputs:
-  //   xmm = atom coords
-  //   qmm = charges on MM atoms
+  // setup QM inputs: xqm = atom coords
+  // setup MM inputs: xmm = atom coords
   
-  set_xqm();
+  set_xqm(1);
   set_xmm();
-  set_qmm();
 
-  // send info to MDI engine with QM and MM atom info
+  // MDI communication with engine
   // first request for results triggers QM calculation
-  // QM and MM atoms must be in order of ascending atom ID
-  // inputs:
-  //   xqm = QM atom coords, mapped into periodic box
-  //   xmm = MM atom coords, mapped into periodic box
-  //   qmm = MM atom charges
-  // outputs:
-  //   qm_energy = QM contribution to energy of entire system
-  //   fqm = forces on QM atoms
-  //   fmm = forces on MM atoms
+  // inputs: xqm, xmm
+  // outputs: qm_energy, fqm, fmm
   
   //if (comm->me == 0) utils::logmesg(lmp, "Invoking QM code ...\n");
 
@@ -907,9 +905,17 @@ void FixMDIQMMM::post_force_direct(int /*vflag*/)
   ierr = MDI_Recv(&fmm[0][0], 3 * nmm, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <LATTICE_FORCES data");
   MPI_Bcast(&fmm[0][0], 3 * nmm, MPI_DOUBLE, 0, world);
-
-  // end of MDI calls
   
+  // request stress if needed and supported
+
+  if (vflag && virialflag && stress_exists) {
+    ierr = MDI_Send_command("<STRESS", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <STRESS command");
+    ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <STRESS data");
+    MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
+  }
+
   //MPI_Barrier(world);
   //if (comm->me == 0) 
   //  utils::logmesg(lmp, "  time = {:.3f} seconds\n",
@@ -956,6 +962,31 @@ void FixMDIQMMM::post_force_direct(int /*vflag*/)
       f[ilocal][1] += fmm[i][1] * mdi2lmp_force;
       f[ilocal][2] += fmm[i][2] * mdi2lmp_force;
     }
+  }
+
+  // qm_virial_symmetric = fix output for global QM virial
+  // MDI defines virial tensor as intensive (divided by volume), LAMMPS does not
+  
+  if (vflag && virialflag && stress_exists) {
+    qm_virial_symmetric[0] = qm_virial[0] * mdi2lmp_pressure;
+    qm_virial_symmetric[1] = qm_virial[4] * mdi2lmp_pressure;
+    qm_virial_symmetric[2] = qm_virial[8] * mdi2lmp_pressure;
+    qm_virial_symmetric[3] = 0.5 * (qm_virial[1] + qm_virial[3]) * mdi2lmp_pressure;
+    qm_virial_symmetric[4] = 0.5 * (qm_virial[2] + qm_virial[6]) * mdi2lmp_pressure;
+    qm_virial_symmetric[5] = 0.5 * (qm_virial[5] + qm_virial[7]) * mdi2lmp_pressure;
+
+    // set fix->virial
+    // multiply by volume to make it extensive
+    //   divide by nprocs so each proc stores a portion
+    // this is b/c ComputePressure expects this as input from a fix
+    //   it will do an MPI_Allreduce and divide by volume
+    
+    double volume;
+    if (domain->dimension == 2)
+      volume = domain->xprd * domain->yprd;
+    else if (domain->dimension == 3)
+      volume = domain->xprd * domain->yprd * domain->zprd;
+    for (int i = 0; i < 6; i++) virial[i] = qm_virial_symmetric[i] * volume / nprocs;
   }
 }
 
@@ -1200,22 +1231,30 @@ void FixMDIQMMM::reallocate_qm()
   memory->destroy(tqm);
   memory->destroy(xqm);
   memory->destroy(fqm);
+  memory->destroy(qqm);
+  memory->destroy(qpotential);
 
   memory->destroy(eqm_mine);
   memory->destroy(tqm_mine);
   memory->destroy(xqm_mine);
+  memory->destroy(qqm_mine);
+  memory->destroy(qpotential_mine);
 
-  memory->create(qmIDs,max_nqm,"mdi/qm:qmIDs");
-  memory->create(qm2owned,max_nqm,"mdi/qm:qm2owned");
+  memory->create(qmIDs,max_nqm,"mdi/qmmm:qmIDs");
+  memory->create(qm2owned,max_nqm,"mdi/qmmm:qm2owned");
 
-  memory->create(eqm,max_nqm,"mdi/qm:eqm");
-  memory->create(tqm,max_nqm,"mdi/qm:tqm");
-  memory->create(xqm,max_nqm,3,"mdi/qm:xqm");
-  memory->create(fqm,max_nqm,3,"mdi/qm:fqm");
+  memory->create(eqm,max_nqm,"mdi/qmmm:eqm");
+  memory->create(tqm,max_nqm,"mdi/qmmm:tqm");
+  memory->create(xqm,max_nqm,3,"mdi/qmmm:xqm");
+  memory->create(fqm,max_nqm,3,"mdi/qmmm:fqm");
+  memory->create(qqm,max_nqm,"mdi/qmmm:qqm");
+  memory->create(qpotential,max_nqm,"mdi/qmmm:qpotential");
 
-  memory->create(eqm_mine,max_nqm,"mdi/qm:eqm_mine");
-  memory->create(tqm_mine,max_nqm,"mdi/qm:tqm_mine");
-  memory->create(xqm_mine,max_nqm,3,"mdi/qm:xqm_mine");
+  memory->create(eqm_mine,max_nqm,"mdi/qmmm:eqm_mine");
+  memory->create(tqm_mine,max_nqm,"mdi/qmmm:tqm_mine");
+  memory->create(xqm_mine,max_nqm,3,"mdi/qmmm:xqm_mine");
+  memory->create(qqm_mine,max_nqm,"mdi/qmmm:qqm_mine");
+  memory->create(qpotential_mine,max_nqm,"mdi/qmmm:qpotential_mine");
 }
 
 /* ----------------------------------------------------------------------
@@ -1224,31 +1263,35 @@ void FixMDIQMMM::reallocate_qm()
 
 void FixMDIQMMM::reallocate_mm()
 {
-  max_nqm = nqm;
+  max_nmm = nmm;
 
-  memory->destroy(qmIDs);
-  memory->destroy(qm2owned);
+  memory->destroy(mmIDs);
+  memory->destroy(mm2owned);
 
-  memory->destroy(eqm);
-  memory->destroy(tqm);
-  memory->destroy(xqm);
-  memory->destroy(fqm);
+  memory->destroy(emm);
+  memory->destroy(tmm);
+  memory->destroy(xmm);
+  memory->destroy(qmm);
+  memory->destroy(fmm);
 
-  memory->destroy(eqm_mine);
-  memory->destroy(tqm_mine);
-  memory->destroy(xqm_mine);
+  memory->destroy(emm_mine);
+  memory->destroy(tmm_mine);
+  memory->destroy(xmm_mine);
+  memory->destroy(qmm_mine);
 
-  memory->create(qmIDs,max_nqm,"mdi/qm:qmIDs");
-  memory->create(qm2owned,max_nqm,"mdi/qm:qm2owned");
+  memory->create(mmIDs,max_nmm,"mdi/qmmm:mmIDs");
+  memory->create(mm2owned,max_nmm,"mdi/qmmm:mm2owned");
 
-  memory->create(eqm,max_nqm,"mdi/qm:eqm");
-  memory->create(tqm,max_nqm,"mdi/qm:tqm");
-  memory->create(xqm,max_nqm,3,"mdi/qm:xqm");
-  memory->create(fqm,max_nqm,3,"mdi/qm:fqm");
+  memory->create(emm,max_nmm,"mdi/qmmm:emm");
+  memory->create(tmm,max_nmm,"mdi/qmmm:tmm");
+  memory->create(xmm,max_nmm,3,"mdi/qmmm:xmm");
+  memory->create(qmm,max_nmm,"mdi/qmmm:qmm");
+  memory->create(fmm,max_nmm,3,"mdi/qmmm:fmm");
 
-  memory->create(eqm_mine,max_nqm,"mdi/qm:eqm_mine");
-  memory->create(tqm_mine,max_nqm,"mdi/qm:tqm_mine");
-  memory->create(xqm_mine,max_nqm,3,"mdi/qm:xqm_mine");
+  memory->create(emm_mine,max_nmm,"mdi/qmmm:emm_mine");
+  memory->create(tmm_mine,max_nmm,"mdi/qmmm:tmm_mine");
+  memory->create(xmm_mine,max_nmm,3,"mdi/qmmm:xmm_mine");
+  memory->create(qmm_mine,max_nmm,"mdi/qmmm:qmm_mine");
 }
 
 /* ----------------------------------------------------------------------
@@ -1488,9 +1531,13 @@ void FixMDIQMMM::set_box()
 }
 
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   fill xqm with QM atom coords
+   if convert, perform LAMMPS to MDI unit conversion
+   else no conver (used by POTENTIAL mode to subtract QM/QM Coulombics)
+---------------------------------------------------------------------- */
 
-void FixMDIQMMM::set_xqm()
+void FixMDIQMMM::set_xqm(int convert)
 {
   for (int i = 0; i < nqm; i++) {
     xqm_mine[i][0] = 0.0;
@@ -1510,9 +1557,11 @@ void FixMDIQMMM::set_xqm()
 
       domain->remap(xqm_mine[i]);
 
-      xqm_mine[i][0] *= lmp2mdi_length;
-      xqm_mine[i][1] *= lmp2mdi_length;
-      xqm_mine[i][2] *= lmp2mdi_length;
+      if (convert) {
+        xqm_mine[i][0] *= lmp2mdi_length;
+        xqm_mine[i][1] *= lmp2mdi_length;
+        xqm_mine[i][2] *= lmp2mdi_length;
+      }
     }
   }
 

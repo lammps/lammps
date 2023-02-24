@@ -30,6 +30,8 @@ set             group qm charge 0.0
 neighbor        2.0 bin
 neigh_modify    delay 0 every 1 check yes
 
+velocity        all create 300.0 87287 loop geom
+
 # QMMM dynamics
 
 timestep        2.0
@@ -43,4 +45,4 @@ thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
                 f_2 pe etotal press
 
 thermo          1
-run		2
+run		10

@@ -84,9 +84,10 @@ mm_forces = None
 # print error message and halt
 # --------------------------------------------
 
-def error(txt):
+def error(txt,mpiexists=1):
   if me == 0: print("ERROR:",txt)
-  world.Abort()
+  if mpiexists: world.Abort()
+  sys.exit()
   
 # --------------------------------------------
 # process non-MDI command-line options to LATTE
@@ -741,12 +742,12 @@ if __name__== "__main__":
     arg = args[iarg]
     if arg == "-mdi" or arg == "--mdi":
       if narg > iarg+1: mdi_option = sys.argv[iarg+1]
-      else: error("LATTE -mdi argument not provided")
+      else: error("LATTE -mdi argument not provided",0)
       iarg += 1
     else: other_options.append(arg)
     iarg += 1
 
-  if not mdi_option: error("LATTE -mdi option not provided")
+  if not mdi_option: error("LATTE -mdi option not provided",0)
 
   # call MDI_Init with just -mdi option
   

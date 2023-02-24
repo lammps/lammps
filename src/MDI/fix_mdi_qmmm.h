@@ -136,7 +136,7 @@ class FixMDIQMMM : public Fix {
 
   void set_box();
   
-  void set_xqm();
+  void set_xqm(int);
   void set_eqm();
   void set_tqm();
   void set_qqm();

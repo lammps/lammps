@@ -106,9 +106,9 @@ dm_previous = None
 # print error message and halt
 # --------------------------------------------
 
-def error(txt):
-  if me == 0: print("ERROR:",txt,mpiexists=1)
-  if mpiexists: world.abort()
+def error(txt,mpiexists=1):
+  if me == 0: print("ERROR:",txt)
+  if mpiexists: world.Abort()
   sys.exit()
   
 # --------------------------------------------
@@ -191,7 +191,7 @@ def mdi_engine(other_options):
 
   mdi.MDI_Register_Command("@DEFAULT","<PE")
   mdi.MDI_Register_Command("@DEFAULT","<FORCES")
-  mdi.MDI_Register_Command("@DEFAULT",">LATTICE_FORCES")
+  mdi.MDI_Register_Command("@DEFAULT","<LATTICE_FORCES")
   mdi.MDI_Register_Command("@DEFAULT","<STRESS")
   mdi.MDI_Register_Command("@DEFAULT","<CHARGES")
 
@@ -529,7 +529,6 @@ def evaluate():
   
   # build PySCF system
   # use Cell for periodic, Mole for non-periodic
-
  
   if periodic:
     cell = Cell()

@@ -95,9 +95,10 @@ mm_forces = None
 # print error message and halt
 # --------------------------------------------
 
-def error(txt):
+def error(txt,mpiexists=1):
   if me == 0: print("ERROR:",txt)
-  world.Abort()
+  if mpiexists: world.Abort()
+  sys.exit()
   
 # --------------------------------------------
 # process non-MDI options to PWDFT
@@ -480,6 +481,8 @@ def evaluate():
   
   if mode == QMMM:
     #print("QMMM minimizer")
+    #print("COORDS",qm_coords)
+    #print("POTENTIAL",qm_potential)
     time1 = time.time()
     nwerr = libpwdft.\
       c_lammps_pspw_qmmm_minimizer_filename(c_world,qm_coords,qm_potential,
@@ -497,6 +500,7 @@ def evaluate():
     
   elif mode == AIMD:
     #print("AIMD minimizer")
+    #print("COORDS",qm_coords)
     time1 = time.time()
     nwerr = libpwdft.\
       c_lammps_pspw_aimd_minimizer_filename(c_world,qm_coords,qm_forces,
@@ -505,6 +509,8 @@ def evaluate():
     qm_pe = c_qm_pe.value
     time2 = time.time()
     if me == 0: print("Time for PWDFT aimd:",time2-time1)
+    #print("PE",qm_pe)
+    #print("FORCE",qm_forces)
 
   # clear flags for all MDI commands for next QM evaluation
 
@@ -644,12 +650,12 @@ if __name__== "__main__":
     arg = args[iarg]
     if arg == "-mdi" or arg == "--mdi":
       if narg > iarg+1: mdi_option = sys.argv[iarg+1]
-      else: error("NWChem -mdi argument not provided")
+      else: error("NWChem -mdi argument not provided",0)
       iarg += 1
     else: other_options.append(arg)
     iarg += 1
 
-  if not mdi_option: error("NWChem -mdi option not provided")
+  if not mdi_option: error("NWChem -mdi option not provided",0)
 
   # call MDI_Init with just -mdi option
   

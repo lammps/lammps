@@ -521,6 +521,16 @@ void FixMDIQM::post_force(int vflag)
   if (ierr) error->all(FLERR, "MDI: <FORCES data");
   MPI_Bcast(&fqm[0][0], 3 * nqm, MPI_DOUBLE, 0, world);
 
+  // request stress if needed and supported
+
+  if (vflag && virialflag && stress_exists) {
+    ierr = MDI_Send_command("<STRESS", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <STRESS command");
+    ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <STRESS data");
+    MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
+  }
+
   // optionally add QM forces to owned atoms
 
   if (addflag) {
@@ -558,38 +568,31 @@ void FixMDIQM::post_force(int vflag)
     }
   }
 
-  // optionally request stress tensor from MDI engine, convert to 6-value virial
   // qm_virial_symmetric = fix output for global QM virial
-  // note MDI defines virial tensor as intensive (divided by volume), LAMMPS does not
+  // MDI defines virial tensor as intensive (divided by volume), LAMMPS does not
 
   if (vflag && virialflag && stress_exists) {
-    ierr = MDI_Send_command("<STRESS", mdicomm);
-    if (ierr) error->all(FLERR, "MDI: <STRESS command");
-    ierr = MDI_Recv(qm_virial, 9, MDI_DOUBLE, mdicomm);
-    if (ierr) error->all(FLERR, "MDI: <STRESS data");
-    MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
-
     qm_virial_symmetric[0] = qm_virial[0] * mdi2lmp_pressure;
     qm_virial_symmetric[1] = qm_virial[4] * mdi2lmp_pressure;
     qm_virial_symmetric[2] = qm_virial[8] * mdi2lmp_pressure;
     qm_virial_symmetric[3] = 0.5 * (qm_virial[1] + qm_virial[3]) * mdi2lmp_pressure;
     qm_virial_symmetric[4] = 0.5 * (qm_virial[2] + qm_virial[6]) * mdi2lmp_pressure;
     qm_virial_symmetric[5] = 0.5 * (qm_virial[5] + qm_virial[7]) * mdi2lmp_pressure;
-  }
 
-  // optionally set fix->virial
-  //   multiply by volume to make it extensive
-  //   divide by nprocs so each proc stores a portion
-  // this is b/c ComputePressure expects this as input from a fix
-  //   it will do an MPI_Allreduce and divide by volume
-
-  if (vflag && virialflag && addflag) {
-    double volume;
-    if (domain->dimension == 2)
-      volume = domain->xprd * domain->yprd;
-    else if (domain->dimension == 3)
+    // optionally set fix->virial
+    // multiply by volume to make it extensive
+    //   divide by nprocs so each proc stores a portion
+    // this is b/c ComputePressure expects this as input from a fix
+    //   it will do an MPI_Allreduce and divide by volume
+    
+    if (addflag) {
+      double volume;
+      if (domain->dimension == 2)
+        volume = domain->xprd * domain->yprd;
+      else if (domain->dimension == 3)
       volume = domain->xprd * domain->yprd * domain->zprd;
-    for (int i = 0; i < 6; i++) virial[i] = qm_virial_symmetric[i] * volume / nprocs;
+      for (int i = 0; i < 6; i++) virial[i] = qm_virial_symmetric[i] * volume / nprocs;
+    }
   }
 }
 

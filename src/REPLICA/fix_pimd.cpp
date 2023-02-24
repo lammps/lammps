@@ -393,8 +393,9 @@ void FixPIMD::init()
   const double Planck = planck;
   printf("planck = %.6e\n", planck);
 
-  if(force->boltz == 1.0) { hbar = Planck; }
-  else { hbar = Planck / (2.0 * MY_PI); }
+  // if(force->boltz == 1.0) { hbar = Planck; }
+  // else { hbar = Planck / (2.0 * MY_PI); }
+  hbar = Planck / (2.0 * MY_PI);
   // hbar = Planck;
   kBT = force->boltz * temp;
   double beta = 1.0 / (Boltzmann * temp);

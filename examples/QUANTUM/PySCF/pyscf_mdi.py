@@ -192,7 +192,7 @@ def mdi_engine(other_options):
   mdi.MDI_Register_Command("@DEFAULT","<PE")
   mdi.MDI_Register_Command("@DEFAULT","<FORCES")
   mdi.MDI_Register_Command("@DEFAULT","<LATTICE_FORCES")
-  mdi.MDI_Register_Command("@DEFAULT","<STRESS")
+  #mdi.MDI_Register_Command("@DEFAULT","<STRESS")
   mdi.MDI_Register_Command("@DEFAULT","<CHARGES")
 
   # one-time operation to establish a connection with the driver

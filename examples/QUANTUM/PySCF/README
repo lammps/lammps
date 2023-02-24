@@ -1,14 +1,26 @@
 # Test runs with copuling of LAMMPS and PySCF
 
-Step 1: build LAMMPS
-Step 2: download/build MDI code coupling package
-Step 3: download/build PySCF
-Step 4: perform test runs in any of 3 modes
+Step 0: What PySCF currently supports
+Step 1: Build LAMMPS
+Step 2: Download/build MDI code coupling package
+Step 3: Download/build PySCF
+Step 4: Perform test runs in any of 3 modes
 
 ---------------------------------
 ---------------------------------
 
-Step 1: build LAMMPS
+Step 0: What PySCF currently supports
+
+LATTE can be used with fix mdi/qmmm for QMMM simulations, but not with
+fix mdi/qm to perform QM calculations of an entire system.  For QMMM
+it can use the direct mode of fix mdi/qmmm, but not the potential
+mode.  PySCF can calculate a QM energy and QM forces on each atom, but
+it cannot compute a QM stress tensor.
+
+---------------------------------
+---------------------------------
+
+Step 1: Build LAMMPS
 
 The MDI, molecule, and kspace packages are needed.  Copy the final
 LAMMPS executable into the examples/QUANTUM/PySCF directory.
@@ -33,7 +45,7 @@ CMake:
 ---------------------------------
 ---------------------------------
 
-Step 2: download/build MDI code coupling package
+Step 2: Download/build MDI code coupling package
 
 (a) clone the MDI Git repo
 
@@ -63,7 +75,7 @@ For (t)csh:
 ---------------------------------
 ---------------------------------
 
-Step 3: download/build PySCF
+Step 3: Download/build PySCF
 
 See https://pyscf.org/install.html for install options.
 This describes building PySCF from source code.
@@ -107,7 +119,7 @@ will need:
 ---------------------------------
 ---------------------------------
 
-Step 4: perform test runs in any of 3 modes
+Step 4: Perform test runs in any of 3 modes
 
 These tests are in lammps/examples/QUANTUM/PySCF
 

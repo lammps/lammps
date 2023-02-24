@@ -41,7 +41,7 @@ Description
 
 This command enables LAMMPS to act as a client with another server
 code to perform a coupled QMMM (quantum-mechanics/molecular-mechanics)
-simulation.  LAMMPS will perform classical MD (molecular-mechnanics
+simulation.  LAMMPS will perform classical MD (molecular mechnanics
 or MM) for the (typically larger) MM portion of the system.  A quantum
 mechanics code will calculate quantum energy and forces for the QM
 portion of the system.  The two codes work together to calculate the
@@ -50,18 +50,11 @@ atoms.  The QM server code must support use of the `MDI Library
 <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_ as
 explained below.
 
-The partitioning of the system between QM and MM atoms is determined
-by the specified group.  Atoms in that group are QM atoms; the remaining
-atoms are MM atoms.  The input script should
-
-need to remove bonds/etc between QM atoms
-currently no bonds between QM/MM atoms are allowed
-need to be able to compute Coulomb only portion of the force
-  field in a pair style, use hybrid
-must be a charged system
-
-explain the 2 algs: DIRECT and POTENTIAL
-
+The partitioning of the system between QM and MM atoms is as follows.
+Atoms in the specified group are QM atoms; the remaining atoms are MM
+atoms.  The input script should thus define this partitioning.
+See additional information below about other requirements for an input
+script to use this fix and perform a QMMM simulation.
 
 The code coupling performed by this command is done via the `MDI
 Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
@@ -71,29 +64,107 @@ support for MDI.  See the :doc:`Howto mdi <Howto_mdi>` page for more
 information about how LAMMPS can operate as either an MDI driver or
 engine.
 
-The examples/mdi directory contains input scripts using this fix in
-the various use cases discussed below.  In each case, two instances of
-LAMMPS are used, once as an MDI driver, once as an MDI engine
-(surrogate for a QM code).  The examples/mdi/README file explains how
-to launch two codes so that they communicate via the MDI library using
-either MPI or sockets.  Any QM code that supports MDI could be used in
-place of LAMMPS acting as a QM surrogate.  See the :doc:`Howto mdi
+The examples/QUANTUM directory has sub-directories with example input
+scripts using this fix in tandem with different QM codes.  The README
+files in the sub-directories explain how to download and build the
+various QM codes.  They also explain how to launch LAMMPS and the QM
+code so that they communicate via the MDI library using either MPI or
+sockets.  Any QM code that supports MDI could be used in addition to
+those discussed in the sub-directories.  See the :doc:`Howto mdi
 <Howto_mdi>` page for a current list (March 2022) of such QM codes.
 
 Note that an engine code can support MDI in either or both of two
 modes.  It can be used as a stand-alone code, launched at the same
 time as LAMMPS.  Or it can be used as a plugin library, which LAMMPS
 loads.  See the :doc:`mdi plugin <mdi>` command for how to trigger
-LAMMPS to load a plugin library.  The examples/mdi/README file
-explains how to launch the two codes in either mode.
+LAMMPS to load a plugin library.  The examples/QUANTUM sub-directory
+README files explains how to launch the two codes in either mode.
 
 ----------
 
+The *mode* setting determines which QMMM coupling algorithm is used.
+LAMMPS currently supports *direct* and *potential* algorithms, based
+on the *mode* setting.  Both algorithms should give reasonably
+accurate results, but some QM codes support only one of the two modes.
+E.g. in the examples/QUANTUM directory, PySCF supports only *direct*,
+NWChem supports only *potential*, and LATTE currently supports
+neither, so it cannot be used for QMMM simulations using this fix.
+
+The *direct* option passes the coordinates and charges of each MM atom
+to the quantum code, in addition to the coordinates of each QM atom.
+The quantum code returns forces on each QM atom as well as forces on
+each MM atom.  The latter is effectively the force on MM atoms due to
+the QM atoms.
+
+The input script for performing a *direct* mode QMMM simulation should
+do the following:
+
+* delete all bonds (angles, dihedrals, etc) bewteen QM atoms
+* set the charge on each QM atom to zero
+* define no bonds (angles, dihederals, etc) which involve both QM and MM atoms
+* define a force field (pair, bonds, angles, optional kspace) for the entire system
+  
+The first two bullet can be performed using the :doc:`delete_bonds
+<delete_bonds>` and :doc:`set <set>` commands.
+
+The third bullet is required to have a consistent model, but is not
+checked by LAMMPS.
+
+The fourth bullet implies that non-bonded non-Coulombic interactions
+(e.g. van der Waals) between QM/QM and QM/MM pairs of atoms are
+computed by LAMMPS.
+
+See the examples/QUANTUM/PySCF/in.* files for examples of input scripts
+for QMMM simulations using the *direct* mode.
+
+The *potential* option passes the coordinates of each QM atom and a
+Coulomb potential for each QM atom to the quantum code.  The latter is
+calculated by performing a Coulombics-only calculation for the entire
+system, subtracting all QM/QM pairwise Coulombic terms, and dividing
+the Coulomb energy on each QM atom by the charge of the QM atom.  The
+potential value represents the Coulombic influence of all the MM atoms
+on each QM atom.
+
+The quantum code returns forces and charge on each QM atom.  The new
+charges on the QM atom are used to re-calculate the MM force field,
+resulting in altered forces on the MM atoms.
+
+The input script for performing a *potential* mode QMMM simulation
+should do the following:
+
+* delete all bonds (angles, dihedrals, etc) bewteen QM atoms
+* define a hybrid pair style which includes a Coulomb-only pair sub-style
+* define no bonds (angles, dihederals, etc) which involve both QM and MM atoms
+* define a force field (pair, bonds, angles, optional kspace) for the entire system
+  
+The first operation can be performed using the :doc:`delete_bonds
+<delete_bonds>` command.  See the examples/QUANTUM/NWChem/in.* files
+for examples of how to do this.
+
+The second operation is necessary so that this fix can calculate the Coulomb
+potentail for the QM atoms.
+
+The third bullet is required to have a consistent model, but is not
+checked by LAMMPS.
+
+The fourth bullet implies that non-bonded non-Coulombic interactions
+(e.g. van der Waals) between QM/QM and QM/MM pairs of atoms are
+computed by LAMMPS.  However, some QM codes do not want the MM code
+(LAMMPS) to compute QM/QM van der Waals interactions.  NWChem is an
+example.  In this case, the coefficients for thoes interactions need
+to be turned off, which typically requires the atom types for the QM atoms
+be different than those for the MM atoms.
+
+See the examples/QUANTUM/NWChem/in.* files for examples of input
+scripts for QMMM simulations using the *potential* mode.  Those scripts
+also illustrate how to turn off QM/QM van der Waals interactions.
+
 ----------
 
-The *virial* keyword setting of yes or no determines whether
-LAMMPS will request the QM code to also compute and return
-a 6-element symmetric virial tensor for the system.
+The *virial* keyword setting of yes or no determines whether LAMMPS
+will request the QM code to also compute and return the QM
+contribution to a stress tensor for the system which LAMMPS will
+convert to a 6-element symmetric virial tensor.
 
 The *connect* keyword determines whether this fix performs a one-time
 connection to the QM code.  The default is *yes*.  The only time a
@@ -123,60 +194,6 @@ initialized so that the atom type values are consistent in both codes.
 
 ----------
 
-The following 3 example use cases are illustrated in the examples/mdi
-directory.  See its README file for more details.
-
-(1) To run an ab initio MD (AIMD) dynamics simulation, or an energy
-minimization with QM forces, or a multi-replica NEB calculation, use
-*add yes* and *every 1* (the defaults).  This is so that every time
-LAMMPS needs energy and forces, the QM code will be invoked.
-
-Both LAMMPS and the QM code should define the same system (simulation
-box, atoms and their types) in their respective input scripts.  Note
-that on this scenario, it may not be necessary for LAMMPS to define a
-pair style or use a neighbor list.
-
-LAMMPS will then perform the timestepping or minimization iterations
-for the simulation.  At the point in each timestep or iteration when
-LAMMPS needs the force on each atom, it communicates with the engine
-code.  It sends the current simulation box size and shape (if they
-change dynamically, e.g. during an NPT simulation), and the current
-atom coordinates.  The engine code computes quantum forces on each
-atom and the total energy of the system and returns them to LAMMPS.
-
-Note that if the AIMD simulation is an NPT or NPH model, or the energy
-minimization includes :doc:`fix box relax <fix_box_relax>` to
-equilibrate the box size/shape, then LAMMPS computes a pressure.  This
-means the *virial* keyword should be set to *yes* so that the QM
-contribution to the pressure can be included.
-
-(2) To run dynamics with a LAMMPS interatomic potential, and evaluate
-the QM energy and forces once every 1000 steps, use *add no* and
-*every 1000*.  This could be useful for using an MD run to generate
-randomized configurations which are then passed to the QM code to
-produce training data for a machine learning potential.  A :doc:`dump
-custom <dump>` command could be invoked every 1000 steps to dump the
-atom coordinates and QM forces to a file.  Likewise the QM energy and
-virial could be output with the :doc:`thermo_style custom
-<thermo_style>` command.
-
-(3) To do a QM evaluation of energy and forces for a series of *N*
-independent systems (simulation box and atoms), use *add no* and
-*every 1*.  Write a LAMMPS input script which loops over the *N*
-systems.  See the :doc:`Howto multiple <Howto_multiple>` doc page for
-details on looping and removing old systems.  The series of systems
-could be initialized by reading them from data files with
-:doc:`read_data <read_data>` commands.  Or, for example, by using the
-:doc:`lattice <lattice>` , :doc:`create_atoms <create_atoms>`,
-:doc:`delete_atoms <delete_atoms>`, and/or :doc:`displace_atoms
-random <displace_atoms>` commands to generate a series of different
-systems.  At the end of the loop perform :doc:`run 0 <run>` and
-:doc:`write_dump <write_dump>` commands to invoke the QM code and
-output the QM energy and forces.  As in (2) this be useful to produce
-QM data for training a machine learning potential.
-
-----------
-
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -187,15 +204,13 @@ The :doc:`fix_modify <fix_modify>` *energy* option is supported by
 this fix to add the potential energy computed by the QM code to the
 global potential energy of the system as part of :doc:`thermodynamic
 output <thermo_style>`.  The default setting for this fix is
-:doc:`fix_modify energy yes <fix_modify>`, unless the *add* keyword is
-set to *no*, in which case the default setting is *no*.
+:doc:`fix_modify energy yes <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
 this fix to add the contribution computed by the QM code to the global
 pressure of the system as part of :doc:`thermodynamic output
 <thermo_style>`.  The default setting for this fix is :doc:`fix_modify
-virial yes <fix_modify>`, unless the *add* keyword is set to *no*, in
-which case the default setting is *no*.
+virial yes <fix_modify>`.
 
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the energy
@@ -212,22 +227,23 @@ vxx, vyy, vzz, vxy, vxz, vyz.  The values will be in pressure
 
 This fix also computes a peratom array with 3 columns which contains
 the peratom forces returned by the QM code.  It can likewise be
-accessed by various :doc:`output commands <Howto_output>`.
+accessed by various :doc:`output commands <Howto_output>`.  Note that
+for *direct* mode this will be quantum forces on both QM and MM atoms.
+For *potential* mode it will only be quantum forces on QM atoms; the
+forces for MM atoms will be zero.
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 
-Assuming the *add* keyword is set to *yes* (the default), the forces
-computed by the QM code are used during an energy minimization,
-invoked by the :doc:`minimize <minimize>` command.
+The forces computed by the QM code are used during an energy
+minimization, invoked by the :doc:`minimize <minimize>` command.
 
 .. note::
 
    If you want the potential energy associated with the QM forces to
    be included in the total potential energy of the system (the
    quantity being minimized), you MUST not disable the
-   :doc:`fix_modify <fix_modify>` *energy* option for this fix, which
-   means the *add* keyword should also be set to *yes* (the default).
+   :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 
 Restrictions
@@ -236,12 +252,6 @@ Restrictions
 This command is part of the MDI package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
-
-The QM code does not currently compute and return per-atom energy or
-per-atom virial contributions.  So they will not show up as part of
-the calculations performed by the :doc:`compute pe/atom
-<compute_pe_atom>` or :doc:`compute stress/atom <compute_stress_atom>`
-commands.
 
 To use LAMMPS as an MDI driver in conjunction with other MDI-enabled
 codes (MD or QM codes), the :doc:`units <units>` command should be

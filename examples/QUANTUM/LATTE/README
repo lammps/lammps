@@ -1,14 +1,25 @@
 # Test runs with coupling of LAMMPS and LATTE
 
-Step 1: build LAMMPS
-Step 2: download/build MDI code coupling package
-Step 3: download/build LATTE
-Step 4: perform test runs in any of 3 modes
+Step 0: What LATTE currently supports
+Step 1: Build LAMMPS
+Step 2: Download/build MDI code coupling package
+Step 3: Download/build LATTE
+Step 4: Perform test runs in any of 3 modes
 
 ---------------------------------
 ---------------------------------
 
-Step 1: build LAMMPS
+Step 0: What LATTE currently supports
+
+LATTE can be used with fix mdi/qm to perform QM calculations of an
+entire system, but not with fix mdi/qmmm to perform QMMM simulations.
+LATTE can calculate a QM energy and virial as well as QM forces on
+each atom.
+
+---------------------------------
+---------------------------------
+
+Step 1: Build LAMMPS
 
 The MDI and molecule packags are needed.  Copy the final LAMMPS
 executable into the examples/QUANTUM/LATTE directory.
@@ -33,7 +44,7 @@ CMake:
 ---------------------------------
 ---------------------------------
 
-Step 2: download/build MDI code coupling package
+Step 2: Download/build MDI code coupling package
 
 (a) clone the MDI Git repo
 
@@ -71,7 +82,7 @@ will need:
 ---------------------------------
 ---------------------------------
 
-Step 3: download/build LATTE
+Step 3: Download/build LATTE
 
 (a) clone the skimLATTE repo
 
@@ -101,7 +112,7 @@ For (t)csh:
 ---------------------------------
 ---------------------------------
 
-Step 4: perform test runs in any of 3 modes
+Step 4: Perform test runs in any of 3 modes
 
 These tests are in lammps/examples/QUANTUM/LATTE
 

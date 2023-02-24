@@ -110,8 +110,9 @@ codes in either mode.
 ----------
 
 The *virial* keyword setting of yes or no determines whether LAMMPS
-will request the QM code to also compute and return a symmetric virial
-tensor for the system.
+will request the QM code to also compute and return the QM
+contribution to a stress tensor for the system which LAMMPS will
+convert to a 6-element symmetric virial tensor.
 
 The *add* keyword setting of *yes* or *no* determines whether the
 energy and forces and virial returned by the QM code will be added to
@@ -280,12 +281,6 @@ Restrictions
 This command is part of the MDI package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
-
-The QM code does not currently compute and return per-atom energy or
-per-atom virial contributions.  So they will not show up as part of
-the calculations performed by the :doc:`compute pe/atom
-<compute_pe_atom>` or :doc:`compute stress/atom <compute_stress_atom>`
-commands.
 
 To use LAMMPS as an MDI driver in conjunction with other MDI-enabled
 codes (MD or QM codes), the :doc:`units <units>` command should be

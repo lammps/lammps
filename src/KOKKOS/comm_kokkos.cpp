@@ -642,32 +642,35 @@ void CommKokkos::reverse_comm(Dump *dump)
 
 void CommKokkos::exchange()
 {
-  if (atom->nextra_grow + atom->nextra_border) {
+  if (!exchange_comm_classic) {
+    if (atom->nextra_grow + atom->nextra_border) {
 
-    // check if all fixes with atom-based arrays derive from KokkosBase so we can enable exchange on device
-    // we are assuming that every fix with atom-based arrays need to send info during exchange
-    bool fix_flag = true;
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-      if (!dynamic_cast<KokkosBase*>(modify->fix[atom->extra_grow[iextra]])) {
-        fix_flag = false;
-        break;
+      // check if all fixes with atom-based arrays derive from KokkosBase so we can enable exchange on device
+      // we are assuming that every fix with atom-based arrays need to send info during exchange
+      bool fix_flag = true;
+      for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+        if (!dynamic_cast<KokkosBase*>(modify->fix[atom->extra_grow[iextra]])) {
+          fix_flag = false;
+          break;
+        }
       }
-    }
 
-    if (!atomKK->avecKK->unpack_exchange_indices_flag || !fix_flag) {
-      static int print = 1;
-      if (print && comm->me == 0) {
-        if (!atomKK->avecKK->unpack_exchange_indices_flag)
-          error->warning(FLERR,"Atom style not compatible with fix sending data in Kokkos communication, "
-                         "switching to classic exchange/border communication");
-        if (!fix_flag)
-          error->warning(FLERR,"Fix with atom-based arrays not compatible with sending data in Kokkos communication, "
-                         "switching to classic exchange/border communication");
+      if (!atomKK->avecKK->unpack_exchange_indices_flag || !fix_flag) {
+        static int print = 1;
+        if (print && comm->me == 0) {
+          if (!atomKK->avecKK->unpack_exchange_indices_flag)
+            error->warning(FLERR,"Atom style not compatible with fix sending data in Kokkos communication, "
+                           "switching to classic exchange/border communication");
+          if (!fix_flag)
+            error->warning(FLERR,"Fix with atom-based arrays not compatible with sending data in Kokkos communication, "
+                           "switching to classic exchange/border communication");
+        }
+        print = 0;
+        exchange_comm_classic = true;
       }
-      print = 0;
-      exchange_comm_classic = true;
     }
   }
+
   if (!exchange_comm_classic) {
     if (exchange_comm_on_host) exchange_device<LMPHostType>();
     else exchange_device<LMPDeviceType>();
@@ -767,88 +770,68 @@ void CommKokkos::exchange_device()
       nlocal = atom->nlocal;
       i = nsend = 0;
 
-      if (true) {
-        if ((int)k_sendflag.h_view.extent(0) < nlocal) k_sendflag.resize(nlocal);
-        k_sendflag.sync<DeviceType>();
-        k_count.h_view() = k_exchange_sendlist.h_view.extent(0);
-        while (k_count.h_view() >= (int)k_exchange_sendlist.h_view.extent(0)) {
-          k_count.h_view() = 0;
-          k_count.modify<LMPHostType>();
-          k_count.sync<DeviceType>();
+      if ((int)k_sendflag.h_view.extent(0) < nlocal) k_sendflag.resize(nlocal);
+      k_sendflag.sync<DeviceType>();
+      k_count.h_view() = k_exchange_sendlist.h_view.extent(0);
+      while (k_count.h_view() >= (int)k_exchange_sendlist.h_view.extent(0)) {
+        k_count.h_view() = 0;
+        k_count.modify<LMPHostType>();
+        k_count.sync<DeviceType>();
 
-          BuildExchangeListFunctor<DeviceType>
-            f(atomKK->k_x,k_exchange_sendlist,k_count,k_sendflag,
-              nlocal,dim,lo,hi);
-          Kokkos::parallel_for(nlocal,f);
-          k_exchange_sendlist.modify<DeviceType>();
-          k_sendflag.modify<DeviceType>();
-          k_count.modify<DeviceType>();
+        BuildExchangeListFunctor<DeviceType>
+          f(atomKK->k_x,k_exchange_sendlist,k_count,k_sendflag,
+            nlocal,dim,lo,hi);
+        Kokkos::parallel_for(nlocal,f);
+        k_exchange_sendlist.modify<DeviceType>();
+        k_sendflag.modify<DeviceType>();
+        k_count.modify<DeviceType>();
 
-          k_count.sync<LMPHostType>();
-          if (k_count.h_view() >= (int)k_exchange_sendlist.h_view.extent(0)) {
-            k_exchange_lists.resize(2,k_count.h_view()*1.1);
-            k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
-            k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,Kokkos::ALL);
-            k_count.h_view()=k_exchange_sendlist.h_view.extent(0);
-          }
-        }
-
-        k_exchange_lists.sync<LMPHostType>();
-        k_sendflag.sync<LMPHostType>();
-
-        int sendpos = nlocal-1;
-        nlocal -= k_count.h_view();
-        for (int i = 0; i < k_count.h_view(); i++) {
-          if (k_exchange_sendlist.h_view(i)<nlocal) {
-            while (k_sendflag.h_view(sendpos)) sendpos--;
-            k_exchange_copylist.h_view(i) = sendpos;
-            sendpos--;
-          } else
-            k_exchange_copylist.h_view(i) = -1;
-        }
-
-        k_exchange_copylist.modify<LMPHostType>();
-        k_exchange_copylist.sync<DeviceType>();
-        nsend = k_count.h_view();
-        if (nsend > maxsend) grow_send_kokkos(nsend,1);
-        nsend =
-          atomKK->avecKK->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
-                                     k_exchange_sendlist,k_exchange_copylist,
-                                     ExecutionSpaceFromDevice<DeviceType>::space);
-        DeviceType().fence();
-      } else {
-        while (i < nlocal) {
-          if (x[i][dim] < lo || x[i][dim] >= hi) {
-            if (nsend > maxsend) grow_send_kokkos(nsend,1);
-            nsend += atomKK->avecKK->pack_exchange(i,&buf_send[nsend]);
-            atomKK->avecKK->copy(nlocal-1,i,1);
-            nlocal--;
-          } else i++;
+        k_count.sync<LMPHostType>();
+        if (k_count.h_view() >= (int)k_exchange_sendlist.h_view.extent(0)) {
+          k_exchange_lists.resize(2,k_count.h_view()*1.1);
+          k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
+          k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,Kokkos::ALL);
+          k_count.h_view()=k_exchange_sendlist.h_view.extent(0);
         }
       }
+
+      k_exchange_lists.sync<LMPHostType>();
+      k_sendflag.sync<LMPHostType>();
+
+      int sendpos = nlocal-1;
+      nlocal -= k_count.h_view();
+      for (int i = 0; i < k_count.h_view(); i++) {
+        if (k_exchange_sendlist.h_view(i)<nlocal) {
+          while (k_sendflag.h_view(sendpos)) sendpos--;
+          k_exchange_copylist.h_view(i) = sendpos;
+          sendpos--;
+        } else
+          k_exchange_copylist.h_view(i) = -1;
+      }
+
+      k_exchange_copylist.modify<LMPHostType>();
+      k_exchange_copylist.sync<DeviceType>();
+      nsend = k_count.h_view();
+      if (nsend > maxsend) grow_send_kokkos(nsend,1);
+      nsend =
+        atomKK->avecKK->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
+                                   k_exchange_sendlist,k_exchange_copylist,
+                                   ExecutionSpaceFromDevice<DeviceType>::space);
+      DeviceType().fence();
       atom->nlocal = nlocal;
 
       // send/recv atoms in both directions
-      // if 1 proc in dimension, no send/recv, set recv buf to send buf
+      // send size of message first so receiver can realloc buf_recv if needed
+      // if 1 proc in dimension, no send/recv
+      //   set nrecv = 0 so buf_send atoms will be lost
       // if 2 procs in dimension, single send/recv
       // if more than 2 procs in dimension, send/recv to both neighbors
 
       const int data_size = atom->avec->size_border+atom->avec->size_velocity+2;
       DAT::tdual_int_1d k_indices;
 
-      if (procgrid[dim] == 1) {
-        nrecv = nsend;
-        if (nrecv) {
-          if (atom->nextra_grow)
-            MemoryKokkos::realloc_kokkos(k_indices,"comm:indices",nrecv/data_size);
-
-          atom->nlocal = atomKK->avecKK->
-            unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,
-                                     ExecutionSpaceFromDevice<DeviceType>::space,k_indices);
-
-          DeviceType().fence();
-        }
-      } else {
+      if (procgrid[dim] == 1) nrecv = 0;
+      else {
         MPI_Sendrecv(&nsend,1,MPI_INT,procneigh[dim][0],0,
                      &nrecv1,1,MPI_INT,procneigh[dim][1],0,world,MPI_STATUS_IGNORE);
         nrecv = nrecv1;
@@ -887,65 +870,57 @@ void CommKokkos::exchange_device()
         }
       }
 
-      // check incoming atoms to see if they are in my box
-      // if so, add to my list
-
       if (atom->nextra_grow) {
         for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
           KokkosBase *kkbase = dynamic_cast<KokkosBase*>(modify->fix[atom->extra_grow[iextra]]);
-          int nextrasend = kkbase->pack_exchange_kokkos(
-            k_count.h_view(),k_buf_send,k_exchange_sendlist,k_exchange_copylist,
-            ExecutionSpaceFromDevice<DeviceType>::space);
-          DeviceType().fence();
+          int nextrasend = 0;
+          if (k_count.h_view()) {
+            nextrasend = kkbase->pack_exchange_kokkos(
+              k_count.h_view(),k_buf_send,k_exchange_sendlist,k_exchange_copylist,
+              ExecutionSpaceFromDevice<DeviceType>::space);
+            DeviceType().fence();
+          }
 
-          int nextrarecv = 0;
-          if (procgrid[dim] == 1) {
-            nextrarecv = nextrasend;
-            if (nextrarecv) {
-              kkbase->unpack_exchange_kokkos(
-                k_buf_send,k_indices,nrecv1,
-                ExecutionSpaceFromDevice<DeviceType>::space);
-              DeviceType().fence();
-            }
-          } else {
+          int nextrarecv,nextrarecv1,nextrarecv2;
+          if (procgrid[dim] == 1) nextrarecv = 0;
+          else {
             MPI_Sendrecv(&nextrasend,1,MPI_INT,procneigh[dim][0],0,
-                         &nextrarecv,1,MPI_INT,procneigh[dim][1],0,
+                         &nextrarecv1,1,MPI_INT,procneigh[dim][1],0,
                          world,MPI_STATUS_IGNORE);
 
-            if (nextrarecv > maxrecv) grow_recv_kokkos(nextrarecv);
-
-            MPI_Irecv(k_buf_recv.view<DeviceType>().data(),nextrarecv,
-                      MPI_DOUBLE,procneigh[dim][1],0,
-                      world,&request);
-            MPI_Send(k_buf_send.view<DeviceType>().data(),nextrasend,
-                     MPI_DOUBLE,procneigh[dim][0],0,world);
-            MPI_Wait(&request,MPI_STATUS_IGNORE);
-
-            if (nextrarecv) {
-              kkbase->unpack_exchange_kokkos(
-                k_buf_recv,k_indices,nrecv1,
-                ExecutionSpaceFromDevice<DeviceType>::space);
-              DeviceType().fence();
-            }
+            nextrarecv = nextrarecv1;
 
             if (procgrid[dim] > 2) {
               MPI_Sendrecv(&nextrasend,1,MPI_INT,procneigh[dim][1],0,
                            &nextrarecv,1,MPI_INT,procneigh[dim][0],0,
                            world,MPI_STATUS_IGNORE);
 
-              MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
-                        nextrarecv,MPI_DOUBLE,procneigh[dim][0],0,
+              nextrarecv += nextrarecv2;
+            }
+
+            if (nextrarecv > maxrecv) grow_recv_kokkos(nextrarecv);
+
+            MPI_Irecv(k_buf_recv.view<DeviceType>().data(),nextrarecv1,
+                      MPI_DOUBLE,procneigh[dim][1],0,
+                      world,&request);
+            MPI_Send(k_buf_send.view<DeviceType>().data(),nextrasend,
+                     MPI_DOUBLE,procneigh[dim][0],0,world);
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+            if (procgrid[dim] > 2) {
+              MPI_Irecv(k_buf_recv.view<DeviceType>().data()+nextrarecv1,
+                        nextrarecv2,MPI_DOUBLE,procneigh[dim][0],0,
                         world,&request);
               MPI_Send(k_buf_send.view<DeviceType>().data(),nextrasend,
                        MPI_DOUBLE,procneigh[dim][1],0,world);
               MPI_Wait(&request,MPI_STATUS_IGNORE);
+            }
 
-              if (nextrarecv) {
-                kkbase->unpack_exchange_kokkos(
-                  k_buf_recv,k_indices,nrecv2,
-                  ExecutionSpaceFromDevice<DeviceType>::space);
-                DeviceType().fence();
-              }
+            if (nextrarecv) {
+              kkbase->unpack_exchange_kokkos(
+                k_buf_recv,k_indices,nrecv,
+                ExecutionSpaceFromDevice<DeviceType>::space);
+              DeviceType().fence();
             }
           }
         }

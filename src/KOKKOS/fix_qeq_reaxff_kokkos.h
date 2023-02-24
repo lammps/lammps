@@ -257,9 +257,10 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   int iswap,nsend;
   int first;
   typename AT::t_int_2d d_sendlist;
-  typename AT::t_xfloat_1d_um d_buf;
+  typename AT::t_xfloat_1d d_buf;
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
+  typename AT::t_xfloat_2d d_exchange_buf;
   typename AT::t_int_1d d_exchange_sendlist;
 
   void init_shielding_k();

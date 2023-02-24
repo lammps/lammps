@@ -30,6 +30,7 @@
 #include "atom.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "atom_vec_kokkos.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -1343,8 +1344,8 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackExchange, const int &mysend) const {
   const int i = d_exchange_sendlist(mysend);
 
-  for (int m = 0; m < nprev; m++) d_buf[m] = d_s_hist(i,m);
-  for (int m = 0; m < nprev; m++) d_buf[nprev+m] = d_t_hist(i,m);
+  for (int m = 0; m < nprev; m++) d_exchange_buf(mysend,m) = d_s_hist(i,m);
+  for (int m = 0; m < nprev; m++) d_exchange_buf(mysend,nprev+m) = d_t_hist(i,m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1357,23 +1358,26 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
 {
   k_buf.sync<DeviceType>();
   k_copylist.sync<DeviceType>();
+  k_exchange_sendlist.sync<DeviceType>();
 
+  d_exchange_buf = k_buf.view<DeviceType>();
   d_copylist = k_copylist.view<DeviceType>();
+  d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
   this->nsend = nsend;
-
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
-    k_buf.template view<DeviceType>().data(),
-    k_buf.extent(0)*k_buf.extent(1));
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
 
+  copymode = 1;
+
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqPackExchange>(0,nsend),*this);
+
+  copymode = 0;
 
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
 
-  return nprev*2;
+  return nsend*nprev*2;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1384,8 +1388,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int 
 {
   int index = d_indices(i);
   if (index > 0) {
-    for (int m = 0; m < nprev; m++) d_s_hist(index,m) = d_buf[m];
-    for (int m = 0; m < nprev; m++) d_t_hist(index,m) = d_buf[nprev+m];
+    for (int m = 0; m < nprev; m++) d_s_hist(index,m) = d_exchange_buf(i,m);
+    for (int m = 0; m < nprev; m++) d_t_hist(index,m) = d_exchange_buf(i,nprev+m);
   }
 }
 
@@ -1399,16 +1403,18 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
   k_buf.sync<DeviceType>();
   k_indices.sync<DeviceType>();
 
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
-    k_buf.template view<DeviceType>().data(),
-    k_buf.extent(0)*k_buf.extent(1));
+  d_exchange_buf = k_buf.view<DeviceType>();
   d_indices = k_indices.view<DeviceType>();
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
 
+  copymode = 1;
+
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqUnpackExchange>(0,
-    nrecv/2),*this);
+    nrecv/(atom->avec->size_border + atom->avec->size_velocity + 2)),*this);
+
+  copymode = 0;
 
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();

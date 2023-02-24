@@ -340,8 +340,10 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
   k_valuepartner.template sync<DeviceType>();
 
   k_buf.sync<DeviceType>();
+  k_sendlist.sync<DeviceType>();
   k_copylist.sync<DeviceType>();
 
+  d_sendlist = k_sendlist.view<DeviceType>();
   d_copylist = k_copylist.view<DeviceType>();
   this->nsend = nsend;
 
@@ -355,12 +357,16 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
   k_count.modify_host();
   k_count.template sync<DeviceType>();
 
+  copymode = 1;
+
   Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryFirstNeigh>(0,nsend),*this);
 
   k_count.template modify<DeviceType>();
   k_count.sync_host();
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryPackExchange>(0,nsend),*this);
+
+  copymode = 0;
 
   return k_count.h_view();
 }
@@ -401,8 +407,12 @@ void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
   d_partner = k_partner.template view<DeviceType>();
   d_valuepartner = k_valuepartner.template view<DeviceType>();
 
+  copymode = 1;
+
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryUnpackExchange>(0,
     nrecv/(atom->avec->size_border + atom->avec->size_velocity + 2)),*this);
+
+  copymode = 0;
 
   k_npartner.template modify<DeviceType>();
   k_partner.template modify<DeviceType>();

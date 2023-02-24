@@ -1,7 +1,7 @@
 # Test runs with coupling of LAMMPS and NWChem PWDFT
 
-Step 0: What NWChem currently supports
-Step 1: build LAMMPS
+Step 0: What NWChem/PWDF currently supports
+Step 1: Build LAMMPS
 Step 2: Download/build MDI code coupling package
 Step 3: Download/build NWChem PWDFT
 Step 4: Perform test runs in any of 3 modes
@@ -9,13 +9,15 @@ Step 4: Perform test runs in any of 3 modes
 ---------------------------------
 ---------------------------------
 
-Step 0: What NWChem currently supports
+Step 0: What NWChem/PWDFT currently supports
 
-NWChem can be used with fix mdi/qm to perform QM calculations of an
+PWDFT can be used with fix mdi/qm to perform QM calculations of an
 entire system and with fix mdi/qmmm for QMMM simulations.  For QMMM it
 can use the potential mode of fix mdi/qmmm, but not the direct mode.
-NWChem can calculate a QM energy and QM forces on each atom, but it
+PWDFT can calculate a QM energy and QM forces on each atom, but it
 cannot compute a QM stress tensor.
+
+PWDFT supports MPI parallelism, but not threading parallelism.
 
 ---------------------------------
 ---------------------------------

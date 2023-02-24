@@ -1,0 +1,165 @@
+LAMMPS (22 Dec 2022)
+# QMMM with PySCF
+
+units           real
+atom_style      full
+
+pair_style      lj/cut/coul/long 12
+pair_modify     mix arithmetic
+
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  none
+improper_style  none
+
+kspace_style    pppm 1e-5
+
+read_data       data.water
+Reading data file ...
+  orthogonal box = (0 0 0) to (31.351877 31.351877 31.351877)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  6 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  4 bonds
+  reading angles ...
+  2 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.004 seconds
+
+# QM atoms are 1st water
+# MM atoms are 2nd water
+
+group           qm molecule 1
+3 atoms in group qm
+group           mm molecule 2
+3 atoms in group mm
+
+# remove bonds/angles between QM atoms
+# set charges to zero on QM atoms
+
+delete_bonds    qm multi remove special
+System init for delete_bonds ...
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (../kspace.cpp:342)
+  G vector (1/distance) = 0.21131887
+  grid = 12 12 12
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0020500128
+  estimated relative force accuracy = 6.1735526e-06
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 4913 1728
+Generated 1 of 1 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Deleting bonds ...
+  2 total bonds, 2 turned on, 0 turned off
+  1 total angles, 1 turned on, 0 turned off
+  0 total dihedrals, 0 turned on, 0 turned off
+  0 total impropers, 0 turned on, 0 turned off
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+set             group qm charge 0.0
+Setting atom values ...
+  3 settings made for charge
+
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+velocity        all create 300.0 87287 loop geom
+
+# QMMM dynamics
+
+timestep        2.0
+
+fix		1 all nve
+
+fix             2 qm mdi/qmmm direct elements O H
+fix_modify      2 energy yes
+
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong                 f_2 pe etotal press
+
+thermo          1
+
+mdi             plugin pyscf_mdi mdi "-role ENGINE -name PySCF -method LINK"                 extra "-pbc no" command "run 10"
+run 10
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (../kspace.cpp:342)
+  G vector (1/distance) = 0.19767375
+  grid = 10 10 10
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0022851662
+  estimated relative force accuracy = 6.8817102e-06
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 3375 1000
+Generated 1 of 1 mixed pair_coeff terms from arithmetic mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.165 | 7.165 | 7.165 Mbytes
+   Step          CPU            Temp          KinEng         E_vdwl         E_coul         E_pair         E_mol          E_long          f_2           PotEng         TotEng         Press     
+         0   0              300            4.4712151     -0.001256507    37.096223     -0.0091688448   0.95028479    -37.104135     -47941.423     -47940.482     -47936.011     -5.0247548    
+         1   0.42885217     513.16174      7.6481883     -0.0012517531   37.10766      -0.0088283103   1.3202413     -37.115237     -47947.2       -47945.888     -47938.24      -15.573296    
+         2   0.84949757     476.87607      7.1073848     -0.0012428971   37.140547     -0.0078675595   0.14078812    -37.147172     -47942.073     -47941.94      -47934.833      14.589522    
+         3   1.2984619      552.16606      8.2295107     -0.0012247602   37.169663     -0.0070877422   0.97249224    -37.175526     -47943.52      -47942.554     -47934.325      32.307164    
+         4   1.8060644      311.70888      4.6457248     -0.001214705    37.181636     -0.0067643983   0.92481745    -37.187186     -47938.682     -47937.764     -47933.119      0.56846893   
+         5   2.5658572      545.29773      8.1271448     -0.0012142012   37.183759     -0.0065649512   1.9626978     -37.18911      -47947.023     -47945.067     -47936.939     -16.524268    
+         6   3.0435932      471.76687      7.0312372     -0.0012147223   37.184705     -0.0063050524   1.0470598     -37.189795     -47935.826     -47934.786     -47927.754      6.8724083    
+         7   3.5418257      920.71804      13.722428     -0.0012039124   37.17538      -0.0062927565   1.1513661     -37.180469     -47936.811     -47935.666     -47921.943      41.323834    
+         8   4.0084852      371.42423      5.5357253     -0.0012015277   37.147481     -0.0067304894   0.30070096    -37.15301      -47926.094     -47925.8       -47920.264      9.8713538    
+         9   4.4922341      1313.1283      19.57093      -0.0012060837   37.113576     -0.0073073483   0.92112803    -37.119677     -47946.778     -47945.864     -47926.294      0.79539496   
+        10   4.9903309      1925.297       28.694723     -0.0012122897   37.098911     -0.0073851867   1.0565498     -37.105084     -47893.124     -47892.075     -47863.381      31.561748    
+Loop time of 4.99035 on 1 procs for 10 steps with 6 atoms
+
+Performance: 0.346 ns/day, 69.310 hours/ns, 2.004 timesteps/s, 12.023 atom-step/s
+98.3% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.0513e-05 | 4.0513e-05 | 4.0513e-05 |   0.0 |  0.00
+Bond    | 2.9012e-05 | 2.9012e-05 | 2.9012e-05 |   0.0 |  0.00
+Kspace  | 0.0010946  | 0.0010946  | 0.0010946  |   0.0 |  0.02
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 2.2333e-05 | 2.2333e-05 | 2.2333e-05 |   0.0 |  0.00
+Output  | 0.00026201 | 0.00026201 | 0.00026201 |   0.0 |  0.01
+Modify  | 4.9889     | 4.9889     | 4.9889     |   0.0 | 99.97
+Other   |            | 2.45e-05   |            |       |  0.00
+
+Nlocal:              6 ave           6 max           6 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             42 ave          42 max          42 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             15 ave          15 max          15 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 15
+Ave neighs/atom = 2.5
+Ave special neighs/atom = 1
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:05

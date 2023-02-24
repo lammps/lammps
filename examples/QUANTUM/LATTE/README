@@ -16,6 +16,27 @@ entire system, but not with fix mdi/qmmm to perform QMMM simulations.
 LATTE can calculate a QM energy and virial as well as QM forces on
 each atom.
 
+LATTE does not support MPI parallelism, so run it on a single MPI
+task.  But it does support multi-threading via OpenMP.  By default it
+will use all the threads available on your compute node.  Depending on
+the size of the problem and your hardware, it may be faster to run on
+fewer threads.  Thus for a production run it is a good idea to do some
+short runs first with different thread counts to test performance.
+
+For example, these commands will set the OpenMP thread count (to 4)
+before performing a run.  Unsetting the environment variable will
+revert to the default (use all available threads).
+
+bash:
+% export OMP_NUM_THREADS=4
+% unset OMP_NUM_THREADS
+
+(t)csh:
+% setenv OMP_NUM_THREADS 4
+% unsetenv OMP_NUM_THREADS
+
+All the example log files in this directory were run with OMP_NUM_THREADS = 1
+
 ---------------------------------
 ---------------------------------
 

@@ -41,6 +41,7 @@ class FixPIMDLangevin : public Fix {
 
   double compute_vector(int) override;
 
+ protected:
   /* System setting variables */
   int method; // PIMD or NMPIMD or CMD
   int fmmode; // physical or normal

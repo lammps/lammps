@@ -697,15 +697,15 @@ void DihedralTable::allocate()
 
 void DihedralTable::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR,"Illegal dihedral_style command");
+  if (narg != 2) error->all(FLERR,"Illegal dihedral_style command: must have 2 arguments");
 
   if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
-  else error->all(FLERR,"Unknown table style in dihedral style table");
+  else error->all(FLERR,"Unknown table style {} in dihedral style table", arg[0]);
 
   tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 3)
-    error->all(FLERR,"Illegal number of dihedral table entries");
+    error->all(FLERR,"Illegal number of dihedral table entries: {}", arg[1]);
   // delete old tables, since cannot just change settings
 
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
@@ -727,7 +727,7 @@ void DihedralTable::settings(int narg, char **arg)
 
 void DihedralTable::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (narg != 3) error->all(FLERR,"Illegal dihedral_coeff command: must have 3 arguments");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -746,10 +746,9 @@ void DihedralTable::coeff(int narg, char **arg)
   // ---  and resolve issues with periodicity  ---
 
   if (tb->ninput < 2)
-    error->all(FLERR,"Invalid dihedral table length: {}",arg[2]);
+    error->all(FLERR,"Invalid dihedral table length: {}", arg[2]);
   else if ((tb->ninput == 2) && (tabstyle == SPLINE))
-    error->all(FLERR,"Invalid dihedral spline table length: {} "
-                                 "(Try linear)",arg[2]);
+    error->all(FLERR,"Invalid dihedral spline table length: {} (Try linear)",arg[2]);
 
   // check for monotonicity
   for (int i=0; i < tb->ninput-1; i++) {
@@ -767,12 +766,10 @@ void DihedralTable::coeff(int narg, char **arg)
   double phihi = tb->phifile[tb->ninput-1];
   if (tb->use_degrees) {
     if ((phihi - philo) >= 360)
-      error->all(FLERR,"Dihedral table angle range must be < 360 "
-                                   "degrees ({}).",arg[2]);
+      error->all(FLERR,"Dihedral table angle range must be < 360 degrees ({}).",arg[2]);
   } else {
     if ((phihi - philo) >= MY_2PI)
-      error->all(FLERR,"Dihedral table angle range must be < 2*PI "
-                                   "radians ({}).",arg[2]);
+      error->all(FLERR,"Dihedral table angle range must be < 2*PI radians ({}).",arg[2]);
   }
 
   // convert phi from degrees to radians
@@ -1200,7 +1197,7 @@ void DihedralTable::param_extract(Table *tb, char *line)
         checkU_fname = values.next_string();
       } else if (word == "CHECKF") {
         checkF_fname = values.next_string();
-      } else error->one(FLERR,"Invalid keyword in dihedral angle table parameters ({})", word);
+      } else error->one(FLERR,"Unknown keyword {} in dihedral table parameters", word);
     }
   } catch (TokenizerException &e) {
     error->one(FLERR, e.what());

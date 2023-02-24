@@ -1533,6 +1533,8 @@
 /fix_mol_swap.h
 /fix_pimd.cpp
 /fix_pimd.h
+/fix_pimd_nvt.cpp
+/fix_pimd_nvt.h
 /fix_qbmsst.cpp
 /fix_qbmsst.h
 /fix_qtb.cpp

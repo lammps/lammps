@@ -75,7 +75,7 @@ class FixGCMC : public Fix {
   double ninsertion_successes;
 
   int mc_active;              // 1 during MC trials, otherwise 0
-  
+
   int gcmc_nmax;
   int max_region_attempts;
   double gas_mass;

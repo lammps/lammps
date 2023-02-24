@@ -43,11 +43,11 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   // check requirements for LAMMPS to work with MDI for a QMMM engine
   // atom IDs do not need to be consecutive
-  
-  if (!atom->tag_enable) 
+
+  if (!atom->tag_enable)
     error->all(FLERR,"Fix mdi/qmmm requires atom IDs be defined");
 
-  if (atom->map_style == Atom::MAP_NONE) 
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix mdi/qmmm requires an atom map be defined");
 
   // confirm LAMMPS is being run as a driver
@@ -62,7 +62,7 @@ FixMDIQMMM::FixMDIQMMM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   if (strcmp(arg[3],"direct") == 0) mode = DIRECT;
   else if (strcmp(arg[3],"potential") == 0) mode = POTENTIAL;
   else error->all(FLERR,"Illegal fix mdi/qmmm command");
-  
+
   // optional args
 
   virialflag = 0;
@@ -687,7 +687,7 @@ void FixMDIQMMM::pre_force(int vflag)
   //   fqm = forces on QM atoms
   //   qqm = new charges on QM atoms
   //   qm_energy = QM contribution to energy of entire system
-  
+
   //if (comm->me == 0) utils::logmesg(lmp, "Invoking QM code ...\n");
 
   //MPI_Barrier(world);
@@ -708,7 +708,7 @@ void FixMDIQMMM::pre_force(int vflag)
   if (ierr) error->all(FLERR, "MDI: >COORDS command");
   ierr = MDI_Send(&xqm[0][0], 3 * nqm, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >COORDS data");
-  
+
   // send Coulomb potential of QM atoms to MDI engine
 
   ierr = MDI_Send_command(">POTENTIAL_AT_NUCLEI", mdicomm);
@@ -752,10 +752,10 @@ void FixMDIQMMM::pre_force(int vflag)
     if (ierr) error->all(FLERR, "MDI: <STRESS data");
     MPI_Bcast(qm_virial, 9, MPI_DOUBLE, 0, world);
   }
-  
+
   //MPI_Barrier(world);
-  
-  //if (comm->me == 0) 
+
+  //if (comm->me == 0)
   //  utils::logmesg(lmp, "  time = {:.3f} seconds\n",
   //                 platform::walltime() - tstart);
 
@@ -815,10 +815,10 @@ void FixMDIQMMM::pre_force(int vflag)
   // NOTE: what about check in force_clear() for external_force_clear = OPENMP ?
   // NOTE: what will whichflag be for single snapshot compute of QMMM forces ?
 
-  if (update->whichflag == 1) 
-    update->integrate->force_clear();  
-  else if (update->whichflag == 2) 
-    update->minimize->force_clear();  
+  if (update->whichflag == 1)
+    update->integrate->force_clear();
+  else if (update->whichflag == 2)
+    update->minimize->force_clear();
 }
 
 /* ----------------------------------------------------------------------
@@ -866,14 +866,14 @@ void FixMDIQMMM::post_force_direct(int vflag)
   }
   
   // send current coords of QM atoms to MDI engine
-  
+
   ierr = MDI_Send_command(">COORDS", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >COORDS command");
   ierr = MDI_Send(&xqm[0][0], 3 * nqm, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >COORDS data");
 
   // send current coords of MM atoms to MDI engine
-  
+
   ierr = MDI_Send_command(">CLATTICE", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >CLATTICE command");
   ierr = MDI_Send(&xmm[0][0], 3 * nmm, MDI_DOUBLE, mdicomm);
@@ -891,7 +891,7 @@ void FixMDIQMMM::post_force_direct(int vflag)
   qm_energy *= mdi2lmp_energy;
 
   // request forces on QM atoms from MDI engine
-  
+
   ierr = MDI_Send_command("<FORCES", mdicomm);
   if (ierr) error->all(FLERR, "MDI: <FORCES command");
   ierr = MDI_Recv(&fqm[0][0], 3 * nqm, MDI_DOUBLE, mdicomm);
@@ -899,7 +899,7 @@ void FixMDIQMMM::post_force_direct(int vflag)
   MPI_Bcast(&fqm[0][0], 3 * nqm, MPI_DOUBLE, 0, world);
 
   // request forces on MM atoms from MDI engine
-  
+
   ierr = MDI_Send_command("<LATTICE_FORCES", mdicomm);
   if (ierr) error->all(FLERR, "MDI: <LATTICE_FORCES command");
   ierr = MDI_Recv(&fmm[0][0], 3 * nmm, MDI_DOUBLE, mdicomm);
@@ -917,7 +917,7 @@ void FixMDIQMMM::post_force_direct(int vflag)
   }
 
   //MPI_Barrier(world);
-  //if (comm->me == 0) 
+  //if (comm->me == 0)
   //  utils::logmesg(lmp, "  time = {:.3f} seconds\n",
   //                 platform::walltime() - tstart);
 
@@ -1012,7 +1012,7 @@ void FixMDIQMMM::post_force_potential(int /*vflag*/)
 
   // NOTE: some codes like NWChem may perform this operation themselves
   //       need to have a fix mdi/qmmm option for this, or different mode ?
-  
+
   /*
   double **x = atom->x;
   double **f = atom->f;
@@ -1030,7 +1030,7 @@ void FixMDIQMMM::post_force_potential(int /*vflag*/)
       // skip if neither atom is owned
 
       if (ilocal < 0 && jlocal < 0) continue;
-      
+
       delta[0] = xqm[i][0] - xqm[j][0];
       delta[1] = xqm[i][1] - xqm[j][1];
       delta[2] = xqm[i][2] - xqm[j][2];
@@ -1063,7 +1063,7 @@ void FixMDIQMMM::post_force_potential(int /*vflag*/)
   }
 
   // sum eqm_mine across procs, use it to adjust qmenergy
-  
+
   double eqm;
   MPI_Allreduce(&eqm_mine,&eqm,1,MPI_DOUBLE,MPI_SUM,world);
 
@@ -1352,10 +1352,10 @@ void FixMDIQMMM::create_qm_list()
   int nqm_mine = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) nqm_mine++;
-  
+
   tagint *qmIDs_mine;
   memory->create(qmIDs_mine,nqm_mine,"mdi/qmmm:qmIDs_mine");
-  
+
   nqm_mine = 0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) qmIDs_mine[nqm_mine++] = tag[i];
@@ -1369,10 +1369,10 @@ void FixMDIQMMM::create_qm_list()
   displs[0] = 0;
   for (int iproc = 1; iproc < nprocs; iproc++)
     displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-  
+
   MPI_Allgatherv(qmIDs_mine,nqm_mine,MPI_LMP_TAGINT,qmIDs,recvcounts,displs,
                  MPI_LMP_TAGINT,world);
-  
+
   memory->destroy(qmIDs_mine);
   memory->destroy(recvcounts);
   memory->destroy(displs);
@@ -1419,10 +1419,10 @@ void FixMDIQMMM::create_mm_list()
   int nmm_mine = 0;
   for (int i = 0; i < nlocal; i++)
   if (!(mask[i] & groupbit)) nmm_mine++;
-  
+
   tagint *mmIDs_mine;
   memory->create(mmIDs_mine,nmm_mine,"mdi/qmmm:mmIDs_mine");
-  
+
   nmm_mine = 0;
   for (int i = 0; i < nlocal; i++)
     if (!(mask[i] & groupbit)) mmIDs_mine[nmm_mine++] = tag[i];
@@ -1436,10 +1436,10 @@ void FixMDIQMMM::create_mm_list()
   displs[0] = 0;
   for (int iproc = 1; iproc < nprocs; iproc++)
     displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-  
+
   MPI_Allgatherv(mmIDs_mine,nmm_mine,MPI_LMP_TAGINT,mmIDs,recvcounts,displs,
                  MPI_LMP_TAGINT,world);
-  
+
   memory->destroy(mmIDs_mine);
   memory->destroy(recvcounts);
   memory->destroy(displs);
@@ -1576,12 +1576,12 @@ void FixMDIQMMM::set_eqm()
 
   int *type = atom->type;
   int ilocal;
-  
+
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2owned[i];
     if (ilocal >= 0) eqm_mine[i] = elements[type[ilocal]];
   }
-  
+
   MPI_Allreduce(eqm_mine,eqm,nqm,MPI_INT,MPI_SUM,world);
 }
 

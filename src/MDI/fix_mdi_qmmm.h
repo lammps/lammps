@@ -51,7 +51,7 @@ class FixMDIQMMM : public Fix {
   double compute_scalar() override;
   double compute_vector(int) override;
   double memory_usage() override;
-  
+
  private:
   int nprocs;
   int virialflag, connectflag;
@@ -130,7 +130,7 @@ class FixMDIQMMM : public Fix {
 
   void create_qm_list();
   void create_mm_list();
-  
+
   void set_qm2owned();
   void set_mm2owned();
 
@@ -149,6 +149,7 @@ class FixMDIQMMM : public Fix {
   void send_natoms_qm();
   void send_types_qm();
   void send_elements_qm();
+
   void send_box();
   void send_natoms_mm();
   void send_types_mm();

@@ -104,7 +104,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   // zero out counters
 
   mc_active = 0;
-  
+
   nswap_attempts = 0.0;
   nswap_successes = 0.0;
 
@@ -307,7 +307,7 @@ void FixAtomSwap::pre_exchange()
   if (next_reneighbor != update->ntimestep) return;
 
   mc_active = 1;
-  
+
   // ensure current system is ready to compute energy
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);

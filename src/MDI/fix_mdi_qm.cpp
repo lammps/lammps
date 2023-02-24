@@ -41,8 +41,8 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // atom IDs do not need to be consecutive
 
   if (atom->tag_enable == 0) error->all(FLERR, "Cannot use MDI engine without atom IDs");
-  
-  if (atom->map_style == Atom::MAP_NONE) 
+
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix mdi/qm requires an atom map be defined");
 
   // confirm LAMMPS is being run as a driver
@@ -182,10 +182,10 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   nqm = nqm_last = max_nqm = 0;
   nexclude = 0;
-  
+
   qmIDs = nullptr;
   qm2owned = nullptr;
-  
+
   eqm = nullptr;
   tqm = nullptr;
   xqm = nullptr;
@@ -199,7 +199,7 @@ FixMDIQM::FixMDIQM(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   nmax = atom->nmax;
   memory->create(array_atom,nmax,3,"mdi/qm:array_atom");
-  
+
   // initialize outputs
 
   qm_energy = 0.0;
@@ -231,10 +231,10 @@ FixMDIQM::~FixMDIQM()
 
   delete[] id_mcfix;
   delete[] elements;
-  
+
   memory->destroy(qmIDs);
   memory->destroy(qm2owned);
-  
+
   memory->destroy(eqm);
   memory->destroy(tqm);
   memory->destroy(xqm);
@@ -345,22 +345,22 @@ void FixMDIQM::init()
   // new if first run or if
   //   atom count or elements/types or box has changed between runs
   // otherwise incremental = subsequent run of same system
-  
+
   int new_system = 0;
 
   // check if count of QM atoms has changed
   // on first run, old count is 0
-  
+
   int nqm_old = nqm;
   nqm = set_nqm();
-  
+
   if (nqm != nqm_old) {
     if (nqm > max_nqm) reallocate();
     create_qm_list();
     set_qm2owned();
     new_system = 1;
   }
-  
+
   // check if box has changed
 
   if (new_system) set_box();
@@ -447,7 +447,7 @@ void FixMDIQM::post_force(int vflag)
   if (update->ntimestep % every) return;
 
   // reallocate array_atom if needed
-  
+
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
     memory->destroy(array_atom);
@@ -458,14 +458,14 @@ void FixMDIQM::post_force(int vflag)
   // new when atom count has changed (deposit, evaporate)
   //   or when MC fix is active (insertion, deletion, large moves)
   // incremental when a system is slowly evolving (AIMD)
-  
+
   int new_system = 0;
   if (nqm != nqm_last) new_system = 1;
   else if (mcflag && *mc_active_ptr) new_system = 1;
-  
+
   // send new system info to MDI engine: atom count and elements/types
   // reset QM data structures if atom count has changed
-  
+
   if (new_system) {
     nqm = set_nqm();
     if (nqm > max_nqm) reallocate();
@@ -494,7 +494,7 @@ void FixMDIQM::post_force(int vflag)
   }
 
   // send current coords of QM atoms to MDI engine
-  
+
   set_xqm();
 
   ierr = MDI_Send_command(">COORDS", mdicomm);
@@ -690,7 +690,7 @@ void FixMDIQM::reallocate()
 
 /* ----------------------------------------------------------------------
    ncount = # of QM atoms
-   can be less than all atoms if MC flag is set   
+   can be less than all atoms if MC flag is set
    return ncount to set nqm
 ------------------------------------------------------------------------- */
 
@@ -751,16 +751,16 @@ void FixMDIQM::create_qm_list()
     if (!nexclude) nqm_mine++;
     else if (!(mask[i] & excludebit)) nqm_mine++;
   }
-  
+
   tagint *qmIDs_mine;
   memory->create(qmIDs_mine,nqm_mine,"mdi/qm:qmIDs_mine");
-  
+
   nqm_mine = 0;
   for (int i = 0; i < nlocal; i++) {
     if (!nexclude) qmIDs_mine[nqm_mine++] = tag[i];
     else if (!(mask[i] & excludebit)) qmIDs_mine[nqm_mine++] = tag[i];
   }
-  
+
   int *recvcounts,*displs,*listall;
   memory->create(recvcounts,nprocs,"mdi/qm:recvcounts");
   memory->create(displs,nprocs,"mdi/qm:displs");
@@ -770,10 +770,10 @@ void FixMDIQM::create_qm_list()
   displs[0] = 0;
   for (int iproc = 1; iproc < nprocs; iproc++)
     displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
-  
+
   MPI_Allgatherv(qmIDs_mine,nqm_mine,MPI_LMP_TAGINT,qmIDs,recvcounts,displs,
                  MPI_LMP_TAGINT,world);
-  
+
   memory->destroy(qmIDs_mine);
   memory->destroy(recvcounts);
   memory->destroy(displs);
@@ -885,12 +885,12 @@ void FixMDIQM::set_eqm()
 
   int *type = atom->type;
   int ilocal;
-  
+
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2owned[i];
     if (ilocal >= 0) eqm_mine[i] = elements[type[ilocal]];
   }
-  
+
   MPI_Allreduce(eqm_mine,eqm,nqm,MPI_INT,MPI_SUM,world);
 }
 
@@ -907,7 +907,7 @@ void FixMDIQM::set_tqm()
     ilocal = qm2owned[i];
     if (ilocal >= 0) tqm_mine[i] = type[ilocal];
   }
-  
+
   MPI_Allreduce(tqm_mine,tqm,nqm,MPI_INT,MPI_SUM,world);
 }
 
@@ -918,16 +918,16 @@ void FixMDIQM::set_tqm()
 void FixMDIQM::send_natoms()
 {
   int ierr;
-  
+
   // if engine suppports >NATOMS, send it
   // if not, require that engine be consistent with LAMMPS
-  
+
   if (natoms_exists) {
     ierr = MDI_Send_command(">NATOMS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS command");
     ierr = MDI_Send(&nqm, 1, MDI_INT, mdicomm);
     if (ierr) error->all(FLERR, "MDI: >NATOMS data");
-  
+
   } else {
     ierr = MDI_Send_command("<NATOMS", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <NATOMS command");

@@ -1,6 +1,6 @@
-.. index:: fix pimd
+.. index:: fix pimd/nvt
 
-fix pimd command
+fix pimd/nvt command
 ================
 
 Syntax
@@ -8,10 +8,10 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID pimd keyword value ...
+   fix ID group-ID pimd/nvt keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* pimd = style name of this fix command
+* pimd/nvt = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *method* or *fmass* or *sp* or *temp* or *nhc*
 
@@ -28,10 +28,14 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all pimd method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
+   fix 1 all pimd/nvt method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
 
 Description
 """""""""""
+
+.. versionchanged:: TBD
+
+Fix pimd was renamed to fix pimd/nvt.
 
 This command performs quantum molecular dynamics simulations based on
 the Feynman path integral to include effects of tunneling and
@@ -67,7 +71,7 @@ number of NH thermostats would be 3 x N x P x Nc.
 
 .. note::
 
-   This fix implements a complete velocity-verlet integrator
+   Fix pimd/nvt implements a complete velocity-verlet integrator
    combined with NH massive chain thermostat, so no other time
    integration fix should be used.
 
@@ -76,31 +80,33 @@ value of *pimd* is standard PIMD.  A value of *nmpimd* is for
 normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
 (CMD).  The difference between the styles is as follows.
 
-In standard PIMD, the value used for a bead's fictitious mass is
-arbitrary.  A common choice is to use Mi = m/P, which results in the
-mass of the entire ring-polymer being equal to the real quantum
-particle.  But it can be difficult to efficiently integrate the
-equations of motion for the stiff harmonic interactions in the ring
-polymers.
+   In standard PIMD, the value used for a bead's fictitious mass is
+   arbitrary.  A common choice is to use Mi = m/P, which results in the
+   mass of the entire ring-polymer being equal to the real quantum
+   particle.  But it can be difficult to efficiently integrate the
+   equations of motion for the stiff harmonic interactions in the ring
+   polymers.
 
-A useful way to resolve this issue is to integrate the equations of
-motion in a normal mode representation, using Normal Mode
-Path-Integral Molecular Dynamics (NMPIMD) :ref:`(Cao1) <Cao1>`.  In NMPIMD,
-the NH chains are attached to each normal mode of the ring-polymer and
-the fictitious mass of each mode is chosen as Mk = the eigenvalue of
-the Kth normal mode for k > 0. The k = 0 mode, referred to as the
-zero-frequency mode or centroid, corresponds to overall translation of
-the ring-polymer and is assigned the mass of the real particle.
+   A useful way to resolve this issue is to integrate the equations of
+   motion in a normal mode representation, using Normal Mode
+   Path-Integral Molecular Dynamics (NMPIMD) :ref:`(Cao1) <Cao1>`.  In
+   NMPIMD, the NH chains are attached to each normal mode of the
+   ring-polymer and the fictitious mass of each mode is chosen as Mk =
+   the eigenvalue of the Kth normal mode for k > 0. The k = 0 mode,
+   referred to as the zero-frequency mode or centroid, corresponds to
+   overall translation of the ring-polymer and is assigned the mass of
+   the real particle.
 
-Motion of the centroid can be effectively uncoupled from the other
-normal modes by scaling the fictitious masses to achieve a partial
-adiabatic separation.  This is called a Centroid Molecular Dynamics
-(CMD) approximation :ref:`(Cao2) <Cao2>`.  The time-evolution (and resulting
-dynamics) of the quantum particles can be used to obtain centroid time
-correlation functions, which can be further used to obtain the true
-quantum correlation function for the original system.  The CMD method
-also uses normal modes to evolve the system, except only the k > 0
-modes are thermostatted, not the centroid degrees of freedom.
+   Motion of the centroid can be effectively uncoupled from the other
+   normal modes by scaling the fictitious masses to achieve a partial
+   adiabatic separation.  This is called a Centroid Molecular Dynamics
+   (CMD) approximation :ref:`(Cao2) <Cao2>`.  The time-evolution (and
+   resulting dynamics) of the quantum particles can be used to obtain
+   centroid time correlation functions, which can be further used to
+   obtain the true quantum correlation function for the original system.
+   The CMD method also uses normal modes to evolve the system, except
+   only the k > 0 modes are thermostatted, not the centroid degrees of
+   freedom.
 
 The keyword *fmass* sets a further scaling factor for the fictitious
 masses of beads, which can be used for the Partial Adiabatic CMD
@@ -152,47 +158,47 @@ related tasks for each of the partitions, e.g.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the state of the Nose/Hoover thermostat over all
+Fix pimd/nvt writes the state of the Nose/Hoover thermostat over all
 quasi-beads to :doc:`binary restart files <restart>`.  See the
 :doc:`read_restart <read_restart>` command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
 None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.
+are relevant to fix pimd/nvt.
 
-This fix computes a global 3-vector, which can be accessed by various
-:doc:`output commands <Howto_output>`.  The three quantities in the
-global vector are
+Fix pimd/nvt computes a global 3-vector, which can be accessed by
+various :doc:`output commands <Howto_output>`.  The three quantities in
+the global vector are:
 
-#. the total spring energy of the quasi-beads,
-#. the current temperature of the classical system of ring polymers,
-#. the current value of the scalar virial estimator for the kinetic
-   energy of the quantum system :ref:`(Herman) <Herman>`.
+   #. the total spring energy of the quasi-beads,
+   #. the current temperature of the classical system of ring polymers,
+   #. the current value of the scalar virial estimator for the kinetic
+      energy of the quantum system :ref:`(Herman) <Herman>`.
 
-The vector values calculated by this fix are "extensive", except for the
+The vector values calculated by fix pimd/nvt are "extensive", except for the
 temperature, which is "intensive".
 
-No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during
+No parameter of fix pimd/nvt can be used with the *start/stop* keywords
+of the :doc:`run <run>` command.  Fix pimd/nvt is not invoked during
 :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the REPLICA package.  It is only enabled if
-LAMMPS was built with that package.  See the
-:doc:`Build package <Build_package>` page for more info.
+This fix is part of the REPLICA package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-Fix pid cannot be used with :doc:`lj units <units>`.
+Fix pimd/nvt cannot be used with :doc:`lj units <units>`.
 
 A PIMD simulation can be initialized with a single data file read via
 the :doc:`read_data <read_data>` command.  However, this means all
 quasi-beads in a ring polymer will have identical positions and
-velocities, resulting in identical trajectories for all quasi-beads.
-To avoid this, users can simply initialize velocities with different
-random number seeds assigned to each partition, as defined by the
-uloop variable, e.g.
+velocities, resulting in identical trajectories for all quasi-beads.  To
+avoid this, users can simply initialize velocities with different random
+number seeds assigned to each partition, as defined by the uloop
+variable, e.g.
 
 .. code-block:: LAMMPS
 
@@ -201,8 +207,8 @@ uloop variable, e.g.
 Default
 """""""
 
-The keyword defaults are method = pimd, fmass = 1.0, sp = 1.0, temp = 300.0,
-and nhc = 2.
+The keyword defaults for fix pimd/nvt are method = pimd, fmass = 1.0, sp
+= 1.0, temp = 300.0, and nhc = 2.
 
 ----------
 

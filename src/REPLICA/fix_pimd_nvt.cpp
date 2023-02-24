@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Package      FixPIMD
+   Package      FixPIMDNVT
    Purpose      Quantum Path Integral Algorithm for Quantum Chemistry
    Copyright    Voth Group @ University of Chicago
    Authors      Chris Knight & Yuxing Peng (yuxing at uchicago.edu)
@@ -21,7 +21,7 @@
    Version      1.0
 ------------------------------------------------------------------------- */
 
-#include "fix_pimd.h"
+#include "fix_pimd_nvt.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -44,7 +44,7 @@ enum { PIMD, NMPIMD, CMD };
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   max_nsend = 0;
   tag_send = nullptr;
@@ -85,27 +85,27 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
       else if (strcmp(arg[i + 1], "cmd") == 0)
         method = CMD;
       else
-        error->universe_all(FLERR, fmt::format("Unknown method parameter {} for fix pimd",
-                                               arg[i + 1]));
+        error->universe_all(
+            FLERR, fmt::format("Unknown method parameter {} for fix pimd/nvt", arg[i + 1]));
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if ((fmass < 0.0) || (fmass > np))
-        error->universe_all(FLERR, fmt::format("Invalid fmass value {} for fix pimd", fmass));
+        error->universe_all(FLERR, fmt::format("Invalid fmass value {} for fix pimd/nvt", fmass));
     } else if (strcmp(arg[i], "sp") == 0) {
       sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd");
+      if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd/nvt");
     } else if (strcmp(arg[i], "temp") == 0) {
       nhc_temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (nhc_temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd");
+      if (nhc_temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd/nvt");
     } else if (strcmp(arg[i], "nhc") == 0) {
       nhc_nchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
-      if (nhc_nchain < 2) error->universe_all(FLERR, "Invalid nhc value for fix pimd");
+      if (nhc_nchain < 2) error->universe_all(FLERR, "Invalid nhc value for fix pimd/nvt");
     } else
-      error->universe_all(FLERR, fmt::format("Unknown keyword {} for fix pimd", arg[i]));
+      error->universe_all(FLERR, fmt::format("Unknown keyword {} for fix pimd/nvt", arg[i]));
   }
 
   if (strcmp(update->unit_style, "lj") == 0)
-    error->all(FLERR, "Fix pimd does not support lj units");
+    error->all(FLERR, "Fix pimd/nvt does not support lj units");
 
   /* Initiation */
 
@@ -138,7 +138,7 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMD::~FixPIMD()
+FixPIMDNVT::~FixPIMDNVT()
 {
   delete[] mass;
   atom->delete_callback(id, Atom::GROW);
@@ -170,7 +170,7 @@ FixPIMD::~FixPIMD()
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::setmask()
+int FixPIMDNVT::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
@@ -181,13 +181,13 @@ int FixPIMD::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::init()
+void FixPIMDNVT::init()
 {
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR, "Fix pimd requires an atom map, see atom_modify");
+    error->universe_all(FLERR, "Fix pimd/nvt requires an atom map, see atom_modify");
 
   if (universe->me == 0 && universe->uscreen)
-    fprintf(universe->uscreen, "Fix pimd initializing Path-Integral ...\n");
+    fprintf(universe->uscreen, "Fix pimd/nvt initializing Path-Integral ...\n");
 
   // prepare the constants
 
@@ -222,7 +222,7 @@ void FixPIMD::init()
   fbond = -_fbond * force->mvv2e;
 
   if (universe->me == 0)
-    printf("Fix pimd -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
+    utils::logmesg(lmp, "Fix pimd/nvt -P/(beta^2 * hbar^2) = {:20.7e} (kcal/mol/A^2)\n\n", fbond);
 
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
@@ -241,7 +241,7 @@ void FixPIMD::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::setup(int vflag)
+void FixPIMDNVT::setup(int vflag)
 {
   if (universe->me == 0 && universe->uscreen)
     fprintf(universe->uscreen, "Setting up Path-Integral ...\n");
@@ -251,7 +251,7 @@ void FixPIMD::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::initial_integrate(int /*vflag*/)
+void FixPIMDNVT::initial_integrate(int /*vflag*/)
 {
   nhc_update_v();
   nhc_update_x();
@@ -259,14 +259,14 @@ void FixPIMD::initial_integrate(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::final_integrate()
+void FixPIMDNVT::final_integrate()
 {
   nhc_update_v();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::post_force(int /*flag*/)
+void FixPIMDNVT::post_force(int /*flag*/)
 {
   for (int i = 0; i < atom->nlocal; i++)
     for (int j = 0; j < 3; j++) atom->f[i][j] /= np;
@@ -293,7 +293,7 @@ void FixPIMD::post_force(int /*flag*/)
    Nose-Hoover Chains
 ------------------------------------------------------------------------- */
 
-void FixPIMD::nhc_init()
+void FixPIMDNVT::nhc_init()
 {
   double tau = 1.0 / omega_np;
   double KT = force->boltz * nhc_temp;
@@ -309,7 +309,7 @@ void FixPIMD::nhc_init()
       nhc_eta_dotdot[i][ichain] = 0.0;
       nhc_eta_mass[i][ichain] = mass0;
       if ((method == CMD || method == NMPIMD) && universe->iworld == 0)
-        ; // do nothing
+        ;    // do nothing
       else
         nhc_eta_mass[i][ichain] *= fmass;
     }
@@ -334,7 +334,7 @@ void FixPIMD::nhc_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::nhc_update_x()
+void FixPIMDNVT::nhc_update_x()
 {
   int n = atom->nlocal;
   double **x = atom->x;
@@ -359,7 +359,7 @@ void FixPIMD::nhc_update_x()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::nhc_update_v()
+void FixPIMDNVT::nhc_update_v()
 {
   int n = atom->nlocal;
   int *type = atom->type;
@@ -447,14 +447,14 @@ void FixPIMD::nhc_update_v()
    Normal Mode PIMD
 ------------------------------------------------------------------------- */
 
-void FixPIMD::nmpimd_init()
+void FixPIMDNVT::nmpimd_init()
 {
   memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
   memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
   memory->create(M_f2fp, np, np, "fix_feynman:M_f2fp");
   memory->create(M_fp2f, np, np, "fix_feynman:M_fp2f");
 
-  lam = (double *) memory->smalloc(sizeof(double) * np, "FixPIMD::lam");
+  lam = (double *) memory->smalloc(sizeof(double) * np, "pimd_nvt:lam");
 
   // Set up  eigenvalues
 
@@ -505,7 +505,7 @@ void FixPIMD::nmpimd_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::nmpimd_fill(double **ptr)
+void FixPIMDNVT::nmpimd_fill(double **ptr)
 {
   comm_ptr = ptr;
   comm->forward_comm(this);
@@ -513,7 +513,7 @@ void FixPIMD::nmpimd_fill(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::nmpimd_transform(double **src, double **des, double *vector)
+void FixPIMDNVT::nmpimd_transform(double **src, double **des, double *vector)
 {
   int n = atom->nlocal;
   int m = 0;
@@ -528,7 +528,7 @@ void FixPIMD::nmpimd_transform(double **src, double **des, double *vector)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::spring_force()
+void FixPIMDNVT::spring_force()
 {
   spring_energy = 0.0;
 
@@ -576,7 +576,7 @@ void FixPIMD::spring_force()
    Comm operations
 ------------------------------------------------------------------------- */
 
-void FixPIMD::comm_init()
+void FixPIMDNVT::comm_init()
 {
   if (size_plan) {
     delete[] plan_send;
@@ -634,17 +634,17 @@ void FixPIMD::comm_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::comm_exec(double **ptr)
+void FixPIMDNVT::comm_exec(double **ptr)
 {
   int nlocal = atom->nlocal;
 
   if (nlocal > max_nlocal) {
     max_nlocal = nlocal + 200;
     int size = sizeof(double) * max_nlocal * 3;
-    buf_recv = (double *) memory->srealloc(buf_recv, size, "FixPIMD:x_recv");
+    buf_recv = (double *) memory->srealloc(buf_recv, size, "FixPIMDNVT:x_recv");
 
     for (int i = 0; i < np; i++)
-      buf_beads[i] = (double *) memory->srealloc(buf_beads[i], size, "FixPIMD:x_beads[i]");
+      buf_beads[i] = (double *) memory->srealloc(buf_beads[i], size, "FixPIMDNVT:x_beads[i]");
   }
 
   // copy local positions
@@ -666,9 +666,9 @@ void FixPIMD::comm_exec(double **ptr)
     if (nsend > max_nsend) {
       max_nsend = nsend + 200;
       tag_send =
-          (tagint *) memory->srealloc(tag_send, sizeof(tagint) * max_nsend, "FixPIMD:tag_send");
-      buf_send =
-          (double *) memory->srealloc(buf_send, sizeof(double) * max_nsend * 3, "FixPIMD:x_send");
+          (tagint *) memory->srealloc(tag_send, sizeof(tagint) * max_nsend, "FixPIMDNVT:tag_send");
+      buf_send = (double *) memory->srealloc(buf_send, sizeof(double) * max_nsend * 3,
+                                             "FixPIMDNVT:x_send");
     }
 
     // send tags
@@ -709,7 +709,7 @@ void FixPIMD::comm_exec(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int FixPIMDNVT::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, m;
 
@@ -727,7 +727,7 @@ int FixPIMD::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, 
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::unpack_forward_comm(int n, int first, double *buf)
+void FixPIMDNVT::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, m, last;
 
@@ -744,28 +744,28 @@ void FixPIMD::unpack_forward_comm(int n, int first, double *buf)
    Memory operations
 ------------------------------------------------------------------------- */
 
-double FixPIMD::memory_usage()
+double FixPIMDNVT::memory_usage()
 {
   return (double) atom->nmax * size_peratom_cols * sizeof(double);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::grow_arrays(int nmax)
+void FixPIMDNVT::grow_arrays(int nmax)
 {
   if (nmax == 0) return;
   int count = nmax * 3;
 
-  memory->grow(array_atom, nmax, size_peratom_cols, "FixPIMD::array_atom");
-  memory->grow(nhc_eta, count, nhc_nchain, "FixPIMD::nh_eta");
-  memory->grow(nhc_eta_dot, count, nhc_nchain + 1, "FixPIMD::nh_eta_dot");
-  memory->grow(nhc_eta_dotdot, count, nhc_nchain, "FixPIMD::nh_eta_dotdot");
-  memory->grow(nhc_eta_mass, count, nhc_nchain, "FixPIMD::nh_eta_mass");
+  memory->grow(array_atom, nmax, size_peratom_cols, "pimd_nvt:array_atom");
+  memory->grow(nhc_eta, count, nhc_nchain, "pimd_nvt:nh_eta");
+  memory->grow(nhc_eta_dot, count, nhc_nchain + 1, "pimd_nvt:nh_eta_dot");
+  memory->grow(nhc_eta_dotdot, count, nhc_nchain, "pimd_nvt:nh_eta_dotdot");
+  memory->grow(nhc_eta_mass, count, nhc_nchain, "pimd_nvt:nh_eta_mass");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::copy_arrays(int i, int j, int /*delflag*/)
+void FixPIMDNVT::copy_arrays(int i, int j, int /*delflag*/)
 {
   int i_pos = i * 3;
   int j_pos = j * 3;
@@ -778,7 +778,7 @@ void FixPIMD::copy_arrays(int i, int j, int /*delflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::pack_exchange(int i, double *buf)
+int FixPIMDNVT::pack_exchange(int i, double *buf)
 {
   int offset = 0;
   int pos = i * 3;
@@ -797,7 +797,7 @@ int FixPIMD::pack_exchange(int i, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::unpack_exchange(int nlocal, double *buf)
+int FixPIMDNVT::unpack_exchange(int nlocal, double *buf)
 {
   int offset = 0;
   int pos = nlocal * 3;
@@ -816,7 +816,7 @@ int FixPIMD::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::pack_restart(int i, double *buf)
+int FixPIMDNVT::pack_restart(int i, double *buf)
 {
   int offset = 0;
   int pos = i * 3;
@@ -837,7 +837,7 @@ int FixPIMD::pack_restart(int i, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD::unpack_restart(int nlocal, int nth)
+void FixPIMDNVT::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
 
@@ -864,21 +864,21 @@ void FixPIMD::unpack_restart(int nlocal, int nth)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::maxsize_restart()
+int FixPIMDNVT::maxsize_restart()
 {
   return size_peratom_cols + 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD::size_restart(int /*nlocal*/)
+int FixPIMDNVT::size_restart(int /*nlocal*/)
 {
   return size_peratom_cols + 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixPIMD::compute_vector(int n)
+double FixPIMDNVT::compute_vector(int n)
 {
   if (n == 0) { return spring_energy; }
   if (n == 1) { return t_sys; }

@@ -51,6 +51,9 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# renamed on 23 February 2023
+fix_pimd.cpp
+fix_pimd.h
 # removed on 20 January 2023
 atom_vec_mesont.cpp
 atom_vec_mesont.h

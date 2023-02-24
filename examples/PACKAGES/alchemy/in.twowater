@@ -1,0 +1,53 @@
+# set up names for two partitions with different topologies
+variable name world twowater twoions
+
+units real
+atom_style full
+atom_modify map array
+region box block -10 10 -10 10 -10 10
+boundary m m m
+create_box 2 box bond/types 1 angle/types 1 &
+    extra/bond/per/atom 3 extra/angle/per/atom 3 extra/special/per/atom 3
+
+mass 1 15.9994
+mass 2 1.008
+
+pair_style lj/cut/coul/cut 10.0
+pair_coeff 1 1 0.1553 3.166
+pair_coeff 1 2 0.0    1.0
+pair_coeff 2 2 0.0    1.0
+
+bond_style harmonic
+bond_coeff 1 1000.0 1.0
+
+angle_style harmonic
+angle_coeff 1 100.0 109.47
+
+molecule water h2o.mol
+molecule hydronium h3o+.mol
+molecule hydroxyl oh-.mol
+
+
+timestep 0.1
+
+# generate different topologies with the same number of atoms
+if "${name} == twowater" then &
+    "create_atoms 0 single -2.0 0.0 0.0 mol water 453624" &
+    "create_atoms 0 single  2.0 0.0 0.0 mol water 767353" &
+else &
+    "create_atoms 0 single  2.0 0.0 0.0 mol hydroxyl 767353" &
+    "create_atoms 0 single -2.0 0.0 0.0 mol hydronium 453624"
+
+velocity all create 100 5463576
+
+fix 1 all nve
+fix 2 all alchemy
+
+dump 1 all atom 100 ${name}.lammpstrj
+dump_modify 1 sort id
+
+thermo_style custom step temp press etotal pe ke f_2[*]
+thermo 100
+
+reset_timestep 100
+run 10000 start 0 stop 20000

@@ -533,10 +533,10 @@ struct AtomVecDipoleKokkos_UnpackExchangeFunctor {
 };
 
 /* ---------------------------------------------------------------------- */
-
-int AtomVecDipoleKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,
-                                                int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
-                                                ExecutionSpace space) {
+int AtomVecDipoleKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv, int nlocal,
+                                               int dim, X_FLOAT lo, X_FLOAT hi, ExecutionSpace space,
+                                               DAT::tdual_int_1d &k_indices)
+{
   const size_t nelements = 16; // # of elements packed
   if (space == Host) {
     k_count.h_view(0) = nlocal;

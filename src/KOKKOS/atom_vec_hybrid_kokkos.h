@@ -56,7 +56,8 @@ class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
                            ExecutionSpace space) override;
   int unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
                              int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
-                             ExecutionSpace space) override;
+                             ExecutionSpace space,
+                             DAT::tdual_int_1d &k_indices) override;
 
   void sync(ExecutionSpace space, unsigned int mask) override;
   void modified(ExecutionSpace space, unsigned int mask) override;

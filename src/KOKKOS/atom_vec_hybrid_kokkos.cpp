@@ -102,7 +102,8 @@ int AtomVecHybridKokkos::pack_exchange_kokkos(const int &/*nsend*/,DAT::tdual_xf
 
 int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d & /*k_buf*/, int /*nrecv*/,
                                                 int /*nlocal*/, int /*dim*/, X_FLOAT /*lo*/,
-                                                X_FLOAT /*hi*/, ExecutionSpace /*space*/)
+                                                X_FLOAT /*hi*/, ExecutionSpace /*space*/,
+                                                DAT::tdual_int_1d &k_indices)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;

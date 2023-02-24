@@ -1548,19 +1548,19 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
     typename AT::tdual_int_1d nlocal,
     typename AT::tdual_int_1d indices,
     int dim, X_FLOAT lo, X_FLOAT hi):
-    _x(atom->k_x.view<DeviceType>()),
-    _v(atom->k_v.view<DeviceType>()),
-    _tag(atom->k_tag.view<DeviceType>()),
-    _type(atom->k_type.view<DeviceType>()),
-    _mask(atom->k_mask.view<DeviceType>()),
-    _image(atom->k_image.view<DeviceType>()),
-    _radius(atom->k_radius.view<DeviceType>()),
-    _rmass(atom->k_rmass.view<DeviceType>()),
-    _omega(atom->k_omega.view<DeviceType>()),
-    _nlocal(nlocal.template view<DeviceType>()),
-    _indices(indices.template view<DeviceType>()),
-    _dim(dim),
-    _lo(lo),_hi(hi)
+      _x(atom->k_x.view<DeviceType>()),
+      _v(atom->k_v.view<DeviceType>()),
+      _tag(atom->k_tag.view<DeviceType>()),
+      _type(atom->k_type.view<DeviceType>()),
+      _mask(atom->k_mask.view<DeviceType>()),
+      _image(atom->k_image.view<DeviceType>()),
+      _radius(atom->k_radius.view<DeviceType>()),
+      _rmass(atom->k_rmass.view<DeviceType>()),
+      _omega(atom->k_omega.view<DeviceType>()),
+      _nlocal(nlocal.template view<DeviceType>()),
+      _indices(indices.template view<DeviceType>()),
+      _dim(dim),
+      _lo(lo),_hi(hi)
   {
     const size_t elements = 16;
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/elements;
@@ -1597,29 +1597,30 @@ struct AtomVecSphereKokkos_UnpackExchangeFunctor {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSphereKokkos::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf,DAT::tdual_int_1d &indices,int nrecv,int nlocal,
-  int dim,X_FLOAT lo,X_FLOAT hi,ExecutionSpace space) {
+int AtomVecSphereKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv, int nlocal,
+                                                int dim, X_FLOAT lo, X_FLOAT hi, ExecutionSpace space,
+                                                DAT::tdual_int_1d &k_indices)
+{
   while (nlocal + nrecv/16 >= nmax) grow(0);
 
-  if(space == Host) {
+  if (space == Host) {
     k_count.h_view(0) = nlocal;
-    if (indices.extent(0) == 0) {
-      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPHostType,0> f(atomKK,k_buf,k_count,indices,dim,lo,hi);
+    if (k_indices.h_view.data()) {
+      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPHostType,0> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/16,f);
     } else {
-      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPHostType,1> f(atomKK,k_buf,k_count,indices,dim,lo,hi);
+      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPHostType,1> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/16,f);
     }
   } else {
     k_count.h_view(0) = nlocal;
     k_count.modify<LMPHostType>();
     k_count.sync<LMPDeviceType>();
-    if (indices.extent(0) == 0) {
-      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPDeviceType,0> f(atomKK,k_buf,k_count,indices,dim,lo,hi);
+    if (k_indices.h_view.data()) {
+      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPDeviceType,0> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/16,f);
     } else {
-      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPDeviceType,1> f(atomKK,k_buf,k_count,indices,dim,lo,hi);
+      AtomVecSphereKokkos_UnpackExchangeFunctor<LMPDeviceType,1> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/16,f);
     }
     k_count.modify<LMPDeviceType>();
@@ -1631,15 +1632,6 @@ int AtomVecSphereKokkos::unpack_exchange_kokkos(
                  OMEGA_MASK);
 
   return k_count.h_view(0);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int AtomVecSphereKokkos::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf,int nrecv,int nlocal,
-  int dim,X_FLOAT lo,X_FLOAT hi,ExecutionSpace space) {
-  DAT::tdual_int_1d indices = DAT::tdual_int_1d("atom:indices",1);
-  return unpack_exchange_kokkos(k_buf,indices,nrecv,nlocal,dim,lo,hi,space);
 }
 
 /* ---------------------------------------------------------------------- */

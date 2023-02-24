@@ -541,9 +541,10 @@ struct AtomVecSpinKokkos_UnpackExchangeFunctor {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecSpinKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,
-                                                int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
-                                                ExecutionSpace space) {
+int AtomVecSpinKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv, int nlocal,
+                                              int dim, X_FLOAT lo, X_FLOAT hi, ExecutionSpace space,
+                                              DAT::tdual_int_1d &k_indices)
+{
   while (nlocal + nrecv/15 >= nmax) grow(0);
 
   if(space == Host) {

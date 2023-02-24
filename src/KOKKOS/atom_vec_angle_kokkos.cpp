@@ -894,9 +894,10 @@ struct AtomVecAngleKokkos_UnpackExchangeFunctor {
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecAngleKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,
-                                              int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
-                                              ExecutionSpace space) {
+int AtomVecAngleKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv, int nlocal,
+                                               int dim, X_FLOAT lo, X_FLOAT hi, ExecutionSpace space,
+                                               DAT::tdual_int_1d &k_indices)
+{
   const size_t elements = 17+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom;
 
   while (nlocal + nrecv/elements >= nmax) grow(0);

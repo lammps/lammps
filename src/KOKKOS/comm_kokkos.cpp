@@ -834,21 +834,18 @@ void CommKokkos::exchange_device()
       // if more than 2 procs in dimension, send/recv to both neighbors
 
       const int data_size = atom->avec->size_border+atom->avec->size_velocity+2;
-      DAT::tdual_int_1d indices = DAT::tdual_int_1d("comm:indices",1);
+      DAT::tdual_int_1d k_indices;
 
       if (procgrid[dim] == 1) {
         nrecv = nsend;
         if (nrecv) {
-          if (atom->nextra_grow) {
-            indices.resize(nrecv/data_size);
-            atom->nlocal = atomKK->avecKK->
-              unpack_exchange_kokkos(k_buf_send,indices,nrecv,atom->nlocal,dim,lo,hi,
-                                     ExecutionSpaceFromDevice<DeviceType>::space);
-          } else {
-            atom->nlocal = atomKK->avecKK->
-              unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,
-                                     ExecutionSpaceFromDevice<DeviceType>::space);
-          }
+          if (atom->nextra_grow)
+            MemoryKokkos::realloc_kokkos(k_indices,"comm:indices",nrecv/data_size);
+
+          atom->nlocal = atomKK->avecKK->
+            unpack_exchange_kokkos(k_buf_send,nrecv,atom->nlocal,dim,lo,hi,
+                                     ExecutionSpaceFromDevice<DeviceType>::space,k_indices);
+
           DeviceType().fence();
         }
       } else {
@@ -879,16 +876,13 @@ void CommKokkos::exchange_device()
         }
 
         if (nrecv) {
-          if (atom->nextra_grow) {
-            indices.resize(nrecv/data_size);
-            atom->nlocal = atomKK->avecKK->
-              unpack_exchange_kokkos(k_buf_recv,indices,nrecv,atom->nlocal,dim,lo,hi,
-                                     ExecutionSpaceFromDevice<DeviceType>::space);
-          } else {
-            atom->nlocal = atomKK->avecKK->
-              unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,
-                                     ExecutionSpaceFromDevice<DeviceType>::space);
-          }
+          if (atom->nextra_grow)
+            MemoryKokkos::realloc_kokkos(k_indices,"comm:indices",nrecv/data_size);
+
+          atom->nlocal = atomKK->avecKK->
+            unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,
+                                     ExecutionSpaceFromDevice<DeviceType>::space,k_indices);
+
           DeviceType().fence();
         }
       }
@@ -909,7 +903,7 @@ void CommKokkos::exchange_device()
             nextrarecv = nextrasend;
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(
-                k_buf_send,indices,nrecv1,
+                k_buf_send,k_indices,nrecv1,
                 ExecutionSpaceFromDevice<DeviceType>::space);
               DeviceType().fence();
             }
@@ -929,7 +923,7 @@ void CommKokkos::exchange_device()
 
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(
-                k_buf_recv,indices,nrecv1,
+                k_buf_recv,k_indices,nrecv1,
                 ExecutionSpaceFromDevice<DeviceType>::space);
               DeviceType().fence();
             }
@@ -948,7 +942,7 @@ void CommKokkos::exchange_device()
 
               if (nextrarecv) {
                 kkbase->unpack_exchange_kokkos(
-                  k_buf_recv,indices,nrecv2,
+                  k_buf_recv,k_indices,nrecv2,
                   ExecutionSpaceFromDevice<DeviceType>::space);
                 DeviceType().fence();
               }

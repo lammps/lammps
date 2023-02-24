@@ -529,10 +529,10 @@ struct AtomVecBondKokkos_UnpackExchangeFunctor {
 };
 
 /* ---------------------------------------------------------------------- */
-
-int AtomVecBondKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nrecv,
-                                              int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
-                                              ExecutionSpace space) {
+int AtomVecBondKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv, int nlocal,
+                                              int dim, X_FLOAT lo, X_FLOAT hi, ExecutionSpace space,
+                                              DAT::tdual_int_1d &k_indices)
+{
   const size_t elements = 16+atomKK->maxspecial+atomKK->bond_per_atom+atomKK->bond_per_atom;
 
   while (nlocal + nrecv/elements >= nmax) grow(0);

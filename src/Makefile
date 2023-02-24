@@ -87,7 +87,6 @@ PACKAGE = \
 	kokkos \
 	kspace \
 	latboltz \
-	latte \
 	lepton \
 	machdyn \
 	manifold \
@@ -213,7 +212,6 @@ PACKLIB = \
 	gpu \
 	kim \
 	kokkos \
-	latte \
 	lepton \
 	mpiio \
 	mscg \
@@ -249,7 +247,6 @@ PACKEXT = \
 	adios \
 	h5md \
 	kim \
-	latte \
 	machdyn \
 	ml-hdnnp \
 	ml-pace \

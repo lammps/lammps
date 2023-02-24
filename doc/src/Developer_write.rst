@@ -15,7 +15,7 @@ implement many things using fixes:
 - changing particles attributes (positions, velocities, forces, etc.). Examples: FixNVE, FixFreeze.
 - reading/writing data. Example: FixRestart.
 - adding or modifying properties due to geometry. Example: FixWall.
-- interacting with other subsystems or external code: Examples: FixTTM, FixExternal, FixLATTE
+- interacting with other subsystems or external code: Examples: FixTTM, FixExternal
 - saving information for analysis or future use (previous positions,
   for instance). Examples: Fix AveTime, FixStoreState.
 

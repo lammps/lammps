@@ -1,0 +1,104 @@
+.. index:: fix alchemy
+
+fix alchemy command
+===================
+
+Syntax
+""""""
+
+.. parsed-literal::
+
+   fix ID group-ID alchemy
+
+* ID, group-ID are documented in :doc:`fix <fix>` command
+* alchemy = style name of this fix command
+
+Examples
+""""""""
+
+.. code-block:: LAMMPS
+
+   fix trans all alchemy
+
+Description
+"""""""""""
+
+.. versionadded:: TBD
+
+This fix command enables running an "alchemical transformation" MD
+simulation between two topologies (i.e. the same number and positions of
+atoms, but differences in atom parameters like type, charge, bonds,
+angles and so on).  For this a :ref:`multi-partition run <partition>` is
+required with exactly two partitions.  During the MD run, the fix will
+will determine a factor :math:`\lambda_p` that will be linearly ramped
+*down* from 1.0 to 0.0 for the *first* partition (*p=0*) and ramped *up*
+from 0.0 to 1.0 for the *second* partition (*p=1*).  The forces used for
+the propagation of the atoms will be the sum of the forces of the two
+systems combined and scaled with their respective :math:`\lambda_p`
+factor.  This allows to perform transformations that are not easily
+possible with :doc:`fix adapt <fix_adapt>` or :doc:`fix adapt/fep
+<fix_adapt_fep>`.
+
+Due to the specifics of the implementation, the initial geometry and
+dimensions of the system must be exactly the same and the fix will
+synchronize them during the run.  It is thus not possible to initialize
+the two partitions by reading different data files or creating different
+systems from scratch, but rather they have to be started from the same
+system and then the desired modifications need to be applied to the
+system of the second partition.  The commands :doc:`fix adapt <fix_adapt>`
+or :doc:`fix adapt/fep <fix_adapt_fep>` could be used for simulations
+where the requirements for fix alchemy are not given.
+
+The ``examples/PACKAGES/alchemy`` folder contains example inputs for
+this command.
+
+----------
+
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+No information about this fix is written to :doc:`binary restart files <restart>`.
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
+
+This fix stores a global scalar (the current value of :math:`\lambda_p`)
+and a global vector or length 3 which contains the potential energy of
+the first partition, the second partition and the combined value,
+respectively. The global scalar is unitless and "intensive", the vector
+is in :doc:`energy units <units>` and "extensive".  This values can be
+used by any command that uses a global value from a fix as input.  See
+the :doc:`Howto output <Howto_output>` doc page for an overview of
+LAMMPS output options.
+
+The value of :math:`\lambda_p` is influenced by the *start/stop* keywords
+of the :doc:`run <run>` command.  Without them it will be ramped
+linearly from 1.0 to 0.0 or 0.0 to 1.0 during the steps of a run, with
+*start/stop* keywords the ramp us from the *start* time step to the
+*stop* timestep. This allows to break down a simulation over multiple
+*run* commands or to continue transparently from a restart.
+
+This fix is not invoked during :doc:`energy minimization <minimize>`.
+
+Restrictions
+""""""""""""
+
+This fix is part of the REPLICA package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
+
+There may be only one instance of this fix in use at any time.
+
+This fix requires to perform a :ref:`multi-partition run <partition>`
+with *exactly* two partitions.
+
+This fix is *not* compatible with :doc:`load balancing <fix_balance>`.
+
+Related commands
+""""""""""""""""
+
+:doc:`compute pressure/alchemy <compute_pressure_alchemy>` command,
+:doc:`fix adapt <fix_adapt>` command
+
+Default
+"""""""
+
+none

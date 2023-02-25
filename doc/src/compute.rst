@@ -258,6 +258,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`pe/tally <compute_tally>` - potential energy between two groups of atoms via the tally callback mechanism
 * :doc:`plasticity/atom <compute_plasticity_atom>` - Peridynamic plasticity for each atom
 * :doc:`pressure <compute_pressure>` - total pressure and pressure tensor
+* :doc:`pressure/alchemy <compute_pressure_alchemy>` - mixed system total pressure and pressure tensor for :doc:`fix alchemy <fix_alchemy>` runs
 * :doc:`pressure/uef <compute_pressure_uef>` - pressure tensor in the reference frame of an applied flow field
 * :doc:`property/atom <compute_property_atom>` - convert atom attributes to per-atom vectors/arrays
 * :doc:`property/chunk <compute_property_chunk>` - extract various per-chunk attributes

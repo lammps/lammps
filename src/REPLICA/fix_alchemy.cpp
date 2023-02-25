@@ -51,12 +51,14 @@ FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   nmax = 6;
   sync_box = 0;
 
-  // set up rank-to-rank communicator
+  // set up rank-to-rank communicator for inter-partition communication
+
   int color = comm->me;
   int key = universe->iworld;
   MPI_Comm_split(universe->uworld, color, key, &samerank);
 
   // check that we have the same domain decomposition on all ranks
+
   int my_nlocal[2] = {0, 0};
   int all_nlocal[2] = {0, 0};
   my_nlocal[universe->iworld] = atom->nlocal;
@@ -124,7 +126,11 @@ void FixAlchemy::init()
   if (modify->get_fix_by_style("^balance").size() > 0)
     error->all(FLERR, "Fix alchemy is not compatible with load balancing");
 
+  if (modify->get_fix_by_style("^alchemy").size() > 1)
+    error->all(FLERR, "There may only one fix alchemy at a time");
+
   // synchronize box dimensions, determine if resync during run will be needed.
+
   synchronize_box(domain, samerank);
 
   sync_box = 0;
@@ -158,10 +164,12 @@ void FixAlchemy::setup(int vflag)
 void FixAlchemy::post_integrate()
 {
   // synchronize atom positions
+
   const int nall = atom->nlocal + atom->nghost;
   MPI_Bcast(&atom->x[0][0], 3 * nall, MPI_DOUBLE, 0, samerank);
 
   // synchronize box dimensions, if needed
+
   if (sync_box) synchronize_box(domain, samerank);
 }
 
@@ -192,6 +200,7 @@ void FixAlchemy::post_force(int /*vflag*/)
   MPI_Allreduce(commbuf, f, nall, MPI_DOUBLE, MPI_SUM, samerank);
 
   // sum up potential energy
+
   const double scalefac = 1.0 / comm->nprocs;
   commbuf[0] = commbuf[1] = commbuf[2] = 0.0;
   commbuf[universe->iworld] = scalefac * pe->compute_scalar();
@@ -200,12 +209,14 @@ void FixAlchemy::post_force(int /*vflag*/)
   pe->addstep(update->ntimestep + 1);
 
   // sum up pressure
+
   press->compute_vector();
   for (int i = 0; i < 6; ++i) commbuf[i] = lambda * scalefac * press->vector[i];
   MPI_Allreduce(commbuf, pressure, 6, MPI_DOUBLE, MPI_SUM, universe->uworld);
   press->addstep(update->ntimestep + 1);
 
   // print progress info
+
   if (universe->me == 0) {
     int status = static_cast<int>(100.0 - lambda * 100.0);
     if ((status / 10) > (progress / 10)) {

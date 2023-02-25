@@ -1,12 +1,16 @@
-# set up names for two partitions with different topologies
+# Example for alchemical transformation of two water molecules into a hydronium and hydroxyl ion
+# WARNING: This input is for demonstrating the method.
+# Force field parameters are made up and not suitable for production simulations.
+
+# set up names for two partitions with different topologies for output files.
 variable name world twowater twoions
 
 units real
 atom_style full
 atom_modify map array
-region box block -10 10 -10 10 -10 10
-boundary m m m
-create_box 2 box bond/types 1 angle/types 1 &
+region box block -5 5 -5 5 -5 5
+boundary p p p
+create_box 2 box bond/types 2 angle/types 2 &
     extra/bond/per/atom 3 extra/angle/per/atom 3 extra/special/per/atom 3
 
 mass 1 15.9994
@@ -18,36 +22,65 @@ pair_coeff 1 2 0.0    1.0
 pair_coeff 2 2 0.0    1.0
 
 bond_style harmonic
-bond_coeff 1 1000.0 1.0
+bond_coeff * 1000.0 1.0
 
 angle_style harmonic
-angle_coeff 1 100.0 109.47
+angle_coeff * 100.0 109.47
 
 molecule water h2o.mol
-molecule hydronium h3o+.mol
-molecule hydroxyl oh-.mol
 
+# create the two molecules we want to transform ...
+create_atoms 0 single -2.0 0.0 0.0 mol water 453624
+create_atoms 0 single  2.0 0.0 0.0 mol water 767353
 
-timestep 0.1
+# ... and put them in a group
+group transform id 1:6
+
+# now fill the box with more water
+create_atoms 0 random 32 34564 NULL mol water 25367 overlap 1.4
+
+# change topology and settings for the two states
+# we cannot simply create a different topology directly or
+# load a different data file because the order and position
+# of all atoms must be maintained across both replica
+
+# for that we first have to remove everything.
+delete_bonds transform bond 1
+delete_bonds transform angle 1 remove
 
 # generate different topologies with the same number of atoms
 if "${name} == twowater" then &
-    "create_atoms 0 single -2.0 0.0 0.0 mol water 453624" &
-    "create_atoms 0 single  2.0 0.0 0.0 mol water 767353" &
+    "create_bonds single/bond 2 1 2" &
+    "create_bonds single/bond 2 1 3" &
+    "create_bonds single/bond 2 4 5" &
+    "create_bonds single/bond 2 4 6" &
+    "create_bonds single/angle 2 2 1 3" &
+    "create_bonds single/angle 2 5 4 6" &
 else &
-    "create_atoms 0 single  2.0 0.0 0.0 mol hydroxyl 767353" &
-    "create_atoms 0 single -2.0 0.0 0.0 mol hydronium 453624"
+    "create_bonds single/bond 2 1 2" &
+    "create_bonds single/bond 2 3 4" &
+    "create_bonds single/bond 2 4 5" &
+    "create_bonds single/bond 2 4 6" &
+    "create_bonds single/angle 2 3 4 5" &
+    "create_bonds single/angle 2 5 4 6" &
+    "create_bonds single/angle 2 3 4 6" &
+    "set atom 1 charge -1.1354" &
+    "set atom 2 charge  0.1354" &
+    "set atom 3 charge 0.56775" &
+    "set atom 4 charge -0.70305" &
+    "set atom 5*6 charge 0.56775"
 
-velocity all create 100 5463576
+velocity all create 300.0 5463576
+timestep 0.2
 
-fix 1 all nve
+fix 1 all nvt temp 300 300 1.0
 fix 2 all alchemy
+fix 3 all shake 0.0001 50 1000 b 1 a 1
 
-dump 1 all atom 100 ${name}.lammpstrj
-dump_modify 1 sort id
+if "${name} == twowater" then &
+   "dump 1 all atom 100 ${name}.lammpstrj" &
+   "dump_modify 1 sort id"
 
-thermo_style custom step temp press etotal pe ke f_2[*]
+thermo_style custom step temp press etotal density pe ke f_2[*]
 thermo 100
-
-reset_timestep 100
-run 10000 start 0 stop 20000
+run 20000

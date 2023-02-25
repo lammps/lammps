@@ -113,7 +113,7 @@ class FixPIMDLangevin : public Fix {
   double _omega_np, *_omega_k, *Lan_s, *Lan_c;    // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
 
   class RanMars *random;
-  int seed = 975481;
+  int seed;
   FILE *frand;
 
   int tstat_flag;    // tstat_flat = 1 if thermostat if used

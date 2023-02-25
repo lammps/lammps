@@ -34,6 +34,7 @@ class FixAlchemy : public Fix {
   void setup(int) override;
   void post_integrate() override;
   void post_force(int) override;
+  double compute_scalar() override;
   double compute_vector(int) override;
   void *extract(const char *, int &) override;
 

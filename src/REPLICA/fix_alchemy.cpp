@@ -31,33 +31,27 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-static double get_lambda(const bigint &step, const bigint &begin, const bigint &end, int iworld)
-{
-  double lambda = step - begin;
-  if (lambda != 0.0) lambda /= end - begin;
-  if (iworld == 0) lambda = 1.0 - lambda;
-  return lambda;
-}
-
-/* ---------------------------------------------------------------------- */
-
 FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), commbuf(nullptr)
 {
   if (narg != 3) error->all(FLERR, "Incorrect number of arguments for fix alchemy");
+  if (universe->nworlds != 2) error->all(FLERR, "Must use exactly two partitions");
 
-  lambda = epot[0] = epot[1] = 0.0;
+  lambda = epot[0] = epot[1] = epot[2] = 0.0;
   progress = 0;
   for (int i = 0; i < 6; ++i) pressure[i] = 0.0;
 
   no_change_box = 1;
+  time_depend = 1;
+  scalar_flag = 1;
+  extscalar = 0;
   vector_flag = 1;
-  size_vector = 10;
-  extvector = 0;
+  size_vector = 3;
+  extvector = 1;
   ilevel_respa = 0;
   nmax = 6;
+  sync_box = 0;
 
   // set up rank-to-rank communicator
-  if (universe->nworlds != 2) error->all(FLERR, "Must use exactly two partitions");
   int color = comm->me;
   int key = universe->iworld;
   MPI_Comm_split(universe->uworld, color, key, &samerank);
@@ -163,12 +157,22 @@ void FixAlchemy::setup(int vflag)
 
 void FixAlchemy::post_integrate()
 {
+  // synchronize atom positions
   const int nall = atom->nlocal + atom->nghost;
   MPI_Bcast(&atom->x[0][0], 3 * nall, MPI_DOUBLE, 0, samerank);
 
   // synchronize box dimensions, if needed
   if (sync_box) synchronize_box(domain, samerank);
 }
+
+/* ---------------------------------------------------------------------- */
+
+static double get_lambda(const bigint &step, const bigint &begin, const bigint &end, int iworld)
+{
+  double lambda = step - begin;
+  if (lambda != 0.0) lambda /= end - begin;
+  if (iworld == 0) lambda = 1.0 - lambda;
+  return lambda;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -215,11 +219,16 @@ void FixAlchemy::post_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
+double FixAlchemy::compute_scalar()
+{
+  return lambda;
+}
+
+/* ---------------------------------------------------------------------- */
+
 double FixAlchemy::compute_vector(int n)
 {
-  if (n == 0) return lambda;
-  if ((n > 0) && (n < 4)) return epot[n - 1];
-  return pressure[n - 4];
+  return epot[n];
 }
 
 /* ---------------------------------------------------------------------- */

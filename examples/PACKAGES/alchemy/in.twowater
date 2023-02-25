@@ -86,8 +86,8 @@ fix_modify integrate press pressure
 #   "dump 1 all atom 100 ${name}.lammpstrj" &
 #   "dump_modify 1 sort id"
 
-thermo_style custom step temp press etotal density pe ke f_transform[1] f_transform[4]
-thermo_modify colname f_transform[1] lambda colname f_transform[4] EPot_mixed
+thermo_style custom step temp press etotal density pe ke f_transform f_transform[3]
+thermo_modify colname f_transform lambda colname f_transform[3] EPot_mixed
 thermo_modify press pressure
 
 thermo 100

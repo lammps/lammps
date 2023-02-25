@@ -167,8 +167,8 @@ fix_modify integrate press pressure
 # only need to output a dump file from one partition
 # if "${name} == twowater" then #   "dump 1 all atom 100 ${name}.lammpstrj" #   "dump_modify 1 sort id"
 
-thermo_style custom step temp press etotal density pe ke f_transform[1] f_transform[4]
-thermo_modify colname f_transform[1] lambda colname f_transform[4] EPot_mixed
+thermo_style custom step temp press etotal density pe ke f_transform f_transform[3]
+thermo_modify colname f_transform lambda colname f_transform[3] EPot_mixed
 thermo_modify press pressure
 
 thermo 100
@@ -377,21 +377,21 @@ Per MPI rank memory allocation (min/avg/max) = 7.535 | 7.535 | 7.535 Mbytes
      19800   295.68946      81474.342      2308.3249      1.0240743      2219.3041      89.020804      0.01           1910.5545    
      19900   306.4947       43488.052      2330.4958      1.0222707      2238.222       92.27385       0.005          1957.4368    
      20000   313.31679     -25133.284     -1161.6979      1.0163289     -1256.0256      94.327722      0             -1649.7551    
-Loop time of 11.8252 on 2 procs for 20000 steps with 102 atoms
+Loop time of 11.7903 on 2 procs for 20000 steps with 102 atoms
 
-Performance: 29.226 ns/day, 0.821 hours/ns, 1691.296 timesteps/s, 172.512 katom-step/s
+Performance: 29.312 ns/day, 0.819 hours/ns, 1696.311 timesteps/s, 173.024 katom-step/s
 99.3% CPU use with 2 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 6.8298     | 8.6298     | 10.43      |  61.3 | 72.98
-Bond    | 0.045072   | 0.045296   | 0.045519   |   0.1 |  0.38
-Neigh   | 0.10567    | 0.10572    | 0.10577    |   0.0 |  0.89
-Comm    | 0.73714    | 2.5381     | 4.3392     | 113.0 | 21.46
-Output  | 0.0032977  | 0.0035468  | 0.003796   |   0.4 |  0.03
-Modify  | 0.43872    | 0.44155    | 0.44438    |   0.4 |  3.73
-Other   |            | 0.06121    |            |       |  0.52
+Pair    | 6.8605     | 8.6071     | 10.354     |  59.5 | 73.00
+Bond    | 0.044148   | 0.044761   | 0.045375   |   0.3 |  0.38
+Neigh   | 0.10568    | 0.10573    | 0.10578    |   0.0 |  0.90
+Comm    | 0.74919    | 2.4939     | 4.2386     | 110.5 | 21.15
+Output  | 0.0033838  | 0.0036358  | 0.0038879  |   0.4 |  0.03
+Modify  | 0.46825    | 0.47526    | 0.48227    |   1.0 |  4.03
+Other   |            | 0.05993    |            |       |  0.51
 
 Nlocal:             51 ave          51 max          51 min
 Histogram: 2 0 0 0 0 0 0 0 0 0

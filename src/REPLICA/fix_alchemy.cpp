@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
+#include "domain.h"
 #include "error.h"
 #include "memory.h"
 #include "modify.h"
@@ -106,12 +107,35 @@ int FixAlchemy::setmask()
 
 /* ---------------------------------------------------------------------- */
 
+static void synchronize_box(Domain *domain, MPI_Comm samerank)
+{
+  MPI_Bcast(&domain->boxlo[0], 3, MPI_DOUBLE, 0, samerank);
+  MPI_Bcast(&domain->boxhi[0], 3, MPI_DOUBLE, 0, samerank);
+  MPI_Bcast(&domain->yz, 1, MPI_DOUBLE, 0, samerank);
+  MPI_Bcast(&domain->xz, 1, MPI_DOUBLE, 0, samerank);
+  MPI_Bcast(&domain->xy, 1, MPI_DOUBLE, 0, samerank);
+  domain->set_global_box();
+  domain->set_local_box();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixAlchemy::init()
 {
   int onenmax = MAX(nmax, 3 * atom->nmax);
   MPI_Allreduce(&onenmax, &nmax, 1, MPI_INT, MPI_MAX, universe->uworld);
   memory->destroy(commbuf);
   memory->create(commbuf, sizeof(double) * nmax, "alchemy:nmax");
+
+  if (modify->get_fix_by_style("^balance").size() > 0)
+    error->all(FLERR, "Fix alchemy is not compatible with load balancing");
+
+  // synchronize box dimensions, determine if resync during run will be needed.
+  synchronize_box(domain, samerank);
+
+  sync_box = 0;
+  for (auto ifix : modify->get_fix_list())
+    if (ifix->box_change) sync_box = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,6 +165,10 @@ void FixAlchemy::post_integrate()
 {
   const int nall = atom->nlocal + atom->nghost;
   MPI_Bcast(&atom->x[0][0], 3 * nall, MPI_DOUBLE, 0, samerank);
+
+  // synchronize box dimensions, if needed
+  if (sync_box) synchronize_box(domain, samerank);
+}
 }
 
 /* ---------------------------------------------------------------------- */

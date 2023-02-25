@@ -1,17 +1,21 @@
+.. index:: fix pimd/langevin
 .. index:: fix pimd/nvt
 
+fix pimd/langevin command
+=========================
+
 fix pimd/nvt command
-================
+====================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   fix ID group-ID pimd/nvt keyword value ...
+   fix ID group-ID style keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* pimd/nvt = style name of this fix command
+* style = *pimd/langevin* or *pimd/nvt* = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keyword = *method* or *fmass* or *sp* or *temp* or *nhc*
 
@@ -35,14 +39,15 @@ Description
 
 .. versionchanged:: TBD
 
-Fix pimd was renamed to fix pimd/nvt.
+Fix pimd was renamed to fix *pimd/nvt* and fix *pimd/langevin* was added.
 
-This command performs quantum molecular dynamics simulations based on
-the Feynman path integral to include effects of tunneling and
+These fix commands perform quantum molecular dynamics simulations based
+on the Feynman path-integral to include effects of tunneling and
 zero-point motion.  In this formalism, the isomorphism of a quantum
 partition function for the original system to a classical partition
 function for a ring-polymer system is exploited, to efficiently sample
 configurations from the canonical ensemble :ref:`(Feynman) <Feynman>`.
+
 The classical partition function and its components are given
 by the following equations:
 
@@ -53,27 +58,28 @@ by the following equations:
    V_{eff} = & \sum_{i=1}^P \bigg[ \frac{mP}{2\beta^2 \hbar^2} (q_i - q_{i+1})^2 + \frac{1}{P} V(q_i)\bigg]
 
 The interested user is referred to any of the numerous references on
-this methodology, but briefly, each quantum particle in a path
-integral simulation is represented by a ring-polymer of P quasi-beads,
-labeled from 1 to P.  During the simulation, each quasi-bead interacts
-with beads on the other ring-polymers with the same imaginary time
-index (the second term in the effective potential above).  The
-quasi-beads also interact with the two neighboring quasi-beads through
-the spring potential in imaginary-time space (first term in effective
-potential).  To sample the canonical ensemble, a Nose-Hoover massive
-chain thermostat is applied :ref:`(Tuckerman) <pimd-Tuckerman>`.  With the
-massive chain algorithm, a chain of NH thermostats is coupled to each
-degree of freedom for each quasi-bead.  The keyword *temp* sets the
-target temperature for the system and the keyword *nhc* sets the
-number *Nc* of thermostats in each chain.  For example, for a
-simulation of N particles with P beads in each ring-polymer, the total
-number of NH thermostats would be 3 x N x P x Nc.
+this methodology, but briefly, each quantum particle in a path integral
+simulation is represented by a ring-polymer of P quasi-beads, labeled
+from 1 to P.  During the simulation, each quasi-bead interacts with
+beads on the other ring-polymers with the same imaginary time index (the
+second term in the effective potential above).  The quasi-beads also
+interact with the two neighboring quasi-beads through the spring
+potential in imaginary-time space (first term in effective potential).
+To sample the canonical ensemble, a Nose-Hoover massive chain thermostat
+is applied :ref:`(Tuckerman) <pimd-Tuckerman>`.  With the massive chain
+algorithm, a chain of NH thermostats is coupled to each degree of
+freedom for each quasi-bead.  The keyword *temp* sets the target
+temperature for the system and the keyword *nhc* sets the number *Nc* of
+thermostats in each chain.  For example, for a simulation of N particles
+with P beads in each ring-polymer, the total number of NH thermostats
+would be 3 x N x P x Nc.
 
 .. note::
 
-   Fix pimd/nvt implements a complete velocity-verlet integrator
+   Fix *pimd/nvt* implements a complete velocity-verlet integrator
    combined with NH massive chain thermostat, so no other time
    integration fix should be used.
+   Similarly fix *pimd/langeving* implements ...
 
 The *method* keyword determines what style of PIMD is performed.  A
 value of *pimd* is standard PIMD.  A value of *nmpimd* is for
@@ -158,16 +164,18 @@ related tasks for each of the partitions, e.g.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Fix pimd/nvt writes the state of the Nose/Hoover thermostat over all
+Fix *pimd/nvt* writes the state of the Nose/Hoover thermostat over all
 quasi-beads to :doc:`binary restart files <restart>`.  See the
 :doc:`read_restart <read_restart>` command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
+Fix *pimd/langevin* ... 
+
 None of the :doc:`fix_modify <fix_modify>` options
 are relevant to fix pimd/nvt.
 
-Fix pimd/nvt computes a global 3-vector, which can be accessed by
+Fix *pimd/nvt* computes a global 3-vector, which can be accessed by
 various :doc:`output commands <Howto_output>`.  The three quantities in
 the global vector are:
 
@@ -176,21 +184,21 @@ the global vector are:
    #. the current value of the scalar virial estimator for the kinetic
       energy of the quantum system :ref:`(Herman) <Herman>`.
 
-The vector values calculated by fix pimd/nvt are "extensive", except for the
+The vector values calculated by fix *pimd/nvt* are "extensive", except for the
 temperature, which is "intensive".
 
-No parameter of fix pimd/nvt can be used with the *start/stop* keywords
-of the :doc:`run <run>` command.  Fix pimd/nvt is not invoked during
+No parameter of fix *pimd/nvt* can be used with the *start/stop* keywords
+of the :doc:`run <run>` command.  Fix *pimd/nvt* is not invoked during
 :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the REPLICA package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package
+These fixes are part of the REPLICA package.  They are only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-Fix pimd/nvt cannot be used with :doc:`lj units <units>`.
+Fix *pimd/nvt* cannot be used with :doc:`lj units <units>`.
 
 A PIMD simulation can be initialized with a single data file read via
 the :doc:`read_data <read_data>` command.  However, this means all
@@ -207,7 +215,7 @@ variable, e.g.
 Default
 """""""
 
-The keyword defaults for fix pimd/nvt are method = pimd, fmass = 1.0, sp
+The keyword defaults for fix *pimd/nvt* are method = pimd, fmass = 1.0, sp
 = 1.0, temp = 300.0, and nhc = 2.
 
 ----------

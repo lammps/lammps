@@ -146,7 +146,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (fmass < 0.0 || fmass > 1.0)
         error->universe_all(FLERR, "Invalid fmass value for fix pimd");
-    } 
+    }
 
     else if(strcmp(arg[i], "fmmode")==0)
     {
@@ -164,7 +164,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
     else if (strcmp(arg[i], "temp") == 0) {
       temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd");
-    } 
+    }
 
     else if (strcmp(arg[i], "lj") == 0) {
       lj_epsilon = utils::numeric(FLERR, arg[i+1], false, lmp);
@@ -178,7 +178,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
 
     else if(strcmp(arg[i], "thermostat")==0)
     {
-      if(strcmp(arg[i+1],"PILE_L")==0) 
+      if(strcmp(arg[i+1],"PILE_L")==0)
       {
         thermostat = PILE_L;
         seed = atoi(arg[i+2]);
@@ -190,7 +190,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
     {
       tau = atof(arg[i+1]);
     }
-  
+
     else if(strcmp(arg[i], "press")==0)
     {
       Pext = atof(arg[i+1]);
@@ -199,7 +199,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
 
     else if(strcmp(arg[i], "barostat")==0)
     {
-      if(strcmp(arg[i+1],"MTTK")==0) 
+      if(strcmp(arg[i+1],"MTTK")==0)
       {
         barostat = MTTK;
       }
@@ -292,7 +292,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, n
     Lan_temp = temp;
     random = new RanMars(lmp, seed + universe->me);
   }
-  
+
   me = comm->me;
   nprocs = comm->nprocs;
   if(nprocs == 1) cmode = SINGLE_PROC;
@@ -385,7 +385,7 @@ void FixPIMDLangevin::init()
   inverse_np = 1.0 / np;
 
   const double Boltzmann = force->boltz;
-  if (strcmp(update->unit_style,"lj") == 0) { 
+  if (strcmp(update->unit_style,"lj") == 0) {
     double planck_star = sqrt(lj_epsilon)*sqrt(atom->mass[0])*lj_sigma;
     planck = other_planck / planck_star;
   }
@@ -517,10 +517,10 @@ void FixPIMDLangevin::setup(int vflag)
   // compute_pote();
   // if(pstyle==ANISO) compute_stress_tensor();
   end_of_step();
-  c_pe->addstep(update->ntimestep+1); 
+  c_pe->addstep(update->ntimestep+1);
   c_press->addstep(update->ntimestep+1);
   // printf("setup ending: \ncell = %.16e %.16e %.16e\nvol = %.16e\n", domain->xprd, domain->yprd, domain->zprd, domain->xprd * domain->yprd * domain->zprd);
-  // printf("me = %d, setup finished\n", universe->me);   
+  // printf("me = %d, setup finished\n", universe->me);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -557,7 +557,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
       press_v_step();
     }
       /*
-      if(pstat_flag) 
+      if(pstat_flag)
       {
       }
       */
@@ -580,7 +580,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
     }
     else if(integrator==baoab)
     {
-      if(pstat_flag) 
+      if(pstat_flag)
       {
         compute_totke();
         compute_p_cv();
@@ -604,7 +604,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
         if(pstat_flag) press_o_step();
       }
       qc_step();
-      a_step();      
+      a_step();
     }
     else
     {
@@ -612,7 +612,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
     }
     collect_xc();
     compute_spring_energy();
- 
+
      if(method==NMPIMD)
     {
       inter_replica_comm(x);
@@ -636,7 +636,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
 
 void FixPIMDLangevin::final_integrate()
 {
-    if(pstat_flag) 
+    if(pstat_flag)
     {
       compute_totke();
       compute_p_cv();
@@ -655,7 +655,7 @@ void FixPIMDLangevin::final_integrate()
     }
     else if(integrator==baoab)
     {
-    
+
     }
     else
     {
@@ -720,8 +720,8 @@ void FixPIMDLangevin::post_force(int /*flag*/)
     else if(cmode == MULTI_PROC) nmpimd_transform(bufbeads, f, M_x2xp[universe->iworld]);
     // nmpimd_transform(bufbeads, f, M_x2xp[universe->iworld]);
   }
-   c_pe->addstep(update->ntimestep+1); 
-   c_press->addstep(update->ntimestep+1); 
+   c_pe->addstep(update->ntimestep+1);
+   c_press->addstep(update->ntimestep+1);
   // printf("me = %d, step %d post_force ends!\n", universe->me, update->ntimestep);
 }
 
@@ -804,7 +804,7 @@ void FixPIMDLangevin::update_x_unwrap()
   // x_unwrap = new double[nlocal*3];
   // printf("me = %d, doing xu\n", universe->me);
   for(int i=0; i<nlocal; i++)
-  { 
+  {
     for(int j=0; j<3; j++)
     {
       x_unwrap[3*i+j] = x[i][j];
@@ -838,7 +838,7 @@ void FixPIMDLangevin::compute_xc()
     xc[3*i] /= np;
     xc[3*i+1] /= np;
     xc[3*i+2] /= np;
-  } 
+  }
 }
 */
 /* ---------------------------------------------------------------------- */
@@ -900,11 +900,11 @@ void FixPIMDLangevin::qc_step(){
           {
             x[i][j] = expq[j] * x[i][j] + (expq[j] - expp[j]) / 2. / vw[j] * v[i][j];
             v[i][j] = expp[j] * v[i][j];
-          } 
+          }
         }
         oldlo = domain->boxlo[0];
         oldhi = domain->boxhi[0];
-      
+
         domain->boxlo[0] = (oldlo-fixedpoint[0])*expq[0] + fixedpoint[0];
         domain->boxhi[0] = (oldhi-fixedpoint[0])*expq[0] + fixedpoint[0];
 
@@ -912,13 +912,13 @@ void FixPIMDLangevin::qc_step(){
         oldhi = domain->boxhi[1];
         domain->boxlo[1] = (oldlo-fixedpoint[1])*expq[1] + fixedpoint[1];
         domain->boxhi[1] = (oldhi-fixedpoint[1])*expq[1] + fixedpoint[1];
-  
+
         oldlo = domain->boxlo[2];
         oldhi = domain->boxhi[2];
         domain->boxlo[2] = (oldlo-fixedpoint[2])*expq[2] + fixedpoint[2];
         domain->boxhi[2] = (oldhi-fixedpoint[2])*expq[2] + fixedpoint[2];
       }
-    }    
+    }
     MPI_Barrier(universe->uworld);
     MPI_Bcast(&domain->boxlo[0], 3, MPI_DOUBLE, 0, universe->uworld);
     MPI_Bcast(&domain->boxhi[0], 3, MPI_DOUBLE, 0, universe->uworld);
@@ -942,8 +942,8 @@ void FixPIMDLangevin::a_step(){
       // printf("iworld = %d c = %.4e s = %.4e w = %.4e\n", universe->iworld, Lan_c[universe->iworld], Lan_s[universe->iworld], _omega_k[universe->iworld]);
     for(int i=0; i<n; i++)
     {
-      x0 = x[i][0]; 
-      x1 = x[i][1]; 
+      x0 = x[i][0];
+      x1 = x[i][1];
       x2 = x[i][2];
       v0 = v[i][0]; v1 = v[i][1]; v2 = v[i][2];
       x[i][0] = Lan_c[universe->iworld] * x0 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v0;
@@ -967,7 +967,7 @@ void FixPIMDLangevin::remove_com_motion(){
     int nlocal = atom->nlocal;
     if (dynamic)  masstotal = group->mass(igroup);
     double vcm[3];
-    group->vcm(igroup,masstotal,vcm);    
+    group->vcm(igroup,masstotal,vcm);
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         v[i][0] -= vcm[0];
@@ -999,7 +999,7 @@ void FixPIMDLangevin::press_v_step()
   int nlocal = atom->nlocal;
   double **f = atom->f;
   double **v = atom->v;
-  int *type = atom->type; 
+  int *type = atom->type;
   volume = domain->xprd * domain->yprd * domain->zprd;
 
   if(pstyle == ISO)
@@ -1079,7 +1079,7 @@ void FixPIMDLangevin::press_o_step()
       vw[2] = c1 * vw[2] + c2 * sqrt(1. / W / beta_np) * r3;
     }
     MPI_Barrier(universe->uworld);
-    MPI_Bcast(&vw, 3, MPI_DOUBLE, 0, universe->uworld);    
+    MPI_Bcast(&vw, 3, MPI_DOUBLE, 0, universe->uworld);
   }
 }
 
@@ -1099,7 +1099,7 @@ void FixPIMDLangevin::Langevin_init()
   if(fmmode==physical){
     for (int i=0; i<np; i++)
     {
-      _omega_k[i] = _omega_np * sqrt(lam[i]); 
+      _omega_k[i] = _omega_np * sqrt(lam[i]);
       Lan_c[i] = cos(sqrt(lam[i])*_omega_np_dt_half);
       Lan_s[i] = sin(sqrt(lam[i])*_omega_np_dt_half);
       // printf("lam = %.4e s = %.4e c = %.4e w = %.4e\n", lam[i], Lan_s[i], Lan_c[i], _omega_k[i]);
@@ -1108,16 +1108,16 @@ void FixPIMDLangevin::Langevin_init()
   else if(fmmode==normal){
     for (int i=0; i<np; i++)
     {
-      _omega_k[i] = _omega_np; 
+      _omega_k[i] = _omega_np;
       Lan_c[i] = cos(_omega_np_dt_half);
       Lan_s[i] = sin(_omega_np_dt_half);
     }
   }
   if(tau > 0) gamma = 1.0 / tau;
   else gamma = np / beta / hbar;
-  
+
   if(integrator==obabo) c1 = exp(-gamma * 0.5 * update->dt); // tau is the damping time of the centroid mode.
-  else if(integrator==baoab) c1 = exp(-gamma * update->dt); 
+  else if(integrator==baoab) c1 = exp(-gamma * update->dt);
   else error->universe_all(FLERR, "Unknown integrator parameter for fix pimd. Only obabo and baoab integrators is supported!");
 
   c2 = sqrt(1.0 - c1 * c1); // note that c1 and c2 here only works for the centroid mode.
@@ -1125,7 +1125,7 @@ void FixPIMDLangevin::Langevin_init()
   if( thermostat == PILE_L )
   {
     std::string out = "\nInitializing PI Langevin equation thermostat...\n";
-    out += "Bead ID    |    omega    |    tau    |    c1    |    c2\n"; 
+    out += "Bead ID    |    omega    |    tau    |    c1    |    c2\n";
     tau_k = new double[np];
     c1_k = new double[np];
     c2_k = new double[np];
@@ -1162,7 +1162,7 @@ void FixPIMDLangevin::o_step()
       r1 = random->gaussian();
       r2 = random->gaussian();
       r3 = random->gaussian();
-      atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
+      atom->v[i][0] = c1_k[universe->iworld] * atom->v[i][0] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r1;
       atom->v[i][1] = c1_k[universe->iworld] * atom->v[i][1] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
       atom->v[i][2] = c1_k[universe->iworld] * atom->v[i][2] + c2_k[universe->iworld] * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
     }
@@ -1188,7 +1188,7 @@ void FixPIMDLangevin::nmpimd_init()
 
     // Set up eigenvectors for degenerated modes
     for(int j=0; j<np; j++){
-      for(int i=1; i<int(np/2) + 1; i++) 
+      for(int i=1; i<int(np/2) + 1; i++)
       {
         M_x2xp[i][j] =   sqrt(2.0) * cos ( 2.0 * MY_PI * double(i) * double(j) / double(np)) / sqrt(np);
       }
@@ -1277,7 +1277,7 @@ void FixPIMDLangevin::comm_init()
       delete [] plansend;
       delete [] planrecv;
     }
-  
+
     sizeplan = np - 1;
     plansend = new int[sizeplan];
     planrecv = new int[sizeplan];
@@ -1304,7 +1304,7 @@ void FixPIMDLangevin::init_x_unwrap()
   memory->destroy(tag_init);
   memory->destroy(image_init);
   memory->destroy(x_unwrapsort);
-  memory->create(x_unwrap, maxunwrap, 3, "FixPIMDLangevin:x_unwrap");  
+  memory->create(x_unwrap, maxunwrap, 3, "FixPIMDLangevin:x_unwrap");
   memory->create(tag_init, maxunwrap, "FixPIMDLangevin:tag_init");
   memory->create(image_init, maxunwrap, "FixPIMDLangevin:image_init");
   memory->create(x_unwrapsort, ntotal, 3, "FixPIMDLangevin:x_unwrapsort");
@@ -1552,7 +1552,7 @@ void FixPIMDLangevin::compute_stress_tensor()
     }
     // MPI_Allreduce(&ke_tensor, &ke_tensor, 6, MPI_DOUBLE, MPI_SUM, world);
     MPI_Allreduce(MPI_IN_PLACE, &ke_tensor, 6, MPI_DOUBLE, MPI_SUM, world);
-    for(int i=0; i<6; i++) 
+    for(int i=0; i<6; i++)
     {
       stress_tensor[i] = inv_volume * ((2*ke_tensor[i] - c_vir_tensor[i]) * force->nktv2p + virial[i]) / np;
       // printf("i = %d, c_vir = %.6f, virial = %.6f stress = %.6f\n", i, c_vir_tensor[i], virial[i], stress_tensor[i]);
@@ -1600,7 +1600,7 @@ void FixPIMDLangevin::compute_spring_energy()
 
   for(int i=0; i<nlocal; i++)
   {
-    spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] * (x[i][0]*x[i][0] + x[i][1]*x[i][1] + x[i][2]*x[i][2]); 
+    spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] * (x[i][0]*x[i][0] + x[i][1]*x[i][1] + x[i][2]*x[i][2]);
   }
   MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
   // MPI_Allreduce(&spring_energy, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
@@ -1660,7 +1660,7 @@ void FixPIMDLangevin::compute_p_cv()
   // printf("inv_V = %.30e ke = %.30e cv = %.30e vir = %.30e\n", inv_volume, ke_bead, centroid_vir, vir);
   if(universe->iworld == 0)
   {
-    p_cv = 1. / 3.  * inv_volume  * ((2. * ke_bead  - 1. * centroid_vir) * force->nktv2p + 1. * vir) / np; 
+    p_cv = 1. / 3.  * inv_volume  * ((2. * ke_bead  - 1. * centroid_vir) * force->nktv2p + 1. * vir) / np;
   }
   MPI_Bcast(&p_cv, 1, MPI_DOUBLE, 0, universe->uworld);
 }
@@ -1670,7 +1670,7 @@ void FixPIMDLangevin::compute_p_cv()
 void FixPIMDLangevin::compute_totenthalpy()
 {
   volume = domain->xprd * domain->yprd * domain->zprd;
-  if(barostat == BZP)  
+  if(barostat == BZP)
   {
     if(pstyle == ISO)
     {
@@ -1719,23 +1719,23 @@ double FixPIMDLangevin::compute_vector(int n)
     }
     else if(pstyle == ANISO)
     {
-      
+
     }
   }
   /*
-  
+
   if(n==7) { return p_prim; }
   if(n==8) { return p_md; }
   if(n==9) { return p_cv; }
   if(n==10) {return totenthalpy;
   if(pstyle == ISO){
     if(n==11) { return vw[0]; }
-    if(n==12) { 
+    if(n==12) {
       if(barostat == BZP) {  return 0.5*W*vw[0]*vw[0]; }
       else if(barostat == MTTK) {  return 1.5*W*vw[0]*vw[0]; }
     }
     if(n==13) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
-    if(n==14) { volume = domain->xprd * domain->yprd * domain->zprd; 
+    if(n==14) { volume = domain->xprd * domain->yprd * domain->zprd;
     // printf("Vcoeff = %.6e np = %d kBT = %.6e logV = %.6e\n", Vcoeff, np, kBT, log(volume));
     return - Vcoeff * np * kBT * log(volume); }
   }

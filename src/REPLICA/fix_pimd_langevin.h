@@ -33,7 +33,6 @@ class FixPIMDLangevin : public Fix {
 
   void init() override;
   void setup(int) override;
-//   void post_neighbor() override;
   void post_force(int) override;
   void initial_integrate(int) override;
   void final_integrate() override;
@@ -43,25 +42,23 @@ class FixPIMDLangevin : public Fix {
 
  protected:
   /* System setting variables */
-  int method; // PIMD or NMPIMD or CMD
-  int fmmode; // physical or normal
-  int np; // number of beads
-  double inverse_np; // 1.0/np
-  double temp; // temperature
-  double planck, hbar; // Planck's constant
-  double lj_epsilon, lj_sigma, lj_mass; // LJ unit energy, length, and mass scales
+  int method;                              // PIMD or NMPIMD or CMD
+  int fmmode;                              // physical or normal
+  int np;                                  // number of beads
+  double inverse_np;                       // 1.0/np
+  double temp;                             // temperature
+  double planck, hbar;                     // Planck's constant
+  double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
   double other_planck;
-  double kBT; // k_B * temp
-  double beta, beta_np; // beta = 1./kBT beta_np = 1./kBT/np
-  int thermostat; // NHC or PILE_L
-  int barostat; // BZP
-  int integrator; // obabo or baoab
-  int ensemble; // nve or nvt or nph or npt
-  int mapflag; // should be 1 if number of beads > 1
+  double kBT;              // k_B * temp
+  double beta, beta_np;    // beta = 1./kBT beta_np = 1./kBT/np
+  int thermostat;          // NHC or PILE_L
+  int barostat;            // BZP
+  int integrator;          // obabo or baoab
+  int ensemble;            // nve or nvt or nph or npt
+  int mapflag;             // should be 1 if number of beads > 1
   int removecomflag;
   double masstotal;
-
-  // void remove_com_motion(); 
 
   double fixedpoint[3];    // location of dilation fixed-point
   /* ring-polymer model */
@@ -82,7 +79,7 @@ class FixPIMDLangevin : public Fix {
   int sizeplan;
   int *plansend, *planrecv;
 
-  tagint *tagsend, *tagrecv; 
+  tagint *tagsend, *tagrecv;
   double **bufsend, **bufrecv, **bufbeads;
   double **bufsorted, **bufsortedall;
   double **outsorted, **buftransall;
@@ -110,33 +107,34 @@ class FixPIMDLangevin : public Fix {
   double dtv, dtf, dtv2, dtv3;
   double gamma, c1, c2, tau;
   double *tau_k, *c1_k, *c2_k;
-  double pilescale=1.0;
+  double pilescale = 1.0;
   double Lan_temp;
   double r1, r2, r3;
-  double _omega_np, *_omega_k, *Lan_s, *Lan_c; // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
+  double _omega_np, *_omega_k, *Lan_s, *Lan_c;    // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
 
   class RanMars *random;
-  int seed=975481;
+  int seed = 975481;
   FILE *frand;
 
-  int tstat_flag; // tstat_flat = 1 if thermostat if used
+  int tstat_flag;    // tstat_flat = 1 if thermostat if used
   void Langevin_init();
-  void b_step(); // integrate for dt/2 according to B part (v <- v + f * dt/2)
-  void a_step(); // integrate for dt/2 according to A part (non-centroid mode, harmonic force between replicas)
-  void qc_step(); // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
-  void o_step(); // integrate for dt according to O part (O-U process, for thermostating)
-  
+  void b_step();    // integrate for dt/2 according to B part (v <- v + f * dt/2)
+  void
+  a_step();    // integrate for dt/2 according to A part (non-centroid mode, harmonic force between replicas)
+  void qc_step();    // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
+  void o_step();     // integrate for dt according to O part (O-U process, for thermostating)
+
   /* Bussi-Zykova-Parrinello barostat */
 
   double f_omega, mtk_term1;
-  int pstat_flag; // pstat_flag = 1 if barostat is used
-  int pstyle; // pstyle = ISO or ANISO (will support TRICLINIC in the future)
+  int pstat_flag;    // pstat_flag = 1 if barostat is used
+  int pstyle;        // pstyle = ISO or ANISO (will support TRICLINIC in the future)
   double W, tau_p, Pext, totenthalpy = 0.0, Vcoeff;
   int p_flag[6];
-  double vw[6]; // barostat velocity
-  double ke_tensor[6]; // kinetic energy tensor
-  double c_vir_tensor[6]; // centroid-virial tensor
-  double stress_tensor[6]; // path integral centroid-virial stress tensor
+  double vw[6];               // barostat velocity
+  double ke_tensor[6];        // kinetic energy tensor
+  double c_vir_tensor[6];     // centroid-virial tensor
+  double stress_tensor[6];    // path integral centroid-virial stress tensor
 
   void baro_init();
   void press_v_step();
@@ -152,12 +150,12 @@ class FixPIMDLangevin : public Fix {
   // int n_unwrap;
   int maxunwrap;
   // int maxunwrap, nlocal_init;
-//   tagint *tag_init, *tag_initall;
-//   imageint *image_init, *image_initall;
+  //   tagint *tag_init, *tag_initall;
+  //   imageint *image_init, *image_initall;
   double **x_unwrap;
-//   double **x_unwrap, **x_unwrapsort;
-//   double **x_unwrapall;
-//   void init_x_unwrap();
+  //   double **x_unwrap, **x_unwrapsort;
+  //   double **x_unwrapall;
+  //   void init_x_unwrap();
   void reallocate_x_unwrap();
   void reallocate_xc();
   void collect_xc();
@@ -178,22 +176,20 @@ class FixPIMDLangevin : public Fix {
   class Compute *c_pe;
   class Compute *c_press;
 
-  void compute_totke(); // 1: kinetic energy 
-  void compute_spring_energy(); // 2: spring elastic energy
-  void compute_pote(); // 3: potential energy
-  void compute_tote(); // 4: total energy: 1+2+3 for all the beads
+  void compute_totke();            // 1: kinetic energy
+  void compute_spring_energy();    // 2: spring elastic energy
+  void compute_pote();             // 3: potential energy
+  void compute_tote();             // 4: total energy: 1+2+3 for all the beads
   // void compute_t_prim();  // 5: primitive kinetic energy estimator
   // void compute_p_prim();  // primitive pressure estimator
   void compute_stress_tensor();
   // void compute_t_vir();  // centroid-virial kinetic energy estimator
-  void compute_p_cv();  // centroid-virial pressure estimator
+  void compute_p_cv();    // centroid-virial pressure estimator
   // void compute_p_vir();  // centroid-virial pressure estimator
   void compute_vir();
   void compute_vir_();
   void compute_totenthalpy();
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

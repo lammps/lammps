@@ -15,8 +15,11 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "compute.h"
 #include "error.h"
 #include "memory.h"
+#include "modify.h"
+#include "respa.h"
 #include "universe.h"
 #include "update.h"
 
@@ -35,14 +38,17 @@ static double get_lambda(const bigint &step, const bigint &begin, const bigint &
 
 /* ---------------------------------------------------------------------- */
 
-FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), coordbuf(nullptr)
+FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
+  if (narg != 3) error->all(FLERR, "Incorrect number of arguments for fix alchemy");
+
   lambda = epot[0] = epot[1] = 0.0;
 
   no_change_box = 1;
   vector_flag = 1;
-  size_vector = 3;
+  size_vector = 4;
   extvector = 0;
+  ilevel_respa = 0;
 
   // set up communicators
   if (universe->nworlds != 2) error->all(FLERR, "Must use exactly two partitions");
@@ -50,7 +56,8 @@ FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   int key = universe->iworld;
   MPI_Comm_split(universe->uworld, color, key, &samerank);
 
-  if (narg != 3) error->all(FLERR, "Incorrect number of arguments for fix alchemy");
+  id_pe = std::string(id) + "_pe";
+  modify->add_compute(id_pe + " all pe");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,6 +65,7 @@ FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 FixAlchemy::~FixAlchemy()
 {
   MPI_Comm_free(&samerank);
+  modify->delete_compute(id_pe);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,53 +84,50 @@ void FixAlchemy::init() {}
 
 /* ---------------------------------------------------------------------- */
 
-void FixAlchemy::setup(int /*vflag*/)
+void FixAlchemy::setup(int vflag)
 {
-  const int nall = atom->nlocal;
-  const auto tag = atom->tag;
-  const auto x = atom->x;
-
-  memory->destroy(coordbuf);
-  memory->create(coordbuf, 4 * sizeof(double) * nall, "alchemy:coordbuf");
-
-  if (universe->iworld == 0) {
-    int m = 0;
-    for (int i = 0; i < nall; ++i) {
-      coordbuf[m++] = ubuf(tag[i]).d;
-      coordbuf[m++] = x[i][0];
-      coordbuf[m++] = x[i][1];
-      coordbuf[m++] = x[i][2];
-    }
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    auto respa = dynamic_cast<Respa *>(update->integrate);
+    respa->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag, ilevel_respa, 0);
+    respa->copy_f_flevel(ilevel_respa);
+  } else {
+    post_force(vflag);
   }
-
-  MPI_Bcast(coordbuf, 4 * nall, MPI_DOUBLE, 0, samerank);
-
-  if (universe->iworld == 1) {
-    int m = 0;
-    for (int i = 0; i < nall; ++i) {
-      tagint mytag = (tagint) ubuf(coordbuf[m++]).i;
-      x[atom->map(mytag)][0] = coordbuf[m++];
-      x[atom->map(mytag)][1] = coordbuf[m++];
-      x[atom->map(mytag)][2] = coordbuf[m++];
-    }
-  }
-
-  lambda = get_lambda(update->ntimestep, update->beginstep, update->endstep, universe->iworld);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixAlchemy::post_integrate()
 {
-  int nall = 3 * (atom->nlocal + atom->nghost);
-  //  MPI_Bcast(&atom->x[0][0], nall, MPI_DOUBLE, 0, samerank);
+  const int nall = atom->nlocal + atom->nghost;
+  MPI_Bcast(&atom->x[0][0], 3 * nall, MPI_DOUBLE, 0, samerank);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixAlchemy::post_force(int /*vflag*/)
 {
+  const int nall = atom->nlocal;
+  auto f = atom->f;
   lambda = get_lambda(update->ntimestep, update->beginstep, update->endstep, universe->iworld);
+
+  double *commbuf = new double[3 * nall];
+  int m = 0;
+  for (int i = 0; i < nall; ++i) {
+    commbuf[m++] = f[i][0] * lambda;
+    commbuf[m++] = f[i][1] * lambda;
+    commbuf[m++] = f[i][2] * lambda;
+  }
+  MPI_Allreduce(commbuf, &f[0][0], 3 * nall, MPI_DOUBLE, MPI_SUM, samerank);
+
+  auto pe = modify->get_compute_by_id(id_pe);
+  commbuf[0] = commbuf[1] = commbuf[2] = 0.0;
+  commbuf[universe->iworld] = pe->compute_scalar() / comm->nprocs;
+  commbuf[2] = lambda * pe->compute_scalar() / comm->nprocs;
+  MPI_Allreduce(commbuf, epot, 3, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  delete[] commbuf;
+  pe->addstep(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */

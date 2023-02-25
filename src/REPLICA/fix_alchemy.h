@@ -38,10 +38,10 @@ class FixAlchemy : public Fix {
 
  protected:
   MPI_Comm samerank;
-  MPI_Comm rankzero;
-  double *coordbuf;
+  std::string id_pe;
   double lambda;     // changes from 0 to 1 during run
-  double epot[2];    // last (unscaled) potential energy from each replica
+  double epot[3];    // last (unscaled) potential energy from each replica and combined energy
+  int ilevel_respa;
 };
 }    // namespace LAMMPS_NS
 

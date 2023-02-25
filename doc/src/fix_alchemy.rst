@@ -49,8 +49,23 @@ system of the second partition.  The commands :doc:`fix adapt <fix_adapt>`
 or :doc:`fix adapt/fep <fix_adapt_fep>` could be used for simulations
 where the requirements for fix alchemy are not given.
 
-The ``examples/PACKAGES/alchemy`` folder contains example inputs for
-this command.
+The commands below demonstrate how this can be done for the example of
+transforming a pure copper system into a copper aluminum bronze.
+
+.. code-block:: LAMMPS
+
+   create_box 2 box
+   create_atoms 1 box
+   pair_style eam/alloy
+   pair_coeff * * AlCu.eam.alloy Cu Al
+
+   # replace 5% of copper with aluminum on the second partition only
+   variable name world pure alloy
+   if "${name} == alloy" then &
+     "set type 1 type/fraction 2 0.05 6745234"
+
+The ``examples/PACKAGES/alchemy`` folder contains complete example
+inputs for this command.
 
 ----------
 

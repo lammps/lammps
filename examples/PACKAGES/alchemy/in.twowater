@@ -1,6 +1,6 @@
-# Example for alchemical transformation of two water molecules into a hydronium and hydroxyl ion
-# WARNING: This input is intended for demonstrating the method, only
-# The force field parameters are made up and NOT suitable for production simulations.
+# Example for an alchemical transformation of two water molecules into a hydronium and hydroxyl ion
+# WARNING: This input is intended for demonstrating the method only,
+# the force field parameters are mostly made up and NOT suitable for production simulations.
 
 # set up different names for two partitions
 variable name world twowater twoions

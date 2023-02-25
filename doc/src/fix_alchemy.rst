@@ -36,8 +36,8 @@ from 0.0 to 1.0 for the *second* partition (*p=1*).  The forces used for
 the propagation of the atoms will be the sum of the forces of the two
 systems combined and scaled with their respective :math:`\lambda_p`
 factor.  This allows to perform transformations that are not easily
-possible with :doc:`fix adapt <fix_adapt>` or :doc:`fix adapt/fep
-<fix_adapt_fep>`.
+possible with :doc:`pair style hybrid/scaled <pair_hybrid>`, :doc:`fix
+adapt <fix_adapt>` or :doc:`fix adapt/fep <fix_adapt_fep>`.
 
 Due to the specifics of the implementation, the initial geometry and
 dimensions of the system must be exactly the same and the fix will
@@ -45,12 +45,14 @@ synchronize them during the run.  It is thus not possible to initialize
 the two partitions by reading different data files or creating different
 systems from scratch, but rather they have to be started from the same
 system and then the desired modifications need to be applied to the
-system of the second partition.  The commands :doc:`fix adapt <fix_adapt>`
-or :doc:`fix adapt/fep <fix_adapt_fep>` could be used for simulations
-where the requirements for fix alchemy are not given.
+system of the second partition.  The commands :doc:`pair style
+hybrid/scaled <pair_hybrid>`, :doc:`fix adapt <fix_adapt>` or :doc:`fix
+adapt/fep <fix_adapt_fep>` could be used for simulations where the
+requirements for fix alchemy are not given.
 
-The commands below demonstrate how this can be done for the example of
-transforming a pure copper system into a copper aluminum bronze.
+The commands below demonstrate how the setup for the second partition
+can be done for the example of transforming a pure copper system into a
+copper/aluminum bronze.
 
 .. code-block:: LAMMPS
 
@@ -111,7 +113,8 @@ Related commands
 """"""""""""""""
 
 :doc:`compute pressure/alchemy <compute_pressure_alchemy>` command,
-:doc:`fix adapt <fix_adapt>` command
+:doc:`fix adapt <fix_adapt>` command, :doc:`fix adapt/fep <fix_adapt_fep>`
+command, :doc:`pair_style hybrid/scaled <pair_hybrid>` command.
 
 Default
 """""""

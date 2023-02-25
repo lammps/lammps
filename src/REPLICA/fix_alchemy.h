@@ -45,6 +45,7 @@ class FixAlchemy : public Fix {
   double lambda;         // changes from 0 to 1 during run
   double epot[3];        // last (unscaled) potential energy from each replica and combined energy
   double pressure[6];    // joined pressure
+  int progress;          // for progress indicator
   int ilevel_respa;
   int nmax;
 };

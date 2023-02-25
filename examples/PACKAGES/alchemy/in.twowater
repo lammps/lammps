@@ -73,18 +73,18 @@ else &
 velocity all create 300.0 5463576
 timestep 0.2
 
-# since the trajectory and forces are kept identical through fix alchemy
-# we can even do fix npt simulations, but we need to use the "mixed" pressure
+# since the trajectory and forces are kept identical through fix alchemy,
+# we can do fix npt simulations, but we must use the "mixed" pressure
 
 fix integrate all npt temp 300 300 1.0 iso 1.0 1.0 10.0
 fix transform all alchemy
 compute pressure all pressure/alchemy transform
 fix_modify integrate press pressure
 
-# only need to output a dump file form one partition
-if "${name} == twowater" then &
-   "dump 1 all atom 100 ${name}.lammpstrj" &
-   "dump_modify 1 sort id"
+# only need to output a dump file from one partition
+# if "${name} == twowater" then &
+#   "dump 1 all atom 100 ${name}.lammpstrj" &
+#   "dump_modify 1 sort id"
 
 thermo_style custom step temp press etotal density pe ke f_transform[1] f_transform[4]
 thermo_modify colname f_transform[1] lambda colname f_transform[4] EPot_mixed

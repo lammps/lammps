@@ -45,6 +45,7 @@ FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   if (narg != 3) error->all(FLERR, "Incorrect number of arguments for fix alchemy");
 
   lambda = epot[0] = epot[1] = 0.0;
+  progress = 0;
   for (int i = 0; i < 6; ++i) pressure[i] = 0.0;
 
   no_change_box = 1;
@@ -125,6 +126,13 @@ void FixAlchemy::setup(int vflag)
   } else {
     post_force(vflag);
   }
+
+  if (universe->me == 0) {
+    progress = static_cast<int>(100.0 - lambda * 100.0);
+    auto msg = fmt::format("Starting alchemical transformation at {:>3d}%\n", progress);
+    if (universe->uscreen) fmt::print(universe->uscreen, msg);
+    if (universe->ulogfile) fmt::print(universe->ulogfile, msg);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -164,6 +172,17 @@ void FixAlchemy::post_force(int /*vflag*/)
   for (int i = 0; i < 6; ++i) commbuf[i] = lambda * scalefac * press->vector[i];
   MPI_Allreduce(commbuf, pressure, 6, MPI_DOUBLE, MPI_SUM, universe->uworld);
   press->addstep(update->ntimestep + 1);
+
+  // print progress info
+  if (universe->me == 0) {
+    int status = static_cast<int>(100.0 - lambda * 100.0);
+    if ((status / 10) > (progress / 10)) {
+      progress = status;
+      auto msg = fmt::format("  Alchemical transformation progress: {:>3d}%\n", progress);
+      if (universe->uscreen) fmt::print(universe->uscreen, msg);
+      if (universe->ulogfile) fmt::print(universe->ulogfile, msg);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

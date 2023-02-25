@@ -1465,6 +1465,8 @@
 /zstd_file_writer.cpp
 /zstd_file_writer.h
 
+/compute_pressure_alchemy.cpp
+/compute_pressure_alchemy.h
 /atom_vec_smd.cpp
 /atom_vec_smd.h
 /compute_saed.cpp

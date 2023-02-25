@@ -11,44 +11,31 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef COMPUTE_CLASS
 // clang-format off
-FixStyle(alchemy,FixAlchemy);
+ComputeStyle(pressure/alchemy,ComputePressureAlchemy);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_ALCHEMY_H
-#define LMP_FIX_ALCHEMY_H
+#ifndef LMP_COMPUTE_PRESSURE_ALCHEMY_H
+#define LMP_COMPUTE_PRESSURE_ALCHEMY_H
 
-#include "fix.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class FixAlchemy : public Fix {
+class ComputePressureAlchemy : public Compute {
  public:
-  FixAlchemy(class LAMMPS *, int, char **);
-  ~FixAlchemy() override;
-
-  int setmask() override;
+  ComputePressureAlchemy(class LAMMPS *, int, char **);
+  ~ComputePressureAlchemy() override;
   void init() override;
-  void setup(int) override;
-  void post_integrate() override;
-  void post_force(int) override;
-  double compute_vector(int) override;
-  void *extract(const char *, int &) override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
  protected:
-  MPI_Comm samerank;
-  double *commbuf;
-  class Compute *pe, *temp, *press;
-  std::string id_pe, id_temp, id_press;
-  double lambda;         // changes from 0 to 1 during run
-  double epot[3];        // last (unscaled) potential energy from each replica and combined energy
-  double pressure[6];    // joined pressure
-  int ilevel_respa;
-  int nmax;
+  class Fix *fix;
+  std::string id_fix;
 };
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

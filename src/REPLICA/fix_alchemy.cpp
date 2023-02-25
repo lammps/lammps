@@ -23,6 +23,8 @@
 #include "universe.h"
 #include "update.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -38,26 +40,46 @@ static double get_lambda(const bigint &step, const bigint &begin, const bigint &
 
 /* ---------------------------------------------------------------------- */
 
-FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), commbuf(nullptr)
 {
   if (narg != 3) error->all(FLERR, "Incorrect number of arguments for fix alchemy");
 
   lambda = epot[0] = epot[1] = 0.0;
+  for (int i = 0; i < 6; ++i) pressure[i] = 0.0;
 
   no_change_box = 1;
   vector_flag = 1;
-  size_vector = 4;
+  size_vector = 10;
   extvector = 0;
   ilevel_respa = 0;
+  nmax = 6;
 
-  // set up communicators
+  // set up rank-to-rank communicator
   if (universe->nworlds != 2) error->all(FLERR, "Must use exactly two partitions");
   int color = comm->me;
   int key = universe->iworld;
   MPI_Comm_split(universe->uworld, color, key, &samerank);
 
+  // check that we have the same domain decomposition on all ranks
+  int my_nlocal[2] = {0, 0};
+  int all_nlocal[2] = {0, 0};
+  my_nlocal[universe->iworld] = atom->nlocal;
+  MPI_Allreduce(my_nlocal, all_nlocal, 2, MPI_INT, MPI_SUM, samerank);
+  int fail = (all_nlocal[0] == all_nlocal[1]) ? 0 : 1;
+  int allfail = 0;
+  MPI_Allreduce(&fail, &allfail, 1, MPI_INT, MPI_MAX, universe->uworld);
+  if (allfail)
+    error->all(FLERR, "Number of atoms and domain decomposition must match for both partitions");
+
   id_pe = std::string(id) + "_pe";
-  modify->add_compute(id_pe + " all pe");
+  pe = modify->add_compute(id_pe + " all pe");
+  pe->addstep(update->ntimestep);
+  id_temp = std::string(id) + "_temp";
+  temp = modify->add_compute(id_temp + " all temp");
+  temp->addstep(update->ntimestep);
+  id_press = std::string(id) + "_press";
+  press = modify->add_compute(id_press + " all pressure " + id_temp);
+  press->addstep(update->ntimestep);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,6 +88,9 @@ FixAlchemy::~FixAlchemy()
 {
   MPI_Comm_free(&samerank);
   modify->delete_compute(id_pe);
+  modify->delete_compute(id_temp);
+  modify->delete_compute(id_press);
+  memory->destroy(commbuf);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,7 +105,13 @@ int FixAlchemy::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixAlchemy::init() {}
+void FixAlchemy::init()
+{
+  int onenmax = MAX(nmax, 3 * atom->nmax);
+  MPI_Allreduce(&onenmax, &nmax, 1, MPI_INT, MPI_MAX, universe->uworld);
+  memory->destroy(commbuf);
+  memory->create(commbuf, sizeof(double) * nmax, "alchemy:nmax");
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -108,26 +139,31 @@ void FixAlchemy::post_integrate()
 
 void FixAlchemy::post_force(int /*vflag*/)
 {
-  const int nall = atom->nlocal;
-  auto f = atom->f;
+  if (3 * atom->nmax > nmax) {
+    nmax = 3 * atom->nmax;
+    memory->grow(commbuf, sizeof(double) * atom->nmax, "alchemy:commbuf");
+  }
+
+  const int nall = 3 * atom->nlocal;
+  double *f = &atom->f[0][0];
   lambda = get_lambda(update->ntimestep, update->beginstep, update->endstep, universe->iworld);
 
-  double *commbuf = new double[3 * nall];
-  int m = 0;
-  for (int i = 0; i < nall; ++i) {
-    commbuf[m++] = f[i][0] * lambda;
-    commbuf[m++] = f[i][1] * lambda;
-    commbuf[m++] = f[i][2] * lambda;
-  }
-  MPI_Allreduce(commbuf, &f[0][0], 3 * nall, MPI_DOUBLE, MPI_SUM, samerank);
+  for (int i = 0; i < nall; ++i) commbuf[i] = f[i] * lambda;
+  MPI_Allreduce(commbuf, f, nall, MPI_DOUBLE, MPI_SUM, samerank);
 
-  auto pe = modify->get_compute_by_id(id_pe);
+  // sum up potential energy
+  const double scalefac = 1.0 / comm->nprocs;
   commbuf[0] = commbuf[1] = commbuf[2] = 0.0;
-  commbuf[universe->iworld] = pe->compute_scalar() / comm->nprocs;
-  commbuf[2] = lambda * pe->compute_scalar() / comm->nprocs;
+  commbuf[universe->iworld] = scalefac * pe->compute_scalar();
+  commbuf[2] = lambda * scalefac * pe->compute_scalar();
   MPI_Allreduce(commbuf, epot, 3, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  delete[] commbuf;
   pe->addstep(update->ntimestep + 1);
+
+  // sum up pressure
+  press->compute_vector();
+  for (int i = 0; i < 6; ++i) commbuf[i] = lambda * scalefac * press->vector[i];
+  MPI_Allreduce(commbuf, pressure, 6, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  press->addstep(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,5 +171,18 @@ void FixAlchemy::post_force(int /*vflag*/)
 double FixAlchemy::compute_vector(int n)
 {
   if (n == 0) return lambda;
-  return epot[n - 1];
+  if ((n > 0) && (n < 4)) return epot[n - 1];
+  return pressure[n - 4];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *FixAlchemy::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str, "lambda") == 0) { return &lambda; }
+  if (strcmp(str, "pe") == 0) { return &epot[2]; }
+  dim = 1;
+  if (strcmp(str, "pressure") == 0) { return pressure; }
+  return nullptr;
 }

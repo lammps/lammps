@@ -107,14 +107,12 @@ class FixPIMDLangevin : public Fix {
   double dtv, dtf, dtv2, dtv3;
   double gamma, c1, c2, tau;
   double *tau_k, *c1_k, *c2_k;
-  double pilescale = 1.0;
+  double pilescale;
   double Lan_temp;
   double r1, r2, r3;
   double _omega_np, *_omega_k, *Lan_s, *Lan_c;    // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
 
   class RanMars *random;
-  int seed;
-  FILE *frand;
 
   int tstat_flag;    // tstat_flat = 1 if thermostat if used
   void Langevin_init();
@@ -128,7 +126,7 @@ class FixPIMDLangevin : public Fix {
   double f_omega, mtk_term1;
   int pstat_flag;    // pstat_flag = 1 if barostat is used
   int pstyle;        // pstyle = ISO or ANISO (will support TRICLINIC in the future)
-  double W, tau_p, Pext, totenthalpy = 0.0, Vcoeff;
+  double W, tau_p, Pext, totenthalpy, Vcoeff;
   int p_flag[6];
   double vw[6];               // barostat velocity
   double ke_tensor[6];        // kinetic energy tensor

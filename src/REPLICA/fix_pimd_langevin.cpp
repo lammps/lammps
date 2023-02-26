@@ -64,7 +64,7 @@ enum { SINGLE_PROC, MULTI_PROC };
 /* ---------------------------------------------------------------------- */
 
 FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr), c_press(nullptr)
+  Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr), c_press(nullptr)
 {
   time_integrate = 1;
   tagsend = tagrecv = nullptr;
@@ -101,12 +101,17 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   tau = 1.0;
   tau_p = 1.0;
   Pext = 1.0;
+  pilescale = 1.0;
   tstat_flag = 1;
   pstat_flag = 0;
   mapflag = 1;
   removecomflag = 1;
   fmmode = PHYSICAL;
   pstyle = ISO;
+  totenthalpy = 0.0;
+
+  int seed = -1;
+
   for (int i = 0; i < 6; i++) p_flag[i] = 0;
 
   for (int i = 3; i < narg - 1; i += 2) {
@@ -119,20 +124,17 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         method = CMD;
       else
         error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin");
-    } else if (strcmp(arg[i], "integrator") == 0)
-
-    {
+    } else if (strcmp(arg[i], "integrator") == 0) {
       if (strcmp(arg[i + 1], "obabo") == 0)
         integrator = OBABO;
       else if (strcmp(arg[i + 1], "baoab") == 0)
         integrator = BAOAB;
       else
-        error->universe_all(FLERR,
-                            "Unknown integrator parameter for fix pimd/langevin. Only obabo and baoab "
-                            "integrators are supported!");
-    }
-
-    else if (strcmp(arg[i], "ensemble") == 0) {
+        error->universe_all(
+            FLERR,
+            "Unknown integrator parameter for fix pimd/langevin. Only obabo and baoab "
+            "integrators are supported!");
+    } else if (strcmp(arg[i], "ensemble") == 0) {
       if (strcmp(arg[i + 1], "nve") == 0) {
         ensemble = NVE;
         tstat_flag = 0;
@@ -150,95 +152,69 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         tstat_flag = 1;
         pstat_flag = 1;
       } else
-        error->universe_all(
-            FLERR,
-            "Unknown ensemble parameter for fix pimd/langevin. Only nve and nvt ensembles are supported!");
-    }
-
-    else if (strcmp(arg[i], "fmass") == 0) {
+        error->universe_all(FLERR,
+                            "Unknown ensemble parameter for fix pimd/langevin. Only nve and nvt "
+                            "ensembles are supported!");
+    } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (fmass < 0.0 || fmass > 1.0)
         error->universe_all(FLERR, "Invalid fmass value for fix pimd/langevin");
-    }
-
-    else if (strcmp(arg[i], "fmmode") == 0) {
+    } else if (strcmp(arg[i], "fmmode") == 0) {
       if (strcmp(arg[i + 1], "physical") == 0)
         fmmode = PHYSICAL;
       else if (strcmp(arg[i + 1], "normal") == 0)
         fmmode = NORMAL;
       else
-        error->universe_all(FLERR,
-                            "Unknown fictitious mass mode for fix pimd/langevin. Only physical mass and "
-                            "normal mode mass are supported!");
-    }
-
-    else if (strcmp(arg[i], "scale") == 0) {
-      pilescale = atof(arg[i + 1]);
-      if (pilescale < 0.0) error->universe_all(FLERR, "Invalid pile scale value for fix pimd/langevin");
-    }
-
-    else if (strcmp(arg[i], "temp") == 0) {
+        error->universe_all(
+            FLERR,
+            "Unknown fictitious mass mode for fix pimd/langevin. Only physical mass and "
+            "normal mode mass are supported!");
+    } else if (strcmp(arg[i], "scale") == 0) {
+      pilescale = utils::numeric(FLERR, arg[i + 1], false, lmp);
+      if (pilescale < 0.0)
+        error->universe_all(FLERR, "Invalid pile scale value for fix pimd/langevin");
+    } else if (strcmp(arg[i], "temp") == 0) {
       temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (temp < 0.0) error->universe_all(FLERR, "Invalid temp value for fix pimd/langevin");
-    }
-
-    else if (strcmp(arg[i], "lj") == 0) {
+    } else if (strcmp(arg[i], "lj") == 0) {
       lj_epsilon = utils::numeric(FLERR, arg[i + 1], false, lmp);
       lj_sigma = utils::numeric(FLERR, arg[i + 2], false, lmp);
       lj_mass = utils::numeric(FLERR, arg[i + 3], false, lmp);
       other_planck = utils::numeric(FLERR, arg[i + 4], false, lmp);
-      i++;
-      i++;
-      i++;
-    }
-
-    else if (strcmp(arg[i], "thermostat") == 0) {
+      i += 3;
+    } else if (strcmp(arg[i], "thermostat") == 0) {
       if (strcmp(arg[i + 1], "PILE_L") == 0) {
         thermostat = PILE_L;
-        seed = atoi(arg[i + 2]);
+        seed = utils::inumeric(FLERR, arg[i + 2], false, lmp);
         i++;
       }
-    }
-
-    else if (strcmp(arg[i], "tau") == 0) {
-      tau = atof(arg[i + 1]);
-    }
-
-    else if (strcmp(arg[i], "press") == 0) {
-      Pext = atof(arg[i + 1]);
+    } else if (strcmp(arg[i], "tau") == 0) {
+      tau = utils::numeric(FLERR, arg[i + 1], false, lmp);
+    } else if (strcmp(arg[i], "press") == 0) {
+      Pext = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (Pext < 0.0) error->universe_all(FLERR, "Invalid press value for fix pimd/langevin");
-    }
-
-    else if (strcmp(arg[i], "barostat") == 0) {
+    } else if (strcmp(arg[i], "barostat") == 0) {
       if (strcmp(arg[i + 1], "MTTK") == 0) {
         barostat = MTTK;
       } else if (strcmp(arg[i + 1], "BZP") == 0) {
         barostat = BZP;
       } else
         error->universe_all(FLERR, "Unknown barostat parameter for fix pimd/langevin");
-    }
-
-    else if (strcmp(arg[i], "iso") == 0) {
+    } else if (strcmp(arg[i], "iso") == 0) {
       pstyle = ISO;
       i--;
-    }
-
-    else if (strcmp(arg[i], "aniso") == 0) {
+    } else if (strcmp(arg[i], "aniso") == 0) {
       pstyle = ANISO;
       i--;
-    }
-
-    else if (strcmp(arg[i], "taup") == 0) {
-      tau_p = atof(arg[i + 1]);
+    } else if (strcmp(arg[i], "taup") == 0) {
+      tau_p = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (tau_p <= 0.0) error->universe_all(FLERR, "Invalid tau_p value for fix pimd/langevin");
     } else if (strcmp(arg[i], "fixcom") == 0) {
       if (strcmp(arg[i + 1], "yes") == 0)
         removecomflag = 1;
       else if (strcmp(arg[i + 1], "no") == 0)
         removecomflag = 0;
-    }
-
-    else if (strcmp(arg[i], "map") == 0) {
+    } else if (strcmp(arg[i], "map") == 0) {
       if (strcmp(arg[i + 1], "yes") == 0)
         mapflag = 1;
       else if (strcmp(arg[i + 1], "no") == 0)
@@ -257,25 +233,11 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   // some initilizations
 
-  id_pe = new char[8];
-  strcpy(id_pe, "pimd_pe");
-  char **newarg = new char *[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3, newarg);
-  delete[] newarg;
+  id_pe = utils::strdup(std::string(id) + "_pimd_pe");
+  modify->add_compute(std::string(id_pe) + " all pe");
 
-  id_press = new char[12];
-  strcpy(id_press, "pimd_press");
-  newarg = new char *[5];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "thermo_temp";
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5, newarg);
-  delete[] newarg;
+  id_press = utils::strdup(std::string(id) + "_pimd_press");
+  modify->add_compute(std::string(id_press) + " all pressure thermo_temp virial");
 
   vol0 = domain->xprd * domain->yprd * domain->zprd;
 
@@ -339,7 +301,14 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMDLangevin::~FixPIMDLangevin() {}
+FixPIMDLangevin::~FixPIMDLangevin()
+{
+  modify->delete_compute(id_pe);
+  modify->delete_compute(id_press);
+  delete[] id_pe;
+  delete[] id_press;
+  delete random;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -387,8 +356,8 @@ void FixPIMDLangevin::init()
   beta_np = 1.0 / force->boltz / temp * inverse_np;
   fbond = _fbond * force->mvv2e;
 
-  if (universe->me == 0)
-    printf("fix pimd/langevin -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
+  if ((universe->me == 0) && (universe->uscreen))
+    fprintf(universe->uscreen, "fix pimd/langevin -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
 
   if (integrator == OBABO) {
     dtf = 0.5 * update->dt * force->ftm2v;
@@ -413,15 +382,10 @@ void FixPIMDLangevin::init()
   Langevin_init();
   if (pstat_flag) baro_init();
 
-  int ipe = modify->find_compute(id_pe);
-  c_pe = modify->compute[ipe];
-
-  int ipress = modify->find_compute(id_press);
-  c_press = modify->compute[ipress];
+  c_pe = modify->get_compute_by_id(id_pe);
+  c_press = modify->get_compute_by_id(id_press);
 
   t_prim = t_vir = t_cv = p_prim = p_vir = p_cv = p_md = 0.0;
-
-  if (universe->me == 0) fprintf(screen, "fix pimd/langevin successfully initialized!\n");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1335,8 +1299,9 @@ void FixPIMDLangevin::compute_totenthalpy()
       totenthalpy = tote + 0.5 * W * vw[0] * vw[0] * inverse_np + Pext * volume / force->nktv2p -
           Vcoeff * kBT * log(volume);
     } else if (pstyle == ANISO) {
-      totenthalpy = tote + 0.5 * W * vw[0] * vw[0] * inverse_np + 0.5 * W * vw[1] * vw[1] * inverse_np +
-          0.5 * W * vw[2] * vw[2] * inverse_np + Pext * volume / force->nktv2p - Vcoeff * kBT * log(volume);
+      totenthalpy = tote + 0.5 * W * vw[0] * vw[0] * inverse_np +
+          0.5 * W * vw[1] * vw[1] * inverse_np + 0.5 * W * vw[2] * vw[2] * inverse_np +
+          Pext * volume / force->nktv2p - Vcoeff * kBT * log(volume);
     }
   } else if (barostat == MTTK)
     totenthalpy = tote + 1.5 * W * vw[0] * vw[0] * inverse_np + Pext * (volume - vol0);
@@ -1376,7 +1341,7 @@ double FixPIMDLangevin::compute_vector(int n)
     } else if (pstyle == ANISO) {
     }
   }
-  
+
   /*
 
   if(n==7) { return p_prim; }

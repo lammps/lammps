@@ -47,7 +47,7 @@ class FixPIMDLangevin : public Fix {
   int np;                                  // number of beads
   double inverse_np;                       // 1.0/np
   double temp;                             // temperature
-  double planck, hbar;                     // Planck's constant
+  double hbar;                             // Planck's constant
   double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
   double other_planck;
   double kBT;              // k_B * temp
@@ -119,8 +119,7 @@ class FixPIMDLangevin : public Fix {
   int tstat_flag;    // tstat_flat = 1 if thermostat if used
   void Langevin_init();
   void b_step();    // integrate for dt/2 according to B part (v <- v + f * dt/2)
-  void
-  a_step();    // integrate for dt/2 according to A part (non-centroid mode, harmonic force between replicas)
+  void a_step();    // integrate for dt/2 according to A part (non-centroid mode, harmonic force between replicas)
   void qc_step();    // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
   void o_step();     // integrate for dt according to O part (O-U process, for thermostating)
 

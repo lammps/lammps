@@ -72,6 +72,8 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nhc_eta_dotdot = nullptr;
   nhc_eta_mass = nullptr;
 
+  spring_energy = t_sys = virial = 0.0;
+
   method = PIMD;
   fmass = 1.0;
   nhc_temp = 298.15;

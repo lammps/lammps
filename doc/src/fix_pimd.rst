@@ -17,15 +17,28 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style = *pimd/langevin* or *pimd/nvt* = style name of this fix command
 * zero or more keyword/value pairs may be appended
-* keyword = *method* or *fmass* or *sp* or *temp* or *nhc*
+* keywords for style *pimd/nvt* 
 
   .. parsed-literal::
-
+       *keywords* = *method* or *fmass* or *sp* or *temp* or *nhc*
        *method* value = *pimd* or *nmpimd* or *cmd*
        *fmass* value = scaling factor on mass
        *sp* value = scaling factor on Planck constant
        *temp* value = temperature (temperarate units)
        *nhc* value = Nc = number of chains in Nose-Hoover thermostat
+
+* keywords for style *pimd/langevin* 
+
+  .. parsed-literal::
+       *keywords* = *method* or *integrator* or *ensemble* or *fmass* or *fmmode* or *scale* or *lj* or *temp* or *thermostat* or *tau* or *press* or *barostat* or *taup* or *iso* or *aniso*
+       *method* value = *nmpimd*
+       *fmass* value = scaling factor on mass
+       *sp* value = scaling factor on Planck constant
+       *temp* value = target temperature (temperarate units)
+       *thermostat* values = PILE_L *seed*
+          *seed* = random number seed
+       *tau* value = thermostat damping parameter (time unit)
+       *press* value = target pressure (pressure units)
 
 Examples
 """"""""

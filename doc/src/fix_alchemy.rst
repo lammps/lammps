@@ -81,15 +81,16 @@ This fix stores a global scalar (the current value of :math:`\lambda_p`)
 and a global vector or length 3 which contains the potential energy of
 the first partition, the second partition and the combined value,
 respectively. The global scalar is unitless and "intensive", the vector
-is in :doc:`energy units <units>` and "extensive".  This values can be
+is in :doc:`energy units <units>` and "extensive".  These values can be
 used by any command that uses a global value from a fix as input.  See
 the :doc:`Howto output <Howto_output>` doc page for an overview of
 LAMMPS output options.
 
 The value of :math:`\lambda_p` is influenced by the *start/stop* keywords
 of the :doc:`run <run>` command.  Without them it will be ramped
-linearly from 1.0 to 0.0 or 0.0 to 1.0 during the steps of a run, with
-*start/stop* keywords the ramp us from the *start* time step to the
+linearly from 1.0 to 0.0 (partition 1) and 0.0 to 1.0 (partition 2) 
+during the steps of a run, with
+*start/stop* keywords the ramp is from the *start* time step to the
 *stop* timestep. This allows to break down a simulation over multiple
 *run* commands or to continue transparently from a restart.
 

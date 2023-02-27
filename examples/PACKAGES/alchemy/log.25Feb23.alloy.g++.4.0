@@ -19,7 +19,7 @@ timestep 0.002
 create_atoms 1 box
 Created 864 atoms
   using lattice units in orthogonal box = (0 0 0) to (22.5 22.5 22.5)
-  create_atoms CPU = 0.000 seconds
+  create_atoms CPU = 0.001 seconds
 displace_atoms all random 0.3 0.3 0.3 57845645
 Displacing atoms ...
 pair_style eam/alloy
@@ -29,9 +29,13 @@ Reading eam/alloy potential file AlCu.eam.alloy with DATE: 2008-10-01
 # replace 5% of copper with aluminium on the second partition only
 if "${name} == alloy" then    "set type 1 type/fraction 2 0.05 6745234"
 
+# define ramp variable to combine the two different partitions
+if "${name} == pure" then                "variable ramp equal ramp(1.0,0.0)"    else                                         "variable ramp equal ramp(0.0,1.0)"
+variable ramp equal ramp(1.0,0.0)
+
 velocity all create 5000.0 6567345
 fix 1 all nvt temp 2500.0 500.0 0.002
-fix 2 all alchemy
+fix 2 all alchemy v_ramp
 
 compute pressure all pressure/alchemy 2
 
@@ -159,7 +163,7 @@ Per MPI rank memory allocation (min/avg/max) = 3.474 | 3.474 | 3.474 Mbytes
       9800   520.37758     -31000.6       -2828.0252      8.0039334     -2886.0741      58.048903      0.02          -2918.4921    
       9900   506.49368     -32223.744     -2830.1705      8.0039334     -2886.6706      56.500132      0.01          -2920.4741    
      10000   507.13597     -33930.476     -2834.3236      8.0039334     -2890.8954      56.571781      0             -2924.5423    
-Loop time of 19.2208 on 2 procs for 10000 steps with 864 atoms
+Loop time of 17.7279 on 2 procs for 10000 steps with 864 atoms
 
 
-Total wall time: 0:00:19
+Total wall time: 0:00:17

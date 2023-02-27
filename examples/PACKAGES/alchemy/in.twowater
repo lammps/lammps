@@ -73,11 +73,17 @@ else &
 velocity all create 300.0 5463576
 timestep 0.2
 
+# define ramp variable to combine the two different partitions
+if "${name} == twowater" then             &
+   "variable ramp equal ramp(1.0,0.0)"    &
+else                                      &
+   "variable ramp equal ramp(0.0,1.0)"
+
 # since the trajectory and forces are kept identical through fix alchemy,
 # we can do fix npt simulations, but we must use the "mixed" pressure
 
 fix integrate all npt temp 300 300 1.0 iso 1.0 1.0 10.0
-fix transform all alchemy
+fix transform all alchemy v_ramp
 compute pressure all pressure/alchemy transform
 fix_modify integrate press pressure
 

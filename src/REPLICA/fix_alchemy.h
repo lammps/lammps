@@ -42,14 +42,15 @@ class FixAlchemy : public Fix {
   MPI_Comm samerank;
   double *commbuf;
   class Compute *pe, *temp, *press;
-  std::string id_pe, id_temp, id_press;
-  double lambda;         // changes from 0 to 1 during run
+  std::string id_pe, id_temp, id_press, id_lambda;
+  double lambda;         // scaling prefactor for combining the partitions
   double epot[3];        // last (unscaled) potential energy from each replica and combined energy
   double pressure[6];    // joined pressure
   int progress;          // for progress indicator
   int sync_box;          // 1 of box dimensions need to be synchronized
   int ilevel_respa;
   int nmax;
+  int ivar;
 };
 }    // namespace LAMMPS_NS
 

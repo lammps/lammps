@@ -1,9 +1,9 @@
 LAMMPS (8 Feb 2023)
 Processor partition = 1
   using 1 OpenMP thread(s) per MPI task
-# Example for alchemical transformation of two water molecules into a hydronium and hydroxyl ion
-# WARNING: This input is intended for demonstrating the method, only
-# The force field parameters are made up and NOT suitable for production simulations.
+# Example for an alchemical transformation of two water molecules into a hydronium and hydroxyl ion
+# WARNING: This input is intended for demonstrating the method only,
+# the force field parameters are mostly made up and NOT suitable for production simulations.
 
 # set up different names for two partitions
 variable name world twowater twoions
@@ -106,7 +106,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-3 neighbors
      1 = max # of 1-4 neighbors
      7 = max # of special neighbors
-  special bonds CPU = 0.000 seconds
+  special bonds CPU = 0.002 seconds
 create_bonds single/bond 2 3 4
 Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        0        0       
@@ -180,11 +180,15 @@ Setting atom values ...
 velocity all create 300.0 5463576
 timestep 0.2
 
+# define ramp variable to combine the two different partitions
+if "${name} == twowater" then                "variable ramp equal ramp(1.0,0.0)"    else                                         "variable ramp equal ramp(0.0,1.0)"
+variable ramp equal ramp(0.0,1.0)
+
 # since the trajectory and forces are kept identical through fix alchemy,
 # we can do fix npt simulations, but we must use the "mixed" pressure
 
 fix integrate all npt temp 300 300 1.0 iso 1.0 1.0 10.0
-fix transform all alchemy
+fix transform all alchemy v_ramp
 compute pressure all pressure/alchemy transform
 fix_modify integrate press pressure
 
@@ -402,21 +406,21 @@ Per MPI rank memory allocation (min/avg/max) = 7.535 | 7.535 | 7.535 Mbytes
      19800   295.68946      81474.342      1996.4567      1.0240743      1907.4359      89.020804      0.99           1910.5545    
      19900   306.4947       43488.052      2048.2997      1.0222707      1956.0258      92.27385       0.995          1957.4368    
      20000   313.31679     -25133.284     -1555.4274      1.0163289     -1649.7551      94.327722      1             -1649.7551    
-Loop time of 11.7903 on 2 procs for 20000 steps with 102 atoms
+Loop time of 8.92592 on 2 procs for 20000 steps with 102 atoms
 
-Performance: 29.312 ns/day, 0.819 hours/ns, 1696.310 timesteps/s, 173.024 katom-step/s
-99.3% CPU use with 2 MPI tasks x 1 OpenMP threads
+Performance: 38.719 ns/day, 0.620 hours/ns, 2240.664 timesteps/s, 228.548 katom-step/s
+96.2% CPU use with 2 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 6.8748     | 8.631      | 10.387     |  59.8 | 73.20
-Bond    | 0.04667    | 0.047105   | 0.04754    |   0.2 |  0.40
-Neigh   | 0.10858    | 0.10862    | 0.10866    |   0.0 |  0.92
-Comm    | 0.74367    | 2.4997     | 4.2558     | 111.1 | 21.20
-Output  | 0.0034405  | 0.0037033  | 0.003966   |   0.4 |  0.03
-Modify  | 0.4338     | 0.4388     | 0.4438     |   0.8 |  3.72
-Other   |            | 0.06136    |            |       |  0.52
+Pair    | 4.7753     | 6.0676     | 7.3599     |  52.5 | 67.98
+Bond    | 0.036352   | 0.036909   | 0.037466   |   0.3 |  0.41
+Neigh   | 0.085317   | 0.085383   | 0.085449   |   0.0 |  0.96
+Comm    | 0.72794    | 2.022      | 3.3161     |  91.0 | 22.65
+Output  | 0.0023255  | 0.005156   | 0.0079865  |   3.9 |  0.06
+Modify  | 0.64567    | 0.64689    | 0.64812    |   0.2 |  7.25
+Other   |            | 0.06196    |            |       |  0.69
 
 Nlocal:             51 ave          51 max          51 min
 Histogram: 2 0 0 0 0 0 0 0 0 0
@@ -430,4 +434,4 @@ Ave neighs/atom = 359.20588
 Ave special neighs/atom = 2.0196078
 Neighbor list builds = 181
 Dangerous builds = 0
-Total wall time: 0:00:11
+Total wall time: 0:00:08

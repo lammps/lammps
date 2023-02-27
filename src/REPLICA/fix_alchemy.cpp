@@ -18,11 +18,13 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "input.h"
 #include "memory.h"
 #include "modify.h"
 #include "respa.h"
 #include "universe.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cstring>
 
@@ -33,8 +35,12 @@ using namespace FixConst;
 
 FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), commbuf(nullptr)
 {
-  if (narg != 3) error->all(FLERR, "Incorrect number of arguments for fix alchemy");
+  if (narg != 4) error->all(FLERR, "Incorrect number of arguments for fix alchemy");
   if (universe->nworlds != 2) error->all(FLERR, "Must use exactly two partitions");
+  if (utils::strmatch(arg[3], "^v_"))
+    id_lambda = arg[3] + 2;
+  else
+    error->all(FLERR, "Must use variable as lambda argument to fix alchemy");
 
   lambda = epot[0] = epot[1] = epot[2] = 0.0;
   progress = 0;
@@ -129,6 +135,14 @@ void FixAlchemy::init()
   if (modify->get_fix_by_style("^alchemy").size() > 1)
     error->all(FLERR, "There may only one fix alchemy at a time");
 
+  ivar = input->variable->find(id_lambda.c_str());
+  if (ivar < 0)
+    error->universe_one(FLERR, fmt::format("Variable {} for fix alchemy does not exist", id_lambda));
+  if (!input->variable->equalstyle(ivar))
+    error->universe_one(FLERR,
+                        fmt::format("Variable {} for fix alchemy is invalid style", id_lambda));
+  lambda = input->variable->compute_equal(ivar);
+
   // synchronize box dimensions, determine if resync during run will be needed.
 
   synchronize_box(domain, samerank);
@@ -152,7 +166,10 @@ void FixAlchemy::setup(int vflag)
   }
 
   if (universe->me == 0) {
-    progress = static_cast<int>(100.0 - lambda * 100.0);
+    double delta = update->ntimestep - update->beginstep;
+    if ((delta != 0.0) && (update->beginstep != update->endstep))
+          delta /= update->endstep - update->beginstep;
+    progress = static_cast<int>(delta*100.0);
     auto msg = fmt::format("Starting alchemical transformation at {:>3d}%\n", progress);
     if (universe->uscreen) fmt::print(universe->uscreen, msg);
     if (universe->ulogfile) fmt::print(universe->ulogfile, msg);
@@ -175,16 +192,6 @@ void FixAlchemy::post_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-static double get_lambda(const bigint &step, const bigint &begin, const bigint &end, int iworld)
-{
-  double lambda = step - begin;
-  if (lambda != 0.0) lambda /= end - begin;
-  if (iworld == 0) lambda = 1.0 - lambda;
-  return lambda;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixAlchemy::post_force(int /*vflag*/)
 {
   if (3 * atom->nmax > nmax) {
@@ -194,7 +201,7 @@ void FixAlchemy::post_force(int /*vflag*/)
 
   const int nall = 3 * atom->nlocal;
   double *f = &atom->f[0][0];
-  lambda = get_lambda(update->ntimestep, update->beginstep, update->endstep, universe->iworld);
+  lambda = input->variable->compute_equal(ivar);
 
   for (int i = 0; i < nall; ++i) commbuf[i] = f[i] * lambda;
   MPI_Allreduce(commbuf, f, nall, MPI_DOUBLE, MPI_SUM, samerank);
@@ -218,7 +225,10 @@ void FixAlchemy::post_force(int /*vflag*/)
   // print progress info
 
   if (universe->me == 0) {
-    int status = static_cast<int>(100.0 - lambda * 100.0);
+    double delta = update->ntimestep - update->beginstep;
+    if ((delta != 0.0) && (update->beginstep != update->endstep))
+      delta /= update->endstep - update->beginstep;
+    int status = static_cast<int>(delta*100.0);
     if ((status / 10) > (progress / 10)) {
       progress = status;
       auto msg = fmt::format("  Alchemical transformation progress: {:>3d}%\n", progress);

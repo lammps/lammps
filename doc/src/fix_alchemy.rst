@@ -43,6 +43,13 @@ are not easily possible with :doc:`pair style hybrid/scaled
 <pair_hybrid>`, :doc:`fix adapt <fix_adapt>` or :doc:`fix adapt/fep
 <fix_adapt_fep>`.
 
+.. note::
+
+   Since the definition of the variable to provide the :math:`\lambda_p` is
+   independent in the two partitions, no check is made that the two values
+   remain between 0.0 and 1.0 and that they add up to 1.0.  So care needs to
+   be taken when defining those variables that this is the case.
+
 Due to the specifics of the implementation, the initial geometry and
 dimensions of the system must be exactly the same and the fix will
 synchronize them during the run.  It is thus not possible to initialize

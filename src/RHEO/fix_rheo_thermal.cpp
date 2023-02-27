@@ -230,7 +230,7 @@ void FixRHEOThermal::post_integrate()
       if (status[i] == FixRHEO::FLUID_NO_FORCE) continue;
 
       cvi = calc_cv(i);
-      temperature[i] += dtf*heat[i]/cvi;
+      temperature[i] += dtf * heat[i] / cvi;
 
       if (Tc_style != NONE) {
         Ti = temperature[i];

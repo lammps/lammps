@@ -11,46 +11,36 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef FIX_CLASS
 // clang-format off
-PairStyle(rheo,PairRHEO)
+FixStyle(rheo/pressure,FixRHEOPressure)
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_RHEO_H
-#define LMP_PAIR_RHEO_H
+#ifndef LMP_FIX_RHEO_PRESSURE_H
+#define LMP_FIX_RHEO_PRESSURE_H
 
-#include "pair.h"
+#include "fix.h"
 
 namespace LAMMPS_NS {
 
-class PairRHEO : public Pair {
+class FixRHEOPressure : public Fix {
  public:
-  PairRHEO(class LAMMPS *);
-  ~PairRHEO() override;
-  void compute(int, int) override;
-  void settings(int, char **) override;
-  void coeff(int, char **) override;
-  void setup() override;
-  double init_one(int, int) override;
-
- protected:
-  double h, csq, rho0;        // From fix RHEO
-
-  double cs, hsq, hinv, av, rho_damp;
-
-  int laplacian_order;
-  int artificial_visc_flag;
-  int rho_damp_flag;
-  int thermal_flag;
-
-  void allocate();
-
-  class ComputeRHEOKernel *compute_kernel;
-  class ComputeRHEOGrad *compute_grad;
-  class ComputeRHEOInterface *compute_interface;
+  FixRHEOPressure(class LAMMPS *, int, char **);
+  ~FixRHEOPressure() override;
+  int setmask() override;
+  void init() override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double calculate_p(double);
+ private:
+  double c_cubic, csq, rho0, rho0inv;
+  int pressure_style;
+  int first_flag, last_flag;
+  int nmax;
   class FixRHEO *fix_rheo;
-  class FixRHEOPressure *fix_rheo_pressure;
 };
 
 }    // namespace LAMMPS_NS

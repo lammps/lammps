@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
+#include "fix_rheo_pressure.h"
 #include "force.h"
 #include "math_extra.h"
 #include "memory.h"
@@ -41,7 +42,7 @@ using namespace MathExtra;
 
 PairRHEO::PairRHEO(LAMMPS *lmp) :
   Pair(lmp), compute_kernel(nullptr), compute_grad(nullptr),
-  compute_interface(nullptr), fix_rheo(nullptr)
+  compute_interface(nullptr), fix_rheo(nullptr), fix_rheo_pressure(nullptr)
 {
   restartinfo = 0;
   single_enable = 0;
@@ -69,33 +70,15 @@ void PairRHEO::compute(int eflag, int vflag)
   int error_flag, pair_force_flag, pair_rho_flag, pair_avisc_flag;
   double xtmp, ytmp, ztmp;
   int fluidi, fluidj;
-
-  int *ilist, *jlist, *numneigh, **firstneigh;
-  double imass, jmass, rsq, r, rinv;
-
+  double imass, jmass, rsq, r, rinv, psi_ij, Fij;
   double w, wp, rhoi, rhoj, voli, volj, Pi, Pj;
-  double *dWij, *dWji, *d2Wij, *d2Wji, *dW1ij, *dW1ji;
-  double vijeij, etai, etaj, kappai, kappaj;
-  double Ti, Tj, dT;
-  double drho_damp, fmag;
-  double mu, q, fp_prefactor;
-  double dx[3] = {0};
-  double fv[3] = {0};
-  double dfp[3] = {0};
-  double fsolid[3] = {0};
-  double du[3] = {0};
-  double vi[3] = {0};
-  double vj[3] = {0};
-  double dv[3] = {0};
-  double psi_ij = 0.0;
-  double Fij = 0.0;
+  double *dWij, *dWji, *d2Wij, *d2Wji;
+  double Ti, Tj, dT, etai, etaj, kappai, kappaj;
+  double drho_damp, fmag, mu, q, fp_prefactor;
+  double dx[3], fv[3], dfp[3], fsolid[3], du[3], vi[3], vj[3];
 
   ev_init(eflag, vflag);
 
-  double **gradv = compute_grad->gradv;
-  double **gradt = compute_grad->gradt;
-  double **gradr = compute_grad->gradr;
-  double **gradn = compute_grad->gradn;
   double **v = atom->v;
   double **x = atom->x;
   double **f = atom->f;
@@ -104,16 +87,20 @@ void PairRHEO::compute(int eflag, int vflag)
   double *drho = atom->drho;
   double *temperature = atom->temperature;
   double *heatflow = atom->heatflow;
+  double **gradv = compute_grad->gradv;
+  double **gradt = compute_grad->gradt;
+  double **gradr = compute_grad->gradr;
+  double **gradn = compute_grad->gradn;
   double *chi = compute_interface->chi;
   double **f_pressure = fix_rheo->f_pressure;
   double *viscosity = fix_rheo->viscosity;
   double *conductivity = fix_rheo->conductivity;
   double *pressure = fix_rheo->pressure;
-  double *special_lj = force->special_lj;
   tagint *tag = atom->tag;
   int *type = atom->type;
   int *status = atom->status;
 
+  int *ilist, *jlist, *numneigh, **firstneigh;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
   int dim = domain->dimension;
@@ -142,7 +129,6 @@ void PairRHEO::compute(int eflag, int vflag)
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       dx[0] = xtmp - x[j][0];
@@ -152,7 +138,7 @@ void PairRHEO::compute(int eflag, int vflag)
       jtype = type[j];
       jmass = mass[jtype];
 
-      if (rsq < cutsq[itype][jtype]) {
+      if (rsq < hsq) {
         r = sqrt(rsq);
         rinv = 1 / r;
 
@@ -181,7 +167,6 @@ void PairRHEO::compute(int eflag, int vflag)
           vj[a] = v[j][a];
         }
 
-        // TODO: search for fix pressure and add calculate P function
         // Add corrections for walls
         rhoi = rho[i];
         rhoj = rho[j];
@@ -191,14 +176,14 @@ void PairRHEO::compute(int eflag, int vflag)
         if (fluidi && (!fluidj)) {
           compute_interface->correct_v(v[i], v[j], vi, i, j);
           rhoj = compute_interface->correct_rho(j, i);
-          Pj = fix_pressure->calculate_P(rhoj);
+          Pj = fix_rheo_pressure->calculate_p(rhoj);
           if ((chi[j] > 0.9) && (r < (h * 0.5)))
             fmag = (chi[j] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
 
         } else if ((!fluidi) && fluidj) {
           compute_interface->correct_v(v[j], v[i], vj, j, i);
           rhoi = compute_interface->correct_rho(i,j);
-          Pi = fix_pressure->calculate_P(rhoi);
+          Pi = fix_rheo_pressure->calculate_p(rhoi);
           if ((chi[i] > 0.9) && (r < (h * 0.5)))
             fmag = (chi[i] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
 
@@ -429,8 +414,12 @@ void PairRHEO::coeff(int narg, char **arg)
 void PairRHEO::setup()
 {
   auto fixes = modify->get_fix_by_style("rheo");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use pair rheo");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
+
+  fixes = modify->get_fix_by_style("rheo/pressure");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo/pressure to use pair rheo");
+  fix_rheo_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
 
   compute_kernel = fix_rheo->compute_kernel;
   compute_grad = fix_rheo->compute_grad;

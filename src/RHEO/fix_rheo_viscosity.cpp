@@ -44,13 +44,13 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
   int ntypes = atom->ntypes;
   int iarg = 3;
   if (strcmp(arg[iarg],"constant") == 0) {
-    if (iarg+1 >= narg) error->all(FLERR,"Insufficient arguments for viscosity option");
+    if (iarg + 1 >= narg) error->all(FLERR,"Insufficient arguments for viscosity option");
     viscosity_style = CONSTANT;
     eta = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
     if (eta < 0.0) error->all(FLERR,"The viscosity must be positive");
     iarg += 1;
   } else if (strcmp(arg[iarg],"type") == 0) {
-    if(iarg+ntypes >= narg) error->all(FLERR,"Insufficient arguments for viscosity option");
+    if (iarg + ntypes >= narg) error->all(FLERR,"Insufficient arguments for viscosity option");
     viscosity_style = TYPE;
     memory->create(eta_type, ntypes + 1, "rheo_thermal:eta_type");
     for (int i = 1; i <= ntypes; i++) {
@@ -59,7 +59,7 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
     }
     iarg += ntypes;
   } else if (strcmp(arg[iarg],"power") == 0) {
-    if (iarg+4 >= narg) error->all(FLERR,"Insufficient arguments for viscosity option");
+    if (iarg + 4 >= narg) error->all(FLERR,"Insufficient arguments for viscosity option");
     viscosity_style = POWER;
     comm_forward = 1;
     eta = utils::numeric(FLERR,arg[iarg + 1],false,lmp);

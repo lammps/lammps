@@ -1346,6 +1346,13 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackExchange, const int &m
 
   for (int m = 0; m < nprev; m++) d_exchange_buf(mysend,m) = d_s_hist(i,m);
   for (int m = 0; m < nprev; m++) d_exchange_buf(mysend,nprev+m) = d_t_hist(i,m);
+
+  const int j = d_copylist(mysend);
+
+  if (j > -1) {
+    for (int m = 0; m < nprev; m++) d_s_hist(i,m) = d_s_hist(j,m);
+    for (int m = 0; m < nprev; m++) d_t_hist(i,m) = d_t_hist(j,m);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

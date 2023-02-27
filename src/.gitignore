@@ -1581,6 +1581,8 @@
 /pair_coul_long_cs.h
 /pair_coul_wolf_cs.cpp
 /pair_coul_wolf_cs.h
+/pair_born_gauss.cpp
+/pair_born_gauss.h
 /pair_extep.cpp
 /pair_extep.h
 /pair_lj_cut_thole_long.cpp

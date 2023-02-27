@@ -317,6 +317,7 @@ Bogaerts
 Bogusz
 Bohrs
 boltz
+Bomont
 BondAngle
 BondBond
 bondchk
@@ -355,6 +356,7 @@ br
 Branduardi
 Branicio
 brennan
+Bretonnet
 Briels
 Brien
 Brilliantov

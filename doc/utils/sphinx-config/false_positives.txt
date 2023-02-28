@@ -1,5 +1,6 @@
 aa
 aat
+Abascal
 abc
 abf
 ABI
@@ -1985,6 +1986,7 @@ magelec
 Maginn
 magneton
 magnetons
+Mahoney
 mainboard
 mainboards
 makefile
@@ -3186,6 +3188,7 @@ Sandia
 sandybrown
 sanitizer
 Sanyal
+Sanz
 Sarath
 sc
 scafacos

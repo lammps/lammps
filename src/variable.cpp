@@ -239,7 +239,7 @@ void Variable::set(int narg, char **arg)
     style[nvar] = WORLD;
     num[nvar] = narg - 2;
     if (num[nvar] != universe->nworlds)
-      error->all(FLERR,"World variable count doesn't match # of partitions");
+      error->universe_all(FLERR,"World variable count doesn't match # of partitions");
     which[nvar] = universe->iworld;
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];

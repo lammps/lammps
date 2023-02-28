@@ -256,7 +256,7 @@ for command_type, entries in index.items():
 print("Total number of style index entries:", total_index)
 
 skip_angle = ('sdk')
-skip_fix = ('python', 'NEIGH_HISTORY/omp','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species')
+skip_fix = ('python', 'NEIGH_HISTORY/omp','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species', 'pimd')
 skip_pair = ('meam/c','lj/sf','reax/c','lj/sdk','lj/sdk/coul/long','lj/sdk/coul/msm')
 skip_compute = ('pressure/cylinder')
 
@@ -286,7 +286,7 @@ if counter:
 counter = 0
 
 counter += check_style_index("compute", compute, index["compute"], skip=['pressure/cylinder'])
-counter += check_style_index("fix", fix, index["fix"], skip=['python','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species'])
+counter += check_style_index("fix", fix, index["fix"], skip=['python','acks2/reax','qeq/reax','reax/c/bonds','reax/c/species','pimd'])
 counter += check_style_index("angle_style", angle, index["angle_style"], skip=['sdk'])
 counter += check_style_index("bond_style", bond, index["bond_style"])
 counter += check_style_index("dihedral_style", dihedral, index["dihedral_style"])

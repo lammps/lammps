@@ -1465,6 +1465,8 @@
 /zstd_file_writer.cpp
 /zstd_file_writer.h
 
+/compute_pressure_alchemy.cpp
+/compute_pressure_alchemy.h
 /atom_vec_smd.cpp
 /atom_vec_smd.h
 /compute_saed.cpp
@@ -1531,8 +1533,10 @@
 /fix_langevin_drude.h
 /fix_mol_swap.cpp
 /fix_mol_swap.h
-/fix_pimd.cpp
-/fix_pimd.h
+/fix_alchemy.cpp
+/fix_alchemy.h
+/fix_pimd_nvt.cpp
+/fix_pimd_nvt.h
 /fix_qbmsst.cpp
 /fix_qbmsst.h
 /fix_qtb.cpp

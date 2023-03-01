@@ -175,7 +175,6 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
   // store atom counts used for new neighbor list which was just built
 
   nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
 
   // realloc firstflag and firstvalue if needed
 

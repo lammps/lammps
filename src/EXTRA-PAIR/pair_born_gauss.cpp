@@ -363,6 +363,8 @@ double PairBornGauss::single(int /*i*/, int /*j*/, int itype, int jtype, double 
 void *PairBornGauss::extract(const char *str, int &dim)
 {
   dim = 2;
+  if (strcmp(str, "biga0") == 0) return (void *) biga0;
   if (strcmp(str, "biga1") == 0) return (void *) biga1;
+  if (strcmp(str, "r0") == 0) return (void *) r0;
   return nullptr;
 }

@@ -12,7 +12,9 @@ pair_style: born/gauss 8.0
 pair_coeff: ! |
   * * 8.2464e13 12.48 0.042644277 0.44 3.56
 extract: ! |
+  biga0 2
   biga1 2
+  r0 2
 natoms: 32
 init_vdwl: 2834.5490463003366
 init_coul: 0

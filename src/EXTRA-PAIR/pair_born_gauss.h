@@ -44,7 +44,7 @@ class PairBornGauss : public Pair {
   void *extract(const char *, int &) override;
 
  protected:
-  double cut_global, temperature;
+  double cut_global;
   double **cut;
   double **biga0, **alpha, **biga1, **beta, **r0;
   double **offset;

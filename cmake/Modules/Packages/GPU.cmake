@@ -62,7 +62,7 @@ if(GPU_API STREQUAL "CUDA")
     if(CUDPP_OPT)
       message(FATAL_ERROR "Must use -DCUDPP_OPT=OFF with -DCUDA_MPS_SUPPORT=ON")
     endif()
-    set(GPU_CUDA_MPS_FLAGS "-DCUDA_PROXY -DCUDA_MPS_SUPPORT")
+    set(GPU_CUDA_MPS_FLAGS "-DCUDA_MPS_SUPPORT")
   endif()
 
   set(GPU_ARCH "sm_50" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")

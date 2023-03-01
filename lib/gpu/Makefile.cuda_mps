@@ -30,7 +30,7 @@ AR = ar
 BSH = /bin/sh
 
 CUDPP_OPT =
-CUDA_MPS  = -DCUDA_PROXY -DCUDA_MPS_SUPPORT
+CUDA_MPS  = -DCUDA_MPS_SUPPORT
 
 # device code compiler and settings
 

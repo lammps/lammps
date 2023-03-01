@@ -36,6 +36,7 @@ using namespace MathConst;
 
 PairBuckCoulCut::PairBuckCoulCut(LAMMPS *lmp) : Pair(lmp)
 {
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -471,6 +472,43 @@ double PairBuckCoulCut::single(int i, int j, int itype, int jtype, double rsq, d
     eng += factor_lj * phibuck;
   }
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairBuckCoulCut::born_matrix(int i, int j, int itype, int jtype, double rsq,
+                            double factor_coul, double factor_lj, double &dupair,
+                            double &du2pair)
+{
+  double rinv, r2inv, r3inv, r6inv, r7inv, r8inv, r, rexp;
+  double du_lj, du2_lj, du_coul, du2_coul;
+
+  double *q = atom->q;
+  double qqrd2e = force->qqrd2e;
+
+  r = sqrt(rsq);
+  rexp = exp(-r*rhoinv[itype][jtype]);
+
+  r2inv = 1.0 / rsq;
+  rinv = sqrt(r2inv);
+  r3inv = r2inv * rinv;
+  r6inv = r2inv * r2inv * r2inv;
+  r7inv = r6inv * rinv;
+  r8inv = r6inv * r2inv;
+
+  // Reminder: buck1[itype][jtype] = a[itype][jtype]/rho[itype][jtype];
+  // Reminder: buck2[itype][jtype] = 6.0*c[itype][jtype];
+
+  du_lj = buck2[itype][jtype] * r7inv - buck1[itype][jtype] * rexp;
+  du2_lj = (buck1[itype][jtype] / rho[itype][jtype]) * rexp - 7 * buck2[itype][jtype] * r8inv;
+
+  // Reminder: qqrd2e converts  q^2/r to energy w/ dielectric constant
+
+  du_coul = -qqrd2e * q[i] * q[j] * r2inv;
+  du2_coul = 2.0 * qqrd2e * q[i] * q[j] * r3inv;
+
+  dupair = factor_lj * du_lj + factor_coul * du_coul;
+  du2pair = factor_lj * du2_lj + factor_coul * du2_coul;
 }
 
 /* ---------------------------------------------------------------------- */

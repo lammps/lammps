@@ -431,6 +431,7 @@ void NeighborKokkosExecute<DeviceType>::
   for (int m = 0; m < c_bincount(ibin); m++) {
     const int j = c_bins(ibin,m);
 
+    if (j <= i) continue;
     if (j >= nlocal) {
       if (x(j,2) < ztmp) continue;
       if (x(j,2) == ztmp) {
@@ -634,6 +635,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
       for (int m = 0; m < bincount_current; m++) {
         int j = other_id[m];
 
+        if (j <= i) continue;
         if (j >= nlocal) {
           if (x(j,2) < ztmp) continue;
           if (x(j,2) == ztmp) {
@@ -1102,6 +1104,7 @@ void NeighborKokkosExecute<DeviceType>::
   for (int m = 0; m < c_bincount(ibin); m++) {
     const int j = c_bins(ibin,m);
 
+    if (j <= i) continue;
     if (j >= nlocal) {
       if (x(j,2) < ztmp) continue;
       if (x(j,2) == ztmp) {
@@ -1255,6 +1258,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       for (int m = 0; m < bincount_current; m++) {
         int j = other_id[m];
 
+        if (j <= i) continue;
         if (j >= nlocal) {
           if (x(j,2) < ztmp) continue;
           if (x(j,2) == ztmp) {

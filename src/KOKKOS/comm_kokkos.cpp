@@ -80,7 +80,6 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   max_buf_fix = 0;
   k_buf_send_fix = DAT::tdual_xfloat_1d("comm:k_buf_send_fix",1);
   k_buf_recv_fix = DAT::tdual_xfloat_1d("comm:k_recv_send_fix",1);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,6 +147,44 @@ void CommKokkos::init()
 
   if (ghost_velocity && atomKK->avecKK->no_comm_vel_flag) // not all Kokkos atom_vec styles have comm vel pack/unpack routines yet
     forward_comm_classic = true;
+
+  if (!exchange_comm_classic) {
+    if (atom->nextra_grow) {
+
+      // check if all fixes with atom-based arrays support exchange on device
+
+      bool flag = true;
+      for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+        auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+        if (!fix_iextra->exchange_comm_device) {
+          flag = false;
+          break;
+        }
+
+        if (!atomKK->avecKK->unpack_exchange_indices_flag || !flag) {
+          if (comm->me == 0) {
+            if (!atomKK->avecKK->unpack_exchange_indices_flag)
+              error->warning(FLERR,"Atom style not compatible with fix sending data in Kokkos communication, "
+                             "switching to classic exchange/border communication");
+            else if (!flag)
+              error->warning(FLERR,"Fix with atom-based arrays not compatible with sending data in Kokkos communication, "
+                             "switching to classic exchange/border communication");
+          }
+          exchange_comm_classic = true;
+        }
+      }
+
+      if (atom->nextra_border || mode != Comm::SINGLE || bordergroup ||
+           (ghost_velocity && atomKK->avecKK->no_border_vel_flag)) {
+
+        if (comm->me == 0) {
+          error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "
+                        "switching to classic exchange/border communication");
+        }
+        exchange_comm_classic = true;
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -643,35 +680,6 @@ void CommKokkos::reverse_comm(Dump *dump)
 void CommKokkos::exchange()
 {
   if (!exchange_comm_classic) {
-    if (atom->nextra_grow + atom->nextra_border) {
-
-      // check if all fixes with atom-based arrays derive from KokkosBase so we can enable exchange on device
-      // we are assuming that every fix with atom-based arrays need to send info during exchange
-      bool fix_flag = true;
-      for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-        if (!dynamic_cast<KokkosBase*>(modify->fix[atom->extra_grow[iextra]])) {
-          fix_flag = false;
-          break;
-        }
-      }
-
-      if (!atomKK->avecKK->unpack_exchange_indices_flag || !fix_flag) {
-        static int print = 1;
-        if (print && comm->me == 0) {
-          if (!atomKK->avecKK->unpack_exchange_indices_flag)
-            error->warning(FLERR,"Atom style not compatible with fix sending data in Kokkos communication, "
-                           "switching to classic exchange/border communication");
-          if (!fix_flag)
-            error->warning(FLERR,"Fix with atom-based arrays not compatible with sending data in Kokkos communication, "
-                           "switching to classic exchange/border communication");
-        }
-        print = 0;
-        exchange_comm_classic = true;
-      }
-    }
-  }
-
-  if (!exchange_comm_classic) {
     if (exchange_comm_on_host) exchange_device<LMPHostType>();
     else exchange_device<LMPDeviceType>();
     return;
@@ -812,7 +820,7 @@ void CommKokkos::exchange_device()
       k_exchange_copylist.modify<LMPHostType>();
       k_exchange_copylist.sync<DeviceType>();
       nsend = k_count.h_view();
-      if (nsend > maxsend) grow_send_kokkos(nsend,1);
+      if (nsend > maxsend) grow_send_kokkos(nsend,0);
       nsend =
         atomKK->avecKK->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
                                    k_exchange_sendlist,k_exchange_copylist,
@@ -827,7 +835,7 @@ void CommKokkos::exchange_device()
       // if 2 procs in dimension, single send/recv
       // if more than 2 procs in dimension, send/recv to both neighbors
 
-      const int data_size = atom->avec->size_border+atom->avec->size_velocity+2;
+      const int data_size = atomKK->avecKK->size_border+atomKK->avecKK->size_velocity+2;
       DAT::tdual_int_1d k_indices;
 
       if (procgrid[dim] == 1) nrecv = 0;
@@ -872,9 +880,13 @@ void CommKokkos::exchange_device()
 
       if (atom->nextra_grow) {
         for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-          KokkosBase *kkbase = dynamic_cast<KokkosBase*>(modify->fix[atom->extra_grow[iextra]]);
+          auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+          KokkosBase *kkbase = dynamic_cast<KokkosBase*>(fix_iextra);
           int nextrasend = 0;
-          if (k_count.h_view()) {
+          nsend = k_count.h_view();
+          if (nsend) {
+            if (nsend*fix_iextra->maxexchange > maxsend)
+              grow_send_kokkos(nsend*fix_iextra->maxexchange,0);
             nextrasend = kkbase->pack_exchange_kokkos(
               k_count.h_view(),k_buf_send,k_exchange_sendlist,k_exchange_copylist,
               ExecutionSpaceFromDevice<DeviceType>::space);
@@ -949,20 +961,6 @@ void CommKokkos::exchange_device()
 
 void CommKokkos::borders()
 {
-  if (!exchange_comm_classic) {
-    static int print = 1;
-
-    if (mode != Comm::SINGLE || bordergroup ||
-         (ghost_velocity && atomKK->avecKK->no_border_vel_flag)) {
-      if (print && comm->me==0) {
-        error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "
-                      "switching to classic exchange/border communication");
-      }
-      print = 0;
-      exchange_comm_classic = true;
-    }
-  }
-
   if (!exchange_comm_classic) {
     if (exchange_comm_on_host) borders_device<LMPHostType>();
     else borders_device<LMPDeviceType>();
@@ -1354,8 +1352,9 @@ void CommKokkos::grow_recv(int n)
 
 void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 {
+
   maxsend = static_cast<int> (BUFFACTOR * n);
-  int maxsend_border = (maxsend+BUFEXTRA+5)/atomKK->avecKK->size_border + 2;
+  int maxsend_border = (maxsend+BUFEXTRA)/atomKK->avecKK->size_border;
   if (flag) {
     if (space == Device)
       k_buf_send.modify<LMPDeviceType>();
@@ -1368,16 +1367,13 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
     else
       k_buf_send.resize(maxsend_border,atomKK->avecKK->size_border);
     buf_send = k_buf_send.view<LMPHostType>().data();
-  }
-  else {
+  } else {
     if (ghost_velocity)
-      k_buf_send = DAT::
-        tdual_xfloat_2d("comm:k_buf_send",
-                        maxsend_border,
+      MemoryKokkos::realloc_kokkos(k_buf_send,"comm:k_buf_send",maxsend_border,
                         atomKK->avecKK->size_border + atomKK->avecKK->size_velocity);
     else
-      k_buf_send = DAT::
-        tdual_xfloat_2d("comm:k_buf_send",maxsend_border,atomKK->avecKK->size_border);
+      MemoryKokkos::realloc_kokkos(k_buf_send,"comm:k_buf_send",maxsend_border,
+                        atomKK->avecKK->size_border);
     buf_send = k_buf_send.view<LMPHostType>().data();
   }
 }
@@ -1389,9 +1385,10 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace /*space*/)
 {
   maxrecv = static_cast<int> (BUFFACTOR * n);
-  int maxrecv_border = (maxrecv+BUFEXTRA+5)/atomKK->avecKK->size_border + 2;
-  k_buf_recv = DAT::
-    tdual_xfloat_2d("comm:k_buf_recv",maxrecv_border,atomKK->avecKK->size_border);
+  int maxrecv_border = (maxrecv+BUFEXTRA)/atomKK->avecKK->size_border;
+
+  MemoryKokkos::realloc_kokkos(k_buf_recv,"comm:k_buf_recv",maxrecv_border,
+    atomKK->avecKK->size_border);
   buf_recv = k_buf_recv.view<LMPHostType>().data();
 }
 

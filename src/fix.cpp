@@ -109,7 +109,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   datamask_modify = ALL_MASK;
 
   kokkosable = 0;
-  forward_comm_device = 0;
+  forward_comm_device = exchange_comm_device = 0;
   copymode = 0;
 }
 

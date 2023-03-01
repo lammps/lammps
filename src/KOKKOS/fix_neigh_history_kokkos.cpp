@@ -32,6 +32,7 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
   FixNeighHistory(lmp, narg, arg)
 {
   kokkosable = 1;
+  exchange_comm_device = 1;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 

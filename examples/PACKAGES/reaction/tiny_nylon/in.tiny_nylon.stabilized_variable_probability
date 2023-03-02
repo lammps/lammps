@@ -19,6 +19,9 @@ dihedral_style class2
 
 improper_style class2
 
+special_bonds lj/coul 0 0 1
+pair_modify tail yes mix sixthpower
+
 read_data tiny_nylon.data &
   extra/bond/per/atom 5  &
   extra/angle/per/atom 15 &

@@ -371,7 +371,7 @@ is *no*, which means the system must be non-periodic when using a wall.
 But you may wish to use a periodic box.  E.g. to allow some particles to
 interact with the wall via the fix group-ID, and others to pass through
 it and wrap around a periodic box.  In this case you should ensure that
-the wall if sufficiently far enough away from the box boundary.  If you
+the wall is sufficiently far enough away from the box boundary.  If you
 do not, then particles may interact with both the wall and with periodic
 images on the other side of the box, which is probably not what you
 want.

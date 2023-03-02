@@ -81,7 +81,7 @@ FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *_lmp, int narg, char **arg) :
   double tol = utils::numeric(FLERR, arg[4], false, lmp);
   tol_abs = tol_rel = tol;
 
-  itr_max = 20;
+  itr_max = 50;
   mr = 0;
   randomized = 0;
   ave_charge = 0;

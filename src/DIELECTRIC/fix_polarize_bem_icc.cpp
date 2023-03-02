@@ -67,7 +67,7 @@ FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *_lmp, int narg, char **arg) : Fix(_
   double tol = utils::numeric(FLERR, arg[4], false, lmp);
   tol_abs = tol_rel = tol;
 
-  itr_max = 20;
+  itr_max = 50;
   omega = 0.7;
   randomized = 0;
   ave_charge = 0;

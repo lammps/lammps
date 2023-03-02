@@ -31,7 +31,7 @@ Examples
 
    fix 2 interface polarize/bem/gmres 5 0.0001
    fix 1 interface polarize/bem/icc 1 0.0001
-   fix 3 interface polarize/functional 1 0.001
+   fix 3 interface polarize/functional 1 0.0001
 
 
 Used in input scripts:
@@ -69,8 +69,9 @@ along the normal vector is then 78 - 4 = 74, the mean dielectric value
 is (78 + 4) / 2 = 41. Each boundary element also has its area and the
 local mean curvature, which is used by these fixes for computing a
 correction term in the local electric field.  To model charged
-interfaces, the interface particle will have a non-zero charge value,
-coming from its area and surface charge density.
+interfaces, an interface particle will have a non-zero charge value,
+coming from its area and surface charge density, and its local dielectric
+constant set to the mean dielectric value.
 
 For non-interface particles such as atoms and charged particles, the
 interface normal vectors, element area, and dielectric mismatch are
@@ -223,7 +224,7 @@ Related commands
 Default
 """""""
 
-*iter_max* = 20
+*iter_max* = 50
 
 *kspace* = yes
 

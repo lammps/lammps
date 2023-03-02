@@ -205,8 +205,7 @@ $(CUDA_HOME)/lib64/stubs), that can be used for linking.
 Best performance with the GPU library is typically with multiple MPI processes
 sharing the same GPU cards. For NVIDIA, this is most efficient with CUDA
 MPS enabled. To prevent runtime errors for GPUs configured in exclusive process
-mode with MPS, the GPU library should be build with either of the equivalent
--DCUDA_MPS_SUPPORT or -DCUDA_PROXY flags.
+mode with MPS, the GPU library should be build with the -DCUDA_MPS_SUPPORT flag.
 
 ------------------------------------------------------------------------------
                              HIP BUILD NOTES
@@ -244,7 +243,6 @@ _SINGLE_SINGLE          Build library for single precision mode
 _SINGLE_DOUBLE          Build library for mixed precision mode
 _DOUBLE_DOUBLE          Build library for double precision mode
 CUDA_MPS_SUPPORT        Do not generate errors for exclusive mode for CUDA
-CUDA_PROXY              Same as above
 MPI_GERYON              Library should use MPI_Abort for unhandled errors
 GERYON_NUMA_FISSION     Accelerators with main memory NUMA are split into
                         multiple virtual accelerators for each NUMA node

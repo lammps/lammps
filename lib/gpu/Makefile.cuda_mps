@@ -30,7 +30,7 @@ AR = ar
 BSH = /bin/sh
 
 CUDPP_OPT =
-CUDA_MPS  = -DCUDA_PROXY
+CUDA_MPS  = -DCUDA_MPS_SUPPORT
 
 # device code compiler and settings
 
@@ -53,7 +53,7 @@ BIN2C = $(CUDA_HOME)/bin/bin2c
 
 CUDR_CPP = mpicxx -fopenmp -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC
 CUDR_OPTS = -O2 $(LMP_INC)
-CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_PROXY) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
+CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_MPS) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
          $(CUDPP_OPT)
 
 # Headers for Geryon

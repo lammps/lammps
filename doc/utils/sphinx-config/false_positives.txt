@@ -438,6 +438,7 @@ cfile
 CFL
 cgdna
 CGDNA
+cgmap
 cgs
 cgsdk
 CGSDK
@@ -1792,6 +1793,7 @@ lammps
 Lammps
 LAMMPS
 lammpsbin
+lammpsdata
 lammpsplot
 lammpsplugin
 Lamoureux
@@ -2072,6 +2074,7 @@ mdi
 MDI
 mdpd
 mDPD
+mdtraj
 meam
 MEAM
 meamf

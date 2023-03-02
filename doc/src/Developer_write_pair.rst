@@ -1,10 +1,10 @@
 Writing new pair styles
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Pair styles are at the core of most simulations with LAMMPS since they
+Pair styles are at the core of most simulations with LAMMPS, since they
 are used to compute the forces (plus energy and virial contributions, if
 needed) on atoms for pairs of atoms within a given cutoff.  This is
-often the dominant computation in LAMMPS and sometimes even the only
+often the dominant computation in LAMMPS, and sometimes even the only
 one.  Pair styles can be grouped in multiple categories:
 
 #. simple pairwise additive interactions of point particles
@@ -17,31 +17,31 @@ one.  Pair styles can be grouped in multiple categories:
 #. complex interactions that include additional per-atom properties
    (e.g. Discrete Element Models (DEM), Peridynamics, Ellipsoids)
 
-In the text below we will discuss aspects of implementing pair styles in
-LAMMPS by looking at representative case studies.  The design of LAMMPS
-allows to focus on the essentials, which is to compute the forces (and
-energies or virial contributions), enter and manage the global settings
-as well as the potential parameters, and the pair style specific parts
-of reading and writing restart and data files.  Most of the complex
-tasks like management of the atom positions, domain decomposition and
-boundaries, or neighbor list creation are handled transparently by other
-parts of the LAMMPS code.
+In the text below, we will discuss aspects of implementing pair styles
+in LAMMPS by looking at representative case studies.  The design of
+LAMMPS allows developers to focus on the essentials, which is to compute
+the forces (and energies or virial contributions), enter and manage the
+global settings as well as the potential parameters, and the pair style
+specific parts of reading and writing restart and data files.  Most of
+the complex tasks like management of the atom positions, domain
+decomposition and boundaries, or neighbor list creation are handled
+transparently by other parts of the LAMMPS code.
 
 As shown on the page for :doc:`writing or extending pair styles
-<Modify_pair>` for the implementation of a pair style a new class must
+<Modify_pair>`, in order to implement a new pair style, a new class must
 be written that is either directly or indirectly derived from the
 ``Pair`` class.  If that class is directly derived from ``Pair``, there
-are three *required* methods in addition to the constructor that must be
-implemented since they are "pure" in the base class:
-``Pair::compute()``, ``Pair::settings()``, ``Pair::coeff()``.  All other
-methods are optional and have default implementations in the base class
-(most of which do nothing), but they may need to be overridden depending
-on the requirements of the model.
+are three methods that *must* be re-implemented, since they are "pure"
+in the base class: ``Pair::compute()``, ``Pair::settings()``,
+``Pair::coeff()``.  In addition a custom constructor is needed.  All
+other methods are optional and have default implementations in the base
+class (most of which do nothing), but they may need to be overridden
+depending on the requirements of the model.
 
 Case 1: a pairwise additive model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In this section we will describe the procedure of adding a simple pair
+In this section, we will describe the procedure of adding a simple pair
 style to LAMMPS: an empirical model that can be used to model liquid
 mercury.
 
@@ -56,7 +56,7 @@ dependent, attractive Gaussian term.
 
    E = A_0 \exp \left( -\alpha r \right) - A_1 \exp\left[ -\beta \left(r - r_0 \right)^2 \right]
 
-For the application to mercury the following parameters are listed:
+For the application to mercury, the following parameters are listed:
 
 - :math:`A_0 = 8.2464 \times 10^{13} \; \textrm{eV}`
 - :math:`\alpha = 12.48 \; \AA^{-1}`
@@ -70,8 +70,8 @@ For the application to mercury the following parameters are listed:
   - :math:`a_2 = -2.58717 \times 10^{-8} \; \textrm{eV/K}^{-2}`
 
 With the optional cutoff, this means we have a total of 5 or 6
-parameters for each pair of atom types. In addition we need to input a
-default cutoff value as global setting.
+parameters for each pair of atom types. Additionally, we need to input a
+default cutoff value as a global setting.
 
 Because of the combination of Born-Mayer with a Gaussian, the pair style
 shall be named "born/gauss" and thus the class name would be
@@ -139,22 +139,21 @@ macro.
 
 The third segment of the header is the actual class definition of the
 ``PairBornGauss`` class.  This has the prototypes for all member
-functions that will be implemented by this pair style.  This includes a
-number of optional functions.  All functions that were labeled in the
-base class as "virtual" must be given the "override" property as it is
-done in the code shown below.  This helps to detect unexpected
-mismatches as compile errors in case the signature of a function is
-changed in the base class.  For example, if this change would add an
-optional argument with a default value, then all existing source code
-calling the function would not need changes and still compile, but the
-function in the derived class would no longer override the one in the
-base class due to the different number of arguments and the behavior of
-the pair style is thus changed in an unintended way. Using "override"
-prevents such issues.
+functions that will be implemented by this pair style.  This includes
+:doc:`a few required and a number of optional functions <Modify_pair>`.
+All functions that were labeled in the base class as "virtual" must be
+given the "override" property, as it is done in the code shown below.
 
-Also variables and arrays for storing global settings and potential
-parameters are defined.  Since those are internal to the class, they are
-placed after a "protected:" label.
+The "override" property helps to detect unexpected mismatches because
+compilation will stop with an error in case the signature of a function
+is changed in the base class without also changing it in all derived
+classes.  For example, if this change would add an optional argument
+with a default value, then all existing source code *calling* the
+function would not need changes and still compile, but the function in
+the derived class would no longer override the one in the base class due
+to the different number of arguments and the behavior of the pair style
+is thus changed in an unintended way.  Using "override" keyword prevents
+such issues.
 
 .. code-block:: c++
 
@@ -185,6 +184,12 @@ placed after a "protected:" label.
      double single(int, int, int, int, double, double, double, double &) override;
      void *extract(const char *, int &) override;
 
+Also, variables and arrays for storing global settings and potential
+parameters are defined.  Since those are internal to the class, they are
+placed after a "protected:" label.
+
+.. code-block:: c++
+
     protected:
      double cut_global;
      double **cut;
@@ -204,13 +209,13 @@ Implementation file
 
 We move on to the implementation of the ``PairBornGauss`` class in the
 ``pair_born_gauss.cpp`` file.  This file also starts with a LAMMPS
-copyright and license header.  Below the notice is typically the space
+copyright and license header.  Below that notice is typically the space
 where comments may be added with additional information about this
-specific file, the author(s) and affiliation(s) and email address(es) so
-the author can be easily contacted in case there are questions about the
-implementation later.  Since the file(s) may be around for a long time,
-it is beneficial to use some kind of "permanent" email address, if
-possible.
+specific file, the author(s), affiliation(s), and email address(es).
+This way the contributing author(s) can be easily contacted, when
+there are questions about the implementation later.  Since the file(s)
+may be around for a long time, it is beneficial to use some kind of
+"permanent" email address, if possible.
 
 .. code-block:: c++
 
@@ -259,6 +264,15 @@ Constructor and destructor (required)
 The first two functions in the implementation source file are typically
 the constructor and the destructor.
 
+Pair styles are different from most classes in LAMMPS that define a
+"style", as their constructor only uses the LAMMPS class instance
+pointer as argument, but **not** the command line arguments of the
+:doc:`pair_style command <pair_style>`.  Instead, those arguments are
+processed in the ``Pair::settings()`` function (or rather the version in
+the derived class).  The constructor is the place where global defaults
+are set and specifically flags are set about which optional features of
+a pair style are available.
+
 .. code-block:: c++
 
    /* ---------------------------------------------------------------------- */
@@ -268,7 +282,22 @@ the constructor and the destructor.
      writedata = 1;
    }
 
-   /* ---------------------------------------------------------------------- */
+The `writedata = 1;` statement indicates that the pair style is capable
+of writing the current pair coefficient parameters to data files. That
+is, the class implements specific versions for ``Pair::data()`` and
+``Pair::data_all()``.  Other statements that could be added here would
+be `single_enable = 1;` or `respa_enable = 0;` to indicate that the
+``Pair::single()`` function is present and the
+``Pair::compute_(inner|middle|outer)`` are not, but those are also the
+default settings and already set in the base class.
+
+In the destructor, we need to delete all memory that was allocated by the
+pair style, usually to hold force field parameters that were entered
+with the :doc:`pair_coeff command <pair_coeff>`.  Most of those array
+pointers will need to be declared in the derived class header, but some
+(e.g. setflag, cutsq) are already declared in the base class.
+
+.. code-block:: c++
 
    PairBornGauss::~PairBornGauss()
    {
@@ -285,40 +314,22 @@ the constructor and the destructor.
      }
    }
 
-Pair styles are different from most classes in LAMMPS that define a
-"style", as their constructor only uses the LAMMPS class instance
-pointer as argument, but **not** the command line arguments of the
-:doc:`pair_style command <pair_style>`.  Instead, those arguments are
-processed in the ``Pair::settings()`` function (or rather the version in
-the derived class).  The constructor is the place where global defaults
-are set and specifically flags are set about which optional features of
-a pair style are available.  The `writedata = 1;` statement indicates
-that the pair style is capable of writing the current pair coefficient
-parameters to data files; in other words, that the class implements
-specific versions for ``Pair::data()`` and ``Pair::data_all()``.  Other
-statements that could be added would be `single_enable = 1;` or
-`respa_enable = 0;` to indicate that the ``Pair::single()`` function is
-present and the ``Pair::compute_(inner|middle|outer)`` are not, but
-those are also the default settings and already set in the base class.
-
-In the destructor we need to delete all memory that was allocated by the
-pair style, usually to hold force field parameters that were entered
-with the :doc:`pair_coeff command <pair_coeff>`.  Most of those array
-pointers will need to be declared in the derived class header, but some
-(e.g. setflag, cutsq) are already declared in the base class.
 
 Settings and coefficients (required)
 """"""""""""""""""""""""""""""""""""
 
 To enter the global pair style settings and the pair style parameters,
 the functions ``Pair::settings()`` and ``Pair::coeff()`` need to be
-reimplemented.  The arguments to the ``settings()`` function are the
-arguments given to the :doc:`pair_style command <pair_style>`, and the
-arguments to the ``coeff()`` function are the arguments to the
-:doc:`pair_coeff command <pair_coeff>` but the function is also called
-when processing the ``Pair Coeffs`` or ``PairIJ Coeffs`` sections of data
-files.  In the case of the ``Pair Coeffs`` section the first argument is
-duplicated.
+re-implemented.  The arguments to the ``settings()`` function are the
+arguments given to the :doc:`pair_style command <pair_style>`.
+Normally, those would already be processed as part of the constructor,
+but moving this to a separate function allows to change global settings
+like the default cutoff without having to reissue all pair_coeff
+commands or re-read the ``Pair Coeffs`` sections from the data file.
+In the ``settings()`` function, also the arrays for storing parameters,
+to define cutoffs, track with pairs of parameters have been explicitly
+set are allocated and, if needed, initialized.  In this case, the memory
+allocation and initialization is moved to a function ``allocate()``.
 
 .. code-block:: c++
 
@@ -363,6 +374,19 @@ duplicated.
      }
    }
 
+The arguments to the ``coeff()`` function are the arguments to the
+:doc:`pair_coeff command <pair_coeff>`.  The function is also called
+when processing the ``Pair Coeffs`` or ``PairIJ Coeffs`` sections of
+data files.  In the case of the ``Pair Coeffs`` section there is only
+one atom type per line and thus the first argument is duplicated.  Since
+the atom type arguments of the :doc:`pair_coeff command <pair_coeff>`
+may be a range (e.g. \*\ 3 for atom types 1, 2, and 3), the
+corresponding arguments are passed to the :cpp:func:`utils::bounds()
+<LAMMPS_NS::utils::bounds>` function which will then return the low
+and high end of the range.
+
+.. code-block:: c++
+
    /* ----------------------------------------------------------------------
       set coeffs for one or more type pairs
    ------------------------------------------------------------------------- */
@@ -404,6 +428,21 @@ duplicated.
 Initialization
 """"""""""""""
 
+The ``init()`` function is called during the :doc:`"init" phase
+<Developer_flow>` of a simulation.  This is where potential parameters
+are checked for completeness, derived parameters computed (e.g. the
+"offset" of the potential energy at the cutoff distance for use with the
+:doc:`pair_modify shift yes <pair_modify>` command.  If a pair style
+supports generating "mixed" parameters (i.e. where both atoms of a pair
+have a different atom type) from a "mixing rule" from the parameters of
+the type with itself, this is the place to compute and store those mixed
+values.  The *born/gauss* pair style does not, so we only check for
+completeness.  Another purpose of the ``init()`` function is to
+symmetrize the potential parameter arrays.  The return value is the
+cutoff for the given pair of atom types.  This is used by the neighbor
+list code to determine the largest cutoff and then build the neighbor
+lists accordingly.
+
 .. code-block:: c++
 
 
@@ -433,9 +472,10 @@ Initialization
    }
 
 
-
 Computing forces from the neighbor list (required)
 """"""""""""""""""""""""""""""""""""""""""""""""""
+
+The ``compute()`` function is the "workhorse" of a pair style.
 
 .. code-block:: c++
 

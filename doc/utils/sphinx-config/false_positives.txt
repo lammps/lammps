@@ -270,6 +270,7 @@ Bialke
 biaxial
 bicrystal
 Biersack
+biga
 bigbig
 bigint
 Bij
@@ -631,6 +632,7 @@ cutlo
 cutmax
 cutoffA
 cutoffC
+cutsq
 cuu
 cv
 Cv
@@ -3245,6 +3247,7 @@ Sep
 seqdep
 Serpico
 setfl
+setflag
 setforce
 Sethna
 setmask
@@ -3480,6 +3483,7 @@ Sx
 sy
 Sy
 symplectic
+symmetrize
 Synechococcus
 sys
 sysdim

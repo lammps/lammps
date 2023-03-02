@@ -52,6 +52,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   void copy_arrays(int, int, int) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
+  double memory_usage() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryPreExchange, const int&) const;

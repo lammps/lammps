@@ -437,6 +437,21 @@ int FixNeighHistoryKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   return n;
 }
 
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double FixNeighHistoryKokkos<DeviceType>::memory_usage()
+{
+  double bytes = MemKK::memory_usage(d_partner);
+  bytes += MemKK::memory_usage(d_valuepartner);
+  bytes += MemKK::memory_usage(d_firstflag);
+  bytes += MemKK::memory_usage(d_firstvalue);
+
+  return bytes;
+}
+
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {

@@ -33,6 +33,7 @@ FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **a
 {
   kokkosable = 1;
   exchange_comm_device = 1;
+  maxexchange = size_history;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 

@@ -416,6 +416,7 @@ accelerated styles exist.
 * :doc:`wall/lj1043 <fix_wall>` - Lennard-Jones 10--4--3 wall
 * :doc:`wall/lj126 <fix_wall>` - Lennard-Jones 12--6 wall
 * :doc:`wall/lj93 <fix_wall>` - Lennard-Jones 9--3 wall
+* :doc:`wall/lepton <fix_wall>` - Custom Lepton expression wall
 * :doc:`wall/morse <fix_wall>` - Morse potential wall
 * :doc:`wall/piston <fix_wall_piston>` - moving reflective piston wall
 * :doc:`wall/reflect <fix_wall_reflect>` - reflecting wall(s)
@@ -423,6 +424,7 @@ accelerated styles exist.
 * :doc:`wall/region <fix_wall_region>` - use region surface as wall
 * :doc:`wall/region/ees <fix_wall_ees>` - use region surface as wall for ellipsoidal particles
 * :doc:`wall/srd <fix_wall_srd>` - slip/no-slip wall for SRD particles
+* :doc:`wall/table <fix_wall>` - Tabulated potential wall wall
 * :doc:`widom <fix_widom>` - Widom insertions of atoms or molecules
 
 Restrictions

@@ -62,6 +62,8 @@
 /angle_lepton.h
 /dihedral_lepton.cpp
 /dihedral_lepton.h
+/fix_wall_lepton.cpp
+/fix_wall_lepton.h
 /lepton_utils.cpp
 /lepton_utils.h
 

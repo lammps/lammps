@@ -3489,6 +3489,7 @@ sz
 Sz
 Tabbernor
 tabinner
+tabstyle
 Tadmor
 Tafipolsky
 tagID

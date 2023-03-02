@@ -27,7 +27,6 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
 
 enum { XLO, XHI, YLO, YHI, ZLO, ZHI };
 enum { NONE, EDGE, CONSTANT, VARIABLE };

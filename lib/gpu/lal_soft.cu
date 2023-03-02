@@ -22,6 +22,15 @@ _texture_2d( pos_tex,int4);
 #endif
 #else
 #define pos_tex x_
+// hack for Intel GPU with double precision
+#if defined(_DOUBLE_DOUBLE) && (CONFIG_ID == 500)
+#define MY_PI_HALF (acctyp)1.57079632679489661923
+#define my_cos(x) sin(x+MY_PI_HALF)
+#endif
+#endif
+
+#if !defined(my_cos)
+#define my_cos(x) cos(x)
 #endif
 
 #define MY_PI (acctyp)3.14159265358979323846
@@ -95,7 +104,7 @@ __kernel void k_soft(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp e=coeff[mtype].x * ((numtyp)1.0+cos(arg));
+          numtyp e=coeff[mtype].x * ((numtyp)1.0+my_cos(arg));
           energy+=factor_lj*e;
         }
         if (EVFLAG && vflag) {
@@ -186,7 +195,7 @@ __kernel void k_soft_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          numtyp e=coeff[mtype].x * ((numtyp)1.0+cos(arg));
+          numtyp e=coeff[mtype].x * ((numtyp)1.0+my_cos(arg));
           energy+=factor_lj*e;
         }
         if (EVFLAG && vflag) {

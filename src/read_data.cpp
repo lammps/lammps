@@ -1985,7 +1985,8 @@ void ReadData::paircoeffs()
     next = strchr(buf, '\n');
     *next = '\0';
     parse_coeffs(buf, nullptr, 1, 2, toffset, tlabelflag, lmap->lmap2lmap.atom);
-    if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in PairCoeffs section");
+    if (ncoeffarg == 0)
+      error->all(FLERR, "Unexpected empty line in PairCoeffs section. Expected {} lines.", ntypes);
     force->pair->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
   }
@@ -2016,7 +2017,9 @@ void ReadData::pairIJcoeffs()
       next = strchr(buf, '\n');
       *next = '\0';
       parse_coeffs(buf, nullptr, 0, 2, toffset, tlabelflag, lmap->lmap2lmap.atom);
-      if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in PairCoeffs section");
+      if (ncoeffarg == 0)
+        error->all(FLERR, "Unexpected empty line in PairIJCoeffs section. "
+                          "Expected {} lines.", (ntypes-1)*ntypes);
       force->pair->coeff(ncoeffarg, coeffarg);
       buf = next + 1;
     }
@@ -2045,7 +2048,8 @@ void ReadData::bondcoeffs()
     next = strchr(buf, '\n');
     *next = '\0';
     parse_coeffs(buf, nullptr, 0, 1, boffset, blabelflag, lmap->lmap2lmap.bond);
-    if (ncoeffarg == 0) error->all(FLERR, "Unexpected empty line in BondCoeffs section");
+    if (ncoeffarg == 0)
+      error->all(FLERR, "Unexpected empty line in BondCoeffs section. Expected {} lines.", nbondtypes);
     force->bond->coeff(ncoeffarg, coeffarg);
     buf = next + 1;
   }

@@ -214,13 +214,13 @@ void FixPolarizeBEMICC::setup(int /*vflag*/)
 
   epsilon0e2q = 1.0;
   if (strcmp(update->unit_style, "real") == 0)
-    epsilon0e2q = 0.000240263377163643;
+    epsilon0e2q = 0.000240263377163643 * (4 * MY_PI);
   else if (strcmp(update->unit_style, "metal") == 0)
-    epsilon0e2q = 0.00553386738300813;
+    epsilon0e2q = 0.00553386738300813 * (4 * MY_PI);
   else if (strcmp(update->unit_style, "si") == 0)
-    epsilon0e2q = 8.854187812813e-12;
+    epsilon0e2q = 8.854187812813e-12 * (4 * MY_PI);
   else if (strcmp(update->unit_style, "nano") == 0)
-    epsilon0e2q = 0.000345866711328125;
+    epsilon0e2q = 0.000345866711328125 * (4 * MY_PI);
   else if (strcmp(update->unit_style, "lj") != 0)
     error->all(FLERR, "Only unit styles 'lj', 'real', 'metal', 'si' and 'nano' are supported");
 

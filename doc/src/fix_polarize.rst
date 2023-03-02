@@ -212,6 +212,8 @@ Note that the *polarize/bem/gmres* and *polarize/bem/icc* fixes only
 support :doc:`units <units>` *lj*, *real*, *metal*, *si* and *nano* at
 the moment.
 
+Note that *polarize/functional* does not yet support charged interfaces.
+
 
 Related commands
 """"""""""""""""

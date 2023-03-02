@@ -478,6 +478,11 @@ double FASTPOD::peratomenergyforce(double *fij, double *rij, double *temp,
   double *coeff34 = &newcoeff[(nl1 + nl2 + nl3 + nl4 + nl23 + nl33)*nelements];
   double *coeff44 = &newcoeff[(nl1 + nl2 + nl3 + nl4 + nl23 + nl33 + nl34)*nelements];
 
+  if (Nj==0) {      
+    for (int j=0; j<3*Nj; j++) fij[j] = 0.0;
+    return newcoeff[ti[0]-1];            
+  }
+  
   int t0 = ti[0]-1;
   int n1 = Nj*K3*nrbf3;
   int n2 = Nj*nrbfmax;

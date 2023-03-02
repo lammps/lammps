@@ -867,11 +867,12 @@ void FitPOD::read_data_files(std::string data_file, std::vector<std::string> spe
   
   testdata.fraction = traindata.fitting_weights[8];
   testdata.test_analysis = traindata.test_analysis;
+  testdata.filenametag =  traindata.filenametag;
   
   if ((testdata.data_path == traindata.data_path) && (testdata.fraction == 1.0) && (traindata.fraction == 1.0)) {
     testdata.data_path = traindata.data_path;
   }
-  else if (((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) && (testdata.test_analysis)) {    
+  else if (((int) testdata.data_path.size() > 1) && (testdata.fraction > 0) && (testdata.test_analysis)) {        
     testdata.training = 0;
     testdata.file_format = traindata.file_format;
     testdata.file_extension = traindata.file_extension;

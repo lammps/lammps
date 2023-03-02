@@ -50,7 +50,7 @@ FASTPOD::FASTPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &c
   onebody = 1;
   besseldegree = 4;
   inversedegree = 8;
-  nbesselpars = 1;
+  nbesselpars = 3;
   ns = nbesselpars*besseldegree + inversedegree;
   Njmax = 100;
   nrbf2 = 6;
@@ -332,8 +332,8 @@ void FASTPOD::read_pod_file(std::string pod_file)
   indexmap3(ind44, nabf44, nrbf44, Ne*(Ne+1)*(Ne+2)/6, nabf4, nrbf4);
 
   estimate_memory(Njmax);
-  memory->create(tmpmem, ndblmem, "tmpmem");
-  memory->create(tmpint, nintmem, "tmpint");
+  memory->create(tmpmem, 2*ndblmem, "tmpmem");
+  memory->create(tmpint, 2*nintmem, "tmpint");
 
   if (comm->me == 0) {
     utils::logmesg(lmp, "**************** Begin of POD Potentials ****************\n");
@@ -686,6 +686,11 @@ double FASTPOD::energyforce(double *force, double *x, int *atomtype, int *alist,
   for (int i=0; i<natom; i++) {
     int Nj = pairnumsum[i+1] - pairnumsum[i]; // # neighbors around atom i
 
+    if (Nj==0) {      
+      etot += newcoeff[atomtype[i]-1];      
+    }
+    else
+    {
     // reallocate temporary memory
     if (Nj>Njmax) {
       Njmax = Nj;
@@ -708,6 +713,7 @@ double FASTPOD::energyforce(double *force, double *x, int *atomtype, int *alist,
     etot += peratomenergyforce(fij, rij, &tmpmem[6*Nj], ti, tj, Nj);
 
     tallyforce(force, fij, ai, aj, Nj);
+    }
   }
 
   return etot;
@@ -741,22 +747,29 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *x, int *atomtype, int
   for (int i=0; i<natom; i++) {
     int Nj = pairnumsum[i+1] - pairnumsum[i]; // # neighbors around atom i
 
+    if (Nj==0) {
+      printf("Zero neighbors detected...\n");
+      if (nd1>0) onebodydescriptors(gd1, gdd1, &atomtype[i], natom, i);           
+    }
+    else
+    {    
     // reallocate temporary memory
-    if (Nj>Njmax) {
+    if (Nj>Njmax) {      
       Njmax = Nj;
       int nmem = estimate_memory(Njmax);
       memory->destroy(tmpmem);
       memory->destroy(tmpint);
       memory->create(tmpmem, nmem, "tmpmem");
       memory->create(tmpint, 4*Njmax, "tmpint");
+      printf("reallocate temporary memory with Njmax = %d ...\n", Njmax);
     }
-
+    
     double *rij = &tmpmem[0]; // 3*Nj
     int *ai = &tmpint[0];     // Nj
     int *aj = &tmpint[Nj];   // Nj
     int *ti = &tmpint[2*Nj]; // Nj
     int *tj = &tmpint[3*Nj]; // Nj
-
+    
     myneighbors(rij, x, ai, aj, ti, tj, jlist, pairnumsum, atomtype, alist, i);
 
     if (nd1>0) onebodydescriptors(gd1, gdd1, ti, natom, i);
@@ -809,6 +822,7 @@ void FASTPOD::descriptors(double *gd, double *gdd, double *x, int *atomtype, int
     double *dd44 = &tmpmem[nld + nl44];
     if (nd44>0) sevenbodydescriptors44(gd44, gdd44, d44, dd44, d4, dd4,
             ai, aj, ti, tj, Nj, natom);
+  }
   }
 }
 

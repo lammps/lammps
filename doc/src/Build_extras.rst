@@ -274,7 +274,7 @@ To enable GPU binning via CUDA performance primitives set the Makefile variable
 most modern GPUs.
 
 To support the CUDA multiprocessor server you can set the define
-``-DCUDA_PROXY``.  Please note that in this case you must **not** use
+``-DCUDA_MPS_SUPPORT``.  Please note that in this case you must **not** use
 the CUDA performance primitives and thus set the variable ``CUDPP_OPT``
 to empty.
 

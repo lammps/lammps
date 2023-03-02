@@ -1423,8 +1423,7 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
 
   copymode = 1;
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqUnpackExchange>(0,
-    nrecv/(atom->avec->size_border + atom->avec->size_velocity + 2)),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqUnpackExchange>(0,nrecv),*this);
 
   copymode = 0;
 

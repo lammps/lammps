@@ -32,6 +32,7 @@ FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **a
   FixWallGran(lmp, narg, arg)
 {
   kokkosable = 1;
+  exchange_comm_device = 1;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -61,7 +62,7 @@ void FixWallGranKokkos<DeviceType>::init()
   FixWallGran::init();
 
   if (fix_rigid)
-    error->all(FLERR, "wall/gran/kk not yet compatible with rigid.");
+    error->all(FLERR, "Fix wall/gran/kk not yet compatible with rigid bodies");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,46 +90,45 @@ void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
     vwall[axis] = amplitude*omega*sin(arg);
   } else if (wshear) vwall[axis] = vshear;
 
-  copymode = 1;
-
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
-  omega_ = atomKK->k_omega.view<DeviceType>();
+  d_omega = atomKK->k_omega.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   torque = atomKK->k_torque.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   rmass = atomKK->k_rmass.view<DeviceType>();
-  radius_ = atomKK->k_radius.view<DeviceType>();
+  d_radius = atomKK->k_radius.view<DeviceType>();
   int nlocal = atom->nlocal;
 
+  atomKK->sync(execution_space,datamask_read);
+
+  copymode = 1;
+
   if (pairstyle == HOOKE)
-    error->all(FLERR, "wall/gran/kk doesn't yet support hooke style.");
+    error->all(FLERR, "Fix wall/gran/kk doesn't yet support hooke style");
   else if (pairstyle == HOOKE_HISTORY) {
-    if (wallstyle == XPLANE) {
-      FixWallGranKokkosHookeHistoryFunctor<DeviceType, XPLANE> f(this);
-      Kokkos::parallel_for(nlocal,f);
-    } else if (wallstyle == YPLANE) {
-      FixWallGranKokkosHookeHistoryFunctor<DeviceType, YPLANE> f(this);
-      Kokkos::parallel_for(nlocal,f);
-    } else if (wallstyle == ZPLANE) {
-      FixWallGranKokkosHookeHistoryFunctor<DeviceType, ZPLANE> f(this);
-      Kokkos::parallel_for(nlocal,f);
-    } else if (wallstyle == ZCYLINDER) {
-      FixWallGranKokkosHookeHistoryFunctor<DeviceType, ZCYLINDER> f(this);
-      Kokkos::parallel_for(nlocal,f);
-    }
-  }
-  else if (pairstyle == HERTZ_HISTORY)
-    error->all(FLERR, "wall/gran/kk doesn't yet support hertz/history style.");
+    if (wallstyle == XPLANE)
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranHookeHistory<XPLANE>>(0,nlocal),*this);
+    else if (wallstyle == YPLANE)
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranHookeHistory<YPLANE>>(0,nlocal),*this);
+    else if (wallstyle == ZPLANE)
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranHookeHistory<ZPLANE>>(0,nlocal),*this);
+    else if (wallstyle == ZCYLINDER)
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranHookeHistory<ZCYLINDER>>(0,nlocal),*this);
+  } else if (pairstyle == HERTZ_HISTORY)
+    error->all(FLERR, "Fix wall/gran/kk doesn't yet support hertz/history style");
+
+  atomKK->modified(execution_space,datamask_modify);
 
   copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
-template <int WallStyle>
-void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
+template<class DeviceType>
+template<int WallStyle>
+KOKKOS_INLINE_FUNCTION
+void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallStyle>, const int &i) const
 {
   double vwall_[3];
   vwall_[0] = vwall[0];
@@ -136,7 +136,7 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
   vwall_[2] = vwall[2];
 
   if (mask[i] & groupbit) {
-    X_FLOAT radius = radius_(i);
+    X_FLOAT radius = d_radius(i);
 
     double dx = 0.0;
     double dy = 0.0;
@@ -207,9 +207,9 @@ void FixWallGranKokkos<DeviceType>::hooke_history_item(const int &i) const
 
       // relative rotational velocity
 
-      double wr1 = radius*omega_(i,0) * rinv;
-      double wr2 = radius*omega_(i,1) * rinv;
-      double wr3 = radius*omega_(i,2) * rinv;
+      double wr1 = radius*d_omega(i,0) * rinv;
+      double wr2 = radius*d_omega(i,1) * rinv;
+      double wr3 = radius*d_omega(i,2) * rinv;
 
       // normal forces = Hookian contact + normal velocity damping
 
@@ -293,164 +293,130 @@ template <class DeviceType>
 void FixWallGranKokkos<DeviceType>::grow_arrays(int nmax)
 {
   if (use_history) {
-    k_history_one.template sync<LMPHostType>(); // force reallocation on host
+    k_history_one.sync_host(); // force reallocation on host
     memoryKK->grow_kokkos(k_history_one,history_one,nmax,size_history,"wall/gran/kk:history_one");
+    k_history_one.modify_host();
     d_history_one = k_history_one.template view<DeviceType>();
-    k_history_one.template modify<LMPHostType>();
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
-void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
+template<class DeviceType>
+void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 {
   if (use_history) {
-    k_history_one.template sync<LMPHostType>();
-    for (int m = 0; m < size_history; m++)
-      history_one[j][m] = history_one[i][m];
-    k_history_one.template modify<LMPHostType>();
+    k_history_one.sync_host();
+    FixWallGran::copy_arrays(i,j,delflag);
+    k_history_one.modify_host();
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 int FixWallGranKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
-  k_history_one.template sync<LMPHostType>();
+  k_history_one.sync_host();
 
-  int n = 0;
-  for (int j = 0; j < size_history; j++)
-    buf[n++] = history_one[i][j];
-  return n;
+  return FixWallGran::pack_exchange(i,buf);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 int FixWallGranKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
-  int n = 0;
-  for (int j = 0; j < size_history; j++)
-    history_one[nlocal][j] = buf[n++];
+  int n = FixWallGran::unpack_exchange(nlocal,buf);
 
-  k_history_one.template modify<LMPHostType>();
+  k_history_one.modify_host();
 
   return n;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
-struct FixWallGranKokkos_PackExchangeFunctor
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranPackExchange, const int &mysend) const
 {
-  typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  typename AT::t_int_1d_const _sendlist;
-  typename AT::t_int_1d_const _copylist;
-  typename AT::t_float_2d _history_one;
-  typename AT::t_xfloat_1d_um _buf;
-  const int _dnum;
+  const int i = d_sendlist(mysend);
+  int m = i*size_history;
+  for (int v = 0; v < size_history; v++)
+    d_buf(m++) = d_history_one(i,v);
 
-  FixWallGranKokkos_PackExchangeFunctor(
-    const typename AT::tdual_xfloat_2d &buf,
-    const typename AT::tdual_int_1d &sendlist,
-    const typename AT::tdual_int_1d &copylist,
-    const typename AT::tdual_float_2d &history_one,
-    const int &dnum):
-    _sendlist(sendlist.template view<DeviceType>()),
-    _copylist(copylist.template view<DeviceType>()),
-    _history_one(history_one.template view<DeviceType>()),
-    _dnum(dnum)
-  {
-    _buf = typename AT::t_xfloat_1d_um(buf.template view<DeviceType>().data(),buf.extent(0)*buf.extent(1));
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int &mysend) const {
-    const int i = _sendlist(mysend);
-    int m = i*_dnum;
-    for (int v = 0; v < _dnum; v++) {
-      _buf(m++) = _history_one(i,v);
-    }
-    const int j = _copylist(mysend);
-    if (j > -1) {
-      for (int v = 0; v < _dnum; v++) {
-        _history_one(i,v) = _history_one(j,v);
-      }
+  const int j = d_copylist(mysend);
+  if (j > -1) {
+    for (int v = 0; v < size_history; v++) {
+      d_history_one(i,v) = d_history_one(j,v);
     }
   }
- };
+}
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
-  const int &nsend,
-  DAT::tdual_xfloat_2d &buf,
-  DAT::tdual_int_1d k_sendlist,
-  DAT::tdual_int_1d k_copylist,
-  ExecutionSpace space, int dim,
-  X_FLOAT lo, X_FLOAT hi)
+   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
+   ExecutionSpace space)
 {
   k_history_one.template sync<DeviceType>();
-  Kokkos::parallel_for(
-    nsend,
-    FixWallGranKokkos_PackExchangeFunctor<DeviceType>(
-      buf,k_sendlist,k_copylist,k_history_one,size_history));
+
+  k_buf.sync<DeviceType>();
+  k_sendlist.sync<DeviceType>();
+  k_copylist.sync<DeviceType>();
+
+  d_sendlist = k_sendlist.view<DeviceType>();
+  d_copylist = k_copylist.view<DeviceType>();
+
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+
+  copymode = 1;
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranPackExchange>(0,nsend),*this);
+
+  copymode = 0;
+
   return nsend*size_history;
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
-struct FixWallGranKokkos_UnpackExchangeFunctor
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, const int &i) const
 {
-  typedef DeviceType device_type;
-  typedef ArrayTypes<DeviceType> AT;
-  typename AT::t_xfloat_1d_um _buf;
-  typename AT::t_float_2d _history_one;
-  typename AT::t_int_1d _indices;
-  const int _dnum;
-
-  FixWallGranKokkos_UnpackExchangeFunctor(
-    const typename AT::tdual_xfloat_2d buf,
-    const typename AT::tdual_float_2d &history_one,
-    const typename AT::tdual_int_1d &indices,
-    const int &dnum):
-    _history_one(history_one.template view<DeviceType>()),
-    _indices(indices.template view<DeviceType>()),
-    _dnum(dnum)
-  {
-    _buf = typename AT::t_xfloat_1d_um(buf.template view<DeviceType>().data(),buf.extent(0)*buf.extent(1));
+  int index = d_indices(i);
+  if (index > 0) {
+    int m = i*size_history;
+    for (int v = 0; v < size_history; v++)
+      d_history_one(i,v) = d_buf(m++);
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int &i) const {
-    int index = _indices(i);
-    if (index > 0) {
-      int m = i*_dnum;
-      for (int v = 0; v < _dnum; v++) {
-        _history_one(i,v) = _buf(m++);
-      }
-    }
-  }
-};
+}
 
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
 void FixWallGranKokkos<DeviceType>::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf,
-  DAT::tdual_int_1d &indices,int nrecv,
-  int nlocal,int dim,X_FLOAT lo,X_FLOAT hi,
+  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
   ExecutionSpace space)
 {
-  Kokkos::parallel_for(
-    nrecv/(atom->avec->size_border + atom->avec->size_velocity + 2),
-    FixWallGranKokkos_UnpackExchangeFunctor<DeviceType>(
-      k_buf,k_history_one,indices,size_history));
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  d_indices = k_indices.view<DeviceType>();
+
+  d_history_one = k_history_one.template view<DeviceType>();
+
+  copymode = 1;
+
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranUnpackExchange>(0,nrecv),*this);
+
+  copymode = 0;
 
   k_history_one.template modify<DeviceType>();
 }

@@ -930,7 +930,7 @@ void CommKokkos::exchange_device()
 
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(
-                k_buf_recv,k_indices,nrecv,
+                k_buf_recv,k_indices,nrecv/data_size,
                 ExecutionSpaceFromDevice<DeviceType>::space);
               DeviceType().fence();
             }

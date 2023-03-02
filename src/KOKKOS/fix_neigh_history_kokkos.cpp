@@ -36,6 +36,9 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
+
   memory->destroy(npartner);
   memory->sfree(partner);
   memory->sfree(valuepartner);
@@ -409,8 +412,7 @@ void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
 
   copymode = 1;
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryUnpackExchange>(0,
-    nrecv/(atom->avec->size_border + atom->avec->size_velocity + 2)),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryUnpackExchange>(0,nrecv),*this);
 
   copymode = 0;
 

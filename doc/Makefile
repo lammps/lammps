@@ -214,7 +214,7 @@ style_check : $(VENV)
 
 package_check : $(VENV)
 	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
 		python utils/check-packages.py -s ../src -d src ;\
 		deactivate ;\
 	)

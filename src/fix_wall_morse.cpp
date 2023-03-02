@@ -18,7 +18,6 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -72,7 +71,7 @@ void FixWallMorse::wall_particle(int m, int which, double coord)
       }
       double dr = delta - sigma[m];
       double dexp = exp(-alpha[m] * dr);
-      fwall = side * coeff1[m] * (dexp * dexp - dexp) / delta;
+      fwall = side * coeff1[m] * (dexp * dexp - dexp);
       ewall[0] += epsilon[m] * (dexp * dexp - 2.0 * dexp) - offset[m];
       f[i][dim] -= fwall;
       ewall[m + 1] += fwall;

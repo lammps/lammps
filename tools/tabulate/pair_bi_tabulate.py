@@ -19,7 +19,7 @@ from scipy.optimize import curve_fit
 
 
 class BI(PairTabulate):
-    def __init__(self, units=None, comment=None, T=1):
+    def __init__(self, units=None, comment=None):
         super(PairTabulate, self).__init__("pair", self.energy, units, comment)
         self.parser.add_argument(
             "--eshift",
@@ -32,10 +32,18 @@ class BI(PairTabulate):
         self.parser.add_argument(
             "--rdffile", default="rdf.dat", help="Rdf file to be read."
         )
+        self.parser.add_argument(
+            "--temperature", default=0, help="Temperature for BI."
+        )
         try:
             self.args = self.parser.parse_args()
         except argparse.ArgumentError:
             sys.exit()
+
+        if self.args.temperature > 0:
+            T = self.args.temperature
+        else:
+            sys.exit("Invalid temperature provided.")
 
         kb = 1
         # Add more kb units if you need

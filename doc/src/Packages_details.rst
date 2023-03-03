@@ -1258,7 +1258,7 @@ Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`, :ref:`INTEL
 <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which have styles
 optimized for CPUs, KNLs, and GPUs.
 
-You must have a C++14 compatible compiler to use this package.
+You must have a C++17 compatible compiler to use this package.
 KOKKOS makes extensive use of advanced C++ features, which can
 expose compiler bugs, especially when compiling for maximum
 performance at high optimization levels. Please see the file

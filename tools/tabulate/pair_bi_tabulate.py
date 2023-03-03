@@ -12,6 +12,8 @@ from scipy.optimize import curve_fit
    distribution function using tabulate.py.
    Required: python3, numpy, scipy.
    BI stands for Boltzmann Inversion.
+   WARNING: Using BI does not garranty an out of the box working potential for
+            your simulation. Check the relevamt literature.
 """
 ###############################################################################
 

@@ -69,7 +69,6 @@ class BondTable : public Bond {
   double splint(double *, double *, double *, int, double);
 
   void uf_lookup(int, double, double &, double &);
-  void u_lookup(int, double, double &);
 };
 
 }    // namespace LAMMPS_NS

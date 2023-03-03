@@ -17,7 +17,7 @@ read_data system.data
 #read_restart    system_${ibead}.rest1
 special_bonds   charmm
 
-fix 1 all pimd method nmpimd fmass 1.0 temp 300.0 nhc 4 sp 2.0
+fix 1 all pimd/nvt method nmpimd fmass 1.0 temp 300.0 nhc 4 sp 2.0
 
 thermo          10
 thermo_style    custom step temp pe etotal f_1[1] f_1[2] f_1[3]

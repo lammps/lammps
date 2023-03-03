@@ -216,7 +216,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   // this looks excessive
   // the price of vectorization (all reactions in one command)?
-  memory->create(rxn_name,nreacts,MAXLINE,"bond/react:rxn_name");
+  memory->create(rxn_name,nreacts,MAXNAME,"bond/react:rxn_name");
   memory->create(nevery,nreacts,"bond/react:nevery");
   memory->create(cutsq,nreacts,2,"bond/react:cutsq");
   memory->create(unreacted_mol,nreacts,"bond/react:unreacted_mol");
@@ -287,7 +287,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
 
     int n = strlen(arg[iarg]) + 1;
-    if (n > MAXLINE) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
+    if (n > MAXNAME) error->all(FLERR,"Reaction name (react-ID) is too long (limit: 256 characters)");
     strcpy(rxn_name[rxn],arg[iarg++]);
 
     int groupid = group->find(arg[iarg++]);
@@ -545,6 +545,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   attempt = nullptr;
   nattempt = nullptr;
   allnattempt = 0;
+  my_num_mega = 0;
   local_num_mega = 0;
   ghostly_num_mega = 0;
   restore =  nullptr;
@@ -555,6 +556,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   glove_counter = 0;
   guess_branch = new int[MAXGUESS]();
   pioneer_count = new int[max_natoms];
+  my_mega_glove = nullptr;
   local_mega_glove = nullptr;
   ghostly_mega_glove = nullptr;
   global_mega_glove = nullptr;
@@ -654,6 +656,7 @@ FixBondReact::~FixBondReact()
     memory->destroy(restore);
     memory->destroy(glove);
     memory->destroy(pioneers);
+    memory->destroy(my_mega_glove);
     memory->destroy(local_mega_glove);
     memory->destroy(ghostly_mega_glove);
   }
@@ -936,7 +939,7 @@ void FixBondReact::post_integrate()
         if (var_flag[NRATE][rxnID] == 1) {
           my_nrate = input->variable->compute_equal(var_id[NRATE][rxnID]);
         } else my_nrate = rate_limit[1][rxnID];
-        if (nrxns_delta > my_nrate) rate_limit_flag = 0;
+        if (nrxns_delta >= my_nrate) rate_limit_flag = 0;
       }
     }
     if ((update->ntimestep % nevery[rxnID]) ||
@@ -1251,6 +1254,7 @@ void FixBondReact::close_partner()
 void FixBondReact::superimpose_algorithm()
 {
   const int nprocs = comm->nprocs;
+  my_num_mega = 0;
   local_num_mega = 0;
   ghostly_num_mega = 0;
 
@@ -1269,6 +1273,7 @@ void FixBondReact::superimpose_algorithm()
     memory->destroy(restore);
     memory->destroy(glove);
     memory->destroy(pioneers);
+    memory->destroy(my_mega_glove);
     memory->destroy(local_mega_glove);
     memory->destroy(ghostly_mega_glove);
   }
@@ -1277,17 +1282,13 @@ void FixBondReact::superimpose_algorithm()
   memory->create(restore_pt,MAXGUESS,4,"bond/react:restore_pt");
   memory->create(pioneers,max_natoms,"bond/react:pioneers");
   memory->create(restore,max_natoms,MAXGUESS*4,"bond/react:restore");
-  memory->create(local_mega_glove,max_natoms+1,allnattempt,"bond/react:local_mega_glove");
-  memory->create(ghostly_mega_glove,max_natoms+1,allnattempt,"bond/react:ghostly_mega_glove");
+  memory->create(my_mega_glove,max_natoms+1,allnattempt,"bond/react:local_mega_glove");
+
+  for (int i = 0; i < max_natoms+1; i++)
+    for (int j = 0; j < allnattempt; j++)
+      my_mega_glove[i][j] = 0;
 
   attempted_rxn = 1;
-
-  for (int i = 0; i < max_natoms+1; i++) {
-    for (int j = 0; j < allnattempt; j++) {
-      local_mega_glove[i][j] = 0;
-      ghostly_mega_glove[i][j] = 0;
-    }
-  }
 
   // let's finally begin the superimpose loop
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
@@ -1335,7 +1336,11 @@ void FixBondReact::superimpose_algorithm()
             status = REJECT;
           } else {
             status = ACCEPT;
-            glove_ghostcheck();
+            my_mega_glove[0][my_num_mega] = rxnID;
+            for (int i = 0; i < onemol->natoms; i++) {
+              my_mega_glove[i+1][my_num_mega] = glove[i][1];
+            }
+            my_num_mega++;
           }
         } else status = REJECT;
       }
@@ -1378,7 +1383,13 @@ void FixBondReact::superimpose_algorithm()
         if (status == ACCEPT) {
           if (fraction[rxnID] < 1.0 &&
               random[rxnID]->uniform() >= fraction[rxnID]) status = REJECT;
-          else glove_ghostcheck();
+          else {
+            my_mega_glove[0][my_num_mega] = rxnID;
+            for (int i = 0; i < onemol->natoms; i++) {
+              my_mega_glove[i+1][my_num_mega] = glove[i][1];
+            }
+            my_num_mega++;
+          }
         }
         hang_catch++;
         // let's go ahead and catch the simplest of hangs
@@ -1394,8 +1405,19 @@ void FixBondReact::superimpose_algorithm()
 
   global_megasize = 0;
 
-  ghost_glovecast(); // consolidate all mega_gloves to all processors
+  memory->create(local_mega_glove,max_natoms+1,my_num_mega,"bond/react:local_mega_glove");
+  memory->create(ghostly_mega_glove,max_natoms+1,my_num_mega,"bond/react:ghostly_mega_glove");
+
+  for (int i = 0; i < max_natoms+1; i++) {
+    for (int j = 0; j < my_num_mega; j++) {
+      local_mega_glove[i][j] = 0;
+      ghostly_mega_glove[i][j] = 0;
+    }
+  }
+
   dedup_mega_gloves(LOCAL); // make sure atoms aren't added to more than one reaction
+  glove_ghostcheck(); // split into 'local' and 'global'
+  ghost_glovecast(); // consolidate all mega_gloves to all processors
 
   MPI_Allreduce(&local_rxn_count[0],&reaction_count[0],nreacts,MPI_INT,MPI_SUM,world);
 
@@ -2639,14 +2661,14 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
 {
   // dedup_mode == LOCAL for local_dedup
   // dedup_mode == GLOBAL for global_mega_glove
-  for (int i = 0; i < nreacts; i++) {
-    if (dedup_mode == LOCAL) local_rxn_count[i] = 0;
-    if (dedup_mode == GLOBAL) ghostly_rxn_count[i] = 0;
-  }
+
+  if (dedup_mode == GLOBAL)
+    for (int i = 0; i < nreacts; i++)
+      ghostly_rxn_count[i] = 0;
 
   int dedup_size = 0;
   if (dedup_mode == LOCAL) {
-    dedup_size = local_num_mega;
+    dedup_size = my_num_mega;
   } else if (dedup_mode == GLOBAL) {
     dedup_size = global_megasize;
   }
@@ -2657,7 +2679,7 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
   if (dedup_mode == LOCAL) {
     for (int i = 0; i < dedup_size; i++) {
       for (int j = 0; j < max_natoms+1; j++) {
-        dedup_glove[j][i] = local_mega_glove[j][i];
+        dedup_glove[j][i] = my_mega_glove[j][i];
       }
     }
   } else if (dedup_mode == GLOBAL) {
@@ -2671,11 +2693,8 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
   // dedup_mask is size dedup_size and filters reactions that have been deleted
   // a value of 1 means this reaction instance has been deleted
   int *dedup_mask = new int[dedup_size];
-  int *dup_list = new int[dedup_size];
-
   for (int i = 0; i < dedup_size; i++) {
     dedup_mask[i] = 0;
-    dup_list[i] = 0;
   }
 
   // let's randomly mix up our reaction instances first
@@ -2699,40 +2718,22 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
 
   for (int i = 0; i < dedup_size; i++) {
     if (dedup_mask[i] == 0) {
-      int num_dups = 0;
       int myrxnid1 = dedup_glove[0][i];
       onemol = atom->molecules[unreacted_mol[myrxnid1]];
       for (int j = 0; j < onemol->natoms; j++) {
         int check1 = dedup_glove[j+1][i];
         for (int ii = i + 1; ii < dedup_size; ii++) {
-          int already_listed = 0;
-          for (int jj = 0; jj < num_dups; jj++) {
-            if (dup_list[jj] == ii) {
-              already_listed = 1;
-              break;
-            }
-          }
-          if (dedup_mask[ii] == 0 && already_listed == 0) {
+          if (dedup_mask[ii] == 0) {
             int myrxnid2 = dedup_glove[0][ii];
             twomol = atom->molecules[unreacted_mol[myrxnid2]];
             for (int jj = 0; jj < twomol->natoms; jj++) {
               int check2 = dedup_glove[jj+1][ii];
               if (check2 == check1) {
-                // add this rxn instance as well
-                if (num_dups == 0) dup_list[num_dups++] = i;
-                dup_list[num_dups++] = ii;
+                dedup_mask[ii] = 1;
                 break;
               }
             }
           }
-        }
-      }
-      // here we choose random number and therefore reaction instance
-      int myrand = 1;
-      if (num_dups > 0) {
-        myrand = floor(random[0]->uniform()*num_dups);
-        for (int iii = 0; iii < num_dups; iii++) {
-          if (iii != myrand) dedup_mask[dup_list[iii]] = 1;
         }
       }
     }
@@ -2741,18 +2742,16 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
   // we must update local_mega_glove and local_megasize
   // we can simply overwrite local_mega_glove column by column
   if (dedup_mode == LOCAL) {
-    int new_local_megasize = 0;
-    for (int i = 0; i < local_num_mega; i++) {
+    int my_new_megasize = 0;
+    for (int i = 0; i < my_num_mega; i++) {
       if (dedup_mask[i] == 0) {
-        local_rxn_count[(int) dedup_glove[0][i]]++;
         for (int j = 0; j < max_natoms+1; j++) {
-          local_mega_glove[j][new_local_megasize] = dedup_glove[j][i];
+          my_mega_glove[j][my_new_megasize] = dedup_glove[j][i];
         }
-        new_local_megasize++;
+        my_new_megasize++;
       }
     }
-
-    local_num_mega = new_local_megasize;
+    my_num_mega = my_new_megasize;
   }
 
   // we must update global_mega_glove and global_megasize
@@ -2773,7 +2772,6 @@ void FixBondReact::dedup_mega_gloves(int dedup_mode)
 
   memory->destroy(dedup_glove);
   delete [] dedup_mask;
-  delete [] dup_list;
 }
 
 /* ----------------------------------------------------------------------
@@ -2826,40 +2824,47 @@ void FixBondReact::glove_ghostcheck()
   // here we add glove to either local_mega_glove or ghostly_mega_glove
   // ghostly_mega_glove includes atoms that are ghosts, either of this proc or another
   // 'ghosts of another' indication taken from comm->sendlist
+  // also includes local gloves that overlap with ghostly gloves, to get dedup right
 
-  int ghostly = 0;
-#if !defined(MPI_STUBS)
-  if (comm->style == Comm::BRICK) {
-    if (create_atoms_flag[rxnID] == 1) {
-      ghostly = 1;
-    } else {
-      for (int i = 0; i < onemol->natoms; i++) {
-        int ilocal = atom->map(glove[i][1]);
-        if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
-          ghostly = 1;
-          break;
+  for (int i = 0; i < nreacts; i++)
+    local_rxn_count[i] = 0;
+
+  for (int i = 0; i < my_num_mega; i++) {
+    rxnID = my_mega_glove[0][i];
+    onemol = atom->molecules[unreacted_mol[rxnID]];
+    int ghostly = 0;
+  #if !defined(MPI_STUBS)
+    if (comm->style == Comm::BRICK) {
+      if (create_atoms_flag[rxnID] == 1) {
+        ghostly = 1;
+      } else {
+        for (int j = 0; j < onemol->natoms; j++) {
+          int ilocal = atom->map(my_mega_glove[j+1][i]);
+          if (ilocal >= atom->nlocal || localsendlist[ilocal] == 1) {
+            ghostly = 1;
+            break;
+          }
         }
       }
+    } else {
+      ghostly = 1;
     }
-  } else {
-    ghostly = 1;
-  }
-#endif
+  #endif
 
-  if (ghostly == 1) {
-    ghostly_mega_glove[0][ghostly_num_mega] = rxnID;
-    ghostly_rxn_count[rxnID]++; //for debuginng
-    for (int i = 0; i < onemol->natoms; i++) {
-      ghostly_mega_glove[i+1][ghostly_num_mega] = glove[i][1];
+    if (ghostly == 1) {
+      ghostly_mega_glove[0][ghostly_num_mega] = rxnID;
+      for (int j = 0; j < onemol->natoms+1; j++) {
+        ghostly_mega_glove[j][ghostly_num_mega] = my_mega_glove[j][i];
+      }
+      ghostly_num_mega++;
+    } else {
+      local_mega_glove[0][local_num_mega] = rxnID;
+      local_rxn_count[rxnID]++;
+      for (int j = 0; j < onemol->natoms+1; j++) {
+        local_mega_glove[j][local_num_mega] = my_mega_glove[j][i];
+      }
+      local_num_mega++;
     }
-    ghostly_num_mega++;
-  } else {
-    local_mega_glove[0][local_num_mega] = rxnID;
-    local_rxn_count[rxnID]++; //for debuginng
-    for (int i = 0; i < onemol->natoms; i++) {
-      local_mega_glove[i+1][local_num_mega] = glove[i][1];
-    }
-    local_num_mega++;
   }
 }
 
@@ -3903,6 +3908,7 @@ read map file
 
 void FixBondReact::read_map_file(int myrxn)
 {
+  int rv;
   char line[MAXLINE],keyword[MAXLINE];
   char *eof,*ptr;
 
@@ -3927,16 +3933,24 @@ void FixBondReact::read_map_file(int myrxn)
 
     if (strstr(line,"edgeIDs")) sscanf(line,"%d",&nedge);
     else if (strstr(line,"equivalences")) {
-      sscanf(line,"%d",&nequivalent);
+      rv = sscanf(line,"%d",&nequivalent);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
       if (nequivalent != onemol->natoms)
         error->one(FLERR,"Fix bond/react: Number of equivalences in map file must "
                    "equal number of atoms in reaction templates");
     }
-    else if (strstr(line,"deleteIDs")) sscanf(line,"%d",&ndelete);
-    else if (strstr(line,"createIDs")) sscanf(line,"%d",&ncreate);
-    else if (strstr(line,"chiralIDs")) sscanf(line,"%d",&nchiral);
-    else if (strstr(line,"constraints")) {
-      sscanf(line,"%d",&nconstraints[myrxn]);
+    else if (strstr(line,"deleteIDs")) {
+      rv = sscanf(line,"%d",&ndelete);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+    } else if (strstr(line,"createIDs")) {
+      rv = sscanf(line,"%d",&ncreate);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+    } else if (strstr(line,"chiralIDs")) {
+      rv = sscanf(line,"%d",&nchiral);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+    } else if (strstr(line,"constraints")) {
+      rv = sscanf(line,"%d",&nconstraints[myrxn]);
+      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
       if (maxnconstraints < nconstraints[myrxn]) maxnconstraints = nconstraints[myrxn];
       constraints.resize(maxnconstraints, std::vector<Constraint>(nreacts));
     } else break;
@@ -3956,11 +3970,13 @@ void FixBondReact::read_map_file(int myrxn)
         if (comm->me == 0) error->warning(FLERR,"Fix bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
       bondflag = 1;
       readline(line);
-      sscanf(line,"%d",&ibonding[myrxn]);
+      rv = sscanf(line,"%d",&ibonding[myrxn]);
+      if (rv != 1) error->one(FLERR, "InitiatorIDs section is incorrectly formatted");
       if (ibonding[myrxn] > onemol->natoms)
         error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
       readline(line);
-      sscanf(line,"%d",&jbonding[myrxn]);
+      rv = sscanf(line,"%d",&jbonding[myrxn]);
+      if (rv != 1) error->one(FLERR, "InitiatorIDs section is incorrectly formatted");
       if (jbonding[myrxn] > onemol->natoms)
         error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
@@ -3991,10 +4007,11 @@ void FixBondReact::EdgeIDs(char *line, int myrxn)
 {
   // puts a 1 at edge(edgeID)
 
-  int tmp;
+  int tmp,rv;
   for (int i = 0; i < nedge; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
+    rv = sscanf(line,"%d",&tmp);
+    if (rv != 1) error->one(FLERR, "EdgeIDs section is incorrectly formatted");
     if (tmp > onemol->natoms)
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     edge[tmp-1][myrxn] = 1;
@@ -4003,11 +4020,11 @@ void FixBondReact::EdgeIDs(char *line, int myrxn)
 
 void FixBondReact::Equivalences(char *line, int myrxn)
 {
-  int tmp1;
-  int tmp2;
+  int tmp1,tmp2,rv;
   for (int i = 0; i < nequivalent; i++) {
     readline(line);
-    sscanf(line,"%d %d",&tmp1,&tmp2);
+    rv = sscanf(line,"%d %d",&tmp1,&tmp2);
+    if (rv != 2) error->one(FLERR, "Equivalences section is incorrectly formatted");
     if (tmp1 > onemol->natoms || tmp2 > twomol->natoms)
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     //equivalences is-> clmn 1: post-reacted, clmn 2: pre-reacted
@@ -4021,10 +4038,11 @@ void FixBondReact::Equivalences(char *line, int myrxn)
 
 void FixBondReact::DeleteAtoms(char *line, int myrxn)
 {
-  int tmp;
+  int tmp,rv;
   for (int i = 0; i < ndelete; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
+    rv = sscanf(line,"%d",&tmp);
+    if (rv != 1) error->one(FLERR, "DeleteIDs section is incorrectly formatted");
     if (tmp > onemol->natoms)
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     delete_atoms[tmp-1][myrxn] = 1;
@@ -4034,10 +4052,11 @@ void FixBondReact::DeleteAtoms(char *line, int myrxn)
 void FixBondReact::CreateAtoms(char *line, int myrxn)
 {
   create_atoms_flag[myrxn] = 1;
-  int tmp;
+  int tmp,rv;
   for (int i = 0; i < ncreate; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
+    rv = sscanf(line,"%d",&tmp);
+    if (rv != 1) error->one(FLERR, "CreateIDs section is incorrectly formatted");
     create_atoms[tmp-1][myrxn] = 1;
   }
   if (twomol->xflag == 0)
@@ -4055,10 +4074,11 @@ void FixBondReact::CustomCharges(int ifragment, int myrxn)
 
 void FixBondReact::ChiralCenters(char *line, int myrxn)
 {
-  int tmp;
+  int tmp,rv;
   for (int i = 0; i < nchiral; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
+    rv = sscanf(line,"%d",&tmp);
+    if (rv != 1) error->one(FLERR, "ChiralIDs section is incorrectly formatted");
     if (tmp > onemol->natoms)
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     chiral_atoms[tmp-1][0][myrxn] = 1;
@@ -4088,6 +4108,7 @@ void FixBondReact::ChiralCenters(char *line, int myrxn)
 
 void FixBondReact::ReadConstraints(char *line, int myrxn)
 {
+  int rv;
   double tmp[MAXCONARGS];
   char **strargs,*ptr,*lptr;
   memory->create(strargs,MAXCONARGS,MAXLINE,"bond/react:strargs");
@@ -4129,10 +4150,12 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
     }
     if ((ptr = strchr(lptr,')')))
       *ptr = '\0';
-    sscanf(line,"%s",constraint_type);
+    rv = sscanf(line,"%s",constraint_type);
+    if (rv != 1) error->one(FLERR, "Constraints section is incorrectly formatted");
     if (strcmp(constraint_type,"distance") == 0) {
       constraints[i][myrxn].type = DISTANCE;
-      sscanf(line,"%*s %s %s %lg %lg",strargs[0],strargs[1],&tmp[0],&tmp[1]);
+      rv = sscanf(line,"%*s %s %s %lg %lg",strargs[0],strargs[1],&tmp[0],&tmp[1]);
+      if (rv != 4) error->one(FLERR, "Distance constraint is incorrectly formatted");
       readID(strargs[0], i, myrxn, 0);
       readID(strargs[1], i, myrxn, 1);
       // cutoffs
@@ -4140,7 +4163,8 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       constraints[i][myrxn].par[1] = tmp[1]*tmp[1];
     } else if (strcmp(constraint_type,"angle") == 0) {
       constraints[i][myrxn].type = ANGLE;
-      sscanf(line,"%*s %s %s %s %lg %lg",strargs[0],strargs[1],strargs[2],&tmp[0],&tmp[1]);
+      rv = sscanf(line,"%*s %s %s %s %lg %lg",strargs[0],strargs[1],strargs[2],&tmp[0],&tmp[1]);
+      if (rv != 5) error->one(FLERR, "Angle constraint is incorrectly formatted");
       readID(strargs[0], i, myrxn, 0);
       readID(strargs[1], i, myrxn, 1);
       readID(strargs[2], i, myrxn, 2);
@@ -4150,8 +4174,9 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       constraints[i][myrxn].type = DIHEDRAL;
       tmp[2] = 181.0; // impossible range
       tmp[3] = 182.0;
-      sscanf(line,"%*s %s %s %s %s %lg %lg %lg %lg",strargs[0],strargs[1],
+      rv = sscanf(line,"%*s %s %s %s %s %lg %lg %lg %lg",strargs[0],strargs[1],
              strargs[2],strargs[3],&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      if (!(rv == 6 || rv == 8)) error->one(FLERR, "Dihedral constraint is incorrectly formatted");
       readID(strargs[0], i, myrxn, 0);
       readID(strargs[1], i, myrxn, 1);
       readID(strargs[2], i, myrxn, 2);
@@ -4163,7 +4188,8 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
     } else if (strcmp(constraint_type,"arrhenius") == 0) {
       constraints[i][myrxn].type = ARRHENIUS;
       constraints[i][myrxn].par[0] = narrhenius++;
-      sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      rv = sscanf(line,"%*s %lg %lg %lg %lg",&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
+      if (rv != 4) error->one(FLERR, "Arrhenius constraint is incorrectly formatted");
       constraints[i][myrxn].par[1] = tmp[0];
       constraints[i][myrxn].par[2] = tmp[1];
       constraints[i][myrxn].par[3] = tmp[2];
@@ -4171,7 +4197,8 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
     } else if (strcmp(constraint_type,"rmsd") == 0) {
       constraints[i][myrxn].type = RMSD;
       strcpy(strargs[0],"0");
-      sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
+      rv = sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
+      if (!(rv == 1 || rv == 2)) error->one(FLERR, "RMSD constraint is incorrectly formatted");
       constraints[i][myrxn].par[0] = tmp[0]; // RMSDmax
       constraints[i][myrxn].id[0] = -1; // optional molecule fragment
       if (isalpha(strargs[0][0])) {
@@ -4411,8 +4438,8 @@ void FixBondReact::write_restart(FILE *fp)
   for (int i = 0; i < nreacts; i++) {
     set[i].reaction_count_total = reaction_count_total[i];
 
-    strncpy(set[i].rxn_name,rxn_name[i],MAXLINE-1);
-    set[i].rxn_name[MAXLINE-1] = '\0';
+    strncpy(set[i].rxn_name,rxn_name[i],MAXNAME-1);
+    set[i].rxn_name[MAXNAME-1] = '\0';
   }
 
   int rbufcount = max_rate_limit_steps*nreacts;
@@ -4449,13 +4476,16 @@ void FixBondReact::restart(char *buf)
   Set *set_restart = (Set *) &buf[n*sizeof(int)];
   r_nreacts = set_restart[0].nreacts;
 
+  n2cpy = 0;
   if (revision > 0) {
     r_max_rate_limit_steps = set_restart[0].max_rate_limit_steps;
-    ibufcount = r_max_rate_limit_steps*r_nreacts;
-    memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
-    memcpy(&ibuf[0][0],&buf[sizeof(int)+r_nreacts*sizeof(Set)],sizeof(int)*ibufcount);
-    n2cpy = r_max_rate_limit_steps;
-  } else n2cpy = 0;
+    if (r_max_rate_limit_steps > 0) {
+      ibufcount = r_max_rate_limit_steps*r_nreacts;
+      memory->create(ibuf,r_max_rate_limit_steps,r_nreacts,"bond/react:ibuf");
+      memcpy(&ibuf[0][0],&buf[sizeof(int)+r_nreacts*sizeof(Set)],sizeof(int)*ibufcount);
+      n2cpy = r_max_rate_limit_steps;
+    }
+  }
 
   if (max_rate_limit_steps < n2cpy) n2cpy = max_rate_limit_steps;
   for (int i = 0; i < r_nreacts; i++) {
@@ -4468,7 +4498,7 @@ void FixBondReact::restart(char *buf)
       }
     }
   }
-  if (revision > 0) memory->destroy(ibuf);
+  if (revision > 0 && r_max_rate_limit_steps > 0) memory->destroy(ibuf);
 }
 
 /* ----------------------------------------------------------------------

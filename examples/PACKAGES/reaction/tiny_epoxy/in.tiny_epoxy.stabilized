@@ -17,6 +17,9 @@ dihedral_style class2
 
 improper_style class2
 
+special_bonds lj/coul 0 0 1
+pair_modify tail yes mix sixthpower
+
 read_data tiny_epoxy.data
 
 velocity all create 300.0 4928459 dist gaussian

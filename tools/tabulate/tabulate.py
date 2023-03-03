@@ -280,5 +280,52 @@ class DihedralTabulate(Tabulate):
             self.fp.close()
 
 ################################################################################
+# create tabulation for fix wall/table
+class WallTabulate(Tabulate):
+    def __init__(self, efunc, ffunc=None, units=None, comment=None):
+        super(WallTabulate, self).__init__('wall', efunc, ffunc, units, comment)
+        self.parser.add_argument('--eshift', '-e', dest='eshift', default=False,
+                                 action='store_true',
+                                 help="Shift potential energy to be zero at outer cutoff")
+        idx = [a.dest for a in self.parser._actions].index('xmin')
+        self.parser._actions[idx].required=False
+        self.parser._actions[idx].default=0.0
+        try:
+            self.args = self.parser.parse_args()
+        except argparse.ArgumentError:
+            sys.exit()
+
+    def run(self, label):
+        # sanity checks
+        if self.args.num < 2:
+            self.helpexit('Expect 2 or more points in table for tabulation')
+        if self.args.xmin < 0.0:
+            self.helpexit('Inner cutoff must not be negative')
+
+        self.diff = self.args.diff
+        if not self.forcefunc:
+            self.diff = True
+
+        table, xzero = mktable(self.tstyle, label, self.args.num, self.args.xmin, self.args.xmax,
+                               self.energyfunc, self.args.diff, self.forcefunc)
+        print("# Minimum energy of tabulated potential is at %g" % xzero)
+        offset = 0.0
+        if self.args.eshift:
+            offset=self.energyfunc(self.args.xmax)
+
+        self.openfile(label)
+
+        if self.forcefunc:
+            diffmin = -numdiff(self.args.xmin, self.forcefunc)
+            diffmax = -numdiff(self.args.xmax, self.forcefunc)
+            self.fp.write("N %d FP %- 22.15g %- 22.15g\n\n" % (self.args.num, diffmin, diffmax))
+        else:
+            self.fp.write("N %d\n\n" % (self.args.num))
+
+        self.writetable(table, offset)
+        if self.args.filename != '-':
+            self.fp.close()
+
+################################################################################
 if __name__ == "__main__":
     sys.exit("The tabulate module is not meant to be executed directly")

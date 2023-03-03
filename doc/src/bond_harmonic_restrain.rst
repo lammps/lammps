@@ -21,6 +21,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 The *harmonic/restrain* bond style uses the potential
 
 .. math::
@@ -46,7 +48,7 @@ Restart info
 This bond style supports the :doc:`write_restart <write_restart>` and
 :doc:`read_restart <read_restart>` commands. The state of the initial
 bond lengths is stored with the restart files and read back.
-  
+
 Restrictions
 """"""""""""
 

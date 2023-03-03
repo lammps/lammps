@@ -48,7 +48,7 @@ class BI(PairTabulate):
         else:
             sys.stdout.write("WARNING: Unknown or lj units, using kb=1\n")
         self.kbT = kb * T
-        self.r, self.e, self.f = self.read_rdf(self.args.rdffile)
+        self.r, self.e = self.read_rdf(self.args.rdffile)
 
     # This function assumes LAMMPS format for rdf with a single entry
     def read_rdf(self, rdffile):
@@ -62,11 +62,9 @@ class BI(PairTabulate):
         return self.inversion(r, g)
 
     def inversion(self, r, g):
-        r = r
         e = -self.kbT * np.log(g)
         e = self.complete_exponential(r, e)
-        f = -np.gradient(e, r)
-        return r, e, f
+        return r, e,
 
     def complete_exponential(self, r, e):
         r_temp = r[e != np.inf]

@@ -33,7 +33,10 @@ class BI(PairTabulate):
             "--rdffile", default="rdf.dat", help="Rdf file to be read."
         )
         self.parser.add_argument(
-            "--temperature", default=0, help="Temperature for BI."
+            "--units", default="lj", help="LAMMPS units to use [default lj]."
+        )
+        self.parser.add_argument(
+            "--temperature", default=0, type=float, help="Temperature for BI."
         )
         try:
             self.args = self.parser.parse_args()
@@ -47,11 +50,11 @@ class BI(PairTabulate):
 
         kb = 1
         # Add more kb units if you need
-        if units == "si":
+        if self.args.units == "si":
             kb = 1.380649e-23  # J/K
-        elif units == "metal":
+        elif self.args.units == "metal":
             kb = 8.617333e-5  # eV/K
-        elif units == "real":
+        elif self.args.units == "real":
             kb = 1.987204e-3  # kcal/mol/K
         else:
             sys.stdout.write("WARNING: Unknown or lj units, using kb=1\n")

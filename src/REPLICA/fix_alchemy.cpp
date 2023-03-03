@@ -53,8 +53,8 @@ FixAlchemy::FixAlchemy(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   vector_flag = 1;
   size_vector = 3;
   extvector = 1;
-  ilevel_respa = 0;
   nmax = 6;
+  ivar = -1;
   sync_box = 0;
 
   // set up rank-to-rank communicator for inter-partition communication

@@ -48,7 +48,6 @@ class FixAlchemy : public Fix {
   double pressure[6];    // joined pressure
   int progress;          // for progress indicator
   int sync_box;          // 1 of box dimensions need to be synchronized
-  int ilevel_respa;
   int nmax;
   int ivar;
 };

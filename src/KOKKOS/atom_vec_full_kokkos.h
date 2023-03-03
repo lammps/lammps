@@ -122,4 +122,3 @@ class AtomVecFullKokkos : public AtomVecKokkos, public AtomVecFull {
 
 #endif
 #endif
-

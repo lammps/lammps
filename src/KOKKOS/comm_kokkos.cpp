@@ -836,7 +836,6 @@ void CommKokkos::exchange_device()
       // if more than 2 procs in dimension, send/recv to both neighbors
 
       const int data_size = atomKK->avecKK->size_border+atomKK->avecKK->size_velocity+2;
-      DAT::tdual_int_1d k_indices;
 
       if (procgrid[dim] == 1) nrecv = 0;
       else {
@@ -867,8 +866,13 @@ void CommKokkos::exchange_device()
         }
 
         if (nrecv) {
-          if (atom->nextra_grow)
-            MemoryKokkos::realloc_kokkos(k_indices,"comm:indices",nrecv/data_size);
+
+          if (atom->nextra_grow) {
+            if (k_indices.extent(0) < nrecv/data_size)
+              MemoryKokkos::realloc_kokkos(k_indices,"comm:indices",nrecv/data_size);
+          } else if (k_indices.h_view.data())
+           k_indices = DAT::tdual_int_1d();
+         
 
           atom->nlocal = atomKK->avecKK->
             unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,

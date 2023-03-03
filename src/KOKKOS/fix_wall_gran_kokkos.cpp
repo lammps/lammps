@@ -27,7 +27,7 @@ enum{NONE,CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixWallGran(lmp, narg, arg)
 {
@@ -47,7 +47,7 @@ FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **a
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 FixWallGranKokkos<DeviceType>::~FixWallGranKokkos()
 {
   if (copymode) return;
@@ -57,7 +57,7 @@ FixWallGranKokkos<DeviceType>::~FixWallGranKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 void FixWallGranKokkos<DeviceType>::init()
 {
   FixWallGran::init();
@@ -68,7 +68,7 @@ void FixWallGranKokkos<DeviceType>::init()
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   // do not update shear history during setup
@@ -290,7 +290,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 void FixWallGranKokkos<DeviceType>::grow_arrays(int nmax)
 {
   if (use_history) {
@@ -400,7 +400,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, con
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 void FixWallGranKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
   ExecutionSpace space)

@@ -111,10 +111,11 @@ void AtomVecChargeKokkos::grow_pointers()
 template<class DeviceType,int PBC_FLAG,int TRICLINIC>
 struct AtomVecChargeKokkos_PackComm {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
 
-  typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
-  typename ArrayTypes<DeviceType>::t_xfloat_2d_um _buf;
-  typename ArrayTypes<DeviceType>::t_int_2d_const _list;
+  typename AT::t_x_array_randomread _x;
+  typename AT::t_xfloat_2d_um _buf;
+  typename AT::t_int_2d_const _list;
   const int _iswap;
   X_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
   X_FLOAT _pbc[6];
@@ -162,30 +163,31 @@ struct AtomVecChargeKokkos_PackComm {
 template<class DeviceType,int PBC_FLAG>
 struct AtomVecChargeKokkos_PackBorder {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
 
-  typename ArrayTypes<DeviceType>::t_xfloat_2d _buf;
-  const typename ArrayTypes<DeviceType>::t_int_2d_const _list;
+  typename AT::t_xfloat_2d _buf;
+  const typename AT::t_int_2d_const _list;
   const int _iswap;
-  const typename ArrayTypes<DeviceType>::t_x_array_randomread _x;
-  const typename ArrayTypes<DeviceType>::t_tagint_1d _tag;
-  const typename ArrayTypes<DeviceType>::t_int_1d _type;
-  const typename ArrayTypes<DeviceType>::t_int_1d _mask;
-  const typename ArrayTypes<DeviceType>::t_float_1d _q;
+  const typename AT::t_x_array_randomread _x;
+  const typename AT::t_tagint_1d _tag;
+  const typename AT::t_int_1d _type;
+  const typename AT::t_int_1d _mask;
+  const typename AT::t_float_1d _q;
   X_FLOAT _dx,_dy,_dz;
 
   AtomVecChargeKokkos_PackBorder(
-      const typename ArrayTypes<DeviceType>::t_xfloat_2d &buf,
-      const typename ArrayTypes<DeviceType>::t_int_2d_const &list,
+      const typename AT::t_xfloat_2d &buf,
+      const typename AT::t_int_2d_const &list,
       const int & iswap,
-      const typename ArrayTypes<DeviceType>::t_x_array &x,
-      const typename ArrayTypes<DeviceType>::t_tagint_1d &tag,
-      const typename ArrayTypes<DeviceType>::t_int_1d &type,
-      const typename ArrayTypes<DeviceType>::t_int_1d &mask,
-      const typename ArrayTypes<DeviceType>::t_float_1d &q,
+      const typename AT::t_x_array &x,
+      const typename AT::t_tagint_1d &tag,
+      const typename AT::t_int_1d &type,
+      const typename AT::t_int_1d &mask,
+      const typename AT::t_float_1d &q,
       const X_FLOAT &dx, const X_FLOAT &dy, const X_FLOAT &dz):
-  _buf(buf),_list(list),_iswap(iswap),
-    _x(x),_tag(tag),_type(type),_mask(mask),_q(q),
-    _dx(dx),_dy(dy),_dz(dz) {}
+      _buf(buf),_list(list),_iswap(iswap),
+      _x(x),_tag(tag),_type(type),_mask(mask),_q(q),
+      _dx(dx),_dy(dy),_dz(dz) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
@@ -261,23 +263,24 @@ int AtomVecChargeKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
 template<class DeviceType>
 struct AtomVecChargeKokkos_UnpackBorder {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
 
-  const typename ArrayTypes<DeviceType>::t_xfloat_2d_const _buf;
-  typename ArrayTypes<DeviceType>::t_x_array _x;
-  typename ArrayTypes<DeviceType>::t_tagint_1d _tag;
-  typename ArrayTypes<DeviceType>::t_int_1d _type;
-  typename ArrayTypes<DeviceType>::t_int_1d _mask;
-  typename ArrayTypes<DeviceType>::t_float_1d _q;
+  const typename AT::t_xfloat_2d_const _buf;
+  typename AT::t_x_array _x;
+  typename AT::t_tagint_1d _tag;
+  typename AT::t_int_1d _type;
+  typename AT::t_int_1d _mask;
+  typename AT::t_float_1d _q;
   int _first;
 
 
   AtomVecChargeKokkos_UnpackBorder(
-      const typename ArrayTypes<DeviceType>::t_xfloat_2d_const &buf,
-      typename ArrayTypes<DeviceType>::t_x_array &x,
-      typename ArrayTypes<DeviceType>::t_tagint_1d &tag,
-      typename ArrayTypes<DeviceType>::t_int_1d &type,
-      typename ArrayTypes<DeviceType>::t_int_1d &mask,
-      typename ArrayTypes<DeviceType>::t_float_1d &q,
+      const typename AT::t_xfloat_2d_const &buf,
+      typename AT::t_x_array &x,
+      typename AT::t_tagint_1d &tag,
+      typename AT::t_int_1d &type,
+      typename AT::t_int_1d &mask,
+      typename AT::t_float_1d &q,
       const int& first):
     _buf(buf),_x(x),_tag(tag),_type(type),_mask(mask),_q(q),_first(first) {
   };
@@ -287,7 +290,7 @@ struct AtomVecChargeKokkos_UnpackBorder {
       _x(i+_first,0) = _buf(i,0);
       _x(i+_first,1) = _buf(i,1);
       _x(i+_first,2) = _buf(i,2);
-      _tag(i+_first) = (tagint) d_ubuf(_buf(i,3)).i;
+      _tag(i+_first) = (tagint) d_ubuf(_buf(i,3)).i;      _type(i+_first) = (int) d_ubuf(_buf(i,4)).i;
       _type(i+_first) = (int) d_ubuf(_buf(i,4)).i;
       _mask(i+_first) = (int) d_ubuf(_buf(i,5)).i;
       _q(i+_first) = _buf(i,6);
@@ -499,12 +502,10 @@ int AtomVecChargeKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int
       k_count.h_view(0) = nlocal;
       AtomVecChargeKokkos_UnpackExchangeFunctor<LMPHostType,1> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/12,f);
-      return k_count.h_view(0);
     } else {
       k_count.h_view(0) = nlocal;
       AtomVecChargeKokkos_UnpackExchangeFunctor<LMPHostType,0> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/12,f);
-      return k_count.h_view(0);
     }
   } else {
     if (k_indices.h_view.data()) {
@@ -526,9 +527,9 @@ int AtomVecChargeKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int
       k_count.modify<LMPDeviceType>();
       k_count.sync<LMPHostType>();
     }
-
-    return k_count.h_view(0);
   }
+
+  return k_count.h_view(0);
 }
 
 /* ---------------------------------------------------------------------- */

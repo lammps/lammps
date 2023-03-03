@@ -31,7 +31,6 @@ namespace LAMMPS_NS {
 
 struct TagFixNeighHistoryPreExchange{};
 struct TagFixNeighHistoryPostNeighbor{};
-struct TagFixNeighHistoryFirstNeigh{};
 struct TagFixNeighHistoryPackExchange{};
 struct TagFixNeighHistoryUnpackExchange{};
 
@@ -45,7 +44,6 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   FixNeighHistoryKokkos(class LAMMPS *, int, char **);
   ~FixNeighHistoryKokkos() override;
 
-  void init() override;
   void pre_exchange() override;
   void post_neighbor() override;
   void grow_arrays(int) override;
@@ -61,10 +59,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   void operator()(TagFixNeighHistoryPostNeighbor, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixNeighHistoryFirstNeigh, const int&, int&, const bool&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixNeighHistoryPackExchange, const int&) const;
+  void operator()(TagFixNeighHistoryPackExchange, const int&, int &, const bool &) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNeighHistoryUnpackExchange, const int&) const;
@@ -98,9 +93,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   typename AT::t_float_2d d_valuepartner;
 
   typename AT::t_int_1d d_sendlist;
-  typename AT::t_xfloat_1d d_firstpartner;
-  typename AT::t_int_scalar d_count;
-  typename AT::t_xfloat_2d d_buf;
+  typename AT::t_xfloat_1d d_buf;
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
 
@@ -108,8 +101,8 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  typename AT::t_int_scalar d_resize;
-  HAT::t_int_scalar h_resize;
+  typename AT::t_int_scalar d_resize,d_count;
+  HAT::t_int_scalar h_resize,h_count;
 };
 
 } // namespace LAMMPS_NS

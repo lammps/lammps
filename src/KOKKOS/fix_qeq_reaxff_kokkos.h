@@ -286,8 +286,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 };
 
 template <class DeviceType>
-struct FixQEqReaxFFKokkosNumNeighFunctor  {
-  typedef DeviceType  device_type;
+struct FixQEqReaxFFKokkosNumNeighFunctor {
+  typedef DeviceType device_type;
   typedef int value_type;
   FixQEqReaxFFKokkos<DeviceType> c;
   FixQEqReaxFFKokkosNumNeighFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {

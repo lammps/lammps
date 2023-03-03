@@ -420,12 +420,10 @@ int AtomVecAtomicKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int
       k_count.h_view(0) = nlocal;
       AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPHostType,1> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/11,f);
-      return k_count.h_view(0);
     } else {
       k_count.h_view(0) = nlocal;
       AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPHostType,0> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/11,f);
-      return k_count.h_view(0);
     }
   } else {
     if (k_indices.h_view.data()) {
@@ -445,9 +443,9 @@ int AtomVecAtomicKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int
       k_count.modify<LMPDeviceType>();
       k_count.sync<LMPHostType>();
     }
-
-    return k_count.h_view(0);
   }
+
+  return k_count.h_view(0);
 }
 
 /* ---------------------------------------------------------------------- */

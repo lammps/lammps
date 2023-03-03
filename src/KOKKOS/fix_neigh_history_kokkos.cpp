@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixNeighHistory(lmp, narg, arg)
 {
@@ -49,13 +49,16 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
   maxpartner = 8;
   grow_arrays(atom->nmax);
 
-  d_resize = typename ArrayTypes<DeviceType>::t_int_scalar("FixNeighHistoryKokkos::resize");
+  d_resize = typename AT::t_int_scalar("fix_neigh_history::resize");
   h_resize = Kokkos::create_mirror_view(d_resize);
+
+  d_count = typename AT::t_int_scalar("fix_neigh_history:count");
+  h_count = Kokkos::create_mirror_view(d_count);
 }
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 FixNeighHistoryKokkos<DeviceType>::~FixNeighHistoryKokkos()
 {
   if (copymode) return;
@@ -67,27 +70,7 @@ FixNeighHistoryKokkos<DeviceType>::~FixNeighHistoryKokkos()
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
-void FixNeighHistoryKokkos<DeviceType>::init()
-{
-  if (atomKK->tag_enable == 0)
-    error->all(FLERR,"Neighbor history requires atoms have IDs");
-
-  // this fix must come before any fix which migrates atoms in its pre_exchange()
-  // b/c this fix's pre_exchange() creates per-atom data structure
-  // that data must be current for atom migration to carry it along
-
-  for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i] == this) break;
-    if (modify->fix[i]->pre_exchange_migrate)
-      error->all(FLERR,"Fix neigh_history comes after a fix which "
-                 "migrates atoms in pre_exchange");
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template <class DeviceType>
+template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 {
   copymode = 1;
@@ -122,7 +105,7 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 
   copymode = 0;
 
-  maxexchange = (dnum+1)*maxpartner+1;
+  maxexchange = (dnum+1)*maxpartner + 2;
 }
 
 template<class DeviceType>
@@ -160,7 +143,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPreExchange
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 {
   tag = atomKK->k_tag.view<DeviceType>();
@@ -292,39 +275,35 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange(int i, double *buf)
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryFirstNeigh, const int &i, int &update, const bool &final) const {
-  const int n = 1+d_npartner(d_sendlist(i))*(dnum+1);
-  if (final) {
-    d_firstpartner(i) = d_ubuf(nsend+update).d;
-    if (i == nsend - 1)
-      d_count() = nsend+update+n;
-  }
-  update += n;
-}
+void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPackExchange, const int &mysend, int &offset, const bool &final) const {
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPackExchange, const int &mysend) const {
   const int i = d_sendlist(mysend);
-  const int n = d_npartner(i);
-  int m = (int) d_ubuf(d_firstpartner(mysend)).i;
-  d_firstpartner(m++) = d_ubuf(n).d;
-  for (int p = 0; p < n; p++) {
-    d_firstpartner(m++) = d_ubuf(d_partner(i,p)).d;
-    for (int v = 0; v < dnum; v++) {
-      d_firstpartner(m++) = d_valuepartner(i,dnum*p+v);
-    }
-  }
-  const int j = d_copylist(mysend);
-  if (j > -1) {
-    const int nj = d_npartner(j);
-    d_npartner(i) = nj;
-    for (int p = 0; p < nj; p++) {
-      d_partner(i,p) = d_partner(j,p);
+
+  if (!final)
+    offset += 1+d_npartner(i)*(dnum+1);
+  else {
+    int m = nsend + offset;
+
+    d_buf(mysend) = d_ubuf(m).d;
+    const int n = d_npartner(i);
+    d_buf(m++) = d_ubuf(n).d;
+    for (int p = 0; p < n; p++) {
+      d_buf(m++) = d_ubuf(d_partner(i,p)).d;
       for (int v = 0; v < dnum; v++) {
-	d_valuepartner(i,dnum*p+v) = d_valuepartner(j,dnum*p+v);
+        d_buf(m++) = d_valuepartner(i,dnum*p+v);
+      }
+    }
+    if (mysend == nsend-1) d_count() = m;
+
+    const int j = d_copylist(mysend);
+    if (j > -1) {
+      const int nj = d_npartner(j);
+      d_npartner(i) = nj;
+      for (int p = 0; p < nj; p++) {
+        d_partner(i,p) = d_partner(j,p);
+        for (int v = 0; v < dnum; v++) {
+          d_valuepartner(i,dnum*p+v) = d_valuepartner(j,dnum*p+v);
+        }
       }
     }
   }
@@ -350,28 +329,21 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
   d_copylist = k_copylist.view<DeviceType>();
   this->nsend = nsend;
 
-  d_firstpartner = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  d_buf = typename AT::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
 
-  typename ArrayTypes<DeviceType>::tdual_int_scalar k_count("neighbor_history:k_count");
-
-  k_count.h_view() = 0;
-  k_count.modify_host();
-  k_count.template sync<DeviceType>();
+  Kokkos::deep_copy(d_count,0);
 
   copymode = 1;
 
-  Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryFirstNeigh>(0,nsend),*this);
-
-  k_count.template modify<DeviceType>();
-  k_count.sync_host();
-
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryPackExchange>(0,nsend),*this);
+  Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryPackExchange>(0,nsend),*this);
 
   copymode = 0;
 
-  return k_count.h_view();
+  Kokkos::deep_copy(h_count,d_count);
+
+  return h_count();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -382,13 +354,13 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExcha
 {
   int index = d_indices(i);
   if (index > 0) {
-    int m = (int) d_ubuf(d_firstpartner(i)).i;
-    int n = (int) d_ubuf(d_firstpartner(m++)).i;
+    int m = (int) d_ubuf(d_buf(i)).i;
+    int n = (int) d_ubuf(d_buf(m++)).i;
     d_npartner(index) = n;
     for (int p = 0; p < n; p++) {
-      d_partner(index,p) = (tagint) d_ubuf(d_firstpartner(m++)).i;
+      d_partner(index,p) = (tagint) d_ubuf(d_buf(m++)).i;
       for (int v = 0; v < dnum; v++) {
-	d_valuepartner(index,dnum*p+v) = d_firstpartner(m++);
+	d_valuepartner(index,dnum*p+v) = d_buf(m++);
       }
     }
   }
@@ -396,12 +368,12 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExcha
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType>
+template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
   ExecutionSpace space)
 {
-  d_firstpartner = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  d_buf = typename AT::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();

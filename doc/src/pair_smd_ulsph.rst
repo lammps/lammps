@@ -59,7 +59,7 @@ Note that the use of \*GRADIENT_CORRECTION can lead to severe numerical
 instabilities. For a general fluid simulation, \*NO_GRADIENT_CORRECTION
 is recommended.
 
-Please see the `SMD user guide <PDF/SMD_LAMMPS_userguide.pdf>`_ for a
+Please see the `SMD user guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ for a
 complete listing of the possible keywords and material models.
 
 ----------

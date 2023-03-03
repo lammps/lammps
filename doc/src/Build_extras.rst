@@ -1135,7 +1135,7 @@ VORONOI package
 -----------------------------
 
 To build with this package, you must download and build the
-`Voro++ library <https://math.lbl.gov/voro++>`_ or install a
+`Voro++ library <https://math.lbl.gov/voro++/>`_ or install a
 binary package provided by your operating system.
 
 .. tabs::

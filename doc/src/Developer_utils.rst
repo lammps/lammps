@@ -643,6 +643,8 @@ Tohoku University (under MIT license)
 
 ---------------------------
 
+.. _communication_buffer_coding_with_ubuf:
+
 Communication buffer coding with *ubuf*
 ---------------------------------------
 

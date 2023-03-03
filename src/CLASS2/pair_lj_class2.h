@@ -38,6 +38,7 @@ class PairLJClass2 : public Pair {
   void write_data(FILE *) override;
   void write_data_all(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
+  void born_matrix(int, int, int, int, double, double, double, double &, double &) override;
   void *extract(const char *, int &) override;
 
   void compute_inner() override;

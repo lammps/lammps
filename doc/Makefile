@@ -214,7 +214,7 @@ style_check : $(VENV)
 
 package_check : $(VENV)
 	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
 		python utils/check-packages.py -s ../src -d src ;\
 		deactivate ;\
 	)
@@ -224,6 +224,13 @@ char_check :
 
 role_check :
 	@( env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst && exit 1 || : )
+
+link_check : $(VENV) html
+	@(\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		linkchecker -F html --check-extern html/Manual.html ;\
+		deactivate ;\
+	)
 
 xmlgen : doxygen/xml/index.xml
 

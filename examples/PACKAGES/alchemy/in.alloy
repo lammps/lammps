@@ -1,0 +1,45 @@
+# Example for an alchemical transformation simulation of pure copper into an aluminium bronze
+
+# set up different names for two partitions
+variable name world pure alloy
+
+# create pure copper system
+units metal
+lattice fcc 3.75
+region box block 0 6 0 6 0 6
+create_box 2 box
+
+timestep 0.002
+create_atoms 1 box
+displace_atoms all random 0.3 0.3 0.3 57845645
+pair_style eam/alloy
+pair_coeff * * AlCu.eam.alloy Cu Al
+
+# replace 5% of copper with aluminium on the second partition only
+if "${name} == alloy" then &
+   "set type 1 type/fraction 2 0.05 6745234"
+
+# define ramp variable to combine the two different partitions
+if "${name} == pure" then             &
+   "variable ramp equal ramp(1.0,0.0)"    &
+else                                      &
+   "variable ramp equal ramp(0.0,1.0)"
+
+velocity all create 5000.0 6567345
+fix 1 all nvt temp 2500.0 500.0 0.002
+fix 2 all alchemy v_ramp
+
+compute pressure all pressure/alchemy 2
+
+# only need to output a dump file from one partition
+#if "${name} == alloy" then &
+#    "dump 1 all custom 100 ${name}.lammpstrj id type element x y z" &
+#    "dump_modify 1 element Cu Al"
+
+thermo_style custom step temp press etotal density pe ke f_2 f_2[3]
+thermo_modify colname f_2 lambda colname f_2[3] EPot_mixed
+thermo_modify press pressure
+
+thermo 100
+run 10000 post no
+

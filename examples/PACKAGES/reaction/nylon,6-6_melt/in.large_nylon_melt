@@ -18,6 +18,9 @@ dihedral_style class2
 
 improper_style class2
 
+special_bonds lj/coul 0 0 1
+pair_modify tail yes mix sixthpower
+
 read_data large_nylon_melt.data.gz &
   extra/bond/per/atom 5  &
   extra/angle/per/atom 15 &

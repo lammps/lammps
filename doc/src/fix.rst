@@ -181,6 +181,7 @@ accelerated styles exist.
 * :doc:`adapt/fep <fix_adapt_fep>` - enhanced version of fix adapt
 * :doc:`addforce <fix_addforce>` - add a force to each atom
 * :doc:`addtorque <fix_addtorque>` - add a torque to a group of atoms
+* :doc:`alchemy <fix_alchemy>` - perform an "alchemical transformation" between two partitions
 * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>` - torsion/torsion terms in AMOEBA force field
 * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>` - 6-body terms in AMOEBA force field
 * :doc:`append/atoms <fix_append_atoms>` - append atoms to a running simulation
@@ -320,7 +321,7 @@ accelerated styles exist.
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
 * :doc:`pair <fix_pair>` - access per-atom info from pair styles
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
-* :doc:`pimd <fix_pimd>` - Feynman path integral molecular dynamics
+* :doc:`pimd/nvt <fix_pimd>` - Feynman path integral molecular dynamics with Nose-Hoover thermostat
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`plumed <fix_plumed>` - wrapper on PLUMED free energy library
 * :doc:`poems <fix_poems>` - constrain clusters of atoms to move as coupled rigid bodies
@@ -415,6 +416,7 @@ accelerated styles exist.
 * :doc:`wall/lj1043 <fix_wall>` - Lennard-Jones 10--4--3 wall
 * :doc:`wall/lj126 <fix_wall>` - Lennard-Jones 12--6 wall
 * :doc:`wall/lj93 <fix_wall>` - Lennard-Jones 9--3 wall
+* :doc:`wall/lepton <fix_wall>` - Custom Lepton expression wall
 * :doc:`wall/morse <fix_wall>` - Morse potential wall
 * :doc:`wall/piston <fix_wall_piston>` - moving reflective piston wall
 * :doc:`wall/reflect <fix_wall_reflect>` - reflecting wall(s)
@@ -422,6 +424,7 @@ accelerated styles exist.
 * :doc:`wall/region <fix_wall_region>` - use region surface as wall
 * :doc:`wall/region/ees <fix_wall_ees>` - use region surface as wall for ellipsoidal particles
 * :doc:`wall/srd <fix_wall_srd>` - slip/no-slip wall for SRD particles
+* :doc:`wall/table <fix_wall>` - Tabulated potential wall wall
 * :doc:`widom <fix_widom>` - Widom insertions of atoms or molecules
 
 Restrictions

@@ -28,16 +28,24 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
 	)
     endif()
 
-    set(file ${dir}/TestRandomAndSort.cpp)
-    # Write to a temporary intermediate file and call configure_file to avoid
-    # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
-    file(WRITE ${dir}/dummy.cpp
-      "#include <Test${Tag}_Category.hpp>\n"
-      "#include <TestRandomCommon.hpp>\n"
-      "#include <TestSortCommon.hpp>\n"
-      )
-    configure_file(${dir}/dummy.cpp ${file})
-    list(APPEND SOURCES_A ${file})
+    # Each of these inputs is an .hpp file.
+    # Generate a .cpp file for each one that runs it on the current backend (Tag),
+    # and add this .cpp file to the sources for UnitTest_RandomAndSort.
+    foreach(SOURCES_A_Input
+        TestRandomCommon
+        TestSortCommon
+        TestNestedSort
+    )
+      set(file ${dir}/${SOURCES_A_Input}.cpp)
+      # Write to a temporary intermediate file and call configure_file to avoid
+      # updating timestamps triggering unnecessary rebuilds on subsequent cmake runs.
+      file(WRITE ${dir}/dummy.cpp
+        "#include <Test${Tag}_Category.hpp>\n"
+        "#include <${SOURCES_A_Input}.hpp>\n"
+        )
+      configure_file(${dir}/dummy.cpp ${file})
+      list(APPEND SOURCES_A ${file})
+    endforeach()
 
     # ------------------------------------------
     # std set A
@@ -137,12 +145,31 @@ foreach(Tag Threads;Serial;OpenMP;Cuda;HPX;HIP;SYCL;OpenMPTarget)
   endif()
 endforeach()
 
-KOKKOS_ADD_EXECUTABLE_AND_TEST(
-  UnitTest_RandomAndSort
-  SOURCES
-    UnitTestMain.cpp
-    ${SOURCES_A}
-)
+# FIXME_OPENMPTARGET These tests cause internal compiler errors as of 09/01/22
+# when compiling for Intel's Xe-HP GPUs.
+if(KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL IntelLLVM)
+  list(REMOVE_ITEM STDALGO_SOURCES_D
+    TestStdAlgorithmsCopyIf.cpp
+    TestStdAlgorithmsRemoveCopy.cpp
+    TestStdAlgorithmsUnique.cpp
+    TestStdAlgorithmsUniqueCopy.cpp
+  )
+  list(REMOVE_ITEM STDALGO_SOURCES_E
+    TestStdAlgorithmsExclusiveScan.cpp
+    TestStdAlgorithmsInclusiveScan.cpp
+  )
+endif()
+
+# FIXME_OPENMPTARGET This test causes internal compiler errors as of 09/01/22
+# when compiling for Intel's Xe-HP GPUs.
+if(NOT (KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL IntelLLVM))
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    UnitTest_RandomAndSort
+    SOURCES
+      UnitTestMain.cpp
+      ${SOURCES_A}
+  )
+endif()
 
 foreach(ID A;B;C;D;E)
   KOKKOS_ADD_EXECUTABLE_AND_TEST(
@@ -153,7 +180,11 @@ foreach(ID A;B;C;D;E)
     )
 endforeach()
 
-KOKKOS_ADD_EXECUTABLE(
-  UnitTest_StdAlgoCompileOnly
-  SOURCES TestStdAlgorithmsCompileOnly.cpp
-)
+# FIXME_OPENMPTARGET This test causes internal compiler errors as of 09/01/22
+# when compiling for Intel's Xe-HP GPUs.
+if(NOT (KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL IntelLLVM))
+  KOKKOS_ADD_EXECUTABLE(
+    UnitTest_StdAlgoCompileOnly
+    SOURCES TestStdAlgorithmsCompileOnly.cpp
+  )
+endif()

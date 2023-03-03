@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_THREADS_PARALLEL_MDRANGE_HPP
 #define KOKKOS_THREADS_PARALLEL_MDRANGE_HPP
@@ -67,20 +39,11 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   using iterate_type = typename Kokkos::Impl::HostIterateTile<
       MDRangePolicy, FunctorType, typename MDRangePolicy::work_tag, void>;
 
-  const FunctorType m_functor;
-  const MDRangePolicy m_mdr_policy;
-  const Policy m_policy;  // construct as RangePolicy( 0, num_tiles
-                          // ).set_chunk_size(1) in ctor
+  const iterate_type m_iter;
 
-  inline static void exec_range(const MDRangePolicy &mdr_policy,
-                                const FunctorType &functor, const Member ibeg,
-                                const Member iend) {
-#if defined(KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION) && \
-    defined(KOKKOS_ENABLE_PRAGMA_IVDEP)
-#pragma ivdep
-#endif
+  inline void exec_range(const Member ibeg, const Member iend) const {
     for (Member i = ibeg; i < iend; ++i) {
-      iterate_type(mdr_policy, functor)(i);
+      m_iter(i);
     }
   }
 
@@ -93,10 +56,11 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   exec_schedule(ThreadsExec &exec, const void *arg) {
     const ParallelFor &self = *((const ParallelFor *)arg);
 
-    WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
+    auto const num_tiles = self.m_iter.m_rp.m_num_tiles;
+    WorkRange range(Policy(0, num_tiles).set_chunk_size(1), exec.pool_rank(),
+                    exec.pool_size());
 
-    ParallelFor::exec_range(self.m_mdr_policy, self.m_functor, range.begin(),
-                            range.end());
+    self.exec_range(range.begin(), range.end());
 
     exec.fan_in();
   }
@@ -106,23 +70,21 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   exec_schedule(ThreadsExec &exec, const void *arg) {
     const ParallelFor &self = *((const ParallelFor *)arg);
 
-    WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
+    auto const num_tiles = self.m_iter.m_rp.m_num_tiles;
+    WorkRange range(Policy(0, num_tiles).set_chunk_size(1), exec.pool_rank(),
+                    exec.pool_size());
 
-    exec.set_work_range(range.begin(), range.end(), self.m_policy.chunk_size());
+    exec.set_work_range(range.begin(), range.end(), 1);
     exec.reset_steal_target();
     exec.barrier();
 
     long work_index = exec.get_work_index();
 
     while (work_index != -1) {
-      const Member begin =
-          static_cast<Member>(work_index) * self.m_policy.chunk_size();
-      const Member end =
-          begin + self.m_policy.chunk_size() < self.m_policy.end()
-              ? begin + self.m_policy.chunk_size()
-              : self.m_policy.end();
+      const Member begin = static_cast<Member>(work_index);
+      const Member end   = begin + 1 < num_tiles ? begin + 1 : num_tiles;
 
-      ParallelFor::exec_range(self.m_mdr_policy, self.m_functor, begin, end);
+      self.exec_range(begin, end);
       work_index = exec.get_work_index();
     }
 
@@ -136,9 +98,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   }
 
   ParallelFor(const FunctorType &arg_functor, const MDRangePolicy &arg_policy)
-      : m_functor(arg_functor),
-        m_mdr_policy(arg_policy),
-        m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)) {}
+      : m_iter(arg_policy, arg_functor) {}
 
   template <typename Policy, typename Functor>
   static int max_tile_size_product(const Policy &, const Functor &) {
@@ -180,22 +140,14 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
       typename Kokkos::Impl::HostIterateTile<MDRangePolicy, FunctorType,
                                              WorkTag, reference_type>;
 
-  const FunctorType m_functor;
-  const MDRangePolicy m_mdr_policy;
-  const Policy m_policy;  // construct as RangePolicy( 0, num_tiles
-                          // ).set_chunk_size(1) in ctor
+  const iterate_type m_iter;
   const ReducerType m_reducer;
   const pointer_type m_result_ptr;
 
-  inline static void exec_range(const MDRangePolicy &mdr_policy,
-                                const FunctorType &functor, const Member &ibeg,
-                                const Member &iend, reference_type update) {
-#if defined(KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION) && \
-    defined(KOKKOS_ENABLE_PRAGMA_IVDEP)
-#pragma ivdep
-#endif
+  inline void exec_range(const Member &ibeg, const Member &iend,
+                         reference_type update) const {
     for (Member i = ibeg; i < iend; ++i) {
-      iterate_type(mdr_policy, functor, update)(i);
+      m_iter(i, update);
     }
   }
 
@@ -207,13 +159,16 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Static>::value>
   exec_schedule(ThreadsExec &exec, const void *arg) {
     const ParallelReduce &self = *((const ParallelReduce *)arg);
-    const WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
+
+    const auto num_tiles = self.m_iter.m_rp.m_num_tiles;
+    const WorkRange range(Policy(0, num_tiles).set_chunk_size(1),
+                          exec.pool_rank(), exec.pool_size());
 
     typename Analysis::Reducer reducer(
-        &ReducerConditional::select(self.m_functor, self.m_reducer));
+        &ReducerConditional::select(self.m_iter.m_func, self.m_reducer));
 
-    ParallelReduce::exec_range(
-        self.m_mdr_policy, self.m_functor, range.begin(), range.end(),
+    self.exec_range(
+        range.begin(), range.end(),
         reducer.init(static_cast<pointer_type>(exec.reduce_memory())));
 
     exec.fan_in_reduce(reducer);
@@ -223,27 +178,25 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
   static std::enable_if_t<std::is_same<Schedule, Kokkos::Dynamic>::value>
   exec_schedule(ThreadsExec &exec, const void *arg) {
     const ParallelReduce &self = *((const ParallelReduce *)arg);
-    const WorkRange range(self.m_policy, exec.pool_rank(), exec.pool_size());
 
-    exec.set_work_range(range.begin(), range.end(), self.m_policy.chunk_size());
+    const auto num_tiles = self.m_iter.m_rp.m_num_tiles;
+    const WorkRange range(Policy(0, num_tiles).set_chunk_size(1),
+                          exec.pool_rank(), exec.pool_size());
+
+    exec.set_work_range(range.begin(), range.end(), 1);
     exec.reset_steal_target();
     exec.barrier();
 
     long work_index = exec.get_work_index();
     typename Analysis::Reducer reducer(
-        &ReducerConditional::select(self.m_functor, self.m_reducer));
+        &ReducerConditional::select(self.m_iter.m_func, self.m_reducer));
 
     reference_type update =
         reducer.init(static_cast<pointer_type>(exec.reduce_memory()));
     while (work_index != -1) {
-      const Member begin =
-          static_cast<Member>(work_index) * self.m_policy.chunk_size();
-      const Member end =
-          begin + self.m_policy.chunk_size() < self.m_policy.end()
-              ? begin + self.m_policy.chunk_size()
-              : self.m_policy.end();
-      ParallelReduce::exec_range(self.m_mdr_policy, self.m_functor, begin, end,
-                                 update);
+      const Member begin = static_cast<Member>(work_index);
+      const Member end   = begin + 1 < num_tiles ? begin + 1 : num_tiles;
+      self.exec_range(begin, end, update);
       work_index = exec.get_work_index();
     }
 
@@ -252,9 +205,9 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
 
  public:
   inline void execute() const {
-    ThreadsExec::resize_scratch(
-        Analysis::value_size(ReducerConditional::select(m_functor, m_reducer)),
-        0);
+    ThreadsExec::resize_scratch(Analysis::value_size(ReducerConditional::select(
+                                    m_iter.m_func, m_reducer)),
+                                0);
 
     ThreadsExec::start(&ParallelReduce::exec, this);
 
@@ -265,7 +218,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
           (pointer_type)ThreadsExec::root_reduce_scratch();
 
       const unsigned n = Analysis::value_count(
-          ReducerConditional::select(m_functor, m_reducer));
+          ReducerConditional::select(m_iter.m_func, m_reducer));
       for (unsigned i = 0; i < n; ++i) {
         m_result_ptr[i] = data[i];
       }
@@ -279,9 +232,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                  std::enable_if_t<Kokkos::is_view<HostViewType>::value &&
                                       !Kokkos::is_reducer<ReducerType>::value,
                                   void *> = nullptr)
-      : m_functor(arg_functor),
-        m_mdr_policy(arg_policy),
-        m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)),
+      : m_iter(arg_policy, arg_functor),
         m_reducer(InvalidType()),
         m_result_ptr(arg_result_view.data()) {
     static_assert(Kokkos::is_view<HostViewType>::value,
@@ -294,9 +245,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
 
   inline ParallelReduce(const FunctorType &arg_functor,
                         MDRangePolicy arg_policy, const ReducerType &reducer)
-      : m_functor(arg_functor),
-        m_mdr_policy(arg_policy),
-        m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)),
+      : m_iter(arg_policy, arg_functor),
         m_reducer(reducer),
         m_result_ptr(reducer.view().data()) {
     /*static_assert( std::is_same< typename ViewType::memory_space

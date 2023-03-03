@@ -8,8 +8,10 @@ MESSAGE(STATUS "The project name is: ${PROJECT_NAME}")
 
 IF(GTest_FOUND)
   SET(KOKKOS_GTEST_LIB GTest::gtest)
+  MESSAGE(STATUS "Using gtest found in ${GTest_DIR}")
 ELSE()  # fallback to internal gtest
   SET(KOKKOS_GTEST_LIB kokkos_gtest)
+  MESSAGE(STATUS "Using internal gtest for testing")
 ENDIF()
 
 FUNCTION(VERIFY_EMPTY CONTEXT)
@@ -88,9 +90,7 @@ MACRO(KOKKOS_PROCESS_SUBPACKAGES)
     ADD_SUBDIRECTORY(core)
     ADD_SUBDIRECTORY(containers)
     ADD_SUBDIRECTORY(algorithms)
-    if (KOKKOS_CXX_STANDARD GREATER_EQUAL 17)
-      ADD_SUBDIRECTORY(simd)
-    endif()
+    ADD_SUBDIRECTORY(simd)
     ADD_SUBDIRECTORY(example)
   endif()
 ENDMACRO()
@@ -217,6 +217,7 @@ MACRO(KOKKOS_SETUP_BUILD_ENVIRONMENT)
   SET(Kokkos_INSTALL_TESTING OFF CACHE INTERNAL "Whether to build tests and examples against installation")
   IF (Kokkos_INSTALL_TESTING)
     SET(KOKKOS_ENABLE_TESTS ON)
+    SET(KOKKOS_ENABLE_BENCHMARKS ON)
     SET(KOKKOS_ENABLE_EXAMPLES ON)
     # This looks a little weird, but what we are doing
     # is to NOT build Kokkos but instead look for an
@@ -281,11 +282,7 @@ MACRO(KOKKOS_CONFIGURE_CORE)
       LIST(APPEND FWD_BACKEND_LIST ${MEMSPACE})
    ENDFOREACH()
    FOREACH(BACKEND_ ${KOKKOS_ENABLED_DEVICES})
-      IF( ${BACKEND_} STREQUAL "PTHREAD")
-         LIST(APPEND FWD_BACKEND_LIST THREADS)
-      ELSE()
-         LIST(APPEND FWD_BACKEND_LIST ${BACKEND_})
-      ENDIF()
+      LIST(APPEND FWD_BACKEND_LIST ${BACKEND_})
    ENDFOREACH()
    MESSAGE(STATUS "Kokkos Devices: ${KOKKOS_ENABLED_DEVICES}, Kokkos Backends: ${FWD_BACKEND_LIST}")
    KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_FwdBackend.hpp "KOKKOS_FWD" "fwd/Kokkos_Fwd" "${FWD_BACKEND_LIST}")
@@ -534,13 +531,6 @@ FUNCTION(KOKKOS_ADD_INTERFACE_LIBRARY NAME)
 IF (KOKKOS_HAS_TRILINOS)
   TRIBITS_ADD_LIBRARY(${NAME} ${ARGN})
 ELSE()
-  CMAKE_PARSE_ARGUMENTS(PARSE
-    ""
-    ""
-    "HEADERS;SOURCES"
-    ${ARGN}
-  )
-
   ADD_LIBRARY(${NAME} INTERFACE)
   KOKKOS_INTERNAL_ADD_LIBRARY_INSTALL(${NAME})
 ENDIF()

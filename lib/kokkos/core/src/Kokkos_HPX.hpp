@@ -1,55 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_HPX_HPP
 #define KOKKOS_HPX_HPP
@@ -371,13 +339,6 @@ class HPX {
   }
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  static std::vector<HPX> partition(...) {
-    Kokkos::abort(
-        "Kokkos::Experimental::HPX::partition_master: can't partition an HPX "
-        "instance\n");
-    return std::vector<HPX>();
-  }
-
   template <typename F>
   KOKKOS_DEPRECATED static void partition_master(
       F const &, int requested_num_partitions = 0, int = 0) {
@@ -455,7 +416,7 @@ class HPX {
 #endif
 
 #if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
-  struct KOKKOS_ATTRIBUTE_NODISCARD reset_on_exit_parallel {
+  struct [[nodiscard]] reset_on_exit_parallel {
     HPX const &m_space;
     reset_on_exit_parallel(HPX const &space) : m_space(space) {}
     ~reset_on_exit_parallel() {
@@ -471,25 +432,33 @@ class HPX {
   // data. It does, however, still decrement the parallel region count. It is
   // meant for use in parallel regions which do not capture the execution space
   // instance.
-  struct KOKKOS_ATTRIBUTE_NODISCARD reset_count_on_exit_parallel {
-    reset_count_on_exit_parallel() {}
+  struct [[nodiscard]] reset_count_on_exit_parallel {
+    reset_count_on_exit_parallel() = default;
     ~reset_count_on_exit_parallel() {
       HPX::impl_decrement_active_parallel_region_count();
     }
   };
 #else
-  struct KOKKOS_ATTRIBUTE_NODISCARD reset_on_exit_parallel {
-    reset_on_exit_parallel(HPX const &) {}
-    ~reset_on_exit_parallel() {}
+  struct [[nodiscard]] reset_on_exit_parallel {
+    reset_on_exit_parallel(HPX const &) = default;
+    ~reset_on_exit_parallel()           = default;
   };
 
-  struct KOKKOS_ATTRIBUTE_NODISCARD reset_count_on_exit_parallel {
-    reset_count_on_exit_parallel() {}
-    ~reset_count_on_exit_parallel() {}
+  struct [[nodiscard]] reset_count_on_exit_parallel {
+    reset_count_on_exit_parallel()  = default;
+    ~reset_count_on_exit_parallel() = default;
   };
 #endif
 
   static constexpr const char *name() noexcept { return "HPX"; }
+
+ private:
+  friend bool operator==(HPX const &lhs, HPX const &rhs) {
+    return lhs.m_instance_id == rhs.m_instance_id;
+  }
+  friend bool operator!=(HPX const &lhs, HPX const &rhs) {
+    return !(lhs == rhs);
+  }
 };
 }  // namespace Experimental
 
@@ -652,6 +621,7 @@ struct HPXTeamMember {
   using execution_space = Kokkos::Experimental::HPX;
   using scratch_memory_space =
       Kokkos::ScratchMemorySpace<Kokkos::Experimental::HPX>;
+  using team_handle = HPXTeamMember;
 
  private:
   scratch_memory_space m_team_shared;
@@ -1095,17 +1065,16 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
       typename Kokkos::Impl::HostIterateTile<MDRangePolicy, FunctorType,
                                              WorkTag, void>;
 
-  const FunctorType m_functor;
-  const MDRangePolicy m_mdr_policy;
+  const iterate_type m_iter;
   const Policy m_policy;
 
  public:
-  void execute() const { dispatch_execute_task(this, m_mdr_policy.space()); }
+  void execute() const { dispatch_execute_task(this, m_iter.m_rp.space()); }
 
   inline void execute_task() const {
     // See [note 1] for an explanation.
     Kokkos::Experimental::HPX::reset_on_exit_parallel reset_on_exit(
-        m_mdr_policy.space());
+        m_iter.m_rp.space());
 
     auto exec = Kokkos::Experimental::HPX::impl_get_executor();
 
@@ -1117,9 +1086,8 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
     for_loop(par.on(exec).with(
                  static_chunk_size(get_hpx_adjusted_chunk_size(m_policy))),
-             m_policy.begin(), m_policy.end(), [this](const Member i) {
-               iterate_type(m_mdr_policy, m_functor)(i);
-             });
+             m_policy.begin(), m_policy.end(),
+             [this](const Member i) { iterate_type(i); });
 
 #elif KOKKOS_HPX_IMPLEMENTATION == 1
     using hpx::for_loop_strided;
@@ -1131,15 +1099,14 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
                        const Member i_end =
                            (std::min)(i_begin + chunk_size, m_policy.end());
                        for (Member i = i_begin; i < i_end; ++i) {
-                         iterate_type(m_mdr_policy, m_functor)(i);
+                         m_iter(i);
                        }
                      });
 #endif
   }
 
   inline ParallelFor(const FunctorType &arg_functor, MDRangePolicy arg_policy)
-      : m_functor(arg_functor),
-        m_mdr_policy(arg_policy),
+      : m_iter(arg_policy, arg_functor),
         m_policy(Policy(0, arg_policy.m_num_tiles).set_chunk_size(1)) {}
   template <typename Policy, typename Functor>
   static int max_tile_size_product(const Policy &, const Functor &) {
@@ -1436,8 +1403,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
       typename Kokkos::Impl::HostIterateTile<MDRangePolicy, FunctorType,
                                              WorkTag, reference_type>;
 
-  const FunctorType m_functor;
-  const MDRangePolicy m_mdr_policy;
+  const iterate_type m_iter;
   const Policy m_policy;
   const ReducerType m_reducer;
   const pointer_type m_result_ptr;
@@ -1446,19 +1412,19 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
 
  public:
   void execute() const {
-    dispatch_execute_task(this, m_mdr_policy.space(), m_force_synchronous);
+    dispatch_execute_task(this, m_iter.m_rp.space(), m_force_synchronous);
   }
 
   inline void execute_task() const {
     // See [note 1] for an explanation.
     Kokkos::Experimental::HPX::reset_on_exit_parallel reset_on_exit(
-        m_mdr_policy.space());
+        m_iter.m_rp.space());
 
     const int num_worker_threads = Kokkos::Experimental::HPX::concurrency();
-    const std::size_t value_size =
-        Analysis::value_size(ReducerConditional::select(m_functor, m_reducer));
+    const std::size_t value_size = Analysis::value_size(
+        ReducerConditional::select(m_iter.m_func, m_reducer));
 
-    thread_buffer &buffer = m_mdr_policy.space().impl_get_buffer();
+    thread_buffer &buffer = m_iter.m_rp.space().impl_get_buffer();
     buffer.resize(num_worker_threads, value_size);
 
     using hpx::for_loop;
@@ -1468,7 +1434,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
     auto exec = Kokkos::Experimental::HPX::impl_get_executor();
 
     typename Analysis::Reducer final_reducer(
-        &ReducerConditional::select(m_functor, m_reducer));
+        &ReducerConditional::select(m_iter.m_func, m_reducer));
 
 #if KOKKOS_HPX_IMPLEMENTATION == 0
 
@@ -1484,7 +1450,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                reference_type update = Analysis::Reducer::reference(
                    reinterpret_cast<pointer_type>(buffer.get(
                        Kokkos::Experimental::HPX::impl_hardware_thread_id())));
-               iterate_type(m_mdr_policy, m_functor, update)(i);
+               m_iter(i, update);
              });
 
 #elif KOKKOS_HPX_IMPLEMENTATION == 1
@@ -1507,7 +1473,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
           const Member i_end = (std::min)(i_begin + chunk_size, m_policy.end());
 
           for (Member i = i_begin; i < i_end; ++i) {
-            iterate_type(m_mdr_policy, m_functor, update)(i);
+            m_iter(i, update);
           }
         });
 #endif
@@ -1521,7 +1487,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
 
     if (m_result_ptr != nullptr) {
       const int n = Analysis::value_count(
-          ReducerConditional::select(m_functor, m_reducer));
+          ReducerConditional::select(m_iter.m_func, m_reducer));
 
       for (int j = 0; j < n; ++j) {
         m_result_ptr[j] = reinterpret_cast<pointer_type>(buffer.get(0))[j];
@@ -1536,8 +1502,7 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
       std::enable_if_t<Kokkos::is_view<ViewType>::value &&
                            !Kokkos::is_reducer<ReducerType>::value,
                        void *> = nullptr)
-      : m_functor(arg_functor),
-        m_mdr_policy(arg_policy),
+      : m_iter(arg_policy, arg_functor),
         m_policy(Policy(0, arg_policy.m_num_tiles).set_chunk_size(1)),
         m_reducer(InvalidType()),
         m_result_ptr(arg_view.data()),
@@ -1545,9 +1510,8 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
 
   inline ParallelReduce(const FunctorType &arg_functor,
                         MDRangePolicy arg_policy, const ReducerType &reducer)
-      : m_functor(arg_functor),
-        m_mdr_policy(arg_policy),
-        m_policy(Policy(0, m_mdr_policy.m_num_tiles).set_chunk_size(1)),
+      : m_iter(arg_policy, arg_functor),
+        m_policy(Policy(0, arg_policy.m_num_tiles).set_chunk_size(1)),
         m_reducer(reducer),
         m_result_ptr(reducer.view().data()),
         m_force_synchronous(!reducer.view().impl_track().has_record()) {}
@@ -1693,7 +1657,7 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
 
   const FunctorType m_functor;
   const Policy m_policy;
-  ReturnType &m_returnvalue;
+  pointer_type m_result_ptr;
 
   template <class TagType>
   inline static std::enable_if_t<std::is_void<TagType>::value>
@@ -1783,17 +1747,23 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
                                          update_base, true);
 
           if (t == num_worker_threads - 1) {
-            m_returnvalue = update_base;
+            *m_result_ptr = update_base;
           }
         });
   }
 
-  inline ParallelScanWithTotal(const FunctorType &arg_functor,
-                               const Policy &arg_policy,
-                               ReturnType &arg_returnvalue)
+  template <class ViewType>
+  ParallelScanWithTotal(const FunctorType &arg_functor,
+                        const Policy &arg_policy,
+                        const ViewType &arg_result_view)
       : m_functor(arg_functor),
         m_policy(arg_policy),
-        m_returnvalue(arg_returnvalue) {}
+        m_result_ptr(arg_result_view.data()) {
+    static_assert(
+        Kokkos::Impl::MemorySpaceAccess<typename ViewType::memory_space,
+                                        Kokkos::HostSpace>::accessible,
+        "Kokkos::HPX parallel_scan result must be host-accessible!");
+  }
 };
 }  // namespace Impl
 }  // namespace Kokkos

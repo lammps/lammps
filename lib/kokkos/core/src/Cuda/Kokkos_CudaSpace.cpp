@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -122,40 +94,12 @@ void DeepCopyAsyncCuda(void *dst, const void *src, size_t n) {
 
 namespace Kokkos {
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-KOKKOS_DEPRECATED void CudaSpace::access_error() {
-  const std::string msg(
-      "Kokkos::CudaSpace::access_error attempt to execute Cuda function from "
-      "non-Cuda space");
-  Kokkos::Impl::throw_runtime_exception(msg);
-}
-
-KOKKOS_DEPRECATED void CudaSpace::access_error(const void *const) {
-  const std::string msg(
-      "Kokkos::CudaSpace::access_error attempt to execute Cuda function from "
-      "non-Cuda space");
-  Kokkos::Impl::throw_runtime_exception(msg);
-}
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
+bool CudaUVMSpace::available() { return true; }
 #endif
 
 /*--------------------------------------------------------------------------*/
 
-bool CudaUVMSpace::available() {
-#if defined(CUDA_VERSION) && !defined(__APPLE__)
-  enum : bool { UVM_available = true };
-#else
-  enum : bool { UVM_available = false };
-#endif
-  return UVM_available;
-}
-
-/*--------------------------------------------------------------------------*/
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-int CudaUVMSpace::number_of_allocations() {
-  return Kokkos::Impl::num_uvm_allocations.load();
-}
-#endif
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_PIN_UVM_TO_HOST
 // The purpose of the following variable is to allow a state-based choice
 // for pinning UVM allocations to the CPU. For now this is considered
@@ -674,11 +618,7 @@ void cuda_prefetch_pointer(const Cuda &space, const void *ptr, size_t bytes,
   // DualView syncs down. Probably because the latency is not too bad in the
   // first place for the pull down. If we want to change that provde
   // cudaCpuDeviceId as the device if to_device is false
-#if CUDA_VERSION < 10000
-  bool is_managed = attr.isManaged;
-#else
   bool is_managed = attr.type == cudaMemoryTypeManaged;
-#endif
   if (to_device && is_managed &&
       space.cuda_device_prop().concurrentManagedAccess) {
     KOKKOS_IMPL_CUDA_SAFE_CALL(cudaMemPrefetchAsync(

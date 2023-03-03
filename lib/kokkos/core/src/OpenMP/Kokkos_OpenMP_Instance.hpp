@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_OPENMP_INSTANCE_HPP
 #define KOKKOS_OPENMP_INSTANCE_HPP
@@ -64,16 +36,22 @@
 
 #include <omp.h>
 
+#include <mutex>
+#include <numeric>
+#include <type_traits>
+#include <vector>
+
 namespace Kokkos {
 namespace Impl {
 
 class OpenMPInternal;
 
-extern int g_openmp_hardware_max_threads;
+inline int g_openmp_hardware_max_threads = 1;
 
-extern thread_local int t_openmp_hardware_id;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 // FIXME_OPENMP we can remove this after we remove partition_master
-extern thread_local OpenMPInternal* t_openmp_instance;
+inline thread_local OpenMPInternal* t_openmp_instance = nullptr;
+#endif
 
 struct OpenMPTraits {
   static int constexpr MAX_THREAD_COUNT = 512;
@@ -92,6 +70,7 @@ class OpenMPInternal {
 
   int m_pool_size;
   int m_level;
+  int m_pool_mutex = 0;
 
   HostThreadTeamData* m_pool[OpenMPTraits::MAX_THREAD_COUNT];
 
@@ -106,12 +85,15 @@ class OpenMPInternal {
 
   void clear_thread_data();
 
+  int thread_pool_size() const { return m_pool_size; }
+
+  // Acquire lock used to protect access to m_pool
+  void acquire_lock();
+
+  // Release lock used to protect access to m_pool
+  void release_lock();
+
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  KOKKOS_DEPRECATED static void validate_partition(const int nthreads,
-                                                   int& num_partitions,
-                                                   int& partition_size) {
-    validate_partition_impl(nthreads, num_partitions, partition_size);
-  }
   static void validate_partition_impl(const int nthreads, int& num_partitions,
                                       int& partition_size);
 #endif
@@ -139,30 +121,40 @@ inline bool OpenMP::impl_is_initialized() noexcept {
   return Impl::OpenMPInternal::singleton().is_initialized();
 }
 
-inline bool OpenMP::in_parallel(OpenMP const&) noexcept {
-  // FIXME_OPENMP We are forced to use t_openmp_instance because the function is
-  // static and does not use the OpenMP object
-  return ((Impl::OpenMPInternal::singleton().m_level < omp_get_level()) &&
-          (!Impl::t_openmp_instance ||
-           Impl::t_openmp_instance->m_level < omp_get_level()));
+inline bool OpenMP::in_parallel(OpenMP const& exec_space) noexcept {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+  return (
+      (exec_space.impl_internal_space_instance()->m_level < omp_get_level()) &&
+      (!Impl::t_openmp_instance ||
+       Impl::t_openmp_instance->m_level < omp_get_level()));
+#else
+  return exec_space.impl_internal_space_instance()->m_level < omp_get_level();
+#endif
 }
 
-inline int OpenMP::impl_thread_pool_size() noexcept {
-  // FIXME_OPENMP We are forced to use t_openmp_instance because the function is
-  // static
-  return OpenMP::in_parallel()
+inline int OpenMP::impl_thread_pool_size(OpenMP const& exec_space) noexcept {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+  return OpenMP::in_parallel(exec_space)
              ? omp_get_num_threads()
              : (Impl::t_openmp_instance
                     ? Impl::t_openmp_instance->m_pool_size
-                    : Impl::OpenMPInternal::singleton().m_pool_size);
+                    : exec_space.impl_internal_space_instance()->m_pool_size);
+#else
+  return OpenMP::in_parallel(exec_space)
+             ? omp_get_num_threads()
+             : exec_space.impl_internal_space_instance()->m_pool_size;
+#endif
 }
 
-KOKKOS_INLINE_FUNCTION
-int OpenMP::impl_thread_pool_rank() noexcept {
-  // FIXME_OPENMP We are forced to use t_openmp_instance because the function is
-  // static
+inline int OpenMP::impl_thread_pool_rank() noexcept {
+  // FIXME_OPENMP Can we remove this when removing partition_master? It's only
+  // used in one partition_master test
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
   KOKKOS_IF_ON_HOST(
       (return Impl::t_openmp_instance ? 0 : omp_get_thread_num();))
+#else
+  KOKKOS_IF_ON_HOST((return omp_get_thread_num();))
+#endif
 
   KOKKOS_IF_ON_DEVICE((return -1;))
 }
@@ -332,9 +324,11 @@ class UniqueToken<OpenMP, UniqueTokenScope::Global> {
   }
 
   /// \brief acquire value such that 0 <= value < size()
+  // FIXME this is wrong when using nested parallelism. In that case multiple
+  // threads have the same thread ID.
   KOKKOS_INLINE_FUNCTION
   int acquire() const noexcept {
-    KOKKOS_IF_ON_HOST((return Kokkos::Impl::t_openmp_hardware_id;))
+    KOKKOS_IF_ON_HOST((return omp_get_thread_num();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
   }
@@ -346,13 +340,13 @@ class UniqueToken<OpenMP, UniqueTokenScope::Global> {
 
 }  // namespace Experimental
 
-inline int OpenMP::impl_thread_pool_size(int depth) {
-  return depth < 2 ? impl_thread_pool_size() : 1;
+inline int OpenMP::impl_thread_pool_size(int depth, OpenMP const& exec_space) {
+  return depth < 2 ? impl_thread_pool_size(exec_space) : 1;
 }
 
 KOKKOS_INLINE_FUNCTION
 int OpenMP::impl_hardware_thread_id() noexcept {
-  KOKKOS_IF_ON_HOST((return Impl::t_openmp_hardware_id;))
+  KOKKOS_IF_ON_HOST((return omp_get_thread_num();))
 
   KOKKOS_IF_ON_DEVICE((return -1;))
 }
@@ -361,6 +355,59 @@ inline int OpenMP::impl_max_hardware_threads() noexcept {
   return Impl::g_openmp_hardware_max_threads;
 }
 
+namespace Experimental {
+namespace Impl {
+// Partitioning an Execution Space: expects space and integer arguments for
+// relative weight
+template <typename T>
+inline std::vector<OpenMP> create_OpenMP_instances(
+    OpenMP const& main_instance, std::vector<T> const& weights) {
+  static_assert(
+      std::is_arithmetic<T>::value,
+      "Kokkos Error: partitioning arguments must be integers or floats");
+  if (weights.size() == 0) {
+    Kokkos::abort("Kokkos::abort: Partition weights vector is empty.");
+  }
+  std::vector<OpenMP> instances(weights.size());
+  double total_weight = std::accumulate(weights.begin(), weights.end(), 0.);
+  int const main_pool_size =
+      main_instance.impl_internal_space_instance()->thread_pool_size();
+
+  int resources_left = main_pool_size;
+  for (unsigned int i = 0; i < weights.size() - 1; ++i) {
+    int instance_pool_size = (weights[i] / total_weight) * main_pool_size;
+    if (instance_pool_size == 0) {
+      Kokkos::abort("Kokkos::abort: Instance has no resource allocated to it");
+    }
+    instances[i] = OpenMP(instance_pool_size);
+    resources_left -= instance_pool_size;
+  }
+  // Last instance get all resources left
+  if (resources_left <= 0) {
+    Kokkos::abort(
+        "Kokkos::abort: Partition not enough resources left to create the last "
+        "instance.");
+  }
+  instances[weights.size() - 1] = resources_left;
+
+  return instances;
+}
+}  // namespace Impl
+
+template <typename... Args>
+std::vector<OpenMP> partition_space(OpenMP const& main_instance, Args... args) {
+  // Unpack the arguments and create the weight vector. Note that if not all of
+  // the types are the same, you will get a narrowing warning.
+  std::vector<std::common_type_t<Args...>> const weights = {args...};
+  return Impl::create_OpenMP_instances(main_instance, weights);
+}
+
+template <typename T>
+std::vector<OpenMP> partition_space(OpenMP const& main_instance,
+                                    std::vector<T>& weights) {
+  return Impl::create_OpenMP_instances(main_instance, weights);
+}
+}  // namespace Experimental
 }  // namespace Kokkos
 
 #endif

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_CUDA_PARALLEL_TEAM_HPP
 #define KOKKOS_CUDA_PARALLEL_TEAM_HPP
@@ -226,21 +198,25 @@ class TeamPolicyInternal<Kokkos::Cuda, Properties...>
   }
 
   inline static int scratch_size_max(int level) {
-    return (
-        level == 0 ? 1024 * 40 :  // 48kB is the max for CUDA, but we need some
-                                  // for team_member.reduce etc.
-            20 * 1024 *
-                1024);  // arbitrarily setting this to 20MB, for a Volta V100
-                        // that would give us about 3.2GB for 2 teams per SM
+    // Cuda Teams use (team_size + 2)*sizeof(double) shared memory for team
+    // reductions. They also use one int64_t in static shared memory for a
+    // shared ID. Furthermore, they use additional scratch memory in some
+    // reduction scenarios, which depend on the size of the value_type and is
+    // NOT captured here.
+    constexpr size_t max_possible_team_size = 1024;
+    constexpr size_t max_reserved_shared_mem_per_team =
+        (max_possible_team_size + 2) * sizeof(double) + sizeof(int64_t);
+    // arbitrarily setting level 1 scratch limit to 20MB, for a
+    // Volta V100 that would give us about 3.2GB for 2 teams per SM
+    constexpr size_t max_l1_scratch_size = 20 * 1024 * 1024;
+
+    size_t max_shmem = Cuda().cuda_device_prop().sharedMemPerBlock;
+    return (level == 0 ? max_shmem - max_reserved_shared_mem_per_team
+                       : max_l1_scratch_size);
   }
 
   //----------------------------------------
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  KOKKOS_DEPRECATED inline int vector_length() const {
-    return impl_vector_length();
-  }
-#endif
   inline int impl_vector_length() const { return m_vector_length; }
   inline int team_size() const { return m_team_size; }
   inline int league_size() const { return m_league_size; }
@@ -553,7 +529,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     CudaParallelLaunch<ParallelFor, LaunchBounds>(
         *this, grid, block, shmem_size_total,
         m_policy.space()
-	    .impl_internal_space_instance());  // copy to device and execute
+            .impl_internal_space_instance());  // copy to device and execute
   }
 
   ParallelFor(const FunctorType& arg_functor, const Policy& arg_policy)
@@ -562,6 +538,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
         m_vector_size(arg_policy.impl_vector_length()) {
+    auto internal_space_instance =
+        m_policy.space().impl_internal_space_instance();
     cudaFuncAttributes attr =
         CudaParallelLaunch<ParallelFor,
                            LaunchBounds>::get_cuda_func_attributes();
@@ -569,8 +547,8 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_team_size >= 0
             ? m_team_size
             : Kokkos::Impl::cuda_get_opt_block_size<FunctorType, LaunchBounds>(
-                  m_policy.space().impl_internal_space_instance(), attr,
-                  m_functor, m_vector_size, m_policy.team_scratch_size(0),
+                  internal_space_instance, attr, m_functor, m_vector_size,
+                  m_policy.team_scratch_size(0),
                   m_policy.thread_scratch_size(0)) /
                   m_vector_size;
 
@@ -580,8 +558,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
          FunctorTeamShmemSize<FunctorType>::value(m_functor, m_team_size));
     m_scratch_size[0] = m_policy.scratch_size(0, m_team_size);
     m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
-    m_scratch_locks =
-        m_policy.space().impl_internal_space_instance()->m_scratch_locks;
+    m_scratch_locks   = internal_space_instance->m_scratch_locks;
 
     // Functor's reduce memory, team scan memory, and team shared memory depend
     // upon team size.
@@ -589,34 +566,28 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     if (m_team_size <= 0) {
       m_scratch_ptr[1] = nullptr;
     } else {
-      auto scratch_ptr_id =
-          m_policy.space()
-              .impl_internal_space_instance()
-              ->resize_team_scratch_space(
-                  static_cast<std::int64_t>(m_scratch_size[1]) *
-                  (std::min(
-                      static_cast<std::int64_t>(Cuda::concurrency() /
-                                                (m_team_size * m_vector_size)),
-                      static_cast<std::int64_t>(m_league_size))));
-      m_scratch_ptr[1]  = scratch_ptr_id.first;
-      m_scratch_pool_id = scratch_ptr_id.second;
+      m_scratch_pool_id = internal_space_instance->acquire_team_scratch_space();
+      m_scratch_ptr[1]  = internal_space_instance->resize_team_scratch_space(
+          m_scratch_pool_id,
+          static_cast<std::int64_t>(m_scratch_size[1]) *
+              (std::min(
+                  static_cast<std::int64_t>(Cuda().concurrency() /
+                                            (m_team_size * m_vector_size)),
+                  static_cast<std::int64_t>(m_league_size))));
     }
 
     const int shmem_size_total = m_shmem_begin + m_shmem_size;
-    if (m_policy.space().impl_internal_space_instance()->m_maxShmemPerBlock <
-        shmem_size_total) {
-      printf(
-          "%i %i\n",
-          m_policy.space().impl_internal_space_instance()->m_maxShmemPerBlock,
-          shmem_size_total);
+    if (internal_space_instance->m_maxShmemPerBlock < shmem_size_total) {
+      printf("%i %i\n", internal_space_instance->m_maxShmemPerBlock,
+             shmem_size_total);
       Kokkos::Impl::throw_runtime_exception(std::string(
           "Kokkos::Impl::ParallelFor< Cuda > insufficient shared memory"));
     }
 
     if (int(m_team_size) >
         int(Kokkos::Impl::cuda_get_max_block_size<FunctorType, LaunchBounds>(
-                m_policy.space().impl_internal_space_instance(), attr,
-                arg_functor, arg_policy.impl_vector_length(),
+                internal_space_instance, attr, arg_functor,
+                arg_policy.impl_vector_length(),
                 arg_policy.team_scratch_size(0),
                 arg_policy.thread_scratch_size(0)) /
             arg_policy.impl_vector_length())) {
@@ -629,7 +600,7 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
     if (m_scratch_pool_id >= 0) {
       m_policy.space()
           .impl_internal_space_instance()
-          ->m_team_scratch_pool[m_scratch_pool_id] = 0;
+          ->release_team_scratch_space(m_scratch_pool_id);
     }
   }
 };
@@ -844,9 +815,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
     const bool need_device_set = Analysis::has_init_member_function ||
                                  Analysis::has_final_member_function ||
                                  !m_result_ptr_host_accessible ||
-#ifdef KOKKOS_CUDA_ENABLE_GRAPHS
                                  Policy::is_graph_kernel::value ||
-#endif
                                  !std::is_same<ReducerType, InvalidType>::value;
     if (!is_empty_range || need_device_set) {
       const int block_count = std::max(
@@ -879,7 +848,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
       CudaParallelLaunch<ParallelReduce, LaunchBounds>(
           *this, grid, block, shmem_size_total,
           m_policy.space()
-	      .impl_internal_space_instance());  // copy to device and execute
+              .impl_internal_space_instance());  // copy to device and execute
 
       if (!m_result_ptr_device_accessible) {
         m_policy.space().fence(
@@ -933,6 +902,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
         m_vector_size(arg_policy.impl_vector_length()) {
+    auto internal_space_instance =
+        m_policy.space().impl_internal_space_instance();
     cudaFuncAttributes attr =
         CudaParallelLaunch<ParallelReduce,
                            LaunchBounds>::get_cuda_func_attributes();
@@ -940,8 +911,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_team_size >= 0
             ? m_team_size
             : Kokkos::Impl::cuda_get_opt_block_size<FunctorType, LaunchBounds>(
-                  m_policy.space().impl_internal_space_instance(), attr,
-                  m_functor, m_vector_size, m_policy.team_scratch_size(0),
+                  internal_space_instance, attr, m_functor, m_vector_size,
+                  m_policy.team_scratch_size(0),
                   m_policy.thread_scratch_size(0)) /
                   m_vector_size;
 
@@ -957,22 +928,18 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         FunctorTeamShmemSize<FunctorType>::value(arg_functor, m_team_size);
     m_scratch_size[0] = m_shmem_size;
     m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
-    m_scratch_locks =
-        m_policy.space().impl_internal_space_instance()->m_scratch_locks;
+    m_scratch_locks   = internal_space_instance->m_scratch_locks;
     if (m_team_size <= 0) {
       m_scratch_ptr[1] = nullptr;
     } else {
-      auto scratch_ptr_id =
-          m_policy.space()
-              .impl_internal_space_instance()
-              ->resize_team_scratch_space(
-                  static_cast<std::int64_t>(m_scratch_size[1]) *
-                  (std::min(
-                      static_cast<std::int64_t>(Cuda::concurrency() /
-                                                (m_team_size * m_vector_size)),
-                      static_cast<std::int64_t>(m_league_size))));
-      m_scratch_ptr[1]  = scratch_ptr_id.first;
-      m_scratch_pool_id = scratch_ptr_id.second;
+      m_scratch_pool_id = internal_space_instance->acquire_team_scratch_space();
+      m_scratch_ptr[1]  = internal_space_instance->resize_team_scratch_space(
+          m_scratch_pool_id,
+          static_cast<std::int64_t>(m_scratch_size[1]) *
+              (std::min(
+                  static_cast<std::int64_t>(Cuda().concurrency() /
+                                            (m_team_size * m_vector_size)),
+                  static_cast<std::int64_t>(m_league_size))));
     }
 
     // The global parallel_reduce does not support vector_length other than 1 at
@@ -1000,8 +967,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
           std::string("Kokkos::Impl::ParallelReduce< Cuda > bad team size"));
     }
 
-    if (m_policy.space().impl_internal_space_instance()->m_maxShmemPerBlock <
-        shmem_size_total) {
+    if (internal_space_instance->m_maxShmemPerBlock < shmem_size_total) {
       Kokkos::Impl::throw_runtime_exception(
           std::string("Kokkos::Impl::ParallelReduce< Cuda > requested too much "
                       "L0 scratch memory"));
@@ -1039,6 +1005,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_league_size(arg_policy.league_size()),
         m_team_size(arg_policy.team_size()),
         m_vector_size(arg_policy.impl_vector_length()) {
+    auto internal_space_instance =
+        m_policy.space().impl_internal_space_instance();
     cudaFuncAttributes attr =
         CudaParallelLaunch<ParallelReduce,
                            LaunchBounds>::get_cuda_func_attributes();
@@ -1048,8 +1016,8 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_team_size >= 0
             ? m_team_size
             : Kokkos::Impl::cuda_get_opt_block_size<FunctorType, LaunchBounds>(
-                  m_policy.space().impl_internal_space_instance(), attr,
-                  m_functor, m_vector_size, m_policy.team_scratch_size(0),
+                  internal_space_instance, attr, m_functor, m_vector_size,
+                  m_policy.team_scratch_size(0),
                   m_policy.thread_scratch_size(0)) /
                   m_vector_size;
 
@@ -1065,22 +1033,18 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
         FunctorTeamShmemSize<FunctorType>::value(arg_functor, m_team_size);
     m_scratch_size[0] = m_shmem_size;
     m_scratch_size[1] = m_policy.scratch_size(1, m_team_size);
-    m_scratch_locks =
-        m_policy.space().impl_internal_space_instance()->m_scratch_locks;
+    m_scratch_locks   = internal_space_instance->m_scratch_locks;
     if (m_team_size <= 0) {
       m_scratch_ptr[1] = nullptr;
     } else {
-      auto scratch_ptr_id =
-          m_policy.space()
-              .impl_internal_space_instance()
-              ->resize_team_scratch_space(
-                  static_cast<std::int64_t>(m_scratch_size[1]) *
-                  (std::min(
-                      static_cast<std::int64_t>(Cuda::concurrency() /
-                                                (m_team_size * m_vector_size)),
-                      static_cast<std::int64_t>(m_league_size))));
-      m_scratch_ptr[1]  = scratch_ptr_id.first;
-      m_scratch_pool_id = scratch_ptr_id.second;
+      m_scratch_pool_id = internal_space_instance->acquire_team_scratch_space();
+      m_scratch_ptr[1]  = internal_space_instance->resize_team_scratch_space(
+          m_scratch_pool_id,
+          static_cast<std::int64_t>(m_scratch_size[1]) *
+              (std::min(
+                  static_cast<std::int64_t>(Cuda().concurrency() /
+                                            (m_team_size * m_vector_size)),
+                  static_cast<std::int64_t>(m_league_size))));
     }
 
     // The global parallel_reduce does not support vector_length other than 1 at
@@ -1104,17 +1068,15 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
 
     if ((!Kokkos::Impl::is_integral_power_of_two(m_team_size) &&
          !UseShflReduction) ||
-        m_policy.space().impl_internal_space_instance()->m_maxShmemPerBlock <
-            shmem_size_total) {
+        internal_space_instance->m_maxShmemPerBlock < shmem_size_total) {
       Kokkos::Impl::throw_runtime_exception(
           std::string("Kokkos::Impl::ParallelReduce< Cuda > bad team size"));
     }
 
     size_type team_size_max =
         Kokkos::Impl::cuda_get_max_block_size<FunctorType, LaunchBounds>(
-            m_policy.space().impl_internal_space_instance(), attr, m_functor,
-            m_vector_size, m_policy.team_scratch_size(0),
-            m_policy.thread_scratch_size(0)) /
+            internal_space_instance, attr, m_functor, m_vector_size,
+            m_policy.team_scratch_size(0), m_policy.thread_scratch_size(0)) /
         m_vector_size;
 
     if ((int)m_team_size > (int)team_size_max) {
@@ -1128,7 +1090,7 @@ class ParallelReduce<FunctorType, Kokkos::TeamPolicy<Properties...>,
     if (m_scratch_pool_id >= 0) {
       m_policy.space()
           .impl_internal_space_instance()
-          ->m_team_scratch_pool[m_scratch_pool_id] = 0;
+          ->release_team_scratch_space(m_scratch_pool_id);
     }
   }
 };

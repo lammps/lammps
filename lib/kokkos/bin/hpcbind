@@ -586,8 +586,6 @@ if [[ ${HPCBIND_TEE} -eq 0 || ${HPCBIND_VERBOSE} -eq 0 ]]; then
   echo "${TMP_ENV}" | grep -E "^GOMP_" >> ${HPCBIND_LOG}
   echo "[KMP] (icc, icpc, and ifort)" >> ${HPCBIND_LOG}
   echo "${TMP_ENV}" | grep -E "^KMP_" >> ${HPCBIND_LOG}
-  echo "[XLSMPOPTS] (xlc, xlc++, and xlf)" >> ${HPCBIND_LOG}
-  echo "${TMP_ENV}" | grep -E "^XLSMPOPTS" >> ${HPCBIND_LOG}
 
   if [[ ${HPCBIND_HAS_HWLOC} -eq 1 ]]; then
     echo "[BINDINGS]" >> ${HPCBIND_LOG}
@@ -610,8 +608,6 @@ else
   echo "${TMP_ENV}" | grep -E "^GOMP_" > >(tee -a ${HPCBIND_LOG})
   echo "[KMP] (icc, icpc, and ifort)" > >(tee -a ${HPCBIND_LOG})
   echo "${TMP_ENV}" | grep -E "^KMP_" > >(tee -a ${HPCBIND_LOG})
-  echo "[XLSMPOPTS] (xlc, xlc++, and xlf)" > >(tee -a ${HPCBIND_LOG})
-  echo "${TMP_ENV}" | grep -E "^XLSMPOPTS" > >(tee -a ${HPCBIND_LOG})
 
   if [[ ${HPCBIND_HAS_HWLOC} -eq 1 ]]; then
     echo "[BINDINGS]" > >(tee -a ${HPCBIND_LOG})

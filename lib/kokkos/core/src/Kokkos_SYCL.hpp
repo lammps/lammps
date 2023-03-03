@@ -1,55 +1,23 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
 static_assert(false,
               "Including non-public Kokkos header files is not allowed.");
-#else
-KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
-#endif
 #endif
 #ifndef KOKKOS_SYCL_HPP
 #define KOKKOS_SYCL_HPP
@@ -57,7 +25,12 @@ KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
 #include <Kokkos_Macros.hpp>
 
 #ifdef KOKKOS_ENABLE_SYCL
+// FIXME_SYCL
+#if __has_include(<sycl/sycl.hpp>)
+#include <sycl/sycl.hpp>
+#else
 #include <CL/sycl.hpp>
+#endif
 #include <Kokkos_SYCL_Space.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_ScratchSpace.hpp>
@@ -134,11 +107,14 @@ class SYCL {
 
   static void impl_initialize(InitializationSettings const&);
 
-  int sycl_device() const;
-
   static bool impl_is_initialized();
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   static int concurrency();
+#else
+  int concurrency() const;
+#endif
+
   static const char* name();
 
   inline Impl::SYCLInternal* impl_internal_space_instance() const {
@@ -149,6 +125,13 @@ class SYCL {
   static std::ostream& impl_sycl_info(std::ostream& os,
                                       const sycl::device& device);
 
+  friend bool operator==(SYCL const& lhs, SYCL const& rhs) {
+    return lhs.impl_internal_space_instance() ==
+           rhs.impl_internal_space_instance();
+  }
+  friend bool operator!=(SYCL const& lhs, SYCL const& rhs) {
+    return !(lhs == rhs);
+  }
   Kokkos::Impl::HostSharedPtr<Impl::SYCLInternal> m_space_instance;
 };
 
@@ -161,7 +144,7 @@ struct DeviceTypeTraits<Kokkos::Experimental::SYCL> {
   /// \brief An ID to differentiate (for example) Serial from OpenMP in Tooling
   static constexpr DeviceType id = DeviceType::SYCL;
   static int device_id(const Kokkos::Experimental::SYCL& exec) {
-    return exec.sycl_device();
+    return exec.impl_internal_space_instance()->m_syclDev;
   }
 };
 }  // namespace Experimental
@@ -170,11 +153,9 @@ struct DeviceTypeTraits<Kokkos::Experimental::SYCL> {
 namespace Experimental {
 template <class... Args>
 std::vector<SYCL> partition_space(const SYCL& sycl_space, Args...) {
-#ifdef __cpp_fold_expressions
   static_assert(
       (... && std::is_arithmetic_v<Args>),
       "Kokkos Error: partitioning arguments must be integers or floats");
-#endif
 
   sycl::context context = sycl_space.sycl_queue().get_context();
   sycl::device device =

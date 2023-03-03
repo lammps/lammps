@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_CUDA_PARALLEL_RANGE_HPP
 #define KOKKOS_CUDA_PARALLEL_RANGE_HPP
@@ -325,9 +297,7 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
     const bool need_device_set = Analysis::has_init_member_function ||
                                  Analysis::has_final_member_function ||
                                  !m_result_ptr_host_accessible ||
-#ifdef KOKKOS_CUDA_ENABLE_GRAPHS
                                  Policy::is_graph_kernel::value ||
-#endif
                                  !std::is_same<ReducerType, InvalidType>::value;
     if ((nwork > 0) || need_device_set) {
       const int block_size = local_block_size(m_functor);
@@ -375,7 +345,7 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
       CudaParallelLaunch<ParallelReduce, LaunchBounds>(
           *this, grid, block, shmem,
           m_policy.space()
-	      .impl_internal_space_instance());  // copy to device and execute
+              .impl_internal_space_instance());  // copy to device and execute
 
       if (!m_result_ptr_device_accessible) {
         if (m_result_ptr) {
@@ -726,7 +696,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
         CudaParallelLaunch<ParallelScan, LaunchBounds>(
             *this, grid, block, shmem,
             m_policy.space()
-	        .impl_internal_space_instance());  // copy to device and execute
+                .impl_internal_space_instance());  // copy to device and execute
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_SERIAL_EXECUTION
       }
 #endif
@@ -734,7 +704,7 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::Cuda> {
       CudaParallelLaunch<ParallelScan, LaunchBounds>(
           *this, grid, block, shmem,
           m_policy.space()
-	      .impl_internal_space_instance());  // copy to device and execute
+              .impl_internal_space_instance());  // copy to device and execute
     }
   }
 
@@ -802,7 +772,9 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
   word_size_type* m_scratch_space;
   size_type* m_scratch_flags;
   size_type m_final;
-  ReturnType& m_returnvalue;
+  const pointer_type m_result_ptr;
+  const bool m_result_ptr_device_accessible;
+
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_SERIAL_EXECUTION
   bool m_run_serial;
 #endif
@@ -943,6 +915,9 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
                 reinterpret_cast<pointer_type>(shared_prefix)),
             true);
       }
+      if (iwork + 1 == m_policy.end() && m_policy.end() == range.end() &&
+          m_result_ptr_device_accessible)
+        *m_result_ptr = *reinterpret_cast<pointer_type>(shared_prefix);
     }
   }
 
@@ -1031,17 +1006,15 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
       if (m_run_serial) {
         block = dim3(1, 1, 1);
         grid  = dim3(1, 1, 1);
-      } else {
+      } else
 #endif
-
+      {
         m_final = false;
         CudaParallelLaunch<ParallelScanWithTotal, LaunchBounds>(
             *this, grid, block, shmem,
             m_policy.space()
-	        .impl_internal_space_instance());  // copy to device and execute
-#ifdef KOKKOS_IMPL_DEBUG_CUDA_SERIAL_EXECUTION
+                .impl_internal_space_instance());  // copy to device and execute
       }
-#endif
       m_final = true;
       CudaParallelLaunch<ParallelScanWithTotal, LaunchBounds>(
           *this, grid, block, shmem,
@@ -1055,21 +1028,29 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
                                              m_scratch_space, size);
       else
 #endif
-        DeepCopy<HostSpace, CudaSpace, Cuda>(
-            m_policy.space(), &m_returnvalue,
-            m_scratch_space + (grid_x - 1) * size / sizeof(word_size_type),
-            size);
+      {
+        if (!m_result_ptr_device_accessible)
+          DeepCopy<HostSpace, CudaSpace, Cuda>(
+              m_policy.space(), m_result_ptr,
+              m_scratch_space + (grid_x - 1) * size / sizeof(word_size_type),
+              size);
+      }
     }
   }
 
+  template <class ViewType>
   ParallelScanWithTotal(const FunctorType& arg_functor,
-                        const Policy& arg_policy, ReturnType& arg_returnvalue)
+                        const Policy& arg_policy,
+                        const ViewType& arg_result_view)
       : m_functor(arg_functor),
         m_policy(arg_policy),
         m_scratch_space(nullptr),
         m_scratch_flags(nullptr),
         m_final(false),
-        m_returnvalue(arg_returnvalue)
+        m_result_ptr(arg_result_view.data()),
+        m_result_ptr_device_accessible(
+            MemorySpaceAccess<Kokkos::CudaSpace,
+                              typename ViewType::memory_space>::accessible)
 #ifdef KOKKOS_IMPL_DEBUG_CUDA_SERIAL_EXECUTION
         ,
         m_run_serial(Kokkos::Impl::CudaInternal::cuda_use_serial_execution())

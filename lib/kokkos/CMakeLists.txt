@@ -87,6 +87,16 @@ IF(NOT KOKKOS_HAS_TRILINOS)
 
     SET(KOKKOS_COMPILE_LANGUAGE CUDA)
   ENDIF()
+  # use lower case here since we haven't parsed options yet
+  IF (Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE AND Kokkos_ENABLE_HIP)
+
+    # Without this as a language for the package we would get a C++ compiler enabled.
+    # but we still need a C++ compiler even if we build all our cpp files as HIP only
+    # because otherwise the C++ features don't work etc.
+    SET(KOKKOS_INTERNAL_EXTRA_COMPILE_LANGUAGE CXX)
+
+    SET(KOKKOS_COMPILE_LANGUAGE HIP)
+  ENDIF()
 
   IF (Spack_WORKAROUND)
     IF (Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
@@ -127,11 +137,17 @@ ELSEIF (NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
 ENDIF()
 
 
-set(Kokkos_VERSION_MAJOR 3)
-set(Kokkos_VERSION_MINOR 7)
-set(Kokkos_VERSION_PATCH 01)
+set(Kokkos_VERSION_MAJOR 4)
+set(Kokkos_VERSION_MINOR 0)
+set(Kokkos_VERSION_PATCH 0)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
 math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
+# mathematical expressions below are not stricly necessary but they eliminate
+# the rather aggravating leading 0 in the releases patch version number, and,
+# in some way, are a sanity check for our arithmetic
+math(EXPR KOKKOS_VERSION_MAJOR "${KOKKOS_VERSION} / 10000")
+math(EXPR KOKKOS_VERSION_MINOR "${KOKKOS_VERSION} / 100 % 100")
+math(EXPR KOKKOS_VERSION_PATCH "${KOKKOS_VERSION} % 100")
 
 # Load either the real TriBITS or a TriBITS wrapper
 # for certain utility functions that are universal (like GLOBAL_SET)
@@ -167,7 +183,7 @@ IF(NOT MSVC)
 ENDIF()
 
 IF(Kokkos_ENABLE_TESTS AND NOT KOKKOS_HAS_TRILINOS)
-  find_package(GTest)
+  find_package(GTest QUIET)
 ENDIF()
 
 # Include a set of Kokkos-specific wrapper functions that
@@ -179,6 +195,14 @@ INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_tribits.cmake)
 # Check the environment and set certain variables
 # to allow platform-specific checks
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_check_env.cmake)
+
+IF(NOT KOKKOS_HAS_TRILINOS)
+  # This does not work in Trilinos and we simply don't care
+  # to fix it for Trilinos
+  # Gather information about the runtime environment
+  INCLUDE(${KOKKOS_SRC_PATH}/cmake/build_env_info.cmake)
+  check_git_setup()
+ENDIF()
 
 # The build environment setup goes in the following steps
 # 1) Check all the enable options. This includes checking Kokkos_DEVICES
@@ -194,14 +218,8 @@ KOKKOS_SETUP_BUILD_ENVIRONMENT()
 
 OPTION(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
-SET(KOKKOS_EXT_LIBRARIES Kokkos::kokkos Kokkos::kokkoscore Kokkos::kokkoscontainers Kokkos::kokkosalgorithms)
-SET(KOKKOS_SUB_LIBRARIES kokkoscore kokkoscontainers kokkosalgorithms)
-IF (KOKKOS_CXX_STANDARD GREATER_EQUAL 17)
-  LIST(APPEND KOKKOS_EXT_LIBRARIES Kokkos::kokkossimd)
-  LIST(APPEND KOKKOS_SUB_LIBRARIES kokkossimd)
-ENDIF()
-SET(KOKKOS_INT_LIBRARIES kokkos ${KOKKOS_SUB_LIBRARIES})
-SET_PROPERTY(GLOBAL PROPERTY KOKKOS_INT_LIBRARIES ${KOKKOS_INT_LIBRARIES})
+SET(KOKKOS_COMPONENT_LIBRARIES kokkoscore kokkoscontainers kokkosalgorithms kokkossimd)
+SET_PROPERTY(GLOBAL PROPERTY KOKKOS_INT_LIBRARIES kokkos ${KOKKOS_COMPONENT_LIBRARIES})
 
 IF (KOKKOS_HAS_TRILINOS)
   SET(TRILINOS_INCDIR ${${PROJECT_NAME}_INSTALL_INCLUDE_DIR})
@@ -295,7 +313,7 @@ IF (NOT KOKKOS_HAS_TRILINOS AND NOT Kokkos_INSTALL_TESTING)
   #Make sure in-tree projects can reference this as Kokkos::
   #to match the installed target names
   ADD_LIBRARY(Kokkos::kokkos ALIAS kokkos)
-  TARGET_LINK_LIBRARIES(kokkos INTERFACE ${KOKKOS_SUB_LIBRARIES})
+  TARGET_LINK_LIBRARIES(kokkos INTERFACE ${KOKKOS_COMPONENT_LIBRARIES})
   KOKKOS_INTERNAL_ADD_LIBRARY_INSTALL(kokkos)
 ENDIF()
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_install.cmake)

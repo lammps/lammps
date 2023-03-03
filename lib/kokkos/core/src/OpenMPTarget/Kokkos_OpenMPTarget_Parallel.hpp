@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_OPENMPTARGET_PARALLEL_HPP
 #define KOKKOS_OPENMPTARGET_PARALLEL_HPP
@@ -112,9 +84,9 @@ struct ParallelReduceCommon {
   static void memcpy_result(PointerType dest, PointerType src, size_t size,
                             bool ptr_on_device) {
     if (ptr_on_device) {
-      OMPT_SAFE_CALL(omp_target_memcpy(dest, src, size, 0, 0,
-                                       omp_get_default_device(),
-                                       omp_get_initial_device()));
+      KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(dest, src, size, 0, 0,
+                                                   omp_get_default_device(),
+                                                   omp_get_initial_device()));
     } else {
       *dest = *src;
     }
@@ -319,11 +291,11 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
       // If there is no work to be done, copy back the initialized values and
       // exit.
       if (!ptr_on_device)
-        OMPT_SAFE_CALL(omp_target_memcpy(
+        KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
             ptr, scratch_ptr, value_count * sizeof(ValueType), 0, 0,
             omp_get_initial_device(), omp_get_default_device()));
       else
-        OMPT_SAFE_CALL(omp_target_memcpy(
+        KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
             ptr, scratch_ptr, value_count * sizeof(ValueType), 0, 0,
             omp_get_default_device(), omp_get_default_device()));
 
@@ -400,11 +372,11 @@ struct ParallelReduceSpecialize<FunctorType, Kokkos::RangePolicy<PolicyArgs...>,
 
     // If the result view is on the host, copy back the values via memcpy.
     if (!ptr_on_device)
-      OMPT_SAFE_CALL(omp_target_memcpy(
+      KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
           ptr, scratch_ptr, value_count * sizeof(ValueType), 0, 0,
           omp_get_initial_device(), omp_get_default_device()));
     else
-      OMPT_SAFE_CALL(omp_target_memcpy(
+      KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
           ptr, scratch_ptr, value_count * sizeof(ValueType), 0, 0,
           omp_get_default_device(), omp_get_default_device()));
   }
@@ -542,6 +514,9 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
   const FunctorType m_functor;
   const Policy m_policy;
 
+  value_type* m_result_ptr;
+  const bool m_result_ptr_device_accessible;
+
   template <class TagType>
   std::enable_if_t<std::is_void<TagType>::value> call_with_tag(
       const FunctorType& f, const idx_type& idx, value_type& val,
@@ -648,6 +623,8 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
             local_offset_value = offset_value;
           if (idx < N)
             call_with_tag<WorkTag>(a_functor, idx, local_offset_value, true);
+          if (idx == N - 1 && m_result_ptr_device_accessible)
+            *m_result_ptr = local_offset_value;
         }
       }
     }
@@ -676,8 +653,13 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
 
   //----------------------------------------
 
-  ParallelScan(const FunctorType& arg_functor, const Policy& arg_policy)
-      : m_functor(arg_functor), m_policy(arg_policy) {}
+  ParallelScan(const FunctorType& arg_functor, const Policy& arg_policy,
+               pointer_type arg_result_ptr           = nullptr,
+               bool arg_result_ptr_device_accessible = false)
+      : m_functor(arg_functor),
+        m_policy(arg_policy),
+        m_result_ptr(arg_result_ptr),
+        m_result_ptr_device_accessible(arg_result_ptr_device_accessible) {}
 
   //----------------------------------------
 };
@@ -690,7 +672,6 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
   using base_t     = ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
                               Kokkos::Experimental::OpenMPTarget>;
   using value_type = typename base_t::value_type;
-  value_type& m_returnvalue;
 
  public:
   void execute() const {
@@ -714,18 +695,24 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
 
       base_t::impl_execute(element_values, chunk_values, count);
 
-      const int size = base_t::Analysis::value_size(base_t::m_functor);
-      DeepCopy<HostSpace, Kokkos::Experimental::OpenMPTargetSpace>(
-          &m_returnvalue, chunk_values.data() + (n_chunks - 1), size);
-    } else {
-      m_returnvalue = 0;
+      if (!base_t::m_result_ptr_device_accessible) {
+        const int size = base_t::Analysis::value_size(base_t::m_functor);
+        DeepCopy<HostSpace, Kokkos::Experimental::OpenMPTargetSpace>(
+            base_t::m_result_ptr, chunk_values.data() + (n_chunks - 1), size);
+      }
+    } else if (!base_t::m_result_ptr_device_accessible) {
+      *base_t::m_result_ptr = 0;
     }
   }
 
+  template <class ViewType>
   ParallelScanWithTotal(const FunctorType& arg_functor,
                         const typename base_t::Policy& arg_policy,
-                        ReturnType& arg_returnvalue)
-      : base_t(arg_functor, arg_policy), m_returnvalue(arg_returnvalue) {}
+                        const ViewType& arg_result_view)
+      : base_t(arg_functor, arg_policy, arg_result_view.data(),
+               MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
+                                 typename ViewType::memory_space>::accessible) {
+  }
 };
 }  // namespace Impl
 }  // namespace Kokkos
@@ -1094,11 +1081,11 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
       // If there is no work to be done, copy back the initialized values and
       // exit.
       if (!ptr_on_device)
-        OMPT_SAFE_CALL(omp_target_memcpy(
+        KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
             ptr, scratch_ptr, value_count * sizeof(ValueType), 0, 0,
             omp_get_initial_device(), omp_get_default_device()));
       else
-        OMPT_SAFE_CALL(omp_target_memcpy(
+        KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
             ptr, scratch_ptr, value_count * sizeof(ValueType), 0, 0,
             omp_get_default_device(), omp_get_default_device()));
 
@@ -1158,11 +1145,11 @@ struct ParallelReduceSpecialize<FunctorType, TeamPolicyInternal<PolicyArgs...>,
 
     // If the result view is on the host, copy back the values via memcpy.
     if (!ptr_on_device)
-      OMPT_SAFE_CALL(omp_target_memcpy(
+      KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
           ptr, scratch_ptr, value_count * sizeof(ValueType), 0, 0,
           omp_get_initial_device(), omp_get_default_device()));
     else
-      OMPT_SAFE_CALL(omp_target_memcpy(
+      KOKKOS_IMPL_OMPT_SAFE_CALL(omp_target_memcpy(
           ptr, scratch_ptr, value_count * sizeof(ValueType), 0, 0,
           omp_get_default_device(), omp_get_default_device()));
   }

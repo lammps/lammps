@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 #ifndef KOKKOS_TEST_SCATTER_VIEW_HPP
 #define KOKKOS_TEST_SCATTER_VIEW_HPP
@@ -106,51 +78,11 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       scatter_access(k, 3)++;
       scatter_access(k, 4)--;
       scatter_access(k, 5) -= 5;
-// Workaround Intel 17 compiler bug which sometimes add random
-// instruction alignment which makes the lock instruction
-// illegal. Seems to be mostly just for unsigned int atomics.
-// Looking at the assembly the compiler
-// appears to insert cache line alignment for the instruction.
-// Isn't restricted to specific archs. Seen it on SNB and SKX, but for
-// different code. Another occurrence was with Desul atomics in
-// a different unit test. This one here happens without desul atomics.
-// Inserting an assembly nop instruction changes the alignment and
-// works round this.
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       scatter_access_atomic(k, 6) += 2;
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       scatter_access_atomic(k, 7)++;
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       scatter_access_atomic(k, 8)--;
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       --scatter_access_atomic(k, 9);
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       ++scatter_access_atomic(k, 10);
-#ifdef KOKKOS_COMPILER_INTEL
-#if (KOKKOS_COMPILER_INTEL < 1800)
-      asm volatile("nop\n");
-#endif
-#endif
       scatter_access(k, 11) -= 3;
     }
   }
@@ -872,9 +804,9 @@ TEST(TEST_CATEGORY, scatterview_devicetype) {
   using device_memory_space    = Kokkos::CudaSpace;
   using host_accessible_space  = Kokkos::CudaUVMSpace;
 #else
-  using device_execution_space = Kokkos::Experimental::HIP;
-  using device_memory_space    = Kokkos::Experimental::HIPSpace;
-  using host_accessible_space  = Kokkos::Experimental::HIPManagedSpace;
+  using device_execution_space = Kokkos::HIP;
+  using device_memory_space    = Kokkos::HIPSpace;
+  using host_accessible_space  = Kokkos::HIPManagedSpace;
 #endif
   if (std::is_same<TEST_EXECSPACE, device_execution_space>::value) {
     using device_device_type =

@@ -1,46 +1,18 @@
-/*
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 3.0
-//       Copyright (2020) National Technology & Engineering
+//                        Kokkos v. 4.0
+//       Copyright (2022) National Technology & Engineering
 //               Solutions of Sandia, LLC (NTESS).
 //
 // Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
+// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
+// See https://kokkos.org/LICENSE for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// 1. Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//
-// 2. Redistributions in binary form must reproduce the above copyright
-// notice, this list of conditions and the following disclaimer in the
-// documentation and/or other materials provided with the distribution.
-//
-// 3. Neither the name of the Corporation nor the names of the
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-// LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-// NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-// Questions? Contact Christian R. Trott (crtrott@sandia.gov)
-//
-// ************************************************************************
 //@HEADER
-*/
 
 /// \file Kokkos_UnorderedMap.hpp
 /// \brief Declaration and definition of Kokkos::UnorderedMap.
@@ -311,13 +283,8 @@ class UnorderedMap {
                      capacity() + 1)  // +1 so that the *_at functions can
                                       // always return a valid reference
         ,
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-        m_keys("UnorderedMap keys", capacity() + 1),
-        m_values("UnorderedMap values", (is_set ? 1 : capacity() + 1)),
-#else
         m_keys("UnorderedMap keys", capacity()),
         m_values("UnorderedMap values", (is_set ? 0 : capacity())),
-#endif
         m_scalars("UnorderedMap scalars") {
     if (!is_insertable_map) {
       Kokkos::Impl::throw_runtime_exception(
@@ -347,24 +314,13 @@ class UnorderedMap {
       const key_type tmp = key_type();
       Kokkos::deep_copy(m_keys, tmp);
     }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    if (is_set) {
-      const impl_value_type tmp = impl_value_type();
-      Kokkos::deep_copy(m_values, tmp);
-    }
-#endif
     Kokkos::deep_copy(m_scalars, 0);
     m_size = 0;
   }
 
   KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    return (m_keys.is_allocated() && m_values.is_allocated() &&
-            m_scalars.is_allocated());
-#else
     return (m_keys.is_allocated() && (is_set || m_values.is_allocated()) &&
             m_scalars.is_allocated());
-#endif
   }
 
   /// \brief Change the capacity of the the map
@@ -702,25 +658,9 @@ class UnorderedMap {
       !std::is_void<Dummy>::value,  // !is_set
       std::conditional_t<has_const_value, impl_value_type, impl_value_type &>>
   value_at(size_type i) const {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    return m_values[i < capacity() ? i : capacity()];
-#else
     KOKKOS_EXPECTS(i < capacity());
     return m_values[i];
-#endif
   }
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-  template <typename Dummy = value_type>
-  KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Calling value_at for value_type==void is deprecated!")
-  KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<
-      std::is_void<Dummy>::value,  // is_set
-      std::conditional_t<has_const_value, impl_value_type,
-                         impl_value_type &>> value_at(size_type /*i*/) const {
-    return m_values[0];
-  }
-#endif
 
   /// \brief Get the key with \c i as its direct index.
   ///
@@ -730,12 +670,8 @@ class UnorderedMap {
   /// kernel.
   KOKKOS_FORCEINLINE_FUNCTION
   key_type key_at(size_type i) const {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
-    return m_keys[i < capacity() ? i : capacity()];
-#else
     KOKKOS_EXPECTS(i < capacity());
     return m_keys[i];
-#endif
   }
 
   KOKKOS_FORCEINLINE_FUNCTION

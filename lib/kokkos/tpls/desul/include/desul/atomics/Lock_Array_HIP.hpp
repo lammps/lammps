@@ -9,23 +9,15 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #ifndef DESUL_ATOMICS_LOCK_ARRAY_HIP_HPP_
 #define DESUL_ATOMICS_LOCK_ARRAY_HIP_HPP_
 
-#include "desul/atomics/Common.hpp"
-#include "desul/atomics/Macros.hpp"
-
-#ifdef DESUL_HAVE_HIP_ATOMICS
-
 #include <hip/hip_runtime.h>
 
 #include <cstdint>
 
+#include "desul/atomics/Common.hpp"
+#include "desul/atomics/Macros.hpp"
+
 namespace desul {
 namespace Impl {
-
-#ifdef __HIP_DEVICE_COMPILE__
-#define DESUL_IMPL_BALLOT_MASK(x) __ballot(x)
-#else
-#define DESUL_IMPL_BALLOT_MASK(x) 0
-#endif
 
 /**
  * \brief This global variable in Host space is the central definition of these
@@ -160,8 +152,6 @@ inline int eliminate_warning_for_lock_array() { return lock_array_copied; }
     }                                                                                 \
     ::desul::Impl::lock_array_copied = 1;                                             \
   }
-
-#endif
 
 #if defined(DESUL_HIP_RDC) || (!defined(__HIPCC__))
 #define DESUL_ENSURE_HIP_LOCK_ARRAYS_ON_DEVICE()

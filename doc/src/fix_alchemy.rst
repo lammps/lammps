@@ -32,17 +32,17 @@ over the course of a molecular dynamics run.  This is useful for
 measuring thermodynamic differences between two different systems.  It
 also allows transformations that are not easily possible with the
 :doc:`pair style hybrid/scaled <pair_hybrid>`, :doc:`fix adapt
-<fix_adapt>` or :doc:`fix adapt/fep <fix_adapt_fep>` commmands.
+<fix_adapt>` or :doc:`fix adapt/fep <fix_adapt_fep>` commands.
 
 Example inputs are included in the ``examples/PACKAGES/alchemy``
 directory for (a) transforming a pure copper system into a
 copper/aluminum bronze alloy and (b) transforming two water molecules
-into a hydronium plus hydroxyl ion.
+in a box of water into a hydronium and a hydroxyl ion.
 
-The two systems must be defined in :doc:`separate replicas
+The two systems must be defined as :doc:`separate replica
 <Howto_replica>` and run in separate partitions of processors using the
-:doc:`-partition <Run_options>` command-line switch.  Exacty two
-partitions must be specified and each partition must use the same number
+:doc:`-partition <Run_options>` command-line switch.  Exactly two
+partitions must be specified, and each partition must use the same number
 of processors and the same domain decomposition.
 
 Because the forces applied to the atoms are the same mix of the forces
@@ -55,17 +55,15 @@ not strictly required, but since MD simulations are an example of a
 chaotic system, even the tiniest random difference will eventually grow
 exponentially into an unwanted divergence.
 
-Otherwise the properties of each atom (type, charge, bond and angle
-partners, etc), as well as energy and forces between interacting atoms
-(pair, bond, angle styles, etc) can be different in the two systems.
+Otherwise, the properties of each atom (type, charge, bond and angle
+partners, etc.), as well as energy and forces between interacting atoms
+(pair, bond, angle styles, etc.) can be different in the two systems.
 
 This can be initialized in the same input script by using commands which
 only apply to one or the other replica.  The example scripts use a
 world-style :doc:`variable <variable>` command along with
-:doc:`if/then/else <if>` commmands for this purpose.  The
+:doc:`if/then/else <if>` commands for this purpose.  The
 :doc:`partition <partition>` command can also be used.
-
-   variable name world pure alloy
 
 .. code-block:: LAMMPS
                 
@@ -85,7 +83,7 @@ Both replicas must define an instance of this fix, but with a different
 equivalent :doc:`variable <variable>`.  The two variables should be
 defined so that one ramps *down* from 1.0 to 0.0 for the *first* replica
 (*R=0*) and the other ramps *up* from 0.0 to 1.0 for the *second*
-replica (*R=1*).  A simple way is to do this is lineraly, which can be
+replica (*R=1*).  A simple way is to do this is linearly, which can be
 done using the ramp() function of the :doc:`variable <variable>`
 command.  You could also define a variable which returns a value between
 0.0 and 1.0 as a non-linear function of the timestep.  Here is a linear
@@ -111,25 +109,25 @@ appropriate *start* or *stop* options.
 At each timestep of an MD run, the two instances of this fix evaluate
 their respective variables as a :math:`\lambda_R` factor, where *R* = 0
 or 1 for each replica.  The forces used by each system for the
-propagation of theire atoms is set to the sum of the forces for the two
-systems, each scaled by their respective :math:`\lambda_R` factor.  Thus
-during the MD run, the system will transform incrementally from from the
+propagation of their atoms is set to the sum of the forces for the two
+systems, each scaled by their respective :math:`\lambda_R` factor.  Thus,
+during the MD run, the system will transform incrementally from the
 first system to the second system.
 
 .. note::
    
    As mentioned above, the coordinates of the atoms and box size/shape
-   must be exactly the same in the two replicas.  Thus it is generally
-   not a good idea to initialize the two replicas by reading different
-   data files or creating them from scratch.  Rather, a single system
-   should be initialized and desired modifications applied to the system
-   of the second replica.  If your input script somehow induces the two
-   systems to become different (e.g. by performing :doc:`atom_modify
-   sort <atom_modify>` differently, or by adding or depositing a
-   different number of atoms), then LAMMPS will detect the mismatchand
-   generate an error.  This is done by ensuring that each step the
-   number and ordering of atoms is identical within each pair of
-   processors in the two replicas.
+   must be exactly the same in the two replicas.  Therefore, it is
+   generally not a good idea to initialize the two replicas by reading
+   different data files or creating them individually from scratch.
+   Rather, a single system should be initialized and then desired
+   modifications applied to the system to either replica.  If your
+   input script somehow induces the two systems to become different
+   (e.g. by performing :doc:`atom_modify sort <atom_modify>`
+   differently, or by adding or depositing a different number of atoms),
+   then LAMMPS will detect the mismatch and generate an error.  This is
+   done by ensuring that each step the number and ordering of atoms is
+   identical within each pair of processors in the two replicas.
 
 ----------
 
@@ -146,8 +144,8 @@ the first partition, the second partition and the combined value,
 respectively. The global scalar is unitless and "intensive", the vector
 is in :doc:`energy units <units>` and "extensive".  These values can be
 used by any command that uses a global value from a fix as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
-LAMMPS output options.
+the :doc:`output howto <Howto_output>` page for an overview of LAMMPS
+output options.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 

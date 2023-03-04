@@ -1444,6 +1444,7 @@ hux
 hwloc
 hx
 hy
+hydronium
 hydrophobicity
 hydrostatic
 hydrostatically

@@ -69,11 +69,11 @@ class BI(PairTabulate):
 
         # savgol_filter is an example of smoothing.
         # Other filters/functions can be used.
-        g = savgol_filter(g, 10, 5)
+        g = savgol_filter(g, 9, 5)
         return self.inversion(r, g)
 
     def inversion(self, r, g):
-        e = -self.kbT * np.log(g)
+        e = -self.kbT * np.log(np.clip(g,1.0e-100,1.0e100))
         e = self.complete_exponential(r, e)
         return r, e,
 

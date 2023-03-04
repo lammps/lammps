@@ -275,8 +275,8 @@ reducing the :doc:`timestep <timestep>`.
 Related commands
 """"""""""""""""
 
-`fix rigid <fix_rigid>`, `fix ehex <fix_ehex>`,
-`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
+:doc:`fix rigid <fix_rigid>`, :doc:`fix ehex <fix_ehex>`,
+:doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 
 
 Default

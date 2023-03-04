@@ -29,15 +29,10 @@ class BI(PairTabulate):
             action="store_true",
             help="Shift potential energy to be zero at outer cutoff",
         )
-        self.parser.add_argument(
-            "--rdffile", default="rdf.dat", help="Rdf file to be read."
-        )
-        self.parser.add_argument(
-            "--units", default="lj", help="LAMMPS units to use [default lj]."
-        )
-        self.parser.add_argument(
-            "--temperature", default=0, type=float, help="Temperature for BI."
-        )
+        self.parser.add_argument("--units", required=True, help="LAMMPS units to use")
+        self.parser.add_argument("--rdffile", required=True, help="Rdf file to be read")
+        self.parser.add_argument("--temperature", required=True, type=float,
+                                 help="Temperature for Boltzman Inversion.")
         try:
             self.args = self.parser.parse_args()
         except argparse.ArgumentError:
@@ -48,16 +43,19 @@ class BI(PairTabulate):
         else:
             sys.exit("Invalid temperature provided.")
 
-        kb = 1
+        kb = 1.0
         # Add more kb units if you need
-        if self.args.units == "si":
+        self.units = self.args.units
+        if self.units == "lj":
+            kb = 1.0           # reduced
+        elif self.units == "si":
             kb = 1.380649e-23  # J/K
-        elif self.args.units == "metal":
-            kb = 8.617333e-5  # eV/K
-        elif self.args.units == "real":
-            kb = 1.987204e-3  # kcal/mol/K
+        elif self.units == "metal":
+            kb = 8.617333e-5   # eV/K
+        elif self.units == "real":
+            kb = 1.987204e-3   # kcal/mol/K
         else:
-            sys.stdout.write("WARNING: Unknown or lj units, using kb=1\n")
+            sys.exit("Unsupported units setting " + self.units)
         self.kbT = kb * T
         self.r, self.e = self.read_rdf(self.args.rdffile)
 

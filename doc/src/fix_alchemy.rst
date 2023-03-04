@@ -66,7 +66,7 @@ world-style :doc:`variable <variable>` command along with
 :doc:`partition <partition>` command can also be used.
 
 .. code-block:: LAMMPS
-                
+
    create_box 2 box
    create_atoms 1 box
    pair_style eam/alloy
@@ -115,7 +115,7 @@ during the MD run, the system will transform incrementally from the
 first system to the second system.
 
 .. note::
-   
+
    As mentioned above, the coordinates of the atoms and box size/shape
    must be exactly the same in the two replicas.  Therefore, it is
    generally not a good idea to initialize the two replicas by reading

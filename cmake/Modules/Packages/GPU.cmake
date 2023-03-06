@@ -412,7 +412,8 @@ elseif(GPU_API STREQUAL "HIP")
       set_property(TARGET gpu PROPERTY CXX_STANDARD 14)
     endif()
     # add hipCUB
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+    find_package(hipcub REQUIRED)
+    target_link_libraries(gpu PRIVATE hip::hipcub)
     target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
 
     if(HIP_PLATFORM STREQUAL "nvcc")
@@ -461,30 +462,22 @@ elseif(GPU_API STREQUAL "HIP")
 
   add_executable(hip_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)
-  target_link_libraries(hip_get_devices hip::host)
+  target_link_libraries(hip_get_devices PRIVATE hip::host)
 
   if(HIP_PLATFORM STREQUAL "nvcc")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
     target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
     target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/include)
     target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   elseif(HIP_PLATFORM STREQUAL "hcc")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_HCC__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
-
     target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_HCC__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
   elseif(HIP_PLATFORM STREQUAL "amd")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_AMD__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
-
     target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_AMD__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
   endif()
 
   target_link_libraries(lammps PRIVATE gpu)

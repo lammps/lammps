@@ -50,6 +50,8 @@ class FixAlchemy : public Fix {
   int sync_box;          // 1 of box dimensions need to be synchronized
   int nmax;
   int ivar;
+
+  void check_consistency_atoms();
 };
 }    // namespace LAMMPS_NS
 

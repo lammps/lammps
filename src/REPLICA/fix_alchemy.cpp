@@ -109,7 +109,51 @@ int FixAlchemy::setmask()
   return mask;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   check consistency of owned atom count and ordering
+   compare each pair of replica procs
+   checked before each exchange of atom coords or forces
+     to ensure the replicas have not become out of sync
+---------------------------------------------------------------------- */
+
+void FixAlchemy::check_consistency_atoms()
+{
+  // check that owned atom count is same for each pair of replica procs
+
+  const int nlocal = atom->nlocal;
+  int my_nlocal[2] = {0, 0};
+  int all_nlocal[2] = {0, 0};
+  my_nlocal[universe->iworld] = nlocal;
+  MPI_Allreduce(my_nlocal, all_nlocal, 2, MPI_INT, MPI_SUM, samerank);
+
+  int fail = (all_nlocal[0] == all_nlocal[1]) ? 0 : 1;
+  int allfail = 0;
+  MPI_Allreduce(&fail, &allfail, 1, MPI_INT, MPI_MAX, universe->uworld);
+  if (allfail) error->universe_all(FLERR, "Fix alchemy local atom count is inconsistent");
+
+  // check that owned atom ordering is same for each pair of replica procs
+  // re-use communication buffer for positions and forces
+
+  tagint *tagbuf = (tagint *) commbuf;
+  tagint *tag = atom->tag;
+  if (universe->iworld == 0) {
+    for (int i = 0; i < nlocal; ++i) tagbuf[i] = tag[i];
+  }
+  MPI_Bcast(tagbuf, nlocal, MPI_LMP_TAGINT, 0, samerank);
+
+  fail = allfail = 0;
+  if (universe->iworld > 0) {
+    for (int i = 0; i < nlocal; ++i)
+      if (tag[i] != tagbuf[i]) fail = 1;
+  }
+  MPI_Allreduce(&fail, &allfail, 1, MPI_INT, MPI_MAX, universe->uworld);
+  if (allfail) error->universe_all(FLERR, "Fix alchemy local atom ordering is inconsistent");
+}
+
+/* ----------------------------------------------------------------------
+   force simulation box size and shape to be identical for 2 replicas
+   invoked by post_integrate() after integration may have changed box
+---------------------------------------------------------------------- */
 
 static void synchronize_box(Domain *domain, MPI_Comm samerank)
 {
@@ -180,36 +224,9 @@ void FixAlchemy::setup(int vflag)
 
 void FixAlchemy::post_integrate()
 {
-  // re-check that we have the same domain decomposition on all ranks
-  const int nlocal = atom->nlocal;
-  int my_nlocal[2] = {0, 0};
-  int all_nlocal[2] = {0, 0};
-  my_nlocal[universe->iworld] = nlocal;
-  MPI_Allreduce(my_nlocal, all_nlocal, 2, MPI_INT, MPI_SUM, samerank);
-  int fail = (all_nlocal[0] == all_nlocal[1]) ? 0 : 1;
-  int allfail = 0;
-  MPI_Allreduce(&fail, &allfail, 1, MPI_INT, MPI_MAX, universe->uworld);
-  if (allfail)
-    error->universe_all(FLERR,
-                        "Number of atoms and domain decomposition must be the same on "
-                        "all partitions");
+  // check owned atom count and ordering between replicas
 
-  // check that we have the same atom order on all ranks
-  // re-use communication buffer for positions and forces
-
-  tagint *tagbuf = (tagint *) commbuf;
-  tagint *tag = atom->tag;
-  if (universe->iworld == 0) {
-    for (int i = 0; i < nlocal; ++i) tagbuf[i] = tag[i];
-  }
-  MPI_Bcast(tagbuf, nlocal, MPI_LMP_TAGINT, 0, samerank);
-  fail = allfail = 0;
-  if (universe->iworld > 0) {
-    for (int i = 0; i < nlocal; ++i)
-      if (tag[i] != tagbuf[i]) fail = 1;
-  }
-  MPI_Allreduce(&fail, &allfail, 1, MPI_INT, MPI_MAX, universe->uworld);
-  if (allfail) error->universe_all(FLERR, "Atoms must have the same order on all partitions");
+  check_consistency_atoms();
 
   // synchronize atom positions
 
@@ -225,15 +242,25 @@ void FixAlchemy::post_integrate()
 
 void FixAlchemy::post_force(int /*vflag*/)
 {
+  // grow commbuf if necessary
+
   if (3 * atom->nmax > nmax) {
     nmax = 3 * atom->nmax;
     memory->grow(commbuf, sizeof(double) * atom->nmax, "alchemy:commbuf");
   }
 
-  const int nall = 3 * atom->nlocal;
-  double *f = &atom->f[0][0];
+  // check owned atom count and ordering between replicas
+
+  check_consistency_atoms();
+
+  // evaluate lambda variable
+
   lambda = input->variable->compute_equal(ivar);
 
+  // sum forces multiplied by lambda across 2 replicas
+
+  const int nall = 3 * atom->nlocal;
+  double *f = &atom->f[0][0];
   for (int i = 0; i < nall; ++i) commbuf[i] = f[i] * lambda;
   MPI_Allreduce(commbuf, f, nall, MPI_DOUBLE, MPI_SUM, samerank);
 
@@ -253,7 +280,7 @@ void FixAlchemy::post_force(int /*vflag*/)
   MPI_Allreduce(commbuf, pressure, 6, MPI_DOUBLE, MPI_SUM, universe->uworld);
   press->addstep(update->ntimestep + 1);
 
-  // print progress info
+  // print progress info to universe screen/logfile
 
   if (universe->me == 0) {
     double delta = update->ntimestep - update->beginstep;

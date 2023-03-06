@@ -835,7 +835,7 @@ void CommKokkos::exchange_device()
       // if 2 procs in dimension, single send/recv
       // if more than 2 procs in dimension, send/recv to both neighbors
 
-      const int data_size = atomKK->avecKK->size_border+atomKK->avecKK->size_velocity+2;
+      const int data_size = atomKK->avecKK->size_exchange;
 
       if (procgrid[dim] == 1) nrecv = 0;
       else {

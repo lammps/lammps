@@ -1633,7 +1633,7 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int
   if (index > 0) {
     int m = d_buf[i];
 
-    int flag = shake_flag[nlocal] = static_cast<int> (d_buf[m++]);
+    int flag = shake_flag[index] = static_cast<int> (d_buf[m++]);
     if (flag == 1) {
       d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
       d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);

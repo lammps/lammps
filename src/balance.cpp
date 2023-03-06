@@ -482,11 +482,11 @@ void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
       outflag = 1;
       outarg = iarg+1;
       iarg += 2;
-      
+
     } else if (strcmp(arg[iarg],"old") == 0) {
       oldrcb = 1;
       iarg++;
-      
+
     } else error->all(FLERR,"Illegal (fix) balance command");
   }
 
@@ -666,7 +666,7 @@ int *Balance::bisection()
   }
 
   if (triclinic) domain->lamda2x(nlocal);
-  
+
   rcb->invert(sortflag);
 
   // reset RCB lo/hi bounding box to full simulation box as needed

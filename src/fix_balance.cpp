@@ -107,7 +107,7 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   balance->options(iarg,narg,arg,0);
   wtflag = balance->wtflag;
   sortflag = balance->sortflag;
-  
+
   if (balance->varflag && nevery == 0)
     error->all(FLERR,"Fix balance nevery = 0 cannot be used with weight var");
 
@@ -299,7 +299,7 @@ void FixBalance::rebalance()
   // sortflag determines whether irregular sorts its
   //   comm messages for reproducibility
   //   if not, message order is random, atom order is non-deterministic
-  
+
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (wtflag) balance->fixstore->disable = 0;
   if (lbstyle == BISECTION) irregular->migrate_atoms(sortflag,1,sendproc);

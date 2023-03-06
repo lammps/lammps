@@ -44,6 +44,7 @@ class FixBalance : public Fix {
   double thresh, stopthresh;
   char bstr[4];
   int wtflag;               // 1 for weighted balancing
+  int sortflag;             // 1 for sorting comm messages
 
   double imbnow;            // current imbalance factor
   double imbprev;           // imbalance factor before last rebalancing

@@ -291,6 +291,10 @@ Neighbor::~Neighbor()
 
 void Neighbor::init()
 {
+  #ifdef LMP_GPU
+  overlap_topo = 0;
+  #endif
+
   int i,j,n;
 
   ncalls = ndanger = 0;
@@ -2434,7 +2438,13 @@ void Neighbor::build(int topoflag)
 
   // build topology lists for bonds/angles/etc
 
+  #ifdef LMP_GPU
+  if (overlap_topo == 0) {
+    if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
+  }
+  #else
   if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
+  #endif
 }
 
 /* ----------------------------------------------------------------------
@@ -2816,6 +2826,17 @@ int Neighbor::exclude_setting()
 {
   return exclude;
 }
+
+/* ----------------------------------------------------------------------
+   If nonzero, call build_topology from GPU styles instead to overlap comp
+------------------------------------------------------------------------- */
+
+#ifdef LMP_GPU
+void Neighbor::set_overlap_topo(int s)
+{
+  overlap_topo = s;
+}
+#endif
 
 /* ----------------------------------------------------------------------
    check if any of the old requested neighbor lists are full

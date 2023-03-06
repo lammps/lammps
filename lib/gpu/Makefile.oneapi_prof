@@ -1,5 +1,5 @@
 # /* ----------------------------------------------------------------------   
-#  Linux Makefile for Intel oneAPI - Mixed precision
+#  Linux Makefile for Intel oneAPI - Mixed precision (with timing enabled)
 # ------------------------------------------------------------------------- */
 
 # which file will be copied to Makefile.lammps
@@ -17,7 +17,7 @@ OCL_CPP = mpiicpc -cxx=icpx -std=c++11 -DMPICH_IGNORE_CXX_SEEK \
           $(LMP_INC) $(OCL_INC) $(CPP_OPT)
 OCL_LINK = -L$(ONEAPI_ROOT)/compiler/latest/linux/lib -lOpenCL
 OCL_PREC = -D_SINGLE_DOUBLE
-OCL_TUNE = -DMPI_GERYON -DCUDA_PROXY -DGERYON_NUMA_FISSION -DUCL_NO_EXIT -DGERYON_NO_OCL_MARKERS
+OCL_TUNE = -DMPI_GERYON -DCUDA_PROXY -DGERYON_NUMA_FISSION -DUCL_NO_EXIT
 
 BIN_DIR = ./
 OBJ_DIR = ./

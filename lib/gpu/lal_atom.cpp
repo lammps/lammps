@@ -114,7 +114,7 @@ bool AtomT::alloc(const int nall) {
                                 UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=q.device.row_bytes();
   }
-  if (_rot && !_host_view) {
+  if (_rot) {
     success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=quat.device.row_bytes();
@@ -182,11 +182,9 @@ bool AtomT::add_fields(const bool charge, const bool rot,
   if (rot && !_rot) {
     _rot=true;
     _other=true;
-    if (!_host_view) {
-      success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
-                                     UCL_READ_ONLY)==UCL_SUCCESS);
-      gpu_bytes+=quat.device.row_bytes();
-    }
+    success=success && (quat.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
+                                   UCL_READ_ONLY)==UCL_SUCCESS);
+    gpu_bytes+=quat.device.row_bytes();
   }
 
   if (vel && !_vel) {
@@ -451,7 +449,7 @@ template <class numtyp, class acctyp>
 void AtomT::compile_kernels(UCL_Device &dev) {
   std::string flags = "";
   atom_program=new UCL_Program(dev);
-  atom_program->load_string(atom,flags,nullptr,screen);
+  atom_program->load_string(atom,flags.c_str(),nullptr,stderr);
   k_cast_x.set_function(*atom_program,"kernel_cast_x");
   _compiled=true;
 }

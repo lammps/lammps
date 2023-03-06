@@ -370,7 +370,7 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
 
   _ocl_config_name="CUSTOM";
   int token_count=0;
-  std::string params[18];
+  std::string params[19];
   char ocl_config[2048];
   strncpy(ocl_config,s_config.c_str(),2047);
   char *pch = strtok(ocl_config,",");
@@ -378,7 +378,7 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
   pch = strtok(nullptr,",");
   if (pch == nullptr) return -11;
   while (pch != nullptr) {
-    if (token_count==18)
+    if (token_count==19)
       return -11;
     params[token_count]=pch;
     token_count++;
@@ -388,6 +388,16 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
   _ocl_compile_string="-cl-mad-enable ";
   #ifdef CL_VERSION_2_0
   _ocl_compile_string+="-cl-std=CL2.0 ";
+  #endif
+  if (params[0]=="500") {
+    _ocl_compile_string+="-DINTEL_OCL ";
+    #ifdef _DOUBLE_DOUBLE
+    // workaround for double precision with Intel OpenCL
+    params[4]="0";
+    #endif
+  }
+  #ifdef LAL_DISABLE_PREFETCH
+  params[18]="0";
   #endif
   if (params[4]!="0") _ocl_compile_string+="-cl-fast-relaxed-math ";
   _ocl_compile_string+=std::string(OCL_INT_TYPE)+" "+
@@ -421,7 +431,8 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
 
                          " -DMAX_SHARED_TYPES="+params[15]+
                          " -DMAX_BIO_SHARED_TYPES="+params[16]+
-                         " -DPPPM_MAX_SPLINE="+params[17];
+                         " -DPPPM_MAX_SPLINE="+params[17]+
+                         " -DNBOR_PREFETCH="+params[18];
   _ocl_compile_string += extra_args;
   #endif
   return 0;
@@ -558,7 +569,11 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
     return -3;
 
   if (_user_cell_size<0.0) {
+    #ifndef LAL_USE_OLD_NEIGHBOR
+    _neighbor_shared.setup_auto_cell_size(true,cutoff,nbor->simd_size());
+    #else
     _neighbor_shared.setup_auto_cell_size(false,cutoff,nbor->simd_size());
+    #endif
   } else
     _neighbor_shared.setup_auto_cell_size(false,_user_cell_size,nbor->simd_size());
   nbor->set_cutoff(cutoff);
@@ -954,7 +969,7 @@ int DeviceT::compile_kernels() {
   k_info.set_function(*dev_program,"kernel_info");
   _compiled=true;
 
-  UCL_Vector<int,int> gpu_lib_data(19,*gpu,UCL_NOT_PINNED);
+  UCL_Vector<int,int> gpu_lib_data(20,*gpu,UCL_NOT_PINNED);
   k_info.set_size(1,1);
   k_info.run(&gpu_lib_data);
   gpu_lib_data.update_host(false);

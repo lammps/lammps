@@ -155,6 +155,12 @@ class Neighbor : protected Pointers {
   void exclusion_group_group_delete(int, int);    // rm a group-group exclusion
   int exclude_setting();                          // return exclude value to accelerator pkg
 
+  // Option to call build_topology from gpu styles instead for overlapped comp
+  #ifdef LMP_GPU
+  void set_overlap_topo(int);
+  int overlap_topo; // 0 for default/old non-overlap mode
+  #endif
+
   // find a neighbor list based on requestor
   NeighList *find_list(void *, const int id = 0) const;
   // find a neighbor request based on requestor

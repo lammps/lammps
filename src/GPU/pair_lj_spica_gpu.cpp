@@ -110,6 +110,8 @@ void PairLJSPICAGPU::compute(int eflag, int vflag)
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
+    neighbor->build_topology();
   if (host_start < inum) {
     cpu_time = platform::walltime();
     if (evflag) {

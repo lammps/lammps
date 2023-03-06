@@ -52,6 +52,12 @@ using namespace ucl_cudadr;
 
 namespace LAMMPS_AL {
 
+struct EllipsoidBonus {
+  double shape[3];
+  double quat[4];
+  int ilocal;
+};
+
 template <class numtyp, class acctyp>
 class Atom {
  public:
@@ -306,8 +312,8 @@ class Atom {
     if (_x_avail==false) {
       double t=MPI_Wtime();
       #ifdef GPU_CAST
-      memcpy(host_x_cast.begin(),host_ptr[0],_nall*3*sizeof(double));
-      memcpy(host_type_cast.begin(),host_type,_nall*sizeof(int));
+      memcpy(x_cast.host.begin(),host_ptr[0],_nall*3*sizeof(double));
+      memcpy(type_cast.host.begin(),host_type,_nall*sizeof(int));
       #else
       vec3d *host_p=reinterpret_cast<vec3d*>(&(host_ptr[0][0]));
       vec4d_t *xp=reinterpret_cast<vec4d_t*>(&(x[0]));
@@ -351,6 +357,24 @@ class Atom {
     add_x_data(host_ptr,host_type);
   }
 
+  // Cast mu data to write buffer (stored in quat)
+  template<class cpytyp>
+  inline void cast_mu_data(cpytyp *host_ptr) {
+    if (_quat_avail==false) {
+      double t=MPI_Wtime();
+      if (sizeof(numtyp)==sizeof(double))
+        memcpy(quat.host.begin(),host_ptr,_nall*4*sizeof(numtyp));
+      else
+        #if (LAL_USE_OMP == 1) && (LAL_USE_OMP_SIMD == 1)
+        #pragma omp parallel for simd schedule(static)
+        #elif (LAL_USE_OMP_SIMD == 1)
+        #pragma omp simd
+        #endif
+        for (int i=0; i<_nall*4; i++) quat[i]=host_ptr[i];
+      _time_cast+=MPI_Wtime()-t;
+    }
+  }
+
   // Cast charges to write buffer
   template<class cpytyp>
   inline void cast_q_data(cpytyp *host_ptr) {
@@ -384,22 +408,24 @@ class Atom {
   }
 
   // Cast quaternions to write buffer
-  template<class cpytyp>
-  inline void cast_quat_data(cpytyp *host_ptr) {
+  inline void cast_quat_data(const int *ellipsoid,
+                             const EllipsoidBonus *bonus) {
     if (_quat_avail==false) {
       double t=MPI_Wtime();
-      if (_host_view) {
-        quat.host.view((numtyp*)host_ptr,_nall*4,*dev);
-        quat.device.view(quat.host);
-      } else if (sizeof(numtyp)==sizeof(double))
-        memcpy(quat.host.begin(),host_ptr,_nall*4*sizeof(numtyp));
-      else
-        #if (LAL_USE_OMP == 1) && (LAL_USE_OMP_SIMD == 1)
-        #pragma omp parallel for simd schedule(static)
-        #elif (LAL_USE_OMP_SIMD == 1)
-        #pragma omp simd
-        #endif
-        for (int i=0; i<_nall*4; i++) quat[i]=host_ptr[i];
+      #if (LAL_USE_OMP == 1) && (LAL_USE_OMP_SIMD == 1)
+      #pragma omp parallel for simd schedule(static)
+      #elif (LAL_USE_OMP_SIMD == 1)
+      #pragma omp simd
+      #endif
+      for (int i=0; i<_nall; i++) {
+        int qi = ellipsoid[i];
+        if (qi > -1) {
+          quat[i*4] = bonus[qi].quat[0];
+          quat[i*4+1] = bonus[qi].quat[1];
+          quat[i*4+2] = bonus[qi].quat[2];
+          quat[i*4+3] = bonus[qi].quat[3];
+        }
+      }
       _time_cast+=MPI_Wtime()-t;
     }
   }
@@ -419,10 +445,6 @@ class Atom {
   inline void cast_v_data(double **host_ptr, const tagint *host_tag) {
     if (_v_avail==false) {
       double t=MPI_Wtime();
-      #ifdef GPU_CAST
-      memcpy(host_v_cast.begin(),host_ptr[0],_nall*3*sizeof(double));
-      memcpy(host_tag_cast.begin(),host_tag,_nall*sizeof(int));
-      #else
       vec3d *host_p=reinterpret_cast<vec3d*>(&(host_ptr[0][0]));
       vec4d_t *vp=reinterpret_cast<vec4d_t*>(&(v[0]));
       #if (LAL_USE_OMP == 1)
@@ -434,7 +456,6 @@ class Atom {
         vp[i].z=host_p[i].z;
         vp[i].w=host_tag[i];
       }
-      #endif
       _time_cast+=MPI_Wtime()-t;
     }
   }
@@ -444,16 +465,7 @@ class Atom {
   inline void add_v_data(double ** /*host_ptr*/, tagint * /*host_tag*/) {
     time_vel.start();
     if (_v_avail==false) {
-      #ifdef GPU_CAST
-      v_cast.update_device(_nall*3,true);
-      tag_cast.update_device(_nall,true);
-      int block_size=64;
-      int GX=static_cast<int>(ceil(static_cast<double>(_nall)/block_size));
-      k_cast_x.set_size(GX,block_size);
-      k_cast_x.run(&v, &v_cast, &tag_cast, &_nall);
-      #else
       v.update_device(_nall*4,true);
-      #endif
       _v_avail=true;
     }
     time_vel.stop();
@@ -519,7 +531,7 @@ class Atom {
   UCL_Vector<numtyp4,numtyp4> extra;
 
   #ifdef GPU_CAST
-  UCL_Vector<numtyp,numtyp> x_cast;
+  UCL_Vector<double,double> x_cast;
   UCL_Vector<int,int> type_cast;
   #endif
 

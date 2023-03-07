@@ -32,9 +32,19 @@
 #include <mdi.h>
 #endif
 
+#if defined(LMP_KOKKOS)
 namespace LAMMPS_NS {
 extern void kokkos_lmp_finalize();
 }
+#else
+#include "accelerator_kokkos.h"
+namespace LAMMPS_NS {
+void kokkos_lmp_finalize()
+{
+  KokkosLMP::finalize();
+}
+}
+#endif
 
 using namespace LAMMPS_NS;
 

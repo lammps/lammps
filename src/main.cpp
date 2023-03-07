@@ -13,7 +13,6 @@
 
 #include "lammps.h"
 
-#include "accelerator_kokkos.h"
 #include "input.h"
 #include "lmppython.h"
 
@@ -32,6 +31,10 @@
 #if defined(LMP_MDI)
 #include <mdi.h>
 #endif
+
+namespace LAMMPS_NS {
+extern void kokkos_lmp_finalize();
+}
 
 using namespace LAMMPS_NS;
 
@@ -76,18 +79,18 @@ int main(int argc, char **argv)
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
-    KokkosLMP::finalize();
+    kokkos_lmp_finalize();
     Python::finalize();
     MPI_Abort(ae.universe, 1);
   } catch (LAMMPSException &) {
-    KokkosLMP::finalize();
+    kokkos_lmp_finalize();
     Python::finalize();
     MPI_Barrier(lammps_comm);
     MPI_Finalize();
     exit(1);
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-    KokkosLMP::finalize();
+    kokkos_lmp_finalize();
     Python::finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
@@ -99,13 +102,13 @@ int main(int argc, char **argv)
     delete lammps;
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-    KokkosLMP::finalize();
+    kokkos_lmp_finalize();
     Python::finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
 #endif
-  KokkosLMP::finalize();
+  kokkos_lmp_finalize();
   Python::finalize();
   MPI_Barrier(lammps_comm);
   MPI_Finalize();

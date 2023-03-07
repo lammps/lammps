@@ -61,11 +61,6 @@ class KokkosLMP {
   int neigh_count(int) { return 0; }
 };
 
-void kokkos_lmp_finalize()
-{
-  KokkosLMP::finalize();
-}
-
 class AtomKokkos : public Atom {
  public:
   tagint **k_special;

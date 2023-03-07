@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "fix_property_atom.h"
 #include "force.h"
@@ -73,6 +74,7 @@ void BondHarmonicRestrain::compute(int eflag, int vflag)
     delx = x0[i1][0] - x0[i2][0];
     dely = x0[i1][1] - x0[i2][1];
     delz = x0[i1][2] - x0[i2][2];
+    domain->minimum_image(delx, dely, delz);
     rsq = delx * delx + dely * dely + delz * delz;
     r0 = sqrt(rsq);
 
@@ -155,19 +157,32 @@ void BondHarmonicRestrain::coeff(int narg, char **arg)
 
 void BondHarmonicRestrain::init_style()
 {
-  // create internal fix to store initial positions
-  initial = dynamic_cast<FixPropertyAtom *>(
-      modify->add_fix("BOND_RESTRAIN all property/atom d2_x0 3 ghost yes"));
-  if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
-
   // store initial positions
+
   if (natoms < 0) {
+
+    // create internal fix to store initial positions
+    initial = dynamic_cast<FixPropertyAtom *>(
+      modify->add_fix("BOND_RESTRAIN all property/atom d2_x0 3 ghost yes"));
+    if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
+
     natoms = atom->natoms;
     double *const *const x0 = (double **) atom->extract("d2_x0");
     const double *const *const x = atom->x;
     for (int i = 0; i < atom->nlocal; ++i)
       for (int j = 0; j < 3; ++j) x0[i][j] = x[i][j];
-  }
+
+  } else {
+
+    // after a restart, natoms is set but initial is a null pointer.
+    // we add the fix, but do not initialize it.  It will pull the data from the restart.
+
+    if (!initial) {
+      initial = dynamic_cast<FixPropertyAtom *>(
+        modify->add_fix("BOND_RESTRAIN all property/atom d2_x0 3 ghost yes"));
+      if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
+    }
+  } 
 
   // must not add  atoms
   if (natoms < atom->natoms)

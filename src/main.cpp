@@ -14,7 +14,7 @@
 #include "lammps.h"
 
 #include "input.h"
-#include "lmppython.h"
+#include "library.h"
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -30,20 +30,6 @@
 // import MolSSI Driver Interface library
 #if defined(LMP_MDI)
 #include <mdi.h>
-#endif
-
-#if defined(LMP_KOKKOS)
-namespace LAMMPS_NS {
-extern void kokkos_lmp_finalize();
-}
-#else
-#include "accelerator_kokkos.h"
-namespace LAMMPS_NS {
-void kokkos_lmp_finalize()
-{
-  KokkosLMP::finalize();
-}
-}
 #endif
 
 using namespace LAMMPS_NS;
@@ -89,19 +75,19 @@ int main(int argc, char **argv)
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
-    kokkos_lmp_finalize();
-    Python::finalize();
+    lammps_kokkos_finalize();
+    lammps_python_finalize();
     MPI_Abort(ae.universe, 1);
   } catch (LAMMPSException &) {
-    kokkos_lmp_finalize();
-    Python::finalize();
+    lammps_kokkos_finalize();
+    lammps_python_finalize();
     MPI_Barrier(lammps_comm);
     MPI_Finalize();
     exit(1);
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-    kokkos_lmp_finalize();
-    Python::finalize();
+    lammps_kokkos_finalize();
+    lammps_python_finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
@@ -112,14 +98,14 @@ int main(int argc, char **argv)
     delete lammps;
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-    kokkos_lmp_finalize();
-    Python::finalize();
+    lammps_kokkos_finalize();
+    lammps_python_finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
 #endif
-  kokkos_lmp_finalize();
-  Python::finalize();
+  lammps_kokkos_finalize();
+  lammps_python_finalize();
   MPI_Barrier(lammps_comm);
   MPI_Finalize();
 }

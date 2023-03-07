@@ -34,6 +34,13 @@
 
 using namespace LAMMPS_NS;
 
+// for convenience
+static void finalize()
+{
+  lammps_kokkos_finalize();
+  lammps_python_finalize();
+}
+
 /* ----------------------------------------------------------------------
    main program to drive LAMMPS
 ------------------------------------------------------------------------- */
@@ -41,7 +48,6 @@ using namespace LAMMPS_NS;
 int main(int argc, char **argv)
 {
   MPI_Init(&argc, &argv);
-
   MPI_Comm lammps_comm = MPI_COMM_WORLD;
 
 #if defined(LMP_MDI)
@@ -75,19 +81,21 @@ int main(int argc, char **argv)
     lammps->input->file();
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
-    lammps_kokkos_finalize();
-    lammps_python_finalize();
+    finalize();
     MPI_Abort(ae.universe, 1);
   } catch (LAMMPSException &) {
-    lammps_kokkos_finalize();
-    lammps_python_finalize();
+    finalize();
     MPI_Barrier(lammps_comm);
     MPI_Finalize();
     exit(1);
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-    lammps_kokkos_finalize();
-    lammps_python_finalize();
+    finalize();
+    MPI_Abort(MPI_COMM_WORLD, 1);
+    exit(1);
+  } catch (std::exception &e) {
+    fprintf(stderr, "Exception: %s\n", e.what());
+    finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
@@ -98,14 +106,12 @@ int main(int argc, char **argv)
     delete lammps;
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
-    lammps_kokkos_finalize();
-    lammps_python_finalize();
+    finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
 #endif
-  lammps_kokkos_finalize();
-  lammps_python_finalize();
+  finalize();
   MPI_Barrier(lammps_comm);
   MPI_Finalize();
 }

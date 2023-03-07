@@ -36,7 +36,7 @@ read_data   ${data}
 read_data   data.confined
 Reading data file ...
   orthogonal box = (0 0 0) to (40.000006 43.301277 40)
-  1 by 1 by 1 MPI processor grid
+  2 by 2 by 1 MPI processor grid
 WARNING: Atom style in data file differs from currently defined atom style (src/read_data.cpp:620)
   reading atoms ...
   4002 atoms
@@ -92,12 +92,12 @@ fix             1 ions nve
 # fix modify is used to set the properties of the interface particle group
 
 if "${method} == gmres" then   "fix             3 interface polarize/bem/gmres 1 1.0e-4"   "fix_modify      3 itr_max 50 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" elif "${method} == icc"  "fix             3 interface polarize/bem/icc 1 1.0e-4"   "fix_modify      3 itr_max 50 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" elif "${method} == dof"   "fix             3 interface polarize/functional 1 0.0001"   "fix_modify      3 dielectrics ${ed} ${em} ${epsilon} ${area} NULL" else   "print 'Unsupported polarization solver' "
-fix             3 interface polarize/bem/gmres 1 1.0e-4
-fix_modify      3 itr_max 50 dielectrics ${ed} ${em} ${epsilon} ${area} NULL
-fix_modify      3 itr_max 50 dielectrics -10 ${em} ${epsilon} ${area} NULL
-fix_modify      3 itr_max 50 dielectrics -10 15 ${epsilon} ${area} NULL
-fix_modify      3 itr_max 50 dielectrics -10 15 1 ${area} NULL
-fix_modify      3 itr_max 50 dielectrics -10 15 1 0.866 NULL
+fix             3 interface polarize/functional 1 0.0001
+fix_modify      3 dielectrics ${ed} ${em} ${epsilon} ${area} NULL
+fix_modify      3 dielectrics -10 ${em} ${epsilon} ${area} NULL
+fix_modify      3 dielectrics -10 15 ${epsilon} ${area} NULL
+fix_modify      3 dielectrics -10 15 1 ${area} NULL
+fix_modify      3 dielectrics -10 15 1 0.866 NULL
 
 thermo          1000
 thermo_style    custom step evdwl ecoul elong epair #f_3
@@ -131,27 +131,32 @@ PPPM initialization ...
   estimated absolute RMS force accuracy = 2.5219574e-07
   estimated relative force accuracy = 2.5219574e-07
   using double precision KISS FFT
-  3d grid and FFT values/proc = 10982 5184
+  3d grid and FFT values/proc = 4598 1296
 Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
-BEM/GMRES solver for 4000 induced charges using maximum 3999 q-vectors
+Direct solver using a variational approach for 4000 induced charges
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 5000, page size: 100000
   master list distance cutoff = 10.3
   ghost atom cutoff = 10.3
   binsize = 5.15, bins = 8 9 8
-  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
   (1) pair lj/cut/coul/long/dielectric, perpetual
       attributes: full, newton off
       pair build: full/bin
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 381.6 | 381.6 | 381.6 Mbytes
+  (2) fix polarize/functional, perpetual, copy from (1)
+      attributes: full, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 744 | 744 | 744 Mbytes
    Step         E_vdwl         E_coul         E_long         E_pair    
-         0   0             -1.7228107e-08 -1.8534756e-05 -1.8551984e-05
-Loop time of 1.939e-06 on 1 procs for 0 steps with 4002 atoms
+         0   0              0             -1.8534698e-05 -1.8534698e-05
+Loop time of 2.36225e-06 on 4 procs for 0 steps with 4002 atoms
 
-103.1% CPU use with 1 MPI tasks x 1 OpenMP threads
+148.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -163,16 +168,16 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.939e-06  |            |       |100.00
+Other   |            | 2.362e-06  |            |       |100.00
 
-Nlocal:           4002 ave        4002 max        4002 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           4832 ave        4832 max        4832 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:         1000.5 ave        1001 max        1000 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:         2889.5 ave        2890 max        2889 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 Neighs:              0 ave           0 max           0 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  1.51316e+06 ave 1.51316e+06 max 1.51316e+06 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:       378290 ave      378465 max      378117 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 
 Total # of neighbors = 1513160
 Ave neighs/atom = 378.10095
@@ -184,4 +189,4 @@ Dangerous builds = 0
 
 
 
-Total wall time: 0:00:00
+Total wall time: 0:00:02

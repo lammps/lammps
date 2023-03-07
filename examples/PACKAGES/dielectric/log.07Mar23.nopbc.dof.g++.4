@@ -53,7 +53,7 @@ neigh_modify    one 5000
 fix             1 ions nve
 
 if "${method} == gmres" then   "fix             3 interface polarize/bem/gmres 1 1.0e-4" elif "${method} == icc"  "fix             3 interface polarize/bem/icc 1 1.0e-4" elif "${method} == dof"   "fix             3 interface polarize/functional 1 1.0e-4" else   "print 'Unsupported method for polarization' "
-fix             3 interface polarize/bem/icc 1 1.0e-4
+fix             3 interface polarize/functional 1 1.0e-4
 
 thermo          1000
 thermo_style    custom step evdwl ecoul elong epair
@@ -80,26 +80,30 @@ Your simulation uses code contributions which should be cited:
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
-BEM/ICC solver for 642 induced charges
- using pair style lj/cut/coul/cut/dielectric
+Direct solver using a variational approach for 642 induced charges
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 5000, page size: 100000
   master list distance cutoff = 20.3
   ghost atom cutoff = 20.3
   binsize = 10.15, bins = 10 10 10
-  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
   (1) pair lj/cut/coul/cut/dielectric, perpetual
       attributes: full, newton off
       pair build: full/bin
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 7.496 | 7.783 | 7.878 Mbytes
+  (2) fix polarize/functional, perpetual, copy from (1)
+      attributes: full, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 26.9 | 27.48 | 27.67 Mbytes
    Step         E_vdwl         E_coul         E_long         E_pair    
-         0   0             -0.011226707    0             -0.011226707  
-Loop time of 6.43925e-06 on 4 procs for 0 steps with 643 atoms
+         0   0             -0.011053355    0             -0.011053355  
+Loop time of 2.96225e-06 on 4 procs for 0 steps with 643 atoms
 
-93.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+143.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -110,7 +114,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 6.439e-06  |            |       |100.00
+Other   |            | 2.962e-06  |            |       |100.00
 
 Nlocal:         160.75 ave         178 max         145 min
 Histogram: 1 0 0 0 2 0 0 0 0 1
@@ -129,4 +133,4 @@ Dangerous builds = 0
 
 
 
-Total wall time: 0:00:00
+Total wall time: 0:00:01

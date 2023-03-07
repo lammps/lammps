@@ -22,7 +22,7 @@ Reading data file ...
   1 by 1 by 1 MPI processor grid
 WARNING: Atom style in data file differs from currently defined atom style (src/read_data.cpp:620)
   reading atoms ...
-  2563 atoms
+  643 atoms
 Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        0        0       
   special bond factors coul:  0        0        0       
@@ -31,10 +31,10 @@ Finding 1-2 1-3 1-4 neighbors ...
      0 = max # of 1-4 neighbors
      1 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.011 seconds
+  read_data CPU = 0.004 seconds
 
 group interface type 1
-2562 atoms in group interface
+642 atoms in group interface
 group ions type 2 3
 1 atoms in group ions
 
@@ -80,7 +80,7 @@ Your simulation uses code contributions which should be cited:
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
-BEM/ICC solver for 2562 induced charges
+BEM/ICC solver for 642 induced charges
  using pair style lj/cut/coul/cut/dielectric
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
@@ -94,12 +94,12 @@ Neighbor list info ...
       pair build: full/bin
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 32.96 | 32.96 | 32.96 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.898 | 8.898 | 8.898 Mbytes
    Step         E_vdwl         E_coul         E_long         E_pair    
-         0   0              2.1870503e-07  0              2.1870503e-07
-Loop time of 1.536e-06 on 1 procs for 0 steps with 2563 atoms
+         0   0             -0.011226707    0             -0.011226707  
+Loop time of 1.532e-06 on 1 procs for 0 steps with 643 atoms
 
-195.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+130.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -110,23 +110,23 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.536e-06  |            |       |100.00
+Other   |            | 1.532e-06  |            |       |100.00
 
-Nlocal:           2563 ave        2563 max        2563 min
+Nlocal:            643 ave         643 max         643 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:              0 ave           0 max           0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Neighs:              0 ave           0 max           0 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:  6.56561e+06 ave 6.56561e+06 max 6.56561e+06 min
+FullNghs:       412806 ave      412806 max      412806 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 6565612
-Ave neighs/atom = 2561.6902
+Total # of neighbors = 412806
+Ave neighs/atom = 642
 Ave special neighs/atom = 0
 Neighbor list builds = 0
 Dangerous builds = 0
 
 
 
-Total wall time: 0:00:01
+Total wall time: 0:00:00

@@ -33,10 +33,6 @@
 #include <unistd.h>             // for getpid()
 #endif
 
-namespace LAMMPS_NS {
-  void kokkos_lmp_finalize();
-}
-
 #ifdef LMP_KOKKOS_GPU
 
 // for detecting GPU-aware MPI support:
@@ -83,11 +79,6 @@ using namespace LAMMPS_NS;
 
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
-
-void LAMMPS_NS::kokkos_lmp_finalize()
-{
-  KokkosLMP::finalize();
-}
 
 /* ---------------------------------------------------------------------- */
 

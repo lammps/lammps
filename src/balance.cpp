@@ -252,7 +252,7 @@ void Balance::command(int narg, char **arg)
 
   // process remaining optional args
 
-  options(iarg,narg,arg);
+  options(iarg,narg,arg,1);
   if (wtflag) weight_storage(nullptr);
 
   // ensure particles are in current box & update box via shrink-wrap
@@ -344,7 +344,7 @@ void Balance::command(int narg, char **arg)
 
   if (style == BISECTION) {
     comm->layout = Comm::LAYOUT_TILED;
-    bisection(1);
+    bisection();
   }
 
   // reset proc sub-domains
@@ -359,8 +359,8 @@ void Balance::command(int narg, char **arg)
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   auto irregular = new Irregular(lmp);
   if (wtflag) fixstore->disable = 0;
-  if (style == BISECTION) irregular->migrate_atoms(1,1,rcb->sendproc);
-  else irregular->migrate_atoms(1);
+  if (style == BISECTION) irregular->migrate_atoms(sortflag,1,rcb->sendproc);
+  else irregular->migrate_atoms(sortflag);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
@@ -421,9 +421,10 @@ void Balance::command(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    process optional command args for Balance and FixBalance
+   sortflag_default is different for the 2 classes
 ------------------------------------------------------------------------- */
 
-void Balance::options(int iarg, int narg, char **arg)
+void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
 {
   // count max number of weight settings
 
@@ -435,10 +436,11 @@ void Balance::options(int iarg, int narg, char **arg)
 
   wtflag = 0;
   varflag = 0;
-  oldrcb = 0;
+  sortflag = sortflag_default;
   outflag = 0;
   int outarg = 0;
   fp = nullptr;
+  oldrcb = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"weight") == 0) {
@@ -471,14 +473,20 @@ void Balance::options(int iarg, int narg, char **arg)
       }
       iarg += 2+nopt;
 
-    } else if (strcmp(arg[iarg],"old") == 0) {
-      oldrcb = 1;
-      iarg++;
+    } else if (strcmp(arg[iarg+1],"sort") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "balance sort", error);
+      sortflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal (fix) balance command");
       outflag = 1;
       outarg = iarg+1;
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"old") == 0) {
+      oldrcb = 1;
+      iarg++;
+
     } else error->all(FLERR,"Illegal (fix) balance command");
   }
 
@@ -569,11 +577,10 @@ double Balance::imbalance_factor(double &maxcost)
 
 /* ----------------------------------------------------------------------
    perform balancing via RCB class
-   sortflag = flag for sorting order of received messages by proc ID
    return list of procs to send my atoms to
 ------------------------------------------------------------------------- */
 
-int *Balance::bisection(int sortflag)
+int *Balance::bisection()
 {
   if (!rcb) rcb = new RCB(lmp);
 
@@ -641,6 +648,7 @@ int *Balance::bisection(int sortflag)
 
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms
+  // sortflag = flag for sorting order of received messages by proc ID
   // if triclinic, RCB operates on lamda coords
   // NOTE: (3/2017) can remove undocumented "old" option at some point
   //       ditto in rcb.cpp, or make it an option

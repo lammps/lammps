@@ -507,27 +507,27 @@ __kernel void kernel_special(__global int *dev_nbor,
 
   if (ii<nt) {
     int stride;
-    __global int *list, *list_end;
+    __global int *list;
 
     int n1=nspecial[ii*3];
     int n2=nspecial[ii*3+1];
     int n3=nspecial[ii*3+2];
 
-    int numj;
+    int myj;
     if (ii < inum) {
       stride=inum;
       list=dev_nbor+stride+ii;
-      numj=*list;
+      int numj=*list;
       list+=stride+fast_mul(ii,t_per_atom-1);
       stride=fast_mul(inum,t_per_atom);
-      int njt=numj/t_per_atom;
-      list_end=list+fast_mul(njt,stride)+(numj & (t_per_atom-1));
+      myj=numj/t_per_atom;
+      if (offset < (numj & (t_per_atom-1)))
+        myj++;
       list+=offset;
     } else {
       stride=1;
       list=host_nbor_list+(ii-inum)*max_nbors;
-      numj=host_numj[ii-inum];
-      list_end=list+fast_mul(numj,stride);
+      myj=host_numj[ii-inum];
     }
 
 #if SPECIAL_DATA_PRELOAD_SIZE > 0
@@ -537,16 +537,19 @@ __kernel void kernel_special(__global int *dev_nbor,
     }
 #endif
 
-    for ( ; list<list_end; list+=UNROLL_FACTOR_LIST * stride) {
+    for (int m=0; m<myj; m+=UNROLL_FACTOR_LIST) {
       int nbor[UNROLL_FACTOR_LIST];
       tagint jtag[UNROLL_FACTOR_LIST];
       __global int* list_addr[UNROLL_FACTOR_LIST];
+      int lmax = myj - m;
       for (int l=0; l<UNROLL_FACTOR_LIST; l++) {
         list_addr[l] = list + l*stride;
-        nbor[l] = *list_addr[l];
+        if (l < lmax)
+          nbor[l] = *list_addr[l];
       }
       for (int l=0; l<UNROLL_FACTOR_LIST; l++) {
-        jtag[l] = tag[nbor[l]];
+        if (l < lmax)
+          jtag[l] = tag[nbor[l]];
       }
 
       for (int i=0, j=0; i<n3; i+=UNROLL_FACTOR_SPECIAL, j++) {
@@ -581,7 +584,7 @@ __kernel void kernel_special(__global int *dev_nbor,
         for (int c = 0; c < UNROLL_FACTOR_SPECIAL; c++) {
           if (i + c < n3) {
             for (int l=0; l<UNROLL_FACTOR_LIST; l++) {
-              if (special_data[c] == jtag[l]) {
+              if (l < lmax && special_data[c] == jtag[l]) {
                 nbor[l]=nbor[l] ^ which[c];
               }
             }
@@ -589,9 +592,10 @@ __kernel void kernel_special(__global int *dev_nbor,
         }
       }
       for (int l=0; l<UNROLL_FACTOR_LIST; l++) {
-        *list_addr[l] = nbor[l];
+        if (l < lmax)
+          *list_addr[l] = nbor[l];
       }
+      list+=UNROLL_FACTOR_LIST * stride;
     }
   } // if ii
 }
-

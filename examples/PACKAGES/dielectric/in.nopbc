@@ -18,7 +18,7 @@ read_data   ${data}
 group interface type 1
 group ions type 2 3
 
-pair_style      lj/cut/coul/cut/dielectric 1.122 12.0
+pair_style      lj/cut/coul/cut/dielectric 1.122 20.0
 pair_coeff      * * 1.0 1.0
 pair_coeff      1 1 0.0 1.0
 

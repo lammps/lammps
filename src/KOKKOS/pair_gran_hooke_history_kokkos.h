@@ -93,12 +93,14 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   typename AT::t_int_1d d_numneigh_touch;
 
   int newton_pair;
-  double special_lj[4];
 
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
   FixNeighHistoryKokkos<DeviceType> *fix_historyKK;
+
+  KOKKOS_INLINE_FUNCTION
+  int sbmask(const int& j) const {return j >> SBBITS & 3;}
 
   friend void pair_virial_fdotr_compute<PairGranHookeHistoryKokkos>(PairGranHookeHistoryKokkos*);
 };

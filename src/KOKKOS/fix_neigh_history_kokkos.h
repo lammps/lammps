@@ -77,7 +77,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   typename DAT::tdual_float_2d k_firstvalue;
 
  private:
-  int nlocal,nsend;
+  int nlocal,nsend,beyond_contact;
 
   typename AT::t_tagint_1d tag;
 
@@ -103,6 +103,10 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
 
   typename AT::t_int_scalar d_resize,d_count;
   HAT::t_int_scalar h_resize,h_count;
+
+  // Shift by HISTBITS and check the first bit
+  KOKKOS_INLINE_FUNCTION
+  int histmask(int j) const { return j >> HISTBITS & 1; }
 };
 
 } // namespace LAMMPS_NS

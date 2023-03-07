@@ -1547,7 +1547,8 @@ void FixShakeKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offs
       d_buf[m++] = d_shake_type(i,1);
       d_buf[m++] = d_shake_type(i,2);
     }
-    if (mysend == nsend-1) d_count() = m; 
+    if (mysend == nsend-1) d_count() = m;
+    offset = m - nsend; 
 
     const int j = d_copylist(mysend);
     if (j > -1) {
@@ -1633,7 +1634,7 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int
   if (index > 0) {
     int m = d_buf[i];
 
-    int flag = shake_flag[index] = static_cast<int> (d_buf[m++]);
+    int flag = d_shake_flag[index] = static_cast<int> (d_buf[m++]);
     if (flag == 1) {
       d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
       d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);

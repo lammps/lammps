@@ -311,7 +311,11 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   F_FLOAT torquez_i = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    const int j = d_neighbors(i,jj) & NEIGHMASK;
+    int j = d_neighbors(i,jj);
+    F_FLOAT factor_lj = special_lj[sbmask(j)];
+    j &= NEIGHMASK;
+
+    if (factor_lj == 0) continue;
 
     const X_FLOAT delx = xtmp - x(j,0);
     const X_FLOAT dely = ytmp - x(j,1);
@@ -380,6 +384,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     X_FLOAT shear1 = d_firstshear(i,3*jj);
     X_FLOAT shear2 = d_firstshear(i,3*jj+1);
     X_FLOAT shear3 = d_firstshear(i,3*jj+2);
+
     if (SHEARUPDATE) {
       shear1 += vtr1*dt;
       shear2 += vtr2*dt;
@@ -388,11 +393,12 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     X_FLOAT shrmag = sqrt(shear1*shear1 + shear2*shear2 +
                           shear3*shear3);
 
-    // rotate shear displacements
-
-    X_FLOAT rsht = shear1*delx + shear2*dely + shear3*delz;
-    rsht *= rsqinv;
     if (SHEARUPDATE) {
+      // rotate shear displacements
+
+      X_FLOAT rsht = shear1*delx + shear2*dely + shear3*delz;
+      rsht *= rsqinv;
+
       shear1 -= rsht*delx;
       shear2 -= rsht*dely;
       shear3 -= rsht*delz;
@@ -434,6 +440,9 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     F_FLOAT fx = delx*ccel + fs1;
     F_FLOAT fy = dely*ccel + fs2;
     F_FLOAT fz = delz*ccel + fs3;
+    fx *= factor_lj;
+    fy *= factor_lj;
+    fz *= factor_lj;
     fx_i += fx;
     fy_i += fy;
     fz_i += fz;
@@ -441,6 +450,9 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
     F_FLOAT tor1 = rinv * (dely*fs3 - delz*fs2);
     F_FLOAT tor2 = rinv * (delz*fs1 - delx*fs3);
     F_FLOAT tor3 = rinv * (delx*fs2 - dely*fs1);
+    tor1 *= factor_lj;
+    tor2 *= factor_lj;
+    tor3 *= factor_lj;
     torquex_i -= irad*tor1;
     torquey_i -= irad*tor2;
     torquez_i -= irad*tor3;
@@ -467,7 +479,6 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
   a_torque(i,1) += torquey_i;
   a_torque(i,2) += torquez_i;
 }
-
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int SHEARUPDATE>

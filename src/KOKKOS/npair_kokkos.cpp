@@ -1087,7 +1087,7 @@ void NeighborKokkosExecute<DeviceType>::
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
     = d_stencil;
 
-  const int mask_history = 3 << SBBITS;
+  const int mask_history = 1 << HISTBITS;
 
   // loop over all bins in neighborhood (includes ibin)
   // loop over rest of atoms in i's bin, ghosts are at end of linked list
@@ -1119,8 +1119,34 @@ void NeighborKokkosExecute<DeviceType>::
 
     if (rsq <= cutsq) {
       if (n < neigh_list.maxneighs) {
-        if (neigh_list.history && rsq < radsum*radsum) neighbors_i(n++) = j ^ mask_history;
-        else neighbors_i(n++) = j;
+        int jh = j;
+        if (neigh_list.history && rsq < radsum*radsum)
+          jh = jh ^ mask_history;
+
+        if (molecular != Atom::ATOMIC) {
+          int which = 0;
+          if (!moltemplate)
+            which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+          /* else if (imol >= 0) */
+          /*   which = find_special(onemols[imol]->special[iatom], */
+          /*                        onemols[imol]->nspecial[iatom], */
+          /*                        tag[j]-tagprev); */
+          /* else which = 0; */
+          if (which == 0) {
+            if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+            else n++;
+          } else if (minimum_image_check(delx,dely,delz)) {
+            if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+            else n++;
+          }
+          else if (which > 0) {
+            if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
+            else n++;
+          }
+        } else {
+          if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+          else n++;
+        }
       }
       else n++;
     }
@@ -1161,8 +1187,35 @@ void NeighborKokkosExecute<DeviceType>::
 
       if (rsq <= cutsq) {
         if (n < neigh_list.maxneighs) {
-          if (neigh_list.history && rsq < radsum*radsum) neighbors_i(n++) = j ^ mask_history;
-          else neighbors_i(n++) = j;
+
+          int jh = j;
+          if (neigh_list.history && rsq < radsum*radsum)
+            jh = jh ^ mask_history;
+
+          if (molecular != Atom::ATOMIC) {
+            int which = 0;
+            if (!moltemplate)
+              which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+            /* else if (imol >= 0) */
+            /*   which = find_special(onemols[imol]->special[iatom], */
+            /*                        onemols[imol]->nspecial[iatom], */
+            /*                        tag[j]-tagprev); */
+            /* else which = 0; */
+            if (which == 0) {
+              if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+              else n++;
+            } else if (minimum_image_check(delx,dely,delz)) {
+              if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+              else n++;
+            }
+            else if (which > 0) {
+              if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
+              else n++;
+            }
+          } else {
+            if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+            else n++;
+          }
         }
         else n++;
       }
@@ -1220,7 +1273,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     const int index = (i >= 0 && i < nlocal) ? i : 0;
     const AtomNeighbors neighbors_i = neigh_transpose ?
     neigh_list.get_neighbors_transpose(index) : neigh_list.get_neighbors(index);
-    const int mask_history = 3 << SBBITS;
+    const int mask_history = 1 << HISTBITS;
 
     if (i >= 0) {
       xtmp = x(i, 0);
@@ -1272,8 +1325,35 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 
         if (rsq <= cutsq) {
           if (n < neigh_list.maxneighs) {
-            if (neigh_list.history && rsq < radsum*radsum) neighbors_i(n++) = j ^ mask_history;
-            else neighbors_i(n++) = j;
+
+            int jh = j;
+            if (neigh_list.history && rsq < radsum*radsum)
+              jh = jh ^ mask_history; 
+              
+            if (molecular != Atom::ATOMIC) {
+              int which = 0; 
+              if (!moltemplate)
+                which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+              /* else if (imol >= 0) */
+              /*   which = find_special(onemols[imol]->special[iatom], */
+              /*                        onemols[imol]->nspecial[iatom], */
+              /*                        tag[j]-tagprev); */
+              /* else which = 0; */
+              if (which == 0) {
+                if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                else n++;
+              } else if (minimum_image_check(delx,dely,delz)) {
+                if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                else n++;
+              } 
+              else if (which > 0) {
+                if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
+                else n++;
+              } 
+            } else {
+              if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+              else n++;
+            } 
           }
           else n++;
         }
@@ -1334,8 +1414,35 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 
           if (rsq <= cutsq) {
             if (n < neigh_list.maxneighs) {
-              if (neigh_list.history && rsq < radsum*radsum) neighbors_i(n++) = j ^ mask_history;
-              else neighbors_i(n++) = j;
+
+              int jh = j;
+              if (neigh_list.history && rsq < radsum*radsum)
+                jh = jh ^ mask_history; 
+                
+              if (molecular != Atom::ATOMIC) {
+                int which = 0; 
+                if (!moltemplate)
+                  which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+                /* else if (imol >= 0) */
+                /*   which = find_special(onemols[imol]->special[iatom], */
+                /*                        onemols[imol]->nspecial[iatom], */
+                /*                        tag[j]-tagprev); */
+                /* else which = 0; */
+                if (which == 0) {
+                  if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                  else n++;
+                } else if (minimum_image_check(delx,dely,delz)) {
+                  if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                  else n++;
+                } 
+                else if (which > 0) {
+                  if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
+                  else n++;
+                } 
+              } else {
+                if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
+                else n++;
+              } 
             }
             else n++;
           }

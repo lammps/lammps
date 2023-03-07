@@ -132,7 +132,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPreExchange
         if (m < maxpartner) {
           d_partner(j,m) = tag[i];
           for (int k = 0; k < dnum; k++)
-            d_valuepartner(j,dnum*m+k) = d_firstvalue(i,dnum*jj+k);
+            d_valuepartner(j,dnum*m+k) = -d_firstvalue(i,dnum*jj+k);
         } else {
           d_resize() = 1;
         }
@@ -161,6 +161,8 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
   // store atom counts used for new neighbor list which was just built
 
   nlocal = atom->nlocal;
+
+  beyond_contact = pair->beyond_contact;
 
   // realloc firstflag and firstvalue if needed
 
@@ -197,8 +199,24 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPostNeighbo
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
-    const int rflag = j >> SBBITS & 3;
+
+    int rflag;
+    if (use_bit_flag) {
+      rflag = histmask(j) | beyond_contact;
+      j &= HISTMASK;
+      d_firstflag(i,jj) = j;
+    } else {
+      rflag = 1;
+    }
+
+    // Remove special bond bits
     j &= NEIGHMASK;
+
+    // rflag = 1 if r < radsum in npair_size() method or if pair interactions extend further
+    // preserve neigh history info if tag[j] is in old-neigh partner list
+    // this test could be more geometrically precise for two sphere/line/tri
+    // if use_bit_flag is turned off, always record data since not all npair classes
+    // apply a mask for history (and they could use the bits for special bonds)
 
     int m;
     if (rflag) {
@@ -294,6 +312,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPackExchang
       }
     }
     if (mysend == nsend-1) d_count() = m;
+    offset = m - nsend;
 
     const int j = d_copylist(mysend);
     if (j > -1) {

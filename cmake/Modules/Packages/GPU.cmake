@@ -98,8 +98,10 @@ if(GPU_API STREQUAL "CUDA")
   # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
   if(CUDA_VERSION VERSION_LESS 8.0)
     message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
-  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "13.0")
     message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
+    set(GPU_CUDA_GENCODE "-arch=all")
+  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
     set(GPU_CUDA_GENCODE "-arch=all")
   else()
     # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2

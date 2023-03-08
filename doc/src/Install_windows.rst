@@ -20,7 +20,7 @@ The LAMMPS binaries contain *all* :doc:`optional packages <Packages>`
 included in the source distribution except: ADIOS, H5MD, KIM, ML-PACE,
 ML-QUIP, MSCG, NETCDF, PLUMED, QMMM, SCAFACOS, and VTK.  The serial
 version also does not include the MPIIO and LATBOLTZ packages.  The
-PYTHON package is only available in the Python installaers that bundle a
+PYTHON package is only available in the Python installers that bundle a
 Python runtime.  The GPU package is compiled for OpenCL with mixed
 precision kernels.
 

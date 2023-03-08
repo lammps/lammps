@@ -498,7 +498,7 @@ data to other processors during load-balancing will be random or
 deterministic.  Random is generally faster; deterministic will ensure
 the new ordering of atoms on each processor is the same each time the
 same simulation is run.  This can be useful for debugging purposes.
-Since the balance commmand is a one-time operation, the default is
+Since the balance command is a one-time operation, the default is
 *yes* to perform sorting.
 
 The *out* keyword writes a text file to the specified *filename* with

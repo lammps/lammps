@@ -40,7 +40,7 @@ BondHarmonicRestrain::BondHarmonicRestrain(LAMMPS *_lmp) : Bond(_lmp), initial(n
 
 BondHarmonicRestrain::~BondHarmonicRestrain()
 {
-  if (initial) modify->delete_fix("BOND_RESTRAIN");
+  if (initial) modify->delete_fix("BOND_RESTRAIN_X0");
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);
@@ -59,7 +59,7 @@ void BondHarmonicRestrain::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   double **x = atom->x;
-  double **x0 = (double **) atom->extract("d2_x0");
+  double **x0 = (double **) atom->extract("d2_BOND_RESTRAIN_X0");
   double **f = atom->f;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
@@ -163,11 +163,11 @@ void BondHarmonicRestrain::init_style()
 
     // create internal fix to store initial positions
     initial = dynamic_cast<FixPropertyAtom *>(
-      modify->add_fix("BOND_RESTRAIN all property/atom d2_x0 3 ghost yes"));
+      modify->add_fix("BOND_RESTRAIN_X0 all property/atom d2_BOND_RESTRAIN_X0 3 ghost yes"));
     if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
 
     natoms = atom->natoms;
-    double *const *const x0 = (double **) atom->extract("d2_x0");
+    double *const *const x0 = (double **) atom->extract("d2_BOND_RESTRAIN_X0");
     const double *const *const x = atom->x;
     for (int i = 0; i < atom->nlocal; ++i)
       for (int j = 0; j < 3; ++j) x0[i][j] = x[i][j];
@@ -179,7 +179,7 @@ void BondHarmonicRestrain::init_style()
 
     if (!initial) {
       initial = dynamic_cast<FixPropertyAtom *>(
-        modify->add_fix("BOND_RESTRAIN all property/atom d2_x0 3 ghost yes"));
+          modify->add_fix("BOND_RESTRAIN_X0 all property/atom d2_BOND_RESTRAIN_X0 3 ghost yes"));
       if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
     }
   } 
@@ -230,11 +230,12 @@ void BondHarmonicRestrain::write_data(FILE *fp)
 
 double BondHarmonicRestrain::single(int type, double rsq, int i, int j, double &fforce)
 {
-  double **x0 = (double **) atom->extract("d2_x0");
+  double **x0 = (double **) atom->extract("d2_BOND_RESTRAIN_X0");
 
   double delx = x0[i][0] - x0[j][0];
   double dely = x0[i][1] - x0[j][1];
   double delz = x0[i][2] - x0[j][2];
+  domain->minimum_image(delx, dely, delz);
   double r0 = sqrt(delx * delx + dely * dely + delz * delz);
 
   double r = sqrt(rsq);

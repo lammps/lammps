@@ -163,7 +163,7 @@ void BondHarmonicRestrain::init_style()
 
     // create internal fix to store initial positions
     initial = dynamic_cast<FixPropertyAtom *>(
-      modify->add_fix("BOND_RESTRAIN_X0 all property/atom d2_BOND_RESTRAIN_X0 3 ghost yes"));
+        modify->add_fix("BOND_RESTRAIN_X0 all property/atom d2_BOND_RESTRAIN_X0 3 ghost yes"));
     if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
 
     natoms = atom->natoms;
@@ -182,7 +182,7 @@ void BondHarmonicRestrain::init_style()
           modify->add_fix("BOND_RESTRAIN_X0 all property/atom d2_BOND_RESTRAIN_X0 3 ghost yes"));
       if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
     }
-  } 
+  }
 
   // must not add  atoms
   if (natoms < atom->natoms)

@@ -1,6 +1,5 @@
 ---
 lammps_version: 8 Feb 2023
-tags: generated
 date_generated: Tue Mar  7 21:07:27 2023
 epsilon: 2.5e-13
 skip_tests: extract

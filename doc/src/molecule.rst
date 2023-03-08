@@ -124,7 +124,7 @@ molecule (header keyword = inertia).
 ----------
 
 Format of a molecule file
-"""""""""""""""""""""
+"""""""""""""""""""""""""
 
 The format of an individual molecule file is similar but
 (not identical) to the data file read by the :doc:`read_data <read_data>`

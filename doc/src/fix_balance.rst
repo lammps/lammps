@@ -43,6 +43,7 @@ Syntax
              name = name of the atom-style variable
            *store* name = store weight in custom atom property defined by :doc:`fix property/atom <fix_property_atom>` command
              name = atom property name (without d\_ prefix)
+       *sort* arg = *no* or *yes*
        *out* arg = filename
          filename = write each processor's subdomain to a file, at each re-balancing
 
@@ -308,6 +309,14 @@ in that sub-box.
 
 ----------
 
+The *sort* keyword determines whether the communication of per-atom
+data to other processors during load-balancing will be random or
+deterministic.  Random is generally faster; deterministic will ensure
+the new ordering of atoms on each processor is the same each time the
+same simulation is run.  This can be useful for debugging purposes.
+Since the fix balance commmand is performed during timestepping, the
+default is *no* so that sorting is not performed.
+
 The *out* keyword writes text to the specified *filename* with the
 results of each re-balancing operation.  The file contains the bounds
 of the subdomain for each processor after the balancing operation
@@ -415,4 +424,4 @@ Related commands
 Default
 """""""
 
-none
+The default setting is sort = no.

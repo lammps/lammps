@@ -21,6 +21,11 @@ pair_coeff: ! |
   4 4  0.015  3.1
   5 5  0.015  3.1
 extract: ! |
+  qdist 0
+  typeO 0
+  typeH 0
+  typeA 0
+  typeB 0
   epsilon 2
   sigma 2
   cut_coul 0

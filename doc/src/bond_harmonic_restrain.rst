@@ -65,13 +65,18 @@ This bond style can only be used if LAMMPS was built with the
 EXTRA-MOLECULE package.  See the :doc:`Build package <Build_package>`
 page for more info.
 
-This bond style does NOT write its coefficients to a data file since the
-:math:`r_{t=0}` values are for individual bonds and not bond types.
-
-Since it uses :doc:`fix property/atom <fix_property_atom>` internally,
-you should use the "nofix" argument to the :doc:`write_data command
-<write_data>` to avoid writing a section to the data file that cannot be
-read back by the bond style.
+This bond style uses :doc:`fix property/atom <fix_property_atom>`
+internally to be able to determine the original bond lengths.  This fix
+will write its state to :doc:`data files <write_data>`, but it is
+currently not possible to read that stored data back with
+:doc:`read_data <read_data>` for such an internally defined fix.  You
+are thus advised to use the "nofix" argument to the :doc:`write_data
+command <write_data>` in order to avoid writing that section to the data
+file that would cause an error when reading the data file.  When
+continuing from such a "nofix" data file, the reference bond lengths
+will not be the original lengths but those of the current geometry.
+Thus restarting is currently *only* possible with :doc:`binary restart
+files <read_restart>`.
 
 This bond style cannot be used with :doc:`fix shake or fix rattle
 <fix_shake>`, with :doc:`fix filter/corotate <fix_filter_corotate>`, or

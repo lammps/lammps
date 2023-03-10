@@ -100,7 +100,6 @@ class FixPIMDLangevin : public Fix {
 
   void reallocate();
   void nmpimd_init();
-  void nmpimd_transform(double **src, double **des, double **mat);
   void nmpimd_transform(double **, double **, double *);
 
   /* Langevin integration */

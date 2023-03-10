@@ -63,7 +63,7 @@ however, can *only* be applied during molecular dynamics runs.
 
 .. versionchanged:: 15Sep2022
 
-These fixes may still be used during minimization.  In that case the
+These fixes may now also be used during minimization.  In that case the
 constraints are *approximated* by strong harmonic restraints.
 
 **SHAKE vs RATTLE:**

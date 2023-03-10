@@ -45,7 +45,7 @@ ComputeDipoleTIP4PChunk::ComputeDipoleTIP4PChunk(LAMMPS *lmp, int narg, char **a
   comall(nullptr), dipole(nullptr), dipoleall(nullptr)
 {
   if ((narg != 4) && (narg != 5))
-    error->all(FLERR,"Illegal compute dipole/chunk command");
+    error->all(FLERR,"Illegal compute dipole/tip4p/chunk command");
 
   array_flag = 1;
   size_array_cols = 4;
@@ -62,7 +62,7 @@ ComputeDipoleTIP4PChunk::ComputeDipoleTIP4PChunk(LAMMPS *lmp, int narg, char **a
   if (narg == 5) {
     if (strncmp(arg[4],"geom",4) == 0) usecenter = GEOMCENTER;
     else if (strcmp(arg[4],"mass") == 0) usecenter = MASSCENTER;
-    else error->all(FLERR,"Illegal compute dipole/chunk command");
+    else error->all(FLERR,"Illegal compute dipole/tip4p/chunk command");
   }
 
   ComputeDipoleTIP4PChunk::init();
@@ -95,10 +95,12 @@ void ComputeDipoleTIP4PChunk::init()
 {
   int icompute = modify->find_compute(idchunk);
   if (icompute < 0)
-    error->all(FLERR,"Chunk/atom compute does not exist for compute dipole/chunk");
+    error->all(FLERR,"Chunk/atom compute does not exist for compute dipole/tip4p/chunk");
   cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Compute dipole/chunk does not use chunk/atom compute");
+    error->all(FLERR,"Compute dipole/tip4p/chunk does not use chunk/atom compute");
+
+  if (!force->pair) error->all(FLERR, "Pair style must be defined for compute dipole/tip4p/chunk");
 
   int itmp;
   double *p_qdist = (double *) force->pair->extract("qdist", itmp);
@@ -107,19 +109,18 @@ void ComputeDipoleTIP4PChunk::init()
   int *p_typeA = (int *) force->pair->extract("typeA", itmp);
   int *p_typeB = (int *) force->pair->extract("typeB", itmp);
   if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-    error->all(FLERR, "Pair style is incompatible with compute {}", style);
+    error->all(FLERR, "Pair style is incompatible with compute dipole/tip4p/chunk");
   typeO = *p_typeO;
   typeH = *p_typeH;
   int typeA = *p_typeA;
   int typeB = *p_typeB;
 
-  if (force->angle == nullptr || force->bond == nullptr || force->angle->setflag == nullptr ||
-      force->bond->setflag == nullptr)
-    error->all(FLERR, "Bond and angle potentials must be defined for compute {}", style);
+  if (!force->angle || !force->bond || !force->angle->setflag || !force->bond->setflag)
+    error->all(FLERR, "Bond and angle potentials must be defined for compute dipole/tip4p/chunk");
   if ((typeA < 1) || (typeA > atom->nangletypes) || (force->angle->setflag[typeA] == 0))
-    error->all(FLERR, "Bad TIP4P angle type for compute {}", style);
+    error->all(FLERR, "Bad TIP4P angle type for compute dipole/tip4p/chunk");
   if ((typeB < 1) || (typeB > atom->nbondtypes) || (force->bond->setflag[typeB] == 0))
-    error->all(FLERR, "Bad TIP4P bond type for PPPM/TIP4P");
+    error->all(FLERR, "Bad TIP4P bond type for compute dipole/tip4p/chunk");
   double theta = force->angle->equilibrium_angle(typeA);
   double blen = force->bond->equilibrium_distance(typeB);
   alpha = *p_qdist / (cos(0.5 * theta) * blen);
@@ -309,14 +310,14 @@ void ComputeDipoleTIP4PChunk::allocate()
   memory->destroy(dipole);
   memory->destroy(dipoleall);
   maxchunk = nchunk;
-  memory->create(massproc,maxchunk,"dipole/chunk:massproc");
-  memory->create(masstotal,maxchunk,"dipole/chunk:masstotal");
-  memory->create(chrgproc,maxchunk,"dipole/chunk:chrgproc");
-  memory->create(chrgtotal,maxchunk,"dipole/chunk:chrgtotal");
-  memory->create(com,maxchunk,3,"dipole/chunk:com");
-  memory->create(comall,maxchunk,3,"dipole/chunk:comall");
-  memory->create(dipole,maxchunk,4,"dipole/chunk:dipole");
-  memory->create(dipoleall,maxchunk,4,"dipole/chunk:dipoleall");
+  memory->create(massproc,maxchunk,"dipole/tip4p/chunk:massproc");
+  memory->create(masstotal,maxchunk,"dipole/tip4p/chunk:masstotal");
+  memory->create(chrgproc,maxchunk,"dipole/tip4p/chunk:chrgproc");
+  memory->create(chrgtotal,maxchunk,"dipole/tip4p/chunk:chrgtotal");
+  memory->create(com,maxchunk,3,"dipole/tip4p/chunk:com");
+  memory->create(comall,maxchunk,3,"dipole/tip4p/chunk:comall");
+  memory->create(dipole,maxchunk,4,"dipole/tip4p/chunk:dipole");
+  memory->create(dipoleall,maxchunk,4,"dipole/tip4p/chunk:dipoleall");
   array = dipoleall;
 }
 

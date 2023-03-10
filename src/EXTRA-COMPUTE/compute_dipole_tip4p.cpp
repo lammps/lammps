@@ -33,7 +33,7 @@ enum { MASSCENTER, GEOMCENTER };
 
 ComputeDipoleTIP4P::ComputeDipoleTIP4P(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if ((narg < 3) || (narg > 4)) error->all(FLERR, "Illegal compute dipole command");
+  if ((narg < 3) || (narg > 4)) error->all(FLERR, "Illegal compute dipole/tip4p command");
 
   scalar_flag = 1;
   vector_flag = 1;
@@ -51,7 +51,7 @@ ComputeDipoleTIP4P::ComputeDipoleTIP4P(LAMMPS *lmp, int narg, char **arg) : Comp
     else if (strcmp(arg[3], "mass") == 0)
       usecenter = MASSCENTER;
     else
-      error->all(FLERR, "Illegal compute dipole command");
+      error->all(FLERR, "Illegal compute dipole/tip4p command");
   }
 }
 
@@ -66,6 +66,8 @@ ComputeDipoleTIP4P::~ComputeDipoleTIP4P()
 
 void ComputeDipoleTIP4P::init()
 {
+  if (!force->pair) error->all(FLERR, "Pair style must be defined for compute dipole/ti4p");
+
   int itmp;
   double *p_qdist = (double *) force->pair->extract("qdist", itmp);
   int *p_typeO = (int *) force->pair->extract("typeO", itmp);
@@ -73,19 +75,18 @@ void ComputeDipoleTIP4P::init()
   int *p_typeA = (int *) force->pair->extract("typeA", itmp);
   int *p_typeB = (int *) force->pair->extract("typeB", itmp);
   if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-    error->all(FLERR, "Pair style is incompatible with compute {}", style);
+    error->all(FLERR, "Pair style is incompatible with compute dipole/tip4p");
   typeO = *p_typeO;
   typeH = *p_typeH;
   int typeA = *p_typeA;
   int typeB = *p_typeB;
 
-  if (force->angle == nullptr || force->bond == nullptr || force->angle->setflag == nullptr ||
-      force->bond->setflag == nullptr)
-    error->all(FLERR, "Bond and angle potentials must be defined for compute {}", style);
+  if (!force->angle || !force->bond || !force->angle->setflag || !force->bond->setflag)
+    error->all(FLERR, "Bond and angle potentials must be defined for compute dipole/tip4p");
   if ((typeA < 1) || (typeA > atom->nangletypes) || (force->angle->setflag[typeA] == 0))
-    error->all(FLERR, "Bad TIP4P angle type for compute {}", style);
+    error->all(FLERR, "Bad TIP4P angle type for compute dipole/tip4p");
   if ((typeB < 1) || (typeB > atom->nbondtypes) || (force->bond->setflag[typeB] == 0))
-    error->all(FLERR, "Bad TIP4P bond type for PPPM/TIP4P");
+    error->all(FLERR, "Bad TIP4P bond type for compute dipole/tip4p");
   double theta = force->angle->equilibrium_angle(typeA);
   double blen = force->bond->equilibrium_distance(typeB);
   alpha = *p_qdist / (cos(0.5 * theta) * blen);
@@ -149,7 +150,7 @@ void ComputeDipoleTIP4P::compute_vector()
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (type[i] == typeO) {
-        find_M(i,xM);
+        find_M(i, xM);
         xi = xM;
       } else {
         xi = x[i];
@@ -196,14 +197,14 @@ void ComputeDipoleTIP4P::find_M(int i, double *xM)
   int iH1 = atom->map(atom->tag[i] + 1);
   int iH2 = atom->map(atom->tag[i] + 2);
 
-  if ((iH1 == -1) || (iH2 == -1)) error->one(FLERR,"TIP4P hydrogen is missing");
+  if ((iH1 == -1) || (iH2 == -1)) error->one(FLERR, "TIP4P hydrogen is missing");
   if ((atom->type[iH1] != typeH) || (atom->type[iH2] != typeH))
-    error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+    error->one(FLERR, "TIP4P hydrogen has incorrect atom type");
 
   // set iH1,iH2 to index of closest image to O
 
-  iH1 = domain->closest_image(i,iH1);
-  iH2 = domain->closest_image(i,iH2);
+  iH1 = domain->closest_image(i, iH1);
+  iH2 = domain->closest_image(i, iH2);
 
   double delx1 = x[iH1][0] - x[i][0];
   double dely1 = x[iH1][1] - x[i][1];

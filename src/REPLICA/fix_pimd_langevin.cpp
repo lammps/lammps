@@ -13,10 +13,10 @@
 
 /* ----------------------------------------------------------------------
    Package      FixPIMDLangevin
-   Purpose      Quantum Path Integral Algorithm for Quantum Chemistry
+   Purpose      Path Integral Molecular Dynamics with Langevin Thermostat
 
    Yifan Li @ Princeton University (yifanl0716@gmail.com)
-   Added components:
+   Current Features:
    - Multi-processor parallelism for each bead
    - White-noise Langevin thermostat
    - Bussi-Zykova-Parrinello barostat (isotropic and anisotropic)
@@ -557,7 +557,7 @@ void FixPIMDLangevin::post_force(int /*flag*/)
   }
 
   compute_vir();
-  compute_vir_();
+  compute_cvir();
   compute_pote();
   if (method == NMPIMD) {
     inter_replica_comm(f);
@@ -1128,9 +1128,8 @@ void FixPIMDLangevin::inter_replica_comm(double **ptr)
 }
 
 /* ---------------------------------------------------------------------- */
-/* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::compute_vir_()
+void FixPIMDLangevin::compute_cvir()
 {
   int nlocal = atom->nlocal;
   xf = vir_ = xcf = centroid_vir = 0.0;

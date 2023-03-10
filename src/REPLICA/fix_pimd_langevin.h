@@ -177,14 +177,10 @@ class FixPIMDLangevin : public Fix {
   void compute_spring_energy();    // 2: spring elastic energy
   void compute_pote();             // 3: potential energy
   void compute_tote();             // 4: total energy: 1+2+3 for all the beads
-  // void compute_t_prim();  // 5: primitive kinetic energy estimator
-  // void compute_p_prim();  // primitive pressure estimator
   void compute_stress_tensor();
-  // void compute_t_vir();  // centroid-virial kinetic energy estimator
   void compute_p_cv();    // centroid-virial pressure estimator
-  // void compute_p_vir();  // centroid-virial pressure estimator
   void compute_vir();
-  void compute_vir_();
+  void compute_cvir();
   void compute_totenthalpy();
 };
 }    // namespace LAMMPS_NS

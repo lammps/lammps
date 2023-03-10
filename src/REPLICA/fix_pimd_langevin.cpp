@@ -55,7 +55,6 @@ enum { BAOAB, OBABO };
 enum { ISO, ANISO, TRICLINIC };
 enum { PILE_L };
 enum { MTTK, BZP };
-// char* Barostats[] = {"MTTK", "BZP"};
 
 static std::map<int, std::string> Barostats{{MTTK, "MTTK"}, {BZP, "BZP"}};
 enum { NVE, NVT, NPH, NPT };
@@ -181,7 +180,8 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       lj_sigma = utils::numeric(FLERR, arg[i + 2], false, lmp);
       lj_mass = utils::numeric(FLERR, arg[i + 3], false, lmp);
       other_planck = utils::numeric(FLERR, arg[i + 4], false, lmp);
-      i += 3;
+      other_mvv2e = utils::numeric(FLERR, arg[i + 5], false, lmp);
+      i += 4;
     } else if (strcmp(arg[i], "thermostat") == 0) {
       if (strcmp(arg[i + 1], "PILE_L") == 0) {
         thermostat = PILE_L;
@@ -317,7 +317,6 @@ int FixPIMDLangevin::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= INITIAL_INTEGRATE;
-  // mask |= POST_NEIGHBOR;
   mask |= FINAL_INTEGRATE;
   mask |= END_OF_STEP;
   return mask;
@@ -341,7 +340,7 @@ void FixPIMDLangevin::init()
 
   double planck;
   if (strcmp(update->unit_style, "lj") == 0) {
-    double planck_star = sqrt(lj_epsilon) * sqrt(atom->mass[0]) * lj_sigma;
+    double planck_star = sqrt(lj_epsilon) * sqrt(lj_mass) * lj_sigma * sqrt(other_mvv2e);
     planck = other_planck / planck_star;
   } else {
     planck = force->hplanck;
@@ -997,7 +996,6 @@ void FixPIMDLangevin::nmpimd_transform(double **src, double **des, double *vecto
 
 void FixPIMDLangevin::comm_init()
 {
-  // if(me == 0){
   if (sizeplan) {
     delete[] plansend;
     delete[] planrecv;

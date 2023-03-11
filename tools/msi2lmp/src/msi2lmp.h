@@ -226,3 +226,6 @@ extern void lamda2x(double *lamda, double *x, double *h, double *boxlo);
 extern void x2lamda(double *x, double *lamda, double *h_inv, double *boxlo);
 
 extern void condexit(int);
+
+extern int has_utf8(const char *line);
+extern void utf8_subst(char *line);

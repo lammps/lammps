@@ -42,7 +42,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr),
     idregion(nullptr), region(nullptr), efield(nullptr)
 {
-  if (narg < 6) utils::missing_cmd_args(FLERR, std::string("fix ")+style, error);
+  if (narg < 6) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 
   dynamic_group_allow = 1;
   vector_flag = 1;
@@ -85,13 +85,15 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "region") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, std::string("fix ") + style + " region", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ") + style + " region", error);
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix efield does not exist", arg[iarg + 1]);
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "energy") == 0) {
-      if (iarg + 2 > narg)  utils::missing_cmd_args(FLERR, std::string("fix ") + style + "energy", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ") + style + "energy", error);
       if (utils::strmatch(arg[iarg + 1], "^v_")) {
         estr = utils::strdup(arg[iarg + 1] + 2);
       } else

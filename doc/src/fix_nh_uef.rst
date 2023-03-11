@@ -218,10 +218,11 @@ use :doc:`change_box <change_box>` before invoking the fix.
 Related commands
 """"""""""""""""
 
-:doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`, `fix nvt/sllod
-:doc:<fix_nvt_sllod>`, `compute temp/uef <compute_temp_uef>`,
-:doc::doc:`compute pressure/uef <compute_pressure_uef>`, `dump cfg/uef
-:doc:<dump_cfg_uef>`
+:doc:`fix nvt <fix_nh>`, :doc:`fix npt <fix_nh>`,
+:doc:`fix nvt/sllod <fix_nvt_sllod>`,
+:doc:`compute temp/uef <compute_temp_uef>`,
+:doc:`compute pressure/uef <compute_pressure_uef>`,
+:doc:`dump cfg/uef <dump_cfg_uef>`
 
 Default
 """""""

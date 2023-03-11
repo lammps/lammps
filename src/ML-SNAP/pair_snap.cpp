@@ -796,6 +796,8 @@ double PairSNAP::memory_usage()
   return bytes;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void *PairSNAP::extract(const char *str, int &dim)
 {
   dim = 2;

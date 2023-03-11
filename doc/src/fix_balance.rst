@@ -314,7 +314,7 @@ data to other processors during load-balancing will be random or
 deterministic.  Random is generally faster; deterministic will ensure
 the new ordering of atoms on each processor is the same each time the
 same simulation is run.  This can be useful for debugging purposes.
-Since the fix balance commmand is performed during timestepping, the
+Since the fix balance command is performed during timestepping, the
 default is *no* so that sorting is not performed.
 
 The *out* keyword writes text to the specified *filename* with the

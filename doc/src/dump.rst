@@ -375,7 +375,7 @@ output with each snapshot:
    nx ny nz
 
 The value dim will be 2 or 3 for 2d or 3d simulations.  It is included
-so that post-processing tools like `OVITO <https://www.ovito.org>`,
+so that post-processing tools like `OVITO <https://www.ovito.org>`_,
 which can visualize grid-based quantities know how to draw each grid
 cell.  The grid size will match the input script parameters for
 grid(s) created by the computes or fixes which are referenced by the

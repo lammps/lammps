@@ -113,13 +113,12 @@ void FixEfieldTIP4P::post_force(int vflag)
 
   double **x = atom->x;
   double fx, fy, fz, xM[3];
-  double v[6];
+  double v[6], unwrap[3];
   int iO, iH1, iH2;
 
   // constant efield
 
   if (varflag == CONSTANT) {
-    double unwrap[3];
 
     // charge interactions
     // force = qE, potential energy = F dot x in unwrapped coords
@@ -128,7 +127,8 @@ void FixEfieldTIP4P::post_force(int vflag)
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
 
-          // this is an atom belonging to a TIP4P molecule
+          // process *all* atoms belonging to a TIP4P molecule which means we compute all
+          // contributions 3 times but only add a third and only when the atom is local
 
           if ((type[i] == typeO) || (type[i] == typeH)) {
 
@@ -155,45 +155,128 @@ void FixEfieldTIP4P::post_force(int vflag)
             if (atom->type[iO] != typeO) error->one(FLERR, "TIP4P oxygen has incorrect atom type");
 
             find_M(x[iO], x[iH1], x[iH2], xM);
-            if (region && !region->match(xM[0], xM[1], xM[2])) continue;
 
-            fx = q[iO] * ex;
-            fy = q[iO] * ey;
-            fz = q[iO] * ez;
+            // M site contributions
 
-            // distribute and apply forces, but only to local atoms
-            if (iO < nlocal) {
-              f[iO][0] += fx * (1.0 - alpha);
-              f[iO][1] += fy * (1.0 - alpha);
-              f[iO][2] += fz * (1.0 - alpha);
-            }
-            if (iH1 < nlocal) {
-              f[iH1][0] += 0.5 * alpha * fx;
-              f[iH1][1] += 0.5 * alpha * fy;
-              f[iH1][2] += 0.5 * alpha * fz;
-            }
-            if (iH2 < nlocal) {
-              f[iH2][0] += 0.5 * alpha * fx;
-              f[iH2][1] += 0.5 * alpha * fy;
-              f[iH2][2] += 0.5 * alpha * fz;
+            if (!region || region->match(xM[0], xM[1], xM[2])) {
+
+              // we match a TIP4P molecule 3 times, so divide force contributions by 3.
+
+              fx = q[iO] * ex / 3.0;
+              fy = q[iO] * ey / 3.0;
+              fz = q[iO] * ez / 3.0;
+
+              // distribute and apply forces, but only to local atoms
+
+              if (iO < nlocal) {
+                f[iO][0] += fx * (1.0 - alpha);
+                f[iO][1] += fy * (1.0 - alpha);
+                f[iO][2] += fz * (1.0 - alpha);
+              }
+              if (iH1 < nlocal) {
+                f[iH1][0] += 0.5 * alpha * fx;
+                f[iH1][1] += 0.5 * alpha * fy;
+                f[iH1][2] += 0.5 * alpha * fz;
+              }
+              if (iH2 < nlocal) {
+                f[iH2][0] += 0.5 * alpha * fx;
+                f[iH2][1] += 0.5 * alpha * fy;
+                f[iH2][2] += 0.5 * alpha * fz;
+              }
+
+              domain->unmap(xM, image[iO], unwrap);
+              fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+              fsum[1] += fx;
+              fsum[2] += fy;
+              fsum[3] += fz;
+
+              // tally virial contribution with Oxygen
+              if (evflag && (iO < nlocal)) {
+                v[0] = fx * unwrap[0];
+                v[1] = fy * unwrap[1];
+                v[2] = fz * unwrap[2];
+                v[3] = fx * unwrap[1];
+                v[4] = fx * unwrap[2];
+                v[5] = fy * unwrap[2];
+                v_tally(iO, v);
+              }
             }
 
-            domain->unmap(xM, image[i], unwrap);
-            fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
-            fsum[1] += fx;
-            fsum[2] += fy;
-            fsum[3] += fz;
+            // H1 site contributions
 
-            // tally virial contribution with Oxygen
-            if (evflag && (iO < nlocal)) {
-              v[0] = fx * unwrap[0];
-              v[1] = fy * unwrap[1];
-              v[2] = fz * unwrap[2];
-              v[3] = fx * unwrap[1];
-              v[4] = fx * unwrap[2];
-              v[5] = fy * unwrap[2];
-              v_tally(iO, v);
+            if (!region || region->match(x[iH1][0], x[iH1][1], x[iH1][2])) {
+
+              // we match a TIP4P molecule 3 times, so divide force contributions by 3.
+
+              fx = q[iH1] * ex / 3.0;
+              fy = q[iH1] * ey / 3.0;
+              fz = q[iH1] * ez / 3.0;
+
+              if (iH1 < nlocal) {
+                f[iH1][0] += fx;
+                f[iH1][1] += fy;
+                f[iH1][2] += fz;
+              }
+
+              // tally global force
+
+              domain->unmap(x[iH1], image[iH1], unwrap);
+              fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+              fsum[1] += fx;
+              fsum[2] += fy;
+              fsum[3] += fz;
+
+              // tally virial contributions
+
+              if (evflag && (iH1 < nlocal)) {
+                v[0] = fx * unwrap[0];
+                v[1] = fy * unwrap[1];
+                v[2] = fz * unwrap[2];
+                v[3] = fx * unwrap[1];
+                v[4] = fx * unwrap[2];
+                v[5] = fy * unwrap[2];
+                v_tally(iH1, v);
+              }
             }
+
+            // H2 site contributions
+
+            if (!region || region->match(x[iH2][0], x[iH2][1], x[iH2][2])) {
+
+              // we match 3 atoms per molecule, so divide force contributions by 3.
+
+              fx = q[iH2] * ex / 3.0;
+              fy = q[iH2] * ey / 3.0;
+              fz = q[iH2] * ez / 3.0;
+
+              if (iH2 < nlocal) {
+                f[iH2][0] += fx;
+                f[iH2][1] += fy;
+                f[iH2][2] += fz;
+              }
+
+              // tally global force
+
+              domain->unmap(x[iH2], image[iH2], unwrap);
+              fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+              fsum[1] += fx;
+              fsum[2] += fy;
+              fsum[3] += fz;
+
+              // tally virial contributions
+
+              if (evflag && (iH2 < nlocal)) {
+                v[0] = fx * unwrap[0];
+                v[1] = fy * unwrap[1];
+                v[2] = fz * unwrap[2];
+                v[3] = fx * unwrap[1];
+                v[4] = fx * unwrap[2];
+                v[5] = fy * unwrap[2];
+                v_tally(iH2, v);
+              }
+            }
+
+            // non-TIP4P atoms
 
           } else {
 
@@ -224,7 +307,7 @@ void FixEfieldTIP4P::post_force(int vflag)
       }
     }
 
-    // dipole interactions
+    // dipole interactions, no special TIP4P treatment needed
     // no force, torque = mu cross E, potential energy = -mu dot E
 
     if (muflag) {
@@ -244,10 +327,10 @@ void FixEfieldTIP4P::post_force(int vflag)
         }
     }
 
+  } else {
+
     // variable efield, wrap with clear/add
     // potential energy = evar if defined, else 0.0
-
-  } else {
 
     modify->clearstep_compute();
 
@@ -276,29 +359,238 @@ void FixEfieldTIP4P::post_force(int vflag)
     if (qflag) {
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
-          if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
-          if (xstyle == ATOM) {
-            fx = qe2f * q[i] * efield[i][0];
+
+          // process *all* atoms belonging to a TIP4P molecule which means we compute all
+          // contributions 3 times but only add a third and only when the atom is local
+
+          if ((type[i] == typeO) || (type[i] == typeH)) {
+
+            if (type[i] == typeO) {
+              iO = i;
+              iH1 = atom->map(tag[i] + 1);
+              iH2 = atom->map(tag[i] + 2);
+            } else {
+              // set indices for first or second hydrogen
+              iO = atom->map(tag[i] - 1);
+              if ((iO != -1) && (type[iO] == typeO)) {
+                iH1 = i;
+                iH2 = atom->map(tag[i] + 1);
+              } else {
+                iO = atom->map(tag[i] - 2);
+                iH1 = atom->map(tag[i] - 1);
+                iH2 = i;
+              }
+            }
+            if ((iH1 == -1) || (iH2 == -1)) error->one(FLERR, "TIP4P hydrogen is missing");
+            if (iO == -1) error->one(FLERR, "TIP4P oxygen is missing");
+            if ((atom->type[iH1] != typeH) || (atom->type[iH2] != typeH))
+              error->one(FLERR, "TIP4P hydrogen has incorrect atom type");
+            if (atom->type[iO] != typeO) error->one(FLERR, "TIP4P oxygen has incorrect atom type");
+
+            find_M(x[iO], x[iH1], x[iH2], xM);
+
+            // M site contributions
+
+            if (!region || region->match(xM[0], xM[1], xM[2])) {
+
+              // we match a TIP3P molecule 3 times, so divide force contributions by 3.
+
+              if (xstyle == ATOM) {
+                fx = qe2f * q[iO] * efield[iO][0] / 3.0;
+              } else {
+                fx = q[iO] * ex / 3.0;
+              }
+              if (ystyle == ATOM) {
+                fy = qe2f * q[iO] * efield[iO][1] / 3.0;
+              } else {
+                fy = q[iO] * ey / 3.0;
+              }
+              if (zstyle == ATOM) {
+                fz = qe2f * q[iO] * efield[iO][2] / 3.0;
+              } else {
+                fz = q[iO] * ez / 3.0;
+              }
+
+              // distribute and apply forces, but only to local atoms
+
+              if (iO < nlocal) {
+                f[iO][0] += fx * (1.0 - alpha);
+                f[iO][1] += fy * (1.0 - alpha);
+                f[iO][2] += fz * (1.0 - alpha);
+              }
+              if (iH1 < nlocal) {
+                f[iH1][0] += 0.5 * alpha * fx;
+                f[iH1][1] += 0.5 * alpha * fy;
+                f[iH1][2] += 0.5 * alpha * fz;
+              }
+              if (iH2 < nlocal) {
+                f[iH2][0] += 0.5 * alpha * fx;
+                f[iH2][1] += 0.5 * alpha * fy;
+                f[iH2][2] += 0.5 * alpha * fz;
+              }
+
+              domain->unmap(xM, image[iO], unwrap);
+              if (estyle == ATOM)
+                fsum[0] += efield[0][3];
+              else
+                fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+              fsum[1] += fx;
+              fsum[2] += fy;
+              fsum[3] += fz;
+
+              // tally virial contribution for point M with Oxygen
+
+              if (evflag && (iO < nlocal)) {
+                v[0] = fx * unwrap[0];
+                v[1] = fy * unwrap[1];
+                v[2] = fz * unwrap[2];
+                v[3] = fx * unwrap[1];
+                v[4] = fx * unwrap[2];
+                v[5] = fy * unwrap[2];
+                v_tally(iO, v);
+              }
+            }
+
+            // H1 site contributions
+
+            if (!region || region->match(x[iH1][0], x[iH1][1], x[iH1][2])) {
+
+              // we match a TIP4P molecule 3 times, so divide force contributions by 3.
+
+              if (xstyle == ATOM) {
+                fx = qe2f * q[iH1] * efield[iH1][0] / 3.0;
+              } else {
+                fx = q[iH1] * ex / 3.0;
+              }
+              if (ystyle == ATOM) {
+                fy = qe2f * q[iH1] * efield[iH1][1] / 3.0;
+              } else {
+                fy = q[iH1] * ey / 3.0;
+              }
+              if (zstyle == ATOM) {
+                fz = qe2f * q[iH1] * efield[iH1][2] / 3.0;
+              } else {
+                fz = q[iH1] * ez / 3.0;
+              }
+
+              if (iH1 < nlocal) {
+                f[iH1][0] += fx;
+                f[iH1][1] += fy;
+                f[iH1][2] += fz;
+              }
+
+              // tally global force 
+
+              domain->unmap(x[iH1], image[iH1], unwrap);
+              if (estyle == ATOM)
+                fsum[0] += efield[0][3];
+              else
+                fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+              fsum[1] += fx;
+              fsum[2] += fy;
+              fsum[3] += fz;
+
+              // tally virial contribution
+
+              if (evflag && (iH1 < nlocal)) {
+                v[0] = fx * unwrap[0];
+                v[1] = fy * unwrap[1];
+                v[2] = fz * unwrap[2];
+                v[3] = fx * unwrap[1];
+                v[4] = fx * unwrap[2];
+                v[5] = fy * unwrap[2];
+                v_tally(iH1, v);
+              }
+            }
+
+            // H2 site contributions
+
+            if (!region || region->match(x[iH2][0], x[iH2][1], x[iH2][2])) {
+
+              // we match a TIP4P molecule 3 times, so divide force contributions by 3.
+
+              if (xstyle == ATOM) {
+                fx = qe2f * q[iH2] * efield[iH2][0] / 3.0;
+              } else {
+                fx = q[iH2] * ex / 3.0;
+              }
+              if (ystyle == ATOM) {
+                fy = qe2f * q[iH2] * efield[iH2][1] / 3.0;
+              } else {
+                fy = q[iH2] * ey / 3.0;
+              }
+              if (zstyle == ATOM) {
+                fz = qe2f * q[iH2] * efield[iH2][2] / 3.0;
+              } else {
+                fz = q[iH2] * ez / 3.0;
+              }
+
+              if (iH2 < nlocal) {
+                f[iH2][0] += fx;
+                f[iH2][1] += fy;
+                f[iH2][2] += fz;
+              }
+
+              // tally global force 
+
+              domain->unmap(x[iH2], image[iH2], unwrap);
+              if (estyle == ATOM)
+                fsum[0] += efield[0][3];
+              else
+                fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+              fsum[1] += fx;
+              fsum[2] += fy;
+              fsum[3] += fz;
+
+              // tally virial contribution
+
+              if (evflag && (iH2 < nlocal)) {
+                v[0] = fx * unwrap[0];
+                v[1] = fy * unwrap[1];
+                v[2] = fz * unwrap[2];
+                v[3] = fx * unwrap[1];
+                v[4] = fx * unwrap[2];
+                v[5] = fy * unwrap[2];
+                v_tally(iH2, v);
+              }
+            }
+            
           } else {
-            fx = q[i] * ex;
+
+            // non-TIP4P charge interactions
+            // force = qE
+
+            if (region && !region->match(x[i][0], x[i][1], x[i][2])) continue;
+
+            if (xstyle == ATOM) {
+              fx = qe2f * q[i] * efield[i][0];
+            } else {
+              fx = q[i] * ex;
+            }
+            f[i][0] += fx;
+            fsum[1] += fx;
+            if (ystyle == ATOM) {
+              fy = qe2f * q[i] * efield[i][1];
+            } else {
+              fy = q[i] * ey;
+            }
+            f[i][1] += fy;
+            fsum[2] += fy;
+            if (zstyle == ATOM) {
+              fz = qe2f * q[i] * efield[i][2];
+            } else {
+              fz = q[i] * ez;
+            }
+            f[i][2] += fz;
+            fsum[3] += fz;
+
+            if (estyle == ATOM) {
+              fsum[0] += efield[0][3];
+            } else {
+              domain->unmap(x[i], image[i], unwrap);
+              fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+            }
           }
-          f[i][0] += fx;
-          fsum[1] += fx;
-          if (ystyle == ATOM) {
-            fy = qe2f * q[i] * efield[i][1];
-          } else {
-            fy = q[i] * ey;
-          }
-          f[i][1] += fy;
-          fsum[2] += fy;
-          if (zstyle == ATOM) {
-            fz = qe2f * q[i] * efield[i][2];
-          } else {
-            fz = q[i] * ez;
-          }
-          f[i][2] += fz;
-          fsum[3] += fz;
-          if (estyle == ATOM) fsum[0] += efield[0][3];
         }
       }
     }

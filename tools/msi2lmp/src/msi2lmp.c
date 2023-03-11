@@ -2,26 +2,29 @@
 *
 *  msi2lmp.exe
 *
-*   v3.9.9 AK- Teach msi2lmp to not generate dihedrals with identical 1-4 atoms
+*   v3.9.10 AK - Substitute UTF-8 characters in .frc files with known ASCII equivalents
+*              - add help message output
 *
-*   v3.9.8 AK- Improved whitespace handling in parsing topology and force
-*              field files to avoid bogus warnings about type name truncation
+*   v3.9.9 AK - Teach msi2lmp to not generate dihedrals with identical 1-4 atoms
 *
-*   v3.9.7 AK- Add check to enforce that Class1/OPLS-AA use A-B parameter
-*              conventions in force field file and Class2 us r-eps conventions
+*   v3.9.8 AK - Improved whitespace handling in parsing topology and force
+*               field files to avoid bogus warnings about type name truncation
 *
-*   v3.9.6 AK- Refactoring of MDF file parser with more consistent
-*              handling of compile time constants MAX_NAME and MAX_STRING
+*   v3.9.7 AK - Add check to enforce that Class1/OPLS-AA use A-B parameter
+*               conventions in force field file and Class2 us r-eps conventions
 *
-*   v3.9.5 AK- Add TopoTools style force field parameter type hints
+*   v3.9.6 AK - Refactoring of MDF file parser with more consistent
+*               handling of compile time constants MAX_NAME and MAX_STRING
 *
-*   v3.9.4 AK- Make force field style hints optional with a flag
+*   v3.9.5 AK - Add TopoTools style force field parameter type hints
 *
-*   v3.9.3 AK- Bugfix for triclinic cells.
+*   v3.9.4 AK - Make force field style hints optional with a flag
 *
-*   v3.9.2 AK- Support for writing out force field style hints
+*   v3.9.3 AK - Bugfix for triclinic cells.
 *
-*   v3.9.1 AK- Bugfix for Class2. Free allocated memory. Print version number.
+*   v3.9.2 AK - Support for writing out force field style hints
+*
+*   v3.9.1 AK - Bugfix for Class2. Free allocated memory. Print version number.
 *
 *   v3.9 AK  - Rudimentary support for OPLS-AA
 *
@@ -156,6 +159,59 @@
 #include <ctype.h>
 #endif
 
+const char helpmesg[] =
+  "  USAGE: msi2lmp [-help] ROOTNAME [-print #] [-class #] [-frc FRC_FILE] [-ignore] [-nocenter] [-oldstyle]\n"
+  "\n"
+  "  -- msi2lmp is the name of the executable\n"
+  "\n"
+  "  -- -help or -h triggers printing this message and exits\n"
+  "\n"
+  "  -- ROOTNAME is the base name of the .car and .mdf files\n"
+  "  -- all opther flags are optional and can be abbreviated (e.g. -p instead of -print)\n"
+  "\n"
+  "  -- -print\n"
+  "        # is the print level:  0  - silent except for errors\n"
+  "                               1  - minimal (default)\n"
+  "                               2  - more verbose\n"
+  "                               3  - even more verbose\n"
+  "  -- -class\n"
+  "        # is the class of forcefield to use (I  or 1 = Class I e.g., CVFF, clayff)\n"
+  "                                            (II or 2 = Class II e.g., CFFx, COMPASS)\n"
+  "                                            (O  or 0 = OPLS-AA)\n"
+  "     default is -class I\n"
+  "\n"
+  "  -- -ignore   - tells msi2lmp to ignore warnings and errors and keep going\n"
+  "\n"
+  "  -- -nocenter - tells msi2lmp to not center the box around the (geometrical)\n"
+  "                 center of the atoms, but around the origin\n"
+  "\n"
+  "  -- -oldstyle - tells msi2lmp to write out a data file without style hints\n"
+  "                 (to be compatible with older LAMMPS versions)\n"
+  "\n"
+  "  -- -shift    - tells msi2lmp to shift the entire system (box and coordinates)\n"
+  "                 by a vector (default: 0.0 0.0 0.0)\n"
+  "\n"
+  "  -- -frc      - specifies name of the forcefield file (e.g., cff91)\n"
+  "\n"
+  "     If the name includes a hard wired directory (i.e., if the name\n"
+  "     starts with . or /), then the name is used alone. Otherwise,\n"
+  "     the program looks for the forcefield file in $MSI2LMP_LIBRARY.\n"
+  "     If $MSI2LMP_LIBRARY is not set, then the current directory is\n"
+  "     used.\n"
+  "\n"
+  "     If the file name does not include a dot after the first\n"
+  "     character, then .frc is appended to the name.\n"
+  "\n"
+  "     For example,  -frc cvff (assumes cvff.frc is in $MSI2LMP_LIBRARY or .)\n"
+  "\n"
+  "                   -frc cff/cff91 (assumes cff91.frc is in $MSI2LMP_LIBRARY/cff or ./cff)\n"
+  "\n"
+  "                   -frc /usr/local/forcefields/cff95 (absolute location)\n"
+  "\n"
+  "     By default, the program uses $MSI2LMP_LIBRARY/cvff.frc\n"
+  "\n"
+  "  -- output is written to a file called ROOTNAME.data\n";
+
 /* global variables */
 
 char  *rootname;
@@ -239,9 +295,14 @@ int main (int argc, char *argv[])
   frc_dir_name = getenv("MSI2LMP_LIBRARY");
 
   if (argc < 2) {
-    printf("usage: %s <rootname> [-class <I|1|II|2|O|0>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle]\n",argv[0]);
+    printf("usage: %s [-help|-h] <rootname> [-class <I|1|II|2|O|0>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle]\n",argv[0]);
     return 1;
-  } else { /* rootname was supplied as first argument, copy to rootname */
+  } else {
+    if ((strcmp(argv[1],"-help") == 0) || (strcmp(argv[1],"-h") == 0)) {
+      puts(helpmesg);
+      return 1;
+    }
+    /* rootname was supplied as first argument, copy to rootname */
     int len = strlen(argv[1]) + 1;
     rootname = (char *)malloc(len);
     strcpy(rootname,argv[1]);
@@ -249,6 +310,10 @@ int main (int argc, char *argv[])
 
   n = 2;
   while (n < argc) {
+    if ((strcmp(argv[n],"-help") == 0) || (strcmp(argv[1],"-h") == 0)) {
+      puts(helpmesg);
+      return 1;
+    }
     if (strncmp(argv[n],"-c",2) == 0) {
       n++;
       if (check_arg(argv,"-class",n,argc))

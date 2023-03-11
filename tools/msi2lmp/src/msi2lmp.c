@@ -239,7 +239,7 @@ int main (int argc, char *argv[])
   frc_dir_name = getenv("MSI2LMP_LIBRARY");
 
   if (argc < 2) {
-    printf("usage: %s <rootname> [-class <I|1|II|2>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle]\n",argv[0]);
+    printf("usage: %s <rootname> [-class <I|1|II|2|O|0>] [-frc <path to frc file>] [-print #] [-ignore] [-nocenter] [-oldstyle]\n",argv[0]);
     return 1;
   } else { /* rootname was supplied as first argument, copy to rootname */
     int len = strlen(argv[1]) + 1;

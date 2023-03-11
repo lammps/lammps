@@ -756,6 +756,8 @@
 /fix_damping_cundall.h
 /fix_dpd_energy.cpp
 /fix_dpd_energy.h
+/fix_efield_tip4p.cpp
+/fix_efield_tip4p.h
 /fix_electron_stopping.cpp
 /fix_electron_stopping.h
 /fix_electron_stopping_fit.cpp

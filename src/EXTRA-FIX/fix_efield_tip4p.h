@@ -34,7 +34,7 @@ class FixEfieldTIP4P : public FixEfield {
 
  protected:
   double alpha;
-  int typeO, typeH; // atom types for TIP4P molecule
+  int typeO, typeH;    // atom types for TIP4P molecule
   void find_M(double *, double *, double *, double *);
 };
 }    // namespace LAMMPS_NS

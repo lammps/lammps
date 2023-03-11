@@ -152,9 +152,9 @@ void FixEfieldTIP4P::post_force(int vflag)
             }
             if ((iH1 == -1) || (iH2 == -1)) error->one(FLERR, "TIP4P hydrogen is missing");
             if (iO == -1) error->one(FLERR, "TIP4P oxygen is missing");
-            if ((atom->type[iH1] != typeH) || (atom->type[iH2] != typeH))
+            if ((type[iH1] != typeH) || (type[iH2] != typeH))
               error->one(FLERR, "TIP4P hydrogen has incorrect atom type");
-            if (atom->type[iO] != typeO) error->one(FLERR, "TIP4P oxygen has incorrect atom type");
+            if (type[iO] != typeO) error->one(FLERR, "TIP4P oxygen has incorrect atom type");
             iH1 = domain->closest_image(i, iH1);
             iH2 = domain->closest_image(i, iH2);
 
@@ -399,9 +399,9 @@ void FixEfieldTIP4P::post_force(int vflag)
             }
             if ((iH1 == -1) || (iH2 == -1)) error->one(FLERR, "TIP4P hydrogen is missing");
             if (iO == -1) error->one(FLERR, "TIP4P oxygen is missing");
-            if ((atom->type[iH1] != typeH) || (atom->type[iH2] != typeH))
+            if ((type[iH1] != typeH) || (type[iH2] != typeH))
               error->one(FLERR, "TIP4P hydrogen has incorrect atom type");
-            if (atom->type[iO] != typeO) error->one(FLERR, "TIP4P oxygen has incorrect atom type");
+            if (type[iO] != typeO) error->one(FLERR, "TIP4P oxygen has incorrect atom type");
             iH1 = domain->closest_image(i, iH1);
             iH2 = domain->closest_image(i, iH2);
 
@@ -459,11 +459,7 @@ void FixEfieldTIP4P::post_force(int vflag)
               }
 
               if (i == iO) {
-                domain->unmap(xM, image[iO], unwrap);
-                if (estyle == ATOM)
-                  fsum[0] += efield[0][3];
-                else
-                  fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+                if (estyle == ATOM) fsum[0] += efield[0][3];
                 fsum[1] += fx;
                 fsum[2] += fy;
                 fsum[3] += fz;
@@ -509,11 +505,7 @@ void FixEfieldTIP4P::post_force(int vflag)
 
                 // tally global force
 
-                domain->unmap(x[iH1], image[iH1], unwrap);
-                if (estyle == ATOM)
-                  fsum[0] += efield[0][3];
-                else
-                  fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+                if (estyle == ATOM) fsum[0] += efield[0][3];
                 fsum[1] += fx;
                 fsum[2] += fy;
                 fsum[3] += fz;
@@ -559,11 +551,7 @@ void FixEfieldTIP4P::post_force(int vflag)
 
                 // tally global force
 
-                domain->unmap(x[iH2], image[iH2], unwrap);
-                if (estyle == ATOM)
-                  fsum[0] += efield[0][3];
-                else
-                  fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+                if (estyle == ATOM) fsum[0] += efield[0][3];
                 fsum[1] += fx;
                 fsum[2] += fy;
                 fsum[3] += fz;
@@ -611,12 +599,7 @@ void FixEfieldTIP4P::post_force(int vflag)
             f[i][2] += fz;
             fsum[3] += fz;
 
-            if (estyle == ATOM) {
-              fsum[0] += efield[0][3];
-            } else {
-              domain->unmap(x[i], image[i], unwrap);
-              fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
-            }
+            if (estyle == ATOM) fsum[0] += efield[0][3];
           }
         }
       }

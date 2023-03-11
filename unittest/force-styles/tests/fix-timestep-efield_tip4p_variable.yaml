@@ -1,6 +1,6 @@
 ---
 lammps_version: 8 Feb 2023
-date_generated: Sat Mar 11 18:36:57 2023
+date_generated: Sat Mar 11 18:52:03 2023
 epsilon: 2e-13
 skip_tests:
 prerequisites: ! |
@@ -24,7 +24,7 @@ post_commands: ! |
   fix test all efield/tip4p v_xforce 0.0 v_zforce
 input_file: in.fourmol
 natoms: 29
-global_scalar: -108.06823025980506
+global_scalar: 0
 global_vector: ! |-
   3 9.596230365887404 0 -4.440892098500626e-16
 run_pos: ! |2

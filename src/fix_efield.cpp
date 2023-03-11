@@ -273,12 +273,12 @@ void FixEfield::post_force(int vflag)
 
   double **x = atom->x;
   double fx, fy, fz;
-  double v[6];
+  double v[6], unwrap[3];
+  ;
 
   // constant efield
 
   if (varflag == CONSTANT) {
-    double unwrap[3];
 
     // charge interactions
     // force = qE, potential energy = F dot x in unwrapped coords
@@ -385,7 +385,12 @@ void FixEfield::post_force(int vflag)
           }
           f[i][2] += fz;
           fsum[3] += fz;
-          if (estyle == ATOM) fsum[0] += efield[0][3];
+          if (estyle == ATOM) {
+            fsum[0] += efield[0][3];
+          } else {
+            domain->unmap(x[i], image[i], unwrap);
+            fsum[0] -= fx * unwrap[0] + fy * unwrap[1] + fz * unwrap[2];
+          }
         }
     }
 

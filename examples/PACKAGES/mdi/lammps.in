@@ -25,4 +25,4 @@ thermo          1
 
 fix             1 all nvt temp 300.0 300.0 70.0
 
-mdi/engine
+mdi engine

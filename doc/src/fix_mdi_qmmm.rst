@@ -1,7 +1,7 @@
 .. index:: fix mdi/qmmm
 
 fix mdi/qmmm command
-======================
+====================
 
 Syntax
 """"""
@@ -39,14 +39,14 @@ Examples
 Description
 """""""""""
 
-This command enables LAMMPS to act as a client with another server
-code to perform a coupled QMMM (quantum-mechanics/molecular-mechanics)
-simulation.  LAMMPS will perform classical MD (molecular mechnanics
+This command enables LAMMPS to act as a client with another server code
+to perform a coupled QM/MM (quantum-mechanics/molecular-mechanics)
+simulation.  LAMMPS will perform classical MD (molecular mechanics
 or MM) for the (typically larger) MM portion of the system.  A quantum
 mechanics code will calculate quantum energy and forces for the QM
 portion of the system.  The two codes work together to calculate the
-energy and forces due to the cross interactions between QM and MM
-atoms.  The QM server code must support use of the `MDI Library
+energy and forces due to the cross interactions between QM and MM atoms.
+The QM server code must support use of the `MDI Library
 <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_ as
 explained below.
 
@@ -54,7 +54,7 @@ The partitioning of the system between QM and MM atoms is as follows.
 Atoms in the specified group are QM atoms; the remaining atoms are MM
 atoms.  The input script should thus define this partitioning.
 See additional information below about other requirements for an input
-script to use this fix and perform a QMMM simulation.
+script to use this fix and perform a QM/MM simulation.
 
 The code coupling performed by this command is done via the `MDI
 Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
@@ -64,31 +64,31 @@ support for MDI.  See the :doc:`Howto mdi <Howto_mdi>` page for more
 information about how LAMMPS can operate as either an MDI driver or
 engine.
 
-The examples/QUANTUM directory has sub-directories with example input
-scripts using this fix in tandem with different QM codes.  The README
-files in the sub-directories explain how to download and build the
-various QM codes.  They also explain how to launch LAMMPS and the QM
+The ``examples/QUANTUM`` directory has sub-directories with example
+input scripts using this fix in tandem with different QM codes.  The
+README files in the sub-directories explain how to download and build
+the various QM codes.  They also explain how to launch LAMMPS and the QM
 code so that they communicate via the MDI library using either MPI or
 sockets.  Any QM code that supports MDI could be used in addition to
 those discussed in the sub-directories.  See the :doc:`Howto mdi
 <Howto_mdi>` page for a current list (March 2022) of such QM codes.
 
-Note that an engine code can support MDI in either or both of two
-modes.  It can be used as a stand-alone code, launched at the same
-time as LAMMPS.  Or it can be used as a plugin library, which LAMMPS
-loads.  See the :doc:`mdi plugin <mdi>` command for how to trigger
-LAMMPS to load a plugin library.  The examples/QUANTUM sub-directory
-README files explains how to launch the two codes in either mode.
+Note that an engine code can support MDI in either or both of two modes.
+It can be used as a stand-alone code, launched at the same time as
+LAMMPS.  Or it can be used as a plugin library, which LAMMPS loads.  See
+the :doc:`mdi plugin <mdi>` command for how to trigger LAMMPS to load a
+plugin library.  The ``examples/QUANTUM`` sub-directory README files
+explains how to launch the two codes in either mode.
 
 ----------
 
-The *mode* setting determines which QMMM coupling algorithm is used.
+The *mode* setting determines which QM/MM coupling algorithm is used.
 LAMMPS currently supports *direct* and *potential* algorithms, based
 on the *mode* setting.  Both algorithms should give reasonably
 accurate results, but some QM codes support only one of the two modes.
-E.g. in the examples/QUANTUM directory, PySCF supports only *direct*,
+E.g. in the ``examples/QUANTUM`` directory, PySCF supports only *direct*,
 NWChem supports only *potential*, and LATTE currently supports
-neither, so it cannot be used for QMMM simulations using this fix.
+neither, so it cannot be used for QM/MM simulations using this fix.
 
 The *direct* option passes the coordinates and charges of each MM atom
 to the quantum code, in addition to the coordinates of each QM atom.
@@ -96,12 +96,12 @@ The quantum code returns forces on each QM atom as well as forces on
 each MM atom.  The latter is effectively the force on MM atoms due to
 the QM atoms.
 
-The input script for performing a *direct* mode QMMM simulation should
+The input script for performing a *direct* mode QM/MM simulation should
 do the following:
 
-* delete all bonds (angles, dihedrals, etc) bewteen QM atoms
+* delete all bonds (angles, dihedrals, etc) between QM atoms
 * set the charge on each QM atom to zero
-* define no bonds (angles, dihederals, etc) which involve both QM and MM atoms
+* define no bonds (angles, dihedrals, etc) which involve both QM and MM atoms
 * define a force field (pair, bonds, angles, optional kspace) for the entire system
 
 The first two bullet can be performed using the :doc:`delete_bonds
@@ -114,8 +114,8 @@ The fourth bullet implies that non-bonded non-Coulombic interactions
 (e.g. van der Waals) between QM/QM and QM/MM pairs of atoms are
 computed by LAMMPS.
 
-See the examples/QUANTUM/PySCF/in.* files for examples of input scripts
-for QMMM simulations using the *direct* mode.
+See the ``examples/QUANTUM/PySCF/in.*`` files for examples of input
+scripts for QM/MM simulations using the *direct* mode.
 
 The *potential* option passes the coordinates of each QM atom and a
 Coulomb potential for each QM atom to the quantum code.  The latter is
@@ -129,34 +129,34 @@ The quantum code returns forces and charge on each QM atom.  The new
 charges on the QM atom are used to re-calculate the MM force field,
 resulting in altered forces on the MM atoms.
 
-The input script for performing a *potential* mode QMMM simulation
+The input script for performing a *potential* mode QM/MM simulation
 should do the following:
 
-* delete all bonds (angles, dihedrals, etc) bewteen QM atoms
+* delete all bonds (angles, dihedrals, etc) between QM atoms
 * define a hybrid pair style which includes a Coulomb-only pair sub-style
-* define no bonds (angles, dihederals, etc) which involve both QM and MM atoms
+* define no bonds (angles, dihedrals, etc) which involve both QM and MM atoms
 * define a force field (pair, bonds, angles, optional kspace) for the entire system
 
 The first operation can be performed using the :doc:`delete_bonds
-<delete_bonds>` command.  See the examples/QUANTUM/NWChem/in.* files
+<delete_bonds>` command.  See the ``examples/QUANTUM/NWChem/in.*`` files
 for examples of how to do this.
 
-The second operation is necessary so that this fix can calculate the Coulomb
-potentail for the QM atoms.
+The second operation is necessary so that this fix can calculate the
+Coulomb potential for the QM atoms.
 
 The third bullet is required to have a consistent model, but is not
 checked by LAMMPS.
 
 The fourth bullet implies that non-bonded non-Coulombic interactions
-(e.g. van der Waals) between QM/QM and QM/MM pairs of atoms are
-computed by LAMMPS.  However, some QM codes do not want the MM code
-(LAMMPS) to compute QM/QM van der Waals interactions.  NWChem is an
-example.  In this case, the coefficients for thoes interactions need
-to be turned off, which typically requires the atom types for the QM atoms
-be different than those for the MM atoms.
+(e.g. van der Waals) between QM/QM and QM/MM pairs of atoms are computed
+by LAMMPS.  However, some QM codes do not want the MM code (LAMMPS) to
+compute QM/QM van der Waals interactions.  NWChem is an example.  In
+this case, the coefficients for those interactions need to be turned
+off, which typically requires the atom types for the QM atoms be
+different than those for the MM atoms.
 
-See the examples/QUANTUM/NWChem/in.* files for examples of input
-scripts for QMMM simulations using the *potential* mode.  Those scripts
+See the ``examples/QUANTUM/NWChem/in.*`` files for examples of input
+scripts for QM/MM simulations using the *potential* mode.  Those scripts
 also illustrate how to turn off QM/QM van der Waals interactions.
 
 ----------
@@ -171,7 +171,7 @@ connection to the QM code.  The default is *yes*.  The only time a
 *no* is needed is if this command is used multiple times in an input
 script.  E.g. if it used inside a loop which also uses the :doc:`clear
 <clear>` command to destroy the system (including this fix).  As
-example would be a script which loop over a series of independent QMMM
+example would be a script which loop over a series of independent QM/MM
 simulations, e.g. each with their own data file.  In this use case
 *connect no* could be used along with the :doc:`mdi connect and exit
 <mdi>` command to one-time initiate/terminate the connection outside
@@ -262,11 +262,11 @@ also perform similar unit conversions into its preferred units.
 Related commands
 """"""""""""""""
 
-:doc:`mdi plugin <mdi>`, :doc:`mdi engine <mdi>`, :doc:`fix mdi/qm
-     <fix_mdi_qm>`
+:doc:`mdi plugin <mdi>`,
+:doc:`mdi engine <mdi>`,
+:doc:`fix mdi/qm <fix_mdi_qm>`
 
 Default
 """""""
 
-The default for the optional keywords are virial = no and connect =
-yes.
+The default for the optional keywords are virial = no and connect = yes.

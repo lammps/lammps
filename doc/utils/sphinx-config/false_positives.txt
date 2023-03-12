@@ -2572,7 +2572,7 @@ nvidia
 nvk
 nvt
 Nwait
-nwchem
+NWChem
 nx
 Nx
 nxlo
@@ -2906,6 +2906,7 @@ PyLammps
 pymbar
 pymodule
 pymol
+PySCF
 pythonic
 pytorch
 pyy

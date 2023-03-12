@@ -76,16 +76,16 @@ energy minimizations, or to evaluate the quantum energy and forces for a
 series of independent systems.  The ``examples/mdi`` directory has
 example input scripts for all of these use cases.
 
-The package also has a `fix mdi/qmmm <fix_mdi_qmmm>` command in which
-LAMMPS operates as an MDI driver in conjunction with a quantum
-mechanics code as an MDI engine to perform QMMM simulations.  The
+The package also has a :doc:`fix mdi/qmmm <fix_mdi_qmmm>` command in
+which LAMMPS operates as an MDI driver in conjunction with a quantum
+mechanics code as an MDI engine to perform QM/MM simulations.  The
 LAMMPS input script partitions the system into QM and MM (molecular
-mechanics) atoms.  As described below the examples/QUANTUM directory
+mechanics) atoms.  As described below the ``examples/QUANTUM`` directory
 has examples for coupling to 3 different quantum codes in this manner.
 
 ----------
 
-The examples/mdi directory contains Python scripts and LAMMPS input
+The ``examples/mdi`` directory contains Python scripts and LAMMPS input
 script which use LAMMPS as either an MDI driver or engine, or both.
 Currently, 5 example use cases are provided:
 
@@ -129,12 +129,12 @@ as a plugin library.
 As of Feb 2023, these are quantum codes with MDI support provided via
 Python wrapper scripts included in the LAMMPS distribution.  These can
 be used with the fix mdi/qm and fix mdi/qmmm commands to perform QM
-calculations of an entire system (e.g. AIMD) or QMMM simulations.
-See the examples/QUANTUM sub-directories for more details:
+calculations of an entire system (e.g. AIMD) or QM/MM simulations.  See
+the ``examples/QUANTUM`` sub-directories for more details:
 
 * LATTE - AIMD only
-* PySCF - QMMM only
-* NWChem - AIMD or QMMM
+* PySCF - QM/MM only
+* NWChem - AIMD or QM/MM
 
 There are also at least two quantum codes which have direct MDI
 support, `Quantum ESPRESSO (QE) <https://www.quantum-espresso.org/>`_
@@ -147,5 +147,5 @@ codes is on the `MDI webpage
 <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
 These direct- and indirect-support codes should be usable for full
-system calculations (e.g. AIMD).  Whether they support QMMM models
+system calculations (e.g. AIMD).  Whether they support QM/MM models
 depends on the individual QM code.

@@ -68,16 +68,18 @@ These are example use cases for this fix, discussed further below:
 * perform an ab initio MD (AIMD) simulation with quantum forces
 * perform an energy minimization with quantum forces
 * perform a nudged elastic band (NEB) calculation with quantum forces
-* perform a QM calculation for a series of independent systems which LAMMPS reads or generates once
-* run a classical MD simulation and calculate QM energy/forces once every N steps on the current configuration
+* perform a QM calculation for a series of independent systems which
+  LAMMPS reads or generates once
+* run a classical MD simulation and calculate QM energy/forces once
+  every N steps on the current configuration
 
-More generally any command which calulates per-atom forces can instead
-use quantum forces be defining this fix.  Examples are the Monte Carlo
+More generally any command which calculates per-atom forces can instead
+use quantum forces by defining this fix.  Examples are the Monte Carlo
 commands :doc:`fix gcmc <fix_gcmc>` and :doc:`fix atom/swap
-<fix_atom_swap>`, as well as the :doc:`compute born <compute_born>`
-command.  The only requirement is that internally the commmand invokes
-the post_force() method of fixes such as this one, which will trigger
-the quantum calculation.
+<fix_atom_swap>`, as well as the :doc:`compute born/matrix
+<compute_born_matrix>` command.  The only requirement is that internally
+the command invokes the post_force() method of fixes such as this one,
+which will trigger the quantum calculation.
 
 The code coupling performed by this command is done via the `MDI
 Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
@@ -87,24 +89,24 @@ for MDI.  See the :doc:`Howto mdi <Howto_mdi>` page for more
 information about how LAMMPS can operate as either an MDI driver or
 engine.
 
-The examples/mdi directory contains input scripts using this fix in
+The ``examples/mdi`` directory contains input scripts using this fix in
 the various use cases discussed below.  In each case, two instances of
-LAMMPS are used, once as an MDI driver, once as an MDI engine
-(surrogate for a QM code).  The examples/mdi/README file explains how
-to launch two codes so that they communicate via the MDI library using
-either MPI or sockets.  Any QM code that supports MDI could be used in
-place of LAMMPS acting as a QM surrogate.  See the :doc:`Howto mdi
-<Howto_mdi>` page for a current list (March 2022) of such QM codes.
-The examples/QUANTUM directory has examples for coupling LAMMPS to 3
-QM codes either via this fix or the :doc:`fix mdi/qmmm <fix_mdi_qmmm>`
+LAMMPS are used, once as an MDI driver, once as an MDI engine (surrogate
+for a QM code).  The ``examples/mdi/README`` file explains how to launch
+two codes so that they communicate via the MDI library using either MPI
+or sockets.  Any QM code that supports MDI could be used in place of
+LAMMPS acting as a QM surrogate.  See the :doc:`Howto mdi <Howto_mdi>`
+page for a current list (March 2022) of such QM codes.  The
+``examples/QUANTUM`` directory has examples for coupling LAMMPS to 3 QM
+codes either via this fix or the :doc:`fix mdi/qmmm <fix_mdi_qmmm>`
 command.
 
-Note that an engine code can support MDI in either or both of two
-modes.  It can be used as a stand-alone code, launched at the same
-time as LAMMPS.  Or it can be used as a plugin library, which LAMMPS
-loads.  See the :doc:`mdi plugin <mdi>` command for how to trigger
-LAMMPS to load a plugin library.  The examples/mdi/README file and
-examples/QUANTUM/QM-code/README files explain how to launch the two
+Note that an engine code can support MDI in either or both of two modes.
+It can be used as a stand-alone code, launched at the same time as
+LAMMPS.  Or it can be used as a plugin library, which LAMMPS loads.  See
+the :doc:`mdi plugin <mdi>` command for how to trigger LAMMPS to load a
+plugin library.  The ``examples/mdi/README`` file and
+``examples/QUANTUM/QM-code/README`` files explain how to launch the two
 codes in either mode.
 
 ----------
@@ -132,16 +134,16 @@ configuration of atoms.  The QM code will be called once every
 *Nevery* timesteps.  By default *Nevery* = 1.
 
 The *connect* keyword determines whether this fix performs a one-time
-connection to the QM code.  The default is *yes*.  The only time a
-*no* is needed is if this command is used multiple times in an input
-script and the MDI coupling is between two stand-alone codes (not
-plugin mode).  E.g. if it used inside a loop which also uses the
-:doc:`clear <clear>` command to destroy the system (including this
-fix).  See the examples/mdi/in.series.driver script as an example of
-this, where LAMMPS is using the QM code to compute energy and forces
-for a series of system configurations.  In this use case *connect no*
-is used along with the :doc:`mdi connect and exit <mdi>` command to
-one-time initiate/terminate the connection outside the loop.
+connection to the QM code.  The default is *yes*.  The only time a *no*
+is needed is if this command is used multiple times in an input script
+and the MDI coupling is between two stand-alone codes (not plugin mode).
+E.g. if it used inside a loop which also uses the :doc:`clear <clear>`
+command to destroy the system (including this fix).  See the
+``examples/mdi/in.series.driver`` script as an example of this, where
+LAMMPS is using the QM code to compute energy and forces for a series of
+system configurations.  In this use case *connect no* is used along with
+the :doc:`mdi connect and exit <mdi>` command to one-time
+initiate/terminate the connection outside the loop.
 
 The *elements* keyword allows specification of what element each
 LAMMPS atom type corresponds to.  This is specified by the chemical
@@ -168,8 +170,8 @@ MD timesteps between the MC events.
 
 ----------
 
-The following 3 example use cases are illustrated in the examples/mdi
-directory.  See its README file for more details.
+The following 3 example use cases are illustrated in the
+``examples/mdi`` directory.  See its README file for more details.
 
 (1) To run an ab initio MD (AIMD) dynamics simulation, or an energy
 minimization with QM forces, or a multi-replica NEB calculation, use
@@ -295,8 +297,9 @@ performed.
 Related commands
 """"""""""""""""
 
-:doc:`mdi plugin <mdi>`, :doc:`mdi engine <mdi>`, :doc:`fix mdi/qmmm
-     <fix_mdi_qmmm>`
+:doc:`mdi plugin <mdi>`,
+:doc:`mdi engine <mdi>`,
+:doc:`fix mdi/qmmm <fix_mdi_qmmm>`
 
 Default
 """""""

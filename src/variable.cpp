@@ -73,7 +73,14 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE};
 
 
-#define BIG 1.0e20
+static constexpr double BIG = 1.0e20;
+
+// INT64_MAX cannot be represented with a double. reduce to avoid overflow when casting back.
+#if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
+static constexpr double MAXBIGINT_DOUBLE = (double) (MAXBIGINT-512);
+#else
+static constexpr double MAXBIGINT_DOUBLE = (double) MAXBIGINT;
+#endif
 
 // constants for variable expressions. customize by adding new items.
 // if needed (cf. 'version') initialize in Variable class constructor.
@@ -771,10 +778,8 @@ int Variable::next(int narg, char **arg)
         error->one(FLERR,"Unexpected error while incrementing uloop style variable. "
                    "Please contact the LAMMPS developers.");
 
-      //printf("READ %d %d\n",universe->me,nextindex);
       fp = fopen("tmp.lammps.variable.lock","w");
       fprintf(fp,"%d\n",nextindex+1);
-      //printf("WRITE %d %d\n",universe->me,nextindex+1);
       fclose(fp);
       fp = nullptr;
       rename("tmp.lammps.variable.lock","tmp.lammps.variable");
@@ -1213,6 +1218,9 @@ void Variable::remove(int n)
     dvalue[i-1] = dvalue[i];
   }
   nvar--;
+  data[nvar] = nullptr;
+  reader[nvar] = nullptr;
+  names[nvar] = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -2720,8 +2728,8 @@ double Variable::collapse_tree(Tree *tree)
     else if (update->ntimestep < ivalue2) {
       bigint offset = update->ntimestep - ivalue1;
       tree->value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (tree->value > ivalue2) tree->value = (double) MAXBIGINT;
-    } else tree->value = (double) MAXBIGINT;
+      if (tree->value > ivalue2) tree->value = (double) MAXBIGINT_DOUBLE;
+    } else tree->value = (double) MAXBIGINT_DOUBLE;
     return tree->value;
   }
 
@@ -2757,11 +2765,11 @@ double Variable::collapse_tree(Tree *tree)
         if (istep > ivalue5) {
           offset = ivalue5 - ivalue1;
           istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-          if (istep > ivalue2) istep = MAXBIGINT;
+          if (istep > ivalue2) istep = MAXBIGINT_DOUBLE;
         }
       }
-    } else istep = MAXBIGINT;
-    tree->value = istep;
+    } else istep = MAXBIGINT_DOUBLE;
+    tree->value = (double)istep;
     return tree->value;
   }
 
@@ -3059,8 +3067,8 @@ double Variable::eval_tree(Tree *tree, int i)
     else if (update->ntimestep < ivalue2) {
       bigint offset = update->ntimestep - ivalue1;
       arg = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-      if (arg > ivalue2) arg = (double) MAXBIGINT;
-    } else arg = (double) MAXBIGINT;
+      if (arg > ivalue2) arg = (double) MAXBIGINT_DOUBLE;
+    } else arg = (double) MAXBIGINT_DOUBLE;
     return arg;
   }
 
@@ -3091,10 +3099,10 @@ double Variable::eval_tree(Tree *tree, int i)
         if (istep > ivalue5) {
           offset = ivalue5 - ivalue1;
           istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-          if (istep > ivalue2) istep = MAXBIGINT;
+          if (istep > ivalue2) istep = MAXBIGINT_DOUBLE;
         }
       }
-    } else istep = MAXBIGINT;
+    } else istep = MAXBIGINT_DOUBLE;
     arg = istep;
     return arg;
   }
@@ -3626,8 +3634,8 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
       else if (update->ntimestep < ivalue2) {
         bigint offset = update->ntimestep - ivalue1;
         value = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-        if (value > ivalue2) value = (double) MAXBIGINT;
-      } else value = (double) MAXBIGINT;
+        if (value > ivalue2) value = (double) MAXBIGINT_DOUBLE;
+      } else value = (double) MAXBIGINT_DOUBLE;
       argstack[nargstack++] = value;
     }
 
@@ -3661,10 +3669,10 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
           if (istep > ivalue5) {
             offset = ivalue5 - ivalue1;
             istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
-            if (istep > ivalue2) istep = MAXBIGINT;
+            if (istep > ivalue2) istep = MAXBIGINT_DOUBLE;
           }
         }
-      } else istep = MAXBIGINT;
+      } else istep = MAXBIGINT_DOUBLE;
       double value = istep;
       argstack[nargstack++] = value;
     }

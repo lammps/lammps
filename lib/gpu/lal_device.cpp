@@ -277,7 +277,7 @@ int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);
   MPI_Comm_rank(_comm_gpu,&_gpu_rank);
 
-  #if !defined(CUDA_PROXY) && !defined(CUDA_MPS_SUPPORT)
+  #if !defined(CUDA_MPS_SUPPORT)
   if (_procs_per_gpu>1 && !gpu->sharing_supported(my_gpu))
     return -7;
   #endif
@@ -389,7 +389,11 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
   #ifdef CL_VERSION_2_0
   _ocl_compile_string+="-cl-std=CL2.0 ";
   #endif
-  if (params[4]!="0") _ocl_compile_string+="-cl-fast-relaxed-math ";
+  // workaround for double precision with Intel OpenCL
+  #ifdef _DOUBLE_DOUBLE
+  if (params[0] == "500") params[4] = "0";
+  #endif
+  if (params[4] != "0") _ocl_compile_string+="-cl-fast-relaxed-math ";
   _ocl_compile_string+=std::string(OCL_INT_TYPE)+" "+
     std::string(OCL_PRECISION_COMPILE);
   if (gpu->has_subgroup_support())

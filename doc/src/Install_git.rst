@@ -26,15 +26,18 @@ provides `limited support for subversion clients <svn_>`_.
 .. _git: https://git-scm.com
 .. _svn: https://help.github.com/en/github/importing-your-projects-to-github/working-with-subversion-on-github
 
-You can follow the LAMMPS development on 3 different git branches:
+You can follow the LAMMPS development on 4 different git branches:
 
-* **stable**   :  this branch is updated from the *release* branch with
-  every stable release version and also has selected bug fixes and updates
-  back-ported from the *develop* branch
 * **release**  :  this branch is updated with every patch or feature release;
   updates are always "fast-forward" merges from *develop*
 * **develop**  :  this branch follows the ongoing development and
   is updated with every merge commit of a pull request
+* **stable**   :  this branch is updated from the *release* branch with
+  every stable release version and also has selected bug fixes with every
+  update release when the *maintenance* branch is merged into it
+* **maintenance**  :  this branch collects back-ported bug fixes from the
+  *develop* branch to the *stable* branch. It is used to update *stable*
+  for update releases and it synchronized with *stable* at each stable release.
 
 To access the git repositories on your box, use the clone command to
 create a local copy of the LAMMPS repository with a command like:
@@ -60,17 +63,17 @@ between them at any time using "git checkout <branch name>".)
    *--depth* git command line flag.  That will create a "shallow clone"
    of the repository, which contains only a subset of the git history.
    Using a depth of 1000 is usually sufficient to include the head
-   commits of the *develop* and the *release* branches.  To include the
-   head commit of the *stable* branch you may need a depth of up
-   to 10000.  If you later need more of the git history, you can always
-   convert the shallow clone into a "full clone".
+   commits of the *develop*, the *release*, and the *maintenance*
+   branches.  To include the head commit of the *stable* branch you may
+   need a depth of up to 10000.  If you later need more of the git
+   history, you can always convert the shallow clone into a "full
+   clone".
 
 Once the command completes, your directory will contain the same files
 as if you unpacked a current LAMMPS tarball, with the exception, that
-the HTML documentation files are not included.  They can be fetched
-from the LAMMPS website by typing ``make fetch`` in the doc directory.
-Or they can be generated from the content provided in ``doc/src`` by
-typing ``make html`` from the ``doc`` directory.
+the HTML documentation files are not included. They can be generated
+from the content provided in ``doc/src`` by typing ``make html`` from
+the ``doc`` directory.
 
 After initial cloning, as bug fixes and new features are added to
 LAMMPS you can stay up-to-date by typing the following git commands
@@ -79,8 +82,9 @@ from within the "mylammps" directory:
 .. code-block:: bash
 
    git checkout release      # not needed if you always stay in this branch
-   git checkout stable       # use one of these 3 checkout commands
+   git checkout stable       # use one of these 4 checkout commands
    git checkout develop      # to choose the branch to follow
+   git checkout maintenance
    git pull
 
 Doing a "pull" will not change any files you have added to the LAMMPS
@@ -145,7 +149,7 @@ changed.  How to do this depends on the build system you are using.
       to enforce consistency of the source between the src folder
       and package directories.  This is OK to do even if you don't
       use any packages. The ``make purge`` command removes any deprecated
-      src files if they were removed by the patch from a package
+      src files if they were removed by the update from a package
       subdirectory.
 
       .. warning::
@@ -159,10 +163,10 @@ changed.  How to do this depends on the build system you are using.
 .. admonition:: Git protocols
    :class: note
 
-   The servers at github.com support the "https://" access protocol for
+   The servers at github.com support the "https" access protocol for
    anonymous, read-only access.  If you have a suitably configured
    GitHub account, you may also use SSH protocol with the URL
-   "git@github.com:lammps/lammps.git".
+   ``git@github.com:lammps/lammps.git``.
 
 The LAMMPS GitHub project is currently overseen by Axel Kohlmeyer
 (Temple U, akohlmey at gmail.com).

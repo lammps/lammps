@@ -28,10 +28,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 AtomVecChargeKokkos::AtomVecChargeKokkos(LAMMPS *lmp) : AtomVec(lmp),
-AtomVecKokkos(lmp), AtomVecCharge(lmp)
-{
-
-}
+AtomVecKokkos(lmp), AtomVecCharge(lmp), q(nullptr) {}
 
 /* ----------------------------------------------------------------------
    grow atom arrays

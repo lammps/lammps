@@ -27,6 +27,7 @@ _texture_2d( pos_tex,int4);
 __kernel void k_gauss(const __global numtyp4 *restrict x_,
                       const __global numtyp4 *restrict gauss1,
                       const int lj_types,
+                      const __global numtyp *restrict sp_lj,
                       const __global int *dev_nbor,
                       const __global int *dev_packed,
                       __global acctyp4 *restrict ans,
@@ -56,9 +57,11 @@ __kernel void k_gauss(const __global numtyp4 *restrict x_,
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
+    numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int j=dev_packed[nbor];
+      factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -72,10 +75,9 @@ __kernel void k_gauss(const __global numtyp4 *restrict x_,
 
       int mtype=itype*lj_types+jtype;
       if (rsq<gauss1[mtype].z) {
-        numtyp r2inv = ucl_recip(rsq);
-        numtyp r = ucl_sqrt(rsq);
-        numtyp force = (numtyp)-2.0*gauss1[mtype].x*gauss1[mtype].y*rsq*
-        ucl_exp(-gauss1[mtype].y*rsq)*r2inv; //*factor_lj;
+        numtyp force = (numtyp)-2.0*gauss1[mtype].x*gauss1[mtype].y*
+          ucl_exp(-gauss1[mtype].y*rsq);
+        force*=factor_lj;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -84,7 +86,7 @@ __kernel void k_gauss(const __global numtyp4 *restrict x_,
         if (EVFLAG && eflag) {
           numtyp e=-(gauss1[mtype].x*ucl_exp(-gauss1[mtype].y*rsq) -
             gauss1[mtype].w);
-          energy+=e; //factor_lj*e;
+          energy+=factor_lj*e;
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
@@ -104,6 +106,7 @@ __kernel void k_gauss(const __global numtyp4 *restrict x_,
 
 __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
                            const __global numtyp4 *restrict gauss1_in,
+                           const __global numtyp *restrict sp_lj_in,
                            const __global int *dev_nbor,
                            const __global int *dev_packed,
                            __global acctyp4 *restrict ans,
@@ -114,6 +117,9 @@ __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp4 gauss1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp sp_lj[4];
+  if (tid<4)
+    sp_lj[tid]=sp_lj_in[tid];
   int n_stride;
   local_allocate_store_pair();
 
@@ -141,9 +147,11 @@ __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
+    numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int j=dev_packed[nbor];
+      factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -156,10 +164,9 @@ __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<gauss1[mtype].z) {
-        numtyp r2inv = ucl_recip(rsq);
-        numtyp r = ucl_sqrt(rsq);
-        numtyp force = (numtyp)-2.0*gauss1[mtype].x*gauss1[mtype].y*rsq*
-        ucl_exp(-gauss1[mtype].y*rsq)*r2inv; //*factor_lj;
+        numtyp force = (numtyp)-2.0*gauss1[mtype].x*gauss1[mtype].y*
+          ucl_exp(-gauss1[mtype].y*rsq);
+        force*=factor_lj;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -168,7 +175,7 @@ __kernel void k_gauss_fast(const __global numtyp4 *restrict x_,
         if (EVFLAG && eflag) {
           numtyp e=-(gauss1[mtype].x*ucl_exp(-gauss1[mtype].y*rsq) -
             gauss1[mtype].w);
-          energy+=e; //factor_lj*e;
+          energy+=factor_lj*e;
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;

@@ -161,6 +161,9 @@ struct _liblammpsplugin {
   void (*scatter_atoms_subset)(void *, const char *, int, int, int, int *, void *);
 
   void (*gather_bonds)(void *, void *);
+  void (*gather_angles)(void *, void *);
+  void (*gather_dihedrals)(void *, void *);
+  void (*gather_impropers)(void *, void *);
 
   void (*gather)(void *, const char *, int, int, void *);
   void (*gather_concat)(void *, const char *, int, int, void *);

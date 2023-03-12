@@ -26,8 +26,8 @@
 
 #if !defined(USE_OPENCL) && !defined(USE_HIP)
 #ifndef LAL_USE_OLD_NEIGHBOR
-// Issue with incorrect results with CUDA >= 11.2
-#if (CUDA_VERSION > 11019)
+// Issue with incorrect results with CUDA >= 11.2 and pre-12.0
+#if (CUDA_VERSION > 11019) && (CUDA_VERSION < 12000)
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 #endif

@@ -31,7 +31,6 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
 
 enum{NONE,DIFFUSIVE,MAXWELL,CCL};
 

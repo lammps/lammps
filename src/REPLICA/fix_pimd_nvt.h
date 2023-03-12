@@ -13,21 +13,22 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(pimd,FixPIMD);
+FixStyle(pimd,FixPIMDNVT);
+FixStyle(pimd/nvt,FixPIMDNVT);
 // clang-format on
 #else
 
-#ifndef FIX_PIMD_H
-#define FIX_PIMD_H
+#ifndef FIX_PIMD_NVT_H
+#define FIX_PIMD_NVT_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixPIMD : public Fix {
+class FixPIMDNVT : public Fix {
  public:
-  FixPIMD(class LAMMPS *, int, char **);
-  ~FixPIMD() override;
+  FixPIMDNVT(class LAMMPS *, int, char **);
+  ~FixPIMDNVT() override;
 
   int setmask() override;
 
@@ -50,6 +51,8 @@ class FixPIMD : public Fix {
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+
+ protected:
 
   int method;
   int np;

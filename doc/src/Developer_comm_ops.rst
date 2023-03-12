@@ -28,7 +28,7 @@ The need to do this communication arises when data from the owned atoms
 is updated (e.g. their positions) and this updated information needs to
 be **copied** to the corresponding ghost atoms.
 
-And second, *reverse communication* which sends ghost atom information
+And second, *reverse communication*, which sends ghost atom information
 from each processor to the owning processor to **accumulate** (sum)
 the values with the corresponding owned atoms.  The need for this
 arises when data is computed and also stored with ghost atoms
@@ -58,7 +58,7 @@ embedded-atom method (EAM) which compute intermediate values in the
 first part of the compute() function that need to be stored by both
 owned and ghost atoms for the second part of the force computation.
 The *Comm* class methods perform the MPI communication for buffers of
-per-atom data.  They "call back" to the *Pair* class so it can *pack*
+per-atom data.  They "call back" to the *Pair* class, so it can *pack*
 or *unpack* the buffer with data the *Pair* class owns.  There are 4
 such methods that the *Pair* class must define, assuming it uses both
 forward and reverse communication:
@@ -70,22 +70,22 @@ forward and reverse communication:
 
 The arguments to these methods include the buffer and a list of atoms
 to pack or unpack.  The *Pair* class also must set the *comm_forward*
-and *comm_reverse* variables which store the number of values stored
+and *comm_reverse* variables, which store the number of values stored
 in the communication buffers for each operation.  This means, if
 desired, it can choose to store multiple per-atom values in the
 buffer, and they will be communicated together to minimize
 communication overhead.  The communication buffers are defined vectors
 containing ``double`` values.  To correctly store integers that may be
 64-bit (bigint, tagint, imageint) in the buffer, you need to use the
-`ubuf union <Communication buffer coding with ubuf>`_ construct.
+:ref:`ubuf union <communication_buffer_coding_with_ubuf>` construct.
 
 The *Fix*, *Compute*, and *Dump* classes can also invoke the same kind
 of forward and reverse communication operations using the same *Comm*
-class methods.  Likewise the same pack/unpack methods and
+class methods.  Likewise, the same pack/unpack methods and
 comm_forward/comm_reverse variables must be defined by the calling
 *Fix*, *Compute*, or *Dump* class.
 
-For *Fix* classes there is an optional second argument to the
+For *Fix* classes, there is an optional second argument to the
 *forward_comm()* and *reverse_comm()* call which can be used when the
 fix performs multiple modes of communication, with different numbers
 of values per atom.  The fix should set the *comm_forward* and
@@ -150,7 +150,7 @@ latter case, when the *ring* operation is complete, each processor can
 examine its original buffer to extract modified values.
 
 Note that the *ring* operation is similar to an MPI_Alltoall()
-operation where every processor effectively sends and receives data to
+operation, where every processor effectively sends and receives data to
 every other processor.  The difference is that the *ring* operation
 does it one step at a time, so the total volume of data does not need
 to be stored by every processor.  However, the *ring* operation is
@@ -184,8 +184,8 @@ The *exchange_data()* method triggers the communication to be
 performed.  Each processor provides the vector of *N* datums to send,
 and the size of each datum.  All datums must be the same size.
 
-The *create_atom()* and *exchange_atom()* methods are similar except
-that the size of each datum can be different.  Typically this is used
+The *create_atom()* and *exchange_atom()* methods are similar, except
+that the size of each datum can be different.  Typically, this is used
 to communicate atoms, each with a variable amount of per-atom data, to
 other processors.
 

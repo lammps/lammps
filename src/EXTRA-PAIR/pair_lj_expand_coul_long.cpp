@@ -60,6 +60,8 @@ PairLJExpandCoulLong::PairLJExpandCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJExpandCoulLong::~PairLJExpandCoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

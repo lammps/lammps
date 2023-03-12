@@ -34,7 +34,7 @@ Here are suggestions on how to perform these tasks:
   a true molecular builder that will generate complex molecular models.
   See the :doc:`Tools <Tools>` page for details on tools packaged with
   LAMMPS.  The `Pre-/post-processing page
-  <https:/www.lammps.org/prepost.html>`_ of the LAMMPS homepage
+  <https://www.lammps.org/prepost.html>`_ of the LAMMPS homepage
   describes a variety of third party tools for this task.  Furthermore,
   some internal LAMMPS commands allow reconstructing, or selectively adding
   topology information, as well as provide the option to insert molecule
@@ -66,10 +66,9 @@ Here are suggestions on how to perform these tasks:
   these various options.
 * **Visualization:** LAMMPS can produce NETPBM, JPG, or PNG format
   snapshot images on-the-fly via its :doc:`dump image <dump_image>`
-  command and pass them to an external program, `FFmpeg
-  <https://www.ffmpeg.org>`_, to generate movies from them.  For
-  high-quality, interactive visualization, there are many excellent and
-  free tools available.  See the `Visualization Tools
+  command and pass them to an external program, `FFmpeg  <https://ffmpeg.org/>`_,
+  to generate movies from them.  For high-quality, interactive visualization,
+  there are many excellent and free tools available.  See the `Visualization Tools
   <https://www.lammps.org/viz.html>`_ page of the LAMMPS website for
   visualization packages that can process LAMMPS output data.
 * **Plotting:** See the next bullet about Pizza.py as well as the

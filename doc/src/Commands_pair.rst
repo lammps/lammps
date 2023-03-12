@@ -166,7 +166,7 @@ OPT.
    * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/msm/dielectric <pair_dielectric>`
    * :doc:`lj/cut/coul/wolf (o) <pair_lj_cut_coul>`
-   * :doc:`lj/cut/dipole/cut (go) <pair_dipole>`
+   * :doc:`lj/cut/dipole/cut (gko) <pair_dipole>`
    * :doc:`lj/cut/dipole/long (g) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/cut/soft (o) <pair_fep_soft>`
@@ -175,7 +175,7 @@ OPT.
    * :doc:`lj/cut/tip4p/long (got) <pair_lj_cut_tip4p>`
    * :doc:`lj/cut/tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/expand (gko) <pair_lj_expand>`
-   * :doc:`lj/expand/coul/long (g) <pair_lj_expand>`
+   * :doc:`lj/expand/coul/long (gk) <pair_lj_expand>`
    * :doc:`lj/gromacs (gko) <pair_gromacs>`
    * :doc:`lj/gromacs/coul/gromacs (ko) <pair_gromacs>`
    * :doc:`lj/long/coul/long (iot) <pair_lj_long>`

@@ -74,7 +74,6 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   int is_kokkos_descriptor = (dynamic_cast<MLIAPDescriptorKokkos<DeviceType>*>(descriptor)) != nullptr;
   auto model_space = is_kokkos_model ? execution_space : Host;
   auto descriptor_space = is_kokkos_descriptor? execution_space : Host;
-
   // consistency checks
   if (data->ndescriptors != model->ndescriptors)
     error->all(FLERR, "Incompatible model and descriptor descriptor count");
@@ -107,11 +106,14 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   k_data->sync(model_space, IELEMS_MASK | DESCRIPTORS_MASK);
   model->compute_gradients(data);
   k_data->modified(model_space, BETAS_MASK);
-  if (eflag_atom)
+  if (eflag_atom) {
     k_data->modified(model_space, EATOMS_MASK);
+  }
 
   // calculate force contributions beta_i*dB_i/dR_j
+  atomKK->sync(descriptor_space,F_MASK);
   k_data->sync(descriptor_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | ELEMS_MASK | BETAS_MASK | JATOMS_MASK | PAIR_I_MASK | JELEMS_MASK | RIJ_MASK );
+
   descriptor->compute_forces(data);
 
   e_tally(data);
@@ -184,7 +186,6 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
         new_args.push_back(arg[iarg++]);
     } else if (strcmp(arg[iarg], "unified") == 0) {
 #ifdef MLIAP_PYTHON
-      printf("IN SETUP UNIFIED\n");
       if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definitions");
       if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definitions");
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap unified", error);
@@ -277,7 +278,7 @@ void PairMLIAPKokkos<DeviceType>::coeff(int narg, char **arg) {
       h_cutsq(itype,jtype) = descriptor->cutsq[map[itype]][map[jtype]];
   k_cutsq.modify<LMPHostType>();
   k_cutsq.sync<DeviceType>();
-  int gradgradflag = -1;
+  constexpr int gradgradflag = -1;
   delete data;
   data = new MLIAPDataKokkos<DeviceType>(lmp, gradgradflag, map, model, descriptor, this);
   data->init();
@@ -293,7 +294,7 @@ void PairMLIAPKokkos<DeviceType>::e_tally(MLIAPData* data)
   if (eflag_global) eng_vdwl += data->energy;
   if (eflag_atom) {
     MLIAPDataKokkos<DeviceType> *k_data = static_cast<MLIAPDataKokkos<DeviceType>*>(data);
-    k_data->sync(execution_space, IATOMS_MASK | EATOMS_MASK);
+    k_data->sync(execution_space, IATOMS_MASK | EATOMS_MASK, true);
     auto d_iatoms = k_data->k_iatoms.template view<DeviceType>();
     auto d_eatoms = k_data->k_eatoms.template view<DeviceType>();
     auto d_eatom = k_eatom.template view<DeviceType>();

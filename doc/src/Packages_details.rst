@@ -228,8 +228,9 @@ conversion of atomic information to continuum fields.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <atc>` on the :doc:`Build extras <Build_extras>` page.
-The ATC package requires that also the `MANYBODY <PKG-MANYBODY>`_ package is installed.
+This package has :ref:`specific installation instructions <atc>` on the
+:doc:`Build extras <Build_extras>` page.  The ATC package requires that
+also the :ref:`MANYBODY <PKG-MANYBODY>` package is installed.
 
 **Supporting info:**
 
@@ -391,8 +392,8 @@ rigid-body integrators with improved stability.
 
 **Install:**
 
-The CG-DNA package requires that also the `MOLECULE <PKG-MOLECULE>`_ and
-`ASPHERE <PKG-ASPHERE>`_ packages are installed.
+The CG-DNA package requires that also the :ref:`MOLECULE <PKG-MOLECULE>`
+and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
 
 **Supporting info:**
 
@@ -1114,15 +1115,15 @@ INTEL package
 
 **Contents:**
 
-Dozens of pair, fix, bond, angle, dihedral, improper, and kspace
-styles which are optimized for Intel CPUs and KNLs (Knights Landing).
-All of them have an "intel" in their style name.  The
-:doc:`INTEL package <Speed_intel>` page gives details of what hardware and
-compilers are required on your system, and how to build and use this
-package.  Its styles can be invoked at run time via the "-sf intel" or
-"-suffix intel" :doc:`command-line switches <Run_options>`.  Also see
-the :ref:`KOKKOS <PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`OPENMP <PKG-OPENMP>` packages,
-which have styles optimized for CPUs and KNLs.
+Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
+which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+them have an "intel" in their style name.  The :doc:`INTEL package
+<Speed_intel>` page gives details of what hardware and compilers are
+required on your system, and how to build and use this package.  Its
+styles can be invoked at run time via the "-sf intel" or "-suffix intel"
+:doc:`command-line switches <Run_options>`.  Also see the :ref:`KOKKOS
+<PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`OPENMP <PKG-OPENMP>`
+packages, which have styles optimized for CPUs and KNLs.
 
 You need to have an Intel compiler, version 14 or higher to take full
 advantage of this package. While compilation with GNU compilers is
@@ -1249,12 +1250,13 @@ Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute
 styles adapted to compile using the Kokkos library which can convert
 them to OpenMP or CUDA code so that they run efficiently on multicore
 CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
-style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives
-details of what hardware and software is required on your system, and
-how to build and use this package.  Its styles can be invoked at run
-time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.  Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`,
-:ref:`INTEL <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
-have styles optimized for CPUs, KNLs, and GPUs.
+style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives details
+of what hardware and software is required on your system, and how to
+build and use this package.  Its styles can be invoked at run time via
+the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.
+Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`, :ref:`INTEL
+<PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which have styles
+optimized for CPUs, KNLs, and GPUs.
 
 You must have a C++14 compatible compiler to use this package.
 KOKKOS makes extensive use of advanced C++ features, which can
@@ -1414,7 +1416,7 @@ more precise than what can be done with :ref:`tabulated potentials
 **Authors:** Axel Kohlmeyer (Temple U).  Lepton itself is developed
 by Peter Eastman at Stanford University.
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 **Install:**
 
@@ -1651,7 +1653,7 @@ server when the package is installed for the first time.
 Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
 of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-.. deprecated:: TBD
+.. deprecated:: 8Feb2023
 
 **Author of the C++ styles:**
 Philipp Kloza (U Cambridge)
@@ -2328,7 +2330,7 @@ and third order tensor from finite differences.
 
 **Install:**
 
-The PHONON package requires that also the `KSPACE <PKG-KSPACE>`_
+The PHONON package requires that also the :ref:`KSPACE <PKG-KSPACE>`
 package is installed.
 
 
@@ -2929,11 +2931,9 @@ VORONOI package
 **Contents:**
 
 A compute command which calculates the Voronoi tesselation of a
-collection of atoms by wrapping the `Voro++ library <voro-home_>`_.  This
-can be used to calculate the local volume or each atoms or its near
-neighbors.
-
-.. _voro-home: https://math.lbl.gov/voro++
+collection of atoms by wrapping the `Voro++ library
+<https://math.lbl.gov/voro++/>`_.  This can be used to calculate the
+local volume or each atoms or its near neighbors.
 
 To use this package you must have the Voro++ library available on your
 system.

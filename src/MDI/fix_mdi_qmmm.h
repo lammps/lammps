@@ -42,7 +42,7 @@ class FixMDIQMMM : public Fix {
   void min_post_neighbor() override;
   void min_pre_force(int) override;
   void min_post_force(int) override;
-  
+
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
@@ -71,9 +71,9 @@ class FixMDIQMMM : public Fix {
   int stress_exists;
 
   int nmax;
-  
+
   class Pair *pair_coul;    // ptr to instance of pair coul variant
-  
+
   // QM atom data structs
 
   int nqm;                   // # of QM atoms
@@ -135,7 +135,7 @@ class FixMDIQMMM : public Fix {
   void set_mm2owned();
 
   void set_box();
-  
+
   void set_xqm(int);
   void set_eqm();
   void set_tqm();
@@ -155,7 +155,7 @@ class FixMDIQMMM : public Fix {
   void send_types_mm();
   void send_elements_mm();
   void send_charges_mm();
-  
+
   void unit_conversions();
 
 };

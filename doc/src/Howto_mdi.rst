@@ -135,7 +135,7 @@ See the examples/QUANTUM sub-directories for more details:
 * LATTE - AIMD only
 * PySCF - QMMM only
 * NWChem - AIMD or QMMM
-  
+
 There are also at least two quantum codes which have direct MDI
 support, `Quantum ESPRESSO (QE) <https://www.quantum-espresso.org/>`_
 and `INQ <https://qsg.llnl.gov/node/101.html>`_.  There are also

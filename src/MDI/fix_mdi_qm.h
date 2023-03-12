@@ -63,7 +63,7 @@ class FixMDIQM : public Fix {
   MDI_Comm mdicomm;
   int natoms_exists,celldispl_exists,elements_exists,types_exists;
   int stress_exists;
-  
+
   int nmax;
 
   // unit conversion factors

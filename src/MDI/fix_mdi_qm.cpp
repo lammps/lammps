@@ -388,7 +388,7 @@ void FixMDIQM::init()
         if (eqm[i] != eqm_old[i]) new_system = 1;
       memory->destroy(eqm_old);
     }
-    
+
   } else if (types_exists) {
     if (new_system) set_tqm();
     else {
@@ -584,7 +584,7 @@ void FixMDIQM::post_force(int vflag)
     //   divide by nprocs so each proc stores a portion
     // this is b/c ComputePressure expects this as input from a fix
     //   it will do an MPI_Allreduce and divide by volume
-    
+
     if (addflag) {
       double volume;
       if (domain->dimension == 2)
@@ -698,7 +698,7 @@ int FixMDIQM::set_nqm()
 {
   // require 3*nqm be a small INT, so can MPI_Allreduce xqm
 
-  if (3*atom->natoms > MAXSMALLINT) 
+  if (3*atom->natoms > MAXSMALLINT)
     error->all(FLERR,"Fix mdi/qm has too many atoms");
 
   int ncount = atom->natoms;

@@ -103,7 +103,7 @@ do the following:
 * set the charge on each QM atom to zero
 * define no bonds (angles, dihederals, etc) which involve both QM and MM atoms
 * define a force field (pair, bonds, angles, optional kspace) for the entire system
-  
+
 The first two bullet can be performed using the :doc:`delete_bonds
 <delete_bonds>` and :doc:`set <set>` commands.
 
@@ -136,7 +136,7 @@ should do the following:
 * define a hybrid pair style which includes a Coulomb-only pair sub-style
 * define no bonds (angles, dihederals, etc) which involve both QM and MM atoms
 * define a force field (pair, bonds, angles, optional kspace) for the entire system
-  
+
 The first operation can be performed using the :doc:`delete_bonds
 <delete_bonds>` command.  See the examples/QUANTUM/NWChem/in.* files
 for examples of how to do this.

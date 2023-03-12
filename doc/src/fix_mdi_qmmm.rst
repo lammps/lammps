@@ -39,6 +39,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 This command enables LAMMPS to act as a client with another server code
 to perform a coupled QM/MM (quantum-mechanics/molecular-mechanics)
 simulation.  LAMMPS will perform classical MD (molecular mechanics

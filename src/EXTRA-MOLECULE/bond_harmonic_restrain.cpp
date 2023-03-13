@@ -176,7 +176,7 @@ void BondHarmonicRestrain::init_style()
 
     // after a restart, natoms is set but initial is a null pointer.
     // we add the fix, but do not initialize it.  It will pull the data from the restart.
-    
+
     if (!initial) {
       initial = dynamic_cast<FixStorePeratom *>(
         modify->add_fix("BOND_RESTRAIN_X0 all STORE/PERATOM 3 0 1 1"));

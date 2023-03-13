@@ -202,8 +202,6 @@ placed after a "protected:" label.
    }    // namespace LAMMPS_NS
    #endif
 
-Details of the class definition will be discussed later.
-
 Implementation file
 """""""""""""""""""
 
@@ -251,9 +249,10 @@ may be around for a long time, it is beneficial to use some kind of
 
 The second section of the implementation file has various include
 statements.  The include file for the class header has to come first,
-then LAMMPS classes (sorted alphabetically) and system headers and
-others, if needed.  Note the standardized C++ notation for headers of
-C-library functions. The final statement of this segment imports the
+then a block of LAMMPS classes (sorted alphabetically) followed by a
+block of system headers and others, if needed.  Note the standardized
+C++ notation for headers of C-library functions (``cmath`` instead of
+``math.h``).  The final statement of this segment imports the
 ``LAMMPS_NS::`` namespace globally for this file.  This way, all LAMMPS
 specific functions and classes do not have to be prefixed with
 ``LAMMPS_NS::``.
@@ -283,7 +282,7 @@ a pair style are available.
    }
 
 The `writedata = 1;` statement indicates that the pair style is capable
-of writing the current pair coefficient parameters to data files. That
+of writing the current pair coefficient parameters to data files.  That
 is, the class implements specific versions for ``Pair::data()`` and
 ``Pair::data_all()``.  Other statements that could be added here would
 be `single_enable = 1;` or `respa_enable = 0;` to indicate that the

@@ -121,6 +121,11 @@ molecule (header keyword = inertia).
    ensure space is allocated for storing topology info for molecules that
    are added later.
 
+----------
+
+Format of a molecule file
+"""""""""""""""""""""""""
+
 The format of an individual molecule file is similar but
 (not identical) to the data file read by the :doc:`read_data <read_data>`
 commands, and is as follows.

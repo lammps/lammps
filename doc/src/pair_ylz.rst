@@ -142,10 +142,11 @@ the :doc:`atom_style ellipsoid <atom_style>` command.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/asphere
-:doc:<fix_nve_asphere>`, `compute temp/asphere <compute_temp_asphere>`,
-:doc::doc:`pair_style resquared <pair_resquared>`, :doc:`pair_style
-:doc:gayberne <pair_gayberne>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`fix nve/asphere <fix_nve_asphere>`,
+:doc:`compute temp/asphere <compute_temp_asphere>`,
+:doc:`pair_style resquared <pair_resquared>`,
+:doc:`pair_style gayberne <pair_gayberne>`
 
 Default
 """""""

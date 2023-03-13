@@ -52,6 +52,8 @@ class FixPIMDNVT : public Fix {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
+ protected:
+
   int method;
   int np;
   double inverse_np;

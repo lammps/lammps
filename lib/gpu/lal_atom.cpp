@@ -403,7 +403,7 @@ double AtomT::host_memory_usage() const {
   return _max_atoms*atom_bytes*sizeof(numtyp)+sizeof(Atom<numtyp,acctyp>);
 }
 
-#ifdef USE_CUDPP
+#if defined(USE_CUDPP) || defined(USE_HIP_DEVICE_SORT)
 #define USE_CUDPP_ARG(arg) arg
 #else
 #define USE_CUDPP_ARG(arg)

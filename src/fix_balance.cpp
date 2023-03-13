@@ -104,8 +104,9 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   balance = new Balance(lmp);
   if (lbstyle == SHIFT) balance->shift_setup(bstr,nitermax,thresh);
-  balance->options(iarg,narg,arg);
+  balance->options(iarg,narg,arg,0);
   wtflag = balance->wtflag;
+  sortflag = balance->sortflag;
 
   if (balance->varflag && nevery == 0)
     error->all(FLERR,"Fix balance nevery = 0 cannot be used with weight var");
@@ -295,12 +296,14 @@ void FixBalance::rebalance()
   // set disable = 0, so weights migrate with atoms
   //   important to delay disable = 1 until after pre_neighbor imbfinal calc
   //   b/c atoms may migrate again in comm->exchange()
-  // NOTE: for reproducible debug runs, set 1st arg of migrate_atoms() to 1
+  // sortflag determines whether irregular sorts its
+  //   comm messages for reproducibility
+  //   if not, message order is random, atom order is non-deterministic
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   if (wtflag) balance->fixstore->disable = 0;
-  if (lbstyle == BISECTION) irregular->migrate_atoms(0,1,sendproc);
-  else if (irregular->migrate_check()) irregular->migrate_atoms();
+  if (lbstyle == BISECTION) irregular->migrate_atoms(sortflag,1,sendproc);
+  else if (irregular->migrate_check()) irregular->migrate_atoms(sortflag);
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // notify all classes that store distributed grids

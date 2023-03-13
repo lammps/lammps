@@ -54,8 +54,8 @@ if(DOWNLOAD_PLUMED)
     set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}plumedWrapper${CMAKE_STATIC_LIBRARY_PREFIX}")
   endif()
 
-  set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.1/plumed-src-2.8.1.tgz" CACHE STRING "URL for PLUMED tarball")
-  set(PLUMED_MD5 "6bfe72ebdae63dc38a9ca27d9b0e08f8" CACHE STRING "MD5 checksum of PLUMED tarball")
+  set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.2/plumed-src-2.8.2.tgz" CACHE STRING "URL for PLUMED tarball")
+  set(PLUMED_MD5 "599092b6a0aa6fff992612537ad98994" CACHE STRING "MD5 checksum of PLUMED tarball")
 
   mark_as_advanced(PLUMED_URL)
   mark_as_advanced(PLUMED_MD5)

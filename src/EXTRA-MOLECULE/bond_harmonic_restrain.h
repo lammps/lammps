@@ -41,7 +41,7 @@ class BondHarmonicRestrain : public Bond {
  protected:
   double *k;
   bigint natoms;
-  class FixPropertyAtom *initial;
+  class FixStorePeratom *initial;
 
   virtual void allocate();
 };

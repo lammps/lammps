@@ -135,7 +135,7 @@ void TAD::command(int narg, char **arg)
 
   // create FixStorePeratom object to store revert state
 
-  fix_revert = dynamic_cast<FixStorePeratom *>(modify->add_fix("tad_revert all STORE/PERATOM 0 7"));
+  fix_revert = dynamic_cast<FixStorePeratom *>(modify->add_fix("tad_revert all STORE/PERATOM 7 0 0 0"));
 
   // create Finish for timing output
 

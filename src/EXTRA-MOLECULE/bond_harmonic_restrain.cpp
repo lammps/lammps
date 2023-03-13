@@ -17,7 +17,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_property_atom.h"
+#include "fix_store_peratom.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -59,7 +59,7 @@ void BondHarmonicRestrain::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   double **x = atom->x;
-  double **x0 = (double **) atom->extract("d2_BOND_RESTRAIN_X0");
+  double **x0 = initial->astore;
   double **f = atom->f;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
@@ -162,12 +162,12 @@ void BondHarmonicRestrain::init_style()
   if (natoms < 0) {
 
     // create internal fix to store initial positions
-    initial = dynamic_cast<FixPropertyAtom *>(
-        modify->add_fix("BOND_RESTRAIN_X0 all property/atom d2_BOND_RESTRAIN_X0 3 ghost yes"));
+    initial = dynamic_cast<FixStorePeratom *>(
+      modify->add_fix("BOND_RESTRAIN_X0 all STORE/PERATOM 3 0 1 1"));
     if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
 
     natoms = atom->natoms;
-    double *const *const x0 = (double **) atom->extract("d2_BOND_RESTRAIN_X0");
+    double **x0 = initial->astore;
     const double *const *const x = atom->x;
     for (int i = 0; i < atom->nlocal; ++i)
       for (int j = 0; j < 3; ++j) x0[i][j] = x[i][j];
@@ -176,10 +176,10 @@ void BondHarmonicRestrain::init_style()
 
     // after a restart, natoms is set but initial is a null pointer.
     // we add the fix, but do not initialize it.  It will pull the data from the restart.
-
+    
     if (!initial) {
-      initial = dynamic_cast<FixPropertyAtom *>(
-          modify->add_fix("BOND_RESTRAIN_X0 all property/atom d2_BOND_RESTRAIN_X0 3 ghost yes"));
+      initial = dynamic_cast<FixStorePeratom *>(
+	modify->add_fix("BOND_RESTRAIN_X0 all STORE/PERATOM 3 0 1 1"));
       if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
     }
   }
@@ -230,7 +230,7 @@ void BondHarmonicRestrain::write_data(FILE *fp)
 
 double BondHarmonicRestrain::single(int type, double rsq, int i, int j, double &fforce)
 {
-  double **x0 = (double **) atom->extract("d2_BOND_RESTRAIN_X0");
+  double **x0 = initial->astore;
 
   double delx = x0[i][0] - x0[j][0];
   double dely = x0[i][1] - x0[j][1];

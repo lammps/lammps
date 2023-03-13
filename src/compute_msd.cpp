@@ -64,7 +64,7 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
 
   id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
   fix = dynamic_cast<FixStorePeratom *>(
-      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 3", id_fix, group->names[igroup])));
+      modify->add_fix(fmt::format("{} {} STORE/PERATOM 3 0 0 1", id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file

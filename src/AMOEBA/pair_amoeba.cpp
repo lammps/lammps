@@ -861,7 +861,7 @@ void PairAmoeba::init_style()
   Fix *myfix;
   if (first_flag) {
     id_pole = utils::strdup("AMOEBA_pole");
-    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 13",id_pole,group->names[0]));
+    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 13 0 0 1",id_pole,group->names[0]));
     fixpole = dynamic_cast<FixStorePeratom *>(myfix);
   }
 
@@ -873,12 +873,12 @@ void PairAmoeba::init_style()
 
   if (first_flag && use_pred) {
     id_udalt = utils::strdup("AMOEBA_udalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM {} 3 0 1",
                                         id_udalt, group->names[0], maxualt));
     fixudalt = dynamic_cast<FixStorePeratom *>(myfix);
 
     id_upalt = utils::strdup("AMOEBA_upalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM {} 3 0 1",
                                         id_upalt, group->names[0], maxualt));
     fixupalt = dynamic_cast<FixStorePeratom *>(myfix);
   }

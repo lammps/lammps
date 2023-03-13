@@ -5028,7 +5028,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
 
     id_fix = utils::strdup(std::string(name) + "_VARIABLE_STORE");
     fixstore = dynamic_cast<FixStorePeratom *>(
-      modify->add_fix(std::string(id_fix) + " all STORE/PERATOM 0 1"));
+      modify->add_fix(std::string(id_fix) + " all STORE/PERATOM 1 0 0 0"));
     buffer = new char[CHUNK*MAXLINE];
   }
 }

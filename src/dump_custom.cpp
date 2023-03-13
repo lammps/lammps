@@ -2013,7 +2013,7 @@ int DumpCustom::modify_param(int narg, char **arg)
 
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
-      threshid += fmt::format(" {} STORE/PERATOM 1 1", group->names[igroup]);
+      threshid += fmt::format(" {} STORE/PERATOM 1 0 0 1", group->names[igroup]);
       thresh_fix[nthreshlast] = dynamic_cast<FixStorePeratom *>(modify->add_fix(threshid));
 
       thresh_last[nthreshlast] = nthreshlast;

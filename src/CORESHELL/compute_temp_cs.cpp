@@ -68,7 +68,7 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
 
   id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
   fix = dynamic_cast<FixStorePeratom *>(
-    modify->add_fix(fmt::format("{} {} STORE/PERATOM 0 1", id_fix, group->names[igroup])));
+    modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 0 0 0", id_fix, group->names[igroup])));
 
   // set fix store values = 0 for now
   // fill them in via setup() once Comm::borders() has been called

@@ -40,7 +40,7 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
 
   id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
   fix = dynamic_cast<FixStorePeratom *>(
-    modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 3", id_fix, group->names[igroup])));
+    modify->add_fix(fmt::format("{} {} STORE/PERATOM 3 0 0 1", id_fix, group->names[igroup])));
 
   // store current velocities in fix store array
   // skip if reset from restart file

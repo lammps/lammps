@@ -212,7 +212,7 @@ void FixAdaptFEP::post_constructor()
   if (diamflag) {
     id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
     fix_diam = dynamic_cast<FixStorePeratom *>(
-      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 1", id_fix_diam,group->names[igroup])));
+      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 0 0 1", id_fix_diam,group->names[igroup])));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -230,7 +230,7 @@ void FixAdaptFEP::post_constructor()
   if (chgflag) {
     id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
     fix_chg = dynamic_cast<FixStorePeratom *>(
-      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 1",id_fix_chg,group->names[igroup])));
+      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 0 0 1",id_fix_chg,group->names[igroup])));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;

@@ -169,7 +169,7 @@
 #define ucl_abs fabs
 #define ucl_erfc erfc
 
-#if defined(FAST_MATH) && !defined(_DOUBLE_DOUBLE)
+#if defined(FAST_MATH) && (FAST_MATH > 0) && !defined(_DOUBLE_DOUBLE)
 
 #define ucl_exp native_exp
 #define ucl_pow pow

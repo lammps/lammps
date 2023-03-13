@@ -221,9 +221,9 @@ options choose a z-coordinate for insertion independently.
 
 The vx, vy, and vz components of velocity for the inserted particle
 are set by sampling a uniform distribution between the bounds set by
-the values specified for the *vx*, *vy*, and *vz* keywords. Note that 
-normally, new particles should be a assigned a negative vertical 
-velocity so that they move towards the surface.  For molecules, the 
+the values specified for the *vx*, *vy*, and *vz* keywords. Note that
+normally, new particles should be a assigned a negative vertical
+velocity so that they move towards the surface.  For molecules, the
 same velocity is given to every particle (no rotation or bond vibration).
 
 If the *target* option is used, the velocity vector of the inserted

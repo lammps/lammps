@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePressureAlchemy::ComputePressureAlchemy(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg), fix(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute pressure/alchemy command");
   if (igroup) error->all(FLERR, "Compute pressure/alchemy must use group all");

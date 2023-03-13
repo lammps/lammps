@@ -538,7 +538,10 @@ set(CMAKE_TUNE_FLAGS "${CMAKE_TUNE_DEFAULT}" CACHE STRING "Compiler and machine 
 separate_arguments(CMAKE_TUNE_FLAGS)
 foreach(_FLAG ${CMAKE_TUNE_FLAGS})
   target_compile_options(lammps PRIVATE ${_FLAG})
-  target_compile_options(lmp PRIVATE ${_FLAG})
+  # skip these flags when linking the main executable
+  if(NOT (("${_FLAG}" STREQUAL "-Xcudafe") OR (("${_FLAG}" STREQUAL "--diag_suppress=unrecognized_pragma"))))
+    target_compile_options(lmp PRIVATE ${_FLAG})
+  endif()
 endforeach()
 ########################################################################
 # Basic system tests (standard libraries, headers, functions, types)   #

@@ -532,8 +532,7 @@ void lammps_file(void *handle, const char *filename)
   BEGIN_CAPTURE
   {
     if (lmp->update->whichflag != 0)
-      lmp->error->all(FLERR,"Library error: issuing LAMMPS commands "
-                      "during a run is not allowed.");
+      lmp->error->all(FLERR, "Library error: issuing LAMMPS commands during a run is not allowed");
     else
       lmp->input->file(filename);
   }

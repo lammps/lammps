@@ -1914,11 +1914,15 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
 void Atom::set_mass(const char *file, int line, int itype, double value)
 {
-  if (mass == nullptr) error->all(file,line, "Cannot set mass for atom style {}", atom_style);
+  if (mass == nullptr)
+    error->all(file,line, "Cannot set per-type mass for atom style {}", atom_style);
   if (itype < 1 || itype > ntypes)
     error->all(file,line,"Invalid type {} for atom mass {}", itype, value);
-  if (value <= 0.0) error->all(file,line,"Invalid atom mass value {}", value);
-
+  if (value <= 0.0) {
+    if (comm->me == 0)
+      error->warning(file,line,"Ignoring invalid mass value {} for atom type {}", value, itype);
+    return;
+  }
   mass[itype] = value;
   mass_setflag[itype] = 1;
 }

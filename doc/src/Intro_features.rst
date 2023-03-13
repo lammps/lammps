@@ -195,7 +195,7 @@ Multi-replica models
 * :doc:`parallel replica dynamics <prd>`
 * :doc:`temperature accelerated dynamics <tad>`
 * :doc:`parallel tempering <temper>`
-* path-integral MD: `first variant <fix_pimd>`, `second variant <fix_ipi>`
+* path-integral MD: :doc:`first variant <fix_pimd>`, :doc:`second variant <fix_ipi>`
 * multi-walker collective variables with :doc:`Colvars <fix_colvars>` and :doc:`Plumed <fix_plumed>`
 
 .. _prepost:

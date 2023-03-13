@@ -61,7 +61,7 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using MathConst::MY_PI;
+using MathConst::MY_4PI;
 
 /* ---------------------------------------------------------------------- */
 
@@ -81,7 +81,7 @@ FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *_lmp, int narg, char **arg) :
   double tol = utils::numeric(FLERR, arg[4], false, lmp);
   tol_abs = tol_rel = tol;
 
-  itr_max = 20;
+  itr_max = 50;
   mr = 0;
   randomized = 0;
   ave_charge = 0;
@@ -311,13 +311,13 @@ void FixPolarizeBEMGMRES::setup(int /*vflag*/)
 
   epsilon0e2q = 1.0;
   if (strcmp(update->unit_style, "real") == 0)
-    epsilon0e2q = 0.000240263377163643;
+    epsilon0e2q = 0.000240263377163643 * MY_4PI;
   else if (strcmp(update->unit_style, "metal") == 0)
-    epsilon0e2q = 0.00553386738300813;
+    epsilon0e2q = 0.00553386738300813 * MY_4PI;
   else if (strcmp(update->unit_style, "si") == 0)
-    epsilon0e2q = 8.854187812813e-12;
+    epsilon0e2q = 8.854187812813e-12 * MY_4PI;
   else if (strcmp(update->unit_style, "nano") == 0)
-    epsilon0e2q = 0.000345866711328125;
+    epsilon0e2q = 0.000345866711328125 * MY_4PI;
   else if (strcmp(update->unit_style, "lj") != 0)
     error->all(FLERR, "Only unit styles 'lj', 'real', 'metal', 'si' and 'nano' are supported");
 
@@ -403,7 +403,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
     }
     double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i];
     double sigma_f = q[i] / area[i];
-    buffer[idx] = (1 - em[i]) * sigma_f - ed[i] * ndotE / (4 * MY_PI);
+    buffer[idx] = (1 - em[i]) * sigma_f - ed[i] * ndotE / MY_4PI;
   }
 
   MPI_Allreduce(buffer, rhs, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
@@ -464,11 +464,11 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   int ncount = group->count(igroup);
   double sum = 0;
   MPI_Allreduce(&tmp, &sum, 1, MPI_DOUBLE, MPI_SUM, world);
-  double qboundave = sum/(double)ncount;
+  double qboundave = sum / (double) ncount;
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    q[i] -=  qboundave;
+    q[i] -= qboundave;
   }
 }
 
@@ -693,7 +693,7 @@ void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int /*n*/)
       Ez += efield_kspace[i][2];
     }
     double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i];
-    buffer[idx] = em[i] * w[idx] + ed[i] * ndotE / (4 * MY_PI);
+    buffer[idx] = em[i] * w[idx] + ed[i] * ndotE / MY_4PI;
   }
 
   MPI_Allreduce(buffer, Aw, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
@@ -765,8 +765,8 @@ void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
       Ey += efield_kspace[i][1];
       Ez += efield_kspace[i][2];
     }
-    double ndotE = epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) /
-        epsilon[i] / (4 * MY_PI);
+    double ndotE =
+        epsilon0e2q * (Ex * norm[i][0] + Ey * norm[i][1] + Ez * norm[i][2]) / epsilon[i] / MY_4PI;
     double sigma_f = q[i] / area[i];
     buffer[idx] = (1 - em[i]) * sigma_f - em[i] * w[idx] - ed[i] * ndotE;
   }

@@ -23,7 +23,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 // INTERNAL fix for storing/communicating per-atom values
-// syntax: id group style n1 n2 gflag rflag 
+// syntax: id group style n1 n2 gflag rflag
 //   N1 = 1, N2 = 0 is per-atom vector, single value per atom
 //   N1 > 1, N2 = 0 is per-atom array, N1 values per atom
 //   N1 > 0, N2 > 0 is per-atom tensor, N1xN2 array per atom
@@ -35,34 +35,36 @@ using namespace FixConst;
 FixStorePeratom::FixStorePeratom(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), vstore(nullptr), astore(nullptr)
 {
-  if (narg != 8)
-    error->all(FLERR, "Illegal fix STORE/PERATOM command: number of args");
+  if (narg != 7) error->all(FLERR, "Illegal fix STORE/PERATOM command: number of args");
 
   disable = 0;
 
-  n1 = utils::inumeric(FLERR, arg[4], false, lmp);
-  n2 = utils::inumeric(FLERR, arg[5], false, lmp);
-  ghostflag = utils::inumeric(FLERR, arg[6], false, lmp);
-  restartflag = utils::inumeric(FLERR, arg[7], false, lmp);
+  n1 = utils::inumeric(FLERR, arg[3], false, lmp);
+  n2 = utils::inumeric(FLERR, arg[4], false, lmp);
+  ghostflag = utils::logical(FLERR, arg[5], false, lmp);
+  restartflag = utils::logical(FLERR, arg[6], false, lmp);
 
   vecflag = arrayflag = tensorflag = 0;
-  if (n1 == 1 && n2 == 0) vecflag = 1;
-  else if (n1 > 1 && n2 == 0) arrayflag = 1;
-  else if (n1 > 0 && n2 > 0) tensorflag = 1;
-  else error->all(FLERR, "Illegal fix STORE/PERATOM dimension args: {} {}", n1, n2);
-  
-  if (restartflag < 0 || restartflag > 1)
-    error->all(FLERR, "Illegal fix STORE/PERATOM restart flag: {}", restartflag);
-  if (ghostflag < 0 || ghostflag > 1)
-    error->all(FLERR, "Illegal fix STORE/PERATOM ghost flag: {}", ghostflag);
+  if (n1 == 1 && n2 == 0)
+    vecflag = 1;
+  else if (n1 > 1 && n2 == 0)
+    arrayflag = 1;
+  else if (n1 > 0 && n2 > 0)
+    tensorflag = 1;
+  else
+    error->all(FLERR, "Illegal fix STORE/PERATOM dimension args: {} {}", n1, n2);
 
-  if (vecflag || arrayflag) nvalues = n1;
-  else nvalues = n1 * n2;
+  if (vecflag || arrayflag)
+    nvalues = n1;
+  else
+    nvalues = n1 * n2;
   nbytes = nvalues * sizeof(double);
 
   if (ghostflag) comm_border = nvalues;
   maxexchange = nvalues;
-  
+
+  if (restartflag) restart_peratom = 1;
+
   // allocate data structs and register with Atom class
 
   vstore = nullptr;
@@ -149,7 +151,7 @@ void FixStorePeratom::copy_arrays(int i, int j, int /*delflag*/)
 
 int FixStorePeratom::pack_border(int n, int *list, double *buf)
 {
-  int i, j, k, ncol;
+  int i, j, k;
 
   int m = 0;
   if (vecflag) {
@@ -160,8 +162,7 @@ int FixStorePeratom::pack_border(int n, int *list, double *buf)
   } else if (arrayflag) {
     for (i = 0; i < n; i++) {
       j = list[i];
-      for (k = 0; k < nvalues; k++)
-	buf[m++] = astore[j][k];
+      for (k = 0; k < nvalues; k++) buf[m++] = astore[j][k];
     }
   } else if (tensorflag) {
     for (i = 0; i < n; i++) {
@@ -180,23 +181,22 @@ int FixStorePeratom::pack_border(int n, int *list, double *buf)
 
 int FixStorePeratom::unpack_border(int n, int first, double *buf)
 {
-  int i, k, last, ncol;
+  int i, k, last;
 
   int m = 0;
   last = first + n;
   if (vecflag) {
-    for (i = first; i < last; i++)
-      vstore[i] = buf[m++];
+    for (i = first; i < last; i++) vstore[i] = buf[m++];
   } else if (arrayflag) {
     for (i = first; i < last; i++)
-      for (k = 0; k < nvalues; k++)
-	astore[i][k] = buf[m++];
+      for (k = 0; k < nvalues; k++) astore[i][k] = buf[m++];
   } else if (tensorflag) {
     for (i = first; i < last; i++) {
       memcpy(&tstore[i][0][0], &buf[m], nbytes);
       m += nvalues;
     }
   }
+  return m;
 }
 
 /* ----------------------------------------------------------------------
@@ -210,8 +210,7 @@ int FixStorePeratom::pack_exchange(int i, double *buf)
   if (vecflag) {
     buf[0] = vstore[i];
   } else if (arrayflag) {
-    for (int m = 0; m < nvalues; m++)
-      buf[m] = astore[i][m];
+    for (int m = 0; m < nvalues; m++) buf[m] = astore[i][m];
   } else if (tensorflag) {
     memcpy(buf, &tstore[i][0][0], nbytes);
   }
@@ -230,8 +229,7 @@ int FixStorePeratom::unpack_exchange(int nlocal, double *buf)
   if (vecflag) {
     vstore[nlocal] = buf[0];
   } else if (arrayflag) {
-    for (int m = 0; m < nvalues; m++)
-      astore[nlocal][m] = buf[m];
+    for (int m = 0; m < nvalues; m++) astore[nlocal][m] = buf[m];
   } else if (tensorflag) {
     memcpy(&tstore[nlocal][0][0], buf, nbytes);
   }
@@ -256,8 +254,7 @@ int FixStorePeratom::pack_restart(int i, double *buf)
   if (vecflag) {
     buf[1] = vstore[i];
   } else if (arrayflag) {
-    for (int m = 0; m < nvalues; m++)
-      buf[m + 1] = astore[i][m];
+    for (int m = 0; m < nvalues; m++) buf[m + 1] = astore[i][m];
   } else if (tensorflag) {
     memcpy(&buf[1], &tstore[i][0][0], nbytes);
   }
@@ -285,8 +282,7 @@ void FixStorePeratom::unpack_restart(int nlocal, int nth)
   if (vecflag) {
     vstore[nlocal] = extra[nlocal][m];
   } else if (arrayflag) {
-    for (int i = 0; i < nvalues; i++)
-      astore[nlocal][i] = extra[nlocal][m++];
+    for (int i = 0; i < nvalues; i++) astore[nlocal][i] = extra[nlocal][m++];
   } else if (tensorflag) {
     memcpy(&tstore[nlocal][0][0], &extra[nlocal][m], nbytes);
   }

@@ -179,7 +179,7 @@ void BondHarmonicRestrain::init_style()
     
     if (!initial) {
       initial = dynamic_cast<FixStorePeratom *>(
-	modify->add_fix("BOND_RESTRAIN_X0 all STORE/PERATOM 3 0 1 1"));
+        modify->add_fix("BOND_RESTRAIN_X0 all STORE/PERATOM 3 0 1 1"));
       if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
     }
   }

@@ -49,7 +49,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum { PIMD, NMPIMD, CMD };
+enum { NMPIMD };
 enum { PHYSICAL, NORMAL };
 enum { BAOAB, OBABO };
 enum { ISO, ANISO, TRICLINIC };
@@ -88,7 +88,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   mass = nullptr;
 
-  method = PIMD;
+  method = NMPIMD;
   ensemble = NVT;
   integrator = OBABO;
   thermostat = PILE_L;
@@ -115,15 +115,10 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 3; i < narg - 1; i += 2) {
     if (strcmp(arg[i], "method") == 0) {
-      if (strcmp(arg[i + 1], "pimd") == 0)
-        method = PIMD;
-      else if (strcmp(arg[i + 1], "nmpimd") == 0)
-        method = NMPIMD;
-      else if (strcmp(arg[i + 1], "cmd") == 0)
-        method = CMD;
-      else
-        error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin");
-    } else if (strcmp(arg[i], "integrator") == 0) {
+      if (strcmp(arg[i + 1], "nmpimd") == 0)method = NMPIMD;
+      else error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin");
+    }
+    else if (strcmp(arg[i], "integrator") == 0) {
       if (strcmp(arg[i + 1], "obabo") == 0)
         integrator = OBABO;
       else if (strcmp(arg[i + 1], "baoab") == 0)
@@ -228,7 +223,15 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   global_freq = 1;
   vector_flag = 1;
-  size_vector = 11;
+  if (!pstat_flag)  size_vector = 10;
+  else if (pstat_flag) {
+    if (pstyle == ISO){
+    size_vector = 15;
+    }
+    else if (pstyle == ANISO){
+      size_vector = 17;
+    }
+  }
   extvector = 1;
 
   // some initilizations
@@ -391,7 +394,6 @@ void FixPIMDLangevin::init()
 
 void FixPIMDLangevin::setup(int vflag)
 {
-  if (universe->me == 0) printf("Setting up Path-Integral ...\n");
   int nlocal = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
@@ -427,8 +429,6 @@ void FixPIMDLangevin::setup(int vflag)
     else if (cmode == MULTI_PROC)
       nmpimd_transform(bufbeads, v, M_x2xp[universe->iworld]);
   }
-  if (universe->me == 0 && screen) fprintf(screen, "Setting up Path-Integral ...\n");
-  if (universe->me == 0) printf("Setting up Path-Integral ...\n");
   post_force(vflag);
   compute_totke();
   end_of_step();
@@ -558,6 +558,7 @@ void FixPIMDLangevin::post_force(int /*flag*/)
 
   compute_vir();
   compute_cvir();
+  compute_t_vir();
   compute_pote();
   if (method == NMPIMD) {
     inter_replica_comm(f);
@@ -1231,6 +1232,8 @@ void FixPIMDLangevin::compute_spring_energy()
         (x[i][0] * x[i][0] + x[i][1] * x[i][1] + x[i][2] * x[i][2]);
   }
   MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
+  se_bead /= universe->procs_per_world[universe->iworld];
+  MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1243,6 +1246,7 @@ void FixPIMDLangevin::compute_pote()
   c_pe->compute_scalar();
   pe_bead = c_pe->scalar;
   pot_energy_partition = pe_bead / universe->procs_per_world[universe->iworld];
+  MPI_Allreduce(&pot_energy_partition, &pote, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1253,28 +1257,28 @@ void FixPIMDLangevin::compute_tote()
 }
 
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMDLangevin::compute_t_prim()
 {
   t_prim = 1.5 * atom->natoms * np * force->boltz * temp - total_spring_energy;
 }
-*/
+
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMDLangevin::compute_t_vir()
 {
   t_vir = -0.5 * inverse_np * vir_;
   t_cv = 1.5 * atom->natoms * force->boltz * temp - 0.5 * inverse_np * centroid_vir;
 }
-*/
+
 /* ---------------------------------------------------------------------- */
-/*
+
 void FixPIMDLangevin::compute_p_prim()
 {
   p_prim = atom->natoms * np * force->boltz * temp * inv_volume - 1.0 / 1.5 * inv_volume * total_spring_energy;
   p_prim *= force->nktv2p;
 }
-*/
+
 /* ---------------------------------------------------------------------- */
 
 void FixPIMDLangevin::compute_p_cv()
@@ -1312,30 +1316,42 @@ double FixPIMDLangevin::compute_vector(int n)
   if (n == 1) return se_bead;
   if (n == 2) return pe_bead;
   if (n == 3) return tote;
-  // if(n==3) { return W*vw[0]; }
-  if (!pstat_flag) {
-    if (n == 4) return t_prim;
-    if (n == 5) return t_vir;
-    if (n == 6) return t_cv;
-  } else if (pstat_flag) {
-    if (pstyle == ISO) {
-      if (barostat == BZP) {
-        if (n == 4) return 0.5 * W * vw[0] * vw[0];
-      } else if (barostat == MTTK) {
-        if (n == 4) return 1.5 * W * vw[0] * vw[0];
-      }
-      if (n == 5) {
+  if (n == 4) return t_prim;
+  if (n == 5) return t_vir;
+  if (n == 6) return t_cv;
+  if (n == 7) return p_prim;
+  if (n == 8) return p_md;
+  if (n == 9) return p_cv;
+
+  if (pstat_flag) {
         volume = domain->xprd * domain->yprd * domain->zprd;
+    if (pstyle == ISO) {
+      if (n == 10) return vw[0];
+      if (barostat == BZP) {
+        if (n == 11) return 0.5 * W * vw[0] * vw[0];
+      } else if (barostat == MTTK) {
+        if (n == 11) return 1.5 * W * vw[0] * vw[0];
+      }
+      if (n == 12) {
         return np * Pext * volume / force->nktv2p;
       }
-      if (n == 6) {
+      if (n == 13) {
+        return -Vcoeff * np * kBT * log(volume);
+      }
+      if (n == 14) return totenthalpy;
+    } else if (pstyle == ANISO) {
+      if (n == 10) return vw[0];
+      if (n == 11) return vw[1];
+      if (n == 12) return vw[2];
+      if (n == 13) return 0.5 * W * (vw[0] * vw[0] + vw[1] * vw[1] + vw[2] * vw[2]);
+      if (n == 14) {
+        return np * Pext * volume / force->nktv2p;
+      }
+      if (n == 15) {
         volume = domain->xprd * domain->yprd * domain->zprd;
         return -Vcoeff * np * kBT * log(volume);
       }
-      if (n == 7) return totenthalpy;
-      if (n == 8) return p_cv;
-      if (n == 9) return total_spring_energy;
-    } else if (pstyle == ANISO) {
+      if (n == 16) return totenthalpy;
     }
   }
 

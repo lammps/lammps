@@ -140,34 +140,21 @@ class FixPIMDLangevin : public Fix {
   /* centroid-virial estimator computation */
   double vol0 = 0.0;
   double inv_volume = 0.0;
-  // double inv_volume = 0.0, vol_ = 0.0, vol0 = 0.0;
   double volume = 0.0;
   double **xc, *xcall;
   int maxxc;
-  // int n_unwrap;
   int maxunwrap;
-  // int maxunwrap, nlocal_init;
-  //   tagint *tag_init, *tag_initall;
-  //   imageint *image_init, *image_initall;
   double **x_unwrap;
-  //   double **x_unwrap, **x_unwrapsort;
-  //   double **x_unwrapall;
-  //   void init_x_unwrap();
   void reallocate_x_unwrap();
   void reallocate_xc();
   void collect_xc();
-  // void compute_xc();
-  // void compute_fc();
   double xf, vir, vir_, xcf, centroid_vir;
-  double t_vir, t_cv, p_prim, p_vir, p_cv, p_cv_, p_md;
-  // double vir_, xcf, vir2;
+  double t_prim, t_vir, t_cv, p_prim, p_vir, p_cv, p_md;
 
   /* Computes */
   double kine, pote, tote, totke;
   double ke_bead, se_bead, pe_bead, pot_energy_partition;
   double total_spring_energy;
-  double t_prim;
-  // double p_prim;
   char *id_pe;
   char *id_press;
   class Compute *c_pe;
@@ -178,6 +165,10 @@ class FixPIMDLangevin : public Fix {
   void compute_pote();             // 3: potential energy
   void compute_tote();             // 4: total energy: 1+2+3 for all the beads
   void compute_stress_tensor();
+  void compute_t_prim();
+  void compute_t_vir();
+  void compute_t_cv();
+  void compute_p_prim();
   void compute_p_cv();    // centroid-virial pressure estimator
   void compute_vir();
   void compute_cvir();

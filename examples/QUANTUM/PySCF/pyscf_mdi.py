@@ -110,7 +110,7 @@ def error(txt,mpiexists=1):
   if me == 0: print("ERROR:",txt)
   if mpiexists: world.Abort()
   sys.exit()
-  
+
 # --------------------------------------------
 # process non-MDI options to PySCF
 # if this script is executed independently:
@@ -164,7 +164,7 @@ def mdi_engine(other_options):
   options(other_options)
 
   # confirm PySCF is being run as an engine
-    
+
   role = mdi.MDI_Get_Role()
   if not role == mdi.MDI_ENGINE:
     error("Must run PySCF as an MDI engine")
@@ -175,7 +175,7 @@ def mdi_engine(other_options):
   mdi.MDI_Register_Command("@DEFAULT","EXIT")
 
   # driver --> engine
-  
+
   mdi.MDI_Register_Command("@DEFAULT",">NATOMS")
   mdi.MDI_Register_Command("@DEFAULT",">CELL")
   mdi.MDI_Register_Command("@DEFAULT",">CELL_DISPL")
@@ -200,7 +200,7 @@ def mdi_engine(other_options):
   mdicomm = mdi.MDI_Accept_Communicator()
 
   # set callback to execute_command
-  
+
   mdi.MDI_Set_Execute_Command_Func(execute_command,None)
 
   # infinite loop to exchange messages with driver
@@ -223,24 +223,24 @@ def execute_command(command,mdicomm,object_ptr):
   global exitflag
 
   # driver says done
-  
+
   if command == "EXIT":
     exitflag = True
 
   # MDI commands which setup quantum calculation
-  
+
   elif command == ">NATOMS":
     receive_qm_natoms(mdicomm)
 
   elif command == ">CELL":
     receive_box(mdicomm)
-    
+
   elif command == ">CELL_DISPL":
     receive_box_displ(mdicomm)
-  
+
   elif command == ">ELEMENTS":
     receive_qm_elements(mdicomm)
-    
+
   elif command == ">COORDS":
     receive_qm_coords(mdicomm)
 
@@ -249,34 +249,34 @@ def execute_command(command,mdicomm,object_ptr):
 
   elif command == ">NLATTICE":
     receive_mm_natoms(mdicomm)
-  
+
   elif command == ">LATTICE_ELEMENTS":
     receive_mm_elements(mdicomm)
 
   elif command == ">CLATTICE":
     receive_mm_coords(mdicomm)
-  
+
   elif command == ">LATTICE":
     receive_mm_charges(mdicomm)
 
   # MDI commands which retreive quantum results
   # each may also trigger the quantum calculation
-  
+
   elif command == "<PE":
     evaluate()
     ierr = mdi.MDI_Send(qm_pe,1,mdi.MDI_DOUBLE,mdicomm)
     if ierr: error("MDI: <PE data")
-    
+
   elif command == "<FORCES":
     evaluate()
     ierr = mdi.MDI_Send(qm_forces,3*qm_natoms,mdi.MDI_DOUBLE,mdicomm)
     if ierr: error("MDI: <FORCES data")
-    
+
   elif command == "<LATTICE_FORCES":
     evaluate()
     ierr = mdi.MDI_Send(mm_forces,3*mm_natoms,mdi.MDI_DOUBLE,mdicomm)
     if ierr: error("MDI: <LATTICE_FORCES data")
-    
+
   elif command == "<STRESS":
     evaluate()
     ierr = mdi.MDI_Send(qm_stress,1,mdi.MDI_DOUBLE,mdicomm)
@@ -288,7 +288,7 @@ def execute_command(command,mdicomm,object_ptr):
     if ierr: error("MDI: <CHARGES data")
 
   # unrecognized command
-  
+
   else: error("Unrecognized MDI command: %s" % command)
 
   return 0
@@ -300,11 +300,11 @@ def execute_command(command,mdicomm,object_ptr):
 def receive_qm_natoms(mdicomm):
   global flag_qm_natoms,qm_natoms
   flag_qm_natoms = 1
-  
+
   qm_natoms = mdi.MDI_Recv(1,mdi.MDI_INT,mdicomm)
   qm_natoms = world.bcast(qm_natoms,root=0)
   allocate("qm")
-    
+
 # --------------------------------------------
 # receive 3 simulation box edge vectors from driver
 # --------------------------------------------
@@ -312,7 +312,7 @@ def receive_qm_natoms(mdicomm):
 def receive_box(mdicomm):
   global flag_box
   flag_box = 1
-  
+
   ierr = mdi.MDI_Recv(9,mdi.MDI_DOUBLE,mdicomm,buf=box)
   if ierr: error("MDI: >CELL data")
   world.Bcast(box,root=0)
@@ -324,7 +324,7 @@ def receive_box(mdicomm):
 def receive_box_displ(mdicomm):
   global flag_box_displ
   flag_box_displ = 1
-  
+
   ierr = mdi.MDI_Recv(3,mdi.MDI_DOUBLE,mdicomm,buf=box_displ)
   if ierr: error("MDI: >CELL_DISPL data")
   world.Bcast(box_displ,root=0)
@@ -338,7 +338,7 @@ def receive_qm_coords(mdicomm):
   flag_qm_coords = 1
 
   if not qm_natoms: error("Cannot MDI >COORDS if # of QM atoms = 0")
-  
+
   ierr = mdi.MDI_Recv(3*qm_natoms,mdi.MDI_DOUBLE,mdicomm,buf=qm_coords)
   if ierr: error("MDI: >COORDS data")
   world.Bcast(qm_coords,root=0)
@@ -364,7 +364,7 @@ def receive_qm_potential(mdicomm):
 def receive_qm_elements(mdicomm):
   global flag_qm_elements
   flag_qm_elements = 1
-   
+
   if not qm_natoms: error("Cannot MDI >ELEMENTS if # of QM atoms = 0")
 
   ierr = mdi.MDI_Recv(qm_natoms,mdi.MDI_INT,mdicomm,buf=qm_elements)
@@ -378,7 +378,7 @@ def receive_qm_elements(mdicomm):
 def receive_mm_natoms(mdicomm):
   global flag_mm_natoms,mm_natoms
   flag_mm_natoms = 1
-  
+
   mm_natoms = mdi.MDI_Recv(1,mdi.MDI_INT,mdicomm)
   mm_natoms = world.bcast(mm_natoms,root=0)
   allocate("mm")
@@ -390,7 +390,7 @@ def receive_mm_natoms(mdicomm):
 def receive_mm_elements(mdicomm):
   global flag_mm_elements
   flag_mm_elements = 1
-   
+
   if not mm_natoms: error("Cannot MDI >LATTICE_ELEMENTS if # of MM atoms = 0")
 
   ierr = mdi.MDI_Recv(mm_natoms,mdi.MDI_INT,mdicomm,buf=mm_elements)
@@ -406,7 +406,7 @@ def receive_mm_coords(mdicomm):
   flag_mm_coords = 1
 
   if not mm_natoms: error("Cannot MDI >CLATTICE if # of MM atoms = 0")
-  
+
   ierr = mdi.MDI_Recv(3*mm_natoms,mdi.MDI_DOUBLE,mdicomm,buf=mm_coords)
   if ierr: error("MDI: >CLATTICE data")
   world.Bcast(mm_coords,root=0)
@@ -433,7 +433,7 @@ def receive_mm_charges(mdicomm):
 def allocate(which):
   global qm_elements,qm_coords,qm_potential,qm_forces,qm_charges
   global mm_elements,mm_coords,mm_charges,mm_forces
-  
+
   if which == "qm":
     n = qm_natoms
     qm_elements = np.empty(n,dtype=np.int32)
@@ -465,15 +465,15 @@ def evaluate():
 
   # just return if the QM system was already evaluated
   # happens when multiple results are requested by driver
-  
+
   any_flag = flag_qm_natoms + flag_mm_natoms + flag_box + flag_box_displ + \
     flag_qm_elements + flag_qm_coords + flag_qm_potential  + \
     flag_mm_elements + flag_mm_coords + flag_mm_charges
   if not any_flag: return
-  
+
   # if any of these MDI commands received from LAMMPS,
   #   treat it as a brand new system
-  
+
   new_system = 0
   if flag_qm_natoms or flag_mm_natoms: new_system = 1
   if flag_qm_elements or flag_mm_elements: new_system = 1
@@ -483,7 +483,7 @@ def evaluate():
     dm_previous_exists = 0
 
   # if new system, error check that all needed MDI calls have been made
-  
+
   if new_system:
     if periodic and not flag_box:
       error("Simulation box not specified for periodic system")
@@ -493,26 +493,26 @@ def evaluate():
     if flag_mm_natoms:
       if not flag_mm_elements or not flag_mm_coords or not flag_mm_charges:
         error("MM atom properties not fully specified")
-  
+
   # PySCF inputs for QM and MM atoms
   # box, qm_coords, mm_coords must be converted to Angstroms
-  
+
   bohr_to_angstrom = mdi.MDI_Conversion_factor("bohr","angstrom")
 
   box_A = box * bohr_to_angstrom
   qm_coords_A = qm_coords * bohr_to_angstrom
   mm_coords_A = mm_coords * bohr_to_angstrom
-  
+
   qm_symbols = [atomic_number_to_symbol[anum] for anum in qm_elements]
   mm_radii = [atomic_number_to_radius[anum] for anum in mm_elements]
-  
+
   #pos2str = lambda pos: " ".join([str(x) for x in qm_coords_A])
   #atom_str = [f"{a} {pos2str(pos)}\n" for a,pos in zip(qm_symbols,qm_coords_A)]
 
   clines = ["%s %20.16g %20.16g %20.16g" % (symbol,xyz[0],xyz[1],xyz[2])
             for symbol,xyz in zip(qm_symbols,qm_coords_A)]
   atom_str = "\n".join(clines)
-  
+
   if periodic:
     edge_vec = "%20.16g %20.16g %20.16g"
     box_str = "%s\n%s\n%s" % (edge_vec,edge_vec,edge_vec)
@@ -526,10 +526,10 @@ def evaluate():
   #print("MM COORDS:",mm_coords)
   #print("MM CHARGES:",mm_charges)
   #print("MM RADII:",mm_radii)
-  
+
   # build PySCF system
   # use Cell for periodic, Mole for non-periodic
- 
+
   if periodic:
     cell = Cell()
     cell.verbose = 4
@@ -542,7 +542,7 @@ def evaluate():
     mol.verbose = 4
     mol.atom = atom_str
     mol.basis = basis
-    #mol.max_memory = 10000 
+    #mol.max_memory = 10000
     mol.build()
 
   # QMMM with QM and MM atoms
@@ -553,7 +553,7 @@ def evaluate():
   # qm_forces = QM forces = same 3 terms
   # mm_forces = QM/MM forces = same 2 terms
   # dm = molecular orbitals (wave functions) for system
-  
+
   if mode == QMMM:
     if periodic: mf = RKS_pbc(cell,xc=xcstr)
     else: mf = RKS_nonpbc(mol,xc=xcstr)
@@ -568,14 +568,14 @@ def evaluate():
     qm_forces = -mf_grad.kernel()
     dm = mf.make_rdm1()
     mm_forces = -(mf_grad.grad_nuc_mm() + mf_grad.contract_hcore_mm(dm))
-    
+
     dm_previous_exists = 1
     dm_previous = dm
 
     #print("QM FORCES:",qm_forces)
-    
+
   # AIMD with only QM atoms
-    
+
   elif mode == AIMD:
     pass
 
@@ -594,7 +594,7 @@ def evaluate():
 # --------------------------------------------
 
 def MDI_Plugin_init_pyscf_mdi(plugin_state):
-  
+
   # other_options = all non-MDI args
   # -mdi arg is processed and stripped internally by MDI
 
@@ -608,7 +608,7 @@ def MDI_Plugin_init_pyscf_mdi(plugin_state):
     other_options.append(arg)
 
   # start running as an MDI engine
-  
+
   mdi_engine(other_options)
 
 # --------------------------------------------
@@ -629,7 +629,7 @@ if __name__== "__main__":
 
   narg = len(sys.argv)
   args = sys.argv
-  
+
   iarg = 1
   while iarg < narg:
     arg = args[iarg]
@@ -645,7 +645,7 @@ if __name__== "__main__":
 
   # remove -mdi and its string from sys.argv
   # so that PySCF does not try to process it
-  
+
   sys.argv.pop(mdi_index)
   sys.argv.pop(mdi_index)
 
@@ -653,7 +653,7 @@ if __name__== "__main__":
   # until issue on PySCF side is fixed
 
   # call MDI_Init with just -mdi option
-  
+
   mdi.MDI_Init(mdi_option)
 
   # start running as an MDI engine

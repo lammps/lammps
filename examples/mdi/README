@@ -21,7 +21,7 @@ processors.
 LAMMPS supports operating in all these MDI modes.  It can be an engine
 operating either as a stand-alone code or as a plugin.  It can also be
 a driver and couple to an engine that is either a stand-alone code or
-a plugin.  
+a plugin.
 
 Examples for all these use cases, using LAMMPS as a driver and as an
 engine are in this directory.  The Run.sh file shows how run in all

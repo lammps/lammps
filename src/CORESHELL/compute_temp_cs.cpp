@@ -24,7 +24,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
 #include "memory.h"
@@ -67,8 +67,8 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
   id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-  fix = dynamic_cast<FixStorePeratom *>(
-    modify->add_fix(fmt::format("{} {} STORE/PERATOM 0 1", id_fix, group->names[igroup])));
+  fix = dynamic_cast<FixStoreAtom *>(
+    modify->add_fix(fmt::format("{} {} STORE/ATOM 1 0 0 0", id_fix, group->names[igroup])));
 
   // set fix store values = 0 for now
   // fill them in via setup() once Comm::borders() has been called

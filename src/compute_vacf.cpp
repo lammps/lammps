@@ -18,7 +18,7 @@
 #include "update.h"
 #include "group.h"
 #include "modify.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -39,8 +39,8 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
   id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-  fix = dynamic_cast<FixStorePeratom *>(
-    modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 3", id_fix, group->names[igroup])));
+  fix = dynamic_cast<FixStoreAtom *>(
+    modify->add_fix(fmt::format("{} {} STORE/ATOM 3 0 0 1", id_fix, group->names[igroup])));
 
   // store current velocities in fix store array
   // skip if reset from restart file
@@ -84,7 +84,7 @@ void ComputeVACF::init()
 {
   // set fix which stores original atom velocities
 
-  fix = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(id_fix));
+  fix = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix));
   if (!fix) error->all(FLERR,"Could not find compute vacf fix ID {}", id_fix);
 
   // nvacf = # of atoms in group

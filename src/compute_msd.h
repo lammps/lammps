@@ -39,7 +39,7 @@ class ComputeMSD : public Compute {
   bigint nmsd;
   double masstotal;
   char *id_fix;
-  class FixStorePeratom *fix;
+  class FixStoreAtom *fix;
 };
 
 }    // namespace LAMMPS_NS

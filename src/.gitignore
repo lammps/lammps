@@ -492,6 +492,8 @@
 /bond_gromos.h
 /bond_harmonic.cpp
 /bond_harmonic.h
+/bond_harmonic_restrain.cpp
+/bond_harmonic_restrain.h
 /bond_harmonic_shift.cpp
 /bond_harmonic_shift.h
 /bond_harmonic_shift_cut.cpp

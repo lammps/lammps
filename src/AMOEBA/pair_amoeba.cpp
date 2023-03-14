@@ -20,7 +20,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
 #include "math_special.h"
@@ -861,8 +861,8 @@ void PairAmoeba::init_style()
   Fix *myfix;
   if (first_flag) {
     id_pole = utils::strdup("AMOEBA_pole");
-    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 13",id_pole,group->names[0]));
-    fixpole = dynamic_cast<FixStorePeratom *>(myfix);
+    myfix = modify->add_fix(fmt::format("{} {} STORE/ATOM 13 0 0 1",id_pole,group->names[0]));
+    fixpole = dynamic_cast<FixStoreAtom *>(myfix);
   }
 
   // creation of per-atom storage
@@ -873,14 +873,14 @@ void PairAmoeba::init_style()
 
   if (first_flag && use_pred) {
     id_udalt = utils::strdup("AMOEBA_udalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/ATOM {} 3 0 1",
                                         id_udalt, group->names[0], maxualt));
-    fixudalt = dynamic_cast<FixStorePeratom *>(myfix);
+    fixudalt = dynamic_cast<FixStoreAtom *>(myfix);
 
     id_upalt = utils::strdup("AMOEBA_upalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/ATOM {} 3 0 1",
                                         id_upalt, group->names[0], maxualt));
-    fixupalt = dynamic_cast<FixStorePeratom *>(myfix);
+    fixupalt = dynamic_cast<FixStoreAtom *>(myfix);
   }
 
   // create pages for storing pairwise data:
@@ -995,21 +995,21 @@ void PairAmoeba::init_style()
   if (id_pole) {
     myfix = modify->get_fix_by_id(id_pole);
     if (!myfix)
-      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_pole);
-    fixpole = dynamic_cast<FixStorePeratom *>(myfix);
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/ATOM id {}", id_pole);
+    fixpole = dynamic_cast<FixStoreAtom *>(myfix);
 
   }
 
   if (id_udalt) {
     myfix = modify->get_fix_by_id(id_udalt);
     if (!myfix)
-      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_udalt);
-    fixudalt = dynamic_cast<FixStorePeratom *>(myfix);
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/ATOM id {}", id_udalt);
+    fixudalt = dynamic_cast<FixStoreAtom *>(myfix);
 
     myfix = modify->get_fix_by_id(id_upalt);
     if (!myfix)
-      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_upalt);
-    fixupalt = dynamic_cast<FixStorePeratom *>(myfix);
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/ATOM id {}", id_upalt);
+    fixupalt = dynamic_cast<FixStoreAtom *>(myfix);
   }
 
   // assign hydrogen neighbors (redID) to each owned atom

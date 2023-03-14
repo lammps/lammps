@@ -28,6 +28,7 @@ class PairAmoebaGPU : public PairAmoeba {
  public:
   PairAmoebaGPU(LAMMPS *lmp);
   ~PairAmoebaGPU() override;
+  void compute(int, int) override;
   void init_style() override;
   double memory_usage() override;
 

@@ -216,6 +216,10 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
   // Kokkos setting
 
   copymode = 0;
+
+  // GPU setting
+
+  overlap_topo = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,6 +297,7 @@ void Neighbor::init()
 {
   int i,j,n;
 
+  overlap_topo = 0;
   ncalls = ndanger = 0;
   dimension = domain->dimension;
   triclinic = domain->triclinic;
@@ -2433,8 +2438,9 @@ void Neighbor::build(int topoflag)
   }
 
   // build topology lists for bonds/angles/etc
+  // skip if GPU package styles will call it explicitly to overlap with GPU computation.
 
-  if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
+  if ((atom->molecular != Atom::ATOMIC) && topoflag && !overlap_topo) build_topology();
 }
 
 /* ----------------------------------------------------------------------
@@ -2815,6 +2821,15 @@ void Neighbor::exclusion_group_group_delete(int group1, int group2)
 int Neighbor::exclude_setting()
 {
   return exclude;
+}
+
+/* ----------------------------------------------------------------------
+   If nonzero, call build_topology from GPU styles instead to overlap comp
+------------------------------------------------------------------------- */
+
+void Neighbor::set_overlap_topo(int s)
+{
+  overlap_topo = s;
 }
 
 /* ----------------------------------------------------------------------

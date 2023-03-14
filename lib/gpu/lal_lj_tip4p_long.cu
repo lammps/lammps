@@ -59,7 +59,7 @@ _texture( q_tex,int2);
 
 /* ----------------------------------------------------------------------
    GPU analogue of Atom::map inline method,
-   but now limited to map_array mapping style. 
+   but now limited to map_array mapping style.
    Map global ID to local index of atom.
 ---------------------------------------------------------------------- */
 ucl_inline int atom_mapping(const __global int *map, tagint glob) {
@@ -134,16 +134,16 @@ ucl_inline void compute_newsite(int iO, int  iH1, int  iH2,
 
 /* ----------------------------------------------------------------------
    Compute resulting forces (ans), energies and virial (engv).
-   An additional term is calculated based on the previously 
-   calculated values on the virlual sites (ansO), 
-   which should be distributed over the real atoms. 
+   An additional term is calculated based on the previously
+   calculated values on the virlual sites (ansO),
+   which should be distributed over the real atoms.
    For some hydrogens, the corresponding oxygens are
    not local atoms and the ansO value is not calculated.
    The required increase is calculated directly in the main function.
 ---------------------------------------------------------------------- */
 __kernel void k_lj_tip4p_long_distrib(
     const __global numtyp4 *restrict x_,
-    __global acctyp4 *restrict ans,
+    __global acctyp3 *restrict ans,
     __global acctyp *restrict engv,
     const int eflag, const int vflag, const int inum,
     const int nbor_pitch, const int t_per_atom,
@@ -151,11 +151,11 @@ __kernel void k_lj_tip4p_long_distrib(
     const __global numtyp4 *restrict m,
     const int typeO, const int typeH,
     const numtyp alpha,
-    const __global numtyp *restrict q_, 
+    const __global numtyp *restrict q_,
     const __global acctyp4 *restrict ansO) {
 
   int i = BLOCK_ID_X*(BLOCK_SIZE_X)+THREAD_ID_X;
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
 
   if (i<inum) {
@@ -208,7 +208,7 @@ __kernel void k_lj_tip4p_long_distrib(
         engv[inum*engv_iter + i] += vM.z * (acctyp)(1 - alpha);
       }
     }
-    acctyp4 old=ans[i];
+    acctyp3 old=ans[i];
     old.x+=f.x;
     old.y+=f.y;
     old.z+=f.z;
@@ -219,7 +219,7 @@ __kernel void k_lj_tip4p_long_distrib(
 /* ----------------------------------------------------------------------
    Rebuild hneigh after the neighbor build.
    hneight stores local IDs of H1 and H2 for each local and ghost O
-   and local ID of O for each local H. 
+   and local ID of O for each local H.
 ---------------------------------------------------------------------- */
 __kernel void k_lj_tip4p_reneigh(
     const __global numtyp4 *restrict x_,
@@ -230,7 +230,7 @@ __kernel void k_lj_tip4p_reneigh(
     __global int *restrict hneigh,
     __global numtyp4 *restrict m,
     const int typeO, const int typeH,
-    const __global tagint *restrict tag, 
+    const __global tagint *restrict tag,
     const __global int *restrict map,
     const __global int *restrict sametag) {
 
@@ -298,7 +298,7 @@ __kernel void k_lj_tip4p_newsite(const __global numtyp4 *restrict x_,
       iO  = i;
       numtyp qO; fetch(qO,iO,q_tex);
       if (iH1>=0 && iH2>=0) {
-      	compute_newsite(iO,iH1,iH2, &m[iO], qO, alpha, x_);
+        compute_newsite(iO,iH1,iH2, &m[iO], qO, alpha, x_);
       } else {
         m[iO] = ix;
         m[iO].w = qO;
@@ -313,9 +313,9 @@ __kernel void k_lj_tip4p_newsite(const __global numtyp4 *restrict x_,
 /* ----------------------------------------------------------------------
    Compute initial value of force, energy and virial for each local particle.
    The values calculated on oxygens use the virtual charge position (m) and
-   they are stored in a separate  array (ansO) for further distribution 
+   they are stored in a separate  array (ansO) for further distribution
    in a separate kernel. For some hydrogens located on the boundary
-   of the local region, oxygens are non-local and the contribution 
+   of the local region, oxygens are non-local and the contribution
    of oxygen is calculated separately in this kernel for them .
 ---------------------------------------------------------------------- */
 __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
@@ -325,7 +325,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     const __global numtyp *restrict sp_lj,
     const __global int * dev_nbor,
     const __global int * dev_packed,
-    __global acctyp4 *restrict ans,
+    __global acctyp3 *restrict ans,
     __global acctyp *restrict engv,
     const int eflag, const int vflag, const int inum,
     const int nbor_pitch, const int t_per_atom,
@@ -344,7 +344,8 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
   int n_stride;
   local_allocate_store_charge();
 
-  acctyp4 f, fO;
+  acctyp3 f;
+  acctyp4 fO;
   f.x=(acctyp)0;  f.y=(acctyp)0;  f.z=(acctyp)0;
   fO.x=(acctyp)0; fO.y=(acctyp)0; fO.z=(acctyp)0;
   acctyp energy, e_coul, virial[6], vO[6];
@@ -386,6 +387,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     }
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_lj,factor_coul;
@@ -470,7 +472,7 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             e_coul += prefactor*(_erfc-factor_coul);
           }
           if (EVFLAG && vflag) {
-            acctyp4 fd;
+            acctyp3 fd;
             fd.x = delx*force_coul;
             fd.y = dely*force_coul;
             fd.z = delz*force_coul;
@@ -645,7 +647,7 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
     const __global numtyp *restrict sp_lj_in,
     const __global int * dev_nbor,
     const __global int * dev_packed,
-    __global acctyp4 *restrict ans,
+    __global acctyp3 *restrict ans,
     __global acctyp *restrict engv,
     const int eflag, const int vflag, const int inum,
     const int nbor_pitch, const int t_per_atom,
@@ -674,7 +676,8 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
     if (EVFLAG && eflag)
       lj3[tid]=lj3_in[tid];
   }
-  acctyp4 f, fO;
+  acctyp3 f;
+  acctyp4 fO;
   f.x=(acctyp)0;  f.y=(acctyp)0;  f.z=(acctyp)0;
   fO.x=(acctyp)0; fO.y=(acctyp)0; fO.z=(acctyp)0;
   acctyp energy, e_coul, virial[6], vO[6];
@@ -717,6 +720,7 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
     }
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_lj,factor_coul;
@@ -801,7 +805,7 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
             e_coul += prefactor*(_erfc-factor_coul);
           }
           if (EVFLAG && vflag) {
-            acctyp4 fd;
+            acctyp3 fd;
             fd.x = delx*force_coul;
             fd.y = dely*force_coul;
             fd.z = delz*force_coul;

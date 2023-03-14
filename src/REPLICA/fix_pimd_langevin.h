@@ -139,8 +139,7 @@ class FixPIMDLangevin : public Fix {
 
   /* centroid-virial estimator computation */
   double vol0 = 0.0;
-  double inv_volume = 0.0;
-  double volume = 0.0;
+  double volume;
   double **xc, *xcall;
   int maxxc;
   int maxunwrap;

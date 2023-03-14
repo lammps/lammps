@@ -411,6 +411,8 @@ void FixPIMDLangevin::setup(int vflag)
   }
   collect_xc();
   compute_spring_energy();
+  compute_t_prim();
+  compute_p_prim();
   if (method == NMPIMD) {
     inter_replica_comm(x);
     if (cmode == SINGLE_PROC)
@@ -495,6 +497,8 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
   }
   collect_xc();
   compute_spring_energy();
+  compute_t_prim();
+  compute_p_prim();
 
   if (method == NMPIMD) {
     inter_replica_comm(x);
@@ -1181,7 +1185,7 @@ void FixPIMDLangevin::compute_stress_tensor()
   int nlocal = atom->nlocal;
   int *type = atom->type;
   if (universe->iworld == 0) {
-    inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+    double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
     for (int i = 0; i < 6; i++) ke_tensor[i] = 0.0;
     for (int i = 0; i < nlocal; i++) {
       ke_tensor[0] += 0.5 * mass[type[i]] * atom->v[i][0] * atom->v[i][0] * force->mvv2e;
@@ -1213,6 +1217,8 @@ void FixPIMDLangevin::compute_totke()
   }
   kine *= force->mvv2e;
   MPI_Allreduce(&kine, &ke_bead, 1, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&ke_bead, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  totke /= universe->procs_per_world[universe->iworld];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1232,8 +1238,8 @@ void FixPIMDLangevin::compute_spring_energy()
         (x[i][0] * x[i][0] + x[i][1] * x[i][1] + x[i][2] * x[i][2]);
   }
   MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-  se_bead /= universe->procs_per_world[universe->iworld];
   MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  total_spring_energy /= universe->procs_per_world[universe->iworld];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1275,6 +1281,7 @@ void FixPIMDLangevin::compute_t_vir()
 
 void FixPIMDLangevin::compute_p_prim()
 {
+  double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
   p_prim = atom->natoms * np * force->boltz * temp * inv_volume - 1.0 / 1.5 * inv_volume * total_spring_energy;
   p_prim *= force->nktv2p;
 }
@@ -1283,7 +1290,7 @@ void FixPIMDLangevin::compute_p_prim()
 
 void FixPIMDLangevin::compute_p_cv()
 {
-  inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+  double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
   if (universe->iworld == 0) {
     p_cv = THIRD * inv_volume * ((2.0 * ke_bead - centroid_vir) * force->nktv2p + vir) / np;
   }

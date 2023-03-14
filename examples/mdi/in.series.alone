@@ -1,25 +1,25 @@
 # 3d Lennard-Jones melt - MDI driver script
 
-variable	x index 5
-variable	y index 5
-variable	z index 5
+variable        x index 5
+variable        y index 5
+variable        z index 5
 
 variable        rho index 0.7 0.8 0.9
 
 label LOOP
 
-  units		lj
-  atom_style	atomic
+  units         lj
+  atom_style    atomic
 
   read_data     data.series.${rho}
 
   displace_atoms all random 0.1 0.1 0.1 48294
 
-  pair_style	lj/cut 2.5
-  pair_coeff	1 1 1.0 1.0 2.5
+  pair_style    lj/cut 2.5
+  pair_coeff    1 1 1.0 1.0 2.5
 
-  neighbor	0.3 bin
-  neigh_modify	delay 0 every 1 check yes
+  neighbor      0.3 bin
+  neigh_modify  delay 0 every 1 check yes
 
   compute       1 all pressure NULL virial
 

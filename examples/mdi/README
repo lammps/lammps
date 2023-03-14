@@ -3,7 +3,7 @@ MolSSI MDI library for coupling codes together and communicating
 between them with MDI messages.
 
 There are more examples of using LAMMPS with quantum codes via MDI in
-the examples/QM directory.
+the examples/QUANTUM directory.
 
 Within the MDI context, one code is the driver and another code is the
 engine.  The 2 codes can be written in any language; C++ (LAMMPS) and
@@ -27,8 +27,8 @@ Examples for all these use cases, using LAMMPS as a driver and as an
 engine are in this directory.  The Run.sh file shows how run in all
 the modes.  Type "sh Run.sh" to try them all out.
 
-Examples for using LAMMPS as a driver with the tight-binding code
-LATTE are in the examples/QM/LATTE sub-directory.  See its README file
+Examples for using LAMMPS as a driver with the tight-binding code LATTE
+are in the examples/QUANTUM/LATTE sub-directory.  See its README file
 for more info.
 
 -------------------------------------------------

@@ -36,7 +36,7 @@ velocity        all create 300.0 87287 loop geom
 
 timestep        2.0
 
-fix		1 all nve
+fix             1 all nve
 
 fix             2 qm mdi/qmmm direct elements O H
 fix_modify      2 energy yes
@@ -45,4 +45,4 @@ thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
                 f_2 pe etotal press
 
 thermo          1
-run		10
+run             10

@@ -11,11 +11,11 @@ Step 4: Perform test runs in any of 3 modes
 
 Step 0: What PySCF currently supports
 
-LATTE can be used with fix mdi/qmmm for QMMM simulations, but not with
-fix mdi/qm to perform QM calculations of an entire system.  For QMMM
-it can use the direct mode of fix mdi/qmmm, but not the potential
-mode.  PySCF can calculate a QM energy and QM forces on each atom, but
-it cannot compute a QM stress tensor.
+PySCF can be used with fix mdi/qmmm for QM/MM simulations, but not with fix
+mdi/qm to perform QM calculations of an entire system.  For QM/MM it can use
+the direct mode of fix mdi/qmmm, but not the plugin mode.  PySCF can calculate
+a QM energy and QM forces on each atom, but it cannot compute a QM stress
+tensor.
 
 PySCF does not support MPI parallelism, so run it on a single MPI task.
 But it does support multi-threading via OpenMP.  By default it will use
@@ -66,32 +66,18 @@ CMake:
 ---------------------------------
 ---------------------------------
 
-Step 2: Download/build MDI code coupling package
+Step 2: Install MDI code coupling python module
 
-(a) clone the MDI Git repo
+You can install MDI in your Python environment via conda:
 
-% mkdir mdi; cd mdi
-% git clone git@github.com:MolSSI-MDI/MDI_Library.git git
+% conda install -c conda-forge pymdi=1.4.16
 
-(b) build MDI
+or via pip:
 
-% cd mdi/git
-% mkdir build; cd build
-% cmake ..
-% make -j
+% pip install 'pymdi>=1.4.14'
 
-(c) Add a line like this to your ~/.bashrc or ~/.cshrc file so that
-Python can find MDI:
-
-For bash:
-
-% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git/build"
-% hash -r
-
-For (t)csh:
-
-% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git/build
-% rehash
+It is likely fine to leave off the version number, to get the latest
+MDI version.  1.4.16 is the version LAMMPS is currently using.
 
 ---------------------------------
 ---------------------------------
@@ -101,7 +87,7 @@ Step 3: Download/build PySCF
 See https://pyscf.org/install.html for install options.
 This describes building PySCF from source code.
 
-(a) clone the PySCI Git repo
+(a) clone the PySCF Git repo
 
 % mkdir pyscf; cd pyscf
 % git clone https://github.com/pyscf/pyscf.git git
@@ -134,7 +120,7 @@ will need:
 % python
 >>> import numpy as np
 >>> from mpi4py import MPI
->>> import MDI_Library as mdi
+>>> import mdi
 >>> import pyscf
 
 ---------------------------------
@@ -149,9 +135,9 @@ in.mixture = QMMM of mixture, QM small molecule in MM water
 
 ** run LAMMPS-only versions of mixture problem
 
-lmp_mpi -log log.mixture.mm.1 < in.mixture.mm
+lmp_mpi -log log.mixture.mm.1 -in in.mixture.mm
 
-** run LAMMPS and LATTE with TCP/IP, 1 proc each
+** run LAMMPS and PySCF with TCP/IP, 1 proc each
 
 lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.qmmm.tcp.1 -in in.water.qmmm &
 python pyscf_mdi.py -mdi "-name PYSCF -role ENGINE -method TCP -port 8021 -hostname localhost"

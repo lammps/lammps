@@ -532,12 +532,14 @@ def evaluate():
  
   if periodic:
     cell = Cell()
+    cell.verbose = 4
     cell.atom = atom_str
     cell.a = box_str
     cell.basis = basis
     cell.build()
   else:
     mol = Mole()
+    mol.verbose = 4
     mol.atom = atom_str
     mol.basis = basis
     #mol.max_memory = 10000 
@@ -555,8 +557,8 @@ def evaluate():
   if mode == QMMM:
     if periodic: mf = RKS_pbc(cell,xc=xcstr)
     else: mf = RKS_nonpbc(mol,xc=xcstr)
-    mf = qmmm.mm_charge(mf,mm_coords,mm_charges,mm_radii)
-    
+    mf = qmmm.mm_charge(mf,mm_coords,mm_charges)
+
     if dm_previous_exists:
       qm_pe = mf.kernel(dm0=dm_previous)
     else:

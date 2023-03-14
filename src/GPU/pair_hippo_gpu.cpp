@@ -172,6 +172,15 @@ PairHippoGPU::~PairHippoGPU()
   hippo_gpu_clear();
 }
 
+/* ---------------------------------------------------------------------- */
+
+void PairHippoGPU::compute(int eflag, int vflag)
+{
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
+    neighbor->build_topology();
+  PairAmoeba::compute(eflag, vflag);
+}
+
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */

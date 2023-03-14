@@ -112,8 +112,9 @@ are estimated (less accurately) by the first two and last two force
 values in the table.
 
 The "EQ" parameter is also optional.  If used, it is followed by a the
-equilibrium bond length, which is used, for example, by the :doc:`fix shake <fix_shake>` command.  If not used, the equilibrium bond
-length is to the distance in the table with the lowest potential energy.
+equilibrium bond length, which is used, for example, by the :doc:`fix
+shake <fix_shake>` command.  If not used, the equilibrium bond length is
+to the distance in the table with the lowest potential energy.
 
 Following a blank line, the next N lines list the tabulated values.
 On each line, the first value is the index from 1 to N, the second value is
@@ -135,16 +136,15 @@ one that matches the specified keyword.
 
 ----------
 
-Restart, fix_modify, output, run start/stop, minimize info
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Restart info
+""""""""""""
 
-This bond style writes the settings for the "bond_style table"
-command to :doc:`binary restart files <restart>`, so a bond_style
-command does not need to specified in an input script that reads a
-restart file.  However, the coefficient information is not stored in
-the restart file, since it is tabulated in the potential files.  Thus,
-bond_coeff commands do need to be specified in the restart input
-script.
+This bond style writes the settings for the "bond_style table" command
+to :doc:`binary restart files <restart>`, so a bond_style command does
+not need to specified in an input script that reads a restart file.
+However, the coefficient information is not stored in the restart file,
+since it is tabulated in the potential files.  Thus, bond_coeff commands
+do need to be specified in the restart input script.
 
 Restrictions
 """"""""""""

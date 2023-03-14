@@ -42,7 +42,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr),
     idregion(nullptr), region(nullptr), efield(nullptr)
 {
-  if (narg < 6) error->all(FLERR, "Illegal fix efield command");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "fix efield", error);
 
   dynamic_group_allow = 1;
   vector_flag = 1;
@@ -85,20 +85,20 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "region") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix efield command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix efield region", error);
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix efield does not exist", arg[iarg + 1]);
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "energy") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal fix efield command");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix efield energy", error);
       if (utils::strmatch(arg[iarg + 1], "^v_")) {
         estr = utils::strdup(arg[iarg + 1] + 2);
       } else
-        error->all(FLERR, "Illegal fix efield command");
+        error->all(FLERR, "Illegal fix efield energy value argument");
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal fix efield command");
+      error->all(FLERR, "Unknown fix efield keyword: {}", arg[iarg]);
   }
 
   force_flag = 0;
@@ -188,7 +188,7 @@ void FixEfield::init()
 
   if (idregion) {
     region = domain->get_region_by_id(idregion);
-    if (!region) error->all(FLERR, "Region {} for fix aveforce does not exist", idregion);
+    if (!region) error->all(FLERR, "Region {} for fix efield does not exist", idregion);
   }
 
   if (xstyle == ATOM || ystyle == ATOM || zstyle == ATOM)

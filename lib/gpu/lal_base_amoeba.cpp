@@ -143,10 +143,10 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   dev_short_nbor.alloc(ef_nall*(2+max_nbors),*(this->ucl_device),UCL_READ_WRITE);
 
   _max_tep_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
-  _tep.alloc(_max_tep_size*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+  _tep.alloc(_max_tep_size*3,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
 
   _max_fieldp_size = _max_tep_size;
-  _fieldp.alloc(_max_fieldp_size*8,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+  _fieldp.alloc(_max_fieldp_size*6,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
 
   _max_thetai_size = 0;
 
@@ -387,7 +387,7 @@ void BaseAmoebaT::compute_multipole_real(const int /*ago*/, const int inum_full,
 
   if (inum_full>_max_tep_size) {
     _max_tep_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-    _tep.resize(_max_tep_size*4);
+    _tep.resize(_max_tep_size*3);
   }
   *tep_ptr=_tep.host.begin();
 
@@ -403,7 +403,7 @@ void BaseAmoebaT::compute_multipole_real(const int /*ago*/, const int inum_full,
 
   // copy tep from device to host
 
-  _tep.update_host(_max_tep_size*4,false);
+  _tep.update_host(_max_tep_size*3,false);
 }
 
 // ---------------------------------------------------------------------------
@@ -429,7 +429,7 @@ void BaseAmoebaT::compute_udirect2b(int *host_amtype, int *host_amgroup, double 
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
-  _fieldp.update_host(_max_fieldp_size*8,false);
+  _fieldp.update_host(_max_fieldp_size*6,false);
 }
 
 // ---------------------------------------------------------------------------
@@ -456,7 +456,7 @@ void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double 
   // NOTE: move this step to update_fieldp() to delay device-host transfer
   //       after umutual1 and self are done on the GPU
   // *fieldp_ptr=_fieldp.host.begin();
-  // _fieldp.update_host(_max_fieldp_size*8,false);
+  // _fieldp.update_host(_max_fieldp_size*6,false);
 }
 
 // ---------------------------------------------------------------------------
@@ -732,7 +732,7 @@ void BaseAmoebaT::compute_polar_real(int *host_amtype, int *host_amgroup,
   device->add_ans_object(ans);
 
   // copy tep from device to host
-  _tep.update_host(_max_tep_size*4,false);
+  _tep.update_host(_max_tep_size*3,false);
 }
 
 // ---------------------------------------------------------------------------

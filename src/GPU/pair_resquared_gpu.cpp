@@ -35,21 +35,28 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq, double **sigma,
-                double **epsilon, int **form, double **host_lj1, double **host_lj2,
-                double **host_lj3, double **host_lj4, double **offset, double *special_lj,
-                const int nlocal, const int nall, const int max_nbors, const int maxspecial,
-                const double cell_size, int &gpu_mode, FILE *screen);
+int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
+                double **sigma, double **epsilon, int **form,
+                double **host_lj1, double **host_lj2, double **host_lj3,
+                double **host_lj4, double **offset, double *special_lj,
+                const int nlocal, const int nall, const int max_nbors,
+                const int maxspecial, const double cell_size, int &gpu_mode,
+                FILE *screen);
 void re_gpu_clear();
-int **re_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                       int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                       tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                       const bool vatom, int &host_start, int **ilist, int **jnum,
-                       const double cpu_time, bool &success, double **host_quat);
-int *re_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
-                    int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                    bool &success, double **host_quat);
+int **re_gpu_compute_n(const int ago, const int inum, const int nall,
+                       double **host_x, int *host_type, double *sublo,
+                       double *subhi, tagint *tag, int **nspecial,
+                       tagint **special, const bool eflag, const bool vflag,
+                       const bool eatom, const bool vatom, int &host_start,
+                       int **ilist, int **jnum, const double cpu_time,
+                       bool &success, const int *ellipsoid,
+                       const void *bonus);
+int *re_gpu_compute(const int ago, const int inum, const int nall,
+                    double **host_x, int *host_type, int *ilist, int *numj,
+                    int **firstneigh, const bool eflag, const bool vflag,
+                    const bool eatom, const bool vatom, int &host_start,
+                    const double cpu_time, bool &success, const int *ellipsoid,
+                    const void *bonus);
 double re_gpu_bytes();
 
 enum { SPHERE_SPHERE, SPHERE_ELLIPSE, ELLIPSE_SPHERE, ELLIPSE_ELLIPSE };
@@ -61,8 +68,6 @@ PairRESquaredGPU::PairRESquaredGPU(LAMMPS *lmp) : PairRESquared(lmp), gpu_mode(G
   reinitflag = 0;
   avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec) error->all(FLERR, "Pair resquared/gpu requires atom style ellipsoid");
-  quat_nmax = 0;
-  quat = nullptr;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -75,7 +80,6 @@ PairRESquaredGPU::~PairRESquaredGPU()
 {
   re_gpu_clear();
   cpu_time = 0.0;
-  memory->destroy(quat);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,21 +94,8 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
 
-  if (nall > quat_nmax) {
-    quat_nmax = static_cast<int>(1.1 * nall);
-    memory->grow(quat, quat_nmax, 4, "pair:quat");
-  }
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
-  for (int i = 0; i < nall; i++) {
-    int qi = ellipsoid[i];
-    if (qi > -1) {
-      quat[i][0] = bonus[qi].quat[0];
-      quat[i][1] = bonus[qi].quat[1];
-      quat[i][2] = bonus[qi].quat[2];
-      quat[i][3] = bonus[qi].quat[3];
-    }
-  }
 
   if (gpu_mode != GPU_FORCE) {
     double sublo[3], subhi[3];
@@ -120,19 +111,24 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
     }
     inum = atom->nlocal;
     firstneigh =
-        re_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
-                         atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                         host_start, &ilist, &numneigh, cpu_time, success, quat);
+        re_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo,
+                         subhi, atom->tag, atom->nspecial, atom->special,
+                         eflag, vflag, eflag_atom, vflag_atom, host_start,
+                         &ilist, &numneigh, cpu_time, success, ellipsoid,
+                         bonus);
   } else {
     inum = list->inum;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    ilist = re_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, list->ilist, numneigh,
-                           firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                           success, quat);
+    ilist = re_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+                           list->ilist, numneigh, firstneigh, eflag, vflag,
+                           eflag_atom, vflag_atom, host_start, cpu_time,
+                           success, ellipsoid, bonus);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
+    neighbor->build_topology();
   if (host_start < inum) {
     cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
@@ -184,14 +180,13 @@ void PairRESquaredGPU::init_style()
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success =
-      re_gpu_init(atom->ntypes + 1, shape1, well, cutsq, sigma, epsilon, form, lj1, lj2, lj3, lj4,
-                  offset, force->special_lj, atom->nlocal, atom->nlocal + atom->nghost, mnf,
-                  maxspecial, cell_size, gpu_mode, screen);
+      re_gpu_init(atom->ntypes + 1, shape1, well, cutsq, sigma, epsilon, form,
+                  lj1, lj2, lj3, lj4, offset, force->special_lj, atom->nlocal,
+                  atom->nlocal + atom->nghost, mnf, maxspecial, cell_size,
+                  gpu_mode, screen);
   GPU_EXTRA::check_flag(success, error, world);
 
   if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);
-  quat_nmax = static_cast<int>(1.1 * (atom->nlocal + atom->nghost));
-  memory->grow(quat, quat_nmax, 4, "pair:quat");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -199,7 +194,7 @@ void PairRESquaredGPU::init_style()
 double PairRESquaredGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + memory->usage(quat, quat_nmax) + re_gpu_bytes();
+  return bytes + re_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */

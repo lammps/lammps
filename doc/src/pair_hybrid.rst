@@ -91,7 +91,8 @@ contributions from sub-styles are weighted by their scale factors, which
 may be fractional or even negative.  Furthermore the scale factors may
 be variables that may change during a simulation.  This enables
 switching smoothly between two different pair styles or two different
-parameter sets during a run.
+parameter sets during a run in a similar fashion as could be done
+with :doc:`fix adapt <fix_adapt>` or :doc:`fix alchemy <fix_alchemy>`.
 
 All pair styles that will be used are listed as "sub-styles" following
 the *hybrid* or *hybrid/overlay* keyword, in any order.  In case of the

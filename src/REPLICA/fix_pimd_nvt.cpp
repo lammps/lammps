@@ -29,6 +29,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "universe.h"
 #include "update.h"
@@ -39,6 +40,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
+
+using MathSpecial::powint;
 
 enum { PIMD, NMPIMD, CMD };
 
@@ -68,6 +71,8 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nhc_eta_dot = nullptr;
   nhc_eta_dotdot = nullptr;
   nhc_eta_mass = nullptr;
+
+  spring_energy = t_sys = virial = 0.0;
 
   method = PIMD;
   fmass = 1.0;
@@ -234,7 +239,7 @@ void FixPIMDNVT::init()
   if (method == CMD || method == NMPIMD)
     nmpimd_init();
   else
-    for (int i = 1; i <= atom->ntypes; i++) mass[i] = atom->mass[i] / np * fmass;
+    for (int i = 1; i <= atom->ntypes; i++) mass[i] = atom->mass[i] * inverse_np * fmass;
 
   if (!nhc_ready) nhc_init();
 }
@@ -468,8 +473,8 @@ void FixPIMDNVT::nmpimd_init()
   // Set up eigenvectors for non-degenerated modes
 
   for (int i = 0; i < np; i++) {
-    M_x2xp[0][i] = 1.0 / np;
-    if (np % 2 == 0) M_x2xp[np - 1][i] = 1.0 / np * pow(-1.0, i);
+    M_x2xp[0][i] = inverse_np;
+    if (np % 2 == 0) M_x2xp[np - 1][i] = inverse_np * powint(-1.0, i);
   }
 
   // Set up eigenvectors for degenerated modes
@@ -880,8 +885,8 @@ int FixPIMDNVT::size_restart(int /*nlocal*/)
 
 double FixPIMDNVT::compute_vector(int n)
 {
-  if (n == 0) { return spring_energy; }
-  if (n == 1) { return t_sys; }
-  if (n == 2) { return virial; }
+  if (n == 0) return spring_energy;
+  if (n == 1) return t_sys;
+  if (n == 2) return virial;
   return 0.0;
 }

@@ -37,6 +37,7 @@ using namespace MathConst;
 
 PairNMCutCoulCut::PairNMCutCoulCut(LAMMPS *lmp) : Pair(lmp)
 {
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -477,6 +478,38 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairNMCutCoulCut::born_matrix(int i, int j, int itype, int jtype, double rsq,
+                            double factor_coul, double factor_lj, double &dupair,
+                            double &du2pair)
+{
+  double r, rinv, r2inv, r3inv;
+  double du_lj, du2_lj, du_coul, du2_coul;
+
+  double *q = atom->q;
+  double qqrd2e = force->qqrd2e;
+
+  r2inv = 1.0 / rsq;
+  rinv = sqrt(r2inv);
+  r3inv = r2inv * rinv;
+  r = sqrt(rsq);
+
+  double prefactor = e0nm[itype][jtype]*nm[itype][jtype];
+
+  du_lj = prefactor *
+          (r0m[itype][jtype]/pow(r,mm[itype][jtype]) - r0n[itype][jtype]/pow(r,nn[itype][jtype])) / r;
+  du2_lj = prefactor *
+          (r0n[itype][jtype]*(nn[itype][jtype] + 1.0) / pow(r,nn[itype][jtype]) -
+           r0m[itype][jtype]*(mm[itype][jtype] + 1.0) / pow(r,mm[itype][jtype])) / rsq;
+
+  du_coul = -qqrd2e * q[i] * q[j] * r2inv;
+  du2_coul = 2.0 * qqrd2e * q[i] * q[j] * r3inv;
+
+  dupair = factor_lj * du_lj + factor_coul * du_coul;
+  du2pair = factor_lj * du2_lj + factor_coul * du2_coul;
 }
 
 /* ---------------------------------------------------------------------- */

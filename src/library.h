@@ -254,7 +254,8 @@ void lammps_force_timeout(void *handle);
 int lammps_has_error(void *handle);
 int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 
-int lammps_foreign_add_pair_style(void *handle, const char *name);
+typedef void (*ForeignCompute)(void*, int, int);
+int lammps_foreign_add_pair_style(void *handle, const char *name, void *ctx, ForeignCompute compute_fptr);
 
 #ifdef __cplusplus
 }

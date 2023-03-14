@@ -158,7 +158,7 @@ void plugin_register(lammpsplugin_t *plugin, void *ptr)
       if (lmp->comm->me == 0)
         lmp->error->warning(FLERR, "Overriding built-in pair style {} from plugin", plugin->name);
     }
-    (*pair_map)[plugin->name] = (Force::PairCreator) plugin->creator.v1;
+    (*pair_map)[plugin->name] = [=](LAMMPS *lmp) -> Pair* { return (Pair*) plugin->creator.v1(lmp); };
 
   } else if (pstyle == "bond") {
     auto bond_map = lmp->force->bond_map;

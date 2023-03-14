@@ -31,11 +31,11 @@
 
 namespace LAMMPS_NS {
 
-typedef void (*Compute)(void*, int, int);
+typedef void (*ForeignCompute)(void*, int, int);
 
 class PairForeign : public Pair {
  public:
-  PairForeign(class LAMMPS *, void*, Compute);
+  PairForeign(class LAMMPS *, void*, ForeignCompute);
   ~PairForeign() override;
   void compute(int, int) override;
   void compute_outer(int, int) override;
@@ -52,7 +52,7 @@ class PairForeign : public Pair {
 
   private:
    void* ctx;
-   Compute compute_fptr;
+   ForeignCompute compute_fptr;
 };
 
 }    // namespace LAMMPS_NS

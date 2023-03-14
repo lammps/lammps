@@ -27,7 +27,7 @@
 
 using namespace LAMMPS_NS;
 
-PairForeign::PairForeign(LAMMPS *lmp, void* ctx, Compute compute) : Pair(lmp), ctx(ctx), compute_fptr(compute){
+PairForeign::PairForeign(LAMMPS *lmp, void* ctx, ForeignCompute compute) : Pair(lmp), ctx(ctx), compute_fptr(compute){
 }
 
 /* ---------------------------------------------------------------------- */

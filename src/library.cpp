@@ -5564,7 +5564,7 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
   return 0;
 }
 
-int lammps_foreign_add_pair_style(void *handle, const char *_name, void *ctx, Compute compute_fptr) {
+int lammps_foreign_add_pair_style(void *handle, const char *_name, void *ctx, ForeignCompute compute_fptr) {
   LAMMPS *lmp = (LAMMPS *) handle;
   std::string name = _name;
   auto &pair_map = *lmp->force->pair_map;

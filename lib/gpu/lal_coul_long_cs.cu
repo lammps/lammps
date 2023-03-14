@@ -49,7 +49,7 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
                           const __global numtyp *restrict sp_cl_in,
                           const __global int *dev_nbor,
                           const __global int *dev_packed,
-                          __global acctyp4 *restrict ans,
+                          __global acctyp3 *restrict ans,
                           __global acctyp *restrict engv,
                           const int eflag, const int vflag, const int inum,
                           const int nbor_pitch,
@@ -68,7 +68,7 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
   sp_cl[2]=sp_cl_in[2];
   sp_cl[3]=sp_cl_in[3];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp e_coul, virial[6];
   if (EVFLAG) {
@@ -87,6 +87,7 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
     numtyp qtmp; fetch(qtmp,i,q_tex);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_coul;
@@ -166,7 +167,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp *restrict sp_cl_in,
                                const __global int *dev_nbor,
                                const __global int *dev_packed,
-                               __global acctyp4 *restrict ans,
+                               __global acctyp3 *restrict ans,
                                __global acctyp *restrict engv,
                                const int eflag, const int vflag, const int inum,
                                const int nbor_pitch,
@@ -186,7 +187,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES)
     scale[tid]=scale_in[tid];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp e_coul, virial[6];
   if (EVFLAG) {
@@ -208,6 +209,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_coul;

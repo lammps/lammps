@@ -266,6 +266,7 @@ LAL_SERIALIZE_INIT      Force serialization of initialization and compilation
                         for multiple MPI tasks sharing the same accelerator.
                         Some accelerator API implementations have had issues
                         with temporary file conflicts in the past.
+LAL_DISABLE_PREFETCH    Disable prefetch in kernels
 GERYON_FORCE_SHARED_MAIN_MEM_ON      Should only be used for builds where the
                                      accelerator is guaranteed to share physical
                                      main memory with the host (e.g. integrated

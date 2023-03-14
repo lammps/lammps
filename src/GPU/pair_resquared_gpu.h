@@ -38,8 +38,6 @@ class PairRESquaredGPU : public PairRESquared {
  private:
   int gpu_mode;
   double cpu_time;
-  int quat_nmax;
-  double **quat;
 };
 
 }    // namespace LAMMPS_NS

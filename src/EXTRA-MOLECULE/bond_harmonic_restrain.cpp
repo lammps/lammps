@@ -17,7 +17,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -162,8 +162,8 @@ void BondHarmonicRestrain::init_style()
   if (natoms < 0) {
 
     // create internal fix to store initial positions
-    initial = dynamic_cast<FixStorePeratom *>(
-      modify->add_fix("BOND_RESTRAIN_X0 all STORE/PERATOM 3 0 1 1"));
+    initial = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix("BOND_RESTRAIN_X0 all STORE/ATOM 3 0 1 1"));
     if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
 
     natoms = atom->natoms;
@@ -178,8 +178,8 @@ void BondHarmonicRestrain::init_style()
     // we add the fix, but do not initialize it.  It will pull the data from the restart.
 
     if (!initial) {
-      initial = dynamic_cast<FixStorePeratom *>(
-        modify->add_fix("BOND_RESTRAIN_X0 all STORE/PERATOM 3 0 1 1"));
+      initial = dynamic_cast<FixStoreAtom *>(
+        modify->add_fix("BOND_RESTRAIN_X0 all STORE/ATOM 3 0 1 1"));
       if (!initial) error->all(FLERR, "Failure to create internal per-atom storage");
     }
   }

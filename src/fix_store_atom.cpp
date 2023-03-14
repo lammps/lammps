@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 
 #include "atom.h"
 #include "error.h"
@@ -32,10 +32,10 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixStorePeratom::FixStorePeratom(LAMMPS *lmp, int narg, char **arg) :
+FixStoreAtom::FixStoreAtom(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), vstore(nullptr), astore(nullptr)
 {
-  if (narg != 7) error->all(FLERR, "Illegal fix STORE/PERATOM command: number of args");
+  if (narg != 7) error->all(FLERR, "Illegal fix STORE/ATOM command: number of args");
 
   disable = 0;
 
@@ -52,7 +52,7 @@ FixStorePeratom::FixStorePeratom(LAMMPS *lmp, int narg, char **arg) :
   else if (n1 > 0 && n2 > 0)
     tensorflag = 1;
   else
-    error->all(FLERR, "Illegal fix STORE/PERATOM dimension args: {} {}", n1, n2);
+    error->all(FLERR, "Illegal fix STORE/ATOM dimension args: {} {}", n1, n2);
 
   if (vecflag || arrayflag)
     nvalues = n1;
@@ -71,7 +71,7 @@ FixStorePeratom::FixStorePeratom(LAMMPS *lmp, int narg, char **arg) :
   astore = nullptr;
   tstore = nullptr;
 
-  FixStorePeratom::grow_arrays(atom->nmax);
+  FixStoreAtom::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   if (restartflag) atom->add_callback(Atom::RESTART);
   if (ghostflag) atom->add_callback(Atom::BORDER);
@@ -93,7 +93,7 @@ FixStorePeratom::FixStorePeratom(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixStorePeratom::~FixStorePeratom()
+FixStoreAtom::~FixStoreAtom()
 {
   // unregister callbacks to this fix from Atom class
 
@@ -108,7 +108,7 @@ FixStorePeratom::~FixStorePeratom()
 
 /* ---------------------------------------------------------------------- */
 
-int FixStorePeratom::setmask()
+int FixStoreAtom::setmask()
 {
   int mask = 0;
   return mask;
@@ -118,7 +118,7 @@ int FixStorePeratom::setmask()
    allocate atom-based array
 ------------------------------------------------------------------------- */
 
-void FixStorePeratom::grow_arrays(int nmax)
+void FixStoreAtom::grow_arrays(int nmax)
 {
   if (vecflag)
     memory->grow(vstore, nmax, "store:vstore");
@@ -132,7 +132,7 @@ void FixStorePeratom::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixStorePeratom::copy_arrays(int i, int j, int /*delflag*/)
+void FixStoreAtom::copy_arrays(int i, int j, int /*delflag*/)
 {
   if (disable) return;
 
@@ -149,7 +149,7 @@ void FixStorePeratom::copy_arrays(int i, int j, int /*delflag*/)
    pack values for border communication at re-neighboring
 ------------------------------------------------------------------------- */
 
-int FixStorePeratom::pack_border(int n, int *list, double *buf)
+int FixStoreAtom::pack_border(int n, int *list, double *buf)
 {
   int i, j, k;
 
@@ -179,7 +179,7 @@ int FixStorePeratom::pack_border(int n, int *list, double *buf)
    unpack values for border communication at re-neighboring
 ------------------------------------------------------------------------- */
 
-int FixStorePeratom::unpack_border(int n, int first, double *buf)
+int FixStoreAtom::unpack_border(int n, int first, double *buf)
 {
   int i, k, last;
 
@@ -203,7 +203,7 @@ int FixStorePeratom::unpack_border(int n, int first, double *buf)
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixStorePeratom::pack_exchange(int i, double *buf)
+int FixStoreAtom::pack_exchange(int i, double *buf)
 {
   if (disable) return 0;
 
@@ -222,7 +222,7 @@ int FixStorePeratom::pack_exchange(int i, double *buf)
    unpack values in local atom-based array from exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixStorePeratom::unpack_exchange(int nlocal, double *buf)
+int FixStoreAtom::unpack_exchange(int nlocal, double *buf)
 {
   if (disable) return 0;
 
@@ -241,7 +241,7 @@ int FixStorePeratom::unpack_exchange(int nlocal, double *buf)
    pack values in local atom-based arrays for restart file
 ------------------------------------------------------------------------- */
 
-int FixStorePeratom::pack_restart(int i, double *buf)
+int FixStoreAtom::pack_restart(int i, double *buf)
 {
   if (disable) {
     buf[0] = 0;
@@ -266,7 +266,7 @@ int FixStorePeratom::pack_restart(int i, double *buf)
    unpack values from atom->extra array to restart the fix
 ------------------------------------------------------------------------- */
 
-void FixStorePeratom::unpack_restart(int nlocal, int nth)
+void FixStoreAtom::unpack_restart(int nlocal, int nth)
 {
   if (disable) return;
 
@@ -292,7 +292,7 @@ void FixStorePeratom::unpack_restart(int nlocal, int nth)
    maxsize of any atom's restart data
 ------------------------------------------------------------------------- */
 
-int FixStorePeratom::maxsize_restart()
+int FixStoreAtom::maxsize_restart()
 {
   if (disable) return 1;
   return nvalues + 1;
@@ -302,17 +302,17 @@ int FixStorePeratom::maxsize_restart()
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixStorePeratom::size_restart(int /*nlocal*/)
+int FixStoreAtom::size_restart(int /*nlocal*/)
 {
   if (disable) return 1;
   return nvalues + 1;
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of global or peratom atom-based array
+   memory usage of per-atom atom-based array
 ------------------------------------------------------------------------- */
 
-double FixStorePeratom::memory_usage()
+double FixStoreAtom::memory_usage()
 {
   return (double) atom->nmax * nvalues * sizeof(double);
 }

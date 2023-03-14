@@ -13,26 +13,26 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(STORE/PERATOM,FixStorePeratom);
+FixStyle(STORE/ATOM,FixStoreAtom);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_STORE_PERATOM_H
-#define LMP_FIX_STORE_PERATOM_H
+#ifndef LMP_FIX_STORE_ATOM_H
+#define LMP_FIX_STORE_ATOM_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixStorePeratom : public Fix {
+class FixStoreAtom : public Fix {
  public:
   double *vstore;      // vector storage
   double **astore;     // array storage
   double ***tstore;    // tensor (3d array) storage
   int disable;         // 1 if operations (except grow) are currently disabled
 
-  FixStorePeratom(class LAMMPS *, int, char **);
-  ~FixStorePeratom() override;
+  FixStoreAtom(class LAMMPS *, int, char **);
+  ~FixStoreAtom() override;
   int setmask() override;
 
   void grow_arrays(int) override;

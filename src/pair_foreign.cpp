@@ -34,13 +34,17 @@ PairForeign::PairForeign(LAMMPS *lmp, void* ctx, ForeignCompute compute) : Pair(
 
 PairForeign::~PairForeign()
 {
+   if (allocated) {
+      memory->destroy(setflag);
+      memory->destroy(cutsq);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairForeign::compute(int eflag, int vflag)
 {
-    compute_fptr(ctx, eflag, vflag);
+   compute_fptr(ctx, eflag, vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,6 +59,22 @@ void PairForeign::compute_outer(int eflag, int vflag)
 
 void PairForeign::settings(int narg, char **arg)
 {
+   if (narg != 1)
+      error->all(FLERR,"Illegal pair_style command");
+
+   cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+}
+
+void PairForeign::allocate() {
+   allocated = 1;
+   int n = atom->ntypes;
+
+   memory->create(setflag,n+1,n+1,"pair:setflag");
+   for (int i = 1; i <= n; i++)
+      for (int j = i; j <= n; j++)
+         setflag[i][j] = 0;
+
+   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 }
 
 /* ----------------------------------------------------------------------
@@ -62,7 +82,17 @@ void PairForeign::settings(int narg, char **arg)
 ------------------------------------------------------------------------- */
 
 void PairForeign::coeff(int narg, char **arg)
-{
+{  
+   const int ntypes = atom->ntypes;
+
+   if (!allocated) allocate();
+
+   for (int i = 1; i <= ntypes ; i++) {
+      for (int j = i; j <= ntypes ; j++) {
+         setflag[i][j] = 1;
+         cutsq[i][j] = cut_global*cut_global;
+      }
+   }
 }
 
 /* ----------------------------------------------------------------------
@@ -71,6 +101,7 @@ void PairForeign::coeff(int narg, char **arg)
 
 double PairForeign::init_one(int i, int j)
 {
+   return cut_global;
 }
 
 /* ----------------------------------------------------------------------

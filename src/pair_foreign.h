@@ -50,9 +50,14 @@ class PairForeign : public Pair {
   void write_data_all(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
 
+  protected:
+    double cut_global = 0.0;
+    virtual void allocate();
+
+
   private:
-   void* ctx;
-   ForeignCompute compute_fptr;
+    void* ctx;
+    ForeignCompute compute_fptr;
 };
 
 }    // namespace LAMMPS_NS

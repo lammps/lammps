@@ -814,7 +814,8 @@ class lammps(object):
 
     # set length of vector for items that are not a scalar
     vec_dict = { 'boxlo':3, 'boxhi':3, 'sublo':3, 'subhi':3,
-                 'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3 }
+                 'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3,
+                 'special_lj':4, 'special_coul':4 }
     if name in vec_dict:
       veclen = vec_dict[name]
     elif name == 'respa_dt':

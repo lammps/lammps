@@ -536,6 +536,7 @@ create_atoms 1 single &
     def test_extract_global(self):
         self.lmp.command("region box block -1 1 -2 2 -3 3")
         self.lmp.command("create_box 1 box")
+        self.lmp.command("special_bonds lj 0.0 0.5 0.8 coul 0.1 0.5 1.0")
         self.assertEqual(self.lmp.extract_global("units"), "lj")
         self.assertEqual(self.lmp.extract_global("ntimestep"), 0)
         self.assertEqual(self.lmp.extract_global("dt"), 0.005)
@@ -552,10 +553,15 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("subhi"), [1.0, 2.0, 3.0])
         self.assertEqual(self.lmp.extract_global("periodicity"), [1,1,1])
         self.assertEqual(self.lmp.extract_global("triclinic"), 0)
+        self.assertEqual(self.lmp.extract_global("special_lj"), [1.0, 0.0, 0.5, 0.8])
+        self.assertEqual(self.lmp.extract_global("special_coul"), [1.0, 0.1, 0.5, 1.0])
         self.assertEqual(self.lmp.extract_global("sublo_lambda"), None)
         self.assertEqual(self.lmp.extract_global("subhi_lambda"), None)
         self.assertEqual(self.lmp.extract_global("respa_levels"), None)
         self.assertEqual(self.lmp.extract_global("respa_dt"), None)
+        self.lmp.command("special_bonds lj/coul 0.0 1.0 1.0")
+        self.assertEqual(self.lmp.extract_global("special_lj"), [1.0, 0.0, 1.0, 1.0])
+        self.assertEqual(self.lmp.extract_global("special_coul"), [1.0, 0.0, 1.0, 1.0])
 
         # set and initialize r-RESPA
         self.lmp.command("run_style respa 3 5 2 pair 2 kspace 3")

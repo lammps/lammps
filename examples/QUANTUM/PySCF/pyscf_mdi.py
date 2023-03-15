@@ -7,7 +7,7 @@ import sys,time
 
 import numpy as np
 from mpi4py import MPI
-import MDI_Library as mdi
+import mdi
 
 from pyscf.gto import Mole
 from pyscf.pbc.gto import Cell

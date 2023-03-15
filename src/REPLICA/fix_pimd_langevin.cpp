@@ -585,7 +585,7 @@ void FixPIMDLangevin::end_of_step()
   if (pstat_flag) compute_totenthalpy();
 
   if (update->ntimestep % 10000 == 0) {
-    if (universe->me == 0) printf("This is the end of step %ld.\n", update->ntimestep);
+    if (universe->me == 0) printf("This is the end of step %lld.\n", update->ntimestep);
   }
 }
 
@@ -1294,6 +1294,7 @@ void FixPIMDLangevin::compute_p_cv()
   if (universe->iworld == 0) {
     p_cv = THIRD * inv_volume * ((2.0 * ke_bead - centroid_vir) * force->nktv2p + vir) / np;
   }
+  p_md = THIRD * inv_volume * (totke + vir);
   MPI_Bcast(&p_cv, 1, MPI_DOUBLE, 0, universe->uworld);
 }
 

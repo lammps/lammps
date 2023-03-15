@@ -250,9 +250,11 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (integrator == BAOAB || integrator == OBABO) {
-    Lan_temp = temp;
-    random = new RanMars(lmp, seed + universe->me);
+  if (tstat_flag) {
+    if (integrator == BAOAB || integrator == OBABO) {
+      Lan_temp = temp;
+      random = new RanMars(lmp, seed + universe->me);
+    }
   }
 
   me = comm->me;

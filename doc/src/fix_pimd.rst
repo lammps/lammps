@@ -30,15 +30,28 @@ Syntax
 * keywords for style *pimd/langevin*
 
   .. parsed-literal::
-       *keywords* = *method* or *integrator* or *ensemble* or *fmass* or *fmmode* or *scale* or *lj* or *temp* or *thermostat* or *tau* or *press* or *barostat* or *taup* or *iso* or *aniso*
+       *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *scale* or *temp* or *thermostat* or *tau* or or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj* 
        *method* value = *nmpimd*
-       *fmass* value = scaling factor on mass
-       *sp* value = scaling factor on Planck constant
-       *temp* value = target temperature (temperarate units)
-       *thermostat* values = PILE_L *seed*
-          *seed* = random number seed
+       *integrator* value = *obabo* or *baoab*
+       *fmmode* value = *physical* or *normal*
+       *temp* value = Temperature (temperarate unit)
+          Temperature = target temperarate of the thermostat
+       *thermostat* values = style seed
+          style value = *PILE_L*
+          seed = random number generator seed
        *tau* value = thermostat damping parameter (time unit)
-       *press* value = target pressure (pressure units)
+       *scale* value = scaling factor of the damping times of non-centroid modes of PILE_L thermostat
+       *iso* or *aniso* values = Pressure (pressure unit)
+         Pressure = scalar external pressure of the barostat 
+       *barostat* value = *BZP* or *MTTK*
+       *taup* value = barostat damping parameter (time unit)
+       *fixcom* value = *yes* or *no*
+       *lj* values = epsilon sigma mass planck mvv2e
+          epsilon = energy scale for reduced units (energy units)
+          sigma = length scale for reduced units (length units)
+          mass = mass scale for reduced units (mass units)
+          planck = Planck's constant for other unit style
+          mvv2e = mass * velocity^2 to energy conversion factor for other unit style
 
 Examples
 """"""""
@@ -46,6 +59,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all pimd/nvt method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
+   fix 1 all pimd/langevin ensemble npt integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0 press 1.0 barostat BZP taup 1.0 iso
 
 Description
 """""""""""

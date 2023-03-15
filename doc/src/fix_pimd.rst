@@ -106,7 +106,9 @@ would be 3 x N x P x Nc.
    Fix *pimd/nvt* implements a complete velocity-verlet integrator
    combined with NH massive chain thermostat, so no other time
    integration fix should be used.
-   Similarly fix *pimd/langeving* implements ...
+   Fix *pimd/langevin* implements a complete velocity-verlet integrator
+   combined with Langevin thermostat in the normal mode representation, and 
+   also provides a barostat to sample the NPH/NPT ensembles.
 
 The *method* keyword determines what style of PIMD is performed.  A
 value of *pimd* is standard PIMD.  A value of *nmpimd* is for

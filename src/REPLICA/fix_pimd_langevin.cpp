@@ -185,9 +185,6 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       }
     } else if (strcmp(arg[i], "tau") == 0) {
       tau = utils::numeric(FLERR, arg[i + 1], false, lmp);
-    } else if (strcmp(arg[i], "press") == 0) {
-      Pext = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (Pext < 0.0) error->universe_all(FLERR, "Invalid press value for fix pimd/langevin");
     } else if (strcmp(arg[i], "barostat") == 0) {
       if (strcmp(arg[i + 1], "MTTK") == 0) {
         barostat = MTTK;
@@ -197,10 +194,10 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         error->universe_all(FLERR, "Unknown barostat parameter for fix pimd/langevin");
     } else if (strcmp(arg[i], "iso") == 0) {
       pstyle = ISO;
-      i--;
+      Pext = utils::numeric(FLERR, arg[i+1], false, lmp);
     } else if (strcmp(arg[i], "aniso") == 0) {
       pstyle = ANISO;
-      i--;
+      Pext = utils::numeric(FLERR, arg[i+1], false, lmp);
     } else if (strcmp(arg[i], "taup") == 0) {
       tau_p = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (tau_p <= 0.0) error->universe_all(FLERR, "Invalid tau_p value for fix pimd/langevin");

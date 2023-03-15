@@ -1363,29 +1363,5 @@ double FixPIMDLangevin::compute_vector(int n)
     }
   }
 
-  /*
-
-  if(n==7) { return p_prim; }
-  if(n==8) { return p_md; }
-  if(n==9) { return p_cv; }
-  if(n==10) {return totenthalpy;
-  if(pstyle == ISO){
-    if(n==11) { return vw[0]; }
-    if(n==12) {
-      if(barostat == BZP) {  return 0.5*W*vw[0]*vw[0]; }
-      else if(barostat == MTTK) {  return 1.5*W*vw[0]*vw[0]; }
-    }
-    if(n==13) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
-    if(n==14) { volume = domain->xprd * domain->yprd * domain->zprd;
-    // printf("Vcoeff = %.6e np = %d kBT = %.6e logV = %.6e\n", Vcoeff, np, kBT, log(volume));
-    return - Vcoeff * np * kBT * log(volume); }
-  }
-  else if(pstyle==ANISO){
-    if(n>10 && n<=13) return vw[n-11];
-    if(n==14) return 0.5*W*vw[0]*vw[0]+0.5*W*vw[1]*vw[1]+0.5*W*vw[2]*vw[2];
-    if(n>14 && n<21) return stress_tensor[n-15];
-    if(n==21) { volume = domain->xprd * domain->yprd * domain->zprd; return np * Pext * volume / force->nktv2p; }
-    if(n==22) { volume = domain->xprd * domain->yprd * domain->zprd; return - Vcoeff * np * kBT * log(volume); }
-  }  */
   return 0.0;
 }

@@ -260,6 +260,9 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
 
+  if (nreplica == 1) mapflag = 0;
+  else mapflag = 1;
+
   int *iroots = new int[nreplica];
   MPI_Group uworldgroup, rootgroup;
 

@@ -38,6 +38,7 @@ class PairTIP4PCut : public Pair {
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   double memory_usage() override;
+  void *extract(const char *, int &) override;
 
  protected:
   double cut_coul_global;

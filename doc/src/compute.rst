@@ -206,6 +206,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`dilatation/atom <compute_dilatation_atom>` - Peridynamic dilatation for each atom
 * :doc:`dipole <compute_dipole>` - dipole vector and total dipole
 * :doc:`dipole/chunk <compute_dipole_chunk>` - dipole vector and total dipole for each chunk
+* :doc:`dipole/tip4p <compute_dipole>` - dipole vector and total dipole with TIP4P pair style
+* :doc:`dipole/tip4p/chunk <compute_dipole_chunk>` - dipole vector and total dipole for each chunk with TIP4P pair style
 * :doc:`displace/atom <compute_displace_atom>` - displacement of each atom
 * :doc:`dpd <compute_dpd>` - total values of internal conductive energy, internal mechanical energy, chemical energy, and harmonic average of internal temperature
 * :doc:`dpd/atom <compute_dpd_atom>` - per-particle values of internal conductive energy, internal mechanical energy, chemical energy, and internal temperature

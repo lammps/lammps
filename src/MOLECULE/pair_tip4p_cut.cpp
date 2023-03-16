@@ -562,3 +562,17 @@ double PairTIP4PCut::memory_usage()
   bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *PairTIP4PCut::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"qdist") == 0) return (void *) &qdist;
+  if (strcmp(str,"typeO") == 0) return (void *) &typeO;
+  if (strcmp(str,"typeH") == 0) return (void *) &typeH;
+  if (strcmp(str,"typeA") == 0) return (void *) &typeA;
+  if (strcmp(str,"typeB") == 0) return (void *) &typeB;
+  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  return nullptr;
+}

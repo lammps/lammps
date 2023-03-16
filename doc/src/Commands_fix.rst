@@ -70,6 +70,7 @@ OPT.
    * :doc:`dt/reset (k) <fix_dt_reset>`
    * :doc:`edpd/source <fix_dpd_source>`
    * :doc:`efield <fix_efield>`
+   * :doc:`efield/tip4p <fix_efield>`
    * :doc:`ehex <fix_ehex>`
    * :doc:`electrode/conp (i) <fix_electrode>`
    * :doc:`electrode/conq (i) <fix_electrode>`

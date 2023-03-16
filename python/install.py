@@ -63,10 +63,10 @@ if os.path.isdir(os.path.join(olddir,"build")):
   print("Cleaning old build directory")
   shutil.rmtree(os.path.join(olddir,"build"))
 
-print("Purging existing wheels...")
-for wheel in glob.glob('lammps-*.whl'):
-  print("deleting " + wheel)
-  os.remove(wheel)
+#print("Purging existing wheels...")
+#for wheel in glob.glob('lammps-*.whl'):
+#  print("deleting " + wheel)
+#  os.remove(wheel)
 
 # copy shared object to the current folder so that
 # it will show up in the installation at the expected location

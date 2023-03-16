@@ -685,7 +685,7 @@ void PairGranular::reset_dt()
 /* ---------------------------------------------------------------------- */
 
 double PairGranular::single(int i, int j, int itype, int jtype,
-                            double rsq, double /* factor_coul */,
+                            double /*rsq*/, double /* factor_coul */,
                             double factor_lj, double &fforce)
 {
   if (factor_lj == 0) {
@@ -764,8 +764,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 
   model->calculate_forces();
   double *forces = model->forces;
-  double *torquesi = model->torquesi;
-  double *torquesj = model->torquesj;
 
   // apply forces & torques
   fforce = MathExtra::len3(forces);

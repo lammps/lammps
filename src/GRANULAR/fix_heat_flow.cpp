@@ -156,7 +156,7 @@ void FixHeatFlow::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixHeatFlow::final_integrate_respa(int ilevel, int /*iloop*/)
+void FixHeatFlow::final_integrate_respa(int /*ilevel*/, int /*iloop*/)
 {
   dt = update->dt;
   final_integrate();
@@ -215,13 +215,11 @@ void FixHeatFlow::unpack_forward_comm(int n, int first, double *buf)
 
 int FixHeatFlow::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,k,last;
-
   int m = 0;
-  last = first + n;
+  int last = first + n;
   double *heatflow = atom->heatflow;
 
-  for (i = first; i < last; i++) {
+  for (int i = first; i < last; i++) {
     buf[m++] = heatflow[i];
   }
 
@@ -232,13 +230,9 @@ int FixHeatFlow::pack_reverse_comm(int n, int first, double *buf)
 
 void FixHeatFlow::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,k,kk,ncount;
-
   int m = 0;
   double *heatflow = atom->heatflow;
 
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    heatflow[j] += buf[m++];
-  }
+  for (int i = 0; i < n; i++)
+    heatflow[list[i]] += buf[m++];
 }

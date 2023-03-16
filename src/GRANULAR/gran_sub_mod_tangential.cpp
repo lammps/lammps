@@ -174,9 +174,8 @@ GranSubModTangentialLinearHistoryClassic::GranSubModTangentialLinearHistoryClass
 
 void GranSubModTangentialLinearHistoryClassic::calculate_forces()
 {
-  double magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl;
+  double magfs, magfs_inv, rsht, shrmag;
   double temp_array[3];
-  int frame_update = 0;
 
   damp = xt * gm->damping_model->damp_prefactor;
 

@@ -401,8 +401,8 @@ void Dump::write()
   if (multiproc != nprocs) MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   else nmax = nme;
 
-  // insure buf is sized for packing and communicating
-  // use nmax to insure filewriter proc can receive info from others
+  // ensure buf is sized for packing and communicating
+  // use nmax to ensure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
 
   if (nmax*size_one > maxbuf) {
@@ -413,7 +413,7 @@ void Dump::write()
     memory->create(buf,maxbuf,"dump:buf");
   }
 
-  // insure ids buffer is sized for sorting
+  // ensure ids buffer is sized for sorting
 
   if (sort_flag && sortcol == 0 && nmax > maxids) {
     maxids = nmax;
@@ -468,7 +468,7 @@ void Dump::write()
   if (filewriter && write_header_flag) write_header(nheader);
 
   // if buffering, convert doubles into strings
-  // insure sbuf is sized for communicating
+  // ensure sbuf is sized for communicating
   // cannot buffer if output is to binary file
 
   if (buffer_flag && !binary) {
@@ -776,7 +776,7 @@ void Dump::sort()
 #endif
 
   // reset buf size and maxbuf to largest of any post-sort nme values
-  // this insures proc 0 can receive everyone's info
+  // this ensures proc 0 can receive everyone's info
 
   int nmax;
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
@@ -960,7 +960,7 @@ void Dump::balance()
   proc_new_offsets[0] = 0;
 
   // reset buf size to largest of any post-balance nme values
-  // this insures proc 0 can receive everyone's info
+  // this ensures proc 0 can receive everyone's info
   // cannot shrink buf to nme_balance, must use previous maxbuf value
 
   int nmax;

@@ -168,8 +168,8 @@ void CommTiledKokkos::reverse_comm(Fix *fix, int size)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix with variable size data
-   query fix for all pack sizes to insure buf_send is big enough
-   handshake sizes before irregular comm to insure buf_recv is big enough
+   query fix for all pack sizes to ensure buf_send is big enough
+   handshake sizes before irregular comm to ensure buf_recv is big enough
    NOTE: how to setup one big buf recv with correct offsets ??
 ------------------------------------------------------------------------- */
 

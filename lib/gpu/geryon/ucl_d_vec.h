@@ -125,7 +125,7 @@ class UCL_D_Vec : public UCL_BaseMat {
     * - The view does not prevent the memory from being freed by the
     *   allocating container when using CUDA APIs **/
   template <class ucl_type>
-  inline void view(ucl_type &input, const size_t rows, const size_t cols) {
+  inline void view(ucl_type &input, const size_t UCL_DEBUG_ARG(rows), const size_t cols) {
     #ifdef UCL_DEBUG
     assert(rows==1);
     #endif
@@ -230,8 +230,8 @@ class UCL_D_Vec : public UCL_BaseMat {
     * - The view does not prevent the memory from being freed by the
     *   allocating container when using CUDA APIs **/
   template <class ucl_type>
-  inline void view_offset(const size_t offset,ucl_type &input,const size_t rows,
-                          const size_t cols) {
+  inline void view_offset(const size_t offset,ucl_type &input,
+                          const size_t UCL_DEBUG_ARG(rows), const size_t cols) {
     #ifdef UCL_DEBUG
     assert(rows==1);
     #endif

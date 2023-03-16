@@ -106,7 +106,7 @@ for :math:`f_x`, :math:`f_y`, :math:`f_z`, the energy variable is specified as
 v_name, where name is the variable name.
 
 Note that when the *energy* keyword is used during an energy
-minimization, you must insure that the formula defined for the
+minimization, you must ensure that the formula defined for the
 atom-style :doc:`variable <variable>` is consistent with the force
 variable formulas (i.e., that :math:`-\vec\nabla E = \vec F`).
 For example, if the force were a spring-like, :math:`\vec F = -k\vec x`, then

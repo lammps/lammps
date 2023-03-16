@@ -458,7 +458,7 @@ void VerletSplit::rk_setup()
   // setup qdisp, xsize, xdisp based on qsize
   // only needed by Kspace proc
   // set Kspace nlocal to sum of Rspace nlocals
-  // insure Kspace atom arrays are large enough
+  // ensure Kspace atom arrays are large enough
 
   if (!master) {
     qsize[0] = qdisp[0] = xsize[0] = xdisp[0] = 0;

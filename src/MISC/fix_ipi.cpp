@@ -358,7 +358,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
     }
   }
 
-  // insure atoms are in current box & update box via shrink-wrap
+  // ensure atoms are in current box & update box via shrink-wrap
   // has to be be done before invoking Irregular::migrate_atoms()
   //   since it requires atoms be inside simulation box
 

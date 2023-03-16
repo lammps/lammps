@@ -24,6 +24,7 @@ Available topics in mostly chronological order are:
 - `Use of "override" instead of "virtual"`_
 - `Simplified and more compact neighbor list requests`_
 - `Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM`_
+- `Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments`_
 - `Use Output::get_dump_by_id() instead of Output::find_dump()`_
 - `Refactored grid communication using Grid3d/Grid2d classes instead of GridComm`_
 
@@ -384,6 +385,34 @@ New:
    FixStoreGlobal *fix = dynamic_cast<FixStoreGlobal *>(modify->get_fix_by_id(id_fix));
 
 This change is **required** or else the code will not compile.
+
+Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: TBD
+
+The available functionality of the internal fix to store per-atom
+properties was expanded to enable storing data with ghost atoms and to
+support binary restart files.  With those changes, the fix was renamed
+to fix STORE/ATOM and the number and order of (required) arguments has
+changed.
+
+Old syntax: ``ID group-ID STORE/PERATOM rflag n1 n2 [n3]``
+
+- *rflag* = 0/1, *no*/*yes* store per-atom values in restart file
+- :math:`n1 = 1, n2 = 1, \mathrm{no}\;n3 \to` per-atom vector, single value per atom
+- :math:`n1 = 1, n2 > 1, \mathrm{no}\;n3 \to` per-atom array, *n2* values per atom
+- :math:`n1 = 1, n2 > 0, n3 > 0 \to` per-atom tensor, *n2* x *n3* values per atom
+
+New syntax:  ``ID group-ID STORE/ATOM n1 n2 gflag rflag``
+
+- :math:`n1 = 1, n2 = 0 \to` per-atom vector, single value per atom
+- :math:`n1 > 1, n2 = 0 \to` per-atom array, *n1* values per atom
+- :math:`n1 > 0, n2 > 0 \to` per-atom tensor, *n1* x *n2* values per atom
+- *gflag* = 0/1, *no*/*yes* communicate per-atom values with ghost atoms
+- *rflag* = 0/1, *no*/*yes* store per-atom values in restart file
+
+Since this is an internal fix, there is no user visible change.
 
 Use Output::get_dump_by_id() instead of Output::find_dump()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

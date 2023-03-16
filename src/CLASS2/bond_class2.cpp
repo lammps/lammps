@@ -32,7 +32,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondClass2::BondClass2(LAMMPS *lmp) : Bond(lmp) {}
+BondClass2::BondClass2(LAMMPS *lmp) : Bond(lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -221,6 +224,17 @@ double BondClass2::single(int type, double rsq, int /*i*/, int /*j*/, double &ff
   if (r > 0.0) fforce = -de_bond/r;
   else fforce = 0.0;
   return (k2[type]*dr2 + k3[type]*dr3 + k4[type]*dr4);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondClass2::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+  double dr = r - r0[type];
+  du = 0.0;
+  du2 = 2*k2[type] + 6*k3[type]*dr + 12*k4[type]*dr*dr;
+  if (r > 0.0) du = 2*k2[type]*dr + 3*k3[type]*dr*dr + 4*k4[type]*dr*dr*dr;
 }
 
 /* ---------------------------------------------------------------------- */

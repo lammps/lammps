@@ -181,7 +181,7 @@ int RegIntersect::surface_interior(double *x, double cutoff)
         n++;
       }
     }
-    // increment by cmax instead of tmax to insure
+    // increment by cmax instead of tmax to ensure
     // possible wall IDs for sub-regions are non overlapping
     walloffset += region->cmax;
   }

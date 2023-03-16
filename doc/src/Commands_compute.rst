@@ -88,7 +88,6 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
-   * :doc:`mesont <compute_mesont>`
    * :doc:`mliap <compute_mliap>`
    * :doc:`momentum <compute_momentum>`
    * :doc:`msd <compute_msd>`
@@ -105,6 +104,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pe/tally <compute_tally>`
    * :doc:`plasticity/atom <compute_plasticity_atom>`
    * :doc:`pressure <compute_pressure>`
+   * :doc:`pressure/alchemy <compute_pressure_alchemy>`
    * :doc:`pressure/uef <compute_pressure_uef>`
    * :doc:`property/atom <compute_property_atom>`
    * :doc:`property/chunk <compute_property_chunk>`

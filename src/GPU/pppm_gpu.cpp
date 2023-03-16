@@ -124,7 +124,7 @@ void PPPMGPU::init()
 
   PPPM::init();
 
-  // insure no conflict with fix balance
+  // ensure no conflict with fix balance
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"balance") == 0)

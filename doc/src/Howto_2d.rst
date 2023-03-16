@@ -22,7 +22,7 @@ atom in the file, assign a z coordinate so it falls inside the
 z-boundaries of the box - e.g. 0.0.
 
 Use the :doc:`fix enforce2d <fix_enforce2d>` command as the last
-defined fix to insure that the z-components of velocities and forces
+defined fix to ensure that the z-components of velocities and forces
 are zeroed out every timestep.  The reason to make it the last fix is
 so that any forces induced by other fixes will be zeroed out.
 

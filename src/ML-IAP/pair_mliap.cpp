@@ -83,7 +83,6 @@ void PairMLIAP::compute(int eflag, int vflag)
 {
 
   // consistency checks
-
   if (data->ndescriptors != model->ndescriptors)
     error->all(FLERR, "Inconsistent model and descriptor descriptor count: {} vs {}",
                model->ndescriptors, data->ndescriptors);
@@ -134,10 +133,10 @@ void PairMLIAP::allocate()
 
 void PairMLIAP::settings(int narg, char ** arg)
 {
-  if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style mliap", error);
 
   // This is needed because the unit test calls settings twice
   if (!is_child) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style mliap", error);
     delete model;
     model = nullptr;
     delete descriptor;
@@ -261,7 +260,7 @@ void PairMLIAP::coeff(int narg, char **arg)
 
   model->init();
   descriptor->init();
-  int gradgradflag = -1;
+  constexpr int gradgradflag = -1;
   delete data;
   data = new MLIAPData(lmp, gradgradflag, map, model, descriptor, this);
   data->init();

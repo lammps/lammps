@@ -28,9 +28,9 @@ grid.
 
 More specifically, a grid point is defined for each cell (by default
 the center point), and a processor owns a grid cell if its point is
-within the processor's spatial sub-domain.  The union of processor
-sub-domains is the global simulation box.  If a grid point is on the
-boundary of two sub-domains, the lower processor owns the grid cell.  A
+within the processor's spatial subdomain.  The union of processor
+subdomains is the global simulation box.  If a grid point is on the
+boundary of two subdomains, the lower processor owns the grid cell.  A
 processor may also store copies of ghost cells which surround its
 owned cells.
 
@@ -62,7 +62,7 @@ y-dimension.  It is even possible to define a 1x1x1 3d grid, though it
 may be inefficient to use it in a computational sense.
 
 Note that the choice of grid size is independent of the number of
-processors or their layout in a grid of processor sub-domains which
+processors or their layout in a grid of processor subdomains which
 overlays the simulations domain.  Depending on the distributed grid
 size, a single processor may own many 1000s or no grid cells.
 
@@ -70,7 +70,7 @@ A command can define multiple grids, each of a different size.  Each
 grid is an instantiation of the Grid2d or Grid3d class.
 
 The command also defines what data it will store for each grid it
-creates and it allocates the multi-dimensional array(s) needed to
+creates and it allocates the multidimensional array(s) needed to
 store the data.  No grid cell data is stored within the Grid2d or
 Grid3d classes.
 
@@ -115,7 +115,7 @@ which stores *Nvalues* per grid cell.
                                 nyhi_out, nxlo_out, nxhi_out, nvalues,
                                 "data3d_multi");
 
-Note that these multi-dimensional arrays are allocated as contiguous
+Note that these multidimensional arrays are allocated as contiguous
 chunks of memory where the x-index of the grid varies fastest, then y,
 and the z-index slowest.  For multiple values per grid cell, the
 Nvalues are contiguous, so their index varies even faster than the
@@ -160,7 +160,7 @@ cells (the entire allocated grid).
 Grid class constructors
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-The following sub-sections describe the public methods of the Grid3d
+The following subsections describe the public methods of the Grid3d
 class which a style command can invoke.  The Grid2d methods are
 similar; simply remove arguments which refer to the z-dimension.
 
@@ -235,7 +235,7 @@ invoked, because they influence its operation.
    void set_zfactor(double factor);
 
 Processors own a grid cell if a point within the grid cell is inside
-the processor's sub-domain.  By default this is the center point of the
+the processor's subdomain.  By default this is the center point of the
 grid cell.  The *set_shift_grid()* method can change this.  The *shift*
 argument is a value from 0.0 to 1.0 (inclusive) which is the offset of
 the point within the grid cell in each dimension.  The default is 0.5
@@ -245,9 +245,9 @@ typically no need to change the default as it is optimal for
 minimizing the number of ghost cells needed.
 
 If a processor maps its particles to grid cells, it needs to allow for
-its particles being outside its sub-domain between reneighboring.  The
+its particles being outside its subdomain between reneighboring.  The
 *distance* argument of the *set_distance()* method sets the furthest
-distance outside a processor's sub-domain which a particle can move.
+distance outside a processor's subdomain which a particle can move.
 Typically this is half the neighbor skin distance, assuming
 reneighboring is done appropriately.  This distance is used in
 determining how many ghost cells a processor needs to store to enable
@@ -295,7 +295,7 @@ to the Grid class via the *set_zfactor()* method (*set_yfactor()* for
 2d grids).  The Grid class will then assign ownership of the 1/3 of
 grid cells that overlay the simulation box to the processors which
 also overlay the simulation box.  The remaining 2/3 of the grid cells
-are assigned to processors whose sub-domains are adjacent to the upper
+are assigned to processors whose subdomains are adjacent to the upper
 z boundary of the simulation box.
 
 ----------
@@ -533,7 +533,7 @@ processor's ghost cells extend further than nearest neighbor
 processors.
 
 This can be checked by callers who have the option to change the
-global grid size to insure more efficient nearest-neighbor-only
+global grid size to ensure more efficient nearest-neighbor-only
 communication if they wish.  In this case, they instantiate a grid of
 a given size (resolution), then invoke *setup_comm()* followed by
 *ghost_adjacent()*.  If the ghost cells are not adjacent, they destroy
@@ -549,13 +549,13 @@ Grid class remap methods for load balancing
 The following methods are used when a load-balancing operation,
 triggered by the :doc:`balance <balance>` or :doc:`fix balance
 <fix_balance>` commands, changes the partitioning of the simulation
-domain into processor sub-domains.
+domain into processor subdomains.
 
 In order to work with load-balancing, any style command (compute, fix,
 pair, or kspace style) which allocates a grid and stores per-grid data
 should define a *reset_grid()* method; it takes no arguments.  It will
 be called by the two balance commands after they have reset processor
-sub-domains and migrated atoms (particles) to new owning processors.
+subdomains and migrated atoms (particles) to new owning processors.
 The *reset_grid()* method will typically perform some or all of the
 following operations.  See the src/fix_ave_grid.cpp and
 src/EXTRA_FIX/fix_ttm_grid.cpp files for examples of *reset_grid()*
@@ -564,7 +564,7 @@ functions.
 
 First, the *reset_grid()* method can instantiate new grid(s) of the
 same global size, then call *setup_grid()* to partition them via the
-new processor sub-domains.  At this point, it can invoke the
+new processor subdomains.  At this point, it can invoke the
 *identical()* method which compares the owned and ghost grid cell
 index bounds between two grids, the old grid passed as a pointer
 argument, and the new grid whose *identical()* method is being called.
@@ -753,7 +753,7 @@ their input script syntax, as described on the :doc:`Howto_grid
 * f_ID:gname:dname
 * f_ID:gname:dname[I]
 
-Each grid a command instantiates has a unique *gname*, defined by the
+Each grid command instantiates has a unique *gname*, defined by the
 command.  Likewise each grid cell data structure (scalar or vector)
 associated with a grid has a unique *dname*, also defined by the
 command.
@@ -784,8 +784,7 @@ The *get_grid_by_index()* method is called after the
 *get_grid_by_name()* method, using the grid index it returned as its
 argument.  This method will return a pointer to the Grid2d or Grid3d
 class.  The caller can use this to query grid attributes, such as the
-global size of the grid.  The :doc:`dump grid <dump>` to insure each
-its grid reference arguments are for grids of the same size.
+global size of the grid, to ensure it is of the expected size.
 
 The *get_griddata_by_name()* method takes a grid index *igrid* and a
 data name as input.  It returns two values.  The *ncol* argument is
@@ -799,7 +798,7 @@ A value of -1 is returned if the data name is not recognized.
 The *get_griddata_by_index()* method is called after the
 *get_griddata_by_name()* method, using the data index it returned as
 its argument.  This method will return a pointer to the
-multi-dimensional array which stores the requested data.
+multidimensional array which stores the requested data.
 
 As in the discussion above of the Memory class *create_offset()*
 methods, the dimensionality of the array associated with the returned

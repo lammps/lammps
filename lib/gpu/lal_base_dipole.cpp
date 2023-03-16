@@ -73,7 +73,9 @@ int BaseDipoleT::init_atomic(const int nlocal, const int nall,
 
   _threads_per_atom=device->threads_per_charge();
 
-  int success=device->init(*ans,true,true,nlocal,nall,maxspecial);
+  bool charge = true;
+  bool rot = true;
+  int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial);
   if (success!=0)
     return success;
 
@@ -231,7 +233,7 @@ void BaseDipoleT::compute(const int f_ago, const int inum_full,
 
   atom->cast_x_data(host_x,host_type);
   atom->cast_q_data(host_q);
-  atom->cast_quat_data(host_mu[0]);
+  atom->cast_mu_data(host_mu[0]);
   hd_balancer.start_timer();
   atom->add_x_data(host_x,host_type);
   atom->add_q_data();
@@ -295,12 +297,12 @@ int** BaseDipoleT::compute(const int ago, const int inum_full,
     if (!success)
       return nullptr;
     atom->cast_q_data(host_q);
-    atom->cast_quat_data(host_mu[0]);
+    atom->cast_mu_data(host_mu[0]);
     hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
     atom->cast_q_data(host_q);
-    atom->cast_quat_data(host_mu[0]);
+    atom->cast_mu_data(host_mu[0]);
     hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }

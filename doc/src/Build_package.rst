@@ -4,13 +4,14 @@ Include packages in build
 In LAMMPS, a package is a group of files that enable a specific set of
 features.  For example, force fields for molecular systems or
 rigid-body constraints are in packages.  In the src directory, each
-package is a sub-directory with the package name in capital letters.
+package is a subdirectory with the package name in capital letters.
 
 An overview of packages is given on the :doc:`Packages <Packages>` doc
-page.  Brief overviews of each package are on the :doc:`Packages details <Packages_details>` page.
+page.  Brief overviews of each package are on the :doc:`Packages details
+<Packages_details>` page.
 
 When building LAMMPS, you can choose to include or exclude each
-package.  In general there is no need to include a package if you
+package.  Generally, there is no need to include a package if you
 never plan to use its features.
 
 If you get a run-time error that a LAMMPS command or style is
@@ -49,7 +50,6 @@ packages:
    * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
-   * :ref:`MESONT <mesont>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`ML-IAP <mliap>`
    * :ref:`ML-PACE <ml-pace>`
@@ -94,7 +94,7 @@ versus make.
          If you switch between building with CMake and make builds, no
          packages in the src directory can be installed when you invoke
          ``cmake``.  CMake will give an error if that is not the case,
-         indicating how you can un-install all packages in the src dir.
+         indicating how you can uninstall all packages in the src dir.
 
    .. tab:: Traditional make
 
@@ -103,7 +103,7 @@ versus make.
          cd lammps/src
          make ps                    # check which packages are currently installed
          make yes-name              # install a package with name
-         make no-name               # un-install a package with name
+         make no-name               # uninstall a package with name
          make mpi                   # build LAMMPS with whatever packages are now installed
 
       Examples:
@@ -119,13 +119,13 @@ versus make.
       .. note::
 
          You must always re-build LAMMPS (via make) after installing or
-         un-installing a package, for the action to take effect. The
+         uninstalling a package, for the action to take effect. The
          included dependency tracking will make certain only files that
          are required to be rebuilt are recompiled.
 
       .. note::
 
-         You cannot install or un-install packages and build LAMMPS in a
+         You cannot install or uninstall packages and build LAMMPS in a
          single make command with multiple targets, e.g. ``make
          yes-colloid mpi``.  This is because the make procedure creates
          a list of source files that will be out-of-date for the build
@@ -150,7 +150,7 @@ other files dependent on that package are also excluded.
    if you downloaded a tarball, 3 packages (KSPACE, MANYBODY, MOLECULE)
    were pre-installed via the traditional make procedure in the ``src``
    directory.  That is no longer the case, so that CMake will build
-   as-is without needing to un-install those packages.
+   as-is without needing to uninstall those packages.
 
 ----------
 
@@ -167,9 +167,9 @@ control flow constructs for more complex operations.
 
 LAMMPS includes several of these files to define configuration
 "presets", similar to the options that exist for the Make based
-system. Using these files you can enable/disable portions of the
-available packages in LAMMPS. If you need a custom preset you can take
-one of them as a starting point and customize it to your needs.
+system. Using these files, you can enable/disable portions of the
+available packages in LAMMPS. If you need a custom preset, you can
+make a copy of one of them and modify it to suit your needs.
 
 .. code-block:: bash
 
@@ -183,7 +183,7 @@ one of them as a starting point and customize it to your needs.
     cmake -C ../cmake/presets/pgi.cmake      [OPTIONS] ../cmake  # change settings to use the PGI compilers by default
     cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
-    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers
+    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross-compilers
 
 Presets that have names starting with "windows" are specifically for
 compiling LAMMPS :doc:`natively on Windows <Build_windows>` and
@@ -227,7 +227,7 @@ The following commands are useful for managing package source files
 and their installation when building LAMMPS via traditional make.
 Just type ``make`` in lammps/src to see a one-line summary.
 
-These commands install/un-install sets of packages:
+These commands install/uninstall sets of packages:
 
 .. code-block:: bash
 
@@ -243,40 +243,40 @@ These commands install/un-install sets of packages:
     make yes-ext                        # install packages that require external libraries
     make no-ext                         # uninstall packages that require external libraries
 
-which install/un-install various sets of packages.  Typing ``make
+which install/uninstall various sets of packages.  Typing ``make
 package`` will list all the these commands.
 
 .. note::
 
-   Installing or un-installing a package for the make based build process
+   Installing or uninstalling a package for the make based build process
    works by simply copying files back and forth between the main source
-   directory src and the sub-directories with the package name (e.g.
+   directory src and the subdirectories with the package name (e.g.
    src/KSPACE, src/ATC), so that the files are included or excluded
    when LAMMPS is built.  Only source files in the src folder will be
    compiled.
 
 The following make commands help manage files that exist in both the
-src directory and in package sub-directories.  You do not normally
+src directory and in package subdirectories.  You do not normally
 need to use these commands unless you are editing LAMMPS files or are
 updating LAMMPS via git.
 
 Type ``make package-status`` or ``make ps`` to show which packages are
 currently installed.  For those that are installed, it will list any
 files that are different in the src directory and package
-sub-directory.
+subdirectory.
 
 Type ``make package-installed`` or ``make pi`` to show which packages are
 currently installed, without listing the status of packages that are
 not installed.
 
 Type ``make package-update`` or ``make pu`` to overwrite src files with
-files from the package sub-directories if the package is installed.  It
+files from the package subdirectories if the package is installed.  It
 should be used after the checkout has been :doc:`updated or changed
-withy git <Install_git>`, this will only update the files in the package
-sub-directories, but not the copies in the src folder.
+with git <Install_git>`, this will only update the files in the package
+subdirectories, but not the copies in the src folder.
 
 Type ``make package-overwrite`` to overwrite files in the package
-sub-directories with src files.
+subdirectories with src files.
 
 Type ``make package-diff`` to list all differences between pairs of
 files in both the source directory and the package directory.

@@ -315,7 +315,7 @@ add changes. Please watch the comments to the pull requests. The two
 "test" labels are used to trigger extended tests before the code is
 merged. This is sometimes done by LAMMPS developers, if they suspect
 that there may be some subtle side effects from your changes. It is not
-done by default, because those tests are very time consuming.  The
+done by default, because those tests are very time-consuming.  The
 *ready_for_merge* label is usually attached when the LAMMPS developer
 assigned to the pull request considers this request complete and to
 trigger a final full test evaluation.
@@ -476,16 +476,25 @@ to your remote(s) as well:
 
 **Recent changes in the workflow**
 
-Some changes to the workflow are not captured in this tutorial.  For
-example, in addition to the *develop* branch, to which all new features
-should be submitted, there is also a *release* and a *stable* branch;
-these have the same content as *develop*, but are only updated after a
-patch release or stable release was made.  Furthermore, the naming of
-the patches now follow the pattern "patch_<Day><Month><Year>" to
-simplify comparisons between releases.  Finally, all patches and
-submissions are subject to automatic testing and code checks to make
-sure they at the very least compile.
+Some recent changes to the workflow are not captured in this tutorial.
+For example, in addition to the *develop* branch, to which all new
+features should be submitted, there is also a *release*, a *stable*, and
+a *maintenance* branch; the *release* branch is updated from the
+*develop* as part of a feature release, and *stable* (together with
+*release*) are updated from *develop* when a stable release is made. In
+between stable releases, selected bug fixes and infrastructure updates
+are back-ported from the *develop* branch to the *maintenance* branch
+and occasionally merged to *stable* as an update release.
 
-A discussion of the LAMMPS developer GitHub workflow can be found in the
-file `doc/github-development-workflow.md
+Furthermore, the naming of the release tags now follow the pattern
+"patch_<Day><Month><Year>" to simplify comparisons between releases.
+For stable releases additional "stable_<Day><Month><Year>" tags are
+applied and update releases are tagged with
+"stable_<Day><Month><Year>_update<Number>", Finally, all releases and
+submissions are subject to automatic testing and code checks to make
+sure they compile with a variety of compilers and popular operating
+systems.  Some unit and regression testing is applied as well.
+
+A detailed discussion of the LAMMPS developer GitHub workflow can be
+found in the file `doc/github-development-workflow.md
 <https://github.com/lammps/lammps/blob/develop/doc/github-development-workflow.md>`_

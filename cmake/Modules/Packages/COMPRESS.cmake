@@ -1,4 +1,9 @@
-find_package(ZLIB REQUIRED)
+find_package(ZLIB)
+if(NOT ZLIB_FOUND)
+  message(WARNING "No Zlib development support found. Disabling COMPRESS package...")
+  set(PKG_COMPRESS OFF CACHE BOOL "" FORCE)
+  return()
+endif()
 target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
 
 find_package(PkgConfig QUIET)

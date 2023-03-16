@@ -225,11 +225,11 @@ struct HIPReductionsFunctor<FunctorType, false> {
     }
   }
 
+  template <typename SizeType>
   __device__ static inline bool scalar_inter_block_reduction(
       FunctorType const& functor,
       ::Kokkos::Experimental::HIP::size_type const block_count,
-      ::Kokkos::Experimental::HIP::size_type* const shared_data,
-      ::Kokkos::Experimental::HIP::size_type* const global_data,
+      SizeType* const shared_data, SizeType* const global_data,
       ::Kokkos::Experimental::HIP::size_type* const global_flags) {
     Scalar* const global_team_buffer_element =
         reinterpret_cast<Scalar*>(global_data);
@@ -411,16 +411,14 @@ __device__ void hip_intra_block_reduce_scan(
  *  Global reduce result is in the last threads' 'shared_data' location.
  */
 
-template <bool DoScan, class FunctorType>
+template <bool DoScan, typename FunctorType, typename SizeType>
 __device__ bool hip_single_inter_block_reduce_scan_impl(
     FunctorType const& functor,
     ::Kokkos::Experimental::HIP::size_type const block_id,
     ::Kokkos::Experimental::HIP::size_type const block_count,
-    ::Kokkos::Experimental::HIP::size_type* const shared_data,
-    ::Kokkos::Experimental::HIP::size_type* const global_data,
+    SizeType* const shared_data, SizeType* const global_data,
     ::Kokkos::Experimental::HIP::size_type* const global_flags) {
-  using size_type = ::Kokkos::Experimental::HIP::size_type;
-
+  using size_type    = SizeType;
   using value_type   = typename FunctorType::value_type;
   using pointer_type = typename FunctorType::pointer_type;
 
@@ -518,13 +516,12 @@ __device__ bool hip_single_inter_block_reduce_scan_impl(
   return is_last_block;
 }
 
-template <bool DoScan, typename FunctorType>
+template <bool DoScan, typename FunctorType, typename SizeType>
 __device__ bool hip_single_inter_block_reduce_scan(
     FunctorType const& functor,
     ::Kokkos::Experimental::HIP::size_type const block_id,
     ::Kokkos::Experimental::HIP::size_type const block_count,
-    ::Kokkos::Experimental::HIP::size_type* const shared_data,
-    ::Kokkos::Experimental::HIP::size_type* const global_data,
+    SizeType* const shared_data, SizeType* const global_data,
     ::Kokkos::Experimental::HIP::size_type* const global_flags) {
   // If we are doing a reduction and we don't do an array reduction, we use the
   // reduction-only path. Otherwise, we use the common path between reduction

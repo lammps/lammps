@@ -93,7 +93,7 @@ Some of the pair styles used to compute pairwise interactions between
 finite-size particles also compute the correct interaction with point
 particles as well, e.g. the interaction between a point particle and a
 finite-size particle or between two point particles.  If necessary,
-:doc:`pair_style hybrid <pair_hybrid>` can be used to insure the correct
+:doc:`pair_style hybrid <pair_hybrid>` can be used to ensure the correct
 interactions are computed for the appropriate style of interactions.
 Likewise, using groups to partition particles (ellipsoids versus
 spheres versus point particles) will allow you to use the appropriate

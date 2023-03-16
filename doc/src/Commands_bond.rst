@@ -42,6 +42,7 @@ OPT.
    * :doc:`gaussian <bond_gaussian>`
    * :doc:`gromos (o) <bond_gromos>`
    * :doc:`harmonic (iko) <bond_harmonic>`
+   * :doc:`harmonic/restrain <bond_harmonic_restrain>`
    * :doc:`harmonic/shift (o) <bond_harmonic_shift>`
    * :doc:`harmonic/shift/cut (o) <bond_harmonic_shift_cut>`
    * :doc:`lepton (o) <bond_lepton>`

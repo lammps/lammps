@@ -20,7 +20,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
 #include "math_special.h"
@@ -29,6 +29,7 @@
 #include "my_page.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "timer.h"
 #include "update.h"
 
 #include <cmath>
@@ -47,6 +48,7 @@ enum{MUTUAL,OPT,TCG,DIRECT};
 enum{GEAR,ASPC,LSQR};
 
 #define DELTASTACK 16
+#define DEBUG_AMOEBA 0
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,6 +86,10 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 
   cmp = fmp = nullptr;
   cphi = fphi = nullptr;
+
+  _moduli_array = nullptr;
+  _moduli_bsarray = nullptr;
+  _nfft_max = 0;
 
   poli = nullptr;
   conj = conjp = nullptr;
@@ -227,6 +233,9 @@ PairAmoeba::~PairAmoeba()
   memory->destroy(fphidp);
   memory->destroy(cphidp);
 
+  memory->destroy(_moduli_array);
+  memory->destroy(_moduli_bsarray);
+
   memory->destroy(thetai1);
   memory->destroy(thetai2);
   memory->destroy(thetai3);
@@ -349,12 +358,22 @@ void PairAmoeba::compute(int eflag, int vflag)
   if (update->ntimestep <= update->beginstep+1) {
     time_init = time_hal = time_repulse = time_disp = time_mpole = 0.0;
     time_induce = time_polar = time_qxfer = 0.0;
+
+    time_mpole_rspace = time_mpole_kspace = 0.0;
+    time_direct_rspace = time_direct_kspace = 0.0;
+    time_mutual_rspace = time_mutual_kspace = 0.0;
+    time_polar_rspace = time_polar_kspace = 0.0;
+
+    time_grid_uind = time_fphi_uind = 0.0;
+    if (ic_kspace) {
+      ic_kspace->time_fft = 0.0;
+    }
   }
 
   double time0,time1,time2,time3,time4,time5,time6,time7,time8;
 
-  MPI_Barrier(world);
-  time0 = MPI_Wtime();
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
 
   // if reneighboring step:
   // augment neighbor list to include 1-5 neighbor flags
@@ -410,8 +429,7 @@ void PairAmoeba::compute(int eflag, int vflag)
   comm->forward_comm(this);
 
   if (amoeba) pbc_xred();
-
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   // ----------------------------------------
   // compute components of force field
@@ -420,22 +438,22 @@ void PairAmoeba::compute(int eflag, int vflag)
   // buffered 14-7 Vdwl, pairwise
 
   if (amoeba && hal_flag) hal();
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
 
   // Pauli repulsion, pairwise
 
   if (!amoeba && repulse_flag) repulsion();
-  time3 = MPI_Wtime();
+  time3 = platform::walltime();
 
   // Ewald dispersion, pairwise and long range
 
   if (!amoeba && (disp_rspace_flag || disp_kspace_flag)) dispersion();
-  time4 = MPI_Wtime();
+  time4 = platform::walltime();
 
   // multipole, pairwise and long range
 
   if (mpole_rspace_flag || mpole_kspace_flag) multipole();
-  time5 = MPI_Wtime();
+  time5 = platform::walltime();
 
   // induced dipoles, interative CG relaxation
   // communicate induce() output values needed by ghost atoms
@@ -445,17 +463,17 @@ void PairAmoeba::compute(int eflag, int vflag)
     cfstyle = INDUCE;
     comm->forward_comm(this);
   }
-  time6 = MPI_Wtime();
+  time6 = platform::walltime();
 
   // dipoles, pairwise and long range
 
   if (polar_rspace_flag || polar_kspace_flag) polar();
-  time7 = MPI_Wtime();
+  time7 = platform::walltime();
 
   // charge transfer, pairwise
 
   if (!amoeba && qxfer_flag) charge_transfer();
-  time8 = MPI_Wtime();
+  time8 = platform::walltime();
 
   // store energy components for output by compute pair command
 
@@ -518,6 +536,44 @@ void PairAmoeba::finish()
   MPI_Allreduce(&time_qxfer,&ave,1,MPI_DOUBLE,MPI_SUM,world);
   time_qxfer = ave/comm->nprocs;
 
+  #if DEBUG_AMOEBA
+  // real-space/kspace breakdown
+  MPI_Allreduce(&time_mpole_rspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mpole_rspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_mpole_kspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mpole_kspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_direct_rspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_direct_rspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_direct_kspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_direct_kspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_mutual_rspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mutual_rspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_mutual_kspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mutual_kspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_polar_rspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_polar_rspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_polar_kspace,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_polar_kspace = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_grid_uind,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_grid_uind = ave/comm->nprocs;
+
+  MPI_Allreduce(&time_fphi_uind,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_fphi_uind = ave/comm->nprocs;
+
+  double time_mutual_fft = 0;
+  if (ic_kspace) time_mutual_fft = ic_kspace->time_fft;
+  MPI_Allreduce(&time_mutual_fft,&ave,1,MPI_DOUBLE,MPI_SUM,world);
+  time_mutual_fft = ave/comm->nprocs;
+  #endif // DEBUG_AMOEBA
+
   double time_total = (time_init + time_hal + time_repulse + time_disp +
                        time_mpole + time_induce + time_polar + time_qxfer) / 100.0;
 
@@ -534,8 +590,27 @@ void PairAmoeba::finish()
     utils::logmesg(lmp,"  Induce  time: {:<12.6g} {:6.2f}%\n", time_induce, time_induce/time_total);
     utils::logmesg(lmp,"  Polar   time: {:<12.6g} {:6.2f}%\n", time_polar, time_polar/time_total);
     if (!amoeba)
-      utils::logmesg(lmp,"  Qxfer   time: {:<12.6g} {:6.2f}%\n", time_qxfer, time_qxfer/time_total);
-    utils::logmesg(lmp,"  Total   time: {:<12.6g}\n",time_total * 100.0);
+      utils::logmesg(lmp,"  Qxfer   time: {:.6g} {:.6g}\n", time_qxfer, time_qxfer/time_total);
+    utils::logmesg(lmp,"  Total   time: {:.6g}\n",time_total * 100.0);
+
+    #if DEBUG_AMOEBA
+    double rspace_time = time_mpole_rspace + time_direct_rspace + time_mutual_rspace + time_polar_rspace;
+    double kspace_time = time_mpole_kspace + time_direct_kspace + time_mutual_kspace + time_polar_kspace;
+
+    utils::logmesg(lmp,"    Real-space timing breakdown: {:.3g}%\n", rspace_time/time_total);
+    utils::logmesg(lmp,"      Mpole  time: {:.6g} {:.3g}%\n", time_mpole_rspace, time_mpole_rspace/time_total);
+    utils::logmesg(lmp,"      Direct time: {:.6g} {:.3g}%\n", time_direct_rspace, time_direct_rspace/time_total);
+    utils::logmesg(lmp,"      Mutual time: {:.6g} {:.3g}%\n", time_mutual_rspace, time_mutual_rspace/time_total);
+    utils::logmesg(lmp,"      Polar  time: {:.6g} {:.3g}%\n", time_polar_rspace, time_polar_rspace/time_total);
+    utils::logmesg(lmp,"    K-space timing breakdown   : {:.3g}%\n", kspace_time/time_total);
+    utils::logmesg(lmp,"      Mpole  time: {:.6g} {:.3g}%\n", time_mpole_kspace, time_mpole_kspace/time_total);
+    utils::logmesg(lmp,"      Direct time: {:.6g} {:.3g}%\n", time_direct_kspace, time_direct_kspace/time_total);
+    utils::logmesg(lmp,"      Mutual time: {:.6g} {:.3g}%\n", time_mutual_kspace, time_mutual_kspace/time_total);
+    utils::logmesg(lmp,"       - Grid    : {:.6g} {:.3g}%\n", time_grid_uind, time_grid_uind/time_total);
+    utils::logmesg(lmp,"       - FFT     : {:.6g} {:.3g}%\n", time_mutual_fft, time_mutual_fft/time_total);
+    utils::logmesg(lmp,"       - Interp  : {:.6g} {:.3g}%\n", time_fphi_uind, time_fphi_uind/time_total);
+    utils::logmesg(lmp,"      Polar  time: {:.6g} {:.3g}%\n", time_polar_kspace, time_polar_kspace/time_total);
+    #endif
   }
 }
 
@@ -786,8 +861,8 @@ void PairAmoeba::init_style()
   Fix *myfix;
   if (first_flag) {
     id_pole = utils::strdup("AMOEBA_pole");
-    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 13",id_pole,group->names[0]));
-    fixpole = dynamic_cast<FixStorePeratom *>(myfix);
+    myfix = modify->add_fix(fmt::format("{} {} STORE/ATOM 13 0 0 1",id_pole,group->names[0]));
+    fixpole = dynamic_cast<FixStoreAtom *>(myfix);
   }
 
   // creation of per-atom storage
@@ -798,14 +873,14 @@ void PairAmoeba::init_style()
 
   if (first_flag && use_pred) {
     id_udalt = utils::strdup("AMOEBA_udalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/ATOM {} 3 0 1",
                                         id_udalt, group->names[0], maxualt));
-    fixudalt = dynamic_cast<FixStorePeratom *>(myfix);
+    fixudalt = dynamic_cast<FixStoreAtom *>(myfix);
 
     id_upalt = utils::strdup("AMOEBA_upalt");
-    myfix = modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 {} 3",
+    myfix = modify->add_fix(fmt::format("{} {} STORE/ATOM {} 3 0 1",
                                         id_upalt, group->names[0], maxualt));
-    fixupalt = dynamic_cast<FixStorePeratom *>(myfix);
+    fixupalt = dynamic_cast<FixStoreAtom *>(myfix);
   }
 
   // create pages for storing pairwise data:
@@ -920,21 +995,21 @@ void PairAmoeba::init_style()
   if (id_pole) {
     myfix = modify->get_fix_by_id(id_pole);
     if (!myfix)
-      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_pole);
-    fixpole = dynamic_cast<FixStorePeratom *>(myfix);
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/ATOM id {}", id_pole);
+    fixpole = dynamic_cast<FixStoreAtom *>(myfix);
 
   }
 
   if (id_udalt) {
     myfix = modify->get_fix_by_id(id_udalt);
     if (!myfix)
-      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_udalt);
-    fixudalt = dynamic_cast<FixStorePeratom *>(myfix);
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/ATOM id {}", id_udalt);
+    fixudalt = dynamic_cast<FixStoreAtom *>(myfix);
 
     myfix = modify->get_fix_by_id(id_upalt);
     if (!myfix)
-      error->all(FLERR,"Could not find internal pair amoeba fix STORE/PERATOM id {}", id_upalt);
-    fixupalt = dynamic_cast<FixStorePeratom *>(myfix);
+      error->all(FLERR,"Could not find internal pair amoeba fix STORE/ATOM id {}", id_upalt);
+    fixupalt = dynamic_cast<FixStoreAtom *>(myfix);
   }
 
   // assign hydrogen neighbors (redID) to each owned atom
@@ -2320,6 +2395,8 @@ void PairAmoeba::grow_local()
     firstneigh_pcpc = (double **)
       memory->smalloc(nmax*sizeof(double *),"induce:firstneigh_pcpc");
   }
+
+  memory->create(_moduli_array,bsordermax,"amoeba:_moduli_array");
 }
 
 /* ----------------------------------------------------------------------

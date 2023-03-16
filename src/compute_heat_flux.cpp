@@ -42,7 +42,7 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
 
   // store ke/atom, pe/atom, stress/atom IDs used by heat flux computation
-  // insure they are valid for these computations
+  // ensure they are valid for these computations
 
   id_ke = utils::strdup(arg[3]);
   id_pe = utils::strdup(arg[4]);

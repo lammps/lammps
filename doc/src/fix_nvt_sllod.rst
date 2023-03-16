@@ -75,7 +75,7 @@ Morriss) <Evans3>`. They were later shown to generate the desired
 velocity gradient and the correct production of work by stresses for all
 forms of homogeneous flow by :ref:`(Daivis and Todd) <Daivis>`.
 
-.. versionchanged:: TBD
+.. versionchanged:: 8Feb2023
 
 For the default (*psllod* = *no*), the LAMMPS implementation adheres to
 the standard SLLOD equations of motion, as defined by :ref:`(Evans and

@@ -47,7 +47,6 @@ This is the list of packages that may require additional steps.
    * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
-   * :ref:`MESONT <mesont>`
    * :ref:`ML-HDNNP <ml-hdnnp>`
    * :ref:`ML-IAP <mliap>`
    * :ref:`ML-PACE <ml-pace>`
@@ -127,10 +126,11 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
-   -D HIP_PATH                  # path to HIP installation. Must be set if GPU_API=HIP
    -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
-                                # value = sm_XX, see below
-                                # default is sm_50
+                                # value = sm_XX (see below, default is sm_50)
+   -D GPU_DEBUG=value           # enable debug code in the GPU package library, mostly useful for developers
+                                # value = yes or no (default)
+   -D HIP_PATH=value            # value = path to HIP installation. Must be set if GPU_API=HIP
    -D HIP_ARCH=value            # primary GPU hardware choice for GPU_API=hip
                                 # value depends on selected HIP_PLATFORM
                                 # default is 'gfx906' for HIP_PLATFORM=amd and 'sm_50' for HIP_PLATFORM=nvcc
@@ -274,7 +274,7 @@ To enable GPU binning via CUDA performance primitives set the Makefile variable
 most modern GPUs.
 
 To support the CUDA multiprocessor server you can set the define
-``-DCUDA_PROXY``.  Please note that in this case you must **not** use
+``-DCUDA_MPS_SUPPORT``.  Please note that in this case you must **not** use
 the CUDA performance primitives and thus set the variable ``CUDPP_OPT``
 to empty.
 
@@ -288,7 +288,7 @@ your machine are not correct, the LAMMPS build will fail, and
 .. note::
 
    If you re-build the GPU library in ``lib/gpu``, you should always
-   un-install the GPU package in ``lammps/src``, then re-install it and
+   uninstall the GPU package in ``lammps/src``, then re-install it and
    re-build LAMMPS.  This is because the compilation of files in the GPU
    package uses the library settings from the ``lib/gpu/Makefile.machine``
    used to build the GPU library.
@@ -606,6 +606,12 @@ They must be specified in uppercase.
    *  - AMPERE86
       - GPU
       - NVIDIA Ampere generation CC 8.6 GPU
+   *  - ADA89
+      - GPU
+      - NVIDIA Ada Lovelace generation CC 8.9 GPU
+   *  - HOPPER90
+      - GPU
+      - NVIDIA Hopper generation CC 9.0 GPU
    *  - VEGA900
       - GPU
       - AMD GPU MI25 GFX900
@@ -640,7 +646,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU Ponte Vecchio
 
-This list was last updated for version 3.7.0 of the Kokkos library.
+This list was last updated for version 3.7.1 of the Kokkos library.
 
 .. tabs::
 
@@ -915,9 +921,9 @@ included in the LAMMPS source distribution in the ``lib/lepton`` folder.
 
       .. code-block:: bash
 
-         $ make lib-lepton                      # print help message
-         $ make lib-lepton args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
-         $ make lib-lepton args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
+         make lib-lepton                      # print help message
+         make lib-lepton args="-m serial"     # build with GNU g++ compiler (settings as with "make serial")
+         make lib-lepton args="-m mpi"        # build with default MPI compiler (settings as with "make mpi")
 
       The "machine" argument of the "-m" flag is used to find a
       Makefile.machine to use as build recipe.
@@ -1129,7 +1135,7 @@ VORONOI package
 -----------------------------
 
 To build with this package, you must download and build the
-`Voro++ library <https://math.lbl.gov/voro++>`_ or install a
+`Voro++ library <https://math.lbl.gov/voro++/>`_ or install a
 binary package provided by your operating system.
 
 .. tabs::
@@ -1359,7 +1365,7 @@ module included in the LAMMPS source distribution.
       auto-generated consistent with those used in the core LAMMPS makefiles.
 
 
-      .. versionchanged:: TBD
+      .. versionchanged:: 8Feb2023
 
       Please note that Colvars uses the Lepton library, which is now
       included with the LEPTON package; if you use anything other than
@@ -1391,8 +1397,21 @@ This package depends on the KSPACE package.
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_KSPACE=yes`` and
-      ``-D PKG_ELECTRODE=yes``.
+      .. code-block:: bash
+
+         -D PKG_ELECTRODE=yes          # enable the package itself
+         -D PKG_KSPACE=yes             # the ELECTRODE package requires KSPACE
+         -D USE_INTERNAL_LINALG=value  #
+
+      Features in the ELECTRODE package are dependent on code in the
+      KSPACE package so the latter one *must* be enabled.
+
+      The ELECTRODE package also requires LAPACK (and BLAS) and CMake
+      can identify their locations and pass that info to the LATTE build
+      script.  But on some systems this may cause problems when linking
+      or the dependency is not desired.  Try enabling
+      ``USE_INTERNAL_LINALG`` in those cases to use the bundled linear
+      algebra library and work around the limitation.
 
    .. tab:: Traditional make
 
@@ -1839,48 +1858,6 @@ MDI package
 
 ----------
 
-.. _mesont:
-
-MESONT package
--------------------------
-
-This package includes a library written in Fortran 90 in the
-``lib/mesont`` folder, so a working Fortran 90 compiler is required to
-compile it.  Also, the files with the force field data for running the
-bundled examples are not included in the source distribution. Instead
-they will be downloaded the first time this package is installed.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_MESONT=yes``
-
-   .. tab:: Traditional make
-
-      Before building LAMMPS, you must build the *mesont* library in
-      ``lib/mesont``\ .  You can also do it in one step from the
-      ``lammps/src`` dir, using a command like these, which simply
-      invokes the ``lib/mesont/Install.py`` script with the specified
-      args:
-
-      .. code-block:: bash
-
-         make lib-mesont                    # print help message
-         make lib-mesont args="-m gfortran" # build with GNU g++ compiler (settings as with "make serial")
-         make lib-mesont args="-m ifort"    # build with Intel icc compiler
-
-      The build should produce two files: ``lib/mesont/libmesont.a`` and
-      ``lib/mesont/Makefile.lammps``\ .  The latter is copied from an
-      existing ``Makefile.lammps.\*`` and has settings needed to build
-      LAMMPS with the *mesont* library (though typically the settings
-      contain only the Fortran runtime library).  If necessary, you can
-      edit/create a new ``lib/mesont/Makefile.machine`` file for your
-      system, which should define an ``EXTRAMAKE`` variable to specify a
-      corresponding ``Makefile.lammps.machine`` file.
-
-----------
-
 .. _molfile:
 
 MOLFILE package
@@ -1987,10 +1964,10 @@ OPENMP package
    Apple offers the `Xcode package and IDE
    <https://developer.apple.com/xcode/>`_ for compiling software on
    macOS, so you have likely installed it to compile LAMMPS.  Their
-   compiler is based on `Clang <https://clang.llvm.org/>`, but while it
+   compiler is based on `Clang <https://clang.llvm.org/>`_, but while it
    is capable of processing OpenMP directives, the necessary header
    files and OpenMP runtime library are missing.  The `R developers
-   <https://www.r-project.org/>` have figured out a way to build those
+   <https://www.r-project.org/>`_ have figured out a way to build those
    in a compatible fashion. One can download them from
    `https://mac.r-project.org/openmp/
    <https://mac.r-project.org/openmp/>`_.  Simply adding those files as

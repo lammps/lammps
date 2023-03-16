@@ -34,7 +34,6 @@
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
-using namespace FixConst;
 using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */

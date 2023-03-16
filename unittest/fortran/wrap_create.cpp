@@ -30,13 +30,11 @@ TEST(open_no_mpi, no_args)
     ::testing::internal::CaptureStdout();
     int mpi_init = 0;
     MPI_Initialized(&mpi_init);
-    EXPECT_EQ(mpi_init, 0);
+    EXPECT_EQ(mpi_init, 1);
     void *handle       = f_lammps_no_mpi_no_args();
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_STREQ(output.substr(0, 6).c_str(), "LAMMPS");
     LAMMPS_NS::LAMMPS *lmp = (LAMMPS_NS::LAMMPS *)handle;
-    MPI_Initialized(&mpi_init);
-    EXPECT_NE(mpi_init, 0);
     EXPECT_EQ(lmp->world, MPI_COMM_WORLD);
     EXPECT_EQ(lmp->infile, stdin);
     EXPECT_EQ(lmp->screen, stdout);

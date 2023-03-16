@@ -299,7 +299,7 @@ void Output::setup(int memflag)
   if (memflag) memory_usage();
 
    // set next_thermo to multiple of every or variable eval if var defined
-   // insure thermo output on last step of run
+   // ensure thermo output on last step of run
    // thermo may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
@@ -431,7 +431,7 @@ void Output::write(bigint ntimestep)
     next_restart = MIN(next_restart_single,next_restart_double);
   }
 
-  // insure next_thermo forces output on last step of run
+  // ensure next_thermo forces output on last step of run
   // thermo may invoke computes so wrap with clear/add
 
   if (next_thermo == ntimestep) {
@@ -498,10 +498,10 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
         next_dump[idump] += every_dump[idump];
 
     } else {
-      next_dump[idump] = static_cast<bigint>
-        (input->variable->compute_equal(ivar_dump[idump]));
+      next_dump[idump] = static_cast<bigint>(input->variable->compute_equal(ivar_dump[idump]));
       if (next_dump[idump] <= ntimestep)
-        error->all(FLERR,"Dump every variable returned a bad timestep");
+        error->all(FLERR,"Dump {} every variable {} returned a bad timestep: {}",
+                   dump[idump]->id, var_dump[idump], next_dump[idump]);
     }
 
     // dump mode is by simulation time
@@ -511,8 +511,7 @@ void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
 
     bigint nextdump;
     double nexttime;
-    double tcurrent = update->atime +
-      (ntimestep - update->atimestep) * update->dt;
+    double tcurrent = update->atime + (ntimestep - update->atimestep) * update->dt;
 
     if (every_time_dump[idump] > 0.0) {
 
@@ -828,6 +827,8 @@ void Output::delete_dump(const std::string &id)
     ivar_dump[i-1] = ivar_dump[i];
   }
   ndump--;
+  dump[ndump] = nullptr;
+  var_dump[ndump] = nullptr;
   dump_list = std::vector<Dump *>(dump, dump + ndump);
 }
 

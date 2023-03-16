@@ -228,8 +228,9 @@ conversion of atomic information to continuum fields.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <atc>` on the :doc:`Build extras <Build_extras>` page.
-The ATC package requires that also the `MANYBODY <PKG-MANYBODY>`_ package is installed.
+This package has :ref:`specific installation instructions <atc>` on the
+:doc:`Build extras <Build_extras>` page.  The ATC package requires that
+also the :ref:`MANYBODY <PKG-MANYBODY>` package is installed.
 
 **Supporting info:**
 
@@ -391,8 +392,8 @@ rigid-body integrators with improved stability.
 
 **Install:**
 
-The CG-DNA package requires that also the `MOLECULE <PKG-MOLECULE>`_ and
-`ASPHERE <PKG-ASPHERE>`_ packages are installed.
+The CG-DNA package requires that also the :ref:`MOLECULE <PKG-MOLECULE>`
+and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
 
 **Supporting info:**
 
@@ -883,6 +884,8 @@ This package has :ref:`specific installation instructions <electrode>` on the
 **Supporting info:**
 
 * :doc:`fix electrode/conp <fix_electrode>`
+* :doc:`fix electrode/conq <fix_electrode>`
+* :doc:`fix electrode/thermo <fix_electrode>`
 
 ----------
 
@@ -1112,15 +1115,15 @@ INTEL package
 
 **Contents:**
 
-Dozens of pair, fix, bond, angle, dihedral, improper, and kspace
-styles which are optimized for Intel CPUs and KNLs (Knights Landing).
-All of them have an "intel" in their style name.  The
-:doc:`INTEL package <Speed_intel>` page gives details of what hardware and
-compilers are required on your system, and how to build and use this
-package.  Its styles can be invoked at run time via the "-sf intel" or
-"-suffix intel" :doc:`command-line switches <Run_options>`.  Also see
-the :ref:`KOKKOS <PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`OPENMP <PKG-OPENMP>` packages,
-which have styles optimized for CPUs and KNLs.
+Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
+which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+them have an "intel" in their style name.  The :doc:`INTEL package
+<Speed_intel>` page gives details of what hardware and compilers are
+required on your system, and how to build and use this package.  Its
+styles can be invoked at run time via the "-sf intel" or "-suffix intel"
+:doc:`command-line switches <Run_options>`.  Also see the :ref:`KOKKOS
+<PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`OPENMP <PKG-OPENMP>`
+packages, which have styles optimized for CPUs and KNLs.
 
 You need to have an Intel compiler, version 14 or higher to take full
 advantage of this package. While compilation with GNU compilers is
@@ -1247,12 +1250,13 @@ Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute
 styles adapted to compile using the Kokkos library which can convert
 them to OpenMP or CUDA code so that they run efficiently on multicore
 CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
-style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives
-details of what hardware and software is required on your system, and
-how to build and use this package.  Its styles can be invoked at run
-time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.  Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`,
-:ref:`INTEL <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
-have styles optimized for CPUs, KNLs, and GPUs.
+style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives details
+of what hardware and software is required on your system, and how to
+build and use this package.  Its styles can be invoked at run time via
+the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.
+Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`, :ref:`INTEL
+<PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which have styles
+optimized for CPUs, KNLs, and GPUs.
 
 You must have a C++14 compatible compiler to use this package.
 KOKKOS makes extensive use of advanced C++ features, which can
@@ -1412,7 +1416,7 @@ more precise than what can be done with :ref:`tabulated potentials
 **Authors:** Axel Kohlmeyer (Temple U).  Lepton itself is developed
 by Peter Eastman at Stanford University.
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 **Install:**
 
@@ -1619,25 +1623,23 @@ MESONT package
 **Contents:**
 
 MESONT is a LAMMPS package for simulation of nanomechanics of nanotubes
-(NTs). The model is based on a coarse-grained representation of NTs as
+(NTs).  The model is based on a coarse-grained representation of NTs as
 "flexible cylinders" consisting of a variable number of
 segments. Internal interactions within a NT and the van der Waals
 interaction between the tubes are described by a mesoscopic force field
 designed and parameterized based on the results of atomic-level
 molecular dynamics simulations. The description of the force field is
-provided in the papers listed below.
+provided in the papers listed in ``src/MESONT/README``.
 
-This package contains two independent implementations of this model:
-:doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original
-implementation of the model based on a Fortran library in the
-``lib/mesont`` folder. The second implementation is provided by the
-mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`,
-:doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt
-<pair_mesocnt>`).  The mesocnt implementation has the same features as
-the original implementation with the addition of friction, but is
-directly implemented in C++, interfaces more cleanly with general LAMMPS
-functionality, and is typically faster. It also does not require its own
-atom style and can be installed without any external libraries.
+This package used to have two independent implementations of this model:
+the original implementation using a Fortran library written by the
+developers of the model and a second implementation written in C++ by
+Philipp Kloza (U Cambridge).  Since the C++ implementation offers the
+same features as the original implementation with the addition of
+friction, is typically faster, and easier to compile/install, the
+Fortran library based implementation has since been obsoleted and
+removed from the distribution. You have to download and compile
+an older version of LAMMPS if you want to use those.
 
 **Download of potential files:**
 
@@ -1646,12 +1648,14 @@ not included in the regular downloaded packages of LAMMPS or the git
 repositories.  Instead, they will be automatically downloaded from a web
 server when the package is installed for the first time.
 
-**Authors of the *mesont* styles:**
+**Authors of the obsoleted *mesont* styles:**
 
 Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
 of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-**Author of the *mesocnt* styles:**
+.. deprecated:: 8Feb2023
+
+**Author of the C++ styles:**
 Philipp Kloza (U Cambridge)
 
 .. versionadded:: 15Jun2020
@@ -1660,14 +1664,10 @@ Philipp Kloza (U Cambridge)
 
 * src/MESONT: filenames -> commands
 * src/MESONT/README
-* :doc:`atom_style mesont <atom_style>`
-* :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
-* :doc:`compute mesont <compute_mesont>`
 * :doc:`bond_style mesocnt <bond_mesocnt>`
 * :doc:`angle_style mesocnt <angle_mesocnt>`
 * :doc:`pair_style mesocnt <pair_mesocnt>`
 * examples/PACKAGES/mesont
-* tools/mesont
 
 ----------
 
@@ -2208,7 +2208,7 @@ packages, which have styles optimized for CPUs.
    See src/MAKE/OPTIONS/Makefile.omp for an example.
 
 Once you have an appropriate Makefile.machine, you can
-install/un-install the package and build LAMMPS in the usual manner:
+install/uninstall the package and build LAMMPS in the usual manner:
 
 **Install:**
 
@@ -2330,7 +2330,7 @@ and third order tensor from finite differences.
 
 **Install:**
 
-The PHONON package requires that also the `KSPACE <PKG-KSPACE>`_
+The PHONON package requires that also the :ref:`KSPACE <PKG-KSPACE>`
 package is installed.
 
 
@@ -2931,11 +2931,9 @@ VORONOI package
 **Contents:**
 
 A compute command which calculates the Voronoi tesselation of a
-collection of atoms by wrapping the `Voro++ library <voro-home_>`_.  This
-can be used to calculate the local volume or each atoms or its near
-neighbors.
-
-.. _voro-home: https://math.lbl.gov/voro++
+collection of atoms by wrapping the `Voro++ library
+<https://math.lbl.gov/voro++/>`_.  This can be used to calculate the
+local volume or each atoms or its near neighbors.
 
 To use this package you must have the Voro++ library available on your
 system.

@@ -5635,7 +5635,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Lost atoms are checked for each time thermo output is done.  See the
    thermo_modify lost command for options.  Lost atoms usually indicate
    bad dynamics, e.g. atoms have been blown far out of the simulation
-   box, or moved further than one processor's sub-domain away before
+   box, or moved further than one processor's subdomain away before
    reneighboring.
 
 *MEAM library error %d*
@@ -6092,7 +6092,7 @@ keyword to allow for additional bonds to be formed
    after a read_data, read_restart, or create_box command.
 
 *Next command must list all universe and uloop variables*
-   This is to insure they stay in sync.
+   This is to ensure they stay in sync.
 
 *No Kspace style defined for compute group/group*
    Self-explanatory.
@@ -6266,14 +6266,14 @@ keyword to allow for additional bonds to be formed
    One or more atoms are attempting to map their charge to a MSM grid point
    that is not owned by a processor.  This is likely for one of two
    reasons, both of them bad.  First, it may mean that an atom near the
-   boundary of a processor's sub-domain has moved more than 1/2 the
+   boundary of a processor's subdomain has moved more than 1/2 the
    :doc:`neighbor skin distance <neighbor>` without neighbor lists being
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
    :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
-   moved far outside a processor's sub-domain or even the entire
+   moved far outside a processor's subdomain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
    overlapping atoms, too large a timestep, etc.
 
@@ -6281,14 +6281,14 @@ keyword to allow for additional bonds to be formed
    One or more atoms are attempting to map their charge to a PPPM grid
    point that is not owned by a processor.  This is likely for one of two
    reasons, both of them bad.  First, it may mean that an atom near the
-   boundary of a processor's sub-domain has moved more than 1/2 the
+   boundary of a processor's subdomain has moved more than 1/2 the
    :doc:`neighbor skin distance <neighbor>` without neighbor lists being
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
    :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
-   moved far outside a processor's sub-domain or even the entire
+   moved far outside a processor's subdomain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
    overlapping atoms, too large a timestep, etc.
 
@@ -6296,14 +6296,14 @@ keyword to allow for additional bonds to be formed
    One or more atoms are attempting to map their charge to a PPPM grid
    point that is not owned by a processor.  This is likely for one of two
    reasons, both of them bad.  First, it may mean that an atom near the
-   boundary of a processor's sub-domain has moved more than 1/2 the
+   boundary of a processor's subdomain has moved more than 1/2 the
    :doc:`neighbor skin distance <neighbor>` without neighbor lists being
    rebuilt and atoms being migrated to new processors.  This also means
    you may be missing pairwise interactions that need to be computed.
    The solution is to change the re-neighboring criteria via the
    :doc:`neigh_modify <neigh_modify>` command.  The safest settings are
    "delay 0 every 1 check yes".  Second, it may mean that an atom has
-   moved far outside a processor's sub-domain or even the entire
+   moved far outside a processor's subdomain or even the entire
    simulation box. This indicates bad physics, e.g. due to highly
    overlapping atoms, too large a timestep, etc.
 
@@ -7231,7 +7231,7 @@ keyword to allow for additional bonds to be formed
 
 *Replacing a fix, but new style != old style*
    A fix ID can be used a second time, but only if the style matches the
-   previous fix.  In this case it is assumed you with to reset a fix's
+   previous fix.  In this case it is assumed you want to reset a fix's
    parameters.  This error may mean you are mistakenly re-using a fix ID
    when you do not intend to.
 
@@ -7337,7 +7337,7 @@ keyword to allow for additional bonds to be formed
 *Rigid body atoms %d %d missing on proc %d at step %ld*
    This means that an atom cannot find the atom that owns the rigid body
    it is part of, or vice versa.  The solution is to use the communicate
-   cutoff command to insure ghost atoms are acquired from far enough away
+   cutoff command to ensure ghost atoms are acquired from far enough away
    to encompass the max distance printed when the fix rigid/small command
    was invoked.
 

@@ -731,7 +731,7 @@ int atom(double *buf, Data &data)
 
   // read atom quantities from buf
   // if hybrid, loop over all sub-styles in order listed
-  // if hybrid, loop index k will match style setting to insure correct order
+  // if hybrid, loop index k will match style setting to ensure correct order
 
   int nloop = 1;
   if (data.style_hybrid) nloop = data.style_hybrid;

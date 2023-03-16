@@ -1,5 +1,5 @@
 variable ibead uloop 32 pad
-variable out_freq string 1
+variable out_freq string 100
 variable job_name string H2
 
 units      real
@@ -13,17 +13,18 @@ read_data H2.data
 
 pair_coeff 1 * pair.table PAIR_H2
 
-timestep	0.001
-
-thermo_style	custom step temp pe etotal pzz
-thermo		${out_freq}
+timestep        0.001
 
 velocity all create 1.0 1985 rot yes dist gaussian
 
-fix 1 all pimd method nmpimd fmass 1.0 temp 25.0 nhc 4
+fix 1 all pimd/nvt method nmpimd fmass 1.0 temp 25.0 nhc 4
 
-dump dcd all dcd ${out_freq} dcd/${job_name}_${ibead}.dcd
+thermo_style    custom step temp pe etotal pzz f_1[1] f_1[2] f_1[3]
+thermo_modify   colname f_1[1] espring colname f_1[2] T_ring colname f_1[3] virial
+thermo          ${out_freq}
 
-restart ${out_freq} restart/${job_name}_${ibead}.restart1 restart/${job_name}_${ibead}.restart2
+#dump dcd all dcd ${out_freq} ${job_name}_${ibead}.dcd
 
-run 100000
+#restart ${out_freq} ${job_name}_${ibead}.restart1 ${job_name}_${ibead}.restart2
+
+run 10000

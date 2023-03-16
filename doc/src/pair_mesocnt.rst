@@ -216,9 +216,8 @@ LAMMPS was built with that package.  See the :doc:`Build package
 These pair styles require the :doc:`newton <newton>` setting to be
 "on" for pair interactions.
 
-These pair styles require all 3 :doc:`special_bonds lj
-<special_bonds>` settings to be non-zero for proper neighbor list
-construction.
+These pair styles require all 3 :doc:`special_bonds lj <special_bonds>`
+settings to be non-zero for proper neighbor list construction.
 
 Pair style *mesocnt/viscous* requires you to use the :doc:`comm_modify
 vel yes <comm_modify>` command so that velocities are stored by ghost
@@ -227,7 +226,9 @@ atoms.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`bond_style mesocnt <bond_mesocnt>`,
+:doc:`angle_style mesocnt <angle_mesocnt>`
 
 Default
 """""""

@@ -26,6 +26,19 @@ elseif(GPU_PREC STREQUAL "SINGLE")
   set(GPU_PREC_SETTING "SINGLE_SINGLE")
 endif()
 
+option(GPU_DEBUG "Enable debugging code of the GPU package" OFF)
+mark_as_advanced(GPU_DEBUG)
+
+if(PKG_AMOEBA AND FFT_SINGLE)
+  message(FATAL_ERROR "GPU acceleration of AMOEBA is not (yet) compatible with single precision FFT")
+endif()
+
+if (PKG_AMOEBA)
+  list(APPEND GPU_SOURCES
+              ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.h
+              ${GPU_SOURCES_DIR}/amoeba_convolution_gpu.cpp)
+endif()
+
 file(GLOB GPU_LIB_SOURCES ${CONFIGURE_DEPENDS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cpp)
 file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
@@ -47,9 +60,9 @@ if(GPU_API STREQUAL "CUDA")
   option(CUDA_MPS_SUPPORT "Enable tweaks to support CUDA Multi-process service (MPS)" OFF)
   if(CUDA_MPS_SUPPORT)
     if(CUDPP_OPT)
-      message(FATAL_ERROR "Must use -DCUDPP_OPT=OFF with -DGPU_CUDA_MPS_SUPPORT=ON")
+      message(FATAL_ERROR "Must use -DCUDPP_OPT=OFF with -DCUDA_MPS_SUPPORT=ON")
     endif()
-    set(GPU_CUDA_MPS_FLAGS "-DCUDA_PROXY")
+    set(GPU_CUDA_MPS_FLAGS "-DCUDA_MPS_SUPPORT")
   endif()
 
   set(GPU_ARCH "sm_50" CACHE STRING "LAMMPS GPU CUDA SM primary architecture (e.g. sm_60)")
@@ -85,8 +98,10 @@ if(GPU_API STREQUAL "CUDA")
   # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
   if(CUDA_VERSION VERSION_LESS 8.0)
     message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
-  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
+  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "13.0")
     message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
+    set(GPU_CUDA_GENCODE "-arch=all")
+  elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
     set(GPU_CUDA_GENCODE "-arch=all")
   else()
     # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
@@ -151,7 +166,12 @@ if(GPU_API STREQUAL "CUDA")
   add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
   target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
-  target_compile_definitions(gpu PRIVATE -DUSE_CUDA -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT ${GPU_CUDA_MPS_FLAGS})
+  target_compile_definitions(gpu PRIVATE -DUSE_CUDA -D_${GPU_PREC_SETTING} ${GPU_CUDA_MPS_FLAGS})
+  if(GPU_DEBUG)
+    target_compile_definitions(gpu PRIVATE -DUCL_DEBUG -DGERYON_KERNEL_DUMP)
+  else()
+    target_compile_definitions(gpu PRIVATE -DMPI_GERYON -DUCL_NO_EXIT)
+  endif()
   if(CUDPP_OPT)
     target_include_directories(gpu PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
     target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
@@ -192,6 +212,7 @@ elseif(GPU_API STREQUAL "OPENCL")
     ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff.cu
     ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl.cu
     ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod.cu
+    ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_hippo.cu
   )
 
   foreach(GPU_KERNEL ${GPU_LIB_CU})
@@ -208,6 +229,7 @@ elseif(GPU_API STREQUAL "OPENCL")
   GenerateOpenCLHeader(tersoff ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff.cu)
   GenerateOpenCLHeader(tersoff_zbl ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_zbl_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl.cu)
   GenerateOpenCLHeader(tersoff_mod ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_mod_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod.cu)
+  GenerateOpenCLHeader(hippo ${CMAKE_CURRENT_BINARY_DIR}/gpu/hippo_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_hippo_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_hippo.cu)
 
   list(APPEND GPU_LIB_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h
@@ -217,14 +239,18 @@ elseif(GPU_API STREQUAL "OPENCL")
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_cl.h
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_zbl_cl.h
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_mod_cl.h
+    ${CMAKE_CURRENT_BINARY_DIR}/gpu/hippo_cl.h
   )
 
   add_library(gpu STATIC ${GPU_LIB_SOURCES})
   target_link_libraries(gpu PRIVATE OpenCL::OpenCL)
   target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu)
-  target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DGERYON_NUMA_FISSION -DUCL_NO_EXIT)
-  target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
-
+  target_compile_definitions(gpu PRIVATE -DUSE_OPENCL -D_${GPU_PREC_SETTING})
+  if(GPU_DEBUG)
+    target_compile_definitions(gpu PRIVATE -DUCL_DEBUG -DGERYON_KERNEL_DUMP)
+  else()
+    target_compile_definitions(gpu PRIVATE -DMPI_GERYON -DGERYON_NUMA_FISSION -DUCL_NO_EXIT)
+  endif()
   target_link_libraries(lammps PRIVATE gpu)
 
   add_executable(ocl_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
@@ -261,7 +287,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   set(ENV{HIP_PLATFORM} ${HIP_PLATFORM})
 
-  if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "amd")
+  if(HIP_PLATFORM STREQUAL "amd")
     set(HIP_ARCH "gfx906" CACHE STRING "HIP target architecture")
   elseif(HIP_PLATFORM STREQUAL "spirv")
     set(HIP_ARCH "spirv" CACHE STRING "HIP target architecture")
@@ -334,7 +360,7 @@ elseif(GPU_API STREQUAL "HIP")
     set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
     set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
 
-    if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "amd")
+    if(HIP_PLATFORM STREQUAL "amd")
         configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
 
         if(HIP_COMPILER STREQUAL "clang")
@@ -374,8 +400,12 @@ elseif(GPU_API STREQUAL "HIP")
 
   add_library(gpu STATIC ${GPU_LIB_SOURCES})
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
-  target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DUCL_NO_EXIT)
-  target_compile_definitions(gpu PRIVATE -DUSE_HIP)
+  target_compile_definitions(gpu PRIVATE -DUSE_HIP -D_${GPU_PREC_SETTING})
+  if(GPU_DEBUG)
+    target_compile_definitions(gpu PRIVATE -DUCL_DEBUG -DGERYON_KERNEL_DUMP)
+  else()
+    target_compile_definitions(gpu PRIVATE -DMPI_GERYON -DUCL_NO_EXIT)
+  endif()
   target_link_libraries(gpu PRIVATE hip::host)
 
   if(HIP_USE_DEVICE_SORT)
@@ -384,7 +414,8 @@ elseif(GPU_API STREQUAL "HIP")
       set_property(TARGET gpu PROPERTY CXX_STANDARD 14)
     endif()
     # add hipCUB
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+    find_package(hipcub REQUIRED)
+    target_link_libraries(gpu PRIVATE hip::hipcub)
     target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
 
     if(HIP_PLATFORM STREQUAL "nvcc")
@@ -400,15 +431,17 @@ elseif(GPU_API STREQUAL "HIP")
 
       if(DOWNLOAD_CUB)
         message(STATUS "CUB download requested")
-        set(CUB_URL "https://github.com/NVlabs/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
+        # TODO: test update to current version 1.17.2
+        set(CUB_URL "https://github.com/nvidia/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
         set(CUB_MD5 "1cf595beacafff104700921bac8519f3" CACHE STRING "MD5 checksum of CUB tarball")
         mark_as_advanced(CUB_URL)
         mark_as_advanced(CUB_MD5)
+        GetFallbackURL(CUB_URL CUB_FALLBACK)
 
         include(ExternalProject)
 
         ExternalProject_Add(CUB
-          URL     ${CUB_URL}
+          URL     ${CUB_URL} ${CUB_FALLBACK}
           URL_MD5 ${CUB_MD5}
           PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
           CONFIGURE_COMMAND ""
@@ -431,30 +464,16 @@ elseif(GPU_API STREQUAL "HIP")
 
   add_executable(hip_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)
-  target_link_libraries(hip_get_devices hip::host)
+  target_link_libraries(hip_get_devices PRIVATE hip::host)
 
   if(HIP_PLATFORM STREQUAL "nvcc")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
     target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
     target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/include)
     target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
-  elseif(HIP_PLATFORM STREQUAL "hcc")
-    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_HCC__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
-
-    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_HCC__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
-  elseif(HIP_PLATFORM STREQUAL "amd")
-    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_AMD__)
-    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
-
-    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_AMD__)
-    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
   endif()
 
   target_link_libraries(lammps PRIVATE gpu)

@@ -71,7 +71,7 @@ The MELPA recipe used for this package is simply:
 ``` emacs-lisp
 (lammps-mode :fetcher github :repo "HaoZeke/lammps-mode")
 ```
- 
+
 ## Caveats
 
 * Does not work with Xemacs [See [this comment](https://github.com/lammps/lammps/pull/1022#issuecomment-408871233)]

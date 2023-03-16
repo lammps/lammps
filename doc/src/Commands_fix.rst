@@ -29,6 +29,7 @@ OPT.
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
    * :doc:`addtorque <fix_addtorque>`
+   * :doc:`alchemy <fix_alchemy>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
    * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>`
    * :doc:`append/atoms <fix_append_atoms>`
@@ -44,9 +45,6 @@ OPT.
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce <fix_aveforce>`
    * :doc:`balance <fix_balance>`
-   * :doc:`brownian <fix_brownian>`
-   * :doc:`brownian/asphere <fix_brownian>`
-   * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`
@@ -54,6 +52,9 @@ OPT.
    * :doc:`bond/react <fix_bond_react>`
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
+   * :doc:`brownian <fix_brownian>`
+   * :doc:`brownian/asphere <fix_brownian>`
+   * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`charge/regulation <fix_charge_regulation>`
    * :doc:`cmap <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
@@ -169,7 +170,7 @@ OPT.
    * :doc:`pafi <fix_pafi>`
    * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
-   * :doc:`pimd <fix_pimd>`
+   * :doc:`pimd/nvt <fix_pimd>`
    * :doc:`planeforce <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`poems <fix_poems>`
@@ -264,6 +265,7 @@ OPT.
    * :doc:`wall/lj1043 <fix_wall>`
    * :doc:`wall/lj126 <fix_wall>`
    * :doc:`wall/lj93 (k) <fix_wall>`
+   * :doc:`wall/lepton <fix_wall>`
    * :doc:`wall/morse <fix_wall>`
    * :doc:`wall/piston <fix_wall_piston>`
    * :doc:`wall/reflect (k) <fix_wall_reflect>`
@@ -271,4 +273,5 @@ OPT.
    * :doc:`wall/region <fix_wall_region>`
    * :doc:`wall/region/ees <fix_wall_ees>`
    * :doc:`wall/srd <fix_wall_srd>`
+   * :doc:`wall/table <fix_wall>`
    * :doc:`widom <fix_widom>`

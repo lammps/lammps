@@ -643,11 +643,13 @@ Tohoku University (under MIT license)
 
 ---------------------------
 
+.. _communication_buffer_coding_with_ubuf:
+
 Communication buffer coding with *ubuf*
 ---------------------------------------
 
 LAMMPS uses communication buffers where it collects data from various
-class instances and then exchanges the data with neighboring sub-domains.
+class instances and then exchanges the data with neighboring subdomains.
 For simplicity those buffers are defined as ``double`` buffers and
 used for doubles and integer numbers. This presents a unique problem
 when 64-bit integers are used.  While the storage needed for a ``double``

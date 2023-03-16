@@ -28,7 +28,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 Dihedral style *lepton* computes dihedral interactions between four
 atoms forming a dihedral angle with a custom potential function.  The

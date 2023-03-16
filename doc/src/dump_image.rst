@@ -80,9 +80,9 @@ Syntax
          axes = *yes* or *no* = do or do not draw xyz axes lines next to simulation box
          length = length of axes lines as fraction of respective box lengths
          diam = diameter of axes lines as fraction of shortest box length
-       *subbox* values = lines diam = draw outline of processor sub-domains
-         lines = *yes* or *no* = do or do not draw sub-domain lines
-         diam = diameter of sub-domain lines as fraction of shortest box length
+       *subbox* values = lines diam = draw outline of processor subdomains
+         lines = *yes* or *no* = do or do not draw subdomain lines
+         diam = diameter of subdomain lines as fraction of shortest box length
        *shiny* value = sfactor = shinyness of spheres and cylinders
          sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
        *ssao* value = shading seed dfactor = SSAO depth shading
@@ -145,7 +145,7 @@ Syntax
        *bitrate* arg = rate
          rate = target bitrate for movie in kbps
        *boxcolor* arg = color
-         color = name of color for simulation box lines and processor sub-domain lines
+         color = name of color for simulation box lines and processor subdomain lines
        *color* args = name R G B
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
@@ -218,13 +218,13 @@ is used.
 .. _png_format: https://en.wikipedia.org/wiki/Portable_Network_Graphics
 .. _ppm_format: https://en.wikipedia.org/wiki/Netpbm
 
-Similarly, the format of the resulting movie is chosen with the
-*movie* dump style. This is handled by the underlying FFmpeg converter
-and thus details have to be looked up in the `FFmpeg documentation
-<https://ffmpeg.org/ffmpeg.html>`_.  Typical examples are: .avi, .mpg,
-.m4v, .mp4, .mkv, .flv, .mov, .gif Additional settings of the movie
-compression like *bitrate* and *framerate* can be set using the
-dump_modify command as described below.
+Similarly, the format of the resulting movie is chosen with the *movie*
+dump style. This is handled by the underlying FFmpeg converter and thus
+details have to be looked up in the `FFmpeg documentation
+<https://ffmpeg.org/>`_.  Typical examples are: .avi, .mpg, .m4v, .mp4,
+.mkv, .flv, .mov, .gif Additional settings of the movie compression like
+*bitrate* and *framerate* can be set using the dump_modify command as
+described below.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library. To convert images
@@ -255,7 +255,7 @@ one image file per snapshot is written.  The "\*" character is replaced
 with the timestep value.  For example, tmp.dump.\*.jpg becomes
 tmp.dump.0.jpg, tmp.dump.10000.jpg, tmp.dump.20000.jpg, etc.  Note
 that the :doc:`dump_modify pad <dump_modify>` command can be used to
-insure all timestep numbers are the same length (e.g., 00010), which
+ensure all timestep numbers are the same length (e.g., 00010), which
 can make it easier to convert a series of images into a movie in the
 correct ordering.
 
@@ -581,13 +581,13 @@ respective box lengths.  The *diam* setting determines their thickness
 as a fraction of the shortest box length in x,y,z (for 3d) or x,y (for
 2d).
 
-The *subbox* keyword determines if and how processor sub-domain
+The *subbox* keyword determines if and how processor subdomain
 boundaries are rendered as thin cylinders in the image.  If *no* is
-set (default), then the sub-domain boundaries are not drawn and the
+set (default), then the subdomain boundaries are not drawn and the
 *diam* setting is ignored.  If *yes* is set, the 12 edges of each
-processor sub-domain are drawn, with a diameter that is a fraction of
+processor subdomain are drawn, with a diameter that is a fraction of
 the shortest box length in x,y,z (for 3d) or x,y (for 2d).  The color
-of the sub-domain boundaries can be set with the "dump_modify
+of the subdomain boundaries can be set with the "dump_modify
 boxcolor" command.
 
 ----------
@@ -651,7 +651,7 @@ MPEG or other movie file you can use:
      cat snap.*.ppm | ffmpeg -y -f image2pipe -c:v ppm -i - -b:v 2400k movie.avi
 
   Front ends for FFmpeg exist for multiple platforms. For more
-  information see the `FFmpeg homepage <https://www.ffmpeg.org/>`_
+  information see the `FFmpeg homepage <https://ffmpeg.org/>`_
 
 ----------
 
@@ -921,8 +921,8 @@ formats.
 
 The *boxcolor* keyword sets the color of the simulation box drawn
 around the atoms in each image as well as the color of processor
-sub-domain boundaries.  See the "dump image box" command for how to
-specify that a box be drawn via the *box* keyword, and the sub-domain
+subdomain boundaries.  See the "dump image box" command for how to
+specify that a box be drawn via the *box* keyword, and the subdomain
 boundaries via the *subbox* keyword.  The color name can be any of the
 140 pre-defined colors (see below) or a color name defined by the
 dump_modify color option.

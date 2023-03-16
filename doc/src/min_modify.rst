@@ -14,7 +14,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *dmax* or *line* or *norm* or *alpha_damp* or *discrete_factor* or *integrator* or *tmax*
+     keyword = *dmax* or *line* or *norm* or *alpha_damp* or *discrete_factor* or *integrator* or *abcfire* or *tmax*
        *dmax* value = max
          max = maximum distance for line search to move (distance units)
        *line* value = *backtrack* or *quadratic* or *forcezero* or *spin_cubic* or *spin_none*
@@ -29,6 +29,9 @@ Syntax
          factor = discretization factor for adaptive spin timestep (adim)
        *integrator* value = *eulerimplicit* or *verlet* or *leapfrog* or *eulerexplicit*
          time integration scheme for fire minimization
+       *abcfire* value = yes or no (default no)
+         yes = use ABC-FIRE variant of fire minimization style
+         no  = use default FIRE variant of fire minimization style
        *tmax* value = factor
          factor = maximum adaptive timestep for fire minimization (adim)
 
@@ -149,6 +152,14 @@ reached your minimization criteria. This could happen when the system
 comes to be stuck in a local basin of the phase space.  *vdfmax* is the
 maximum number of consecutive iterations with P(t) < 0.
 
+.. versionadded:: 8Feb2023
+
+The *abcfire* keyword allows to activate the ABC-FIRE variant of the
+*fire* minimization algorithm. ABC-FIRE introduces an additional factor
+that modifies the bias and scaling of the velocities of the atoms during
+the mixing step :ref:`(Echeverri Restrepo) <EcheverriRestrepo>`.  This
+can lead to faster convergence of the minimizer.
+
 The :doc:`min_style <min_style>` *fire* is an optimized implementation of
 :doc:`min_style <min_style>` *fire/old*. It can however behave similarly
 to the *fire/old* style by using the following set of parameters:
@@ -184,3 +195,7 @@ For the *fire* style, the option defaults are integrator =
 eulerimplicit, tmax = 10.0, tmin = 0.02, delaystep = 20, dtgrow = 1.1,
 dtshrink = 0.5, alpha0 = 0.25, alphashrink = 0.99, vdfmax = 2000,
 halfstepback = yes and initialdelay = yes.
+
+.. _EcheverriRestrepo:
+
+**(EcheverriRestrepo)** Echeverri Restrepo, Andric, Comput Mater Sci, 218, 111978 (2023).

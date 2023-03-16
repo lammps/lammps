@@ -659,7 +659,7 @@ class Lmpsdata:
 								array.setelement(j,k,False)
 								data[j][k]=atomchanges[i]
 								break
-								#the change of boolean array to False insures
+								#the change of boolean array to False ensures
 								#the atom id in data will only be changed once.
 		else: # for changing atom numbers for everything else
 			for i in range(len(originalatoms)): #len of originalatoms should match len of atomchanges
@@ -674,7 +674,7 @@ class Lmpsdata:
 								array.setelement(j,k,False)
 								data[j][k]=atomchanges[i]
 								break
-								#the change of boolean array to False insures
+								#the change of boolean array to False ensures
 								#the atom id in data will only be changed once.
 #		print data
 		return data

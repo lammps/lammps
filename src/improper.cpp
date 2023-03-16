@@ -30,6 +30,7 @@ Improper::Improper(LAMMPS *_lmp) : Pointers(_lmp)
 {
   energy = 0.0;
   writedata = 0;
+  for (int i = 0; i < 4; i++) symmatoms[i] = 0;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;

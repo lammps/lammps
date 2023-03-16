@@ -35,7 +35,7 @@ __kernel void k_coul_debye(const __global numtyp4 *restrict x_,
                            const __global numtyp *restrict sp_cl_in,
                            const __global int *dev_nbor,
                            const __global int *dev_packed,
-                           __global acctyp4 *restrict ans,
+                           __global acctyp3 *restrict ans,
                            __global acctyp *restrict engv,
                            const int eflag, const int vflag, const int inum,
                            const int nbor_pitch,
@@ -55,7 +55,7 @@ __kernel void k_coul_debye(const __global numtyp4 *restrict x_,
   sp_cl[2]=sp_cl_in[2];
   sp_cl[3]=sp_cl_in[3];
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
   if (EVFLAG) {
@@ -75,6 +75,7 @@ __kernel void k_coul_debye(const __global numtyp4 *restrict x_,
 
     numtyp factor_coul;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       factor_coul = sp_cl[sbmask(j)];
@@ -129,7 +130,7 @@ __kernel void k_coul_debye_fast(const __global numtyp4 *restrict x_,
                                 const __global numtyp *restrict sp_cl_in,
                                 const __global int *dev_nbor,
                                 const __global int *dev_packed,
-                                __global acctyp4 *restrict ans,
+                                __global acctyp3 *restrict ans,
                                 __global acctyp *restrict engv,
                                 const int eflag, const int vflag, const int inum,
                                 const int nbor_pitch,
@@ -153,7 +154,7 @@ __kernel void k_coul_debye_fast(const __global numtyp4 *restrict x_,
     cutsq[tid]=_cutsq[tid];
   }
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
   if (EVFLAG) {
@@ -176,6 +177,7 @@ __kernel void k_coul_debye_fast(const __global numtyp4 *restrict x_,
 
     numtyp factor_coul;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
       factor_coul = sp_cl[sbmask(j)];

@@ -27,7 +27,6 @@ class Improper : protected Pointers {
   int *setflag;
   int writedata;    // 1 if writes coeffs to data file
   int born_matrix_enable;
-  int symmatoms[4];          // symmetry atom(s) of improper style
   double energy;             // accumulated energies
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
@@ -37,6 +36,11 @@ class Improper : protected Pointers {
                              // CENTROID_SAME = same as two-body stress
                              // CENTROID_AVAIL = different and implemented
                              // CENTROID_NOTAVAIL = different, not yet implemented
+                             
+  int symmatoms[4];          // symmetry atom(s) of improper style
+                             // value of 0: interchangable atoms
+                             // value of 1: central atom
+                             // values >1: additional atoms of symmetry                             
 
   // KOKKOS host/device flag and data masks
 

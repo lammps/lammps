@@ -43,7 +43,7 @@ ImproperUmbrella::ImproperUmbrella(LAMMPS *_lmp) : Improper(_lmp)
   // the first and fourth atoms in the quadruplet are the atoms of symmetry
 
   symmatoms[0] = 1;
-  symmatoms[3] = 1;
+  symmatoms[3] = 2;
 }
 
 /* ---------------------------------------------------------------------- */

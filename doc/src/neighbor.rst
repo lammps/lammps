@@ -59,9 +59,16 @@ long cutoff, but other type pairs have a much shorter cutoff. The
 sized particles, where "size" may mean the physical size of the particle
 or its cutoff distance for interacting with other particles. Different
 sets of bins are then used to construct the neighbor lists as as further
-described by Shire, Hanley, and Stratford :ref:`(Shire) <bytype-Shire>`.
-This imposes some extra setup overhead, but the searches themselves may
-be much faster. By default, each atom type defines a separate collection
+described by Shire, Hanley, and Stratford :ref:`(Shire) <multi-Shire>`
+and Monti et al. :ref:`(Monti) <multi-Monti>`. This imposes some extra
+setup overhead, but the searches themselves may be much faster. For
+instance in a dense binary system with a ratio of the size of the largest
+to smallest collection bin :math:`\lamda`, the computational costs of
+building a default neighbor list grows as :math:`\lamda^6` while the costs
+for *multi* grows as :math:`\lamda^3`, equivalent to the cost of force
+evaluations, as identified in Monti et al. :ref:`(Monti) <multi-Monti>`.
+
+By default in *multi*, each atom type defines a separate collection
 of particles. For systems where two or more atom types have the same
 size (either physical size or cutoff distance), the definition of
 collections can be customized, which can result in less overhead and
@@ -118,6 +125,10 @@ Default
 
 ----------
 
-.. _bytype-Shire:
+.. _multi-Shire:
 
-**(Shire)** Shire, Hanley and Stratford, Comp Part Mech, (2020).
+**(Shire)** Shire, Hanley and Stratford, Comp. Part. Mech., (2020).
+
+.. _multi-Monti:
+
+**(Monti)** Monti, Clemmer, Srivastava, Silbert, Grest, and Lechman, Phys. Rev. E, (2022).

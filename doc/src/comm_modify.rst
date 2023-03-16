@@ -69,6 +69,7 @@ For many systems this is an efficient algorithm, but for systems with
 widely varying cutoffs for different type pairs, the *multi* or *multi/old* mode can
 be faster.  In *multi*, each atom is assigned to a collection which should
 correspond to a set of atoms with similar interaction cutoffs.
+See the :doc:`neighbor <neighbor>` command for a detailed description of collections.
 In this case, each atom collection is assigned its own distance
 cutoff for communication purposes, and fewer atoms will be
 communicated. in *multi/old*, a similar technique is used but atoms

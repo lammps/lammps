@@ -26,7 +26,7 @@
 #include "neighbor.h"
 #include "comm.h"
 #include "domain.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "imbalance.h"
 #include "imbalance_group.h"
@@ -513,9 +513,9 @@ void Balance::weight_storage(char *prefix)
   if (prefix) cmd = prefix;
   cmd += "IMBALANCE_WEIGHTS";
 
-  fixstore = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(cmd));
+  fixstore = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd));
   if (!fixstore)
-    fixstore = dynamic_cast<FixStorePeratom *>(modify->add_fix(cmd + " all STORE/PERATOM 0 1"));
+    fixstore = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd + " all STORE/ATOM 1 0 0 0"));
 
   // do not carry weights with atoms during normal atom migration
 

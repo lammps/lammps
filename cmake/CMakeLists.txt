@@ -856,35 +856,6 @@ else()
     ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
 endif()
 
-###############################################################################
-# Add LAMMPS python module to "install" target. This is taylored for building
-# LAMMPS for package managers and with different prefix settings.
-# This requires either a shared library or that the PYTHON package is included.
-###############################################################################
-if(BUILD_SHARED_LIBS OR PKG_PYTHON)
-  if(CMAKE_VERSION VERSION_LESS 3.12)
-    # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
-    set(Python_ADDITIONAL_VERSIONS 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
-    find_package(PythonInterp) # Deprecated since version 3.12
-    if(PYTHONINTERP_FOUND)
-      set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-    endif()
-  else()
-    # backward compatibility
-    if(PYTHON_EXECUTABLE)
-      set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
-    endif()
-    find_package(Python COMPONENTS Interpreter)
-  endif()
-  if(Python_EXECUTABLE)
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/python/lib)
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/python/src)
-    file(COPY ${LAMMPS_SOURCE_DIR}/version.h  DESTINATION ${CMAKE_BINARY_DIR}/python/src)
-    file(COPY ${LAMMPS_PYTHON_DIR}/README ${LAMMPS_PYTHON_DIR}/pyproject.toml ${LAMMPS_PYTHON_DIR}/setup.py ${LAMMPS_PYTHON_DIR}/lammps  DESTINATION ${CMAKE_BINARY_DIR}/python/lib)
-    install(CODE "if(\"\$ENV{DESTDIR}\" STREQUAL \"\")\n execute_process(COMMAND ${Python_EXECUTABLE} -m pip install -v ${CMAKE_BINARY_DIR}/python/lib --prefix=${CMAKE_INSTALL_PREFIX})\n else()\n execute_process(COMMAND ${Python_EXECUTABLE} -m pip install -v ${CMAKE_BINARY_DIR}/python/lib --prefix=${CMAKE_INSTALL_PREFIX} --root=\$ENV{DESTDIR})\n endif()")
-  endif()
-endif()
-
 include(Testing)
 include(CodeCoverage)
 include(CodingStandard)

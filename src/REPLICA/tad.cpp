@@ -24,7 +24,7 @@
 #include "error.h"
 #include "finish.h"
 #include "fix_event_tad.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "integrate.h"
 #include "memory.h"
@@ -133,9 +133,9 @@ void TAD::command(int narg, char **arg)
 
   fix_event = dynamic_cast<FixEventTAD *>(modify->add_fix("tad_event all EVENT/TAD"));
 
-  // create FixStorePeratom object to store revert state
+  // create FixStoreAtom object to store revert state
 
-  fix_revert = dynamic_cast<FixStorePeratom *>(modify->add_fix("tad_revert all STORE/PERATOM 0 7"));
+  fix_revert = dynamic_cast<FixStoreAtom *>(modify->add_fix("tad_revert all STORE/ATOM 7 0 0 0"));
 
   // create Finish for timing output
 

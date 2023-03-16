@@ -93,7 +93,7 @@ class ComputeChunkAtom : public Compute {
   double *varatom;
 
   char *id_fix;
-  class FixStorePeratom *fixstore;
+  class FixStoreAtom *fixstore;
 
   class Fix *lockfix;            // ptr to FixAveChunk that is locking out setups
                                  // null pointer if no lock currently in place

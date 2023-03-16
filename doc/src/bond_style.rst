@@ -10,7 +10,7 @@ Syntax
 
    bond_style style args
 
-* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/shift* or *harmonic/shift/cut* or *lepton* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *special* or *table*
+* style = *none* or *zero* or *hybrid* or *bpm/rotational* or *bpm/spring* or *class2* or *fene* or *fene/expand* or *fene/nm* or *gaussian* or *gromos* or *harmonic* or *harmonic/restrain* *harmonic/shift* or *harmonic/shift/cut* or *lepton* or *morse* or *nonlinear* or *oxdna/fene* or *oxdena2/fene* or *oxrna2/fene* or *quartic* or *special* or *table*
 
 * args = none for any style except *hybrid*
 
@@ -93,6 +93,7 @@ accelerated styles exist.
 * :doc:`gaussian <bond_gaussian>` - multicentered Gaussian-based bond potential
 * :doc:`gromos <bond_gromos>` - GROMOS force field bond
 * :doc:`harmonic <bond_harmonic>` - harmonic bond
+* :doc:`harmonic/restrain <bond_harmonic_restrain>` - harmonic bond to restrain to original bond distance
 * :doc:`harmonic/shift <bond_harmonic_shift>` - shifted harmonic bond
 * :doc:`harmonic/shift/cut <bond_harmonic_shift_cut>` - shifted harmonic bond with a cutoff
 * :doc:`lepton <bond_lepton>` - bond potential from evaluating a string

@@ -691,8 +691,8 @@ TEST(AngleStyle, extract)
     }
 
     auto angle = lmp->force->angle;
-    void *ptr = nullptr;
-    int dim   = 0;
+    void *ptr  = nullptr;
+    int dim    = 0;
     for (auto extract : test_config.extract) {
         ptr = angle->extract(extract.first.c_str(), dim);
         EXPECT_NE(ptr, nullptr);

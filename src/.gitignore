@@ -536,6 +536,10 @@
 /compute_damage_atom.h
 /compute_dilatation_atom.cpp
 /compute_dilatation_atom.h
+/compute_dipole_tip4p.cpp
+/compute_dipole_tip4p.h
+/compute_dipole_tip4p_chunk.cpp
+/compute_dipole_tip4p_chunk.h
 /compute_dpd.cpp
 /compute_dpd.h
 /compute_dpd_atom.cpp
@@ -754,6 +758,8 @@
 /fix_damping_cundall.h
 /fix_dpd_energy.cpp
 /fix_dpd_energy.h
+/fix_efield_tip4p.cpp
+/fix_efield_tip4p.h
 /fix_electron_stopping.cpp
 /fix_electron_stopping.h
 /fix_electron_stopping_fit.cpp

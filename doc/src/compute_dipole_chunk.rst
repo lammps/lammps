@@ -1,17 +1,21 @@
 .. index:: compute dipole/chunk
+.. index:: compute dipole/tip4p/chunk
 
 compute dipole/chunk command
 ============================
+
+compute dipole/tip4p/chunk command
+==================================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID dipole/chunk chunkID arg
+   compute ID group-ID style chunkID arg
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* dipole/chunk = style name of this compute command
+* style = *dipole/chunk* or *dipole/tip4p/chunk*
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * arg = *mass* or *geometry* = use COM or geometric center for charged chunk correction (optional)
 
@@ -38,13 +42,20 @@ or atoms in a spatial bin.  See the :doc:`compute chunk/atom
 details of how chunks can be defined and examples of how they can be
 used to measure properties of a system.
 
-This compute calculates the :math:`(x,y,z)` coordinates of the dipole vector
-and the total dipole moment for each chunk, which includes all effects due
-to atoms passing through periodic boundaries. For chunks with a net
-charge the resulting dipole is made position independent by subtracting
-the position vector of the center of mass or geometric center times the
-net charge from the computed dipole vector. Both per-atom charges and
-per-atom dipole moments, if present, contribute to the computed dipole.
+These computes calculate the :math:`(x,y,z)` coordinates of the dipole
+vector and the total dipole moment for each chunk, which includes all
+effects due to atoms passing through periodic boundaries.  For chunks
+with a net charge the resulting dipole is made position independent by
+subtracting the position vector of the center of mass or geometric
+center times the net charge from the computed dipole vector.  Both
+per-atom charges and per-atom dipole moments, if present, contribute to
+the computed dipole.
+
+.. versionadded:: TBD
+
+Compute *dipole/tip4p/chunk* includes adjustments for the charge
+carrying point M in molecules with TIP4P water geometry.  The
+corresponding parameters are extracted from the pair style.
 
 Note that only atoms in the specified group contribute to the
 calculation.  The :doc:`compute chunk/atom <compute_chunk_atom>` command
@@ -78,12 +89,12 @@ command, for example:
 Output info
 """""""""""
 
-This compute calculates a global array where the number of rows = the
+These computes calculate a global array where the number of rows = the
 number of chunks *Nchunk* as calculated by the specified :doc:`compute
-chunk/atom <compute_chunk_atom>` command.  The number of columns is 4 for
-the :math:`(x,y,z)` dipole vector components and the total dipole of each
-chunk. These values can be accessed by any command that uses global
-array values from a compute as input.  See the :doc:`Howto output
+chunk/atom <compute_chunk_atom>` command.  The number of columns is 4
+for the :math:`(x,y,z)` dipole vector components and the total dipole of
+each chunk.  These values can be accessed by any command that uses
+global array values from a compute as input.  See the :doc:`Howto output
 <Howto_output>` page for an overview of LAMMPS output options.
 
 The array values are "intensive".  The array values will be in
@@ -92,7 +103,13 @@ dipole units (i.e., charge :doc:`units <units>` times distance
 
 Restrictions
 """"""""""""
- none
+
+Compute style *dipole/tip4p/chunk* is part of the EXTRA-COMPUTE
+package. It is only enabled if LAMMPS was built with that package.  See
+the :doc:`Build package <Build_package>` page for more info.
+
+Compute style *dipole/tip4p/chunk* can only be used with tip4p pair
+styles.
 
 Related commands
 """"""""""""""""

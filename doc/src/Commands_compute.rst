@@ -52,6 +52,8 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`dilatation/atom <compute_dilatation_atom>`
    * :doc:`dipole <compute_dipole>`
    * :doc:`dipole/chunk <compute_dipole_chunk>`
+   * :doc:`dipole/tip4p <compute_dipole>`
+   * :doc:`dipole/tip4p/chunk <compute_dipole_chunk>`
    * :doc:`displace/atom <compute_displace_atom>`
    * :doc:`dpd <compute_dpd>`
    * :doc:`dpd/atom <compute_dpd_atom>`

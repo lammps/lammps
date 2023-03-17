@@ -89,9 +89,11 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 {
   if (onesided)
     error->all(FLERR,"Fix neigh/history/kk does not (yet) support onesided exchange communication");
-  else if (newton_pair)
-    error->all(FLERR,"Must use newton on with fix neigh/history/kk");
-  else pre_exchange_no_newton();
+
+  if (newton_pair)
+    error->all(FLERR,"Fix neigh/history/kk requires newton 'off' for exchange communication");
+
+  pre_exchange_no_newton();
 }
 
 /* ----------------------------------------------------------------------

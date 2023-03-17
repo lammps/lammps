@@ -48,15 +48,15 @@ class TAD : public Command {
   double time_dynamics, time_quench, time_neb, time_comm, time_output;
   double time_start;
 
-  class NEB *neb;                       // NEB object
-  class Fix *fix_neb;                   // FixNEB object
-  class Compute *compute_event;         // compute to detect event
-  class FixEventTAD *fix_event;         // current event/state
-  class FixStorePeratom *fix_revert;    // revert state
-  FixEventTAD **fix_event_list;         // list of possible events
-  int n_event_list;                     // number of events
-  int nmax_event_list;                  // allocated events
-  int nmin_event_list;                  // minimum allocation
+  class NEB *neb;                    // NEB object
+  class Fix *fix_neb;                // FixNEB object
+  class Compute *compute_event;      // compute to detect event
+  class FixEventTAD *fix_event;      // current event/state
+  class FixStoreAtom *fix_revert;    // revert state
+  FixEventTAD **fix_event_list;      // list of possible events
+  int n_event_list;                  // number of events
+  int nmax_event_list;               // allocated events
+  int nmin_event_list;               // minimum allocation
 
   char *neb_logfilename;    // filename for ulogfile_neb
   FILE *uscreen_neb;        // neb universe screen output

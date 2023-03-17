@@ -337,6 +337,7 @@ void FixNeighHistory::pre_exchange_newton()
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *allflags;
   double *allvalues,*onevalues,*jvalues;
+  int *type = atom->type;
 
   // NOTE: all operations until very end are with
   //   nlocal_neigh  <= current nlocal and nall_neigh
@@ -351,7 +352,10 @@ void FixNeighHistory::pre_exchange_newton()
   // 1st loop over neighbor list
   // calculate npartner for owned+ghost atoms
 
-  for (i = 0; i < nall_neigh; i++) npartner[i] = 0;
+  // Ensure npartner is zeroed across all atoms, nall_neigh can be less than nall
+  // when writing restarts when comm calls are made but modify->post_neighbor() isn't
+  int nall = atom->nlocal + atom->nghost;
+  for (i = 0; i < MAX(nall_neigh, nall); i++) npartner[i] = 0;
 
   tagint *tag = atom->tag;
   NeighList *list = pair->list;
@@ -406,7 +410,7 @@ void FixNeighHistory::pre_exchange_newton()
   // store partner IDs and values for owned+ghost atoms
   // re-zero npartner to use as counter
 
-  for (i = 0; i < nall_neigh; i++) npartner[i] = 0;
+  for (i = 0; i < MAX(nall_neigh, nall); i++) npartner[i] = 0;
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -427,7 +431,7 @@ void FixNeighHistory::pre_exchange_newton()
         partner[j][m] = tag[i];
         jvalues = &valuepartner[j][dnum*m];
         if (pair->nondefault_history_transfer)
-          pair->transfer_history(onevalues,jvalues);
+          pair->transfer_history(onevalues,jvalues,type[i],type[j]);
         else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
       }
     }
@@ -466,6 +470,7 @@ void FixNeighHistory::pre_exchange_no_newton()
   int *ilist,*jlist,*numneigh,**firstneigh;
   int *allflags;
   double *allvalues,*onevalues,*jvalues;
+  int *type = atom->type;
 
   // NOTE: all operations until very end are with nlocal_neigh <= current nlocal
   // because previous neigh list was built with nlocal_neigh
@@ -541,7 +546,7 @@ void FixNeighHistory::pre_exchange_no_newton()
           partner[j][m] = tag[i];
           jvalues = &valuepartner[j][dnum*m];
           if (pair->nondefault_history_transfer)
-            pair->transfer_history(onevalues, jvalues);
+            pair->transfer_history(onevalues, jvalues,type[i],type[j]);
           else for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
         }
       }

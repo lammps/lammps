@@ -152,7 +152,7 @@ class Variable : protected Pointers {
 
 class VarReader : protected Pointers {
  public:
-  class FixStorePeratom *fixstore;
+  class FixStoreAtom *fixstore;
   char *id_fix;
 
   VarReader(class LAMMPS *, char *, char *, int);

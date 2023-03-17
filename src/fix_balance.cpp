@@ -19,7 +19,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "irregular.h"
 #include "kspace.h"

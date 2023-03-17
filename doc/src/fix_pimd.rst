@@ -132,6 +132,10 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    overall translation of the ring-polymer and is assigned the mass of
    the real particle.
 
+.. note::
+   Fix pimd/langevin only supports *method* value *nmpimd*. This should be enough 
+   for most PIMD applications for quantum thermodynamics purpose.
+
    Motion of the centroid can be effectively uncoupled from the other
    normal modes by scaling the fictitious masses to achieve a partial
    adiabatic separation.  This is called a Centroid Molecular Dynamics

@@ -280,3 +280,10 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 **(Herman)** M. F. Herman, E. J. Bruskin, B. J. Berne, J Chem Phys, 76, 5150 (1982).
 
+.. _Parrinello1:
+
+**(Parrinello1)** G. Bussi, T. Zykova-Timan, M. Parrinello, J Chem Phys, 130, 074101 (2009).
+
+.. _Manolopoulos:
+
+**(Manolopoulos)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).

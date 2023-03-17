@@ -104,6 +104,8 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   typename AT::t_int_scalar d_resize,d_count;
   HAT::t_int_scalar h_resize,h_count;
 
+  void pre_exchange_no_newton() override;
+
   // Shift by HISTBITS and check the first bit
   KOKKOS_INLINE_FUNCTION
   int histmask(int j) const { return j >> HISTBITS & 1; }

@@ -68,10 +68,40 @@ FixNeighHistoryKokkos<DeviceType>::~FixNeighHistoryKokkos()
   memoryKK->destroy_kokkos(k_valuepartner, valuepartner);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   copy partner info from neighbor data structs (NDS) to atom arrays
+   should be called whenever NDS store current history info
+     and need to transfer the info to owned atoms
+   e.g. when atoms migrate to new procs, new neigh list built, or between runs
+     when atoms may be added or deleted (NDS becomes out-of-date)
+   the next post_neighbor() will put this info back into new NDS
+   called during run before atom exchanges, including for restart files
+   called at end of run via post_run()
+   do not call during setup of run (setup_pre_exchange)
+     because there is no guarantee of a current NDS (even on continued run)
+   if run command does a 2nd run with pre = no, then no neigh list
+     will be built, but old neigh list will still have the info
+   onesided and newton on and newton off versions
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
+{
+  if (onesided)
+    error->all(FLERR,"Fix neigh/history/kk does not (yet) support onesided exchange communication");
+  else if (newton_pair)
+    error->all(FLERR,"Must use newton on with fix neigh/history/kk");
+  else pre_exchange_no_newton();
+}
+
+/* ----------------------------------------------------------------------
+   newton OFF version
+   do not need partner values from ghost atoms
+   assume J values are negative of I values
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
 {
   copymode = 1;
 
@@ -107,6 +137,8 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 
   maxexchange = (dnum+1)*maxpartner + 2;
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION

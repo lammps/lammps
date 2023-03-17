@@ -110,6 +110,10 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
   k_firstflag.sync<DeviceType>();
   k_firstvalue.sync<DeviceType>();
 
+  k_npartner.sync<DeviceType>();
+  k_partner.sync<DeviceType>();
+  k_valuepartner.sync<DeviceType>();
+
   int inum = pair->list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(pair->list);
   d_numneigh = k_list->d_numneigh;
@@ -138,6 +142,10 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
   copymode = 0;
 
   maxexchange = (dnum+1)*maxpartner + 2;
+
+  k_npartner.modify<DeviceType>();
+  k_partner.modify<DeviceType>();
+  k_valuepartner.modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,6 +193,10 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 
   k_firstflag.sync<DeviceType>();
   k_firstvalue.sync<DeviceType>();
+
+  k_npartner.sync<DeviceType>();
+  k_partner.sync<DeviceType>();
+  k_valuepartner.sync<DeviceType>();
 
   int inum = pair->list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(pair->list);
@@ -274,9 +286,9 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPostNeighbo
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  k_npartner.sync_host(); // force reallocation on host
-  k_partner.sync_host();
-  k_valuepartner.sync_host();
+  k_npartner.sync<DeviceType>(); // force reallocation on device
+  k_partner.sync<DeviceType>();
+  k_valuepartner.sync<DeviceType>();
 
   memoryKK->grow_kokkos(k_npartner,npartner,nmax,"neighbor_history:npartner");
   memoryKK->grow_kokkos(k_partner,partner,nmax,maxpartner,"neighbor_history:partner");
@@ -285,10 +297,6 @@ void FixNeighHistoryKokkos<DeviceType>::grow_arrays(int nmax)
   d_npartner = k_npartner.template view<DeviceType>();
   d_partner = k_partner.template view<DeviceType>();
   d_valuepartner = k_valuepartner.template view<DeviceType>();
-
-  k_npartner.modify_host();
-  k_partner.modify_host();
-  k_valuepartner.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -400,6 +408,10 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
   Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixNeighHistoryPackExchange>(0,nsend),*this);
 
   copymode = 0;
+
+  k_npartner.modify<DeviceType>();
+  k_partner.modify<DeviceType>();
+  k_valuepartner.modify<DeviceType>();
 
   Kokkos::deep_copy(h_count,d_count);
 

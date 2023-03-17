@@ -262,13 +262,15 @@ void FixNeighHistoryKokkos<DeviceType>::grow_arrays(int nmax)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
   k_npartner.sync_host();
   k_partner.sync_host();
   k_valuepartner.sync_host();
 
-  FixNeighHistory::copy_arrays(i,j,delflag);
+  npartner[j] = npartner[i];
+  for (int m = 0; m < npartner[i]; m++) partner[j][m] = partner[i][m];
+  for (int m = 0; m < dnum*npartner[i]; m++) valuepartner[j][m] = valuepartner[i][m];
 
   k_npartner.modify_host();
   k_partner.modify_host();
@@ -286,7 +288,12 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange(int i, double *buf)
   k_partner.sync_host();
   k_valuepartner.sync_host();
 
-  return FixNeighHistory::pack_exchange(i,buf);
+  int n = 0;
+  buf[n++] = npartner[i];
+  for (int m = 0; m < npartner[i]; m++) buf[n++] = partner[i][m];
+  for (int m = 0; m < dnum*npartner[i]; m++) buf[n++] = valuepartner[i][m];
+
+  return n;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -419,7 +426,14 @@ void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
 template<class DeviceType>
 int FixNeighHistoryKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
-  int n = FixNeighHistory::unpack_exchange(nlocal,buf);
+  k_npartner.sync_host();
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
+
+  int n = 0;
+  npartner[nlocal] = static_cast<int>(buf[n++]);
+  for (int m = 0; m < npartner[nlocal]; m++) partner[nlocal][m] = static_cast<tagint>(buf[n++]);
+  for (int m = 0; m < dnum*npartner[nlocal]; m++) valuepartner[nlocal][m] = buf[n++];
 
   k_npartner.modify_host();
   k_partner.modify_host();

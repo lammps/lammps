@@ -111,10 +111,17 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
     region_zlo = region->extent_zlo;
     region_zhi = region->extent_zhi;
 
-    if (region_xlo < domain->boxlo[0] || region_xhi > domain->boxhi[0] ||
-        region_ylo < domain->boxlo[1] || region_yhi > domain->boxhi[1] ||
-        region_zlo < domain->boxlo[2] || region_zhi > domain->boxhi[2])
-      error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
+    if (triclinic) {
+      if ((region_xlo < domain->boxlo_bound[0]) || (region_xhi > domain->boxhi_bound[0]) ||
+          (region_ylo < domain->boxlo_bound[1]) || (region_yhi > domain->boxhi_bound[1]) ||
+          (region_zlo < domain->boxlo_bound[2]) || (region_zhi > domain->boxhi_bound[2]))
+        error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
+    } else {
+      if ((region_xlo < domain->boxlo[0]) || (region_xhi > domain->boxhi[0]) ||
+          (region_ylo < domain->boxlo[1]) || (region_yhi > domain->boxhi[1]) ||
+          (region_zlo < domain->boxlo[2]) || (region_zhi > domain->boxhi[2]))
+        error->all(FLERR,"Fix widom region {} extends outside simulation box", region->id);
+    }
 
     // estimate region volume using MC trials
 

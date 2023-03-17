@@ -29,6 +29,7 @@
 #include "variable.h"
 
 #include <cstring>
+#include <stdexcept>
 
 using namespace LAMMPS_NS;
 
@@ -88,6 +89,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   unit_count = 0;
   delay_flag = 0;
   write_header_flag = 1;
+  has_id = 1;
 
   skipflag = 0;
   skipvar = nullptr;
@@ -230,16 +232,22 @@ void Dump::init()
     ids = idsort = nullptr;
     index = proclist = nullptr;
     irregular = nullptr;
+    if ((has_id == 0) && (me == 0))
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
+                     "post-processing tasks or visualization", id);
   }
 
   if (sort_flag) {
     if (multiproc > 1)
       error->all(FLERR,
-                 "Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values");
+                 "Cannot sort dump when 'nfile' or 'fileper' keywords are set to non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
-      error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
+      error->all(FLERR,"Cannot sort dump on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)
       error->all(FLERR,"Dump sort column is invalid");
+    if ((sortcol != 0) && (has_id == 0) && (me == 0))
+      error->warning(FLERR,"Dump {} includes no atom IDs and is not sorted by ID. This may complicate "
+                     "post-processing tasks or visualization", id);
     if (nprocs > 1 && irregular == nullptr)
       irregular = new Irregular(lmp);
 
@@ -393,8 +401,8 @@ void Dump::write()
   if (multiproc != nprocs) MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   else nmax = nme;
 
-  // insure buf is sized for packing and communicating
-  // use nmax to insure filewriter proc can receive info from others
+  // ensure buf is sized for packing and communicating
+  // use nmax to ensure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
 
   if (nmax*size_one > maxbuf) {
@@ -405,7 +413,7 @@ void Dump::write()
     memory->create(buf,maxbuf,"dump:buf");
   }
 
-  // insure ids buffer is sized for sorting
+  // ensure ids buffer is sized for sorting
 
   if (sort_flag && sortcol == 0 && nmax > maxids) {
     maxids = nmax;
@@ -460,7 +468,7 @@ void Dump::write()
   if (filewriter && write_header_flag) write_header(nheader);
 
   // if buffering, convert doubles into strings
-  // insure sbuf is sized for communicating
+  // ensure sbuf is sized for communicating
   // cannot buffer if output is to binary file
 
   if (buffer_flag && !binary) {
@@ -768,7 +776,7 @@ void Dump::sort()
 #endif
 
   // reset buf size and maxbuf to largest of any post-sort nme values
-  // this insures proc 0 can receive everyone's info
+  // this ensures proc 0 can receive everyone's info
 
   int nmax;
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
@@ -952,7 +960,7 @@ void Dump::balance()
   proc_new_offsets[0] = 0;
 
   // reset buf size to largest of any post-balance nme values
-  // this insures proc 0 can receive everyone's info
+  // this ensures proc 0 can receive everyone's info
   // cannot shrink buf to nme_balance, must use previous maxbuf value
 
   int nmax;

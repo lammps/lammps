@@ -28,7 +28,6 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
 

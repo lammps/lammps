@@ -426,7 +426,7 @@ void FixShake::init()
     MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_MAX,world);
     if (flag_all) error->all(FLERR,"Fix {} angles have different bond types", style);
 
-    // insure all procs have bond types
+    // ensure all procs have bond types
 
     MPI_Allreduce(&bond1_type,&flag_all,1,MPI_INT,MPI_MAX,world);
     bond1_type = flag_all;
@@ -869,13 +869,11 @@ void FixShake::find_clusters()
   // else it's an error
 
   flag = 0;
-  int flag2 = 0;
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < npartner[i]; j++) {
       if (partner_type[i][j] == 0) flag++;
       if (!(mask[i] & groupbit)) continue;
       if (!(partner_mask[i][j] & groupbit)) continue;
-      if (partner_bondtype[i][j] == 0) flag2++;
     }
 
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -2689,7 +2687,7 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (comm->me == 0) {
-    const int width = log10((MAX(MAX(1,nb),na)))+2;
+    const int width = log10((double)(MAX(MAX(1,nb),na)))+2;
     auto mesg = fmt::format("{} stats (type/ave/delta/count) on step {}\n",
                             utils::uppercase(style), update->ntimestep);
     for (int i = 1; i < nb; i++) {

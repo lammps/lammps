@@ -8,10 +8,10 @@ Packages are supported by either the LAMMPS developers or the
 contributing authors and written in a syntax and style consistent with
 the rest of LAMMPS.
 
-The "Example" column is a sub-directory in the examples directory of the
-distribution which has an input script that uses the package.
+The "Examples" column is a subdirectory in the examples directory of the
+distribution which has one or more input scripts that use the package.
 E.g. "peptide" refers to the examples/peptide directory; PACKAGES/atc refers
-to the examples/PACKAGES/atc directory.  The "Library" column indicates
+to the examples/PACKAGES/atc directory.  The "Lib" column indicates
 whether an extra library is needed to build and use the package:
 
 * no  = no library
@@ -26,8 +26,8 @@ whether an extra library is needed to build and use the package:
    * - Package
      - Description
      - Doc page
-     - Example
-     - Library
+     - Examples
+     - Lib
    * - :ref:`ADIOS <PKG-ADIOS>`
      - dump output via ADIOS
      - :doc:`dump adios <dump_adios>`
@@ -94,7 +94,7 @@ whether an extra library is needed to build and use the package:
      - colloid
      - no
    * - :ref:`COLVARS <PKG-COLVARS>`
-     - collective variables library
+     - `Colvars collective variables library <https://colvars.github.io/>`_
      - :doc:`fix colvars <fix_colvars>`
      - PACKAGES/colvars
      - int
@@ -125,7 +125,7 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`DPD-BASIC <PKG-DPD-BASIC>`
      - basic DPD models
-     - :doc:`pair_styles dpd dpd/tstat <pair_dpd>` :doc:`dpd/ext dpd/ext/tstat <pair_dpd_ext>`
+     - :doc:`pair_styles dpd <pair_dpd>` :doc:`dpd/ext <pair_dpd_ext>`
      - PACKAGES/dpd-basic
      - no
    * - :ref:`DPD-MESO <PKG-DPD-MESO>`
@@ -155,7 +155,7 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`ELECTRODE <PKG-ELECTRODE>`
      - electrode charges to match potential
-     - :doc:`fix electrode/conp <fix_electrode_conp>`
+     - :doc:`fix electrode/conp <fix_electrode>`
      - PACKAGES/electrode
      - no
    * - :ref:`EXTRA-COMPUTE <PKG-EXTRA-COMPUTE>`
@@ -238,6 +238,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix latte <fix_latte>`
      - latte
      - ext
+   * - :ref:`LEPTON <PKG-LEPTON>`
+     - evaluate strings as potential function
+     - :doc:`pair_style lepton <pair_lepton>`
+     - PACKAGES/lepton
+     - int
    * - :ref:`MACHDYN <PKG-MACHDYN>`
      - smoothed Mach dynamics
      - `SMD User Guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
@@ -270,9 +275,9 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`MESONT <PKG-MESONT>`
      - mesoscopic tubular potential model
-     - pair styles :doc:`mesont/tpm <pair_mesont_tpm>`, :doc:`mesocnt <pair_mesocnt>`
+     - pair styles :doc:`mesocnt <pair_mesocnt>`
      - PACKAGES/mesont
-     - int
+     - no
    * - :ref:`MGPT <PKG-MGPT>`
      - fast MGPT multi-ion potentials
      - :doc:`pair_style mgpt <pair_mgpt>`
@@ -297,6 +302,11 @@ whether an extra library is needed to build and use the package:
      - Atomic Cluster Expansion potential
      - :doc:`pair pace <pair_pace>`
      - PACKAGES/pace
+     - ext
+   * - :ref:`ML-POD <PKG-ML-POD>`
+     - Proper orthogonal decomposition potentials
+     - :doc:`pair pod <pair_pod>`
+     - pod
      - ext
    * - :ref:`ML-QUIP <PKG-ML-QUIP>`
      - QUIP/libatoms interface
@@ -374,7 +384,7 @@ whether an extra library is needed to build and use the package:
      - plugins
      - no
    * - :ref:`PLUMED <PKG-PLUMED>`
-     - :ref:`PLUMED <PLUMED>` free energy library
+     - `PLUMED free energy library <https://www.plumed.org>`_
      - :doc:`fix plumed <fix_plumed>`
      - PACKAGES/plumed
      - ext
@@ -440,7 +450,7 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`SMTBQ <PKG-SMTBQ>`
      - second moment tight binding potentials
-     - :doc:`pair_style smtbq <pair_smtbq>` :doc:`pair_style smatb <pair_smatb>`
+     - pair styles :doc:`smtbq <pair_smtbq>`, :doc:`smatb <pair_smatb>`
      - PACKAGES/smtbq
      - no
    * - :ref:`SPH <PKG-SPH>`

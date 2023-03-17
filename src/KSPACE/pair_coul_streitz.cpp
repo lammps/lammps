@@ -146,7 +146,7 @@ void PairCoulStreitz::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
-  // insure use of KSpace long-range solver when ewald specified, set g_ewald
+  // ensure use of KSpace long-range solver when ewald specified, set g_ewald
 
   if (ewaldflag) {
     if (force->kspace == nullptr)

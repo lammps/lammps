@@ -62,7 +62,7 @@ distances are used to determine which atoms to communicate.
 
 The default mode is *single* which means each processor acquires
 information for ghost atoms that are within a single distance from its
-sub-domain.  The distance is by default the maximum of the neighbor
+subdomain.  The distance is by default the maximum of the neighbor
 cutoff across all atom type pairs.
 
 For many systems this is an efficient algorithm, but for systems with
@@ -81,7 +81,7 @@ with both the *multi* and *multi/old* neighbor styles.
 
 The *cutoff* keyword allows you to extend the ghost cutoff distance
 for communication mode *single*, which is the distance from the borders
-of a processor's sub-domain at which ghost atoms are acquired from other
+of a processor's subdomain at which ghost atoms are acquired from other
 processors.  By default the ghost cutoff = neighbor cutoff = pairwise
 force cutoff + neighbor skin.  See the :doc:`neighbor <neighbor>` command
 for more information about the skin distance.  If the specified Rcut is
@@ -148,7 +148,7 @@ In the last scenario, a :doc:`fix <fix>` or :doc:`compute <compute>` or
 :doc:`pairwise potential <pair_style>` needs to calculate with ghost
 atoms beyond the normal pairwise cutoff for some computation it
 performs (e.g. locate neighbors of ghost atoms in a manybody pair
-potential).  Setting the ghost cutoff appropriately can insure it will
+potential).  Setting the ghost cutoff appropriately can ensure it will
 find the needed atoms.
 
 .. note::

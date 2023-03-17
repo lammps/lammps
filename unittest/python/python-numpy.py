@@ -51,6 +51,33 @@ class PythonNumpy(unittest.TestCase):
         else:
             return 0
 
+    def checkAngle(self, vals, atype, aatom1, aatom2, aatom3):
+        set1 = {aatom1, aatom2, aatom3}
+        set2 = {vals[1], vals[2], vals[3]}
+        if len(set1.intersection(set2)) == 3:
+            self.assertEqual(vals[0], atype)
+            return 1
+        else:
+            return 0
+
+    def checkDihedral(self, vals, dtype, datom1, datom2, datom3, datom4):
+        set1 = {datom1, datom2, datom3, datom4}
+        set2 = {vals[1], vals[2], vals[3], vals[4]}
+        if len(set1.intersection(set2)) == 4:
+            self.assertEqual(vals[0], dtype)
+            return 1
+        else:
+            return 0
+
+    def checkImproper(self, vals, itype, iatom1, iatom2, iatom3, iatom4):
+        set1 = {iatom1, iatom2, iatom3, iatom4}
+        set2 = {vals[1], vals[2], vals[3], vals[4]}
+        if len(set1.intersection(set2)) == 4:
+            self.assertEqual(vals[0], itype)
+            return 1
+        else:
+            return 0
+
     def testLammpsPointer(self):
         self.assertEqual(type(self.lmp.lmp), c_void_p)
 
@@ -232,6 +259,122 @@ class PythonNumpy(unittest.TestCase):
             count += self.checkBond(bond, 5, 27, 28)
             count += self.checkBond(bond, 5, 29, 27)
         self.assertEqual(count,10)
+
+    @unittest.skipIf(not has_full,"Gather angles test")
+    def testGatherAngle_newton_on(self):
+        self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
+        self.lmp.command("newton on on")
+        self.lmp.file("in.fourmol")
+        self.lmp.command("run 0 post no")
+        angles = self.lmp.numpy.gather_angles()
+        self.assertEqual(len(angles),30)
+        count = 0
+        for angle in angles:
+            count += self.checkAngle(angle, 4, 2, 1, 3)
+            count += self.checkAngle(angle, 4, 1, 3, 6)
+            count += self.checkAngle(angle, 2, 4, 3, 6)
+            count += self.checkAngle(angle, 3, 7, 6, 8)
+            count += self.checkAngle(angle, 3, 8, 10, 16)
+            count += self.checkAngle(angle, 2, 8, 10, 11)
+            count += self.checkAngle(angle, 1, 12, 10, 16)
+            count += self.checkAngle(angle, 2, 10, 12, 14)
+            count += self.checkAngle(angle, 1, 19, 18, 20)
+            count += self.checkAngle(angle, 1, 28, 27, 29)
+        self.assertEqual(count,10)
+
+    @unittest.skipIf(not has_full,"Gather angles test")
+    def testGatherAngle_newton_off(self):
+        self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
+        self.lmp.command("newton off off")
+        self.lmp.file("in.fourmol")
+        self.lmp.command("run 0 post no")
+        angles = self.lmp.numpy.gather_angles()
+        self.assertEqual(len(angles),30)
+        count = 0
+        for angle in angles:
+            count += self.checkAngle(angle, 4, 2, 1, 3)
+            count += self.checkAngle(angle, 4, 1, 3, 6)
+            count += self.checkAngle(angle, 2, 4, 3, 6)
+            count += self.checkAngle(angle, 3, 7, 6, 8)
+            count += self.checkAngle(angle, 3, 8, 10, 16)
+            count += self.checkAngle(angle, 2, 8, 10, 11)
+            count += self.checkAngle(angle, 1, 12, 10, 16)
+            count += self.checkAngle(angle, 2, 10, 12, 14)
+            count += self.checkAngle(angle, 1, 19, 18, 20)
+            count += self.checkAngle(angle, 1, 28, 27, 29)
+        self.assertEqual(count,10)
+
+    @unittest.skipIf(not has_full,"Gather dihedrals test")
+    def testGatherDihedral_newton_on(self):
+        self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
+        self.lmp.command("newton on on")
+        self.lmp.file("in.fourmol")
+        self.lmp.command("run 0 post no")
+        dihedrals = self.lmp.numpy.gather_dihedrals()
+        self.assertEqual(len(dihedrals),31)
+        count = 0
+        for dihedral in dihedrals:
+            count += self.checkDihedral(dihedral, 2, 2, 1, 3, 6)
+            count += self.checkDihedral(dihedral, 3, 2, 1, 3, 5)
+            count += self.checkDihedral(dihedral, 1, 1, 3, 6, 7)
+            count += self.checkDihedral(dihedral, 5, 4, 3, 6, 7)
+            count += self.checkDihedral(dihedral, 4, 3, 6, 8, 9)
+            count += self.checkDihedral(dihedral, 2, 6, 8, 10, 16)
+            count += self.checkDihedral(dihedral, 5, 8, 10, 12, 13)
+            count += self.checkDihedral(dihedral, 1, 8, 10, 12, 14)
+            count += self.checkDihedral(dihedral, 2, 11, 10, 16, 17)
+            count += self.checkDihedral(dihedral, 5, 16, 10, 12, 14)
+        self.assertEqual(count,10)
+
+    @unittest.skipIf(not has_full,"Gather dihedrals test")
+    def testGatherDihedral_newton_off(self):
+        self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
+        self.lmp.command("newton off off")
+        self.lmp.file("in.fourmol")
+        self.lmp.command("run 0 post no")
+        dihedrals = self.lmp.numpy.gather_dihedrals()
+        self.assertEqual(len(dihedrals),31)
+        count = 0
+        for dihedral in dihedrals:
+            count += self.checkDihedral(dihedral, 2, 2, 1, 3, 6)
+            count += self.checkDihedral(dihedral, 3, 2, 1, 3, 5)
+            count += self.checkDihedral(dihedral, 1, 1, 3, 6, 7)
+            count += self.checkDihedral(dihedral, 5, 4, 3, 6, 7)
+            count += self.checkDihedral(dihedral, 4, 3, 6, 8, 9)
+            count += self.checkDihedral(dihedral, 2, 6, 8, 10, 16)
+            count += self.checkDihedral(dihedral, 5, 8, 10, 12, 13)
+            count += self.checkDihedral(dihedral, 1, 8, 10, 12, 14)
+            count += self.checkDihedral(dihedral, 2, 11, 10, 16, 17)
+            count += self.checkDihedral(dihedral, 5, 16, 10, 12, 14)
+        self.assertEqual(count,10)
+
+    @unittest.skipIf(not has_full,"Gather impropers test")
+    def testGatherImproper_newton_on(self):
+        self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
+        self.lmp.command("newton on on")
+        self.lmp.file("in.fourmol")
+        self.lmp.command("run 0 post no")
+        impropers = self.lmp.numpy.gather_impropers()
+        self.assertEqual(len(impropers),2)
+        count = 0
+        for improper in impropers:
+            count += self.checkImproper(improper, 1, 6, 3, 8, 7)
+            count += self.checkImproper(improper, 2, 8, 6, 10, 9)
+        self.assertEqual(count,2)
+
+    @unittest.skipIf(not has_full,"Gather impropers test")
+    def testGatherImproper_newton_off(self):
+        self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
+        self.lmp.command("newton off off")
+        self.lmp.file("in.fourmol")
+        self.lmp.command("run 0 post no")
+        impropers = self.lmp.numpy.gather_impropers()
+        self.assertEqual(len(impropers),2)
+        count = 0
+        for improper in impropers:
+            count += self.checkImproper(improper, 1, 6, 3, 8, 7)
+            count += self.checkImproper(improper, 2, 8, 6, 10, 9)
+        self.assertEqual(count,2)
 
     def testNeighborListSimple(self):
         self.lmp.commands_string("""

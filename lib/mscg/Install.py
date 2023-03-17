@@ -10,7 +10,7 @@ import sys, os, subprocess, shutil, tarfile
 from argparse import ArgumentParser
 
 sys.path.append('..')
-from install_helpers import fullpath, geturl
+from install_helpers import fullpath, geturl, checkmd5sum, getfallback
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
@@ -84,7 +84,19 @@ if pathflag:
 if buildflag:
   print("Downloading MS-CG ...")
   tarname = os.path.join(homepath, tarname)
-  geturl(url, tarname)
+  fallback = getfallback('mscg', url)
+  try:
+    geturl(url, tarname)
+  except:
+    geturl(fallback, tarname)
+
+  # verify downloaded archive integrity via md5 checksum, if known.
+  if mscgver in checksums:
+    if not checkmd5sum(checksums[mscgver], tarname):
+      print("Checksum did not match. Trying fallback URL", fallback)
+      geturl(fallback, tarname)
+      if not checkmd5sum(checksums[mscgver], tarname):
+        sys.exit("Checksum for LATTE library does not match for fallback, too.")
 
   print("Unpacking MS-CG tarfile ...")
 

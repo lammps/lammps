@@ -54,7 +54,7 @@ class ComputeTempCS : public Compute {
   double **vint;
 
   char *id_fix;
-  class FixStorePeratom *fix;
+  class FixStoreAtom *fix;
 
   void dof_compute();
   void vcm_pairs();

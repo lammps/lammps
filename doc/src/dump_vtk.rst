@@ -90,8 +90,8 @@ hexahedrons in either legacy .vtk or .vtu XML format.
 
 Style *vtk* allows you to specify a list of atom attributes to be
 written to the dump file for each atom.  The list of possible attributes
-is the same as for the :doc:`dump_style custom <dump>` command; see
-its page for a listing and an explanation of each attribute.
+is the same as for the :doc:`dump_style custom <dump>` command; see its
+documentation page for a listing and an explanation of each attribute.
 
 .. note::
 
@@ -130,7 +130,7 @@ character appears in the filename, then one file per snapshot is
 written and the "\*" character is replaced with the timestep value.
 For example, tmp.dump\*.vtk becomes tmp.dump0.vtk, tmp.dump10000.vtk,
 tmp.dump20000.vtk, etc.  Note that the :doc:`dump_modify pad <dump_modify>`
-command can be used to insure all timestep numbers are the same length
+command can be used to ensure all timestep numbers are the same length
 (e.g. 00010), which can make it easier to read a series of dump files
 in order with some post-processing tools.
 
@@ -169,7 +169,7 @@ The *vtk* dump style is part of the VTK package. It is only
 enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 To use this dump style, you also must link to the VTK library.  See
-the info in lib/vtk/README and insure the Makefile.lammps file in that
+the info in lib/vtk/README and ensure the Makefile.lammps file in that
 directory is appropriate for your machine.
 
 The *vtk* dump style supports neither buffering or custom format

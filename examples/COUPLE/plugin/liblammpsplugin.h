@@ -105,6 +105,7 @@ typedef void (*FixExternalFnPtr)(void *, int, int, int *, double **, double **);
 typedef void (*FixExternalFnPtr)(void *, int64_t, int, int *, double **, double **);
 #endif
 
+#define LAMMPSPLUGIN_ABI_VERSION 1
 struct _liblammpsplugin {
   int abiversion;
   int has_exceptions;
@@ -153,28 +154,31 @@ struct _liblammpsplugin {
   int (*extract_variable_datatype)(void *, const char *);
   int (*set_variable)(void *, char *, char *);
 
-  void (*gather_atoms)(void *, char *, int, int, void *);
-  void (*gather_atoms_concat)(void *, char *, int, int, void *);
-  void (*gather_atoms_subset)(void *, char *, int, int, int, int *, void *);
-  void (*scatter_atoms)(void *, char *, int, int, void *);
-  void (*scatter_atoms_subset)(void *, char *, int, int, int, int *, void *);
+  void (*gather_atoms)(void *, const char *, int, int, void *);
+  void (*gather_atoms_concat)(void *, const char *, int, int, void *);
+  void (*gather_atoms_subset)(void *, const char *, int, int, int, int *, void *);
+  void (*scatter_atoms)(void *, const char *, int, int, void *);
+  void (*scatter_atoms_subset)(void *, const char *, int, int, int, int *, void *);
 
   void (*gather_bonds)(void *, void *);
+  void (*gather_angles)(void *, void *);
+  void (*gather_dihedrals)(void *, void *);
+  void (*gather_impropers)(void *, void *);
 
-  void (*gather)(void *, char *, int, int, void *);
-  void (*gather_concat)(void *, char *, int, int, void *);
-  void (*gather_subset)(void *, char *, int, int, int, int *,void *);
-  void (*scatter)(void *, char *, int, int, void *);
-  void (*scatter_subset)(void *, char *, int, int, int, int *, void *);
+  void (*gather)(void *, const char *, int, int, void *);
+  void (*gather_concat)(void *, const char *, int, int, void *);
+  void (*gather_subset)(void *, const char *, int, int, int, int *,void *);
+  void (*scatter)(void *, const char *, int, int, void *);
+  void (*scatter_subset)(void *, const char *, int, int, int, int *, void *);
 
 /* lammps_create_atoms() takes tagint and imageint as args
- * the ifdef insures they are compatible with rest of LAMMPS
+ * the ifdef ensures they are compatible with rest of LAMMPS
  * caller must match to how LAMMPS library is built */
 
 #ifndef LAMMPS_BIGBIG
- void (*create_atoms)(void *, int, int *, int *, double *, double *, int *, int);
+ int (*create_atoms)(void *, int, int *, int *, double *, double *, int *, int);
 #else
-  void (*create_atoms)(void *, int, int64_t *, int *, double *, double *, int64_t *, int);
+  int (*create_atoms)(void *, int, int64_t *, int *, double *, double *, int64_t *, int);
 #endif
 
   int (*find_pair_neighlist)(void *, const char *, int, int, int);

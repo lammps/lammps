@@ -41,7 +41,7 @@ be used for diagnostic purposes or as a debugging tool to monitor some
 quantity during a run.  The text string must be a single argument, so
 it should be enclosed in single or double quotes if it is more than
 one word.  If it contains variables it must be enclosed in double
-quotes to insure they are not evaluated when the input script line is
+quotes to ensure they are not evaluated when the input script line is
 read, but will instead be evaluated each time the string is printed.
 
 .. note::

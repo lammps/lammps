@@ -16,7 +16,6 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "memory.h"
 #include "neigh_list.h"
 
 #include <cmath>

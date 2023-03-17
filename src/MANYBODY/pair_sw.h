@@ -54,6 +54,7 @@ class PairSW : public Pair {
   int maxshort;               // size of short neighbor list array
   int *neighshort;            // short neighbor list array
   int skip_threebody_flag;    // whether to run threebody loop
+  int params_mapped;          // whether parameters have been read and mapped to elements
 
   void settings(int, char **) override;
   virtual void allocate();

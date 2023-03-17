@@ -1,4 +1,3 @@
 # list of potential files to be fetched when this package is installed
 # potential file  md5sum
 C_10_10.mesocnt 68b5ca26283968fd9889aa0a37f7b7fb
-TABTP_10_10.mesont 744a739da49ad5e78492c1fc9fd9f8c1

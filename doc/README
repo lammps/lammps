@@ -40,8 +40,9 @@ environment and local folders.
 Installing prerequisites for the documentation build
 
 To run the HTML documention build toolchain, python 3.x, doxygen, git,
-and virtualenv have to be installed.  Also internet access is initially
-required to download external files and tools.
+and the venv python module have to be installed if not already available.
+Also internet access is initially required to download external files
+and tools.
 
 Building the PDF format manual requires in addition a compatible LaTeX
 installation with support for PDFLaTeX and several add-on LaTeX packages

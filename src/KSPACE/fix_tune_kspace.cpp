@@ -278,9 +278,13 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
   force->init();
 
   // set up grid
-  force->kspace->setup_grid();
 
-  // Re-init neighbor list. Probably only needed when redefining the pair style. Should happen after pair->init() to get pair style neighbor list request registered
+  force->kspace->reset_grid();
+
+  // re-init neighbor list
+  // probably only needed when redefining the pair style
+  // should happen after pair->init() to get pair style
+  //   neighbor list request registered
 
   neighbor->init();
 

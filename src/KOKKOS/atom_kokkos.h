@@ -34,6 +34,7 @@ class AtomKokkos : public Atom {
   DAT::tdual_float_1d k_q;
   DAT::tdual_float_1d k_radius;
   DAT::tdual_float_1d k_rmass;
+  DAT::tdual_float_1d_4 k_mu;
   DAT::tdual_v_array k_omega;
   DAT::tdual_v_array k_angmom;
   DAT::tdual_f_array k_torque;
@@ -77,6 +78,8 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_1d k_map_array;
   DAT::tdual_int_scalar k_error_flag;
   dual_hash_type k_map_hash;
+
+  class AtomVecKokkos* avecKK;
 
   // map lookup function inlined for efficiency
   // return -1 if no map defined

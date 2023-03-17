@@ -46,6 +46,7 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   centroidstressflag = CENTROID_NOTAVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
   skip_threebody_flag = false;
+  params_mapped = 0;
 
   params = nullptr;
 
@@ -225,12 +226,12 @@ void PairSW::compute(int eflag, int vflag)
 void PairSW::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(neighshort,maxshort,"pair:neighshort");
-  map = new int[n+1];
+  memory->create(setflag, np1, np1, "pair:setflag");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(neighshort, maxshort, "pair:neighshort");
+  map = new int[np1];
 }
 
 /* ----------------------------------------------------------------------
@@ -262,12 +263,49 @@ void PairSW::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  map_element2type(narg-3,arg+3);
+  // read potential file and set up element maps only once
+  if (one_coeff || !params_mapped) {
+    // make certain that the setflag array is always fully initialized
+    // the sw/intel pair style depends on it
+    if (!one_coeff) {
+      for (int i = 0; i <= atom->ntypes; i++) {
+        for (int j = 0; j <= atom->ntypes; j++) {
+          setflag[i][j] = 0;
+        }
+      }
+    }
 
-  // read potential file and initialize potential parameters
+    map_element2type(narg-3, arg+3, (one_coeff != 0));
 
-  read_file(arg[2]);
-  setup_params();
+    // read potential file and initialize potential parameters
+
+    read_file(arg[2]);
+    setup_params();
+    params_mapped = 1;
+  }
+
+  if (!one_coeff) {
+    int ilo, ihi, jlo, jhi;
+    utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+    utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
+
+    int count = 0;
+    for (int i = ilo; i <= ihi; i++) {
+      if (((map[i] >= 0) && (strcmp(arg[i+2], elements[map[i]]) != 0)) ||
+          ((map[i] < 0) && (strcmp(arg[i+2], "NULL") != 0)))
+        error->all(FLERR, "Must use consistent type to element mappings with threebody off");
+      if (map[i] < 0) error->all(FLERR, "Must not set pair_coeff mapped to NULL element");
+      for (int j = MAX(jlo, i); j <= jhi; j++) {
+        if (((map[j] >= 0) && (strcmp(arg[j+2], elements[map[j]]) != 0)) ||
+            ((map[j] < 0) && (strcmp(arg[j+2], "NULL") != 0)))
+          error->all(FLERR, "Must use consistent type to element mappings with threebody off");
+        if (map[j] < 0) error->all(FLERR, "Must not set pair_coeff mapped to NULL element");
+        setflag[i][j] = 1;
+        count++;
+      }
+    }
+    if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -96,7 +96,7 @@ default group "all" and the group specified in the fix deposit command
 
 If you are computing temperature values which include inserted
 particles, you will want to use the
-:doc:`compute_modify <compute_modify>` dynamic option, which insures the
+:doc:`compute_modify <compute_modify>` dynamic option, which ensures the
 current number of atoms is used as a normalizing factor each time the
 temperature is computed.
 
@@ -128,7 +128,7 @@ side = *in*\ .
    tests against the larger orthonormal box that bounds the tilted
    simulation box.  If the specified region includes volume outside the
    tilted box, then an insertion will likely fail, leading to a "lost
-   atoms" error.  Thus for triclinic boxes you should insure the
+   atoms" error.  Thus for triclinic boxes you should ensure the
    specified region is wholly inside the simulation box.
 
 The locations of inserted particles are taken from uniform distributed
@@ -220,11 +220,11 @@ ignored if the *global* or *local* keywords are used, since those
 options choose a z-coordinate for insertion independently.
 
 The vx, vy, and vz components of velocity for the inserted particle
-are set using the values specified for the *vx*, *vy*, and *vz*
-keywords.  Note that normally, new particles should be a assigned a
-negative vertical velocity so that they move towards the surface.  For
-molecules, the same velocity is given to every particle (no rotation
-or bond vibration).
+are set by sampling a uniform distribution between the bounds set by
+the values specified for the *vx*, *vy*, and *vz* keywords. Note that
+normally, new particles should be a assigned a negative vertical
+velocity so that they move towards the surface.  For molecules, the
+same velocity is given to every particle (no rotation or bond vibration).
 
 If the *target* option is used, the velocity vector of the inserted
 particle is changed so that it points from the insertion position

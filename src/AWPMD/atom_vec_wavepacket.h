@@ -24,7 +24,7 @@ AtomStyle(wavepacket,AtomVecWavepacket);
 
 namespace LAMMPS_NS {
 
-class AtomVecWavepacket : public AtomVec {
+class AtomVecWavepacket : virtual public AtomVec {
  public:
   AtomVecWavepacket(class LAMMPS *);
 

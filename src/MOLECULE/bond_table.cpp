@@ -132,7 +132,7 @@ void BondTable::allocate()
 
 void BondTable::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR, "Illegal bond_style command");
+  if (narg != 2) error->all(FLERR, "Illegal bond_style command: must have 2 arguments");
 
   tabstyle = NONE;
   if (strcmp(arg[0], "linear") == 0)
@@ -140,10 +140,10 @@ void BondTable::settings(int narg, char **arg)
   else if (strcmp(arg[0], "spline") == 0)
     tabstyle = SPLINE;
   else
-    error->all(FLERR, "Unknown table style in bond style table");
+    error->all(FLERR, "Unknown table style {} in bond style table", arg[0]);
 
   tablength = utils::inumeric(FLERR, arg[1], false, lmp);
-  if (tablength < 2) error->all(FLERR, "Illegal number of bond table entries");
+  if (tablength < 2) error->all(FLERR, "Illegal number of bond table entries: {}", arg[1]);
 
   // delete old tables, since cannot just change settings
 
@@ -166,23 +166,21 @@ void BondTable::settings(int narg, char **arg)
 
 void BondTable::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Illegal bond_coeff command");
+  if (narg != 3) error->all(FLERR, "Illegal bond_coeff command: must have 3 arguments");
   if (!allocated) allocate();
 
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
-  int me;
-  MPI_Comm_rank(world, &me);
   tables = (Table *) memory->srealloc(tables, (ntables + 1) * sizeof(Table), "bond:tables");
   Table *tb = &tables[ntables];
   null_table(tb);
-  if (me == 0) read_table(tb, arg[1], arg[2]);
+  if (comm->me == 0) read_table(tb, arg[1], arg[2]);
   bcast_table(tb);
 
   // error check on table parameters
 
-  if (tb->ninput <= 1) error->one(FLERR, "Invalid bond table length");
+  if (tb->ninput <= 1) error->all(FLERR, "Invalid bond table length: {}", tb->ninput);
 
   tb->lo = tb->rfile[0];
   tb->hi = tb->rfile[tb->ninput - 1];
@@ -312,7 +310,7 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
 
   char *line = reader.find_section_start(keyword);
 
-  if (!line) { error->one(FLERR, "Did not find keyword in table file"); }
+  if (!line) error->one(FLERR, "Did not find keyword {} in table file", keyword);
 
   // read args on 2nd line of section
   // allocate table arrays for file values
@@ -330,6 +328,9 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
     line = reader.next_line();
+    if (!line)
+      error->one(FLERR, "Data missing when parsing bond table '{}' line {} of {}.", keyword, i + 1,
+                 tb->ninput);
     try {
       ValueTokenizer values(line);
       values.next_int();
@@ -480,7 +481,7 @@ void BondTable::param_extract(Table *tb, char *line)
       } else if (word == "EQ") {
         tb->r0 = values.next_double();
       } else {
-        error->one(FLERR, "Invalid keyword in bond table parameters");
+        error->one(FLERR, "Unknown keyword {} in bond table parameters", word);
       }
     }
   } catch (TokenizerException &e) {
@@ -504,9 +505,9 @@ void BondTable::bcast_table(Table *tb)
   int me;
   MPI_Comm_rank(world, &me);
   if (me > 0) {
-    memory->create(tb->rfile, tb->ninput, "angle:rfile");
-    memory->create(tb->efile, tb->ninput, "angle:efile");
-    memory->create(tb->ffile, tb->ninput, "angle:ffile");
+    memory->create(tb->rfile, tb->ninput, "bond:rfile");
+    memory->create(tb->efile, tb->ninput, "bond:efile");
+    memory->create(tb->ffile, tb->ninput, "bond:ffile");
   }
 
   MPI_Bcast(tb->rfile, tb->ninput, MPI_DOUBLE, 0, world);
@@ -581,7 +582,7 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
 
 /* ----------------------------------------------------------------------
    calculate potential u and force f at distance x
-   insure x is between bond min/max, exit with error if not
+   ensure x is between bond min/max, exit with error if not
 ------------------------------------------------------------------------- */
 
 void BondTable::uf_lookup(int type, double x, double &u, double &f)

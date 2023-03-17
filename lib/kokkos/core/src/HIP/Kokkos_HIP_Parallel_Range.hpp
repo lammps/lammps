@@ -448,11 +448,27 @@ class ParallelScanHIPBase {
                                                  Policy, FunctorType>;
 
  public:
+  using value_type     = typename Analysis::value_type;
   using pointer_type   = typename Analysis::pointer_type;
   using reference_type = typename Analysis::reference_type;
   using functor_type   = FunctorType;
   using size_type      = Kokkos::Experimental::HIP::size_type;
   using index_type     = typename Policy::index_type;
+  // Conditionally set word_size_type to int16_t or int8_t if value_type is
+  // smaller than int32_t (Kokkos::HIP::size_type)
+  // word_size_type is used to determine the word count, shared memory buffer
+  // size, and global memory buffer size before the scan is performed.
+  // Within the scan, the word count is recomputed based on word_size_type
+  // and when calculating indexes into the shared/global memory buffers for
+  // performing the scan, word_size_type is used again.
+  // For scalars > 4 bytes in size, indexing into shared/global memory relies
+  // on the block and grid dimensions to ensure that we index at the correct
+  // offset rather than at every 4 byte word; such that, when the join is
+  // performed, we have the correct data that was copied over in chunks of 4
+  // bytes.
+  using word_size_type = std::conditional_t<
+      sizeof(value_type) < sizeof(size_type),
+      std::conditional_t<sizeof(value_type) == 2, int16_t, int8_t>, size_type>;
 
  protected:
   // Algorithmic constraints:
@@ -463,10 +479,10 @@ class ParallelScanHIPBase {
 
   const FunctorType m_functor;
   const Policy m_policy;
-  size_type* m_scratch_space = nullptr;
-  size_type* m_scratch_flags = nullptr;
-  size_type m_final          = false;
-  int m_grid_x               = 0;
+  word_size_type* m_scratch_space = nullptr;
+  size_type* m_scratch_flags      = nullptr;
+  size_type m_final               = false;
+  int m_grid_x                    = 0;
   // Only let one ParallelReduce/Scan modify the shared memory. The
   // constructor acquires the mutex which is released in the destructor.
   std::lock_guard<std::mutex> m_shared_memory_lock;
@@ -489,12 +505,12 @@ class ParallelScanHIPBase {
   __device__ inline void initial() const {
     typename Analysis::Reducer final_reducer(&m_functor);
 
-    const integral_nonzero_constant<size_type, Analysis::StaticValueSize /
-                                                   sizeof(size_type)>
-        word_count(Analysis::value_size(m_functor) / sizeof(size_type));
+    const integral_nonzero_constant<word_size_type, Analysis::StaticValueSize /
+                                                        sizeof(word_size_type)>
+        word_count(Analysis::value_size(m_functor) / sizeof(word_size_type));
 
     pointer_type const shared_value = reinterpret_cast<pointer_type>(
-        Kokkos::Experimental::kokkos_impl_hip_shared_memory<size_type>() +
+        Kokkos::Experimental::kokkos_impl_hip_shared_memory<word_size_type>() +
         word_count.value * threadIdx.y);
 
     final_reducer.init(shared_value);
@@ -518,7 +534,7 @@ class ParallelScanHIPBase {
     // gridDim.x
     hip_single_inter_block_reduce_scan<true>(
         final_reducer, blockIdx.x, gridDim.x,
-        Kokkos::Experimental::kokkos_impl_hip_shared_memory<size_type>(),
+        Kokkos::Experimental::kokkos_impl_hip_shared_memory<word_size_type>(),
         m_scratch_space, m_scratch_flags);
   }
 
@@ -527,22 +543,22 @@ class ParallelScanHIPBase {
   __device__ inline void final() const {
     typename Analysis::Reducer final_reducer(&m_functor);
 
-    const integral_nonzero_constant<size_type, Analysis::StaticValueSize /
-                                                   sizeof(size_type)>
-        word_count(Analysis::value_size(m_functor) / sizeof(size_type));
+    const integral_nonzero_constant<word_size_type, Analysis::StaticValueSize /
+                                                        sizeof(word_size_type)>
+        word_count(Analysis::value_size(m_functor) / sizeof(word_size_type));
 
     // Use shared memory as an exclusive scan: { 0 , value[0] , value[1] ,
     // value[2] , ... }
-    size_type* const shared_data =
-        Kokkos::Experimental::kokkos_impl_hip_shared_memory<size_type>();
-    size_type* const shared_prefix =
+    word_size_type* const shared_data =
+        Kokkos::Experimental::kokkos_impl_hip_shared_memory<word_size_type>();
+    word_size_type* const shared_prefix =
         shared_data + word_count.value * threadIdx.y;
-    size_type* const shared_accum =
+    word_size_type* const shared_accum =
         shared_data + word_count.value * (blockDim.y + 1);
 
     // Starting value for this thread block is the previous block's total.
     if (blockIdx.x) {
-      size_type* const block_total =
+      word_size_type* const block_total =
           m_scratch_space + word_count.value * (blockIdx.x - 1);
       for (unsigned i = threadIdx.y; i < word_count.value; ++i) {
         shared_accum[i] = block_total[i];
@@ -588,7 +604,7 @@ class ParallelScanHIPBase {
           typename Analysis::pointer_type(shared_data + word_count.value));
 
       {
-        size_type* const block_total =
+        word_size_type* const block_total =
             shared_data + word_count.value * blockDim.y;
         for (unsigned i = threadIdx.y; i < word_count.value; ++i) {
           shared_accum[i] = block_total[i];
@@ -647,8 +663,9 @@ class ParallelScanHIPBase {
       // How many block are really needed for this much work:
       m_grid_x = (nwork + work_per_block - 1) / work_per_block;
 
-      m_scratch_space = Kokkos::Experimental::Impl::hip_internal_scratch_space(
-          m_policy.space(), Analysis::value_size(m_functor) * m_grid_x);
+      m_scratch_space = reinterpret_cast<word_size_type*>(
+          Kokkos::Experimental::Impl::hip_internal_scratch_space(
+              m_policy.space(), Analysis::value_size(m_functor) * m_grid_x));
       m_scratch_flags = Kokkos::Experimental::Impl::hip_internal_scratch_flags(
           m_policy.space(), sizeof(size_type) * 1);
 
@@ -734,7 +751,8 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
       DeepCopy<HostSpace, Kokkos::Experimental::HIPSpace,
                Kokkos::Experimental::HIP>(
           Base::m_policy.space(), &m_returnvalue,
-          Base::m_scratch_space + (Base::m_grid_x - 1) * size / sizeof(int),
+          Base::m_scratch_space + (Base::m_grid_x - 1) * size /
+                                      sizeof(typename Base::word_size_type),
           size);
     }
   }

@@ -2,7 +2,7 @@ Build the LAMMPS documentation
 ==============================
 
 Depending on how you obtained LAMMPS and whether you have built the
-manual yourself, this directory has a number of sub-directories and
+manual yourself, this directory has a number of subdirectories and
 files. Here is a list with descriptions:
 
 .. code-block:: bash
@@ -33,7 +33,7 @@ various tools and files.  Some of them have to be installed (see below).  For
 the rest the build process will attempt to download and install them into
 a python virtual environment and local folders.
 
-A current version of the manual (latest patch release, that is the state
+A current version of the manual (latest feature release, that is the state
 of the *release* branch) is is available online at:
 `https://docs.lammps.org/ <https://docs.lammps.org/>`_.
 A version of the manual corresponding to the ongoing development (that is
@@ -48,9 +48,9 @@ Build using GNU make
 
 The LAMMPS manual is written in `reStructuredText <rst_>`_ format which
 can be translated to different output format using the `Sphinx
-<https://sphinx-doc.org>`_ document generator tool.  It also
+<https://www.sphinx-doc.org/>`_ document generator tool.  It also
 incorporates programmer documentation extracted from the LAMMPS C++
-sources through the `Doxygen <https://doxygen.nl>`_ program.  Currently
+sources through the `Doxygen <https://doxygen.nl/>`_ program.  Currently
 the translation to HTML, PDF (via LaTeX), ePUB (for many e-book readers)
 and MOBI (for Amazon Kindle readers) are supported.  For that to work a
 Python 3 interpreter, the ``doxygen`` tools and internet access to
@@ -87,6 +87,7 @@ folder.  The following ``make`` commands are available:
    make anchor_check  # check for duplicate anchor labels
    make style_check   # check for complete and consistent style lists
    make package_check # check for complete and consistent package lists
+   make link_check    # check for broken or outdated URLs
    make spelling      # spell-check the manual
 
 ----------
@@ -125,37 +126,28 @@ common setups:
 
       .. code-block:: bash
 
-         sudo apt-get install python-virtualenv git doxygen
+         sudo apt-get install git doxygen
 
    .. tab:: RHEL or CentOS (Version 7.x)
 
       .. code-block:: bash
 
-         sudo yum install python3-virtualenv git doxygen
+         sudo yum install git doxygen
 
    .. tab:: Fedora or RHEL/CentOS (8.x or later)
 
       .. code-block:: bash
 
-         sudo dnf install python3-virtualenv git doxygen
+         sudo dnf install git doxygen
 
-   .. tab:: MacOS X
+   .. tab:: macOS
 
       *Python 3*
 
-      Download the latest Python 3 MacOS X package from
+      If Python 3 is not available on your macOS system, you can
+      download the latest Python 3 macOS package from
       `https://www.python.org <https://www.python.org>`_ and install it.
       This will install both Python 3 and pip3.
-
-      *virtualenv*
-
-      Once Python 3 is installed, open a Terminal and type
-
-      .. code-block:: bash
-
-         pip3 install virtualenv
-
-      This will install virtualenv from the Python Package Index.
 
 Prerequisites for PDF
 ---------------------

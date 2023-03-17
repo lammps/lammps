@@ -46,7 +46,7 @@ void BondQuarticOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
-  // insure pair->ev_tally() will use 1-4 virial contribution
+  // ensure pair->ev_tally() will use 1-4 virial contribution
 
   if (vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;

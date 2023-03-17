@@ -65,7 +65,7 @@ endfunction(validate_option)
 
 # helper function for getting the most recently modified file or folder from a glob pattern
 function(get_newest_file path variable)
-  file(GLOB _dirs ${path})
+  file(GLOB _dirs ${CONFIGURE_DEPENDS} ${path})
   set(_besttime 2000-01-01T00:00:00)
   set(_bestfile "<unknown>")
   foreach(_dir ${_dirs})
@@ -87,6 +87,18 @@ function(get_lammps_version version_header variable)
     string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z]+) ([0-9]+)\"" "\\1\\2\\3" date "${line}")
     set(${variable} "${date}" PARENT_SCOPE)
 endfunction()
+
+# determine canonical URL for downloading backup copy from download.lammps.org/thirdparty
+function(GetFallbackURL input output)
+  string(REPLACE "_URL" "" _tmp ${input})
+  string(TOLOWER ${_tmp} libname)
+  string(REGEX REPLACE "^https://.*/([^/]+gz)" "${LAMMPS_THIRDPARTY_URL}/${libname}-\\1" newurl "${${input}}")
+  if ("${newurl}" STREQUAL "${${input}}")
+    set(${output} "" PARENT_SCOPE)
+  else()
+    set(${output} ${newurl} PARENT_SCOPE)
+  endif()
+endfunction(GetFallbackURL)
 
 #################################################################################
 # LAMMPS C++ interface. We only need the header related parts except on windows.

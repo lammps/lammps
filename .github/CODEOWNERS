@@ -37,6 +37,7 @@ src/MESONT/*          @iafoss
 src/ML-HDNNP/*        @singraber
 src/ML-IAP/*          @athomps
 src/ML-PACE/*         @yury-lysogorskiy
+src/ML-POD/*          @exapde @rohskopf
 src/MOFFF/*           @hheenen
 src/MOLFILE/*         @akohlmey
 src/NETCDF/*          @pastewka
@@ -62,7 +63,10 @@ src/MANYBODY/pair_vashishta_table.* @andeplane
 src/MANYBODY/pair_atm.*             @sergeylishchuk
 src/REPLICA/*_grem.*                @dstelter92
 src/EXTRA-COMPUTE/compute_stress_mop*.* @RomainVermorel
+src/EXTRA-COMPUTE/compute_born_matrix.* @Bibobu @athomps
 src/MISC/*_tracker.*                @jtclemm
+src/MC/fix_gcmc.*                   @athomps
+src/MC/fix_sgcmc.*                  @athomps
 
 # core LAMMPS classes
 src/lammps.*              @sjplimp
@@ -146,12 +150,12 @@ tools/vim/*           @hammondkd
 unittest/*            @akohlmey
 
 # cmake
-cmake/*               @junghans @rbberger
+cmake/*               @rbberger
 cmake/Modules/LAMMPSInterfacePlugin.cmake @akohlmey
 cmake/Modules/MPI4WIN.cmake @akohlmey
 cmake/Modules/OpenCLLoader.cmake @akohlmey
-cmake/Modules/Packages/COLVARS.cmake @junghans @rbberger @giacomofiorin
-cmake/Modules/Packages/KIM.cmake @junghans @rbberger @ellio167
+cmake/Modules/Packages/COLVARS.cmake @rbberger @giacomofiorin
+cmake/Modules/Packages/KIM.cmake @rbberger @ellio167
 cmake/presets/*.cmake @akohlmey
 
 # python

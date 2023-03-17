@@ -18,11 +18,10 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
-#include "fft3d_wrap.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
 #include "neigh_list.h"
+#include "timer.h"
 
 #include <cmath>
 #include <cstring>
@@ -57,6 +56,8 @@ void PairAmoeba::polar()
   double fix[3],fiy[3],fiz[3];
   double tep[3];
 
+  double time0,time1,time2;
+
   // set cutoffs, taper coeffs, and PME params
 
   if (use_ewald) choose(POLAR_LONG);
@@ -78,11 +79,16 @@ void PairAmoeba::polar()
 
   // compute the real space part of the dipole interactions
 
+  if (timer->has_sync()) MPI_Barrier(world);
+  time0 = platform::walltime();
+
   if (polar_rspace_flag) polar_real();
+  time1 = platform::walltime();
 
   // compute the reciprocal space part of dipole interactions
 
   if (polar_kspace_flag) polar_kspace();
+  time2 = platform::walltime();
 
   // compute the Ewald self-energy torque and virial terms
 
@@ -135,6 +141,11 @@ void PairAmoeba::polar()
     virpolar[4] -= vxz;
     virpolar[5] -= vyz;
   }
+
+  // accumulate timing information
+
+  time_polar_rspace += time1 - time0;
+  time_polar_kspace += time2 - time1;
 }
 
 /* ----------------------------------------------------------------------
@@ -384,7 +395,7 @@ void PairAmoeba::polar_real()
           factor_uscale = 1.0;
         }
       }
-
+      //if (i == 12 && j < 20) printf("j = %d: r = %f; factor_wscale = %f\n", j, sqrt(r2), factor_wscale);
       r = sqrt(r2);
       ck = rpole[j][0];
       dkx = rpole[j][1];
@@ -599,7 +610,6 @@ void PairAmoeba::polar_real()
       dufld[i][3] += xr*tiz5 + zr*tix5 + 2.0*xr*zr*tuir;
       dufld[i][4] += yr*tiz5 + zr*tiy5 + 2.0*yr*zr*tuir;
       dufld[i][5] += zr*tiz5 + zr*zr*tuir;
-
       dufld[j][0] -= xr*tkx5 + xr*xr*tukr;
       dufld[j][1] -= xr*tky5 + yr*tkx5 + 2.0*xr*yr*tukr;
       dufld[j][2] -= yr*tky5 + yr*yr*tukr;
@@ -857,6 +867,7 @@ void PairAmoeba::polar_real()
         frcx = -2.0 * depx;
         frcy = -2.0 * depy;
         frcz = -2.0 * depz;
+
       }
 
       // get the dtau/dr terms used for mutual polarization force
@@ -1329,7 +1340,7 @@ void PairAmoeba::polar_kspace()
 
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
 
-    double ***gridpre = (double ***) p_kspace->zero();
+    FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 
@@ -1338,7 +1349,7 @@ void PairAmoeba::polar_kspace()
     // pre-convolution operations including forward FFT
     // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
 
-    double *gridfft = p_kspace->pre_convolution();
+    FFT_SCALAR *gridfft = p_kspace->pre_convolution();
 
     // ---------------------
     // convolution operation
@@ -1388,7 +1399,7 @@ void PairAmoeba::polar_kspace()
     // post-convolution operations including backward FFT
     // gridppost = my portion of 3d grid in brick decomp w/ ghost values
 
-    double ***gridpost = (double ***) p_kspace->post_convolution();
+    FFT_SCALAR ***gridpost = (FFT_SCALAR ***) p_kspace->post_convolution();
 
     // get potential
 
@@ -1421,7 +1432,7 @@ void PairAmoeba::polar_kspace()
 
   // gridpre2 = my portion of 4d grid in brick decomp w/ ghost values
 
-  double ****gridpre2 = (double ****) pc_kspace->zero();
+  FFT_SCALAR ****gridpre2 = (FFT_SCALAR ****) pc_kspace->zero();
 
   // map 2 values to grid
 
@@ -1430,7 +1441,7 @@ void PairAmoeba::polar_kspace()
   // pre-convolution operations including forward FFT
   // gridfft = my portion of complex 3d grid in FFT decomposition
 
-  double *gridfft = pc_kspace->pre_convolution();
+  FFT_SCALAR *gridfft = pc_kspace->pre_convolution();
 
   // ---------------------
   // convolution operation
@@ -1453,7 +1464,7 @@ void PairAmoeba::polar_kspace()
   // post-convolution operations including backward FFT
   // gridppost = my portion of 4d grid in brick decomp w/ ghost values
 
-  double ****gridpost = (double ****) pc_kspace->post_convolution();
+  FFT_SCALAR ****gridpost = (FFT_SCALAR ****) pc_kspace->post_convolution();
 
   // get potential
 
@@ -1859,7 +1870,7 @@ void PairAmoeba::polar_kspace()
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by zero()
 
-  double ***gridpre = (double ***) p_kspace->zero();
+  FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
   // map atoms to grid
 
@@ -1889,7 +1900,7 @@ void PairAmoeba::polar_kspace()
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by zero()
 
-  gridpre = (double ***) p_kspace->zero();
+  gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
   // map atoms to grid
 
@@ -1898,7 +1909,7 @@ void PairAmoeba::polar_kspace()
   // pre-convolution operations including forward FFT
   // gridfft1/2 = my portions of complex 3d grid in FFT decomp as 1d vectors
 
-  double *gridfft2 = p_kspace->pre_convolution();
+  FFT_SCALAR *gridfft2 = p_kspace->pre_convolution();
 
   // ---------------------
   // convolution operation
@@ -1955,7 +1966,7 @@ void PairAmoeba::polar_kspace()
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
     // zeroed by zero()
 
-    double ***gridpre = (double ***) p_kspace->zero();
+    FFT_SCALAR ***gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 
@@ -1964,12 +1975,12 @@ void PairAmoeba::polar_kspace()
     // pre-convolution operations including forward FFT
     // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
 
-    double *gridfft = p_kspace->pre_convolution();
+    FFT_SCALAR *gridfft = p_kspace->pre_convolution();
 
     // gridfft1 = copy of first FFT
 
     int nfft_owned = p_kspace->nfft_owned;
-    memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(double));
+    memcpy(gridfft1,gridfft,2*nfft_owned*sizeof(FFT_SCALAR));
 
     // assign ??? to the PME grid
 
@@ -1984,7 +1995,7 @@ void PairAmoeba::polar_kspace()
 
     // gridpre = my portion of 3d grid in brick decomp w/ ghost values
 
-    gridpre = (double ***) p_kspace->zero();
+    gridpre = (FFT_SCALAR ***) p_kspace->zero();
 
     // map atoms to grid
 
@@ -1993,7 +2004,7 @@ void PairAmoeba::polar_kspace()
     // pre-convolution operations including forward FFT
     // gridfft = my portion of complex 3d grid in FFT decomp as 1d vector
 
-    double *gridfft2 = p_kspace->pre_convolution();
+    FFT_SCALAR *gridfft2 = p_kspace->pre_convolution();
 
     // ---------------------
     // convolution operation

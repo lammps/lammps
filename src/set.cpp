@@ -47,7 +47,7 @@ enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      MOLECULE,X,Y,Z,VX,VY,VZ,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,SPIN_ATOM,SPIN_RANDOM,SPIN_ELECTRON,RADIUS_ELECTRON,
-     QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,
+     QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,TEMPERATURE,
      DIAMETER,RADIUS_ATOM,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
      SMD_CONTACT_RADIUS,DPDTHETA,EPSILON,IVEC,DVEC,IARRAY,DARRAY};
@@ -424,6 +424,15 @@ void Set::command(int narg, char **arg)
           error->all(FLERR,"Density/disc option requires 2d simulation");
       }
       set(DENSITY);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"temperature") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (!atom->temperature_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(TEMPERATURE);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"volume") == 0) {
@@ -806,6 +815,7 @@ void Set::set(int keyword)
   case SHAPE:
   case DIAMETER:
   case DENSITY:
+  case TEMPERATURE:
   case QUAT:
   case IMAGE:
     if (modify->check_rigid_list_overlap(select))
@@ -855,8 +865,11 @@ void Set::set(int keyword)
     else if (keyword == VX) atom->v[i][0] = dvalue;
     else if (keyword == VY) atom->v[i][1] = dvalue;
     else if (keyword == VZ) atom->v[i][2] = dvalue;
-    else if (keyword == CHARGE) atom->q[i] = dvalue;
-    else if (keyword == MASS) {
+    else if (keyword == CHARGE) {
+      atom->q[i] = dvalue;
+      // ensure that scaled charges are consistent the new charge value
+      if (atom->epsilon) atom->q_scaled[i] = dvalue / atom->epsilon[i];
+    } else if (keyword == MASS) {
       if (dvalue <= 0.0) error->one(FLERR,"Invalid mass in set command");
       atom->rmass[i] = dvalue;
     }
@@ -1065,6 +1078,13 @@ void Set::set(int keyword)
       atom->omega[i][2] = zvalue;
     }
 
+    // set temperature of particle
+
+    else if (keyword == ANGMOM) {
+      if (dvalue < 0.0) error->one(FLERR,"Invalid temperature in set command");
+      atom->temperature[i] = dvalue;
+    }
+
     // reset any or all of 3 image flags
 
     else if (keyword == IMAGE) {
@@ -1087,14 +1107,11 @@ void Set::set(int keyword)
     else if (keyword == EPSILON) {
       if (dvalue >= 0.0) {
 
-        // compute the unscaled charge value (i.e. atom->q_unscaled)
         // assign the new local dielectric constant
-        // update both the scaled and unscaled charge values
+        // update both the scaled charge value
 
-        double q_unscaled = atom->q[i] * atom->epsilon[i];
         atom->epsilon[i] = dvalue;
-        atom->q[i] = q_unscaled / dvalue;
-        atom->q_unscaled[i] = q_unscaled;
+        atom->q_scaled[i] = atom->q[i] / dvalue;
       }
     }
 

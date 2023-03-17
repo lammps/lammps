@@ -27,7 +27,7 @@
 #include "error.h"
 #include "fft3d_wrap.h"
 #include "force.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neighbor.h"
@@ -228,8 +228,12 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
 
 void PPPMDisp::settings(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/disp command");
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
+
   accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
+  if (accuracy_relative > 1.0)
+    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
+               accuracy_relative, force->kspace_style);
 }
 
 /* ----------------------------------------------------------------------
@@ -357,7 +361,7 @@ void PPPMDisp::init()
   if (function[0]) qsum_qsq();
 
   // if kspace is TIP4P, extract TIP4P params from pair style
-  // bond/angle are not yet init(), so insure equilibrium request is valid
+  // bond/angle are not yet init(), so ensure equilibrium request is valid
 
   qdist = 0.0;
 
@@ -389,8 +393,8 @@ void PPPMDisp::init()
     alpha = qdist / (cos(0.5*theta) * blen);
   }
 
-  //if g_ewald and g_ewald_6 have not been specified, set some initial value
-  //  to avoid problems when calculating the energies!
+  // if g_ewald and g_ewald_6 have not been specified,
+  // set some initial value, to avoid problems when calculating the energies!
 
   if (!gewaldflag) g_ewald = 1;
   if (!gewaldflag_6) g_ewald_6 = 1;
@@ -407,10 +411,13 @@ void PPPMDisp::init()
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
   else accuracy = accuracy_relative * two_charge_force;
 
+  double acc;
+  double acc_6,acc_real_6,acc_kspace_6;
+
   int iteration = 0;
   if (function[0]) {
 
-    GridComm *gctmp = nullptr;
+    gc = nullptr;
     while (order >= minorder) {
 
       if (iteration && me == 0)
@@ -420,77 +427,55 @@ void PPPMDisp::init()
 
       // set grid for dispersion interaction and coulomb interactions
 
-      set_grid();
+      set_grid_global();
 
       if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
-      error->all(FLERR,"PPPMDisp Coulomb grid is too large");
+        error->all(FLERR,"PPPMDisp Coulomb grid is too large");
 
-      set_fft_parameters(nx_pppm,ny_pppm,nz_pppm,
-                         nxlo_fft,nylo_fft,nzlo_fft,
-                         nxhi_fft,nyhi_fft,nzhi_fft,
-                         nxlo_in,nylo_in,nzlo_in,
-                         nxhi_in,nyhi_in,nzhi_in,
-                         nxlo_out,nylo_out,nzlo_out,
-                         nxhi_out,nyhi_out,nzhi_out,
-                         nlower,nupper,
-                         ngrid,nfft,nfft_both,
-                         shift,shiftone,order);
+      set_grid_local(order,nx_pppm,ny_pppm,nz_pppm,
+                     shift,shiftone,shiftatom_lo,shiftatom_hi,
+                     nlower,nupper,
+                     nxlo_fft,nylo_fft,nzlo_fft,
+                     nxhi_fft,nyhi_fft,nzhi_fft);
 
       if (overlap_allowed) break;
 
-      gctmp = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                           nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                           nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+      gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+      gc->set_distance(0.5*neighbor->skin + qdist);
+      gc->set_stencil_atom(-nlower,nupper);
+      gc->set_shift_atom(shiftatom_lo,shiftatom_lo);
+      gc->set_zfactor(slab_volfactor);
+
+      gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                     nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
       int tmp1,tmp2;
-      gctmp->setup(tmp1,tmp2);
-      if (gctmp->ghost_adjacent()) break;
-      delete gctmp;
+      gc->setup_comm(tmp1,tmp2);
+      if (gc->ghost_adjacent()) break;
+      delete gc;
 
       order--;
     }
 
     if (order < minorder)
       error->all(FLERR,"Coulomb PPPMDisp order has been reduced below minorder");
-    if (!overlap_allowed && !gctmp->ghost_adjacent())
+    if (!overlap_allowed && !gc->ghost_adjacent())
       error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
-    if (gctmp) delete gctmp;
+    if (gc) delete gc;
 
     // adjust g_ewald
 
     if (!gewaldflag) adjust_gewald();
 
-    // calculate the final accuracy
+    // calculate the final Coulomb accuracy
 
-    double acc = final_accuracy();
-
-    // print stats
-
-    int ngrid_max,nfft_both_max;
-    MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
-    MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
-
-    if (me == 0) {
-      std::string mesg = fmt::format("  Coulomb G vector (1/distance)= {:.16g}\n",
-                                     g_ewald);
-      mesg += fmt::format("  Coulomb grid = {} {} {}\n",
-                          nx_pppm,ny_pppm,nz_pppm);
-      mesg += fmt::format("  Coulomb stencil order = {}\n",order);
-      mesg += fmt::format("  Coulomb estimated absolute RMS force accuracy "
-                          "= {:.8g}\n",acc);
-      mesg += fmt::format("  Coulomb estimated relative force accuracy = {:.8g}\n",
-                          acc/two_charge_force);
-      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
-      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
-                          ngrid_max,nfft_both_max);
-      utils::logmesg(lmp,mesg);
-    }
+    acc = final_accuracy();
   }
 
   iteration = 0;
   if (function[1] + function[2] + function[3]) {
 
-    GridComm *gctmp = nullptr;
+    gc6 = nullptr;
     while (order_6 >= minorder) {
 
       if (iteration && me == 0)
@@ -498,34 +483,32 @@ void PPPMDisp::init()
                          "b/c stencil extends beyond neighbor processor");
       iteration++;
 
-      set_grid_6();
+      set_grid_global_6();
 
       if (nx_pppm_6 >= OFFSET || ny_pppm_6 >= OFFSET || nz_pppm_6 >= OFFSET)
-      error->all(FLERR,"PPPMDisp Dispersion grid is too large");
+        error->all(FLERR,"PPPMDisp Dispersion grid is too large");
 
-      set_fft_parameters(nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                         nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
-                         nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
-                         nxlo_in_6,nylo_in_6,nzlo_in_6,
-                         nxhi_in_6,nyhi_in_6,nzhi_in_6,
-                         nxlo_out_6,nylo_out_6,nzlo_out_6,
-                         nxhi_out_6,nyhi_out_6,nzhi_out_6,
-                         nlower_6,nupper_6,
-                         ngrid_6,nfft_6,nfft_both_6,
-                         shift_6,shiftone_6,order_6);
+      set_grid_local(order_6,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+                     shift_6,shiftone_6,shiftatom_lo_6,shiftatom_hi_6,
+                     nlower_6,nupper_6,
+                     nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
+                     nxhi_fft_6,nyhi_fft_6,nzhi_fft_6);
 
       if (overlap_allowed) break;
 
-      gctmp = new GridComm(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                           nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,
-                           nzlo_in_6,nzhi_in_6,
-                           nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,
-                           nzlo_out_6,nzhi_out_6);
+      gc6 = new Grid3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6);
+      gc6->set_distance(0.5*neighbor->skin + qdist);
+      gc6->set_stencil_atom(-nlower_6,nupper_6);
+      gc6->set_shift_atom(shiftatom_lo_6,shiftatom_hi_6);
+      gc6->set_zfactor(slab_volfactor);
+
+      gc6->setup_grid(nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                      nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
 
       int tmp1,tmp2;
-      gctmp->setup(tmp1,tmp2);
-      if (gctmp->ghost_adjacent()) break;
-      delete gctmp;
+      gc6->setup_comm(tmp1,tmp2);
+      if (gc6->ghost_adjacent()) break;
+      delete gc6;
 
       order_6--;
     }
@@ -533,41 +516,17 @@ void PPPMDisp::init()
     if (order_6 < minorder)
       error->all(FLERR,"Dispersion PPPMDisp order has been "
                  "reduced below minorder");
-    if (!overlap_allowed && !gctmp->ghost_adjacent())
+    if (!overlap_allowed && !gc6->ghost_adjacent())
       error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
-    if (gctmp) delete gctmp;
+    if (gc6) delete gc6;
 
     // adjust g_ewald_6
 
-    if (!gewaldflag_6 && accuracy_kspace_6 == accuracy_real_6)
-      adjust_gewald_6();
+    if (!gewaldflag_6 && accuracy_kspace_6 == accuracy_real_6) adjust_gewald_6();
 
-    // calculate the final accuracy
+    // calculate the final displerson accuracy
 
-    double acc,acc_real,acc_kspace;
-    final_accuracy_6(acc,acc_real,acc_kspace);
-
-    // print stats
-
-    int ngrid_6_max,nfft_both_6_max;
-    MPI_Allreduce(&ngrid_6,&ngrid_6_max,1,MPI_INT,MPI_MAX,world);
-    MPI_Allreduce(&nfft_both_6,&nfft_both_6_max,1,MPI_INT,MPI_MAX,world);
-
-    if (me == 0) {
-      std::string mesg = fmt::format("  Dispersion G vector (1/distance)= "
-                                     "{:.16}\n",g_ewald_6);
-      mesg += fmt::format("  Dispersion grid = {} {} {}\n",
-                          nx_pppm_6,ny_pppm_6,nz_pppm_6);
-      mesg += fmt::format("  Dispersion stencil order = {}\n",order_6);
-      mesg += fmt::format("  Dispersion estimated absolute RMS force accuracy "
-                          "= {:.8}\n",acc);
-      mesg += fmt::format("  Dispersion estimated relative force accuracy "
-                          "= {:.8}\n",acc/two_charge_force);
-      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
-      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
-                          ngrid_6_max,nfft_both_6_max);
-      utils::logmesg(lmp,mesg);
-    }
+    final_accuracy_6(acc_6,acc_real_6,acc_kspace_6);
   }
 
   // allocate K-space dependent memory
@@ -596,6 +555,54 @@ void PPPMDisp::init()
                           nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
                           sf_precoeff1_6,sf_precoeff2_6,sf_precoeff3_6,
                           sf_precoeff4_6,sf_precoeff5_6,sf_precoeff6_6);
+  }
+
+  // print Coulomb stats
+
+  if (function[0]) {
+    int ngrid_max,nfft_both_max;
+    MPI_Allreduce(&ngrid,&ngrid_max,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
+
+    if (me == 0) {
+      std::string mesg = fmt::format("  Coulomb G vector (1/distance)= {:.16g}\n",
+                                     g_ewald);
+      mesg += fmt::format("  Coulomb grid = {} {} {}\n",
+                          nx_pppm,ny_pppm,nz_pppm);
+      mesg += fmt::format("  Coulomb stencil order = {}\n",order);
+      mesg += fmt::format("  Coulomb estimated absolute RMS force accuracy "
+                          "= {:.8g}\n",acc);
+      mesg += fmt::format("  Coulomb estimated relative force accuracy = {:.8g}\n",
+                          acc/two_charge_force);
+      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                          ngrid_max,nfft_both_max);
+      utils::logmesg(lmp,mesg);
+    }
+  }
+
+  // print dipserion stats
+
+  if (function[1] + function[2] + function[3]) {
+    int ngrid_6_max,nfft_both_6_max;
+    MPI_Allreduce(&ngrid_6,&ngrid_6_max,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&nfft_both_6,&nfft_both_6_max,1,MPI_INT,MPI_MAX,world);
+
+    if (me == 0) {
+      std::string mesg = fmt::format("  Dispersion G vector (1/distance)= "
+                                   "{:.16}\n",g_ewald_6);
+      mesg += fmt::format("  Dispersion grid = {} {} {}\n",
+                          nx_pppm_6,ny_pppm_6,nz_pppm_6);
+      mesg += fmt::format("  Dispersion stencil order = {}\n",order_6);
+      mesg += fmt::format("  Dispersion estimated absolute RMS force accuracy "
+                          "= {:.8}\n",acc_6);
+      mesg += fmt::format("  Dispersion estimated relative force accuracy "
+                          "= {:.8}\n",acc_6/two_charge_force);
+      mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+      mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                          ngrid_6_max,nfft_both_6_max);
+      utils::logmesg(lmp,mesg);
+    }
   }
 }
 
@@ -791,7 +798,7 @@ void PPPMDisp::setup()
    called by fix balance b/c it changed sizes of processor sub-domains
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::setup_grid()
+void PPPMDisp::reset_grid()
 {
   // free all arrays previously allocated
 
@@ -801,28 +808,18 @@ void PPPMDisp::setup_grid()
   // reset portion of global grid that each proc owns
 
   if (function[0])
-    set_fft_parameters(nx_pppm,ny_pppm,nz_pppm,
-                       nxlo_fft,nylo_fft,nzlo_fft,
-                       nxhi_fft,nyhi_fft,nzhi_fft,
-                       nxlo_in,nylo_in,nzlo_in,
-                       nxhi_in,nyhi_in,nzhi_in,
-                       nxlo_out,nylo_out,nzlo_out,
-                       nxhi_out,nyhi_out,nzhi_out,
-                       nlower,nupper,
-                       ngrid,nfft,nfft_both,
-                       shift,shiftone,order);
+    set_grid_local(order,nx_pppm,ny_pppm,nz_pppm,
+                   shift,shiftone,shiftatom_lo,shiftatom_hi,
+                   nlower,nupper,
+                   nxlo_fft,nylo_fft,nzlo_fft,
+                   nxhi_fft,nyhi_fft,nzhi_fft);
 
   if (function[1] + function[2] + function[3])
-    set_fft_parameters(nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                       nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
-                       nxhi_fft_6,nyhi_fft_6,nzhi_fft_6,
-                       nxlo_in_6,nylo_in_6,nzlo_in_6,
-                       nxhi_in_6,nyhi_in_6,nzhi_in_6,
-                       nxlo_out_6,nylo_out_6,nzlo_out_6,
-                       nxhi_out_6,nyhi_out_6,nzhi_out_6,
-                       nlower_6,nupper_6,
-                       ngrid_6,nfft_6,nfft_both_6,
-                       shift_6,shiftone_6,order_6);
+    set_grid_local(order_6,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+                   shift_6,shiftone_6,shiftatom_lo_6,shiftatom_hi_6,
+                   nlower_6,nupper_6,
+                   nxlo_fft_6,nylo_fft_6,nzlo_fft_6,
+                   nxhi_fft_6,nyhi_fft_6,nzhi_fft_6);
 
   // reallocate K-space dependent memory
   // check if grid communication is now overlapping if not allowed
@@ -923,8 +920,8 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_c();
 
-    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                     REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in,
               density_brick,density_fft,work1,remap);
@@ -938,14 +935,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                  virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                       FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       fieldforce_c_ad();
 
       if (vflag_atom)
-        gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
-                         FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+                         gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1,work2,density_fft,fft1,fft2,
@@ -957,14 +954,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                  vdx_brick,vdy_brick,vdz_brick,virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
-                       FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
       fieldforce_c_ik();
 
       if (evflag_atom)
-        gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
-                         FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                         gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_c_peratom();
@@ -981,8 +978,8 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_g();
 
-    gc6->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                      REVERSE_RHO_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+    gc6->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO_GEOM,1,sizeof(FFT_SCALAR),
+                      gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft(nxlo_in_6,nylo_in_6,nzlo_in_6,nxhi_in_6,nyhi_in_6,nzhi_in_6,
               density_brick_g,density_fft_g,work1_6,remap_6);
@@ -997,14 +994,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                        FORWARD_AD_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_GEOM,1,sizeof(FFT_SCALAR),
+                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ad();
 
       if (vflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
-                          FORWARD_AD_PERATOM_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM_GEOM,6,sizeof(FFT_SCALAR),
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       poisson_ik(work1_6,work2_6,density_fft_g,fft1_6,fft2_6,
@@ -1017,14 +1014,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
-                        FORWARD_IK_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_GEOM,3,sizeof(FFT_SCALAR),
+                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_g_ik();
 
       if (evflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
-                          FORWARD_IK_PERATOM_GEOM,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM_GEOM,7,sizeof(FFT_SCALAR),
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_g_peratom();
@@ -1041,8 +1038,8 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_a();
 
-    gc6->reverse_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
-                      REVERSE_RHO_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+    gc6->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO_ARITH,7,sizeof(FFT_SCALAR),
+                      gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_a();
 
@@ -1071,14 +1068,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
-                        FORWARD_AD_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_ARITH,7,sizeof(FFT_SCALAR),
+                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ad();
 
       if (evflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,42,sizeof(FFT_SCALAR),
-                          FORWARD_AD_PERATOM_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM_ARITH,42,sizeof(FFT_SCALAR),
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     }  else {
       poisson_ik(work1_6,work2_6,density_fft_a3,fft1_6,fft2_6,
@@ -1112,14 +1109,14 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm(GridComm::KSPACE,this,21,sizeof(FFT_SCALAR),
-                        FORWARD_IK_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_ARITH,21,sizeof(FFT_SCALAR),
+                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_a_ik();
 
       if (evflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,49,sizeof(FFT_SCALAR),
-                          FORWARD_IK_PERATOM_ARITH,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM_ARITH,49,sizeof(FFT_SCALAR),
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_a_peratom();
@@ -1136,8 +1133,8 @@ void PPPMDisp::compute(int eflag, int vflag)
 
     make_rho_none();
 
-    gc6->reverse_comm(GridComm::KSPACE,this,nsplit_alloc,sizeof(FFT_SCALAR),
-                      REVERSE_RHO_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+    gc6->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO_NONE,nsplit_alloc,sizeof(FFT_SCALAR),
+                      gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_none();
 
@@ -1151,14 +1148,14 @@ void PPPMDisp::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm(GridComm::KSPACE,this,1*nsplit_alloc,sizeof(FFT_SCALAR),
-                        FORWARD_AD_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_NONE,1*nsplit_alloc,sizeof(FFT_SCALAR),
+                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ad();
 
       if (vflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,6*nsplit_alloc,sizeof(FFT_SCALAR),
-                          FORWARD_AD_PERATOM_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM_NONE,6*nsplit_alloc,sizeof(FFT_SCALAR),
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
       int n = 0;
@@ -1171,14 +1168,14 @@ void PPPMDisp::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm(GridComm::KSPACE,this,3*nsplit_alloc,sizeof(FFT_SCALAR),
-                        FORWARD_IK_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_NONE,3*nsplit_alloc,sizeof(FFT_SCALAR),
+                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ik();
 
       if (evflag_atom)
-        gc6->forward_comm(GridComm::KSPACE,this,7*nsplit_alloc,sizeof(FFT_SCALAR),
-                          FORWARD_IK_PERATOM_NONE,gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM_NONE,7*nsplit_alloc,sizeof(FFT_SCALAR),
+                          gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
     if (evflag_atom) fieldforce_none_peratom();
@@ -1682,7 +1679,53 @@ int PPPMDisp::check_convergence(double** A, double** Q, double** A0,
 
 void _noopt PPPMDisp::allocate()
 {
+  // --------------------------------------
+  // Coulomb grids
+  // --------------------------------------
+
   if (function[0]) {
+
+    // create ghost grid object for rho and electric field communication
+    // returns local owned and ghost grid bounds
+    // setup communication patterns and buffers
+
+    gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+    gc->set_distance(0.5*neighbor->skin + qdist);
+    gc->set_stencil_atom(-nlower,nupper);
+    gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
+    gc->set_zfactor(slab_volfactor);
+
+    gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                   nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+
+    gc->setup_comm(ngc_buf1,ngc_buf2);
+
+  if (differentiation_flag) npergrid = 1;
+    else npergrid = 3;
+
+    memory->create(gc_buf1,npergrid*ngc_buf1,"pppm/disp:gc_buf1");
+    memory->create(gc_buf2,npergrid*ngc_buf2,"pppm/disp:gc_buf2");
+
+    // tally local grid sizes
+    // ngrid = count of owned+ghost grid cells on this proc
+    // nfft_brick = FFT points in 3d brick-decomposition on this proc
+    //              same as count of owned grid cells
+    // nfft = FFT points in x-pencil FFT decomposition on this proc
+    // nfft_both = greater of nfft and nfft_brick
+
+    ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
+      (nzhi_out-nzlo_out+1);
+
+    nfft_brick = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
+      (nzhi_in-nzlo_in+1);
+
+    nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
+      (nzhi_fft-nzlo_fft+1);
+
+    nfft_both = MAX(nfft,nfft_brick);
+
+    // allocate distributed grid data
+
     memory->create(work1,2*nfft_both,"pppm/disp:work1");
     memory->create(work2,2*nfft_both,"pppm/disp:work2");
 
@@ -1707,6 +1750,8 @@ void _noopt PPPMDisp::allocate()
 
     memory->create3d_offset(density_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                             nxlo_out,nxhi_out,"pppm/disp:density_brick");
+    memory->create(density_fft,nfft_both,"pppm/disp:density_fft");
+
     if (differentiation_flag == 1) {
       memory->create3d_offset(u_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                               nxlo_out,nxhi_out,"pppm/disp:u_brick");
@@ -1725,7 +1770,11 @@ void _noopt PPPMDisp::allocate()
       memory->create3d_offset(vdz_brick,nzlo_out,nzhi_out,nylo_out,nyhi_out,
                               nxlo_out,nxhi_out,"pppm/disp:vdz_brick");
     }
-    memory->create(density_fft,nfft_both,"pppm/disp:density_fft");
+
+    // create 2 FFTs and a Remap
+    // 1st FFT keeps data in FFT decomposition
+    // 2nd FFT returns data in 3d brick decomposition
+    // remap takes data from 3d brick to FFT decomposition
 
     int tmp;
 
@@ -1743,22 +1792,90 @@ void _noopt PPPMDisp::allocate()
                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                       nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                       1,0,0,FFT_PRECISION,collective_flag);
-
-    // create ghost grid object for rho and electric field communication
-    // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
-
-    gc = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                      nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                      nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
-
-    gc->setup(ngc_buf1,ngc_buf2);
-
-    if (differentiation_flag) npergrid = 1;
-    else npergrid = 3;
-
-    memory->create(gc_buf1,npergrid*ngc_buf1,"pppm:gc_buf1");
-    memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
   }
+
+  // --------------------------------------
+  // allocations common to all dispersion options
+  // --------------------------------------
+
+  if (function[1] + function[2] + function[3]) {
+
+    // create ghost grid object for dispersion communication
+    // returns local owned and ghost grid bounds
+    // setup communication patterns and buffers
+
+    gc6 = new Grid3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6);
+    gc6->set_distance(0.5*neighbor->skin + qdist);
+    gc6->set_stencil_atom(-nlower_6,nupper_6);
+    gc6->set_shift_atom(shiftatom_lo_6,shiftatom_hi_6);
+    gc6->set_zfactor(slab_volfactor);
+
+    gc6->setup_grid(nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                    nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
+
+    gc6->setup_comm(ngc6_buf1,ngc6_buf2);
+
+    if (function[1]) {
+      if (differentiation_flag) npergrid6 = 1;
+      else npergrid6 = 3;
+    } else if (function[2]) {
+      if (differentiation_flag) npergrid6 = 7;
+      else npergrid6 = 21;
+    } else if (function[3]) {
+      if (differentiation_flag) npergrid6 = 1*nsplit_alloc;
+      else npergrid6 = 3*nsplit_alloc;
+    }
+
+    memory->create(gc6_buf1,npergrid6*ngc6_buf1,"pppm:gc_buf1");
+    memory->create(gc6_buf2,npergrid6*ngc6_buf2,"pppm:gc_buf2");
+
+    // tally local grid sizes
+    // ngrid = count of owned+ghost grid cells on this proc
+    // nfft_brick = FFT points in 3d brick-decomposition on this proc
+    //              same as count of owned grid cells
+    // nfft = FFT points in x-pencil FFT decomposition on this proc
+    // nfft_both = greater of nfft and nfft_brick
+
+    ngrid_6 = (nxhi_out_6-nxlo_out_6+1) * (nyhi_out_6-nylo_out_6+1) *
+      (nzhi_out_6-nzlo_out_6+1);
+
+    nfft_brick_6 = (nxhi_in_6-nxlo_in_6+1) * (nyhi_in_6-nylo_in_6+1) *
+      (nzhi_in_6-nzlo_in_6+1);
+
+    nfft_6 = (nxhi_fft_6-nxlo_fft_6+1) * (nyhi_fft_6-nylo_fft_6+1) *
+      (nzhi_fft_6-nzlo_fft_6+1);
+
+    nfft_both_6 = MAX(nfft_6,nfft_brick_6);
+
+    // create 2 FFTs and a Remap
+    // 1st FFT keeps data in FFT decomposition
+    // 2nd FFT returns data in 3d brick decomposition
+    // remap takes data from 3d brick to FFT decomposition
+
+    int tmp;
+
+    fft1_6 =
+      new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+                nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
+                nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
+                0,0,&tmp,collective_flag);
+
+    fft2_6 =
+      new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
+                nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
+                nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                0,0,&tmp,collective_flag);
+
+    remap_6 =
+      new Remap(lmp,world,
+                nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
+                nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
+                1,0,0,FFT_PRECISION,collective_flag);
+  }
+
+  // --------------------------------------
+  // dispersion grids with geometric mixing
+  // --------------------------------------
 
   if (function[1]) {
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
@@ -1786,6 +1903,8 @@ void _noopt PPPMDisp::allocate()
 
     memory->create3d_offset(density_brick_g,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                             nxlo_out_6,nxhi_out_6,"pppm/disp:density_brick_g");
+    memory->create(density_fft_g,nfft_both_6,"pppm/disp:density_fft_g");
+
     if (differentiation_flag == 1) {
       memory->create3d_offset(u_brick_g,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                               nxlo_out_6,nxhi_out_6,"pppm/disp:u_brick_g");
@@ -1805,44 +1924,11 @@ void _noopt PPPMDisp::allocate()
       memory->create3d_offset(vdz_brick_g,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                               nxlo_out_6,nxhi_out_6,"pppm/disp:vdz_brick_g");
     }
-    memory->create(density_fft_g,nfft_both_6,"pppm/disp:density_fft_g");
-
-    int tmp;
-
-    fft1_6 =
-      new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                0,0,&tmp,collective_flag);
-
-    fft2_6 =
-      new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                0,0,&tmp,collective_flag);
-
-    remap_6 =
-      new Remap(lmp,world,
-                nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                1,0,0,FFT_PRECISION,collective_flag);
-
-    // create ghost grid object for rho and electric field communication
-    // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
-
-    gc6 =
-      new GridComm(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                   nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                   nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
-
-    gc6->setup(ngc6_buf1,ngc6_buf2);
-
-    if (differentiation_flag) npergrid6 = 1;
-    else npergrid6 = 3;
-
-    memory->create(gc6_buf1,npergrid6*ngc6_buf1,"pppm:gc_buf1");
-    memory->create(gc6_buf2,npergrid6*ngc6_buf2,"pppm:gc_buf2");
   }
+
+  // --------------------------------------
+  // dispersion grids with arithmetic mixing
+  // --------------------------------------
 
   if (function[2]) {
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
@@ -1972,40 +2058,11 @@ void _noopt PPPMDisp::allocate()
       memory->create3d_offset(vdz_brick_a6,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                               nxlo_out_6,nxhi_out_6,"pppm/disp:vdz_brick_a6");
     }
-
-    int tmp;
-
-    fft1_6 = new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                     nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                     nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                     0,0,&tmp,collective_flag);
-
-    fft2_6 = new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                     nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                     nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                     0,0,&tmp,collective_flag);
-
-    remap_6 = new Remap(lmp,world,
-                      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                      nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                      1,0,0,FFT_PRECISION,collective_flag);
-
-    // create ghost grid object for rho and electric field communication
-    // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
-
-    gc6 =
-      new GridComm(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                   nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                   nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
-
-    gc6->setup(ngc6_buf1,ngc6_buf2);
-
-    if (differentiation_flag) npergrid6 = 7;
-    else npergrid6 = 21;
-
-    memory->create(gc6_buf1,npergrid6*ngc6_buf1,"pppm:gc_buf1");
-    memory->create(gc6_buf2,npergrid6*ngc6_buf2,"pppm:gc_buf2");
   }
+
+  // --------------------------------------
+  // dispersion grids with no mixing
+  // --------------------------------------
 
   if (function[3]) {
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
@@ -2034,6 +2091,9 @@ void _noopt PPPMDisp::allocate()
     memory->create4d_offset(density_brick_none,nsplit_alloc,
                             nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                             nxlo_out_6,nxhi_out_6,"pppm/disp:density_brick_none");
+    memory->create(density_fft_none,nsplit_alloc,nfft_both_6,
+                   "pppm/disp:density_fft_none");
+
     if (differentiation_flag == 1) {
       memory->create4d_offset(u_brick_none,nsplit_alloc,
                               nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
@@ -2057,41 +2117,6 @@ void _noopt PPPMDisp::allocate()
                               nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
                               nxlo_out_6,nxhi_out_6,"pppm/disp:vdz_brick_none");
     }
-    memory->create(density_fft_none,nsplit_alloc,nfft_both_6,
-                   "pppm/disp:density_fft_none");
-
-    int tmp;
-
-    fft1_6 = new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                     nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                     nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                     0,0,&tmp,collective_flag);
-
-    fft2_6 = new FFT3d(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                     nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                     nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                     0,0,&tmp,collective_flag);
-
-    remap_6 = new Remap(lmp,world,
-                      nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                      nxlo_fft_6,nxhi_fft_6,nylo_fft_6,nyhi_fft_6,nzlo_fft_6,nzhi_fft_6,
-                      1,0,0,FFT_PRECISION,collective_flag);
-
-    // create ghost grid object for rho and electric field communication
-    // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
-
-    gc6 =
-      new GridComm(lmp,world,nx_pppm_6,ny_pppm_6,nz_pppm_6,
-                   nxlo_in_6,nxhi_in_6,nylo_in_6,nyhi_in_6,nzlo_in_6,nzhi_in_6,
-                   nxlo_out_6,nxhi_out_6,nylo_out_6,nyhi_out_6,nzlo_out_6,nzhi_out_6);
-
-    gc6->setup(ngc6_buf1,ngc6_buf2);
-
-    if (differentiation_flag) npergrid6 = 1*nsplit_alloc;
-    else npergrid6 = 3*nsplit_alloc;
-
-    memory->create(gc6_buf1,npergrid6*ngc6_buf1,"pppm:gc6_buf1");
-    memory->create(gc6_buf2,npergrid6*ngc6_buf2,"pppm:gc6_buf2");
   }
 }
 
@@ -2103,6 +2128,10 @@ void _noopt PPPMDisp::allocate()
 void PPPMDisp::allocate_peratom()
 {
   peratom_allocate_flag = 1;
+
+  // --------------------------------------
+  // Coulomb grids
+  // --------------------------------------
 
   if (function[0]) {
     if (differentiation_flag != 1)
@@ -2133,6 +2162,10 @@ void PPPMDisp::allocate_peratom()
     memory->create(gc_buf2,npergrid*ngc_buf2,"pppm:gc_buf2");
   }
 
+  // --------------------------------------
+  // dispersion grids with geometric mixing
+  // --------------------------------------
+
   if (function[1]) {
     if (differentiation_flag != 1 )
       memory->create3d_offset(u_brick_g,nzlo_out_6,nzhi_out_6,nylo_out_6,nyhi_out_6,
@@ -2161,6 +2194,10 @@ void PPPMDisp::allocate_peratom()
     memory->create(gc6_buf1,npergrid6*ngc6_buf1,"pppm:gc6_buf1");
     memory->create(gc6_buf2,npergrid6*ngc6_buf2,"pppm:gc6_buf2");
   }
+
+  // --------------------------------------
+  // dispersion grids with arithmetic mixing
+  // --------------------------------------
 
   if (function[2]) {
     if (differentiation_flag != 1) {
@@ -2282,6 +2319,10 @@ void PPPMDisp::allocate_peratom()
     memory->create(gc6_buf1,npergrid6*ngc6_buf1,"pppm:gc6_buf1");
     memory->create(gc6_buf2,npergrid6*ngc6_buf2,"pppm:gc6_buf2");
   }
+
+  // --------------------------------------
+  // dispersion grids with no mixing
+  // --------------------------------------
 
   if (function[3]) {
     if (differentiation_flag != 1)
@@ -2599,11 +2640,10 @@ void PPPMDisp::deallocate_peratom()
 }
 
 /* ----------------------------------------------------------------------
-   set size of FFT grid (nx,ny,nz_pppm) and g_ewald
-   for Coulomb interactions
+   set global grid and g_ewald for Coulomb interactions
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::set_grid()
+void PPPMDisp::set_grid_global()
 {
   double q2 = qsqsum * force->qqrd2e;
 
@@ -2675,152 +2715,74 @@ void PPPMDisp::set_grid()
 }
 
 /* ----------------------------------------------------------------------
-   set the FFT parameters
+   set params which determine which owned and ghost cells this proc owns
+   for Coulomb or dipsersion interactions
+   Grid3d uses these params to partition grids
+   also partition FFT grids
+     n xyz lo/hi fft = FFT columns that I own (all of x dim, 2d decomp in yz)
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::set_fft_parameters(int& nx_p, int& ny_p, int& nz_p,
-                                  int& nxlo_f, int& nylo_f, int& nzlo_f,
-                                  int& nxhi_f, int& nyhi_f, int& nzhi_f,
-                                  int& nxlo_i, int& nylo_i, int& nzlo_i,
-                                  int& nxhi_i, int& nyhi_i, int& nzhi_i,
-                                  int& nxlo_o, int& nylo_o, int& nzlo_o,
-                                  int& nxhi_o, int& nyhi_o, int& nzhi_o,
-                                  int& nlow,  int& nupp,
-                                  int& ng, int& nf, int& nfb,
-                                  double& sft, double& sftone, int& ord)
+void PPPMDisp::set_grid_local(int order_either,
+                              int nx_either, int ny_either, int nz_either,
+                              double &shift_either, double &shiftone_either,
+                              double &shiftatom_lo_either,double &shiftatom_hi_either,
+                              int &nlower_either, int &nupper_either,
+                              int &nxlo_fft_either, int &nylo_fft_either, int &nzlo_fft_either,
+                              int &nxhi_fft_either, int &nyhi_fft_either, int &nzhi_fft_either)
 {
-  // partition global grid across procs
-  // n xyz lo/hi i = lower/upper bounds of global grid this proc owns
-  // indices range from 0 to N-1 inclusive in each dim
-
-  comm->partition_grid(nx_p,ny_p,nz_p,slab_volfactor,
-                       nxlo_i,nxhi_i,nylo_i,nyhi_i,nzlo_i,nzhi_i);
-
-  // nlow,nupp = stencil size for mapping particles to PPPM grid
-
-  nlow = -(ord-1)/2;
-  nupp = ord/2;
-
-  // sft values for particle <-> grid mapping
+  // shift values for particle <-> grid mapping depend on stencil order
   // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
+  // used in particle_map() and make_rho() and fieldforce()
 
-  if (ord % 2) sft = OFFSET + 0.5;
-  else sft = OFFSET;
-  if (ord % 2) sftone = 0.0;
-  else sftone = 0.5;
+  if (order_either % 2) shift_either = OFFSET + 0.5;
+  else shift_either = OFFSET;
 
-  // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
-  //   global PPPM grid that my particles can contribute charge to
-  // effectively nlo_in,nhi_in + ghost cells
-  // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
-  //           position a particle in my box can be at
-  // dist[3] = particle position bound = subbox + skin/2.0 + qdist
-  //   qdist = offset due to TIP4P fictitious charge
-  //   convert to triclinic if necessary
-  // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
-  // for slab PPPM, assign z grid as if it were not extended
+  if (order_either % 2) shiftone_either = 0.0;
+  else shiftone_either = 0.5;
 
-  double *prd,*sublo,*subhi;
+  // nlower/nupper = stencil size for mapping particles to grid
 
-  if (triclinic == 0) {
-    prd = domain->prd;
-    boxlo = domain->boxlo;
-    sublo = domain->sublo;
-    subhi = domain->subhi;
-  } else {
-    prd = domain->prd_lamda;
-    boxlo = domain->boxlo_lamda;
-    sublo = domain->sublo_lamda;
-    subhi = domain->subhi_lamda;
+  nlower_either = -(order_either-1)/2;
+  nupper_either = order_either/2;
+
+  // shiftatom lo/hi are passed to Grid3d to determine ghost cell extents
+  // shiftatom_lo = min shift on lo side
+  // shiftatom_hi = max shift on hi side
+  // for PPPMStagger, stagger value (0.0 or 0.5) also affects this
+
+  if (order % 2) {
+    shiftatom_lo_either = 0.5;
+    shiftatom_hi_either = 0.5;
+  } else if (order % 2 == 0) {
+    shiftatom_lo_either = 0.0;
+    shiftatom_hi_either = 0.0;
   }
 
-  double xprd = prd[0];
-  double yprd = prd[1];
-  double zprd = prd[2];
-  double zprd_slab = zprd*slab_volfactor;
-
-  double dist[3];
-  double cuthalf = 0.5*neighbor->skin + qdist;
-  if (triclinic == 0) dist[0] = dist[1] = dist[2] = cuthalf;
-  else {
-    dist[0] = cuthalf/domain->prd[0];
-    dist[1] = cuthalf/domain->prd[1];
-    dist[2] = cuthalf/domain->prd[2];
-  }
-
-  int nlo,nhi;
-
-  nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
-                            nx_p/xprd + sft) - OFFSET;
-  nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
-                            nx_p/xprd + sft) - OFFSET;
-  nxlo_o = nlo + nlow;
-  nxhi_o = nhi + nupp;
-
-  nlo = static_cast<int> ((sublo[1]-dist[1]-boxlo[1]) *
-                            ny_p/yprd + sft) - OFFSET;
-  nhi = static_cast<int> ((subhi[1]+dist[1]-boxlo[1]) *
-                            ny_p/yprd + sft) - OFFSET;
-  nylo_o = nlo + nlow;
-  nyhi_o = nhi + nupp;
-
-  nlo = static_cast<int> ((sublo[2]-dist[2]-boxlo[2]) *
-                            nz_p/zprd_slab + sft) - OFFSET;
-  nhi = static_cast<int> ((subhi[2]+dist[2]-boxlo[2]) *
-                            nz_p/zprd_slab + sft) - OFFSET;
-  nzlo_o = nlo + nlow;
-  nzhi_o = nhi + nupp;
-
-  // for slab PPPM, change the grid boundary for processors at +z end
-  //   to include the empty volume between periodically repeating slabs
-  // for slab PPPM, want charge data communicated from -z proc to +z proc,
-  //   but not vice versa, also want field data communicated from +z proc to
-  //   -z proc, but not vice versa
-  // this is accomplished by nzhi_i = nzhi_o on +z end (no ghost cells)
-
-  if (slabflag && (comm->myloc[2] == comm->procgrid[2]-1)) {
-    nzhi_i = nz_p - 1;
-    nzhi_o = nz_p - 1;
-  }
-
-  // decomposition of FFT mesh
+  // x-pencil decomposition of Coulomb FFT mesh
   // global indices range from 0 to N-1
-  // proc owns entire x-dimension, clump of columns in y,z dimensions
+  // each proc owns entire x-dimension, clumps of columns in y,z dimensions
   // npey_fft,npez_fft = # of procs in y,z dims
   // if nprocs is small enough, proc can own 1 or more entire xy planes,
   //   else proc owns 2d sub-blocks of yz plane
   // me_y,me_z = which proc (0-npe_fft-1) I am in y,z dimensions
   // nlo_fft,nhi_fft = lower/upper limit of the section
-  //   of the global FFT mesh that I own
+  //   of the global FFT mesh that I own in x-pencil decomposition
 
   int npey_fft,npez_fft;
-  if (nz_p >= nprocs) {
+  if (nz_either >= nprocs) {
     npey_fft = 1;
     npez_fft = nprocs;
-  } else procs2grid2d(nprocs,ny_p,nz_p,&npey_fft,&npez_fft);
+  } else procs2grid2d(nprocs,ny_either,nz_either,&npey_fft,&npez_fft);
 
   int me_y = me % npey_fft;
   int me_z = me / npey_fft;
 
-  nxlo_f = 0;
-  nxhi_f = nx_p - 1;
-  nylo_f = me_y*ny_p/npey_fft;
-  nyhi_f = (me_y+1)*ny_p/npey_fft - 1;
-  nzlo_f = me_z*nz_p/npez_fft;
-  nzhi_f = (me_z+1)*nz_p/npez_fft - 1;
-
-  // PPPM grid for this proc, including ghosts
-
-  ng = (nxhi_o-nxlo_o+1) * (nyhi_o-nylo_o+1) * (nzhi_o-nzlo_o+1);
-
-  // FFT arrays on this proc, without ghosts
-  // nf = nfft = FFT points in FFT decomposition on this proc
-  // nfft_brick = FFT points in 3d brick-decomposition on this proc
-  // nfb = nfft_both = greater of 2 values
-
-  nf = (nxhi_f-nxlo_f+1) * (nyhi_f-nylo_f+1) * (nzhi_f-nzlo_f+1);
-  int nfft_brick = (nxhi_i-nxlo_i+1) * (nyhi_i-nylo_i+1) * (nzhi_i-nzlo_i+1);
-  nfb = MAX(nf,nfft_brick);
+  nxlo_fft_either = 0;
+  nxhi_fft_either = nx_either - 1;
+  nylo_fft_either = me_y*ny_either/npey_fft;
+  nyhi_fft_either = (me_y+1)*ny_either/npey_fft - 1;
+  nzlo_fft_either = me_z*nz_either/npez_fft;
+  nzhi_fft_either = (me_z+1)*nz_either/npez_fft - 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -3362,17 +3324,15 @@ double PPPMDisp::compute_qopt_6_ad()
 }
 
 /* ----------------------------------------------------------------------
-   set size of FFT grid  and g_ewald_6
-   for Dispersion interactions
+   set global grid and g_ewald_6 for dispersion interactions
 ------------------------------------------------------------------------- */
 
-void PPPMDisp::set_grid_6()
+void PPPMDisp::set_grid_global_6()
 {
-  // calculate csum
-
   if (!csumflag) calc_csum();
   if (!gewaldflag_6) set_init_g6();
   if (!gridflag_6) set_n_pppm_6();
+
   while (!factorable(nx_pppm_6)) nx_pppm_6++;
   while (!factorable(ny_pppm_6)) ny_pppm_6++;
   while (!factorable(nz_pppm_6)) nz_pppm_6++;
@@ -8307,7 +8267,7 @@ double PPPMDisp::memory_usage()
     bytes += (double)nfft_both_6 * (mixing + 2) * sizeof(FFT_SCALAR);
   }
 
-  // four GridComm bufs
+  // four Grid3d bufs
 
   bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
   bytes += (double)(ngc6_buf1 + ngc6_buf2) * npergrid6 * sizeof(FFT_SCALAR);

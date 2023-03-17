@@ -38,15 +38,15 @@ to create digital object identifiers (DOI) for stable releases of the
 LAMMPS source code.  There are two types of DOIs for the LAMMPS source code.
 
 The canonical DOI for **all** versions of LAMMPS, which will always
-point to the **latest** stable release version is:
+point to the **latest** stable release version, is:
 
 - DOI: `10.5281/zenodo.3726416 <https://dx.doi.org/10.5281/zenodo.3726416>`_
 
-In addition there are DOIs for individual stable releases. Currently there are:
+In addition there are DOIs generated for individual stable releases:
 
 - 3 March 2020 version: `DOI:10.5281/zenodo.3726417 <https://dx.doi.org/10.5281/zenodo.3726417>`_
 - 29 October 2020 version: `DOI:10.5281/zenodo.4157471 <https://dx.doi.org/10.5281/zenodo.4157471>`_
-- 29 September 2021 version: `DOI:10.5281/zenodo.6386596 <https//dx.doi.org/10.5281/zenodo.6386596>`_
+- 29 September 2021 version: `DOI:10.5281/zenodo.6386596 <https://dx.doi.org/10.5281/zenodo.6386596>`_
 
 Home page
 ^^^^^^^^^
@@ -65,6 +65,6 @@ for optional features used in a specific run is printed to the screen
 and log file.  Style and output location can be selected with the
 :ref:`-cite command-line switch <cite>`.  Additional references are
 given in the documentation of the :doc:`corresponding commands
-<Commands_all>` or in the :doc:`Howto tutorials <Howto>`.  So please
-make certain, that you provide the proper acknowledgments and citations
-in any published works using LAMMPS.
+<Commands_all>` or in the :doc:`Howto tutorials <Howto>`.  Please make
+certain, that you provide the proper acknowledgments and citations in
+any published works using LAMMPS.

@@ -20,7 +20,6 @@
 #include "memory.h"
 #include "neighbor.h"
 
-#include <cctype>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -305,6 +304,16 @@ void ImproperHybrid::coeff(int narg, char **arg)
 
 void ImproperHybrid::init_style()
 {
+  // error if sub-style is not used
+
+  int used;
+  for (int istyle = 0; istyle < nstyles; ++istyle) {
+    used = 0;
+    for (int itype = 1; itype <= atom->nimpropertypes; ++itype)
+      if (map[itype] == istyle) used = 1;
+    if (used == 0) error->all(FLERR, "Improper hybrid sub-style {} is not used", keywords[istyle]);
+  }
+
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) styles[m]->init_style();
 }

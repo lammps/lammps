@@ -24,7 +24,7 @@
 #include "error.h"
 #include "fft3d_kokkos.h"
 #include "force.h"
-#include "gridcomm_kokkos.h"
+#include "grid3d_kokkos.h"
 #include "kokkos.h"
 #include "math_const.h"
 #include "math_special_kokkos.h"
@@ -66,38 +66,8 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK;
   datamask_modify = F_MASK;
 
-  pppmflag = 1;
   group_group_enable = 0;
   triclinic_support = 1;
-
-  nfactors = 3;
-  //factors = new int[nfactors];
-  factors[0] = 2;
-  factors[1] = 3;
-  factors[2] = 5;
-
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
-
-  //density_brick = d_vdx_brick = d_vdy_brick = d_vdz_brick = nullptr;
-  //d_density_fft = nullptr;
-  //d_u_brick = nullptr;
-  //d_v0_brick = d_v1_brick = d_v2_brick = d_v3_brick = d_v4_brick = d_v5_brick = nullptr;
-  //greensfn = nullptr;
-  //d_work1 = d_work2 = nullptr;
-  //vg = nullptr;
-  //d_fkx = d_fky = d_fkz = nullptr;
-
-
-  //gf_b = nullptr;
-  //rho1d = rho_coeff = drho1d = drho_coeff = nullptr;
-
-  fft1 = fft2 = nullptr;
-  remap = nullptr;
-  gc = nullptr;
-
-  nmax = 0;
-  //part2grid = nullptr;
 
   peratom_allocate_flag = 0;
 
@@ -136,13 +106,24 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   acons(7,6) = 4887769399.0 / 37838389248.0;
 
   k_flag = DAT::tdual_int_scalar("PPPM:flag");
+
+  // same name but different than base class
+
+  gc = nullptr;
+  fft1 = nullptr;
+  fft2 = nullptr;
+  remap = nullptr;
 }
 
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::settings(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style pppm/kk command");
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
+
   accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
+  if (accuracy_relative > 1.0)
+    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
+               accuracy_relative, force->kspace_style);
 }
 
 /* ----------------------------------------------------------------------
@@ -154,16 +135,11 @@ PPPMKokkos<DeviceType>::~PPPMKokkos()
 {
   if (copymode) return;
 
-  //delete [] factors;
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
-  //memory->destroy(part2grid);
-  //memory->destroy(acons);
 
   memoryKK->destroy_kokkos(k_eatom,eatom);
   memoryKK->destroy_kokkos(k_vatom,vatom);
-  eatom = nullptr;
-  vatom = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -173,10 +149,7 @@ PPPMKokkos<DeviceType>::~PPPMKokkos()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::init()
 {
-  if (me == 0) {
-    if (screen) fprintf(screen,"PPPM initialization ...\n");
-    if (logfile) fprintf(logfile,"PPPM initialization ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
 
   // error check
 
@@ -185,12 +158,12 @@ void PPPMKokkos<DeviceType>::init()
 
   triclinic_check();
   if (domain->triclinic && slabflag)
-    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and "
-               "slab correction");
-  if (domain->dimension == 2) error->all(FLERR,
-                                         "Cannot use PPPM with 2d simulation");
+    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and slab correction");
+  if (domain->dimension == 2)
+    error->all(FLERR,"Cannot use PPPM with 2d simulation");
 
-  if (!atomKK->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use non-periodic boundaries with PPPM");
@@ -213,13 +186,13 @@ void PPPMKokkos<DeviceType>::init()
   pair_check();
 
   int itmp = 0;
-  double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
   // if kspace is TIP4P, extract TIP4P params from pair style
-  // bond/angle are not yet init(), so insure equilibrium request is valid
+  // bond/angle are not yet init(), so ensure equilibrium request is valid
 
   qdist = 0.0;
 
@@ -231,7 +204,7 @@ void PPPMKokkos<DeviceType>::init()
   scale = 1.0;
   qqrd2e = force->qqrd2e;
   qsum_qsq();
-  natoms_original = atomKK->natoms;
+  natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
 
@@ -249,7 +222,6 @@ void PPPMKokkos<DeviceType>::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridCommKokkos<DeviceType> *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -261,23 +233,28 @@ void PPPMKokkos<DeviceType>::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    gctmp = new GridCommKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                         nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+    gc = new Grid3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+    gc->set_distance(0.5*neighbor->skin + qdist);
+    gc->set_stencil_atom(-nlower,nupper);
+    gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
+    gc->set_zfactor(slab_volfactor);
+
+    gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                   nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+
     int tmp1,tmp2;
-    gctmp->setup(tmp1,tmp2);
-    if (!gctmp->ghost_adjacent()) break;
-    delete gctmp;
+    gc->setup_comm(tmp1,tmp2);
+    if (gc->ghost_adjacent()) break;
+    delete gc;
 
     order--;
     iteration++;
   }
 
   if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
-  if (!overlap_allowed && gctmp->ghost_adjacent())
-    error->all(FLERR,"PPPM grid stencil extends "
-               "beyond nearest neighbor processor");
-  if (gctmp) delete gctmp;
+  if (!overlap_allowed && !gc->ghost_adjacent())
+    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
+  if (gc) delete gc;
 
   // adjust g_ewald
 
@@ -286,6 +263,20 @@ void PPPMKokkos<DeviceType>::init()
   // calculate the final accuracy
 
   double estimated_accuracy = final_accuracy();
+
+  // allocate K-space dependent memory
+  // don't invoke allocate peratom() or group(), will be allocated when needed
+
+  allocate();
+
+  // pre-compute Green's function denomiator expansion
+  // pre-compute 1d charge distribution coefficients
+
+  compute_gf_denom();
+  compute_rho_coeff();
+
+  k_rho_coeff.template modify<LMPHostType>();
+  k_rho_coeff.template sync<DeviceType>();
 
   // print stats
 
@@ -306,21 +297,6 @@ void PPPMKokkos<DeviceType>::init()
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);
   }
-
-  // allocate K-space dependent memory
-  // don't invoke allocate peratom(), will be allocated when needed
-
-  allocate();
-
-  // pre-compute Green's function denomiator expansion
-  // pre-compute 1d charge distribution coefficients
-
-  compute_gf_denom();
-  compute_rho_coeff();
-
-  k_rho_coeff.template modify<LMPHostType>();
-  k_rho_coeff.template sync<DeviceType>();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -551,7 +527,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic2, const int &n) 
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PPPMKokkos<DeviceType>::setup_grid()
+void PPPMKokkos<DeviceType>::reset_grid()
 {
   // free all arrays previously allocated
 
@@ -569,8 +545,7 @@ void PPPMKokkos<DeviceType>::setup_grid()
   allocate();
 
   if (!overlap_allowed && !gc->ghost_adjacent())
-    error->all(FLERR,"PPPM grid stencil extends "
-               "beyond nearest neighbor processor");
+    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
 
   // pre-compute Green's function denomiator expansion
   // pre-compute 1d charge distribution coefficients
@@ -623,9 +598,9 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
 
   // if atom count has changed, update qsum and qsqsum
 
-  if (atomKK->natoms != natoms_original) {
+  if (atom->natoms != natoms_original) {
     qsum_qsq();
-    natoms_original = atomKK->natoms;
+    natoms_original = atom->natoms;
   }
 
   // return if there are no charges
@@ -647,10 +622,8 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
 
   // extend size of per-atom arrays if necessary
 
-  if (atomKK->nmax > nmax) {
-    //memory->destroy(part2grid);
+  if (atom->nmax > nmax) {
     nmax = atomKK->nmax;
-    //memory->create(part2grid,nmax,3,"pppm:part2grid");
     d_part2grid = typename AT::t_int_1d_3("pppm:part2grid",nmax);
     d_rho1d = typename FFT_AT::t_FFT_SCALAR_2d_3("pppm:rho1d",nmax,order/2+order/2+1);
   }
@@ -665,8 +638,8 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc->reverse_comm_kspace(this,1,REVERSE_RHO,
-                          k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                   k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -679,14 +652,14 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  gc->forward_comm_kspace(this,3,FORWARD_IK,
-                          k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
+  gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
+                   k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom)
-      gc->forward_comm_kspace(this,7,FORWARD_IK_PERATOM,
-                              k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                     k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles
 
@@ -721,18 +694,16 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
 
   // per-atom energy/virial
   // energy includes self-energy correction
-  // notal accounts for TIP4P tallying d_eatom/vatom for ghost atoms
+  // ntotal accounts for TIP4P tallying eatom/vatom for ghost atoms
 
   if (evflag_atom) {
     int nlocal = atomKK->nlocal;
     int ntotal = nlocal;
-    //if (tip4pflag) ntotal += atomKK->nghost;
 
     if (eflag_atom) {
       copymode = 1;
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_self1>(0,nlocal),*this);
       copymode = 0;
-      //for (i = nlocal; i < ntotal; i++) d_eatom[i] *= 0.5*qscale;
     }
 
     if (vflag_atom) {
@@ -748,7 +719,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
 
   // convert atoms back from lamda to box coords
 
-  if (triclinic) domain->lamda2x(atomKK->nlocal);
+  if (triclinic) domain->lamda2x(atom->nlocal);
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
@@ -785,6 +756,46 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_self2, const int &i) const
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::allocate()
 {
+  // create ghost grid object for rho and electric field communication
+  // returns local owned and ghost grid bounds
+  // setup communication patterns and buffers
+
+  gc = new Grid3dKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+  gc->set_distance(0.5*neighbor->skin + qdist);
+  gc->set_stencil_atom(-nlower,nupper);
+  gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
+  gc->set_zfactor(slab_volfactor);
+
+  gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                 nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+
+  gc->setup_comm(ngc_buf1,ngc_buf2);
+
+  npergrid = 3;
+
+  k_gc_buf1 = FFT_DAT::tdual_FFT_SCALAR_1d("pppm:gc_buf1",npergrid*ngc_buf1);
+  k_gc_buf2 = FFT_DAT::tdual_FFT_SCALAR_1d("pppm:gc_buf2",npergrid*ngc_buf2);
+
+  // tally local grid sizes
+  // ngrid = count of owned+ghost grid cells on this proc
+  // nfft_brick = FFT points in 3d brick-decomposition on this proc
+  //              same as count of owned grid cells
+  // nfft = FFT points in x-pencil FFT decomposition on this proc
+  // nfft_both = greater of nfft and nfft_brick
+
+  ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
+    (nzhi_out-nzlo_out+1);
+
+  nfft_brick = (nxhi_in-nxlo_in+1) * (nyhi_in-nylo_in+1) *
+    (nzhi_in-nzlo_in+1);
+
+  nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
+    (nzhi_fft-nzlo_fft+1);
+
+  nfft_both = MAX(nfft,nfft_brick);
+
+  // allocate distributed grid data
+
   d_density_brick = typename FFT_AT::t_FFT_SCALAR_3d("pppm:density_brick",nzhi_out-nzlo_out+1,nyhi_out-nylo_out+1,nxhi_out-nxlo_out+1);
 
   memoryKK->create_kokkos(k_density_fft,density_fft,nfft_both,"pppm:d_density_fft");
@@ -843,20 +854,6 @@ void PPPMKokkos<DeviceType>::allocate()
                           nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                           nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                           1,0,0,FFT_PRECISION,collective_flag,gpu_aware_flag);
-
-  // create ghost grid object for rho and electric field communication
-  // also create 2 bufs for ghost grid cell comm, passed to GridComm methods
-
-  gc = new GridCommKokkos<DeviceType>(lmp,world,nx_pppm,ny_pppm,nz_pppm,
-                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                    nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
-
-  gc->setup(ngc_buf1,ngc_buf2);
-
-  npergrid = 3;
-
-  k_gc_buf1 = FFT_DAT::tdual_FFT_SCALAR_1d("pppm:gc_buf1",npergrid*ngc_buf1);
-  k_gc_buf2 = FFT_DAT::tdual_FFT_SCALAR_1d("pppm:gc_buf2",npergrid*ngc_buf2);
 }
 
 /* ----------------------------------------------------------------------
@@ -866,23 +863,22 @@ void PPPMKokkos<DeviceType>::allocate()
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::deallocate()
 {
+  delete gc;
+  gc = nullptr;
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
+
   memoryKK->destroy_kokkos(d_density_fft,density_fft);
-  density_fft = nullptr;
   memoryKK->destroy_kokkos(d_greensfn,greensfn);
-  greensfn = nullptr;
   memoryKK->destroy_kokkos(d_work1,work1);
-  work1 = nullptr;
   memoryKK->destroy_kokkos(d_work2,work2);
-  work2 = nullptr;
 
   delete fft1;
   fft1 = nullptr;
   delete fft2;
-  fft2 = nullptr;
+  fft1 = nullptr;
   delete remap;
   remap = nullptr;
-  delete gc;
-  gc = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -905,7 +901,7 @@ void PPPMKokkos<DeviceType>::allocate_peratom()
 
 
   // use same GC ghost grid object for peratom grid communication
-   // but need to reallocate a larger gc_buf1 and gc_buf2
+  // but need to reallocate a larger gc_buf1 and gc_buf2
 
   npergrid = 7;
 
@@ -951,7 +947,7 @@ void PPPMKokkos<DeviceType>::set_grid_global()
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
     if (q2 == 0.0)
-      error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
+      error->all(FLERR,"Must use kspace_modify gewald for uncharged system");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
     if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     else g_ewald = sqrt(-log(g_ewald)) / cutoff;
@@ -1020,7 +1016,7 @@ void PPPMKokkos<DeviceType>::set_grid_global()
     tmp[0] = nx_pppm;
     tmp[1] = ny_pppm;
     tmp[2] = nz_pppm;
-    KSpace::x2lamdaT(&tmp[0],&tmp[0]);
+    x2lamdaT(&tmp[0],&tmp[0]);
     h_x = 1.0/tmp[0];
     h_y = 1.0/tmp[1];
     h_z = 1.0/tmp[2];
@@ -1064,7 +1060,7 @@ double PPPMKokkos<DeviceType>::compute_df_kspace()
   double yprd = domain->yprd;
   double zprd = domain->zprd;
   double zprd_slab = zprd*slab_volfactor;
-  bigint natoms = atomKK->natoms;
+  bigint natoms = atom->natoms;
   double df_kspace = 0.0;
   double lprx = estimate_ik_error(h_x,xprd,natoms);
   double lpry = estimate_ik_error(h_y,yprd,natoms);
@@ -1104,10 +1100,7 @@ void PPPMKokkos<DeviceType>::adjust_gewald()
     g_ewald -= dx;
     if (fabs(newton_raphson_f()) < SMALL) return;
   }
-
-  char str[128];
-  sprintf(str, "Could not compute g_ewald");
-  error->all(FLERR, str);
+  error->all(FLERR, "Could not compute g_ewald");
 }
 
 /* ----------------------------------------------------------------------
@@ -1120,7 +1113,7 @@ double PPPMKokkos<DeviceType>::newton_raphson_f()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  bigint natoms = atomKK->natoms;
+  bigint natoms = atom->natoms;
 
   double df_rspace = 2.0*q2*exp(-g_ewald*g_ewald*cutoff*cutoff) /
        sqrt(natoms*cutoff*xprd*yprd*zprd);
@@ -1161,7 +1154,7 @@ double PPPMKokkos<DeviceType>::final_accuracy()
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  bigint natoms = atomKK->natoms;
+  bigint natoms = atom->natoms;
   if (natoms == 0) natoms = 1; // avoid division by zero
 
   double df_kspace = compute_df_kspace();
@@ -1175,10 +1168,10 @@ double PPPMKokkos<DeviceType>::final_accuracy()
 }
 
 /* ----------------------------------------------------------------------
-   set local subset of PPPM/FFT grid that I own
-   n xyz lo/hi in = 3d brick that I own (inclusive)
-   n xyz lo/hi out = 3d brick + ghost cells in 6 directions (inclusive)
-   n xyz lo/hi fft = FFT columns that I own (all of x dim, 2d decomp in yz)
+   set params which determine which owned and ghost cells this proc owns
+   Grid3d uses these params to partition grid
+   also partition FFT grid
+     n xyz lo/hi fft = FFT columns that I own (all of x dim, 2d decomp in yz)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1470,8 +1463,6 @@ void PPPMKokkos<DeviceType>::make_rho()
 {
   // clear 3d density array
 
-  //memset(&(density_brick(nzlo_out,nylo_out,nxlo_out)),0,
-  //       ngrid*sizeof(FFT_SCALAR));
   numz_out = nzhi_out-nzlo_out + 1;
   numy_out = nyhi_out-nylo_out + 1;
   numx_out = nxhi_out-nxlo_out + 1;
@@ -1484,7 +1475,7 @@ void PPPMKokkos<DeviceType>::make_rho()
   // loop over my charges, add their contribution to nearby grid points
   // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
   // (dx,dy,dz) = distance to "lower left" grid pt
-  // (mx,my,mz) = global coords of moving stencil pt
+  // (mx,my,mz) = global indices of moving stencil pt
 
   nlocal = atomKK->nlocal;
 
@@ -2929,7 +2920,7 @@ double PPPMKokkos<DeviceType>::memory_usage()
   if (peratom_allocate_flag)
     bytes += (double)6 * nbrick * sizeof(FFT_SCALAR);
 
-  // two GridComm bufs
+  // two Grid3d bufs
 
   bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 

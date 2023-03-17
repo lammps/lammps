@@ -19,7 +19,7 @@ Syntax
   *spin/electron* or *radius/electron* or
   *quat* or *quat/random* or *diameter* or *shape* or *length* or *tri* or
   *theta* or *theta/random* or *angmom* or *omega* or
-  *mass* or *density* or *density/disc* or
+  *mass* or *density* or *density/disc* or *temperature* or
   *volume* or *image* or *bond* or *angle* or *dihedral* or
   *improper* or *sph/e* or *sph/cv* or *sph/rho* or
   *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or
@@ -99,6 +99,8 @@ Syntax
        *density* value = particle density for a sphere or ellipsoid (mass/distance\^3 units), or for a triangle (mass/distance\^2 units) or line (mass/distance units) particle
          value can be an atom-style variable (see below)
        *density/disc* value = particle density for a 2d disc or ellipse (mass/distance\^2 units)
+         value can be an atom-style variable (see below)
+       *temperature* value = temperature for finite-size particles (temperature units)
          value can be an atom-style variable (see below)
        *volume* value = particle volume for Peridynamic particle (distance\^3 units)
          value can be an atom-style variable (see below)
@@ -254,7 +256,7 @@ fraction of the selected atoms.  The actual number of atoms changed
 will be exactly the requested number.  For *type/ratio* the specified
 fraction (0 <= *fraction* <= 1) determines the number.  For
 *type/subset*, the specified *Nsubset* is the number.  An iterative
-algorithm is used which insures the correct number of atoms are
+algorithm is used which ensures the correct number of atoms are
 selected, in a perfectly random fashion.  Which atoms are selected
 will change with the number of processors used.  These keywords do not
 allow use of an atom-style variable.
@@ -428,6 +430,12 @@ assumed to be in mass/distance\^2 units).
 
 If none of these cases are valid, then the mass is set to the density
 value directly (the input density is assumed to be in mass units).
+
+Keyword *temperature* sets the temperature of a finite-size particle.
+Currently, only the GRANULAR package supports this attribute. The
+temperature must be added using an instance of
+:doc:`fix property/atom <fix_property_atom>` The values for the
+temperature must be positive.
 
 Keyword *volume* sets the volume of all selected particles.  Currently,
 only the :doc:`atom_style peri <atom_style>` command defines particles

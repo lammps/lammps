@@ -1,11 +1,18 @@
 .. index:: pair_style amoeba
+.. index:: pair_style amoeba/gpu
 .. index:: pair_style hippo
+.. index:: pair_style hippo/gpu
 
 pair_style amoeba command
 =========================
 
+Accelerator Variants: *amoeba/gpu*
+
 pair_style hippo command
 ========================
+
+Accelerator Variants: *hippo/gpu*
+
 Syntax
 """"""
 
@@ -127,6 +134,10 @@ version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
 implementation of HIPPO in LAMMPS matches the version discussed in
 :ref:`(Rackers) <amoeba-Rackers>`.
 
+.. versionadded:: 8Feb2023
+
+Accelerator support via the GPU package is available.
+
 ----------
 
 Only a single pair_coeff command is used with either the *amoeba* and
@@ -184,6 +195,19 @@ an input script that reads a restart file.
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
+
+----------
+
+.. include:: accel_styles.rst
+
+.. note::
+
+  Using the GPU accelerated pair styles 'amoeba/gpu' or 'hippo/gpu'
+  when compiling the GPU package for OpenCL has a few known issues
+  when running on integrated GPUs and the calculation may crash.
+
+  The GPU accelerated pair styles are also not (yet) compatible
+  with single precision FFTs.
 
 ----------
 

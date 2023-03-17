@@ -1,4 +1,4 @@
-Sphinx
+Sphinx<6.0.0
 sphinxcontrib-spelling
 git+https://github.com/akohlmey/sphinx-fortran@parallel-read
 sphinx_tabs
@@ -6,3 +6,4 @@ breathe
 Pygments
 six
 pyyaml
+linkchecker

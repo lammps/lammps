@@ -12,6 +12,7 @@ if(DOWNLOAD_MDI)
   set(MDI_MD5 "7a222353ae8e03961d5365e6cd48baee" CACHE STRING "MD5 checksum for MDI tarball")
   mark_as_advanced(MDI_URL)
   mark_as_advanced(MDI_MD5)
+  GetFallbackURL(MDI_URL MDI_FALLBACK)
   enable_language(C)
 
   # only ON/OFF are allowed for "mpi" flag when building MDI library
@@ -63,7 +64,7 @@ if(DOWNLOAD_MDI)
   # support cross-compilation and ninja-build
   include(ExternalProject)
   ExternalProject_Add(mdi_build
-    URL     ${MDI_URL}
+    URL     ${MDI_URL} ${MDI_FALLBACK}
     URL_MD5 ${MDI_MD5}
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext
     CMAKE_ARGS

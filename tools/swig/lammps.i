@@ -137,6 +137,9 @@ extern void   lammps_gather_atoms_subset(void *, char *, int, int, int, int *, v
 extern void   lammps_scatter_atoms(void *, char *, int, int, void *);
 extern void   lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 extern void   lammps_gather_bonds(void *handle, void *data);
+extern void   lammps_gather_angles(void *handle, void *data);
+extern void   lammps_gather_dihedrals(void *handle, void *data);
+extern void   lammps_gather_impropers(void *handle, void *data);
 extern void   lammps_gather(void *, char *, int, int, void *);
 extern void   lammps_gather_concat(void *, char *, int, int, void *);
 extern void   lammps_gather_subset(void *, char *, int, int, int, int *, void *);
@@ -316,6 +319,9 @@ extern void   lammps_gather_atoms_subset(void *, char *, int, int, int, int *, v
 extern void   lammps_scatter_atoms(void *, char *, int, int, void *);
 extern void   lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 extern void   lammps_gather_bonds(void *handle, void *data);
+extern void   lammps_gather_angles(void *handle, void *data);
+extern void   lammps_gather_dihedrals(void *handle, void *data);
+extern void   lammps_gather_impropers(void *handle, void *data);
 extern void   lammps_gather(void *, char *, int, int, void *);
 extern void   lammps_gather_concat(void *, char *, int, int, void *);
 extern void   lammps_gather_subset(void *, char *, int, int, int, int *, void *);

@@ -109,9 +109,9 @@ TEST_F(GroupTest, EmptyDelete)
     command("atom_modify first new5");
     END_HIDE_OUTPUT();
     ASSERT_EQ(group->ngroup, 7);
-    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new3 xxx"););
-    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new3 empty xxx"););
-    TEST_FAILURE(".*ERROR: Group command requires atom attribute molecule.*",
+    TEST_FAILURE(".*ERROR: Unknown group command keyword: xxx.*", command("group new3 xxx"););
+    TEST_FAILURE(".*ERROR: Illegal group empty command.*", command("group new3 empty xxx"););
+    TEST_FAILURE(".*ERROR: Group include molecule command requires atom attribute molecule.*",
                  command("group new2 include molecule"););
 
     BEGIN_HIDE_OUTPUT();
@@ -119,7 +119,8 @@ TEST_F(GroupTest, EmptyDelete)
     END_HIDE_OUTPUT();
     ASSERT_EQ(group->ngroup, 6);
 
-    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new2 delete xxx"););
+    TEST_FAILURE(".*ERROR: Illegal group delete command: too many arguments.*",
+                 command("group new2 delete xxx"););
     TEST_FAILURE(".*ERROR: Cannot delete group all.*", command("group all delete"););
     TEST_FAILURE(".*ERROR: Could not find group delete.*", command("group new0 delete"););
     TEST_FAILURE(".*ERROR: Cannot delete group new2 currently used by fix.*",
@@ -150,8 +151,9 @@ TEST_F(GroupTest, RegionClear)
     ASSERT_EQ(group->count(group->find("all")), lmp->atom->natoms);
     ASSERT_EQ(group->count_all(), lmp->atom->natoms);
 
-    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three region left xxx"););
-    TEST_FAILURE(".*ERROR: Group region dummy does not exist.*",
+    TEST_FAILURE(".*ERROR: Illegal group region command.*",
+                 command("group three region left xxx"););
+    TEST_FAILURE(".*ERROR: Region dummy for group region does not exist.*",
                  command("group four region dummy"););
 
     BEGIN_HIDE_OUTPUT();
@@ -221,10 +223,11 @@ TEST_F(GroupTest, SelectRestart)
     command("group six clear");
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*ERROR: Group ID does not exist.*", command("group four union one two xxx"););
-    TEST_FAILURE(".*ERROR: Group ID does not exist.*",
+    TEST_FAILURE(".*ERROR: Group ID xxx does not exist.*",
+                 command("group four union one two xxx"););
+    TEST_FAILURE(".*ERROR: Group ID xxx does not exist.*",
                  command("group five subtract all half xxx"););
-    TEST_FAILURE(".*ERROR: Group ID does not exist.*",
+    TEST_FAILURE(".*ERROR: Group ID xxx does not exist.*",
                  command("group five intersect half top xxx"););
 }
 
@@ -248,7 +251,8 @@ TEST_F(GroupTest, Molecular)
     ASSERT_NEAR(group->charge(group->find("top")), 0, 1.0e-14);
     ASSERT_NEAR(group->charge(group->find("right"), domain->get_region_by_id("top")), 0, 1.0e-14);
 
-    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three include xxx"););
+    TEST_FAILURE(".*ERROR: Unknown group include keyword xxx.*",
+                 command("group three include xxx"););
 }
 
 TEST_F(GroupTest, Dynamic)
@@ -286,9 +290,9 @@ TEST_F(GroupTest, Dynamic)
     command("run 10 post no");
     END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("grow")), 20);
-    TEST_FAILURE(".*ERROR: Cannot subtract groups using a dynamic group.*",
+    TEST_FAILURE(".*ERROR: Cannot subtract dynamic groups.*",
                  command("group chunk subtract half grow"););
-    TEST_FAILURE(".*ERROR: Cannot union groups using a dynamic group.*",
+    TEST_FAILURE(".*ERROR: Cannot union groups from a dynamic group.*",
                  command("group chunk union half grow"););
     TEST_FAILURE(".*ERROR: Cannot intersect groups using a dynamic group.*",
                  command("group chunk intersect half grow"););
@@ -301,14 +305,163 @@ TEST_F(GroupTest, Dynamic)
 
     TEST_FAILURE(".*ERROR: Group dynamic cannot reference itself.*",
                  command("group half dynamic half region top"););
-    TEST_FAILURE(".*ERROR: Group dynamic parent group does not exist.*",
+    TEST_FAILURE(".*ERROR: Group dynamic parent group dummy does not exist.*",
                  command("group half dynamic dummy region top"););
 
-    TEST_FAILURE(".*ERROR: Variable for group is invalid style.*",
+    TEST_FAILURE(".*ERROR: Variable ramp for group is invalid style.*",
                  command("group ramp variable ramp"););
-    TEST_FAILURE(".*ERROR: Variable name for group does not exist.*",
+    TEST_FAILURE(".*ERROR: Variable name grow for group does not exist.*",
                  command("group ramp variable grow"););
 }
+
+constexpr double EPSILON = 1.0e-14;
+
+TEST_F(GroupTest, VariableFunctions)
+{
+    molecular_system();
+
+    BEGIN_HIDE_OUTPUT();
+    command("group one region left");
+    command("group two region right");
+    command("group three empty");
+    command("group four region top");
+    command("set atom 5 charge $(1.0+2.0*sin(PI/32*5))");
+    command("set atom 12 charge $(-1.0+2.0*sin(PI/32*12))");
+    command("set atom 25 charge $(2.0+2.0*sin(PI/32*25))");
+    command("set atom 32 charge $(-2.0+2.0*sin(PI/32*32))");
+    command("pair_style lj/cut 5.0");
+    command("pair_coeff * * 0.4 3.0");
+    command("pair_coeff 2 2 0.5 3.3");
+    command("pair_coeff 3 3 0.2 3.5");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    int one   = group->find("one");
+    int two   = group->find("two");
+    int three = group->find("three");
+    int four  = group->find("four");
+
+    auto right = domain->get_region_by_id("right");
+    auto left  = domain->get_region_by_id("left");
+    auto top   = domain->get_region_by_id("top");
+
+    EXPECT_EQ(group->count_all(), 64);
+    EXPECT_EQ(group->count(one), 16);
+    EXPECT_EQ(group->count(two), 16);
+    EXPECT_EQ(group->count(three), 0);
+    EXPECT_EQ(group->count(four), 16);
+
+    EXPECT_EQ(group->count(0, right), 16);
+    EXPECT_EQ(group->count(one, top), 4);
+    EXPECT_EQ(group->count(two, right), 16);
+    EXPECT_EQ(group->count(two, left), 0);
+
+    EXPECT_DOUBLE_EQ(group->mass(0), 80.0);
+    EXPECT_DOUBLE_EQ(group->mass(two), 32.0);
+    EXPECT_DOUBLE_EQ(group->mass(three), 0.0);
+
+    EXPECT_DOUBLE_EQ(group->mass(0, right), 32.0);
+    EXPECT_DOUBLE_EQ(group->mass(one, top), 8.0);
+    EXPECT_DOUBLE_EQ(group->mass(two, right), 32.0);
+    EXPECT_DOUBLE_EQ(group->mass(two, left), 0.0);
+
+    EXPECT_NEAR(group->charge(0), 0.0, EPSILON);
+    EXPECT_NEAR(group->charge(two), -3.0, EPSILON);
+    EXPECT_NEAR(group->charge(four), 0.0, EPSILON);
+
+    EXPECT_NEAR(group->charge(0, right), -3.0, EPSILON);
+    EXPECT_NEAR(group->charge(one, top), 0.0, EPSILON);
+    EXPECT_NEAR(group->charge(two, right), -3.0, EPSILON);
+    EXPECT_NEAR(group->charge(two, left), 0.0, EPSILON);
+
+    double bounds[6];
+    group->bounds(0, bounds);
+    EXPECT_DOUBLE_EQ(bounds[0], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[1], 1.125);
+    EXPECT_DOUBLE_EQ(bounds[2], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[3], 1.125);
+    EXPECT_DOUBLE_EQ(bounds[4], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[5], 1.125);
+
+    group->bounds(one, bounds);
+    EXPECT_DOUBLE_EQ(bounds[0], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[1], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[2], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[3], 1.125);
+    EXPECT_DOUBLE_EQ(bounds[4], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[5], 1.125);
+
+    group->bounds(0, bounds, right);
+    EXPECT_DOUBLE_EQ(bounds[0], 1.125);
+    EXPECT_DOUBLE_EQ(bounds[1], 1.125);
+    EXPECT_DOUBLE_EQ(bounds[2], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[3], 1.125);
+    EXPECT_DOUBLE_EQ(bounds[4], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[5], 1.125);
+
+    group->bounds(one, bounds, top);
+    EXPECT_DOUBLE_EQ(bounds[0], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[1], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[2], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[3], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[4], -1.875);
+    EXPECT_DOUBLE_EQ(bounds[5], 1.125);
+
+    double center[3];
+    group->xcm(0, 80.0, center);
+    EXPECT_DOUBLE_EQ(center[0], -0.375);
+    EXPECT_DOUBLE_EQ(center[1], -0.375);
+    EXPECT_DOUBLE_EQ(center[2], -0.375);
+
+    group->xcm(two, 32.0, center);
+    EXPECT_DOUBLE_EQ(center[0], 1.125);
+    EXPECT_DOUBLE_EQ(center[1], -0.375);
+    EXPECT_DOUBLE_EQ(center[2], -0.375);
+
+    group->xcm(three, 0.0, center);
+    EXPECT_DOUBLE_EQ(center[0], 0);
+    EXPECT_DOUBLE_EQ(center[1], 0);
+    EXPECT_DOUBLE_EQ(center[2], 0);
+
+    group->xcm(one, 8.0, center, top);
+    EXPECT_DOUBLE_EQ(center[0], -1.875);
+    EXPECT_DOUBLE_EQ(center[1], -1.875);
+    EXPECT_DOUBLE_EQ(center[2], -0.375);
+
+    group->vcm(one, 80.0, center);
+    EXPECT_DOUBLE_EQ(center[0], 0);
+    EXPECT_DOUBLE_EQ(center[1], 0);
+    EXPECT_DOUBLE_EQ(center[2], 0);
+
+    group->vcm(one, 8.0, center, top);
+    EXPECT_DOUBLE_EQ(center[0], 0);
+    EXPECT_DOUBLE_EQ(center[1], 0);
+    EXPECT_DOUBLE_EQ(center[2], 0);
+
+    group->fcm(0, center);
+    EXPECT_NEAR(center[0], 1.9375372195540308e-08, EPSILON);
+    EXPECT_NEAR(center[1], -1.0289756668946382e-07, EPSILON);
+    EXPECT_NEAR(center[2], -1.3366961142124989e-07, EPSILON);
+
+    group->fcm(two, center);
+    EXPECT_NEAR(center[0], 2.4316524016576579e-08, EPSILON);
+    EXPECT_NEAR(center[1], -6.0179227712175987e-08, EPSILON);
+    EXPECT_NEAR(center[2], -1.4393012942592875e-07, EPSILON);
+
+    group->fcm(three, center);
+    EXPECT_NEAR(center[0], 0, EPSILON);
+    EXPECT_NEAR(center[1], 0, EPSILON);
+    EXPECT_NEAR(center[2], 0, EPSILON);
+
+    group->fcm(one, center, top);
+    EXPECT_NEAR(center[0], -5.5879354476928711e-09, EPSILON);
+    EXPECT_NEAR(center[1], -1.6743454178680395e-08, EPSILON);
+    EXPECT_NEAR(center[2], 2.6166095290491853e-08, EPSILON);
+
+    EXPECT_DOUBLE_EQ(group->ke(one), 0);
+    EXPECT_DOUBLE_EQ(group->ke(one, top), 0);
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

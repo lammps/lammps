@@ -11,11 +11,16 @@ one.  Pair styles can be grouped in multiple categories:
    (e.g. :doc:`Lennard-Jones <pair_lj>`, :doc:`Morse <pair_morse>`,
    :doc:`Buckingham <pair_buck>`)
 #. pairwise additive interactions of point particles with added
-   :doc:`Coulomb <pair_coul>` interactions
+   :doc:`Coulomb <pair_coul>` interactions or *only* the Coulomb interactions
 #. manybody interactions of point particles (e.g. :doc:`EAM <pair_eam>`,
    :doc:`Tersoff <pair_tersoff>`)
 #. complex interactions that include additional per-atom properties
    (e.g. Discrete Element Models (DEM), Peridynamics, Ellipsoids)
+#. special purpose pair styles that may not even compute forces like
+   :doc:`pair_style zero <pair_zero>` and :doc:`pair_style tracker
+   <pair_tracker>`, or are a wrapper for multiple kinds of interactions
+   like :doc:`pair_style hybrid <pair_hybrid>`, :doc:`pair_style list <pair_list>`,
+   and :doc:`pair_style kim <pair_kim>`
 
 In the text below, we will discuss aspects of implementing pair styles
 in LAMMPS by looking at representative case studies.  The design of
@@ -382,7 +387,11 @@ the atom type arguments of the :doc:`pair_coeff command <pair_coeff>`
 may be a range (e.g. \*\ 3 for atom types 1, 2, and 3), the
 corresponding arguments are passed to the :cpp:func:`utils::bounds()
 <LAMMPS_NS::utils::bounds>` function which will then return the low
-and high end of the range.
+and high end of the range.  Note that the ``setflag`` array is set to 1
+for all pairs of atom types processed by this call.  This information is
+later used in the ``init_one()`` function to determine if any coefficients
+are missing and, if supported by the potential, generate those missing
+coefficients from the selected mixing rule.
 
 .. code-block:: c++
 
@@ -427,23 +436,22 @@ and high end of the range.
 Initialization
 """"""""""""""
 
-The ``init()`` function is called during the :doc:`"init" phase
+The ``init_one()`` function is called during the :doc:`"init" phase
 <Developer_flow>` of a simulation.  This is where potential parameters
 are checked for completeness, derived parameters computed (e.g. the
 "offset" of the potential energy at the cutoff distance for use with the
-:doc:`pair_modify shift yes <pair_modify>` command.  If a pair style
+:doc:`pair_modify shift yes <pair_modify>` command).  If a pair style
 supports generating "mixed" parameters (i.e. where both atoms of a pair
-have a different atom type) from a "mixing rule" from the parameters of
+have a different atom type) using a "mixing rule" from the parameters of
 the type with itself, this is the place to compute and store those mixed
-values.  The *born/gauss* pair style does not, so we only check for
-completeness.  Another purpose of the ``init()`` function is to
-symmetrize the potential parameter arrays.  The return value is the
-cutoff for the given pair of atom types.  This is used by the neighbor
-list code to determine the largest cutoff and then build the neighbor
-lists accordingly.
+values.  The *born/gauss* pair style does not support mixing, so we only
+check for completeness.  Another purpose of the ``init_one()`` function
+is to symmetrize the potential parameter arrays.  The return value of
+the function is the cutoff for the given pair of atom types.  This
+information is used by the neighbor list code to determine the largest
+cutoff and then build the neighbor lists accordingly.
 
 .. code-block:: c++
-
 
    /* ----------------------------------------------------------------------
       init for one type pair i,j and corresponding j,i
@@ -474,10 +482,17 @@ lists accordingly.
 Computing forces from the neighbor list (required)
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
-The ``compute()`` function is the "workhorse" of a pair style.
+The ``compute()`` function is the "workhorse" of a pair style.  This is where
+we have the nested loops all pairs of particles from the neighbor list to
+compute forces and - if needed - energy and virial.
+
+The first part is to define some variables for later use and store cached
+copies of data or pointers we need to access frequently.  Also, this is
+a good place to call `Pair::ev_init()`, which initializes several flags
+derived from the `eflag` and `vflag` parameters signaling whether energy
+and virial need to be tallied and whether only globally or also per-atom.
 
 .. code-block:: c++
-
 
    /* ---------------------------------------------------------------------- */
 
@@ -503,6 +518,22 @@ The ``compute()`` function is the "workhorse" of a pair style.
      numneigh = list->numneigh;
      firstneigh = list->firstneigh;
 
+The outer loop (index *i*) is over local atoms of our sub-domain.
+Typically, the value of `inum` (the number of neighbor lists) is the
+same as the number of local atoms (= atoms *owned* but this sub-domain).
+But in case the pair style is used as a sub-style of a :doc:`hybrid pair
+style <pair_hybrid>` or neighbor list entries are removed with
+:doc:`neigh_modify <neigh_modify>` this number may be smaller. The array
+`list->ilist` has the (local) indices of the atoms for which neighbor
+lists have been created. Then `list->numneigh` is an `inum` sized array
+with the number of entries of each list of neighbors and
+`list->firstneigh` is a list of pointers to those lists.
+
+For efficiency reasons, cached copies of some properties of the outer
+loop atoms are initialized.
+     
+.. code-block:: c++
+
      // loop over neighbors of my atoms
 
      for (ii = 0; ii < inum; ii++) {
@@ -513,6 +544,26 @@ The ``compute()`` function is the "workhorse" of a pair style.
        itype = type[i];
        jlist = firstneigh[i];
        jnum = numneigh[i];
+
+The inner loop (index (*j*) processes the neighbor lists.  The neighbor
+list code encodes in the upper bits (typically the upper 2 bit) whether
+a pair is a 1-2, 1-3, or 1-4 :doc:`"special" neighbor <special_bonds>`
+and we store the corresponding scaling factor in `factor_lj`.  The ``sbmask()``
+inline function extracts those bits and converts them into a number from
+0 to 3.  The `force->special_lj` array contains the scaling factors for
+non-Coulomb interactions between such pairs.  Due to adding the extra bits,
+the value of *j* would be out of range for the position arrays, so we apply
+the NEIGHMASK constant to mask them out.  This step *must* be done even if
+a pair style does not use special bond scaling.  Otherwise there will be
+a segmentation fault for any system containing bonds.
+
+With the corrected *j* index it is now possible to compute the distance of
+the pair.  For efficiency reasons, the square root is only taken *after*
+the check for the cutoff (which has been stored as squared cutoff by the
+``Pair`` base class).  For some pair styles, like the 12-6 Lennard-Jones
+potential, computing the square root can be avoided entirely.
+
+.. code-block:: c++
 
        for (jj = 0; jj < jnum; jj++) {
          j = jlist[jj];
@@ -525,6 +576,14 @@ The ``compute()`` function is the "workhorse" of a pair style.
          rsq = delx * delx + dely * dely + delz * delz;
          jtype = type[j];
 
+This block is the actual application of the model potential to compute
+the force.  Note, that *fpair* is actually the force divided by the
+distance, as this simplifies the projection of the x-, y-, and
+z-components of the force vector by simply multiplying with the
+respective distances in those directions.
+         
+.. code-block:: c++
+
          if (rsq < cutsq[itype][jtype]) {
            r = sqrt(rsq);
            dr = r - r0[itype][jtype];
@@ -533,6 +592,24 @@ The ``compute()`` function is the "workhorse" of a pair style.
            fpair = alpha[itype][jtype] * aexp;
            fpair -= 2.0 * beta[itype][jtype] * dr * bexp;
            fpair *= factor_lj / r;
+
+In this block the force is added to the per-atom force arrays.  This
+pair style uses a "half" neighbor list (each pair is listed only once)
+so we take advantage of the fact that :math:` \vec{F}_{ij} =
+-\vec{F}_{ji}`, i.e.  apply Newton's third law.  The force is *always*
+stored when the atom is a "local" atom. Index *i* atoms are always "local"
+(i.e. *i* < nlocal); index *j* atoms may be "ghost" atoms (*j* >= nlocal).
+
+Depending on the settings used with the :doc:`newton command <newton>`
+those pairs are are only listed once globally (newton_pair == 1), then
+forces must be stored even with ghost atoms and then - after all forces
+are computed - a "reverse communication" is performed to add those ghost
+forces to their corresponding local atoms.  If the setting is disabled,
+then the extra communication is skipped, since pairs straddling
+sub-domain boundaries are listed twice, that is where one of the two
+atoms is a "local" atom.
+
+.. code-block:: c++
 
            f[i][0] += delx * fpair;
            f[i][1] += dely * fpair;
@@ -543,11 +620,30 @@ The ``compute()`` function is the "workhorse" of a pair style.
              f[j][2] -= delz * fpair;
            }
 
+For typical MD simulations, the potential energy is merely a diagnostic
+and only output infrequently.  Similarly, the pressure may only be computed
+for infrequent diagnostic output.  For all timesteps where this information
+is not needed either `eflag` or `evflag` are zero and the computation skipped.
+
+The ``ev_tally()`` tallies global or per-atom energy and virial.
+           
+.. code-block:: c++
+
            if (eflag) evdwl = factor_lj * (aexp - bexp - offset[itype][jtype]);
            if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
          }
        }
      }
+
+If only the global virial is needed, then calls to ``ev_tally()`` can be
+avoided and the global virial can be computed more efficiently using
+total per-atom force vector and its position vector.
+:math:`\vec{F}\cdot\vec{r}`.  This has to be done *before* the reverse
+communication to collect data from ghost atom, since the position has to
+be the position used to compute the force, i.e. *not* the "local"
+position if that ghost atom is a periodic copy.
+     
+.. code-block:: c++
 
      if (vflag_fdotr) virial_fdotr_compute();
    }
@@ -555,6 +651,18 @@ The ``compute()`` function is the "workhorse" of a pair style.
 
 Computing force and energy for a single pair
 """"""""""""""""""""""""""""""""""""""""""""
+
+Certain features in LAMMPS utilize computing interactions between
+individual pairs of atoms only and the (optional) ``single()`` function
+is needed to support those features (e.g. for tabulation of force and
+energy with :doc:`pair_write <pair_write>`).  This is a repetition of
+the force kernel in the ``compute()`` function, but without the loop
+over the neighbor list.  By construction, this is also less efficient.
+The energy is returned as the return value of the function and the force
+as the `fforce` reference.  Note, that this is - same as *fpair* in he
+``compute()`` function - the magnitude of the force along the vector
+between the two atoms *divided* by the distance.
+
 
 .. code-block:: c++
 
@@ -604,6 +712,8 @@ Reading and writing of restart files
      }
    }
 
+.. code-block:: c++
+
    /* ----------------------------------------------------------------------
       proc 0 reads from restart file, bcasts
    ------------------------------------------------------------------------- */
@@ -640,6 +750,8 @@ Reading and writing of restart files
      }
    }
 
+.. code-block:: c++
+
    /* ----------------------------------------------------------------------
       proc 0 writes to restart file
    ------------------------------------------------------------------------- */
@@ -650,6 +762,8 @@ Reading and writing of restart files
      fwrite(&offset_flag, sizeof(int), 1, fp);
      fwrite(&mix_flag, sizeof(int), 1, fp);
    }
+
+.. code-block:: c++
 
    /* ----------------------------------------------------------------------
       proc 0 reads from restart file, bcasts
@@ -670,7 +784,7 @@ Reading and writing of restart files
 Writing coefficients to data files
 """"""""""""""""""""""""""""""""""
 
-.. code-block::
+.. code-block:: c++
 
    /* ----------------------------------------------------------------------
       proc 0 writes to data file
@@ -682,6 +796,8 @@ Writing coefficients to data files
        fprintf(fp, "%d %g %g %g %g %g\n", i, biga0[i][i], alpha[i][i], biga1[i][i], beta[i][i],
                r0[i][i]);
    }
+
+.. code-block:: c++
 
    /* ----------------------------------------------------------------------
       proc 0 writes all pairs to data file
@@ -699,7 +815,7 @@ Writing coefficients to data files
 Give access to internal data
 """"""""""""""""""""""""""""
 
-.. code-block::
+.. code-block:: c++
 
    /* ---------------------------------------------------------------------- */
 
@@ -711,6 +827,34 @@ Give access to internal data
      if (strcmp(str, "r0") == 0) return (void *) r0;
      return nullptr;
    }
+
+Case 2: a many-body potential
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since there is a detailed description of the purpose and general layout
+of a pair style in the previous case, we will focus on where the
+implementation of a typical many-body potential *differs* from a
+pair-wise additive potential.  We will use the implementation of the
+Stillinger-Weber potential as :doc:`pair_style sw <pair_sw>` as an
+example.
+
+TBA
+
+Case 3: a potential requiring communication
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For some models, the interactions between atoms depends on properties of
+their environment which have to be computed *before* the the forces can
+be computed.  Since LAMMPS is designed to run in parallel using a
+:doc:`domain decomposition strategy <Developer_par_part>`, not all
+information of the atoms may be directly available and thus
+communication steps may be need to collect data from ghost atoms of
+neighboring subdomains or send data to ghost atoms for application
+during the pairwise computation.  For this we will look at how the
+embedding term of the :doc:`embedded atom potential EAM <pair_eam>` is
+implemented in LAMMPS.
+
+TBA
 
 --------------
 

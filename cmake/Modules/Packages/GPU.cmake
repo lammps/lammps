@@ -177,8 +177,6 @@ if(GPU_API STREQUAL "CUDA")
     target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
   endif()
 
-  target_link_libraries(lammps PRIVATE gpu)
-
   add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR)
   target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
@@ -251,12 +249,12 @@ elseif(GPU_API STREQUAL "OPENCL")
   else()
     target_compile_definitions(gpu PRIVATE -DMPI_GERYON -DGERYON_NUMA_FISSION -DUCL_NO_EXIT)
   endif()
-  target_link_libraries(lammps PRIVATE gpu)
 
   add_executable(ocl_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(ocl_get_devices PRIVATE -DUCL_OPENCL)
   target_link_libraries(ocl_get_devices PRIVATE OpenCL::OpenCL)
   add_dependencies(ocl_get_devices OpenCL::OpenCL)
+
 elseif(GPU_API STREQUAL "HIP")
   if(NOT DEFINED HIP_PATH)
       if(NOT DEFINED ENV{HIP_PATH})
@@ -475,9 +473,13 @@ elseif(GPU_API STREQUAL "HIP")
     target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   endif()
-
-  target_link_libraries(lammps PRIVATE gpu)
 endif()
+
+if(BUILD_OMP)
+  find_package(OpenMP COMPONENTS CXX REQUIRED)
+  target_link_libraries(gpu PRIVATE OpenMP::OpenMP_CXX)
+endif()
+target_link_libraries(lammps PRIVATE gpu)
 
 set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
 # detect styles which have a GPU version

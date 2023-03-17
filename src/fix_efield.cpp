@@ -26,6 +26,7 @@
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair.h"
 #include "region.h"
 #include "respa.h"
 #include "update.h"
@@ -144,6 +145,13 @@ void FixEfield::init()
   if (atom->q_flag) qflag = 1;
   if (atom->mu_flag && atom->torque_flag) muflag = 1;
   if (!qflag && !muflag) error->all(FLERR, "Fix {} requires atom attribute q or mu", style);
+
+  // warn if TIP4P pair style is used with plain fix efield
+  if ((strcmp(style, "efield") == 0) && (comm->me == 0)) {
+    int itmp;
+    if (force->pair && force->pair->extract("qdist", itmp))
+      error->warning(FLERR, "Fix efield produces incorrect forces when applied to TIP4P atoms");
+  }
 
   // check variables
 

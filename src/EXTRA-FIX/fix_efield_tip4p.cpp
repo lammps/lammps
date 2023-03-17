@@ -46,6 +46,7 @@ void FixEfieldTIP4P::init()
 
   if (atom->tag_enable == 0) error->all(FLERR, "Fix efield/tip4p requires atom IDs");
   if (!atom->q_flag) error->all(FLERR, "Fix efield/tip4p requires atom attribute q");
+  if (!force->pair) error->all(FLERR, "A TIP4P pair style must be defined fix efield/tip4p");
 
   int itmp;
   double *p_qdist = (double *) force->pair->extract("qdist", itmp);
@@ -60,13 +61,12 @@ void FixEfieldTIP4P::init()
   int typeA = *p_typeA;
   int typeB = *p_typeB;
 
-  if (force->angle == nullptr || force->bond == nullptr || force->angle->setflag == nullptr ||
-      force->bond->setflag == nullptr)
-    error->all(FLERR, "Bond and angle potentials must be defined for compute {}", style);
+  if (!force->angle || !force->bond || !force->angle->setflag || !force->bond->setflag)
+    error->all(FLERR, "Bond and angle potentials must be defined for fix efield/tip4p");
   if ((typeA < 1) || (typeA > atom->nangletypes) || (force->angle->setflag[typeA] == 0))
-    error->all(FLERR, "Bad TIP4P angle type for compute {}", style);
+    error->all(FLERR, "Bad TIP4P angle type for fix efield/tip4p");
   if ((typeB < 1) || (typeB > atom->nbondtypes) || (force->bond->setflag[typeB] == 0))
-    error->all(FLERR, "Bad TIP4P bond type for PPPM/TIP4P");
+    error->all(FLERR, "Bad TIP4P bond type for fix efield/tip4p");
 
   // determine alpha parameter
 

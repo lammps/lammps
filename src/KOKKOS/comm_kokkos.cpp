@@ -32,6 +32,8 @@
 #include "output.h"
 #include "pair.h"
 
+#include <Kokkos_Sort.hpp>
+
 using namespace LAMMPS_NS;
 
 #define BUFFACTOR 1.5
@@ -59,11 +61,9 @@ CommKokkos::CommKokkos(LAMMPS *lmp) : CommBrick(lmp)
   memory->destroy(buf_recv);
   buf_recv = nullptr;
 
-  k_exchange_lists = DAT::tdual_int_2d("comm:k_exchange_lists",2,100);
-  k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
-  k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,Kokkos::ALL);
+  k_exchange_sendlist = DAT::tdual_int_1d("comm:k_exchange_sendlist",100);
+  k_exchange_copylist = DAT::tdual_int_1d("comm:k_exchange_copylist",100);
   k_count = DAT::tdual_int_scalar("comm:k_count");
-  k_sendflag = DAT::tdual_int_1d("comm:k_sendflag",100);
 
   memory->destroy(maxsendlist);
   maxsendlist = nullptr;
@@ -702,32 +702,27 @@ struct BuildExchangeListFunctor {
   int _nlocal,_dim;
   typename AT::t_int_scalar _nsend;
   typename AT::t_int_1d _sendlist;
-  typename AT::t_int_1d _sendflag;
 
 
   BuildExchangeListFunctor(
       const typename AT::tdual_x_array x,
       const typename AT::tdual_int_1d sendlist,
       typename AT::tdual_int_scalar nsend,
-      typename AT::tdual_int_1d sendflag,int nlocal, int dim,
-                X_FLOAT lo, X_FLOAT hi):
+      int nlocal, int dim,
+      X_FLOAT lo, X_FLOAT hi):
                 _lo(lo),_hi(hi),
                 _x(x.template view<DeviceType>()),
                 _nlocal(nlocal),_dim(dim),
                 _nsend(nsend.template view<DeviceType>()),
-                _sendlist(sendlist.template view<DeviceType>()),
-                _sendflag(sendflag.template view<DeviceType>()) { }
+                _sendlist(sendlist.template view<DeviceType>()) { }
 
   KOKKOS_INLINE_FUNCTION
   void operator() (int i) const {
     if (_x(i,_dim) < _lo || _x(i,_dim) >= _hi) {
       const int mysend = Kokkos::atomic_fetch_add(&_nsend(),1);
-      if (mysend < (int)_sendlist.extent(0)) {
+      if (mysend < (int)_sendlist.extent(0))
         _sendlist(mysend) = i;
-        _sendflag(i) = 1;
-      }
-    } else
-      _sendflag(i) = 0;
+    }
   }
 };
 
@@ -736,10 +731,9 @@ struct BuildExchangeListFunctor {
 template<class DeviceType>
 void CommKokkos::exchange_device()
 {
-  int i,nsend,nrecv,nrecv1,nrecv2,nlocal;
-  double lo,hi;
-  double **x;
+  int nsend,nrecv,nrecv1,nrecv2,nlocal;
   double *sublo,*subhi;
+  double lo,hi;
   MPI_Request request;
 
   // clear global->local map for owned and ghost atoms
@@ -769,17 +763,13 @@ void CommKokkos::exchange_device()
     // loop over dimensions
     for (int dim = 0; dim < 3; dim++) {
 
-      // fill buffer with atoms leaving my box, using < and >=
-      // when atom is deleted, fill it in with last atom
-
-      x = atom->x;
       lo = sublo[dim];
       hi = subhi[dim];
       nlocal = atom->nlocal;
-      i = nsend = 0;
+      nsend = 0;
 
-      if ((int)k_sendflag.h_view.extent(0) < nlocal) k_sendflag.resize(nlocal);
-      k_sendflag.sync<DeviceType>();
+      // fill buffer with atoms leaving my box, using < and >=
+
       k_count.h_view() = k_exchange_sendlist.h_view.extent(0);
       while (k_count.h_view() >= (int)k_exchange_sendlist.h_view.extent(0)) {
         k_count.h_view() = 0;
@@ -787,42 +777,63 @@ void CommKokkos::exchange_device()
         k_count.sync<DeviceType>();
 
         BuildExchangeListFunctor<DeviceType>
-          f(atomKK->k_x,k_exchange_sendlist,k_count,k_sendflag,
+          f(atomKK->k_x,k_exchange_sendlist,k_count,
             nlocal,dim,lo,hi);
         Kokkos::parallel_for(nlocal,f);
         k_exchange_sendlist.modify<DeviceType>();
-        k_sendflag.modify<DeviceType>();
         k_count.modify<DeviceType>();
 
         k_count.sync<LMPHostType>();
-        if (k_count.h_view() >= (int)k_exchange_sendlist.h_view.extent(0)) {
-          k_exchange_lists.resize(2,k_count.h_view()*1.1);
-          k_exchange_sendlist = Kokkos::subview(k_exchange_lists,0,Kokkos::ALL);
-          k_exchange_copylist = Kokkos::subview(k_exchange_lists,1,Kokkos::ALL);
-          k_count.h_view()=k_exchange_sendlist.h_view.extent(0);
+        int count = k_count.h_view();
+        if (count >= (int)k_exchange_sendlist.h_view.extent(0)) {
+          MemKK::realloc_kokkos(k_exchange_sendlist,"comm:k_exchange_sendlist",count*1.1);
+          MemKK::realloc_kokkos(k_exchange_copylist,"comm:k_exchange_copylist",count*1.1);
+          k_count.h_view() = k_exchange_sendlist.h_view.extent(0);
         }
       }
+      int count = k_count.h_view();
 
-      k_exchange_lists.sync<LMPHostType>();
-      k_sendflag.sync<LMPHostType>();
+      // sort exchange_sendlist
 
-      int sendpos = nlocal-1;
-      nlocal -= k_count.h_view();
-      for (int i = 0; i < k_count.h_view(); i++) {
-        if (k_exchange_sendlist.h_view(i)<nlocal) {
-          while (k_sendflag.h_view(sendpos)) sendpos--;
-          k_exchange_copylist.h_view(i) = sendpos;
-          sendpos--;
+      auto d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
+      using KeyViewType = decltype(d_exchange_sendlist);
+      using BinOp = Kokkos::BinOp1D<KeyViewType>;
+
+      BinOp binner(count, 0, nlocal);
+      Kokkos::BinSort<KeyViewType, BinOp> Sorter(d_exchange_sendlist, 0, count, binner, true);
+      Sorter.create_permute_vector(DeviceType());
+      Sorter.sort(DeviceType(), d_exchange_sendlist, 0, count);
+
+      k_exchange_sendlist.sync<LMPHostType>();
+
+      // when atom is deleted, fill it in with last atom
+
+      int sendpos = count;
+      int isend = k_exchange_sendlist.h_view(sendpos); 
+      int isend_next = k_exchange_sendlist.h_view(sendpos-1);
+      int icopy = nlocal-1;
+      nlocal -= count;
+      for (int recvpos = 0; recvpos < count; recvpos++) {
+        int irecv = k_exchange_sendlist.h_view(recvpos);
+        if (irecv < nlocal) {
+          while (icopy <= isend_next) {
+            isend = k_exchange_sendlist.h_view(sendpos); 
+            isend_next = k_exchange_sendlist.h_view(sendpos-1);
+            icopy = isend - 1;
+            sendpos--;
+          }
+          k_exchange_copylist.h_view(recvpos) = icopy;
+          icopy--;
         } else
-          k_exchange_copylist.h_view(i) = -1;
+          k_exchange_copylist.h_view(recvpos) = -1;
       }
 
       k_exchange_copylist.modify<LMPHostType>();
       k_exchange_copylist.sync<DeviceType>();
-      nsend = k_count.h_view();
+      nsend = count;
       if (nsend > maxsend) grow_send_kokkos(nsend,0);
       nsend =
-        atomKK->avecKK->pack_exchange_kokkos(k_count.h_view(),k_buf_send,
+        atomKK->avecKK->pack_exchange_kokkos(count,k_buf_send,
                                    k_exchange_sendlist,k_exchange_copylist,
                                    ExecutionSpaceFromDevice<DeviceType>::space);
       DeviceType().fence();
@@ -887,12 +898,12 @@ void CommKokkos::exchange_device()
           auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
           KokkosBase *kkbase = dynamic_cast<KokkosBase*>(fix_iextra);
           int nextrasend = 0;
-          nsend = k_count.h_view();
+          nsend = count;
           if (nsend) {
             if (nsend*fix_iextra->maxexchange > maxsend)
               grow_send_kokkos(nsend*fix_iextra->maxexchange,0);
             nextrasend = kkbase->pack_exchange_kokkos(
-              k_count.h_view(),k_buf_send,k_exchange_sendlist,k_exchange_copylist,
+              count,k_buf_send,k_exchange_sendlist,k_exchange_copylist,
               ExecutionSpaceFromDevice<DeviceType>::space);
             DeviceType().fence();
           }
@@ -908,7 +919,7 @@ void CommKokkos::exchange_device()
 
             if (procgrid[dim] > 2) {
               MPI_Sendrecv(&nextrasend,1,MPI_INT,procneigh[dim][1],0,
-                           &nextrarecv,1,MPI_INT,procneigh[dim][0],0,
+                           &nextrarecv2,1,MPI_INT,procneigh[dim][0],0,
                            world,MPI_STATUS_IGNORE);
 
               nextrarecv += nextrarecv2;

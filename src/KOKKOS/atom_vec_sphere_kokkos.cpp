@@ -1449,7 +1449,6 @@ struct AtomVecSphereKokkos_PackExchangeFunctor {
     _omegaw(atom->k_omega.view<DeviceType>()),
     _sendlist(sendlist.template view<DeviceType>()),
     _copylist(copylist.template view<DeviceType>()) {
-    const size_t size_exchange = 16;
     const int maxsend = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/_size_exchange;
 
     _buf = typename AT::t_xfloat_2d_um(buf.template view<DeviceType>().data(),maxsend,_size_exchange);

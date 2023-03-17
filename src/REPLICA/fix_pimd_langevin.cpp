@@ -94,6 +94,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   thermostat = PILE_L;
   barostat = BZP;
   fmass = 1.0;
+  np = universe->nworlds;
   sp = 1.0;
   temp = 298.15;
   Lan_temp = 298.15;
@@ -151,7 +152,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
                             "ensembles are supported!");
     } else if (strcmp(arg[i], "fmass") == 0) {
       fmass = utils::numeric(FLERR, arg[i+1], false, lmp);
-      if (fmass < 0.0 || fmass > 1.0)
+      if (fmass < 0.0 || fmass > np)
         error->universe_all(FLERR, "Invalid fmass value for fix pimd/langevin");
     } else if (strcmp(arg[i], "fmmode") == 0) {
       if (strcmp(arg[i + 1], "physical") == 0)
@@ -335,7 +336,6 @@ void FixPIMDLangevin::init()
   // prepare the constants
 
   masstotal = group->mass(igroup);
-  np = universe->nworlds;
   inverse_np = 1.0 / np;
 
   double planck;

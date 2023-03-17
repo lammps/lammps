@@ -46,7 +46,7 @@ Syntax
          radius = cylinder radius (distance units)
 
 * zero or more keyword/value pairs may be appended to args
-* keyword = *wiggle* or *shear* or *contacts*
+* keyword = *wiggle* or *shear* or *contacts* or *temperature*
 
   .. parsed-literal::
 
@@ -59,6 +59,8 @@ Syntax
          vshear = magnitude of shear velocity (velocity units)
       *contacts* value = none
          generate contact information for each particle
+      *temperature* value = temperature
+         specify temperature of wall
 
 
 Examples
@@ -71,7 +73,7 @@ Examples
    fix 2 all wall/gran hooke 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0
    fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
    fix 4 all wall/gran/region granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
-   fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji region myCone
+   fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji heat 10 region myCone temperature 1.0
    fix 6 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 contacts
 
 Description
@@ -177,6 +179,16 @@ the clockwise direction for *vshear* > 0 or counter-clockwise for
 *vshear* < 0.  In this case, *vshear* is the tangential velocity of
 the wall at whatever *radius* has been defined.
 
+The *temperature* keyword is used to assign a temperature to the wall.
+The following value can either be a numeric value or an equal-style
+:doc:`variable <variable>`.  If the value is a variable, it should be
+specified as v_name, where name is the variable name.  In this case, the
+variable will be evaluated each timestep, and its value used to determine
+the temperature. This option must be used in conjunction with a heat
+conduction model defined in :doc:`pair_style granular <pair_granular>`,
+:doc:`fix property/atom <fix_property_atom>` to store temperature and a
+heat flow, and :doc:`fix heat/flow <fix_heat_flow>` to integrate heat
+flow.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

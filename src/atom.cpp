@@ -125,6 +125,8 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
   radius = rmass = nullptr;
   ellipsoid = line = tri = body = nullptr;
   quat = nullptr;
+  temperature = nullptr;
+  heatflow = nullptr;
 
   // molecular systems
 
@@ -421,6 +423,9 @@ void Atom::peratom_create()
   add_peratom("tri",&tri,INT,0);
   add_peratom("body",&body,INT,0);
 
+  add_peratom("temperature",&temperature,DOUBLE,0);
+  add_peratom("heatflow",&heatflow,DOUBLE,0);
+
   // BPM package
 
   add_peratom("quat",&quat,DOUBLE,4);
@@ -623,6 +628,7 @@ void Atom::set_atomflag_defaults()
   molecule_flag = molindex_flag = molatom_flag = 0;
   q_flag = mu_flag = 0;
   rmass_flag = radius_flag = omega_flag = torque_flag = angmom_flag = 0;
+  temperature_flag = heatflow_flag = 0;
   vfrac_flag = spin_flag = eradius_flag = ervel_flag = erforce_flag = 0;
   cs_flag = csforce_flag = vforce_flag = ervelforce_flag = etag_flag = 0;
   rho_flag = esph_flag = cv_flag = vest_flag = 0;
@@ -2835,6 +2841,14 @@ length of the data area, and a short description.
      - double
      - 4
      - four quaternion components of the particles
+   * - temperature
+     - double
+     - 1
+     - temperature of the particles
+   * - heatflow
+     - double
+     - 1
+     - heatflow of the particles
    * - i_name
      - int
      - 1
@@ -2891,6 +2905,8 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"tri") == 0) return (void *) tri;
   if (strcmp(name,"body") == 0) return (void *) body;
   if (strcmp(name,"quat") == 0) return (void *) quat;
+  if (strcmp(name,"temperature") == 0) return (void *) temperature;
+  if (strcmp(name,"heatflow") == 0) return (void *) heatflow;
 
   // PERI PACKAGE
 
@@ -3018,6 +3034,8 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"tri") == 0) return LAMMPS_INT;
   if (strcmp(name,"body") == 0) return LAMMPS_INT;
   if (strcmp(name,"quat") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"temperature") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"heatflow") == 0) return LAMMPS_DOUBLE;
 
   if (strcmp(name,"vfrac") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;

@@ -270,6 +270,7 @@ FixPour::~FixPour()
   delete[] molfrac;
   delete[] idrigid;
   delete[] idshake;
+  delete[] idregion;
   delete[] radius_poly;
   delete[] frac_poly;
   memory->destroy(coords);

@@ -150,7 +150,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
                             "Unknown ensemble parameter for fix pimd/langevin. Only nve and nvt "
                             "ensembles are supported!");
     } else if (strcmp(arg[i], "fmass") == 0) {
-      fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
+      fmass = utils::numeric(FLERR, arg[i+1], false, lmp);
       if (fmass < 0.0 || fmass > 1.0)
         error->universe_all(FLERR, "Invalid fmass value for fix pimd/langevin");
     } else if (strcmp(arg[i], "fmmode") == 0) {
@@ -830,13 +830,13 @@ void FixPIMDLangevin::Langevin_init()
   Lan_s = new double[np];
   if (fmmode == PHYSICAL) {
     for (int i = 0; i < np; i++) {
-      _omega_k[i] = _omega_np * sqrt(lam[i]);
+      _omega_k[i] = _omega_np * sqrt(lam[i]) / sqrt(fmass);
       Lan_c[i] = cos(sqrt(lam[i]) * _omega_np_dt_half);
       Lan_s[i] = sin(sqrt(lam[i]) * _omega_np_dt_half);
     }
   } else if (fmmode == NORMAL) {
     for (int i = 0; i < np; i++) {
-      _omega_k[i] = _omega_np;
+      _omega_k[i] = _omega_np / sqrt(fmass);
       Lan_c[i] = cos(_omega_np_dt_half);
       Lan_s[i] = sin(_omega_np_dt_half);
     }
@@ -947,17 +947,17 @@ void FixPIMDLangevin::nmpimd_init()
   for (int i = 0; i < np; i++)
     for (int j = 0; j < np; j++) { M_xp2x[i][j] = M_x2xp[j][i]; }
 
-  // Set up masses
+  // Set up fictitious masses
   int iworld = universe->iworld;
   for (int i = 1; i <= atom->ntypes; i++) {
     mass[i] = atom->mass[i];
+    mass[i] *= fmass;
     if (iworld) {
       if (fmmode == PHYSICAL) {
         mass[i] *= 1.0;
       } else if (fmmode == NORMAL) {
         mass[i] *= lam[iworld];
       }
-      mass[i] *= fmass;
     }
   }
 }

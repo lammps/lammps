@@ -20,31 +20,21 @@ ComputeStyle(dipole/tip4p/chunk,ComputeDipoleTIP4PChunk);
 #ifndef LMP_COMPUTE_DIPOLE_TIP4P_CHUNK_H
 #define LMP_COMPUTE_DIPOLE_TIP4P_CHUNK_H
 
-#include "compute.h"
+#include "compute_chunk.h"
 
 namespace LAMMPS_NS {
 class Fix;
 
-class ComputeDipoleTIP4PChunk : public Compute {
+class ComputeDipoleTIP4PChunk : public ComputeChunk {
  public:
   ComputeDipoleTIP4PChunk(class LAMMPS *, int, char **);
   ~ComputeDipoleTIP4PChunk() override;
   void init() override;
   void compute_array() override;
 
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(Fix *, bigint, bigint) override;
-  void unlock(Fix *) override;
-
   double memory_usage() override;
 
  private:
-  int nchunk, maxchunk;
-  char *idchunk;
-  class ComputeChunkAtom *cchunk;
-
   double *massproc, *masstotal;
   double *chrgproc, *chrgtotal;
   double **com, **comall;
@@ -55,10 +45,8 @@ class ComputeDipoleTIP4PChunk : public Compute {
   double alpha;
   void find_M(int i, double *xM);
 
-  void allocate();
+  void allocate() override;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

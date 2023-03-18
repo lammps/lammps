@@ -30,10 +30,11 @@ Syntax
 * keywords for style *pimd/langevin*
 
   .. parsed-literal::
-       *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *scale* or *temp* or *thermostat* or *tau* or or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj* 
+       *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *temp* or *thermostat* or *tau* or or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj* 
        *method* value = *nmpimd*
        *integrator* value = *obabo* or *baoab*
        *fmmode* value = *physical* or *normal*
+       *fmass* value = scaling factor on mass
        *temp* value = Temperature (temperarate unit)
           Temperature = target temperarate of the thermostat
        *thermostat* values = style seed
@@ -81,8 +82,10 @@ by the following equations:
 .. math::
 
    Z = & \int d{\bf q} d{\bf p} \cdot \textrm{exp} [ -\beta H_{eff} ] \\
-   H_{eff} = & \bigg(\sum_{i=1}^P \frac{p_i^2}{2m_i}\bigg) + V_{eff} \\
+   H_{eff} = & \bigg(\sum_{i=1}^P \frac{p_i^2}{2M_i}\bigg) + V_{eff} \\
    V_{eff} = & \sum_{i=1}^P \bigg[ \frac{mP}{2\beta^2 \hbar^2} (q_i - q_{i+1})^2 + \frac{1}{P} V(q_i)\bigg]
+
+$M_i$ is the fictitious mass of the $i$-th mode, and m is the actual mass of the atoms.
 
 The interested user is referred to any of the numerous references on
 this methodology, but briefly, each quantum particle in a path integral
@@ -151,6 +154,27 @@ The keyword *fmass* sets a further scaling factor for the fictitious
 masses of beads, which can be used for the Partial Adiabatic CMD
 :ref:`(Hone) <Hone>`, or to be set as P, which results in the fictitious
 masses to be equal to the real particle masses.
+
+The keyword *fmmode* of *fix pimd/langevin* determines the mode of fictitious 
+mass preconditioning. There are two options: *physical* and *normal*. If *fmmode* is 
+*physical*, then the physical mass of the particles are used (and then multiplied by
+*fmass*). If *fmmode* is *normal*, then the physical mass is first multiplied by the 
+eigenvalue of each normal mode, and then multiplied by *fmass*. More precisely, the 
+fictitious mass of *fix pimd/langevin* is determined by two factors: *fmmode* and *fmass*.
+If *fmmode* is *physical*, then the fictitious mass is
+.. math::
+   $M_i = \mathrm{fmass} \times m$
+   
+If *fmmode* is *normal*, then the fictitious mass is
+.. math::
+   $M_i = \mathrm{fmass} \times \lambda_i \times m$
+
+where $\lambda_i$ is the eigenvalue of the $i$-th normal mode.
+.. note::
+   Fictitious mass is only used in the momentum of the equation of motion
+   ($\bf{p}_i=M_i\bf{v}_i$), and not used in the spring elastic energy 
+   ($\sum_{i=1}^P \frac{1}{2}m\omega_P^2(q_i - q_{i+1})^2$, $m$ is always the 
+   actual mass of the particles). 
 
 The keyword *sp* is a scaling factor on Planck's constant, which can
 be useful for debugging or other purposes.  The default value of 1.0

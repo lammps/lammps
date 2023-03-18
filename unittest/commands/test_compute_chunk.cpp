@@ -315,6 +315,29 @@ TEST_F(ComputeChunkTest, ChunkComputes)
     EXPECT_NEAR(ctmp[5], -0.09219489, EPSILON);
 }
 
+TEST_F(ComputeChunkTest, ChunkTIP4PComputes)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+    if (!info->has_style("compute", "dipole/tip4p/chunk")) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style tip4p/cut 5 2 5 1 0.15 10.0");
+    command("pair_coeff * *");
+    command("bond_coeff * 0.9572");
+    command("angle_coeff * 104.52");
+    command("compute dip all dipole/tip4p/chunk mols geometry");
+    command("fix hist1 all ave/time 1 1 1 c_dip[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+    auto cdip = get_array("dip");
+    EXPECT_NEAR(cdip[0][3], 0.35912150, EPSILON);
+    EXPECT_NEAR(cdip[1][3], 0.68453713, EPSILON);
+    EXPECT_NEAR(cdip[2][3], 0.50272643, EPSILON);
+    EXPECT_NEAR(cdip[3][3], 0.37828094, EPSILON);
+    EXPECT_NEAR(cdip[4][3], 0.37018279, EPSILON);
+    EXPECT_NEAR(cdip[5][3], 0.36532949, EPSILON);
+}
+
 TEST_F(ComputeChunkTest, ChunkSpreadGlobal)
 {
     if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();

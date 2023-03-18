@@ -154,6 +154,9 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
       fmass = utils::numeric(FLERR, arg[i+1], false, lmp);
       if (fmass < 0.0 || fmass > np)
         error->universe_all(FLERR, "Invalid fmass value for fix pimd/langevin");
+    } else if (strcmp(arg[i], "sp") == 0) {
+      sp = utils::numeric(FLERR, arg[i+1], false, lmp);
+      if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd/nvt");
     } else if (strcmp(arg[i], "fmmode") == 0) {
       if (strcmp(arg[i + 1], "physical") == 0)
         fmmode = PHYSICAL;
@@ -345,7 +348,7 @@ void FixPIMDLangevin::init()
   } else {
     planck = force->hplanck;
   }
-
+  planck *= sp;
   hbar = planck / (2.0 * MY_PI);
   kBT = force->boltz * temp;
   double beta = 1.0 / (force->boltz * temp);

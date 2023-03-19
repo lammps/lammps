@@ -368,7 +368,7 @@ void FixAdapt::init()
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
       if (ptr == nullptr)
-        error->all(FLERR,"Fix adapt pair style param not supported");
+        error->all(FLERR,"Fix adapt pair style {} param {} not supported", ad->pstyle, ad->pparam);
 
       // for pair styles only parameters that are 2-d arrays in atom types or
       // scalars are supported

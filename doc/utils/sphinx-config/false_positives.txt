@@ -1983,6 +1983,7 @@ machdyn
 MACHDYN
 Mackay
 Mackrodt
+MacLaurin
 macOS
 Macromolecules
 macroparticle

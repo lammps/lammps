@@ -901,7 +901,7 @@ Since there is a detailed description of the purpose and general layout
 of a pair style in the previous case, we will focus on where the
 implementation of a typical many-body potential *differs* from a
 pair-wise additive potential.  We will use the implementation of the
-Stillinger-Weber potential as :doc:`pair_style sw <pair_sw>` as an
+Tersoff potential as :doc:`pair_style tersoff <pair_tersoff>` as an
 example.
 
 Constructor
@@ -910,7 +910,9 @@ Constructor
 In the constructor several :doc:`pair style flags <Modify_pair>` must
 be set differently for many-body potentials:
 
-- the potential is not pair-wise additive, so the ``single()`` function cannot be used. This is indicated by setting the `single_enable` member variable to 0 (default value is 1)
+- the potential is not pair-wise additive, so the ``single()`` function
+  cannot be used. This is indicated by setting the `single_enable`
+  member variable to 0 (default value is 1)
 - the for many-body potentials are usually not written to :doc:`binary
   restart files <write_restart>`.  This is indicated by setting the member
   variable `restartinfo` to 0 (default is 1)
@@ -929,12 +931,136 @@ be set differently for many-body potentials:
 
 .. code-block:: c++
 
-   PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
+   PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
    {
      single_enable = 0;
      restartinfo = 0;
      one_coeff = 1;
      manybody_flag = 1;
+
+Neighbor list request
+"""""""""""""""""""""
+
+For computing the three-body interactions of the Tersoff potential a
+"full" neighbor list (both atoms of a pair are listed in each other's
+neighbor list) is required.  By default a "half" neighbor list is
+requested (each pair is listed only once) in.  The request is made in
+the ``init_style()`` function.  Also, additional conditions must be met
+and this is being checked for, too.
+
+.. code-block:: c++
+
+   /* ----------------------------------------------------------------------
+      init specific to this pair style
+   ------------------------------------------------------------------------- */
+
+   void PairTersoff::init_style()
+   {
+     if (atom->tag_enable == 0)
+       error->all(FLERR,"Pair style Tersoff requires atom IDs");
+     if (force->newton_pair == 0)
+       error->all(FLERR,"Pair style Tersoff requires newton pair on");
+
+     // need a full neighbor list
+
+     neighbor->add_request(this,NeighConst::REQ_FULL);
+   }
+
+Computing forces from the neighbor list
+"""""""""""""""""""""""""""""""""""""""
+
+Computing forces for a many-body potential is usually more complex than
+for a pair-wise additive potential and there are multiple component.
+For Tersoff, there is a pair-wise additive two-body term (two nested
+loops over indices *i* and *j*) and a three-body term (three nested
+loops over indices *i*, *j*, and *k*).  Since the neighbor list has
+all neighbors up to the maximum cutoff (for the two-body term), but
+the three-body interactions have a significantly shorter cutoff, also
+a "short neighbor list" is constructed at the same time while computing
+the two-body and looping over the neighbor list for the first time.
+
+.. code-block:: c++
+
+   if (rsq < cutshortsq) {
+     neighshort[numshort++] = j;
+     if (numshort >= maxshort) {
+       maxshort += maxshort/2;
+       memory->grow(neighshort,maxshort,"pair:neighshort");
+     }
+   }
+
+For the two-body term, only a half neighbor list would be needed, even
+though we have requested a full list (for the three-body loops).
+Rather than computing all interactions twice, we skip over half of
+the entries.  This is done in slightly complex way to make certain
+the same choice is made across all subdomains and so that there is
+no load imbalance introduced.
+
+.. code-block:: c++
+
+   jtag = tag[j];
+   if (itag > jtag) {
+     if ((itag+jtag) % 2 == 0) continue;
+   } else if (itag < jtag) {
+     if ((itag+jtag) % 2 == 1) continue;
+   } else {
+     if (x[j][2] < x[i][2]) continue;
+     if (x[j][2] == ztmp && x[j][1] < ytmp) continue;
+     if (x[j][2] == ztmp && x[j][1] == ytmp && x[j][0] < xtmp) continue;
+   }
+
+For the three-body term, there is one additional nested loop and it uses
+the "short" neighbor list, accumulated previously.
+
+.. code-block:: c++
+
+   // three-body interactions
+   // skip immediately if I-J is not within cutoff
+   double fjxtmp,fjytmp,fjztmp;
+
+   for (jj = 0; jj < numshort; jj++) {
+     j = neighshort[jj];
+     jtype = map[type[j]];
+
+     [...]
+
+     for (kk = 0; kk < numshort; kk++) {
+       if (jj == kk) continue;
+       k = neighshort[kk];
+       ktype = map[type[k]];
+
+       [...]
+     }
+   [...]
+
+
+Reading potential parameters
+""""""""""""""""""""""""""""
+
+For the Tersoff potential, the parameters are listed in a file and associated
+with triples for elements.  Thus, the ``coeff()`` function has to do three
+tasks, each of which is delegated to a function:
+
+#. map elements to atom types.  Those follow the potential file name in the
+   command line arguments and are processed by the ``map_element2type()`` function.
+#. read and parse the potential parameter file in the ``read_file()`` function.
+#. Build data structures where the original and derived parameters are
+   indexed by all possible triples of atom types and thus can be looked
+   up quickly in the loops for the force computation
+
+.. code-block:: c++
+
+   void PairTersoff::coeff(int narg, char **arg)
+   {
+     if (!allocated) allocate();
+
+     map_element2type(narg-3,arg+3);
+
+     // read potential file and initialize potential parameters
+
+     read_file(arg[2]);
+     setup_params();
+   }
 
 
 Case 3: a potential requiring communication
@@ -951,7 +1077,112 @@ during the pairwise computation.  For this we will look at how the
 embedding term of the :doc:`embedded atom potential EAM <pair_eam>` is
 implemented in LAMMPS.
 
-TBA
+Allocating additional per-atom storage
+""""""""""""""""""""""""""""""""""""""
+
+First suitable (local) per-atom arrays (`rho`, `fp`, `numforce`) are
+allocated. These have to be large enough to include ghost atoms, are not
+used outside the ``compute()`` function and are re-initialized to zero
+once per timestep.
+
+.. code-block:: c++
+
+   if (atom->nmax > nmax) {
+     memory->destroy(rho);
+     memory->destroy(fp);
+     memory->destroy(numforce);
+     nmax = atom->nmax;
+     memory->create(rho,nmax,"pair:rho");
+     memory->create(fp,nmax,"pair:fp");
+     memory->create(numforce,nmax,"pair:numforce");
+   }
+
+Reverse communication
+"""""""""""""""""""""
+
+Then a first loop over all pairs (*i* and *j*) is performed, where data
+is stored in the `rho` representing the electron density at the site of
+*i* contributed from all neighbors *j*.  Since the EAM pair style uses
+a half neighbor list (for efficiency reasons), a reverse communication is
+needed to collect the contributions to `rho` from ghost atoms (only if
+:doc:`newton on <newton>` is set for pair styles).
+
+.. code-block:: c++
+
+   if (newton_pair) comm->reverse_comm(this);
+
+To support the reverse communication two functions must be defined:
+``pack_reverse_comm()`` that copy relevant data into a buffer for ghost
+atoms and ``unpac_reverse_comm()`` and take the collected data and add
+it to the `rho` array for the corresponding local atoms that match the
+ghost atoms.  In order to allocate sufficiently sized buffers, a flag
+must be set in the pair style constructor. Since in this case a single
+double precision number is communicated per atom, the `comm_reverse`
+member variable is set to 1 (default is 0 = no reverse communication).
+
+.. code-block:: c++
+
+   int PairEAM::pack_reverse_comm(int n, int first, double *buf)
+   {
+     int i,m,last;
+
+     m = 0;
+     last = first + n;
+     for (i = first; i < last; i++) buf[m++] = rho[i];
+     return m;
+   }
+
+   void PairEAM::unpack_reverse_comm(int n, int *list, double *buf)
+   {
+     int i,j,m;
+
+     m = 0;
+     for (i = 0; i < n; i++) {
+       j = list[i];
+       rho[j] += buf[m++];
+     }
+   }
+
+Forward communication
+"""""""""""""""""""""
+
+From the density array `rho`, the derivative of the embedding energy
+`fp` is computed. The computation is only done for "local" atoms, but
+for the force computation, that property also is needed on ghost atoms.
+For that a forward communication is needed.
+
+.. code-block:: c++
+
+   comm->forward_comm(this);
+
+Similar to the reverse communication, this requires to implement a
+``pack_forward_comm()`` and an ``unpack_forward_comm()`` function.
+Since there is one double precision number per atom that needs to be
+communicated, we must set the `comm_forward` member variable to 1
+(default is 0 = no forward communication).
+
+.. code-block:: c++
+
+   int PairEAM::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+   {
+     int i,j,m;
+
+     m = 0;
+     for (i = 0; i < n; i++) {
+       j = list[i];
+       buf[m++] = fp[j];
+     }
+     return m;
+   }
+
+   void PairEAM::unpack_forward_comm(int n, int first, double *buf)
+   {
+     int i,m,last;
+
+     m = 0;
+     last = first + n;
+     for (i = first; i < last; i++) fp[i] = buf[m++];
+   }
 
 --------------
 

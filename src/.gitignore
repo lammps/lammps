@@ -56,6 +56,8 @@
 
 /pair_lepton.cpp
 /pair_lepton.h
+/pair_lepton_coul.cpp
+/pair_lepton_coul.h
 /bond_lepton.cpp
 /bond_lepton.h
 /angle_lepton.cpp

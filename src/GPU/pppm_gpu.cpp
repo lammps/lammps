@@ -1,8 +1,9 @@
+
 // clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -25,7 +26,7 @@
 #include "fix.h"
 #include "force.h"
 #include "gpu_extra.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -123,7 +124,7 @@ void PPPMGPU::init()
 
   PPPM::init();
 
-  // insure no conflict with fix balance
+  // ensure no conflict with fix balance
 
   for (int i = 0; i < modify->nfix; i++)
     if (strcmp(modify->fix[i]->style,"balance") == 0)
@@ -252,12 +253,12 @@ void PPPMGPU::compute(int eflag, int vflag)
   // remap from 3d decomposition to FFT decomposition
 
   if (triclinic == 0) {
-    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                     REVERSE_RHO_GPU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO_GPU,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     brick2fft_gpu();
   } else {
-    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                     REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     PPPM::brick2fft();
   }
 
@@ -271,21 +272,21 @@ void PPPMGPU::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                     FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
-    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
-                     FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
+                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
-                       FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
-                       FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   poisson_time += platform::walltime()-t3;
@@ -828,8 +829,8 @@ void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_brick = density_A_brick;
   density_fft = density_A_fft;
 
-  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // group B
@@ -837,8 +838,8 @@ void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_brick = density_B_brick;
   density_fft = density_B_fft;
 
-  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
-                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(FFT_SCALAR),
+                   gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // switch back pointers

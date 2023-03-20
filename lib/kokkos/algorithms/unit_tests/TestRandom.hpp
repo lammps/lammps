@@ -98,16 +98,6 @@ struct RandomProperties {
     max = add.max > max ? add.max : max;
     return *this;
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile RandomProperties& add) volatile {
-    count += add.count;
-    mean += add.mean;
-    variance += add.variance;
-    covariance += add.covariance;
-    min = add.min < min ? add.min : min;
-    max = add.max > max ? add.max : max;
-  }
 };
 
 // FIXME_OPENMPTARGET: Need this for OpenMPTarget because contra to the standard
@@ -532,13 +522,15 @@ struct TestDynRankView {
     Pool random(13);
     double min = 10.;
     double max = 100.;
-    Kokkos::fill_random(A, random, min, max);
+    ExecutionSpace exec;
+    Kokkos::fill_random(exec, A, random, min, max);
 
     ReducerValueType val;
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecutionSpace>(0, A.size()),
-                            *this, ReducerType(val));
+    Kokkos::parallel_reduce(
+        Kokkos::RangePolicy<ExecutionSpace>(exec, 0, A.size()), *this,
+        ReducerType(val));
 
-    Kokkos::fence();
+    exec.fence();
     ASSERT_GE(val.min_val, min);
     ASSERT_LE(val.max_val, max);
   }

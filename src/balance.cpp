@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,7 +26,8 @@
 #include "neighbor.h"
 #include "comm.h"
 #include "domain.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
+#include "force.h"
 #include "imbalance.h"
 #include "imbalance_group.h"
 #include "imbalance_neigh.h"
@@ -36,6 +37,7 @@
 #include "irregular.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair.h"
 #include "rcb.h"
 #include "error.h"
 
@@ -245,15 +247,15 @@ void Balance::command(int narg, char **arg)
     }
   }
 
-  if (style == BISECTION && comm->style == 0)
+  if (style == BISECTION && comm->style == Comm::BRICK)
     error->all(FLERR,"Balance rcb cannot be used with comm_style brick");
 
   // process remaining optional args
 
-  options(iarg,narg,arg);
+  options(iarg,narg,arg,1);
   if (wtflag) weight_storage(nullptr);
 
-  // insure particles are in current box & update box via shrink-wrap
+  // ensure particles are in current box & update box via shrink-wrap
   // init entire system since comm->setup is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
   // must reset atom map after exchange() since it clears it
@@ -342,7 +344,7 @@ void Balance::command(int narg, char **arg)
 
   if (style == BISECTION) {
     comm->layout = Comm::LAYOUT_TILED;
-    bisection(1);
+    bisection();
   }
 
   // reset proc sub-domains
@@ -357,14 +359,21 @@ void Balance::command(int narg, char **arg)
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   auto irregular = new Irregular(lmp);
   if (wtflag) fixstore->disable = 0;
-  if (style == BISECTION) irregular->migrate_atoms(1,1,rcb->sendproc);
-  else irregular->migrate_atoms(1);
+  if (style == BISECTION) irregular->migrate_atoms(sortflag,1,rcb->sendproc);
+  else irregular->migrate_atoms(sortflag);
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // output of final result
 
   if (outflag) dumpout(update->ntimestep);
+
+  // notify all classes that store distributed grids
+  // so they can adjust to new proc sub-domains
+  // no need to invoke kspace->reset_grid() b/c it does this in its init()
+
+  modify->reset_grid();
+  if (force->pair) force->pair->reset_grid();
 
   // check if any particles were lost
 
@@ -412,9 +421,10 @@ void Balance::command(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    process optional command args for Balance and FixBalance
+   sortflag_default is different for the 2 classes
 ------------------------------------------------------------------------- */
 
-void Balance::options(int iarg, int narg, char **arg)
+void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
 {
   // count max number of weight settings
 
@@ -426,10 +436,11 @@ void Balance::options(int iarg, int narg, char **arg)
 
   wtflag = 0;
   varflag = 0;
-  oldrcb = 0;
+  sortflag = sortflag_default;
   outflag = 0;
   int outarg = 0;
   fp = nullptr;
+  oldrcb = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"weight") == 0) {
@@ -462,14 +473,20 @@ void Balance::options(int iarg, int narg, char **arg)
       }
       iarg += 2+nopt;
 
-    } else if (strcmp(arg[iarg],"old") == 0) {
-      oldrcb = 1;
-      iarg++;
+    } else if (strcmp(arg[iarg+1],"sort") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "balance sort", error);
+      sortflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"out") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal (fix) balance command");
       outflag = 1;
       outarg = iarg+1;
       iarg += 2;
+
+    } else if (strcmp(arg[iarg],"old") == 0) {
+      oldrcb = 1;
+      iarg++;
+
     } else error->all(FLERR,"Illegal (fix) balance command");
   }
 
@@ -496,9 +513,9 @@ void Balance::weight_storage(char *prefix)
   if (prefix) cmd = prefix;
   cmd += "IMBALANCE_WEIGHTS";
 
-  fixstore = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(cmd));
+  fixstore = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd));
   if (!fixstore)
-    fixstore = dynamic_cast<FixStorePeratom *>(modify->add_fix(cmd + " all STORE/PERATOM 0 1"));
+    fixstore = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd + " all STORE/ATOM 1 0 0 0"));
 
   // do not carry weights with atoms during normal atom migration
 
@@ -560,11 +577,10 @@ double Balance::imbalance_factor(double &maxcost)
 
 /* ----------------------------------------------------------------------
    perform balancing via RCB class
-   sortflag = flag for sorting order of received messages by proc ID
    return list of procs to send my atoms to
 ------------------------------------------------------------------------- */
 
-int *Balance::bisection(int sortflag)
+int *Balance::bisection()
 {
   if (!rcb) rcb = new RCB(lmp);
 
@@ -632,6 +648,7 @@ int *Balance::bisection(int sortflag)
 
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms
+  // sortflag = flag for sorting order of received messages by proc ID
   // if triclinic, RCB operates on lamda coords
   // NOTE: (3/2017) can remove undocumented "old" option at some point
   //       ditto in rcb.cpp, or make it an option
@@ -1064,8 +1081,8 @@ int Balance::adjust(int n, double *split)
   double fraction;
 
   // reset lo/hi based on current sum and splits
-  // insure lo is monotonically increasing, ties are OK
-  // insure hi is monotonically decreasing, ties are OK
+  // ensure lo is monotonically increasing, ties are OK
+  // ensure hi is monotonically decreasing, ties are OK
   // this effectively uses info from nearby splits
   // to possibly tighten bounds on lo/hi
 

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -48,6 +48,11 @@ void PairDeprecated::settings(int, char **)
       utils::logmesg(lmp,
                      "\nPair style 'reax' has been removed from LAMMPS "
                      "after the 12 December 2018 version\n\n");
+  } else if (my_style == "mesont/tpm") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,
+                     "\nPair style 'mesont/tpm' has been removed from LAMMPS. "
+                     "Please use pair style 'mesocnt' instead\n\n");
   }
   error->all(FLERR, "This pair style is no longer available");
 }

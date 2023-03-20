@@ -44,6 +44,10 @@
 
 #ifndef KOKKOS_VECTOR_HPP
 #define KOKKOS_VECTOR_HPP
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_VECTOR
+#endif
 
 #include <Kokkos_Core_fwd.hpp>
 #include <Kokkos_DualView.hpp>
@@ -185,8 +189,7 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
  public:
   // TODO: can use detection idiom to generate better error message here later
   template <typename InputIterator>
-  typename std::enable_if<impl_is_input_iterator<InputIterator>::value,
-                          iterator>::type
+  std::enable_if_t<impl_is_input_iterator<InputIterator>::value, iterator>
   insert(iterator it, InputIterator b, InputIterator e) {
     ptrdiff_t count = std::distance(b, e);
 
@@ -333,4 +336,8 @@ class vector : public DualView<Scalar*, LayoutLeft, Arg1Type> {
 };
 
 }  // namespace Kokkos
+#ifdef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_VECTOR
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE
+#undef KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_VECTOR
+#endif
 #endif

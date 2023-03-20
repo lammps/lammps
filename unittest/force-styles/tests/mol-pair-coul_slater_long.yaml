@@ -6,6 +6,7 @@ skip_tests:
 prerequisites: ! |
   atom full
   pair coul/slater/long
+  kspace ewald
 pre_commands: ! ""
 post_commands: ! |
   pair_modify mix arithmetic

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/
-   Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -445,7 +445,7 @@ void PairLJCutDipoleLong::init_style()
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
 
-  // insure use of KSpace long-range solver, set g_ewald
+  // ensure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");

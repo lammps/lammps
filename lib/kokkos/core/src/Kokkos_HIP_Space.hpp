@@ -42,6 +42,15 @@
 //@HEADER
 */
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_HIPSPACE_HPP
 #define KOKKOS_HIPSPACE_HPP
 
@@ -61,8 +70,8 @@
 #include <HIP/Kokkos_HIP_Error.hpp>  // HIP_SAFE_CALL
 
 #include <impl/Kokkos_Profiling_Interface.hpp>
-#include <impl/Kokkos_ExecSpaceInitializer.hpp>
 #include <impl/Kokkos_HostSharedPtr.hpp>
+#include <impl/Kokkos_InitializationSettings.hpp>
 
 #include <hip/hip_runtime_api.h>
 /*--------------------------------------------------------------------------*/
@@ -214,6 +223,75 @@ struct Impl::is_hip_type_space<Experimental::HIPHostPinnedSpace>
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
+namespace Experimental {
+/** \brief  Memory that is accessible to HIP execution space
+ *          and host through HIP's memory page migration.
+ */
+class HIPManagedSpace {
+ public:
+  //! Tag this class as a kokkos memory space
+  /** \brief  Memory is unified to both device and host via page migration
+   *  and therefore able to be used by HostSpace::execution_space and
+   *  DeviceSpace::execution_space.
+   */
+  //! tag this class as a kokkos memory space
+  using memory_space    = HIPManagedSpace;
+  using execution_space = Kokkos::Experimental::HIP;
+  using device_type     = Kokkos::Device<execution_space, memory_space>;
+  using size_type       = unsigned int;
+
+  /*--------------------------------*/
+
+  HIPManagedSpace();
+  HIPManagedSpace(HIPManagedSpace&& rhs)      = default;
+  HIPManagedSpace(const HIPManagedSpace& rhs) = default;
+  HIPManagedSpace& operator=(HIPManagedSpace&& rhs) = default;
+  HIPManagedSpace& operator=(const HIPManagedSpace& rhs) = default;
+  ~HIPManagedSpace()                                     = default;
+
+  /**\brief  Allocate untracked memory in the space */
+  void* allocate(const size_t arg_alloc_size) const;
+  void* allocate(const char* arg_label, const size_t arg_alloc_size,
+                 const size_t arg_logical_size = 0) const;
+
+  /**\brief  Deallocate untracked memory in the space */
+  void deallocate(void* const arg_alloc_ptr, const size_t arg_alloc_size) const;
+  void deallocate(const char* arg_label, void* const arg_alloc_ptr,
+                  const size_t arg_alloc_size,
+                  const size_t arg_logical_size = 0) const;
+
+ private:
+  int m_device;  ///< Which HIP device
+  template <class, class, class, class>
+  friend class LogicalMemorySpace;
+  void* impl_allocate(const char* arg_label, const size_t arg_alloc_size,
+                      const size_t arg_logical_size = 0,
+                      const Kokkos::Tools::SpaceHandle =
+                          Kokkos::Tools::make_space_handle(name())) const;
+  void impl_deallocate(const char* arg_label, void* const arg_alloc_ptr,
+                       const size_t arg_alloc_size,
+                       const size_t arg_logical_size = 0,
+                       const Kokkos::Tools::SpaceHandle =
+                           Kokkos::Tools::make_space_handle(name())) const;
+
+ public:
+  /**\brief Return Name of the MemorySpace */
+  static constexpr const char* name() { return "HIPManaged"; }
+
+  /*--------------------------------*/
+};
+}  // namespace Experimental
+
+template <>
+struct Impl::is_hip_type_space<Experimental::HIPManagedSpace>
+    : public std::true_type {};
+
+}  // namespace Kokkos
+
+/*--------------------------------------------------------------------------*/
+/*--------------------------------------------------------------------------*/
+
+namespace Kokkos {
 namespace Impl {
 
 static_assert(
@@ -239,6 +317,15 @@ struct MemorySpaceAccess<Kokkos::HostSpace,
   enum : bool { deepcopy = true };
 };
 
+template <>
+struct MemorySpaceAccess<Kokkos::HostSpace,
+                         Kokkos::Experimental::HIPManagedSpace> {
+  // HostSpace::execution_space != HIPManagedSpace::execution_space
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = true };
+};
+
 //----------------------------------------
 
 template <>
@@ -254,6 +341,15 @@ struct MemorySpaceAccess<Kokkos::Experimental::HIPSpace,
   // HIPSpace::execution_space != HIPHostPinnedSpace::execution_space
   enum : bool { assignable = false };
   enum : bool { accessible = true };  // HIPSpace::execution_space
+  enum : bool { deepcopy = true };
+};
+
+template <>
+struct MemorySpaceAccess<Kokkos::Experimental::HIPSpace,
+                         Kokkos::Experimental::HIPManagedSpace> {
+  // HIPSpace::execution_space == HIPManagedSpace::execution_space
+  enum : bool { assignable = true };
+  enum : bool { accessible = true };
   enum : bool { deepcopy = true };
 };
 
@@ -274,6 +370,42 @@ struct MemorySpaceAccess<Kokkos::Experimental::HIPHostPinnedSpace,
                          Kokkos::Experimental::HIPSpace> {
   enum : bool { assignable = false };  // Cannot access from Host
   enum : bool { accessible = false };
+  enum : bool { deepcopy = true };
+};
+
+template <>
+struct MemorySpaceAccess<Kokkos::Experimental::HIPHostPinnedSpace,
+                         Kokkos::Experimental::HIPManagedSpace> {
+  enum : bool { assignable = false };  // different exec_space
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = true };
+};
+
+//----------------------------------------
+// HIPManagedSpace::execution_space != HostSpace::execution_space
+// HIPManagedSpace accessible to both HIP and Host
+
+template <>
+struct MemorySpaceAccess<Kokkos::Experimental::HIPManagedSpace,
+                         Kokkos::HostSpace> {
+  enum : bool { assignable = false };
+  enum : bool { accessible = false };  // HIPHostPinnedSpace::execution_space
+  enum : bool { deepcopy = true };
+};
+
+template <>
+struct MemorySpaceAccess<Kokkos::Experimental::HIPManagedSpace,
+                         Kokkos::Experimental::HIPSpace> {
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = true };
+};
+
+template <>
+struct MemorySpaceAccess<Kokkos::Experimental::HIPManagedSpace,
+                         Kokkos::Experimental::HIPHostPinnedSpace> {
+  enum : bool { assignable = false };  // different exec_space
+  enum : bool { accessible = true };
   enum : bool { deepcopy = true };
 };
 
@@ -433,6 +565,21 @@ class SharedAllocationRecord<Kokkos::Experimental::HIPSpace, void>
  protected:
   ~SharedAllocationRecord();
 
+  template <typename ExecutionSpace>
+  SharedAllocationRecord(
+      const ExecutionSpace& /*exec*/,
+      const Kokkos::Experimental::HIPSpace& arg_space,
+      const std::string& arg_label, const size_t arg_alloc_size,
+      const RecordBase::function_type arg_dealloc = &base_t::deallocate)
+      : SharedAllocationRecord(arg_space, arg_label, arg_alloc_size,
+                               arg_dealloc) {}
+
+  SharedAllocationRecord(
+      const Kokkos::Experimental::HIP& exec_space,
+      const Kokkos::Experimental::HIPSpace& arg_space,
+      const std::string& arg_label, const size_t arg_alloc_size,
+      const RecordBase::function_type arg_dealloc = &base_t::deallocate);
+
   SharedAllocationRecord(
       const Kokkos::Experimental::HIPSpace& arg_space,
       const std::string& arg_label, const size_t arg_alloc_size,
@@ -463,8 +610,56 @@ class SharedAllocationRecord<Kokkos::Experimental::HIPHostPinnedSpace, void>
   ~SharedAllocationRecord();
   SharedAllocationRecord() = default;
 
+  template <typename ExecutionSpace>
+  SharedAllocationRecord(
+      const ExecutionSpace& /*exec_space*/,
+      const Kokkos::Experimental::HIPHostPinnedSpace& arg_space,
+      const std::string& arg_label, const size_t arg_alloc_size,
+      const RecordBase::function_type arg_dealloc = &base_t::deallocate)
+      : SharedAllocationRecord(arg_space, arg_label, arg_alloc_size,
+                               arg_dealloc) {}
+
   SharedAllocationRecord(
       const Kokkos::Experimental::HIPHostPinnedSpace& arg_space,
+      const std::string& arg_label, const size_t arg_alloc_size,
+      const RecordBase::function_type arg_dealloc = &base_t::deallocate);
+};
+
+template <>
+class SharedAllocationRecord<Kokkos::Experimental::HIPManagedSpace, void>
+    : public SharedAllocationRecordCommon<
+          Kokkos::Experimental::HIPManagedSpace> {
+ private:
+  friend class SharedAllocationRecordCommon<
+      Kokkos::Experimental::HIPManagedSpace>;
+  using base_t =
+      SharedAllocationRecordCommon<Kokkos::Experimental::HIPManagedSpace>;
+  using RecordBase = SharedAllocationRecord<void, void>;
+
+  SharedAllocationRecord(const SharedAllocationRecord&) = delete;
+  SharedAllocationRecord& operator=(const SharedAllocationRecord&) = delete;
+
+#ifdef KOKKOS_ENABLE_DEBUG
+  static RecordBase s_root_record;
+#endif
+
+  const Kokkos::Experimental::HIPManagedSpace m_space;
+
+ protected:
+  ~SharedAllocationRecord();
+  SharedAllocationRecord() = default;
+
+  template <typename ExecutionSpace>
+  SharedAllocationRecord(
+      const ExecutionSpace& /*exec_space*/,
+      const Kokkos::Experimental::HIPManagedSpace& arg_space,
+      const std::string& arg_label, const size_t arg_alloc_size,
+      const RecordBase::function_type arg_dealloc = &base_t::deallocate)
+      : SharedAllocationRecord(arg_space, arg_label, arg_alloc_size,
+                               arg_dealloc) {}
+
+  SharedAllocationRecord(
+      const Kokkos::Experimental::HIPManagedSpace& arg_space,
       const std::string& arg_label, const size_t arg_alloc_size,
       const RecordBase::function_type arg_dealloc = &base_t::deallocate);
 };
@@ -519,16 +714,15 @@ class HIP {
    * asynchronously, before the functor completes. This method does not return
    * until all dispatched functors on this device have completed.
    */
-  static void impl_static_fence();
-  static void impl_static_fence(const std::string&);
+  static void impl_static_fence(const std::string& name);
 
-  void fence() const;
-  void fence(const std::string&) const;
+  void fence(const std::string& name =
+                 "Kokkos::HIP::fence(): Unnamed Instance Fence") const;
 
   hipStream_t hip_stream() const;
 
   /// \brief Print configuration information to the given output stream.
-  static void print_configuration(std::ostream&, const bool detail = false);
+  void print_configuration(std::ostream& os, bool verbose = false) const;
 
   /// \brief Free any resources being consumed by the device.
   static void impl_finalize();
@@ -536,16 +730,10 @@ class HIP {
   /** \brief  Initialize the device.
    *
    */
-  struct SelectDevice {
-    int hip_device_id;
-    SelectDevice() : hip_device_id(0) {}
-    explicit SelectDevice(int id) : hip_device_id(id) {}
-  };
-
   int hip_device() const;
   static hipDeviceProp_t const& hip_device_prop();
 
-  static void impl_initialize(const SelectDevice = SelectDevice());
+  static void impl_initialize(InitializationSettings const&);
 
   static int impl_is_initialized();
 
@@ -579,18 +767,6 @@ struct DeviceTypeTraits<Kokkos::Experimental::HIP> {
 }  // namespace Tools
 
 namespace Impl {
-
-class HIPSpaceInitializer : public Kokkos::Impl::ExecSpaceInitializerBase {
- public:
-  HIPSpaceInitializer()  = default;
-  ~HIPSpaceInitializer() = default;
-  void initialize(const InitArguments& args) final;
-  void finalize(const bool) final;
-  void fence() final;
-  void fence(const std::string&) final;
-  void print_configuration(std::ostream& msg, const bool detail) final;
-};
-
 template <class DT, class... DP>
 struct ZeroMemset<Kokkos::Experimental::HIP, DT, DP...> {
   ZeroMemset(const Kokkos::Experimental::HIP& exec_space,

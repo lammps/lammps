@@ -68,6 +68,7 @@ page gives those details.
    * :ref:`KSPACE <PKG-KSPACE>`
    * :ref:`LATBOLTZ <PKG-LATBOLTZ>`
    * :ref:`LATTE <PKG-LATTE>`
+   * :ref:`LEPTON <PKG-LEPTON>`
    * :ref:`MACHDYN <PKG-MACHDYN>`
    * :ref:`MANIFOLD <PKG-MANIFOLD>`
    * :ref:`MANYBODY <PKG-MANYBODY>`
@@ -80,6 +81,7 @@ page gives those details.
    * :ref:`ML-HDNNP <PKG-ML-HDNNP>`
    * :ref:`ML-IAP <PKG-ML-IAP>`
    * :ref:`ML-PACE <PKG-ML-PACE>`
+   * :ref:`ML-POD <PKG-ML-POD>`
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
    * :ref:`ML-RANN <PKG-ML-RANN>`
    * :ref:`ML-SNAP <PKG-ML-SNAP>`
@@ -133,6 +135,8 @@ ADIOS is a high-performance I/O library. This package implements the
 commands to write and read data using the ADIOS library.
 
 **Authors:** Norbert Podhorszki (ORNL) from the ADIOS developer team.
+
+.. versionadded:: 28Feb2019
 
 **Install:**
 
@@ -198,6 +202,7 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * :doc:`Howto spherical <Howto_spherical>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
+* :doc:`pair_style ylz <pair_ylz>`
 * `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * examples/ASPHERE
@@ -223,8 +228,9 @@ conversion of atomic information to continuum fields.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <atc>` on the :doc:`Build extras <Build_extras>` page.
-The ATC package requires that also the `MANYBODY <PKG-MANYBODY>`_ package is installed.
+This package has :ref:`specific installation instructions <atc>` on the
+:doc:`Build extras <Build_extras>` page.  The ATC package requires that
+also the :ref:`MANYBODY <PKG-MANYBODY>` package is installed.
 
 **Supporting info:**
 
@@ -364,6 +370,8 @@ and also support self-propelled particles.
 **Authors:** Sam Cameron (University of Bristol),
 Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
 
+.. versionadded:: 14May2021
+
 Example inputs are in the examples/PACKAGES/brownian folder.
 
 ----------
@@ -384,8 +392,8 @@ rigid-body integrators with improved stability.
 
 **Install:**
 
-The CG-DNA package requires that also the `MOLECULE <PKG-MOLECULE>`_ and
-`ASPHERE <PKG-ASPHERE>`_ packages are installed.
+The CG-DNA package requires that also the :ref:`MOLECULE <PKG-MOLECULE>`
+and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
 
 **Supporting info:**
 
@@ -486,22 +494,21 @@ COLVARS package
 
 **Contents:**
 
-COLVARS stands for collective variables, which can be used to
-implement various enhanced sampling methods, including Adaptive
-Biasing Force, Metadynamics, Steered MD, Umbrella Sampling and
-Restraints.  A :doc:`fix colvars <fix_colvars>` command is implemented
-which wraps a COLVARS library, which implements these methods.
-simulations.
+Colvars stands for collective variables, which can be used to implement
+various enhanced sampling methods, including Adaptive Biasing Force,
+Metadynamics, Steered MD, Umbrella Sampling and Restraints.  A :doc:`fix
+colvars <fix_colvars>` command is implemented which wraps a COLVARS
+library, which implements these methods.  simulations.
 
-**Authors:** The COLVARS library is written and maintained by
-Giacomo Fiorin (ICMS, Temple University, Philadelphia, PA, USA)
-and Jerome Henin (LISM, CNRS, Marseille, France), originally for
-the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
-(Temple U) provided the interface to LAMMPS.
+**Authors:** The COLVARS library is written and maintained by Giacomo
+Fiorin (NIH, Bethesda, MD, USA) and Jerome Henin (CNRS, Paris, France),
+originally for the NAMD MD code, but with portability in mind.  Axel
+Kohlmeyer (Temple U) provided the interface to LAMMPS.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <colvars>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <colvar>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -510,6 +517,8 @@ This package has :ref:`specific installation instructions <colvars>` on the :doc
 * src/COLVARS/README
 * lib/colvars/README
 * :doc:`fix colvars <fix_colvars>`
+* :doc:`group2ndx <group2ndx>`
+* :doc:`ndx2group <group2ndx>`
 * examples/PACKAGES/colvars
 
 ----------
@@ -554,9 +563,10 @@ CORESHELL package
 
 Compute and pair styles that implement the adiabatic core/shell model
 for polarizability.  The pair styles augment Born, Buckingham, and
-Lennard-Jones styles with core/shell capabilities.  The :doc:`compute temp/cs <compute_temp_cs>` command calculates the temperature of a
-system with core/shell particles.  See the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of how to use
-this package.
+Lennard-Jones styles with core/shell capabilities.  The :doc:`compute
+temp/cs <compute_temp_cs>` command calculates the temperature of a
+system with core/shell particles.  See the :doc:`Howto coreshell
+<Howto_coreshell>` page for an overview of how to use this package.
 
 **Author:** Hendrik Heenen (Technical U of Munich).
 
@@ -591,6 +601,8 @@ To use this package, also the :ref:`KSPACE <PKG-KSPACE>` and
 :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>` packages need to be installed.
 
 **Author:** Trung Nguyen and Monica Olvera de la Cruz (Northwestern U)
+
+.. versionadded:: 2Jul2021
 
 **Supporting info:**
 
@@ -858,7 +870,7 @@ ELECTRODE package
 The ELECTRODE package allows the user to enforce a constant potential method for
 groups of atoms that interact with the remaining atoms as electrolyte.
 
-**Authors:** The ELECTRODE library is written and maintained by Ludwig
+**Authors:** The ELECTRODE package is written and maintained by Ludwig
 Ahrens-Iwers (TUHH, Hamburg, Germany), Shern Tee (UQ, Brisbane, Australia) and
 Robert Meissner (TUHH, Hamburg, Germany).
 
@@ -871,7 +883,9 @@ This package has :ref:`specific installation instructions <electrode>` on the
 
 **Supporting info:**
 
-* :doc:`fix electrode/conp <fix_electrode_conp>`
+* :doc:`fix electrode/conp <fix_electrode>`
+* :doc:`fix electrode/conq <fix_electrode>`
+* :doc:`fix electrode/thermo <fix_electrode>`
 
 ----------
 
@@ -966,10 +980,11 @@ FEP package
 
 **Contents:**
 
-FEP stands for free energy perturbation.  This package provides
-methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt_fep>` command with soft-core pair potentials,
-which have a "soft" in their style name.  There are auxiliary tools
-for using this package in tools/fep; see its README file.
+FEP stands for free energy perturbation.  This package provides methods
+for performing FEP simulations by using a :doc:`fix adapt/fep
+<fix_adapt_fep>` command with soft-core pair potentials, which have a
+"soft" in their style name.  There are auxiliary tools for using this
+package in tools/fep; see its README file.
 
 **Author:** Agilio Padua (ENS de Lyon)
 
@@ -1010,7 +1025,8 @@ Kuznetsov, Vladimir Stegailov, and Vsevolod Nikolskiy (HSE University).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <gpu>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <gpu>` on the
+:doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1071,7 +1087,7 @@ H5MD is a format for molecular simulations, built on top of HDF5.
 This package implements a :doc:`dump h5md <dump_h5md>` command to output
 LAMMPS snapshots in this format.
 
-.. _HDF5: http://www.hdfgroup.org/HDF5
+.. _HDF5: https://www.hdfgroup.org/solutions/hdf5
 
 To use this package you must have the HDF5 library available on your
 system.
@@ -1099,15 +1115,15 @@ INTEL package
 
 **Contents:**
 
-Dozens of pair, fix, bond, angle, dihedral, improper, and kspace
-styles which are optimized for Intel CPUs and KNLs (Knights Landing).
-All of them have an "intel" in their style name.  The
-:doc:`INTEL package <Speed_intel>` page gives details of what hardware and
-compilers are required on your system, and how to build and use this
-package.  Its styles can be invoked at run time via the "-sf intel" or
-"-suffix intel" :doc:`command-line switches <Run_options>`.  Also see
-the :ref:`KOKKOS <PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`OPENMP <PKG-OPENMP>` packages,
-which have styles optimized for CPUs and KNLs.
+Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
+which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+them have an "intel" in their style name.  The :doc:`INTEL package
+<Speed_intel>` page gives details of what hardware and compilers are
+required on your system, and how to build and use this package.  Its
+styles can be invoked at run time via the "-sf intel" or "-suffix intel"
+:doc:`command-line switches <Run_options>`.  Also see the :ref:`KOKKOS
+<PKG-KOKKOS>`, :ref:`OPT <PKG-OPT>`, and :ref:`OPENMP <PKG-OPENMP>`
+packages, which have styles optimized for CPUs and KNLs.
 
 You need to have an Intel compiler, version 14 or higher to take full
 advantage of this package. While compilation with GNU compilers is
@@ -1234,12 +1250,13 @@ Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute
 styles adapted to compile using the Kokkos library which can convert
 them to OpenMP or CUDA code so that they run efficiently on multicore
 CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
-style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives
-details of what hardware and software is required on your system, and
-how to build and use this package.  Its styles can be invoked at run
-time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.  Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`,
-:ref:`INTEL <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which
-have styles optimized for CPUs, KNLs, and GPUs.
+style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives details
+of what hardware and software is required on your system, and how to
+build and use this package.  Its styles can be invoked at run time via
+the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.
+Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`, :ref:`INTEL
+<PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which have styles
+optimized for CPUs, KNLs, and GPUs.
 
 You must have a C++14 compatible compiler to use this package.
 KOKKOS makes extensive use of advanced C++ features, which can
@@ -1363,7 +1380,8 @@ Cawkwell, Anders Niklasson, and Christian Negre.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <latte>` on the :doc:`Build extras <Build_extras>` page.
+This package has :ref:`specific installation instructions <latte>` on
+the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1373,6 +1391,46 @@ This package has :ref:`specific installation instructions <latte>` on the :doc:`
 * :doc:`fix latte <fix_latte>`
 * examples/latte
 * `LAMMPS-LATTE tutorial <https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS>`_
+
+----------
+
+.. _PKG-LEPTON:
+
+LEPTON package
+--------------
+
+**Contents:**
+
+Styles for pair, bond, and angle forces that evaluate the potential
+function from a string using the `Lepton mathematical expression parser
+<https://simtk.org/projects/lepton>`_.  Lepton is a C++ library that is
+bundled with `OpenMM <https://openmm.org/>`_ and can be used for
+parsing, evaluating, differentiating, and analyzing mathematical
+expressions.  This is a more lightweight and efficient alternative for
+evaluating custom potential function to an embedded Python interpreter
+as used in the :ref:`PYTHON package <PKG-PYTHON>`.  On the other hand,
+since the potentials are evaluated form analytical expressions, they are
+more precise than what can be done with :ref:`tabulated potentials
+<tabulate>`.
+
+**Authors:** Axel Kohlmeyer (Temple U).  Lepton itself is developed
+by Peter Eastman at Stanford University.
+
+.. versionadded:: 8Feb2023
+
+**Install:**
+
+This package has :ref:`specific installation instructions <lepton>` on
+the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/LEPTON: filenames -> commands
+* lib/lepton/README.md
+* :doc:`pair_style lepton <pair_lepton>`
+* :doc:`bond_style lepton <bond_lepton>`
+* :doc:`angle_style lepton <angle_lepton>`
+* :doc:`dihedral_style lepton <dihedral_lepton>`
 
 ----------
 
@@ -1478,8 +1536,9 @@ MC package
 
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
-bonds, for performing atomic swaps, and performing grand-canonical MC
-(GCMC) or similar processes in conjunction with dynamics.
+bonds, for performing atomic swaps, and performing grand canonical
+MC (GCMC), semi-grand canonical MC (SGCMC), or similar processes in
+conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
@@ -1491,6 +1550,7 @@ bonds, for performing atomic swaps, and performing grand-canonical MC
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`
 * :doc:`pair_style dsmc <pair_dsmc>`
@@ -1511,6 +1571,8 @@ workflows via the `MolSSI Driver Interface
 (MDI) library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
 **Author:** Taylor Barnes - MolSSI, taylor.a.barnes at gmail.com
+
+.. versionadded:: 14May2021
 
 **Install:**
 
@@ -1561,25 +1623,23 @@ MESONT package
 **Contents:**
 
 MESONT is a LAMMPS package for simulation of nanomechanics of nanotubes
-(NTs). The model is based on a coarse-grained representation of NTs as
+(NTs).  The model is based on a coarse-grained representation of NTs as
 "flexible cylinders" consisting of a variable number of
 segments. Internal interactions within a NT and the van der Waals
 interaction between the tubes are described by a mesoscopic force field
 designed and parameterized based on the results of atomic-level
 molecular dynamics simulations. The description of the force field is
-provided in the papers listed below.
+provided in the papers listed in ``src/MESONT/README``.
 
-This package contains two independent implementations of this model:
-:doc:`pair_style mesont/tpm <pair_mesont_tpm>` is the original
-implementation of the model based on a Fortran library in the
-``lib/mesont`` folder. The second implementation is provided by the
-mesocnt styles (:doc:`bond_style mesocnt <bond_mesocnt>`,
-:doc:`angle_style mesocnt <angle_mesocnt>` and :doc:`pair_style mesocnt
-<pair_mesocnt>`).  The mesocnt implementation has the same features as
-the original implementation with the addition of friction, but is
-directly implemented in C++, interfaces more cleanly with general LAMMPS
-functionality, and is typically faster. It also does not require its own
-atom style and can be installed without any external libraries.
+This package used to have two independent implementations of this model:
+the original implementation using a Fortran library written by the
+developers of the model and a second implementation written in C++ by
+Philipp Kloza (U Cambridge).  Since the C++ implementation offers the
+same features as the original implementation with the addition of
+friction, is typically faster, and easier to compile/install, the
+Fortran library based implementation has since been obsoleted and
+removed from the distribution. You have to download and compile
+an older version of LAMMPS if you want to use those.
 
 **Download of potential files:**
 
@@ -1588,26 +1648,26 @@ not included in the regular downloaded packages of LAMMPS or the git
 repositories.  Instead, they will be automatically downloaded from a web
 server when the package is installed for the first time.
 
-**Authors of the *mesont* styles:**
+**Authors of the obsoleted *mesont* styles:**
 
 Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
 of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-**Author of the *mesocnt* styles:**
+.. deprecated:: 8Feb2023
+
+**Author of the C++ styles:**
 Philipp Kloza (U Cambridge)
+
+.. versionadded:: 15Jun2020
 
 **Supporting info:**
 
 * src/MESONT: filenames -> commands
 * src/MESONT/README
-* :doc:`atom_style mesont <atom_style>`
-* :doc:`pair_style mesont/tpm <pair_mesont_tpm>`
-* :doc:`compute mesont <compute_mesont>`
 * :doc:`bond_style mesocnt <bond_mesocnt>`
 * :doc:`angle_style mesocnt <angle_mesocnt>`
 * :doc:`pair_style mesocnt <pair_mesocnt>`
 * examples/PACKAGES/mesont
-* tools/mesont
 
 ----------
 
@@ -1688,6 +1748,8 @@ compiled on your system.
 
 **Author:** Andreas Singraber
 
+.. versionadded:: 27May2021
+
 **Install:**
 
 This package has :ref:`specific installation instructions <ml-hdnnp>` on the
@@ -1721,6 +1783,8 @@ of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
 must be installed.
 
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
+
+.. versionadded:: 30Jun2020
 
 **Supporting info:**
 
@@ -1766,6 +1830,8 @@ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
 
  ^4: University of British Columbia, Vancouver, BC, Canada
 
+.. versionadded:: 14May2021
+
 **Install:**
 
 This package has :ref:`specific installation instructions <ml-pace>` on the
@@ -1776,6 +1842,39 @@ This package has :ref:`specific installation instructions <ml-pace>` on the
 * src/ML-PACE: filenames -> commands
 * :doc:`pair_style pace <pair_pace>`
 * examples/PACKAGES/pace
+
+----------
+
+.. _PKG-ML-POD:
+
+ML-POD package
+-------------------
+
+**Contents:**
+
+A pair style and fitpod style for Proper Orthogonal Descriptors
+(POD). POD is a methodology for deriving descriptors based on the proper
+orthogonal decomposition. The ML-POD package provides an efficient
+implementation for running simulations with POD potentials, along with
+fitting the potentials natively in LAMMPS.
+
+**Authors:**
+
+Ngoc Cuong Nguyen (MIT), Andrew Rohskopf (Sandia)
+
+.. versionadded:: 22Dec2022
+
+**Install:**
+
+This package has :ref:`specific installation instructions <ml-pod>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/ML-POD: filenames -> commands
+* :doc:`pair_style pod <pair_pod>`
+* :doc:`command_style fitpod <fitpod_command>`
+* examples/PACKAGES/pod
 
 ----------
 
@@ -1828,6 +1927,8 @@ of a neural network.
 
 This package was written by Christopher Barrett
 with contributions by Doyl Dickel, Mississippi State University.
+
+.. versionadded:: 27May2021
 
 **Supporting info:**
 
@@ -1954,7 +2055,7 @@ support for new file formats can be added to LAMMPS (or VMD or other
 programs that use them) without having to re-compile the application
 itself.  More information about the VMD molfile plugins can be found
 at
-`http://www.ks.uiuc.edu/Research/vmd/plugins/molfile <http://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
+`https://www.ks.uiuc.edu/Research/vmd/plugins/molfile <https://www.ks.uiuc.edu/Research/vmd/plugins/molfile>`_.
 
 **Author:** Axel Kohlmeyer (Temple U).
 
@@ -2045,7 +2146,7 @@ NETCDF package
 Dump styles for writing NetCDF formatted dump files.  NetCDF is a
 portable, binary, self-describing file format developed on top of
 HDF5. The file contents follow the AMBER NetCDF trajectory conventions
-(http://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
+(https://ambermd.org/netcdf/nctraj.xhtml), but include extensions.
 
 To use this package you must have the NetCDF library available on your
 system.
@@ -2056,7 +2157,7 @@ tools:
 * `Ovito <ovito_>`_ (Ovito supports the AMBER convention and the extensions mentioned above)
 * `VMD <vmd-home_>`_
 
-.. _ovito: http://www.ovito.org
+.. _ovito: https://www.ovito.org
 
 .. _vmd-home: https://www.ks.uiuc.edu/Research/vmd/
 
@@ -2107,7 +2208,7 @@ packages, which have styles optimized for CPUs.
    See src/MAKE/OPTIONS/Makefile.omp for an example.
 
 Once you have an appropriate Makefile.machine, you can
-install/un-install the package and build LAMMPS in the usual manner:
+install/uninstall the package and build LAMMPS in the usual manner:
 
 **Install:**
 
@@ -2200,6 +2301,7 @@ Foster (UTSA).
 **Supporting info:**
 
 * src/PERI: filenames -> commands
+* :doc:`Peridynamics Howto <Howto_peri>`
 * `doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_
 * `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
 * `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_
@@ -2228,7 +2330,7 @@ and third order tensor from finite differences.
 
 **Install:**
 
-The PHONON package requires that also the `KSPACE <PKG-KSPACE>`_
+The PHONON package requires that also the :ref:`KSPACE <PKG-KSPACE>`
 package is installed.
 
 
@@ -2263,6 +2365,8 @@ with names that end in ``plugin.so`` (e.g. ``helloplugin.so``) and will
 try to load the contained plugins automatically at start-up.
 
 **Authors:** Axel Kohlmeyer (Temple U)
+
+.. versionadded:: 8Apr2021
 
 **Supporting info:**
 
@@ -2417,7 +2521,7 @@ A :doc:`fix qmmm <fix_qmmm>` command which allows LAMMPS to be used as
 the MM code in a QM/MM simulation.  This is currently only available
 in combination with the `Quantum ESPRESSO <espresso_>`_ package.
 
-.. _espresso: http://www.quantum-espresso.org
+.. _espresso: https://www.quantum-espresso.org
 
 To use this package you must have Quantum ESPRESSO (QE) available on
 your system and include its coupling library in the compilation and
@@ -2486,17 +2590,18 @@ REACTION package
 
 **Contents:**
 
-This package allows for complex bond topology changes (reactions)
-during a running MD simulation, when using classical force fields.
-Topology changes are defined in pre- and post-reaction molecule
-templates and can include creation and deletion of bonds, angles,
-dihedrals, impropers, atom types, bond types, angle types, dihedral
-types, improper types, and/or atomic charges. Other options currently
-available include reaction constraints (e.g. angle and Arrhenius
-constraints), deletion of reaction byproducts or other small
-molecules, and chiral-sensitive reactions.
+This package implements the REACTER protocol, which allows for complex
+bond topology changes (reactions) during a running MD simulation when
+using classical force fields. Topology changes are defined in pre- and
+post-reaction molecule templates and can include creation and deletion
+of bonds, angles, dihedrals, impropers, atom types, bond types, angle
+types, dihedral types, improper types, and/or atomic charges. Other
+options currently available include reaction constraints (e.g., angle
+and Arrhenius constraints), deletion of reaction byproducts or other
+small molecules, creation of new atoms or molecules bonded to existing
+atoms, and using LAMMPS variables for input parameters.
 
-**Author:** Jacob R. Gissinger (CU Boulder) while at NASA Langley Research Center.
+**Author:** Jacob R. Gissinger (NASA Langley Research Center).
 
 **Supporting info:**
 
@@ -2506,7 +2611,8 @@ molecules, and chiral-sensitive reactions.
 * examples/PACKAGES/reaction
 * `2017 LAMMPS Workshop <https://www.lammps.org/workshops/Aug17/pdf/gissinger.pdf>`_
 * `2019 LAMMPS Workshop <https://www.lammps.org/workshops/Aug19/talk_gissinger.pdf>`_
-* reacter.org
+* `2021 LAMMPS Workshop <https://www.lammps.org/workshops/Aug21/talk/jacob-gissinger/>`_
+* `REACTER website (reacter.org) <https://www.reacter.org/>`_
 
 ----------
 
@@ -2825,11 +2931,9 @@ VORONOI package
 **Contents:**
 
 A compute command which calculates the Voronoi tesselation of a
-collection of atoms by wrapping the `Voro++ library <voro-home_>`_.  This
-can be used to calculate the local volume or each atoms or its near
-neighbors.
-
-.. _voro-home: http://math.lbl.gov/voro++
+collection of atoms by wrapping the `Voro++ library
+<https://math.lbl.gov/voro++/>`_.  This can be used to calculate the
+local volume or each atoms or its near neighbors.
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -2863,9 +2967,9 @@ A :doc:`dump vtk <dump_vtk>` command which outputs snapshot info in the
 `VTK format <vtk_>`_, enabling visualization by `Paraview <paraview_>`_ or
 other visualization packages.
 
-.. _vtk: http://www.vtk.org
+.. _vtk: https://www.vtk.org
 
-.. _paraview: http://www.paraview.org
+.. _paraview: https://www.paraview.org
 
 To use this package you must have VTK library available on your
 system.
@@ -2902,10 +3006,12 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 
 .. _vanduyfhuys2015: https://doi.org/10.1002/jcc.23877
 .. _vanduyfhuys2018: https://doi.org/10.1002/jcc.25173
-.. _quickff: http://molmod.github.io/QuickFF
+.. _quickff: https://molmod.github.io/QuickFF
 .. _yaff: https://github.com/molmod/yaff
 
 **Author:** Steven Vandenbrande.
+
+.. versionadded:: 1Feb2019
 
 **Supporting info:**
 

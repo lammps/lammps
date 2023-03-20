@@ -43,9 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_NonModifyingSequenceOperations.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
 #include <algorithm>
 
 namespace Test {
@@ -172,7 +169,7 @@ void run_all_scenarios() {
 
 TEST(std_algorithms_lexicographical_compare_test, test) {
 // FIXME: should this disable only custom comparator tests?
-#if not defined KOKKOS_ENABLE_OPENMPTARGET
+#if !defined KOKKOS_ENABLE_OPENMPTARGET
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedTwoTag, int>();
   run_all_scenarios<StridedThreeTag, unsigned>();

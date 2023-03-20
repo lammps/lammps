@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -47,14 +47,16 @@ void Replicate::command(int narg, char **arg)
   int me = comm->me;
   int nprocs = comm->nprocs;
 
-  if (me == 0) utils::logmesg(lmp,"Replicating atoms ...\n");
-
   // nrep = total # of replications
 
   int nx = utils::inumeric(FLERR,arg[0],false,lmp);
   int ny = utils::inumeric(FLERR,arg[1],false,lmp);
   int nz = utils::inumeric(FLERR,arg[2],false,lmp);
   int nrep = nx*ny*nz;
+
+  if (me == 0)
+    utils::logmesg(lmp, "Replication is creating a {}x{}x{} = {} times larger system...\n",
+                   nx, ny, nz, nrep);
 
   int bbox_flag = 0;
   if (narg == 4)
@@ -276,7 +278,7 @@ void Replicate::command(int narg, char **arg)
 
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
-  // insures all replicated atoms will be owned even with round-off
+  // ensures all replicated atoms will be owned even with round-off
 
   double epsilon[3];
   if (triclinic) epsilon[0] = epsilon[1] = epsilon[2] = EPSILON;

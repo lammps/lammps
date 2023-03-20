@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -29,7 +29,7 @@ FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   foriginal(nullptr)
 {
-  if (narg < 3) error->all(FLERR,"Illegal fix store/coord command");
+  if (narg < 3) error->all(FLERR,"Illegal fix store/force command");
 
   peratom_flag = 1;
   size_peratom_cols = 3;

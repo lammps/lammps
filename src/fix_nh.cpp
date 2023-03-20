@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -357,6 +357,11 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"strain") == 0) {
       iarg += 3;
     } else if (strcmp(arg[iarg],"ext") == 0) {
+      iarg += 2;
+
+    // keyword psllod is parsed in fix/nvt/sllod
+
+    } else if (strcmp(arg[iarg],"psllod") == 0) {
       iarg += 2;
 
     } else error->all(FLERR,"Unknown fix nvt/npt/nph keyword: {}", arg[iarg]);

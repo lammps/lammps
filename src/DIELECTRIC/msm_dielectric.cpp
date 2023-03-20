@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -20,10 +20,9 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
 #include "memory.h"
 
@@ -130,7 +129,7 @@ void MSMDielectric::compute(int eflag, int vflag)
   // to fully sum contribution in their 3d grid
 
   current_level = 0;
-  gcall->reverse_comm(GridComm::KSPACE,this,1,sizeof(double),REVERSE_RHO,
+  gcall->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(double),
                       gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // forward communicate charge density values to fill ghost grid points
@@ -139,7 +138,7 @@ void MSMDielectric::compute(int eflag, int vflag)
   for (int n=0; n<=levels-2; n++) {
     if (!active_flag[n]) continue;
     current_level = n;
-    gc[n]->forward_comm(GridComm::KSPACE,this,1,sizeof(double),FORWARD_RHO,
+    gc[n]->forward_comm(Grid3d::KSPACE,this,FORWARD_RHO,1,sizeof(double),
                         gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
     direct(n);
     restriction(n);
@@ -152,15 +151,15 @@ void MSMDielectric::compute(int eflag, int vflag)
     if (domain->nonperiodic) {
       current_level = levels-1;
       gc[levels-1]->
-        forward_comm(GridComm::KSPACE,this,1,sizeof(double),FORWARD_RHO,
+        forward_comm(Grid3d::KSPACE,this,FORWARD_RHO,1,sizeof(double),
                      gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       direct_top(levels-1);
       gc[levels-1]->
-        reverse_comm(GridComm::KSPACE,this,1,sizeof(double),REVERSE_AD,
+        reverse_comm(Grid3d::KSPACE,this,REVERSE_AD,1,sizeof(double),
                      gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       if (vflag_atom)
         gc[levels-1]->
-          reverse_comm(GridComm::KSPACE,this,6,sizeof(double),REVERSE_AD_PERATOM,
+          reverse_comm(Grid3d::KSPACE,this,REVERSE_AD_PERATOM,6,sizeof(double),
                        gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
 
     } else {
@@ -171,7 +170,7 @@ void MSMDielectric::compute(int eflag, int vflag)
       current_level = levels-1;
       if (vflag_atom)
         gc[levels-1]->
-          reverse_comm(GridComm::KSPACE,this,6,sizeof(double),REVERSE_AD_PERATOM,
+          reverse_comm(Grid3d::KSPACE,this,REVERSE_AD_PERATOM,6,sizeof(double),
                        gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
     }
   }
@@ -184,27 +183,27 @@ void MSMDielectric::compute(int eflag, int vflag)
     prolongation(n);
 
     current_level = n;
-    gc[n]->reverse_comm(GridComm::KSPACE,this,1,sizeof(double),REVERSE_AD,
+    gc[n]->reverse_comm(Grid3d::KSPACE,this,REVERSE_AD,1,sizeof(double),
                         gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
 
     // extra per-atom virial communication
 
     if (vflag_atom)
-      gc[n]->reverse_comm(GridComm::KSPACE,this,6,sizeof(double),
-                          REVERSE_AD_PERATOM,gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+      gc[n]->reverse_comm(Grid3d::KSPACE,this,REVERSE_AD_PERATOM,6,sizeof(double),
+                          gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
   }
 
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
   current_level = 0;
-  gcall->forward_comm(GridComm::KSPACE,this,1,sizeof(double),FORWARD_AD,
+  gcall->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(double),
                       gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // extra per-atom energy/virial communication
 
   if (vflag_atom)
-    gcall->forward_comm(GridComm::KSPACE,this,6,sizeof(double),FORWARD_AD_PERATOM,
+    gcall->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(double),
                         gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // calculate the force on my particles (interpolation)
@@ -246,7 +245,7 @@ void MSMDielectric::compute(int eflag, int vflag)
   // energy includes self-energy correction
 
   if (evflag_atom) {
-    double *q = atom->q;
+    double *q = atom->q_scaled;
     int nlocal = atom->nlocal;
 
     if (eflag_atom) {
@@ -288,7 +287,7 @@ void MSMDielectric::fieldforce()
   // (mx,my,mz) = global coords of moving stencil pt
   // ek = 3 components of E-field on particle
 
-  double *q = atom->q;
+  double *q = atom->q_scaled;
   double **x = atom->x;
   double **f = atom->f;
   double *eps = atom->epsilon;

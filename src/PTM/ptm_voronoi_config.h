@@ -119,30 +119,30 @@ const int pre_container_chunk_size = 1024;
 
 /** If a point is within this distance of a cutting plane, then the code
  * assumes that point exactly lies on the plane. */
-const double tolerance = 1e-11;
+constexpr double tolerance = 1e-11;
 
 /** If a point is within this distance of a cutting plane, then the code stores
  * whether this point is inside, outside, or exactly on the cutting plane in
  * the marginal cases buffer, to prevent the test giving a different result on
  * a subsequent evaluation due to floating point rounding errors. */
-const double tolerance2 = 2e-11;
+constexpr double tolerance2 = 2e-11;
 
 /** The square of the tolerance, used when deciding whether some squared
  * quantities are large enough to be used. */
-const double tolerance_sq = tolerance * tolerance;
+constexpr double tolerance_sq = tolerance * tolerance;
 
 /** A large number that is used in the computation. */
-const double large_number = 1e30;
+constexpr double large_number = 1e30;
 
 /** A radius to use as a placeholder when no other information is available. */
-const double default_radius = 0.5;
+constexpr double default_radius = 0.5;
 
 /** The maximum number of shells of periodic images to test over. */
 const int max_unit_voro_shells = 10;
 
 /** A guess for the optimal number of particles per block, used to set up the
  * container grid. */
-const double optimal_particles = 5.6;
+constexpr double optimal_particles = 5.6;
 
 /** If this is set to 1, then the code reports any instances of particles being
  * put outside of the container geometry. */

@@ -95,6 +95,10 @@ class UCL_Device {
   /// Return the number of devices that support CUDA
   inline int num_devices() { return _properties.size(); }
 
+  /// Specify whether profiling (device timers) will be used for the device (yes=true)
+  /** No-op for CUDA and HIP **/
+  inline void configure_profiling(const bool profiling_on) {}
+
   /// Set the CUDA device to the specified device number
   /** A context and default command queue will be created for the device
     * Returns UCL_SUCCESS if successful or UCL_ERROR if the device could not
@@ -305,9 +309,9 @@ class UCL_Device {
 
   /// For compatability with OCL API
   inline int auto_set_platform(const enum UCL_DEVICE_TYPE type=UCL_GPU,
-			       const std::string vendor="",
-			       const int ndevices=-1,
-			       const int first_device=-1)
+                               const std::string vendor="",
+                               const int ndevices=-1,
+                               const int first_device=-1)
     { return set_platform(0); }
 
  private:
@@ -425,7 +429,7 @@ void UCL_Device::clear() {
     CU_SAFE_CALL_NS(cuCtxSetCurrent(_old_context));
     CU_SAFE_CALL_NS(cuDevicePrimaryCtxRelease(_cu_device));
 #else
-    cuCtxDestroy(_context));
+    cuCtxDestroy(_context);
 #endif
   }
   _device=-1;

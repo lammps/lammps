@@ -209,6 +209,75 @@ create_atoms 1 single &
             self.assertEqual(idx,i)
             self.assertEqual(num,nlocal-1)
 
+    def testNeighborListZeroHalf(self):
+        self.lmp.commands_string("""
+        boundary f f f
+        units real
+        region box block -5 5 -5 5 -5 5
+        create_box 1 box
+        mass 1 1.0
+        pair_style zero 4.0
+        pair_coeff 1 1
+        """)
+        x = [ 0.0,  0.0,  0.0,  -1.1,  0.0,  0.0,  1.0,  0.0,  0.0,
+              0.0, -1.1,  0.0,   0.0,  1.0,  0.0,  0.0,  0.0, -1.1,
+              0.0,  0.0,  1.0 ]
+        tags = [1, 2, 3, 4, 5, 6, 7]
+        types = [1, 1, 1, 1, 1, 1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.assertEqual(nlocal, 7)
+
+        self.lmp.command("run 0 post no")
+
+        self.assertEqual(self.lmp.find_pair_neighlist("zero"),0)
+        nlist = self.lmp.get_neighlist(0)
+        self.assertEqual(nlist.size, 7)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(idx,i)
+            self.assertEqual(num,nlocal-1-i)
+
+        # look up neighbor list by atom index
+        num, neighs = nlist.find(2)
+        self.assertEqual(num,4)
+        self.assertIsNotNone(neighs,None)
+        # this one will fail
+        num, neighs = nlist.find(10)
+        self.assertEqual(num,-1)
+        self.assertIsNone(neighs,None)
+
+    def testNeighborListZeroFull(self):
+        self.lmp.commands_string("""
+        boundary f f f
+        units metal
+        region box block -5 5 -5 5 -5 5
+        create_box 1 box
+        mass 1 1.0
+        pair_style zero 4.0 full
+        pair_coeff * *
+        """)
+        x = [ 0.0,  0.0,  0.0,  -1.1,  0.0,  0.0,  1.0,  0.0,  0.0,
+              0.0, -1.1,  0.0,   0.0,  1.0,  0.0,  0.0,  0.0, -1.1,
+              0.0,  0.0,  1.0 ]
+        tags = [1, 2, 3, 4, 5, 6, 7]
+        types = [1, 1, 1, 1, 1, 1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.assertEqual(nlocal, 7)
+
+        self.lmp.command("run 0 post no")
+
+        self.assertEqual(self.lmp.find_pair_neighlist("zero"),0)
+        nlist = self.lmp.get_neighlist(0)
+        self.assertEqual(nlist.size, 7)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(idx,i)
+            self.assertEqual(num,nlocal-1)
+
     @unittest.skipIf(not has_manybody,"Hybrid neighbor list test for manybody potential")
     def testNeighborListHybrid(self):
         self.lmp.commands_string("""
@@ -467,6 +536,7 @@ create_atoms 1 single &
     def test_extract_global(self):
         self.lmp.command("region box block -1 1 -2 2 -3 3")
         self.lmp.command("create_box 1 box")
+        self.lmp.command("special_bonds lj 0.0 0.5 0.8 coul 0.1 0.5 1.0")
         self.assertEqual(self.lmp.extract_global("units"), "lj")
         self.assertEqual(self.lmp.extract_global("ntimestep"), 0)
         self.assertEqual(self.lmp.extract_global("dt"), 0.005)
@@ -483,10 +553,15 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("subhi"), [1.0, 2.0, 3.0])
         self.assertEqual(self.lmp.extract_global("periodicity"), [1,1,1])
         self.assertEqual(self.lmp.extract_global("triclinic"), 0)
+        self.assertEqual(self.lmp.extract_global("special_lj"), [1.0, 0.0, 0.5, 0.8])
+        self.assertEqual(self.lmp.extract_global("special_coul"), [1.0, 0.1, 0.5, 1.0])
         self.assertEqual(self.lmp.extract_global("sublo_lambda"), None)
         self.assertEqual(self.lmp.extract_global("subhi_lambda"), None)
         self.assertEqual(self.lmp.extract_global("respa_levels"), None)
         self.assertEqual(self.lmp.extract_global("respa_dt"), None)
+        self.lmp.command("special_bonds lj/coul 0.0 1.0 1.0")
+        self.assertEqual(self.lmp.extract_global("special_lj"), [1.0, 0.0, 1.0, 1.0])
+        self.assertEqual(self.lmp.extract_global("special_coul"), [1.0, 0.0, 1.0, 1.0])
 
         # set and initialize r-RESPA
         self.lmp.command("run_style respa 3 5 2 pair 2 kspace 3")

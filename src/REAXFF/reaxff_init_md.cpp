@@ -56,7 +56,8 @@ namespace ReaxFF {
     if (control->hbond_cut > 0)
       for (i = 0; i < system->n; ++i) {
         atom = &(system->my_atoms[i]);
-        if (system->reax_param.sbp[atom->type].p_hbond == 1 && atom->type >= 0)
+        if ((atom->type >= 0)
+            && (system->reax_param.sbp[atom->type].p_hbond == 1 && atom->type >= 0))
           atom->Hindex = system->numH++;
         else atom->Hindex = -1;
       }

@@ -1,0 +1,55 @@
+# flat membrane demo
+variable     r0 equal  0.97
+variable     d1 equal  ${r0}
+variable     d2 equal  sqrt(3.0)*${r0}
+variable     d3 equal  3.0*${r0}
+variable     ro equal  2./${d1}/${d2}/${d3}
+
+variable     T  equal  0.23
+variable     LD equal  1.0
+
+units        lj
+atom_style   ellipsoid
+
+boundary     p p p
+
+lattice      custom ${ro} a1 ${d1}  0.0 0.0 a2 0.0 ${d2}  0.0 &
+             a3 0.0 0.0 ${d3}  basis 0.0 0.0 0.0 basis 0.5  0.5  0.0
+
+
+region       box block   0 40  0 24  -20  20
+create_box   1 box
+region       membrane block  0 40  0 24 -0.5 0.5
+create_atoms 1 region membrane
+
+group        membrane  region membrane
+
+set type 1 mass  1.0
+
+set type 1 shape  1 0.99 0.99
+
+set          group all quat 0 -1 0  90
+
+#compute      memb  all temp/com
+#compute      rot all temp/asphere bias memb
+velocity     all create ${T} 87287 loop geom
+
+pair_style   ylz  2.6
+pair_coeff   *  *   1.0  1.0  4  3  0.0  2.6
+neighbor     1.0 bin
+
+
+thermo_style custom step temp press pxx pyy
+thermo       200
+
+timestep     0.01
+
+#dump         1 all atom 10 dump_onlymembrane.lammpstrj
+
+fix          1 all langevin ${T} ${T}  ${LD}  48279
+
+
+fix          2 all nve/asphere
+run          3000
+
+

@@ -228,18 +228,20 @@ command:
 See section below on output for a detailed explanation of the data
 layout in the global array.
 
+.. versionadded:: 3Aug2022
+
 The compute *sna/grid* and *sna/grid/local* commands calculate
-bispectrum components for a regular grid of points.
-These are calculated from the local density of nearby atoms *i'*
-around each grid point, as if there was a central atom *i*
-at the grid point. This is useful for characterizing fine-scale
-structure in a configuration of atoms, and it is used
-in the `MALA package <https://github.com/casus/mala>`_
-to build machine-learning surrogates for finite-temperature Kohn-Sham
-density functional theory (:ref:`Ellis et al. <Ellis2021>`)
-Neighbor atoms not in the group do not contribute to the
-bispectrum components of the grid points. The distance cutoff :math:`R_{ii'}`
-assumes that *i* has the same type as the neighbor atom *i'*.
+bispectrum components for a regular grid of points.  These are
+calculated from the local density of nearby atoms *i'* around each grid
+point, as if there was a central atom *i* at the grid point. This is
+useful for characterizing fine-scale structure in a configuration of
+atoms, and it is used in the `MALA package
+<https://github.com/casus/mala>`_ to build machine-learning surrogates
+for finite-temperature Kohn-Sham density functional theory (:ref:`Ellis
+et al. <Ellis2021>`) Neighbor atoms not in the group do not contribute
+to the bispectrum components of the grid points. The distance cutoff
+:math:`R_{ii'}` assumes that *i* has the same type as the neighbor atom
+*i'*.
 
 Compute *sna/grid* calculates a global array containing bispectrum
 components for a regular grid of points.
@@ -257,7 +259,7 @@ layout in the global array.
 Compute *sna/grid/local* calculates bispectrum components of a regular
 grid of points similarly to compute *sna/grid* described above.
 However, because the array is local, it contains only rows for grid points
-that are local to the processor sub-domain. The global grid
+that are local to the processor subdomain. The global grid
 of :math:`nx \times ny \times nz` points is still laid out in space the same as for *sna/grid*,
 but grid points are strictly partitioned, so that every grid point appears in
 one and only one local array.  The array contains one row for each of the
@@ -449,7 +451,10 @@ piece of python code:
            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
                if (j>=j1): print j1/2.,j2/2.,j/2.
 
-For even twojmax = 2(*m*\ -1), :math:`K = m(m+1)(2m+1)/6`, the *m*\ -th pyramidal number. For odd twojmax = 2 *m*\ -1, :math:`K = m(m+1)(m+2)/3`, twice the *m*\ -th tetrahedral number.
+There are :math:`m(m+1)/2` descriptors with last index *j*,
+where *m* = :math:`\lfloor j \rfloor + 1`.
+Hence, for even *twojmax* = 2(*m*\ -1), :math:`K = m(m+1)(2m+1)/6`, the *m*\ -th pyramidal number,
+and for odd *twojmax* = 2 *m*\ -1, :math:`K = m(m+1)(m+2)/3`, twice the *m*\ -th tetrahedral number.
 
 .. note::
 

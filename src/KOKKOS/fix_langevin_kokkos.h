@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -191,6 +191,20 @@ namespace LAMMPS_NS {
       }
 
       KOKKOS_INLINE_FUNCTION
+      static void init(value_type &update) {
+        update.fx = 0.0;
+        update.fy = 0.0;
+        update.fz = 0.0;
+      }
+      KOKKOS_INLINE_FUNCTION
+      static void join(value_type &update,
+                       const value_type &source) {
+        update.fx += source.fx;
+        update.fy += source.fy;
+        update.fz += source.fz;
+      }
+
+      KOKKOS_INLINE_FUNCTION
       static void init(volatile value_type &update) {
         update.fx = 0.0;
         update.fy = 0.0;
@@ -231,6 +245,15 @@ namespace LAMMPS_NS {
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i, value_type &energy) const {
         energy += c.compute_energy_item(i);
+      }
+      KOKKOS_INLINE_FUNCTION
+      static void init(value_type &update) {
+        update = 0.0;
+      }
+      KOKKOS_INLINE_FUNCTION
+      static void join(value_type &update,
+                       const value_type &source) {
+        update += source;
       }
       KOKKOS_INLINE_FUNCTION
       static void init(volatile value_type &update) {

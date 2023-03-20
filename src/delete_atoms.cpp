@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -408,7 +408,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
       //   if they are candidate pair, then either:
       //      another proc owns J and could delete J
       //      J is a ghost of another of my owned atoms, and I could delete J
-      //   test on tags of I,J insures that only I or J is deleted
+      //   test on tags of I,J ensures that only I or J is deleted
 
       if (j < nlocal) {
         if (dlist[j]) continue;

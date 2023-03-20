@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -163,7 +163,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
 
   copymode = 1;
 
-  // insure distsq and nearest arrays are long enough
+  // ensure distsq and nearest arrays are long enough
 
   maxneigh = 0;
   Kokkos::parallel_reduce("ComputeOrientOrderAtomKokkos::find_max_neighs",inum, FindMaxNumNeighs<DeviceType>(k_list), Kokkos::Max<int>(maxneigh));

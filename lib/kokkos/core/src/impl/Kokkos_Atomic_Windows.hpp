@@ -52,8 +52,6 @@
 #include <winsock2.h>
 #include <windows.h>
 
-#undef VOID
-
 namespace Kokkos {
 namespace Impl {
 #ifdef _MSC_VER
@@ -77,7 +75,7 @@ __attribute__((aligned(16)))
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename std::enable_if<sizeof(T) == sizeof(CHAR), const T&>::type val) {
+    std::enable_if_t<sizeof(T) == sizeof(CHAR), const T&> val) {
   union U {
     CHAR i;
     T t;
@@ -92,7 +90,7 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename std::enable_if<sizeof(T) == sizeof(SHORT), const T&>::type val) {
+    std::enable_if_t<sizeof(T) == sizeof(SHORT), const T&> val) {
   union U {
     SHORT i;
     T t;
@@ -107,7 +105,7 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename std::enable_if<sizeof(T) == sizeof(LONG), const T&>::type val) {
+    std::enable_if_t<sizeof(T) == sizeof(LONG), const T&> val) {
   union U {
     LONG i;
     T t;
@@ -122,8 +120,7 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename std::enable_if<sizeof(T) == sizeof(LONGLONG), const T&>::type
-        val) {
+    std::enable_if_t<sizeof(T) == sizeof(LONGLONG), const T&> val) {
   union U {
     LONGLONG i;
     T t;
@@ -138,8 +135,7 @@ inline T atomic_compare_exchange(
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
-    typename std::enable_if<sizeof(T) == sizeof(Impl::cas128_t), const T&>::type
-        val) {
+    std::enable_if_t<sizeof(T) == sizeof(Impl::cas128_t), const T&> val) {
   T compare_and_result(compare);
   union U {
     Impl::cas128_t i;

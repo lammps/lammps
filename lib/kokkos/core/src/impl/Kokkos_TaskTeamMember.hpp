@@ -80,8 +80,9 @@ class TaskTeamMemberAdapter : public TeamMember {
   // type that we're adapting
   template <typename... Args>
   KOKKOS_INLINE_FUNCTION explicit TaskTeamMemberAdapter(
-      typename std::enable_if<std::is_constructible<TeamMember, Args...>::value,
-                              Scheduler>::type arg_scheduler,
+      std::enable_if_t<std::is_constructible<TeamMember, Args...>::value,
+                       Scheduler>
+          arg_scheduler,
       Args&&... args)  // TODO @tasking @minor DSH noexcept specification
       : TeamMember(std::forward<Args>(args)...),
         m_scheduler(

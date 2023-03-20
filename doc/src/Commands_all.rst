@@ -24,6 +24,7 @@ table above.
 
    * :doc:`angle_coeff <angle_coeff>`
    * :doc:`angle_style <angle_style>`
+   * :doc:`angle_write <angle_write>`
    * :doc:`atom_modify <atom_modify>`
    * :doc:`atom_style <atom_style>`
    * :doc:`balance <balance>`
@@ -31,7 +32,6 @@ table above.
    * :doc:`bond_style <bond_style>`
    * :doc:`bond_write <bond_write>`
    * :doc:`boundary <boundary>`
-   * :doc:`box <box>`
    * :doc:`change_box <change_box>`
    * :doc:`clear <clear>`
    * :doc:`comm_modify <comm_modify>`
@@ -46,6 +46,7 @@ table above.
    * :doc:`dielectric <dielectric>`
    * :doc:`dihedral_coeff <dihedral_coeff>`
    * :doc:`dihedral_style <dihedral_style>`
+   * :doc:`dihedral_write <dihedral_write>`
    * :doc:`dimension <dimension>`
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`
@@ -90,8 +91,7 @@ table above.
    * :doc:`region <region>`
    * :doc:`replicate <replicate>`
    * :doc:`rerun <rerun>`
-   * :doc:`reset_atom_ids <reset_atom_ids>`
-   * :doc:`reset_mol_ids <reset_mol_ids>`
+   * :doc:`reset_atoms <reset_atoms>`
    * :doc:`reset_timestep <reset_timestep>`
    * :doc:`restart <restart>`
    * :doc:`run <run>`
@@ -127,6 +127,7 @@ additional letter in parenthesis: k = KOKKOS.
    * :doc:`group2ndx <group2ndx>`
    * :doc:`hyper <hyper>`
    * :doc:`kim <kim_commands>`
+   * :doc:`fitpod <fitpod_command>`
    * :doc:`mdi <mdi>`
    * :doc:`ndx2group <group2ndx>`
    * :doc:`neb <neb>`

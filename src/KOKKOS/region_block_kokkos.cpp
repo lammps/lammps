@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -48,7 +48,8 @@ void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_in
   groupbit = groupbit_in;
   d_match = k_match_in.template view<DeviceType>();
 
-  atomKK->sync(Device, X_MASK | MASK_MASK);
+  auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  atomKK->sync(execution_space, X_MASK | MASK_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();

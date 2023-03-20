@@ -10,24 +10,24 @@ import sys, os, platform, subprocess, shutil
 from argparse import ArgumentParser
 
 sys.path.append('..')
-from install_helpers import get_cpus, fullpath, geturl, checkmd5sum
+from install_helpers import get_cpus, fullpath, geturl, checkmd5sum, getfallback
 
 parser = ArgumentParser(prog='Install.py',
                         description="LAMMPS library build wrapper script")
 
 # settings
 
-version = "2.7.4"
+version = "2.8.2"
 mode = "static"
 
 # help message
 
 HELP = """
 Syntax from src dir: make lib-plumed args="-b"
-                 or: make lib-plumed args="-b -v 2.4.3"
+                 or: make lib-plumed args="-b -v 2.8.2"
                  or: make lib-plumed args="-p /usr/local/plumed2 -m shared"
 
-Syntax from lib dir: python Install.py -b -v 2.4.3
+Syntax from lib dir: python Install.py -b -v 2.8.2
                  or: python Install.py -b
                  or: python Install.py -p /usr/local/plumed2 -m shared
 
@@ -37,28 +37,14 @@ make lib-plumed args="-b"   # download/build in lib/plumed/plumed2
 make lib-plumed args="-p $HOME/plumed2 -m shared" # use existing Plumed2 installation in $HOME/plumed2
 """
 
-# known checksums for different PLUMED versions. used to validate the download.
+# known checksums for different PLUMED versions. used to validate downloads.
 checksums = { \
-        '2.4.2' : '88188743a6e03ef076e5377d03ebb0e7', \
-        '2.4.3' : 'b1be7c48971627febc11c61b70767fc5', \
         '2.4.4' : '71ed465bdc7c2059e282dbda8d564e71', \
-        '2.5.0' : '6224cd089493661e19ceacccd35cf911', \
-        '2.5.1' : 'c2a7b519e32197a120cdf47e0f194f81', \
-        '2.5.2' : 'bd2f18346c788eb54e1e52f4f6acf41a', \
-        '2.5.3' : 'de30d6e7c2dcc0973298e24a6da24286', \
-        '2.5.4' : 'f31b7d16a4be2e30aa7d5c19c3d37853', \
         '2.5.7' : '1ca36226fdb8110b1009aa61d615d4e5', \
-        '2.6.0' : '204d2edae58d9b10ba3ad460cad64191', \
-        '2.6.1' : '89a9a450fc6025299fe16af235957163', \
-        '2.6.3' : 'a9f8028fd74528c2024781ea1fdefeee', \
-        '2.6.5' : 'b67356f027e5c2747823b0422c3b0ec2', \
         '2.6.6' : '6b470dcdce04c221ea42d8500b03c49b', \
-        '2.7.0' : '95f29dd0c067577f11972ff90dfc7d12', \
-        '2.7.1' : '4eac6a462ec84dfe0cec96c82421b8e8', \
-        '2.7.2' : 'cfa0b4dd90a81c25d3302e8d97bfeaea', \
-        '2.7.3' : 'f00cc82edfefe6bb3df934911dbe32fb', \
-        '2.7.4' : 'f858e0b6aed173748fc85b6bc8a9dcb3', \
-        '2.8.0' : '489b23daba70da78cf0506cbc31689c6', \
+        '2.7.6' : 'fb8c0ec10f97a9353eb123a5c4c35aa6', \
+        '2.8.1' : '6bfe72ebdae63dc38a9ca27d9b0e08f8', \
+        '2.8.2' : '599092b6a0aa6fff992612537ad98994', \
         }
 
 # parse and process arguments
@@ -84,6 +70,7 @@ buildflag = args.build
 pathflag = args.path is not None
 plumedpath = args.path
 mode = args.mode
+version = args.version
 
 homepath = fullpath('.')
 homedir = "%s/plumed2" % (homepath)
@@ -99,14 +86,21 @@ if pathflag:
 
 if buildflag:
   url = "https://github.com/plumed/plumed2/releases/download/v%s/plumed-src-%s.tgz" % (version, version)
-  filename = "plumed-src-%s.tar.gz" %version
+  filename = "plumed-src-%s.tar.gz" % version
+  fallback = getfallback('plumed', url)
   print("Downloading plumed  ...")
-  geturl(url, filename)
+  try:
+    geturl(url, filename)
+  except:
+    geturl(fallback, filename)
 
   # verify downloaded archive integrity via md5 checksum, if known.
   if version in checksums:
     if not checkmd5sum(checksums[version], filename):
-      sys.exit("Checksum for plumed2 library does not match")
+      print("Checksum did not match. Trying fallback URL", fallback)
+      geturl(fallback, filename)
+      if not checkmd5sum(checksums[version], filename):
+        sys.exit("Checksum for plumed2 library does not match for fallback, too.")
 
   print("Unpacking plumed2 source tarball ...")
   if os.path.exists("%s/plumed-%s" % (homepath, version)):

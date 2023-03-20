@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -93,7 +93,7 @@ class ComputeChunkAtom : public Compute {
   double *varatom;
 
   char *id_fix;
-  class FixStorePeratom *fixstore;
+  class FixStoreAtom *fixstore;
 
   class Fix *lockfix;            // ptr to FixAveChunk that is locking out setups
                                  // null pointer if no lock currently in place

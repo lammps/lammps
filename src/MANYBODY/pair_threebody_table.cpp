@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -445,7 +445,7 @@ void PairThreebodyTable::read_table(Table *tb, char *file, char *keyword, bool s
 
   char *line = reader.find_section_start(keyword);
 
-  if (!line) { error->one(FLERR, "Did not find keyword in table file"); }
+  if (!line) error->one(FLERR, "Did not find keyword in table file");
 
   // read args on 2nd line of section
   // allocate table arrays for file values
@@ -703,25 +703,25 @@ void PairThreebodyTable::uf_lookup(Param *pm, double r12, double r13, double the
   // if it is a symmetric threebody interaction, less table entries are required
   if (pm->symmetric) {
     nr12 = (r12 - pm->mltable->rmin + 0.5 * dr - 0.00000001) / dr;
-    if (r12 == (pm->mltable->rmin - 0.5 * dr)) { nr12 = 0; }
+    if (r12 == (pm->mltable->rmin - 0.5 * dr)) nr12 = 0;
     nr13 = (r13 - pm->mltable->rmin + 0.5 * dr - 0.00000001) / dr;
-    if (r13 == (pm->mltable->rmin - 0.5 * dr)) { nr13 = 0; }
+    if (r13 == (pm->mltable->rmin - 0.5 * dr)) nr13 = 0;
     nr13 -= nr12;
     ntheta = (theta - 0.00000001) / dtheta;
-    if (theta == 180.0) { ntheta = 79; }
+    if (theta >= 180.0) ntheta = (pm->mltable->ninput * 2) - 1;
     itable = 0;
-    for (i = 0; i < nr12; i++) { itable += (pm->mltable->ninput - i); }
+    for (i = 0; i < nr12; i++) itable += (pm->mltable->ninput - i);
     itable += nr13;
     itable *= (pm->mltable->ninput * 2);
     itable += ntheta;
   } else {
     // else, more (full) table entries are required
     nr12 = (r12 - pm->mltable->rmin + 0.5 * dr - 0.00000001) / dr;
-    if (r12 == (pm->mltable->rmin - 0.5 * dr)) { nr12 = 0; }
+    if (r12 == (pm->mltable->rmin - 0.5 * dr)) nr12 = 0;
     nr13 = (r13 - pm->mltable->rmin + 0.5 * dr - 0.00000001) / dr;
-    if (r13 == (pm->mltable->rmin - 0.5 * dr)) { nr13 = 0; }
+    if (r13 == (pm->mltable->rmin - 0.5 * dr)) nr13 = 0;
     ntheta = (theta - 0.00000001) / dtheta;
-    if (theta == 180.0) { ntheta = 79; }
+    if (theta >= 180.0) ntheta = (pm->mltable->ninput * 2) - 1;
     itable = nr12 * (pm->mltable->ninput);
     itable += nr13;
     itable *= (pm->mltable->ninput * 2);

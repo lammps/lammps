@@ -28,7 +28,7 @@ Syntax
        v_name[I] = value calculated by a vector-style variable with name, I can include wildcard (see below)
 
 * zero or more keyword/arg pairs may be appended
-* keyword = *mode* or *file* or *ave* or *start* or *off* or *overwrite* or *title1* or *title2* or *title3*
+* keyword = *mode* or *file* or *ave* or *start* or *off* or *overwrite* or *format* or *title1* or *title2* or *title3*
 
   .. parsed-literal::
 

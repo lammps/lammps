@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -47,6 +47,7 @@ class FixNVESphereKokkos : public FixNVESphere {
     typename ArrayTypes<DeviceType>::t_x_array x;
     typename ArrayTypes<DeviceType>::t_v_array v;
     typename ArrayTypes<DeviceType>::t_v_array omega;
+    typename ArrayTypes<DeviceType>::t_mu_array mu;
     typename ArrayTypes<DeviceType>::t_f_array f;
     typename ArrayTypes<DeviceType>::t_f_array torque;
     typename ArrayTypes<DeviceType>::t_float_1d rmass;

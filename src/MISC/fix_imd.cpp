@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -1213,7 +1213,7 @@ int imdsock_listen(void * v) {
 void *imdsock_accept(void * v) {
   int rc;
   imdsocket *new_s = nullptr, *s = (imdsocket *) v;
-#if defined(ARCH_AIX5) || defined(ARCH_AIX5_64) || defined(ARCH_AIX6_64)
+#if defined(ARCH_AIX5) || defined(ARCH_AIX5_64) || defined(ARCH_AIX6_64) || defined(__sun)
   unsigned int len;
 #define _SOCKLEN_TYPE unsigned int
 #elif defined(SOCKLEN_T)

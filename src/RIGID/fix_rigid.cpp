@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -766,7 +766,7 @@ void FixRigid::init()
 }
 
 /* ----------------------------------------------------------------------
-   invoke pre_neighbor() to insure body xcmimage flags are reset
+   invoke pre_neighbor() to ensure body xcmimage flags are reset
      needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
 ------------------------------------------------------------------------- */
 

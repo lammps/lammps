@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -24,7 +24,7 @@
 #include "error.h"
 #include "finish.h"
 #include "fix_event_tad.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "integrate.h"
 #include "memory.h"
@@ -133,9 +133,9 @@ void TAD::command(int narg, char **arg)
 
   fix_event = dynamic_cast<FixEventTAD *>(modify->add_fix("tad_event all EVENT/TAD"));
 
-  // create FixStorePeratom object to store revert state
+  // create FixStoreAtom object to store revert state
 
-  fix_revert = dynamic_cast<FixStorePeratom *>(modify->add_fix("tad_revert all STORE/PERATOM 0 7"));
+  fix_revert = dynamic_cast<FixStoreAtom *>(modify->add_fix("tad_revert all STORE/ATOM 7 0 0 0"));
 
   // create Finish for timing output
 
@@ -510,7 +510,7 @@ void TAD::log_event(int ievent)
 
   // dump snapshot of quenched coords
   // must reneighbor and compute forces before dumping
-  // addstep_compute_all insures eng/virial are calculated if needed
+  // addstep_compute_all ensures eng/virial are calculated if needed
 
   if (output->ndump && universe->iworld == 0) {
     timer->barrier_start();

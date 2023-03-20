@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *amoeba* or *angle* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *mesont* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *wavepacket* or *hybrid*
+* style = *amoeba* or *angle* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *wavepacket* or *hybrid*
 
   .. parsed-literal::
 
@@ -91,7 +91,7 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *charge*     | charge                                              | atomic system with charges           |
 +--------------+-----------------------------------------------------+--------------------------------------+
-| *dielectric* | dipole, area, curvature                             | system with surface polarization     |
+| *dielectric* | normx normy normz area/patch ed em epsilon curv     | system with surface polarization     |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *dipole*     | charge and dipole moment                            | system with dipolar particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -108,8 +108,6 @@ quantities.
 | *line*       | end points, angular velocity                        | rigid bodies                         |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *mdpd*       | density                                             | mDPD particles                       |
-+--------------+-----------------------------------------------------+--------------------------------------+
-| *mesont*     | mass, radius, length, buckling, connections, tube id| mesoscopic nanotubes                 |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -163,15 +161,14 @@ and each stores a per-particle diameter and mass.  If the diameter >
 0.0, the particle is a finite-size sphere.  If the diameter = 0.0, it
 is a point particle.  Note that by use of the *disc* keyword with the
 :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere
-<fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix
-npt/sphere <fix_npt_sphere>` commands for the *sphere* style, spheres
-can be effectively treated as 2d discs for a 2d simulation if desired.
-See also the :doc:`set density/disc <set>` command.  The *sphere* and
-*bpm/sphere* styles take an optional 0 or 1 argument.  A value of 0
-means the radius of each sphere is constant for the duration of the
-simulation.  A value of 1 means the radii may vary dynamically during
-the simulation, e.g. due to use of the :doc:`fix adapt <fix_adapt>`
-command.
+<fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`,
+:doc:`fix npt/sphere <fix_npt_sphere>` commands for the *sphere* style,
+spheres can be effectively treated as 2d discs for a 2d simulation if
+desired.  See also the :doc:`set density/disc <set>` command.  These
+styles take an optional 0 or 1 argument.  A value of 0 means the
+radius of each sphere is constant for the duration of the simulation.
+A value of 1 means the radii may vary dynamically during the simulation,
+e.g. due to use of the :doc:`fix adapt <fix_adapt>` command.
 
 For the *ellipsoid* style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or
@@ -180,16 +177,21 @@ vector with the 3 diameters of the ellipsoid and a quaternion 4-vector
 with its orientation.
 
 For the *dielectric* style, each particle can be either a physical
-particle (e.g. an ion), or an interface particle representing a
-boundary element. For physical particles, the per-particle properties
-are the same as atom_style full.  For interface particles, in addition
-to these properties, each particle also has an area, a normal unit
-vector, a mean local curvature, the mean and difference of the
-dielectric constants of two sides of the interface, and the local
-dielectric constant at the boundary element.  The distinction between
-the physical and interface particles is only meaningful when :doc:`fix
-polarize <fix_polarize>` commands are applied to the interface
-particles.
+particle (e.g. an ion), or an interface particle representing a boundary
+element between two regions of different dielectric constant. For
+interface particles, in addition to the properties associated with
+atom_style full, each particle also should be assigned a normal unit
+vector (defined by normx, normy, normz), an area (area/patch), the
+difference and mean of the dielectric constants of two sides of the
+interface along the direction of the normal vector (ed and em), the
+local dielectric constant at the boundary element (epsilon), and a mean
+local curvature (curv).  Physical particles must be assigned these
+values, as well, but only their local dielectric constants will be used;
+see documentation for associated :doc:`pair styles <pair_dielectric>`
+and :doc:`fixes <fix_polarize>`.  The distinction between the physical
+and interface particles is only meaningful when :doc:`fix polarize
+<fix_polarize>` commands are applied to the interface particles. This
+style is part of the DIELECTRIC package.
 
 For the *dipole* style, a point dipole is defined for each point
 particle.  Note that if you wish the particles to be finite-size
@@ -279,7 +281,7 @@ showing the use of the *template* atom style versus *molecular*.
 .. note::
 
    When using the *template* style with a :doc:`molecule template
-   <molecule>` that contains multiple molecules, you should insure the
+   <molecule>` that contains multiple molecules, you should ensure the
    atom types, bond types, angle_types, etc in all the molecules are
    consistent.  E.g. if one molecule represents H2O and another CO2,
    then you probably do not want each molecule file to define 2 atom
@@ -376,8 +378,6 @@ dynamics (tDPD), respectively.
 The *sph* style is part of the SPH package for smoothed particle
 hydrodynamics (SPH).  See `this PDF guide
 <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
-
-The *mesont* style is part of the MESONT package.
 
 The *spin* style is part of the SPIN package.
 

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -49,7 +49,7 @@ Error::Error(LAMMPS *lmp)
 /* ----------------------------------------------------------------------
    called by all procs in universe
    close all output, screen, and log files in world and universe
-   no abort, so insure all procs in universe call, else will hang
+   no abort, so ensure all procs in universe call, else will hang
 ------------------------------------------------------------------------- */
 
 void Error::universe_all(const std::string &file, int line, const std::string &str)
@@ -122,7 +122,7 @@ void Error::universe_one(const std::string &file, int line, const std::string &s
 void Error::universe_warn(const std::string &file, int line, const std::string &str)
 {
   ++numwarn;
-  if ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0)) return;
+  if ((maxwarn != 0) && ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0))) return;
   if (universe->uscreen)
     fmt::print(universe->uscreen,"WARNING on proc {}: {} ({}:{})\n",
                universe->me,str,truncpath(file),line);
@@ -131,7 +131,7 @@ void Error::universe_warn(const std::string &file, int line, const std::string &
 /* ----------------------------------------------------------------------
    called by all procs in one world
    close all output, screen, and log files in world
-   insure all procs in world call, else will hang
+   ensure all procs in world call, else will hang
    force MPI_Abort if running in multi-partition mode
 ------------------------------------------------------------------------- */
 
@@ -254,7 +254,7 @@ void Error::_one(const std::string &file, int line, fmt::string_view format,
 void Error::warning(const std::string &file, int line, const std::string &str)
 {
   ++numwarn;
-  if ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0)) return;
+  if ((maxwarn != 0) && ((numwarn > maxwarn) || (allwarn > maxwarn) || (maxwarn < 0))) return;
   std::string mesg = fmt::format("WARNING: {} ({}:{})\n",
                                  str,truncpath(file),line);
   if (screen) fputs(mesg.c_str(),screen);
@@ -306,7 +306,7 @@ void Error::_message(const std::string &file, int line, fmt::string_view format,
    shutdown LAMMPS
    called by all procs in one world
    close all output, screen, and log files in world
-   no abort, so insure all procs in world call, else will hang
+   no abort, so ensure all procs in world call, else will hang
 ------------------------------------------------------------------------- */
 
 void Error::done(int status)

@@ -2,7 +2,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -43,22 +43,21 @@ class KokkosLMP : protected Pointers {
   int forward_fix_comm_changed;
   int reverse_comm_changed;
   int nthreads,ngpus;
-  int numa;
   int auto_sync;
   int gpu_aware_flag;
   int neigh_thread;
   int neigh_thread_set;
   int neigh_transpose;
   int newtonflag;
+  int allow_overlap;
   double binsize;
 
   static int is_finalized;
-  static Kokkos::InitArguments args;
   static int init_ngpus;
 
   KokkosLMP(class LAMMPS *, int, char **);
 
-  static void initialize(Kokkos::InitArguments, Error *);
+  static void initialize(const Kokkos::InitializationSettings&, Error *);
   static void finalize();
   void accelerator(int, char **);
   int neigh_count(int);

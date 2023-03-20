@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -51,6 +51,7 @@ PairMEAMKokkos<DeviceType>::PairMEAMKokkos(LAMMPS *lmp) : PairMEAM(lmp)
   delete meam_inst;
   meam_inst_kk = new MEAMKokkos<DeviceType>(memory);
   meam_inst = meam_inst_kk;
+  myname = "meam/kk";
 }
 
 /* ---------------------------------------------------------------------- */
@@ -123,6 +124,7 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairMEAMOffsets>(0,inum_half),*this,n);
 
   meam_inst_kk->meam_dens_setup(atom->nmax, nall, n);
+  update_meam_views();
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -155,7 +157,8 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   int need_dup = lmp->kokkos->need_dup<DeviceType>();
 
-  meam_inst_kk->meam_dens_init(inum_half,ntype,type,d_map,x,d_numneigh_half,d_numneigh_full,d_ilist_half,d_neighbors_half, d_neighbors_full, d_offset, neighflag, need_dup);
+  meam_inst_kk->meam_dens_init(inum_half,ntype,type,d_map,x,d_numneigh_half,d_numneigh_full,
+    d_ilist_half,d_neighbors_half, d_neighbors_full, d_offset, neighflag, need_dup);
 
   meam_inst_kk->k_rho0.template modify<DeviceType>();
   meam_inst_kk->k_arho2b.template modify<DeviceType>();
@@ -165,6 +168,13 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   meam_inst_kk->k_arho3b.template modify<DeviceType>();
   meam_inst_kk->k_t_ave.template modify<DeviceType>();
   meam_inst_kk->k_tsq_ave.template modify<DeviceType>();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.template modify<DeviceType>();
+    meam_inst_kk->k_arho1m.template modify<DeviceType>();
+    meam_inst_kk->k_arho2m.template modify<DeviceType>();
+    meam_inst_kk->k_arho3m.template modify<DeviceType>();
+    meam_inst_kk->k_arho3mb.template modify<DeviceType>();
+  }
 
   comm->reverse_comm(this);
 
@@ -176,6 +186,13 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   meam_inst_kk->k_arho3b.template sync<DeviceType>();
   meam_inst_kk->k_t_ave.template sync<DeviceType>();
   meam_inst_kk->k_tsq_ave.template sync<DeviceType>();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.template sync<DeviceType>();
+    meam_inst_kk->k_arho1m.template sync<DeviceType>();
+    meam_inst_kk->k_arho2m.template sync<DeviceType>();
+    meam_inst_kk->k_arho3m.template sync<DeviceType>();
+    meam_inst_kk->k_arho3mb.template sync<DeviceType>();
+  }
 
   meam_inst_kk->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    d_eatom,ntype,type,d_map,d_scale,errorflag,ev);
@@ -199,6 +216,13 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   meam_inst_kk->k_arho3b.template modify<DeviceType>();
   meam_inst_kk->k_t_ave.template modify<DeviceType>();
   meam_inst_kk->k_tsq_ave.template modify<DeviceType>();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.template modify<DeviceType>();
+    meam_inst_kk->k_arho1m.template modify<DeviceType>();
+    meam_inst_kk->k_arho2m.template modify<DeviceType>();
+    meam_inst_kk->k_arho3m.template modify<DeviceType>();
+    meam_inst_kk->k_arho3mb.template modify<DeviceType>();
+  }
 
   comm->forward_comm(this);
 
@@ -218,6 +242,13 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   meam_inst_kk->k_arho3b.template sync<DeviceType>();
   meam_inst_kk->k_t_ave.template sync<DeviceType>();
   meam_inst_kk->k_tsq_ave.template sync<DeviceType>();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.template sync<DeviceType>();
+    meam_inst_kk->k_arho1m.template sync<DeviceType>();
+    meam_inst_kk->k_arho2m.template sync<DeviceType>();
+    meam_inst_kk->k_arho3m.template sync<DeviceType>();
+    meam_inst_kk->k_arho3mb.template sync<DeviceType>();
+  }
 
   meam_inst_kk->meam_force(inum_half,eflag_global,eflag_atom,vflag_global,
                            vflag_atom,d_eatom,ntype,type,d_map,x,
@@ -314,7 +345,7 @@ int PairMEAMKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2
   iswap = iswap_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMEAMPackForwardComm>(0,n),*this);
-  return n*38;
+  return n*comm_forward;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -323,36 +354,52 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackForwardComm, const int &i) const {
   int j = d_sendlist(iswap, i);
-  int m = i*38;
-  v_buf[m++] = meam_inst_kk->d_rho0[j];
-  v_buf[m++] = meam_inst_kk->d_rho1[j];
-  v_buf[m++] = meam_inst_kk->d_rho2[j];
-  v_buf[m++] = meam_inst_kk->d_rho3[j];
-  v_buf[m++] = meam_inst_kk->d_frhop[j];
-  v_buf[m++] = meam_inst_kk->d_gamma[j];
-  v_buf[m++] = meam_inst_kk->d_dgamma1[j];
-  v_buf[m++] = meam_inst_kk->d_dgamma2[j];
-  v_buf[m++] = meam_inst_kk->d_dgamma3[j];
-  v_buf[m++] = meam_inst_kk->d_arho2b[j];
-  v_buf[m++] = meam_inst_kk->d_arho1(j,0);
-  v_buf[m++] = meam_inst_kk->d_arho1(j,1);
-  v_buf[m++] = meam_inst_kk->d_arho1(j,2);
-  v_buf[m++] = meam_inst_kk->d_arho2(j,0);
-  v_buf[m++] = meam_inst_kk->d_arho2(j,1);
-  v_buf[m++] = meam_inst_kk->d_arho2(j,2);
-  v_buf[m++] = meam_inst_kk->d_arho2(j,3);
-  v_buf[m++] = meam_inst_kk->d_arho2(j,4);
-  v_buf[m++] = meam_inst_kk->d_arho2(j,5);
-  for (int k = 0; k < 10; k++) v_buf[m++] = meam_inst_kk->d_arho3(j,k);
-  v_buf[m++] = meam_inst_kk->d_arho3b(j,0);
-  v_buf[m++] = meam_inst_kk->d_arho3b(j,1);
-  v_buf[m++] = meam_inst_kk->d_arho3b(j,2);
-  v_buf[m++] = meam_inst_kk->d_t_ave(j,0);
-  v_buf[m++] = meam_inst_kk->d_t_ave(j,1);
-  v_buf[m++] = meam_inst_kk->d_t_ave(j,2);
-  v_buf[m++] = meam_inst_kk->d_tsq_ave(j,0);
-  v_buf[m++] = meam_inst_kk->d_tsq_ave(j,1);
-  v_buf[m++] = meam_inst_kk->d_tsq_ave(j,2);
+  int m = i*comm_forward;
+  v_buf[m++] = d_rho0[j];
+  v_buf[m++] = d_rho1[j];
+  v_buf[m++] = d_rho2[j];
+  v_buf[m++] = d_rho3[j];
+  v_buf[m++] = d_frhop[j];
+  v_buf[m++] = d_gamma[j];
+  v_buf[m++] = d_dgamma1[j];
+  v_buf[m++] = d_dgamma2[j];
+  v_buf[m++] = d_dgamma3[j];
+  v_buf[m++] = d_arho2b[j];
+  v_buf[m++] = d_arho1(j,0);
+  v_buf[m++] = d_arho1(j,1);
+  v_buf[m++] = d_arho1(j,2);
+  v_buf[m++] = d_arho2(j,0);
+  v_buf[m++] = d_arho2(j,1);
+  v_buf[m++] = d_arho2(j,2);
+  v_buf[m++] = d_arho2(j,3);
+  v_buf[m++] = d_arho2(j,4);
+  v_buf[m++] = d_arho2(j,5);
+  for (int k = 0; k < 10; k++) v_buf[m++] = d_arho3(j,k);
+  v_buf[m++] = d_arho3b(j,0);
+  v_buf[m++] = d_arho3b(j,1);
+  v_buf[m++] = d_arho3b(j,2);
+  v_buf[m++] = d_t_ave(j,0);
+  v_buf[m++] = d_t_ave(j,1);
+  v_buf[m++] = d_t_ave(j,2);
+  v_buf[m++] = d_tsq_ave(j,0);
+  v_buf[m++] = d_tsq_ave(j,1);
+  v_buf[m++] = d_tsq_ave(j,2);
+  if (msmeamflag) {
+    v_buf[m++] = d_arho2mb[j];
+    v_buf[m++] = d_arho1m(j,0);
+    v_buf[m++] = d_arho1m(j,1);
+    v_buf[m++] = d_arho1m(j,2);
+    v_buf[m++] = d_arho2m(j,0);
+    v_buf[m++] = d_arho2m(j,1);
+    v_buf[m++] = d_arho2m(j,2);
+    v_buf[m++] = d_arho2m(j,3);
+    v_buf[m++] = d_arho2m(j,4);
+    v_buf[m++] = d_arho2m(j,5);
+    for (int k = 0; k < 10; k++) v_buf[m++] = d_arho3m(j,k);
+    v_buf[m++] = d_arho3mb(j,0);
+    v_buf[m++] = d_arho3mb(j,1);
+    v_buf[m++] = d_arho3mb(j,2);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -370,44 +417,61 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in,
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackForwardComm, const int &i) const{
-   int m = i*38;
+  //int m = i*38;
+  int m = i*comm_forward;
 
-    meam_inst_kk->d_rho0[i+first] = v_buf[m++];
-    meam_inst_kk->d_rho1[i+first] = v_buf[m++];
-    meam_inst_kk->d_rho2[i+first] = v_buf[m++];
-    meam_inst_kk->d_rho3[i+first] = v_buf[m++];
-    meam_inst_kk->d_frhop[i+first] = v_buf[m++];
-    meam_inst_kk->d_gamma[i+first] = v_buf[m++];
-    meam_inst_kk->d_dgamma1[i+first] = v_buf[m++];
-    meam_inst_kk->d_dgamma2[i+first] = v_buf[m++];
-    meam_inst_kk->d_dgamma3[i+first] = v_buf[m++];
-    meam_inst_kk->d_arho2b[i+first] = v_buf[m++];
-    meam_inst_kk->d_arho1(i+first,0) = v_buf[m++];
-    meam_inst_kk->d_arho1(i+first,1) = v_buf[m++];
-    meam_inst_kk->d_arho1(i+first,2) = v_buf[m++];
-    meam_inst_kk->d_arho2(i+first,0) = v_buf[m++];
-    meam_inst_kk->d_arho2(i+first,1) = v_buf[m++];
-    meam_inst_kk->d_arho2(i+first,2) = v_buf[m++];
-    meam_inst_kk->d_arho2(i+first,3) = v_buf[m++];
-    meam_inst_kk->d_arho2(i+first,4) = v_buf[m++];
-    meam_inst_kk->d_arho2(i+first,5) = v_buf[m++];
-    for (int k = 0; k < 10; k++) meam_inst_kk->d_arho3(i+first,k) = v_buf[m++];
-    meam_inst_kk->d_arho3b(i+first,0) = v_buf[m++];
-    meam_inst_kk->d_arho3b(i+first,1) = v_buf[m++];
-    meam_inst_kk->d_arho3b(i+first,2) = v_buf[m++];
-    meam_inst_kk->d_t_ave(i+first,0) = v_buf[m++];
-    meam_inst_kk->d_t_ave(i+first,1) = v_buf[m++];
-    meam_inst_kk->d_t_ave(i+first,2) = v_buf[m++];
-    meam_inst_kk->d_tsq_ave(i+first,0) = v_buf[m++];
-    meam_inst_kk->d_tsq_ave(i+first,1) = v_buf[m++];
-    meam_inst_kk->d_tsq_ave(i+first,2) = v_buf[m++];
+    d_rho0[i+first] = v_buf[m++];
+    d_rho1[i+first] = v_buf[m++];
+    d_rho2[i+first] = v_buf[m++];
+    d_rho3[i+first] = v_buf[m++];
+    d_frhop[i+first] = v_buf[m++];
+    d_gamma[i+first] = v_buf[m++];
+    d_dgamma1[i+first] = v_buf[m++];
+    d_dgamma2[i+first] = v_buf[m++];
+    d_dgamma3[i+first] = v_buf[m++];
+    d_arho2b[i+first] = v_buf[m++];
+    d_arho1(i+first,0) = v_buf[m++];
+    d_arho1(i+first,1) = v_buf[m++];
+    d_arho1(i+first,2) = v_buf[m++];
+    d_arho2(i+first,0) = v_buf[m++];
+    d_arho2(i+first,1) = v_buf[m++];
+    d_arho2(i+first,2) = v_buf[m++];
+    d_arho2(i+first,3) = v_buf[m++];
+    d_arho2(i+first,4) = v_buf[m++];
+    d_arho2(i+first,5) = v_buf[m++];
+    for (int k = 0; k < 10; k++) d_arho3(i+first,k) = v_buf[m++];
+    d_arho3b(i+first,0) = v_buf[m++];
+    d_arho3b(i+first,1) = v_buf[m++];
+    d_arho3b(i+first,2) = v_buf[m++];
+    d_t_ave(i+first,0) = v_buf[m++];
+    d_t_ave(i+first,1) = v_buf[m++];
+    d_t_ave(i+first,2) = v_buf[m++];
+    d_tsq_ave(i+first,0) = v_buf[m++];
+    d_tsq_ave(i+first,1) = v_buf[m++];
+    d_tsq_ave(i+first,2) = v_buf[m++];
+    if (msmeamflag) {
+      d_arho2mb[i+first] = v_buf[m++];
+      d_arho1m(i+first,0) = v_buf[m++];
+      d_arho1m(i+first,1) = v_buf[m++];
+      d_arho1m(i+first,2) = v_buf[m++];
+      d_arho2m(i+first,0) = v_buf[m++];
+      d_arho2m(i+first,1) = v_buf[m++];
+      d_arho2m(i+first,2) = v_buf[m++];
+      d_arho2m(i+first,3) = v_buf[m++];
+      d_arho2m(i+first,4) = v_buf[m++];
+      d_arho2m(i+first,5) = v_buf[m++];
+      for (int k = 0; k < 10; k++) d_arho3m(i+first,k) = v_buf[m++];
+      d_arho3mb(i+first,0) = v_buf[m++];
+      d_arho3mb(i+first,1) = v_buf[m++];
+      d_arho3mb(i+first,2) = v_buf[m++];
+    }
  }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 int PairMEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                               int /*pbc_flag*/, int * /*pbc*/)
 {
   meam_inst_kk->k_rho0.sync_host();
   meam_inst_kk->k_rho1.sync_host();
@@ -425,6 +489,13 @@ int PairMEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
   meam_inst_kk->k_arho3b.sync_host();
   meam_inst_kk->k_t_ave.sync_host();
   meam_inst_kk->k_tsq_ave.sync_host();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.sync_host();
+    meam_inst_kk->k_arho1m.sync_host();
+    meam_inst_kk->k_arho2m.sync_host();
+    meam_inst_kk->k_arho3m.sync_host();
+    meam_inst_kk->k_arho3mb.sync_host();
+  }
 
   int m = 0;
   for (int i = 0; i < n; i++) {
@@ -458,6 +529,22 @@ int PairMEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
     buf[m++] = meam_inst_kk->h_tsq_ave(j,0);
     buf[m++] = meam_inst_kk->h_tsq_ave(j,1);
     buf[m++] = meam_inst_kk->h_tsq_ave(j,2);
+    if (msmeamflag) {
+      buf[m++] = meam_inst_kk->h_arho2mb[j];
+      buf[m++] = meam_inst_kk->h_arho1m(j,0);
+      buf[m++] = meam_inst_kk->h_arho1m(j,1);
+      buf[m++] = meam_inst_kk->h_arho1m(j,2);
+      buf[m++] = meam_inst_kk->h_arho2m(j,0);
+      buf[m++] = meam_inst_kk->h_arho2m(j,1);
+      buf[m++] = meam_inst_kk->h_arho2m(j,2);
+      buf[m++] = meam_inst_kk->h_arho2m(j,3);
+      buf[m++] = meam_inst_kk->h_arho2m(j,4);
+      buf[m++] = meam_inst_kk->h_arho2m(j,5);
+      for (int k = 0; k < 10; k++) buf[m++] = meam_inst_kk->h_arho3m(j,k);
+      buf[m++] = meam_inst_kk->h_arho3mb(j,0);
+      buf[m++] = meam_inst_kk->h_arho3mb(j,1);
+      buf[m++] = meam_inst_kk->h_arho3mb(j,2);
+    }
   }
 
   return m;
@@ -484,6 +571,13 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *b
   meam_inst_kk->k_arho3b.sync_host();
   meam_inst_kk->k_t_ave.sync_host();
   meam_inst_kk->k_tsq_ave.sync_host();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.sync_host();
+    meam_inst_kk->k_arho1m.sync_host();
+    meam_inst_kk->k_arho2m.sync_host();
+    meam_inst_kk->k_arho3m.sync_host();
+    meam_inst_kk->k_arho3mb.sync_host();
+  }
 
   int m = 0;
   const int last = first + n;
@@ -517,6 +611,22 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *b
     meam_inst_kk->h_tsq_ave(i,0) = buf[m++];
     meam_inst_kk->h_tsq_ave(i,1) = buf[m++];
     meam_inst_kk->h_tsq_ave(i,2) = buf[m++];
+    if (msmeamflag) {
+      meam_inst_kk->h_arho2mb[i] = buf[m++];
+      meam_inst_kk->h_arho1m(i,0) = buf[m++];
+      meam_inst_kk->h_arho1m(i,1) = buf[m++];
+      meam_inst_kk->h_arho1m(i,2) = buf[m++];
+      meam_inst_kk->h_arho2m(i,0) = buf[m++];
+      meam_inst_kk->h_arho2m(i,1) = buf[m++];
+      meam_inst_kk->h_arho2m(i,2) = buf[m++];
+      meam_inst_kk->h_arho2m(i,3) = buf[m++];
+      meam_inst_kk->h_arho2m(i,4) = buf[m++];
+      meam_inst_kk->h_arho2m(i,5) = buf[m++];
+      for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3m(i,k) = buf[m++];
+      meam_inst_kk->h_arho3mb(i,0) = buf[m++];
+      meam_inst_kk->h_arho3mb(i,1) = buf[m++];
+      meam_inst_kk->h_arho3mb(i,2) = buf[m++];
+    }
   }
 
   meam_inst_kk->k_rho0.modify_host();
@@ -535,6 +645,13 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *b
   meam_inst_kk->k_arho3b.modify_host();
   meam_inst_kk->k_t_ave.modify_host();
   meam_inst_kk->k_tsq_ave.modify_host();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.modify_host();
+    meam_inst_kk->k_arho1m.modify_host();
+    meam_inst_kk->k_arho2m.modify_host();
+    meam_inst_kk->k_arho3m.modify_host();
+    meam_inst_kk->k_arho3mb.modify_host();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -545,7 +662,8 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first_in, DA
   first = first_in;
   v_buf = buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMEAMPackReverseComm>(0,n),*this);
-  return n*30;
+  //return n*30;
+  return n*comm_reverse;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -553,29 +671,46 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first_in, DA
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackReverseComm, const int &i) const {
-  int m = i*30;
+  //int m = i*30;
+  int m = i*comm_reverse;
 
-  v_buf[m++] = meam_inst_kk->d_rho0[i+first];
-  v_buf[m++] = meam_inst_kk->d_arho2b[i+first];
-  v_buf[m++] = meam_inst_kk->d_arho1(i+first,0);
-  v_buf[m++] = meam_inst_kk->d_arho1(i+first,1);
-  v_buf[m++] = meam_inst_kk->d_arho1(i+first,2);
-  v_buf[m++] = meam_inst_kk->d_arho2(i+first,0);
-  v_buf[m++] = meam_inst_kk->d_arho2(i+first,1);
-  v_buf[m++] = meam_inst_kk->d_arho2(i+first,2);
-  v_buf[m++] = meam_inst_kk->d_arho2(i+first,3);
-  v_buf[m++] = meam_inst_kk->d_arho2(i+first,4);
-  v_buf[m++] = meam_inst_kk->d_arho2(i+first,5);
-  for (int k = 0; k < 10; k++) v_buf[m++] = meam_inst_kk->d_arho3(i+first,k);
-  v_buf[m++] = meam_inst_kk->d_arho3b(i+first,0);
-  v_buf[m++] = meam_inst_kk->d_arho3b(i+first,1);
-  v_buf[m++] = meam_inst_kk->d_arho3b(i+first,2);
-  v_buf[m++] = meam_inst_kk->d_t_ave(i+first,0);
-  v_buf[m++] = meam_inst_kk->d_t_ave(i+first,1);
-  v_buf[m++] = meam_inst_kk->d_t_ave(i+first,2);
-  v_buf[m++] = meam_inst_kk->d_tsq_ave(i+first,0);
-  v_buf[m++] = meam_inst_kk->d_tsq_ave(i+first,1);
-  v_buf[m++] = meam_inst_kk->d_tsq_ave(i+first,2);
+  v_buf[m++] = d_rho0[i+first];
+  v_buf[m++] = d_arho2b[i+first];
+  v_buf[m++] = d_arho1(i+first,0);
+  v_buf[m++] = d_arho1(i+first,1);
+  v_buf[m++] = d_arho1(i+first,2);
+  v_buf[m++] = d_arho2(i+first,0);
+  v_buf[m++] = d_arho2(i+first,1);
+  v_buf[m++] = d_arho2(i+first,2);
+  v_buf[m++] = d_arho2(i+first,3);
+  v_buf[m++] = d_arho2(i+first,4);
+  v_buf[m++] = d_arho2(i+first,5);
+  for (int k = 0; k < 10; k++) v_buf[m++] = d_arho3(i+first,k);
+  v_buf[m++] = d_arho3b(i+first,0);
+  v_buf[m++] = d_arho3b(i+first,1);
+  v_buf[m++] = d_arho3b(i+first,2);
+  v_buf[m++] = d_t_ave(i+first,0);
+  v_buf[m++] = d_t_ave(i+first,1);
+  v_buf[m++] = d_t_ave(i+first,2);
+  v_buf[m++] = d_tsq_ave(i+first,0);
+  v_buf[m++] = d_tsq_ave(i+first,1);
+  v_buf[m++] = d_tsq_ave(i+first,2);
+  if (msmeamflag) {
+    v_buf[m++] = d_arho2mb[i+first];
+    v_buf[m++] = d_arho1m(i+first,0);
+    v_buf[m++] = d_arho1m(i+first,1);
+    v_buf[m++] = d_arho1m(i+first,2);
+    v_buf[m++] = d_arho2m(i+first,0);
+    v_buf[m++] = d_arho2m(i+first,1);
+    v_buf[m++] = d_arho2m(i+first,2);
+    v_buf[m++] = d_arho2m(i+first,3);
+    v_buf[m++] = d_arho2m(i+first,4);
+    v_buf[m++] = d_arho2m(i+first,5);
+    for (int k = 0; k < 10; k++) v_buf[m++] = d_arho3m(i+first,k);
+    v_buf[m++] = d_arho3mb(i+first,0);
+    v_buf[m++] = d_arho3mb(i+first,1);
+    v_buf[m++] = d_arho3mb(i+first,2);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -591,6 +726,13 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
   meam_inst_kk->k_arho3b.sync_host();
   meam_inst_kk->k_t_ave.sync_host();
   meam_inst_kk->k_tsq_ave.sync_host();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.sync_host();
+    meam_inst_kk->k_arho1m.sync_host();
+    meam_inst_kk->k_arho2m.sync_host();
+    meam_inst_kk->k_arho3m.sync_host();
+    meam_inst_kk->k_arho3mb.sync_host();
+  }
 
   int m = 0;
   const int last = first + n;
@@ -616,6 +758,22 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
     buf[m++] = meam_inst_kk->h_tsq_ave(i,0);
     buf[m++] = meam_inst_kk->h_tsq_ave(i,1);
     buf[m++] = meam_inst_kk->h_tsq_ave(i,2);
+    if (msmeamflag) {
+      buf[m++] = meam_inst_kk->h_arho2mb[i];
+      buf[m++] = meam_inst_kk->h_arho1m(i,0);
+      buf[m++] = meam_inst_kk->h_arho1m(i,1);
+      buf[m++] = meam_inst_kk->h_arho1m(i,2);
+      buf[m++] = meam_inst_kk->h_arho2m(i,0);
+      buf[m++] = meam_inst_kk->h_arho2m(i,1);
+      buf[m++] = meam_inst_kk->h_arho2m(i,2);
+      buf[m++] = meam_inst_kk->h_arho2m(i,3);
+      buf[m++] = meam_inst_kk->h_arho2m(i,4);
+      buf[m++] = meam_inst_kk->h_arho2m(i,5);
+      for (int k = 0; k < 10; k++) buf[m++] = meam_inst_kk->h_arho3m(i,k);
+      buf[m++] = meam_inst_kk->h_arho3mb(i,0);
+      buf[m++] = meam_inst_kk->h_arho3mb(i,1);
+      buf[m++] = meam_inst_kk->h_arho3mb(i,2);
+    }
   }
 
   return m;
@@ -638,29 +796,46 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackReverseComm, const int &i) const {
   int j = d_sendlist(iswap, i);
-  int m = i*30;
+  //int m = i*30;
+  int m = i*comm_reverse;
 
-  meam_inst_kk->d_rho0[j] += v_buf[m++];
-  meam_inst_kk->d_arho2b[j] += v_buf[m++];
-  meam_inst_kk->d_arho1(j,0) += v_buf[m++];
-  meam_inst_kk->d_arho1(j,1) += v_buf[m++];
-  meam_inst_kk->d_arho1(j,2) += v_buf[m++];
-  meam_inst_kk->d_arho2(j,0) += v_buf[m++];
-  meam_inst_kk->d_arho2(j,1) += v_buf[m++];
-  meam_inst_kk->d_arho2(j,2) += v_buf[m++];
-  meam_inst_kk->d_arho2(j,3) += v_buf[m++];
-  meam_inst_kk->d_arho2(j,4) += v_buf[m++];
-  meam_inst_kk->d_arho2(j,5) += v_buf[m++];
-  for (int k = 0; k < 10; k++) meam_inst_kk->d_arho3(j,k) += v_buf[m++];
-  meam_inst_kk->d_arho3b(j,0) += v_buf[m++];
-  meam_inst_kk->d_arho3b(j,1) += v_buf[m++];
-  meam_inst_kk->d_arho3b(j,2) += v_buf[m++];
-  meam_inst_kk->d_t_ave(j,0) += v_buf[m++];
-  meam_inst_kk->d_t_ave(j,1) += v_buf[m++];
-  meam_inst_kk->d_t_ave(j,2) += v_buf[m++];
-  meam_inst_kk->d_tsq_ave(j,0) += v_buf[m++];
-  meam_inst_kk->d_tsq_ave(j,1) += v_buf[m++];
-  meam_inst_kk->d_tsq_ave(j,2) += v_buf[m++];
+  d_rho0[j] += v_buf[m++];
+  d_arho2b[j] += v_buf[m++];
+  d_arho1(j,0) += v_buf[m++];
+  d_arho1(j,1) += v_buf[m++];
+  d_arho1(j,2) += v_buf[m++];
+  d_arho2(j,0) += v_buf[m++];
+  d_arho2(j,1) += v_buf[m++];
+  d_arho2(j,2) += v_buf[m++];
+  d_arho2(j,3) += v_buf[m++];
+  d_arho2(j,4) += v_buf[m++];
+  d_arho2(j,5) += v_buf[m++];
+  for (int k = 0; k < 10; k++) d_arho3(j,k) += v_buf[m++];
+  d_arho3b(j,0) += v_buf[m++];
+  d_arho3b(j,1) += v_buf[m++];
+  d_arho3b(j,2) += v_buf[m++];
+  d_t_ave(j,0) += v_buf[m++];
+  d_t_ave(j,1) += v_buf[m++];
+  d_t_ave(j,2) += v_buf[m++];
+  d_tsq_ave(j,0) += v_buf[m++];
+  d_tsq_ave(j,1) += v_buf[m++];
+  d_tsq_ave(j,2) += v_buf[m++];
+  if (msmeamflag) {
+    d_arho2mb[j] += v_buf[m++];
+    d_arho1m(j,0) += v_buf[m++];
+    d_arho1m(j,1) += v_buf[m++];
+    d_arho1m(j,2) += v_buf[m++];
+    d_arho2m(j,0) += v_buf[m++];
+    d_arho2m(j,1) += v_buf[m++];
+    d_arho2m(j,2) += v_buf[m++];
+    d_arho2m(j,3) += v_buf[m++];
+    d_arho2m(j,4) += v_buf[m++];
+    d_arho2m(j,5) += v_buf[m++];
+    for (int k = 0; k < 10; k++) d_arho3m(j,k) += v_buf[m++];
+    d_arho3mb(j,0) += v_buf[m++];
+    d_arho3mb(j,1) += v_buf[m++];
+    d_arho3mb(j,2) += v_buf[m++];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -676,6 +851,13 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *b
   meam_inst_kk->k_arho3b.sync_host();
   meam_inst_kk->k_t_ave.sync_host();
   meam_inst_kk->k_tsq_ave.sync_host();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.sync_host();
+    meam_inst_kk->k_arho1m.sync_host();
+    meam_inst_kk->k_arho2m.sync_host();
+    meam_inst_kk->k_arho3m.sync_host();
+    meam_inst_kk->k_arho3mb.sync_host();
+  }
 
   int m = 0;
   for (int i = 0; i < n; i++) {
@@ -701,6 +883,22 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *b
     meam_inst_kk->h_tsq_ave(j,0) += buf[m++];
     meam_inst_kk->h_tsq_ave(j,1) += buf[m++];
     meam_inst_kk->h_tsq_ave(j,2) += buf[m++];
+    if (msmeamflag) {
+      meam_inst_kk->h_arho2mb[j] += buf[m++];
+      meam_inst_kk->h_arho1m(j,0) += buf[m++];
+      meam_inst_kk->h_arho1m(j,1) += buf[m++];
+      meam_inst_kk->h_arho1m(j,2) += buf[m++];
+      meam_inst_kk->h_arho2m(j,0) += buf[m++];
+      meam_inst_kk->h_arho2m(j,1) += buf[m++];
+      meam_inst_kk->h_arho2m(j,2) += buf[m++];
+      meam_inst_kk->h_arho2m(j,3) += buf[m++];
+      meam_inst_kk->h_arho2m(j,4) += buf[m++];
+      meam_inst_kk->h_arho2m(j,5) += buf[m++];
+      for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3m(j,k) += buf[m++];
+      meam_inst_kk->h_arho3mb(j,0) += buf[m++];
+      meam_inst_kk->h_arho3mb(j,1) += buf[m++];
+      meam_inst_kk->h_arho3mb(j,2) += buf[m++];
+    }
   }
 
   meam_inst_kk->k_rho0.modify_host();
@@ -711,6 +909,13 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *b
   meam_inst_kk->k_arho3b.modify_host();
   meam_inst_kk->k_t_ave.modify_host();
   meam_inst_kk->k_tsq_ave.modify_host();
+  if (msmeamflag) {
+    meam_inst_kk->k_arho2mb.modify_host();
+    meam_inst_kk->k_arho1m.modify_host();
+    meam_inst_kk->k_arho2m.modify_host();
+    meam_inst_kk->k_arho3m.modify_host();
+    meam_inst_kk->k_arho3mb.modify_host();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -740,6 +945,35 @@ KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMOffsets, const int ii, int &n) const {
   const int i = d_ilist_half[ii];
   n += d_numneigh_half[i];
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairMEAMKokkos<DeviceType>::update_meam_views()
+{
+  d_rho0 = meam_inst_kk->d_rho0;
+  d_rho1 = meam_inst_kk->d_rho1;
+  d_rho2 = meam_inst_kk->d_rho2;
+  d_rho3 = meam_inst_kk->d_rho3;
+  d_frhop = meam_inst_kk->d_frhop;
+  d_gamma = meam_inst_kk->d_gamma;
+  d_dgamma1 = meam_inst_kk->d_dgamma1;
+  d_dgamma2 = meam_inst_kk->d_dgamma2;
+  d_dgamma3 = meam_inst_kk->d_dgamma3;
+  d_arho1 = meam_inst_kk->d_arho1;
+  d_arho2 = meam_inst_kk->d_arho2;
+  d_arho3 = meam_inst_kk->d_arho3;
+  d_arho2b = meam_inst_kk->d_arho2b;
+  d_arho3b = meam_inst_kk->d_arho3b;
+  d_t_ave = meam_inst_kk->d_t_ave;
+  d_tsq_ave = meam_inst_kk->d_tsq_ave;
+  // msmeam
+  d_arho1m = meam_inst_kk->d_arho1m;
+  d_arho2m = meam_inst_kk->d_arho2m;
+  d_arho3m = meam_inst_kk->d_arho3m;
+  d_arho2mb = meam_inst_kk->d_arho2mb;
+  d_arho3mb = meam_inst_kk->d_arho3mb;
 }
 
 /* ---------------------------------------------------------------------- */

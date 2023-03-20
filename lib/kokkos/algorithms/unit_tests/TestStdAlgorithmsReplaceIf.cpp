@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
 #include <utility>
 
 namespace Test {
@@ -168,7 +166,7 @@ void verify_data(ViewType1 data_view,  // contains data
       // 		<< data_view_dc(i) << " "
       // 		<< data_view_h(i) << " "
       // 		<< test_view_h(i) << std::endl;
-      EXPECT_TRUE(data_view_h(i) == test_view_h(i));
+      EXPECT_EQ(data_view_h(i), test_view_h(i));
     }
   }
 }

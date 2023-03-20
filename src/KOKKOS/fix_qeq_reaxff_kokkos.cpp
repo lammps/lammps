@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -175,8 +175,6 @@ void FixQEqReaxFFKokkos<DeviceType>::init_hist()
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::setup_pre_force(int vflag)
 {
-  //neighbor->build_one(list);
-
   pre_force(vflag);
 }
 

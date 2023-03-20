@@ -45,6 +45,15 @@
 /// \file Kokkos_Parallel.hpp
 /// \brief Declaration of parallel operators
 
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#include <Kokkos_Macros.hpp>
+#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_3
+static_assert(false,
+              "Including non-public Kokkos header files is not allowed.");
+#else
+KOKKOS_IMPL_WARNING("Including non-public Kokkos header files is not allowed.")
+#endif
+#endif
 #ifndef KOKKOS_PARALLEL_HPP
 #define KOKKOS_PARALLEL_HPP
 
@@ -58,7 +67,6 @@
 
 #include <impl/Kokkos_Traits.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
-#include <impl/Kokkos_FunctorAdapter.hpp>
 
 #include <cstddef>
 #include <type_traits>
@@ -151,12 +159,11 @@ namespace Kokkos {
  * This compares to a single iteration \c iwork of a \c for loop.
  * If \c execution_space is not defined DefaultExecutionSpace will be used.
  */
-template <class ExecPolicy, class FunctorType>
-inline void parallel_for(
-    const ExecPolicy& policy, const FunctorType& functor,
-    const std::string& str = "",
-    typename std::enable_if<
-        Kokkos::is_execution_policy<ExecPolicy>::value>::type* = nullptr) {
+template <
+    class ExecPolicy, class FunctorType,
+    class Enable = std::enable_if_t<is_execution_policy<ExecPolicy>::value>>
+inline void parallel_for(const std::string& str, const ExecPolicy& policy,
+                         const FunctorType& functor) {
   uint64_t kpID = 0;
 
   ExecPolicy inner_policy = policy;
@@ -171,34 +178,51 @@ inline void parallel_for(
   Kokkos::Tools::Impl::end_parallel_for(inner_policy, functor, str, kpID);
 }
 
+template <class ExecPolicy, class FunctorType>
+inline void parallel_for(
+    const ExecPolicy& policy, const FunctorType& functor,
+    std::enable_if_t<is_execution_policy<ExecPolicy>::value>* = nullptr) {
+  Kokkos::parallel_for("", policy, functor);
+}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+template <class ExecPolicy, class FunctorType>
+KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use the overload taking the label as first argument instead!")
+inline void parallel_for(
+    const ExecPolicy& policy, const FunctorType& functor,
+    const std::string& str,
+    std::enable_if_t<is_execution_policy<ExecPolicy>::value>* = nullptr) {
+  Kokkos::parallel_for(str, policy, functor);
+}
+#endif
+
 template <class FunctorType>
-inline void parallel_for(const size_t work_count, const FunctorType& functor,
-                         const std::string& str = "") {
+inline void parallel_for(const std::string& str, const size_t work_count,
+                         const FunctorType& functor) {
   using execution_space =
       typename Impl::FunctorPolicyExecutionSpace<FunctorType,
                                                  void>::execution_space;
   using policy = RangePolicy<execution_space>;
 
-  uint64_t kpID = 0;
-
   policy execution_policy = policy(0, work_count);
-
-  Kokkos::Tools::Impl::begin_parallel_for(execution_policy, functor, str, kpID);
-
-  Kokkos::Impl::shared_allocation_tracking_disable();
-  Impl::ParallelFor<FunctorType, policy> closure(functor, execution_policy);
-  Kokkos::Impl::shared_allocation_tracking_enable();
-
-  closure.execute();
-
-  Kokkos::Tools::Impl::end_parallel_for(execution_policy, functor, str, kpID);
+  ::Kokkos::parallel_for(str, execution_policy, functor);
 }
 
-template <class ExecPolicy, class FunctorType>
-inline void parallel_for(const std::string& str, const ExecPolicy& policy,
-                         const FunctorType& functor) {
-  ::Kokkos::parallel_for(policy, functor, str);
+template <class FunctorType>
+inline void parallel_for(const size_t work_count, const FunctorType& functor) {
+  ::Kokkos::parallel_for("", work_count, functor);
 }
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+template <class FunctorType>
+KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use the overload taking the label as first argument instead!")
+inline void parallel_for(const size_t work_count, const FunctorType& functor,
+                         const std::string& str) {
+  ::Kokkos::parallel_for(str, work_count, functor);
+}
+#endif
 
 }  // namespace Kokkos
 
@@ -245,8 +269,8 @@ namespace Kokkos {
 ///                     value_type& update,
 ///                     const bool final_pass) const;
 ///   void init (value_type& update) const;
-///   void join (volatile value_type& update,
-//               volatile const value_type& input) const
+///   void join (value_type& update,
+//               const value_type& input) const
 /// };
 /// \endcode
 ///
@@ -276,7 +300,7 @@ namespace Kokkos {
 ///   void init (value_type& update) const {
 ///     update = 0;
 ///   }
-///   void join (volatile value_type& update, volatile const value_type& input)
+///   void join (value_type& update, const value_type& input)
 ///   const {
 ///     update += input;
 ///   }
@@ -314,7 +338,7 @@ namespace Kokkos {
 ///   void init (value_type& update) const {
 ///     update = 0;
 ///   }
-///   void join (volatile value_type& update, volatile const value_type& input)
+///   void join (value_type& update, const value_type& input)
 ///   const {
 ///     update += input;
 ///   }
@@ -361,7 +385,7 @@ namespace Kokkos {
 ///   void init (value_type& update) const {
 ///     update = 0;
 ///   }
-///   void join (volatile value_type& update, volatile const value_type& input)
+///   void join (value_type& update, const value_type& input)
 ///   const {
 ///     update += input;
 ///   }
@@ -373,12 +397,11 @@ namespace Kokkos {
 /// };
 /// \endcode
 ///
-template <class ExecutionPolicy, class FunctorType>
-inline void parallel_scan(
-    const ExecutionPolicy& policy, const FunctorType& functor,
-    const std::string& str = "",
-    typename std::enable_if<
-        Kokkos::is_execution_policy<ExecutionPolicy>::value>::type* = nullptr) {
+template <class ExecutionPolicy, class FunctorType,
+          class Enable =
+              std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>>
+inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
+                          const FunctorType& functor) {
   uint64_t kpID                = 0;
   ExecutionPolicy inner_policy = policy;
   Kokkos::Tools::Impl::begin_parallel_scan(inner_policy, functor, str, kpID);
@@ -393,40 +416,59 @@ inline void parallel_scan(
   Kokkos::Tools::Impl::end_parallel_scan(inner_policy, functor, str, kpID);
 }
 
+template <class ExecutionPolicy, class FunctorType>
+inline void parallel_scan(
+    const ExecutionPolicy& policy, const FunctorType& functor,
+    std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>* = nullptr) {
+  ::Kokkos::parallel_scan("", policy, functor);
+}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+template <class ExecutionPolicy, class FunctorType>
+KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use the overload taking the label as first argument instead!")
+inline void parallel_scan(
+    const ExecutionPolicy& policy, const FunctorType& functor,
+    const std::string& str,
+    std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>* = nullptr) {
+  ::Kokkos::parallel_scan(str, policy, functor);
+}
+#endif
+
 template <class FunctorType>
-inline void parallel_scan(const size_t work_count, const FunctorType& functor,
-                          const std::string& str = "") {
+inline void parallel_scan(const std::string& str, const size_t work_count,
+                          const FunctorType& functor) {
   using execution_space =
       typename Kokkos::Impl::FunctorPolicyExecutionSpace<FunctorType,
                                                          void>::execution_space;
 
   using policy = Kokkos::RangePolicy<execution_space>;
 
-  uint64_t kpID = 0;
   policy execution_policy(0, work_count);
-  Kokkos::Tools::Impl::begin_parallel_scan(execution_policy, functor, str,
-                                           kpID);
-  Kokkos::Impl::shared_allocation_tracking_disable();
-  Impl::ParallelScan<FunctorType, policy> closure(functor, execution_policy);
-  Kokkos::Impl::shared_allocation_tracking_enable();
-
-  closure.execute();
-
-  Kokkos::Tools::Impl::end_parallel_scan(execution_policy, functor, str, kpID);
+  parallel_scan(str, execution_policy, functor);
 }
 
-template <class ExecutionPolicy, class FunctorType>
+template <class FunctorType>
+inline void parallel_scan(const size_t work_count, const FunctorType& functor) {
+  ::Kokkos::parallel_scan("", work_count, functor);
+}
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+template <class FunctorType>
+KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use the overload taking the label as first argument instead!")
+inline void parallel_scan(const size_t work_count, const FunctorType& functor,
+                          const std::string& str) {
+  ::Kokkos::parallel_scan(str, work_count, functor);
+}
+#endif
+
+template <class ExecutionPolicy, class FunctorType, class ReturnType,
+          class Enable =
+              std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>>
 inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
-                          const FunctorType& functor) {
-  ::Kokkos::parallel_scan(policy, functor, str);
-}
-
-template <class ExecutionPolicy, class FunctorType, class ReturnType>
-inline void parallel_scan(
-    const ExecutionPolicy& policy, const FunctorType& functor,
-    ReturnType& return_value, const std::string& str = "",
-    typename std::enable_if<
-        Kokkos::is_execution_policy<ExecutionPolicy>::value>::type* = nullptr) {
+                          const FunctorType& functor,
+                          ReturnType& return_value) {
   uint64_t kpID                = 0;
   ExecutionPolicy inner_policy = policy;
   Kokkos::Tools::Impl::begin_parallel_scan(inner_policy, functor, str, kpID);
@@ -444,10 +486,30 @@ inline void parallel_scan(
       "Kokkos::parallel_scan: fence due to result being a value, not a view");
 }
 
+template <class ExecutionPolicy, class FunctorType, class ReturnType>
+inline void parallel_scan(
+    const ExecutionPolicy& policy, const FunctorType& functor,
+    ReturnType& return_value,
+    std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>* = nullptr) {
+  ::Kokkos::parallel_scan("", policy, functor, return_value);
+}
+
+#ifdef KOKKOS_ENABLE_DISABLE_DEPRECATED_CODE_3
+template <class ExecutionPolicy, class FunctorType, class ReturnType>
+KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use the overload taking the label as first argument instead!")
+inline void parallel_scan(
+    const ExecutionPolicy& policy, const FunctorType& functor,
+    ReturnType& return_value, const std::string& str,
+    std::enable_if_t<is_execution_policy<ExecutionPolicy>::value>* = nullptr) {
+  ::Kokkos::parallel_scan(str, policy, functor, return_value);
+}
+#endif
+
 template <class FunctorType, class ReturnType>
-inline void parallel_scan(const size_t work_count, const FunctorType& functor,
-                          ReturnType& return_value,
-                          const std::string& str = "") {
+inline void parallel_scan(const std::string& str, const size_t work_count,
+                          const FunctorType& functor,
+                          ReturnType& return_value) {
   using execution_space =
       typename Kokkos::Impl::FunctorPolicyExecutionSpace<FunctorType,
                                                          void>::execution_space;
@@ -455,29 +517,24 @@ inline void parallel_scan(const size_t work_count, const FunctorType& functor,
   using policy = Kokkos::RangePolicy<execution_space>;
 
   policy execution_policy(0, work_count);
-  uint64_t kpID = 0;
-  Kokkos::Tools::Impl::begin_parallel_scan(execution_policy, functor, str,
-                                           kpID);
-
-  Kokkos::Impl::shared_allocation_tracking_disable();
-  Impl::ParallelScanWithTotal<FunctorType, policy, ReturnType> closure(
-      functor, execution_policy, return_value);
-  Kokkos::Impl::shared_allocation_tracking_enable();
-
-  closure.execute();
-
-  Kokkos::Tools::Impl::end_parallel_scan(execution_policy, functor, str, kpID);
-
-  execution_space().fence(
-      "Kokkos::parallel_scan: fence after scan with return value");
+  parallel_scan(str, execution_policy, functor, return_value);
 }
 
-template <class ExecutionPolicy, class FunctorType, class ReturnType>
-inline void parallel_scan(const std::string& str, const ExecutionPolicy& policy,
-                          const FunctorType& functor,
+template <class FunctorType, class ReturnType>
+inline void parallel_scan(const size_t work_count, const FunctorType& functor,
                           ReturnType& return_value) {
-  ::Kokkos::parallel_scan(policy, functor, return_value, str);
+  ::Kokkos::parallel_scan("", work_count, functor, return_value);
 }
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+template <class FunctorType, class ReturnType>
+KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use the overload taking the label as first argument instead!")
+inline void parallel_scan(const size_t work_count, const FunctorType& functor,
+                          ReturnType& return_value, const std::string& str) {
+  ::Kokkos::parallel_scan(str, work_count, functor, return_value);
+}
+#endif
 
 }  // namespace Kokkos
 

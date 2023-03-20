@@ -81,6 +81,8 @@ The *coulomb* argument is not yet supported by fix latte (as of Sept
 Coulomb potential as an alternative to LATTE performing the
 calculation.
 
+.. versionadded:: 15Sep2022
+
 The *exclude* argument allows this fix to work in tandem with another
 fix which may decide to delete one or more atoms of molecules.  The
 specified fixID is the ID of the other fix.

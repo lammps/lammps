@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -129,7 +129,7 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 
   style = Neighbor::BIN;
   every = 1;
-  delay = 10;
+  delay = 0;
   dist_check = 1;
   pgsize = 100000;
   oneatom = 2000;
@@ -226,6 +226,10 @@ pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
   // Kokkos setting
 
   copymode = 0;
+
+  // GPU setting
+
+  overlap_topo = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -303,6 +307,7 @@ void Neighbor::init()
 {
   int i,j,n;
 
+  overlap_topo = 0;
   ncalls = ndanger = 0;
   dimension = domain->dimension;
   triclinic = domain->triclinic;
@@ -545,6 +550,7 @@ void Neighbor::init()
       int flag=0;
       for (int isub=0; isub < ph->nstyles; ++isub) {
         if (force->pair_match("amoeba",0,isub)
+            || force->pair_match("hippo",0,isub)
             || force->pair_match("coul/wolf",0,isub)
             || force->pair_match("coul/dsf",0,isub)
             || force->pair_match("coul/exclude",0)
@@ -555,6 +561,7 @@ void Neighbor::init()
         special_flag[1] = special_flag[2] = special_flag[3] = 2;
     } else {
       if (force->pair_match("amoeba",0)
+          || force->pair_match("hippo",0)
           || force->pair_match("coul/wolf",0)
           || force->pair_match("coul/dsf",0)
           || force->pair_match("coul/exclude",0)
@@ -1205,7 +1212,7 @@ void Neighbor::morph_skip()
 
     // these lists are created other ways, no need for skipping
     // halffull list and its full parent may both skip,
-    //   but are checked to insure matching skip info
+    //   but are checked to ensure matching skip info
 
     if (irq->halffull) continue;
     if (irq->copy) continue;
@@ -2173,13 +2180,13 @@ int Neighbor::request(void *requestor, int instance)
       memory->srealloc(requests,maxrequest*sizeof(NeighRequest *), "neighbor:requests");
   }
 
-  requests[nrequest] = new NeighRequest(lmp, nrequest, requestor, instance);
+  requests[nrequest] = new NeighRequest(lmp, requestor, instance);
   nrequest++;
   return nrequest-1;
 }
 
 /* ----------------------------------------------------------------------
-   called by other classes to request a pairwise neighbor list
+  add_request() is called by other classes to request a pairwise neighbor list
 ------------------------------------------------------------------------- */
 
 NeighRequest *Neighbor::add_request(Pair *requestor, int flags)
@@ -2441,8 +2448,9 @@ void Neighbor::build(int topoflag)
   }
 
   // build topology lists for bonds/angles/etc
+  // skip if GPU package styles will call it explicitly to overlap with GPU computation.
 
-  if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
+  if ((atom->molecular != Atom::ATOMIC) && topoflag && !overlap_topo) build_topology();
 }
 
 /* ----------------------------------------------------------------------
@@ -2506,7 +2514,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   // if this is copy list and parent is occasional list,
   // or this is halffull and parent is occasional list,
   // or this is skip list and parent is occasional list,
-  // insure parent is current
+  // ensure parent is current
 
   if (mylist->listcopy && mylist->listcopy->occasional)
     build_one(mylist->listcopy,preflag);
@@ -2823,6 +2831,15 @@ void Neighbor::exclusion_group_group_delete(int group1, int group2)
 int Neighbor::exclude_setting()
 {
   return exclude;
+}
+
+/* ----------------------------------------------------------------------
+   If nonzero, call build_topology from GPU styles instead to overlap comp
+------------------------------------------------------------------------- */
+
+void Neighbor::set_overlap_topo(int s)
+{
+  overlap_topo = s;
 }
 
 /* ----------------------------------------------------------------------

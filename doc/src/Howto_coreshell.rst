@@ -111,7 +111,7 @@ Therefore it is typically desirable to decouple the relative motion of
 the core/shell pair, which is an imaginary degree of freedom, from the
 real physical system.  To do that, the :doc:`compute temp/cs <compute_temp_cs>` command can be used, in conjunction with
 any of the thermostat fixes, such as :doc:`fix nvt <fix_nh>` or :doc:`fix langevin <fix_langevin>`.  This compute uses the center-of-mass velocity
-of the core/shell pairs to calculate a temperature, and insures that
+of the core/shell pairs to calculate a temperature, and ensures that
 velocity is what is rescaled for thermostatting purposes.  This
 compute also works for a system with both core/shell pairs and
 non-polarized ions (ions without an attached satellite particle).  The

@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -628,8 +628,8 @@ void DumpNetCDFMPIIO::write()
   for (int i = 0; i < comm->me; i++)  blocki += block_sizes[i];
   delete[] block_sizes;
 
-  // insure buf is sized for packing and communicating
-  // use nme to insure filewriter proc can receive info from others
+  // ensure buf is sized for packing and communicating
+  // use nme to ensure filewriter proc can receive info from others
   // limit nme*size_one to int since used as arg in MPI calls
 
   if (nme > maxbuf) {

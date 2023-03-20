@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -154,6 +154,11 @@ class Neighbor : protected Pointers {
 
   void exclusion_group_group_delete(int, int);    // rm a group-group exclusion
   int exclude_setting();                          // return exclude value to accelerator pkg
+
+  // Option to call build_topology (e.g. from gpu styles instead for overlapped computation)
+
+  int overlap_topo;    // 0 for default/old non-overlap mode
+  void set_overlap_topo(int);
 
   // find a neighbor list based on requestor
   NeighList *find_list(void *, const int id = 0) const;

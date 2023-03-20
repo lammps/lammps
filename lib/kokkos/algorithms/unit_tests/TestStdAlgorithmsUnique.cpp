@@ -43,8 +43,6 @@
 */
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
-#include <std_algorithms/Kokkos_ModifyingSequenceOperations.hpp>
 #include <utility>
 #include <algorithm>
 
@@ -187,7 +185,7 @@ void verify_data(const std::string& name, ResultIt my_result_it,
   //
   const auto std_diff = (std::size_t)(std_r - KE::begin(data_v_h));
   const auto my_diff  = (std::size_t)(my_result_it - KE::begin(view_test));
-  EXPECT_TRUE(my_diff == std_diff);
+  EXPECT_EQ(my_diff, std_diff);
 
   //
   // check the data in the view
@@ -200,14 +198,14 @@ void verify_data(const std::string& name, ResultIt my_result_it,
     // 		<< " my  = " << view_test_h(i) << " "
     // 		<< " std = " << data_v_h(i)
     // 		<< '\n';
-    EXPECT_TRUE(view_test_h(i) == data_v_h(i));
+    EXPECT_EQ(view_test_h(i), data_v_h(i));
   }
 
   if (name == "medium-b") {
     using value_type = typename ViewType1::value_type;
-    EXPECT_TRUE(my_diff == (std::size_t)2);
-    EXPECT_TRUE(view_test_h(0) == (value_type)22);
-    EXPECT_TRUE(view_test_h(1) == (value_type)44);
+    EXPECT_EQ(my_diff, (std::size_t)2);
+    EXPECT_EQ(view_test_h(0), (value_type)22);
+    EXPECT_EQ(view_test_h(1), (value_type)44);
   }
 }
 

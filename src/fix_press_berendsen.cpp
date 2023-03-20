@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -267,7 +267,7 @@ void FixPressBerendsen::init()
   if (domain->triclinic)
     error->all(FLERR,"Cannot use fix press/berendsen with triclinic box");
 
-  // insure no conflict with fix deform
+  // ensure no conflict with fix deform
 
   for (const auto &ifix : modify->get_fix_list())
     if (strcmp(ifix->style, "^deform") == 0) {

@@ -32,20 +32,20 @@ static double calculate_interatomic_distance(int type, double scale) {
         double c[9] = {0,
                        1,
                        1,
-                       (7. - 3.5 * sqrt(3)),
+                       (7. - 3.5 * sqrt(3.0)),
                        1,
                        1,
-                       sqrt(3) * 4. / (6 * sqrt(2) + sqrt(3)),
-                       sqrt(3) * 4. / (6 * sqrt(2) + sqrt(3)),
-                       -3. / 11 + 6 * sqrt(3) / 11};
+                       sqrt(3.0) * 4. / (6 * sqrt(2.0) + sqrt(3.0)),
+                       sqrt(3.0) * 4. / (6 * sqrt(2.0) + sqrt(3.0)),
+                       -3. / 11 + 6 * sqrt(3.0) / 11};
         return c[type] / scale;
 }
 
 static double calculate_lattice_constant(int type,
                                          double interatomic_distance) {
         assert(type >= 1 && type <= 8);
-        double c[9] = {0, 2 / sqrt(2), 2 / sqrt(2), 2. / sqrt(3), 2 / sqrt(2),
-                       1, 4 / sqrt(3), 4 / sqrt(3), sqrt(3)};
+        double c[9] = {0, 2 / sqrt(2.0), 2 / sqrt(2.0), 2. / sqrt(3.0), 2 / sqrt(2.0),
+                       1, 4 / sqrt(3.0), 4 / sqrt(3.0), sqrt(3.0)};
         return c[type] * interatomic_distance;
 }
 

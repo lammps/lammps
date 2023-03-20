@@ -48,12 +48,12 @@ Examples
 Description
 """""""""""
 
-The *bpm/spring* bond style computes forces based on deviations from
-the initial reference state of the two atoms.  The reference state is
-stored by each bond when it is first computed in the setup of a run.
-Data is then preserved across run commands and is written to
-:doc:`binary restart files <restart>` such that restarting the system
-will not reset the reference state of a bond.
+The *bpm/spring* bond style computes forces based on
+deviations from the initial reference state of the two atoms.  The
+reference state is stored by each bond when it is first computed in
+the setup of a run. Data is then preserved across run commands and is
+written to :doc:`binary restart files <restart>` such that restarting
+the system will not reset the reference state of a bond.
 
 This bond style only applies central-body forces which conserve the
 translational and rotational degrees of freedom of a bonded set of
@@ -175,9 +175,9 @@ extra quantity can be accessed by the
 Restrictions
 """"""""""""
 
-This bond style can only be used if LAMMPS was built with the BPM
-package. See the :doc:`Build package <Build_package>` doc page for
-more info.
+This bond style is part of the BPM package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 By default if pair interactions are to be disabled, this bond style
 requires setting

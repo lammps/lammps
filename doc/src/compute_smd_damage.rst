@@ -26,7 +26,7 @@ Description
 Define a computation that calculates the damage status of SPH particles
 according to the damage model which is defined via the SMD SPH pair styles, e.g., the maximum plastic strain failure criterion.
 
-See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth Mach Dynamics in LAMMPS.
+See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth Mach Dynamics in LAMMPS.
 
 **Output Info:**
 

@@ -116,21 +116,18 @@ are parameterized in terms of LAMMPS :doc:`metal units <units>`.
 
 .. note::
 
-   Note that unlike for other potentials, cutoffs for EAM
-   potentials are not set in the pair_style or pair_coeff command; they
-   are specified in the EAM potential files themselves.  Likewise, the
-   EAM potential files list atomic masses; thus you do not need to use
-   the :doc:`mass <mass>` command to specify them.
+   Note that unlike for other potentials, cutoffs for EAM potentials are not
+   set in the pair_style or pair_coeff command; they are specified in the EAM
+   potential files themselves.  Likewise, valid EAM potential files usually
+   contain atomic masses; thus you may not need to use the :doc:`mass <mass>`
+   command to specify them, unless the potential file uses a dummy value (e.g.
+   0.0). LAMMPS will print a warning, if this is the case.
 
-There are several WWW sites that distribute and document EAM
-potentials stored in DYNAMO or other formats:
+There are web sites that distribute and document EAM potentials stored
+in DYNAMO or other formats:
 
-.. parsed-literal::
-
-   http://www.ctcms.nist.gov/potentials
-   http://cst-www.nrl.navy.mil/ccm6/ap
-   http://enpub.fulton.asu.edu/cms/potentials/main/main.htm
-   https://openkim.org
+* https://www.ctcms.nist.gov/potentials
+* https://openkim.org
 
 These potentials should be usable with LAMMPS, though the alternate
 formats would need to be converted to the DYNAMO format used by LAMMPS
@@ -444,7 +441,7 @@ identical to the FS EAM files (see above).
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 The *eam*, *eam/alloy*, *eam/fs*, and *eam/he* pair styles support
 extraction of two per-atom quantities by the :doc:`fix pair <fix_pair>`

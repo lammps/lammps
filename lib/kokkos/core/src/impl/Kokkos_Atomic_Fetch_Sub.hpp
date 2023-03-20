@@ -87,9 +87,9 @@ __inline__ __device__ unsigned int atomic_fetch_sub(volatile double* const dest,
 #endif
 
 template <typename T>
-__inline__ __device__ T atomic_fetch_sub(
-    volatile T* const dest,
-    typename std::enable_if<sizeof(T) == sizeof(int), const T>::type val) {
+__inline__ __device__ T
+atomic_fetch_sub(volatile T* const dest,
+                 std::enable_if_t<sizeof(T) == sizeof(int), const T> val) {
   union U {
     int i;
     T t;
@@ -110,9 +110,10 @@ __inline__ __device__ T atomic_fetch_sub(
 template <typename T>
 __inline__ __device__ T atomic_fetch_sub(
     volatile T* const dest,
-    typename std::enable_if<sizeof(T) != sizeof(int) &&
-                                sizeof(T) == sizeof(unsigned long long int),
-                            const T>::type val) {
+    std::enable_if_t<sizeof(T) != sizeof(int) &&
+                         sizeof(T) == sizeof(unsigned long long int),
+                     const T>
+        val) {
   union U {
     unsigned long long int i;
     T t;
@@ -133,10 +134,9 @@ __inline__ __device__ T atomic_fetch_sub(
 //----------------------------------------------------------------------------
 
 template <typename T>
-__inline__ __device__ T
-atomic_fetch_sub(volatile T* const dest,
-                 typename std::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
-                                         const T>::type& val) {
+__inline__ __device__ T atomic_fetch_sub(
+    volatile T* const dest,
+    std::enable_if_t<(sizeof(T) != 4) && (sizeof(T) != 8), const T>& val) {
   T return_val;
   // This is a way to (hopefully) avoid dead lock in a warp
   int done                 = 0;
@@ -211,7 +211,7 @@ inline unsigned long long int atomic_fetch_sub(
 template <typename T>
 inline T atomic_fetch_sub(
     volatile T* const dest,
-    typename std::enable_if<sizeof(T) == sizeof(int), const T>::type val) {
+    std::enable_if_t<sizeof(T) == sizeof(int), const T> val) {
   union U {
     int i;
     T t;
@@ -234,10 +234,11 @@ inline T atomic_fetch_sub(
 }
 
 template <typename T>
-inline T atomic_fetch_sub(volatile T* const dest,
-                          typename std::enable_if<sizeof(T) != sizeof(int) &&
-                                                      sizeof(T) == sizeof(long),
-                                                  const T>::type val) {
+inline T atomic_fetch_sub(
+    volatile T* const dest,
+    std::enable_if_t<sizeof(T) != sizeof(int) && sizeof(T) == sizeof(long),
+                     const T>
+        val) {
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif
@@ -264,8 +265,7 @@ inline T atomic_fetch_sub(volatile T* const dest,
 template <typename T>
 inline T atomic_fetch_sub(
     volatile T* const dest,
-    typename std::enable_if<(sizeof(T) != 4) && (sizeof(T) != 8),
-                            const T>::type& val) {
+    std::enable_if_t<(sizeof(T) != 4) && (sizeof(T) != 8), const T>& val) {
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif

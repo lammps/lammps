@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -91,7 +91,7 @@ void DihedralCharmmIntel::compute(int eflag, int vflag,
   if (vflag_atom)
     error->all(FLERR,"INTEL package does not support per-atom stress");
 
-  // insure pair->ev_tally() will use 1-4 virial contribution
+  // ensure pair->ev_tally() will use 1-4 virial contribution
 
   if (weightflag && vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;

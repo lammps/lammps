@@ -44,7 +44,7 @@ standard. A more detailed discussion of that is below.
 
       The executable created by CMake (after running make) is named
       ``lmp`` unless the ``LAMMPS_MACHINE`` option is set.  When setting
-      ``LAMMPS_MACHINE=name`` the executable will be called
+      ``LAMMPS_MACHINE=name``, the executable will be called
       ``lmp_name``.  Using ``BUILD_MPI=no`` will enforce building a
       serial executable using the MPI STUBS library.
 
@@ -60,7 +60,7 @@ standard. A more detailed discussion of that is below.
 
       Any ``make machine`` command will look up the make settings from a
       file ``Makefile.machine`` in the folder ``src/MAKE`` or one of its
-      sub-directories ``MINE``, ``MACHINES``, or ``OPTIONS``, create a
+      subdirectories ``MINE``, ``MACHINES``, or ``OPTIONS``, create a
       folder ``Obj_machine`` with all objects and generated files and an
       executable called ``lmp_machine``\ .  The standard parallel build
       with ``make mpi`` assumes a standard MPI installation with MPI
@@ -107,9 +107,9 @@ MPI and OpenMP support in LAMMPS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 If you are installing MPI yourself to build a parallel LAMMPS
-executable, we recommend either MPICH or OpenMPI which are regularly
+executable, we recommend either MPICH or OpenMPI, which are regularly
 used and tested with LAMMPS by the LAMMPS developers.  MPICH can be
-downloaded from the `MPICH home page <https://www.mpich.org>`_ and
+downloaded from the `MPICH home page <https://www.mpich.org>`_, and
 OpenMPI can be downloaded correspondingly from the `OpenMPI home page
 <https://www.open-mpi.org>`_.  Other MPI packages should also work.  No
 specific vendor provided and standard compliant MPI library is currently
@@ -130,12 +130,12 @@ package can be compiled to include OpenMP threading.
 
 In addition, there are a few commands in LAMMPS that have native OpenMP
 support included as well.  These are commands in the ``MPIIO``,
-``ML-SNAP``, ``DIFFRACTION``, and ``DPD-REACT`` packages.  In addition
+``ML-SNAP``, ``DIFFRACTION``, and ``DPD-REACT`` packages.  Furthermore,
 some packages support OpenMP threading indirectly through the libraries
-they interface to: e.g. ``LATTE``, ``KSPACE``, and ``COLVARS``.
-See the :doc:`Packages details <Packages_details>` page for more
-info on these packages and the pages for their respective commands
-for OpenMP threading info.
+they interface to: e.g. ``LATTE``, ``KSPACE``, and ``COLVARS``.  See the
+:doc:`Packages details <Packages_details>` page for more info on these
+packages, and the pages for their respective commands for OpenMP
+threading info.
 
 For CMake, if you use ``BUILD_OMP=yes``, you can use these packages
 and turn on their native OpenMP support and turn on their native OpenMP
@@ -144,9 +144,9 @@ variable before you launch LAMMPS.
 
 For building via conventional make, the ``CCFLAGS`` and ``LINKFLAGS``
 variables in Makefile.machine need to include the compiler flag that
-enables OpenMP. For GNU compilers it is ``-fopenmp``\ .  For (recent) Intel
-compilers it is ``-qopenmp``\ .  If you are using a different compiler,
-please refer to its documentation.
+enables OpenMP. For the GNU compilers or Clang, it is ``-fopenmp``\ .
+For (recent) Intel compilers, it is ``-qopenmp``\ .  If you are using a
+different compiler, please refer to its documentation.
 
 .. _default-none-issues:
 
@@ -174,15 +174,16 @@ Choice of compiler and compile/link options
 The choice of compiler and compiler flags can be important for maximum
 performance.  Vendor provided compilers for a specific hardware can
 produce faster code than open-source compilers like the GNU compilers.
-On the most common x86 hardware most popular C++ compilers are quite
-similar in performance of C/C++ code at high optimization levels.  When
-using the ``INTEL`` package, there is a distinct advantage in using
-the `Intel C++ compiler <intel_>`_ due to much improved vectorization
-through SSE and AVX instructions on compatible hardware as the source
-code includes changes and Intel compiler specific directives to enable
-high degrees of vectorization.  This may change over time as equivalent
-vectorization directives are included into OpenMP standard revisions and
-other compilers adopt them.
+On the most common x86 hardware, the most popular C++ compilers are
+quite similar in their ability to optimize regular C/C++ source code at
+high optimization levels.  When using the ``INTEL`` package, there is a
+distinct advantage in using the `Intel C++ compiler <intel_>`_ due to
+much improved vectorization through SSE and AVX instructions on
+compatible hardware.  The source code in that package conditionally
+includes compiler specific directives to enable these high degrees of
+vectorization.  This may change over time as equivalent vectorization
+directives are included into the OpenMP standard and other compilers
+adopt them.
 
 .. _intel: https://software.intel.com/en-us/intel-compilers
 
@@ -196,7 +197,7 @@ LAMMPS.
    .. tab:: CMake build
 
       By default CMake will use the compiler it finds according to
-      internal preferences and it will add optimization flags
+      internal preferences, and it will add optimization flags
       appropriate to that compiler and any :doc:`accelerator packages
       <Speed_packages>` you have included in the build.  CMake will
       check if the detected or selected compiler is compatible with the
@@ -250,9 +251,9 @@ LAMMPS.
       and `-C ../cmake/presets/pgi.cmake`
       will switch the compiler to the PGI compilers.
 
-      In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
-      compiler flags to tune for optimal performance on given hosts. By
-      default this variable is empty.
+      Furthermore, you can set ``CMAKE_TUNE_FLAGS`` to specifically add
+      compiler flags to tune for optimal performance on given hosts.
+      This variable is empty by default.
 
       .. note::
 
@@ -276,7 +277,7 @@ LAMMPS.
 
       Parallel build (see ``src/MAKE/Makefile.mpi``):
 
-      .. code-block:: bash
+      .. code-block:: make
 
          CC =            mpicxx
          CCFLAGS =       -g -O3
@@ -296,7 +297,7 @@ LAMMPS.
 
          If compilation stops with a message like the following:
 
-         .. code-block::
+         .. code-block:: output
 
             g++ -g -O3  -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64    -I../STUBS     -c ../main.cpp
             In file included from ../pointers.h:24:0,
@@ -368,10 +369,10 @@ running LAMMPS from Python via its library interface.
                                       # no default value
 
       The compilation will always produce a LAMMPS library and an
-      executable linked to it.  By default this will be a static library
-      named ``liblammps.a`` and an executable named ``lmp`` Setting
-      ``BUILD_SHARED_LIBS=yes`` will instead produce a shared library
-      called ``liblammps.so`` (or ``liblammps.dylib`` or
+      executable linked to it.  By default, this will be a static
+      library named ``liblammps.a`` and an executable named ``lmp``
+      Setting ``BUILD_SHARED_LIBS=yes`` will instead produce a shared
+      library called ``liblammps.so`` (or ``liblammps.dylib`` or
       ``liblammps.dll`` depending on the platform) If
       ``LAMMPS_MACHINE=name`` is set in addition, the name of the
       generated libraries will be changed to either ``liblammps_name.a``
@@ -429,7 +430,7 @@ You may need to use ``sudo make install`` in place of the last line if
 you do not have write privileges for ``/usr/local/lib`` or use the
 ``--prefix`` configuration option to select an installation folder,
 where you do have write access.  The end result should be the file
-``/usr/local/lib/libmpich.so``.  On many Linux installations the folder
+``/usr/local/lib/libmpich.so``.  On many Linux installations, the folder
 ``${HOME}/.local`` is an alternative to using ``/usr/local`` and does
 not require superuser or sudo access.  In that case the configuration
 step becomes:
@@ -438,9 +439,10 @@ step becomes:
 
   ./configure --enable-shared --prefix=${HOME}/.local
 
-Avoiding to use "sudo" for custom software installation (i.e. from source
-and not through a package manager tool provided by the OS) is generally
-recommended to ensure the integrity of the system software installation.
+Avoiding the use of "sudo" for custom software installation (i.e. from
+source and not through a package manager tool provided by the OS) is
+generally recommended to ensure the integrity of the system software
+installation.
 
 ----------
 
@@ -514,11 +516,11 @@ using CMake or Make.
 Install LAMMPS after a build
 ------------------------------------------
 
-After building LAMMPS, you may wish to copy the LAMMPS executable of
-library, along with other LAMMPS files (library header, doc files) to
-a globally visible place on your system, for others to access.  Note
-that you may need super-user privileges (e.g. sudo) if the directory
-you want to copy files to is protected.
+After building LAMMPS, you may wish to copy the LAMMPS executable or
+library, along with other LAMMPS files (library header, doc files), to a
+globally visible place on your system, for others to access.  Note that
+you may need super-user privileges (e.g. sudo) if the directory you want
+to copy files to is protected.
 
 .. tabs::
 
@@ -536,7 +538,7 @@ you want to copy files to is protected.
       environment variable, if you are installing LAMMPS into a non-system
       location and/or are linking to libraries in a non-system location that
       depend on such runtime path settings.
-      As an alternative you may set the CMake variable ``LAMMPS_INSTALL_RPATH``
+      As an alternative, you may set the CMake variable ``LAMMPS_INSTALL_RPATH``
       to ``on`` and then the runtime paths for any linked shared libraries
       and the library installation folder for the LAMMPS library will be
       embedded and thus the requirement to set environment variables is avoided.

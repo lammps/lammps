@@ -18,6 +18,8 @@ if(DOWNLOAD_SCAFACOS)
   set(SCAFACOS_MD5 "bd46d74e3296bd8a444d731bb10c1738" CACHE STRING "MD5 checksum of SCAFACOS tarball")
   mark_as_advanced(SCAFACOS_URL)
   mark_as_advanced(SCAFACOS_MD5)
+  GetFallbackURL(SCAFACOS_URL SCAFACOS_FALLBACK)
+
 
   # version 1.0.1 needs a patch to compile and linke cleanly with GCC 10 and later.
   file(DOWNLOAD ${LAMMPS_THIRDPARTY_URL}/scafacos-1.0.1-fix.diff ${CMAKE_CURRENT_BINARY_DIR}/scafacos-1.0.1.fix.diff
@@ -30,7 +32,7 @@ if(DOWNLOAD_SCAFACOS)
 
   include(ExternalProject)
   ExternalProject_Add(scafacos_build
-    URL     ${SCAFACOS_URL}
+    URL     ${SCAFACOS_URL} ${SCAFACOS_FALLBACK}
     URL_MD5 ${SCAFACOS_MD5}
     PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_BINARY_DIR}/scafacos-1.0.1.fix.diff
     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-doc

@@ -225,12 +225,12 @@ struct TestDeepCopyScalarConversion {
   using view_type_s1_2d = Kokkos::View<Scalar1**, Layout1, TEST_EXECSPACE>;
   using view_type_s2_2d = Kokkos::View<Scalar2**, Layout2, TEST_EXECSPACE>;
 
-  using base_layout1 = typename std::conditional<
-      std::is_same<Layout1, Kokkos::LayoutStride>::value, Kokkos::LayoutLeft,
-      Layout1>::type;
-  using base_layout2 = typename std::conditional<
-      std::is_same<Layout2, Kokkos::LayoutStride>::value, Kokkos::LayoutLeft,
-      Layout2>::type;
+  using base_layout1 =
+      std::conditional_t<std::is_same<Layout1, Kokkos::LayoutStride>::value,
+                         Kokkos::LayoutLeft, Layout1>;
+  using base_layout2 =
+      std::conditional_t<std::is_same<Layout2, Kokkos::LayoutStride>::value,
+                         Kokkos::LayoutLeft, Layout2>;
 
   using base_type_s1_1d = Kokkos::View<Scalar1*, base_layout1, TEST_EXECSPACE>;
   using base_type_s2_1d = Kokkos::View<Scalar2*, base_layout2, TEST_EXECSPACE>;

@@ -22,7 +22,7 @@ pair_style         hybrid/overlay sph/rhosum 1 sph/idealgas
 pair_coeff         * * sph/rhosum 4.0
 pair_coeff         * * sph/idealgas 0.75 4.0
 
-compute            rhoatom all shp/rho/atom
+compute            rhoatom all sph/rho/atom
 compute            ieatom all sph/e/atom
 compute            esph all reduce sum c_ieatom # total internal energy
 compute            ke all ke

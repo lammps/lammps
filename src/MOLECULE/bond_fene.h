@@ -1,7 +1,7 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -26,7 +26,7 @@ namespace LAMMPS_NS {
 
 class BondFENE : public Bond {
  public:
-  BondFENE(class LAMMPS *_lmp) : Bond(_lmp) {}
+  BondFENE(class LAMMPS *);
   ~BondFENE() override;
   void compute(int, int) override;
   void coeff(int, char **) override;
@@ -36,6 +36,7 @@ class BondFENE : public Bond {
   void read_restart(FILE *) override;
   void write_data(FILE *) override;
   double single(int, double, int, int, double &) override;
+  void born_matrix(int, double, int, int, double &, double &) override;
   void *extract(const char *, int &) override;
 
  protected:

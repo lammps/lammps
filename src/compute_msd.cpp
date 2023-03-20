@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -16,7 +16,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "group.h"
 #include "modify.h"
 #include "update.h"
@@ -63,8 +63,8 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
   id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
-  fix = dynamic_cast<FixStorePeratom *>(
-      modify->add_fix(fmt::format("{} {} STORE/PERATOM 1 3", id_fix, group->names[igroup])));
+  fix = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} {} STORE/ATOM 3 0 0 1", id_fix, group->names[igroup])));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -127,7 +127,7 @@ void ComputeMSD::init()
 {
   // set fix which stores reference atom coords
 
-  fix = dynamic_cast<FixStorePeratom *>(modify->get_fix_by_id(id_fix));
+  fix = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix));
   if (!fix) error->all(FLERR, "Could not find compute msd fix with ID {}", id_fix);
 
   // nmsd = # of atoms in group

@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/ Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -911,7 +911,7 @@ void MDIEngine::evaluate()
   //     incremental: timstepping an MD simulation
   //     non-incremental: e.g. processing snapshots from a dump file
   //   advance system by single step
-  //   insure potential energy and virial are tallied on new step
+  //   ensure potential energy and virial are tallied on new step
   //   check if reneighboing needed
   //   if no, just invoke setup_minimal(0)
   //   if yes, do an irregular->migrate_check() and migrate_atoms() if needed
@@ -941,7 +941,7 @@ void MDIEngine::evaluate()
       output->thermo->compute(1);
 
     } else {
-      if (!comm->style) {
+      if (comm->style == Comm::BRICK) {
         if (domain->triclinic) domain->x2lamda(atom->nlocal);
         domain->pbc();
         domain->reset_box();

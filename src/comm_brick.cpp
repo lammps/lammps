@@ -2,7 +2,7 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+   LAMMPS development team: developers@lammps.org
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -50,7 +50,7 @@ CommBrick::CommBrick(LAMMPS *lmp) :
   pbc_flag(nullptr), pbc(nullptr), firstrecv(nullptr), sendlist(nullptr),
   localsendlist(nullptr), maxsendlist(nullptr), buf_send(nullptr), buf_recv(nullptr)
 {
-  style = 0;
+  style = Comm::BRICK;
   layout = Comm::LAYOUT_UNIFORM;
   pbc_flag = nullptr;
   init_buffers();
@@ -92,7 +92,7 @@ CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
   if (oldcomm->layout == Comm::LAYOUT_TILED)
     error->all(FLERR,"Cannot change to comm_style brick from tiled layout");
 
-  style = 0;
+  style = Comm::BRICK;
   layout = oldcomm->layout;
   Comm::copy_arrays(oldcomm);
   init_buffers();
@@ -397,7 +397,7 @@ void CommBrick::setup()
   // recvproc = proc to recv from at each swap
   // for mode SINGLE:
   //   slablo/slabhi = boundaries for slab of atoms to send at each swap
-  //   use -BIG/midpt/BIG to insure all atoms included even if round-off occurs
+  //   use -BIG/midpt/BIG to ensure all atoms included even if round-off occurs
   //   if round-off, atoms recvd across PBC can be < or > than subbox boundary
   //   note that borders() only loops over subset of atoms during each swap
   //   treat all as PBC here, non-PBC is handled in borders() via r/s need[][]
@@ -668,7 +668,7 @@ void CommBrick::exchange()
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  // insure send buf has extra space for a single atom
+  // ensure send buf has extra space for a single atom
   // only need to reset if a fix can dynamically add to size of single atom
 
   if (maxexchange_fix_dynamic) {
@@ -966,7 +966,7 @@ void CommBrick::borders()
     error->one(FLERR,"Per-processor number of atoms is too large for "
                "molecular neighbor lists");
 
-  // insure send/recv buffers are long enough for all forward & reverse comm
+  // ensure send/recv buffers are long enough for all forward & reverse comm
 
   int max = MAX(maxforward*smax,maxreverse*rmax);
   if (max > maxsend) grow_send(max,0);
@@ -1212,8 +1212,8 @@ void CommBrick::reverse_comm(Fix *fix, int size)
 
 /* ----------------------------------------------------------------------
    reverse communication invoked by a Fix with variable size data
-   query fix for pack size to insure buf_send is big enough
-   handshake sizes before each Irecv/Send to insure buf_recv is big enough
+   query fix for pack size to ensure buf_send is big enough
+   handshake sizes before each Irecv/Send to ensure buf_recv is big enough
 ------------------------------------------------------------------------- */
 
 void CommBrick::reverse_comm_variable(Fix *fix)
@@ -1413,7 +1413,7 @@ void CommBrick::forward_comm_array(int nsize, double **array)
   double *buf;
   MPI_Request request;
 
-  // insure send/recv bufs are big enough for nsize
+  // ensure send/recv bufs are big enough for nsize
   // based on smax/rmax from most recent borders() invocation
 
   if (nsize > maxforward) {

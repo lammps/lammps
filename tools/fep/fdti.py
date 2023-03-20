@@ -10,7 +10,7 @@ if len(sys.argv) < 3:
     print("usage: fdti.py temperature hderiv < out.fep")
     sys.exit()
 
-rt = 0.008314 / 4.184 * float(sys.argv[1])
+rt = 0.008314 / 4.184 * float(sys.argv[1]) # in kcal/mol
 hderiv = float(sys.argv[2])
 
 line = sys.stdin.readline()
@@ -21,7 +21,7 @@ v = 1.0
 tok = line.split()
 if len(tok) == 4:
     v = float(tok[3])
-lo = -rt * math.log(float(tok[2]) / v)
+lo = -rt * math.log(float(tok[2])) / v
     
 i = 0
 sum = 0.0
@@ -29,9 +29,9 @@ for line in sys.stdin:
     tok = line.split()
     if len(tok) == 4:
         v = float(tok[3])
-    hi = - rt * math.log(float(tok[2]) / v)
+    hi = - rt * math.log(float(tok[2])) / v
     sum += (hi + lo) / (2 * hderiv)
     lo = hi
     i += 1
 
-print(sum/(i - 1))    # int_0^1: divide by i - 1 == multiply by delta
+print(sum/i)    # int_0^1: divide by i == multiply by delta

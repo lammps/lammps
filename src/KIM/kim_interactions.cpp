@@ -85,11 +85,10 @@ using namespace LAMMPS_NS;
 
 void KimInteractions::command(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR, "Illegal 'kim interactions' command");
+  if (narg < 1) utils::missing_cmd_args(FLERR, "kim interactions", error);
 
   if (!domain->box_exist)
-    error->all(FLERR, "Must use 'kim interactions' command after "
-                      "simulation box is defined");
+    error->all(FLERR, "Use of 'kim interactions' before simulation box is defined");
 
   do_setup(narg, arg);
 }
@@ -267,8 +266,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
 
   const std::string key = words[1];
   if (key != "pair" && key != "charge")
-    error->one(FLERR, "Unrecognized KEY {} for "
-                                  "KIM_SET_TYPE_PARAMETERS command", key);
+    error->one(FLERR, "Unrecognized KEY {} for KIM_SET_TYPE_PARAMETERS command", key);
 
   std::string filename = words[2];
   std::vector<std::string> species(words.begin() + 3, words.end());
@@ -278,7 +276,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   FILE *fp = nullptr;
   if (comm->me == 0) {
     fp = fopen(filename.c_str(), "r");
-    if (fp == nullptr) error->one(FLERR, "Parameter file not found");
+    if (fp == nullptr) error->one(FLERR, "Parameter file {} not found", filename);
   }
 
   char line[MAXLINE], *ptr;

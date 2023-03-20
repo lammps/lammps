@@ -63,6 +63,7 @@
 #include "fix_store_kim.h"
 #include "force.h"
 #include "input.h"
+#include "kim_units.h"
 #include "modify.h"
 #include "pair_kim.h"
 #include "variable.h"
@@ -77,61 +78,7 @@ extern "C"
 }
 
 using namespace LAMMPS_NS;
-
-/* ---------------------------------------------------------------------- */
-
-namespace
-{
-void get_kim_unit_names(
-    char const *const system,
-    KIM_LengthUnit &lengthUnit,
-    KIM_EnergyUnit &energyUnit,
-    KIM_ChargeUnit &chargeUnit,
-    KIM_TemperatureUnit &temperatureUnit,
-    KIM_TimeUnit &timeUnit,
-    Error *error)
-{
-  const std::string system_str(system);
-  if (system_str == "real") {
-    lengthUnit = KIM_LENGTH_UNIT_A;
-    energyUnit = KIM_ENERGY_UNIT_kcal_mol;
-    chargeUnit = KIM_CHARGE_UNIT_e;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_fs;
-  } else if (system_str == "metal") {
-    lengthUnit = KIM_LENGTH_UNIT_A;
-    energyUnit = KIM_ENERGY_UNIT_eV;
-    chargeUnit = KIM_CHARGE_UNIT_e;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_ps;
-  } else if (system_str == "si") {
-    lengthUnit = KIM_LENGTH_UNIT_m;
-    energyUnit = KIM_ENERGY_UNIT_J;
-    chargeUnit = KIM_CHARGE_UNIT_C;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_s;
-  } else if (system_str == "cgs") {
-    lengthUnit = KIM_LENGTH_UNIT_cm;
-    energyUnit = KIM_ENERGY_UNIT_erg;
-    chargeUnit = KIM_CHARGE_UNIT_statC;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_s;
-  } else if (system_str == "electron") {
-    lengthUnit = KIM_LENGTH_UNIT_Bohr;
-    energyUnit = KIM_ENERGY_UNIT_Hartree;
-    chargeUnit = KIM_CHARGE_UNIT_e;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((system_str == "lj") ||
-             (system_str == "micro") ||
-             (system_str == "nano")) {
-    error->all(FLERR, "LAMMPS unit_style {} not supported "
-                                  "by KIM models", system_str);
-  } else {
-    error->all(FLERR, "Unknown unit_style");
-  }
-}
-} // namespace
+using kim_units::get_kim_unit_names;
 
 /* ---------------------------------------------------------------------- */
 

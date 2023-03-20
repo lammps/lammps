@@ -76,6 +76,8 @@ extern "C" {
 }
 
 using namespace LAMMPS_NS;
+using kim_units::get_kim_unit_names;
+using kim_units::lammps_unit_conversion;
 
 /* ---------------------------------------------------------------------- */
 
@@ -96,7 +98,7 @@ void KimInit::command(int narg, char **arg)
       error->all(FLERR,
                  "Illegal 'kim init' command.\n"
                  "The argument followed by unit_style {} is an optional argument and when "
-                 "is used must be unit_conversion_mode",
+                 "used must be unit_conversion_mode",
                  user_units);
     }
   } else
@@ -109,57 +111,9 @@ void KimInit::command(int narg, char **arg)
   if (universe->nprocs > 1) MPI_Barrier(universe->uworld);
 
   determine_model_type_and_units(model_name, user_units, &model_units, pkim);
-
   write_log_cite(lmp, model_type, model_name);
-
   do_init(model_name, user_units, model_units, pkim);
 }
-
-/* ---------------------------------------------------------------------- */
-
-namespace {
-void get_kim_unit_names(char const *const system, KIM_LengthUnit &lengthUnit,
-                        KIM_EnergyUnit &energyUnit, KIM_ChargeUnit &chargeUnit,
-                        KIM_TemperatureUnit &temperatureUnit, KIM_TimeUnit &timeUnit, Error *error)
-{
-  const std::string system_str(system);
-  if (system_str == "real") {
-    lengthUnit = KIM_LENGTH_UNIT_A;
-    energyUnit = KIM_ENERGY_UNIT_kcal_mol;
-    chargeUnit = KIM_CHARGE_UNIT_e;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_fs;
-  } else if (system_str == "metal") {
-    lengthUnit = KIM_LENGTH_UNIT_A;
-    energyUnit = KIM_ENERGY_UNIT_eV;
-    chargeUnit = KIM_CHARGE_UNIT_e;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_ps;
-  } else if (system_str == "si") {
-    lengthUnit = KIM_LENGTH_UNIT_m;
-    energyUnit = KIM_ENERGY_UNIT_J;
-    chargeUnit = KIM_CHARGE_UNIT_C;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_s;
-  } else if (system_str == "cgs") {
-    lengthUnit = KIM_LENGTH_UNIT_cm;
-    energyUnit = KIM_ENERGY_UNIT_erg;
-    chargeUnit = KIM_CHARGE_UNIT_statC;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_s;
-  } else if (system_str == "electron") {
-    lengthUnit = KIM_LENGTH_UNIT_Bohr;
-    energyUnit = KIM_ENERGY_UNIT_Hartree;
-    chargeUnit = KIM_CHARGE_UNIT_e;
-    temperatureUnit = KIM_TEMPERATURE_UNIT_K;
-    timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((system_str == "lj") || (system_str == "micro") || (system_str == "nano")) {
-    error->all(FLERR, "LAMMPS unit_style {} not supported by KIM models", system_str);
-  } else {
-    error->all(FLERR, "Unknown unit_style");
-  }
-}
-}    // namespace
 
 void KimInit::print_dirs(struct KIM_Collections *const collections) const
 {
@@ -467,9 +421,7 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
     }
     ier = lammps_unit_conversion(units[i], from, to, conversion_factor);
     if (ier != 0)
-      error->all(FLERR,
-                 "Unable to obtain conversion factor: "
-                 "unit = {}; from = {}; to = {}",
+      error->all(FLERR, "Unable to obtain conversion factor: unit = {}; from = {}; to = {}",
                  units[i], from, to);
 
     variable->internal_set(v_unit, conversion_factor);

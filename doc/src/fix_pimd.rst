@@ -24,7 +24,7 @@ Syntax
        *method* value = *pimd* or *nmpimd* or *cmd*
        *fmass* value = scaling factor on mass
        *sp* value = scaling factor on Planck constant
-       *temp* value = temperature (temperarate units)
+       *temp* value = temperature (temperature units)
        *nhc* value = Nc = number of chains in Nose-Hoover thermostat
 
 * keywords for style *pimd/langevin*
@@ -35,8 +35,8 @@ Syntax
        *integrator* value = *obabo* or *baoab*
        *fmmode* value = *physical* or *normal*
        *fmass* value = scaling factor on mass
-       *temp* value = Temperature (temperarate unit)
-          Temperature = target temperarate of the thermostat
+       *temp* value = Temperature (temperature unit)
+          Temperature = target temperature of the thermostat
        *thermostat* values = style seed
           style value = *PILE_L*
           seed = random number generator seed
@@ -180,6 +180,38 @@ The keyword *sp* is a scaling factor on Planck's constant, which can
 be useful for debugging or other purposes.  The default value of 1.0
 is appropriate for most situations.
 
+The keyword *ensemble* for fix style *pimd/langevin* determines which ensemble is it 
+going to sample. The value can be *nve* (microcanonical), *nvt* (canonical), *nph* (isoenthalpic), and *npt* (isothermal-isobaric).
+
+The keyword *temp* specifies temperature parameter for fix styles *pimd/nvt* and *pimd/langevin*. It should read a 
+positive floating-point number.
+.. note::
+   For pimd simulations, a temperature values should be specified even for nve ensemble. Temperature will make a difference
+   for nve pimd, since the spring elastic frequency between the beads will be affected by the temperature.
+
+The keyword *thermostat* reads *style* and *seed* of thermostat for fix style *pimd/langevin*. *style* can only
+be *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`(Manolopoulos) <Manolopoulos>`), and *seed* should a positive integer number, which serves as the seed of the pseudo random number generator.
+
+.. note::
+   The fix style *pimd/langevin* uses the stochastic PILE_L thermostat to control temperature. This thermostat works on the normal modes
+   of the ring polymer. The *tau* parameter controls the centroid mode, and the *scale* parameter controls the non-centroid modes.
+
+The keyword *tau* specifies the thermostat damping time parameter for fix style *pimd/langevin*. It is in time unit. It only works on the centroid mode.
+
+The keyword *scale* specifies a scaling parameter for the damping times of the non-centroid modes for fix style *pimd/langevin*. The default
+damping time of the non-centroid mode $i$ is $\frac{P}{\beta\hbar}\sqrt{\lambda_i\times\mathrm{fmass}}$ (*fmmode* is *physical*) or  $\frac{P}{\beta\hbar}\sqrt{\mathrm{fmass}}$ (*fmmode* is *normal*). The damping times of all non-centroid modes are the default values divided by *scale*.
+
+The barostat parameters for fix style *pimd/langevin* with *npt* or *nph* ensemble is specified using one of *iso* and *aniso* 
+keywords. A *pressure* value should be given with pressure unit. The keyword *iso* means couple all 3 diagonal components together when pressure is computed (hydrostatic pressure), and dilate/contract the dimensions together. The keyword *aniso* means x, y, and z dimensions are controlled independently using the Pxx, Pyy, and Pzz components of the stress tensor as the driving forces, and the specified scalar external pressure.
+
+The keyword *barostat* reads *style* of barostat for fix style *pimd/langevin*. *style* can
+be *BZP* (Bussi-Zykova-Parrinello, as described in :ref:`(Parrinello1) <Parrinello1>`) or *MTTK* (Martyna-Tuckerman-Tobias-Klein, as described in :ref:`(Tuckerman2) <Tuckerman2>`).
+
+The keyword *taup* specifies the barostat damping time parameter for fix style *pimd/langevin*. It is in time unit.
+
+The keyword *fixcom* specifies whether the center-of-mass of the extended ring-polymer system is fixed during the pimd simulation. 
+Once *fixcom* is set te be *yes*, the center-of-mass velocity will be distracted from the centroid-mode velocities in each step.
+
 The PIMD algorithm in LAMMPS is implemented as a hyper-parallel scheme
 as described in :ref:`(Calhoun) <Calhoun>`.  In LAMMPS this is done by using
 :doc:`multi-replica feature <Howto_replica>` in LAMMPS, where each
@@ -315,3 +347,11 @@ Path Integrals, McGraw-Hill, New York (1965).
 .. _Manolopoulos:
 
 **(Manolopoulos)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
+
+.. _Klein:
+
+**(Klein)** G. Martyna, D. Tobias, M. Klein, J. Chem. Phys. 101, 4177 (1994).
+
+.. _Tuckerman2:
+
+**(Tuckerman2)** G. Martyna, A. Hughes, M. Tuckerman, J. Chem. Phys. 110, 3275 (1999).

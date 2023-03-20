@@ -25,7 +25,7 @@ specific implementation. For instance, from the GranSubModNormal class the
 GranSubModNormalHooke, GranSubModNormalHertz, and GranSubModNormalJKR classes
 are derived which calculate Hookean, Hertzian, or JKR normal forces,
 respectively.  This modular structure simplifies the addition of new granular
-contact models as as one only needs to create a new GranSubMod class without
+contact models as one only needs to create a new GranSubMod class without
 having to modify the more complex PairGranular, FixGranWall, and GranularModel
 classes. Most GranSubMod methods are also already defined by the parent classes
 so new contact models typically only require edits to a few relevant methods

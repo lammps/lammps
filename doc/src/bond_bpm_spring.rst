@@ -48,6 +48,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: 4May2022
+
 The *bpm/spring* bond style computes forces based on
 deviations from the initial reference state of the two atoms.  The
 reference state is stored by each bond when it is first computed in

@@ -66,7 +66,7 @@ instance in a dense binary system with a ratio of the size of the largest
 to smallest collection bin :math:`\lamda`, the computational costs of
 building a default neighbor list grows as :math:`\lamda^6` while the costs
 for *multi* grows as :math:`\lamda^3`, equivalent to the cost of force
-evaluations, as identified in Monti et al. :ref:`(Monti) <multi-Monti>`.
+evaluations, as argued in Monti et al. :ref:`(Monti) <multi-Monti>`.
 
 By default in *multi*, each atom type defines a separate collection
 of particles. For systems where two or more atom types have the same

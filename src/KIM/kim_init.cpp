@@ -312,12 +312,8 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
 {
   // create storage proxy fix. delete existing fix, if needed.
 
-  int ifix = modify->find_fix("KIM_MODEL_STORE");
-  if (ifix >= 0) modify->delete_fix(ifix);
-  modify->add_fix("KIM_MODEL_STORE all STORE/KIM");
-  ifix = modify->find_fix("KIM_MODEL_STORE");
-
-  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->fix[ifix]);
+  if (modify->get_fix_by_id("KIM_MODEL_STORE")) modify->delete_fix("KIM_MODEL_STORE");
+  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->add_fix("KIM_MODEL_STORE all STORE/KIM"));
   fix_store->setptr("model_name", (void *) model_name);
   fix_store->setptr("user_units", (void *) user_units);
   fix_store->setptr("model_units", (void *) model_units);

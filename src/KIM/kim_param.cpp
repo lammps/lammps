@@ -159,20 +159,17 @@ void KimParam::command(int narg, char **arg)
     error->all(FLERR, "Incorrect arguments in 'kim param' command.\n"
                "'kim param get/set' is mandatory");
 
-  int const ifix = modify->find_fix("KIM_MODEL_STORE");
-  if (ifix >= 0) {
-    auto fix_store = reinterpret_cast<FixStoreKIM *>(modify->fix[ifix]);
-
-    KIM_SimulatorModel *simulatorModel =
-        reinterpret_cast<KIM_SimulatorModel *>(
-            fix_store->getptr("simulator_model"));
+  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
+  if (fix_store) {
+    auto *simulatorModel = reinterpret_cast<KIM_SimulatorModel *>(
+      fix_store->getptr("simulator_model"));
 
     if (simulatorModel)
       error->all(FLERR, "'kim param' can only be used with a KIM Portable Model");
   }
 
-  input->write_echo(fmt::format("#=== BEGIN kim param {} ==================="
-                                "==================\n", kim_param_get_set));
+  input->write_echo(fmt::format("#=== BEGIN kim param {} =====================================\n",
+                                kim_param_get_set));
 
   KIM_Model *pkim = nullptr;
 
@@ -431,6 +428,6 @@ void KimParam::command(int narg, char **arg)
   } else
     error->all(FLERR, "This model has No mutable parameters");
 
-  input->write_echo(fmt::format("#=== END kim param {} ====================="
-                                "==================\n", kim_param_get_set));
+  input->write_echo(fmt::format("#=== END kim param {} =======================================\n",
+                                kim_param_get_set));
 }

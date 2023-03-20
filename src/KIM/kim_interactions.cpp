@@ -103,11 +103,9 @@ void KimInteractions::do_setup(int narg, char **arg)
   if ((narg == 1) && (arg_str == "fixed_types")) {
     fixed_types = true;
   } else if (narg != atom->ntypes) {
-    error->all(FLERR, "Illegal 'kim interactions' command.\nThe "
-                                  "LAMMPS simulation has {} atom type(s), but "
-                                  "{} chemical species passed to the "
-                                  "'kim interactions' command",
-                                  atom->ntypes, narg);
+    error->all(FLERR, "Illegal 'kim interactions' command.\nThe LAMMPS simulation has {} atom "
+               "type(s), but {} chemical species passed to the 'kim interactions' command",
+               atom->ntypes, narg);
   } else {
     fixed_types = false;
   }
@@ -119,16 +117,14 @@ void KimInteractions::do_setup(int narg, char **arg)
   // retrieve model name and pointer to simulator model class instance.
   // validate model name if not given as null pointer.
 
-  int ifix = modify->find_fix("KIM_MODEL_STORE");
-  if (ifix >= 0) {
-    auto fix_store = dynamic_cast<FixStoreKIM *>(modify->fix[ifix]);
+  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
+  if (fix_store) {
     model_name = (char *)fix_store->getptr("model_name");
     simulatorModel = (KIM_SimulatorModel *)fix_store->getptr("simulator_model");
   } else error->all(FLERR, "Must use 'kim init' before 'kim interactions'");
 
   // Begin output to log file
-  input->write_echo("#=== BEGIN kim interactions ==========================="
-                    "=======\n");
+  input->write_echo("#=== BEGIN kim interactions ==================================\n");
 
   if (simulatorModel) {
     auto first_visit = input->variable->find("kim_update");
@@ -165,8 +161,8 @@ void KimInteractions::do_setup(int narg, char **arg)
           if (atom_type_sym == sim_species) species_is_supported = true;
         }
         if (!species_is_supported) {
-          error->all(FLERR, "Species '{}' is not supported by this "
-                                        "KIM Simulator Model", atom_type_sym);
+          error->all(FLERR, "Species '{}' is not supported by this KIM Simulator Model",
+                     atom_type_sym);
         }
       }
     } else {
@@ -179,18 +175,15 @@ void KimInteractions::do_setup(int narg, char **arg)
     const char *sim_field, *sim_value;
     KIM_SimulatorModel_GetNumberOfSimulatorFields(simulatorModel, &sim_fields);
     for (int i = 0; i < sim_fields; ++i) {
-      KIM_SimulatorModel_GetSimulatorFieldMetadata(
-          simulatorModel, i, &sim_lines, &sim_field);
+      KIM_SimulatorModel_GetSimulatorFieldMetadata(simulatorModel, i, &sim_lines, &sim_field);
 
       const std::string sim_field_str(sim_field);
       if (sim_field_str == "units") {
-        KIM_SimulatorModel_GetSimulatorFieldLine(
-          simulatorModel, i, 0, &sim_value);
+        KIM_SimulatorModel_GetSimulatorFieldLine(simulatorModel, i, 0, &sim_value);
 
-        const std::string sim_value_str(sim_value);
-        const std::string unit_style_str(update->unit_style);
-        if (sim_value_str != unit_style_str)
-          error->all(FLERR, "Incompatible units for KIM Simulator Model");
+        if (strcmp(sim_value, update->unit_style) != 0)
+          error->all(FLERR, "Incompatible units for KIM Simulator Model: {} vs {}",
+                     sim_value, update->unit_style);
       }
     }
 
@@ -217,8 +210,7 @@ void KimInteractions::do_setup(int narg, char **arg)
         no_model_definition = false;
 
         for (int j = 0; j < sim_lines; ++j) {
-          KIM_SimulatorModel_GetSimulatorFieldLine(
-            simulatorModel, i, j, &sim_value);
+          KIM_SimulatorModel_GetSimulatorFieldLine(simulatorModel, i, j, &sim_value);
           if (utils::strmatch(sim_value, "^KIM_SET_TYPE_PARAMETERS")) {
             // Notes regarding the KIM_SET_TYPE_PARAMETERS command
             //  * This is an INTERNAL command.
@@ -264,8 +256,7 @@ void KimInteractions::do_setup(int narg, char **arg)
   }
 
   // End output to log file
-  input->write_echo("#=== END kim interactions ============================="
-                    "=======\n\n");
+  input->write_echo("#=== END kim interactions ====================================\n\n");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -10,7 +10,7 @@ if len(sys.argv) < 3:
     print("usage: fdti.py temperature hderiv < out.fep")
     sys.exit()
 
-rt = 0.008314 / 4.184 * float(sys.argv[1])
+rt = 0.008314 / 4.184 * float(sys.argv[1]) # in kcal/mol
 hderiv = float(sys.argv[2])
 
 line = sys.stdin.readline()

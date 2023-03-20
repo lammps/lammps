@@ -23,7 +23,7 @@ if len(tok) == 4:
     v = float(tok[3])
 lo = -rt * math.log(float(tok[2]) / v)
     
-i = 0
+i = 1
 sum = 0.0
 for line in sys.stdin:
     tok = line.split()

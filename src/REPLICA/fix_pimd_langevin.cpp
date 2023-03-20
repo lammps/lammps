@@ -451,6 +451,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
   if (integrator == OBABO) {
     if (tstat_flag) {
       o_step();
+      if (removecomflag) remove_com_motion();
       if (pstat_flag) press_o_step();
     }
     if (pstat_flag) {
@@ -488,6 +489,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
     a_step();
     if (tstat_flag) {
       o_step();
+      if (removecomflag) remove_com_motion();
       if (pstat_flag) press_o_step();
     }
     qc_step();
@@ -526,6 +528,7 @@ void FixPIMDLangevin::final_integrate()
   if (integrator == OBABO) {
     if (tstat_flag) {
       o_step();
+      if (removecomflag) remove_com_motion();
       if (pstat_flag) press_o_step();
     }
   } else if (integrator == BAOAB) {
@@ -1127,6 +1130,27 @@ void FixPIMDLangevin::inter_replica_comm(double **ptr)
         bufbeads[modeindex[iplan]][3 * m + 0] = bufrecvall[i][0];
         bufbeads[modeindex[iplan]][3 * m + 1] = bufrecvall[i][1];
         bufbeads[modeindex[iplan]][3 * m + 2] = bufrecvall[i][2];
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDLangevin::remove_com_motion(){
+  if(universe->iworld == 0)
+  {
+  double **v = atom->v;
+  int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    if (dynamic)  masstotal = group->mass(igroup);
+    double vcm[3];
+    group->vcm(igroup,masstotal,vcm);    
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        v[i][0] -= vcm[0];
+        v[i][1] -= vcm[1];
+        v[i][2] -= vcm[2];
       }
     }
   }

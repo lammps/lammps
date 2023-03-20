@@ -147,6 +147,7 @@ class FixPIMDLangevin : public Fix {
   void reallocate_x_unwrap();
   void reallocate_xc();
   void collect_xc();
+  void remove_com_motion();
   double xf, vir, vir_, xcf, centroid_vir;
   double t_prim, t_vir, t_cv, p_prim, p_vir, p_cv, p_md;
 

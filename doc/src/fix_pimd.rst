@@ -61,7 +61,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all pimd/nvt method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
-   fix 1 all pimd/langevin ensemble npt integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0 press 1.0 barostat BZP taup 1.0 iso
+   fix 1 all pimd/langevin ensemble npt integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0
 
 Description
 """""""""""

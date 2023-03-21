@@ -101,6 +101,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   tau = 1.0;
   tau_p = 1.0;
   Pext = 1.0;
+  pdim = 0;
   pilescale = 1.0;
   tstat_flag = 1;
   pstat_flag = 0;
@@ -112,7 +113,11 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   int seed = -1;
 
-  for (int i = 0; i < 6; i++) p_flag[i] = 0;
+  for (int i = 0; i < 6; i++)
+  {
+    p_flag[i] = 0;
+    p_target[i] = 0.0;
+  }
 
   for (int i = 3; i < narg - 1; i += 2) {
     if (strcmp(arg[i], "method") == 0) {
@@ -199,9 +204,29 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[i], "iso") == 0) {
       pstyle = ISO;
       Pext = utils::numeric(FLERR, arg[i+1], false, lmp);
+      p_target[0] = p_target[1] = p_target[2] = Pext;
+      pdim = 3;
     } else if (strcmp(arg[i], "aniso") == 0) {
       pstyle = ANISO;
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
       Pext = utils::numeric(FLERR, arg[i+1], false, lmp);
+      p_target[0] = p_target[1] = p_target[2] = Pext;
+      pdim = 3;
+    } else if (strcmp(arg[i], "x") == 0) {
+      pstyle = ANISO;
+      p_flag[0] = 1;
+      p_target[0] = utils::numeric(FLERR, arg[i+1], false, lmp);
+      pdim++;
+    } else if (strcmp(arg[i], "y") == 0) {
+      pstyle = ANISO;
+      p_flag[1] = 1;
+      p_target[1] = utils::numeric(FLERR, arg[i+1], false, lmp);
+      pdim++;
+    } else if (strcmp(arg[i], "z") == 0) {
+      pstyle = ANISO;
+      p_flag[2] = 1;
+      p_target[2] = utils::numeric(FLERR, arg[i+1], false, lmp);
+      pdim++;
     } else if (strcmp(arg[i], "taup") == 0) {
       tau_p = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (tau_p <= 0.0) error->universe_all(FLERR, "Invalid tau_p value for fix pimd/langevin");
@@ -243,6 +268,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
   fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
   fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
+  if (pstat_flag) { p_hydro = (p_target[0]+p_target[1]+p_target[2])/pdim; }
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -670,8 +696,15 @@ void FixPIMDLangevin::qc_step()
       if (barostat == BZP) {
         for (int i = 0; i < nlocal; i++) {
           for (int j = 0; j < 3; j++) {
-            x[i][j] = expq[j] * x[i][j] + (expq[j] - expp[j]) / 2. / vw[j] * v[i][j];
-            v[i][j] = expp[j] * v[i][j];
+            if (p_flag[j])
+            {
+              x[i][j] = expq[j] * x[i][j] + (expq[j] - expp[j]) / 2. / vw[j] * v[i][j];
+              v[i][j] = expp[j] * v[i][j];
+            }
+            else
+            {
+              x[i][j] += dtv * v[i][j];
+            }
           }
         }
         oldlo = domain->boxlo[0];
@@ -762,7 +795,7 @@ void FixPIMDLangevin::press_v_step()
 
   if (pstyle == ISO) {
     if (barostat == BZP) {
-      vw[0] += dtv * 3 * (volume * np * (p_cv - Pext) / force->nktv2p + Vcoeff / beta_np) / W;
+      vw[0] += dtv * 3 * (volume * np * (p_cv - p_hydro) / force->nktv2p + Vcoeff / beta_np) / W;
       if (universe->iworld == 0) {
         double dvw_proc = 0.0, dvw = 0.0;
         for (int i = 0; i < nlocal; i++) {
@@ -777,22 +810,25 @@ void FixPIMDLangevin::press_v_step()
       MPI_Bcast(&vw[0], 1, MPI_DOUBLE, 0, universe->uworld);
     } else if (barostat == MTTK) {
       mtk_term1 = 2. / atom->natoms * totke / 3;
-      f_omega = (volume * np * (p_md - Pext) + mtk_term1) / W;
+      f_omega = (volume * np * (p_md - p_hydro) + mtk_term1) / W;
       vw[0] += 0.5 * dtv * f_omega;
     }
   } else if (pstyle == ANISO) {
     compute_stress_tensor();
     for (int ii = 0; ii < 3; ii++) {
-      vw[ii] +=
-          dtv * (volume * np * (stress_tensor[ii] - Pext) / force->nktv2p + Vcoeff / beta_np) / W;
-      if (universe->iworld == 0) {
-        double dvw_proc = 0.0, dvw = 0.0;
-        for (int i = 0; i < nlocal; i++) {
-          dvw_proc +=
-              dtv2 * f[i][ii] * v[i][ii] / W + dtv3 * f[i][ii] * f[i][ii] / mass[type[i]] / W;
+      if (p_flag[ii])
+      {
+        vw[ii] +=
+            dtv * (volume * np * (stress_tensor[ii] - p_hydro) / force->nktv2p + Vcoeff / beta_np) / W;
+        if (universe->iworld == 0) {
+          double dvw_proc = 0.0, dvw = 0.0;
+          for (int i = 0; i < nlocal; i++) {
+            dvw_proc +=
+                dtv2 * f[i][ii] * v[i][ii] / W + dtv3 * f[i][ii] * f[i][ii] / mass[type[i]] / W;
+          }
+          MPI_Allreduce(&dvw_proc, &dvw, 1, MPI_DOUBLE, MPI_SUM, world);
+          vw[ii] += dvw;
         }
-        MPI_Allreduce(&dvw_proc, &dvw, 1, MPI_DOUBLE, MPI_SUM, world);
-        vw[ii] += dvw;
       }
     }
   }
@@ -811,12 +847,14 @@ void FixPIMDLangevin::press_o_step()
     MPI_Bcast(&vw[0], 1, MPI_DOUBLE, 0, universe->uworld);
   } else if (pstyle == ANISO) {
     if (universe->me == 0) {
-      r1 = random->gaussian();
-      r2 = random->gaussian();
-      r3 = random->gaussian();
-      vw[0] = c1 * vw[0] + c2 * sqrt(1.0 / W / beta_np) * r1;
-      vw[1] = c1 * vw[1] + c2 * sqrt(1.0 / W / beta_np) * r2;
-      vw[2] = c1 * vw[2] + c2 * sqrt(1.0 / W / beta_np) * r3;
+      for (int ii=0; ii<3; ii++)
+      {
+        if (p_flag[ii])
+        {
+          r1 = random->gaussian();
+          vw[ii] = c1 * vw[ii] + c2 * sqrt(1.0 / W / beta_np) * r1;
+        }
+      }
     }
     MPI_Barrier(universe->uworld);
     MPI_Bcast(&vw, 3, MPI_DOUBLE, 0, universe->uworld);
@@ -1145,7 +1183,7 @@ void FixPIMDLangevin::remove_com_motion(){
     int nlocal = atom->nlocal;
     if (dynamic)  masstotal = group->mass(igroup);
     double vcm[3];
-    group->vcm(igroup,masstotal,vcm);    
+    group->vcm(igroup,masstotal,vcm);
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         v[i][0] -= vcm[0];
@@ -1329,15 +1367,15 @@ void FixPIMDLangevin::compute_totenthalpy()
   volume = domain->xprd * domain->yprd * domain->zprd;
   if (barostat == BZP) {
     if (pstyle == ISO) {
-      totenthalpy = tote + 0.5 * W * vw[0] * vw[0] * inverse_np + Pext * volume / force->nktv2p -
+      totenthalpy = tote + 0.5 * W * vw[0] * vw[0] * inverse_np + p_hydro * volume / force->nktv2p -
           Vcoeff * kBT * log(volume);
     } else if (pstyle == ANISO) {
       totenthalpy = tote + 0.5 * W * vw[0] * vw[0] * inverse_np +
           0.5 * W * vw[1] * vw[1] * inverse_np + 0.5 * W * vw[2] * vw[2] * inverse_np +
-          Pext * volume / force->nktv2p - Vcoeff * kBT * log(volume);
+          p_hydro * volume / force->nktv2p - Vcoeff * kBT * log(volume);
     }
   } else if (barostat == MTTK)
-    totenthalpy = tote + 1.5 * W * vw[0] * vw[0] * inverse_np + Pext * (volume - vol0);
+    totenthalpy = tote + 1.5 * W * vw[0] * vw[0] * inverse_np + p_hydro * (volume - vol0);
 }
 
 /* ---------------------------------------------------------------------- */

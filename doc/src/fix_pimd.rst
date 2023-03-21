@@ -30,7 +30,8 @@ Syntax
 * keywords for style *pimd/langevin*
 
   .. parsed-literal::
-       *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *temp* or *thermostat* or *tau* or or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj* 
+       *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *temp* or *thermostat* or
+        *tau*or or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj*
        *method* value = *nmpimd*
        *integrator* value = *obabo* or *baoab*
        *fmmode* value = *physical* or *normal*
@@ -43,7 +44,7 @@ Syntax
        *tau* value = thermostat damping parameter (time unit)
        *scale* value = scaling factor of the damping times of non-centroid modes of PILE_L thermostat
        *iso* or *aniso* values = Pressure (pressure unit)
-         Pressure = scalar external pressure of the barostat 
+         Pressure = scalar external pressure of the barostat
        *barostat* value = *BZP* or *MTTK*
        *taup* value = barostat damping parameter (time unit)
        *fixcom* value = *yes* or *no*
@@ -85,7 +86,7 @@ by the following equations:
    H_{eff} = & \bigg(\sum_{i=1}^P \frac{p_i^2}{2M_i}\bigg) + V_{eff} \\
    V_{eff} = & \sum_{i=1}^P \bigg[ \frac{mP}{2\beta^2 \hbar^2} (q_i - q_{i+1})^2 + \frac{1}{P} V(q_i)\bigg]
 
-$M_i$ is the fictitious mass of the $i$-th mode, and m is the actual mass of the atoms.
+:math:`M_i` is the fictitious mass of the :math:`i`-th mode, and m is the actual mass of the atoms.
 
 The interested user is referred to any of the numerous references on
 this methodology, but briefly, each quantum particle in a path integral
@@ -109,8 +110,9 @@ would be 3 x N x P x Nc.
    Fix *pimd/nvt* implements a complete velocity-verlet integrator
    combined with NH massive chain thermostat, so no other time
    integration fix should be used.
+
    Fix *pimd/langevin* implements a complete velocity-verlet integrator
-   combined with Langevin thermostat in the normal mode representation, and 
+   combined with Langevin thermostat in the normal mode representation, and
    also provides a barostat to sample the NPH/NPT ensembles.
 
 The *method* keyword determines what style of PIMD is performed.  A
@@ -136,7 +138,7 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    the real particle.
 
 .. note::
-   Fix pimd/langevin only supports *method* value *nmpimd*. This should be enough 
+   Fix pimd/langevin only supports *method* value *nmpimd*. This should be enough
    for most PIMD applications for quantum thermodynamics purpose.
 
    Motion of the centroid can be effectively uncoupled from the other
@@ -155,42 +157,51 @@ masses of beads, which can be used for the Partial Adiabatic CMD
 :ref:`(Hone) <Hone>`, or to be set as P, which results in the fictitious
 masses to be equal to the real particle masses.
 
-The keyword *fmmode* of *fix pimd/langevin* determines the mode of fictitious 
-mass preconditioning. There are two options: *physical* and *normal*. If *fmmode* is 
+The keyword *fmmode* of *fix pimd/langevin* determines the mode of fictitious
+mass preconditioning. There are two options: *physical* and *normal*. If *fmmode* is
 *physical*, then the physical mass of the particles are used (and then multiplied by
-*fmass*). If *fmmode* is *normal*, then the physical mass is first multiplied by the 
-eigenvalue of each normal mode, and then multiplied by *fmass*. More precisely, the 
+*fmass*). If *fmmode* is *normal*, then the physical mass is first multiplied by the
+eigenvalue of each normal mode, and then multiplied by *fmass*. More precisely, the
 fictitious mass of *fix pimd/langevin* is determined by two factors: *fmmode* and *fmass*.
 If *fmmode* is *physical*, then the fictitious mass is
-.. math::
-   $M_i = \mathrm{fmass} \times m$
-   
-If *fmmode* is *normal*, then the fictitious mass is
-.. math::
-   $M_i = \mathrm{fmass} \times \lambda_i \times m$
 
-where $\lambda_i$ is the eigenvalue of the $i$-th normal mode.
+.. math::
+
+   M_i = \mathrm{fmass} \times m
+
+If *fmmode* is *normal*, then the fictitious mass is
+
+.. math::
+
+   M_i = \mathrm{fmass} \times \lambda_i \times m
+
+where :math:`\lambda_i` is the eigenvalue of the :math:`i`-th normal mode.
+
 .. note::
+
    Fictitious mass is only used in the momentum of the equation of motion
-   ($\bf{p}_i=M_i\bf{v}_i$), and not used in the spring elastic energy 
-   ($\sum_{i=1}^P \frac{1}{2}m\omega_P^2(q_i - q_{i+1})^2$, $m$ is always the 
-   actual mass of the particles). 
+   (:math:`\mathbf{p}_i=M_i\mathbf{v}_i`), and not used in the spring elastic energy
+   (:math:`\sum_{i=1}^P \frac{1}{2}m\omega_P^2(q_i - q_{i+1})^2`, :math:`m` is always the
+   actual mass of the particles).
 
 The keyword *sp* is a scaling factor on Planck's constant, which can
 be useful for debugging or other purposes.  The default value of 1.0
 is appropriate for most situations.
 
-The keyword *ensemble* for fix style *pimd/langevin* determines which ensemble is it 
-going to sample. The value can be *nve* (microcanonical), *nvt* (canonical), *nph* (isoenthalpic), and *npt* (isothermal-isobaric).
+The keyword *ensemble* for fix style *pimd/langevin* determines which ensemble is it
+going to sample. The value can be *nve* (microcanonical), *nvt* (canonical), *nph* (isoenthalpic),
+and *npt* (isothermal-isobaric).
 
-The keyword *temp* specifies temperature parameter for fix styles *pimd/nvt* and *pimd/langevin*. It should read a 
-positive floating-point number.
+The keyword *temp* specifies temperature parameter for fix styles *pimd/nvt* and *pimd/langevin*. It should read
+a positive floating-point number.
+
 .. note::
+
    For pimd simulations, a temperature values should be specified even for nve ensemble. Temperature will make a difference
    for nve pimd, since the spring elastic frequency between the beads will be affected by the temperature.
 
 The keyword *thermostat* reads *style* and *seed* of thermostat for fix style *pimd/langevin*. *style* can only
-be *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`(Manolopoulos) <Manolopoulos>`), and *seed* should a positive integer number, which serves as the seed of the pseudo random number generator.
+be *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti>`), and *seed* should a positive integer number, which serves as the seed of the pseudo random number generator.
 
 .. note::
    The fix style *pimd/langevin* uses the stochastic PILE_L thermostat to control temperature. This thermostat works on the normal modes
@@ -199,21 +210,21 @@ be *PILE_L* (path integral Langevin equation local thermostat, as described in :
 The keyword *tau* specifies the thermostat damping time parameter for fix style *pimd/langevin*. It is in time unit. It only works on the centroid mode.
 
 The keyword *scale* specifies a scaling parameter for the damping times of the non-centroid modes for fix style *pimd/langevin*. The default
-damping time of the non-centroid mode $i$ is $\frac{P}{\beta\hbar}\sqrt{\lambda_i\times\mathrm{fmass}}$ (*fmmode* is *physical*) or  $\frac{P}{\beta\hbar}\sqrt{\mathrm{fmass}}$ (*fmmode* is *normal*). The damping times of all non-centroid modes are the default values divided by *scale*.
+damping time of the non-centroid mode :math:`i` is :math:`\frac{P}{\beta\hbar}\sqrt{\lambda_i\times\mathrm{fmass}}` (*fmmode* is *physical*) or  :math:`\frac{P}{\beta\hbar}\sqrt{\mathrm{fmass}}` (*fmmode* is *normal*). The damping times of all non-centroid modes are the default values divided by *scale*.
 
-The barostat parameters for fix style *pimd/langevin* with *npt* or *nph* ensemble is specified using one of *iso* and *aniso* 
+The barostat parameters for fix style *pimd/langevin* with *npt* or *nph* ensemble is specified using one of *iso* and *aniso*
 keywords. A *pressure* value should be given with pressure unit. The keyword *iso* means couple all 3 diagonal components together when pressure is computed (hydrostatic pressure), and dilate/contract the dimensions together. The keyword *aniso* means x, y, and z dimensions are controlled independently using the Pxx, Pyy, and Pzz components of the stress tensor as the driving forces, and the specified scalar external pressure.
 
 The keyword *barostat* reads *style* of barostat for fix style *pimd/langevin*. *style* can
-be *BZP* (Bussi-Zykova-Parrinello, as described in :ref:`(Parrinello1) <Parrinello1>`) or *MTTK* (Martyna-Tuckerman-Tobias-Klein, as described in :ref:`(Tuckerman2) <Tuckerman2>`).
+be *BZP* (Bussi-Zykova-Parrinello, as described in :ref:`Bussi <Bussi>`) or *MTTK* (Martyna-Tuckerman-Tobias-Klein, as described in :ref:`Martyna1 <Martyna1>` and :ref:`Martyna2 <Martyna2>`).
 
 The keyword *taup* specifies the barostat damping time parameter for fix style *pimd/langevin*. It is in time unit.
 
-The keyword *fixcom* specifies whether the center-of-mass of the extended ring-polymer system is fixed during the pimd simulation. 
-Once *fixcom* is set te be *yes*, the center-of-mass velocity will be distracted from the centroid-mode velocities in each step.
+The keyword *fixcom* specifies whether the center-of-mass of the extended ring-polymer system is fixed during the pimd simulation.
+Once *fixcom* is set to be *yes*, the center-of-mass velocity will be distracted from the centroid-mode velocities in each step.
 
 The PIMD algorithm in LAMMPS is implemented as a hyper-parallel scheme
-as described in :ref:`(Calhoun) <Calhoun>`.  In LAMMPS this is done by using
+as described in :ref:`Calhoun <Calhoun>`.  In LAMMPS this is done by using
 :doc:`multi-replica feature <Howto_replica>` in LAMMPS, where each
 quasi-particle system is stored and simulated on a separate partition
 of processors.  The following diagram illustrates this approach.  The
@@ -340,18 +351,18 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 **(Herman)** M. F. Herman, E. J. Bruskin, B. J. Berne, J Chem Phys, 76, 5150 (1982).
 
-.. _Parrinello1:
+.. _Bussi:
 
-**(Parrinello1)** G. Bussi, T. Zykova-Timan, M. Parrinello, J Chem Phys, 130, 074101 (2009).
+**(Bussi)** G. Bussi, T. Zykova-Timan, M. Parrinello, J Chem Phys, 130, 074101 (2009).
 
-.. _Manolopoulos:
+.. _Ceriotti:
 
-**(Manolopoulos)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
+**(Ceriotti)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
 
-.. _Klein:
+.. _Martyna1:
 
-**(Klein)** G. Martyna, D. Tobias, M. Klein, J. Chem. Phys. 101, 4177 (1994).
+**(Martyna1)** G. Martyna, D. Tobias, M. Klein, J. Chem. Phys. 101, 4177 (1994).
 
-.. _Tuckerman2:
+.. _Martyna2:
 
-**(Tuckerman2)** G. Martyna, A. Hughes, M. Tuckerman, J. Chem. Phys. 110, 3275 (1999).
+**(Martyna2)** G. Martyna, A. Hughes, M. Tuckerman, J. Chem. Phys. 110, 3275 (1999).

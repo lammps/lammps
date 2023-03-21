@@ -143,6 +143,8 @@ the *overlay/pair* keyword. These settings require specific
 restrictions.  Further details can be found in the `:doc: how to
 <Howto_BPM>` page on BPMs.
 
+.. versionadded:: TBD
+
 If the *break/no* keyword is used, then LAMMPS assumes bonds should not break
 during a simulation run. This will prevent some unnecessary calculation.
 However, if a bond does break, it will trigger an error.

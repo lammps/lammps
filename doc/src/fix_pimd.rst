@@ -30,21 +30,20 @@ Syntax
 * keywords for style *pimd/langevin*
 
   .. parsed-literal::
-       *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *temp* or *thermostat* or
-        *tau*or or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj*
+       *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *lj*
        *method* value = *nmpimd*
        *integrator* value = *obabo* or *baoab*
        *fmmode* value = *physical* or *normal*
        *fmass* value = scaling factor on mass
-       *temp* value = Temperature (temperature unit)
-          Temperature = target temperature of the thermostat
+       *temp* value = temperature (temperature unit)
+          temperature = target temperature of the thermostat
        *thermostat* values = style seed
           style value = *PILE_L*
           seed = random number generator seed
        *tau* value = thermostat damping parameter (time unit)
        *scale* value = scaling factor of the damping times of non-centroid modes of PILE_L thermostat
-       *iso* or *aniso* values = Pressure (pressure unit)
-         Pressure = scalar external pressure of the barostat
+       *iso* or *aniso* values = pressure (pressure unit)
+         pressure = scalar external pressure of the barostat
        *barostat* value = *BZP* or *MTTK*
        *taup* value = barostat damping parameter (time unit)
        *fixcom* value = *yes* or *no*

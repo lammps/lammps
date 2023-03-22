@@ -18,20 +18,20 @@
 
 #include "pair_lj_cut_tip4p_cut.h"
 
-#include <cmath>
-#include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "domain.h"
 #include "angle.h"
+#include "atom.h"
 #include "bond.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -743,12 +743,18 @@ void PairLJCutTIP4PCut::compute_newsite(double *xO,  double *xH1,
 void *PairLJCutTIP4PCut::extract(const char *str, int &dim)
 {
   dim = 0;
+  if (strcmp(str,"qdist") == 0) return (void *) &qdist;
+  if (strcmp(str,"typeO") == 0) return (void *) &typeO;
+  if (strcmp(str,"typeH") == 0) return (void *) &typeH;
+  if (strcmp(str,"typeA") == 0) return (void *) &typeA;
+  if (strcmp(str,"typeB") == 0) return (void *) &typeB;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   return nullptr;
 }
+
 /* ----------------------------------------------------------------------
    memory usage of hneigh
 ------------------------------------------------------------------------- */

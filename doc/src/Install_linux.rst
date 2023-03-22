@@ -172,7 +172,7 @@ Pre-built EPEL Linux executable
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pre-built LAMMPS (and KIM) packages for stable releases are available
-in the `Extra Packages for Enterprise Linux (EPEL) repository <https://fedoraproject.org/wiki/EPEL>`_
+in the `Extra Packages for Enterprise Linux (EPEL) repository <https://docs.fedoraproject.org/en-US/epel/>`_
 for use with Red Hat Enterprise Linux (RHEL) or CentOS version 7.x
 and compatible Linux distributions. Names of packages, executable,
 and content are the same as described above for Fedora Linux.

@@ -1372,6 +1372,7 @@ hdnnp
 HDNNP
 Hearn
 heatconduction
+heatflow
 Hebbeker
 Hebenstreit
 Hecht
@@ -2470,6 +2471,7 @@ nodeless
 nodeset
 nodesets
 Noehring
+nofix
 Noffset
 noforce
 noguess

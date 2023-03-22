@@ -547,18 +547,17 @@ loop atoms are also initialized.
        jnum = numneigh[i];
 
 The inner loop (index *j*) processes the neighbor lists.  The neighbor
-list code encodes in the upper bits (typically the upper 2 bits, i.e. as
-a number from 0 to 3) whether a pair is a regular pair of neighbor (= 0)
-or a pair of 1-2 (= 1), 1-3 (= 2), or 1-4 (= 3) :doc:`"special" neighbor
-<special_bonds>`.  The ``sbmask()`` inline function extracts those bits
-and converts them into a number and use the index to store the
-corresponding scaling factor taken from the ``force->special_lj`` array
-in `factor_lj`.  Due to adding the extra bits, the value of *j* would be
-out of range when accessing data from per-atom arrays, so we apply the
-NEIGHMASK constant to mask them out.  This step *must* be done even if a
-pair style does not use special bond scaling.  Otherwise there will be a
-segmentation fault for systems containing bonds for atoms involved in
-bonds.
+list code encodes in the upper 2 bits whether a pair is a regular pair
+of neighbor (= 0) or a pair of 1-2 (= 1), 1-3 (= 2), or 1-4 (= 3)
+:doc:`"special" neighbor <special_bonds>`.  The ``sbmask()`` inline
+function extracts those bits and converts them into a number.  This
+number is used to look up the corresponding scaling factor for the
+non-bonded interaction from the ``force->special_lj`` array and to store
+it in `factor_lj`.  Due to adding the additional bits, the value of *j*
+would be out of range when accessing data from per-atom arrays, so we
+apply the NEIGHMASK constant to mask them out.  This step *must* be done
+even if a pair style does not use special bond scaling.  Otherwise there
+could be a segmentation fault.
 
 With the corrected *j* index it is now possible to compute the distance of
 the pair.  For efficiency reasons, the square root is only taken *after*
@@ -945,8 +944,12 @@ For computing the three-body interactions of the Tersoff potential a
 "full" neighbor list (both atoms of a pair are listed in each other's
 neighbor list) is required.  By default a "half" neighbor list is
 requested (each pair is listed only once) in.  The request is made in
-the ``init_style()`` function.  Also, additional conditions must be met
-and this is being checked for, too.
+the ``init_style()`` function.  A more in-depth discussion of neighbor
+lists in LAMMPS and how to request them is in :ref:`this section of the
+documentation <request-neighbor-list>`
+
+Also, additional conditions must be met for some global settings and
+this is being checked for in the ``init_style()`` function, too.
 
 .. code-block:: c++
 

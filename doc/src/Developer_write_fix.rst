@@ -1,17 +1,18 @@
 Writing a new fix style
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Writing fixes is a flexible way of extending LAMMPS.  Users can
-implement many things using fixes:
+Writing fix styles is a flexible way of extending LAMMPS.  Users can
+implement many things using fixes.  Some fix styles are only used
+internally to support compute styles or pair styles:
 
-- changing particles attributes (positions, velocities, forces, etc.). Examples: FixNVE, FixFreeze.
-- reading/writing data. Example: FixRestart.
-- adding or modifying properties due to geometry. Example: FixWall.
-- interacting with other subsystems or external code: Examples: FixTTM, FixExternal, FixLATTE
+- change particles attributes (positions, velocities, forces, etc.). Examples: ``FixNVE``, ``FixFreeze``.
+- read or write data.  Example: ``FixRestart``.
+- adding or modifying properties due to geometry. Example: ``FixWall``.
+- interacting with other subsystems or external code: Examples: ``FixTTM``, ``FixExternal``, ``FixMDI``
 - saving information for analysis or future use (previous positions,
-  for instance). Examples: Fix AveTime, FixStoreState.
+  for instance). Examples: ``FixAveTime``, ``FixStoreState``.
 
-All fixes are derived from the Fix base class and must have a
+All fixes are derived from the ``Fix`` base class and must have a
 constructor with the signature: ``FixPrintVel(class LAMMPS *, int, char **)``.
 
 Every fix must be registered in LAMMPS by writing the following lines
@@ -43,23 +44,22 @@ of each timestep. First of all, implement a constructor:
    FixPrintVel::FixPrintVel(LAMMPS *lmp, int narg, char **arg)
    : Fix(lmp, narg, arg)
    {
-     if (narg < 4)
-       error->all(FLERR,"Illegal fix print/vel command");
+     if (narg < 4) utils::missing_cmd_args(FLERR, "fix print/vel", error);
 
      nevery = utils::inumeric(FLERR,arg[3],false,lmp);
      if (nevery <= 0)
-       error->all(FLERR,"Illegal fix print/vel command");
+       error->all(FLERR,"Illegal fix print/vel nevery value: {}", nevery);
    }
 
-In the constructor you should parse your fix arguments which are
-specified in the script. All fixes have pretty much the same syntax:
-``fix <fix-ID> <fix group> <fix name> <fix arguments ...>``. The
-first 3 parameters are parsed by Fix base class constructor, while
-``<fix arguments>`` should be parsed by you. In our case, we need to
-specify how often we want to print an average velocity. For instance,
-once in 50 timesteps: ``fix 1 print/vel 50``. There is a special variable
-in the Fix class called ``nevery`` which specifies how often the method
-``end_of_step()`` is called. Thus all we need to do is just set it up.
+In the constructor you should parse the fix arguments which are
+specified in the script.  All fixes have pretty much the same syntax:
+``fix <fix-ID> <fix group> <fix name> <fix arguments ...>``. The first 3
+parameters are parsed by Fix base class constructor, while ``<fix
+arguments>`` should be parsed by you.  In our case, we need to specify
+how often we want to print an average velocity. For instance, once in 50
+timesteps: ``fix 1 print/vel 50``. There is a special variable in the
+Fix class called ``nevery`` which specifies how often the method
+``end_of_step()`` is called.  Thus all we need to do is just set it up.
 
 The next method we need to implement is ``setmask()``:
 
@@ -72,11 +72,10 @@ The next method we need to implement is ``setmask()``:
      return mask;
    }
 
-Here the user specifies which methods of your fix should be called
-during execution. The constant ``END_OF_STEP`` corresponds to the
-``end_of_step()`` method. The most important available methods that
-are called during a timestep and the order in which they are called
-are shown in the previous section.
+Here the we specify which methods of the fix should be called during
+:doc:`execution of a timestep <Developer_flow>`.  The constant
+``END_OF_STEP`` corresponds to the ``end_of_step()`` method. The most
+important available methods that are called during a timestep.
 
 .. code-block:: c++
 

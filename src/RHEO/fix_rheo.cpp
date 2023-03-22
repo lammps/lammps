@@ -313,7 +313,7 @@ void FixRHEO::initial_integrate(int /*vflag*/)
 
   // Shifting atoms
   if (shift_flag) {
-    compute_vshift->correct_surfaces();
+    compute_vshift->correct_surfaces(); // COuld this be moved to preforce after the surface fix runs?
     for (i = 0; i < nlocal; i++) {
 
       if (!(status[i] & STATUS_SHIFT)) continue;

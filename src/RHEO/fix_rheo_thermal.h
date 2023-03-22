@@ -49,7 +49,7 @@ class FixRHEOThermal : public Fix {
   int cv_style;
   int conductivity_style;
   int first_flag, last_flag;
-  int nmax;
+  int nmax_old, index_cond;
 
   class FixRHEO *fix_rheo;
 

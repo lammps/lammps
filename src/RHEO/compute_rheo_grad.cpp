@@ -23,11 +23,9 @@
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "modify.h"
 #include "update.h"
 
 #include <cmath>
-#include <string>
 
 using namespace LAMMPS_NS;
 enum{COMMGRAD, COMMFIELD};
@@ -35,10 +33,10 @@ enum{COMMGRAD, COMMFIELD};
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), compute_interface(nullptr), compute_kernel(nullptr)
+  Compute(lmp, narg, arg), compute_interface(nullptr), compute_kernel(nullptr),
+  gradv(nullptr), gradr(nullptr), gradt(nullptr), gradn(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute rheo/grad command");
-
 
   velocity_flag = temperature_flag = rho_flag = eta_flag = 0;
   for (int iarg = 3; iarg < narg; iarg ++) {
@@ -53,69 +51,61 @@ ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
   ncomm_field = 0;
   comm_reverse = 0;
 
-  std::string fix_cmd = "rheo_grad_property_atom all property/atom"
-
   int dim = domain->dimension;
   if (velocity_flag) {
     ncomm_grad += dim * dim;
     ncomm_field += dim;
     comm_reverse += dim * dim;
-    fix_cmd += " d2_gradv 9"
+    indexv = atom->add_custom("rheo_grad_v", 1, dim * dim);
+    gradv = atom->darray[indexv];
   }
 
   if (rho_flag) {
     ncomm_grad += dim;
     ncomm_field += 1;
     comm_reverse += dim;
-    fix_cmd += " d2_gradr 3"
+    indexr = atom->add_custom("rheo_grad_rho", 1, dim);
+    gradr = atom->darray[indexr];
   }
 
   if (temperature_flag) {
     ncomm_grad += dim;
     ncomm_field += 1;
     comm_reverse += dim;
-    fix_cmd += " d2_gradt 3"
+    indext= atom->add_custom("rheo_grad_temp", 1, dim);
+    gradt = atom->darray[indext];
   }
 
   if (eta_flag) {
     ncomm_grad += dim;
     comm_reverse += dim;
-    fix_cmd += " d2_gradn 3"
+    indexn = atom->add_custom("rheo_grad_eta", 1, dim);
+    gradn = atom->darray[indexn];
   }
+
+  // Create a custom atom property so it works with compute property/atom
+  // Do not create grow callback as there's no reason to copy/exchange data
+  // Manually grow if nmax_old exceeded
 
   comm_forward = ncomm_grad;
-
-  modify->add_fix(fix_cmd);
-
-  int tmp1, tmp2, index;
-  if (velocity_flag) {
-    index = atom->find_custom("gradv", tmp1, tmp2);
-    gradv = atom->darray[index];
-  }
-
-  if (rho_flag) {
-    index = atom->find_custom("gradr", tmp1, tmp2);
-    gradr = atom->darray[index];
-  }
-
-  if (temperature_flag) {
-    index = atom->find_custom("gradt", tmp1, tmp2);
-    gradt = atom->darray[index];
-  }
-
-  if (eta_flag) {
-    index = atom->find_custom("gradn", tmp1, tmp2);
-    gradn = atom->darray[index];
-  }
+  nmax_old = 0;
+  grow_arrays(atom->nmax);
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOGrad::~ComputeRHEOGrad()
 {
-  modify->delete_fix("rheo_grad_property_atom");
+  int dim = domain->dimension;
+  if (velocity_flag)
+    atom->remove_custom(indexv, 1, dim * dim);
+  if (rho_flag)
+    atom->remove_custom(indexr, 1, dim);
+  if (temperature_flag)
+    atom->remove_custom(indext, 1, dim);
+  if (eta_flag)
+    atom->remove_custom(indexn, 1, dim);
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -169,6 +159,8 @@ void ComputeRHEOGrad::compute_peratom()
   firstneigh = list->firstneigh;
 
   // initialize arrays
+  if (nmax > nmax_old) grow_arrays(nmax);
+
   for (i = 0; i < nmax; i++) {
     if (velocity_flag) {
       for (k = 0; k < dim * dim; k++)
@@ -315,39 +307,33 @@ int ComputeRHEOGrad::pack_forward_comm(int n, int *list, double *buf,
     j = list[i];
     if (comm_stage == COMMGRAD) {
 
-      if (velocity_flag){
+      if (velocity_flag)
         for (k = 0; k < dim * dim; k++)
           buf[m++] = gradv[j][k];
-      }
 
-      if (rho_flag) {
+      if (rho_flag)
         for (k = 0; k < dim; k++)
           buf[m++] = gradr[j][k];
-      }
 
-      if (temperature_flag) {
+      if (temperature_flag)
         for (k = 0; k < dim; k++)
           buf[m++] = gradt[j][k];
-      }
 
-      if (eta_flag){
+      if (eta_flag)
         for (k = 0; k < dim; k++)
           buf[m++] = gradn[j][k];
-      }
+
     } else if (comm_stage == COMMFIELD) {
 
-      if (velocity_flag) {
+      if (velocity_flag)
         for (k = 0; k < dim; k++)
           buf[m++] = v[j][k];
-      }
 
-      if (rho_flag) {
+      if (rho_flag)
         buf[m++] = rho[j];
-      }
 
-      if (temperature_flag) {
+      if (temperature_flag)
         buf[m++] = temperature[j];
-      }
     }
   }
   return m;
@@ -367,33 +353,32 @@ void ComputeRHEOGrad::unpack_forward_comm(int n, int first, double *buf)
   last = first + n;
   for (i = first; i < last; i++) {
     if (comm_stage == COMMGRAD) {
-      if (velocity_flag) {
+      if (velocity_flag)
         for (k = 0; k < dim * dim; k++)
           gradv[i][k] = buf[m++];
-      }
-      if (rho_flag) {
+
+      if (rho_flag)
         for (k = 0; k < dim; k++)
           gradr[i][k] = buf[m++];
-      }
-      if (temperature_flag) {
+
+      if (temperature_flag)
         for (k = 0; k < dim; k++)
           gradt[i][k] = buf[m++];
-      }
-      if (eta_flag) {
+
+      if (eta_flag)
         for (k = 0; k < dim; k++)
           gradn[i][k] = buf[m++];
-      }
+
     } else if (comm_stage == COMMFIELD) {
-      if (velocity_flag) {
+      if (velocity_flag)
         for (k = 0; k < dim; k++)
           v[i][k] = buf[m++];
-      }
-      if (rho_flag) {
+
+      if (rho_flag)
         rho[i] = buf[m++];
-      }
-      if (temperature_flag) {
+
+      if (temperature_flag)
         temperature[i] = buf[m++];
-      }
     }
   }
 }
@@ -408,22 +393,21 @@ int ComputeRHEOGrad::pack_reverse_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    if (velocity_flag) {
+    if (velocity_flag)
       for (k = 0; k < dim * dim; k++)
         buf[m++] = gradv[i][k];
-    }
-    if (rho_flag) {
+
+    if (rho_flag)
       for (k = 0; k < dim; k++)
         buf[m++] = gradr[i][k];
-    }
-    if (temperature_flag) {
+
+    if (temperature_flag)
       for (k = 0; k < dim; k++)
         buf[m++] = gradt[i][k];
-    }
-    if (eta_flag) {
+
+    if (eta_flag)
       for (k = 0; k < dim; k++)
         buf[m++] = gradn[i][k];
-    }
   }
   return m;
 }
@@ -438,21 +422,39 @@ void ComputeRHEOGrad::unpack_reverse_comm(int n, int *list, double *buf)
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    if (velocity_flag) {
+    if (velocity_flag)
       for (k = 0; k < dim * dim; k++)
         gradv[j][k] += buf[m++];
-    }
-    if (rho_flag) {
+
+    if (rho_flag)
       for (k = 0; k < dim; k++)
         gradr[j][k] += buf[m++];
-    }
-    if (temperature_flag) {
+
+    if (temperature_flag)
       for (k = 0; k < dim; k++)
         gradt[j][k] += buf[m++];
-    }
-    if (eta_flag) {
+
+    if (eta_flag)
       for (k = 0; k < dim; k++)
         gradn[j][k] += buf[m++];
-    }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeRHEOGrad::grow_arrays(int nmax)
+{
+  int dim = domain->dimension;
+  if (velocity_flag)
+    memory->grow(gradv, nmax, dim * dim, "atom:rheo_grad_v");
+
+  if (rho_flag)
+    memory->grow(gradr, nmax, dim, "atom:rheo_grad_rho");
+
+  if (temperature_flag)
+    memory->grow(gradt, nmax, dim, "atom:rheo_grad_temp");
+
+  if (eta_flag)
+    memory->grow(gradn, nmax, dim, "atom:rheo_grad_eta");
+  nmax_old = nmax;
 }

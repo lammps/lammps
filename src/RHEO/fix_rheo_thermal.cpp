@@ -32,7 +32,8 @@ enum {NONE, CONSTANT, TYPE};
 /* ---------------------------------------------------------------------- */
 
 FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr)
+  Fix(lmp, narg, arg), Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr),
+  conductivity(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
@@ -40,8 +41,8 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
   cv_style = NONE;
   conductivity_style = NONE;
 
-  comm_forward = 0;
-  nmax = atom->nmax;
+  comm_forward = 1;
+  nmax_old = 0;
 
   int ntypes = atom->ntypes;
   int iarg = 3;
@@ -123,6 +124,11 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
 
 FixRHEOThermal::~FixRHEOThermal()
 {
+  // Remove custom property if it exists
+  int tmp1, tmp2, index;
+  index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
+  if (index != -1) atom->remove_custom(index_cond, 1, 0);
+
   memory->destroy(cv_type);
   memory->destroy(Tc_type);
   memory->destroy(kappa_type);
@@ -164,8 +170,7 @@ void FixRHEOThermal::setup_pre_force(int /*vflag*/)
   fix_rheo->thermal_fix_defined = 1;
 
   // Identify whether this is the first/last instance of fix thermal
-  // First will handle growing arrays
-  // Last will handle communication
+  // First will grow arrays, last will communicate
   first_flag = 0
   last_flag = 0;
 
@@ -178,6 +183,18 @@ void FixRHEOThermal::setup_pre_force(int /*vflag*/)
 
   if (i == 0) first_flag = 1;
   if ((i + 1) == fixlist.size()) last_flag = 1;
+
+  // Create conductivity array if it doesn't already exist
+  // Create a custom atom property so it works with compute property/atom
+  // Do not create grow callback as there's no reason to copy/exchange data
+  // Manually grow if nmax_old exceeded
+
+  int tmp1, tmp2;
+  index_cond = atom->find_custom("rheo_conductivity", tmp1, tmp2);
+  if (index_cond == -1) {
+    index_cond = atom->add_custom("rheo_conductivity", 1, 0);
+    nmax_old = atom->nmax;
+  }
 
   post_neighbor();
   pre_force(0);
@@ -230,7 +247,7 @@ void FixRHEOThermal::post_integrate()
       if (status[i] == FixRHEO::FLUID_NO_FORCE) continue;
 
       cvi = calc_cv(i);
-      temperature[i] += dtf*heat[i]/cvi;
+      temperature[i] += dtf * heat[i] / cvi;
 
       if (Tc_style != NONE) {
         Ti = temperature[i];
@@ -260,15 +277,14 @@ void FixRHEOThermal::post_neighbor()
 {
   int i;
   int *type = atom->type;
-  double *conductivity = fix_rheo->conductivity;
+  double *conductivity = atom->dvector[index_cond];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (first_flag & nmax < atom->nmax) {
-    nmax = atom->nmax;
-    fix_rheo->fix_store_cond->grow_arrays(nmax);
-  }
+  if (first_flag && (nmax_old < atom->nmax))
+    memory->grow(conductivity, atom->nmax, "atom:rheo_conductivity");
+  nmax_old = atom->nmax;
 
   if (conductivity_style == CONSTANT) {
     for (i = 0; i < nall; i++)
@@ -286,16 +302,15 @@ void FixRHEOThermal::post_neighbor()
 
 void FixRHEOThermal::pre_force(int /*vflag*/)
 {
-  // So far, none exist
+  // Not needed yet, when needed add (un)pack_forward_comm() methods
   //int i;
-  //double *conductivity = fix_rheo->conductivity;
+  //double *conductivity = atom->dvector[index_cond];
   //int *mask = atom->mask;
   //int nlocal = atom->nlocal;
 
-  //if (first_flag & nmax < atom->nmax) {
-  //  nmax = atom->nmax;
-  //  fix_rheo->fix_store_cond->grow_arrays(nmax);
-  //}
+  //if (first_flag && (nmax_old < atom->nmax))
+  //  memory->grow(conductivity, atom->nmax, "atom:rheo_conductivity");
+  //nmax_old = atom->nmax;
 
   //if (conductivity_style == TBD) {
   //  for (i = 0; i < nlocal; i++) {

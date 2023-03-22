@@ -92,7 +92,6 @@ void PairRHEO::compute(int eflag, int vflag)
   double **gradv = compute_grad->gradv;
   double **gradt = compute_grad->gradt;
   double **gradr = compute_grad->gradr;
-  double **gradn = compute_grad->gradn;
   double **v = atom->v;
   double **x = atom->x;
   double **f = atom->f;
@@ -108,6 +107,18 @@ void PairRHEO::compute(int eflag, int vflag)
   tagint *tag = atom->tag;
   int *type = atom->type;
   int *phase = atom->phase;
+
+  int tmp1, tmp2;
+  int index_visc = atom->find_custom("rheo_viscosity", tmp1, tmp2);
+  if (index_visc == -1) error->all(FLERR, "Cannot find rheo viscosity");
+  double *viscosity = atom->dvector[index_visc];
+
+  double *conductivity;
+  if (thermal_flag) {
+    int index_cond = atom->find_custom("rheo_conductivity", tmp1, tmp2);
+    if (index_cond == -1) error->all(FLERR, "Cannot find rheo conductivity");
+    conductivity = atom->dvector[index_cond];
+  }
 
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;

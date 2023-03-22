@@ -11,11 +11,11 @@ Step 4: Perform test runs in any of 3 modes
 
 Step 0: What PySCF currently supports
 
-PySCF can be used with fix mdi/qmmm for QM/MM simulations, but not with fix
-mdi/qm to perform QM calculations of an entire system.  For QM/MM it can use
-the direct mode of fix mdi/qmmm, but not the plugin mode.  PySCF can calculate
-a QM energy and QM forces on each atom, but it cannot compute a QM stress
-tensor.
+PySCF can be used with fix mdi/qmmm for QM/MM simulations, but not
+with fix mdi/qm to perform QM calculations of an entire system.  For
+QM/MM it can use the direct mode of fix mdi/qmmm, but not the
+potential mode.  PySCF can calculate a QM energy and QM forces on each
+atom, but it cannot compute a QM stress tensor.
 
 PySCF does not support MPI parallelism, so run it on a single MPI task.
 But it does support multi-threading via OpenMP.  By default it will use

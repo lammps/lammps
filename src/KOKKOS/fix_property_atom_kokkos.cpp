@@ -24,8 +24,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{MOLECULE,CHARGE,RMASS,INTEGER,DOUBLE};
-
 /* ---------------------------------------------------------------------- */
 
 FixPropertyAtomKokkos::FixPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) :

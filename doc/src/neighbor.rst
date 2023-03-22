@@ -64,7 +64,7 @@ and Monti et al. :ref:`(Monti) <multi-Monti>`. This imposes some extra
 setup overhead, but the searches themselves may be much faster. For
 instance in a dense binary system in d-dimensions with a ratio of the size
 of the largest to smallest collection bin :math:`\lambda`, the computational
-costs of building a default neighbor list grows as :math:`\lambda^d` while
+costs of building a default neighbor list grows as :math:`\lambda^{2d}` while
 the costs for *multi* grows as :math:`\lambda^d`, equivalent to the cost
 of force evaluations, as argued in Monti et al. :ref:`(Monti) <multi-Monti>`.
 

@@ -691,9 +691,10 @@ void ComputeChunkAtom::compute_ichunk()
   if (invoked_ichunk == update->ntimestep) return;
 
   // if old IDs persist via storage in fixstore, then just retrieve them
-  // yes if idsflag = ONCE, and already done once
+  // restore = yes if idsflag = ONCE, and already done once
   //   or if idsflag = NFREQ and lock is in place and are on later timestep
   // else proceed to recalculate per-atom chunk assignments
+  // if restoring, update invoked_ichunk only for NFREQ case
 
   const int nlocal = atom->nlocal;
   int restore = 0;
@@ -701,7 +702,7 @@ void ComputeChunkAtom::compute_ichunk()
   if (idsflag == NFREQ && lockfix && update->ntimestep > lockstart) restore = 1;
 
   if (restore) {
-    invoked_ichunk = update->ntimestep;
+    if (idsflag == NFREQ) invoked_ichunk = update->ntimestep;
     double *vstore = fixstore->vstore;
     for (i = 0; i < nlocal; i++) ichunk[i] = static_cast<int>(vstore[i]);
     return;

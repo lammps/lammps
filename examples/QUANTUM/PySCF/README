@@ -2,7 +2,7 @@
 
 Step 0: What PySCF currently supports
 Step 1: Build LAMMPS
-Step 2: Download/build MDI code coupling package
+Step 2: Install or download/build MDI code coupling package
 Step 3: Download/build PySCF
 Step 4: Perform test runs in any of 3 modes
 
@@ -66,37 +66,76 @@ CMake:
 ---------------------------------
 ---------------------------------
 
-Step 2: Install MDI code coupling python module
+Step 2: Install or download/build MDI code coupling package
 
-You can install MDI in your Python environment via conda:
+To simply use the MDI python module for the example scripts in this
+dir, you only need to install the MDI python module in your
+environment.  Alternatively, you can download/build MDI itself, which
+will include its documentation and examples (as well as libraries and
+Python interface).
+
+NOTE: It should be fine to leave off the version number for the python
+module installs, to just grab the latest MDI version.  1.4.16 is the
+version of MDI LAMMPS is currently using.
+
+(option 1) Install MDI python module via conda:
 
 % conda install -c conda-forge pymdi=1.4.16
 
-or via pip:
+(option 2) Install MDI python module via pip:
 
 % pip install 'pymdi>=1.4.14'
 
-It is likely fine to leave off the version number, to get the latest
-MDI version.  1.4.16 is the version LAMMPS is currently using.
+(option 3) Download/build MDI code coupling package
+
+(a) clone the MDI Git repo
+
+% mkdir mdi; cd mdi
+% git clone git@github.com:MolSSI-MDI/MDI_Library.git git
+
+(b) build MDI
+
+% cd mdi/git
+% mkdir build; cd build
+% cmake ..
+% make -j
+
+(c) Add a line like this to your ~/.bashrc or ~/.cshrc file so that
+Python can find MDI:
+
+For bash:
+
+% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git/build/MDI_Library"
+% hash -r
+
+For (t)csh:
+
+% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git/build/MDI_Library
+% rehash
 
 ---------------------------------
 ---------------------------------
 
 Step 3: Download/build PySCF
 
-See https://pyscf.org/install.html for install options.
-This describes building PySCF from source code.
+NOTE: As of March 2023, this PySCF repo is a fork of the main PySCF
+repo.  This fork has some additional features.  It will be merged into
+the main PySCF repo at some point in the future.  This doc page will
+be updated when that happens.
+
+This section describes building PySCF from source code.
+See https://pyscf.org/install.html for other options.
 
 (a) clone the PySCF Git repo
 
 % mkdir pyscf; cd pyscf
-% git clone https://github.com/pyscf/pyscf.git git
+% git clone git@github.com:MoleOrbitalHybridAnalyst/pyscf.git git
 
 (b) build PySCF
 
 NOTE: you will also need numpy, scipy, h5py in your python
 
-% cd pyscf/git/lib
+% cd pyscf/git/pyscf/git/lib
 % mkdir build; cd build
 % cmake ..
 % make -j

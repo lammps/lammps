@@ -8,7 +8,7 @@ from ctypes import *
 
 import numpy as np
 from mpi4py import MPI
-import MDI_Library as mdi
+import mdi as mdi
 
 # --------------------------------------------
 

@@ -2,7 +2,7 @@
 
 Step 0: What NWChem/PWDF currently supports
 Step 1: Build LAMMPS
-Step 2: Download/build MDI code coupling package
+Step 2: Install or download/build MDI code coupling package
 Step 3: Download/build NWChem PWDFT
 Step 4: Perform test runs in any of 3 modes
 
@@ -47,7 +47,27 @@ CMake:
 ---------------------------------
 ---------------------------------
 
-Step 2: Download/build MDI code coupling package
+Step 2: Install or download/build MDI code coupling package
+
+To simply use the MDI python module for the example scripts in this
+dir, you only need to install the MDI python module in your
+environment.  Alternatively, you can download/build MDI itself, which
+will include its documentation and examples (as well as libraries and
+Python interface).
+
+NOTE: It should be fine to leave off the version number for the python
+module installs, to just grab the latest MDI version.  1.4.16 is the
+version of MDI LAMMPS is currently using.
+
+(option 1) Install MDI python module via conda:
+
+% conda install -c conda-forge pymdi=1.4.16
+
+(option 2) Install MDI python module via pip:
+
+% pip install 'pymdi>=1.4.14'
+
+(option 3) Download/build MDI code coupling package
 
 (a) clone the MDI Git repo
 
@@ -66,12 +86,12 @@ Python can find MDI:
 
 For bash:
 
-% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git"
+% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git/build/MDI_Library"
 % hash -r
 
 For (t)csh:
 
-% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git
+% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git/build/MDI_Library
 % rehash
 
 (d) Check import of 3 Python modules which the script that wraps
@@ -80,12 +100,17 @@ NWChem will need:
 % python
 >>> import numpy as np
 >>> from mpi4py import MPI
->>> import MDI_Library as mdi
+>>> import mdi
 
 ---------------------------------
 ---------------------------------
 
 Step 3: Download/build NWChem PWDFT
+
+NOTE: As of March 2023, this PWDFT-only repo is part of the new
+NWChemEx (exascale) version of NWChem.  It will be included in the
+NWChemEx repo when it is publicly released.  This doc page will be
+updated when that happens.
 
 (a) clone the PWDFT Git repo
 

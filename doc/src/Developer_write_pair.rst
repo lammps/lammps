@@ -131,12 +131,12 @@ class in ``force.cpp`` to build a map of "factory functions" that will
 create an instance of these classes and return a pointer to it.  The map
 connects the name of the pair style, "born/gauss", to the name of the
 class, ``PairBornGauss``.  Before including the headers, the ``PAIR_CLASS``
-define is set and the ``PairStyle(name,class)`` macro defined as needed.
+define is set and the ``PairStyle(name,class)`` macro is defined as needed.
 
 The list of header files to include is automatically updated by the
 build system, so the presence of the file in the ``src/EXTRA-PAIR``
-folder and the enabling of the EXTRA-PAIR package will trigger that
-LAMMPS includes the new pair style when it is (re-)compiled.  The "//
+folder and the enabling of the EXTRA-PAIR package will trigger
+LAMMPS to include the new pair style when it is (re-)compiled.  The "//
 clang-format" format comments are needed so that running
 :ref:`clang-format <clang-format>` on the file will not insert blanks
 between "born", "/", and "gauss" which would break the ``PairStyle``
@@ -152,7 +152,7 @@ given the "override" property, as it is done in the code shown below.
 The "override" property helps to detect unexpected mismatches because
 compilation will stop with an error in case the signature of a function
 is changed in the base class without also changing it in all derived
-classes.  For example, if this change would add an optional argument
+classes.  For example, if this change added an optional argument
 with a default value, then all existing source code *calling* the
 function would not need changes and still compile, but the function in
 the derived class would no longer override the one in the base class due
@@ -190,7 +190,7 @@ such issues.
      void *extract(const char *, int &) override;
 
 Also, variables and arrays for storing global settings and potential
-parameters are defined.  Since those are internal to the class, they are
+parameters are defined.  Since these are internal to the class, they are
 placed after a "protected:" label.
 
 .. code-block:: c++
@@ -274,7 +274,7 @@ pointer as argument, but **not** the command line arguments of the
 :doc:`pair_style command <pair_style>`.  Instead, those arguments are
 processed in the ``Pair::settings()`` function (or rather the version in
 the derived class).  The constructor is the place where global defaults
-are set and specifically flags are set about which optional features of
+are set and specifically flags are set indicating which optional features of
 a pair style are available.
 
 .. code-block:: c++
@@ -327,7 +327,7 @@ the functions ``Pair::settings()`` and ``Pair::coeff()`` need to be
 re-implemented.  The arguments to the ``settings()`` function are the
 arguments given to the :doc:`pair_style command <pair_style>`.
 Normally, those would already be processed as part of the constructor,
-but moving this to a separate function allows to change global settings
+but moving this to a separate function allows users to change global settings
 like the default cutoff without having to reissue all pair_coeff
 commands or re-read the ``Pair Coeffs`` sections from the data file.
 In the ``settings()`` function, also the arrays for storing parameters,
@@ -381,7 +381,7 @@ allocation and initialization is moved to a function ``allocate()``.
 The arguments to the ``coeff()`` function are the arguments to the
 :doc:`pair_coeff command <pair_coeff>`.  The function is also called
 when processing the ``Pair Coeffs`` or ``PairIJ Coeffs`` sections of
-data files.  In the case of the ``Pair Coeffs`` section there is only
+data files.  In the case of the ``Pair Coeffs`` section, there is only
 one atom type per line and thus the first argument is duplicated.  Since
 the atom type arguments of the :doc:`pair_coeff command <pair_coeff>`
 may be a range (e.g. \*\ 3 for atom types 1, 2, and 3), the
@@ -483,14 +483,14 @@ Computing forces from the neighbor list (required)
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
 The ``compute()`` function is the "workhorse" of a pair style.  This is where
-we have the nested loops all pairs of particles from the neighbor list to
-compute forces and - if needed - energy and virial.
+we have the nested loops of all pairs of particles from the neighbor list to
+compute forces and - if needed - energies and virials.
 
 The first part is to define some variables for later use and store
-cached copies of data or pointers we need to access frequently.  Also,
+cached copies of data or pointers that we need to access frequently.  Also,
 this is a good place to call ``Pair::ev_init()``, which initializes
 several flags derived from the `eflag` and `vflag` parameters signaling
-whether energy and virial need to be tallied and whether only globally
+whether the energy and virial need to be tallied and whether only globally
 or also per-atom.
 
 .. code-block:: c++
@@ -521,7 +521,7 @@ or also per-atom.
 
 The outer loop (index *i*) is over local atoms of our sub-domain.
 Typically, the value of `inum` (the number of neighbor lists) is the
-same as the number of local atoms (= atoms *owned* but this sub-domain).
+same as the number of local atoms (= atoms *owned* by this sub-domain).
 But when the pair style is used as a sub-style of a :doc:`hybrid pair
 style <pair_hybrid>` or neighbor list entries are removed with
 :doc:`neigh_modify exclude <neigh_modify>` this number may be
@@ -597,7 +597,7 @@ the respective distances in those directions.
 
 In the next block, the force is added to the per-atom force arrays.  This
 pair style uses a "half" neighbor list (each pair is listed only once)
-so we take advantage of the fact that :math:` \vec{F}_{ij} =
+so we take advantage of the fact that :math:`\vec{F}_{ij} =
 -\vec{F}_{ji}`, i.e.  apply Newton's third law.  The force is *always*
 stored when the atom is a "local" atom. Index *i* atoms are always "local"
 (i.e. *i* < nlocal); index *j* atoms may be "ghost" atoms (*j* >= nlocal).
@@ -609,7 +609,7 @@ are computed a "reverse communication" is performed to add those ghost
 atom forces to their corresponding local atoms.  If the setting is disabled,
 then the extra communication is skipped, since for pairs straddling
 sub-domain boundaries, the forces are computed twice and only stored with
-the local atoms in the domain that *own* it.
+the local atoms in the domain that *owns* it.
 
 .. code-block:: c++
 
@@ -659,15 +659,15 @@ atom is a periodic copy.
 Computing force and energy for a single pair
 """"""""""""""""""""""""""""""""""""""""""""
 
-Certain features in LAMMPS utilize computing interactions between
-individual pairs of atoms only and the (optional) ``single()`` function
+Certain features in LAMMPS only require computing interactions between
+individual pairs of atoms and the (optional) ``single()`` function
 is needed to support those features (e.g. for tabulation of force and
 energy with :doc:`pair_write <pair_write>`).  This is a repetition of
 the force kernel in the ``compute()`` function, but only for a single
 pair of atoms, where the (squared) distance is provided as parameter
 (so it may not even be an existing distance between two specific atoms).
 The energy is returned as the return value of the function and the force
-as the `fforce` reference.  Note, that is, same as *fpair* in he
+as the `fforce` reference.  Note, that this is the same as *fpair* in the
 ``compute()`` function, the magnitude of the force along the vector
 between the two atoms *divided* by the distance.
 
@@ -860,7 +860,7 @@ Give access to internal data
 """"""""""""""""""""""""""""
 
 The purpose of the ``extract()`` function is to allow access to internal data
-of the pair style from other parts of LAMMPS.  One application is to use
+of the pair style to other parts of LAMMPS.  One application is to use
 :doc:`fix adapt <fix_adapt>` to gradually change potential parameters during
 a run.  Here, we implement access to the pair coefficient matrix parameters.
 
@@ -906,17 +906,17 @@ example.
 Constructor
 """""""""""
 
-In the constructor several :doc:`pair style flags <Modify_pair>` must
+In the constructor, several :doc:`pair style flags <Modify_pair>` must
 be set differently for many-body potentials:
 
 - the potential is not pair-wise additive, so the ``single()`` function
   cannot be used. This is indicated by setting the `single_enable`
   member variable to 0 (default value is 1)
-- the for many-body potentials are usually not written to :doc:`binary
+- many-body potentials are usually not written to :doc:`binary
   restart files <write_restart>`.  This is indicated by setting the member
   variable `restartinfo` to 0 (default is 1)
 - many-body potentials typically read *all* parameters from a file which
-  stores parameters indexed with a string (e.g. the element).  For this
+  stores parameters indexed with a string (e.g. the element).  For this,
   only a single :doc:`pair_coeff \* \* <pair_coeff>` command is allowed.
   This requirement is set and checked for, when the member variable
   `one_coeff` is set to 1 (default value is 0)
@@ -943,13 +943,13 @@ Neighbor list request
 For computing the three-body interactions of the Tersoff potential a
 "full" neighbor list (both atoms of a pair are listed in each other's
 neighbor list) is required.  By default a "half" neighbor list is
-requested (each pair is listed only once) in.  The request is made in
+requested (each pair is listed only once).  The request is made in
 the ``init_style()`` function.  A more in-depth discussion of neighbor
 lists in LAMMPS and how to request them is in :ref:`this section of the
 documentation <request-neighbor-list>`
 
-Also, additional conditions must be met for some global settings and
-this is being checked for in the ``init_style()`` function, too.
+Also, additional conditions must be met for some global settings which
+are checked in the ``init_style()`` function.
 
 .. code-block:: c++
 
@@ -973,14 +973,14 @@ Computing forces from the neighbor list
 """""""""""""""""""""""""""""""""""""""
 
 Computing forces for a many-body potential is usually more complex than
-for a pair-wise additive potential and there are multiple component.
+for a pair-wise additive potential and there are multiple components.
 For Tersoff, there is a pair-wise additive two-body term (two nested
 loops over indices *i* and *j*) and a three-body term (three nested
 loops over indices *i*, *j*, and *k*).  Since the neighbor list has
 all neighbors up to the maximum cutoff (for the two-body term), but
-the three-body interactions have a significantly shorter cutoff, also
-a "short neighbor list" is constructed at the same time while computing
-the two-body and looping over the neighbor list for the first time.
+the three-body interactions have a significantly shorter cutoff,
+a "short neighbor list" is also constructed at the same time while computing
+the two-body term and looping over the neighbor list for the first time.
 
 .. code-block:: c++
 
@@ -995,7 +995,7 @@ the two-body and looping over the neighbor list for the first time.
 For the two-body term, only a half neighbor list would be needed, even
 though we have requested a full list (for the three-body loops).
 Rather than computing all interactions twice, we skip over half of
-the entries.  This is done in slightly complex way to make certain
+the entries.  This is done in a slightly complex way to make certain
 the same choice is made across all subdomains and so that there is
 no load imbalance introduced.
 
@@ -1104,7 +1104,7 @@ Reverse communication
 """""""""""""""""""""
 
 Then a first loop over all pairs (*i* and *j*) is performed, where data
-is stored in the `rho` representing the electron density at the site of
+is stored in the `rho` array representing the electron density at the site of
 *i* contributed from all neighbors *j*.  Since the EAM pair style uses
 a half neighbor list (for efficiency reasons), a reverse communication is
 needed to collect the contributions to `rho` from ghost atoms (only if
@@ -1114,9 +1114,9 @@ needed to collect the contributions to `rho` from ghost atoms (only if
 
    if (newton_pair) comm->reverse_comm(this);
 
-To support the reverse communication two functions must be defined:
-``pack_reverse_comm()`` that copy relevant data into a buffer for ghost
-atoms and ``unpac_reverse_comm()`` and take the collected data and add
+To support the reverse communication, two functions must be defined:
+``pack_reverse_comm()`` that copies relevant data into a buffer for ghost
+atoms and ``unpack_reverse_comm()`` that takes the collected data and adds
 it to the `rho` array for the corresponding local atoms that match the
 ghost atoms.  In order to allocate sufficiently sized buffers, a flag
 must be set in the pair style constructor. Since in this case a single
@@ -1158,7 +1158,7 @@ For that a forward communication is needed.
 
    comm->forward_comm(this);
 
-Similar to the reverse communication, this requires to implement a
+Similar to the reverse communication, this requires implementing a
 ``pack_forward_comm()`` and an ``unpack_forward_comm()`` function.
 Since there is one double precision number per atom that needs to be
 communicated, we must set the `comm_forward` member variable to 1

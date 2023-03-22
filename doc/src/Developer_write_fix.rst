@@ -120,7 +120,7 @@ class) with all global information about the simulation system.
 Data from the Pointers class is available to all classes inherited from
 it using protected inheritance. Hence when you write you own class,
 which is going to use LAMMPS data, don't forget to inherit from Pointers
-or pass an Pointer to it to all functions that need access. When writing
+or pass a Pointer to it to all functions that need access. When writing
 fixes we inherit from class Fix which is inherited from Pointers so
 there is no need to inherit from it directly.
 
@@ -130,7 +130,7 @@ script: ``group_name``.  This parameter specifies the group of atoms
 used in the fix. So we should compute average for all particles in the
 simulation only if ``group_name == "all"``, but it can be any group.
 The group membership information of an atom is contained in the *mask*
-property of and atom and the bit corresponding to a given group is
+property of an atom and the bit corresponding to a given group is
 stored in the groupbit variable which is defined in Fix base class:
 
 .. code-block:: c++
@@ -141,26 +141,26 @@ stored in the groupbit variable which is defined in Fix base class:
      }
    }
 
-Class Atom encapsulates atoms positions, velocities, forces, etc. User
+Class Atom encapsulates atoms positions, velocities, forces, etc. Users
 can access them using particle index. Note, that particle indexes are
 usually changed every few timesteps because of neighbor list rebuilds
 and spatial sorting (to improve cache efficiency).
 
 Let us consider another Fix example: We want to have a fix which stores
-atoms position from previous time step in your fix. The local atoms
+atoms position from the previous time step in your fix. The local atoms
 indexes may not be valid on the next iteration. In order to handle
 this situation there are several methods which should be implemented:
 
 - ``double memory_usage()``: return how much memory the fix uses (optional)
-- ``void grow_arrays(int)``: do reallocation of the per particle arrays in your fix
+- ``void grow_arrays(int)``: do reallocation of the per-particle arrays in your fix
 - ``void copy_arrays(int i, int j, int delflag)``: copy i-th per-particle
   information to j-th. Used when atom sorting is performed. if delflag is set
   and atom j owns a body, move the body information to atom i.
 - ``void set_arrays(int i)``: sets i-th particle related information to zero
 
-Note, that if your class implements these methods, it must call add calls of
-add_callback and delete_callback to constructor and destructor. Since we want
-to store positions of atoms from previous timestep, we need to add
+Note, that if your class implements these methods, it must add calls of
+add_callback and delete_callback to the constructor and destructor. Since we want
+to store positions of atoms from the previous timestep, we need to add
 ``double** xold`` to the header file. Than add allocation code
 to the constructor:
 

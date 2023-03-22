@@ -5,7 +5,7 @@ Pair styles are at the core of most simulations with LAMMPS, since they
 are used to compute the forces (plus energy and virial contributions, if
 needed) on atoms for pairs of atoms within a given cutoff.  This is
 often the dominant computation in LAMMPS, and sometimes even the only
-one.  Pair styles can be grouped in multiple categories:
+one.  Pair styles can be grouped into multiple categories:
 
 #. simple pairwise additive interactions of point particles
    (e.g. :doc:`Lennard-Jones <pair_lj>`, :doc:`Morse <pair_morse>`,
@@ -38,7 +38,7 @@ be written that is either directly or indirectly derived from the
 ``Pair`` class.  If that class is directly derived from ``Pair``, there
 are three methods that *must* be re-implemented, since they are "pure"
 in the base class: ``Pair::compute()``, ``Pair::settings()``,
-``Pair::coeff()``.  In addition a custom constructor is needed.  All
+``Pair::coeff()``.  In addition, a custom constructor is needed.  All
 other methods are optional and have default implementations in the base
 class (most of which do nothing), but they may need to be overridden
 depending on the requirements of the model.
@@ -84,7 +84,7 @@ shall be named "born/gauss" and thus the class name would be
 ``pair_born_gauss.cpp``.  Since this is a rather uncommon potential, it
 shall be added to the :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>` package.  For
 the implementation, we will use :doc:`pair style morse <pair_morse>` as
-template.
+a template.
 
 Header file
 """""""""""
@@ -152,13 +152,13 @@ given the "override" property, as it is done in the code shown below.
 The "override" property helps to detect unexpected mismatches because
 compilation will stop with an error in case the signature of a function
 is changed in the base class without also changing it in all derived
-classes.  For example, if this change added an optional argument
-with a default value, then all existing source code *calling* the
-function would not need changes and still compile, but the function in
-the derived class would no longer override the one in the base class due
-to the different number of arguments and the behavior of the pair style
-is thus changed in an unintended way.  Using "override" keyword prevents
-such issues.
+classes.  For example, if this change added an optional argument with a
+default value, then all existing source code *calling* the function
+would not need changes and still compile, but the function in the
+derived class would no longer override the one in the base class due to
+the different number of arguments and the behavior of the pair style is
+thus changed in an unintended way.  Using the "override" keyword
+prevents such issues.
 
 .. code-block:: c++
 
@@ -270,12 +270,12 @@ the constructor and the destructor.
 
 Pair styles are different from most classes in LAMMPS that define a
 "style", as their constructor only uses the LAMMPS class instance
-pointer as argument, but **not** the command line arguments of the
+pointer as an argument, but **not** the command line arguments of the
 :doc:`pair_style command <pair_style>`.  Instead, those arguments are
 processed in the ``Pair::settings()`` function (or rather the version in
 the derived class).  The constructor is the place where global defaults
-are set and specifically flags are set indicating which optional features of
-a pair style are available.
+are set and specifically flags are set indicating which optional
+features of a pair style are available.
 
 .. code-block:: c++
 
@@ -292,8 +292,8 @@ is, the class implements specific versions for ``Pair::data()`` and
 ``Pair::data_all()``.  Other statements that could be added here would
 be `single_enable = 1;` or `respa_enable = 0;` to indicate that the
 ``Pair::single()`` function is present and the
-``Pair::compute_(inner|middle|outer)`` are not, but those are also the
-default settings and already set in the base class.
+``Pair::compute_(inner|middle|outer)`` functions are not, but those are
+also the default settings and already set in the base class.
 
 In the destructor, we need to delete all memory that was allocated by the
 pair style, usually to hold force field parameters that were entered
@@ -327,13 +327,14 @@ the functions ``Pair::settings()`` and ``Pair::coeff()`` need to be
 re-implemented.  The arguments to the ``settings()`` function are the
 arguments given to the :doc:`pair_style command <pair_style>`.
 Normally, those would already be processed as part of the constructor,
-but moving this to a separate function allows users to change global settings
-like the default cutoff without having to reissue all pair_coeff
-commands or re-read the ``Pair Coeffs`` sections from the data file.
-In the ``settings()`` function, also the arrays for storing parameters,
-to define cutoffs, track with pairs of parameters have been explicitly
-set are allocated and, if needed, initialized.  In this case, the memory
-allocation and initialization is moved to a function ``allocate()``.
+but moving this to a separate function allows users to change global
+settings like the default cutoff without having to reissue all
+pair_coeff commands or re-read the ``Pair Coeffs`` sections from the
+data file.  In the ``settings()`` function, also the arrays for storing
+parameters, to define cutoffs, track with pairs of parameters have been
+explicitly set are allocated and, if needed, initialized.  In this case,
+the memory allocation and initialization is moved to a function
+``allocate()``.
 
 .. code-block:: c++
 
@@ -482,9 +483,9 @@ cutoff and then build the neighbor lists accordingly.
 Computing forces from the neighbor list (required)
 """"""""""""""""""""""""""""""""""""""""""""""""""
 
-The ``compute()`` function is the "workhorse" of a pair style.  This is where
-we have the nested loops of all pairs of particles from the neighbor list to
-compute forces and - if needed - energies and virials.
+The ``compute()`` function is the "workhorse" of a pair style.  This is
+where we have the nested loops over all pairs of particles from the
+neighbor list to compute forces and - if needed - energies and virials.
 
 The first part is to define some variables for later use and store
 cached copies of data or pointers that we need to access frequently.  Also,
@@ -524,11 +525,11 @@ Typically, the value of `inum` (the number of neighbor lists) is the
 same as the number of local atoms (= atoms *owned* by this sub-domain).
 But when the pair style is used as a sub-style of a :doc:`hybrid pair
 style <pair_hybrid>` or neighbor list entries are removed with
-:doc:`neigh_modify exclude <neigh_modify>` this number may be
+:doc:`neigh_modify exclude <neigh_modify>`, this number may be
 smaller. The array ``list->ilist`` has the (local) indices of the atoms
 for which neighbor lists have been created. Then ``list->numneigh`` is
 an `inum` sized array with the number of entries of each list of
-neighbors and ``list->firstneigh`` is a list of pointers to those lists.
+neighbors, and ``list->firstneigh`` is a list of pointers to those lists.
 
 For efficiency reasons, cached copies of some properties of the outer
 loop atoms are also initialized.
@@ -552,18 +553,19 @@ of neighbor (= 0) or a pair of 1-2 (= 1), 1-3 (= 2), or 1-4 (= 3)
 :doc:`"special" neighbor <special_bonds>`.  The ``sbmask()`` inline
 function extracts those bits and converts them into a number.  This
 number is used to look up the corresponding scaling factor for the
-non-bonded interaction from the ``force->special_lj`` array and to store
-it in `factor_lj`.  Due to adding the additional bits, the value of *j*
-would be out of range when accessing data from per-atom arrays, so we
-apply the NEIGHMASK constant to mask them out.  This step *must* be done
-even if a pair style does not use special bond scaling.  Otherwise there
-could be a segmentation fault.
+non-bonded interaction from the ``force->special_lj`` array and stores
+it in the `factor_lj` variable.  Due to the additional bits, the value
+of *j* would be out of range when accessing data from per-atom arrays,
+so we apply the NEIGHMASK constant with a bit-wise and operation to mask
+them out.  This step *must* be done, even if a pair style does not use
+special bond scaling of forces and energies to avoid segmentation faults.
 
-With the corrected *j* index it is now possible to compute the distance of
-the pair.  For efficiency reasons, the square root is only taken *after*
-the check for the cutoff (which has been stored as squared cutoff by the
-``Pair`` base class).  For some pair styles, like the 12-6 Lennard-Jones
-potential, computing the square root can be avoided entirely.
+With the corrected *j* index, it is now possible to compute the distance
+of the pair.  For efficiency reasons, the square root is only taken
+*after* the check for the cutoff (which has been stored as squared
+cutoff by the ``Pair`` base class).  For some pair styles, like the 12-6
+Lennard-Jones potential, computing the square root can be avoided
+entirely.
 
 .. code-block:: c++
 
@@ -603,13 +605,13 @@ stored when the atom is a "local" atom. Index *i* atoms are always "local"
 (i.e. *i* < nlocal); index *j* atoms may be "ghost" atoms (*j* >= nlocal).
 
 Depending on the settings used with the :doc:`newton command <newton>`,
-those pairs are are only listed once globally (newton_pair == 1), then
-forces must be stored even with ghost atoms and after all forces
-are computed a "reverse communication" is performed to add those ghost
-atom forces to their corresponding local atoms.  If the setting is disabled,
+those pairs are only listed once globally (newton_pair == 1), then
+forces must be stored even with ghost atoms and after all forces are
+computed a "reverse communication" is performed to add those ghost atom
+forces to their corresponding local atoms.  If the setting is disabled,
 then the extra communication is skipped, since for pairs straddling
-sub-domain boundaries, the forces are computed twice and only stored with
-the local atoms in the domain that *owns* it.
+sub-domain boundaries, the forces are computed twice and only stored
+with the local atoms in the domain that *owns* it.
 
 .. code-block:: c++
 
@@ -641,12 +643,12 @@ that it still is valid to access it, even if the energy is not computed
      }
 
 If only the global virial is needed and no energy, then calls to
-``ev_tally()`` can be avoided altogether and the global virial can be
+``ev_tally()`` can be avoided altogether, and the global virial can be
 computed more efficiently from the dot product of the total per-atom
 force vector and the position vector of the corresponding atom,
 :math:`\vec{F}\cdot\vec{r}`.  This has to be done *after* all pair-wise
 forces are computed and *before* the reverse communication to collect
-data from ghost atom, since the position has to be the position that was
+data from ghost atoms, since the position has to be the position that was
 used to compute the force, i.e. *not* the "local" position if that ghost
 atom is a periodic copy.
 
@@ -660,16 +662,16 @@ Computing force and energy for a single pair
 """"""""""""""""""""""""""""""""""""""""""""
 
 Certain features in LAMMPS only require computing interactions between
-individual pairs of atoms and the (optional) ``single()`` function
-is needed to support those features (e.g. for tabulation of force and
+individual pairs of atoms and the (optional) ``single()`` function is
+needed to support those features (e.g. for tabulation of force and
 energy with :doc:`pair_write <pair_write>`).  This is a repetition of
 the force kernel in the ``compute()`` function, but only for a single
-pair of atoms, where the (squared) distance is provided as parameter
+pair of atoms, where the (squared) distance is provided as a parameter
 (so it may not even be an existing distance between two specific atoms).
 The energy is returned as the return value of the function and the force
-as the `fforce` reference.  Note, that this is the same as *fpair* in the
-``compute()`` function, the magnitude of the force along the vector
-between the two atoms *divided* by the distance.
+as the `fforce` reference.  Note, that this is, similar to how *fpair*
+is used in the ``compute()`` function, the magnitude of the force along
+the vector between the two atoms *divided* by the distance.
 
 The ``single()`` function is optional.  The member variable
 `single_enable` should be set to 0 in the constructor, if it is not

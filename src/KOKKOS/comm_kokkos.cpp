@@ -808,19 +808,15 @@ void CommKokkos::exchange_device()
 
       // when atom is deleted, fill it in with last atom
 
-      int sendpos = count;
-      int isend = k_exchange_sendlist.h_view(sendpos); 
-      int isend_next = k_exchange_sendlist.h_view(sendpos-1);
+      int sendpos = count-1;
       int icopy = nlocal-1;
       nlocal -= count;
       for (int recvpos = 0; recvpos < count; recvpos++) {
         int irecv = k_exchange_sendlist.h_view(recvpos);
         if (irecv < nlocal) {
-          while (icopy <= isend_next) {
-            isend = k_exchange_sendlist.h_view(sendpos); 
-            isend_next = k_exchange_sendlist.h_view(sendpos-1);
-            icopy = isend - 1;
+          while (sendpos > 0 && icopy <= k_exchange_sendlist.h_view(sendpos-1)) {
             sendpos--;
+            icopy = k_exchange_sendlist.h_view(sendpos) - 1;
           }
           k_exchange_copylist.h_view(recvpos) = icopy;
           icopy--;

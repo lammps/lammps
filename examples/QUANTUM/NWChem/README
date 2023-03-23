@@ -59,24 +59,23 @@ NOTE: It should be fine to leave off the version number for the python
 module installs, to just grab the latest MDI version.  1.4.16 is the
 version of MDI LAMMPS is currently using.
 
-(option 1) Install MDI python module via conda:
-
-% conda install -c conda-forge pymdi=1.4.16
-
-(option 2) Install MDI python module via pip:
+(option 1) Install MDI python module via pip:
 
 % pip install 'pymdi>=1.4.14'
+
+(option 2) Install MDI python module via conda:
+
+% conda install -c conda-forge pymdi=1.4.16
 
 (option 3) Download/build MDI code coupling package
 
 (a) clone the MDI Git repo
 
-% mkdir mdi; cd mdi
-% git clone git@github.com:MolSSI-MDI/MDI_Library.git git
+% git clone https://github.com/MolSSI-MDI/MDI_Library.git mdi
 
 (b) build MDI
 
-% cd mdi/git
+% cd mdi
 % mkdir build; cd build
 % cmake ..
 % make -j
@@ -86,12 +85,12 @@ Python can find MDI:
 
 For bash:
 
-% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git/build/MDI_Library"
+% export PYTHONPATH="${HOME}/mdi/build/MDI_Library:${PYTHONPATH}"
 % hash -r
 
 For (t)csh:
 
-% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git/build/MDI_Library
+% setenv PYTHONPATH "${HOME}/mdi/build/MDI_Library:${PYTHONPATH}"
 % rehash
 
 (d) Check import of 3 Python modules which the script that wraps
@@ -115,7 +114,7 @@ updated when that happens.
 (a) clone the PWDFT Git repo
 
 % mkdir nwchem; cd nwchem
-% git clone git@github.com:ebylaska/PWDFT.git PWDFT
+% git clone https://github.com/ebylaska/PWDFT.git PWDFT
 
 (b) build PWDFT
 
@@ -124,17 +123,17 @@ updated when that happens.
 % cmake -DMAKE_LIBRARY=true -DCMAKE_POSITION_INDEPENDENT_CODE=ON ../Nwpw 
 % make -j        # should produce libpwdft.so in build_library
 
-(c) Add a line like this to your ~/.bashrc or !/.cshrc
+(c) Add a line like this to your ~/.bashrc or ~/.cshrc
 file so that the libpwdft.so file can be found:
 
 For bash:
 
-% export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/home/sjplimp/nwchem/PWDFT/build_library"
+% export LD_LIBRARY_PATH="${HOME}/nwchem/PWDFT/build_library:${LD_LIBRARY_PATH}"
 % hash -r
 
 For (t)csh:
 
-% setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/nwchem/PWDFT/build_library
+% setenv LD_LIBRARY_PATH "${HOME}/nwchem/PWDFT/build_library:${LD_LIBRARY_PATH}"
 % rehash
 
 ---------------------------------
@@ -175,8 +174,8 @@ mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.zeolite.
 
 ** run PWDFT as plugin MDI engine, 1 or more procs
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/NWChem" -log log.series.plugin.1 -in in.series.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/NWChem" -log log.series.plugin.1 -in in.series.plugin
 
-mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/NWChem" -log log.water.qmmm.plugin.2 -in in.water.qmmm.plugin
+mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/NWChem" -log log.water.qmmm.plugin.2 -in in.water.qmmm.plugin
 
-mpirun -np 8 lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/NWChem" -log log.zeolite.qmmm.plugin.8 -in in.zeolite.qmmm.plugin
+mpirun -np 8 lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/NWChem" -log log.zeolite.qmmm.plugin.8 -in in.zeolite.qmmm.plugin

@@ -77,24 +77,23 @@ NOTE: It should be fine to leave off the version number for the python
 module installs, to just grab the latest MDI version.  1.4.16 is the
 version of MDI LAMMPS is currently using.
 
-(option 1) Install MDI python module via conda:
-
-% conda install -c conda-forge pymdi=1.4.16
-
-(option 2) Install MDI python module via pip:
+(option 1) Install MDI python module via pip:
 
 % pip install 'pymdi>=1.4.14'
+
+(option 2) Install MDI python module via conda:
+
+% conda install -c conda-forge pymdi=1.4.16
 
 (option 3) Download/build MDI code coupling package
 
 (a) clone the MDI Git repo
 
-% mkdir mdi; cd mdi
-% git clone git@github.com:MolSSI-MDI/MDI_Library.git git
+% git clone https://github.com/MolSSI-MDI/MDI_Library.git mdi
 
 (b) build MDI
 
-% cd mdi/git
+% cd mdi
 % mkdir build; cd build
 % cmake ..
 % make -j
@@ -104,12 +103,12 @@ Python can find MDI:
 
 For bash:
 
-% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git/build/MDI_Library"
+% export PYTHONPATH="${HOME}/mdi/build/MDI_Library:${PYTHONPATH}"
 % hash -r
 
 For (t)csh:
 
-% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git/build/MDI_Library
+% setenv PYTHONPATH "${HOME}/mdi/build/MDI_Library:${PYTHONPATH}"
 % rehash
 
 (d) Check import of 3 Python modules which the script that wraps
@@ -132,12 +131,11 @@ page will be updated when that happens.
 
 (a) clone the ECP branch of the LATTE Git repo
 
-% mkdir latte; cd latte
-% git clone -b ECP git@github.com:lanl/LATTE.git git
+% git clone -b ECP https://github.com/lanl/LATTE.git latte
 
 (b) build LATTE as a shared library
 
-% cd ~/latte/git
+% cd ~/latte
 % mkdir build; cd build
 % cmake -DBUILD_SHARED_LIBS=on ../cmake
 % make -j          # should produce liblatte.so in build
@@ -147,12 +145,12 @@ the liblatte.so file can be found:
 
 For bash:
 
-% export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/home/sjplimp/latte/git/build"
+% export LD_LIBRARY_PATH="${HOME}/latte/build:${LD_LIBRARY_PATH}"
 % hash -r
 
 For (t)csh:
 
-% setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/home/sjplimp/latte/git/build
+% setenv LD_LIBRARY_PATH "${HOME}/latte/build:${LD_LIBRARY_PATH}"
 % rehash
 
 ---------------------------------
@@ -198,16 +196,16 @@ mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.series.m
 
 ** run LATTE as plugin MDI engine, 1 proc
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.water.plugin.1 -in in.water.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/LATTE" -log log.water.plugin.1 -in in.water.plugin
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.water.min.plugin.1 -in in.water.min.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/LATTE" -log log.water.min.plugin.1 -in in.water.min.plugin
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.uo2.plugin.1 -in in.uo2.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/LATTE" -log log.uo2.plugin.1 -in in.uo2.plugin
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.ch4.plugin.1 -in in.ch4.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/LATTE" -log log.ch4.plugin.1 -in in.ch4.plugin
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.sucrose.plugin.1 -in in.sucrose.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/LATTE" -log log.sucrose.plugin.1 -in in.sucrose.plugin
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.graphene.plugin.1 -in in.graphene.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/LATTE" -log log.graphene.plugin.1 -in in.graphene.plugin
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/LATTE" -log log.series.plugin.1 -in in.series.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/LATTE" -log log.series.plugin.1 -in in.series.plugin

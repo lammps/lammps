@@ -78,24 +78,23 @@ NOTE: It should be fine to leave off the version number for the python
 module installs, to just grab the latest MDI version.  1.4.16 is the
 version of MDI LAMMPS is currently using.
 
-(option 1) Install MDI python module via conda:
-
-% conda install -c conda-forge pymdi=1.4.16
-
-(option 2) Install MDI python module via pip:
+(option 1) Install MDI python module via pip:
 
 % pip install 'pymdi>=1.4.14'
+
+(option 2) Install MDI python module via conda:
+
+% conda install -c conda-forge pymdi=1.4.16
 
 (option 3) Download/build MDI code coupling package
 
 (a) clone the MDI Git repo
 
-% mkdir mdi; cd mdi
-% git clone git@github.com:MolSSI-MDI/MDI_Library.git git
+% git clone https://github.com/MolSSI-MDI/MDI_Library.git mdi
 
 (b) build MDI
 
-% cd mdi/git
+% cd mdi
 % mkdir build; cd build
 % cmake ..
 % make -j
@@ -105,12 +104,12 @@ Python can find MDI:
 
 For bash:
 
-% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/mdi/git/build/MDI_Library"
+% export PYTHONPATH="${HOME}/mdi/build/MDI_Library:${PYTHONPATH}"
 % hash -r
 
 For (t)csh:
 
-% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/mdi/git/build/MDI_Library
+% setenv PYTHONPATH "${HOME}/mdi/build/MDI_Library:${PYTHONPATH}"
 % rehash
 
 ---------------------------------
@@ -128,35 +127,57 @@ See https://pyscf.org/install.html for other options.
 
 (a) clone the PySCF Git repo
 
-% mkdir pyscf; cd pyscf
-% git clone git@github.com:MoleOrbitalHybridAnalyst/pyscf.git git
+% git clone https://github.com/MoleOrbitalHybridAnalyst/pyscf.git pyscf
+
+(option 1) build using Python
+
+(b) create and install a wheel file
+
+% cd pyscf
+% python -m pip install --user --upgrade pip
+% python -m pip install --user build wheel
+% python -m build -n --wheel -o .
+% python -m pip install --user pyscf-2.*.whl
+
+(c) no setting of envionment variables needed
+
+(d) Check import of 4 Python modules which the script that wraps PySCF
+will need:
+
+% python -i
+>>> import numpy as np
+>>> from mpi4py import MPI
+>>> import mdi
+>>> import pyscf
+
+(option 2) build using CMake and use in place
 
 (b) build PySCF
 
 NOTE: you will also need numpy, scipy, h5py in your python
 
-% cd pyscf/git/pyscf/git/lib
+% cd pyscf/pyscf/lib
 % mkdir build; cd build
 % cmake ..
 % make -j
 
 (c) Add a line like this to your ~/.bashrc or ~/.cshrc file so that
-Python can find PySCF:
+Python can find PySCF where you compiled it:
 
 For bash:
 
-% export PYTHONPATH="$PYTHONPATH:/home/sjplimp/pyscf/git"
+% export PYTHONPATH="${HOME}/pyscf:${PYTHONPATH}"
 % hash -r
 
 For (t)csh:
 
-% setenv PYTHONPATH ${PYTHONPATH}:/home/sjplimp/pyscf/git
+% setenv PYTHONPATH "${HOME}/pyscf:${PYTHONPATH}"
 % rehash
 
 (d) Check import of 4 Python modules which the script that wraps PySCF
 will need:
 
-% python
+% python -i
 >>> import numpy as np
 >>> from mpi4py import MPI
 >>> import mdi
@@ -192,6 +213,6 @@ mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.mixture.
 
 ** run PySCF as plugin MDI engine, 1 proc
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/PySCF" -log log.water.qmmm.plugin.1 -in in.water.qmmm.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/PySCF" -log log.water.qmmm.plugin.1 -in in.water.qmmm.plugin
 
-lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path /home/sjplimp/lammps/git/examples/QUANTUM/PySCF" -log log.mixture.qmmm.plugin.1 -in in.mixture.qmmm.plugin
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/PySCF" -log log.mixture.qmmm.plugin.1 -in in.mixture.qmmm.plugin

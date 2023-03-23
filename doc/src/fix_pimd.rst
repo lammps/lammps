@@ -95,8 +95,10 @@ beads on the other ring-polymers with the same imaginary time index (the
 second term in the effective potential above).  The quasi-beads also
 interact with the two neighboring quasi-beads through the spring
 potential in imaginary-time space (first term in effective potential).
-To sample the canonical ensemble, a Nose-Hoover massive chain thermostat
-is applied :ref:`(Tuckerman) <pimd-Tuckerman>`.  With the massive chain
+To sample the canonical ensemble, any thermostat can be applied.
+
+Fix *pimd/nvt* applies a Nose-Hoover massive chain thermostat
+:ref:`(Tuckerman) <pimd-Tuckerman>`.  With the massive chain
 algorithm, a chain of NH thermostats is coupled to each degree of
 freedom for each quasi-bead.  The keyword *temp* sets the target
 temperature for the system and the keyword *nhc* sets the number *Nc* of
@@ -104,15 +106,14 @@ thermostats in each chain.  For example, for a simulation of N particles
 with P beads in each ring-polymer, the total number of NH thermostats
 would be 3 x N x P x Nc.
 
+Fix *pimd/langevin* implements a Langevin thermostat in the normal mode 
+representation, and also provides a barostat to sample the NPH/NPT ensembles.
+
 .. note::
 
-   Fix *pimd/nvt* implements a complete velocity-verlet integrator
-   combined with NH massive chain thermostat, so no other time
+   Both these *fix* styles implement a complete velocity-verlet integrator
+   combined with a thermostat, so no other time
    integration fix should be used.
-
-   Fix *pimd/langevin* implements a complete velocity-verlet integrator
-   combined with Langevin thermostat in the normal mode representation, and
-   also provides a barostat to sample the NPH/NPT ensembles.
 
 The *method* keyword determines what style of PIMD is performed.  A
 value of *pimd* is standard PIMD.  A value of *nmpimd* is for

@@ -138,7 +138,7 @@ void FixRHEOViscosity::setup_pre_force(int /*vflag*/)
 
   int tmp1, tmp2;
   index_visc = atom->find_custom("rheo_viscosity", tmp1, tmp2);
-  if (index_cond == -1) {
+  if (index_visc == -1) {
     index_visc = atom->add_custom("rheo_viscosity", 1, 0);
     nmax_old = atom->nmax;
   }

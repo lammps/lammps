@@ -38,7 +38,7 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
   pressure_style = NONE;
 
   comm_forward = 1;
-  nmax = atom->nmax;
+  nmax_old = 0;
 
   // Currently can only have one instance of fix rheo/pressure
   if (igroup != 0)
@@ -64,7 +64,13 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixRHEOPressure::~FixRHEOPressure() {}
+FixRHEOPressure::~FixRHEOPressure()
+{
+  // Remove custom property if it exists
+  int tmp1, tmp2, index;
+  index = atom->find_custom("rheo_pressure", tmp1, tmp2);
+  if (index != -1) atom->remove_custom(index_pres, 1, 0);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -98,21 +104,17 @@ void FixRHEOPressure::setup_pre_force(int /*vflag*/)
 {
   fix_rheo->pressure_fix_defined = 1;
 
-  // Identify whether this is the first/last instance of fix pressure
-  // First will handle growing arrays
-  // Last will handle communication
-  first_flag = 0
-  last_flag = 0;
+  // Create pressure array if it doesn't already exist
+  // Create a custom atom property so it works with compute property/atom
+  // Do not create grow callback as there's no reason to copy/exchange data
+  // Manually grow if nmax_old exceeded
 
-  int i = 0;
-  auto fixlist = modify->get_fix_by_style("rheo/pressure");
-  for (const auto &ifix : fixlist) {
-    if (strcmp(ifix->id, id) == 0) break;
-    i++;
+  int tmp1, tmp2;
+  index_pres = atom->find_custom("rheo_pressure", tmp1, tmp2);
+  if (index_pres == -1) {
+    index_pres = atom->add_custom("rheo_pressure", 1, 0);
+    nmax_old = atom->nmax;
   }
-
-  if (i == 0) first_flag = 1;
-  if ((i + 1) == fixlist.size()) last_flag = 1;
 
   pre_force(0);
 }
@@ -126,16 +128,15 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
   int i;
   double dr, rr3, rho_ratio;
 
-  double *p = fix_rheo->pressure;
+  double *pressure = atom->dvector[index_pres];
   int *mask = atom->mask;
   double *rho = atom->rho;
 
   int nlocal = atom->nlocal;
-  int dim = domain->dimension;
 
-  if (first_flag & nmax < atom->nmax) {
-    nmax = atom->nmax;
-    fix_rheo->fix_store_visc->grow_arrays(nmax);
+  if (nmax_old < atom->nmax) {
+    memory->grow(pressure, atom->nmax, "atom:rheo_pressure");
+    nmax_old = atom->nmax;
   }
 
   if (pressure_style == TAITWATER) inv7 = 1.0 / 7.0;
@@ -143,18 +144,17 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (pressure_style == LINEAR) {
-        p[i] = csq * (rho[i] - rho0);
+        pressure[i] = csq * (rho[i] - rho0);
       } else if (pressure_style == CUBIC) {
         dr = rho[i] - rho0;
-        p[i] = csq * (dr + c_cubic * dr * dr * dr);
+        pressure[i] = csq * (dr + c_cubic * dr * dr * dr);
       } else if (pressure_style == TAITWATER) {
         rho_ratio = rho[i] / rho0inv;
         rr3 = rho_ratio * rho_ratio * rho_ratio;
-        p[i] = csq * rho0 * inv7 * (rr3 * rr3 * rho_ratio - 1.0);
+        pressure[i] = csq * rho0 * inv7 * (rr3 * rr3 * rho_ratio - 1.0);
       }
     }
   }
-
 
   if (last_flag && comm_forward) comm->forward_comm(this);
 }
@@ -165,7 +165,7 @@ int FixRHEOPressure::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m;
-  double *pressure = fix_rheo->pressure;
+  double *pressure = atom->dvector[index_pres];
   m = 0;
 
   for (i = 0; i < n; i++) {
@@ -180,7 +180,7 @@ int FixRHEOPressure::pack_forward_comm(int n, int *list, double *buf,
 void FixRHEOPressure::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
-  double *pressure = fix_rheo->pressure;
+  double *pressure = atom->dvector[index_pres];
 
   m = 0;
   last = first + n;

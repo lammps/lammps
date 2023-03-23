@@ -229,9 +229,8 @@ void PairRHEO::compute(int eflag, int vflag)
           }
         }
 
-        // If either particle is fluid, compute hydrostatic and viscous forces
-        // Compute eta*Lap(v) -  different forms depending on order of RK correction
         if (pair_force_flag) {
+
           //Hydrostatic pressure forces
           fp_prefactor = voli * volj * (Pj + Pi);
           sub3(v1, vj, du);
@@ -271,6 +270,9 @@ void PairRHEO::compute(int eflag, int vflag)
           fp[i][1] += dfp[1];
           fp[i][2] += dfp[2];
 
+          if (evflag) // Does not account for unbalanced forces
+            ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, ft[0], ft[1], ft[2], dx[0], dx[1], dx[2]);
+
           if (newton_pair || j < nlocal) {
             for (a = 0; a < dim; a ++) {
               fv[a] = 0.0;
@@ -293,9 +295,6 @@ void PairRHEO::compute(int eflag, int vflag)
             fp[j][1] -= dfp[1];
             fp[j][2] -= dfp[2];
           }
-
-          if (evflag) // Doesn't account for unbalanced forces
-            ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, ft[0], ft[1], ft[2], dx[0], dx[1], dx[2]);
         }
 
         // Density damping

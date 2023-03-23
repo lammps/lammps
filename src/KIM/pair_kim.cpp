@@ -218,8 +218,7 @@ void PairKIM::compute(int eflag, int vflag)
                      kim_particleSpecies);
     memory->create(kim_particleContributing,lmps_maxalloc,
                    "pair:kim_particleContributing");
-    kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerInteger(
-                             pargs,
+    kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerInteger(pargs,
                              KIM_COMPUTE_ARGUMENT_NAME_particleContributing,
                              kim_particleContributing);
     if (kimerror)
@@ -248,7 +247,7 @@ void PairKIM::compute(int eflag, int vflag)
 
   // compute via KIM model
   int kimerror = KIM_Model_Compute(pkim, pargs);
-  if (kimerror) error->all(FLERR,"KIM Compute returned error");
+  if (kimerror) error->all(FLERR,"KIM Compute returned error {}", kimerror);
 
   // compute virial before reverse comm!
   if (vflag_global)
@@ -454,7 +453,7 @@ void PairKIM::coeff(int narg, char **arg)
         kimerror = KIM_Model_GetParameterMetadata(pkim, param_index, &kim_DataType,
                                                   &extent, &str_name, &str_desc);
         if (kimerror)
-          error->all(FLERR,"KIM GetParameterMetadata returned error");
+          error->all(FLERR,"KIM GetParameterMetadata returned error {}", kimerror);
 
         const std::string str_name_str(str_name);
         if (paramname == str_name_str) break;
@@ -484,8 +483,8 @@ void PairKIM::coeff(int narg, char **arg)
           nubound = atoi(words[1].c_str());
 
           if ((nubound < 1) || (nubound > extent) || (nlbound < 1) || (nlbound > nubound))
-            error->all(FLERR,"Illegal index_range '{}-{}' for '{}' parameter with the extent of '{}'",
-                       nlbound, nubound, paramname, extent);
+            error->all(FLERR,"Illegal index_range '{}-{}' for '{}' parameter with the extent "
+                       "of '{}'", nlbound, nubound, paramname, extent);
         } else {
           nlbound = atoi(argtostr.c_str());
 
@@ -975,7 +974,7 @@ void PairKIM::set_lmps_flags()
 
   // determine if running with pair hybrid
   if (force->pair_match("hybrid",0))
-    error->all(FLERR,"pair_kim does not support hybrid");
+    error->all(FLERR,"Pair style must not be used as a hybrid sub-style");
 
   const std::string unit_style_str(update->unit_style);
 
@@ -1018,10 +1017,9 @@ void PairKIM::set_lmps_flags()
   } else if ((unit_style_str == "lj") ||
              (unit_style_str == "micro") ||
              (unit_style_str == "nano")) {
-    error->all(FLERR,"LAMMPS unit_style {} not supported "
-                                 "by KIM models", unit_style_str);
+    error->all(FLERR,"LAMMPS unit_style {} not supported by KIM models", unit_style_str);
   } else {
-    error->all(FLERR,"Unknown unit_style");
+    error->all(FLERR,"Unknown unit_style {}", unit_style_str);
   }
 }
 
@@ -1100,7 +1098,8 @@ void PairKIM::set_kim_model_has_flags()
 
   if (comm->me == 0) {
     if (KIM_SupportStatus_Equal(kim_model_support_for_energy, KIM_SUPPORT_STATUS_notSupported))
-      error->warning(FLERR,"KIM Model does not provide 'partialEnergy'; Potential energy will be zero");
+      error->warning(FLERR,"KIM Model does not provide 'partialEnergy'; "
+                     "Potential energy will be zero");
 
     if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
                                 KIM_SUPPORT_STATUS_notSupported))

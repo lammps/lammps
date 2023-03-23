@@ -94,10 +94,11 @@ html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
 		rst_anchor_check src/*.rst ;\
-		python $(BUILDDIR)/utils/check-packages.py -s ../src -d src ;\
+		$(PYTHON) $(BUILDDIR)/utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
-		python $(BUILDDIR)/utils/check-styles.py -s ../src -d src ;\
+		env LC_ALL=C grep -n ' `[^`]\+<[a-z][^`]\+`[^_]' $(RSTDIR)/*.rst ;\
+		$(PYTHON) $(BUILDDIR)/utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -174,10 +175,11 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
 		rst_anchor_check src/*.rst ;\
-		python utils/check-packages.py -s ../src -d src ;\
+		$(PYTHON) utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
-		python utils/check-styles.py -s ../src -d src ;\
+		env LC_ALL=C grep -n ' `[^`]\+<[a-z][^`]\+`[^_]' $(RSTDIR)/*.rst ;\
+		$(PYTHON) utils/check-styles.py -s ../src -d src ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -208,14 +210,14 @@ anchor_check : $(ANCHORCHECK)
 style_check : $(VENV)
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		python utils/check-styles.py -s ../src -d src ;\
+		$(PYTHON) utils/check-styles.py -s ../src -d src ;\
 		deactivate ;\
 	)
 
 package_check : $(VENV)
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		python utils/check-packages.py -s ../src -d src ;\
+		$(PYTHON) utils/check-packages.py -s ../src -d src ;\
 		deactivate ;\
 	)
 
@@ -224,6 +226,7 @@ char_check :
 
 role_check :
 	@( env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst && exit 1 || : )
+	@( env LC_ALL=C grep -n ' `[^`]\+<[a-z][^`]\+`[^_]' $(RSTDIR)/*.rst && exit 1 || : )
 
 link_check : $(VENV) html
 	@(\

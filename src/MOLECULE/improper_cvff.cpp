@@ -32,6 +32,10 @@ static constexpr double SMALL = 0.001;
 ImproperCvff::ImproperCvff(LAMMPS *_lmp) : Improper(_lmp)
 {
   writedata = 1;
+
+  // the first atom in the quadruplet is the atom of symmetry
+
+  symmatoms[0] = 1;
 }
 
 /* ---------------------------------------------------------------------- */

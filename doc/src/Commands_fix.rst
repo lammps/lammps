@@ -70,6 +70,7 @@ OPT.
    * :doc:`dt/reset (k) <fix_dt_reset>`
    * :doc:`edpd/source <fix_dpd_source>`
    * :doc:`efield <fix_efield>`
+   * :doc:`efield/tip4p <fix_efield>`
    * :doc:`ehex <fix_ehex>`
    * :doc:`electrode/conp (i) <fix_electrode>`
    * :doc:`electrode/conq (i) <fix_electrode>`
@@ -93,6 +94,7 @@ OPT.
    * :doc:`grem <fix_grem>`
    * :doc:`halt <fix_halt>`
    * :doc:`heat <fix_heat>`
+   * :doc:`heat/flow <fix_heat_flow>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
    * :doc:`imd <fix_imd>`
@@ -109,6 +111,7 @@ OPT.
    * :doc:`lineforce <fix_lineforce>`
    * :doc:`manifoldforce <fix_manifoldforce>`
    * :doc:`mdi/qm <fix_mdi_qm>`
+   * :doc:`mdi/qmmm <fix_mdi_qmmm>`
    * :doc:`meso/move <fix_meso_move>`
    * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`

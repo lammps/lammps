@@ -190,8 +190,8 @@ corresponding doc page in the manual for more info.  See the
 https://docs.lammps.org/Build_package.html page for more info about
 installing and building packages.
 
-The QM directory has examples of how to use LAMMPS in tandem with
-several quantum codes.
+The QUANTUM directory has examples of how to use LAMMPS in tandem with
+several quantum codes via the MDI code coupling library.
 
 The TIP4P directory has an example for testing forces computed on a
 GPU.

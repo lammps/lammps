@@ -279,6 +279,11 @@ statistically similar results.  This is because the forces they
 compute depend on atom velocities.  See the
 :doc:`read_restart <read_restart>` command for more details.
 
+Accumulated values for individual contacts are saved to to restart
+files but are not saved to data files. Therefore, forces may
+differ significantly when a system is reloaded using A
+:doc:`read_data <read_data>` command.
+
 Related commands
 """"""""""""""""
 

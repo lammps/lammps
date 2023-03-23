@@ -161,15 +161,14 @@ and each stores a per-particle diameter and mass.  If the diameter >
 0.0, the particle is a finite-size sphere.  If the diameter = 0.0, it
 is a point particle.  Note that by use of the *disc* keyword with the
 :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nvt/sphere
-<fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`, :doc:`fix
-npt/sphere <fix_npt_sphere>` commands for the *sphere* style, spheres
-can be effectively treated as 2d discs for a 2d simulation if desired.
-See also the :doc:`set density/disc <set>` command.  The *sphere* and
-*bpm/sphere* styles take an optional 0 or 1 argument.  A value of 0
-means the radius of each sphere is constant for the duration of the
-simulation.  A value of 1 means the radii may vary dynamically during
-the simulation, e.g. due to use of the :doc:`fix adapt <fix_adapt>`
-command.
+<fix_nvt_sphere>`, :doc:`fix nph/sphere <fix_nph_sphere>`,
+:doc:`fix npt/sphere <fix_npt_sphere>` commands for the *sphere* style,
+spheres can be effectively treated as 2d discs for a 2d simulation if
+desired.  See also the :doc:`set density/disc <set>` command.  These
+styles take an optional 0 or 1 argument.  A value of 0 means the
+radius of each sphere is constant for the duration of the simulation.
+A value of 1 means the radii may vary dynamically during the simulation,
+e.g. due to use of the :doc:`fix adapt <fix_adapt>` command.
 
 For the *ellipsoid* style, the particles are ellipsoids and each
 stores a flag which indicates whether it is a finite-size ellipsoid or

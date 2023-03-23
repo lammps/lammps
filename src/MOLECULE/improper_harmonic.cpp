@@ -35,6 +35,10 @@ static constexpr double SMALL = 0.001;
 ImproperHarmonic::ImproperHarmonic(LAMMPS *_lmp) : Improper(_lmp)
 {
   writedata = 1;
+
+  // the first atom in the quadruplet is the atom of symmetry
+
+  symmatoms[0] = 1;
 }
 
 /* ---------------------------------------------------------------------- */

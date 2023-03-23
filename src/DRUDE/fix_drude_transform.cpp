@@ -59,13 +59,10 @@ void FixDrudeTransform<inverse>::init()
   if (!fix_drude)
     error->all(FLERR, "fix drude/transform/{} requires fix drude", substyle);
 
-  int before_or_after = -1;
-  for (auto &ifix : modify->get_fix_list()) {
-    if ((ifix == this) && (before_or_after < 0)) before_or_after = 0;
-    if (utils::strmatch(ifix->style, "^rigid") && (before_or_after < 0)) before_or_after = 1;
-  }
-  if ((comm->me == 0) && (before_or_after > 0))
-    error->warning(FLERR, "fix drude/transform/{} should come before any rigid fixes", substyle);
+  fixes = modify->get_fix_by_style("^rigid/np.");
+  if ((comm->me == 0) && (fixes.size() > 0))
+    error->warning(FLERR, "fix drude/transform/{} is not compatible with box changing rigid fixes",
+      substyle);
 }
 
 /* ---------------------------------------------------------------------- */

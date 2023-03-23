@@ -23,7 +23,7 @@ FixStyle(wall/gran/kk/host,FixWallGranKokkos<LMPHostType>)
 #ifndef LMP_FIX_WALL_GRAN_KOKKOS_H
 #define LMP_FIX_WALL_GRAN_KOKKOS_H
 
-#include "fix_wall_gran.h"
+#include "fix_wall_gran_old.h"
 #include "kokkos_type.h"
 #include "kokkos_base.h"
 
@@ -36,7 +36,7 @@ struct TagFixWallGranPackExchange{};
 struct TagFixWallGranUnpackExchange{};
 
 template<class DeviceType>
-class FixWallGranKokkos : public FixWallGran, public KokkosBase {
+class FixWallGranKokkos : public FixWallGranOld, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;

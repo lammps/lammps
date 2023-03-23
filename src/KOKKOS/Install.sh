@@ -175,6 +175,8 @@ action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
 action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp
 action fix_wall_gran_kokkos.h fix_wall_gran.h
+action fix_wall_gran_old.cpp fix_wall_gran.cpp
+action fix_wall_gran_old.h fix_wall_gran.h
 action fix_wall_lj93_kokkos.cpp
 action fix_wall_lj93_kokkos.h
 action fix_wall_reflect_kokkos.cpp

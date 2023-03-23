@@ -29,7 +29,7 @@ enum{NONE,CONSTANT,EQUAL};
 
 template<class DeviceType>
 FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixWallGran(lmp, narg, arg)
+  FixWallGranOld(lmp, narg, arg)
 {
   kokkosable = 1;
   exchange_comm_device = 1;
@@ -60,7 +60,7 @@ FixWallGranKokkos<DeviceType>::~FixWallGranKokkos()
 template<class DeviceType>
 void FixWallGranKokkos<DeviceType>::init()
 {
-  FixWallGran::init();
+  FixWallGranOld::init();
 
   if (fix_rigid)
     error->all(FLERR, "Fix wall/gran/kk not yet compatible with rigid bodies");
@@ -308,7 +308,7 @@ void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 {
   if (use_history) {
     k_history_one.sync_host();
-    FixWallGran::copy_arrays(i,j,delflag);
+    FixWallGranOld::copy_arrays(i,j,delflag);
     k_history_one.modify_host();
   }
 }
@@ -320,7 +320,7 @@ int FixWallGranKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
   k_history_one.sync_host();
 
-  return FixWallGran::pack_exchange(i,buf);
+  return FixWallGranOld::pack_exchange(i,buf);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -328,7 +328,7 @@ int FixWallGranKokkos<DeviceType>::pack_exchange(int i, double *buf)
 template<class DeviceType>
 int FixWallGranKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
-  int n = FixWallGran::unpack_exchange(nlocal,buf);
+  int n = FixWallGranOld::unpack_exchange(nlocal,buf);
 
   k_history_one.modify_host();
 

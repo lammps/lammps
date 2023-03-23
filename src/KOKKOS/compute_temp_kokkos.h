@@ -54,16 +54,6 @@ class ComputeTempKokkos : public ComputeTemp {
       t5 += rhs.t5;
       return *this;
     }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile s_CTEMP &rhs) volatile {
-      t0 += rhs.t0;
-      t1 += rhs.t1;
-      t2 += rhs.t2;
-      t3 += rhs.t3;
-      t4 += rhs.t4;
-      t5 += rhs.t5;
-    }
   };
 
   typedef s_CTEMP CTEMP;

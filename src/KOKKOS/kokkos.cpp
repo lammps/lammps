@@ -99,6 +99,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   memoryKK = (MemoryKokkos*) memory;
 
   auto_sync = 1;
+  allow_overlap = 1;
 
   int me = 0;
   MPI_Comm_rank(world,&me);
@@ -342,7 +343,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-void KokkosLMP::initialize(Kokkos::InitializationSettings args, Error *error)
+void KokkosLMP::initialize(const Kokkos::InitializationSettings& args, Error *error)
 {
   if (!Kokkos::is_initialized()) {
     if (is_finalized)

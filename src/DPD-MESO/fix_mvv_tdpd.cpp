@@ -27,11 +27,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_mvv_tdpd.h"
-#include <cstring>
+
 #include "atom.h"
+#include "error.h"
 #include "force.h"
 #include "update.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -69,6 +71,8 @@ void FixMvvTDPD::init()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
+  if (!force->pair_match("^tdpd",0))
+    error->all(FLERR, "Must use pair style tdpd with fix mvv/tdpd");
 }
 
 /* ----------------------------------------------------------------------

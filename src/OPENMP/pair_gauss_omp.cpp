@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -26,11 +25,9 @@
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
 
-#define EPSILON 1.0e-10
 /* ---------------------------------------------------------------------- */
 
-PairGaussOMP::PairGaussOMP(LAMMPS *lmp) :
-  PairGauss(lmp), ThrOMP(lmp, THR_PAIR)
+PairGaussOMP::PairGaussOMP(LAMMPS *lmp) : PairGauss(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
@@ -40,7 +37,7 @@ PairGaussOMP::PairGaussOMP(LAMMPS *lmp) :
 
 void PairGaussOMP::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -48,7 +45,7 @@ void PairGaussOMP::compute(int eflag, int vflag)
   double occ = 0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag) reduction(+:occ)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag, vflag) reduction(+ : occ)
 #endif
   {
     int ifrom, ito, tid;
@@ -60,39 +57,46 @@ void PairGaussOMP::compute(int eflag, int vflag)
 
     if (evflag) {
       if (eflag) {
-        if (force->newton_pair) occ = eval<1,1,1>(ifrom, ito, thr);
-        else occ = eval<1,1,0>(ifrom, ito, thr);
+        if (force->newton_pair)
+          occ = eval<1, 1, 1>(ifrom, ito, thr);
+        else
+          occ = eval<1, 1, 0>(ifrom, ito, thr);
       } else {
-        if (force->newton_pair) occ = eval<1,0,1>(ifrom, ito, thr);
-        else occ = eval<1,0,0>(ifrom, ito, thr);
+        if (force->newton_pair)
+          occ = eval<1, 0, 1>(ifrom, ito, thr);
+        else
+          occ = eval<1, 0, 0>(ifrom, ito, thr);
       }
     } else {
-      if (force->newton_pair) occ = eval<0,0,1>(ifrom, ito, thr);
-      else occ = eval<0,0,0>(ifrom, ito, thr);
+      if (force->newton_pair)
+        occ = eval<0, 0, 1>(ifrom, ito, thr);
+      else
+        occ = eval<0, 0, 0>(ifrom, ito, thr);
     }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
-  } // end of omp parallel region
+  }    // end of omp parallel region
 
   if (eflag_global) pvector[0] = occ;
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-double PairGaussOMP::eval(int iifrom, int iito, ThrData * const thr)
+double PairGaussOMP::eval(int iifrom, int iito, ThrData *const thr)
 {
-  int i,j,ii,jj,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair,rsq;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, ii, jj, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair, rsq;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   int occ = 0;
 
   evdwl = 0.0;
 
-  const auto * _noalias const x = (dbl3_t *) atom->x[0];
-  auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
-  const int * _noalias const type = atom->type;
+  const auto *_noalias const x = (dbl3_t *) atom->x[0];
+  auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
+  const int *_noalias const type = atom->type;
+  const double *_noalias const special_lj = force->special_lj;
   const int nlocal = atom->nlocal;
-  double fxtmp,fytmp,fztmp;
+  double fxtmp, fytmp, fztmp;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -109,42 +113,45 @@ double PairGaussOMP::eval(int iifrom, int iito, ThrData * const thr)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    fxtmp=fytmp=fztmp=0.0;
+    fxtmp = fytmp = fztmp = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      const double factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
       dely = ytmp - x[j].y;
       delz = ztmp - x[j].z;
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
       // define a Gaussian well to be occupied if
       // the site it interacts with is within the force maximum
 
       if (EFLAG)
-        if (eflag_global && rsq < 0.5/b[itype][jtype]) occ++;
+        if (eflag_global && rsq < 0.5 / b[itype][jtype]) occ++;
 
       if (rsq < cutsq[itype][jtype]) {
-        fpair = -2.0*a[itype][jtype]*b[itype][jtype]*exp(-b[itype][jtype]*rsq);
+        fpair = -2.0 * a[itype][jtype] * b[itype][jtype] * exp(-b[itype][jtype] * rsq);
+        fpair *= factor_lj;
 
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
+        fxtmp += delx * fpair;
+        fytmp += dely * fpair;
+        fztmp += delz * fpair;
         if (NEWTON_PAIR || j < nlocal) {
-          f[j].x -= delx*fpair;
-          f[j].y -= dely*fpair;
-          f[j].z -= delz*fpair;
+          f[j].x -= delx * fpair;
+          f[j].y -= dely * fpair;
+          f[j].z -= delz * fpair;
         }
 
-        if (EFLAG)
-          evdwl = -(a[itype][jtype]*exp(-b[itype][jtype]*rsq) -
-                    offset[itype][jtype]);
+        if (EFLAG) {
+          evdwl = -(a[itype][jtype] * exp(-b[itype][jtype] * rsq) - offset[itype][jtype]);
+          evdwl *= factor_lj;
+        }
 
-        if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
-                                 evdwl,0.0,fpair,delx,dely,delz,thr);
+        if (EVFLAG)
+          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz, thr);
       }
     }
     f[i].x += fxtmp;

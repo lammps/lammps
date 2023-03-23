@@ -23,7 +23,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "force.h"
 #include "gpu_extra.h"
 #include "info.h"
@@ -170,6 +170,15 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
 PairHippoGPU::~PairHippoGPU()
 {
   hippo_gpu_clear();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairHippoGPU::compute(int eflag, int vflag)
+{
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
+    neighbor->build_topology();
+  PairAmoeba::compute(eflag, vflag);
 }
 
 /* ----------------------------------------------------------------------

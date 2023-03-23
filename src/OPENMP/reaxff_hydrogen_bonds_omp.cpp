@@ -98,14 +98,14 @@ namespace ReaxFF {
       //  for (j = 0; j < system->n; ++j)
       for (j = ifrom; j < ito; ++j) {
         /* j has to be of type H */
-        if (system->reax_param.sbp[system->my_atoms[j].type].p_hbond == 1) {
+        type_j     = system->my_atoms[j].type;
+        if (type_j < 0) continue;
+        if (system->reax_param.sbp[type_j].p_hbond == 1) {
           /*set j's variables */
-          type_j     = system->my_atoms[j].type;
           start_j    = Start_Index(j, bonds);
           end_j      = End_Index(j, bonds);
           hb_start_j = Start_Index(system->my_atoms[j].Hindex, hbonds);
           hb_end_j   = End_Index(system->my_atoms[j].Hindex, hbonds);
-          if (type_j < 0) continue;
 
           top = 0;
           for (pi = start_j; pi < end_j; ++pi)  {

@@ -53,7 +53,7 @@ coexist with the Fortran version.
 Minimize style fire/old
 -----------------------
 
-.. deprecated:: TBD
+.. deprecated:: 8Feb2023
 
 Minimize style *fire/old* has been removed. Its functionality can be
 reproduced with *fire* with specific options. Please see the
@@ -62,7 +62,7 @@ reproduced with *fire* with specific options. Please see the
 Pair style mesont/tpm, compute style mesont, atom style mesont
 --------------------------------------------------------------
 
-.. deprecated:: TBD
+.. deprecated:: 8Feb2023
 
 Pair style *mesont/tpm*, compute style *mesont*, and atom style
 *mesont* have been removed from the :ref:`MESONT package <PKG-MESONT>`.

@@ -53,8 +53,10 @@ if(DOWNLOAD_KOKKOS)
   set(KOKKOS_MD5 "f140e02b826223b1045207d9bc10d404" CACHE STRING "MD5 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
   mark_as_advanced(KOKKOS_MD5)
+  GetFallbackURL(KOKKOS_URL KOKKOS_FALLBACK)
+
   ExternalProject_Add(kokkos_build
-    URL     ${KOKKOS_URL}
+    URL     ${KOKKOS_URL} ${KOKKOS_FALLBACK}
     URL_MD5 ${KOKKOS_MD5}
     CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a <INSTALL_DIR>/lib/libkokkoscontainers.a
@@ -70,13 +72,11 @@ if(DOWNLOAD_KOKKOS)
   set_target_properties(LAMMPS::KOKKOSCONTAINERS PROPERTIES
     IMPORTED_LOCATION "${INSTALL_DIR}/lib/libkokkoscontainers.a")
   target_link_libraries(lammps PRIVATE LAMMPS::KOKKOSCORE LAMMPS::KOKKOSCONTAINERS)
-  target_link_libraries(lmp PRIVATE LAMMPS::KOKKOSCORE LAMMPS::KOKKOSCONTAINERS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
   find_package(Kokkos 3.7.01 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
-  target_link_libraries(lmp PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
   set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
@@ -96,7 +96,6 @@ else()
                           ${LAMMPS_LIB_KOKKOS_BIN_DIR})
   target_include_directories(lammps PRIVATE ${Kokkos_INCLUDE_DIRS})
   target_link_libraries(lammps PRIVATE kokkos)
-  target_link_libraries(lmp PRIVATE kokkos)
   if(BUILD_SHARED_LIBS_WAS_ON)
     set(BUILD_SHARED_LIBS ON)
   endif()

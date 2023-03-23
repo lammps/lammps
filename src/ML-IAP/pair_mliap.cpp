@@ -260,7 +260,7 @@ void PairMLIAP::coeff(int narg, char **arg)
 
   model->init();
   descriptor->init();
-  int gradgradflag = -1;
+  constexpr int gradgradflag = -1;
   delete data;
   data = new MLIAPData(lmp, gradgradflag, map, model, descriptor, this);
   data->init();

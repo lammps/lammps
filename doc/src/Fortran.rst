@@ -56,7 +56,7 @@ C++ in the ``examples/COUPLE/simple`` folder of the LAMMPS distribution.
    and Ubuntu 18.04 LTS and not compatible.  Either newer compilers
    need to be installed or the Linux updated.
 
-.. versionchanged:: TBD
+.. versionchanged:: 8Feb2023
 
 .. note::
 
@@ -312,6 +312,12 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype scatter_atoms_subset: subroutine
    :f gather_bonds: :f:subr:`gather_bonds`
    :ftype gather_bonds: subroutine
+   :f gather_angles: :f:subr:`gather_angles`
+   :ftype gather_angles: subroutine
+   :f gather_dihedrals: :f:subr:`gather_dihedrals`
+   :ftype gather_dihedrals: subroutine
+   :f gather_impropers: :f:subr:`gather_impropers`
+   :ftype gather_impropers: subroutine
    :f gather: :f:subr:`gather`
    :ftype gather: subroutine
    :f gather_concat: :f:subr:`gather_concat`
@@ -1541,6 +1547,51 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
+.. f:subroutine:: gather_angles(data)
+
+   Gather type and constituent atom information for all angles.
+
+   .. versionadded:: 8Feb2023
+
+   This function copies the list of all angles into an allocatable array.
+   The array will be filled with (angle type, angle atom 1, angle atom 2, angle atom 3)
+   for each angle. The array is allocated to the right length (i.e., four times the
+   number of angles). The array *data* must be of the same type as the LAMMPS
+   ``tagint`` type, which is equivalent to either ``INTEGER(c_int)`` or
+   ``INTEGER(c_int64_t)``, depending on whether ``-DLAMMPS_BIGBIG`` was used
+   when LAMMPS was built. If the supplied array does not match, an error will
+   result at run-time.
+
+   An example of how to use this routine is below:
+
+   .. code-block:: fortran
+
+      PROGRAM angles
+        USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
+        USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
+        USE LIBLAMMPS
+        IMPLICIT NONE
+        INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET :: angles
+        INTEGER(c_int), DIMENSION(:,:), POINTER :: angles_array
+        TYPE(lammps) :: lmp
+        INTEGER :: i
+        ! other commands to initialize LAMMPS, create angles, etc.
+        CALL lmp%gather_angles(angles)
+        angles_array(1:4, 1:SIZE(angles)/4) => angles
+        DO i = 1, SIZE(angles)/4
+          WRITE(OUTPUT_UNIT,'(A,1X,I4,A,I4,1X,I4,1X,I4)') 'angle', angles_array(1,i), &
+            '; type = ', angles_array(2,i), angles_array(3,i), angles_array(4,i)
+        END DO
+      END PROGRAM angles
+
+   :p data: array into which to copy the result. \*The ``KIND`` parameter is
+    either ``c_int`` or, if LAMMPS was compiled with ``-DLAMMPS_BIGBIG``,
+    kind ``c_int64_t``.
+   :ptype data: integer(kind=\*),allocatable
+   :to: :cpp:func:`lammps_gather_angles`
+
+--------
+
 .. f:subroutine:: gather(self, name, count, data)
 
    Gather the named per-atom, per-atom fix, per-atom compute, or fix
@@ -1580,6 +1631,98 @@ Procedures Bound to the :f:type:`lammps` Derived Type
     (i.e., ``DIMENSION(:)``). If this array is already allocated, it will be
     reallocated to fit the length of the incoming data.
    :to: :cpp:func:`lammps_gather`
+
+--------
+
+.. f:subroutine:: gather_dihedrals(data)
+
+   Gather type and constituent atom information for all dihedrals.
+
+   .. versionadded:: 8Feb2023
+
+   This function copies the list of all dihedrals into an allocatable array.
+   The array will be filled with (dihedral type, dihedral atom 1, dihedral atom 2,
+   dihedral atom 3, dihedral atom 4) for each dihedral. The array is allocated to
+   the right length (i.e., five times the number of dihedrals).
+   The array *data* must be of the same type as the LAMMPS
+   ``tagint`` type, which is equivalent to either ``INTEGER(c_int)`` or
+   ``INTEGER(c_int64_t)``, depending on whether ``-DLAMMPS_BIGBIG`` was used
+   when LAMMPS was built. If the supplied array does not match, an error will
+   result at run-time.
+
+   An example of how to use this routine is below:
+
+   .. code-block:: fortran
+
+      PROGRAM dihedrals
+        USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
+        USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
+        USE LIBLAMMPS
+        IMPLICIT NONE
+        INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET :: dihedrals
+        INTEGER(c_int), DIMENSION(:,:), POINTER :: dihedrals_array
+        TYPE(lammps) :: lmp
+        INTEGER :: i
+        ! other commands to initialize LAMMPS, create dihedrals, etc.
+        CALL lmp%gather_dihedrals(dihedrals)
+        dihedrals_array(1:5, 1:SIZE(dihedrals)/5) => dihedrals
+        DO i = 1, SIZE(dihedrals)/5
+          WRITE(OUTPUT_UNIT,'(A,1X,I4,A,I4,1X,I4,1X,I4,1X,I4)') 'dihedral', dihedrals_array(1,i), &
+            '; type = ', dihedrals_array(2,i), dihedrals_array(3,i), dihedrals_array(4,i), dihedrals_array(5,i)
+        END DO
+      END PROGRAM dihedrals
+
+   :p data: array into which to copy the result. \*The ``KIND`` parameter is
+    either ``c_int`` or, if LAMMPS was compiled with ``-DLAMMPS_BIGBIG``,
+    kind ``c_int64_t``.
+   :ptype data: integer(kind=\*),allocatable
+   :to: :cpp:func:`lammps_gather_dihedrals`
+
+--------
+
+.. f:subroutine:: gather_impropers(data)
+
+   Gather type and constituent atom information for all impropers.
+
+   .. versionadded:: 8Feb2023
+
+   This function copies the list of all impropers into an allocatable array.
+   The array will be filled with (improper type, improper atom 1, improper atom 2,
+   improper atom 3, improper atom 4) for each improper. The array is allocated to
+   the right length (i.e., five times the number of impropers).
+   The array *data* must be of the same type as the LAMMPS
+   ``tagint`` type, which is equivalent to either ``INTEGER(c_int)`` or
+   ``INTEGER(c_int64_t)``, depending on whether ``-DLAMMPS_BIGBIG`` was used
+   when LAMMPS was built. If the supplied array does not match, an error will
+   result at run-time.
+
+   An example of how to use this routine is below:
+
+   .. code-block:: fortran
+
+      PROGRAM impropers
+        USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int
+        USE, INTRINSIC :: ISO_FORTRAN_ENV, ONLY : OUTPUT_UNIT
+        USE LIBLAMMPS
+        IMPLICIT NONE
+        INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET :: impropers
+        INTEGER(c_int), DIMENSION(:,:), POINTER :: impropers_array
+        TYPE(lammps) :: lmp
+        INTEGER :: i
+        ! other commands to initialize LAMMPS, create impropers, etc.
+        CALL lmp%gather_impropers(impropers)
+        impropers_array(1:5, 1:SIZE(impropers)/5) => impropers
+        DO i = 1, SIZE(impropers)/5
+          WRITE(OUTPUT_UNIT,'(A,1X,I4,A,I4,1X,I4,1X,I4,1X,I4)') 'improper', impropers_array(1,i), &
+            '; type = ', impropers_array(2,i), impropers_array(3,i), impropers_array(4,i), impropers_array(5,i)
+        END DO
+      END PROGRAM impropers
+
+   :p data: array into which to copy the result. \*The ``KIND`` parameter is
+    either ``c_int`` or, if LAMMPS was compiled with ``-DLAMMPS_BIGBIG``,
+    kind ``c_int64_t``.
+   :ptype data: integer(kind=\*),allocatable
+   :to: :cpp:func:`lammps_gather_impropers`
 
 --------
 
@@ -2012,7 +2155,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
    from images on-the-fly via creating a pipe to the
-   `ffmpeg <https://ffmpeg.org/ffmpeg/>`_ program.
+   `ffmpeg <https://ffmpeg.org/>`_ program.
    This function checks whether this feature was
    :ref:`enabled at compile time <graphics>`.
    It does **not** check whether the ``ffmpeg`` itself is installed and usable.

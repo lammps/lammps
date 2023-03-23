@@ -205,67 +205,390 @@ SUBROUTINE f_lammps_scatter_atoms_subset_mask() BIND(C)
   CALL lmp%scatter_atoms_subset('mask', tags, masks) ! push the swap to LAMMPS
 END SUBROUTINE f_lammps_scatter_atoms_subset_mask
 
-SUBROUTINE f_lammps_setup_gather_bonds() BIND(C)
+SUBROUTINE f_lammps_setup_gather_topology() BIND(C)
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp, cont_input, more_input, pair_input
   IMPLICIT NONE
 
-  INTERFACE
-    SUBROUTINE f_lammps_setup_gather_scatter() BIND(C)
-    END SUBROUTINE f_lammps_setup_gather_scatter
-  END INTERFACE
+  CALL lmp%command('include ${input_dir}/in.fourmol')
+  CALL lmp%command('run 0 post no')
+END SUBROUTINE f_lammps_setup_gather_topology
 
-  CALL lmp%command('atom_modify map array')
-  CALL lmp%command('atom_style full')
-  CALL lmp%command('region simbox block 0 4 0 5 0 4')
-  CALL lmp%command('create_box 1 simbox bond/types 1 extra/bond/per/atom 2')
-  CALL lmp%command('create_atoms 1 single 1.0 1.0 ${zpos}')
-  CALL lmp%commands_list(cont_input)
-  CALL lmp%commands_list(more_input)
-  CALL lmp%commands_list(pair_input)
-  CALL lmp%command('bond_style zero')
-  CALL lmp%command('bond_coeff *')
-  CALL lmp%command('create_bonds many all all 1 0.0 1.5')
-  CALL lmp%command('run 0')
-END SUBROUTINE f_lammps_setup_gather_bonds
-
-FUNCTION f_lammps_test_gather_bonds_small() BIND(C) RESULT(success)
+FUNCTION f_lammps_test_gather_bonds_small() BIND(C) RESULT(count)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
   IMPLICIT NONE
-  INTEGER(c_int) :: success
+  INTEGER :: i, nbonds, size_bigint
+  INTEGER(c_int) :: count
   INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET :: bonds
   INTEGER(c_int), DIMENSION(:,:), POINTER :: bonds_array
+  INTEGER(c_int), POINTER :: nbonds_small
+  INTEGER(c_int64_t), POINTER :: nbonds_big
+
+  size_bigint = lmp%extract_setting('bigint')
+  IF (size_bigint == 4) THEN
+      nbonds_small = lmp%extract_global('nbonds')
+      nbonds = nbonds_small
+  ELSE
+      nbonds_big = lmp%extract_global('nbonds')
+      nbonds = nbonds_big
+  END IF
 
   CALL lmp%gather_bonds(bonds)
   bonds_array(1:3,1:SIZE(bonds)/3) => bonds
-  IF ( ALL(bonds_array(:,1) == [INTEGER(c_int) :: 1,1,3]) &
-      .AND. ALL(bonds_array(:,2) == [INTEGER(c_int) :: 1,2,3])) THEN
-    success = 1_c_int
-  ELSE
-    success = 0_c_int
-  END IF
+  count = 0
+  DO i=1, nbonds
+      count = count + check_bond(i, 5, 1, 2, bonds_array)
+      count = count + check_bond(i, 3, 1, 3, bonds_array)
+      count = count + check_bond(i, 2, 3, 4, bonds_array)
+      count = count + check_bond(i, 2, 3, 5, bonds_array)
+      count = count + check_bond(i, 1, 3, 6, bonds_array)
+      count = count + check_bond(i, 3, 6, 8, bonds_array)
+      count = count + check_bond(i, 4, 6, 7, bonds_array)
+      count = count + check_bond(i, 5, 8, 9, bonds_array)
+      count = count + check_bond(i, 5, 27, 28, bonds_array)
+      count = count + check_bond(i, 5, 27, 29, bonds_array)
+  END DO
+
+CONTAINS
+
+  INTEGER FUNCTION check_bond(idx, batom1, batom2, btype, barray)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: idx, batom1, batom2, btype
+    INTEGER(c_int), DIMENSION(:,:) :: barray
+    check_bond = 0
+    IF ((barray(1,idx) == batom1) .AND. (barray(2,idx) == batom2)) THEN
+        IF (barray(3,idx) == btype) check_bond = 1
+    END IF
+    IF ((barray(1,idx) == batom2) .AND. (barray(2,idx) == batom1)) THEN
+        IF (barray(3,idx) == btype) check_bond = 1
+    END IF
+  END FUNCTION check_bond
+
 END FUNCTION f_lammps_test_gather_bonds_small
 
-FUNCTION f_lammps_test_gather_bonds_big() BIND(C) RESULT(success)
+FUNCTION f_lammps_test_gather_bonds_big() BIND(C) RESULT(count)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
   USE LIBLAMMPS
   USE keepstuff, ONLY : lmp
   IMPLICIT NONE
-  INTEGER(c_int) :: success
+  INTEGER :: i, nbonds
+  INTEGER(c_int) :: count
   INTEGER(c_int64_t), DIMENSION(:), ALLOCATABLE, TARGET :: bonds
   INTEGER(c_int64_t), DIMENSION(:,:), POINTER :: bonds_array
+  INTEGER(c_int64_t), POINTER :: nbonds_big
 
+  nbonds_big = lmp%extract_global('nbonds')
+  nbonds = nbonds_big
   CALL lmp%gather_bonds(bonds)
   bonds_array(1:3,1:SIZE(bonds)/3) => bonds
-  IF ( ALL(bonds_array(:,1) == [INTEGER(c_int64_t) :: 1,1,3]) &
-      .AND. ALL(bonds_array(:,2) == [INTEGER(c_int64_t) :: 1,2,3])) THEN
-    success = 1_c_int
-  ELSE
-    success = 0_c_int
-  END IF
+  count = 0
+  DO i=1, nbonds
+      count = count + check_bond(i, 5, 1, 2, bonds_array)
+      count = count + check_bond(i, 3, 1, 3, bonds_array)
+      count = count + check_bond(i, 2, 3, 4, bonds_array)
+      count = count + check_bond(i, 2, 3, 5, bonds_array)
+      count = count + check_bond(i, 1, 3, 6, bonds_array)
+      count = count + check_bond(i, 3, 6, 8, bonds_array)
+      count = count + check_bond(i, 4, 6, 7, bonds_array)
+      count = count + check_bond(i, 5, 8, 9, bonds_array)
+      count = count + check_bond(i, 5, 27, 28, bonds_array)
+      count = count + check_bond(i, 5, 27, 29, bonds_array)
+  END DO
+
+CONTAINS
+
+  INTEGER FUNCTION check_bond(idx, batom1, batom2, btype, barray)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: idx, batom1, batom2, btype
+    INTEGER(c_int64_t), DIMENSION(:,:) :: barray
+    check_bond = 0
+    IF ((barray(1,idx) == batom1) .AND. (barray(2,idx) == batom2)) THEN
+        IF (barray(3,idx) == btype) check_bond = 1
+    END IF
+    IF ((barray(1,idx) == batom2) .AND. (barray(2,idx) == batom1)) THEN
+        IF (barray(3,idx) == btype) check_bond = 1
+    END IF
+  END FUNCTION check_bond
+
 END FUNCTION f_lammps_test_gather_bonds_big
+
+FUNCTION f_lammps_test_gather_angles_small() BIND(C) RESULT(count)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER :: i, nangles, size_bigint
+  INTEGER(c_int) :: count
+  INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET :: angles
+  INTEGER(c_int), DIMENSION(:,:), POINTER :: angles_array
+  INTEGER(c_int), POINTER :: nangles_small
+  INTEGER(c_int64_t), POINTER :: nangles_big
+
+  size_bigint = lmp%extract_setting('bigint')
+  IF (size_bigint == 4) THEN
+      nangles_small = lmp%extract_global('nangles')
+      nangles = nangles_small
+  ELSE
+      nangles_big = lmp%extract_global('nangles')
+      nangles = nangles_big
+  END IF
+
+  CALL lmp%gather_angles(angles)
+  angles_array(1:4,1:SIZE(angles)/4) => angles
+  count = 0
+  DO i=1, nangles
+      count = count + check_angle(i, 4, 2, 1, 3, angles_array)
+      count = count + check_angle(i, 4, 1, 3, 5, angles_array)
+      count = count + check_angle(i, 4, 1, 3, 4, angles_array)
+      count = count + check_angle(i, 4, 13, 12, 15, angles_array)
+      count = count + check_angle(i, 4, 13, 12, 14, angles_array)
+      count = count + check_angle(i, 2, 5, 3, 6, angles_array)
+      count = count + check_angle(i, 2, 4, 3, 6, angles_array)
+      count = count + check_angle(i, 3, 3, 6, 7, angles_array)
+      count = count + check_angle(i, 3, 3, 6, 8, angles_array)
+      count = count + check_angle(i, 1, 22, 21, 23, angles_array)
+  END DO
+
+CONTAINS
+
+  INTEGER FUNCTION check_angle(idx, aatom1, aatom2, aatom3, atype, aarray)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: idx, aatom1, aatom2, aatom3, atype
+    INTEGER(c_int), DIMENSION(:,:) :: aarray
+    check_angle = 0
+    IF ((aarray(1,idx) == aatom1) .AND. (aarray(2,idx) == aatom2) .AND. (aarray(3,idx) == aatom3)) THEN
+        IF (aarray(4,idx) == atype) check_angle = 1
+    END IF
+    IF ((aarray(1,idx) == aatom3) .AND. (aarray(2,idx) == aatom2) .AND. (aarray(3,idx) == aatom1)) THEN
+        IF (aarray(4,idx) == atype) check_angle = 1
+    END IF
+  END FUNCTION check_angle
+
+END FUNCTION f_lammps_test_gather_angles_small
+
+FUNCTION f_lammps_test_gather_angles_big() BIND(C) RESULT(count)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER :: i, nangles
+  INTEGER(c_int) :: count
+  INTEGER(c_int64_t), DIMENSION(:), ALLOCATABLE, TARGET :: angles
+  INTEGER(c_int64_t), DIMENSION(:,:), POINTER :: angles_array
+  INTEGER(c_int64_t), POINTER :: nangles_big
+
+  nangles_big = lmp%extract_global('nangles')
+  nangles = nangles_big
+  CALL lmp%gather_angles(angles)
+  angles_array(1:4,1:SIZE(angles)/4) => angles
+  count = 0
+  DO i=1, nangles
+      count = count + check_angle(i, 4, 2, 1, 3, angles_array)
+      count = count + check_angle(i, 4, 1, 3, 5, angles_array)
+      count = count + check_angle(i, 4, 1, 3, 4, angles_array)
+      count = count + check_angle(i, 4, 13, 12, 15, angles_array)
+      count = count + check_angle(i, 4, 13, 12, 14, angles_array)
+      count = count + check_angle(i, 2, 5, 3, 6, angles_array)
+      count = count + check_angle(i, 2, 4, 3, 6, angles_array)
+      count = count + check_angle(i, 3, 3, 6, 7, angles_array)
+      count = count + check_angle(i, 3, 3, 6, 8, angles_array)
+      count = count + check_angle(i, 1, 22, 21, 23, angles_array)
+  END DO
+
+CONTAINS
+
+  INTEGER FUNCTION check_angle(idx, aatom1, aatom2, aatom3, atype, aarray)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: idx, aatom1, aatom2, aatom3, atype
+    INTEGER(c_int64_t), DIMENSION(:,:) :: aarray
+    check_angle = 0
+    IF ((aarray(1,idx) == aatom1) .AND. (aarray(2,idx) == aatom2) .AND. (aarray(3,idx) == aatom3)) THEN
+        IF (aarray(4,idx) == atype) check_angle = 1
+    END IF
+    IF ((aarray(1,idx) == aatom3) .AND. (aarray(2,idx) == aatom2) .AND. (aarray(3,idx) == aatom1)) THEN
+        IF (aarray(4,idx) == atype) check_angle = 1
+    END IF
+  END FUNCTION check_angle
+
+END FUNCTION f_lammps_test_gather_angles_big
+
+FUNCTION f_lammps_test_gather_dihedrals_small() BIND(C) RESULT(count)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER :: i, ndihedrals, size_bigint
+  INTEGER(c_int) :: count
+  INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET :: dihedrals
+  INTEGER(c_int), DIMENSION(:,:), POINTER :: dihedrals_array
+  INTEGER(c_int), POINTER :: ndihedrals_small
+  INTEGER(c_int64_t), POINTER :: ndihedrals_big
+
+  size_bigint = lmp%extract_setting('bigint')
+  IF (size_bigint == 4) THEN
+      ndihedrals_small = lmp%extract_global('ndihedrals')
+      ndihedrals = ndihedrals_small
+  ELSE
+      ndihedrals_big = lmp%extract_global('ndihedrals')
+      ndihedrals = ndihedrals_big
+  END IF
+
+  CALL lmp%gather_dihedrals(dihedrals)
+  dihedrals_array(1:5,1:SIZE(dihedrals)/5) => dihedrals
+  count = 0
+  DO i=1, ndihedrals
+      count = count + check_dihedral(i, 2, 2, 1, 3, 6, dihedrals_array)
+      count = count + check_dihedral(i, 2, 2, 1, 3, 4, dihedrals_array)
+      count = count + check_dihedral(i, 3, 2, 1, 3, 5, dihedrals_array)
+      count = count + check_dihedral(i, 1, 1, 3, 6, 8, dihedrals_array)
+      count = count + check_dihedral(i, 1, 1, 3, 6, 7, dihedrals_array)
+      count = count + check_dihedral(i, 5, 4, 3, 6, 8, dihedrals_array)
+      count = count + check_dihedral(i, 5, 4, 3, 6, 7, dihedrals_array)
+      count = count + check_dihedral(i, 5, 16, 10, 12, 13, dihedrals_array)
+      count = count + check_dihedral(i, 5, 16, 10, 12, 14, dihedrals_array)
+      count = count + check_dihedral(i, 5, 16, 10, 12, 15, dihedrals_array)
+  END DO
+
+CONTAINS
+
+  INTEGER FUNCTION check_dihedral(idx, datom1, datom2, datom3, datom4, dtype, darray)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: idx, datom1, datom2, datom3, datom4, dtype
+    INTEGER(c_int), DIMENSION(:,:) :: darray
+    check_dihedral = 0
+    IF ((darray(1,idx) == datom1) .AND. (darray(2,idx) == datom2) &
+        .AND. (darray(3,idx) == datom3) .AND. (darray(4,idx) == datom4)) THEN
+        IF (darray(5,idx) == dtype) check_dihedral = 1
+    END IF
+  END FUNCTION check_dihedral
+
+END FUNCTION f_lammps_test_gather_dihedrals_small
+
+FUNCTION f_lammps_test_gather_dihedrals_big() BIND(C) RESULT(count)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER :: i, ndihedrals
+  INTEGER(c_int) :: count
+  INTEGER(c_int64_t), DIMENSION(:), ALLOCATABLE, TARGET :: dihedrals
+  INTEGER(c_int64_t), DIMENSION(:,:), POINTER :: dihedrals_array
+  INTEGER(c_int64_t), POINTER :: ndihedrals_big
+
+  ndihedrals_big = lmp%extract_global('ndihedrals')
+  ndihedrals = ndihedrals_big
+  CALL lmp%gather_dihedrals(dihedrals)
+  dihedrals_array(1:5,1:SIZE(dihedrals)/5) => dihedrals
+  count = 0
+  DO i=1, ndihedrals
+      count = count + check_dihedral(i, 2, 2, 1, 3, 6, dihedrals_array)
+      count = count + check_dihedral(i, 2, 2, 1, 3, 4, dihedrals_array)
+      count = count + check_dihedral(i, 3, 2, 1, 3, 5, dihedrals_array)
+      count = count + check_dihedral(i, 1, 1, 3, 6, 8, dihedrals_array)
+      count = count + check_dihedral(i, 1, 1, 3, 6, 7, dihedrals_array)
+      count = count + check_dihedral(i, 5, 4, 3, 6, 8, dihedrals_array)
+      count = count + check_dihedral(i, 5, 4, 3, 6, 7, dihedrals_array)
+      count = count + check_dihedral(i, 5, 16, 10, 12, 13, dihedrals_array)
+      count = count + check_dihedral(i, 5, 16, 10, 12, 14, dihedrals_array)
+      count = count + check_dihedral(i, 5, 16, 10, 12, 15, dihedrals_array)
+  END DO
+
+CONTAINS
+
+  INTEGER FUNCTION check_dihedral(idx, datom1, datom2, datom3, datom4, dtype, darray)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: idx, datom1, datom2, datom3, datom4, dtype
+    INTEGER(c_int64_t), DIMENSION(:,:) :: darray
+    check_dihedral = 0
+    IF ((darray(1,idx) == datom1) .AND. (darray(2,idx) == datom2) &
+        .AND. (darray(3,idx) == datom3) .AND. (darray(4,idx) == datom4)) THEN
+        IF (darray(5,idx) == dtype) check_dihedral = 1
+    END IF
+  END FUNCTION check_dihedral
+
+END FUNCTION f_lammps_test_gather_dihedrals_big
+
+FUNCTION f_lammps_test_gather_impropers_small() BIND(C) RESULT(count)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER :: i, nimpropers, size_bigint
+  INTEGER(c_int) :: count
+  INTEGER(c_int), DIMENSION(:), ALLOCATABLE, TARGET :: impropers
+  INTEGER(c_int), DIMENSION(:,:), POINTER :: impropers_array
+  INTEGER(c_int), POINTER :: nimpropers_small
+  INTEGER(c_int64_t), POINTER :: nimpropers_big
+
+  size_bigint = lmp%extract_setting('bigint')
+  IF (size_bigint == 4) THEN
+      nimpropers_small = lmp%extract_global('nimpropers')
+      nimpropers = nimpropers_small
+  ELSE
+      nimpropers_big = lmp%extract_global('nimpropers')
+      nimpropers = nimpropers_big
+  END IF
+
+  CALL lmp%gather_impropers(impropers)
+  impropers_array(1:5,1:SIZE(impropers)/5) => impropers
+  count = 0
+  DO i=1, nimpropers
+      count = count + check_improper(i, 1, 6, 3, 8, 7, impropers_array)
+      count = count + check_improper(i, 2, 8, 6, 10, 9, impropers_array)
+  END DO
+
+CONTAINS
+
+  INTEGER FUNCTION check_improper(idx, datom1, datom2, datom3, datom4, dtype, darray)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: idx, datom1, datom2, datom3, datom4, dtype
+    INTEGER(c_int), DIMENSION(:,:) :: darray
+    check_improper = 0
+    IF ((darray(1,idx) == datom1) .AND. (darray(2,idx) == datom2) &
+        .AND. (darray(3,idx) == datom3) .AND. (darray(4,idx) == datom4)) THEN
+        IF (darray(5,idx) == dtype) check_improper = 1
+    END IF
+  END FUNCTION check_improper
+
+END FUNCTION f_lammps_test_gather_impropers_small
+
+FUNCTION f_lammps_test_gather_impropers_big() BIND(C) RESULT(count)
+  USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_int64_t
+  USE LIBLAMMPS
+  USE keepstuff, ONLY : lmp
+  IMPLICIT NONE
+  INTEGER :: i, nimpropers
+  INTEGER(c_int) :: count
+  INTEGER(c_int64_t), DIMENSION(:), ALLOCATABLE, TARGET :: impropers
+  INTEGER(c_int64_t), DIMENSION(:,:), POINTER :: impropers_array
+  INTEGER(c_int64_t), POINTER :: nimpropers_big
+
+  nimpropers_big = lmp%extract_global('nimpropers')
+  nimpropers = nimpropers_big
+  CALL lmp%gather_impropers(impropers)
+  impropers_array(1:5,1:SIZE(impropers)/5) => impropers
+  count = 0
+  DO i=1, nimpropers
+      count = count + check_improper(i, 1, 6, 3, 8, 7, impropers_array)
+      count = count + check_improper(i, 2, 8, 6, 10, 9, impropers_array)
+  END DO
+
+CONTAINS
+
+  INTEGER FUNCTION check_improper(idx, datom1, datom2, datom3, datom4, dtype, darray)
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: idx, datom1, datom2, datom3, datom4, dtype
+    INTEGER(c_int64_t), DIMENSION(:,:) :: darray
+    check_improper = 0
+    IF ((darray(1,idx) == datom1) .AND. (darray(2,idx) == datom2) &
+        .AND. (darray(3,idx) == datom3) .AND. (darray(4,idx) == datom4)) THEN
+        IF (darray(5,idx) == dtype) check_improper = 1
+    END IF
+  END FUNCTION check_improper
+
+END FUNCTION f_lammps_test_gather_impropers_big
 
 FUNCTION f_lammps_gather_pe_atom(i) BIND(C)
   USE, INTRINSIC :: ISO_C_BINDING, ONLY : c_int, c_double

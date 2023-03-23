@@ -270,6 +270,7 @@ FixPour::~FixPour()
   delete[] molfrac;
   delete[] idrigid;
   delete[] idshake;
+  delete[] idregion;
   delete[] radius_poly;
   delete[] frac_poly;
   memory->destroy(coords);
@@ -677,7 +678,7 @@ void FixPour::pre_exchange()
   int ninserted_atoms = nnear - nprevious;
   int ninserted_mols = ninserted_atoms / natom;
   ninserted += ninserted_mols;
-  if (ninserted_mols < nnew && me == 0) error->warning(FLERR, "Less insertions than requested");
+  if (ninserted_mols < nnew && me == 0) error->warning(FLERR, "Fewer insertions than requested");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary

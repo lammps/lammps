@@ -35,6 +35,7 @@ using namespace MathConst;
 
 PairHarmonicCut::PairHarmonicCut(LAMMPS *lmp) : Pair(lmp), k(nullptr), cut(nullptr)
 {
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -302,6 +303,23 @@ double PairHarmonicCut::single(int /*i*/, int /*j*/, int itype, int jtype, doubl
   const double philj = factor_lj * delta * delta * k[itype][jtype];
   fforce = 2.0 * philj / (r * delta);
   return philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairHarmonicCut::born_matrix(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj, double &dupair,
+                            double &du2pair)
+{
+  double r = sqrt(rsq);
+  double dr = r - cut[itype][jtype];
+
+  double du = 0;
+  double du2 = 2 * k[itype][jtype];
+  if (r > 0) du = du2 * dr;
+
+  dupair = factor_lj * du;
+  du2pair = factor_lj * du2;
 }
 
 /* ---------------------------------------------------------------------- */

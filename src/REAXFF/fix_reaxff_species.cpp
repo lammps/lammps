@@ -61,8 +61,8 @@ static const char cite_reaxff_species_delete[] =
 FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), Name(nullptr), MolName(nullptr), NMol(nullptr), nd(nullptr),
     MolType(nullptr), molmap(nullptr), mark(nullptr), Mol2Spec(nullptr), clusterID(nullptr),
-    x0(nullptr), BOCut(nullptr), fp(nullptr), pos(nullptr), fdel(nullptr), ele(nullptr),
-    eletype(nullptr), filepos(nullptr), filedel(nullptr)
+    x0(nullptr), BOCut(nullptr), fp(nullptr), pos(nullptr), fdel(nullptr), delete_Tcount(nullptr),
+    ele(nullptr), eletype(nullptr), filepos(nullptr), filedel(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix reaxff/species", error);
 

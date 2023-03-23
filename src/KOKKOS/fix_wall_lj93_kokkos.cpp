@@ -19,7 +19,6 @@
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 

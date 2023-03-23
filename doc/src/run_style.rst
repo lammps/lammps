@@ -78,27 +78,41 @@ processors.  See the :doc:`-partition command-line switch <Run_options>`
 for info on how to run LAMMPS with multiple partitions.
 
 Specifically, this style performs all computation except the
-:doc:`kspace_style <kspace_style>` portion of the force field on the first
-partition.  This include the :doc:`pair style <pair_style>`, :doc:`bond style <bond_style>`, :doc:`neighbor list building <neighbor>`,
-:doc:`fixes <fix>` including time integration, and output.  The
-:doc:`kspace_style <kspace_style>` portion of the calculation is
+:doc:`kspace_style <kspace_style>` portion of the force field on the
+first partition.  This include the :doc:`pair style <pair_style>`,
+:doc:`bond style <bond_style>`, :doc:`neighbor list building
+<neighbor>`, :doc:`fixes <fix>` including time integration, and output.
+The :doc:`kspace_style <kspace_style>` portion of the calculation is
 performed on the second partition.
 
-This is most useful for the PPPM kspace_style when its performance on
-a large number of processors degrades due to the cost of communication
-in its 3d FFTs.  In this scenario, splitting your P total processors
-into 2 subsets of processors, P1 in the first partition and P2 in the
-second partition, can enable your simulation to run faster.  This is
-because the long-range forces in PPPM can be calculated at the same
-time as pairwise and bonded forces are being calculated, and the FFTs
-can actually speed up when running on fewer processors.
+This can lead to a significant speedup, if the number of processors can
+be easily increased and the fraction of time is spent in computing
+Kspace interactions is significant, too.  The two partitions may have a
+different number of processors.  This is most useful for the PPPM
+kspace_style when its performance on a large number of processors
+degrades due to the cost of communication in its 3d FFTs.  In this
+scenario, splitting your P total processors into 2 subsets of
+processors, P1 in the first partition and P2 in the second partition,
+can enable your simulation to run faster.  This is because the
+long-range forces in PPPM can be calculated at the same time as pairwise
+and bonded forces are being calculated *and* the parallel 3d FFTs can be
+faster to compute when running on fewer processors.  Please note that
+the scenario of using fewer MPI processes to reduce communication
+overhead can also be implemented through using MPI with OpenMP threads
+via the INTEL, KOKKOS, or OPENMP package.  This alternative option is
+typically more effective in case of a fixed number of available
+processors and less complex to execute.
 
-To use this style, you must define 2 partitions where P1 is a multiple
-of P2.  Typically having P1 be 3x larger than P2 is a good choice.
-The 3d processor layouts in each partition must overlay in the
-following sense.  If P1 is a Px1 by Py1 by Pz1 grid, and P2 = Px2 by
-Py2 by Pz2, then Px1 must be an integer multiple of Px2, and similarly
-for Py1 a multiple of Py2, and Pz1 a multiple of Pz2.
+To use the *verlet/split* style, you must define 2 partitions with the
+:doc:`-partition command-line switch <Run_options>`, where partition P1
+is either the same size or an integer multiple of the size of the
+partition P2.  Typically having P1 be 3x larger than P2 is a good
+choice, since the (serial) performance of LAMMPS is often best if the
+time spent in the ``Pair`` computation versus ``Kspace`` is a 3:1 split.
+The 3d processor layouts in each partition must overlay in the following
+sense.  If P1 is a Px1 by Py1 by Pz1 grid, and P2 = Px2 by Py2 by Pz2,
+then Px1 must be an integer multiple of Px2, and similarly for Py1 a
+multiple of Py2, and Pz1 a multiple of Pz2.
 
 Typically the best way to do this is to let the first partition choose
 its own optimal layout, then require the second partition's layout to
@@ -122,9 +136,10 @@ of 60 and 15 processors each:
 When you run in 2-partition mode with the *verlet/split* style, the
 thermodynamic data for the entire simulation will be output to the log
 and screen file of the first partition, which are log.lammps.0 and
-screen.0 by default; see the :doc:`-plog and -pscreen command-line switches <Run_options>` to change this.  The log and screen file
-for the second partition will not contain thermodynamic output beyond the
-first timestep of the run.
+screen.0 by default; see the :doc:`-plog and -pscreen command-line
+switches <Run_options>` to change this.  The log and screen file for the
+second partition will not contain thermodynamic output beyond the first
+timestep of the run.
 
 See the :doc:`Accelerator packages <Speed_packages>` page for
 performance details of the speed-up offered by the *verlet/split*
@@ -137,70 +152,73 @@ options to support this, and strategies are discussed in :doc:`Section
 ----------
 
 The *respa* style implements the rRESPA multi-timescale integrator
-:ref:`(Tuckerman) <Tuckerman3>` with N hierarchical levels, where level 1 is
-the innermost loop (shortest timestep) and level N is the outermost
+:ref:`(Tuckerman) <Tuckerman3>` with N hierarchical levels, where level
+1 is the innermost loop (shortest timestep) and level N is the outermost
 loop (largest timestep).  The loop factor arguments specify what the
-looping factor is between levels.  N1 specifies the number of
-iterations of level 1 for a single iteration of level 2, N2 is the
-iterations of level 2 per iteration of level 3, etc.  N-1 looping
-parameters must be specified.
+looping factor is between levels.  N1 specifies the number of iterations
+of level 1 for a single iteration of level 2, N2 is the iterations of
+level 2 per iteration of level 3, etc.  N-1 looping parameters must be
+specified.
 
-Thus with a 4-level respa setting of "2 2 2" for the 3 loop factors,
-you could choose to have bond interactions computed 8x per large
-timestep, angle interactions computed 4x, pair interactions computed
-2x, and long-range interactions once per large timestep.
+Thus with a 4-level respa setting of "2 2 2" for the 3 loop factors, you
+could choose to have bond interactions computed 8x per large timestep,
+angle interactions computed 4x, pair interactions computed 2x, and
+long-range interactions once per large timestep.
 
 The :doc:`timestep <timestep>` command sets the large timestep for the
 outermost rRESPA level.  Thus if the 3 loop factors are "2 2 2" for
-4-level rRESPA, and the outer timestep is set to 4.0 fs, then the
-inner timestep would be 8x smaller or 0.5 fs.  All other LAMMPS
-commands that specify number of timesteps (e.g. :doc:`thermo <thermo>`
-for thermo output every N steps, :doc:`neigh_modify delay/every <neigh_modify>` parameters, :doc:`dump <dump>` every N
-steps, etc) refer to the outermost timesteps.
+4-level rRESPA, and the outer timestep is set to 4.0 fs, then the inner
+timestep would be 8x smaller or 0.5 fs.  All other LAMMPS commands that
+specify number of timesteps (e.g. :doc:`thermo <thermo>` for thermo
+output every N steps, :doc:`neigh_modify delay/every <neigh_modify>`
+parameters, :doc:`dump <dump>` every N steps, etc) refer to the
+outermost timesteps.
 
-The rRESPA keywords enable you to specify at what level of the
-hierarchy various forces will be computed.  If not specified, the
-defaults are that bond forces are computed at level 1 (innermost
-loop), angle forces are computed where bond forces are, dihedral
-forces are computed where angle forces are, improper forces are
-computed where dihedral forces are, pair forces are computed at the
-outermost level, and kspace forces are computed where pair forces are.
-The inner, middle, outer forces have no defaults.
+The rRESPA keywords enable you to specify at what level of the hierarchy
+various forces will be computed.  If not specified, the defaults are
+that bond forces are computed at level 1 (innermost loop), angle forces
+are computed where bond forces are, dihedral forces are computed where
+angle forces are, improper forces are computed where dihedral forces
+are, pair forces are computed at the outermost level, and kspace forces
+are computed where pair forces are.  The inner, middle, outer forces
+have no defaults.
 
 For fixes that support it, the rRESPA level at which a given fix is
-active, can be selected through the :doc:`fix_modify <fix_modify>` command.
+active, can be selected through the :doc:`fix_modify <fix_modify>`
+command.
 
-The *inner* and *middle* keywords take additional arguments for
-cutoffs that are used by the pairwise force computations.  If the 2
-cutoffs for *inner* are 5.0 and 6.0, this means that all pairs up to
-6.0 apart are computed by the inner force.  Those between 5.0 and 6.0
-have their force go ramped to 0.0 so the overlap with the next regime
-(middle or outer) is smooth.  The next regime (middle or outer) will
-compute forces for all pairs from 5.0 outward, with those from 5.0 to
-6.0 having their value ramped in an inverse manner.
+The *inner* and *middle* keywords take additional arguments for cutoffs
+that are used by the pairwise force computations.  If the 2 cutoffs for
+*inner* are 5.0 and 6.0, this means that all pairs up to 6.0 apart are
+computed by the inner force.  Those between 5.0 and 6.0 have their force
+go ramped to 0.0 so the overlap with the next regime (middle or outer)
+is smooth.  The next regime (middle or outer) will compute forces for
+all pairs from 5.0 outward, with those from 5.0 to 6.0 having their
+value ramped in an inverse manner.
 
 Note that you can use *inner* and *outer* without using *middle* to
 split the pairwise computations into two portions instead of three.
-Unless you are using a very long pairwise cutoff, a 2-way split is
-often faster than a 3-way split, since it avoids too much duplicate
+Unless you are using a very long pairwise cutoff, a 2-way split is often
+faster than a 3-way split, since it avoids too much duplicate
 computation of pairwise interactions near the intermediate cutoffs.
 
-Also note that only a few pair potentials support the use of the
-*inner* and *middle* and *outer* keywords.  If not, only the *pair*
-keyword can be used with that pair style, meaning all pairwise forces
-are computed at the same rRESPA level.  See the doc pages for
-individual pair styles for details.
+Also note that only a few pair potentials support the use of the *inner*
+and *middle* and *outer* keywords.  If not, only the *pair* keyword can
+be used with that pair style, meaning all pairwise forces are computed
+at the same rRESPA level.  See the doc pages for individual pair styles
+for details.
 
 Another option for using pair potentials with rRESPA is with the
-*hybrid* keyword, which requires the use of the :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` command.  In this scenario, different
+*hybrid* keyword, which requires the use of the :doc:`pair_style hybrid
+or hybrid/overlay <pair_hybrid>` command.  In this scenario, different
 sub-styles of the hybrid pair style are evaluated at different rRESPA
-levels.  This can be useful, for example, to set different timesteps
-for hybrid coarse-grained/all-atom models.  The *hybrid* keyword
-requires as many level assignments as there are hybrid sub-styles,
-which assigns each sub-style to a rRESPA level, following their order
-of definition in the pair_style command. Since the *hybrid* keyword
-operates on pair style computations, it is mutually exclusive with
-either the *pair* or the *inner*\ /\ *middle*\ /\ *outer* keywords.
+levels.  This can be useful, for example, to set different timesteps for
+hybrid coarse-grained/all-atom models.  The *hybrid* keyword requires as
+many level assignments as there are hybrid sub-styles, which assigns
+each sub-style to a rRESPA level, following their order of definition in
+the pair_style command. Since the *hybrid* keyword operates on pair
+style computations, it is mutually exclusive with either the *pair* or
+the *inner*\ /\ *middle*\ /\ *outer* keywords.
 
 When using rRESPA (or for any MD simulation) care must be taken to
 choose a timestep size(s) that ensures the Hamiltonian for the chosen

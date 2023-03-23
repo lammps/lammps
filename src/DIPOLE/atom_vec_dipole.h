@@ -31,7 +31,7 @@ class AtomVecDipole : virtual public AtomVec {
   void grow_pointers() override;
   void data_atom_post(int) override;
 
- private:
+ protected:
   double **mu;
 };
 

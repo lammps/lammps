@@ -44,6 +44,7 @@ class MLIAPData : protected Pointers {
   int ndescriptors;        // number of descriptors
   int nparams;             // number of model parameters per element
   int nelements;           // number of elements
+  int gradgradflag;        // 1 for graddesc, 0 for gamma, -1 for pair style
 
   // data structures for grad-grad list (gamma)
 
@@ -84,7 +85,6 @@ class MLIAPData : protected Pointers {
   int nmax;
   class NeighList *list;    // LAMMPS neighbor list
   int *map;                 // map LAMMPS types to [0,nelements)
-  int gradgradflag;         // 1 for graddesc, 0 for gamma
 };
 
 }    // namespace LAMMPS_NS

@@ -49,7 +49,9 @@ pkgs = []
 # folder, and is not called 'MAKE' is a package 
 
 for d in pkgdirs:
-    pkg = dirs.match(d).group(1)
+    match = dirs.match(d)
+    if not match: continue
+    pkg = match.group(1)
     if not os.path.isdir(os.path.join(src_dir, pkg)): continue
     if pkg in ['DEPEND','MAKE','STUBS']: continue
     pkgs.append(pkg)

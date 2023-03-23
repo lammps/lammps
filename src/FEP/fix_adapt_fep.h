@@ -46,7 +46,7 @@ class FixAdaptFEP : public Fix {
   int anypair;
   int nlevels_respa;
   char *id_fix_diam, *id_fix_chg;
-  class FixStorePeratom *fix_diam, *fix_chg;
+  class FixStoreAtom *fix_diam, *fix_chg;
 
   struct Adapt {
     int which, ivar;

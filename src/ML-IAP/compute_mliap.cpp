@@ -55,7 +55,7 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
 
   // default values
 
-  gradgradflag = 1;
+  int gradgradflag = 1;
 
   // set flags for required keywords
 
@@ -230,7 +230,7 @@ void ComputeMLIAP::compute_array()
 
   descriptor->compute_descriptors(data);
 
-  if (gradgradflag == 1) {
+  if (data->gradgradflag == 1) {
 
     // calculate double gradient w.r.t. parameters and descriptors
 
@@ -240,7 +240,7 @@ void ComputeMLIAP::compute_array()
 
     descriptor->compute_force_gradients(data);
 
-  } else if (gradgradflag == 0) {
+  } else if (data->gradgradflag == 0) {
 
     // calculate descriptor gradients
 

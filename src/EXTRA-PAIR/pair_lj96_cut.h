@@ -41,6 +41,7 @@ class PairLJ96Cut : public Pair {
   void write_data(FILE *) override;
   void write_data_all(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
+  void born_matrix(int, int, int, int, double, double, double, double &, double &) override;
 
   void compute_inner() override;
   void compute_middle() override;

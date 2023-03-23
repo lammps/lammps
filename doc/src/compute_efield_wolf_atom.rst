@@ -32,7 +32,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 8Feb2023
 
 Define a computation that approximates the electric field at each atom in a group.
 

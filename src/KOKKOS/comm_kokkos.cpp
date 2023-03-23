@@ -147,44 +147,6 @@ void CommKokkos::init()
 
   if (ghost_velocity && atomKK->avecKK->no_comm_vel_flag) // not all Kokkos atom_vec styles have comm vel pack/unpack routines yet
     forward_comm_classic = true;
-
-  if (!exchange_comm_classic) {
-    if (atom->nextra_grow) {
-
-      // check if all fixes with atom-based arrays support exchange on device
-
-      bool flag = true;
-      for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-        auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
-        if (!fix_iextra->exchange_comm_device) {
-          flag = false;
-          break;
-        }
-
-        if (!atomKK->avecKK->unpack_exchange_indices_flag || !flag) {
-          if (comm->me == 0) {
-            if (!atomKK->avecKK->unpack_exchange_indices_flag)
-              error->warning(FLERR,"Atom style not compatible with fix sending data in Kokkos communication, "
-                             "switching to classic exchange/border communication");
-            else if (!flag)
-              error->warning(FLERR,"Fix with atom-based arrays not compatible with sending data in Kokkos communication, "
-                             "switching to classic exchange/border communication");
-          }
-          exchange_comm_classic = true;
-        }
-      }
-
-      if (atom->nextra_border || mode != Comm::SINGLE || bordergroup ||
-           (ghost_velocity && atomKK->avecKK->no_border_vel_flag)) {
-
-        if (comm->me == 0) {
-          error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "
-                        "switching to classic exchange/border communication");
-        }
-        exchange_comm_classic = true;
-      }
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -680,6 +642,37 @@ void CommKokkos::reverse_comm(Dump *dump)
 void CommKokkos::exchange()
 {
   if (!exchange_comm_classic) {
+    if (atom->nextra_grow) {
+
+      // check if all fixes with atom-based arrays support exchange on device
+
+      int flag = 1;
+      for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+        auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+        if (!fix_iextra->exchange_comm_device) {
+          flag = 0;
+          break;
+        }
+      }
+
+      if (!atomKK->avecKK->unpack_exchange_indices_flag || !flag) {
+        if (!atomKK->avecKK->unpack_exchange_indices_flag) {
+          if (comm->me == 0) {
+            error->warning(FLERR,"Atom style not compatible with fix sending data in Kokkos communication, "
+                           "switching to classic exchange/border communication");
+          }
+        } else if (!flag) {
+          if (comm->me == 0) {
+            error->warning(FLERR,"Fix with atom-based arrays not compatible with sending data in Kokkos communication, "
+                           "switching to classic exchange/border communication");
+          }
+        }
+        exchange_comm_classic = true;
+      }
+    }
+  }
+
+  if (!exchange_comm_classic) {
     if (exchange_comm_on_host) exchange_device<LMPHostType>();
     else exchange_device<LMPDeviceType>();
     return;
@@ -807,13 +800,14 @@ void CommKokkos::exchange_device()
       k_exchange_sendlist.sync<LMPHostType>();
 
       // when atom is deleted, fill it in with last atom
-
+ 
       int sendpos = count-1;
       int icopy = nlocal-1;
       nlocal -= count;
       for (int recvpos = 0; recvpos < count; recvpos++) {
         int irecv = k_exchange_sendlist.h_view(recvpos);
         if (irecv < nlocal) {
+          if (icopy == k_exchange_sendlist.h_view(sendpos)) icopy--;
           while (sendpos > 0 && icopy <= k_exchange_sendlist.h_view(sendpos-1)) {
             sendpos--;
             icopy = k_exchange_sendlist.h_view(sendpos) - 1;
@@ -972,6 +966,19 @@ void CommKokkos::exchange_device()
 
 void CommKokkos::borders()
 {
+  if (!exchange_comm_classic) {
+
+    if (atom->nextra_border || mode != Comm::SINGLE || bordergroup ||
+         (ghost_velocity && atomKK->avecKK->no_border_vel_flag)) {
+
+      if (comm->me == 0) {
+        error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "
+                      "switching to classic exchange/border communication");
+      }
+      exchange_comm_classic = true;
+    }
+  }
+
   if (!exchange_comm_classic) {
     if (exchange_comm_on_host) borders_device<LMPHostType>();
     else borders_device<LMPDeviceType>();

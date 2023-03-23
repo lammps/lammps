@@ -3,7 +3,7 @@ MolSSI MDI library for coupling codes together and communicating
 between them with MDI messages.
 
 There are more examples of using LAMMPS with quantum codes via MDI in
-the examples/QM directory.
+the examples/QUANTUM directory.
 
 Within the MDI context, one code is the driver and another code is the
 engine.  The 2 codes can be written in any language; C++ (LAMMPS) and
@@ -21,14 +21,14 @@ processors.
 LAMMPS supports operating in all these MDI modes.  It can be an engine
 operating either as a stand-alone code or as a plugin.  It can also be
 a driver and couple to an engine that is either a stand-alone code or
-a plugin.  
+a plugin.
 
 Examples for all these use cases, using LAMMPS as a driver and as an
 engine are in this directory.  The Run.sh file shows how run in all
 the modes.  Type "sh Run.sh" to try them all out.
 
-Examples for using LAMMPS as a driver with the tight-binding code
-LATTE are in the examples/QM/LATTE sub-directory.  See its README file
+Examples for using LAMMPS as a driver with the tight-binding code LATTE
+are in the examples/QUANTUM/LATTE sub-directory.  See its README file
 for more info.
 
 -------------------------------------------------
@@ -67,15 +67,14 @@ static library, while Python requires a shared library.
 
 Instead you can install MDI in your Python via conda:
 
-% conda install -c conda-forge pymdi=1.4.1
+% conda install -c conda-forge pymdi=1.4.16
 
 or via pip:
 
-% pip install pymdi==1.4.1
+% pip install 'pymdi>=1.4.14'
 
 It is likely fine to leave off the version number, to get the latest
-MDI version.  But to be safe, 1.4.1 is the version LAMMPS is currently
-using.
+MDI version.  1.4.16 is the version LAMMPS is currently using.
 
 -------------------------------------------------
 

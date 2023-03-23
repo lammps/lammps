@@ -957,6 +957,7 @@ void LAMMPS::destroy()
 #if defined(LMP_PLUGIN)
   plugin_clear(this);
 #endif
+
   delete update;
   update = nullptr;
 

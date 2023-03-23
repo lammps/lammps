@@ -95,6 +95,16 @@ static const char cite_neigh_multi[] =
   "          Detection Applied to Investigate the Quasi-Static Limit},\n"
   " journal = {Computational Particle Mechanics},\n"
   " year = {2020}\n"
+  "@article{Monti2022,\n"
+  " author = {Monti, Joseph M. and Clemmer, Joel T. and Srivastava, \n"
+  "           Ishan and Silbert, Leonardo E. and Grest, Gary S. \n"
+  "           and Lechman, Jeremy B.},\n"
+  " title = {Large-scale frictionless jamming with power-law particle \n"
+  "          size distributions},\n"
+  " journal = {Phys. Rev. E},\n"
+  " volume = {106}\n"
+  " issue = {3}\n"
+  " year = {2022}\n"
   "}\n\n";
 
 // template for factory functions:

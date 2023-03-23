@@ -245,7 +245,7 @@ void ComputeVoronoi::buildCells()
 
   // in the onlyGroup mode we are not setting values for all atoms later in the voro loop
   // initialize everything to zero here
-  
+
   if (onlyGroup) {
     if (surface == VOROSURF_NONE)
       for (i = 0; i < nlocal; i++) voro[i][0] = voro[i][1] = 0.0;
@@ -260,11 +260,11 @@ void ComputeVoronoi::buildCells()
   double **x = atom->x;
 
   // setup bounds for each processor's Voro++ domain
-  
+
   // triclinic box
   // embed parallelepiped into orthogonal voro++ domain
   // cutghost is in lamda coordinates for triclinic boxes, use sub*_lamda
-  
+
   if (domain->triclinic) {
     double *h = domain->h;
 
@@ -285,7 +285,7 @@ void ComputeVoronoi::buildCells()
     domain->bbox(sublo_bound_lamda,subhi_bound_lamda,sublo_bound,subhi_bound);
 
   // orthogonal box
-    
+
   } else {
     for (i=0; i<3; ++i) {
       sublo_bound[i] = sublo[i]-cut[i] - EPS;
@@ -302,7 +302,7 @@ void ComputeVoronoi::buildCells()
   }
 
   // n = # of voro++ spatial hash cells (with approximately cubic cells)
-  
+
   int nall = nlocal + atom->nghost;
   double n[3], V;
   for (i=0; i<3; ++i) n[i] = subhi_bound[i] - sublo_bound[i];
@@ -313,25 +313,25 @@ void ComputeVoronoi::buildCells()
   }
 
   // clear edge statistics
-  
+
   if (maxedge > 0)
     for (i = 0; i <= maxedge; ++i) edge[i]=0;
 
   // initialize voro++ container
   // preallocates 8 atoms per cell
   // Voro++ allocates more memory if needed
-  
+
   int *mask = atom->mask;
   if (radstr) {
-    
+
     // check and fetch atom style variable data
-    
+
     int radvar = input->variable->find(radstr);
     if (radvar < 0)
       error->all(FLERR,"Variable name for voronoi radius does not exist");
     if (!input->variable->atomstyle(radvar))
       error->all(FLERR,"Variable for voronoi radius is not atom style");
-    
+
     // prepare destination buffer for variable evaluation
 
     if (atom->nmax > rmax) {
@@ -345,11 +345,11 @@ void ComputeVoronoi::buildCells()
     input->variable->compute_atom(radvar,0,rfield,1,0);
 
     // communicate values to ghost atoms of neighboring nodes
-    
+
     comm->forward_comm(this);
 
     // polydisperse Voro++ container
-    
+
     delete con_poly;
     con_poly = new container_poly(sublo_bound[0],
                                   subhi_bound[0],
@@ -361,7 +361,7 @@ void ComputeVoronoi::buildCells()
                                   false,false,false,8);
 
     // pass coordinates for local and ghost atoms to Voro++
-    
+
     for (i = 0; i < nall; i++) {
       if (!onlyGroup || (mask[i] & groupbit))
         con_poly->put(i,x[i][0],x[i][1],x[i][2],rfield[i]);
@@ -382,7 +382,7 @@ void ComputeVoronoi::buildCells()
                              false,false,false,8);
 
     // pass coordinates for local and ghost atoms to Voro++
-    
+
     for (i = 0; i < nall; i++)
       if (!onlyGroup || (mask[i] & groupbit))
         con_mono->put(i,x[i][0],x[i][1],x[i][2]);

@@ -903,7 +903,7 @@ int AtomVecMolecularKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfl
   // 1 num_dihedral, dihedral_per_atom dihedral_type, 4*dihedral_per_atom
   // 1 num_improper, 5*improper_per_atom
   // 1 to store buffer length
-  
+
   size_exchange = 19+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
 

@@ -1328,10 +1328,10 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 
             int jh = j;
             if (neigh_list.history && rsq < radsum*radsum)
-              jh = jh ^ mask_history; 
-              
+              jh = jh ^ mask_history;
+
             if (molecular != Atom::ATOMIC) {
-              int which = 0; 
+              int which = 0;
               if (!moltemplate)
                 which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
               /* else if (imol >= 0) */
@@ -1345,15 +1345,15 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
               } else if (minimum_image_check(delx,dely,delz)) {
                 if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
                 else n++;
-              } 
+              }
               else if (which > 0) {
                 if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
                 else n++;
-              } 
+              }
             } else {
               if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
               else n++;
-            } 
+            }
           }
           else n++;
         }
@@ -1417,10 +1417,10 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 
               int jh = j;
               if (neigh_list.history && rsq < radsum*radsum)
-                jh = jh ^ mask_history; 
-                
+                jh = jh ^ mask_history;
+
               if (molecular != Atom::ATOMIC) {
-                int which = 0; 
+                int which = 0;
                 if (!moltemplate)
                   which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
                 /* else if (imol >= 0) */
@@ -1434,15 +1434,15 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
                 } else if (minimum_image_check(delx,dely,delz)) {
                   if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
                   else n++;
-                } 
+                }
                 else if (which > 0) {
                   if (n < neigh_list.maxneighs) neighbors_i(n++) = jh ^ (which << SBBITS);
                   else n++;
-                } 
+                }
               } else {
                 if (n < neigh_list.maxneighs) neighbors_i(n++) = jh;
                 else n++;
-              } 
+              }
             }
             else n++;
           }

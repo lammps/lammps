@@ -426,7 +426,7 @@ int AtomVecBondKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2
   // 3 comp of x, 3 comp of v, 1 tag, 1 type, 1 mask, 1 image, 1 molecule, 3 nspecial,
   // maxspecial special, 1 num_bond, bond_per_atom bond_type, bond_per_atom bond_atom,
   // 1 to store buffer length
-    
+
   size_exchange = 16+atomKK->maxspecial+atomKK->bond_per_atom+atomKK->bond_per_atom;
 
   if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*

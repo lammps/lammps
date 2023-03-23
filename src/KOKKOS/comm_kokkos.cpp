@@ -800,7 +800,7 @@ void CommKokkos::exchange_device()
       k_exchange_sendlist.sync<LMPHostType>();
 
       // when atom is deleted, fill it in with last atom
- 
+
       int sendpos = count-1;
       int icopy = nlocal-1;
       nlocal -= count;
@@ -873,7 +873,7 @@ void CommKokkos::exchange_device()
               MemoryKokkos::realloc_kokkos(k_indices,"comm:indices",nrecv/data_size);
           } else if (k_indices.h_view.data())
            k_indices = DAT::tdual_int_1d();
-         
+
 
           atom->nlocal = atomKK->avecKK->
             unpack_exchange_kokkos(k_buf_recv,nrecv,atom->nlocal,dim,lo,hi,

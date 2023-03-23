@@ -1548,7 +1548,7 @@ void FixShakeKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offs
       d_buf[m++] = d_shake_type(i,2);
     }
     if (mysend == nsend-1) d_count() = m;
-    offset = m - nsend; 
+    offset = m - nsend;
 
     const int j = d_copylist(mysend);
     if (j > -1) {

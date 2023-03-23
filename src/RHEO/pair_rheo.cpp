@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
+#include "fix_rheo_pressure.h"
 #include "force.h"
 #include "math_extra.h"
 #include "memory.h"
@@ -41,7 +42,7 @@ using namespace MathExtra;
 
 PairRHEO::PairRHEO(LAMMPS *lmp) :
   Pair(lmp), compute_kernel(nullptr), compute_grad(nullptr),
-  compute_interface(nullptr), fix_rheo(nullptr)
+  compute_interface(nullptr), fix_rheo(nullptr), fix_rheo_pressure(nullptr)
 {
   restartinfo = 0;
   single_enable = 0;
@@ -67,6 +68,7 @@ void PairRHEO::compute(int eflag, int vflag)
 {
   int i, j, a, b, ii, jj, inum, jnum, itype, jtype;
   int pair_force_flag, pair_rho_flag, pair_avisc_flag;
+  int fluidi, fluidj;
   double xtmp, ytmp, ztmp, w, wp, Ti, Tj, dT;
   double rhoi, rhoj, voli, volj, Pi, Pj, etai, etaj, kappai, kappaj;
   double mu, q, fp_prefactor, drho_damp, fmag, psi_ij, Fij;
@@ -84,15 +86,16 @@ void PairRHEO::compute(int eflag, int vflag)
   double **v = atom->v;
   double **x = atom->x;
   double **f = atom->f;
-  double **fp = atom->fp; // rewrite later
+  double **f_pressure = fix_rheo->f_pressure; // rewrite later
   double *pressure = atom->pressure; // rewrite later
   double *rho = atom->rho;
   double *mass = atom->mass;
   double *drho = atom->drho;
-  double *temp = atom->temp;
-  double *heat = atom->heat;
+  double *temperature = atom->temperature;
+  double *heatflow = atom->heatflow;
   double *special_lj = force->special_lj;
   tagint *tag = atom->tag;
+  int *chi = compute_interface->chi;
   int *type = atom->type;
   int *status = atom->status;
 
@@ -108,6 +111,7 @@ void PairRHEO::compute(int eflag, int vflag)
     conductivity = atom->dvector[index_cond];
   }
 
+  int *ilist, *jlist, *numneigh, **firstneigh;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
   int dim = domain->dimension;
@@ -129,14 +133,14 @@ void PairRHEO::compute(int eflag, int vflag)
     jnum = numneigh[i];
     imass = mass[itype];
     etai = viscosity[i];
+    fluidi = status[i] & FixRHEO::STATUS_FLUID;
     if (thermal_flag) {
       kappai = conductivity[i];
-      Ti = temp[i];
+      Ti = temperature[i];
     }
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       dx[0] = xtmp - x[j][0];
@@ -145,24 +149,25 @@ void PairRHEO::compute(int eflag, int vflag)
       rsq = lensq3(dx);
       jtype = type[j];
 
-      if (rsq < cutsq[itype][jtype]) {
+      if (rsq < hsq) {
         r = sqrt(rsq);
         rinv = 1 / r;
 
         jmass = mass[jtype];
         etaj = viscosity[j];
+        fluidj = status[j] & FixRHEO::STATUS_FLUID;
         if (thermal_flag) {
-          Tj = temp[j];
+          Tj = temperature[j];
           kappaj = conductivity[j];
         }
 
         pair_rho_flag = 0;
         pair_force_flag = 0;
         pair_avisc_flag = 0;
-        if (status[i] <= FixRHEO::FLUID_MAX || status[j] <= FixRHEO::FLUID_MAX) {
+        if (fluidi || fluidj) {
           pair_force_flag = 1;
         }
-        if (status[i] <= FixRHEO::FLUID_MAX && status[j] <= FixRHEO::FLUID_MAX) {
+        if (fluidi && fluidj) {
           pair_avisc_flag = 1;
           pair_rho_flag = 1;
         }
@@ -171,10 +176,9 @@ void PairRHEO::compute(int eflag, int vflag)
         dWij = compute_kernel->dWij;
         dWji = compute_kernel->dWji;
 
-        for (a = 0; a < dim; a ++) {
+        for (a = 0; a < dim; a++) {
           vi[a] = v[i][a];
           vj[a] = v[j][a];
-          fsolid[a] = 0.0;
         }
 
         // Add corrections for walls
@@ -182,48 +186,46 @@ void PairRHEO::compute(int eflag, int vflag)
         rhoj = rho[j];
         Pi = pressure[i];
         Pj = pressure[j];
-        if ((status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
+        fmag = 0;
+        if (fluidi && (!fluidj)) {
           compute_interface->correct_v(vi, vj, i, j);
           rhoj = compute_interface->correct_rho(j, i);
-          Pj = calc_pressure(rhoj, jtype);
+          Pj = fix_rheo_pressure->calculate_p(rhoj);
 
-          // Repel if close to inner solid particle
-          if (compute_interface->chi[j] > 0.9 && r < (h * 0.5)) {
-            fmag = (compute_interface->chi[j] - 0.9) * (h * 0.5 - r);
-            fmag *= rho0 * csq * h * ir;
-            scale3(fmag, dx, fsolid);
-          }
-        } else if (!(status[i] & STATUS_FLUID) && (status[j] & STATUS_FLUID)) {
+          if ((chi[j] > 0.9) && (r < (h * 0.5)))
+            fmag = (chi[j] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
+
+        } else if ((!fluidi) && fluidj) {
           compute_interface->correct_v(vj, vi, j, i);
           rhoi = compute_interface->correct_rho(i, j);
           Pi = calc_pressure(rhoi, itype);
 
-          // Repel if close to inner solid particle
-          if (compute_interface->chi[i] > 0.9 && r < (h * 0.5)) {
-            fmag = (compute_interface->chi[i] - 0.9) * (h * 0.5 - r);
-            fmag *= rho0 * csq * h * ir;
-            scale3(fmag, dx, fsolid);
-          }
-        } else if (!(status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
+          if (chi[i] > 0.9 && r < (h * 0.5)) {
+            fmag = (chi[i] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
+
+        } else if ((!fluidi) && (!fluidj)) {
           rhoi = 1.0;
           rhoj = 1.0;
         }
 
-        // Compute volume and pressure after reconstructing
+        // Repel if close to inner solid particle
+        scale3(fmag, dx, fsolid);
+
+        // Compute volume after reconstructing
         voli = imass / rhoi;
         volj = jmass / rhoj;
 
-        //Thermal Evolution
+        // Thermal Evolution
         if (thermal_flag) {
           dT = dot3(dx, dWij);
           dT *= (kappai + kappaj) * (Ti - Tj) * rinv * rinv * voli * volj;
-          //Assumes heat capacity and density = 1, needs to be generalized
-          heat[i] += dT;
+          //TODO: Assumes heat capacity and density = 1, needs to be generalized
+          heatflow[i] += dT;
 
           if (newton_pair || j < nlocal) {
             dT = dot3(dx, dWji);
             dT *= (kappai + kappaj) * (Tj - Ti) * rinv * rinv * voli * volj;
-            heat[j] -= dT;
+            heatflow[j] -= dT;
           }
         }
 
@@ -242,7 +244,7 @@ void PairRHEO::compute(int eflag, int vflag)
                 du[a] -= 0.5 * (gradv[i][a * dim + b] + gradv[j][a * dim + b]) * dx[b];
 
             mu = dot3(du, dx) * hinv3;
-            mu = mu / (rsq * hinv3 * hinv3 + EPSILON);
+            mu /= (rsq * hinv3 * hinv3 + EPSILON);
             mu = MIN(0.0, mu);
             q = av * (-2.0 * cs * mu + mu * mu);
             fp_prefactor += voli * volj * q * (rhoj + rhoi);
@@ -403,8 +405,12 @@ void PairRHEO::coeff(int narg, char **arg)
 void PairRHEO::setup()
 {
   auto fixes = modify->get_fix_by_style("rheo");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use pair rheo");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
+
+  fixes = modify->get_fix_by_style("rheo/pressure");
+  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo/pressure to use pair rheo");
+  fix_rheo_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
 
   compute_kernel = fix_rheo->compute_kernel;
   compute_grad = fix_rheo->compute_grad;

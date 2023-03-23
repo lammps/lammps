@@ -132,7 +132,7 @@ FixRHEO::~FixRHEO()
 
 void FixRHEO::post_constructor()
 {
-  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute(fmt::format("rheo_kernel all rheo/kernel {} {} {}", kernel_style, zmin_kernel, h)));
+  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute("rheo_kernel all rheo/kernel"));
 
   fix_store_visc = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_visc all STORE/PERATOM 0 1"))
   fix_store_visc->disable = 1;
@@ -142,16 +142,18 @@ void FixRHEO::post_constructor()
   fix_store_pres->disable = 1;
 
 
-  std::string cmd = "rheo_grad all rheo/grad {} velocity rho viscosity";
+  std::string cmd = "rheo_grad all rheo/grad velocity rho viscosity";
   if (thermal_flag) cmd += "temperature";
-  compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(fmt::format(cmd, h)));
+  compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(cmd));
   compute_grad->fix_rheo = this;
 
   if (rhosum_flag)
-    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute(fmt::format("rheo_rhosum all rheo/rho/sum {} {}", h, zmin_rhosum)));
+    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute("rheo_rhosum all rheo/rho/sum"));
 
-  if (shift_flag)
-    compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute(fmt::format("rheo_vshift all rheo/vshift {}", h)));
+  if (shift_flag) {
+    compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute("rheo_vshift all rheo/vshift"));
+    compute_vshift->fix_rheo = this;
+  }
 
   if (surface_flag) {
     fix_store_surf = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_surf all STORE/PERATOM 0 1"))
@@ -166,7 +168,7 @@ void FixRHEO::post_constructor()
   }
 
   if (interface_flag) {
-    compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all rheo/interface {}", h)));
+    compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all rheo/interface")));
 
     fix_store_fp = dynamic_cast<FixStorePeratom *>(modify->add_fix("rheo_store_fp all STORE/PERATOM 0 3"))
     f_pressure = fix_store_fp->astore;
@@ -212,7 +214,7 @@ void FixRHEO::setup_pre_force(int /*vflag*/)
 
 void FixRHEO::setup()
 {
-  // Confirm all accessory fixes are defined, may not cover group all
+  // Confirm all accessory fixes are defined
   // Note: these fixes set this flag in setup_pre_force()
   if (!viscosity_fix_defined)
     error->all(FLERR, "Missing fix rheo/viscosity");
@@ -231,6 +233,33 @@ void FixRHEO::setup()
   viscosity_fix_defined = 0;
   pressure_fix_defined = 0;
   surface_fix_defined = 0;
+
+  // Check fixes cover all atoms (doesnt ensure user covers atoms created midrun)
+  // (pressure is currently required to be group all)
+  auto visc_fixes = modify->get_fix_by_style("rheo/viscosity");
+  auto therm_fixes = modify->get_fix_by_style("rheo/thermal");
+
+  int *mask = atom->mask;
+  int v_coverage_flag = 1;
+  int t_coverage_flag = 1;
+  int covered;
+  for (int i = 0; i < atom->nlocal; i++) {
+    covered = 0;
+    for (auto fix in visc_fixes)
+      if (mask[i] & fix->groupbit) covered = 1;
+    if (!covered) v_coverage_flag = 0;
+    if (thermal_flag) {
+      covered = 0;
+      for (auto fix in therm_fixes)
+        if (mask[i] & fix->groupbit) covered = 1;
+      if (!covered) v_coverage_flag = 0;
+    }
+  }
+
+  if (!v_coverage_flag)
+    error->one(FLERR, "Fix rheo/viscosity does not fully cover all atoms");
+  if (!t_coverage_flag)
+    error->one(FLERR, "Fix rheo/thermal does not fully cover all atoms");
 }
 
 /* ---------------------------------------------------------------------- */

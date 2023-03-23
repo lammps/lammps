@@ -39,7 +39,7 @@ ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal compute rheo/grad command");
 
   velocity_flag = temperature_flag = rho_flag = eta_flag = 0;
-  for (int iarg = 3; iarg < narg; iarg ++) {
+  for (int iarg = 3; iarg < narg; iarg++) {
     if (strcmp(arg[iarg],"velocity") == 0) velocity_flag = 1;
     else if (strcmp(arg[iarg],"rho") == 0) rho_flag = 1;
     else if (strcmp(arg[iarg],"temperature") == 0) temperature_flag = 1;

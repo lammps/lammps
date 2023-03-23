@@ -11,45 +11,44 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
+#ifdef COMPUTE_CLASS
 // clang-format off
-PairStyle(rheo,PairRHEO)
+ComputeStyle(rheo/vshift,ComputeRHEOVShift)
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_RHEO_H
-#define LMP_PAIR_RHEO_H
+#ifndef LMP_COMPUTE_RHEO_VSHIFT_H
+#define LMP_COMPUTE_RHEO_VSHIFT_H
 
-#include "pair.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
 
-class PairRHEO : public Pair {
+class ComputeRHEOVShift : public Compute {
  public:
-  PairRHEO(class LAMMPS *);
-  ~PairRHEO() override;
-  void compute(int, int) override;
-  void settings(int, char **) override;
-  void coeff(int, char **) override;
-  void setup() override;
-  double init_one(int, int) override;
+  ComputeRHEOVShift(class LAMMPS *, int, char **);
+  ~ComputeRHEOVShift() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
+  void correct_surfaces();
 
- protected:
-  double h, csq, rho0;        // From fix RHEO
-  double cs, hsq, hinv, hinv3, av, rho_damp;
+ private:
+  int nmax;
+  double dtv, cut, cutsq, cutthird;
+  int surface_flag;
 
-  int laplacian_order;
-  int artificial_visc_flag;
-  int rho_damp_flag;
-  int thermal_flag;
+  double **vshift;
 
-  void allocate();
-
+  class NeighList *list;
+  class FixRHEO *fix_rheo;
+  class FixRHEOSurface *fix_rheo_surface;
+  class ComputeRHEOInterface *compute_interface ;
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOGrad *compute_grad;
-  class ComputeRHEOInterface *compute_interface;
-  class FixRHEO *fix_rheo;
-  class FixRHEOPressure *fix_rheo_pressure;
 };
 
 }    // namespace LAMMPS_NS

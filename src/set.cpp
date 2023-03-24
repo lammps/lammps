@@ -760,7 +760,7 @@ void Set::selection(int n)
       else select[i] = 0;
 
   } else if (style == TYPE_SELECT) {
-    char *typestr = utils::expand_type(FLERR, id, Atom::ATOM, lmp);
+    char *typestr = utils::expand_type(FLERR,id,Atom::ATOM,lmp);
     if (typestr) id = typestr;
     utils::bounds(FLERR,id,1,atom->ntypes,nlo,nhi,error);
 

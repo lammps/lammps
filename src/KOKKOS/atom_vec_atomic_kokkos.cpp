@@ -384,10 +384,9 @@ struct AtomVecAtomicKokkos_UnpackExchangeFunctor {
       _indices(indices.template view<DeviceType>()),
       _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
       _lo(lo),_hi(hi) {
-    const size_t elements = _size_exchange;
-    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/_size_exchange;
-
-    buffer_view<DeviceType>(_buf,buf,maxsendlist,elements);
+        const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
+                                 buf.template view<DeviceType>().extent(1))/_size_exchange;
+        buffer_view<DeviceType>(_buf,buf,maxsendlist,_size_exchange);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -423,11 +422,13 @@ int AtomVecAtomicKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int
   if (space == Host) {
     if (k_indices.h_view.data()) {
       k_count.h_view(0) = nlocal;
-      AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPHostType,1> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPHostType,1>
+        f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/size_exchange,f);
     } else {
       k_count.h_view(0) = nlocal;
-      AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPHostType,0> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPHostType,0>
+        f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/size_exchange,f);
     }
   } else {
@@ -435,7 +436,8 @@ int AtomVecAtomicKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int
       k_count.h_view(0) = nlocal;
       k_count.modify<LMPHostType>();
       k_count.sync<LMPDeviceType>();
-      AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPDeviceType,1> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPDeviceType,1>
+        f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/size_exchange,f);
       k_count.modify<LMPDeviceType>();
       k_count.sync<LMPHostType>();
@@ -443,7 +445,8 @@ int AtomVecAtomicKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int
       k_count.h_view(0) = nlocal;
       k_count.modify<LMPHostType>();
       k_count.sync<LMPDeviceType>();
-      AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPDeviceType,0> f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      AtomVecAtomicKokkos_UnpackExchangeFunctor<LMPDeviceType,0>
+        f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
       Kokkos::parallel_for(nrecv/size_exchange,f);
       k_count.modify<LMPDeviceType>();
       k_count.sync<LMPHostType>();

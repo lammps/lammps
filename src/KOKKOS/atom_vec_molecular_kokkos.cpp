@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 AtomVecMolecularKokkos::AtomVecMolecularKokkos(LAMMPS *lmp) : AtomVec(lmp),
 AtomVecKokkos(lmp), AtomVecMolecular(lmp)
 {
-
+  unpack_exchange_indices_flag = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -717,70 +717,71 @@ struct AtomVecMolecularKokkos_PackExchangeFunctor {
   int _size_exchange;
 
   AtomVecMolecularKokkos_PackExchangeFunctor(
-      const AtomKokkos* atom,
-      const typename AT::tdual_xfloat_2d buf,
-      typename AT::tdual_int_1d sendlist,
-      typename AT::tdual_int_1d copylist):
-    _x(atom->k_x.view<DeviceType>()),
-    _v(atom->k_v.view<DeviceType>()),
-    _tag(atom->k_tag.view<DeviceType>()),
-    _type(atom->k_type.view<DeviceType>()),
-    _mask(atom->k_mask.view<DeviceType>()),
-    _image(atom->k_image.view<DeviceType>()),
-    _molecule(atom->k_molecule.view<DeviceType>()),
-    _nspecial(atom->k_nspecial.view<DeviceType>()),
-    _special(atom->k_special.view<DeviceType>()),
-    _num_bond(atom->k_num_bond.view<DeviceType>()),
-    _bond_type(atom->k_bond_type.view<DeviceType>()),
-    _bond_atom(atom->k_bond_atom.view<DeviceType>()),
-    _num_angle(atom->k_num_angle.view<DeviceType>()),
-    _angle_type(atom->k_angle_type.view<DeviceType>()),
-    _angle_atom1(atom->k_angle_atom1.view<DeviceType>()),
-    _angle_atom2(atom->k_angle_atom2.view<DeviceType>()),
-    _angle_atom3(atom->k_angle_atom3.view<DeviceType>()),
-    _num_dihedral(atom->k_num_dihedral.view<DeviceType>()),
-    _dihedral_type(atom->k_dihedral_type.view<DeviceType>()),
-    _dihedral_atom1(atom->k_dihedral_atom1.view<DeviceType>()),
-    _dihedral_atom2(atom->k_dihedral_atom2.view<DeviceType>()),
-    _dihedral_atom3(atom->k_dihedral_atom3.view<DeviceType>()),
-    _dihedral_atom4(atom->k_dihedral_atom4.view<DeviceType>()),
-    _num_improper(atom->k_num_improper.view<DeviceType>()),
-    _improper_type(atom->k_improper_type.view<DeviceType>()),
-    _improper_atom1(atom->k_improper_atom1.view<DeviceType>()),
-    _improper_atom2(atom->k_improper_atom2.view<DeviceType>()),
-    _improper_atom3(atom->k_improper_atom3.view<DeviceType>()),
-    _improper_atom4(atom->k_improper_atom4.view<DeviceType>()),
-    _xw(atom->k_x.view<DeviceType>()),
-    _vw(atom->k_v.view<DeviceType>()),
-    _tagw(atom->k_tag.view<DeviceType>()),
-    _typew(atom->k_type.view<DeviceType>()),
-    _maskw(atom->k_mask.view<DeviceType>()),
-    _imagew(atom->k_image.view<DeviceType>()),
-    _moleculew(atom->k_molecule.view<DeviceType>()),
-    _nspecialw(atom->k_nspecial.view<DeviceType>()),
-    _specialw(atom->k_special.view<DeviceType>()),
-    _num_bondw(atom->k_num_bond.view<DeviceType>()),
-    _bond_typew(atom->k_bond_type.view<DeviceType>()),
-    _bond_atomw(atom->k_bond_atom.view<DeviceType>()),
-    _num_anglew(atom->k_num_angle.view<DeviceType>()),
-    _angle_typew(atom->k_angle_type.view<DeviceType>()),
-    _angle_atom1w(atom->k_angle_atom1.view<DeviceType>()),
-    _angle_atom2w(atom->k_angle_atom2.view<DeviceType>()),
-    _angle_atom3w(atom->k_angle_atom3.view<DeviceType>()),
-    _num_dihedralw(atom->k_num_dihedral.view<DeviceType>()),
-    _dihedral_typew(atom->k_dihedral_type.view<DeviceType>()),
-    _dihedral_atom1w(atom->k_dihedral_atom1.view<DeviceType>()),
-    _dihedral_atom2w(atom->k_dihedral_atom2.view<DeviceType>()),
-    _dihedral_atom3w(atom->k_dihedral_atom3.view<DeviceType>()),
-    _dihedral_atom4w(atom->k_dihedral_atom4.view<DeviceType>()),
-    _num_improperw(atom->k_num_improper.view<DeviceType>()),
-    _improper_typew(atom->k_improper_type.view<DeviceType>()),
-    _improper_atom1w(atom->k_improper_atom1.view<DeviceType>()),
-    _improper_atom2w(atom->k_improper_atom2.view<DeviceType>()),
-    _improper_atom3w(atom->k_improper_atom3.view<DeviceType>()),
-    _improper_atom4w(atom->k_improper_atom4.view<DeviceType>()),
-    _sendlist(sendlist.template view<DeviceType>()),
-    _copylist(copylist.template view<DeviceType>()) {
+    const AtomKokkos* atom,
+    const typename AT::tdual_xfloat_2d buf,
+    typename AT::tdual_int_1d sendlist,
+    typename AT::tdual_int_1d copylist):
+      _size_exchange(atom->avecKK->size_exchange),
+      _x(atom->k_x.view<DeviceType>()),
+      _v(atom->k_v.view<DeviceType>()),
+      _tag(atom->k_tag.view<DeviceType>()),
+      _type(atom->k_type.view<DeviceType>()),
+      _mask(atom->k_mask.view<DeviceType>()),
+      _image(atom->k_image.view<DeviceType>()),
+      _molecule(atom->k_molecule.view<DeviceType>()),
+      _nspecial(atom->k_nspecial.view<DeviceType>()),
+      _special(atom->k_special.view<DeviceType>()),
+      _num_bond(atom->k_num_bond.view<DeviceType>()),
+      _bond_type(atom->k_bond_type.view<DeviceType>()),
+      _bond_atom(atom->k_bond_atom.view<DeviceType>()),
+      _num_angle(atom->k_num_angle.view<DeviceType>()),
+      _angle_type(atom->k_angle_type.view<DeviceType>()),
+      _angle_atom1(atom->k_angle_atom1.view<DeviceType>()),
+      _angle_atom2(atom->k_angle_atom2.view<DeviceType>()),
+      _angle_atom3(atom->k_angle_atom3.view<DeviceType>()),
+      _num_dihedral(atom->k_num_dihedral.view<DeviceType>()),
+      _dihedral_type(atom->k_dihedral_type.view<DeviceType>()),
+      _dihedral_atom1(atom->k_dihedral_atom1.view<DeviceType>()),
+      _dihedral_atom2(atom->k_dihedral_atom2.view<DeviceType>()),
+      _dihedral_atom3(atom->k_dihedral_atom3.view<DeviceType>()),
+      _dihedral_atom4(atom->k_dihedral_atom4.view<DeviceType>()),
+      _num_improper(atom->k_num_improper.view<DeviceType>()),
+      _improper_type(atom->k_improper_type.view<DeviceType>()),
+      _improper_atom1(atom->k_improper_atom1.view<DeviceType>()),
+      _improper_atom2(atom->k_improper_atom2.view<DeviceType>()),
+      _improper_atom3(atom->k_improper_atom3.view<DeviceType>()),
+      _improper_atom4(atom->k_improper_atom4.view<DeviceType>()),
+      _xw(atom->k_x.view<DeviceType>()),
+      _vw(atom->k_v.view<DeviceType>()),
+      _tagw(atom->k_tag.view<DeviceType>()),
+      _typew(atom->k_type.view<DeviceType>()),
+      _maskw(atom->k_mask.view<DeviceType>()),
+      _imagew(atom->k_image.view<DeviceType>()),
+      _moleculew(atom->k_molecule.view<DeviceType>()),
+      _nspecialw(atom->k_nspecial.view<DeviceType>()),
+      _specialw(atom->k_special.view<DeviceType>()),
+      _num_bondw(atom->k_num_bond.view<DeviceType>()),
+      _bond_typew(atom->k_bond_type.view<DeviceType>()),
+      _bond_atomw(atom->k_bond_atom.view<DeviceType>()),
+      _num_anglew(atom->k_num_angle.view<DeviceType>()),
+      _angle_typew(atom->k_angle_type.view<DeviceType>()),
+      _angle_atom1w(atom->k_angle_atom1.view<DeviceType>()),
+      _angle_atom2w(atom->k_angle_atom2.view<DeviceType>()),
+      _angle_atom3w(atom->k_angle_atom3.view<DeviceType>()),
+      _num_dihedralw(atom->k_num_dihedral.view<DeviceType>()),
+      _dihedral_typew(atom->k_dihedral_type.view<DeviceType>()),
+      _dihedral_atom1w(atom->k_dihedral_atom1.view<DeviceType>()),
+      _dihedral_atom2w(atom->k_dihedral_atom2.view<DeviceType>()),
+      _dihedral_atom3w(atom->k_dihedral_atom3.view<DeviceType>()),
+      _dihedral_atom4w(atom->k_dihedral_atom4.view<DeviceType>()),
+      _num_improperw(atom->k_num_improper.view<DeviceType>()),
+      _improper_typew(atom->k_improper_type.view<DeviceType>()),
+      _improper_atom1w(atom->k_improper_atom1.view<DeviceType>()),
+      _improper_atom2w(atom->k_improper_atom2.view<DeviceType>()),
+      _improper_atom3w(atom->k_improper_atom3.view<DeviceType>()),
+      _improper_atom4w(atom->k_improper_atom4.view<DeviceType>()),
+      _sendlist(sendlist.template view<DeviceType>()),
+      _copylist(copylist.template view<DeviceType>()) {
     const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
                              buf.template view<DeviceType>().extent(1))/_size_exchange;
     buffer_view<DeviceType>(_buf,buf,maxsendlist,_size_exchange);
@@ -927,7 +928,7 @@ int AtomVecMolecularKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfl
 
 /* ---------------------------------------------------------------------- */
 
-template<class DeviceType>
+template<class DeviceType,int OUTPUT_INDICES>
 struct AtomVecMolecularKokkos_UnpackExchangeFunctor {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -957,58 +958,61 @@ struct AtomVecMolecularKokkos_UnpackExchangeFunctor {
 
   typename AT::t_xfloat_2d_um _buf;
   typename AT::t_int_1d _nlocal;
+  typename AT::t_int_1d _indices;
   int _dim;
   X_FLOAT _lo,_hi;
   int _size_exchange;
 
   AtomVecMolecularKokkos_UnpackExchangeFunctor(
-      const AtomKokkos* atom,
-      const typename AT::tdual_xfloat_2d buf,
-      typename AT::tdual_int_1d nlocal,
-      int dim, X_FLOAT lo, X_FLOAT hi):
-    _size_exchange(atom->avecKK->size_exchange),
-    _x(atom->k_x.view<DeviceType>()),
-    _v(atom->k_v.view<DeviceType>()),
-    _tag(atom->k_tag.view<DeviceType>()),
-    _type(atom->k_type.view<DeviceType>()),
-    _mask(atom->k_mask.view<DeviceType>()),
-    _image(atom->k_image.view<DeviceType>()),
-    _molecule(atom->k_molecule.view<DeviceType>()),
-    _nspecial(atom->k_nspecial.view<DeviceType>()),
-    _special(atom->k_special.view<DeviceType>()),
-    _num_bond(atom->k_num_bond.view<DeviceType>()),
-    _bond_type(atom->k_bond_type.view<DeviceType>()),
-    _bond_atom(atom->k_bond_atom.view<DeviceType>()),
-    _num_angle(atom->k_num_angle.view<DeviceType>()),
-    _angle_type(atom->k_angle_type.view<DeviceType>()),
-    _angle_atom1(atom->k_angle_atom1.view<DeviceType>()),
-    _angle_atom2(atom->k_angle_atom2.view<DeviceType>()),
-    _angle_atom3(atom->k_angle_atom3.view<DeviceType>()),
-    _num_dihedral(atom->k_num_dihedral.view<DeviceType>()),
-    _dihedral_type(atom->k_dihedral_type.view<DeviceType>()),
-    _dihedral_atom1(atom->k_dihedral_atom1.view<DeviceType>()),
-    _dihedral_atom2(atom->k_dihedral_atom2.view<DeviceType>()),
-    _dihedral_atom3(atom->k_dihedral_atom3.view<DeviceType>()),
-    _dihedral_atom4(atom->k_dihedral_atom4.view<DeviceType>()),
-    _num_improper(atom->k_num_improper.view<DeviceType>()),
-    _improper_type(atom->k_improper_type.view<DeviceType>()),
-    _improper_atom1(atom->k_improper_atom1.view<DeviceType>()),
-    _improper_atom2(atom->k_improper_atom2.view<DeviceType>()),
-    _improper_atom3(atom->k_improper_atom3.view<DeviceType>()),
-    _improper_atom4(atom->k_improper_atom4.view<DeviceType>()),
-    _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
-    _lo(lo),_hi(hi) {
-
-    const int maxsendlist = (buf.template view<DeviceType>().extent(0)*buf.template view<DeviceType>().extent(1))/_size_exchange;
-
-    buffer_view<DeviceType>(_buf,buf,maxsendlist,_size_exchange);
+    const AtomKokkos* atom,
+    const typename AT::tdual_xfloat_2d buf,
+    typename AT::tdual_int_1d nlocal,
+    typename AT::tdual_int_1d indices,
+    int dim, X_FLOAT lo, X_FLOAT hi):
+      _size_exchange(atom->avecKK->size_exchange),
+      _x(atom->k_x.view<DeviceType>()),
+      _v(atom->k_v.view<DeviceType>()),
+      _tag(atom->k_tag.view<DeviceType>()),
+      _type(atom->k_type.view<DeviceType>()),
+      _mask(atom->k_mask.view<DeviceType>()),
+      _image(atom->k_image.view<DeviceType>()),
+      _molecule(atom->k_molecule.view<DeviceType>()),
+      _nspecial(atom->k_nspecial.view<DeviceType>()),
+      _special(atom->k_special.view<DeviceType>()),
+      _num_bond(atom->k_num_bond.view<DeviceType>()),
+      _bond_type(atom->k_bond_type.view<DeviceType>()),
+      _bond_atom(atom->k_bond_atom.view<DeviceType>()),
+      _num_angle(atom->k_num_angle.view<DeviceType>()),
+      _angle_type(atom->k_angle_type.view<DeviceType>()),
+      _angle_atom1(atom->k_angle_atom1.view<DeviceType>()),
+      _angle_atom2(atom->k_angle_atom2.view<DeviceType>()),
+      _angle_atom3(atom->k_angle_atom3.view<DeviceType>()),
+      _num_dihedral(atom->k_num_dihedral.view<DeviceType>()),
+      _dihedral_type(atom->k_dihedral_type.view<DeviceType>()),
+      _dihedral_atom1(atom->k_dihedral_atom1.view<DeviceType>()),
+      _dihedral_atom2(atom->k_dihedral_atom2.view<DeviceType>()),
+      _dihedral_atom3(atom->k_dihedral_atom3.view<DeviceType>()),
+      _dihedral_atom4(atom->k_dihedral_atom4.view<DeviceType>()),
+      _num_improper(atom->k_num_improper.view<DeviceType>()),
+      _improper_type(atom->k_improper_type.view<DeviceType>()),
+      _improper_atom1(atom->k_improper_atom1.view<DeviceType>()),
+      _improper_atom2(atom->k_improper_atom2.view<DeviceType>()),
+      _improper_atom3(atom->k_improper_atom3.view<DeviceType>()),
+      _improper_atom4(atom->k_improper_atom4.view<DeviceType>()),
+      _indices(indices.template view<DeviceType>()),
+      _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
+      _lo(lo),_hi(hi) {
+        const int maxsendlist = (buf.template view<DeviceType>().extent(0)*
+                                 buf.template view<DeviceType>().extent(1))/_size_exchange;
+        buffer_view<DeviceType>(_buf,buf,maxsendlist,_size_exchange);
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &myrecv) const {
     X_FLOAT x = _buf(myrecv,_dim+1);
+    int i = -1;
     if (x >= _lo && x < _hi) {
-      int i = Kokkos::atomic_fetch_add(&_nlocal(0),1);
+      i = Kokkos::atomic_fetch_add(&_nlocal(0),1);
       int m = 1;
       _x(i,0) = _buf(myrecv,m++);
       _x(i,1) = _buf(myrecv,m++);
@@ -1057,6 +1061,8 @@ struct AtomVecMolecularKokkos_UnpackExchangeFunctor {
       for (k = 0; k < _nspecial(i,2); k++)
         _special(i,k) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
     }
+    if (OUTPUT_INDICES)
+      _indices(myrecv) = i;
   }
 };
 
@@ -1068,23 +1074,40 @@ int AtomVecMolecularKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, 
   while (nlocal + nrecv/size_exchange >= nmax) grow(0);
 
   if (space == Host) {
-    k_count.h_view(0) = nlocal;
-    AtomVecMolecularKokkos_UnpackExchangeFunctor<LMPHostType>
-      f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/size_exchange,f);
-    return k_count.h_view(0);
+    if (k_indices.h_view.data()) {
+      k_count.h_view(0) = nlocal;
+      AtomVecMolecularKokkos_UnpackExchangeFunctor<LMPHostType,1>
+        f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      Kokkos::parallel_for(nrecv/size_exchange,f);
+    } else {
+      k_count.h_view(0) = nlocal;
+      AtomVecMolecularKokkos_UnpackExchangeFunctor<LMPHostType,0>
+        f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      Kokkos::parallel_for(nrecv/size_exchange,f);
+    }
   } else {
-    k_count.h_view(0) = nlocal;
-    k_count.modify<LMPHostType>();
-    k_count.sync<LMPDeviceType>();
-    AtomVecMolecularKokkos_UnpackExchangeFunctor<LMPDeviceType>
-      f(atomKK,k_buf,k_count,dim,lo,hi);
-    Kokkos::parallel_for(nrecv/size_exchange,f);
-    k_count.modify<LMPDeviceType>();
-    k_count.sync<LMPHostType>();
-
-    return k_count.h_view(0);
+    if (k_indices.h_view.data()) {
+      k_count.h_view(0) = nlocal;
+      k_count.modify<LMPHostType>();
+      k_count.sync<LMPDeviceType>();
+      AtomVecMolecularKokkos_UnpackExchangeFunctor<LMPDeviceType,1>
+        f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      Kokkos::parallel_for(nrecv/size_exchange,f);
+      k_count.modify<LMPDeviceType>();
+      k_count.sync<LMPHostType>();
+    } else {
+      k_count.h_view(0) = nlocal;
+      k_count.modify<LMPHostType>();
+      k_count.sync<LMPDeviceType>();
+      AtomVecMolecularKokkos_UnpackExchangeFunctor<LMPDeviceType,0>
+        f(atomKK,k_buf,k_count,k_indices,dim,lo,hi);
+      Kokkos::parallel_for(nrecv/size_exchange,f);
+      k_count.modify<LMPDeviceType>();
+      k_count.sync<LMPHostType>();
+    }
   }
+
+  return k_count.h_view(0);
 }
 
 /* ---------------------------------------------------------------------- */

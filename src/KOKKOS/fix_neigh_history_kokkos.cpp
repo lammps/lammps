@@ -114,12 +114,15 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
   k_partner.sync<DeviceType>();
   k_valuepartner.sync<DeviceType>();
 
+  // NOTE: all operations until very end are with nlocal_neigh <= current nlocal
+  // because previous neigh list was built with nlocal_neigh
+  // nlocal can be larger if other fixes added atoms at this pre_exchange()
+
   int inum = pair->list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(pair->list);
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
-  nlocal = atom->nlocal;
 
   h_resize() = 1;
 
@@ -169,7 +172,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPreExchange
       } else {
         d_resize() = 1;
       }
-      if (j < nlocal) {
+      if (j < nlocal_neigh) {
         m = Kokkos::atomic_fetch_add(&d_npartner[j],1);
         if (m < maxpartner) {
           d_partner(j,m) = tag[i];
@@ -206,7 +209,10 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 
   // store atom counts used for new neighbor list which was just built
 
-  nlocal = atom->nlocal;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+  nlocal_neigh = nlocal;
+  nall_neigh = nall;
 
   beyond_contact = pair->beyond_contact;
 

@@ -112,8 +112,7 @@ representation, and also provides a barostat to sample the NPH/NPT ensembles.
 .. note::
 
    Both these *fix* styles implement a complete velocity-verlet integrator
-   combined with a thermostat, so no other time
-   integration fix should be used.
+   combined with a thermostat, so no other time integration fix should be used.
 
 The *method* keyword determines what style of PIMD is performed.  A
 value of *pimd* is standard PIMD.  A value of *nmpimd* is for
@@ -121,7 +120,7 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
 (CMD).  The difference between the styles is as follows.
 
    In standard PIMD, the value used for a bead's fictitious mass is
-   arbitrary.  A common choice is to use Mi = m/P, which results in the
+   arbitrary.  A common choice is to use :math:`M_i = m/P`, which results in the
    mass of the entire ring-polymer being equal to the real quantum
    particle.  But it can be difficult to efficiently integrate the
    equations of motion for the stiff harmonic interactions in the ring
@@ -151,6 +150,10 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
    The CMD method also uses normal modes to evolve the system, except
    only the k > 0 modes are thermostatted, not the centroid degrees of
    freedom.
+
+The keyword *integrator* specifies the Trotter splitting method used by *fix pimd/langevin*.
+See :ref:`(Liu) <Liu>` for a discussion on the OBABO and BAOAB splitting schemes. Typically
+either of the two should work fine.
 
 The keyword *fmass* sets a further scaling factor for the fictitious
 masses of beads, which can be used for the Partial Adiabatic CMD
@@ -201,7 +204,7 @@ a positive floating-point number.
    for nve pimd, since the spring elastic frequency between the beads will be affected by the temperature.
 
 The keyword *thermostat* reads *style* and *seed* of thermostat for fix style *pimd/langevin*. *style* can only
-be *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti>`), and *seed* should a positive integer number, which serves as the seed of the pseudo random number generator.
+be *PILE_L* (path integral Langevin equation local thermostat, as described in :ref:`Ceriotti <Ceriotti2>`), and *seed* should a positive integer number, which serves as the seed of the pseudo random number generator.
 
 .. note::
    The fix style *pimd/langevin* uses the stochastic PILE_L thermostat to control temperature. This thermostat works on the normal modes
@@ -216,7 +219,7 @@ The barostat parameters for fix style *pimd/langevin* with *npt* or *nph* ensemb
 keywords. A *pressure* value should be given with pressure unit. The keyword *iso* means couple all 3 diagonal components together when pressure is computed (hydrostatic pressure), and dilate/contract the dimensions together. The keyword *aniso* means x, y, and z dimensions are controlled independently using the Pxx, Pyy, and Pzz components of the stress tensor as the driving forces, and the specified scalar external pressure.
 
 The keyword *barostat* reads *style* of barostat for fix style *pimd/langevin*. *style* can
-be *BZP* (Bussi-Zykova-Parrinello, as described in :ref:`Bussi <Bussi>`) or *MTTK* (Martyna-Tuckerman-Tobias-Klein, as described in :ref:`Martyna1 <Martyna1>` and :ref:`Martyna2 <Martyna2>`).
+be *BZP* (Bussi-Zykova-Parrinello, as described in :ref:`Bussi <Bussi>`) or *MTTK* (Martyna-Tuckerman-Tobias-Klein, as described in :ref:`Martyna1 <Martyna3>` and :ref:`Martyna2 <Martyna4>`).
 
 The keyword *taup* specifies the barostat damping time parameter for fix style *pimd/langevin*. It is in time unit.
 
@@ -258,8 +261,17 @@ related tasks for each of the partitions, e.g.
 .. code-block:: LAMMPS
 
    dump dcd all dcd 10 system_${ibead}.dcd
+   dump 1 all custom 100 ${ibead}.xyz id type x y z vx vy vz ix iy iz fx fy fz
    restart 1000 system_${ibead}.restart1 system_${ibead}.restart2
    read_restart system_${ibead}.restart2
+
+.. note::
+   Fix *pimd/langevin* dumps the Catersian coordinates, but dumps the velocities and
+   forces in the normal mode representation. If the Catersian velocities and forces are
+   needed, it is easy to perform the transformation when doing post-processing.
+
+   It is recommended to dump the image flags (*ix iy iz*) for fix *pimd/langevin*. It 
+   will be useful if you want to calculate some estimators during post-processing.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -286,6 +298,10 @@ the global vector are:
 
 The vector values calculated by fix *pimd/nvt* are "extensive", except for the
 temperature, which is "intensive".
+
+Fix *pimd/langevin* computes a global vector of quantities, which
+can be accessed by various :doc:`output commands <Howto_output>`. If *ensemble*
+is *nve* or *nvt*, the vector has 10 values.
 
 No parameter of fix *pimd/nvt* can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  Fix *pimd/nvt* is not invoked during
@@ -355,14 +371,18 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 **(Bussi)** G. Bussi, T. Zykova-Timan, M. Parrinello, J Chem Phys, 130, 074101 (2009).
 
-.. _Ceriotti:
+.. _Ceriotti2:
 
 **(Ceriotti)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
 
-.. _Martyna1:
+.. _Martyna3:
 
 **(Martyna1)** G. Martyna, D. Tobias, M. Klein, J. Chem. Phys. 101, 4177 (1994).
 
-.. _Martyna2:
+.. _Martyna4:
 
 **(Martyna2)** G. Martyna, A. Hughes, M. Tuckerman, J. Chem. Phys. 110, 3275 (1999).
+
+.. _Liujian:
+
+**(Liu)** J. Liu, D. Li, X. Liu, J. Chem. Phys. 145, 024103 (2016).

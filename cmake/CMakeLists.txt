@@ -842,7 +842,7 @@ if(BUILD_SHARED_LIBS)
   if(Python_EXECUTABLE)
     add_custom_target(
       install-python ${Python_EXECUTABLE} ${LAMMPS_PYTHON_DIR}/install.py -p ${LAMMPS_PYTHON_DIR}/lammps
-              -l ${LIBLAMMPS_SHARED_BINARY} -w ${MY_BUILD_DIR}
+      -l ${LIBLAMMPS_SHARED_BINARY} -w ${MY_BUILD_DIR} -v ${LAMMPS_SOURCE_DIR}/version.h
       COMMENT "Installing LAMMPS Python module")
   else()
     add_custom_target(

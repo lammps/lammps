@@ -39,6 +39,8 @@
 /mdi_engine.h
 /fix_mdi_qm.cpp
 /fix_mdi_qm.h
+/fix_mdi_qmmm.cpp
+/fix_mdi_qmmm.h
 /mdi_command.cpp
 /mdi_command.h
 /mdi_plugin.cpp

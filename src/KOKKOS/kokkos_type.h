@@ -64,19 +64,7 @@ namespace Kokkos {
       z+=tmp.z;
     }
     KOKKOS_INLINE_FUNCTION
-    void operator += (const lmp_float3& tmp) volatile {
-      x+=tmp.x;
-      y+=tmp.y;
-      z+=tmp.z;
-    }
-    KOKKOS_INLINE_FUNCTION
     void operator = (const lmp_float3& tmp) {
-      x=tmp.x;
-      y=tmp.y;
-      z=tmp.z;
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator = (const lmp_float3& tmp) volatile {
       x=tmp.x;
       y=tmp.y;
       z=tmp.z;
@@ -95,19 +83,7 @@ namespace Kokkos {
       z+=tmp.z;
     }
     KOKKOS_INLINE_FUNCTION
-    void operator += (const lmp_double3& tmp) volatile {
-      x+=tmp.x;
-      y+=tmp.y;
-      z+=tmp.z;
-    }
-    KOKKOS_INLINE_FUNCTION
     void operator = (const lmp_double3& tmp) {
-      x=tmp.x;
-      y=tmp.y;
-      z=tmp.z;
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator = (const lmp_double3& tmp) volatile {
       x=tmp.x;
       y=tmp.y;
       z=tmp.z;
@@ -140,19 +116,7 @@ struct t_scalar3 {
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  t_scalar3 operator= (const volatile t_scalar3& rhs) {
-    x = rhs.x; y = rhs.y; z = rhs.z;
-    return *this;
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION
   t_scalar3 operator+= (const t_scalar3& rhs) {
-    x += rhs.x; y += rhs.y; z += rhs.z;
-    return *this;
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION
-  t_scalar3 operator+= (const volatile t_scalar3& rhs) volatile {
     x += rhs.x; y += rhs.y; z += rhs.z;
     return *this;
   }
@@ -429,14 +393,6 @@ struct s_EV_FLOAT {
     for (int i = 0; i < 6; ++i)
       v[i] += rhs.v[i];
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_EV_FLOAT &rhs) volatile {
-    evdwl += rhs.evdwl;
-    ecoul += rhs.ecoul;
-    for (int i = 0; i < 6; ++i)
-      v[i] += rhs.v[i];
-  }
 };
 typedef struct s_EV_FLOAT EV_FLOAT;
 
@@ -457,16 +413,6 @@ struct s_EV_FLOAT_REAX {
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const s_EV_FLOAT_REAX &rhs) {
-    evdwl += rhs.evdwl;
-    ecoul += rhs.ecoul;
-    for (int i = 0; i < 6; ++i)
-      v[i] += rhs.v[i];
-    for (int i = 0; i < 9; ++i)
-      ereax[i] += rhs.ereax[i];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_EV_FLOAT_REAX &rhs) volatile {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
     for (int i = 0; i < 6; ++i)
@@ -501,16 +447,6 @@ struct s_FEV_FLOAT {
     for (int i = 0; i < 3; ++i)
       f[i] += rhs.f[i];
   }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_FEV_FLOAT &rhs) volatile {
-    evdwl += rhs.evdwl;
-    ecoul += rhs.ecoul;
-    for (int i = 0; i < 6; ++i)
-      v[i] += rhs.v[i];
-    for (int i = 0; i < 3; ++i)
-      f[i] += rhs.f[i];
-  }
 };
 typedef struct s_FEV_FLOAT FEV_FLOAT;
 
@@ -531,12 +467,6 @@ struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const s_FLOAT2 &rhs) {
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator+=(const volatile s_FLOAT2 &rhs) volatile {
     v[0] += rhs.v[0];
     v[1] += rhs.v[1];
   }

@@ -43,13 +43,6 @@ namespace LAMMPS_NS {
       fz += rhs.fz;
       return *this;
     }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile s_FSUM &rhs) volatile {
-      fx += rhs.fx;
-      fy += rhs.fy;
-      fz += rhs.fz;
-    }
   };
   typedef s_FSUM FSUM;
 
@@ -203,21 +196,6 @@ namespace LAMMPS_NS {
         update.fy += source.fy;
         update.fz += source.fz;
       }
-
-      KOKKOS_INLINE_FUNCTION
-      static void init(volatile value_type &update) {
-        update.fx = 0.0;
-        update.fy = 0.0;
-        update.fz = 0.0;
-      }
-      KOKKOS_INLINE_FUNCTION
-      static void join(volatile value_type &update,
-                       const volatile value_type &source) {
-        update.fx += source.fx;
-        update.fy += source.fy;
-        update.fz += source.fz;
-      }
-
     };
 
   template <class DeviceType>
@@ -253,15 +231,6 @@ namespace LAMMPS_NS {
       KOKKOS_INLINE_FUNCTION
       static void join(value_type &update,
                        const value_type &source) {
-        update += source;
-      }
-      KOKKOS_INLINE_FUNCTION
-      static void init(volatile value_type &update) {
-        update = 0.0;
-      }
-      KOKKOS_INLINE_FUNCTION
-      static void join(volatile value_type &update,
-                       const volatile value_type &source) {
         update += source;
       }
     };

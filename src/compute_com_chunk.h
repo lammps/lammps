@@ -20,42 +20,26 @@ ComputeStyle(com/chunk,ComputeCOMChunk);
 #ifndef LMP_COMPUTE_COM_CHUNK_H
 #define LMP_COMPUTE_COM_CHUNK_H
 
-#include "compute.h"
+#include "compute_chunk.h"
 
 namespace LAMMPS_NS {
-class Fix;
-
-class ComputeCOMChunk : public Compute {
+class ComputeCOMChunk : public ComputeChunk {
  public:
-  char *idchunk;    // fields accessed by other classes
   double *masstotal;
 
   ComputeCOMChunk(class LAMMPS *, int, char **);
   ~ComputeCOMChunk() override;
-  void init() override;
   void setup() override;
   void compute_array() override;
-
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(Fix *, bigint, bigint) override;
-  void unlock(Fix *) override;
 
   double memory_usage() override;
 
  private:
-  int nchunk, maxchunk;
-  int firstflag, massneed;
-  class ComputeChunkAtom *cchunk;
-
   double *massproc;
   double **com, **comall;
 
-  void allocate();
+  void allocate() override;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

@@ -1,7 +1,7 @@
 .. index:: fix pimd/nvt
 
 fix pimd/nvt command
-================
+====================
 
 Syntax
 """"""

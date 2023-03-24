@@ -1,5 +1,6 @@
 aa
 aat
+Abascal
 abc
 abf
 ABI
@@ -437,6 +438,7 @@ cfile
 CFL
 cgdna
 CGDNA
+cgmap
 cgs
 cgsdk
 CGSDK
@@ -1370,6 +1372,7 @@ hdnnp
 HDNNP
 Hearn
 heatconduction
+heatflow
 Hebbeker
 Hebenstreit
 Hecht
@@ -1442,6 +1445,7 @@ hux
 hwloc
 hx
 hy
+hydronium
 hydrophobicity
 hydrostatic
 hydrostatically
@@ -1791,6 +1795,7 @@ lammps
 Lammps
 LAMMPS
 lammpsbin
+lammpsdata
 lammpsplot
 lammpsplugin
 Lamoureux
@@ -1985,6 +1990,7 @@ magelec
 Maginn
 magneton
 magnetons
+Mahoney
 mainboard
 mainboards
 makefile
@@ -2070,6 +2076,7 @@ mdi
 MDI
 mdpd
 mDPD
+mdtraj
 meam
 MEAM
 meamf
@@ -2463,6 +2470,7 @@ nodeless
 nodeset
 nodesets
 Noehring
+nofix
 Noffset
 noforce
 noguess
@@ -2566,7 +2574,7 @@ nvidia
 nvk
 nvt
 Nwait
-nwchem
+NWChem
 nx
 Nx
 nxlo
@@ -2900,6 +2908,7 @@ PyLammps
 pymbar
 pymodule
 pymol
+PySCF
 pythonic
 pytorch
 pyy
@@ -3186,6 +3195,7 @@ Sandia
 sandybrown
 sanitizer
 Sanyal
+Sanz
 Sarath
 sc
 scafacos

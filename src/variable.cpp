@@ -20,7 +20,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
-#include "fix_store_peratom.h"
+#include "fix_store_atom.h"
 #include "group.h"
 #include "info.h"
 #include "input.h"
@@ -5027,8 +5027,8 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
       error->all(FLERR,"Cannot use atomfile-style variable unless an atom map exists");
 
     id_fix = utils::strdup(std::string(name) + "_VARIABLE_STORE");
-    fixstore = dynamic_cast<FixStorePeratom *>(
-      modify->add_fix(std::string(id_fix) + " all STORE/PERATOM 0 1"));
+    fixstore = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(std::string(id_fix) + " all STORE/ATOM 1 0 0 0"));
     buffer = new char[CHUNK*MAXLINE];
   }
 }

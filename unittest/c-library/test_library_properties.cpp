@@ -297,6 +297,7 @@ TEST_F(LibraryProperties, global)
 
     std::string input = path_join(INPUT_DIR, "in.fourmol");
     if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "special_bonds lj 0.0 0.5 0.8 coul 0.1 0.5 1.0");
     lammps_file(lmp, input.c_str());
     lammps_command(lmp, "run 2 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -321,6 +322,26 @@ TEST_F(LibraryProperties, global)
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "dt"), LAMMPS_DOUBLE);
     double *d_ptr = (double *)lammps_extract_global(lmp, "dt");
     EXPECT_DOUBLE_EQ((*d_ptr), 0.1);
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_lj"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_coul"), LAMMPS_DOUBLE);
+    double *special_lj = (double *)lammps_extract_global(lmp, "special_lj");
+    double *special_coul= (double *)lammps_extract_global(lmp, "special_coul");
+    EXPECT_DOUBLE_EQ(special_lj[0], 1.0);
+    EXPECT_DOUBLE_EQ(special_lj[1], 0.0);
+    EXPECT_DOUBLE_EQ(special_lj[2], 0.5);
+    EXPECT_DOUBLE_EQ(special_lj[3], 0.8);
+    EXPECT_DOUBLE_EQ(special_coul[0], 1.0);
+    EXPECT_DOUBLE_EQ(special_coul[1], 0.1);
+    EXPECT_DOUBLE_EQ(special_coul[2], 0.5);
+    EXPECT_DOUBLE_EQ(special_coul[3], 1.0);
+    lammps_command(lmp, "special_bonds lj/coul 1.0 1.0 1.0");
+    EXPECT_DOUBLE_EQ(special_lj[1], 1.0);
+    EXPECT_DOUBLE_EQ(special_lj[2], 1.0);
+    EXPECT_DOUBLE_EQ(special_lj[3], 1.0);
+    EXPECT_DOUBLE_EQ(special_coul[1], 1.0);
+    EXPECT_DOUBLE_EQ(special_coul[2], 1.0);
+    EXPECT_DOUBLE_EQ(special_coul[3], 1.0);
 };
 
 TEST_F(LibraryProperties, neighlist)

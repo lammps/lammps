@@ -1,5 +1,6 @@
 ---
 lammps_version: 17 Feb 2022
+tags: unstable
 date_generated: Fri Mar 18 22:17:36 2022
 epsilon: 5.0e-10
 skip_tests:
@@ -15,7 +16,13 @@ input_file: in.fourmol
 pair_style: tip4p/cut 5 2 5 1 0.15 10.0
 pair_coeff: ! |
   * *
-extract: ! ""
+extract: ! |
+  qdist 0
+  typeO 0
+  typeH 0
+  typeA 0
+  typeB 0
+  cut_coul 0
 natoms: 29
 init_vdwl: 0
 init_coul: -128.97793216803515

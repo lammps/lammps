@@ -103,6 +103,8 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
 
   // zero out counters
 
+  mc_active = 0;
+
   nswap_attempts = 0.0;
   nswap_successes = 0.0;
 
@@ -304,6 +306,8 @@ void FixAtomSwap::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
+  mc_active = 1;
+
   // ensure current system is ready to compute energy
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
@@ -336,6 +340,8 @@ void FixAtomSwap::pre_exchange()
   nswap_successes += nsuccess;
 
   next_reneighbor = update->ntimestep + nevery;
+
+  mc_active = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -814,4 +820,19 @@ void FixAtomSwap::restart(char *buf)
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR, "Must not reset timestep when restarting fix atom/swap");
+}
+
+/* ----------------------------------------------------------------------
+   extract variable which stores whether MC is active or not
+     active = MC moves are taking place
+     not active = normal MD is taking place
+------------------------------------------------------------------------- */
+
+void *FixAtomSwap::extract(const char *name, int &dim)
+{
+  if (strcmp(name,"mc_active") == 0) {
+    dim = 0;
+    return (void *) &mc_active;
+  }
+  return nullptr;
 }

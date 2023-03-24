@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/rotational keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *smooth*
+* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break/no*
 
   .. parsed-literal::
 
@@ -29,6 +29,9 @@ Syntax
 
        *smooth* value = *yes* or *no*
           smooths bond forces near the breaking point
+
+       *break/no*
+          indicates that bonds should not break during a run
 
 Examples
 """"""""
@@ -139,6 +142,12 @@ the *overlay/pair* keyword. These settings require specific
 :doc:`special_bonds <special_bonds>` settings described in the
 restrictions.  Further details can be found in the `:doc: how to
 <Howto_BPM>` page on BPMs.
+
+.. versionadded:: TBD
+
+If the *break/no* keyword is used, then LAMMPS assumes bonds should not break
+during a simulation run. This will prevent some unnecessary calculation.
+However, if a bond does break, it will trigger an error.
 
 If the *store/local* keyword is used, an internal fix will track bonds that
 break during the simulation. Whenever a bond breaks, data is processed

@@ -70,6 +70,7 @@ Force fields howto
    Howto_amoeba
    Howto_tip3p
    Howto_tip4p
+   Howto_tip5p
    Howto_spc
 
 Packages howto

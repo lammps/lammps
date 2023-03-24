@@ -532,8 +532,7 @@ void lammps_file(void *handle, const char *filename)
   BEGIN_CAPTURE
   {
     if (lmp->update->whichflag != 0)
-      lmp->error->all(FLERR,"Library error: issuing LAMMPS commands "
-                      "during a run is not allowed.");
+      lmp->error->all(FLERR, "Library error: issuing LAMMPS commands during a run is not allowed");
     else
       lmp->input->file(filename);
   }
@@ -1233,6 +1232,8 @@ int lammps_extract_global_datatype(void * /*handle*/, const char *name)
   if (strcmp(name,"nghost") == 0) return LAMMPS_INT;
   if (strcmp(name,"nmax") == 0) return LAMMPS_INT;
   if (strcmp(name,"ntypes") == 0) return LAMMPS_INT;
+  if (strcmp(name,"special_lj") == 0) return LAMMPS_DOUBLE;
+  if (strcmp(name,"special_coul") == 0) return LAMMPS_DOUBLE;
 
   if (strcmp(name,"q_flag") == 0) return LAMMPS_INT;
 
@@ -1471,6 +1472,14 @@ report the "native" data type.  The following tables are provided:
      - int
      - 1
      - maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).
+   * - special_lj
+     - double
+     - 4
+     - special :doc:`pair weighting factors <special_bonds>` for LJ interactions (first element is always 1.0)
+   * - special_coul
+     - double
+     - 4
+     - special :doc:`pair weighting factors <special_bonds>` for Coulomb interactions (first element is always 1.0)
    * - q_flag
      - int
      - 1
@@ -1626,6 +1635,8 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"nlocal") == 0) return (void *) &lmp->atom->nlocal;
   if (strcmp(name,"nghost") == 0) return (void *) &lmp->atom->nghost;
   if (strcmp(name,"nmax") == 0) return (void *) &lmp->atom->nmax;
+  if (strcmp(name,"special_lj") == 0) return (void *) lmp->force->special_lj;
+  if (strcmp(name,"special_coul") == 0) return (void *) lmp->force->special_coul;
 
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
 

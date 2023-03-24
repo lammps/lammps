@@ -150,12 +150,12 @@ tools/vim/*           @hammondkd
 unittest/*            @akohlmey
 
 # cmake
-cmake/*               @junghans @rbberger
+cmake/*               @rbberger
 cmake/Modules/LAMMPSInterfacePlugin.cmake @akohlmey
 cmake/Modules/MPI4WIN.cmake @akohlmey
 cmake/Modules/OpenCLLoader.cmake @akohlmey
-cmake/Modules/Packages/COLVARS.cmake @junghans @rbberger @giacomofiorin
-cmake/Modules/Packages/KIM.cmake @junghans @rbberger @ellio167
+cmake/Modules/Packages/COLVARS.cmake @rbberger @giacomofiorin
+cmake/Modules/Packages/KIM.cmake @rbberger @ellio167
 cmake/presets/*.cmake @akohlmey
 
 # python

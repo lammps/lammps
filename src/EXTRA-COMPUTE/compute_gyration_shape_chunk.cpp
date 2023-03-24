@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -33,9 +32,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGyrationShapeChunk::ComputeGyrationShapeChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_gyration_chunk(nullptr), shape_parameters(nullptr)
+    Compute(lmp, narg, arg), id_gyration_chunk(nullptr), shape_parameters(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute gyration/shape/chunk command");
+  if (narg != 4) error->all(FLERR, "Illegal compute gyration/shape/chunk command");
 
   // ID of compute gyration
   id_gyration_chunk = utils::strdup(arg[3]);
@@ -58,7 +57,7 @@ ComputeGyrationShapeChunk::ComputeGyrationShapeChunk(LAMMPS *lmp, int narg, char
 
 ComputeGyrationShapeChunk::~ComputeGyrationShapeChunk()
 {
-  delete [] id_gyration_chunk;
+  delete[] id_gyration_chunk;
   memory->destroy(shape_parameters);
 }
 
@@ -67,22 +66,22 @@ ComputeGyrationShapeChunk::~ComputeGyrationShapeChunk()
 void ComputeGyrationShapeChunk::init()
 {
   // check that the compute gyration command exist
-  int icompute = modify->find_compute(id_gyration_chunk);
-  if (icompute < 0)
-    error->all(FLERR,"Compute gyration/chunk ID does not exist for "
-               "compute gyration/shape/chunk");
+
+  c_gyration_chunk = modify->get_compute_by_id(id_gyration_chunk);
+  if (!c_gyration_chunk)
+    error->all(FLERR,
+               "Compute gyration/chunk ID {} does not exist for compute gyration/shape/chunk",
+               id_gyration_chunk);
 
   // check the id_gyration_chunk corresponds really to a compute gyration/chunk command
-  c_gyration_chunk = (Compute *) modify->compute[icompute];
-  if (strcmp(c_gyration_chunk->style,"gyration/chunk") != 0)
-    error->all(FLERR,"Compute gyration/shape/chunk does not point to "
-               "gyration compute/chunk");
+
+  if (strcmp(c_gyration_chunk->style, "gyration/chunk") != 0)
+    error->all(FLERR, "Compute {} is not of style gyration/chunk", id_gyration_chunk);
 
   // check the compute gyration/chunk command computes the whole gyration tensor
   if (c_gyration_chunk->array_flag == 0)
-    error->all(FLERR,"Compute gyration/chunk where gyration/shape/chunk points to "
-               "does not calculate the gyration tensor");
-
+    error->all(FLERR, "Compute gyration/chunk {} does not calculate the gyration tensor",
+               id_gyration_chunk);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,7 +107,7 @@ void ComputeGyrationShapeChunk::compute_array()
   invoked_array = update->ntimestep;
   c_gyration_chunk->compute_array();
 
-  current_nchunks = c_gyration_chunk->size_array_rows; // how to check for the number of chunks in the gyration/chunk?
+  current_nchunks = c_gyration_chunk->size_array_rows;
   if (former_nchunks != current_nchunks) allocate();
 
   double **gyration_tensor = c_gyration_chunk->array;
@@ -125,18 +124,20 @@ void ComputeGyrationShapeChunk::compute_array()
     ione[0][2] = ione[2][0] = gyration_tensor[ichunk][4];
     ione[1][2] = ione[2][1] = gyration_tensor[ichunk][5];
 
-    int ierror = MathEigen::jacobi3(ione,evalues,evectors);
-    if (ierror) error->all(FLERR, "Insufficient Jacobi rotations "
-                         "for gyration/shape");
+    int ierror = MathEigen::jacobi3(ione, evalues, evectors);
+    if (ierror)
+      error->all(FLERR,
+                 "Insufficient Jacobi rotations "
+                 "for gyration/shape");
 
     // sort the eigenvalues according to their size with bubble sort
     double t;
     for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 2-i; j++) {
-        if (fabs(evalues[j]) < fabs(evalues[j+1])) {
+      for (int j = 0; j < 2 - i; j++) {
+        if (fabs(evalues[j]) < fabs(evalues[j + 1])) {
           t = evalues[j];
-          evalues[j] = evalues[j+1];
-          evalues[j+1] = t;
+          evalues[j] = evalues[j + 1];
+          evalues[j + 1] = t;
         }
       }
     }
@@ -147,14 +148,14 @@ void ComputeGyrationShapeChunk::compute_array()
     double sq_eigen_z = MathSpecial::square(evalues[2]);
 
     double nominator = sq_eigen_x + sq_eigen_y + sq_eigen_z;
-    double denominator = MathSpecial::square(evalues[0]+evalues[1]+evalues[2]);
+    double denominator = MathSpecial::square(evalues[0] + evalues[1] + evalues[2]);
 
     shape_parameters[ichunk][0] = evalues[0];
     shape_parameters[ichunk][1] = evalues[1];
     shape_parameters[ichunk][2] = evalues[2];
-    shape_parameters[ichunk][3] = evalues[0] - 0.5*(evalues[1] + evalues[2]);
+    shape_parameters[ichunk][3] = evalues[0] - 0.5 * (evalues[1] + evalues[2]);
     shape_parameters[ichunk][4] = evalues[1] - evalues[2];
-    shape_parameters[ichunk][5] = 1.5*nominator/denominator - 0.5;
+    shape_parameters[ichunk][5] = 1.5 * nominator / denominator - 0.5;
   }
 }
 
@@ -176,7 +177,7 @@ void ComputeGyrationShapeChunk::allocate()
 {
   memory->destroy(shape_parameters);
   former_nchunks = current_nchunks;
-  memory->create(shape_parameters,current_nchunks,6,"gyration/shape/chunk:shape_parameters");
+  memory->create(shape_parameters, current_nchunks, 6, "gyration/shape/chunk:shape_parameters");
   array = shape_parameters;
   size_array_rows = current_nchunks;
 }

@@ -740,8 +740,6 @@ void Set::selection(int n)
   if (style == ATOM_SELECT) {
     if (atom->tag_enable == 0)
       error->all(FLERR,"Cannot use set atom with no atom IDs defined");
-    char *typestr = utils::expand_type(FLERR,id,Atom::ATOM,lmp);
-    if (typestr) id = typestr;
     bigint nlobig,nhibig;
     utils::bounds(FLERR,id,1,MAXTAGINT,nlobig,nhibig,error);
 

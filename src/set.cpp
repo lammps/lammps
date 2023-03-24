@@ -93,12 +93,18 @@ void Set::command(int narg, char **arg)
     if (strcmp(arg[iarg],"type") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set type", error);
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
-      else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      else {
+        char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
+        if (typestr) arg[iarg+1] = typestr;
+        ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      }
       set(TYPE);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"type/fraction") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "set type/fraction", error);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
+      if (typestr) arg[iarg+1] = typestr;
       newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       fraction = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
@@ -113,6 +119,8 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"type/ratio") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "set type/ratio", error);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
+      if (typestr) arg[iarg+1] = typestr;
       newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       fraction = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
@@ -127,6 +135,8 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"type/subset") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "set type/subset", error);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
+      if (typestr) arg[iarg+1] = typestr;
       newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       nsubset = utils::bnumeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
@@ -477,6 +487,8 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set bond", error);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::BOND,lmp);
+      if (typestr) arg[iarg+1] = typestr;
       ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->avec->bonds_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
@@ -487,6 +499,8 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set angle", error);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ANGLE,lmp);
+      if (typestr) arg[iarg+1] = typestr;
       ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->avec->angles_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
@@ -497,6 +511,8 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set dihedral", error);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::DIHEDRAL,lmp);
+      if (typestr) arg[iarg+1] = typestr;
       ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
@@ -507,6 +523,8 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"improper") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set improper", error);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::IMPROPER,lmp);
+      if (typestr) arg[iarg+1] = typestr;
       ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->avec->impropers_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
@@ -722,6 +740,8 @@ void Set::selection(int n)
   if (style == ATOM_SELECT) {
     if (atom->tag_enable == 0)
       error->all(FLERR,"Cannot use set atom with no atom IDs defined");
+    char *typestr = utils::expand_type(FLERR,id,Atom::ATOM,lmp);
+    if (typestr) id = typestr;
     bigint nlobig,nhibig;
     utils::bounds(FLERR,id,1,MAXTAGINT,nlobig,nhibig,error);
 
@@ -742,6 +762,8 @@ void Set::selection(int n)
       else select[i] = 0;
 
   } else if (style == TYPE_SELECT) {
+    char *typestr = utils::expand_type(FLERR, id, Atom::ATOM, lmp);
+    if (typestr) id = typestr;
     utils::bounds(FLERR,id,1,atom->ntypes,nlo,nhi,error);
 
     int *type = atom->type;

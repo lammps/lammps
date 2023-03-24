@@ -28,18 +28,18 @@ Syntax
 
   .. parsed-literal::
 
-       *type* value = atom type
+       *type* value = atom type or type label
          value can be an atom-style variable (see below)
        *type/fraction* values = type fraction seed
-         type = new atom type
+         type = new atom type or type label
          fraction = approximate fraction of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *type/ratio* values = type fraction seed
-         type = new atom type
+         type = new atom type or type label
          fraction = exact fraction of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *type/subset* values = type Nsubset seed
-         type = new atom type
+         type = new atom type or type label
          Nsubset = exact number of selected atoms to set to new atom type
          seed = random # seed (positive integer)
        *mol* value = molecule ID
@@ -107,10 +107,10 @@ Syntax
        *image* nx ny nz
          nx,ny,nz = which periodic image of the simulation box the atom is in
          any of nx,ny,nz can be an atom-style variable (see below)
-       *bond* value = bond type for all bonds between selected atoms
-       *angle* value = angle type for all angles between selected atoms
-       *dihedral* value = dihedral type for all dihedrals between selected atoms
-       *improper* value = improper type for all impropers between selected atoms
+       *bond* value = bond type or bond type label for all bonds between selected atoms
+       *angle* value = angle type or angle type label for all angles between selected atoms
+       *dihedral* value = dihedral type or dihedral type label for all dihedrals between selected atoms
+       *improper* value = improper type or improper type label for all impropers between selected atoms
        *sph/e* value = energy of SPH particles (need units)
          value can be an atom-style variable (see below)
        *sph/cv* value = heat capacity of SPH particles (need units)
@@ -145,15 +145,19 @@ Examples
 .. code-block:: LAMMPS
 
    set group solvent type 2
+   set group solvent type C
    set group solvent type/fraction 2 0.5 12393
+   set group solvent type/fraction C 0.5 12393
    set group edge bond 4
    set region half charge 0.5
    set type 3 charge 0.5
+   set type H charge 0.5
    set type 1*3 charge 0.5
    set atom * charge v_atomfile
    set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
    set atom 1492 type 3
+   set atom 1492 type H
    set atom * i_myVal 5
    set atom * d2_Sxyz[1] 6.4
 
@@ -184,8 +188,8 @@ This section describes how to select which atoms to change
 the properties of, via the *style* and *ID* arguments.
 
 The style *atom* selects all the atoms in a range of atom IDs.  The
-style *type* selects all the atoms in a range of types.  The style
-*mol* selects all the atoms in a range of molecule IDs.
+style *type* selects all the atoms in a range of types or type labels.
+The style *mol* selects all the atoms in a range of molecule IDs.
 
 In each of the range cases, the range can be specified as a single
 numeric value, or a wildcard asterisk can be used to specify a range
@@ -237,24 +241,27 @@ from a file.
    such as the molecule ID, then the floating point value is truncated to
    its integer portion, e.g. a value of 2.6 would become 2.
 
-Keyword *type* sets the atom type for all selected atoms.  The
-specified value must be from 1 to ntypes, where ntypes was set by the
-:doc:`create_box <create_box>` command or the *atom types* field in the
+Keyword *type* sets the atom type or atom type label for all selected atoms.
+For atom type, specified value must be from 1 to ntypes, where ntypes was set
+by the :doc:`create_box <create_box>` command or the *atom types* field in the
 header of the data file read by the :doc:`read_data <read_data>`
-command.
+command. In the case of the specified type label, it must have been defined
+before use via an alphanumeric type label. See the
+:doc:`Howto type labels <Howto_type_labels>` doc page for the allowed syntax
+of type labels and a general discussion of how type labels can be used.
 
-Keyword *type/fraction* sets the atom type for a fraction of the
-selected atoms.  The actual number of atoms changed is not guaranteed
+Keyword *type/fraction* sets the atom type or atom type label for a fraction
+of the selected atoms.  The actual number of atoms changed is not guaranteed
 to be exactly the specified fraction (0 <= *fraction* <= 1), but
 should be statistically close.  Random numbers are used in such a way
 that a particular atom is changed or not changed, regardless of how
 many processors are being used.  This keyword does not allow use of an
 atom-style variable.
 
-Keywords *type/ratio* and *type/subset* also set the atom type for a
-fraction of the selected atoms.  The actual number of atoms changed
-will be exactly the requested number.  For *type/ratio* the specified
-fraction (0 <= *fraction* <= 1) determines the number.  For
+Keywords *type/ratio* and *type/subset* also set the atom type or atom
+type label for a fraction of the selected atoms.  The actual number of
+atoms changed will be exactly the requested number.  For *type/ratio* the
+specified fraction (0 <= *fraction* <= 1) determines the number.  For
 *type/subset*, the specified *Nsubset* is the number.  An iterative
 algorithm is used which ensures the correct number of atoms are
 selected, in a perfectly random fashion.  Which atoms are selected
@@ -465,7 +472,10 @@ molecule which straddles the periodic box.
 
 Keywords *bond*, *angle*, *dihedral*, and *improper*, set the bond type
 (angle type, etc) of all bonds (angles, etc) of selected atoms to the
-specified value from 1 to nbondtypes (nangletypes, etc).  All atoms in a
+specified value from 1 to nbondtypes (nangletypes, etc). One can also use
+a specified type label. See the :doc:`Howto type labels <Howto_type_labels>`
+doc page for the allowed syntax of type labels and a general discussion of
+how type labels can be used. All atoms in a
 particular bond (angle, etc) must be selected atoms in order for the
 change to be made.  The value of nbondtype (nangletypes, etc) was set by
 the *bond types* (\ *angle types*, etc) field in the header of the data

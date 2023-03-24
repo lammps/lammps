@@ -218,8 +218,7 @@ void PairRHEO::compute(int eflag, int vflag)
         // Thermal Evolution
         if (thermal_flag) {
           dT = dot3(dx, dWij);
-          dT *= (kappai + kappaj) * (Ti - Tj) * rinv * rinv * voli * volj;
-          //TODO: Assumes heat capacity and density = 1, needs to be generalized
+          dT *= (kappai + kappaj) * (Ti - Tj) * rinv * rinv * voli * volj / rho0; // Assumes heat capacity = 1
           heatflow[i] += dT;
 
           if (newton_pair || j < nlocal) {

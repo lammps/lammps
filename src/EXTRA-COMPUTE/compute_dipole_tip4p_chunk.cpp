@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -22,11 +21,9 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "pair.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
-#include "update.h"
+#include "pair.h"
 
 #include <cmath>
 #include <cstring>
@@ -39,13 +36,10 @@ enum { MASSCENTER, GEOMCENTER };
 /* ---------------------------------------------------------------------- */
 
 ComputeDipoleTIP4PChunk::ComputeDipoleTIP4PChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), chrgproc(nullptr),
-  chrgtotal(nullptr), com(nullptr),
-  comall(nullptr), dipole(nullptr), dipoleall(nullptr)
+    ComputeChunk(lmp, narg, arg), massproc(nullptr), masstotal(nullptr), chrgproc(nullptr),
+    chrgtotal(nullptr), com(nullptr), comall(nullptr), dipole(nullptr), dipoleall(nullptr)
 {
-  if ((narg != 4) && (narg != 5))
-    error->all(FLERR,"Illegal compute dipole/tip4p/chunk command");
+  if ((narg != 4) && (narg != 5)) error->all(FLERR, "Illegal compute dipole/tip4p/chunk command");
 
   array_flag = 1;
   size_array_cols = 4;
@@ -53,32 +47,25 @@ ComputeDipoleTIP4PChunk::ComputeDipoleTIP4PChunk(LAMMPS *lmp, int narg, char **a
   size_array_rows_variable = 1;
   extarray = 0;
 
-  // ID of compute chunk/atom
-
-  idchunk = utils::strdup(arg[3]);
-
   usecenter = MASSCENTER;
 
   if (narg == 5) {
-    if (strncmp(arg[4],"geom",4) == 0) usecenter = GEOMCENTER;
-    else if (strcmp(arg[4],"mass") == 0) usecenter = MASSCENTER;
-    else error->all(FLERR,"Illegal compute dipole/tip4p/chunk command");
+    if (strncmp(arg[4], "geom", 4) == 0)
+      usecenter = GEOMCENTER;
+    else if (strcmp(arg[4], "mass") == 0)
+      usecenter = MASSCENTER;
+    else
+      error->all(FLERR, "Illegal compute dipole/tip4p/chunk command");
   }
 
   ComputeDipoleTIP4PChunk::init();
-
-  // chunk-based data
-
-  nchunk = 1;
-  maxchunk = 0;
-  allocate();
+  ComputeDipoleTIP4PChunk::allocate();
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeDipoleTIP4PChunk::~ComputeDipoleTIP4PChunk()
 {
-  delete[] idchunk;
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(chrgproc);
@@ -93,14 +80,10 @@ ComputeDipoleTIP4PChunk::~ComputeDipoleTIP4PChunk()
 
 void ComputeDipoleTIP4PChunk::init()
 {
-  int icompute = modify->find_compute(idchunk);
-  if (icompute < 0)
-    error->all(FLERR,"Chunk/atom compute does not exist for compute dipole/tip4p/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
-  if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Compute dipole/tip4p/chunk does not use chunk/atom compute");
+  ComputeChunk::init();
 
-  if (!force->pair) error->all(FLERR, "Pair style must be defined for compute dipole/tip4p/chunk");
+  if (!force->pair)
+    error->all(FLERR, "A pair style must be defined for compute dipole/tip4p/chunk");
 
   int itmp;
   double *p_qdist = (double *) force->pair->extract("qdist", itmp);
@@ -130,22 +113,12 @@ void ComputeDipoleTIP4PChunk::init()
 
 void ComputeDipoleTIP4PChunk::compute_array()
 {
-  int i,index;
+  int i, index;
   double massone;
   double unwrap[3];
 
-  invoked_array = update->ntimestep;
-
-  // compute chunk/atom assigns atoms to chunk IDs
-  // extract ichunk index vector from compute
-  // ichunk = 1 to Nchunk for included atoms, 0 for excluded atoms
-
-  nchunk = cchunk->setup_chunks();
-  cchunk->compute_ichunk();
+  ComputeChunk::compute_array();
   int *ichunk = cchunk->ichunk;
-
-  if (nchunk > maxchunk) allocate();
-  size_array_rows = nchunk;
 
   // zero local per-chunk values
 
@@ -172,13 +145,16 @@ void ComputeDipoleTIP4PChunk::compute_array()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      index = ichunk[i]-1;
+      index = ichunk[i] - 1;
       if (index < 0) continue;
       if (usecenter == MASSCENTER) {
-        if (rmass) massone = rmass[i];
-        else massone = mass[type[i]];
-      } else massone = 1.0;     // usecenter == GEOMCENTER
-      domain->unmap(x[i],image[i],unwrap);
+        if (rmass)
+          massone = rmass[i];
+        else
+          massone = mass[type[i]];
+      } else
+        massone = 1.0;    // usecenter == GEOMCENTER
+      domain->unmap(x[i], image[i], unwrap);
       massproc[index] += massone;
       if (atom->q_flag) chrgproc[index] += q[i];
       com[index][0] += unwrap[0] * massone;
@@ -186,9 +162,9 @@ void ComputeDipoleTIP4PChunk::compute_array()
       com[index][2] += unwrap[2] * massone;
     }
 
-  MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(chrgproc,chrgtotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(massproc, masstotal, nchunk, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(chrgproc, chrgtotal, nchunk, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&com[0][0], &comall[0][0], 3 * nchunk, MPI_DOUBLE, MPI_SUM, world);
 
   for (i = 0; i < nchunk; i++) {
     if (masstotal[i] > 0.0) {
@@ -202,20 +178,20 @@ void ComputeDipoleTIP4PChunk::compute_array()
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      index = ichunk[i]-1;
+      index = ichunk[i] - 1;
       if (index < 0) continue;
 
       if (type[i] == typeO) {
-        find_M(i,xM);
+        find_M(i, xM);
         xi = xM;
       } else {
         xi = x[i];
       }
-      domain->unmap(xi,image[i],unwrap);
+      domain->unmap(xi, image[i], unwrap);
       if (atom->q_flag) {
-        dipole[index][0] += q[i]*unwrap[0];
-        dipole[index][1] += q[i]*unwrap[1];
-        dipole[index][2] += q[i]*unwrap[2];
+        dipole[index][0] += q[i] * unwrap[0];
+        dipole[index][1] += q[i] * unwrap[1];
+        dipole[index][2] += q[i] * unwrap[2];
       }
       if (atom->mu_flag) {
         dipole[index][0] += mu[i][0];
@@ -225,74 +201,17 @@ void ComputeDipoleTIP4PChunk::compute_array()
     }
   }
 
-  MPI_Allreduce(&dipole[0][0],&dipoleall[0][0],4*nchunk,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&dipole[0][0], &dipoleall[0][0], 4 * nchunk, MPI_DOUBLE, MPI_SUM, world);
 
   for (i = 0; i < nchunk; i++) {
     // correct for position dependence with charged chunks
-    dipoleall[i][0] -= chrgtotal[i]*comall[i][0];
-    dipoleall[i][1] -= chrgtotal[i]*comall[i][1];
-    dipoleall[i][2] -= chrgtotal[i]*comall[i][2];
+    dipoleall[i][0] -= chrgtotal[i] * comall[i][0];
+    dipoleall[i][1] -= chrgtotal[i] * comall[i][1];
+    dipoleall[i][2] -= chrgtotal[i] * comall[i][2];
     // compute total dipole moment
-    dipoleall[i][3] = sqrt(square(dipoleall[i][0])
-                           + square(dipoleall[i][1])
-                           + square(dipoleall[i][2]));
+    dipoleall[i][3] =
+        sqrt(square(dipoleall[i][0]) + square(dipoleall[i][1]) + square(dipoleall[i][2]));
   }
-}
-
-/* ----------------------------------------------------------------------
-   lock methods: called by fix ave/time
-   these methods ensure vector/array size is locked for Nfreq epoch
-     by passing lock info along to compute chunk/atom
-------------------------------------------------------------------------- */
-
-/* ----------------------------------------------------------------------
-   increment lock counter
-------------------------------------------------------------------------- */
-
-void ComputeDipoleTIP4PChunk::lock_enable()
-{
-  cchunk->lockcount++;
-}
-
-/* ----------------------------------------------------------------------
-   decrement lock counter in compute chunk/atom, it if still exists
-------------------------------------------------------------------------- */
-
-void ComputeDipoleTIP4PChunk::lock_disable()
-{
-  int icompute = modify->find_compute(idchunk);
-  if (icompute >= 0) {
-    cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
-    cchunk->lockcount--;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   calculate and return # of chunks = length of vector/array
-------------------------------------------------------------------------- */
-
-int ComputeDipoleTIP4PChunk::lock_length()
-{
-  nchunk = cchunk->setup_chunks();
-  return nchunk;
-}
-
-/* ----------------------------------------------------------------------
-   set the lock from startstep to stopstep
-------------------------------------------------------------------------- */
-
-void ComputeDipoleTIP4PChunk::lock(Fix *fixptr, bigint startstep, bigint stopstep)
-{
-  cchunk->lock(fixptr,startstep,stopstep);
-}
-
-/* ----------------------------------------------------------------------
-   unset the lock
-------------------------------------------------------------------------- */
-
-void ComputeDipoleTIP4PChunk::unlock(Fix *fixptr)
-{
-  cchunk->unlock(fixptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -301,6 +220,7 @@ void ComputeDipoleTIP4PChunk::unlock(Fix *fixptr)
 
 void ComputeDipoleTIP4PChunk::allocate()
 {
+  ComputeChunk::allocate();
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(chrgproc);
@@ -310,14 +230,14 @@ void ComputeDipoleTIP4PChunk::allocate()
   memory->destroy(dipole);
   memory->destroy(dipoleall);
   maxchunk = nchunk;
-  memory->create(massproc,maxchunk,"dipole/tip4p/chunk:massproc");
-  memory->create(masstotal,maxchunk,"dipole/tip4p/chunk:masstotal");
-  memory->create(chrgproc,maxchunk,"dipole/tip4p/chunk:chrgproc");
-  memory->create(chrgtotal,maxchunk,"dipole/tip4p/chunk:chrgtotal");
-  memory->create(com,maxchunk,3,"dipole/tip4p/chunk:com");
-  memory->create(comall,maxchunk,3,"dipole/tip4p/chunk:comall");
-  memory->create(dipole,maxchunk,4,"dipole/tip4p/chunk:dipole");
-  memory->create(dipoleall,maxchunk,4,"dipole/tip4p/chunk:dipoleall");
+  memory->create(massproc, maxchunk, "dipole/tip4p/chunk:massproc");
+  memory->create(masstotal, maxchunk, "dipole/tip4p/chunk:masstotal");
+  memory->create(chrgproc, maxchunk, "dipole/tip4p/chunk:chrgproc");
+  memory->create(chrgtotal, maxchunk, "dipole/tip4p/chunk:chrgtotal");
+  memory->create(com, maxchunk, 3, "dipole/tip4p/chunk:com");
+  memory->create(comall, maxchunk, 3, "dipole/tip4p/chunk:comall");
+  memory->create(dipole, maxchunk, 4, "dipole/tip4p/chunk:dipole");
+  memory->create(dipoleall, maxchunk, 4, "dipole/tip4p/chunk:dipoleall");
   array = dipoleall;
 }
 
@@ -327,9 +247,9 @@ void ComputeDipoleTIP4PChunk::allocate()
 
 double ComputeDipoleTIP4PChunk::memory_usage()
 {
-  double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (double)maxchunk * 2*3 * sizeof(double);
-  bytes += (double)maxchunk * 2*4 * sizeof(double);
+  double bytes = (double) maxchunk * 2 * sizeof(double) + ComputeChunk::memory_usage();
+  bytes += (double) maxchunk * 2 * 3 * sizeof(double);
+  bytes += (double) maxchunk * 2 * 4 * sizeof(double);
   return bytes;
 }
 
@@ -342,14 +262,14 @@ void ComputeDipoleTIP4PChunk::find_M(int i, double *xM)
   int iH1 = atom->map(atom->tag[i] + 1);
   int iH2 = atom->map(atom->tag[i] + 2);
 
-  if ((iH1 == -1) || (iH2 == -1)) error->one(FLERR,"TIP4P hydrogen is missing");
+  if ((iH1 == -1) || (iH2 == -1)) error->one(FLERR, "TIP4P hydrogen is missing");
   if ((atom->type[iH1] != typeH) || (atom->type[iH2] != typeH))
-    error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+    error->one(FLERR, "TIP4P hydrogen has incorrect atom type");
 
   // set iH1,iH2 to index of closest image to O
 
-  iH1 = domain->closest_image(i,iH1);
-  iH2 = domain->closest_image(i,iH2);
+  iH1 = domain->closest_image(i, iH1);
+  iH2 = domain->closest_image(i, iH2);
 
   double delx1 = x[iH1][0] - x[i][0];
   double dely1 = x[iH1][1] - x[i][1];

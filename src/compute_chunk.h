@@ -11,35 +11,39 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMPUTE_CLASS
-// clang-format off
-ComputeStyle(com/chunk,ComputeCOMChunk);
-// clang-format on
-#else
+#ifndef LMP_COMPUTE_CHUNK_H
+#define LMP_COMPUTE_CHUNK_H
 
-#ifndef LMP_COMPUTE_COM_CHUNK_H
-#define LMP_COMPUTE_COM_CHUNK_H
-
-#include "compute_chunk.h"
+#include "compute.h"
 
 namespace LAMMPS_NS {
-class ComputeCOMChunk : public ComputeChunk {
- public:
-  double *masstotal;
+class ComputeChunkAtom;
+class Fix;
 
-  ComputeCOMChunk(class LAMMPS *, int, char **);
-  ~ComputeCOMChunk() override;
-  void setup() override;
+class ComputeChunk : public Compute {
+ public:
+  char *idchunk;    // fields accessed by other classes
+
+  ComputeChunk(class LAMMPS *, int, char **);
+  ~ComputeChunk() override;
+  void init() override;
+  void compute_vector() override;
   void compute_array() override;
+
+  void lock_enable() override;
+  void lock_disable() override;
+  int lock_length() override;
+  void lock(Fix *, bigint, bigint) override;
+  void unlock(Fix *) override;
 
   double memory_usage() override;
 
- private:
-  double *massproc;
-  double **com, **comall;
+ protected:
+  int nchunk, maxchunk;
+  int firstflag, massneed;
+  ComputeChunkAtom *cchunk;
 
-  void allocate() override;
+  virtual void allocate(){};
 };
 }    // namespace LAMMPS_NS
-#endif
 #endif

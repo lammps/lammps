@@ -253,7 +253,7 @@ void ComputeVoronoi::buildCells()
       for (i = 0; i < nlocal; i++) voro[i][0] = voro[i][1] = voro[i][2] = 0.0;
   }
 
-  double *sublo = domain->sublo, *sublo_lamda = domain->sublo_lamda, *boxlo = domain->boxlo;
+  double *sublo = domain->sublo, *sublo_lamda = domain->sublo_lamda;
   double *subhi = domain->subhi, *subhi_lamda = domain->subhi_lamda;
   double *cut = comm->cutghost;
   double sublo_bound[3], subhi_bound[3];
@@ -266,8 +266,6 @@ void ComputeVoronoi::buildCells()
   // cutghost is in lamda coordinates for triclinic boxes, use sub*_lamda
 
   if (domain->triclinic) {
-    double *h = domain->h;
-
     double sublo_bound_lamda[3], subhi_bound_lamda[3];
     for (i = 0; i < 3; ++i) {
       sublo_bound_lamda[i] = sublo_lamda[i] - cut[i] - EPS;

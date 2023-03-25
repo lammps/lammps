@@ -45,7 +45,8 @@ void PairEAMAlloyOMP::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 3 + atom->ntypes)
+    error->all(FLERR, "Number of element to type mappings does not match number of atom types");
 
   // read EAM setfl file
 

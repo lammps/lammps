@@ -3,9 +3,9 @@ Writing new pair styles
 
 Pair styles are at the core of most simulations with LAMMPS, since they
 are used to compute the forces (plus energy and virial contributions, if
-needed) on atoms for pairs of atoms within a given cutoff.  This is
-often the dominant computation in LAMMPS, and sometimes even the only
-one.  Pair styles can be grouped into multiple categories:
+needed) on atoms for pairs or small clusters of atoms within a given
+cutoff.  This is often the dominant computation in LAMMPS, and sometimes
+even the only one.  Pair styles can be grouped into multiple categories:
 
 #. simple pairwise additive interactions of point particles
    (e.g. :doc:`Lennard-Jones <pair_lj>`, :doc:`Morse <pair_morse>`,
@@ -48,7 +48,10 @@ Case 1: a pairwise additive model
 
 In this section, we will describe the procedure of adding a simple pair
 style to LAMMPS: an empirical model that can be used to model liquid
-mercury.
+mercury.  The pair style shall be called :doc:`bond/gauss
+<pair_born_gauss>` and the complete implementation can be found in the
+files ``src/EXTRA-PAIR/pair_born_gauss.cpp`` and
+``src/EXTRA-PAIR/pair_born_gauss.h`` of the LAMMPS source code.
 
 Model and general considerations
 """"""""""""""""""""""""""""""""
@@ -82,9 +85,7 @@ Because of the combination of Born-Mayer with a Gaussian, the pair style
 shall be named "born/gauss" and thus the class name would be
 ``PairBornGauss`` and the source files ``pair_born_gauss.h`` and
 ``pair_born_gauss.cpp``.  Since this is a rather uncommon potential, it
-shall be added to the :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>` package.  For
-the implementation, we will use :doc:`pair style morse <pair_morse>` as
-a template.
+shall be added to the :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>` package.
 
 Header file
 """""""""""
@@ -126,23 +127,29 @@ message and before the include guards for the class definition:
 
    #endif
 
-This second segment of the header file will be included by the ``Force``
-class in ``force.cpp`` to build a map of "factory functions" that will
-create an instance of these classes and return a pointer to it.  The map
-connects the name of the pair style, "born/gauss", to the name of the
-class, ``PairBornGauss``.  Before including the headers, the ``PAIR_CLASS``
-define is set and the ``PairStyle(name,class)`` macro is defined as needed.
+This block of between ``#ifdef PAIR_CLASS`` and ``#else`` will be
+included by the ``Force`` class in ``force.cpp`` to build a map of
+"factory functions" that will create an instance of these classes and
+return a pointer to it.  The map connects the name of the pair style,
+"born/gauss", to the name of the class, ``PairBornGauss``.  During
+compilation, LAMMPS constructs a file ``style_pair.h`` that contains
+``#include`` statements for all "installed" pair styles.  Before
+including ``style_pair.h`` into ``force.cpp``, the ``PAIR_CLASS`` define
+is set and the ``PairStyle(name,class)`` macro defined.  The code of the
+macro adds the installed pair styles to the "factory map" which enables
+the :doc:`pair_style command <pair_style>` to create the pair style
+instance.
 
 The list of header files to include is automatically updated by the
-build system, so the presence of the file in the ``src/EXTRA-PAIR``
-folder and the enabling of the EXTRA-PAIR package will trigger
-LAMMPS to include the new pair style when it is (re-)compiled.  The "//
-clang-format" format comments are needed so that running
-:ref:`clang-format <clang-format>` on the file will not insert blanks
-between "born", "/", and "gauss" which would break the ``PairStyle``
-macro.
+build system if there are new files, so the presence of the new header
+file in the ``src/EXTRA-PAIR`` folder and the enabling of the EXTRA-PAIR
+package will trigger LAMMPS to include the new pair style when it is
+(re-)compiled.  The "// clang-format" format comments are needed so that
+running :ref:`clang-format <clang-format>` on the file will not insert
+unwanted blanks between "born", "/", and "gauss" which would break the
+``PairStyle`` macro.
 
-The third segment of the header is the actual class definition of the
+The third part of the header file is the actual class definition of the
 ``PairBornGauss`` class.  This has the prototypes for all member
 functions that will be implemented by this pair style.  This includes
 :doc:`a few required and a number of optional functions <Modify_pair>`.
@@ -673,9 +680,17 @@ as the `fforce` reference.  Note, that this is, similar to how *fpair*
 is used in the ``compute()`` function, the magnitude of the force along
 the vector between the two atoms *divided* by the distance.
 
-The ``single()`` function is optional.  The member variable
-`single_enable` should be set to 0 in the constructor, if it is not
-implemented (its default value is 1).
+The ``single()`` function is optional, but it is expected to be
+implemented for any true pair-wise additive potential. Many-body
+potentials and special case potentials do not implement it. In a few
+special cases (EAM, long-range Coulomb), the ``single()`` function
+implements the pairwise additive part of the complete force interaction
+and depends on either pre-computed properties (derivative of embedding
+term for EAM) or post-computed non-pair-wise force contributions (KSpace
+style in case of long-range Coulomb).
+
+The member variable `single_enable` should be set to 0 in the
+constructor, if it is not implemented (its default value is 1).
 
 .. code-block:: c++
 
@@ -701,11 +716,19 @@ Reading and writing of restart files
 
 Support for writing and reading binary restart files is provided by the
 following four functions.  Writing is only done by MPI processor rank 0.
-The output of global (not related to atom types) settings is delegated
-to the ``write_restart_settings()`` function.  Implementing the
-functions to read and write binary restart files is optional.  The
-member variable `restartinfo` should be set to 0 in the constructor, if
-they are not implemented (its default value is 1).
+The output of global (not related to atom types) settings is usually
+delegated to the ``write_restart_settings()`` function.  This restart
+facility is commonly only used, if there are small number of per-type
+parameters.  For potentials that use per-element parameters or tabulated
+data and read these from files, those parameters and the name of the
+potential file are not written to restart files and the :doc:`pair_coeff
+command <pair_coeff>` has to re-issued when restarting.  For pair styles
+like "born/gauss" that do support writing to restart files, this is not
+required.
+
+Implementing the functions to read and write binary restart files is
+optional.  The member variable `restartinfo` should be set to 0 in the
+constructor, if they are not implemented (its default value is 1).
 
 .. code-block:: c++
 
@@ -829,8 +852,17 @@ would be lost.  To avoid this, the "pair ij" option of :doc:`write_data
 of the pair coefficient matrix (regardless of whether they were
 originally created from mixing or not).
 
-The member variable `writedata` should be set to 1 in the constructor,
-if they are implemented (the default value is 0).
+These data file output functions are only useful for true pair-wise
+additive potentials, where the potential parameters can be entered
+through *multiple* :doc:`pair_coeff commands <pair_coeff>`.  Pair styles
+that require a single "pair_coeff \* \*" command line are not compatible
+with reading their parameters from data files.  For pair styles like
+*born/gauss* that do support writing to data files, the potential
+parameters will be read from the data file, if present and
+:doc:`pair_coeff commands <pair_coeff>` may not be needed.
+
+The member variable ``writedata`` should be set to 1 in the constructor,
+if these functions are implemented (the default value is 0).
 
 .. code-block:: c++
 
@@ -861,10 +893,11 @@ if they are implemented (the default value is 0).
 Give access to internal data
 """"""""""""""""""""""""""""
 
-The purpose of the ``extract()`` function is to allow access to internal data
-of the pair style to other parts of LAMMPS.  One application is to use
-:doc:`fix adapt <fix_adapt>` to gradually change potential parameters during
-a run.  Here, we implement access to the pair coefficient matrix parameters.
+The purpose of the ``extract()`` function is to facilitate access to
+internal data of the pair style by other parts of LAMMPS.  One possible
+application is to use :doc:`fix adapt <fix_adapt>` to gradually change
+potential parameters during a run.  Here, we implement access to the
+pair coefficient matrix parameters.
 
 .. code-block:: c++
 
@@ -903,7 +936,9 @@ of a pair style in the previous case, we will focus on where the
 implementation of a typical many-body potential *differs* from a
 pair-wise additive potential.  We will use the implementation of the
 Tersoff potential as :doc:`pair_style tersoff <pair_tersoff>` as an
-example.
+example.  The complete implementation can be found in the files
+``src/MANYBODY/pair_tersoff.cpp`` and ``src/MANYBODY/pair_tersoff.h`` of
+the LAMMPS source code.
 
 Constructor
 """""""""""
@@ -1042,9 +1077,13 @@ the "short" neighbor list, accumulated previously.
 Reading potential parameters
 """"""""""""""""""""""""""""
 
-For the Tersoff potential, the parameters are listed in a file and associated
-with triples for elements.  Thus, the ``coeff()`` function has to do three
-tasks, each of which is delegated to a function:
+For the Tersoff potential, the parameters are listed in a file and
+associated with triples of elements.  Because we have set the
+``one_coeff`` flag to 1 in the constructor, there may only be a single
+:doc:`pair_coeff \* \* <pair_coeff>` line in the input for this pair
+style, and as a consequence the ``coeff()`` function will only be called
+once.  Thus, the ``coeff()`` function has to do three tasks, each of
+which is delegated to a function in the ``PairTersoff`` class:
 
 #. map elements to atom types.  Those follow the potential file name in the
    command line arguments and are processed by the ``map_element2type()`` function.
@@ -1078,9 +1117,22 @@ be computed.  Since LAMMPS is designed to run in parallel using a
 information of the atoms may be directly available and thus
 communication steps may be need to collect data from ghost atoms of
 neighboring subdomains or send data to ghost atoms for application
-during the pairwise computation.  For this we will look at how the
-embedding term of the :doc:`embedded atom potential EAM <pair_eam>` is
-implemented in LAMMPS.
+during the pairwise computation.
+
+Specifically, two communication patterns are needed: a "reverse
+communication" and a "forward communication".  The reverse communication
+collects data added to "ghost" atoms from neighboring sub-domains and
+sums it to their corresponding "local" atoms.  This communication is
+only required and thus executed when the ``Force::newton_pair`` setting
+is 1 (i.e. :doc:`newton on <newton>`, the default).  The forward
+communication is used to copy computed per-atom data from "local" atoms
+to their corresponding "ghost" atoms in neighboring sub-domains.
+
+For this we will look at how the embedding term of the :doc:`embedded
+atom potential EAM <pair_eam>` is implemented in LAMMPS.  The complete
+implementation of this pair style can be found in the files
+``src/MANYBODY/pair_eam.cpp`` and ``src/MANYBODY/pair_eam.h`` of the
+LAMMPS source code.
 
 Allocating additional per-atom storage
 """"""""""""""""""""""""""""""""""""""

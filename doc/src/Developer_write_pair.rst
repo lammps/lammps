@@ -43,6 +43,15 @@ other methods are optional and have default implementations in the base
 class (most of which do nothing), but they may need to be overridden
 depending on the requirements of the model.
 
+We are looking at the following cases:
+
+- `Case 1: a pairwise additive model`_
+- `Case 2: a many-body potential`_
+- `Case 3: a potential requiring communication`_
+- `Case 4: potentials without a compute() function`_
+
+----
+
 Case 1: a pairwise additive model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1240,6 +1249,103 @@ communicated, we must set the `comm_forward` member variable to 1
      last = first + n;
      for (i = first; i < last; i++) fp[i] = buf[m++];
    }
+
+Case 4: potentials without a compute() function
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A small number of pair style classes do not implement a ``compute()``
+function, but instead use that of a different pair style.
+
+Embedded atom variants "eam/fs" and "eam/alloy"
+"""""""""""""""""""""""""""""""""""""""""""""""
+
+The pair styles :doc:`eam/fs and eam/alloy <pair_eam>` share the same
+model and potential function as the :doc:`eam pair style <pair_eam>`.
+They differ in the format of the potential files.  Pair style :doc:`eam
+<pair_eam>` supports only potential files for single elements.  For
+multi-element systems, the mixed terms are computed from mixed
+parameters.  The *eam/fs* and *eam/alloy* pair styles, however,
+**require** the use of a single potential file for all elements where
+the mixed element potential is included in the tabulation.  That enables
+more accurate models for alloys, since the mixed terms can be adjusted
+to a better representiation of material properties compared to terms
+created from mixing or per-element terms.
+
+We take a closer at the *eam/alloy* pair style.  The complete
+implementation is in the files ``src/MANYBODY/pair_eam_alloy.cpp`` and
+``src/MANYBODY/pair_eam_alloy.h``.
+
+The ``PairEAMAlloy`` class is derived from ``PairEAM`` and not ``Pair``
+and overrides only a small number of functions:
+
+.. code-block:: c++
+
+   class PairEAMAlloy : virtual public PairEAM {
+    public:
+     PairEAMAlloy(class LAMMPS *);
+     void coeff(int, char **) override;
+
+    protected:
+     void read_file(char *) override;
+     void file2array() override;
+   };
+
+All other functionality is inherited from the base classes.  In the
+constructor we set the ``one_coeff`` flag and the ``many_body`` flag to
+1 to indicate the different behavior.
+
+.. code-block:: c++
+
+   PairEAMAlloy::PairEAMAlloy(LAMMPS *lmp) : PairEAM(lmp)
+   {
+     one_coeff = 1;
+     manybody_flag = 1;
+   }
+
+The ``coeff()`` function (not shown here) implements the different
+behavior when processing the :doc:`pair_coeff command <pair_coeff>`.
+The ``read_file()`` and ``file2array()`` replace the corresponding
+``PairEAM`` class functions to accommodate the different data and
+file format.
+
+AIREBO and AIREBO-M potentials
+""""""""""""""""""""""""""""""
+
+The AIREBO-M potential differs from the better known AIREBO potential in
+that it use a Morse potential instead of a Lennard-Jones potential for
+non-bonded interactions.  Since this difference is very minimal compared
+to the entire potential, both potentials are implemented in the
+``PairAIREBO`` class and which non-bonded potential is used is
+determined by the value of the ``morseflag`` flag, which would be set to
+either 0 or 1.
+
+.. code-block:: c++
+
+   class PairAIREBOMorse : public PairAIREBO {
+    public:
+     PairAIREBOMorse(class LAMMPS *);
+     void settings(int, char **) override;
+   };
+
+The ``morseflag`` variable defaults to 0 and is set to 1 in the
+``PairAIREBOMorse::settings()`` function which is called by the
+:doc:`pair_style <pair_style>` command.  This function delegates
+all command line processing and setting of other parameters to the
+``PairAIREBO::settings()`` function of the base class.
+
+.. code-block:: c++
+
+   void PairAIREBOMorse::settings(int narg, char **arg)
+   {
+     PairAIREBO::settings(narg, arg);
+
+     morseflag = 1;
+   }
+
+The complete implementation is in the files
+``src/MANYBODY/pair_airebo.cpp``, ``src/MANYBODY/pair_airebo.h``,
+``src/MANYBODY/pair_airebo_morse.cpp``,
+``src/MANYBODY/pair_airebo_morse.h``.
 
 --------------
 

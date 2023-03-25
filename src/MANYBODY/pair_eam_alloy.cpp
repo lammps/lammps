@@ -50,11 +50,6 @@ void PairEAMAlloy::coeff(int narg, char **arg)
   if (narg != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // ensure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
   // read EAM setfl file
 
   if (setfl) {

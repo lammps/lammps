@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -34,10 +33,10 @@ NPairHalffullNewtonTrim::NPairHalffullNewtonTrim(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairHalffullNewtonTrim::build(NeighList *list)
 {
-  int i,j,ii,jj,n,jnum,joriginal;
-  int *neighptr,*jlist;
-  double xtmp,ytmp,ztmp;
-  double delx,dely,delz,rsq;
+  int i, j, ii, jj, n, jnum, joriginal;
+  int *neighptr, *jlist;
+  double xtmp, ytmp, ztmp;
+  double delx, dely, delz, rsq;
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
@@ -100,9 +99,7 @@ void NPairHalffullNewtonTrim::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
-
   list->inum = inum;
 }

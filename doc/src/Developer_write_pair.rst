@@ -1268,8 +1268,8 @@ parameters.  The *eam/fs* and *eam/alloy* pair styles, however,
 **require** the use of a single potential file for all elements where
 the mixed element potential is included in the tabulation.  That enables
 more accurate models for alloys, since the mixed terms can be adjusted
-to a better representiation of material properties compared to terms
-created from mixing or per-element terms.
+for a better representation of material properties compared to terms
+created from mixing of per-element terms in the ``PairEAM`` class.
 
 We take a closer at the *eam/alloy* pair style.  The complete
 implementation is in the files ``src/MANYBODY/pair_eam_alloy.cpp`` and

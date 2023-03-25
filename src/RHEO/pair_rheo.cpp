@@ -219,7 +219,6 @@ void PairRHEO::compute(int eflag, int vflag)
         if (thermal_flag) {
           dT = dot3(dx, dWij);
           dT *= (kappai + kappaj) * (Ti - Tj) * rinv * rinv * voli * volj;
-          //TODO: Assumes heat capacity and density = 1, needs to be generalized
           heatflow[i] += dT;
 
           if (newton_pair || j < nlocal) {

@@ -80,9 +80,9 @@ void FixHeatFlow::init()
   dt = update->dt;
 
   if (!atom->temperature_flag)
-    error->all(FLERR,"Fix temp/integrate requires atom style with temperature property");
+    error->all(FLERR,"Fix temp/integrate requires atoms store temperature property");
   if (!atom->heatflow_flag)
-    error->all(FLERR,"Fix temp/integrate requires atom style with heatflow property");
+    error->all(FLERR,"Fix temp/integrate requires atoms store heatflow property");
 }
 
 /* ---------------------------------------------------------------------- */

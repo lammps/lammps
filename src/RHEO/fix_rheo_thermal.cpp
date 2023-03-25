@@ -161,6 +161,11 @@ void FixRHEOThermal::init()
   compute_vshift = fix_rheo->compute_vshift;
 
   dtf = 0.5 * update->dt * force->ftm2v;
+
+  if (atom->temperature_flag != 1)
+    error->all(FLERR,"fix rheo/thermal command requires atoms store temperature property");
+  if (atom->heatflow_flag != 1)
+    error->all(FLERR,"fix rheo/thermal command requires atoms store heatflow property");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -234,7 +239,7 @@ void FixRHEOThermal::post_integrate()
 {
   int *status = atom->status;
   double *temperature = atom->temperature;
-  double *heat = atom->heat;
+  double *heatflow = atom->heatflow;
   double *rho = atom->rho;
   int *mask = atom->mask;
   int *type = aotm->type;
@@ -247,7 +252,7 @@ void FixRHEOThermal::post_integrate()
       if (status[i] == FixRHEO::FLUID_NO_FORCE) continue;
 
       cvi = calc_cv(i);
-      temperature[i] += dtf * heat[i] / cvi;
+      temperature[i] += dtf * heatflow[i] / cvi;
 
       if (Tc_style != NONE) {
         Ti = temperature[i];
@@ -298,11 +303,20 @@ void FixRHEOThermal::post_neighbor()
 
 /* ----------------------------------------------------------------------
   Update (and forward) evolving conductivity styles every timestep
+  Zero heat flow
 ------------------------------------------------------------------------- */
 
 void FixRHEOThermal::pre_force(int /*vflag*/)
 {
-  // Not needed yet, when needed add (un)pack_forward_comm() methods
+  // send updated temperatures to ghosts if first instance of fix
+  // then clear heatflow for next force calculation
+  double *heatflow = atom->heatflow;
+  if (first_flag) {
+    comm->forward_comm(this);
+    for (int i = 0; i < atom->nmax; i++) heatflow[i] = 0.0;
+  }
+
+  // Not needed yet, when needed add stage check for (un)pack_forward_comm() methods
   //int i;
   //double *conductivity = atom->dvector[index_cond];
   //int *mask = atom->mask;
@@ -327,7 +341,7 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
 void FixRHEOThermal::final_integrate()
 {
   double *temperature = atom->temperature;
-  double *heat = atom->heat;
+  double *heatflow = atom->heatflow;
   int *status = atom->status;
   int *mask = atom->mask;
 
@@ -339,7 +353,7 @@ void FixRHEOThermal::final_integrate()
       if (status[i] & FixRHEO::STATUS_NO_FORCE) continue;
 
       cvi = calc_cv(i);
-      temperature[i] += dtf * heat[i] / cvi;
+      temperature[i] += dtf * heatflow[i] / cvi;
     }
   }
 }
@@ -361,4 +375,61 @@ double FixRHEOThermal::calc_cv(int i)
   } else if (cv_style == TYPE) {
     return(cv_type[atom->type[i]]);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixRHEOThermal::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+{
+  int i, j, m;
+
+  double *temperature = atom->temperature;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    buf[m++] = temperature[j];
+  }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRHEOThermal::unpack_forward_comm(int n, int first, double *buf)
+{
+  int i, m, last;
+
+  m = 0;
+  last = first + n;
+
+  double *temperature = atom->temperature;
+
+  for (i = first; i < last; i++) temperature[i] = buf[m++];
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixRHEOThermal::pack_reverse_comm(int n, int first, double *buf)
+{
+  int m = 0;
+  int last = first + n;
+  double *heatflow = atom->heatflow;
+
+  for (int i = first; i < last; i++) {
+    buf[m++] = heatflow[i];
+  }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRHEOThermal::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int m = 0;
+  double *heatflow = atom->heatflow;
+
+  for (int i = 0; i < n; i++)
+    heatflow[list[i]] += buf[m++];
 }

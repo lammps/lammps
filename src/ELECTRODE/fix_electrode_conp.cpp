@@ -493,6 +493,8 @@ void FixElectrodeConp::setup_post_neighbor()
     }
     MPI_Allreduce(MPI_IN_PLACE, &iele_to_group.front(), ngroup, MPI_INT, MPI_MAX, world);
 
+    memory->destroy(elastance);
+    memory->destroy(capacitance);
     memory->create(elastance, ngroup, ngroup, "fix_electrode:matrix");
     if (read_mat)
       read_from_file(input_file_mat, elastance, "elastance");
@@ -641,6 +643,8 @@ void FixElectrodeConp::setup_pre_exchange()    // create_taglist
   int const nprocs = comm->nprocs;
   tagint *tag = atom->tag;
 
+  delete[] recvcounts;
+  delete[] displs;
   recvcounts = new int[nprocs];
   displs = new int[nprocs];
 
@@ -1219,9 +1223,10 @@ FixElectrodeConp::~FixElectrodeConp()
   }
   if (!modify->get_fix_by_id(id))             // avoid segfault if derived fixes' ctor throws err
     atom->delete_callback(id, Atom::GROW);    // atomvec track local electrode atoms
+
+  delete[] recvcounts;
+  delete[] displs;
   if (matrix_algo) {
-    delete[] recvcounts;
-    delete[] displs;
     memory->destroy(iele_gathered);
     memory->destroy(buf_gathered);
     memory->destroy(potential_iele);
@@ -1229,11 +1234,10 @@ FixElectrodeConp::~FixElectrodeConp()
   memory->destroy(potential_i);
 
   delete elyt_vector;
+  memory->destroy(elastance);
+  memory->destroy(capacitance);
   if (need_elec_vector) delete elec_vector;
-  if (algo == Algo::MATRIX_INV)
-    memory->destroy(capacitance);
-  else if (matrix_algo)
-    memory->destroy(elastance);
+  if (algo == Algo::MATRIX_INV) memory->destroy(capacitance);
 }
 
 /* ---------------------------------------------------------------------- */

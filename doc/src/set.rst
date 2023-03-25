@@ -187,9 +187,9 @@ properties to reset and what the new values are.  Some strings like
 This section describes how to select which atoms to change
 the properties of, via the *style* and *ID* arguments.
 
-.. versionchanged:: TBD
+.. versionchanged:: 28Mar2023
 
-   Support for type labels was added for
+   Support for type labels was added for selecting atoms by type
 
 The style *atom* selects all the atoms in a range of atom IDs.  The
 style *type* selects all the atoms in a range of types or type labels.
@@ -245,9 +245,10 @@ from a file.
    such as the molecule ID, then the floating point value is truncated to
    its integer portion, e.g. a value of 2.6 would become 2.
 
-.. versionchanged:: TBD
+.. versionchanged:: 28Mar2023
 
-   Support for type labels was added for
+   Support for type labels was added for setting atom, bond, angle,
+   dihedral, and improper types
 
 Keyword *type* sets the atom type or atom type label for all selected atoms.
 For atom type, specified value must be from 1 to ntypes, where ntypes was set

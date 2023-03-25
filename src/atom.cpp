@@ -1959,6 +1959,8 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
     mass[itype] = value;
     mass_setflag[itype] = 1;
   }
+
+  delete[] typestr;
 }
 
 /* ----------------------------------------------------------------------

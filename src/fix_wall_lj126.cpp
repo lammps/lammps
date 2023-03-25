@@ -12,11 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_lj126.h"
+
 #include "atom.h"
 #include "error.h"
+#include "math_special.h"
+
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
@@ -29,10 +33,10 @@ FixWallLJ126::FixWallLJ126(LAMMPS *lmp, int narg, char **arg) : FixWall(lmp, nar
 
 void FixWallLJ126::precompute(int m)
 {
-  coeff1[m] = 48.0 * epsilon[m] * pow(sigma[m], 12.0);
-  coeff2[m] = 24.0 * epsilon[m] * pow(sigma[m], 6.0);
-  coeff3[m] = 4.0 * epsilon[m] * pow(sigma[m], 12.0);
-  coeff4[m] = 4.0 * epsilon[m] * pow(sigma[m], 6.0);
+  coeff1[m] = 48.0 * epsilon[m] * powint(sigma[m], 12);
+  coeff2[m] = 24.0 * epsilon[m] * powint(sigma[m], 6);
+  coeff3[m] = 4.0 * epsilon[m] * powint(sigma[m], 12);
+  coeff4[m] = 4.0 * epsilon[m] * powint(sigma[m], 6);
 
   double r2inv = 1.0 / (cutoff[m] * cutoff[m]);
   double r6inv = r2inv * r2inv * r2inv;

@@ -19,11 +19,13 @@
 
 #include "atom.h"
 #include "math_const.h"
+#include "math_special.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_2PI;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
@@ -36,9 +38,9 @@ FixWallLJ1043::FixWallLJ1043(LAMMPS *lmp, int narg, char **arg) : FixWall(lmp, n
 
 void FixWallLJ1043::precompute(int m)
 {
-  coeff1[m] = MY_2PI * 2.0 / 5.0 * epsilon[m] * pow(sigma[m], 10.0);
-  coeff2[m] = MY_2PI * epsilon[m] * pow(sigma[m], 4.0);
-  coeff3[m] = MY_2PI * pow(2.0, 1 / 2.0) / 3 * epsilon[m] * pow(sigma[m], 3.0);
+  coeff1[m] = MY_2PI * 2.0 / 5.0 * epsilon[m] * powint(sigma[m], 10);
+  coeff2[m] = MY_2PI * epsilon[m] * powint(sigma[m], 4);
+  coeff3[m] = MY_2PI * pow(2.0, 1 / 2.0) / 3 * epsilon[m] * powint(sigma[m], 3);
   coeff4[m] = 0.61 / pow(2.0, 1 / 2.0) * sigma[m];
   coeff5[m] = coeff1[m] * 10.0;
   coeff6[m] = coeff2[m] * 4.0;
@@ -48,7 +50,7 @@ void FixWallLJ1043::precompute(int m)
   double r2inv = rinv * rinv;
   double r4inv = r2inv * r2inv;
   offset[m] = coeff1[m] * r4inv * r4inv * r2inv - coeff2[m] * r4inv -
-      coeff3[m] * pow(cutoff[m] + coeff4[m], -3.0);
+      coeff3[m] * powint(cutoff[m] + coeff4[m], -3);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,10 +84,10 @@ void FixWallLJ1043::wall_particle(int m, int which, double coord)
 
       fwall = side *
           (coeff5[m] * r10inv * rinv - coeff6[m] * r4inv * rinv -
-           coeff7[m] * pow(delta + coeff4[m], -4.0));
+           coeff7[m] * powint(delta + coeff4[m], -4));
       f[i][dim] -= fwall;
       ewall[0] += coeff1[m] * r10inv - coeff2[m] * r4inv -
-          coeff3[m] * pow(delta + coeff4[m], -3.0) - offset[m];
+          coeff3[m] * powint(delta + coeff4[m], -3) - offset[m];
       ewall[m + 1] += fwall;
 
       if (evflag) {

@@ -15,10 +15,12 @@
 
 #include "atom.h"
 #include "error.h"
+#include "math_special.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
@@ -31,10 +33,10 @@ FixWallLJ93::FixWallLJ93(LAMMPS *lmp, int narg, char **arg) : FixWall(lmp, narg,
 
 void FixWallLJ93::precompute(int m)
 {
-  coeff1[m] = 6.0 / 5.0 * epsilon[m] * pow(sigma[m], 9.0);
-  coeff2[m] = 3.0 * epsilon[m] * pow(sigma[m], 3.0);
-  coeff3[m] = 2.0 / 15.0 * epsilon[m] * pow(sigma[m], 9.0);
-  coeff4[m] = epsilon[m] * pow(sigma[m], 3.0);
+  coeff1[m] = 6.0 / 5.0 * epsilon[m] * powint(sigma[m], 9);
+  coeff2[m] = 3.0 * epsilon[m] * powint(sigma[m], 3);
+  coeff3[m] = 2.0 / 15.0 * epsilon[m] * powint(sigma[m], 9);
+  coeff4[m] = epsilon[m] * powint(sigma[m], 3);
 
   double rinv = 1.0 / cutoff[m];
   double r2inv = rinv * rinv;

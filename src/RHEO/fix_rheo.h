@@ -44,11 +44,6 @@ class FixRHEO : public Fix {
   int kernel_style;
   enum {QUINTIC, CRK0, CRK1, CRK2};
 
-  // Non-persistent per-atom arrays
-  int *surface;
-  double *conductivity, *viscosity, *pressure;
-  double **f_pressure;
-
   // Status variables
   enum {
     // Phase status
@@ -82,12 +77,6 @@ class FixRHEO : public Fix {
   int thermal_fix_defined;
   int interface_fix_defined;
   int surface_fix_defined;
-
-  class FixStorePeratom *fix_store_visc;
-  class FixStorePeratom *fix_store_pres;
-  class FixStorePeratom *fix_store_cond;
-  class FixStorePeratom *fix_store_surf;
-  class FixStorePeratom *fix_store_fp;
 
   class ComputeRHEOGrad *compute_grad;
   class ComputeRHEOKernel *compute_kernel;

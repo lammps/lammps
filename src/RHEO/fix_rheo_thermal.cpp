@@ -32,8 +32,7 @@ enum {NONE, CONSTANT, TYPE};
 /* ---------------------------------------------------------------------- */
 
 FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr),
-  conductivity(nullptr)
+  Fix(lmp, narg, arg), Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 

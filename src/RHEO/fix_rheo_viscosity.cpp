@@ -250,3 +250,12 @@ void FixRHEOViscosity::unpack_forward_comm(int n, int first, double *buf)
     viscosity[i] = buf[m++];
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixRHEOViscosity::memory_usage()
+{
+  double bytes = 0.0;
+  bytes += (size_t) atom->nmax * sizeof(double);
+  return bytes;
+}

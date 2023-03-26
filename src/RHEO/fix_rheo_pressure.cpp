@@ -204,3 +204,12 @@ double FixRHEOPressure::calculate_p(double rho)
   }
   return rho;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixRHEOPressure::memory_usage()
+{
+  double bytes = 0.0;
+  bytes += (size_t) atom->nmax * sizeof(double);
+  return bytes;
+}

@@ -432,3 +432,12 @@ void FixRHEOThermal::unpack_reverse_comm(int n, int *list, double *buf)
   for (int i = 0; i < n; i++)
     heatflow[list[i]] += buf[m++];
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixRHEOThermal::memory_usage()
+{
+  double bytes = 0.0;
+  bytes += (size_t) atom->nmax * sizeof(double);
+  return bytes;
+}

@@ -35,6 +35,7 @@ class FixRHEOViscosity : public Fix {
   void pre_force(int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  private:
   double *eta_type, eta;

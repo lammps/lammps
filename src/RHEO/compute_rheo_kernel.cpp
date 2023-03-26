@@ -792,3 +792,18 @@ void ComputeRHEOKernel::unpack_forward_comm(int n, int first, double *buf)
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeRHEOKernel::memory_usage()
+{
+  double bytes = 0.0;
+  bytes = (size_t) atom->nmax * sizeof(int);
+
+  if (kernel_type == FixRHEO::CRK0) {
+    bytes += (size_t) atom->nmax * sizeof(double);
+  } else if (correction_order > 0) {
+    bytes += (size_t) atom->nmax * ncor * Mdim * sizeof(double);
+  }
+  return bytes;
+}

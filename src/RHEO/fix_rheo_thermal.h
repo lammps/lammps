@@ -41,6 +41,7 @@ class FixRHEOThermal : public Fix {
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   double *cv_type, cv;

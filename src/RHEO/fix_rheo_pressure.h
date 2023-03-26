@@ -34,6 +34,7 @@ class FixRHEOPressure : public Fix {
   void pre_force(int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
   double calculate_p(double);
  private:
   double c_cubic, csq, rho0, rho0inv;

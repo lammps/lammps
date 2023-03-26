@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors:
+   Joel Clemmer (SNL), Thomas O'Connor (CMU), Eric Palermo (CMU)
+----------------------------------------------------------------------- */
+
 #include "compute_rheo_grad.h"
 
 #include "atom.h"
@@ -457,4 +462,24 @@ void ComputeRHEOGrad::grow_arrays(int nmax)
   if (eta_flag)
     memory->grow(gradn, nmax, dim, "atom:rheo_grad_eta");
   nmax_old = nmax;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeRHEOKernel::memory_usage()
+{
+  double bytes = 0.0;
+  if (velocity_flag)
+    bytes = (size_t) nmax_old * dim * dim * sizeof(double);
+
+  if (rho_flag)
+    bytes = (size_t) nmax_old * dim * sizeof(double);
+
+  if (temperature_flag)
+    bytes = (size_t) nmax_old * dim * sizeof(double);
+
+  if (eta_flag)
+    bytes = (size_t) nmax_old * dim * sizeof(double);
+
+  return bytes;
 }

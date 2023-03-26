@@ -1,7 +1,7 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
- Steve Plimpton, sjplimp@sandia.gov
+ https://www.lammps.org/, Sandia National Laboratories
+ LAMMPS development team: developers@lammps.org
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
  DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
@@ -10,6 +10,11 @@
 
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors:
+   Joel Clemmer (SNL), Thomas O'Connor (CMU), Eric Palermo (CMU)
+----------------------------------------------------------------------- */
 
 #include "fix_rheo_pressure.h"
 
@@ -210,6 +215,6 @@ double FixRHEOPressure::calculate_p(double rho)
 double FixRHEOPressure::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (size_t) atom->nmax * sizeof(double);
+  bytes += (size_t) nmax_old * sizeof(double);
   return bytes;
 }

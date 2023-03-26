@@ -1,35 +1,36 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+ LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+ https://www.lammps.org/, Sandia National Laboratories
+ LAMMPS development team: developers@lammps.org
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
-   the GNU General Public License.
+ Copyright (2003) Sandia Corporation.  Under the terms of Contract
+ DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+ certain rights in this software.  This software is distributed under
+ the GNU General Public License.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ See the README file in the top-level LAMMPS directory.
+ ------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors:
+   Joel Clemmer (SNL), Thomas O'Connor (CMU), Eric Palermo (CMU)
+----------------------------------------------------------------------- */
 
 #include "compute_rheo_vshift.h"
-#include "fix_rheo.h"
-#include "compute_rheo_solids.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "compute_rheo_interface.h"
 #include "compute_rheo_grad.h"
 #include "compute_rheo_kernel.h"
-#include "fix_rheo_surface.h"
-#include <cmath>
-#include <cstring>
-#include "atom.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_rheo.h"
+#include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -44,18 +45,28 @@ ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
   comm_reverse = 3;
   surface_flag = 0;
 
-  nmax  = atom->nmax;
-  memory->create(vshift, nmax, 3, "rheo/vshift:vshift");
-  array_atom = vshift;
-  peratom_flag = 1;
-  size_peratom_cols = 3;
+  // Create vshift array if it doesn't already exist
+  // Create a custom atom property so it works with compute property/atom
+  // Do not create grow callback as there's no reason to copy/exchange data
+  // Manually grow if nmax_old exceeded
+
+  int tmp1, tmp2;
+  index_vshift = atom->find_custom("rheo_vshift", tmp1, tmp2);
+  if (index_vshift == -1) {
+    index_vshift = atom->add_custom("rheo_vshift", 1, 3);
+    nmax_old = atom->nmax;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOVShift::~ComputeRHEOVShift()
 {
-  memory->destroy(vshift);
+  // Remove custom property if it exists
+  int tmp1, tmp2, index;
+  index = atom->find_custom("rheo_vshift", tmp1, tmp2);
+  if (index != -1) atom->remove_custom(index_vshift, 1, 3);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,10 +76,8 @@ void ComputeRHEOVShift::init()
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 
   surface_flag = 0;
-  if (fix_rheo->surface_flag) {
+  if (fix_rheo->surface_flag)
     surface_flag = 1;
-    fix_rheo_surface = fix_rheo->fix_rheo_surface;
-  }
 
   compute_kernel = fix_rheo->compute_kernel;
   compute_grad = fix_rheo->compute_grad;
@@ -110,6 +119,7 @@ void ComputeRHEOVShift::compute_peratom()
   int *surface = atom->surface;
   double *rho = atom->rho;
   double *mass = atom->mass;
+  double **vshift = atom->darray[index_vshift];
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -117,12 +127,10 @@ void ComputeRHEOVShift::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  if (nall > nmax) {
-    nmax = nall;
-    memory->destroy(vshift);
-    memory->create(vshift, nmax, 3, "rheo/vshift:vshift");
-    array_atom = vshift;
-  }
+
+  if (nmax_old < atom->nmax)
+    memory->grow(vshift, atom->nmax, 3, "atom:rheo_vshift");
+  nmax_old = atom->nmax;
 
   for (i = 0; i < nall; i++)
     for (a = 0; a < dim; a++)
@@ -224,14 +232,17 @@ void ComputeRHEOVShift::correct_surfaces()
   int nlocal = atom->nlocal;
   int i, a, b;
   int dim = domain->dimension;
-  int *surface = atom->surface;
+  double **vshift = atom->darray[index_vshift];
 
-  double **nsurf;
-  nsurf = fix_rheo_surface->n_surface;
+  int tmp1, tmp2;
+  int index_nsurf = atom->find_custom("rheo_nsurf", tmp1, tmp2);
+  if (index_nsurf == -1) error->all(FLERR, "Cannot find rheo nsurf");
+  double **nsurf = atom->darray[index_nsurf];
+
   double nx,ny,nz,vx,vy,vz;
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if (surface[i] == 1 || surface[i] == 2) {
+      if ((surface[i] & FixRHEO::STATUS_SURFACE) || (surface[i] & FixRHEO::STATUS_LAYER)) {
         nx = nsurf[i][0];
         ny = nsurf[i][1];
         vx = vshift[i][0];
@@ -257,6 +268,7 @@ void ComputeRHEOVShift::correct_surfaces()
 int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
+  double **vshift = atom->darray[index_vshift];
 
   m = 0;
   last = first + n;
@@ -273,6 +285,7 @@ int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
 void ComputeRHEOVShift::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
+  double **vshift = atom->darray[index_vshift];
 
   m = 0;
   for (i = 0; i < n; i++) {
@@ -289,6 +302,6 @@ void ComputeRHEOVShift::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeRHEOVShift::memory_usage()
 {
-  double bytes = 3 * nmax * sizeof(double);
+  double bytes = 3 * nmax_old * sizeof(double);
   return bytes;
 }

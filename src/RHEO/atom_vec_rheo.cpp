@@ -11,6 +11,11 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors:
+   Joel Clemmer (SNL), Thomas O'Connor (CMU), Eric Palermo (CMU)
+----------------------------------------------------------------------- */
+
 #include "atom_vec_rheo.h"
 
 #include "atom.h"

@@ -35,6 +35,7 @@ class ComputeRHEOGrad : public Compute {
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
   void forward_gradients();
   void forward_fields();
   double **gradv;

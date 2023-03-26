@@ -1,15 +1,20 @@
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
-   Steve Plimpton, sjplimp@sandia.gov
+ LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+ https://www.lammps.org/, Sandia National Laboratories
+ LAMMPS development team: developers@lammps.org
 
-   Copyright (2003) Sandia Corporation.  Under the terms of Contract
-   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-   certain rights in this software.  This software is distributed under
-   the GNU General Public License.
+ Copyright (2003) Sandia Corporation.  Under the terms of Contract
+ DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+ certain rights in this software.  This software is distributed under
+ the GNU General Public License.
 
-   See the README file in the top-level LAMMPS directory.
-------------------------------------------------------------------------- */
+ See the README file in the top-level LAMMPS directory.
+ ------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing authors:
+   Joel Clemmer (SNL), Thomas O'Connor (CMU), Eric Palermo (CMU)
+----------------------------------------------------------------------- */
 
 #include "compute_rheo_kernel.h"
 
@@ -798,12 +803,12 @@ void ComputeRHEOKernel::unpack_forward_comm(int n, int first, double *buf)
 double ComputeRHEOKernel::memory_usage()
 {
   double bytes = 0.0;
-  bytes = (size_t) atom->nmax * sizeof(int);
+  bytes = (size_t) nmax_old * sizeof(int);
 
   if (kernel_type == FixRHEO::CRK0) {
-    bytes += (size_t) atom->nmax * sizeof(double);
+    bytes += (size_t) nmax_old * sizeof(double);
   } else if (correction_order > 0) {
-    bytes += (size_t) atom->nmax * ncor * Mdim * sizeof(double);
+    bytes += (size_t) nmax_old * ncor * Mdim * sizeof(double);
   }
   return bytes;
 }

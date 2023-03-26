@@ -21,6 +21,7 @@ ComputeStyle(rheo/kernel,ComputeRHEOKernel)
 #define LMP_COMPUTE_RHEO_KERNEL_H
 
 #include "compute.h"
+#include <unordered_set>
 
 namespace LAMMPS_NS {
 
@@ -45,15 +46,16 @@ class ComputeRHEOKernel : public Compute {
  private:
   int solid_flag;
   int gsl_error_flag;
+  std::unordered_set<tagint> gsl_error_tags;
 
-  int kernel_type, N2min, nmax, Mdim, ncor;
+  int kernel_style, zmin, dim, Mdim, ncor;
   int nmax_old, index_coord;
-  double cut, cutsq, cutinv, h, ih, ihsq, pre_w, pre_wp;
+  double h, hsq, hinv, hsqinv, pre_w, pre_wp;
   double ***C;
   double *C0;
 
   class NeighList *list;
-  class ComputeRHEOSolids *compute_solids;
+  class ComputeRHEOInterface *compute_interface;
   class FixRHEO *fix_rheo;
 
   int check_corrections(int);

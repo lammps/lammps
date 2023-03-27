@@ -250,8 +250,9 @@ from a file.
    Support for type labels was added for setting atom, bond, angle,
    dihedral, and improper types
 
-Keyword *type* sets the atom type or atom type label for all selected atoms.
-For atom type, specified value must be from 1 to ntypes, where ntypes was set
+Keyword *type* sets the atom type for all selected atoms.  A specified value
+can be a type id or a type label for atom type. When using a 
+type id, the specified value must be from 1 to ntypes, where ntypes was set
 by the :doc:`create_box <create_box>` command or the *atom types* field in the
 header of the data file read by the :doc:`read_data <read_data>`
 command. In the case of the specified type label, it must have been defined
@@ -259,16 +260,16 @@ before use via an alphanumeric type label. See the
 :doc:`Howto type labels <Howto_type_labels>` doc page for the allowed syntax
 of type labels and a general discussion of how type labels can be used.
 
-Keyword *type/fraction* sets the atom type or atom type label for a fraction
-of the selected atoms.  The actual number of atoms changed is not guaranteed
+Keyword *type/fraction* sets the atom type for a fraction of the selected
+atoms.  The actual number of atoms changed is not guaranteed
 to be exactly the specified fraction (0 <= *fraction* <= 1), but
 should be statistically close.  Random numbers are used in such a way
 that a particular atom is changed or not changed, regardless of how
 many processors are being used.  This keyword does not allow use of an
 atom-style variable.
 
-Keywords *type/ratio* and *type/subset* also set the atom type or atom
-type label for a fraction of the selected atoms.  The actual number of
+Keywords *type/ratio* and *type/subset* also set the atom type for
+a fraction of the selected atoms.  The actual number of
 atoms changed will be exactly the requested number.  For *type/ratio* the
 specified fraction (0 <= *fraction* <= 1) determines the number.  For
 *type/subset*, the specified *Nsubset* is the number.  An iterative

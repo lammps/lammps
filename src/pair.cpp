@@ -26,6 +26,7 @@
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "suffix.h"
@@ -37,7 +38,9 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_ISPI4;
+using MathConst::THIRD;
+using MathSpecial::powint;
 
 enum { NONE, RLINEAR, RSQ, BMP };
 static const std::string mixing_rule_names[Pair::SIXTHPOWER + 1] = {"geometric", "arithmetic",
@@ -704,8 +707,8 @@ double Pair::mix_energy(double eps1, double eps2, double sig1, double sig2)
   else if (mix_flag == ARITHMETIC)
     return sqrt(eps1*eps2);
   else if (mix_flag == SIXTHPOWER)
-    return (2.0 * sqrt(eps1*eps2) *
-      pow(sig1,3.0) * pow(sig2,3.0) / (pow(sig1,6.0) + pow(sig2,6.0)));
+    return (2.0 * sqrt(eps1*eps2) * powint(sig1, 3) * powint(sig2, 3)
+            / (powint(sig1, 6) + powint(sig2, 6)));
   else did_mix = false;
   return 0.0;
 }
@@ -721,7 +724,7 @@ double Pair::mix_distance(double sig1, double sig2)
   else if (mix_flag == ARITHMETIC)
     return (0.5 * (sig1+sig2));
   else if (mix_flag == SIXTHPOWER)
-    return pow((0.5 * (pow(sig1,6.0) + pow(sig2,6.0))),1.0/6.0);
+    return pow((0.5 * (powint(sig1, 6) + powint(sig2, 6))), 1.0/6.0);
   else return 0.0;
 }
 
@@ -1946,19 +1949,18 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
     error->warning(FLERR,"Table inner cutoff >= outer cutoff");
 
   int nlowermin = 1;
-  while (!((pow(double(2),(double)nlowermin) <= inner*inner) &&
-           (pow(double(2),(double)nlowermin+1.0) > inner*inner))) {
-    if (pow(double(2),(double)nlowermin) <= inner*inner) nlowermin++;
+  while ((powint(2.0, nlowermin) > inner*inner) || (powint(2.0, nlowermin+1) <= inner*inner)) {
+    if (powint(2.0, nlowermin) <= inner*inner) nlowermin++;
     else nlowermin--;
   }
 
   int nexpbits = 0;
-  double required_range = outer*outer / pow(double(2),(double)nlowermin);
+  double required_range = outer*outer / powint(2.0, nlowermin);
   double available_range = 2.0;
 
   while (available_range < required_range) {
     nexpbits++;
-    available_range = pow(double(2),pow(double(2),(double)nexpbits));
+    available_range = pow(2.0, powint(2.0, nexpbits));
   }
 
   int nmantbits = ntablebits - nexpbits;

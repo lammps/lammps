@@ -322,7 +322,7 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   Few<double,6> h, h_inv;
 
   KOKKOS_INLINE_FUNCTION
-  void x2lamdaT(double* v, double* lamda) const
+  void x2lamdaT_kokkos(double* v, double* lamda) const
   {
     double lamda_tmp[3];
 

@@ -482,7 +482,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic1, const int &n) 
   unitk_lamda[0] = 2.0*MY_PI*per_i;
   unitk_lamda[1] = 2.0*MY_PI*per_j;
   unitk_lamda[2] = 2.0*MY_PI*per_k;
-  x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+  x2lamdaT_kokkos(&unitk_lamda[0],&unitk_lamda[0]);
   d_fkx[n] = unitk_lamda[0];
   d_fky[n] = unitk_lamda[1];
   d_fkz[n] = unitk_lamda[2];
@@ -1073,7 +1073,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_compute_gf_ik_triclinic, const i
       unitk_lamda[0] = 2.0*MY_PI*kper;
       unitk_lamda[1] = 2.0*MY_PI*lper;
       unitk_lamda[2] = 2.0*MY_PI*mper;
-      x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+      x2lamdaT_kokkos(&unitk_lamda[0],&unitk_lamda[0]);
 
       const double sqk = square(unitk_lamda[0]) + square(unitk_lamda[1]) + square(unitk_lamda[2]);
 
@@ -1098,7 +1098,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_compute_gf_ik_triclinic, const i
               b[0] = 2.0*MY_PI*nx_pppm*nx;
               b[1] = 2.0*MY_PI*ny_pppm*ny;
               b[2] = 2.0*MY_PI*nz_pppm*nz;
-              x2lamdaT(&b[0],&b[0]);
+              x2lamdaT_kokkos(&b[0],&b[0]);
 
               const double qx = unitk_lamda[0]+b[0];
               const double sx = exp(-0.25*square(qx/g_ewald));

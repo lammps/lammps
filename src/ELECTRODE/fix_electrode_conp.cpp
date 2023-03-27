@@ -1225,7 +1225,6 @@ FixElectrodeConp::~FixElectrodeConp()
   memory->destroy(elastance);
   memory->destroy(capacitance);
   if (need_elec_vector) delete elec_vector;
-  if (algo == Algo::MATRIX_INV) memory->destroy(capacitance);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1016,6 +1016,7 @@ void PPPMKokkos<DeviceType>::set_grid_global()
     tmp[0] = nx_pppm;
     tmp[1] = ny_pppm;
     tmp[2] = nz_pppm;
+    h_inv = Few<double, 6>(domain->h_inv);
     x2lamdaT(&tmp[0],&tmp[0]);
     h_x = 1.0/tmp[0];
     h_y = 1.0/tmp[1];

@@ -1,18 +1,18 @@
 # 3d Lennard-Jones melt - MDI engine script
 
-units		lj
-atom_style	atomic
+units           lj
+atom_style      atomic
 
-lattice		fcc 1.0
-region		box block 0 1 0 1 0 1
-create_box	1 box
-mass		1 1.0
+lattice         fcc 1.0
+region          box block 0 1 0 1 0 1
+create_box      1 box
+mass            1 1.0
 
-pair_style	lj/cut 2.5
-pair_coeff	1 1 1.0 1.0 2.5
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
 
-neighbor	0.3 bin
-neigh_modify	delay 0 every 1 check yes
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
 
 thermo_style    custom step temp pe etotal press vol
 thermo          1

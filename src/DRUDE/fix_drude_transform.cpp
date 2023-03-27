@@ -50,11 +50,19 @@ FixDrudeTransform<inverse>::~FixDrudeTransform()
 template <bool inverse>
 void FixDrudeTransform<inverse>::init()
 {
-  int ifix;
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix) error->all(FLERR, "fix drude/transform requires fix drude");
-  fix_drude = (FixDrude *) modify->fix[ifix];
+  fix_drude = nullptr;
+  std::string substyle = "direct";
+  if (inverse) substyle = "inverse";
+
+  auto fixes = modify->get_fix_by_style("^drude");
+  if (fixes.size() > 0) fix_drude = dynamic_cast<FixDrude *>(fixes[0]);
+  if (!fix_drude)
+    error->all(FLERR, "fix drude/transform/{} requires fix drude", substyle);
+
+  fixes = modify->get_fix_by_style("^rigid/np.");
+  if ((comm->me == 0) && (fixes.size() > 0))
+    error->warning(FLERR, "fix drude/transform/{} is not compatible with box changing rigid fixes",
+      substyle);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -43,19 +43,20 @@ folder that the dynamic loader searches or inside of the installed
 
       Compile LAMMPS with either :doc:`CMake <Build_cmake>` or the
       :doc:`traditional make <Build_make>` procedure in :ref:`shared
-      mode <exe>`.  After compilation has finished type (in the
+      mode <exe>`.  After compilation has finished, type (in the
       compilation folder):
 
       .. code-block:: bash
 
          make install-python
 
-      This will try to build a so-called (binary) 'wheel', a compressed
-      binary python package and then install it with the python package
-      manager 'pip'.  Installation will be attempted into a system-wide
-      ``site-packages`` folder and if that fails into the corresponding
-      folder in the user's home directory.  For a system-wide installation you
-      would have to gain superuser privilege, e.g. though ``sudo``
+      This will try to build a so-called (binary) wheel file, a
+      compressed binary python package and then install it with the
+      python package manager 'pip'.  Installation will be attempted into
+      a system-wide ``site-packages`` folder and if that fails into the
+      corresponding folder in the user's home directory.  For a
+      system-wide installation you usually would have to gain superuser
+      privilege first, e.g. though ``sudo``
 
       +------------------------+----------------------------------------------------------+-------------------------------------------------------------+
       | File                   | Location                                                 | Notes                                                       |
@@ -106,10 +107,11 @@ folder that the dynamic loader searches or inside of the installed
 
       .. code-block:: bash
 
-         python install.py -p <python package> -l <shared library> [-n]
+         python install.py -p <python package> -l <shared library> -v <version.h file> [-n]
 
       * The ``-p`` flag points to the ``lammps`` Python package folder to be installed,
       * the ``-l`` flag points to the LAMMPS shared library file to be installed,
+      * the ``-v`` flag points to the LAMMPS version header file to extract the version date,
       * and the optional ``-n`` instructs the script to only build a wheel file
         but not attempt to install it.
 

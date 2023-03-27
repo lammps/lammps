@@ -1,0 +1,25 @@
+# AIMD test of two UO2 molecules with LATTE in MDI stand-alone mode
+
+units           metal
+atom_style      full
+
+read_data       data.2uo2
+
+velocity        all create 300.0 87287 loop geom
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.00025
+
+fix             1 all nve
+
+fix             2 all mdi/qm virial yes elements U O
+
+thermo_style    custom step temp pe etotal press
+thermo          5
+
+#dump            1 all custom 1 dump.aimd.mpi &
+#                id type x y z vx vy vz fx fy fz
+
+run             20

@@ -39,6 +39,8 @@
 /mdi_engine.h
 /fix_mdi_qm.cpp
 /fix_mdi_qm.h
+/fix_mdi_qmmm.cpp
+/fix_mdi_qmmm.h
 /mdi_command.cpp
 /mdi_command.h
 /mdi_plugin.cpp
@@ -56,6 +58,8 @@
 
 /pair_lepton.cpp
 /pair_lepton.h
+/pair_lepton_coul.cpp
+/pair_lepton_coul.h
 /bond_lepton.cpp
 /bond_lepton.h
 /angle_lepton.cpp

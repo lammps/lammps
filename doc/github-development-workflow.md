@@ -123,7 +123,7 @@ request is merged.  The template for pull requests includes a header
 where connections between pull requests and issues can be listed, and
 thus where this comment should be placed.
 
-## Milestones and Release Planning
+## Release Planning
 
 LAMMPS uses a continuous release development model with incremental
 changes, i.e. significant effort is made -- including automated pre-merge
@@ -132,24 +132,28 @@ broken.  These tests are run after every update to a pull request.  More
 extensive and time-consuming tests (including regression testing) are
 performed after code is merged to the "develop" branch.  There are feature
 releases of LAMMPS made about every 4-6 weeks at a point, when the LAMMPS
-developers feel, that a sufficient number of changes has been included
+developers feel, that a sufficient number of changes have been included
 and all post-merge testing has been successful.  These feature releases are
 marked with a `patch_<version date>` tag and the "release" branch
 follows only these versions with fast-forward merges.  While "develop" may
 be temporarily broken through issues only detected by the post-merge tests,
 The "release" branch is always supposed to be of production quality.
 
-About once each year, there is a "stable" release of LAMMPS.
-These have seen additional, manual testing and review of
-results from testing with instrumented code and static code analysis.
-Also, the last few feature releases before a stable release are "release
-candidate" versions which only contain bug fixes, feature additions to
-peripheral functionality, and documentation updates.  In between stable
-releases, bug fixes and infrastructure updates are back-ported from the
-"develop" branch to the "maintenance" branch and occasionally merged
-into "stable" and published as update releases.
+About once each year, there is a "stable" release of LAMMPS.  These have
+seen additional, manual testing and review of results from testing with
+instrumented code and static code analysis.  Also, the last few feature
+releases before a stable release are "release candidate" versions which
+only contain bug fixes, feature additions to peripheral functionality,
+and documentation updates.  In between stable releases, bug fixes and
+infrastructure updates are back-ported from the "develop" branch to the
+"maintenance" branch and occasionally merged into "stable" and published
+as update releases.
+
+## Project Management
 
 For release planning and the information of code contributors, issues
-and pull requests being actively worked on are assigned a "milestone",
-which corresponds to the next stable release or the stable release after
-that, with a tentative release date.
+and pull requests are being managed with GitHub Project Boards.  There
+are currently three boards: LAMMPS Feature Requests, LAMMPS Bug Reports,
+and LAMMPS Pull Requests.  Each board is organized in columns where
+submissions are categorized.  Within each column the entries are
+(manually) sorted according their priority.

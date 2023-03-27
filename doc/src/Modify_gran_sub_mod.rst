@@ -20,16 +20,16 @@ parent GranSubMod class, several types of sub-model classes are derived:
 * GranSubModTwisting: twisting friction sub-model
 * GranSubModHeat: heat conduction sub-model
 
-For each type of sub-model, more classes are further derived, each describing
-a specific implementation. For instance, from the GranSubModNormal class the
+For each type of sub-model, more classes are further derived, each describing a
+specific implementation. For instance, from the GranSubModNormal class the
 GranSubModNormalHooke, GranSubModNormalHertz, and GranSubModNormalJKR classes
-are derived which calculate Hookean, Hertzian, or JKR normal forces, respectively.
-This modular structure simplifies the addition of new granular contact models as
-as one onlyneeds to create a new GranSubMod class without having to modify the more
-complex PairGranular, FixGranWall, and GranularModel classes. Most GranSubMod methods
-are also already defined by the parent classes so new contact models typically only
-require edits to a few relevant methods (e.g. methods that define coefficients and
-calculate forces).
+are derived which calculate Hookean, Hertzian, or JKR normal forces,
+respectively.  This modular structure simplifies the addition of new granular
+contact models as one only needs to create a new GranSubMod class without
+having to modify the more complex PairGranular, FixGranWall, and GranularModel
+classes. Most GranSubMod methods are also already defined by the parent classes
+so new contact models typically only require edits to a few relevant methods
+(e.g. methods that define coefficients and calculate forces).
 
 Each GranSubMod class has a pointer to both the LAMMPS class and the GranularModel
 class which owns it, ``lmp`` and ``gm``, respectively. The GranularModel class

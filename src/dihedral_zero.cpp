@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -37,28 +36,27 @@ DihedralZero::DihedralZero(LAMMPS *lmp) : Dihedral(lmp), coeffflag(1)
 
 DihedralZero::~DihedralZero()
 {
-  if (allocated && !copymode) {
-    memory->destroy(setflag);
-  }
+  if (allocated && !copymode) memory->destroy(setflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DihedralZero::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DihedralZero::settings(int narg, char **arg)
 {
-  if ((narg != 0) && (narg != 1))
-    error->all(FLERR,"Illegal dihedral_style command");
+  if ((narg != 0) && (narg != 1)) error->all(FLERR, "Illegal dihedral_style command");
 
   if (narg == 1) {
-    if (strcmp("nocoeff",arg[0]) == 0) coeffflag=0;
-    else error->all(FLERR,"Illegal dihedral_style command");
+    if (strcmp("nocoeff", arg[0]) == 0)
+      coeffflag = 0;
+    else
+      error->all(FLERR, "Illegal dihedral_style command");
   }
 }
 
@@ -69,7 +67,7 @@ void DihedralZero::allocate()
   allocated = 1;
   int n = atom->ndihedraltypes;
 
-  memory->create(setflag,n+1,"dihedral:setflag");
+  memory->create(setflag, n + 1, "dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
@@ -80,12 +78,12 @@ void DihedralZero::allocate()
 void DihedralZero::coeff(int narg, char **arg)
 {
   if ((narg < 1) || (coeffflag && narg > 1))
-    error->all(FLERR,"Incorrect args for dihedral coefficients");
+    error->all(FLERR, "Incorrect args for dihedral coefficients");
 
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->ndihedraltypes, ilo, ihi, error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -93,7 +91,7 @@ void DihedralZero::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -116,7 +114,7 @@ void DihedralZero::read_restart(FILE * /*fp*/)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void DihedralZero::write_data(FILE *fp) {
-  for (int i = 1; i <= atom->ndihedraltypes; i++)
-    fprintf(fp,"%d\n",i);
+void DihedralZero::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ndihedraltypes; i++) fprintf(fp, "%d\n", i);
 }

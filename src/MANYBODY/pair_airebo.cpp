@@ -1775,7 +1775,7 @@ double PairAIREBO::bondorder(int i, int j, double rij[3], double rijmag, double 
             atoml = REBO_neighs_j[l];
             atom4 = atoml;
             ltype = map[type[atoml]];
-            if (!(atoml == atomi || atoml == atomk)) {
+            if (atoml != atomi && atoml != atomk) {
               r34[0] = x[atom3][0]-x[atom4][0];
               r34[1] = x[atom3][1]-x[atom4][1];
               r34[2] = x[atom3][2]-x[atom4][2];
@@ -2284,7 +2284,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rij
             atoml = REBO_neighs_j[l];
             atom4 = atoml;
             ltype = map[type[atoml]];
-            if (!(atoml == atomi || atoml == atomk)) {
+            if (atoml != atomi && atoml != atomk) {
               r34[0] = x[atom3][0]-x[atom4][0];
               r34[1] = x[atom3][1]-x[atom4][1];
               r34[2] = x[atom3][2]-x[atom4][2];
@@ -2732,7 +2732,7 @@ double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rij
               atoml = REBO_neighs_j[l];
               atom4 = atoml;
               ltype = map[type[atoml]];
-              if (!(atoml == atomi || atoml == atomk)) {
+              if (atoml != atomi && atoml != atomk) {
                 r34[0] = x[atom3][0]-x[atom4][0];
                 r34[1] = x[atom3][1]-x[atom4][1];
                 r34[2] = x[atom3][2]-x[atom4][2];

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -23,11 +22,10 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixReadRestart::FixReadRestart(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  count(nullptr), extra(nullptr)
+    Fix(lmp, narg, arg), count(nullptr), extra(nullptr)
 {
-  nextra = utils::inumeric(FLERR,arg[3],false,lmp);
-  int nfix = utils::inumeric(FLERR,arg[4],false,lmp);
+  nextra = utils::inumeric(FLERR, arg[3], false, lmp);
+  int nfix = utils::inumeric(FLERR, arg[4], false, lmp);
 
   // perform initial allocation of atom-based array
   // register with Atom class
@@ -39,11 +37,11 @@ FixReadRestart::FixReadRestart(LAMMPS *lmp, int narg, char **arg) :
 
   double **atom_extra = atom->extra;
   int nlocal = atom->nlocal;
-  int i,j,m;
+  int i, j, m;
 
   for (i = 0; i < nlocal; i++) {
     m = 0;
-    for (j = 0; j < nfix; j++) m += static_cast<int> (atom_extra[i][m]);
+    for (j = 0; j < nfix; j++) m += static_cast<int>(atom_extra[i][m]);
     count[i] = m;
     for (j = 0; j < m; j++) extra[i][j] = atom_extra[i][j];
   }
@@ -55,7 +53,7 @@ FixReadRestart::~FixReadRestart()
 {
   // unregister callback to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id, Atom::GROW);
 
   // delete locally stored arrays
 
@@ -77,8 +75,8 @@ int FixReadRestart::setmask()
 
 double FixReadRestart::memory_usage()
 {
-  double bytes = (double)atom->nmax*nextra * sizeof(double);
-  bytes += (double)atom->nmax * sizeof(int);
+  double bytes = (double) atom->nmax * nextra * sizeof(double);
+  bytes += (double) atom->nmax * sizeof(int);
   return bytes;
 }
 
@@ -88,8 +86,8 @@ double FixReadRestart::memory_usage()
 
 void FixReadRestart::grow_arrays(int nmax)
 {
-  memory->grow(count,nmax,"read_restart:count");
-  memory->grow(extra,nmax,nextra,"read_restart:extra");
+  memory->grow(count, nmax, "read_restart:count");
+  memory->grow(extra, nmax, nextra, "read_restart:extra");
 }
 
 /* ----------------------------------------------------------------------
@@ -109,8 +107,8 @@ void FixReadRestart::copy_arrays(int i, int j, int /*delflag*/)
 int FixReadRestart::pack_exchange(int i, double *buf)
 {
   buf[0] = count[i];
-  for (int m = 0; m < count[i]; m++) buf[m+1] = extra[i][m];
-  return count[i]+1;
+  for (int m = 0; m < count[i]; m++) buf[m + 1] = extra[i][m];
+  return count[i] + 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -119,7 +117,7 @@ int FixReadRestart::pack_exchange(int i, double *buf)
 
 int FixReadRestart::unpack_exchange(int nlocal, double *buf)
 {
-  count[nlocal] = static_cast<int> (buf[0]);
-  for (int m = 0; m < count[nlocal]; m++) extra[nlocal][m] = buf[m+1];
-  return count[nlocal]+1;
+  count[nlocal] = static_cast<int>(buf[0]);
+  for (int m = 0; m < count[nlocal]; m++) extra[nlocal][m] = buf[m + 1];
+  return count[nlocal] + 1;
 }

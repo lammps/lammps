@@ -115,7 +115,7 @@ void ComputeChunk::lock_enable()
 void ComputeChunk::lock_disable()
 {
   cchunk = dynamic_cast<ComputeChunkAtom *>(modify->get_compute_by_id(idchunk));
-  if (!cchunk) cchunk->lockcount--;
+  if (cchunk) cchunk->lockcount--;
 }
 
 /* ----------------------------------------------------------------------

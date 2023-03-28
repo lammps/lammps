@@ -15,7 +15,7 @@ Syntax
 * Nevery = use input values every this many time steps
 * Nfreq = save state of the time correlation functions every this many time steps
 * one or more input values can be listed
-* value = c_ID, c_ID[N], f_ID, f_ID[N], v_name
+* value = c_ID, c_ID[N], f_ID, f_ID[N], v_name, v_name[I]
 
   .. parsed-literal::
 
@@ -24,6 +24,7 @@ Syntax
        f_ID = global scalar calculated by a fix with ID
        f_ID[I] = Ith component of global vector calculated by a fix with ID
        v_name = global value calculated by an equal-style variable with name
+       v_name[I] = Ith component of global vector calculated by a vector-style variable with name
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *type* or *start* or *file* or *overwrite* or *title1* or *title2* or *ncorr* or *nlen* or *ncount*

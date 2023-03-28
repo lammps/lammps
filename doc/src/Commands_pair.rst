@@ -185,6 +185,7 @@ OPT.
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
    * :doc:`lj/relres (o) <pair_lj_relres>`
+   * :doc:`lj/sphere <pair_lj_sphere>`
    * :doc:`lj/spica (gko) <pair_spica>`
    * :doc:`lj/spica/coul/long (go) <pair_spica>`
    * :doc:`lj/spica/coul/msm (o) <pair_spica>`

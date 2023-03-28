@@ -14,7 +14,7 @@ Syntax
 * ID = depends on style
 
 .. parsed-literal::
-  
+
        for style = *atom*, ID = a range of atom IDs
        for style = *type*, ID = a range of numeric types or a single type label
        for style = *mol*, ID = a range of molecule IDs

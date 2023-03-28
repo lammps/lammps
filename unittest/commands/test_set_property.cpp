@@ -207,6 +207,16 @@ TEST_F(SetTest, StylesTypes)
     ASSERT_EQ(sum, 4);
 
     BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 1 C 2 H");
+    command("set group all type C");
+    command("set group all type/fraction H 0.5 453246");
+    END_HIDE_OUTPUT();
+    sum = 0;
+    for (int i = 0; i < 8; ++i)
+        sum += (atom->type[i] == 2) ? 1 : 0;
+    ASSERT_EQ(sum, 4);
+
+    BEGIN_HIDE_OUTPUT();
     command("set group all type 1");
     command("set group all type/ratio 2 0.5 5784536");
     END_HIDE_OUTPUT();
@@ -223,6 +233,15 @@ TEST_F(SetTest, StylesTypes)
     for (int i = 0; i < 8; ++i)
         sum += (atom->type[i] == 2) ? 1 : 0;
     ASSERT_EQ(sum, 4);
+
+    BEGIN_HIDE_OUTPUT();
+    command("set group all type C");
+    command("set group all type/subset H 5 784536");
+    END_HIDE_OUTPUT();
+    sum = 0;
+    for (int i = 0; i < 8; ++i)
+        sum += (atom->type[i] == 2) ? 1 : 0;
+    ASSERT_EQ(sum, 5);
 
     TEST_FAILURE(".*ERROR: Numeric index 9 is out of bounds .1-8.*", command("set type 9 x 0.0"););
     TEST_FAILURE(".*ERROR: Invalid range string: 3:10.*", command("set type 3:10 x 0.0"););
@@ -246,6 +265,34 @@ TEST_F(SetTest, PosVelCharge)
     ASSERT_EQ(atom->q[5], -1);
     ASSERT_EQ(atom->q[6], -1);
     ASSERT_EQ(atom->q[7], -1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("labelmap atom 1 C 2 H");
+    command("set region right type H");
+    END_HIDE_OUTPUT();
+
+    ASSERT_EQ(atom->type[0], 1);
+    ASSERT_EQ(atom->type[1], 2);
+    ASSERT_EQ(atom->type[2], 1);
+    ASSERT_EQ(atom->type[3], 2);
+    ASSERT_EQ(atom->type[4], 1);
+    ASSERT_EQ(atom->type[5], 2);
+    ASSERT_EQ(atom->type[6], 1);
+    ASSERT_EQ(atom->type[7], 2);
+
+    BEGIN_HIDE_OUTPUT();
+    command("set type C charge 1.25");
+    command("set type H charge -1.25");
+    END_HIDE_OUTPUT();
+
+    ASSERT_EQ(atom->q[0], 1.25);
+    ASSERT_EQ(atom->q[1], -1.25);
+    ASSERT_EQ(atom->q[2], 1.25);
+    ASSERT_EQ(atom->q[3], -1.25);
+    ASSERT_EQ(atom->q[4], 1.25);
+    ASSERT_EQ(atom->q[5], -1.25);
+    ASSERT_EQ(atom->q[6], 1.25);
+    ASSERT_EQ(atom->q[7], -1.25);
 
     BEGIN_HIDE_OUTPUT();
     command("variable xpos atom 0.5-x");

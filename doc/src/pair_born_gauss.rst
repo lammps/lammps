@@ -24,7 +24,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 Pair style *born/gauss* computes pairwise interactions from a combination of a Born-Mayer
 repulsive term and a Gaussian attractive term according to :ref:`(Bomont) <Bomont>`:

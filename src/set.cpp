@@ -106,7 +106,6 @@ void Set::command(int narg, char **arg)
       char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
       newtype = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
       delete[] typestr;
-      newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       fraction = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (newtype <= 0 || newtype > atom->ntypes)

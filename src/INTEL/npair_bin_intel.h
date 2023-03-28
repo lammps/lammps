@@ -14,6 +14,14 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
+NPairStyle(half/bin/newton/intel,
+           NPairHalfBinNewtonIntel,
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_INTEL);
+
+NPairStyle(half/bin/newton/tri/intel,
+           NPairHalfBinNewtonTriIntel,
+           NP_HALF | NP_BIN | NP_NEWTON | NP_TRI | NP_INTEL);
+
 NPairStyle(full/bin/intel,
            NPairFullBinIntel,
            NP_FULL | NP_BIN | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI |
@@ -21,13 +29,31 @@ NPairStyle(full/bin/intel,
 // clang-format on
 #else
 
-#ifndef LMP_NPAIR_FULL_BIN_INTEL_H
-#define LMP_NPAIR_FULL_BIN_INTEL_H
+#ifndef LMP_NPAIR_BIN_INTEL_H
+#define LMP_NPAIR_BIN_INTEL_H
 
 #include "fix_intel.h"
 #include "npair_intel.h"
 
 namespace LAMMPS_NS {
+
+class NPairHalfBinNewtonIntel : public NPairIntel {
+ public:
+  NPairHalfBinNewtonIntel(class LAMMPS *);
+  void build(class NeighList *) override;
+
+ private:
+  template <class flt_t, class acc_t> void hbni(NeighList *, IntelBuffers<flt_t, acc_t> *);
+};
+
+class NPairHalfBinNewtonTriIntel : public NPairIntel {
+ public:
+  NPairHalfBinNewtonTriIntel(class LAMMPS *);
+  void build(class NeighList *) override;
+
+ private:
+  template <class flt_t, class acc_t> void hbnti(NeighList *, IntelBuffers<flt_t, acc_t> *);
+};
 
 class NPairFullBinIntel : public NPairIntel {
  public:

@@ -12,29 +12,37 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: W. Michael Brown (Intel)
+------------------------------------------------------------------------- */
+
 #ifdef NPAIR_CLASS
 // clang-format off
-NPairStyle(half/bin/newton/intel,
-           NPairHalfBinNewtonIntel,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_INTEL);
+NPairStyle(full/bin/ghost/intel,
+           NPairFullBinGhostIntel,
+           NP_FULL | NP_BIN | NP_GHOST | NP_NEWTON | NP_NEWTOFF |
+           NP_ORTHO | NP_TRI | NP_INTEL);
 // clang-format on
 #else
 
-#ifndef LMP_NPAIR_HALF_BIN_NEWTON_INTEL_H
-#define LMP_NPAIR_HALF_BIN_NEWTON_INTEL_H
+#ifndef LMP_NPAIR_BIN_GHOST_INTEL_H
+#define LMP_NPAIR_BIN_GHOST_INTEL_H
 
-#include "fix_intel.h"
 #include "npair_intel.h"
 
 namespace LAMMPS_NS {
 
-class NPairHalfBinNewtonIntel : public NPairIntel {
+class NPairFullBinGhostIntel : public NPairIntel {
  public:
-  NPairHalfBinNewtonIntel(class LAMMPS *);
+  NPairFullBinGhostIntel(class LAMMPS *);
   void build(class NeighList *) override;
 
  private:
-  template <class flt_t, class acc_t> void hbni(NeighList *, IntelBuffers<flt_t, acc_t> *);
+  template <class flt_t, class acc_t>
+  void fbi(NeighList *list, IntelBuffers<flt_t, acc_t> *buffers);
+  template <class flt_t, class acc_t, int need_ic>
+  void fbi(const int offload, NeighList *list, IntelBuffers<flt_t, acc_t> *buffers,
+           const int astart, const int aend);
 };
 
 }    // namespace LAMMPS_NS

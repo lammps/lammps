@@ -16,7 +16,7 @@
    Contributing authors: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "npair_full_bin_ghost_intel.h"
+#include "npair_bin_ghost_intel.h"
 
 #include "atom.h"
 #include "comm.h"

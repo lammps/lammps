@@ -106,7 +106,7 @@ thermostats in each chain.  For example, for a simulation of N particles
 with P beads in each ring-polymer, the total number of NH thermostats
 would be 3 x N x P x Nc.
 
-Fix *pimd/langevin* implements a Langevin thermostat in the normal mode 
+Fix *pimd/langevin* implements a Langevin thermostat in the normal mode
 representation, and also provides a barostat to sample the NPH/NPT ensembles.
 
 .. note::
@@ -273,7 +273,7 @@ related tasks for each of the partitions, e.g.
    forces in the normal mode representation. If the Catersian velocities and forces are
    needed, it is easy to perform the transformation when doing post-processing.
 
-   It is recommended to dump the image flags (*ix iy iz*) for fix *pimd/langevin*. It 
+   It is recommended to dump the image flags (*ix iy iz*) for fix *pimd/langevin*. It
    will be useful if you want to calculate some estimators during post-processing.
 
 Restart, fix_modify, output, run start/stop, minimize info

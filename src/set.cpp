@@ -95,8 +95,7 @@ void Set::command(int narg, char **arg)
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
       else {
         char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
-        if (typestr) arg[iarg+1] = typestr;
-        ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+        ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
         delete[] typestr;
       }
       set(TYPE);
@@ -105,11 +104,11 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"type/fraction") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "set type/fraction", error);
       char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
-      if (typestr) arg[iarg+1] = typestr;
+      newtype = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       fraction = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
-      delete[] typestr;
       if (newtype <= 0 || newtype > atom->ntypes)
         error->all(FLERR,"Invalid type value {} in set type/fraction command", newtype);
       if (fraction < 0.0 || fraction > 1.0)
@@ -122,11 +121,10 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"type/ratio") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "set type/ratio", error);
       char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
-      if (typestr) arg[iarg+1] = typestr;
-      newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      newtype = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       fraction = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
-      delete[] typestr;
       if (newtype <= 0 || newtype > atom->ntypes)
         error->all(FLERR,"Invalid type value {} in set type/ratio command", newtype);
       if (fraction < 0.0 || fraction > 1.0)
@@ -139,11 +137,10 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"type/subset") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "set type/subset", error);
       char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
-      if (typestr) arg[iarg+1] = typestr;
-      newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      newtype = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       nsubset = utils::bnumeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
-      delete[] typestr;
       if (newtype <= 0 || newtype > atom->ntypes)
         error->all(FLERR,"Invalid type value {} in set type/subset command", newtype);
       if (nsubset < 0)
@@ -492,8 +489,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set bond", error);
       char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::BOND,lmp);
-      if (typestr) arg[iarg+1] = typestr;
-      ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
       delete[] typestr;
       if (atom->avec->bonds_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
@@ -505,8 +501,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set angle", error);
       char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ANGLE,lmp);
-      if (typestr) arg[iarg+1] = typestr;
-      ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
       delete[] typestr;
       if (atom->avec->angles_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
@@ -518,8 +513,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set dihedral", error);
       char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::DIHEDRAL,lmp);
-      if (typestr) arg[iarg+1] = typestr;
-      ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
       delete[] typestr;
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
@@ -531,8 +525,7 @@ void Set::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"improper") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set improper", error);
       char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::IMPROPER,lmp);
-      if (typestr) arg[iarg+1] = typestr;
-      ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
       delete[] typestr;
       if (atom->avec->impropers_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());

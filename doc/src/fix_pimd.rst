@@ -226,6 +226,9 @@ The keyword *taup* specifies the barostat damping time parameter for fix style *
 The keyword *fixcom* specifies whether the center-of-mass of the extended ring-polymer system is fixed during the pimd simulation.
 Once *fixcom* is set to be *yes*, the center-of-mass velocity will be distracted from the centroid-mode velocities in each step.
 
+The keyword *lj* should be used if :doc:`lj units <units>` is used for *fix pimd/langevin*. Typically one may want to use
+reduced units to run the simulation, and then convert the results into some physical units (for example, :doc:`metal units <units>`). In this case, the 5 quantities in the physical mass units are needed: epsilon (energy scale), sigma (length scale), mass, Planck's constant, mvv2e (mass * velocity^2 to energy conversion factor). Planck's constant and mvv2e can be found in src/update.cpp. If there is no need to convert reduced units to physical units, set all these five value to 1.
+
 The PIMD algorithm in LAMMPS is implemented as a hyper-parallel scheme
 as described in :ref:`Calhoun <Calhoun>`.  In LAMMPS this is done by using
 :doc:`multi-replica feature <Howto_replica>` in LAMMPS, where each
@@ -300,11 +303,65 @@ The vector values calculated by fix *pimd/nvt* are "extensive", except for the
 temperature, which is "intensive".
 
 Fix *pimd/langevin* computes a global vector of quantities, which
-can be accessed by various :doc:`output commands <Howto_output>`. If *ensemble*
-is *nve* or *nvt*, the vector has 10 values.
+can be accessed by various :doc:`output commands <Howto_output>`. Note that
+it outputs multiple log files, and different log files contain information
+about different beads or modes (see detailed explanations below). If *ensemble*
+is *nve* or *nvt*, the vector has 10 values:
 
-No parameter of fix *pimd/nvt* can be used with the *start/stop* keywords
-of the :doc:`run <run>` command.  Fix *pimd/nvt* is not invoked during
+   #. kinetic energy of the normal mode
+   #. spring elastic energy of the normal mode
+   #. potential energy of the bead
+   #. total energy of all beads (conserved if *ensemble* is *nve*)
+   #. primitive kinetic energy estimator
+   #. virial energy estimator
+   #. centroid-virial energy estimator
+   #. primitive pressure estimator
+   #. thermodynamic pressure estimator
+   #. centroid-virial pressure estimator
+
+The first 3 are different for different log files, and the others are the same for different log files.
+
+If *ensemble* is *nph* or *npt*, the vector stores internal variables of the barostat. If *iso* is used,
+the vector has 15 values:
+
+   #. kinetic energy of the normal mode
+   #. spring elastic energy of the normal mode
+   #. potential energy of the bead
+   #. total energy of all beads (conserved if *ensemble* is *nve*)
+   #. primitive kinetic energy estimator
+   #. virial energy estimator
+   #. centroid-virial energy estimator
+   #. primitive pressure estimator
+   #. thermodynamic pressure estimator
+   #. centroid-virial pressure estimator
+   #. barostat velocity
+   #. barostat kinetic energy
+   #. barostat potential energy
+   #. barostat cell Jacobian
+   #. enthalpy of the extended system (sum of 4, 12, 13, and 14; conserved if *ensemble* is *nph*)
+
+If *aniso* or *x* or *y* or *z* is used for the barostat, the vector has 17 values:
+
+   #. kinetic energy of the normal mode
+   #. spring elastic energy of the normal mode
+   #. potential energy of the bead
+   #. total energy of all beads (conserved if *ensemble* is *nve*)
+   #. primitive kinetic energy estimator
+   #. virial energy estimator
+   #. centroid-virial energy estimator
+   #. primitive pressure estimator
+   #. thermodynamic pressure estimator
+   #. centroid-virial pressure estimator
+   #. x component of barostat velocity
+   #. y component of barostat velocity
+   #. z component of barostat velocity
+   #. barostat kinetic energy
+   #. barostat potential energy
+   #. barostat cell Jacobian
+   #. enthalpy of the extended system (sum of 4, 14, 15, and 16; conserved if *ensemble* is *nph*)
+
+No parameter of fix *pimd/nvt* or *pimd/langevin* can be used with the *start/stop* keywords
+of the :doc:`run <run>` command.  Fix *pimd/nvt* or *pimd/langevin* is not invoked during
 :doc:`energy minimization <minimize>`.
 
 Restrictions
@@ -315,6 +372,7 @@ LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
 Fix *pimd/nvt* cannot be used with :doc:`lj units <units>`.
+Fix *pimd/langevin* can be used with :doc:`lj units <units>`. See the above part for how to use it.
 
 A PIMD simulation can be initialized with a single data file read via
 the :doc:`read_data <read_data>` command.  However, this means all

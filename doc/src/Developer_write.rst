@@ -6,6 +6,7 @@ be extended by writing new classes that derive from existing
 parent classes in LAMMPS.  Here, some specific coding
 details are provided for writing code for LAMMPS.
 
+
 .. toctree::
    :maxdepth: 1
 

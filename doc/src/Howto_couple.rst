@@ -15,13 +15,13 @@ the context of your application.
 1. Define a new :doc:`fix <fix>` or :doc:`compute <compute>` command
    that calls the other code.  In this scenario, LAMMPS is the driver
    code.  During timestepping, the fix or compute is invoked, and can
-   make library calls to the other code, which has been linked to
-   LAMMPS as a library.  This is the way the :ref:`VORONOI
-   <PKG-VORONOI>` package, which computes Voronoi tesselations using
-   the `Voro++ library <http://math.lbl.gov/voro++>`_, is interfaced
-   to LAMMPS.  See the :doc:`compute voronoi <compute_voronoi>`
-   command for more details.  Also see the :doc:`Modify <Modify>`
-   pages for information on how to add a new fix or compute to LAMMPS.
+   make library calls to the other code, which has been linked to LAMMPS
+   as a library.  This is the way the :ref:`VORONOI <PKG-VORONOI>`
+   package, which computes Voronoi tesselations using the `Voro++
+   library <http://math.lbl.gov/voro++>`_, is interfaced to LAMMPS.  See
+   the :doc:`compute voronoi <compute_voronoi_atom>` command for more
+   details.  Also see the :doc:`Modify <Modify>` pages for information
+   on how to add a new fix or compute to LAMMPS.
 
 .. spacer
 

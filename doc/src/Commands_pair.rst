@@ -137,7 +137,7 @@ OPT.
    * :doc:`lennard/mdf <pair_mdf>`
    * :doc:`lepton (o) <pair_lepton>`
    * :doc:`lepton/coul (o) <pair_lepton>`
-   * :doc:`lepton/sphere <pair_lepton>`
+   * :doc:`lepton/sphere (o) <pair_lepton>`
    * :doc:`line/lj <pair_line_lj>`
    * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
@@ -186,7 +186,7 @@ OPT.
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
    * :doc:`lj/relres (o) <pair_lj_relres>`
-   * :doc:`lj/sphere <pair_lj_sphere>`
+   * :doc:`lj/sphere (o) <pair_lj_sphere>`
    * :doc:`lj/spica (gko) <pair_spica>`
    * :doc:`lj/spica/coul/long (go) <pair_spica>`
    * :doc:`lj/spica/coul/msm (o) <pair_spica>`

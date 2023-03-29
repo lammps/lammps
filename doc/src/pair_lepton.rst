@@ -3,11 +3,12 @@
 .. index:: pair_style lepton/coul
 .. index:: pair_style lepton/coul/omp
 .. index:: pair_style lepton/sphere
+.. index:: pair_style lepton/sphere/omp
 
 pair_style lepton command
 =========================
 
-Accelerator Variants: *lepton/omp*, *lepton/coul/comp*
+Accelerator Variants: *lepton/omp*, *lepton/coul/comp*, *lepton/sphere/comp*
 
 Syntax
 """"""

@@ -1,7 +1,10 @@
 .. index:: pair_style lj/sphere
+.. index:: pair_style lj/sphere/omp
 
 pair_style lj/sphere command
 ============================
+
+Accelerator Variant: *lj/sphere/omp*
 
 Syntax
 """"""
@@ -30,7 +33,7 @@ Examples
 Description
 """""""""""
 
-The *lj/sphere* styles compute the standard 12/6 Lennard-Jones potential,
+The *lj/sphere* style compute the standard 12/6 Lennard-Jones potential,
 given by
 
 .. math::
@@ -66,6 +69,10 @@ file or restart files read by the :doc:`read_data <read_data>` or
 
 The last coefficient is optional.  If not specified, the global
 LJ cutoff specified in the pair_style command is used.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

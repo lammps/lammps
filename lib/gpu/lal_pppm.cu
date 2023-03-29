@@ -217,7 +217,7 @@ __kernel void interp(const __global numtyp4 *restrict x_,
                      const grdtyp delxinv,  const grdtyp delyinv,
                      const grdtyp delzinv, const int order,
                      const int order2, const grdtyp qqrd2e_scale,
-                     __global acctyp4 *restrict ans) {
+                     __global acctyp3 *restrict ans) {
   __local grdtyp rho_coeff[PPPM_MAX_SPLINE*PPPM_MAX_SPLINE];
   __local grdtyp rho1d_0[PPPM_MAX_SPLINE][PPPM_BLOCK_1D];
   __local grdtyp rho1d_1[PPPM_MAX_SPLINE][PPPM_BLOCK_1D];
@@ -239,7 +239,7 @@ __kernel void interp(const __global numtyp4 *restrict x_,
     fetch(qs,ii,q_tex);
     qs*=qqrd2e_scale;
 
-    acctyp4 ek;
+    acctyp3 ek;
     ek.x=(acctyp)0.0;
     ek.y=(acctyp)0.0;
     ek.z=(acctyp)0.0;

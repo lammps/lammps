@@ -42,7 +42,7 @@ static linkage, there is no ``liblammps.so`` library file and thus also the
 LAMMPS python module, which depends on it, is not included.
 
 The compressed tar archives available for download have names following
-the pattern `lammps-linux-x86_64-<version>.tar.gz` and will all unpack
+the pattern ``lammps-linux-x86_64-<version>.tar.gz`` and will all unpack
 into a ``lammps-static`` folder.  The executables are then in the
 ``lammps-static/bin/`` folder.  Since they do not depend on any other
 software, they may be freely moved or copied around.
@@ -172,7 +172,7 @@ Pre-built EPEL Linux executable
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pre-built LAMMPS (and KIM) packages for stable releases are available
-in the `Extra Packages for Enterprise Linux (EPEL) repository <https://fedoraproject.org/wiki/EPEL>`_
+in the `Extra Packages for Enterprise Linux (EPEL) repository <https://docs.fedoraproject.org/en-US/epel/>`_
 for use with Red Hat Enterprise Linux (RHEL) or CentOS version 7.x
 and compatible Linux distributions. Names of packages, executable,
 and content are the same as described above for Fedora Linux.

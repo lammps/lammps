@@ -103,12 +103,13 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 
 For atom type pairs I,J and I != J, the A, B, H, sigma_h, r_mh
 parameters, and the cutoff distance for these pair styles can be mixed:
-A (energy units)
-sqrt(1/B) (distance units, see below)
-H (energy units)
-sigma_h (distance units)
-r_mh (distance units)
-cutoff (distance units):ul
+
+* A (energy units)
+* :math:`\sqrt{\frac{1}{B}}` (distance units, see below)
+* H (energy units)
+* :math:`r_{mh}` (distance units)
+* :math:`\sigma_h` (distance units)
+* cutoff (distance units)
 
 The default mix value is *geometric*\ .
 Only *arithmetic* and *geometric* mix values are supported.
@@ -169,7 +170,7 @@ The *gauss* and *gauss/cut* styles are part of the EXTRA-PAIR package.
 They are only enabled if LAMMPS is build with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
 
-.. versionchanged:: TBD
+.. versionchanged:: 28Mar2023
 
 Prior to this version, the *gauss* pair style did not apply
 :doc:`special_bonds <special_bonds>` factors.

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -69,11 +68,11 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixStoreKIM::FixStoreKIM(LAMMPS *lmp, int narg, char **arg)
-  : Fix(lmp, narg, arg), simulator_model(nullptr), model_name(nullptr),
-    model_units(nullptr), user_units(nullptr)
+FixStoreKIM::FixStoreKIM(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), simulator_model(nullptr), model_name(nullptr), model_units(nullptr),
+    user_units(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal fix STORE/KIM command");
+  if (narg != 3) error->all(FLERR, "Illegal fix STORE/KIM command");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -83,25 +82,25 @@ FixStoreKIM::~FixStoreKIM()
   // free associated storage
 
   if (simulator_model) {
-    auto sm = (KIM_SimulatorModel *)simulator_model;
+    auto sm = (KIM_SimulatorModel *) simulator_model;
     KIM_SimulatorModel_Destroy(&sm);
     simulator_model = nullptr;
   }
 
   if (model_name) {
-    auto mn = (char *)model_name;
+    auto mn = (char *) model_name;
     delete[] mn;
     model_name = nullptr;
   }
 
   if (model_units) {
-    auto mu = (char *)model_units;
+    auto mu = (char *) model_units;
     delete[] mu;
     model_units = nullptr;
   }
 
   if (user_units) {
-    auto uu = (char *)user_units;
+    auto uu = (char *) user_units;
     delete[] uu;
     user_units = nullptr;
   }
@@ -121,38 +120,44 @@ void FixStoreKIM::setptr(const std::string &name, void *ptr)
 {
   if (name == "simulator_model") {
     if (simulator_model) {
-      auto sm = (KIM_SimulatorModel *)simulator_model;
+      auto sm = (KIM_SimulatorModel *) simulator_model;
       KIM_SimulatorModel_Destroy(&sm);
     }
     simulator_model = ptr;
   } else if (name == "model_name") {
     if (model_name) {
-      auto mn = (char *)model_name;
+      auto mn = (char *) model_name;
       delete[] mn;
     }
     model_name = ptr;
   } else if (name == "model_units") {
     if (model_units) {
-      auto mu = (char *)model_units;
+      auto mu = (char *) model_units;
       delete[] mu;
     }
     model_units = ptr;
   } else if (name == "user_units") {
     if (user_units) {
-      auto uu = (char *)user_units;
+      auto uu = (char *) user_units;
       delete[] uu;
     }
     user_units = ptr;
-  } else error->all(FLERR,"Unknown property in fix STORE/KIM");
+  } else
+    error->all(FLERR, "Unknown property in fix STORE/KIM");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void *FixStoreKIM::getptr(const std::string &name)
 {
-  if (name == "simulator_model") return simulator_model;
-  else if (name == "model_name") return model_name;
-  else if (name == "model_units") return model_units;
-  else if (name == "user_units") return user_units;
-  else return nullptr;
+  if (name == "simulator_model")
+    return simulator_model;
+  else if (name == "model_name")
+    return model_name;
+  else if (name == "model_units")
+    return model_units;
+  else if (name == "user_units")
+    return user_units;
+  else
+    return nullptr;
 }

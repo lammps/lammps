@@ -1477,10 +1477,12 @@ The *Triangles* section must appear after the *Atoms* section.
 
 where the keywords have these meanings:
 
-vx,vy,vz = translational velocity of atom
-lx,ly,lz = angular momentum of aspherical atom
-wx,wy,wz = angular velocity of spherical atom
-ervel = electron radial velocity (0 for fixed-core):ul
+   .. parsed-literal::
+
+      vx,vy,vz = translational velocity of atom
+      lx,ly,lz = angular momentum of aspherical atom
+      wx,wy,wz = angular velocity of spherical atom
+      ervel = electron radial velocity (0 for fixed-core)
 
 The velocity lines can appear in any order.  This section can only be
 used after an *Atoms* section.  This is because the *Atoms* section

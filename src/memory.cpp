@@ -16,8 +16,7 @@
 
 #include "error.h"
 
-#if defined(LMP_INTEL) && \
-  ((defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)))
+#if defined(LMP_INTEL) && ((defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)))
 #ifndef LMP_INTEL_NO_TBB
 #define LMP_USE_TBB_ALLOCATOR
 #include "tbb/scalable_allocator.h"
@@ -127,6 +126,5 @@ void Memory::sfree(void *ptr)
 
 void Memory::fail(const char *name)
 {
-  error->one(FLERR,"Cannot create/grow a vector/array of "
-                               "pointers for {}",name);
+  error->one(FLERR,"Cannot create/grow a vector/array of pointers for {}",name);
 }

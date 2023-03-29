@@ -1,0 +1,146 @@
+LAMMPS (8 Feb 2023)
+Processor partition = 4
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+variable ibead uloop 8 pad
+
+units           real
+neigh_modify    delay 2 every 1
+
+atom_style      full
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+
+pair_style      lj/charmm/coul/long 11 12
+pair_modify     mix arithmetic
+kspace_style    pppm 1e-4
+
+read_data system.data
+Reading data file ...
+  orthogonal box = (-23.109 -22.733 -23.141) to (22.853 22.912 22.8)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  8674 atoms
+  reading velocities ...
+  8674 velocities
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  18 = max dihedrals/atom
+  scanning impropers ...
+  1 = max impropers/atom
+  reading bonds ...
+  5869 bonds
+  reading angles ...
+  3264 angles
+  reading dihedrals ...
+  708 dihedrals
+  reading impropers ...
+  38 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     9 = max # of 1-3 neighbors
+    17 = max # of 1-4 neighbors
+    21 = max # of special neighbors
+  special bonds CPU = 0.004 seconds
+  read_data CPU = 0.138 seconds
+#read_restart    system_${ibead}.rest1
+special_bonds   charmm
+
+fix 1 all pimd/nvt method nmpimd fmass 1.0 temp 300.0 nhc 4 sp 2.0
+
+thermo          10
+thermo_style    custom step temp pe etotal f_1[1] f_1[2] f_1[3]
+thermo_modify   colname f_1[1] espring colname f_1[2] T_ring colname f_1[3] virial
+timestep        0.08
+
+# restart         100 system_${ibead}.rest1 system_${ibead}.rest2
+
+group prot id <= 256
+256 atoms in group prot
+# dump 1 prot dcd 100 prot_${ibead}.dcd
+
+run             200
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.22071363
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.024910591
+  estimated relative force accuracy = 7.5017505e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 15625 8000
+Generated 231 of 231 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 2 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/charmm/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Inconsistent image flags (src/domain.cpp:815)
+Per MPI rank memory allocation (min/avg/max) = 84.59 | 84.59 | 84.59 Mbytes
+   Step          Temp          PotEng         TotEng        espring         T_ring         virial    
+         0   306.20099     -26166.171     -18250.089      0              0             -676.31071    
+        10   23.892095     -26119.899     -25502.227      4.2771563      382.22944     -813.96512    
+        20   27.051103     -26287.602     -25588.262      15.607084      432.76775     -745.77933    
+        30   27.042026     -26290.973     -25591.867      35.550734      432.62253     -326.69805    
+        40   19.133546     -26173.654     -25679.002      70.11544       306.10144     -11.324153    
+        50   19.302675     -25883.61      -25384.586      121.68648      308.8072       290.09295    
+        60   20.704866     -25425.468     -24890.194      201.50535      331.23967      650.74045    
+        70   18.95281      -24809.575     -24319.596      321.84847      303.21         967.87686    
+        80   20.178541     -24115.258     -23593.591      491.86818      322.81943      1230.7506    
+        90   18.755289     -23448.841     -22963.969      726.07287      300.05003      1426.7932    
+       100   18.159265     -22868.418     -22398.954      1013.598       290.51475      1609.3405    
+       110   17.922985     -22283.38      -21820.025      1355.5366      286.7347       1483.5981    
+       120   17.617358     -21583.469     -21128.015      1747.6539      281.84524      1444.208     
+       130   17.233206     -20748.165     -20302.643      2173.0115      275.6995       1597.8139    
+       140   17.06066      -19726.034     -19284.972      2629.6918      272.9391       1704.3744    
+       150   17.004216     -18648.306     -18208.703      3099.2098      272.0361       2025.6026    
+       160   17.414218     -17588.638     -17138.435      3580.8838      278.59537      2747.2565    
+       170   17.295959     -16669.449     -16222.304      4058.5589      276.70344      3432.2976    
+       180   17.706054     -15991.367     -15533.62       4524.6837      283.26421      4008.5413    
+       190   17.649786     -15623.329     -15167.037      4968.3076      282.36402      4251.4209    
+       200   17.914982     -15484.434     -15021.286      5382.5961      286.60667      4187.5146    
+Loop time of 35.3335 on 1 procs for 200 steps with 8674 atoms
+
+Performance: 0.039 ns/day, 613.428 hours/ns, 5.660 timesteps/s, 49.098 katom-step/s
+98.1% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 27.644     | 27.644     | 27.644     |   0.0 | 78.24
+Bond    | 0.1292     | 0.1292     | 0.1292     |   0.0 |  0.37
+Kspace  | 2.4108     | 2.4108     | 2.4108     |   0.0 |  6.82
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.12913    | 0.12913    | 0.12913    |   0.0 |  0.37
+Output  | 0.0021704  | 0.0021704  | 0.0021704  |   0.0 |  0.01
+Modify  | 4.959      | 4.959      | 4.959      |   0.0 | 14.03
+Other   |            | 0.05951    |            |       |  0.17
+
+Nlocal:           8674 ave        8674 max        8674 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          27366 ave       27366 max       27366 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    4.48585e+06 ave 4.48585e+06 max 4.48585e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4485849
+Ave neighs/atom = 517.16036
+Ave special neighs/atom = 2.2573207
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:35

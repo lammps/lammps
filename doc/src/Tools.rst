@@ -320,7 +320,8 @@ eam generate tool
 -----------------------------
 
 The tools/eam_generate directory contains several one-file C programs
-that convert an analytic formula into a tabulated :doc:`embedded atom method (EAM) <pair_eam>` setfl potential file.  The potentials they
+that convert an analytic formula into a tabulated :doc:`embedded atom
+method (EAM) <pair_eam>` setfl potential file.  The potentials they
 produce are in the potentials directory, and can be used with the
 :doc:`pair_style eam/alloy <pair_eam>` command.
 

@@ -73,20 +73,10 @@ NPairStyle(half/bin/newtoff/kk/device,
            NPairKokkosHalfBinNewtoffTriDevice,
            NP_KOKKOS_DEVICE | NP_HALF | NP_BIN | NP_NEWTOFF | NP_TRI);
 
-typedef NPairKokkos<LMPHostType,1,1,1,0,0> NPairKokkosHalfBinNewtonGhostHost;
-NPairStyle(half/bin/newton/ghost/kk/host,
-           NPairKokkosHalfBinNewtonGhostHost,
-           NP_BIN | NP_KOKKOS_HOST | NP_HALF | NP_NEWTON | NP_GHOST | NP_ORTHO | NP_TRI);
-
 typedef NPairKokkos<LMPHostType,1,0,1,0,0> NPairKokkosHalfBinNewtoffGhostHost;
 NPairStyle(half/bin/newtoff/ghost/kk/host,
            NPairKokkosHalfBinNewtoffGhostHost,
            NP_BIN | NP_KOKKOS_HOST | NP_HALF | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI);
-
-typedef NPairKokkos<LMPDeviceType,1,1,1,0,0> NPairKokkosHalfBinNewtonGhostDevice;
-NPairStyle(half/bin/newton/ghost/kk/device,
-           NPairKokkosHalfBinNewtonGhostDevice,
-           NP_KOKKOS_DEVICE | NP_HALF | NP_BIN | NP_NEWTON | NP_GHOST | NP_ORTHO | NP_TRI);
 
 typedef NPairKokkos<LMPDeviceType,1,0,1,0,0> NPairKokkosHalfBinNewtoffGhostDevice;
 NPairStyle(half/bin/newtoff/ghost/kk/device,

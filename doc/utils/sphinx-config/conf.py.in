@@ -47,6 +47,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.imgmath',
     'sphinx.ext.autodoc',
+    'sphinxcontrib.jquery',
     'sphinxfortran.fortran_domain',
     'sphinx_tabs.tabs',
     'table_from_list',
@@ -326,6 +327,7 @@ latex_elements = {
 % Make ToC number fields wider to accommodate sections with >= 100 subsections
 %   or >= 10 subsections with >= 10 subsubsections
 \makeatletter
+\@addtoreset{chapter}{part}
 \renewcommand*{\sphinxtableofcontentshook}{%
   \renewcommand*\l@section{\@dottedtocline{1}{1.5em}{3.1em}}
   \renewcommand*\l@subsection{\@dottedtocline{2}{4.6em}{4.5em}}

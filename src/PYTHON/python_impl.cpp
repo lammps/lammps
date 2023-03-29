@@ -35,6 +35,17 @@
 // However, that exposes -too many- headers.
 #include "mliap_model_python_couple.h"
 #include "mliap_unified_couple.h"
+#ifdef LMP_KOKKOS
+#include "mliap_model_python_kokkos.h"
+#include "mliap_unified_kokkos.h"
+// The above should somehow really be included in the next file.
+// We could get around this with cython --capi-reexport-cincludes
+// However, that exposes -too many- headers.
+#include "mliap_model_python_couple_kokkos.h"
+#include "mliap_unified_couple_kokkos.h"
+
+
+#endif
 #endif
 
 using namespace LAMMPS_NS;
@@ -71,6 +82,16 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 
   err = PyImport_AppendInittab("mliap_unified_couple", PyInit_mliap_unified_couple);
   if (err) error->all(FLERR, "Could not register MLIAPPY unified embedded python module.");
+#ifdef LMP_KOKKOS
+  // Inform python intialization scheme of the mliappy module.
+  // This -must- happen before python is initialized.
+  err = PyImport_AppendInittab("mliap_model_python_couple_kokkos", PyInit_mliap_model_python_couple_kokkos);
+  if (err) error->all(FLERR, "Could not register MLIAPPY embedded python module.");
+
+  err = PyImport_AppendInittab("mliap_unified_couple_kokkos", PyInit_mliap_unified_couple_kokkos);
+  if (err) error->all(FLERR, "Could not register MLIAPPY unified embedded python module.");
+
+#endif
 #endif
 
   Py_Initialize();

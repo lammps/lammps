@@ -194,7 +194,7 @@ For style *wall/morse*, the energy E is given by a Morse potential:
    E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
        \qquad r < r_c
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 For style *wall/lepton*, the energy E is provided as an Lepton
 expression string using "r" as the distance variable.  The `Lepton
@@ -215,7 +215,7 @@ spring as in fix *wall/harmonic* with a force constant *K* (same as
 :math:`\epsilon` above) of 100 energy units.  More details on the Lepton
 expression strings are given below.
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 For style *wall/table*, the energy E and forces are determined from
 interpolation tables listed in one or more files as a function of

@@ -39,7 +39,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 This command enables LAMMPS to act as a client with another server code
 to perform a coupled QM/MM (quantum-mechanics/molecular-mechanics)

@@ -45,7 +45,7 @@ external electric field being applied to the system.  If the system
 contains point-dipoles, also add a torque on the dipoles due to the
 external electric field.
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 When the *efield/tip4p* style is used, the E-field will be applied to
 the position of the virtual charge site M of a TIP4P molecule instead of

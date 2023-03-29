@@ -21,7 +21,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 The *harmonic/restrain* bond style uses the potential
 

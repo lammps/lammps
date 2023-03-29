@@ -497,7 +497,7 @@ Keywords *bond*, *angle*, *dihedral*, and *improper*, set the bond
 type (angle type, etc) of all bonds (angles, etc) of selected atoms to
 the specified value.  The value can be a numeric type from 1 to
 nbondtypes (nangletypes, etc).  Or it can be a type label (bond type
-label, angle type lable, etc).  See the :doc:`Howto type labels
+label, angle type label, etc).  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for the allowed syntax of type labels
 and a general discussion of how type labels can be used.  All atoms in
 a particular bond (angle, etc) must be selected atoms in order for the

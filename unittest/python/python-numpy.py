@@ -108,6 +108,7 @@ class PythonNumpy(unittest.TestCase):
         self.lmp.command("create_box 1 box")
         self.lmp.command("create_atoms 1 single 1.0 1.0 1.0")
         self.lmp.command("create_atoms 1 single 1.0 1.0 1.5")
+        self.lmp.command("mass 1 1.0")
         self.lmp.command("compute ke all ke/atom")
         natoms = self.lmp.get_natoms()
         self.assertEqual(natoms,2)

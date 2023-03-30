@@ -107,7 +107,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) :
 
   zhistyle = CONSTANT;
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
-    if (domain->box_exist == 0zhistyle = VARIABLE;
+    if (domain->box_exist == 0)
       error->all(FLERR,"Cannot use region INF or EDGE when box does not exist");
     if (strcmp(arg[7],"INF") == 0) zhi = BIG;
     else if (domain->triclinic == 0) zhi = domain->boxhi[2];

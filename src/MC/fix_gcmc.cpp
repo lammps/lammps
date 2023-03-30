@@ -418,11 +418,21 @@ FixGCMC::~FixGCMC()
       delete[] grouptypestrings[igroup];
     memory->sfree(grouptypestrings);
   }
-  if (full_flag && group) {
+  
+  // delete exclusion group created in init()
+  // unset neighbor exclusion settings made in init()
+  // not necessary if group and neighbor classes already destroyed
+  //   when LAMMPS exits
+  
+  if (full_flag && group && exclusion_group_bit) {
+    auto group_id = std::string("FixGCMC:gcmc_exclusion_group:") + id;
+    group->assign(group_id + " delete");
+  }
+
+  if (full_flag && group && neighbor) {
     int igroupall = group->find("all");
     neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

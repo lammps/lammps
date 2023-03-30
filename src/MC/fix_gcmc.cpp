@@ -418,13 +418,13 @@ FixGCMC::~FixGCMC()
       delete[] grouptypestrings[igroup];
     memory->sfree(grouptypestrings);
   }
-  
+
   // delete exclusion group created in init()
   // delete molecule group created in init()
   // unset neighbor exclusion settings made in init()
   // not necessary if group and neighbor classes already destroyed
   //   when LAMMPS exits
-  
+
   if (exclusion_group_bit && group) {
     auto group_id = std::string("FixGCMC:gcmc_exclusion_group:") + id;
     group->assign(group_id + " delete");
@@ -454,7 +454,6 @@ int FixGCMC::setmask()
 
 void FixGCMC::init()
 {
-
   // set index and check validity of region
 
   if (idregion) {
@@ -466,14 +465,14 @@ void FixGCMC::init()
 
   if (triclinic) {
     if ((region_xlo < domain->boxlo_bound[0]) || (region_xhi > domain->boxhi_bound[0]) ||
-	(region_ylo < domain->boxlo_bound[1]) || (region_yhi > domain->boxhi_bound[1]) ||
-	(region_zlo < domain->boxlo_bound[2]) || (region_zhi > domain->boxhi_bound[2])) {
+        (region_ylo < domain->boxlo_bound[1]) || (region_yhi > domain->boxhi_bound[1]) ||
+        (region_zlo < domain->boxlo_bound[2]) || (region_zhi > domain->boxhi_bound[2])) {
       error->all(FLERR,"Fix gcmc region extends outside simulation box");
     }
   } else {
     if ((region_xlo < domain->boxlo[0]) || (region_xhi > domain->boxhi[0]) ||
-	(region_ylo < domain->boxlo[1]) || (region_yhi > domain->boxhi[1]) ||
-	(region_zlo < domain->boxlo[2]) || (region_zhi > domain->boxhi[2]))
+        (region_ylo < domain->boxlo[1]) || (region_yhi > domain->boxhi[1]) ||
+        (region_zlo < domain->boxlo[2]) || (region_zhi > domain->boxhi[2]))
       error->all(FLERR,"Fix gcmc region extends outside simulation box");
   }
 

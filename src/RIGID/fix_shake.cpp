@@ -55,7 +55,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
   b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
   a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
-  a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
+  a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr), closest_list(nullptr)
 {
   energy_global_flag = energy_peratom_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
@@ -244,6 +244,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   maxlist = 0;
   list = nullptr;
+  closest_list = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -319,6 +320,7 @@ FixShake::~FixShake()
   }
 
   memory->destroy(list);
+  memory->destroy(closest_list);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -546,6 +548,8 @@ void FixShake::pre_neighbor()
     maxlist = nlocal;
     memory->destroy(list);
     memory->create(list,maxlist,"shake:list");
+    memory->destroy(closest_list);
+    memory->create(closest_list,maxlist,4,"shake:closest_list");
   }
 
   // build list of SHAKE clusters I compute
@@ -560,7 +564,14 @@ void FixShake::pre_neighbor()
         if (atom1 == -1 || atom2 == -1)
           error->one(FLERR,"Shake atoms {} {} missing on proc {} at step {}",shake_atom[i][0],
                      shake_atom[i][1],comm->me,update->ntimestep);
-        if (i <= atom1 && i <= atom2) list[nlist++] = i;
+        atom1 = domain->closest_image(i, atom1);
+        atom2 = domain->closest_image(i, atom2);
+        if (i <= atom1 && i <= atom2) {
+          list[nlist] = i;
+          closest_list[nlist][0] = atom1;
+          closest_list[nlist][1] = atom2;
+          nlist++;
+        }
       } else if (shake_flag[i] % 2 == 1) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
@@ -569,7 +580,16 @@ void FixShake::pre_neighbor()
           error->one(FLERR,"Shake atoms {} {} {} missing on proc {} at step {}",shake_atom[i][0],
                                        shake_atom[i][1],shake_atom[i][2],
                                        comm->me,update->ntimestep);
-        if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
+        atom1 = domain->closest_image(i, atom1);
+        atom2 = domain->closest_image(i, atom2);
+        atom3 = domain->closest_image(i, atom3);
+        if (i <= atom1 && i <= atom2 && i <= atom3) {
+          list[nlist] = i;
+          closest_list[nlist][0] = atom1;
+          closest_list[nlist][1] = atom2;
+          closest_list[nlist][2] = atom3;
+          nlist++;
+        }
       } else {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
@@ -579,8 +599,19 @@ void FixShake::pre_neighbor()
           error->one(FLERR,"Shake atoms {} {} {} {} missing on proc {} at step {}",shake_atom[i][0],
                                        shake_atom[i][1],shake_atom[i][2],
                                        shake_atom[i][3],comm->me,update->ntimestep);
-        if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)
+        atom1 = domain->closest_image(i, atom1);
+        atom2 = domain->closest_image(i, atom2);
+        atom3 = domain->closest_image(i, atom3);
+        atom4 = domain->closest_image(i, atom4);
+        if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) {
           list[nlist++] = i;
+          list[nlist] = i;
+          closest_list[nlist][0] = atom1;
+          closest_list[nlist][1] = atom2;
+          closest_list[nlist][2] = atom3;
+          closest_list[nlist][3] = atom4;
+          nlist++;
+        }
       }
     }
 }
@@ -610,10 +641,10 @@ void FixShake::post_force(int vflag)
   int m;
   for (int i = 0; i < nlist; i++) {
     m = list[i];
-    if (shake_flag[m] == 2) shake(m);
-    else if (shake_flag[m] == 3) shake3(m);
-    else if (shake_flag[m] == 4) shake4(m);
-    else shake3angle(m);
+    if (shake_flag[m] == 2) shake(i);
+    else if (shake_flag[m] == 3) shake3(i);
+    else if (shake_flag[m] == 4) shake4(i);
+    else shake3angle(i);
   }
 
   // store vflag for coordinate_constraints_end_of_step()
@@ -658,10 +689,10 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   int m;
   for (int i = 0; i < nlist; i++) {
     m = list[i];
-    if (shake_flag[m] == 2) shake(m);
-    else if (shake_flag[m] == 3) shake3(m);
-    else if (shake_flag[m] == 4) shake4(m);
-    else shake3angle(m);
+    if (shake_flag[m] == 2) shake(i);
+    else if (shake_flag[m] == 3) shake3(i);
+    else if (shake_flag[m] == 4) shake4(i);
+    else shake3angle(i);
   }
 
   // store vflag for coordinate_constraints_end_of_step()
@@ -1739,35 +1770,32 @@ void FixShake::unconstrained_update_respa(int ilevel)
 
 /* ---------------------------------------------------------------------- */
 
-void FixShake::shake(int m)
+void FixShake::shake(int i)
 {
-  int nlist,list[2];
+  int nlist,atomlist[2];
   double v[6];
   double invmass0,invmass1;
 
   // local atom IDs and constraint distances
 
-  int i0 = atom->map(shake_atom[m][0]);
-  int i1 = atom->map(shake_atom[m][1]);
+  int m = list[i];
+  int i0 = closest_list[i][0];
+  int i1 = closest_list[i][1];
   double bond1 = bond_distance[shake_type[m][0]];
 
-  // r01 = distance vec between atoms, with PBC
+  // r01 = distance vec between atoms
 
   double r01[3];
   r01[0] = x[i0][0] - x[i1][0];
   r01[1] = x[i0][1] - x[i1][1];
   r01[2] = x[i0][2] - x[i1][2];
-  domain->minimum_image(r01);
 
-  // s01 = distance vec after unconstrained update, with PBC
-  // use Domain::minimum_image_once(), not minimum_image()
-  // b/c xshake values might be huge, due to e.g. fix gcmc
+  // s01 = distance vec after unconstrained update
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image_once(s01);
 
   // scalar distances between atoms
 
@@ -1824,8 +1852,8 @@ void FixShake::shake(int m)
 
   if (evflag) {
     nlist = 0;
-    if (i0 < nlocal) list[nlist++] = i0;
-    if (i1 < nlocal) list[nlist++] = i1;
+    if (i0 < nlocal) atomlist[nlist++] = i0;
+    if (i1 < nlocal) atomlist[nlist++] = i1;
 
     v[0] = lamda*r01[0]*r01[0];
     v[1] = lamda*r01[1]*r01[1];
@@ -1837,55 +1865,50 @@ void FixShake::shake(int m)
     double fpairlist[] = {lamda};
     double dellist[][3]  = {{r01[0], r01[1], r01[2]}};
     int pairlist[][2] = {{i0,i1}};
-    v_tally(nlist,list,2.0,v,nlocal,1,pairlist,fpairlist,dellist);
+    v_tally(nlist,atomlist,2.0,v,nlocal,1,pairlist,fpairlist,dellist);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixShake::shake3(int m)
+void FixShake::shake3(int i)
 {
-  int nlist,list[3];
+  int nlist,atomlist[3];
   double v[6];
   double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
-  int i0 = atom->map(shake_atom[m][0]);
-  int i1 = atom->map(shake_atom[m][1]);
-  int i2 = atom->map(shake_atom[m][2]);
+  int m = list[i];
+  int i0 = closest_list[i][0];
+  int i1 = closest_list[i][1];
+  int i2 = closest_list[i][2];
   double bond1 = bond_distance[shake_type[m][0]];
   double bond2 = bond_distance[shake_type[m][1]];
 
-  // r01,r02 = distance vec between atoms, with PBC
+  // r01,r02 = distance vec between atoms
 
   double r01[3];
   r01[0] = x[i0][0] - x[i1][0];
   r01[1] = x[i0][1] - x[i1][1];
   r01[2] = x[i0][2] - x[i1][2];
-  domain->minimum_image(r01);
 
   double r02[3];
   r02[0] = x[i0][0] - x[i2][0];
   r02[1] = x[i0][1] - x[i2][1];
   r02[2] = x[i0][2] - x[i2][2];
-  domain->minimum_image(r02);
 
-  // s01,s02 = distance vec after unconstrained update, with PBC
-  // use Domain::minimum_image_once(), not minimum_image()
-  // b/c xshake values might be huge, due to e.g. fix gcmc
+  // s01,s02 = distance vec after unconstrained update
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image_once(s01);
 
   double s02[3];
   s02[0] = xshake[i0][0] - xshake[i2][0];
   s02[1] = xshake[i0][1] - xshake[i2][1];
   s02[2] = xshake[i0][2] - xshake[i2][2];
-  domain->minimum_image_once(s02);
 
   // scalar distances between atoms
 
@@ -1999,9 +2022,9 @@ void FixShake::shake3(int m)
 
   if (evflag) {
     nlist = 0;
-    if (i0 < nlocal) list[nlist++] = i0;
-    if (i1 < nlocal) list[nlist++] = i1;
-    if (i2 < nlocal) list[nlist++] = i2;
+    if (i0 < nlocal) atomlist[nlist++] = i0;
+    if (i1 < nlocal) atomlist[nlist++] = i1;
+    if (i2 < nlocal) atomlist[nlist++] = i2;
 
     v[0] = lamda01*r01[0]*r01[0] + lamda02*r02[0]*r02[0];
     v[1] = lamda01*r01[1]*r01[1] + lamda02*r02[1]*r02[1];
@@ -2014,69 +2037,62 @@ void FixShake::shake3(int m)
     double dellist[][3]  = {{r01[0], r01[1], r01[2]},
                             {r02[0], r02[1], r02[2]}};
     int pairlist[][2] = {{i0,i1}, {i0,i2}};
-    v_tally(nlist,list,3.0,v,nlocal,2,pairlist,fpairlist,dellist);
+    v_tally(nlist,atomlist,3.0,v,nlocal,2,pairlist,fpairlist,dellist);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixShake::shake4(int m)
+void FixShake::shake4(int i)
 {
- int nlist,list[4];
+ int nlist,atomlist[4];
   double v[6];
   double invmass0,invmass1,invmass2,invmass3;
 
   // local atom IDs and constraint distances
 
-  int i0 = atom->map(shake_atom[m][0]);
-  int i1 = atom->map(shake_atom[m][1]);
-  int i2 = atom->map(shake_atom[m][2]);
-  int i3 = atom->map(shake_atom[m][3]);
+  int m = list[i];
+  int i0 = closest_list[i][0];
+  int i1 = closest_list[i][1];
+  int i2 = closest_list[i][2];
+  int i3 = closest_list[i][3];
   double bond1 = bond_distance[shake_type[m][0]];
   double bond2 = bond_distance[shake_type[m][1]];
   double bond3 = bond_distance[shake_type[m][2]];
 
-  // r01,r02,r03 = distance vec between atoms, with PBC
+  // r01,r02,r03 = distance vec between atoms
 
   double r01[3];
   r01[0] = x[i0][0] - x[i1][0];
   r01[1] = x[i0][1] - x[i1][1];
   r01[2] = x[i0][2] - x[i1][2];
-  domain->minimum_image(r01);
 
   double r02[3];
   r02[0] = x[i0][0] - x[i2][0];
   r02[1] = x[i0][1] - x[i2][1];
   r02[2] = x[i0][2] - x[i2][2];
-  domain->minimum_image(r02);
 
   double r03[3];
   r03[0] = x[i0][0] - x[i3][0];
   r03[1] = x[i0][1] - x[i3][1];
   r03[2] = x[i0][2] - x[i3][2];
-  domain->minimum_image(r03);
 
-  // s01,s02,s03 = distance vec after unconstrained update, with PBC
-  // use Domain::minimum_image_once(), not minimum_image()
-  // b/c xshake values might be huge, due to e.g. fix gcmc
+  // s01,s02,s03 = distance vec after unconstrained update
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image_once(s01);
 
   double s02[3];
   s02[0] = xshake[i0][0] - xshake[i2][0];
   s02[1] = xshake[i0][1] - xshake[i2][1];
   s02[2] = xshake[i0][2] - xshake[i2][2];
-  domain->minimum_image_once(s02);
 
   double s03[3];
   s03[0] = xshake[i0][0] - xshake[i3][0];
   s03[1] = xshake[i0][1] - xshake[i3][1];
   s03[2] = xshake[i0][2] - xshake[i3][2];
-  domain->minimum_image_once(s03);
 
   // scalar distances between atoms
 
@@ -2254,10 +2270,10 @@ void FixShake::shake4(int m)
 
   if (evflag) {
     nlist = 0;
-    if (i0 < nlocal) list[nlist++] = i0;
-    if (i1 < nlocal) list[nlist++] = i1;
-    if (i2 < nlocal) list[nlist++] = i2;
-    if (i3 < nlocal) list[nlist++] = i3;
+    if (i0 < nlocal) atomlist[nlist++] = i0;
+    if (i1 < nlocal) atomlist[nlist++] = i1;
+    if (i2 < nlocal) atomlist[nlist++] = i2;
+    if (i3 < nlocal) atomlist[nlist++] = i3;
 
     v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda03*r03[0]*r03[0];
     v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda03*r03[1]*r03[1];
@@ -2271,68 +2287,61 @@ void FixShake::shake4(int m)
                             {r02[0], r02[1], r02[2]},
                             {r03[0], r03[1], r03[2]}};
     int pairlist[][2] = {{i0,i1}, {i0,i2}, {i0,i3}};
-    v_tally(nlist,list,4.0,v,nlocal,3,pairlist,fpairlist,dellist);
+    v_tally(nlist,atomlist,4.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixShake::shake3angle(int m)
+void FixShake::shake3angle(int i)
 {
-  int nlist,list[3];
+  int nlist,atomlist[3];
   double v[6];
   double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
-  int i0 = atom->map(shake_atom[m][0]);
-  int i1 = atom->map(shake_atom[m][1]);
-  int i2 = atom->map(shake_atom[m][2]);
+  int m = list[i];
+  int i0 = closest_list[i][0];
+  int i1 = closest_list[i][1];
+  int i2 = closest_list[i][2];
   double bond1 = bond_distance[shake_type[m][0]];
   double bond2 = bond_distance[shake_type[m][1]];
   double bond12 = angle_distance[shake_type[m][2]];
 
-  // r01,r02,r12 = distance vec between atoms, with PBC
+  // r01,r02,r12 = distance vec between atoms
 
   double r01[3];
   r01[0] = x[i0][0] - x[i1][0];
   r01[1] = x[i0][1] - x[i1][1];
   r01[2] = x[i0][2] - x[i1][2];
-  domain->minimum_image(r01);
 
   double r02[3];
   r02[0] = x[i0][0] - x[i2][0];
   r02[1] = x[i0][1] - x[i2][1];
   r02[2] = x[i0][2] - x[i2][2];
-  domain->minimum_image(r02);
 
   double r12[3];
   r12[0] = x[i1][0] - x[i2][0];
   r12[1] = x[i1][1] - x[i2][1];
   r12[2] = x[i1][2] - x[i2][2];
-  domain->minimum_image(r12);
 
-  // s01,s02,s12 = distance vec after unconstrained update, with PBC
-  // use Domain::minimum_image_once(), not minimum_image()
-  // b/c xshake values might be huge, due to e.g. fix gcmc
+  // s01,s02,s12 = distance vec after unconstrained update
 
   double s01[3];
   s01[0] = xshake[i0][0] - xshake[i1][0];
   s01[1] = xshake[i0][1] - xshake[i1][1];
   s01[2] = xshake[i0][2] - xshake[i1][2];
-  domain->minimum_image_once(s01);
 
   double s02[3];
   s02[0] = xshake[i0][0] - xshake[i2][0];
   s02[1] = xshake[i0][1] - xshake[i2][1];
   s02[2] = xshake[i0][2] - xshake[i2][2];
-  domain->minimum_image_once(s02);
 
   double s12[3];
   s12[0] = xshake[i1][0] - xshake[i2][0];
   s12[1] = xshake[i1][1] - xshake[i2][1];
   s12[2] = xshake[i1][2] - xshake[i2][2];
-  domain->minimum_image_once(s12);
 
   // scalar distances between atoms
 
@@ -2503,9 +2512,9 @@ void FixShake::shake3angle(int m)
 
   if (evflag) {
     nlist = 0;
-    if (i0 < nlocal) list[nlist++] = i0;
-    if (i1 < nlocal) list[nlist++] = i1;
-    if (i2 < nlocal) list[nlist++] = i2;
+    if (i0 < nlocal) atomlist[nlist++] = i0;
+    if (i1 < nlocal) atomlist[nlist++] = i1;
+    if (i2 < nlocal) atomlist[nlist++] = i2;
 
     v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda12*r12[0]*r12[0];
     v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda12*r12[1]*r12[1];
@@ -2519,7 +2528,7 @@ void FixShake::shake3angle(int m)
                             {r02[0], r02[1], r02[2]},
                             {r12[0], r12[1], r12[2]}};
     int pairlist[][2] = {{i0,i1}, {i0,i2}, {i1,i2}};
-    v_tally(nlist,list,3.0,v,nlocal,3,pairlist,fpairlist,dellist);
+    v_tally(nlist,atomlist,3.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 

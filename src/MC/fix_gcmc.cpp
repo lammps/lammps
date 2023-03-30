@@ -61,19 +61,19 @@ using namespace MathConst;
 
 #define MAXENERGYTEST 1.0e50
 
-enum{EXCHATOM,EXCHMOL}; // exchmode
-enum{NONE,MOVEATOM,MOVEMOL}; // movemode
+enum { EXCHATOM, EXCHMOL };          // exchmode
+enum { NONE, MOVEATOM, MOVEMOL };    // movemode
 
 /* ---------------------------------------------------------------------- */
 
 FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  region(nullptr), idregion(nullptr), full_flag(false), groupstrings(nullptr),
-  grouptypestrings(nullptr), grouptypebits(nullptr), grouptypes(nullptr), local_gas_list(nullptr),
-  molcoords(nullptr), molq(nullptr), molimage(nullptr), random_equal(nullptr), random_unequal(nullptr),
-  fixrigid(nullptr), fixshake(nullptr), idrigid(nullptr), idshake(nullptr)
+    Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), full_flag(false),
+    groupstrings(nullptr), grouptypestrings(nullptr), grouptypebits(nullptr), grouptypes(nullptr),
+    local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
+    random_equal(nullptr), random_unequal(nullptr), fixrigid(nullptr), fixshake(nullptr),
+    idrigid(nullptr), idshake(nullptr)
 {
-  if (narg < 11) error->all(FLERR,"Illegal fix gcmc command");
+  if (narg < 11) utils::missing_cmd_args(FLERR, "fix gcmc", error);
 
   if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,"Fix gcmc does not (yet) work with atom_style template");
@@ -583,8 +583,7 @@ void FixGCMC::init()
     fixshake = modify->fix[ifix];
     int tmp;
     if (&onemols[imol] != (Molecule **) fixshake->extract("onemol",tmp))
-      error->all(FLERR,"Fix gcmc and fix shake not using "
-                 "same molecule template ID");
+      error->all(FLERR,"Fix gcmc and fix shake not using same molecule template ID");
   }
 
   if (domain->dimension == 2)

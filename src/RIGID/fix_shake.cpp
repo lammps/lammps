@@ -604,7 +604,6 @@ void FixShake::pre_neighbor()
         atom3 = domain->closest_image(i, atom3);
         atom4 = domain->closest_image(i, atom4);
         if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) {
-          list[nlist++] = i;
           list[nlist] = i;
           closest_list[nlist][0] = atom1;
           closest_list[nlist][1] = atom2;

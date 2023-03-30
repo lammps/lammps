@@ -101,7 +101,7 @@ not as part of the pair coefficients.
         - 0.52422
       * - LJ :math:`\epsilon` of OO (kcal/mole)
         - 0.1550
-        - 0.1577
+        - 0.21084
         - 0.1852
         - 0.16275
       * - LJ :math:`\sigma` of OO (:math:`\AA`)

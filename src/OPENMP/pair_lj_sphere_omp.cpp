@@ -127,7 +127,7 @@ void PairLJSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
         r2inv = 1.0 / rsq;
         r6inv = r2inv * r2inv * r2inv;
 
-        sigma6 = powint(mix_distance(rtmp, radius[j]), 6);
+        sigma6 = powint(2.0 * mix_distance(rtmp, radius[j]), 6);
         forcelj = r6inv * 24.0 * epsiloni[jtype] * (2.0 * sigma6 * sigma6 * r6inv - sigma6);
         fpair = factor_lj * forcelj * r2inv;
 

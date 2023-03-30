@@ -47,10 +47,11 @@ given by
 This is the same potential function as used by the :doc:`lj/cut
 <pair_lj>` pair style, but the :math:`\sigma_{ij}` parameter is not set
 as a per-type parameter via the :doc:`pair_coeff command <pair_coeff>`,
-but taken from the per-atom radius attribute of :doc:`atom_style sphere
-<atom_style>`.  The individual value of :math:`\sigma_{ij}` is computed
-using the mixing rule for pair coefficients as set by the
-:doc:`pair_modify mix <pair_modify>` command.
+but taken from the per-atom diameter attribute of :doc:`atom_style
+sphere <atom_style>`.  The individual value of :math:`\sigma_{ij}` is
+computed from the diameters of the two atoms using the mixing rule for
+pair coefficients as set by the :doc:`pair_modify mix <pair_modify>`
+command (defaults to geometric mixing).
 
 Note that :math:`\sigma_{ij}` is defined in the LJ formula above as the
 zero-crossing distance for the potential, *not* as the energy minimum which

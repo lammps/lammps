@@ -54,7 +54,7 @@ Examples
 
    pair_style lepton/sphere 2.5
    pair_coeff 1 * "k*((r-r0)^2*step(r0-r)); k=200; r0=radi+radj"
-   pair_coeff 2 2 "4.0*eps*((sig/r)^12 - (sig/r)^6); eps=1.0; sig=sqrt(radi*radj)"
+   pair_coeff 2 2 "4.0*eps*((sig/r)^12 - (sig/r)^6); eps=1.0; sig=2.0*sqrt(radi*radj)"
 
 Description
 """""""""""
@@ -72,9 +72,12 @@ using "r" as the distance variable.  With pair style *lepton/coul* one
 may additionally reference the charges of the two atoms of the pair with
 "qi" and "qj", respectively.  With pair style *lepton/coul* one may
 instead reference the radii of the two atoms of the pair with "radi" and
-"radj", respectively.  Note that further constants in the expression can
-be defined in the same string as additional expressions separated by
-semi-colons as shown in the examples above.
+"radj", respectively; this is half of the diameter that can be set in
+:doc:`data files <read_data>` or the :doc:`set command <set>`.
+
+Note that further constants in the expressions can be defined in the
+same string as additional expressions separated by semi-colons as shown
+in the examples above.
 
 The expression `"200.0*(r-1.5)^2"` represents a harmonic potential
 around the pairwise distance :math:`r_0` of 1.5 distance units and a

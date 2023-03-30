@@ -101,7 +101,7 @@ void PairLJSphere::compute(int eflag, int vflag)
         r2inv = 1.0 / rsq;
         r6inv = r2inv * r2inv * r2inv;
 
-        sigma6 = powint(mix_distance(rtmp, radius[j]), 6);
+        sigma6 = powint(2.0 * mix_distance(rtmp, radius[j]), 6);
         forcelj = r6inv * 24.0 * epsilon[itype][jtype] * (2.0 * sigma6 * sigma6 * r6inv - sigma6);
         fpair = factor_lj * forcelj * r2inv;
 
@@ -330,7 +330,7 @@ double PairLJSphere::single(int i, int j, int itype, int jtype, double rsq, doub
 {
   double r2inv, r6inv, sigma6, forcelj, philj;
 
-  sigma6 = powint(mix_distance(atom->radius[i], atom->radius[j]), 6);
+  sigma6 = powint(2.0 * mix_distance(atom->radius[i], atom->radius[j]), 6);
   r2inv = 1.0 / rsq;
   r6inv = r2inv * r2inv * r2inv;
   forcelj = r6inv * 24.0 * epsilon[itype][jtype] * (sigma6 * sigma6 * r6inv - sigma6);

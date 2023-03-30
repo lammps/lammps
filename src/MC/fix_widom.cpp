@@ -247,6 +247,26 @@ FixWidom::~FixWidom()
   memory->destroy(molq);
   memory->destroy(molimage);
 
+  // delete exclusion group created in init()
+  // delete molecule group created in init()
+  // unset neighbor exclusion settings made in init()
+  // not necessary if group and neighbor classes already destroyed
+  //   when LAMMPS exits
+  
+  if (exclusion_group_bit && group) {
+    auto group_id = std::string("FixWidom:widom_exclusion_group:") + id;
+    group->assign(group_id + " delete");
+  }
+
+  if (molecule_group_bit && group) {
+    auto group_id = std::string("FixWidom:rotation_gas_atoms:") + id;
+    group->assign(group_id + " delete");
+  }
+
+  if (full_flag && group && neighbor) {
+    int igroupall = group->find("all");
+    neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

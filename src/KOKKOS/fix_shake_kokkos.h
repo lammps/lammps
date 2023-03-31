@@ -138,6 +138,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_scalar k_nlist;
 
+  void stats() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

@@ -372,15 +372,8 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   k_list.sync<DeviceType>();
   k_closest_list.sync<DeviceType>();
 
-  if (update->ntimestep == next_output) {
-    atomKK->sync(Host,X_MASK);
-    k_shake_flag.sync_host();
-    k_shake_atom.sync_host();
-    k_shake_type.sync_host();
-    k_list.sync_host();
-    k_closest_list.sync_host();
+  if (update->ntimestep == next_output)
     stats();
-  }
 
   // xshake = unconstrained move with current v,f
   // communicate results if necessary
@@ -1413,6 +1406,23 @@ void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
 
     v_tally<NEIGHFLAG>(ev,count,atomlist,3.0,v);
   }
+}
+
+/* ----------------------------------------------------------------------
+   print-out bond & angle statistics
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::stats()
+{
+  atomKK->sync(Host,X_MASK);
+  k_shake_flag.sync_host();
+  k_shake_atom.sync_host();
+  k_shake_type.sync_host();
+  k_list.sync_host();
+  k_closest_list.sync_host();
+
+  FixShake::stats();
 }
 
 /* ----------------------------------------------------------------------

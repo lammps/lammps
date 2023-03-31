@@ -619,12 +619,14 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
   k_xshake.modify<DeviceType>();
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 2 cluster = single bond
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::shake(int i, EV_FLOAT& ev) const
+void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
 {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -632,15 +634,15 @@ void FixShakeKokkos<DeviceType>::shake(int i, EV_FLOAT& ev) const
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  int nlist,atomlist[2];
+  int atomlist[2];
   double v[6];
   double invmass0,invmass1;
 
   // local atom IDs and constraint distances
 
-  int m = list[i];
-  int i0 = d_closest_list(i,0);
-  int i1 = d_closest_list(i,1);
+  int m = list[ilist];
+  int i0 = d_closest_list(ilist,0);
+  int i1 = d_closest_list(ilist,1);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
 
   // r01 = distance vec between atoms
@@ -712,9 +714,9 @@ void FixShakeKokkos<DeviceType>::shake(int i, EV_FLOAT& ev) const
   }
 
   if (EVFLAG) {
-    nlist = 0;
-    if (i0 < nlocal) atomlist[nlist++] = i0;
-    if (i1 < nlocal) atomlist[nlist++] = i1;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
 
     v[0] = lamda*r01[0]*r01[0];
     v[1] = lamda*r01[1]*r01[1];
@@ -723,16 +725,18 @@ void FixShakeKokkos<DeviceType>::shake(int i, EV_FLOAT& ev) const
     v[4] = lamda*r01[0]*r01[2];
     v[5] = lamda*r01[1]*r01[2];
 
-    v_tally<NEIGHFLAG>(ev,nlist,atomlist,2.0,v);
+    v_tally<NEIGHFLAG>(ev,count,atomlist,2.0,v);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 3 cluster = two bonds
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::shake3(int i, EV_FLOAT& ev) const
+void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
 {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -740,16 +744,16 @@ void FixShakeKokkos<DeviceType>::shake3(int i, EV_FLOAT& ev) const
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  int nlist,atomlist[3];
+  int atomlist[3];
   double v[6];
   double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
-  int m = list[i];
-  int i0 = d_closest_list(i,0);
-  int i1 = d_closest_list(i,1);
-  int i2 = d_closest_list(i,2);
+  int m = list[ilist];
+  int i0 = d_closest_list(ilist,0);
+  int i1 = d_closest_list(ilist,1);
+  int i2 = d_closest_list(ilist,2);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
   double bond2 = d_bond_distance[d_shake_type(m,1)];
 
@@ -889,10 +893,10 @@ void FixShakeKokkos<DeviceType>::shake3(int i, EV_FLOAT& ev) const
   }
 
   if (EVFLAG) {
-    nlist = 0;
-    if (i0 < nlocal) atomlist[nlist++] = i0;
-    if (i1 < nlocal) atomlist[nlist++] = i1;
-    if (i2 < nlocal) atomlist[nlist++] = i2;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
+    if (i2 < nlocal) atomlist[count++] = i2;
 
     v[0] = lamda01*r01[0]*r01[0] + lamda02*r02[0]*r02[0];
     v[1] = lamda01*r01[1]*r01[1] + lamda02*r02[1]*r02[1];
@@ -901,16 +905,18 @@ void FixShakeKokkos<DeviceType>::shake3(int i, EV_FLOAT& ev) const
     v[4] = lamda01*r01[0]*r01[2] + lamda02*r02[0]*r02[2];
     v[5] = lamda01*r01[1]*r01[2] + lamda02*r02[1]*r02[2];
 
-    v_tally<NEIGHFLAG>(ev,nlist,atomlist,3.0,v);
+    v_tally<NEIGHFLAG>(ev,count,atomlist,3.0,v);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 4 cluster = three bonds
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::shake4(int i, EV_FLOAT& ev) const
+void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
 {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -918,17 +924,17 @@ void FixShakeKokkos<DeviceType>::shake4(int i, EV_FLOAT& ev) const
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
- int nlist,atomlist[4];
+  int atomlist[4];
   double v[6];
   double invmass0,invmass1,invmass2,invmass3;
 
   // local atom IDs and constraint distances
 
-  int m = list[i];
-  int i0 = d_closest_list(i,0);
-  int i1 = d_closest_list(i,1);
-  int i2 = d_closest_list(i,2);
-  int i3 = d_closest_list(i,3);
+  int m = list[ilist];
+  int i0 = d_closest_list(ilist,0);
+  int i1 = d_closest_list(ilist,1);
+  int i2 = d_closest_list(ilist,2);
+  int i3 = d_closest_list(ilist,3);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
   double bond2 = d_bond_distance[d_shake_type(m,1)];
   double bond3 = d_bond_distance[d_shake_type(m,2)];
@@ -1143,11 +1149,11 @@ void FixShakeKokkos<DeviceType>::shake4(int i, EV_FLOAT& ev) const
   }
 
   if (EVFLAG) {
-    nlist = 0;
-    if (i0 < nlocal) atomlist[nlist++] = i0;
-    if (i1 < nlocal) atomlist[nlist++] = i1;
-    if (i2 < nlocal) atomlist[nlist++] = i2;
-    if (i3 < nlocal) atomlist[nlist++] = i3;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
+    if (i2 < nlocal) atomlist[count++] = i2;
+    if (i3 < nlocal) atomlist[count++] = i3;
 
     v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda03*r03[0]*r03[0];
     v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda03*r03[1]*r03[1];
@@ -1156,16 +1162,18 @@ void FixShakeKokkos<DeviceType>::shake4(int i, EV_FLOAT& ev) const
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda03*r03[0]*r03[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda03*r03[1]*r03[2];
 
-    v_tally<NEIGHFLAG>(ev,nlist,atomlist,4.0,v);
+    v_tally<NEIGHFLAG>(ev,count,atomlist,4.0,v);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 3 cluster = two bonds + angle
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::shake3angle(int i, EV_FLOAT& ev) const
+void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
 {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
@@ -1173,16 +1181,16 @@ void FixShakeKokkos<DeviceType>::shake3angle(int i, EV_FLOAT& ev) const
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  int nlist,atomlist[3];
+  int atomlist[3];
   double v[6];
   double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
-  int m = list[i];
-  int i0 = d_closest_list(i,0);
-  int i1 = d_closest_list(i,1);
-  int i2 = d_closest_list(i,2);
+  int m = list[ilist];
+  int i0 = d_closest_list(ilist,0);
+  int i1 = d_closest_list(ilist,1);
+  int i2 = d_closest_list(ilist,2);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
   double bond2 = d_bond_distance[d_shake_type(m,1)];
   double bond12 = d_angle_distance[d_shake_type(m,2)];
@@ -1390,10 +1398,10 @@ void FixShakeKokkos<DeviceType>::shake3angle(int i, EV_FLOAT& ev) const
   }
 
   if (EVFLAG) {
-    nlist = 0;
-    if (i0 < nlocal) atomlist[nlist++] = i0;
-    if (i1 < nlocal) atomlist[nlist++] = i1;
-    if (i2 < nlocal) atomlist[nlist++] = i2;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
+    if (i2 < nlocal) atomlist[count++] = i2;
 
     v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda12*r12[0]*r12[0];
     v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda12*r12[1]*r12[1];
@@ -1402,7 +1410,7 @@ void FixShakeKokkos<DeviceType>::shake3angle(int i, EV_FLOAT& ev) const
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda12*r12[0]*r12[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda12*r12[1]*r12[2];
 
-    v_tally<NEIGHFLAG>(ev,nlist,atomlist,3.0,v);
+    v_tally<NEIGHFLAG>(ev,count,atomlist,3.0,v);
   }
 }
 

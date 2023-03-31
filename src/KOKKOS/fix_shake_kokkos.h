@@ -133,7 +133,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   typename AT::t_int_1d d_list; // list of clusters to SHAKE
 
   DAT::tdual_int_2d k_closest_list;
-  typename AT::t_int_2d d_closest_list; // list of closest images in SHAKE clusters
+  typename AT::t_int_2d d_closest_list; // list of closest atom indices in SHAKE clusters
 
   DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_scalar k_nlist;

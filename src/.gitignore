@@ -814,8 +814,6 @@
 /fix_lambdah_calc.h
 /fix_langevin_eff.cpp
 /fix_langevin_eff.h
-/fix_latte.cpp
-/fix_latte.h
 /latboltz_const.h
 /fix_lb_fluid.cpp
 /fix_lb_fluid.h

@@ -341,6 +341,45 @@ FixPIMDLangevin::~FixPIMDLangevin()
   delete[] id_pe;
   delete[] id_press;
   delete random;
+  delete c_pe;
+  delete c_press;
+  delete[] mass;
+  delete[] _omega_k;
+  delete[] Lan_c;
+  delete[] Lan_s;
+  delete[] tau_k;
+  delete[] c1_k;
+  delete[] c2_k;
+  delete[] plansend;
+  delete[] planrecv;
+  delete[] modeindex;
+  memory->destroy(xcall);
+  if (cmode == SINGLE_PROC) {
+    memory->destroy(bufsorted);
+    memory->destroy(outsorted);
+    memory->destroy(bufsortedall);
+    memory->destroy(buftransall);
+    memory->destroy(counts);
+    memory->destroy(displacements);
+  }
+
+  if (cmode == MULTI_PROC) {
+    memory->destroy(bufsendall);
+    memory->destroy(bufrecvall);
+    memory->destroy(tagsendall);
+    memory->destroy(tagrecvall);
+    memory->destroy(counts);
+    memory->destroy(displacements);
+  }
+  memory->destroy(M_x2xp);
+  memory->destroy(M_xp2x);
+  memory->destroy(xc);
+  memory->destroy(x_unwrap);
+  memory->destroy(bufsend);
+  memory->destroy(bufrecv);
+  memory->destroy(tagsend);
+  memory->destroy(tagrecv);
+  memory->destroy(bufbeads);
 }
 
 /* ---------------------------------------------------------------------- */

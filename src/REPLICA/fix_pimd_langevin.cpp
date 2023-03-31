@@ -65,6 +65,7 @@ enum { SINGLE_PROC, MULTI_PROC };
 FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr), c_press(nullptr)
 {
+  restart_global = 1;
   time_integrate = 1;
   tagsend = tagrecv = nullptr;
   bufsend = bufrecv = nullptr;
@@ -254,6 +255,8 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
     }
   }
   extvector = 1;
+  kBT = force->boltz * temp;
+  if (pstat_flag) baro_init();
 
   // some initilizations
 
@@ -376,7 +379,6 @@ void FixPIMDLangevin::init()
   }
   planck *= sp;
   hbar = planck / (2.0 * MY_PI);
-  kBT = force->boltz * temp;
   double beta = 1.0 / (force->boltz * temp);
   double _fbond = 1.0 * np * np / (beta * beta * hbar * hbar);
 
@@ -408,7 +410,6 @@ void FixPIMDLangevin::init()
   nmpimd_init();
 
   Langevin_init();
-  if (pstat_flag) baro_init();
 
   c_pe = modify->get_compute_by_id(id_pe);
   c_press = modify->get_compute_by_id(id_press);
@@ -1369,6 +1370,54 @@ void FixPIMDLangevin::compute_totenthalpy()
     }
   } else if (barostat == MTTK)
     totenthalpy = tote + 1.5 * W * vw[0] * vw[0] * inverse_np + p_hydro * (volume - vol0);
+}
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixPIMDLangevin::write_restart(FILE *fp)
+{
+  int nsize = size_restart_global();
+
+  double *list;
+  memory->create(list,nsize,"FixPIMDLangevin:list");
+
+  pack_restart_data(list);
+
+  if (comm->me == 0) {
+    int size = nsize * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),nsize,fp);
+  }
+
+  memory->destroy(list);
+}
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDLangevin::size_restart_global()
+{
+  int nsize = 6;
+
+  return nsize;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDLangevin::pack_restart_data(double *list)
+{
+  int n = 0;
+  for (int i=0; i<6; i++) { list[n++] = vw[i]; }
+  return n;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDLangevin::restart(char *buf)
+{
+  int n = 0;
+  auto list = (double *) buf;
+  for (int i=0; i<6; i++) { vw[i] = list[n++]; }
 }
 
 /* ---------------------------------------------------------------------- */

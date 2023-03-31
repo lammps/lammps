@@ -128,14 +128,14 @@ and adds vectorization support when compiled with compatible compilers,
 in particular the Intel compilers on top of OpenMP. Also, the ``KOKKOS``
 package can be compiled to include OpenMP threading.
 
-In addition, there are a few commands in LAMMPS that have native OpenMP
-support included as well.  These are commands in the ``MPIIO``,
-``ML-SNAP``, ``DIFFRACTION``, and ``DPD-REACT`` packages.  Furthermore,
-some packages support OpenMP threading indirectly through the libraries
-they interface to: e.g. ``LATTE``, ``KSPACE``, and ``COLVARS``.  See the
-:doc:`Packages details <Packages_details>` page for more info on these
-packages, and the pages for their respective commands for OpenMP
-threading info.
+In addition, there are a few commands in LAMMPS that have native
+OpenMP support included as well.  These are commands in the ``MPIIO``,
+``ML-SNAP``, ``DIFFRACTION``, and ``DPD-REACT`` packages.
+Furthermore, some packages support OpenMP threading indirectly through
+the libraries they interface to: e.g. ``KSPACE``, and ``COLVARS``.
+See the :doc:`Packages details <Packages_details>` page for more info
+on these packages, and the pages for their respective commands for
+OpenMP threading info.
 
 For CMake, if you use ``BUILD_OMP=yes``, you can use these packages
 and turn on their native OpenMP support and turn on their native OpenMP

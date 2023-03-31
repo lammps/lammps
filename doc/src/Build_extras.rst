@@ -43,7 +43,6 @@ This is the list of packages that may require additional steps.
    * :ref:`INTEL <intel>`
    * :ref:`KIM <kim>`
    * :ref:`KOKKOS <kokkos>`
-   * :ref:`LATTE <latte>`
    * :ref:`LEPTON <lepton>`
    * :ref:`MACHDYN <machdyn>`
    * :ref:`MDI <mdi>`
@@ -832,63 +831,6 @@ will thus always enable it.
 
 ----------
 
-.. _latte:
-
-LATTE package
--------------------------
-
-To build with this package, you must download and build the LATTE
-library.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D DOWNLOAD_LATTE=value      # download LATTE for build, value = no (default) or yes
-         -D LATTE_LIBRARY=path        # LATTE library file (only needed if a custom location)
-         -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library instead of LAPACK
-                                      #   value = no (default) or yes
-
-      If ``DOWNLOAD_LATTE`` is set, the LATTE library will be downloaded
-      and built inside the CMake build directory.  If the LATTE library
-      is already on your system (in a location CMake cannot find it),
-      ``LATTE_LIBRARY`` is the filename (plus path) of the LATTE library
-      file, not the directory the library file is in.
-
-      The LATTE library requires LAPACK (and BLAS) and CMake can identify
-      their locations and pass that info to the LATTE build script. But
-      on some systems this triggers a (current) limitation of CMake and
-      the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
-      those cases to use the bundled linear algebra library and work around
-      the limitation.
-
-   .. tab:: Traditional make
-
-      You can download and build the LATTE library manually if you
-      prefer; follow the instructions in ``lib/latte/README``\ .  You
-      can also do it in one step from the ``lammps/src`` dir, using a
-      command like these, which simply invokes the
-      ``lib/latte/Install.py`` script with the specified args:
-
-      .. code-block:: bash
-
-         make lib-latte                        # print help message
-         make lib-latte args="-b"              # download and build in lib/latte/LATTE-master
-         make lib-latte args="-p $HOME/latte"  # use existing LATTE installation in $HOME/latte
-         make lib-latte args="-b -m gfortran"  # download and build in lib/latte and
-                                               #   copy Makefile.lammps.gfortran to Makefile.lammps
-
-      Note that 3 symbolic (soft) links, ``includelink`` and ``liblink``
-      and ``filelink.o``, are created in ``lib/latte`` to point to
-      required folders and files in the LATTE home directory.  When
-      LAMMPS itself is built it will use these links.  You should also
-      check that the ``Makefile.lammps`` file you create is appropriate
-      for the compiler you use on your system to build LATTE.
-
-----------
-
 .. _lepton:
 
 LEPTON package
@@ -1413,9 +1355,9 @@ This package depends on the KSPACE package.
       KSPACE package so the latter one *must* be enabled.
 
       The ELECTRODE package also requires LAPACK (and BLAS) and CMake
-      can identify their locations and pass that info to the LATTE build
-      script.  But on some systems this may cause problems when linking
-      or the dependency is not desired.  Try enabling
+      can identify their locations and pass that info to the ELECTRODE
+      build script.  But on some systems this may cause problems when
+      linking or the dependency is not desired.  Try enabling
       ``USE_INTERNAL_LINALG`` in those cases to use the bundled linear
       algebra library and work around the limitation.
 

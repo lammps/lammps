@@ -6,7 +6,7 @@ LAMMPS can be downloaded, built, and configured for OS X on a Mac with
 instructions for :doc:`downloading an executable via Conda
 <Install_conda>`.)  The following LAMMPS packages are unavailable at
 this time because of additional requirements not yet met: GPU, KOKKOS,
-LATTE, MSCG, MPIIO, POEMS, VORONOI.
+MSCG, MPIIO, POEMS, VORONOI.
 
 After installing Homebrew, you can install LAMMPS on your system with
 the following commands:

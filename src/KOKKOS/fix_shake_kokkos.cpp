@@ -143,6 +143,8 @@ FixShakeKokkos<DeviceType>::~FixShakeKokkos()
   memoryKK->destroy_kokkos(k_shake_atom,shake_atom);
   memoryKK->destroy_kokkos(k_shake_type,shake_type);
   memoryKK->destroy_kokkos(k_xshake,xshake);
+  memoryKK->destroy_kokkos(k_list,list);
+  memoryKK->destroy_kokkos(k_closest_list,closest_list);
 
   memoryKK->destroy_kokkos(k_vatom,vatom);
 }
@@ -203,13 +205,10 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // local copies of atom quantities
   // used by SHAKE until next re-neighboring
 
+  atomKK->sync(Device,X_MASK);
+
   ebond = 0.0;
-  x = atom->x;
-  v = atom->v;
-  f = atom->f;
-  mass = atom->mass;
-  rmass = atom->rmass;
-  type = atom->type;
+  d_x = atomKK->k_x.view<DeviceType>();
   nlocal = atom->nlocal;
 
   map_style = atom->map_style;
@@ -227,9 +226,12 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
 
   if (nlocal > maxlist) {
     maxlist = nlocal;
-    MemKK::realloc_kokkos(k_list,"shake:list",maxlist);
+    memoryKK->destroy_kokkos(k_list,list);
+    memoryKK->create_kokkos(k_list,list,maxlist,"shake:list");
     d_list = k_list.view<DeviceType>();
-    MemKK::realloc_kokkos(k_closest_list,"shake:closest_list",maxlist,4);
+
+    memoryKK->destroy_kokkos(k_closest_list,closest_list);
+    memoryKK->create_kokkos(k_closest_list,closest_list,maxlist,4,"shake:closest_list");
     d_closest_list = k_closest_list.view<DeviceType>();
   }
 
@@ -255,6 +257,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   {
     // local variables for lambda capture
 
+    auto d_x = this->d_x;
     auto d_shake_flag = this->d_shake_flag;
     auto d_shake_atom = this->d_shake_atom;
     auto d_list = this->d_list;
@@ -370,6 +373,8 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     k_shake_flag.sync_host();
     k_shake_atom.sync_host();
     k_shake_type.sync_host();
+    k_list.sync_host();
+    k_closest_list.sync_host();
     stats();
   }
 
@@ -377,7 +382,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   // communicate results if necessary
 
   unconstrained_update();
-  if (comm->nprocs > 1) comm->forward_comm(this);
+  comm->forward_comm(this);
   k_xshake.sync<DeviceType>();
 
   // virial setup
@@ -1647,6 +1652,13 @@ void FixShakeKokkos<DeviceType>::shake_end_of_step(int vflag) {
 
 template<class DeviceType>
 void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
+  x = atom->x;
+  v = atom->v;
+  f = atom->f;
+  mass = atom->mass;
+  rmass = atom->rmass;
+  type = atom->type;
+
   atomKK->sync(Host,X_MASK|V_MASK|F_MASK);
 
   // save current forces and velocities so that you
@@ -1714,11 +1726,9 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
 
   double **xtmp = xshake;
   xshake = x;
-  if (comm->nprocs > 1) {
-    forward_comm_device = 0;
-    comm->forward_comm(this);
-    forward_comm_device = 1;
-  }
+  forward_comm_device = 0;
+  comm->forward_comm(this);
+  forward_comm_device = 1;
   xshake = xtmp;
 
   atomKK->modified(Host,X_MASK|V_MASK|F_MASK);

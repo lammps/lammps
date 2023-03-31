@@ -205,7 +205,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // local copies of atom quantities
   // used by SHAKE until next re-neighboring
 
-  atomKK->sync(Device,X_MASK);
+  atomKK->sync(execution_space,X_MASK);
 
   ebond = 0.0;
   d_x = atomKK->k_x.view<DeviceType>();
@@ -325,6 +325,9 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     });
   }
 
+  k_list.modify<DeviceType>();
+  k_closest_list.modify<DeviceType>();
+
   Kokkos::deep_copy(h_scalars,d_scalars);
   nlist = h_nlist();
 
@@ -365,8 +368,9 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK);
 
   k_shake_flag.sync<DeviceType>();
-  k_shake_atom.sync<DeviceType>();
   k_shake_type.sync<DeviceType>();
+  k_list.sync<DeviceType>();
+  k_closest_list.sync<DeviceType>();
 
   if (update->ntimestep == next_output) {
     atomKK->sync(Host,X_MASK);
@@ -396,7 +400,6 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"improper:vatom");
     d_vatom = k_vatom.template view<KKDeviceType>();
   }
-
 
   neighflag = lmp->kokkos->neighflag;
 
@@ -511,7 +514,6 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakePostForce<NEIGHFLAG,EVFLA
 template<class DeviceType>
 int FixShakeKokkos<DeviceType>::dof(int igroup)
 {
-
   d_mask = atomKK->k_mask.view<DeviceType>();
   d_tag = atomKK->k_tag.view<DeviceType>();
   nlocal = atom->nlocal;
@@ -570,7 +572,6 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
     atomKK->sync(execution_space,X_MASK|V_MASK|F_MASK|RMASS_MASK);
   else
     atomKK->sync(execution_space,X_MASK|V_MASK|F_MASK|TYPE_MASK);
-
 
   k_shake_flag.sync<DeviceType>();
   k_xshake.sync<DeviceType>();
@@ -640,7 +641,7 @@ void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
 
   // local atom IDs and constraint distances
 
-  int m = list[ilist];
+  int m = d_list[ilist];
   int i0 = d_closest_list(ilist,0);
   int i1 = d_closest_list(ilist,1);
   double bond1 = d_bond_distance[d_shake_type(m,0)];
@@ -750,7 +751,7 @@ void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
 
   // local atom IDs and constraint distances
 
-  int m = list[ilist];
+  int m = d_list[ilist];
   int i0 = d_closest_list(ilist,0);
   int i1 = d_closest_list(ilist,1);
   int i2 = d_closest_list(ilist,2);
@@ -930,7 +931,7 @@ void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
 
   // local atom IDs and constraint distances
 
-  int m = list[ilist];
+  int m = d_list[ilist];
   int i0 = d_closest_list(ilist,0);
   int i1 = d_closest_list(ilist,1);
   int i2 = d_closest_list(ilist,2);
@@ -1187,7 +1188,7 @@ void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
 
   // local atom IDs and constraint distances
 
-  int m = list[ilist];
+  int m = d_list[ilist];
   int i0 = d_closest_list(ilist,0);
   int i1 = d_closest_list(ilist,1);
   int i2 = d_closest_list(ilist,2);
@@ -1756,7 +1757,7 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *list, double total,
+void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *atomlist, double total,
      double *v) const
 {
   int m;
@@ -1776,7 +1777,7 @@ void FixShakeKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int n, int *list, double 
     for (int i = 0; i < n; i++) {
       auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
       auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-      m = list[i];
+      m = atomlist[i];
       a_vatom(m,0) += fraction*v[0];
       a_vatom(m,1) += fraction*v[1];
       a_vatom(m,2) += fraction*v[2];

@@ -735,18 +735,18 @@ void FixShake::min_post_force(int vflag)
   for (int i = 0; i < nlist; i++) {
     int m = list[i];
     if (shake_flag[m] == 2) {
-      bond_force(shake_atom[m][0], shake_atom[m][1], bond_distance[shake_type[m][0]]);
+      bond_force(closest_list[i][0], closest_list[i][1], bond_distance[shake_type[m][0]]);
     } else if (shake_flag[m] == 3) {
-      bond_force(shake_atom[m][0], shake_atom[m][1], bond_distance[shake_type[m][0]]);
-      bond_force(shake_atom[m][0], shake_atom[m][2], bond_distance[shake_type[m][1]]);
+      bond_force(closest_list[i][0], closest_list[i][1], bond_distance[shake_type[m][0]]);
+      bond_force(closest_list[i][0], closest_list[i][2], bond_distance[shake_type[m][1]]);
     } else if (shake_flag[m] == 4) {
-      bond_force(shake_atom[m][0], shake_atom[m][1], bond_distance[shake_type[m][0]]);
-      bond_force(shake_atom[m][0], shake_atom[m][2], bond_distance[shake_type[m][1]]);
-      bond_force(shake_atom[m][0], shake_atom[m][3], bond_distance[shake_type[m][2]]);
+      bond_force(closest_list[i][0], closest_list[i][1], bond_distance[shake_type[m][0]]);
+      bond_force(closest_list[i][0], closest_list[i][2], bond_distance[shake_type[m][1]]);
+      bond_force(closest_list[i][0], closest_list[i][3], bond_distance[shake_type[m][2]]);
     } else {
-      bond_force(shake_atom[m][0], shake_atom[m][1], bond_distance[shake_type[m][0]]);
-      bond_force(shake_atom[m][0], shake_atom[m][2], bond_distance[shake_type[m][1]]);
-      bond_force(shake_atom[m][1], shake_atom[m][2], angle_distance[shake_type[m][2]]);
+      bond_force(closest_list[i][0], closest_list[i][1], bond_distance[shake_type[m][0]]);
+      bond_force(closest_list[i][0], closest_list[i][2], bond_distance[shake_type[m][1]]);
+      bond_force(closest_list[i][1], closest_list[i][2], angle_distance[shake_type[m][2]]);
     }
   }
 }
@@ -2535,11 +2535,8 @@ void FixShake::shake3angle(int i)
    apply bond force for minimization
 ------------------------------------------------------------------------- */
 
-void FixShake::bond_force(tagint id1, tagint id2, double length)
+void FixShake::bond_force(int i1, int i2, double length)
 {
-  int i1 = atom->map(id1);
-  int i2 = atom->map(id2);
-
   if ((i1 < 0) || (i2 < 0)) return;
 
   // distance vec between atoms, with PBC
@@ -2547,7 +2544,6 @@ void FixShake::bond_force(tagint id1, tagint id2, double length)
   double delx = x[i1][0] - x[i2][0];
   double dely = x[i1][1] - x[i2][1];
   double delz = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx, dely, delz);
 
   // compute and apply force
 
@@ -2624,14 +2620,13 @@ void FixShake::stats()
     // bond stats
 
     if (n == 1) n = 3;
-    int iatom = atom->map(shake_atom[i][0]);
+    int iatom = closest_list[ii][0];
     for (int j = 1; j < n; j++) {
-      int jatom = atom->map(shake_atom[i][j]);
+      int jatom = closest_list[ii][j];
       if (jatom >= nlocal) continue;
       delx = x[iatom][0] - x[jatom][0];
       dely = x[iatom][1] - x[jatom][1];
       delz = x[iatom][2] - x[jatom][2];
-      domain->minimum_image(delx,dely,delz);
 
       r = sqrt(delx*delx + dely*dely + delz*delz);
       int m = shake_type[i][j-1];
@@ -2644,9 +2639,9 @@ void FixShake::stats()
     // angle stats
 
     if (shake_flag[i] == 1) {
-      int iatom = atom->map(shake_atom[i][0]);
-      int jatom = atom->map(shake_atom[i][1]);
-      int katom = atom->map(shake_atom[i][2]);
+      int iatom = closest_list[ii][0];
+      int jatom = closest_list[ii][1];
+      int katom = closest_list[ii][2];
       int n = 0;
       if (iatom < nlocal) ++n;
       if (jatom < nlocal) ++n;
@@ -2655,19 +2650,16 @@ void FixShake::stats()
       delx = x[iatom][0] - x[jatom][0];
       dely = x[iatom][1] - x[jatom][1];
       delz = x[iatom][2] - x[jatom][2];
-      domain->minimum_image(delx,dely,delz);
       r1 = sqrt(delx*delx + dely*dely + delz*delz);
 
       delx = x[iatom][0] - x[katom][0];
       dely = x[iatom][1] - x[katom][1];
       delz = x[iatom][2] - x[katom][2];
-      domain->minimum_image(delx,dely,delz);
       r2 = sqrt(delx*delx + dely*dely + delz*delz);
 
       delx = x[jatom][0] - x[katom][0];
       dely = x[jatom][1] - x[katom][1];
       delz = x[jatom][2] - x[katom][2];
-      domain->minimum_image(delx,dely,delz);
       r3 = sqrt(delx*delx + dely*dely + delz*delz);
 
       angle = acos((r1*r1 + r2*r2 - r3*r3) / (2.0*r1*r2));

@@ -18,8 +18,8 @@ Syntax
 
 .. parsed-literal::
 
-     *lj/sphere* args = cutoff
-       cutoff = global cutoff for Lennard Jones interactions (distance units)
+     *lj/sphere* args = cutoff ratio
+       cutoff = global cutoff ratio for Lennard Jones interactions (unitless)
 
 Examples
 """"""""
@@ -39,10 +39,9 @@ given by
 .. math::
 
    E = 4 \epsilon \left[ \left(\frac{\sigma_{ij}}{r}\right)^{12} -
-       \left(\frac{\sigma_{ij}}{r}\right)^6 \right]
-                       \qquad r < r_c
+       \left(\frac{\sigma_{ij}}{r}\right)^6 \right]  \qquad  r < r_c * \sigma_{ij}
 
-:math:`r_c` is the cutoff.
+:math:`r_c` is the cutoff ratio.
 
 This is the same potential function as used by the :doc:`lj/cut
 <pair_lj>` pair style, but the :math:`\sigma_{ij}` parameter is not set
@@ -51,7 +50,9 @@ but taken from the per-atom diameter attribute of :doc:`atom_style
 sphere <atom_style>`.  The individual value of :math:`\sigma_{ij}` is
 computed from the diameters of the two atoms using the mixing rule for
 pair coefficients as set by the :doc:`pair_modify mix <pair_modify>`
-command (defaults to geometric mixing).
+command (defaults to geometric mixing).  The cutoff is not specified as
+a distance, but as ratio that must be multiplied with
+:math:`\sigma_{ij}` to obtain the cutoff for a specific pair.
 
 Note that :math:`\sigma_{ij}` is defined in the LJ formula above as the
 zero-crossing distance for the potential, *not* as the energy minimum which
@@ -66,10 +67,14 @@ file or restart files read by the :doc:`read_data <read_data>` or
 :doc:`read_restart <read_restart>` commands, or by mixing as described below:
 
 * :math:`\epsilon` (energy units)
-* LJ cutoff (distance units) (optional)
+* LJ cutoff ratio (unitless) (optional)
 
-The last coefficient is optional.  If not specified, the global
-LJ cutoff specified in the pair_style command is used.
+The last coefficient is optional.  If not specified, the global LJ
+cutoff ratio specified in the :doc:`pair_style command <pair_style>` is
+used.
+
+If a repulsive only LJ interaction is desired, the coefficient for the cutoff
+ratio should be set to the minimum of the LJ potential using ``$(2.0^(1.0/6.0))``
 
 ----------
 
@@ -81,12 +86,12 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon coefficients and cutoff
-distance for the *lj/sphere* pair style can be mixed.  The default mix value
-is *geometric*.  See the "pair_modify" command for details.
+ratio for the *lj/sphere* pair style can be mixed.  The default mixing
+style is *geometric*.  See the :doc:`pair_modify command <pair_modify>`
+for details.
 
-The *lj/sphere* pair style supports the :doc:`pair_modify <pair_modify>`
-shift option for the energy of the Lennard-Jones portion of the pair
-interaction.
+The *lj/sphere* pair style supports the :doc:`pair_modify shift <pair_modify>`
+option for the energy of the Lennard-Jones portion of the pair interaction.
 
 The *lj/sphere* pair style does *not* support the :doc:`pair_modify
 <pair_modify>` tail option for adding a long-range tail corrections to

@@ -44,6 +44,7 @@ class PairLJSphere : public Pair {
 
  protected:
   double cut_global;
+  double *rmax;
   double **cut;
   double **epsilon;
 

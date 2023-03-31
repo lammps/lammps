@@ -28,10 +28,11 @@
 
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
+using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSphere::PairLJSphere(LAMMPS *lmp) : Pair(lmp)
+PairLJSphere::PairLJSphere(LAMMPS *lmp) : Pair(lmp), rmax(nullptr), cut(nullptr), epsilon(nullptr)
 {
   writedata = 1;
 }
@@ -44,6 +45,7 @@ PairLJSphere::~PairLJSphere()
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
+    memory->destroy(rmax);
     memory->destroy(cut);
     memory->destroy(epsilon);
   }
@@ -54,8 +56,8 @@ PairLJSphere::~PairLJSphere()
 void PairLJSphere::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, evdwl, sigma6, fpair;
-  double rsq, r2inv, r6inv, forcelj, factor_lj;
+  double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, evdwl, sigma, sigma6, fpair;
+  double rcutsq, rsq, r2inv, r6inv, forcelj, factor_lj;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
@@ -98,33 +100,40 @@ void PairLJSphere::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0 / rsq;
-        r6inv = r2inv * r2inv * r2inv;
 
-        sigma6 = powint(2.0 * mix_distance(rtmp, radius[j]), 6);
-        forcelj = r6inv * 24.0 * epsilon[itype][jtype] * (2.0 * sigma6 * sigma6 * r6inv - sigma6);
-        fpair = factor_lj * forcelj * r2inv;
+        // cutsq is maximum cutoff per type. Now compute and apply real cutoff
 
-        f[i][0] += delx * fpair;
-        f[i][1] += dely * fpair;
-        f[i][2] += delz * fpair;
-        if (newton_pair || j < nlocal) {
-          f[j][0] -= delx * fpair;
-          f[j][1] -= dely * fpair;
-          f[j][2] -= delz * fpair;
-        }
+        sigma = 2.0 * mix_distance(rtmp, radius[j]);
+        rcutsq = square(cut[itype][jtype] * sigma);
+        if (rsq < rcutsq) {
 
-        if (eflag) {
-          evdwl = r6inv * 4.0 * epsilon[itype][jtype];
-          evdwl *= sigma6 * sigma6 * r6inv - sigma6;
-          if (offset_flag && (cutsq[itype][jtype] > 0.0)) {
-            double ratio6 = sigma6 / powint(cutsq[itype][jtype], 3);
-            evdwl -= 4.0 * epsilon[itype][jtype] * (ratio6 * ratio6 - ratio6);
+          r2inv = 1.0 / rsq;
+          r6inv = r2inv * r2inv * r2inv;
+          sigma6 = powint(sigma, 6);
+          forcelj = r6inv * 24.0 * epsilon[itype][jtype] * (2.0 * sigma6 * sigma6 * r6inv - sigma6);
+          fpair = factor_lj * forcelj * r2inv;
+
+          f[i][0] += delx * fpair;
+          f[i][1] += dely * fpair;
+          f[i][2] += delz * fpair;
+          if (newton_pair || j < nlocal) {
+            f[j][0] -= delx * fpair;
+            f[j][1] -= dely * fpair;
+            f[j][2] -= delz * fpair;
           }
-          evdwl *= factor_lj;
-        }
 
-        if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
+          if (eflag) {
+            evdwl = r6inv * 4.0 * epsilon[itype][jtype];
+            evdwl *= sigma6 * sigma6 * r6inv - sigma6;
+            if (offset_flag && (rcutsq > 0.0)) {
+              double ratio6 = sigma6 / powint(rcutsq, 3);
+              evdwl -= 4.0 * epsilon[itype][jtype] * (ratio6 * ratio6 - ratio6);
+            }
+            evdwl *= factor_lj;
+          }
+
+          if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
+        }
       }
     }
   }
@@ -147,6 +156,7 @@ void PairLJSphere::allocate()
 
   memory->create(cutsq, n, n, "pair:cutsq");
 
+  memory->create(rmax, n, "pair:rmax");
   memory->create(cut, n, n, "pair:cut");
   memory->create(epsilon, n, n, "pair:epsilon");
 }
@@ -212,6 +222,19 @@ void PairLJSphere::init_style()
   if (!atom->radius_flag) error->all(FLERR, "Pair style lj/sphere requires atom attribute radius");
   if (mix_flag == SIXTHPOWER)
     error->all(FLERR, "Pair_modify mix sixthpower is not compatible with pair style lj/sphere");
+
+  // determine max radius per type
+
+  int *type = atom->type;
+  double *radius = atom->radius;
+  rmax[0] = 0.0;
+  for (int itype = 1; itype <= atom->ntypes; ++itype) {
+    double rmax_one = 0.0;
+    for (int i = 0; i < atom->nlocal; ++i) {
+      if (type[i] == itype) rmax_one = MAX(rmax_one, radius[i]);
+    }
+    MPI_Allreduce(&rmax_one, &rmax[itype], 1, MPI_DOUBLE, MPI_MAX, world);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -227,7 +250,10 @@ double PairLJSphere::init_one(int i, int j)
 
   epsilon[j][i] = epsilon[i][j];
   cut[j][i] = cut[i][j];
-  return cut[i][j];
+
+  // since cut is a scaled by the mixed diameter, report maximum possible cutoff.
+
+  return cut[i][j] * 2.0 * mix_distance(rmax[i], rmax[j]);
 }
 
 /* ----------------------------------------------------------------------
@@ -328,17 +354,19 @@ void PairLJSphere::write_data_all(FILE *fp)
 double PairLJSphere::single(int i, int j, int itype, int jtype, double rsq, double /*factor_coul*/,
                             double factor_lj, double &fforce)
 {
-  double r2inv, r6inv, sigma6, forcelj, philj;
+  double r2inv, r6inv, rcutsq, sigma, sigma6, forcelj, philj;
 
-  sigma6 = powint(2.0 * mix_distance(atom->radius[i], atom->radius[j]), 6);
+  sigma = 2.0 * mix_distance(atom->radius[i], atom->radius[j]);
+  rcutsq = square(cut[itype][jtype] * sigma);
+  sigma6 = powint(sigma, 6);
   r2inv = 1.0 / rsq;
   r6inv = r2inv * r2inv * r2inv;
   forcelj = r6inv * 24.0 * epsilon[itype][jtype] * (sigma6 * sigma6 * r6inv - sigma6);
   fforce = factor_lj * forcelj * r2inv;
 
   philj = r6inv * 4.0 * epsilon[itype][jtype] * (sigma6 * sigma6 * r6inv - sigma6);
-  if (offset_flag && (cut[itype][jtype] > 0.0)) {
-    double ratio6 = sigma6 / powint(cutsq[itype][jtype], 3);
+  if (offset_flag && (rcutsq > 0.0)) {
+    double ratio6 = sigma6 / powint(rcutsq, 3);
     philj -= 4.0 * epsilon[itype][jtype] * (ratio6 * ratio6 - ratio6);
   }
   return factor_lj * philj;

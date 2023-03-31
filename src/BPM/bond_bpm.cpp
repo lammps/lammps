@@ -332,7 +332,7 @@ void BondBPM::read_restart(FILE *fp)
 
 void BondBPM::process_broken(int i, int j)
 {
-  if (break_flag)
+  if (!break_flag)
     error->one(FLERR, "BPM bond broke with break/no option");
   if (fix_store_local) {
     for (int n = 0; n < nvalues; n++) (this->*pack_choice[n])(n, i, j);

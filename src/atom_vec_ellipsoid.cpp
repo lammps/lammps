@@ -225,8 +225,7 @@ int AtomVecEllipsoid::unpack_border_bonus(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    ellipsoid[i] = (int) ubuf(buf[m++]).i;
-    if (ellipsoid[i] == 0)
+    if (ubuf(buf[m++]).i == 0)
       ellipsoid[i] = -1;
     else {
       j = nlocal_bonus + nghost_bonus;
@@ -283,8 +282,7 @@ int AtomVecEllipsoid::unpack_exchange_bonus(int ilocal, double *buf)
 {
   int m = 0;
 
-  ellipsoid[ilocal] = (int) ubuf(buf[m++]).i;
-  if (ellipsoid[ilocal] == 0)
+  if (ubuf(buf[m++]).i == 0)
     ellipsoid[ilocal] = -1;
   else {
     if (nlocal_bonus == nmax_bonus) grow_bonus();

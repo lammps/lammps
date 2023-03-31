@@ -583,7 +583,7 @@ void FixMDIQMMM::post_neighbor()
 
 void FixMDIQMMM::pre_force(int vflag)
 {
-  int ilocal,jlocal;
+  int ilocal;
   double rsq;
   double delta[3];
 
@@ -1360,7 +1360,7 @@ void FixMDIQMMM::create_qm_list()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) qmIDs_mine[nqm_mine++] = tag[i];
 
-  int *recvcounts,*displs,*listall;
+  int *recvcounts, *displs;
   memory->create(recvcounts,nprocs,"mdi/qmmm:recvcounts");
   memory->create(displs,nprocs,"mdi/qmmm:displs");
 
@@ -1427,7 +1427,7 @@ void FixMDIQMMM::create_mm_list()
   for (int i = 0; i < nlocal; i++)
     if (!(mask[i] & groupbit)) mmIDs_mine[nmm_mine++] = tag[i];
 
-  int *recvcounts,*displs,*listall;
+  int *recvcounts, *displs;
   memory->create(recvcounts,nprocs,"mdi/qmmm:recvcounts");
   memory->create(displs,nprocs,"mdi/qmmm:displs");
 

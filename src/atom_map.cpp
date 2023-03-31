@@ -118,7 +118,7 @@ void Atom::map_clear()
   if (map_style == MAP_ARRAY) {
     int nall = nlocal + nghost;
     for (int i = 0; i < nall; i++) {
-      sametag[i] = -1;
+      if (sametag) sametag[i] = -1;
       map_array[tag[i]] = -1;
     }
 
@@ -127,7 +127,7 @@ void Atom::map_clear()
     tagint global;
     int nall = nlocal + nghost;
     for (int i = 0; i < nall; i++) {
-      sametag[i] = -1;
+      if (sametag) sametag[i] = -1;
 
       // search for key
       // if don't find it, done

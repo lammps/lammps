@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -31,5 +30,4 @@ using namespace LAMMPS_NS;
    inherit everything else from PairEAMAlloy
 ------------------------------------------------------------------------- */
 
-PairEAMAlloyOpt::PairEAMAlloyOpt(LAMMPS *lmp) :
-  PairEAM(lmp), PairEAMAlloy(lmp), PairEAMOpt(lmp) {}
+PairEAMAlloyOpt::PairEAMAlloyOpt(LAMMPS *lmp) : PairEAM(lmp), PairEAMAlloy(lmp), PairEAMOpt(lmp) {}

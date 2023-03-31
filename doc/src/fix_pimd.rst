@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionchanged:: TBD
+.. versionchanged:: 28Mar2023
 
 Fix pimd was renamed to fix pimd/nvt.
 

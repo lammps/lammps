@@ -94,8 +94,12 @@ lmp.commands_string(before_loading)
 
 # Define the model however you like. In this example
 # we load it from disk:
+import os
 import torch
-model = torch.load('Ta06A.mliap.pytorch.model.pt')
+torch_model = 'Ta06A.mliap.pytorch.model.pt'
+if not os.path.exists(torch_model):
+    raise FileNotFoundError(f"Generate {torch_model} with convert_mliap_Ta06A.py")
+model = torch.load(torch_model)
 
 # Connect the PyTorch model to the mliap pair style.
 lammps.mliap.load_model_kokkos(model)

@@ -55,6 +55,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   void min_setup(int) override;
   void pre_neighbor() override;
   void post_force(int) override;
+  void min_post_force(int) override;
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
@@ -147,11 +148,16 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   DAT::tdual_int_1d k_list;
   typename AT::t_int_1d d_list; // list of clusters to SHAKE
 
+  DAT::tdual_int_2d k_closest_list;
+  typename AT::t_int_2d d_closest_list; // list of closest atom indices in SHAKE clusters
+
   DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_scalar k_nlist;
 
   typename AT::t_int_scalar d_count;
   HAT::t_int_scalar h_count;
+
+  void stats() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -213,6 +219,8 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   tagint **shake_atom_tmp;
   int **shake_type_tmp;
 
+  DAT::tdual_int_1d k_sametag;
+  typename AT::t_int_1d d_sametag;
   int map_style;
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
@@ -220,12 +228,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   // copied from Domain
 
   KOKKOS_INLINE_FUNCTION
-  void minimum_image(double *) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void minimum_image_once(double *) const;
-
-  void update_domain_variables();
+  int closest_image(const int, int) const;
 
   int triclinic;
   int xperiodic,yperiodic,zperiodic;

@@ -158,7 +158,7 @@ void ElectrodeMatrix::pair_contribution(double **array)
         aij *= ElectrodeMath::safe_erfc(g_ewald * r);
         aij -= ElectrodeMath::safe_erfc(etaij * r) * rinv;
         // newton on or off?
-        if (!(newton_pair || j < nlocal)) aij *= 0.5;
+        if (!newton_pair && j >= nlocal) aij *= 0.5;
         bigint jpos = tag_to_iele[tag[j]];
         array[ipos][jpos] += aij;
         array[jpos][ipos] += aij;

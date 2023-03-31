@@ -440,7 +440,7 @@ void FixMDIQM::post_neighbor()
 
 void FixMDIQM::post_force(int vflag)
 {
-  int index, ierr;
+  int ierr;
 
   // skip if timestep is not a multiple of every
 
@@ -761,7 +761,7 @@ void FixMDIQM::create_qm_list()
     else if (!(mask[i] & excludebit)) qmIDs_mine[nqm_mine++] = tag[i];
   }
 
-  int *recvcounts,*displs,*listall;
+  int *recvcounts, *displs;
   memory->create(recvcounts,nprocs,"mdi/qm:recvcounts");
   memory->create(displs,nprocs,"mdi/qm:displs");
 

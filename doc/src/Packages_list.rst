@@ -233,11 +233,6 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix lb/fluid <fix_lb_fluid>`
      - PACKAGES/latboltz
      - no
-   * - :ref:`LATTE <PKG-LATTE>`
-     - quantum DFTB forces via LATTE
-     - :doc:`fix latte <fix_latte>`
-     - latte
-     - ext
    * - :ref:`LEPTON <PKG-LEPTON>`
      - evaluate strings as potential function
      - :doc:`pair_style lepton <pair_lepton>`

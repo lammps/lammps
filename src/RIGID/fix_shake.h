@@ -113,7 +113,7 @@ class FixShake : public Fix {
   double dtf_inner, dtf_innerhalf;    // timesteps for rRESPA trial move
 
   int *list;             // list of clusters to SHAKE
-  int **closest_list;    // list of closest images in SHAKE clusters
+  int **closest_list;    // list of closest atom indices in SHAKE clusters
   int nlist, maxlist;    // size and max-size of list
 
   // stat quantities

@@ -1767,19 +1767,21 @@ void FixShake::unconstrained_update_respa(int ilevel)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 2 cluster = single bond
+------------------------------------------------------------------------- */
 
-void FixShake::shake(int i)
+void FixShake::shake(int ilist)
 {
-  int nlist,atomlist[2];
+  int atomlist[2];
   double v[6];
   double invmass0,invmass1;
 
   // local atom IDs and constraint distances
 
-  int m = list[i];
-  int i0 = closest_list[i][0];
-  int i1 = closest_list[i][1];
+  int m = list[ilist];
+  int i0 = closest_list[ilist][0];
+  int i1 = closest_list[ilist][1];
   double bond1 = bond_distance[shake_type[m][0]];
 
   // r01 = distance vec between atoms
@@ -1850,9 +1852,9 @@ void FixShake::shake(int i)
   }
 
   if (evflag) {
-    nlist = 0;
-    if (i0 < nlocal) atomlist[nlist++] = i0;
-    if (i1 < nlocal) atomlist[nlist++] = i1;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
 
     v[0] = lamda*r01[0]*r01[0];
     v[1] = lamda*r01[1]*r01[1];
@@ -1864,24 +1866,26 @@ void FixShake::shake(int i)
     double fpairlist[] = {lamda};
     double dellist[][3]  = {{r01[0], r01[1], r01[2]}};
     int pairlist[][2] = {{i0,i1}};
-    v_tally(nlist,atomlist,2.0,v,nlocal,1,pairlist,fpairlist,dellist);
+    v_tally(count,atomlist,2.0,v,nlocal,1,pairlist,fpairlist,dellist);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 3 cluster = two bonds
+------------------------------------------------------------------------- */
 
-void FixShake::shake3(int i)
+void FixShake::shake3(int ilist)
 {
-  int nlist,atomlist[3];
+  int atomlist[3];
   double v[6];
   double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
-  int m = list[i];
-  int i0 = closest_list[i][0];
-  int i1 = closest_list[i][1];
-  int i2 = closest_list[i][2];
+  int m = list[ilist];
+  int i0 = closest_list[ilist][0];
+  int i1 = closest_list[ilist][1];
+  int i2 = closest_list[ilist][2];
   double bond1 = bond_distance[shake_type[m][0]];
   double bond2 = bond_distance[shake_type[m][1]];
 
@@ -2020,10 +2024,10 @@ void FixShake::shake3(int i)
   }
 
   if (evflag) {
-    nlist = 0;
-    if (i0 < nlocal) atomlist[nlist++] = i0;
-    if (i1 < nlocal) atomlist[nlist++] = i1;
-    if (i2 < nlocal) atomlist[nlist++] = i2;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
+    if (i2 < nlocal) atomlist[count++] = i2;
 
     v[0] = lamda01*r01[0]*r01[0] + lamda02*r02[0]*r02[0];
     v[1] = lamda01*r01[1]*r01[1] + lamda02*r02[1]*r02[1];
@@ -2036,25 +2040,27 @@ void FixShake::shake3(int i)
     double dellist[][3]  = {{r01[0], r01[1], r01[2]},
                             {r02[0], r02[1], r02[2]}};
     int pairlist[][2] = {{i0,i1}, {i0,i2}};
-    v_tally(nlist,atomlist,3.0,v,nlocal,2,pairlist,fpairlist,dellist);
+    v_tally(count,atomlist,3.0,v,nlocal,2,pairlist,fpairlist,dellist);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 4 cluster = three bonds
+------------------------------------------------------------------------- */
 
-void FixShake::shake4(int i)
+void FixShake::shake4(int ilist)
 {
- int nlist,atomlist[4];
+ int atomlist[4];
   double v[6];
   double invmass0,invmass1,invmass2,invmass3;
 
   // local atom IDs and constraint distances
 
-  int m = list[i];
-  int i0 = closest_list[i][0];
-  int i1 = closest_list[i][1];
-  int i2 = closest_list[i][2];
-  int i3 = closest_list[i][3];
+  int m = list[ilist];
+  int i0 = closest_list[ilist][0];
+  int i1 = closest_list[ilist][1];
+  int i2 = closest_list[ilist][2];
+  int i3 = closest_list[ilist][3];
   double bond1 = bond_distance[shake_type[m][0]];
   double bond2 = bond_distance[shake_type[m][1]];
   double bond3 = bond_distance[shake_type[m][2]];
@@ -2268,11 +2274,11 @@ void FixShake::shake4(int i)
   }
 
   if (evflag) {
-    nlist = 0;
-    if (i0 < nlocal) atomlist[nlist++] = i0;
-    if (i1 < nlocal) atomlist[nlist++] = i1;
-    if (i2 < nlocal) atomlist[nlist++] = i2;
-    if (i3 < nlocal) atomlist[nlist++] = i3;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
+    if (i2 < nlocal) atomlist[count++] = i2;
+    if (i3 < nlocal) atomlist[count++] = i3;
 
     v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda03*r03[0]*r03[0];
     v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda03*r03[1]*r03[1];
@@ -2286,24 +2292,26 @@ void FixShake::shake4(int i)
                             {r02[0], r02[1], r02[2]},
                             {r03[0], r03[1], r03[2]}};
     int pairlist[][2] = {{i0,i1}, {i0,i2}, {i0,i3}};
-    v_tally(nlist,atomlist,4.0,v,nlocal,3,pairlist,fpairlist,dellist);
+    v_tally(count,atomlist,4.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   calculate SHAKE constraint forces for size 3 cluster = two bonds + angle
+------------------------------------------------------------------------- */
 
-void FixShake::shake3angle(int i)
+void FixShake::shake3angle(int ilist)
 {
-  int nlist,atomlist[3];
+  int atomlist[3];
   double v[6];
   double invmass0,invmass1,invmass2;
 
   // local atom IDs and constraint distances
 
-  int m = list[i];
-  int i0 = closest_list[i][0];
-  int i1 = closest_list[i][1];
-  int i2 = closest_list[i][2];
+  int m = list[ilist];
+  int i0 = closest_list[ilist][0];
+  int i1 = closest_list[ilist][1];
+  int i2 = closest_list[ilist][2];
   double bond1 = bond_distance[shake_type[m][0]];
   double bond2 = bond_distance[shake_type[m][1]];
   double bond12 = angle_distance[shake_type[m][2]];
@@ -2510,10 +2518,10 @@ void FixShake::shake3angle(int i)
   }
 
   if (evflag) {
-    nlist = 0;
-    if (i0 < nlocal) atomlist[nlist++] = i0;
-    if (i1 < nlocal) atomlist[nlist++] = i1;
-    if (i2 < nlocal) atomlist[nlist++] = i2;
+    int count = 0;
+    if (i0 < nlocal) atomlist[count++] = i0;
+    if (i1 < nlocal) atomlist[count++] = i1;
+    if (i2 < nlocal) atomlist[count++] = i2;
 
     v[0] = lamda01*r01[0]*r01[0]+lamda02*r02[0]*r02[0]+lamda12*r12[0]*r12[0];
     v[1] = lamda01*r01[1]*r01[1]+lamda02*r02[1]*r02[1]+lamda12*r12[1]*r12[1];
@@ -2527,12 +2535,12 @@ void FixShake::shake3angle(int i)
                             {r02[0], r02[1], r02[2]},
                             {r12[0], r12[1], r12[2]}};
     int pairlist[][2] = {{i0,i1}, {i0,i2}, {i1,i2}};
-    v_tally(nlist,atomlist,3.0,v,nlocal,3,pairlist,fpairlist,dellist);
+    v_tally(count,atomlist,3.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
 /* ----------------------------------------------------------------------
-   apply bond force for minimization
+   apply bond force for minimization between atom indices i1 and i2
 ------------------------------------------------------------------------- */
 
 void FixShake::bond_force(int i1, int i2, double length)
@@ -2552,21 +2560,21 @@ void FixShake::bond_force(int i1, int i2, double length)
   const double rk = kbond * dr;
   const double fbond = (r > 0.0) ? -2.0 * rk / r : 0.0;
   const double eb = rk*dr;
-  int list[2];
-  int nlist = 0;
+  int atomlist[2];
+  int count = 0;
 
   if (i1 < nlocal) {
     f[i1][0] += delx * fbond;
     f[i1][1] += dely * fbond;
     f[i1][2] += delz * fbond;
-    list[nlist++] = i1;
+    atomlist[count++] = i1;
     ebond += 0.5*eb;
   }
   if (i2 < nlocal) {
     f[i2][0] -= delx * fbond;
     f[i2][1] -= dely * fbond;
     f[i2][2] -= delz * fbond;
-    list[nlist++] = i2;
+    atomlist[count++] = i2;
     ebond += 0.5*eb;
   }
   if (evflag) {
@@ -2577,7 +2585,7 @@ void FixShake::bond_force(int i1, int i2, double length)
     v[3] = 0.5 * delx * dely * fbond;
     v[4] = 0.5 * delx * delz * fbond;
     v[5] = 0.5 * dely * delz * fbond;
-    ev_tally(nlist, list, 2.0, eb, v);
+    ev_tally(count, atomlist, 2.0, eb, v);
   }
 }
 

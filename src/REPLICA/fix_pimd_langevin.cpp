@@ -450,13 +450,6 @@ void FixPIMDLangevin::setup(int vflag)
     for (int i = 0; i < nlocal; i++) domain->unmap_inv(x[i], image[i]);
   }
 
-  if (method == NMPIMD) {
-    inter_replica_comm(v);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, v, M_x2xp[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(bufbeads, v, M_x2xp[universe->iworld]);
-  }
   post_force(vflag);
   compute_totke();
   end_of_step();

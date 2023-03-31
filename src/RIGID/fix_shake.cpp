@@ -627,7 +627,7 @@ void FixShake::post_force(int vflag)
   // communicate results if necessary
 
   unconstrained_update();
-  if (comm->nprocs > 1) comm->forward_comm(this);
+  comm->forward_comm(this);
 
   // virial setup
 
@@ -673,7 +673,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   // communicate results if necessary
 
   unconstrained_update_respa(ilevel);
-  if (comm->nprocs > 1) comm->forward_comm(this);
+  comm->forward_comm(this);
 
   // virial setup only needed on last iteration of innermost level
   //   and if pressure is requested

@@ -971,7 +971,7 @@ void Domain::subbox_too_small_check(double thresh)
    minimum image convention in periodic dimensions
    use 1/2 of box size as test
    for triclinic, also add/subtract tilt factors in other dims as needed
-   changed "if" to "while" to enable distance to
+   allow multiple box lengths to enable distance to
      far-away ghost atom returned by atom->map() to be wrapped back into box
      could be problem for looking up atom IDs when cutoff > boxsize
    this should not be used if atom has moved infinitely far outside box
@@ -980,72 +980,57 @@ void Domain::subbox_too_small_check(double thresh)
        uses minimum_image_once() instead
 ------------------------------------------------------------------------- */
 
-static constexpr double MAXIMGCOUNT = 16;
-
 void Domain::minimum_image(double &dx, double &dy, double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
-      if (fabs(dx) > (MAXIMGCOUNT * xprd))
+      double dfactor = dx/xprd + 0.5;
+      if (dx < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
-      while (fabs(dx) > xprd_half) {
-        if (dx < 0.0) dx += xprd;
-        else dx -= xprd;
-      }
+      dx -= xprd * static_cast<int>(dfactor);
     }
     if (yperiodic) {
-      if (fabs(dy) > (MAXIMGCOUNT * yprd))
+      double dfactor = dy/yprd + 0.5;
+      if (dy < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
-      while (fabs(dy) > yprd_half) {
-        if (dy < 0.0) dy += yprd;
-        else dy -= yprd;
-      }
+      dy -= yprd * static_cast<int>(dfactor);
     }
     if (zperiodic) {
-      if (fabs(dz) > (MAXIMGCOUNT * zprd))
+      double dfactor = dz/zprd + 0.5;
+      if (dz < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
-      while (fabs(dz) > zprd_half) {
-        if (dz < 0.0) dz += zprd;
-        else dz -= zprd;
-      }
+      dz -= zprd * static_cast<int>(dfactor);
     }
 
   } else {
     if (zperiodic) {
-      if (fabs(dz) > (MAXIMGCOUNT * zprd))
+      double dfactor = dz/zprd + 0.5;
+      if (dz < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
-      while (fabs(dz) > zprd_half) {
-        if (dz < 0.0) {
-          dz += zprd;
-          dy += yz;
-          dx += xz;
-        } else {
-          dz -= zprd;
-          dy -= yz;
-          dx -= xz;
-        }
-      }
+      int factor = static_cast<int>(dfactor);
+      dz -= zprd * factor;
+      dy -= yz * factor;
+      dx -= xz * factor;
     }
     if (yperiodic) {
-      if (fabs(dy) > (MAXIMGCOUNT * yprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
-      while (fabs(dy) > yprd_half) {
-        if (dy < 0.0) {
-          dy += yprd;
-          dx += xy;
-        } else {
-          dy -= yprd;
-          dx -= xy;
-        }
-      }
+      double dfactor = dy/yprd + 0.5;
+      if (dy < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
+        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy); 
+      int factor = static_cast<int>(dfactor);
+      dy -= yprd * factor;
+      dx -= xy * factor;
     }
     if (xperiodic) {
-      if (fabs(dx) > (MAXIMGCOUNT * xprd))
+      double dfactor = dx/xprd + 0.5;
+      if (dx < 0) dfactor -= 1.0;
+      if (dfactor > MAXSMALLINT)
         error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
-      while (fabs(dx) > xprd_half) {
-        if (dx < 0.0) dx += xprd;
-        else dx -= xprd;
-      }
+      dx -= xprd * static_cast<int>(dfactor);
     }
   }
 }

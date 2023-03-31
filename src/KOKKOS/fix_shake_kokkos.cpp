@@ -479,6 +479,26 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   }
 }
 
+/* ----------------------------------------------------------------------
+   substitute shake constraints with very strong bonds
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::min_post_force(int vflag)
+{
+  // not yet ported to Kokkos
+
+  atomKK->sync(Host,X_MASK | F_MASK);
+  k_shake_flag.sync_host();
+  k_shake_type.sync_host();
+  k_list.sync_host();
+  k_closest_list.sync_host();
+
+  FixShake::min_post_force(vflag);
+
+  atomKK->modified(Host,F_MASK);
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

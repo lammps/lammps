@@ -142,7 +142,7 @@ class FixShake : public Fix {
   void shake4(int);
   void shake3angle(int);
   void bond_force(int, int, double);
-  void stats();
+  virtual void stats();
   int bondtype_findset(int, tagint, tagint, int);
   int angletype_findset(int, tagint, tagint, int);
 

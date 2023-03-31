@@ -3258,8 +3258,6 @@ void FixShake::correct_coordinates(int vflag) {
 
   double **xtmp = xshake;
   xshake = x;
-  if (comm->nprocs > 1) {
-    comm->forward_comm(this);
-  }
+  comm->forward_comm(this);
   xshake = xtmp;
 }

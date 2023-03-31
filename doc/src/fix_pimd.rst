@@ -300,7 +300,7 @@ operation of the fix continues in an uninterrupted fashion.
 Fix *pimd/langevin* writes the state of the barostat overall beads to
 :doc:`binary restart files <restart>`. Since it uses a stochastic thermostat,
 the state of the thermostat is not written. However, the state of the system
-can be restored by reading the restart file, execpt that it will re-initialize
+can be restored by reading the restart file, except that it will re-initialize
 the random number generator.
 
 None of the :doc:`fix_modify <fix_modify>` options

@@ -79,6 +79,8 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   c_pe(nullptr), random_equal(nullptr), random_unequal(nullptr),
   idftemp(nullptr)
 {
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix charge/regulation", error);
+
   if (lmp->citeme) lmp->citeme->add(cite_fix_charge_regulation);
 
   // Region restrictions not yet implemented ..
@@ -151,6 +153,16 @@ FixChargeRegulation::~FixChargeRegulation() {
   delete[] pHstr;
   delete[] idftemp;
 
+  // delete exclusion group created in init()
+  // unset neighbor exclusion settings made in init()
+  // not necessary if group and neighbor classes already destroyed
+  //   when LAMMPS exits
+
+  if (exclusion_group_bit && group) {
+    auto group_id = std::string("FixChargeRegulation:gcmc_exclusion_group:") + id;
+    group->assign(group_id + " delete");
+  }
+
   if (group) {
     int igroupall = group->find("all");
     neighbor->exclusion_group_group_delete(exclusion_group, igroupall);
@@ -211,12 +223,11 @@ void FixChargeRegulation::init() {
 
     // create unique group name for atoms to be excluded
 
-    auto group_id = fmt::format("FixChargeRegulation:exclusion_group:{}",id);
+    auto group_id = std::string("FixChargeRegulation:exclusion_group:") + id;
     group->assign(group_id + " subtract all all");
     exclusion_group = group->find(group_id);
     if (exclusion_group == -1)
-      error->all(FLERR,"Could not find fix charge/regulation exclusion "
-                 "group ID");
+      error->all(FLERR,"Could not find fix charge/regulation exclusion group ID");
     exclusion_group_bit = group->bitmask[exclusion_group];
 
     // neighbor list exclusion setup
@@ -240,8 +251,7 @@ void FixChargeRegulation::init() {
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
 
     if (flagall)
-      error->all(FLERR, "Cannot use fix charge/regulation on atoms "
-                 "in atom_modify first group");
+      error->all(FLERR, "Cannot use fix charge/regulation on atoms in atom_modify first group");
   }
 
   // construct group bitmask for all new atoms

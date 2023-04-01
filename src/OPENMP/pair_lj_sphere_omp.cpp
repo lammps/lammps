@@ -24,6 +24,7 @@
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
+using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
 
@@ -89,7 +90,7 @@ void PairLJSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
   const int *const *const firstneigh = list->firstneigh;
 
   double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, fxtmp, fytmp, fztmp;
-  double rsq, r2inv, r6inv, forcelj, factor_lj, evdwl, sigma6, fpair;
+  double rcutsq, rsq, r2inv, r6inv, forcelj, factor_lj, evdwl, sigma, sigma6, fpair;
 
   const int nlocal = atom->nlocal;
   int j, jj, jnum, jtype;
@@ -124,34 +125,43 @@ void PairLJSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
       jtype = type[j];
 
       if (rsq < cutsqi[jtype]) {
-        r2inv = 1.0 / rsq;
-        r6inv = r2inv * r2inv * r2inv;
 
-        sigma6 = powint(2.0 * mix_distance(rtmp, radius[j]), 6);
-        forcelj = r6inv * 24.0 * epsiloni[jtype] * (2.0 * sigma6 * sigma6 * r6inv - sigma6);
-        fpair = factor_lj * forcelj * r2inv;
+        // cutsq is maximum cutoff per type. Now compute and apply real cutoff
 
-        fxtmp += delx * fpair;
-        fytmp += dely * fpair;
-        fztmp += delz * fpair;
-        if (NEWTON_PAIR || j < nlocal) {
-          f[j].x -= delx * fpair;
-          f[j].y -= dely * fpair;
-          f[j].z -= delz * fpair;
-        }
+        sigma = 2.0 * mix_distance(rtmp, radius[j]);
+        rcutsq = square(cut[itype][jtype] * sigma);
 
-        if (EFLAG) {
-          evdwl = r6inv * 4.0 * epsiloni[jtype];
-          evdwl *= sigma6 * sigma6 * r6inv - sigma6;
-          if (offset_flag && (cutsqi[jtype] > 0.0)) {
-            const double ratio6 = sigma6 / powint(cutsqi[jtype], 3);
-            evdwl -= 4.0 * epsiloni[jtype] * (ratio6 * ratio6 - ratio6);
+        if (rsq < rcutsq) {
+
+          r2inv = 1.0 / rsq;
+          r6inv = r2inv * r2inv * r2inv;
+
+          sigma6 = powint(sigma, 6);
+          forcelj = r6inv * 24.0 * epsiloni[jtype] * (2.0 * sigma6 * sigma6 * r6inv - sigma6);
+          fpair = factor_lj * forcelj * r2inv;
+
+          fxtmp += delx * fpair;
+          fytmp += dely * fpair;
+          fztmp += delz * fpair;
+          if (NEWTON_PAIR || j < nlocal) {
+            f[j].x -= delx * fpair;
+            f[j].y -= dely * fpair;
+            f[j].z -= delz * fpair;
           }
-          evdwl *= factor_lj;
-        }
 
-        if (EVFLAG)
-          ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz, thr);
+          if (EFLAG) {
+            evdwl = r6inv * 4.0 * epsiloni[jtype];
+            evdwl *= sigma6 * sigma6 * r6inv - sigma6;
+            if (offset_flag && (cutsqi[jtype] > 0.0)) {
+              const double ratio6 = sigma6 / powint(rcutsq, 3);
+              evdwl -= 4.0 * epsiloni[jtype] * (ratio6 * ratio6 - ratio6);
+            }
+            evdwl *= factor_lj;
+          }
+
+          if (EVFLAG)
+            ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz, thr);
+        }
       }
     }
     f[i].x += fxtmp;

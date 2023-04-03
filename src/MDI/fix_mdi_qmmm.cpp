@@ -585,7 +585,6 @@ void FixMDIQMMM::pre_force(int vflag)
 {
   int ilocal;
   double rsq;
-  double delta[3];
 
   // invoke pair hybrid sub-style pair coulomb and Kspace directly
   // set eflag = 2 so they calculate per-atom energy
@@ -655,11 +654,11 @@ void FixMDIQMMM::pre_force(int vflag)
     if (ilocal >= 0) {
       for (int j = 0; j < nqm; j++) {
         if (j == i) continue;
-        delta[0] = xqm[i][0] - xqm[j][0];
-        delta[1] = xqm[i][1] - xqm[j][1];
-        delta[2] = xqm[i][2] - xqm[j][2];
-        domain->minimum_image_once(delta);
-        rsq = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2];
+        double delx = xqm[i][0] - xqm[j][0];
+        double dely = xqm[i][1] - xqm[j][1];
+        double delz = xqm[i][2] - xqm[j][2];
+        domain->minimum_image(delx, dely, delz);
+        rsq = delx*delx + dely*dely + delz*delz;
         qpotential_mine[i] -= qqrd2e * qqm[j] / sqrt(rsq);
       }
     }

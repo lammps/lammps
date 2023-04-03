@@ -1198,11 +1198,13 @@ void * imdsock_create() {
 
 int imdsock_bind(void * v, int port) {
   auto s = (imdsocket *) v;
-  memset(&(s->addr), 0, sizeof(s->addr));
-  s->addr.sin_family = PF_INET;
-  s->addr.sin_port = htons(port);
+  auto *addr = &(s->addr);
+  s->addrlen = sizeof(s->addr);
+  memset(addr, 0, s->addrlen);
+  addr->sin_family = PF_INET;
+  addr->sin_port = htons(port);
 
-  return bind(s->sd, (struct sockaddr *) &s->addr, sizeof(s->addr));
+  return bind(s->sd, (struct sockaddr *) addr, s->addrlen);
 }
 
 int imdsock_listen(void * v) {
@@ -1227,7 +1229,7 @@ void *imdsock_accept(void * v) {
   int len;
 #endif
 
-  len = sizeof(s->addr);
+  len = s->addrlen;
   rc = accept(s->sd, (struct sockaddr *) &s->addr, ( _SOCKLEN_TYPE * ) &len);
   if (rc >= 0) {
     new_s = (imdsocket *) malloc(sizeof(imdsocket));

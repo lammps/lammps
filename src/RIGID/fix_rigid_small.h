@@ -56,7 +56,6 @@ class FixRigidSmall : public Fix {
   void pre_neighbor() override;
   int dof(int) override;
   void deform(int) override;
-  void enforce2d() override;
   void reset_dt() override;
   void zero_momentum() override;
   void zero_rotation() override;
@@ -72,6 +71,7 @@ class FixRigidSmall : public Fix {
   double dtv, dtf, dtq;
   double *step_respa;
   int triclinic;
+  int dimension;
 
   char *inpfile;       // file to read rigid body attributes from
   int setupflag;       // 1 if body properties are setup, else 0
@@ -203,6 +203,7 @@ class FixRigidSmall : public Fix {
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
   void compute_forces_and_torques();
+  void enforce2d();
   void readfile(int, double **, int *);
   void grow_body();
   void reset_atom2body();

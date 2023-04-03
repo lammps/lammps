@@ -50,7 +50,6 @@ class FixRigid : public Fix {
   void pre_neighbor() override;
   int dof(int) override;
   void deform(int) override;
-  void enforce2d() override;
   void reset_dt() override;
   void zero_momentum() override;
   void zero_rotation() override;
@@ -147,6 +146,7 @@ class FixRigid : public Fix {
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
   void compute_forces_and_torques();
+  void enforce2d();
   void readfile(int, double *, double **, double **, double **, imageint *, int *);
 };
 

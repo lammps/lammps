@@ -72,7 +72,6 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
-  enforce2d_flag = 1;
   stores_ids = 1;
   centroidstressflag = CENTROID_AVAIL;
 
@@ -82,6 +81,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
+  dimension = domain->dimension;
   extended = orientflag = dorientflag = customflag = 0;
   bodyown = nullptr;
   bodytag = nullptr;
@@ -258,8 +258,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       p_period[0] = p_period[1] = p_period[2] =
         utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
-      if (domain->dimension == 2) {
-              p_start[2] = p_stop[2] = p_period[2] = 0.0;
+      if (dimension == 2) {
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
         p_flag[2] = 0;
       }
       iarg += 4;
@@ -273,9 +273,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       p_period[0] = p_period[1] = p_period[2] =
         utils::numeric(FLERR,arg[iarg+3],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
-      if (domain->dimension == 2) {
+      if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
-              p_flag[2] = 0;
+        p_flag[2] = 0;
       }
       iarg += 4;
 
@@ -383,7 +383,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   for (i = 0; i < 3; i++)
     if (p_flag[i]) pstat_flag = 1;
 
-  if (pcouple == XYZ || (domain->dimension == 2 && pcouple == XY)) pstyle = ISO;
+  if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
   else pstyle = ANISO;
 
   // create rigid bodies based on molecule or custom ID
@@ -690,6 +690,10 @@ void FixRigidSmall::setup(int vflag)
     }
   }
 
+  // enforce 2d body forces and torques
+  
+  if (dimension == 2) enforce2d();
+
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
@@ -781,6 +785,151 @@ void FixRigidSmall::initial_integrate(int vflag)
 }
 
 /* ----------------------------------------------------------------------
+   remap xcm of each rigid body back into periodic simulation box
+   done during pre_neighbor so will be after call to pbc()
+     and after fix_deform::pre_exchange() may have flipped box
+   use domain->remap() in case xcm is far away from box
+     due to first-time definition of rigid body in setup_bodies_static()
+     or due to box flip
+   also adjust imagebody = rigid body image flags, due to xcm remap
+   then communicate bodies so other procs will know of changes to body xcm
+   then adjust xcmimage flags of all atoms in bodies via image_shift()
+     for two effects
+     (1) change in true image flags due to pbc() call during exchange
+     (2) change in imagebody due to xcm remap
+   xcmimage flags are always -1,0,-1 so that body can be unwrapped
+     around in-box xcm and stay close to simulation box
+   if just inferred unwrapped from atom image flags,
+     then a body could end up very far away
+     when unwrapped by true image flags
+   then set_xv() will compute huge displacements every step to reset coords of
+     all the body atoms to be back inside the box, ditto for triclinic box flip
+     note: so just want to avoid that numeric problem?
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::pre_neighbor()
+{
+  for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    Body *b = &body[ibody];
+    domain->remap(b->xcm,b->image);
+  }
+
+  nghost_body = 0;
+  commflag = FULL_BODY;
+  comm->forward_comm(this);
+  reset_atom2body();
+  //check(4);
+
+  image_shift();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::post_force(int /*vflag*/)
+{
+  if (langflag) apply_langevin_thermostat();
+  if (earlyflag) compute_forces_and_torques();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::final_integrate()
+{
+  double dtfm;
+
+  //check(3);
+
+  // compute forces and torques (after all post_force contributions)
+  // if 2d model, enforce2d() on body forces/torques
+  
+  if (!earlyflag) compute_forces_and_torques();
+  if (dimension == 2) enforce2d();
+
+  // update vcm and angmom, recompute omega
+
+  for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    Body *b = &body[ibody];
+
+    // update vcm by 1/2 step
+
+    dtfm = dtf / b->mass;
+    b->vcm[0] += dtfm * b->fcm[0];
+    b->vcm[1] += dtfm * b->fcm[1];
+    b->vcm[2] += dtfm * b->fcm[2];
+
+    // update angular momentum by 1/2 step
+
+    b->angmom[0] += dtf * b->torque[0];
+    b->angmom[1] += dtf * b->torque[1];
+    b->angmom[2] += dtf * b->torque[2];
+
+    MathExtra::angmom_to_omega(b->angmom,b->ex_space,b->ey_space,
+                               b->ez_space,b->inertia,b->omega);
+  }
+
+  // forward communicate updated info of all bodies
+
+  commflag = FINAL;
+  comm->forward_comm(this,10);
+
+  // set velocity/rotation of atoms in rigid bodies
+  // virial is already setup from initial_integrate
+
+  set_v();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
+{
+  dtv = step_respa[ilevel];
+  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
+  dtq = 0.5 * step_respa[ilevel];
+
+  if (ilevel == 0) initial_integrate(vflag);
+  else final_integrate();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixRigidSmall::final_integrate_respa(int ilevel, int /*iloop*/)
+{
+  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
+  final_integrate();
+}
+
+/* ----------------------------------------------------------------------
+   reset body xcmimage flags of atoms in bodies
+   xcmimage flags are relative to xcm so that body can be unwrapped
+   xcmimage = true image flag - imagebody flag
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::image_shift()
+{
+  imageint tdim,bdim,xdim[3];
+
+  imageint *image = atom->image;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (atom2body[i] < 0) continue;
+    Body *b = &body[atom2body[i]];
+
+    tdim = image[i] & IMGMASK;
+    bdim = b->image & IMGMASK;
+    xdim[0] = IMGMAX + tdim - bdim;
+    tdim = (image[i] >> IMGBITS) & IMGMASK;
+    bdim = (b->image >> IMGBITS) & IMGMASK;
+    xdim[1] = IMGMAX + tdim - bdim;
+    tdim = image[i] >> IMG2BITS;
+    bdim = b->image >> IMG2BITS;
+    xdim[2] = IMGMAX + tdim - bdim;
+
+    xcmimage[i] = (xdim[2] << IMG2BITS) | (xdim[1] << IMGBITS) | xdim[0];
+  }
+}
+
+/* ----------------------------------------------------------------------
    apply Langevin thermostat to all 6 DOF of rigid bodies I own
    unlike fix langevin, this stores extra force in extra arrays,
      which are added in when a new fcm/torque are calculated
@@ -845,51 +994,8 @@ void FixRigidSmall::apply_langevin_thermostat()
     // convert langevin torques from body frame back to space frame
 
     MathExtra::matvec(ex_space,ey_space,ez_space,tbody,&langextra[ibody][3]);
-
-    // enforce 2d motion
-
-    if (domain->dimension == 2)
-      langextra[ibody][2] = langextra[ibody][3] = langextra[ibody][4] = 0.0;
   }
 }
-
-/* ----------------------------------------------------------------------
-   called from FixEnforce post_force() for 2d problems
-   zero all body values that should be zero for 2d model
-------------------------------------------------------------------------- */
-
-void FixRigidSmall::enforce2d()
-{
-  Body *b;
-
-  for (int ibody = 0; ibody < nlocal_body; ibody++) {
-    b = &body[ibody];
-    b->xcm[2] = 0.0;
-    b->vcm[2] = 0.0;
-    b->fcm[2] = 0.0;
-    b->xgc[2] = 0.0;
-    b->torque[0] = 0.0;
-    b->torque[1] = 0.0;
-    b->angmom[0] = 0.0;
-    b->angmom[1] = 0.0;
-    b->omega[0] = 0.0;
-    b->omega[1] = 0.0;
-    if (langflag && langextra) {
-      langextra[ibody][2] = 0.0;
-      langextra[ibody][3] = 0.0;
-      langextra[ibody][4] = 0.0;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixRigidSmall::post_force(int /*vflag*/)
-{
-  if (langflag) apply_langevin_thermostat();
-  if (earlyflag) compute_forces_and_torques();
-}
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -988,136 +1094,32 @@ void FixRigidSmall::compute_forces_and_torques()
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixRigidSmall::final_integrate()
-{
-  double dtfm;
-
-  //check(3);
-
-  if (!earlyflag) compute_forces_and_torques();
-
-  // update vcm and angmom, recompute omega
-
-  for (int ibody = 0; ibody < nlocal_body; ibody++) {
-    Body *b = &body[ibody];
-
-    // update vcm by 1/2 step
-
-    dtfm = dtf / b->mass;
-    b->vcm[0] += dtfm * b->fcm[0];
-    b->vcm[1] += dtfm * b->fcm[1];
-    b->vcm[2] += dtfm * b->fcm[2];
-
-    // update angular momentum by 1/2 step
-
-    b->angmom[0] += dtf * b->torque[0];
-    b->angmom[1] += dtf * b->torque[1];
-    b->angmom[2] += dtf * b->torque[2];
-
-    MathExtra::angmom_to_omega(b->angmom,b->ex_space,b->ey_space,
-                               b->ez_space,b->inertia,b->omega);
-  }
-
-  // forward communicate updated info of all bodies
-
-  commflag = FINAL;
-  comm->forward_comm(this,10);
-
-  // set velocity/rotation of atoms in rigid bodies
-  // virial is already setup from initial_integrate
-
-  set_v();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixRigidSmall::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
-{
-  dtv = step_respa[ilevel];
-  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
-  dtq = 0.5 * step_respa[ilevel];
-
-  if (ilevel == 0) initial_integrate(vflag);
-  else final_integrate();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixRigidSmall::final_integrate_respa(int ilevel, int /*iloop*/)
-{
-  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
-  final_integrate();
-}
-
 /* ----------------------------------------------------------------------
-   remap xcm of each rigid body back into periodic simulation box
-   done during pre_neighbor so will be after call to pbc()
-     and after fix_deform::pre_exchange() may have flipped box
-   use domain->remap() in case xcm is far away from box
-     due to first-time definition of rigid body in setup_bodies_static()
-     or due to box flip
-   also adjust imagebody = rigid body image flags, due to xcm remap
-   then communicate bodies so other procs will know of changes to body xcm
-   then adjust xcmimage flags of all atoms in bodies via image_shift()
-     for two effects
-     (1) change in true image flags due to pbc() call during exchange
-     (2) change in imagebody due to xcm remap
-   xcmimage flags are always -1,0,-1 so that body can be unwrapped
-     around in-box xcm and stay close to simulation box
-   if just inferred unwrapped from atom image flags,
-     then a body could end up very far away
-     when unwrapped by true image flags
-   then set_xv() will compute huge displacements every step to reset coords of
-     all the body atoms to be back inside the box, ditto for triclinic box flip
-     note: so just want to avoid that numeric problem?
+   called from FixEnforce post_force() for 2d problems
+   zero all body values that should be zero for 2d model
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::pre_neighbor()
+void FixRigidSmall::enforce2d()
 {
+  Body *b;
+
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
-    Body *b = &body[ibody];
-    domain->remap(b->xcm,b->image);
-  }
-
-  nghost_body = 0;
-  commflag = FULL_BODY;
-  comm->forward_comm(this);
-  reset_atom2body();
-  //check(4);
-
-  image_shift();
-}
-
-/* ----------------------------------------------------------------------
-   reset body xcmimage flags of atoms in bodies
-   xcmimage flags are relative to xcm so that body can be unwrapped
-   xcmimage = true image flag - imagebody flag
-------------------------------------------------------------------------- */
-
-void FixRigidSmall::image_shift()
-{
-  imageint tdim,bdim,xdim[3];
-
-  imageint *image = atom->image;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (atom2body[i] < 0) continue;
-    Body *b = &body[atom2body[i]];
-
-    tdim = image[i] & IMGMASK;
-    bdim = b->image & IMGMASK;
-    xdim[0] = IMGMAX + tdim - bdim;
-    tdim = (image[i] >> IMGBITS) & IMGMASK;
-    bdim = (b->image >> IMGBITS) & IMGMASK;
-    xdim[1] = IMGMAX + tdim - bdim;
-    tdim = image[i] >> IMG2BITS;
-    bdim = b->image >> IMG2BITS;
-    xdim[2] = IMGMAX + tdim - bdim;
-
-    xcmimage[i] = (xdim[2] << IMG2BITS) | (xdim[1] << IMGBITS) | xdim[0];
+    b = &body[ibody];
+    b->xcm[2] = 0.0;
+    b->vcm[2] = 0.0;
+    b->fcm[2] = 0.0;
+    b->xgc[2] = 0.0;
+    b->torque[0] = 0.0;
+    b->torque[1] = 0.0;
+    b->angmom[0] = 0.0;
+    b->angmom[1] = 0.0;
+    b->omega[0] = 0.0;
+    b->omega[1] = 0.0;
+    if (langflag && langextra) {
+      langextra[ibody][2] = 0.0;
+      langextra[ibody][3] = 0.0;
+      langextra[ibody][4] = 0.0;
+    }
   }
 }
 
@@ -1200,7 +1202,7 @@ int FixRigidSmall::dof(int tgroup)
 
   int n = 0;
   nlinear = 0;
-  if (domain->dimension == 3) {
+  if (dimension == 3) {
     for (int ibody = 0; ibody < nlocal_body; ibody++) {
       if (counts[ibody][0]+counts[ibody][1] == counts[ibody][2]) {
         n += 3*counts[ibody][0] + 6*counts[ibody][1] - 6;
@@ -1211,7 +1213,7 @@ int FixRigidSmall::dof(int tgroup)
         }
       }
     }
-  } else if (domain->dimension == 2) {
+  } else if (dimension == 2) {
     for (int ibody = 0; ibody < nlocal_body; ibody++)
       if (counts[ibody][0]+counts[ibody][1] == counts[ibody][2])
         n += 2*counts[ibody][0] + 3*counts[ibody][1] - 3;
@@ -1297,13 +1299,19 @@ void FixRigidSmall::set_xv()
 
     // x = displacement from center-of-mass, based on body orientation
     // v = vcm + omega around center-of-mass
-
+    // enforce 2d x and v
+    
     MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,displace[i],x[i]);
 
     v[i][0] = b->omega[1]*x[i][2] - b->omega[2]*x[i][1] + b->vcm[0];
     v[i][1] = b->omega[2]*x[i][0] - b->omega[0]*x[i][2] + b->vcm[1];
     v[i][2] = b->omega[0]*x[i][1] - b->omega[1]*x[i][0] + b->vcm[2];
 
+    if (dimension == 2) {
+      x[i][2] = 0.0;
+      v[i][2] = 0.0;
+    }
+    
     // add center of mass to displacement
     // map back into periodic box via xbox,ybox,zbox
     // for triclinic, add in box tilt factors as well
@@ -1345,6 +1353,7 @@ void FixRigidSmall::set_xv()
   }
 
   // update the position of geometric center
+  
   for (int ibody = 0; ibody < nlocal_body + nghost_body; ibody++) {
     Body *b = &body[ibody];
     MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,
@@ -1462,10 +1471,15 @@ void FixRigidSmall::set_v()
       v2 = v[i][2];
     }
 
+    // compute new v
+    // enforce 2d v
+    
     v[i][0] = b->omega[1]*delta[2] - b->omega[2]*delta[1] + b->vcm[0];
     v[i][1] = b->omega[2]*delta[0] - b->omega[0]*delta[2] + b->vcm[1];
     v[i][2] = b->omega[0]*delta[1] - b->omega[1]*delta[0] + b->vcm[2];
 
+    if (dimension == 2) v[i][2] = 0.0;
+    
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external
     // assume f does not include forces internal to body

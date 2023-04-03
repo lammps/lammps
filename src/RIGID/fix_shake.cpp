@@ -31,15 +31,15 @@
 #include "respa.h"
 #include "update.h"
 
-#include <cmath>
 #include <cctype>
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define RVOUS 1   // 0 for irregular, 1 for all2all
+#define RVOUS 1    // 0 for irregular, 1 for all2all
 
 static constexpr double BIG = 1.0e20;
 static constexpr double MASSDELTA = 0.1;
@@ -47,15 +47,15 @@ static constexpr double MASSDELTA = 0.1;
 /* ---------------------------------------------------------------------- */
 
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr),
-  type_flag(nullptr), mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
-  loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
-  vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
-  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr),
-  b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
-  b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
-  a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
-  a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr), closest_list(nullptr)
+    Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
+    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), loop_respa(nullptr),
+    step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr), vtmp(nullptr),
+    mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr), shake_atom(nullptr),
+    shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr), closest_list(nullptr),
+    b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
+    b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
+    a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
+    a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
 {
   energy_global_flag = energy_peratom_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
@@ -76,7 +76,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   molecular = atom->molecular;
   if (molecular == Atom::ATOMIC)
-    error->all(FLERR,"Cannot use fix {} with non-molecular system", style);
+    error->all(FLERR, "Cannot use fix {} with non-molecular system", style);
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -97,13 +97,13 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 3;
 
   // parse SHAKE args
-  auto mystyle = fmt::format("fix {}",style);
+  auto mystyle = fmt::format("fix {}", style);
 
-  if (narg < 8) utils::missing_cmd_args(FLERR,mystyle, error);
+  if (narg < 8) utils::missing_cmd_args(FLERR, mystyle, error);
 
-  tolerance = utils::numeric(FLERR,arg[3],false,lmp);
-  max_iter = utils::inumeric(FLERR,arg[4],false,lmp);
-  output_every = utils::inumeric(FLERR,arg[5],false,lmp);
+  tolerance = utils::numeric(FLERR, arg[3], false, lmp);
+  max_iter = utils::inumeric(FLERR, arg[4], false, lmp);
+  output_every = utils::inumeric(FLERR, arg[5], false, lmp);
 
   // parse SHAKE args for bond and angle types
   // will be used by find_clusters
@@ -111,11 +111,11 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // store args for "m" in list of length nmass for looping over
   // for "m" verify that atom masses have been set
 
-  bond_flag = new int[atom->nbondtypes+1];
+  bond_flag = new int[atom->nbondtypes + 1];
   for (int i = 1; i <= atom->nbondtypes; i++) bond_flag[i] = 0;
-  angle_flag = new int[atom->nangletypes+1];
+  angle_flag = new int[atom->nangletypes + 1];
   for (int i = 1; i <= atom->nangletypes; i++) angle_flag[i] = 0;
-  type_flag = new int[atom->ntypes+1];
+  type_flag = new int[atom->ntypes + 1];
   for (int i = 1; i <= atom->ntypes; i++) type_flag[i] = 0;
   mass_list = new double[atom->ntypes];
   nmass = 0;

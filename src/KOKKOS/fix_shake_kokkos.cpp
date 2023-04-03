@@ -254,76 +254,11 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
 
   Kokkos::deep_copy(d_scalars,0);
 
-  {
-    // local variables for lambda capture
+  copymode = 1;
 
-    auto d_x = this->d_x;
-    auto d_shake_flag = this->d_shake_flag;
-    auto d_shake_atom = this->d_shake_atom;
-    auto d_list = this->d_list;
-    auto d_closest_list = this->d_closest_list;
-    auto d_error_flag = this->d_error_flag;
-    auto d_nlist = this->d_nlist;
-    auto map_style = atom->map_style;
-    auto k_map_array = this->k_map_array;
-    auto k_map_hash = this->k_map_hash;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixShakePreNeighbor>(0,nlocal),*this);
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-     LAMMPS_LAMBDA(const int& i) {
-      if (d_shake_flag[i]) {
-        if (d_shake_flag[i] == 2) {
-          int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
-          int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
-          if (atom1 == -1 || atom2 == -1) {
-            d_error_flag() = 1;
-          }
-          atom1 = closest_image(i, atom1);
-          atom2 = closest_image(i, atom2);
-          if (i <= atom1 && i <= atom2) {
-            const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
-            d_list[nlist] = i;
-            d_closest_list(nlist,0) = atom1;
-            d_closest_list(nlist,1) = atom2;
-          }
-        } else if (d_shake_flag[i] % 2 == 1) {
-          int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
-          int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
-          int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
-          if (atom1 == -1 || atom2 == -1 || atom3 == -1)
-            d_error_flag() = 1;
-          atom1 = closest_image(i, atom1);
-          atom2 = closest_image(i, atom2);
-          atom3 = closest_image(i, atom3);
-          if (i <= atom1 && i <= atom2 && i <= atom3) {
-            const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
-            d_list[nlist] = i;
-            d_closest_list(nlist,0) = atom1;
-            d_closest_list(nlist,1) = atom2;
-            d_closest_list(nlist,2) = atom3;
-          }
-        } else {
-          int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
-          int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
-          int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
-          int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,3),map_style,k_map_array,k_map_hash);
-          if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
-            d_error_flag() = 1;
-          atom1 = closest_image(i, atom1);
-          atom2 = closest_image(i, atom2);
-          atom3 = closest_image(i, atom3);
-          atom4 = closest_image(i, atom4);
-          if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) {
-            const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
-            d_list[nlist] = i;
-            d_closest_list(nlist,0) = atom1;
-            d_closest_list(nlist,1) = atom2;
-            d_closest_list(nlist,2) = atom3;
-            d_closest_list(nlist,3) = atom4;
-          }
-        }
-      }
-    });
-  }
+  copymode = 0;
 
   k_list.modify<DeviceType>();
   k_closest_list.modify<DeviceType>();
@@ -334,6 +269,65 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   if (h_error_flag() == 1) {
     error->one(FLERR,"Shake atoms missing on proc "
                                  "{} at step {}",comm->me,update->ntimestep);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixShakeKokkos<DeviceType>::operator()(TagFixShakePreNeighbor, const int &i) const {
+  if (d_shake_flag[i]) {
+    if (d_shake_flag[i] == 2) {
+      int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
+      int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
+      if (atom1 == -1 || atom2 == -1) {
+        d_error_flag() = 1;
+      }
+      atom1 = closest_image(i, atom1);
+      atom2 = closest_image(i, atom2);
+      if (i <= atom1 && i <= atom2) {
+        const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
+        d_list[nlist] = i;
+        d_closest_list(nlist,0) = atom1;
+        d_closest_list(nlist,1) = atom2;
+      }
+    } else if (d_shake_flag[i] % 2 == 1) {
+      int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
+      int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
+      int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
+      if (atom1 == -1 || atom2 == -1 || atom3 == -1)
+        d_error_flag() = 1;
+      atom1 = closest_image(i, atom1);
+      atom2 = closest_image(i, atom2);
+      atom3 = closest_image(i, atom3);
+      if (i <= atom1 && i <= atom2 && i <= atom3) {
+        const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
+        d_list[nlist] = i;
+        d_closest_list(nlist,0) = atom1;
+        d_closest_list(nlist,1) = atom2;
+        d_closest_list(nlist,2) = atom3;
+      }
+    } else {
+      int atom1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,0),map_style,k_map_array,k_map_hash);
+      int atom2 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,1),map_style,k_map_array,k_map_hash);
+      int atom3 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,2),map_style,k_map_array,k_map_hash);
+      int atom4 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(i,3),map_style,k_map_array,k_map_hash);
+      if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
+        d_error_flag() = 1;
+      atom1 = closest_image(i, atom1);
+      atom2 = closest_image(i, atom2);
+      atom3 = closest_image(i, atom3);
+      atom4 = closest_image(i, atom4);
+      if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4) {
+        const int nlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
+        d_list[nlist] = i;
+        d_closest_list(nlist,0) = atom1;
+        d_closest_list(nlist,1) = atom2;
+        d_closest_list(nlist,2) = atom3;
+        d_closest_list(nlist,3) = atom4;
+      }
+    }
   }
 }
 

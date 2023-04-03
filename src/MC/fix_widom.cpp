@@ -62,7 +62,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 8) utils::missing_cmd_args(FLERR, "fix widom", error);
 
   if (atom->molecular == Atom::TEMPLATE)
-    error->all(FLERR,"Fix widom does not (yet) work with atom_style template");
+    error->all(FLERR, "Fix widom does not (yet) work with atom_style template");
 
   dynamic_group_allow = 1;
 
@@ -247,6 +247,26 @@ FixWidom::~FixWidom()
   memory->destroy(molq);
   memory->destroy(molimage);
 
+  // delete exclusion group created in init()
+  // delete molecule group created in init()
+  // unset neighbor exclusion settings made in init()
+  // not necessary if group and neighbor classes already destroyed
+  //   when LAMMPS exits
+
+  if (exclusion_group_bit && group) {
+    auto group_id = std::string("FixWidom:widom_exclusion_group:") + id;
+    group->assign(group_id + " delete");
+  }
+
+  if (molecule_group_bit && group) {
+    auto group_id = std::string("FixWidom:rotation_gas_atoms:") + id;
+    group->assign(group_id + " delete");
+  }
+
+  if (full_flag && group && neighbor) {
+    int igroupall = group->find("all");
+    neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -403,7 +423,8 @@ void FixWidom::init()
   // full_flag on molecules on more than one processor.
   // Print error if this is the current mode
   if (full_flag && (exchmode == EXCHMOL) && comm->nprocs > 1)
-    error->all(FLERR,"fix widom does currently not support full_energy option with molecules on more than 1 MPI process.");
+    error->all(FLERR,"fix widom does currently not support full_energy option with "
+               "molecules on more than 1 MPI process.");
 
 }
 

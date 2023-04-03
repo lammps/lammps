@@ -1085,7 +1085,7 @@ int Modify::find_fix(const std::string &id)
 {
   if (id.empty()) return -1;
   for (int ifix = 0; ifix < nfix; ifix++)
-    if (id == fix[ifix]->id) return ifix;
+    if (fix[ifix] && (id == fix[ifix]->id)) return ifix;
   return -1;
 }
 
@@ -1098,7 +1098,7 @@ Fix *Modify::get_fix_by_id(const std::string &id) const
 {
   if (id.empty()) return nullptr;
   for (int ifix = 0; ifix < nfix; ifix++)
-    if (id == fix[ifix]->id) return fix[ifix];
+    if (fix[ifix] && (id == fix[ifix]->id)) return fix[ifix];
   return nullptr;
 }
 
@@ -1112,9 +1112,9 @@ const std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) cons
   std::vector<Fix *> matches;
   if (style.empty()) return matches;
 
-  for (int ifix = 0; ifix < nfix; ifix++)
-    if (utils::strmatch(fix[ifix]->style, style)) matches.push_back(fix[ifix]);
-
+  for (int ifix = 0; ifix < nfix; ifix++) {
+    if (fix[ifix] && utils::strmatch(fix[ifix]->style, style)) matches.push_back(fix[ifix]);
+  }
   return matches;
 }
 
@@ -1349,7 +1349,7 @@ int Modify::find_compute(const std::string &id)
 {
   if (id.empty()) return -1;
   for (int icompute = 0; icompute < ncompute; icompute++)
-    if (id == compute[icompute]->id) return icompute;
+    if (compute[icompute] && (id == compute[icompute]->id)) return icompute;
   return -1;
 }
 
@@ -1362,7 +1362,7 @@ Compute *Modify::get_compute_by_id(const std::string &id) const
 {
   if (id.empty()) return nullptr;
   for (int icompute = 0; icompute < ncompute; icompute++)
-    if (id == compute[icompute]->id) return compute[icompute];
+    if (compute[icompute] && (id == compute[icompute]->id)) return compute[icompute];
   return nullptr;
 }
 
@@ -1376,9 +1376,10 @@ const std::vector<Compute *> Modify::get_compute_by_style(const std::string &sty
   std::vector<Compute *> matches;
   if (style.empty()) return matches;
 
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (utils::strmatch(compute[icompute]->style, style)) matches.push_back(compute[icompute]);
-
+  for (int icompute = 0; icompute < ncompute; icompute++) {
+    if (compute[icompute] && utils::strmatch(compute[icompute]->style, style))
+      matches.push_back(compute[icompute]);
+  }
   return matches;
 }
 

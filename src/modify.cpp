@@ -1113,7 +1113,7 @@ const std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) cons
   if (style.empty()) return matches;
 
   for (int ifix = 0; ifix < nfix; ifix++)
-    if (utils::strmatch(fix[ifix]->style, style)) matches.push_back(fix[ifix]);
+    if (fix[ifix] && utils::strmatch(fix[ifix]->style, style)) matches.push_back(fix[ifix]);
 
   return matches;
 }

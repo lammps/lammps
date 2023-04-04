@@ -103,7 +103,7 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
       variable diam atom random(0.02,1.4,345634)
       set group all diameter v_diam
 
-      # assign type 2 to atoms with diameter > 0.5 
+      # assign type 2 to atoms with diameter > 0.5
       variable large atom 2.0*radius>0.5
       group large variable large
       set group largea type 2
@@ -112,8 +112,8 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
       pair_coeff      * * 1.0
 
       neighbor 0.3 multi
-                   
-   
+
+
 
 Coefficients
 """"""""""""

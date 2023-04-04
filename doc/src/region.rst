@@ -18,6 +18,7 @@ Syntax
        *delete* = no args
        *block* args = xlo xhi ylo yhi zlo zhi
          xlo,xhi,ylo,yhi,zlo,zhi = bounds of block in all dimensions (distance units)
+         xlo,xhi,ylo,yhi,zlo,zhi can be a variable
        *cone* args = dim c1 c2 radlo radhi lo hi
          dim = *x* or *y* or *z* = axis of cone
          c1,c2 = coords of cone axis in other 2 dimensions (distance units)

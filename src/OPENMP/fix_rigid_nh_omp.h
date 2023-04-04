@@ -30,8 +30,8 @@ class FixRigidNHOMP : public FixRigidNH {
   virtual void compute_forces_and_torques();
 
  private:    // copied from FixRigidOMP
-  template <int, int> void set_xv_thr();
-  template <int, int> void set_v_thr();
+  template <int, int, int> void set_xv_thr();
+  template <int, int, int> void set_v_thr();
 };
 }    // namespace LAMMPS_NS
 

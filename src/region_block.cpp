@@ -30,8 +30,8 @@ static constexpr double BIG = 1.0e20;
 /* ---------------------------------------------------------------------- */
 
 RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) :
-    Region(lmp, narg, arg), xlostr(nullptr), xhistr(nullptr), ylostr(nullptr), yhistr(nullptr),
-    zlostr(nullptr), zhistr(nullptr)
+    Region(lmp, narg, arg), xlostr(nullptr), ylostr(nullptr), zlostr(nullptr), xhistr(nullptr),
+    yhistr(nullptr), zhistr(nullptr)
 {
   options(narg - 8, &arg[8]);
 

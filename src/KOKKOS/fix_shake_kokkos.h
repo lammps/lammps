@@ -30,6 +30,8 @@ FixStyle(shake/kk/host,FixShakeKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+struct TagFixShakePreNeighbor{};
+
 template<int NEIGHFLAG, int EVFLAG>
 struct TagFixShakePostForce{};
 
@@ -76,6 +78,9 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   int dof(int) override;
 
   void unconstrained_update() override;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixShakePreNeighbor, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

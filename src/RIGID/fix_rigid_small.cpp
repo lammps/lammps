@@ -691,7 +691,7 @@ void FixRigidSmall::setup(int vflag)
   }
 
   // enforce 2d body forces and torques
-  
+
   if (dimension == 2) enforce2d();
 
   // reverse communicate fcm, torque of all bodies
@@ -841,7 +841,7 @@ void FixRigidSmall::final_integrate()
 
   // compute forces and torques (after all post_force contributions)
   // if 2d model, enforce2d() on body forces/torques
-  
+
   if (!earlyflag) compute_forces_and_torques();
   if (dimension == 2) enforce2d();
 
@@ -1300,7 +1300,7 @@ void FixRigidSmall::set_xv()
     // x = displacement from center-of-mass, based on body orientation
     // v = vcm + omega around center-of-mass
     // enforce 2d x and v
-    
+
     MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,displace[i],x[i]);
 
     v[i][0] = b->omega[1]*x[i][2] - b->omega[2]*x[i][1] + b->vcm[0];
@@ -1311,7 +1311,7 @@ void FixRigidSmall::set_xv()
       x[i][2] = 0.0;
       v[i][2] = 0.0;
     }
-    
+
     // add center of mass to displacement
     // map back into periodic box via xbox,ybox,zbox
     // for triclinic, add in box tilt factors as well
@@ -1353,7 +1353,7 @@ void FixRigidSmall::set_xv()
   }
 
   // update the position of geometric center
-  
+
   for (int ibody = 0; ibody < nlocal_body + nghost_body; ibody++) {
     Body *b = &body[ibody];
     MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,
@@ -1473,13 +1473,13 @@ void FixRigidSmall::set_v()
 
     // compute new v
     // enforce 2d v
-    
+
     v[i][0] = b->omega[1]*delta[2] - b->omega[2]*delta[1] + b->vcm[0];
     v[i][1] = b->omega[2]*delta[0] - b->omega[0]*delta[2] + b->vcm[1];
     v[i][2] = b->omega[0]*delta[1] - b->omega[1]*delta[0] + b->vcm[2];
 
     if (dimension == 2) v[i][2] = 0.0;
-    
+
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external
     // assume f does not include forces internal to body

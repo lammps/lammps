@@ -856,7 +856,7 @@ void FixRigid::setup(int vflag)
   }
 
   // enforce 2d body forces and torques
-  
+
   if (dimension == 2) enforce2d();
 
   // zero langextra in case Langevin thermostat not used
@@ -980,10 +980,10 @@ void FixRigid::final_integrate()
 
   // compute forces and torques (after all post_force contributions)
   // if 2d model, enforce2d() on body forces/torques
-  
+
   if (!earlyflag) compute_forces_and_torques();
   if (dimension == 2) enforce2d();
-                                
+
   // update vcm and angmom
   // fflag,tflag = 0 for some dimensions in 2d
 

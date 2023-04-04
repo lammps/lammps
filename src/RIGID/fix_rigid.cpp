@@ -503,8 +503,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
-          error->all(FLERR,
-                     "Fix rigid npt/nph dilate group ID does not exist");
+          error->all(FLERR, "Fix rigid npt/nph dilate group ID {} does not exist", id_dilate);
       }
       iarg += 2;
 

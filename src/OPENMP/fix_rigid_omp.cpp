@@ -170,7 +170,7 @@ void FixRigidOMP::compute_forces_and_torques()
 
   } else if (rstyle == GROUP) {
 
-     // we likely have only a rather number of groups so we loops
+     // we likely have only a rather number of groups so we loop
      // over bodies and thread over all atoms for each of them.
 
      for (int ib = 0; ib < nbody; ++ib) {
@@ -268,12 +268,12 @@ void FixRigidOMP::compute_forces_and_torques()
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
-    fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
-    fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
-    torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
-    torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
-    torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+    fcm[ibody][0] = all[ibody][0] + fflag[ibody][0]*langextra[ibody][0];
+    fcm[ibody][1] = all[ibody][1] + fflag[ibody][1]*langextra[ibody][1];
+    fcm[ibody][2] = all[ibody][2] + fflag[ibody][2]*langextra[ibody][2];
+    torque[ibody][0] = all[ibody][3] + tflag[ibody][0]*langextra[ibody][3];
+    torque[ibody][1] = all[ibody][4] + tflag[ibody][1]*langextra[ibody][4];
+    torque[ibody][2] = all[ibody][5] + tflag[ibody][2]*langextra[ibody][5];
   }
 
   // add gravity force to COM of each body
@@ -295,6 +295,7 @@ void FixRigidOMP::compute_forces_and_torques()
 void FixRigidOMP::final_integrate()
 {
   if (!earlyflag) compute_forces_and_torques();
+  if (dimension == 2) enforce2d();
 
   // update vcm and angmom
 

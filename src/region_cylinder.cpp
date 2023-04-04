@@ -793,23 +793,23 @@ void RegCylinder::variable_check()
 {
   if (c1style == VARIABLE) {
     c1var = input->variable->find(c1str);
-    if (c1var < 0) error->all(FLERR, "Variable name for region cylinder does not exist");
+    if (c1var < 0) error->all(FLERR, "Variable {} for region cylinder does not exist", c1str);
     if (!input->variable->equalstyle(c1var))
-      error->all(FLERR, "Variable for region cylinder is invalid style");
+      error->all(FLERR, "Variable {} for region cylinder is invalid style", c1str);
   }
 
   if (c2style == VARIABLE) {
     c2var = input->variable->find(c2str);
-    if (c2var < 0) error->all(FLERR, "Variable name for region cylinder does not exist");
+    if (c2var < 0) error->all(FLERR, "Variable {} for region cylinder does not exist", c2str);
     if (!input->variable->equalstyle(c2var))
-      error->all(FLERR, "Variable for region cylinder is invalid style");
+      error->all(FLERR, "Variable {} for region cylinder is invalid style", c2str);
   }
 
   if (rstyle == VARIABLE) {
     rvar = input->variable->find(rstr);
-    if (rvar < 0) error->all(FLERR, "Variable name for region cylinder does not exist");
+    if (rvar < 0) error->all(FLERR, "Variable {} for region cylinder does not exist", rstr);
     if (!input->variable->equalstyle(rvar))
-      error->all(FLERR, "Variable for region cylinder is invalid style");
+      error->all(FLERR, "Variable {} for region cylinder is invalid style", rstr);
   }
 }
 

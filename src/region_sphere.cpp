@@ -217,30 +217,30 @@ void RegSphere::variable_check()
 {
   if (xstyle == VARIABLE) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR, "Variable name for region sphere does not exist");
+    if (xvar < 0) error->all(FLERR, "Variable {} for region sphere does not exist", xstr);
     if (!input->variable->equalstyle(xvar))
-      error->all(FLERR, "Variable for region sphere is invalid style");
+      error->all(FLERR, "Variable {} for region sphere is invalid style", xstr);
   }
 
   if (ystyle == VARIABLE) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR, "Variable name for region sphere does not exist");
+    if (yvar < 0) error->all(FLERR, "Variable {} for region sphere does not exist", ystr);
     if (!input->variable->equalstyle(yvar))
-      error->all(FLERR, "Variable for region sphere is invalid style");
+      error->all(FLERR, "Variable {} for region sphere is invalid style", ystr);
   }
 
   if (zstyle == VARIABLE) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR, "Variable name for region sphere does not exist");
+    if (zvar < 0) error->all(FLERR, "Variable {} for region sphere does not exist", zstr);
     if (!input->variable->equalstyle(zvar))
-      error->all(FLERR, "Variable for region sphere is invalid style");
+      error->all(FLERR, "Variable {} for region sphere is invalid style", zstr);
   }
 
   if (rstyle == VARIABLE) {
     rvar = input->variable->find(rstr);
-    if (rvar < 0) error->all(FLERR, "Variable name for region sphere does not exist");
+    if (rvar < 0) error->all(FLERR, "Variable {} for region sphere does not exist", rstr);
     if (!input->variable->equalstyle(rvar))
-      error->all(FLERR, "Variable for region sphere is invalid style");
+      error->all(FLERR, "Variable {} for region sphere is invalid style", rstr);
   }
 }
 

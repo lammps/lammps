@@ -515,44 +515,41 @@ void RegBlock::variable_check()    // addition
 {
   if (xlostyle == VARIABLE) {
     xlovar = input->variable->find(xlostr);
-    if (xlovar < 0) error->all(FLERR, "Variable name for region block does not exist");
+    if (xlovar < 0) error->all(FLERR, "Variable {} for region block does not exist", xlostr);
     if (!input->variable->equalstyle(xlovar))
-      error->all(FLERR, "Variable for region block is invalid style");
+      error->all(FLERR, "Variable {} for region block is invalid style", xlostr);
   }
-
   if (xhistyle == VARIABLE) {
     xhivar = input->variable->find(xhistr);
-    if (xhivar < 0) error->all(FLERR, "Variable name for region block does not exist");
+    if (xhivar < 0) error->all(FLERR, "Variable {} for region block does not exist", xhistr);
     if (!input->variable->equalstyle(xhivar))
-      error->all(FLERR, "Variable for region block is invalid style");
+      error->all(FLERR, "Variable {} for region block is invalid style", xhistr);
   }
 
   if (ylostyle == VARIABLE) {
     ylovar = input->variable->find(ylostr);
-    if (ylovar < 0) error->all(FLERR, "Variable name for region block does not exist");
+    if (ylovar < 0) error->all(FLERR, "Variable {} for region block does not exist", ylostr);
     if (!input->variable->equalstyle(ylovar))
-      error->all(FLERR, "Variable for region block is invalid style");
+      error->all(FLERR, "Variable {} for region block is invalid style", ylostr);
   }
-
   if (yhistyle == VARIABLE) {
     yhivar = input->variable->find(yhistr);
-    if (yhivar < 0) error->all(FLERR, "Variable name for region block does not exist");
+    if (yhivar < 0) error->all(FLERR, "Variable {} for region block does not exist", yhistr);
     if (!input->variable->equalstyle(yhivar))
-      error->all(FLERR, "Variable for region block is invalid style");
+      error->all(FLERR, "Variable {} for region block is invalid style", yhistr);
   }
 
   if (zlostyle == VARIABLE) {
     zlovar = input->variable->find(zlostr);
-    if (zlovar < 0) error->all(FLERR, "Variable name for region block does not exist");
+    if (zlovar < 0) error->all(FLERR, "Variable {} for region block does not exist", zlostr);
     if (!input->variable->equalstyle(zlovar))
-      error->all(FLERR, "Variable for region block is invalid style");
+      error->all(FLERR, "Variable {} for region block is invalid style", zlostr);
   }
-
   if (zhistyle == VARIABLE) {
     zhivar = input->variable->find(zhistr);
-    if (zhivar < 0) error->all(FLERR, "Variable name for region block does not exist");
+    if (zhivar < 0) error->all(FLERR, "Variable {} for region block does not exist", zhistr);
     if (!input->variable->equalstyle(zhivar))
-      error->all(FLERR, "Variable for region block is invalid style");
+      error->all(FLERR, "Variable {} for region block is invalid style", zhistr);
   }
 }
 

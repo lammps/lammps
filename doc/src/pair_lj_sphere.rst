@@ -62,29 +62,58 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
    :class: note
 
    Because the cutoff in this pair style depends on the diameter of the
-   atoms, this influences which cutoff is used to build neighbor lists
-   and how effective those neighbor lists are in avoiding to compute
-   distances between non-interacting atoms.  This pair style uses a
-   conventional neighbor list construction like for :doc:`pair style
-   lj/cut <pair_lj>`, where the cutoffs are typically rather similar.
-   LAMMPS will determine the largest cutoff and use this value for
-   building the neighbor lists.  This can be inefficient, if the
-   difference between cutoffs is very large.  The command :doc:`neighbor
-   multi <neighbor>` can be used to enable a modified neighbor list
+   atoms, this influences how cutoffs are used to build neighbor lists
+   and how effective those neighbor lists are at avoiding computation of
+   pairwise distances between non-interacting atoms.  This pair style
+   uses a conventional neighbor list construction similar to :doc:`pair
+   style lj/cut <pair_lj>`, where the cutoffs are typically rather
+   similar.  LAMMPS will determine the largest cutoff and use this value
+   for building the neighbor lists.  This can be inefficient, if the
+   differences between per-type cutoffs are large.  The command
+   :doc:`neighbor multi <neighbor>` enables a modified neighbor list
    algorithm, that uses different size bins for atom types with
-   different cutoffs and constructs neighbor lists based on those
-   cutoffs.
+   different cutoffs.  It constructs adapted neighbor lists based
+   on the per-type cutoffs to improve efficiency.
 
    If atom diameters vary largely when using pair style *lj/sphere*,
-   neighbor lists will be similarly inefficient.  However, the
+   the cutoffs computed from atom diameter and cutof ratio with vary
+   largely as well and :doc:`neighbor bin <neighbor>` based neighbor
+   lists using only the largest cutoff be similarly inefficient as
+   pair style *lj/cut* with largely varying per-type cutoffs.  However, the
    multi-cutoff neighbor list algorithm can only be applied when atoms
    with different cutoffs have different atom types.  Thus atoms with
-   different ranges of diameters need to have different atom types, for
-   LAMMPS to use multi-cutoff neighbor lists.  LAMMPS will determine the
-   largest diameter for each atom type, multiply it with the cutoff
+   different ranges of diameters need to have different atom types to
+   benefit from the  multi-cutoff neighbor lists.  LAMMPS will determine
+   the largest diameter for each atom type, multiply it with the cutoff
    ratio, and use this cutoff in the same way as the per-type cutoffs in
    :doc:`pair style lj/cut <pair_lj>`
 
+   Example input to group small and large atoms by type:
+
+   .. code-block:: c++
+
+      units           lj
+      atom_style      sphere
+      lattice         fcc 0.8442
+      region          box block 0 10 0 10 0 10
+      create_box      2 box
+      create_atoms    1 box
+
+      # create atoms with random diamaters
+      variable diam atom random(0.02,1.4,345634)
+      set group all diameter v_diam
+
+      # assign type 2 to atoms with diameter > 0.5 
+      variable large atom 2.0*radius>0.5
+      group large variable large
+      set group largea type 2
+
+      pair_style      lj/sphere 2.5
+      pair_coeff      * * 1.0
+
+      neighbor 0.3 multi
+                   
+   
 
 Coefficients
 """"""""""""

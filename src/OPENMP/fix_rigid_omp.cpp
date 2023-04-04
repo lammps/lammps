@@ -79,13 +79,11 @@ void FixRigidOMP::initial_integrate(int vflag)
     // returns new normalized quaternion, also updated omega at 1/2 step
     // update ex,ey,ez to reflect new quaternion
 
-    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
-                               ez_space[ibody],inertia[ibody],omega[ibody]);
-    MathExtra::richardson(quat[ibody],angmom[ibody],omega[ibody],
-                          inertia[ibody],dtq);
-    MathExtra::q_to_exyz(quat[ibody],
-                         ex_space[ibody],ey_space[ibody],ez_space[ibody]);
-  } // end of omp parallel for
+    MathExtra::angmom_to_omega(angmom[ibody], ex_space[ibody], ey_space[ibody], ez_space[ibody],
+                               inertia[ibody], omega[ibody]);
+    MathExtra::richardson(quat[ibody], angmom[ibody], omega[ibody], inertia[ibody], dtq);
+    MathExtra::q_to_exyz(quat[ibody], ex_space[ibody], ey_space[ibody], ez_space[ibody]);
+  }    // end of omp parallel for
 
   // virial setup before call to set_xv
 

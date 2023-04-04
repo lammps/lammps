@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -47,18 +46,16 @@ using namespace RigidConst;
 /* ---------------------------------------------------------------------- */
 
 FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), step_respa(nullptr),
-  inpfile(nullptr), nrigid(nullptr), mol2body(nullptr), body2mol(nullptr),
-  body(nullptr), displace(nullptr), masstotal(nullptr), xcm(nullptr),
-  vcm(nullptr), fcm(nullptr), inertia(nullptr), ex_space(nullptr),
-  ey_space(nullptr), ez_space(nullptr), angmom(nullptr), omega(nullptr),
-  torque(nullptr), quat(nullptr), imagebody(nullptr), fflag(nullptr),
-  tflag(nullptr), langextra(nullptr), sum(nullptr), all(nullptr),
-  remapflag(nullptr), xcmimage(nullptr), eflags(nullptr), orient(nullptr),
-  dorient(nullptr), id_dilate(nullptr), id_gravity(nullptr), random(nullptr),
-  avec_ellipsoid(nullptr), avec_line(nullptr), avec_tri(nullptr)
+    Fix(lmp, narg, arg), step_respa(nullptr), inpfile(nullptr), nrigid(nullptr), mol2body(nullptr),
+    body2mol(nullptr), body(nullptr), displace(nullptr), masstotal(nullptr), xcm(nullptr),
+    vcm(nullptr), fcm(nullptr), inertia(nullptr), ex_space(nullptr), ey_space(nullptr),
+    ez_space(nullptr), angmom(nullptr), omega(nullptr), torque(nullptr), quat(nullptr),
+    imagebody(nullptr), fflag(nullptr), tflag(nullptr), langextra(nullptr), sum(nullptr),
+    all(nullptr), remapflag(nullptr), xcmimage(nullptr), eflags(nullptr), orient(nullptr),
+    dorient(nullptr), id_dilate(nullptr), id_gravity(nullptr), random(nullptr),
+    avec_ellipsoid(nullptr), avec_line(nullptr), avec_tri(nullptr)
 {
-  int i,ibody;
+  int i, ibody;
 
   scalar_flag = 1;
   extscalar = 0;
@@ -70,8 +67,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   dof_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
 
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
+  MPI_Comm_rank(world, &me);
+  MPI_Comm_size(world, &nprocs);
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
@@ -90,7 +87,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // parse args for rigid body specification
   // set nbody and body[i] for each atom
 
-  if (narg < 4) error->all(FLERR,"Illegal fix rigid command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
   int iarg;
 
   mol2body = nullptr;
@@ -100,7 +97,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // nbody = 1
   // all atoms in fix group are part of body
 
-  if (strcmp(arg[3],"single") == 0) {
+  if (strcmp(arg[3], "single") == 0) {
     rstyle = SINGLE;
     iarg = 4;
     nbody = 1;
@@ -113,67 +110,68 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       if (mask[i] & groupbit) body[i] = 0;
     }
 
-  // each molecule in fix group is a rigid body
-  // maxmol = largest molecule ID
-  // ncount = # of atoms in each molecule (have to sum across procs)
-  // nbody = # of non-zero ncount values
-  // use nall as incremented ptr to set body[] values for each atom
+    // each molecule in fix group is a rigid body
+    // maxmol = largest molecule ID
+    // ncount = # of atoms in each molecule (have to sum across procs)
+    // nbody = # of non-zero ncount values
+    // use nall as incremented ptr to set body[] values for each atom
 
-  } else if (strcmp(arg[3],"molecule") == 0 || strcmp(arg[3],"custom") == 0) {
+  } else if ((strcmp(arg[3], "molecule") == 0) || (strcmp(arg[3], "custom") == 0)) {
     rstyle = MOLECULE;
     tagint *molecule;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    int custom_flag = strcmp(arg[3],"custom") == 0;
+    int custom_flag = strcmp(arg[3], "custom") == 0;
     if (custom_flag) {
-      if (narg < 5) error->all(FLERR,"Illegal fix rigid command");
+      if (narg < 5) utils::missing_cmd_args(FLERR, fmt::format("fix {} custom"), error);
 
       // determine whether atom-style variable or atom property is used
 
-      if (utils::strmatch(arg[4],"^i_")) {
-        int is_double,cols;
-        int custom_index = atom->find_custom(arg[4]+2,is_double,cols);
+      if (utils::strmatch(arg[4], "^i_")) {
+        int is_double, cols;
+        int custom_index = atom->find_custom(arg[4] + 2, is_double, cols);
         if (custom_index == -1)
-          error->all(FLERR,"Fix rigid custom requires previously defined property/atom");
+          error->all(FLERR, "Fix {} custom requires previously defined property/atom", style);
         else if (is_double)
-          error->all(FLERR,"Fix rigid custom requires integer-valued property/atom vector");
+          error->all(FLERR, "Fix {} custom requires integer-valued property/atom vector", style);
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) minval = MIN(minval,value[i]);
+          if (mask[i] & groupbit) minval = MIN(minval, value[i]);
         int vmin = minval;
-        MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
+        MPI_Allreduce(&vmin, &minval, 1, MPI_INT, MPI_MIN, world);
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit)
-            molecule[i] = (tagint)(value[i] - minval + 1);
+            molecule[i] = (tagint) (value[i] - minval + 1);
           else
             molecule[i] = 0;
 
-      } else if (utils::strmatch(arg[4],"^v_")) {
-        int ivariable = input->variable->find(arg[4]+2);
+      } else if (utils::strmatch(arg[4], "^v_")) {
+        int ivariable = input->variable->find(arg[4] + 2);
         if (ivariable < 0)
-          error->all(FLERR,"Variable {} for fix rigid/small custom does not exist", arg[4]+2);
+          error->all(FLERR, "Variable {} for fix {} custom does not exist", arg[4] + 2, style);
         if (input->variable->atomstyle(ivariable) == 0)
-          error->all(FLERR,"Fix rigid custom variable {} is not atom-style variable", arg[4]+2);
+          error->all(FLERR, "Fix {} custom variable {} is not atom-style variable", style,
+                     arg[4] + 2);
         auto value = new double[nlocal];
-        input->variable->compute_atom(ivariable,0,value,1,0);
+        input->variable->compute_atom(ivariable, 0, value, 1, 0);
         int minval = INT_MAX;
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit) minval = MIN(minval,(int)value[i]);
+          if (mask[i] & groupbit) minval = MIN(minval, (int) value[i]);
         int vmin = minval;
-        MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
+        MPI_Allreduce(&vmin, &minval, 1, MPI_INT, MPI_MIN, world);
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
-            molecule[i] = (tagint)((tagint)value[i] - minval + 1);
+          if (mask[i] & groupbit) molecule[i] = (tagint) ((tagint) value[i] - minval + 1);
         delete[] value;
 
-      } else error->all(FLERR,"Unsupported fix rigid custom property");
+      } else
+        error->all(FLERR, "Unsupported fix {} custom property: {}", style, arg[4]);
 
     } else {
       if (atom->molecule_flag == 0)
-        error->all(FLERR,"Fix rigid molecule requires atom attribute molecule");
+        error->all(FLERR, "Fix {} molecule requires atom attribute molecule", style);
       molecule = atom->molecule;
     }
 
@@ -181,30 +179,31 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     tagint maxmol_tag = -1;
     for (i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit) maxmol_tag = MAX(maxmol_tag,molecule[i]);
+      if (mask[i] & groupbit) maxmol_tag = MAX(maxmol_tag, molecule[i]);
 
     tagint itmp;
-    MPI_Allreduce(&maxmol_tag,&itmp,1,MPI_LMP_TAGINT,MPI_MAX,world);
-    if (itmp+1 > MAXSMALLINT)
-      error->all(FLERR,"Too many molecules for fix rigid");
+    MPI_Allreduce(&maxmol_tag, &itmp, 1, MPI_LMP_TAGINT, MPI_MAX, world);
+    if (itmp + 1 > MAXSMALLINT) error->all(FLERR, "Too many molecules for fix {}", style);
     maxmol = (int) itmp;
 
     int *ncount;
-    memory->create(ncount,maxmol+1,"rigid:ncount");
+    memory->create(ncount, maxmol + 1, "rigid:ncount");
     for (i = 0; i <= maxmol; i++) ncount[i] = 0;
 
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) ncount[molecule[i]]++;
 
-    memory->create(mol2body,maxmol+1,"rigid:mol2body");
-    MPI_Allreduce(ncount,mol2body,maxmol+1,MPI_INT,MPI_SUM,world);
+    memory->create(mol2body, maxmol + 1, "rigid:mol2body");
+    MPI_Allreduce(ncount, mol2body, maxmol + 1, MPI_INT, MPI_SUM, world);
 
     nbody = 0;
     for (i = 0; i <= maxmol; i++)
-      if (mol2body[i]) mol2body[i] = nbody++;
-      else mol2body[i] = -1;
+      if (mol2body[i])
+        mol2body[i] = nbody++;
+      else
+        mol2body[i] = -1;
 
-    memory->create(body2mol,nbody,"rigid:body2mol");
+    memory->create(body2mol, nbody, "rigid:body2mol");
 
     nbody = 0;
     for (i = 0; i <= maxmol; i++)
@@ -218,24 +217,24 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     memory->destroy(ncount);
     if (custom_flag) delete[] molecule;
 
-  // each listed group is a rigid body
-  // check if all listed groups exist
-  // an atom must belong to fix group and listed group to be in rigid body
-  // error if atom belongs to more than 1 rigid body
+    // each listed group is a rigid body
+    // check if all listed groups exist
+    // an atom must belong to fix group and listed group to be in rigid body
+    // error if atom belongs to more than 1 rigid body
 
-  } else if (strcmp(arg[3],"group") == 0) {
-    if (narg < 5) error->all(FLERR,"Illegal fix rigid command");
+  } else if (strcmp(arg[3], "group") == 0) {
+    if (narg < 5) utils::missing_cmd_args(FLERR, fmt::format("fix {} group"), error);
     rstyle = GROUP;
-    nbody = utils::inumeric(FLERR,arg[4],false,lmp);
-    if (nbody <= 0) error->all(FLERR,"Illegal fix rigid command");
-    if (narg < 5+nbody) error->all(FLERR,"Illegal fix rigid command");
-    iarg = 5+nbody;
+    nbody = utils::inumeric(FLERR, arg[4], false, lmp);
+    if (nbody <= 0) error->all(FLERR, "Illegal fix {} number of groups {}", style, nbody);
+    if (narg < 5 + nbody) utils::missing_cmd_args(FLERR, fmt::format("fix {} group"), error);
+    iarg = 5 + nbody;
 
     int *igroups = new int[nbody];
     for (ibody = 0; ibody < nbody; ibody++) {
-      igroups[ibody] = group->find(arg[5+ibody]);
+      igroups[ibody] = group->find(arg[5 + ibody]);
       if (igroups[ibody] == -1)
-        error->all(FLERR,"Could not find fix rigid group ID");
+        error->all(FLERR, "Could not find fix {} group ID {}", style, arg[5 + ibody]);
     }
 
     int *mask = atom->mask;
@@ -253,41 +252,41 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     }
 
     int flagall;
-    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-    if (flagall)
-      error->all(FLERR,"One or more atoms belong to multiple rigid bodies");
+    MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
+    if (flagall) error->all(FLERR, "One or more atoms belong to multiple rigid bodies");
 
     delete[] igroups;
 
-  } else error->all(FLERR,"Illegal fix rigid command");
+  } else
+    error->all(FLERR, "Unknown fix {} mode {}", style, arg[3]);
 
   // error check on nbody
 
-  if (nbody == 0) error->all(FLERR,"No rigid bodies defined");
+  if (nbody == 0) error->all(FLERR, "No rigid bodies defined");
 
   // create all nbody-length arrays
 
-  memory->create(nrigid,nbody,"rigid:nrigid");
-  memory->create(masstotal,nbody,"rigid:masstotal");
-  memory->create(xcm,nbody,3,"rigid:xcm");
-  memory->create(vcm,nbody,3,"rigid:vcm");
-  memory->create(fcm,nbody,3,"rigid:fcm");
-  memory->create(inertia,nbody,3,"rigid:inertia");
-  memory->create(ex_space,nbody,3,"rigid:ex_space");
-  memory->create(ey_space,nbody,3,"rigid:ey_space");
-  memory->create(ez_space,nbody,3,"rigid:ez_space");
-  memory->create(angmom,nbody,3,"rigid:angmom");
-  memory->create(omega,nbody,3,"rigid:omega");
-  memory->create(torque,nbody,3,"rigid:torque");
-  memory->create(quat,nbody,4,"rigid:quat");
-  memory->create(imagebody,nbody,"rigid:imagebody");
-  memory->create(fflag,nbody,3,"rigid:fflag");
-  memory->create(tflag,nbody,3,"rigid:tflag");
-  memory->create(langextra,nbody,6,"rigid:langextra");
+  memory->create(nrigid, nbody, "rigid:nrigid");
+  memory->create(masstotal, nbody, "rigid:masstotal");
+  memory->create(xcm, nbody, 3, "rigid:xcm");
+  memory->create(vcm, nbody, 3, "rigid:vcm");
+  memory->create(fcm, nbody, 3, "rigid:fcm");
+  memory->create(inertia, nbody, 3, "rigid:inertia");
+  memory->create(ex_space, nbody, 3, "rigid:ex_space");
+  memory->create(ey_space, nbody, 3, "rigid:ey_space");
+  memory->create(ez_space, nbody, 3, "rigid:ez_space");
+  memory->create(angmom, nbody, 3, "rigid:angmom");
+  memory->create(omega, nbody, 3, "rigid:omega");
+  memory->create(torque, nbody, 3, "rigid:torque");
+  memory->create(quat, nbody, 4, "rigid:quat");
+  memory->create(imagebody, nbody, "rigid:imagebody");
+  memory->create(fflag, nbody, 3, "rigid:fflag");
+  memory->create(tflag, nbody, 3, "rigid:tflag");
+  memory->create(langextra, nbody, 6, "rigid:langextra");
 
-  memory->create(sum,nbody,6,"rigid:sum");
-  memory->create(all,nbody,6,"rigid:all");
-  memory->create(remapflag,nbody,4,"rigid:remapflag");
+  memory->create(sum, nbody, 6, "rigid:sum");
+  memory->create(all, nbody, 6, "rigid:all");
+  memory->create(remapflag, nbody, 4, "rigid:remapflag");
 
   // initialize force/torque flags to default = 1.0
   // for 2d: fz, tx, ty = 0.0
@@ -335,102 +334,117 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   }
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"force") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
+    if (strcmp(arg[iarg], "force") == 0) {
+      if (iarg + 5 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} force", style), error);
 
-      int mlo,mhi;
-      utils::bounds(FLERR,arg[iarg+1],1,nbody,mlo,mhi,error);
+      int mlo, mhi;
+      utils::bounds(FLERR, arg[iarg + 1], 1, nbody, mlo, mhi, error);
 
-      double xflag,yflag,zflag;
-      if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
-      else if (strcmp(arg[iarg+2],"on") == 0) xflag = 1.0;
-      else error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(arg[iarg+3],"off") == 0) yflag = 0.0;
-      else if (strcmp(arg[iarg+3],"on") == 0) yflag = 1.0;
-      else error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;
-      else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
-      else error->all(FLERR,"Illegal fix rigid command");
+      double xflag, yflag, zflag;
+      if (strcmp(arg[iarg + 2], "off") == 0)
+        xflag = 0.0;
+      else if (strcmp(arg[iarg + 2], "on") == 0)
+        xflag = 1.0;
+      else
+        error->all(FLERR, "Illegal fix {} command", style);
+      if (strcmp(arg[iarg + 3], "off") == 0)
+        yflag = 0.0;
+      else if (strcmp(arg[iarg + 3], "on") == 0)
+        yflag = 1.0;
+      else
+        error->all(FLERR, "Illegal fix {} command", style);
+      if (strcmp(arg[iarg + 4], "off") == 0)
+        zflag = 0.0;
+      else if (strcmp(arg[iarg + 4], "on") == 0)
+        zflag = 1.0;
+      else
+        error->all(FLERR, "Illegal fix {} command", style);
 
-      if (dimension == 2 && zflag == 1.0)
-        error->all(FLERR,"Fix rigid z force cannot be on for 2d simulation");
+      if ((dimension == 2) && (zflag == 1.0))
+        error->all(FLERR, "Fix rigid z force cannot be on for 2d simulation");
 
       int count = 0;
       for (int m = mlo; m <= mhi; m++) {
-        fflag[m-1][0] = xflag;
-        fflag[m-1][1] = yflag;
-        fflag[m-1][2] = zflag;
+        fflag[m - 1][0] = xflag;
+        fflag[m - 1][1] = yflag;
+        fflag[m - 1][2] = zflag;
         count++;
       }
-      if (count == 0) error->all(FLERR,"Illegal fix rigid command");
+      if (count == 0) error->all(FLERR, "Illegal fix {} command", style);
 
       iarg += 5;
 
-    } else if (strcmp(arg[iarg],"torque") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
+    } else if (strcmp(arg[iarg], "torque") == 0) {
+      if (iarg + 5 > narg) error->all(FLERR, "Illegal fix {} command", style);
 
-      int mlo,mhi;
-      utils::bounds(FLERR,arg[iarg+1],1,nbody,mlo,mhi,error);
+      int mlo, mhi;
+      utils::bounds(FLERR, arg[iarg + 1], 1, nbody, mlo, mhi, error);
 
-      double xflag,yflag,zflag;
-      if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
-      else if (strcmp(arg[iarg+2],"on") == 0) xflag = 1.0;
-      else error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(arg[iarg+3],"off") == 0) yflag = 0.0;
-      else if (strcmp(arg[iarg+3],"on") == 0) yflag = 1.0;
-      else error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;
-      else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
-      else error->all(FLERR,"Illegal fix rigid command");
+      double xflag, yflag, zflag;
+      if (strcmp(arg[iarg + 2], "off") == 0)
+        xflag = 0.0;
+      else if (strcmp(arg[iarg + 2], "on") == 0)
+        xflag = 1.0;
+      else
+        error->all(FLERR, "Illegal fix {} command", style);
+      if (strcmp(arg[iarg + 3], "off") == 0)
+        yflag = 0.0;
+      else if (strcmp(arg[iarg + 3], "on") == 0)
+        yflag = 1.0;
+      else
+        error->all(FLERR, "Illegal fix {} command", style);
+      if (strcmp(arg[iarg + 4], "off") == 0)
+        zflag = 0.0;
+      else if (strcmp(arg[iarg + 4], "on") == 0)
+        zflag = 1.0;
+      else
+        error->all(FLERR, "Illegal fix {} command", style);
 
       if (dimension == 2 && (xflag == 1.0 || yflag == 1.0))
-        error->all(FLERR,"Fix rigid xy torque cannot be on for 2d simulation");
+        error->all(FLERR, "Fix rigid xy torque cannot be on for 2d simulation");
 
       int count = 0;
       for (int m = mlo; m <= mhi; m++) {
-        tflag[m-1][0] = xflag;
-        tflag[m-1][1] = yflag;
-        tflag[m-1][2] = zflag;
+        tflag[m - 1][0] = xflag;
+        tflag[m - 1][1] = yflag;
+        tflag[m - 1][2] = zflag;
         count++;
       }
-      if (count == 0) error->all(FLERR,"Illegal fix rigid command");
+      if (count == 0) error->all(FLERR, "Illegal fix {} command", style);
 
       iarg += 5;
 
-    } else if (strcmp(arg[iarg],"langevin") == 0) {
-      if (iarg+5 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(style,"rigid") != 0 && strcmp(style,"rigid/nve") != 0 &&
-          strcmp(style,"rigid/omp") != 0 && strcmp(style,"rigid/nve/omp") != 0)
-        error->all(FLERR,"Illegal fix rigid command");
+    } else if (strcmp(arg[iarg], "langevin") == 0) {
+      if (iarg + 5 > narg) error->all(FLERR, "Illegal fix {} command", style);
+      if (strcmp(style, "rigid") != 0 && strcmp(style, "rigid/nve") != 0 &&
+          strcmp(style, "rigid/omp") != 0 && strcmp(style, "rigid/nve/omp") != 0)
+        error->all(FLERR, "Illegal fix {} command", style);
       langflag = 1;
-      t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      seed = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
-      if (t_period <= 0.0)
-        error->all(FLERR,"Fix rigid langevin period must be > 0.0");
-      if (seed <= 0) error->all(FLERR,"Illegal fix rigid command");
+      t_start = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      t_stop = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      t_period = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      seed = utils::inumeric(FLERR, arg[iarg + 4], false, lmp);
+      if (t_period <= 0.0) error->all(FLERR, "Fix rigid langevin period must be > 0.0");
+      if (seed <= 0) error->all(FLERR, "Illegal fix {} command", style);
       iarg += 5;
 
-    } else if (strcmp(arg[iarg],"temp") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (!utils::strmatch(style,"^rigid/n.t"))
-        error->all(FLERR,"Illegal fix rigid command");
+    } else if (strcmp(arg[iarg], "temp") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix {} command", style);
+      if (!utils::strmatch(style, "^rigid/n.t")) error->all(FLERR, "Illegal fix {} command", style);
       tstat_flag = 1;
-      t_start = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      t_stop = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      t_period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      t_start = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      t_stop = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      t_period = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"iso") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (!utils::strmatch(style,"^rigid/np."))
-        error->all(FLERR,"Illegal fix rigid command");
+    } else if (strcmp(arg[iarg], "iso") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix {} command", style);
+      if (!utils::strmatch(style, "^rigid/np.")) error->all(FLERR, "Illegal fix {} command", style);
       pcouple = XYZ;
-      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[0] = p_period[1] = p_period[2] =
-        utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -438,14 +452,12 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"aniso") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (!utils::strmatch(style,"^rigid/np."))
-        error->all(FLERR,"Illegal fix rigid command");
-      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[0] = p_period[1] = p_period[2] =
-        utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "aniso") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix {} command", style);
+      if (!utils::strmatch(style, "^rigid/np.")) error->all(FLERR, "Illegal fix {} command", style);
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_start[2] = p_stop[2] = p_period[2] = 0.0;
@@ -453,97 +465,110 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"x") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (!utils::strmatch(style,"^rigid/np."))
-        error->all(FLERR,"Illegal fix rigid command");
-      p_start[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[0] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "x") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix {} command", style);
+      if (!utils::strmatch(style, "^rigid/np.")) error->all(FLERR, "Illegal fix {} command", style);
+      p_start[0] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[0] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[0] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[0] = 1;
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"y") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (!utils::strmatch(style,"^rigid/np."))
-        error->all(FLERR,"Illegal fix rigid command");
-      p_start[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "y") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix {} command", style);
+      if (!utils::strmatch(style, "^rigid/np.")) error->all(FLERR, "Illegal fix {} command", style);
+      p_start[1] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[1] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[1] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[1] = 1;
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"z") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (!utils::strmatch(style,"^rigid/np."))
-        error->all(FLERR,"Illegal fix rigid command");
-      p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "z") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal fix {} command", style);
+      if (!utils::strmatch(style, "^rigid/np.")) error->all(FLERR, "Illegal fix {} command", style);
+      p_start[2] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      p_stop[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      p_period[2] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       p_flag[2] = 1;
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"couple") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp(arg[iarg+1],"xyz") == 0) pcouple = XYZ;
-      else if (strcmp(arg[iarg+1],"xy") == 0) pcouple = XY;
-      else if (strcmp(arg[iarg+1],"yz") == 0) pcouple = YZ;
-      else if (strcmp(arg[iarg+1],"xz") == 0) pcouple = XZ;
-      else if (strcmp(arg[iarg+1],"none") == 0) pcouple = NONE;
-      else error->all(FLERR,"Illegal fix rigid command");
+    } else if (strcmp(arg[iarg], "couple") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} couple", style), error);
+      if (strcmp(arg[iarg + 1], "xyz") == 0)
+        pcouple = XYZ;
+      else if (strcmp(arg[iarg + 1], "xy") == 0)
+        pcouple = XY;
+      else if (strcmp(arg[iarg + 1], "yz") == 0)
+        pcouple = YZ;
+      else if (strcmp(arg[iarg + 1], "xz") == 0)
+        pcouple = XZ;
+      else if (strcmp(arg[iarg + 1], "none") == 0)
+        pcouple = NONE;
+      else
+        error->all(FLERR, "Unknown fix {} couple option ", style, arg[iarg + 1]);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"dilate") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal fix rigid npt/nph command");
-      if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
+    } else if (strcmp(arg[iarg], "dilate") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} dilate", style), error);
+      if (strcmp(arg[iarg + 1], "all") == 0)
+        allremap = 1;
       else {
         allremap = 0;
         delete[] id_dilate;
-        id_dilate = utils::strdup(arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg + 1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
-          error->all(FLERR, "Fix rigid npt/nph dilate group ID {} does not exist", id_dilate);
+          error->all(FLERR, "Fix {} dilate group ID {} does not exist", style, id_dilate);
       }
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"tparam") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (!utils::strmatch(style,"^rigid/n.t"))
-        error->all(FLERR,"Illegal fix rigid command");
-      t_chain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      t_iter = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      t_order = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "tparam") == 0) {
+      if (iarg + 4 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} tparam", style), error);
+      if (!utils::strmatch(style, "^rigid/n.t"))
+        error->all(FLERR, "Illegal fix {} command option tparam", style);
+      t_chain = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      t_iter = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+      t_order = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
 
-    } else if (strcmp(arg[iarg],"pchain") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (!utils::strmatch(style,"^rigid/np."))
-        error->all(FLERR,"Illegal fix rigid command");
-      p_chain = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "pchain") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} pchain", style), error);
+      if (!utils::strmatch(style, "^rigid/np."))
+        error->all(FLERR, "Illegal fix {} command option pchain", style);
+      p_chain = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"infile") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
+    } else if (strcmp(arg[iarg], "infile") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} infile", style), error);
       delete[] inpfile;
-      inpfile = utils::strdup(arg[iarg+1]);
+      inpfile = utils::strdup(arg[iarg + 1]);
       restart_file = 1;
       reinitflag = 0;
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"reinit") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      reinitflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "reinit") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} reinit", style), error);
+      reinitflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"gravity") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
+    } else if (strcmp(arg[iarg], "gravity") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} gravity", style), error);
       delete[] id_gravity;
-      id_gravity = utils::strdup(arg[iarg+1]);
+      id_gravity = utils::strdup(arg[iarg + 1]);
       iarg += 2;
 
-    } else error->all(FLERR,"Illegal fix rigid command");
+    } else
+      error->all(FLERR, "Illegal fix {} command", style);
   }
+
+  // clang-format off
 
   // set pstat_flag
 

@@ -43,16 +43,18 @@ given by
 
 :math:`r_c` is the cutoff ratio.
 
-This is the same potential function as used by the :doc:`lj/cut
-<pair_lj>` pair style, but the :math:`\sigma_{ij}` parameter is not set
-as a per-type parameter via the :doc:`pair_coeff command <pair_coeff>`,
-but taken from the per-atom diameter attribute of :doc:`atom_style
-sphere <atom_style>`.  The individual value of :math:`\sigma_{ij}` is
-computed from the diameters of the two atoms using the mixing rule for
-pair coefficients as set by the :doc:`pair_modify mix <pair_modify>`
-command (defaults to geometric mixing).  The cutoff is not specified as
-a distance, but as ratio that is internally multiplied with
-:math:`\sigma_{ij}` to obtain the actual cutoff for each pair of atoms.
+This is the same potential function used by the :doc:`lj/cut
+<pair_lj>` pair style, but the :math:`\sigma_{ij}` parameter is not
+set as a per-type parameter via the :doc:`pair_coeff command
+<pair_coeff>`.  Instead it is calculated individually for each pair
+using the per-atom diameter attribute of :doc:`atom_style sphere
+<atom_style>` for the two atoms as :math:`\sigma_{i}` and
+:math:`\sigma_{j}`; :math:`\sigma_{ij}` is then computed by the mixing
+rule for pair coefficients as set by the :doc:`pair_modify mix
+<pair_modify>` command (defaults to geometric mixing).  The cutoff is
+not specified as a distance, but as ratio that is internally
+multiplied by :math:`\sigma_{ij}` to obtain the actual cutoff for each
+pair of atoms.
 
 Note that :math:`\sigma_{ij}` is defined in the LJ formula above as the
 zero-crossing distance for the potential, *not* as the energy minimum which
@@ -61,34 +63,27 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
 .. admonition:: Notes on cutoffs, neighbor lists, and efficiency
    :class: note
 
-   Because the cutoff in this pair style depends on the diameter of the
-   atoms, this influences how cutoffs are used to build neighbor lists
-   and how effective those neighbor lists are at avoiding computation of
-   pairwise distances between non-interacting atoms.  This pair style
-   uses a conventional neighbor list construction similar to :doc:`pair
-   style lj/cut <pair_lj>`, where the cutoffs are typically rather
-   similar.  LAMMPS will determine the largest cutoff and use this value
-   for building the neighbor lists.  This can be inefficient, if the
-   differences between per-type cutoffs are large.  The command
-   :doc:`neighbor multi <neighbor>` enables a modified neighbor list
-   algorithm, that uses different size bins for atom types with
-   different cutoffs.  It constructs adapted neighbor lists based
-   on the per-type cutoffs to improve efficiency.
+   If your system is mildly polydisperse, meaning the ratio of the
+   diameter of the largest particle to the smallest is less than 2.0,
+   then the neighbor lists built by the code should be resonably
+   efficient.  Which means they will not contain too many particle
+   pairs that do not interact.  However, if your system is highly
+   polydisperse (ratio > 2.0), the neighbor list build and force
+   computations may be inefficient.  There are two ways to try and
+   speed up the computations.
 
-   If atom diameters vary largely when using pair style *lj/sphere*,
-   the cutoffs computed from atom diameter and cutoff ratio with vary
-   largely as well and :doc:`neighbor bin <neighbor>` based neighbor
-   lists using only the largest cutoff be similarly inefficient as
-   pair style *lj/cut* with largely varying per-type cutoffs.  However, the
-   multi-cutoff neighbor list algorithm can only be applied when atoms
-   with different cutoffs have different atom types.  Thus atoms with
-   different ranges of diameters need to have different atom types to
-   benefit from the  multi-cutoff neighbor lists.  LAMMPS will determine
-   the largest diameter for each atom type, multiply it with the cutoff
-   ratio, and use this cutoff in the same way as the per-type cutoffs in
-   :doc:`pair style lj/cut <pair_lj>`
+   The first is to assign multiple atom types so that atoms of each
+   type are similar in size.  E.g. if particle diameters range from 1
+   to 5 use 4 atom types, ensuring atoms of type 1 have diameters from
+   1.0-2.0, type 2 from 2.0-3.0, etc.
 
-   Example input to group small and large atoms by type:
+   Second, you can try the :doc:`neighbor multi <neighbor>` command
+   which uses a different algorithm for buliding neighbor lists.  This
+   will also require that you assign multiple atom types as in the
+   preceeding paragraph.
+
+   Here are example input script commands using both ideas for a
+   highly polydisperse system:
 
    .. code-block:: c++
 
@@ -100,11 +95,13 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
       create_atoms    1 box
 
       # create atoms with random diameters from bimodal distribution
+      
       variable switch atom random(0.0,1.0,345634)
       variable diam atom (v_switch<0.75)*normal(0.4,0.075,325)+(v_switch>=0.7)*normal(1.2,0.2,453)
       set group all diameter v_diam
 
       # assign type 2 to atoms with diameter > 0.5
+      
       variable large atom 2.0*radius>0.5
       group large variable large
       set group largea type 2
@@ -113,8 +110,6 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
       pair_coeff      * * 1.0
 
       neighbor 0.3 multi
-
-
 
 Coefficients
 """"""""""""

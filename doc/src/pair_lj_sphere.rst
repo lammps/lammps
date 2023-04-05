@@ -95,13 +95,13 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
       create_atoms    1 box
 
       # create atoms with random diameters from bimodal distribution
-      
+
       variable switch atom random(0.0,1.0,345634)
       variable diam atom (v_switch<0.75)*normal(0.4,0.075,325)+(v_switch>=0.7)*normal(1.2,0.2,453)
       set group all diameter v_diam
 
       # assign type 2 to atoms with diameter > 0.5
-      
+
       variable large atom 2.0*radius>0.5
       group large variable large
       set group largea type 2

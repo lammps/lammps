@@ -77,7 +77,7 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
    to 5 use 4 atom types, ensuring atoms of type 1 have diameters from
    1.0-2.0, type 2 from 2.0-3.0, etc.
 
-   Second, you can try the :doc:`neighbor multi <neighbor>` command
+   The second is to try the :doc:`neighbor multi <neighbor>` command
    which uses a different algorithm for buliding neighbor lists.  This
    will also require that you assign multiple atom types as in the
    preceeding paragraph.

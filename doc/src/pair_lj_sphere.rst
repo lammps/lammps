@@ -76,7 +76,7 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
    on the per-type cutoffs to improve efficiency.
 
    If atom diameters vary largely when using pair style *lj/sphere*,
-   the cutoffs computed from atom diameter and cutof ratio with vary
+   the cutoffs computed from atom diameter and cutoff ratio with vary
    largely as well and :doc:`neighbor bin <neighbor>` based neighbor
    lists using only the largest cutoff be similarly inefficient as
    pair style *lj/cut* with largely varying per-type cutoffs.  However, the
@@ -99,8 +99,9 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
       create_box      2 box
       create_atoms    1 box
 
-      # create atoms with random diamaters
-      variable diam atom random(0.02,1.4,345634)
+      # create atoms with random diameters from bimodal distribution
+      variable switch atom random(0.0,1.0,345634)
+      variable diam atom (v_switch<0.75)*normal(0.4,0.075,325)+(v_switch>=0.7)*normal(1.2,0.2,453)
       set group all diameter v_diam
 
       # assign type 2 to atoms with diameter > 0.5

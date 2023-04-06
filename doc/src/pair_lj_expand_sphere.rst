@@ -1,10 +1,10 @@
-.. index:: pair_style lj/sphere
-.. index:: pair_style lj/sphere/omp
+.. index:: pair_style lj/expand/sphere
+.. index:: pair_style lj/expand/sphere/omp
 
-pair_style lj/sphere command
-============================
+pair_style lj/expand/sphere command
+===================================
 
-Accelerator Variant: *lj/sphere/omp*
+Accelerator Variant: *lj/expand/sphere/omp*
 
 Syntax
 """"""
@@ -13,12 +13,12 @@ Syntax
 
    pair_style style args
 
-* style = *lj/sphere*
+* style = *lj/expand/sphere*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
 
-     *lj/sphere* args = cutoff ratio
+     *lj/expand/sphere* args = cutoff ratio
        cutoff = global cutoff ratio for Lennard Jones interactions (unitless)
 
 Examples
@@ -26,14 +26,14 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style lj/sphere 2.5
+   pair_style lj/expand/sphere 2.5
    pair_coeff * * 1.0
    pair_coeff 1 1 1.1 2.8
 
 Description
 """""""""""
 
-The *lj/sphere* style compute the standard 12/6 Lennard-Jones potential,
+The *lj/expand/sphere* style compute the standard 12/6 Lennard-Jones potential,
 given by
 
 .. math::
@@ -106,7 +106,7 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
       group large variable large
       set group largea type 2
 
-      pair_style      lj/sphere 2.5
+      pair_style      lj/expand/sphere 2.5
       pair_coeff      * * 1.0
 
       neighbor 0.3 multi
@@ -139,18 +139,18 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon coefficients and cutoff
-ratio for the *lj/sphere* pair style can be mixed.  The default mixing
+ratio for the *lj/expand/sphere* pair style can be mixed.  The default mixing
 style is *geometric*.  See the :doc:`pair_modify command <pair_modify>`
 for details.
 
-The *lj/sphere* pair style supports the :doc:`pair_modify shift <pair_modify>`
+The *lj/expand/sphere* pair style supports the :doc:`pair_modify shift <pair_modify>`
 option for the energy of the Lennard-Jones portion of the pair interaction.
 
-The *lj/sphere* pair style does *not* support the :doc:`pair_modify
+The *lj/expand/sphere* pair style does *not* support the :doc:`pair_modify
 <pair_modify>` tail option for adding a long-range tail corrections to
 the energy and pressure.
 
-The *lj/sphere* pair style writes its information to :doc:`binary
+The *lj/expand/sphere* pair style writes its information to :doc:`binary
 restart files <restart>`, so pair_style and pair_coeff commands do not
 need to be specified in an input script that reads a restart file.
 
@@ -163,11 +163,11 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-The *lj/sphere* pair style is only enabled if LAMMPS was built with the
+The *lj/expand/sphere* pair style is only enabled if LAMMPS was built with the
 EXTRA-PAIR package.  See the :doc:`Build package <Build_package>` page
 for more info.
 
-The *lj/sphere* pair style does not support the *sixthpower* mixing rule.
+The *lj/expand/sphere* pair style does not support the *sixthpower* mixing rule.
 
 ----------
 
@@ -176,6 +176,7 @@ Related commands
 
 * :doc:`pair_coeff <pair_coeff>`
 * :doc:`pair_style lj/cut <pair_lj>`
+* :doc:`pair_style lj/cut/sphere <pair_lj_cut_sphere>`
 
 Default
 """""""

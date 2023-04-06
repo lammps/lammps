@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sphere.h"
+#include "pair_lj_cut_sphere.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -32,14 +32,15 @@ using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSphere::PairLJSphere(LAMMPS *lmp) : Pair(lmp), rmax(nullptr), cut(nullptr), epsilon(nullptr)
+PairLJCutSphere::PairLJCutSphere(LAMMPS *lmp) :
+    Pair(lmp), rmax(nullptr), cut(nullptr), epsilon(nullptr)
 {
   writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSphere::~PairLJSphere()
+PairLJCutSphere::~PairLJCutSphere()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -53,7 +54,7 @@ PairLJSphere::~PairLJSphere()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSphere::compute(int eflag, int vflag)
+void PairLJCutSphere::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, evdwl, sigma, sigma6, fpair;
@@ -145,7 +146,7 @@ void PairLJSphere::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::allocate()
+void PairLJCutSphere::allocate()
 {
   allocated = 1;
   int n = atom->ntypes + 1;
@@ -165,7 +166,7 @@ void PairLJSphere::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::settings(int narg, char **arg)
+void PairLJCutSphere::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR, "Illegal pair_style command");
 
@@ -185,7 +186,7 @@ void PairLJSphere::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::coeff(int narg, char **arg)
+void PairLJCutSphere::coeff(int narg, char **arg)
 {
   if (narg < 3 || narg > 4) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
@@ -215,13 +216,14 @@ void PairLJSphere::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::init_style()
+void PairLJCutSphere::init_style()
 {
   Pair::init_style();
 
-  if (!atom->radius_flag) error->all(FLERR, "Pair style lj/sphere requires atom attribute radius");
+  if (!atom->radius_flag)
+    error->all(FLERR, "Pair style lj/cut/sphere requires atom attribute radius");
   if (mix_flag == SIXTHPOWER)
-    error->all(FLERR, "Pair_modify mix sixthpower is not compatible with pair style lj/sphere");
+    error->all(FLERR, "Pair_modify mix sixthpower is not compatible with pair style lj/cut/sphere");
 
   // determine max radius per type
 
@@ -241,7 +243,7 @@ void PairLJSphere::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLJSphere::init_one(int i, int j)
+double PairLJCutSphere::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i], epsilon[j][j], 0.0, 0.0);
@@ -260,7 +262,7 @@ double PairLJSphere::init_one(int i, int j)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::write_restart(FILE *fp)
+void PairLJCutSphere::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -279,7 +281,7 @@ void PairLJSphere::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::read_restart(FILE *fp)
+void PairLJCutSphere::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -305,7 +307,7 @@ void PairLJSphere::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::write_restart_settings(FILE *fp)
+void PairLJCutSphere::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global, sizeof(double), 1, fp);
   fwrite(&offset_flag, sizeof(int), 1, fp);
@@ -316,7 +318,7 @@ void PairLJSphere::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::read_restart_settings(FILE *fp)
+void PairLJCutSphere::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
@@ -333,7 +335,7 @@ void PairLJSphere::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::write_data(FILE *fp)
+void PairLJCutSphere::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++) fprintf(fp, "%d %g\n", i, epsilon[i][i]);
 }
@@ -342,7 +344,7 @@ void PairLJSphere::write_data(FILE *fp)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairLJSphere::write_data_all(FILE *fp)
+void PairLJCutSphere::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
@@ -351,8 +353,8 @@ void PairLJSphere::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSphere::single(int i, int j, int itype, int jtype, double rsq, double /*factor_coul*/,
-                            double factor_lj, double &fforce)
+double PairLJCutSphere::single(int i, int j, int itype, int jtype, double rsq,
+                               double /*factor_coul*/, double factor_lj, double &fforce)
 {
   double r2inv, r6inv, rcutsq, sigma, sigma6, forcelj, philj;
 
@@ -374,7 +376,7 @@ double PairLJSphere::single(int i, int j, int itype, int jtype, double rsq, doub
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJSphere::extract(const char *str, int &dim)
+void *PairLJCutSphere::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str, "epsilon") == 0) return (void *) epsilon;

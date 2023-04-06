@@ -17,22 +17,22 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sphere/omp,PairLJSphereOMP);
+PairStyle(lj/cut/sphere/omp,PairLJCutSphereOMP);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_LJ_SPHERE_OMP_H
-#define LMP_PAIR_LJ_SPHERE_OMP_H
+#ifndef LMP_PAIR_LJ_CUT_SPHERE_OMP_H
+#define LMP_PAIR_LJ_CUT_SPHERE_OMP_H
 
-#include "pair_lj_sphere.h"
+#include "pair_lj_cut_sphere.h"
 #include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairLJSphereOMP : public PairLJSphere, public ThrOMP {
+class PairLJCutSphereOMP : public PairLJCutSphere, public ThrOMP {
 
  public:
-  PairLJSphereOMP(class LAMMPS *);
+  PairLJCutSphereOMP(class LAMMPS *);
 
   void compute(int, int) override;
   double memory_usage() override;

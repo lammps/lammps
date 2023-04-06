@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sphere,PairLJSphere);
+PairStyle(lj/expand/sphere,PairLJExpandSphere);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_LJ_SPHERE_H
-#define LMP_PAIR_LJ_SPHERE_H
+#ifndef LMP_PAIR_LJ_EXPAND_SPHERE_H
+#define LMP_PAIR_LJ_EXPAND_SPHERE_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairLJSphere : public Pair {
+class PairLJExpandSphere : public Pair {
  public:
-  PairLJSphere(class LAMMPS *);
-  ~PairLJSphere() override;
+  PairLJExpandSphere(class LAMMPS *);
+  ~PairLJExpandSphere() override;
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
@@ -47,6 +47,7 @@ class PairLJSphere : public Pair {
   double *rmax;
   double **cut;
   double **epsilon;
+  double **sigma;
 
   virtual void allocate();
 };

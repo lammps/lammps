@@ -250,12 +250,14 @@ accelerated styles exist.
 * :doc:`lj/cut/dipole/cut <pair_dipole>` - point dipoles with cutoff
 * :doc:`lj/cut/dipole/long <pair_dipole>` - point dipoles with long-range Ewald
 * :doc:`lj/cut/soft <pair_fep_soft>` - LJ with a soft core
+* :doc:`lj/cut/sphere <pair_lj_cut_sphere>` - LJ where per-atom radius is used as LJ sigma
 * :doc:`lj/cut/thole/long <pair_thole>` - LJ with Coulomb with thole damping
 * :doc:`lj/cut/tip4p/cut <pair_lj_cut_tip4p>` - LJ with cutoff Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long <pair_lj_cut_tip4p>` - LJ with long-range Coulomb for TIP4P water
 * :doc:`lj/cut/tip4p/long/soft <pair_fep_soft>` - LJ with cutoff Coulomb for TIP4P water with a soft core
 * :doc:`lj/expand <pair_lj_expand>` - Lennard-Jones for variable size particles
 * :doc:`lj/expand/coul/long <pair_lj_expand>` - Lennard-Jones for variable size particles with long-range Coulomb
+* :doc:`lj/expand/sphere <pair_lj_sphere>` - Variable size LJ where per-atom radius is used as delta (size)
 * :doc:`lj/gromacs <pair_gromacs>` - GROMACS-style Lennard-Jones potential
 * :doc:`lj/gromacs/coul/gromacs <pair_gromacs>` - GROMACS-style LJ and Coulomb potential
 * :doc:`lj/long/coul/long <pair_lj_long>` - long-range LJ and long-range Coulomb
@@ -264,7 +266,6 @@ accelerated styles exist.
 * :doc:`lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulomb for TIP4P water
 * :doc:`lj/mdf <pair_mdf>` - LJ potential with a taper function
 * :doc:`lj/relres <pair_lj_relres>` - LJ using multiscale Relative Resolution (RelRes) methodology :ref:`(Chaimovich) <Chaimovich2>`.
-* :doc:`lj/sphere <pair_lj_sphere>` - LJ where per-atom radius is used as LJ sigma
 * :doc:`lj/spica <pair_spica>` - LJ for SPICA coarse-graining
 * :doc:`lj/spica/coul/long <pair_spica>` - LJ for SPICA coarse-graining with long-range Coulomb
 * :doc:`lj/spica/coul/msm <pair_spica>` - LJ for SPICA coarse-graining with long-range Coulomb via MSM

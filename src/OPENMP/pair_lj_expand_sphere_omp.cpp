@@ -12,7 +12,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "pair_lj_sphere_omp.h"
+#include "pair_lj_expand_sphere_omp.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -28,14 +28,14 @@ using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSphereOMP::PairLJSphereOMP(LAMMPS *lmp) : PairLJSphere(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJExpandSphereOMP::PairLJExpandSphereOMP(LAMMPS *lmp) : PairLJExpandSphere(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSphereOMP::compute(int eflag, int vflag)
+void PairLJExpandSphereOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
 
@@ -78,7 +78,7 @@ void PairLJSphereOMP::compute(int eflag, int vflag)
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-void PairLJSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
+void PairLJExpandSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
 {
   const auto *_noalias const x = (dbl3_t *) atom->x[0];
   auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
@@ -172,10 +172,10 @@ void PairLJSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJSphereOMP::memory_usage()
+double PairLJExpandSphereOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairLJSphere::memory_usage();
+  bytes += PairLJExpandSphere::memory_usage();
 
   return bytes;
 }

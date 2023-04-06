@@ -325,6 +325,14 @@ void FixMDIQM::init()
     ierr = MDI_Check_command_exists("@DEFAULT", "<STRESS", mdicomm, &stress_exists);
     if (ierr) error->all(FLERR, "MDI: <STRESS command check");
     MPI_Bcast(&stress_exists, 1, MPI_INT, 0, world);
+
+    ierr = MDI_Check_command_exists("@DEFAULT", "<PE", mdicomm, &pe_exists);
+    if (ierr) error->all(FLERR, "MDI: <PE command check");
+    MPI_Bcast(&pe_exists, 1, MPI_INT, 0, world);
+
+    ierr = MDI_Check_command_exists("@DEFAULT", "<KE_ELEC", mdicomm, &keelec_exists);
+    if (ierr) error->all(FLERR, "MDI: <KE_ELEC command check");
+    MPI_Bcast(&keelec_exists, 1, MPI_INT, 0, world);
   }
 
   // extract pointers to MC variables from id_mcfix
@@ -506,10 +514,30 @@ void FixMDIQM::post_force(int vflag)
   // this triggers engine to perform QM calculation
   // qm_energy = fix output for global QM energy
 
-  ierr = MDI_Send_command("<PE", mdicomm);
-  if (ierr) error->all(FLERR, "MDI: <PE command");
-  ierr = MDI_Recv(&qm_energy, 1, MDI_DOUBLE, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: <PE data");
+  if (pe_exists && keelec_exists) {
+    int pe_energy, keelec_energy;
+
+    // get the total potential energy
+    ierr = MDI_Send_command("<PE", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <PE command");
+    ierr = MDI_Recv(&pe_energy, 1, MDI_DOUBLE, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <PE data");
+
+    // get the kinetic energy of the electrons
+    ierr = MDI_Send_command("<KE_ELEC", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <KE_ELEC command");
+    ierr = MDI_Recv(&keelec_energy, 1, MDI_DOUBLE, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <KE_ELEC data");
+
+    qm_energy = pe_energy + keelec_energy;
+  }
+  else {
+    // get the total energy
+    ierr = MDI_Send_command("<ENERGY", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <ENERGY command");
+    ierr = MDI_Recv(&qm_energy, 1, MDI_DOUBLE, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: <ENERGY data");
+  }
   MPI_Bcast(&qm_energy, 1, MPI_DOUBLE, 0, world);
   qm_energy *= mdi2lmp_energy;
 
@@ -974,17 +1002,35 @@ void FixMDIQM::send_box()
 {
   int ierr;
 
-  if (celldispl_exists) {
-    ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command");
-    ierr = MDI_Send(qm_cell_displ, 3, MDI_DOUBLE, mdicomm);
-    if (ierr) error->all(FLERR, "MDI: >CELL_DISPL data");
-  }
+  // Only send the cell dimensions if this is a periodic simulation
+  if ( domain->xperiodic == 1 &&
+       domain->yperiodic == 1 &&
+       domain->zperiodic == 1 ) {
 
-  ierr = MDI_Send_command(">CELL", mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >CELL command");
-  ierr = MDI_Send(qm_cell, 9, MDI_DOUBLE, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: >CELL data");
+    if (celldispl_exists) {
+      ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
+      if (ierr) error->all(FLERR, "MDI: >CELL_DISPL command");
+      ierr = MDI_Send(qm_cell_displ, 3, MDI_DOUBLE, mdicomm);
+      if (ierr) error->all(FLERR, "MDI: >CELL_DISPL data");
+    }
+
+    ierr = MDI_Send_command(">CELL", mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >CELL command");
+    ierr = MDI_Send(qm_cell, 9, MDI_DOUBLE, mdicomm);
+    if (ierr) error->all(FLERR, "MDI: >CELL data");
+
+  }
+  else {
+
+    if ( domain->xperiodic == 1 ||
+         domain->yperiodic == 1 ||
+         domain->zperiodic == 1 ) {
+
+      error->all(FLERR, "MDI: The QM driver does not work for simulations with both periodic and non-periodic dimensions.");
+
+    }
+
+  }
 }
 
 /* ----------------------------------------------------------------------

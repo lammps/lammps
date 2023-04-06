@@ -36,7 +36,6 @@ GranSubModStyle(dmt,
 GranSubModStyle(jkr,
          GranSubModNormalJKR,
          NORMAL);
-
 // clang-format on
 #else
 

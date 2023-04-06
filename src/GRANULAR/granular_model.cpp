@@ -109,9 +109,9 @@ int GranularModel::add_sub_model(char **arg, int iarg, int narg, SubModelType mo
     error->all(FLERR, "Must specify granular sub model name");
 
   std::string model_name = std::string(arg[iarg++]);
-  
+
   construct_sub_model(model_name, model_type);
-  
+
   int num_coeffs = sub_models[model_type]->num_coeffs;
   if (iarg + num_coeffs > narg)
     error->all(FLERR, "Insufficient arguments provided for {} model", model_name);
@@ -134,7 +134,6 @@ void GranularModel::construct_sub_model(std::string model_name, SubModelType mod
   int i;
   for (i = 0; i < nclass; i++) {
     if (gran_sub_mod_types[i] == model_type) {
-      
       if (strcmp(gran_sub_mod_names[i], model_name.c_str()) == 0) {
         GranSubModCreator &gran_sub_mod_creator = gran_sub_mod_class[i];
         delete sub_models[model_type];

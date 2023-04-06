@@ -40,9 +40,9 @@ class GranSubMod : protected Pointers {
   double *transfer_history_factor;
 
   int history_index;
-  int beyond_contact;  // If the sub model contact extends beyond overlap
-  int allow_cohesion;  // If the sub model works with a cohesive normal force
-  int contact_radius_flag;       // If the sub model requires contact radius
+  int beyond_contact;       // If the sub model contact extends beyond overlap
+  int allow_cohesion;       // If the sub model works with a cohesive normal force
+  int contact_radius_flag;  // If the sub model requires contact radius
 
   GranularModel *gm;
 

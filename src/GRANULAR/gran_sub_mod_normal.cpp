@@ -278,12 +278,12 @@ void GranSubModNormalJKR::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 bool GranSubModNormalJKR::touch()
 {
-  double pref, delta_pulloff, dist_pulloff;
+  double delta_pulloff, dist_pulloff;
   bool touchflag;
 
   if (gm->touch) {
     // delta_pulloff defined as positive so center-to-center separation is > radsum
-    delta_pulloff = JKRPREFIX * cbrt(gm->Reff * cohesion*cohesion / (Emix * Emix)); 
+    delta_pulloff = JKRPREFIX * cbrt(gm->Reff * cohesion * cohesion / (Emix * Emix));
     dist_pulloff = gm->radsum + delta_pulloff;
     touchflag = gm->rsq < (dist_pulloff * dist_pulloff);
   } else {
@@ -304,7 +304,7 @@ double GranSubModNormalJKR::pulloff_distance(double radi, double radj)
   Reff_tmp = radi * radj / (radi + radj); // May not be defined
   if (Reff_tmp <= 0) return 0;
   // Defined as positive so center-to-center separation is > radsum
-  return JKRPREFIX * cbrt(gm->Reff * cohesion*cohesion / (Emix * Emix));
+  return JKRPREFIX * cbrt(Reff_tmp * cohesion * cohesion / (Emix * Emix));
 }
 
 /* ---------------------------------------------------------------------- */

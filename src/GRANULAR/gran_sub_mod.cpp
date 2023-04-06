@@ -127,7 +127,9 @@ double GranSubMod::mix_geom(double val1, double val2)
   return sqrt(val1 * val2);
 }
 
+/* ---------------------------------------------------------------------- */
+
 double GranSubMod::mix_mean(double val1, double val2)
 {
-  return 0.5*(val1 + val2);
+  return 0.5 * (val1 + val2);
 }

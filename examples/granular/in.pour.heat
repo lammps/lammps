@@ -75,10 +75,5 @@ timestep        0.001
 
 #dump           1 all custom 1000 ${name}.dump id type radius mass x y z temperature heatflow
 
-#For removal later
-compute         1 all property/atom radius
-variable        zmax atom z+c_1>0.5*${drum_height}
-group           delgroup dynamic all var zmax every 10000
-
 run             100000
 

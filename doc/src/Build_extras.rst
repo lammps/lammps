@@ -683,20 +683,11 @@ This list was last updated for version 3.7.1 of the Kokkos library.
          -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
          -D Kokkos_ENABLE_CUDA=yes
          -D Kokkos_ENABLE_OPENMP=yes
-         -D CMAKE_CXX_COMPILER=wrapper # wrapper = full path to Cuda nvcc wrapper
 
       This will also enable executing FFTs on the GPU, either via the
       internal KISSFFT library, or - by preference - with the cuFFT
       library bundled with the CUDA toolkit, depending on whether CMake
-      can identify its location.  The *wrapper* value for
-      ``CMAKE_CXX_COMPILER`` variable is the path to the CUDA nvcc
-      compiler wrapper provided in the Kokkos library:
-      ``lib/kokkos/bin/nvcc_wrapper``\ .  The setting should include the
-      full path name to the wrapper, e.g.
-
-      .. code-block:: bash
-
-         -D CMAKE_CXX_COMPILER=${HOME}/lammps/lib/kokkos/bin/nvcc_wrapper
+      can identify its location.
 
       For AMD or NVIDIA GPUs using HIP, set these variables:
 

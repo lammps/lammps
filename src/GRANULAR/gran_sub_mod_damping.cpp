@@ -82,14 +82,14 @@ double GranSubModDampingMassVelocity::calculate_forces()
 
 GranSubModDampingViscoelastic::GranSubModDampingViscoelastic(GranularModel *gm, LAMMPS *lmp) : GranSubModDamping(gm, lmp)
 {
-  area_flag = 1;
+  contact_radius_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 double GranSubModDampingViscoelastic::calculate_forces()
 {
-  damp_prefactor = damp * gm->meff * gm->area;
+  damp_prefactor = damp * gm->meff * gm->contact_radius;
   return -damp_prefactor * gm->vnnr;
 }
 

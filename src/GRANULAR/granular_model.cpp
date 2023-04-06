@@ -109,8 +109,9 @@ int GranularModel::add_sub_model(char **arg, int iarg, int narg, SubModelType mo
     error->all(FLERR, "Must specify granular sub model name");
 
   std::string model_name = std::string(arg[iarg++]);
+  
   construct_sub_model(model_name, model_type);
-
+  
   int num_coeffs = sub_models[model_type]->num_coeffs;
   if (iarg + num_coeffs > narg)
     error->all(FLERR, "Insufficient arguments provided for {} model", model_name);
@@ -133,6 +134,7 @@ void GranularModel::construct_sub_model(std::string model_name, SubModelType mod
   int i;
   for (i = 0; i < nclass; i++) {
     if (gran_sub_mod_types[i] == model_type) {
+      
       if (strcmp(gran_sub_mod_names[i], model_name.c_str()) == 0) {
         GranSubModCreator &gran_sub_mod_creator = gran_sub_mod_class[i];
         delete sub_models[model_type];
@@ -241,7 +243,7 @@ void GranularModel::init()
 
   int size_cumulative;
   size_history = 0;
-  area_flag = 0;
+  contact_radius_flag = 0;
   for (int i = 0; i < NSUBMODELS; i++) {
     if (sub_models[i]->nondefault_history_transfer)
       nondefault_history_transfer = 1;
@@ -251,7 +253,7 @@ void GranularModel::init()
     if (!sub_models[i]->allow_cohesion && normal_model->cohesive_flag)
       error->all(FLERR,"Cannot use {} model with a cohesive normal model, {}",
                  sub_models[i]->name, normal_model->name);
-    if (sub_models[i]->area_flag) area_flag = 1;
+    if (sub_models[i]->contact_radius_flag) contact_radius_flag = 1;
   }
 
   if (limit_damping && normal_model->cohesive_flag)
@@ -414,8 +416,8 @@ void GranularModel::calculate_forces()
 
   // calculate forces/torques
   double Fdamp, dist_to_contact;
-  if (area_flag)
-    area = normal_model->calculate_area();
+  if (contact_radius_flag)
+    contact_radius = normal_model->calculate_contact_radius();
   Fnormal = normal_model->calculate_forces();
 
   Fdamp = damping_model->calculate_forces();

@@ -104,7 +104,7 @@ void GranSubModTangentialLinearHistory::coeffs_to_local()
 
 void GranSubModTangentialLinearHistory::calculate_forces()
 {
-  // Note: this is the same as the base Mindlin calculation except k isn't scaled by area
+  // Note: this is the same as the base Mindlin calculation except k isn't scaled by contact radius
   double magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl, temp_array[3];
   int frame_update = 0;
 
@@ -167,7 +167,7 @@ void GranSubModTangentialLinearHistory::calculate_forces()
 
 GranSubModTangentialLinearHistoryClassic::GranSubModTangentialLinearHistoryClassic(GranularModel *gm, LAMMPS *lmp) : GranSubModTangentialLinearHistory(gm, lmp)
 {
-  area_flag = 1; // Sets gran/hooke/history behavior
+  contact_radius_flag = 1; // Sets gran/hooke/history behavior
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,7 +198,7 @@ void GranSubModTangentialLinearHistoryClassic::calculate_forces()
   }
 
   // tangential forces = history + tangential velocity damping
-  if (area_flag) scale3(-k * gm->area, history, gm->fs);
+  if (contact_radius_flag) scale3(-k * gm->contact_radius, history, gm->fs);
   else scale3(-k, history, gm->fs);
   scale3(damp, gm->vtr, temp_array);
   sub3(gm->fs, temp_array, gm->fs);
@@ -225,7 +225,7 @@ void GranSubModTangentialLinearHistoryClassic::calculate_forces()
 
 GranSubModTangentialMindlinClassic::GranSubModTangentialMindlinClassic(GranularModel *gm, LAMMPS *lmp) : GranSubModTangentialLinearHistoryClassic(gm, lmp)
 {
-  area_flag = 1; // Sets gran/hertz/history behavior
+  contact_radius_flag = 1; // Sets gran/hertz/history behavior
 }
 
 /* ----------------------------------------------------------------------
@@ -238,7 +238,7 @@ GranSubModTangentialMindlin::GranSubModTangentialMindlin(GranularModel *gm, LAMM
   size_history = 3;
   mindlin_force = 0;
   mindlin_rescale = 0;
-  area_flag = 1;
+  contact_radius_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -291,12 +291,12 @@ void GranSubModTangentialMindlin::calculate_forces()
   double *history = & gm->history[history_index];
   double Fscrit = gm->normal_model->Fncrit * mu;
 
-  k_scaled = k * gm->area;
+  k_scaled = k * gm->contact_radius;
 
   // on unloading, rescale the shear displacements/force
   if (mindlin_rescale)
-    if (gm->area < history[3])
-      scale3(gm->area / history[3], history);
+    if (gm->contact_radius < history[3])
+      scale3(gm->contact_radius / history[3], history);
 
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
@@ -330,7 +330,7 @@ void GranSubModTangentialMindlin::calculate_forces()
     }
     add3(history, temp_array, history);
 
-    if (mindlin_rescale) history[3] = gm->area;
+    if (mindlin_rescale) history[3] = gm->contact_radius;
   }
 
   // tangential forces = history + tangential velocity damping

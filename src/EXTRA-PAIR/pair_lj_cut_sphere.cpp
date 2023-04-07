@@ -197,7 +197,7 @@ void PairLJCutSphere::coeff(int narg, char **arg)
 
   double epsilon_one = utils::numeric(FLERR, arg[2], false, lmp);
   double cut_one = cut_global;
-  if (narg == 5) cut_one = utils::numeric(FLERR, arg[4], false, lmp);
+  if (narg == 4) cut_one = utils::numeric(FLERR, arg[3], false, lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

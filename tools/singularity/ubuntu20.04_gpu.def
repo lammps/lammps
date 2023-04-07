@@ -31,9 +31,9 @@ From: ubuntu:20.04
     amdgpu-install --usecase=rocm --no-dkms -y
 
     ###########################################################################
-    # ROCm hipCUB
+    # ROCm hipCUB and hipFFT
     ###########################################################################
-    apt-get install -y hipcub-dev
+    apt-get install -y hipcub-dev hipfft-dev
 
     ###########################################################################
     # Common Software

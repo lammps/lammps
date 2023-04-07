@@ -294,6 +294,8 @@ LAMMPS can also be used as an MDI driver in other unit choices it
 supports, e.g. *lj*, but then no unit conversion to MDI units is
 performed.
 
+If this fix is used in conjuction with a QM code that does not support periodic boundary conditions (more specifically, a QM code that does not support the ``>CELL`` MDI command), the LAMMPS input file must specify non-periodic boundary conditions.
+
 Related commands
 """"""""""""""""
 

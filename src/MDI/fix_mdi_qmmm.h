@@ -68,7 +68,7 @@ class FixMDIQMMM : public Fix {
 
   MDI_Comm mdicomm;
   int natoms_exists,celldispl_exists,elements_exists,types_exists;
-  int stress_exists;
+  int stress_exists, pe_exists, keelec_exists;
 
   int nmax;
 
@@ -155,6 +155,8 @@ class FixMDIQMMM : public Fix {
   void send_types_mm();
   void send_elements_mm();
   void send_charges_mm();
+
+  void get_qm_energy();
 
   void unit_conversions();
 

@@ -46,8 +46,8 @@ class PairLJExpandSphere : public Pair {
   double cut_global;
   double *rmax;
   double **cut;
-  double **epsilon;
-  double **sigma;
+  double **epsilon, **sigma;
+  double **lj1, **lj2, **lj3, **lj4;
 
   virtual void allocate();
 };

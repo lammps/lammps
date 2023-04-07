@@ -28,7 +28,8 @@ using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJExpandSphereOMP::PairLJExpandSphereOMP(LAMMPS *lmp) : PairLJExpandSphere(lmp), ThrOMP(lmp, THR_PAIR)
+PairLJExpandSphereOMP::PairLJExpandSphereOMP(LAMMPS *lmp) :
+    PairLJExpandSphere(lmp), ThrOMP(lmp, THR_PAIR)
 {
   suffix_flag |= Suffix::OMP;
 }
@@ -90,7 +91,7 @@ void PairLJExpandSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
   const int *const *const firstneigh = list->firstneigh;
 
   double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, fxtmp, fytmp, fztmp;
-  double rcutsq, rsq, r2inv, r6inv, forcelj, factor_lj, evdwl, sigma, sigma6, fpair;
+  double r, rshift, rshiftsq, rsq, r2inv, r6inv, forcelj, factor_lj, evdwl, fpair;
 
   const int nlocal = atom->nlocal;
   int j, jj, jnum, jtype;
@@ -104,7 +105,13 @@ void PairLJExpandSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
     const int itype = type[i];
     const int *_noalias const jlist = firstneigh[i];
     const double *_noalias const epsiloni = epsilon[itype];
+    const double *_noalias const sigmai = sigma[itype];
     const double *_noalias const cutsqi = cutsq[itype];
+    const double *_noalias const cuti = cut[itype];
+    const double *_noalias const lj1i = lj1[itype];
+    const double *_noalias const lj2i = lj2[itype];
+    const double *_noalias const lj3i = lj3[itype];
+    const double *_noalias const lj4i = lj4[itype];
 
     xtmp = x[i].x;
     ytmp = x[i].y;
@@ -128,17 +135,17 @@ void PairLJExpandSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
 
         // cutsq is maximum cutoff per type. Now compute and apply real cutoff
 
-        sigma = 2.0 * mix_distance(rtmp, radius[j]);
-        rcutsq = square(cut[itype][jtype] * sigma);
+        r = sqrt(rsq);
+        rshift = r - rtmp - radius[j];
 
-        if (rsq < rcutsq) {
+        if (rshift < cuti[jtype]) {
+          rshiftsq = rshift * rshift;
 
-          r2inv = 1.0 / rsq;
+          r2inv = 1.0 / rshiftsq;
           r6inv = r2inv * r2inv * r2inv;
 
-          sigma6 = powint(sigma, 6);
-          forcelj = r6inv * 24.0 * epsiloni[jtype] * (2.0 * sigma6 * sigma6 * r6inv - sigma6);
-          fpair = factor_lj * forcelj * r2inv;
+          forcelj = r6inv * (lj1i[jtype] * r6inv - lj2i[jtype]);
+          fpair = factor_lj * forcelj * rshift / r;
 
           fxtmp += delx * fpair;
           fytmp += dely * fpair;
@@ -150,10 +157,9 @@ void PairLJExpandSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
           }
 
           if (EFLAG) {
-            evdwl = r6inv * 4.0 * epsiloni[jtype];
-            evdwl *= sigma6 * sigma6 * r6inv - sigma6;
-            if (offset_flag && (cutsqi[jtype] > 0.0)) {
-              const double ratio6 = sigma6 / powint(rcutsq, 3);
+            evdwl = r6inv * (lj3i[jtype] * r6inv - lj4i[jtype]);
+            if (offset_flag && (rshiftsq > 0.0)) {
+              double ratio6 = powint(sigmai[jtype] / (cuti[jtype] + rtmp + radius[j]), 6);
               evdwl -= 4.0 * epsiloni[jtype] * (ratio6 * ratio6 - ratio6);
             }
             evdwl *= factor_lj;

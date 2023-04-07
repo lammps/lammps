@@ -33,7 +33,8 @@ using MathSpecial::square;
 /* ---------------------------------------------------------------------- */
 
 PairLJExpandSphere::PairLJExpandSphere(LAMMPS *lmp) :
-    Pair(lmp), rmax(nullptr), cut(nullptr), epsilon(nullptr)
+    Pair(lmp), rmax(nullptr), cut(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr)
 {
   writedata = 1;
 }
@@ -49,6 +50,11 @@ PairLJExpandSphere::~PairLJExpandSphere()
     memory->destroy(rmax);
     memory->destroy(cut);
     memory->destroy(epsilon);
+    memory->destroy(sigma);
+    memory->destroy(lj1);
+    memory->destroy(lj2);
+    memory->destroy(lj3);
+    memory->destroy(lj4);
   }
 }
 
@@ -57,8 +63,8 @@ PairLJExpandSphere::~PairLJExpandSphere()
 void PairLJExpandSphere::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, evdwl, sigma, sigma6, fpair;
-  double rcutsq, rsq, r2inv, r6inv, forcelj, factor_lj;
+  double xtmp, ytmp, ztmp, rtmp, delx, dely, delz, evdwl, fpair;
+  double r, rshift, rshiftsq, rsq, r2inv, r6inv, forcelj, factor_lj;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
@@ -104,15 +110,17 @@ void PairLJExpandSphere::compute(int eflag, int vflag)
 
         // cutsq is maximum cutoff per type. Now compute and apply real cutoff
 
-        sigma = 2.0 * mix_distance(rtmp, radius[j]);
-        rcutsq = square(cut[itype][jtype] * sigma);
-        if (rsq < rcutsq) {
+        r = sqrt(rsq);
+        rshift = r - rtmp - radius[j];
 
-          r2inv = 1.0 / rsq;
+        if (rshift < cut[itype][jtype]) {
+          rshiftsq = rshift * rshift;
+
+          r2inv = 1.0 / rshiftsq;
           r6inv = r2inv * r2inv * r2inv;
-          sigma6 = powint(sigma, 6);
-          forcelj = r6inv * 24.0 * epsilon[itype][jtype] * (2.0 * sigma6 * sigma6 * r6inv - sigma6);
-          fpair = factor_lj * forcelj * r2inv;
+
+          forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
+          fpair = factor_lj * forcelj * rshift / r;
 
           f[i][0] += delx * fpair;
           f[i][1] += dely * fpair;
@@ -124,10 +132,10 @@ void PairLJExpandSphere::compute(int eflag, int vflag)
           }
 
           if (eflag) {
-            evdwl = r6inv * 4.0 * epsilon[itype][jtype];
-            evdwl *= sigma6 * sigma6 * r6inv - sigma6;
-            if (offset_flag && (rcutsq > 0.0)) {
-              double ratio6 = sigma6 / powint(rcutsq, 3);
+            evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]);
+            if (offset_flag && (rshiftsq > 0.0)) {
+              double ratio6 =
+                  powint(sigma[itype][jtype] / (cut[itype][jtype] + rtmp + radius[j]), 6);
               evdwl -= 4.0 * epsilon[itype][jtype] * (ratio6 * ratio6 - ratio6);
             }
             evdwl *= factor_lj;
@@ -149,17 +157,22 @@ void PairLJExpandSphere::compute(int eflag, int vflag)
 void PairLJExpandSphere::allocate()
 {
   allocated = 1;
-  int n = atom->ntypes + 1;
+  int np1 = atom->ntypes + 1;
 
-  memory->create(setflag, n, n, "pair:setflag");
-  for (int i = 1; i < n; i++)
-    for (int j = i; j < n; j++) setflag[i][j] = 0;
+  memory->create(setflag, np1, np1, "pair:setflag");
+  for (int i = 1; i < np1; i++)
+    for (int j = i; j < np1; j++) setflag[i][j] = 0;
 
-  memory->create(cutsq, n, n, "pair:cutsq");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
 
-  memory->create(rmax, n, "pair:rmax");
-  memory->create(cut, n, n, "pair:cut");
-  memory->create(epsilon, n, n, "pair:epsilon");
+  memory->create(rmax, np1, "pair:rmax");
+  memory->create(cut, np1, np1, "pair:cut");
+  memory->create(epsilon, np1, np1, "pair:epsilon");
+  memory->create(sigma, np1, np1, "pair:sigma");
+  memory->create(lj1, np1, np1, "pair:lj1");
+  memory->create(lj2, np1, np1, "pair:lj2");
+  memory->create(lj3, np1, np1, "pair:lj3");
+  memory->create(lj4, np1, np1, "pair:lj4");
 }
 
 /* ----------------------------------------------------------------------
@@ -188,7 +201,7 @@ void PairLJExpandSphere::settings(int narg, char **arg)
 
 void PairLJExpandSphere::coeff(int narg, char **arg)
 {
-  if (narg < 3 || narg > 4) error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg < 4 || narg > 5) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -196,6 +209,7 @@ void PairLJExpandSphere::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
   double epsilon_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double sigma_one = utils::numeric(FLERR, arg[3], false, lmp);
   double cut_one = cut_global;
   if (narg == 5) cut_one = utils::numeric(FLERR, arg[4], false, lmp);
 
@@ -203,6 +217,7 @@ void PairLJExpandSphere::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo, i); j <= jhi; j++) {
       epsilon[i][j] = epsilon_one;
+      sigma[i][j] = sigma_one;
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
       count++;
@@ -222,9 +237,6 @@ void PairLJExpandSphere::init_style()
 
   if (!atom->radius_flag)
     error->all(FLERR, "Pair style lj/expand/sphere requires atom attribute radius");
-  if (mix_flag == SIXTHPOWER)
-    error->all(FLERR,
-               "Pair_modify mix sixthpower is not compatible with pair style lj/expand/sphere");
 
   // determine max radius per type
 
@@ -248,15 +260,26 @@ double PairLJExpandSphere::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
     epsilon[i][j] = mix_energy(epsilon[i][i], epsilon[j][j], 0.0, 0.0);
+    sigma[i][j] = mix_distance(sigma[i][i], sigma[j][j]);
     cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
   }
 
+  lj1[i][j] = 48.0 * epsilon[i][j] * powint(sigma[i][j], 12);
+  lj2[i][j] = 24.0 * epsilon[i][j] * powint(sigma[i][j], 6);
+  lj3[i][j] = 4.0 * epsilon[i][j] * powint(sigma[i][j], 12);
+  lj4[i][j] = 4.0 * epsilon[i][j] * powint(sigma[i][j], 6);
+
   epsilon[j][i] = epsilon[i][j];
+  sigma[j][i] = sigma[i][j];
   cut[j][i] = cut[i][j];
 
-  // since cut is a scaled by the mixed diameter, report maximum possible cutoff.
+  lj1[j][i] = lj1[i][j];
+  lj2[j][i] = lj2[i][j];
+  lj3[j][i] = lj3[i][j];
+  lj4[j][i] = lj4[i][j];
 
-  return cut[i][j] * 2.0 * mix_distance(rmax[i], rmax[j]);
+  // delta parameter is the sum of the radii
+  return cut[i][j] + rmax[i] + rmax[j];
 }
 
 /* ----------------------------------------------------------------------
@@ -273,6 +296,7 @@ void PairLJExpandSphere::write_restart(FILE *fp)
       fwrite(&setflag[i][j], sizeof(int), 1, fp);
       if (setflag[i][j]) {
         fwrite(&epsilon[i][j], sizeof(double), 1, fp);
+        fwrite(&sigma[i][j], sizeof(double), 1, fp);
         fwrite(&cut[i][j], sizeof(double), 1, fp);
       }
     }
@@ -296,9 +320,11 @@ void PairLJExpandSphere::read_restart(FILE *fp)
       if (setflag[i][j]) {
         if (me == 0) {
           utils::sfread(FLERR, &epsilon[i][j], sizeof(double), 1, fp, nullptr, error);
+          utils::sfread(FLERR, &sigma[i][j], sizeof(double), 1, fp, nullptr, error);
           utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
         }
         MPI_Bcast(&epsilon[i][j], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&sigma[i][j], 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&cut[i][j], 1, MPI_DOUBLE, 0, world);
       }
     }
@@ -338,7 +364,7 @@ void PairLJExpandSphere::read_restart_settings(FILE *fp)
 
 void PairLJExpandSphere::write_data(FILE *fp)
 {
-  for (int i = 1; i <= atom->ntypes; i++) fprintf(fp, "%d %g\n", i, epsilon[i][i]);
+  for (int i = 1; i <= atom->ntypes; i++) fprintf(fp, "%d %g %g\n", i, epsilon[i][i], sigma[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -349,7 +375,7 @@ void PairLJExpandSphere::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp, "%d %d %g %g\n", i, j, epsilon[i][j], cut[i][j]);
+      fprintf(fp, "%d %d %g %g %g\n", i, j, epsilon[i][j], sigma[i][j], cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -357,20 +383,24 @@ void PairLJExpandSphere::write_data_all(FILE *fp)
 double PairLJExpandSphere::single(int i, int j, int itype, int jtype, double rsq,
                                   double /*factor_coul*/, double factor_lj, double &fforce)
 {
-  double r2inv, r6inv, rcutsq, sigma, sigma6, forcelj, philj;
+  double r2inv, r6inv, r, rshift, rshiftsq, forcelj, philj;
+  double *radius = atom->radius;
 
-  sigma = 2.0 * mix_distance(atom->radius[i], atom->radius[j]);
-  rcutsq = square(cut[itype][jtype] * sigma);
-  sigma6 = powint(sigma, 6);
-  r2inv = 1.0 / rsq;
-  r6inv = r2inv * r2inv * r2inv;
-  forcelj = r6inv * 24.0 * epsilon[itype][jtype] * (sigma6 * sigma6 * r6inv - sigma6);
-  fforce = factor_lj * forcelj * r2inv;
+  fforce = philj = 0.0;
+  r = sqrt(rsq);
+  rshift = r - radius[i] - radius[j];
+  if (rshift < cut[itype][jtype]) {
+    rshiftsq = rshift * rshift;
+    r2inv = 1.0 / rshiftsq;
+    r6inv = r2inv * r2inv * r2inv;
+    forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
+    fforce = factor_lj * forcelj * rshift / r;
 
-  philj = r6inv * 4.0 * epsilon[itype][jtype] * (sigma6 * sigma6 * r6inv - sigma6);
-  if (offset_flag && (rcutsq > 0.0)) {
-    double ratio6 = sigma6 / powint(rcutsq, 3);
-    philj -= 4.0 * epsilon[itype][jtype] * (ratio6 * ratio6 - ratio6);
+    philj = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]);
+    if (offset_flag && (rshiftsq > 0.0)) {
+      double ratio6 = powint(sigma[itype][jtype] / (cut[itype][jtype] + radius[i] + radius[j]), 6);
+      philj -= 4.0 * epsilon[itype][jtype] * (ratio6 * ratio6 - ratio6);
+    }
   }
   return factor_lj * philj;
 }
@@ -381,5 +411,6 @@ void *PairLJExpandSphere::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
   return nullptr;
 }

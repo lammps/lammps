@@ -18,8 +18,8 @@ Syntax
 
 .. parsed-literal::
 
-     *lj/expand/sphere* args = cutoff ratio
-       cutoff = global cutoff ratio for Lennard Jones interactions (unitless)
+     *lj/expand/sphere* args = cutoff
+       cutoff = global cutoff for Lennard Jones interactions (distance units)
 
 Examples
 """"""""
@@ -27,38 +27,40 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style lj/expand/sphere 2.5
-   pair_coeff * * 1.0
-   pair_coeff 1 1 1.1 2.8
+   pair_coeff * * 1.0 1.0
+   pair_coeff 1 1 1.1 0.4 2.8
 
 Description
 """""""""""
 
-The *lj/expand/sphere* style compute the standard 12/6 Lennard-Jones potential,
-given by
+The *lj/expand/sphere* style compute a 12/6 Lennard-Jones potential with
+a distance shifted by :math:`\Delta = \frac{1}{2} (d_i + d_j)`, the
+average diameter of both atoms.  This can be used to model particles of
+different sizes but same interactions, which is different from using
+different sigma values as in :doc:`pair style lj/cut/sphere
+<pair_lj_cut_sphere>`.
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma_{ij}}{r}\right)^{12} -
-       \left(\frac{\sigma_{ij}}{r}\right)^6 \right]  \qquad  r < r_c * \sigma_{ij}
+   E = 4 \epsilon \left[ \left(\frac{\sigma}{r - \Delta}\right)^{12} -
+     \left(\frac{\sigma}{r - \Delta}\right)^6 \right]
+     \qquad r < r_c + \Delta
 
-:math:`r_c` is the cutoff ratio.
+:math:`r_c` is the cutoff ratio which does not include the `\Delta`
+:math:distance.  I.e. the actual force cutoff is the sum
+:math:`r_c + \Delta`.
 
-This is the same potential function used by the :doc:`lj/cut
-<pair_lj>` pair style, but the :math:`\sigma_{ij}` parameter is not
+This is the same potential function used by the :doc:`lj/expand
+<pair_lj>` pair style, but the :math:`\Delta` parameter is not
 set as a per-type parameter via the :doc:`pair_coeff command
 <pair_coeff>`.  Instead it is calculated individually for each pair
 using the per-atom diameter attribute of :doc:`atom_style sphere
-<atom_style>` for the two atoms as :math:`\sigma_{i}` and
-:math:`\sigma_{j}`; :math:`\sigma_{ij}` is then computed by the mixing
-rule for pair coefficients as set by the :doc:`pair_modify mix
-<pair_modify>` command (defaults to geometric mixing).  The cutoff is
-not specified as a distance, but as ratio that is internally
-multiplied by :math:`\sigma_{ij}` to obtain the actual cutoff for each
-pair of atoms.
+<atom_style>` for the two atoms as the average diameter, :math:`\Delta = \frac{1}{2} (d_i + d_j)`
+The cutoff is the specified cutoff :math:`r_c` plus the shift distance :math:`\Delta`.
 
-Note that :math:`\sigma_{ij}` is defined in the LJ formula above as the
+Note that :math:`\sigma` is defined in the LJ formula above as the
 zero-crossing distance for the potential, *not* as the energy minimum which
-is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
+is at :math:`2^{\frac{1}{6}} \sigma`.
 
 .. admonition:: Notes on cutoffs, neighbor lists, and efficiency
    :class: note
@@ -107,7 +109,7 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
       set group largea type 2
 
       pair_style      lj/expand/sphere 2.5
-      pair_coeff      * * 1.0
+      pair_coeff      * * 1.0 1.0
 
       neighbor 0.3 multi
 

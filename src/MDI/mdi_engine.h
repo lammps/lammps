@@ -125,6 +125,7 @@ class MDIEngine : protected Pointers {
   void send_labels();
   void send_natoms();
   void send_pe();
+  void send_ke_elec();
   void send_stress();
 
   void send_double1(int);

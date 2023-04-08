@@ -5,7 +5,7 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
   if(NOT PLUMED_BUILD_DIR)
     message(FATAL_ERROR "Must set PLUMED_BUILD_DIR when cross-compiling for Windows")
   else()
-    set(PLUMED_INSTALL_DIR "${PLUMED_BUILD_DIR/src/lib/install")
+    set(PLUMED_INSTALL_DIR "${PLUMED_BUILD_DIR}/src/lib/install")
   endif()
   add_library(LAMMPS::PLUMED UNKNOWN IMPORTED)
   set_target_properties(LAMMPS::PLUMED PROPERTIES

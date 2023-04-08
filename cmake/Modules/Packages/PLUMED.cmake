@@ -13,10 +13,14 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     INTERFACE_LINK_LIBRARIES "-Wl,--image-base -Wl,0x10000000 -lfftw3 -lz  -fstack-protector -lssp -fopenmp"
     INTERFACE_INCLUDE_DIRECTORIES "${PLUMED_BUILD_DIR}/src/include")
   target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)
-  add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/plumed.exe
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PLUMED_INSTALL_DIR}/plumed.exe)
-  add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/plumed_patches
-    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${PLUMED_BUILD_DIR}/patches)
+
+  add_custom_target(copy_plumed ALL ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed_patches
+    COMMAND ${CMAKE_COMMAND} -E copy ${PLUMED_INSTALL_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed.exe
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUMED_BUILD_DIR}/patches ${CMAKE_BINARY_DIR}/plumed_patches
+    BYPRODUCTS ${CMAKE_BINARY_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed_patches
+    COMMENT "Copying Plumed files"
+  )
+
 else()
 
   set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.2/plumed-src-2.8.2.tgz" CACHE STRING "URL for PLUMED tarball")

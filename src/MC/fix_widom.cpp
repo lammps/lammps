@@ -255,12 +255,22 @@ FixWidom::~FixWidom()
 
   if (exclusion_group_bit && group) {
     auto group_id = std::string("FixWidom:widom_exclusion_group:") + id;
-    group->assign(group_id + " delete");
+    try {
+      group->assign(group_id + " delete");
+    } catch (std::exception &e) {
+      if (comm->me == 0)
+        fprintf(stderr, "Error deleting group %s: %s\n", group_id.c_str(), e.what());
+    }
   }
 
   if (molecule_group_bit && group) {
     auto group_id = std::string("FixWidom:rotation_gas_atoms:") + id;
-    group->assign(group_id + " delete");
+    try {
+      group->assign(group_id + " delete");
+    } catch (std::exception &e) {
+      if (comm->me == 0)
+        fprintf(stderr, "Error deleting group %s: %s\n", group_id.c_str(), e.what());
+    }
   }
 
   if (full_flag && group && neighbor) {

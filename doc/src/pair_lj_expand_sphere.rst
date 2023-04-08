@@ -48,9 +48,8 @@ different sigma values as in :doc:`pair style lj/cut/sphere
      \left(\frac{\sigma}{r - \Delta}\right)^6 \right]
      \qquad r < r_c + \Delta
 
-:math:`r_c` is the cutoff ratio which does not include the `\Delta`
-:math:distance.  I.e. the actual force cutoff is the sum
-:math:`r_c + \Delta`.
+:math:`r_c` is the cutoff which does not include the distance :math:`\Delta`.
+I.e. the actual force cutoff is the sum :math:`r_c + \Delta`.
 
 This is the same potential function used by the :doc:`lj/expand
 <pair_lj>` pair style, but the :math:`\Delta` parameter is not
@@ -58,7 +57,6 @@ set as a per-type parameter via the :doc:`pair_coeff command
 <pair_coeff>`.  Instead it is calculated individually for each pair
 using the per-atom diameter attribute of :doc:`atom_style sphere
 <atom_style>` for the two atoms as the average diameter, :math:`\Delta = \frac{1}{2} (d_i + d_j)`
-The cutoff is the specified cutoff :math:`r_c` plus the shift distance :math:`\Delta`.
 
 Note that :math:`\sigma` is defined in the LJ formula above as the
 zero-crossing distance for the potential, *not* as the energy minimum which

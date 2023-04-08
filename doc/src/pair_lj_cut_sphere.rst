@@ -67,7 +67,7 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
 
    If your system is mildly polydisperse, meaning the ratio of the
    diameter of the largest particle to the smallest is less than 2.0,
-   then the neighbor lists built by the code should be resonably
+   then the neighbor lists built by the code should be reasonably
    efficient.  Which means they will not contain too many particle
    pairs that do not interact.  However, if your system is highly
    polydisperse (ratio > 2.0), the neighbor list build and force

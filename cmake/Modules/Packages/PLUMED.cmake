@@ -1,24 +1,31 @@
 # Plumed2 support for PLUMED package
 
-set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.2/plumed-src-2.8.2.tgz" CACHE STRING "URL for PLUMED tarball")
-set(PLUMED_MD5 "599092b6a0aa6fff992612537ad98994" CACHE STRING "MD5 checksum of PLUMED tarball")
-
-mark_as_advanced(PLUMED_URL)
-mark_as_advanced(PLUMED_MD5)
-GetFallbackURL(PLUMED_URL PLUMED_FALLBACK)
-
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
+  # special case for cross-compiling to windows with externally cross-compiled plumed tree
   if(NOT PLUMED_BUILD_DIR)
     message(FATAL_ERROR "Must set PLUMED_BUILD_DIR when cross-compiling for Windows")
+  else()
+    set(PLUMED_INSTALL_DIR "${PLUMED_BUILD_DIR/src/lib/install")
   endif()
   add_library(LAMMPS::PLUMED UNKNOWN IMPORTED)
   set_target_properties(LAMMPS::PLUMED PROPERTIES
-    IMPORTED_LOCATION ${PLUMED_BUILD_DIR}/lib/install/${CMAKE_STATIC_LIBRARY_PREFIX}plumed${CMAKE_STATIC_LIBRARY_SUFFIX}
+    IMPORTED_LOCATION "${PLUMED_INSTALL_DIR}/libplumed.a"
     INTERFACE_LINK_LIBRARIES "-Wl,--image-base -Wl,0x10000000 -lfftw3 -lz  -fstack-protector -lssp -fopenmp"
-    INTERFACE_INCLUDE_DIRECTORIES ${PLUMED_BUILD_DIR}/include)
+    INTERFACE_INCLUDE_DIRECTORIES "${PLUMED_BUILD_DIR}/src/include")
   target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)
-  target_compile_options(lammps PRIVATE -mcmodel=medium)
+  add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/plumed.exe
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${PLUMED_INSTALL_DIR}/plumed.exe)
+  add_custom_command(OUTPUT ${CMAKE_BINARY_DIR}/plumed_patches
+    COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different ${PLUMED_BUILD_DIR}/patches)
 else()
+
+  set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.2/plumed-src-2.8.2.tgz" CACHE STRING "URL for PLUMED tarball")
+  set(PLUMED_MD5 "599092b6a0aa6fff992612537ad98994" CACHE STRING "MD5 checksum of PLUMED tarball")
+
+  mark_as_advanced(PLUMED_URL)
+  mark_as_advanced(PLUMED_MD5)
+  GetFallbackURL(PLUMED_URL PLUMED_FALLBACK)
+
   set(PLUMED_MODE "static" CACHE STRING "Linkage mode for Plumed2 library")
   set(PLUMED_MODE_VALUES static shared runtime)
   set_property(CACHE PLUMED_MODE PROPERTY STRINGS ${PLUMED_MODE_VALUES})

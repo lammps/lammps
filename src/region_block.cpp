@@ -33,6 +33,8 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) :
     Region(lmp, narg, arg), xlostr(nullptr), ylostr(nullptr), zlostr(nullptr), xhistr(nullptr),
     yhistr(nullptr), zhistr(nullptr)
 {
+  xlovar = xhivar = ylovar = yhivar = zlovar = zhivar = -1;
+
   options(narg - 8, &arg[8]);
 
   xlostyle = CONSTANT;

@@ -33,6 +33,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 The *lj/expand/sphere* style compute a 12/6 Lennard-Jones potential with
 a distance shifted by :math:`\Delta = \frac{1}{2} (d_i + d_j)`, the
 average diameter of both atoms.  This can be used to model particles of
@@ -72,19 +74,23 @@ is at :math:`2^{\frac{1}{6}} \sigma`.
    pairs that do not interact.  However, if your system is highly
    polydisperse (ratio > 2.0), the neighbor list build and force
    computations may be inefficient.  There are two ways to try and
-   speed up the computations.
+   speed up the simulations.
 
-   The first is to assign multiple atom types so that atoms of each
-   type are similar in size.  E.g. if particle diameters range from 1
-   to 5 use 4 atom types, ensuring atoms of type 1 have diameters from
-   1.0-2.0, type 2 from 2.0-3.0, etc.
+   The first is to assign atoms to different atom types so that atoms of
+   each type are similar in size.  E.g. if particle diameters range from
+   1 to 5 use 4 atom types, ensuring atoms of type 1 have diameters from
+   1.0-2.0, type 2 from 2.0-3.0, etc.  This will reduce the number of
+   non-interacting pairs in the neighbor lists and thus reduce the time
+   spent on computing pairwise interactions.
 
-   The second is to try the :doc:`neighbor multi <neighbor>` command
-   which uses a different algorithm for buliding neighbor lists.  This
-   will also require that you assign multiple atom types as in the
-   preceeding paragraph.
+   The second is to use the :doc:`neighbor multi <neighbor>` command
+   which enabled a different algorithm for building neighbor lists.  This
+   will also require that you assign multiple atom types according to
+   diameters, but will in addition use a more efficient size-dependent
+   strategy to construct the neighbor lists and thus reduce the time
+   spent on building neighbor lists.
 
-   Here are example input script commands using both ideas for a
+   Here are example input script commands using the first option for a
    highly polydisperse system:
 
    .. code-block:: c++
@@ -97,21 +103,23 @@ is at :math:`2^{\frac{1}{6}} \sigma`.
       create_atoms    1 box
 
       # create atoms with random diameters from bimodal distribution
-
       variable switch atom random(0.0,1.0,345634)
-      variable diam atom (v_switch<0.75)*normal(0.4,0.075,325)+(v_switch>=0.7)*normal(1.2,0.2,453)
+      variable diam atom (v_switch<0.75)*normal(0.2,0.04,325)+(v_switch>=0.7)*normal(0.6,0.2,453)
       set group all diameter v_diam
 
-      # assign type 2 to atoms with diameter > 0.5
-
-      variable large atom 2.0*radius>0.5
+      # assign type 2 to atoms with diameter > 0.35
+      variable large atom (2.0*radius)>0.35
       group large variable large
-      set group largea type 2
+      set group large type 2
 
-      pair_style      lj/expand/sphere 2.5
-      pair_coeff      * * 1.0 1.0
+      pair_style      lj/expand/sphere 2.0
+      pair_coeff      * * 1.0 0.5
 
-      neighbor 0.3 multi
+      neighbor 0.3 bin
+
+   Using multiple atom types speeds up the calculation for this example
+   by more than 30 percent, but using the multi-style neighbor list does
+   not provide a speedup.
 
 Coefficients
 """"""""""""
@@ -122,14 +130,11 @@ file or restart files read by the :doc:`read_data <read_data>` or
 :doc:`read_restart <read_restart>` commands, or by mixing as described below:
 
 * :math:`\epsilon` (energy units)
-* LJ cutoff ratio (unitless) (optional)
+* :math:`\sigma` (distance units)
+* LJ cutoff (distance units) (optional)
 
 The last coefficient is optional.  If not specified, the global LJ
-cutoff ratio specified in the :doc:`pair_style command <pair_style>` is
-used.
-
-If a repulsive only LJ interaction is desired, the coefficient for the cutoff
-ratio should be set to the minimum of the LJ potential using ``$(2.0^(1.0/6.0))``
+cutoff specified in the :doc:`pair_style command <pair_style>` is used.
 
 ----------
 
@@ -140,10 +145,10 @@ ratio should be set to the minimum of the LJ potential using ``$(2.0^(1.0/6.0))`
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-For atom type pairs I,J and I != J, the epsilon coefficients and cutoff
-ratio for the *lj/expand/sphere* pair style can be mixed.  The default mixing
-style is *geometric*.  See the :doc:`pair_modify command <pair_modify>`
-for details.
+For atom type pairs I,J and I != J, the epsilon, sigma, and cutoff
+coefficients for the *lj/expand/sphere* pair style can be mixed.  The
+default mixing style is *geometric*.  See the :doc:`pair_modify command
+<pair_modify>` for details.
 
 The *lj/expand/sphere* pair style supports the :doc:`pair_modify shift <pair_modify>`
 option for the energy of the Lennard-Jones portion of the pair interaction.
@@ -168,8 +173,6 @@ Restrictions
 The *lj/expand/sphere* pair style is only enabled if LAMMPS was built with the
 EXTRA-PAIR package.  See the :doc:`Build package <Build_package>` page
 for more info.
-
-The *lj/expand/sphere* pair style does not support the *sixthpower* mixing rule.
 
 ----------
 

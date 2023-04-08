@@ -33,6 +33,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 The *lj/cut/sphere* style compute the standard 12/6 Lennard-Jones potential,
 given by
 
@@ -70,17 +72,21 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
    pairs that do not interact.  However, if your system is highly
    polydisperse (ratio > 2.0), the neighbor list build and force
    computations may be inefficient.  There are two ways to try and
-   speed up the computations.
+   speed up the simulations.
 
-   The first is to assign multiple atom types so that atoms of each
-   type are similar in size.  E.g. if particle diameters range from 1
-   to 5 use 4 atom types, ensuring atoms of type 1 have diameters from
-   1.0-2.0, type 2 from 2.0-3.0, etc.
+   The first is to assign atoms to different atom types so that atoms of
+   each type are similar in size.  E.g. if particle diameters range from
+   1 to 5 use 4 atom types, ensuring atoms of type 1 have diameters from
+   1.0-2.0, type 2 from 2.0-3.0, etc.  This will reduce the number of
+   non-interacting pairs in the neighbor lists and thus reduce the time
+   spent on computing pairwise interactions.
 
-   The second is to try the :doc:`neighbor multi <neighbor>` command
-   which uses a different algorithm for buliding neighbor lists.  This
-   will also require that you assign multiple atom types as in the
-   preceeding paragraph.
+   The second is to use the :doc:`neighbor multi <neighbor>` command
+   which enabled a different algorithm for building neighbor lists.  This
+   will also require that you assign multiple atom types according to
+   diameters, but will in addition use a more efficient size-dependent
+   strategy to construct the neighbor lists and thus reduce the time
+   spent on building neighbor lists.
 
    Here are example input script commands using both ideas for a
    highly polydisperse system:
@@ -95,21 +101,23 @@ is at :math:`2^{\frac{1}{6}} \sigma_{ij}`.
       create_atoms    1 box
 
       # create atoms with random diameters from bimodal distribution
-
       variable switch atom random(0.0,1.0,345634)
       variable diam atom (v_switch<0.75)*normal(0.4,0.075,325)+(v_switch>=0.7)*normal(1.2,0.2,453)
       set group all diameter v_diam
 
-      # assign type 2 to atoms with diameter > 0.5
-
-      variable large atom 2.0*radius>0.5
+      # assign type 2 to atoms with diameter > 0.6
+      variable large atom (2.0*radius)>0.6
       group large variable large
-      set group largea type 2
+      set group large type 2
 
       pair_style      lj/cut/sphere 2.5
       pair_coeff      * * 1.0
 
       neighbor 0.3 multi
+
+   Using multiple atom types speeds up the calculation for this example
+   by more than a factor of 2, and using the multi-style neighbor list
+   build causes an additional speedup of about 20 percent.
 
 Coefficients
 """"""""""""

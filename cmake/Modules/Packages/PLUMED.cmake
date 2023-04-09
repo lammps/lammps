@@ -16,8 +16,8 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
 
   add_custom_target(copy_plumed ALL ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed_patches
     COMMAND ${CMAKE_COMMAND} -E copy ${PLUMED_INSTALL_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed.exe
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUMED_BUILD_DIR}/patches ${CMAKE_BINARY_DIR}/plumed_patches
-    BYPRODUCTS ${CMAKE_BINARY_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed_patches
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUMED_BUILD_DIR}/patches ${CMAKE_BINARY_DIR}/patches
+    BYPRODUCTS ${CMAKE_BINARY_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/patches
     COMMENT "Copying Plumed files"
   )
 

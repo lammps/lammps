@@ -75,7 +75,7 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   grow_arrays(nmax);
 
-  for (int i = 0; i < nmax; i++) {
+  for (int i = 0; i < atom->nlocal; i++) {
     k_shake_flag.h_view[i] = shake_flag_tmp[i];
     k_shake_atom.h_view(i,0) = shake_atom_tmp[i][0];
     k_shake_atom.h_view(i,1) = shake_atom_tmp[i][1];
@@ -209,7 +209,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // local copies of atom quantities
   // used by SHAKE until next re-neighboring
 
-  atomKK->sync(execution_space,X_MASK);
+  atomKK->sync(execution_space,X_MASK|SAMETAG_MASK);
 
   ebond = 0.0;
   d_x = atomKK->k_x.view<DeviceType>();
@@ -250,9 +250,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_hash = atomKK->k_map_hash;
   }
 
-  k_sametag = atomKK->k_sametag;
-  k_sametag.template sync<DeviceType>();
-  d_sametag = k_sametag.view<DeviceType>();
+  d_sametag = atomKK->k_sametag.view<DeviceType>();
 
   // build list of SHAKE clusters I compute
 
@@ -1528,13 +1526,14 @@ template<class DeviceType>
 void FixShakeKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagprev, int imol,
                             double * xgeom, double * vcm, double * quat)
 {
-  atomKK->sync(Host,TAG_MASK);
+  atomKK->sync(Host,TAG_MASK|MOLECULE_MASK);
   k_shake_flag.sync_host();
   k_shake_atom.sync_host();
   k_shake_type.sync_host();
 
   FixShake::set_molecule(nlocalprev,tagprev,imol,xgeom,vcm,quat);
 
+  k_shake_flag.modify_host();
   k_shake_atom.modify_host();
   k_shake_type.modify_host();
 }
@@ -2049,6 +2048,7 @@ int FixShakeKokkos<DeviceType>::closest_image(const int i, int j) const
       closest = j;
     }
   }
+
   return closest;
 }
 

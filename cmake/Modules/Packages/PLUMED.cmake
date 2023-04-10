@@ -53,7 +53,7 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
                                          CPPFLAGS=${PLUMED_CONFIG_CPP}
                                          LIBS=${PLUMED_CONFIG_LIB}
     INSTALL_COMMAND ""
-    BUILD_BYPRODUCTS "<SOURCE_DIR>/src/lib/${CMAKE_STATIC_LIBRARY_PREFIX}plumed${CMAKE_STATIC_LIBRARY_SUFFIX}" "<SOURCE_DIR>/src/lib/install/plumed{EXE_SUFFIX}"
+    BUILD_BYPRODUCTS "<SOURCE_DIR>/src/lib/install/libplumed.a" "<SOURCE_DIR>/src/lib/install/plumed.exe"
     DEPENDS "${PLUMED_MPI_CONFIG_DEP}"
   )
   ExternalProject_Get_Property(plumed_build SOURCE_DIR)
@@ -62,11 +62,11 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
   file(MAKE_DIRECTORY ${PLUMED_BUILD_DIR}/src/include)
 
   add_library(LAMMPS::PLUMED UNKNOWN IMPORTED)
+  add_dependencies(LAMMPS::PLUMED plumed_build)
   set_target_properties(LAMMPS::PLUMED PROPERTIES
     IMPORTED_LOCATION "${PLUMED_INSTALL_DIR}/libplumed.a"
     INTERFACE_LINK_LIBRARIES "-Wl,--image-base -Wl,0x10000000 -lfftw3 -lz  -fstack-protector -lssp -fopenmp"
     INTERFACE_INCLUDE_DIRECTORIES "${PLUMED_BUILD_DIR}/src/include")
-  target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)
 
   add_custom_target(plumed_copy ALL ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed_patches
     COMMAND ${CMAKE_COMMAND} -E copy ${PLUMED_INSTALL_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed.exe
@@ -164,5 +164,6 @@ else()
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_LINK_LIBRARIES "${PLUMED_LOAD}")
     set_target_properties(LAMMPS::PLUMED PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${PLUMED_INCLUDE_DIRS}")
   endif()
-  target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)
 endif()
+
+target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)

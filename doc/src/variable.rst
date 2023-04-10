@@ -69,7 +69,7 @@ Syntax
          special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)
          feature functions = is_active(category,feature), is_available(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
-         atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
+         atom vector = id, mass, type, mol, radius, q, x, y, z, vx, vy, vz, fx, fy, fz
          compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
          fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
          variable references = v_name, v_name[i]

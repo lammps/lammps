@@ -31,11 +31,15 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBornGauss::PairBornGauss(LAMMPS *lmp) : Pair(lmp)
+PairBornGauss::PairBornGauss(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), biga0(nullptr), alpha(nullptr), biga1(nullptr), beta(nullptr),
+    r0(nullptr), offset(nullptr)
 {
   single_enable = 1;
   respa_enable = 0;
   writedata = 1;
+
+  cut_global = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

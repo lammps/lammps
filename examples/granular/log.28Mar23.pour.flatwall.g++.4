@@ -1,4 +1,4 @@
-LAMMPS (15 Sep 2022)
+LAMMPS (28 Mar 2023 - Development)
 # pour two types of particles (cohesive and non-cohesive) on flat wall
 
 variable        name string pour_two_types
@@ -44,7 +44,7 @@ region          boxreg block 0 20 0 20 0 ${boxz}
 region          boxreg block 0 20 0 20 0 30
 create_box      2 boxreg
 Created orthogonal box = (0 0 0) to (20 20 30)
-  1 by 1 by 1 MPI processor grid
+  2 by 2 by 1 MPI processor grid
 change_box      all boundary p p f
 Changing box ...
 
@@ -97,35 +97,35 @@ Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
-  master list distance cutoff = 1.15
-  ghost atom cutoff = 1.15
-  binsize = 0.575, bins = 35 35 53
+  master list distance cutoff = 1.2035132
+  ghost atom cutoff = 1.2035132
+  binsize = 0.60175662, bins = 34 34 50
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair granular, perpetual
       attributes: half, newton on, size, history
       pair build: half/size/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 15.27 | 15.27 | 15.27 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 15.03 | 15.03 | 15.03 Mbytes
    Step        Atoms        KinEng    
          0           0  -0            
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
        100         926  -0            
        200         926  -0            
        300         926  -0            
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
        400        1498  -0            
        500        1498  -0            
        600        1498  -0            
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
        700        2275  -0            
        800        2275  -0            
        900        2275  -0            
       1000        2275  -0            
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
       1100        2954  -0            
       1200        2954  -0            
       1300        2954  -0            
@@ -166,30 +166,30 @@ WARNING: Less insertions than requested (../fix_pour.cpp:681)
       4800        3000  -0            
       4900        3000  -0            
       5000        3000  -0            
-Loop time of 10.7721 on 1 procs for 5000 steps with 3000 atoms
+Loop time of 4.13223 on 4 procs for 5000 steps with 3000 atoms
 
-Performance: 40103.467 tau/day, 464.160 timesteps/s, 1.392 Matom-step/s
-99.5% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 104544.144 tau/day, 1210.002 timesteps/s, 3.630 Matom-step/s
+98.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 8.1117     | 8.1117     | 8.1117     |   0.0 | 75.30
-Neigh   | 1.2885     | 1.2885     | 1.2885     |   0.0 | 11.96
-Comm    | 0.059888   | 0.059888   | 0.059888   |   0.0 |  0.56
-Output  | 0.0011158  | 0.0011158  | 0.0011158  |   0.0 |  0.01
-Modify  | 1.2436     | 1.2436     | 1.2436     |   0.0 | 11.54
-Other   |            | 0.06727    |            |       |  0.62
+Pair    | 0.85927    | 1.7572     | 2.6929     |  62.8 | 42.52
+Neigh   | 0.19818    | 0.26863    | 0.34064    |  11.8 |  6.50
+Comm    | 0.2647     | 1.3123     | 2.3283     |  79.9 | 31.76
+Output  | 0.00061316 | 0.00082693 | 0.0011984  |   0.0 |  0.02
+Modify  | 0.69024    | 0.74011    | 0.783      |   3.9 | 17.91
+Other   |            | 0.05316    |            |       |  1.29
 
-Nlocal:           3000 ave        3000 max        3000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:            471 ave         471 max         471 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          16713 ave       16713 max       16713 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            750 ave        1038 max         458 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:         456.75 ave         516 max         411 min
+Histogram: 2 0 0 0 0 0 1 0 0 1
+Neighs:        4186.25 ave        6316 max        1939 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
 
-Total # of neighbors = 16713
-Ave neighs/atom = 5.571
-Neighbor list builds = 1102
+Total # of neighbors = 16745
+Ave neighs/atom = 5.5816667
+Neighbor list builds = 1116
 Dangerous builds = 0
-Total wall time: 0:00:10
+Total wall time: 0:00:04

@@ -4563,6 +4563,7 @@ int Variable::is_atom_vector(char *word)
   if (strcmp(word,"id") == 0) return 1;
   if (strcmp(word,"mass") == 0) return 1;
   if (strcmp(word,"type") == 0) return 1;
+  if (strcmp(word,"radius") == 0) return 1;
   if (strcmp(word,"mol") == 0) return 1;
   if (strcmp(word,"x") == 0) return 1;
   if (strcmp(word,"y") == 0) return 1;
@@ -4621,7 +4622,7 @@ void Variable::atom_vector(char *word, Tree **tree, Tree **treestack, int &ntree
 
   } else if (strcmp(word,"mol") == 0) {
     if (!atom->molecule_flag)
-      error->one(FLERR,"Variable uses atom property that isn't allocated");
+      error->one(FLERR,"Variable uses atom property 'mol' that isn't allocated");
     if (sizeof(tagint) == sizeof(smallint)) {
       newtree->type = INTARRAY;
       newtree->iarray = (int *) atom->molecule;
@@ -4629,6 +4630,18 @@ void Variable::atom_vector(char *word, Tree **tree, Tree **treestack, int &ntree
       newtree->type = BIGINTARRAY;
       newtree->barray = (bigint *) atom->molecule;
     }
+    newtree->nstride = 1;
+
+  } else if (strcmp(word,"radius") == 0) {
+    if (!atom->radius_flag)
+      error->one(FLERR,"Variable uses atom property 'radius' that isn't allocated");
+    newtree->array = atom->radius;
+    newtree->nstride = 1;
+
+  } else if (strcmp(word,"q") == 0) {
+    if (!atom->q_flag)
+      error->one(FLERR,"Variable uses atom property 'q' that isn't allocated");
+    newtree->array = atom->q;
     newtree->nstride = 1;
   }
 
@@ -4641,11 +4654,6 @@ void Variable::atom_vector(char *word, Tree **tree, Tree **treestack, int &ntree
   else if (strcmp(word,"fx") == 0) newtree->array = &atom->f[0][0];
   else if (strcmp(word,"fy") == 0) newtree->array = &atom->f[0][1];
   else if (strcmp(word,"fz") == 0) newtree->array = &atom->f[0][2];
-
-  else if (strcmp(word,"q") == 0) {
-    newtree->nstride = 1;
-    newtree->array = atom->q;
-  }
 }
 
 /* ----------------------------------------------------------------------

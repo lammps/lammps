@@ -93,7 +93,7 @@ with :math:`A_{ss}` set appropriately, which results from letting both
 particle sizes go to zero.
 
 When used in combination with :doc:`pair_style yukawa/colloid
-<pair_colloid>`, the two terms become the so-called DLVO potential,
+<pair_yukawa_colloid>`, the two terms become the so-called DLVO potential,
 which combines electrostatic repulsion and van der Waals attraction.
 
 The following coefficients must be defined for each pair of atoms

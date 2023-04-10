@@ -1,4 +1,4 @@
-LAMMPS (22 Dec 2022)
+LAMMPS (28 Mar 2023 - Development)
 # pour one types of particles into cylinder and oscillate
 # temperature of the bottom plate
 
@@ -77,7 +77,7 @@ region          insreg cylinder z 5 5 4.45 30 ${boxz}
 region          insreg cylinder z 5 5 4.45 30 50
 
 fix             0 all property/atom temperature heatflow
-WARNING: Fix property/atom mol, charge, rmass, temperature, or heatflow w/out ghost communication (../fix_property_atom.cpp:196)
+WARNING: Fix property/atom mol, charge, rmass, temperature, or heatflow w/out ghost communication (../fix_property_atom.cpp:194)
 fix             1 all balance 100 1.0 shift xy 5 1.1
 fix             2 all nve/sphere
 fix             3 all heat/flow constant 1.0
@@ -114,13 +114,6 @@ timestep        0.001
 
 #dump           1 all custom 1000 ${name}.dump id type radius mass x y z temperature heatflow
 
-#For removal later
-compute         1 all property/atom radius
-variable        zmax atom z+c_1>0.5*${drum_height}
-variable        zmax atom z+c_1>0.5*30
-group           delgroup dynamic all var zmax every 10000
-dynamic group delgroup defined
-
 run             100000
 Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
@@ -138,24 +131,24 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 5.847 | 5.847 | 5.847 Mbytes
    Step        Atoms        KinEng          Pxx            Pyy            Pzz      
          0           0  -0              0              0              0            
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
        100         536  -0              0              0              7.4220499    
        200         536  -0              0              0              10.753096    
        300         536  -0              0              0              13.500241    
        400         536  -0              0              0              18.036636    
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
        500         903  -0              0              0              25.955524    
        600         903  -0              0              0              32.116907    
        700         903  -0              0.03620165     0.033499977    32.179357    
        800         903  -0              0.2106713      0.26431108     36.206318    
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
        900        1265  -0              0.2667335      0.20266671     44.177757    
       1000        1265  -0              0.51829265     0.67739212     49.904079    
       1100        1265  -0              0.87525564     0.6604066      53.13465     
       1200        1265  -0              0.8016023      0.82120199     54.27487     
-WARNING: Less insertions than requested (../fix_pour.cpp:681)
+WARNING: Fewer insertions than requested (../fix_pour.cpp:681)
       1300        1618  -0              1.0922969      1.2299526      61.033455    
       1400        1618  -0              3.4739827      3.2058732      60.989867    
       1500        1618  -0              2.952107       2.7920855      61.208615    
@@ -1144,20 +1137,20 @@ WARNING: Less insertions than requested (../fix_pour.cpp:681)
      99800        2000  -0              7.5931492      7.7670928      6.2908349    
      99900        2000  -0              7.5931443      7.7670902      6.29084      
     100000        2000  -0              7.5931395      7.7670875      6.2908449    
-Loop time of 29.8443 on 4 procs for 100000 steps with 2000 atoms
+Loop time of 30.0046 on 4 procs for 100000 steps with 2000 atoms
 
-Performance: 289502.519 tau/day, 3350.724 timesteps/s, 6.701 Matom-step/s
-96.9% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 287955.602 tau/day, 3332.819 timesteps/s, 6.666 Matom-step/s
+96.6% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 14.343     | 15.321     | 16.586     |  22.2 | 51.34
-Neigh   | 0.50641    | 0.541      | 0.58175    |   3.8 |  1.81
-Comm    | 4.9356     | 6.3418     | 7.3742     |  38.3 | 21.25
-Output  | 0.019257   | 0.022039   | 0.029648   |   3.0 |  0.07
-Modify  | 6.8727     | 6.9724     | 7.084      |   2.9 | 23.36
-Other   |            | 0.6461     |            |       |  2.16
+Pair    | 14.456     | 15.429     | 16.749     |  23.8 | 51.42
+Neigh   | 0.50522    | 0.53511    | 0.56337    |   3.4 |  1.78
+Comm    | 4.8655     | 6.3036     | 7.267      |  39.7 | 21.01
+Output  | 0.018666   | 0.021667   | 0.030382   |   3.4 |  0.07
+Modify  | 6.9997     | 7.0865     | 7.1678     |   2.3 | 23.62
+Other   |            | 0.6286     |            |       |  2.09
 
 Nlocal:            500 ave         504 max         496 min
 Histogram: 2 0 0 0 0 0 0 0 0 2
@@ -1171,4 +1164,4 @@ Ave neighs/atom = 4.8195
 Neighbor list builds = 3151
 Dangerous builds = 0
 
-Total wall time: 0:00:29
+Total wall time: 0:00:30

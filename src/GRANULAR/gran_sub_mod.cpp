@@ -42,7 +42,7 @@ GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
   allow_cohesion = 1;
   beyond_contact = 0;
   num_coeffs = 0;
-  area_flag = 0;
+  contact_radius_flag = 0;
 
   nondefault_history_transfer = 0;
   transfer_history_factor = nullptr;
@@ -125,4 +125,11 @@ double GranSubMod::mix_stiffnessG_wall(double E, double poiss)
 double GranSubMod::mix_geom(double val1, double val2)
 {
   return sqrt(val1 * val2);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double GranSubMod::mix_mean(double val1, double val2)
+{
+  return 0.5 * (val1 + val2);
 }

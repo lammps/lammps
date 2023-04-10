@@ -1,12 +1,66 @@
 # Plumed2 support for PLUMED package
 
+if(BUILD_MPI)
+  set(PLUMED_CONFIG_MPI "--enable-mpi")
+  set(PLUMED_CONFIG_CC  ${CMAKE_MPI_C_COMPILER})
+  set(PLUMED_CONFIG_CXX  ${CMAKE_MPI_CXX_COMPILER})
+  set(PLUMED_CONFIG_CPP "-I ${MPI_CXX_INCLUDE_PATH}")
+  set(PLUMED_CONFIG_LIB "${MPI_CXX_LIBRARIES}")
+  set(PLUMED_CONFIG_DEP "mpi4win_build")
+else()
+  set(PLUMED_CONFIG_MPI "--disable-mpi")
+  set(PLUMED_CONFIG_CC  ${CMAKE_C_COMPILER})
+  set(PLUMED_CONFIG_CXX  ${CMAKE_CXX_COMPILER})
+  set(PLUMED_CONFIG_CPP "")
+  set(PLUMED_CONFIG_LIB "")
+  set(PLUMED_CONFIG_DEP "")
+endif()
+if(BUILD_OMP)
+  set(PLUMED_CONFIG_OMP "--enable-openmp")
+else()
+  set(PLUMED_CONFIG_OMP "--disable-openmp")
+endif()
+
+set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.2/plumed-src-2.8.2.tgz"
+  CACHE STRING "URL for PLUMED tarball")
+set(PLUMED_MD5 "599092b6a0aa6fff992612537ad98994" CACHE STRING "MD5 checksum of PLUMED tarball")
+
+mark_as_advanced(PLUMED_URL)
+mark_as_advanced(PLUMED_MD5)
+GetFallbackURL(PLUMED_URL PLUMED_FALLBACK)
+
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
-  # special case for cross-compiling to windows with externally cross-compiled plumed tree
-  if(NOT PLUMED_BUILD_DIR)
-    message(FATAL_ERROR "Must set PLUMED_BUILD_DIR when cross-compiling for Windows")
+  if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    set(CROSS_CONFIGURE mingw64-configure)
+  elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86")
+    set(CROSS_CONFIGURE mingw32-configure)
   else()
-    set(PLUMED_INSTALL_DIR "${PLUMED_BUILD_DIR}/src/lib/install")
+    message(FATAL_ERROR "Unsupported target system: ${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR}")
   endif()
+  message(STATUS "Downloading and cross-compiling Plumed2 for ${CMAKE_SYSTEM_NAME}/${CMAKE_SYSTEM_PROCESSOR} with ${CROSS_CONFIGURE}")
+  include(ExternalProject)
+  ExternalProject_Add(plumed_build
+    URL     ${PLUMED_URL} ${PLUMED_FALLBACK}
+    URL_MD5 ${PLUMED_MD5}
+    BUILD_IN_SOURCE 1
+    CONFIGURE_COMMAND ${CROSS_CONFIGURE} --disable-shared --disable-bsymbolic
+                                         --disable-python --enable-cxx=11
+                                         --enable-modules=-adjmat:+crystallization:-dimred:+drr:+eds:-fisst:+funnel:+logmfd:+manyrestraints:+maze:+opes:+multicolvar:-pamm:-piv:+s2cm:-sasa:-ves
+                                         ${PLUMED_CONFIG_OMP}
+                                         ${PLUMED_CONFIG_MPI}
+                                         CXX=${PLUMED_CONFIG_CXX}
+                                         CC=${PLUMED_CONFIG_CC}
+                                         CPPFLAGS=${PLUMED_CONFIG_CPP}
+                                         LIBS=${PLUMED_CONFIG_LIB}
+    INSTALL_COMMAND ""
+    BUILD_BYPRODUCTS "<SOURCE_DIR>/src/lib/${CMAKE_STATIC_LIBRARY_PREFIX}plumed${CMAKE_STATIC_LIBRARY_SUFFIX}" "<SOURCE_DIR>/src/lib/install/plumed{EXE_SUFFIX}"
+    DEPENDS "${PLUMED_MPI_CONFIG_DEP}"
+  )
+  ExternalProject_Get_Property(plumed_build SOURCE_DIR)
+  set(PLUMED_BUILD_DIR ${SOURCE_DIR})
+  set(PLUMED_INSTALL_DIR ${PLUMED_BUILD_DIR}/src/lib/install)
+  file(MAKE_DIRECTORY ${PLUMED_BUILD_DIR}/src/include)
+
   add_library(LAMMPS::PLUMED UNKNOWN IMPORTED)
   set_target_properties(LAMMPS::PLUMED PROPERTIES
     IMPORTED_LOCATION "${PLUMED_INSTALL_DIR}/libplumed.a"
@@ -14,21 +68,15 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     INTERFACE_INCLUDE_DIRECTORIES "${PLUMED_BUILD_DIR}/src/include")
   target_link_libraries(lammps PRIVATE LAMMPS::PLUMED)
 
-  add_custom_target(copy_plumed ALL ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed_patches
+  add_custom_target(plumed_copy ALL ${CMAKE_COMMAND} -E rm -rf ${CMAKE_BINARY_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed_patches
     COMMAND ${CMAKE_COMMAND} -E copy ${PLUMED_INSTALL_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/plumed.exe
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUMED_BUILD_DIR}/patches ${CMAKE_BINARY_DIR}/patches
     BYPRODUCTS ${CMAKE_BINARY_DIR}/plumed.exe ${CMAKE_BINARY_DIR}/patches
+    DEPENDS plumed_build
     COMMENT "Copying Plumed files"
   )
 
 else()
-
-  set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.8.2/plumed-src-2.8.2.tgz" CACHE STRING "URL for PLUMED tarball")
-  set(PLUMED_MD5 "599092b6a0aa6fff992612537ad98994" CACHE STRING "MD5 checksum of PLUMED tarball")
-
-  mark_as_advanced(PLUMED_URL)
-  mark_as_advanced(PLUMED_MD5)
-  GetFallbackURL(PLUMED_URL PLUMED_FALLBACK)
 
   set(PLUMED_MODE "static" CACHE STRING "Linkage mode for Plumed2 library")
   set(PLUMED_MODE_VALUES static shared runtime)
@@ -63,20 +111,6 @@ else()
 
   option(DOWNLOAD_PLUMED "Download Plumed package instead of using an already installed one" ${DOWNLOAD_PLUMED_DEFAULT})
   if(DOWNLOAD_PLUMED)
-    if(BUILD_MPI)
-      set(PLUMED_CONFIG_MPI "--enable-mpi")
-      set(PLUMED_CONFIG_CC  ${CMAKE_MPI_C_COMPILER})
-      set(PLUMED_CONFIG_CXX  ${CMAKE_MPI_CXX_COMPILER})
-    else()
-      set(PLUMED_CONFIG_MPI "--disable-mpi")
-      set(PLUMED_CONFIG_CC  ${CMAKE_C_COMPILER})
-      set(PLUMED_CONFIG_CXX  ${CMAKE_CXX_COMPILER})
-    endif()
-    if(BUILD_OMP)
-      set(PLUMED_CONFIG_OMP "--enable-openmp")
-    else()
-      set(PLUMED_CONFIG_OMP "--disable-openmp")
-    endif()
     message(STATUS "PLUMED download requested - we will build our own")
     if(PLUMED_MODE STREQUAL "STATIC")
       set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}plumed${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -96,7 +130,6 @@ else()
                                              --enable-modules=all
                                              --enable-cxx=11
                                              --disable-python
-                                             --disable-doc
                                              ${PLUMED_CONFIG_MPI}
                                              ${PLUMED_CONFIG_OMP}
                                              CXX=${PLUMED_CONFIG_CXX}

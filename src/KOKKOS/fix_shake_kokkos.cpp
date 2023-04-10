@@ -229,7 +229,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // extend size of SHAKE list if necessary
 
   if (nlocal > maxlist) {
-    maxlist = nlocal;
+    maxlist = atom->nmax;
     memoryKK->destroy_kokkos(k_list,list);
     memoryKK->create_kokkos(k_list,list,maxlist,"shake:list");
     d_list = k_list.view<DeviceType>();
@@ -1650,8 +1650,6 @@ int FixShakeKokkos<DeviceType>::pack_exchange_kokkos(
   k_shake_atom.template sync<DeviceType>();
   k_shake_type.template sync<DeviceType>();
 
-  typename ArrayTypes<DeviceType>::tdual_int_scalar k_count("neighbor_history:k_count");
-
   Kokkos::deep_copy(d_count,0);
 
   copymode = 1;
@@ -1660,6 +1658,15 @@ int FixShakeKokkos<DeviceType>::pack_exchange_kokkos(
   Kokkos::parallel_scan(nsend,pack_exchange_functor);
 
   copymode = 0;
+
+  k_buf.modify<DeviceType>();
+
+  if (space == Host) k_buf.sync<LMPHostType>();
+  else k_buf.sync<LMPDeviceType>();
+
+  k_shake_flag.template modify<DeviceType>();
+  k_shake_atom.template modify<DeviceType>();
+  k_shake_type.template modify<DeviceType>();
 
   Kokkos::deep_copy(h_count,d_count);
 

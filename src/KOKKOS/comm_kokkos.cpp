@@ -1058,6 +1058,7 @@ void CommKokkos::borders_device() {
 
   ExecutionSpace exec_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(exec_space,ALL_MASK);
+  k_sendlist.sync<DeviceType>();
 
   int team_size = 1;
   if (exec_space == Device)

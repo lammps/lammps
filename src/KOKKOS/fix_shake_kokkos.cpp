@@ -250,7 +250,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_hash = atomKK->k_map_hash;
   }
 
-  k_sametag.sync<DeviceType>();
+  atomKK->k_sametag.sync<DeviceType>();
   d_sametag = atomKK->k_sametag.view<DeviceType>();
 
   // build list of SHAKE clusters I compute

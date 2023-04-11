@@ -391,7 +391,7 @@ KOKKOS_INLINE_FUNCTION
 void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, const int &i) const
 {
   int index = d_indices(i);
-  if (index > 0) {
+  if (index > -1) {
     int m = i*size_history;
     for (int v = 0; v < size_history; v++)
       d_history_one(i,v) = d_buf(m++);

@@ -431,7 +431,7 @@ KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExchange, const int &i) const
 {
   int index = d_indices(i);
-  if (index > 0) {
+  if (index > -1) {
     int m = (int) d_ubuf(d_buf(i)).i;
     int n = (int) d_ubuf(d_buf(m++)).i;
     d_npartner(index) = n;

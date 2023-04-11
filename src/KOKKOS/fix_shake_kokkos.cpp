@@ -1552,6 +1552,7 @@ void FixShakeKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offs
     else if (flag == 2) offset += 4;
     else if (flag == 3) offset += 6;
     else if (flag == 4) offset += 8;
+    else offset++;
   } else {
 
     d_buf[mysend] = nsend + offset;

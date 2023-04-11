@@ -107,11 +107,11 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
                            DAT::tdual_int_1d k_sendlist,
                            DAT::tdual_int_1d k_copylist,
-                           ExecutionSpace space);
+                           ExecutionSpace space) override;
 
   void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
                               DAT::tdual_int_1d &indices,int nrecv,
-                              ExecutionSpace space);
+                              ExecutionSpace space) override;
 
  protected:
   typename AT::t_x_array d_x;

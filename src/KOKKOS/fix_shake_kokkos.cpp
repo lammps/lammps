@@ -209,7 +209,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // local copies of atom quantities
   // used by SHAKE until next re-neighboring
 
-  atomKK->sync(execution_space,X_MASK|SAMETAG_MASK);
+  atomKK->sync(execution_space,X_MASK);
 
   ebond = 0.0;
   d_x = atomKK->k_x.view<DeviceType>();
@@ -250,6 +250,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_hash = atomKK->k_map_hash;
   }
 
+  k_sametag.sync<DeviceType>();
   d_sametag = atomKK->k_sametag.view<DeviceType>();
 
   // build list of SHAKE clusters I compute

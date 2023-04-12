@@ -39,6 +39,7 @@ template<int PBC_FLAG>
 struct TagFixShakePackForwardComm{};
 
 struct TagFixShakeUnpackForwardComm{};
+struct TagFixShakeUnpackExchange{};
 
 template<class DeviceType>
 class FixShakeKokkos : public FixShake, public KokkosBase {
@@ -97,8 +98,22 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixShakeUnpackForwardComm, const int&) const;
 
- protected:
+  KOKKOS_INLINE_FUNCTION
+  void pack_exchange_item(const int&, int &, const bool &) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixShakeUnpackExchange, const int&) const;
+
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+                           DAT::tdual_int_1d k_sendlist,
+                           DAT::tdual_int_1d k_copylist,
+                           ExecutionSpace space) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                              DAT::tdual_int_1d &indices,int nrecv,
+                              ExecutionSpace space) override;
+
+ protected:
   typename AT::t_x_array d_x;
   typename AT::t_v_array d_v;
   typename AT::t_f_array d_f;
@@ -143,6 +158,9 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_scalar k_nlist;
+
+  typename AT::t_int_scalar d_count;
+  HAT::t_int_scalar h_count;
 
   void stats() override;
 
@@ -191,10 +209,15 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT&, int, int *, double, double *) const;
 
-  int iswap;
-  int first;
+  int iswap,first,nsend;
+
   typename AT::t_int_2d d_sendlist;
   typename AT::t_xfloat_1d_um d_buf;
+
+  typename AT::t_int_1d d_exchange_sendlist;
+  typename AT::t_int_1d d_copylist;
+  typename AT::t_int_1d d_indices;
+
   X_FLOAT dx,dy,dz;
 
   int *shake_flag_tmp;
@@ -217,6 +240,18 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   X_FLOAT xprd_half,yprd_half,zprd_half;
   X_FLOAT xprd,yprd,zprd;
   X_FLOAT xy,xz,yz;
+};
+
+template <class DeviceType>
+struct FixShakeKokkosPackExchangeFunctor {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  FixShakeKokkos<DeviceType> c;
+  FixShakeKokkosPackExchangeFunctor(FixShakeKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int &i, int &offset, const bool &final) const {
+    c.pack_exchange_item(i, offset, final);
+  }
 };
 
 }

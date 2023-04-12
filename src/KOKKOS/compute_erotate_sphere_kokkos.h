@@ -13,26 +13,35 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(erotate/sphere,ComputeERotateSphere);
+ComputeStyle(erotate/sphere/kk,ComputeERotateSphereKokkos<LMPDeviceType>);
+ComputeStyle(erotate/sphere/kk/device,ComputeERotateSphereKokkos<LMPDeviceType>);
+ComputeStyle(erotate/sphere/kk/host,ComputeERotateSphereKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_EROTATE_SPHERE_H
-#define LMP_COMPUTE_EROTATE_SPHERE_H
+// clang-format off
+#ifndef LMP_COMPUTE_EROTATE_SPHERE_KOKKOS_H
+#define LMP_COMPUTE_EROTATE_SPHERE_KOKKOS_H
 
-#include "compute.h"
+#include "compute_erotate_sphere.h"
+#include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-class ComputeERotateSphere : public Compute {
+template<class DeviceType>
+class ComputeERotateSphereKokkos : public ComputeERotateSphere {
  public:
-  ComputeERotateSphere(class LAMMPS *, int, char **);
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
 
-  void init() override;
+  ComputeERotateSphereKokkos(class LAMMPS *, int, char **);
   double compute_scalar() override;
 
- protected:
-  double pfactor;
+ private:
+  typename AT::t_v_array_randomread omega;
+  typename AT::t_float_1d_randomread radius;
+  typename AT::t_float_1d_randomread rmass;
+  typename AT::t_int_1d_randomread mask;
 };
 
 }    // namespace LAMMPS_NS

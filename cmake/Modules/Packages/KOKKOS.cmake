@@ -121,6 +121,11 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
 
+# fix wall/gran has been refactored in an incompatible way. Use old version of base class for now
+if(PKG_GRANULAR)
+  list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_wall_gran_old.cpp)
+endif()
+
 if(PKG_KSPACE)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/grid3d_kokkos.cpp

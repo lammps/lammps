@@ -994,6 +994,8 @@
 /fix_wall_reflect_stochastic.h
 /fix_wall_gran.cpp
 /fix_wall_gran.h
+/fix_wall_gran_old.cpp
+/fix_wall_gran_old.h
 /fix_wall_gran_region.cpp
 /fix_wall_gran_region.h
 /fix_wall_piston.cpp

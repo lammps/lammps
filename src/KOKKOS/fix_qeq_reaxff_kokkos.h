@@ -52,6 +52,8 @@ struct TagQEqSum2{};
 struct TagQEqCalculateQ{};
 struct TagQEqPackForwardComm{};
 struct TagQEqUnpackForwardComm{};
+struct TagQEqPackExchange{};
+struct TagQEqUnpackExchange{};
 
 template<class DeviceType>
 class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
@@ -127,6 +129,21 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqUnpackForwardComm, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagQEqPackExchange, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagQEqUnpackExchange, const int&) const;
+
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+                           DAT::tdual_int_1d k_sendlist,
+                           DAT::tdual_int_1d k_copylist,
+                           ExecutionSpace space) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                              DAT::tdual_int_1d &indices,int nrecv,
+                              ExecutionSpace space) override;
 
   struct params_qeq{
     KOKKOS_INLINE_FUNCTION
@@ -237,10 +254,13 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   DupScatterView<F_FLOAT**, typename AT::t_ffloat2_1d::array_layout> dup_o;
   NonDupScatterView<F_FLOAT**, typename AT::t_ffloat2_1d::array_layout> ndup_o;
 
-  int iswap;
+  int iswap,nsend;
   int first;
   typename AT::t_int_2d d_sendlist;
-  typename AT::t_xfloat_1d_um d_buf;
+  typename AT::t_xfloat_1d d_buf;
+  typename AT::t_int_1d d_copylist;
+  typename AT::t_int_1d d_indices;
+  typename AT::t_int_1d d_exchange_sendlist;
 
   void init_shielding_k();
   void init_hist();
@@ -266,8 +286,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 };
 
 template <class DeviceType>
-struct FixQEqReaxFFKokkosNumNeighFunctor  {
-  typedef DeviceType  device_type;
+struct FixQEqReaxFFKokkosNumNeighFunctor {
+  typedef DeviceType device_type;
   typedef int value_type;
   FixQEqReaxFFKokkos<DeviceType> c;
   FixQEqReaxFFKokkosNumNeighFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {

@@ -71,12 +71,12 @@ vectors.
 The reduction operation is specified by the *mode* setting.  The *sum*
 option adds the values in the vector into a global total.  The *min*
 or *max* options find the minimum or maximum value across all vector
-values.  The *minabs* or *maxabs* options find the minimum or maximum 
-value across all absolute vector values.  The *ave* setting adds the 
-vector values into a global total, then divides by the number of values 
-in the vector.  The *sumsq* option sums the square of the values in the 
-vector into a global total.  The *avesq* setting does the same as *sumsq*, 
-then divides the sum of squares by the number of values.  The last two options 
+values.  The *minabs* or *maxabs* options find the minimum or maximum
+value across all absolute vector values.  The *ave* setting adds the
+vector values into a global total, then divides by the number of values
+in the vector.  The *sumsq* option sums the square of the values in the
+vector into a global total.  The *avesq* setting does the same as *sumsq*,
+then divides the sum of squares by the number of values.  The last two options
 can be useful for calculating the variance of some quantity (e.g., variance =
 sumsq :math:`-` ave\ :math:`^2`).  The *sumabs* option sums the absolute
 values in the vector into a global total.  The *aveabs* setting does the same

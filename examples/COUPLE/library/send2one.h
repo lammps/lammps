@@ -14,7 +14,7 @@ class Send2One {
   int me,nprocs;
   MPI_Comm comm;
   class Memory *memory;
-  class Error *error;
+  class ErrorLib *error;
 
   int maxbuf;
   char *buf;

@@ -17,7 +17,7 @@ class Memory {
   void destroy_2d_double_array(double **);
 
  private:
-  class Error *error;
+  class ErrorLib *error;
 };
 
 #endif

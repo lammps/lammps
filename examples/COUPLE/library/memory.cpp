@@ -2,13 +2,13 @@
 #include <cstdlib>
 #include <cstdio>
 #include "memory.h"
-#include "error.h"
+#include "errorlib.h"
 
 /* ---------------------------------------------------------------------- */
 
 Memory::Memory(MPI_Comm comm)
 {
-  error = new Error(comm);
+  error = new ErrorLib(comm);
 }
 
 /* ---------------------------------------------------------------------- */

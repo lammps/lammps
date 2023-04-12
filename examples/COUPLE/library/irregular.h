@@ -47,7 +47,7 @@ class Irregular {
   MPI_Comm comm;             // MPI communicator for all communication
 
   class Memory *memory;
-  class Error *error;
+  class ErrorLib *error;
 
   void exchange_same(char *, char *);
   void exchange_varying(char *, char *);

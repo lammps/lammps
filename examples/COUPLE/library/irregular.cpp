@@ -3,7 +3,7 @@
 #include <cstring>
 #include "irregular.h"
 #include "memory.h"
-#include "error.h"
+#include "errorlib.h"
 
 #define MAX(A,B) ((A) > (B)) ? (A) : (B)
 
@@ -19,7 +19,7 @@ Irregular::Irregular(MPI_Comm caller)
   MPI_Comm_size(comm,&nprocs);
 
   memory = new Memory(comm);
-  error = new Error(comm);
+  error = new ErrorLib(comm);
 
   init();
 

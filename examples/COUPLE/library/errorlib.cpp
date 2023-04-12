@@ -1,11 +1,11 @@
 #include <mpi.h>
 #include <cstdio>
 #include <cstdlib>
-#include "error.h"
+#include "errorlib.h"
 
 /* ---------------------------------------------------------------------- */
 
-Error::Error(MPI_Comm caller)
+ErrorLib::ErrorLib(MPI_Comm caller)
 {
   comm = caller;
   MPI_Comm_rank(comm,&me);
@@ -15,7 +15,7 @@ Error::Error(MPI_Comm caller)
    called by all procs
 ------------------------------------------------------------------------- */
 
-void Error::all(const char *str)
+void ErrorLib::all(const char *str)
 {
   if (me == 0) printf("ERROR: %s\n",str);
   MPI_Finalize();
@@ -26,7 +26,7 @@ void Error::all(const char *str)
    called by one proc
 ------------------------------------------------------------------------- */
 
-void Error::one(const char *str)
+void ErrorLib::one(const char *str)
 {
   printf("ERROR on proc %d: %s\n",me,str);
   MPI_Abort(comm,1);
@@ -36,7 +36,7 @@ void Error::one(const char *str)
    called by one proc
 ------------------------------------------------------------------------- */
 
-void Error::warning(const char *str)
+void ErrorLib::warning(const char *str)
 {
   printf("WARNING: %s\n",str);
 }

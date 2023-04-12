@@ -1,1 +1,1 @@
-#define LMPPATH /home/sjplimp/lammps 
+#define LMPPATH /home/sjplimp/lammps/git

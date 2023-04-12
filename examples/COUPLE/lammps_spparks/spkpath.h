@@ -1,1 +1,1 @@
-#define SPKPATH /home/sjplimp/spparks
+#define SPKPATH /home/sjplimp/spparks/git

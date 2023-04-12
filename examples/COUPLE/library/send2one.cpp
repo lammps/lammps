@@ -3,7 +3,7 @@
 #include <cstdio>
 #include "send2one.h"
 #include "memory.h"
-#include "error.h"
+#include "errorlib.h"
 
 /* ---------------------------------------------------------------------- */
 
@@ -14,7 +14,7 @@ Send2One::Send2One(MPI_Comm caller_comm)
   MPI_Comm_size(comm,&nprocs);
 
   memory = new Memory(comm);
-  error = new Error(comm);
+  error = new ErrorLib(comm);
 
   buf = NULL;
   maxbuf = 0;

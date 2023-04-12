@@ -400,11 +400,13 @@ void ComputeReduce::compute_vector()
   if (mode == SUM || mode == SUMSQ || mode == AVEABS) {
     for (int m = 0; m < nvalues; m++)
       MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_SUM, world);
-
+  } else if (mode == MINABS || mode == MAXABS) {
+    for (int m = 0; m < nvalues; m++)
+      MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation, world);
   } else if (mode == MINN) {
     if (!replace) {
       for (int m = 0; m < nvalues; m++)
-        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_MIN, world);
+        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation, world);
 
     } else {
       for (int m = 0; m < nvalues; m++)
@@ -421,11 +423,10 @@ void ComputeReduce::compute_vector()
           MPI_Bcast(&vector[m], 1, MPI_DOUBLE, owner[replace[m]], world);
         }
     }
-
   } else if (mode == MAXX) {
     if (!replace) {
       for (int m = 0; m < nvalues; m++)
-        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_MAX, world);
+        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation, world);
 
     } else {
       for (int m = 0; m < nvalues; m++)

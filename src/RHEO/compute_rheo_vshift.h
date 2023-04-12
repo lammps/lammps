@@ -35,17 +35,17 @@ class ComputeRHEOVShift : public Compute {
   void unpack_reverse_comm(int, int *, double *) override;
   double memory_usage() override;
   void correct_surfaces();
+  double **vshift;
 
  private:
   int nmax_old;
   double dtv, cut, cutsq, cutthird;
-  int surface_flag, index_vshift;
+  int surface_flag;
 
   class NeighList *list;
   class FixRHEO *fix_rheo;
   class ComputeRHEOInterface *compute_interface ;
   class ComputeRHEOKernel *compute_kernel;
-  class ComputeRHEOGrad *compute_grad;
 };
 
 }    // namespace LAMMPS_NS

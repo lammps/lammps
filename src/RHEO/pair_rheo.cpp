@@ -47,7 +47,7 @@ using namespace MathExtra;
 
 PairRHEO::PairRHEO(LAMMPS *lmp) :
   Pair(lmp), compute_kernel(nullptr), compute_grad(nullptr),
-  compute_interface(nullptr), fix_rheo(nullptr), fix_rheo_pressure(nullptr)
+  compute_interface(nullptr), fix_rheo(nullptr), fix_pressure(nullptr)
 {
   restartinfo = 0;
   single_enable = 0;
@@ -91,8 +91,7 @@ void PairRHEO::compute(int eflag, int vflag)
   double **v = atom->v;
   double **x = atom->x;
   double **f = atom->f;
-  double **f_pressure = fix_rheo->f_pressure; // rewrite later
-  double *pressure = atom->pressure; // rewrite later
+  double **f_pressure = compute_interface->f_pressure;
   double *rho = atom->rho;
   double *mass = atom->mass;
   double *drho = atom->drho;
@@ -105,15 +104,19 @@ void PairRHEO::compute(int eflag, int vflag)
   int *status = atom->status;
 
   int tmp1, tmp2;
-  int index_visc = atom->find_custom("rheo_viscosity", tmp1, tmp2);
-  if (index_visc == -1) error->all(FLERR, "Cannot find rheo viscosity");
-  double *viscosity = atom->dvector[index_visc];
+  int index = atom->find_custom("rheo_viscosity", tmp1, tmp2);
+  if (index == -1) error->all(FLERR, "Cannot find rheo viscosity");
+  double *viscosity = atom->dvector[index];
+
+  index = atom->find_custom("rheo_pressure", tmp1, tmp2);
+  if (index == -1) error->all(FLERR, "Cannot find rheo pressure");
+  double *pressure = atom->dvector[index];
 
   double *conductivity;
   if (thermal_flag) {
-    int index_cond = atom->find_custom("rheo_conductivity", tmp1, tmp2);
-    if (index_cond == -1) error->all(FLERR, "Cannot find rheo conductivity");
-    conductivity = atom->dvector[index_cond];
+    index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
+    if (index == -1) error->all(FLERR, "Cannot find rheo conductivity");
+    conductivity = atom->dvector[index];
   }
 
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -195,7 +198,7 @@ void PairRHEO::compute(int eflag, int vflag)
         if (fluidi && (!fluidj)) {
           compute_interface->correct_v(vi, vj, i, j);
           rhoj = compute_interface->correct_rho(j, i);
-          Pj = fix_rheo_pressure->calculate_p(rhoj);
+          Pj = fix_pressure->calculate_p(rhoj);
 
           if ((chi[j] > 0.9) && (r < (h * 0.5)))
             fmag = (chi[j] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
@@ -413,7 +416,12 @@ void PairRHEO::setup()
 
   fixes = modify->get_fix_by_style("rheo/pressure");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo/pressure to use pair rheo");
-  fix_rheo_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
+  fix_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
+
+  int tmp1, tmp2;
+  index_pressure = atom->find_custom("rheo_pressure", tmp1, tmp2);
+  if (index_pressure == -1) index_pressure = atom->add_custom("rheo_pressure", 1, 0);
+  else error->all(FLERR, "Cannot find pressure value in pair rheo");
 
   compute_kernel = fix_rheo->compute_kernel;
   compute_grad = fix_rheo->compute_grad;

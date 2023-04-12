@@ -55,7 +55,7 @@ Move away from h notation, use cut?
 
 ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  C(nullptr), C0(nullptr), compute_interface(nullptr);
+  C(nullptr), C0(nullptr), coordination(nullptr), compute_interface(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute rheo/kernel command");
 
@@ -71,7 +71,7 @@ ComputeRHEOKernel::~ComputeRHEOKernel()
   // Remove custom property if it exists
   int tmp1, tmp2, index;
   index = atom->find_custom("rheo_coordination", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index_coord, 1, 0);
+  if (index != -1) atom->remove_custom(index, 0, 0);
 
   memory->destroy(C);
   memory->destroy(C0);
@@ -125,12 +125,14 @@ void ComputeRHEOKernel::init()
 
   int tmp1, tmp2;
   int nmax = atom->nmax;
-  index_coord = atom->find_custom("rheo_coordination", tmp1, tmp2);
-  if (index_coord == -1) {
-    index_coord = atom->add_custom("rheo_coordination", 0, 0);
+  int index = atom->find_custom("rheo_coordination", tmp1, tmp2);
+  if (index == -1) {
+    index = atom->add_custom("rheo_coordination", 0, 0);
     nmax_old = nmax;
   }
+  coordination = atom->ivector[index];
 
+  // Create local arrays for kernel arrays, I can't foresee a reason to print
   comm_forward = 1;
   ncor = 0;
   Mdim = 0;
@@ -170,7 +172,6 @@ int ComputeRHEOKernel::check_corrections(int i)
       corrections = 0;
   }
 
-  int *coordination = atom->ivector[index_coord];
   if (coordination[i] < zmin) corrections = 0;
 
   return corrections;
@@ -503,7 +504,6 @@ void ComputeRHEOKernel::compute_peratom()
   double *mass = atom->mass;
   double *rho = atom->rho;
   int *status = atom->status;
-  int *coordination = atom->ivector[index_coord];
   tagint *tag = atom->tag;
 
   int inum, *ilist, *jlist, *numneigh, **firstneigh;
@@ -742,7 +742,6 @@ int ComputeRHEOKernel::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m,a,b;
-  coordination = atom->ivector[index_coord];
   m = 0;
   if (correction_order > 0) {
     for (i = 0; i < n; i++) {
@@ -774,7 +773,6 @@ int ComputeRHEOKernel::pack_forward_comm(int n, int *list, double *buf,
 void ComputeRHEOKernel::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last,a,b;
-  coordination = atom->ivector[index_coord];
   m = 0;
   last = first + n;
   if (correction_order > 0) {

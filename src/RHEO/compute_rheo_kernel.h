@@ -42,6 +42,7 @@ class ComputeRHEOKernel : public Compute {
 
   double dWij[3], dWji[3], Wij, Wji;
   int correction_order;
+  int *coordination;
 
  private:
   int solid_flag;
@@ -49,7 +50,7 @@ class ComputeRHEOKernel : public Compute {
   std::unordered_set<tagint> gsl_error_tags;
 
   int kernel_style, zmin, dim, Mdim, ncor;
-  int nmax_old, index_coord;
+  int nmax_old;
   double h, hsq, hinv, hsqinv, pre_w, pre_wp;
   double ***C;
   double *C0;

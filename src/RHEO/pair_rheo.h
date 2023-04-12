@@ -49,7 +49,7 @@ class PairRHEO : public Pair {
   class ComputeRHEOGrad *compute_grad;
   class ComputeRHEOInterface *compute_interface;
   class FixRHEO *fix_rheo;
-  class FixRHEOPressure *fix_rheo_pressure;
+  class FixRHEOPressure *fix_pressure;
 };
 
 }    // namespace LAMMPS_NS

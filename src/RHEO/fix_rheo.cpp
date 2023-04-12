@@ -21,6 +21,7 @@
 #include "atom.h"
 #include "compute_rheo_grad.h"
 #include "compute_rheo_interface.h"
+#include "compute_rheo_surface.h"
 #include "compute_rheo_kernel.h"
 #include "compute_rheo_rhosum.h"
 #include "compute_rheo_vshift.h"
@@ -37,7 +38,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), compute_grad(nullptr), compute_kernel(nullptr),
+  Fix(lmp, narg, arg), compute_grad(nullptr), compute_kernel(nullptr), compute_surface(nullptr),
   compute_interface(nullptr), compute_rhosum(nullptr), compute_vshift(nullptr)
 {
   time_integrate = 1;
@@ -258,7 +259,7 @@ void FixRHEO::initial_integrate(int /*vflag*/)
 
   double **gradr = compute_grad->gradr;
   double **gradv = compute_grad->gradv;
-  double **vshift = compute_vshift->array_atom;
+  double **vshift = compute_vshift->vshift;
 
   int *type = atom->type;
   int *mask = atom->mask;

@@ -37,7 +37,8 @@ enum {NONE, CONSTANT, TYPE};
 /* ---------------------------------------------------------------------- */
 
 FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr)
+  Fix(lmp, narg, arg), Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr),
+  conductivity(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
@@ -131,7 +132,7 @@ FixRHEOThermal::~FixRHEOThermal()
   // Remove custom property if it exists
   int tmp1, tmp2, index;
   index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index_cond, 1, 0);
+  if (index != -1) atom->remove_custom(index, 1, 0);
 
   memory->destroy(cv_type);
   memory->destroy(Tc_type);
@@ -199,11 +200,12 @@ void FixRHEOThermal::setup_pre_force(int /*vflag*/)
   // Manually grow if nmax_old exceeded
 
   int tmp1, tmp2;
-  index_cond = atom->find_custom("rheo_conductivity", tmp1, tmp2);
-  if (index_cond == -1) {
-    index_cond = atom->add_custom("rheo_conductivity", 1, 0);
+  index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
+  if (index== -1) {
+    index = atom->add_custom("rheo_conductivity", 1, 0);
     nmax_old = atom->nmax;
   }
+  conductivity = atom->dvector[index];
 
   post_neighbor();
   pre_force(0);

@@ -81,6 +81,7 @@ class FixRHEO : public Fix {
   class ComputeRHEOGrad *compute_grad;
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOInterface *compute_interface;
+  class ComputeRHEOSurface *compute_surface;
   class ComputeRHEORhoSum *compute_rhosum;
   class ComputeRHEOVShift *compute_vshift;
 

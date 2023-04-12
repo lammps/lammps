@@ -42,11 +42,9 @@ class ComputeRHEOGrad : public Compute {
   double **gradr;
   double **gradt;
   double **gradn;
-  int stage;
 
  private:
   int comm_stage, ncomm_grad, ncomm_field, nmax_old;
-  int indexv, indexr, indext, indexn;
   double cut, cutsq, rho0;
   class NeighList *list;
 

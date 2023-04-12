@@ -37,7 +37,7 @@ enum {NONE, CONSTANT, TYPE, POWER};
 /* ---------------------------------------------------------------------- */
 
 FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), eta_type(nullptr)
+  Fix(lmp, narg, arg), fix_rheo(nullptr), eta_type(nullptr), viscosity(nullptr), compute_grad(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
@@ -142,11 +142,12 @@ void FixRHEOViscosity::setup_pre_force(int /*vflag*/)
   // Manually grow if nmax_old exceeded
 
   int tmp1, tmp2;
-  index_visc = atom->find_custom("rheo_viscosity", tmp1, tmp2);
+  int index = atom->find_custom("rheo_viscosity", tmp1, tmp2);
   if (index_visc == -1) {
-    index_visc = atom->add_custom("rheo_viscosity", 1, 0);
+    index = atom->add_custom("rheo_viscosity", 1, 0);
     nmax_old = atom->nmax;
   }
+  viscosity = atom->dvector[index];
 
   post_neighbor();
   pre_force(0);
@@ -161,7 +162,6 @@ void FixRHEOViscosity::post_neighbor()
   int i;
 
   int *type = atom->type;
-  double *viscosity = atom->dvector[index_visc];
   int *mask = atom->mask;
 
   int nlocal = atom->nlocal;
@@ -190,7 +190,6 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
   int i, a, b;
   double tmp, gdot;
 
-  double *viscosity = atom->dvector[index_visc];
   int *mask = atom->mask;
   double **gradv = compute_grad->gradv;
 
@@ -232,7 +231,6 @@ int FixRHEOViscosity::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m;
-  double *viscosity = atom->dvector[index_visc];
   m = 0;
 
   for (i = 0; i < n; i++) {
@@ -247,7 +245,6 @@ int FixRHEOViscosity::pack_forward_comm(int n, int *list, double *buf,
 void FixRHEOViscosity::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
-  double *viscosity = atom->dvector[index_visc];
 
   m = 0;
   last = first + n;

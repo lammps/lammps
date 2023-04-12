@@ -38,7 +38,7 @@ enum{COMMGRAD, COMMFIELD};
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), compute_interface(nullptr), compute_kernel(nullptr),
+  Compute(lmp, narg, arg), fix_rheo(nullptr), compute_interface(nullptr), compute_kernel(nullptr),
   gradv(nullptr), gradr(nullptr), gradt(nullptr), gradn(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute rheo/grad command");
@@ -61,40 +61,26 @@ ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
     ncomm_grad += dim * dim;
     ncomm_field += dim;
     comm_reverse += dim * dim;
-    indexv = atom->add_custom("rheo_grad_v", 1, dim * dim);
-    gradv = atom->darray[indexv];
   }
 
   if (rho_flag) {
     ncomm_grad += dim;
     ncomm_field += 1;
     comm_reverse += dim;
-    indexr = atom->add_custom("rheo_grad_rho", 1, dim);
-    gradr = atom->darray[indexr];
   }
 
   if (temperature_flag) {
     ncomm_grad += dim;
     ncomm_field += 1;
     comm_reverse += dim;
-    indext= atom->add_custom("rheo_grad_temp", 1, dim);
-    gradt = atom->darray[indext];
   }
 
   if (eta_flag) {
     ncomm_grad += dim;
     comm_reverse += dim;
-    indexn = atom->add_custom("rheo_grad_eta", 1, dim);
-    gradn = atom->darray[indexn];
   }
 
-  // Create a custom atom property so it works with compute property/atom
-  // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_old exceeded
-
   comm_forward = ncomm_grad;
-  nmax_old = 0;
-  grow_arrays(atom->nmax);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,14 +88,16 @@ ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
 ComputeRHEOGrad::~ComputeRHEOGrad()
 {
   int dim = domain->dimension;
-  if (velocity_flag)
-    atom->remove_custom(indexv, 1, dim * dim);
-  if (rho_flag)
-    atom->remove_custom(indexr, 1, dim);
-  if (temperature_flag)
-    atom->remove_custom(indext, 1, dim);
-  if (eta_flag)
-    atom->remove_custom(indexn, 1, dim);
+  int tmp1, tmp2, index;
+
+  index = atom->find_custom("rheo_grad_v", tmp1, tmp2);
+  if (index != 1) atom->remove_custom(index, 1, dim * dim);
+  index = atom->find_custom("rheo_grad_rho", tmp1, tmp2);
+  if (index != 1)  atom->remove_custom(index, 1, dim);
+  index = atom->find_custom("rheo_grad_t", tmp1, tmp2);
+  if (index != 1)  atom->remove_custom(index, 1, dim);
+  index = atom->find_custom("rheo_grad_eta", tmp1, tmp2);
+  if (index != 1)  atom->remove_custom(index, 1, dim);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -123,6 +111,36 @@ void ComputeRHEOGrad::init()
   rho0 = fix_rheo->rho0;
   compute_kernel = fix_rheo->compute_kernel;
   compute_interface = fix_rheo->compute_interface;
+
+  // Create coordination array if it doesn't already exist
+  // Create a custom atom property so it works with compute property/atom
+  // Do not create grow callback as there's no reason to copy/exchange data
+  // Manually grow if nmax_old exceeded
+
+  int index;
+  int dim = domain->dimension;
+  if (velocity_flag) {
+    index = atom->add_custom("rheo_grad_v", 1, dim * dim);
+    gradv = atom->darray[index];
+  }
+
+  if (rho_flag) {
+    index = atom->add_custom("rheo_grad_rho", 1, dim);
+    gradr = atom->darray[index];
+  }
+
+  if (temperature_flag) {
+    index= atom->add_custom("rheo_grad_temp", 1, dim);
+    gradt = atom->darray[index];
+  }
+
+  if (eta_flag) {
+    index = atom->add_custom("rheo_grad_eta", 1, dim);
+    gradn = atom->darray[index];
+  }
+
+  nmax_old = 0;
+  grow_arrays(atom->nmax);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -151,12 +169,16 @@ void ComputeRHEOGrad::compute_peratom()
   double **v = atom->v;
   double *rho = atom->rho;
   double *temperature = atom->temperature;
-  double *eta = atom->viscosity;
   int *status = atom->status;
   int *type = atom->type;
   double *mass = atom->mass;
   int newton = force->newton;
   int dim = domain->dimension;
+
+  int tmp1, tmp2;
+  int index_visc = atom->find_custom("rheo_viscosity", tmp1, tmp2);
+  if (index_visc == -1) error->all(FLERR, "Cannot find rheo viscosity");
+  double *viscosity = atom->dvector[index_visc];
 
   inum = list->inum;
   ilist = list->ilist;
@@ -229,7 +251,7 @@ void ComputeRHEOGrad::compute_peratom()
 
         if (rho_flag) drho = rhoi - rhoj;
         if (temperature_flag) dT = temperature[i] - temperature[j];
-        if (eta_flag) deta = eta[i] - eta[j];
+        if (eta_flag) deta = viscosity[i] - viscosity[j];
 
         wp = compute_kernel->calc_dw(i, j, delx, dely, delz, sqrt(rsq));
         dWij = compute_kernel->dWij;

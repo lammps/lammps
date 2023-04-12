@@ -21,7 +21,6 @@
 #include "atom.h"
 #include "comm.h"
 #include "compute_rheo_interface.h"
-#include "compute_rheo_grad.h"
 #include "compute_rheo_kernel.h"
 #include "domain.h"
 #include "error.h"
@@ -37,8 +36,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), compute_kernel(nullptr),
-  compute_grad(nullptr), compute_surface(nullptr), compute_interface(nullptr)
+  Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), fix_rheo(nullptr),
+  compute_kernel(nullptr), compute_interface(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute RHEO/VShift command");
 
@@ -51,11 +50,12 @@ ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
   // Manually grow if nmax_old exceeded
 
   int tmp1, tmp2;
-  index_vshift = atom->find_custom("rheo_vshift", tmp1, tmp2);
-  if (index_vshift == -1) {
-    index_vshift = atom->add_custom("rheo_vshift", 1, 3);
+  int index = atom->find_custom("rheo_vshift", tmp1, tmp2);
+  if (index == -1) {
+    index = atom->add_custom("rheo_vshift", 1, 3);
     nmax_old = atom->nmax;
   }
+  vshift = atom->dvector[index];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,7 +65,7 @@ ComputeRHEOVShift::~ComputeRHEOVShift()
   // Remove custom property if it exists
   int tmp1, tmp2, index;
   index = atom->find_custom("rheo_vshift", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index_vshift, 1, 3);
+  if (index != -1) atom->remove_custom(index, 1, 3);
 
 }
 
@@ -80,7 +80,6 @@ void ComputeRHEOVShift::init()
     surface_flag = 1;
 
   compute_kernel = fix_rheo->compute_kernel;
-  compute_grad = fix_rheo->compute_grad;
   compute_interface = fix_rheo->compute_interface;
 
   cut = fix_rheo->cut;
@@ -119,14 +118,12 @@ void ComputeRHEOVShift::compute_peratom()
   int *surface = atom->surface;
   double *rho = atom->rho;
   double *mass = atom->mass;
-  double **vshift = atom->darray[index_vshift];
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-
 
   if (nmax_old < atom->nmax)
     memory->grow(vshift, atom->nmax, 3, "atom:rheo_vshift");
@@ -232,9 +229,9 @@ void ComputeRHEOVShift::correct_surfaces()
   int nlocal = atom->nlocal;
   int i, a, b;
   int dim = domain->dimension;
-  double **vshift = atom->darray[index_vshift];
 
   int tmp1, tmp2;
+  define after surf
   int index_nsurf = atom->find_custom("rheo_nsurf", tmp1, tmp2);
   if (index_nsurf == -1) error->all(FLERR, "Cannot find rheo nsurf");
   double **nsurf = atom->darray[index_nsurf];
@@ -268,7 +265,6 @@ void ComputeRHEOVShift::correct_surfaces()
 int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
-  double **vshift = atom->darray[index_vshift];
 
   m = 0;
   last = first + n;
@@ -285,7 +281,6 @@ int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
 void ComputeRHEOVShift::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
-  double **vshift = atom->darray[index_vshift];
 
   m = 0;
   for (i = 0; i < n; i++) {

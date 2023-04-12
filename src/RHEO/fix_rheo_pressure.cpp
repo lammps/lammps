@@ -36,7 +36,7 @@ enum {NONE, LINEAR, CUBIC, TAITWATER};
 /* ---------------------------------------------------------------------- */
 
 FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), fix_rheo(nullptr), pressure(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
@@ -74,7 +74,7 @@ FixRHEOPressure::~FixRHEOPressure()
   // Remove custom property if it exists
   int tmp1, tmp2, index;
   index = atom->find_custom("rheo_pressure", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index_pres, 1, 0);
+  if (index != -1) atom->remove_custom(index, 1, 0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,11 +115,12 @@ void FixRHEOPressure::setup_pre_force(int /*vflag*/)
   // Manually grow if nmax_old exceeded
 
   int tmp1, tmp2;
-  index_pres = atom->find_custom("rheo_pressure", tmp1, tmp2);
-  if (index_pres == -1) {
-    index_pres = atom->add_custom("rheo_pressure", 1, 0);
+  int index = atom->find_custom("rheo_pressure", tmp1, tmp2);
+  if (index == -1) {
+    index = atom->add_custom("rheo_pressure", 1, 0);
     nmax_old = atom->nmax;
   }
+  pressure = atom->dvector[index];
 
   pre_force(0);
 }
@@ -133,7 +134,6 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
   int i;
   double dr, rr3, rho_ratio;
 
-  double *pressure = atom->dvector[index_pres];
   int *mask = atom->mask;
   double *rho = atom->rho;
 
@@ -170,7 +170,6 @@ int FixRHEOPressure::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m;
-  double *pressure = atom->dvector[index_pres];
   m = 0;
 
   for (i = 0; i < n; i++) {
@@ -185,7 +184,6 @@ int FixRHEOPressure::pack_forward_comm(int n, int *list, double *buf,
 void FixRHEOPressure::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
-  double *pressure = atom->dvector[index_pres];
 
   m = 0;
   last = first + n;
@@ -193,6 +191,8 @@ void FixRHEOPressure::unpack_forward_comm(int n, int first, double *buf)
     pressure[i] = buf[m++];
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 double FixRHEOPressure::calculate_p(double rho)
 {

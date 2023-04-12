@@ -38,9 +38,10 @@ class FixRHEOPressure : public Fix {
   double calculate_p(double);
  private:
   double c_cubic, csq, rho0, rho0inv;
+  double *pressure;
   int pressure_style;
   int first_flag, last_flag;
-  int nmax_old, index_pressure;
+  int nmax_old;
 
   class FixRHEO *fix_rheo;
 };

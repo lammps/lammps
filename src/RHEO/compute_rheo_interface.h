@@ -27,35 +27,34 @@ namespace LAMMPS_NS {
 class ComputeRHEOInterface : public Compute {
  public:
   ComputeRHEOInterface(class LAMMPS *, int, char **);
-  ~ComputeRHEOInterface();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  ~ComputeRHEOInterface() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
   void correct_v(double *, double *, double *, int, int);
   double correct_rho(int, int);
-  double memory_usage();
   void store_forces();
-  double *chi;
+
+  double *chi, **f_pressure;
 
  private:
-  int nmax;
-  double cut, cutsq, cs2;
+  int nmax_old, comm_stage;
+  double cut, cutsq, cs, wall_max;
+  double **fx_m_norm, *norm, *normwf;
+
+  char *id_fix_pa;
+
   class NeighList *list;
-  double *norm, *normwf, wall_max;
-
+  class FixRHEO *fix_rheo;
   class ComputeRHEOKernel *compute_kernel;
-  char *id_fix_chi;
-  class FixStore *fix_chi;
-
-  int index_fx, index_fy, index_fz;
-  int comm_stage;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

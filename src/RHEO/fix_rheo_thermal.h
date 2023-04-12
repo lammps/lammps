@@ -48,11 +48,12 @@ class FixRHEOThermal : public Fix {
   double *Tc_type, Tc;
   double *kappa_type, kappa;
   double dtf, dtv;
+  double *conductivity;
   int Tc_style;
   int cv_style;
   int conductivity_style;
   int first_flag, last_flag;
-  int nmax_old, index_cond;
+  int nmax_old;
 
   class FixRHEO *fix_rheo;
 

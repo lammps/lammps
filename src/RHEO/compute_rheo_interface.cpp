@@ -18,24 +18,20 @@
 
 #include "compute_rheo_interface.h"
 
-#include "fix_rheo.h"
-#include "compute_rheo_kernel.h"
-#include "fix_store.h"
-#include "fix.h"
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
 #include "domain.h"
+#include "compute_rheo_kernel.h"
+#include "error.h"
+#include "force.h"
+#include "fix_rheo.h"
+#include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -44,45 +40,29 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOInterface::ComputeRHEOInterface(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  id_fix_chi(nullptr)
+  Compute(lmp, narg, arg), fix_rheo(nullptr), compute_kernel(nullptr), fx_m_norm(nullptr),
+  norm(nullptr), normwf(nullptr), chi(nullptr), f_pressure(nullptr), id_fix_pa(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute RHEO/chi command");
-
-  cut = utils::numeric(FLERR,arg[3],false,lmp);
-  cutsq = cut*cut;
-
-  wall_max = sqrt(3)/12.0*cut;
+  if (narg != 3) error->all(FLERR,"Illegal compute rheo/interface command");
 
   nmax = 0;
 
   comm_forward = 3;
   comm_reverse = 4;
-
-  fix_chi = nullptr;
-  norm = nullptr;
-  normwf = nullptr;
-
-  // new id = fix-ID + FIX_STORE_ATTRIBUTE
-  // new fix group = group for this fix
-
-  id_fix_chi = nullptr;
-  std::string fixcmd = id + std::string("_chi");
-  id_fix_chi = new char[fixcmd.size()+1];
-  strcpy(id_fix_chi,fixcmd.c_str());
-  fixcmd += fmt::format(" all STORE peratom 0 {}", 1);
-  modify->add_fix(fixcmd);
-  fix_chi = (FixStore *) modify->fix[modify->nfix-1];
-  chi = fix_chi->vstore;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOInterface::~ComputeRHEOInterface()
 {
-  if (id_fix_chi && modify->nfix) modify->delete_fix(id_fix_chi);
-  if (modify->nfix) modify->delete_fix("PROPERTY_ATOM_COMP_RHEO_SOLIDS");
+  // Remove custom property if it exists
+  int tmp1, tmp2, index;
+  index = atom->find_custom("rheo_chi", tmp1, tmp2);
+  if (index != -1) atom->remove_custom(index, 1, 0);
 
+  if (id_fix_pa && modify->nfix) modify->delete_fix(id_fix_pa);
+
+  memory->destroy(fx_m_norm);
   memory->destroy(norm);
   memory->destroy(normwf);
 }
@@ -91,42 +71,40 @@ ComputeRHEOInterface::~ComputeRHEOInterface()
 
 void ComputeRHEOInterface::init()
 {
-  // need an occasional full neighbor list
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
-  //neighbor->requests[irequest]->occasional = 1; //Anticipate needing regulalry
+  compute_kernel = fix_rheo->compute_kernel;
+  cut = fix_rheo->cut;
+  cutsq = cut * cut;
+  wall_max = sqrt(3.0) / 12.0 * cut;
 
-  int icompute = modify->find_compute("rheo_kernel");
-  if (icompute == -1) error->all(FLERR, "Using compute/RHEO/chi without compute/RHEO/kernel");
+  // Create chi array if it doesn't already exist
+  // Create a custom atom property so it works with compute property/atom
+  // Do not create grow callback as there's no reason to copy/exchange data
+  // Manually grow if nmax_old exceeded
 
-  compute_kernel = ((ComputeRHEOKernel *) modify->compute[icompute]);
+  int create_flag = 0;
+  int tmp1, tmp2;
+  int nmax = atom->nmax;
+  int index = atom->find_custom("rheo_chi", tmp1, tmp2);
+  if (index == -1) {
+    index = atom->add_custom("rheo_chi", 1, 0);
+    nmax_old = nmax;
+  }
+  chi = atom->dvector[index];
 
-  //Store persistent per atom quantities - need to be exchanged
-  char **fixarg = new char*[8];
-  fixarg[0] = (char *) "PROPERTY_ATOM_COMP_RHEO_SOLIDS";
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "property/atom";
-  fixarg[3] = (char *) "d_fx";
-  fixarg[4] = (char *) "d_fy";
-  fixarg[5] = (char *) "d_fz";
-  fixarg[6] = (char *) "ghost";
-  fixarg[7] = (char *) "yes";
-  modify->add_fix(8,fixarg,1);
-  delete [] fixarg;
+  // For fpressure, go ahead and create an instance of fix property atom
+  // Need restarts + exchanging with neighbors since it needs to persist
+  // between timesteps (fix property atom will handle callbacks)
 
-  int temp_flag;
-  index_fx = atom->find_custom("fx", temp_flag);
-  if ((index_fx < 0) || (temp_flag != 1))
-      error->all(FLERR, "Compute rheo/solids can't find fix property/atom fx");
-  index_fy = atom->find_custom("fy", temp_flag);
-  if ((index_fy < 0) || (temp_flag != 1))
-      error->all(FLERR, "Compute rheo/solids can't find fix property/atom fy");
-  index_fz = atom->find_custom("fz", temp_flag);
-  if ((index_fz < 0) || (temp_flag != 1))
-      error->all(FLERR, "Compute rheo/solids can't find fix property/atom fz");
+  index = atom->find_custom("rheo_pressure", tmp1, tmp2);
+  if (index == -1) {
+    id_fix_pa = utils::strdup(id + std::string("_fix_property_atom"));
+    modify->add_fix(fmt::format("{} all property/atom d2_f_pressure 3", id_fix_pa)));
+    index = atom->find_custom("rheo_pressure", tmp1, tmp2);
+  }
+  f_pressure = atom->darray[index];
+
+  // need an occasional half neighbor list
+  neighbor->add_request(this, NeighConst::REQ_HALF);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -138,6 +116,7 @@ void ComputeRHEOInterface::init_list(int /*id*/, NeighList *ptr)
 
 /* ---------------------------------------------------------------------- */
 
+// Left off here
 void ComputeRHEOInterface::compute_peratom()
 {
   int i, j, ii, jj, jnum, itype, jtype, phase_match;

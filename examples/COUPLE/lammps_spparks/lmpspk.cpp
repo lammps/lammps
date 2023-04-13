@@ -15,7 +15,7 @@
 #include "lammps_data_write.h"
 #include "many2many.h"
 #include "memory.h"
-#include "error.h"
+#include "errorlib.h"
 
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)

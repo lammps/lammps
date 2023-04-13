@@ -3,7 +3,7 @@
 #include <cstring>
 #include "lammps_data_write.h"
 #include "memory.h"
-#include "error.h"
+#include "errorlib.h"
 
 #define DELTA 4;
 

@@ -91,7 +91,7 @@ Extrapolation grade
 Calculation of extrapolation grade in PACE is implemented in `pair_style
 pace/extrapolation`.  It is based on the MaxVol algorithm similar to
 Moment Tensor Potential (MTP) by Shapeev et al.  and is described in
-:ref:`(Lysogorskiy2) <Lysogorskiy2022>`.  In order to compute
+:ref:`(Lysogorskiy2) <Lysogorskiy2023>`.  In order to compute
 extrapolation grade one needs to provide:
 
 #. ACE potential in B-basis form (`.yaml` format) and
@@ -188,6 +188,6 @@ recursive, chunksize = 4096,
 
 **(Lysogorskiy)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
 
-.. _Lysogorskiy2022:
+.. _Lysogorskiy2023:
 
-**(Lysogorskiy2022)** Lysogorskiy, Bochkarev, Mrovec, Drautz, arXiv:2212.08716 (2022).
+**(Lysogorskiy2023)** Lysogorskiy, Bochkarev, Mrovec, Drautz, Phys Rev Mater, 7, 043801 (2023) / arXiv:2212.08716 (2022).

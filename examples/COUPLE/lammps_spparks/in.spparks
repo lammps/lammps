@@ -20,4 +20,4 @@ diag_style       energy
 temperature	 1.0
 
 stats            10.0
-dump             1 10.0 dump.mc
+dump             1 text 10.0 dump.mc id site x y

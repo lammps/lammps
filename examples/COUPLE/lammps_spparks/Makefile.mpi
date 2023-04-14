@@ -4,16 +4,16 @@ SHELL = /bin/sh
 
 # System-specific settings
 
-LAMMPS =	/home/sjplimp/lammps/git/src
-SPPARKS =	/home/sjplimp/spparks/git/src
+LAMMPS =	/home/sjplimp/lammps/git
+SPPARKS =	/home/sjplimp/spparks/git
 
 CC =		mpicxx
 CCFLAGS =	-g -O -DMPICH_IGNORE_CXX_SEEK -I../library
 DEPFLAGS =	-M
 LINK =		mpicxx
 LINKFLAGS =	-g -O -L../library -L${LAMMPS}/src -L${SPPARKS}/src
-USRLIB =	-lcouple -llmp_g++ -lspk_g++ 
-SYSLIB =	-lfftw -lmpich -lpthread
+USRLIB =	-lcouple -llammps_mpi -lspparks_mpi 
+SYSLIB =	
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size

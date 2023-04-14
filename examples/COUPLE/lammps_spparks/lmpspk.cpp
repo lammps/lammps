@@ -14,16 +14,16 @@
 
 #include "lammps_data_write.h"
 #include "many2many.h"
-#include "memory.h"
+#include "memorylib.h"
 #include "errorlib.h"
 
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
 
-//#include "spkpath.h"
-//#include QUOTE(SPKPATH/src/spparks.h)
-//#include QUOTE(SPKPATH/src/library.h)
-//#include QUOTE(SPKPATH/src/input.h)
+#include "spkpath.h"
+#include QUOTE(SPKPATH/src/spparks.h)
+#include QUOTE(SPKPATH/src/library.h)
+#include QUOTE(SPKPATH/src/input.h)
 
 #include "lmppath.h"
 #include QUOTE(LMPPATH/src/lammps.h)
@@ -32,7 +32,7 @@
 #include QUOTE(LMPPATH/src/modify.h)
 #include QUOTE(LMPPATH/src/compute.h)
 
-//using namespace SPPARKS_NS;
+using namespace SPPARKS_NS;
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -51,8 +51,8 @@ int main(int narg, char **arg)
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
 
-  Memory *memory = new Memory(comm);
-  Error *error = new Error(comm);
+  MemoryLib *memory = new MemoryLib(comm);
+  ErrorLib *error = new ErrorLib(comm);
 
   // command-line args
 

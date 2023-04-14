@@ -15,7 +15,7 @@ class Many2Many {
  protected:
   int me,nprocs;
   MPI_Comm comm;
-  class Memory *memory;
+  class MemoryLib *memory;
   class ErrorLib *error;
 
   int nown;                       // # of IDs common to src and dest

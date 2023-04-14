@@ -13,7 +13,7 @@ class Send2One {
  protected:
   int me,nprocs;
   MPI_Comm comm;
-  class Memory *memory;
+  class MemoryLib *memory;
   class ErrorLib *error;
 
   int maxbuf;

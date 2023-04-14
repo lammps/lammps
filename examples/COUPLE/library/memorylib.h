@@ -1,12 +1,12 @@
-#ifndef MEMORY_H
-#define MEMORY_H
+#ifndef MEMORY_LIB_H
+#define MEMORY_LIB_H
 
 #include <mpi.h>
 
-class Memory {
+class MemoryLib {
  public:
-  Memory(MPI_Comm);
-  ~Memory();
+  MemoryLib(MPI_Comm);
+  ~MemoryLib();
 
   void *smalloc(int n, const char *);
   void sfree(void *);

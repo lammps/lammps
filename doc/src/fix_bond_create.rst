@@ -21,7 +21,7 @@ Syntax
 * Rmin = 2 atoms separated by less than Rmin can bond (distance units)
 * bondtype = type of created bonds
 * zero or more keyword/value pairs may be appended to args
-* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain*
+* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain* ro *mincutoff*
 
   .. parsed-literal::
 
@@ -43,6 +43,8 @@ Syntax
        *aconstrain* value = amin amax
          amin = minimal angle at which new bonds can be created
          amax = maximal angle at which new bonds can be created
+       *mincutoff* value = Rmax
+         Rmax = bonds separated by more than Rmax can bond
 
 Examples
 """"""""
@@ -74,8 +76,9 @@ and effectively create and destroy bonds and higher-order many-body
 interactions from time step to time step as the atoms move.
 
 A check for possible new bonds is performed every *Nevery* time steps.
-If two atoms :math:`i` and :math:`j` are within a distance *Rmin* of each
-other, atom :math:`i` is of type *itype*, atom :math:`j` is of type *jtype*,
+If two atoms :math:`i` and :math:`j` are within a maximum distance 
+*Rmin* of each other, and within a minimum distance *Rmax* of each other,
+atom :math:`i` is of type *itype*, atom :math:`j` is of type *jtype*,
 and both :math:`i` and :math:`j` are in the specified fix group, then if a bond
 does not already exist between atoms :math:`i` and :math:`j`, and if both
 :math:`i` and :math:`j` meet their respective *maxbond* requirements (explained
@@ -97,7 +100,7 @@ bond partners.
 
 It is permissible to have *itype* = *jtype*\ .  *Rmin* must be :math:`\leq` the
 pair-wise cutoff distance between *itype* and *jtype* atoms, as defined
-by the :doc:`pair_style <pair_style>` command.
+by the :doc:`pair_style <pair_style>` command.  *Rmax* must be lower than *Rmin*.
 
 The *iparam* and *jparam* keywords can be used to limit the bonding
 functionality of the participating atoms.  Each atom keeps track of
@@ -271,5 +274,5 @@ Related commands
 Default
 """""""
 
-The option defaults are iparam = (0,itype), jparam = (0,jtype), and
+The option defaults are iparam = (0,itype), jparam = (0,jtype), Rmax = 0.0, and
 prob = 1.0.

@@ -91,7 +91,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 8;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"lowcutoff") == 0) {
+    if (strcmp(arg[iarg],"mincutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
       double low_cutoff = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (low_cutoff < 0. || low_cutoff >= cutoff) error->all(FLERR,"Illegal fix bond/create command");

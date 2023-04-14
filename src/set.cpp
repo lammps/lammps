@@ -1102,7 +1102,7 @@ void Set::set(int keyword)
 
     // set temperature of particle
 
-    else if (keyword == ANGMOM) {
+    else if (keyword == TEMPERATURE) {
       if (dvalue < 0.0) error->one(FLERR,"Invalid temperature in set command");
       atom->temperature[i] = dvalue;
     }

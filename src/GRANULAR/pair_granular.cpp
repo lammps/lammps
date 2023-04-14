@@ -69,6 +69,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   comm_forward = 1;
 
   use_history = 0;
+  size_history = 0;
   beyond_contact = 0;
   nondefault_history_transfer = 0;
   heat_flag = 0;
@@ -432,7 +433,14 @@ void PairGranular::init_style()
   }
 
   size_history = 0;
-  for (int i = 0; i < NSUBMODELS; i++) size_history += size_max[i];
+  if (use_history) {
+    for (int i = 0; i < NSUBMODELS; i++) size_history += size_max[i];
+
+    // Ensure size history is at least 1 to avoid errors in fix neigh/history
+    // This could occur if normal model is beyond_contact but no other entries are required
+    // E.g. JKR + linear_nohistory
+    size_history = MAX(size_history, 1);
+  }
 
   for (int n = 0; n < nmodels; n++) {
     model = models_list[n];
@@ -456,6 +464,9 @@ void PairGranular::init_style()
                                                           " all NEIGH_HISTORY "
                                                           + std::to_string(size_history),1));
     fix_history->pair = this;
+  } else if (use_history) {
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
+    if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
   }
 
   // check for FixFreeze and set freeze_group_bit
@@ -516,13 +527,6 @@ void PairGranular::init_style()
 
   MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
   MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
-
-  // set fix which stores history info
-
-  if (size_history > 0) {
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
-    if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
-  }
 }
 
 /* ----------------------------------------------------------------------

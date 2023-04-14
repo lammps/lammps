@@ -53,7 +53,7 @@ class GranSubModNormal : public GranSubMod {
   ~GranSubModNormal() {};
   virtual bool touch();
   virtual double pulloff_distance(double, double);
-  virtual double calculate_area();
+  virtual double calculate_contact_radius();
   virtual double calculate_forces() = 0;
   virtual void set_fncrit();
   double damp; // argument historically needed by damping
@@ -123,8 +123,8 @@ class GranSubModNormalJKR : public GranSubModNormal {
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
   bool touch() override;
-  double pulloff_distance(double, double) override;
-  double calculate_area() override;
+  double pulloff_distance(double, double);
+  double calculate_contact_radius() override;
   double calculate_forces();
   void set_fncrit() override;
  protected:

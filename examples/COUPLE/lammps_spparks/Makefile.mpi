@@ -2,10 +2,12 @@
 
 SHELL = /bin/sh
 
-# System-specific settings
+# Paths to your local LAMMPS and SPPARKS home directories
 
 LAMMPS =	/home/sjplimp/lammps/git
 SPPARKS =	/home/sjplimp/spparks/git
+
+# System-specific settings
 
 CC =		mpicxx
 CCFLAGS =	-g -O -DMPICH_IGNORE_CXX_SEEK -I../library

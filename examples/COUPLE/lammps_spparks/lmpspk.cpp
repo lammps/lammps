@@ -130,6 +130,8 @@ int main(int narg, char **arg)
 
     fprintf(fp,"compute da all displace/atom\n\n");
     fprintf(fp,"dump 1 all atom 10 dump.md\n");
+    fprintf(fp,"dump 2 all image 10 image_lammps.*.ppm type type zoom 1.6\n");
+    fprintf(fp,"dump_modify 2 pad 4 acolor * red/green/blue/aqua/magenta/yellow\n");
     fprintf(fp,"thermo 1\n");
 
     fclose(fp);

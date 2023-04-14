@@ -56,7 +56,7 @@ class FixBondCreate : public Fix {
   int inewtype, jnewtype;
   int constrainflag, constrainpass;
   double amin, amax;
-  double cutsq, fraction;
+  double lowcutsq, cutsq, fraction;
   int atype, dtype, itype;
   int angleflag, dihedralflag, improperflag;
 

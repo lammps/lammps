@@ -58,6 +58,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 2;
   global_freq = 1;
   extvector = 0;
+  lowcutsq = 0.0;
 
   iatomtype = utils::inumeric(FLERR,arg[4],false,lmp);
   jatomtype = utils::inumeric(FLERR,arg[5],false,lmp);
@@ -90,7 +91,13 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   int iarg = 8;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"iparam") == 0) {
+    if (strcmp(arg[iarg],"lowcutoff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      double low_cutoff = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (low_cutoff < 0. || low_cutoff >= cutoff) error->all(FLERR,"Illegal fix bond/create command");
+      lowcutsq = low_cutoff*low_cutoff;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"iparam") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
       imaxbond = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       inewtype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
@@ -462,6 +469,7 @@ void FixBondCreate::post_integrate()
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
       if (rsq >= cutsq) continue;
+      if (rsq < lowcutsq) continue;
 
       if (constrainflag) {
         constrainpass = constrain(i,j,amin,amax);

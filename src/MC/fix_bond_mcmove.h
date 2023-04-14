@@ -17,8 +17,8 @@ FixStyle(bond/mcmove,FixBondMcMove);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_BONDSWAP_H
-#define LMP_FIX_BONDSWAP_H
+#ifndef LMP_FIX_BOND_MCMOVE_H
+#define LMP_FIX_BOND_MCMOVE_H
 
 #include "fix.h"
 

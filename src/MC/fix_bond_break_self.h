@@ -17,8 +17,8 @@ FixStyle(bond/break/self,FixBondBreakSelf);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_BOND_BREAK_H
-#define LMP_FIX_BOND_BREAK_H
+#ifndef LMP_FIX_BOND_BREAK_SELF_H
+#define LMP_FIX_BOND_BREAK_SELF_H
 
 #include "fix.h"
 

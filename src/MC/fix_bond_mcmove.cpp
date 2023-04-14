@@ -282,17 +282,43 @@ void FixBondMcMove::post_integrate()
         int move_bond_i = -1;
 
         // loop over all bonds of atom I
+        int num_track_bonds = 0;
+        int num_move_bonds = 0;
         for (int bond_i = 0; bond_i < num_bond[i]; ++bond_i) {
             if (bond_type[i][bond_i] == trackbondtype) {
-                track_bond_i = bond_i; // TODO: we would want to choose one randomly, not just the last one
+                num_track_bonds++;
+                track_bond_i = bond_i;
             }
             if (bond_type[i][bond_i] == movingbondtype) {
-                move_bond_i = bond_i; // TODO: we would want to choose one randomly, not just the last one
+                num_move_bonds++;
+                move_bond_i = bond_i;
             }
         }
-
-        if (move_bond_i < 0 || track_bond_i < 0) {
+        if (num_move_bonds < 1 || num_track_bonds < 1) {
             continue;
+        }
+
+        // default bonds for track & move of this atom is the last one
+        // now we randomly select another one
+        if (num_track_bonds > 1) {
+            for (int bond_i = 0; bond_i < num_bond[i]; ++bond_i) {
+                if (bond_type[i][bond_i] == trackbondtype) {
+                    if (this->random->uniform()*static_cast<double>(num_track_bonds) < 1.){
+                        track_bond_i = bond_i; // choose this randomly, not just the last one
+                        break;
+                    }
+                }
+            }
+        }
+        if (num_move_bonds > 1){
+            for (int bond_i = 0; bond_i < num_bond[i]; ++bond_i) {
+                if (bond_type[i][bond_i] == movingbondtype) {
+                    if (this->random->uniform()*static_cast<double>(num_move_bonds) < 1.){
+                        move_bond_i = bond_i; // choose this randomly, not just the last one
+                        break;
+                    }
+                }
+            }
         }
 
         // want to move the other end of the bond move_bond_i to

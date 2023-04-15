@@ -168,7 +168,7 @@ void FixRigidOMP::compute_forces_and_torques()
 
   } else if (rstyle == GROUP) {
 
-     // we likely have only a rather number of groups so we loop
+     // we likely have a rather small number of groups so we loop
      // over bodies and thread over all atoms for each of them.
 
      for (int ib = 0; ib < nbody; ++ib) {

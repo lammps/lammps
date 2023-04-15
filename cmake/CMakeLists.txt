@@ -384,11 +384,6 @@ if(NOT ${LAMMPS_MEMALIGN} STREQUAL "0")
   target_compile_definitions(lammps PRIVATE -DLAMMPS_MEMALIGN=${LAMMPS_MEMALIGN})
 endif()
 
-option(LAMMPS_EXCEPTIONS "enable the use of C++ exceptions for error messages (useful for library interface)" ${ENABLE_TESTING})
-if(LAMMPS_EXCEPTIONS)
-  target_compile_definitions(lammps PUBLIC -DLAMMPS_EXCEPTIONS)
-endif()
-
 # "hard" dependencies between packages resulting
 # in an error instead of skipping over files
 pkg_depends(ML-IAP ML-SNAP)

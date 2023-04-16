@@ -125,9 +125,10 @@ void ComputeRHEOVShift::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  if (nmax_old < atom->nmax)
+  if (nmax_old < atom->nmax) {
     memory->grow(vshift, atom->nmax, 3, "atom:rheo_vshift");
-  nmax_old = atom->nmax;
+    nmax_old = atom->nmax;
+  }
 
   for (i = 0; i < nall; i++)
     for (a = 0; a < dim; a++)
@@ -231,7 +232,6 @@ void ComputeRHEOVShift::correct_surfaces()
   int dim = domain->dimension;
 
   int tmp1, tmp2;
-  define after surf
   int index_nsurf = atom->find_custom("rheo_nsurf", tmp1, tmp2);
   if (index_nsurf == -1) error->all(FLERR, "Cannot find rheo nsurf");
   double **nsurf = atom->darray[index_nsurf];
@@ -239,7 +239,7 @@ void ComputeRHEOVShift::correct_surfaces()
   double nx,ny,nz,vx,vy,vz;
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if ((surface[i] & FixRHEO::STATUS_SURFACE) || (surface[i] & FixRHEO::STATUS_LAYER)) {
+      if ((status[i] & FixRHEO::STATUS_SURFACE) || (status[i] & FixRHEO::STATUS_LAYER)) {
         nx = nsurf[i][0];
         ny = nsurf[i][1];
         vx = vshift[i][0];

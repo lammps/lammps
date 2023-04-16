@@ -44,8 +44,8 @@ class ComputeRHEOInterface : public Compute {
 
  private:
   int nmax_old, comm_stage;
-  double cut, cutsq, cs, wall_max;
-  double **fx_m_norm, *norm, *normwf;
+  double rho0, cut, cutsq, cs, cs_inv, wall_max;
+  double *norm, *normwf, **fom_store;
 
   char *id_fix_pa;
 

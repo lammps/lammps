@@ -167,9 +167,10 @@ void FixRHEOViscosity::post_neighbor()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (first_flag && (nmax_old < atom->nmax))
+  if (first_flag && (nmax_old < atom->nmax)) {
     memory->grow(viscosity, atom->nmax, "atom:rheo_viscosity");
-  nmax_old = atom->nmax;
+    nmax_old = atom->nmax;
+  }
 
   if (viscosity_style == CONSTANT) {
     for (i = 0; i < nall; i++)
@@ -196,9 +197,10 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
   int nlocal = atom->nlocal;
   int dim = domain->dimension;
 
-  if (first_flag && (nmax_old < atom->nmax))
+  if (first_flag && (nmax_old < atom->nmax)) {
     memory->grow(viscosity, atom->nmax, "atom:rheo_viscosity");
-  nmax_old = atom->nmax;
+    nmax_old = atom->nmax;
+  }
 
   if (viscosity_style == POWER) {
     for (i = 0; i < nlocal; i++) {

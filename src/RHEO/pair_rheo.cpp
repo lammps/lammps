@@ -91,17 +91,21 @@ void PairRHEO::compute(int eflag, int vflag)
   double **v = atom->v;
   double **x = atom->x;
   double **f = atom->f;
-  double **f_pressure = compute_interface->f_pressure;
   double *rho = atom->rho;
   double *mass = atom->mass;
   double *drho = atom->drho;
   double *temperature = atom->temperature;
   double *heatflow = atom->heatflow;
   double *special_lj = force->special_lj;
-  tagint *tag = atom->tag;
-  int *chi = compute_interface->chi;
   int *type = atom->type;
   int *status = atom->status;
+  tagint *tag = atom->tag;
+
+  double **fp_store, *chi;
+  if (compute_interface) {
+    fp_store = compute_interface->fp_store;
+    chi = compute_interface->chi;
+  }
 
   int tmp1, tmp2;
   int index = atom->find_custom("rheo_viscosity", tmp1, tmp2);
@@ -273,9 +277,6 @@ void PairRHEO::compute(int eflag, int vflag)
           f[i][0] += ft[0];
           f[i][1] += ft[1];
           f[i][2] += ft[2];
-          fp[i][0] += dfp[0];
-          fp[i][1] += dfp[1];
-          fp[i][2] += dfp[2];
 
           if (evflag) // Does not account for unbalanced forces
             ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, ft[0], ft[1], ft[2], dx[0], dx[1], dx[2]);
@@ -289,7 +290,7 @@ void PairRHEO::compute(int eflag, int vflag)
               // flip sign here b/c -= at accummulator
             }
 
-            scale3(fp_prefact,r dWji, dfp);
+            scale3(fp_prefactor, dWji, dfp);
 
             add3(fv, dfp, ft);
             add3(fsolid, ft, ft);
@@ -297,10 +298,18 @@ void PairRHEO::compute(int eflag, int vflag)
             f[j][0] -= ft[0];
             f[j][1] -= ft[1];
             f[j][2] -= ft[2];
+          }
 
-            fp[j][0] -= dfp[0];
-            fp[j][1] -= dfp[1];
-            fp[j][2] -= dfp[2];
+          if (compute_interface) {
+            fp_store[i][0] += dfp[0];
+            fp_store[i][1] += dfp[1];
+            fp_store[i][2] += dfp[2];
+
+            if (newton_pair || j < nlocal) {
+              fp_store[j][0] -= dfp[0];
+              fp_store[j][1] -= dfp[1];
+              fp_store[j][2] -= dfp[2];
+            }
           }
         }
 

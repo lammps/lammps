@@ -293,9 +293,10 @@ void FixRHEOThermal::post_neighbor()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (first_flag && (nmax_old < atom->nmax))
+  if (first_flag && (nmax_old < atom->nmax)) {
     memory->grow(conductivity, atom->nmax, "atom:rheo_conductivity");
-  nmax_old = atom->nmax;
+    nmax_old = atom->nmax;
+  }
 
   if (conductivity_style == CONSTANT) {
     for (i = 0; i < nall; i++)
@@ -328,9 +329,10 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
   //int *mask = atom->mask;
   //int nlocal = atom->nlocal;
 
-  //if (first_flag && (nmax_old < atom->nmax))
+  //if (first_flag && (nmax_old < atom->nmax)) {
   //  memory->grow(conductivity, atom->nmax, "atom:rheo_conductivity");
-  //nmax_old = atom->nmax;
+  //  nmax_old = atom->nmax;
+  //}
 
   //if (conductivity_style == TBD) {
   //  for (i = 0; i < nlocal; i++) {

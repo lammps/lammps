@@ -97,15 +97,15 @@ static void ptr_argument_warning()
 #define END_CAPTURE \
   catch(LAMMPSAbortException &ae) { \
     int nprocs = 0; \
-    MPI_Comm_size(ae.universe, &nprocs ); \
+    MPI_Comm_size(ae.get_universe(), &nprocs ); \
     \
     if (nprocs > 1) { \
-      error->set_last_error(ae.message, ERROR_ABORT); \
+      error->set_last_error(ae.what(), ERROR_ABORT); \
     } else { \
-      error->set_last_error(ae.message, ERROR_NORMAL); \
+      error->set_last_error(ae.what(), ERROR_NORMAL); \
     } \
   } catch(LAMMPSException &e) { \
-    error->set_last_error(e.message, ERROR_NORMAL); \
+    error->set_last_error(e.what(), ERROR_NORMAL); \
   }
 
 // ----------------------------------------------------------------------
@@ -172,7 +172,7 @@ void *lammps_open(int argc, char **argv, MPI_Comm comm, void **ptr)
     lmp = new LAMMPS(argc, argv, comm);
     if (ptr) *ptr = (void *) lmp;
   } catch(LAMMPSException &e) {
-    fprintf(stderr, "LAMMPS Exception: %s\n", e.message);
+    fprintf(stderr, "LAMMPS Exception: %s\n", e.what());
     if (ptr) *ptr = nullptr;
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());

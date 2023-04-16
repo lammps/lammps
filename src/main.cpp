@@ -78,7 +78,7 @@ int main(int argc, char **argv)
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
     finalize();
-    MPI_Abort(ae.universe, 1);
+    MPI_Abort(ae.get_universe(), 1);
   } catch (LAMMPSException &) {
     finalize();
     MPI_Barrier(lammps_comm);

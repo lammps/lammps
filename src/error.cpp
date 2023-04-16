@@ -279,8 +279,7 @@ void Error::done(int status)
 }
 
 /* ----------------------------------------------------------------------
-   return the last error message reported by LAMMPS (only used if
-   compiled with -DLAMMPS_EXCEPTIONS)
+   return the last error message reported by LAMMPS
 ------------------------------------------------------------------------- */
 
 std::string Error::get_last_error() const
@@ -289,8 +288,7 @@ std::string Error::get_last_error() const
 }
 
 /* ----------------------------------------------------------------------
-   return the type of the last error reported by LAMMPS (only used if
-   compiled with -DLAMMPS_EXCEPTIONS)
+   return the type of the last error reported by LAMMPS
 ------------------------------------------------------------------------- */
 
 ErrorType Error::get_last_error_type() const
@@ -300,10 +298,9 @@ ErrorType Error::get_last_error_type() const
 
 /* ----------------------------------------------------------------------
    set the last error message and error type
-   (only used if compiled with -DLAMMPS_EXCEPTIONS)
 ------------------------------------------------------------------------- */
 
-void Error::set_last_error(const std::string &msg, ErrorType type)
+void Error::set_last_error(const char *msg, ErrorType type)
 {
   last_error_message = msg;
   last_error_type = type;

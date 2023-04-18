@@ -513,12 +513,18 @@ struct dual_hash_type {
   host_hash_type h_view;
 
   template<class DeviceType>
-  KOKKOS_INLINE_FUNCTION
   std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),hash_type&> view() {return d_view;}
 
   template<class DeviceType>
-  KOKKOS_INLINE_FUNCTION
   std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),host_hash_type&> view() {return h_view;}
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const hash_type&> const_view() const {return d_view;}
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),const host_hash_type&> const_view() const {return h_view;}
 
 };
 

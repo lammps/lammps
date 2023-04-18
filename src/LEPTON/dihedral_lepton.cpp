@@ -441,7 +441,7 @@ void DihedralLepton::read_restart(FILE *fp)
       utils::sfread(FLERR, buf, sizeof(char), len, fp, nullptr, error);
     }
     MPI_Bcast(buf, maxlen, MPI_CHAR, 0, world);
-    expressions.push_back(buf);
+    expressions.emplace_back(buf);
   }
 
   delete[] buf;

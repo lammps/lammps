@@ -249,7 +249,7 @@ TEST_F(GroupTest, Molecular)
     ASSERT_DOUBLE_EQ(group->mass(group->find("half")), 40);
     ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->get_region_by_id("top")), 10);
     ASSERT_NEAR(group->charge(group->find("top")), 0, 1.0e-14);
-    ASSERT_NEAR(group->charge(group->find("right"), domain->get_region_by_id("top")), 0, 1.0e-14);
+    ASSERT_NEAR(group->charge(group->find("three"), domain->get_region_by_id("top")), 0, 1.0e-14);
 
     TEST_FAILURE(".*ERROR: Unknown group include keyword xxx.*",
                  command("group three include xxx"););

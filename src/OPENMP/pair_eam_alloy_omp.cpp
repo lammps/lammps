@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -42,24 +41,19 @@ PairEAMAlloyOMP::PairEAMAlloyOMP(LAMMPS *lmp) : PairEAMOMP(lmp)
 
 void PairEAMAlloyOMP::coeff(int narg, char **arg)
 {
-  int i,j;
+  int i, j;
 
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // ensure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR, "Number of element to type mappings does not match number of atom types");
 
   // read EAM setfl file
 
   if (setfl) {
-    for (i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
-    delete [] setfl->elements;
-    delete [] setfl->mass;
+    for (i = 0; i < setfl->nelements; i++) delete[] setfl->elements[i];
+    delete[] setfl->elements;
+    delete[] setfl->mass;
     memory->destroy(setfl->frho);
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
@@ -72,22 +66,23 @@ void PairEAMAlloyOMP::coeff(int narg, char **arg)
   // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
+    if (strcmp(arg[i], "NULL") == 0) {
+      map[i - 2] = -1;
       continue;
     }
     for (j = 0; j < setfl->nelements; j++)
-      if (strcmp(arg[i],setfl->elements[j]) == 0) break;
-    if (j < setfl->nelements) map[i-2] = j;
-    else error->all(FLERR,"No matching element in EAM potential file");
+      if (strcmp(arg[i], setfl->elements[j]) == 0) break;
+    if (j < setfl->nelements)
+      map[i - 2] = j;
+    else
+      error->all(FLERR, "No matching element in EAM potential file");
   }
 
   // clear setflag since coeff() called once with I,J = * *
 
   int n = atom->ntypes;
   for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      setflag[i][j] = 0;
+    for (j = i; j <= n; j++) setflag[i][j] = 0;
 
   // set setflag i,j for type pairs where both are mapped to elements
   // set mass of atom type if i = j
@@ -97,14 +92,14 @@ void PairEAMAlloyOMP::coeff(int narg, char **arg)
     for (j = i; j <= n; j++) {
       if (map[i] >= 0 && map[j] >= 0) {
         setflag[i][j] = 1;
-        if (i == j) atom->set_mass(FLERR,i,setfl->mass[map[i]]);
+        if (i == j) atom->set_mass(FLERR, i, setfl->mass[map[i]]);
         count++;
       }
       scale[i][j] = 1.0;
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -117,14 +112,12 @@ void PairEAMAlloyOMP::read_file(char *filename)
 
   // read potential file
   if (comm->me == 0) {
-    PotentialFileReader reader(PairEAM::lmp, filename,
-                               "eam/alloy", unit_convert_flag);
+    PotentialFileReader reader(PairEAM::lmp, filename, "eam/alloy", unit_convert_flag);
 
     // transparently convert units for supported conversions
 
     int unit_convert = reader.get_unit_convert();
-    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
-                                                            unit_convert);
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY, unit_convert);
     try {
       reader.skip_line();
       reader.skip_line();
@@ -134,22 +127,22 @@ void PairEAMAlloyOMP::read_file(char *filename)
       ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
-      if ((int)values.count() != file->nelements + 1)
-        error->one(FLERR,"Incorrect element names in EAM potential file");
+      if ((int) values.count() != file->nelements + 1)
+        error->one(FLERR, "Incorrect element names in EAM potential file");
 
-      file->elements = new char*[file->nelements];
+      file->elements = new char *[file->nelements];
       for (int i = 0; i < file->nelements; i++)
         file->elements[i] = utils::strdup(values.next_string());
 
       values = reader.next_values(5);
       file->nrho = values.next_int();
       file->drho = values.next_double();
-      file->nr   = values.next_int();
-      file->dr   = values.next_double();
-      file->cut  = values.next_double();
+      file->nr = values.next_int();
+      file->dr = values.next_double();
+      file->cut = values.next_double();
 
       if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
-        error->one(FLERR,"Invalid EAM potential file");
+        error->one(FLERR, "Invalid EAM potential file");
 
       memory->create(file->mass, file->nelements, "pair:mass");
       memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
@@ -158,14 +151,13 @@ void PairEAMAlloyOMP::read_file(char *filename)
 
       for (int i = 0; i < file->nelements; i++) {
         values = reader.next_values(2);
-        values.next_int(); // ignore
+        values.next_int();    // ignore
         file->mass[i] = values.next_double();
 
         reader.next_dvector(&file->frho[i][1], file->nrho);
         reader.next_dvector(&file->rhor[i][1], file->nr);
         if (unit_convert) {
-          for (int j = 1; j < file->nrho; ++j)
-            file->frho[i][j] *= conversion_factor;
+          for (int j = 1; j < file->nrho; ++j) file->frho[i][j] *= conversion_factor;
         }
       }
 
@@ -173,8 +165,7 @@ void PairEAMAlloyOMP::read_file(char *filename)
         for (int j = 0; j <= i; j++) {
           reader.next_dvector(&file->z2r[i][j][1], file->nr);
           if (unit_convert) {
-            for (int k = 1; k < file->nr; ++k)
-              file->z2r[i][j][k] *= conversion_factor;
+            for (int k = 1; k < file->nr; ++k) file->z2r[i][j][k] *= conversion_factor;
           }
         }
       }
@@ -194,7 +185,7 @@ void PairEAMAlloyOMP::read_file(char *filename)
 
   // allocate memory on other procs
   if (comm->me != 0) {
-    file->elements = new char*[file->nelements];
+    file->elements = new char *[file->nelements];
     for (int i = 0; i < file->nelements; i++) file->elements[i] = nullptr;
     memory->create(file->mass, file->nelements, "pair:mass");
     memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
@@ -220,9 +211,7 @@ void PairEAMAlloyOMP::read_file(char *filename)
 
   // broadcast file->z2r
   for (int i = 0; i < file->nelements; i++) {
-    for (int j = 0; j <= i; j++) {
-      MPI_Bcast(&file->z2r[i][j][1], file->nr, MPI_DOUBLE, 0, world);
-    }
+    for (int j = 0; j <= i; j++) { MPI_Bcast(&file->z2r[i][j][1], file->nr, MPI_DOUBLE, 0, world); }
   }
 }
 
@@ -232,7 +221,7 @@ void PairEAMAlloyOMP::read_file(char *filename)
 
 void PairEAMAlloyOMP::file2array()
 {
-  int i,j,m,n;
+  int i, j, m, n;
   int ntypes = atom->ntypes;
 
   // set function params directly from setfl file
@@ -241,7 +230,7 @@ void PairEAMAlloyOMP::file2array()
   nr = setfl->nr;
   drho = setfl->drho;
   dr = setfl->dr;
-  rhomax = (nrho-1) * drho;
+  rhomax = (nrho - 1) * drho;
 
   // ------------------------------------------------------------------
   // setup frho arrays
@@ -252,7 +241,7 @@ void PairEAMAlloyOMP::file2array()
 
   nfrho = setfl->nelements + 1;
   memory->destroy(frho);
-  memory->create(frho,nfrho,nrho+1,"pair:frho");
+  memory->create(frho, nfrho, nrho + 1, "pair:frho");
 
   // copy each element's frho to global frho
 
@@ -262,15 +251,17 @@ void PairEAMAlloyOMP::file2array()
   // add extra frho of zeroes for non-EAM types to point to (pair hybrid)
   // this is necessary b/c fp is still computed for non-EAM atoms
 
-  for (m = 1; m <= nrho; m++) frho[nfrho-1][m] = 0.0;
+  for (m = 1; m <= nrho; m++) frho[nfrho - 1][m] = 0.0;
 
   // type2frho[i] = which frho array (0 to nfrho-1) each atom type maps to
   // if atom type doesn't point to element (non-EAM atom in pair hybrid)
   // then map it to last frho array of zeroes
 
   for (i = 1; i <= ntypes; i++)
-    if (map[i] >= 0) type2frho[i] = map[i];
-    else type2frho[i] = nfrho-1;
+    if (map[i] >= 0)
+      type2frho[i] = map[i];
+    else
+      type2frho[i] = nfrho - 1;
 
   // ------------------------------------------------------------------
   // setup rhor arrays
@@ -281,7 +272,7 @@ void PairEAMAlloyOMP::file2array()
 
   nrhor = setfl->nelements;
   memory->destroy(rhor);
-  memory->create(rhor,nrhor,nr+1,"pair:rhor");
+  memory->create(rhor, nrhor, nr + 1, "pair:rhor");
 
   // copy each element's rhor to global rhor
 
@@ -293,8 +284,7 @@ void PairEAMAlloyOMP::file2array()
   // OK if map = -1 (non-EAM atom in pair hybrid) b/c type2rhor not used
 
   for (i = 1; i <= ntypes; i++)
-    for (j = 1; j <= ntypes; j++)
-      type2rhor[i][j] = map[i];
+    for (j = 1; j <= ntypes; j++) type2rhor[i][j] = map[i];
 
   // ------------------------------------------------------------------
   // setup z2r arrays
@@ -303,9 +293,9 @@ void PairEAMAlloyOMP::file2array()
   // allocate z2r arrays
   // nz2r = N*(N+1)/2 where N = # of setfl elements
 
-  nz2r = setfl->nelements * (setfl->nelements+1) / 2;
+  nz2r = setfl->nelements * (setfl->nelements + 1) / 2;
   memory->destroy(z2r);
-  memory->create(z2r,nz2r,nr+1,"pair:z2r");
+  memory->create(z2r, nz2r, nr + 1, "pair:z2r");
 
   // copy each element pair z2r to global z2r, only for I >= J
 
@@ -324,7 +314,7 @@ void PairEAMAlloyOMP::file2array()
   //   type2z2r is not used by non-opt
   //   but set type2z2r to 0 since accessed by opt
 
-  int irow,icol;
+  int irow, icol;
   for (i = 1; i <= ntypes; i++) {
     for (j = 1; j <= ntypes; j++) {
       irow = map[i];

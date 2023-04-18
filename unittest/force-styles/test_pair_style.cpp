@@ -25,6 +25,7 @@
 
 #include "atom.h"
 #include "compute.h"
+#include "domain.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
@@ -1096,6 +1097,13 @@ TEST(PairStyle, single)
 
     for (auto &pre_command : test_config.pre_commands) {
         command(pre_command);
+    }
+
+    if (lmp->domain->box_exist) {
+        std::cerr << "Cannot test single() with YAML file that creates a box\n";
+        cleanup_lammps(lmp, test_config);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        GTEST_SKIP();
     }
 
     command("atom_style full");

@@ -24,7 +24,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 This fix command enables an "alchemical transformation" to be performed
 between two systems, whereby one system slowly transforms into the other

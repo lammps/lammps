@@ -271,6 +271,7 @@ Bialke
 biaxial
 bicrystal
 Biersack
+biga
 bigbig
 bigint
 Bij
@@ -318,6 +319,7 @@ Bogaerts
 Bogusz
 Bohrs
 boltz
+Bomont
 BondAngle
 BondBond
 bondchk
@@ -356,6 +358,7 @@ br
 Branduardi
 Branicio
 brennan
+Bretonnet
 Briels
 Brien
 Brilliantov
@@ -631,6 +634,7 @@ cutlo
 cutmax
 cutoffA
 cutoffC
+cutsq
 cuu
 cv
 Cv
@@ -1979,6 +1983,7 @@ machdyn
 MACHDYN
 Mackay
 Mackrodt
+MacLaurin
 macOS
 Macromolecules
 macroparticle
@@ -2213,6 +2218,7 @@ monopole
 monovalent
 Montalenti
 Montero
+Monti
 Mora
 Morefoo
 Morfill
@@ -2967,11 +2973,13 @@ qx
 qy
 qz
 Rackers
+radi
 radialscreened
 radialscreenedspin
 radialspin
 radian
 radians
+radj
 Rafferty
 rahman
 Rahman
@@ -3253,6 +3261,7 @@ Sep
 seqdep
 Serpico
 setfl
+setflag
 setforce
 Sethna
 setmask
@@ -3488,6 +3497,7 @@ Sx
 sy
 Sy
 symplectic
+symmetrize
 Synechococcus
 sys
 sysdim
@@ -3535,6 +3545,7 @@ ters
 tersoff
 Tersoff
 tesselation
+tesselations
 Tetot
 tex
 tfac

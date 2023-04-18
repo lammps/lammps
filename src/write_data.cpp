@@ -245,8 +245,8 @@ void WriteData::write(const std::string &file)
 
 void WriteData::header()
 {
-  fmt::print(fp,"LAMMPS data file via write_data, version {}, "
-             "timestep = {}\n\n",lmp->version,update->ntimestep);
+  fmt::print(fp,"LAMMPS data file via write_data, version {}, timestep = {}, units = {}\n\n",
+             lmp->version, update->ntimestep, update->unit_style);
 
   fmt::print(fp,"{} atoms\n{} atom types\n",atom->natoms,atom->ntypes);
 

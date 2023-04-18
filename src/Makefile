@@ -87,7 +87,6 @@ PACKAGE = \
 	kokkos \
 	kspace \
 	latboltz \
-	latte \
 	lepton \
 	machdyn \
 	manifold \
@@ -213,7 +212,6 @@ PACKLIB = \
 	gpu \
 	kim \
 	kokkos \
-	latte \
 	lepton \
 	mpiio \
 	mscg \
@@ -249,7 +247,6 @@ PACKEXT = \
 	adios \
 	h5md \
 	kim \
-	latte \
 	machdyn \
 	ml-hdnnp \
 	ml-pace \
@@ -468,7 +465,7 @@ mpi-stubs:
 sinclude ../lib/python/Makefile.lammps
 install-python:
 	@rm -rf ../python/build
-	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so -w $(PWD)
+	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so -w $(PWD) -v $(PWD)/version.h
 
 # Create a tarball of src dir and packages
 

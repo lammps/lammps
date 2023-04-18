@@ -82,7 +82,7 @@ class GranularModel : protected Pointers {
   // Contact properties/output
   double Fnormal, forces[3], torquesi[3], torquesj[3], dq;
 
-  double radi, radj, meff, dt, Ti, Tj, area;
+  double radi, radj, meff, dt, Ti, Tj, contact_radius;
   double Fntot, magtortwist;
 
   double *xi, *xj, *vi, *vj, *omegai, *omegaj;
@@ -96,7 +96,7 @@ class GranularModel : protected Pointers {
  protected:
   int rolling_defined, twisting_defined, heat_defined; // Flag optional sub models
   int classic_model;                                   // Flag original pair/gran calculations
-  int area_flag;                                       // Flag whether area is needed
+  int contact_radius_flag;                             // Flag whether contact radius is needed
 
   int nclass;
 

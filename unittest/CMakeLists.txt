@@ -54,7 +54,7 @@ add_test(NAME RunLammps
          COMMAND $<TARGET_FILE:lmp> -log none -echo none -in in.empty)
 set_tests_properties(RunLammps PROPERTIES
         ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
-        PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
+        PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development)?( - Maintenance)?\\)")
 
 # check if the compiled executable will print the help message
 add_test(NAME HelpMessage

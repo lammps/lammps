@@ -2,11 +2,13 @@
 .. index:: pair_style lepton/omp
 .. index:: pair_style lepton/coul
 .. index:: pair_style lepton/coul/omp
+.. index:: pair_style lepton/sphere
+.. index:: pair_style lepton/sphere/omp
 
 pair_style lepton command
 =========================
 
-Accelerator Variants: *lepton/omp*, *lepton/coul/comp*
+Accelerator Variants: *lepton/omp*, *lepton/coul/comp*, *lepton/sphere/comp*
 
 Syntax
 """"""
@@ -15,7 +17,7 @@ Syntax
 
    pair_style style args
 
-* style = *lepton* or *lepton/coul*
+* style = *lepton* or *lepton/coul* or *lepton/sphere*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
@@ -26,6 +28,8 @@ Syntax
       cutoff = global cutoff for the interactions (distance units)
       zero or more keywords may be appended
       keyword = *ewald* or *pppm* or *msm* or *dispersion* or *tip4p*
+    *lepton/sphere* args = cutoff
+      cutoff = global cutoff for the interactions (distance units)
 
 Examples
 """"""""
@@ -48,19 +52,32 @@ Examples
    kspace_style pppm 1.0e-4
    pair_coeff 1 1 "qi*qj/r*erfc(alpha*r); alpha=1.067"
 
+   pair_style lepton/sphere 2.5
+   pair_coeff 1 * "k*((r-r0)^2*step(r0-r)); k=200; r0=radi+radj"
+   pair_coeff 2 2 "4.0*eps*((sig/r)^12 - (sig/r)^6); eps=1.0; sig=2.0*sqrt(radi*radj)"
+
 Description
 """""""""""
 
 .. versionadded:: 8Feb2023
 
-Pair styles *lepton* and *lepton/coul* compute pairwise interactions
-between particles which depend solely on the distance and have a cutoff.
-The potential function must be provided as an expression string using
-"r" as the distance variable.  With pair style *lepton/coul* one may
-additionally reference the charges of the two atoms of the pair with
-"qi" and "qj", respectively.  Note that further constants in the
-expression can be defined in the same string as additional expressions
-separated by semi-colons as shown in the examples above.
+.. versionchanged:: TBD
+
+   added pair style lepton/sphere
+
+Pair styles *lepton*, *lepton/coul*, *lepton/sphere* compute pairwise
+interactions between particles which depend on the distance and have a
+cutoff.  The potential function must be provided as an expression string
+using "r" as the distance variable.  With pair style *lepton/coul* one
+may additionally reference the charges of the two atoms of the pair with
+"qi" and "qj", respectively.  With pair style *lepton/coul* one may
+instead reference the radii of the two atoms of the pair with "radi" and
+"radj", respectively; this is half of the diameter that can be set in
+:doc:`data files <read_data>` or the :doc:`set command <set>`.
+
+Note that further constants in the expressions can be defined in the
+same string as additional expressions separated by semi-colons as shown
+in the examples above.
 
 The expression `"200.0*(r-1.5)^2"` represents a harmonic potential
 around the pairwise distance :math:`r_0` of 1.5 distance units and a
@@ -75,6 +92,14 @@ The expression `"qi*qj/r"` represents a regular Coulombic potential with cutoff:
 .. math::
 
    U_{ij} = \frac{C q_i q_j}{\epsilon  r} \qquad r < r_c
+
+The expression `"200.0*(r-(radi+radj)^2"` represents a harmonic potential
+that has the equilibrium distance chosen so that the radii of the two
+atoms touch:
+
+.. math::
+
+   U_{ij} = K (r-(r_i+r_j))^2
 
 The `Lepton library <https://simtk.org/projects/lepton>`_, that the
 *lepton* pair style interfaces with, evaluates this expression string at
@@ -97,13 +122,20 @@ More on valid Lepton expressions below.  The last coefficient is
 optional; it allows to set the cutoff for a pair of atom types to a
 different value than the global cutoff.
 
-For pair style *lepton* only the "lj" value of the :doc:`special_bonds <special_bonds>`
-settings apply in case the interacting pair is also connected with a bond.
-The potential energy will *only* be added to the "evdwl" property.
+For pair style *lepton* only the "lj" values of the :doc:`special_bonds
+<special_bonds>` settings apply in case the interacting pair is also
+connected with a bond.  The potential energy will *only* be added to the
+"evdwl" property.
 
-For pair style *lepton/coul* only the "coul" value of the :doc:`special_bonds <special_bonds>`
-settings apply in case the interacting pair is also connected with a bond.
-The potential energy will *only* be added to the "ecoul" property.
+For pair style *lepton/coul* only the "coul" values of the
+:doc:`special_bonds <special_bonds>` settings apply in case the
+interacting pair is also connected with a bond.  The potential energy
+will *only* be added to the "ecoul" property.
+
+For pair style *lepton/sphere* only the "lj" values of the
+:doc:`special_bonds <special_bonds>` settings apply in case the
+interacting pair is also connected with a bond.  The potential energy
+will *only* be added to the "evdwl" property.
 
 In addition to the functions listed below, both pair styles support in
 addition a custom "zbl(zi,zj,r)" function which computes the
@@ -127,12 +159,13 @@ above.
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Pair styles *lepton* and *lepton/coul* do not support mixing.  Thus,
-expressions for *all* I,J pairs must be specified explicitly.
+Pair styles *lepton*, *lepton/coul*, and *lepton/sphere* do not support
+mixing.  Thus, expressions for *all* I,J pairs must be specified
+explicitly.
 
 Only pair style *lepton* supports the :doc:`pair_modify shift <pair_modify>`
 option for shifting the energy of the pair interaction so that it is
-0 at the cutoff, pair style *lepton/coul* does *not*.
+0 at the cutoff, pair styles *lepton/coul* and *lepton/sphere* do *not*.
 
 The :doc:`pair_modify table <pair_modify>` options are not relevant for
 the these pair styles.
@@ -141,7 +174,7 @@ These pair styles do not support the :doc:`pair_modify tail
 <pair_modify>` option for adding long-range tail corrections to energy
 and pressure.
 
-These pair styles write its information to :doc:`binary restart files
+These pair styles write their information to :doc:`binary restart files
 <restart>`, so pair_style and pair_coeff commands do not need to be
 specified in an input script that reads a restart file.
 
@@ -157,6 +190,12 @@ Restrictions
 These pair styles are part of the LEPTON package and only enabled if
 LAMMPS was built with this package.  See the :doc:`Build package
 <Build_package>` page for more info.
+
+Pair style *lepton/coul* requires that atom atoms have a charge
+property, e.g. via :doc:`atom_style charge <atom_style>`.
+
+Pair style *lepton/sphere* requires that atom atoms have a radius
+property, e.g. via :doc:`atom_style sphere <atom_style>`.
 
 Related commands
 """"""""""""""""

@@ -68,7 +68,7 @@ Note that :math:`\sigma` is defined in the LJ formula as the zero-crossing
 distance for the potential, not as the energy minimum at :math:`2^{\frac{1}{6}} \sigma`.
 
 The last coefficient is optional.  If not specified, the global
-LJ cutoff specified in the pair_style command are used.
+LJ cutoff specified in the pair_style command is used.
 
 ----------
 
@@ -103,11 +103,12 @@ portion of the pair interaction.
 All of the *lj/cut* pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
 not need to be specified in an input script that reads a restart file.
 
-The *lj/cut* pair styles support the use of the
-*inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
-partitioned by distance at different levels of the rRESPA hierarchy.
-The other styles only support the *pair* keyword of run_style respa.
-See the :doc:`run_style <run_style>` command for details.
+The *lj/cut* pair styles support the use of the *inner*, *middle*, and
+*outer* keywords of the :doc:`run_style respa <run_style>` command,
+meaning the pairwise forces can be partitioned by distance at different
+levels of the rRESPA hierarchy.  The other styles only support the
+*pair* keyword of run_style respa.  See the :doc:`run_style <run_style>`
+command for details.
 
 ----------
 

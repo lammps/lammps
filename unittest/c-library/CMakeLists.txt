@@ -80,7 +80,7 @@ if(BUILD_MPI)
       COMMAND $<TARGET_FILE:simple-plugin> 1 ${LAMMPS_DIR}/examples/COUPLE/plugin/in.lj $<TARGET_FILE:lammps>)
     set_tests_properties(RunCoupleSimplePlugin PROPERTIES
       ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
-      PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
+      PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development)?( - Maintenance)?\\)")
   endif()
   add_subdirectory(${LAMMPS_DIR}/examples/COUPLE/simple ${CMAKE_BINARY_DIR}/build-simple)
   add_test(NAME RunCoupleSimpleC
@@ -93,10 +93,10 @@ if(BUILD_MPI)
       COMMAND $<TARGET_FILE:simpleF90> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
     set_tests_properties(RunCoupleSimpleF90 PROPERTIES
       ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
-      PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
+      PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development)?( - Maintenance)?\\)")
   endif()
 
   set_tests_properties(RunCoupleSimpleC RunCoupleSimpleCC PROPERTIES
     ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
-    PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
+    PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development)?( - Maintenance)?\\)")
 endif()

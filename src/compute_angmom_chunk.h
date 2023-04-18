@@ -20,39 +20,25 @@ ComputeStyle(angmom/chunk,ComputeAngmomChunk);
 #ifndef LMP_COMPUTE_ANGMOM_CHUNK_H
 #define LMP_COMPUTE_ANGMOM_CHUNK_H
 
-#include "compute.h"
+#include "compute_chunk.h"
 
 namespace LAMMPS_NS {
-  class Fix;
 
-class ComputeAngmomChunk : public Compute {
+class ComputeAngmomChunk : public ComputeChunk {
  public:
   ComputeAngmomChunk(class LAMMPS *, int, char **);
   ~ComputeAngmomChunk() override;
-  void init() override;
   void compute_array() override;
-
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(Fix *, bigint, bigint) override;
-  void unlock(Fix *) override;
 
   double memory_usage() override;
 
  private:
-  int nchunk, maxchunk;
-  char *idchunk;
-  class ComputeChunkAtom *cchunk;
-
   double *massproc, *masstotal;
   double **com, **comall;
   double **angmom, **angmomall;
 
-  void allocate();
+  void allocate() override;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

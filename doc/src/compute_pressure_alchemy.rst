@@ -26,7 +26,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 28Mar2023
 
 Define a compute style that makes the "mixed" system pressure available
 for a system that uses the :doc:`fix alchemy <fix_alchemy>` command to

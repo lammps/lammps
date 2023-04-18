@@ -30,6 +30,8 @@ FixStyle(shake/kk/host,FixShakeKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+struct TagFixShakePreNeighbor{};
+
 template<int NEIGHFLAG, int EVFLAG>
 struct TagFixShakePostForce{};
 
@@ -37,6 +39,7 @@ template<int PBC_FLAG>
 struct TagFixShakePackForwardComm{};
 
 struct TagFixShakeUnpackForwardComm{};
+struct TagFixShakeUnpackExchange{};
 
 template<class DeviceType>
 class FixShakeKokkos : public FixShake, public KokkosBase {
@@ -54,6 +57,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   void min_setup(int) override;
   void pre_neighbor() override;
   void post_force(int) override;
+  void min_post_force(int) override;
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
@@ -76,6 +80,9 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   void unconstrained_update() override;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixShakePreNeighbor, const int&) const;
+
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixShakePostForce<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
@@ -91,8 +98,22 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixShakeUnpackForwardComm, const int&) const;
 
- protected:
+  KOKKOS_INLINE_FUNCTION
+  void pack_exchange_item(const int&, int &, const bool &) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixShakeUnpackExchange, const int&) const;
+
+  int pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
+                           DAT::tdual_int_1d k_sendlist,
+                           DAT::tdual_int_1d k_copylist,
+                           ExecutionSpace space) override;
+
+  void unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+                              DAT::tdual_int_1d &indices,int nrecv,
+                              ExecutionSpace space) override;
+
+ protected:
   typename AT::t_x_array d_x;
   typename AT::t_v_array d_v;
   typename AT::t_f_array d_f;
@@ -132,9 +153,16 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   DAT::tdual_int_1d k_list;
   typename AT::t_int_1d d_list; // list of clusters to SHAKE
 
+  DAT::tdual_int_2d k_closest_list;
+  typename AT::t_int_2d d_closest_list; // list of closest atom indices in SHAKE clusters
+
   DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_scalar k_nlist;
 
+  typename AT::t_int_scalar d_count;
+  HAT::t_int_scalar h_count;
+
+  void stats() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -181,16 +209,23 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT&, int, int *, double, double *) const;
 
-  int iswap;
-  int first;
+  int iswap,first,nsend;
+
   typename AT::t_int_2d d_sendlist;
   typename AT::t_xfloat_1d_um d_buf;
+
+  typename AT::t_int_1d d_exchange_sendlist;
+  typename AT::t_int_1d d_copylist;
+  typename AT::t_int_1d d_indices;
+
   X_FLOAT dx,dy,dz;
 
   int *shake_flag_tmp;
   tagint **shake_atom_tmp;
   int **shake_type_tmp;
 
+  DAT::tdual_int_1d k_sametag;
+  typename AT::t_int_1d d_sametag;
   int map_style;
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
@@ -198,18 +233,25 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   // copied from Domain
 
   KOKKOS_INLINE_FUNCTION
-  void minimum_image(double *) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void minimum_image_once(double *) const;
-
-  void update_domain_variables();
+  int closest_image(const int, int) const;
 
   int triclinic;
   int xperiodic,yperiodic,zperiodic;
   X_FLOAT xprd_half,yprd_half,zprd_half;
   X_FLOAT xprd,yprd,zprd;
   X_FLOAT xy,xz,yz;
+};
+
+template <class DeviceType>
+struct FixShakeKokkosPackExchangeFunctor {
+  typedef DeviceType device_type;
+  typedef int value_type;
+  FixShakeKokkos<DeviceType> c;
+  FixShakeKokkosPackExchangeFunctor(FixShakeKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int &i, int &offset, const bool &final) const {
+    c.pack_exchange_item(i, offset, final);
+  }
 };
 
 }

@@ -67,7 +67,6 @@ page gives those details.
    * :ref:`KOKKOS <PKG-KOKKOS>`
    * :ref:`KSPACE <PKG-KSPACE>`
    * :ref:`LATBOLTZ <PKG-LATBOLTZ>`
-   * :ref:`LATTE <PKG-LATTE>`
    * :ref:`LEPTON <PKG-LEPTON>`
    * :ref:`MACHDYN <PKG-MACHDYN>`
    * :ref:`MANIFOLD <PKG-MANIFOLD>`
@@ -1354,43 +1353,6 @@ The LATBOLTZ package requires that LAMMPS is build in :ref:`MPI parallel mode <s
 * :doc:`fix lb/momentum <fix_lb_momentum>`
 * :doc:`fix lb/viscous <fix_lb_viscous>`
 * examples/PACKAGES/latboltz
-
-----------
-
-.. _PKG-LATTE:
-
-LATTE package
--------------
-
-**Contents:**
-
-A fix command which wraps the LATTE DFTB code, so that molecular
-dynamics can be run with LAMMPS using density-functional tight-binding
-quantum forces calculated by LATTE.
-
-More information on LATTE can be found at this website:
-`https://github.com/lanl/LATTE <latte-home_>`_.  A brief technical
-description is given with the :doc:`fix latte <fix_latte>` command.
-
-.. _latte-home: https://github.com/lanl/LATTE
-
-**Authors:** Christian Negre (LANL) and Steve Plimpton (Sandia).  LATTE
-itself is developed at Los Alamos National Laboratory by Marc
-Cawkwell, Anders Niklasson, and Christian Negre.
-
-**Install:**
-
-This package has :ref:`specific installation instructions <latte>` on
-the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/LATTE: filenames -> commands
-* src/LATTE/README
-* lib/latte/README
-* :doc:`fix latte <fix_latte>`
-* examples/latte
-* `LAMMPS-LATTE tutorial <https://github.com/lanl/LATTE/wiki/Using-LATTE-through-LAMMPS>`_
 
 ----------
 

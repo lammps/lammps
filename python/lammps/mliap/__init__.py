@@ -7,18 +7,19 @@ import ctypes
 import platform
 import warnings
 
-py_ver = sysconfig.get_config_vars('VERSION')[0]
+py_ver = sysconfig.get_config_var('VERSION')
+abi_flags = sysconfig.get_config_var('abiflags')
 OS_name = platform.system()
 
 if OS_name == "Darwin":
     SHLIB_SUFFIX = '.dylib'
-    library = 'libpython' + py_ver + SHLIB_SUFFIX
+    library = 'libpython' + py_ver + abi_flags + SHLIB_SUFFIX
 elif OS_name == "Windows":
     SHLIB_SUFFIX = '.dll'
-    library = 'python' + py_ver + SHLIB_SUFFIX
+    library = 'python' + py_ver + abi_flags + SHLIB_SUFFIX
 else:
     SHLIB_SUFFIX = '.so'
-    library = 'libpython' + py_ver + SHLIB_SUFFIX
+    library = 'libpython' + py_ver + abi_flags + SHLIB_SUFFIX
 
 try:
     pylib = ctypes.CDLL(library)

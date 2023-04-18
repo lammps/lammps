@@ -12,16 +12,16 @@ LAMMPS can be coupled to other codes in at least 4 different ways.  Each
 has advantages and disadvantages, which you will have to think about in
 the context of your application.
 
-1. Define a new :doc:`fix <fix>` command that calls the other code.  In
-   this scenario, LAMMPS is the driver code.  During timestepping, the
-   fix is invoked, and can make library calls to the other code, which
-   has been linked to LAMMPS as a library.  This is the way the
-   :ref:`LATTE <PKG-LATTE>` package, which performs density-functional
-   tight-binding calculations using the `LATTE software
-   <https://github.com/lanl/LATTE>`_ to compute forces, is interfaced to
-   LAMMPS.  See the :doc:`fix latte <fix_latte>` command for more
+1. Define a new :doc:`fix <fix>` or :doc:`compute <compute>` command
+   that calls the other code.  In this scenario, LAMMPS is the driver
+   code.  During timestepping, the fix or compute is invoked, and can
+   make library calls to the other code, which has been linked to LAMMPS
+   as a library.  This is the way the :ref:`VORONOI <PKG-VORONOI>`
+   package, which computes Voronoi tesselations using the `Voro++
+   library <http://math.lbl.gov/voro++>`_, is interfaced to LAMMPS.  See
+   the :doc:`compute voronoi <compute_voronoi_atom>` command for more
    details.  Also see the :doc:`Modify <Modify>` pages for information
-   on how to add a new fix to LAMMPS.
+   on how to add a new fix or compute to LAMMPS.
 
 .. spacer
 

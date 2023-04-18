@@ -181,6 +181,9 @@ way no local OpenCL development headers or library needs to be present and only
 OpenCL compatible drivers need to be installed to use OpenCL.  If this is not
 desired, you can set :code:`USE_STATIC_OPENCL_LOADER` to :code:`no`.
 
+The GPU library has some multi-thread support using OpenMP.  If LAMMPS is built
+with ``-D BUILD_OMP=on`` this will also be enabled.
+
 If you are compiling with HIP, note that before running CMake you will have to
 set appropriate environment variables. Some variables such as
 :code:`HCC_AMDGPU_TARGET` (for ROCm <= 4.0) or :code:`CUDA_PATH` are necessary for :code:`hipcc`
@@ -274,9 +277,12 @@ To enable GPU binning via CUDA performance primitives set the Makefile variable
 most modern GPUs.
 
 To support the CUDA multiprocessor server you can set the define
-``-DCUDA_PROXY``.  Please note that in this case you must **not** use
+``-DCUDA_MPS_SUPPORT``.  Please note that in this case you must **not** use
 the CUDA performance primitives and thus set the variable ``CUDPP_OPT``
 to empty.
+
+The GPU library has some multi-thread support using OpenMP.  You need to add
+the compiler flag that enables OpenMP to the ``CUDR_OPTS`` Makefile variable.
 
 If the library build is successful, 3 files should be created:
 ``lib/gpu/libgpu.a``\ , ``lib/gpu/nvc_get_devices``\ , and
@@ -1964,10 +1970,10 @@ OPENMP package
    Apple offers the `Xcode package and IDE
    <https://developer.apple.com/xcode/>`_ for compiling software on
    macOS, so you have likely installed it to compile LAMMPS.  Their
-   compiler is based on `Clang <https://clang.llvm.org/>`, but while it
+   compiler is based on `Clang <https://clang.llvm.org/>`_, but while it
    is capable of processing OpenMP directives, the necessary header
    files and OpenMP runtime library are missing.  The `R developers
-   <https://www.r-project.org/>` have figured out a way to build those
+   <https://www.r-project.org/>`_ have figured out a way to build those
    in a compatible fashion. One can download them from
    `https://mac.r-project.org/openmp/
    <https://mac.r-project.org/openmp/>`_.  Simply adding those files as

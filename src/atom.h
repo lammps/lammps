@@ -83,6 +83,7 @@ class Atom : protected Pointers {
   double **omega, **angmom, **torque;
   int *ellipsoid, *line, *tri, *body;
   double **quat;
+  double *temperature, *heatflow;
 
   // molecular systems
 
@@ -186,6 +187,7 @@ class Atom : protected Pointers {
   int molecule_flag, molindex_flag, molatom_flag;
   int q_flag, mu_flag;
   int rmass_flag, radius_flag, omega_flag, torque_flag, angmom_flag, quat_flag;
+  int temperature_flag, heatflow_flag;
   int vfrac_flag, spin_flag, eradius_flag, ervel_flag, erforce_flag;
   int cs_flag, csforce_flag, vforce_flag, ervelforce_flag, etag_flag;
   int rho_flag, esph_flag, cv_flag, vest_flag;

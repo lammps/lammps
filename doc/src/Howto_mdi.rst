@@ -63,22 +63,29 @@ The package also provides a :doc:`mdi plugin <mdi>` command, which
 enables LAMMPS to operate as an MDI driver and load an MDI engine as a
 plugin library.
 
-The package furthermore includes a `fix mdi/qm <fix_mdi_qm>` command, in
-which LAMMPS operates as an MDI driver in conjunction with a quantum
-mechanics code as an MDI engine.  The post_force() method of the
-``fix_mdi_qm.cpp`` file shows how a driver issues MDI commands to another
-code.  This command can be used to couple to an MDI engine, which is
-either a stand-alone code or a plugin library.
+The package furthermore includes a :doc:`fix mdi/qm <fix_mdi_qm>`
+command, in which LAMMPS operates as an MDI driver in conjunction with a
+quantum mechanics code as an MDI engine.  The post_force() method of the
+``fix_mdi_qm.cpp`` file shows how a driver issues MDI commands to
+another code.  This command can be used to couple to an MDI engine,
+which is either a stand-alone code or a plugin library.
 
-As explained in the `fix mdi/qm <fix_mdi_qm>` command documentation, it
-can be used to perform *ab initio* MD simulations or energy
-minimizations, or to evaluate the quantum energy and forces for a series
-of independent systems.  The ``examples/mdi`` directory has example
-input scripts for all of these use cases.
+As explained in the :doc:`fix mdi/qm <fix_mdi_qm>` command
+documentation, it can be used to perform *ab initio* MD simulations or
+energy minimizations, or to evaluate the quantum energy and forces for a
+series of independent systems.  The ``examples/mdi`` directory has
+example input scripts for all of these use cases.
+
+The package also has a :doc:`fix mdi/qmmm <fix_mdi_qmmm>` command in
+which LAMMPS operates as an MDI driver in conjunction with a quantum
+mechanics code as an MDI engine to perform QM/MM simulations.  The
+LAMMPS input script partitions the system into QM and MM (molecular
+mechanics) atoms.  As described below the ``examples/QUANTUM`` directory
+has examples for coupling to 3 different quantum codes in this manner.
 
 ----------
 
-The examples/mdi directory contains Python scripts and LAMMPS input
+The ``examples/mdi`` directory contains Python scripts and LAMMPS input
 script which use LAMMPS as either an MDI driver or engine, or both.
 Currently, 5 example use cases are provided:
 
@@ -119,45 +126,26 @@ as a plugin library.
 
 -------------
 
-Currently, there are at least two quantum DFT codes which have direct MDI
+As of March 2023, these are quantum codes with MDI support provided via
+Python wrapper scripts included in the LAMMPS distribution.  These can
+be used with the fix mdi/qm and fix mdi/qmmm commands to perform QM
+calculations of an entire system (e.g. AIMD) or QM/MM simulations.  See
+the ``examples/QUANTUM`` sub-directories for more details:
+
+* LATTE - AIMD only
+* PySCF - QM/MM only
+* NWChem - AIMD or QM/MM
+
+There are also at least two quantum codes which have direct MDI
 support, `Quantum ESPRESSO (QE) <https://www.quantum-espresso.org/>`_
-and `INQ <https://qsg.llnl.gov/node/101.html>`_.  There are also several
-QM codes which have indirect support through QCEngine or i-PI.  The
-former means they require a wrapper program (QCEngine) with MDI support
-which writes/read files to pass data to the quantum code itself.  The
-list of QCEngine-supported and i-PI-supported quantum codes is on the
-`MDI webpage
+and `INQ <https://qsg.llnl.gov/node/101.html>`_.  There are also
+several QM codes which have indirect support through QCEngine or i-PI.
+The former means they require a wrapper program (QCEngine) with MDI
+support which writes/read files to pass data to the quantum code
+itself.  The list of QCEngine-supported and i-PI-supported quantum
+codes is on the `MDI webpage
 <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
 
-Here is how to build QE as a stand-alone ``pw.x`` file which can be
-used in stand-alone mode:
-
-.. code-block:: bash
-
-   git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git <base_path>/q-e
-   build the executable pw.x, following the `QE build guide <https://gitlab.com/QEF/q-e/-/wikis/Developers/CMake-build-system>`_
-
-Here is how to build QE as a shared library which can be used in plugin mode,
-which results in a ``libqemdi.so`` file in ``<base_path>/q-e/MDI/src``:
-
-.. code-block:: bash
-
-   git clone --branch mdi_plugin https://github.com/MolSSI-MDI/q-e.git <base_path>/q-e
-   cd <base_path>/q-e
-   ./configure --enable-parallel --enable-openmp --enable-shared FFLAGS="-fPIC" FCFLAGS="-fPIC" CFLAGS="-fPIC" foxflags="-fPIC" try_foxflags="-fPIC"
-   make -j 4 mdi
-
-INQ cannot be built as a stand-alone code; it is by design a library.
-Here is how to build INQ as a shared library which can be used in
-plugin mode, which results in a ``libinqmdi.so`` file in
-``<base_path>/inq/build/examples``:
-
-.. code-block:: bash
-
-   git clone --branch mdi --recurse-submodules https://gitlab.com/taylor-a-barnes/inq.git <base_path>/inq
-   cd <base_path>/inq
-   mkdir -p build
-   cd build
-   ../configure --prefix=<install_path>/install
-   make -j 4
-   make install
+These direct- and indirect-support codes should be usable for full
+system calculations (e.g. AIMD).  Whether they support QM/MM models
+depends on the individual QM code.

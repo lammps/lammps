@@ -138,18 +138,6 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
     region_zlo = region->extent_zlo;
     region_zhi = region->extent_zhi;
 
-    if (triclinic) {
-      if ((region_xlo < domain->boxlo_bound[0]) || (region_xhi > domain->boxhi_bound[0]) ||
-          (region_ylo < domain->boxlo_bound[1]) || (region_yhi > domain->boxhi_bound[1]) ||
-          (region_zlo < domain->boxlo_bound[2]) || (region_zhi > domain->boxhi_bound[2]))
-        error->all(FLERR,"Fix gcmc region {} extends outside simulation box", region->id);
-    } else {
-      if ((region_xlo < domain->boxlo[0]) || (region_xhi > domain->boxhi[0]) ||
-          (region_ylo < domain->boxlo[1]) || (region_yhi > domain->boxhi[1]) ||
-          (region_zlo < domain->boxlo[2]) || (region_zhi > domain->boxhi[2]))
-        error->all(FLERR,"Fix gcmc region {} extends outside simulation box", region->id);
-    }
-
     // estimate region volume using MC trials
 
     double coord[3];
@@ -219,6 +207,8 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   next_reneighbor = update->ntimestep + 1;
 
   // zero out counters
+
+  mc_active = 0;
 
   ntranslation_attempts = 0.0;
   ntranslation_successes = 0.0;
@@ -457,6 +447,19 @@ void FixGCMC::init()
   }
 
   triclinic = domain->triclinic;
+
+  if (triclinic) {
+    if ((region_xlo < domain->boxlo_bound[0]) || (region_xhi > domain->boxhi_bound[0]) ||
+	(region_ylo < domain->boxlo_bound[1]) || (region_yhi > domain->boxhi_bound[1]) ||
+	(region_zlo < domain->boxlo_bound[2]) || (region_zhi > domain->boxhi_bound[2])) {
+      error->all(FLERR,"Fix gcmc region extends outside simulation box");
+    }
+  } else {
+    if ((region_xlo < domain->boxlo[0]) || (region_xhi > domain->boxhi[0]) ||
+	(region_ylo < domain->boxlo[1]) || (region_yhi > domain->boxhi[1]) ||
+	(region_zlo < domain->boxlo[2]) || (region_zhi > domain->boxhi[2]))
+      error->all(FLERR,"Fix gcmc region extends outside simulation box");
+  }
 
   // set probabilities for MC moves
 
@@ -718,6 +721,8 @@ void FixGCMC::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
+  mc_active = 1;
+
   xlo = domain->boxlo[0];
   xhi = domain->boxhi[0];
   ylo = domain->boxlo[1];
@@ -795,7 +800,10 @@ void FixGCMC::pre_exchange()
       }
     }
   }
+
   next_reneighbor = update->ntimestep + nevery;
+
+  mc_active = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -2583,11 +2591,18 @@ void FixGCMC::grow_molecule_arrays(int nmolatoms) {
 
 
 /* ----------------------------------------------------------------------
+   extract variable which stores whether MC is active or not
+     active = MC moves are taking place
+     not active = normal MD is taking place
    extract variable which stores index of exclusion group
 ------------------------------------------------------------------------- */
 
 void *FixGCMC::extract(const char *name, int &dim)
 {
+  if (strcmp(name,"mc_active") == 0) {
+    dim = 0;
+    return (void *) &mc_active;
+  }
   if (strcmp(name,"exclusion_group") == 0) {
     dim = 0;
     return (void *) &exclusion_group;

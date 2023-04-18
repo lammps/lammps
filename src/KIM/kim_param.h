@@ -67,7 +67,5 @@ class KimParam : protected Pointers {
   KimParam(class LAMMPS *lmp);
   void command(int, char **);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif

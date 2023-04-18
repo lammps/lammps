@@ -32,6 +32,9 @@ ucl_inline numtyp det_prime(const numtyp m[9], const numtyp m2[9])
   return ans;
 }
 
+#ifdef INTEL_OCL
+__attribute__((intel_reqd_sub_group_size(16)))
+#endif
 __kernel void k_resquared(const __global numtyp4 *restrict x_,
                           const __global numtyp4 *restrict q,
                           const __global numtyp4 *restrict shape,
@@ -41,7 +44,7 @@ __kernel void k_resquared(const __global numtyp4 *restrict x_,
                           const int ntypes,
                           const __global int *dev_nbor,
                           const int stride,
-                          __global acctyp4 *restrict ans,
+                          __global acctyp3 *restrict ans,
                           const int astride,
                           __global acctyp *restrict engv,
                           __global int *restrict err_flag,
@@ -62,7 +65,7 @@ __kernel void k_resquared(const __global numtyp4 *restrict x_,
   const numtyp b_alpha=(numtyp)45.0/(numtyp)56.0;
   const numtyp cr60=ucl_cbrt((numtyp)60.0);
 
-  acctyp4 f, tor;
+  acctyp3 f, tor;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
   acctyp energy, virial[6];
@@ -122,6 +125,7 @@ __kernel void k_resquared(const __global numtyp4 *restrict x_,
 
     numtyp factor_lj;
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_nbor+nbor+n_stride);
       int j=dev_nbor[nbor];
       factor_lj = sp_lj[sbmask(j)];
       j &= NEIGHMASK;

@@ -222,6 +222,7 @@ accelerated styles exist.
 * :doc:`dt/reset <fix_dt_reset>` - reset the timestep based on velocity, forces
 * :doc:`edpd/source <fix_dpd_source>` - add heat source to eDPD simulations
 * :doc:`efield <fix_efield>` - impose electric field on system
+* :doc:`efield/tip4p <fix_efield>` - impose electric field on system with TIP4P molecules
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
 * :doc:`electrode/conp <fix_electrode>` - impose electric potential
 * :doc:`electrode/conq <fix_electrode>` - impose total electric charge
@@ -245,6 +246,7 @@ accelerated styles exist.
 * :doc:`grem <fix_grem>` - implements the generalized replica exchange method
 * :doc:`halt <fix_halt>` - terminate a dynamics run or minimization
 * :doc:`heat <fix_heat>` - add/subtract momentum-conserving heat
+* :doc:`heat/flow <fix_heat_flow>` - plain time integration of heat flow with per-atom temperature updates
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
@@ -260,7 +262,8 @@ accelerated styles exist.
 * :doc:`lb/viscous <fix_lb_viscous>` - :doc:`fix viscous <fix_viscous>` replacement for use with a lattice-Boltzmann fluid
 * :doc:`lineforce <fix_lineforce>` - constrain atoms to move in a line
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
-* :doc:`mdi/qm <fix_mdi_qm>` - LAMMPS operates as driver for a quantum code via the MolSSI Driver Interface (MDI)
+* :doc:`mdi/qm <fix_mdi_qm>` - LAMMPS operates as a client for a quantum code via the MolSSI Driver Interface (MDI)
+* :doc:`mdi/qmmm <fix_mdi_qmmm>` - LAMMPS operates as client for QM/MM simulation with a quantum code via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
 * :doc:`mol/swap <fix_mol_swap>` - Monte Carlo atom type swapping with a molecule
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms

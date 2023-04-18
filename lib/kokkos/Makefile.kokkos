@@ -1435,7 +1435,7 @@ tmp := $(call desul_append_header, "$H""endif")
 DESUL_INTERNAL_LS_CONFIG := $(shell ls $(DESUL_CONFIG_HEADER) 2>&1)
 
 ifeq ($(DESUL_INTERNAL_LS_CONFIG), $(DESUL_CONFIG_HEADER))
-  KOKKOS_INTERNAL_NEW_CONFIG := $(strip $(shell diff $(DESUL_CONFIG_HEADER) $(DESUL_INTERNAL_CONFIG_TMP) | grep -c define))
+  DESUL_INTERNAL_NEW_CONFIG := $(strip $(shell diff $(DESUL_CONFIG_HEADER) $(DESUL_INTERNAL_CONFIG_TMP) | grep -c define))
 else
   DESUL_INTERNAL_NEW_CONFIG := 1
 endif

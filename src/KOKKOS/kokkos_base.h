@@ -55,7 +55,7 @@ class KokkosBase {
                                       ExecutionSpace /*space*/) {}
 
   using KeyViewType = DAT::t_x_array;
-  using BinOp = Kokkos::BinOp3DReverse<KeyViewType>;
+  using BinOp = BinOp3DLAMMPS<KeyViewType>;
   virtual void
     sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> & /*Sorter*/) {}
 };

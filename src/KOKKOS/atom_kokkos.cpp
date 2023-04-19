@@ -205,7 +205,7 @@ void AtomKokkos::sort_device()
   max_bins[2] = nbinz;
 
   using KeyViewType = DAT::t_x_array;
-  using BinOp = Kokkos::BinOp3DReverse<KeyViewType>;
+  using BinOp = BinOp3DLAMMPS<KeyViewType>;
   BinOp binner(max_bins, bboxlo, bboxhi);
   Kokkos::BinSort<KeyViewType, BinOp> Sorter(d_x, 0, nlocal, binner, false);
   Sorter.create_permute_vector(LMPDeviceType());

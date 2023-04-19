@@ -897,7 +897,7 @@ void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
 {
-  // always sort on the device 
+  // always sort on the device
 
   k_franprev.sync_device();
   k_lv.sync_device();

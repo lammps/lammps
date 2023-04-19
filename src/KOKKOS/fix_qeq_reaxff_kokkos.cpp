@@ -1345,7 +1345,7 @@ void FixQEqReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
 {
-  // always sort on the device 
+  // always sort on the device
 
   k_s_hist.sync_device();
   k_t_hist.sync_device();

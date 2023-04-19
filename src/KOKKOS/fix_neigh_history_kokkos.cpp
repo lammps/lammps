@@ -332,7 +332,7 @@ void FixNeighHistoryKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
 {
-  // always sort on the device 
+  // always sort on the device
 
   k_npartner.sync_device();
   k_partner.sync_device();

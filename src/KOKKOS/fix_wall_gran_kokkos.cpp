@@ -320,7 +320,7 @@ void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 template<class DeviceType>
 void FixWallGranKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
 {
-  // always sort on the device 
+  // always sort on the device
 
   k_history_one.sync_device();
 

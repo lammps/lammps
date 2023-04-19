@@ -1919,15 +1919,15 @@ void FixACKS2ReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
-{ 
-  // always sort on the device 
-  
+{
+  // always sort on the device
+
   k_s_hist.sync_device();
   k_s_hist_X.sync_device();
-  
+
   Sorter.sort(LMPDeviceType(), k_s_hist.d_view);
   Sorter.sort(LMPDeviceType(), k_s_hist_X.d_view);
-  
+
   k_s_hist.modify_device();
   k_s_hist_X.modify_device();
 }

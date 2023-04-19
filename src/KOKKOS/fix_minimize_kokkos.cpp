@@ -224,13 +224,13 @@ void FixMinimizeKokkos::copy_arrays(int i, int j, int /*delflag*/)
 ------------------------------------------------------------------------- */
 
 void FixMinimizeKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
-{ 
-  // always sort on the device 
-  
+{
+  // always sort on the device
+
   k_vectors.sync_device();
-  
+
   Sorter.sort(LMPDeviceType(), k_vectors.d_view);
-  
+
   k_vectors.modify_device();
 }
 

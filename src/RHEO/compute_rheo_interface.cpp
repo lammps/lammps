@@ -398,7 +398,7 @@ void ComputeRHEOInterface::store_forces()
 
 double ComputeRHEOInterface::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = 3 * nmax_old * sizeof(double);
   return bytes;
 }
 

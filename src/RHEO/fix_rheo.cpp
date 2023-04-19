@@ -88,12 +88,24 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       thermal_flag = 1;
     } else if (strcmp(arg[iarg],"surface/detection") == 0) {
       surface_flag = 1;
+      if(iarg + 2 >= narg) error->all(FLERR,"Illegal surface/detection option in fix rheo");
+      if (strcmp(arg[iarg + 1], "coordination")) {
+        surface_style = COORDINATION;
+        zmin_surface = utils::inumeric(FLERR,arg[iarg + 2],false,lmp);
+      } else if (strcmp(arg[iarg + 1], "divergence")) {
+        surface_style = DIVR;
+        divr_surface = utils::numeric(FLERR,arg[iarg + 2],false,lmp);
+      } else {
+        error->all(FLERR,"Illegal surface/detection option in fix rheo, {}", arg[iarg + 1]);
+      }
+
+      iarg += 2;
     } else if (strcmp(arg[iarg],"interface/reconstruction") == 0) {
       interface_flag = 1;
     } else if (strcmp(arg[iarg],"rhosum") == 0) {
       rhosum_flag = 1;
       if(iarg + 1 >= narg) error->all(FLERR,"Illegal rhosum option in fix rheo");
-      zmin_rhosum = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
+      rhosum_zmin = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
       iarg += 1;
     } else if (strcmp(arg[iarg],"rho0") == 0) {
       if(iarg + 1 >= narg) error->all(FLERR,"Illegal rho0 option in fix rheo");
@@ -117,6 +129,7 @@ FixRHEO::~FixRHEO()
   if (compute_kernel) modify->delete_compute("rheo_kernel");
   if (compute_grad) modify->delete_compute("rheo_grad");
   if (compute_interface) modify->delete_compute("rheo_interface");
+  if (compute_surface) modify->delete_compute("compute_surface");
   if (compute_rhosum) modify->delete_compute("rheo_rhosum");
   if (compute_vshift) modify->delete_compute("rheo_vshift");
 }
@@ -128,27 +141,32 @@ FixRHEO::~FixRHEO()
 
 void FixRHEO::post_constructor()
 {
-  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute("rheo_kernel all rheo/kernel"));
+  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute("rheo_kernel all RHEO/KERNEL"));
   compute_kernel->fix_rheo = this;
 
-  std::string cmd = "rheo_grad all rheo/grad velocity rho viscosity";
+  std::string cmd = "rheo_grad all RHEO/GRAD velocity rho viscosity";
   if (thermal_flag) cmd += "temperature";
   compute_grad = dynamic_cast<ComputeRHEOGrad *>(modify->add_compute(cmd));
   compute_grad->fix_rheo = this;
 
   if (rhosum_flag) {
-    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute("rheo_rhosum all rheo/rho/sum"));
+    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute("rheo_rhosum all RHEO/RHO/SUM"));
     compute_rhosum->fix_rheo = this;
   }
 
   if (shift_flag) {
-    compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute("rheo_vshift all rheo/vshift"));
+    compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute("rheo_vshift all RHEO/VSHIFT"));
     compute_vshift->fix_rheo = this;
   }
 
   if (interface_flag) {
-    compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all rheo/interface")));
+    compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all RHEO/INTERFACE")));
     compute_interface->fix_rheo = this;
+  }
+
+  if (surface_flag) {
+    compute_surface = dynamic_cast<ComputeRHEOSurface *>(modify->add_compute(fmt::format("rheo_surface all RHEO/SURFACE")));
+    compute_surface->fix_rheo = this;
   }
 }
 
@@ -180,10 +198,11 @@ void FixRHEO::setup_pre_force(int /*vflag*/)
 {
   // Check to confirm accessory fixes do not preceed FixRHEO
   // Note: these fixes set this flag in setup_pre_force()
-  if (viscosity_fix_defined || pressure_fix_defined || thermal_fix_defined || surface_fix_defined)
+  if (viscosity_fix_defined || pressure_fix_defined || thermal_fix_defined)
     error->all(FLERR, "Fix RHEO must be defined before all other RHEO fixes");
 
-  pre_force(0);
+  // Calculate surfaces
+  if (surface_flag) compute_surface->compute_peratom();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -201,14 +220,10 @@ void FixRHEO::setup()
   if(!thermal_fix_defined && thermal_flag)
     error->all(FLERR, "Missing fix rheo/thermal");
 
-  if(!surface_fix_defined && surface_flag)
-    error->all(FLERR, "Missing fix rheo/surface");
-
   // Reset to zero for next run
   thermal_fix_defined = 0;
   viscosity_fix_defined = 0;
   pressure_fix_defined = 0;
-  surface_fix_defined = 0;
 
   // Check fixes cover all atoms (doesnt ensure user covers atoms created midrun)
   // (pressure is currently required to be group all)
@@ -259,7 +274,8 @@ void FixRHEO::initial_integrate(int /*vflag*/)
 
   double **gradr = compute_grad->gradr;
   double **gradv = compute_grad->gradv;
-  double **vshift = compute_vshift->vshift;
+  double **vshift;
+  if (shift_flag) compute_vshift->vshift;
 
   int *type = atom->type;
   int *mask = atom->mask;
@@ -287,8 +303,11 @@ void FixRHEO::initial_integrate(int /*vflag*/)
 
   // Update gradients and interpolate solid properties
   compute_grad->forward_fields(); // also forwards v and rho for chi
-  compute_interface->store_forces(); // Need to save, wiped in exchange
-  compute_interface->compute_peratom();
+  if (interface_flag) {
+    // Need to save, wiped in exchange
+    compute_interface->store_forces();
+    compute_interface->compute_peratom();
+  }
   compute_grad->compute_peratom();
 
   // Position half-step
@@ -350,7 +369,7 @@ void FixRHEO::pre_force(int /*vflag*/)
 
   compute_grad->forward_fields(); // also forwards v and rho for chi
   compute_kernel->compute_peratom();
-  compute_interface->compute_peratom();
+  if (interface_flag) compute_interface->compute_peratom();
 
   compute_grad->compute_peratom();
   compute_grad->forward_gradients();
@@ -369,6 +388,9 @@ void FixRHEO::pre_force(int /*vflag*/)
         status[i] &= ~STATUS_SHIFT;
     }
   }
+
+  // Calculate surfaces, update status
+  if (surface_flag) compute_surface->compute_peratom();
 }
 
 /* ---------------------------------------------------------------------- */

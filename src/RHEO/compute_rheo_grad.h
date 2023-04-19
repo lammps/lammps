@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(rheo/grad,ComputeRHEOGrad)
+ComputeStyle(RHEO/GRAD,ComputeRHEOGrad)
 // clang-format on
 #else
 

@@ -40,9 +40,11 @@ class FixRHEO : public Fix {
 
   // Model parameters
   double h, rho0, csq;
-  int zmin_kernel, rhosum_zmin;
-  int kernel_style;
+  int zmin_kernel, zmin_rhosum, zmin_surface;
+  int kernel_style, surface_style;
+  double divr_surface;
   enum {QUINTIC, CRK0, CRK1, CRK2};
+  enum {COORDINATION, DIVR};
 
   // Status variables
   enum {
@@ -75,8 +77,6 @@ class FixRHEO : public Fix {
   int viscosity_fix_defined;
   int pressure_fix_defined;
   int thermal_fix_defined;
-  int interface_fix_defined;
-  int surface_fix_defined;
 
   class ComputeRHEOGrad *compute_grad;
   class ComputeRHEOKernel *compute_kernel;

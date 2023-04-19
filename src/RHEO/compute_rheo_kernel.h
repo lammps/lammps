@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(rheo/kernel,ComputeRHEOKernel)
+ComputeStyle(RHEO/KERNEL,ComputeRHEOKernel)
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(rheo/vshift,ComputeRHEOVShift)
+ComputeStyle(RHEO/VSHIFT,ComputeRHEOVShift)
 // clang-format on
 #else
 

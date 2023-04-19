@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(RHEO/INTERFACE,ComputeRHEOInterface)
+ComputeStyle(RHEO/SURFACE,ComputeRHEOSurface)
 // clang-format on
 #else
 
@@ -24,37 +24,49 @@ ComputeStyle(RHEO/INTERFACE,ComputeRHEOInterface)
 
 namespace LAMMPS_NS {
 
-class ComputeRHEOInterface : public Compute {
+class ComputeRHEOSurface : public Compute {
  public:
-  ComputeRHEOInterface(class LAMMPS *, int, char **);
-  ~ComputeRHEOInterface() override;
+  ComputeRHEOSurface(class LAMMPS *, int, char **);
+  ~ComputeRHEOSurface();
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
-  double memory_usage() override;
-  void correct_v(double *, double *, double *, int, int);
-  double correct_rho(int, int);
-  void store_forces();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
-  double *chi, **f_pressure;
+  double **gradC, **n_surface;
 
  private:
-  int nmax_old, comm_stage;
-  double rho0, cut, cutsq, cs, cs_inv, wall_max;
-  double *norm, *normwf, **fom_store;
+  double cut, cutsq, threshold;
+  int surface_style, nmax_old;
+  double **B, *divr;
+  int comm_stage;
 
-  char *id_fix_pa;
+  int index_divr;
+  int index_rsurf;
+
+  double divR_limit;
+  int coord_limit;
 
   class NeighList *list;
   class FixRHEO *fix_rheo;
   class ComputeRHEOKernel *compute_kernel;
+  class ComputeRHEOSolids *compute_solids;
 };
 
-}    // namespace LAMMPS_NS
+}
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+*/

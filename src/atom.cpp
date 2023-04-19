@@ -33,6 +33,7 @@
 #include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
+#include "accelerator_kokkos.h"
 
 #include "library.h"
 
@@ -2354,6 +2355,10 @@ void Atom::setup_sort_bins()
     if (comm->me == 0)
       error->warning(FLERR,"No pairwise cutoff or binsize set. Atom sorting therefore disabled.");
     return;
+  }
+
+  if (userbinsize == 0 && lmp->kokkos && lmp->kokkos->ngpus > 0) {
+    binsize = neighbor->cutneighmax;
   }
 
 #ifdef LMP_GPU

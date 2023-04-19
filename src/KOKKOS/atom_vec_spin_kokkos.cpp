@@ -143,7 +143,7 @@ void AtomVecSpinKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
   Sorter.sort(LMPDeviceType(), d_image);
   Sorter.sort(LMPDeviceType(), d_x);
   Sorter.sort(LMPDeviceType(), d_v);
-  Sorter.sort(LMPDeviceType(), d_sp;
+  Sorter.sort(LMPDeviceType(), d_sp);
 
   atomKK->modified(Device, TAG_MASK|TYPE_MASK|MASK_MASK|IMAGE_MASK|X_MASK|V_MASK|SP_MASK);
 }

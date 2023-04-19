@@ -50,9 +50,9 @@ bool GranSubModNormal::touch()
 
 /* ---------------------------------------------------------------------- */
 
-double GranSubModNormal::pulloff_distance(double radi, double radj)
+double GranSubModNormal::pulloff_distance(double /*radi*/, double /*radj*/)
 {
-  //called outside of compute(), do not assume correct geometry defined in contact
+  // called outside of compute(), do not assume correct geometry defined in contact
   return 0.0;
 }
 

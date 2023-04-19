@@ -50,19 +50,19 @@ class FixMDIQM : public Fix {
   int nprocs;
   int every, virialflag, addflag, connectflag;
   int plugin;
-  int sumflag,mcflag;
+  int sumflag, mcflag;
   char *id_mcfix;
-  int *mc_active_ptr,*exclusion_group_ptr;
+  int *mc_active_ptr, *exclusion_group_ptr;
   int *elements;
 
-  double qm_cell[9],qm_cell_displ[3];
+  double qm_cell[9], qm_cell_displ[3];
 
   double qm_energy;
   double qm_virial[9], qm_virial_symmetric[6];
 
   MDI_Comm mdicomm;
-  int natoms_exists,celldispl_exists,elements_exists,types_exists;
-  int stress_exists;
+  int natoms_exists, celldispl_exists, elements_exists, types_exists;
+  int stress_exists, pe_exists, keelec_exists;
 
   int nmax;
 
@@ -77,15 +77,15 @@ class FixMDIQM : public Fix {
 
   // QM atom data structs
 
-  int nqm,nqm_last,max_nqm;
+  int nqm, nqm_last, max_nqm;
   int nexclude;
 
   tagint *qmIDs;
   int *qm2owned;
 
-  int *eqm,*eqm_mine;
-  int *tqm,*tqm_mine;
-  double **xqm,**xqm_mine;
+  int *eqm, *eqm_mine;
+  int *tqm, *tqm_mine;
+  double **xqm, **xqm_mine;
   double **fqm;
 
   // methods
@@ -104,6 +104,8 @@ class FixMDIQM : public Fix {
   void send_types();
   void send_elements();
   void send_box();
+
+  void request_qm_energy();
 
   void unit_conversions();
 };

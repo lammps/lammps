@@ -176,7 +176,9 @@ larger than 1 million, otherwise the default is hash.  By default, a
 "first" group is not defined.  By default, sorting is enabled with a
 frequency of 1000 and a binsize of 0.0, which means the neighbor
 cutoff will be used to set the bin size. If no neighbor cutoff is
-defined, sorting will be turned off.
+defined, sorting will be turned off. When running with the KOKKOS
+package on one or more GPUs, the default binsize for sorting is twice
+the CPU default.
 
 ----------
 

@@ -309,8 +309,8 @@ and R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189
 
 .. _SMTB-Q_0:
 
-**(SMTB-Q_0)** A. Hallil, E. Amzallag, S. Landron, R. Tetot, 
-Surface Science 605 738-745 (2011); 
+**(SMTB-Q_0)** A. Hallil, E. Amzallag, S. Landron, R. Tetot,
+Surface Science 605 738-745 (2011);
 R. Tetot, A. Hallil, J. Creuze and I. Braems, EPL, 83 40001 (2008)
 
 .. _SMTB-Q_1:

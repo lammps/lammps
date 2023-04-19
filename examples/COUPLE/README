@@ -33,7 +33,6 @@ These are the sub-directories included in this directory:
 simple              simple example of driver code calling LAMMPS as a lib
 multiple            example of driver code calling multiple instances of LAMMPS
 plugin              example for loading LAMMPS at runtime from a shared library
-lammps_quest        MD with quantum forces, coupling to Quest DFT code
 lammps_spparks      grain-growth Monte Carlo with strain via MD,
                     coupling to SPPARKS kinetic MC code
 library             collection of useful inter-code communication routines

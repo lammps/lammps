@@ -170,6 +170,7 @@ void AtomKokkos::sort()
         error->warning(FLERR,"Fix with atom-based arrays not compatible with Kokkos sorting on device, "
                            "switching to classic host sorting");
       }
+      sort_classic = true;
     }
   }
 

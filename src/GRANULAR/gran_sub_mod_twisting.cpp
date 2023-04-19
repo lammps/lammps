@@ -43,7 +43,7 @@ GranSubModTwistingMarshall::GranSubModTwistingMarshall(GranularModel *gm, LAMMPS
 {
   num_coeffs = 0;
   size_history = 3;
-  area_flag = 1;
+  contact_radius_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -63,9 +63,9 @@ void GranSubModTwistingMarshall::calculate_forces()
 
   // Calculate twist coefficients from tangential model & contact geometry
   // eq 32 of Marshall paper
-  double k = 0.5 * k_tang * gm->area * gm->area;
-  double damp = 0.5 * gm->tangential_model->damp * gm->area * gm->area;
-  double mu = TWOTHIRDS * mu_tang * gm->area;
+  double k = 0.5 * k_tang * gm->contact_radius * gm->contact_radius;
+  double damp = 0.5 * gm->tangential_model->damp * gm->contact_radius * gm->contact_radius;
+  double mu = TWOTHIRDS * mu_tang * gm->contact_radius;
 
   if (gm->history_update) {
     gm->history[history_index] += gm->magtwist * gm->dt;

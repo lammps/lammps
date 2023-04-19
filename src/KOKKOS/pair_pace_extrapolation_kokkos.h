@@ -219,7 +219,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   typedef Kokkos::View<complex****, DeviceType> t_ace_4c;
   typedef Kokkos::View<complex***[3], DeviceType> t_ace_4c3;
 
-  typedef Kokkos::View<double*>::HostMirror th_ace_1d;
+  typedef typename Kokkos::View<double*, DeviceType>::HostMirror th_ace_1d;
 
   t_ace_3d A_rank1;
   t_ace_4c A;

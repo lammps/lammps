@@ -15,9 +15,11 @@
 #include "gran_sub_mod_heat.h"
 #include "granular_model.h"
 #include "error.h"
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
+using namespace MathConst;
 
 /* ----------------------------------------------------------------------
    Default heat conduction
@@ -45,7 +47,7 @@ double GranSubModHeatNone::calculate_heat()
 GranSubModHeatArea::GranSubModHeatArea(GranularModel *gm, LAMMPS *lmp) : GranSubModHeat(gm, lmp)
 {
   num_coeffs = 1;
-  area_flag = 1;
+  contact_radius_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,5 +63,5 @@ void GranSubModHeatArea::coeffs_to_local()
 
 double GranSubModHeatArea::calculate_heat()
 {
-  return conductivity * gm->area * (gm->Tj - gm->Ti);
+  return conductivity * MY_PI * gm->contact_radius * gm->contact_radius * (gm->Tj - gm->Ti);
 }

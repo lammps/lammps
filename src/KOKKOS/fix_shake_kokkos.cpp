@@ -53,7 +53,8 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixShake(lmp, narg, arg)
 {
   kokkosable = 1;
-  forward_comm_device = 1;
+  forward_comm_device = exchange_comm_device = 1;
+  maxexchange = 9;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -74,7 +75,7 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   grow_arrays(nmax);
 
-  for (int i = 0; i < nmax; i++) {
+  for (int i = 0; i < atom->nlocal; i++) {
     k_shake_flag.h_view[i] = shake_flag_tmp[i];
     k_shake_atom.h_view(i,0) = shake_atom_tmp[i][0];
     k_shake_atom.h_view(i,1) = shake_atom_tmp[i][1];
@@ -105,6 +106,9 @@ FixShakeKokkos<DeviceType>::FixShakeKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   h_error_flag = Kokkos::subview(h_scalars,0);
   h_nlist = Kokkos::subview(h_scalars,1);
+
+  d_count = typename AT::t_int_scalar("fix_shake:count");
+  h_count = Kokkos::create_mirror_view(d_count);
 
   memory->destroy(shake_flag_tmp);
   memory->destroy(shake_atom_tmp);
@@ -225,7 +229,7 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
   // extend size of SHAKE list if necessary
 
   if (nlocal > maxlist) {
-    maxlist = nlocal;
+    maxlist = atom->nmax;
     memoryKK->destroy_kokkos(k_list,list);
     memoryKK->create_kokkos(k_list,list,maxlist,"shake:list");
     d_list = k_list.view<DeviceType>();
@@ -246,9 +250,8 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     k_map_hash = atomKK->k_map_hash;
   }
 
-  k_sametag = atomKK->k_sametag;
-  k_sametag.template sync<DeviceType>();
-  d_sametag = k_sametag.view<DeviceType>();
+  atomKK->k_sametag.sync<DeviceType>();
+  d_sametag = atomKK->k_sametag.view<DeviceType>();
 
   // build list of SHAKE clusters I compute
 
@@ -1524,15 +1527,216 @@ template<class DeviceType>
 void FixShakeKokkos<DeviceType>::set_molecule(int nlocalprev, tagint tagprev, int imol,
                             double * xgeom, double * vcm, double * quat)
 {
-  atomKK->sync(Host,TAG_MASK);
+  atomKK->sync(Host,TAG_MASK|MOLECULE_MASK);
   k_shake_flag.sync_host();
   k_shake_atom.sync_host();
   k_shake_type.sync_host();
 
   FixShake::set_molecule(nlocalprev,tagprev,imol,xgeom,vcm,quat);
 
+  k_shake_flag.modify_host();
   k_shake_atom.modify_host();
   k_shake_type.modify_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixShakeKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &final) const
+{
+  const int i = d_exchange_sendlist(mysend);
+  int flag = d_shake_flag[i];
+
+  if (!final) {
+    if (flag == 1) offset += 7;
+    else if (flag == 2) offset += 4;
+    else if (flag == 3) offset += 6;
+    else if (flag == 4) offset += 8;
+    else offset++;
+  } else {
+
+    d_buf[mysend] = nsend + offset;
+    int m = nsend + offset;
+    d_buf[m++] = flag;
+    if (flag == 1) {
+      d_buf[m++] = d_shake_atom(i,0);
+      d_buf[m++] = d_shake_atom(i,1);
+      d_buf[m++] = d_shake_atom(i,2);
+      d_buf[m++] = d_shake_type(i,0);
+      d_buf[m++] = d_shake_type(i,1);
+      d_buf[m++] = d_shake_type(i,2);
+    } else if (flag == 2) {
+      d_buf[m++] = d_shake_atom(i,0);
+      d_buf[m++] = d_shake_atom(i,1);
+      d_buf[m++] = d_shake_type(i,0);
+    } else if (flag == 3) {
+      d_buf[m++] = d_shake_atom(i,0);
+      d_buf[m++] = d_shake_atom(i,1);
+      d_buf[m++] = d_shake_atom(i,2);
+      d_buf[m++] = d_shake_type(i,0);
+      d_buf[m++] = d_shake_type(i,1);
+    } else if (flag == 4) {
+      d_buf[m++] = d_shake_atom(i,0);
+      d_buf[m++] = d_shake_atom(i,1);
+      d_buf[m++] = d_shake_atom(i,2);
+      d_buf[m++] = d_shake_atom(i,3);
+      d_buf[m++] = d_shake_type(i,0);
+      d_buf[m++] = d_shake_type(i,1);
+      d_buf[m++] = d_shake_type(i,2);
+    }
+    if (mysend == nsend-1) d_count() = m;
+    offset = m - nsend;
+
+    const int j = d_copylist(mysend);
+    if (j > -1) {
+      d_shake_flag[i] = d_shake_flag[j];
+      int flag = d_shake_flag[i];
+      if (flag == 1) {
+        d_shake_atom(i,0) = d_shake_atom(j,0);
+        d_shake_atom(i,1) = d_shake_atom(j,1);
+        d_shake_atom(i,2) = d_shake_atom(j,2);
+        d_shake_type(i,0) = d_shake_type(j,0);
+        d_shake_type(i,1) = d_shake_type(j,1);
+        d_shake_type(i,2) = d_shake_type(j,2);
+      } else if (flag == 2) {
+        d_shake_atom(i,0) = d_shake_atom(j,0);
+        d_shake_atom(i,1) = d_shake_atom(j,1);
+        d_shake_type(i,0) = d_shake_type(j,0);
+      } else if (flag == 3) {
+        d_shake_atom(i,0) = d_shake_atom(j,0);
+        d_shake_atom(i,1) = d_shake_atom(j,1);
+        d_shake_atom(i,2) = d_shake_atom(j,2);
+        d_shake_type(i,0) = d_shake_type(j,0);
+        d_shake_type(i,1) = d_shake_type(j,1);
+      } else if (flag == 4) {
+        d_shake_atom(i,0) = d_shake_atom(j,0);
+        d_shake_atom(i,1) = d_shake_atom(j,1);
+        d_shake_atom(i,2) = d_shake_atom(j,2);
+        d_shake_atom(i,3) = d_shake_atom(j,3);
+        d_shake_type(i,0) = d_shake_type(j,0);
+        d_shake_type(i,1) = d_shake_type(j,1);
+        d_shake_type(i,2) = d_shake_type(j,2);
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixShakeKokkos<DeviceType>::pack_exchange_kokkos(
+   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
+   ExecutionSpace space)
+{
+  k_buf.sync<DeviceType>();
+  k_copylist.sync<DeviceType>();
+  k_exchange_sendlist.sync<DeviceType>();
+
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  d_copylist = k_copylist.view<DeviceType>();
+  d_exchange_sendlist = k_exchange_sendlist.view<DeviceType>();
+  this->nsend = nsend;
+
+  k_shake_flag.template sync<DeviceType>();
+  k_shake_atom.template sync<DeviceType>();
+  k_shake_type.template sync<DeviceType>();
+
+  Kokkos::deep_copy(d_count,0);
+
+  copymode = 1;
+
+  FixShakeKokkosPackExchangeFunctor<DeviceType> pack_exchange_functor(this);
+  Kokkos::parallel_scan(nsend,pack_exchange_functor);
+
+  copymode = 0;
+
+  k_buf.modify<DeviceType>();
+
+  if (space == Host) k_buf.sync<LMPHostType>();
+  else k_buf.sync<LMPDeviceType>();
+
+  k_shake_flag.template modify<DeviceType>();
+  k_shake_atom.template modify<DeviceType>();
+  k_shake_type.template modify<DeviceType>();
+
+  Kokkos::deep_copy(h_count,d_count);
+
+  return h_count();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int &i) const
+{
+  int index = d_indices(i);
+
+  if (index > -1) {
+    int m = d_buf[i];
+
+    int flag = d_shake_flag[index] = static_cast<int> (d_buf[m++]);
+    if (flag == 1) {
+      d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,2) = static_cast<tagint> (d_buf[m++]);
+      d_shake_type(index,0) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,1) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,2) = static_cast<int> (d_buf[m++]);
+    } else if (flag == 2) {
+      d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);
+      d_shake_type(index,0) = static_cast<int> (d_buf[m++]);
+    } else if (flag == 3) {
+      d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,2) = static_cast<tagint> (d_buf[m++]);
+      d_shake_type(index,0) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,1) = static_cast<int> (d_buf[m++]);
+    } else if (flag == 4) {
+      d_shake_atom(index,0) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,1) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,2) = static_cast<tagint> (d_buf[m++]);
+      d_shake_atom(index,3) = static_cast<tagint> (d_buf[m++]);
+      d_shake_type(index,0) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,1) = static_cast<int> (d_buf[m++]);
+      d_shake_type(index,2) = static_cast<int> (d_buf[m++]);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixShakeKokkos<DeviceType>::unpack_exchange_kokkos(
+  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  ExecutionSpace /*space*/)
+{
+  k_buf.sync<DeviceType>();
+  k_indices.sync<DeviceType>();
+
+  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+    k_buf.template view<DeviceType>().data(),
+    k_buf.extent(0)*k_buf.extent(1));
+  d_indices = k_indices.view<DeviceType>();
+
+  k_shake_flag.template sync<DeviceType>();
+  k_shake_atom.template sync<DeviceType>();
+  k_shake_type.template sync<DeviceType>();
+
+  copymode = 1;
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixShakeUnpackExchange>(0,nrecv),*this);
+
+  copymode = 0;
+
+  k_shake_flag.template modify<DeviceType>();
+  k_shake_atom.template modify<DeviceType>();
+  k_shake_type.template modify<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -1846,6 +2050,7 @@ int FixShakeKokkos<DeviceType>::closest_image(const int i, int j) const
       closest = j;
     }
   }
+
   return closest;
 }
 

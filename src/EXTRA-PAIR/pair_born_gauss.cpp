@@ -38,6 +38,8 @@ PairBornGauss::PairBornGauss(LAMMPS *lmp) :
   single_enable = 1;
   respa_enable = 0;
   writedata = 1;
+
+  cut_global = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

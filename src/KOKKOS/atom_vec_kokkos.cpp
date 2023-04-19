@@ -32,6 +32,8 @@ AtomVecKokkos::AtomVecKokkos(LAMMPS *lmp) : AtomVec(lmp)
 
   no_comm_vel_flag = 0;
   no_border_vel_flag = 1;
+  unpack_exchange_indices_flag = 0;
+  size_exchange = 0;
 
   k_count = DAT::tdual_int_1d("atom::k_count",1);
   atomKK = (AtomKokkos *) atom;

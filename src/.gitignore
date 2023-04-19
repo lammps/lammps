@@ -994,6 +994,8 @@
 /fix_wall_reflect_stochastic.h
 /fix_wall_gran.cpp
 /fix_wall_gran.h
+/fix_wall_gran_old.cpp
+/fix_wall_gran_old.h
 /fix_wall_gran_region.cpp
 /fix_wall_gran_region.h
 /fix_wall_piston.cpp
@@ -1249,6 +1251,8 @@
 /pair_lj_cut_dipole_long.h
 /pair_lj_cut_*hars_*.cpp
 /pair_lj_cut_*hars_*.h
+/pair_lj_cut_sphere.cpp
+/pair_lj_cut_sphere.h
 /pair_lj_cut_soft.cpp
 /pair_lj_cut_soft.h
 /pair_lj_cut_tip4p_long.cpp
@@ -1263,6 +1267,8 @@
 /pair_lj_long_tip4p_long.h
 /pair_lj_cut_tgpu.cpp
 /pair_lj_cut_tgpu.h
+/pair_lj_expand_sphere.cpp
+/pair_lj_expand_sphere.h
 /pair_lj_spica.cpp
 /pair_lj_spica.h
 /pair_lj_spica_coul_long.cpp

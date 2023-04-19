@@ -131,6 +131,7 @@ class Fix : protected Pointers {
 
   int kokkosable;             // 1 if Kokkos fix
   int forward_comm_device;    // 1 if forward comm on Device
+  int exchange_comm_device;   // 1 if exchange comm on Device
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
 

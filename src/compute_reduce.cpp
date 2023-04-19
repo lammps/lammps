@@ -33,6 +33,34 @@ using namespace LAMMPS_NS;
 
 #define BIG 1.0e20
 
+//----------------------------------------------------------------
+void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
+{
+  // r is the already reduced value, n is the new value
+  double n = std::fabs(*(double *) in), r = *(double *) inout;
+  double m;
+
+  if (n > r) {
+    m = n;
+  } else {
+    m = r;
+  }
+  *(double *) inout = m;
+}
+void abs_min(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
+{
+  // r is the already reduced value, n is the new value
+  double n = std::fabs(*(double *) in), r = *(double *) inout;
+  double m;
+
+  if (n < r) {
+    m = n;
+  } else {
+    m = r;
+  }
+  *(double *) inout = m;
+}
+
 /* ---------------------------------------------------------------------- */
 
 ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
@@ -67,9 +95,27 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     mode = AVESQ;
   else if (strcmp(arg[iarg], "aveabs") == 0)
     mode = AVEABS;
+  else if (strcmp(arg[iarg], "maxabs") == 0)
+    mode = MAXABS;
+  else if (strcmp(arg[iarg], "minabs") == 0)
+    mode = MINABS;
   else
     error->all(FLERR, "Unknown compute {} mode: {}", style, arg[iarg]);
   iarg++;
+
+  if (mode == SUM || mode == SUMSQ || mode == SUMABS) {
+    this->scalar_reduction_operation = MPI_SUM;
+  } else if (mode == AVE || mode == AVESQ || mode == AVEABS) {
+    this->scalar_reduction_operation = MPI_SUM;
+  } else if (mode == MINN) {
+    this->scalar_reduction_operation = MPI_MIN;
+  } else if (mode == MAXX) {
+    this->scalar_reduction_operation = MPI_MAX;
+  } else if (mode == MAXABS) {
+    MPI_Op_create(&abs_max, 1, &this->scalar_reduction_operation);
+  } else if (mode == MINABS) {
+    MPI_Op_create(&abs_min, 1, &this->scalar_reduction_operation);
+  }
 
   // expand args if any have wildcard character "*"
 
@@ -329,14 +375,9 @@ double ComputeReduce::compute_scalar()
 
   double one = compute_one(0, -1);
 
-  if (mode == SUM || mode == SUMSQ || mode == SUMABS) {
-    MPI_Allreduce(&one, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
-  } else if (mode == MINN) {
-    MPI_Allreduce(&one, &scalar, 1, MPI_DOUBLE, MPI_MIN, world);
-  } else if (mode == MAXX) {
-    MPI_Allreduce(&one, &scalar, 1, MPI_DOUBLE, MPI_MAX, world);
-  } else if (mode == AVE || mode == AVESQ || mode == AVEABS) {
-    MPI_Allreduce(&one, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&one, &scalar, 1, MPI_DOUBLE, this->scalar_reduction_operation, world);
+
+  if (mode == AVE || mode == AVESQ || mode == AVEABS) {
     bigint n = count(0);
     if (n) scalar /= n;
   }
@@ -359,11 +400,13 @@ void ComputeReduce::compute_vector()
   if (mode == SUM || mode == SUMSQ || mode == AVEABS) {
     for (int m = 0; m < nvalues; m++)
       MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_SUM, world);
-
+  } else if (mode == MINABS || mode == MAXABS) {
+    for (int m = 0; m < nvalues; m++)
+      MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation, world);
   } else if (mode == MINN) {
     if (!replace) {
       for (int m = 0; m < nvalues; m++)
-        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_MIN, world);
+        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation, world);
 
     } else {
       for (int m = 0; m < nvalues; m++)
@@ -380,11 +423,10 @@ void ComputeReduce::compute_vector()
           MPI_Bcast(&vector[m], 1, MPI_DOUBLE, owner[replace[m]], world);
         }
     }
-
   } else if (mode == MAXX) {
     if (!replace) {
       for (int m = 0; m < nvalues; m++)
-        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_MAX, world);
+        MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, this->scalar_reduction_operation, world);
 
     } else {
       for (int m = 0; m < nvalues; m++)
@@ -441,7 +483,7 @@ double ComputeReduce::compute_one(int m, int flag)
   int nlocal = atom->nlocal;
 
   double one = 0.0;
-  if (mode == MINN) one = BIG;
+  if (mode == MINN || mode == MINABS) one = BIG;
   if (mode == MAXX) one = -BIG;
 
   if (val.which == ArgInfo::X) {
@@ -635,6 +677,11 @@ void ComputeReduce::combine(double &one, double two, int i)
   } else if (mode == MAXX) {
     if (two > one) {
       one = two;
+      index = i;
+    }
+  } else if (mode == MAXABS) {
+    if (std::fabs(two) > one) {
+      one = std::fabs(two);
       index = i;
     }
   }

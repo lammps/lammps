@@ -985,7 +985,7 @@ void FixMDIQM::send_box()
   int ierr;
 
   // only send cell dimensions if fully periodic simulation
-  
+
   if (domain->nonperiodic == 0) {
     if (celldispl_exists) {
       ierr = MDI_Send_command(">CELL_DISPL", mdicomm);
@@ -1018,7 +1018,7 @@ void FixMDIQM::request_qm_energy()
 
   if (pe_exists && keelec_exists) {
     int pe_energy, keelec_energy;
-    
+
     ierr = MDI_Send_command("<PE", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <PE command");
     ierr = MDI_Recv(&pe_energy, 1, MDI_DOUBLE, mdicomm);
@@ -1030,14 +1030,14 @@ void FixMDIQM::request_qm_energy()
     if (ierr) error->all(FLERR, "MDI: <KE_ELEC data");
 
     qm_energy = pe_energy + keelec_energy;
-    
+
   } else {
     ierr = MDI_Send_command("<ENERGY", mdicomm);
     if (ierr) error->all(FLERR, "MDI: <ENERGY command");
     ierr = MDI_Recv(&qm_energy, 1, MDI_DOUBLE, mdicomm);
     if (ierr) error->all(FLERR, "MDI: <ENERGY data");
   }
-  
+
   MPI_Bcast(&qm_energy, 1, MPI_DOUBLE, 0, world);
   qm_energy *= mdi2lmp_energy;
 }

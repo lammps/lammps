@@ -87,6 +87,7 @@ class FixBondCreate : public Fix {
   void create_angles(int);
   void create_dihedrals(int);
   void create_impropers(int);
+  void create_bond(int, int, int);
   int dedup(int, int, tagint *);
 
   virtual int constrain(int, int, double, double) { return 1; }

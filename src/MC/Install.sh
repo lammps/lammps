@@ -44,6 +44,8 @@ action fix_bond_create_angle.cpp
 action fix_bond_create_angle.h
 action fix_bond_create.cpp
 action fix_bond_create.h
+action fix_bond_relocate.cpp
+action fix_bond_relocate.h
 action fix_bond_mcmove.cpp
 action fix_bond_mcmove.h
 action fix_bond_break_self.cpp

@@ -530,47 +530,12 @@ void FixBondCreate::post_integrate()
       }
     }
 
-    // if newton_bond is set, only store with I or J
-    // if not newton_bond, store bond with both I and J
-    // atom J will also do this consistently, whatever proc it is on
+    // actually create the bond
+    this->create_bond(i, j, btype);
 
-    if (!newton_bond || tag[i] < tag[j]) {
-      if (num_bond[i] == atom->bond_per_atom)
-        error->one(FLERR,"New bond exceeded bonds per atom in fix bond/create");
-      bond_type[i][num_bond[i]] = btype;
-      bond_atom[i][num_bond[i]] = tag[j];
-      num_bond[i]++;
-    }
-
-    // add a 1-2 neighbor to special bond list for atom I
-    // atom J will also do this, whatever proc it is on
-    // need to first remove tag[j] from later in list if it appears
-    // prevents list from overflowing, will be rebuilt in rebuild_special_one()
-
-    slist = special[i];
-    n1 = nspecial[i][0];
-    n2 = nspecial[i][1];
-    n3 = nspecial[i][2];
-    for (m = n1; m < n3; m++)
-      if (slist[m] == tag[j]) break;
-    if (m < n3) {
-      for (n = m; n < n3-1; n++) slist[n] = slist[n+1];
-      n3--;
-      if (m < n2) n2--;
-    }
-    if (n3 == atom->maxspecial)
-      error->one(FLERR,
-                 "New bond exceeded special list size in fix bond/create");
-    for (m = n3; m > n1; m--) slist[m] = slist[m-1];
-    slist[n1] = tag[j];
-    nspecial[i][0] = n1+1;
-    nspecial[i][1] = n2+1;
-    nspecial[i][2] = n3+1;
-
-    // increment bondcount, convert atom to new type if limit reached
+    // convert atom to new type if limit reached
     // atom J will also do this, whatever proc it is on
 
-    bondcount[i]++;
     if (type[i] == iatomtype) {
       if (bondcount[i] == imaxbond) type[i] = inewtype;
     } else {
@@ -629,6 +594,68 @@ void FixBondCreate::post_integrate()
   // also add angles/dihedrals/impropers induced by created bonds
 
   update_topology();
+}
+
+/* ----------------------------------------------------------------------
+   Actually add a bond to the list of bonds, 
+   incl. tallying the 1 neighbours.
+   Don't forget to call update_topology() 
+   once all the bonds have been added
+------------------------------------------------------------------------- */
+void FixBondCreate::create_bond(int source_atom, int target_atom, int btype) {
+  tagint **bond_atom = atom->bond_atom;
+  tagint *tag = atom->tag;
+  int *num_bond = atom->num_bond;
+  int i = source_atom;
+  int j = target_atom;
+  int **bond_type = atom->bond_type;
+  int newton_bond = force->newton_bond;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+    tagint *slist;
+
+    // if newton_bond is set, only store with I or J
+    // if not newton_bond, store bond with both I and J
+    // atom J will also do this consistently, whatever proc it is on
+
+    if (!newton_bond || tag[i] < tag[j]) {
+      if (num_bond[i] == atom->bond_per_atom){
+        error->one(FLERR,"New bond exceeded bonds per atom in fix bond/create");}
+      bond_type[i][num_bond[i]] = btype;
+      bond_atom[i][num_bond[i]] = tag[j];
+      num_bond[i]++;
+    }
+
+    // add a 1-2 neighbor to special bond list for atom I
+    // atom J will also do this, whatever proc it is on
+    // need to first remove tag[j] from later in list if it appears
+    // prevents list from overflowing, will be rebuilt in rebuild_special_one()
+
+    slist = special[i];
+    int n1 = nspecial[i][0];
+    int n2 = nspecial[i][1];
+    int n3 = nspecial[i][2];
+    int m = 0;
+    for (m = n1; m < n3; m++)
+      if (slist[m] == tag[j]) break;
+    if (m < n3) {
+      for (int n = m; n < n3-1; n++) slist[n] = slist[n+1];
+      n3--;
+      if (m < n2) n2--;
+    }
+    if (n3 == atom->maxspecial)
+      error->one(FLERR,
+                 "New bond exceeded special list size in fix bond/create");
+    for (m = n3; m > n1; m--) slist[m] = slist[m-1];
+    slist[n1] = tag[j];
+    nspecial[i][0] = n1+1;
+    nspecial[i][1] = n2+1;
+    nspecial[i][2] = n3+1;
+
+    // increment bondcount
+    // atom J will also do this, whatever proc it is on
+
+    bondcount[i]++;
 }
 
 /* ----------------------------------------------------------------------

@@ -29,6 +29,10 @@ add_executable(test_delete_atoms test_delete_atoms.cpp)
 target_link_libraries(test_delete_atoms PRIVATE lammps GTest::GMock)
 add_test(NAME DeleteAtoms COMMAND test_delete_atoms)
 
+add_executable(test_fix_mc_bonds test_fix_mc_bonds.cpp)
+target_link_libraries(test_fix_mc_bonds PRIVATE lammps GTest::GMock)
+add_test(NAME FixMCBonds COMMAND test_fix_mc_bonds)
+
 add_executable(test_set_property test_set_property.cpp)
 target_link_libraries(test_set_property PRIVATE lammps GTest::GMock)
 add_test(NAME SetProperty COMMAND test_set_property)

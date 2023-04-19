@@ -1,11 +1,11 @@
-#ifndef ERROR_H
-#define ERROR_H
+#ifndef ERRORLIB_H
+#define ERRORLIB_H
 
 #include <mpi.h>
 
-class Error {
+class ErrorLib {
  public:
-  Error(MPI_Comm);
+  ErrorLib(MPI_Comm);
 
   void all(const char *);
   void one(const char *);

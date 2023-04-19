@@ -1,32 +1,35 @@
-# Makefile for MD with quantum forces via LAMMPS <-> Quest coupling
+# Makefile for grain growth via LAMMPS <-> SPPARKS coupling
 
 SHELL = /bin/sh
 
+# Paths to your local LAMMPS and SPPARKS home directories
+
+LAMMPS =	/home/sjplimp/lammps/git
+SPPARKS =	/home/sjplimp/spparks/git
+
 # System-specific settings
 
-LAMMPS =	/home/sjplimp/lammps
-
-CC =		g++
+CC =		mpicxx
 CCFLAGS =	-g -O -DMPICH_IGNORE_CXX_SEEK -I../library
 DEPFLAGS =	-M
-LINK =		g++
-LINKFLAGS =	-g -O -L../library -L${LAMMPS}/src
-USRLIB =	-lcouple -llammps_g++
-SYSLIB =	-lfftw -lmpich -lpthread
+LINK =		mpicxx
+LINKFLAGS =	-g -O -L../library -L${LAMMPS}/src -L${SPPARKS}/src
+USRLIB =	-lcouple -llammps_mpi -lspparks_mpi 
+SYSLIB =	
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SIZE =		size
 
 # Files
 
-EXE = 	lmpqst
+EXE = 	lmpspk
 SRC =	$(wildcard *.cpp)
 INC =	$(wildcard *.h)
 OBJ = 	$(SRC:.cpp=.o)
 
 # Targets
 
-$(EXE):	$(OBJ)
+lmpspk:	$(OBJ)
 	$(LINK) $(LINKFLAGS) $(OBJ) $(USRLIB) $(SYSLIB) -o $(EXE)
 	$(SIZE) $(EXE)
 

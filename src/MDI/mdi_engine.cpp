@@ -1533,10 +1533,9 @@ void MDIEngine::send_pe()
 
 /* ----------------------------------------------------------------------
    <KE_ELEC command
-   send the kinetic energy of the electrons
-   because lammps does not model electrons explicitly, this is zero
-   this is primarily for use when LAMMPS is filling a role that would
-   normally be filled by a QM code
+   send kinetic energy of the electrons
+   zero for LAMMPS, because it does not model electrons explicitly
+   for compatibiity with QM engines which support this command
 ---------------------------------------------------------------------- */
 
 void MDIEngine::send_ke_elec()

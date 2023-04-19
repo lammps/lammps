@@ -105,6 +105,8 @@ class FixMDIQM : public Fix {
   void send_elements();
   void send_box();
 
+  void request_qm_energy();
+  
   void unit_conversions();
 };
 

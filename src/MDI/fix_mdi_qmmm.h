@@ -156,7 +156,7 @@ class FixMDIQMMM : public Fix {
   void send_elements_mm();
   void send_charges_mm();
 
-  void get_qm_energy();
+  void request_qm_energy();
 
   void unit_conversions();
 };

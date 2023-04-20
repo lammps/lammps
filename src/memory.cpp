@@ -63,8 +63,7 @@ void *Memory::smalloc(bigint nbytes, const char *name)
   void *ptr = malloc(nbytes);
 #endif
   if (ptr == nullptr)
-    error->one(FLERR,"Failed to allocate {} bytes for array {}",
-                                 nbytes,name);
+    error->one(FLERR,"Failed to allocate {} bytes for array {}", nbytes,name);
   return ptr;
 }
 

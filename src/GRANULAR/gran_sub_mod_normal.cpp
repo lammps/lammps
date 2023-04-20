@@ -1007,3 +1007,87 @@ double GranSubModNormalMDR::round_up_negative_epsilon(double value)
   if (value < 0.0 && value > -MDR_EPSILON3) value = 0.0;
   return value;
 }
+
+/* ----------------------------------------------------------------------
+   Elastic-plastic-adhesive, linear
+------------------------------------------------------------------------- */
+
+GranSubModNormalEPALinear::GranSubModNormalEPALinear(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+{
+  cohesive_flag = 1;
+  num_coeffs = 6;
+  size_history = 1;
+  contact_radius_flag = 1;
+
+  nondefault_history_transfer = 1;
+  transfer_history_factor = new double[size_history];
+  transfer_history_factor[0] = +1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void GranSubModNormalEPALinear::coeffs_to_local()
+{
+  k1 = coeffs[0];
+  damp = coeffs[1];
+  k2_hat = coeffs[2];
+  kc = coeffs[3];
+  phi_f = coeffs[4];
+  f0 = coeffs[5];
+
+  if (k1 < 0.0 || damp < 0.0 || k2_hat < 0.0 || kc < 0 || phi_f < 0 || f0 < 0) error->all(FLERR, "Illegal EPA linear normal model");
+}
+
+/* ---------------------------------------------------------------------- */
+
+
+void GranSubModNormalEPALinear::set_fncrit()
+{
+  if (adhesive){
+    Fncrit = fabs(gm->Fntot + kc*gm->delta + f0);
+  }
+  else{
+    Fncrit = fabs(gm->Fntot + f0);
+  }
+}
+/* ---------------------------------------------------------------------- */
+
+double GranSubModNormalEPALinear::calculate_forces()
+{
+  double dmax, dmax_star, k2;
+  double d0, k1delta, kcdelta, k2_dd0;
+  double *history = & gm->history[history_index];
+  double delta = gm->delta;
+  double Fne;
+
+  dmax_star = k2_hat/(k2_hat-k1)*phi_f*2*gm->Reff;
+  dmax = history[0];
+  if (dmax > dmax_star){
+    k2 = k2_hat;
+  }
+  else{
+    k2 = k1+(k2_hat-k1)*dmax/dmax_star;
+  }
+  d0 = (1-k1/k2)*dmax;
+  k1delta = k1*delta;
+  kcdelta =  k1*delta;
+  kcdelta = -kc*delta;
+  k2_dd0 = k2*(delta-d0);
+  if (k2_dd0 >= k1delta){
+    Fne = k1delta;
+  }
+  else if ((k1delta > k2_dd0) && (k2_dd0 > kcdelta)){
+    Fne = k2_dd0;
+    adhesive = false;
+  }
+  else if (kcdelta >= k2_dd0){
+    Fne = kcdelta;
+    adhesive = true;
+  }
+  Fne -= f0;
+  return Fne;
+}
+
+/* ---------------------------------------------------------------------- */
+
+

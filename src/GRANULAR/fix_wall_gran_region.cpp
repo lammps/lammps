@@ -193,7 +193,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
   }
 
   for (i = 0; i < nlocal; i++) {
-    if ((!mask[i]) & groupbit) continue;
+    if (!(mask[i] & groupbit)) continue;
     if (! region->match(x[i][0], x[i][1], x[i][2])) continue;
 
     nc = region->surface(x[i][0], x[i][1], x[i][2], radius[i] + model->pulloff_distance(radius[i], 0.0));

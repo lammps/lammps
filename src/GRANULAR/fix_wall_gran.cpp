@@ -454,7 +454,7 @@ void FixWallGran::post_force(int /*vflag*/)
   }
 
   for (int i = 0; i < nlocal; i++) {
-    if ((!mask[i]) & groupbit) continue;
+    if (!(mask[i] & groupbit)) continue;
 
     dx = dy = dz = 0.0;
 

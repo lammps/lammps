@@ -216,8 +216,8 @@ void PairRHEO::compute(int eflag, int vflag)
             fmag = (chi[i] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
 
         } else if ((!fluidi) && (!fluidj)) {
-          rhoi = 1.0;
-          rhoj = 1.0;
+          rhoi = rho0;
+          rhoj = rho0;
         }
 
         // Repel if close to inner solid particle

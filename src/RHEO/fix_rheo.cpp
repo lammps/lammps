@@ -377,7 +377,7 @@ void FixRHEO::pre_force(int /*vflag*/)
   if (shift_flag)
     compute_vshift->compute_peratom();
 
-  // Remove extra shifting/no force options options
+  // Remove extra shifting/no force options
   int *status = atom->status;
   int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++) {

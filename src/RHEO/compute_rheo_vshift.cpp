@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), fix_rheo(nullptr),
+  Compute(lmp, narg, arg), list(nullptr), vshift(nullptr), fix_rheo(nullptr),
   compute_kernel(nullptr), compute_interface(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute RHEO/VShift command");

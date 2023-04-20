@@ -55,7 +55,7 @@ Move away from h notation, use cut?
 
 ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  C(nullptr), C0(nullptr), coordination(nullptr), compute_interface(nullptr)
+  list(nullptr), C(nullptr), C0(nullptr), coordination(nullptr), compute_interface(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute rheo/kernel command");
 
@@ -137,18 +137,18 @@ void ComputeRHEOKernel::init()
   ncor = 0;
   Mdim = 0;
   if (kernel_type == CRK0) {
-    memory->create(C0, nmax, "rheo/kernel:C0");
+    memory->create(C0, nmax_old, "rheo/kernel:C0");
   } else if (kernel_type == CRK1) {
     Mdim = 1 + dim;
     ncor = 1 + dim;
-    memory->create(C, nmax, ncor, Mdim, "rheo/kernel:C");
+    memory->create(C, nmax_old, ncor, Mdim, "rheo/kernel:C");
     comm_forward = ncor * Mdim;
   } else if (kernel_type == CRK2) {
     //Polynomial basis size (up to quadratic order)
     Mdim = 1 + dim + dim * (dim + 1) / 2;
     //Number of sets of correction coefficients  (1 x y xx yy)  + z zz (3D)
     ncor = 1 + 2 * dim;
-    memory->create(C, nmax, ncor, Mdim, "rheo/kernel:C");
+    memory->create(C, nmax_old, ncor, Mdim, "rheo/kernel:C");
     comm_forward = ncor * Mdim;
   }
 }
@@ -491,7 +491,7 @@ void ComputeRHEOKernel::compute_peratom()
   gsl_error_flag = 0;
   gsl_error_tags.clear();
 
-  int i, j, ii, jj, jnum, g, a, b, gsl_error;
+  int i, j, ii, jj, inum, jnum, g, a, b, gsl_error;
   double xtmp, ytmp, ztmp, r, rsq, w, vj;
   double dx[3];
   gsl_matrix_view gM;
@@ -506,7 +506,7 @@ void ComputeRHEOKernel::compute_peratom()
   int *status = atom->status;
   tagint *tag = atom->tag;
 
-  int inum, *ilist, *jlist, *numneigh, **firstneigh;
+  int *ilist, *jlist, *numneigh, **firstneigh;
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;

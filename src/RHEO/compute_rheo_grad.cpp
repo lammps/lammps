@@ -38,7 +38,7 @@ enum{COMMGRAD, COMMFIELD};
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), fix_rheo(nullptr), compute_interface(nullptr), compute_kernel(nullptr),
+  Compute(lmp, narg, arg), fix_rheo(nullptr), list(nullptr), compute_interface(nullptr), compute_kernel(nullptr),
   gradv(nullptr), gradr(nullptr), gradt(nullptr), gradn(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute rheo/grad command");

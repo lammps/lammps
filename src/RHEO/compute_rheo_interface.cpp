@@ -84,7 +84,6 @@ void ComputeRHEOInterface::init()
   // Do not create grow callback as there's no reason to copy/exchange data
   // Manually grow if nmax_old exceeded
 
-  int create_flag = 0;
   int tmp1, tmp2;
   int nmax = atom->nmax;
   int index = atom->find_custom("rheo_chi", tmp1, tmp2);

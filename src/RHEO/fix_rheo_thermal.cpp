@@ -269,10 +269,10 @@ void FixRHEOThermal::post_integrate()
         }
 
         if (Ti > Tci) {
-          status[i] &= phasemask;
+          status[i] &= FixRHEO::phasemask;
           status[i] |= FixRHEO::STATUS_FLUID;
         } else if (!(status[i] & FixRHEO::STATUS_SOLID))
-          status[i] &= phasemask;
+          status[i] &= FixRHEO::phasemask;
           status[i] |= FixRHEO::STATUS_FREEZING;
         }
       }

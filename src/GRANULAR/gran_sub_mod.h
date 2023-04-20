@@ -45,6 +45,7 @@ namespace LAMMPS_NS::Granular_NS {
     int allow_cohesion;         // If the sub model works with a cohesive normal force
     int contact_radius_flag;    // If the sub model requires contact radius
     int allow_synchronization;  // If the sub model works with synchronized verlet
+    int static_friction;        // If the sub model has separate static/dynamic friction
 
     GranularModel *gm;
 

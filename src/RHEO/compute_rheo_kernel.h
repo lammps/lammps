@@ -35,16 +35,19 @@ class ComputeRHEOKernel : public Compute {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
+  void compute_coordination();
   double calc_w(int,int,double,double,double,double);
   double calc_dw(int,int,double,double,double,double);
   double calc_w_quintic(int,int,double,double,double,double);
   double calc_dw_quintic(int,int,double,double,double,double,double *,double *);
+  void grow_arrays(int);
 
   double dWij[3], dWji[3], Wij, Wji;
   int correction_order;
   int *coordination;
 
  private:
+  int comm_stage, comm_forward_save;
   int solid_flag;
   int gsl_error_flag;
   std::unordered_set<tagint> gsl_error_tags;

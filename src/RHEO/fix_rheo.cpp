@@ -141,7 +141,7 @@ FixRHEO::~FixRHEO()
 
 void FixRHEO::post_constructor()
 {
-  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute("rheo_kernel all RHEO/KERNEL"));
+  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute("rheo_kernel all RHEO/KERNEL {}", kernel_style));
   compute_kernel->fix_rheo = this;
 
   std::string cmd = "rheo_grad all RHEO/GRAD velocity rho viscosity";
@@ -150,7 +150,7 @@ void FixRHEO::post_constructor()
   compute_grad->fix_rheo = this;
 
   if (rhosum_flag) {
-    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute("rheo_rhosum all RHEO/RHO/SUM"));
+    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute("rheo_rho_sum all RHEO/RHO/SUM"));
     compute_rhosum->fix_rheo = this;
   }
 
@@ -364,6 +364,8 @@ void FixRHEO::initial_integrate(int /*vflag*/)
 
 void FixRHEO::pre_force(int /*vflag*/)
 {
+  compute_kernel->compute_coordination(); // Needed for rho sum
+
   if (rhosum_flag)
     compute_rhosum->compute_peratom();
 

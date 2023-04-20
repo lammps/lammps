@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
 
-#define epsilon 1e-10;
+#define EPSILON 1e-10;
 
 /* ---------------------------------------------------------------------- */
 

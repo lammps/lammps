@@ -59,9 +59,6 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   memory->destroy(history_one);
   history_one = nullptr;
 
-  ncontact = nullptr;
-  walls = nullptr;
-  history_many = nullptr;
   FixWallGranRegion::grow_arrays(atom->nmax);
 
   // initialize shear history as if particle is not touching region

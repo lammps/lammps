@@ -36,11 +36,12 @@ class ComputeRHEORhoSum : public Compute {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
+  class FixRHEO *fix_rheo;
+
  private:
   double cut, cutsq;
 
   class NeighList *list;
-  class FixRHEO *fix_rheo;
   class ComputeRHEOKernel *compute_kernel;
 };
 

@@ -42,13 +42,13 @@ class ComputeRHEOGrad : public Compute {
   double **gradr;
   double **gradt;
   double **gradn;
+  class FixRHEO *fix_rheo;
 
  private:
   int comm_stage, ncomm_grad, ncomm_field, nmax_old;
   double cut, cutsq, rho0;
   class NeighList *list;
 
-  class FixRHEO *fix_rheo;
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOInterface *compute_interface;
 

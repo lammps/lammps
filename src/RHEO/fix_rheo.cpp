@@ -23,7 +23,7 @@
 #include "compute_rheo_interface.h"
 #include "compute_rheo_surface.h"
 #include "compute_rheo_kernel.h"
-#include "compute_rheo_rhosum.h"
+#include "compute_rheo_rho_sum.h"
 #include "compute_rheo_vshift.h"
 #include "domain.h"
 #include "error.h"
@@ -46,7 +46,6 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
   viscosity_fix_defined = 0;
   pressure_fix_defined = 0;
   thermal_fix_defined = 0;
-  surface_fix_defined = 0;
 
   thermal_flag = 0;
   rhosum_flag = 0;
@@ -104,9 +103,6 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       interface_flag = 1;
     } else if (strcmp(arg[iarg],"rhosum") == 0) {
       rhosum_flag = 1;
-      if(iarg + 1 >= narg) error->all(FLERR,"Illegal rhosum option in fix rheo");
-      rhosum_zmin = utils::inumeric(FLERR,arg[iarg + 1],false,lmp);
-      iarg += 1;
     } else if (strcmp(arg[iarg],"rho0") == 0) {
       if(iarg + 1 >= narg) error->all(FLERR,"Illegal rho0 option in fix rheo");
       rho0 = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
@@ -207,7 +203,7 @@ void FixRHEO::setup_pre_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRHEO::setup()
+void FixRHEO::setup(int /*vflag*/)
 {
   // Confirm all accessory fixes are defined
   // Note: these fixes set this flag in setup_pre_force()

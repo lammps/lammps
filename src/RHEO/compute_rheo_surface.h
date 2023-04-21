@@ -37,6 +37,7 @@ class ComputeRHEOSurface : public Compute {
   void unpack_forward_comm(int, int, double *) override;
 
   double **nsurface, **rsurface;
+  class FixRHEO *fix_rheo;
 
  private:
   double cut, cutsq, rho0, threshold_divr;
@@ -45,7 +46,6 @@ class ComputeRHEOSurface : public Compute {
   int threshold_style, comm_stage;
 
   class NeighList *list;
-  class FixRHEO *fix_rheo;
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOSolids *compute_solids;
 };

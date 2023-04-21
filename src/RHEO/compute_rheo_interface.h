@@ -41,6 +41,7 @@ class ComputeRHEOInterface : public Compute {
   void store_forces();
 
   double *chi, **f_pressure;
+  class FixRHEO *fix_rheo;
 
  private:
   int nmax_old, comm_stage;
@@ -50,7 +51,6 @@ class ComputeRHEOInterface : public Compute {
   char *id_fix_pa;
 
   class NeighList *list;
-  class FixRHEO *fix_rheo;
   class ComputeRHEOKernel *compute_kernel;
 };
 

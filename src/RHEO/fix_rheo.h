@@ -32,7 +32,7 @@ class FixRHEO : public Fix {
   void post_constructor() override;
   void init() override;
   void setup_pre_force(int) override;
-  void setup() override;
+  void setup(int) override;
   void pre_force(int) override;
   void initial_integrate(int) override;
   void final_integrate() override;
@@ -40,7 +40,7 @@ class FixRHEO : public Fix {
 
   // Model parameters
   double h, rho0, csq;
-  int zmin_kernel, zmin_rhosum, zmin_surface;
+  int zmin_kernel, zmin_surface;
   int kernel_style, surface_style;
   double divr_surface;
   enum {QUINTIC, CRK0, CRK1, CRK2};
@@ -52,7 +52,7 @@ class FixRHEO : public Fix {
     STATUS_FLUID = 1 << 0,
     STATUS_REACTIVE = 1 << 1,
     STATUS_SOLID = 1 << 2,
-    STATUS_FREEZING = 1 << 3
+    STATUS_FREEZING = 1 << 3,
 
     // Surface status
     STATUS_BULK = 1 << 4,
@@ -62,10 +62,10 @@ class FixRHEO : public Fix {
 
     // Temporary status options - reset in preforce
     STATUS_SHIFT = 1 << 8,
-    STATUS_NO_FORCE = 1 << 9,
+    STATUS_NO_FORCE = 1 << 9
   };
-  int phasemask = FFFFFFF0;
-  int surfacemask = FFFFFF0F;
+  int phasemask = 0xFFFFFFF0;
+  int surfacemask = 0xFFFFFF0F;
 
   // Accessory fixes/computes
   int thermal_flag;

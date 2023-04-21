@@ -45,6 +45,7 @@ class ComputeRHEOKernel : public Compute {
   double dWij[3], dWji[3], Wij, Wji;
   int correction_order;
   int *coordination;
+  class FixRHEO *fix_rheo;
 
  private:
   int comm_stage, comm_forward_save;
@@ -60,7 +61,6 @@ class ComputeRHEOKernel : public Compute {
 
   class NeighList *list;
   class ComputeRHEOInterface *compute_interface;
-  class FixRHEO *fix_rheo;
 
   int check_corrections(int);
 

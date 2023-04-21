@@ -37,13 +37,14 @@ class ComputeRHEOVShift : public Compute {
   void correct_surfaces();
   double **vshift;
 
+  class FixRHEO *fix_rheo;
+
  private:
   int nmax_old;
   double dtv, cut, cutsq, cutthird;
   int surface_flag;
 
   class NeighList *list;
-  class FixRHEO *fix_rheo;
   class ComputeRHEOInterface *compute_interface ;
   class ComputeRHEOKernel *compute_kernel;
 };

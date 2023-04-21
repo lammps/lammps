@@ -182,7 +182,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   // MESO package
 
   cc = cc_flux = nullptr;
-  edpd_temp = edpd_flux = edpd_cv = nullptr;
+  edpd_temp = edpd_flux = edpd_cv = vest_temp = nullptr;
 
   // MESONT package
 

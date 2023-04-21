@@ -148,21 +148,22 @@ int FixNeighHistory::setmask()
 
 void FixNeighHistory::init()
 {
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Neighbor history requires atoms have IDs");
+  if (atom->tag_enable == 0) error->all(FLERR, "Neighbor history requires that atoms have IDs");
 
   // this fix must come before any fix which migrates atoms in its pre_exchange()
   // because this fix's pre_exchange() creates per-atom data structure
   // that data must be current for atom migration to carry it along
 
-  for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i] == this) break;
-    if (modify->fix[i]->pre_exchange_migrate)
-      error->all(FLERR,"Fix neigh_history comes after a fix which "
-                 "migrates atoms in pre_exchange");
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix == this) break;
+    if (ifix->pre_exchange_migrate)
+      error->all(FLERR,
+                 "Pair styles using neighbor history must be defined before "
+                 "fix {} {} which migrates atoms in pre_exchange",
+                 ifix->id, ifix->style);
   }
 
-  // setup data struct
+  // setup data structs
 
   allocate_pages();
 }

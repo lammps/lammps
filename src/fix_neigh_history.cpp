@@ -783,7 +783,7 @@ int FixNeighHistory::pack_reverse_comm(int n, int first, double *buf)
     for (i = first; i < last; i++) {
       buf[m++] = npartner[i];
       for (k = 0; k < npartner[i]; k++) {
-        buf[m++] = partner[i][k];
+        buf[m++] = ubuf(partner[i][k]).d;
         memcpy(&buf[m],&valuepartner[i][dnum*k],dnumbytes);
         m += dnum;
       }
@@ -814,7 +814,7 @@ void FixNeighHistory::unpack_reverse_comm(int n, int *list, double *buf)
       ncount = static_cast<int> (buf[m++]);
       for (k = 0; k < ncount; k++) {
         kk = npartner[j]++;
-        partner[j][kk] = static_cast<tagint> (buf[m++]);
+        partner[j][kk] = static_cast<tagint>(ubuf(buf[m++]).i);
         memcpy(&valuepartner[j][dnum*kk],&buf[m],dnumbytes);
         m += dnum;
       }
@@ -831,7 +831,7 @@ int FixNeighHistory::pack_exchange(int i, double *buf)
   int m = 0;
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
-    buf[m++] = partner[i][n];
+    buf[m++] = ubuf(partner[i][n]).d;
     memcpy(&buf[m],&valuepartner[i][dnum*n],dnumbytes);
     m += dnum;
   }
@@ -852,7 +852,7 @@ int FixNeighHistory::unpack_exchange(int nlocal, double *buf)
   partner[nlocal] = ipage_atom->get(npartner[nlocal]);
   valuepartner[nlocal] = dpage_atom->get(dnum*npartner[nlocal]);
   for (int n = 0; n < npartner[nlocal]; n++) {
-    partner[nlocal][n] = static_cast<tagint> (buf[m++]);
+    partner[nlocal][n] = static_cast<tagint>(ubuf(buf[m++]).i);
     memcpy(&valuepartner[nlocal][dnum*n],&buf[m],dnumbytes);
     m += dnum;
   }
@@ -885,7 +885,7 @@ int FixNeighHistory::pack_restart(int i, double *buf)
   int m = 1;
   buf[m++] = npartner[i];
   for (int n = 0; n < npartner[i]; n++) {
-    buf[m++] = partner[i][n];
+    buf[m++] = ubuf(partner[i][n]).d;
     memcpy(&buf[m],&valuepartner[i][dnum*n],dnumbytes);
     m += dnum;
   }
@@ -920,7 +920,7 @@ void FixNeighHistory::unpack_restart(int nlocal, int nth)
   partner[nlocal] = ipage_atom->get(npartner[nlocal]);
   valuepartner[nlocal] = dpage_atom->get(dnum*npartner[nlocal]);
   for (int n = 0; n < npartner[nlocal]; n++) {
-    partner[nlocal][n] = static_cast<tagint> (extra[nlocal][m++]);
+    partner[nlocal][n] = static_cast<tagint>(ubuf(extra[nlocal][m++]).i);
     memcpy(&valuepartner[nlocal][dnum*n],&extra[nlocal][m],dnumbytes);
     m += dnum;
   }

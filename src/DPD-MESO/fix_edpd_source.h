@@ -27,12 +27,15 @@ namespace LAMMPS_NS {
 class FixEDPDSource : public Fix {
  public:
   FixEDPDSource(class LAMMPS *, int, char **);
+  ~FixEDPDSource() override;
   int setmask() override;
   void init() override;
   void post_force(int) override;
 
  protected:
   int option;
+  char *idregion;
+  class Region *region;
   double center[3], radius, dLx, dLy, dLz;
   double value;
 };

@@ -361,6 +361,8 @@ action pair_vashishta_kokkos.cpp pair_vashishta.cpp
 action pair_vashishta_kokkos.h pair_vashishta.h
 action pair_yukawa_kokkos.cpp
 action pair_yukawa_kokkos.h
+action pair_yukawa_colloid_kokkos.cpp pair_yukawa_colloid.cpp
+action pair_yukawa_colloid_kokkos.h pair_yukawa_colloid.h
 action pair_zbl_kokkos.cpp
 action pair_zbl_kokkos.h
 action pppm_kokkos.cpp pppm.cpp

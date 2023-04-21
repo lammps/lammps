@@ -32,14 +32,10 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{DEFAULT,NPARTNER,PERPARTNER}; // also set in fix neigh/history
-
 
 FixNeighHistoryOMP::FixNeighHistoryOMP(class LAMMPS *lmp,int narg,char **argv)
   : FixNeighHistory(lmp,narg,argv) {
-
 }
-
 
 /* ----------------------------------------------------------------------
    copy partner info from neighbor data structs (NDS) to atom arrays

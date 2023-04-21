@@ -30,8 +30,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{DEFAULT,NPARTNER,PERPARTNER}; // also set in fix neigh/history/omp
-
 /* ---------------------------------------------------------------------- */
 
 FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :

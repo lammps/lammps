@@ -383,7 +383,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
 
   need_dup = 0;
   if (neighflag != HALF)
-    need_dup = std::is_same_v<typename NeedDup<HALFTHREAD,DeviceType>::value,Kokkos::Experimental::ScatterDuplicated>;
+    need_dup = std::is_same_v<NeedDup_v<HALFTHREAD,DeviceType>,Kokkos::Experimental::ScatterDuplicated>;
 
   // allocate duplicated memory
 

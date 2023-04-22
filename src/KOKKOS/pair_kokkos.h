@@ -65,7 +65,7 @@ struct PairComputeFunctor  {
   typename AT::t_virial_array d_vatom;
 
   using KKDeviceType = typename KKDevice<device_type>::value;
-  using DUP = typename NeedDup<NEIGHFLAG,device_type>::value;
+  using DUP = NeedDup_v<NEIGHFLAG,device_type>;
 
   // The force array is atomic for Half/Thread neighbor style
   //Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,

@@ -674,11 +674,11 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelA<NEIGHFLAG,NEWTON_PA
   // The rho array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   auto v_rho = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_rho),decltype(ndup_rho)>::get(dup_rho,ndup_rho);
-  auto a_rho = v_rho.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto a_rho = v_rho.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   auto v_mu = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_mu),decltype(ndup_mu)>::get(dup_mu,ndup_mu);
-  auto a_mu = v_mu.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto a_mu = v_mu.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   auto v_lambda = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_lambda),decltype(ndup_lambda)>::get(dup_lambda,ndup_lambda);
-  auto a_lambda = v_lambda.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto a_lambda = v_lambda.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -932,7 +932,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelC<NEIGHFLAG,NEWTON_PA
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);

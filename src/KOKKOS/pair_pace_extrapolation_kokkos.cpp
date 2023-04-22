@@ -1251,7 +1251,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeForc
 {
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
   const auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  const auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii + chunk_offset];
   const int itype = type(i);

@@ -2712,13 +2712,13 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreprocessed<NEIGHFLAG,EVFLAG>, const int &apack, EV_FLOAT_REAX& ev) const {
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi2 = d_Cdbopi2;
 
   auto v_CdDelta = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
-  auto a_CdDelta = v_CdDelta.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   F_FLOAT temp, temp_bo_jt, pBOjt7;
   F_FLOAT p_val1, p_val2, p_val3, p_val4, p_val5;
@@ -2973,13 +2973,13 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreprocessed<NEIGHFLAG,EVFLAG>, const int &tpack, EV_FLOAT_REAX& ev) const {
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   auto v_CdDelta = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
-  auto a_CdDelta = v_CdDelta.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbo = d_Cdbo;
   Kokkos::View<F_FLOAT**, typename DAT::t_ffloat_2d_dl::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value>> a_Cdbopi = d_Cdbopi;
-  //auto a_Cdbo = dup_Cdbo.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  //auto a_Cdbo = dup_Cdbo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   // in reaxff_torsion_angles: j = i, k = j, i = k;
 

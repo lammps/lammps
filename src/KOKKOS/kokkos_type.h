@@ -28,11 +28,6 @@ constexpr int FULL = 1;
 constexpr int HALFTHREAD = 2;
 constexpr int HALF = 4;
 
-#if defined(KOKKOS_ENABLE_CXX11)
-#undef ISFINITE
-#define ISFINITE(x) std::isfinite(x)
-#endif
-
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
 #define LMP_KOKKOS_GPU
 #endif

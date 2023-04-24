@@ -37,11 +37,14 @@ thermo_modify       flush yes
 
 velocity            all create 1.0 432982 loop local dist gaussian
 
+region upper block -10.0  10.0   0.0 10.0 -5.0 5.0
+region lower block -10.0  10.0 -10.0  0.0 -5.0 5.0
+
 fix         mvv     all mvv/tdpd 0.5
-fix         upper1  all tdpd/source 1 cuboid 0.0  5.0 0.0 20.0 10.0 10.0  0.01
-fix         lower1  all tdpd/source 1 cuboid 0.0 -5.0 0.0 20.0 10.0 10.0 -0.01
-fix         upper2  all tdpd/source 2 cuboid 0.0  5.0 0.0 20.0 10.0 10.0 -0.01
-fix         lower2  all tdpd/source 2 cuboid 0.0 -5.0 0.0 20.0 10.0 10.0  0.01
+fix         upper1  all tdpd/source 1 region upper  0.01
+fix         lower1  all tdpd/source 1 region lower -0.01
+fix         upper2  all tdpd/source 2 region upper -0.01
+fix         lower2  all tdpd/source 2 region lower  0.01
 
 timestep            0.01
 run                 500

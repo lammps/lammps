@@ -14,6 +14,7 @@
 #include "fix_edpd_source.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "region.h"
@@ -43,6 +44,9 @@ FixEDPDSource::FixEDPDSource(LAMMPS *lmp, int narg, char **arg) :
     center[2] = utils::numeric(FLERR, arg[iarg++], false, lmp);
     radius = utils::numeric(FLERR, arg[iarg++], false, lmp);
     value = utils::numeric(FLERR, arg[iarg++], false, lmp);
+    if (comm->me == 0)
+      error->warning(FLERR, "The sphere keyword is deprecated and will be removed in the future.");
+
   } else if (strcmp(arg[iarg], "cuboid") == 0) {
     option = CUBOID;
     if (narg != 11) error->all(FLERR, "Illegal fix edpd/source command (6 args for cuboid)");
@@ -54,6 +58,9 @@ FixEDPDSource::FixEDPDSource(LAMMPS *lmp, int narg, char **arg) :
     dLy = utils::numeric(FLERR, arg[iarg++], false, lmp);
     dLz = utils::numeric(FLERR, arg[iarg++], false, lmp);
     value = utils::numeric(FLERR, arg[iarg++], false, lmp);
+    if (comm->me == 0)
+      error->warning(FLERR, "The cuboid keyword is deprecated and will be removed in the future.");
+
   } else if (strcmp(arg[iarg], "region") == 0) {
     option = REGION;
     if (narg != 6) error->all(FLERR, "Illegal fix edpd/source command (2 args for region)");

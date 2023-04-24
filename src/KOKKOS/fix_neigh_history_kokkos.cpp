@@ -389,7 +389,7 @@ template<class DeviceType>
 int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_xfloat_2d &k_buf,
    DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
-   ExecutionSpace space)
+   ExecutionSpace /*space*/)
 {
   k_npartner.template sync<DeviceType>();
   k_partner.template sync<DeviceType>();
@@ -438,7 +438,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExcha
     for (int p = 0; p < n; p++) {
       d_partner(index,p) = (tagint) d_ubuf(d_buf(m++)).i;
       for (int v = 0; v < dnum; v++) {
-	d_valuepartner(index,dnum*p+v) = d_buf(m++);
+        d_valuepartner(index,dnum*p+v) = d_buf(m++);
       }
     }
   }
@@ -449,7 +449,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExcha
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
-  ExecutionSpace space)
+  ExecutionSpace /*space*/)
 {
   d_buf = typename AT::t_xfloat_1d_um(
     k_buf.template view<DeviceType>().data(),

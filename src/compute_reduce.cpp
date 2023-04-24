@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 #define BIG 1.0e20
 
 //----------------------------------------------------------------
-void abs_max(void *in, void *inout, int *len, MPI_Datatype *type)
+void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
 {
   // r is the already reduced value, n is the new value
   double n = std::fabs(*(double *) in), r = *(double *) inout;
@@ -47,7 +47,7 @@ void abs_max(void *in, void *inout, int *len, MPI_Datatype *type)
   }
   *(double *) inout = m;
 }
-void abs_min(void *in, void *inout, int *len, MPI_Datatype *type)
+void abs_min(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
 {
   // r is the already reduced value, n is the new value
   double n = std::fabs(*(double *) in), r = *(double *) inout;

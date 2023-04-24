@@ -1714,7 +1714,7 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeUnpackExchange, const int
 template <class DeviceType>
 void FixShakeKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
-  ExecutionSpace space)
+  ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
   k_indices.sync<DeviceType>();

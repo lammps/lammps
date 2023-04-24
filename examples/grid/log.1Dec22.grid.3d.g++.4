@@ -1,0 +1,103 @@
+LAMMPS (3 Nov 2022)
+WARNING: Using I/O redirection is unreliable with parallel runs. Better use -in switch to read input file. (../lammps.cpp:528)
+# 3d Lennard-Jones melt
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region		box block 0 10 0 10 0 10
+create_box	1 box
+Created orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 4000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  create_atoms CPU = 0.000 seconds
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+# load balancing
+
+comm_style      tiled
+fix             100 all balance 100 0.9 rcb
+
+# fix ave/grid
+
+fix             ave all ave/grid 10 10 100 5 5 5 vx vy vz
+
+# dump grid
+
+compute         ave all property/grid 5 5 5 id ix iy
+#dump            ave all grid 100 tmp.dump.3d #                c_ave:grid:data[*] f_ave:grid:count f_ave:grid:data[*]
+#dump_modify     ave sort 1
+
+#dump            vtk1 all grid/vtk 100 tmp.dump1.3d.*.vtr f_ave:grid:count
+
+#dump            vtk2 all grid/vtk 100 tmp.dump2.3d.*.vtr f_ave:grid:data[*]
+
+#dump            10 all image 100 tmp.image.*.3d.png type type #                grid f_ave:grid:count view 60 -30 shiny 0.0 #                subbox yes 0.01
+
+# run
+
+thermo          100
+
+run		500
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 20 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.748 | 2.797 | 2.844 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   1.44          -6.7733681      0             -4.6139081     -5.0199732      4738.2137    
+       100   0.75715334    -5.7581426      0             -4.6226965      0.20850222     4738.2137    
+       200   0.75139921    -5.7500924      0             -4.6232753      0.25362795     4738.2137    
+       300   0.73979146    -5.7326964      0             -4.6232866      0.37781798     4738.2137    
+       400   0.73834687    -5.7300319      0             -4.6227884      0.41282909     4738.2137    
+       500   0.72941121    -5.7153612      0             -4.6215179      0.49793402     4738.2137    
+Loop time of 0.198482 on 4 procs for 500 steps with 4000 atoms
+
+Performance: 1088259.442 tau/day, 2519.119 timesteps/s, 10.076 Matom-step/s
+96.4% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.13322    | 0.13586    | 0.13838    |   0.5 | 68.45
+Neigh   | 0.027201   | 0.027464   | 0.027811   |   0.1 | 13.84
+Comm    | 0.025899   | 0.028681   | 0.031618   |   1.4 | 14.45
+Output  | 7.6799e-05 | 8.8378e-05 | 0.00011635 |   0.0 |  0.04
+Modify  | 0.0050217  | 0.0051246  | 0.0053789  |   0.2 |  2.58
+Other   |            | 0.001269   |            |       |  0.64
+
+Nlocal:           1000 ave        1002 max         998 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:        2797.75 ave        2810 max        2790 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+Neighs:        37470.8 ave       38366 max       36995 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+
+Total # of neighbors = 149883
+Ave neighs/atom = 37.47075
+Neighbor list builds = 25
+Dangerous builds not checked
+Total wall time: 0:00:00

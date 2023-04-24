@@ -42,8 +42,10 @@ OPT.
    * :doc:`gaussian <bond_gaussian>`
    * :doc:`gromos (o) <bond_gromos>`
    * :doc:`harmonic (iko) <bond_harmonic>`
+   * :doc:`harmonic/restrain <bond_harmonic_restrain>`
    * :doc:`harmonic/shift (o) <bond_harmonic_shift>`
    * :doc:`harmonic/shift/cut (o) <bond_harmonic_shift_cut>`
+   * :doc:`lepton (o) <bond_lepton>`
    * :doc:`mesocnt <bond_mesocnt>`
    * :doc:`mm3 <bond_mm3>`
    * :doc:`morse (o) <bond_morse>`
@@ -93,6 +95,7 @@ OPT.
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
    * :doc:`gaussian <angle_gaussian>`
    * :doc:`harmonic (iko) <angle_harmonic>`
+   * :doc:`lepton (o) <angle_lepton>`
    * :doc:`mesocnt <angle_mesocnt>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`
@@ -127,6 +130,7 @@ OPT.
    * :doc:`fourier (io) <dihedral_fourier>`
    * :doc:`harmonic (iko) <dihedral_harmonic>`
    * :doc:`helix (o) <dihedral_helix>`
+   * :doc:`lepton (o) <dihedral_lepton>`
    * :doc:`multi/harmonic (o) <dihedral_multi_harmonic>`
    * :doc:`nharmonic (o) <dihedral_nharmonic>`
    * :doc:`opls (iko) <dihedral_opls>`

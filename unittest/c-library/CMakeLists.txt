@@ -25,7 +25,7 @@ set_tests_properties(LibraryScatterGather PROPERTIES ENVIRONMENT "LAMMPS_POTENTI
 
 set(TEST_CONFIG_DEFS "-DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR};-DLAMMPS_${LAMMPS_SIZES}")
 set(PKG_COUNT 0)
-foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
+foreach(PKG ${STANDARD_PACKAGES} ${EXTRA_PACKAGES} ${SUFFIX_PACKAGES})
   if(PKG_${PKG})
     MATH(EXPR PKG_COUNT "${PKG_COUNT}+1")
   endif()
@@ -80,14 +80,23 @@ if(BUILD_MPI)
       COMMAND $<TARGET_FILE:simple-plugin> 1 ${LAMMPS_DIR}/examples/COUPLE/plugin/in.lj $<TARGET_FILE:lammps>)
     set_tests_properties(RunCoupleSimplePlugin PROPERTIES
       ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
-      PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
+      PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development)?( - Maintenance)?\\)")
   endif()
   add_subdirectory(${LAMMPS_DIR}/examples/COUPLE/simple ${CMAKE_BINARY_DIR}/build-simple)
   add_test(NAME RunCoupleSimpleC
     COMMAND $<TARGET_FILE:simpleC> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
   add_test(NAME RunCoupleSimpleCC
     COMMAND $<TARGET_FILE:simpleCC> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
+
+  if($<TARGET_EXISTS:simpleF90>)
+    add_test(NAME RunCoupleSimpleF90
+      COMMAND $<TARGET_FILE:simpleF90> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
+    set_tests_properties(RunCoupleSimpleF90 PROPERTIES
+      ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
+      PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development)?( - Maintenance)?\\)")
+  endif()
+
   set_tests_properties(RunCoupleSimpleC RunCoupleSimpleCC PROPERTIES
     ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
-    PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
+    PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development)?( - Maintenance)?\\)")
 endif()

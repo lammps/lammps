@@ -42,7 +42,7 @@ chosen at random and deleted.  If there are less than M eligible
 particles, then all of them are deleted.
 
 If the setting for the *molecule* keyword is *no*, then only single
-atoms are deleted.  In this case, you should insure you do not delete
+atoms are deleted.  In this case, you should ensure you do not delete
 only a portion of a molecule (only some of its atoms), or LAMMPS will
 soon generate an error when it tries to find those atoms.  LAMMPS will
 warn you if any of the atoms eligible for deletion have a non-zero

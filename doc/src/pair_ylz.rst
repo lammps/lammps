@@ -25,7 +25,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 The *ylz* (Yuan-Li-Zhang) style computes an anisotropic interaction
 between pairs of coarse-grained particles considering the relative
@@ -82,7 +82,7 @@ mixing as described below:
 
 * :math:`\epsilon` = well depth (energy units)
 * :math:`\sigma` = minimum effective particle radii (distance units)
-* :math:`\zeta` = tune parameter for the slope of the attractive branch
+* :math:`\zeta` = tuning parameter for the slope of the attractive branch
 * :math:`\mu` = parameter related to bending rigidity
 * :math:`\beta` = parameter related to the spontaneous curvature
 * cutoff (distance units)
@@ -142,10 +142,11 @@ the :doc:`atom_style ellipsoid <atom_style>` command.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/asphere
-:doc:<fix_nve_asphere>`, `compute temp/asphere <compute_temp_asphere>`,
-:doc::doc:`pair_style resquared <pair_resquared>`, :doc:`pair_style
-:doc:gayberne <pair_gayberne>`
+:doc:`pair_coeff <pair_coeff>`,
+:doc:`fix nve/asphere <fix_nve_asphere>`,
+:doc:`compute temp/asphere <compute_temp_asphere>`,
+:doc:`pair_style resquared <pair_resquared>`,
+:doc:`pair_style gayberne <pair_gayberne>`
 
 Default
 """""""

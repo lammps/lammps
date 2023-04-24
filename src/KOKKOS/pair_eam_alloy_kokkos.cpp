@@ -110,7 +110,6 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
-  tag = atomKK->k_tag.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
@@ -920,19 +919,14 @@ void PairEAMAlloyKokkos<DeviceType>::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR, "Number of element to type mappings does not match number of atom types");
 
   // read EAM setfl file
 
   if (setfl) {
-    for (i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
-    delete [] setfl->elements;
-    delete [] setfl->mass;
+    for (i = 0; i < setfl->nelements; i++) delete[] setfl->elements[i];
+    delete[] setfl->elements;
+    delete[] setfl->mass;
     memory->destroy(setfl->frho);
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);

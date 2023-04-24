@@ -70,6 +70,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
     val.which = argi2.get_type();
     val.argindex = argi2.get_index1();
     val.id = argi2.get_name();
+    val.val.c = nullptr;
 
     if ((val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE)
         || (argi2.get_dim() > 1))

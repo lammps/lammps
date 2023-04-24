@@ -11,7 +11,7 @@ parts of the :doc:`kspace_style pppm <kspace_style>` for long-range
 Coulombics.  It has the following general features:
 
 * It is designed to exploit common GPU hardware configurations where one
-  or more GPUs are coupled to many cores of one or more multi-core CPUs,
+  or more GPUs are coupled to many cores of one or more multicore CPUs,
   e.g. within a node of a parallel machine.
 * Atom-based data (e.g. coordinates, forces) are moved back-and-forth
   between the CPU(s) and GPU every timestep.
@@ -28,7 +28,7 @@ Coulombics.  It has the following general features:
 * LAMMPS-specific code is in the GPU package.  It makes calls to a
   generic GPU library in the lib/gpu directory.  This library provides
   either Nvidia support, AMD support, or more general OpenCL support
-  (for Nvidia GPUs, AMD GPUs, Intel GPUs, and multi-core CPUs).
+  (for Nvidia GPUs, AMD GPUs, Intel GPUs, and multicore CPUs).
   so that the same functionality is supported on a variety of hardware.
 
 **Required hardware/software:**
@@ -146,7 +146,7 @@ GPUs/node to use, as well as other options.
 
 **Speed-ups to expect:**
 
-The performance of a GPU versus a multi-core CPU is a function of your
+The performance of a GPU versus a multicore CPU is a function of your
 hardware, which pair style is used, the number of atoms/GPU, and the
 precision used on the GPU (double, single, mixed). Using the GPU package
 in OpenCL mode on CPUs (which uses vectorization and multithreading) is
@@ -174,7 +174,7 @@ deterministic results.
 **Guidelines for best performance:**
 
 * Using multiple MPI tasks per GPU will often give the best performance,
-  as allowed my most multi-core CPU/GPU configurations.
+  as allowed my most multicore CPU/GPU configurations.
 * If the number of particles per MPI task is small (e.g. 100s of
   particles), it can be more efficient to run with fewer MPI tasks per
   GPU, even if you do not use all the cores on the compute node.

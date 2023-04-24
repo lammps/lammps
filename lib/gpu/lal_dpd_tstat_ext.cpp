@@ -28,10 +28,10 @@ static DPD<PRECISION,ACC_PRECISION> DPDTMF;
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
 int dpd_tstat_gpu_init(const int ntypes, double **cutsq, double **host_a0,
-                 double **host_gamma, double **host_sigma, double **host_cut,
-                 double *special_lj, const int inum,
-                 const int nall, const int max_nbors,  const int maxspecial,
-                 const double cell_size, int &gpu_mode, FILE *screen) {
+                       double **host_gamma, double **host_sigma, double **host_cut,
+                       double *special_lj, const int inum,
+                       const int nall, const int /*max_nbors*/,  const int maxspecial,
+                       const double cell_size, int &gpu_mode, FILE *screen) {
   DPDTMF.clear();
   gpu_mode=DPDTMF.device->gpu_mode();
   double gpu_split=DPDTMF.device->particle_split();

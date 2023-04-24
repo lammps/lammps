@@ -61,6 +61,7 @@ class Device {
     * \param nall Total number of local+ghost particles
     * \param maxspecial Maximum mumber of special bonded atoms per atom
     * \param vel True if velocities need to be stored
+    * \param extra_fields Nonzero if extra fields need to be stored
     *
     * Returns:
     * -  0 if successful
@@ -70,7 +71,7 @@ class Device {
     * - -5 Double precision is not supported on card **/
   int init(Answer<numtyp,acctyp> &ans, const bool charge, const bool rot,
            const int nlocal, const int nall, const int maxspecial,
-           const bool vel=false);
+           const bool vel=false, const int extra_fields=0);
 
   /// Initialize the device for Atom storage only
   /** \param nlocal Total number of local particles to allocate memory for
@@ -345,6 +346,7 @@ class Device {
   int _block_pair, _block_bio_pair, _block_ellipse;
   int _pppm_block, _block_nbor_build, _block_cell_2d, _block_cell_id;
   int _max_shared_types, _max_bio_shared_types, _pppm_max_spline;
+  int _nbor_prefetch;
 
   UCL_Program *dev_program;
   UCL_Kernel k_zero, k_info;

@@ -30,6 +30,7 @@ class Compute : protected Pointers {
     INVOKED_ARRAY   = 1<<2,
     INVOKED_PERATOM = 1<<3,
     INVOKED_LOCAL   = 1<<4,
+    INVOKED_PERGRID = 1<<5,
   };
   // clang-format on
   static int instance_total;    // # of Compute classes ever instantiated
@@ -61,6 +62,8 @@ class Compute : protected Pointers {
   int size_local_rows;    // rows in local vector or array
   int size_local_cols;    // 0 = vector, N = columns in local array
 
+  int pergrid_flag;       // 0/1 if compute_pergrid() function exists
+
   int extscalar;    // 0/1 if global scalar is intensive/extensive
   int extvector;    // 0/1/-1 if global vector is all int/ext/extlist
   int *extlist;     // list of 0/1 int/ext for each vec component
@@ -91,6 +94,7 @@ class Compute : protected Pointers {
   bigint invoked_array;      // ditto for compute_array()
   bigint invoked_peratom;    // ditto for compute_peratom()
   bigint invoked_local;      // ditto for compute_local()
+  bigint invoked_pergrid;    // ditto for compute_grid()
 
   double dof;    // degrees-of-freedom for temperature
 
@@ -118,12 +122,20 @@ class Compute : protected Pointers {
   virtual void compute_array() {}
   virtual void compute_peratom() {}
   virtual void compute_local() {}
+  virtual void compute_pergrid() {}
   virtual void set_arrays(int) {}
 
   virtual int pack_forward_comm(int, int *, double *, int, int *) { return 0; }
   virtual void unpack_forward_comm(int, int, double *) {}
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
+
+  virtual void reset_grid(){};
+
+  virtual int get_grid_by_name(const std::string &, int &) { return -1; };
+  virtual void *get_grid_by_index(int) { return nullptr; };
+  virtual int get_griddata_by_name(int, const std::string &, int &) { return -1; };
+  virtual void *get_griddata_by_index(int) { return nullptr; };
 
   virtual void dof_remove_pre() {}
   virtual int dof_remove(int) { return 0; }

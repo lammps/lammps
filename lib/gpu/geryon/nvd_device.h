@@ -429,7 +429,7 @@ void UCL_Device::clear() {
     CU_SAFE_CALL_NS(cuCtxSetCurrent(_old_context));
     CU_SAFE_CALL_NS(cuDevicePrimaryCtxRelease(_cu_device));
 #else
-    cuCtxDestroy(_context));
+    cuCtxDestroy(_context);
 #endif
   }
   _device=-1;

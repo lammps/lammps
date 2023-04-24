@@ -6,7 +6,7 @@ SPPARKS applications in 2 sister directories.
 The library dir has a Makefile (which you may need to edit for your
 box).  If you type
 
-g++ -f Makefile.g++
+make -f Makefile.mpi
 
 you should create libcouple.a, which the other coupled applications
 link to.

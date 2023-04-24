@@ -23,8 +23,9 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "gridcomm.h"
+#include "grid3d.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -80,8 +81,12 @@ MSM::MSM(LAMMPS *lmp)
 
 void MSM::settings(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style msm command");
+  if (narg < 1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
+
   accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
+  if (accuracy_relative > 1.0)
+    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
+               accuracy_relative, force->kspace_style);
 }
 
 /* ----------------------------------------------------------------------
@@ -325,7 +330,7 @@ void MSM::setup()
 
   if (triclinic) {
     double tmp[3];
-    kspacebbox(a,&tmp[0]);
+    MathExtra::tribbox(domain->h,a,&tmp[0]);
     ax = tmp[0];
     ay = tmp[1];
     az = tmp[2];
@@ -443,8 +448,8 @@ void MSM::compute(int eflag, int vflag)
   // to fully sum contribution in their 3d grid
 
   current_level = 0;
-  gcall->reverse_comm(GridComm::KSPACE,this,1,sizeof(double),
-                      REVERSE_RHO,gcall_buf1,gcall_buf2,MPI_DOUBLE);
+  gcall->reverse_comm(Grid3d::KSPACE,this,REVERSE_RHO,1,sizeof(double),
+                      gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // forward communicate charge density values to fill ghost grid points
   // compute direct sum interaction and then restrict to coarser grid
@@ -452,8 +457,8 @@ void MSM::compute(int eflag, int vflag)
   for (int n=0; n<=levels-2; n++) {
     if (!active_flag[n]) continue;
     current_level = n;
-    gc[n]->forward_comm(GridComm::KSPACE,this,1,sizeof(double),
-                        FORWARD_RHO,gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+    gc[n]->forward_comm(Grid3d::KSPACE,this,FORWARD_RHO,1,sizeof(double),
+                        gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
     direct(n);
     restriction(n);
   }
@@ -465,16 +470,16 @@ void MSM::compute(int eflag, int vflag)
     if (domain->nonperiodic) {
       current_level = levels-1;
       gc[levels-1]->
-        forward_comm(GridComm::KSPACE,this,1,sizeof(double),
-                     FORWARD_RHO,gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        forward_comm(Grid3d::KSPACE,this,FORWARD_RHO,1,sizeof(double),
+                     gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       direct_top(levels-1);
       gc[levels-1]->
-        reverse_comm(GridComm::KSPACE,this,1,sizeof(double),
-                     REVERSE_AD,gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        reverse_comm(Grid3d::KSPACE,this,REVERSE_AD,1,sizeof(double),
+                     gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       if (vflag_atom)
         gc[levels-1]->
-          reverse_comm(GridComm::KSPACE,this,6,sizeof(double),
-                       REVERSE_AD_PERATOM,gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+          reverse_comm(Grid3d::KSPACE,this,REVERSE_AD_PERATOM,6,sizeof(double),
+                       gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
 
     } else {
       // Here using MPI_Allreduce is cheaper than using commgrid
@@ -484,8 +489,8 @@ void MSM::compute(int eflag, int vflag)
       current_level = levels-1;
       if (vflag_atom)
         gc[levels-1]->
-          reverse_comm(GridComm::KSPACE,this,6,sizeof(double),
-                       REVERSE_AD_PERATOM,gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+          reverse_comm(Grid3d::KSPACE,this,REVERSE_AD_PERATOM,6,sizeof(double),
+                       gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
     }
   }
 
@@ -497,28 +502,28 @@ void MSM::compute(int eflag, int vflag)
     prolongation(n);
 
     current_level = n;
-    gc[n]->reverse_comm(GridComm::KSPACE,this,1,sizeof(double),
-                        REVERSE_AD,gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+    gc[n]->reverse_comm(Grid3d::KSPACE,this,REVERSE_AD,1,sizeof(double),
+                        gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
 
     // extra per-atom virial communication
 
     if (vflag_atom)
-      gc[n]->reverse_comm(GridComm::KSPACE,this,6,sizeof(double),
-                          REVERSE_AD_PERATOM,gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+      gc[n]->reverse_comm(Grid3d::KSPACE,this,REVERSE_AD_PERATOM,6,sizeof(double),
+                          gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
   }
 
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
   current_level = 0;
-  gcall->forward_comm(GridComm::KSPACE,this,1,sizeof(double),
-                      FORWARD_AD,gcall_buf1,gcall_buf2,MPI_DOUBLE);
+  gcall->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(double),
+                      gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // extra per-atom energy/virial communication
 
   if (vflag_atom)
-    gcall->forward_comm(GridComm::KSPACE,this,6,sizeof(double),
-                        FORWARD_AD_PERATOM,gcall_buf1,gcall_buf2,MPI_DOUBLE);
+    gcall->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(double),
+                        gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // calculate the force on my particles (interpolation)
 
@@ -592,17 +597,19 @@ void MSM::allocate()
   memory->create2d_offset(phi1d,3,-order,order,"msm:phi1d");
   memory->create2d_offset(dphi1d,3,-order,order,"msm:dphi1d");
 
-  // commgrid using all processors for finest grid level
+  // one Grid3d for finest grid level, using world comm and all procs
+  // use set_caller_grid() b/c MSM allocates local grid > out_all values
 
-  gcall = new GridComm(lmp,world,1,nx_msm[0],ny_msm[0],nz_msm[0],
-                       nxlo_in[0],nxhi_in[0],nylo_in[0],
-                       nyhi_in[0],nzlo_in[0],nzhi_in[0],
-                       nxlo_out_all,nxhi_out_all,nylo_out_all,
-                       nyhi_out_all,nzlo_out_all,nzhi_out_all,
-                       nxlo_out[0],nxhi_out[0],nylo_out[0],
-                       nyhi_out[0],nzlo_out[0],nzhi_out[0]);
+  gcall = new Grid3d(lmp,world,nx_msm[0],ny_msm[0],nz_msm[0],
+                     nxlo_in[0],nxhi_in[0],nylo_in[0],
+                     nyhi_in[0],nzlo_in[0],nzhi_in[0],
+                     nxlo_out_all,nxhi_out_all,nylo_out_all,
+                     nyhi_out_all,nzlo_out_all,nzhi_out_all);
 
-  gcall->setup(ngcall_buf1,ngcall_buf2);
+  gcall->set_caller_grid(nxlo_out[0],nxhi_out[0],nylo_out[0],
+                         nyhi_out[0],nzlo_out[0],nzhi_out[0]);
+
+  gcall->setup_comm(ngcall_buf1,ngcall_buf2);
   npergrid = 1;
   memory->destroy(gcall_buf1);
   memory->destroy(gcall_buf2);
@@ -611,7 +618,7 @@ void MSM::allocate()
 
   // allocate memory for each grid level
 
-  for (int n=0; n<levels; n++) {
+  for (int n = 0; n < levels; n++) {
     memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->create3d_offset(qgrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:qgrid");
@@ -620,26 +627,27 @@ void MSM::allocate()
     memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
 
-    // create commgrid object for rho and electric field communication
+    // one Grid3d per level, using level-specific comm for coarser grids
+    // use set_proc_neigh() b/c MSM excludes non-participating procs from owned/ghost comm
 
     if (active_flag[n]) {
       delete gc[n];
+
+      gc[n] = new Grid3d(lmp,world_levels[n],nx_msm[n],ny_msm[n],nz_msm[n],
+                         nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],nzlo_in[n],nzhi_in[n],
+                         nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],nzlo_out[n],nzhi_out[n]);
+
       int **procneigh = procneigh_levels[n];
+      gc[n]->set_proc_neighs(procneigh[0][0],procneigh[0][1],procneigh[1][0],
+                             procneigh[1][1],procneigh[2][0],procneigh[2][1]);
 
-      gc[n] = new GridComm(lmp,world_levels[n],2,nx_msm[n],ny_msm[n],nz_msm[n],
-                           nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
-                           nzlo_in[n],nzhi_in[n],
-                           nxlo_out[n],nxhi_out[n],nylo_out[n],nyhi_out[n],
-                           nzlo_out[n],nzhi_out[n],
-                           procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                           procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-
-      gc[n]->setup(ngc_buf1[n],ngc_buf2[n]);
+      gc[n]->setup_comm(ngc_buf1[n],ngc_buf2[n]);
       npergrid = 1;
       memory->destroy(gc_buf1[n]);
       memory->destroy(gc_buf2[n]);
       memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
       memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
+
     } else {
       delete gc[n];
       memory->destroy(gc_buf1[n]);
@@ -742,7 +750,7 @@ void MSM::allocate_levels()
 {
   ngrid = new int[levels];
 
-  gc = new GridComm*[levels];
+  gc = new Grid3d*[levels];
   gc_buf1 = new double*[levels];
   gc_buf2 = new double*[levels];
   ngc_buf1 = new int[levels];
@@ -1022,19 +1030,19 @@ void MSM::set_grid_global()
   int xlevels,ylevels,zlevels;
 
   while (!factorable(nx_max,flag,xlevels)) {
-    double k = log(nx_max)/log(2.0);
+    double k = log((double)nx_max)/log(2.0);
     double r = k - floor(k);
     if (r > 0.5) nx_max++;
     else nx_max--;
   }
   while (!factorable(ny_max,flag,ylevels)) {
-    double k = log(ny_max)/log(2.0);
+    double k = log((double)ny_max)/log(2.0);
     double r = k - floor(k);
     if (r > 0.5) ny_max++;
     else ny_max--;
   }
   while (!factorable(nz_max,flag,zlevels)) {
-    double k = log(nz_max)/log(2.0);
+    double k = log((double)nz_max)/log(2.0);
     double r = k - floor(k);
     if (r > 0.5) nz_max++;
     else nz_max--;
@@ -1158,19 +1166,25 @@ void MSM::set_grid_local()
 {
   // loop over grid levels
 
-  for (int n=0; n<levels; n++) {
+  for (int n = 0; n < levels; n++) {
 
-    // deleted and nullify grid arrays since the number or offset of gridpoints may change
+    // delete and nullify grid arrays since the number or offset of gridpoints may change
+
     memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
-    // partition global grid across procs
-    // n xyz lo/hi in[] = lower/upper bounds of global grid this proc owns
-    // indices range from 0 to N-1 inclusive in each dim
+    // use Grid3d to partition each grid into owned cells on each proc
+    // assignment of ghost cells is done below
+    // Grid3d is called later in allocate() with owned+ghost bounds
 
-    comm->partition_grid(nx_msm[n],ny_msm[n],nz_msm[n],0.0,
-                         nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
-                         nzlo_in[n],nzhi_in[n]);
+    gcall = new Grid3d(lmp,world,nx_msm[n],ny_msm[n],nz_msm[n]);
+    gcall->setup_grid(nxlo_in[n],nxhi_in[n],nylo_in[n],
+                      nyhi_in[n],nzlo_in[n],nzhi_in[n],
+                      nxlo_out[n],nxhi_out[n],nylo_out[n],
+                      nyhi_out[n],nzlo_out[n],nzhi_out[n]);
+    delete gcall;
+
+    // nlower/nupper = stencil size for mapping particles to grid
 
     nlower = -(order-1)/2;
     nupper = order/2;
@@ -1193,22 +1207,22 @@ void MSM::set_grid_local()
     double yprd = prd[1];
     double zprd = prd[2];
 
-    // shift values for particle <-> grid mapping
-    // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
-
     // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
     //   global MSM grid that my particles can contribute charge to
+    // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
     // effectively nlo_in,nhi_in + ghost cells
     // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
     //           position a particle in my box can be at
     // dist[3] = particle position bound = subbox + skin/2.0
     // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
+    // for n = 0, use a smaller ghost region for interpolation
+    // for n > 0, larger ghost region needed for direct sum and restriction/prolongation
 
     double dist[3];
     double cuthalf = 0.0;
-    if (n == 0) cuthalf = 0.5*neighbor->skin; // only applies to finest grid
+    if (n == 0) cuthalf = 0.5*neighbor->skin;   // only applies to finest grid
     dist[0] = dist[1] = dist[2] = cuthalf;
-    if (triclinic) kspacebbox(cuthalf,&dist[0]);
+    if (triclinic) MathExtra::tribbox(domain->h,cuthalf,&dist[0]);
 
     int nlo,nhi;
 
@@ -1216,12 +1230,12 @@ void MSM::set_grid_local()
                             nx_msm[n]/xprd + OFFSET) - OFFSET;
     nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
                             nx_msm[n]/xprd + OFFSET) - OFFSET;
+
     if (n == 0) {
-      // use a smaller ghost region for interpolation
       nxlo_out_all = nlo + nlower;
       nxhi_out_all = nhi + nupper;
     }
-    // a larger ghost region is needed for the direct sum and for restriction/prolongation
+
     nxlo_out[n] = nlo + MIN(-order,nxlo_direct);
     nxhi_out[n] = nhi + MAX(order,nxhi_direct);
 
@@ -1233,6 +1247,7 @@ void MSM::set_grid_local()
       nylo_out_all = nlo + nlower;
       nyhi_out_all = nhi + nupper;
     }
+
     nylo_out[n] = nlo + MIN(-order,nylo_direct);
     nyhi_out[n] = nhi + MAX(order,nyhi_direct);
 
@@ -1244,8 +1259,10 @@ void MSM::set_grid_local()
       nzlo_out_all = nlo + nlower;
       nzhi_out_all = nhi + nupper;
     }
-    // a hemisphere is used for direct sum interactions,
-    //   so no ghosting is needed for direct sum in the -z direction
+
+    // hemisphere is used for direct sum interactions
+    // so no ghosting is needed for direct sum in the -z direction
+
     nzlo_out[n] = nlo - order;
     nzhi_out[n] = nhi + MAX(order,nzhi_direct);
 
@@ -1253,7 +1270,6 @@ void MSM::set_grid_local()
     // skip reset of lo/hi for procs who do not own any grid cells
 
     if (domain->nonperiodic) {
-
       if (!domain->xperiodic && nxlo_in[n] <= nxhi_in[n]) {
         if (nxlo_in[n] == 0) nxlo_in[n] = alpha[n];
         nxlo_out[n] = MAX(nxlo_out[n],alpha[n]);
@@ -1378,7 +1394,7 @@ void MSM::set_proc_grid(int n)
    called by fix balance b/c it changed sizes of processor sub-domains
 ------------------------------------------------------------------------- */
 
-void MSM::setup_grid()
+void MSM::reset_grid()
 {
   // free all arrays previously allocated
   // pre-compute volume-dependent coeffs
@@ -3393,7 +3409,7 @@ double MSM::memory_usage()
 
   // NOTE: Stan, fill in other memory allocations here
 
-  // all GridComm bufs
+  // all Grid3d bufs
 
   bytes += (double)(ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
 

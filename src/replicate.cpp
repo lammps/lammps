@@ -278,7 +278,7 @@ void Replicate::command(int narg, char **arg)
 
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
-  // insures all replicated atoms will be owned even with round-off
+  // ensures all replicated atoms will be owned even with round-off
 
   double epsilon[3];
   if (triclinic) epsilon[0] = epsilon[1] = epsilon[2] = EPSILON;

@@ -26,8 +26,6 @@
 #include "force.h"
 #include "interlayer_taper.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
 
 #include <cmath>
 #include <cstring>

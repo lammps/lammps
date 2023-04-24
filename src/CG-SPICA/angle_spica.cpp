@@ -297,7 +297,7 @@ void AngleSPICA::init_style()
 
   repflag = 0;
   for (int i = 1; i <= atom->nangletypes; i++)
-    if (repscale[i] > 0.0) repflag = 1;
+    if (repscale && (repscale[i] > 0.0)) repflag = 1;
 
   // set up pointers to access SPICA LJ parameters for 1-3 interactions
 

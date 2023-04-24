@@ -595,7 +595,7 @@ void FixRigidSmall::init()
    be computable if contain overlapping particles setup_bodies_static()
    reads inpfile itself.
      cannot do this until now, b/c requires comm->setup() to have setup stencil
-   invoke pre_neighbor() to insure body xcmimage flags are reset
+   invoke pre_neighbor() to ensure body xcmimage flags are reset
      needed if Verlet::setup::pbc() has remapped/migrated atoms for 2nd run
      setup_bodies_static() invokes pre_neighbor itself
 ------------------------------------------------------------------------- */

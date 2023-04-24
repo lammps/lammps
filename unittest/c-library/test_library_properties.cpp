@@ -209,6 +209,10 @@ TEST_F(LibraryProperties, setting)
     lammps_command(lmp, "dimension 3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_active"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);
+
     EXPECT_EQ(lammps_extract_setting(lmp, "world_size"), 1);
     EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "universe_size"), 1);
@@ -293,6 +297,7 @@ TEST_F(LibraryProperties, global)
 
     std::string input = path_join(INPUT_DIR, "in.fourmol");
     if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "special_bonds lj 0.0 0.5 0.8 coul 0.1 0.5 1.0");
     lammps_file(lmp, input.c_str());
     lammps_command(lmp, "run 2 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -317,6 +322,26 @@ TEST_F(LibraryProperties, global)
     EXPECT_EQ(lammps_extract_global_datatype(lmp, "dt"), LAMMPS_DOUBLE);
     double *d_ptr = (double *)lammps_extract_global(lmp, "dt");
     EXPECT_DOUBLE_EQ((*d_ptr), 0.1);
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_lj"), LAMMPS_DOUBLE);
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "special_coul"), LAMMPS_DOUBLE);
+    double *special_lj = (double *)lammps_extract_global(lmp, "special_lj");
+    double *special_coul= (double *)lammps_extract_global(lmp, "special_coul");
+    EXPECT_DOUBLE_EQ(special_lj[0], 1.0);
+    EXPECT_DOUBLE_EQ(special_lj[1], 0.0);
+    EXPECT_DOUBLE_EQ(special_lj[2], 0.5);
+    EXPECT_DOUBLE_EQ(special_lj[3], 0.8);
+    EXPECT_DOUBLE_EQ(special_coul[0], 1.0);
+    EXPECT_DOUBLE_EQ(special_coul[1], 0.1);
+    EXPECT_DOUBLE_EQ(special_coul[2], 0.5);
+    EXPECT_DOUBLE_EQ(special_coul[3], 1.0);
+    lammps_command(lmp, "special_bonds lj/coul 1.0 1.0 1.0");
+    EXPECT_DOUBLE_EQ(special_lj[1], 1.0);
+    EXPECT_DOUBLE_EQ(special_lj[2], 1.0);
+    EXPECT_DOUBLE_EQ(special_lj[3], 1.0);
+    EXPECT_DOUBLE_EQ(special_coul[1], 1.0);
+    EXPECT_DOUBLE_EQ(special_coul[2], 1.0);
+    EXPECT_DOUBLE_EQ(special_coul[3], 1.0);
 };
 
 TEST_F(LibraryProperties, neighlist)
@@ -544,4 +569,28 @@ TEST_F(AtomProperties, position)
     EXPECT_DOUBLE_EQ(x[1][0], 0.2);
     EXPECT_DOUBLE_EQ(x[1][1], 0.1);
     EXPECT_DOUBLE_EQ(x[1][2], 0.1);
+}
+
+TEST(SystemSettings, kokkos)
+{
+    if (!lammps_config_has_package("KOKKOS")) GTEST_SKIP();
+    if (!lammps_config_accelerator("KOKKOS", "api", "openmp")) GTEST_SKIP();
+
+    // clang-format off
+    const char *args[] = {"SystemSettings", "-log", "none", "-echo", "screen", "-nocite",
+                          "-k", "on", "t", "4", "-sf", "kk"};
+    // clang-format on
+    char **argv = (char **)args;
+    int argc    = sizeof(args) / sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    void *lmp          = lammps_open_no_mpi(argc, argv, nullptr);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_active"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_nthreads"), 4);
+    EXPECT_EQ(lammps_extract_setting(lmp, "kokkos_ngpus"), 0);
+    lammps_close(lmp);
 }

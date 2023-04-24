@@ -1,11 +1,18 @@
 .. index:: pair_style amoeba
+.. index:: pair_style amoeba/gpu
 .. index:: pair_style hippo
+.. index:: pair_style hippo/gpu
 
 pair_style amoeba command
 =========================
 
+Accelerator Variants: *amoeba/gpu*
+
 pair_style hippo command
 ========================
+
+Accelerator Variants: *hippo/gpu*
+
 Syntax
 """"""
 
@@ -87,22 +94,22 @@ The formulas for the AMOEBA energy terms are:
 
 .. math::
 
-   U_{hal} = \epsilon_{ij} \left( \frac{1.07}{\rho_{ij} + 0.07} \right)^7 \left( \frac{1.12}{\rho_{ij}^7 + 0.12} - 2 \right)
-   U_{multipole} = \vec{M_i}\bold{T_{ij}}\vec{M_j}
-      \vec{M} = \left( q, \vec{\mu_{perm}}, \bold{\Theta} \right)
-   U_{polar} = \frac{1}{2}\vec{\mu_i}^{ind} \vec{E_i}^{perm}
+   U_{hal} = & \epsilon_{ij} \left( \frac{1.07}{\rho_{ij} + 0.07} \right)^7 \left( \frac{1.12}{\rho_{ij}^7 + 0.12} - 2 \right) \\
+   U_{multipole} = & \vec{M}_i\boldsymbol{T_{ij}}\vec{M}_j, \quad \mbox{with} \quad
+      \vec{M} = \left(q, \vec{\mu}_{perm}, \boldsymbol{\Theta} \right) \\
+   U_{polar} = & \frac{1}{2}\vec{\mu}_i^{ind} \vec{E}_i^{perm}
 
 The formulas for the HIPPO energy terms are:
 
 .. math::
 
-   U_{multipole} = Z_i \frac{1}{r_{ij}} Z_j + Z_i T_{ij}^{damp} \vec{M_j} + Z_j T_{ji}^{damp} \vec{M_i} + \vec{M_i} T_{ij}^{damp} \vec{M_j}
-      \vec{M} = \left( Q, \vec{\mu_{perm}}, \bold{\Theta} \right)
-   U_{polar} = \frac{1}{2}\vec{\mu_i}^{ind} \vec{E_i}^{perm}
-   U_{qxfer} = \epsilon_i e^{-\eta_j r_{ij}} + \epsilon_j e^{-\eta_i r_{ij}}
-   U_{repulsion} = \frac{K_i K_j}{r_{ij}} S^2
-      S^2 = \left( \int{\phi_i \phi_j} dv \right)^2 = \vec{M_i}\bold{T_{ij}^{repulsion}}\vec{M_j}
-   U_{dispersion} = -\frac{C_6^iC_6^j}{r_{ij}^6} \left( f_{damp}^{dispersion} \right)_{ij}^2
+   U_{multipole} = & Z_i \frac{1}{r_{ij}} Z_j + Z_i T_{ij}^{damp} \vec{M}_j + Z_j T_{ji}^{damp} \vec{M}_i + \vec{M}_i T_{ij}^{damp} \vec{M}_j, \quad \mbox{with} \quad
+      \vec{M} = \left(q, \vec{\mu}_{perm}, \boldsymbol{\Theta} \right) \\
+   U_{polar} = & \frac{1}{2}\vec{\mu}_i^{ind} \vec{E}_i^{perm} \\
+   U_{qxfer} = & \epsilon_i e^{-\eta_j r_{ij}} + \epsilon_j e^{-\eta_i r_{ij}} \\
+   U_{repulsion} = & \frac{K_i K_j}{r_{ij}} S^2
+      S^2 = \left( \int{\phi_i \phi_j} dv \right)^2 = \vec{M}_i\boldsymbol{T_{ij}^{repulsion}}\vec{M}_j \\
+   U_{dispersion} = & -\frac{C_6^iC_6^j}{r_{ij}^6} \left( f_{damp}^{dispersion} \right)_{ij}^2
 
 .. note::
 
@@ -126,6 +133,10 @@ version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
 <amoeba-Ren>`, and :ref:`(Shi) <amoeba-Shi>`.  Likewise the current
 implementation of HIPPO in LAMMPS matches the version discussed in
 :ref:`(Rackers) <amoeba-Rackers>`.
+
+.. versionadded:: 8Feb2023
+
+Accelerator support via the GPU package is available.
 
 ----------
 
@@ -156,7 +167,7 @@ settings.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 3Nov2022
 
 The *amoeba* and *hippo* pair styles support extraction of two per-atom
 quantities by the :doc:`fix pair <fix_pair>` command.  This allows the
@@ -184,6 +195,19 @@ an input script that reads a restart file.
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
 *inner*\ , *middle*\ , *outer* keywords.
+
+----------
+
+.. include:: accel_styles.rst
+
+.. note::
+
+  Using the GPU accelerated pair styles 'amoeba/gpu' or 'hippo/gpu'
+  when compiling the GPU package for OpenCL has a few known issues
+  when running on integrated GPUs and the calculation may crash.
+
+  The GPU accelerated pair styles are also not (yet) compatible
+  with single precision FFTs.
 
 ----------
 

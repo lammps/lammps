@@ -24,8 +24,9 @@
 
 /** Data type constants for extracting data from atoms, computes and fixes
  *
- * Must be kept in sync with the equivalent constants in src/library.h,
- * python/lammps/constants.py, and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in ``src/library.h``,
+ * ``python/lammps/constants.py``, ``examples/COUPLE/plugin/liblammpsplugin.h``,
+ * and ``fortran/lammps.f90`` */
 
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT       = 0,     /*!< 32-bit integer (array) */
@@ -39,8 +40,9 @@ enum _LMP_DATATYPE_CONST {
 
 /** Style constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in src/library.h,
- * python/lammps/constants.py, and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in ``src/library.h``,
+ * ``python/lammps/constants.py``, ``examples/COUPLE/plugin/liblammpsplugin.h``,
+ * and ``fortran/lammps.f90`` */
 
 enum _LMP_STYLE_CONST {
   LMP_STYLE_GLOBAL = 0,     /*!< return global data */
@@ -50,8 +52,9 @@ enum _LMP_STYLE_CONST {
 
 /** Type and size constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in src/library.h,
- * python/lammps/constants.py, and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in ``src/library.h``,
+ * ``python/lammps/constants.py``, ``examples/COUPLE/plugin/liblammpsplugin.h``,
+ * and ``fortran/lammps.f90`` */
 
 enum _LMP_TYPE_CONST {
   LMP_TYPE_SCALAR = 0,      /*!< return scalar */
@@ -64,8 +67,9 @@ enum _LMP_TYPE_CONST {
 
 /** Error codes to select the suitable function in the Error class
  *
- * Must be kept in sync with the equivalent constants in src/library.h,
- * python/lammps/constants.py, and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in ``src/library.h``,
+ * ``python/lammps/constants.py``, ``examples/COUPLE/plugin/liblammpsplugin.h``,
+ * and ``fortran/lammps.f90`` */
 
 enum _LMP_ERROR_CONST {
   LMP_ERROR_WARNING  = 0,   /*!< call Error::warning() */
@@ -77,8 +81,9 @@ enum _LMP_ERROR_CONST {
 
 /** Variable style constants for extracting data from variables.
  *
- * Must be kept in sync with the equivalent constants in src/library.h,
- * python/lammps/constants.py, and fortran/lammps.f90 */
+ * Must be kept in sync with the equivalent constants in ``src/library.h``,
+ * ``python/lammps/constants.py``, ``examples/COUPLE/plugin/liblammpsplugin.h``,
+ * and ``fortran/lammps.f90`` */
 
 enum _LMP_VAR_CONST {
   LMP_VAR_EQUAL  = 0,       /*!< compatible with equal-style variables */
@@ -132,6 +137,9 @@ extern void   lammps_gather_atoms_subset(void *, char *, int, int, int, int *, v
 extern void   lammps_scatter_atoms(void *, char *, int, int, void *);
 extern void   lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 extern void   lammps_gather_bonds(void *handle, void *data);
+extern void   lammps_gather_angles(void *handle, void *data);
+extern void   lammps_gather_dihedrals(void *handle, void *data);
+extern void   lammps_gather_impropers(void *handle, void *data);
 extern void   lammps_gather(void *, char *, int, int, void *);
 extern void   lammps_gather_concat(void *, char *, int, int, void *);
 extern void   lammps_gather_subset(void *, char *, int, int, int, int *, void *);
@@ -311,6 +319,9 @@ extern void   lammps_gather_atoms_subset(void *, char *, int, int, int, int *, v
 extern void   lammps_scatter_atoms(void *, char *, int, int, void *);
 extern void   lammps_scatter_atoms_subset(void *, char *, int, int, int, int *, void *);
 extern void   lammps_gather_bonds(void *handle, void *data);
+extern void   lammps_gather_angles(void *handle, void *data);
+extern void   lammps_gather_dihedrals(void *handle, void *data);
+extern void   lammps_gather_impropers(void *handle, void *data);
 extern void   lammps_gather(void *, char *, int, int, void *);
 extern void   lammps_gather_concat(void *, char *, int, int, void *);
 extern void   lammps_gather_subset(void *, char *, int, int, int, int *, void *);

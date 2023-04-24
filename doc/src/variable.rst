@@ -69,7 +69,7 @@ Syntax
          special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)
          feature functions = is_active(category,feature), is_available(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
-         atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
+         atom vector = id, mass, type, mol, radius, q, x, y, z, vx, vy, vz, fx, fy, fz
          compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
          fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
          variable references = v_name, v_name[i]
@@ -1420,7 +1420,7 @@ follows.  Also note that the 0-timestep run must actually use and
 invoke the compute in question (e.g. via :doc:`thermo <thermo_style>` or
 :doc:`dump <dump>` output) in order for it to enable the compute to be
 used in a variable after the run.  Thus if you are trying to print a
-variable that uses a compute you have defined, you can insure it is
+variable that uses a compute you have defined, you can ensure it is
 invoked on the last timestep of the preceding run by including it in
 thermodynamic output.
 
@@ -1460,7 +1460,7 @@ alter the state of the system between runs, causing a variable to
 evaluate incorrectly.
 
 The solution to this issue is the same as for case (2) above, namely
-perform a 0-timestep run before the variable is evaluated to insure
+perform a 0-timestep run before the variable is evaluated to ensure
 the system is up-to-date.  For example, this sequence of commands
 would print a potential energy that reflected the changed pairwise
 coefficient:

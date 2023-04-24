@@ -34,6 +34,7 @@ class AtomKokkos : public Atom {
   DAT::tdual_float_1d k_q;
   DAT::tdual_float_1d k_radius;
   DAT::tdual_float_1d k_rmass;
+  DAT::tdual_float_1d_4 k_mu;
   DAT::tdual_v_array k_omega;
   DAT::tdual_v_array k_angmom;
   DAT::tdual_f_array k_torque;
@@ -78,12 +79,14 @@ class AtomKokkos : public Atom {
   DAT::tdual_int_scalar k_error_flag;
   dual_hash_type k_map_hash;
 
+  class AtomVecKokkos* avecKK;
+
   // map lookup function inlined for efficiency
   // return -1 if no map defined
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
-  static int map_kokkos(tagint global, int map_style, DAT::tdual_int_1d k_map_array, dual_hash_type k_map_hash)
+  static int map_kokkos(tagint global, int map_style, const DAT::tdual_int_1d &k_map_array, const dual_hash_type &k_map_hash)
   {
     if (map_style == 1)
       return k_map_array.view<DeviceType>()(global);
@@ -95,10 +98,10 @@ class AtomKokkos : public Atom {
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
-  static int map_find_hash_kokkos(tagint global, dual_hash_type &k_map_hash)
+  static int map_find_hash_kokkos(tagint global, const dual_hash_type &k_map_hash)
   {
     int local = -1;
-    auto d_map_hash = k_map_hash.view<DeviceType>();
+    auto& d_map_hash = k_map_hash.const_view<DeviceType>();
     auto index = d_map_hash.find(global);
     if (d_map_hash.valid_at(index))
       local = d_map_hash.value_at(index);

@@ -30,7 +30,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondMorse::BondMorse(LAMMPS *_lmp) : Bond(_lmp) {}
+BondMorse::BondMorse(LAMMPS *_lmp) : Bond(_lmp)
+{
+  born_matrix_enable = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -205,6 +208,18 @@ double BondMorse::single(int type, double rsq, int /*i*/, int /*j*/, double &ffo
   fforce = 0;
   if (r > 0.0) fforce = -2.0 * d0[type] * alpha[type] * (1 - ralpha) * ralpha / r;
   return d0[type] * (1 - ralpha) * (1 - ralpha);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondMorse::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+{
+  double r = sqrt(rsq);
+  double dr = r - r0[type];
+  double ralpha = exp(-alpha[type] * dr);
+
+  du = 2.0 * d0[type] * alpha[type] * (1.0 - ralpha) * ralpha;
+  du2 = -2.0 * d0[type] * alpha[type] * alpha[type] * (1.0 - 2.0 * ralpha) * ralpha;
 }
 
 /* ---------------------------------------------------------------------- */

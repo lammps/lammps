@@ -203,6 +203,8 @@ class Pair : protected Pointers {
   virtual int pack_reverse_comm(int, int, double *) { return 0; }
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
+  virtual void reset_grid() {}
+
   virtual void pack_forward_grid(int, void *, int, int *) {}
   virtual void unpack_forward_grid(int, void *, int, int *) {}
   virtual void pack_reverse_grid(int, void *, int, int *) {}
@@ -221,7 +223,7 @@ class Pair : protected Pointers {
   virtual void min_xf_pointers(int, double **, double **) {}
   virtual void min_xf_get(int) {}
   virtual void min_x_set(int) {}
-  virtual void transfer_history(double *, double *) {}
+  virtual void transfer_history(double *, double *, int, int) {}
   virtual double atom2cut(int) { return 0.0; }
   virtual double radii2cut(double, double) { return 0.0; }
 

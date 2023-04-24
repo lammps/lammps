@@ -608,7 +608,7 @@ void FixSRD::pre_neighbor()
 
   // map each wall to search bins it covers, up to non-periodic boundary
   // if wall moves, add walltrigger to its position
-  // this insures it is added to all search bins it may move into
+  // this ensures it is added to all search bins it may move into
   // may not overlap any of my search bins
 
   if (wallexist) {

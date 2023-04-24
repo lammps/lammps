@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -38,14 +37,14 @@ PairEAMHE::PairEAMHE(LAMMPS *lmp) : PairEAM(lmp), PairEAMFS(lmp)
 
 void PairEAMHE::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,m,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
+  int i, j, ii, jj, m, inum, jnum, itype, jtype;
+  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
+  double rsq, r, p, rhoip, rhojp, z2, z2p, recip, phip, psip, phi;
   double *coeff;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   // grow energy and fp arrays if necessary
   // need to be atom->nmax in length
@@ -55,9 +54,9 @@ void PairEAMHE::compute(int eflag, int vflag)
     memory->destroy(fp);
     memory->destroy(numforce);
     nmax = atom->nmax;
-    memory->create(rho,nmax,"pair:rho");
-    memory->create(fp,nmax,"pair:fp");
-    memory->create(numforce,nmax,"pair:numforce");
+    memory->create(rho, nmax, "pair:rho");
+    memory->create(fp, nmax, "pair:fp");
+    memory->create(numforce, nmax, "pair:numforce");
   }
 
   double **x = atom->x;
@@ -76,7 +75,8 @@ void PairEAMHE::compute(int eflag, int vflag)
 
   if (newton_pair) {
     for (i = 0; i < nall; i++) rho[i] = 0.0;
-  } else for (i = 0; i < nlocal; i++) rho[i] = 0.0;
+  } else
+    for (i = 0; i < nlocal; i++) rho[i] = 0.0;
 
   // rho = density at each atom
   // loop over neighbors of my atoms
@@ -97,20 +97,20 @@ void PairEAMHE::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
 
       if (rsq < cutforcesq) {
         jtype = type[j];
-        p = sqrt(rsq)*rdr + 1.0;
-        m = static_cast<int> (p);
-        m = MIN(m,nr-1);
+        p = sqrt(rsq) * rdr + 1.0;
+        m = static_cast<int>(p);
+        m = MIN(m, nr - 1);
         p -= m;
-        p = MIN(p,1.0);
+        p = MIN(p, 1.0);
         coeff = rhor_spline[type2rhor[jtype][itype]][m];
-        rho[i] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        rho[i] += ((coeff[3] * p + coeff[4]) * p + coeff[5]) * p + coeff[6];
         if (newton_pair || j < nlocal) {
           coeff = rhor_spline[type2rhor[itype][jtype]][m];
-          rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+          rho[j] += ((coeff[3] * p + coeff[4]) * p + coeff[5]) * p + coeff[6];
         }
       }
     }
@@ -127,12 +127,12 @@ void PairEAMHE::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    p = (rho[i]-rhomin)*rdrho + 1.0;
-    m = static_cast<int> (p);
+    p = (rho[i] - rhomin) * rdrho + 1.0;
+    m = static_cast<int>(p);
     if (m < 2) {
       m = 2;
-    } else if (m > nrho-1) {
-      m = nrho-1;
+    } else if (m > nrho - 1) {
+      m = nrho - 1;
     }
     p -= m;
     if (p < -1.0) {
@@ -141,13 +141,13 @@ void PairEAMHE::compute(int eflag, int vflag)
       p = 1.0;
     }
     coeff = frho_spline[type2frho[type[i]]][m];
-    fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
+    fp[i] = (coeff[0] * p + coeff[1]) * p + coeff[2];
     if (eflag) {
-      phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+      phi = ((coeff[3] * p + coeff[4]) * p + coeff[5]) * p + coeff[6];
       if (rho[i] < rhomin) {
-        phi += fp[i] * (rho[i]-rhomin);
+        phi += fp[i] * (rho[i] - rhomin);
       } else if (rho[i] > rhomax) {
-        phi += fp[i] * (rho[i]-rhomax);
+        phi += fp[i] * (rho[i] - rhomax);
       }
       phi *= scale[type[i]][type[i]];
       if (eflag_global) eng_vdwl += phi;
@@ -181,17 +181,17 @@ void PairEAMHE::compute(int eflag, int vflag)
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
+      rsq = delx * delx + dely * dely + delz * delz;
 
       if (rsq < cutforcesq) {
         ++numforce[i];
         jtype = type[j];
         r = sqrt(rsq);
-        p = r*rdr + 1.0;
-        m = static_cast<int> (p);
-        m = MIN(m,nr-1);
+        p = r * rdr + 1.0;
+        m = static_cast<int>(p);
+        m = MIN(m, nr - 1);
         p -= m;
-        p = MIN(p,1.0);
+        p = MIN(p, 1.0);
 
         // rhoip = derivative of (density at atom j due to atom i)
         // rhojp = derivative of (density at atom i due to atom j)
@@ -205,35 +205,33 @@ void PairEAMHE::compute(int eflag, int vflag)
         // scale factor can be applied by thermodynamic integration
 
         coeff = rhor_spline[type2rhor[itype][jtype]][m];
-        rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
+        rhoip = (coeff[0] * p + coeff[1]) * p + coeff[2];
         coeff = rhor_spline[type2rhor[jtype][itype]][m];
-        rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
+        rhojp = (coeff[0] * p + coeff[1]) * p + coeff[2];
         coeff = z2r_spline[type2z2r[itype][jtype]][m];
-        z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
-        z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        z2p = (coeff[0] * p + coeff[1]) * p + coeff[2];
+        z2 = ((coeff[3] * p + coeff[4]) * p + coeff[5]) * p + coeff[6];
 
-        recip = 1.0/r;
-        phi = z2*recip;
-        phip = z2p*recip - phi*recip;
-        psip = fp[i]*rhojp + fp[j]*rhoip + phip;
-        fpair = -scale[itype][jtype]*psip*recip;
+        recip = 1.0 / r;
+        phi = z2 * recip;
+        phip = z2p * recip - phi * recip;
+        psip = fp[i] * rhojp + fp[j] * rhoip + phip;
+        fpair = -scale[itype][jtype] * psip * recip;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        f[i][0] += delx * fpair;
+        f[i][1] += dely * fpair;
+        f[i][2] += delz * fpair;
         if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
+          f[j][0] -= delx * fpair;
+          f[j][1] -= dely * fpair;
+          f[j][2] -= delz * fpair;
         }
 
-        if (eflag) evdwl = scale[itype][jtype]*phi;
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (eflag) evdwl = scale[itype][jtype] * phi;
+        if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
       }
     }
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
-

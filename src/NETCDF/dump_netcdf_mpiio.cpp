@@ -628,8 +628,8 @@ void DumpNetCDFMPIIO::write()
   for (int i = 0; i < comm->me; i++)  blocki += block_sizes[i];
   delete[] block_sizes;
 
-  // insure buf is sized for packing and communicating
-  // use nme to insure filewriter proc can receive info from others
+  // ensure buf is sized for packing and communicating
+  // use nme to ensure filewriter proc can receive info from others
   // limit nme*size_one to int since used as arg in MPI calls
 
   if (nme > maxbuf) {

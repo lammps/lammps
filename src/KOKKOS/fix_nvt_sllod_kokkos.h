@@ -50,6 +50,7 @@ class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
 
  private:
   int nondeformbias;
+  int psllod_flag;
 
   void nh_v_temp() override;
 

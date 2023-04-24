@@ -40,6 +40,7 @@ class PairHybridKokkos : public PairHybrid {
   PairHybridKokkos(class LAMMPS *);
 
   void compute(int, int) override;
+  void init_style() override;
 
  private:
   DAT::t_x_array_randomread x;

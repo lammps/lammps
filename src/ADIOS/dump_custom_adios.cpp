@@ -70,7 +70,11 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) : DumpCustom
 
   internal = new DumpCustomADIOSInternal();
   try {
-    internal->ad = new adios2::ADIOS("adios2_config.xml", world, adios2::DebugON);
+#if defined(MPI_STUBS)
+    internal->ad = new adios2::ADIOS("adios2_config.xml");
+#else
+    internal->ad = new adios2::ADIOS("adios2_config.xml", world);
+#endif
   } catch (std::ios_base::failure &e) {
     error->all(FLERR, "ADIOS initialization failed with error: {}", e.what());
   }
@@ -96,11 +100,19 @@ void DumpCustomADIOS::openfile()
   if (multifile) {
     // if one file per timestep, replace '*' with current timestep
     auto filecurrent = utils::star_subst(filename, update->ntimestep, padflag);
+#if defined(MPI_STUBS)
+    internal->fh = internal->io.Open(filecurrent, adios2::Mode::Write);
+#else
     internal->fh = internal->io.Open(filecurrent, adios2::Mode::Write, world);
+#endif
     if (!internal->fh) error->one(FLERR, "Cannot open dump file {}", filecurrent);
   } else {
     if (!singlefile_opened) {
+#if defined(MPI_STUBS)
+      internal->fh = internal->io.Open(filename, adios2::Mode::Write);
+#else
       internal->fh = internal->io.Open(filename, adios2::Mode::Write, world);
+#endif
       if (!internal->fh) error->one(FLERR, "Cannot open dump file {}", filename);
       singlefile_opened = 1;
     }
@@ -153,7 +165,7 @@ void DumpCustomADIOS::write()
   internal->varAtoms.SetShape({nAtomsGlobal, nColumns});
   internal->varAtoms.SetSelection({{startRow, 0}, {nAtomsLocal, nColumns}});
 
-  // insure filewriter proc can receive everyone's info
+  // ensure filewriter proc can receive everyone's info
   // limit nmax*size_one to int since used as arg in MPI_Rsend() below
   // pack my data into buf
   // if sorting on IDs also request ID list from pack()

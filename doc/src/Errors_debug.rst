@@ -40,7 +40,7 @@ We use it to show how to identify the origin of a segmentation fault.
 
 After recompiling LAMMPS and running the input you should get something like this:
 
-.. code-block::
+.. code-block:: console
 
    $ ./lmp -in in.melt
    LAMMPS (19 Mar 2020)
@@ -75,7 +75,7 @@ Using the GDB debugger to get a stack trace
 There are two options to use the GDB debugger for identifying the origin
 of the segmentation fault or similar crash. The GDB debugger has many
 more features and options, as can be seen for example its `online
-documentation <https://sourceware.org/gdb/current/onlinedocs/gdb/>`_.
+documentation <https://www.sourceware.org/gdb/documentation/>`_.
 
 Run LAMMPS from within the debugger
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -90,8 +90,9 @@ it.  When it reaches the code causing the segmentation fault, it will
 stop with a message why it stopped, print the current line of code, and
 drop back to the GDB prompt.
 
-.. code-block::
+.. code-block:: console
 
+   (gdb) run
    [...]
    Setting up Verlet run ...
      Unit style    : lj
@@ -106,7 +107,7 @@ drop back to the GDB prompt.
 Now typing the command "where" will show the stack of functions starting from
 the current function back to "main()".
 
-.. code-block::
+.. code-block:: console
 
    (gdb) where
    #0  0x00000000006653ab in LAMMPS_NS::PairLJCut::compute (this=0x829740, eflag=1, vflag=<optimized out>) at /home/akohlmey/compile/lammps/src/pair_lj_cut.cpp:139
@@ -124,7 +125,7 @@ You can also print the value of variables and see if there is anything
 unexpected.  Segmentation faults, for example, commonly happen when a
 pointer variable is not assigned and still initialized to NULL.
 
-.. code-block::
+.. code-block:: console
 
    (gdb) print x
    $1 = (double **) 0x7ffff7ca1010
@@ -153,7 +154,7 @@ utility to the current folder. Example: ``coredumpctl -o core dump lmp``.
 Now you can launch the debugger to load the executable, its debug info
 and the core dump and drop you to a prompt like before.
 
-.. code-block::
+.. code-block:: console
 
    $ gdb lmp core
    Reading symbols from lmp...
@@ -186,7 +187,7 @@ recommended to redirect the valgrind output to a file (e.g. with
 process ID) so that the messages of the multiple valgrind instances to
 the console are not mixed.
 
-.. code-block::
+.. code-block:: console
 
    $ valgrind ./lmp -in in.melt
    ==1933642== Memcheck, a memory error detector

@@ -20,6 +20,8 @@
 #include "math_const.h"
 #include "modify.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 

@@ -259,7 +259,7 @@ layout in the global array.
 Compute *sna/grid/local* calculates bispectrum components of a regular
 grid of points similarly to compute *sna/grid* described above.
 However, because the array is local, it contains only rows for grid points
-that are local to the processor sub-domain. The global grid
+that are local to the processor subdomain. The global grid
 of :math:`nx \times ny \times nz` points is still laid out in space the same as for *sna/grid*,
 but grid points are strictly partitioned, so that every grid point appears in
 one and only one local array.  The array contains one row for each of the
@@ -451,7 +451,10 @@ piece of python code:
            for j in range(j1-j2,min(twojmax,j1+j2)+1,2):
                if (j>=j1): print j1/2.,j2/2.,j/2.
 
-For even twojmax = 2(*m*\ -1), :math:`K = m(m+1)(2m+1)/6`, the *m*\ -th pyramidal number. For odd twojmax = 2 *m*\ -1, :math:`K = m(m+1)(m+2)/3`, twice the *m*\ -th tetrahedral number.
+There are :math:`m(m+1)/2` descriptors with last index *j*,
+where *m* = :math:`\lfloor j \rfloor + 1`.
+Hence, for even *twojmax* = 2(*m*\ -1), :math:`K = m(m+1)(2m+1)/6`, the *m*\ -th pyramidal number,
+and for odd *twojmax* = 2 *m*\ -1, :math:`K = m(m+1)(m+2)/3`, twice the *m*\ -th tetrahedral number.
 
 .. note::
 

@@ -1,7 +1,7 @@
 .. index:: improper_style amoeba
 
-improper_style harmonic command
-===============================
+improper_style amoeba command
+=============================
 
 Syntax
 """"""

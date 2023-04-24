@@ -145,7 +145,7 @@ coefficients in the formulae above:
 * c3
 * c4
 * c5
-* c0 (energy units, tersoff/mod/c only):ul
+* c0 (energy units, tersoff/mod/c only)
 
 The n, :math:`\eta`, :math:`\lambda_2`, B, :math:`\lambda_1`, and A parameters are only used for
 two-body interactions.  The :math:`\beta`, :math:`\alpha`, c1, c2, c3, c4, c5, h

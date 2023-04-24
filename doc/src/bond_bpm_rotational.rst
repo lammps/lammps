@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/rotational keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *smooth*
+* optional keyword = *overlay/pair* or *store/local* or *smooth* or *break/no*
 
   .. parsed-literal::
 
@@ -30,6 +30,9 @@ Syntax
        *smooth* value = *yes* or *no*
           smooths bond forces near the breaking point
 
+       *break/no*
+          indicates that bonds should not break during a run
+
 Examples
 """"""""
 
@@ -44,6 +47,8 @@ Examples
 
 Description
 """""""""""
+
+.. versionadded:: 4May2022
 
 The *bpm/rotational* bond style computes forces and torques based on
 deviations from the initial reference state of the two atoms.  The
@@ -67,7 +72,7 @@ which is proportional to the tangential shear displacement with a
 stiffness of :math:`k_s`. This tangential force also induces a torque.
 In addition, bending and twisting torques are also applied to
 particles which are proportional to angular bending and twisting
-displacements with stiffnesses of :math`k_b` and :math:`k_t',
+displacements with stiffnesses of :math:`k_b` and :math:`k_t`,
 respectively.  Details on the calculations of shear displacements and
 angular displacements can be found in :ref:`(Wang) <Wang2009>` and
 :ref:`(Wang and Mora) <Wang2009b>`.
@@ -137,6 +142,12 @@ the *overlay/pair* keyword. These settings require specific
 :doc:`special_bonds <special_bonds>` settings described in the
 restrictions.  Further details can be found in the `:doc: how to
 <Howto_BPM>` page on BPMs.
+
+.. versionadded:: 28Mar2023
+
+If the *break/no* keyword is used, then LAMMPS assumes bonds should not break
+during a simulation run. This will prevent some unnecessary calculation.
+However, if a bond does break, it will trigger an error.
 
 If the *store/local* keyword is used, an internal fix will track bonds that
 break during the simulation. Whenever a bond breaks, data is processed
@@ -211,9 +222,9 @@ command, as *b1*, *b2*, ..., *b7*\ .
 Restrictions
 """"""""""""
 
-This bond style can only be used if LAMMPS was built with the BPM
-package. See the :doc:`Build package <Build_package>` doc page for
-more info.
+This bond style is part of the BPM package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 By default if pair interactions are to be disabled, this bond style
 requires setting

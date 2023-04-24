@@ -3,16 +3,16 @@ Bonded particle models
 
 The BPM package implements bonded particle models which can be used to
 simulate mesoscale solids.  Solids are constructed as a collection of
-particles which each represent a coarse-grained region of space much
-larger than the atomistic scale. Particles within a solid region are
+particles, which each represent a coarse-grained region of space much
+larger than the atomistic scale.  Particles within a solid region are
 then connected by a network of bonds to provide solid elasticity.
 
 Unlike traditional bonds in molecular dynamics, the equilibrium bond
 length can vary between bonds. Bonds store the reference state.  This
 includes setting the equilibrium length equal to the initial distance
-between the two particles but can also include data on the bond
-orientation for rotational models. This produces a stress free initial
-state. Furthermore, bonds are allowed to break under large strains
+between the two particles, but can also include data on the bond
+orientation for rotational models. This produces a stress-free initial
+state. Furthermore, bonds are allowed to break under large strains,
 producing fracture. The examples/bpm directory has sample input scripts
 for simulations of the fragmentation of an impacted plate and the
 pouring of extended, elastic bodies.
@@ -22,8 +22,8 @@ pouring of extended, elastic bodies.
 Bonds can be created using a :doc:`read data <read_data>` or
 :doc:`create bonds <create_bonds>` command. Alternatively, a
 :doc:`molecule <molecule>` template with bonds can be used with
-:doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>` to
-create solid grains.
+:doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>` to create
+solid grains.
 
 In this implementation, bonds store their reference state when they are
 first computed in the setup of the first simulation run. Data is then
@@ -35,21 +35,20 @@ such as those created by pouring grains using :doc:`fix pour
 
 ----------
 
-Currently there are two types of bonds included in the BPM
-package. The first bond style, :doc:`bond bpm/spring
-<bond_bpm_spring>`, only applies pairwise, central body forces. Point
-particles must have :doc:`bond atom style <atom_style>` and may be
-thought of as nodes in a spring network. Alternatively, the second
-bond style, :doc:`bond bpm/rotational <bond_bpm_rotational>`, resolves
-tangential forces and torques arising with the shearing, bending, and
-twisting of the bond due to rotation or displacement of particles.
-Particles are similar to those used in the :doc:`granular package
-<Howto_granular>`, :doc:`atom style sphere <atom_style>`. However,
-they must also track the current orientation of particles and store bonds
-and therefore use a :doc:`bpm/sphere atom style <atom_style>`.
-This also requires a unique integrator :doc:`fix nve/bpm/sphere
-<fix_nve_bpm_sphere>` which numerically integrates orientation similar
-to :doc:`fix nve/asphere <fix_nve_asphere>`.
+Currently, there are two types of bonds included in the BPM package. The
+first bond style, :doc:`bond bpm/spring <bond_bpm_spring>`, only applies
+pairwise, central body forces. Point particles must have :doc:`bond atom
+style <atom_style>` and may be thought of as nodes in a spring
+network. Alternatively, the second bond style, :doc:`bond bpm/rotational
+<bond_bpm_rotational>`, resolves tangential forces and torques arising
+with the shearing, bending, and twisting of the bond due to rotation or
+displacement of particles.  Particles are similar to those used in the
+:doc:`granular package <Howto_granular>`, :doc:`atom style sphere
+<atom_style>`. However, they must also track the current orientation of
+particles and store bonds, and therefore use a :doc:`bpm/sphere atom
+style <atom_style>`.  This also requires a unique integrator :doc:`fix
+nve/bpm/sphere <fix_nve_bpm_sphere>` which numerically integrates
+orientation similar to :doc:`fix nve/asphere <fix_nve_asphere>`.
 
 In addition to bond styles, a new pair style :doc:`pair bpm/spring
 <pair_bpm_spring>` was added to accompany the bpm/spring bond
@@ -63,7 +62,7 @@ A list of IDs for bonded atoms can be generated using the
 :doc:`compute property/local <compute_property_local>` command.
 Various properties of bonds can be computed using the
 :doc:`compute bond/local <compute_bond_local>` command. This
-command allows one to access data saved to the bond's history
+command allows one to access data saved to the bond's history,
 such as the reference length of the bond. More information on
 bond history data can be found on the documentation pages for the specific
 BPM bond styles. Finally, this data can be output using a :doc:`dump local <dump>`
@@ -90,7 +89,7 @@ bond settings
 
 Alternatively, one can turn off all pair interactions between bonded
 particles. Unlike :doc:`bond quartic <bond_quartic>`, this is not done
-by subtracting pair forces during the bond computation but rather by
+by subtracting pair forces during the bond computation, but rather by
 dynamically updating the special bond list. This is the default behavior
 of BPM bond styles and is done by updating the 1-2 special bond list as
 bonds break.  To do this, LAMMPS requires :doc:`newton <newton>` bond off
@@ -134,7 +133,10 @@ the following are currently compatible with BPM bond styles:
 * :doc:`fix bond/break <fix_bond_break>`
 * :doc:`fix bond/swap <fix_bond_swap>`
 
-Note :doc:`create_bonds <create_bonds>` requires certain special_bonds settings.
-To subtract pair interactions, one will need to switch between different
-special_bonds settings in the input script. An example is found in
-examples/bpm/impact.
+.. note::
+
+   The :doc:`create_bonds <create_bonds>` command requires certain
+   :doc:`special_bonds <special_bonds>` settings.  To subtract pair
+   interactions, one will need to switch between different *special_bonds*
+   settings in the input script. An example is found in
+   ``examples/bpm/impact``.

@@ -82,9 +82,9 @@ class PairMEAMSpline : public Pair {
     }
 
     /// Initialization of spline function.
-    void init(int _N, double _deriv0, double _derivN)
+    void init(int _n, double _deriv0, double _derivN)
     {
-      N = _N;
+      N = _n;
       deriv0 = _deriv0;
       derivN = _derivN;
       // if (X) delete[] X;

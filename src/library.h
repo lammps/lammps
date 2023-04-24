@@ -40,8 +40,9 @@
 
 /** Data type constants for extracting data from atoms, computes and fixes
  *
- * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, tools/swig/lammps.i, examples/COUPLE/plugin/liblammpsplugin.h */
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ *``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
@@ -55,8 +56,9 @@ enum _LMP_DATATYPE_CONST {
 
 /** Style constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_STYLE_CONST {
   LMP_STYLE_GLOBAL = 0, /*!< return global data */
@@ -66,8 +68,9 @@ enum _LMP_STYLE_CONST {
 
 /** Type and size constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_TYPE_CONST {
   LMP_TYPE_SCALAR = 0, /*!< return scalar */
@@ -80,8 +83,9 @@ enum _LMP_TYPE_CONST {
 
 /** Error codes to select the suitable function in the Error class
  *
- * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_ERROR_CONST {
   LMP_ERROR_WARNING = 0, /*!< call Error::warning() */
@@ -93,8 +97,9 @@ enum _LMP_ERROR_CONST {
 
 /** Variable style constants for extracting data from variables.
  *
- * Must be kept in sync with the equivalent constants in python/lammps/constants.py,
- * fortran/lammps.f90, tools/swig/lammps.i, and examples/COUPLE/plugin/liblammpsplugin.h */
+ * Must be kept in sync with the equivalent constants in ``python/lammps/constants.py``,
+ * ``fortran/lammps.f90``, ``tools/swig/lammps.i``, and
+ * ``examples/COUPLE/plugin/liblammpsplugin.h`` */
 
 enum _LMP_VAR_CONST {
   LMP_VAR_EQUAL = 0,  /*!< compatible with equal-style variables */
@@ -176,23 +181,26 @@ int lammps_set_variable(void *, char *, char *);
  * Library functions for scatter/gather operations of data
  * ---------------------------------------------------------------------- */
 
-void lammps_gather_atoms(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                                void *data);
-void lammps_scatter_atoms(void *handle, char *name, int type, int count, void *data);
-void lammps_scatter_atoms_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                                 void *data);
+void lammps_gather_atoms(void *handle, const char *name, int type, int count, void *data);
+void lammps_gather_atoms_concat(void *handle, const char *name, int type, int count, void *data);
+void lammps_gather_atoms_subset(void *handle, const char *name, int type, int count, int ndata,
+                                int *ids, void *data);
+void lammps_scatter_atoms(void *handle, const char *name, int type, int count, void *data);
+void lammps_scatter_atoms_subset(void *handle, const char *name, int type, int count, int ndata,
+                                 int *ids, void *data);
 
 void lammps_gather_bonds(void *handle, void *data);
+void lammps_gather_angles(void *handle, void *data);
+void lammps_gather_dihedrals(void *handle, void *data);
+void lammps_gather_impropers(void *handle, void *data);
 
-void lammps_gather(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_concat(void *handle, char *name, int type, int count, void *data);
-void lammps_gather_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                          void *data);
-void lammps_scatter(void *handle, char *name, int type, int count, void *data);
-void lammps_scatter_subset(void *handle, char *name, int type, int count, int ndata, int *ids,
-                           void *data);
+void lammps_gather(void *handle, const char *name, int type, int count, void *data);
+void lammps_gather_concat(void *handle, const char *name, int type, int count, void *data);
+void lammps_gather_subset(void *handle, const char *name, int type, int count, int ndata,
+                          int *ids, void *data);
+void lammps_scatter(void *handle, const char *name, int type, int count, void *data);
+void lammps_scatter_subset(void *handle, const char *name, int type, int count, int ndata,
+                           int *ids, void *data);
 
 #if !defined(LAMMPS_BIGBIG)
 int lammps_create_atoms(void *handle, int n, const int *id, const int *type, const double *x,

@@ -29,11 +29,11 @@ actively supported by the LAMMPS developers, as they were contributed
 by LAMMPS users.  If you have problems using them, we can direct you
 to the authors.
 
-The source code for each of these codes is in the tools sub-directory
+The source code for each of these codes is in the tools subdirectory
 of the LAMMPS distribution.  There is a Makefile (which you may need
 to edit for your platform) which will build several of the tools which
 reside in that directory.  Most of them are larger packages in their
-own sub-directories with their own Makefiles and/or README files.
+own subdirectories with their own Makefiles and/or README files.
 
 ----------
 
@@ -57,7 +57,7 @@ Pre-processing tools
    * :ref:`msi2lmp <msi>`
    * :ref:`polybond <polybond>`
    * :ref:`stl_bin2txt <stlconvert>`
-
+   * :ref:`tabulate <tabulate>`
 
 Post-processing tools
 =====================
@@ -109,7 +109,7 @@ Tool descriptions
 amber2lmp tool
 --------------------------
 
-The amber2lmp sub-directory contains two Python scripts for converting
+The amber2lmp subdirectory contains two Python scripts for converting
 files back-and-forth between the AMBER MD code and LAMMPS.  See the
 README file in amber2lmp for more information.
 
@@ -145,7 +145,7 @@ since binary files are not compatible across all platforms.
 ch2lmp tool
 ------------------------
 
-The ch2lmp sub-directory contains tools for converting files
+The ch2lmp subdirectory contains tools for converting files
 back-and-forth between the CHARMM MD code and LAMMPS.
 
 They are intended to make it easy to use CHARMM as a builder and as a
@@ -156,7 +156,7 @@ CHARMM22 and later is available as an option. This tool can also add
 solvent water molecules and Na+ or Cl- ions to the system.
 Using lammps2pdb.pl you can convert LAMMPS atom dumps into PDB files.
 
-See the README file in the ch2lmp sub-directory for more information.
+See the README file in the ch2lmp subdirectory for more information.
 
 These tools were created by Pieter in't Veld (pjintve at sandia.gov)
 and Paul Crozier (pscrozi at sandia.gov) at Sandia.
@@ -320,7 +320,8 @@ eam generate tool
 -----------------------------
 
 The tools/eam_generate directory contains several one-file C programs
-that convert an analytic formula into a tabulated :doc:`embedded atom method (EAM) <pair_eam>` setfl potential file.  The potentials they
+that convert an analytic formula into a tabulated :doc:`embedded atom
+method (EAM) <pair_eam>` setfl potential file.  The potentials they
 produce are in the potentials directory, and can be used with the
 :doc:`pair_style eam/alloy <pair_eam>` command.
 
@@ -638,7 +639,7 @@ you first need to use the :doc:`clear` command.
 lmp2arc tool
 ------------
 
-The lmp2arc sub-directory contains a tool for converting LAMMPS output
+The lmp2arc subdirectory contains a tool for converting LAMMPS output
 files to the format for Accelrys' Insight MD code (formerly
 MSI/Biosym and its Discover MD code).  See the README file for more
 information.
@@ -657,7 +658,7 @@ Greathouse at Sandia (jagreat at sandia.gov).
 lmp2cfg tool
 ----------------------
 
-The lmp2cfg sub-directory contains a tool for converting LAMMPS output
+The lmp2cfg subdirectory contains a tool for converting LAMMPS output
 files into a series of \*.cfg files which can be read into the
 `AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_ visualizer.  See
 the README file for more information.
@@ -683,7 +684,7 @@ or (as administrator) to ``/etc/magic`` (for a system-wide
 installation).  Afterwards the ``file`` command should be able to
 detect most LAMMPS restarts, dump, data and log files. Examples:
 
-.. code-block:: bash
+.. code-block:: console
 
    $ file *.*
    dihedral-quadratic.restart:   LAMMPS binary restart file (rev 2), Version 10 Mar 2021, Little Endian
@@ -704,7 +705,7 @@ detect most LAMMPS restarts, dump, data and log files. Examples:
 matlab tool
 ------------------------
 
-The matlab sub-directory contains several `MATLAB <matlabhome_>`_ scripts for
+The matlab subdirectory contains several `MATLAB <matlabhome_>`_ scripts for
 post-processing LAMMPS output.  The scripts include readers for log
 and dump files, a reader for EAM potential files, and a converter that
 reads LAMMPS dump files and produces CFG files that can be visualized
@@ -747,7 +748,7 @@ definition file.  This tool was used to create the system for the
 moltemplate tool
 ----------------------------------
 
-The moltemplate sub-directory contains instructions for installing
+The moltemplate subdirectory contains instructions for installing
 moltemplate, a Python-based tool for building molecular systems based
 on a text-file description, and creating LAMMPS data files that encode
 their molecular topology as lists of bonds, angles, dihedrals, etc.
@@ -765,7 +766,7 @@ The latest sources can be found `on its GitHub page <https://github.com/jewettai
 msi2lmp tool
 ----------------------
 
-The msi2lmp sub-directory contains a tool for creating LAMMPS template
+The msi2lmp subdirectory contains a tool for creating LAMMPS template
 input and data files from BIOVIA's Materias Studio files (formerly
 Accelrys' Insight MD code, formerly MSI/Biosym and its Discover MD code).
 
@@ -882,7 +883,7 @@ dependencies and redirects the download to the local cache.
 phonon tool
 ------------------------
 
-The phonon sub-directory contains a post-processing tool useful for
+The phonon subdirectory contains a post-processing tool useful for
 analyzing the output of the :doc:`fix phonon <fix_phonon>` command in
 the PHONON package.
 
@@ -900,7 +901,7 @@ University.
 polybond tool
 ----------------------------
 
-The polybond sub-directory contains a Python-based tool useful for
+The polybond subdirectory contains a Python-based tool useful for
 performing "programmable polymer bonding".  The Python file
 lmpsdata.py provides a "Lmpsdata" class with various methods which can
 be invoked by a user-written Python script to create data files with
@@ -917,7 +918,7 @@ This tool was written by Zachary Kraus at Georgia Tech.
 pymol_asphere tool
 -------------------------------
 
-The pymol_asphere sub-directory contains a tool for converting a
+The pymol_asphere subdirectory contains a tool for converting a
 LAMMPS dump file that contains orientation info for ellipsoidal
 particles into an input file for the `PyMol visualization package <pymolhome_>`_ or its `open source variant <pymolopen_>`_.
 
@@ -938,7 +939,7 @@ This tool was written by Mike Brown at Sandia.
 python tool
 -----------------------------
 
-The python sub-directory contains several Python scripts
+The python subdirectory contains several Python scripts
 that perform common LAMMPS post-processing tasks, such as:
 
 * extract thermodynamic info from a log file as columns of numbers
@@ -975,7 +976,7 @@ while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)
 smd tool
 ------------------
 
-The smd sub-directory contains a C++ file dump2vtk_tris.cpp and
+The smd subdirectory contains a C++ file dump2vtk_tris.cpp and
 Makefile which can be compiled and used to convert triangle output
 files created by the Smooth-Mach Dynamics (MACHDYN) package into a
 VTK-compatible unstructured grid file.  It could then be read in and
@@ -994,7 +995,7 @@ Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 spin tool
 --------------------
 
-The spin sub-directory contains a C file interpolate.c which can
+The spin subdirectory contains a C file interpolate.c which can
 be compiled and used to perform a cubic polynomial interpolation of
 the MEP following a GNEB calculation.
 
@@ -1011,7 +1012,7 @@ Ivanov, at University of Iceland (ali5 at hi.is).
 singularity/apptainer tool
 --------------------------
 
-The singularity sub-directory contains container definitions files that
+The singularity subdirectory contains container definitions files that
 can be used to build container images for building and testing LAMMPS on
 specific OS variants using the `Apptainer <https://apptainer.org>`_ or
 `Singularity <https://sylabs.io>`_ container software. Contributions for
@@ -1071,7 +1072,7 @@ getting started, but not as a fully tested and supported feature of the
 LAMMPS distribution.  Any contributions to complete this are, of course,
 welcome.  Please also note, that for the case of creating a Python wrapper,
 a fully supported :doc:`Ctypes based lammps module <Python_module>`
-already exists.  That module is designed to be object oriented while
+already exists.  That module is designed to be object-oriented while
 SWIG will generate a 1:1 translation of the functions in the interface file.
 
 Building the wrapper
@@ -1100,18 +1101,18 @@ for Tcl with:
 
 .. code-block:: bash
 
-   $ swig -tcl -module tcllammps lammps.i
-   $ gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
+   swig -tcl -module tcllammps lammps.i
+   gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
                lammps_wrap.c -L ../src/ -llammps
-   $ tclsh
+   tclsh
 
 Or one can build an extended Tcl shell command with the wrapped
 functions included with:
 
 .. code-block:: bash
 
-   $ swig -tcl -module tcllmps lammps_shell.i
-   $ gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
+   swig -tcl -module tcllmps lammps_shell.i
+   gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
             -DHAVE_CONFIG_H $(pkgconf --cflags tcl) \
             $(pkgconf --libs tcl) -L ../src -llammps
 
@@ -1142,20 +1143,34 @@ For illustration purposes below is a part of the Tcl example script.
 
 .. code-block:: tcl
 
-   % load ./tcllammps.so
-   % set lmp [lammps_open_no_mpi 0 NULL NULL]
-   % lammps_command $lmp "units real"
-   % lammps_command $lmp "lattice fcc 2.5"
-   % lammps_command $lmp "region box block -5 5 -5 5 -5 5"
-   % lammps_command $lmp "create_box 1 box"
-   % lammps_command $lmp "create_atoms 1 box"
-   %
-   % set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
-   % puts "LAMMPS version $ver"
-   % puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]
-   % puts "Current size of timestep: $dt"
-   % puts "LAMMPS version: [lammps_version $lmp]"
-   % lammps_close $lmp
+   load ./tcllammps.so
+   set lmp [lammps_open_no_mpi 0 NULL NULL]
+   lammps_command $lmp "units real"
+   lammps_command $lmp "lattice fcc 2.5"
+   lammps_command $lmp "region box block -5 5 -5 5 -5 5"
+   lammps_command $lmp "create_box 1 box"
+   lammps_command $lmp "create_atoms 1 box"
+
+   set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
+   puts "LAMMPS version $ver"
+   puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]
+   puts "Current size of timestep: $dt"
+   puts "LAMMPS version: [lammps_version $lmp]"
+   lammps_close $lmp
+
+----------
+
+.. _tabulate:
+
+tabulate tool
+--------------
+
+.. versionadded:: 22Dec2022
+
+The ``tabulate`` folder contains Python scripts scripts to generate tabulated
+potential files for LAMMPS.  The bulk of the code is in the ``tabulate`` module
+in the ``tabulate.py`` file.  Some example files demonstrating its use are
+included.  See the README file for more information.
 
 ----------
 
@@ -1164,8 +1179,8 @@ For illustration purposes below is a part of the Tcl example script.
 vim tool
 ------------------
 
-The files in the tools/vim directory are add-ons to the VIM editor
-that allow easier editing of LAMMPS input scripts.  See the README.txt
+The files in the ``tools/vim`` directory are add-ons to the VIM editor
+that allow easier editing of LAMMPS input scripts.  See the ``README.txt``
 file for details.
 
 These files were provided by Gerolf Ziegenhain (gerolf at

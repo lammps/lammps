@@ -25,10 +25,10 @@ Examples
 .. code-block:: LAMMPS
 
    labelmap atom 3 carbon 4 'c3"' 5 "c1'" 6 "c#"
-   labelmap bond 1 carbonyl 2 nitrile 3 """ c1'-c2" """
    labelmap atom $(label2type(atom,carbon)) C  # change type label from 'carbon' to 'C'
    labelmap clear
    labelmap write mymap.include
+   labelmap bond 1 carbonyl 2 nitrile 3 """ c1'-c2" """
 
 Description
 """""""""""

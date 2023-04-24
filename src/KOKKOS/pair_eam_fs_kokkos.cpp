@@ -110,7 +110,6 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
-  tag = atomKK->k_tag.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
@@ -921,19 +920,14 @@ void PairEAMFSKokkos<DeviceType>::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR, "Number of element to type mappings does not match number of atom types");
 
   // read EAM Finnis-Sinclair file
 
   if (fs) {
-    for (i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
-    delete [] fs->elements;
-    delete [] fs->mass;
+    for (i = 0; i < fs->nelements; i++) delete[] fs->elements[i];
+    delete[] fs->elements;
+    delete[] fs->mass;
     memory->destroy(fs->frho);
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);

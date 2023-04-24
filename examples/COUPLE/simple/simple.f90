@@ -18,8 +18,8 @@
 !   See README for compilation instructions
 
 PROGRAM f_driver
-  USE mpi
   USE liblammps
+  USE mpi
   IMPLICIT NONE
 
   INTEGER, PARAMETER :: fp=20
@@ -129,7 +129,10 @@ PROGRAM f_driver
 
   ! free LAMMPS object
 
-  IF (color == 1) CALL lmp%close()
+  IF (color == 1) THEN
+      CALL lmp%CLOSE()
+      CALL mpi_comm_free(comm_lammps,ierr)
+  END IF
 
   ! close down MPI
 

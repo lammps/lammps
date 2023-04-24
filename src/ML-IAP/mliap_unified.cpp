@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPDummyDescriptor::MLIAPDummyDescriptor(LAMMPS *_lmp) : MLIAPDescriptor(_lmp) {}
+MLIAPDummyDescriptor::MLIAPDummyDescriptor(LAMMPS *_lmp) : Pointers(_lmp), MLIAPDescriptor(_lmp) {}
 
 MLIAPDummyDescriptor::~MLIAPDummyDescriptor()
 {

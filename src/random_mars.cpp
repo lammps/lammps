@@ -187,7 +187,7 @@ double RanMars::besselexp(double theta, double alpha, double cp)
 
 void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
 {
-  int mode,index,oldindex,newvalue,nflip,which,niter;
+  int mode,index,oldindex,newvalue,nflip,which;
   int active[2],first[2];
   int newactive[2],newfirst[2],newlast[2];
   bigint nmark,nflipall;
@@ -209,8 +209,6 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
   if (nmine > 0) next[nmine-1] = -1;
 
   nmark = 0;
-  niter = 0;
-
   while (nmark != ntarget) {
 
     // choose to ADD or SUBTRACT from current nmark
@@ -285,13 +283,6 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
 
     if (mode == ADD) nmark += nflipall;
     else if (mode == SUBTRACT) nmark -= nflipall;
-
-    niter++;
-
-    // DEBUG output of stats
-
-    //if (comm->me == 0) printf("%d %ld %ld %g %ld\n",
-    //                          niter,nmark,nactiveall,thresh,nflipall);
   }
 }
 

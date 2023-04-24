@@ -186,7 +186,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp)
   // MESO package
 
   cc = cc_flux = nullptr;
-  edpd_temp = edpd_flux = edpd_cv = nullptr;
+  edpd_temp = edpd_flux = edpd_cv = vest_temp = nullptr;
 
   // MACHDYN package
 

@@ -81,7 +81,7 @@ There are also several type-specific methods
    * - ``GranSubModNormal->pulloff_distance()``
      - Optional method to return the distance at which particles stop interacting. By default, this is when particles no longer overlap.
    * - ``GranSubModNormal->calculate_radius()``
-     - Optional method to return the radus of the contact. By default, this returns the radius of the geometric cross section.
+     - Optional method to return the radius of the contact. By default, this returns the radius of the geometric cross section.
    * - ``GranSubModNormal->set_fncrit()``
      - Optional method that defines the critical force to break the contact used by some tangential, rolling, and twisting sub-models. By default, this is the current total normal force including damping.
    * - ``GranSubModNormal->calculate_forces()``

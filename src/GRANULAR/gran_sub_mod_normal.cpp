@@ -1062,6 +1062,10 @@ double GranSubModNormalEPALinear::calculate_forces()
 
   dmax_star = k2_hat/(k2_hat-k1)*phi_f*2*gm->Reff;
   dmax = history[0];
+  if (delta > dmax){
+    dmax = delta;
+    if (gm->history_update) history[0] = delta;
+  }
   if (dmax > dmax_star){
     k2 = k2_hat;
   }
@@ -1069,8 +1073,7 @@ double GranSubModNormalEPALinear::calculate_forces()
     k2 = k1+(k2_hat-k1)*dmax/dmax_star;
   }
   d0 = (1-k1/k2)*dmax;
-  k1delta = k1*delta;
-  kcdelta =  k1*delta;
+  k1delta = k1*delta;  
   kcdelta = -kc*delta;
   k2_dd0 = k2*(delta-d0);
   if (k2_dd0 >= k1delta){

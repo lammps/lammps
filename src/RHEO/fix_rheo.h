@@ -88,8 +88,8 @@ namespace RHEO_NS {
     STATUS_NO_FORCE = 1 << 9
   };
 
-  int PHASEMASK = 0xFFFFFFF0;
-  int SURFACEMASK = 0xFFFFFF0F;
+  #define PHASEMASK 0xFFFFFFF0;
+  #define SURFACEMASK 0xFFFFFF0F;
 
 }    // namespace RHEO_NS
 }    // namespace LAMMPS_NS

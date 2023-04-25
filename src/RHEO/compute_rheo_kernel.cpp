@@ -649,7 +649,7 @@ void ComputeRHEOKernel::compute_peratom()
       // Use gsl to get Minv, use Cholesky decomposition since the
       // polynomials are independent, M is symmetrix & positive-definite
       gM = gsl_matrix_view_array(M,Mdim,Mdim);
-      gsl_error = gsl_linalg_cholesky_decomp(&gM.matrix);
+      gsl_error = gsl_linalg_cholesky_decomp1(&gM.matrix);
 
       if (gsl_error) {
         //Revert to uncorrected SPH for this particle

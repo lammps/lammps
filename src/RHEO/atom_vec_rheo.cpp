@@ -120,7 +120,7 @@ void AtomVecRHEO::pack_property_atom(int index, double *buf, int nvalues, int gr
         buf[n] = 0.0;
       n += nvalues;
     }
-  } if else (index == 1) {
+  } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit)
         buf[n] = rho[i];

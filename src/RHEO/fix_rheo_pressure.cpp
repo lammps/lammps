@@ -33,6 +33,8 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 enum {NONE, LINEAR, CUBIC, TAITWATER};
 
+static constexpr double SEVENTH = 1.0 / 7.0;
+
 /* ---------------------------------------------------------------------- */
 
 FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
@@ -43,7 +45,7 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
   pressure_style = NONE;
 
   comm_forward = 1;
-  nmax_old = 0;
+  nmax_store = 0;
 
   // Currently can only have one instance of fix rheo/pressure
   if (igroup != 0)
@@ -112,13 +114,13 @@ void FixRHEOPressure::setup_pre_force(int /*vflag*/)
   // Create pressure array if it doesn't already exist
   // Create a custom atom property so it works with compute property/atom
   // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_old exceeded
+  // Manually grow if nmax_store exceeded
 
   int tmp1, tmp2;
   int index = atom->find_custom("rheo_pressure", tmp1, tmp2);
   if (index == -1) {
     index = atom->add_custom("rheo_pressure", 1, 0);
-    nmax_old = atom->nmax;
+    nmax_store = atom->nmax;
   }
   pressure = atom->dvector[index];
 
@@ -139,12 +141,10 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
 
   int nlocal = atom->nlocal;
 
-  if (nmax_old < atom->nmax) {
+  if (nmax_store < atom->nmax) {
     memory->grow(pressure, atom->nmax, "atom:rheo_pressure");
-    nmax_old = atom->nmax;
+    nmax_store = atom->nmax;
   }
-
-  if (pressure_style == TAITWATER) inv7 = 1.0 / 7.0;
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -156,7 +156,7 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
       } else if (pressure_style == TAITWATER) {
         rho_ratio = rho[i] / rho0inv;
         rr3 = rho_ratio * rho_ratio * rho_ratio;
-        pressure[i] = csq * rho0 * inv7 * (rr3 * rr3 * rho_ratio - 1.0);
+        pressure[i] = csq * rho0 * SEVENTH * (rr3 * rr3 * rho_ratio - 1.0);
       }
     }
   }
@@ -194,9 +194,10 @@ void FixRHEOPressure::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-double FixRHEOPressure::calculate_p(double rho)
+double FixRHEOPressure::calc_pressure(double rho)
 {
-  double rho;
+  double p, dr, rr3, rho_ratio;
+
   if (pressure_style == LINEAR) {
     p = csq * (rho - rho0);
   } else if (pressure_style == CUBIC) {
@@ -205,7 +206,7 @@ double FixRHEOPressure::calculate_p(double rho)
   } else if (pressure_style == TAITWATER) {
     rho_ratio = rho / rho0inv;
     rr3 = rho_ratio * rho_ratio * rho_ratio;
-    p = csq * rho0 * inv7 * (rr3 * rr3 * rho_ratio - 1.0);
+    p = csq * rho0 * SEVENTH * (rr3 * rr3 * rho_ratio - 1.0);
   }
   return rho;
 }
@@ -215,6 +216,6 @@ double FixRHEOPressure::calculate_p(double rho)
 double FixRHEOPressure::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (size_t) nmax_old * sizeof(double);
+  bytes += (size_t) nmax_store * sizeof(double);
   return bytes;
 }

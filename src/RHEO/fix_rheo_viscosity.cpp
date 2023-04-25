@@ -44,7 +44,7 @@ FixRHEOViscosity::FixRHEOViscosity(LAMMPS *lmp, int narg, char **arg) :
   viscosity_style = NONE;
 
   comm_forward = 0;
-  nmax_old = 0;
+  nmax_store = 0;
 
   int ntypes = atom->ntypes;
   int iarg = 3;
@@ -89,7 +89,7 @@ FixRHEOViscosity::~FixRHEOViscosity()
   // Remove custom property if it exists
   int tmp1, tmp2, index;
   index = atom->find_custom("rheo_viscosity", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index_visc, 1, 0);
+  if (index != -1) atom->remove_custom(index, 1, 0);
 
   memory->destroy(eta_type);
 }
@@ -123,13 +123,13 @@ void FixRHEOViscosity::setup_pre_force(int /*vflag*/)
 
   // Identify whether this is the first/last instance of fix viscosity
   // First will grow arrays, last will communicate
-  first_flag = 0
+  first_flag = 0;
   last_flag = 0;
 
   int i = 0;
   auto fixlist = modify->get_fix_by_style("rheo/viscosity");
-  for (const auto &ifix : fixlist) {
-    if (strcmp(ifix->id, id) == 0) break;
+  for (const auto &fix : fixlist) {
+    if (strcmp(fix->id, id) == 0) break;
     i++;
   }
 
@@ -139,13 +139,13 @@ void FixRHEOViscosity::setup_pre_force(int /*vflag*/)
   // Create viscosity array if it doesn't already exist
   // Create a custom atom property so it works with compute property/atom
   // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_old exceeded
+  // Manually grow if nmax_store exceeded
 
   int tmp1, tmp2;
   int index = atom->find_custom("rheo_viscosity", tmp1, tmp2);
-  if (index_visc == -1) {
+  if (index == -1) {
     index = atom->add_custom("rheo_viscosity", 1, 0);
-    nmax_old = atom->nmax;
+    nmax_store = atom->nmax;
   }
   viscosity = atom->dvector[index];
 
@@ -167,9 +167,9 @@ void FixRHEOViscosity::post_neighbor()
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (first_flag && (nmax_old < atom->nmax)) {
+  if (first_flag && (nmax_store < atom->nmax)) {
     memory->grow(viscosity, atom->nmax, "atom:rheo_viscosity");
-    nmax_old = atom->nmax;
+    nmax_store = atom->nmax;
   }
 
   if (viscosity_style == CONSTANT) {
@@ -178,7 +178,6 @@ void FixRHEOViscosity::post_neighbor()
   } else if (viscosity_style == TYPE) {
     for (i = 0; i < nall; i++)
       if (mask[i] & groupbit) viscosity[i] = eta_type[type[i]];
-    }
   }
 }
 
@@ -197,9 +196,9 @@ void FixRHEOViscosity::pre_force(int /*vflag*/)
   int nlocal = atom->nlocal;
   int dim = domain->dimension;
 
-  if (first_flag && (nmax_old < atom->nmax)) {
+  if (first_flag && (nmax_store < atom->nmax)) {
     memory->grow(viscosity, atom->nmax, "atom:rheo_viscosity");
-    nmax_old = atom->nmax;
+    nmax_store = atom->nmax;
   }
 
   if (viscosity_style == POWER) {
@@ -260,6 +259,6 @@ void FixRHEOViscosity::unpack_forward_comm(int n, int first, double *buf)
 double FixRHEOViscosity::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (size_t) nmax_old * sizeof(double);
+  bytes += (size_t) nmax_store * sizeof(double);
   return bytes;
 }

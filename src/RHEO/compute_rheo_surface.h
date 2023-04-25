@@ -17,8 +17,8 @@ ComputeStyle(RHEO/SURFACE,ComputeRHEOSurface)
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_RHEO_INTERFACE_H
-#define LMP_COMPUTE_RHEO_INTERFACE_H
+#ifndef LMP_COMPUTE_RHEO_SURFACE_H
+#define LMP_COMPUTE_RHEO_SURFACE_H
 
 #include "compute.h"
 
@@ -36,18 +36,18 @@ class ComputeRHEOSurface : public Compute {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
-  double **nsurface, **rsurface;
+  double **nsurface, *rsurface;
   class FixRHEO *fix_rheo;
 
  private:
   double cut, cutsq, rho0, threshold_divr;
-  int surface_style, nmax_old, threshold_z;
+  int surface_style, nmax_store, threshold_z;
   double **B, **gradC, *divr;
   int threshold_style, comm_stage;
 
   class NeighList *list;
   class ComputeRHEOKernel *compute_kernel;
-  class ComputeRHEOSolids *compute_solids;
+  class ComputeRHEOInterface *compute_interface;
 };
 
 }    // namespace LAMMPS_NS

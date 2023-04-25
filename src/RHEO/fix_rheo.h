@@ -39,33 +39,10 @@ class FixRHEO : public Fix {
   void reset_dt() override;
 
   // Model parameters
-  double h, rho0, csq;
+  double h, cut, rho0, csq;
   int zmin_kernel, zmin_surface;
   int kernel_style, surface_style;
   double divr_surface;
-  enum {QUINTIC, CRK0, CRK1, CRK2};
-  enum {COORDINATION, DIVR};
-
-  // Status variables
-  enum {
-    // Phase status
-    STATUS_FLUID = 1 << 0,
-    STATUS_REACTIVE = 1 << 1,
-    STATUS_SOLID = 1 << 2,
-    STATUS_FREEZING = 1 << 3,
-
-    // Surface status
-    STATUS_BULK = 1 << 4,
-    STATUS_LAYER = 1 << 5,
-    STATUS_SURFACE = 1 << 6,
-    STATUS_SPLASH = 1 << 7,
-
-    // Temporary status options - reset in preforce
-    STATUS_SHIFT = 1 << 8,
-    STATUS_NO_FORCE = 1 << 9
-  };
-  int phasemask = 0xFFFFFFF0;
-  int surfacemask = 0xFFFFFF0F;
 
   // Accessory fixes/computes
   int thermal_flag;
@@ -89,6 +66,32 @@ class FixRHEO : public Fix {
   double dtv, dtf;
 };
 
+namespace RHEO_NS {
+
+  enum {QUINTIC, CRK0, CRK1, CRK2};
+  enum {COORDINATION, DIVR};
+
+  // Status variables
+  enum Status{
+    // Phase status
+    STATUS_FLUID = 1 << 0,
+    STATUS_REACTIVE = 1 << 1,
+    STATUS_SOLID = 1 << 2,
+    STATUS_FREEZING = 1 << 3,
+    // Surface status
+    STATUS_BULK = 1 << 4,
+    STATUS_LAYER = 1 << 5,
+    STATUS_SURFACE = 1 << 6,
+    STATUS_SPLASH = 1 << 7,
+    // Temporary status options - reset in preforce
+    STATUS_SHIFT = 1 << 8,
+    STATUS_NO_FORCE = 1 << 9
+  };
+
+  int PHASEMASK = 0xFFFFFFF0;
+  int SURFACEMASK = 0xFFFFFF0F;
+
+}    // namespace RHEO_NS
 }    // namespace LAMMPS_NS
 
 #endif

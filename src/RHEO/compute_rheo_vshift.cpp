@@ -32,6 +32,7 @@
 #include "neigh_request.h"
 
 using namespace LAMMPS_NS;
+using namespace RHEO_NS;
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,15 +48,15 @@ ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
   // Create vshift array if it doesn't already exist
   // Create a custom atom property so it works with compute property/atom
   // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_old exceeded
+  // Manually grow if nmax_store exceeded
 
   int tmp1, tmp2;
   int index = atom->find_custom("rheo_vshift", tmp1, tmp2);
   if (index == -1) {
     index = atom->add_custom("rheo_vshift", 1, 3);
-    nmax_old = atom->nmax;
+    nmax_store = atom->nmax;
   }
-  vshift = atom->dvector[index];
+  vshift = atom->darray[index];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,16 +109,17 @@ void ComputeRHEOVShift::compute_peratom()
 
   int *jlist;
   int inum, *ilist, *numneigh, **firstneigh;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
 
-  double **x = atom->x;
-  double **v = atom->v;
   int *type = atom->type;
   int *status = atom->status;
-  int *surface = atom->surface;
+  int *mask = atom->mask;
+  double **x = atom->x;
+  double **v = atom->v;
   double *rho = atom->rho;
   double *mass = atom->mass;
+
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
   inum = list->inum;
@@ -125,9 +127,9 @@ void ComputeRHEOVShift::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  if (nmax_old < atom->nmax) {
+  if (nmax_store < atom->nmax) {
     memory->grow(vshift, atom->nmax, 3, "atom:rheo_vshift");
-    nmax_old = atom->nmax;
+    nmax_store = atom->nmax;
   }
 
   for (i = 0; i < nall; i++)
@@ -143,15 +145,15 @@ void ComputeRHEOVShift::compute_peratom()
     jlist = firstneigh[i];
     jnum = numneigh[i];
     imass = mass[itype];
-    fluidi = status[i] & FixRHEO::STATUS_FLUID;
+    fluidi = status[i] & STATUS_FLUID;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      fluidj = status[j] & FixRHEO::STATUS_FLUID;
+      fluidj = status[j] & STATUS_FLUID;
       if ((!fluidi) && (!fluidj)) continue;
-      if (!(status[i] & FixRHEO::STATUS_SHIFT) && !(status[j] & FixRHEO::STATUS_SHIFT)) continue;
+      if (!(status[i] & STATUS_SHIFT) && !(status[j] & STATUS_SHIFT)) continue;
 
       dx[0] = xtmp - x[j][0];
       dx[1] = ytmp - x[j][1];
@@ -175,10 +177,10 @@ void ComputeRHEOVShift::compute_peratom()
 
         // Add corrections for walls
         if (fluidi && (!fluidj)) {
-          compute_interface->correct_v(v[i], v[j], vi, i, j);
+          compute_interface->correct_v(vi, vj, i, j);
           rhoj = compute_interface->correct_rho(j,i);
         } else if ((!fluidi) && fluidj) {
-          compute_interface->correct_v(v[j], v[i], vj, j, i);
+          compute_interface->correct_v(vj, vi, j, i);
           rhoi = compute_interface->correct_rho(i,j);
         } else if ((!fluidi) && (!fluidj)) {
           rhoi = 1.0;
@@ -215,7 +217,7 @@ void ComputeRHEOVShift::compute_peratom()
     }
   }
 
-  if (newton_pair) comm->reverse_comm_compute(this);
+  if (newton_pair) comm->reverse_comm(this);
 }
 
 
@@ -239,7 +241,7 @@ void ComputeRHEOVShift::correct_surfaces()
   double nx,ny,nz,vx,vy,vz;
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if ((status[i] & FixRHEO::STATUS_SURFACE) || (status[i] & FixRHEO::STATUS_LAYER)) {
+      if ((status[i] & STATUS_SURFACE) || (status[i] & STATUS_LAYER)) {
         nx = nsurf[i][0];
         ny = nsurf[i][1];
         vx = vshift[i][0];
@@ -297,6 +299,6 @@ void ComputeRHEOVShift::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeRHEOVShift::memory_usage()
 {
-  double bytes = 3 * nmax_old * sizeof(double);
+  double bytes = 3 * nmax_store * sizeof(double);
   return bytes;
 }

@@ -49,7 +49,7 @@ void ComputeRHEORhoSum::init()
   cutsq = cut * cut;
 
   // need an occasional half neighbor list
-  neighbor->add_request(this, NeighConst::REQ_HALF);
+  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -130,8 +130,9 @@ void ComputeRHEORhoSum::compute_peratom()
 int ComputeRHEORhoSum::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
-  int i,j,k,m;
-  double * rho = atom->rho;
+  int i, j, k, m;
+  double *rho = atom->rho;
+  int *coordination = compute_kernel->coordination;
   m = 0;
 
   for (i = 0; i < n; i++) {
@@ -145,7 +146,7 @@ int ComputeRHEORhoSum::pack_forward_comm(int n, int *list, double *buf,
 void ComputeRHEORhoSum::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
-  double * rho = atom->rho;
+  double *rho = atom->rho;
 
   m = 0;
   last = first + n;
@@ -158,7 +159,7 @@ void ComputeRHEORhoSum::unpack_forward_comm(int n, int first, double *buf)
 
 int ComputeRHEORhoSum::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,k,m,last;
+  int i, k, m, last;
   double *rho = atom->rho;
 
   m = 0;
@@ -173,7 +174,7 @@ int ComputeRHEORhoSum::pack_reverse_comm(int n, int first, double *buf)
 
 void ComputeRHEORhoSum::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,k,j,m;
+  int i, k, j, m;
   double *rho = atom->rho;
 
   m = 0;

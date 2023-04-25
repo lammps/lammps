@@ -54,7 +54,7 @@ class ComputeRHEOKernel : public Compute {
   std::unordered_set<tagint> gsl_error_tags;
 
   int kernel_style, zmin, dim, Mdim, ncor;
-  int nmax_old;
+  int nmax_store;
   double h, hsq, hinv, hsqinv, pre_w, pre_wp;
   double ***C;
   double *C0;

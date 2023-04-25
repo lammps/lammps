@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "compute_rheo_grad.h"
 #include "compute_rheo_vshift.h"
+#include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
 #include "force.h"
@@ -31,14 +32,15 @@
 #include "update.h"
 
 using namespace LAMMPS_NS;
+using namespace RHEO_NS;
 using namespace FixConst;
 enum {NONE, CONSTANT, TYPE};
 
 /* ---------------------------------------------------------------------- */
 
 FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr),
-  conductivity(nullptr)
+  Fix(lmp, narg, arg), fix_rheo(nullptr), compute_grad(nullptr), compute_vshift(nullptr),
+  Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr), conductivity(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
@@ -47,7 +49,7 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
   conductivity_style = NONE;
 
   comm_forward = 1;
-  nmax_old = 0;
+  nmax_store = 0;
 
   int ntypes = atom->ntypes;
   int iarg = 3;
@@ -181,13 +183,13 @@ void FixRHEOThermal::setup_pre_force(int /*vflag*/)
 
   // Identify whether this is the first/last instance of fix thermal
   // First will grow arrays, last will communicate
-  first_flag = 0
+  first_flag = 0;
   last_flag = 0;
 
   int i = 0;
   auto fixlist = modify->get_fix_by_style("rheo/thermal");
-  for (const auto &ifix : fixlist) {
-    if (strcmp(ifix->id, id) == 0) break;
+  for (const auto &fix : fixlist) {
+    if (strcmp(fix->id, id) == 0) break;
     i++;
   }
 
@@ -197,13 +199,13 @@ void FixRHEOThermal::setup_pre_force(int /*vflag*/)
   // Create conductivity array if it doesn't already exist
   // Create a custom atom property so it works with compute property/atom
   // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_old exceeded
+  // Manually grow if nmax_store exceeded
 
   int tmp1, tmp2;
-  index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
+  int index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
   if (index== -1) {
     index = atom->add_custom("rheo_conductivity", 1, 0);
-    nmax_old = atom->nmax;
+    nmax_store = atom->nmax;
   }
   conductivity = atom->dvector[index];
 
@@ -217,13 +219,16 @@ void FixRHEOThermal::initial_integrate(int /*vflag*/)
 {
   // update temperature from shifting
   if (!fix_rheo->shift_flag) return;
-  int i;
+  int i, a;
+
   int *status = atom->status;
+  int *mask = atom->mask;
+  double *temperature = atom->temperature;
   double **gradt = compute_grad->gradt;
   double **vshift = compute_vshift->array_atom;
 
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int dim = domain->dimension;
 
   if (igroup == atom->firstgroup)
     nlocal = atom->nfirst;
@@ -248,14 +253,14 @@ void FixRHEOThermal::post_integrate()
   double *heatflow = atom->heatflow;
   double *rho = atom->rho;
   int *mask = atom->mask;
-  int *type = aotm->type;
+  int *type = atom->type;
 
   double cvi, Tci, Ti;
 
   //Integrate temperature and check status
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & groupbit) {
-      if (status[i] == FixRHEO::FLUID_NO_FORCE) continue;
+      if (status[i] & STATUS_NO_FORCE) continue;
 
       cvi = calc_cv(i);
       temperature[i] += dtf * heatflow[i] / cvi;
@@ -265,15 +270,15 @@ void FixRHEOThermal::post_integrate()
         if (Tc_style == CONSTANT) {
           Tci = Tc;
         } else if (Tc_style == TYPE) {
-          Tci = Tc_type[type[i]]);
+          Tci = Tc_type[type[i]];
         }
 
         if (Ti > Tci) {
-          status[i] &= FixRHEO::phasemask;
-          status[i] |= FixRHEO::STATUS_FLUID;
-        } else if (!(status[i] & FixRHEO::STATUS_SOLID))
-          status[i] &= FixRHEO::phasemask;
-          status[i] |= FixRHEO::STATUS_FREEZING;
+          status[i] &= PHASEMASK;
+          status[i] |= STATUS_FLUID;
+        } else if (!(status[i] & STATUS_SOLID)) {
+          status[i] &= PHASEMASK;
+          status[i] |= STATUS_FREEZING;
         }
       }
     }
@@ -288,14 +293,13 @@ void FixRHEOThermal::post_neighbor()
 {
   int i;
   int *type = atom->type;
-  double *conductivity = atom->dvector[index_cond];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  if (first_flag && (nmax_old < atom->nmax)) {
+  if (first_flag && (nmax_store < atom->nmax)) {
     memory->grow(conductivity, atom->nmax, "atom:rheo_conductivity");
-    nmax_old = atom->nmax;
+    nmax_store = atom->nmax;
   }
 
   if (conductivity_style == CONSTANT) {
@@ -304,7 +308,6 @@ void FixRHEOThermal::post_neighbor()
   } else if (conductivity_style == TYPE) {
     for (i = 0; i < nall; i++)
       if (mask[i] & groupbit) conductivity[i] = kappa_type[type[i]];
-    }
   }
 }
 
@@ -329,9 +332,9 @@ void FixRHEOThermal::pre_force(int /*vflag*/)
   //int *mask = atom->mask;
   //int nlocal = atom->nlocal;
 
-  //if (first_flag && (nmax_old < atom->nmax)) {
+  //if (first_flag && (nmax_store < atom->nmax)) {
   //  memory->grow(conductivity, atom->nmax, "atom:rheo_conductivity");
-  //  nmax_old = atom->nmax;
+  //  nmax_store = atom->nmax;
   //}
 
   //if (conductivity_style == TBD) {
@@ -358,7 +361,7 @@ void FixRHEOThermal::final_integrate()
   //Integrate temperature and check status
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & groupbit) {
-      if (status[i] & FixRHEO::STATUS_NO_FORCE) continue;
+      if (status[i] & STATUS_NO_FORCE) continue;
 
       cvi = calc_cv(i);
       temperature[i] += dtf * heatflow[i] / cvi;
@@ -447,6 +450,6 @@ void FixRHEOThermal::unpack_reverse_comm(int n, int *list, double *buf)
 double FixRHEOThermal::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (size_t) nmax_old * sizeof(double);
+  bytes += (size_t) nmax_store * sizeof(double);
   return bytes;
 }

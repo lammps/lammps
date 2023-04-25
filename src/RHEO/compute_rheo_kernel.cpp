@@ -42,10 +42,10 @@
 #include <gsl/gsl_cblas.h>
 
 using namespace LAMMPS_NS;
+using namespace RHEO_NS;
 using namespace MathExtra;
 
-enum {QUINTIC, CRK0, CRK1, CRK2};
-#define DELTA 2000
+static constexpr int DELTA = 2000;
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,16 +55,16 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all(FLERR,"Illegal compute rheo/kernel command");
 
-  kernel_style = (SubModelType) utils::inumeric(FLERR,arg[3],false,lmp);
+  kernel_style = utils::inumeric(FLERR,arg[3],false,lmp);
 
 
-  if (kernel_style == FixRHEO::QUINTIC) {
+  if (kernel_style == QUINTIC) {
     correction_order = -1;
-  } else if (kernel_style == FixRHEO::CRK0) {
+  } else if (kernel_style == CRK0) {
     correction_order = 0;
-  } else if (kernel_style == FixRHEO::CRK1) {
+  } else if (kernel_style == CRK1) {
     correction_order = 1;
-  } else if (kernel_style == FixRHEO::CRK2) {
+  } else if (kernel_style == CRK2) {
     correction_order = 2;
   }
 
@@ -74,11 +74,11 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 1;
   ncor = 0;
   Mdim = 0;
-  if (kernel_type == CRK1) {
+  if (kernel_style == CRK1) {
     Mdim = 1 + dim;
     ncor = 1 + dim;
     comm_forward = ncor * Mdim;
-  } else if (kernel_type == CRK2) {
+  } else if (kernel_style == CRK2) {
     //Polynomial basis size (up to quadratic order)
     Mdim = 1 + dim + dim * (dim + 1) / 2;
     //Number of sets of correction coefficients  (1 x y xx yy)  + z zz (3D)
@@ -126,35 +126,35 @@ void ComputeRHEOKernel::init()
 
 
   if (dim == 3) {
-    pre_w = 0.002652582384864922 * 27.0 * ihsq * ih;
-    pre_wp = pre_w * 3.0 * ih;
+    pre_w = 0.002652582384864922 * 27.0 * hsqinv * hinv;
+    pre_wp = pre_w * 3.0 * hinv;
   } else {
-    pre_w = 0.004661441847879780 * 9 * ihsq;
-    pre_wp = pre_w * 3.0 * ih;
+    pre_w = 0.004661441847879780 * 9 * hsqinv;
+    pre_wp = pre_w * 3.0 * hinv;
   }
 
   // Create coordination array if it doesn't already exist
   // Create a custom atom property so it works with compute property/atom
   // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_old exceeded
+  // Manually grow if nmax_store exceeded
 
   int tmp1, tmp2;
   int nmax = atom->nmax;
   int index = atom->find_custom("rheo_coordination", tmp1, tmp2);
   if (index == -1) {
     index = atom->add_custom("rheo_coordination", 0, 0);
-    nmax_old = nmax;
+    nmax_store = nmax;
   }
   coordination = atom->ivector[index];
 
   // Create local arrays for kernel arrays, I can't foresee a reason to print
 
-  if (kernel_type == CRK0) {
-    memory->create(C0, nmax_old, "rheo/kernel:C0");
-  } else if (kernel_type == CRK1) {
-    memory->create(C, nmax_old, ncor, Mdim, "rheo/kernel:C");
-  } else if (kernel_type == CRK2) {
-    memory->create(C, nmax_old, ncor, Mdim, "rheo/kernel:C");
+  if (kernel_style == CRK0) {
+    memory->create(C0, nmax_store, "rheo/kernel:C0");
+  } else if (kernel_style == CRK1) {
+    memory->create(C, nmax_store, ncor, Mdim, "rheo/kernel:C");
+  } else if (kernel_style == CRK2) {
+    memory->create(C, nmax_store, ncor, Mdim, "rheo/kernel:C");
   }
 }
 
@@ -192,10 +192,10 @@ double ComputeRHEOKernel::calc_w(int i, int j, double delx, double dely, double 
   int corrections_j = check_corrections(j);
   int corrections = corrections_i & corrections_j;
 
-  if (kernel_type == QUINTIC || !corrections) w = calc_w_quintic(i,j,delx,dely,delz,r);
-  else if (kernel_type == CRK0) w = calc_w_crk0(i,j,delx,dely,delz,r);
-  else if (kernel_type == CRK1) w = calc_w_crk1(i,j,delx,dely,delz,r);
-  else if (kernel_type == CRK2) w = calc_w_crk2(i,j,delx,dely,delz,r);
+  if (kernel_style == QUINTIC || !corrections) w = calc_w_quintic(i,j,delx,dely,delz,r);
+  else if (kernel_style == CRK0) w = calc_w_crk0(i,j,delx,dely,delz,r);
+  else if (kernel_style == CRK1) w = calc_w_crk1(i,j,delx,dely,delz,r);
+  else if (kernel_style == CRK2) w = calc_w_crk2(i,j,delx,dely,delz,r);
 
   return w;
 }
@@ -211,11 +211,11 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
 
   // Calc wp and default dW's, a bit inefficient but can redo later
   wp = calc_dw_quintic(i,j,delx,dely,delz,r,dWij,dWji);
-  if(kernel_type == CRK1) {
+  if(kernel_style == CRK1) {
     //check if kernel correction calculated successfully. If not, revert to quintic
     if (corrections_i) calc_dw_crk1(i,j,delx,dely,delz,r,dWij);
     if (corrections_j) calc_dw_crk1(j,i,-delx,-dely,-delz,r,dWji);
-  } else if(kernel_type == CRK2) {
+  } else if(kernel_style == CRK2) {
     if (corrections_i) calc_dw_crk2(i,j,delx,dely,delz,r,dWij);
     if (corrections_j) calc_dw_crk2(j,i,-delx,-dely,-delz,r,dWji);
   }
@@ -228,7 +228,7 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
 double ComputeRHEOKernel::calc_w_quintic(int i, int j, double delx, double dely, double delz, double r)
 {
   double w, tmp1, tmp2, tmp3, tmp1sq, tmp2sq, tmp3sq, s;
-  s = r * 3.0 * ih;
+  s = r * 3.0 * hinv;
 
 	if (s > 3.0) {
 	  w = 0.0;
@@ -266,7 +266,7 @@ double ComputeRHEOKernel::calc_dw_quintic(int i, int j, double delx, double dely
   double *mass = atom->mass;
   int *type = atom->type;
 
-  s = r * 3.0 * ih;
+  s = r * 3.0 * hinv;
 
   if (s > 3.0) {
     wp = 0.0;
@@ -496,9 +496,9 @@ void ComputeRHEOKernel::compute_peratom()
   gsl_error_flag = 0;
   gsl_error_tags.clear();
 
-  if (kernel_type == FixRHEO::QUINTIC) return;
+  if (kernel_style == QUINTIC) return;
 
-  int i, j, ii, jj, inum, jnum, g, a, b, gsl_error;
+  int i, j, ii, jj, inum, jnum, itype, g, a, b, gsl_error;
   double xtmp, ytmp, ztmp, r, rsq, w, vj;
   double dx[3];
   gsl_matrix_view gM;
@@ -520,9 +520,9 @@ void ComputeRHEOKernel::compute_peratom()
   firstneigh = list->firstneigh;
 
   // Grow arrays if necessary
-  if (nmax_old < atom->nmax) grow_arrays(atom->nmax);
+  if (nmax_store < atom->nmax) grow_arrays(atom->nmax);
 
-  if (kernel_type == FixRHEO::CRK0) {
+  if (kernel_style == CRK0) {
 
     double M;
     for (ii = 0; ii < inum; ii++) {
@@ -544,12 +544,12 @@ void ComputeRHEOKernel::compute_peratom()
         dx[0] = xtmp - x[j][0];
         dx[1] = ytmp - x[j][1];
         dx[2] = ztmp - x[j][2];
-        rsq = lensq(dx);
+        rsq = lensq3(dx);
 
         if (rsq < hsq) {
           r = sqrt(rsq);
           w = calc_w_quintic(i,j,dx[0],dx[1],dx[2],r);
-          if (!(status[j] & FixRHEO::STATUS_FLUID) && solid_flag) {
+          if (!(status[j] & STATUS_FLUID) && solid_flag) {
             vj = mass[type[j]] / compute_interface->correct_rho(j,i);
           } else vj = mass[type[j]] / rho[j];
 
@@ -590,22 +590,24 @@ void ComputeRHEOKernel::compute_peratom()
         dx[1] = ytmp - x[j][1];
         dx[2] = ztmp - x[j][2];
 
-        rsq = lensq(dx);
+        rsq = lensq3(dx);
 
-        if (rsq < cutsq) {
+        if (rsq < hsq) {
           r = sqrt(rsq);
           w = calc_w_quintic(i,j,dx[0],dx[1],dx[2],r);
 
-          if (status[j] > FixRHEO::FLUID_MAX && solid_flag)
-            vj = mass[type[j]]/compute_interface->correct_rho(j,i);
-          else vj = mass[type[j]]/rho[j];
+          if (solid_flag)
+            if (!(status[j] & STATUS_FLUID))
+              vj = mass[type[j]]/compute_interface->correct_rho(j,i);
+          else
+            vj = mass[type[j]]/rho[j];
 
           //Populate the H-vector of polynomials (2D)
           if (dim == 2) {
             H[0] = 1.0;
             H[1] = dx[0] * hinv;
             H[2] = dx[1] * hinv;
-            if (kernel_type == FixRHEO::CRK2) {
+            if (kernel_style == CRK2) {
               H[3] = 0.5 * dx[0] * dx[0] * hsqinv;
               H[4] = 0.5 * dx[1] * dx[1] * hsqinv;
               H[5] = dx[0] * dx[1] * hsqinv;
@@ -615,7 +617,7 @@ void ComputeRHEOKernel::compute_peratom()
             H[1] = dx[0] * hinv;
             H[2] = dx[1] * hinv;
             H[3] = dx[2] * hinv;
-            if (kernel_type == FixRHEO::CRK2) {
+            if (kernel_style == CRK2) {
               H[4] = 0.5 * dx[0] * dx[0] * hsqinv;
               H[5] = 0.5 * dx[1] * dx[1] * hsqinv;
               H[6] = 0.5 * dx[2] * dx[2] * hsqinv;
@@ -642,7 +644,7 @@ void ComputeRHEOKernel::compute_peratom()
       }
 
       // Skip if undercoordinated
-      if (coordination[i] < zmin) continue
+      if (coordination[i] < zmin) continue;
 
       // Use gsl to get Minv, use Cholesky decomposition since the
       // polynomials are independent, M is symmetrix & positive-definite
@@ -656,7 +658,7 @@ void ComputeRHEOKernel::compute_peratom()
 
         //check if not positive-definite
         if (gsl_error != GSL_EDOM)
-          error->warn(FLERR, "Failed decomposition in rheo/kernel, gsl_error = {}", gsl_error);
+          error->warning(FLERR, "Failed decomposition in rheo/kernel, gsl_error = {}", gsl_error);
 
         continue;
       }
@@ -689,7 +691,7 @@ void ComputeRHEOKernel::compute_peratom()
           // columns 1-2 (2D)  or 1-3 (3D)
 
           //Second derivatives
-          if (kernel_type == FixRHEO::CRK2)
+          if (kernel_style == CRK2)
             C[i][1 + dim + b][a] = M[a * Mdim + b + 1 + dim] * hsqinv;
             // columns 3-4 (2D) or 4-6 (3D)
         }
@@ -721,7 +723,7 @@ void ComputeRHEOKernel::compute_coordination()
   firstneigh = list->firstneigh;
 
   // Grow arrays if necessary
-  if (nmax_old < atom->nmax) grow_arrays(atom->nmax);
+  if (nmax_store < atom->nmax) grow_arrays(atom->nmax);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -740,7 +742,7 @@ void ComputeRHEOKernel::compute_coordination()
       dx[0] = xtmp - x[j][0];
       dx[1] = ytmp - x[j][1];
       dx[2] = ztmp - x[j][2];
-      rsq = lensq(dx);
+      rsq = lensq3(dx);
 
       if (rsq < hsq)
         coordination[i] += 1;
@@ -759,13 +761,13 @@ void ComputeRHEOKernel::grow_arrays(int nmax)
 {
   memory->grow(coordination, nmax, "atom:rheo_coordination");
 
-  if (kernel_type == FixRHEO::CRK0) {
+  if (kernel_style == CRK0) {
     memory->grow(C0, nmax, "rheo/kernel:C0");
   } else if (correction_order > 0) {
     memory->grow(C, nmax, ncor, Mdim, "rheo/kernel:C");
   }
 
-  nmax_old = nmax;
+  nmax_store = nmax;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -781,7 +783,7 @@ int ComputeRHEOKernel::pack_forward_comm(int n, int *list, double *buf,
     if (comm_stage == 0) {
       buf[m++] = coordination[j];
     } else {
-      if (kernel_type == FixRHEO::CRK0) {
+      if (kernel_style == CRK0) {
         buf[m++] = C0[j];
       } else {
         for (a = 0; a < ncor; a++)
@@ -805,7 +807,7 @@ void ComputeRHEOKernel::unpack_forward_comm(int n, int first, double *buf)
     if (comm_stage == 0) {
       coordination[i] = buf[m++];
     } else {
-      if (kernel_type == FixRHEO::CRK0) {
+      if (kernel_style == CRK0) {
         C0[i] = buf[m++];
       } else {
         for (a = 0; a < ncor; a++)
@@ -821,12 +823,12 @@ void ComputeRHEOKernel::unpack_forward_comm(int n, int first, double *buf)
 double ComputeRHEOKernel::memory_usage()
 {
   double bytes = 0.0;
-  bytes = (size_t) nmax_old * sizeof(int);
+  bytes = (size_t) nmax_store * sizeof(int);
 
-  if (kernel_type == FixRHEO::CRK0) {
-    bytes += (size_t) nmax_old * sizeof(double);
+  if (kernel_style == CRK0) {
+    bytes += (size_t) nmax_store * sizeof(double);
   } else if (correction_order > 0) {
-    bytes += (size_t) nmax_old * ncor * Mdim * sizeof(double);
+    bytes += (size_t) nmax_store * ncor * Mdim * sizeof(double);
   }
   return bytes;
 }

@@ -39,9 +39,10 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace RHEO_NS;
 using namespace MathExtra;
 
-#define EPSILON 1e-2
+static constexpr double EPSILON = 1e-2;
 
 /* ---------------------------------------------------------------------- */
 
@@ -83,6 +84,10 @@ void PairRHEO::compute(int eflag, int vflag)
   int *ilist, *jlist, *numneigh, **firstneigh;
   double imass, jmass, rsq, r, rinv;
 
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
+  int dim = domain->dimension;
+
   ev_init(eflag, vflag);
 
   double **gradv = compute_grad->gradv;
@@ -123,11 +128,6 @@ void PairRHEO::compute(int eflag, int vflag)
     conductivity = atom->dvector[index];
   }
 
-  int *ilist, *jlist, *numneigh, **firstneigh;
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
-  int dim = domain->dimension;
-
   inum = list->inum;
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -145,7 +145,7 @@ void PairRHEO::compute(int eflag, int vflag)
     jnum = numneigh[i];
     imass = mass[itype];
     etai = viscosity[i];
-    fluidi = status[i] & FixRHEO::STATUS_FLUID;
+    fluidi = status[i] & STATUS_FLUID;
     if (thermal_flag) {
       kappai = conductivity[i];
       Ti = temperature[i];
@@ -167,7 +167,7 @@ void PairRHEO::compute(int eflag, int vflag)
 
         jmass = mass[jtype];
         etaj = viscosity[j];
-        fluidj = status[j] & FixRHEO::STATUS_FLUID;
+        fluidj = status[j] & STATUS_FLUID;
         if (thermal_flag) {
           Tj = temperature[j];
           kappaj = conductivity[j];
@@ -202,7 +202,7 @@ void PairRHEO::compute(int eflag, int vflag)
         if (fluidi && (!fluidj)) {
           compute_interface->correct_v(vi, vj, i, j);
           rhoj = compute_interface->correct_rho(j, i);
-          Pj = fix_pressure->calculate_p(rhoj);
+          Pj = fix_pressure->calc_pressure(rhoj);
 
           if ((chi[j] > 0.9) && (r < (h * 0.5)))
             fmag = (chi[j] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
@@ -210,9 +210,9 @@ void PairRHEO::compute(int eflag, int vflag)
         } else if ((!fluidi) && fluidj) {
           compute_interface->correct_v(vj, vi, j, i);
           rhoi = compute_interface->correct_rho(i, j);
-          Pi = calc_pressure(rhoi, itype);
+          Pi = fix_pressure->calc_pressure(rhoi);
 
-          if (chi[i] > 0.9 && r < (h * 0.5)) {
+          if (chi[i] > 0.9 && r < (h * 0.5))
             fmag = (chi[i] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
 
         } else if ((!fluidi) && (!fluidj)) {
@@ -244,7 +244,7 @@ void PairRHEO::compute(int eflag, int vflag)
 
           //Hydrostatic pressure forces
           fp_prefactor = voli * volj * (Pj + Pi);
-          sub3(v1, vj, du);
+          sub3(vi, vj, du);
 
           //Add artificial viscous pressure if required
           if (artificial_visc_flag && pair_avisc_flag){
@@ -423,14 +423,10 @@ void PairRHEO::setup()
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use pair rheo");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
+  // Currently only allow one instance of fix rheo/pressure
   fixes = modify->get_fix_by_style("rheo/pressure");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo/pressure to use pair rheo");
   fix_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
-
-  int tmp1, tmp2;
-  index_pressure = atom->find_custom("rheo_pressure", tmp1, tmp2);
-  if (index_pressure == -1) index_pressure = atom->add_custom("rheo_pressure", 1, 0);
-  else error->all(FLERR, "Cannot find pressure value in pair rheo");
 
   compute_kernel = fix_rheo->compute_kernel;
   compute_grad = fix_rheo->compute_grad;
@@ -449,9 +445,9 @@ void PairRHEO::setup()
     error->all(FLERR,"Pair RHEO requires ghost atoms store velocity");
 
   if (laplacian_order == -1) {
-    if (fix_rheo->kernel_type == FixRHEO::CRK2)
+    if (fix_rheo->kernel_style == CRK2)
       laplacian_order = 2;
-    else if (fix_rheo->kernel_type == FixRHEO::CRK1)
+    else if (fix_rheo->kernel_style == CRK1)
       laplacian_order = 1;
     else
       laplacian_order = 0;
@@ -468,8 +464,5 @@ double PairRHEO::init_one(int i, int j)
       error->all(FLERR,"All pair rheo coeffs are not set");
   }
 
-  cut[i][j] = h;
-  cut[j][i] = cut[i][j];
-
-  return cut[i][j];
+  return h;
 }

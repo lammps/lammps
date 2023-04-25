@@ -33,6 +33,7 @@
 #include "utils.h"
 
 using namespace LAMMPS_NS;
+using namespace RHEO_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
@@ -68,6 +69,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Insufficient arguments for fix rheo command");
 
   h = utils::numeric(FLERR,arg[3],false,lmp);
+  cut = h;
   if (strcmp(arg[4],"Quintic") == 0) {
       kernel_style = QUINTIC;
   } else if (strcmp(arg[4],"CRK0") == 0) {
@@ -101,7 +103,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"interface/reconstruction") == 0) {
       interface_flag = 1;
-    } else if (strcmp(arg[iarg],"rhosum") == 0) {
+    } else if (strcmp(arg[iarg],"rho/sum") == 0) {
       rhosum_flag = 1;
     } else if (strcmp(arg[iarg],"rho0") == 0) {
       if(iarg + 1 >= narg) error->all(FLERR,"Illegal rho0 option in fix rheo");
@@ -137,7 +139,8 @@ FixRHEO::~FixRHEO()
 
 void FixRHEO::post_constructor()
 {
-  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute("rheo_kernel all RHEO/KERNEL {}", kernel_style));
+  compute_kernel = dynamic_cast<ComputeRHEOKernel *>(modify->add_compute(
+    fmt::format("rheo_kernel all RHEO/KERNEL {}", kernel_style)));
   compute_kernel->fix_rheo = this;
 
   std::string cmd = "rheo_grad all RHEO/GRAD velocity rho viscosity";
@@ -146,22 +149,26 @@ void FixRHEO::post_constructor()
   compute_grad->fix_rheo = this;
 
   if (rhosum_flag) {
-    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute("rheo_rho_sum all RHEO/RHO/SUM"));
+    compute_rhosum = dynamic_cast<ComputeRHEORhoSum *>(modify->add_compute(
+      "rheo_rho_sum all RHEO/RHO/SUM"));
     compute_rhosum->fix_rheo = this;
   }
 
   if (shift_flag) {
-    compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute("rheo_vshift all RHEO/VSHIFT"));
+    compute_vshift = dynamic_cast<ComputeRHEOVShift *>(modify->add_compute(
+      "rheo_vshift all RHEO/VSHIFT"));
     compute_vshift->fix_rheo = this;
   }
 
   if (interface_flag) {
-    compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(fmt::format("rheo_interface all RHEO/INTERFACE")));
+    compute_interface = dynamic_cast<ComputeRHEOInterface *>(modify->add_compute(
+      "rheo_interface all RHEO/INTERFACE"));
     compute_interface->fix_rheo = this;
   }
 
   if (surface_flag) {
-    compute_surface = dynamic_cast<ComputeRHEOSurface *>(modify->add_compute(fmt::format("rheo_surface all RHEO/SURFACE")));
+    compute_surface = dynamic_cast<ComputeRHEOSurface *>(modify->add_compute(
+      "rheo_surface all RHEO/SURFACE"));
     compute_surface->fix_rheo = this;
   }
 }
@@ -193,7 +200,7 @@ void FixRHEO::init()
 void FixRHEO::setup_pre_force(int /*vflag*/)
 {
   // Check to confirm accessory fixes do not preceed FixRHEO
-  // Note: these fixes set this flag in setup_pre_force()
+  // Note: fixes set this flag in setup_pre_force()
   if (viscosity_fix_defined || pressure_fix_defined || thermal_fix_defined)
     error->all(FLERR, "Fix RHEO must be defined before all other RHEO fixes");
 
@@ -206,23 +213,23 @@ void FixRHEO::setup_pre_force(int /*vflag*/)
 void FixRHEO::setup(int /*vflag*/)
 {
   // Confirm all accessory fixes are defined
-  // Note: these fixes set this flag in setup_pre_force()
+  // Note: fixes set this flag in setup_pre_force()
   if (!viscosity_fix_defined)
     error->all(FLERR, "Missing fix rheo/viscosity");
 
   if (!pressure_fix_defined)
     error->all(FLERR, "Missing fix rheo/pressure");
 
-  if(!thermal_fix_defined && thermal_flag)
+  if((!thermal_fix_defined) && thermal_flag)
     error->all(FLERR, "Missing fix rheo/thermal");
 
-  // Reset to zero for next run
+  // Reset to zero for future runs
   thermal_fix_defined = 0;
   viscosity_fix_defined = 0;
   pressure_fix_defined = 0;
 
-  // Check fixes cover all atoms (doesnt ensure user covers atoms created midrun)
-  // (pressure is currently required to be group all)
+  // Check fixes cover all atoms (may still fail if atoms are created)
+  // FixRHEOPressure currently requires group all
   auto visc_fixes = modify->get_fix_by_style("rheo/viscosity");
   auto therm_fixes = modify->get_fix_by_style("rheo/thermal");
 
@@ -232,12 +239,12 @@ void FixRHEO::setup(int /*vflag*/)
   int covered;
   for (int i = 0; i < atom->nlocal; i++) {
     covered = 0;
-    for (auto fix in visc_fixes)
+    for (auto fix : visc_fixes)
       if (mask[i] & fix->groupbit) covered = 1;
     if (!covered) v_coverage_flag = 0;
     if (thermal_flag) {
       covered = 0;
-      for (auto fix in therm_fixes)
+      for (auto fix : therm_fixes)
         if (mask[i] & fix->groupbit) covered = 1;
       if (!covered) v_coverage_flag = 0;
     }
@@ -253,11 +260,12 @@ void FixRHEO::setup(int /*vflag*/)
 
 void FixRHEO::initial_integrate(int /*vflag*/)
 {
-  // update v and x and rho of atoms in group
+  // update v, x and rho of atoms in group
   int i, a, b;
   double dtfm, divu;
-  int dim = domain->dimension;
 
+  int *type = atom->type;
+  int *mask = atom->mask;
   int *status = atom->status;
   double **x = atom->x;
   double **v = atom->v;
@@ -266,16 +274,14 @@ void FixRHEO::initial_integrate(int /*vflag*/)
   double *drho = atom->drho;
   double *mass = atom->mass;
   double *rmass = atom->rmass;
-  int rmass_flag = atom->rmass_flag;
-
   double **gradr = compute_grad->gradr;
   double **gradv = compute_grad->gradv;
   double **vshift;
   if (shift_flag) compute_vshift->vshift;
 
-  int *type = atom->type;
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int rmass_flag = atom->rmass_flag;
+  int dim = domain->dimension;
 
   if (igroup == atom->firstgroup)
     nlocal = atom->nfirst;
@@ -333,7 +339,7 @@ void FixRHEO::initial_integrate(int /*vflag*/)
 
   // Shifting atoms
   if (shift_flag) {
-    compute_vshift->correct_surfaces(); // COuld this be moved to preforce after the surface fix runs?
+    compute_vshift->correct_surfaces(); // Could this be moved to preforce after the surface fix runs?
     for (i = 0; i < nlocal; i++) {
 
       if (!(status[i] & STATUS_SHIFT)) continue;
@@ -376,6 +382,7 @@ void FixRHEO::pre_force(int /*vflag*/)
     compute_vshift->compute_peratom();
 
   // Remove extra shifting/no force options
+  int *mask = atom->mask;
   int *status = atom->status;
   int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++) {
@@ -393,26 +400,28 @@ void FixRHEO::pre_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixRHEO::final_integrate() {
-  int *status = atom->status;
-  double **gradv = compute_grad->gradv;
-  double **x = atom->x;
-  double **v = atom->v;
-  double **f = atom->f;
-
-  double *rho = atom->rho;
-  double *drho = atom->drho;
-  int *type = atom->type;
-  int *mask = atom->mask;
-  double *mass = atom->mass;
+void FixRHEO::final_integrate()
+{
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup)
     nlocal = atom->nfirst;
+
   double dtfm, divu;
-  double *rmass = atom->rmass;
-  int rmass_flag = atom->rmass_flag;
   int i, a;
 
+  double **x = atom->x;
+  double **v = atom->v;
+  double **f = atom->f;
+  double **gradv = compute_grad->gradv;
+  double *rho = atom->rho;
+  double *drho = atom->drho;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int *status = atom->status;
+
+  int rmass_flag = atom->rmass_flag;
   int dim = domain->dimension;
 
   // Update velocity

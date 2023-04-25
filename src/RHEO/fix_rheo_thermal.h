@@ -31,7 +31,7 @@ class FixRHEOThermal : public Fix {
   int setmask() override;
   void init() override;
   void setup_pre_force(int) override;
-  void initial_integrate() override;
+  void initial_integrate(int) override;
   void post_integrate() override;
   void post_neighbor() override;
   void pre_force(int) override;
@@ -53,9 +53,11 @@ class FixRHEOThermal : public Fix {
   int cv_style;
   int conductivity_style;
   int first_flag, last_flag;
-  int nmax_old;
+  int nmax_store;
 
   class FixRHEO *fix_rheo;
+  class ComputeRHEOGrad *compute_grad;
+  class ComputeRHEOVShift *compute_vshift;
 
   double calc_cv(int);
 };

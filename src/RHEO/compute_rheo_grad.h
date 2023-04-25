@@ -45,7 +45,8 @@ class ComputeRHEOGrad : public Compute {
   class FixRHEO *fix_rheo;
 
  private:
-  int comm_stage, ncomm_grad, ncomm_field, nmax_old;
+  int comm_stage, ncomm_grad, ncomm_field, nmax_store;
+  int index_visc;
   double cut, cutsq, rho0;
   class NeighList *list;
 
@@ -53,6 +54,8 @@ class ComputeRHEOGrad : public Compute {
   class ComputeRHEOInterface *compute_interface;
 
   int velocity_flag, temperature_flag, rho_flag, eta_flag;
+
+  void grow_arrays(int);
 };
 
 }    // namespace LAMMPS_NS

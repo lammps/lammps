@@ -40,7 +40,7 @@ class ComputeRHEOVShift : public Compute {
   class FixRHEO *fix_rheo;
 
  private:
-  int nmax_old;
+  int nmax_store;
   double dtv, cut, cutsq, cutthird;
   int surface_flag;
 

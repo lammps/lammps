@@ -21,11 +21,12 @@
 #include "atom.h"
 #include "comm.h"
 #include "compute_rheo_kernel.h"
-#include "compute_rheo_solids.h"
+#include "compute_rheo_interface.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "update.h"
@@ -33,6 +34,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace RHEO_NS;
+
 enum{COMMGRAD, COMMFIELD};
 
 /* ---------------------------------------------------------------------- */
@@ -112,10 +115,13 @@ void ComputeRHEOGrad::init()
   compute_kernel = fix_rheo->compute_kernel;
   compute_interface = fix_rheo->compute_interface;
 
+  int tmp1, tmp2;
+  index_visc = atom->find_custom("rheo_viscosity", tmp1, tmp2);
+
   // Create coordination array if it doesn't already exist
   // Create a custom atom property so it works with compute property/atom
   // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_old exceeded
+  // Manually grow if nmax_store exceeded
 
   int index;
   int dim = domain->dimension;
@@ -139,7 +145,7 @@ void ComputeRHEOGrad::init()
     gradn = atom->darray[index];
   }
 
-  nmax_old = 0;
+  nmax_store = 0;
   grow_arrays(atom->nmax);
 }
 
@@ -158,7 +164,7 @@ void ComputeRHEOGrad::compute_peratom()
   double xtmp, ytmp, ztmp, delx, dely, delz;
   double rsq, imass, jmass;
   double rhoi, rhoj, Voli, Volj, drho, dT, deta;
-  double vij[3];
+  double vi[3], vj[3], vij[3];
   double wp, *dWij, *dWji;
 
   int inum, *ilist, *numneigh, **firstneigh;
@@ -169,16 +175,12 @@ void ComputeRHEOGrad::compute_peratom()
   double **v = atom->v;
   double *rho = atom->rho;
   double *temperature = atom->temperature;
+  double *viscosity = atom->dvector[index_visc];
   int *status = atom->status;
   int *type = atom->type;
   double *mass = atom->mass;
   int newton = force->newton;
   int dim = domain->dimension;
-
-  int tmp1, tmp2;
-  int index_visc = atom->find_custom("rheo_viscosity", tmp1, tmp2);
-  if (index_visc == -1) error->all(FLERR, "Cannot find rheo viscosity");
-  double *viscosity = atom->dvector[index_visc];
 
   inum = list->inum;
   ilist = list->ilist;
@@ -186,9 +188,9 @@ void ComputeRHEOGrad::compute_peratom()
   firstneigh = list->firstneigh;
 
   // initialize arrays
-  if (nmax > nmax_old) grow_arrays(nmax);
+  if (atom->nmax > nmax_store) grow_arrays(atom->nmax);
 
-  for (i = 0; i < nmax; i++) {
+  for (i = 0; i < nmax_store; i++) {
     if (velocity_flag) {
       for (k = 0; k < dim * dim; k++)
         gradv[i][k] = 0.0;
@@ -212,6 +214,9 @@ void ComputeRHEOGrad::compute_peratom()
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
+    vi[0] = v[i][0];
+    vi[1] = v[i][1];
+    vi[2] = v[i][2];
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
@@ -230,14 +235,18 @@ void ComputeRHEOGrad::compute_peratom()
         rhoi = rho[i];
         rhoj = rho[j];
 
+        vj[0] = v[j][0];
+        vj[1] = v[j][1];
+        vj[2] = v[j][2];
+
         // Add corrections for walls
-        if ((status[i] & FixRHEO::STATUS_FLUID) && !(status[j] & FixRHEO::STATUS_FLUID)) {
-          compute_interface->correct_v(v[i], v[j], vi, i, j);
-          rhoj = compute_interface->correct_rho(j,i);
-        } else if (!(status[i] & FixRHEO::STATUS_FLUID) && (status[j] & FixRHEO::STATUS_FLUID)) {
-          compute_interface->correct_v(v[j], v[i], vj, j, i);
-          rhoi = compute_interface->correct_rho(i,j);
-        } else if (!(status[i] & FixRHEO::STATUS_FLUID) && !(status[j] & FixRHEO::STATUS_FLUID)) {
+        if ((status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
+          compute_interface->correct_v(vi, vj, i, j);
+          rhoj = compute_interface->correct_rho(j, i);
+        } else if (!(status[i] & STATUS_FLUID) && (status[j] & STATUS_FLUID)) {
+          compute_interface->correct_v(vj, vi, j, i);
+          rhoi = compute_interface->correct_rho(i, j);
+        } else if (!(status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
           rhoi = rho0;
           rhoj = rho0;
         }
@@ -324,7 +333,6 @@ int ComputeRHEOGrad::pack_forward_comm(int n, int *list, double *buf,
   int i,j,k,m;
   double *rho = atom->rho;
   double *temperature = atom->temperature;
-  double *eta = atom->viscosity;
   double **v = atom->v;
   int dim = domain->dimension;
 
@@ -371,9 +379,9 @@ int ComputeRHEOGrad::pack_forward_comm(int n, int *list, double *buf,
 void ComputeRHEOGrad::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
-  double * rho = atom->rho;
-  double * temperature = atom->temperature;
-  double ** v = atom->v;
+  double *rho = atom->rho;
+  double *temperature = atom->temperature;
+  double **v = atom->v;
   int dim = domain->dimension;
 
   m = 0;
@@ -483,25 +491,27 @@ void ComputeRHEOGrad::grow_arrays(int nmax)
 
   if (eta_flag)
     memory->grow(gradn, nmax, dim, "atom:rheo_grad_eta");
-  nmax_old = nmax;
+  nmax_store = nmax;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRHEOKernel::memory_usage()
+double ComputeRHEOGrad::memory_usage()
 {
   double bytes = 0.0;
+  int dim = domain->dimension;
+
   if (velocity_flag)
-    bytes = (size_t) nmax_old * dim * dim * sizeof(double);
+    bytes = (size_t) nmax_store * dim * dim * sizeof(double);
 
   if (rho_flag)
-    bytes = (size_t) nmax_old * dim * sizeof(double);
+    bytes = (size_t) nmax_store * dim * sizeof(double);
 
   if (temperature_flag)
-    bytes = (size_t) nmax_old * dim * sizeof(double);
+    bytes = (size_t) nmax_store * dim * sizeof(double);
 
   if (eta_flag)
-    bytes = (size_t) nmax_old * dim * sizeof(double);
+    bytes = (size_t) nmax_store * dim * sizeof(double);
 
   return bytes;
 }

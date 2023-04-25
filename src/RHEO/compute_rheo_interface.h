@@ -36,17 +36,17 @@ class ComputeRHEOInterface : public Compute {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double memory_usage() override;
-  void correct_v(double *, double *, double *, int, int);
+  void correct_v(double *, double *, int, int);
   double correct_rho(int, int);
   void store_forces();
 
-  double *chi, **f_pressure;
+  double *chi, **fp_store;
   class FixRHEO *fix_rheo;
 
  private:
-  int nmax_old, comm_stage;
-  double rho0, cut, cutsq, cs, cs_inv, wall_max;
-  double *norm, *normwf, **fom_store;
+  int nmax_store, comm_stage;
+  double rho0, cut, cutsq, csq, csq_inv, wall_max;
+  double *norm, *normwf;
 
   char *id_fix_pa;
 

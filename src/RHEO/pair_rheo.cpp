@@ -99,6 +99,9 @@ void PairRHEO::compute(int eflag, int vflag)
   double *rho = atom->rho;
   double *mass = atom->mass;
   double *drho = atom->drho;
+  double *pressure = atom->pressure;
+  double *viscosity = atom->viscosity;
+  double *conductivity = atom->conductivity;
   double *temperature = atom->temperature;
   double *heatflow = atom->heatflow;
   double *special_lj = force->special_lj;
@@ -110,22 +113,6 @@ void PairRHEO::compute(int eflag, int vflag)
   if (compute_interface) {
     fp_store = compute_interface->fp_store;
     chi = compute_interface->chi;
-  }
-
-  int tmp1, tmp2;
-  int index = atom->find_custom("rheo_viscosity", tmp1, tmp2);
-  if (index == -1) error->all(FLERR, "Cannot find rheo viscosity");
-  double *viscosity = atom->dvector[index];
-
-  index = atom->find_custom("rheo_pressure", tmp1, tmp2);
-  if (index == -1) error->all(FLERR, "Cannot find rheo pressure");
-  double *pressure = atom->dvector[index];
-
-  double *conductivity;
-  if (thermal_flag) {
-    index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
-    if (index == -1) error->all(FLERR, "Cannot find rheo conductivity");
-    conductivity = atom->dvector[index];
   }
 
   inum = list->inum;

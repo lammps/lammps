@@ -35,15 +35,11 @@ class FixRHEOViscosity : public Fix {
   void pre_force(int) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
-  double memory_usage() override;
 
  private:
   double *eta_type, eta;
   double npow, K, gd0, tau0;
-  double *viscosity;
-  int viscosity_style;
-  int first_flag, last_flag;
-  int nmax_store;
+  int viscosity_style, last_flag;
 
   class FixRHEO *fix_rheo;
   class ComputeRHEOGrad *compute_grad;

@@ -68,7 +68,6 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
     correction_order = 2;
   }
 
-  solid_flag = 0;
   dim = domain->dimension;
 
   comm_forward = 1;
@@ -93,11 +92,7 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeRHEOKernel::~ComputeRHEOKernel()
 {
-  // Remove custom property if it exists
-  int tmp1, tmp2, index;
-  index = atom->find_custom("rheo_coordination", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index, 0, 0);
-
+  memory->destroy(coordination);
   memory->destroy(C);
   memory->destroy(C0);
 }
@@ -112,11 +107,8 @@ void ComputeRHEOKernel::init()
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use compute rheo/kernel");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
-  int icompute = modify->find_compute("rheo_interface");
-  if (icompute != -1) {
-    compute_interface = ((ComputeRHEOInterface *) modify->compute[icompute]);
-    solid_flag = 1;
-  }
+  interface_flag = fix_rheo->interface_flag;
+  compute_interface = fix_rheo->compute_interface;
 
   zmin = fix_rheo->zmin_kernel;
   h = fix_rheo->h;
@@ -133,22 +125,8 @@ void ComputeRHEOKernel::init()
     pre_wp = pre_w * 3.0 * hinv;
   }
 
-  // Create coordination array if it doesn't already exist
-  // Create a custom atom property so it works with compute property/atom
-  // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_store exceeded
-
-  int tmp1, tmp2;
-  int nmax = atom->nmax;
-  int index = atom->find_custom("rheo_coordination", tmp1, tmp2);
-  if (index == -1) {
-    index = atom->add_custom("rheo_coordination", 0, 0);
-    nmax_store = nmax;
-  }
-  coordination = atom->ivector[index];
-
-  // Create local arrays for kernel arrays, I can't foresee a reason to print
-
+  nmax_store = atom->nmax;
+  memory->create(coordination, nmax_store, "rheo:coordination");
   if (kernel_style == CRK0) {
     memory->create(C0, nmax_store, "rheo/kernel:C0");
   } else if (kernel_style == CRK1) {
@@ -499,7 +477,7 @@ void ComputeRHEOKernel::compute_peratom()
   if (kernel_style == QUINTIC) return;
 
   int i, j, ii, jj, inum, jnum, itype, g, a, b, gsl_error;
-  double xtmp, ytmp, ztmp, r, rsq, w, vj;
+  double xtmp, ytmp, ztmp, r, rsq, w, vj, rhoj;
   double dx[3];
   gsl_matrix_view gM;
 
@@ -549,10 +527,12 @@ void ComputeRHEOKernel::compute_peratom()
         if (rsq < hsq) {
           r = sqrt(rsq);
           w = calc_w_quintic(i,j,dx[0],dx[1],dx[2],r);
-          if (!(status[j] & STATUS_FLUID) && solid_flag) {
-            vj = mass[type[j]] / compute_interface->correct_rho(j,i);
-          } else vj = mass[type[j]] / rho[j];
+          rhoj = rho[j];
+          if (interface_flag)
+            if (!(status[j] & STATUS_FLUID))
+              rhoj = compute_interface->correct_rho(j,i);
 
+          vj = mass[type[j]] / rhoj;
           M += w * vj;
         }
       }
@@ -596,11 +576,12 @@ void ComputeRHEOKernel::compute_peratom()
           r = sqrt(rsq);
           w = calc_w_quintic(i,j,dx[0],dx[1],dx[2],r);
 
-          if (solid_flag)
+          rhoj = rho[j];
+          if (interface_flag)
             if (!(status[j] & STATUS_FLUID))
-              vj = mass[type[j]]/compute_interface->correct_rho(j,i);
-          else
-            vj = mass[type[j]]/rho[j];
+              rhoj = compute_interface->correct_rho(j,i);
+
+          vj = mass[type[j]] / rhoj;
 
           //Populate the H-vector of polynomials (2D)
           if (dim == 2) {
@@ -759,7 +740,7 @@ void ComputeRHEOKernel::compute_coordination()
 
 void ComputeRHEOKernel::grow_arrays(int nmax)
 {
-  memory->grow(coordination, nmax, "atom:rheo_coordination");
+  memory->grow(coordination, nmax, "rheo:coordination");
 
   if (kernel_style == CRK0) {
     memory->grow(C0, nmax, "rheo/kernel:C0");

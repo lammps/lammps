@@ -13,20 +13,20 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(rheo,AtomVecRHEO);
+AtomStyle(rheo/thermal,AtomVecRHEOThermal);
 // clang-format on
 #else
 
-#ifndef LMP_ATOM_VEC_RHEO_H
-#define LMP_ATOM_VEC_RHEO_H
+#ifndef LMP_ATOM_VEC_RHEO_THERMAL_H
+#define LMP_ATOM_VEC_RHEO_THERMAL_H
 
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {
 
-class AtomVecRHEO : virtual public AtomVec {
+class AtomVecRHEOThermal : virtual public AtomVec {
  public:
-  AtomVecRHEO(class LAMMPS *);
+  AtomVecRHEOThermal(class LAMMPS *);
 
   void grow_pointers() override;
   void force_clear(int, size_t) override;
@@ -36,6 +36,7 @@ class AtomVecRHEO : virtual public AtomVec {
 
  private:
   int *status;
+  double *conductivity, *temperature, *heatflow;
   double *pressure, *rho, *drho, *viscosity;
 };
 

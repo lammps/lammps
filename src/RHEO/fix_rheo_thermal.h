@@ -37,29 +37,22 @@ class FixRHEOThermal : public Fix {
   void pre_force(int) override;
   void final_integrate() override;
   void reset_dt() override;
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
-  int pack_reverse_comm(int, int, double *) override;
-  void unpack_reverse_comm(int, int *, double *) override;
-  double memory_usage() override;
+  double calc_cv(int);
 
  private:
   double *cv_type, cv;
   double *Tc_type, Tc;
   double *kappa_type, kappa;
   double dtf, dtv;
-  double *conductivity;
   int Tc_style;
   int cv_style;
   int conductivity_style;
-  int first_flag, last_flag;
-  int nmax_store;
 
   class FixRHEO *fix_rheo;
   class ComputeRHEOGrad *compute_grad;
   class ComputeRHEOVShift *compute_vshift;
 
-  double calc_cv(int);
+  void grow_array(int);
 };
 
 }    // namespace LAMMPS_NS

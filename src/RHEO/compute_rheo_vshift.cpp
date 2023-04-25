@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "compute_rheo_interface.h"
 #include "compute_rheo_kernel.h"
+#include "compute_rheo_surface.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
@@ -38,36 +39,22 @@ using namespace RHEO_NS;
 
 ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), list(nullptr), vshift(nullptr), fix_rheo(nullptr),
-  compute_kernel(nullptr), compute_interface(nullptr)
+  compute_kernel(nullptr), compute_interface(nullptr), compute_surface(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute RHEO/VShift command");
 
   comm_reverse = 3;
   surface_flag = 0;
 
-  // Create vshift array if it doesn't already exist
-  // Create a custom atom property so it works with compute property/atom
-  // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_store exceeded
-
-  int tmp1, tmp2;
-  int index = atom->find_custom("rheo_vshift", tmp1, tmp2);
-  if (index == -1) {
-    index = atom->add_custom("rheo_vshift", 1, 3);
-    nmax_store = atom->nmax;
-  }
-  vshift = atom->darray[index];
+  nmax_store = atom->nmax;
+  memory->create(vshift, nmax_store, 3, "rheo:vshift");
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOVShift::~ComputeRHEOVShift()
 {
-  // Remove custom property if it exists
-  int tmp1, tmp2, index;
-  index = atom->find_custom("rheo_vshift", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index, 1, 3);
-
+  memory->destroy(vshift);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,12 +63,12 @@ void ComputeRHEOVShift::init()
 {
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 
-  surface_flag = 0;
-  if (fix_rheo->surface_flag)
-    surface_flag = 1;
+  surface_flag = fix_rheo->surface_flag;
+  interface_flag = fix_rheo->interface_flag;
 
   compute_kernel = fix_rheo->compute_kernel;
   compute_interface = fix_rheo->compute_interface;
+  compute_surface = fix_rheo->compute_surface;
 
   cut = fix_rheo->cut;
   cutsq = cut * cut;
@@ -128,7 +115,7 @@ void ComputeRHEOVShift::compute_peratom()
   firstneigh = list->firstneigh;
 
   if (nmax_store < atom->nmax) {
-    memory->grow(vshift, atom->nmax, 3, "atom:rheo_vshift");
+    memory->grow(vshift, atom->nmax, 3, "rheo:vshift");
     nmax_store = atom->nmax;
   }
 
@@ -176,15 +163,17 @@ void ComputeRHEOVShift::compute_peratom()
         rhoj = rho[j];
 
         // Add corrections for walls
-        if (fluidi && (!fluidj)) {
-          compute_interface->correct_v(vi, vj, i, j);
-          rhoj = compute_interface->correct_rho(j,i);
-        } else if ((!fluidi) && fluidj) {
-          compute_interface->correct_v(vj, vi, j, i);
-          rhoi = compute_interface->correct_rho(i,j);
-        } else if ((!fluidi) && (!fluidj)) {
-          rhoi = 1.0;
-          rhoj = 1.0;
+        if (interface_flag) {
+          if (fluidi && (!fluidj)) {
+            compute_interface->correct_v(vi, vj, i, j);
+            rhoj = compute_interface->correct_rho(j,i);
+          } else if ((!fluidi) && fluidj) {
+            compute_interface->correct_v(vj, vi, j, i);
+            rhoi = compute_interface->correct_rho(i,j);
+          } else if ((!fluidi) && (!fluidj)) {
+            rhoi = 1.0;
+            rhoj = 1.0;
+          }
         }
 
         voli = imass / rhoi;
@@ -227,30 +216,28 @@ void ComputeRHEOVShift::correct_surfaces()
 {
   if (!surface_flag) return;
 
+  int i, a, b;
+
   int *status = atom->status;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  int i, a, b;
-  int dim = domain->dimension;
+  double **nsurface = compute_surface->nsurface;
 
-  int tmp1, tmp2;
-  int index_nsurf = atom->find_custom("rheo_nsurf", tmp1, tmp2);
-  if (index_nsurf == -1) error->all(FLERR, "Cannot find rheo nsurf");
-  double **nsurf = atom->darray[index_nsurf];
+  int nlocal = atom->nlocal;
+  int dim = domain->dimension;
 
   double nx,ny,nz,vx,vy,vz;
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if ((status[i] & STATUS_SURFACE) || (status[i] & STATUS_LAYER)) {
-        nx = nsurf[i][0];
-        ny = nsurf[i][1];
+        nx = nsurface[i][0];
+        ny = nsurface[i][1];
         vx = vshift[i][0];
         vy = vshift[i][1];
         vz = vshift[i][2];
         vshift[i][0] = (1 - nx * nx) * vx - nx * ny * vy;
         vshift[i][1] = (1 - ny * ny) * vy - nx * ny * vx;
         if (dim > 2) {
-          nz = nsurf[i][2];
+          nz = nsurface[i][2];
           vshift[i][0] -= nx * nz * vz;
           vshift[i][1] -= ny * nz * vz;
           vshift[i][2] = (1 - nz * nz) * vz - nz * ny * vy - nx * nz * vx;

@@ -42,11 +42,12 @@ class ComputeRHEOVShift : public Compute {
  private:
   int nmax_store;
   double dtv, cut, cutsq, cutthird;
-  int surface_flag;
+  int surface_flag, interface_flag;
 
   class NeighList *list;
-  class ComputeRHEOInterface *compute_interface ;
+  class ComputeRHEOInterface *compute_interface;
   class ComputeRHEOKernel *compute_kernel;
+  class ComputeRHEOSurface *compute_surface;
 };
 
 }    // namespace LAMMPS_NS

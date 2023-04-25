@@ -38,7 +38,7 @@ static constexpr double SEVENTH = 1.0 / 7.0;
 /* ---------------------------------------------------------------------- */
 
 FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), fix_rheo(nullptr), pressure(nullptr)
+  Fix(lmp, narg, arg), fix_rheo(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 

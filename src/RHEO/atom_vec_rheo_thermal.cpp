@@ -16,7 +16,7 @@
    Joel Clemmer (SNL), Thomas O'Connor (CMU), Eric Palermo (CMU)
 ----------------------------------------------------------------------- */
 
-#include "atom_vec_rheo.h"
+#include "atom_vec_rheo_thermal.h"
 
 #include "atom.h"
 
@@ -26,13 +26,16 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecRHEO::AtomVecRHEO(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecRHEOThermal::AtomVecRHEOThermal(LAMMPS *lmp) : AtomVec(lmp)
 {
   molecular = Atom::ATOMIC;
   mass_type = PER_TYPE;
   forceclearflag = 1;
 
   atom->status_flag = 1;
+  atom->conductivity_flag = 1;
+  atom->temperature_flag = 1;
+  atom->heatflow_flag = 1;
   atom->pressure_flag = 1;
   atom->rho_flag = 1;
   atom->viscosity_flag = 1;
@@ -42,17 +45,17 @@ AtomVecRHEO::AtomVecRHEO(LAMMPS *lmp) : AtomVec(lmp)
   // order of fields in a string does not matter
   // except: fields_data_atom & fields_data_vel must match data file
 
-  fields_grow = {"status", "rho", "drho", "pressure", "viscosity"};
-  fields_copy = {"status", "rho", "drho", "pressure", "viscosity"};
-  fields_comm = {"status", "rho"};
-  fields_comm_vel = {"status", "rho"};
-  fields_reverse = {"drho"};
-  fields_border = {"status", "rho"};
-  fields_border_vel = {"status", "rho"};
-  fields_exchange = {"status", "rho"};
-  fields_restart = {"status", "rho"};
-  fields_create = {"status", "rho", "drho", "pressure", "viscosity"};
-  fields_data_atom = {"id", "type", "status", "rho", "x"};
+  fields_grow = {"status", "rho", "drho", "temperature", "heatflow", "conductivity", "pressure", "viscosity"};
+  fields_copy = {"status", "rho", "drho", "temperature", "heatflow", "conductivity", "pressure", "viscosity"};
+  fields_comm = {"status", "rho", "temperature"};
+  fields_comm_vel = {"status", "rho", "temperature"};
+  fields_reverse = {"drho", "heatflow"};
+  fields_border = {"status", "rho", "temperature"};
+  fields_border_vel = {"status", "rho", "temperature"};
+  fields_exchange = {"status", "rho", "temperature"};
+  fields_restart = {"status", "rho", "temperature"};
+  fields_create = {"status", "rho", "drho", "temperature", "heatflow", "conductivity", "pressure", "viscosity"};
+  fields_data_atom = {"id", "type", "status", "rho", "temperature", "x"};
   fields_data_vel = {"id", "v"};
 
   setup_fields();
@@ -63,9 +66,12 @@ AtomVecRHEO::AtomVecRHEO(LAMMPS *lmp) : AtomVec(lmp)
    needed in replicate when 2 atom classes exist and it calls pack_restart()
 ------------------------------------------------------------------------- */
 
-void AtomVecRHEO::grow_pointers()
+void AtomVecRHEOThermal::grow_pointers()
 {
   status = atom->status;
+  conductivity = atom->conductivity;
+  temperature = atom->temperature;
+  heatflow = atom->heatflow;
   pressure = atom->pressure;
   rho = atom->rho;
   drho = atom->drho;
@@ -77,9 +83,10 @@ void AtomVecRHEO::grow_pointers()
    nbytes = # of bytes to clear for a per-atom vector
 ------------------------------------------------------------------------- */
 
-void AtomVecRHEO::force_clear(int n, size_t nbytes)
+void AtomVecRHEOThermal::force_clear(int n, size_t nbytes)
 {
   memset(&drho[n], 0, nbytes);
+  memset(&heatflow[n], 0, nbytes);
 }
 
 /* ----------------------------------------------------------------------
@@ -87,11 +94,13 @@ void AtomVecRHEO::force_clear(int n, size_t nbytes)
    or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecRHEO::data_atom_post(int ilocal)
+void AtomVecRHEOThermal::data_atom_post(int ilocal)
 {
   drho[ilocal] = 0.0;
+  heatflow[ilocal] = 0.0;
   pressure[ilocal] = 0.0;
   viscosity[ilocal] = 0.0;
+  conductivity[ilocal] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -99,13 +108,16 @@ void AtomVecRHEO::data_atom_post(int ilocal)
    return -1 if name is unknown to this atom style
 ------------------------------------------------------------------------- */
 
-int AtomVecRHEO::property_atom(const std::string &name)
+int AtomVecRHEOThermal::property_atom(const std::string &name)
 {
   if (name == "status") return 0;
-  if (name == "pressure") return 1;
-  if (name == "rho") return 2;
-  if (name == "drho") return 3;
-  if (name == "viscosity") return 4;
+  if (name == "rho") return 1;
+  if (name == "drho") return 2;
+  if (name == "temperature") return 3;
+  if (name == "heatflow") return 4;
+  if (name == "conductivity") return 5;
+  if (name == "pressure") return 6;
+  if (name == "viscosity") return 7;
   return -1;
 }
 
@@ -114,7 +126,7 @@ int AtomVecRHEO::property_atom(const std::string &name)
    index maps to data specific to this atom style
 ------------------------------------------------------------------------- */
 
-void AtomVecRHEO::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
+void AtomVecRHEOThermal::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -131,7 +143,7 @@ void AtomVecRHEO::pack_property_atom(int index, double *buf, int nvalues, int gr
   } else if (index == 1) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit)
-        buf[n] = pressure[i];
+        buf[n] = rho[i];
       else
         buf[n] = 0.0;
       n += nvalues;
@@ -139,7 +151,7 @@ void AtomVecRHEO::pack_property_atom(int index, double *buf, int nvalues, int gr
   } else if (index == 2) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit)
-        buf[n] = rho[i];
+        buf[n] = drho[i];
       else
         buf[n] = 0.0;
       n += nvalues;
@@ -147,12 +159,36 @@ void AtomVecRHEO::pack_property_atom(int index, double *buf, int nvalues, int gr
   } else if (index == 3) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit)
-        buf[n] = drho[i];
+        buf[n] = temperature[i];
       else
         buf[n] = 0.0;
       n += nvalues;
     }
   } else if (index == 4) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit)
+        buf[n] = heatflow[i];
+      else
+        buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 5) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit)
+        buf[n] = conductivity[i];
+      else
+        buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 6) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit)
+        buf[n] = pressure[i];
+      else
+        buf[n] = 0.0;
+      n += nvalues;
+    }
+  } else if (index == 7) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit)
         buf[n] = viscosity[i];

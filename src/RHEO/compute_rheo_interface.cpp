@@ -46,24 +46,35 @@ ComputeRHEOInterface::ComputeRHEOInterface(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all(FLERR,"Illegal compute rheo/interface command");
 
-  nmax_store = 0;
-
   comm_forward = 3;
   comm_reverse = 4;
+
+  nmax_store = atom->nmax;
+  memory->create(chi, nmax_store, "rheo:chi");
+  memory->create(norm, nmax_store, "rheo/interface:norm");
+  memory->create(normwf, nmax_store, "rheo/interface:normwf");
+
+  // For fp_store, create an instance of fix property atom
+  // Need restarts + exchanging with neighbors since it needs to persist
+  // between timesteps (fix property atom will handle callbacks)
+
+  int tmp1, tmp2;
+  int index = atom->find_custom("fp_store", tmp1, tmp2);
+  if (index == -1) {
+    id_fix_pa = utils::strdup(id + std::string("_fix_property_atom"));
+    modify->add_fix(fmt::format("{} all property/atom d2_fp_store 3", id_fix_pa));
+    index = atom->find_custom("fp_store", tmp1, tmp2);
+  }
+  fp_store = atom->darray[index];
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOInterface::~ComputeRHEOInterface()
 {
-  // Remove custom property if it exists
-  int tmp1, tmp2, index;
-  index = atom->find_custom("rheo_chi", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index, 1, 0);
-
   if (id_fix_pa && modify->nfix) modify->delete_fix(id_fix_pa);
   delete[] id_fix_pa;
-
+  memory->destroy(chi);
   memory->destroy(norm);
   memory->destroy(normwf);
 }
@@ -80,37 +91,6 @@ void ComputeRHEOInterface::init()
   cutsq = cut * cut;
   wall_max = sqrt(3.0) / 12.0 * cut;
 
-  // Create chi array if it doesn't already exist
-  // Create a custom atom property so it works with compute property/atom
-  // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_store exceeded
-
-  int tmp1, tmp2;
-  int nmax = atom->nmax;
-  int index = atom->find_custom("rheo_chi", tmp1, tmp2);
-  if (index == -1) {
-    index = atom->add_custom("rheo_chi", 1, 0);
-    memory->destroy(norm);
-    memory->destroy(normwf);
-    memory->create(norm, nmax, "rheo/interface:norm");
-    memory->create(normwf, nmax, "rheo/interface:normwf");
-    nmax_store = nmax;
-  }
-  chi = atom->dvector[index];
-
-  // For fp_store, go ahead and create an instance of fix property atom
-  // Need restarts + exchanging with neighbors since it needs to persist
-  // between timesteps (fix property atom will handle callbacks)
-
-  index = atom->find_custom("fp_store", tmp1, tmp2);
-  if (index == -1) {
-    id_fix_pa = utils::strdup(id + std::string("_fix_property_atom"));
-    modify->add_fix(fmt::format("{} all property/atom d2_fp_store 3", id_fix_pa));
-    index = atom->find_custom("fp_store", tmp1, tmp2);
-  }
-  fp_store = atom->darray[index];
-
-  // need an occasional half neighbor list
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 }
 
@@ -145,11 +125,9 @@ void ComputeRHEOInterface::compute_peratom()
 
   if (atom->nmax > nmax_store) {
     nmax_store = atom->nmax;
-    memory->destroy(norm);
-    memory->destroy(normwf);
-    memory->create(norm, nmax_store, "rheo/interface:norm");
-    memory->create(normwf, nmax_store, "rheo/interface:normwf");
-    memory->grow(chi, nmax_store, "rheo/interface:chi");
+    memory->grow(norm, nmax_store, "rheo/interface:norm");
+    memory->grow(normwf, nmax_store, "rheo/interface:normwf");
+    memory->grow(chi, nmax_store, "rheo:chi");
   }
 
   for (i = 0; i < nall; i++) {

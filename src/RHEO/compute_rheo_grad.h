@@ -46,14 +46,14 @@ class ComputeRHEOGrad : public Compute {
 
  private:
   int comm_stage, ncomm_grad, ncomm_field, nmax_store;
-  int index_visc;
   double cut, cutsq, rho0;
-  class NeighList *list;
+
+  int velocity_flag, temperature_flag, rho_flag, eta_flag;
+  int interface_flag;
 
   class ComputeRHEOKernel *compute_kernel;
   class ComputeRHEOInterface *compute_interface;
-
-  int velocity_flag, temperature_flag, rho_flag, eta_flag;
+  class NeighList *list;
 
   void grow_arrays(int);
 };

@@ -60,8 +60,12 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
   if (igroup != 0)
     error->all(FLERR,"fix rheo command requires group all");
 
+  if (atom->pressure_flag != 1)
+    error->all(FLERR,"fix rheo command requires atom_style with pressure");
   if (atom->rho_flag != 1)
     error->all(FLERR,"fix rheo command requires atom_style with density");
+  if (atom->viscosity_flag != 1)
+    error->all(FLERR,"fix rheo command requires atom_style with viscosity");
   if (atom->status_flag != 1)
     error->all(FLERR,"fix rheo command requires atom_style with status");
 

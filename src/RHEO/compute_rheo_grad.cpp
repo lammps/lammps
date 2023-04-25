@@ -84,69 +84,34 @@ ComputeRHEOGrad::ComputeRHEOGrad(LAMMPS *lmp, int narg, char **arg) :
   }
 
   comm_forward = ncomm_grad;
+
+  nmax_store = 0;
+  grow_arrays(atom->nmax);
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOGrad::~ComputeRHEOGrad()
 {
-  int dim = domain->dimension;
-  int tmp1, tmp2, index;
-
-  index = atom->find_custom("rheo_grad_v", tmp1, tmp2);
-  if (index != 1) atom->remove_custom(index, 1, dim * dim);
-  index = atom->find_custom("rheo_grad_rho", tmp1, tmp2);
-  if (index != 1)  atom->remove_custom(index, 1, dim);
-  index = atom->find_custom("rheo_grad_t", tmp1, tmp2);
-  if (index != 1)  atom->remove_custom(index, 1, dim);
-  index = atom->find_custom("rheo_grad_eta", tmp1, tmp2);
-  if (index != 1)  atom->remove_custom(index, 1, dim);
+  memory->destroy(gradv);
+  memory->destroy(gradr);
+  memory->destroy(gradt);
+  memory->destroy(gradn);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeRHEOGrad::init()
 {
-  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
-
   cut = fix_rheo->cut;
   cutsq = cut * cut;
   rho0 = fix_rheo->rho0;
+  interface_flag = fix_rheo->interface_flag;
   compute_kernel = fix_rheo->compute_kernel;
   compute_interface = fix_rheo->compute_interface;
 
-  int tmp1, tmp2;
-  index_visc = atom->find_custom("rheo_viscosity", tmp1, tmp2);
-
-  // Create coordination array if it doesn't already exist
-  // Create a custom atom property so it works with compute property/atom
-  // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_store exceeded
-
-  int index;
-  int dim = domain->dimension;
-  if (velocity_flag) {
-    index = atom->add_custom("rheo_grad_v", 1, dim * dim);
-    gradv = atom->darray[index];
-  }
-
-  if (rho_flag) {
-    index = atom->add_custom("rheo_grad_rho", 1, dim);
-    gradr = atom->darray[index];
-  }
-
-  if (temperature_flag) {
-    index= atom->add_custom("rheo_grad_temp", 1, dim);
-    gradt = atom->darray[index];
-  }
-
-  if (eta_flag) {
-    index = atom->add_custom("rheo_grad_eta", 1, dim);
-    gradn = atom->darray[index];
-  }
-
-  nmax_store = 0;
-  grow_arrays(atom->nmax);
+  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -175,7 +140,7 @@ void ComputeRHEOGrad::compute_peratom()
   double **v = atom->v;
   double *rho = atom->rho;
   double *temperature = atom->temperature;
-  double *viscosity = atom->dvector[index_visc];
+  double *viscosity = atom->viscosity;
   int *status = atom->status;
   int *type = atom->type;
   double *mass = atom->mass;
@@ -240,15 +205,17 @@ void ComputeRHEOGrad::compute_peratom()
         vj[2] = v[j][2];
 
         // Add corrections for walls
-        if ((status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
-          compute_interface->correct_v(vi, vj, i, j);
-          rhoj = compute_interface->correct_rho(j, i);
-        } else if (!(status[i] & STATUS_FLUID) && (status[j] & STATUS_FLUID)) {
-          compute_interface->correct_v(vj, vi, j, i);
-          rhoi = compute_interface->correct_rho(i, j);
-        } else if (!(status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
-          rhoi = rho0;
-          rhoj = rho0;
+        if (interface_flag) {
+          if ((status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
+            compute_interface->correct_v(vi, vj, i, j);
+            rhoj = compute_interface->correct_rho(j, i);
+          } else if (!(status[i] & STATUS_FLUID) && (status[j] & STATUS_FLUID)) {
+            compute_interface->correct_v(vj, vi, j, i);
+            rhoi = compute_interface->correct_rho(i, j);
+          } else if (!(status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
+            rhoi = rho0;
+            rhoj = rho0;
+          }
         }
 
         Voli = mass[itype] / rhoi;
@@ -481,16 +448,16 @@ void ComputeRHEOGrad::grow_arrays(int nmax)
 {
   int dim = domain->dimension;
   if (velocity_flag)
-    memory->grow(gradv, nmax, dim * dim, "atom:rheo_grad_v");
+    memory->grow(gradv, nmax, dim * dim, "rheo:grad_v");
 
   if (rho_flag)
-    memory->grow(gradr, nmax, dim, "atom:rheo_grad_rho");
+    memory->grow(gradr, nmax, dim, "rheo:grad_rho");
 
   if (temperature_flag)
-    memory->grow(gradt, nmax, dim, "atom:rheo_grad_temp");
+    memory->grow(gradt, nmax, dim, "rheo:grad_temp");
 
   if (eta_flag)
-    memory->grow(gradn, nmax, dim, "atom:rheo_grad_eta");
+    memory->grow(gradn, nmax, dim, "rheo:grad_eta");
   nmax_store = nmax;
 }
 

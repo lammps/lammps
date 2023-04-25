@@ -36,13 +36,13 @@ class ComputeRHEOSurface : public Compute {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
-  double **nsurface, *rsurface;
+  double **nsurface, *rsurface, *divr;
   class FixRHEO *fix_rheo;
 
  private:
   double cut, cutsq, rho0, threshold_divr;
   int surface_style, nmax_store, threshold_z;
-  double **B, **gradC, *divr;
+  double **B, **gradC;
   int threshold_style, comm_stage;
 
   class NeighList *list;

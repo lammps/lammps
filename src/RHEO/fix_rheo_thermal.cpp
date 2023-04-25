@@ -40,16 +40,13 @@ enum {NONE, CONSTANT, TYPE};
 
 FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), fix_rheo(nullptr), compute_grad(nullptr), compute_vshift(nullptr),
-  Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr), conductivity(nullptr)
+  Tc_type(nullptr), kappa_type(nullptr), cv_type(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
   Tc_style = NONE;
   cv_style = NONE;
   conductivity_style = NONE;
-
-  comm_forward = 1;
-  nmax_store = 0;
 
   int ntypes = atom->ntypes;
   int iarg = 3;
@@ -170,9 +167,11 @@ void FixRHEOThermal::init()
   dtf = 0.5 * update->dt * force->ftm2v;
 
   if (atom->temperature_flag != 1)
-    error->all(FLERR,"fix rheo/thermal command requires atoms store temperature property");
+    error->all(FLERR,"fix rheo/thermal command requires atom property temperature");
   if (atom->heatflow_flag != 1)
-    error->all(FLERR,"fix rheo/thermal command requires atoms store heatflow property");
+    error->all(FLERR,"fix rheo/thermal command requires atom property heatflow");
+  if (atom->conductivity_flag != 1)
+    error->all(FLERR,"fix rheo/thermal command requires atom property conductivity");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -180,34 +179,6 @@ void FixRHEOThermal::init()
 void FixRHEOThermal::setup_pre_force(int /*vflag*/)
 {
   fix_rheo->thermal_fix_defined = 1;
-
-  // Identify whether this is the first/last instance of fix thermal
-  // First will grow arrays, last will communicate
-  first_flag = 0;
-  last_flag = 0;
-
-  int i = 0;
-  auto fixlist = modify->get_fix_by_style("rheo/thermal");
-  for (const auto &fix : fixlist) {
-    if (strcmp(fix->id, id) == 0) break;
-    i++;
-  }
-
-  if (i == 0) first_flag = 1;
-  if ((i + 1) == fixlist.size()) last_flag = 1;
-
-  // Create conductivity array if it doesn't already exist
-  // Create a custom atom property so it works with compute property/atom
-  // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_store exceeded
-
-  int tmp1, tmp2;
-  int index = atom->find_custom("rheo_conductivity", tmp1, tmp2);
-  if (index== -1) {
-    index = atom->add_custom("rheo_conductivity", 1, 0);
-    nmax_store = atom->nmax;
-  }
-  conductivity = atom->dvector[index];
 
   post_neighbor();
   pre_force(0);
@@ -294,13 +265,9 @@ void FixRHEOThermal::post_neighbor()
   int i;
   int *type = atom->type;
   int *mask = atom->mask;
+  double *conductivity = atom->conductivity;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-
-  if (first_flag && (nmax_store < atom->nmax)) {
-    memory->grow(conductivity, atom->nmax, "atom:rheo_conductivity");
-    nmax_store = atom->nmax;
-  }
 
   if (conductivity_style == CONSTANT) {
     for (i = 0; i < nall; i++)
@@ -312,39 +279,11 @@ void FixRHEOThermal::post_neighbor()
 }
 
 /* ----------------------------------------------------------------------
-  Update (and forward) evolving conductivity styles every timestep
-  Zero heat flow
+  In the future, update & forward evolving conductivity styles every timestep
 ------------------------------------------------------------------------- */
 
 void FixRHEOThermal::pre_force(int /*vflag*/)
 {
-  // send updated temperatures to ghosts if first instance of fix
-  // then clear heatflow for next force calculation
-  double *heatflow = atom->heatflow;
-  if (first_flag) {
-    comm->forward_comm(this);
-    for (int i = 0; i < atom->nmax; i++) heatflow[i] = 0.0;
-  }
-
-  // Not needed yet, when needed add stage check for (un)pack_forward_comm() methods
-  //int i;
-  //double *conductivity = atom->dvector[index_cond];
-  //int *mask = atom->mask;
-  //int nlocal = atom->nlocal;
-
-  //if (first_flag && (nmax_store < atom->nmax)) {
-  //  memory->grow(conductivity, atom->nmax, "atom:rheo_conductivity");
-  //  nmax_store = atom->nmax;
-  //}
-
-  //if (conductivity_style == TBD) {
-  //  for (i = 0; i < nlocal; i++) {
-  //    if (mask[i] & groupbit) {
-  //    }
-  //  }
-  //}
-
-  //if (last_flag && comm_forward) comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -386,70 +325,4 @@ double FixRHEOThermal::calc_cv(int i)
   } else if (cv_style == TYPE) {
     return(cv_type[atom->type[i]]);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixRHEOThermal::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
-{
-  int i, j, m;
-
-  double *temperature = atom->temperature;
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    buf[m++] = temperature[j];
-  }
-
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixRHEOThermal::unpack_forward_comm(int n, int first, double *buf)
-{
-  int i, m, last;
-
-  m = 0;
-  last = first + n;
-
-  double *temperature = atom->temperature;
-
-  for (i = first; i < last; i++) temperature[i] = buf[m++];
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixRHEOThermal::pack_reverse_comm(int n, int first, double *buf)
-{
-  int m = 0;
-  int last = first + n;
-  double *heatflow = atom->heatflow;
-
-  for (int i = first; i < last; i++) {
-    buf[m++] = heatflow[i];
-  }
-
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixRHEOThermal::unpack_reverse_comm(int n, int *list, double *buf)
-{
-  int m = 0;
-  double *heatflow = atom->heatflow;
-
-  for (int i = 0; i < n; i++)
-    heatflow[list[i]] += buf[m++];
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixRHEOThermal::memory_usage()
-{
-  double bytes = 0.0;
-  bytes += (size_t) nmax_store * sizeof(double);
-  return bytes;
 }

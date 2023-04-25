@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,22 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "gran_sub_mod_normal.h"
-#include "granular_model.h"
 #include "error.h"
+#include "granular_model.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
-using namespace MathConst;
 
-#define PI27SQ 266.47931882941264802866    // 27*PI**2
-#define THREEROOT3 5.19615242270663202362  // 3*sqrt(3)
-#define SIXROOT6 14.69693845669906728801   // 6*sqrt(6)
-#define INVROOT6 0.40824829046386307274    // 1/sqrt(6)
-#define FOURTHIRDS (4.0/3.0)               // 4/3
-#define ONETHIRD (1.0/3.0)                 // 1/3
-#define THREEQUARTERS 0.75                 // 3/4
-#define JKRPREFIX 1.2277228507842888       // cbrt(3*PI**2/16)
+using MathConst::MY_2PI;
+using MathConst::MY_PI;
+
+static constexpr double PI27SQ = 266.47931882941264802866;      // 27*PI**2
+static constexpr double THREEROOT3 = 5.19615242270663202362;    // 3*sqrt(3)
+static constexpr double SIXROOT6 = 14.69693845669906728801;     // 6*sqrt(6)
+static constexpr double INVROOT6 = 0.40824829046386307274;      // 1/sqrt(6)
+static constexpr double FOURTHIRDS = (4.0 / 3.0);               // 4/3
+static constexpr double JKRPREFIX = 1.2277228507842888;         // cbrt(3*PI**2/16)
 
 /* ----------------------------------------------------------------------
    Default normal model
@@ -74,7 +73,10 @@ void GranSubModNormal::set_fncrit()
    No model
 ------------------------------------------------------------------------- */
 
-GranSubModNormalNone::GranSubModNormalNone(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp) {}
+GranSubModNormalNone::GranSubModNormalNone(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormal(gm, lmp)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -87,7 +89,8 @@ double GranSubModNormalNone::calculate_forces()
    Hookean normal force
 ------------------------------------------------------------------------- */
 
-GranSubModNormalHooke::GranSubModNormalHooke(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+GranSubModNormalHooke::GranSubModNormalHooke(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormal(gm, lmp)
 {
   num_coeffs = 2;
 }
@@ -113,7 +116,8 @@ double GranSubModNormalHooke::calculate_forces()
    Hertzian normal force
 ------------------------------------------------------------------------- */
 
-GranSubModNormalHertz::GranSubModNormalHertz(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+GranSubModNormalHertz::GranSubModNormalHertz(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormal(gm, lmp)
 {
   num_coeffs = 2;
   contact_radius_flag = 1;
@@ -140,7 +144,8 @@ double GranSubModNormalHertz::calculate_forces()
    Hertzian normal force with material properties
 ------------------------------------------------------------------------- */
 
-GranSubModNormalHertzMaterial::GranSubModNormalHertzMaterial(GranularModel *gm, LAMMPS *lmp) : GranSubModNormalHertz(gm, lmp)
+GranSubModNormalHertzMaterial::GranSubModNormalHertzMaterial(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormalHertz(gm, lmp)
 {
   material_properties = 1;
   num_coeffs = 3;
@@ -165,9 +170,9 @@ void GranSubModNormalHertzMaterial::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubModNormalHertzMaterial::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModNormalHertzMaterial::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
-  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
+  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs_to_local();
@@ -204,9 +209,9 @@ void GranSubModNormalDMT::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubModNormalDMT::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModNormalDMT::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
-  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
+  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs[3] = mix_geom(icoeffs[3], jcoeffs[3]);
@@ -265,9 +270,9 @@ void GranSubModNormalJKR::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubModNormalJKR::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModNormalJKR::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
-  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
+  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs[3] = mix_geom(icoeffs[3], jcoeffs[3]);
@@ -301,7 +306,7 @@ double GranSubModNormalJKR::pulloff_distance(double radi, double radj)
 {
   double Reff_tmp;
 
-  Reff_tmp = radi * radj / (radi + radj); // May not be defined
+  Reff_tmp = radi * radj / (radi + radj);    // May not be defined
   if (Reff_tmp <= 0) return 0;
   // Defined as positive so center-to-center separation is > radsum
   return JKRPREFIX * cbrt(Reff_tmp * cohesion * cohesion / (Emix * Emix));
@@ -338,7 +343,8 @@ double GranSubModNormalJKR::calculate_forces()
 {
   double a2;
   a2 = gm->contact_radius * gm->contact_radius;
-  Fne = k * gm->contact_radius * a2 / gm->Reff - MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * gm->contact_radius));
+  Fne = k * gm->contact_radius * a2 / gm->Reff -
+      MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * gm->contact_radius));
   F_pulloff = 3.0 * MY_PI * cohesion * gm->Reff;
 
   return Fne;

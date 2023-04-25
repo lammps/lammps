@@ -61,6 +61,11 @@ heat conduction with a source term (see Fig.12 in :ref:`(Li2014) <Li2014b>`)
 or diffusion with a source term (see Fig.1 in :ref:`(Li2015) <Li2015b>`), as
 an analog of a periodic Poiseuille flow problem.
 
+.. deprecated:: TBD
+
+   The *sphere* and *cuboid* keywords will be removed in a future version
+   of LAMMPS.  The same functionality and more can be achieved with a region.
+
 If the *sphere* keyword is used, the *cx, cy, cz, radius* values define
 a spherical domain to apply the source flux to.
 

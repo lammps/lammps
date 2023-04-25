@@ -47,7 +47,7 @@ class GranSubModHeat;
 class GranularModel : protected Pointers {
  public:
   GranularModel(class LAMMPS *);
-  ~GranularModel();
+  ~GranularModel() override;
   void init();
   bool check_contact();
   void calculate_forces();

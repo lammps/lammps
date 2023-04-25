@@ -1,10 +1,9 @@
 BootStrap: docker
-From: library/almalinux:9
+From: library/almalinux:8
 
 %post
-        dnf -y install 'dnf-command(config-manager)'
-        dnf config-manager --set-enabled crb
         dnf -y install epel-release dnf-utils
+        dnf config-manager --set-enabled powertools
         dnf -y update
         dnf -y install vim-enhanced git file make cmake patch which file ninja-build \
                ccache gcc-c++ gcc-gfortran clang libomp-devel gdb valgrind libubsan libasan libtsan \
@@ -17,9 +16,8 @@ From: library/almalinux:9
                texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
-               blas-devel lapack-devel libyaml-devel \
-               yaml-cpp-devel zstd libzstd-devel python-unversioned-command
-               # voro++-devel  openkim-models kim-api-devel 
+               blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel \
+               yaml-cpp-devel zstd libzstd-devel
         dnf clean all
 
         # we need to reset any module variables
@@ -75,7 +73,7 @@ EOF
         CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
         cat >$CUSTOM_PROMPT_ENV <<EOF
 #!/bin/bash
-PS1="[almalinux9:\u@\h] \W> "
+PS1="[almalinux8:\u@\h] \W> "
 EOF
         chmod 755 $CUSTOM_PROMPT_ENV
 

@@ -13,25 +13,11 @@
 
 #ifdef GRAN_SUB_MOD_CLASS
 // clang-format off
-GranSubModStyle(none,
-         GranSubModDampingNone,
-         DAMPING);
-
-GranSubModStyle(velocity,
-         GranSubModDampingVelocity,
-         DAMPING);
-
-GranSubModStyle(mass_velocity,
-         GranSubModDampingMassVelocity,
-         DAMPING);
-
-GranSubModStyle(viscoelastic,
-         GranSubModDampingViscoelastic,
-         DAMPING);
-
-GranSubModStyle(tsuji,
-         GranSubModDampingTsuji,
-         DAMPING);
+GranSubModStyle(none,GranSubModDampingNone,DAMPING);
+GranSubModStyle(velocity,GranSubModDampingVelocity,DAMPING);
+GranSubModStyle(mass_velocity,GranSubModDampingMassVelocity,DAMPING);
+GranSubModStyle(viscoelastic,GranSubModDampingViscoelastic,DAMPING);
+GranSubModStyle(tsuji,GranSubModDampingTsuji,DAMPING);
 // clang-format on
 #else
 
@@ -44,58 +30,59 @@ GranSubModStyle(tsuji,
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-class GranSubModDamping : public GranSubMod {
- public:
-  GranSubModDamping(class GranularModel *, class LAMMPS *);
-  ~GranSubModDamping() {};
-  virtual void init();
-  virtual double calculate_forces() = 0;
-  double damp_prefactor; // Used by tangential models
- protected:
-  double damp;
-};
+  class GranSubModDamping : public GranSubMod {
+   public:
+    GranSubModDamping(class GranularModel *, class LAMMPS *);
+    void init() override;
+    virtual double calculate_forces() = 0;
+    double get_damp_prefactor() const { return damp_prefactor; }
 
-/* ---------------------------------------------------------------------- */
+   protected:
+    double damp_prefactor;
+    double damp;
+  };
 
-class GranSubModDampingNone : public GranSubModDamping {
- public:
-  GranSubModDampingNone(class GranularModel *, class LAMMPS *);
-  void init() override {};
-  double calculate_forces();
-};
+  /* ---------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
+  class GranSubModDampingNone : public GranSubModDamping {
+   public:
+    GranSubModDampingNone(class GranularModel *, class LAMMPS *);
+    void init() override{};
+    double calculate_forces() override;
+  };
 
-class GranSubModDampingVelocity : public GranSubModDamping {
- public:
-  GranSubModDampingVelocity(class GranularModel *, class LAMMPS *);
-  double calculate_forces();
-};
+  /* ---------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
+  class GranSubModDampingVelocity : public GranSubModDamping {
+   public:
+    GranSubModDampingVelocity(class GranularModel *, class LAMMPS *);
+    double calculate_forces() override;
+  };
 
-class GranSubModDampingMassVelocity : public GranSubModDamping {
- public:
-  GranSubModDampingMassVelocity(class GranularModel *, class LAMMPS *);
-  double calculate_forces();
-};
+  /* ---------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
+  class GranSubModDampingMassVelocity : public GranSubModDamping {
+   public:
+    GranSubModDampingMassVelocity(class GranularModel *, class LAMMPS *);
+    double calculate_forces() override;
+  };
 
-class GranSubModDampingViscoelastic : public GranSubModDamping {
- public:
-  GranSubModDampingViscoelastic(class GranularModel *, class LAMMPS *);
-  double calculate_forces();
-};
+  /* ---------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
+  class GranSubModDampingViscoelastic : public GranSubModDamping {
+   public:
+    GranSubModDampingViscoelastic(class GranularModel *, class LAMMPS *);
+    double calculate_forces() override;
+  };
 
-class GranSubModDampingTsuji : public GranSubModDamping {
- public:
-  GranSubModDampingTsuji(class GranularModel *, class LAMMPS *);
-  void init() override;
-  double calculate_forces();
-};
+  /* ---------------------------------------------------------------------- */
+
+  class GranSubModDampingTsuji : public GranSubModDamping {
+   public:
+    GranSubModDampingTsuji(class GranularModel *, class LAMMPS *);
+    void init() override;
+    double calculate_forces() override;
+  };
 
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS

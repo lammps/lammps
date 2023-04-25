@@ -2,6 +2,6 @@ RHEO or Reproducing Hydrodynamics and Elastic Objects is a package to model mult
 systems. The authors include Joel Clemmer (Sandia), Thomas O'Connor (Carnegie Mellon), and
 Eric Palermo (Carnegie Mellon).
 
-This package requires the GNU scientific library (GSL) version 2.7 or later. To build this
-package, one must first separately install GSL in a location that can be found by your
-environment.
+This package requires the GNU scientific library (GSL). We recommend version 2.7 or later. To
+build this package, one must first separately install GSL in a location that can be found by
+your environment.

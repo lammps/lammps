@@ -75,8 +75,8 @@ namespace RHEO_NS {
   enum Status{
     // Phase status
     STATUS_FLUID = 1 << 0,
-    STATUS_REACTIVE = 1 << 1,
-    STATUS_SOLID = 1 << 2,
+    STATUS_SOLID = 1 << 1,
+    STATUS_REACTIVE = 1 << 2,
     STATUS_FREEZING = 1 << 3,
     // Surface status
     STATUS_BULK = 1 << 4,

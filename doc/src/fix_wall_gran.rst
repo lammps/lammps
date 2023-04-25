@@ -1,7 +1,10 @@
 .. index:: fix wall/gran
+.. index:: fix wall/gran/kk
 
 fix wall/gran command
 =====================
+
+Accelerator Variants: *wall/gran/kk*
 
 Syntax
 """"""
@@ -120,18 +123,17 @@ material.
 .. note::
 
    As discussed on the page for :doc:`pair_style gran/\* <pair_gran>`,
-   versions of LAMMPS before 9Jan09 used a
-   different equation for Hertzian interactions.  This means Hertizian
-   wall/particle interactions have also changed.  They now include a
-   sqrt(radius) term which was not present before.  Also the previous
-   versions used Kn and Kt from the pairwise interaction and hardwired
-   dampflag to 1, rather than letting them be specified directly.  This
-   means you can set the values of the wall/particle coefficients
-   appropriately in the current code to reproduce the results of a
-   previous Hertzian monodisperse calculation.  For example, for the
-   common case of a monodisperse system with particles of diameter 1, Kn,
-   Kt, gamma_n, and gamma_s should be set sqrt(2.0) larger than they were
-   previously.
+   versions of LAMMPS before 9Jan09 used a different equation for
+   Hertzian interactions.  This means Hertizian wall/particle
+   interactions have also changed.  They now include a sqrt(radius) term
+   which was not present before.  Also the previous versions used Kn and
+   Kt from the pairwise interaction and hardwired dampflag to 1, rather
+   than letting them be specified directly.  This means you can set the
+   values of the wall/particle coefficients appropriately in the current
+   code to reproduce the results of a previous Hertzian monodisperse
+   calculation.  For example, for the common case of a monodisperse
+   system with particles of diameter 1, Kn, Kt, gamma_n, and gamma_s
+   should be set sqrt(2.0) larger than they were previously.
 
 The effective mass *m_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` page is the mass of the particle for
 particle/wall interactions (mass of wall is infinite).  If the
@@ -189,6 +191,12 @@ conduction model defined in :doc:`pair_style granular <pair_granular>`,
 :doc:`fix property/atom <fix_property_atom>` to store temperature and a
 heat flow, and :doc:`fix heat/flow <fix_heat_flow>` to integrate heat
 flow.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

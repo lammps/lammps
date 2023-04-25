@@ -63,7 +63,7 @@ ExpressionTreeNode::ExpressionTreeNode(Operation* operation) : operation(operati
 ExpressionTreeNode::ExpressionTreeNode(const ExpressionTreeNode& node) : operation(node.operation == NULL ? NULL : node.operation->clone()), children(node.getChildren()) {
 }
 
-ExpressionTreeNode::ExpressionTreeNode(ExpressionTreeNode&& node) : operation(node.operation), children(move(node.children)) {
+ExpressionTreeNode::ExpressionTreeNode(ExpressionTreeNode&& node) : operation(node.operation), children(std::move(node.children)) {
     node.operation = NULL;
     node.children.clear();
 }
@@ -108,7 +108,7 @@ ExpressionTreeNode& ExpressionTreeNode::operator=(ExpressionTreeNode&& node) {
     if (operation != NULL)
         delete operation;
     operation = node.operation;
-    children = move(node.children);
+    children = std::move(node.children);
     node.operation = NULL;
     node.children.clear();
     return *this;

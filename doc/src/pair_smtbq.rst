@@ -23,8 +23,9 @@ Description
 
 This pair style computes a variable charge SMTB-Q (Second-Moment
 tight-Binding QEq) potential as described in :ref:`SMTB-Q_1 <SMTB-Q_1>` and
-:ref:`SMTB-Q_2 <SMTB-Q_2>`. Briefly, the energy of metallic-oxygen systems
-is given by three contributions:
+:ref:`SMTB-Q_2 <SMTB-Q_2>`.
+This potential was first proposed in :ref:`SMTB-Q_0 <SMTB-Q_0>`.
+Briefly, the energy of metallic-oxygen systems is given by three contributions:
 
 .. math::
 
@@ -208,7 +209,7 @@ For each cations (metal):
 6) Coordination parameter:
 
 * First (:math:`r_{1n}`) and second (:math:`r_{2n}`) neighbor distances
-  in Angstrom
+  in angstroms
 * Divider line
 
 7) Charge initialization mode:
@@ -305,6 +306,12 @@ Please cite related publication: N. Salles, O. Politano, E. Amzallag
 and R. Tetot, Comput. Mater. Sci. 111 (2016) 181-189
 
 ----------
+
+.. _SMTB-Q_0:
+
+**(SMTB-Q_0)** A. Hallil, E. Amzallag, S. Landron, R. Tetot,
+Surface Science 605 738-745 (2011);
+R. Tetot, A. Hallil, J. Creuze and I. Braems, EPL, 83 40001 (2008)
 
 .. _SMTB-Q_1:
 

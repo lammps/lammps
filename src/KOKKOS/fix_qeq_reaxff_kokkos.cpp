@@ -1362,7 +1362,7 @@ template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_xfloat_2d &k_buf,
    DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
-   ExecutionSpace space)
+   ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
   k_copylist.sync<DeviceType>();
@@ -1408,7 +1408,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int 
 template <class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
   DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
-  ExecutionSpace space)
+  ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
   k_indices.sync<DeviceType>();

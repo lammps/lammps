@@ -430,6 +430,9 @@ int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
     if (!actionflag && strcmp(node_engine, "@DEFAULT") == 0) evaluate();
     send_pe();
 
+  } else if (strcmp(command, "<KE_ELEC") == 0) {
+    send_ke_elec();
+
   } else if (strcmp(command, "<STRESS") == 0) {
     if (!actionflag && strcmp(node_engine, "@DEFAULT") == 0) evaluate();
     send_stress();
@@ -540,6 +543,7 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@DEFAULT", "<MASSES");
   MDI_Register_command("@DEFAULT", "<NATOMS");
   MDI_Register_command("@DEFAULT", "<PE");
+  MDI_Register_command("@DEFAULT", "<KE_ELEC");
   MDI_Register_command("@DEFAULT", "<STRESS");
   MDI_Register_command("@DEFAULT", "<TYPES");
   MDI_Register_command("@DEFAULT", "<VELOCITIES");
@@ -618,6 +622,7 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@FORCES", "<FORCES");
   MDI_Register_command("@FORCES", "<KE");
   MDI_Register_command("@FORCES", "<PE");
+  MDI_Register_command("@FORCES", "<KE_ELEC");
   MDI_Register_command("@FORCES", "<STRESS");
   MDI_Register_command("@FORCES", "<VELOCITIES");
   MDI_Register_command("@FORCES", ">FORCES");
@@ -639,6 +644,7 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@ENDSTEP", "<FORCES");
   MDI_Register_command("@ENDSTEP", "<KE");
   MDI_Register_command("@ENDSTEP", "<PE");
+  MDI_Register_command("@ENDSTEP", "<KE_ELEC");
   MDI_Register_command("@ENDSTEP", "<STRESS");
   MDI_Register_command("@ENDSTEP", "@");
   MDI_Register_command("@ENDSTEP", "@DEFAULT");
@@ -1523,6 +1529,21 @@ void MDIEngine::send_pe()
 
   int ierr = MDI_Send(&potential_energy, 1, MDI_DOUBLE, mdicomm);
   if (ierr) error->all(FLERR, "MDI: <PE data");
+}
+
+/* ----------------------------------------------------------------------
+   <KE_ELEC command
+   send kinetic energy of the electrons
+   zero for LAMMPS, because it does not model electrons explicitly
+   for compatibiity with QM engines which support this command
+---------------------------------------------------------------------- */
+
+void MDIEngine::send_ke_elec()
+{
+  double ke_elec = 0.0;
+
+  int ierr = MDI_Send(&ke_elec, 1, MDI_DOUBLE, mdicomm);
+  if (ierr) error->all(FLERR, "MDI: <KE_ELEC data");
 }
 
 /* ----------------------------------------------------------------------

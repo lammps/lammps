@@ -355,6 +355,7 @@ bpls
 bpm
 BPM
 br
+Braems
 Branduardi
 Branicio
 brennan
@@ -589,6 +590,7 @@ createAtoms
 CreateIDs
 crespi
 Crespi
+Creuze
 Critchley
 crossterm
 Crowson
@@ -1346,6 +1348,7 @@ Haak
 Hafskjold
 halfstepback
 halgren
+Hallil
 Halperin
 Halver
 Hamaker

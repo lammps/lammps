@@ -246,8 +246,9 @@ All array values calculated by this compute are "intensive".
 Restrictions
 """"""""""""
 
-This compute is part of the DIFFRACTION package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+This compute is part of the DIFFRACTION package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 The compute_saed command does not work for triclinic cells.
 

@@ -38,8 +38,8 @@ Packages versus individual files
 The remainder of this chapter describes how to add new "style" files of
 various kinds to LAMMPS.  Packages are simply collections of one or more
 such new class files which are invoked as a new style within a LAMMPS
-input script.  In some cases also collections of supporting functions or
-classes are included as separate files in a package, especially when
+input script.  In some cases collections of supporting functions or
+classes are also included as separate files in a package, especially when
 they can be shared between multiple styles. If designed correctly, these
 additions typically do not require any changes to the core code of
 LAMMPS; they are simply add-on files that are compiled with the rest of
@@ -88,8 +88,8 @@ Once you have prepared everything, see the :doc:`LAMMPS GitHub Tutorial
 new files through a GitHub pull request yourself.  If you are unable or
 unwilling to submit via GitHub yourself, you may also submit patch files
 or full files to the LAMMPS developers and ask them to submit a pull
-request on GitHub on your behalf.  Then create a gzipped tar file of
-all  changed or added files or a corresponding patch file using
+request on GitHub on your behalf.  If this is the case, create a gzipped
+tar file of all new or changed files or a corresponding patch file using
 'diff -u' or 'diff -c' format and compress it with gzip.  Please only
 use gzip compression, as this works well and is available on all platforms.
 

@@ -164,7 +164,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
     KOKKOS_INLINE_FUNCTION
     params_acks2(){chi=0;eta=0;gamma=0;bcut_acks2=0;};
     KOKKOS_INLINE_FUNCTION
-    params_acks2(int i){chi=0;eta=0;gamma=0;bcut_acks2=0;};
+    params_acks2(int){chi=0;eta=0;gamma=0;bcut_acks2=0;};
     F_FLOAT chi, eta, gamma, bcut_acks2;
   };
 

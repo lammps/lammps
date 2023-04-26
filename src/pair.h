@@ -230,12 +230,13 @@ class Pair : protected Pointers {
   // management of callbacks to be run from ev_tally()
 
  protected:
-  int num_tally_compute;
+  int num_tally_compute, did_tally_flag;
   class Compute **list_tally_compute;
 
  public:
   virtual void add_tally_callback(class Compute *);
   virtual void del_tally_callback(class Compute *);
+  bool did_tally_callback() const { return did_tally_flag != 0; }
 
  protected:
   int instance_me;      // which Pair class instantiation I am

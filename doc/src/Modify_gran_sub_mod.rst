@@ -80,8 +80,8 @@ There are also several type-specific methods
      - Optional method to test when particles are in contact. By default, this is when particles overlap.
    * - ``GranSubModNormal->pulloff_distance()``
      - Optional method to return the distance at which particles stop interacting. By default, this is when particles no longer overlap.
-   * - ``GranSubModNormal->calculate_area()``
-     - Optional method to return the surface area of the contact. By default, this returns the geometric cross section.
+   * - ``GranSubModNormal->calculate_radius()``
+     - Optional method to return the radius of the contact. By default, this returns the radius of the geometric cross section.
    * - ``GranSubModNormal->set_fncrit()``
      - Optional method that defines the critical force to break the contact used by some tangential, rolling, and twisting sub-models. By default, this is the current total normal force including damping.
    * - ``GranSubModNormal->calculate_forces()``
@@ -105,9 +105,7 @@ set of files ``gran_sub_mod_custom.h``:
 
    #ifdef GranSubMod_CLASS
    // clang-format off
-   GranSubModStyle(hooke/piecewise,
-            GranSubModNormalHookePiecewise,
-            NORMAL);
+   GranSubModStyle(hooke/piecewise,GranSubModNormalHookePiecewise,NORMAL);
    // clang-format on
    #else
 
@@ -119,15 +117,14 @@ set of files ``gran_sub_mod_custom.h``:
 
    namespace LAMMPS_NS {
    namespace Granular_NS {
-
-   class GranSubModNormalHookePiecewise : public GranSubModNormal {
-    public:
-     GranSubModNormalHookePiecewise(class GranularModel *, class LAMMPS *);
-     void coeffs_to_local() override;
-     double calculate_forces();
-    protected:
-     double k1, k2, delta_switch;
-   };
+     class GranSubModNormalHookePiecewise : public GranSubModNormal {
+      public:
+       GranSubModNormalHookePiecewise(class GranularModel *, class LAMMPS *);
+       void coeffs_to_local() override;
+       double calculate_forces() override;
+      protected:
+       double k1, k2, delta_switch;
+     };
 
    }    // namespace Granular_NS
    }    // namespace LAMMPS_NS
@@ -147,7 +144,8 @@ and ``gran_sub_mod_custom.cpp``
    using namespace LAMMPS_NS;
    using namespace Granular_NS;
 
-   GranSubModNormalHookePiecewise::GranSubModNormalHookePiecewise(GranularModel *gm, LAMMPS *lmp) :  GranSubModNormal(gm, lmp)
+   GranSubModNormalHookePiecewise::GranSubModNormalHookePiecewise(GranularModel *gm, LAMMPS *lmp) :
+       GranSubModNormal(gm, lmp)
    {
      num_coeffs = 4;
    }

@@ -169,6 +169,9 @@ double ComputePETally::compute_scalar()
   if ((did_setup != invoked_scalar) || (update->eflag_global != invoked_scalar))
     error->all(FLERR, "Energy was not tallied on needed timestep");
 
+  if ((comm->me == 0) && !force->pair->did_tally_callback())
+    error->warning(FLERR, "Energy was not tallied by pair style");
+
   // sum accumulated energies across procs
 
   MPI_Allreduce(etotal, vector, size_peratom_cols, MPI_DOUBLE, MPI_SUM, world);
@@ -184,6 +187,9 @@ void ComputePETally::compute_peratom()
   invoked_peratom = update->ntimestep;
   if ((did_setup != invoked_peratom) || (update->eflag_global != invoked_peratom))
     error->all(FLERR, "Energy was not tallied on needed timestep");
+
+  if ((comm->me == 0) && !force->pair->did_tally_callback())
+    error->warning(FLERR, "Energy was not tallied by pair style");
 
   // collect contributions from ghost atoms
 

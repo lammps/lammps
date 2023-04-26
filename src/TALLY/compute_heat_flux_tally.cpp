@@ -204,7 +204,10 @@ void ComputeHeatFluxTally::compute_vector()
 {
   invoked_vector = update->ntimestep;
   if ((did_setup != invoked_vector) || (update->eflag_global != invoked_vector))
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, "Stress was not tallied on needed timestep");
+
+  if ((comm->me == 0) && !force->pair->did_tally_callback())
+    error->warning(FLERR, "Stress was not tallied by pair style");
 
   // collect contributions from ghost atoms
 

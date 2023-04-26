@@ -127,6 +127,9 @@ void ComputePEMolTally::compute_vector()
   if ((did_setup != invoked_vector) || (update->eflag_global != invoked_vector))
     error->all(FLERR, "Energy was not tallied on needed timestep");
 
+  if ((comm->me == 0) && !force->pair->did_tally_callback())
+    error->warning(FLERR, "Energy was not tallied by pair style");
+
   // sum accumulated energies across procs
 
   MPI_Allreduce(etotal, vector, size_vector, MPI_DOUBLE, MPI_SUM, world);

@@ -201,7 +201,10 @@ double ComputeStressTally::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
   if ((did_setup != invoked_scalar) || (update->eflag_global != invoked_scalar))
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, "Stress was not tallied on needed timestep");
+
+  if ((comm->me == 0) && !force->pair->did_tally_callback())
+    error->warning(FLERR, "Stress was not tallied by pair style");
 
   // sum accumulated forces across procs
 
@@ -221,7 +224,10 @@ void ComputeStressTally::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
   if ((did_setup != invoked_peratom) || (update->eflag_global != invoked_peratom))
-    error->all(FLERR, "Energy was not tallied on needed timestep");
+    error->all(FLERR, "Stress was not tallied on needed timestep");
+
+  if ((comm->me == 0) && !force->pair->did_tally_callback())
+    error->warning(FLERR, "Stress was not tallied by pair style");
 
   // collect contributions from ghost atoms
 

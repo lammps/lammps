@@ -37,18 +37,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static const char cite_fix_bond_swap[] =
-    "fix bond/relocate command: doi:10.1063/1.1628670\n\n"
-    "@Article{Auhl03,\n"
-    " author = {R. Auhl and R. Everaers and G. S. Grest and K. Kremer and S. J. Plimpton},\n"
-    " title = {Equilibration of Long Chain Polymer Melts in Computer Simulations},\n"
-    " journal = {J.~Chem.\\ Phys.},\n"
-    " year =    2003,\n"
-    " volume =  119,\n"
-    " number =  12,\n"
-    " pages =   {12718--12728}\n"
-    "}\n\n";
-
 #define DELTA_PERMUTE 100
 
 /* ---------------------------------------------------------------------- */
@@ -58,8 +46,6 @@ FixBondRelocate::FixBondRelocate(LAMMPS *lmp, int narg, char **arg) :
     randomized_eligible_targetatoms(nullptr), id_temp(nullptr), type(nullptr), x(nullptr),
     list(nullptr), temperature(nullptr), random(nullptr)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_fix_bond_swap);
-
   if (narg != 11) error->all(FLERR, "Illegal fix bond/relocate command");
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
@@ -377,9 +363,11 @@ void FixBondRelocate::post_integrate()
           goto all_bonds_of_atom_relocated;
         }
       }
-    one_bond_relocated:
+one_bond_relocated:
+      void;
     }
-  all_bonds_of_atom_relocated:
+all_bonds_of_atom_relocated:
+      void;
   }
 
 done:

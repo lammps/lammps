@@ -21,7 +21,7 @@ Syntax
 * Rmin = 2 atoms separated by less than Rmin can bond (distance units)
 * bondtype = type of created bonds
 * zero or more keyword/value pairs may be appended to args
-* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain* ro *mincutoff*
+* keyword = *iparam* or *jparam* or *prob* or *atype* or *dtype* or *itype* or *aconstrain* ro *mincutoff* or *maxnr*
 
   .. parsed-literal::
 
@@ -45,6 +45,8 @@ Syntax
          amax = maximal angle at which new bonds can be created
        *mincutoff* value = Rmax
          Rmax = bonds separated by more than Rmax can bond
+       *maxnr* value = maxbondtotal
+         maxbondtotal = maximum number of bonds to create in total
 
 Examples
 """"""""
@@ -121,6 +123,9 @@ The *prob* keyword can also affect whether an eligible bond is
 actually created.  The *fraction* setting must be a value between 0.0
 and 1.0.  A uniform random number between 0.0 and 1.0 is generated and
 the eligible bond is only created if the random number is less than *fraction*.
+
+You can use the keyword *maxnr* to limit the total number of bonds created 
+in each invocation of this command (i.e, *Nevery* steps).
 
 The *aconstrain* keyword is only available with the fix
 bond/create/angle command.  It allows one to specify minimum and maximum

@@ -29,11 +29,11 @@ using namespace LAMMPS_NS;
 ComputeHeatFluxVirialTally::ComputeHeatFluxVirialTally(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR, "Illegal compute heat/flux/virial/tally command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute heat/flux/virial/tally", error);
 
   igroup2 = group->find(arg[3]);
   if (igroup2 == -1)
-    error->all(FLERR, "Could not find compute heat/flux/virial/tally second group ID");
+    error->all(FLERR, "Could not find compute heat/flux/virial/tally second group ID {}", arg[3]);
   groupbit2 = group->bitmask[igroup2];
 
   scalar_flag = 1;

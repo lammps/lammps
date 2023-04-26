@@ -196,7 +196,7 @@ GranSubModTangentialLinearHistoryStatic::GranSubModTangentialLinearHistoryStatic
 		GranSubModTangentialLinearHistory(gm, lmp)
 {
   num_coeffs = 4;
-  size_history = 3;
+  size_history = 4;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -222,15 +222,25 @@ void GranSubModTangentialLinearHistoryStatic::calculate_forces()
 
   damp = xt * gm->damping_model->damp_prefactor;
 
-  double Fncrit_static = gm->normal_model->Fncrit * mu_static;
-  double Fncrit_dynamic = gm->normal_model->Fncrit * mu_dynamic;
   double *history = & gm->history[history_index];
+  double Fscrit_static = gm->normal_model->Fncrit * mu_static;
+  double Fscrit_dynamic = gm->normal_model->Fncrit * mu_dynamic;
+  double Fscrit;
+  int dynamic;
+
+  dynamic = history[3];
+
+  if (dynamic) {
+	  Fscrit = gm->normal_model->Fncrit * mu_dynamic;
+  } else {
+	  Fscrit = gm->normal_model->Fncrit * mu_static;
+  }
 
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
   if (gm->history_update) {
     rsht = dot3(history, gm->nx);
-    frame_update = (fabs(rsht) * k) > (EPSILON * Fncrit_static);
+    frame_update = (fabs(rsht) * k) > (EPSILON * Fscrit);
 
     if (frame_update) {
       shrmag = len3(history);
@@ -259,19 +269,23 @@ void GranSubModTangentialLinearHistoryStatic::calculate_forces()
 
   // rescale frictional displacements and forces if needed
   magfs = len3(gm->fs);
-  if (magfs > Fncrit_static) {
+  if (magfs > Fscrit) {
 	shrmag = len3(history);
     if (shrmag != 0.0) {
       magfs_inv = 1.0 / magfs;
-      scale3(Fncrit_dynamic * magfs_inv, gm->fs, history);
+      scale3(Fscrit * magfs_inv, gm->fs, history);
       scale3(damp, gm->vtr, temp_array);
       add3(history, temp_array, history);
       scale3(-1.0 / k, history);
-      scale3(Fncrit_dynamic * magfs_inv, gm->fs);
+      scale3(Fscrit * magfs_inv, gm->fs);
     } else {
       zero3(gm->fs);
     }
-  }
+    if (!dynamic) history[3] = 1; // If force exceeds Fcrit_static,
+  }  					          // switch to dynamic case  
+  else {
+	  if (dynamic) history[3] = 0; //If force drops below Fcrit_dynamic,
+	} 	  	  	  	  	  	  	   //switch back to static case  
 }
 
 
@@ -596,10 +610,9 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
   dynamic = history[3];
 
   if (dynamic) {
-	Fscrit = gm->normal_model->Fncrit * mu_dynamic;
-  }
-  else {
-	Fscrit = gm->normal_model->Fncrit * mu_static;
+	  Fscrit = gm->normal_model->Fncrit * mu_dynamic;
+  } else {
+	  Fscrit = gm->normal_model->Fncrit * mu_static;
   }
 
   // rotate and update displacements / force.
@@ -665,11 +678,9 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
     }
     if (!dynamic) history[3] = 1; // If force exceeds Fcrit_static,
     					          // switch to dynamic case
-  }
-  else{
+  } else {
 	  if (dynamic) history[3] = 0; //If force drops below Fcrit_dynamic,
-	  	  	  	  	  	  	  	   //switch back to static case
-  }
+	}  	  	  	  	  	  	  	   //switch back to static case  
 }
 
 /* ----------------------------------------------------------------------

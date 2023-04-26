@@ -195,7 +195,7 @@ void FixRHEO::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  if (modify->get_fix_by_style("rheo").size() > 1)
+  if (modify->get_fix_by_style("^rheo$").size() > 1)
     error->all(FLERR,"Can only specify one instance of fix rheo");
 }
 
@@ -258,6 +258,8 @@ void FixRHEO::setup(int /*vflag*/)
     error->one(FLERR, "Fix rheo/viscosity does not fully cover all atoms");
   if (!t_coverage_flag)
     error->one(FLERR, "Fix rheo/thermal does not fully cover all atoms");
+
+  pre_force(0);
 }
 
 /* ---------------------------------------------------------------------- */

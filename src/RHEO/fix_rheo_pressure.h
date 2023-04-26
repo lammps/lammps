@@ -41,7 +41,6 @@ class FixRHEOPressure : public Fix {
   double c_cubic, csq, rho0, rho0inv;
   double *pressure;
   int pressure_style;
-  int first_flag, last_flag;
   int nmax_store;
 
   class FixRHEO *fix_rheo;

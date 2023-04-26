@@ -155,7 +155,7 @@ int FixRHEOThermal::setmask()
 
 void FixRHEOThermal::init()
 {
-  auto fixes = modify->get_fix_by_style("rheo");
+  auto fixes = modify->get_fix_by_style("^rheo$");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 

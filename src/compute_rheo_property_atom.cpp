@@ -52,7 +52,7 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
   if (nvalues == 1) size_peratom_cols = 0;
   else size_peratom_cols = nvalues;
 
-  thermal_flag, interface_flag, surface_flag, shift_flag = 0;
+  thermal_flag = interface_flag = surface_flag = shift_flag = 0;
 
   // parse input values
   // customize a new keyword by adding to if statement
@@ -132,7 +132,7 @@ ComputeRHEOPropertyAtom::~ComputeRHEOPropertyAtom()
 
 void ComputeRHEOPropertyAtom::init()
 {
-  auto fixes = modify->get_fix_by_style("rheo");
+  auto fixes = modify->get_fix_by_style("^rheo$");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/viscosity");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 

@@ -103,10 +103,6 @@ void ComputeRHEOKernel::init()
 {
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
-  auto fixes = modify->get_fix_by_style("rheo");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use compute rheo/kernel");
-  fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
-
   interface_flag = fix_rheo->interface_flag;
   compute_interface = fix_rheo->compute_interface;
 
@@ -147,17 +143,16 @@ void ComputeRHEOKernel::init_list(int /*id*/, NeighList *ptr)
 
 int ComputeRHEOKernel::check_corrections(int i)
 {
-  int corrections = 1;
-
-  if (gsl_error_flag) {
-    // If there were errors, check to see if it occured for this atom
+  // Skip if there were gsl errors for this atom
+  if (gsl_error_flag)
     if (gsl_error_tags.find(atom->tag[i]) != gsl_error_tags.end())
-      corrections = 0;
-  }
+      return 0;
 
-  if (coordination[i] < zmin) corrections = 0;
+  // Skip if undercoordinated
+  if (coordination[i] < zmin)
+    return 0;
 
-  return corrections;
+  return 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -165,12 +160,17 @@ int ComputeRHEOKernel::check_corrections(int i)
 double ComputeRHEOKernel::calc_w(int i, int j, double delx, double dely, double delz, double r)
 {
   double w;
+  int corrections_i, corrections_j, corrections;
 
-  int corrections_i = check_corrections(i);
-  int corrections_j = check_corrections(j);
-  int corrections = corrections_i & corrections_j;
+  if (kernel_style != QUINTIC) {
+    corrections_i = check_corrections(i);
+    corrections_j = check_corrections(j);
+    corrections = corrections_i & corrections_j;
+  } else {
+    corrections = 0;
+  }
 
-  if (kernel_style == QUINTIC || !corrections) w = calc_w_quintic(i,j,delx,dely,delz,r);
+  if (!corrections) w = calc_w_quintic(i,j,delx,dely,delz,r);
   else if (kernel_style == CRK0) w = calc_w_crk0(i,j,delx,dely,delz,r);
   else if (kernel_style == CRK1) w = calc_w_crk1(i,j,delx,dely,delz,r);
   else if (kernel_style == CRK2) w = calc_w_crk2(i,j,delx,dely,delz,r);
@@ -183,17 +183,21 @@ double ComputeRHEOKernel::calc_w(int i, int j, double delx, double dely, double 
 double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double delz, double r)
 {
   double wp;
+  int corrections_i, corrections_j;
 
-  int corrections_i = check_corrections(i);
-  int corrections_j = check_corrections(j);
+  if (kernel_style != QUINTIC) {
+    corrections_i = check_corrections(i);
+    corrections_j = check_corrections(j);
+  }
 
   // Calc wp and default dW's, a bit inefficient but can redo later
   wp = calc_dw_quintic(i,j,delx,dely,delz,r,dWij,dWji);
-  if(kernel_style == CRK1) {
-    //check if kernel correction calculated successfully. If not, revert to quintic
+
+  // Overwrite if there are corrections
+  if (kernel_style == CRK1) {
     if (corrections_i) calc_dw_crk1(i,j,delx,dely,delz,r,dWij);
     if (corrections_j) calc_dw_crk1(j,i,-delx,-dely,-delz,r,dWji);
-  } else if(kernel_style == CRK2) {
+  } else if (kernel_style == CRK2) {
     if (corrections_i) calc_dw_crk2(i,j,delx,dely,delz,r,dWij);
     if (corrections_j) calc_dw_crk2(j,i,-delx,-dely,-delz,r,dWji);
   }

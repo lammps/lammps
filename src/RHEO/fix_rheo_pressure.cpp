@@ -92,7 +92,7 @@ int FixRHEOPressure::setmask()
 
 void FixRHEOPressure::init()
 {
-  auto fixes = modify->get_fix_by_style("rheo");
+  auto fixes = modify->get_fix_by_style("^rheo$");
   if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/pressure");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
@@ -161,7 +161,7 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
     }
   }
 
-  if (last_flag && comm_forward) comm->forward_comm(this);
+  if (comm_forward) comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */

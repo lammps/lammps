@@ -100,7 +100,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
             iarg += 2;
         } else if (strcmp(arg[iarg],"maxnr") == 0) {
             if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
-            ArgInfo argi(arg[iarg+1]);
+            ArgInfo argi(arg[iarg+1], ArgInfo::COMPUTE | ArgInfo::FIX | ArgInfo::VARIABLE | ArgInfo::NUMCONSTANT);
             max_nr_bonds_val.keyword = arg[i];
             max_nr_bonds_val.which = argi.get_type();
             key2col[arg[i]] = i;
@@ -146,6 +146,8 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
                     error->all(FLERR,"Fix bond/create variable {} is not equal-style variable", max_nr_bonds_val.id);
                 if ((max_nr_bonds_val.argindex) && (input->variable->vectorstyle(ivariable) == 0))
                     error->all(FLERR,"Fix bond/create variable {} is not vector-style variable", max_nr_bonds_val.id);
+            } else if (max_nr_bonds_val.which == ArgInfo::NUMCONSTANT) {
+                max_nr_bonds_val.val.value = std::stod(arg[iarg+1]);
             } else {
                 error->all(FLERR,"Invalid fix bond/create argument: {}", arg[i]);
             }
@@ -590,6 +592,8 @@ void FixBondCreate::post_integrate()
                 if (nvec < max_nr_bonds_val.argindex) scalar = 0.0;
                 else scalar = varvec[max_nr_bonds_val.argindex-1];
             }
+        } else if (max_nr_bonds_val.which  == ArgInfo::NUMCONSTANT) {
+          scalar = max_nr_bonds_val.val.value;
         }
         total_max_nr_of_bonds_to_create = static_cast<int>(scalar);
     }

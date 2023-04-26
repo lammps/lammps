@@ -82,6 +82,7 @@ class FixBondCreate : public Fix {
       class Compute *c;
       class Fix *f;
       int v;
+      double value;
     } val;
   };
   value_t max_nr_bonds_val;

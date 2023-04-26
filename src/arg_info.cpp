@@ -84,6 +84,9 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed) : type(NONE), dim(0), inde
       name = arg.substr(offset);
     }
   } else {
+    if (!arg.empty() && std::all_of(arg.begin(), arg.end(), ::isdigit)) {
+      type = NUMCONSTANT;      
+    }
     index1 = 0;
     name = arg;
   }

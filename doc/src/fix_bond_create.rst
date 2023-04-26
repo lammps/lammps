@@ -126,6 +126,10 @@ the eligible bond is only created if the random number is less than *fraction*.
 
 You can use the keyword *maxnr* to limit the total number of bonds created 
 in each invocation of this command (i.e, *Nevery* steps).
+Use a fix, variable or compute that returns a scalar here.
+For example, you could use this in conjunction with 
+:doc:`fix bond/break <fix_bond_break>` in order to relocate bonds, 
+while keeping the number of bonds constant.
 
 The *aconstrain* keyword is only available with the fix
 bond/create/angle command.  It allows one to specify minimum and maximum

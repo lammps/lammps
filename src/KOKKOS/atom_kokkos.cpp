@@ -194,6 +194,10 @@ void AtomKokkos::sort_device()
   if (domain->box_change) setup_sort_bins();
   if (nbins == 1) return;
 
+  // for triclinic, atoms must be in box coords (not lamda) to match bbox
+
+  if (domain->triclinic) domain->lamda2x(nlocal);
+
   auto d_x = k_x.d_view;
   sync(Device, X_MASK);
 
@@ -219,7 +223,10 @@ void AtomKokkos::sort_device()
 
       kkbase->sort_kokkos(Sorter);
     }
-  }
+
+ //  convert back to lamda coords
+ 
+ if (domain->triclinic) domain->x2lamda(nlocal);
 }
 
 /* ----------------------------------------------------------------------

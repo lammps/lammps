@@ -223,9 +223,10 @@ void AtomKokkos::sort_device()
 
       kkbase->sort_kokkos(Sorter);
     }
+  }
 
  //  convert back to lamda coords
- 
+
  if (domain->triclinic) domain->x2lamda(nlocal);
 }
 

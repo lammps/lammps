@@ -125,34 +125,44 @@ void FixBondMcMove::init()
 {
     // require an atom style with molecule IDs
 
-    if (atom->molecule == nullptr)
+    if (atom->molecule == nullptr) {
         error->all(FLERR,
                    "Must use atom style with molecule IDs with fix bond/mcmove");
+    }
 
     int icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
+    if (icompute < 0) {
         error->all(FLERR,"Temperature ID for fix bond/mcmove does not exist");
+    }
     temperature = modify->compute[icompute];
 
     // pair and bonds must be defined
     // no dihedral or improper potentials allowed
     // special bonds must be 0 1 1
 
-    if (force->pair == nullptr || force->bond == nullptr)
+    if (force->pair == nullptr || force->bond == nullptr) {
         error->all(FLERR,"Fix bond/mcmove requires pair and bond styles");
+    }
 
-    if (force->pair->single_enable == 0)
+    if (force->pair->single_enable == 0) {
         error->all(FLERR,"Pair style does not support fix bond/mcmove");
+    }
 
-    if (force->angle == nullptr && atom->nangles > 0 && comm->me == 0)
+    if (force->angle == nullptr && atom->nangles > 0 && comm->me == 0) {
         error->warning(FLERR,"Fix bond/mcmove will not preserve correct angle "
                        "topology because no angle_style is defined");
-
-    if (force->dihedral || force->improper)
+    }
+    if (force->dihedral || force->improper) {
         error->all(FLERR,"Fix bond/mcmove cannot use dihedral or improper styles");
+    }
 
-    if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+    if (force->angle) {
+        error->all(FLERR,"Fix bond/mcmove does not support angles yet");
+    }
+
+    if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0) {
         error->all(FLERR,"Fix bond/mcmove requires special_bonds = {any},1,1");
+    }
 
     // need a half neighbor list, built every Nevery steps
 
@@ -303,17 +313,17 @@ void FixBondMcMove::post_integrate()
         if (num_track_bonds > 1) {
             for (int bond_i = 0; bond_i < num_bond[i]; ++bond_i) {
                 if (bond_type[i][bond_i] == trackbondtype) {
-                    if (this->random->uniform()*static_cast<double>(num_track_bonds) < 1.){
+                    if (this->random->uniform()*static_cast<double>(num_track_bonds) < 1.) {
                         track_bond_i = bond_i; // choose this randomly, not just the last one
                         break;
                     }
                 }
             }
         }
-        if (num_move_bonds > 1){
+        if (num_move_bonds > 1) {
             for (int bond_i = 0; bond_i < num_bond[i]; ++bond_i) {
                 if (bond_type[i][bond_i] == movingbondtype) {
-                    if (this->random->uniform()*static_cast<double>(num_move_bonds) < 1.){
+                    if (this->random->uniform()*static_cast<double>(num_move_bonds) < 1.) {
                         move_bond_i = bond_i; // choose this randomly, not just the last one
                         break;
                     }
@@ -421,19 +431,20 @@ void FixBondMcMove::post_integrate()
 
         threesome++;
 
-        delta = pair_eng(i,inext) + pair_eng(j,jnext) -
-                pair_eng(i,jnext) - pair_eng(inext,j);
-        delta += bond_eng(ibondtype,i,jnext) + bond_eng(jbondtype,j,inext) -
-                 bond_eng(ibondtype,i,inext) - bond_eng(jbondtype,j,jnext);
-        if (angleflag)
-            delta += angle_eng(iangletype,iprev,i,jnext) +
-                     angle_eng(jnextangletype,i,jnext,jlast) +
-                     angle_eng(jangletype,jprev,j,inext) +
-                     angle_eng(inextangletype,j,inext,ilast) -
-                     angle_eng(iangletype,iprev,i,inext) -
-                     angle_eng(inextangletype,i,inext,ilast) -
-                     angle_eng(jangletype,jprev,j,jnext) -
-                     angle_eng(jnextangletype,j,jnext,jlast);
+        delta = bond_eng(movingbondtype,j,inext) - bond_eng(movingbondtype,j,i);
+        if (force->special_lj[1] != 1.0) {
+            // TODO: rethink
+            delta += pair_eng(j,i) - pair_eng(inext,j);
+        }
+        // if (angleflag)
+        //     delta += angle_eng(iangletype,iprev,i,jnext) +
+        //              angle_eng(jnextangletype,i,jnext,jlast) +
+        //              angle_eng(jangletype,jprev,j,inext) +
+        //              angle_eng(inextangletype,j,inext,ilast) -
+        //              angle_eng(iangletype,iprev,i,inext) -
+        //              angle_eng(inextangletype,i,inext,ilast) -
+        //              angle_eng(jangletype,jprev,j,jnext) -
+        //              angle_eng(jnextangletype,j,jnext,jlast);
 
         // if delta <= 0, accept swap
         // if delta > 0, compute Boltzmann factor with current temperature
@@ -453,7 +464,8 @@ void FixBondMcMove::post_integrate()
 
         // actually invoke swapping procedure.
         if (do_swap) {
-          move_bond(j, jprev, jnext, i, iprev, inext, ilast);
+            // swap bond j-i to j-inext
+            move_bond(j, jprev, jnext, i, iprev, inext, ilast);
         }
         // goto done;
     }
@@ -556,28 +568,28 @@ void FixBondMcMove::move_bond(int rotation_i, int rot_prev, int rot_next, int pr
     // don't need to change 2nd/3rd special neighbors for any atom
     //   since special bonds = 0 1 1 means they are never used
     // TODO: check / verify somehow
-    if (force->special_lj[0] != 1.0){
-    // change new 1st special neighbor on rotation atom
-    for (m = 0; m < nspecial[rotation_i][0]; m++)
-        if (special[rotation_i][m] == prevtag) special[rotation_i][m] = nexttag;
-    
-    // add the new primary partner to the new bond partner
-    for (m = (nspecial[next_partner][0]+nspecial[next_partner][1]+nspecial[next_partner][2]); m > nspecial[next_partner][0];--m) {
-      special[next_partner][m] = special[next_partner][m-1];
-    }
-    special[next_partner][nspecial[next_partner][0]] = rottag;
-    nspecial[next_partner][0]++;
+    if (force->special_lj[0] != 1.0) {
+        // change new 1st special neighbor on rotation atom
+        for (m = 0; m < nspecial[rotation_i][0]; m++)
+            if (special[rotation_i][m] == prevtag) special[rotation_i][m] = nexttag;
 
-    // remove the old primary partner
-    for (m = 0; m < nspecial[prev_partner][0]; m++)
-        if (special[prev_partner][m] == rottag) {
-            for (int k = m; k < nspecial[prev_partner][0]-1; ++k) {
-                special[prev_partner][k] = special[prev_partner][k+1];
-            }
-            nspecial[prev_partner][0]--;
-            break;
+        // add the new primary partner to the new bond partner
+        for (m = (nspecial[next_partner][0]+nspecial[next_partner][1]+nspecial[next_partner][2]); m > nspecial[next_partner][0]; --m) {
+            special[next_partner][m] = special[next_partner][m-1];
         }
-}
+        special[next_partner][nspecial[next_partner][0]] = rottag;
+        nspecial[next_partner][0]++;
+
+        // remove the old primary partner
+        for (m = 0; m < nspecial[prev_partner][0]; m++)
+            if (special[prev_partner][m] == rottag) {
+                for (int k = m; k < nspecial[prev_partner][0]-1; ++k) {
+                    special[prev_partner][k] = special[prev_partner][k+1];
+                }
+                nspecial[prev_partner][0]--;
+                break;
+            }
+    }
     // done if no angles
 
     if (!angleflag) return;
@@ -614,7 +626,7 @@ void FixBondMcMove::move_bond(int rotation_i, int rot_prev, int rot_next, int pr
         else if (i1 == rotnext_tag && i2 == rottag && i3 == prevtag)
             angle_atom3[rotation_i][iangle] = nexttag;
         else if (i1 == prevtag && i2 == rottag && i3 == rotnext_tag)
-            angle_atom1[rotation_i][iangle] = nexttag; 
+            angle_atom1[rotation_i][iangle] = nexttag;
     }
 
     // on atom prev_partner:
@@ -631,34 +643,34 @@ void FixBondMcMove::move_bond(int rotation_i, int rot_prev, int rot_next, int pr
         bool remove_iangle = false;
 
         if (i1 == rottag && i2 == prevtag && i3 == nexttag) {
-          remove_iangle = true;
+            remove_iangle = true;
         } else if (i1 == nexttag && i2 == prevtag && i3 == rottag) {
-          remove_iangle = true;
+            remove_iangle = true;
         } else if (i1 == preprev_tag && i2 == prevtag && i3 == rottag) {
-          remove_iangle = true;
-        }else if (i1 == rottag && i2 == prevtag && i3 == preprev_tag) {
-          remove_iangle = true;
+            remove_iangle = true;
+        } else if (i1 == rottag && i2 == prevtag && i3 == preprev_tag) {
+            remove_iangle = true;
         }
 
         if (remove_iangle) {
-          for (m = iangle; m < num_angle[prev_partner]-1; ++m) {
-            angle_atom1[prev_partner][m] = angle_atom1[prev_partner][m+1];
-            angle_atom2[prev_partner][m] = angle_atom2[prev_partner][m+1];
-            angle_atom3[prev_partner][m] = angle_atom3[prev_partner][m+1];
-          }
-          num_angle[prev_partner]--;
+            for (m = iangle; m < num_angle[prev_partner]-1; ++m) {
+                angle_atom1[prev_partner][m] = angle_atom1[prev_partner][m+1];
+                angle_atom2[prev_partner][m] = angle_atom2[prev_partner][m+1];
+                angle_atom3[prev_partner][m] = angle_atom3[prev_partner][m+1];
+            }
+            num_angle[prev_partner]--;
         }
-      }
+    }
 
-      // on atom next_partner:
-      //    angle rot-next_partner-postnext: add
-      // alternative: add rot-next_partner-prev_partner
-      int n_next_partner_angles = num_angle[next_partner];
-      angle_atom1[next_partner][n_next_partner_angles] = rottag;
-      angle_atom2[next_partner][n_next_partner_angles] = nexttag;
-      angle_atom3[next_partner][n_next_partner_angles] = postnext_tag;
-      num_angle[next_partner]++;
-      // TODO: do we need to add an angle type or something here?
+    // on atom next_partner:
+    //    angle rot-next_partner-postnext: add
+    // alternative: add rot-next_partner-prev_partner
+    int n_next_partner_angles = num_angle[next_partner];
+    angle_atom1[next_partner][n_next_partner_angles] = rottag;
+    angle_atom2[next_partner][n_next_partner_angles] = nexttag;
+    angle_atom3[next_partner][n_next_partner_angles] = postnext_tag;
+    num_angle[next_partner]++;
+    // TODO: do we need to add an angle type or something here?
 
     // done if newton bond set
 
@@ -675,9 +687,11 @@ void FixBondMcMove::move_bond(int rotation_i, int rot_prev, int rot_next, int pr
         i3 = angle_atom3[rot_prev][iangle];
 
         if (i1 == rotprev_tag && i2 == rottag && i3 == prevtag) {
-          angle_atom3[rot_prev][iangle] = nexttag; break;
+            angle_atom3[rot_prev][iangle] = nexttag;
+            break;
         } else if (i1 == prevtag && i2 == rottag && i3 == rotprev_tag) {
-          angle_atom1[rot_prev][iangle] = nexttag; break;
+            angle_atom1[rot_prev][iangle] = nexttag;
+            break;
         }
     }
 
@@ -688,9 +702,11 @@ void FixBondMcMove::move_bond(int rotation_i, int rot_prev, int rot_next, int pr
         i3 = angle_atom3[rot_next][iangle];
 
         if (i1 == rotnext_tag && i2 == rottag && i3 == prevtag) {
-          angle_atom3[rot_next][iangle] = nexttag; break;
+            angle_atom3[rot_next][iangle] = nexttag;
+            break;
         } else if (i1 == prevtag && i2 == rottag && i3 == rotnext_tag) {
-          angle_atom1[rot_next][iangle] = nexttag; break;
+            angle_atom1[rot_next][iangle] = nexttag;
+            break;
         }
     }
 

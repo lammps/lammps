@@ -170,6 +170,7 @@ void FixBondBreakSelf::post_integrate()
 {
     int i,j,k,m,n,i1,i2,n1,n3,type;
     tagint *slist;
+    tagint *tag = atom->tag;
 
     if (update->ntimestep % nevery) return;
 

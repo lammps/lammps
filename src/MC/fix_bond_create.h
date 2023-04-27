@@ -20,7 +20,9 @@ FixStyle(bond/create,FixBondCreate);
 #ifndef LMP_FIX_BOND_CREATE_H
 #define LMP_FIX_BOND_CREATE_H
 
+#include "compute.h"
 #include "fix.h"
+#include "variable.h"
 
 namespace LAMMPS_NS {
 
@@ -49,7 +51,7 @@ class FixBondCreate : public Fix {
   double memory_usage() override;
 
  protected:
-  int me;
+  int me; int nprocs;
   int iatomtype, jatomtype;
   int btype, seed;
   int imaxbond, jmaxbond;
@@ -77,6 +79,7 @@ class FixBondCreate : public Fix {
   struct value_t {
     int which;         // type of data: COMPUTE, FIX, VARIABLE
     int argindex;      // 1-based index if data is vector, else 0
+    int varlen;        // 1 if value is from variable-length compute
     std::string id;    // compute/fix/variable ID
     union {
       class Compute *c;

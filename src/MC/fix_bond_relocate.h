@@ -21,6 +21,7 @@ FixStyle(bond/relocate,FixBondRelocate);
 #define LMP_FIX_BOND_RELOCATE_H
 
 #include "fix.h"
+#include "fix_bond_create.h"
 
 namespace LAMMPS_NS {
 
@@ -49,6 +50,7 @@ class FixBondRelocate : public Fix {
   char *id_temp;
   int *type;
   double **x;
+//   FixBondCreate *create_fix;
 
   int maxpermute;
   int *permute;

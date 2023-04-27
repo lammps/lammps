@@ -19,6 +19,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "input.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -28,6 +29,7 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "update.h"
+#include "variable.h"
 
 #include <cstring>
 
@@ -48,6 +50,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
     if (narg < 8) error->all(FLERR,"Illegal fix bond/create command");
 
     MPI_Comm_rank(world,&me);
+    MPI_Comm_size(world, &nprocs);
 
     nevery = utils::inumeric(FLERR,arg[3],false,lmp);
     if (nevery <= 0) error->all(FLERR,"Illegal fix bond/create command");
@@ -101,20 +104,17 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
         } else if (strcmp(arg[iarg],"maxnr") == 0) {
             if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
             ArgInfo argi(arg[iarg+1], ArgInfo::COMPUTE | ArgInfo::FIX | ArgInfo::VARIABLE | ArgInfo::NUMCONSTANT);
-            max_nr_bonds_val.keyword = arg[i];
             max_nr_bonds_val.which = argi.get_type();
-            key2col[arg[i]] = i;
 
             if ((max_nr_bonds_val.which == ArgInfo::NONE) || (max_nr_bonds_val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1)) {
-                error->all(FLERR,"Invalid fix bond/create argument: {}", arg[i]);
+                error->all(FLERR,"Invalid fix bond/create argument: {}", arg[iarg]);
             }
 
             max_nr_bonds_val.argindex = argi.get_index1();
-            max_nr_bonds_val.varlen = 0;
-            max_nr_bonds_val.offcol = 0;
             max_nr_bonds_val.id = argi.get_name();
             max_nr_bonds_val.val.c = nullptr;
-            if ((max_nr_bonds_val.which == ArgInfo::COMPUTE)) {
+            max_nr_bonds_val.val.f = nullptr;
+            if (max_nr_bonds_val.which == ArgInfo::COMPUTE) {
                 max_nr_bonds_val.val.c = modify->get_compute_by_id(max_nr_bonds_val.id);
                 if (!max_nr_bonds_val.val.c) error->all(FLERR,"Compute ID {} for fix bond/create does not exist", max_nr_bonds_val.id);
                 if (max_nr_bonds_val.argindex == 0 && (max_nr_bonds_val.val.c->scalar_flag == 0))
@@ -125,7 +125,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
                         (max_nr_bonds_val.val.c->size_vector_variable == 0))
                     error->all(FLERR, "Fix bond/create compute {} vector is accessed out-of-range", max_nr_bonds_val.id);
                 if (max_nr_bonds_val.argindex && max_nr_bonds_val.val.c->size_vector_variable) max_nr_bonds_val.varlen = 1;
-            } else if ((max_nr_bonds_val.which == ArgInfo::FIX)) {
+            } else if (max_nr_bonds_val.which == ArgInfo::FIX) {
                 max_nr_bonds_val.val.f = modify->get_fix_by_id(max_nr_bonds_val.id);
                 if (!max_nr_bonds_val.val.f) error->all(FLERR,"Fix ID {} for fix bond/create does not exist", max_nr_bonds_val.id);
                 if ((max_nr_bonds_val.argindex == 0) && (max_nr_bonds_val.val.f->scalar_flag == 0))
@@ -138,7 +138,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
                     error->all(FLERR,"Fix bond/create fix {} vector is accessed out-of-range", max_nr_bonds_val.id);
                 if (nevery % max_nr_bonds_val.val.f->global_freq)
                     error->all(FLERR, "Fix {} for fix bond/create not computed at compatible time", max_nr_bonds_val.id);
-            } else if ((max_nr_bonds_val.which == ArgInfo::VARIABLE)) {
+            } else if (max_nr_bonds_val.which == ArgInfo::VARIABLE) {
                 int ivariable = input->variable->find(max_nr_bonds_val.id.c_str());
                 if (ivariable < 0)
                     error->all(FLERR,"Variable name {} for fix bond/create does not exist", max_nr_bonds_val.id);
@@ -149,7 +149,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
             } else if (max_nr_bonds_val.which == ArgInfo::NUMCONSTANT) {
                 max_nr_bonds_val.val.value = std::stod(arg[iarg+1]);
             } else {
-                error->all(FLERR,"Invalid fix bond/create argument: {}", arg[i]);
+                error->all(FLERR,"Invalid fix bond/create argument: {}", arg[iarg]);
             }
             iarg += 2;
             this->max_nr_bonds_set = true;
@@ -584,7 +584,7 @@ void FixBondCreate::post_integrate()
             // ensure no out-of-range access to vector-style variable
 
         } else if (max_nr_bonds_val.which == ArgInfo::VARIABLE) {
-            if (vmax_nr_bonds_valal.argindex == 0)
+            if (max_nr_bonds_val.argindex == 0)
                 scalar = input->variable->compute_equal(max_nr_bonds_val.val.v);
             else {
                 double *varvec;
@@ -601,12 +601,11 @@ void FixBondCreate::post_integrate()
     // each processor should have a similar number of bonds it is allowed to create.
     int allowed_creations_on_this_proc = -1;
     if (total_max_nr_of_bonds_to_create >= 0 ) {
-        int rank, tasksCount;
         // automatically rounds down
-        allowed_creations_on_this_proc = (total_max_nr_of_bonds_to_create / tasksCount);
+        allowed_creations_on_this_proc = (total_max_nr_of_bonds_to_create / nprocs);
         // we (yes, that's possibly problematic) allow the first few procs one extra
-        int rest = total_max_nr_of_bonds_to_create % tasksCount;
-        if (rest > rank) {
+        int rest = total_max_nr_of_bonds_to_create % nprocs;
+        if (rest > me) {
             allowed_creations_on_this_proc += 1;
         }
     }

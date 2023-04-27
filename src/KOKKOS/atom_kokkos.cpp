@@ -170,7 +170,6 @@ void AtomKokkos::sort()
   if (domain->triclinic) domain->lamda2x(nlocal);
 
   sync(Host, ALL_MASK);
-  modified(Host, ALL_MASK);
 
   // bin atoms in reverse order so linked list will be in forward order
 
@@ -191,10 +190,6 @@ void AtomKokkos::sort()
     next[i] = binhead[ibin];
     binhead[ibin] = i;
   }
-
-  // convert back to lamda coords
-
-  if (domain->triclinic) domain->x2lamda(nlocal);
 
   // permute = desired permutation of atoms
   // permute[I] = J means Ith new atom will be Jth old atom
@@ -241,6 +236,12 @@ void AtomKokkos::sort()
   //int flagall;
   //MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   //if (flagall) errorX->all(FLERR,"Atom sort did not operate correctly");
+
+  modified(Host, ALL_MASK);
+
+ //  convert back to lamda coords
+ 
+ if (domain->triclinic) domain->x2lamda(nlocal);
 }
 
 /* ----------------------------------------------------------------------

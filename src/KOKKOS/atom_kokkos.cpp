@@ -165,8 +165,11 @@ void AtomKokkos::sort()
 
   if (nlocal == nmax) avec->grow(0);
 
+  // for triclinic, atoms must be in box coords (not lamda) to match bbox
+
+  if (domain->triclinic) domain->lamda2x(nlocal);
+
   sync(Host, ALL_MASK);
-  modified(Host, ALL_MASK);
 
   // bin atoms in reverse order so linked list will be in forward order
 
@@ -233,6 +236,12 @@ void AtomKokkos::sort()
   //int flagall;
   //MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   //if (flagall) errorX->all(FLERR,"Atom sort did not operate correctly");
+
+  modified(Host, ALL_MASK);
+
+ //  convert back to lamda coords
+
+ if (domain->triclinic) domain->x2lamda(nlocal);
 }
 
 /* ----------------------------------------------------------------------

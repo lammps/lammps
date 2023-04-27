@@ -165,6 +165,10 @@ void AtomKokkos::sort()
 
   if (nlocal == nmax) avec->grow(0);
 
+  // for triclinic, atoms must be in box coords (not lamda) to match bbox
+
+  if (domain->triclinic) domain->lamda2x(nlocal);
+
   sync(Host, ALL_MASK);
   modified(Host, ALL_MASK);
 
@@ -187,6 +191,10 @@ void AtomKokkos::sort()
     next[i] = binhead[ibin];
     binhead[ibin] = i;
   }
+
+  // convert back to lamda coords
+
+  if (domain->triclinic) domain->x2lamda(nlocal);
 
   // permute = desired permutation of atoms
   // permute[I] = J means Ith new atom will be Jth old atom

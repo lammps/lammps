@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,13 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "gran_sub_mod_heat.h"
-#include "granular_model.h"
+
 #include "error.h"
+#include "granular_model.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
-using namespace MathConst;
+
+using MathConst::MY_PI;
 
 /* ----------------------------------------------------------------------
    Default heat conduction

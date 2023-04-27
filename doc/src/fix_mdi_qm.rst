@@ -280,19 +280,24 @@ invoked by the :doc:`minimize <minimize>` command.
 Restrictions
 """"""""""""
 
-This command is part of the MDI package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package
+This fix is part of the MDI package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
 To use LAMMPS as an MDI driver in conjunction with other MDI-enabled
-codes (MD or QM codes), the :doc:`units <units>` command should be
-used to specify *real* or *metal* units.  This will ensure the correct
-unit conversions between LAMMPS and MDI units.  The other code will
-also perform similar unit conversions into its preferred units.
+codes (MD or QM codes), the :doc:`units <units>` command should be used
+to specify *real* or *metal* units.  This will ensure the correct unit
+conversions between LAMMPS and MDI units.  The other code will also
+perform similar unit conversions into its preferred units.
 
 LAMMPS can also be used as an MDI driver in other unit choices it
 supports, e.g. *lj*, but then no unit conversion to MDI units is
 performed.
+
+If this fix is used in conjunction with a QM code that does not support
+periodic boundary conditions (more specifically, a QM code that does not
+support the ``>CELL`` MDI command), the LAMMPS system must be fully
+non-periodic.  I.e. no dimension of the system can be periodic.
 
 Related commands
 """"""""""""""""

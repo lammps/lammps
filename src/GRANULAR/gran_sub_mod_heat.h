@@ -13,13 +13,8 @@
 
 #ifdef GRAN_SUB_MOD_CLASS
 // clang-format off
-GranSubModStyle(none,
-         GranSubModHeatNone,
-         HEAT);
-
-GranSubModStyle(area,
-         GranSubModHeatArea,
-         HEAT);
+GranSubModStyle(none,GranSubModHeatNone,HEAT);
+GranSubModStyle(area,GranSubModHeatArea,HEAT);
 // clang-format on
 #else
 
@@ -31,31 +26,31 @@ GranSubModStyle(area,
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-class GranSubModHeat : public GranSubMod {
- public:
-  GranSubModHeat(class GranularModel *, class LAMMPS *);
-  ~GranSubModHeat() {};
-  virtual double calculate_heat() = 0;
-};
+  class GranSubModHeat : public GranSubMod {
+   public:
+    GranSubModHeat(class GranularModel *, class LAMMPS *);
+    virtual double calculate_heat() = 0;
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModHeatNone : public GranSubModHeat {
- public:
-  GranSubModHeatNone(class GranularModel *, class LAMMPS *);
-  double calculate_heat();
-};
+  class GranSubModHeatNone : public GranSubModHeat {
+   public:
+    GranSubModHeatNone(class GranularModel *, class LAMMPS *);
+    double calculate_heat() override;
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModHeatArea : public GranSubModHeat {
- public:
-  GranSubModHeatArea(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  double calculate_heat();
- protected:
-  double conductivity;
-};
+  class GranSubModHeatArea : public GranSubModHeat {
+   public:
+    GranSubModHeatArea(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    double calculate_heat() override;
+
+   protected:
+    double conductivity;
+  };
 
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS

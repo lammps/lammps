@@ -13,41 +13,15 @@
 
 #ifdef GRAN_SUB_MOD_CLASS
 // clang-format off
-GranSubModStyle(none,
-         GranSubModTangentialNone,
-         TANGENTIAL);
-
-GranSubModStyle(linear_nohistory,
-         GranSubModTangentialLinearNoHistory,
-         TANGENTIAL);
-
-GranSubModStyle(linear_history,
-         GranSubModTangentialLinearHistory,
-         TANGENTIAL);
-
-GranSubModStyle(linear_history_classic,
-         GranSubModTangentialLinearHistoryClassic,
-         TANGENTIAL);
-
-GranSubModStyle(mindlin_classic,
-         GranSubModTangentialMindlinClassic,
-         TANGENTIAL);
-
-GranSubModStyle(mindlin,
-         GranSubModTangentialMindlin,
-         TANGENTIAL);
-
-GranSubModStyle(mindlin/force,
-         GranSubModTangentialMindlinForce,
-         TANGENTIAL);
-
-GranSubModStyle(mindlin_rescale,
-         GranSubModTangentialMindlinRescale,
-         TANGENTIAL);
-
-GranSubModStyle(mindlin_rescale/force,
-         GranSubModTangentialMindlinRescaleForce,
-         TANGENTIAL);
+GranSubModStyle(none,GranSubModTangentialNone,TANGENTIAL);
+GranSubModStyle(linear_nohistory,GranSubModTangentialLinearNoHistory,TANGENTIAL);
+GranSubModStyle(linear_history,GranSubModTangentialLinearHistory,TANGENTIAL);
+GranSubModStyle(linear_history_classic,GranSubModTangentialLinearHistoryClassic,TANGENTIAL);
+GranSubModStyle(mindlin_classic,GranSubModTangentialMindlinClassic,TANGENTIAL);
+GranSubModStyle(mindlin,GranSubModTangentialMindlin,TANGENTIAL);
+GranSubModStyle(mindlin/force,GranSubModTangentialMindlinForce,TANGENTIAL);
+GranSubModStyle(mindlin_rescale,GranSubModTangentialMindlinRescale,TANGENTIAL);
+GranSubModStyle(mindlin_rescale/force,GranSubModTangentialMindlinRescaleForce,TANGENTIAL);
 // clang-format on
 #else
 
@@ -59,92 +33,100 @@ GranSubModStyle(mindlin_rescale/force,
 namespace LAMMPS_NS {
 namespace Granular_NS {
 
-class GranSubModTangential : public GranSubMod {
- public:
-  GranSubModTangential(class GranularModel *, class LAMMPS *);
-  virtual ~GranSubModTangential() {};
-  virtual void calculate_forces() = 0;
-  double k, damp, mu; // Used by Marshall twisting model
-};
+  class GranSubModTangential : public GranSubMod {
+   public:
+    GranSubModTangential(class GranularModel *, class LAMMPS *);
+    virtual void calculate_forces() = 0;
 
-/* ---------------------------------------------------------------------- */
+    double get_k() const { return k; }
+    double get_damp() const { return damp; }
+    double get_mu() const { return mu; }
 
-class GranSubModTangentialNone : public GranSubModTangential {
- public:
-  GranSubModTangentialNone(class GranularModel *, class LAMMPS *);
-  void calculate_forces() {};
-};
+   protected:
+    double k, damp, mu;    // Used by Marshall twisting model
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModTangentialLinearNoHistory : public GranSubModTangential {
- public:
-  GranSubModTangentialLinearNoHistory(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  void calculate_forces();
- protected:
-  double xt;
-};
+  class GranSubModTangentialNone : public GranSubModTangential {
+   public:
+    GranSubModTangentialNone(class GranularModel *, class LAMMPS *);
+    void calculate_forces() override{};
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModTangentialLinearHistory : public GranSubModTangential {
- public:
-  GranSubModTangentialLinearHistory(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  void calculate_forces();
- protected:
-  double xt;
-};
+  class GranSubModTangentialLinearNoHistory : public GranSubModTangential {
+   public:
+    GranSubModTangentialLinearNoHistory(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    void calculate_forces() override;
 
-/* ---------------------------------------------------------------------- */
+   protected:
+    double xt;
+  };
 
-class GranSubModTangentialLinearHistoryClassic : public GranSubModTangentialLinearHistory {
- public:
-  GranSubModTangentialLinearHistoryClassic(class GranularModel *, class LAMMPS *);
-  void calculate_forces();
-};
+  /* ---------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
+  class GranSubModTangentialLinearHistory : public GranSubModTangential {
+   public:
+    GranSubModTangentialLinearHistory(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    void calculate_forces() override;
 
-class GranSubModTangentialMindlinClassic : public GranSubModTangentialLinearHistoryClassic {
- public:
-  GranSubModTangentialMindlinClassic(class GranularModel *, class LAMMPS *);
-};
+   protected:
+    double xt;
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModTangentialMindlin : public GranSubModTangential {
- public:
-  GranSubModTangentialMindlin(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
-  void calculate_forces();
- protected:
-  int mindlin_rescale, mindlin_force;
-  double xt;
-};
+  class GranSubModTangentialLinearHistoryClassic : public GranSubModTangentialLinearHistory {
+   public:
+    GranSubModTangentialLinearHistoryClassic(class GranularModel *, class LAMMPS *);
+    void calculate_forces() override;
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModTangentialMindlinForce : public GranSubModTangentialMindlin {
- public:
-  GranSubModTangentialMindlinForce(class GranularModel *, class LAMMPS *);
-};
+  class GranSubModTangentialMindlinClassic : public GranSubModTangentialLinearHistoryClassic {
+   public:
+    GranSubModTangentialMindlinClassic(class GranularModel *, class LAMMPS *);
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModTangentialMindlinRescale : public GranSubModTangentialMindlin {
- public:
-  GranSubModTangentialMindlinRescale(class GranularModel *, class LAMMPS *);
-};
+  class GranSubModTangentialMindlin : public GranSubModTangential {
+   public:
+    GranSubModTangentialMindlin(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    void mix_coeffs(double *, double *) override;
+    void calculate_forces() override;
 
-/* ---------------------------------------------------------------------- */
+   protected:
+    int mindlin_rescale, mindlin_force;
+    double xt;
+  };
 
-class GranSubModTangentialMindlinRescaleForce : public GranSubModTangentialMindlin {
- public:
-  GranSubModTangentialMindlinRescaleForce(class GranularModel *, class LAMMPS *);
-};
+  /* ---------------------------------------------------------------------- */
+
+  class GranSubModTangentialMindlinForce : public GranSubModTangentialMindlin {
+   public:
+    GranSubModTangentialMindlinForce(class GranularModel *, class LAMMPS *);
+  };
+
+  /* ---------------------------------------------------------------------- */
+
+  class GranSubModTangentialMindlinRescale : public GranSubModTangentialMindlin {
+   public:
+    GranSubModTangentialMindlinRescale(class GranularModel *, class LAMMPS *);
+  };
+
+  /* ---------------------------------------------------------------------- */
+
+  class GranSubModTangentialMindlinRescaleForce : public GranSubModTangentialMindlin {
+   public:
+    GranSubModTangentialMindlinRescaleForce(class GranularModel *, class LAMMPS *);
+  };
 
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS

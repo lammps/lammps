@@ -14,8 +14,8 @@
 
 #include "lammps_data_write.h"
 #include "many2many.h"
-#include "memory.h"
-#include "error.h"
+#include "memorylib.h"
+#include "errorlib.h"
 
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
@@ -51,8 +51,8 @@ int main(int narg, char **arg)
   MPI_Comm_rank(comm,&me);
   MPI_Comm_size(comm,&nprocs);
 
-  Memory *memory = new Memory(comm);
-  Error *error = new Error(comm);
+  MemoryLib *memory = new MemoryLib(comm);
+  ErrorLib *error = new ErrorLib(comm);
 
   // command-line args
 
@@ -83,28 +83,28 @@ int main(int narg, char **arg)
   double **xyz;
   double *strain;
 
-  dimension = *((int *) spparks_extract(spk,"dimension"));
-  nglobal = *((int *) spparks_extract(spk,"nglobal"));
-  nlocal_spparks = *((int *) spparks_extract(spk,"nlocal"));
+  dimension = *((int *) spparks_extract(spk,(char *) "dimension"));
+  nglobal = *((int *) spparks_extract(spk,(char *) "nglobal"));
+  nlocal_spparks = *((int *) spparks_extract(spk,(char *) "nlocal"));
 
-  boxxlo = *((double *) spparks_extract(spk,"boxxlo"));
-  boxxhi = *((double *) spparks_extract(spk,"boxxhi"));
-  boxylo = *((double *) spparks_extract(spk,"boxylo"));
-  boxyhi = *((double *) spparks_extract(spk,"boxyhi"));
+  boxxlo = *((double *) spparks_extract(spk,(char *) "boxxlo"));
+  boxxhi = *((double *) spparks_extract(spk,(char *) "boxxhi"));
+  boxylo = *((double *) spparks_extract(spk,(char *) "boxylo"));
+  boxyhi = *((double *) spparks_extract(spk,(char *) "boxyhi"));
   if (dimension == 3) {
-    boxzlo = *((double *) spparks_extract(spk,"boxzlo"));
-    boxzhi = *((double *) spparks_extract(spk,"boxzhi"));
+    boxzlo = *((double *) spparks_extract(spk,(char *) "boxzlo"));
+    boxzhi = *((double *) spparks_extract(spk,(char *) "boxzhi"));
   } else {
     boxzlo = -0.5;
     boxzhi = 0.5;
   }
 
-  id_spparks = (int *) spparks_extract(spk,"id");
-  spins = (int *) spparks_extract(spk,"site");
-  xyz = (double **) spparks_extract(spk,"xyz");
+  id_spparks = (int *) spparks_extract(spk,(char *) "id");
+  spins = (int *) spparks_extract(spk,(char *) "site");
+  xyz = (double **) spparks_extract(spk,(char *) "xyz");
 
-  nspins = *((int *) spparks_extract(spk,"nspins"));
-  strain = (double *) spparks_extract(spk,"strain");
+  nspins = *((int *) spparks_extract(spk,(char *) "nspins"));
+  strain = (double *) spparks_extract(spk,(char *) "strain");
 
   // write a LAMMPS input script using SPPARKS params
 
@@ -114,7 +114,7 @@ int main(int narg, char **arg)
 
     fprintf(fp,"units lj\n");
     sprintf(str,"dimension %d\n",dimension);
-    fprintf(fp,str);
+    fprintf(fp,"%s",str);
     fprintf(fp,"atom_style atomic\n\n");
     
     fprintf(fp,"read_data data.lammps\n");
@@ -124,12 +124,14 @@ int main(int narg, char **arg)
     fprintf(fp,"pair_coeff * * 1.0 1.2\n");
     for (i = 0; i < nspins; i++) {
       sprintf(str,"pair_coeff %d %d 1.0 1.0\n",i+1,i+1);
-      fprintf(fp,str);
+      fprintf(fp,"%s",str);
     }
     fprintf(fp,"\n");
 
     fprintf(fp,"compute da all displace/atom\n\n");
     fprintf(fp,"dump 1 all atom 10 dump.md\n");
+    fprintf(fp,"dump 2 all image 10 image_lammps.*.ppm type type zoom 1.6\n");
+    fprintf(fp,"dump_modify 2 pad 4 acolor * red/green/blue/aqua/magenta/yellow\n");
     fprintf(fp,"thermo 1\n");
 
     fclose(fp);
@@ -138,12 +140,12 @@ int main(int narg, char **arg)
   // write a LAMMPS data file using SPPARKS data
 
   LAMMPSDataWrite *lwd = new LAMMPSDataWrite(MPI_COMM_WORLD);
-  lwd->file("data.lammps");
-  lwd->header("%d atoms",nglobal);
-  lwd->header("%d atom types",nspins);
-  lwd->header("%g %g xlo xhi",boxxlo,boxxhi);
-  lwd->header("%g %g ylo yhi",boxylo,boxyhi);
-  lwd->header("%g %g zlo zhi",boxzlo,boxzhi);
+  lwd->file((char *) "data.lammps");
+  lwd->header((char *) "%d atoms",nglobal);
+  lwd->header((char *) "%d atom types",nspins);
+  lwd->header((char *) "%g %g xlo xhi",boxxlo,boxxhi);
+  lwd->header((char *) "%g %g ylo yhi",boxylo,boxyhi);
+  lwd->header((char *) "%g %g zlo zhi",boxzlo,boxzhi);
   lwd->atoms(nlocal_spparks);
   lwd->atoms(id_spparks);
   lwd->atoms(spins);

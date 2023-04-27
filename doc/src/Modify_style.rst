@@ -40,13 +40,14 @@ conditions. This is the GNU public license in version 2 (not 3 or later)
 for the publicly distributed versions, e.g. on the LAMMPS homepage or on
 GitHub.  On request we also make a version of LAMMPS available under
 LGPL 2.1 terms; this will usually be the latest available or a previous
-stable version with a few LGPL 2.1 incompatible files removed.
+stable version with a few LGPL 2.1 incompatible files removed. More details
+are found on the :doc:`LAMMPS open-source license page <Intro_opensource>`.
 
 Your new source files should have the LAMMPS copyright, GPL notice, and
 your name and email address at the top, like other user-contributed
 LAMMPS source files.
 
-Contributions may be under a different license for long as that
+Contributions may be under a different license as long as that
 license does not conflict with the aforementioned terms.  Contributions
 that use code with a conflicting license can be split into two parts:
 
@@ -58,7 +59,7 @@ that use code with a conflicting license can be split into two parts:
 Please note, that this split licensed mode may complicate including the
 contribution in binary packages.
 
-Using Pull Requests on GitHub (preferred)
+Using pull requests on GitHub (preferred)
 -----------------------------------------
 
 All contributions to LAMMPS are processed as pull requests on GitHub
@@ -71,7 +72,7 @@ depends on the amount of time required to prepare the pull request and
 free time available by the LAMMPS developer in question to spend on this
 task.
 
-Integration Testing (strict)
+Integration testing (strict)
 ----------------------------
 
 Contributed code, like all pull requests, must pass the automated
@@ -159,7 +160,7 @@ decks.
   similar is acceptable when used to avoid unwanted domain decomposition
   of empty volumes).
 
-- outside of the log files no generated output should be included
+- outside of the log files, no generated output should be included
 
 - custom thermo_style settings may not include output measuring CPU or other time
   as that makes comparing the thermo output between different runs more complicated.
@@ -169,7 +170,7 @@ decks.
 
 - the total file size of all the inputs and outputs should be small
 
-- where possible potential files from the "potentials" folder or data
+- where possible, potential files from the "potentials" folder or data
   file from other folders should be re-used through symbolic links
 
 Howto document (optional)
@@ -187,7 +188,7 @@ your documentation, README files and examples, and the easier you make
 it for people to get started, the more likely it is that users will try
 out your new feature.
 
-Programming Style Requirements (varied)
+Programming style requirements (varied)
 ---------------------------------------
 
 The LAMMPS developers aim to employ a consistent programming style and
@@ -231,7 +232,7 @@ list all non-conforming lines.  By adding the `-f` flag to the command
 line, they will modify the flagged files to try removing the detected
 issues.
 
-Indentation and Placement of Braces (strongly preferred)
+Indentation and placement of braces (strongly preferred)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS uses 2 characters per indentation level and lines should be
@@ -240,7 +241,7 @@ kept within 100 characters wide.
 For new files added to the "src" tree, a `clang-format
 <https://clang.llvm.org/docs/ClangFormat.html>`_ configuration file is
 provided under the name `.clang-format`.  This file is compatible with
-clang-format version 8 and later. With that file present files can be
+clang-format version 8 and later. With that file present, files can be
 reformatted according to the configuration with a command like:
 `clang-format -i new-file.cpp`.  Ideally, this is done while writing the
 code or before a pull request is submitted.  Blocks of code where the
@@ -302,7 +303,7 @@ The core of LAMMPS is written in C++11 in a style that can be mostly
 described as "C with classes".  Advanced C++ features like operator
 overloading or excessive use of templates are avoided with the intent to
 keep the code readable to programmers that have limited C++ programming
-experience.  C++ constructs are acceptable when they help improving the
+experience.  C++ constructs are acceptable when they help improve the
 readability and reliability of the code, e.g. when using the
 `std::string` class instead of manipulating pointers and calling the
 string functions of the C library.  In addition a collection of
@@ -313,7 +314,7 @@ portability are provided.
 
 Included Fortran code has to be compatible with the Fortran 2003
 standard.  Python code must be compatible with Python 3.5.  Large parts
-or LAMMPS (including the :ref:`PYTHON package <PKG-PYTHON>`) are also
+of LAMMPS (including the :ref:`PYTHON package <PKG-PYTHON>`) are also
 compatible with Python 2.7.  Compatibility with Python 2.7 is
 desirable, but compatibility with Python 3.5 is **required**.
 
@@ -432,7 +433,7 @@ you are uncertain, please ask.
 - Please use clang-format only to reformat files that you have
   contributed.  For header files containing a ``SomeStyle(keyword,
   ClassName)`` macros it is required to have this macro embedded with a
-  pair of ``// clang-format off``, ``// clang-format on`` commends and
+  pair of ``// clang-format off``, ``// clang-format on`` comments and
   the line must be terminated with a semi-colon (;).  Example:
 
   .. code-block:: c++

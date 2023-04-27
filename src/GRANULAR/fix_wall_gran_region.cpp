@@ -59,9 +59,6 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   memory->destroy(history_one);
   history_one = nullptr;
 
-  ncontact = nullptr;
-  walls = nullptr;
-  history_many = nullptr;
   FixWallGranRegion::grow_arrays(atom->nmax);
 
   // initialize shear history as if particle is not touching region
@@ -193,7 +190,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
   }
 
   for (i = 0; i < nlocal; i++) {
-    if ((!mask[i]) & groupbit) continue;
+    if (!(mask[i] & groupbit)) continue;
     if (! region->match(x[i][0], x[i][1], x[i][2])) continue;
 
     nc = region->surface(x[i][0], x[i][1], x[i][2], radius[i] + model->pulloff_distance(radius[i], 0.0));

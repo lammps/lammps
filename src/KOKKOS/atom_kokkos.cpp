@@ -240,7 +240,7 @@ void AtomKokkos::sort()
   modified(Host, ALL_MASK);
 
  //  convert back to lamda coords
- 
+
  if (domain->triclinic) domain->x2lamda(nlocal);
 }
 

@@ -289,11 +289,11 @@ one or more nodes, each with two GPUs:
 
    The default binsize for :doc:`atom sorting <atom_modify>` on GPUs
    is equal to the default CPU neighbor binsize (i.e. 2x smaller than the
-   default neighbor binsize on GPUs). When running simple pair-wise
+   default GPU neighbor binsize). When running simple pair-wise
    potentials like Lennard Jones on GPUs, using a 2x larger binsize for
-   atom sorting (equal to the default binsize for building the neighbor
-   list on GPUs) and a more frequent sorting than default (e.g. sorting
-   every 100 time steps instead of 1000) may improve performance.
+   atom sorting (equal to the default GPU neighbor binsize) and a more
+   frequent sorting than default (e.g. sorting every 100 time steps
+   instead of 1000) may improve performance.
 
 .. code-block:: bash
 

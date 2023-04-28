@@ -397,10 +397,10 @@ void FixBondRelocate::post_integrate()
         }
       }
     one_bond_relocated:
-      void;
+      ;
     }
   all_bonds_of_atom_relocated:
-    void;
+    ;
   }
 
 done:

@@ -618,13 +618,13 @@ void VerletKokkos::force_clear()
 
 void VerletKokkos::fuse_check(int i, int n)
 {
-  fuse_force_clear = 0;
+  fuse_force_clear = 1;
   if (modify->n_pre_force) fuse_force_clear = 0;
   if (torqueflag || extraflag || neighbor->includegroup) fuse_force_clear = 0;
   if (!pair_compute_flag) fuse_force_clear = 0;
   if (!force->pair->fuse_force_clear_flag) fuse_force_clear = 0;
 
-  fuse_integrate = 0;
+  fuse_integrate = 1;
   if (modify->n_end_of_step) fuse_integrate = 0;
   if (i == 0 || i == n-1) fuse_integrate = 0;
   if (update->ntimestep == output->next) fuse_integrate = 0;

@@ -50,7 +50,7 @@ class FixBondRelocate : public Fix {
   char *id_temp;
   int *type;
   double **x;
-//   FixBondCreate *create_fix;
+  //   FixBondCreate *create_fix;
 
   int maxpermute;
   int *permute;
@@ -63,7 +63,7 @@ class FixBondRelocate : public Fix {
   double pair_eng(int, int);
   double bond_eng(int, int, int);
   double angle_eng(int, int, int, int);
-  
+
   void neighbor_permutation(int);
 
   void break_bond(int, int);

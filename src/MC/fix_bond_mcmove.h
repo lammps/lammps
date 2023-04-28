@@ -59,7 +59,8 @@ class FixBondMcMove : public Fix {
   double pair_eng(int, int);
   double bond_eng(int, int, int);
   double angle_eng(int, int, int, int);
-  void move_bond(int rotation, int rot_prev, int rot_next, int prev_partner, int preprev_partner, int next_partner, int postnext_partner);
+  void move_bond(int rotation, int rot_prev, int rot_next, int prev_partner, int preprev_partner,
+                 int next_partner, int postnext_partner);
 
   void neighbor_permutation(int);
 };

@@ -830,7 +830,7 @@ void FixAtomSwap::restart(char *buf)
 
 void *FixAtomSwap::extract(const char *name, int &dim)
 {
-  if (strcmp(name,"mc_active") == 0) {
+  if (strcmp(name, "mc_active") == 0) {
     dim = 0;
     return (void *) &mc_active;
   }

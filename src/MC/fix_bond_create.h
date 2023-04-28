@@ -51,7 +51,8 @@ class FixBondCreate : public Fix {
   double memory_usage() override;
 
  protected:
-  int me; int nprocs;
+  int me;
+  int nprocs;
   int iatomtype, jatomtype;
   int btype, seed;
   int imaxbond, jmaxbond;

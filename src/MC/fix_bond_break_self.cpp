@@ -28,6 +28,7 @@
 #include "fix_bond_history.h"
 
 #include <cstring>
+#include <iostream>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -38,7 +39,7 @@ using namespace FixConst;
 
 FixBondBreakSelf::FixBondBreakSelf(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg),
-    partner(nullptr), finalpartner(nullptr), distsq(nullptr), probability(nullptr),
+    partner(nullptr), finalpartner(nullptr), probability(nullptr),
     broken(nullptr), copy(nullptr), random(nullptr)
 {
     if (narg < 5) error->all(FLERR,"Illegal fix bond/break/self command");
@@ -125,7 +126,7 @@ FixBondBreakSelf::~FixBondBreakSelf()
 
     memory->destroy(partner);
     memory->destroy(finalpartner);
-    memory->destroy(distsq);
+    //memory->destroy(distsq);
     memory->destroy(broken);
     delete [] copy;
 }
@@ -181,11 +182,11 @@ void FixBondBreakSelf::post_integrate()
 
     // acquire updated ghost atom positions
     // necessary b/c are calling this after integrate, but before Verlet comm
-
+    // not necessary since we only care about self-bonds, i.e., all owned locally
     comm->forward_comm();
 
     // resize bond partner list and initialize it
-    // probability array overlays distsq array
+    // probability array overlays probability array
     // needs to be atom->nmax in length
 
     if (atom->nmax > nmax) {
@@ -194,6 +195,7 @@ void FixBondBreakSelf::post_integrate()
         nmax = atom->nmax;
         memory->create(partner,nmax,"bond/break/self:partner");
         memory->create(finalpartner,nmax,"bond/break/self:finalpartner");
+        memory->create(probability,nmax,"bond/break:probability");
     }
 
     int nlocal = atom->nlocal;
@@ -202,14 +204,15 @@ void FixBondBreakSelf::post_integrate()
     for (i = 0; i < nall; i++) {
         partner[i] = 0;
         finalpartner[i] = 0;
+        probability[i] = 0.0;
     }
 
-    do {
+    // do {
         // loop over bond list
         // setup possible partner list of bonds to break
 
         double **x = atom->x;
-        tagint *tag = atom->tag;
+        // tagint *tag = atom->tag;
         int *mask = atom->mask;
         int **bondlist = neighbor->bondlist;
         int nbondlist = neighbor->nbondlist;
@@ -231,11 +234,12 @@ void FixBondBreakSelf::post_integrate()
 
         // reverse comm of partner info
         // not needed as partner = self
-        // if (force->newton_bond) comm->reverse_comm(this);
+        if (force->newton_bond) comm->reverse_comm(this);
 
         // each atom now knows its winning partner
         // for prob check, generate random value for each atom with a bond partner
         // forward comm of partner and random value, so ghosts have it
+        // again, not necessary here actually since ghost atoms are irrelevant
 
         if (fraction < 1.0) {
             for (i = 0; i < nlocal; i++)
@@ -275,10 +279,12 @@ void FixBondBreakSelf::post_integrate()
                 }
             }
 
+            std::cout << "Intention to delete bond " << i << std::endl;
+
             // delete bond from atom I if I stores it
             // atom J will also do this
 
-            for (m = 0; m < num_bond[i]; m++) {
+            for (m = num_bond[i]-1; m >= 0; m--) {
                 if (bond_atom[i][m] == partner[i]) {
                     for (k = m; k < num_bond[i]-1; k++) {
                         bond_atom[i][k] = bond_atom[i][k+1];
@@ -291,7 +297,6 @@ void FixBondBreakSelf::post_integrate()
                         for (auto &ihistory: histories)
                             dynamic_cast<FixBondHistory *>(ihistory)->delete_history(i,num_bond[i]-1);
                     num_bond[i]--;
-                    break;
                 }
             }
 
@@ -312,7 +317,7 @@ void FixBondBreakSelf::post_integrate()
 
             finalpartner[i] = tag[j];
             finalpartner[j] = tag[i];
-            if (tag[i] < tag[j]) nbreak++;
+            if (tag[i] <= tag[j]) nbreak++;
         }
 
         // tally stats
@@ -320,7 +325,7 @@ void FixBondBreakSelf::post_integrate()
         MPI_Allreduce(&nbreak,&breakcount,1,MPI_INT,MPI_SUM,world);
         breakcounttotal += breakcount;
         atom->nbonds -= breakcount;
-    } while (breakcount > 0);
+    // } while (breakcount > 0);
 
     // trigger reneighboring if any bonds were broken
     // this ensures neigh lists will immediately reflect the topology changes
@@ -764,7 +769,7 @@ int FixBondBreakSelf::pack_reverse_comm(int n, int first, double *buf)
     last = first + n;
     for (i = first; i < last; i++) {
         buf[m++] = ubuf(partner[i]).d;
-        buf[m++] = distsq[i];
+        // buf[m++] = distsq[i];
     }
     return m;
 }
@@ -778,10 +783,10 @@ void FixBondBreakSelf::unpack_reverse_comm(int n, int *list, double *buf)
     m = 0;
     for (i = 0; i < n; i++) {
         j = list[i];
-        if (buf[m+1] > distsq[j]) {
+        //if (buf[m+1] > distsq[j]) {
             partner[j] = (tagint) ubuf(buf[m++]).i;
-            distsq[j] = buf[m++];
-        } else m += 2;
+            //distsq[j] = buf[m++];
+        //} else m += 1;
     }
 }
 

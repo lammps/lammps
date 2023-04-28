@@ -52,7 +52,7 @@ class FixBondBreakSelf : public Fix {
   int breakcount, breakcounttotal;
   int nmax;
   tagint *partner, *finalpartner;
-  double *distsq, *probability;
+  double *probability;
 
   int nbreak, maxbreak;
   tagint **broken;

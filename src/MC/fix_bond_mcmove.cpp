@@ -47,7 +47,7 @@ FixBondMcMove::FixBondMcMove(LAMMPS *lmp, int narg, char **arg) :
     tflag(0), alist(nullptr), id_temp(nullptr), type(nullptr), x(nullptr), list(nullptr),
     temperature(nullptr), random(nullptr)
 {
-    if (narg != 7) error->all(FLERR,"Illegal fix bond/mcmove command");
+    if (narg != 8) error->all(FLERR,"Illegal fix bond/mcmove command");
 
     trackbondtype = utils::inumeric(FLERR,arg[3],false,lmp);
     if (trackbondtype <= 0) error->all(FLERR,"Illegal fix bond/mcmove command");

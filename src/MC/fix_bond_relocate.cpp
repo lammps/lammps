@@ -64,6 +64,9 @@ FixBondRelocate::FixBondRelocate(LAMMPS *lmp, int narg, char **arg) :
   double low_cutoff = utils::numeric(FLERR, arg[6], false, lmp);
   double high_cutoff = utils::numeric(FLERR, arg[7], false, lmp);
 
+  if (low_cutoff >= high_cutoff)
+    error->all(FLERR, "Unrealistic cut-off choices for fix bond/relocate");
+
   locutsq = low_cutoff * low_cutoff;
   hicutsq = high_cutoff * high_cutoff;
 
@@ -143,6 +146,16 @@ void FixBondRelocate::init()
   int icompute = modify->find_compute(id_temp);
   if (icompute < 0) { error->all(FLERR, "Temperature ID for fix bond/relocate does not exist"); }
   temperature = modify->compute[icompute];
+
+  for (int iatomtype_i = 1; iatomtype_i <= atom->ntypes; iatomtype_i++) {
+    for (int jatomtype_i = 1; jatomtype_i <= atom->ntypes; jatomtype_i++) {
+      if (force->pair == nullptr || hicutsq > force->pair->cutsq[iatomtype_i][jatomtype_i])
+        error->all(FLERR,
+                   "Fix bond/create cutoff is longer than pairwise cutoff for iatomtype {} and "
+                   "jatomtype {}",
+                   iatomtype_i, jatomtype_i);
+    }
+  }
 
   // pair and bonds must be defined
   // no dihedral or improper potentials allowed

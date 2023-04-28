@@ -41,7 +41,7 @@ FixBondBreakSelf::FixBondBreakSelf(LAMMPS *lmp, int narg, char **arg) :
     partner(nullptr), finalpartner(nullptr), distsq(nullptr), probability(nullptr),
     broken(nullptr), copy(nullptr), random(nullptr)
 {
-    if (narg < 6) error->all(FLERR,"Illegal fix bond/break/self command");
+    if (narg < 5) error->all(FLERR,"Illegal fix bond/break/self command");
 
     MPI_Comm_rank(world,&me);
     MPI_Comm_size(world,&nprocs);
@@ -66,7 +66,7 @@ FixBondBreakSelf::FixBondBreakSelf(LAMMPS *lmp, int narg, char **arg) :
     fraction = 1.0;
     int seed = 12345;
 
-    int iarg = 6;
+    int iarg = 5;
     while (iarg < narg) {
         if (strcmp(arg[iarg],"prob") == 0) {
             if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/break/self command");

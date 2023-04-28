@@ -416,7 +416,7 @@ struct PairComputeFunctor  {
         f(i,1) = 0.0;
         f(i,2) = 0.0;
       });
-    
+ 
       const AtomNeighborsConst neighbors_i = list.get_neighbors_const(i);
       const int jnum = list.d_numneigh[i];
 

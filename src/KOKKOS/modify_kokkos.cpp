@@ -392,7 +392,6 @@ void ModifyKokkos::final_integrate()
   }
 }
 
-
 /* ----------------------------------------------------------------------
    fused initial and final integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */

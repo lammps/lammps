@@ -27,7 +27,7 @@
 #include "kspace.h"
 #include "output.h"
 #include "update.h"
-#include "modify.h"
+#include "modify_kokkos.h"
 #include "timer.h"
 #include "memory_kokkos.h"
 #include "kokkos.h"
@@ -629,5 +629,5 @@ void VerletKokkos::fuse_check(int i, int n)
   if (i == 0 || i == n-1) fuse_integrate = 0;
   if (update->ntimestep == output->next) fuse_integrate = 0;
   if (timer->has_timeout()) fuse_integrate = 0;
-  if (!modify->check_fuse_integrate()) fuse_integrate = 0;
+  if (!((ModifyKokkos*)modify)->check_fuse_integrate()) fuse_integrate = 0;
 }

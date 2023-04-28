@@ -394,7 +394,7 @@ void ModifyKokkos::final_integrate()
 
 
 /* ----------------------------------------------------------------------
-   2nd half of integrate call, only for relevant fixes
+   fused initial and final integrate call, only for relevant fixes
 ------------------------------------------------------------------------- */
 
 void ModifyKokkos::fused_integrate()
@@ -899,4 +899,23 @@ int ModifyKokkos::min_reset_ref()
                      fix[list_min_energy[i]]->datamask_modify);
   }
   return itmpall;
+}
+
+/* ----------------------------------------------------------------------
+   check if initial and final integrate can be fused
+------------------------------------------------------------------------- */
+
+int ModifyKokkos::check_fuse_integrate()
+{
+  int fuse_integrate_flag = 1;
+
+  for (int i = 0; i < n_initial_integrate; i++)
+    if (!fix[list_initial_integrate[i]]->fuse_integrate_flag)
+      fuse_integrate_flag = 0;
+
+  for (int i = 0; i < n_final_integrate; i++)
+    if (!fix[list_final_integrate[i]]->fuse_integrate_flag)
+      fuse_integrate_flag = 0;
+
+  return fuse_integrate_flag;
 }

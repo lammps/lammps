@@ -392,6 +392,25 @@ void ModifyKokkos::final_integrate()
   }
 }
 
+
+/* ----------------------------------------------------------------------
+   2nd half of integrate call, only for relevant fixes
+------------------------------------------------------------------------- */
+
+void ModifyKokkos::fused_integrate()
+{
+  for (int i = 0; i < n_final_integrate; i++) {
+    atomKK->sync(fix[list_final_integrate[i]]->execution_space,
+                 fix[list_final_integrate[i]]->datamask_read);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!fix[list_final_integrate[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_final_integrate[i]]->fused_integrate();
+    lmp->kokkos->auto_sync = prev_auto_sync;
+    atomKK->modified(fix[list_final_integrate[i]]->execution_space,
+                     fix[list_final_integrate[i]]->datamask_modify);
+  }
+}
+
 /* ----------------------------------------------------------------------
    end-of-timestep call, only for relevant fixes
    only call fix->end_of_step() on timesteps that are multiples of nevery

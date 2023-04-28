@@ -29,6 +29,7 @@ FixNVEKokkos<DeviceType>::FixNVEKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixNVE(lmp, narg, arg)
 {
   kokkosable = 1;
+  fuse_integrate_flag = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -166,6 +167,35 @@ void FixNVEKokkos<DeviceType>::cleanup_copy()
 {
   id = style = nullptr;
   vatom = nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   allow for both per-type and per-atom mass
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNVEKokkos<DeviceType>::fused_integrate()
+{
+  atomKK->sync(execution_space,datamask_read);
+  atomKK->modified(execution_space,datamask_modify);
+
+  x = atomKK->k_x.view<DeviceType>();
+  v = atomKK->k_v.view<DeviceType>();
+  f = atomKK->k_f.view<DeviceType>();
+  rmass = atomKK->k_rmass.view<DeviceType>();
+  mass = atomKK->k_mass.view<DeviceType>();
+  type = atomKK->k_type.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
+  int nlocal = atomKK->nlocal;
+  if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
+
+  if (rmass.data()) {
+    FixNVEKokkosFusedIntegrateFunctor<DeviceType,1> functor(this);
+    Kokkos::parallel_for(nlocal,functor);
+  } else {
+    FixNVEKokkosFusedIntegrateFunctor<DeviceType,0> functor(this);
+    Kokkos::parallel_for(nlocal,functor);
+  }
 }
 
 namespace LAMMPS_NS {

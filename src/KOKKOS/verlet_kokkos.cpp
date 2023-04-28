@@ -296,7 +296,9 @@ void VerletKokkos::run(int n)
     // initial time integration
 
     timer->stamp();
-    modify->initial_integrate(vflag);
+    fuse_check(i,n);
+    if (!fuse_integrate)
+      modify->initial_integrate(vflag);
     if (n_post_integrate) modify->post_integrate();
     timer->stamp(Timer::MODIFY);
 
@@ -362,7 +364,8 @@ void VerletKokkos::run(int n)
     // since some bonded potentials tally pairwise energy/virial
     // and Pair:ev_tally() needs to be called before any tallying
 
-    force_clear();
+    if (!fuse_force_clear)
+      force_clear();
 
     timer->stamp();
 
@@ -494,7 +497,10 @@ void VerletKokkos::run(int n)
     // force modifications, final time integration, diagnostics
 
     if (n_post_force) modify->post_force(vflag);
-    modify->final_integrate();
+
+    if (fuse_integrate) modify->fused_integrate();
+    else modify->final_integrate();
+
     if (n_end_of_step) modify->end_of_step();
     timer->stamp(Timer::MODIFY);
 
@@ -592,4 +598,36 @@ void VerletKokkos::force_clear()
       }
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   check if can fuse force_clear() with pair compute()
+   Requirements:
+   - no pre_force fixes
+   - no torques, SPIN forces, or includegroup set
+   - pair compute() must be called
+   - pair_style must support fusing
+
+   check if can fuse initial_integrate() with final_integrate()
+   Requirements:
+   - no end_of_step fixes
+   - not on first, last, or output step
+   - no timers to break out of loop
+   - integrate fix style must support fusing
+------------------------------------------------------------------------- */
+
+void VerletKokkos::fuse_check(int i, int n)
+{
+  fuse_force_clear = 0;
+  if (modify->n_pre_force) fuse_force_clear = 0;
+  if (torqueflag || extraflag || neighbor->includegroup) fuse_force_clear = 0;
+  if (!pair_compute_flag) fuse_force_clear = 0;
+  if (!force->pair->fuse_force_clear_flag) fuse_force_clear = 0;
+
+  fuse_integrate = 0;
+  if (modify->n_end_of_step) fuse_integrate = 0;
+  if (i == 0 || i == n-1) fuse_integrate = 0;
+  if (update->ntimestep == output->next) fuse_integrate = 0;
+  if (timer->has_timeout()) fuse_integrate = 0;
+  if (!modify->check_fuse_integrate()) fuse_integrate = 0;
 }

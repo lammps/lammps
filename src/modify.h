@@ -61,6 +61,7 @@ class Modify : protected Pointers {
   virtual void setup_pre_force(int);
   virtual void setup_pre_reverse(int, int);
   virtual void initial_integrate(int);
+  virtual void fused_integrate();
   virtual void post_integrate();
   virtual void pre_exchange();
   virtual void pre_neighbor();
@@ -149,6 +150,8 @@ class Modify : protected Pointers {
   void restart_deallocate(int);
 
   double memory_usage();
+
+  int check_fuse_integrate();
 
  protected:
   // internal fix counts

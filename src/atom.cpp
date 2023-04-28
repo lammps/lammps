@@ -2271,6 +2271,10 @@ void Atom::sort()
 
   for (i = 0; i < nbins; i++) binhead[i] = -1;
 
+  // for triclinic, atoms must be in box coords (not lamda) to match bbox
+
+  if (domain->triclinic) domain->lamda2x(nlocal);
+
   for (i = nlocal-1; i >= 0; i--) {
     ix = static_cast<int> ((x[i][0]-bboxlo[0])*bininvx);
     iy = static_cast<int> ((x[i][1]-bboxlo[1])*bininvy);
@@ -2285,6 +2289,10 @@ void Atom::sort()
     next[i] = binhead[ibin];
     binhead[ibin] = i;
   }
+
+  // convert back to lamda coords
+
+  if (domain->triclinic) domain->x2lamda(nlocal);
 
   // permute = desired permutation of atoms
   // permute[I] = J means Ith new atom will be Jth old atom

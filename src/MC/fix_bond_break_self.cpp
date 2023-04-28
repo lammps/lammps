@@ -204,7 +204,7 @@ void FixBondBreakSelf::post_integrate()
     for (i = 0; i < nall; i++) {
         partner[i] = 0;
         finalpartner[i] = 0;
-        probability[i] = 0.0;
+        probability[i] = 1.0;
     }
 
     // do {
@@ -217,20 +217,33 @@ void FixBondBreakSelf::post_integrate()
         int **bondlist = neighbor->bondlist;
         int nbondlist = neighbor->nbondlist;
 
+            // std::cout << "Looping nbondlist " << nbondlist << std::endl;
+            int n_debug_count = 0;
+            int n_group_fail_count = 0;
+            int n_type_fail_count = 0;
         for (n = 0; n < nbondlist; n++) {
             i1 = bondlist[n][0];
             i2 = bondlist[n][1];
             type = bondlist[n][2];
-            if (i1 != i2) {
+            if (!(mask[i1] & groupbit)) {
+                n_group_fail_count++;
+                continue;}
+            if (!(mask[i2] & groupbit)) {
+                n_group_fail_count++;
+                continue;}
+            if (type != btype) {
+                n_type_fail_count++;
+                continue;}
+            if (tag[i1] != tag[i2]) {
                 continue;
             }
-            if (!(mask[i1] & groupbit)) continue;
-            if (!(mask[i2] & groupbit)) continue;
-            if (type != btype) continue;
 
             partner[i1] = tag[i2];
             partner[i2] = tag[i1];
+            n_debug_count += 1;
         }
+        // std::cout << "Of nbonds " << nbondlist << ", we have " << n_group_fail_count << " group fails, " << n_type_fail_count << " type fails"  <<std::endl;
+        // std::cout << "Found " << n_debug_count << " partners that are same"<< std::endl;
 
         // reverse comm of partner info
         // not needed as partner = self
@@ -242,8 +255,8 @@ void FixBondBreakSelf::post_integrate()
         // again, not necessary here actually since ghost atoms are irrelevant
 
         if (fraction < 1.0) {
-            for (i = 0; i < nlocal; i++)
-                if (partner[i]) probability[i] = random->uniform();
+            for (i = 0; i < nlocal; i++){
+                if (partner[i]) {probability[i] = random->uniform();}}
         }
 
         commflag = 1;
@@ -264,11 +277,13 @@ void FixBondBreakSelf::post_integrate()
         tagint **special = atom->special;
 
         nbreak = 0;
+            // std::cout << "Looping nlocal " << nlocal << std::endl;
         for (i = 0; i < nlocal; i++) {
-            if (partner[i] == 0) continue;
-            j = atom->map(partner[i]);
-            if (partner[j] != tag[i]) continue;
+            if (partner[i] == 0) {continue;}
+                        j = atom->map(partner[i]);
+            if (partner[j] != tag[i]) {continue;}
 
+            // std::cout << "Checking probability to delete bond " << i << std::endl;
             // apply probability constraint using RN for atom with smallest ID
 
             if (fraction < 1.0) {
@@ -279,7 +294,7 @@ void FixBondBreakSelf::post_integrate()
                 }
             }
 
-            std::cout << "Intention to delete bond " << i << std::endl;
+            // std::cout << "Intention to delete bond " << i << std::endl;
 
             // delete bond from atom I if I stores it
             // atom J will also do this

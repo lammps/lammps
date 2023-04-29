@@ -396,11 +396,9 @@ void FixBondRelocate::post_integrate()
           goto all_bonds_of_atom_relocated;
         }
       }
-    one_bond_relocated:
-      void;
+    one_bond_relocated:;
     }
-  all_bonds_of_atom_relocated:
-    void;
+  all_bonds_of_atom_relocated:;
   }
 
 done:
@@ -465,6 +463,7 @@ void FixBondRelocate::break_bond(int source_atom, int bond_i)
     }
   }
 
+  // TODO: check if there is no issue with who owns what, which proc does what
   // first, remove it from the bonds of both contributors
   for (int i = num_bond[source_atom] - 2; i >= bond_i; i--) {
     bond_atom[source_atom][i] = bond_atom[source_atom][i + 1];
@@ -482,7 +481,7 @@ void FixBondRelocate::break_bond(int source_atom, int bond_i)
   for (int i = num_bond[bond_target_atom] - 2; i >= bond_i_target; i--) {
     bond_atom[bond_target_atom][i] = bond_atom[bond_target_atom][i + 1];
   }
-  num_bond[bond_target_atom]--;
+  if (bond_i_target >= 0) { num_bond[bond_target_atom]--; }
 
   // then, adjust the special list
   if (num_bonds_to_source == 1) {
@@ -514,7 +513,10 @@ void FixBondRelocate::create_bond(int source_atom, int target_atom)
 
   if (!newton_bond || tag[i] < tag[j]) {
     if (num_bond[i] >= atom->bond_per_atom) {
-      error->one(FLERR, "New bond exceeded bonds per atom in fix bond/create");
+      error->one(
+          FLERR,
+          "New bond exceeded bonds per atom in fix bond/create: atom {} has {} bonds already.",
+          tag[i], num_bond[i]);
     }
     bond_type[i][num_bond[i]] = relocate_btype;
     bond_atom[i][num_bond[i]] = tag[j];
@@ -525,26 +527,30 @@ void FixBondRelocate::create_bond(int source_atom, int target_atom)
   // atom J will also do this, whatever proc it is on
   // need to first remove tag[j] from later in list if it appears
   // prevents list from overflowing, will be rebuilt in rebuild_special_one()
-
-  slist = special[i];
-  int n1 = nspecial[i][0];
-  int n2 = nspecial[i][1];
-  int n3 = nspecial[i][2];
-  int m = 0;
-  for (m = n1; m < n3; m++)
-    if (slist[m] == tag[j]) break;
-  if (m < n3) {
-    for (int n = m; n < n3 - 1; n++) slist[n] = slist[n + 1];
-    n3--;
-    if (m < n2) n2--;
+  if (force->special_lj[1] != 1.0) {
+    slist = special[i];
+    int n1 = nspecial[i][0];
+    int n2 = nspecial[i][1];
+    int n3 = nspecial[i][2];
+    int m = 0;
+    for (m = n1; m < n3; m++)
+      if (slist[m] == tag[j]) break;
+    if (m < n3) {
+      for (int n = m; n < n3 - 1; n++) slist[n] = slist[n + 1];
+      n3--;
+      if (m < n2) n2--;
+    }
+    if (n3 >= atom->maxspecial)
+      error->one(
+          FLERR,
+          "New bond exceeded special list size in fix bond/create: {} requested of {} allowed", n3,
+          atom->maxspecial);
+    for (m = n3; m > n1; m--) slist[m] = slist[m - 1];
+    slist[n1] = tag[j];
+    nspecial[i][0] = n1 + 1;
+    nspecial[i][1] = n2 + 1;
+    nspecial[i][2] = n3 + 1;
   }
-  if (n3 >= atom->maxspecial)
-    error->one(FLERR, "New bond exceeded special list size in fix bond/create");
-  for (m = n3; m > n1; m--) slist[m] = slist[m - 1];
-  slist[n1] = tag[j];
-  nspecial[i][0] = n1 + 1;
-  nspecial[i][1] = n2 + 1;
-  nspecial[i][2] = n3 + 1;
 }
 
 /* ----------------------------------------------------------------------

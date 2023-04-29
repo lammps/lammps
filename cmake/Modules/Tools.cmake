@@ -63,6 +63,8 @@ if(BUILD_LAMMPS_SHELL)
   install(TARGETS lammps-shell EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(DIRECTORY ${LAMMPS_TOOLS_DIR}/lammps-shell/icons DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/)
   install(FILES ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/)
+
+  add_subdirectory(${LAMMPS_TOOLS_DIR}/phonon ${CMAKE_BINARY_DIR}/phana_build)
 endif()
 
 

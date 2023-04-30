@@ -82,6 +82,8 @@ double ComputeCountType::compute_scalar()
 
   int nbond;
   int count = 0;
+
+  // NOTE: respect group setting
   
   for (int i = 0; i < nlocal; i++) {
     nbond = num_bond[i];
@@ -113,6 +115,8 @@ void ComputeCountType::compute_vector()
 
   // count atoms by type
 
+  // NOTE: respect group setting
+
   if (mode == ATOM) {
     int *type = atom->type;
     int nlocal = atom->nlocal;
@@ -127,7 +131,9 @@ void ComputeCountType::compute_vector()
   // count bonds by type
   // skip type = 0 bonds, they are counted by compute_scalar
   // bond types can be negative for SHAKE
-    
+
+  // NOTE: respect group setting
+
   else if (mode == BOND) {
     int *num_bond = atom->num_bond;
     int **bond_type = atom->bond_type;

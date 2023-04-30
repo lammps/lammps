@@ -46,6 +46,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`contact/atom <compute_contact_atom>`
    * :doc:`coord/atom (k) <compute_coord_atom>`
+   * :doc:`count/type <compute_count_type>`
    * :doc:`damage/atom <compute_damage_atom>`
    * :doc:`dihedral <compute_dihedral>`
    * :doc:`dihedral/local <compute_dihedral_local>`

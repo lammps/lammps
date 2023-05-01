@@ -1,6 +1,6 @@
-.. index:: fix rheo
+.. index:: fix rheo/pressure
 
-fix rheo command
+fix rheo/pressure command
 ===============
 
 Syntax
@@ -8,26 +8,33 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo
+   fix ID group-ID rheo/pressure pstyle args
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* rheo = style name of this fix command
+* rheo/pressure = style name of this fix command
+* pstyle = *linear* or *taitwater* or *cubic*
+
+  .. parsed-literal::
+
+       *linear* args = none
+       *taitwater* args = none
+       *cubic* args = cubic term prefactor :math:`A_3` (pressure/density\^2)
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix 1 all rheo 1.0 CRK1 shift
+   fix 1 all rheo/pressure linear
+   fix 1 all rheo/pressure cubic 10.0
 
 Description
 """""""""""
 
-Perform time integration to update position, velocity, internal energy
-and local density for atoms in the group each timestep. This fix is
-needed to time-integrate SPH systems where particles carry internal
-variables such as internal energy.  SPH stands for Smoothed Particle
-Hydrodynamics.
+This fix...
+
+Only one instance of fix rheo/pressure can be defined and the fix group must be set to all.
+
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -41,6 +48,11 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
+This fix must be used with an atom style that includes density
+such as atom_style rheo or rheo/thermal. This fix must be used in
+conjuction with :doc:`fix rheo <fix_rheo>`. The fix group must be
+set to all.
+
 This fix is part of the RHEO package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
@@ -48,7 +60,6 @@ Related commands
 """"""""""""""""
 
 :doc:`fix rheo/viscosity <fix_rheo_viscosity>`,
-:doc:`fix rheo/pressure <fix_rheo_pressure>`,
 :doc:`fix rheo/thermal <fix_rheo_thermal>`,
 :doc:`pair rheo <pair_rheo>`,
 :doc:`compute rheo/property/atom <compute_rheo_property_atom>`

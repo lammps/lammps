@@ -74,7 +74,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
 
   h = utils::numeric(FLERR,arg[3],false,lmp);
   cut = h;
-  if (strcmp(arg[4],"Quintic") == 0) {
+  if (strcmp(arg[4],"quintic") == 0) {
       kernel_style = QUINTIC;
   } else if (strcmp(arg[4],"CRK0") == 0) {
       kernel_style = CRK0;
@@ -109,11 +109,11 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       interface_flag = 1;
     } else if (strcmp(arg[iarg],"rho/sum") == 0) {
       rhosum_flag = 1;
-    } else if (strcmp(arg[iarg],"rho0") == 0) {
+    } else if (strcmp(arg[iarg],"density") == 0) {
       if(iarg + 1 >= narg) error->all(FLERR,"Illegal rho0 option in fix rheo");
       rho0 = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
       iarg += 1;
-    } else if (strcmp(arg[iarg],"csq") == 0) {
+    } else if (strcmp(arg[iarg],"sound/squared") == 0) {
       if(iarg+1 >= narg) error->all(FLERR,"Illegal csq option in fix rheo");
       csq = utils::numeric(FLERR,arg[iarg + 1],false,lmp);
       iarg += 1;

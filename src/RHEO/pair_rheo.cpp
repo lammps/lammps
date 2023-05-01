@@ -357,7 +357,7 @@ void PairRHEO::settings(int narg, char **arg)
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   h = utils::numeric(FLERR,arg[0],false,lmp);
-printf("settings\n");
+
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "rho/damp") == 0) {
@@ -423,7 +423,7 @@ void PairRHEO::setup()
   thermal_flag = fix_rheo->thermal_flag;
   csq = fix_rheo->csq;
   rho0 = fix_rheo->rho0;
-printf("setup\n");
+
   if (h != fix_rheo->h)
     error->all(FLERR, "Pair rheo cutoff {} does not agree with fix rheo cutoff {}", h, fix_rheo->h);
 
@@ -455,6 +455,6 @@ double PairRHEO::init_one(int i, int j)
   if (setflag[i][j] == 0) {
       error->all(FLERR,"All pair rheo coeffs are not set");
   }
-printf("init one\n");
+
   return h;
 }

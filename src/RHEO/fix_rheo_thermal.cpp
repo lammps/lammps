@@ -72,7 +72,7 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
       } else {
         error->all(FLERR,"Illegal fix command, {}", arg[iarg + 1]);
       }
-    } else if (strcmp(arg[iarg],"cv") == 0) {
+    } else if (strcmp(arg[iarg],"specific/heat") == 0) {
       // Cv arguments
       if (iarg + 1 >= narg) error->all(FLERR,"Insufficient arguments for cv option");
       if (strcmp(arg[iarg + 1],"constant") == 0) {

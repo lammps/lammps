@@ -8,26 +8,38 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID rheo
+   fix ID group-ID rheo cut kstyle keyword values...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * rheo = style name of this fix command
+* cut = *quintic* or *CRK0* or *CRK1* or *CRK2*
+* zero or more keyword/value pairs may be appended to args
+* keyword = *shift* or *thermal* or *surface/detection* or *interface/reconstruction* or *rho/sum* or *density* or *sound/squared*
+
+  .. parsed-literal::
+
+       *shift* values = none, turns on velocity shifting
+       *thermal* values = none, turns on thermal evolution
+       *surface/detection* values = *sdstyle* *limit*
+         *sdstyle* = *coordination* or *divergence*
+         *limit* = threshold for surface particles (unitless)
+       *interface/reconstruction* values = none, reconstructs interfaces with solid particles
+       *rho/sum* values = none, uses the kernel to compute the density of particles
+       *density* values = *rho0* (density)
+       *sound/squared* values = *csq* (velocity\^2)
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix 1 all rheo 1.0 CRK1 shift
+   fix 1 all rheo 1.0 quintic thermal density 0.1 sound/squared 10.0
+   fix 1 all rheo 1.0 CRK1 shift surface/detection coordination 40
 
 Description
 """""""""""
 
-Perform time integration to update position, velocity, internal energy
-and local density for atoms in the group each timestep. This fix is
-needed to time-integrate SPH systems where particles carry internal
-variables such as internal energy.  SPH stands for Smoothed Particle
-Hydrodynamics.
+Fix description...
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -40,6 +52,14 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 
 Restrictions
 """"""""""""
+
+This fix must be used with an atom style that includes density
+such as atom_style rheo or rheo/thermal. This fix must be used in
+conjuction with :doc:`fix rheo/pressure <fix_rheo_pressure>`. and
+:doc:`fix rheo/viscosity <fix_rheo_viscosity>`, If the *thermal*
+setting is used, there must also be an instance of
+:doc:`fix rheo/thermal <fix_rheo_thermal>`. The fix group must be
+set to all.
 
 This fix is part of the RHEO package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
@@ -56,4 +76,4 @@ Related commands
 Default
 """""""
 
-none
+*rho0* and *csq* are set to 1.0.

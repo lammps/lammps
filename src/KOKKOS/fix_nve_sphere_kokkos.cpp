@@ -175,6 +175,7 @@ void FixNVESphereKokkos<DeviceType>::fused_integrate(int /*vflag*/)
   else
     atomKK->sync(execution_space, X_MASK | V_MASK | OMEGA_MASK| F_MASK | TORQUE_MASK | RMASS_MASK | RADIUS_MASK | MASK_MASK);
 
+  x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
   omega = atomKK->k_omega.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();

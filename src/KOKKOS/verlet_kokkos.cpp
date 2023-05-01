@@ -276,6 +276,9 @@ void VerletKokkos::run(int n)
 
   lmp->kokkos->auto_sync = 0;
 
+  fuse_integrate = 0;
+  fuse_force_clear = 0;
+
   if (atomKK->sortfreq > 0) sortflag = 1;
   else sortflag = 0;
 

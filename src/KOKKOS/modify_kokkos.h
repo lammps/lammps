@@ -39,7 +39,7 @@ class ModifyKokkos : public Modify {
   void pre_reverse(int,int) override;
   void post_force(int) override;
   void final_integrate() override;
-  void fused_integrate() override;
+  void fused_integrate(int) override;
   void end_of_step() override;
   double energy_couple() override;
   double energy_global() override;

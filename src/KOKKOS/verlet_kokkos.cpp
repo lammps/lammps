@@ -498,7 +498,7 @@ void VerletKokkos::run(int n)
 
     if (n_post_force) modify->post_force(vflag);
 
-    if (fuse_integrate) modify->fused_integrate();
+    if (fuse_integrate) modify->fused_integrate(vflag);
     else modify->final_integrate();
 
     if (n_end_of_step) modify->end_of_step();

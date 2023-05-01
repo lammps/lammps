@@ -160,21 +160,12 @@ void FixNVEKokkos<DeviceType>::final_integrate_rmass_item(int i) const
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixNVEKokkos<DeviceType>::cleanup_copy()
-{
-  id = style = nullptr;
-  vatom = nullptr;
-}
-
 /* ----------------------------------------------------------------------
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNVEKokkos<DeviceType>::fused_integrate()
+void FixNVEKokkos<DeviceType>::fused_integrate(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
 
@@ -198,6 +189,47 @@ void FixNVEKokkos<DeviceType>::fused_integrate()
 
   atomKK->modified(execution_space,datamask_modify);
 }
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixNVEKokkos<DeviceType>::fused_integrate_item(int i) const
+{ 
+  if (mask[i] & groupbit) { 
+    const double dtfm = 2.0 * dtf / mass[type[i]];
+    v(i,0) += dtfm * f(i,0);
+    v(i,1) += dtfm * f(i,1);
+    v(i,2) += dtfm * f(i,2);
+    x(i,0) += dtv * v(i,0);
+    x(i,1) += dtv * v(i,1);
+    x(i,2) += dtv * v(i,2);
+  }
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixNVEKokkos<DeviceType>::fused_integrate_rmass_item(int i) const
+{
+  if (mask[i] & groupbit) {
+    const double dtfm = 2.0 * dtf / rmass[i];
+    v(i,0) += dtfm * f(i,0);
+    v(i,1) += dtfm * f(i,1);
+    v(i,2) += dtfm * f(i,2);
+    x(i,0) += dtv * v(i,0);
+    x(i,1) += dtv * v(i,1);
+    x(i,2) += dtv * v(i,2);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNVEKokkos<DeviceType>::cleanup_copy()
+{ 
+  id = style = nullptr;
+  vatom = nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class FixNVEKokkos<LMPDeviceType>;

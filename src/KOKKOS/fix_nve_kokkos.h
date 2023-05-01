@@ -46,7 +46,7 @@ class FixNVEKokkos : public FixNVE {
   void init() override;
   void initial_integrate(int) override;
   void final_integrate() override;
-  void fused_integrate() override;
+  void fused_integrate(int) override;
 
   KOKKOS_INLINE_FUNCTION
   void initial_integrate_item(int) const;
@@ -56,6 +56,10 @@ class FixNVEKokkos : public FixNVE {
   void final_integrate_item(int) const;
   KOKKOS_INLINE_FUNCTION
   void final_integrate_rmass_item(int) const;
+  KOKKOS_INLINE_FUNCTION
+  void fused_integrate_item(int) const;
+  KOKKOS_INLINE_FUNCTION
+  void fused_integrate_rmass_item(int) const;
 
  private:
 
@@ -106,13 +110,10 @@ struct FixNVEKokkosFusedIntegrateFunctor  {
   c(*c_ptr) {c.cleanup_copy();};
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
-    if (RMass) {
-      c.final_integrate_rmass_item(i);
-      c.initial_integrate_rmass_item(i);
-    } else {
-      c.final_integrate_item(i);
-      c.initial_integrate_item(i);
-    }
+    if (RMass)
+      c.fused_integrate_rmass_item(i);
+    else
+      c.fused_integrate_item(i);
   }
 };
 

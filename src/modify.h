@@ -61,7 +61,6 @@ class Modify : protected Pointers {
   virtual void setup_pre_force(int);
   virtual void setup_pre_reverse(int, int);
   virtual void initial_integrate(int);
-  virtual void fused_integrate() {}
   virtual void post_integrate();
   virtual void pre_exchange();
   virtual void pre_neighbor();
@@ -70,6 +69,7 @@ class Modify : protected Pointers {
   virtual void pre_reverse(int, int);
   virtual void post_force(int);
   virtual void final_integrate();
+  virtual void fused_integrate(int) {}
   virtual void end_of_step();
   virtual double energy_couple();
   virtual double energy_global();

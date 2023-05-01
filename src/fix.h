@@ -153,7 +153,6 @@ class Fix : protected Pointers {
   virtual void setup_pre_reverse(int, int) {}
   virtual void min_setup(int) {}
   virtual void initial_integrate(int) {}
-  virtual void fused_integrate() {}
   virtual void post_integrate() {}
   virtual void pre_exchange() {}
   virtual void pre_neighbor() {}
@@ -162,6 +161,7 @@ class Fix : protected Pointers {
   virtual void pre_reverse(int, int) {}
   virtual void post_force(int) {}
   virtual void final_integrate() {}
+  virtual void fused_integrate(int) {}
   virtual void end_of_step() {}
   virtual void post_run() {}
   virtual void write_restart(FILE *) {}

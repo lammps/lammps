@@ -1,4 +1,4 @@
-.. index:: pair_style sph/lj
+.. index:: pair_style rheo
 
 pair_style rheo command
 =========================

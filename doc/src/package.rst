@@ -71,7 +71,7 @@ Syntax
            *no_affinity* values = none
        *kokkos* args = keyword value ...
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *gpu/aware* or *pair/only*
+         keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/reverse* or *comm/pair/reverse* or *sort* or *gpu/aware* or *pair/only*
            *neigh* value = *full* or *half*
              full = full neighbor list
              half = half neighbor list built in thread-safe manner
@@ -102,6 +102,9 @@ Syntax
            *comm/pair/reverse* value = *no* or *device*
              *no* = perform communication pack/unpack in non-KOKKOS mode
              *device* = perform pack/unpack on device (e.g. on GPU)
+           *sort* value = *no* or *device*
+             *no* = perform atom sorting in non-KOKKOS mode
+             *device* = perform atom sorting on device (e.g. on GPU)
            *gpu/aware* = *off* or *on*
              *off* = do not use GPU-aware MPI
              *on* = use GPU-aware MPI (default)
@@ -554,6 +557,17 @@ pack/unpack communicated data. When running small systems on a GPU,
 performing the exchange pack/unpack on the host CPU can give speedup
 since it reduces the number of CUDA kernel launches.
 
+The *sort* keyword determines whether the host or device performs atom
+sorting, see the :doc:`atom_modify sort <atom_modify>` command.  The
+value options for the *sort* keyword are *no* or *device* similar to the
+*comm* keywords above. If a value of *host* is used it will be
+automatically be changed to *no* since the *sort* keyword doesn't
+support *host* mode. The value of *no* will also always be used when
+running on the CPU, i.e. setting the value to *device* will have no
+effect if the simulation is running on the CPU. Not all fix styles with
+extra atom data support *device* mode and in that case a warning will be
+given and atom sorting will run in *no* mode instead.
+
 The *gpu/aware* keyword chooses whether GPU-aware MPI will be used. When
 this keyword is set to *on*, buffers in GPU memory are passed directly
 through MPI send/receive calls. This reduces overhead of first copying
@@ -705,12 +719,12 @@ script or via the "-pk intel" :doc:`command-line switch <Run_options>`.
 
 For the KOKKOS package, the option defaults for GPUs are neigh = full,
 neigh/qeq = full, newton = off, binsize for GPUs = 2x LAMMPS default
-value, comm = device, neigh/transpose = off, gpu/aware = on. When
-LAMMPS can safely detect that GPU-aware MPI is not available, the
-default value of gpu/aware becomes "off". For CPUs or Xeon Phis, the
-option defaults are neigh = half, neigh/qeq = half, newton = on,
-binsize = 0.0, and comm = no.  The option neigh/thread = on when there
-are 16K atoms or less on an MPI rank, otherwise it is "off". These
+value, comm = device, sort = device, neigh/transpose = off, gpu/aware =
+on. When LAMMPS can safely detect that GPU-aware MPI is not available,
+the default value of gpu/aware becomes "off". For CPUs or Xeon Phis, the
+option defaults are neigh = half, neigh/qeq = half, newton = on, binsize
+= 0.0, comm = no, and sort = no.  The option neigh/thread = on when
+there are 16K atoms or less on an MPI rank, otherwise it is "off". These
 settings are made automatically by the required "-k on"
 :doc:`command-line switch <Run_options>`. You can change them by using
 the package kokkos command in your input script or via the :doc:`-pk

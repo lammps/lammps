@@ -312,7 +312,7 @@ class Atom : protected Pointers {
   void create_avec(const std::string &, int, char **, int);
   virtual AtomVec *new_avec(const std::string &, int, int &);
 
-  void init();
+  virtual void init();
   void setup();
 
   std::string get_style();

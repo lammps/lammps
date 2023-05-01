@@ -34,6 +34,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
   AtomVecHybridKokkos(class LAMMPS *);
 
   void grow(int) override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
 
   int pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
                        const int & iswap,

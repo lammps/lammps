@@ -22,6 +22,8 @@ namespace LAMMPS_NS {
 
 class AtomKokkos : public Atom {
  public:
+  bool sort_classic;
+
   DAT::tdual_tagint_1d k_tag;
   DAT::tdual_int_1d k_type, k_mask;
   DAT::tdual_imageint_1d k_image;
@@ -108,6 +110,7 @@ class AtomKokkos : public Atom {
     return local;
   }
 
+  void init() override;
   void allocate_type_arrays() override;
   void sync(const ExecutionSpace space, unsigned int mask);
   void modified(const ExecutionSpace space, unsigned int mask);
@@ -119,6 +122,7 @@ class AtomKokkos : public Atom {
   virtual void deallocate_topology();
   void sync_modify(ExecutionSpace, unsigned int, unsigned int) override;
  private:
+  void sort_device();
   class AtomVec *new_avec(const std::string &, int, int &) override;
 };
 

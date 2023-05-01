@@ -177,7 +177,6 @@ template<class DeviceType>
 void FixNVEKokkos<DeviceType>::fused_integrate()
 {
   atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
 
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
@@ -196,6 +195,8 @@ void FixNVEKokkos<DeviceType>::fused_integrate()
     FixNVEKokkosFusedIntegrateFunctor<DeviceType,0> functor(this);
     Kokkos::parallel_for(nlocal,functor);
   }
+
+  atomKK->modified(execution_space,datamask_modify);
 }
 
 namespace LAMMPS_NS {

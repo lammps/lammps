@@ -296,7 +296,6 @@ void VerletKokkos::run(int n)
     // initial time integration
 
     timer->stamp();
-    fuse_check(i,n);
     if (!fuse_integrate)
       modify->initial_integrate(vflag);
     if (n_post_integrate) modify->post_integrate();
@@ -364,6 +363,7 @@ void VerletKokkos::run(int n)
     // since some bonded potentials tally pairwise energy/virial
     // and Pair:ev_tally() needs to be called before any tallying
 
+    fuse_check(i,n);
     if (!fuse_force_clear)
       force_clear();
 
@@ -611,7 +611,7 @@ void VerletKokkos::force_clear()
    check if can fuse initial_integrate() with final_integrate()
    Requirements:
    - no end_of_step fixes
-   - not on first, last, or output step
+   - not on last or output step
    - no timers to break out of loop
    - integrate fix style must support fusing
 ------------------------------------------------------------------------- */
@@ -620,14 +620,14 @@ void VerletKokkos::fuse_check(int i, int n)
 {
   fuse_force_clear = 1;
   if (modify->n_pre_force) fuse_force_clear = 0;
-  if (torqueflag || extraflag || neighbor->includegroup) fuse_force_clear = 0;
-  if (!pair_compute_flag) fuse_force_clear = 0;
-  if (!force->pair->fuse_force_clear_flag) fuse_force_clear = 0;
+  else if (torqueflag || extraflag || neighbor->includegroup) fuse_force_clear = 0;
+  else if (!force->pair || !pair_compute_flag) fuse_force_clear = 0;
+  else if (!force->pair->fuse_force_clear_flag) fuse_force_clear = 0;
 
   fuse_integrate = 1;
   if (modify->n_end_of_step) fuse_integrate = 0;
-  if (i == 0 || i == n-1) fuse_integrate = 0;
-  if (update->ntimestep == output->next) fuse_integrate = 0;
-  if (timer->has_timeout()) fuse_integrate = 0;
-  if (!((ModifyKokkos*)modify)->check_fuse_integrate()) fuse_integrate = 0;
+  else if (i == n-1) fuse_integrate = 0;
+  else if (update->ntimestep == output->next) fuse_integrate = 0;
+  else if (timer->has_timeout()) fuse_integrate = 0;
+  else if (!((ModifyKokkos*)modify)->check_fuse_integrate()) fuse_integrate = 0;
 }

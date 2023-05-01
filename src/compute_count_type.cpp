@@ -80,14 +80,16 @@ double ComputeCountType::compute_scalar()
   int **bond_type = atom->bond_type;
   int nlocal = atom->nlocal;
 
-  int nbond;
+  int m,nbond;
   int count = 0;
 
-  // NOTE: respect group setting
+  // count broken bonds with bond_type = 0
+  // ignore group setting since 2 atoms in a broken bond
+  //   can be arbitrarily far apart
   
   for (int i = 0; i < nlocal; i++) {
     nbond = num_bond[i];
-    for (int m = 0; m < nbond; m++)
+    for (m = 0; m < nbond; m++)
       if (bond_type[i][m] == 0) count++;
   }
 
@@ -114,44 +116,61 @@ void ComputeCountType::compute_vector()
   int n;
 
   // count atoms by type
-
-  // NOTE: respect group setting
+  // atom must be in group to be counted
 
   if (mode == ATOM) {
     int *type = atom->type;
+    int *mask = atom->mask;
     int nlocal = atom->nlocal;
     int ntypes = atom->ntypes;
 
     for (int m = 0; m < ntypes; m++) count[m] = 0;
-    for (int i = 0; i < nlocal; i++) count[type[i]-1]++;
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit)
+        count[type[i]-1]++;
 
     n = ntypes;
   }
   
   // count bonds by type
+  // both atoms in bond must be in group to be counted
   // skip type = 0 bonds, they are counted by compute_scalar
   // bond types can be negative for SHAKE
 
-  // NOTE: respect group setting
-
   else if (mode == BOND) {
-    int *num_bond = atom->num_bond;
+    int **bond_atom = atom->bond_atom;
     int **bond_type = atom->bond_type;
+    int *num_bond = atom->num_bond;
+    int *mask = atom->mask;
     int nlocal = atom->nlocal;
     int nbondtypes = atom->nbondtypes;
     
-    int nbond,itype;
+    int j,m,nbond,itype;
+    int flag = 0;
     for (int m = 0; m < nbondtypes; m++) count[m] = 0;
     
     for (int i = 0; i < nlocal; i++) {
       nbond = num_bond[i];
-      for (int m = 0; m < nbond; m++) {
+      for (m = 0; m < nbond; m++) {
         itype = bond_type[i][m];
         if (itype == 0) continue;
-        if (itype > 0) count[itype-1]++;
-        else count[-itype-1]++;
+
+        j = atom->map(bond_atom[i][m]);
+        if (j < 0) {
+          flag = 1;
+          continue;
+        }
+        
+        if ((mask[i] & groupbit) && (mask[j] & groupbit)) {
+          if (itype > 0) count[itype-1]++;
+          else count[-itype-1]++;
+        }
       }
     }
+
+    int flagany;
+    MPI_Allreduce(&flag, &flagany, 1, MPI_INT, MPI_SUM, world);
+    if (flagany) error->all(FLERR,"Missing bond atom in compute count/type");
 
     n = nbondtypes;
   }

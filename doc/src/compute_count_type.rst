@@ -29,7 +29,7 @@ Define a computation that counts the current number of atoms by atom
 type or the number of bonds by bond type.  The latter can be useful in
 reactive simulations where bonds are broken or created.
 
-Note that for this command, bonds are the topological kind enumerated
+Note that for this command, bonds are the topological ones enumerated
 in a data file, initially read by the :doc:`read_data <read_data>`
 command.  They do not refer to bonds defined on-the-fly by bond-order
 or reactive pair styles.
@@ -49,9 +49,8 @@ If the {mode} setting is {bond} then the count of bonds for each bond
 type is tallied.  Only bonds with both atoms in the specified group
 are counted.
 
-For {mode} = {bond}, broken bonds with a bond type or zero are also
-counted.  Some commands flag broken bonds by setting their bond type
-to zero.  See the :doc:`Howto broken bonds <Howto_broken_bonds>` doc
+For {mode} = {bond}, broken bonds with a bond type of zero are also
+counted.  See the :doc:`Howto broken bonds <Howto_broken_bonds>` doc
 page for details.  Note that the group setting is ignored for broken
 bonds; all broken bonds in the system are counted.
 
@@ -64,8 +63,8 @@ This compute calculates a global vector of counts.  If the mode is
 {atom}, the vector length is the number of atom types.  If the mode is
 {bond}, the vector length is the number of bond types.
 
-If the mode is {bond} this compute also calculates a global scalar which
-counts the number of broken bonds.
+If the mode is {bond} this compute also calculates a global scalar
+which is the number of broken bonds.
 
 These values can be used by any command that uses global scalar or
 vector values from a compute as input.  See the :doc:`Howto output

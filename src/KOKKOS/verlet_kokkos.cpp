@@ -358,12 +358,15 @@ void VerletKokkos::run(int n)
       }
     }
 
+    // check if kernels can be fused, must come after initial_integrate
+
+    fuse_check(i,n);
+
     // force computations
     // important for pair to come before bonded contributions
     // since some bonded potentials tally pairwise energy/virial
     // and Pair:ev_tally() needs to be called before any tallying
 
-    fuse_check(i,n);
     if (!fuse_force_clear)
       force_clear();
 

@@ -224,7 +224,7 @@ void FixNVEKokkos<DeviceType>::fused_integrate_rmass_item(int i) const
 
 template<class DeviceType>
 void FixNVEKokkos<DeviceType>::cleanup_copy()
-{ 
+{
   id = style = nullptr;
   vatom = nullptr;
 }

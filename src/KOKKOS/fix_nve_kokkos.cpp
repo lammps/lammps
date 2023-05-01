@@ -193,8 +193,8 @@ void FixNVEKokkos<DeviceType>::fused_integrate(int /*vflag*/)
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::fused_integrate_item(int i) const
-{ 
-  if (mask[i] & groupbit) { 
+{
+  if (mask[i] & groupbit) {
     const double dtfm = 2.0 * dtf / mass[type[i]];
     v(i,0) += dtfm * f(i,0);
     v(i,1) += dtfm * f(i,1);

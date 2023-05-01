@@ -25,16 +25,22 @@ Examples
 Description
 """""""""""
 
-Define a computation that counts the current number of atoms by atom
-type or the number of bonds by bond type.  The latter can be useful in
-reactive simulations where bonds are broken or created.
+Define a computation that counts the current number of atoms for each
+atom type or the number of bonds for each bond type.  The former can
+be useful if atoms are added to or deleted from the system in random
+ways, e.g. via the :doc:`fix deposit <fix_deposit>`, :doc:`fix pour
+<fix_pour>`, or :doc:`fix evaporate <fix_evaporate>` commands.  The
+latter can be useful in reactive simulations where molecular bonds are
+broken or created.
 
-Note that for this command, bonds are the topological ones enumerated
-in a data file, initially read by the :doc:`read_data <read_data>`
-command.  They do not refer to bonds defined on-the-fly by bond-order
-or reactive pair styles.
+Note that for this command, bonds are defined as the topological kind
+enumerated in a data file, initially read by the :doc:`read_data
+<read_data>` command or defined by the :doc:`molecule <molecule>`
+command.  They do not refer to implicit bonds defined on-the-fly by
+bond-order or reactive pair styles based on the current conformation
+of small clusters of atoms.
 
-These commands can create and break toplogical bonds:
+These commands can create and/or break topological bonds:
 
 * :doc:`fix bond/react <fix_bond_react>`
 * :doc:`fix bond/create <fix_bond_create>`
@@ -50,9 +56,11 @@ type is tallied.  Only bonds with both atoms in the specified group
 are counted.
 
 For {mode} = {bond}, broken bonds with a bond type of zero are also
-counted.  See the :doc:`Howto broken bonds <Howto_broken_bonds>` doc
-page for details.  Note that the group setting is ignored for broken
-bonds; all broken bonds in the system are counted.
+counted.  Some of the commands listed above which break bonds, do this
+by setting their types to zero.  See the :doc:`Howto broken bonds
+<Howto_broken_bonds>` doc page for details.  Note that the group
+setting is ignored for broken bonds; all broken bonds in the system
+are counted.
 
 ----------
 

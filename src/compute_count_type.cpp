@@ -51,6 +51,8 @@ ComputeCountType::ComputeCountType(LAMMPS *lmp, int narg, char **arg) : Compute(
   if (mode == BOND && !atom->avec->bonds_allow)
     error->all(FLERR,"Cannot use compute count/type bond command with no bonds allowed");
 
+  // output vector
+  
   vector = new double[size_vector];
 
   // work vectors
@@ -65,6 +67,10 @@ ComputeCountType::ComputeCountType(LAMMPS *lmp, int narg, char **arg) : Compute(
 ComputeCountType::~ComputeCountType()
 {
   delete[] vector;
+
+  delete[] count;
+  delete[] bcount_me;
+  delete[] bcount;
 }
 
 /* ----------------------------------------------------------------------
@@ -103,7 +109,7 @@ double ComputeCountType::compute_scalar()
 
   if (bcount > MAXDOUBLEINT)
     error->all(FLERR,"Compute count/type overflow");
-  double scalar = bcount;
+  scalar = bcount;
   return scalar;
 }
 
@@ -113,7 +119,7 @@ void ComputeCountType::compute_vector()
 {
   invoked_vector = update->ntimestep;
 
-  int n;
+  int nvec;
 
   // count atoms by type
   // atom must be in group to be counted
@@ -129,7 +135,7 @@ void ComputeCountType::compute_vector()
       if (mask[i] & groupbit)
         count[type[i]-1]++;
 
-    n = ntypes;
+    nvec = ntypes;
   }
   
   // count bonds by type
@@ -172,19 +178,19 @@ void ComputeCountType::compute_vector()
     MPI_Allreduce(&flag, &flagany, 1, MPI_INT, MPI_SUM, world);
     if (flagany) error->all(FLERR,"Missing bond atom in compute count/type");
 
-    n = nbondtypes;
+    nvec = nbondtypes;
   }
 
   // sum across procs as bigint, then convert to double
   // correct for double counting if newton_bond off
 
-  for (int m = 0; m < n; m++) bcount_me[m] = count[m];
-  MPI_Allreduce(&bcount_me, &bcount, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  for (int m = 0; m < nvec; m++) bcount_me[m] = count[m];
+  MPI_Allreduce(bcount_me, bcount, nvec, MPI_LMP_BIGINT, MPI_SUM, world);
   if (force->newton_bond == 0) 
-    for (int m = 0; m < n; m++) bcount[m] /= 2;
+    for (int m = 0; m < nvec; m++) bcount[m] /= 2;
 
-  for (int m = 0; m < n; m++)
+  for (int m = 0; m < nvec; m++)
     if (bcount[m] > MAXDOUBLEINT)
       error->all(FLERR,"Compute count/type overflow");
-  for (int m = 0; m < n; m++) vector[m] *= bcount[m];
+  for (int m = 0; m < nvec; m++) vector[m] = bcount[m];
 }

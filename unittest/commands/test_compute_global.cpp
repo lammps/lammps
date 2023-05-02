@@ -300,10 +300,8 @@ TEST_F(ComputeGlobalTest, Counts)
     if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
-    command("pair_style lj/cut 10.0");
-    command("pair_coeff * * 0.01 3.0");
-    command("bond_style harmonic");
-    command("bond_coeff * 100.0 1.5");
+    command("pair_style zero 10.0");
+    command("pair_coeff * *");
 
     command("variable t1 atom type==1");
     command("variable t2 atom type==2");
@@ -341,6 +339,8 @@ TEST_F(ComputeGlobalTest, Counts)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
+    bcnt = get_vector("bcnt");
+    bbrk = get_scalar("bcnt");
     EXPECT_DOUBLE_EQ(bbrk, 0.0);    // should be 3
     EXPECT_DOUBLE_EQ(bcnt[0], 3.0);
     EXPECT_DOUBLE_EQ(bcnt[1], 6.0);

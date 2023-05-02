@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * count/type = style name of this compute command
 * mode = {atom} or {bond} or {angle} or {dihedral} or {improper}
-  
+
 Examples
 """"""""
 

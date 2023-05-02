@@ -34,7 +34,7 @@ class ComputeCountType : public Compute {
 
  protected:
   int mode;
-  
+
   int *count;
   bigint *bcount_me;
   bigint *bcount;

@@ -294,6 +294,60 @@ TEST_F(ComputeGlobalTest, Reduction)
     EXPECT_DOUBLE_EQ(rep[2], 26);
     EXPECT_DOUBLE_EQ(rep[3], max[0]);
 }
+
+TEST_F(ComputeGlobalTest, Counts)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style zero 10.0");
+    command("pair_coeff * *");
+
+    command("variable t1 atom type==1");
+    command("variable t2 atom type==2");
+    command("variable t3 atom type==3");
+    command("variable t4 atom type==4");
+    command("variable t5 atom type==5");
+    command("compute asum all reduce sum v_t1 v_t2 v_t3 v_t4 v_t5");
+    command("compute acnt all count/type atom");
+    command("compute bcnt all count/type bond");
+    command("thermo_style custom c_asum[*] c_acnt[*]");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto asum = get_vector("asum");
+    auto acnt = get_vector("acnt");
+    auto bcnt = get_vector("bcnt");
+    auto bbrk = get_scalar("bcnt");
+
+    EXPECT_DOUBLE_EQ(bbrk, 0.0);
+
+    EXPECT_DOUBLE_EQ(asum[0], acnt[0]);
+    EXPECT_DOUBLE_EQ(asum[1], acnt[1]);
+    EXPECT_DOUBLE_EQ(asum[2], acnt[2]);
+    EXPECT_DOUBLE_EQ(asum[3], acnt[3]);
+    EXPECT_DOUBLE_EQ(asum[4], acnt[4]);
+
+    EXPECT_DOUBLE_EQ(bcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ(bcnt[1], 6.0);
+    EXPECT_DOUBLE_EQ(bcnt[2], 3.0);
+    EXPECT_DOUBLE_EQ(bcnt[3], 2.0);
+    EXPECT_DOUBLE_EQ(bcnt[4], 10.0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("delete_bonds all bond 3");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    bcnt = get_vector("bcnt");
+    bbrk = get_scalar("bcnt");
+    EXPECT_DOUBLE_EQ(bbrk, 0.0);    // should be 3
+    EXPECT_DOUBLE_EQ(bcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ(bcnt[1], 6.0);
+    EXPECT_DOUBLE_EQ(bcnt[2], 3.0); // should be 0
+    EXPECT_DOUBLE_EQ(bcnt[3], 2.0);
+    EXPECT_DOUBLE_EQ(bcnt[4], 10.0);
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

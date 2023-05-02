@@ -308,25 +308,31 @@ TEST_F(ComputeGlobalTest, Counts)
     command("variable t3 atom type==3");
     command("variable t4 atom type==4");
     command("variable t5 atom type==5");
-    command("compute asum all reduce sum v_t1 v_t2 v_t3 v_t4 v_t5");
-    command("compute acnt all count/type atom");
+    command("compute tsum all reduce sum v_t1 v_t2 v_t3 v_t4 v_t5");
+    command("compute tcnt all count/type atom");
     command("compute bcnt all count/type bond");
-    command("thermo_style custom c_asum[*] c_acnt[*]");
+    command("compute acnt all count/type angle");
+    command("compute dcnt all count/type dihedral");
+    command("compute icnt all count/type improper");
+    command("thermo_style custom c_tsum[*] c_tcnt[*] c_bcnt[*] c_acnt[*] c_dcnt[*] c_icnt[*]");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    auto asum = get_vector("asum");
-    auto acnt = get_vector("acnt");
+    auto tsum = get_vector("tsum");
+    auto tcnt = get_vector("tcnt");
     auto bcnt = get_vector("bcnt");
     auto bbrk = get_scalar("bcnt");
+    auto acnt = get_vector("acnt");
+    auto dcnt = get_vector("dcnt");
+    auto icnt = get_vector("icnt");
+
+    EXPECT_DOUBLE_EQ(tsum[0], tcnt[0]);
+    EXPECT_DOUBLE_EQ(tsum[1], tcnt[1]);
+    EXPECT_DOUBLE_EQ(tsum[2], tcnt[2]);
+    EXPECT_DOUBLE_EQ(tsum[3], tcnt[3]);
+    EXPECT_DOUBLE_EQ(tsum[4], tcnt[4]);
 
     EXPECT_DOUBLE_EQ(bbrk, 0.0);
-
-    EXPECT_DOUBLE_EQ(asum[0], acnt[0]);
-    EXPECT_DOUBLE_EQ(asum[1], acnt[1]);
-    EXPECT_DOUBLE_EQ(asum[2], acnt[2]);
-    EXPECT_DOUBLE_EQ(asum[3], acnt[3]);
-    EXPECT_DOUBLE_EQ(asum[4], acnt[4]);
 
     EXPECT_DOUBLE_EQ(bcnt[0], 3.0);
     EXPECT_DOUBLE_EQ(bcnt[1], 6.0);
@@ -334,19 +340,51 @@ TEST_F(ComputeGlobalTest, Counts)
     EXPECT_DOUBLE_EQ(bcnt[3], 2.0);
     EXPECT_DOUBLE_EQ(bcnt[4], 10.0);
 
+    EXPECT_DOUBLE_EQ(acnt[0], 6.0);
+    EXPECT_DOUBLE_EQ(acnt[1], 10.0);
+    EXPECT_DOUBLE_EQ(acnt[2], 5.0);
+    EXPECT_DOUBLE_EQ(acnt[3], 9.0);
+
+    EXPECT_DOUBLE_EQ(dcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ(dcnt[1], 8.0);
+    EXPECT_DOUBLE_EQ(dcnt[2], 3.0);
+    EXPECT_DOUBLE_EQ(dcnt[3], 4.0);
+    EXPECT_DOUBLE_EQ(dcnt[4], 13.0);
+
+    EXPECT_DOUBLE_EQ(icnt[0], 1.0);
+    EXPECT_DOUBLE_EQ(icnt[1], 1.0);
+
     BEGIN_HIDE_OUTPUT();
-    command("delete_bonds all bond 3");
+    command("delete_bonds all bond 3 remove");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
     bcnt = get_vector("bcnt");
     bbrk = get_scalar("bcnt");
-    EXPECT_DOUBLE_EQ(bbrk, 0.0);    // should be 3
+    acnt = get_vector("acnt");
+    dcnt = get_vector("dcnt");
+    icnt = get_vector("icnt");
+
+    EXPECT_DOUBLE_EQ(bbrk, 0.0);
     EXPECT_DOUBLE_EQ(bcnt[0], 3.0);
     EXPECT_DOUBLE_EQ(bcnt[1], 6.0);
-    EXPECT_DOUBLE_EQ(bcnt[2], 3.0); // should be 0
+    EXPECT_DOUBLE_EQ(bcnt[2], 0.0);
     EXPECT_DOUBLE_EQ(bcnt[3], 2.0);
     EXPECT_DOUBLE_EQ(bcnt[4], 10.0);
+
+    EXPECT_DOUBLE_EQ(acnt[0], 6.0);
+    EXPECT_DOUBLE_EQ(acnt[1], 10.0);
+    EXPECT_DOUBLE_EQ(acnt[2], 5.0);
+    EXPECT_DOUBLE_EQ(acnt[3], 9.0);
+
+    EXPECT_DOUBLE_EQ(dcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ(dcnt[1], 8.0);
+    EXPECT_DOUBLE_EQ(dcnt[2], 3.0);
+    EXPECT_DOUBLE_EQ(dcnt[3], 4.0);
+    EXPECT_DOUBLE_EQ(dcnt[4], 13.0);
+
+    EXPECT_DOUBLE_EQ(icnt[0], 1.0);
+    EXPECT_DOUBLE_EQ(icnt[1], 1.0);
 }
 } // namespace LAMMPS_NS
 

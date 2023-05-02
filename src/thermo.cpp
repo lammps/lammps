@@ -1044,6 +1044,9 @@ void Thermo::parse_fields(const std::string &str)
             error->all(FLERR, "Thermo fix array is accessed out-of-range");
         }
 
+        if (ifix->thermo_modify_colname)
+          keyword_user[nfield] = ifix->get_thermo_colname(argindex1[nfield]);
+
         field2index[nfield] = add_fix(argi.get_name());
         addfield(word.c_str(), &Thermo::compute_fix, FLOAT);
 

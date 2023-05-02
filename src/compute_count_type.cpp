@@ -27,9 +27,10 @@ enum { ATOM, BOND };
 
 /* ---------------------------------------------------------------------- */
 
-ComputeCountType::ComputeCountType(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
+ComputeCountType::ComputeCountType(LAMMPS *lmp, int narg, char **arg) :
+    Compute(lmp, narg, arg), count(nullptr), bcount(nullptr), bcount_me(nullptr)
 {
-  if (narg != 4) error->all(FLERR, "Illegal compute count/type command");
+  if (narg != 4) error->all(FLERR, "Incorrect number of args for compute count/type command");
 
   // process args
 
@@ -51,7 +52,7 @@ ComputeCountType::ComputeCountType(LAMMPS *lmp, int narg, char **arg) : Compute(
     extvector = 1;
   }
 
-  if (mode == BOND && !atom->avec->bonds_allow)
+  if ((mode == BOND) && !atom->avec->bonds_allow)
     error->all(FLERR, "Cannot use compute count/type bond command with no bonds allowed");
 
   // output vector

@@ -250,7 +250,8 @@ void Phonopy::phonopy()
       for (int jdim = 0; jdim < 3; ++jdim) fprintf(fp, "%lg ", dm->basevec[ndim++]);
       fprintf(fp, "\n");
    }
-   for (int ip = 0; ip < ntype; ++ip) fprintf(fp, "Elem-%d ", type_id[ip]); fprintf(fp, "\n");
+   for (int ip = 0; ip < ntype; ++ip) fprintf(fp, "Elem-%d ", type_id[ip]);
+   fprintf(fp, "\n");
    for (int ip = 0; ip < ntype; ++ip) fprintf(fp, "%d ", num_type[ip]);
    fprintf(fp, "\nDirect\n");
    for (int ip = 0; ip < ntype; ++ip){

@@ -33,6 +33,8 @@ if(BUILD_TOOLS)
   endif()
   install(TARGETS msi2lmp DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(FILES ${LAMMPS_DOC_DIR}/msi2lmp.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
+
+  add_subdirectory(${LAMMPS_TOOLS_DIR}/phonon ${CMAKE_BINARY_DIR}/phana_build)
 endif()
 
 if(BUILD_LAMMPS_SHELL)
@@ -63,8 +65,6 @@ if(BUILD_LAMMPS_SHELL)
   install(TARGETS lammps-shell EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
   install(DIRECTORY ${LAMMPS_TOOLS_DIR}/lammps-shell/icons DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/)
   install(FILES ${LAMMPS_TOOLS_DIR}/lammps-shell/lammps-shell.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications/)
-
-  add_subdirectory(${LAMMPS_TOOLS_DIR}/phonon ${CMAKE_BINARY_DIR}/phana_build)
 endif()
 
 

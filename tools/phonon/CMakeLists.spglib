@@ -47,7 +47,7 @@ set(SOURCES ${PROJECT_SOURCE_DIR}/src/arithmetic.c
             ${PROJECT_SOURCE_DIR}/src/symmetry.c)
 
 add_library(symspg STATIC ${SOURCES})
-install(TARGETS symspg LIBRARY)
+install(TARGETS symspg ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib)
 
 # Header file
 install(FILES ${PROJECT_SOURCE_DIR}/src/spglib.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include)

@@ -1,7 +1,7 @@
 
 # Support Linux from Ubuntu 20.04LTS onward, CentOS 7.x (with EPEL),
 # macOS, MSVC 2019 (=Version 16)
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.10)
 
 # set timestamp of downloaded files to that of archive
 if(POLICY CMP0135)

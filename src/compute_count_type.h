@@ -38,6 +38,12 @@ class ComputeCountType : public Compute {
   int *count;
   bigint *bcount_me;
   bigint *bcount;
+
+  int count_atoms();
+  int count_bonds();
+  int count_angles();
+  int count_dihedrals();
+  int count_impropers();
 };
 
 }    // namespace LAMMPS_NS

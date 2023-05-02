@@ -14,7 +14,6 @@
 #include "compute_count_type.h"
 
 #include "atom.h"
-#include "atom_vec.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -23,7 +22,7 @@
 
 using namespace LAMMPS_NS;
 
-enum{ATOM,BOND};
+enum{ATOM,BOND,ANGLE,DIHEDRAL,IMPROPER};
 
 /* ---------------------------------------------------------------------- */
 
@@ -35,7 +34,23 @@ ComputeCountType::ComputeCountType(LAMMPS *lmp, int narg, char **arg) : Compute(
 
   if (strcmp(arg[3],"atom") == 0) mode = ATOM;
   else if (strcmp(arg[3],"bond") == 0) mode = BOND;
+  else if (strcmp(arg[3],"angle") == 0) mode = ANGLE;
+  else if (strcmp(arg[3],"dihedral") == 0) mode = DIHEDRAL;
+  else if (strcmp(arg[3],"improper") == 0) mode = IMPROPER;
   else error->all(FLERR, "Invalid compute count/type keyword {}",arg[3]);
+
+  // error check
+  
+  if (mode == BOND && !atom->nbondtypes)
+    error->all(FLERR,"Compute count/type bond command with no bonds defined");
+  if (mode == ANGLE && !atom->nangletypes)
+    error->all(FLERR,"Compute count/type bond command with no angles defined");
+  if (mode == DIHEDRAL && !atom->ndihedraltypes)
+    error->all(FLERR,"Compute count/type dihedral command with no dihedrals defined");
+  if (mode == IMPROPER && !atom->nimpropertypes)
+    error->all(FLERR,"Compute count/type improper command with no impropers defined");
+
+  // set vector lengths
 
   if (mode == ATOM) {
     vector_flag = 1;
@@ -46,10 +61,19 @@ ComputeCountType::ComputeCountType(LAMMPS *lmp, int narg, char **arg) : Compute(
     size_vector = atom->nbondtypes;
     extscalar = 1;
     extvector = 1;
+  } else if (mode == ANGLE) {
+    vector_flag = 1;
+    size_vector = atom->nangletypes;
+    extvector = 1;
+  } else if (mode == DIHEDRAL) {
+    vector_flag = 1;
+    size_vector = atom->ndihedraltypes;
+    extvector = 1;
+  } else if (mode == IMPROPER) {
+    vector_flag = 1;
+    size_vector = atom->nimpropertypes;
+    extvector = 1;
   }
-
-  if (mode == BOND && !atom->avec->bonds_allow)
-    error->all(FLERR,"Cannot use compute count/type bond command with no bonds allowed");
 
   // output vector
   
@@ -121,76 +145,246 @@ void ComputeCountType::compute_vector()
 
   int nvec;
 
-  // count atoms by type
-  // atom must be in group to be counted
-
-  if (mode == ATOM) {
-    int *type = atom->type;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-    int ntypes = atom->ntypes;
-
-    for (int m = 0; m < ntypes; m++) count[m] = 0;
-    for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit)
-        count[type[i]-1]++;
-
-    nvec = ntypes;
-  }
+  if (mode == ATOM) nvec = count_atoms();
+  else if (mode == BOND) nvec = count_bonds();
+  else if (mode == ANGLE) nvec = count_angles();
+  else if (mode == DIHEDRAL) nvec = count_dihedrals();
+  else if (mode == IMPROPER) nvec = count_impropers();
   
-  // count bonds by type
-  // both atoms in bond must be in group to be counted
-  // skip type = 0 bonds, they are counted by compute_scalar
-  // bond types can be negative for SHAKE
-
-  else if (mode == BOND) {
-    int **bond_atom = atom->bond_atom;
-    int **bond_type = atom->bond_type;
-    int *num_bond = atom->num_bond;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-    int nbondtypes = atom->nbondtypes;
-    
-    int j,m,nbond,itype;
-    int flag = 0;
-    for (int m = 0; m < nbondtypes; m++) count[m] = 0;
-    
-    for (int i = 0; i < nlocal; i++) {
-      nbond = num_bond[i];
-      for (m = 0; m < nbond; m++) {
-        itype = bond_type[i][m];
-        if (itype == 0) continue;
-
-        j = atom->map(bond_atom[i][m]);
-        if (j < 0) {
-          flag = 1;
-          continue;
-        }
-        
-        if ((mask[i] & groupbit) && (mask[j] & groupbit)) {
-          if (itype > 0) count[itype-1]++;
-          else count[-itype-1]++;
-        }
-      }
-    }
-
-    int flagany;
-    MPI_Allreduce(&flag, &flagany, 1, MPI_INT, MPI_SUM, world);
-    if (flagany) error->all(FLERR,"Missing bond atom in compute count/type");
-
-    nvec = nbondtypes;
-  }
-
   // sum across procs as bigint, then convert to double
-  // correct for double counting if newton_bond off
+  // correct for multiple counting if newton_bond off
 
   for (int m = 0; m < nvec; m++) bcount_me[m] = count[m];
   MPI_Allreduce(bcount_me, bcount, nvec, MPI_LMP_BIGINT, MPI_SUM, world);
-  if (force->newton_bond == 0) 
-    for (int m = 0; m < nvec; m++) bcount[m] /= 2;
-
+  
+  if (force->newton_bond == 0) {
+    if (mode == BOND)
+      for (int m = 0; m < nvec; m++) bcount[m] /= 2;
+    else if (mode == ANGLE)
+      for (int m = 0; m < nvec; m++) bcount[m] /= 3;
+    if (mode == DIHEDRAL || mode == IMPROPER)
+      for (int m = 0; m < nvec; m++) bcount[m] /= 4;
+  }
+  
   for (int m = 0; m < nvec; m++)
     if (bcount[m] > MAXDOUBLEINT)
       error->all(FLERR,"Compute count/type overflow");
   for (int m = 0; m < nvec; m++) vector[m] = bcount[m];
+}
+
+/* ----------------------------------------------------------------------
+   count atoms by type
+   atom must be in group to be counted
+---------------------------------------------------------------------- */
+
+int ComputeCountType::count_atoms()
+{
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int ntypes = atom->ntypes;
+  
+  for (int m = 0; m < ntypes; m++) count[m] = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      count[type[i]-1]++;
+
+  return ntypes;
+}
+
+/* ----------------------------------------------------------------------
+   count bonds by type
+   both atoms in bond must be in group to be counted
+   skip type = 0 bonds, they are counted by compute_scalar()
+   bond types can be negative, count them as if positive
+---------------------------------------------------------------------- */
+
+int ComputeCountType::count_bonds()
+{
+  int **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+  int *num_bond = atom->num_bond;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int nbondtypes = atom->nbondtypes;
+  
+  int j,m,nbond,itype;
+  int flag = 0;
+  for (int m = 0; m < nbondtypes; m++) count[m] = 0;
+    
+  for (int i = 0; i < nlocal; i++) {
+    nbond = num_bond[i];
+    for (m = 0; m < nbond; m++) {
+      itype = bond_type[i][m];
+      if (itype == 0) continue;
+      
+      j = atom->map(bond_atom[i][m]);
+      if (j < 0) {
+        flag = 1;
+        continue;
+      }
+      
+      if ((mask[i] & groupbit) && (mask[j] & groupbit)) {
+        if (itype > 0) count[itype-1]++;
+        else count[-itype-1]++;
+      }
+    }
+  }
+
+  int flagany;
+  MPI_Allreduce(&flag, &flagany, 1, MPI_INT, MPI_SUM, world);
+  if (flagany) error->all(FLERR,"Missing bond atom in compute count/type");
+  
+  return nbondtypes;
+}
+
+/* ----------------------------------------------------------------------
+   count angles by type
+   all 3 atoms in angle must be in group to be counted
+   angle types can be negative, count them as if positive
+---------------------------------------------------------------------- */
+
+int ComputeCountType::count_angles()
+{
+  int **angle_atom1 = atom->angle_atom1;
+  int **angle_atom2 = atom->angle_atom2;
+  int **angle_atom3 = atom->angle_atom3;
+  int **angle_type = atom->angle_type;
+  int *num_angle = atom->num_angle;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int nangletypes = atom->nangletypes;
+  
+  int j1,j2,j3,m,nangle,itype;
+  int flag = 0;
+  for (int m = 0; m < nangletypes; m++) count[m] = 0;
+    
+  for (int i = 0; i < nlocal; i++) {
+    nangle = num_angle[i];
+    for (m = 0; m < nangle; m++) {
+      itype = angle_type[i][m];
+      
+      j1 = atom->map(angle_atom1[i][m]);
+      j2 = atom->map(angle_atom2[i][m]);
+      j3 = atom->map(angle_atom3[i][m]);
+      if (j1 < 0 || j2 < 0 || j3 < 0) {
+        flag = 1;
+        continue;
+      }
+      
+      if ((mask[j1] & groupbit) && (mask[j2] & groupbit) &&
+          (mask[j3] & groupbit)) {
+        if (itype > 0) count[itype-1]++;
+        else count[-itype-1]++;
+      }
+    }
+  }
+
+  int flagany;
+  MPI_Allreduce(&flag, &flagany, 1, MPI_INT, MPI_SUM, world);
+  if (flagany) error->all(FLERR,"Missing angle atom in compute count/type");
+  
+  return nangletypes;
+}
+
+/* ----------------------------------------------------------------------
+   count dihedrals by type
+   all 4 atoms in dihedral must be in group to be counted
+   dihedral types can be negative, count them as if positive
+---------------------------------------------------------------------- */
+
+int ComputeCountType::count_dihedrals()
+{
+  int **dihedral_atom1 = atom->dihedral_atom1;
+  int **dihedral_atom2 = atom->dihedral_atom2;
+  int **dihedral_atom3 = atom->dihedral_atom3;
+  int **dihedral_atom4 = atom->dihedral_atom4;
+  int **dihedral_type = atom->dihedral_type;
+  int *num_dihedral = atom->num_dihedral;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int ndihedraltypes = atom->ndihedraltypes;
+  
+  int j1,j2,j3,j4,m,ndihedral,itype;
+  int flag = 0;
+  for (int m = 0; m < ndihedraltypes; m++) count[m] = 0;
+    
+  for (int i = 0; i < nlocal; i++) {
+    ndihedral = num_dihedral[i];
+    for (m = 0; m < ndihedral; m++) {
+      itype = dihedral_type[i][m];
+      
+      j1 = atom->map(dihedral_atom1[i][m]);
+      j2 = atom->map(dihedral_atom2[i][m]);
+      j3 = atom->map(dihedral_atom3[i][m]);
+      j4 = atom->map(dihedral_atom4[i][m]);
+      if (j1 < 0 || j2 < 0 || j3 < 0 || j4 < 0) {
+        flag = 1;
+        continue;
+      }
+      
+      if ((mask[j1] & groupbit) && (mask[j2] & groupbit) &&
+          (mask[j3] & groupbit) && (mask[j4] & groupbit)) {
+        if (itype > 0) count[itype-1]++;
+        else count[-itype-1]++;
+      }
+    }
+  }
+
+  int flagany;
+  MPI_Allreduce(&flag, &flagany, 1, MPI_INT, MPI_SUM, world);
+  if (flagany) error->all(FLERR,"Missing dihedral atom in compute count/type");
+  
+  return ndihedraltypes;
+}
+
+/* ----------------------------------------------------------------------
+   count impropers by type
+   all 4 atoms in improper must be in group to be counted
+   improper types can be negative, count them as if positive
+---------------------------------------------------------------------- */
+
+int ComputeCountType::count_impropers()
+{
+  int **improper_atom1 = atom->improper_atom1;
+  int **improper_atom2 = atom->improper_atom2;
+  int **improper_atom3 = atom->improper_atom3;
+  int **improper_atom4 = atom->improper_atom4;
+  int **improper_type = atom->improper_type;
+  int *num_improper = atom->num_improper;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  int nimpropertypes = atom->nimpropertypes;
+  
+  int j1,j2,j3,j4,m,nimproper,itype;
+  int flag = 0;
+  for (int m = 0; m < nimpropertypes; m++) count[m] = 0;
+    
+  for (int i = 0; i < nlocal; i++) {
+    nimproper = num_improper[i];
+    for (m = 0; m < nimproper; m++) {
+      itype = improper_type[i][m];
+      
+      j1 = atom->map(improper_atom1[i][m]);
+      j2 = atom->map(improper_atom2[i][m]);
+      j3 = atom->map(improper_atom3[i][m]);
+      j4 = atom->map(improper_atom4[i][m]);
+      if (j1 < 0 || j2 < 0 || j3 < 0 || j4 < 0) {
+        flag = 1;
+        continue;
+      }
+      
+      if ((mask[j1] & groupbit) && (mask[j2] & groupbit) &&
+          (mask[j3] & groupbit) && (mask[j4] & groupbit)) {
+        if (itype > 0) count[itype-1]++;
+        else count[-itype-1]++;
+      }
+    }
+  }
+
+  int flagany;
+  MPI_Allreduce(&flag, &flagany, 1, MPI_INT, MPI_SUM, world);
+  if (flagany) error->all(FLERR,"Missing improper atom in compute count/type");
+  
+  return nimpropertypes;
 }

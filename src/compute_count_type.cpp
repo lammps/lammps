@@ -208,7 +208,7 @@ int ComputeCountType::count_atoms()
 
 int ComputeCountType::count_bonds()
 {
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
   int *num_bond = atom->num_bond;
   int *mask = atom->mask;
@@ -254,9 +254,9 @@ int ComputeCountType::count_bonds()
 
 int ComputeCountType::count_angles()
 {
-  int **angle_atom1 = atom->angle_atom1;
-  int **angle_atom2 = atom->angle_atom2;
-  int **angle_atom3 = atom->angle_atom3;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
   int **angle_type = atom->angle_type;
   int *num_angle = atom->num_angle;
   int *mask = atom->mask;
@@ -303,10 +303,10 @@ int ComputeCountType::count_angles()
 
 int ComputeCountType::count_dihedrals()
 {
-  int **dihedral_atom1 = atom->dihedral_atom1;
-  int **dihedral_atom2 = atom->dihedral_atom2;
-  int **dihedral_atom3 = atom->dihedral_atom3;
-  int **dihedral_atom4 = atom->dihedral_atom4;
+  tagint **dihedral_atom1 = atom->dihedral_atom1;
+  tagint **dihedral_atom2 = atom->dihedral_atom2;
+  tagint **dihedral_atom3 = atom->dihedral_atom3;
+  tagint **dihedral_atom4 = atom->dihedral_atom4;
   int **dihedral_type = atom->dihedral_type;
   int *num_dihedral = atom->num_dihedral;
   int *mask = atom->mask;
@@ -355,10 +355,10 @@ int ComputeCountType::count_dihedrals()
 
 int ComputeCountType::count_impropers()
 {
-  int **improper_atom1 = atom->improper_atom1;
-  int **improper_atom2 = atom->improper_atom2;
-  int **improper_atom3 = atom->improper_atom3;
-  int **improper_atom4 = atom->improper_atom4;
+  tagint **improper_atom1 = atom->improper_atom1;
+  tagint **improper_atom2 = atom->improper_atom2;
+  tagint **improper_atom3 = atom->improper_atom3;
+  tagint **improper_atom4 = atom->improper_atom4;
   int **improper_type = atom->improper_type;
   int *num_improper = atom->num_improper;
   int *mask = atom->mask;

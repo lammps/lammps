@@ -27,7 +27,7 @@ enum { ATOM, BOND, ANGLE, DIHEDRAL, IMPROPER };
 /* ---------------------------------------------------------------------- */
 
 ComputeCountType::ComputeCountType(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), count(nullptr), bcount(nullptr), bcount_me(nullptr)
+    Compute(lmp, narg, arg), count(nullptr), bcount_me(nullptr), bcount(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Incorrect number of args for compute count/type command");
 
@@ -117,24 +117,22 @@ double ComputeCountType::compute_scalar()
   int **bond_type = atom->bond_type;
   int nlocal = atom->nlocal;
 
-  int m, nbond;
-  int count = 0;
-
   // count broken bonds with bond_type = 0
   // ignore group setting since 2 atoms in a broken bond
   //   can be arbitrarily far apart
 
+  int count = 0;
   for (int i = 0; i < nlocal; i++) {
-    nbond = num_bond[i];
-    for (m = 0; m < nbond; m++)
+    int nbond = num_bond[i];
+    for (int m = 0; m < nbond; m++)
       if (bond_type[i][m] == 0) count++;
   }
 
   // sum across procs as bigint, then convert to double
   // correct for double counting if newton_bond off
 
+  bigint bcount = 0;
   bigint bcount_me = count;
-  bigint bcount;
   MPI_Allreduce(&bcount_me, &bcount, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   if (force->newton_bond == 0) bcount /= 2;
 
@@ -217,17 +215,16 @@ int ComputeCountType::count_bonds()
   int nlocal = atom->nlocal;
   int nbondtypes = atom->nbondtypes;
 
-  int j, m, nbond, itype;
   int flag = 0;
   for (int m = 0; m < nbondtypes; m++) count[m] = 0;
 
   for (int i = 0; i < nlocal; i++) {
-    nbond = num_bond[i];
-    for (m = 0; m < nbond; m++) {
-      itype = bond_type[i][m];
+    int nbond = num_bond[i];
+    for (int m = 0; m < nbond; m++) {
+      int itype = bond_type[i][m];
       if (itype == 0) continue;
 
-      j = atom->map(bond_atom[i][m]);
+      int j = atom->map(bond_atom[i][m]);
       if (j < 0) {
         flag = 1;
         continue;
@@ -266,18 +263,17 @@ int ComputeCountType::count_angles()
   int nlocal = atom->nlocal;
   int nangletypes = atom->nangletypes;
 
-  int j1, j2, j3, m, nangle, itype;
   int flag = 0;
   for (int m = 0; m < nangletypes; m++) count[m] = 0;
 
   for (int i = 0; i < nlocal; i++) {
-    nangle = num_angle[i];
-    for (m = 0; m < nangle; m++) {
-      itype = angle_type[i][m];
+    int nangle = num_angle[i];
+    for (int m = 0; m < nangle; m++) {
+      int itype = angle_type[i][m];
 
-      j1 = atom->map(angle_atom1[i][m]);
-      j2 = atom->map(angle_atom2[i][m]);
-      j3 = atom->map(angle_atom3[i][m]);
+      int j1 = atom->map(angle_atom1[i][m]);
+      int j2 = atom->map(angle_atom2[i][m]);
+      int j3 = atom->map(angle_atom3[i][m]);
       if (j1 < 0 || j2 < 0 || j3 < 0) {
         flag = 1;
         continue;
@@ -317,19 +313,18 @@ int ComputeCountType::count_dihedrals()
   int nlocal = atom->nlocal;
   int ndihedraltypes = atom->ndihedraltypes;
 
-  int j1, j2, j3, j4, m, ndihedral, itype;
   int flag = 0;
   for (int m = 0; m < ndihedraltypes; m++) count[m] = 0;
 
   for (int i = 0; i < nlocal; i++) {
-    ndihedral = num_dihedral[i];
-    for (m = 0; m < ndihedral; m++) {
-      itype = dihedral_type[i][m];
+    int ndihedral = num_dihedral[i];
+    for (int m = 0; m < ndihedral; m++) {
+      int itype = dihedral_type[i][m];
 
-      j1 = atom->map(dihedral_atom1[i][m]);
-      j2 = atom->map(dihedral_atom2[i][m]);
-      j3 = atom->map(dihedral_atom3[i][m]);
-      j4 = atom->map(dihedral_atom4[i][m]);
+      int j1 = atom->map(dihedral_atom1[i][m]);
+      int j2 = atom->map(dihedral_atom2[i][m]);
+      int j3 = atom->map(dihedral_atom3[i][m]);
+      int j4 = atom->map(dihedral_atom4[i][m]);
       if (j1 < 0 || j2 < 0 || j3 < 0 || j4 < 0) {
         flag = 1;
         continue;
@@ -370,19 +365,18 @@ int ComputeCountType::count_impropers()
   int nlocal = atom->nlocal;
   int nimpropertypes = atom->nimpropertypes;
 
-  int j1, j2, j3, j4, m, nimproper, itype;
   int flag = 0;
   for (int m = 0; m < nimpropertypes; m++) count[m] = 0;
 
   for (int i = 0; i < nlocal; i++) {
-    nimproper = num_improper[i];
-    for (m = 0; m < nimproper; m++) {
-      itype = improper_type[i][m];
+    int nimproper = num_improper[i];
+    for (int m = 0; m < nimproper; m++) {
+      int itype = improper_type[i][m];
 
-      j1 = atom->map(improper_atom1[i][m]);
-      j2 = atom->map(improper_atom2[i][m]);
-      j3 = atom->map(improper_atom3[i][m]);
-      j4 = atom->map(improper_atom4[i][m]);
+      int j1 = atom->map(improper_atom1[i][m]);
+      int j2 = atom->map(improper_atom2[i][m]);
+      int j3 = atom->map(improper_atom3[i][m]);
+      int j4 = atom->map(improper_atom4[i][m]);
       if (j1 < 0 || j2 < 0 || j3 < 0 || j4 < 0) {
         flag = 1;
         continue;

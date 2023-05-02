@@ -144,7 +144,7 @@ void ComputeCountType::compute_vector()
   // bond types can be negative for SHAKE
 
   else if (mode == BOND) {
-    int **bond_atom = atom->bond_atom;
+    tagint **bond_atom = atom->bond_atom;
     int **bond_type = atom->bond_type;
     int *num_bond = atom->num_bond;
     int *mask = atom->mask;

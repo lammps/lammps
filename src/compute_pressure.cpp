@@ -36,10 +36,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  vptr(nullptr), id_temp(nullptr), pstyle(nullptr)
+  Compute(lmp, narg, arg), vptr(nullptr), id_temp(nullptr), pstyle(nullptr)
 {
-  if (narg < 4) error->all(FLERR,"Illegal compute pressure command");
+  if (narg < 4) utils::missing_cmd_args(FLERR,"compute pressure", error);
   if (igroup) error->all(FLERR,"Compute pressure must use group all");
 
   scalar_flag = vector_flag = 1;
@@ -52,8 +51,9 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   // store temperature ID used by pressure computation
   // ensure it is valid for temperature computation
 
-  if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
-  else {
+  if (strcmp(arg[3],"NULL") == 0) {
+    id_temp = nullptr;
+  } else {
     id_temp = utils::strdup(arg[3]);
     auto icompute = modify->get_compute_by_id(id_temp);
     if (!icompute)

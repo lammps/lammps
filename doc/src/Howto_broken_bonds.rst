@@ -19,6 +19,14 @@ in the broken bond are "turned on".  Angles, dihedrals, etc cannot be
 defined for a system when :doc:`bond_style quartic <bond_quartic>` is
 used.
 
+Similarly, bond styles in the BPM package are also incompatible with
+angles, dihedrals, etc. and when a bond breaks its type is set to zero.
+However, in the BPM package one can either turn off all pair interactions
+between bonded particles or leave them on, overlaying pair forces on
+top of bond forces. To remove pair forces, the special bond list is
+dynamically updated.  More details can be found on the :doc:`Howto BPM
+<Howto_bpm>` page.
+
 The :doc:`fix bond/break <fix_bond_break>` and :doc:`fix bond/react
 <fix_bond_react>` commands allow breaking of bonds within a molecular
 topology with may also define angles, dihedrals, etc.  These commands
@@ -26,12 +34,6 @@ update internal topology data structures to remove broken bonds, as
 well as the appropriate angle, dihederal, etc interactions which
 include the bond.  They also trigger a rebuild of the neighbor list
 when this occurs, to turn on the appropriate pairwise forces.
-
-In the BPM package, one can either turn off all pair interactions
-between bonded particles or leave them on, overlaying pair forces on
-top of bond forces. To remove pair forces, the special bond list is
-dynamically updated.  More details can be found on the :doc:`Howto BPM
-<Howto_bpm>` page.
 
 Note that when bonds are dumped to a file via the :doc:`dump local
 <dump>` command, bonds with type 0 are not included.

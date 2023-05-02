@@ -54,8 +54,9 @@ type:
 These commands can create and/or break topological bonds (angles,
 etc).  In the case of breaking, they remove the bond (angle, etc) from
 the system, so that they no longer exist (:doc:`bond_style quartic
-<bond_quartic>` is the exception, see the discussion below).  Thus
-they are not included in the counts for each type:
+<bond_quartic>` and :doc:`BPM bond styles <Howto_bpm>` are exceptions,
+see the discussion below).  Thus they are not included in the counts
+for each type:
 
 * :doc:`delete_bonds remove <delete_bonds>`
 * :doc:`bond_style quartic <bond_quartic>`
@@ -74,10 +75,11 @@ type is tallied.  Only bonds with both atoms in the specified group
 are counted.
 
 For {mode} = {bond}, broken bonds with a bond type of zero are also
-counted.  The :doc:`bond_style quartic <bond_quartic>` breaks a bond
-by doing this.  See the :doc:`Howto broken bonds <Howto_broken_bonds>`
-doc page for more details.  Note that the group setting is ignored for
-broken bonds; all broken bonds in the system are counted.
+counted.  The :doc:`bond_style quartic <bond_quartic>` and :doc:`BPM
+bond styles <Howto_bpm>` break bonds by doing this.  See the :doc:`
+Howto broken bonds <Howto_broken_bonds>` doc page for more details.
+Note that the group setting is ignored for broken bonds; all broken
+bonds in the system are counted.
 
 If the {mode} setting is {angle} then the count of angles for each
 angle type is tallied.  Only angles with all 3 atoms in the specified

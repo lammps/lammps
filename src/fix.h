@@ -133,6 +133,7 @@ class Fix : protected Pointers {
   int forward_comm_device;    // 1 if forward comm on Device
   int exchange_comm_device;   // 1 if exchange comm on Device
   int fuse_integrate_flag;    // 1 if can fuse initial integrate with final integrate
+  int sort_device;            // 1 if sort on Device
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
 

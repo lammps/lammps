@@ -17,6 +17,8 @@
 
 #include "kokkos_type.h"
 
+#include <Kokkos_Sort.hpp>
+
 namespace LAMMPS_NS {
 
 class KokkosBase {
@@ -51,6 +53,11 @@ class KokkosBase {
   virtual void unpack_exchange_kokkos(DAT::tdual_xfloat_2d & /*k_buf*/,
                                       DAT::tdual_int_1d & /*indices*/, int /*nrecv*/,
                                       ExecutionSpace /*space*/) {}
+
+  using KeyViewType = DAT::t_x_array;
+  using BinOp = BinOp3DLAMMPS<KeyViewType>;
+  virtual void
+    sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> & /*Sorter*/) {}
 };
 
 }

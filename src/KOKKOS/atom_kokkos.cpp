@@ -22,6 +22,11 @@
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "update.h"
+#include "kokkos_base.h"
+#include "modify.h"
+#include "fix.h"
+
+#include <Kokkos_Sort.hpp>
 
 using namespace LAMMPS_NS;
 
@@ -103,6 +108,15 @@ AtomKokkos::~AtomKokkos()
 
 /* ---------------------------------------------------------------------- */
 
+void AtomKokkos::init()
+{
+  Atom::init();
+
+  sort_classic = lmp->kokkos->sort_classic;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void AtomKokkos::sync(const ExecutionSpace space, unsigned int mask)
 {
   if (space == Device && lmp->kokkos->auto_sync) avecKK->modified(Host, mask);
@@ -140,8 +154,37 @@ void AtomKokkos::allocate_type_arrays()
 
 void AtomKokkos::sort()
 {
-  int i, m, n, ix, iy, iz, ibin, empty;
+  // check if all fixes with atom-based arrays support sort on device
 
+  if (!sort_classic) {
+    int flag = 1;
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      if (!fix_iextra->sort_device) {
+        flag = 0;
+        break;
+      }
+    }
+    if (!flag) {
+      if (comm->me == 0) {
+        error->warning(FLERR,"Fix with atom-based arrays not compatible with Kokkos sorting on device, "
+                           "switching to classic host sorting");
+      }
+      sort_classic = true;
+    }
+  }
+
+  if (sort_classic) {
+    sync(Host, ALL_MASK);
+    Atom::sort();
+    modified(Host, ALL_MASK);
+  } else sort_device();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomKokkos::sort_device()
+{
   // set next timestep for sorting to take place
 
   nextsort = (update->ntimestep / sortfreq) * sortfreq + sortfreq;
@@ -151,93 +194,36 @@ void AtomKokkos::sort()
   if (domain->box_change) setup_sort_bins();
   if (nbins == 1) return;
 
-  // reallocate per-atom vectors if needed
-
-  if (atom->nmax > maxnext) {
-    memory->destroy(next);
-    memory->destroy(permute);
-    maxnext = atom->nmax;
-    memory->create(next, maxnext, "atom:next");
-    memory->create(permute, maxnext, "atom:permute");
-  }
-
-  // ensure there is one extra atom location at end of arrays for swaps
-
-  if (nlocal == nmax) avec->grow(0);
-
   // for triclinic, atoms must be in box coords (not lamda) to match bbox
 
   if (domain->triclinic) domain->lamda2x(nlocal);
 
-  sync(Host, ALL_MASK);
+  auto d_x = k_x.d_view;
+  sync(Device, X_MASK);
 
-  // bin atoms in reverse order so linked list will be in forward order
+  // sort
 
-  for (i = 0; i < nbins; i++) binhead[i] = -1;
+  int max_bins[3];
+  max_bins[0] = nbinx;
+  max_bins[1] = nbiny;
+  max_bins[2] = nbinz;
 
-  HAT::t_x_array_const h_x = k_x.view<LMPHostType>();
-  for (i = nlocal - 1; i >= 0; i--) {
-    ix = static_cast<int>((h_x(i, 0) - bboxlo[0]) * bininvx);
-    iy = static_cast<int>((h_x(i, 1) - bboxlo[1]) * bininvy);
-    iz = static_cast<int>((h_x(i, 2) - bboxlo[2]) * bininvz);
-    ix = MAX(ix, 0);
-    iy = MAX(iy, 0);
-    iz = MAX(iz, 0);
-    ix = MIN(ix, nbinx - 1);
-    iy = MIN(iy, nbiny - 1);
-    iz = MIN(iz, nbinz - 1);
-    ibin = iz * nbiny * nbinx + iy * nbinx + ix;
-    next[i] = binhead[ibin];
-    binhead[ibin] = i;
-  }
+  using KeyViewType = DAT::t_x_array;
+  using BinOp = BinOp3DLAMMPS<KeyViewType>;
+  BinOp binner(max_bins, bboxlo, bboxhi);
+  Kokkos::BinSort<KeyViewType, BinOp> Sorter(d_x, 0, nlocal, binner, false);
+  Sorter.create_permute_vector(LMPDeviceType());
 
-  // permute = desired permutation of atoms
-  // permute[I] = J means Ith new atom will be Jth old atom
+  avecKK->sort_kokkos(Sorter);
 
-  n = 0;
-  for (m = 0; m < nbins; m++) {
-    i = binhead[m];
-    while (i >= 0) {
-      permute[n++] = i;
-      i = next[i];
+  if (atom->nextra_grow) {
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      KokkosBase *kkbase = dynamic_cast<KokkosBase*>(fix_iextra);
+
+      kkbase->sort_kokkos(Sorter);
     }
   }
-
-  // current = current permutation, just reuse next vector
-  // current[I] = J means Ith current atom is Jth old atom
-
-  int *current = next;
-  for (i = 0; i < nlocal; i++) current[i] = i;
-
-  // reorder local atom list, when done, current = permute
-  // perform "in place" using copy() to extra atom location at end of list
-  // inner while loop processes one cycle of the permutation
-  // copy before inner-loop moves an atom to end of atom list
-  // copy after inner-loop moves atom at end of list back into list
-  // empty = location in atom list that is currently empty
-
-  for (i = 0; i < nlocal; i++) {
-    if (current[i] == permute[i]) continue;
-    avec->copy(i, nlocal, 0);
-    empty = i;
-    while (permute[empty] != i) {
-      avec->copy(permute[empty], empty, 0);
-      empty = current[empty] = permute[empty];
-    }
-    avec->copy(nlocal, empty, 0);
-    current[empty] = permute[empty];
-  }
-
-  // sanity check that current = permute
-
-  //int flag = 0;
-  //for (i = 0; i < nlocal; i++)
-  //  if (current[i] != permute[i]) flag = 1;
-  //int flagall;
-  //MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-  //if (flagall) errorX->all(FLERR,"Atom sort did not operate correctly");
-
-  modified(Host, ALL_MASK);
 
  //  convert back to lamda coords
 
@@ -250,7 +236,6 @@ void AtomKokkos::sort()
 
 void AtomKokkos::grow(unsigned int mask)
 {
-
   if (mask & SPECIAL_MASK) {
     memoryKK->destroy_kokkos(k_special, special);
     sync(Device, mask);

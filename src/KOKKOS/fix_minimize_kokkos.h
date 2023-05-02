@@ -25,10 +25,11 @@ FixStyle(MINIMIZE/kk/host,FixMinimizeKokkos);
 
 #include "fix_minimize.h"
 #include "kokkos_type.h"
+#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
 
-class FixMinimizeKokkos : public FixMinimize {
+class FixMinimizeKokkos : public FixMinimize, public KokkosBase {
   friend class MinLineSearchKokkos;
 
  public:
@@ -38,6 +39,7 @@ class FixMinimizeKokkos : public FixMinimize {
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 

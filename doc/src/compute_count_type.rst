@@ -50,7 +50,7 @@ type:
 
 * :doc:`fix shake <fix_shake>`
 * :doc:`delete_bonds <delete_bonds>`
-  
+
 These commands can create and/or break topological bonds (angles,
 etc).  In the case of breaking, they remove the bond (angle, etc) from
 the system, so that they no longer exist (:doc:`bond_style quartic

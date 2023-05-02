@@ -282,7 +282,7 @@ int ComputeCountType::count_angles()
       if ((mask[j1] & groupbit) && (mask[j2] & groupbit) && (mask[j3] & groupbit)) {
         if (itype > 0)
           count[itype - 1]++;
-        else
+        else if (itype < 0)
           count[-itype - 1]++;
       }
     }
@@ -334,7 +334,7 @@ int ComputeCountType::count_dihedrals()
           (mask[j4] & groupbit)) {
         if (itype > 0)
           count[itype - 1]++;
-        else
+        else if (itype < 0)
           count[-itype - 1]++;
       }
     }
@@ -386,7 +386,7 @@ int ComputeCountType::count_impropers()
           (mask[j4] & groupbit)) {
         if (itype > 0)
           count[itype - 1]++;
-        else
+        else if (itype < 0)
           count[-itype - 1]++;
       }
     }

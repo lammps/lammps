@@ -221,6 +221,7 @@ void ComputeStressCartesian::compute_array()
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
+  double *boxlo = domain->boxlo;
 
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
@@ -243,9 +244,9 @@ void ComputeStressCartesian::compute_array()
 
   // calculate number density and kinetic contribution to pressure
   for (i = 0; i < nlocal; i++) {
-    bin1 = (int) (x[i][dir1] / bin_width1) % nbins1;
+    bin1 = (int) ((x[i][dir1] - boxlo[dir1]) / bin_width1) % nbins1;
     bin2 = 0;
-    if (dims == 2) bin2 = (int) (x[i][dir2] / bin_width2) % nbins2;
+    if (dims == 2) bin2 = (int) ((x[i][dir2] - boxlo[dir2]) / bin_width2) % nbins2;
 
     j = bin1 + bin2 * nbins1;
     tdens[j] += 1;
@@ -274,8 +275,8 @@ void ComputeStressCartesian::compute_array()
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    xi1 = x[i][dir1];
-    xi2 = x[i][dir2];
+    xi1 = x[i][dir1] - boxlo[dir1];
+    xi2 = x[i][dir2] - boxlo[dir2];
     itag = tag[i];
     itype = type[i];
     jlist = firstneigh[i];

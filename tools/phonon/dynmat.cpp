@@ -137,7 +137,7 @@ DynMat::DynMat(int narg, char **arg)
    memory->create(DM_q, fftdim,fftdim,"DynMat:DM_q");
  
    // read all dynamical matrix info into DM_all
-   if (fread(DM_all[0], sizeof(doublecomplex), npt*fftdim2, fp) != size_t(npt*fftdim2)){
+   if (fread(DM_all[0], sizeof(doublecomplex), npt*size_t(fftdim2), fp) != npt*size_t(fftdim2)) {
       printf("\nError while reading the DM from file: %s\n", binfile);
       fclose(fp);
       exit(1);

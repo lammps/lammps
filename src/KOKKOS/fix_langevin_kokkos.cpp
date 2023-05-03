@@ -44,6 +44,7 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   FixLangevin(lmp, narg, arg),rand_pool(seed + comm->me)
 {
   kokkosable = 1;
+  fuse_integrate_flag = 1;
   sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   int ntypes = atomKK->ntypes;
@@ -166,6 +167,14 @@ void FixLangevinKokkos<DeviceType>::initial_integrate_item(int i) const
     v(i,1) = d_lv(i,1);
     v(i,2) = d_lv(i,2);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::fused_integrate(int vflag)
+{
+  initial_integrate(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -106,7 +106,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
 
   // KOKKOS package
 
-  datamask_read = X_MASK | F_MASK | IMAGE_MASK;
+  datamask_read = X_MASK | F_MASK | MASK_MASK | IMAGE_MASK;
   datamask_modify = F_MASK;
 }
 

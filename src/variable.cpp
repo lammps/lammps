@@ -479,6 +479,8 @@ void Variable::set(int narg, char **arg)
   // replace pre-existing var if also style VECTOR (allows it to be reset)
   // num = 1, which = 1st value
   // data = 1 value, string to eval
+  // if formula string is [value,value,...] then
+  //   immediately store it as N-length vector and set dynamic flag to 0
 
   } else if (strcmp(arg[1],"vector") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal variable command: expected 3 arguments but found {}", narg);
@@ -488,6 +490,10 @@ void Variable::set(int narg, char **arg)
         error->all(FLERR,"Cannot redefine variable as a different style");
       delete[] data[ivar][0];
       data[ivar][0] = utils::strdup(arg[2]);
+      if (data[ivar][0][0] == '[') {
+        parse_vector(ivar,data[ivar][0]);
+        vecs[ivar].dynamic = 0;
+      } else vecs[ivar].dynamic = 1;
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -497,6 +503,10 @@ void Variable::set(int narg, char **arg)
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
       data[nvar][0] = utils::strdup(arg[2]);
+      if (data[nvar][0][0] == '[') {
+        parse_vector(nvar,data[nvar][0]);
+        vecs[nvar].dynamic = 0;
+      } else vecs[nvar].dynamic = 1;
     }
 
   // PYTHON
@@ -1137,18 +1147,30 @@ void Variable::compute_atom(int ivar, int igroup, double *result, int stride, in
    compute result of vector-style variable evaluation
    return length of vector and result pointer to vector values
      if length == 0 or -1 (mismatch), generate an error
-   if variable already computed on this timestep, just return
-   else evaluate the formula and its length, store results in VecVar entry
+   if necessary, evaluate the formula and its length,
+     store results in VecVar entry and return them
 ------------------------------------------------------------------------- */
 
 int Variable::compute_vector(int ivar, double **result)
 {
   Tree *tree = nullptr;
+
+  // if vector is not dynamic, just return stored values
+
+  if (!vecs[ivar].dynamic) {
+    *result = vecs[ivar].values;
+    return vecs[ivar].n;
+  }
+
+  // if vector already computed on this timestep, just return stored values
+
   if (vecs[ivar].currentstep == update->ntimestep) {
     *result = vecs[ivar].values;
     return vecs[ivar].n;
   }
 
+  // evaluate vector afresh
+  
   if (eval_in_progress[ivar])
     print_var_error(FLERR,"has a circular dependency",ivar);
 
@@ -1246,7 +1268,8 @@ void Variable::grow()
 
   vecs = (VecVar *) memory->srealloc(vecs,maxvar*sizeof(VecVar),"var:vecvar");
   for (int i = old; i < maxvar; i++) {
-    vecs[i].nmax = 0;
+    vecs[i].n = vecs[i].nmax = 0;
+    vecs[i].dynamic = 1;
     vecs[i].currentstep = -1;
     vecs[i].values = nullptr;
   }
@@ -4008,8 +4031,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     if (!atom->labelmapflag)
       print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
 
-    std::string typestr(args[0]);
-    std::string kind(args[1]);
+    std::string contents_copy(contents);
+    auto pos = contents_copy.find_first_of(',');
+    if (pos == std::string::npos)
+      print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
+                                         contents_copy), ivar);
+    std::string typestr = contents_copy.substr(pos+1);
+    std::string kind = contents_copy.substr(0, pos);
 
     int value = -1;
     if (kind == "atom") {
@@ -4693,6 +4721,52 @@ void Variable::atom_vector(char *word, Tree **tree, Tree **treestack, int &ntree
 }
 
 /* ----------------------------------------------------------------------
+   parse vector string with format [value,value,...] for vector-style variable
+   store numeric values in vecs[ivar]
+------------------------------------------------------------------------- */
+
+void Variable::parse_vector(int ivar, char *str)
+{
+  // unlimited allows for any vector length
+  
+  char **args;
+  int nvec = parse_args_unlimited(str,args);
+
+  if (args[nvec-1][strlen(args[nvec-1])-1] != ']')
+    error->all(FLERR,"Vector variable formula lacks closing brace: {}",str);
+    
+  vecs[ivar].n = nvec;
+  vecs[ivar].nmax = nvec;
+  vecs[ivar].currentstep = -1;
+  memory->destroy(vecs[ivar].values);
+  memory->create(vecs[ivar].values,vecs[ivar].nmax,"variable:values");
+
+  char *onearg,*copy;
+  for (int i = 0; i < nvec; i++) {
+    onearg = utils::strdup(args[i]);
+    if (onearg[0] == '[') {
+      copy = utils::strdup(utils::trim(&onearg[1]));
+      delete[] onearg;
+      onearg = copy;
+    }
+    if (onearg[strlen(onearg)-1] == ']') {
+      onearg[strlen(onearg)-1] = '\0';
+      copy = utils::strdup(utils::trim(onearg));
+      delete[] onearg;
+      onearg = copy;
+    }
+
+    vecs[ivar].values[i] = utils::numeric(FLERR, onearg, false, lmp);
+    delete[] onearg;
+  }
+
+  // delete stored args
+
+  for (int i = 0; i < nvec; i++) delete[] args[i];
+  memory->sfree(args);
+}
+
+/* ----------------------------------------------------------------------
    parse string for comma-separated args
    store copy of each arg in args array
    max allowed # of args = MAXFUNCARG
@@ -4718,6 +4792,37 @@ int Variable::parse_args(char *str, char **args)
 }
 
 /* ----------------------------------------------------------------------
+   parse string for comma-separated args
+   store copy of each arg in args array
+   grow args array as large as needed
+------------------------------------------------------------------------- */
+
+int Variable::parse_args_unlimited(char *str, char **&args)
+{
+  char *ptrnext;
+  int   narg = 0;
+  char *ptr = str;
+
+  int maxarg = 0;
+  args = nullptr;
+  
+  while (ptr) {
+    ptrnext = find_next_comma(ptr);
+    if (ptrnext) *ptrnext = '\0';
+    if (narg == maxarg) {
+      maxarg += CHUNK;
+      args = (char **) memory->srealloc(args,maxarg*sizeof(char *),"variable:args");
+    }
+    args[narg] = utils::strdup(utils::trim(ptr));
+    narg++;
+    ptr = ptrnext;
+    if (ptr) ptr++;
+  }
+
+  return narg;
+}
+
+/* ----------------------------------------------------------------------
    find next comma in str
    skip commas inside one or more nested parenthesis
    only return ptr to comma at level 0, else nullptr if not found
@@ -4733,7 +4838,6 @@ char *Variable::find_next_comma(char *str)
   }
   return nullptr;
 }
-
 
 /* ----------------------------------------------------------------------
    helper routine for printing variable name with error message

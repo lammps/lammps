@@ -127,11 +127,12 @@ class Fix : protected Pointers {
 
   int restart_reset;    // 1 if restart just re-initialized fix
 
-  // KOKKOS host/device flag and data masks
+  // KOKKOS flags and variables
 
   int kokkosable;             // 1 if Kokkos fix
   int forward_comm_device;    // 1 if forward comm on Device
   int exchange_comm_device;   // 1 if exchange comm on Device
+  int fuse_integrate_flag;    // 1 if can fuse initial integrate with final integrate
   int sort_device;            // 1 if sort on Device
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
@@ -161,6 +162,7 @@ class Fix : protected Pointers {
   virtual void pre_reverse(int, int) {}
   virtual void post_force(int) {}
   virtual void final_integrate() {}
+  virtual void fused_integrate(int) {}
   virtual void end_of_step() {}
   virtual void post_run() {}
   virtual void write_restart(FILE *) {}

@@ -28,6 +28,7 @@ FixNVESphereKokkos<DeviceType>::FixNVESphereKokkos(LAMMPS *lmp, int narg, char *
   FixNVESphere(lmp, narg, arg)
 {
   kokkosable = 1;
+  fuse_integrate_flag = 1;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -161,6 +162,73 @@ void FixNVESphereKokkos<DeviceType>::final_integrate_item(const int i) const
     omega(i,0) += dtirotate * torque(i,0);
     omega(i,1) += dtirotate * torque(i,1);
     omega(i,2) += dtirotate * torque(i,2);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNVESphereKokkos<DeviceType>::fused_integrate(int /*vflag*/)
+{
+  if (extra == DIPOLE)
+    atomKK->sync(execution_space, X_MASK | V_MASK | OMEGA_MASK| F_MASK | TORQUE_MASK | RMASS_MASK | RADIUS_MASK | MASK_MASK | MU_MASK);
+  else
+    atomKK->sync(execution_space, X_MASK | V_MASK | OMEGA_MASK| F_MASK | TORQUE_MASK | RMASS_MASK | RADIUS_MASK | MASK_MASK);
+
+  x = atomKK->k_x.view<DeviceType>();
+  v = atomKK->k_v.view<DeviceType>();
+  omega = atomKK->k_omega.view<DeviceType>();
+  f = atomKK->k_f.view<DeviceType>();
+  torque = atomKK->k_torque.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
+  rmass = atomKK->k_rmass.view<DeviceType>();
+  radius = atomKK->k_radius.view<DeviceType>();
+  mu = atomKK->k_mu.view<DeviceType>();
+
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  FixNVESphereKokkosFusedIntegrateFunctor<DeviceType> f(this);
+  Kokkos::parallel_for(nlocal,f);
+
+  if (extra == DIPOLE)
+    atomKK->modified(execution_space,  X_MASK | V_MASK | OMEGA_MASK | MU_MASK);
+  else
+    atomKK->modified(execution_space,  X_MASK | V_MASK | OMEGA_MASK);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixNVESphereKokkos<DeviceType>::fused_integrate_item(const int i) const
+{
+  const double dtfrotate = dtf / inertia;
+
+  if (mask(i) & groupbit) {
+    const double dtfm = 2.0 * dtf / rmass(i);
+    v(i,0) += dtfm * f(i,0);
+    v(i,1) += dtfm * f(i,1);
+    v(i,2) += dtfm * f(i,2);
+    x(i,0) += dtv * v(i,0);
+    x(i,1) += dtv * v(i,1);
+    x(i,2) += dtv * v(i,2);
+
+    const double dtirotate = 2.0 * dtfrotate / (radius(i)*radius(i)*rmass(i));
+    omega(i,0) += dtirotate * torque(i,0);
+    omega(i,1) += dtirotate * torque(i,1);
+    omega(i,2) += dtirotate * torque(i,2);
+
+    if (extra == DIPOLE) {
+      const double g0 = mu(i,0) + dtv * (omega(i,1) * mu(i,2) - omega(i,2) * mu(i,1));
+      const double g1 = mu(i,1) + dtv * (omega(i,2) * mu(i,0) - omega(i,0) * mu(i,2));
+      const double g2 = mu(i,2) + dtv * (omega(i,0) * mu(i,1) - omega(i,1) * mu(i,0));
+      const double msq = g0*g0 + g1*g1 + g2*g2;
+      const double scale = mu(i,3)/sqrt(msq);
+      mu(i,0) = g0*scale;
+      mu(i,1) = g1*scale;
+      mu(i,2) = g2*scale;
+    }
   }
 }
 

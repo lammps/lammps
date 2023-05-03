@@ -119,12 +119,13 @@ class Pair : protected Pointers {
 
   int beyond_contact, nondefault_history_transfer;    // for granular styles
 
-  // KOKKOS host/device flag and data masks
+  // KOKKOS flags and variables
 
   ExecutionSpace execution_space;
   unsigned int datamask_read, datamask_modify;
   int kokkosable;             // 1 if Kokkos pair
   int reverse_comm_device;    // 1 if reverse comm on Device
+  int fuse_force_clear_flag;   // 1 if can fuse force clear with force compute
 
   Pair(class LAMMPS *);
   ~Pair() override;

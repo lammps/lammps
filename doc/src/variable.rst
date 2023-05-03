@@ -67,7 +67,7 @@ Syntax
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
          special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)
-         feature functions = is_active(category,feature), is_available(category,feature), is_defined(category,id)
+         feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, radius, q, x, y, z, vx, vy, vz, fx, fy, fz
          compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
@@ -495,36 +495,39 @@ is a valid (though strange) variable formula:
 
 Specifically, a formula can contain numbers, constants, thermo
 keywords, math operators, math functions, group functions, region
-functions, atom values, atom vectors, compute references, fix
-references, and references to other variables.
+functions, special functions, feature functions, atom values, atom
+vectors, compute references, fix references, and references to other
+variables.
 
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Number             | 0.2, 100, 1.0e20, -15.4, etc                                                                                                                                                                                                                                                                                                                              |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Constant           | PI, version, on, off, true, false, yes, no                                                                                                                                                                                                                                                                                                                |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Thermo keywords    | vol, pe, ebond, etc                                                                                                                                                                                                                                                                                                                                       |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math operators     | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y,      x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                                                 |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Math functions     | sqrt(x), exp(x), ln(x), log(x), abs(x),      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x),      ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),      logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c),      vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z) |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Group functions    | count(ID), mass(ID), charge(ID), xcm(ID,dim),      vcm(ID,dim), fcm(ID,dim), bound(ID,dir),      gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim),      inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                             |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR),      xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR),      bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR),      angmom(ID,dim,IDR), torque(ID,dim,IDR),      inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                    |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Special functions  | sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x),  label2type(kind,label)                                                                                                                                                                                                                                 |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atom values        | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                            |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atom vectors       | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                                   |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                                  |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                                                  |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                                         |
-+--------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Number             | 0.2, 100, 1.0e20, -15.4, etc                                                                                                                                                                                                                                                                                                       |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Constant           | PI, version, on, off, true, false, yes, no                                                                                                                                                                                                                                                                                         |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Thermo keywords    | vol, pe, ebond, etc                                                                                                                                                                                                                                                                                                                |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Math operators     | (), -x, x+y, x-y, x\*y, x/y, x\^y, x%y, x == y, x != y, x < y, x <= y, x > y, x >= y, x && y, x \|\| y, x \|\^ y, !x                                                                                                                                                                                                               |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Math functions     | sqrt(x), exp(x), ln(x), log(x), abs(x), sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x), random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x), ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z), logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c), vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)   |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Group functions    | count(ID), mass(ID), charge(ID), xcm(ID,dim), vcm(ID,dim), fcm(ID,dim), bound(ID,dir), gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim), inertia(ID,dimdim), omega(ID,dim)                                                                                                                                                     |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Region functions   | count(ID,IDR), mass(ID,IDR), charge(ID,IDR), xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR), bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR), angmom(ID,dim,IDR), torque(ID,dim,IDR), inertia(ID,dimdim,IDR), omega(ID,dim,IDR)                                                                                                 |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Special functions  | sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name), is_os(name), extract_setting(name), label2type(kind,label)                                                                                                                                                             |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Feature functions  | is_available(category,feature), is_active(category,feature), is_defined(category,id)                                                                                                                                                                                                                                               |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Atom values        | id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]                                                                                                                                                                                                                                  |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Atom vectors       | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                            |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Compute references | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                           |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Fix references     | f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]                                                                                                                                                                                                                                                                                           |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Other variables    | v_name, v_name[i]                                                                                                                                                                                                                                                                                                                  |
++--------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 Most of the formula elements produce a scalar value.  Some produce a
 global or per-atom vector of values.  Global vectors can be produced
@@ -970,53 +973,87 @@ types, bond types and so on. For the full list of available keywords
 *name* and their meaning, see the documentation for extract_setting()
 via the link in this paragraph.
 
-The label2type() function converts type labels into numeric types, using label
-maps created by the :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
-commands.  The first argument is the label map kind (atom, bond, angle,
-dihedral, or improper) and the second argument is the label.  The function
-returns the corresponding numeric type.
+The label2type(kind,label) function converts type labels into numeric
+types, using label maps created by the :doc:`labelmap <labelmap>` or
+:doc:`read_data <read_data>` commands.  The first argument is the
+label map kind (atom, bond, angle, dihedral, or improper) and the
+second argument is the label.  The function returns the corresponding
+numeric type.
 
 ----------
 
 Feature Functions
 -----------------
 
-Feature functions allow to probe the running LAMMPS executable for
-whether specific features are either active, defined, or available.  The
-functions take two arguments, a *category* and a corresponding
-*argument*\ . The arguments are strings and thus cannot be formulas
+Feature functions allow probing of the running LAMMPS executable for
+whether specific features are available, active, or defined.  All 3 of
+the functions take two arguments, a *category* and a category-specific
+second argument.  Both are strings and thus cannot be formulas
 themselves; only $-style immediate variable expansion is possible.
-Return value is either 1.0 or 0.0 depending on whether the function
-evaluates to true or false, respectively.
+The return value of the functions is either 1.0 or 0.0 depending on
+whether the function evaluates to true or false, respectively.
 
-The *is_active(category,feature)* function allows to query for active
-settings which are grouped by categories. Currently supported categories
-and arguments are:
+The *is_available(category,name)* function queries whether a specific
+feature is available in the LAMMPS executable that is being run, i.e
+whether it was included or enabled at compile time.
 
-* *package*\ : argument = *gpu* or *intel* or *kokkos* or *omp*
-* *newton*\ : argument = *pair* or *bond* or *any*
-* *pair*\ : argument = *single* or *respa* or *manybody* or *tail* or *shift*
-* *comm_style*\ : argument = *brick* or *tiled*
-* *min_style*\ : argument = any of the compiled in minimizer styles
-* *run_style*\ : argument = any of the compiled in run styles
-* *atom_style*\ : argument = any of the compiled in atom style)
-* *pair_style*\ : argument = any of the compiled in pair styles
-* *bond_style*\ : argument = any of the compiled in bond styles
-* *angle_style*\ : argument = any of the compiled in angle styles
-* *dihedral_style*\ : argument = any of the compiled in dihedral styles
-* *improper_style*\ : argument = any of the compiled in improper styles
-* *kspace_style*\ : argument = any of the compiled in kspace styles
+This supports the following categories: *command*, *compute*, *fix*,
+*pair_style* and *feature*\ .  For all the categories except *feature*
+the *name* is a style name, e.g. *nve* for the *fix* category.  Note
+that many LAMMPS input script commands such as *create_atoms* are
+actually instances of a command style which LAMMPS defines, as opposed
+to built-in commands.  For all of these styles except *command*,
+appending of active suffixes is also tried before reporting failure.
 
-Most of the settings are self-explanatory, the *single* argument in the
-*pair* category allows to check whether a pair style supports a
-Pair::single() function as needed by compute group/group and others
-features or LAMMPS, *respa* allows to check whether the inner/middle/outer
-mode of r-RESPA is supported. In the various style categories,
-the checking is also done using suffix flags, if available and enabled.
+The *feature* category checks the availability of the following
+compile-time enabled features: GZIP support, PNG support, JPEG
+support, FFMPEG support, and C++ exceptions for error
+handling. Corresponding names are *gzip*, *png*, *jpeg*, *ffmpeg* and
+*exceptions*\ .
 
-Example 1: disable use of suffix for pppm when using GPU package
-(i.e. run it on the CPU concurrently to running the pair style on the
-GPU), but do use the suffix otherwise (e.g. with OPENMP).
+Example: Only dump in a given format if the compiled binary supports it.
+
+.. code-block:: LAMMPS
+
+   if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
+   if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
+
+The *is_active(category,feature)* function queries whether a specific
+feature is currently active within LAMMPS.  The features are grouped
+by categories.  Supported categories and features are:
+
+* *package*\ : features = *gpu* or *intel* or *kokkos* or *omp*
+* *newton*\ : features = *pair* or *bond* or *any*
+* *pair*\ : features = *single* or *respa* or *manybody* or *tail* or *shift*
+* *comm_style*\ : features = *brick* or *tiled*
+* *min_style*\ : features = a minimizer style name
+* *run_style*\ : features = a run style name
+* *atom_style*\ : features = an atom style name
+* *pair_style*\ : features = a pair style name
+* *bond_style*\ : features = a bond style name
+* *angle_style*\ : features = an angle style name
+* *dihedral_style*\ : features = a dihedral style name
+* *improper_style*\ : features = an improper style name
+* *kspace_style*\ : features = a kspace style name
+
+Most of the settings are self-explanatory.  For the *package*
+category, a package may have been included in the LAMMPS build, but
+not have enabled by any input script command, and hence be inactive.
+The *single* feature in the *pair* category checks whether the
+currently defined pair style supports a Pair::single() function as
+needed by compute group/group and others features or LAMMPS.
+Similarly, the *respa* feature checks whether the inner/middle/outer
+mode of r-RESPA is supported by the current pair style.
+
+For the categories with *style* in their name, only a single instance
+of the style is ever active at any time in a LAMMPS simulation.  Thus
+the check is whether the currently active style matches the specified
+name.  This check is also done using suffix flags, if available and
+enabled.
+
+Example 1: Disable use of suffix for PPPM when using GPU package
+(i.e. run it on the CPU concurrently while running the pair style on
+the GPU), but do use the suffix otherwise (e.g. with OPENMP).
 
 .. code-block:: LAMMPS
 
@@ -1024,39 +1061,23 @@ GPU), but do use the suffix otherwise (e.g. with OPENMP).
    if $(is_active(package,gpu)) then "suffix off"
    kspace_style pppm
 
-Example 2: use r-RESPA with inner/outer cutoff, if supported by pair
-style, otherwise fall back to using pair and reducing the outer time
-step
+Example 2: Use r-RESPA with inner/outer cutoff, if supported by the
+current pair style, otherwise fall back to using r-RESPA with simply
+the pair keyword and reducing the outer time step.
 
 .. code-block:: LAMMPS
 
    timestep $(2.0*(1.0+2.0*is_active(pair,respa)))
-   if $(is_active(pair,respa)) then "run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2  improper 1 pair 2 kspace 3"
+   if $(is_active(pair,respa)) then "run_style respa 4 3 2 2 improper 1 inner 2 5.5 7.0 outer 3 kspace 4" else "run_style respa 3 3 2 improper 1 pair 2 kspace 3"
 
-The *is_available(category,name)* function allows to query whether
-a specific optional feature is available, i.e. compiled in.
-This currently works for the following categories: *command*,
-*compute*, *fix*, *pair_style* and *feature*\ . For all categories
-except *command* and *feature* also appending active suffixes is
-tried before reporting failure.
-
-The *feature* category is used to check the availability of compiled in
-features such as GZIP support, PNG support, JPEG support, FFMPEG support,
-and C++ exceptions for error handling. Corresponding values for name are
-*gzip*, *png*, *jpeg*, *ffmpeg* and *exceptions*\ .
-
-This enables writing input scripts which only dump using a given format if
-the compiled binary supports it.
-
-.. code-block:: LAMMPS
-
-   if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
-
-   if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
-
-The *is_defined(categoy,id)* function allows to query categories like
-*compute*, *dump*, *fix*, *group*, *region*, and *variable* whether an
-entry with the provided name or id is defined.
+The *is_defined(category,id)* function checks whether an instance of a
+style or variable with a specific ID or name is currently defined
+within LAMMPS.  The suppported categories are *compute*, *dump*,
+*fix*, *group*, *region*, and *variable*.  Each of these styles (as
+well as the variable command) can be speficied multiple times within
+LAMMPS, each with a unique *id*.  This function checks whether the
+specified *id* exists.  For category *variable", the *id* is the
+variable name.
 
 ----------
 

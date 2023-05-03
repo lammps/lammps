@@ -2031,7 +2031,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           if (math_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
           else if (group_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
           else if (special_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
-          else print_var_error(FLERR,fmt::format("Invalid math/group/special function '{}()' "
+          else if (feature_function(word,contents,tree,treestack,ntreestack,argstack,nargstack,ivar));
+          else print_var_error(FLERR,fmt::format("Invalid math/group/special/feature function '{}()' "
                                                  "in variable formula", word),ivar);
           delete[] contents;
 
@@ -3979,11 +3980,12 @@ Region *Variable::region_function(char *id, int ivar)
    process a special function in formula
    push result onto tree or arg stack
    word = special function
-   contents = str between parentheses with one,two,three args
+   contents = str between parentheses with one or more args
    return 0 if not a match, 1 if successfully processed
    customize by adding a special function:
      sum(x),min(x),max(x),ave(x),trap(x),slope(x),
-     gmask(x),rmask(x),grmask(x,y),next(x)
+     gmask(x),rmask(x),grmask(x,y),next(x),
+     is_file(x),is_ox(x),extract_setting(x),label2type(x,y)
 ------------------------------------------------------------------------- */
 
 int Variable::special_function(char *word, char *contents, Tree **tree, Tree **treestack,
@@ -3992,19 +3994,59 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
   double sx,sxx;
   double value,sy,sxy;
 
-  // word not a match to any special function
+  // word is not a match to any special function
 
   if (strcmp(word,"sum") != 0 && strcmp(word,"min") && strcmp(word,"max") != 0 && strcmp(word,"ave") != 0 &&
       strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 && strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 &&
-      strcmp(word,"grmask") != 0 && strcmp(word,"next") != 0 && strcmp(word,"is_active") != 0 &&
-      strcmp(word,"is_defined") != 0 && strcmp(word,"is_available") != 0 && strcmp(word,"is_file") != 0 &&
+      strcmp(word,"grmask") != 0 && strcmp(word,"next") != 0 && strcmp(word,"is_file") != 0 &&
       strcmp(word,"is_os") != 0 && strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0)
     return 0;
 
+  // process label2type() separately b/c its label arg can have commas in it
+  
+  if (strcmp(word,"label2type") == 0) {
+    if (!atom->labelmapflag)
+      print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
+
+    std::string typestr(args[0]);
+    std::string kind(args[1]);
+
+    int value = -1;
+    if (kind == "atom") {
+      value = atom->lmap->find(typestr,Atom::ATOM);
+    } else if (kind == "bond") {
+      value = atom->lmap->find(typestr,Atom::BOND);
+    } else if (kind == "angle") {
+      value = atom->lmap->find(typestr,Atom::ANGLE);
+    } else if (kind == "dihedral") {
+      value = atom->lmap->find(typestr,Atom::DIHEDRAL);
+    } else if (kind == "improper") {
+      value = atom->lmap->find(typestr,Atom::IMPROPER);
+    } else {
+      print_var_error(FLERR, fmt::format("Invalid kind {} in label2type in variable",kind), ivar);
+    }
+
+    if (value == -1)
+      print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type in variable",
+                                         kind, typestr), ivar);
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = nullptr;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+    return 1;
+  }
+
+  // process other special functions
   // parse contents for comma-separated args
   // narg = number of args, args = strings between commas
-
-  std::string contents_copy(contents); // for label2type
 
   char *args[MAXFUNCARG];
   int narg = parse_args(contents,args);
@@ -4333,54 +4375,6 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
     } else print_var_error(FLERR,"Invalid variable style in special function next",ivar);
 
-  } else if (strcmp(word,"is_active") == 0) {
-    if (narg != 2)
-      print_var_error(FLERR,"Invalid is_active() function in variable formula",ivar);
-
-    Info info(lmp);
-    value = (info.is_active(args[0],args[1])) ? 1.0 : 0.0;
-
-    // save value in tree or on argstack
-
-    if (tree) {
-      auto newtree = new Tree();
-      newtree->type = VALUE;
-      newtree->value = value;
-      treestack[ntreestack++] = newtree;
-    } else argstack[nargstack++] = value;
-
-  } else if (strcmp(word,"is_available") == 0) {
-    if (narg != 2)
-      print_var_error(FLERR,"Invalid is_available() function in variable formula",ivar);
-
-    Info info(lmp);
-    value = (info.is_available(args[0],args[1])) ? 1.0 : 0.0;
-
-    // save value in tree or on argstack
-
-    if (tree) {
-      auto newtree = new Tree();
-      newtree->type = VALUE;
-      newtree->value = value;
-      treestack[ntreestack++] = newtree;
-    } else argstack[nargstack++] = value;
-
-  } else if (strcmp(word,"is_defined") == 0) {
-    if (narg != 2)
-      print_var_error(FLERR,"Invalid is_defined() function in variable formula",ivar);
-
-    Info info(lmp);
-    value = (info.is_defined(args[0],args[1])) ? 1.0 : 0.0;
-
-    // save value in tree or on argstack
-
-    if (tree) {
-      auto newtree = new Tree();
-      newtree->type = VALUE;
-      newtree->value = value;
-      treestack[ntreestack++] = newtree;
-    } else argstack[nargstack++] = value;
-
   } else if (strcmp(word,"is_file") == 0) {
     if (narg != 1)
       print_var_error(FLERR,"Invalid is_file() function in variable formula",ivar);
@@ -4412,7 +4406,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     } else argstack[nargstack++] = value;
 
   } else if (strcmp(word,"extract_setting") == 0) {
-    if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function syntax in variable formula",ivar);
+    if (narg != 1) print_var_error(FLERR,"Invalid extract_setting() function in variable formula",ivar);
 
     value = lammps_extract_setting(lmp, args[0]);
     if (value < 0) {
@@ -4428,45 +4422,87 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       newtree->value = value;
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
+  }
 
-  } else if (strcmp(word,"label2type") == 0) {
-    if (!atom->labelmapflag)
-      print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
+  // delete stored args
 
-    auto pos = contents_copy.find_first_of(',');
-    if (pos == std::string::npos)
-      print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
-                                       contents_copy), ivar);
-    std::string typestr = contents_copy.substr(pos+1);
-    std::string kind = contents_copy.substr(0, pos);
+  for (int i = 0; i < narg; i++) delete[] args[i];
 
-    int value = -1;
-    if (kind == "atom") {
-      value = atom->lmap->find(typestr,Atom::ATOM);
-    } else if (kind == "bond") {
-      value = atom->lmap->find(typestr,Atom::BOND);
-    } else if (kind == "angle") {
-      value = atom->lmap->find(typestr,Atom::ANGLE);
-    } else if (kind == "dihedral") {
-      value = atom->lmap->find(typestr,Atom::DIHEDRAL);
-    } else if (kind == "improper") {
-      value = atom->lmap->find(typestr,Atom::IMPROPER);
-    } else {
-      print_var_error(FLERR, fmt::format("Invalid type kind {} in variable formula",kind), ivar);
-    }
+  return 1;
+}
 
-    if (value == -1)
-      print_var_error(FLERR, fmt::format("Invalid {} type label {} in variable formula",
-                                         kind, typestr), ivar);
+/* ----------------------------------------------------------------------
+   process a feature function in formula
+   push result onto tree or arg stack
+   word = special function
+   contents = str between parentheses with one or more args
+   return 0 if not a match, 1 if successfully processed
+   customize by adding a feature function:
+     is_available(x,y),is_active(x,y),is_defined(x,y),
+------------------------------------------------------------------------- */
+
+int Variable::feature_function(char *word, char *contents, Tree **tree, Tree **treestack,
+                               int &ntreestack, double *argstack, int &nargstack, int ivar)
+{
+  double value;
+
+  // word is not a match to any feature function
+
+  if (strcmp(word,"is_available") && strcmp(word,"is_active") && strcmp(word,"is_defined") != 0)
+    return 0;
+
+  // process feature functions
+  // parse contents for comma-separated args
+  // narg = number of args, args = strings between commas
+
+  char *args[MAXFUNCARG];
+  int narg = parse_args(contents,args);
+
+  if (strcmp(word,"is_available") == 0) {
+    if (narg != 2)
+      print_var_error(FLERR,"Invalid is_available() function in variable formula",ivar);
+
+    Info info(lmp);
+    value = (info.is_available(args[0],args[1])) ? 1.0 : 0.0;
 
     // save value in tree or on argstack
 
     if (tree) {
-      Tree *newtree = new Tree();
+      auto newtree = new Tree();
       newtree->type = VALUE;
       newtree->value = value;
-      newtree->first = newtree->second = nullptr;
-      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"is_active") == 0) {
+    if (narg != 2)
+      print_var_error(FLERR,"Invalid is_active() function in variable formula",ivar);
+
+    Info info(lmp);
+    value = (info.is_active(args[0],args[1])) ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      auto newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"is_defined") == 0) {
+    if (narg != 2)
+      print_var_error(FLERR,"Invalid is_defined() function in variable formula",ivar);
+
+    Info info(lmp);
+    value = (info.is_defined(args[0],args[1])) ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      auto newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
   }

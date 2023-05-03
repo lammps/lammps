@@ -358,18 +358,7 @@ void AtomKokkos::deallocate_topology()
   memoryKK->destroy_kokkos(k_improper_atom4, improper_atom4);
 }
 
-/* ----------------------------------------------------------------------
-   perform sync and modify for each of 2 masks
-   called by individual styles to override default sync/modify calls
-     done at higher levels (Verlet,Modify,etc)
-------------------------------------------------------------------------- */
-
-void AtomKokkos::sync_modify(ExecutionSpace execution_space, unsigned int datamask_read,
-                             unsigned int datamask_modify)
-{
-  sync(execution_space, datamask_read);
-  modified(execution_space, datamask_modify);
-}
+/* ---------------------------------------------------------------------- */
 
 AtomVec *AtomKokkos::new_avec(const std::string &style, int trysuffix, int &sflag)
 {

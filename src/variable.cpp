@@ -503,7 +503,6 @@ void Variable::set(int narg, char **arg)
         data[ivar][1] = utils::strdup(str);
       } 
       replaceflag = 1;
-
     } else {
       if (nvar == maxvar) grow();
       style[nvar] = VECTOR;
@@ -512,9 +511,10 @@ void Variable::set(int narg, char **arg)
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
       data[nvar][0] = utils::strdup(arg[2]);
-      if (data[nvar][0][0] != '[')
+      if (data[nvar][0][0] != '[') {
         vecs[nvar].dynamic = 1;
-      else {
+        data[nvar][1] = nullptr;
+      } else {
         vecs[nvar].dynamic = 0;
         parse_vector(nvar,data[nvar][0]);
         std::vector <double> vec(vecs[nvar].values,vecs[nvar].values + vecs[nvar].n);
@@ -959,7 +959,7 @@ int Variable::internalstyle(int ivar)
    if GETENV, query environment and put result in str
    if PYTHON, evaluate Python function, it will put result in str
    if INTERNAL, convert dvalue and put result in str
-   if VECTOR, return ptr to str = [value,value,...]
+   if VECTOR, return str = [value,value,...]
    if ATOM or ATOMFILE, return nullptr
    return nullptr if no variable with name or if which value is bad,
      caller must respond
@@ -981,17 +981,21 @@ char *Variable::retrieve(const char *name)
       style[ivar] == UNIVERSE || style[ivar] == STRING ||
       style[ivar] == SCALARFILE) {
     str = data[ivar][which[ivar]];
+    
   } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
+    
     std::string result;
     if (pad[ivar] == 0) result = std::to_string(which[ivar]+1);
     else result = fmt::format("{:0>{}d}",which[ivar]+1, pad[ivar]);
     delete[] data[ivar][0];
     str = data[ivar][0] = utils::strdup(result);
+    
   } else if (style[ivar] == EQUAL) {
     double answer = evaluate(data[ivar][0],nullptr,ivar);
     delete[] data[ivar][1];
     data[ivar][1] = utils::strdup(fmt::format("{:.15g}",answer));
     str = data[ivar][1];
+    
   } else if (style[ivar] == FORMAT) {
     int jvar = find(data[ivar][0]);
     if (jvar < 0)
@@ -1002,11 +1006,13 @@ char *Variable::retrieve(const char *name)
     double answer = compute_equal(jvar);
     sprintf(data[ivar][2],data[ivar][1],answer);
     str = data[ivar][2];
+    
   } else if (style[ivar] == GETENV) {
     const char *result = getenv(data[ivar][0]);
     if (result == nullptr) result = (const char *) "";
     delete[] data[ivar][1];
     str = data[ivar][1] = utils::strdup(result);
+    
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
     if (ifunc < 0) {
@@ -1026,16 +1032,37 @@ char *Variable::retrieve(const char *name)
     }
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
+    
     // if Python func returns a string longer than VALUELENGTH
     // then the Python class stores the result, query it via long_string()
+    
     char *strlong = python->long_string(ifunc);
     if (strlong) str = strlong;
+    
   } else if (style[ivar] == TIMER || style[ivar] == INTERNAL) {
     delete[] data[ivar][0];
     data[ivar][0] = utils::strdup(fmt::format("{:.15g}",dvalue[ivar]));
     str = data[ivar][0];
+    
   } else if (style[ivar] == VECTOR) {
+
+    // check if vector variable needs to be re-computed
+    // if no, just return previously formatted string in data[ivar][1]
+    // if yes, invoke compute_vector() and convert vector to formatted string
+    //   must also turn off eval_in_progress b/c compute_vector() checks it
+    
+    if (vecs[ivar].dynamic || vecs[ivar].currentstep != update->ntimestep) {
+      eval_in_progress[ivar] = 0;
+      double *result;
+      int nvec = compute_vector(ivar,&result);
+      delete[] data[ivar][1];
+      std::vector <double> vectmp(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
+      std::string str = fmt::format("[{}]", fmt::join(vectmp,","));
+      data[ivar][1] = utils::strdup(str);
+    }
+   
     str = data[ivar][1];
+    
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE)
     return nullptr;
 
@@ -1186,7 +1213,7 @@ int Variable::compute_vector(int ivar, double **result)
     return vecs[ivar].n;
   }
 
-  // evaluate vector afresh
+  // evaluate vector variable afresh
   
   if (eval_in_progress[ivar])
     print_var_error(FLERR,"has a circular dependency",ivar);
@@ -1220,14 +1247,6 @@ int Variable::compute_vector(int ivar, double **result)
   free_tree(tree);
   eval_in_progress[ivar] = 0;
 
-  // convert numeric vector to formatted string in data[ivar][1]
-  // this is so that retrieve() on the vector variable will work
-  
-  delete[] data[ivar][1];
-  std::vector <double> vectmp(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
-  std::string str = fmt::format("[{}]", fmt::join(vectmp,","));
-  data[ivar][1] = utils::strdup(str);
-  
   *result = vec;
   return nlen;
 }
@@ -2296,7 +2315,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
   if (nopstack) print_var_error(FLERR,"Invalid syntax in variable formula",ivar);
 
-  // for atom-style variable, return remaining tree
+  // for atom-style and vector-style variable, return remaining tree
   // for equal-style variable, return remaining arg
 
   if (tree) {

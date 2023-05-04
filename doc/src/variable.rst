@@ -11,12 +11,19 @@ Syntax
    variable name style args ...
 
 * name = name of variable to define
-* style = *delete* or *index* or *loop* or *world* or *universe* or *uloop* or *string* or *format* or *getenv* or *file* or *atomfile* or *python* or *timer* or *internal* or *equal* or *vector* or *atom*
+* style = *delete* or *atomfile* or *file* or *format* or *getenv* or *index* or *internal* or *loop* or *python* or *string* or *timer* or *uloop* or *universe* or *world* or *equal* or *vector* or *atom*
 
   .. parsed-literal::
 
        *delete* = no args
+       *atomfile* arg = filename
+       *file* arg = filename
+       *format* args = vname fstr
+         vname = name of equal-style variable to evaluate
+         fstr = C-style format string
+       *getenv* arg = one string
        *index* args = one or more strings
+       *internal* arg = numeric value
        *loop* args = N
          N = integer size of loop, loop from 1 to N inclusive
        *loop* args = N pad
@@ -27,24 +34,18 @@ Syntax
        *loop* args = N1 N2 pad
          N1,N2 = loop from N1 to N2 inclusive
          pad = all values will be same length, e.g. 050, 051, ..., 100
-       *world* args = one string for each partition of processors
-       *universe* args = one or more strings
+       *python* arg = function
+       *string* arg = one string
+       *timer* arg = no arguments
        *uloop* args = N
          N = integer size of loop
        *uloop* args = N pad
          N = integer size of loop
          pad = all values will be same length, e.g. 001, 002, ..., 100
-       *string* arg = one string
-       *format* args = vname fstr
-         vname = name of equal-style variable to evaluate
-         fstr = C-style format string
-       *getenv* arg = one string
-       *file* arg = filename
-       *atomfile* arg = filename
-       *python* arg = function
-       *timer* arg = no arguments
-       *internal* arg = numeric value
-       *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
+       *universe* args = one or more strings
+       *world* args = one string for each partition of processors
+       
+       *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords, math operations, built-in functions, atom values and vectors, compute/fix/variable references
          numbers = 0.0, 100, -5.4, 2.8e-4, etc
          constants = PI, version, on, off, true, false, yes, no
          thermo keywords = vol, ke, press, etc from :doc:`thermo_style <thermo_style>`
@@ -73,6 +74,7 @@ Syntax
          compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
          fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
          variable references = v_name, v_name[i]
+         vector initialization = [1,3,7,10] (for *vector* variables only)
 
 Examples
 """"""""
@@ -95,6 +97,7 @@ Examples
    variable x universe 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
    variable x uloop 15 pad
    variable str format x %.6g
+   variable myvec vector [1,3,7,10]
    variable x delete
 
 .. code-block:: LAMMPS
@@ -252,9 +255,10 @@ commands before the variable would become exhausted.  For example,
 
 ----------
 
-This section describes how all the various variable styles are defined
-and what they store.  Except for the *equal* and *vector* and *atom*
-styles, which are explained in the next section.
+The next sections describe in how all the various variable styles are
+defined and what they store.  The styles are listed alphabetcally,
+except for the *equal* and *vector* and *atom* styles, which are
+explained together after all the others.
 
 Many of the styles store one or more strings.  Note that a single
 string can contain spaces (multiple words), if it is enclosed in
@@ -262,111 +266,7 @@ quotes in the variable command.  When the variable is substituted for
 in another input script command, its returned string will then be
 interpreted as multiple arguments in the expanded command.
 
-For the *index* style, one or more strings are specified.  Initially,
-the first string is assigned to the variable.  Each time a
-:doc:`next <next>` command is used with the variable name, the next
-string is assigned.  All processors assign the same string to the
-variable.
-
-Index-style variables with a single string value can also be set by
-using the :doc:`command-line switch -var <Run_options>`.
-
-The *loop* style is identical to the *index* style except that the
-strings are the integers from 1 to N inclusive, if only one argument N
-is specified.  This allows generation of a long list of runs
-(e.g. 1000) without having to list N strings in the input script.
-Initially, the string "1" is assigned to the variable.  Each time a
-:doc:`next <next>` command is used with the variable name, the next
-string ("2", "3", etc) is assigned.  All processors assign the same
-string to the variable.  The *loop* style can also be specified with
-two arguments N1 and N2.  In this case the loop runs from N1 to N2
-inclusive, and the string N1 is initially assigned to the variable.
-N1 <= N2 and N2 >= 0 is required.
-
-For the *world* style, one or more strings are specified.  There must
-be one string for each processor partition or "world".  LAMMPS can be
-run with multiple partitions via the :doc:`-partition command-line
-switch <Run_options>`.  This variable command assigns one string to
-each world.  All processors in the world are assigned the same string.
-The next command cannot be used with equal-style variables, since
-there is only one value per world.  This style of variable is useful
-when you wish to run different simulations on different partitions, or
-when performing a parallel tempering simulation (see the :doc:`temper
-<temper>` command), to assign different temperatures to different
-partitions.
-
-For the *universe* style, one or more strings are specified.  There
-must be at least as many strings as there are processor partitions or
-"worlds".  LAMMPS can be run with multiple partitions via the
-:doc:`-partition command-line switch <Run_options>`.  This variable
-command initially assigns one string to each world.  When a
-:doc:`next <next>` command is encountered using this variable, the first
-processor partition to encounter it, is assigned the next available
-string.  This continues until all the variable strings are consumed.
-Thus, this command can be used to run 50 simulations on 8 processor
-partitions.  The simulations will be run one after the other on
-whatever partition becomes available, until they are all finished.
-Universe-style variables are incremented using the files
-"tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
-see in your directory during such a LAMMPS run.
-
-The *uloop* style is identical to the *universe* style except that the
-strings are the integers from 1 to N.  This allows generation of long
-list of runs (e.g. 1000) without having to list N strings in the input
-script.
-
-For the *string* style, a single string is assigned to the variable.
-Two differences between this style and using the *index* style exist:
-a variable with *string* style can be redefined, e.g. by another command later
-in the input script, or if the script is read again in a loop. The other
-difference is that *string* performs variable substitution even if the
-string parameter is quoted.
-
-For the *format* style, an equal-style or compatible variable is
-specified along with a C-style format string, e.g. "%f" or "%.10g",
-which must be appropriate for formatting a double-precision
-floating-point value and may not have extra characters.  The default
-format is "%.15g".  This variable style allows an equal-style variable
-to be formatted precisely when it is evaluated.
-
-Note that if you simply wish to print a variable value with desired
-precision to the screen or logfile via the :doc:`print <print>` or
-:doc:`fix print <fix_print>` commands, you can also do this by
-specifying an "immediate" variable with a trailing colon and format
-string, as part of the string argument of those commands.  This is
-explained on the :doc:`Commands parse <Commands_parse>` doc page.
-
-For the *getenv* style, a single string is assigned to the variable
-which should be the name of an environment variable.  When the
-variable is evaluated, it returns the value of the environment
-variable, or an empty string if it not defined.  This style of
-variable can be used to adapt the behavior of LAMMPS input scripts via
-environment variable settings, or to retrieve information that has
-been previously stored with the :doc:`shell putenv <shell>` command.
-Note that because environment variable settings are stored by the
-operating systems, they persist even if the corresponding *getenv*
-style variable is deleted, and also are set for sub-shells executed
-by the :doc:`shell <shell>` command.
-
-For the *file* style, a filename is provided which contains a list of
-strings to assign to the variable, one per line.  The strings can be
-numeric values if desired.  See the discussion of the next() function
-below for equal-style variables, which will convert the string of a
-file-style variable into a numeric value in a formula.
-
-When a file-style variable is defined, the file is opened and the
-string on the first line is read and stored with the variable.  This
-means the variable can then be evaluated as many times as desired and
-will return that string.  There are two ways to cause the next string
-from the file to be read: use the :doc:`next <next>` command or the
-next() function in an equal- or atom-style variable, as discussed
-below.
-
-The rules for formatting the file are as follows.  A comment character
-"#" can be used anywhere on a line; text starting with the comment
-character is stripped.  Blank lines are skipped.  The first "word" of
-a non-blank line, delimited by white-space, is the "string" assigned
-to the variable.
+----------
 
 For the *atomfile* style, a filename is provided which contains one or
 more sets of values, to assign on a per-atom basis to the variable.
@@ -406,6 +306,97 @@ will be assigned to that atom.  IDs can be listed in any order.
    atoms is first set to 0.0.  Thus values for atoms whose ID does not
    appear in the set, will remain 0.0.
 
+----------
+
+For the *file* style, a filename is provided which contains a list of
+strings to assign to the variable, one per line.  The strings can be
+numeric values if desired.  See the discussion of the next() function
+below for equal-style variables, which will convert the string of a
+file-style variable into a numeric value in a formula.
+
+When a file-style variable is defined, the file is opened and the
+string on the first line is read and stored with the variable.  This
+means the variable can then be evaluated as many times as desired and
+will return that string.  There are two ways to cause the next string
+from the file to be read: use the :doc:`next <next>` command or the
+next() function in an equal- or atom-style variable, as discussed
+below.
+
+The rules for formatting the file are as follows.  A comment character
+"#" can be used anywhere on a line; text starting with the comment
+character is stripped.  Blank lines are skipped.  The first "word" of
+a non-blank line, delimited by white-space, is the "string" assigned
+to the variable.
+
+----------
+
+For the *format* style, an equal-style or compatible variable is
+specified along with a C-style format string, e.g. "%f" or "%.10g",
+which must be appropriate for formatting a double-precision
+floating-point value and may not have extra characters.  The default
+format is "%.15g".  This variable style allows an equal-style variable
+to be formatted precisely when it is evaluated.
+
+Note that if you simply wish to print a variable value with desired
+precision to the screen or logfile via the :doc:`print <print>` or
+:doc:`fix print <fix_print>` commands, you can also do this by
+specifying an "immediate" variable with a trailing colon and format
+string, as part of the string argument of those commands.  This is
+explained on the :doc:`Commands parse <Commands_parse>` doc page.
+
+----------
+
+For the *getenv* style, a single string is assigned to the variable
+which should be the name of an environment variable.  When the
+variable is evaluated, it returns the value of the environment
+variable, or an empty string if it not defined.  This style of
+variable can be used to adapt the behavior of LAMMPS input scripts via
+environment variable settings, or to retrieve information that has
+been previously stored with the :doc:`shell putenv <shell>` command.
+Note that because environment variable settings are stored by the
+operating systems, they persist even if the corresponding *getenv*
+style variable is deleted, and also are set for sub-shells executed
+by the :doc:`shell <shell>` command.
+
+----------
+
+For the *index* style, one or more strings are specified.  Initially,
+the first string is assigned to the variable.  Each time a
+:doc:`next <next>` command is used with the variable name, the next
+string is assigned.  All processors assign the same string to the
+variable.
+
+Index-style variables with a single string value can also be set by
+using the :doc:`command-line switch -var <Run_options>`.
+
+----------
+
+For the *internal* style a numeric value is provided.  This value will
+be assigned to the variable until a LAMMPS command sets it to a new
+value.  There are currently only two LAMMPS commands that require
+*internal* variables as inputs, because they reset them:
+:doc:`create_atoms <create_atoms>` and :doc:`fix controller
+<fix_controller>`.  As mentioned above, an internal-style variable can
+be used in place of an equal-style variable anywhere else in an input
+script, e.g. as an argument to another command that allows for
+equal-style variables.
+
+----------
+
+The *loop* style is identical to the *index* style except that the
+strings are the integers from 1 to N inclusive, if only one argument N
+is specified.  This allows generation of a long list of runs
+(e.g. 1000) without having to list N strings in the input script.
+Initially, the string "1" is assigned to the variable.  Each time a
+:doc:`next <next>` command is used with the variable name, the next
+string ("2", "3", etc) is assigned.  All processors assign the same
+string to the variable.  The *loop* style can also be specified with
+two arguments N1 and N2.  In this case the loop runs from N1 to N2
+inclusive, and the string N1 is initially assigned to the variable.
+N1 <= N2 and N2 >= 0 is required.
+
+----------
+
 For the *python* style a Python function name is provided.  This needs
 to match a function name specified in a :doc:`python <python>` command
 which returns a value to this variable as defined by its *return*
@@ -433,25 +424,52 @@ python-style variable can be used in place of an equal-style variable
 anywhere in an input script, e.g. as an argument to another command
 that allows for equal-style variables.
 
-For the *timer* style no additional argument is specified.  The value of
-the variable is set by querying the current elapsed wall time of the
-simulation.  This is done at the point in time when the variable is
-defined in the input script.  If a second timer-style variable is also
-defined, then a simple formula can be used to calculate the elapsed time
-between the two timers, as in the example at the top of this manual
-entry.  As mentioned above, timer-style variables can be redefined
-elsewhere in the input script, so the same pair of variables can be used
-in a loop or to time a series of operations.
+----------
 
-For the *internal* style a numeric value is provided.  This value will
-be assigned to the variable until a LAMMPS command sets it to a new
-value.  There are currently only two LAMMPS commands that require
-*internal* variables as inputs, because they reset them:
-:doc:`create_atoms <create_atoms>` and :doc:`fix controller
-<fix_controller>`.  As mentioned above, an internal-style variable can
-be used in place of an equal-style variable anywhere else in an input
-script, e.g. as an argument to another command that allows for
-equal-style variables.
+For the *string* style, a single string is assigned to the variable.
+Two differences between this style and using the *index* style exist:
+a variable with *string* style can be redefined, e.g. by another command later
+in the input script, or if the script is read again in a loop. The other
+difference is that *string* performs variable substitution even if the
+string parameter is quoted.
+
+----------
+
+The *uloop* style is identical to the *universe* style except that the
+strings are the integers from 1 to N.  This allows generation of long
+list of runs (e.g. 1000) without having to list N strings in the input
+script.
+
+----------
+
+For the *universe* style, one or more strings are specified.  There
+must be at least as many strings as there are processor partitions or
+"worlds".  LAMMPS can be run with multiple partitions via the
+:doc:`-partition command-line switch <Run_options>`.  This variable
+command initially assigns one string to each world.  When a
+:doc:`next <next>` command is encountered using this variable, the first
+processor partition to encounter it, is assigned the next available
+string.  This continues until all the variable strings are consumed.
+Thus, this command can be used to run 50 simulations on 8 processor
+partitions.  The simulations will be run one after the other on
+whatever partition becomes available, until they are all finished.
+Universe-style variables are incremented using the files
+"tmp.lammps.variable" and "tmp.lammps.variable.lock" which you will
+see in your directory during such a LAMMPS run.
+
+----------
+
+For the *world* style, one or more strings are specified.  There must
+be one string for each processor partition or "world".  LAMMPS can be
+run with multiple partitions via the :doc:`-partition command-line
+switch <Run_options>`.  This variable command assigns one string to
+each world.  All processors in the world are assigned the same string.
+The next command cannot be used with equal-style variables, since
+there is only one value per world.  This style of variable is useful
+when you wish to run different simulations on different partitions, or
+when performing a parallel tempering simulation (see the :doc:`temper
+<temper>` command), to assign different temperatures to different
+partitions.
 
 ----------
 
@@ -577,9 +595,9 @@ will not work, since the *version* has been introduced more recently):
    if $(version<20140513) then "communicate vel yes" else "comm_modify vel yes"
 
 The thermo keywords allowed in a formula are those defined by the
-:doc:`thermo_style custom <thermo_style>` command.  Thermo keywords that
-require a :doc:`compute <compute>` to calculate their values such as
-"temp" or "press", use computes stored and invoked by the
+:doc:`thermo_style custom <thermo_style>` command.  Thermo keywords
+that require a :doc:`compute <compute>` to calculate their values such
+as "temp" or "press", use computes stored and invoked by the
 :doc:`thermo_style <thermo_style>` command.  This means that you can
 only use those keywords in a variable if the style you are using with
 the thermo_style command (and the thermo keywords associated with that
@@ -717,10 +735,12 @@ new timestep.  X,y,z > 0 and y < z are required.  The generated
 timesteps are on a base-z logarithmic scale, starting with x, and the
 y value is how many of the z-1 possible timesteps within one
 logarithmic interval are generated.  I.e. the timesteps follow the
-sequence x,2x,3x,...y\*x,x\*z,2x\*z,3x\*z,...y\*x\*z,x\*z\^2,2x\*z\^2,etc.  For
+sequence
+x,2x,3x,...y\*x,x\*z,2x\*z,3x\*z,...y\*x\*z,x\*z\^2,2x\*z\^2,etc.  For
 any current timestep, the next timestep in the sequence is returned.
-Thus if logfreq(100,4,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, it will generate this sequence of
-output timesteps:
+Thus if logfreq(100,4,10) is used in a variable by the
+:doc:`dump_modify every <dump_modify>` command, it will generate this
+sequence of output timesteps:
 
 .. parsed-literal::
 
@@ -729,9 +749,10 @@ output timesteps:
 The logfreq2(x,y,z) function is similar to logfreq, except a single
 logarithmic interval is divided into y equally-spaced timesteps and
 all of them are output.  Y < z is not required.  Thus, if
-logfreq2(100,18,10) is used in a variable by the :doc:`dump_modify every <dump_modify>` command, then the interval between 100 and
-1000 is divided as 900/18 = 50 steps, and it will generate the
-sequence of output timesteps:
+logfreq2(100,18,10) is used in a variable by the :doc:`dump_modify
+every <dump_modify>` command, then the interval between 100 and 1000
+is divided as 900/18 = 50 steps, and it will generate the sequence of
+output timesteps:
 
 .. parsed-literal::
 
@@ -1289,6 +1310,33 @@ Vectors" discussion above.
 
 ----------
 
+Vector Initialization
+---------------------
+
+*Vector*-style variables only can be initialized with a special
+syntax, instead of using a formula.  The syntax is a bracketed,
+comma-separated syntax like the following:
+
+.. code-block:: LAMMPS
+
+   variable myvec vector [1,3.5,7,10.2]
+
+The 3rd argument formula is replaced by the vector values in brackets,
+separated by commas.  This example creates a 4-length vector with
+specific numeric values, each of which can be specified as an integer
+or floating point value.  Note that while whitespace can be added
+before or after individual values, no other mathematical operations
+can be specified.  E.g. "3*10" or "3*v_abc" are not valid vector
+elements, nor is "10*[1,2,3,4]" valid for the entire vector.
+
+Unlike vector variables specified with formulas, this vector variable
+is static; its length and values never changes.  Its values can be
+used in other commands (including vector-style variables specified
+with formulas) via the usual syntax for accessing individual vector
+elements or the entire vector.
+
+----------
+
 Immediate Evaluation of Variables
 """""""""""""""""""""""""""""""""
 
@@ -1306,18 +1354,19 @@ with a leading $ sign (e.g. $x or ${abc}) versus with a leading "v\_"
 (e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
-into the command.  As explained on the :doc:`Commands parse <Commands_parse>` doc page, you can also use un-named
-"immediate" variables for this purpose.  For example, a string like
-this $((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates
-the string between the parenthesis as an equal-style variable formula.
+into the command.  As explained on the :doc:`Commands parse
+<Commands_parse>` doc page, you can also use un-named "immediate"
+variables for this purpose.  For example, a string like this
+$((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates the
+string between the parenthesis as an equal-style variable formula.
 
 Referencing a variable with a leading "v\_" is an optional or required
-kind of argument for some commands (e.g. the :doc:`fix ave/chunk <fix_ave_chunk>` or :doc:`dump custom <dump>` or
-:doc:`thermo_style <thermo_style>` commands) if you wish it to evaluate
-a variable periodically during a run.  It can also be used in a
-variable formula if you wish to reference a second variable.  The
-second variable will be evaluated whenever the first variable is
-evaluated.
+kind of argument for some commands (e.g. the :doc:`fix ave/chunk
+<fix_ave_chunk>` or :doc:`dump custom <dump>` or :doc:`thermo_style
+<thermo_style>` commands) if you wish it to evaluate a variable
+periodically during a run.  It can also be used in a variable formula
+if you wish to reference a second variable.  The second variable will
+be evaluated whenever the first variable is evaluated.
 
 As an example, suppose you use this command in your input script to
 define the variable "v" as
@@ -1330,8 +1379,9 @@ before a run where the simulation box size changes.  You might think
 this will assign the initial volume to the variable "v".  That is not
 the case.  Rather it assigns a formula which evaluates the volume
 (using the thermo_style keyword "vol") to the variable "v".  If you
-use the variable "v" in some other command like :doc:`fix ave/time <fix_ave_time>` then the current volume of the box will be
-evaluated continuously during the run.
+use the variable "v" in some other command like :doc:`fix ave/time
+<fix_ave_time>` then the current volume of the box will be evaluated
+continuously during the run.
 
 If you want to store the initial volume of the system, you can do it
 this way:

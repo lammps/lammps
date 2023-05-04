@@ -38,6 +38,8 @@
 #include "universe.h"
 #include "update.h"
 
+#include "fmt/ranges.h"
+
 #include <cctype>
 #include <cmath>
 #include <cstring>
@@ -72,10 +74,10 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE};
 
-
 static constexpr double BIG = 1.0e20;
 
-// INT64_MAX cannot be represented with a double. reduce to avoid overflow when casting back.
+// INT64_MAX cannot be represented with a double. reduce to avoid overflow when casting back
+
 #if defined(LAMMPS_SMALLBIG) || defined(LAMMPS_BIGBIG)
 static constexpr double MAXBIGINT_DOUBLE = (double) (MAXBIGINT-512);
 #else
@@ -477,8 +479,8 @@ void Variable::set(int narg, char **arg)
 
   // VECTOR
   // replace pre-existing var if also style VECTOR (allows it to be reset)
-  // num = 1, which = 1st value
-  // data = 1 value, string to eval
+  // num = 2, which = 1st value
+  // data = 2 values, 1st is string to eval, 2nd is formatted output string [1,2,3]
   // if formula string is [value,value,...] then
   //   immediately store it as N-length vector and set dynamic flag to 0
 
@@ -489,24 +491,36 @@ void Variable::set(int narg, char **arg)
       if (style[ivar] != VECTOR)
         error->all(FLERR,"Cannot redefine variable as a different style");
       delete[] data[ivar][0];
+      delete[] data[ivar][1];
       data[ivar][0] = utils::strdup(arg[2]);
-      if (data[ivar][0][0] == '[') {
-        parse_vector(ivar,data[ivar][0]);
+      if (data[ivar][0][0] != '[')
+        vecs[ivar].dynamic = 1;
+      else {
         vecs[ivar].dynamic = 0;
-      } else vecs[ivar].dynamic = 1;
+        parse_vector(ivar,data[ivar][0]);
+        std::vector <double> vec(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
+        std::string str = fmt::format("[{}]", fmt::join(vec,","));
+        data[ivar][1] = utils::strdup(str);
+      } 
       replaceflag = 1;
+
     } else {
       if (nvar == maxvar) grow();
       style[nvar] = VECTOR;
-      num[nvar] = 1;
+      num[nvar] = 2;
       which[nvar] = 0;
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
       data[nvar][0] = utils::strdup(arg[2]);
-      if (data[nvar][0][0] == '[') {
-        parse_vector(nvar,data[nvar][0]);
+      if (data[nvar][0][0] != '[')
+        vecs[nvar].dynamic = 1;
+      else {
         vecs[nvar].dynamic = 0;
-      } else vecs[nvar].dynamic = 1;
+        parse_vector(nvar,data[nvar][0]);
+        std::vector <double> vec(vecs[nvar].values,vecs[nvar].values + vecs[nvar].n);
+        std::string str = fmt::format("[{}]", fmt::join(vec,","));
+        data[nvar][1] = utils::strdup(str);
+      } 
     }
 
   // PYTHON
@@ -945,8 +959,9 @@ int Variable::internalstyle(int ivar)
    if GETENV, query environment and put result in str
    if PYTHON, evaluate Python function, it will put result in str
    if INTERNAL, convert dvalue and put result in str
-   if ATOM or ATOMFILE or VECTOR, return nullptr
-   return nullptr if no variable with name, or which value is bad,
+   if VECTOR, return ptr to str = [value,value,...]
+   if ATOM or ATOMFILE, return nullptr
+   return nullptr if no variable with name or if which value is bad,
      caller must respond
 ------------------------------------------------------------------------- */
 
@@ -1019,8 +1034,10 @@ char *Variable::retrieve(const char *name)
     delete[] data[ivar][0];
     data[ivar][0] = utils::strdup(fmt::format("{:.15g}",dvalue[ivar]));
     str = data[ivar][0];
-  } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE ||
-             style[ivar] == VECTOR) return nullptr;
+  } else if (style[ivar] == VECTOR) {
+    str = data[ivar][1];
+  } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE)
+    return nullptr;
 
   eval_in_progress[ivar] = 0;
 
@@ -1203,6 +1220,14 @@ int Variable::compute_vector(int ivar, double **result)
   free_tree(tree);
   eval_in_progress[ivar] = 0;
 
+  // convert numeric vector to formatted string in data[ivar][1]
+  // this is so that retrieve() on the vector variable will work
+  
+  delete[] data[ivar][1];
+  std::vector <double> vectmp(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
+  std::string str = fmt::format("[{}]", fmt::join(vectmp,","));
+  data[ivar][1] = utils::strdup(str);
+  
   *result = vec;
   return nlen;
 }

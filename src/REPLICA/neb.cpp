@@ -44,7 +44,7 @@ enum { DEFAULT, TERSE, VERBOSE };
 
 /* ---------------------------------------------------------------------- */
 
-NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}
+NEB::NEB(LAMMPS *lmp) : Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr) {}
 
 /* ----------------------------------------------------------------------
    internal NEB constructor, called from TAD

@@ -92,21 +92,21 @@ packages that do not have the USER- prefix.
 
 
 Location of files: individual files and packages
---------------------------------
+------------------------------------------------
 
-We rarely accept new styles in the core src folder.  Thus please
-review the list of :doc:`available Packages <Packages_details>` to see
-if your contribution could be added to be added to one of them.  It
-should fit into the general purposed of that package.  If it does not
-fit well, it may be added to one of the EXTRA- packages or the MISC
-package.
+We rarely accept new styles in the core src folder.  Thus please review
+the list of :doc:`available Packages <Packages_details>` to see if your
+contribution could be added to be added to one of them.  It should fit
+into the general purposed of that package.  If it does not fit well, it
+may be added to one of the EXTRA- packages or the MISC package.
 
-However if your project includes many related features that are not covered
-by one of the existing packages or is dependent on a library (bundled or
-external), it is best to create a package with its own directory (labelled
-with a name like FOO).  In addition to your new files, the directory should
-contain a README text file containing your name and contact information and
-a brief description of what your new package does.
+However if your project includes many related features that are not
+covered by one of the existing packages or is dependent on a library
+(bundled or external), it is best to create a package with its own
+directory (labeled with a name like FOO).  In addition to your new
+files, the directory should contain a README text file containing your
+name and contact information and a brief description of what your new
+package does.
 
 
 Changes to core LAMMPS files

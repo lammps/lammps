@@ -1,5 +1,5 @@
 Requirements for contributions to LAMMPS
-===========================================================
+========================================
 
 The following is a summary of the current requirements and
 recommendations for including contributed source code or documentation
@@ -21,11 +21,12 @@ necessity to be more discriminating with new contributions while also
 working at the same time to improve the existing code.
 
 The following requirements and recommendations are provided to help
-maintaining or improving that status.  It is indicated which requirements are strict, and which represent a preference and thus are negotiable or optional.
-Please feel free to contact the LAMMPS core developers in case you need
-additional explanations or clarifications or in case you need assistance
-in realizing the (strict) requirements for your contributions. Requirements
-include:
+maintaining or improving that status.  It is indicated which
+requirements are strict, and which represent a preference and thus are
+negotiable or optional.  Please feel free to contact the LAMMPS core
+developers in case you need additional explanations or clarifications or
+in case you need assistance in realizing the (strict) requirements for
+your contributions. Requirements include:
 * :ref:`Licensing requirements <License>` (strict)
 * :ref:`Integration testing <IntegrationTesting>` (strict)
 * :ref:`Documentation <Documentation>` (strict)
@@ -36,7 +37,7 @@ include:
 * :ref:`Examples <Examples>` (preferred)
 * :ref:`Error or warning messages and explanations <ErrorMessages>` (preferred)
 * :ref:`Citation reminder <Citation>` (optional)
-* :ref:`Testing <Testing>` (optional)
+* :ref:`Testing <UnitTesting>` (optional)
 
 
 .. _License:
@@ -156,7 +157,8 @@ it for people to get started, the more likely it is that users will try
 out your new feature.
 
 
-.. _ProgrammingStandards
+.. _ProgrammingStandards:
+
 Programming language standards (strict)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -187,9 +189,10 @@ required to use those older tools for access to advanced hardware
 features or not have the option to install newer compilers or libraries.
 
 
-.. _BuildSystem
+.. _BuildSystem:
+
 Build system (strict)
----------------------------------
+---------------------
 
 LAMMPS currently supports two build systems: one that is based on
 :doc:`traditional Makefiles <Build_make>` and one that is based on
@@ -214,9 +217,10 @@ cmake/Modules/Packages/.  Please check out how this is handled for
 existing packages and ask the LAMMPS developers if you need assistance.
 
 
-.. _Naming
+.. _Naming:
+
 Command or Style names, file names, and keywords (strict)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------------------
 
 All user-visible command or style names should be all lower case and
 should only use letters, numbers, or forward slashes.  They should be
@@ -227,18 +231,21 @@ established (e.g. lj for Lennard-Jones).  For a compute style
 `LMP_COMPUTE_SOME_NAME_H` and the class name `ComputeSomeName`.
 
 
-.. _ProgrammingStyle
+.. _ProgrammingStyle:
+
 Programming style requirements (varied)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------
 
-To maintain a consistency, there are various programming style
-requirements for contributions to LAMMPS. Some of these requirements
-are strict while some are only preferred. An indepth discussion of
-the style guidelines are provided in the :doc:`programming style
-doc page <Modify_style>`.
+To maintain consistency across contributions from many people, there are
+various programming style requirements for contributions to LAMMPS.
+Some of these requirements are strict and must be followed while some
+are only preferred and thus may be skipped.  An in-depth discussion of
+the style guidelines are provided in the :doc:`programming style doc
+page <Modify_style>`.
 
 
-.. _Examples
+.. _Examples:
+
 Examples (preferred)
 --------------------
 
@@ -246,7 +253,7 @@ In most cases, it is preferred that example scripts (simple, small, fast
 to complete on 1 CPU) are included that demonstrate the use of new or
 extended functionality. These are typically under the examples or
 examples/PACKAGES directory are are further described on the
-:doc:`examples page <Examples>`.  Guidlines for input scripts include:
+:doc:`examples page <Examples>`.  Guidelines for input scripts include:
 
 - commands that generate output should be commented out (except when the
   output is the sole purpose or the feature, e.g. for a new compute)
@@ -271,9 +278,10 @@ examples/PACKAGES directory are are further described on the
   file from other folders should be re-used through symbolic links
 
 
-.. _ErrorMessages
+.. _ErrorMessages:
+
 Error or warning messages and explanations (preferred)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------------------------
 
 .. versionchanged:: 4May2022
 
@@ -319,7 +327,8 @@ scheme will make it easier for LAMMPS users, developers, and
 maintainers.
 
 
-.. _Citation
+.. _Citation:
+
 Citation reminder (optional)
 -----------------------------
 
@@ -348,7 +357,8 @@ documentation page you provide describing your contribution.  If you are
 not sure what the best option would be, please contact the LAMMPS
 developers for advice.
 
-.. _Testing
+.. _UnitTesting:
+
 Testing (optional)
 ------------------
 

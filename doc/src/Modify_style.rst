@@ -1,5 +1,5 @@
 LAMMPS programming style
-===========================================================
+========================
 
 
 The LAMMPS developers aim to employ a consistent programming style and
@@ -15,7 +15,7 @@ may serve as representative examples.
 
 
 Include files (varied)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
 
 - system headers or from installed libraries are include with angular
   brackets (example: ``#include <vector>``), while local include file
@@ -141,8 +141,7 @@ Miscellaneous standards (varied)
   scripts for interpreted script languages.
 
 Whitespace (preferred)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS uses 2 characters per indentation level and lines should be
 kept within 100 characters wide.
@@ -165,7 +164,7 @@ issues.
 
 
 Placement of braces (strongly preferred)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 On new lines for methods, when to use, etc.
 

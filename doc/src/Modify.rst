@@ -1,18 +1,22 @@
 Modifying & extending LAMMPS
 ****************************
 
-LAMMPS is designed in a modular fashion and to be easy to modify or
-extend with new functionality.  In fact, about 95% of its source code
+LAMMPS is designed in a modular fashion and easy to be modified or
+extended with new functionality.  In fact, about 95% of its source code
 is optional.  The following pages give basic instructions on adding new
-features to LAMMPS.
+features to LAMMPS.  More in-depth explanations and documentation of
+individual functions and classes are given in :doc:`Developer`.
 
 If you add a new feature to LAMMPS and think it will be of general
 interest to other users, we encourage you to submit it for inclusion in
 LAMMPS. This process is explained in the following three pages:
 :doc:`how to prepare and submit your code <Modify_contribute>`,
 :doc:`requirements for submissions <Modify_requirements>`, and
-:doc:`style guidelines <Modify_style>`. A discussion of the various
-types of styles in LAMMPS is then provided.
+:doc:`style guidelines <Modify_style>`.
+
+A summary description of various types of styles in LAMMPS follows.
+A discussion of implementing specific styles from scratch is given
+in :doc:`Developer_write`.
 
 
 .. toctree::

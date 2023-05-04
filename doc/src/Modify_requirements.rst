@@ -1,7 +1,6 @@
 Requirements for contributions to LAMMPS
 ===========================================================
 
-
 The following is a summary of the current requirements and
 recommendations for including contributed source code or documentation
 into the LAMMPS software distribution.
@@ -41,6 +40,7 @@ include:
 
 
 .. _License:
+
 Licensing requirements (strict)
 -------------------------------
 
@@ -69,8 +69,8 @@ that use code with a conflicting license can be split into two parts:
 Please note, that this split licensed mode may complicate including the
 contribution in binary packages.
 
+.. _IntegrationTesting:
 
-.. _IntegrationTesting
 Integration testing (strict)
 ----------------------------
 
@@ -95,7 +95,8 @@ testing tools or scripts or tests themselves.  This is rare.  If in
 doubt, contact the LAMMPS developer that is assigned to the pull request.
 
 
-.. _Documentation
+.. _Documentation:
+
 Documentation (strict)
 ----------------------
 

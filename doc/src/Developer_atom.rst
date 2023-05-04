@@ -44,7 +44,7 @@ When referring to individual atoms, they may be indexed by their local
 containing first all *owned* atoms (index < `Atom::nlocal`) and then all
 *ghost* atoms.  The order of atoms in these arrays can change due to
 atoms migrating between between subdomains, atoms being added or
-deleted, or atoms being sorted for better cach efficiency.  Atoms are
+deleted, or atoms being sorted for better cache efficiency.  Atoms are
 globally uniquely identified by their *atom ID*. There may be multiple
 atoms with the same atom ID present, but only one of them may be an
 *owned* atom.
@@ -79,7 +79,7 @@ Atom class versus AtomVec classes
 
 The `Atom` class contains all kinds of flags and counters about atoms in
 the system and that includes pointers to **all** per-atom properties
-availabel for atoms.  However, only a subset of these pointers are
+available for atoms.  However, only a subset of these pointers are
 non-NULL and which those are depends on the atom style.  For each atom
 style there is a corresponding `AtomVecXXX` class derived from the
 `AtomVec` base class, where the XXX indicates the atom style.  This

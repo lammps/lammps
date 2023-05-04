@@ -102,15 +102,15 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   vflag_atom = cvflag_atom = 0;
   centroidstressflag = CENTROID_SAME;
 
-  // KOKKOS per-fix data masks
+  // KOKKOS package
 
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
-  kokkosable = 0;
-  forward_comm_device = exchange_comm_device = 0;
-  copymode = 0;
+  kokkosable = copymode = 0;
+  forward_comm_device = exchange_comm_device = sort_device = 0;
+  fuse_integrate_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

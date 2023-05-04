@@ -44,6 +44,8 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   FixLangevin(lmp, narg, arg),rand_pool(seed + comm->me)
 {
   kokkosable = 1;
+  fuse_integrate_flag = 1;
+  sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   int ntypes = atomKK->ntypes;
 
@@ -165,6 +167,14 @@ void FixLangevinKokkos<DeviceType>::initial_integrate_item(int i) const
     v(i,1) = d_lv(i,1);
     v(i,2) = d_lv(i,2);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::fused_integrate(int vflag)
+{
+  initial_integrate(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -887,6 +897,25 @@ void FixLangevinKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
   k_franprev.template modify<LMPHostType>();
   k_lv.template modify<LMPHostType>();
 
+}
+
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_franprev.sync_device();
+  k_lv.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_franprev.d_view);
+  Sorter.sort(LMPDeviceType(), k_lv.d_view);
+
+  k_franprev.modify_device();
+  k_lv.modify_device();
 }
 
 /* ---------------------------------------------------------------------- */

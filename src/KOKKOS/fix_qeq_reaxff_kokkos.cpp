@@ -58,7 +58,7 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
 {
   kokkosable = 1;
   comm_forward = comm_reverse = 2; // fused
-  forward_comm_device = exchange_comm_device = 1;
+  forward_comm_device = exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -1336,6 +1336,25 @@ void FixQEqReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 
   k_s_hist.template modify<LMPHostType>();
   k_t_hist.template modify<LMPHostType>();
+}
+
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_s_hist.sync_device();
+  k_t_hist.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_s_hist.d_view);
+  Sorter.sort(LMPDeviceType(), k_t_hist.d_view);
+
+  k_s_hist.modify_device();
+  k_t_hist.modify_device();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -473,6 +473,64 @@ struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
 };
 typedef struct s_FLOAT2 F_FLOAT2;
 
+template <class KeyViewType>
+struct BinOp3DLAMMPS {
+  int max_bins_[3] = {};
+  double mul_[3]   = {};
+  double min_[3]   = {};
+
+  BinOp3DLAMMPS() = default;
+
+  BinOp3DLAMMPS(int max_bins__[], typename KeyViewType::const_value_type min[],
+          typename KeyViewType::const_value_type max[]) {
+    max_bins_[0] = max_bins__[0];
+    max_bins_[1] = max_bins__[1];
+    max_bins_[2] = max_bins__[2];
+    mul_[0]      = static_cast<double>(max_bins__[0]) /
+              (static_cast<double>(max[0]) - static_cast<double>(min[0]));
+    mul_[1] = static_cast<double>(max_bins__[1]) /
+              (static_cast<double>(max[1]) - static_cast<double>(min[1]));
+    mul_[2] = static_cast<double>(max_bins__[2]) /
+              (static_cast<double>(max[2]) - static_cast<double>(min[2]));
+    min_[0] = static_cast<double>(min[0]);
+    min_[1] = static_cast<double>(min[1]);
+    min_[2] = static_cast<double>(min[2]);
+  }
+
+  template <class ViewType>
+  KOKKOS_INLINE_FUNCTION int bin(ViewType& keys, const int& i) const {
+    int ix = static_cast<int> ((keys(i, 0) - min_[0]) * mul_[0]);
+    int iy = static_cast<int> ((keys(i, 1) - min_[1]) * mul_[1]);
+    int iz = static_cast<int> ((keys(i, 2) - min_[2]) * mul_[2]);
+    ix = MAX(ix,0);
+    iy = MAX(iy,0);
+    iz = MAX(iz,0);
+    ix = MIN(ix,max_bins_[0]-1);
+    iy = MIN(iy,max_bins_[1]-1);
+    iz = MIN(iz,max_bins_[2]-1);
+    const int ibin = iz*max_bins_[1]*max_bins_[0] + iy*max_bins_[0] + ix;
+    return ibin;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  int max_bins() const { return max_bins_[0] * max_bins_[1] * max_bins_[2]; }
+
+  template <class ViewType, typename iType1, typename iType2>
+  KOKKOS_INLINE_FUNCTION bool operator()(ViewType& keys, iType1& i1,
+                                         iType2& i2) const {
+    if (keys(i1, 2) > keys(i2, 2))
+      return true;
+    else if (keys(i1, 2) == keys(i2, 2)) {
+      if (keys(i1, 1) > keys(i2, 1))
+        return true;
+      else if (keys(i1, 1) == keys(i2, 1)) {
+        if (keys(i1, 0) > keys(i2, 0)) return true;
+      }
+    }
+    return false;
+  }
+};
+
 #ifndef PREC_POS
 #define PREC_POS PRECISION
 #endif

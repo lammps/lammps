@@ -402,7 +402,7 @@ TEST_F(VariableTest, Functions)
                  command("print \"$(extract_setting()\""););
     TEST_FAILURE(".*ERROR on proc 0: Invalid immediate variable.*",
                  command("print \"$(extract_setting()\""););
-    TEST_FAILURE(".*ERROR: Invalid extract_setting.. function syntax in variable formula.*",
+    TEST_FAILURE(".*ERROR: Invalid extract_setting.. function in variable formula.*",
                  command("print \"$(extract_setting(one,two))\""););
     TEST_FAILURE(
         ".*ERROR: Unknown setting nprocs for extract_setting.. function in variable formula.*",
@@ -599,9 +599,9 @@ TEST_F(VariableTest, Label2TypeAtomic)
     ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,O1)"), 3.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("label2type(atom,H1)"), 4.0);
 
-    TEST_FAILURE(".*ERROR: Variable t1: Invalid atom type label C1 in variable formula.*",
+    TEST_FAILURE(".*ERROR: Variable t1: Invalid atom type label C1 in label2type.. in variable.*",
                  command("print \"${t1}\""););
-    TEST_FAILURE(".*ERROR: Invalid bond type label H1 in variable formula.*",
+    TEST_FAILURE(".*ERROR: Invalid bond type label H1 in label2type.. in variable.*",
                  variable->compute_equal("label2type(bond,H1)"););
 }
 

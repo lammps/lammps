@@ -4094,11 +4094,11 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     } else if (kind == "improper") {
       value = atom->lmap->find(typestr,Atom::IMPROPER);
     } else {
-      print_var_error(FLERR, fmt::format("Invalid kind {} in label2type in variable",kind), ivar);
+      print_var_error(FLERR, fmt::format("Invalid kind {} in label2type() in variable",kind),ivar);
     }
 
     if (value == -1)
-      print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type in variable",
+      print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
                                          kind, typestr), ivar);
 
     // save value in tree or on argstack

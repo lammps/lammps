@@ -243,11 +243,12 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species delete_rate_limit", error);
       delete_Nlimit_varid = -1;
       if (strncmp(arg[iarg+1],"v_",2) == 0) {
-        delete_Nlimit_varid = input->variable->find(&arg[iarg+1][2]);
+        delete_Nlimit_varname = &arg[iarg+1][2];
+        delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
         if (delete_Nlimit_varid < 0)
-          error->all(FLERR,"Fix reaxff/species: Variable name {} does not exist",&arg[iarg+1][2]);
+          error->all(FLERR,"Fix reaxff/species: Variable name {} does not exist",delete_Nlimit_varname);
         if (!input->variable->equalstyle(delete_Nlimit_varid))
-          error->all(FLERR,"Fix reaxff/species: Variable {} is not equal-style",&arg[iarg+1][2]);
+          error->all(FLERR,"Fix reaxff/species: Variable {} is not equal-style",delete_Nlimit_varname);
       } else delete_Nlimit = utils::numeric(FLERR, arg[iarg+1], false, lmp);
       delete_Nsteps = utils::numeric(FLERR, arg[iarg+2], false, lmp);
       iarg += 3;
@@ -386,6 +387,15 @@ void FixReaxFFSpecies::init()
     for (int i = 1; i < 32; ++i) fixcmd += fmt::format(" c_SPECATOM_{}[{}]", id, i);
     f_SPECBOND = dynamic_cast<FixAveAtom *>(modify->add_fix(fixcmd));
     setupflag = 1;
+  }
+
+  // check for valid variable name for delete Nlimit keyword
+  if (delete_Nsteps > 0) {
+    delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
+    if (delete_Nlimit_varid < 0)
+      error->all(FLERR,"Fix reaxff/species: Variable name {} does not exist",delete_Nlimit_varname);
+    if (!input->variable->equalstyle(delete_Nlimit_varid))
+      error->all(FLERR,"Fix reaxff/species: Variable {} is not equal-style",delete_Nlimit_varname);
   }
 }
 

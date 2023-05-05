@@ -61,6 +61,7 @@ class FixReaxFFSpecies : public Fix {
   int eleflag, posflag, multipos, padflag, setupflag;
   int delflag, specieslistflag, masslimitflag;
   int delete_Nlimit, delete_Nlimit_varid;
+  std::string delete_Nlimit_varname;
   int delete_Nsteps, *delete_Tcount;
   double massmin, massmax;
   int singlepos_opened, multipos_opened, del_opened;

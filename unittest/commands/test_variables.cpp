@@ -325,7 +325,7 @@ TEST_F(VariableTest, Expressions)
     command("variable err1   equal     v_one/v_ten7");
     command("variable err2   equal     v_one%v_ten7");
     command("variable err3   equal     v_ten7^-v_one");
-    command("variable vec1   vector    [-2,0,1,2,3,5,7]");
+    command("variable vec1   vector    \"[-2, 0, 1,2 ,3, 5 ,	7\n]\"");
     command("variable vec2   vector    v_vec1*0.5");
     command("variable vec3   equal     v_vec2[3]");
     variable->set("dummy  index     1 2");

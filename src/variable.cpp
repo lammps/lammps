@@ -4784,7 +4784,7 @@ void Variable::parse_vector(int ivar, char *str)
   memory->create(vecs[ivar].values,vecs[ivar].nmax,"variable:values");
 
   for (int i = 0; i < nvec; i++)
-    vecs[ivar].values[i] = utils::numeric(FLERR, args[i], false, lmp);
+    vecs[ivar].values[i] = utils::numeric(FLERR, utils::trim(args[i]), false, lmp);
 }
 
 /* ----------------------------------------------------------------------

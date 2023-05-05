@@ -499,9 +499,8 @@ void Variable::set(int narg, char **arg)
         vecs[ivar].dynamic = 0;
         parse_vector(ivar,data[ivar][0]);
         std::vector <double> vec(vecs[ivar].values,vecs[ivar].values + vecs[ivar].n);
-        std::string str = fmt::format("[{}]", fmt::join(vec,","));
-        data[ivar][1] = utils::strdup(str);
-      } 
+        data[ivar][1] = utils::strdup(fmt::format("[{}]", fmt::join(vec,",")));
+      }
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -518,9 +517,8 @@ void Variable::set(int narg, char **arg)
         vecs[nvar].dynamic = 0;
         parse_vector(nvar,data[nvar][0]);
         std::vector <double> vec(vecs[nvar].values,vecs[nvar].values + vecs[nvar].n);
-        std::string str = fmt::format("[{}]", fmt::join(vec,","));
-        data[nvar][1] = utils::strdup(str);
-      } 
+        data[nvar][1] = utils::strdup(fmt::format("[{}]", fmt::join(vec,",")));
+      }
     }
 
   // PYTHON
@@ -981,21 +979,21 @@ char *Variable::retrieve(const char *name)
       style[ivar] == UNIVERSE || style[ivar] == STRING ||
       style[ivar] == SCALARFILE) {
     str = data[ivar][which[ivar]];
-    
+
   } else if (style[ivar] == LOOP || style[ivar] == ULOOP) {
-    
+
     std::string result;
     if (pad[ivar] == 0) result = std::to_string(which[ivar]+1);
     else result = fmt::format("{:0>{}d}",which[ivar]+1, pad[ivar]);
     delete[] data[ivar][0];
     str = data[ivar][0] = utils::strdup(result);
-    
+
   } else if (style[ivar] == EQUAL) {
     double answer = evaluate(data[ivar][0],nullptr,ivar);
     delete[] data[ivar][1];
     data[ivar][1] = utils::strdup(fmt::format("{:.15g}",answer));
     str = data[ivar][1];
-    
+
   } else if (style[ivar] == FORMAT) {
     int jvar = find(data[ivar][0]);
     if (jvar < 0)
@@ -1006,13 +1004,13 @@ char *Variable::retrieve(const char *name)
     double answer = compute_equal(jvar);
     sprintf(data[ivar][2],data[ivar][1],answer);
     str = data[ivar][2];
-    
+
   } else if (style[ivar] == GETENV) {
     const char *result = getenv(data[ivar][0]);
     if (result == nullptr) result = (const char *) "";
     delete[] data[ivar][1];
     str = data[ivar][1] = utils::strdup(result);
-    
+
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
     if (ifunc < 0) {
@@ -1032,25 +1030,25 @@ char *Variable::retrieve(const char *name)
     }
     python->invoke_function(ifunc,data[ivar][1]);
     str = data[ivar][1];
-    
+
     // if Python func returns a string longer than VALUELENGTH
     // then the Python class stores the result, query it via long_string()
-    
+
     char *strlong = python->long_string(ifunc);
     if (strlong) str = strlong;
-    
+
   } else if (style[ivar] == TIMER || style[ivar] == INTERNAL) {
     delete[] data[ivar][0];
     data[ivar][0] = utils::strdup(fmt::format("{:.15g}",dvalue[ivar]));
     str = data[ivar][0];
-    
+
   } else if (style[ivar] == VECTOR) {
 
     // check if vector variable needs to be re-computed
     // if no, just return previously formatted string in data[ivar][1]
     // if yes, invoke compute_vector() and convert vector to formatted string
     //   must also turn off eval_in_progress b/c compute_vector() checks it
-    
+
     if (vecs[ivar].dynamic || vecs[ivar].currentstep != update->ntimestep) {
       eval_in_progress[ivar] = 0;
       double *result;
@@ -1060,9 +1058,9 @@ char *Variable::retrieve(const char *name)
       std::string str = fmt::format("[{}]", fmt::join(vectmp,","));
       data[ivar][1] = utils::strdup(str);
     }
-   
+
     str = data[ivar][1];
-    
+
   } else if (style[ivar] == ATOM || style[ivar] == ATOMFILE)
     return nullptr;
 
@@ -1214,7 +1212,7 @@ int Variable::compute_vector(int ivar, double **result)
   }
 
   // evaluate vector variable afresh
-  
+
   if (eval_in_progress[ivar])
     print_var_error(FLERR,"has a circular dependency",ivar);
 
@@ -4063,14 +4061,15 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   // word is not a match to any special function
 
-  if (strcmp(word,"sum") != 0 && strcmp(word,"min") && strcmp(word,"max") != 0 && strcmp(word,"ave") != 0 &&
-      strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 && strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 &&
-      strcmp(word,"grmask") != 0 && strcmp(word,"next") != 0 && strcmp(word,"is_file") != 0 &&
-      strcmp(word,"is_os") != 0 && strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0)
+  if (strcmp(word,"sum") != 0 && strcmp(word,"min") && strcmp(word,"max") != 0 &&
+      strcmp(word,"ave") != 0 && strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 &&
+      strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 && strcmp(word,"grmask") != 0 &&
+      strcmp(word,"next") != 0 && strcmp(word,"is_file") != 0 && strcmp(word,"is_os") != 0 &&
+      strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0)
     return 0;
 
   // process label2type() separately b/c its label arg can have commas in it
-  
+
   if (strcmp(word,"label2type") == 0) {
     if (!atom->labelmapflag)
       print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
@@ -4772,13 +4771,13 @@ void Variable::atom_vector(char *word, Tree **tree, Tree **treestack, int &ntree
 void Variable::parse_vector(int ivar, char *str)
 {
   // unlimited allows for any vector length
-  
+
   char **args;
   int nvec = parse_args_unlimited(str,args);
 
   if (args[nvec-1][strlen(args[nvec-1])-1] != ']')
     error->all(FLERR,"Vector variable formula lacks closing brace: {}",str);
-    
+
   vecs[ivar].n = nvec;
   vecs[ivar].nmax = nvec;
   vecs[ivar].currentstep = -1;
@@ -4849,7 +4848,7 @@ int Variable::parse_args_unlimited(char *str, char **&args)
 
   int maxarg = 0;
   args = nullptr;
-  
+
   while (ptr) {
     ptrnext = find_next_comma(ptr);
     if (ptrnext) *ptrnext = '\0';

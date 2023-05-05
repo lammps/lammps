@@ -31,7 +31,7 @@ The :doc:`fix bond/break <fix_bond_break>` and :doc:`fix bond/react
 <fix_bond_react>` commands allow breaking of bonds within a molecular
 topology with may also define angles, dihedrals, etc.  These commands
 update internal topology data structures to remove broken bonds, as
-well as the appropriate angle, dihederal, etc interactions which
+well as the appropriate angle, dihedral, etc interactions which
 include the bond.  They also trigger a rebuild of the neighbor list
 when this occurs, to turn on the appropriate pairwise forces.
 

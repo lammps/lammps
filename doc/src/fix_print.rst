@@ -44,6 +44,10 @@ one word.  If it contains variables it must be enclosed in double
 quotes to ensure they are not evaluated when the input script line is
 read, but will instead be evaluated each time the string is printed.
 
+.. versionadded:: TBD
+
+   support for vector style variables
+
 See the :doc:`variable <variable>` command for a description of
 *equal* and *vector* style variables which are typically the most
 useful ones to use with the print command.  Equal- and vector-style

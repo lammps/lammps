@@ -46,6 +46,10 @@ lines of output, the string can be enclosed in triple quotes, as in
 the last example above.  If the text string contains variables, they
 will be evaluated and their current values printed.
 
+.. versionadded:: TBD
+
+   support for vector style variables
+
 See the :doc:`variable <variable>` command for a description of
 *equal* and *vector* style variables which are typically the most
 useful ones to use with the print command.  Equal- and vector-style

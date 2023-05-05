@@ -44,7 +44,7 @@ Syntax
          pad = all values will be same length, e.g. 001, 002, ..., 100
        *universe* args = one or more strings
        *world* args = one string for each partition of processors
-       
+
        *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords, math operations, built-in functions, atom values and vectors, compute/fix/variable references
          numbers = 0.0, 100, -5.4, 2.8e-4, etc
          constants = PI, version, on, off, true, false, yes, no
@@ -1312,6 +1312,8 @@ Vectors" discussion above.
 
 Vector Initialization
 ---------------------
+
+.. versionadded:: TBD
 
 *Vector*-style variables only can be initialized with a special
 syntax, instead of using a formula.  The syntax is a bracketed,

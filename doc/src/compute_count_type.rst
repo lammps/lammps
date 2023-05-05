@@ -1,7 +1,7 @@
 .. index:: compute count/type
 
 compute count/type command
-====================
+==========================
 
 Syntax
 """"""

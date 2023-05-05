@@ -140,16 +140,18 @@ TEST_F(VariableTest, CreateDelete)
     command("variable ten1   universe  1 2 3 4");
     command("variable ten2   uloop     4");
     command("variable ten3   uloop     4 pad");
+    command("variable ten4   vector    [0,1,2,3,5,7,11]");
+    command("variable ten5   vector    [0.5,1.25]");
     command("variable dummy  index     0");
     command("variable file   equal     is_file(MYFILE)");
     command("variable iswin  equal     is_os(^Windows)");
     command("variable islin  equal     is_os(^Linux)");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 20);
+    ASSERT_EQ(variable->nvar, 22);
     BEGIN_HIDE_OUTPUT();
     command("variable dummy  delete");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 19);
+    ASSERT_EQ(variable->nvar, 21);
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     variable->set_string("three", "four");
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
@@ -160,6 +162,8 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("eight"), StrEq(""));
     variable->internal_set(variable->find("ten"), 2.5);
     ASSERT_THAT(variable->retrieve("ten"), StrEq("2.5"));
+    EXPECT_THAT(variable->retrieve("ten4"), StrEq("[0,1,2,3,5,7,11]"));
+    EXPECT_THAT(variable->retrieve("ten5"), StrEq("[0.5,1.25]"));
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
     FILE *fp = fopen("MYFILE", "w");
     fputs(" ", fp);
@@ -217,7 +221,7 @@ TEST_F(VariableTest, CreateDelete)
     TEST_FAILURE(".*ERROR: World variable count doesn't match # of partitions.*",
                  command("variable ten10 world xxx xxx"););
     TEST_FAILURE(".*ERROR: All universe/uloop variables must have same # of values.*",
-                 command("variable ten4   uloop     2"););
+                 command("variable ten6   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
                  command("variable ten11  format    two \"%08x\""););
     TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only letters, numbers, or undersc.*",
@@ -321,6 +325,9 @@ TEST_F(VariableTest, Expressions)
     command("variable err1   equal     v_one/v_ten7");
     command("variable err2   equal     v_one%v_ten7");
     command("variable err3   equal     v_ten7^-v_one");
+    command("variable vec1   vector    [-2,0,1,2,3,5,7]");
+    command("variable vec2   vector    v_vec1*0.5");
+    command("variable vec3   equal     v_vec2[3]");
     variable->set("dummy  index     1 2");
     END_HIDE_OUTPUT();
 
@@ -347,6 +354,9 @@ TEST_F(VariableTest, Expressions)
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten10"), 100);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten11"), 1);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten12"), 3);
+    EXPECT_THAT(variable->retrieve("vec1"), StrEq("[-2,0,1,2,3,5,7]"));
+    EXPECT_THAT(variable->retrieve("vec2"), StrEq("[-1,0,0.5,1,1.5,2.5,3.5]"));
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_vec3"), 0.5);
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););

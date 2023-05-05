@@ -256,7 +256,7 @@ commands before the variable would become exhausted.  For example,
 ----------
 
 The next sections describe in how all the various variable styles are
-defined and what they store.  The styles are listed alphabetcally,
+defined and what they store.  The styles are listed alphabetically,
 except for the *equal* and *vector* and *atom* styles, which are
 explained together after all the others.
 
@@ -1093,9 +1093,9 @@ the pair keyword and reducing the outer time step.
 
 The *is_defined(category,id)* function checks whether an instance of a
 style or variable with a specific ID or name is currently defined
-within LAMMPS.  The suppported categories are *compute*, *dump*,
+within LAMMPS.  The supported categories are *compute*, *dump*,
 *fix*, *group*, *region*, and *variable*.  Each of these styles (as
-well as the variable command) can be speficied multiple times within
+well as the variable command) can be specified multiple times within
 LAMMPS, each with a unique *id*.  This function checks whether the
 specified *id* exists.  For category *variable", the *id* is the
 variable name.

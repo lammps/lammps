@@ -18,8 +18,10 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -57,7 +59,6 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
     pcxx(nullptr), pcyy(nullptr), pczz(nullptr), tdens(nullptr), tpkxx(nullptr), tpkyy(nullptr),
     tpkzz(nullptr), tpcxx(nullptr), tpcyy(nullptr), tpczz(nullptr), list(nullptr)
 {
-
   if (lmp->citeme) lmp->citeme->add(cite_compute_stress_cartesian);
 
   // narg == 5 for one-dimensional and narg == 7 for two-dimensional
@@ -75,7 +76,7 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
   else if (strcmp(arg[3], "z") == 0)
     dir1 = 2;
   else
-    error->all(FLERR, "Illegal compute stress/cartesian command.");
+    error->all(FLERR, "Illegal compute stress/cartesian direction: {}", arg[3]);
 
   dir2 = 0;
   bin_width1 = utils::numeric(FLERR, arg[4], false, lmp);
@@ -83,17 +84,20 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
   nbins1 = (int) ((domain->boxhi[dir1] - domain->boxlo[dir1]) / bin_width1);
   nbins2 = 1;
 
+  // no triclinic boxes
+  if (domain->triclinic) error->all(FLERR, "Compute stress/cartesian requires an orthogonal box");
+
   // adjust bin width if not a perfect match
   double tmp_binwidth = (domain->boxhi[dir1] - domain->boxlo[dir1]) / nbins1;
   if ((fabs(tmp_binwidth - bin_width1) > SMALL) && (comm->me == 0))
-    utils::logmesg(lmp, "Adjusting second bin width for compute {} from {:.6f} to {:.6f}\n", style,
+    utils::logmesg(lmp, "Adjusting first bin width for compute {} from {:.6f} to {:.6f}\n", style,
                    bin_width1, tmp_binwidth);
   bin_width1 = tmp_binwidth;
 
   if (bin_width1 <= 0.0)
-    error->all(FLERR, "Illegal compute stress/cartesian command. Bin width must be > 0");
+    error->all(FLERR, "Illegal compute stress/cartesian command. First bin width must be > 0");
   else if (bin_width1 > domain->boxhi[dir1] - domain->boxlo[dir1])
-    error->all(FLERR, "Illegal compute stress/cartesian command. Bin width larger than box.");
+    error->all(FLERR, "Illegal compute stress/cartesian command. First bin width > box.");
 
   invV = bin_width1;
   if (dims == 2) {
@@ -104,7 +108,7 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
     else if (strcmp(arg[5], "z") == 0)
       dir2 = 2;
     else
-      error->all(FLERR, "Illegal compute stress/cartesian command.");
+      error->all(FLERR, "Illegal compute stress/cartesian direction {}", arg[5]);
 
     bin_width2 = utils::numeric(FLERR, arg[6], false, lmp);
     nbins2 = (int) ((domain->boxhi[dir2] - domain->boxlo[dir2]) / bin_width2);
@@ -119,10 +123,31 @@ ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg
     invV *= bin_width2;
 
     if (bin_width2 <= 0.0)
-      error->all(FLERR, "Illegal compute stress/cartesian command. Bin width must be > 0");
+      error->all(FLERR, "Illegal compute stress/cartesian command. Second bin width must be > 0");
     else if (bin_width2 > domain->boxhi[dir2] - domain->boxlo[dir2])
-      error->all(FLERR, "Illegal compute stress/cartesian command. Bin width larger than box");
+      error->all(FLERR, "Illegal compute stress/cartesian command. Second bin width > box");
   }
+
+  // check for overflow
+  if (((bigint) nbins1 * nbins2) > MAXSMALLINT)
+    error->all(FLERR, "Too many bins in compute stress/cartesian");
+
+  // check for variable box dimension
+  int box_incompatible = 0;
+  for (auto ifix : modify->get_fix_list()) {
+    if (((dir1 == 0) && (ifix->box_change & Fix::BOX_CHANGE_X)) ||
+        ((dir1 == 1) && (ifix->box_change & Fix::BOX_CHANGE_Y)) ||
+        ((dir1 == 2) && (ifix->box_change & Fix::BOX_CHANGE_Z)))
+      box_incompatible = 1;
+    if (dims == 2) {
+      if (((dir2 == 0) && (ifix->box_change & Fix::BOX_CHANGE_X)) ||
+          ((dir2 == 1) && (ifix->box_change & Fix::BOX_CHANGE_Y)) ||
+          ((dir2 == 2) && (ifix->box_change & Fix::BOX_CHANGE_Z)))
+        box_incompatible = 1;
+    }
+  }
+  if (box_incompatible)
+    error->all(FLERR, "Must not use compute stress/cartesian on variable box dimension");
 
   for (int i = 0; i < 3; i++)
     if ((dims == 1 && i != dir1) || (dims == 2 && (i != dir1 && i != dir2)))
@@ -221,6 +246,7 @@ void ComputeStressCartesian::compute_array()
   double *special_coul = force->special_coul;
   double *special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
+  double *boxlo = domain->boxlo;
 
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
@@ -243,9 +269,30 @@ void ComputeStressCartesian::compute_array()
 
   // calculate number density and kinetic contribution to pressure
   for (i = 0; i < nlocal; i++) {
-    bin1 = (int) (x[i][dir1] / bin_width1) % nbins1;
+    bin1 = (int) ((x[i][dir1] - boxlo[dir1]) / bin_width1) % nbins1;
     bin2 = 0;
-    if (dims == 2) bin2 = (int) (x[i][dir2] / bin_width2) % nbins2;
+    if (dims == 2) bin2 = (int) ((x[i][dir2] - boxlo[dir2]) / bin_width2) % nbins2;
+
+    // Apply periodic boundary conditions and avoid out of range access
+    if (domain->periodicity[dir1] == 1) {
+      if (bin1 < 0)
+        bin1 = (bin1 + nbins1) % nbins1;
+      else if (bin1 >= nbins1)
+        bin1 = (bin1 - nbins1) % nbins1;
+    } else if (bin1 < 0)
+      bin1 = 0;
+    else if (bin1 >= nbins1)
+      bin1 = nbins1 - 1;
+
+    if (domain->periodicity[dir2] == 1) {
+      if (bin2 < 0)
+        bin2 = (bin2 + nbins2) % nbins2;
+      else if (bin2 >= nbins2)
+        bin2 = (bin2 - nbins2) % nbins2;
+    } else if (bin2 < 0)
+      bin2 = 0;
+    else if (bin2 >= nbins2)
+      bin2 = nbins2 - 1;
 
     j = bin1 + bin2 * nbins1;
     tdens[j] += 1;
@@ -274,8 +321,8 @@ void ComputeStressCartesian::compute_array()
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    xi1 = x[i][dir1];
-    xi2 = x[i][dir2];
+    xi1 = x[i][dir1] - boxlo[dir1];
+    xi2 = x[i][dir2] - boxlo[dir2];
     itag = tag[i];
     itype = type[i];
     jlist = firstneigh[i];

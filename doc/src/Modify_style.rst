@@ -17,27 +17,16 @@ may serve as representative examples.
 Include files (varied)
 ^^^^^^^^^^^^^^^^^^^^^^
 
-- system headers or from installed libraries are include with angular
-  brackets (example: ``#include <vector>``), while local include file
-  use double quotes (example: ``#include "atom.h"``)
-
-- when including system header files from the C library use the
-    C++-style names (``<cstdlib>`` or ``<cstring>``) instead of the
-    C-style names (``<stdlib.h>`` or ``<string.h>``)
-
-- the order of ``#include`` statements in a file ``some_name.cpp`` that
-  implements a class ``SomeName`` defined in a header file
-  ``some_name.h`` should be as follows:
-
-  - ``#include "some_name.h"`` followed by an empty line
-
-  - LAMMPS include files e.g. ``#include "comm.h"`` or ``#include
-    "modify.h"`` in alphabetical order followed by an empty line
-
-  - system header files from the C++ or C standard library followed by
-    an empty line
-
-  - ``using namespace LAMMPS_NS`` or other namespace imports.
+- Header files that define a new LAMMPS style (i.e. that have a
+  ``SomeStyle(some/name,SomeName);`` macro in them) should only use the
+  include file for the base class and otherwise use forward declarations
+  and pointers; when interfacing to a library use the PIMPL (pointer
+  to implementation) approach where you have a pointer to a struct
+  that contains all library specific data (and thus requires the library
+  header) but use a forward declaration and define the struct only in
+  the implementation file. This is a **strict** requirement since this
+  is where type clashes between packages and hard to find bugs have
+  regularly manifested in the past.
 
 - Header files, especially those defining a "style", should only use
   the absolute minimum number of include files and **must not** contain
@@ -54,16 +43,60 @@ Include files (varied)
   This also means any such file can assume that `FILE`, `NULL`, and
   `INT_MAX` are defined.
 
-- Header files that define a new LAMMPS style (i.e. that have a
-  ``SomeStyle(some/name,SomeName);`` macro in them) should only use the
-  include file for the base class and otherwise use forward declarations
-  and pointers; when interfacing to a library use the PIMPL (pointer
-  to implementation) approach where you have a pointer to a struct
-  that contains all library specific data (and thus requires the library
-  header) but use a forward declaration and define the struct only in
-  the implementation file. This is a **strict** requirement since this
-  is where type clashes between packages and hard to find bugs have
-  regularly manifested in the past.
+- System headers or from installed libraries are include with angular
+  brackets (example: ``#include <vector>``), while local include file
+  use double quotes (example: ``#include "atom.h"``)
+
+- When including system header files from the C library use the
+    C++-style names (``<cstdlib>`` or ``<cstring>``) instead of the
+    C-style names (``<stdlib.h>`` or ``<string.h>``)
+
+- The order of ``#include`` statements in a file ``some_name.cpp`` that
+  implements a class ``SomeName`` defined in a header file
+  ``some_name.h`` should be as follows:
+
+  - ``#include "some_name.h"`` followed by an empty line
+
+  - LAMMPS include files e.g. ``#include "comm.h"`` or ``#include
+    "modify.h"`` in alphabetical order followed by an empty line
+
+  - System header files from the C++ or C standard library followed by
+    an empty line
+
+  - ``using namespace LAMMPS_NS`` or other namespace imports.
+
+
+Whitespace (preferred)
+^^^^^^^^^^^^^^^^^^^^^^
+
+Source files should not contain TAB characters unless required by the
+syntax (e.g. in makefiles) and no trailing whitespace.  Text files
+should be added with Unix-style line endings (LF-only). Git will
+automatically convert those in both directions when running on Windows;
+use dos2unix on Linux machines to convert files.  Text files should have
+a line ending on the last line.
+
+You can check for these issues with the python scripts in the
+:ref:`"tools/coding_standard" <coding_standard>` folder.  When run
+normally with a source file or a source folder as argument, they will
+list all non-conforming lines.  By adding the `-f` flag to the command
+line, they will modify the flagged files to try removing the detected
+issues.
+
+
+Placement of braces (strongly preferred)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For new files added to the "src" tree, a `clang-format
+<https://clang.llvm.org/docs/ClangFormat.html>`_ configuration file is
+provided under the name `.clang-format`.  This file is compatible with
+clang-format version 8 and later. With that file present, files can be
+reformatted according to the configuration with a command like:
+`clang-format -i new-file.cpp`.  Ideally, this is done while writing the
+code or before a pull request is submitted.  Blocks of code where the
+reformatting from clang-format yields undesirable output may be
+protected with placing a pair `// clang-format off` and `// clang-format
+on` comments around that block.
 
 
 Miscellaneous standards (varied)
@@ -139,44 +172,3 @@ Miscellaneous standards (varied)
   and readable by all and no executable permissions.  Executable
   permissions (0755) should only be on shell scripts or python or similar
   scripts for interpreted script languages.
-
-Whitespace (preferred)
-^^^^^^^^^^^^^^^^^^^^^^
-
-LAMMPS uses 2 characters per indentation level and lines should be
-kept within 100 characters wide.
-
-Spacing before brackets, after commas, etc.
-
-Source files should not contain TAB characters unless required by the
-syntax (e.g. in makefiles) and no trailing whitespace.  Text files
-should be added with Unix-style line endings (LF-only). Git will
-automatically convert those in both directions when running on Windows;
-use dos2unix on Linux machines to convert files.  Text files should have
-a line ending on the last line.
-
-You can check for these issues with the python scripts in the
-:ref:`"tools/coding_standard" <coding_standard>` folder.  When run
-normally with a source file or a source folder as argument, they will
-list all non-conforming lines.  By adding the `-f` flag to the command
-line, they will modify the flagged files to try removing the detected
-issues.
-
-
-Placement of braces (strongly preferred)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-On new lines for methods, when to use, etc.
-
-For new files added to the "src" tree, a `clang-format
-<https://clang.llvm.org/docs/ClangFormat.html>`_ configuration file is
-provided under the name `.clang-format`.  This file is compatible with
-clang-format version 8 and later. With that file present, files can be
-reformatted according to the configuration with a command like:
-`clang-format -i new-file.cpp`.  Ideally, this is done while writing the
-code or before a pull request is submitted.  Blocks of code where the
-reformatting from clang-format yields undesirable output may be
-protected with placing a pair `// clang-format off` and `// clang-format
-on` comments around that block.
-
-

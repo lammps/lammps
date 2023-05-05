@@ -27,20 +27,20 @@ negotiable or optional.  Please feel free to contact the LAMMPS core
 developers in case you need additional explanations or clarifications or
 in case you need assistance in realizing the (strict) requirements for
 your contributions. Requirements include:
-* :ref:`Licensing requirements <License>` (strict)
-* :ref:`Integration testing <IntegrationTesting>` (strict)
-* :ref:`Documentation <Documentation>` (strict)
-* :ref:`Programming language standards <ProgrammingStandards>` (strict)
-* :ref:`Build system <BuildSystem>` (strict)
-* :ref:`Command or style names <Naming>` (strict)
-* :ref:`Programming style requirements <ProgrammingStyle>` (varied)
-* :ref:`Examples <Examples>` (preferred)
-* :ref:`Error or warning messages and explanations <ErrorMessages>` (preferred)
-* :ref:`Citation reminder <Citation>` (optional)
-* :ref:`Testing <UnitTesting>` (optional)
+* :ref:`Licensing requirements <ReqLicense>` (strict)
+* :ref:`Integration testing <ReqIntegrationTesting>` (strict)
+* :ref:`Documentation <ReqDocumentation>` (strict)
+* :ref:`Programming language standards <ReqProgrammingStandards>` (strict)
+* :ref:`Build system <ReqBuildSystem>` (strict)
+* :ref:`Command or style names <ReqNaming>` (strict)
+* :ref:`Programming style requirements <ReqProgrammingStyle>` (varied)
+* :ref:`Examples <ReqExamples>` (preferred)
+* :ref:`Error or warning messages and explanations <ReqErrorMessages>` (preferred)
+* :ref:`Citation reminder <ReqCitation>` (optional)
+* :ref:`Testing <ReqUnitTesting>` (optional)
 
 
-.. _License:
+.. _ReqLicense:
 
 Licensing requirements (strict)
 -------------------------------
@@ -70,7 +70,7 @@ that use code with a conflicting license can be split into two parts:
 Please note, that this split licensed mode may complicate including the
 contribution in binary packages.
 
-.. _IntegrationTesting:
+.. _ReqIntegrationTesting:
 
 Integration testing (strict)
 ----------------------------
@@ -96,7 +96,7 @@ testing tools or scripts or tests themselves.  This is rare.  If in
 doubt, contact the LAMMPS developer that is assigned to the pull request.
 
 
-.. _Documentation:
+.. _ReqDocumentation:
 
 Documentation (strict)
 ----------------------
@@ -157,7 +157,7 @@ it for people to get started, the more likely it is that users will try
 out your new feature.
 
 
-.. _ProgrammingStandards:
+.. _ReqProgrammingStandards:
 
 Programming language standards (strict)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -189,7 +189,7 @@ required to use those older tools for access to advanced hardware
 features or not have the option to install newer compilers or libraries.
 
 
-.. _BuildSystem:
+.. _ReqBuildSystem:
 
 Build system (strict)
 ---------------------
@@ -217,7 +217,7 @@ cmake/Modules/Packages/.  Please check out how this is handled for
 existing packages and ask the LAMMPS developers if you need assistance.
 
 
-.. _Naming:
+.. _ReqNaming:
 
 Command or Style names, file names, and keywords (strict)
 ---------------------------------------------------------
@@ -231,7 +231,7 @@ established (e.g. lj for Lennard-Jones).  For a compute style
 `LMP_COMPUTE_SOME_NAME_H` and the class name `ComputeSomeName`.
 
 
-.. _ProgrammingStyle:
+.. _ReqProgrammingStyle:
 
 Programming style requirements (varied)
 ---------------------------------------
@@ -244,7 +244,7 @@ the style guidelines are provided in the :doc:`programming style doc
 page <Modify_style>`.
 
 
-.. _Examples:
+.. _ReqExamples:
 
 Examples (preferred)
 --------------------
@@ -278,7 +278,7 @@ examples/PACKAGES directory are are further described on the
   file from other folders should be re-used through symbolic links
 
 
-.. _ErrorMessages:
+.. _ReqErrorMessages:
 
 Error or warning messages and explanations (preferred)
 ------------------------------------------------------
@@ -327,7 +327,7 @@ scheme will make it easier for LAMMPS users, developers, and
 maintainers.
 
 
-.. _Citation:
+.. _ReqCitation:
 
 Citation reminder (optional)
 -----------------------------
@@ -357,7 +357,7 @@ documentation page you provide describing your contribution.  If you are
 not sure what the best option would be, please contact the LAMMPS
 developers for advice.
 
-.. _UnitTesting:
+.. _ReqUnitTesting:
 
 Testing (optional)
 ------------------

@@ -4313,7 +4313,7 @@ double FixBondReact::compute_vector(int n)
 
 std::string FixBondReact::get_thermo_colname(int n)
 {
-  return rxn_name[n-1];
+  return rxn_name[n];
 }
 
 /* ---------------------------------------------------------------------- */

@@ -46,13 +46,13 @@ class FixBondReact : public Fix {
   void init_list(int, class NeighList *) override;
   void post_integrate() override;
   void post_integrate_respa(int, int) override;
-  std::string get_thermo_colname(int) override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double compute_vector(int) override;
+  std::string get_thermo_colname(int) override;
   double memory_usage() override;
 
  private:

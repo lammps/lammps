@@ -4770,43 +4770,21 @@ void Variable::atom_vector(char *word, Tree **tree, Tree **treestack, int &ntree
 
 void Variable::parse_vector(int ivar, char *str)
 {
-  // unlimited allows for any vector length
+  // check for square brackets, remove them, and split into vector
+  int nstr = strlen(str)-1;
+  if ((str[0] != '[') || (str[nstr] != ']'))
+    error->all(FLERR,"Vector variable formula lacks opening or closing brace: {}", str);
+  std::vector<std::string> args = Tokenizer(std::string(str+1, str+nstr), ",").as_vector();
 
-  char **args;
-  int nvec = parse_args_unlimited(str,args);
-
-  if (args[nvec-1][strlen(args[nvec-1])-1] != ']')
-    error->all(FLERR,"Vector variable formula lacks closing brace: {}",str);
-
+  int nvec = args.size();
   vecs[ivar].n = nvec;
   vecs[ivar].nmax = nvec;
   vecs[ivar].currentstep = -1;
   memory->destroy(vecs[ivar].values);
   memory->create(vecs[ivar].values,vecs[ivar].nmax,"variable:values");
 
-  char *onearg,*copy;
-  for (int i = 0; i < nvec; i++) {
-    onearg = utils::strdup(args[i]);
-    if (onearg[0] == '[') {
-      copy = utils::strdup(utils::trim(&onearg[1]));
-      delete[] onearg;
-      onearg = copy;
-    }
-    if (onearg[strlen(onearg)-1] == ']') {
-      onearg[strlen(onearg)-1] = '\0';
-      copy = utils::strdup(utils::trim(onearg));
-      delete[] onearg;
-      onearg = copy;
-    }
-
-    vecs[ivar].values[i] = utils::numeric(FLERR, onearg, false, lmp);
-    delete[] onearg;
-  }
-
-  // delete stored args
-
-  for (int i = 0; i < nvec; i++) delete[] args[i];
-  memory->sfree(args);
+  for (int i = 0; i < nvec; i++)
+    vecs[ivar].values[i] = utils::numeric(FLERR, args[i], false, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -4831,37 +4809,6 @@ int Variable::parse_args(char *str, char **args)
   }
 
   if (ptr) error->all(FLERR,"Too many args in variable function");
-  return narg;
-}
-
-/* ----------------------------------------------------------------------
-   parse string for comma-separated args
-   store copy of each arg in args array
-   grow args array as large as needed
-------------------------------------------------------------------------- */
-
-int Variable::parse_args_unlimited(char *str, char **&args)
-{
-  char *ptrnext;
-  int   narg = 0;
-  char *ptr = str;
-
-  int maxarg = 0;
-  args = nullptr;
-
-  while (ptr) {
-    ptrnext = find_next_comma(ptr);
-    if (ptrnext) *ptrnext = '\0';
-    if (narg == maxarg) {
-      maxarg += CHUNK;
-      args = (char **) memory->srealloc(args,maxarg*sizeof(char *),"variable:args");
-    }
-    args[narg] = utils::strdup(utils::trim(ptr));
-    narg++;
-    ptr = ptrnext;
-    if (ptr) ptr++;
-  }
-
   return narg;
 }
 

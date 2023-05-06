@@ -194,7 +194,7 @@ void AtomKokkos::map_set()
   d_map_hash.clear();
 
   auto d_error_flag = k_error_flag.d_view;
-  Kokkos::deep_copy(d_error_flag,0);  
+  Kokkos::deep_copy(d_error_flag,0);
 
   // for each tag find:
   //  neighboring atoms with closest local id for sametag
@@ -253,7 +253,7 @@ void AtomKokkos::map_set()
         if (insert_result.failed()) d_error_flag() = 1;
       }
     }
-  
+
   });
 
   auto h_error_flag = Kokkos::create_mirror_view_and_copy(LMPHostType(),d_error_flag);
@@ -262,7 +262,7 @@ void AtomKokkos::map_set()
 
   k_sametag.modify_device();
 
-  if (map_style == MAP_ARRAY) 
+  if (map_style == MAP_ARRAY)
     k_map_array.modify_device();
   else
     k_map_hash.modify_device();

@@ -138,6 +138,9 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   kim_init_ok = false;
   kim_particle_codes_ok = false;
 
+  // scale parameter
+  scale = nullptr;
+
   if (lmp->citeme) lmp->citeme->add(cite_openkim);
 }
 
@@ -177,6 +180,7 @@ PairKIM::~PairKIM()
     memory->destroy(cutsq);
     delete[] lmps_map_species_to_unique;
     lmps_map_species_to_unique = nullptr;
+    memory->destroy(scale);
   }
 
   // clean up neighborlist pointers
@@ -271,6 +275,49 @@ void PairKIM::compute(int eflag, int vflag)
       vatom[i][5] = -tmp;
     }
   }
+
+  // sloppy hack for scale
+  for (int i = 1; i < atom->ntypes+1; i++)
+  {
+    for (int j = 1; j < atom->ntypes+1; j++)
+    {
+      // comparing equality between floats, bad bad
+      if (scale[i][j] != scale[1][1])
+      {
+        error->all(FLERR,"Different scaling factors between different species pairs not supported");
+      }
+    }
+  }
+  double scale_all = scale[1][1];
+  if (eflag_global != 0)
+  {
+    eng_vdwl *= scale_all;
+  }
+  if (vflag_global != 0)
+  {
+    for (int i = 0; i < 6; i++)
+    {
+      virial[i] *= scale_all;
+    }
+  }
+  for (int i = 0; i < nall; i++)
+  {        
+    if (eflag_atom != 0)
+    {
+      eatom[i] *= scale_all;
+    }
+    if (vflag_atom != 0)
+    {
+      for (int j = 0; j < 6; j++)
+      {
+        vatom[i][j] *= scale_all;
+      }
+    }
+    for (int j = 0; j < 3; j++)
+    {
+      atom->f[i][j] *= scale_all;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -288,6 +335,8 @@ void PairKIM::allocate()
       setflag[i][j] = 0;
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
+
+  memory->create(scale,n+1,n+1,"pair:scale");
 
   // allocate mapping array
   lmps_map_species_to_unique = new int[n+1];
@@ -392,6 +441,7 @@ void PairKIM::coeff(int narg, char **arg)
         setflag[i][j] = 1;
         count++;
       }
+      scale[i][j] = 1.0;
     }
   }
 
@@ -610,6 +660,9 @@ double PairKIM::init_one(int i, int j)
   // "run ...", "minimize ...", etc. read from input
 
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  //no need to initialize scale[i][j] = 1 if setflag==0, because that
+  //raises an error anyway
+  scale[j][i] = scale[i][j]; 
 
   return kim_global_influence_distance;
 }
@@ -1135,3 +1188,11 @@ void PairKIM::set_kim_model_has_flags()
 KIM_Model *PairKIM::get_kim_model() { return pkim; }
 
 std::string PairKIM::get_atom_type_list() { return atom_type_list; }
+
+void *PairKIM::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"scale") == 0) return (void *) scale;
+
+  return nullptr;
+}

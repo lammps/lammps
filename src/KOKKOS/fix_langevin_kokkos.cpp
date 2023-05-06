@@ -684,8 +684,6 @@ void FixLangevinKokkos<DeviceType>::zero_force_item(int i) const
 template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::compute_target()
 {
-  atomKK->sync(Host, MASK_MASK);
-  mask = atomKK->k_mask.template view<DeviceType>();
   int nlocal = atomKK->nlocal;
 
   double delta = update->ntimestep - update->beginstep;
@@ -710,12 +708,14 @@ void FixLangevinKokkos<DeviceType>::compute_target()
         memoryKK->destroy_kokkos(k_tforce,tforce);
         memoryKK->create_kokkos(k_tforce,tforce,maxatom2,"langevin:tforce");
         d_tforce = k_tforce.template view<DeviceType>();
-        h_tforce = k_tforce.template view<LMPHostType>();
+        h_tforce = k_tforce.h_view;
       }
       input->variable->compute_atom(tvar,igroup,tforce,1,0); // tforce is modified on host
-      k_tforce.template modify<LMPHostType>();
+      k_tforce.modify_host();
+      atomKK->sync(Host, MASK_MASK);
+      auto h_mask = atomKK->k_mask.h_view;
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit)
+        if (h_mask[i] & groupbit)
           if (h_tforce[i] < 0.0)
             error->one(FLERR,
                        "Fix langevin variable returned negative temperature");

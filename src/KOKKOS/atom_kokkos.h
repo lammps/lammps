@@ -73,18 +73,32 @@ class AtomKokkos : public Atom {
   ~AtomKokkos() override;
 
   void map_init(int check = 1) override;
+  void map_clear() override;
   void map_set() override;
+  void map_one(tagint, int) override;
   void map_delete() override;
+  int map_find_hash(tagint) override;
 
+  DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_1d k_sametag;
   DAT::tdual_int_1d k_map_array;
-  DAT::tdual_int_scalar k_error_flag;
   dual_hash_type k_map_hash;
 
   class AtomVecKokkos* avecKK;
 
   // map lookup function inlined for efficiency
   // return -1 if no map defined
+
+  inline int map(tagint global) override
+  {
+    if (map_style == 1) {
+      k_map_array.sync_host();
+      return map_array[global];
+    } else if (map_style == 2)
+      return map_find_hash(global);
+    else
+      return -1;
+  };
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION

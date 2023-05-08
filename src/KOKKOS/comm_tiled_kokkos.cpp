@@ -226,13 +226,3 @@ void CommTiledKokkos::forward_comm_array(int nsize, double **array)
 {
   CommTiled::forward_comm_array(nsize,array);
 }
-
-/* ----------------------------------------------------------------------
-   exchange info provided with all 6 stencil neighbors
-   NOTE: this method is currently not used
-------------------------------------------------------------------------- */
-
-int CommTiledKokkos::exchange_variable(int n, double *inbuf, double *&outbuf)
-{
-  return CommTiled::exchange_variable(n,inbuf,outbuf);
-}

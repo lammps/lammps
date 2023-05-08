@@ -8,7 +8,7 @@ into the LAMMPS software distribution.
 Motivation
 ----------
 
-The LAMMPS developers are committed to providing a software package that
+The LAMMPS developers are committed to provide a software package that
 is versatile, reliable, high-quality, efficient, portable, and easy to
 maintain and modify.  Achieving all of these goals is challenging since
 a large part of LAMMPS consists of contributed code from many different
@@ -20,13 +20,14 @@ grow and more features and functionality are added, it becomes a
 necessity to be more discriminating with new contributions while also
 working at the same time to improve the existing code.
 
-The following requirements and recommendations are provided to help
-maintaining or improving that status.  It is indicated which
+The following requirements and recommendations are provided as a guide
+to maintain or improve that status.  It is indicated which individual
 requirements are strict, and which represent a preference and thus are
 negotiable or optional.  Please feel free to contact the LAMMPS core
-developers in case you need additional explanations or clarifications or
-in case you need assistance in realizing the (strict) requirements for
-your contributions. Requirements include:
+developers in case you need additional explanations or clarifications,
+or in case you need assistance in realizing the (strict) requirements
+for your contributions.  Requirements include:
+
 * :ref:`Licensing requirements <ReqLicense>` (strict)
 * :ref:`Integration testing <ReqIntegrationTesting>` (strict)
 * :ref:`Documentation <ReqDocumentation>` (strict)
@@ -39,20 +40,20 @@ your contributions. Requirements include:
 * :ref:`Citation reminder <ReqCitation>` (optional)
 * :ref:`Testing <ReqUnitTesting>` (optional)
 
-
 .. _ReqLicense:
 
 Licensing requirements (strict)
 -------------------------------
 
 Contributing authors agree when submitting a pull request that their
-contributions can be distributed under the LAMMPS license
-conditions. This is the GNU public license in version 2 (not 3 or later)
-for the publicly distributed versions, e.g. on the LAMMPS homepage or on
-GitHub.  On request we also make a version of LAMMPS available under
-LGPL 2.1 terms; this will usually be the latest available or a previous
-stable version with a few LGPL 2.1 incompatible files removed. More details
-are found on the :doc:`LAMMPS open-source license page <Intro_opensource>`.
+contributions can be distributed under the LAMMPS license conditions.
+This is the GNU public license in version 2 (not 3 or later) for the
+publicly distributed versions, e.g. on the LAMMPS homepage or on GitHub.
+We also make a version of LAMMPS under LGPL 2.1 terms available on
+request; this will usually be the latest available or a previous stable
+version with a few LGPL 2.1 incompatible files removed.  More details
+are found on the :doc:`LAMMPS open-source license page
+<Intro_opensource>`.
 
 Your new source files should have the LAMMPS copyright, GPL notice, and
 your name and email address at the top, like other user-contributed
@@ -89,7 +90,7 @@ The translation of the documentation to HTML and PDF is also tested.
 This means that contributed source code **must** compile with the most
 current version of LAMMPS with ``-DLAMMPS_BIGBIG`` in addition to the
 default setting of ``-DLAMMPS_SMALLBIG``.  The code needs to work
-correctly in both cases and also in serial and parallel using MPI.
+correctly in both cases, and also in serial and parallel using MPI.
 
 Some "disruptive" changes may break tests and require updates to the
 testing tools or scripts or tests themselves.  This is rare.  If in
@@ -105,7 +106,7 @@ Contributions that add new styles or commands or augment existing ones
 must include the corresponding new or modified documentation in
 `ReStructuredText format <rst_>`_ (.rst files in the ``doc/src/``
 folder). The documentation shall be written in American English and the
-.rst file must use only ASCII characters so it can be cleanly translated
+.rst file must use only ASCII characters, so it can be cleanly translated
 to PDF files (via `sphinx <https://www.sphinx-doc.org>`_ and PDFLaTeX).
 Special characters may be included via embedded math expression typeset
 in a LaTeX subset.
@@ -120,11 +121,11 @@ packages must be updated as well as a package specific description added
 and, if necessary, some package specific build instructions included.
 
 As appropriate, the text files with the documentation can include inline
-mathematical expression or figures (see ``doc/JPG`` for examples).
-Additional PDF files with further details (see ``doc/PDF`` for examples) may
-also be included.  The page should also include literature citations as
-appropriate; see the bottom of ``doc/fix_nh.rst`` for examples and the
-earlier part of the same file for how to format the cite itself.
+mathematical expressions or figures (see ``doc/JPG`` for examples).
+Additional PDF files with further details (see ``doc/PDF`` for examples)
+may also be included.  The page should also include literature citations
+as appropriate; see the bottom of ``doc/fix_nh.rst`` for examples and
+the earlier part of the same file for how to format the cite itself.
 Citation labels must be unique across **all** .rst files.  The
 "Restrictions" section of the page should indicate if your command is
 only available if LAMMPS is built with the appropriate FOO package.  See
@@ -135,9 +136,10 @@ inspect and proofread the resulting HTML format doc page before
 submitting your code.  Upon submission of a pull request, checks for
 error free completion of the HTML and PDF build will be performed and
 also a spell check, a check for correct anchors and labels, and a check
-for completeness of references all styles in their corresponding tables
-and lists is run.  In case the spell check reports false positives they
-can be added to the file ``doc/utils/sphinx-config/false_positives.txt``
+for completeness of references to all styles in their corresponding
+tables and lists is run.  In case the spell check reports false
+positives, they can be added to the file
+``doc/utils/sphinx-config/false_positives.txt``
 
 Contributions that add or modify the library interface or "public" APIs
 from the C++ code or the Fortran module must include suitable doxygen
@@ -169,7 +171,7 @@ keep the code readable to programmers that have limited C++ programming
 experience.  C++ constructs are acceptable when they help improve the
 readability and reliability of the code, e.g. when using the
 `std::string` class instead of manipulating pointers and calling the
-string functions of the C library.  In addition a collection of
+string functions of the C library.  In addition, a collection of
 convenient :doc:`utility functions and classes <Developer_utils>` for
 recurring tasks and a collection of
 :doc:`platform neutral functions <Developer_platform>` for improved
@@ -196,8 +198,8 @@ Build system (strict)
 
 LAMMPS currently supports two build systems: one that is based on
 :doc:`traditional Makefiles <Build_make>` and one that is based on
-:doc:`CMake <Build_cmake>`.  Thus your contribution must be compatible
-with and support both.
+:doc:`CMake <Build_cmake>`.  Therefore, your contribution must be
+compatible with and support both build systems.
 
 For a single pair of header and implementation files that are an
 independent feature, it is usually only required to add them to
@@ -210,7 +212,7 @@ Install.sh file is also needed to check for those dependencies and
 modifications to src/Depend.sh to trigger the checks.  See other README
 and Install.sh files in other directories as examples.
 
-Similarly for CMake support, changes may need to be made to
+Similarly, for CMake support, changes may need to be made to
 cmake/CMakeLists.txt, some of the files in cmake/presets, and possibly a
 file with specific instructions needs to be added to
 cmake/Modules/Packages/.  Please check out how this is handled for
@@ -219,7 +221,7 @@ existing packages and ask the LAMMPS developers if you need assistance.
 
 .. _ReqNaming:
 
-Command or Style names, file names, and keywords (strict)
+Command or style names, file names, and keywords (strict)
 ---------------------------------------------------------
 
 All user-visible command or style names should be all lower case and
@@ -238,9 +240,9 @@ Programming style requirements (varied)
 
 To maintain consistency across contributions from many people, there are
 various programming style requirements for contributions to LAMMPS.
-Some of these requirements are strict and must be followed while some
+Some of these requirements are strict and must be followed, while others
 are only preferred and thus may be skipped.  An in-depth discussion of
-the style guidelines are provided in the :doc:`programming style doc
+the style guidelines is provided in the :doc:`programming style doc
 page <Modify_style>`.
 
 
@@ -252,8 +254,8 @@ Examples (preferred)
 In most cases, it is preferred that example scripts (simple, small, fast
 to complete on 1 CPU) are included that demonstrate the use of new or
 extended functionality. These are typically under the examples or
-examples/PACKAGES directory are are further described on the
-:doc:`examples page <Examples>`.  Guidelines for input scripts include:
+examples/PACKAGES directory are further described on the :doc:`examples
+page <Examples>`.  Guidelines for input scripts include:
 
 - commands that generate output should be commented out (except when the
   output is the sole purpose or the feature, e.g. for a new compute)
@@ -285,7 +287,7 @@ Error or warning messages and explanations (preferred)
 
 .. versionchanged:: 4May2022
 
-Starting with LAMMPS version 4 May 2022 the LAMMPS developers have
+Starting with LAMMPS version 4 May 2022, the LAMMPS developers have
 agreed on a new policy for error and warning messages.
 
 Previously, all error and warning strings were supposed to be listed in
@@ -298,17 +300,17 @@ source file and the line number of the error location would be printed,
 so that one could look up the cause by reading the source code.
 
 The new policy encourages more specific error messages that ideally
-indicate the cause directly requiring no further lookup. This is aided
-by the `{fmt} library <https://fmt.dev>`_ to convert the Error class
-commands so that they take a variable number of arguments and error
-text will be treated like a {fmt} syntax format string. Error messages
-should still preferably be kept to a single line or two lines at most.
+indicate the cause directly, and requiring no further lookup. This is
+aided by the `{fmt} library <https://fmt.dev>`_ enabling Error class
+methods that take a variable number of arguments and an error text that
+will be treated like a {fmt} syntax format string. Error messages should
+still preferably be kept to a single line or two lines at most.
 
 For more complex explanations or errors that have multiple possible
 reasons, a paragraph should be added to the `Error_details` page with an
 error code reference (e.g. ``.. _err0001:``) then the utility function
 :cpp:func:`utils::errorurl() <LAMMPS_NS::utils::errorurl>` can be used
-to generate an URL that will directly lead to that paragraph.  An error
+to generate a URL that will directly lead to that paragraph.  An error
 for missing arguments can be easily generated using the
 :cpp:func:`utils::missing_cmd_args()
 <LAMMPS_NS::utils::missing_cmd_args>` convenience function.
@@ -321,7 +323,7 @@ and thus require some additional explanation.
 
 The transformation of existing LAMMPS code to this new scheme is ongoing
 and - given the size of the LAMMPS source code - will take a significant
-amount of time until completion.  However, for new code following the
+amount of time until completion.  For new code, however, following the
 new approach is strongly preferred.  The expectation is that the new
 scheme will make it easier for LAMMPS users, developers, and
 maintainers.
@@ -337,7 +339,7 @@ algorithm/science behind the feature itself, or its initial usage, or
 its implementation in LAMMPS), you can add the citation to the \*.cpp
 source file.  See ``src/DIFFRACTION/compute_saed.cpp`` for an example.
 A BibTeX format citation is stored in a string variable at the top
-of the file and  a single line of code registering this variable is
+of the file, and a single line of code registering this variable is
 added to the constructor of the class.  When your feature is used,
 by default, LAMMPS will print the brief info and the DOI
 in the first line to the screen and the full citation to the log file.
@@ -346,7 +348,7 @@ If there is additional functionality (which may have been added later)
 described in a different publication, additional citation descriptions
 may be added for as long as they are only registered when the
 corresponding keyword activating this functionality is used.  With these
-options it is possible to have LAMMPS output a specific citation
+options, it is possible to have LAMMPS output a specific citation
 reminder whenever a user invokes your feature from their input script.
 Please note that you should *only* use this for the *most* relevant
 paper for a feature and a publication that you or your group authored.

@@ -1,18 +1,16 @@
 LAMMPS programming style
 ========================
 
-
 The LAMMPS developers aim to employ a consistent programming style and
 naming conventions across the entire code base, as this helps with
 maintenance, debugging, and understanding the code, both for developers
-and users. This page provides a list of standard style choices used in
-LAMMPS. Some of these standards are required while others are just
-preferred. Following these conventions will make it much easier to
-integrate your contribution. If you are uncertain, please ask.
+and users.  This page provides a list of standard style choices used in
+LAMMPS.  Some of these standards are required, while others are just
+preferred.  Following these conventions will make it much easier to
+integrate your contribution.  If you are uncertain, please ask.
 
 The files `pair_lj_cut.h`, `pair_lj_cut.cpp`, `utils.h`, and `utils.cpp`
 may serve as representative examples.
-
 
 Include files (varied)
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -28,23 +26,22 @@ Include files (varied)
   is where type clashes between packages and hard to find bugs have
   regularly manifested in the past.
 
-- Header files, especially those defining a "style", should only use
-  the absolute minimum number of include files and **must not** contain
-  any ``using`` statements. Typically that would be only the header for
-  the base class. Instead any include statements should be put into the
+- Header files, especially those defining a "style", should only use the
+  absolute minimum number of include files and **must not** contain any
+  ``using`` statements. Typically, that would be only the header for the
+  base class.  Instead, any include statements should be put into the
   corresponding implementation files and forward declarations be used.
   For implementation files, the "include what you use" principle should
   be employed.  However, there is the notable exception that when the
   ``pointers.h`` header is included (or one of the base classes derived
   from it) certain headers will always be included and thus do not need
-  to be explicitly specified.
-  These are: `mpi.h`, `cstddef`, `cstdio`, `cstdlib`, `string`, `utils.h`,
-  `vector`, `fmt/format.h`, `climits`, `cinttypes`.
-  This also means any such file can assume that `FILE`, `NULL`, and
-  `INT_MAX` are defined.
+  to be explicitly specified.  These are: `mpi.h`, `cstddef`, `cstdio`,
+  `cstdlib`, `string`, `utils.h`, `vector`, `fmt/format.h`, `climits`,
+  `cinttypes`.  This also means any such file can assume that `FILE`,
+  `NULL`, and `INT_MAX` are defined.
 
 - System headers or from installed libraries are include with angular
-  brackets (example: ``#include <vector>``), while local include file
+  brackets (example: ``#include <vector>``), while local include files
   use double quotes (example: ``#include "atom.h"``)
 
 - When including system header files from the C library use the
@@ -152,7 +149,7 @@ Miscellaneous standards (varied)
   contributed.  For header files containing a ``SomeStyle(keyword,
   ClassName)`` macros it is required to have this macro embedded with a
   pair of ``// clang-format off``, ``// clang-format on`` comments and
-  the line must be terminated with a semi-colon (;).  Example:
+  the line must be terminated with a semicolon (;).  Example:
 
   .. code-block:: c++
 
@@ -168,7 +165,7 @@ Miscellaneous standards (varied)
   You may also use ``// clang-format on/off`` throughout your files
   to protect individual sections from being reformatted.
 
-- All files should have 0644 permissions, i.e writable to the user only
+- All files should have 0644 permissions, i.e. writable to the user only
   and readable by all and no executable permissions.  Executable
   permissions (0755) should only be on shell scripts or python or similar
   scripts for interpreted script languages.

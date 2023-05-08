@@ -10,8 +10,8 @@ be notified of releases, follow the ongoing development, and comment on
 topics of interest to you. This section contains general information
 regarding the preparation and submission of new features to LAMMPS. If
 you are new to development in LAMMPS, we recommend you read one of the
-tutorials on developing a new :doc:`pair style <Developer_write_pair>` or
-:doc:`fix style <Developer_write_fix>` which provide a friendly
+tutorials on developing a new :doc:`pair style <Developer_write_pair>`
+or :doc:`fix style <Developer_write_fix>` which provide a friendly
 introduction to what LAMMPS development entails and common vocabulary
 used in this chapter.
 
@@ -27,9 +27,9 @@ search through the list of `open issues on GitHub
 <https://github.com/lammps/lammps/issues>`_ and submit a new issue for a
 planned feature, to avoid duplicating work (and possibly being scooped).
 
-For informal communication with the LAMMPS developers you may ask to
+For informal communication with the LAMMPS developers, you may ask to
 join the `LAMMPS developers on Slack <https://lammps.slack.com>`_.  This
-slack work space is by invitation only.  Thus for access, please send an
+slack work space is by invitation only.  For access, please send an
 e-mail to ``slack@lammps.org`` explaining what part of LAMMPS you are
 working on.  Only discussions related to LAMMPS development are
 tolerated in that work space, so this is **NOT** for people that look
@@ -46,10 +46,11 @@ depends largely on how much effort it will cause the LAMMPS developers
 to integrate and test it, how many and what kind of changes to the core
 code are required, how quickly you can address them and of how much
 interest it is to the larger LAMMPS community. This process can be
-streamlined by following the :doc:`requirements <Modify_requirements>` and :doc:`style guidelines<Modify_style>`.  A small, modular, well written
-contribution may be integrated within hours, but a complex change that
-requires a redesign of some core functionality in LAMMPS can take months
-before inclusion (though this is rare).
+streamlined by following the :doc:`requirements <Modify_requirements>`
+and :doc:`style guidelines<Modify_style>`.  A small, modular, well
+written contribution may be integrated within hours, but a complex
+change that requires a redesign of some core functionality in LAMMPS can
+take months before inclusion (though this is rare).
 
 
 Submission procedure
@@ -58,22 +59,22 @@ Submission procedure
 All changes to LAMMPS (including those from LAMMPS developers) are
 integrated via pull requests on GitHub and cannot be merged without
 passing the automated testing and an approving review by a LAMMPS core
-developer.  Thus before submitting your contribution, you should first
-make certain, that your added or modified code compiles and works
+developer.  Before submitting your contribution, you should therefore
+first make certain, that your added or modified code compiles and works
 correctly with the latest development version of LAMMPS and contains all
 bug fixes from it.
 
 Once you have prepared everything, see the :doc:`LAMMPS GitHub Tutorial
 <Howto_github>` page for instructions on how to submit your changes or
 new files through a GitHub pull request.  If you are unable or unwilling
-to submit via GitHub yourself, you may also submit patch files
-or full files to the LAMMPS developers and ask them to submit a pull
-request on GitHub on your behalf.  If this is the case, create a gzipped
-tar file of all new or changed files or a corresponding patch file using
-'diff -u' or 'diff -c' format and compress it with gzip.  Please only
-use gzip compression, as this works well and is available on all platforms.
-This latter way of submission may delay the integration as it depends on
-the LAMMPS developer having free time available.
+to submit via GitHub yourself, you may also submit patch files or full
+files to the LAMMPS developers and ask them to submit a pull request on
+GitHub on your behalf.  If this is the case, create a gzipped tar file
+of all new or changed files or a corresponding patch file using 'diff
+-u' or 'diff -c' format and compress it with gzip.  Please only use gzip
+compression, as this works well and is available on all platforms.  This
+latter way of submission may delay the integration as it depends on the
+LAMMPS developer having free time available.
 
 
 External contributions
@@ -86,7 +87,7 @@ LAMMPS packages and tools <https://www.lammps.org/external.html>`_ page
 of the LAMMPS website for examples of groups that do this.  We are happy
 to advertise your package and website from that page.  Simply email the
 `developers <https://www.lammps.org/authors.html>`_ with info about your
-package and we will post it there.  We recommend to name external
+package, and we will post it there.  We recommend naming external
 packages USER-\<name\> so they can be easily distinguished from bundled
 packages that do not have the USER- prefix.
 
@@ -94,13 +95,13 @@ packages that do not have the USER- prefix.
 Location of files: individual files and packages
 ------------------------------------------------
 
-We rarely accept new styles in the core src folder.  Thus please review
+We rarely accept new styles in the core src folder.  Thus, please review
 the list of :doc:`available Packages <Packages_details>` to see if your
 contribution could be added to be added to one of them.  It should fit
-into the general purposed of that package.  If it does not fit well, it
+into the general purpose of that package.  If it does not fit well, it
 may be added to one of the EXTRA- packages or the MISC package.
 
-However if your project includes many related features that are not
+However, if your project includes many related features that are not
 covered by one of the existing packages or is dependent on a library
 (bundled or external), it is best to create a package with its own
 directory (labeled with a name like FOO).  In addition to your new
@@ -114,8 +115,9 @@ Changes to core LAMMPS files
 
 If designed correctly, many additions do not require any changes to the
 core code of LAMMPS; they are simply add-on files that are compiled with
-the rest of LAMMPS.  To make those styles work, you may need some trivial
-changes to the core code; an example of a trivial change is making a
-parent-class method "virtual" when you derive a new child class from it.
-If your features involve changes to the core LAMMPS files, it is particularly
-encouraged that you communicate with the LAMMPS developers early in development.
+the rest of LAMMPS.  To make those styles work, you may need some
+trivial changes to the core code; an example of a trivial change is
+making a parent-class method "virtual" when you derive a new child class
+from it.  If your features involve changes to the core LAMMPS files, it
+is particularly encouraged that you communicate with the LAMMPS
+developers early in development.

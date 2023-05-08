@@ -1691,6 +1691,10 @@ double FixNH::compute_vector(int n)
 
 std::string FixNH::get_thermo_colname(int n)
 {
+
+  // scalar value if n == -1
+  if (n == -1) return fmt::format("f_{}:ecouple",id);
+
   int ilen;
 
   if (tstat_flag) {

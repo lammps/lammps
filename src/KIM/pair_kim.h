@@ -101,7 +101,9 @@ class PairKIM : public Pair {
   int settings_call_count;
   int init_style_call_count;
 
-  double **scale;
+  // scale factor for fix adapt, and whether or not it's been modified
+  double scale;
+  bool scale_extracted;
 
   // values set in settings()
   char *kim_modelname;

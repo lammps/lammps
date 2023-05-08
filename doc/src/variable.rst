@@ -1285,18 +1285,19 @@ with a leading $ sign (e.g. $x or ${abc}) versus with a leading "v\_"
 (e.g. v_x or v_abc).  The former can be used in any input script
 command, including a variable command.  The input script parser
 evaluates the reference variable immediately and substitutes its value
-into the command.  As explained on the :doc:`Commands parse <Commands_parse>` doc page, you can also use un-named
-"immediate" variables for this purpose.  For example, a string like
-this $((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates
-the string between the parenthesis as an equal-style variable formula.
+into the command.  As explained on the :doc:`Commands parse
+<Commands_parse>` doc page, you can also use un-named "immediate"
+variables for this purpose.  For example, a string like this
+$((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates the
+string between the parenthesis as an equal-style variable formula.
 
 Referencing a variable with a leading "v\_" is an optional or required
-kind of argument for some commands (e.g. the :doc:`fix ave/chunk <fix_ave_chunk>` or :doc:`dump custom <dump>` or
-:doc:`thermo_style <thermo_style>` commands) if you wish it to evaluate
-a variable periodically during a run.  It can also be used in a
-variable formula if you wish to reference a second variable.  The
-second variable will be evaluated whenever the first variable is
-evaluated.
+kind of argument for some commands (e.g. the :doc:`fix ave/chunk
+<fix_ave_chunk>` or :doc:`dump custom <dump>` or :doc:`thermo_style
+<thermo_style>` commands) if you wish it to evaluate a variable
+periodically during a run.  It can also be used in a variable formula
+if you wish to reference a second variable.  The second variable will
+be evaluated whenever the first variable is evaluated.
 
 As an example, suppose you use this command in your input script to
 define the variable "v" as
@@ -1309,8 +1310,9 @@ before a run where the simulation box size changes.  You might think
 this will assign the initial volume to the variable "v".  That is not
 the case.  Rather it assigns a formula which evaluates the volume
 (using the thermo_style keyword "vol") to the variable "v".  If you
-use the variable "v" in some other command like :doc:`fix ave/time <fix_ave_time>` then the current volume of the box will be
-evaluated continuously during the run.
+use the variable "v" in some other command like :doc:`fix ave/time
+<fix_ave_time>` then the current volume of the box will be evaluated
+continuously during the run.
 
 If you want to store the initial volume of the system, you can do it
 this way:
@@ -1347,132 +1349,75 @@ will occur when the formula for "vratio" is evaluated later.
 Variable Accuracy
 """""""""""""""""
 
-Obviously, LAMMPS attempts to evaluate variables containing formulas
-(\ *equal* and *atom* style variables) accurately whenever the
-evaluation is performed.  Depending on what is included in the
-formula, this may require invoking a :doc:`compute <compute>`, either
-directly or indirectly via a thermo keyword, or accessing a value
-previously calculated by a compute, or accessing a value calculated
-and stored by a :doc:`fix <fix>`.  If the compute is one that calculates
-the pressure or energy of the system, then these quantities need to be
-tallied during the evaluation of the interatomic potentials (pair,
-bond, etc) on timesteps that the variable will need the values.
+Obviously, LAMMPS attempts to evaluate variables which contain
+formulas (\ *equal* and *vector* and *atom* style variables)
+accurately whenever the evaluation is performed.  Depending on what is
+included in the formula, this may require invoking a :doc:`compute
+<compute>`, either directly or indirectly via a thermo keyword, or
+accessing a value previously calculated by a compute, or accessing a
+value calculated and stored by a :doc:`fix <fix>`.  If the compute is
+one that calculates the energy or pressure of the system, then the
+corresponding energy or virial quantities need to be tallied during
+the evaluation of the interatomic potentials (pair, bond, etc) on any
+timestep that the variable needs the tallies.  An input script can
+also request variables be evaluated before or after or in between
+runs, e.g. by including them in a :doc:`print <print>` command.
 
-LAMMPS keeps track of all of this during a :doc:`run <run>` or :doc:`energy minimization <minimize>`.  An error will be generated if you
-attempt to evaluate a variable on timesteps when it cannot produce
-accurate values.  For example, if a :doc:`thermo_style custom <thermo_style>` command prints a variable which accesses
-values stored by a :doc:`fix ave/time <fix_ave_time>` command and the
-timesteps on which thermo output is generated are not multiples of the
-averaging frequency used in the fix command, then an error will occur.
+LAMMPS keeps track of all of this as it performs a doc:`run <run>` or
+:doc:`minimize <minimize>` simulation, as well as in between
+simulations.  An error will be generated if you attempt to evaluate a
+variable when LAMMPS knows it cannot produce accurate values.  For
+example, if a :doc:`thermo_style custom <thermo_style>` command prints
+a variable which accesses values stored by a :doc:`fix ave/time
+<fix_ave_time>` command and the timesteps on which thermo output is
+generated are not multiples of the averaging frequency used in the fix
+command, then an error will occur.
 
-An input script can also request variables be evaluated before or
-after or in between runs, e.g. by including them in a
-:doc:`print <print>` command.  In this case, if a compute is needed to
-evaluate a variable (either directly or indirectly), LAMMPS will not
-invoke the compute, but it will use a value previously calculated by
-the compute, and can do this only if it was invoked on the current
-timestep.  Fixes will always provide a quantity needed by a variable,
-but the quantity may or may not be current.  This leads to one of
-three kinds of behavior:
+However, there are two special cases to be aware when a variable
+requires invocation of a compute (directly or indirectly).  The first
+is if the variable is evaluated before the first doc:`run <run>` or
+:doc:`minimize <minimize>` command in the input script.  In this case,
+LAMMPS will generate an error.  This is because many computes require
+initializations which have not yet taken place.  One example is the
+calculation of degrees of freedom for temperature computes.  Another
+example are the computes mentioned above which require tallying of
+energy or virial quantities; these values are not tallied until the
+first simulation begins.
 
-(1) The variable may be evaluated accurately.  If it contains
-references to a compute or fix, and these values were calculated on
-the last timestep of a preceding run, then they will be accessed and
-used by the variable and the result will be accurate.
+The second special case is when a variable that depends on a compute
+is evaluated in between doc:`run <run>` or :doc:`minimize <minimize>`
+commands.  It is possible for other input script commands issued
+following the previous run, but before the variable is evaluated, to
+change the system.  For example, the doc:`delete_atoms <delete_atoms>`
+command could be used to remove atoms.  Since the compute will not
+re-initialize itself until the next simulation or it may depend on
+energy/virial computations performed before the system was changed, it
+will potentially generate an incorrect answer when evaluated.  Note
+that LAMMPS will not generate an error in this case; the evaluated
+variable may simply be incorrect.
 
-(2) LAMMPS may not be able to evaluate the variable and will generate
-an error message stating so.  For example, if the variable requires a
-quantity from a :doc:`compute <compute>` that has not been invoked on
-the current timestep, LAMMPS will generate an error.  This means, for
-example, that such a variable cannot be evaluated before the first run
-has occurred.  Likewise, in between runs, a variable containing a
-compute cannot be evaluated unless the compute was invoked on the last
-timestep of the preceding run, e.g. by thermodynamic output.
-
-One way to get around this problem is to perform a 0-timestep run
-before using the variable.  For example, these commands
-
-.. code-block:: LAMMPS
-
-   variable t equal temp
-   print "Initial temperature = $t"
-   run 1000
-
-will generate an error if the run is the first run specified in the
-input script, because generating a value for the "t" variable requires
-a compute for calculating the temperature to be invoked.
-
-However, this sequence of commands would be fine:
+The way to get around both of these special cases is to perform a
+0-timestep run before evaluating the variable.  For example, these
+commands
 
 .. code-block:: LAMMPS
 
-   run 0
-   variable t equal temp
-   print "Initial temperature = $t"
+   # delete_atoms random fraction 0.5 yes all NULL 49839 
+   # run 0
+   variable t equal temp    # this thermo keyword invokes a temperature compute
+   print "Temperature of system = $t"
    run 1000
 
-The 0-timestep run initializes and invokes various computes, including
-the one for temperature, so that the value it stores is current and
-can be accessed by the variable "t" after the run has completed.  Note
-that a 0-timestep run does not alter the state of the system, so it
-does not change the input state for the 1000-timestep run that
-follows.  Also note that the 0-timestep run must actually use and
-invoke the compute in question (e.g. via :doc:`thermo <thermo_style>` or
-:doc:`dump <dump>` output) in order for it to enable the compute to be
-used in a variable after the run.  Thus if you are trying to print a
-variable that uses a compute you have defined, you can ensure it is
-invoked on the last timestep of the preceding run by including it in
-thermodynamic output.
+will generate an error if the "run 1000" command is the first
+simulation in the input script.  If there were a previous run, these
+commands will print the correct temperature of the system.  But if the
+:doc:`delete_atoms <delete_atoms>` command is uncommented, the printed
+temperature will be incorrect, because information stored by
+temperature compute is no longer valid.
 
-Unlike computes, :doc:`fixes <fix>` will never generate an error if
-their values are accessed by a variable in between runs.  They always
-return some value to the variable.  However, the value may not be what
-you expect if the fix has not yet calculated the quantity of interest
-or it is not current.  For example, the :doc:`fix indent <fix_indent>`
-command stores the force on the indenter.  But this is not computed
-until a run is performed.  Thus if a variable attempts to print this
-value before the first run, zeroes will be output.  Again, performing
-a 0-timestep run before printing the variable has the desired effect.
-
-(3) The variable may be evaluated incorrectly and LAMMPS may have no
-way to detect this has occurred.  Consider the following sequence of
-commands:
-
-.. code-block:: LAMMPS
-
-   pair_coeff 1 1 1.0 1.0
-   run 1000
-   pair_coeff 1 1 1.5 1.0
-   variable e equal pe
-   print "Final potential energy = $e"
-
-The first run is performed using one setting for the pairwise
-potential defined by the :doc:`pair_style <pair_style>` and
-:doc:`pair_coeff <pair_coeff>` commands.  The potential energy is
-evaluated on the final timestep and stored by the :doc:`compute pe
-<compute_pe>` compute (this is done by the :doc:`thermo_style
-<thermo_style>` command).  Then a pair coefficient is changed,
-altering the potential energy of the system.  When the potential
-energy is printed via the "e" variable, LAMMPS will use the potential
-energy value stored by the :doc:`compute pe <compute_pe>` compute,
-thinking it is current.  There are many other commands which could
-alter the state of the system between runs, causing a variable to
-evaluate incorrectly.
-
-The solution to this issue is the same as for case (2) above, namely
-perform a 0-timestep run before the variable is evaluated to ensure
-the system is up-to-date.  For example, this sequence of commands
-would print a potential energy that reflected the changed pairwise
-coefficient:
-
-.. code-block:: LAMMPS
-
-   pair_coeff 1 1 1.0 1.0
-   run 1000
-   pair_coeff 1 1 1.5 1.0
-   run 0
-   variable e equal pe
-   print "Final potential energy = $e"
+Both these issues are resolved, if the "run 0" command is uncommented.
+This is because the "run 0" simulation will initialize (or
+re-initialize) the temperature compute correctly.
 
 ----------
 
@@ -1482,11 +1427,12 @@ Restrictions
 Indexing any formula element by global atom ID, such as an atom value,
 requires the :doc:`atom style <atom_style>` to use a global mapping in
 order to look up the vector indices.  By default, only atom styles
-with molecular information create global maps.  The :doc:`atom_modify map <atom_modify>` command can override the default, e.g. for
+with molecular information create global maps.  The :doc:`atom_modify
+map <atom_modify>` command can override the default, e.g. for
 atomic-style atom styles.
 
-All *universe*\ - and *uloop*\ -style variables defined in an input script
-must have the same number of values.
+All *universe*\ - and *uloop*\ -style variables defined in an input
+script must have the same number of values.
 
 Related commands
 """"""""""""""""

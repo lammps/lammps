@@ -60,6 +60,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   // set child class defaults
 
   scalar_flag = vector_flag = array_flag = 0;
+  thermo_modify_colname = 0;
   peratom_flag = local_flag = pergrid_flag = 0;
   size_vector_variable = size_array_rows_variable = 0;
 

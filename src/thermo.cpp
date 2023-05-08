@@ -1026,6 +1026,9 @@ void Thermo::parse_fields(const std::string &str)
             error->all(FLERR, "Thermo compute array is accessed out-of-range");
         }
 
+        if (icompute->thermo_modify_colname)
+          keyword_user[nfield] = icompute->get_thermo_colname(argindex1[nfield]-1);
+
         if (argindex1[nfield] == 0)
           field2index[nfield] = add_compute(argi.get_name(), SCALAR);
         else if (argindex2[nfield] == 0)

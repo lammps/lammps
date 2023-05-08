@@ -34,10 +34,12 @@ class ComputeReduce : public Compute {
   void init() override;
   double compute_scalar() override;
   void compute_vector() override;
+  std::string get_thermo_colname(int) override;
   double memory_usage() override;
 
  protected:
   int mode, nvalues;
+  std::string modestr;
   struct value_t {
     int which;
     int argindex;

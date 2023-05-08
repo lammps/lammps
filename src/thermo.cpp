@@ -651,6 +651,14 @@ void Thermo::modify_params(int narg, char **arg)
         keyword_user[icol] = arg[iarg + 2];
         iarg += 3;
       }
+    } else if (strcmp(arg[iarg], "legacy_colname") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify legacy_colname", error);
+      int legacy_colname = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (legacy_colname)
+        for (int i = 0; i < nfield; i++)
+          keyword_user[i] = {};
+      iarg += 2;
+
     } else if (strcmp(arg[iarg], "format") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "thermo_modify format", error);
 

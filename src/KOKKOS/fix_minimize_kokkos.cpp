@@ -28,7 +28,6 @@ FixMinimizeKokkos::FixMinimizeKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixMinimize(lmp, narg, arg)
 {
   kokkosable = 1;
-  sort_device = 1;
   atomKK = (AtomKokkos *) atom;
 }
 
@@ -217,21 +216,6 @@ void FixMinimizeKokkos::copy_arrays(int i, int j, int /*delflag*/)
   }
 
   k_vectors.modify<LMPHostType>();
-}
-
-/* ----------------------------------------------------------------------
-   sort local atom-based arrays
-------------------------------------------------------------------------- */
-
-void FixMinimizeKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
-{
-  // always sort on the device
-
-  k_vectors.sync_device();
-
-  Sorter.sort(LMPDeviceType(), k_vectors.d_view);
-
-  k_vectors.modify_device();
 }
 
 /* ----------------------------------------------------------------------

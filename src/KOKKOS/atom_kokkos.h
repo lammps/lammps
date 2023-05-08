@@ -120,7 +120,6 @@ class AtomKokkos : public Atom {
   int add_custom(const char *, int, int) override;
   void remove_custom(int, int, int) override;
   virtual void deallocate_topology();
-  void sync_modify(ExecutionSpace, unsigned int, unsigned int) override;
  private:
   void sort_device();
   class AtomVec *new_avec(const std::string &, int, int &) override;

@@ -561,7 +561,7 @@ The *sort* keyword determines whether the host or device performs atom
 sorting, see the :doc:`atom_modify sort <atom_modify>` command.  The
 value options for the *sort* keyword are *no* or *device* similar to the
 *comm* keywords above. If a value of *host* is used it will be
-automatically be changed to *no* since the *sort* keyword doesn't
+automatically be changed to *no* since the *sort* keyword does not
 support *host* mode. The value of *no* will also always be used when
 running on the CPU, i.e. setting the value to *device* will have no
 effect if the simulation is running on the CPU. Not all fix styles with

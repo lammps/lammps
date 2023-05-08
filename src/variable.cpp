@@ -1440,10 +1440,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
         if (nbracket == 0 && compute->scalar_flag && lowercase) {
 
-          if (update->whichflag == 0) {
-            if (compute->invoked_scalar != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
+          if (update->first_update == 0)
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
             compute->compute_scalar();
             compute->invoked_flag |= Compute::INVOKED_SCALAR;
           }
@@ -1463,10 +1462,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           if (index1 > compute->size_vector &&
               compute->size_vector_variable == 0)
             print_var_error(FLERR,"Variable formula compute vector is accessed out-of-range",ivar,0);
-          if (update->whichflag == 0) {
-            if (compute->invoked_vector != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
+          if (update->first_update == 0)
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
             compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
@@ -1490,10 +1488,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
           if (index2 > compute->size_array_cols)
             print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
-          if (update->whichflag == 0) {
-            if (compute->invoked_array != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
+          if (update->first_update == 0)
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
             compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
@@ -1518,10 +1515,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Compute global vector in atom-style variable formula",ivar);
           if (compute->size_vector == 0)
             print_var_error(FLERR,"Variable formula compute vector is zero length",ivar);
-          if (update->whichflag == 0) {
-            if (compute->invoked_vector != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
+          if (update->first_update == 0)
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
             compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
@@ -1543,10 +1539,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Compute global vector in atom-style variable formula",ivar);
           if (compute->size_array_rows == 0)
             print_var_error(FLERR,"Variable formula compute array is zero length",ivar);
-          if (update->whichflag == 0) {
-            if (compute->invoked_array != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
+          if (update->first_update == 0)
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
             compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
@@ -1563,10 +1558,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         } else if (nbracket == 1 && compute->peratom_flag &&
                    compute->size_peratom_cols == 0) {
 
-          if (update->whichflag == 0) {
-            if (compute->invoked_peratom != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
+          if (update->first_update == 0)
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
@@ -1581,10 +1575,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
           if (index2 > compute->size_peratom_cols)
             print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
-          if (update->whichflag == 0) {
-            if (compute->invoked_peratom != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
+          if (update->first_update == 0)
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
@@ -1605,10 +1598,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Per-atom compute in equal-style variable formula",ivar);
           if (treetype == VECTOR)
             print_var_error(FLERR,"Per-atom compute in vector-style variable formula",ivar);
-          if (update->whichflag == 0) {
-            if (compute->invoked_peratom != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
+          if (update->first_update == 0)
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
@@ -1630,10 +1622,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             print_var_error(FLERR,"Per-atom compute in vector-style variable formula",ivar);
           if (index1 > compute->size_peratom_cols)
             print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
-          if (update->whichflag == 0) {
-            if (compute->invoked_peratom != update->ntimestep)
-              print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
+          if (update->first_update == 0)
+            print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+          if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
             compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
@@ -4050,10 +4041,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
         print_var_error(FLERR,mesg,ivar);
       }
       if (index == 0 && compute->vector_flag) {
-        if (update->whichflag == 0) {
-          if (compute->invoked_vector != update->ntimestep)
-            print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-        } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
+        if (update->first_update == 0)
+          print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
           compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
@@ -4062,10 +4052,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       } else if (index && compute->array_flag) {
         if (index > compute->size_array_cols)
           print_var_error(FLERR,"Variable formula compute array is accessed out-of-range",ivar,0);
-        if (update->whichflag == 0) {
-          if (compute->invoked_array != update->ntimestep)
-            print_var_error(FLERR,"Compute used in variable between runs is not current",ivar);
-        } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
+        if (update->first_update == 0)
+          print_var_error(FLERR,"Variable formula compute cannot be invoked before first run",ivar);
+        if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
           compute->invoked_flag |= Compute::INVOKED_ARRAY;
         }

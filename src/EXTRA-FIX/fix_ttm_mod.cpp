@@ -614,8 +614,8 @@ void FixTTMMod::read_electron_temperatures(const std::string &filename)
         if (T_tmp < 0.0)
           throw TokenizerException("Fix ttm electron temperatures must be > 0.0","");
 
-        T_electron[iz][iy][ix] = T_tmp;
-        T_initial_set[iz][iy][ix] = 1;
+        T_electron[ix][iy][iz] = T_tmp;
+        T_initial_set[ix][iy][iz] = 1;
       }
     } catch (std::exception &e) {
       error->one(FLERR, e.what());
@@ -626,7 +626,7 @@ void FixTTMMod::read_electron_temperatures(const std::string &filename)
     for (int iz = 0; iz < nzgrid; iz++)
       for (int iy = 0; iy < nygrid; iy++)
         for (int ix = 0; ix < nxgrid; ix++)
-          if (T_initial_set[iz][iy][ix] == 0)
+          if (T_initial_set[ix][iy][iz] == 0)
             error->all(FLERR,"Fix ttm/mod infile did not set all temperatures");
 
     memory->destroy(T_initial_set);

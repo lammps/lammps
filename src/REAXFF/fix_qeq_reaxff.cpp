@@ -404,8 +404,6 @@ void FixQEqReaxFF::init()
     efield->init();
     if (strcmp(update->unit_style,"real") != 0)
       error->all(FLERR,"Must use unit_style real with fix {} and external fields", style);
-    if (efield->varflag != FixEfield::CONSTANT)
-      error->all(FLERR,"Cannot (yet) use fix {} with variable efield", style);
 
     if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
          ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
@@ -1101,26 +1099,45 @@ void FixQEqReaxFF::get_chi_field()
 
   // efield energy is in real units of kcal/mol/angstrom, need to convert to eV
 
-  const double factor = -1.0/force->qe2f;
+  const double qe2f = force->qe2f;
+  const double factor = -1.0/qe2f;
 
-  // currently we only support constant efield
+
+  if (efield->varflag != FixEfield::CONSTANT) {
+    efield->update_efield_variables();
+  }
+
   // atom selection is for the group of fix efield
 
-  if (efield->varflag == FixEfield::CONSTANT) {
-    double unwrap[3];
-    const double fx = efield->ex;
-    const double fy = efield->ey;
-    const double fz = efield->ez;
-    const int efgroupbit = efield->groupbit;
+  double unwrap[3];
+  const double ex = efield->ex;
+  const double ey = efield->ey;
+  const double ez = efield->ez;
+  const int efgroupbit = efield->groupbit;
 
     // charge interactions
     // force = qE, potential energy = F dot x in unwrapped coords
-
+  if (efield->varflag != FixEfield::ATOM) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & efgroupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         domain->unmap(x[i],image[i],unwrap);
-        chi_field[i] = factor*(fx*unwrap[0] + fy*unwrap[1] + fz*unwrap[2]);
+        chi_field[i] = factor*(ex*unwrap[0] + ey*unwrap[1] + ez*unwrap[2]);
+      }
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & efgroupbit) {
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
+        domain->unmap(x[i],image[i],unwrap);
+        double edisp = 0; // accumulate E dot displacement
+        edisp += unwrap[0]*(
+            (efield->xstyle == FixEfield::ATOM) ? qe2f*efield->efield[i][0] : ex);
+        edisp += unwrap[1]*(
+            (efield->ystyle == FixEfield::ATOM) ? qe2f*efield->efield[i][1] : ey);
+        edisp += unwrap[2]*(
+            (efield->zstyle == FixEfield::ATOM) ? qe2f*efield->efield[i][2] : ez);
+        chi_field[i] = factor*edisp;
       }
     }
   }

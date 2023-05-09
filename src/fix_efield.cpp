@@ -346,26 +346,7 @@ void FixEfield::post_force(int vflag)
 
   } else {
 
-    modify->clearstep_compute();
-
-    if (xstyle == EQUAL) {
-      ex = qe2f * input->variable->compute_equal(xvar);
-    } else if (xstyle == ATOM) {
-      input->variable->compute_atom(xvar, igroup, &efield[0][0], 4, 0);
-    }
-    if (ystyle == EQUAL) {
-      ey = qe2f * input->variable->compute_equal(yvar);
-    } else if (ystyle == ATOM) {
-      input->variable->compute_atom(yvar, igroup, &efield[0][1], 4, 0);
-    }
-    if (zstyle == EQUAL) {
-      ez = qe2f * input->variable->compute_equal(zvar);
-    } else if (zstyle == ATOM) {
-      input->variable->compute_atom(zvar, igroup, &efield[0][2], 4, 0);
-    }
-    if (estyle == ATOM) input->variable->compute_atom(evar, igroup, &efield[0][3], 4, 0);
-
-    modify->addstep_compute(update->ntimestep + 1);
+    update_efield_variables();
 
     // charge interactions
     // force = qE
@@ -469,4 +450,33 @@ double FixEfield::compute_vector(int n)
     force_flag = 1;
   }
   return fsum_all[n + 1];
+}
+
+/* ----------------------------------------------------------------------
+   update efield variables without doing anything else
+   called by fix_qeq_reaxff
+------------------------------------------------------------------------- */
+
+void FixEfield::update_efield_variables()
+{
+  modify->clearstep_compute();
+
+  if (xstyle == EQUAL) {
+    ex = qe2f * input->variable->compute_equal(xvar);
+  } else if (xstyle == ATOM) {
+    input->variable->compute_atom(xvar, igroup, &efield[0][0], 4, 0);
+  }
+  if (ystyle == EQUAL) {
+    ey = qe2f * input->variable->compute_equal(yvar);
+  } else if (ystyle == ATOM) {
+    input->variable->compute_atom(yvar, igroup, &efield[0][1], 4, 0);
+  }
+  if (zstyle == EQUAL) {
+    ez = qe2f * input->variable->compute_equal(zvar);
+  } else if (zstyle == ATOM) {
+    input->variable->compute_atom(zvar, igroup, &efield[0][2], 4, 0);
+  }
+  if (estyle == ATOM) input->variable->compute_atom(evar, igroup, &efield[0][3], 4, 0);
+
+  modify->addstep_compute(update->ntimestep + 1);
 }

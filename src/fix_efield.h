@@ -59,6 +59,7 @@ class FixEfield : public Fix {
 
   int force_flag;
   double fsum[4], fsum_all[4];
+  void update_efield_variables();
 };
 }    // namespace LAMMPS_NS
 #endif

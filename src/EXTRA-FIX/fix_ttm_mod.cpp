@@ -601,9 +601,9 @@ void FixTTMMod::read_electron_temperatures(const std::string &filename)
         auto values = reader.next_values(4);
         ++nread;
 
-        int ix = values.next_int();
-        int iy = values.next_int();
-        int iz = values.next_int();
+        int ix = values.next_int() - 1;
+        int iy = values.next_int() - 1;
+        int iz = values.next_int() - 1;
         double T_tmp  = values.next_double();
 
         // check correctness of input data

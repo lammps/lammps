@@ -5,6 +5,10 @@ if(CMAKE_VERSION VERSION_LESS 3.12)
         set(Python3_VERSION ${PYTHON_VERSION_STRING})
     endif()
 else()
+    # use default (or custom) Python executable, if version is sufficient
+    if(Python_VERSION VERSION_GREATER_EQUAL 3.5)
+      set(Python3_EXECUTABLE ${Python_EXECUTABLE})
+    endif()
     find_package(Python3 COMPONENTS Interpreter QUIET)
 endif()
 

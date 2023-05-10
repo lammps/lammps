@@ -39,7 +39,6 @@ class FixMinimizeKokkos : public FixMinimize, public KokkosBase {
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
-  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 

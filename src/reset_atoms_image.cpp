@@ -22,6 +22,7 @@
 #include "group.h"
 #include "input.h"
 #include "modify.h"
+#include "update.h"
 #include "variable.h"
 
 #include <cmath>
@@ -62,7 +63,10 @@ void ResetAtomsImage::command(int narg, char **arg)
 
   // initialize system since comm->borders() will be invoked
 
+  int old_whichflag = update->whichflag;
+  update->whichflag = 1;
   lmp->init();
+  update->whichflag = old_whichflag;
 
   // setup domain, communication
   // exchange will clear map, borders will reset

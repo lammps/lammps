@@ -76,12 +76,12 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
   cut = h;
   if (strcmp(arg[4],"quintic") == 0) {
       kernel_style = QUINTIC;
-  } else if (strcmp(arg[4],"CRK0") == 0) {
-      kernel_style = CRK0;
-  } else if (strcmp(arg[4],"CRK1") == 0) {
-      kernel_style = CRK1;
-  } else if (strcmp(arg[4],"CRK2") == 0) {
-      kernel_style = CRK2;
+  } else if (strcmp(arg[4],"RK0") == 0) {
+      kernel_style = RK0;
+  } else if (strcmp(arg[4],"RK1") == 0) {
+      kernel_style = RK1;
+  } else if (strcmp(arg[4],"RK2") == 0) {
+      kernel_style = RK2;
   } else error->all(FLERR,"Unknown kernel style {} in fix rheo", arg[4]);
   zmin_kernel = utils::numeric(FLERR,arg[5],false,lmp);
 

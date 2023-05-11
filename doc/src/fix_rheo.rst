@@ -12,7 +12,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * rheo = style name of this fix command
-* cut = *quintic* or *CRK0* or *CRK1* or *CRK2*
+* cut = *quintic* or *RK0* or *RK1* or *RK2*
 * zero or more keyword/value pairs may be appended to args
 * keyword = *shift* or *thermal* or *surface/detection* or *interface/reconstruction* or *rho/sum* or *density* or *sound/squared*
 
@@ -34,7 +34,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all rheo 1.0 quintic thermal density 0.1 sound/squared 10.0
-   fix 1 all rheo 1.0 CRK1 shift surface/detection coordination 40
+   fix 1 all rheo 1.0 RK1 shift surface/detection coordination 40
 
 Description
 """""""""""

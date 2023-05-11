@@ -64,11 +64,11 @@ class ComputeRHEOKernel : public Compute {
 
   int check_corrections(int);
 
-  double calc_w_crk0(int,int,double,double,double,double);
-  double calc_w_crk1(int,int,double,double,double,double);
-  double calc_w_crk2(int,int,double,double,double,double);
-  void calc_dw_crk1(int,int,double,double,double,double,double *);
-  void calc_dw_crk2(int,int,double,double,double,double,double *);
+  double calc_w_rk0(int,int,double,double,double,double);
+  double calc_w_rk1(int,int,double,double,double,double);
+  double calc_w_rk2(int,int,double,double,double,double);
+  void calc_dw_rk1(int,int,double,double,double,double,double *);
+  void calc_dw_rk2(int,int,double,double,double,double,double *);
 };
 
 }    // namespace LAMMPS_NS

@@ -60,11 +60,11 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
 
   if (kernel_style == QUINTIC) {
     correction_order = -1;
-  } else if (kernel_style == CRK0) {
+  } else if (kernel_style == RK0) {
     correction_order = 0;
-  } else if (kernel_style == CRK1) {
+  } else if (kernel_style == RK1) {
     correction_order = 1;
-  } else if (kernel_style == CRK2) {
+  } else if (kernel_style == RK2) {
     correction_order = 2;
   }
 
@@ -73,11 +73,11 @@ ComputeRHEOKernel::ComputeRHEOKernel(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 1;
   ncor = 0;
   Mdim = 0;
-  if (kernel_style == CRK1) {
+  if (kernel_style == RK1) {
     Mdim = 1 + dim;
     ncor = 1 + dim;
     comm_forward = ncor * Mdim;
-  } else if (kernel_style == CRK2) {
+  } else if (kernel_style == RK2) {
     //Polynomial basis size (up to quadratic order)
     Mdim = 1 + dim + dim * (dim + 1) / 2;
     //Number of sets of correction coefficients  (1 x y xx yy)  + z zz (3D)
@@ -123,11 +123,11 @@ void ComputeRHEOKernel::init()
 
   nmax_store = atom->nmax;
   memory->create(coordination, nmax_store, "rheo:coordination");
-  if (kernel_style == CRK0) {
+  if (kernel_style == RK0) {
     memory->create(C0, nmax_store, "rheo/kernel:C0");
-  } else if (kernel_style == CRK1) {
+  } else if (kernel_style == RK1) {
     memory->create(C, nmax_store, ncor, Mdim, "rheo/kernel:C");
-  } else if (kernel_style == CRK2) {
+  } else if (kernel_style == RK2) {
     memory->create(C, nmax_store, ncor, Mdim, "rheo/kernel:C");
   }
 }
@@ -171,9 +171,9 @@ double ComputeRHEOKernel::calc_w(int i, int j, double delx, double dely, double 
   }
 
   if (!corrections) w = calc_w_quintic(i,j,delx,dely,delz,r);
-  else if (kernel_style == CRK0) w = calc_w_crk0(i,j,delx,dely,delz,r);
-  else if (kernel_style == CRK1) w = calc_w_crk1(i,j,delx,dely,delz,r);
-  else if (kernel_style == CRK2) w = calc_w_crk2(i,j,delx,dely,delz,r);
+  else if (kernel_style == RK0) w = calc_w_rk0(i,j,delx,dely,delz,r);
+  else if (kernel_style == RK1) w = calc_w_rk1(i,j,delx,dely,delz,r);
+  else if (kernel_style == RK2) w = calc_w_rk2(i,j,delx,dely,delz,r);
 
   return w;
 }
@@ -194,12 +194,12 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
   wp = calc_dw_quintic(i,j,delx,dely,delz,r,dWij,dWji);
 
   // Overwrite if there are corrections
-  if (kernel_style == CRK1) {
-    if (corrections_i) calc_dw_crk1(i,j,delx,dely,delz,r,dWij);
-    if (corrections_j) calc_dw_crk1(j,i,-delx,-dely,-delz,r,dWji);
-  } else if (kernel_style == CRK2) {
-    if (corrections_i) calc_dw_crk2(i,j,delx,dely,delz,r,dWij);
-    if (corrections_j) calc_dw_crk2(j,i,-delx,-dely,-delz,r,dWji);
+  if (kernel_style == RK1) {
+    if (corrections_i) calc_dw_rk1(i,j,delx,dely,delz,r,dWij);
+    if (corrections_j) calc_dw_rk1(j,i,-delx,-dely,-delz,r,dWji);
+  } else if (kernel_style == RK2) {
+    if (corrections_i) calc_dw_rk2(i,j,delx,dely,delz,r,dWij);
+    if (corrections_j) calc_dw_rk2(j,i,-delx,-dely,-delz,r,dWji);
   }
 
   return wp;
@@ -285,7 +285,7 @@ double ComputeRHEOKernel::calc_dw_quintic(int i, int j, double delx, double dely
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRHEOKernel::calc_w_crk0(int i, int j, double delx, double dely, double delz, double r)
+double ComputeRHEOKernel::calc_w_rk0(int i, int j, double delx, double dely, double delz, double r)
 {
   double w;
 
@@ -299,7 +299,7 @@ double ComputeRHEOKernel::calc_w_crk0(int i, int j, double delx, double dely, do
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRHEOKernel::calc_w_crk1(int i, int j, double delx, double dely, double delz, double r)
+double ComputeRHEOKernel::calc_w_rk1(int i, int j, double delx, double dely, double delz, double r)
 {
   int b;
   double w, wR, dx[3], H[Mdim];
@@ -341,7 +341,7 @@ double ComputeRHEOKernel::calc_w_crk1(int i, int j, double delx, double dely, do
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRHEOKernel::calc_w_crk2(int i, int j, double delx, double dely, double delz, double r)
+double ComputeRHEOKernel::calc_w_rk2(int i, int j, double delx, double dely, double delz, double r)
 {
   int b;
   double w, wR, dx[3], H[Mdim];
@@ -391,7 +391,7 @@ double ComputeRHEOKernel::calc_w_crk2(int i, int j, double delx, double dely, do
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRHEOKernel::calc_dw_crk1(int i, int j, double delx, double dely, double delz, double r, double *dW)
+void ComputeRHEOKernel::calc_dw_rk1(int i, int j, double delx, double dely, double delz, double r, double *dW)
 {
   int a, b;
   double w, dx[3], H[Mdim];
@@ -428,7 +428,7 @@ void ComputeRHEOKernel::calc_dw_crk1(int i, int j, double delx, double dely, dou
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRHEOKernel::calc_dw_crk2(int i, int j, double delx, double dely, double delz, double r, double *dW)
+void ComputeRHEOKernel::calc_dw_rk2(int i, int j, double delx, double dely, double delz, double r, double *dW)
 {
   int a, b;
   double w, dx[3], H[Mdim];
@@ -504,7 +504,7 @@ void ComputeRHEOKernel::compute_peratom()
   // Grow arrays if necessary
   if (nmax_store < atom->nmax) grow_arrays(atom->nmax);
 
-  if (kernel_style == CRK0) {
+  if (kernel_style == RK0) {
 
     double M;
     for (ii = 0; ii < inum; ii++) {
@@ -592,7 +592,7 @@ void ComputeRHEOKernel::compute_peratom()
             H[0] = 1.0;
             H[1] = dx[0] * hinv;
             H[2] = dx[1] * hinv;
-            if (kernel_style == CRK2) {
+            if (kernel_style == RK2) {
               H[3] = 0.5 * dx[0] * dx[0] * hsqinv;
               H[4] = 0.5 * dx[1] * dx[1] * hsqinv;
               H[5] = dx[0] * dx[1] * hsqinv;
@@ -602,7 +602,7 @@ void ComputeRHEOKernel::compute_peratom()
             H[1] = dx[0] * hinv;
             H[2] = dx[1] * hinv;
             H[3] = dx[2] * hinv;
-            if (kernel_style == CRK2) {
+            if (kernel_style == RK2) {
               H[4] = 0.5 * dx[0] * dx[0] * hsqinv;
               H[5] = 0.5 * dx[1] * dx[1] * hsqinv;
               H[6] = 0.5 * dx[2] * dx[2] * hsqinv;
@@ -676,7 +676,7 @@ void ComputeRHEOKernel::compute_peratom()
           // columns 1-2 (2D)  or 1-3 (3D)
 
           //Second derivatives
-          if (kernel_style == CRK2)
+          if (kernel_style == RK2)
             C[i][1 + dim + b][a] = M[a * Mdim + b + 1 + dim] * hsqinv;
             // columns 3-4 (2D) or 4-6 (3D)
         }
@@ -746,7 +746,7 @@ void ComputeRHEOKernel::grow_arrays(int nmax)
 {
   memory->grow(coordination, nmax, "rheo:coordination");
 
-  if (kernel_style == CRK0) {
+  if (kernel_style == RK0) {
     memory->grow(C0, nmax, "rheo/kernel:C0");
   } else if (correction_order > 0) {
     memory->grow(C, nmax, ncor, Mdim, "rheo/kernel:C");
@@ -768,7 +768,7 @@ int ComputeRHEOKernel::pack_forward_comm(int n, int *list, double *buf,
     if (comm_stage == 0) {
       buf[m++] = coordination[j];
     } else {
-      if (kernel_style == CRK0) {
+      if (kernel_style == RK0) {
         buf[m++] = C0[j];
       } else {
         for (a = 0; a < ncor; a++)
@@ -792,7 +792,7 @@ void ComputeRHEOKernel::unpack_forward_comm(int n, int first, double *buf)
     if (comm_stage == 0) {
       coordination[i] = buf[m++];
     } else {
-      if (kernel_style == CRK0) {
+      if (kernel_style == RK0) {
         C0[i] = buf[m++];
       } else {
         for (a = 0; a < ncor; a++)
@@ -810,7 +810,7 @@ double ComputeRHEOKernel::memory_usage()
   double bytes = 0.0;
   bytes = (size_t) nmax_store * sizeof(int);
 
-  if (kernel_style == CRK0) {
+  if (kernel_style == RK0) {
     bytes += (size_t) nmax_store * sizeof(double);
   } else if (correction_order > 0) {
     bytes += (size_t) nmax_store * ncor * Mdim * sizeof(double);

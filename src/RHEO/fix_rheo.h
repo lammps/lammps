@@ -68,7 +68,7 @@ class FixRHEO : public Fix {
 
 namespace RHEO_NS {
 
-  enum {QUINTIC, CRK0, CRK1, CRK2};
+  enum {QUINTIC, RK0, RK1, RK2};
   enum {COORDINATION, DIVR};
 
   // Status variables

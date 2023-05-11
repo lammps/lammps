@@ -437,9 +437,9 @@ void PairRHEO::setup()
     error->all(FLERR,"Pair RHEO requires ghost atoms store velocity");
 
   if (laplacian_order == -1) {
-    if (fix_rheo->kernel_style == CRK2)
+    if (fix_rheo->kernel_style == RK2)
       laplacian_order = 2;
-    else if (fix_rheo->kernel_style == CRK1)
+    else if (fix_rheo->kernel_style == RK1)
       laplacian_order = 1;
     else
       laplacian_order = 0;

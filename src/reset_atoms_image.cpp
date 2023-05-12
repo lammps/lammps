@@ -63,10 +63,7 @@ void ResetAtomsImage::command(int narg, char **arg)
 
   // initialize system since comm->borders() will be invoked
 
-  int old_whichflag = update->whichflag;
-  update->whichflag = 1;
   lmp->init();
-  update->whichflag = old_whichflag;
 
   // setup domain, communication
   // exchange will clear map, borders will reset
@@ -96,6 +93,13 @@ void ResetAtomsImage::command(int narg, char **arg)
                                    "c_ifmax_r_i_f[*] c_ifmin_r_i_f[*]");
 
   // trigger computes
+  // need to ensure update->first_update = 1, even if prior to first run/minimize
+  //   b/c variables internal to this command are evaulated which invoke computes
+  //   error will be triggered unless first_update = 1
+  //   reset update->first_update when done
+  
+  int first_update_saved = update->first_update;
+  update->first_update = 1;
 
   frags->compute_peratom();
   chunk->compute_peratom();
@@ -103,6 +107,8 @@ void ResetAtomsImage::command(int narg, char **arg)
   ifmin->compute_array();
   ifmax->compute_array();
   cdist->compute_peratom();
+
+  update->first_update = first_update_saved;
 
   // reset image flags for atoms in group
 

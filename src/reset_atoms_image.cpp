@@ -93,10 +93,11 @@ void ResetAtomsImage::command(int narg, char **arg)
                                    "c_ifmax_r_i_f[*] c_ifmin_r_i_f[*]");
 
   // trigger computes
-  // need to ensure update->first_update = 1, even if prior to first run/minimize
-  //   b/c variables internal to this command are evaulated which invoke computes
-  //   error will be triggered unless first_update = 1
-  //   reset update->first_update when done
+  // need to ensure update->first_update = 1
+  //   to allow this input script command prior to first run/minimize
+  //   this is b/c internal variables are evaulated which invoke computes
+  //   that will trigger an error unless first_update = 1
+  // reset update->first_update when done
   
   int first_update_saved = update->first_update;
   update->first_update = 1;

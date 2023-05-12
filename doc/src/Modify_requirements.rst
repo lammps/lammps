@@ -168,29 +168,38 @@ Programming language standards (strict)
 
 The core of LAMMPS is written in C++11 in a style that can be mostly
 described as "C with classes".  Advanced C++ features like operator
-overloading or excessive use of templates are avoided with the intent
-to keep the code readable to programmers that have limited C++
-programming experience.  C++ constructs are acceptable when they help
-improve the readability and reliability of the code, e.g. when using
-the `std::string` class instead of manipulating pointers and calling
-the string functions of the C library.  In addition, a collection of
+overloading or excessive use of templates are avoided with the intent to
+keep the code readable to programmers that have limited C++ programming
+experience.  C++ constructs are acceptable when they help improve the
+readability and reliability of the code, e.g. when using the
+`std::string` class instead of manipulating pointers and calling the
+string functions of the C library.  In addition, a collection of
 convenient :doc:`utility functions and classes <Developer_utils>` for
 recurring tasks and a collection of :doc:`platform neutral functions
 <Developer_platform>` for improved portability are provided.
+Contributions with code requiring more recent C++ standards are only
+accepted as packages with the post C++11 standard code confined to the
+package so that it is optional.
 
 Included Fortran code has to be compatible with the Fortran 2003
-standard.  Python code must be compatible with Python 3.5.  Large
-parts of LAMMPS (including the :ref:`PYTHON package <PKG-PYTHON>`) are
-also compatible with Python 2.7.  Compatibility with Python 2.7 is
-desirable, but compatibility with Python 3.5 is **required**.
+standard.  Since not all platforms supported by LAMMPS provide good
+support for compiling Fortran files, it should be considered to rewrite
+these parts as C++ code, if possible and thus allow for a wider adoption
+of the contribution.  As of January 2023, all previously included
+Fortran code for the LAMMPS executable has been replaced by equivalent
+C++ code.
 
-Compatibility with these older programming language standards is very
+Python code must be compatible with Python 3.5 and later.  Large parts
+of LAMMPS (including the :ref:`PYTHON package <PKG-PYTHON>`) are also
+compatible with Python 2.7.  Compatibility with Python 2.7 is desirable,
+but compatibility with Python 3.5 is **required**.
+
+Compatibility with older programming language standards is very
 important to maintain portability and availability of LAMMPS on many
 platforms.  This applies especially to HPC cluster environments, which
 tend to be running older software stacks and where LAMMPS users may be
 required to use those older tools for access to advanced hardware
-features or not have the option to install newer compilers or
-libraries.
+features or not have the option to install newer compilers or libraries.
 
 .. _ReqBuildSystem:
 

@@ -16,7 +16,7 @@ different authors who may not be professionally trained programmers or
 familiar with the idiosyncrasies of maintaining a large software
 package.  In addition, changes that interfere with the parallel
 efficiency of the core code must be avoided.  As LAMMPS continues to
-grow and more features and functionality are added, it's necessary to
+grow and more features and functionality are added, it is necessary to
 follow established guidelines when accepting new contributions while
 also working at the same time to improve the existing code.
 
@@ -204,22 +204,21 @@ compatible with and support both build systems.
 
 For a single pair of header and implementation files that are an
 independent feature, it is usually only required to add them to
-`src/.gitignore``.
+``src/.gitignore``.
 
 For traditional make, if your contributed files or package depend on
 other LAMMPS style files or packages also being installed
 (e.g. because your file is a derived class from the other LAMMPS
-class), then an Install.sh file is also needed to check for those
-dependencies and modifications to src/Depend.sh to trigger the checks.
+class), then an ``Install.sh`` file is also needed to check for those
+dependencies and modifications to ``src/Depend.sh`` to trigger the checks.
 See other README and Install.sh files in other directories as
 examples.
 
 Similarly, for CMake support, changes may need to be made to
-cmake/CMakeLists.txt, some of the files in cmake/presets, and possibly
-a file with specific instructions needs to be added to
-cmake/Modules/Packages/.  Please check out how this is handled for
-existing packages and ask the LAMMPS developers if you need
-assistance.
+``cmake/CMakeLists.txt``, some of the files in ``cmake/presets``, and
+possibly a file with specific instructions needs to be added to
+``cmake/Modules/Packages/``.  Please check out how this is handled for
+existing packages and ask the LAMMPS developers if you need assistance.
 
 .. _ReqNaming:
 
@@ -230,10 +229,10 @@ All user-visible command or style names should be all lower case and
 should only use letters, numbers, or forward slashes.  They should be
 descriptive and initialisms should be avoided unless they are well
 established (e.g. lj for Lennard-Jones).  For a compute style
-"some/name" the source files must be called `compute_some_name.h` and
-`compute_some_name.cpp`. The "include guard" in the header file would
-then be `LMP_COMPUTE_SOME_NAME_H` and the class name
-`ComputeSomeName`.
+"some/name" the source files must be called ``compute_some_name.h`` and
+``compute_some_name.cpp``. The "include guard" in the header file would
+then be ``LMP_COMPUTE_SOME_NAME_H`` and the class name
+``ComputeSomeName``.
 
 .. _ReqProgrammingStyle:
 

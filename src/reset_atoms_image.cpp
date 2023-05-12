@@ -98,7 +98,7 @@ void ResetAtomsImage::command(int narg, char **arg)
   //   this is b/c internal variables are evaulated which invoke computes
   //   that will trigger an error unless first_update = 1
   // reset update->first_update when done
-  
+
   int first_update_saved = update->first_update;
   update->first_update = 1;
 

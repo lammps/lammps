@@ -123,7 +123,7 @@ Miscellaneous standards (varied)
   .. code-block:: c++
 
      // don't write destructors for A or B like this
-     
+
      class A : protected Pointers {
       public:
         A();
@@ -137,7 +137,7 @@ Miscellaneous standards (varied)
      };
 
      // instead, let the compiler create the implicit default destructor by not writing it
-     
+
      class A : protected Pointers {
       public:
         A();

@@ -49,7 +49,7 @@ Contributing authors agree when submitting a pull request that their
 contributions can be distributed under the LAMMPS license conditions.
 This is the GNU public license in version 2 (not 3 or later) for the
 publicly distributed versions, e.g. on the LAMMPS homepage or on
-GitHub.  We also make a version of LAMMPS under LGPL 2.1 terms whcih
+GitHub.  We also have a version of LAMMPS under LGPL 2.1 terms which
 is available on request; this will usually be the latest available or
 a previous stable version with a few LGPL 2.1 incompatible files
 removed.  More details are found on the :doc:`LAMMPS open-source
@@ -105,10 +105,10 @@ Documentation (strict)
 Contributions that add new styles or commands or augment existing ones
 must include the corresponding new or modified documentation in
 `ReStructuredText format <rst_>`_ (.rst files in the ``doc/src/``
-folder). The documentation should be written in American English and
-the .rst file must only ues ASCII characters, so it can be cleanly
-translated to PDF files (via `sphinx <https://www.sphinx-doc.org>`_
-and PDFLaTeX).  Special characters may be included via embedded math
+folder). The documentation should be written in American English and the
+.rst file must only use ASCII characters, so it can be cleanly
+translated to PDF files (via `sphinx <https://www.sphinx-doc.org>`_ and
+PDFLaTeX).  Special characters may be included via embedded math
 expression typeset in a LaTeX subset.
 
 .. _rst: https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html

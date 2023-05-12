@@ -10,14 +10,14 @@ functions and classes are given in :doc:`Developer`.
 If you add a new feature to LAMMPS and think it will be of general
 interest to other users, we encourage you to submit it for inclusion in
 LAMMPS. This process is explained in the following three pages:
-:doc:`how to prepare and submit your code <Modify_contribute>`,
-:doc:`requirements for submissions <Modify_requirements>`, and
-:doc:`style guidelines <Modify_style>`.
+
+* :doc:`how to prepare and submit your code <Modify_contribute>`
+* :doc:`requirements for submissions <Modify_requirements>`
+* :doc:`style guidelines <Modify_style>`
 
 A summary description of various types of styles in LAMMPS follows.
 A discussion of implementing specific styles from scratch is given
 in :doc:`writing new styles <Developer_write>`.
-
 
 .. toctree::
    :maxdepth: 1

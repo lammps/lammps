@@ -59,7 +59,7 @@ pair_coeff         * *
 
 # ------ Fixes & computes ------ #
 
-fix                1 all rheo ${cut} Quintic 0 shift
+fix                1 all rheo ${cut} quintic 0 shift
 fix                2 all rheo/viscosity constant ${eta}
 fix                3 all rheo/pressure linear
 fix                4 rig setforce 0.0 0.0 0.0

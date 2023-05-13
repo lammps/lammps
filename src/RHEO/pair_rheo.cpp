@@ -120,6 +120,16 @@ void PairRHEO::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  for (a = 0; a < 3; a++) {
+    vi[a] = 0.0;
+    vj[a] = 0.0;
+    du[a] = 0.0;
+    fv[a] = 0.0;
+    dfp[a] = 0.0;
+    fsolid[a] = 0.0;
+    ft[0] = 0.0;
+  }
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -132,7 +142,7 @@ void PairRHEO::compute(int eflag, int vflag)
     jnum = numneigh[i];
     imass = mass[itype];
     etai = viscosity[i];
-    fluidi = status[i] & STATUS_FLUID;
+    fluidi = !(status[i] & PHASECHECK);
     if (thermal_flag) {
       kappai = conductivity[i];
       Ti = temperature[i];
@@ -154,7 +164,7 @@ void PairRHEO::compute(int eflag, int vflag)
 
         jmass = mass[jtype];
         etaj = viscosity[j];
-        fluidj = status[j] & STATUS_FLUID;
+        fluidj = !(status[j] & PHASECHECK);
         if (thermal_flag) {
           Tj = temperature[j];
           kappaj = conductivity[j];
@@ -186,25 +196,27 @@ void PairRHEO::compute(int eflag, int vflag)
         Pi = pressure[i];
         Pj = pressure[j];
         fmag = 0;
-        if (fluidi && (!fluidj)) {
-          compute_interface->correct_v(vi, vj, i, j);
-          rhoj = compute_interface->correct_rho(j, i);
-          Pj = fix_pressure->calc_pressure(rhoj);
+        if (interface_flag) {
+          if (fluidi && (!fluidj)) {
+            compute_interface->correct_v(vi, vj, i, j);
+            rhoj = compute_interface->correct_rho(j, i);
+            Pj = fix_pressure->calc_pressure(rhoj);
 
-          if ((chi[j] > 0.9) && (r < (h * 0.5)))
-            fmag = (chi[j] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
+            if ((chi[j] > 0.9) && (r < (h * 0.5)))
+              fmag = (chi[j] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
 
-        } else if ((!fluidi) && fluidj) {
-          compute_interface->correct_v(vj, vi, j, i);
-          rhoi = compute_interface->correct_rho(i, j);
-          Pi = fix_pressure->calc_pressure(rhoi);
+          } else if ((!fluidi) && fluidj) {
+            compute_interface->correct_v(vj, vi, j, i);
+            rhoi = compute_interface->correct_rho(i, j);
+            Pi = fix_pressure->calc_pressure(rhoi);
 
-          if (chi[i] > 0.9 && r < (h * 0.5))
-            fmag = (chi[i] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
+            if (chi[i] > 0.9 && r < (h * 0.5))
+              fmag = (chi[i] - 0.9) * (h * 0.5 - r) * rho0 * csq * h * rinv;
 
-        } else if ((!fluidi) && (!fluidj)) {
-          rhoi = rho0;
-          rhoj = rho0;
+          } else if ((!fluidi) && (!fluidj)) {
+            rhoi = rho0;
+            rhoj = rho0;
+          }
         }
 
         // Repel if close to inner solid particle
@@ -234,7 +246,7 @@ void PairRHEO::compute(int eflag, int vflag)
           sub3(vi, vj, du);
 
           //Add artificial viscous pressure if required
-          if (artificial_visc_flag && pair_avisc_flag){
+          if (artificial_visc_flag && pair_avisc_flag) {
             //Interpolate velocities to midpoint and use this difference for artificial viscosity
             for (a = 0; a < dim; a++)
               for (b = 0; b < dim; b++)
@@ -328,6 +340,7 @@ void PairRHEO::compute(int eflag, int vflag)
       }
     }
   }
+
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -421,6 +434,7 @@ void PairRHEO::setup()
   compute_grad = fix_rheo->compute_grad;
   compute_interface = fix_rheo->compute_interface;
   thermal_flag = fix_rheo->thermal_flag;
+  interface_flag = fix_rheo->interface_flag;
   csq = fix_rheo->csq;
   rho0 = fix_rheo->rho0;
 

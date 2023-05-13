@@ -205,6 +205,8 @@
 /compute_rheo_interface.h
 /compute_rheo_kernel.cpp
 /compute_rheo_kernel.h
+/compute_rheo_property_atom.cpp
+/compute_rheo_property_atom.h
 /compute_rheo_rho_sum.cpp
 /compute_rheo_rho_sum.h
 /compute_rheo_surface.cpp

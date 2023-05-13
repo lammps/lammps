@@ -74,7 +74,6 @@ void ComputeRHEORhoSum::compute_peratom()
   double **x = atom->x;
   double *rho = atom->rho;
   int *type = atom->type;
-  int *status = atom->status;
   double *mass = atom->mass;
   int newton = force->newton;
 

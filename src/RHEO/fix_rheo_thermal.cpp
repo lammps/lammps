@@ -205,7 +205,7 @@ void FixRHEOThermal::initial_integrate(int /*vflag*/)
     nlocal = atom->nfirst;
 
   for (i = 0; i < nlocal; i++) {
-    if (!(status[i] & STATUS_SHIFT)) continue;
+    if (status[i] & STATUS_NO_SHIFT) continue;
 
     if (mask[i] & groupbit) {
       for (a = 0; a < dim; a++) {
@@ -231,7 +231,7 @@ void FixRHEOThermal::post_integrate()
   //Integrate temperature and check status
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & groupbit) {
-      if (status[i] & STATUS_NO_FORCE) continue;
+      if (status[i] & STATUS_NO_INTEGRATION) continue;
 
       cvi = calc_cv(i);
       temperature[i] += dtf * heatflow[i] / cvi;
@@ -245,11 +245,17 @@ void FixRHEOThermal::post_integrate()
         }
 
         if (Ti > Tci) {
-          status[i] &= PHASEMASK;
-          status[i] |= STATUS_FLUID;
-        } else if (!(status[i] & STATUS_SOLID)) {
-          status[i] &= PHASEMASK;
-          status[i] |= STATUS_FREEZING;
+          // If solid, melt
+          if (status[i] & STATUS_SOLID) {
+            status[i] &= PHASEMASK;
+          }
+        } else {
+          // If fluid, freeze
+          if (!(status[i] & STATUS_SOLID)) {
+            status[i] &= PHASEMASK;
+            status[i] |= STATUS_SOLID;
+            status[i] |= STATUS_FREEZING;
+          }
         }
       }
     }
@@ -300,7 +306,7 @@ void FixRHEOThermal::final_integrate()
   //Integrate temperature and check status
   for (int i = 0; i < atom->nlocal; i++) {
     if (mask[i] & groupbit) {
-      if (status[i] & STATUS_NO_FORCE) continue;
+      if (status[i] & STATUS_NO_INTEGRATION) continue;
 
       cvi = calc_cv(i);
       temperature[i] += dtf * heatflow[i] / cvi;

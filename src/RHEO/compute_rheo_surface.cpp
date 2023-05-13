@@ -183,7 +183,7 @@ void ComputeRHEOSurface::compute_peratom()
     jlist = firstneigh[i];
     jnum = numneigh[i];
     itype = type[i];
-    fluidi = status[i] & STATUS_FLUID;
+    fluidi = !(status[i] & PHASECHECK);
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -196,7 +196,7 @@ void ComputeRHEOSurface::compute_peratom()
       rsq = lensq3(dx);
       if (rsq < cutsq) {
         jtype = type[j];
-        fluidj = status[j] & STATUS_FLUID;
+        fluidj = !(status[j] & PHASECHECK);
 
         rhoi = rho[i];
         rhoj = rho[j];

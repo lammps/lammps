@@ -533,7 +533,7 @@ void ComputeRHEOKernel::compute_peratom()
           w = calc_w_quintic(i,j,dx[0],dx[1],dx[2],r);
           rhoj = rho[j];
           if (interface_flag)
-            if (!(status[j] & STATUS_FLUID))
+            if (status[j] & PHASECHECK)
               rhoj = compute_interface->correct_rho(j,i);
 
           vj = mass[type[j]] / rhoj;
@@ -582,7 +582,7 @@ void ComputeRHEOKernel::compute_peratom()
 
           rhoj = rho[j];
           if (interface_flag)
-            if (!(status[j] & STATUS_FLUID))
+            if (status[j] & PHASECHECK)
               rhoj = compute_interface->correct_rho(j,i);
 
           vj = mass[type[j]] / rhoj;

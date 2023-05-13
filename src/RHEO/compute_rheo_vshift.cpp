@@ -91,7 +91,7 @@ void ComputeRHEOVShift::compute_peratom()
   double xtmp, ytmp, ztmp, rsq, r, rinv;
   double w, wp, dr, w0, w4, vmag, prefactor;
   double imass, jmass, voli, volj, rhoi, rhoj;
-  double dx[3], vi[3], vj[3] = {0};
+  double dx[3], vi[3], vj[3];
   int dim = domain->dimension;
 
   int *jlist;
@@ -123,6 +123,11 @@ void ComputeRHEOVShift::compute_peratom()
     for (a = 0; a < dim; a++)
       vshift[i][a] = 0.0;
 
+  for (a = 0; a < 3; a++) {
+    vi[a] = 0.0;
+    vj[a] = 0.0;
+  }
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -132,15 +137,15 @@ void ComputeRHEOVShift::compute_peratom()
     jlist = firstneigh[i];
     jnum = numneigh[i];
     imass = mass[itype];
-    fluidi = status[i] & STATUS_FLUID;
+    fluidi = !(status[i] & PHASECHECK);
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
 
-      fluidj = status[j] & STATUS_FLUID;
+      fluidj = !(status[j] & PHASECHECK);
       if ((!fluidi) && (!fluidj)) continue;
-      if (!(status[i] & STATUS_SHIFT) && !(status[j] & STATUS_SHIFT)) continue;
+      if ((status[i] & STATUS_NO_SHIFT) && (status[j] & STATUS_NO_SHIFT)) continue;
 
       dx[0] = xtmp - x[j][0];
       dx[1] = ytmp - x[j][1];
@@ -154,7 +159,7 @@ void ComputeRHEOVShift::compute_peratom()
         r = sqrt(rsq);
         rinv = 1 / r;
 
-        for (a = 0; a < dim; a ++) {
+        for (a = 0; a < dim; a++) {
           vi[a] = v[i][a];
           vj[a] = v[j][a];
         }

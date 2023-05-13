@@ -131,7 +131,7 @@ void ComputeRHEOInterface::compute_peratom()
   }
 
   for (i = 0; i < nall; i++) {
-    if (!(status[i] & STATUS_FLUID)) rho[i] = 0.0;
+    if (status[i] & PHASECHECK) rho[i] = 0.0;
     normwf[i] = 0.0;
     norm[i] = 0.0;
     chi[i] = 0.0;
@@ -143,7 +143,7 @@ void ComputeRHEOInterface::compute_peratom()
     ytmp = x[i][1];
     ztmp = x[i][2];
     itype = type[i];
-    fluidi = status[i] & STATUS_FLUID;
+    fluidi = !(status[i] & PHASECHECK);
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -158,7 +158,7 @@ void ComputeRHEOInterface::compute_peratom()
 
       if (rsq < cutsq) {
         jtype = type[j];
-        fluidj = status[j] & STATUS_FLUID;
+        fluidj = !(status[j] & PHASECHECK);
         w = compute_kernel->calc_w_quintic(i, j, delx, dely, delz, sqrt(rsq));
 
         status_match = 0;
@@ -202,7 +202,7 @@ void ComputeRHEOInterface::compute_peratom()
     if (norm[i] != 0.0) chi[i] /= norm[i];
 
     // Recalculate rho for non-fluid particles
-    if (!(status[i] & STATUS_FLUID)) {
+    if (status[i] & PHASECHECK) {
       if (normwf[i] != 0.0) {
         // Stores rho for solid particles 1+Pw in Adami Adams 2012
         rho[i] = MAX(EPSILON, rho0 + (rho[i] / normwf[i]) * csq_inv);
@@ -289,7 +289,7 @@ void ComputeRHEOInterface::unpack_reverse_comm(int n, int *list, double *buf)
     j = list[i];
     norm[j] += buf[m++];
     chi[j] += buf[m++];
-    if (!(status[j] & STATUS_FLUID)){
+    if (status[j] & PHASECHECK){
       normwf[j] += buf[m++];
       rho[j] += buf[m++];
     } else {

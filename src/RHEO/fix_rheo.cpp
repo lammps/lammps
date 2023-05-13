@@ -210,6 +210,8 @@ void FixRHEO::setup_pre_force(int /*vflag*/)
 
   // Calculate surfaces
   if (surface_flag) compute_surface->compute_peratom();
+
+  pre_force(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -258,8 +260,6 @@ void FixRHEO::setup(int /*vflag*/)
     error->one(FLERR, "Fix rheo/viscosity does not fully cover all atoms");
   if (!t_coverage_flag)
     error->one(FLERR, "Fix rheo/thermal does not fully cover all atoms");
-
-  pre_force(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -283,7 +283,8 @@ void FixRHEO::initial_integrate(int /*vflag*/)
   double **gradr = compute_grad->gradr;
   double **gradv = compute_grad->gradv;
   double **vshift;
-  if (shift_flag) compute_vshift->vshift;
+  if (shift_flag)
+    vshift = compute_vshift->vshift;
 
   int nlocal = atom->nlocal;
   int rmass_flag = atom->rmass_flag;
@@ -294,7 +295,7 @@ void FixRHEO::initial_integrate(int /*vflag*/)
 
   //Density Half-step
   for (i = 0; i < nlocal; i++) {
-    if (status[i] & STATUS_NO_FORCE) continue;
+    if (status[i] & STATUS_NO_INTEGRATION) continue;
 
     if (mask[i] & groupbit) {
       if (rmass_flag) {
@@ -331,8 +332,8 @@ void FixRHEO::initial_integrate(int /*vflag*/)
   if (!rhosum_flag) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        if (status[i] & STATUS_NO_FORCE) continue;
-        if (!(status[i] & STATUS_FLUID)) continue;
+        if (status[i] & STATUS_NO_INTEGRATION) continue;
+        if (status[i] & PHASECHECK) continue;
 
         divu = 0;
         for (a = 0; a < dim; a++) {
@@ -348,7 +349,7 @@ void FixRHEO::initial_integrate(int /*vflag*/)
     compute_vshift->correct_surfaces(); // Could this be moved to preforce after the surface fix runs?
     for (i = 0; i < nlocal; i++) {
 
-      if (!(status[i] & STATUS_SHIFT)) continue;
+      if (status[i] & STATUS_NO_SHIFT) continue;
 
       if (mask[i] & groupbit) {
         for (a = 0; a < dim; a++) {
@@ -387,18 +388,13 @@ void FixRHEO::pre_force(int /*vflag*/)
   if (shift_flag)
     compute_vshift->compute_peratom();
 
-  // Remove extra shifting/no force options
+  // Remove temporary options
   int *mask = atom->mask;
   int *status = atom->status;
   int nall = atom->nlocal + atom->nghost;
-  for (int i = 0; i < nall; i++) {
-    if (mask[i] & groupbit) {
-      status[i] &= ~STATUS_NO_FORCE;
-
-      if (status[i] & STATUS_FLUID)
-        status[i] &= ~STATUS_SHIFT;
-    }
-  }
+  for (int i = 0; i < nall; i++)
+    if (mask[i] & groupbit)
+      status[i] &= OPTIONSMASK;
 
   // Calculate surfaces, update status
   if (surface_flag) compute_surface->compute_peratom();
@@ -433,7 +429,7 @@ void FixRHEO::final_integrate()
   // Update velocity
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if (status[i] & STATUS_NO_FORCE) continue;
+      if (status[i] & STATUS_NO_INTEGRATION) continue;
 
       if (rmass_flag) {
         dtfm = dtf / rmass[i];
@@ -451,8 +447,8 @@ void FixRHEO::final_integrate()
   if (!rhosum_flag) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        if (status[i] & STATUS_NO_FORCE) continue;
-        if (!(status[i] & STATUS_FLUID)) continue;
+        if (status[i] & STATUS_NO_INTEGRATION) continue;
+        if (status[i] & PHASECHECK) continue;
 
         divu = 0;
         for (a = 0; a < dim; a++) {

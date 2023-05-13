@@ -125,7 +125,7 @@ void ComputeRHEOGrad::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeRHEOGrad::compute_peratom()
 {
-  int i, j, k, ii, jj, jnum, itype, jtype, a, b;
+  int i, j, k, ii, jj, jnum, itype, jtype, a, b, fluidi, fluidj;
   double xtmp, ytmp, ztmp, delx, dely, delz;
   double rsq, imass, jmass;
   double rhoi, rhoj, Voli, Volj, drho, dT, deta;
@@ -183,6 +183,7 @@ void ComputeRHEOGrad::compute_peratom()
     vi[1] = v[i][1];
     vi[2] = v[i][2];
     itype = type[i];
+    fluidi = !(status[i] & PHASECHECK);
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -197,6 +198,8 @@ void ComputeRHEOGrad::compute_peratom()
       rsq = delx * delx + dely * dely + delz * delz;
 
       if (rsq < cutsq) {
+        fluidj = !(status[j] & PHASECHECK);
+
         rhoi = rho[i];
         rhoj = rho[j];
 
@@ -206,13 +209,13 @@ void ComputeRHEOGrad::compute_peratom()
 
         // Add corrections for walls
         if (interface_flag) {
-          if ((status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
+          if (fluidi && (!fluidj)) {
             compute_interface->correct_v(vi, vj, i, j);
             rhoj = compute_interface->correct_rho(j, i);
-          } else if (!(status[i] & STATUS_FLUID) && (status[j] & STATUS_FLUID)) {
+          } else if ((!fluidi) && fluidj) {
             compute_interface->correct_v(vj, vi, j, i);
             rhoi = compute_interface->correct_rho(i, j);
-          } else if (!(status[i] & STATUS_FLUID) && !(status[j] & STATUS_FLUID)) {
+          } else if ((!fluidi) && (!fluidj)) {
             rhoi = rho0;
             rhoj = rho0;
           }

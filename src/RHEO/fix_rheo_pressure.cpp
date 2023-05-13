@@ -43,9 +43,7 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix command");
 
   pressure_style = NONE;
-
   comm_forward = 1;
-  nmax_store = 0;
 
   // Currently can only have one instance of fix rheo/pressure
   if (igroup != 0)
@@ -73,10 +71,6 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
 
 FixRHEOPressure::~FixRHEOPressure()
 {
-  // Remove custom property if it exists
-  int tmp1, tmp2, index;
-  index = atom->find_custom("rheo_pressure", tmp1, tmp2);
-  if (index != -1) atom->remove_custom(index, 1, 0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -110,20 +104,6 @@ void FixRHEOPressure::init()
 void FixRHEOPressure::setup_pre_force(int /*vflag*/)
 {
   fix_rheo->pressure_fix_defined = 1;
-
-  // Create pressure array if it doesn't already exist
-  // Create a custom atom property so it works with compute property/atom
-  // Do not create grow callback as there's no reason to copy/exchange data
-  // Manually grow if nmax_store exceeded
-
-  int tmp1, tmp2;
-  int index = atom->find_custom("rheo_pressure", tmp1, tmp2);
-  if (index == -1) {
-    index = atom->add_custom("rheo_pressure", 1, 0);
-    nmax_store = atom->nmax;
-  }
-  pressure = atom->dvector[index];
-
   pre_force(0);
 }
 
@@ -138,13 +118,9 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
 
   int *mask = atom->mask;
   double *rho = atom->rho;
+  double *pressure = atom->pressure;
 
   int nlocal = atom->nlocal;
-
-  if (nmax_store < atom->nmax) {
-    memory->grow(pressure, atom->nmax, "atom:rheo_pressure");
-    nmax_store = atom->nmax;
-  }
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -170,6 +146,7 @@ int FixRHEOPressure::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m;
+  double *pressure = atom->pressure;
   m = 0;
 
   for (i = 0; i < n; i++) {
@@ -184,6 +161,7 @@ int FixRHEOPressure::pack_forward_comm(int n, int *list, double *buf,
 void FixRHEOPressure::unpack_forward_comm(int n, int first, double *buf)
 {
   int i, k, m, last;
+  double *pressure = atom->pressure;
 
   m = 0;
   last = first + n;
@@ -209,13 +187,4 @@ double FixRHEOPressure::calc_pressure(double rho)
     p = csq * rho0 * SEVENTH * (rr3 * rr3 * rho_ratio - 1.0);
   }
   return rho;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixRHEOPressure::memory_usage()
-{
-  double bytes = 0.0;
-  bytes += (size_t) nmax_store * sizeof(double);
-  return bytes;
 }

@@ -212,10 +212,8 @@ void ComputeRHEOPropertyAtom::pack_phase(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int inverse_mask = ~PHASEMASK;
-
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (status[i] & inverse_mask);
+    if (mask[i] & groupbit) buf[n] = (status[i] & PHASECHECK);
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -244,10 +242,8 @@ void ComputeRHEOPropertyAtom::pack_surface(int n)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  int inverse_mask = ~SURFACEMASK;
-
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = (status[i] & inverse_mask);
+    if (mask[i] & groupbit) buf[n] = (status[i] & SURFACECHECK);
     else buf[n] = 0.0;
     n += nvalues;
   }

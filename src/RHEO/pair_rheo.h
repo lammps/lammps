@@ -42,6 +42,7 @@ class PairRHEO : public Pair {
   int artificial_visc_flag;
   int rho_damp_flag;
   int thermal_flag;
+  int interface_flag;
 
   void allocate();
 

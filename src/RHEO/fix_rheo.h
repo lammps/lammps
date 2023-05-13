@@ -74,22 +74,27 @@ namespace RHEO_NS {
   // Status variables
   enum Status{
     // Phase status
-    STATUS_FLUID = 1 << 0,
-    STATUS_SOLID = 1 << 1,
-    STATUS_REACTIVE = 1 << 2,
-    STATUS_FREEZING = 1 << 3,
+    STATUS_SOLID = 1 << 0,
+    STATUS_REACTIVE = 1 << 1,
+
     // Surface status
-    STATUS_BULK = 1 << 4,
-    STATUS_LAYER = 1 << 5,
-    STATUS_SURFACE = 1 << 6,
-    STATUS_SPLASH = 1 << 7,
+    STATUS_BULK = 1 << 2,
+    STATUS_LAYER = 1 << 3,
+    STATUS_SURFACE = 1 << 4,
+    STATUS_SPLASH = 1 << 5,
+
     // Temporary status options - reset in preforce
-    STATUS_SHIFT = 1 << 8,
-    STATUS_NO_FORCE = 1 << 9
+    STATUS_NO_SHIFT = 1 << 6,
+    STATUS_NO_INTEGRATION = 1 << 7,
+    STATUS_FREEZING = 1 << 8
   };
 
-  #define PHASEMASK 0xFFFFFFF0;
-  #define SURFACEMASK 0xFFFFFF0F;
+  // Masks and their inverses
+  #define PHASEMASK 0xFFFFFFFC
+  #define PHASECHECK 0x00000003
+  #define SURFACEMASK 0xFFFFFFC3
+  #define SURFACECHECK 0x0000003C
+  #define OPTIONSMASK 0xFFFFFE3F
 
 }    // namespace RHEO_NS
 }    // namespace LAMMPS_NS

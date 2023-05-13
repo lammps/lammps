@@ -1849,17 +1849,6 @@ void CommTiled::forward_comm_array(int nsize, double **array)
 }
 
 /* ----------------------------------------------------------------------
-   exchange info provided with all 6 stencil neighbors
-   NOTE: this method is currently not used
-------------------------------------------------------------------------- */
-
-int CommTiled::exchange_variable(int n, double * /*inbuf*/, double *& /*outbuf*/)
-{
-  int nrecv = n;
-  return nrecv;
-}
-
-/* ----------------------------------------------------------------------
    determine overlap list of Noverlap procs the lo/hi box overlaps
    overlap = non-zero area in common between box and proc sub-domain
    box is owned by me and extends in dim

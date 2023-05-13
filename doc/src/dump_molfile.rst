@@ -63,7 +63,7 @@ like element names.
 
 The *path* keyword determines which in directories. This is a "path"
 like other search paths, i.e. it can contain multiple directories
-separated by a colon (or semi-colon on windows). This keyword is
+separated by a colon (or semicolon on Windows). This keyword is
 optional and default to ".", the current directory.
 
 The *unwrap* option of the :doc:`dump_modify <dump_modify>` command allows

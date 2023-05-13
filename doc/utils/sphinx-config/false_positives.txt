@@ -3736,6 +3736,7 @@ Umin
 un
 unary
 uncomment
+uncompress
 uncompute
 underprediction
 undump

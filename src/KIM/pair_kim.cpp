@@ -253,6 +253,33 @@ void PairKIM::compute(int eflag, int vflag)
   int kimerror = KIM_Model_Compute(pkim, pargs);
   if (kimerror) error->all(FLERR,"KIM Compute returned error {}", kimerror);
 
+  // scale results for fix adapt if needed
+  if (scale_extracted)
+  {
+    if (eflag_global != 0)
+    {
+      eng_vdwl *= scale;
+    }
+    for (int i = 0; i < nall; i++)
+    {        
+      if (eflag_atom != 0)
+      {
+        eatom[i] *= scale;
+      }
+      if (vflag_atom != 0)
+      {
+        for (int j = 0; j < 6; j++)
+        {
+          vatom[i][j] *= scale;
+        }
+      }
+      for (int j = 0; j < 3; j++)
+      {
+        atom->f[i][j] *= scale;
+      }
+    }
+  }
+
   // compute virial before reverse comm!
   if (vflag_global)
     virial_fdotr_compute();
@@ -273,40 +300,6 @@ void PairKIM::compute(int eflag, int vflag)
       vatom[i][3] = -vatom[i][5];
       vatom[i][4] = -vatom[i][4];
       vatom[i][5] = -tmp;
-    }
-  }
-
-  // scale results for fix adapt if needed
-  if (scale_extracted)
-  {
-    if (eflag_global != 0)
-    {
-      eng_vdwl *= scale;
-    }
-    if (vflag_global != 0)
-    {
-      for (int i = 0; i < 6; i++)
-      {
-        virial[i] *= scale;
-      }
-    }
-    for (int i = 0; i < nall; i++)
-    {        
-      if (eflag_atom != 0)
-      {
-        eatom[i] *= scale;
-      }
-      if (vflag_atom != 0)
-      {
-        for (int j = 0; j < 6; j++)
-        {
-          vatom[i][j] *= scale;
-        }
-      }
-      for (int j = 0; j < 3; j++)
-      {
-        atom->f[i][j] *= scale;
-      }
     }
   }
 }

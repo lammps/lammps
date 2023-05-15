@@ -1152,11 +1152,9 @@ std::string PairKIM::get_atom_type_list() { return atom_type_list; }
 void *PairKIM::extract(const char *str, int &dim)
 {
   dim = 0;
-  if (strcmp(str,"scale") == 0)
-  {
+  if (strcmp(str,"scale") == 0) {
     scale_extracted = true;
     return (void *) &scale;
   }
-
   return nullptr;
 }

@@ -209,7 +209,7 @@ it as a single keyword.
 
 Optionally, the expression may use "rc" to refer to the cutoff distance
 for the given wall.  Further constants in the expression can be defined
-in the same string as additional expressions separated by semi-colons.
+in the same string as additional expressions separated by semicolons.
 The expression "k*(r-rc)^2;k=100.0" represents a repulsive-only harmonic
 spring as in fix *wall/harmonic* with a force constant *K* (same as
 :math:`\epsilon` above) of 100 energy units.  More details on the Lepton

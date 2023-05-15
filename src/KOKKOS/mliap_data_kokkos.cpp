@@ -56,6 +56,7 @@ MLIAPDataKokkos<DeviceType>::~MLIAPDataKokkos() {
   memoryKK->destroy_kokkos(k_ielems,ielems);
   memoryKK->destroy_kokkos(k_numneighs,numneighs);
   memoryKK->destroy_kokkos(k_jatoms,jatoms);
+  memoryKK->destroy_kokkos(k_mapped_jatoms,mapped_jatoms);
   memoryKK->destroy_kokkos(k_pair_i,pair_i);
   memoryKK->destroy_kokkos(k_jelems,jelems);
   memoryKK->destroy_kokkos(k_elems,elems);
@@ -133,6 +134,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   auto d_ij = k_ij.template view<DeviceType>();
   auto d_numneighs = k_numneighs.template view<DeviceType>();
   auto d_jatoms = k_jatoms.template view<DeviceType>();
+  auto d_mapped_jatoms = k_mapped_jatoms.template view<DeviceType>();
   auto d_pair_i= k_pair_i.template view<DeviceType>();
   auto d_jelems= k_jelems.template view<DeviceType>();
   auto d_rij= k_rij.template view<DeviceType>();
@@ -147,6 +149,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
   auto x = atomKK->k_x.view<DeviceType>();
   auto type = atomKK->k_type.view<DeviceType>();
   auto map=k_pairmliap->k_map.template view<DeviceType>();
+  auto tag_map=atomKK->k_tag.view<DeviceType>();
 
   Kokkos::parallel_scan(nlistatoms, KOKKOS_LAMBDA (int ii, int &update, const bool final) {
     if (final)
@@ -174,6 +177,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
       const int jelem = map(jtype);
       if (rsq < d_cutsq(itype,jtype)) {
         d_jatoms(ij) = j;
+	d_mapped_jatoms(ij) = tag_map[j];
         d_pair_i(ij) = i;
         d_jelems(ij) = jelem;
         d_rij(ij, 0) = delx;
@@ -189,7 +193,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
     const int itype = type(i);
     d_elems(i) = map(itype);
   });
-  modified(execution_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | ELEMS_MASK | JATOMS_MASK | PAIR_I_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
+  modified(execution_space, NUMNEIGHS_MASK | IATOMS_MASK | IELEMS_MASK | ELEMS_MASK | MAPPED_JATOMS_MASK | JATOMS_MASK | PAIR_I_MASK | JELEMS_MASK | RIJ_MASK | IJ_MASK );
   eflag = eflag_in;
   vflag = vflag_in;
 }
@@ -253,6 +257,8 @@ void MLIAPDataKokkos<DeviceType>::grow_neigharrays() {
   if (nneigh_max < npairs) {
     memoryKK->destroy_kokkos(k_jatoms,jatoms);
     memoryKK->create_kokkos(k_jatoms, jatoms, npairs, "mliap_data:jatoms");
+    memoryKK->destroy_kokkos(k_mapped_jatoms,mapped_jatoms);
+    memoryKK->create_kokkos(k_mapped_jatoms, mapped_jatoms, npairs, "mliap_data:mapped_jatoms");
     memoryKK->destroy_kokkos(k_pair_i,pair_i);
     memoryKK->create_kokkos(k_pair_i, pair_i, npairs, "mliap_data:pair_i");
     memoryKK->destroy_kokkos(k_jelems,jelems);
@@ -276,6 +282,7 @@ void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int ma
     if (mask & IATOMS_MASK      ) k_iatoms         .modify<LMPDeviceType>();
     if (mask & IELEMS_MASK      ) k_ielems         .modify<LMPDeviceType>();
     if (mask & JATOMS_MASK      ) k_jatoms         .modify<LMPDeviceType>();
+    if (mask & MAPPED_JATOMS_MASK      ) k_mapped_jatoms  .modify<LMPDeviceType>();
     if (mask & PAIR_I_MASK      ) k_pair_i         .modify<LMPDeviceType>();
     if (mask & JELEMS_MASK      ) k_jelems         .modify<LMPDeviceType>();
     if (mask & ELEMS_MASK       ) k_elems          .modify<LMPDeviceType>();
@@ -296,6 +303,7 @@ void MLIAPDataKokkos<DeviceType>::modified(ExecutionSpace space, unsigned int ma
     if (mask & IATOMS_MASK      ) k_iatoms         .modify<LMPHostType>();
     if (mask & IELEMS_MASK      ) k_ielems         .modify<LMPHostType>();
     if (mask & JATOMS_MASK      ) k_jatoms         .modify<LMPHostType>();
+    if (mask & MAPPED_JATOMS_MASK      ) k_mapped_jatoms  .modify<LMPHostType>();
     if (mask & PAIR_I_MASK      ) k_pair_i         .modify<LMPHostType>();
     if (mask & JELEMS_MASK      ) k_jelems         .modify<LMPHostType>();
     if (mask & ELEMS_MASK       ) k_elems          .modify<LMPHostType>();
@@ -324,6 +332,7 @@ void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, 
     if (mask & IATOMS_MASK      ) k_iatoms         .sync<LMPDeviceType>();
     if (mask & IELEMS_MASK      ) k_ielems         .sync<LMPDeviceType>();
     if (mask & JATOMS_MASK      ) k_jatoms         .sync<LMPDeviceType>();
+    if (mask & MAPPED_JATOMS_MASK      ) k_mapped_jatoms  .sync<LMPDeviceType>();
     if (mask & PAIR_I_MASK      ) k_pair_i         .sync<LMPDeviceType>();
     if (mask & JELEMS_MASK      ) k_jelems         .sync<LMPDeviceType>();
     if (mask & ELEMS_MASK       ) k_elems          .sync<LMPDeviceType>();
@@ -343,6 +352,7 @@ void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, unsigned int mask, 
     if (mask & IATOMS_MASK      ) k_iatoms         .sync<LMPHostType>();
     if (mask & IELEMS_MASK      ) k_ielems         .sync<LMPHostType>();
     if (mask & JATOMS_MASK      ) k_jatoms         .sync<LMPHostType>();
+    if (mask & MAPPED_JATOMS_MASK      ) k_mapped_jatoms  .sync<LMPHostType>();
     if (mask & PAIR_I_MASK      ) k_pair_i         .sync<LMPHostType>();
     if (mask & JELEMS_MASK      ) k_jelems         .sync<LMPHostType>();
     if (mask & ELEMS_MASK       ) k_elems          .sync<LMPHostType>();

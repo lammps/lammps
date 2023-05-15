@@ -33,7 +33,7 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in, class MLIAPM
     gamma(nullptr), gamma_row_index(nullptr), gamma_col_index(nullptr), egradient(nullptr),
     numneighs(nullptr), iatoms(nullptr), ielems(nullptr), pair_i(nullptr), jatoms(nullptr),
     jelems(nullptr), elems(nullptr), rij(nullptr), graddesc(nullptr), model(nullptr),
-    descriptor(nullptr), list(nullptr)
+    descriptor(nullptr), list(nullptr), mapped_jatoms(nullptr)
 {
   gradgradflag = gradgradflag_in;
   map = map_in;
@@ -86,6 +86,7 @@ MLIAPData::~MLIAPData()
   memory->destroy(ielems);
   memory->destroy(numneighs);
   memory->destroy(jatoms);
+  memory->destroy(mapped_jatoms);
   memory->destroy(jelems);
   memory->destroy(elems);
   memory->destroy(rij);
@@ -185,6 +186,7 @@ void MLIAPData::generate_neighdata(NeighList *list_in, int eflag_in, int vflag_i
       if (rsq < descriptor->cutsq[ielem][jelem]) {
         pair_i[ij] = i;
         jatoms[ij] = j;
+	mapped_jatoms[ij] = atom->tag[j];
         jelems[ij] = jelem;
         rij[ij][0] = delx;
         rij[ij][1] = dely;
@@ -264,6 +266,7 @@ void MLIAPData::grow_neigharrays()
   if (nneigh_max < nneigh) {
     memory->grow(pair_i, nneigh, "MLIAPData:pair_i");
     memory->grow(jatoms, nneigh, "MLIAPData:jatoms");
+    memory->grow(mapped_jatoms, nneigh, "MLIAPData:mapped_jatoms");
     memory->grow(jelems, nneigh, "MLIAPData:jelems");
     memory->grow(rij, nneigh, 3, "MLIAPData:rij");
     if (gradgradflag == 0) memory->grow(graddesc, nneigh, ndescriptors, 3, "MLIAPData:graddesc");
@@ -295,6 +298,7 @@ double MLIAPData::memory_usage()
 
   bytes += (double) nneigh_max * sizeof(int);           // pair_i
   bytes += (double) nneigh_max * sizeof(int);           // jatoms
+  bytes += (double) nneigh_max * sizeof(int);           // mapped_jatoms
   bytes += (double) nneigh_max * sizeof(int);           // jelems
   bytes += (double) nneigh_max * 3 * sizeof(double);    // rij"
 

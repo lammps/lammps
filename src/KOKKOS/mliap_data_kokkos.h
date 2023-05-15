@@ -45,7 +45,7 @@ enum {
   GAMMA_COL_MASK     = 0x00004000,
   PAIR_I_MASK        = 0x00008000,
   ELEMS_MASK         = 0x00010000,
-  MAPPED_JATOMS_MASK = 0x00020000,
+  JTAGS_MASK = 0x00020000,
 
 };
 // clang-format on
@@ -69,7 +69,7 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
   DAT::tdual_int_1d k_iatoms;           // index of each atom
   DAT::tdual_int_1d k_ielems;           // element of each atom
   DAT::tdual_int_1d k_jatoms;           // index of each neighbor
-  DAT::tdual_int_1d k_mapped_jatoms;    // index of each neighbor mapped to simulation cell
+  DAT::tdual_int_1d k_jtags;            // tag of each neighbor in the simulation cell
   DAT::tdual_int_1d k_elems;            // element of each atom in or not in the neighborlist
   DAT::tdual_int_1d k_pair_i;           // index of each i atom for each ij pair
   DAT::tdual_int_1d k_jelems;           // element of each neighbor
@@ -129,7 +129,7 @@ public:
     nneigh_max(base.nneigh_max),
     npairs(base.npairs),
     jatoms(base.k_jatoms.d_view.data()),
-    mapped_jatoms(base.k_mapped_jatoms.d_view.data()),
+    jtags(base.k_jtags.d_view.data()),
     jelems(base.k_jelems.d_view.data()),
     elems(base.k_elems.d_view.data()),
     rij(base.k_rij.d_view.data()),
@@ -183,7 +183,7 @@ public:
   const int nneigh_max;
   const int npairs;
   int *jatoms;
-  int *mapped_jatoms;
+  int *jtags;
   int *jelems;
   int *elems;
   double *rij;

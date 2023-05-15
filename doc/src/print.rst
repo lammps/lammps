@@ -46,6 +46,20 @@ lines of output, the string can be enclosed in triple quotes, as in
 the last example above.  If the text string contains variables, they
 will be evaluated and their current values printed.
 
+.. versionadded:: TBD
+
+   support for vector style variables
+
+See the :doc:`variable <variable>` command for a description of
+*equal* and *vector* style variables which are typically the most
+useful ones to use with the print command.  Equal- and vector-style
+variables can calculate formulas involving mathematical operations,
+atom properties, group properties, thermodynamic properties, global
+values calculated by a :doc:`compute <compute>` or :doc:`fix <fix>`,
+or references to other :doc:`variables <variable>`.  Vector-style
+variables are printed in a bracketed, comma-separated format,
+e.g. [1,2,3,4] or [12.5,2,4.6,10.1].
+
 .. note::
 
    As discussed on the :doc:`Commands parse <Commands_parse>` doc
@@ -60,6 +74,15 @@ will be evaluated and their current values printed.
    This is also explained on the :doc:`Commands parse
    <Commands_parse>` doc page.
 
+If you want the print command to be executed multiple times (with
+changing variable values), there are 3 options.  First, consider using
+the :doc:`fix print <fix_print>` command, which will print a string
+periodically during a simulation.  Second, the print command can be
+used as an argument to the *every* option of the :doc:`run <run>`
+command.  Third, the print command could appear in a section of the
+input script that is looped over (see the :doc:`jump <jump>` and
+:doc:`next <next>` commands).
+
 If the *file* or *append* keyword is used, a filename is specified to
 which the output will be written.  If *file* is used, then the
 filename is overwritten if it already exists.  If *append* is used,
@@ -73,23 +96,6 @@ If the *universe* keyword is used, output to the global screen and
 logfile can be turned on or off as desired. In multi-partition
 calculations, the *screen* option and the corresponding output only
 apply to the screen and logfile of the individual partition.
-
-If you want the print command to be executed multiple times (with
-changing variable values), there are 3 options.  First, consider using
-the :doc:`fix print <fix_print>` command, which will print a string
-periodically during a simulation.  Second, the print command can be
-used as an argument to the *every* option of the :doc:`run <run>`
-command.  Third, the print command could appear in a section of the
-input script that is looped over (see the :doc:`jump <jump>` and
-:doc:`next <next>` commands).
-
-See the :doc:`variable <variable>` command for a description of *equal*
-style variables which are typically the most useful ones to use with
-the print command.  Equal-style variables can calculate formulas
-involving mathematical operations, atom properties, group properties,
-thermodynamic properties, global values calculated by a
-:doc:`compute <compute>` or :doc:`fix <fix>`, or references to other
-:doc:`variables <variable>`.
 
 Restrictions
 """"""""""""

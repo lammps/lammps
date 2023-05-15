@@ -186,7 +186,7 @@ void MLIAPData::generate_neighdata(NeighList *list_in, int eflag_in, int vflag_i
       if (rsq < descriptor->cutsq[ielem][jelem]) {
         pair_i[ij] = i;
         jatoms[ij] = j;
-	mapped_jatoms[ij] = atom->tag[j];
+        mapped_jatoms[ij] = atom->tag[j];
         jelems[ij] = jelem;
         rij[ij][0] = delx;
         rij[ij][1] = dely;

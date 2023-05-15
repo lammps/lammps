@@ -177,7 +177,7 @@ void MLIAPDataKokkos<DeviceType>::generate_neighdata(class NeighList *list_in, i
       const int jelem = map(jtype);
       if (rsq < d_cutsq(itype,jtype)) {
         d_jatoms(ij) = j;
-	d_mapped_jatoms(ij) = tag_map[j];
+        d_mapped_jatoms(ij) = tag_map[j];
         d_pair_i(ij) = i;
         d_jelems(ij) = jelem;
         d_rij(ij, 0) = delx;

@@ -67,7 +67,7 @@ cdef extern from "mliap_data_kokkos.h" namespace "LAMMPS_NS":
         int nneigh_max          # number of ij neighbors allocated
         int npairs              # number of ij neighbor pairs
         int * jatoms            # index of each neighbor
-        int * mapped_jatoms     # index of each neighbor mapped to the simulation cell
+        int * jtags             # tag of each neighbor in the simulation cell
         int * jelems            # element of each neighbor
         int * elems             # element of each atom in or not in the neighborlist
         double * rij           # distance vector of each neighbor
@@ -329,10 +329,10 @@ cdef class MLIAPDataPy:
         return self.jatoms
 
     @property
-    def mapped_jatoms(self):
-        if self.data.mapped_jatoms is NULL:
+    def jtags(self):
+        if self.data.jtags is NULL:
             return None
-        return create_array(self.data.dev, self.data.mapped_jatoms, [self.npairs],True)
+        return create_array(self.data.dev, self.data.jtags, [self.npairs],True)
 
 
     @property

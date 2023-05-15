@@ -70,7 +70,7 @@ class MLIAPData : protected Pointers {
   int npairs;                    // number of ij neighbor pairs
   int *pair_i;                   // index of each i atom for each ij pair
   int *jatoms;                   // index of each neighbor
-  int *mapped_jatoms;            // index of each neighbor mapped to simulation cell
+  int *jtags;                    // tag of each neighbor in the simulation cell
   int *jelems;                   // element of each neighbor
   int *elems;                    // element of each atom in or not in the neighborlist
   double **rij;                  // distance vector of each neighbor

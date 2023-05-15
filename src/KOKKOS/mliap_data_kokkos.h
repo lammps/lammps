@@ -45,7 +45,7 @@ enum {
   GAMMA_COL_MASK     = 0x00004000,
   PAIR_I_MASK        = 0x00008000,
   ELEMS_MASK         = 0x00010000,
-  MAPPED_JATOMS_MASK = 0x00010002,
+  MAPPED_JATOMS_MASK = 0x00020000,
 
 };
 // clang-format on

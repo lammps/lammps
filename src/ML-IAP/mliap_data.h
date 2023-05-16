@@ -21,7 +21,8 @@ namespace LAMMPS_NS {
 class MLIAPData : protected Pointers {
 
  public:
-  MLIAPData(class LAMMPS *, int, int *, class MLIAPModel *, class MLIAPDescriptor *,
+  MLIAPData(class LAMMPS *, int, int, int *,
+	    class MLIAPModel *, class MLIAPDescriptor *,
             class PairMLIAP * = nullptr);
   ~MLIAPData() override;
 
@@ -45,6 +46,7 @@ class MLIAPData : protected Pointers {
   int nparams;             // number of model parameters per element
   int nelements;           // number of elements
   int gradgradflag;        // 1 for graddesc, 0 for gamma, -1 for pair style
+  int jtagsflag;           // 0 for no jtags array, 1 for jtags array
 
   // data structures for grad-grad list (gamma)
 

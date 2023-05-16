@@ -26,8 +26,9 @@
 
 using namespace LAMMPS_NS;
 
-MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in, class MLIAPModel *model_in,
-                     class MLIAPDescriptor *descriptor_in, class PairMLIAP *pairmliap_in) :
+MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int jtagsflag_in, int *map_in,
+		     class MLIAPModel *model_in, class MLIAPDescriptor *descriptor_in,
+		     class PairMLIAP *pairmliap_in):
     Pointers(lmp),
     f(nullptr), gradforce(nullptr), betas(nullptr), descriptors(nullptr), eatoms(nullptr),
     gamma(nullptr), gamma_row_index(nullptr), gamma_col_index(nullptr), egradient(nullptr),
@@ -36,6 +37,7 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in, class MLIAPM
     descriptor(nullptr), list(nullptr), jtags(nullptr)
 {
   gradgradflag = gradgradflag_in;
+  jtagsflag = jtagsflag_in;
   map = map_in;
   model = model_in;
   descriptor = descriptor_in;
@@ -86,11 +88,11 @@ MLIAPData::~MLIAPData()
   memory->destroy(ielems);
   memory->destroy(numneighs);
   memory->destroy(jatoms);
-  memory->destroy(jtags);
   memory->destroy(jelems);
   memory->destroy(elems);
   memory->destroy(rij);
   memory->destroy(graddesc);
+  if (jtagsflag) memory->destroy(jtags);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -186,7 +188,7 @@ void MLIAPData::generate_neighdata(NeighList *list_in, int eflag_in, int vflag_i
       if (rsq < descriptor->cutsq[ielem][jelem]) {
         pair_i[ij] = i;
         jatoms[ij] = j;
-        jtags[ij] = atom->tag[j];
+	if (jtagsflag) jtags[ij] = atom->tag[j];
         jelems[ij] = jelem;
         rij[ij][0] = delx;
         rij[ij][1] = dely;
@@ -266,11 +268,11 @@ void MLIAPData::grow_neigharrays()
   if (nneigh_max < nneigh) {
     memory->grow(pair_i, nneigh, "MLIAPData:pair_i");
     memory->grow(jatoms, nneigh, "MLIAPData:jatoms");
-    memory->grow(jtags, nneigh, "MLIAPData:jtags");
     memory->grow(jelems, nneigh, "MLIAPData:jelems");
     memory->grow(rij, nneigh, 3, "MLIAPData:rij");
     if (gradgradflag == 0) memory->grow(graddesc, nneigh, ndescriptors, 3, "MLIAPData:graddesc");
     nneigh_max = nneigh;
+    if (jtagsflag) memory->grow(jtags, nneigh, "MLIAPData:jtags");
   }
 }
 
@@ -298,9 +300,10 @@ double MLIAPData::memory_usage()
 
   bytes += (double) nneigh_max * sizeof(int);           // pair_i
   bytes += (double) nneigh_max * sizeof(int);           // jatoms
-  bytes += (double) nneigh_max * sizeof(int);           // jtags
   bytes += (double) nneigh_max * sizeof(int);           // jelems
   bytes += (double) nneigh_max * 3 * sizeof(double);    // rij"
+  if (jtagsflag)
+    bytes += (double) nneigh_max * sizeof(int);         // jtags
 
   if (gradgradflag == 0)
     bytes += (double) nneigh_max * ndescriptors * 3 * sizeof(double);    // graddesc

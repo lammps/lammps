@@ -56,6 +56,7 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   // default values
 
   int gradgradflag = 1;
+  int jtagsflag = 0; // default is no tags
 
   // set flags for required keywords
 
@@ -119,7 +120,7 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 1; i <= atom->ntypes; i++)
     map[i] = i-1;
 
-  data = new MLIAPData(lmp, gradgradflag, map, model, descriptor);
+  data = new MLIAPData(lmp, gradgradflag, jtagsflag, map, model, descriptor);
 
   size_array_rows = data->size_array_rows;
   size_array_cols = data->size_array_cols;

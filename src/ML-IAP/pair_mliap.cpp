@@ -261,8 +261,9 @@ void PairMLIAP::coeff(int narg, char **arg)
   model->init();
   descriptor->init();
   constexpr int gradgradflag = -1;
+  constexpr int jtagsflag = 0; // default is no tags
   delete data;
-  data = new MLIAPData(lmp, gradgradflag, map, model, descriptor, this);
+  data = new MLIAPData(lmp, gradgradflag, jtagsflag, map, model, descriptor, this);
   data->init();
 }
 

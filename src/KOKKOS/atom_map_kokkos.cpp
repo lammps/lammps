@@ -21,8 +21,6 @@
 #include "modify.h"
 #include "neighbor_kokkos.h"
 
-#include <Kokkos_Sort.hpp>
-
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -145,33 +143,31 @@ void AtomKokkos::map_set()
 
   // sort by tag
 
-  auto d_tag_sorted = DAT::t_tagint_1d(Kokkos::NoInit("atom:tag_sorted"),nall);
-  auto d_i_sorted = DAT::t_int_1d(Kokkos::NoInit("atom:i_sorted"),nall);
+  int nmax = atom->nmax;
 
-  typedef Kokkos::DualView<tagint[2], LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_2;
-  typedef tdual_tagint_2::t_dev t_tagint_2;
-  typedef tdual_tagint_2::t_host t_host_tagint_2;
-
-  auto d_tag_min_max = t_tagint_2(Kokkos::NoInit("atom:tag_min_max"));
-  auto h_tag_min_max = t_host_tagint_2(Kokkos::NoInit("atom:tag_min_max"));
-
-  auto d_tag_min = Kokkos::subview(d_tag_min_max,0);
-  auto d_tag_max = Kokkos::subview(d_tag_min_max,1);
-
-  auto h_tag_min = Kokkos::subview(h_tag_min_max,0);
-  auto h_tag_max = Kokkos::subview(h_tag_min_max,1);
+  int realloc_flag = 0;
+  if (d_tag_sorted.extent(0) < nmax) {
+    MemKK::realloc_kokkos(d_tag_sorted,"atom:tag_sorted",nmax);
+    MemKK::realloc_kokkos(d_i_sorted,"atom:i_sorted",nmax);
+    realloc_flag = 1;
+  }
 
   h_tag_min() = MAXTAGINT;
   h_tag_max() = 0;
 
   Kokkos::deep_copy(d_tag_min_max,h_tag_min_max);
 
+  auto l_tag_sorted = d_tag_sorted;
+  auto l_i_sorted = d_i_sorted;
+  auto l_tag_min = d_tag_min;
+  auto l_tag_max = d_tag_max;
+
   Kokkos::parallel_for(nall, LAMMPS_LAMBDA(int i) {
-    d_i_sorted(i) = i;
+    l_i_sorted(i) = i;
     tagint tag_i = d_tag(i);
-    d_tag_sorted(i) = tag_i;
-    Kokkos::atomic_min(&d_tag_min(),tag_i);
-    Kokkos::atomic_max(&d_tag_max(),tag_i);
+    l_tag_sorted(i) = tag_i;
+    Kokkos::atomic_min(&l_tag_min(),tag_i);
+    Kokkos::atomic_max(&l_tag_max(),tag_i);
   });
 
   Kokkos::deep_copy(h_tag_min_max,d_tag_min_max);
@@ -179,12 +175,25 @@ void AtomKokkos::map_set()
   tagint min = h_tag_min();
   tagint max = h_tag_max();
 
-  using KeyViewType = decltype(d_tag_sorted);
-  using BinOp = Kokkos::BinOp1D<KeyViewType>;
+  using MapKeyViewType = decltype(d_tag_sorted);
+  using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
 
-  BinOp binner(nall, min, max);
+  auto binner = BinOpMap(nall, min, max);
 
-  Kokkos::BinSort<KeyViewType, BinOp> Sorter(d_tag_sorted, 0, nall, binner, true);
+  if (!Sorter.bin_offsets.data() || realloc_flag) {
+    Sorter = Kokkos::BinSort<MapKeyViewType, BinOpMap>(d_tag_sorted, 0, nall, binner, true);
+    MemKK::realloc_kokkos(Sorter.bin_count_atomic,"Kokkos::SortImpl::BinSortFunctor::bin_count",nmax+1);
+    Kokkos::deep_copy(Sorter.bin_count_atomic,0);
+    Sorter.bin_count_const = Sorter.bin_count_atomic;
+    MemKK::realloc_kokkos(Sorter.bin_offsets,"Kokkos::SortImpl::BinSortFunctor::bin_offsets",nmax+1);
+    MemKK::realloc_kokkos(Sorter.sort_order,"Kokkos::SortImpl::BinSortFunctor::sort_order",nmax);
+  } else {
+    Kokkos::deep_copy(Sorter.bin_count_atomic,0);
+    Sorter.bin_op = binner;
+    Sorter.range_begin = 0;
+    Sorter.range_end = nall;
+  }
+
   Sorter.create_permute_vector(LMPDeviceType());
   Sorter.sort(LMPDeviceType(), d_tag_sorted, 0, nall);
   Sorter.sort(LMPDeviceType(), d_i_sorted, 0, nall);
@@ -201,8 +210,8 @@ void AtomKokkos::map_set()
   //  atom with smallest local id for atom map
 
   Kokkos::parallel_for(nall, LAMMPS_LAMBDA(int ii) {
-    const int i = d_i_sorted(ii);
-    const tagint tag_i = d_tag_sorted(ii);
+    const int i = l_i_sorted(ii);
+    const tagint tag_i = l_tag_sorted(ii);
 
     int i_min = i;
     int i_closest = MAXTAGINT;
@@ -213,9 +222,9 @@ void AtomKokkos::map_set()
     int closest_flag = 0;
 
     while (jj < nall) {
-      const tagint tag_j = d_tag_sorted(jj);
+      const tagint tag_j = l_tag_sorted(jj);
       if (tag_j != tag_i) break;
-      const int j = d_i_sorted(jj);
+      const int j = l_i_sorted(jj);
       i_min = MIN(i_min,j);
       if (j > i) {
         i_closest = MIN(i_closest,j);
@@ -229,9 +238,9 @@ void AtomKokkos::map_set()
     jj = ii-1;
 
     while (jj >= 0) {
-      const tagint tag_j = d_tag_sorted(jj);
+      const tagint tag_j = l_tag_sorted(jj);
       if (tag_j != tag_i) break;
-      const int j = d_i_sorted(jj);
+      const int j = l_i_sorted(jj);
       i_min = MIN(i_min,j);
       if (j > i) {
         i_closest = MIN(i_closest,j);
@@ -256,7 +265,9 @@ void AtomKokkos::map_set()
 
   });
 
-  auto h_error_flag = Kokkos::create_mirror_view_and_copy(LMPHostType(),d_error_flag);
+  auto h_error_flag = k_error_flag.h_view;
+  Kokkos::deep_copy(h_error_flag,d_error_flag);
+
   if (h_error_flag())
     error->one(FLERR,"Failed to insert into Kokkos hash atom map");
 

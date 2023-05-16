@@ -653,6 +653,13 @@ typedef tdual_int_scalar::t_dev_um t_int_scalar_um;
 typedef tdual_int_scalar::t_dev_const_um t_int_scalar_const_um;
 
 typedef Kokkos::
+  DualView<LAMMPS_NS::tagint, LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_scalar;
+typedef tdual_tagint_scalar::t_dev t_tagint_scalar;
+typedef tdual_tagint_scalar::t_dev_const t_tagint_scalar_const;
+typedef tdual_tagint_scalar::t_dev_um t_tagint_scalar_um;
+typedef tdual_tagint_scalar::t_dev_const_um t_tagint_scalar_const_um;
+
+typedef Kokkos::
   DualView<LMP_FLOAT, LMPDeviceType::array_layout, LMPDeviceType>
   tdual_float_scalar;
 typedef tdual_float_scalar::t_dev t_float_scalar;
@@ -969,6 +976,12 @@ typedef tdual_int_scalar::t_host t_int_scalar;
 typedef tdual_int_scalar::t_host_const t_int_scalar_const;
 typedef tdual_int_scalar::t_host_um t_int_scalar_um;
 typedef tdual_int_scalar::t_host_const_um t_int_scalar_const_um;
+
+typedef Kokkos::DualView<LAMMPS_NS::tagint, LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_scalar;
+typedef tdual_tagint_scalar::t_host t_tagint_scalar;
+typedef tdual_tagint_scalar::t_host_const t_tagint_scalar_const;
+typedef tdual_tagint_scalar::t_host_um t_tagint_scalar_um;
+typedef tdual_tagint_scalar::t_host_const_um t_tagint_scalar_const_um;
 
 typedef Kokkos::DualView<LMP_FLOAT, LMPDeviceType::array_layout, LMPDeviceType> tdual_float_scalar;
 typedef tdual_float_scalar::t_host t_float_scalar;

@@ -26,16 +26,24 @@
 #include "modify.h"
 #include "fix.h"
 
-#include <Kokkos_Sort.hpp>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 AtomKokkos::AtomKokkos(LAMMPS *lmp) : Atom(lmp)
 {
-  k_error_flag = DAT::tdual_int_scalar("atom:error_flag");
   avecKK = nullptr;
+
+  k_error_flag = DAT::tdual_int_scalar("atom:error_flag");
+
+  d_tag_min_max = t_tagint_2(Kokkos::NoInit("atom:tag_min_max"));
+  h_tag_min_max = t_host_tagint_2(Kokkos::NoInit("atom:tag_min_max"));
+
+  d_tag_min = Kokkos::subview(d_tag_min_max,0);
+  d_tag_max = Kokkos::subview(d_tag_min_max,1);
+
+  h_tag_min = Kokkos::subview(h_tag_min_max,0);
+  h_tag_max = Kokkos::subview(h_tag_min_max,1);
 }
 
 /* ---------------------------------------------------------------------- */

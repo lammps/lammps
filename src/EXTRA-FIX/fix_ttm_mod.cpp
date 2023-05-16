@@ -834,7 +834,7 @@ void FixTTMMod::end_of_step()
                   (T_electron_old[iz][right_y][ix]-T_electron_old[iz][iy][ix])/dy -
                   cr_v_l_y*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[iz][left_y][ix]/2.0).el_thermal_conductivity*
                   (T_electron_old[iz][iy][ix]-T_electron_old[iz][left_y][ix])/dy)/dy +
-                 (cr_v_r_z*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[ix][iy][right_z]/2.0).el_thermal_conductivity*
+                 (cr_v_r_z*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[iz][iy][right_x]/2.0).el_thermal_conductivity*
                   (T_electron_old[iz][iy][right_x]-T_electron_old[iz][iy][ix])/dz -
                   cr_v_l_z*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[iz][iy][left_x]/2.0).el_thermal_conductivity*
                   (T_electron_old[iz][iy][ix]-T_electron_old[iz][iy][left_x])/dz)/dz);

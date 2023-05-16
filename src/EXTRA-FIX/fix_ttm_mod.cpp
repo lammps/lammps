@@ -738,16 +738,13 @@ void FixTTMMod::end_of_step()
   
   for (int iz = 0; iz < nzgrid; iz++)
     for (int iy = 0; iy < nygrid; iy++)
-      for (int ix = 0; ix < nxgrid; ix++)
-        {
+      for (int ix = 0; ix < nxgrid; ix++) {
           if (el_properties(T_electron[iz][iy][ix]).el_thermal_conductivity > el_thermal_conductivity)
             el_thermal_conductivity = el_properties(T_electron[iz][iy][ix]).el_thermal_conductivity;
-          if (el_specific_heat > 0.0)
-            {
+          if (el_specific_heat > 0.0) {
               if ((T_electron[iz][iy][ix] > 0.0) && (el_properties(T_electron[iz][iy][ix]).el_heat_capacity < el_specific_heat))
                 el_specific_heat = el_properties(T_electron[iz][iy][ix]).el_heat_capacity;
-            }
-          else if (T_electron[iz][iy][ix] > 0.0) el_specific_heat = el_properties(T_electron[iz][iy][ix]).el_heat_capacity;
+          } else if (T_electron[iz][iy][ix] > 0.0) el_specific_heat = el_properties(T_electron[iz][iy][ix]).el_heat_capacity;
         }
   // num_inner_timesteps = # of inner steps (thermal solves)
   // required this MD step to maintain a stable explicit solve

@@ -164,7 +164,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   gfactor2 = new double[atom->ntypes+1];
 
   // allocate 3d grid variables
-  
+
   memory->create(T_electron_old,nzgrid,nygrid,nxgrid,"ttm/mod:T_electron_old");
   memory->create(T_electron_first,nzgrid,nygrid,nxgrid,"ttm/mod:T_electron_first");
   memory->create(T_electron,nzgrid,nygrid,nxgrid,"ttm/mod:T_electron");
@@ -729,7 +729,7 @@ void FixTTMMod::end_of_step()
   double del_vol = dx*dy*dz;
   double el_specific_heat = 0.0;
   double el_thermal_conductivity = el_properties(electron_temperature_min).el_thermal_conductivity;
-  
+
   for (int iz = 0; iz < nzgrid; iz++)
     for (int iy = 0; iy < nygrid; iy++)
       for (int ix = 0; ix < nxgrid; ix++) {
@@ -834,7 +834,7 @@ void FixTTMMod::end_of_step()
                  net_energy_transfer_all[iz][iy][ix]/del_vol);
             }
             else T_electron[iz][iy][ix] = T_electron_old[iz][iy][ix];
-            
+
             if ((T_electron[iz][iy][ix] > 0.0) && (T_electron[iz][iy][ix] < electron_temperature_min))
               T_electron[iz][iy][ix] = T_electron[iz][iy][ix] + 0.5*(electron_temperature_min - T_electron[iz][iy][ix]);
 

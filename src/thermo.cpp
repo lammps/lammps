@@ -1118,7 +1118,7 @@ int Thermo::add_variable(const char *id)
 }
 
 /* ----------------------------------------------------------------------
-  check whether temperature compute is defined, available, and current
+   check whether temperature compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_temp(const std::string &keyword)
@@ -1126,18 +1126,16 @@ void Thermo::check_temp(const std::string &keyword)
   if (!temperature)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init temperature",
                keyword);
-  if (update->whichflag == 0) {
-    if (temperature->invoked_scalar != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 temperature->style, temperature->id);
-  } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
+  if (update->first_update == 0)
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before first run",keyword);
+  if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
     temperature->compute_scalar();
     temperature->invoked_flag |= Compute::INVOKED_SCALAR;
   }
 }
 
 /* ----------------------------------------------------------------------
-  check whether potential energy compute is defined, available, and current
+   check whether potential energy compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_pe(const std::string &keyword)
@@ -1147,47 +1145,41 @@ void Thermo::check_pe(const std::string &keyword)
   if (!pe)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init potential energy",
                keyword);
-  if (update->whichflag == 0) {
-    if (pe->invoked_scalar != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 pe->style, pe->id);
-  } else {
+  if (update->first_update == 0)
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before first run",keyword);
+  if (!(pe->invoked_flag & Compute::INVOKED_SCALAR)) {
     pe->compute_scalar();
     pe->invoked_flag |= Compute::INVOKED_SCALAR;
   }
 }
 
 /* ----------------------------------------------------------------------
-  check whether scalar pressure compute is defined, available, and current
+   check whether scalar pressure compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_press_scalar(const std::string &keyword)
 {
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
-  if (update->whichflag == 0) {
-    if (pressure->invoked_scalar != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 pressure->style, pressure->id);
-  } else if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
+  if (update->first_update == 0)
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before first run",keyword);
+  if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
     pressure->compute_scalar();
     pressure->invoked_flag |= Compute::INVOKED_SCALAR;
   }
 }
 
 /* ----------------------------------------------------------------------
-  check whether pressure tensor compute is defined, available, and current
+   check whether tensor pressure compute is defined, active, and needs invoking
 ------------------------------------------------------------------------- */
 
 void Thermo::check_press_vector(const std::string &keyword)
 {
   if (!pressure)
     error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
-  if (update->whichflag == 0) {
-    if (pressure->invoked_vector != update->ntimestep)
-      error->all(FLERR, "Compute {} {} used in variable thermo keyword between runs is not current",
-                 pressure->style, pressure->id);
-  } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
+  if (update->first_update == 0)
+    error->all(FLERR,"Thermo keyword {} cannot be invoked before first run",keyword);
+  if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
     pressure->compute_vector();
     pressure->invoked_flag |= Compute::INVOKED_VECTOR;
   }
@@ -1214,8 +1206,6 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   // invoke a lo-level thermo routine to compute the variable value
   // if keyword requires a compute, error if thermo doesn't use the compute
-  // if inbetween runs and needed compute is not current, error
-  // if in middle of run and needed compute is not current, invoke it
   // for keywords that use energy (evdwl, ebond, etc):
   //   check if energy was tallied on this timestep and set pe->invoked_flag
   //   this will trigger next timestep for energy tallying via addstep()

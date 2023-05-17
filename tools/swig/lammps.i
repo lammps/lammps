@@ -18,7 +18,9 @@
 %pointer_cast(void *, double *,  void_p_to_double_p);
 %pointer_cast(void *, double **, void_p_to_double_2d_p);
 
+#if !defined(SWIGLUA)
 %cstring_output_maxsize(char *buffer, int buf_size);
+#endif
 
 %{
 

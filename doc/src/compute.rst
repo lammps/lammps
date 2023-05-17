@@ -200,6 +200,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`com/chunk <compute_com_chunk>` - center of mass for each chunk
 * :doc:`contact/atom <compute_contact_atom>` - contact count for each spherical particle
 * :doc:`coord/atom <compute_coord_atom>` - coordination number for each atom
+* :doc:`count/type <compute_count_type>` - count of atoms or bonds by type
 * :doc:`damage/atom <compute_damage_atom>` - Peridynamic damage for each atom
 * :doc:`dihedral <compute_dihedral>` - energy of each dihedral sub-style
 * :doc:`dihedral/local <compute_dihedral_local>` - angle of each dihedral

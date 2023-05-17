@@ -32,7 +32,7 @@ FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **a
   FixWallGranOld(lmp, narg, arg)
 {
   kokkosable = 1;
-  exchange_comm_device = 1;
+  exchange_comm_device = sort_device = 1;
   maxexchange = size_history;
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -311,6 +311,22 @@ void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
     FixWallGranOld::copy_arrays(i,j,delflag);
     k_history_one.modify_host();
   }
+}
+
+/* ----------------------------------------------------------------------
+   sort local atom-based arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixWallGranKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
+{
+  // always sort on the device
+
+  k_history_one.sync_device();
+
+  Sorter.sort(LMPDeviceType(), k_history_one.d_view);
+
+  k_history_one.modify_device();
 }
 
 /* ---------------------------------------------------------------------- */

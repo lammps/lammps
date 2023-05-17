@@ -61,6 +61,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   void set_arrays(int) override;
   void update_arrays(int, int) override;
   void set_molecule(int, tagint, int, double *, double *, double *) override;

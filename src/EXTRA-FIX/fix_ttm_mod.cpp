@@ -329,20 +329,14 @@ void FixTTMMod::post_force(int /*vflag*/)
           if (right_x == nxgrid) right_x = 0;
           if (right_y == nygrid) right_y = 0;
           if (right_z == nzgrid) right_z = 0;
-          int left_x = ix - 1;
-          int left_y = iy - 1;
-          int left_z = iz - 1;
-          if (left_x == -1) left_x = nxgrid - 1;
-          if (left_y == -1) left_y = nygrid - 1;
-          if (left_z == -1) left_z = nzgrid - 1;
           double T_i = T_electron[iz][iy][ix];
-          double T_ir = T_electron[right_z][iy][ix];
+          double T_ir = T_electron[iz][iy][right_x];
           double T_iu = T_electron[iz][right_y][ix];
-          double T_if = T_electron[iz][iy][right_x];
+          double T_if = T_electron[right_z][iy][ix];
           double C_i = el_properties(T_electron[iz][iy][ix]).el_heat_capacity;
-          double C_ir = el_properties(T_electron[right_z][iy][ix]).el_heat_capacity;
+          double C_ir = el_properties(T_electron[iz][iy][right_x]).el_heat_capacity;
           double C_iu = el_properties(T_electron[iz][right_y][ix]).el_heat_capacity;
-          double C_if = el_properties(T_electron[iz][iy][right_x]).el_heat_capacity;
+          double C_if = el_properties(T_electron[right_z][iy][ix]).el_heat_capacity;
           double diff_x = (x_at - x_surf)*(x_at - x_surf);
           diff_x = pow(diff_x,0.5);
           double len_factor = diff_x/(diff_x+free_path);
@@ -808,33 +802,33 @@ void FixTTMMod::end_of_step()
             double cr_vac = 1;
             if (T_electron_old[iz][iy][ix] == 0) cr_vac = 0;
             double cr_v_l_x = 1;
-            if (T_electron_old[left_z][iy][ix] == 0) cr_v_l_x = 0;
+            if (T_electron_old[iz][iy][left_x] == 0) cr_v_l_x = 0;
             double cr_v_r_x = 1;
-            if (T_electron_old[right_z][iy][ix] == 0) cr_v_r_x = 0;
+            if (T_electron_old[iz][iy][right_x] == 0) cr_v_r_x = 0;
             double cr_v_l_y = 1;
             if (T_electron_old[iz][left_y][ix] == 0) cr_v_l_y = 0;
             double cr_v_r_y = 1;
             if (T_electron_old[iz][right_y][ix] == 0) cr_v_r_y = 0;
             double cr_v_l_z = 1;
-            if (T_electron_old[iz][iy][left_x] == 0) cr_v_l_z = 0;
+            if (T_electron_old[left_z][iy][ix] == 0) cr_v_l_z = 0;
             double cr_v_r_z = 1;
-            if (T_electron_old[iz][iy][right_x] == 0) cr_v_r_z = 0;
+            if (T_electron_old[right_z][iy][ix] == 0) cr_v_r_z = 0;
             if (cr_vac != 0) {
               T_electron[iz][iy][ix] =
                 T_electron_old[iz][iy][ix] +
                 inner_dt/el_properties(T_electron_old[iz][iy][ix]).el_heat_capacity *
-                ((cr_v_r_x*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[right_z][iy][ix]/2.0).el_thermal_conductivity*
-                  (T_electron_old[right_z][iy][ix]-T_electron_old[iz][iy][ix])/dx -
-                  cr_v_l_x*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[left_z][iy][ix]/2.0).el_thermal_conductivity*
-                  (T_electron_old[iz][iy][ix]-T_electron_old[left_z][iy][ix])/dx)/dx +
+                ((cr_v_r_x*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[iz][iy][right_x]/2.0).el_thermal_conductivity*
+                  (T_electron_old[iz][iy][right_x]-T_electron_old[iz][iy][ix])/dx -
+                  cr_v_l_x*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[iz][iy][left_x]/2.0).el_thermal_conductivity*
+                  (T_electron_old[iz][iy][ix]-T_electron_old[iz][iy][left_x])/dx)/dx +
                  (cr_v_r_y*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[iz][right_y][ix]/2.0).el_thermal_conductivity*
                   (T_electron_old[iz][right_y][ix]-T_electron_old[iz][iy][ix])/dy -
                   cr_v_l_y*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[iz][left_y][ix]/2.0).el_thermal_conductivity*
                   (T_electron_old[iz][iy][ix]-T_electron_old[iz][left_y][ix])/dy)/dy +
-                 (cr_v_r_z*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[iz][iy][right_x]/2.0).el_thermal_conductivity*
-                  (T_electron_old[iz][iy][right_x]-T_electron_old[iz][iy][ix])/dz -
-                  cr_v_l_z*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[iz][iy][left_x]/2.0).el_thermal_conductivity*
-                  (T_electron_old[iz][iy][ix]-T_electron_old[iz][iy][left_x])/dz)/dz);
+                 (cr_v_r_z*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[right_z][iy][ix]/2.0).el_thermal_conductivity*
+                  (T_electron_old[right_z][iy][ix]-T_electron_old[iz][iy][ix])/dz -
+                  cr_v_l_z*el_properties(T_electron_old[iz][iy][ix]/2.0+T_electron_old[left_z][iy][ix]/2.0).el_thermal_conductivity*
+                  (T_electron_old[iz][iy][ix]-T_electron_old[left_z][iy][ix])/dz)/dz);
               T_electron[iz][iy][ix]+=inner_dt/el_properties(T_electron[iz][iy][ix]).el_heat_capacity*
                 (mult_factor -
                  net_energy_transfer_all[iz][iy][ix]/del_vol);

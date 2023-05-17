@@ -644,10 +644,6 @@ void FixPIMDLangevin::end_of_step()
   compute_p_cv();
   compute_tote();
   if (pstat_flag) compute_totenthalpy();
-
-  if (update->ntimestep % 10000 == 0) {
-    if (universe->me == 0) printf("This is the end of step %lld.\n", update->ntimestep);
-  }
 }
 
 void FixPIMDLangevin::collect_xc()

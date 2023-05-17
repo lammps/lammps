@@ -72,6 +72,9 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
       force->special_coul[3] != 1.0)
     error->all(FLERR, "Fix update/special/bonds requires special Coulomb weights = 1,1,1");
   // Implies neighbor->special_flag = [X, 2, 1, 1]
+
+  if (utils::strmatch(force->pair_style, "^hybrid"))
+    error->all(FLERR, "Cannot use fix update/special/bonds with hybrid pair styles");
 }
 
 /* ----------------------------------------------------------------------

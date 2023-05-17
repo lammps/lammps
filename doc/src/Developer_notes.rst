@@ -74,6 +74,8 @@ when converting "12.5", while the ValueTokenizer class will throw an
 :cpp:func:`ValueTokenizer::next_int()
 <LAMMPS_NS::ValueTokenizer::next_int>` is called on the same string.
 
+.. _request-neighbor-list:
+
 Requesting and accessing neighbor lists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

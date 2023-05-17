@@ -13,29 +13,12 @@
 
 #ifdef GRAN_SUB_MOD_CLASS
 // clang-format off
-GranSubModStyle(none,
-         GranSubModNormalNone,
-         NORMAL);
-
-GranSubModStyle(hooke,
-         GranSubModNormalHooke,
-         NORMAL);
-
-GranSubModStyle(hertz,
-         GranSubModNormalHertz,
-         NORMAL);
-
-GranSubModStyle(hertz/material,
-         GranSubModNormalHertzMaterial,
-         NORMAL);
-
-GranSubModStyle(dmt,
-         GranSubModNormalDMT,
-         NORMAL);
-
-GranSubModStyle(jkr,
-         GranSubModNormalJKR,
-         NORMAL);
+GranSubModStyle(none,GranSubModNormalNone,NORMAL);
+GranSubModStyle(hooke,GranSubModNormalHooke,NORMAL);
+GranSubModStyle(hertz,GranSubModNormalHertz,NORMAL);
+GranSubModStyle(hertz/material,GranSubModNormalHertzMaterial,NORMAL);
+GranSubModStyle(dmt,GranSubModNormalDMT,NORMAL);
+GranSubModStyle(jkr,GranSubModNormalJKR,NORMAL);
 // clang-format on
 #else
 
@@ -46,91 +29,103 @@ GranSubModStyle(jkr,
 
 namespace LAMMPS_NS {
 namespace Granular_NS {
+  class GranSubModNormal : public GranSubMod {
+   public:
+    GranSubModNormal(class GranularModel *, class LAMMPS *);
+    virtual bool touch();
+    virtual double pulloff_distance(double, double);
+    virtual double calculate_contact_radius();
+    virtual double calculate_forces() = 0;
 
-class GranSubModNormal : public GranSubMod {
- public:
-  GranSubModNormal(class GranularModel *, class LAMMPS *);
-  ~GranSubModNormal() {};
-  virtual bool touch();
-  virtual double pulloff_distance(double, double);
-  virtual double calculate_area();
-  virtual double calculate_forces() = 0;
-  virtual void set_fncrit();
-  double damp; // argument historically needed by damping
-  double Emod, poiss;
-  double Fncrit;
-  int material_properties, cohesive_flag;
-};
+    double get_cohesive_flag() const { return cohesive_flag; }
+    double get_damp() const { return damp; }
+    double get_emod() const { return Emod; }
+    double get_fncrit() const { return Fncrit; }
+    int get_material_properties() const { return material_properties; }
+    double get_poiss() const { return poiss; }
 
-/* ---------------------------------------------------------------------- */
+    virtual void set_fncrit();
 
-class GranSubModNormalNone : public GranSubModNormal {
- public:
-  GranSubModNormalNone(class GranularModel *, class LAMMPS *);
-  double calculate_forces();
-};
+   protected:
+    double damp;    // argument historically needed by damping
+    double Emod, poiss;
+    double Fncrit;
+    int material_properties, cohesive_flag;
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModNormalHooke : public GranSubModNormal {
- public:
-  GranSubModNormalHooke(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  double calculate_forces();
- protected:
-  double k;
-};
+  class GranSubModNormalNone : public GranSubModNormal {
+   public:
+    GranSubModNormalNone(class GranularModel *, class LAMMPS *);
+    double calculate_forces() override;
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModNormalHertz : public GranSubModNormal {
- public:
-  GranSubModNormalHertz(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  double calculate_forces();
- protected:
-  double k;
-};
+  class GranSubModNormalHooke : public GranSubModNormal {
+   public:
+    GranSubModNormalHooke(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    double calculate_forces() override;
 
-/* ---------------------------------------------------------------------- */
+   protected:
+    double k;
+  };
 
-class GranSubModNormalHertzMaterial : public GranSubModNormalHertz {
- public:
-  GranSubModNormalHertzMaterial(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
-};
+  /* ---------------------------------------------------------------------- */
 
-/* ---------------------------------------------------------------------- */
+  class GranSubModNormalHertz : public GranSubModNormal {
+   public:
+    GranSubModNormalHertz(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    double calculate_forces() override;
 
-class GranSubModNormalDMT : public GranSubModNormal {
- public:
-  GranSubModNormalDMT(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
-  double calculate_forces();
-  void set_fncrit() override;
- protected:
-  double k, cohesion;
-  double F_pulloff, Fne;
-};
+   protected:
+    double k;
+  };
 
-/* ---------------------------------------------------------------------- */
+  /* ---------------------------------------------------------------------- */
 
-class GranSubModNormalJKR : public GranSubModNormal {
- public:
-  GranSubModNormalJKR(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
-  bool touch() override;
-  double pulloff_distance(double, double) override;
-  double calculate_area() override;
-  double calculate_forces();
-  void set_fncrit() override;
- protected:
-  double k, cohesion;
-  double Emix, F_pulloff, Fne;
-};
+  class GranSubModNormalHertzMaterial : public GranSubModNormalHertz {
+   public:
+    GranSubModNormalHertzMaterial(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    void mix_coeffs(double *, double *) override;
+  };
+
+  /* ---------------------------------------------------------------------- */
+
+  class GranSubModNormalDMT : public GranSubModNormal {
+   public:
+    GranSubModNormalDMT(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    void mix_coeffs(double *, double *) override;
+    double calculate_forces() override;
+    void set_fncrit() override;
+
+   protected:
+    double k, cohesion;
+    double F_pulloff, Fne;
+  };
+
+  /* ---------------------------------------------------------------------- */
+
+  class GranSubModNormalJKR : public GranSubModNormal {
+   public:
+    GranSubModNormalJKR(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    void mix_coeffs(double *, double *) override;
+    bool touch() override;
+    double pulloff_distance(double, double) override;
+    double calculate_contact_radius() override;
+    double calculate_forces() override;
+    void set_fncrit() override;
+
+   protected:
+    double k, cohesion;
+    double Emix, F_pulloff, Fne;
+  };
 
 }    // namespace Granular_NS
 }    // namespace LAMMPS_NS

@@ -188,11 +188,11 @@ void ComputeHMA::init_list(int /* id */, NeighList *ptr)
 void ComputeHMA::setup()
 {
   int dummy=0;
-  int ifix = modify->find_fix(id_temp);
-  if (ifix < 0) error->all(FLERR,"Could not find compute hma temperature ID");
-  auto  temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);
-  if (temperat==nullptr) error->all(FLERR,"Could not find compute hma temperature ID");
-  finaltemp = * temperat;
+  Fix *ifix = modify->get_fix_by_id(id_temp);
+  if (!ifix) error->all(FLERR,"Could not find compute hma temperature fix ID {}", id_temp);
+  auto  temperat = (double *) ifix->extract("t_target",dummy);
+  if (temperat == nullptr) error->all(FLERR,"Fix ID {} is not a thermostat {}", id_temp);
+  finaltemp = *temperat;
 
   // set fix which stores original atom coords
 

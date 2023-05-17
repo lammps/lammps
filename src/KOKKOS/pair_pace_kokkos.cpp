@@ -584,6 +584,7 @@ void PairPACEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::deep_copy(A, 0.0);
     Kokkos::deep_copy(A_rank1, 0.0);
     Kokkos::deep_copy(rhos, 0.0);
+    Kokkos::deep_copy(rho_core, 0.0);
 
     EV_FLOAT ev_tmp;
 

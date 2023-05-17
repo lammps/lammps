@@ -919,19 +919,14 @@ void PairEAMAlloyKokkos<DeviceType>::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // ensure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR, "Number of element to type mappings does not match number of atom types");
 
   // read EAM setfl file
 
   if (setfl) {
-    for (i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
-    delete [] setfl->elements;
-    delete [] setfl->mass;
+    for (i = 0; i < setfl->nelements; i++) delete[] setfl->elements[i];
+    delete[] setfl->elements;
+    delete[] setfl->mass;
     memory->destroy(setfl->frho);
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);

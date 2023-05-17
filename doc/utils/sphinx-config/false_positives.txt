@@ -271,6 +271,7 @@ Bialke
 biaxial
 bicrystal
 Biersack
+biga
 bigbig
 bigint
 Bij
@@ -318,6 +319,7 @@ Bogaerts
 Bogusz
 Bohrs
 boltz
+Bomont
 BondAngle
 BondBond
 bondchk
@@ -353,9 +355,11 @@ bpls
 bpm
 BPM
 br
+Braems
 Branduardi
 Branicio
 brennan
+Bretonnet
 Briels
 Brien
 Brilliantov
@@ -586,6 +590,7 @@ createAtoms
 CreateIDs
 crespi
 Crespi
+Creuze
 Critchley
 crossterm
 Crowson
@@ -631,6 +636,7 @@ cutlo
 cutmax
 cutoffA
 cutoffC
+cutsq
 cuu
 cv
 Cv
@@ -1342,6 +1348,7 @@ Haak
 Hafskjold
 halfstepback
 halgren
+Hallil
 Halperin
 Halver
 Hamaker
@@ -1555,6 +1562,7 @@ invertibility
 ionicities
 ionizable
 ionocovalent
+iOS
 iostreams
 iparam
 ipi
@@ -1980,6 +1988,7 @@ machdyn
 MACHDYN
 Mackay
 Mackrodt
+MacLaurin
 macOS
 Macromolecules
 macroparticle
@@ -2215,6 +2224,7 @@ monopole
 monovalent
 Montalenti
 Montero
+Monti
 Mora
 Morefoo
 Morfill
@@ -2576,7 +2586,7 @@ nvidia
 nvk
 nvt
 Nwait
-nwchem
+NWChem
 nx
 Nx
 nxlo
@@ -2910,6 +2920,7 @@ PyLammps
 pymbar
 pymodule
 pymol
+PySCF
 pythonic
 pytorch
 pyy
@@ -2968,11 +2979,13 @@ qx
 qy
 qz
 Rackers
+radi
 radialscreened
 radialscreenedspin
 radialspin
 radian
 radians
+radj
 Rafferty
 rahman
 Rahman
@@ -3254,6 +3267,7 @@ Sep
 seqdep
 Serpico
 setfl
+setflag
 setforce
 Sethna
 setmask
@@ -3489,6 +3503,7 @@ Sx
 sy
 Sy
 symplectic
+symmetrize
 Synechococcus
 sys
 sysdim
@@ -3536,6 +3551,7 @@ ters
 tersoff
 Tersoff
 tesselation
+tesselations
 Tetot
 tex
 tfac
@@ -3723,6 +3739,7 @@ Umin
 un
 unary
 uncomment
+uncompress
 uncompute
 underprediction
 undump

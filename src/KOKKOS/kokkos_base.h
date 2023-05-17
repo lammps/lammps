@@ -17,6 +17,8 @@
 
 #include "kokkos_type.h"
 
+#include <Kokkos_Sort.hpp>
+
 namespace LAMMPS_NS {
 
 class KokkosBase {
@@ -42,6 +44,20 @@ class KokkosBase {
 
   // Region
   virtual void match_all_kokkos(int, DAT::tdual_int_1d) {}
+
+  // Fix
+  virtual int pack_exchange_kokkos(const int & /*nsend*/, DAT::tdual_xfloat_2d & /*k_buf*/,
+                                   DAT::tdual_int_1d /*k_sendlist*/,
+                                   DAT::tdual_int_1d /*k_copylist*/,
+                                   ExecutionSpace /*space*/) { return 0; }
+  virtual void unpack_exchange_kokkos(DAT::tdual_xfloat_2d & /*k_buf*/,
+                                      DAT::tdual_int_1d & /*indices*/, int /*nrecv*/,
+                                      ExecutionSpace /*space*/) {}
+
+  using KeyViewType = DAT::t_x_array;
+  using BinOp = BinOp3DLAMMPS<KeyViewType>;
+  virtual void
+    sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> & /*Sorter*/) {}
 };
 
 }

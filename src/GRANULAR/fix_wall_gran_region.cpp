@@ -59,9 +59,6 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   memory->destroy(history_one);
   history_one = nullptr;
 
-  ncontact = nullptr;
-  walls = nullptr;
-  history_many = nullptr;
   FixWallGranRegion::grow_arrays(atom->nmax);
 
   // initialize shear history as if particle is not touching region
@@ -124,10 +121,8 @@ void FixWallGranRegion::init()
 void FixWallGranRegion::post_force(int /*vflag*/)
 {
   int i, m, nc, iwall;
-  double dx, dy, dz, meff;
   double *forces, *torquesi;
-  double vwall[3];
-  double w0[3] = {0.0};
+  double meff, vwall[3], w0[3] = {0.0, 0.0, 0.0};
   bool touchflag = false;
 
   // do not update shear history during setup
@@ -195,10 +190,10 @@ void FixWallGranRegion::post_force(int /*vflag*/)
   }
 
   for (i = 0; i < nlocal; i++) {
-    if ((!mask[i]) & groupbit) continue;
+    if (!(mask[i] & groupbit)) continue;
     if (! region->match(x[i][0], x[i][1], x[i][2])) continue;
 
-    nc = region->surface(x[i][0], x[i][1], x[i][2], model->pulloff_distance(radius[i], 0.0));
+    nc = region->surface(x[i][0], x[i][1], x[i][2], radius[i] + model->pulloff_distance(radius[i], 0.0));
     if (nc > tmax) error->one(FLERR, "Too many wallgran/region contacts for one particle");
 
     // shear history maintenance
@@ -283,9 +278,9 @@ void FixWallGranRegion::post_force(int /*vflag*/)
         array_atom[i][1] = forces[0];
         array_atom[i][2] = forces[1];
         array_atom[i][3] = forces[2];
-        array_atom[i][4] = x[i][0] - dx;
-        array_atom[i][5] = x[i][1] - dy;
-        array_atom[i][6] = x[i][2] - dz;
+        array_atom[i][4] = x[i][0] - model->dx[0];
+        array_atom[i][5] = x[i][1] - model->dx[1];
+        array_atom[i][6] = x[i][2] - model->dx[2];
         array_atom[i][7] = radius[i];
       }
     }

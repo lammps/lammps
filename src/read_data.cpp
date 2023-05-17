@@ -1154,6 +1154,14 @@ void ReadData::header(int firstpass)
   if (me == 0) {
     char *eof = utils::fgets_trunc(line, MAXLINE, fp);
     if (eof == nullptr) error->one(FLERR, "Unexpected end of data file");
+
+    // check for units keyword in first line and print warning on mismatch
+    auto units = Tokenizer(utils::strfind(line, "units = \\w+")).as_vector();
+    if (units.size() > 2) {
+      if (units[2] != update->unit_style)
+        error->warning(FLERR, "Inconsistent units in data file: current = {}, data file = {}",
+                       update->unit_style, units[2]);
+    }
   }
 
   while (true) {

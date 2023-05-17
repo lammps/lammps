@@ -25,8 +25,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { MOLECULE, CHARGE, RMASS, TEMPERATURE, HEATFLOW, IVEC, DVEC, IARRAY, DARRAY };
-
 /* ---------------------------------------------------------------------- */
 
 FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :

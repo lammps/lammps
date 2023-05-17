@@ -136,12 +136,12 @@ More information on the similarities and differences can be found in
 Restrictions
 """"""""""""
 
-These computes calculate the stress tensor contributions for pair
-styles only (i.e., no bond, angle, dihedral, etc. contributions, and in
-the presence of bonded interactions, the result will be incorrect due to
-exclusions for special bonds) and requires pairwise force calculations
-not available for most many-body pair styles.
-Note that :math:`k`-space calculations are also excluded.
+These computes calculate the stress tensor contributions for pair styles
+only (i.e., no bond, angle, dihedral, etc. contributions, and in the
+presence of bonded interactions, the result may be incorrect due to
+exclusions for :doc:`special bonds <special_bonds>` excluding pairs of atoms
+completely). It requires pairwise force calculations not available for most
+many-body pair styles.  Note that :math:`k`-space calculations are also excluded.
 
 These computes are part of the EXTRA-COMPUTE package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build

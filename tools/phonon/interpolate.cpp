@@ -1,6 +1,14 @@
+
 #include "interpolate.h"
-#include "math.h"
+
 #include "global.h"
+#include "input.h"
+#include "memory.h"
+#include "tricubic.h"
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 /* ----------------------------------------------------------------------------
  * Constructor used to get info from caller, and prepare other necessary data
@@ -19,6 +27,7 @@ Interpolate::Interpolate(int nx, int ny, int nz, int ndm, doublecomplex **DM)
    data = DM;
    Dfdx = Dfdy = Dfdz = D2fdxdy = D2fdxdz = D2fdydz = D3fdxdydz = NULL;
    flag_reset_gamma = flag_allocated_dfs = 0;
+   input = NULL;
  
    return;
 }
@@ -265,17 +274,19 @@ void Interpolate::set_method()
 {
    char str[MAXLINE];
    int im = 1;
-   printf("\n");for(int i=0; i<80; i++) printf("=");
-   printf("\nWhich interpolation method would you like to use?\n");
+   if (input == NULL) input = new UserInput(0);
+
+   puts("\n================================================================================");
+   printf("Which interpolation method would you like to use?\n");
    printf("  1. Tricubic;\n  2. Trilinear;\n");
    printf("Your choice [1]: ");
-   fgets(str,MAXLINE,stdin);
+   input->read_stdin(str);
    char *ptr = strtok(str," \t\n\r\f");
    if (ptr) im = atoi(ptr);
  
    which =2-im%2;
    printf("Your  selection: %d\n", which);
-   for(int i=0; i<80; i++) printf("="); printf("\n\n");
+   puts("================================================================================\n");
  
    if (which == 1) tricubic_init();
  

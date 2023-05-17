@@ -17,14 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gran_hooke.h"
-#include <cmath>
+
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "fix.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "comm.h"
 #include "memory.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

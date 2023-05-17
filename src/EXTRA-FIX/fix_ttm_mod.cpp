@@ -659,6 +659,9 @@ el_heat_capacity_thermal_conductivity FixTTMMod::el_properties(double T_e)
   properties.el_thermal_conductivity = el_th_diff*properties.el_heat_capacity; // thermal conductivity
   return properties;
 }
+
+/* ---------------------------------------------------------------------- */
+
 double FixTTMMod::el_sp_heat_integral(double T_e)
 {
   double T_temp = T_e/1000.0, T_reduced = T_damp*T_temp;
@@ -751,6 +754,7 @@ void FixTTMMod::end_of_step()
     for (int iy = 0; iy < nygrid; iy++)
       for (int ix = 0; ix < nxgrid; ix++)
         T_electron_first[iz][iy][ix] = T_electron[iz][iy][ix];
+  
   do {
     for (int iz = 0; iz < nzgrid; iz++)
       for (int iy = 0; iy < nygrid; iy++)

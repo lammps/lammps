@@ -161,7 +161,7 @@ void AtomKokkos::map_set()
   auto l_i_sorted = d_i_sorted;
   auto l_tag_min = d_tag_min;
   auto l_tag_max = d_tag_max;
-  int map_style_array = (map_style == MAP_ARRAY); 
+  int map_style_array = (map_style == MAP_ARRAY);
 
   Kokkos::parallel_for(nall, LAMMPS_LAMBDA(int i) {
     l_i_sorted(i) = i;

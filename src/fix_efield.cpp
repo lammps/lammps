@@ -395,7 +395,7 @@ void FixEfield::post_force(int vflag)
           }
           f[i][2] += fz;
           fsum[3] += fz;
-          if (estyle == ATOM) fsum[0] += efield[0][3];
+          if (estyle == ATOM) fsum[0] += efield[i][3];
         }
     }
 

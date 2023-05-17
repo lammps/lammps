@@ -115,11 +115,10 @@ class NeighBondKokkos : protected Pointers  {
   typename AT::t_tagint_2d improper_atom1,improper_atom2,
     improper_atom3,improper_atom4;
 
-  DAT::tdual_int_scalar k_nlist;
+  typename AT::t_int_1d d_scalars;
+  HAT::t_int_1d h_scalars;
   typename AT::t_int_scalar d_nlist;
   HAT::t_int_scalar h_nlist;
-
-  DAT::tdual_int_scalar k_fail_flag;
   typename AT::t_int_scalar d_fail_flag;
   HAT::t_int_scalar h_fail_flag;
 

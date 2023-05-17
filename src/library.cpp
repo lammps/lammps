@@ -3159,7 +3159,8 @@ void lammps_gather_bonds(void *handle, void *data)
     }
 
     tagint **bonds;
-    lmp->memory->create(bonds, localbonds, 3, "library:gather_bonds:localbonds");
+    // add 1 to localbonds, so "bonds" does not become a NULL pointer
+    lmp->memory->create(bonds, localbonds+1, 3, "library:gather_bonds:localbonds");
     lmp->atom->avec->pack_bond(bonds);
     MPI_Allgatherv(&bonds[0][0], 3*localbonds, MPI_LMP_TAGINT, data, bufsizes,
                    bufoffsets, MPI_LMP_TAGINT, lmp->world);
@@ -3269,7 +3270,8 @@ void lammps_gather_angles(void *handle, void *data)
     }
 
     tagint **angles;
-    lmp->memory->create(angles, localangles, 4, "library:gather_angles:localangles");
+    // add 1 to localangles, so "angles" does not become a NULL pointer
+    lmp->memory->create(angles, localangles+1, 4, "library:gather_angles:localangles");
     lmp->atom->avec->pack_angle(angles);
     MPI_Allgatherv(&angles[0][0], 4*localangles, MPI_LMP_TAGINT, data, bufsizes,
                    bufoffsets, MPI_LMP_TAGINT, lmp->world);
@@ -3380,7 +3382,8 @@ void lammps_gather_dihedrals(void *handle, void *data)
     }
 
     tagint **dihedrals;
-    lmp->memory->create(dihedrals, localdihedrals, 5, "library:gather_dihedrals:localdihedrals");
+    // add 1 to localdihedrals, so "dihedrals" does not become a NULL pointer
+    lmp->memory->create(dihedrals, localdihedrals+1, 5, "library:gather_dihedrals:localdihedrals");
     lmp->atom->avec->pack_dihedral(dihedrals);
     MPI_Allgatherv(&dihedrals[0][0], 5*localdihedrals, MPI_LMP_TAGINT, data, bufsizes,
                    bufoffsets, MPI_LMP_TAGINT, lmp->world);
@@ -3491,7 +3494,8 @@ void lammps_gather_impropers(void *handle, void *data)
     }
 
     tagint **impropers;
-    lmp->memory->create(impropers, localimpropers, 5, "library:gather_impropers:localimpropers");
+    // add 1 to localimpropers, so "impropers" does not become a NULL pointer
+    lmp->memory->create(impropers, localimpropers+1, 5, "library:gather_impropers:localimpropers");
     lmp->atom->avec->pack_improper(impropers);
     MPI_Allgatherv(&impropers[0][0], 5*localimpropers, MPI_LMP_TAGINT, data, bufsizes,
                    bufoffsets, MPI_LMP_TAGINT, lmp->world);

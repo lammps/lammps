@@ -462,7 +462,6 @@ void FixPIMDLangevin::setup(int vflag)
 {
   int nlocal = atom->nlocal;
   double **x = atom->x;
-  double **v = atom->v;
   imageint *image = atom->image;
   if (mapflag) {
     for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);

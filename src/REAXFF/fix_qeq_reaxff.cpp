@@ -405,6 +405,9 @@ void FixQEqReaxFF::init()
     if (strcmp(update->unit_style,"real") != 0)
       error->all(FLERR,"Must use unit_style real with fix {} and external fields", style);
 
+    if (efield->varflag == FixEfield::ATOM && efield->pstyle != FixEfield::ATOM)
+      error->all(FLERR,"Atom-style external electric field requires atom-style "
+                       "potential variable when used with fix {}", style);
     if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
          ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
          ((fabs(efield->ez) > SMALL) && domain->zperiodic))
@@ -1125,19 +1128,11 @@ void FixQEqReaxFF::get_chi_field()
         chi_field[i] = factor*(ex*unwrap[0] + ey*unwrap[1] + ez*unwrap[2]);
       }
     }
-  } else {
+  } else { // must use atom-style potential from FixEfield
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & efgroupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
-        domain->unmap(x[i],image[i],unwrap);
-        double edisp = 0; // accumulate E dot displacement
-        edisp += unwrap[0]*(
-            (efield->xstyle == FixEfield::ATOM) ? qe2f*efield->efield[i][0] : ex);
-        edisp += unwrap[1]*(
-            (efield->ystyle == FixEfield::ATOM) ? qe2f*efield->efield[i][1] : ey);
-        edisp += unwrap[2]*(
-            (efield->zstyle == FixEfield::ATOM) ? qe2f*efield->efield[i][2] : ez);
-        chi_field[i] = factor*edisp;
+        chi_field[i] = -efield->efield[i][3];
       }
     }
   }

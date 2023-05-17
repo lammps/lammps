@@ -46,10 +46,11 @@ class FixEfield : public Fix {
  protected:
   double ex, ey, ez;
   int varflag;
-  char *xstr, *ystr, *zstr, *estr;
+  char *xstr, *ystr, *zstr, *estr, *pstr;
   char *idregion;
   class Region *region;
-  int xvar, yvar, zvar, evar, xstyle, ystyle, zstyle, estyle;
+  int xvar, yvar, zvar, xstyle, ystyle, zstyle;
+  int evar, pvar, estyle, pstyle;
   int ilevel_respa;
   double qe2f;
   int qflag, muflag;

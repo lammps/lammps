@@ -41,7 +41,7 @@ using namespace FixConst;
 
 FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr),
-    idregion(nullptr), region(nullptr), efield(nullptr)
+    pstr(nullptr), idregion(nullptr), region(nullptr), efield(nullptr)
 {
   if (narg < 6) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 
@@ -100,6 +100,14 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
       } else
         error->all(FLERR, "Unsupported argument for fix {} energy command: {}", style, arg[iarg]);
       iarg += 2;
+    } else if (strcmp(arg[iarg], "potential") == 0) {
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ") + style + "potential", error);
+      if (utils::strmatch(arg[iarg + 1], "^v_")) {
+        pstr = utils::strdup(arg[iarg + 1] + 2);
+      } else
+        error->all(FLERR, "Unsupported argument for fix {} energy command: {}", style, arg[iarg]);
+      iarg += 2;
     } else {
       error->all(FLERR, "Unknown keyword for fix {} command: {}", style, arg[iarg]);
     }
@@ -122,6 +130,7 @@ FixEfield::~FixEfield()
   delete[] ystr;
   delete[] zstr;
   delete[] estr;
+  delete[] pstr;
   delete[] idregion;
   memory->destroy(efield);
 }
@@ -157,43 +166,55 @@ void FixEfield::init()
 
   if (xstr) {
     xvar = input->variable->find(xstr);
-    if (xvar < 0) error->all(FLERR, "Variable {} for fix {} does not exist", xstr, style);
+    if (xvar < 0) error->all(FLERR, "Variable {} for x-field in fix {} does not exist", xstr, style);
     if (input->variable->equalstyle(xvar))
       xstyle = EQUAL;
     else if (input->variable->atomstyle(xvar))
       xstyle = ATOM;
     else
-      error->all(FLERR, "Variable {} for fix {} is invalid style", xstr, style);
+      error->all(FLERR, "Variable {} for x-field in fix {} is invalid style", xstr, style);
   }
   if (ystr) {
     yvar = input->variable->find(ystr);
-    if (yvar < 0) error->all(FLERR, "Variable {} for fix {} does not exist", ystr, style);
+    if (yvar < 0) error->all(FLERR, "Variable {} for y-field in fix {} does not exist", ystr, style);
     if (input->variable->equalstyle(yvar))
       ystyle = EQUAL;
     else if (input->variable->atomstyle(yvar))
       ystyle = ATOM;
     else
-      error->all(FLERR, "Variable {} for fix {} is invalid style", ystr, style);
+      error->all(FLERR, "Variable {} for y-field in fix {} is invalid style", ystr, style);
   }
   if (zstr) {
     zvar = input->variable->find(zstr);
-    if (zvar < 0) error->all(FLERR, "Variable {} for fix {} does not exist", zstr, style);
+    if (zvar < 0) error->all(FLERR, "Variable {} for z-field in fix {} does not exist", zstr, style);
     if (input->variable->equalstyle(zvar))
       zstyle = EQUAL;
     else if (input->variable->atomstyle(zvar))
       zstyle = ATOM;
     else
-      error->all(FLERR, "Variable {} for fix {} is invalid style", zstr, style);
+      error->all(FLERR, "Variable {} for z-field in fix {} is invalid style", zstr, style);
   }
   if (estr) {
     evar = input->variable->find(estr);
-    if (evar < 0) error->all(FLERR, "Variable {} for fix {} does not exist", estr, style);
+    if (evar < 0) error->all(FLERR, "Variable {} for energy in fix {} does not exist", estr, style);
     if (input->variable->atomstyle(evar))
       estyle = ATOM;
     else
-      error->all(FLERR, "Variable {} for fix {} is invalid style", estr, style);
+      error->all(FLERR, "Variable {} for energy in fix {} must be atom-style", estr, style);
   } else
     estyle = NONE;
+  if (pstr) {
+    pvar = input->variable->find(pstr);
+    if (pvar < 0) error->all(FLERR, "Variable {} for potential in fix {} does not exist", pstr, style);
+    if (input->variable->atomstyle(pvar))
+      pstyle = ATOM;
+    else
+      error->all(FLERR, "Variable {} for potential in fix {} must be atom-style", pstr, style);
+    if (estyle != NONE)
+      error->warning(FLERR, "fix {} will ignore variable {} for energy "
+          "because atom-style potential has been specified", estr, style);
+  } else
+    pstyle = NONE;
 
   // set index and check validity of region
 
@@ -376,7 +397,8 @@ void FixEfield::post_force(int vflag)
           }
           f[i][2] += fz;
           fsum[3] += fz;
-          if (estyle == ATOM) fsum[0] += efield[i][3];
+          if (pstyle == ATOM) fsum[0] += qe2f * q[i] * efield[i][3];
+          else if (estyle == ATOM) fsum[0] += efield[i][3];
         }
     }
 
@@ -476,7 +498,8 @@ void FixEfield::update_efield_variables()
   } else if (zstyle == ATOM) {
     input->variable->compute_atom(zvar, igroup, &efield[0][2], 4, 0);
   }
-  if (estyle == ATOM) input->variable->compute_atom(evar, igroup, &efield[0][3], 4, 0);
+  if (pstyle == ATOM) input->variable->compute_atom(pvar, igroup, &efield[0][3], 4, 0);
+  else if (estyle == ATOM) input->variable->compute_atom(evar, igroup, &efield[0][3], 4, 0);
 
   modify->addstep_compute(update->ntimestep + 1);
 }

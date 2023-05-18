@@ -13,26 +13,23 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(ilp/tmd,PairILPTMD);
+PairStyle(ilp/water/2dm,PairILPWATER2DM);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_ILP_TMD_H
-#define LMP_PAIR_ILP_TMD_H
+#ifndef LMP_PAIR_ILP_WATER_2DM_H
+#define LMP_PAIR_ILP_WATER_2DM_H
 
-#include "pair_ilp_graphene_hbn.h"
+#include "pair_ilp_tmd.h"
 
 namespace LAMMPS_NS {
 
-class PairILPTMD : virtual public PairILPGrapheneHBN {
+class PairILPWATER2DM : virtual public PairILPTMD {
  public:
-  PairILPTMD(class LAMMPS *);
+  PairILPWATER2DM(class LAMMPS *);
 
  protected:
   void settings(int, char **) override;
-  void ILP_neigh() override;
-  void calc_normal() override;
-  void calc_FRep(int, int) override;
 
   /**************************************************************/
   /*       modulo operation with cycling around range           */
@@ -49,3 +46,22 @@ class PairILPTMD : virtual public PairILPGrapheneHBN {
 
 #endif
 #endif
+
+/* ERROR/WARNING messages:
+
+E: Illegal ... command
+
+Self-explanatory.  Check the input script syntax and compare to the
+documentation for the command.  You can use -echo screen as a
+command-line option when running LAMMPS to see the offending line.
+
+E: Incorrect args for pair coefficients
+
+Self-explanatory.  Check the input script or data file.
+
+E: All pair coeffs are not set
+
+All pair coefficients must be set in the data file or by the
+pair_coeff command before running a simulation.
+
+*/

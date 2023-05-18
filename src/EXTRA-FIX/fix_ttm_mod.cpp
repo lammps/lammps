@@ -754,7 +754,7 @@ void FixTTMMod::end_of_step()
     for (int iy = 0; iy < nygrid; iy++)
       for (int ix = 0; ix < nxgrid; ix++)
         T_electron_first[iz][iy][ix] = T_electron[iz][iy][ix];
-  
+
   do {
     for (int iz = 0; iz < nzgrid; iz++)
       for (int iy = 0; iy < nygrid; iy++)
@@ -894,9 +894,9 @@ double FixTTMMod::compute_vector(int n)
   double dz = domain->zprd/nzgrid;
   double del_vol = dx*dy*dz;
 
-  for (int iz = 0; iz < nzgrid; iz++)
+  for (int ix = 0; ix < nxgrid; ix++)
     for (int iy = 0; iy < nygrid; iy++)
-      for (int ix = 0; ix < nxgrid; ix++) {
+      for (int iz = 0; iz < nzgrid; iz++) {
         e_energy += el_sp_heat_integral(T_electron[iz][iy][ix])*del_vol;
         transfer_energy += net_energy_transfer_all[iz][iy][ix]*update->dt;
       }

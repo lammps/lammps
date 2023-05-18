@@ -1,17 +1,17 @@
-.. index:: pair_style ilp/graphene/hbn
-.. index:: pair_style ilp/graphene/hbn/opt
+.. index:: pair_style ilp/water/2dm
+.. index:: pair_style ilp/water/2dm/opt
 
-pair_style ilp/graphene/hbn command
+pair_style ilp/tmd command
 ===================================
 
-Accelerator Variant: *ilp/graphene/hbn/opt*
+Accelerator Variant: *ilp/water/2dm/opt*
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style [hybrid/overlay ...] ilp/graphene/hbn cutoff tap_flag
+   pair_style [hybrid/overlay ...] ilp/tmd cutoff tap_flag
 
 * cutoff = global cutoff (distance units)
 * tap_flag = 0/1 to turn off/on the taper function
@@ -21,25 +21,23 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style  hybrid/overlay ilp/graphene/hbn 16.0 1
-   pair_coeff  * * ilp/graphene/hbn  BNCH.ILP B N C
+   pair_style  hybrid/overlay ilp/water/2dm 16.0 1
+   pair_coeff  * * ilp/water/2dm  COH.ILP C Ow Hw
 
-   pair_style  hybrid/overlay rebo tersoff ilp/graphene/hbn 16.0 coul/shield 16.0
-   pair_coeff  * * rebo              CH.rebo     NULL NULL C
-   pair_coeff  * * tersoff           BNC.tersoff B    N    NULL
-   pair_coeff  * * ilp/graphene/hbn  BNCH.ILP    B    N    C
-   pair_coeff  1 1 coul/shield 0.70
-   pair_coeff  1 2 coul/shield 0.695
-   pair_coeff  2 2 coul/shield 0.69
+   pair_style  hybrid/overlay ilp/water/2dm 16.0 lj/cut/tip4p/long 2 3 1 1 0.1546 10 8.5
+   pair_coeff  2 2   lj/cut/tip4p/long    8.0313e-3  3.1589  # O-O
+   pair_coeff  2 3   lj/cut/tip4p/long    0.0        0.0     # O-H
+   pair_coeff  3 3   lj/cut/tip4p/long    0.0        0.0     # H-H
+   pair_coeff  * *   ilp/water/2dm        COH.ILP    C Ow Hw
 
 Description
 """""""""""
 
-The *ilp/graphene/hbn* style computes the registry-dependent interlayer
-potential (ILP) potential as described in :ref:`(Leven1) <Leven1>`,
-:ref:`(Leven2) <Leven2>` and :ref:`(Maaravi) <Maaravi2>`.
-The normals are calculated in the way as described
-in :ref:`(Kolmogorov) <Kolmogorov2>`.
+.. versionadded:: xxxx2023
+
+The *ilp/water/2dm* style computes the registry-dependent interlayer
+potential (ILP) potential for interfaces of water with two-dimensinal (2D)
+materials as described in :ref:`(Feng) <Feng>`.
 
 .. math::
 
@@ -58,27 +56,20 @@ in :ref:`(Kolmogorov) <Kolmogorov2>`.
 
 Where :math:`\mathrm{Tap}(r_{ij})` is the taper function which provides
 a continuous cutoff (up to third derivative) for interatomic separations
-larger than :math:`r_c` :ref:`(Maaravi) <Maaravi2>`. The definitions of
-each parameter in the above equation can be found in :ref:`(Leven1)
-<Leven1>` and :ref:`(Maaravi) <Maaravi2>`.
+larger than :math:`r_c` :doc:`pair_style ilp_graphene_hbn <pair_ilp_graphene_hbn>`.
 
 It is important to include all the pairs to build the neighbor list for
 calculating the normals.
 
 .. note::
 
-   This potential (ILP) is intended for interlayer interactions between two
-   different layers of graphene, hexagonal boron nitride (h-BN) and their hetero-junction.
-   To perform a realistic simulation, this potential must be used in combination with
-   intralayer potential, such as :doc:`AIREBO <pair_airebo>` or :doc:`Tersoff <pair_tersoff>` potential.
-   To keep the intralayer properties unaffected, the interlayer interaction
-   within the same layers should be avoided. Hence, each atom has to have a layer
-   identifier such that atoms residing on the same layer interact via the
-   appropriate intralayer potential and atoms residing on different layers
-   interact via the ILP. Here, the molecule id is chosen as the layer identifier,
-   thus a data file with the "full" atom style is required to use this potential.
+   Since each water molecule contains one oxygen atom and two hydrogen atoms,
+   a new definition is proposed (see In :ref:`(Feng) <Feng>`),the atomic
+   normal vectors of hydrogen atoms are assumed to lie along the corresponding
+   oxygen-hydrogen bonds and the normal vector of the central oxygen atom
+   is defined as their average.
 
-The parameter file (e.g. BNCH.ILP), is intended for use with *metal*
+The parameter file (e.g. COH.ILP), is intended for use with *metal*
 :doc:`units <units>`, with energies in meV. Two additional parameters,
 *S*, and *rcut* are included in the parameter file. *S* is designed to
 facilitate scaling of energies. *rcut* is designed to build the neighbor
@@ -86,25 +77,13 @@ list for calculating the normals for each atom pair.
 
 .. note::
 
-   The parameters presented in the parameter file (e.g. BNCH.ILP),
+   The parameters presented in the parameter file (e.g. COH.ILP),
    are fitted with taper function by setting the cutoff equal to 16.0
    Angstrom.  Using different cutoff or taper function should be careful.
-   The parameters for atoms pairs between Boron and Nitrogen are fitted with
-   a screened Coulomb interaction :doc:`coul/shield <pair_coul_shield>`. Therefore,
-   to simulated the properties of h-BN correctly, this potential must be used in
-   combination with the pair style :doc:`coul/shield <pair_coul_shield>`.
-
-.. note::
-
-   Four new sets of parameters of ILP for 2D layered Materials with bilayer and
-   bulk configurations are presented in :ref:`(Ouyang1) <Ouyang1>` and :ref:`(Ouyang2) <Ouyang2>`, respectively.
-   These parameters provide a good description in both short- and long-range interaction regimes.
-   While the old ILP parameters published in :ref:`(Leven2) <Leven2>` and
-   :ref:`(Maaravi) <Maaravi2>` are only suitable for long-range interaction
-   regime. This feature is essential for simulations in high pressure
+   These parameters provide a good description in both short- and long-range
+   interaction regimes. This feature is essential for simulations in high pressure
    regime (i.e., the interlayer distance is smaller than the equilibrium
-   distance). The benchmark tests and comparison of these parameters can
-   be found in :ref:`(Ouyang1) <Ouyang1>` and :ref:`(Ouyang2) <Ouyang2>`.
+   distance).
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style *none*\ .
@@ -121,7 +100,7 @@ headings) the following commands could be included in an input script:
 
 .. code-block:: LAMMPS
 
-   compute 0 all pair ilp/graphene/hbn
+   compute 0 all pair ilp/water/2dm
    variable Evdw  equal c_0[1]
    variable Erep  equal c_0[2]
    thermo_style custom step temp epair v_Erep v_Evdw
@@ -153,10 +132,10 @@ if LAMMPS was built with that package.  See the :doc:`Build package
 This pair style requires the newton setting to be *on* for pair
 interactions.
 
-The BNCH.ILP potential file provided with LAMMPS (see the potentials
+The COH.ILP potential file provided with LAMMPS (see the potentials
 directory) are parameterized for *metal* units.  You can use this
-potential with any LAMMPS units, but you would need to create your own
-custom BNCH.ILP potential file with coefficients listed in the appropriate
+potential with any LAMMPS units, but you would need to create your
+COH.ILP potential file with coefficients listed in the appropriate
 units, if your simulation does not use *metal* units.
 
 Related commands
@@ -168,6 +147,7 @@ Related commands
 :doc:`pair_style drip <pair_drip>`,
 :doc:`pair_style ilp_tmd <pair_ilp_tmd>`,
 :doc:`pair_style saip_metal <pair_saip_metal>`,
+:doc:`pair_style ilp_graphene_hbn <pair_ilp_graphene_hbn>`,
 :doc:`pair_style pair_kolmogorov_crespi_z <pair_kolmogorov_crespi_z>`,
 :doc:`pair_style pair_kolmogorov_crespi_full <pair_kolmogorov_crespi_full>`,
 :doc:`pair_style pair_lebedeva_z <pair_lebedeva_z>`,
@@ -181,26 +161,6 @@ tap_flag = 1
 
 ----------
 
-.. _Ouyang1:
+.. _Feng:
 
-**(Ouyang1)** W. Ouyang, D. Mandelli, M. Urbakh and O. Hod, Nano Lett. 18, 6009-6016 (2018).
-
-.. _Ouyang2:
-
-**(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
-
-.. _Leven1:
-
-**(Leven1)** I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
-
-.. _Leven2:
-
-**(Leven2)** I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
-
-.. _Maaravi2:
-
-**(Maaravi)** T. Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017).
-
-.. _Kolmogorov2:
-
-**(Kolmogorov)** A. N. Kolmogorov, V. H. Crespi, Phys. Rev. B 71, 235415 (2005).
+**(Feng)** Z. Feng, W. Ouyang, J. Phys. Chem. C. accepted (2023).

@@ -1693,6 +1693,25 @@ void FixNH::reset_target(double t_new)
   t_target = t_start = t_stop = t_new;
 }
 
+/* ----------------------------------------------------------------------
+   author: Samuel Cajahuaringa
+   control the target pressure by dcci command 
+------------------------------------------------------------------------- */
+void FixNH::reset_target_pressure(double p_new)
+{
+  p_hydro = 0.0;
+  for (int i = 0; i < 3; i++)
+    if (p_flag[i]) {
+      p_target[i] = p_start[i] = p_stop[i] = p_new;
+      p_hydro += p_target[i];
+    }
+  if (pdim > 0) p_hydro /= pdim;
+
+  if (pstyle == TRICLINIC)
+    for (int i = 3; i < 6; i++)
+      p_target[i] = p_start[i] = p_stop[i] = p_new;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixNH::reset_dt()

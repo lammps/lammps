@@ -38,6 +38,7 @@ class FixNH : public Fix {
   void restart(char *) override;
   int modify_param(int, char **) override;
   void reset_target(double) override;
+  void reset_target_pressure(double) override;
   void reset_dt() override;
   void *extract(const char *, int &) override;
   double memory_usage() override;

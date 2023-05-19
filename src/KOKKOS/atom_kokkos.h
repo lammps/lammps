@@ -15,6 +15,8 @@
 #include "atom.h"               // IWYU pragma: export
 #include "kokkos_type.h"
 
+#include <Kokkos_Sort.hpp>
+
 #ifndef LMP_ATOM_KOKKOS_H
 #define LMP_ATOM_KOKKOS_H
 
@@ -73,18 +75,49 @@ class AtomKokkos : public Atom {
   ~AtomKokkos() override;
 
   void map_init(int check = 1) override;
+  void map_clear() override;
   void map_set() override;
+  void map_one(tagint, int) override;
   void map_delete() override;
+  int map_find_hash(tagint) override;
 
+  DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_1d k_sametag;
   DAT::tdual_int_1d k_map_array;
-  DAT::tdual_int_scalar k_error_flag;
   dual_hash_type k_map_hash;
+
+  DAT::t_tagint_1d d_tag_sorted;
+  DAT::t_int_1d d_i_sorted;
+
+  typedef Kokkos::DualView<tagint[2], LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_2;
+  typedef tdual_tagint_2::t_dev t_tagint_2;
+  typedef tdual_tagint_2::t_host t_host_tagint_2;
+
+  t_tagint_2 d_tag_min_max;
+  t_host_tagint_2 h_tag_min_max;
+
+  DAT::t_tagint_scalar d_tag_min,d_tag_max;
+  HAT::t_tagint_scalar h_tag_min,h_tag_max;
+
+  using MapKeyViewType = decltype(d_tag_sorted);
+  using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
+  Kokkos::BinSort<MapKeyViewType, BinOpMap> Sorter;
 
   class AtomVecKokkos* avecKK;
 
   // map lookup function inlined for efficiency
   // return -1 if no map defined
+
+  inline int map(tagint global) override
+  {
+    if (map_style == 1) {
+      k_map_array.sync_host();
+      return map_array[global];
+    } else if (map_style == 2)
+      return map_find_hash(global);
+    else
+      return -1;
+  };
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION

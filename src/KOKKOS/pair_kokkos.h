@@ -137,6 +137,12 @@ struct PairComputeFunctor  {
     F_FLOAT fytmp = 0.0;
     F_FLOAT fztmp = 0.0;
 
+    if (NEIGHFLAG == FULL) {
+      f(i,0) = 0.0;
+      f(i,1) = 0.0;
+      f(i,2) = 0.0;
+    }
+
     for (int jj = 0; jj < jnum; jj++) {
       int j = neighbors_i(jj);
       const F_FLOAT factor_lj = c.special_lj[sbmask(j)];
@@ -204,6 +210,12 @@ struct PairComputeFunctor  {
     F_FLOAT fxtmp = 0.0;
     F_FLOAT fytmp = 0.0;
     F_FLOAT fztmp = 0.0;
+
+    if (NEIGHFLAG == FULL) {
+      f(i,0) = 0.0;
+      f(i,1) = 0.0;
+      f(i,2) = 0.0;
+    }
 
     for (int jj = 0; jj < jnum; jj++) {
       int j = neighbors_i(jj);
@@ -767,7 +779,6 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, typename std::enable_if<(NEIG
       fpair->lmp->kokkos->neigh_thread = 1;
 
   if (fpair->lmp->kokkos->neigh_thread) {
-    fpair->fuse_force_clear_flag = 1;
 
     int vector_length = 8;
     int atoms_per_team = 32;
@@ -805,6 +816,7 @@ template<class PairStyle, class Specialisation>
 EV_FLOAT pair_compute (PairStyle* fpair, NeighListKokkos<typename PairStyle::device_type>* list) {
   EV_FLOAT ev;
   if (fpair->neighflag == FULL) {
+    fpair->fuse_force_clear_flag = 1;
     ev = pair_compute_neighlist<PairStyle,FULL,Specialisation> (fpair,list);
   } else if (fpair->neighflag == HALFTHREAD) {
     ev = pair_compute_neighlist<PairStyle,HALFTHREAD,Specialisation> (fpair,list);
@@ -860,11 +872,7 @@ void pair_virial_fdotr_compute(PairStyle* fpair) {
   fpair->virial[5] = virial.v[5];
 }
 
-
-
-
 }
 
 #endif
 #endif
-

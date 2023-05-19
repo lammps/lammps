@@ -50,13 +50,16 @@ NeighBondKokkos<DeviceType>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  k_nlist = DAT::tdual_int_scalar("NeighBond:nlist");
-  d_nlist = k_nlist.view<DeviceType>();
-  h_nlist = k_nlist.h_view;
+  // use 1D view for scalars to reduce GPU memory operations
 
-  k_fail_flag = DAT::tdual_int_scalar("NeighBond:fail_flag");
-  d_fail_flag = k_fail_flag.view<DeviceType>();
-  h_fail_flag = k_fail_flag.h_view;
+  d_scalars = typename AT::t_int_1d("NeighBond:scalars",2);
+  h_scalars = HAT::t_int_1d("NeighBond:scalars_mirror",2);
+
+  d_nlist = Kokkos::subview(d_scalars,0);
+  d_fail_flag = Kokkos::subview(d_scalars,1);
+
+  h_nlist = Kokkos::subview(h_scalars,0);
+  h_fail_flag = Kokkos::subview(h_scalars,1);
 
   maxbond = 0;
   maxangle = 0;
@@ -240,22 +243,14 @@ void NeighBondKokkos<DeviceType>::bond_all()
   do {
     nmissing = 0;
 
-    h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
-
-    h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    Kokkos::deep_copy(d_scalars,0);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondAll>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    Kokkos::deep_copy(h_scalars,d_scalars);
+
     neighbor->nbondlist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxbond = neighbor->nbondlist + BONDDELTA;
       memoryKK->grow_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neighbor:neighbor->bondlist");
@@ -327,22 +322,14 @@ void NeighBondKokkos<DeviceType>::bond_partial()
   do {
     nmissing = 0;
 
-    h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
-
-    h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    Kokkos::deep_copy(d_scalars,0);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondPartial>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    Kokkos::deep_copy(h_scalars,d_scalars);
+
     neighbor->nbondlist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxbond = neighbor->nbondlist + BONDDELTA;
       memoryKK->grow_kokkos(k_bondlist,neighbor->bondlist,maxbond,3,"neighbor:neighbor->bondlist");
@@ -440,22 +427,14 @@ void NeighBondKokkos<DeviceType>::angle_all()
   do {
     nmissing = 0;
 
-    h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
-
-    h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    Kokkos::deep_copy(d_scalars,0);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleAll>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    Kokkos::deep_copy(h_scalars,d_scalars);
+
     neighbor->nanglelist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxangle = neighbor->nanglelist + BONDDELTA;
       memoryKK->grow_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neighbor:neighbor->anglelist");
@@ -534,22 +513,14 @@ void NeighBondKokkos<DeviceType>::angle_partial()
   do {
     nmissing = 0;
 
-    h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
-
-    h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    Kokkos::deep_copy(d_scalars,0);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAnglePartial>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    Kokkos::deep_copy(h_scalars,d_scalars);
+
     neighbor->nanglelist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxangle = neighbor->nanglelist + BONDDELTA;
       memoryKK->grow_kokkos(k_anglelist,neighbor->anglelist,maxangle,4,"neighbor:neighbor->anglelist");
@@ -667,22 +638,14 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
   do {
     nmissing = 0;
 
-    h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
-
-    h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    Kokkos::deep_copy(d_scalars,0);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralAll>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    Kokkos::deep_copy(h_scalars,d_scalars);
+
     neighbor->ndihedrallist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxdihedral = neighbor->ndihedrallist + BONDDELTA;
       memoryKK->grow_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neighbor:neighbor->dihedrallist");
@@ -766,22 +729,14 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
   do {
     nmissing = 0;
 
-    h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
-
-    h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    Kokkos::deep_copy(d_scalars,0);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralPartial>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    Kokkos::deep_copy(h_scalars,d_scalars);
+
     neighbor->ndihedrallist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maxdihedral = neighbor->ndihedrallist + BONDDELTA;
       memoryKK->grow_kokkos(k_dihedrallist,neighbor->dihedrallist,maxdihedral,5,"neighbor:neighbor->dihedrallist");
@@ -921,22 +876,14 @@ void NeighBondKokkos<DeviceType>::improper_all()
   do {
     nmissing = 0;
 
-    h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
-
-    h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    Kokkos::deep_copy(d_scalars,0);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperAll>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    Kokkos::deep_copy(h_scalars,d_scalars);
+
     neighbor->nimproperlist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maximproper = neighbor->nimproperlist + BONDDELTA;
       memoryKK->grow_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neighbor:neighbor->improperlist");
@@ -1020,22 +967,14 @@ void NeighBondKokkos<DeviceType>::improper_partial()
   do {
     nmissing = 0;
 
-    h_nlist() = 0;
-    k_nlist.template modify<LMPHostType>();
-    k_nlist.template sync<DeviceType>();
-
-    h_fail_flag() = 0;
-    k_fail_flag.template modify<LMPHostType>();
-    k_fail_flag.template sync<DeviceType>();
+    Kokkos::deep_copy(d_scalars,0);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperPartial>(0,nlocal),*this,nmissing);
 
-    k_nlist.template modify<DeviceType>();
-    k_nlist.template sync<LMPHostType>();
+    Kokkos::deep_copy(h_scalars,d_scalars);
+
     neighbor->nimproperlist = h_nlist();
 
-    k_fail_flag.template modify<DeviceType>();
-    k_fail_flag.template sync<LMPHostType>();
     if (h_fail_flag()) {
       maximproper = neighbor->nimproperlist + BONDDELTA;
       memoryKK->grow_kokkos(k_improperlist,neighbor->improperlist,maximproper,5,"neighbor:neighbor->improperlist");
@@ -1221,6 +1160,7 @@ void NeighBondKokkos<DeviceType>::update_class_variables()
     k_map_array.template sync<DeviceType>();
   } else if (map_style == Atom::MAP_HASH) {
     k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
   }
 }
 

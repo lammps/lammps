@@ -31,23 +31,25 @@ class FixPressLangevin : public Fix {
   int setmask() override;
   void init() override;
   void setup(int) override;
+  void pre_exchange() override;
   void initial_integrate(int) override;
   void post_force(int) override;
   void end_of_step() override;
+  void reset_dt() override;
   int modify_param(int, char **) override;
 
  protected:
   int dimension, which;
 
   int pstyle, pcouple, allremap;
-  int p_flag[3];    // 1 if control P on this dim, 0 if not
+  int p_flag[6];    // 1 if control P on this dim, 0 if not
   double t_start, t_stop, t_target;
   double p_fric;
-  double p_start[3], p_stop[3], p_current[3];
-  double p_period[3], p_target[3];
-  double p_deriv[3], dilation[3];
-  double f_piston[3], f_old_piston[3];
-  double gjfa[3], gjfb[3], fran[3];
+  double p_start[6], p_stop[6], p_current[6];
+  double p_period[6], p_target[6];
+  double p_deriv[6], dilation[6];
+  double f_piston[6], f_old_piston[6];
+  double gjfa[6], gjfb[6], fran[6];
   int kspace_flag;    // 1 if KSpace invoked, 0 if not
   int nrigid;         // number of rigid fixes
   int *rfix;          // indices of rigid fixes
@@ -55,6 +57,10 @@ class FixPressLangevin : public Fix {
   char *id_temp, *id_press;
   class Compute *temperature, *pressure;
   int pflag;
+
+  int flipflag;
+  int pre_exchange_flag;    // set if pre_exchange needed for box flips
+  class Irregular *irregular;    // for migrating atoms after box flips
 
   class RanMars *random;
   int seed;

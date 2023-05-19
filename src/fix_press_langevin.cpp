@@ -26,6 +26,7 @@
 #include "fix_deform.h"
 #include "force.h"
 #include "group.h"
+#include "irregular.h"
 #include "kspace.h"
 #include "modify.h"
 #include "random_mars.h"
@@ -37,14 +38,17 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+#define DELTAFLIP 0.1
+#define TILTMAX 1.5
+
 enum{NONE,XYZ,XY,YZ,XZ};
-enum{ISO,ANISO};
+enum{ISO,ANISO,TRICLINIC};
 
 /* ---------------------------------------------------------------------- */
 
 FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  id_press(nullptr), pflag(0), random(nullptr)
+  id_press(nullptr), pflag(0), random(nullptr), irregular(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix press/langevin command");
 
@@ -58,13 +62,15 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   pcouple = NONE;
   allremap = 1;
+  pre_exchange_flag = 0;
+  flipflag = 1;
 
   // Alpha friction coefficient
   p_fric = 1e-4;
   // Target temperature
   t_start = t_stop = t_target = 0.0;
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 6; i++) {
     // Pressure and pistons mass Q
     p_start[i] = p_stop[i] = p_period[i] = 0.0;
     p_flag[i] = 0;
@@ -113,7 +119,28 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
         p_flag[2] = 0;
       }
       iarg += 4;
-
+    } else if (strcmp(arg[iarg],"tri") == 0) {
+      if (iarg+4 > narg)
+        error->all(FLERR,"Illegal fix press/langevin command");
+      pcouple = NONE;
+      p_start[0] = p_start[1] = p_start[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[0] = p_stop[1] = p_stop[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[0] = p_period[1] = p_period[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_flag[0] = p_flag[1] = p_flag[2] = 1;
+      p_start[3] = p_start[4] = p_start[5] = 0.0;
+      p_stop[3] = p_stop[4] = p_stop[5] = 0.0;
+      p_period[3] = p_period[4] = p_period[5] =
+        utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_flag[3] = p_flag[4] = p_flag[5] = 1;
+      if (dimension == 2) {
+        p_start[2] = p_stop[2] = p_period[2] = 0.0;
+        p_flag[2] = 0;
+        p_start[3] = p_stop[3] = p_period[3] = 0.0;
+        p_flag[3] = 0;
+        p_start[4] = p_stop[4] = p_period[4] = 0.0;
+        p_flag[4] = 0;
+      }
+      iarg += 4;
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+4 > narg)
         error->all(FLERR,"Illegal fix press/langevin command");
@@ -140,6 +167,37 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
       if (dimension == 2)
         error->all(FLERR,"Invalid fix press/langevin for a 2d simulation");
+    } else if (strcmp(arg[iarg],"xy") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} yz", style), error);
+      p_start[3] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[3] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_flag[3] = 1;
+      iarg += 4;
+      if (dimension == 2) error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
+
+    } else if (strcmp(arg[iarg],"xz") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} xz", style), error);
+      p_start[4] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[4] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[4] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_flag[4] = 1;
+      iarg += 4;
+      if (dimension == 2) error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
+
+    } else if (strcmp(arg[iarg],"yz") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} xy", style), error);
+      p_start[5] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      p_stop[5] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      p_period[5] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      p_flag[5] = 1;
+      iarg += 4;
+      if (dimension == 2) error->all(FLERR,"Invalid fix {} command for a 2d simulation", style);
+
+    } else if (strcmp(arg[iarg],"flip") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} flip", style), error);
+      flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"couple") == 0) {
       if (iarg+2 > narg)
@@ -212,6 +270,17 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,
                "Cannot use fix press/langevin on a non-periodic dimension");
 
+  // require periodicity in 2nd dim of off-diagonal tilt component
+
+  if (p_flag[3] && domain->zperiodic == 0)
+    error->all(FLERR, "Cannot use fix {} on a 2nd non-periodic dimension", style);
+  if (p_flag[4] && domain->zperiodic == 0)
+    error->all(FLERR, "Cannot use fix {} on a 2nd non-periodic dimension", style);
+  if (p_flag[5] && domain->yperiodic == 0)
+    error->all(FLERR, "Cannot use fix {} on a 2nd non-periodic dimension", style);
+  if (!domain->triclinic && (p_flag[3] || p_flag[4] || p_flag[5]))
+    error->all(FLERR,"Can not specify Pxy/Pxz/Pyz in fix {} with non-triclinic box", style);
+
   if (pcouple == XYZ && dimension == 3 &&
       (p_start[0] != p_start[1] || p_start[0] != p_start[2] ||
        p_stop[0] != p_stop[1] || p_stop[0] != p_stop[2] ||
@@ -234,25 +303,34 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
        p_period[0] != p_period[2]))
     error->all(FLERR,"Invalid fix press/langevin pressure settings");
 
-  if (t_start < 0.0)
-    error->all(FLERR,"Fix press/langevin temperature parameters must be >= 0.0");
-  if (t_stop < 0.0)
+  if (t_start < 0.0 || t_stop < 0.0)
     error->all(FLERR,"Fix press/langevin temperature parameters must be >= 0.0");
 
   if ((p_flag[0] && p_period[0] <= 0.0) ||
       (p_flag[1] && p_period[1] <= 0.0) ||
-      (p_flag[2] && p_period[2] <= 0.0))
+      (p_flag[2] && p_period[2] <= 0.0) ||
+      (p_flag[3] && p_period[3] <= 0.0) ||
+      (p_flag[4] && p_period[4] <= 0.0) ||
+      (p_flag[5] && p_period[5] <= 0.0))
     error->all(FLERR,"Fix press/langevin damping parameters must be > 0.0");
-
-  if (p_flag[0]) box_change |= BOX_CHANGE_X;
-  if (p_flag[1]) box_change |= BOX_CHANGE_Y;
-  if (p_flag[2]) box_change |= BOX_CHANGE_Z;
 
   // pstyle = ISO if XYZ coupling or XY coupling in 2d -> 1 dof
   // else pstyle = ANISO -> 3 dof
 
-  if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
+  if (p_flag[3] || p_flag[4] || p_flag[5]) pstyle = TRICLINIC;
+  else if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;
   else pstyle = ANISO;
+
+    // pre_exchange only required if flips can occur due to shape changes
+
+  if (flipflag && (p_flag[3] || p_flag[4] || p_flag[5]))
+    pre_exchange_flag = pre_exchange_migrate = 1;
+  if (flipflag && (domain->yz != 0.0 || domain->xz != 0.0 ||
+                   domain->xy != 0.0))
+    pre_exchange_flag = pre_exchange_migrate = 1;
+
+  if (pre_exchange_flag) irregular = new Irregular(lmp);
+  else irregular = nullptr;
 
   // C1
   // Langevin GJF dynamics does NOT need a temperature compute
@@ -278,7 +356,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(fmt::format("{} all pressure NULL virial",id_press, id_temp));
   pflag = 1;
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 6; i++) {
     gjfa[i] = (1.0 - update->dt / 2.0 / p_period[i]) / (1.0 + update->dt / 2.0 / p_period[i]);
     gjfb[i] = 1./(1.0 + update->dt / 2.0 / p_period[i]);
   }
@@ -293,6 +371,8 @@ FixPressLangevin::~FixPressLangevin()
 {
   delete random;
   delete[] rfix;
+  delete irregular;
+
 
   // delete temperature and pressure if fix created them
 
@@ -308,6 +388,7 @@ int FixPressLangevin::setmask()
   mask |= INITIAL_INTEGRATE;
   mask |= POST_FORCE;
   mask |= END_OF_STEP;
+  if (pre_exchange_flag) mask |= PRE_EXCHANGE;
   return mask;
 }
 
@@ -315,16 +396,14 @@ int FixPressLangevin::setmask()
 
 void FixPressLangevin::init()
 {
-  if (domain->triclinic)
-    error->all(FLERR,"Cannot use fix press/langevin with triclinic box");
-
   // ensure no conflict with fix deform
 
   for (const auto &ifix : modify->get_fix_list())
     if (strcmp(ifix->style, "^deform") == 0) {
       int *dimflag = static_cast<FixDeform *>(ifix)->dimflag;
       if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
-          (p_flag[2] && dimflag[2]))
+          (p_flag[2] && dimflag[2]) || (p_flag[3] && dimflag[3]) ||
+          (p_flag[4] && dimflag[4]) || (p_flag[5] && dimflag[5]))
         error->all(FLERR,"Cannot use fix press/langevin and "
                    "fix deform on same component of stress tensor");
     }
@@ -386,14 +465,15 @@ void FixPressLangevin::initial_integrate(int /* vflag */)
 
   dt = update->dt;
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 6; i++) {
     if (p_flag[i]) {
       // See equation 13
       displacement = dt*p_deriv[i]*gjfb[i];
       displacement += 0.5*dt*dt*f_piston[i]*gjfb[i]/p_period[i];
       displacement += 0.5*dt*fran[i]*gjfb[i]/p_period[i];
       dl = domain->boxhi[i] - domain->boxlo[i];
-      dilation[i] = (dl + displacement)/dl;
+      if (i < 3) dilation[i] = (dl + displacement)/dl;
+      else dilation[i] = displacement;
     }
   }
 
@@ -423,7 +503,7 @@ void FixPressLangevin::post_force(int /*vflag*/)
   couple_pressure();
   couple_kinetic(t_target);
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 6; i++) {
     if (p_flag[i]) {
       f_old_piston[i] = f_piston[i];
       p_target[i] = p_start[i] + delta * (p_stop[i]-p_start[i]);
@@ -445,7 +525,7 @@ void FixPressLangevin::end_of_step()
   double dt;
   dt = update->dt;
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 6; i++) {
     if (p_flag[i]) {
       p_deriv[i] *= gjfa[i];
       p_deriv[i] += 0.5*dt*(gjfa[i]*f_old_piston[i]+f_piston[i])/p_period[i];
@@ -483,6 +563,9 @@ void FixPressLangevin::couple_pressure()
     p_current[1] = tensor[1];
     p_current[2] = tensor[2];
   }
+    p_current[3] = tensor[3];
+    p_current[4] = tensor[4];
+    p_current[5] = tensor[5];
 }
 /* ---------------------------------------------------------------------- */
 
@@ -511,6 +594,7 @@ void FixPressLangevin::couple_beta(double t_target)
   gamma = sqrt(2.0*force->boltz*update->dt*p_fric*t_target);
 
   fran[0] = fran[1] = fran[2] = 0.0;
+  fran[3] = fran[4] = fran[5] = 0.0;
   if (me == 0) {
     if (pstyle == ISO)
       fran[0] = fran[1] = fran[2] = gamma*random->gaussian();
@@ -530,8 +614,11 @@ void FixPressLangevin::couple_beta(double t_target)
       fran[1] = gamma*random->gaussian();
       fran[2] = gamma*random->gaussian();
     }
+    fran[3] = gamma*random->gaussian();
+    fran[4] = gamma*random->gaussian();
+    fran[5] = gamma*random->gaussian();
   }
-  MPI_Bcast(&fran, 3, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&fran, 6, MPI_DOUBLE, 0, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -574,6 +661,19 @@ void FixPressLangevin::remap()
     }
   }
 
+  if (p_flag[3]) domain->xy += dilation[3];
+  if (p_flag[4]) domain->xz += dilation[4];
+  if (p_flag[5]) domain->yz += dilation[5];
+
+  if (domain->yz < -TILTMAX*domain->yprd ||
+      domain->yz > TILTMAX*domain->yprd ||
+      domain->xz < -TILTMAX*domain->xprd ||
+      domain->xz > TILTMAX*domain->xprd ||
+      domain->xy < -TILTMAX*domain->xprd ||
+      domain->xy > TILTMAX*domain->xprd)
+    error->all(FLERR,"Fix {} has tilted box too far in one step - "
+               "periodic cell is too far from equilibrium state", style);
+
   domain->set_global_box();
   domain->set_local_box();
 
@@ -589,6 +689,85 @@ void FixPressLangevin::remap()
   if (nrigid)
     for (i = 0; i < nrigid; i++)
       modify->fix[rfix[i]]->deform(1);
+}
+
+/* ----------------------------------------------------------------------
+  if any tilt ratios exceed limits, set flip = 1 and compute new tilt values
+  do not flip in x or y if non-periodic (can tilt but not flip)
+    this is b/c the box length would be changed (dramatically) by flip
+  if yz tilt exceeded, adjust C vector by one B vector
+  if xz tilt exceeded, adjust C vector by one A vector
+  if xy tilt exceeded, adjust B vector by one A vector
+  check yz first since it may change xz, then xz check comes after
+  if any flip occurs, create new box in domain
+  image_flip() adjusts image flags due to box shape change induced by flip
+  remap() puts atoms outside the new box back into the new box
+  perform irregular on atoms in lamda coords to migrate atoms to new procs
+  important that image_flip comes before remap, since remap may change
+    image flags to new values, making eqs in doc of Domain:image_flip incorrect
+------------------------------------------------------------------------- */
+
+void FixPressLangevin::pre_exchange()
+{
+  double xprd = domain->xprd;
+  double yprd = domain->yprd;
+
+  // flip is only triggered when tilt exceeds 0.5 by DELTAFLIP
+  // this avoids immediate re-flipping due to tilt oscillations
+
+  double xtiltmax = (0.5+DELTAFLIP)*xprd;
+  double ytiltmax = (0.5+DELTAFLIP)*yprd;
+
+  int flipxy,flipxz,flipyz;
+  flipxy = flipxz = flipyz = 0;
+
+  if (domain->yperiodic) {
+    if (domain->yz < -ytiltmax) {
+      domain->yz += yprd;
+      domain->xz += domain->xy;
+      flipyz = 1;
+    } else if (domain->yz >= ytiltmax) {
+      domain->yz -= yprd;
+      domain->xz -= domain->xy;
+      flipyz = -1;
+    }
+  }
+
+  if (domain->xperiodic) {
+    if (domain->xz < -xtiltmax) {
+      domain->xz += xprd;
+      flipxz = 1;
+    } else if (domain->xz >= xtiltmax) {
+      domain->xz -= xprd;
+      flipxz = -1;
+    }
+    if (domain->xy < -xtiltmax) {
+      domain->xy += xprd;
+      flipxy = 1;
+    } else if (domain->xy >= xtiltmax) {
+      domain->xy -= xprd;
+      flipxy = -1;
+    }
+  }
+
+  int flip = 0;
+  if (flipxy || flipxz || flipyz) flip = 1;
+
+  if (flip) {
+    domain->set_global_box();
+    domain->set_local_box();
+
+    domain->image_flip(flipxy,flipxz,flipyz);
+
+    double **x = atom->x;
+    imageint *image = atom->image;
+    int nlocal = atom->nlocal;
+    for (int i = 0; i < nlocal; i++) domain->remap(x[i],image[i]);
+
+    domain->x2lamda(atom->nlocal);
+    irregular->migrate_atoms();
+    domain->lamda2x(atom->nlocal);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -611,4 +790,14 @@ int FixPressLangevin::modify_param(int narg, char **arg)
     return 2;
   }
   return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPressLangevin::reset_dt()
+{
+  for (int i=0; i<6; i++) {
+    gjfa[i] = (1.0 - update->dt / 2.0 / p_period[i]) / (1.0 + update->dt / 2.0 / p_period[i]);
+    gjfb[i] = sqrt(1.0 + update->dt / 2.0 / p_period[i]);
+    }
 }

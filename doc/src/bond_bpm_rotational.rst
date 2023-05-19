@@ -30,6 +30,9 @@ Syntax
        *smooth* value = *yes* or *no*
           smooths bond forces near the breaking point
 
+       *normalize* value = *yes* or *no*
+          normalizes normal and shear forces by the reference length
+
        *break/no*
           indicates that bonds should not break during a run
 
@@ -135,6 +138,9 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`\gamma_s`      (force/velocity units)
 * :math:`\gamma_r`      (force*distance/velocity units)
 * :math:`\gamma_t`      (force*distance/velocity units)
+
+However, the *normalize* option will normalize the radial and shear forces
+by :math:`r_0` such that :math:`k_r` and :math:`k_s` are unit less.
 
 By default, pair forces are not calculated between bonded particles.
 Pair forces can alternatively be overlaid on top of bond forces using

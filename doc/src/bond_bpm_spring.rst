@@ -30,6 +30,9 @@ Syntax
        *smooth* value = *yes* or *no*
           smooths bond forces near the breaking point
 
+       *normalize* value = *yes* or *no*
+          normalizes bond forces by their reference length
+
        *break/no*
           indicates that bonds should not break during a run
 
@@ -66,7 +69,7 @@ particles based on a model described by Clemmer and Robbins
 
    F = k (r - r_0) w
 
-where :math:`k_r` is a stiffness, :math:`r` is the current distance
+where :math:`k` is a stiffness, :math:`r` is the current distance
 and :math:`r_0` is the initial distance between the two particles, and
 :math:`w` is an optional smoothing factor discussed below. Bonds will
 break at a strain of :math:`\epsilon_c`.  This is done by setting by
@@ -101,6 +104,9 @@ the data file or restart files read by the :doc:`read_data
 * :math:`k`             (force/distance units)
 * :math:`\epsilon_c`    (unit less)
 * :math:`\gamma`        (force/velocity units)
+
+However, the *normalize* option will normalize the elastic bond force by
+:math:`r_0` such that :math:`k` is unit less.
 
 By default, pair forces are not calculated between bonded particles.
 Pair forces can alternatively be overlaid on top of bond forces using

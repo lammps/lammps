@@ -90,8 +90,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
         ztype[i] = j;
        }
      }
-    if (ztype[i] == XRDmaxType + 1)
-        error->all(FLERR,"Compute XRD: Invalid ASF atom type");
+    if (ztype[i] == XRDmaxType + 1) error->all(FLERR,"Compute XRD: Invalid ASF atom type {}", arg[iarg]);
     iarg++;
   }
 

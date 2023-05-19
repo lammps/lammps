@@ -805,7 +805,7 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
   double breaking = elastic_forces(i, j, type, r_mag, r0_mag, r_mag_inv, rhat, r, r0, force1on2,
                                    torque1on2, torque2on1);
   damping_forces(i, j, type, rhat, r, force1on2, torque1on2, torque2on1);
-  fforce = MathExtra::dot3(force1on2, r);
+  fforce = MathExtra::dot3(force1on2, rhat);
   fforce *= -1;
 
   double smooth = 1.0;

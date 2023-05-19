@@ -163,4 +163,4 @@ tap_flag = 1
 
 .. _Feng:
 
-**(Feng)** Z. Feng, W. Ouyang, J. Phys. Chem. C. accepted (2023).
+**(Feng)** Z. Feng and W. Ouyang et al., J. Phys. Chem. C. 127, 8704-8713 (2023).

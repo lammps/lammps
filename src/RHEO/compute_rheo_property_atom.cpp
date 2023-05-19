@@ -25,12 +25,15 @@
 #include "compute_rheo_kernel.h"
 #include "compute_rheo_surface.h"
 #include "compute_rheo_vshift.h"
+#include "compute_rheo_grad.h"
+#include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
 #include "fix_rheo_thermal.h"
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
+#include "utils.h"
 
 #include <cmath>
 #include <cstring>
@@ -42,8 +45,8 @@ using namespace RHEO_NS;
 
 ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), fix_rheo(nullptr), fix_thermal(nullptr),  compute_interface(nullptr),
-  compute_kernel(nullptr), compute_surface(nullptr), compute_vshift(nullptr),
-  index(nullptr), pack_choice(nullptr)
+  compute_kernel(nullptr), compute_surface(nullptr), compute_vshift(nullptr), compute_grad(nullptr),
+  avec_index(nullptr), pack_choice(nullptr), col_index(nullptr)
 {
   if (narg < 4)  utils::missing_cmd_args(FLERR, "compute property/atom", error);
 
@@ -58,7 +61,8 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
   // customize a new keyword by adding to if statement
 
   pack_choice = new FnPtrPack[nvalues];
-  index = new int[nvalues];
+  avec_index = new int[nvalues];
+  col_index = new int[nvalues];
 
   int i;
   for (int iarg = 3; iarg < narg; iarg++) {
@@ -78,32 +82,25 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
     } else if (strcmp(arg[iarg],"surface/divr") == 0) {
       surface_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_divr;
-    } else if (strcmp(arg[iarg],"surface/nx") == 0) {
+    } else if (strcmp(arg[iarg],"^surface/n") == 0) {
       surface_flag = 1;
-      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_nx;
-    } else if (strcmp(arg[iarg],"surface/ny") == 0) {
-      surface_flag = 1;
-      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_ny;
-    } else if (strcmp(arg[iarg],"surface/nz") == 0) {
-      surface_flag = 1;
-      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_nz;
+      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_surface_n;
+      col_index[i] = get_vector_index(arg[iarg]);
     } else if (strcmp(arg[iarg],"coordination") == 0) {
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_coordination;
     } else if (strcmp(arg[iarg],"cv") == 0) {
       thermal_flag = 1;
       pack_choice[i] = &ComputeRHEOPropertyAtom::pack_cv;
-    } else if (strcmp(arg[iarg],"shift/vx") == 0) {
+    } else if (strcmp(arg[iarg],"^shift/v") == 0) {
       shift_flag = 1;
-      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_shift_vx;
-    } else if (strcmp(arg[iarg],"shift/vy") == 0) {
-      shift_flag = 1;
-      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_shift_vy;
-    } else if (strcmp(arg[iarg],"shift/vz") == 0) {
-      shift_flag = 1;
-      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_shift_vz;
+      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_shift_v;
+      col_index[i] = get_vector_index(arg[iarg]);
+    } else if (utils::strmatch(arg[iarg],"^gradv")) {
+      pack_choice[i] = &ComputeRHEOPropertyAtom::pack_gradv;
+      col_index[i] = get_tensor_index(arg[iarg]);
     } else {
-      index[i] = atom->avec->property_atom(arg[iarg]);
-      if (index[i] < 0)
+      avec_index[i] = atom->avec->property_atom(arg[iarg]);
+      if (avec_index[i] < 0)
         error->all(FLERR,
                    "Invalid keyword {} for atom style {} in compute rheo/property/atom command ",
                    atom->get_style(), arg[iarg]);
@@ -123,7 +120,8 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
 ComputeRHEOPropertyAtom::~ComputeRHEOPropertyAtom()
 {
   delete[] pack_choice;
-  delete[] index;
+  delete[] avec_index;
+  delete[] col_index;
   memory->destroy(vector_atom);
   memory->destroy(array_atom);
 }
@@ -149,6 +147,7 @@ void ComputeRHEOPropertyAtom::init()
   compute_kernel = fix_rheo->compute_kernel;
   compute_surface = fix_rheo->compute_surface;
   compute_vshift = fix_rheo->compute_vshift;
+  compute_grad = fix_rheo->compute_grad;
 
   if (thermal_flag) {
     fixes = modify->get_fix_by_style("rheo/thermal");
@@ -281,45 +280,15 @@ void ComputeRHEOPropertyAtom::pack_surface_divr(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRHEOPropertyAtom::pack_surface_nx(int n)
+void ComputeRHEOPropertyAtom::pack_surface_n(int n)
 {
   double **nsurface = compute_surface->nsurface;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int index = col_index[n];
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = nsurface[i][0];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeRHEOPropertyAtom::pack_surface_ny(int n)
-{
-  double **nsurface = compute_surface->nsurface;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = nsurface[i][1];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeRHEOPropertyAtom::pack_surface_nz(int n)
-{
-  double **nsurface = compute_surface->nsurface;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = nsurface[i][2];
+    if (mask[i] & groupbit) buf[n] = nsurface[i][index];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -356,14 +325,15 @@ void ComputeRHEOPropertyAtom::pack_cv(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRHEOPropertyAtom::pack_shift_vx(int n)
+void ComputeRHEOPropertyAtom::pack_shift_v(int n)
 {
   double **vshift = compute_vshift->vshift;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int index = col_index[n];
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = vshift[i][0];
+    if (mask[i] & groupbit) buf[n] = vshift[i][index];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -371,29 +341,15 @@ void ComputeRHEOPropertyAtom::pack_shift_vx(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeRHEOPropertyAtom::pack_shift_vy(int n)
+void ComputeRHEOPropertyAtom::pack_gradv(int n)
 {
-  double **vshift = compute_vshift->vshift;
+  double **gradv = compute_grad->gradv;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int index = col_index[n];
 
   for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = vshift[i][1];
-    else buf[n] = 0.0;
-    n += nvalues;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeRHEOPropertyAtom::pack_shift_vz(int n)
-{
-  double **vshift = compute_vshift->vshift;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) buf[n] = vshift[i][2];
+    if (mask[i] & groupbit) buf[n] = gradv[i][index];
     else buf[n] = 0.0;
     n += nvalues;
   }
@@ -403,5 +359,68 @@ void ComputeRHEOPropertyAtom::pack_shift_vz(int n)
 
 void ComputeRHEOPropertyAtom::pack_atom_style(int n)
 {
-  atom->avec->pack_property_atom(index[n],&buf[n],nvalues,groupbit);
+  atom->avec->pack_property_atom(avec_index[n],&buf[n],nvalues,groupbit);
+}
+
+/* ---------------------------------------------------------------------- */
+
+int ComputeRHEOPropertyAtom::get_tensor_index(char* option)
+{
+  int index;
+  int dim = domain->dimension;
+  int dim_error = 0;
+
+  if (utils::strmatch(option,"xx$")) {
+    index = 0;
+  } else if (utils::strmatch(option,"xy$")) {
+    index = 1;
+  } else if (utils::strmatch(option,"xz$")) {
+    index = 2;
+    if (dim == 2) dim_error = 1;
+  } else if (utils::strmatch(option,"yx$")) {
+    if (dim == 2) index = 2;
+    else index = 3;
+  } else if (utils::strmatch(option,"yy$")) {
+    if (dim == 2) index = 3;
+    else index = 4;
+  } else if (utils::strmatch(option,"yz$")) {
+    index = 5;
+    if (dim == 2) dim_error = 1;
+  } else if (utils::strmatch(option,"zx$")) {
+    index = 6;
+    if (dim == 2) dim_error = 1;
+  } else if (utils::strmatch(option,"zy$")) {
+    index = 7;
+    if (dim == 2) dim_error = 1;
+  } else if (utils::strmatch(option,"zz$")) {
+    index = 8;
+    if (dim == 2) dim_error = 1;
+  } else {
+    error->all(FLERR, "Invalid compute rheo/property/atom property {}", option);
+  }
+
+  if (dim_error)
+    error->all(FLERR, "Invalid compute rheo/property/atom property {} in 2D", option);
+
+  return index;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int ComputeRHEOPropertyAtom::get_vector_index(char* option)
+{
+  int index;
+  if (utils::strmatch(option,"x$")) {
+    index = 0;
+  } else if (utils::strmatch(option,"y$")) {
+    index = 1;
+  } else if (utils::strmatch(option,"z$")) {
+    if (domain->dimension == 2)
+      error->all(FLERR, "Invalid compute rheo/property/atom property {} in 2D", option);
+    index = 2;
+  } else {
+    error->all(FLERR, "Invalid compute rheo/property/atom property {}", option);
+  }
+
+  return index;
 }

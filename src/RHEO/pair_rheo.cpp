@@ -257,6 +257,10 @@ void PairRHEO::compute(int eflag, int vflag)
             mu = MIN(0.0, mu);
             q = av * (-2.0 * cs * mu + mu * mu);
             fp_prefactor += voli * volj * q * (rhoj + rhoi);
+
+  if (fabs(fp_prefactor*dWij[0]) > 1e-9)
+            if (atom->tag[i] == 643 or atom->tag[j] == 643 or atom->tag[i] == 963 or atom->tag[j] == 963)
+              printf("%d-%d (%d %d) fp_prefactor %g %g %g\n", atom->tag[i], atom->tag[j], i, j, fp_prefactor, dWij[0], -fp_prefactor*dWij[0]);
           }
 
           // -Grad[P + Q]

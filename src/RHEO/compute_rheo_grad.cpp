@@ -224,9 +224,9 @@ void ComputeRHEOGrad::compute_peratom()
         Voli = mass[itype] / rhoi;
         Volj = mass[jtype] / rhoj;
 
-        vij[0] = v[i][0] - v[j][0];
-        vij[1] = v[i][1] - v[j][1];
-        vij[2] = v[i][2] - v[j][2];
+        vij[0] = vi[0] - vj[0];
+        vij[1] = vi[1] - vj[1];
+        vij[2] = vi[2] - vj[2];
 
         if (rho_flag) drho = rhoi - rhoj;
         if (temperature_flag) dT = temperature[i] - temperature[j];

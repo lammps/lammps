@@ -54,6 +54,8 @@ class PairLJCut : public Pair {
   double **lj1, **lj2, **lj3, **lj4, **offset;
   double *cut_respa;
 
+  double **fscale;
+
   virtual void allocate();
 };
 

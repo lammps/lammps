@@ -61,6 +61,8 @@ PairLJCut::~PairLJCut()
     memory->destroy(lj3);
     memory->destroy(lj4);
     memory->destroy(offset);
+
+    memory->destroy(fscale);
   }
 }
 
@@ -114,7 +116,7 @@ void PairLJCut::compute(int eflag, int vflag)
         r2inv = 1.0 / rsq;
         r6inv = r2inv * r2inv * r2inv;
         forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-        fpair = factor_lj * forcelj * r2inv;
+        fpair = factor_lj * forcelj * r2inv * fscale[itype][jtype];
 
         f[i][0] += delx * fpair;
         f[i][1] += dely * fpair;
@@ -413,6 +415,8 @@ void PairLJCut::allocate()
   memory->create(lj3, n, n, "pair:lj3");
   memory->create(lj4, n, n, "pair:lj4");
   memory->create(offset, n, n, "pair:offset");
+
+  memory->create(fscale,n,n,"pair:fscale");
 }
 
 /* ----------------------------------------------------------------------
@@ -461,6 +465,9 @@ void PairLJCut::coeff(int narg, char **arg)
       sigma[i][j] = sigma_one;
       cut[i][j] = cut_one;
       setflag[i][j] = 1;
+
+      fscale[i][j] = 1.0;
+
       count++;
     }
   }
@@ -522,6 +529,8 @@ double PairLJCut::init_one(int i, int j)
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
+
+  fscale[j][i] = fscale[i][j];
 
   // check interior rRESPA cutoff
 
@@ -700,5 +709,6 @@ void *PairLJCut::extract(const char *str, int &dim)
   dim = 2;
   if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
   if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  if (strcmp(str,"fscale") == 0) return (void *) fscale;
   return nullptr;
 }

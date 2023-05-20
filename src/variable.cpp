@@ -4040,8 +4040,8 @@ Region *Variable::region_function(char *id, int ivar)
    return 0 if not a match, 1 if successfully processed
    customize by adding a special function:
      sum(x),min(x),max(x),ave(x),trap(x),slope(x),
-     gmask(x),rmask(x),grmask(x,y),next(x),
-     is_file(x),is_ox(x),extract_setting(x),label2type(x,y)
+     gmask(x),rmask(x),grmask(x,y),next(x),is_file(x),is_ox(x),
+     extract_setting(x),label2type(x,y),is_typelabel(x)
 ------------------------------------------------------------------------- */
 
 int Variable::special_function(char *word, char *contents, Tree **tree, Tree **treestack,
@@ -4056,12 +4056,13 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       strcmp(word,"ave") != 0 && strcmp(word,"trap") != 0 && strcmp(word,"slope") != 0 &&
       strcmp(word,"gmask") != 0 && strcmp(word,"rmask") != 0 && strcmp(word,"grmask") != 0 &&
       strcmp(word,"next") != 0 && strcmp(word,"is_file") != 0 && strcmp(word,"is_os") != 0 &&
-      strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0)
+      strcmp(word,"extract_setting") != 0 && strcmp(word,"label2type") != 0 &&
+      strcmp(word,"is_typelabel") != 0)
     return 0;
 
   // process label2type() separately b/c its label arg can have commas in it
 
-  if (strcmp(word,"label2type") == 0) {
+  if (strcmp(word,"label2type") == 0 || strcmp(word,"is_typelabel") == 0) {
     if (!atom->labelmapflag)
       print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
 
@@ -4088,9 +4089,10 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       print_var_error(FLERR, fmt::format("Invalid kind {} in label2type() in variable",kind),ivar);
     }
 
-    if (value == -1)
+    if (strcmp(word,"label2type") == 0 && value == -1)
       print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
                                          kind, typestr), ivar);
+    else value = (value == -1) ? 0.0 : 1.0;
 
     // save value in tree or on argstack
 

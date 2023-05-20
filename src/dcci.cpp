@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -12,7 +13,6 @@
 
    dcci - dynamical Clasius-Clpeyron integration
    Cite: https://doi.org/10.1016/j.commatsci.2022.111275 
-
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------

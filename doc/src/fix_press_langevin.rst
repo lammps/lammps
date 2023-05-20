@@ -16,15 +16,15 @@ Syntax
   .. parsed-literal::
 
      one or more keyword value pairs may be appended
-     keyword = *iso* or *aniso* or *x* or *y* or *z* or *couple* or *dilate* or *modulus* or *temp*
-       *iso* or *aniso* values = Pstart Pstop Pdamp
+     keyword = *iso* or *aniso* or *tri* *x* or *y* or *z* or *xy* or *xz* or *yz* or *couple* or *dilate* or *modulus* or *temp*
+       *iso* or *aniso* or *tri* values = Pstart Pstop Pdamp
          Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
          Pdamp = pressure damping parameter
-       *x* or *y* or *z* values = Pstart Pstop Pdamp
+       *x* or *y* or *z* or *xy* or *xz* or *yz* values = Pstart Pstop Pdamp
          Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
          Pdamp = stress damping parameter
        *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
-       *friction* value = Friction to apply to the barostat
+       *friction* value = Alpha friction value to apply to the barostat
        *temp* values = Tstart, Tstop
        Tstart, Tstop = target temperature used for the barostat at start/end of run
        *dilate* value = *all* or *partial*
@@ -95,26 +95,23 @@ discussion of different ways to perform barostatting.
 
 ----------
 
-The barostat is specified using one or more of the *iso*, *aniso*,
-*x*, *y*, *z*, and *couple* keywords.  These keywords give you the
-ability to specify the 3 diagonal components of an external stress
-tensor, and to couple various of these components together so that the
-dimensions they represent are varied together during a
-constant-pressure simulation.  Unlike the :doc:`fix npt <fix_nh>` and
-:doc:`fix nph <fix_nh>` commands, this fix cannot be used with triclinic
-(non-orthogonal) simulation boxes to control all 6 components of the
-general pressure tensor.
+The barostat is specified using one or more of the *iso*, *aniso*, *tri* *x*,
+*y*, *z*, *xy*, *xz*, *yz*, and *couple* keywords.  These keywords give you the
+ability to specify the 3 diagonal components of an external stress tensor, and
+to couple various of these components together so that the dimensions they
+represent are varied together during a constant-pressure simulation.
 
-The target pressures for each of the 3 diagonal components of the
-stress tensor can be specified independently via the *x*, *y*, *z*,
-keywords, which correspond to the 3 simulation box dimensions.  For
-each component, the external pressure or tensor component at each
-timestep is a ramped value during the run from *Pstart* to *Pstop*\ .
-If a target pressure is specified for a component, then the
-corresponding box dimension will change during a simulation.  For
-example, if the *y* keyword is used, the y-box length will change.  A
-box dimension will not change if that component is not specified,
-although you have the option to change that dimension via the :doc:`fix deform <fix_deform>` command.
+The target pressures for each of the 6 diagonal components of the stress tensor
+can be specified independently via the *x*, *y*, *z*, keywords, which
+correspond to the 3 simulation box dimensions, and the *xy*, *xz and *yz*
+keywords which corresponds to the 3 simulqtion box tilt factors. For each
+component, the external pressure or tensor component at each timestep is a
+ramped value during the run from *Pstart* to *Pstop*\ . If a target pressure is
+specified for a component, then the corresponding box dimension will change
+during a simulation.  For example, if the *y* keyword is used, the y-box length
+will change.  A box dimension will not change if that component is not
+specified, although you have the option to change that dimension via the
+:doc:`fix deform <fix_deform>` command.
 
 For all barostat keywords, the *Pdamp* parameter determines the "mass" of the
 pseudo particle acting as a barostat. The relation is such that :math:`P_{damp}
@@ -137,7 +134,7 @@ dimension is simply ignored.
 
 ----------
 
-The *iso* and *aniso* keywords are simply shortcuts that are
+The *iso*, *aniso* and *tri* keywords are simply shortcuts that are
 equivalent to specifying several other keywords together.
 
 The keyword *iso* means couple all 3 diagonal components together when
@@ -165,6 +162,24 @@ these 4 keywords:
    z Pstart Pstop Pdamp
    couple none
 
+The keyword *tri* is the same as *aniso* but also adds the control on the
+shear pressure coupled with the tilt factors.
+
+.. parsed-literal::
+
+   x Pstart Pstop Pdamp
+   y Pstart Pstop Pdamp
+   z Pstart Pstop Pdamp
+   xy Pstart Pstop Pdamp
+   xz Pstart Pstop Pdamp
+   yz Pstart Pstop Pdamp
+   couple none
+
+----------
+
+The *friction* keyword sets the friction parameter :math:`\alpha` in the
+equations of movement of the barostat. All the barostat use the same value.
+
 ----------
 
 This fix computes pressure each timestep.  To do
@@ -173,7 +188,10 @@ as if this command had been issued:
 
 .. code-block:: LAMMPS
 
-   compute fix-ID_press group-ID pressure fix-ID_NULL virial
+   compute fix-ID_press group-ID pressure NULL virial
+
+The kinetic contribution to the pressure is taken as the ensemble value
+:math:`\frac{Nk_bT}{V}` and computed by the fix itself.
 
 See the :doc:`compute pressure <compute_pressure>` command for details.  Note
 that the IDs of the new compute is the fix-ID + underscore + "press" and the
@@ -200,9 +218,12 @@ in its pressure calculations.
 No global or per-atom quantities are stored by this fix for access by
 various :doc:`output commands <Howto_output>`.
 
-This fix can ramp its target pressure over multiple runs, using the
-*start* and *stop* keywords of the :doc:`run <run>` command.  See the
-:doc:`run <run>` command for details of how to do this.
+This fix can ramp its target pressure and temperature over multiple runs, using
+the *start* and *stop* keywords of the :doc:`run <run>` command.  See the
+:doc:`run <run>` command for details of how to do this. It is recommended that
+the ramped temperature is the same as the effective temperature of the
+thermalised system. That is, if the system's temperature is ramped by other
+commands, it is recommended to do the same with this pressure control.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 

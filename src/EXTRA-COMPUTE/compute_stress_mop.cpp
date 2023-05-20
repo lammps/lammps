@@ -525,16 +525,13 @@ void ComputeStressMop::compute_bonds()
 
       // check if the bond vector crosses the plane of interest
       double tau = (x_bond_1[dir] - pos) / (x_bond_1[dir] - x_bond_2[dir]);
-      if ((tau <= 1) and (tau >= 0))
-      {
-        //std::cout << "I have found one crossing bond " << tau << std::endl;
+      if ((tau <= 1) and (tau >= 0)) {
         dx[0] = x_bond_1[0] - x_bond_2[0];
         dx[1] = x_bond_1[1] - x_bond_2[1];
         dx[2] = x_bond_1[2] - x_bond_2[2];
         rsq = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
         bond->single(btype, rsq, atom1, atom2, fpair);
 
-        // check the correct contribution with the + or - sign
         local_contribution[0] += fpair*dx[0]/area*nktv2p;
         local_contribution[1] += fpair*dx[1]/area*nktv2p;
         local_contribution[2] += fpair*dx[2]/area*nktv2p;
@@ -552,5 +549,4 @@ void ComputeStressMop::compute_bonds()
     }
     m += 3;
   }
-  return;
 }

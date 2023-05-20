@@ -16,13 +16,14 @@ Syntax
   .. parsed-literal::
 
      one or more keyword value pairs may be appended
-     keyword = *iso* or *aniso* or *tri* *x* or *y* or *z* or *xy* or *xz* or *yz* or *couple* or *dilate* or *modulus* or *temp*
+     keyword = *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *xz* or *yz* or *couple* or *dilate* or *modulus* or *temp* or *flip*
        *iso* or *aniso* or *tri* values = Pstart Pstop Pdamp
          Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
          Pdamp = pressure damping parameter
        *x* or *y* or *z* or *xy* or *xz* or *yz* values = Pstart Pstop Pdamp
          Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
          Pdamp = stress damping parameter
+       *flip* value = *yes* or *no* = allow or disallow box flips when it becomes highly skewed
        *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
        *friction* value = Alpha friction value to apply to the barostat
        *temp* values = Tstart, Tstop
@@ -174,6 +175,20 @@ shear pressure coupled with the tilt factors.
    xz Pstart Pstop Pdamp
    yz Pstart Pstop Pdamp
    couple none
+
+----------
+
+The *flip* keyword allows the tilt factors for a triclinic box to
+exceed half the distance of the parallel box length, as discussed
+below.  If the *flip* value is set to *yes*, the bound is enforced by
+flipping the box when it is exceeded.  If the *flip* value is set to
+*no*, the tilt will continue to change without flipping.  Note that if
+applied stress induces large deformations (e.g. in a liquid), this
+means the box shape can tilt dramatically and LAMMPS will run less
+efficiently, due to the large volume of communication needed to
+acquire ghost atoms around a processor's irregular-shaped subdomain.
+For extreme values of tilt, LAMMPS may also lose atoms and generate an
+error.
 
 ----------
 

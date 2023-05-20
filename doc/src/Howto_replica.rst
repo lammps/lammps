@@ -8,6 +8,7 @@ periodically.
 
 These are the relevant commands:
 
+* :doc:`dcci <dcci>` for non-equilibrium dynamical Clasius-Clapeyron integration (DCCI)
 * :doc:`hyper <hyper>` for bond boost hyperdynamics (HD)
 * :doc:`neb <neb>` for nudged elastic band calculations (NEB)
 * :doc:`neb_spin <neb_spin>` for magnetic nudged elastic band calculations

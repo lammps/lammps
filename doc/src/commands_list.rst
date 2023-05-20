@@ -23,6 +23,7 @@ Commands
    create_atoms
    create_bonds
    create_box
+   dcci
    delete_atoms
    delete_bonds
    dielectric

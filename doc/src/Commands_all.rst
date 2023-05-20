@@ -123,6 +123,7 @@ additional letter in parenthesis: k = KOKKOS.
 .. table_from_list::
    :columns: 5
 
+   * :doc:`dcci <dcci>`
    * :doc:`dynamical_matrix (k) <dynamical_matrix>`
    * :doc:`group2ndx <group2ndx>`
    * :doc:`hyper <hyper>`

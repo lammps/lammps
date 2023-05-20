@@ -212,6 +212,7 @@ accelerated styles exist.
 * :doc:`colvars <fix_colvars>` - interface to the collective variables "Colvars" library
 * :doc:`controller <fix_controller>` - apply control loop feedback mechanism
 * :doc:`damping/cundall <fix_damping_cundall>` - Cundall non-viscous damping for granular simulations
+* :doc:`dcci <fix_adapt_dcci>` - phase boundary calculation by dynamical Clasius-Clapeyron integration
 * :doc:`deform <fix_deform>` - change the simulation box size/shape
 * :doc:`deposit <fix_deposit>` - add new atoms above a surface
 * :doc:`dpd/energy <fix_dpd_energy>` - constant energy dissipative particle dynamics

@@ -2623,6 +2623,7 @@ another set.
 
 * src/REPLICA: filenames -> commands
 * :doc:`Howto replica <Howto_replica>`
+* :doc:`dcci <dcci>`
 * :doc:`neb <neb>`
 * :doc:`prd <prd>`
 * :doc:`tad <tad>`
@@ -2630,6 +2631,7 @@ another set.
 * :doc:`temper/npt <temper_npt>`,
 * :doc:`temper/grem <temper_grem>`,
 * :doc:`run_style verlet/split <run_style>`
+* examples/dcci
 * examples/neb
 * examples/prd
 * examples/tad

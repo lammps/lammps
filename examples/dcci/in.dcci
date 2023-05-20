@@ -1,0 +1,50 @@
+# dyncamics Clausius-Clapeyron integration
+
+variable Tcoex    equal 0.77
+variable Pcoex    equal 1.0
+variable phase    world solid liquid
+variable dt       equal 0.004
+variable Tdamp    equal 100*${dt}
+variable Pdamp    equal 1000*${dt}
+variable lambda   equal 1.0
+variable Pi       equal 1.0
+variable Pf       equal 174 
+variable seed     equal 69
+variable t_eq     equal 50000
+variable t_sc     equal 50000 
+variable epsilon  equal 1.0
+variable sigma    equal 1.0
+variable rc       equal 3.5*${sigma}
+
+units             lj
+boundary          p p p
+atom_style        atomic
+
+read_data         ${phase}.lammps
+
+pair_style        lj/cut ${rc}
+pair_coeff        * * ${epsilon} ${sigma}
+pair_modify       shift no tail yes
+
+neighbor          1.0 bin
+neigh_modify delay 0 
+
+timestep          ${dt}
+
+reset_timestep    0
+
+variable rnd equal round(random(0,999,${seed}))
+fix f1 all nph iso ${Pcoex} ${Pcoex} ${Pdamp}
+fix f2 all langevin ${Tcoex} ${Tcoex} ${Tdamp} ${rnd} zero yes
+compute           c1 all temp/com
+fix_modify        f1 temp c1
+fix_modify        f2 temp c1
+run               ${t_eq}
+
+
+fix f3 all adapt/dcci ${lambda} pair lj/cut fscale * *
+thermo_style custom step temp ke pe etotal press vol f_f3
+thermo            100
+thermo_modify flush yes norm no 
+dcci              ${Tcoex} ${Pcoex} ${lambda} f3 f1 ${t_sc} press ${Pi} ${Pf} 
+

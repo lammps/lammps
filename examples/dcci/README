@@ -1,0 +1,34 @@
+Nonequilibrium Free-energy calculation of Phase-Boundaries using LAMMPS
+
+The dcci command computes the phase-boundaries of classical systems using 
+a dynamic Clausius-Clapeyron integration (dCCI) method. 
+The advantage of the dCCI method gives coexistence curves spanning a wide 
+range of thermodynamic states from relatively short single non-equilibrium simulations. 
+As an illustrated example we determined the coexistence curve of the fcc-liquid phase 
+of Lennard-Jones system, project available in the follow github project:
+
+https://github.com/samuelcajahuaringa/dCCIforLAMMPS
+
+To perform the DCCI method, it is necessary to know one coexistence point between the phases.
+In this case, the initial coexistence point corresponds to a temperature of T=0.77 and 
+a pressure of P=1. The coexistence curveis calculated for the pressure range from 1 to 174.
+
+solid.lammps    data file of fcc phase with 500 atoms 
+liquid.lammps   data file of liquid phase with 500 atoms
+in.dcci         lammps script to calculate the coexistence curve
+log.lammps      information of coexistence curve
+log.lammps.0    log.lammps of solid phase
+log.lammps.1    log.lammps of liquid phase
+fcc-liquid.dat  coexistence points from R. Agrawal and D. A. Kofke, Mol. Phys. 85, 43-59 (1995).
+
+run command:
+mpirun -np 16 lmp -partition 2x8 -in in.dcci
+
+More details it will be found in in the paper:
+
+Non-equilibrium free-energy calculation of phase-boundaries using LAMMPS, Samuel Cajahuaringad and Alex Antonelli,
+Comput. Mater. Sci., 111275, 207 (2022). https://doi.org/10.1016/j.commatsci.2022.111275
+
+author: Samuel Cajahuaringa
+email: samuelcajahuaringa@gmail.com
+

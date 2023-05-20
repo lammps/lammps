@@ -38,11 +38,13 @@ class ComputeStressMop : public Compute {
 
  private:
   void compute_pairs();
+  void compute_bonds();
 
   int me, nvalues, dir;
   int *which;
 
   double *values_local, *values_global;
+  double *bond_local, *bond_global;
   double pos, pos1, dt, nktv2p, ftm2v;
   double area;
   class NeighList *list;

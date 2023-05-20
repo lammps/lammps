@@ -19,10 +19,13 @@
 #include "compute_stress_mop.h"
 
 #include "atom.h"
+#include "atom_vec.h"
+#include "bond.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -118,12 +121,16 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
   // Initialize some variables
 
   values_local = values_global = vector = nullptr;
+  bond_local = nullptr;
+  bond_global = nullptr;
 
   // this fix produces a global vector
 
   memory->create(vector,nvalues,"stress/mop:vector");
   memory->create(values_local,nvalues,"stress/mop/spatial:values_local");
   memory->create(values_global,nvalues,"stress/mop/spatial:values_global");
+  memory->create(bond_local,nvalues,"stress/mop/spatial:bond_local");
+  memory->create(bond_global,nvalues,"stress/mop/spatial:bond_global");
   size_vector = nvalues;
 
   vector_flag = 1;
@@ -140,6 +147,8 @@ ComputeStressMop::~ComputeStressMop()
 
   memory->destroy(values_local);
   memory->destroy(values_global);
+  memory->destroy(bond_local);
+  memory->destroy(bond_global);
   memory->destroy(vector);
 }
 
@@ -185,8 +194,8 @@ void ComputeStressMop::init()
     //Compute stress/mop only accounts for pair interactions.
     // issue a warning if any intramolecular potential or Kspace is defined.
 
-    if (force->bond!=nullptr)
-      error->warning(FLERR,"compute stress/mop does not account for bond potentials");
+    //if (force->bond!=nullptr)
+    //  error->warning(FLERR,"compute stress/mop does not account for bond potentials");
     if (force->angle!=nullptr)
       error->warning(FLERR,"compute stress/mop does not account for angle potentials");
     if (force->dihedral!=nullptr)
@@ -224,9 +233,14 @@ void ComputeStressMop::compute_vector()
   MPI_Allreduce(values_local,values_global,nvalues,
                 MPI_DOUBLE,MPI_SUM,world);
 
-  int m;
-  for (m=0; m<nvalues; m++) {
-    vector[m] = values_global[m];
+  //Compute bond contribution on separate procs
+  compute_bonds();
+
+  // sum bond contribution over all procs
+  MPI_Allreduce(bond_local,bond_global,nvalues,MPI_DOUBLE,MPI_SUM,world);
+
+  for (int m=0; m<nvalues; m++) {
+    vector[m] = values_global[m] + bond_global[m];
   }
 
 }
@@ -427,3 +441,116 @@ void ComputeStressMop::compute_pairs()
   }
 }
 
+/*------------------------------------------------------------------------
+ *   compute bond contribution to pressure of local proc
+ *     -------------------------------------------------------------------------*/
+
+void ComputeStressMop::compute_bonds()
+{
+  int i, nb, atom1, atom2, imol, iatom, btype;
+  tagint tagprev;
+  double rsq, fpair;
+
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int *num_bond = atom->num_bond;
+  tagint **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+  int *mask = atom->mask;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+
+  int nlocal = atom->nlocal;
+  int newton_bond = force->newton_bond;
+  int molecular = atom->molecular;
+
+  Bond *bond = force->bond;
+
+  double dx[3] {0};
+  double x_bond_1[3] {0};
+  double x_bond_2[3] {0};
+  double local_contribution[3] {0};
+
+  // initialization
+  for (int i {0}; i < nvalues; i++) bond_local[i] = 0.0;
+
+  // loop over all bonded atoms in the current proc
+  for (atom1 = 0; atom1 < nlocal; atom1++) {
+    if (!(mask[atom1] & groupbit)) continue;
+
+    if (molecular == 1)
+      nb = num_bond[atom1];
+    else {
+      if (molindex[atom1] < 0) continue;
+      imol = molindex[atom1];
+      iatom = molatom[atom1];
+      nb = onemols[imol]->num_bond[iatom];
+    }
+
+    for (i = 0; i < nb; i++) {
+      if (molecular == 1) {
+        btype = bond_type[atom1][i];
+        atom2 = atom->map(bond_atom[atom1][i]);
+      } else {
+        tagprev = tag[atom1] - iatom - 1;
+        btype = onemols[imol]->bond_type[iatom][i];
+        atom2 = atom->map(onemols[imol]->bond_atom[iatom][i] + tagprev);
+      }
+
+      if (atom2 < 0 || !(mask[atom2] & groupbit)) continue;
+      if (newton_bond == 0 && tag[atom1] > tag[atom2]) continue;
+      if (btype <= 0) continue;
+
+      // minimum image of atom1 with respect to the plane of interest
+      dx[0] = x[atom1][0];
+      dx[1] = x[atom1][1];
+      dx[2] = x[atom1][2];
+      dx[dir] -= pos;
+      domain->minimum_image(dx[0], dx[1], dx[2]);
+      x_bond_1[0] = dx[0];
+      x_bond_1[1] = dx[1];
+      x_bond_1[2] = dx[2];
+      x_bond_1[dir] += pos;
+
+      // minimum image of atom2 with respect to atom1
+      dx[0] = x[atom2][0] - x_bond_1[0];
+      dx[1] = x[atom2][1] - x_bond_1[1];
+      dx[2] = x[atom2][2] - x_bond_1[2];
+      domain->minimum_image(dx[0], dx[1], dx[2]);
+      x_bond_2[0] = x_bond_1[0] + dx[0];
+      x_bond_2[1] = x_bond_1[1] + dx[1];
+      x_bond_2[2] = x_bond_1[2] + dx[2];
+
+      // check if the bond vector crosses the plane of interest
+      double tau = (x_bond_1[dir] - pos) / (x_bond_1[dir] - x_bond_2[dir]);
+      if ((tau <= 1) and (tau >= 0))
+      {
+        //std::cout << "I have found one crossing bond " << tau << std::endl;
+        dx[0] = x_bond_1[0] - x_bond_2[0];
+        dx[1] = x_bond_1[1] - x_bond_2[1];
+        dx[2] = x_bond_1[2] - x_bond_2[2];
+        rsq = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
+        bond->single(btype, rsq, atom1, atom2, fpair);
+
+        // check the correct contribution with the + or - sign
+        local_contribution[0] += fpair*dx[0]/area*nktv2p;
+        local_contribution[1] += fpair*dx[1]/area*nktv2p;
+        local_contribution[2] += fpair*dx[2]/area*nktv2p;
+      }
+    }
+  }
+
+  // loop over the keywords and if necessary add the bond contribution
+  int m {0};
+  while (m<nvalues) {
+    if (which[m] == CONF || which[m] == TOTAL) {
+      bond_local[m] = local_contribution[0];
+      bond_local[m+1] = local_contribution[1];
+      bond_local[m+2] = local_contribution[2];
+    }
+    m += 3;
+  }
+  return;
+}

@@ -525,7 +525,7 @@ void ComputeStressMop::compute_bonds()
 
       // check if the bond vector crosses the plane of interest
       double tau = (x_bond_1[dir] - pos) / (x_bond_1[dir] - x_bond_2[dir]);
-      if ((tau <= 1) and (tau >= 0)) {
+      if ((tau <= 1) && (tau >= 0)) {
         dx[0] = x_bond_1[0] - x_bond_2[0];
         dx[1] = x_bond_1[1] - x_bond_2[1];
         dx[2] = x_bond_1[2] - x_bond_2[2];

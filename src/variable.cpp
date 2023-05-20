@@ -4064,13 +4064,16 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
   if (strcmp(word,"label2type") == 0 || strcmp(word,"is_typelabel") == 0) {
     if (!atom->labelmapflag)
-      print_var_error(FLERR,"Cannot use label2type() function without a labelmap",ivar);
+      print_var_error(FLERR,"Cannot use label2type() or is_typelabel() function without a labelmap",ivar);
 
     std::string contents_copy(contents);
     auto pos = contents_copy.find_first_of(',');
     if (pos == std::string::npos)
-      print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
-                                         contents_copy), ivar);
+      if (strcmp(word,"label2type") == 0)
+        print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
+                                           contents_copy), ivar);
+      else print_var_error(FLERR, fmt::format("Invalid is_typelabel({}) function in variable formula",
+                                              contents_copy), ivar);
     std::string typestr = contents_copy.substr(pos+1);
     std::string kind = contents_copy.substr(0, pos);
 
@@ -4086,7 +4089,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
     } else if (kind == "improper") {
       value = atom->lmap->find(typestr,Atom::IMPROPER);
     } else {
-      print_var_error(FLERR, fmt::format("Invalid kind {} in label2type() in variable",kind),ivar);
+      print_var_error(FLERR, fmt::format("Invalid kind {} in label2type() or is_typelabel() in variable",kind),ivar);
     }
 
     if (strcmp(word,"label2type") == 0) {

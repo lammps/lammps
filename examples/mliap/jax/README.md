@@ -35,4 +35,8 @@ First define JAX model in `deploy_script.py`, which will wrap model with `write_
 
     python deploy_script.py
 
-Then load model in LAMMPS and run:
+This creates `.pkl` file to be loaded by LAMMPS ML-IAP Unified.
+
+Run LAMMPS with the model:
+
+    mpirun -np P lmp -in in.run

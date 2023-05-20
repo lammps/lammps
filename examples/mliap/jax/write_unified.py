@@ -6,6 +6,7 @@ import pickle
 import numpy as np
 
 from lammps.mliap.mliap_unified_abc import MLIAPUnified
+#from deploy_script import MyModel
 
 class MLIAPInterface(MLIAPUnified):
     """

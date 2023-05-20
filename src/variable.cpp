@@ -4089,7 +4089,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
       print_var_error(FLERR, fmt::format("Invalid kind {} in label2type() in variable",kind),ivar);
     }
 
-    if (strcmp(word,"label2type")) == 0) {
+    if (strcmp(word,"label2type") == 0) {
       if (value == -1) print_var_error(FLERR, fmt::format("Invalid {} type label {} in label2type() in variable",
                                        kind, typestr), ivar);
     } else value = (value == -1) ? 0.0 : 1.0;

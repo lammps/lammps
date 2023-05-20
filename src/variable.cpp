@@ -4041,7 +4041,7 @@ Region *Variable::region_function(char *id, int ivar)
    customize by adding a special function:
      sum(x),min(x),max(x),ave(x),trap(x),slope(x),
      gmask(x),rmask(x),grmask(x,y),next(x),is_file(x),is_ox(x),
-     extract_setting(x),label2type(x,y),is_typelabel(x)
+     extract_setting(x),label2type(x,y),is_typelabel(x,y)
 ------------------------------------------------------------------------- */
 
 int Variable::special_function(char *word, char *contents, Tree **tree, Tree **treestack,

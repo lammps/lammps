@@ -408,6 +408,11 @@ void FixQEqReaxFF::init()
     if (efield->varflag == FixEfield::ATOM && efield->pstyle != FixEfield::ATOM)
       error->all(FLERR,"Atom-style external electric field requires atom-style "
                        "potential variable when used with fix {}", style);
+    if (((efield->xstyle != FixEfield::CONSTANT) && domain->xperiodic) ||
+         ((efield->ystyle != FixEfield::CONSTANT) && domain->yperiodic) ||
+         ((efield->zstyle != FixEfield::CONSTANT) && domain->zperiodic))
+      error->all(FLERR,"Must not have electric field component in direction of periodic "
+                       "boundary when using charge equilibration with ReaxFF.");
     if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
          ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
          ((fabs(efield->ez) > SMALL) && domain->zperiodic))

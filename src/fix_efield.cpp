@@ -238,8 +238,10 @@ void FixEfield::init()
 
   if (varflag == CONSTANT && estyle != NONE)
     error->all(FLERR, "Cannot use variable energy with constant efield in fix {}", style);
-  if ((varflag == EQUAL || varflag == ATOM) && update->whichflag == 2 && estyle == NONE)
-    error->all(FLERR, "Must use variable energy with fix {}", style);
+  if (varflag == CONSTANT && pstyle != NONE)
+    error->all(FLERR, "Cannot use variable potential with constant efield in fix {}", style);
+  if ((varflag == EQUAL || varflag == ATOM) && update->whichflag == 2 && estyle == NONE && pstyle == NONE)
+    error->all(FLERR, "Must use variable energy or potential with fix {} during minimization", style);
 
   if (utils::strmatch(update->integrate_style, "^respa")) {
     ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;

@@ -162,9 +162,4 @@ tap_flag = 1
 ----------
 
 .. _Feng:
-
-<<<<<<< HEAD
-**(Feng)** Z. Feng and W. Ouyang et al, J. Phys. Chem. C 127, 8704-8713 (2023).
-=======
 **(Feng)** Z. Feng and W. Ouyang et al., J. Phys. Chem. C. 127, 8704-8713 (2023).
->>>>>>> 0334ddb7c69a36b33757694b905820f56d8b90f2

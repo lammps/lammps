@@ -1,0 +1,35 @@
+#Carbon SNAP example: 216 atom diamond unit cell simulated NVT at ~1,000GPa and 5,000K
+
+
+units           metal
+atom_style      atomic
+boundary        p p p
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#              User-defined variables                #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+variable alat  equal "2.845"
+variable nx  equal "3" 
+variable ny  equal "3" 
+variable nz  equal "3"
+variable tstep  equal "0.000500" 
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#      Crystal orientation and MD box creation       #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+lattice diamond ${alat} 
+region Bbox block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box 1 Bbox
+create_atoms 1 region Bbox basis 1 1
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#         Interatomic potential parameters           #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+include         pot_C.mod
+mass * 12.01
+
+fix     NVE all nve
+fix     NVT all langevin 5000. 5000. 0.1 3216548
+thermo  100
+thermo_style    custom step temp ke pe etotal pxx pyy pzz xlo xhi ylo yhi zlo zhi cpu
+run 2000

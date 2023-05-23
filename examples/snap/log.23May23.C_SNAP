@@ -1,0 +1,136 @@
+LAMMPS (3 Aug 2022)
+
+units           metal
+atom_style      atomic
+boundary        p p p
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#              User-defined variables                #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+variable alat  equal "2.845"
+variable nx  equal "3"
+variable ny  equal "3"
+variable nz  equal "3"
+variable tstep  equal "0.000500"
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#      Crystal orientation and MD box creation       #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+lattice diamond ${alat}
+lattice diamond 2.845
+Lattice spacing in x,y,z = 2.845 2.845 2.845
+region Bbox block 0 ${nx} 0 ${ny} 0 ${nz}
+region Bbox block 0 3 0 ${ny} 0 ${nz}
+region Bbox block 0 3 0 3 0 ${nz}
+region Bbox block 0 3 0 3 0 3
+create_box 1 Bbox
+Created orthogonal box = (0 0 0) to (8.535 8.535 8.535)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 region Bbox basis 1 1
+Created 216 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8.535 8.535 8.535)
+  create_atoms CPU = 0.000 seconds
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#         Interatomic potential parameters           #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+include         pot_C.mod
+# Definition of SNAP+ZBL potential.
+variable zblcutinner equal 0.1 #0.38
+variable zblcutouter equal 0.2
+variable zblz equal  10 #500
+
+# Specify hybrid with SNAP, ZBL, and long-range C_SNAP_2021.10.15.quadratic.ulomb
+
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} snap
+pair_style hybrid/overlay zbl 0.1 ${zblcutouter} snap
+pair_style hybrid/overlay zbl 0.1 0.2 snap
+pair_coeff 1 1 zbl ${zblz} ${zblz}
+pair_coeff 1 1 zbl 10 ${zblz}
+pair_coeff 1 1 zbl 10 10
+pair_coeff * * snap C_SNAP_2021.10.15.quadratic.snapcoeff C_SNAP_2021.10.15.quadratic.snapparam C
+SNAP Element = C, Radius 0.5, Weight 1
+SNAP keyword rcutfac 2.7
+SNAP keyword twojmax 8
+SNAP keyword rfac0 0.99363
+SNAP keyword rmin0 0.0
+SNAP keyword bzeroflag 0
+SNAP keyword quadraticflag 1
+
+mass * 12.01
+
+fix     NVE all nve
+fix     NVT all langevin 5000. 5000. 0.1 3216548
+thermo  100
+thermo_style    custom step temp ke pe etotal pxx pyy pzz xlo xhi ylo yhi zlo zhi cpu
+run 2000
+Neighbor list info ...
+  update: every = 1 steps, delay = 10 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.7
+  ghost atom cutoff = 4.7
+  binsize = 2.35, bins = 4 4 4
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair zbl, perpetual, half/full trim from (2)
+      attributes: half, newton on, cut 2.2
+      pair build: halffull/newton/trim
+      stencil: none
+      bin: none
+  (2) pair snap, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.835 | 4.835 | 4.835 Mbytes
+   Step          Temp          KinEng         PotEng         TotEng          Pxx            Pyy            Pzz            Xlo            Xhi            Ylo            Yhi            Zlo            Zhi            CPU      
+         0   0              0             -846.66062     -846.66062      9852302.8      9852302.8      9852302.8      0              8.535          0              8.535          0              8.535          0            
+       100   2994.9404      83.232183     -760.46784     -677.23566      10153319       10162613       10089556       0              8.535          0              8.535          0              8.535          8.5637966    
+       200   4138.1573      115.00324     -718.21196     -603.20871      10328838       10278023       10147395       0              8.535          0              8.535          0              8.535          17.231147    
+       300   4231.1241      117.58688     -703.12914     -585.54226      10229126       10278574       10244536       0              8.535          0              8.535          0              8.535          25.883724    
+       400   4902.5771      136.24718     -693.59525     -557.34807      10258619       10309837       10270759       0              8.535          0              8.535          0              8.535          34.454573    
+       500   5231.01        145.37464     -703.59176     -558.21712      10380296       10313494       10261486       0              8.535          0              8.535          0              8.535          43.03519     
+       600   4962.4828      137.91202     -701.69725     -563.78524      10405175       10240153       10223683       0              8.535          0              8.535          0              8.535          51.617418    
+       700   5158.8211      143.36844     -696.3068      -552.93836      10224265       10353872       10237323       0              8.535          0              8.535          0              8.535          60.216592    
+       800   5566.4588      154.69707     -691.80266     -537.10558      10345764       10333822       10328272       0              8.535          0              8.535          0              8.535          68.836406    
+       900   4763.5973      132.38481     -699.56143     -567.17663      10265807       10264115       10292086       0              8.535          0              8.535          0              8.535          77.557491    
+      1000   5374.1522      149.35269     -707.77182     -558.41912      10353688       10245807       10289801       0              8.535          0              8.535          0              8.535          86.134981    
+      1100   4729.9838      131.45065     -687.84753     -556.39687      10236271       10295262       10280036       0              8.535          0              8.535          0              8.535          94.80143     
+      1200   5524.4648      153.53002     -688.33164     -534.80162      10376941       10311014       10272151       0              8.535          0              8.535          0              8.535          103.66054    
+      1300   5424.1134      150.74116     -710.48851     -559.74735      10269935       10381675       10208553       0              8.535          0              8.535          0              8.535          112.29193    
+      1400   5082.4497      141.24601     -703.51889     -562.27288      10289096       10270701       10360960       0              8.535          0              8.535          0              8.535          120.98393    
+      1500   4782.7699      132.91763     -709.97393     -577.0563       10264631       10200017       10341446       0              8.535          0              8.535          0              8.535          129.56238    
+      1600   5080.7401      141.1985      -693.90867     -552.71017      10263936       10300165       10411302       0              8.535          0              8.535          0              8.535          138.13256    
+      1700   5192.8466      144.31404     -698.99608     -554.68204      10309414       10291531       10256424       0              8.535          0              8.535          0              8.535          146.75162    
+      1800   5105.1385      141.87655     -702.43759     -560.56104      10325438       10245469       10330602       0              8.535          0              8.535          0              8.535          155.63637    
+      1900   5015.6808      139.39044     -706.73213     -567.34169      10345833       10310789       10319358       0              8.535          0              8.535          0              8.535          164.26556    
+      2000   4894.0288      136.00962     -697.34077     -561.33115      10259839       10328896       10230941       0              8.535          0              8.535          0              8.535          172.92786    
+Loop time of 172.928 on 1 procs for 2000 steps with 216 atoms
+
+Performance: 0.999 ns/day, 24.018 hours/ns, 11.566 timesteps/s
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 172.88     | 172.88     | 172.88     |   0.0 | 99.97
+Neigh   | 0.0050877  | 0.0050877  | 0.0050877  |   0.0 |  0.00
+Comm    | 0.013326   | 0.013326   | 0.013326   |   0.0 |  0.01
+Output  | 0.001194   | 0.001194   | 0.001194   |   0.0 |  0.00
+Modify  | 0.022687   | 0.022687   | 0.022687   |   0.0 |  0.01
+Other   |            | 0.006874   |            |       |  0.00
+
+Nlocal:            216 ave         216 max         216 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1806 ave        1806 max        1806 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           1782 ave        1782 max        1782 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:        32872 ave       32872 max       32872 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 32872
+Ave neighs/atom = 152.18519
+Neighbor list builds = 5
+Dangerous builds = 0
+
+Total wall time: 0:02:53

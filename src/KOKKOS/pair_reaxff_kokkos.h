@@ -531,12 +531,6 @@ struct PairReaxKokkosFindBondFunctor  {
   }
 
   KOKKOS_INLINE_FUNCTION
-  void join(volatile int &dst,
-             const volatile int &src) const {
-    dst = MAX(dst,src);
-  }
-
-  KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &numbonds) const {
     c.calculate_find_bond_item(ii,numbonds);
   }

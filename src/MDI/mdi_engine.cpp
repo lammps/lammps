@@ -54,7 +54,7 @@ enum { DEFAULT, MD, OPT };       // top-level MDI engine modes
 
 enum { TYPE, CHARGE, MASS, COORD, VELOCITY, FORCE, ADDFORCE };
 
-#define MAXELEMENT 103    // used elsewhere in MDI package
+#define MAXELEMENT 118
 
 /* ----------------------------------------------------------------------
    trigger LAMMPS to start acting as an MDI engine
@@ -81,14 +81,32 @@ MDIEngine::MDIEngine(LAMMPS *_lmp, int narg, char **arg) : Pointers(_lmp)
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "elements") == 0) {
+      const char *symbols[] = {
+        "H" , "He", "Li", "Be", "B" , "C" , "N" , "O" , "F" , "Ne",
+        "Na", "Mg", "Al", "Si", "P" , "S" , "Cl", "Ar", "K" , "Ca",
+        "Sc", "Ti", "V" , "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
+        "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y" , "Zr",
+        "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
+        "Sb", "Te", "I" , "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd",
+        "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb",
+        "Lu", "Hf", "Ta", "W" , "Re", "Os", "Ir", "Pt", "Au", "Hg",
+        "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
+        "Pa", "U" , "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
+        "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt", "Ds",
+        "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og",
+      };
+
       int ntypes = atom->ntypes;
       delete[] elements;
       elements = new int[ntypes + 1];
       if (iarg + ntypes + 1 > narg) error->all(FLERR, "Illegal mdi engine command");
       for (int i = 1; i <= ntypes; i++) {
-        elements[i] = utils::inumeric(FLERR, arg[iarg + i], false, lmp);
-        if (elements[i] < 0 || elements[i] > MAXELEMENT)
-          error->all(FLERR, "Illegal mdi engine command");
+        int anum;
+        for (anum = 0; anum < MAXELEMENT; anum++)
+          if (strcmp(arg[iarg + i],symbols[anum]) == 0) break;
+        if (anum == MAXELEMENT)
+          error->all(FLERR,"Invalid chemical element in mdi engine command");
+        elements[i] = anum + 1;
       }
       iarg += ntypes + 1;
     } else
@@ -1233,7 +1251,7 @@ void MDIEngine::receive_elements()
   MPI_Bcast(sys_types, sys_natoms, MPI_INT, 0, world);
 
   // convert from element atomic numbers to LAMMPS atom types
-  // use maping provided by mdi engine command
+  // use mapping provided by mdi engine command
 
   int ntypes = atom->ntypes;
   int itype;

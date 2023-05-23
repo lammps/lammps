@@ -33,7 +33,8 @@ namespace LAMMPS_NS {
 
 class FixBondReact : public Fix {
  public:
-  enum { MAXLINE = 256 };    // max length of line read from files
+  enum { MAXLINE = 1024 };   // max length of line read from files
+  enum { MAXNAME = 256 };    // max character length of react-ID
   enum { MAXCONIDS = 4 };    // max # of IDs used by any constraint
   enum { MAXCONPAR = 5 };    // max # of constraint parameters
 
@@ -154,13 +155,15 @@ class FixBondReact : public Fix {
   int pion, neigh, trace;    // important indices for various loops. required for restore points
   int lcl_inst;              // reaction instance
   tagint **glove;            // 1st colmn: pre-reacted template, 2nd colmn: global IDs
-  // for all mega_gloves and global_mega_glove: first row is the ID of bond/react
-  tagint **local_mega_glove;      // consolidation local of reaction instances
-  tagint **ghostly_mega_glove;    // consolidation nonlocal of reaction instances
+  // for all mega_gloves: first row is the ID of bond/react
+  tagint **my_mega_glove;         // local + ghostly reaction instances
+  tagint **local_mega_glove;      // consolidation of local reaction instances
+  tagint **ghostly_mega_glove;    // consolidation of nonlocal reaction instances
   tagint **global_mega_glove;     // consolidation (inter-processor) of gloves
                                   // containing nonlocal atoms
 
   int *localsendlist;      // indicates ghosts of other procs
+  int my_num_mega;         // local + ghostly reaction instances (on this proc)
   int local_num_mega;      // num of local reaction instances
   int ghostly_num_mega;    // num of ghostly reaction instances
   int global_megasize;     // num of reaction instances in global_mega_glove
@@ -216,7 +219,7 @@ class FixBondReact : public Fix {
   // store restart data
   struct Set {
     int nreacts;
-    char rxn_name[MAXLINE];
+    char rxn_name[MAXNAME];
     int reaction_count_total;
     int max_rate_limit_steps;
   };

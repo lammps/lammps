@@ -211,7 +211,7 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
                           const __global numtyp *restrict sp_lj_in,
                           const __global int *dev_nbor,
                           const __global int *dev_packed,
-                          __global acctyp4 *restrict ans,
+                          __global acctyp3 *restrict ans,
                           __global acctyp *restrict engv,
                           const int eflag, const int vflag, const int inum,
                           const int nbor_pitch,
@@ -235,7 +235,7 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
   sp_lj[6]=sp_lj_in[6];
   sp_lj[7]=sp_lj_in[7];
 
-  acctyp4 f, tor;
+  acctyp3 f, tor;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
@@ -257,6 +257,7 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
     int itype=ix.w;
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;
@@ -282,8 +283,8 @@ __kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
         numtyp rinv, r3inv, r5inv, r7inv;
         numtyp pre1, pre2, pre3, pre4;
         numtyp pdotp, pidotr, pjdotr;
-        acctyp4 forcecoul, ticoul;
-        acctyp4 force;
+        acctyp3 forcecoul, ticoul;
+        acctyp3 force;
 
         forcecoul.x = forcecoul.y = forcecoul.z = (acctyp)0;
         ticoul.x = ticoul.y = ticoul.z = (acctyp)0;
@@ -418,7 +419,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
                                const __global numtyp *restrict sp_lj_in,
                                const __global int *dev_nbor,
                                const __global int *dev_packed,
-                               __global acctyp4 *restrict ans,
+                               __global acctyp3 *restrict ans,
                                __global acctyp *restrict engv,
                                const int eflag, const int vflag, const int inum,
                                const int nbor_pitch,
@@ -445,7 +446,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
       lj3[tid]=lj3_in[tid];
   }
 
-  acctyp4 f, tor;
+  acctyp3 f, tor;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
@@ -470,6 +471,7 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
       int j=dev_packed[nbor];
 
       numtyp factor_lj, factor_coul;
@@ -494,8 +496,8 @@ __kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
         numtyp rinv, r3inv, r5inv, r7inv;
         numtyp pre1, pre2, pre3, pre4;
         numtyp pdotp, pidotr, pjdotr;
-        acctyp4 forcecoul, ticoul;
-        acctyp4 force;
+        acctyp3 forcecoul, ticoul;
+        acctyp3 force;
 
         forcecoul.x = forcecoul.y = forcecoul.z = (acctyp)0;
         ticoul.x = ticoul.y = ticoul.z = (acctyp)0;

@@ -113,7 +113,7 @@ _texture( q_tex,int2);
     dufld[5]=red_acc[5][tid];                                               \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 t;                                                              \
+    acctyp3 t;                                                              \
     t.x = diz*ufld[1] - diy*ufld[2] + qixz*dufld[1] - qixy*dufld[3] +       \
       (numtyp)2.0*qiyz*(dufld[2]-dufld[5]) + (qizz-qiyy)*dufld[4];          \
     t.y = dix*ufld[2] - diz*ufld[0] - qiyz*dufld[1] + qixy*dufld[4] +       \
@@ -147,7 +147,7 @@ _texture( q_tex,int2);
     _fieldp[5]=red_acc[5][tid];                                             \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 f, fp;                                                          \
+    acctyp3 f, fp;                                                          \
     f.x = _fieldp[0];                                                       \
     f.y = _fieldp[1];                                                       \
     f.z = _fieldp[2];                                                       \
@@ -174,7 +174,7 @@ _texture( q_tex,int2);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 old=ans[ii];                                                    \
+    acctyp3 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
@@ -254,7 +254,7 @@ _texture( q_tex,int2);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 t;                                                              \
+    acctyp3 t;                                                              \
     t.x = diz*ufld[1] - diy*ufld[2] + qixz*dufld[1] - qixy*dufld[3] +       \
       (numtyp)2.0*qiyz*(dufld[2]-dufld[5]) + (qizz-qiyy)*dufld[4];          \
     t.y = dix*ufld[2] - diz*ufld[0] - qiyz*dufld[1] + qixy*dufld[4] +       \
@@ -277,7 +277,7 @@ _texture( q_tex,int2);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 f, fp;                                                          \
+    acctyp3 f, fp;                                                          \
     f.x = _fieldp[0];                                                       \
     f.y = _fieldp[1];                                                       \
     f.z = _fieldp[2];                                                       \
@@ -302,7 +302,7 @@ _texture( q_tex,int2);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 old=ans[ii];                                                    \
+    acctyp3 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
@@ -391,7 +391,7 @@ _texture( q_tex,int2);
   if (t_per_atom>1)                                                         \
     simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
   if (offset==0 && ii<inum) {                                               \
-    acctyp4 old=ans[ii];                                                    \
+    acctyp3 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
@@ -416,9 +416,9 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
-                                 __global acctyp4 *restrict ans,
+                                 __global acctyp3 *restrict ans,
                                  __global acctyp *restrict engv,
-                                 __global acctyp4 *restrict tep,
+                                 __global acctyp3 *restrict tep,
                                  const int eflag, const int vflag, const int inum,
                                  const int nall, const int nbor_pitch,
                                  const int t_per_atom, const numtyp aewald,
@@ -431,7 +431,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
   int n_stride;
   local_allocate_store_charge();
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
   if (EVFLAG) {
@@ -440,9 +440,9 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
     for (int l=0; l<6; l++) virial[l]=(acctyp)0;
   }
 
-  acctyp4 tq;
+  acctyp3 tq;
   tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0;
-  
+
   const __global numtyp4* polar1 = &extra[0];
   const __global numtyp4* polar2 = &extra[nall];
   const __global numtyp4* polar3 = &extra[2*nall];
@@ -695,7 +695,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
-                                 __global acctyp4 *restrict fieldp,
+                                 __global acctyp3 *restrict fieldp,
                                  const int inum,  const int nall,
                                  const int nbor_pitch, const int t_per_atom,
                                  const numtyp aewald, const numtyp off2,
@@ -889,7 +889,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
-                                 __global acctyp4 *restrict fieldp,
+                                 __global acctyp3 *restrict fieldp,
                                  const int inum,  const int nall,
                                  const int nbor_pitch, const int t_per_atom,
                                  const numtyp aewald, const numtyp off2,
@@ -1052,9 +1052,9 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
                              const __global int *dev_nbor,
                              const __global int *dev_packed,
                              const __global int *dev_short_nbor,
-                             __global acctyp4 *restrict ans,
+                             __global acctyp3 *restrict ans,
                              __global acctyp *restrict engv,
-                             __global acctyp4 *restrict tep,
+                             __global acctyp3 *restrict tep,
                              const int eflag, const int vflag, const int inum,
                              const int nall, const int nbor_pitch, const int t_per_atom,
                              const numtyp aewald, const numtyp felec,
@@ -1067,7 +1067,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   int n_stride;
   local_allocate_store_charge();
 
-  acctyp4 f;
+  acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
   if (EVFLAG) {
@@ -1082,7 +1082,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   for (int l=0; l<6; l++) dufld[l]=(acctyp)0;
 
   numtyp dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
-  
+
   const __global numtyp4* polar1 = &extra[0];
   const __global numtyp4* polar2 = &extra[nall];
   const __global numtyp4* polar3 = &extra[2*nall];
@@ -1226,7 +1226,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp prc3[3],prc5[3],prc7[3];
       numtyp drc3[3],drc5[3],drc7[3];
       numtyp urc3[3],urc5[3];
-    
+
       numtyp ralpha = aewald * r;
       numtyp exp2a = ucl_exp(-ralpha*ralpha);
       numtyp bn[5];
@@ -1583,12 +1583,12 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
   if (ii<inum) {
 
     const int nlpts = (bsorder-1) / 2;
-    
+
     int istart = fast_mul(ii,4);
     const int igridx = igrid[istart];
     const int igridy = igrid[istart+1];
     const int igridz = igrid[istart+2];
-    
+
     // now istart is used to index thetai1, thetai2 and thetai3
     istart = fast_mul(ii,bsorder);
 
@@ -1782,7 +1782,7 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
     fdip_buf[7] = tuv110_1;
     fdip_buf[8] = tuv101_1;
     fdip_buf[9] = tuv011_1;
-    idx = ii;    
+    idx = ii;
     for (int m = 0; m < 10; m++) {
       fdip_phi1[idx] = fdip_buf[m];
       idx += inum;
@@ -1798,7 +1798,7 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
     fdip_buf[7] = tuv110_2;
     fdip_buf[8] = tuv101_2;
     fdip_buf[9] = tuv011_2;
-    idx = ii;    
+    idx = ii;
     for (int m = 0; m < 10; m++) {
       fdip_phi2[idx] = fdip_buf[m];
       idx += inum;
@@ -1824,7 +1824,7 @@ __kernel void k_amoeba_fphi_uind(const __global numtyp4 *restrict thetai1,
     fdip_buf[17] = tuv102;
     fdip_buf[18] = tuv012;
     fdip_buf[19] = tuv111;
-    idx = ii;    
+    idx = ii;
     for (int m = 0; m < 20; m++) {
       fdip_sum_phi[idx] = fdip_buf[m];
       idx += inum;
@@ -1855,12 +1855,12 @@ __kernel void k_amoeba_fphi_mpole(const __global numtyp4 *restrict thetai1,
   if (ii<inum) {
 
     int nlpts = (bsorder-1) / 2;
-    
+
     int istart = fast_mul(ii,4);
     int igridx = igrid[istart];
     int igridy = igrid[istart+1];
     int igridz = igrid[istart+2];
-    
+
     // now istart is used to index thetai1, thetai2 and thetai3
     istart = fast_mul(ii,bsorder);
 
@@ -1990,7 +1990,7 @@ __kernel void k_amoeba_fphi_mpole(const __global numtyp4 *restrict thetai1,
     buf[18] = tuv012;
     buf[19] = tuv111;
 
-    int idx = ii;    
+    int idx = ii;
     for (int m = 0; m < 20; m++) {
       fphi[idx] = felec * buf[m];
       idx += inum;

@@ -20,15 +20,17 @@ FixStyle(wall/gran,FixWallGran);
 #ifndef LMP_FIX_WALL_GRAN_H
 #define LMP_FIX_WALL_GRAN_H
 
+#include "granular_model.h"
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
+namespace Granular_NS {
+  class GranularModel;
+}
+
 class FixWallGran : public Fix {
  public:
-  enum { HOOKE, HOOKE_HISTORY, HERTZ_HISTORY, GRANULAR };
-  enum { NORMAL_NONE, NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR };
-
   FixWallGran(class LAMMPS *, int, char **);
   ~FixWallGran() override;
   int setmask() override;
@@ -49,54 +51,27 @@ class FixWallGran : public Fix {
   int maxsize_restart() override;
   void reset_dt() override;
 
-  void hooke(double, double, double, double, double *, double *, double *, double *, double *,
-             double, double, double *);
-  void hooke_history(double, double, double, double, double *, double *, double *, double *,
-                     double *, double, double, double *, double *);
-  void hertz_history(double, double, double, double, double *, double, double *, double *, double *,
-                     double *, double, double, double *, double *);
-  void granular(double, double, double, double, double *, double, double *, double *, double *,
-                double *, double, double, double *, double *);
-
-  double pulloff_distance(double);
-
  protected:
   int wallstyle, wiggle, wshear, axis;
-  int pairstyle, nlevels_respa;
+  int nlevels_respa;
   bigint time_origin;
-  double kn, kt, gamman, gammat, xmu;
 
   // for granular model choices
-  int normal_model, damping_model;
-  int tangential_model, roll_model, twist_model;
-  int limit_damping;
-
-  // history flags
-  int normal_history, tangential_history, roll_history, twist_history;
-
-  // indices of history entries
-  int normal_history_index;
-  int tangential_history_index;
-  int roll_history_index;
-  int twist_history_index;
-
-  // material coefficients
-  double Emod, poiss, Gmod;
-
-  // contact model coefficients
-  double normal_coeffs[4];
-  double tangential_coeffs[3];
-  double roll_coeffs[3];
-  double twist_coeffs[3];
+  class Granular_NS::GranularModel *model;
 
   double lo, hi, cylradius;
   double amplitude, period, omega, vshear;
   double dt;
+  double Twall;
   char *idregion;
 
   int use_history;       // if particle/wall interaction stores history
   int history_update;    // flag for whether shear history is updated
   int size_history;      // # of shear history values per contact
+  int heat_flag;
+
+  int tvar;
+  char *tstr;
 
   // shear history for single contact per particle
 

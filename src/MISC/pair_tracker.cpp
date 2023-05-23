@@ -514,7 +514,7 @@ double PairTracker::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, d
    only needed if any history entries i-j are not just negative of j-i entries
 ------------------------------------------------------------------------- */
 
-void PairTracker::transfer_history(double *source, double *target)
+void PairTracker::transfer_history(double *source, double *target, int /*itype*/, int /*jtype*/)
 {
   for (int i = 0; i < size_history; i++) target[i] = source[i];
 }

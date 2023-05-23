@@ -121,7 +121,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg], "type") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long type", error);
+      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long type", error);
       if (strcmp(arg[iarg + 1], "auto") == 0)
         type = AUTO;
       else if (strcmp(arg[iarg + 1], "upper") == 0)
@@ -138,23 +138,23 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Unknown fix ave/correlate/long type: {}");
       iarg += 2;
     } else if (strcmp(arg[iarg], "start") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long start", error);
+      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long start", error);
       startstep = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "ncorr") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long ncorr", error);
+      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long ncorr", error);
       numcorrelators = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "nlen") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long nlen", error);
+      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long nlen", error);
       p = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "ncount") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long ncount", error);
+      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long ncount", error);
       m = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "file") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix ave/correlate/long file", error);
+      if (iarg + 2 > nargnew) utils::missing_cmd_args(FLERR, "fix ave/correlate/long file", error);
       if (comm->me == 0) {
         fp = fopen(arg[iarg + 1], "w");
         if (fp == nullptr)

@@ -115,7 +115,6 @@ cdef create_array(device, void *pointer, shape,is_int):
     size=1
     for i in shape:
         size = size*i
-
     if ( device == 1):
         mem = cupy.cuda.UnownedMemory(ptr=int( <uintptr_t> pointer), owner=None, size=size)
         memptr = cupy.cuda.MemoryPointer(mem, 0)
@@ -146,10 +145,18 @@ cdef class MLIAPDataPy:
         self.data = NULL
 
     def update_pair_energy_cpu(self, eij):
-        cdef double[:] eij_arr = eij
+        cdef double[:] eij_arr
+        try:
+            eij_arr = eij
+        except:
+            eij_arr = eij.detach().numpy().astype(np.double)
         update_pair_energy(self.data, &eij_arr[0])
     def update_pair_energy_gpu(self, eij):
-        cdef uintptr_t ptr = eij.data.ptr
+        cdef uintptr_t ptr;
+        try:
+            ptr = eij.data.ptr
+        except:
+            ptr = eij.data_ptr()
         update_pair_energy(self.data, <double*>ptr)  
     def update_pair_energy(self, eij):
         if self.data.dev==0:
@@ -158,10 +165,18 @@ cdef class MLIAPDataPy:
             self.update_pair_energy_gpu(eij)
 
     def update_pair_forces_cpu(self, fij):
-        cdef double[:, ::1] fij_arr = fij
+        cdef double[:, ::1] fij_arr
+        try:
+            fij_arr = fij
+        except:
+            fij_arr = fij.detach().numpy().astype(np.double)
         update_pair_forces(self.data, &fij_arr[0][0])
     def update_pair_forces_gpu(self, fij):
-        cdef uintptr_t ptr = fij.data.ptr
+        cdef uintptr_t ptr
+        try:
+            ptr = fij.data.ptr
+        except:
+            ptr = fij.data_ptr()
         update_pair_forces(self.data, <double*>ptr)  
     def update_pair_forces(self, fij):
         if self.data.dev==0:
@@ -172,7 +187,8 @@ cdef class MLIAPDataPy:
     def f(self):
         if self.data.f is NULL:
             return None
-        return cupy.asarray(<double[:self.ntotal, :3]> self.data.f)
+        return create_array(self.data.dev, self.data.f, [self.ntotal, 3],False)
+
     
     @property
     def size_gradforce(self):
@@ -205,14 +221,11 @@ cdef class MLIAPDataPy:
         descriptors_view[:] = value_view
         print("This code has not been tested or optimized for the GPU, if you are getting this warning optimize descriptors")
 
-    @write_only_property
-    def eatoms(self, value):
+    @property
+    def eatoms(self):
         if self.data.eatoms is NULL:
             raise ValueError("attempt to set NULL eatoms")
-        cdef double[:] eatoms_view = <double[:self.nlistatoms]> &self.data.eatoms[0]
-        cdef double[:] value_view = value
-        eatoms_view[:] = value_view
-        print("This code has not been tested or optimized for the GPU, if you are getting this warning optimize eatoms")
+        return create_array(self.data.dev, self.data.eatoms, [self.nlistatoms],False)
 
 
     @write_only_property
@@ -351,7 +364,7 @@ cdef class MLIAPDataPy:
 
 
 # Interface between C and Python compute functions
-cdef class MLIAPUnifiedInterface:
+cdef class MLIAPUnifiedInterfaceKokkos:
     cdef MLIAPDummyModel * model
     cdef MLIAPDummyDescriptor * descriptor
     cdef unified_impl
@@ -404,7 +417,7 @@ cdef public object mliap_unified_connect_kokkos(char *fname, MLIAPDummyModel * m
         with open(str_fname, 'rb') as pfile:
             unified = pickle.load(pfile)
 
-    unified_int = MLIAPUnifiedInterface(unified)
+    unified_int = MLIAPUnifiedInterfaceKokkos(unified)
     unified_int.model = model
     unified_int.descriptor = descriptor
 

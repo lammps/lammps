@@ -138,6 +138,7 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
     eam_fs_gpu_compute_force(nullptr, eflag, vflag, eflag_atom, vflag_atom);
   else
     eam_fs_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0) neighbor->build_topology();
 }
 
 /* ----------------------------------------------------------------------
@@ -280,12 +281,8 @@ void PairEAMFSGPU::coeff(int narg, char **arg)
 
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes) error->all(FLERR, "Incorrect args for pair coefficients");
-
-  // ensure I,J args are * *
-
-  if (strcmp(arg[0], "*") != 0 || strcmp(arg[1], "*") != 0)
-    error->all(FLERR, "Incorrect args for pair coefficients");
+  if (narg != 3 + atom->ntypes)
+    error->all(FLERR, "Number of element to type mappings does not match number of atom types");
 
   // read EAM Finnis-Sinclair file
 

@@ -70,7 +70,7 @@ be specified even if the potential has a finite value at r = 0.0.
 Related commands
 """"""""""""""""
 
-:doc:`bond_style table <bond_table>`, `angle_write <angle_write>`,
+:doc:`bond_style table <bond_table>`, :doc:`angle_write <angle_write>`,
 :doc:`bond_style <bond_style>`, :doc:`bond_coeff <bond_coeff>`
 
 Default

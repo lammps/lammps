@@ -136,6 +136,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
     eam_gpu_compute_force(nullptr, eflag, vflag, eflag_atom, vflag_atom);
   else
     eam_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0) neighbor->build_topology();
 }
 
 /* ----------------------------------------------------------------------

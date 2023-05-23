@@ -31,12 +31,6 @@ namespace LAMMPS_NS {
       d1 += rhs.d1;
       return *this;
     }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile s_double2 &rhs) volatile {
-      d0 += rhs.d0;
-      d1 += rhs.d1;
-    }
   };
   //typedef s_double2 double2;
 

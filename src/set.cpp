@@ -47,7 +47,7 @@ enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      MOLECULE,X,Y,Z,VX,VY,VZ,CHARGE,MASS,SHAPE,LENGTH,TRI,
      DIPOLE,DIPOLE_RANDOM,SPIN_ATOM,SPIN_RANDOM,SPIN_ELECTRON,RADIUS_ELECTRON,
-     QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,
+     QUAT,QUAT_RANDOM,THETA,THETA_RANDOM,ANGMOM,OMEGA,TEMPERATURE,
      DIAMETER,RADIUS_ATOM,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
      SMD_CONTACT_RADIUS,DPDTHETA,EPSILON,IVEC,DVEC,IARRAY,DARRAY};
@@ -93,13 +93,19 @@ void Set::command(int narg, char **arg)
     if (strcmp(arg[iarg],"type") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set type", error);
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
-      else ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      else {
+        char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
+        ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+        delete[] typestr;
+      }
       set(TYPE);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"type/fraction") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "set type/fraction", error);
-      newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
+      newtype = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       fraction = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (newtype <= 0 || newtype > atom->ntypes)
@@ -113,7 +119,9 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"type/ratio") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "set type/ratio", error);
-      newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
+      newtype = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       fraction = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (newtype <= 0 || newtype > atom->ntypes)
@@ -127,7 +135,9 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"type/subset") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR, "set type/subset", error);
-      newtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ATOM,lmp);
+      newtype = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       nsubset = utils::bnumeric(FLERR,arg[iarg+2],false,lmp);
       ivalue = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (newtype <= 0 || newtype > atom->ntypes)
@@ -426,6 +436,15 @@ void Set::command(int narg, char **arg)
       set(DENSITY);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"temperature") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
+      else dvalue = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (!atom->temperature_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(TEMPERATURE);
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"volume") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set volume", error);
       if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1);
@@ -468,7 +487,9 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set bond", error);
-      ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::BOND,lmp);
+      ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       if (atom->avec->bonds_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
       if (ivalue <= 0 || ivalue > atom->nbondtypes)
@@ -478,7 +499,9 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set angle", error);
-      ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::ANGLE,lmp);
+      ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       if (atom->avec->angles_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
       if (ivalue <= 0 || ivalue > atom->nangletypes)
@@ -488,7 +511,9 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set dihedral", error);
-      ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::DIHEDRAL,lmp);
+      ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       if (atom->avec->dihedrals_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
       if (ivalue <= 0 || ivalue > atom->ndihedraltypes)
@@ -498,7 +523,9 @@ void Set::command(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"improper") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "set improper", error);
-      ivalue = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      char *typestr = utils::expand_type(FLERR,arg[iarg+1],Atom::IMPROPER,lmp);
+      ivalue = utils::inumeric(FLERR,typestr?typestr:arg[iarg+1],false,lmp);
+      delete[] typestr;
       if (atom->avec->impropers_allow == 0)
         error->all(FLERR,"Cannot set attribute {} for atom style {}", arg[iarg], atom->get_style());
       if (ivalue <= 0 || ivalue > atom->nimpropertypes)
@@ -733,6 +760,10 @@ void Set::selection(int n)
       else select[i] = 0;
 
   } else if (style == TYPE_SELECT) {
+    if (char *typestr = utils::expand_type(FLERR,id,Atom::ATOM,lmp)) {
+      delete[] id;
+      id = typestr;
+    }
     utils::bounds(FLERR,id,1,atom->ntypes,nlo,nhi,error);
 
     int *type = atom->type;
@@ -806,6 +837,7 @@ void Set::set(int keyword)
   case SHAPE:
   case DIAMETER:
   case DENSITY:
+  case TEMPERATURE:
   case QUAT:
   case IMAGE:
     if (modify->check_rigid_list_overlap(select))
@@ -1066,6 +1098,13 @@ void Set::set(int keyword)
       atom->omega[i][0] = xvalue;
       atom->omega[i][1] = yvalue;
       atom->omega[i][2] = zvalue;
+    }
+
+    // set temperature of particle
+
+    else if (keyword == ANGMOM) {
+      if (dvalue < 0.0) error->one(FLERR,"Invalid temperature in set command");
+      atom->temperature[i] = dvalue;
     }
 
     // reset any or all of 3 image flags

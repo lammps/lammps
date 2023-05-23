@@ -115,17 +115,6 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   remap = nullptr;
 }
 
-template<class DeviceType>
-void PPPMKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg < 1) error->all(FLERR,"Illegal kspace_style {} command", force->kspace_style);
-
-  accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
-  if (accuracy_relative > 1.0)
-    error->all(FLERR, "Invalid relative accuracy {:g} for kspace_style {}",
-               accuracy_relative, force->kspace_style);
-}
-
 /* ----------------------------------------------------------------------
    free all memory
 ------------------------------------------------------------------------- */
@@ -493,7 +482,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic1, const int &n) 
   unitk_lamda[0] = 2.0*MY_PI*per_i;
   unitk_lamda[1] = 2.0*MY_PI*per_j;
   unitk_lamda[2] = 2.0*MY_PI*per_k;
-  x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+  x2lamdaT_kokkos(&unitk_lamda[0],&unitk_lamda[0]);
   d_fkx[n] = unitk_lamda[0];
   d_fky[n] = unitk_lamda[1];
   d_fkz[n] = unitk_lamda[2];
@@ -503,59 +492,23 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic2, const int &n) const
 {
-    const double sqk = d_fkx[n]*d_fkx[n] + d_fky[n]*d_fky[n] + d_fkz[n]*d_fkz[n];
-    if (sqk == 0.0) {
-      d_vg(n,0) = 0.0;
-      d_vg(n,1) = 0.0;
-      d_vg(n,2) = 0.0;
-      d_vg(n,3) = 0.0;
-      d_vg(n,4) = 0.0;
-      d_vg(n,5) = 0.0;
-    } else {
-      const double vterm = -2.0 * (1.0/sqk + 0.25/(g_ewald*g_ewald));
-      d_vg(n,0) = 1.0 + vterm*d_fkx[n]*d_fkx[n];
-      d_vg(n,1) = 1.0 + vterm*d_fky[n]*d_fky[n];
-      d_vg(n,2) = 1.0 + vterm*d_fkz[n]*d_fkz[n];
-      d_vg(n,3) = vterm*d_fkx[n]*d_fky[n];
-      d_vg(n,4) = vterm*d_fkx[n]*d_fkz[n];
-      d_vg(n,5) = vterm*d_fky[n]*d_fkz[n];
-    }
-}
-/* ----------------------------------------------------------------------
-   reset local grid arrays and communication stencils
-   called by fix balance b/c it changed sizes of processor sub-domains
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PPPMKokkos<DeviceType>::reset_grid()
-{
-  // free all arrays previously allocated
-
-  deallocate();
-  if (peratom_allocate_flag) deallocate_peratom();
-
-  // reset portion of global grid that each proc owns
-
-  set_grid_local();
-
-  // reallocate K-space dependent memory
-  // check if grid communication is now overlapping if not allowed
-  // don't invoke allocate peratom(), will be allocated when needed
-
-  allocate();
-
-  if (!overlap_allowed && !gc->ghost_adjacent())
-    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
-
-  // pre-compute Green's function denomiator expansion
-  // pre-compute 1d charge distribution coefficients
-
-  compute_gf_denom();
-  compute_rho_coeff();
-
-  // pre-compute volume-dependent coeffs for portion of grid I now own
-
-  setup();
+  const double sqk = d_fkx[n]*d_fkx[n] + d_fky[n]*d_fky[n] + d_fkz[n]*d_fkz[n];
+  if (sqk == 0.0) {
+    d_vg(n,0) = 0.0;
+    d_vg(n,1) = 0.0;
+    d_vg(n,2) = 0.0;
+    d_vg(n,3) = 0.0;
+    d_vg(n,4) = 0.0;
+    d_vg(n,5) = 0.0;
+  } else {
+    const double vterm = -2.0 * (1.0/sqk + 0.25/(g_ewald*g_ewald));
+    d_vg(n,0) = 1.0 + vterm*d_fkx[n]*d_fkx[n];
+    d_vg(n,1) = 1.0 + vterm*d_fky[n]*d_fky[n];
+    d_vg(n,2) = 1.0 + vterm*d_fkz[n]*d_fkz[n];
+    d_vg(n,3) = vterm*d_fkx[n]*d_fky[n];
+    d_vg(n,4) = vterm*d_fkx[n]*d_fkz[n];
+    d_vg(n,5) = vterm*d_fky[n]*d_fkz[n];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -920,156 +873,6 @@ void PPPMKokkos<DeviceType>::deallocate_peratom()
 }
 
 /* ----------------------------------------------------------------------
-   set global size of PPPM grid = nx,ny,nz_pppm
-   used for charge accumulation, FFTs, and electric field interpolation
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PPPMKokkos<DeviceType>::set_grid_global()
-{
-  // use xprd,yprd,zprd (even if triclinic, and then scale later)
-  // adjust z dimension for 2d slab PPPM
-  // 3d PPPM just uses zprd since slab_volfactor = 1.0
-
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  double zprd_slab = zprd*slab_volfactor;
-
-  // make initial g_ewald estimate
-  // based on desired accuracy and real space cutoff
-  // fluid-occupied volume used to estimate real-space error
-  // zprd used rather than zprd_slab
-
-  bigint natoms = atomKK->natoms;
-
-  if (!gewaldflag) {
-    if (accuracy <= 0.0)
-      error->all(FLERR,"KSpace accuracy must be > 0");
-    if (q2 == 0.0)
-      error->all(FLERR,"Must use kspace_modify gewald for uncharged system");
-    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
-    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
-    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
-  }
-
-  // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
-  // nz_pppm uses extended zprd_slab instead of zprd
-  // reduce it until accuracy target is met
-
-  if (!gridflag) {
-
-    double err;
-    h_x = h_y = h_z = 1.0/g_ewald;
-
-    nx_pppm = static_cast<int> (xprd/h_x) + 1;
-    ny_pppm = static_cast<int> (yprd/h_y) + 1;
-    nz_pppm = static_cast<int> (zprd_slab/h_z) + 1;
-
-    err = estimate_ik_error(h_x,xprd,natoms);
-    while (err > accuracy) {
-      err = estimate_ik_error(h_x,xprd,natoms);
-      nx_pppm++;
-      h_x = xprd/nx_pppm;
-    }
-
-    err = estimate_ik_error(h_y,yprd,natoms);
-    while (err > accuracy) {
-      err = estimate_ik_error(h_y,yprd,natoms);
-      ny_pppm++;
-      h_y = yprd/ny_pppm;
-    }
-
-    err = estimate_ik_error(h_z,zprd_slab,natoms);
-    while (err > accuracy) {
-      err = estimate_ik_error(h_z,zprd_slab,natoms);
-      nz_pppm++;
-      h_z = zprd_slab/nz_pppm;
-    }
-
-    // scale grid for triclinic skew
-
-    if (triclinic) {
-      double tmp[3];
-      tmp[0] = nx_pppm/xprd;
-      tmp[1] = ny_pppm/yprd;
-      tmp[2] = nz_pppm/zprd;
-      lamda2xT(&tmp[0],&tmp[0]);
-      nx_pppm = static_cast<int>(tmp[0]) + 1;
-      ny_pppm = static_cast<int>(tmp[1]) + 1;
-      nz_pppm = static_cast<int>(tmp[2]) + 1;
-    }
-  }
-
-  // boost grid size until it is factorable
-
-  while (!factorable(nx_pppm)) nx_pppm++;
-  while (!factorable(ny_pppm)) ny_pppm++;
-  while (!factorable(nz_pppm)) nz_pppm++;
-
-  if (triclinic == 0) {
-    h_x = xprd/nx_pppm;
-    h_y = yprd/ny_pppm;
-    h_z = zprd_slab/nz_pppm;
-  } else {
-    double tmp[3];
-    tmp[0] = nx_pppm;
-    tmp[1] = ny_pppm;
-    tmp[2] = nz_pppm;
-    x2lamdaT(&tmp[0],&tmp[0]);
-    h_x = 1.0/tmp[0];
-    h_y = 1.0/tmp[1];
-    h_z = 1.0/tmp[2];
-  }
-
-  if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
-    error->all(FLERR,"PPPM grid is too large");
-}
-
-/* ----------------------------------------------------------------------
-   check if all factors of n are in list of factors
-   return 1 if yes, 0 if no
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-int PPPMKokkos<DeviceType>::factorable(int n)
-{
-  int i;
-
-  while (n > 1) {
-    for (i = 0; i < nfactors; i++) {
-      if (n % factors[i] == 0) {
-        n /= factors[i];
-        break;
-      }
-    }
-    if (i == nfactors) return 0;
-  }
-
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   compute estimated kspace force error
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-double PPPMKokkos<DeviceType>::compute_df_kspace()
-{
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  double zprd_slab = zprd*slab_volfactor;
-  bigint natoms = atom->natoms;
-  double df_kspace = 0.0;
-  double lprx = estimate_ik_error(h_x,xprd,natoms);
-  double lpry = estimate_ik_error(h_y,yprd,natoms);
-  double lprz = estimate_ik_error(h_z,zprd_slab,natoms);
-  df_kspace = sqrt(lprx*lprx + lpry*lpry + lprz*lprz) / sqrt(3.0);
-  return df_kspace;
-}
-
-/* ----------------------------------------------------------------------
    estimate kspace force error for ik method
 ------------------------------------------------------------------------- */
 
@@ -1083,88 +886,6 @@ double PPPMKokkos<DeviceType>::estimate_ik_error(double h, double prd, bigint na
     sqrt(g_ewald*prd*sqrt(MY_2PI)*sum/natoms) / (prd*prd);
 
   return value;
-}
-
-/* ----------------------------------------------------------------------
-   adjust the g_ewald parameter to near its optimal value
-   using a Newton-Raphson solver
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PPPMKokkos<DeviceType>::adjust_gewald()
-{
-  double dx;
-
-  for (int i = 0; i < LARGE; i++) {
-    dx = newton_raphson_f() / derivf();
-    g_ewald -= dx;
-    if (fabs(newton_raphson_f()) < SMALL) return;
-  }
-  error->all(FLERR, "Could not compute g_ewald");
-}
-
-/* ----------------------------------------------------------------------
-   calculate f(x) using Newton-Raphson solver
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-double PPPMKokkos<DeviceType>::newton_raphson_f()
-{
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  bigint natoms = atom->natoms;
-
-  double df_rspace = 2.0*q2*exp(-g_ewald*g_ewald*cutoff*cutoff) /
-       sqrt(natoms*cutoff*xprd*yprd*zprd);
-
-  double df_kspace = compute_df_kspace();
-
-  return df_rspace - df_kspace;
-}
-
-/* ----------------------------------------------------------------------
-   calculate numerical derivative f'(x) using forward difference
-   [f(x + h) - f(x)] / h
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-double PPPMKokkos<DeviceType>::derivf()
-{
-  double h = 0.000001;  //Derivative step-size
-  double df,f1,f2,g_ewald_old;
-
-  f1 = newton_raphson_f();
-  g_ewald_old = g_ewald;
-  g_ewald += h;
-  f2 = newton_raphson_f();
-  g_ewald = g_ewald_old;
-  df = (f2 - f1)/h;
-
-  return df;
-}
-
-/* ----------------------------------------------------------------------
-   calculate the final estimate of the accuracy
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-double PPPMKokkos<DeviceType>::final_accuracy()
-{
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  bigint natoms = atom->natoms;
-  if (natoms == 0) natoms = 1; // avoid division by zero
-
-  double df_kspace = compute_df_kspace();
-  double q2_over_sqrt = q2 / sqrt(natoms*cutoff*xprd*yprd*zprd);
-  double df_rspace = 2.0 * q2_over_sqrt * exp(-g_ewald*g_ewald*cutoff*cutoff);
-  double df_table = estimate_table_accuracy(q2_over_sqrt,df_rspace);
-  double estimated_accuracy = sqrt(df_kspace*df_kspace + df_rspace*df_rspace +
-                                   df_table*df_table);
-
-  return estimated_accuracy;
 }
 
 /* ----------------------------------------------------------------------
@@ -1352,7 +1073,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_compute_gf_ik_triclinic, const i
       unitk_lamda[0] = 2.0*MY_PI*kper;
       unitk_lamda[1] = 2.0*MY_PI*lper;
       unitk_lamda[2] = 2.0*MY_PI*mper;
-      x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+      x2lamdaT_kokkos(&unitk_lamda[0],&unitk_lamda[0]);
 
       const double sqk = square(unitk_lamda[0]) + square(unitk_lamda[1]) + square(unitk_lamda[2]);
 
@@ -1377,7 +1098,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_compute_gf_ik_triclinic, const i
               b[0] = 2.0*MY_PI*nx_pppm*nx;
               b[1] = 2.0*MY_PI*ny_pppm*ny;
               b[2] = 2.0*MY_PI*nz_pppm*nz;
-              x2lamdaT(&b[0],&b[0]);
+              x2lamdaT_kokkos(&b[0],&b[0]);
 
               const double qx = unitk_lamda[0]+b[0];
               const double sx = exp(-0.25*square(qx/g_ewald));
@@ -1640,16 +1361,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_brick2fft, const int &ii) const
 }
 
 /* ----------------------------------------------------------------------
-   FFT-based Poisson solver
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PPPMKokkos<DeviceType>::poisson()
-{
-  poisson_ik();
-}
-
-/* ----------------------------------------------------------------------
    FFT-based Poisson solver for ik
 ------------------------------------------------------------------------- */
 
@@ -1756,11 +1467,9 @@ void PPPMKokkos<DeviceType>::poisson_ik()
 
   fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
 
-
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik10>(0,inum_inout),*this);
   copymode = 0;
-
 }
 
 template<class DeviceType>
@@ -2291,6 +2000,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_peratom14, const int &ii
   i += nxlo_in-nxlo_out;
   d_v5_brick(k,j,i) = d_work2[n];
 }
+
 /* ----------------------------------------------------------------------
    interpolate from grid to get electric field & force on my particles
 ------------------------------------------------------------------------- */
@@ -2609,45 +2319,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_unpack_reverse, const int &i) co
   const int iy = (int) ((dlist - iz*nx*ny)/nx);
   const int ix = d_list_index[i] - iz*nx*ny - iy*nx;
   d_density_brick(iz,iy,ix) += d_buf[i + unpack_offset];
-}
-
-/* ----------------------------------------------------------------------
-   map nprocs to NX by NY grid as PX by PY procs - return optimal px,py
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PPPMKokkos<DeviceType>::procs2grid2d(int nprocs, int nx, int ny, int *px, int *py)
-{
-  // loop thru all possible factorizations of nprocs
-  // surf = surface area of largest proc sub-domain
-  // innermost if test minimizes surface area and surface/volume ratio
-
-  int bestsurf = 2 * (nx + ny);
-  int bestboxx = 0;
-  int bestboxy = 0;
-
-  int boxx,boxy,surf,ipx,ipy;
-
-  ipx = 1;
-  while (ipx <= nprocs) {
-    if (nprocs % ipx == 0) {
-      ipy = nprocs/ipx;
-      boxx = nx/ipx;
-      if (nx % ipx) boxx++;
-      boxy = ny/ipy;
-      if (ny % ipy) boxy++;
-      surf = boxx + boxy;
-      if (surf < bestsurf ||
-          (surf == bestsurf && boxx*boxy > bestboxx*bestboxy)) {
-        bestsurf = surf;
-        bestboxx = boxx;
-        bestboxy = boxy;
-        *px = ipx;
-        *py = ipy;
-      }
-    }
-    ipx++;
-  }
 }
 
 /* ----------------------------------------------------------------------

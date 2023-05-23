@@ -27,10 +27,11 @@ namespace LAMMPS_NS {
 class FixPropertyAtom : public Fix {
  public:
   FixPropertyAtom(class LAMMPS *, int, char **);
-
   ~FixPropertyAtom() override;
   int setmask() override;
   void init() override;
+
+  enum { MOLECULE, CHARGE, RMASS, TEMPERATURE, HEATFLOW, IVEC, DVEC, IARRAY, DARRAY };
 
   void read_data_section(char *, int, char *, tagint) override;
   bigint read_data_skip_lines(char *) override;
@@ -54,10 +55,11 @@ class FixPropertyAtom : public Fix {
  protected:
   int nvalue, border;
   int molecule_flag, q_flag, rmass_flag;    // flags for specific fields
-  int *styles;                              // style of each value, see enum
-  int *index;                               // indices into atom custom data structs
-  int *cols;                                // columns per value, for arrays
-  char *astyle;                             // atom style at instantiation
+  int temperature_flag, heatflow_flag;
+  int *styles;     // style of each value, see enum
+  int *index;      // indices into atom custom data structs
+  int *cols;       // columns per value, for arrays
+  char *astyle;    // atom style at instantiation
 
   int values_peratom;    // # of values per atom, including multiple for arrays
   int nmax_old;          // length of peratom arrays the last time they grew

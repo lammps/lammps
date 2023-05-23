@@ -182,7 +182,7 @@ void FixStoreGlobal::restart(char *buf)
 }
 
 /* ----------------------------------------------------------------------
-   memory usage of global or peratom atom-based array
+   memory usage of global data
 ------------------------------------------------------------------------- */
 
 double FixStoreGlobal::memory_usage()

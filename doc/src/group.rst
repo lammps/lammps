@@ -304,7 +304,7 @@ group and running further.
    not all allow for use of a dynamic group.  If you get an error
    message that this is not allowed, but feel that it should be for the
    fix or compute in question, then please post your reasoning to the
-   `LAMMPS forum at MatSci <https://matsci.org/c/lammps-development/>`_
+   `LAMMPS forum at MatSci <https://matsci.org/c/lammps-development/42>`_
    and we can look into changing it.  The same applies if you come
    across inconsistent behavior when dynamic groups are allowed.
 

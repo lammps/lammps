@@ -110,9 +110,17 @@ void PairYLZ::compute(int eflag, int vflag)
 
   // loop over neighbors of my atoms
 
+  int flag = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = type[i];
+
+    // count if pair has non-ellipsoid atom and skip over it to avoid segfault
+
+    if (ellipsoid[i] < 0) {
+      ++flag;
+      continue;
+    }
 
     iquat = bonus[ellipsoid[i]].quat;
     MathExtra::quat_to_mat_trans(iquat, a1);
@@ -132,6 +140,13 @@ void PairYLZ::compute(int eflag, int vflag)
       r12[2] = x[j][2] - x[i][2];
       rsq = MathExtra::dot3(r12, r12);
       jtype = type[j];
+
+      // count if pair has non-ellipsoid atom and skip over it to avoid segfault
+
+      if (ellipsoid[j] < 0) {
+        ++flag;
+        continue;
+      }
 
       // compute if less than cutoff
 
@@ -177,6 +192,12 @@ void PairYLZ::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+
+  // error out if any pairs were skipped over because they were not both ellipsoids
+
+  int flag_all;
+  MPI_Allreduce(&flag, &flag_all, 1, MPI_INT, MPI_MAX, world);
+  if (flag_all) error->all(FLERR, "All atoms for pair style ylz must be ellipsoids");
 }
 
 /* ----------------------------------------------------------------------
@@ -260,16 +281,6 @@ void PairYLZ::init_style()
   if (!avec) error->all(FLERR, "Pair style ylz requires atom style ellipsoid");
 
   neighbor->request(this, instance_me);
-
-  // check that all atoms are ellipsoids
-
-  int flag_all, flag = 0;
-  const int *ellipsoid = atom->ellipsoid;
-  const int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; ++i)
-    if (ellipsoid[i] < 0) flag = 1;
-  MPI_Allreduce(&flag, &flag_all, 1, MPI_INT, MPI_MAX, world);
-  if (flag_all) error->all(FLERR, "All atoms must be ellipsoids for pair style ylz");
 }
 
 /* ----------------------------------------------------------------------

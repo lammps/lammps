@@ -20,31 +20,21 @@ ComputeStyle(gyration/chunk,ComputeGyrationChunk);
 #ifndef LMP_COMPUTE_GYRATION_CHUNK_H
 #define LMP_COMPUTE_GYRATION_CHUNK_H
 
-#include "compute.h"
+#include "compute_chunk.h"
 
 namespace LAMMPS_NS {
 
-class ComputeGyrationChunk : public Compute {
+class ComputeGyrationChunk : public ComputeChunk {
  public:
   ComputeGyrationChunk(class LAMMPS *, int, char **);
   ~ComputeGyrationChunk() override;
-  void init() override;
+
   void compute_vector() override;
   void compute_array() override;
-
-  void lock_enable() override;
-  void lock_disable() override;
-  int lock_length() override;
-  void lock(class Fix *, bigint, bigint) override;
-  void unlock(class Fix *) override;
 
   double memory_usage() override;
 
  private:
-  int nchunk, maxchunk;
-  char *idchunk;
-  class ComputeChunkAtom *cchunk;
-
   int tensor;
 
   double *massproc, *masstotal;
@@ -53,7 +43,7 @@ class ComputeGyrationChunk : public Compute {
   double **rgt, **rgtall;
 
   void com_chunk();
-  void allocate();
+  void allocate() override;
 };
 
 }    // namespace LAMMPS_NS

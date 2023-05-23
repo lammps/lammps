@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -35,8 +34,8 @@ NPairSkip::NPairSkip(LAMMPS *lmp) : NPair(lmp) {}
 
 void NPairSkip::build(NeighList *list)
 {
-  int i,j,ii,jj,n,itype,jnum,joriginal;
-  int *neighptr,*jlist;
+  int i, j, ii, jj, n, itype, jnum, joriginal;
+  int *neighptr, *jlist;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -86,16 +85,17 @@ void NPairSkip::build(NeighList *list)
     firstneigh[i] = neighptr;
     numneigh[i] = n;
     ipage->vgot(n);
-    if (ipage->status())
-      error->one(FLERR,"Neighbor list overflow, boost neigh_modify one");
+    if (ipage->status()) error->one(FLERR, "Neighbor list overflow, boost neigh_modify one");
   }
 
   list->inum = inum;
   if (list->ghost) {
     int num = 0;
     for (i = 0; i < inum; i++)
-      if (ilist[i] < nlocal) num++;
-      else break;
+      if (ilist[i] < nlocal)
+        num++;
+      else
+        break;
     list->inum = num;
     list->gnum = inum - num;
   }

@@ -804,7 +804,7 @@ Calculate ideal positions for parallel "ideal" or "equal"
 void FixNEB::calculate_ideal_positions()
 {
   // Skip unless "ideal" or "equal"
-  if (!((neb_mode == IDEAL) || (neb_mode == EQUAL))) return;
+  if ((neb_mode != IDEAL) && (neb_mode != EQUAL)) return;
 
   double lentot, lenuntilClimber;
   double meanDist, meanDistBeforeClimber, meanDistAfterClimber;

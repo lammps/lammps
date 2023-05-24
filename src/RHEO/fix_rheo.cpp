@@ -105,7 +105,7 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       }
 
       iarg += 2;
-    } else if (strcmp(arg[iarg],"interface/reconstruction") == 0) {
+    } else if (strcmp(arg[iarg],"interface/reconstruct") == 0) {
       interface_flag = 1;
     } else if (strcmp(arg[iarg],"rho/sum") == 0) {
       rhosum_flag = 1;
@@ -360,6 +360,7 @@ void FixRHEO::initial_integrate(int /*vflag*/)
         }
 
         if (!rhosum_flag) {
+          if (status[i] & PHASECHECK) continue;
           for (a = 0; a < dim; a++) {
             rho[i] += dtv * vshift[i][a] * gradr[i][a];
           }
@@ -380,7 +381,10 @@ void FixRHEO::pre_force(int /*vflag*/)
 
   compute_grad->forward_fields(); // also forwards v and rho for chi
   compute_kernel->compute_peratom();
-  if (interface_flag) compute_interface->compute_peratom();
+  if (interface_flag) {
+    // Note on first setup, have no forces for pressure to reference
+    compute_interface->compute_peratom();
+  }
 
   compute_grad->compute_peratom();
   compute_grad->forward_gradients();

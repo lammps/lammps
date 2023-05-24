@@ -56,6 +56,8 @@ PairRHEO::PairRHEO(LAMMPS *lmp) :
   artificial_visc_flag = 0;
   rho_damp_flag = 0;
   thermal_flag = 0;
+
+  comm_reverse = 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,7 +81,7 @@ void PairRHEO::compute(int eflag, int vflag)
   double rhoi, rhoj, voli, volj, Pi, Pj, etai, etaj, kappai, kappaj;
   double mu, q, fp_prefactor, drho_damp, fmag, psi_ij, Fij;
   double *dWij, *dWji, *dW1ij, *dW1ji;
-  double dx[3], du[3], fv[3], dfp[3], fsolid[3], ft[3], vi[3], vj[3];
+  double dx[3], du[3], dv[3], fv[3], dfp[3], fsolid[3], ft[3], vi[3], vj[3];
 
   int *ilist, *jlist, *numneigh, **firstneigh;
   double imass, jmass, rsq, r, rinv;
@@ -113,6 +115,12 @@ void PairRHEO::compute(int eflag, int vflag)
   if (compute_interface) {
     fp_store = compute_interface->fp_store;
     chi = compute_interface->chi;
+
+    for (i = 0; i < atom->nmax; i++) {
+      fp_store[i][0] = 0.0;
+      fp_store[i][1] = 0.0;
+      fp_store[i][2] = 0.0;
+    }
   }
 
   inum = list->inum;
@@ -243,11 +251,12 @@ void PairRHEO::compute(int eflag, int vflag)
 
           //Hydrostatic pressure forces
           fp_prefactor = voli * volj * (Pj + Pi);
-          sub3(vi, vj, du);
+          sub3(vi, vj, dv);
 
           //Add artificial viscous pressure if required
           if (artificial_visc_flag && pair_avisc_flag) {
             //Interpolate velocities to midpoint and use this difference for artificial viscosity
+            copy3(dv, du);
             for (a = 0; a < dim; a++)
               for (b = 0; b < dim; b++)
                 du[a] -= 0.5 * (gradv[i][a * dim + b] + gradv[j][a * dim + b]) * dx[b];
@@ -257,10 +266,6 @@ void PairRHEO::compute(int eflag, int vflag)
             mu = MIN(0.0, mu);
             q = av * (-2.0 * cs * mu + mu * mu);
             fp_prefactor += voli * volj * q * (rhoj + rhoi);
-
-  if (fabs(fp_prefactor*dWij[0]) > 1e-9)
-            if (atom->tag[i] == 643 or atom->tag[j] == 643 or atom->tag[i] == 963 or atom->tag[j] == 963)
-              printf("%d-%d (%d %d) fp_prefactor %g %g %g\n", atom->tag[i], atom->tag[j], i, j, fp_prefactor, dWij[0], -fp_prefactor*dWij[0]);
           }
 
           // -Grad[P + Q]
@@ -270,7 +275,7 @@ void PairRHEO::compute(int eflag, int vflag)
           for (a = 0; a < dim; a++) {
             fv[a] = 0.0;
             for (b = 0; b < dim; b++)
-              fv[a] += du[a] * dx[b] * dWij[b];
+              fv[a] += dv[a] * dx[b] * dWij[b];
             fv[a] *= (etai + etaj) * voli * volj * rinv * rinv;
           }
 
@@ -346,6 +351,11 @@ void PairRHEO::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+
+  if (compute_interface) {
+    comm->reverse_comm(this);
+    comm->forward_comm(this);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -475,4 +485,38 @@ double PairRHEO::init_one(int i, int j)
   }
 
   return h;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int PairRHEO::pack_reverse_comm(int n, int first, double *buf)
+{
+  int i, k, m, last;
+  double **fp_store = compute_interface->fp_store;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) {
+    buf[m++] = fp_store[i][0];
+    buf[m++] = fp_store[i][1];
+    buf[m++] = fp_store[i][2];
+  }
+
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairRHEO::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int i, j, k, m;
+  double **fp_store = compute_interface->fp_store;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    fp_store[j][0] += buf[m++];
+    fp_store[j][1] += buf[m++];
+    fp_store[j][2] += buf[m++];
+  }
 }

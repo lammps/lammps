@@ -33,6 +33,8 @@ class PairRHEO : public Pair {
   void coeff(int, char **) override;
   void setup() override;
   double init_one(int, int) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   double h, csq, rho0;        // From fix RHEO

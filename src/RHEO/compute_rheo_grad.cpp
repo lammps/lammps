@@ -179,9 +179,6 @@ void ComputeRHEOGrad::compute_peratom()
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
-    vi[0] = v[i][0];
-    vi[1] = v[i][1];
-    vi[2] = v[i][2];
     itype = type[i];
     fluidi = !(status[i] & PHASECHECK);
     jlist = firstneigh[i];
@@ -202,6 +199,10 @@ void ComputeRHEOGrad::compute_peratom()
 
         rhoi = rho[i];
         rhoj = rho[j];
+
+        vi[0] = v[i][0];
+        vi[1] = v[i][1];
+        vi[2] = v[i][2];
 
         vj[0] = v[j][0];
         vj[1] = v[j][1];

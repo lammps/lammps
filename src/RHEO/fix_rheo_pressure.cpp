@@ -122,20 +122,9 @@ void FixRHEOPressure::pre_force(int /*vflag*/)
 
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      if (pressure_style == LINEAR) {
-        pressure[i] = csq * (rho[i] - rho0);
-      } else if (pressure_style == CUBIC) {
-        dr = rho[i] - rho0;
-        pressure[i] = csq * (dr + c_cubic * dr * dr * dr);
-      } else if (pressure_style == TAITWATER) {
-        rho_ratio = rho[i] / rho0inv;
-        rr3 = rho_ratio * rho_ratio * rho_ratio;
-        pressure[i] = csq * rho0 * SEVENTH * (rr3 * rr3 * rho_ratio - 1.0);
-      }
-    }
-  }
+  for (i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit)
+      pressure[i] = calc_pressure(rho[i]);
 
   if (comm_forward) comm->forward_comm(this);
 }
@@ -186,5 +175,5 @@ double FixRHEOPressure::calc_pressure(double rho)
     rr3 = rho_ratio * rho_ratio * rho_ratio;
     p = csq * rho0 * SEVENTH * (rr3 * rr3 * rho_ratio - 1.0);
   }
-  return rho;
+  return p;
 }

@@ -170,9 +170,10 @@ void ComputeRHEOInterface::compute_peratom()
           chi[i] += w;
         } else {
           if (!fluidi) {
-            dot = (-fp_store[0][j] + fp_store[0][i]) * delx;
-            dot += (-fp_store[1][j] + fp_store[1][i]) * dely;
-            dot += (-fp_store[2][j] + fp_store[2][i]) * delz;
+            dot = (-fp_store[j][0] + fp_store[i][0]) * delx;
+            dot += (-fp_store[j][1] + fp_store[i][1]) * dely;
+            dot += (-fp_store[j][2] + fp_store[i][2]) * delz;
+
             rho[i] += w * (csq * (rho[j] - rho0) - rho[j] * dot);
             normwf[i] += w;
           }
@@ -184,9 +185,10 @@ void ComputeRHEOInterface::compute_peratom()
             chi[j] += w;
           } else {
             if (!fluidj) {
-              dot = (-fp_store[0][i] + fp_store[0][j]) * delx;
-              dot += (-fp_store[1][i] + fp_store[1][j]) * dely;
-              dot += (-fp_store[2][i] + fp_store[2][j]) * delz;
+              dot = (-fp_store[i][0] + fp_store[j][0]) * delx;
+              dot += (-fp_store[i][1] + fp_store[j][1]) * dely;
+              dot += (-fp_store[i][2] + fp_store[j][2]) * delz;
+
               rho[j] += w * (csq * (rho[i] - rho0) + rho[i] * dot);
               normwf[j] += w;
             }
@@ -342,7 +344,7 @@ void ComputeRHEOInterface::store_forces()
   // If forces are overwritten by a fix, there are no pressure forces
   // so just normalize
   auto fixlist = modify->get_fix_by_style("setforce");
-  if (fixlist.size() == 0) {
+  if (fixlist.size() != 0) {
     for (const auto &fix : fixlist) {
       for (int i = 0; i < atom->nlocal; i++) {
         minv = 1.0 / mass[type[i]];

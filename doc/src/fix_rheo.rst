@@ -23,7 +23,7 @@ Syntax
        *surface/detection* values = *sdstyle* *limit*
          *sdstyle* = *coordination* or *divergence*
          *limit* = threshold for surface particles (unitless)
-       *interface/reconstruction* values = none, reconstructs interfaces with solid particles
+       *interface/reconstruct* values = none, reconstructs interfaces with solid particles
        *rho/sum* values = none, uses the kernel to compute the density of particles
        *density* values = *rho0* (density)
        *sound/squared* values = *csq* (velocity\^2)

@@ -104,8 +104,8 @@ represent are varied together during a constant-pressure simulation.
 
 The target pressures for each of the 6 diagonal components of the stress tensor
 can be specified independently via the *x*, *y*, *z*, keywords, which
-correspond to the 3 simulation box dimensions, and the *xy*, *xz and *yz*
-keywords which corresponds to the 3 simulqtion box tilt factors. For each
+correspond to the 3 simulation box dimensions, and the *xy*, *xz* and *yz*
+keywords which corresponds to the 3 simulation box tilt factors. For each
 component, the external pressure or tensor component at each timestep is a
 ramped value during the run from *Pstart* to *Pstop*\ . If a target pressure is
 specified for a component, then the corresponding box dimension will change
@@ -250,6 +250,7 @@ Any dimension being adjusted by this fix must be periodic.
 Related commands
 """"""""""""""""
 
+:doc:`fix press/berendsen <fix_press_berendsen>`,
 :doc:`fix nve <fix_nve>`, :doc:`fix nph <fix_nh>`, :doc:`fix npt <fix_nh>`, :doc:`fix langevin <fix_langevin>`,
 :doc:`fix_modify <fix_modify>`
 

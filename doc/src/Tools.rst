@@ -883,9 +883,9 @@ dependencies and redirects the download to the local cache.
 phonon tool
 ------------------------
 
-The phonon subdirectory contains a post-processing tool useful for
-analyzing the output of the :doc:`fix phonon <fix_phonon>` command in
-the PHONON package.
+The phonon subdirectory contains a post-processing tool, *phana*, useful
+for analyzing the output of the :doc:`fix phonon <fix_phonon>` command
+in the PHONON package.
 
 See the README file for instruction on building the tool and what
 library it needs.  And see the examples/PACKAGES/phonon directory

@@ -153,6 +153,13 @@ cache locality will be undermined.
    order of atoms in a :doc:`dump <dump>` file will also typically change
    if sorting is enabled.
 
+.. note::
+
+   When running simple pair-wise potentials like Lennard Jones on GPUs
+   with the KOKKOS package, using a larger binsize (e.g. 2x larger than
+   default) and a more frequent reordering than default (e.g. every 100
+   time steps) may improve performance.
+
 Restrictions
 """"""""""""
 

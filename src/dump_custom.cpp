@@ -556,21 +556,15 @@ int DumpCustom::count()
   }
 
   // invoke Computes for per-atom quantities
-  // only if within a run or minimize
-  // else require that computes are current
-  // this prevents a compute from being invoked by the WriteDump class
+  // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->whichflag == 0) {
-      for (i = 0; i < ncompute; i++)
-        if (compute[i]->invoked_peratom != update->ntimestep)
-          error->all(FLERR,"Compute used in dump between runs is not current");
-    } else {
-      for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
-          compute[i]->compute_peratom();
-          compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
-        }
+    if (update->first_update == 0)
+      error->all(FLERR,"Dump compute cannot be invoked before first run");
+    for (i = 0; i < ncompute; i++) {
+      if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
+        compute[i]->compute_peratom();
+        compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
       }
     }
   }

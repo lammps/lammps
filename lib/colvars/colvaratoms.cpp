@@ -10,6 +10,8 @@
 #include <list>
 #include <vector>
 #include <algorithm>
+#include <sstream>
+#include <iomanip>
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
@@ -29,12 +31,8 @@ cvm::atom::atom()
 
 cvm::atom::atom(int atom_number)
 {
-  colvarproxy *p = cvm::proxy;
+  colvarproxy *p = cvm::main()->proxy;
   index = p->init_atom(atom_number);
-  if (cvm::debug()) {
-    cvm::log("The index of this atom in the colvarproxy arrays is "+
-             cvm::to_str(index)+".\n");
-  }
   id = p->get_atom_id(index);
   update_mass();
   update_charge();
@@ -46,12 +44,8 @@ cvm::atom::atom(cvm::residue_id const &residue,
                 std::string const     &atom_name,
                 std::string const     &segment_id)
 {
-  colvarproxy *p = cvm::proxy;
+  colvarproxy *p = cvm::main()->proxy;
   index = p->init_atom(residue, atom_name, segment_id);
-  if (cvm::debug()) {
-    cvm::log("The index of this atom in the colvarproxy_namd arrays is "+
-             cvm::to_str(index)+".\n");
-  }
   id = p->get_atom_id(index);
   update_mass();
   update_charge();
@@ -62,7 +56,9 @@ cvm::atom::atom(cvm::residue_id const &residue,
 cvm::atom::atom(atom const &a)
   : index(a.index)
 {
-  id = (cvm::proxy)->get_atom_id(index);
+  colvarproxy *p = cvm::main()->proxy;
+  id = p->get_atom_id(index);
+  p->increase_refcount(index);
   update_mass();
   update_charge();
   reset_data();
@@ -72,7 +68,7 @@ cvm::atom::atom(atom const &a)
 cvm::atom::~atom()
 {
   if (index >= 0) {
-    (cvm::proxy)->clear_atom(index);
+    (cvm::main()->proxy)->clear_atom(index);
   }
 }
 
@@ -80,7 +76,7 @@ cvm::atom::~atom()
 cvm::atom & cvm::atom::operator = (cvm::atom const &a)
 {
   index = a.index;
-  id = (cvm::proxy)->get_atom_id(index);
+  id = (cvm::main()->proxy)->get_atom_id(index);
   update_mass();
   update_charge();
   reset_data();
@@ -113,7 +109,7 @@ cvm::atom_group::atom_group(std::vector<cvm::atom> const &atoms_in)
 cvm::atom_group::~atom_group()
 {
   if (is_enabled(f_ag_scalable) && !b_dummy) {
-    (cvm::proxy)->clear_atom_group(index);
+    (cvm::main()->proxy)->clear_atom_group(index);
     index = -1;
   }
 
@@ -330,7 +326,7 @@ void cvm::atom_group::update_total_mass()
   }
 
   if (is_enabled(f_ag_scalable)) {
-    total_mass = (cvm::proxy)->get_atom_group_mass(index);
+    total_mass = (cvm::main()->proxy)->get_atom_group_mass(index);
   } else {
     total_mass = 0.0;
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {
@@ -351,7 +347,7 @@ void cvm::atom_group::update_total_charge()
   }
 
   if (is_enabled(f_ag_scalable)) {
-    total_charge = (cvm::proxy)->get_atom_group_charge(index);
+    total_charge = (cvm::main()->proxy)->get_atom_group_charge(index);
   } else {
     total_charge = 0.0;
     for (cvm::atom_iter ai = this->begin(); ai != this->end(); ai++) {

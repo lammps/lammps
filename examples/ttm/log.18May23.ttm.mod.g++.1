@@ -1,6 +1,4 @@
-LAMMPS (24 Mar 2022)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (28 Mar 2023 - Development)
 units           metal
 atom_style      atomic
 boundary        p p p
@@ -15,7 +13,7 @@ mass 1 28.0855
 create_atoms 1 box basis 1 1 basis 2 1 basis 3 1 basis 4 1 basis 5 1 basis 6 1 basis 7 1 basis 8 1
 Created 8000 atoms
   using lattice units in orthogonal box = (0 0 0) to (54.309 54.309 54.309)
-  create_atoms CPU = 0.001 seconds
+  create_atoms CPU = 0.002 seconds
 
 pair_style      sw
 pair_coeff      * * Si.sw Si
@@ -42,12 +40,12 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- fix ttm/mod command:
+- fix ttm/mod command: doi:10.1088/0953-8984/26/47/475401, doi:10.1002/ctpp.201310025
 
 @article{Pisarev2014,
 author = {Pisarev, V. V. and Starikov, S. V.},
-title = {{Atomistic simulation of ion track formation in UO2.}},
-journal = {J.~Phys.:~Condens.~Matter},
+title = {Atomistic Simulation of Ion Track Formation in {UO$_2$}.},
+journal = {J.~Phys.\ Condens.\ Matter},
 volume = {26},
 number = {47},
 pages = {475401},
@@ -56,8 +54,8 @@ year = {2014}
 
 @article{Norman2013,
 author = {Norman, G. E. and Starikov, S. V. and Stegailov, V. V. and Saitov, I. M. and Zhilyaev, P. A.},
-title = {{Atomistic Modeling of Warm Dense Matter in the Two-Temperature State}},
-journal = {Contrib.~Plasm.~Phys.},
+title = {Atomistic Modeling of Warm Dense Matter in the Two-Temperature State},
+journal = {Contrib.\ Plasma Phys.},
 number = {2},
 volume = {53},
 pages = {129--139},
@@ -67,7 +65,7 @@ year = {2013}
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Neighbor list info ...
-  update every 5 steps, delay 0 steps, check yes
+  update: every = 5 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 5.77118
   ghost atom cutoff = 5.77118
@@ -81,30 +79,30 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 4.433 | 4.433 | 4.433 Mbytes
    Step          Temp          TotEng      f_twotemp[1]   f_twotemp[2] 
          0                     0   -34692.79996100604   -52.79390940511979                    0
-       100     2.004897156140836   -34690.27961013186   -55.34997305431884  0.01301140393178354
-       200     2.837118035232607   -34687.74741132015   -57.93445748841878  0.02696025968760173
-       300     4.263087164947482   -34684.98084093686   -60.75945453846786  0.02175636603841567
-       400     5.568003854939066   -34682.25271040963   -63.56896518300501   0.0300061848347275
-       500     6.225602451570786   -34679.49948952029   -66.40897551884576  0.02768827702656702
-       600     7.608847536264781   -34676.69728436362   -69.32060611557266  0.05579466731854093
-       700     9.049471241531297   -34674.00093206036   -72.10055094219446 0.004335980559879027
-       800     9.826796099683211   -34671.27720242751    -74.9501061086213  0.02371649678091513
-       900      11.8609224958918   -34668.35091308811   -77.98544170794551 0.004658649791374929
-      1000     13.88037467640968   -34665.35025858006   -81.16445160194114  0.07684078334464739
-Loop time of 4.85247 on 1 procs for 1000 steps with 8000 atoms
+       100     2.004897156140836   -34690.27961013186    -55.3499730543189  0.01301140393178352
+       200     2.837118035232607   -34687.74741132015   -57.93445748841876  0.02696025968760173
+       300     4.263087164947482   -34684.98084093686   -60.75945453846793  0.02175636603841567
+       400     5.568003854939066   -34682.25271040963   -63.56896518300499  0.03000618483472749
+       500     6.225602451570786   -34679.49948952029   -66.40897551884574  0.02768827702656703
+       600     7.608847536264781   -34676.69728436362   -69.32060611557282  0.05579466731854091
+       700     9.049471241531297   -34674.00093206036   -72.10055094219462 0.004335980559879032
+       800     9.826796099683211   -34671.27720242751   -74.95010610862134  0.02371649678091515
+       900      11.8609224958918   -34668.35091308811   -77.98544170794545 0.004658649791374908
+      1000     13.88037467640968   -34665.35025858006   -81.16445160194111  0.07684078334464743
+Loop time of 2.48942 on 1 procs for 1000 steps with 8000 atoms
 
-Performance: 1.781 ns/day, 13.479 hours/ns, 206.081 timesteps/s
-99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 3.471 ns/day, 6.915 hours/ns, 401.700 timesteps/s, 3.214 Matom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.1286     | 4.1286     | 4.1286     |   0.0 | 85.08
+Pair    | 2.126      | 2.126      | 2.126      |   0.0 | 85.40
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.030972   | 0.030972   | 0.030972   |   0.0 |  0.64
-Output  | 0.0026351  | 0.0026351  | 0.0026351  |   0.0 |  0.05
-Modify  | 0.67848    | 0.67848    | 0.67848    |   0.0 | 13.98
-Other   |            | 0.01182    |            |       |  0.24
+Comm    | 0.016147   | 0.016147   | 0.016147   |   0.0 |  0.65
+Output  | 0.0013116  | 0.0013116  | 0.0013116  |   0.0 |  0.05
+Modify  | 0.33864    | 0.33864    | 0.33864    |   0.0 | 13.60
+Other   |            | 0.007318   |            |       |  0.29
 
 Nlocal:           8000 ave        8000 max        8000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -119,4 +117,4 @@ Total # of neighbors = 272000
 Ave neighs/atom = 34
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:04
+Total wall time: 0:00:02

@@ -522,21 +522,15 @@ int DumpGrid::count()
   }
 
   // invoke Computes for per-grid quantities
-  // only if within a run or minimize
-  // else require that computes are current
-  // this prevents a compute from being invoked by the WriteDump class
+  // cannot invoke before first run, otherwise invoke if necessary
 
   if (ncompute) {
-    if (update->whichflag == 0) {
-      for (i = 0; i < ncompute; i++)
-        if (compute[i]->invoked_pergrid != update->ntimestep)
-          error->all(FLERR,"Compute {} used in dump between runs is not current", compute[i]->id);
-    } else {
-      for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & Compute::INVOKED_PERGRID)) {
-          compute[i]->compute_pergrid();
-          compute[i]->invoked_flag |= Compute::INVOKED_PERGRID;
-        }
+    if (update->first_update == 0)
+      error->all(FLERR,"Dump compute cannot be invoked before first run");
+    for (i = 0; i < ncompute; i++) {
+      if (!(compute[i]->invoked_flag & Compute::INVOKED_PERGRID)) {
+        compute[i]->compute_pergrid();
+        compute[i]->invoked_flag |= Compute::INVOKED_PERGRID;
       }
     }
   }

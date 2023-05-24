@@ -230,35 +230,16 @@ void ComputeStressCartesian::init_list(int /* id */, NeighList *ptr)
 
 void ComputeStressCartesian::compute_array()
 {
-  int i, j, ii, jj, inum, jnum, itype, jtype;
-  int bin, bin1, bin2;
-  tagint itag, jtag;
-  double xtmp, ytmp, ztmp, delx, dely, delz;
-  double rsq, fpair, factor_coul, factor_lj;
-  int *ilist, *jlist, *numneigh, **firstneigh;
-
   double **x = atom->x;
   double **v = atom->v;
-  double *mass = atom->mass;
   tagint *tag = atom->tag;
-  int *type = atom->type;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  int newton_pair = force->newton_pair;
   double *boxlo = domain->boxlo;
 
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
   // Zero arrays
-  for (bin = 0; bin < nbins1 * nbins2; bin++) {
+  for (int bin = 0; bin < nbins1 * nbins2; bin++) {
     tdens[bin] = 0;
     tpkxx[bin] = 0;
     tpkyy[bin] = 0;
@@ -269,9 +250,9 @@ void ComputeStressCartesian::compute_array()
   }
 
   // calculate number density and kinetic contribution to pressure
-  for (i = 0; i < nlocal; i++) {
-    bin1 = (int) ((x[i][dir1] - boxlo[dir1]) / bin_width1) % nbins1;
-    bin2 = 0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    int bin1 = (int) ((x[i][dir1] - boxlo[dir1]) / bin_width1) % nbins1;
+    int bin2 = 0;
     if (dims == 2) bin2 = (int) ((x[i][dir2] - boxlo[dir2]) / bin_width2) % nbins2;
 
     // Apply periodic boundary conditions and avoid out of range access
@@ -295,73 +276,59 @@ void ComputeStressCartesian::compute_array()
     else if (bin2 >= nbins2)
       bin2 = nbins2 - 1;
 
-    j = bin1 + bin2 * nbins1;
+    int j = bin1 + bin2 * nbins1;
     tdens[j] += 1;
-    tpkxx[j] += mass[type[i]] * v[i][0] * v[i][0];
-    tpkyy[j] += mass[type[i]] * v[i][1] * v[i][1];
-    tpkzz[j] += mass[type[i]] * v[i][2] * v[i][2];
+    tpkxx[j] += atom->mass[atom->type[i]] * v[i][0] * v[i][0];
+    tpkyy[j] += atom->mass[atom->type[i]] * v[i][1] * v[i][1];
+    tpkzz[j] += atom->mass[atom->type[i]] * v[i][2] * v[i][2];
   }
 
   // loop over neighbors of my atoms
-  // skip if I or J are not in group
-  // for newton = 0 and J = ghost atom,
-  //   need to ensure I,J pair is only output by one proc
-  //   use same itag,jtag logic as in Neighbor::neigh_half_nsq()
-  // for flag = 0, just count pair interactions within force cutoff
-  // for flag = 1, calculate requested output fields
+  for (int ii = 0; ii < list->inum; ii++) {
+    int i = list->ilist[ii];
 
-  Pair *pair = force->pair;
-  double **cutsq = force->pair->cutsq;
+    // skip if I or J are not in group
+    if (!(atom->mask[i] & groupbit)) continue;
 
-  double xi1, xi2;
+    double xi1 = x[i][dir1] - boxlo[dir1];
+    double xi2 = x[i][dir2] - boxlo[dir2];
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    if (!(mask[i] & groupbit)) continue;
-
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    xi1 = x[i][dir1] - boxlo[dir1];
-    xi2 = x[i][dir2] - boxlo[dir2];
-    itag = tag[i];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
+    for (int jj = 0; jj < list->numneigh[i]; jj++) {
+      int j = list->firstneigh[i][jj];
+      double factor_lj = force->special_lj[sbmask(j)];
+      double factor_coul = force->special_coul[sbmask(j)];
       j &= NEIGHMASK;
-      if (!(mask[j] & groupbit)) continue;
+      if (!(atom->mask[j] & groupbit)) continue;
 
-      // itag = jtag is possible for long cutoffs that include images of self
-      // do calculation only on appropriate processor
-      if (newton_pair == 0 && j >= nlocal) {
-        jtag = tag[j];
-        if (itag > jtag) {
-          if ((itag + jtag) % 2 == 0) continue;
-        } else if (itag < jtag) {
-          if ((itag + jtag) % 2 == 1) continue;
+      // for newton = 0 and J = ghost atom, need to ensure I,J pair is only output by one proc
+      // use same tag[i],tag[j] logic as in Neighbor::neigh_half_nsq()
+      if (force->newton_pair == 0 && j >= atom->nlocal) {
+        if (tag[i] > tag[j]) {
+          if ((tag[i] + tag[j]) % 2 == 0) continue;
+        } else if (tag[i] < tag[j]) {
+          if ((tag[i] + tag[j]) % 2 == 1) continue;
         } else {
-          if (x[j][2] < ztmp) continue;
-          if (x[j][2] == ztmp) {
-            if (x[j][1] < ytmp) continue;
-            if (x[j][1] == ytmp && x[j][0] < xtmp) continue;
+          // tag[i] = tag[j] is possible for long cutoffs that include images of self
+          if (x[j][2] < x[i][2]) continue;
+          if (x[j][2] == x[i][2]) {
+            if (x[j][1] < x[i][1]) continue;
+            if (x[j][1] == x[i][1] && x[j][0] < x[i][0]) continue;
           }
         }
       }
-      delx = x[j][0] - xtmp;
-      dely = x[j][1] - ytmp;
-      delz = x[j][2] - ztmp;
 
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
+      double delx = x[j][0] - x[i][0];
+      double dely = x[j][1] - x[i][1];
+      double delz = x[j][2] - x[i][2];
+      double rsq = delx * delx + dely * dely + delz * delz;
 
       // Check if inside cut-off
-      if (rsq >= cutsq[itype][jtype]) continue;
-      pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
+      int itype = atom->type[i];
+      int jtype = atom->type[j];
+      if (rsq >= force->pair->cutsq[itype][jtype]) continue;
+
+      double fpair;
+      force->pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
       compute_pressure(fpair, xi1, xi2, delx, dely, delz);
     }
   }
@@ -399,7 +366,7 @@ void ComputeStressCartesian::compute_array()
   }
 
   // normalize pressure
-  for (bin = 0; bin < nbins1 * nbins2; bin++) {
+  for (int bin = 0; bin < nbins1 * nbins2; bin++) {
     tdens[bin] *= invV;
     tpkxx[bin] *= invV;
     tpkyy[bin] *= invV;
@@ -419,7 +386,7 @@ void ComputeStressCartesian::compute_array()
   MPI_Allreduce(tpczz, pczz, nbins1 * nbins2, MPI_DOUBLE, MPI_SUM, world);
 
   // populate array to output.
-  for (bin = 0; bin < nbins1 * nbins2; bin++) {
+  for (int bin = 0; bin < nbins1 * nbins2; bin++) {
     array[bin][0] = (bin % nbins1 + 0.5) * bin_width1;
     if (dims == 2) array[bin][1] = ((int) (bin / nbins1) + 0.5) * bin_width2;
     array[bin][0 + dims] = dens[bin];
@@ -435,25 +402,26 @@ void ComputeStressCartesian::compute_array()
 void ComputeStressCartesian::compute_pressure(double fpair, double xi, double yi, double delx,
                                               double dely, double delz)
 {
-  int bin1, bin2, next_bin1, next_bin2;
   double la = 0.0, lb = 0.0, l_sum = 0.0;
   double rij[3] = {delx, dely, delz};
-  double l1 = 0.0, l2, rij1, rij2;
-  rij1 = rij[dir1];
-  rij2 = rij[dir2];
+  double rij1 = rij[dir1];
+  double rij2 = rij[dir2];
 
-  next_bin1 = (int) floor(xi / bin_width1);
-  next_bin2 = (int) floor(yi / bin_width2);
+  int next_bin1 = (int) floor(xi / bin_width1);
+  int next_bin2 = (int) floor(yi / bin_width2);
 
   // Integrating along line
   while (lb < 1.0) {
-    bin1 = next_bin1;
-    bin2 = next_bin2;
+    int bin1 = next_bin1;
+    int bin2 = next_bin2;
 
+    double l1;
     if (rij1 > 0)
       l1 = ((bin1 + 1) * bin_width1 - xi) / rij1;
     else
       l1 = (bin1 * bin_width1 - xi) / rij1;
+
+    double l2;
     if (rij2 > 0)
       l2 = ((bin2 + 1) * bin_width2 - yi) / rij2;
     else

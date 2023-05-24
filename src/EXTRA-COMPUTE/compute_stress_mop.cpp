@@ -705,14 +705,14 @@ void ComputeStressMop::compute_angles()
       if (right_cross && left_cross)
       {
         // due to right bond
-        dcos_theta[0] = -(dx_right[0]*cos_theta/r2 - dx_left[0]/r1)/r2;
-        dcos_theta[1] = -(dx_right[1]*cos_theta/r2 - dx_left[1]/r1)/r2;
-        dcos_theta[2] = -(dx_right[1]*cos_theta/r2 - dx_left[2]/r1)/r2;
+        dcos_theta[0] = (dx_right[0]*cos_theta/r2 - dx_left[0]/r1)/r2;
+        dcos_theta[1] = (dx_right[1]*cos_theta/r2 - dx_left[1]/r1)/r2;
+        dcos_theta[2] = (dx_right[1]*cos_theta/r2 - dx_left[2]/r1)/r2;
 
         // due to left bond
-        dcos_theta[0] += (dx_left[0]*cos_theta/r1 - dx_right[0]/r2)/r1;
-        dcos_theta[1] += (dx_left[1]*cos_theta/r1 - dx_right[1]/r2)/r1;
-        dcos_theta[2] += (dx_left[2]*cos_theta/r1 - dx_right[2]/r2)/r1;
+        dcos_theta[0] -= (dx_left[0]*cos_theta/r1 - dx_right[0]/r2)/r1;
+        dcos_theta[1] -= (dx_left[1]*cos_theta/r1 - dx_right[1]/r2)/r1;
+        dcos_theta[2] -= (dx_left[2]*cos_theta/r1 - dx_right[2]/r2)/r1;
       }
 
       // final contribution of the given angle term

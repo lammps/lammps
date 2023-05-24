@@ -18,6 +18,7 @@
 
 #include "compute_stress_mop.h"
 
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "bond.h"
@@ -123,6 +124,8 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
   values_local = values_global = vector = nullptr;
   bond_local = nullptr;
   bond_global = nullptr;
+  angle_local = nullptr;
+  angle_global = nullptr;
 
   // this fix produces a global vector
 
@@ -131,6 +134,8 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
   memory->create(values_global,nvalues,"stress/mop/spatial:values_global");
   memory->create(bond_local,nvalues,"stress/mop/spatial:bond_local");
   memory->create(bond_global,nvalues,"stress/mop/spatial:bond_global");
+  memory->create(angle_local,nvalues,"stress/mop/spatial:angle_local");
+  memory->create(angle_global,nvalues,"stress/mop/spatial:angle_global");
   size_vector = nvalues;
 
   vector_flag = 1;
@@ -149,6 +154,8 @@ ComputeStressMop::~ComputeStressMop()
   memory->destroy(values_global);
   memory->destroy(bond_local);
   memory->destroy(bond_global);
+  memory->destroy(angle_local);
+  memory->destroy(angle_global);
   memory->destroy(vector);
 }
 
@@ -197,7 +204,8 @@ void ComputeStressMop::init()
     //if (force->bond!=nullptr)
     //  error->warning(FLERR,"compute stress/mop does not account for bond potentials");
     if (force->angle!=nullptr)
-      error->warning(FLERR,"compute stress/mop does not account for angle potentials");
+      if (force->angle->born_matrix_enable == 0)
+        error->warning(FLERR,"compute stress/mop does not account for angle potentials");
     if (force->dihedral!=nullptr)
       error->warning(FLERR,"compute stress/mop does not account for dihedral potentials");
     if (force->improper!=nullptr)
@@ -239,8 +247,14 @@ void ComputeStressMop::compute_vector()
   // sum bond contribution over all procs
   MPI_Allreduce(bond_local,bond_global,nvalues,MPI_DOUBLE,MPI_SUM,world);
 
+  //Compute angle contribution on separate procs
+  compute_angles();
+
+  // sum angle contribution over all procs
+  MPI_Allreduce(angle_local,angle_global,nvalues,MPI_DOUBLE,MPI_SUM,world);
+   
   for (int m=0; m<nvalues; m++) {
-    vector[m] = values_global[m] + bond_global[m];
+    vector[m] = values_global[m] + bond_global[m] + angle_global[m];
   }
 
 }
@@ -546,6 +560,174 @@ void ComputeStressMop::compute_bonds()
       bond_local[m] = local_contribution[0];
       bond_local[m+1] = local_contribution[1];
       bond_local[m+2] = local_contribution[2];
+    }
+    m += 3;
+  }
+}
+
+/*------------------------------------------------------------------------
+  compute angle contribution to pressure of local proc
+  -------------------------------------------------------------------------*/
+
+void ComputeStressMop::compute_angles()
+{
+  int na, atom1, atom2, atom3, imol, iatom, atype;
+  tagint tagprev;
+  double r1, r2, cos_theta;
+
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int *num_angle = atom->num_angle;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
+  int **angle_type = atom->angle_type;
+  int *mask = atom->mask;
+
+  int *molindex = atom->molindex;
+  int *molatom = atom->molatom;
+  Molecule **onemols = atom->avec->onemols;
+
+  int nlocal = atom->nlocal;
+  int molecular = atom->molecular;
+
+  // loop over all atoms and their angles
+
+  Angle *angle = force->angle;
+
+  double duang, du2ang;
+  double dx[3] {0};
+  double dx_left[3] {0};
+  double dx_right[3] {0};
+  double x_angle_left[3] {0};
+  double x_angle_middle[3] {0};
+  double x_angle_right[3] {0};
+  double dcos_theta[3] {0};
+  double local_contribution[3] {0};
+
+  // initialization
+  for (int i {0}; i < nvalues; i++) angle_local[i] = 0.0;
+
+  for (atom2 = 0; atom2 < nlocal; atom2++) {
+    if (!(mask[atom2] & groupbit)) continue;
+
+    if (molecular == 1)
+      na = num_angle[atom2];
+    else {
+      if (molindex[atom2] < 0) continue;
+      imol = molindex[atom2];
+      iatom = molatom[atom2];
+      na = onemols[imol]->num_angle[iatom];
+    }
+
+    for (int i = 0; i < na; i++) {
+      if (molecular == 1) {
+        if (tag[atom2] != angle_atom2[atom2][i]) continue;
+        atype = angle_type[atom2][i];
+        atom1 = atom->map(angle_atom1[atom2][i]);
+        atom3 = atom->map(angle_atom3[atom2][i]);
+      } else {
+        if (tag[atom2] != onemols[imol]->angle_atom2[atom2][i]) continue;
+        atype = onemols[imol]->angle_type[atom2][i];
+        tagprev = tag[atom2] - iatom - 1;
+        atom1 = atom->map(onemols[imol]->angle_atom1[atom2][i] + tagprev);
+        atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i] + tagprev);
+      }
+
+      if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
+      if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (atype <= 0) continue;
+
+      // minimum image of atom1 with respect to the plane of interest
+      dx[0] = x[atom1][0];
+      dx[1] = x[atom1][1];
+      dx[2] = x[atom1][2];
+      dx[dir] -= pos;
+      domain->minimum_image(dx[0], dx[1], dx[2]);
+      x_angle_left[0] = dx[0];
+      x_angle_left[1] = dx[1];
+      x_angle_left[2] = dx[2];
+      x_angle_left[dir] += pos;
+      // minimum image of atom2 with respect to atom1
+      dx_left[0] = x[atom2][0] - x_angle_left[0];
+      dx_left[1] = x[atom2][1] - x_angle_left[1];
+      dx_left[2] = x[atom2][2] - x_angle_left[2];
+      domain->minimum_image(dx_left[0], dx_left[1], dx_left[2]);
+      x_angle_middle[0] = x_angle_left[0] + dx_left[0];
+      x_angle_middle[1] = x_angle_left[1] + dx_left[1];
+      x_angle_middle[2] = x_angle_left[2] + dx_left[2];
+
+      // minimum image of atom3 with respect to atom2
+      dx_right[0] = x[atom3][0] - x_angle_middle[0];
+      dx_right[1] = x[atom3][1] - x_angle_middle[1];
+      dx_right[2] = x[atom3][2] - x_angle_middle[2];
+      domain->minimum_image(dx_right[0], dx_right[1], dx_right[2]);
+      x_angle_right[0] = x_angle_middle[0] + dx_right[0];
+      x_angle_right[1] = x_angle_middle[1] + dx_right[1];
+      x_angle_right[2] = x_angle_middle[2] + dx_right[2];
+
+      // check if any bond vector crosses the plane of interest
+      double tau_right = (x_angle_right[dir] - pos) / (x_angle_right[dir] - x_angle_middle[dir]);
+      double tau_left = (x_angle_middle[dir] - pos) / (x_angle_middle[dir] - x_angle_left[dir]);
+      bool right_cross = ((tau_right >=0) && (tau_right  <= 1));
+      bool left_cross = ((tau_left >=0) && (tau_left <= 1));
+
+      // no bonds crossing the plane
+      if (!right_cross && !left_cross) continue;
+
+      // compute the cos(theta) of the angle
+      r1 = sqrt(dx_left[0]*dx_left[0] + dx_left[1]*dx_left[1] + dx_left[2]*dx_left[2]);
+      r2 = sqrt(dx_right[0]*dx_right[0] + dx_right[1]*dx_right[1] + dx_right[2]*dx_right[2]);
+      cos_theta = (dx_right[0]*dx_left[0] + dx_right[1]*dx_left[1] + dx_right[2]*dx_left[2])/(r1*r2);
+
+      if (cos_theta >  1.0) cos_theta = 1.0;
+      if (cos_theta < -1.0) cos_theta = -1.0;
+
+      // The method returns derivative with regards to cos(theta)
+      angle->born_matrix(atype, atom1, atom2, atom3, duang, du2ang);
+      // only right bond crossing the plane
+      if (right_cross && !left_cross)
+      {
+        dcos_theta[0] = (dx_right[0]*cos_theta/r2 - dx_left[0]/r1)/r2;
+        dcos_theta[1] = (dx_right[1]*cos_theta/r2 - dx_left[1]/r1)/r2;
+        dcos_theta[2] = (dx_right[1]*cos_theta/r2 - dx_left[2]/r1)/r2;
+      }
+
+      // only left bond crossing the plane
+      if (!right_cross && left_cross)
+      {
+        dcos_theta[0] = -(dx_left[0]*cos_theta/r1 - dx_right[0]/r2)/r1;
+        dcos_theta[1] = -(dx_left[1]*cos_theta/r1 - dx_right[1]/r2)/r1;
+        dcos_theta[2] = -(dx_left[2]*cos_theta/r1 - dx_right[2]/r2)/r1;
+      }
+
+      // both bonds crossing the plane
+      if (right_cross && left_cross)
+      {
+        // due to right bond
+        dcos_theta[0] = -(dx_right[0]*cos_theta/r2 - dx_left[0]/r1)/r2;
+        dcos_theta[1] = -(dx_right[1]*cos_theta/r2 - dx_left[1]/r1)/r2;
+        dcos_theta[2] = -(dx_right[1]*cos_theta/r2 - dx_left[2]/r1)/r2;
+
+        // due to left bond
+        dcos_theta[0] += (dx_left[0]*cos_theta/r1 - dx_right[0]/r2)/r1;
+        dcos_theta[1] += (dx_left[1]*cos_theta/r1 - dx_right[1]/r2)/r1;
+        dcos_theta[2] += (dx_left[2]*cos_theta/r1 - dx_right[2]/r2)/r1;
+      }
+
+      // final contribution of the given angle term
+      local_contribution[0] += duang*dcos_theta[0]/area*nktv2p;
+      local_contribution[1] += duang*dcos_theta[1]/area*nktv2p;
+      local_contribution[2] += duang*dcos_theta[2]/area*nktv2p;
+    }
+  }
+  // loop over the keywords and if necessary add the angle contribution
+  int m {0};
+  while (m<nvalues) {
+    if (which[m] == CONF || which[m] == TOTAL) {
+      angle_local[m] = local_contribution[0];
+      angle_local[m+1] = local_contribution[1];
+      angle_local[m+2] = local_contribution[2];
     }
     m += 3;
   }

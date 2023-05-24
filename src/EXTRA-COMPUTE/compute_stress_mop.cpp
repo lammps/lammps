@@ -546,9 +546,10 @@ void ComputeStressMop::compute_bonds()
         rsq = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
         bond->single(btype, rsq, atom1, atom2, fpair);
 
-        local_contribution[0] += fpair*dx[0]/area*nktv2p;
-        local_contribution[1] += fpair*dx[1]/area*nktv2p;
-        local_contribution[2] += fpair*dx[2]/area*nktv2p;
+        double sgn = copysign(1.0, x_bond_1[dir] - pos);
+        local_contribution[0] += sgn*fpair*dx[0]/area*nktv2p;
+        local_contribution[1] += sgn*fpair*dx[1]/area*nktv2p;
+        local_contribution[2] += sgn*fpair*dx[2]/area*nktv2p;
       }
     }
   }

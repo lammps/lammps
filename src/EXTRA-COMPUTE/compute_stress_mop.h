@@ -44,6 +44,8 @@ class ComputeStressMop : public Compute {
   int me, nvalues, dir;
   int *which;
 
+  int bondflag, angleflag;
+
   double *values_local, *values_global;
   double *bond_local, *bond_global;
   double *angle_local, *angle_global;

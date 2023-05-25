@@ -154,12 +154,6 @@ void ComputeLocalCompositionAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(result);
     nmax = atom->nmax;
-
-  // TODO what is the LAMMPSIAN, idiomatic way to get correct num cols assigned here for memory?
-  // TODO is there any reason not to use size_peratom_cols?
-
-    // orig from compute_ave_sphere_atom:
-    // memory->create(result, nmax, 2, "local_composition/atom:result");
     memory->create(result, nmax, size_peratom_cols, "local_composition/atom:result");
     array_atom = result;
   }
@@ -182,21 +176,20 @@ void ComputeLocalCompositionAtom::compute_peratom()
 
   int typeone_i, typeone_j;
 
-  // TODO what is LAMMPSian way to get ntypes info here
   // TODO continue to implement map (nelements instead of ntypes)
   
   int ntypes = atom->ntypes;
-
-  // TODO what is LAMMPSian/c++ way to init and populate array
   
   double lcomp[ntypes];
-  for (int i = 0; i < ntypes; i++) {
-    lcomp[i] = 0;
-  }
 
   // get per-atom local compositions
 
   for (ii = 0; ii < inum; ii++) {
+
+    for (int i = 0; i < ntypes; i++) {
+      lcomp[i] = 0;
+    }
+
     i = ilist[ii];
 
     if (mask[i] & groupbit) {

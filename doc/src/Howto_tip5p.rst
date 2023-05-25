@@ -91,6 +91,7 @@ ID:
 
     units real
     atom_style charge
+    atom_modify map array
     region box block -5 5 -5 5 -5 5
     create_box 3 box
 
@@ -107,8 +108,8 @@ ID:
     molecule water tip5p.mol
     create_atoms 0 random 33 34564 NULL mol water 25367 overlap 1.33
 
-    timestep 0.20
-    fix integrate all rigid/nvt/small molecule temp 300.0 300.0 1.0
+    timestep 0.5
+    fix integrate all rigid/nvt/small molecule temp 300.0 300.0 100.0
     reset_timestep 0
     velocity all create 300.0 5463576
 

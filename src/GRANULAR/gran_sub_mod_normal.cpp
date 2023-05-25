@@ -167,7 +167,7 @@ void GranSubModNormalHertzMaterial::coeffs_to_local()
 
 void GranSubModNormalHertzMaterial::mix_coeffs(double* icoeffs, double* jcoeffs)
 {
-  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
+  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs_to_local();

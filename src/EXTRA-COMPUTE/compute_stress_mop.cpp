@@ -51,6 +51,9 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
+  bondflag = 0;
+  angleflag = 0;
+
   // set compute mode and direction of plane(s) for pressure calculation
 
   if (strcmp(arg[3],"x")==0) {
@@ -201,11 +204,13 @@ void ComputeStressMop::init()
     //Compute stress/mop only accounts for pair interactions.
     // issue a warning if any intramolecular potential or Kspace is defined.
 
-    //if (force->bond!=nullptr)
-    //  error->warning(FLERR,"compute stress/mop does not account for bond potentials");
+    if (force->bond!=nullptr) bondflag = 1;
     if (force->angle!=nullptr)
-      if (force->angle->born_matrix_enable == 0)
+      if (force->angle->born_matrix_enable == 0) {
         error->warning(FLERR,"compute stress/mop does not account for angle potentials");
+      } else {
+         angleflag = 1;
+      }
     if (force->dihedral!=nullptr)
       error->warning(FLERR,"compute stress/mop does not account for dihedral potentials");
     if (force->improper!=nullptr)
@@ -241,14 +246,22 @@ void ComputeStressMop::compute_vector()
   MPI_Allreduce(values_local,values_global,nvalues,
                 MPI_DOUBLE,MPI_SUM,world);
 
-  //Compute bond contribution on separate procs
-  compute_bonds();
+  if (bondflag) {
+    //Compute bond contribution on separate procs
+    compute_bonds();
+  } else {
+    for (int i=0; i<nvalues; i++) bond_local[i] = 0.0;
+  }
 
   // sum bond contribution over all procs
   MPI_Allreduce(bond_local,bond_global,nvalues,MPI_DOUBLE,MPI_SUM,world);
 
-  //Compute angle contribution on separate procs
-  compute_angles();
+  if (angleflag) {
+    //Compute angle contribution on separate procs
+    compute_angles();
+  } else {
+    for (int i=0; i<nvalues; i++) angle_local[i] = 0.0;
+  }
 
   // sum angle contribution over all procs
   MPI_Allreduce(angle_local,angle_global,nvalues,MPI_DOUBLE,MPI_SUM,world);

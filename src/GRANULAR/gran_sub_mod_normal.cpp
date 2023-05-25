@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,21 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "gran_sub_mod_normal.h"
-#include "granular_model.h"
 #include "error.h"
+#include "granular_model.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
-using namespace MathConst;
 
-#define PI27SQ 266.47931882941264802866    // 27*PI**2
-#define THREEROOT3 5.19615242270663202362  // 3*sqrt(3)
-#define SIXROOT6 14.69693845669906728801   // 6*sqrt(6)
-#define INVROOT6 0.40824829046386307274    // 1/sqrt(6)
-#define FOURTHIRDS (4.0/3.0)               // 4/3
-#define ONETHIRD (1.0/3.0)                 // 1/3
-#define THREEQUARTERS 0.75                 // 3/4
+using MathConst::MY_2PI;
+using MathConst::MY_PI;
+
+static constexpr double PI27SQ = 266.47931882941264802866;      // 27*PI**2
+static constexpr double THREEROOT3 = 5.19615242270663202362;    // 3*sqrt(3)
+static constexpr double SIXROOT6 = 14.69693845669906728801;     // 6*sqrt(6)
+static constexpr double INVROOT6 = 0.40824829046386307274;      // 1/sqrt(6)
+static constexpr double FOURTHIRDS = (4.0 / 3.0);               // 4/3
+static constexpr double JKRPREFIX = 1.2277228507842888;         // cbrt(3*PI**2/16)
 
 /* ----------------------------------------------------------------------
    Default normal model
@@ -49,15 +49,15 @@ bool GranSubModNormal::touch()
 
 /* ---------------------------------------------------------------------- */
 
-double GranSubModNormal::pulloff_distance(double radi, double radj)
+double GranSubModNormal::pulloff_distance(double /*radi*/, double /*radj*/)
 {
-  //called outside of compute(), do not assume correct geometry defined in contact
-  return radi + radj;
+  // called outside of compute(), do not assume correct geometry defined in contact
+  return 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double GranSubModNormal::calculate_area()
+double GranSubModNormal::calculate_contact_radius()
 {
   return sqrt(gm->dR);
 }
@@ -73,7 +73,10 @@ void GranSubModNormal::set_fncrit()
    No model
 ------------------------------------------------------------------------- */
 
-GranSubModNormalNone::GranSubModNormalNone(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp) {}
+GranSubModNormalNone::GranSubModNormalNone(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormal(gm, lmp)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -86,7 +89,8 @@ double GranSubModNormalNone::calculate_forces()
    Hookean normal force
 ------------------------------------------------------------------------- */
 
-GranSubModNormalHooke::GranSubModNormalHooke(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+GranSubModNormalHooke::GranSubModNormalHooke(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormal(gm, lmp)
 {
   num_coeffs = 2;
 }
@@ -112,10 +116,11 @@ double GranSubModNormalHooke::calculate_forces()
    Hertzian normal force
 ------------------------------------------------------------------------- */
 
-GranSubModNormalHertz::GranSubModNormalHertz(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+GranSubModNormalHertz::GranSubModNormalHertz(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormal(gm, lmp)
 {
   num_coeffs = 2;
-  area_flag = 1;
+  contact_radius_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,18 +137,19 @@ void GranSubModNormalHertz::coeffs_to_local()
 
 double GranSubModNormalHertz::calculate_forces()
 {
-  return k * gm->area * gm->delta;
+  return k * gm->contact_radius * gm->delta;
 }
 
 /* ----------------------------------------------------------------------
    Hertzian normal force with material properties
 ------------------------------------------------------------------------- */
 
-GranSubModNormalHertzMaterial::GranSubModNormalHertzMaterial(GranularModel *gm, LAMMPS *lmp) : GranSubModNormalHertz(gm, lmp)
+GranSubModNormalHertzMaterial::GranSubModNormalHertzMaterial(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormalHertz(gm, lmp)
 {
   material_properties = 1;
   num_coeffs = 3;
-  area_flag = 1;
+  contact_radius_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -164,9 +170,9 @@ void GranSubModNormalHertzMaterial::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubModNormalHertzMaterial::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModNormalHertzMaterial::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
-  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
+  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs_to_local();
@@ -181,7 +187,7 @@ GranSubModNormalDMT::GranSubModNormalDMT(GranularModel *gm, LAMMPS *lmp) : GranS
   material_properties = 1;
   cohesive_flag = 1;
   num_coeffs = 4;
-  area_flag = 1;
+  contact_radius_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -203,9 +209,9 @@ void GranSubModNormalDMT::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubModNormalDMT::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModNormalDMT::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
-  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
+  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs[3] = mix_geom(icoeffs[3], jcoeffs[3]);
@@ -216,8 +222,8 @@ void GranSubModNormalDMT::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 double GranSubModNormalDMT::calculate_forces()
 {
-  Fne = k * gm->area * gm->delta;
-  F_pulloff = 4.0 * MathConst::MY_PI * cohesion * gm->Reff;
+  Fne = k * gm->contact_radius * gm->delta;
+  F_pulloff = 4.0 * MY_PI * cohesion * gm->Reff;
   Fne -= F_pulloff;
   return Fne;
 }
@@ -239,7 +245,7 @@ GranSubModNormalJKR::GranSubModNormalJKR(GranularModel *gm, LAMMPS *lmp) : GranS
   cohesive_flag = 1;
   beyond_contact = 1;
   num_coeffs = 4;
-  area_flag = 1;
+  contact_radius_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -264,9 +270,9 @@ void GranSubModNormalJKR::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubModNormalJKR::mix_coeffs(double* icoeffs, double* jcoeffs)
+void GranSubModNormalJKR::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
-  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0],icoeffs[2], jcoeffs[2]);
+  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
   coeffs[1] = mix_geom(icoeffs[1], jcoeffs[1]);
   coeffs[2] = mix_geom(icoeffs[2], jcoeffs[2]);
   coeffs[3] = mix_geom(icoeffs[3], jcoeffs[3]);
@@ -277,14 +283,13 @@ void GranSubModNormalJKR::mix_coeffs(double* icoeffs, double* jcoeffs)
 
 bool GranSubModNormalJKR::touch()
 {
-  double area_at_pulloff, R2, delta_pulloff, dist_pulloff;
+  double delta_pulloff, dist_pulloff;
   bool touchflag;
 
   if (gm->touch) {
-    R2 = gm->Reff * gm->Reff;
-    area_at_pulloff = cbrt(9.0 * MY_PI * cohesion * R2 / (4.0 * Emix));
-    delta_pulloff = area_at_pulloff * area_at_pulloff / gm->Reff - 2.0 * sqrt(MY_PI * cohesion * area_at_pulloff / Emix);
-    dist_pulloff = gm->radsum - delta_pulloff;
+    // delta_pulloff defined as positive so center-to-center separation is > radsum
+    delta_pulloff = JKRPREFIX * cbrt(gm->Reff * cohesion * cohesion / (Emix * Emix));
+    dist_pulloff = gm->radsum + delta_pulloff;
     touchflag = gm->rsq < (dist_pulloff * dist_pulloff);
   } else {
     touchflag = gm->rsq < (gm->radsum * gm->radsum);
@@ -299,18 +304,17 @@ bool GranSubModNormalJKR::touch()
 
 double GranSubModNormalJKR::pulloff_distance(double radi, double radj)
 {
-  double area_at_pulloff, Reff_tmp;
+  double Reff_tmp;
 
-  Reff_tmp = radi * radj / (radi + radj); // May not be defined
+  Reff_tmp = radi * radj / (radi + radj);    // May not be defined
   if (Reff_tmp <= 0) return 0;
-
-  area_at_pulloff = cbrt(9.0 * MY_PI * cohesion * Reff_tmp * Reff_tmp / (4.0 * Emix));
-  return area_at_pulloff * area_at_pulloff / Reff_tmp - 2.0 * sqrt(MY_PI * cohesion * area_at_pulloff / Emix);
+  // Defined as positive so center-to-center separation is > radsum
+  return JKRPREFIX * cbrt(Reff_tmp * cohesion * cohesion / (Emix * Emix));
 }
 
 /* ---------------------------------------------------------------------- */
 
-double GranSubModNormalJKR::calculate_area()
+double GranSubModNormalJKR::calculate_contact_radius()
 {
   double R2, dR2, t0, t1, t2, t3, t4, t5, t6;
   double sqrt1, sqrt2, sqrt3;
@@ -338,8 +342,9 @@ double GranSubModNormalJKR::calculate_area()
 double GranSubModNormalJKR::calculate_forces()
 {
   double a2;
-  a2 = gm->area * gm->area;
-  Fne = k * gm->area * a2 / gm->Reff - MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * gm->area));
+  a2 = gm->contact_radius * gm->contact_radius;
+  Fne = k * gm->contact_radius * a2 / gm->Reff -
+      MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * gm->contact_radius));
   F_pulloff = 3.0 * MY_PI * cohesion * gm->Reff;
 
   return Fne;

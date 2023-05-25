@@ -65,7 +65,7 @@ Examples
 Description
 """""""""""
 
-.. versionchanged:: TBD
+.. versionchanged:: 28Mar2023
 
 Fix pimd was renamed to fix *pimd/nvt* and fix *pimd/langevin* was added.
 

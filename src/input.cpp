@@ -607,7 +607,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         paren_count = 0;
         i = 0;
 
-        while (var[i] != '\0' && !(var[i] == ')' && paren_count == 0)) {
+        while (var[i] != '\0' && (var[i] != ')' || paren_count != 0)) {
           switch (var[i]) {
           case '(': paren_count++; break;
           case ')': paren_count--; break;

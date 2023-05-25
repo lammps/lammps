@@ -523,6 +523,8 @@ The following options are available.
 These should help to make source and documentation files conforming
 to some the coding style preferences of the LAMMPS developers.
 
+.. _clang-format:
+
 Clang-format support
 --------------------
 

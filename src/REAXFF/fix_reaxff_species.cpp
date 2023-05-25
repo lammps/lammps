@@ -28,11 +28,13 @@
 #include "fix_ave_atom.h"
 #include "force.h"
 #include "group.h"
+#include "input.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "update.h"
+#include "variable.h"
 
 #include "pair_reaxff.h"
 #include "reaxff_defs.h"
@@ -239,7 +241,15 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       // rate limit when deleting molecules
     } else if (strcmp(arg[iarg], "delete_rate_limit") == 0) {
       if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "fix reaxff/species delete_rate_limit", error);
-      delete_Nlimit = utils::numeric(FLERR, arg[iarg+1], false, lmp);
+      delete_Nlimit_varid = -1;
+      if (strncmp(arg[iarg+1],"v_",2) == 0) {
+        delete_Nlimit_varname = &arg[iarg+1][2];
+        delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
+        if (delete_Nlimit_varid < 0)
+          error->all(FLERR,"Fix reaxff/species: Variable name {} does not exist",delete_Nlimit_varname);
+        if (!input->variable->equalstyle(delete_Nlimit_varid))
+          error->all(FLERR,"Fix reaxff/species: Variable {} is not equal-style",delete_Nlimit_varname);
+      } else delete_Nlimit = utils::numeric(FLERR, arg[iarg+1], false, lmp);
       delete_Nsteps = utils::numeric(FLERR, arg[iarg+2], false, lmp);
       iarg += 3;
       // position of molecules
@@ -280,7 +290,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   if (delflag && specieslistflag && masslimitflag)
     error->all(FLERR, "Incompatible combination fix reaxff/species command options");
 
-  if (delete_Nlimit > 0) {
+  if (delete_Nsteps > 0) {
     if (lmp->citeme) lmp->citeme->add(cite_reaxff_species_delete);
     memory->create(delete_Tcount,delete_Nsteps,"reaxff/species:delete_Tcount");
 
@@ -378,6 +388,15 @@ void FixReaxFFSpecies::init()
     f_SPECBOND = dynamic_cast<FixAveAtom *>(modify->add_fix(fixcmd));
     setupflag = 1;
   }
+
+  // check for valid variable name for delete Nlimit keyword
+  if (delete_Nsteps > 0) {
+    delete_Nlimit_varid = input->variable->find(delete_Nlimit_varname.c_str());
+    if (delete_Nlimit_varid < 0)
+      error->all(FLERR,"Fix reaxff/species: Variable name {} does not exist",delete_Nlimit_varname);
+    if (!input->variable->equalstyle(delete_Nlimit_varid))
+      error->all(FLERR,"Fix reaxff/species: Variable {} is not equal-style",delete_Nlimit_varname);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -407,7 +426,7 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
 
   if (ntimestep != nvalid) {
     // push back delete_Tcount on every step
-    if (delete_Nlimit > 0)
+    if (delete_Nsteps > 0)
       for (int i = delete_Nsteps-1; i > 0; i--)
         delete_Tcount[i] = delete_Tcount[i-1];
     return;
@@ -864,9 +883,11 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 {
   int ndeletions;
   int headroom = -1;
-  if (delete_Nlimit > 0) {
+  if (delete_Nsteps > 0) {
     if (delete_Tcount[delete_Nsteps-1] == -1) return;
     ndeletions = delete_Tcount[0] - delete_Tcount[delete_Nsteps-1];
+    if (delete_Nlimit_varid > -1)
+      delete_Nlimit = input->variable->compute_equal(delete_Nlimit_varid);
     headroom = MAX(0, delete_Nlimit - ndeletions);
     if (headroom == 0) return;
   }
@@ -907,7 +928,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
   memory->create(molrange,Nmole,"reaxff/species:molrange");
   for (m = 0; m < Nmole; m++)
     molrange[m] = m + 1;
-  if (delete_Nlimit > 0) {
+  if (delete_Nsteps > 0) {
     // shuffle index when using rate_limit, in case order is biased
     if (comm->me == 0)
       std::shuffle(&molrange[0],&molrange[Nmole], park_rng);
@@ -1041,7 +1062,7 @@ void FixReaxFFSpecies::DeleteSpecies(int Nmole, int Nspec)
 
 
   // push back delete_Tcount on every step
-  if (delete_Nlimit > 0) {
+  if (delete_Nsteps > 0) {
     for (i = delete_Nsteps-1; i > 0; i--)
       delete_Tcount[i] = delete_Tcount[i-1];
     delete_Tcount[0] += this_delete_Tcount;

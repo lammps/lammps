@@ -20,6 +20,8 @@
 #include "kokkos_type.h"
 #include <type_traits>
 
+#include <Kokkos_Sort.hpp>
+
 namespace LAMMPS_NS {
 
 union d_ubuf {
@@ -37,6 +39,11 @@ class AtomVecKokkos : virtual public AtomVec {
  public:
   AtomVecKokkos(class LAMMPS *);
   ~AtomVecKokkos() override;
+
+  using KeyViewType = DAT::t_x_array;
+  using BinOp = BinOp3DLAMMPS<KeyViewType>;
+  virtual void
+    sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) = 0;
 
   virtual void sync(ExecutionSpace space, unsigned int mask) = 0;
   virtual void modified(ExecutionSpace space, unsigned int mask) = 0;
@@ -109,15 +116,17 @@ class AtomVecKokkos : virtual public AtomVec {
     pack_exchange_kokkos(const int &nsend, DAT::tdual_xfloat_2d &buf,
                          DAT::tdual_int_1d k_sendlist,
                          DAT::tdual_int_1d k_copylist,
-                         ExecutionSpace space, int dim, X_FLOAT lo, X_FLOAT hi) = 0;
+                         ExecutionSpace space) = 0;
 
   virtual int
     unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
                            int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
-                           ExecutionSpace space) = 0;
-
+                           ExecutionSpace space,
+                           DAT::tdual_int_1d &k_indices) = 0;
 
   int no_comm_vel_flag,no_border_vel_flag;
+  int unpack_exchange_indices_flag;
+  int size_exchange;
 
  protected:
   HAT::t_x_array h_x;

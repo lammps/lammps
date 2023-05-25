@@ -148,7 +148,8 @@ formulae).  The *specieslist* and *masslimit* keywords cannot both be
 used in the same *reaxff/species* fix.  The *delete_rate_limit*
 keyword can enforce an upper limit on the overall rate of molecule
 deletion.  The number of deletion occurrences is limited to Nlimit
-within an interval of Nsteps timesteps.  When using the
+within an interval of Nsteps timesteps.   Nlimit can be specified with
+an equal-style :doc:`variable <variable>`.  When using the
 *delete_rate_limit* keyword, no deletions are permitted to occur
 within the first Nsteps timesteps of the first run (after reading a
 either a data or restart file).

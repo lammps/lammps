@@ -94,6 +94,8 @@ action compute_ave_sphere_atom_kokkos.cpp compute_ave_sphere_atom.cpp
 action compute_ave_sphere_atom_kokkos.h compute_ave_sphere_atom.h
 action compute_coord_atom_kokkos.cpp
 action compute_coord_atom_kokkos.h
+action compute_erotate_sphere_kokkos.cpp
+action compute_erotate_sphere_kokkos.h
 action compute_orientorder_atom_kokkos.cpp
 action compute_orientorder_atom_kokkos.h
 action compute_temp_deform_kokkos.cpp
@@ -171,6 +173,10 @@ action fix_shardlow_kokkos.cpp fix_shardlow.cpp
 action fix_shardlow_kokkos.h fix_shardlow.h
 action fix_viscous_kokkos.cpp
 action fix_viscous_kokkos.h
+action fix_wall_gran_kokkos.cpp fix_wall_gran.cpp
+action fix_wall_gran_kokkos.h fix_wall_gran.h
+action fix_wall_gran_old.cpp fix_wall_gran.cpp
+action fix_wall_gran_old.h fix_wall_gran.h
 action fix_wall_lj93_kokkos.cpp
 action fix_wall_lj93_kokkos.h
 action fix_wall_reflect_kokkos.cpp

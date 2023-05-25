@@ -1,7 +1,16 @@
+
 #include "dynmat.h"
-#include "math.h"
-#include "version.h"
+
 #include "global.h"
+#include "input.h"
+#include "interpolate.h"
+#include "memory.h"
+#include "version.h"
+#include "zheevd.h"
+
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
 
 /* ----------------------------------------------------------------------------
  * Class DynMat stores the Dynamic Matrix read from the binary file from
@@ -9,6 +18,7 @@
  * ---------------------------------------------------------------------------- */
 DynMat::DynMat(int narg, char **arg)
 {
+   input = NULL;
    attyp = NULL;
    memory = NULL;
    M_inv_sqrt = NULL;
@@ -19,6 +29,8 @@ DynMat::DynMat(int narg, char **arg)
    attyp = NULL;
    basis = NULL;
    flag_reset_gamma = flag_skip = 0;
+   symprec = -1.;
+   int flag_save = 0;
 
    // analyze the command line options
    int iarg = 1;
@@ -29,8 +41,15 @@ DynMat::DynMat(int narg, char **arg)
       } else if (strcmp(arg[iarg], "-r") == 0){
          flag_reset_gamma = 1;
   
+      } else if (strcmp(arg[iarg], "-p") == 0){
+         if (++iarg >= narg) help();
+         else symprec = fabs(atof(arg[iarg]));
+  
       } else if (strcmp(arg[iarg], "-h") == 0){
          help();
+  
+      } else if (strcmp(arg[iarg], "-save") == 0){
+        flag_save = 1;
   
       } else {
          if (binfile) delete []binfile;
@@ -43,6 +62,8 @@ DynMat::DynMat(int narg, char **arg)
    }
  
    ShowVersion();
+   input = new UserInput(flag_save);
+
    // get the binary file name from user input if not found in command line
    char str[MAXLINE];
    if (binfile == NULL) {
@@ -50,7 +71,7 @@ DynMat::DynMat(int narg, char **arg)
       printf("\n");
       do {
          printf("Please input the binary file name from fix_phonon: ");
-         fgets(str,MAXLINE,stdin);
+         input->read_stdin(str);
          ptr = strtok(str, " \n\t\r\f");
       } while (ptr == NULL);
   
@@ -116,7 +137,7 @@ DynMat::DynMat(int narg, char **arg)
    memory->create(DM_q, fftdim,fftdim,"DynMat:DM_q");
  
    // read all dynamical matrix info into DM_all
-   if (fread(DM_all[0], sizeof(doublecomplex), npt*fftdim2, fp) != size_t(npt*fftdim2)){
+   if (fread(DM_all[0], sizeof(doublecomplex), npt*size_t(fftdim2), fp) != npt*size_t(fftdim2)) {
       printf("\nError while reading the DM from file: %s\n", binfile);
       fclose(fp);
       exit(1);
@@ -137,17 +158,17 @@ DynMat::DynMat(int narg, char **arg)
       fclose(fp);
       exit(3);
    }
-   if (fread(basis[0], sizeof(double), fftdim, fp) != fftdim){
+   if (fread(basis[0], sizeof(double), fftdim, fp) != (size_t)fftdim){
       printf("\nError while reading basis info from file: %s\n", binfile);
       fclose(fp);
       exit(3);
    }
-   if (fread(&attyp[0], sizeof(int), nucell, fp) != nucell){
+   if (fread(&attyp[0], sizeof(int), nucell, fp) != (size_t)nucell){
       printf("\nError while reading atom types from file: %s\n", binfile);
       fclose(fp);
       exit(3);
    }
-   if (fread(&M_inv_sqrt[0], sizeof(double), nucell, fp) != nucell){
+   if (fread(&M_inv_sqrt[0], sizeof(double), nucell, fp) != (size_t)nucell){
       printf("\nError while reading atomic masses from file: %s\n", binfile);
       fclose(fp);
       exit(3);
@@ -159,6 +180,7 @@ DynMat::DynMat(int narg, char **arg)
 
    // initialize interpolation
    interpolate = new Interpolate(nx,ny,nz,fftdim2,DM_all);
+   interpolate->input = input;
    if (flag_reset_gamma) interpolate->reset_gamma();
 
    // Enforcing Austic Sum Rule
@@ -217,7 +239,7 @@ void DynMat::writeDMq(double *q)
       printf("\n");
       while ( 1 ){
          printf("Please input the filename to output the DM at selected q: ");
-         fgets(str,MAXLINE,stdin);
+         input->read_stdin(str);
          ptr = strtok(str, " \r\t\n\f");
          if (ptr) break;
       }
@@ -264,9 +286,9 @@ void DynMat::writeDMq(double *q, const double qr, FILE *fp)
 int DynMat::geteigen(double *egv, int flag)
 {
    char jobz, uplo;
-   integer n, lda, lwork, lrwork, *iwork, liwork, info;
+   int n, lda, lwork, lrwork, *iwork, liwork, info;
    doublecomplex *work;
-   doublereal *w = &egv[0], *rwork;
+   double *w = &egv[0], *rwork;
 
    n = fftdim;
    if (flag) jobz = 'V';
@@ -348,7 +370,7 @@ void DynMat::EnforceASR()
    char str[MAXLINE];
    int nasr = 20;
    if (nucell <= 1) nasr = 1;
-   printf("\n"); for (int i = 0; i < 80; ++i) printf("=");
+   printf("\n================================================================================");
 
    // compute and display eigenvalues of Phi at gamma before ASR
    if (nucell > 100){
@@ -356,7 +378,7 @@ void DynMat::EnforceASR()
       fflush(stdout);
    }
 
-   double egvs[fftdim];
+   double *egvs = new double[fftdim];
    for (int i = 0; i < fftdim; ++i)
    for (int j = 0; j < fftdim; ++j) DM_q[i][j] = DM_all[0][i*fftdim+j];
    geteigen(egvs, 0);
@@ -370,11 +392,11 @@ void DynMat::EnforceASR()
  
    // ask for iterations to enforce ASR
    printf("Please input the # of iterations to enforce ASR [%d]: ", nasr);
-   fgets(str,MAXLINE,stdin);
+   input->read_stdin(str);
    char *ptr = strtok(str," \t\n\r\f");
    if (ptr) nasr = atoi(ptr);
    if (nasr < 1){
-      for (int i=0; i<80; i++) printf("="); printf("\n");
+      puts("================================================================================");
       return;
    }
  
@@ -439,9 +461,8 @@ void DynMat::EnforceASR()
       if (i%10 == 9) printf("\n");
       if (i == 99){ printf("...... (%d more skiped)", fftdim-100); break;}
    }
-   printf("\n");
-   for (int i = 0; i < 80; ++i) printf("="); printf("\n\n");
- 
+   delete[] egvs;
+   puts("\n================================================================================\n");
    return;
 }
 
@@ -468,7 +489,7 @@ void DynMat::real2rec()
  
    for (int i = 0; i < 9; ++i) ibasevec[i] *= vol;
  
-   printf("\n"); for (int i = 0; i < 80; ++i) printf("=");
+   printf("\n================================================================================");
    printf("\nBasis vectors of the unit cell in real space:");
    for (int i = 0; i < sysdim; ++i){
       printf("\n     A%d: ", i+1);
@@ -479,8 +500,7 @@ void DynMat::real2rec()
       printf("\n     B%d: ", i+1);
       for (int j = 0; j < sysdim; ++j) printf("%8.4f ", ibasevec[i*3+j]);
    }
-   printf("\n"); for (int i = 0; i < 80; ++i) printf("="); printf("\n");
- 
+   puts("\n================================================================================");
    return;
 }
 
@@ -500,16 +520,17 @@ void DynMat::GaussJordan(int n, double *Mat)
    indxc = new int[n];
    indxr = new int[n];
    ipiv  = new int[n];
- 
+
+   irow = icol = -1;
    for (i = 0; i < n; ++i) ipiv[i] = 0;
    for (i = 0; i < n; ++i){
-      big = 0.;
+      big = 0.0;
       for (j = 0; j < n; ++j){
          if (ipiv[j] != 1){
             for (k = 0; k < n; ++k){
                if (ipiv[k] == 0){
                   idr = j * n + k;
-                  nmjk = abs(Mat[idr]);
+                  nmjk = fabs(Mat[idr]);
                   if (nmjk >= big){
                      big  = nmjk;
                      irow = j;
@@ -602,6 +623,9 @@ void DynMat::help()
    printf("              will also inform the code to skip all q-points that is in the vicinity\n");
    printf("              of the gamma point when evaluating phonon DOS and/or phonon dispersion.\n\n");
    printf("              By default, this is not set; and not expected for uncharged systems.\n\n");
+   printf("  -p prec     To define the precision for symmetry identification with spglib.\n");
+   printf("              By default, 1.e-3.\n\n");
+   printf("  -save       To record user input in `script.inp`, facilitating scripting.\n\n");
    printf("  -h          To print out this help info.\n\n");
    printf("  file        To define the filename that carries the binary dynamical matrice generated\n");
    printf("              by fix-phonon. If not provided, the code will ask for it.\n");
@@ -680,13 +704,13 @@ void DynMat::Define_Conversion_Factor()
  * ---------------------------------------------------------------------------- */
 void DynMat::ShowInfo()
 {
-   printf("\n"); for (int i = 0; i < 80; ++i) printf("="); printf("\n");
+   puts("\n================================================================================");
    printf("Dynamical matrix is read from file: %s\n", binfile);
    printf("The system size in three dimension: %d x %d x %d\n", nx, ny, nz);
    printf("Number of atoms per unit cell     : %d\n", nucell);
    printf("System dimension                  : %d\n", sysdim);
    printf("Boltzmann constant in used units  : %g\n", boltz);
-   for (int i = 0; i < 80; ++i) printf("="); printf("\n");
+   puts("================================================================================");
    return;
 }
 /* --------------------------------------------------------------------*/

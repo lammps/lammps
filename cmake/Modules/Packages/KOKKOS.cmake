@@ -16,8 +16,8 @@ if(Kokkos_ENABLE_OPENMP)
   if(NOT BUILD_OMP)
     message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
   else()
-    # NVHPC does not seem to provide a detectable OpenMP version, but is far beyond version 3.1
-    if((OpenMP_CXX_VERSION VERSION_LESS 3.1) AND NOT (CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC"))
+    # NVHPC/(AMD)Clang does not seem to provide a detectable OpenMP version, but is far beyond version 3.1
+    if((OpenMP_CXX_VERSION VERSION_LESS 3.1) AND NOT ((CMAKE_CXX_COMPILER_ID STREQUAL "NVHPC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")))
       message(FATAL_ERROR "Compiler must support OpenMP 3.1 or later with Kokkos_ENABLE_OPENMP")
     endif()
   endif()
@@ -121,6 +121,11 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp)
 
+# fix wall/gran has been refactored in an incompatible way. Use old version of base class for now
+if(PKG_GRANULAR)
+  list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_wall_gran_old.cpp)
+endif()
+
 if(PKG_KSPACE)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/grid3d_kokkos.cpp
@@ -132,8 +137,10 @@ if(PKG_KSPACE)
     endif()
   elseif(Kokkos_ENABLE_HIP)
     if(NOT (FFT STREQUAL "KISS"))
+      include(DetectHIPInstallation)
+      find_package(hipfft REQUIRED)
       target_compile_definitions(lammps PRIVATE -DFFT_HIPFFT)
-      target_link_libraries(lammps PRIVATE hipfft)
+      target_link_libraries(lammps PRIVATE hip::hipfft)
     endif()
   endif()
 endif()

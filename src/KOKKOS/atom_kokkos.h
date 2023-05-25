@@ -15,6 +15,8 @@
 #include "atom.h"               // IWYU pragma: export
 #include "kokkos_type.h"
 
+#include <Kokkos_Sort.hpp>
+
 #ifndef LMP_ATOM_KOKKOS_H
 #define LMP_ATOM_KOKKOS_H
 
@@ -22,6 +24,8 @@ namespace LAMMPS_NS {
 
 class AtomKokkos : public Atom {
  public:
+  bool sort_classic;
+
   DAT::tdual_tagint_1d k_tag;
   DAT::tdual_int_1d k_type, k_mask;
   DAT::tdual_imageint_1d k_image;
@@ -71,22 +75,53 @@ class AtomKokkos : public Atom {
   ~AtomKokkos() override;
 
   void map_init(int check = 1) override;
+  void map_clear() override;
   void map_set() override;
+  void map_one(tagint, int) override;
   void map_delete() override;
+  int map_find_hash(tagint) override;
 
+  DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_1d k_sametag;
   DAT::tdual_int_1d k_map_array;
-  DAT::tdual_int_scalar k_error_flag;
   dual_hash_type k_map_hash;
+
+  DAT::t_tagint_1d d_tag_sorted;
+  DAT::t_int_1d d_i_sorted;
+
+  typedef Kokkos::DualView<tagint[2], LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_2;
+  typedef tdual_tagint_2::t_dev t_tagint_2;
+  typedef tdual_tagint_2::t_host t_host_tagint_2;
+
+  t_tagint_2 d_tag_min_max;
+  t_host_tagint_2 h_tag_min_max;
+
+  DAT::t_tagint_scalar d_tag_min,d_tag_max;
+  HAT::t_tagint_scalar h_tag_min,h_tag_max;
+
+  using MapKeyViewType = decltype(d_tag_sorted);
+  using BinOpMap = Kokkos::BinOp1D<MapKeyViewType>;
+  Kokkos::BinSort<MapKeyViewType, BinOpMap> Sorter;
 
   class AtomVecKokkos* avecKK;
 
   // map lookup function inlined for efficiency
   // return -1 if no map defined
 
+  inline int map(tagint global) override
+  {
+    if (map_style == 1) {
+      k_map_array.sync_host();
+      return map_array[global];
+    } else if (map_style == 2)
+      return map_find_hash(global);
+    else
+      return -1;
+  };
+
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
-  static int map_kokkos(tagint global, int map_style, DAT::tdual_int_1d k_map_array, dual_hash_type k_map_hash)
+  static int map_kokkos(tagint global, int map_style, const DAT::tdual_int_1d &k_map_array, const dual_hash_type &k_map_hash)
   {
     if (map_style == 1)
       return k_map_array.view<DeviceType>()(global);
@@ -98,16 +133,17 @@ class AtomKokkos : public Atom {
 
   template<class DeviceType>
   KOKKOS_INLINE_FUNCTION
-  static int map_find_hash_kokkos(tagint global, dual_hash_type &k_map_hash)
+  static int map_find_hash_kokkos(tagint global, const dual_hash_type &k_map_hash)
   {
     int local = -1;
-    auto d_map_hash = k_map_hash.view<DeviceType>();
+    auto& d_map_hash = k_map_hash.const_view<DeviceType>();
     auto index = d_map_hash.find(global);
     if (d_map_hash.valid_at(index))
       local = d_map_hash.value_at(index);
     return local;
   }
 
+  void init() override;
   void allocate_type_arrays() override;
   void sync(const ExecutionSpace space, unsigned int mask);
   void modified(const ExecutionSpace space, unsigned int mask);
@@ -117,8 +153,8 @@ class AtomKokkos : public Atom {
   int add_custom(const char *, int, int) override;
   void remove_custom(int, int, int) override;
   virtual void deallocate_topology();
-  void sync_modify(ExecutionSpace, unsigned int, unsigned int) override;
  private:
+  void sort_device();
   class AtomVec *new_avec(const std::string &, int, int &) override;
 };
 

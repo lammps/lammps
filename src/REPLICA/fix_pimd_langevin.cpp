@@ -47,7 +47,8 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
+using MathConst::MY_PI;
+using MathConst::THIRD;
 
 enum { NMPIMD };
 enum { PHYSICAL, NORMAL };
@@ -63,7 +64,7 @@ enum { SINGLE_PROC, MULTI_PROC };
 /* ---------------------------------------------------------------------- */
 
 FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr), c_press(nullptr)
+    Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr), c_press(nullptr)
 {
   restart_global = 1;
   time_integrate = 1;
@@ -114,18 +115,18 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   int seed = -1;
 
-  for (int i = 0; i < 6; i++)
-  {
+  for (int i = 0; i < 6; i++) {
     p_flag[i] = 0;
     p_target[i] = 0.0;
   }
 
   for (int i = 3; i < narg - 1; i += 2) {
     if (strcmp(arg[i], "method") == 0) {
-      if (strcmp(arg[i + 1], "nmpimd") == 0)method = NMPIMD;
-      else error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin");
-    }
-    else if (strcmp(arg[i], "integrator") == 0) {
+      if (strcmp(arg[i + 1], "nmpimd") == 0)
+        method = NMPIMD;
+      else
+        error->universe_all(FLERR, "Unknown method parameter for fix pimd/langevin");
+    } else if (strcmp(arg[i], "integrator") == 0) {
       if (strcmp(arg[i + 1], "obabo") == 0)
         integrator = OBABO;
       else if (strcmp(arg[i + 1], "baoab") == 0)
@@ -157,11 +158,11 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
                             "Unknown ensemble parameter for fix pimd/langevin. Only nve and nvt "
                             "ensembles are supported!");
     } else if (strcmp(arg[i], "fmass") == 0) {
-      fmass = utils::numeric(FLERR, arg[i+1], false, lmp);
+      fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (fmass < 0.0 || fmass > np)
         error->universe_all(FLERR, "Invalid fmass value for fix pimd/langevin");
     } else if (strcmp(arg[i], "sp") == 0) {
-      sp = utils::numeric(FLERR, arg[i+1], false, lmp);
+      sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
       if (sp < 0.0) error->universe_all(FLERR, "Invalid sp value for fix pimd/nvt");
     } else if (strcmp(arg[i], "fmmode") == 0) {
       if (strcmp(arg[i + 1], "physical") == 0)
@@ -204,29 +205,29 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
         error->universe_all(FLERR, "Unknown barostat parameter for fix pimd/langevin");
     } else if (strcmp(arg[i], "iso") == 0) {
       pstyle = ISO;
-      Pext = utils::numeric(FLERR, arg[i+1], false, lmp);
+      Pext = utils::numeric(FLERR, arg[i + 1], false, lmp);
       p_target[0] = p_target[1] = p_target[2] = Pext;
       pdim = 3;
     } else if (strcmp(arg[i], "aniso") == 0) {
       pstyle = ANISO;
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
-      Pext = utils::numeric(FLERR, arg[i+1], false, lmp);
+      Pext = utils::numeric(FLERR, arg[i + 1], false, lmp);
       p_target[0] = p_target[1] = p_target[2] = Pext;
       pdim = 3;
     } else if (strcmp(arg[i], "x") == 0) {
       pstyle = ANISO;
       p_flag[0] = 1;
-      p_target[0] = utils::numeric(FLERR, arg[i+1], false, lmp);
+      p_target[0] = utils::numeric(FLERR, arg[i + 1], false, lmp);
       pdim++;
     } else if (strcmp(arg[i], "y") == 0) {
       pstyle = ANISO;
       p_flag[1] = 1;
-      p_target[1] = utils::numeric(FLERR, arg[i+1], false, lmp);
+      p_target[1] = utils::numeric(FLERR, arg[i + 1], false, lmp);
       pdim++;
     } else if (strcmp(arg[i], "z") == 0) {
       pstyle = ANISO;
       p_flag[2] = 1;
-      p_target[2] = utils::numeric(FLERR, arg[i+1], false, lmp);
+      p_target[2] = utils::numeric(FLERR, arg[i + 1], false, lmp);
       pdim++;
     } else if (strcmp(arg[i], "taup") == 0) {
       tau_p = utils::numeric(FLERR, arg[i + 1], false, lmp);
@@ -245,12 +246,12 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   global_freq = 1;
   vector_flag = 1;
-  if (!pstat_flag)  size_vector = 10;
+  if (!pstat_flag)
+    size_vector = 10;
   else if (pstat_flag) {
-    if (pstyle == ISO){
-    size_vector = 15;
-    }
-    else if (pstyle == ANISO){
+    if (pstyle == ISO) {
+      size_vector = 15;
+    } else if (pstyle == ANISO) {
       size_vector = 17;
     }
   }
@@ -271,7 +272,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
   fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
   fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
-  if (pstat_flag) { p_hydro = (p_target[0]+p_target[1]+p_target[2])/pdim; }
+  if (pstat_flag) { p_hydro = (p_target[0] + p_target[1] + p_target[2]) / pdim; }
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -293,8 +294,10 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
 
-  if (nreplica == 1) mapflag = 0;
-  else mapflag = 1;
+  if (nreplica == 1)
+    mapflag = 0;
+  else
+    mapflag = 1;
 
   int *iroots = new int[nreplica];
   MPI_Group uworldgroup, rootgroup;
@@ -426,7 +429,8 @@ void FixPIMDLangevin::init()
   fbond = _fbond * force->mvv2e;
 
   if ((universe->me == 0) && (universe->uscreen))
-    fprintf(universe->uscreen, "fix pimd/langevin -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
+    fprintf(universe->uscreen,
+            "fix pimd/langevin -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
 
   if (integrator == OBABO) {
     dtf = 0.5 * update->dt * force->ftm2v;
@@ -462,7 +466,6 @@ void FixPIMDLangevin::setup(int vflag)
 {
   int nlocal = atom->nlocal;
   double **x = atom->x;
-  double **v = atom->v;
   imageint *image = atom->image;
   if (mapflag) {
     for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);
@@ -645,10 +648,6 @@ void FixPIMDLangevin::end_of_step()
   compute_p_cv();
   compute_tote();
   if (pstat_flag) compute_totenthalpy();
-
-  if (update->ntimestep % 10000 == 0) {
-    if (universe->me == 0) printf("This is the end of step %lld.\n", update->ntimestep);
-  }
 }
 
 void FixPIMDLangevin::collect_xc()
@@ -729,13 +728,10 @@ void FixPIMDLangevin::qc_step()
       if (barostat == BZP) {
         for (int i = 0; i < nlocal; i++) {
           for (int j = 0; j < 3; j++) {
-            if (p_flag[j])
-            {
+            if (p_flag[j]) {
               x[i][j] = expq[j] * x[i][j] + (expq[j] - expp[j]) / 2. / vw[j] * v[i][j];
               v[i][j] = expp[j] * v[i][j];
-            }
-            else
-            {
+            } else {
               x[i][j] += dtv * v[i][j];
             }
           }
@@ -849,10 +845,9 @@ void FixPIMDLangevin::press_v_step()
   } else if (pstyle == ANISO) {
     compute_stress_tensor();
     for (int ii = 0; ii < 3; ii++) {
-      if (p_flag[ii])
-      {
-        vw[ii] +=
-            dtv * (volume * np * (stress_tensor[ii] - p_hydro) / force->nktv2p + Vcoeff / beta_np) / W;
+      if (p_flag[ii]) {
+        vw[ii] += dtv *
+            (volume * np * (stress_tensor[ii] - p_hydro) / force->nktv2p + Vcoeff / beta_np) / W;
         if (universe->iworld == 0) {
           double dvw_proc = 0.0, dvw = 0.0;
           for (int i = 0; i < nlocal; i++) {
@@ -880,10 +875,8 @@ void FixPIMDLangevin::press_o_step()
     MPI_Bcast(&vw[0], 1, MPI_DOUBLE, 0, universe->uworld);
   } else if (pstyle == ANISO) {
     if (universe->me == 0) {
-      for (int ii=0; ii<3; ii++)
-      {
-        if (p_flag[ii])
-        {
+      for (int ii = 0; ii < 3; ii++) {
+        if (p_flag[ii]) {
           r1 = random->gaussian();
           vw[ii] = c1 * vw[ii] + c2 * sqrt(1.0 / W / beta_np) * r1;
         }
@@ -1160,9 +1153,9 @@ void FixPIMDLangevin::inter_replica_comm(double **ptr)
       m++;
     }
     MPI_Allgather(&m, 1, MPI_INT, counts, 1, MPI_INT, universe->uworld);
-    for (i = 0; i < nreplica; i++) { counts[i] *= 3; }
+    for (i = 0; i < nreplica; i++) counts[i] *= 3;
     displacements[0] = 0;
-    for (i = 0; i < nreplica - 1; i++) { displacements[i + 1] = displacements[i] + counts[i]; }
+    for (i = 0; i < nreplica - 1; i++) displacements[i + 1] = displacements[i] + counts[i];
     MPI_Allgatherv(bufsorted[0], 3 * m, MPI_DOUBLE, bufsortedall[0], counts, displacements,
                    MPI_DOUBLE, universe->uworld);
   } else if (cmode == MULTI_PROC) {
@@ -1176,11 +1169,11 @@ void FixPIMDLangevin::inter_replica_comm(double **ptr)
     }
     MPI_Gather(&m, 1, MPI_INT, counts, 1, MPI_INT, 0, world);
     displacements[0] = 0;
-    for (i = 0; i < nprocs - 1; i++) { displacements[i + 1] = displacements[i] + counts[i]; }
+    for (i = 0; i < nprocs - 1; i++) displacements[i + 1] = displacements[i] + counts[i];
     MPI_Gatherv(tagsend, m, MPI_LMP_TAGINT, tagsendall, counts, displacements, MPI_LMP_TAGINT, 0,
                 world);
-    for (i = 0; i < nprocs; i++) { counts[i] *= 3; }
-    for (i = 0; i < nprocs - 1; i++) { displacements[i + 1] = displacements[i] + counts[i]; }
+    for (i = 0; i < nprocs; i++) counts[i] *= 3;
+    for (i = 0; i < nprocs - 1; i++) displacements[i + 1] = displacements[i] + counts[i];
     MPI_Gatherv(bufsend[0], 3 * m, MPI_DOUBLE, bufsendall[0], counts, displacements, MPI_DOUBLE, 0,
                 world);
     for (int iplan = 0; iplan < sizeplan; iplan++) {
@@ -1208,15 +1201,15 @@ void FixPIMDLangevin::inter_replica_comm(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::remove_com_motion(){
-  if(universe->iworld == 0)
-  {
-  double **v = atom->v;
-  int *mask = atom->mask;
+void FixPIMDLangevin::remove_com_motion()
+{
+  if (universe->iworld == 0) {
+    double **v = atom->v;
+    int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    if (dynamic)  masstotal = group->mass(igroup);
+    if (dynamic) masstotal = group->mass(igroup);
     double vcm[3];
-    group->vcm(igroup,masstotal,vcm);
+    group->vcm(igroup, masstotal, vcm);
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         v[i][0] -= vcm[0];
@@ -1377,7 +1370,8 @@ void FixPIMDLangevin::compute_t_vir()
 void FixPIMDLangevin::compute_p_prim()
 {
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  p_prim = atom->natoms * np * force->boltz * temp * inv_volume - 1.0 / 1.5 * inv_volume * total_spring_energy;
+  p_prim = atom->natoms * np * force->boltz * temp * inv_volume -
+      1.0 / 1.5 * inv_volume * total_spring_energy;
   p_prim *= force->nktv2p;
 }
 
@@ -1420,14 +1414,14 @@ void FixPIMDLangevin::write_restart(FILE *fp)
   int nsize = size_restart_global();
 
   double *list;
-  memory->create(list,nsize,"FixPIMDLangevin:list");
+  memory->create(list, nsize, "FixPIMDLangevin:list");
 
   pack_restart_data(list);
 
   if (comm->me == 0) {
     int size = nsize * sizeof(double);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(double),nsize,fp);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list, sizeof(double), nsize, fp);
   }
 
   memory->destroy(list);
@@ -1446,7 +1440,7 @@ int FixPIMDLangevin::size_restart_global()
 int FixPIMDLangevin::pack_restart_data(double *list)
 {
   int n = 0;
-  for (int i=0; i<6; i++) { list[n++] = vw[i]; }
+  for (int i = 0; i < 6; i++) list[n++] = vw[i];
   return n;
 }
 
@@ -1456,7 +1450,7 @@ void FixPIMDLangevin::restart(char *buf)
 {
   int n = 0;
   auto list = (double *) buf;
-  for (int i=0; i<6; i++) { vw[i] = list[n++]; }
+  for (int i = 0; i < 6; i++) vw[i] = list[n++];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1475,7 +1469,7 @@ double FixPIMDLangevin::compute_vector(int n)
   if (n == 9) return p_cv;
 
   if (pstat_flag) {
-        volume = domain->xprd * domain->yprd * domain->zprd;
+    volume = domain->xprd * domain->yprd * domain->zprd;
     if (pstyle == ISO) {
       if (n == 10) return vw[0];
       if (barostat == BZP) {
@@ -1483,21 +1477,15 @@ double FixPIMDLangevin::compute_vector(int n)
       } else if (barostat == MTTK) {
         if (n == 11) return 1.5 * W * vw[0] * vw[0];
       }
-      if (n == 12) {
-        return np * Pext * volume / force->nktv2p;
-      }
-      if (n == 13) {
-        return -Vcoeff * np * kBT * log(volume);
-      }
+      if (n == 12) { return np * Pext * volume / force->nktv2p; }
+      if (n == 13) { return -Vcoeff * np * kBT * log(volume); }
       if (n == 14) return totenthalpy;
     } else if (pstyle == ANISO) {
       if (n == 10) return vw[0];
       if (n == 11) return vw[1];
       if (n == 12) return vw[2];
       if (n == 13) return 0.5 * W * (vw[0] * vw[0] + vw[1] * vw[1] + vw[2] * vw[2]);
-      if (n == 14) {
-        return np * Pext * volume / force->nktv2p;
-      }
+      if (n == 14) { return np * Pext * volume / force->nktv2p; }
       if (n == 15) {
         volume = domain->xprd * domain->yprd * domain->zprd;
         return -Vcoeff * np * kBT * log(volume);

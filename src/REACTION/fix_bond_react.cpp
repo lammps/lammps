@@ -1358,7 +1358,7 @@ void FixBondReact::superimpose_algorithm()
 
 
       int hang_catch = 0;
-      while (!(status == ACCEPT || status == REJECT)) {
+      while (status != ACCEPT && status != REJECT) {
 
         for (int i = 0; i < max_natoms; i++) {
           pioneers[i] = 0;
@@ -4176,7 +4176,7 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       tmp[3] = 182.0;
       rv = sscanf(line,"%*s %s %s %s %s %lg %lg %lg %lg",strargs[0],strargs[1],
              strargs[2],strargs[3],&tmp[0],&tmp[1],&tmp[2],&tmp[3]);
-      if (!(rv == 6 || rv == 8)) error->one(FLERR, "Dihedral constraint is incorrectly formatted");
+      if (rv != 6 && rv != 8) error->one(FLERR, "Dihedral constraint is incorrectly formatted");
       readID(strargs[0], i, myrxn, 0);
       readID(strargs[1], i, myrxn, 1);
       readID(strargs[2], i, myrxn, 2);
@@ -4198,7 +4198,7 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
       constraints[i][myrxn].type = RMSD;
       strcpy(strargs[0],"0");
       rv = sscanf(line,"%*s %lg %s",&tmp[0],strargs[0]);
-      if (!(rv == 1 || rv == 2)) error->one(FLERR, "RMSD constraint is incorrectly formatted");
+      if (rv != 1 && rv != 2) error->one(FLERR, "RMSD constraint is incorrectly formatted");
       constraints[i][myrxn].par[0] = tmp[0]; // RMSDmax
       constraints[i][myrxn].id[0] = -1; // optional molecule fragment
       if (isalpha(strargs[0][0])) {

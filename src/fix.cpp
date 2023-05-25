@@ -102,15 +102,15 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   vflag_atom = cvflag_atom = 0;
   centroidstressflag = CENTROID_SAME;
 
-  // KOKKOS per-fix data masks
+  // KOKKOS package
 
   execution_space = Host;
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
-  kokkosable = 0;
-  forward_comm_device = 0;
-  copymode = 0;
+  kokkosable = copymode = 0;
+  forward_comm_device = exchange_comm_device = sort_device = 0;
+  fuse_integrate_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -145,13 +145,13 @@ void Fix::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       thermo_energy = utils::logical(FLERR,arg[iarg+1],false,lmp);
       if (thermo_energy && !energy_global_flag && !energy_peratom_flag)
-          error->all(FLERR,"Illegal fix_modify command");
+        error->all(FLERR,"Fix {} {} does not support fix_modify energy command", id, style);
       iarg += 2;
     } else if (strcmp(arg[iarg],"virial") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       thermo_virial = utils::logical(FLERR,arg[iarg+1],false,lmp);
       if (thermo_virial && !virial_global_flag && !virial_peratom_flag)
-        error->all(FLERR,"Illegal fix_modify command");
+        error->all(FLERR,"Fix {} {} does not support fix_modify virial command", id, style);
       iarg += 2;
     } else if (strcmp(arg[iarg],"respa") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");

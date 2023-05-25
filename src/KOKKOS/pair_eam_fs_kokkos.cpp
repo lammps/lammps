@@ -920,19 +920,14 @@ void PairEAMFSKokkos<DeviceType>::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // ensure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+    error->all(FLERR, "Number of element to type mappings does not match number of atom types");
 
   // read EAM Finnis-Sinclair file
 
   if (fs) {
-    for (i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
-    delete [] fs->elements;
-    delete [] fs->mass;
+    for (i = 0; i < fs->nelements; i++) delete[] fs->elements[i];
+    delete[] fs->elements;
+    delete[] fs->mass;
     memory->destroy(fs->frho);
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);

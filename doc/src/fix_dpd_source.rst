@@ -18,17 +18,20 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * edpd/source or tdpd/source = style name of this fix command
 * index (only specified for tdpd/source) = index of chemical species (1 to Nspecies)
-* keyword = *sphere* or *cuboid*
+* keyword = *sphere* or *cuboid* or *region*
 
   .. parsed-literal::
 
-       *sphere* values = cx,cy,cz,radius,source
+       *sphere* args = cx cy cz radius source
          cx,cy,cz = x,y,z center of spherical domain (distance units)
          radius = radius of a spherical domain (distance units)
          source = heat source or concentration source (flux units, see below)
-       *cuboid* values = cx,cy,cz,dLx,dLy,dLz,source
-         cx,cy,cz = x,y,z lower left corner of a cuboid domain (distance units)
+       *cuboid* values = cx cy cz dLx dLy dLz source
+         cx,cy,cz = x,y,z center of a cuboid domain (distance units)
          dLx,dLy,dLz = x,y,z side length of a cuboid domain (distance units)
+         source = heat source or concentration source (flux units, see below)
+       *region* values = region-ID source
+         region = ID of region for heat or concentration source
          source = heat source or concentration source (flux units, see below)
 
 Examples
@@ -40,6 +43,7 @@ Examples
    fix 1 all edpd/source cuboid 0.0 0.0 0.0 20.0 10.0 10.0 -0.01
    fix 1 all tdpd/source 1 sphere 5.0 0.0 0.0 5.0 0.01
    fix 1 all tdpd/source 2 cuboid 0.0 0.0 0.0 20.0 10.0 10.0 0.01
+   fix 1 all tdpd/source 1 region lower -0.01
 
 Description
 """""""""""
@@ -57,37 +61,50 @@ heat conduction with a source term (see Fig.12 in :ref:`(Li2014) <Li2014b>`)
 or diffusion with a source term (see Fig.1 in :ref:`(Li2015) <Li2015b>`), as
 an analog of a periodic Poiseuille flow problem.
 
-If the *sphere* keyword is used, the *cx,cy,cz,radius* defines a
-spherical domain to apply the source flux to.
+.. deprecated:: TBD
 
-If the *cuboid* keyword is used, the *cx,cy,cz,dLx,dLy,dLz* defines a
-cuboid domain to apply the source flux to.
+   The *sphere* and *cuboid* keywords will be removed in a future version
+   of LAMMPS.  The same functionality and more can be achieved with a region.
+
+If the *sphere* keyword is used, the *cx, cy, cz, radius* values define
+a spherical domain to apply the source flux to.
+
+If the *cuboid* keyword is used, the *cx, cy, cz, dLx, dLy, dLz* define
+a cuboid domain to apply the source flux to.
+
+If the *region* keyword is used, the *region-ID* selects which
+:doc:`region <region>` to apply the source flux to.
 
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to this fix.  No global or per-atom quantities are stored
-by this fix for access by various :doc:`output commands <Howto_output>`.
-No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+No information of these fixes is written to :doc:`binary restart files
+<restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
+relevant to these fixes.  No global or per-atom quantities are stored by
+these fixes for access by various :doc:`output commands <Howto_output>`.
+No parameter of these fixes can be used with the *start/stop* keywords
+of the :doc:`run <run>` command.  These fixes are not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the DPD-MESO package. It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
+These fixes are part of the DPD-MESO package.  They are only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-Fix *edpd/source* must be used with the :doc:`pair_style edpd <pair_mesodpd>` command.  Fix *tdpd/source* must be used with the
+Fix *edpd/source* must be used with the :doc:`pair_style edpd
+<pair_mesodpd>` command.  Fix *tdpd/source* must be used with the
 :doc:`pair_style tdpd <pair_mesodpd>` command.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_style edpd <pair_mesodpd>`, :doc:`pair_style tdpd <pair_mesodpd>`,
-:doc:`compute edpd/temp/atom <compute_edpd_temp_atom>`, :doc:`compute tdpd/cc/atom <compute_tdpd_cc_atom>`
+:doc:`compute edpd/temp/atom <compute_edpd_temp_atom>`,
+:doc:`compute tdpd/cc/atom <compute_tdpd_cc_atom>`
 
 Default
 """""""

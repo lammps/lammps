@@ -49,13 +49,6 @@ class FixFreezeKokkos : public FixFreeze {
       values[2] += rhs.values[2];
       return *this;
     }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile OriginalForce &rhs) volatile {
-      values[0] += rhs.values[0];
-      values[1] += rhs.values[1];
-      values[2] += rhs.values[2];
-    }
   };
 
   FixFreezeKokkos(class LAMMPS *, int, char **);

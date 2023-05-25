@@ -44,7 +44,7 @@ enum { DEFAULT, TERSE, VERBOSE };
 
 /* ---------------------------------------------------------------------- */
 
-NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}
+NEB::NEB(LAMMPS *lmp) : Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr) {}
 
 /* ----------------------------------------------------------------------
    internal NEB constructor, called from TAD
@@ -52,7 +52,8 @@ NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in, int n2steps_in, int nevery_in,
          double *buf_init, double *buf_final) :
-    Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr)
+    Command(lmp),
+    fp(nullptr), all(nullptr), rdist(nullptr)
 {
   double delx, dely, delz;
 
@@ -170,14 +171,14 @@ void NEB::command(int narg, char **arg)
     } else if (strcmp(arg[iarg], "verbosity") == 0) {
       if (iarg + 2 > narg)
         error->universe_all(FLERR, "Illegal NEB verbosity command: missing arguments");
-      if (strcmp(arg[iarg+1], "verbose") == 0)
+      if (strcmp(arg[iarg + 1], "verbose") == 0)
         print_mode = VERBOSE;
-      else if (strcmp(arg[iarg+1], "default") == 0)
+      else if (strcmp(arg[iarg + 1], "default") == 0)
         print_mode = DEFAULT;
-      else if (strcmp(arg[iarg+1], "terse") == 0)
+      else if (strcmp(arg[iarg + 1], "terse") == 0)
         print_mode = TERSE;
       else
-        error->universe_all(FLERR, fmt::format("Unknown NEB verbosity option {}", arg[iarg+1]));
+        error->universe_all(FLERR, fmt::format("Unknown NEB verbosity option {}", arg[iarg + 1]));
       iarg += 2;
     } else
       error->universe_all(FLERR, fmt::format("Unknown NEB command keyword: {}", arg[iarg]));

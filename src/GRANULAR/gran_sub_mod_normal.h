@@ -99,6 +99,8 @@ class GranSubModNormalHertzMaterial : public GranSubModNormalHertz {
   GranSubModNormalHertzMaterial(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
+ private:
+  int mixed_coefficients;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -113,6 +115,7 @@ class GranSubModNormalDMT : public GranSubModNormal {
  protected:
   double k, cohesion;
   double F_pulloff, Fne;
+  int mixed_coefficients;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -130,6 +133,7 @@ class GranSubModNormalJKR : public GranSubModNormal {
  protected:
   double k, cohesion;
   double Emix, F_pulloff, Fne;
+  int mixed_coefficients;
 };
 
 }    // namespace Granular_NS

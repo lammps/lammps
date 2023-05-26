@@ -29,9 +29,17 @@ Install LAMMPS:
 
 ### Kokkos install
 
-Make sure you install cupy properly!
+Use same Python dependencies as above, with some extra changes:
 
-    python -m pip cupy
+1. Make sure you install cupy properly! E.g. 
+
+    python -m pip install cupy-cuda12x
+
+2. Install JAX for GPU/CUDA:
+
+    python -m pip install --trusted-host storage.googleapis.com --upgrade "jax[cuda12_local]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
+
+3. Install cudNN: https://developer.nvidia.com/cudnn
 
 Install LAMMPS. Take care to change `Kokkos_ARCH_*` flag:
 

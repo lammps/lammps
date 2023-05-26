@@ -6,6 +6,13 @@ import jax.numpy as jnp
 from jax import jit
 from functools import partial
 import cupy
+import os
+
+# Required else get `jaxlib.xla_extension.XlaRuntimeError: RESOURCE_EXHAUSTED: Out of memory`
+# Does not fix GPU problem with larger num. atoms.
+#os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"]="false"
+#os.environ["XLA_PYTHON_CLIENT_MEM_FRACTION"]=".XX"
+#os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"]="platform"
 
 @jax.jit
 def lj_potential(epsilon, sigma, rij):

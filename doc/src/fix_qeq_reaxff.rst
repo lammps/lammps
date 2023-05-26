@@ -133,8 +133,7 @@ vector may only have components in non-periodic directions. Equal-style
 variables can be used for electric field vector components without any further
 settings. Atom-style variables can be used for spatially-varying electric field
 vector components, but the resulting electric potential must be specified
-as an atom-style variable using the (new) *potential* keyword for 
-`fix efield`.
+as an atom-style variable using the *potential* keyword for `fix efield`.
 
 Related commands
 """"""""""""""""

@@ -1111,9 +1111,8 @@ void FixQEqReaxFF::get_chi_field()
   const double factor = -1.0/qe2f;
 
 
-  if (efield->varflag != FixEfield::CONSTANT) {
+  if (efield->varflag != FixEfield::CONSTANT)
     efield->update_efield_variables();
-  }
 
   // atom selection is for the group of fix efield
 

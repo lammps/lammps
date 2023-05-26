@@ -346,6 +346,16 @@ cdef class MLIAPDataPy:
             return None
         return create_array(self.data.dev, self.data.rij, [self.npairs,3],False)
 
+    @property
+    def rij_max(self):
+        if self.data.rij is NULL:
+            return None
+        return create_array(self.data.dev, self.data.rij, [self.nneigh_max,3], False)
+
+    @property
+    def nneigh_max(self):
+        return self.data.nneigh_max
+
     @write_only_property
     def graddesc(self, value):
         if self.data.graddesc is NULL:

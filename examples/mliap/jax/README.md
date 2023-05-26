@@ -54,11 +54,9 @@ Run example:
 
     mpirun -np 1 lmp -k on g 1 -sf kk -pk kokkos newton on -in in.run
 
-### Wrapping JAX code
+### Deploying JAX models on CPU
 
-Take inspiration from the `FitSNAP` ML-IAP wrapper: https://github.com/rohskopf/FitSNAP/blob/mliap-unified/fitsnap3lib/tools/write_unified.py
-
-First define JAX model in `deploy_script.py`, which will wrap model with `write_unified`.
+Use `deploy_script.py`, which will wrap model with `write_unified_jax`.
 
     python deploy_script.py
 
@@ -67,3 +65,15 @@ This creates `.pkl` file to be loaded by LAMMPS ML-IAP Unified.
 Run LAMMPS with the model:
 
     mpirun -np P lmp -in in.run
+
+### Deploying JAX models in Kokkos
+
+Use `deploy_script_kokkos.py`, which will wrap model with `write_unified_jax_kokkos`.
+
+    python deploy_script_kokkos.py
+
+This creates `.pkl` file to be loaded by LAMMPS ML-IAP Unified.
+
+Run LAMMPS with the model:
+
+    mpirun -np 1 lmp -k on g 1 -sf kk -pk kokkos newton on -in in.run

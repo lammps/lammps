@@ -276,7 +276,8 @@ void Output::setup(int memflag)
         auto  nextrestart = static_cast<bigint>
           (input->variable->compute_equal(ivar_restart_single));
         if (nextrestart <= ntimestep)
-          error->all(FLERR,"Restart variable returned a bad timestep");
+          error->all(FLERR,"Restart variable returned a bad next timestep: {} vs {}",
+                     nextrestart, ntimestep);
         next_restart_single = nextrestart;
       }
     } else next_restart_single = update->laststep + 1;
@@ -289,7 +290,8 @@ void Output::setup(int memflag)
         auto  nextrestart = static_cast<bigint>
           (input->variable->compute_equal(ivar_restart_double));
         if (nextrestart <= ntimestep)
-          error->all(FLERR,"Restart variable returned a bad timestep");
+          error->all(FLERR,"Restart variable returned a bad next timestep: {} vs {}",
+                     nextrestart, ntimestep);
         next_restart_double = nextrestart;
       }
     } else next_restart_double = update->laststep + 1;
@@ -401,7 +403,8 @@ void Output::write(bigint ntimestep)
         auto  nextrestart = static_cast<bigint>
           (input->variable->compute_equal(ivar_restart_single));
         if (nextrestart <= ntimestep)
-          error->all(FLERR,"Restart variable returned a bad timestep");
+          error->all(FLERR,"Restart variable returned a bad next timestep: {} vs {}",
+                     nextrestart, ntimestep);
         next_restart_single = nextrestart;
         modify->addstep_compute(next_restart_single);
       }
@@ -424,7 +427,8 @@ void Output::write(bigint ntimestep)
         auto  nextrestart = static_cast<bigint>
           (input->variable->compute_equal(ivar_restart_double));
         if (nextrestart <= ntimestep)
-          error->all(FLERR,"Restart variable returned a bad timestep");
+          error->all(FLERR,"Restart variable returned a bad next timestep: {} <= {}",
+                     nextrestart, ntimestep);
         next_restart_double = nextrestart;
         modify->addstep_compute(next_restart_double);
       }
@@ -647,7 +651,8 @@ void Output::reset_timestep(bigint ntimestep)
       auto  nextrestart = static_cast<bigint>
         (input->variable->compute_equal(ivar_restart_single));
       if (nextrestart < ntimestep)
-        error->all(FLERR,"Restart variable returned a bad timestep");
+        error->all(FLERR,"Restart variable returned a bad next timestep: {} <= {}",
+                   nextrestart, ntimestep);
       update->ntimestep++;
       next_restart_single = nextrestart;
       modify->addstep_compute(next_restart_single);
@@ -666,7 +671,8 @@ void Output::reset_timestep(bigint ntimestep)
       auto  nextrestart = static_cast<bigint>
         (input->variable->compute_equal(ivar_restart_double));
       if (nextrestart < ntimestep)
-        error->all(FLERR,"Restart variable returned a bad timestep");
+        error->all(FLERR,"Restart variable returned a bad next timestep: {} <= {}",
+                   nextrestart, ntimestep);
       update->ntimestep++;
       next_restart_double = nextrestart;
       modify->addstep_compute(next_restart_double);

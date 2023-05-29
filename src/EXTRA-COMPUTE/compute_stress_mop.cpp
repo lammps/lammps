@@ -74,6 +74,18 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
     pos = 0.5*(domain->boxlo[dir]+domain->boxhi[dir]);
   } else pos = utils::numeric(FLERR,arg[4],false,lmp);
 
+  // plane inside the box
+  if (pos >domain->boxhi[dir] || pos <domain->boxlo[dir]) {
+    error->warning(FLERR,"The specified initial plane lies outside of the simulation box");
+    double dx[3] {0};
+    dx[dir] = pos - 0.5*(domain->boxhi[dir] + domain->boxlo[dir]);
+    domain->minimum_image(dx[0], dx[1], dx[2]);
+    pos = 0.5*(domain->boxhi[dir] + domain->boxlo[dir]) + dx[dir];
+
+    if (pos >domain->boxhi[dir] || pos <domain->boxlo[dir])
+      error->all(FLERR, "Plane for compute stress/mop is out of bounds");
+  }
+     
   if (pos < (domain->boxlo[dir]+domain->prd_half[dir])) {
     pos1 = pos + domain->prd[dir];
   } else {
@@ -117,10 +129,6 @@ ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
   // orthogonal simulation box
   if (domain->triclinic != 0)
     error->all(FLERR, "Compute stress/mop incompatible with triclinic simulation box");
-  // plane inside the box
-  if (pos >domain->boxhi[dir] || pos <domain->boxlo[dir])
-    error->all(FLERR, "Plane for compute stress/mop is out of bounds");
-
 
   // Initialize some variables
 

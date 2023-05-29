@@ -692,7 +692,7 @@ void ComputeStressMop::compute_angles()
       // compute the cos(theta) of the angle
       r1 = sqrt(dx_left[0]*dx_left[0] + dx_left[1]*dx_left[1] + dx_left[2]*dx_left[2]);
       r2 = sqrt(dx_right[0]*dx_right[0] + dx_right[1]*dx_right[1] + dx_right[2]*dx_right[2]);
-      cos_theta = (dx_right[0]*dx_left[0] + dx_right[1]*dx_left[1] + dx_right[2]*dx_left[2])/(r1*r2);
+      cos_theta = -(dx_right[0]*dx_left[0] + dx_right[1]*dx_left[1] + dx_right[2]*dx_left[2])/(r1*r2);
 
       if (cos_theta >  1.0) cos_theta = 1.0;
       if (cos_theta < -1.0) cos_theta = -1.0;

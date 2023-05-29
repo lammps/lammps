@@ -703,18 +703,18 @@ void ComputeStressMop::compute_angles()
       if (right_cross && !left_cross)
       {
         double sgn = copysign(1.0, x_angle_right[dir] - pos);
-        dcos_theta[0] = sgn*(dx_right[0]*cos_theta/r2 - dx_left[0]/r1)/r2;
-        dcos_theta[1] = sgn*(dx_right[1]*cos_theta/r2 - dx_left[1]/r1)/r2;
-        dcos_theta[2] = sgn*(dx_right[2]*cos_theta/r2 - dx_left[2]/r1)/r2;
+        dcos_theta[0] = sgn*(dx_right[0]*cos_theta/r2 + dx_left[0]/r1)/r2;
+        dcos_theta[1] = sgn*(dx_right[1]*cos_theta/r2 + dx_left[1]/r1)/r2;
+        dcos_theta[2] = sgn*(dx_right[2]*cos_theta/r2 + dx_left[2]/r1)/r2;
       }
 
       // only left bond crossing the plane
       if (!right_cross && left_cross)
       {
         double sgn = copysign(1.0, x_angle_left[dir] - pos);
-        dcos_theta[0] = -sgn*(dx_left[0]*cos_theta/r1 - dx_right[0]/r2)/r1;
-        dcos_theta[1] = -sgn*(dx_left[1]*cos_theta/r1 - dx_right[1]/r2)/r1;
-        dcos_theta[2] = -sgn*(dx_left[2]*cos_theta/r1 - dx_right[2]/r2)/r1;
+        dcos_theta[0] = -sgn*(dx_left[0]*cos_theta/r1 + dx_right[0]/r2)/r1;
+        dcos_theta[1] = -sgn*(dx_left[1]*cos_theta/r1 + dx_right[1]/r2)/r1;
+        dcos_theta[2] = -sgn*(dx_left[2]*cos_theta/r1 + dx_right[2]/r2)/r1;
       }
 
       // both bonds crossing the plane
@@ -722,14 +722,14 @@ void ComputeStressMop::compute_angles()
       {
         // due to right bond
         double sgn = copysign(1.0, x_angle_middle[dir] - pos);
-        dcos_theta[0] = -sgn*(dx_right[0]*cos_theta/r2 - dx_left[0]/r1)/r2;
-        dcos_theta[1] = -sgn*(dx_right[1]*cos_theta/r2 - dx_left[1]/r1)/r2;
-        dcos_theta[2] = -sgn*(dx_right[2]*cos_theta/r2 - dx_left[2]/r1)/r2;
+        dcos_theta[0] = -sgn*(dx_right[0]*cos_theta/r2 + dx_left[0]/r1)/r2;
+        dcos_theta[1] = -sgn*(dx_right[1]*cos_theta/r2 + dx_left[1]/r1)/r2;
+        dcos_theta[2] = -sgn*(dx_right[2]*cos_theta/r2 + dx_left[2]/r1)/r2;
 
         // due to left bond
-        dcos_theta[0] += sgn*(dx_left[0]*cos_theta/r1 - dx_right[0]/r2)/r1;
-        dcos_theta[1] += sgn*(dx_left[1]*cos_theta/r1 - dx_right[1]/r2)/r1;
-        dcos_theta[2] += sgn*(dx_left[2]*cos_theta/r1 - dx_right[2]/r2)/r1;
+        dcos_theta[0] += sgn*(dx_left[0]*cos_theta/r1 + dx_right[0]/r2)/r1;
+        dcos_theta[1] += sgn*(dx_left[1]*cos_theta/r1 + dx_right[1]/r2)/r1;
+        dcos_theta[2] += sgn*(dx_left[2]*cos_theta/r1 + dx_right[2]/r2)/r1;
       }
 
       // final contribution of the given angle term

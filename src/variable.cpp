@@ -4068,12 +4068,16 @@ int Variable::special_function(char *word, char *contents, Tree **tree, Tree **t
 
     std::string contents_copy(contents);
     auto pos = contents_copy.find_first_of(',');
-    if (pos == std::string::npos)
-      if (strcmp(word,"label2type") == 0)
+    if (pos == std::string::npos) {
+      if (strcmp(word,"label2type") == 0) {
         print_var_error(FLERR, fmt::format("Invalid label2type({}) function in variable formula",
                                            contents_copy), ivar);
-      else print_var_error(FLERR, fmt::format("Invalid is_typelabel({}) function in variable formula",
-                                              contents_copy), ivar);
+      } else {
+        print_var_error(FLERR, fmt::format("Invalid is_typelabel({}) function in variable formula",
+                                           contents_copy), ivar);
+      }
+    }
+
     std::string typestr = contents_copy.substr(pos+1);
     std::string kind = contents_copy.substr(0, pos);
 
